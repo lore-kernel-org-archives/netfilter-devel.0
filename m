@@ -1,16 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ECN target bug report
-Date: Tue, 10 Dec 2002 00:02:41 +0100
+From: Bart <b-m@pandora.be>
+Subject: Re: Plz Help
+Date: Tue, 10 Dec 2002 00:30:52 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DF52111.8080405@trash.net>
-References: <3DF1F442.806@istitutocolli.org> <3DF508CA.6000107@istitutocolli.org>
+Message-ID: <3DF527AC.1030000@myland.org>
+References: <4223A04BF7D1B941A25246ADD0462FF51BC18B@blr-m3-msg.wipro.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070600030709070709050305"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/alternative;
+ boundary="------------000409090302010907090804"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andrea Rossato <mailing_list@istitutocolli.org>
-In-Reply-To: <3DF508CA.6000107@istitutocolli.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,96 +19,97 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070600030709070709050305
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+
+--------------000409090302010907090804
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi Andrea,
+Hi,
 
-the first attached patch fixes the issue you reported (verified), 
-altough i'm not entirely sure why ;).
-the second one is untested but probably couldn't hurt neither.
+Have you already read about ulog and the ulog daemon.  It's possible to 
+log to any file or even to sql.
+And you can write your own extensions for it.
 
-bye,
-patrick
+Greetz
 
-Andrea Rossato wrote:
 
-> attached you will find 3 patches. the first one is an attempt to prove 
-> the existence of the problem. the second is just a hack that provides 
-> a temporary solution it's just a workaround: packets with ec e cwr 
-> bits set and good checksum will be stripped and checksum recalculated 
-> from scratch.
+Amit Kumar Gupta wrote:
+
+>Hi List,
 >
-> The problem, as far as I can see it, could be located in csum_partial 
-> (arch/i386/lib/checksum.S, meaning a platform dependent problem): i'm 
-> not a kernel hacker (i'm a lawyer, a legal scholar actually), but i do 
-> not see any mistake in the way partial checksum is carried out in 
-> tcp_etc_set. anyway checksum after partial or total recalculation 
-> differ. That's a fact. Evidence of the fact  can be gained with the 
-> second patch: in this case the kernel will log the checksum after 
-> partial recalculation and after total recalculation (that means that 
-> two calculations will take place). The two values differ!
+>I am having a problem abt IPtables Logging.
+>The LOG target logs the messages to a particular file say /var/log/messages depending on the entries in syslog.conf. Now my problem is, i want to log messages in some other special file. Or i can say, a process is running which will receive all the LOg messages and will store it. I was thinking abt the sol for this. I went thro the code of iptables Logging in extensions folder. There are files like libipt_LOG.c where we are having print statements. So is it fine if those statements gets replaced with the api i will provide for logging in some special file. If it is, Then i think i have to write the patch for it.( And i think this patch is for iptables in usr mode only). 
 >
-> Thanks for your attention.
+>If it is not okay, Then i think i have to provide a new target which will do these things. But in that case, i don't know how i can do this.
 >
-> 1. check the bug:
-> echo 1 /proc/sys/net/ipv4/tcp_ecn
-> iptables -A OUTPUT -t mangle -o ppp0 -p tcp -d my.host.org --dport 80 
-> -j ECN --ecn-tcp-remove
-> iptables -A OUTPUT -o ppp0 -p tcp -d my.host.org --dport 80 -m unclean 
-> -j DROP
-> packets will be dropped
+>Plz give ur suggestions in both the cases.
 >
-> 2. apply one of the patches and try again:
-> packets will get though and the connection will be established.
+>Thanks & Regards.
+>Amit.
+>  
 >
-> andrea
+>------------------------------------------------------------------------
+>
+>**************************Disclaimer**************************************************    
+> 
+> Information contained in this E-MAIL being proprietary to Wipro Limited is 'privileged' 
+>and 'confidential' and intended for use only by the individual or entity to which it is 
+>addressed. You are notified that any use, copying or dissemination of the information 
+>contained in the E-MAIL in any manner whatsoever is strictly prohibited.
+>
+>****************************************************************************************
+>  
 >
 
---------------070600030709070709050305
-Content-Type: text/plain;
- name="ipt_ECN.diff.1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ipt_ECN.diff.1"
 
---- net/ipv4/netfilter/ipt_ECN.c.orig	2002-12-09 23:14:20.000000000 +0100
-+++ net/ipv4/netfilter/ipt_ECN.c	2002-12-09 23:13:27.000000000 +0100
-@@ -88,8 +88,8 @@
- 	}
- 	
- 	if (diffs[0] != *tcpflags) {
--		diffs[0] = htons(diffs[0]) ^ 0xFFFF;
--		diffs[1] = htons(*tcpflags);
-+		diffs[0] = diffs[0] ^ 0xFFFF;
-+		diffs[1] = *tcpflags;
- 		tcph->check = csum_fold(csum_partial((char *)diffs,
- 		                                    sizeof(diffs),
- 		                                    tcph->check^0xFFFF));
+--------------000409090302010907090804
+Content-Type: text/html; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 
---------------070600030709070709050305
-Content-Type: text/plain;
- name="ipt_ECN.diff.2"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ipt_ECN.diff.2"
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+Hi, <br>
+ <br>
+ Have you already read about ulog and the ulog daemon.  It's possible to
+log to any file or even to sql.<br>
+ And you can write your own extensions for it.<br>
+ <br>
+ Greetz<br>
+<br>
+<br>
+Amit Kumar Gupta wrote:<br>
+<blockquote type="cite"
+ cite="mid4223A04BF7D1B941A25246ADD0462FF51BC18B@blr-m3-msg.wipro.com">
+  <pre wrap="">Hi List,
 
---- net/ipv4/netfilter/ipt_ECN.c.orig	2002-12-09 23:14:20.000000000 +0100
-+++ net/ipv4/netfilter/ipt_ECN.c	2002-12-09 23:25:54.000000000 +0100
-@@ -41,10 +41,10 @@
- 			iph = (*pskb)->nh.iph;
- 		}
+I am having a problem abt IPtables Logging.
+The LOG target logs the messages to a particular file say /var/log/messages depending on the entries in syslog.conf. Now my problem is, i want to log messages in some other special file. Or i can say, a process is running which will receive all the LOg messages and will store it. I was thinking abt the sol for this. I went thro the code of iptables Logging in extensions folder. There are files like libipt_LOG.c where we are having print statements. So is it fine if those statements gets replaced with the api i will provide for logging in some special file. If it is, Then i think i have to write the patch for it.( And i think this patch is for iptables in usr mode only). 
+
+If it is not okay, Then i think i have to provide a new target which will do these things. But in that case, i don't know how i can do this.
+
+Plz give ur suggestions in both the cases.
+
+Thanks &amp; Regards.
+Amit.
+  </pre>
+  <pre wrap="">
+<hr width="90%" size="4">
+**************************Disclaimer**************************************************    
  
--		diffs[0] = htons(iph->tos) ^ 0xFFFF;
-+		diffs[0] = iph->tos ^ 0xFF;
- 		iph->tos = iph->tos & ~IPT_ECN_IP_MASK;
- 		iph->tos = iph->tos | (einfo->ip_ect & IPT_ECN_IP_MASK);
--		diffs[1] = htons(iph->tos);
-+		diffs[1] = iph->tos;
- 		iph->check = csum_fold(csum_partial((char *)diffs,
- 		                                    sizeof(diffs),
- 		                                    iph->check^0xFFFF));
+ Information contained in this E-MAIL being proprietary to Wipro Limited is 'privileged' 
+and 'confidential' and intended for use only by the individual or entity to which it is 
+addressed. You are notified that any use, copying or dissemination of the information 
+contained in the E-MAIL in any manner whatsoever is strictly prohibited.
 
---------------070600030709070709050305--
+****************************************************************************************
+  </pre>
+</blockquote>
+<br>
+</body>
+</html>
+
+--------------000409090302010907090804--
