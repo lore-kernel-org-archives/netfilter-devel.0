@@ -1,54 +1,48 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Prevent crash on ip_conntrack removal
-Date: Sun, 22 Aug 2004 14:58:01 +0200
+From: jamal <hadi@cyberus.ca>
+Subject: Billing 1: WAS (Re: [PATCH 2/4] deferred drop, __parent
+	workaround, reshape_fail , netdev@oss.sgi.com ,
+Date: 22 Aug 2004 11:17:15 -0400
 Sender: netdev-bounce@oss.sgi.com
-Message-ID: <41289859.2040803@trash.net>
-References: <20040818091352.GB6507@suse.de>	<20040819101159.GC3921@sunbeam.de.gnumonks.org>	<20040819071846.2d0d6120.davem@redhat.com>	<4124BF7E.7090304@trash.net>	<20040819081428.5243e314.davem@redhat.com>	<412765DC.30600@trash.net> <20040821221344.6dbc98ed.davem@redhat.com>
+Message-ID: <1093187835.1042.95.camel@jzny.localdomain>
+References: <411C0FCE.9060906@crocetta.org>
+	 <1092401484.1043.30.camel@jzny.localdomain>
+	 <20040816072032.GH15418@sunbeam2>
+	 <1092661235.2874.71.camel@jzny.localdomain> <4120D068.2040608@crocetta.org>
+	 <1092743526.1038.47.camel@jzny.localdomain>  <41220AEA.20409@crocetta.org>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, okir@suse.de, netdev@oss.sgi.com,
+Cc: Harald Welte <laforge@netfilter.org>, devik@cdi.cz, netdev@oss.sgi.com,
         netfilter-devel@lists.netfilter.org
 Return-path: <netdev-bounce@oss.sgi.com>
-To: "David S. Miller" <davem@redhat.com>
-In-Reply-To: <20040821221344.6dbc98ed.davem@redhat.com>
+To: sandr8 <sandr8_NOSPAM_@crocetta.org>
+In-Reply-To: <41220AEA.20409@crocetta.org>
 Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-David S. Miller wrote:
+Apologies for latency - was busy at (my real) work.
 
->On Sat, 21 Aug 2004 17:10:20 +0200
->Patrick McHardy <kaber@trash.net> wrote:
->
->>The problem is that conntrack unload can cause packets without a
->>dst_entry to appear in ip_local_deliver, which is already after
->>the call to dst_input.
->>    
->>
->
->How can it call ip_local_deliver() without a valid skb->dst?
->That function is only invoked via skb->dst->input(skb) which
->by implication means that skb->dst is non-NULL.
->
->Actually there is a call via ip_mr_input() but that code also
->has a precondition that skb->dst is non-NULL too.  I say this
->due to the unchecked skb->dst accesses it makes early on.
->
->Please explain.  I don't question that it happens, just show
->me how :-)
->  
->
+Let me break this email into several ones since it is getting long.
 
-The first fragment (offset=0) is given to ip_defrag by conntrack
-at PRE_ROUTING, without a dst_entry. Then conntrack is unloaded.
-Further fragments are now queued in ip_local_deliver. When the
-packet is reassembled and "continues" its way from
-ip_local_deliver, it doesn't have a dst_entry.
+On Tue, 2004-08-17 at 09:40, sandr8 wrote:
 
-The opposite way is of course also possible, packets queued in
-ip_local_deliver can jump and appear in the PRE_ROUTING hook
-when conntrack is loaded, but that way doesn't seem to cause
-problems.
+> something like enqueue(dev) that will indirectly call dev->qdisc->enqueue
+> and handle in that single place that stuff that does not fit well in 
+> net/core/dev.c
 
-Regards
-Patrick
+Enqueue of _root_ qdisc is the place to do it.
+Maybe even dev.c calls to it. Lets defer this to the next email.
+
+Let me say this:
+I am happy with Haralds billing patch which is already in as is.
+In other words, although there is an accounting discrepancy it is not
+that big.
+What does that mean? unbilling is not something to rush in and patch in
+if its going to have an impact on other pieces. It doesnt matter whether
+it goes in in 2.6.20 or doesnt even go in as far as i am concerned. 
+However this shouldnt dicourage you because you have actually opened an
+issue we need to resolve. So please keep up the discussions.
+
+cheers,
+jamal
