@@ -1,57 +1,30 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [RFC] ct_sync 0.15 (corrected)
-Date: Thu, 26 Aug 2004 13:39:33 +0200 (CEST)
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0408261333510.17019@blackhole.kfki.hu>
-References: <1092407190.2402.120.camel@nienna.balabit>
-	<20040819110646.GJ3921@sunbeam.de.gnumonks.org>
-	<1092917551.2425.28.camel@nienna.balabit>
-	<Pine.LNX.4.58.0408261015001.16945@blackhole.kfki.hu>
-	<1093518747.2447.16.camel@nienna.balabit>
+From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?= <yoshfuji@wide.ad.jp>
+Subject: Re: [PATCH] Kernel oops in ip6t_LOG.c:ip6_nexthdr
+Date: Thu, 26 Aug 2004 20:56:45 +0900 (JST)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040826.205645.45258047.yoshfuji@wide.ad.jp>
+References: <20040826113538.GE15409@suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-In-Reply-To: <1093518747.2447.16.camel@nienna.balabit>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: okir@suse.de, netdev@oss.sgi.com
+In-Reply-To: <20040826113538.GE15409@suse.de>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+In article <20040826113538.GE15409@suse.de> (at Thu, 26 Aug 2004 13:35:39 +0200), Olaf Kirch <okir@suse.de> says:
 
-On Thu, 26 Aug 2004, KOVACS Krisztian wrote:
+>                         hdrlen = *hdrptr[1] * 8 + 8;
+> 			         ^^^^^^^^^^ it dies here
+>                         *hdrptr = *hdrptr + hdrlen;
+>                         break;
+> 
+> hdrptr is a u_int8_t **. What you really want to do here is
+> look at (*hdrptr)[1], but what the expression does is look at
+> *(hdrptr[1]). Unfortunately, hdrptr[1] is usually random garbage.
 
-> > We could add the expect function to the ip_conntrack_helper structure and
-> > identify it by the helper name in the update messages. The unregistered
-> > helper in the H.323 conntrack/nat module could be registered with an
-> > invalid, never matching port and let the expect function handle it as
-> > before (because the real port is dynamic). I think that'd be sufficient in
-> > solving the replication problem.
->
->   Sounds good. This way the could replicate the expectfn function along
-> with the conntrack helper structure, and the unregistered helpers could
-> be handled as well. Although this might be a bit more complicated than
-> the current solution, but if we have to do some evil magic to handle
-> H.323, we should do that in a ct_sync compatible manner if possible...
+Agreed. Same bug also lives in 2.4.x.
 
-Because the so far unregistered H.323 helper were registered, that would
-be fully ct_sync compatible, without the need to modify anyting in
-ct_sync. The core/ct_sync should be modified for the expectn only and
-that's a general requirement, independent of the H.323 helper.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--yoshfuji
