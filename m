@@ -1,79 +1,44 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH] more DECLARE_MUTEX() in headers crap
-Date: Mon, 5 Jul 2004 12:53:17 +0200
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040705105317.GA30269@lst.de>
-References: <20040620112328.GB13691@lst.de>
+From: =?iso-8859-1?Q?Herv=E9?= Eychenne <rv@wallfire.org>
+Subject: modified iptables manpage
+Date: Mon, 5 Jul 2004 13:57:40 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20040705115740.GD21294@eychenne.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-bounce@oss.sgi.com>
-To: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: "Laurence J. Lane" <ljlane@debian.org>
 Content-Disposition: inline
-In-Reply-To: <20040620112328.GB13691@lst.de>
-Errors-to: netdev-bounce@oss.sgi.com
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Jun 20, 2004 at 01:23:28PM +0200, Christoph Hellwig wrote:
-> okay, the gunk we had in arp_tables is in ip6_tables and ip6_tables,
-> too.  In fact those three files seem to be 80% copy & paste of each
-> other..
+ Hi,
 
-ping
+I saw that the last iptables Debian package version (1.2.9-10) includes
+patches to iptables, in particular to the original manpage. Did I miss
+your requests in order to make these changes in the upstream manpage?
+The nature of the patches doesn't matter (they are small)... but don't
+you think that the fair way to do things is to forward wishes to upstream=
+,
+so that everyone could benefit from the improvements, instead of keeping
+them for Debian users only?
 
+Note: I'll submit a patch to the manpage (with other small changes as wel=
+l)
+during the week.
 
---- 1.8/include/linux/netfilter_ipv4/ip_tables.h	2004-06-19 20:55:10 +02:00
-+++ edited/include/linux/netfilter_ipv4/ip_tables.h	2004-06-20 10:25:40 +02:00
-@@ -284,8 +284,6 @@
- 	struct ipt_entry entrytable[0];
- };
- 
--extern struct semaphore ipt_mutex;
--
- /* Standard return verdict, or do jump. */
- #define IPT_STANDARD_TARGET ""
- /* Error verdict. */
-@@ -338,7 +336,6 @@
-  *	Main firewall chains definitions and global var's definitions.
-  */
- #ifdef __KERNEL__
--static DECLARE_MUTEX(ipt_mutex);
- 
- #include <linux/init.h>
- extern void ipt_init(void) __init;
-===== include/linux/netfilter_ipv6/ip6_tables.h 1.7 vs edited =====
---- 1.7/include/linux/netfilter_ipv6/ip6_tables.h	2004-06-19 20:55:10 +02:00
-+++ edited/include/linux/netfilter_ipv6/ip6_tables.h	2004-06-20 10:26:32 +02:00
-@@ -107,10 +107,6 @@
- 	u_int64_t pcnt, bcnt;			/* Packet and byte counters */
- };
- 
--#ifdef __KERNEL__
--static DECLARE_MUTEX(ip6t_mutex);
--#endif
--
- /* Values for "flag" field in struct ip6t_ip6 (general ip6 structure). */
- #define IP6T_F_PROTO		0x01	/* Set if rule cares about upper 
- 					   protocols */
-===== net/ipv4/netfilter/ip_tables.c 1.24 vs edited =====
---- 1.24/net/ipv4/netfilter/ip_tables.c	2004-06-07 05:15:04 +02:00
-+++ edited/net/ipv4/netfilter/ip_tables.c	2004-06-20 12:29:17 +02:00
-@@ -61,6 +61,8 @@
- #endif
- #define SMP_ALIGN(x) (((x) + SMP_CACHE_BYTES-1) & ~(SMP_CACHE_BYTES-1))
- 
-+static DECLARE_MUTEX(ipt_mutex);
-+
- /* Must have mutex */
- #define ASSERT_READ_LOCK(x) IP_NF_ASSERT(down_trylock(&ipt_mutex) != 0)
- #define ASSERT_WRITE_LOCK(x) IP_NF_ASSERT(down_trylock(&ipt_mutex) != 0)
-===== net/ipv6/netfilter/ip6_tables.c 1.29 vs edited =====
---- 1.29/net/ipv6/netfilter/ip6_tables.c	2004-06-07 05:15:04 +02:00
-+++ edited/net/ipv6/netfilter/ip6_tables.c	2004-06-20 12:29:29 +02:00
-@@ -66,6 +66,7 @@
- #endif
- #define SMP_ALIGN(x) (((x) + SMP_CACHE_BYTES-1) & ~(SMP_CACHE_BYTES-1))
- 
-+static DECLARE_MUTEX(ip6t_mutex);
- 
- /* Must have mutex */
- #define ASSERT_READ_LOCK(x) IP_NF_ASSERT(down_trylock(&ip6t_mutex) != 0)
+ Herve
+
+--=20
+ _
+(=B0=3D  Herv=E9 Eychenne
+//)  Homepage:          http://www.eychenne.org/
+v_/_ WallFire project:  http://www.wallfire.org/
