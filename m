@@ -1,16 +1,14 @@
-From: "CHAKIB HANTOUS" <sei50@sei.gov.tn>
-Subject: How to turn off power save for ipfilter based machine
-Date: Sat, 14 Jun 2003 12:30:12 +0200
+From: "Jack" <jack@cosmism.com>
+Subject: where's the definition of function iptc_init
+Date: Sat, 14 Jun 2003 21:19:32 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <002c01c3325f$f33effe0$aa01a8c0@control>
-References: <20030516221652.3d86c00a.xraz@rwxr-xr-x.de><20030519124603.GA27460@sch.bme.hu> <20030614121005.587bd014.xraz@rwxr-xr-x.de>
+Message-ID: <01b101c33277$9b157e80$0b00a8c0@haf>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Frank 'xraz' Fricke" <xraz@rwxr-xr-x.de>,
-        <netfilter-devel@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,10 +19,7 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Sorry for disturb,
-I'm configuring a firewall using netfilter, with Linux RedHat 9.0
-when the machine rest for some minites, the power save disable the monitor,
-and the network card also, so my ipfiletr tables is set to NULL and  my
-route table also.
-Is there  any one who can help me, to disable the power save on the net
-card.
+KHNlbmQgYWdhaW4gaW4gdHh0IGZvcm1hdCkNCkhpIGFsbA0KU29ycnkgZm9yIGRpc3R1cmJpbmcg
+eW91IGFsbA0KSSBqdXN0IGJlZ2luIHRvIHN0dWR5IHRoZSBzb3VyY2UgY29kZS4NCkkgY291bGQg
+bm90IGZpbmQgdGhlIGRlZmluaXRpb24gb2YgZnVuY3Rpb24gaXB0Y19pbml0LiANCiBQbGVhc2Ug
+Z2l2ZSBtZSBhIGhpbnQuDQp0aGFua3MNCg0K
