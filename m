@@ -1,20 +1,20 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: ipt_time fixes (resend, sorry)
-Date: Tue, 1 Feb 2005 17:52:38 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0502011747520.7203@bizon.gios.gov.pl>
-References: <Pine.LNX.4.61.0501141503220.9908@bizon.gios.gov.pl>
-	<20050114143722.GA10088@ti64.telemetry-investments.com>
-	<Pine.LNX.4.61.0501141542230.3572@bizon.gios.gov.pl>
-	<57991.142.169.215.10.1105716756.squirrel@142.169.215.10>
-	<Pine.LNX.4.61.0501141622190.4865@bizon.gios.gov.pl>
-	<20050201120618.GA6878@sunbeam.de.gnumonks.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] ipt_hashlimit.c: expire's type overflow when showing
+ tuples at bad moment.
+Date: Tue, 01 Feb 2005 19:16:16 +0100
+Message-ID: <41FFC770.2090401@trash.net>
+References: <41F2FE92.6020603@cookinglinux.org>
+	<20050201132915.GJ6878@sunbeam.de.gnumonks.org>
+	<41FF877D.4080309@trash.net>
+	<20050201135423.GS6878@sunbeam.de.gnumonks.org>
+	<41FF9024.3070101@trash.net>
+	<6732.142.169.215.10.1107269629.squirrel@142.169.215.10>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1759227002-1107276758=:7203"
-Cc: netfilter-devel@lists.netfilter.org,
-	Samuel Jean <sj-netfilter@cookinglinux.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050201120618.GA6878@sunbeam.de.gnumonks.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: Samuel Jean <sj-netfilter@cookinglinux.org>
+In-Reply-To: <6732.142.169.215.10.1107269629.squirrel@142.169.215.10>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,27 +26,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Samuel Jean wrote:
 
----187430788-1759227002-1107276758=:7203
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Tue, 1 Feb 2005, Harald Welte wrote:
-
-> On Fri, Jan 14, 2005 at 04:24:01PM +0100, Krzysztof Oledzki wrote:
->> OK, How about...
+>On Tue, February 1, 2005 9:20 am, Patrick McHardy said:
+>  
 >
-> Could you please coordinate with Fabrice Marie (the author of the
-> module?) and send me (personally) the final patch?
-Of course! What is the correct Fabrice's email address? My last patches=20
-was also send to fabrice%netfilter*org (s/%/@/, s/\*/./), but no one=20
-responded.
+>>ipt_hashlimit already uses %ld. Samuel, what problem are you seeing
+>>exactly ?
+>>Is it negative times or wrapped times ?
+>>    
+>>
+>
+>I see wrapped time.
+>
+>I've tried making it print negative values, but seems I can't get
+>unsigned operations to result in a signed value. Is that right ?
+>
+No. On my system va_arg (used by vsnprintf, used by seq_sprintf)
+behaves strangely. From vsnprintf:
 
-Best regards,
+                else if (qualifier == 'l') {
+                        num = va_arg(args, unsigned long);
+                        if (flags & SIGN)
+                                num = (signed long) num;
 
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1759227002-1107276758=:7203--
+On my system (x86_64, gcc-3.3.5) va_arg returns 2^32-1 for -1, but it
+should return 2^64-1. Are you seeing this problem on a 32bit or a 64bit
+machine ?
+
+Regards
+Patrick
