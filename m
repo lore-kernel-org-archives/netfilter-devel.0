@@ -1,12 +1,15 @@
-From: Steven J Scott <sjscott@ra.rockwell.com>
-Subject: Re: libipq and ipq_packet_msg_t (desperate)
-Date: Wed, 15 Dec 2004 10:39:47 -0600
-Message-ID: <OF54B1C57F.3AFEF188-ON86256F6B.00596DBF-86256F6B.005B8160@ra.rockwell.com>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [NEW TARGET] target for modifying conntrack timeout value
+Date: Wed, 15 Dec 2004 20:38:33 +0100
+Message-ID: <41C092B9.9020501@eurodev.net>
+References: <EINSTEIN2Mb1s7nlT2N00000521@einstein.systemmetrics.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Cc: Ulysses Almeida <munky@maluco.com.br>, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: 'Netfilter Development Mailinglist' <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Maarten Wijnants" <maarten.wijnants@pandora.be>
+To: Richard <richard@o-matrix.org>
+In-Reply-To: <EINSTEIN2Mb1s7nlT2N00000521@einstein.systemmetrics.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,85 +21,80 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Maarten,
+Richard wrote:
 
-Thanks for the clarification of ipq_packet_msg_t and what is consists of.  I had a feeling it didn't contain ethernet 
-header.
-
-So to calculate the offset of the payload would look like the following:
-
-struct iphdr *iph = ((struct iphdr *)m->payload);
-struct tcphdr tcp = (struct tcphdr *)(m->payload + (iph->ihl << 2));
-
-char *payload = ( (char*)tcp) + sizeof(struct tcphdr);
-int payload_length = ntohs(iph->tot_len) - ( sizeof(struct tcphdr) + 
-sizeof(struct iphdr) );
-
-
-Is that correct?
- 
-
-Thanks,
-
-Steven Scott - CISSP, CISA, RHCT, LCP, MCSE
-Rockwell Automation / Advanced Technology
-sjscott@ra.rockwell.com
-<---------------------------------------------------->
-(This email was sent via Notes running on Linux)
-
-
-
-
-"Maarten Wijnants" <maarten.wijnants@pandora.be>
-15/12/2004 09:44 AM
-
- 
-        To:     "Ulysses Almeida" <munky@maluco.com.br>, "Steven J Scott" 
-<sjscott@ra.rockwell.com>
-        cc:     <netfilter-devel@lists.netfilter.org>
-        Subject:        Re: libipq and ipq_packet_msg_t (desperate)
-
-
-Hello Steven,
-
-> Now that I got the ip header, and TCP header.. I am confused on how to 
-get
-> to the TCP payload.  Correct me if I am wrong, but the ipq_packet_msg_t
-> structure is composed of the complete packet.  e.g. ethernet header, IP
-> header, TCP header and data.
-
-You are correct in the fact that the ipq_packet_msg_t structure contains 
-the 
-complete packet, but the ethernet header is NOT included. So in the case 
-of 
-a TCP/IP packet, the payload of the ipq_packet_msg_t structure first 
-contains the IP header and then the TCP header and then the (TCP) payload.
-
-> So what I need to do is setup offsets from
-> the ipq_packet_msg_t->payload to point to each of these areas within the
-> packet..
+>>Some comments:
+>>
+>>a) I think that you should implement this thing as a match instead of a
+>>target. Have a look at ipt_limit. It isn't actually matching anything
+>>but, for example, you could use it together with nat targets. A match
+>>gives you more flexibility.
+>>    
+>>
+>Not sure that I follow you. This target changes the conntrack expire timer.
+>For example, the default timeout for udp stream is 180 seconds. If I want to
+>make it 3600 for sip (udp 5060) traffic, I would do,
+>iptables -t mangle -A INPUT -p UDP --dport 5060 -j CTEXPIRE --ctexpire-set
+>3600
+>iptables -t mangle -A OUTPUT -p UDP --sport 5060 -j CTEXPIRE --ctexpire-set
+>3600
+>  
 >
-> So what I need know is how to get the offset of the payload(data 
-portion).
 
-Well this is exactly what the code snippet shows. You first parse the ip 
-header of the packet (with struct iphdr) to retrieve the (variable) length 
+An example of what I mean:
 
-of the IP header. You add this amount of bytes to the payload member of 
-the 
-ipq_packet_msg_t structure. Add this moment, you are pointing to the 
-position in the received packet where the TCP header begins. So you parse 
-the TCP header (with struct tcphdr) to retrieve the (variable) length of 
-the 
-TCP header. If you now also add this amount of bytes, you will point to 
-the 
-payload of your packet.
+iptables -A OUTPUT -m ctexpire --ctexpire-set 3600 -j ACCEPT
 
-> I also need to find the length of the payload section.
+BTW, why can you only use this target in mangle? I think that it's safe 
+using it elsewhere, except by the `raw' table where you can not.
 
-This information can also be found by parsing the IP header of the packet 
-with the struct iphdr. This struct has a member which specifies the total 
-length of the IP packet (including headers!!).
+>>b) About source code:
+>>
+>>+       if (!is_confirmed(ct)) {
+>>           ^^^
+>>remove this `if' condition. ip_ct_refresh worries about about this for
+>>you and makes the thing more simple.
+>>    
+>>
+>In order to increase or decrease the expire value, we need to get the
+>current expire value. If it is !is_confirmed, the ct->timeout value is the
+>real expire value. Otherwise, it is jiffies + expire value. Is there a
+>function to get this value without checking is_confirmed?
+>  
+>
 
-Greetings,
-Maarten 
+you are right, you need that for increments and decrements, forget this 
+comment.
+
+>>c) In checkentry:
+>>
+>>+       if (info->mode > IPT_CTEXPIRE_MAXMODE) {
+>>+               printk(KERN_WARNING "CTEXPIRE: invalid or unknown Mode
+>>%u\n",
+>>+                       info->mode);
+>>+               return 0;
+>>+       }
+>>+ [...]
+>>+
+>>+       if (info->expires * HZ < info->expires) {
+>>+               /* if user specified value is too big, *HZ can overflow
+>>the counter
+>>+               */
+>>+               printk(KERN_WARNING "CTEXPIRE: expire value too big,
+>>will overflow counter: %ld\n", info->expires);
+>>+               return 0;
+>>+       }
+>>
+>>You should do those checkings in user space. Those error must be handle
+>>in iptables, not in kernel.
+>>    
+>>
+>It is already done in user space. It is probably redundant doing the same
+>thing here. I will drop it.
+>  
+>
+
+yes, it's redudant. Please, drop that.
+
+--
+Pablo
