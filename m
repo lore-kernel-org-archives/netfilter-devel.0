@@ -1,54 +1,40 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: "ip_conntrack_core: Frag of proto 17." error
-Date: Sun, 21 Sep 2003 16:45:57 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030921144557.GB22223@sunbeam.de.gnumonks.org>
-References: <3F69CFF6.1060505@wp.pl>
+Subject: [PATCH 2.4] fix ipt_REJECT when used in OUTPUT
+Date: Sun, 21 Sep 2003 16:40:13 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20030921144013.GA22223@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eRtJSFbw+EEWtPj3"
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: c0g <c0g@wp.pl>
+	protocol="application/pgp-signature"; boundary="GRPZ8SYKNexpdSJ7"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: David Miller <davem@redhat.com>
 Content-Disposition: inline
-In-Reply-To: <3F69CFF6.1060505@wp.pl>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---eRtJSFbw+EEWtPj3
+--GRPZ8SYKNexpdSJ7
+Content-Type: multipart/mixed; boundary="Qxx1br4bt0+wmkIi"
+Content-Disposition: inline
+
+
+--Qxx1br4bt0+wmkIi
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 18, 2003 at 05:32:06PM +0200, c0g wrote:
-=20
-> Hi
-> I'm getting lots of these errors. I read in ip_conntrack_core.c it
-> should "never happen" (so it's kind of assertion). Why does this
-> assertion fail?
+Hi Dave!
 
-Indeed.  It seems like you have fragmens inside connection tracking.
-However, all packets are defragmented before connection tracking
-happens.
+Some people use REJECT in the OUTPUT chain (rejecting locally generated
+packets).  This didn't work anymore starting with some fixes we did in 2.4.=
+22.=20
+A dst_entry for a local source doesn't contain pmtu information - and
+thus the newly-created packet would instantly be dropped again.
 
-Can you please tell us more about your setup?  Something special with
-regard to networking?  Tunnels? IPSec?
+I'll send you a 2.6.x merge for this later.
 
-Maybe you can add a printk to print out the address information (or use
-DUMP_TUPLE on the tuple) of the packet... maybe this way you can
-identify where it came from (through which interface[s], processing,
-=2E..).
-
-
-> c0g@wp.pl
+Please apply the following fix, thanks
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -60,16 +46,43 @@ identify where it came from (through which interface[s], processing,
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---eRtJSFbw+EEWtPj3
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="75_REJECT_localpmtu-fix.patch"
+Content-Transfer-Encoding: quoted-printable
+
+diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
+er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.4.22/net/ipv4/netfilter/ipt=
+_REJECT.c linux-2.4.22-rejectfix/net/ipv4/netfilter/ipt_REJECT.c
+--- linux-2.4.22/net/ipv4/netfilter/ipt_REJECT.c	2003-08-25 13:44:44.000000=
+000 +0200
++++ linux-2.4.22-rejectfix/net/ipv4/netfilter/ipt_REJECT.c	2003-09-21 16:39=
+:25.000000000 +0200
+@@ -186,8 +186,8 @@
+ 	nskb->nh.iph->check =3D ip_fast_csum((unsigned char *)nskb->nh.iph,=20
+ 					   nskb->nh.iph->ihl);
+=20
+-	/* "Never happens" */
+-	if (nskb->len > nskb->dst->pmtu)
++	/* dst->pmtu can be zero because it is not set for local dst's */
++	if (nskb->dst->pmtu && nskb->len > nskb->dst->pmtu)
+ 		goto free_nskb;
+=20
+ 	connection_attach(nskb, oldskb->nfct);
+
+--Qxx1br4bt0+wmkIi--
+
+--GRPZ8SYKNexpdSJ7
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/bbmlXaXGVTD0i/8RAjrjAJ4xV0xgqb3Zx9xEZc0udL0dzv1MgwCgsKN2
-uHUx1dz3oJqxlAHd/AEavJg=
-=0pdP
+iD8DBQE/bbhNXaXGVTD0i/8RAuPuAJsGfP+lOdTF+9ICL/PwrcmDrigkOgCfZ29b
+WfgGMCdz+seLGbiCJngkcfY=
+=pHjS
 -----END PGP SIGNATURE-----
 
---eRtJSFbw+EEWtPj3--
+--GRPZ8SYKNexpdSJ7--
