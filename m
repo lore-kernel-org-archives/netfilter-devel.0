@@ -1,13 +1,17 @@
-From: "Ricky Foo" <blue_pion@hotmail.com>
-Subject: About netbios ALG
-Date: Wed, 23 Jul 2003 01:32:05 +0000
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Traffic limitation with iptables
+Date: Wed, 23 Jul 2003 14:16:38 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Sea2-F4696TwctPBjxP0000b6e9@hotmail.com>
+Message-ID: <20030723121638.GN3733@naboo>
+References: <20030722200706.43891e40.epv_xemul@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="n8884J15jRwcBTvu"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: song_wang@msn.com
+To: Xemul <epv_xemul@mail.ru>
+Content-Disposition: inline
+In-Reply-To: <20030722200706.43891e40.epv_xemul@mail.ru>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,87 +22,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
 
->From what I know, NAT will block domain logon. You can refer to the 
-following url for more details.
+--n8884J15jRwcBTvu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-http://support.microsoft.com/default.aspx?scid=http://support.microsoft.com:80/support/kb/articles/q172/2/27.asp&NoWebContent=1
+On Tue, Jul 22, 2003 at 08:07:06PM +0400, Xemul wrote:
+> Hi.
+> I wanna solve such a problem:
+> When I see that byte counter on some chain reaches or exceedes any fixed
+> value - then IMMEDIATELY insert into that cahin new first rule (e.g. -j
+> DROP) or delete some rules from any other chain. Or more abstract - how
+> can can discover that byte counter is higher than smth without
+> "polling" chains?
 
-As for the windows folder sharing problem you have described, according to 
-pkt sniffing, file transfers are done using Netbios session service, port 
-139. Inside this layer, it does not carry the IP address of the source, thus 
-it is unlikely that your NAT is causing a problem. (I could be wrong.... :-) 
-but to my understanding why netbios can't work over NAT is because they 
-don't do address translation in the application stack.)
+you might want to look for the quota match.
 
-Also, I am not done with the modules that I'm writing. Most of the codes are 
-completed but there are some details that I am not sure and I have not fully 
-tested them yet. If you are interested, I can pass them to you but the 
-condition is that you must release them back to the Netfilter code base when 
-you are done.
+btw, this is more a user than a develoment question!
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-    Ricky
+--n8884J15jRwcBTvu
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
 
->From: "Song Wang" <song_wang@msn.com>
->To: blue_pion@hotmail.com
->Subject: About netbios ALG
->Date: Tue, 22 Jul 2003 12:19:15 -0700
->
->Hi, Ricky
->
->I found your email address on the netfilter mailing list when you were 
->talking about
->netbios ALGs
->
->I found a problem with netbios when 2 Windows PCs behind a NAT router
->try to access the same shared directory on the Windows server sitting on 
->the
->other side of the NAT router. (kernel 2.4.17 w/ iptables 1.2.7a)
->
->For example
->
->4.3.2.1--------<NAT router>---------PC1 192.168.1.2
->                                       |-------PC2 192.168.1.3
->
->Windows XP PC1 and PC2 got private IP address from the DHCP server
->on the NAT router.When PC1 alone accesses the shared directory on the
->Windows XP server (or PC) 4.3.2.1 using \\4.3.2.1, there is no problem.
->However, when PC2 also accesses the same directory via \\4.3.2.1, problem 
->arises.
->You can reproduce the problem in this way
->
->Copy a file from \\4.3.2.1 to PC1, when the copying is ongoing, do a 
->refresh (F5) or
->copy a file on the same \\4.3.2.1 from PC2, you will see a dialog pop up on 
->PC1
->
->"The specified network name is not available"
->
->The copying process got stuck.
->
->Strangely, the problem seems to happen only when the two PC get the IP 
->address
->via DHCP. If one of the two PCs use the static IP address, the problem 
->seems to go away.
->
->Could this be a problem of netbios with connection tracking? Maybe we need 
->to write
->a nat helper module for netbios?
->
->Do you have insight on what the problem is? Any progress on your netbios 
->ALG?
->
->Thanks.
->
->-Song
->
->_________________________________________________________________
->STOP MORE SPAM with the new MSN 8 and get 2 months FREE*  
->http://join.msn.com/?page=features/junkmail
->
+iD8DBQE/HnylXaXGVTD0i/8RAhYEAJ9rUAeZF1TAywcL8pw4khMzl0aZNgCeISbj
+G8Ukd0rGE13z1VV0Y0wg10I=
+=YWyX
+-----END PGP SIGNATURE-----
 
-_________________________________________________________________
-Download Norah Jones, Eminem and more! http://www.msn.com.sg/ringtones/ at 
-only S$36 including GST
+--n8884J15jRwcBTvu--
