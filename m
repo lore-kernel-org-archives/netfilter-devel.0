@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH]: the latest nf_conntrack
-Date: Wed, 21 Jul 2004 23:28:24 -0400
+Subject: Re: ip_conntrack_pptp control connection direction limitation
+Date: Wed, 21 Jul 2004 16:54:42 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040722032823.GS27487@obroa-skai.de.gnumonks.org>
-References: <200407010617.PAA23966@toshiba.co.jp>
+Message-ID: <20040721205442.GP27487@obroa-skai.de.gnumonks.org>
+References: <E8A43220CB34D811A81D00508BB9C7DF028721D2@TPMS1>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eHmdSDY+kY2au76U"
-Cc: netfilter-devel@lists.netfilter.org, laforge@netfilter.org,
-	usagi-core@linux-ipv6.org
+	protocol="application/pgp-signature"; boundary="vJI8q/aziP9idhqk"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+To: "LIGHT.LU ?f?P??" <LIGHT.LU@delta.com.tw>
 Content-Disposition: inline
-In-Reply-To: <200407010617.PAA23966@toshiba.co.jp>
+In-Reply-To: <E8A43220CB34D811A81D00508BB9C7DF028721D2@TPMS1>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,42 +23,26 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---eHmdSDY+kY2au76U
+--vJI8q/aziP9idhqk
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jul 01, 2004 at 03:17:43PM +0900, Yasuyuki Kozakai wrote:
+On Wed, Jun 23, 2004 at 11:24:35AM +0800, LIGHT.LU ?f?P?? wrote:
+> Hello,
 >=20
-> Hi, all,
+> =20
 >=20
-> This is pom-ng style patch which enables layer 3 independent connection
-> tracking (nf_conntrack). In nf_conntrack, core module is generalized so t=
-hat
-> other layer 3 protocols are easily implemented. In now, IPv4, IPv6, TCP, =
-UDP,
-> ICMP, ICMPv6 and FTP can be tracked.
+> As the code comment of ip_conntrack_pptp.c Version 1.9 said that the
+> direction of control connection is limited to PNS->PAC.  Is there any plan
+> to conquer this limitation?  Or any one can describe the difficulties to
+> remove it.  Any other information is worthy being noticed?
 
-Thanks, Yasuyuki.
+No, there are no particular difficulties.  It just needs a lot more
+abstraction and some more state to be kept.  Patches always welcome, in
+case somebody implements it.
 
-I finally had the time for a review of your current code.  My
-congratulations to your work, everything looks very clean, and I do not
-have any comments at this time.
-
-Could you please post a list of current issues / problems / questions /
-=2E.. that you might have with the current nf_conntrack code?
-
-What amount of testing has it received so far (including ftp-helper,
-=2E..) ?
-
-Is the state in patch-o-matic-ng the current state, or do you already
-have some more recent changes?
-
-I'm happy to give you CVS access to the nf_conntrack module in pom-ng,
-in case you want to push some updates into our tree.
-
-> Regards,
-> Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+> Light lu
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -71,7 +54,7 @@ in case you want to push some updates into our tree.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---eHmdSDY+kY2au76U
+--vJI8q/aziP9idhqk
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -79,9 +62,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFA/zRXXaXGVTD0i/8RAsDDAKCaprPD9tnMgwqPNGTU9l6jt5IoFwCgjjLz
-a3BNjUuCAfHaH4pk7g+f9PI=
-=1lrV
+iD8DBQFA/tgRXaXGVTD0i/8RAtpoAJ9wVzZPB4WO9bYPQckQ1z0o5t8jxACfQ+3Z
+lznuwKv4/DPVCXfKQcRk7dk=
+=E9Sj
 -----END PGP SIGNATURE-----
 
---eHmdSDY+kY2au76U--
+--vJI8q/aziP9idhqk--
