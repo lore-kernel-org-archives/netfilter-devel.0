@@ -1,8 +1,8 @@
-From: Henrik Nordstrom <hno@marasystems.com>
+From: KOVACS Krisztian <hidden@balabit.hu>
 Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
-Date: Tue, 28 Sep 2004 16:46:22 +0200 (CEST)
+Date: Tue, 28 Sep 2004 16:56:46 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0409281642500.32737@filer.marasystems.com>
+Message-ID: <1096383406.7192.165.camel@nienna.balabit>
 References: <1092407190.2402.120.camel@nienna.balabit>
 	<1095993739.1044.9.camel@jzny.localdomain>
 	<20040925075253.GQ3236@sunbeam.de.gnumonks.org>
@@ -16,15 +16,16 @@ References: <1092407190.2402.120.camel@nienna.balabit>
 	<1096376252.7192.47.camel@nienna.balabit>
 	<1096377276.8661.252.camel@jzny.localdomain>
 	<1096379957.1026.5.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0409281642500.32737@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Harald Welte <laforge@netfilter.org>,
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: quoted-printable
+Cc: Harald Welte <laforge@netfilter.org>, Jamal Hadi Salim <hadi@znyx.com>,
 	netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
-	KOVACS Krisztian <hidden@balabit.hu>
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jamal Hadi Salim <hadi@znyx.com>
-In-Reply-To: <1096379957.1026.5.camel@jzny.localdomain>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0409281642500.32737@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -35,25 +36,40 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 28 Sep 2004, Jamal Hadi Salim wrote:
 
-> Ok, I think this is Henrik may be saying as well:
-> For each of the active nodes, you give it a range of ports to use.
-> Maybe 1K ports each to start and then the ct_sync allows for nodes to
-> ask for more. A port marked as "in use" by other nodes should not be
-> used for simplicity. A node should also gc ports to the general pool.
-> Thoughts?
+  Hi,
 
-Any controlled division of the tuple address space would solve the 
-NAT problem.
+2004-09-28, k keltez=E9ssel 16:46-kor Henrik Nordstrom ezt =EDrta:
+> Any controlled division of the tuple address space would solve the=20
+> NAT problem.
+>=20
+> I would use IP addresses in this scheme.. it is very nice to have NAT a=
+s=20
+> non-intrusive as possible preserving what can be preserved of the origi=
+nal=20
+> tuple.
 
-I would use IP addresses in this scheme.. it is very nice to have NAT as 
-non-intrusive as possible preserving what can be preserved of the original 
-tuple.
+  Definitely. However, I don't see how it would be possible to use
+MASQUERADE and a single public IP in this case. If you use the complete
+reply tuple and some hash function to avoid two nodes using the same
+reply tuple that would be a bit more capable. (Similar to that Jamal is
+saying: the unique tuple allocation code would take care of allocating a
+tuple whose hash value the node "owns". This part would be really
+similar to ClusterIP.)
 
-There remains some delicate thinking on how to manage the traffic flows in 
-a sane manner to make sure the correct traffic is forwarded by the correct 
-node, considering failovers, recoveries etc.
+> There remains some delicate thinking on how to manage the traffic flows=
+ in=20
+> a sane manner to make sure the correct traffic is forwarded by the corr=
+ect=20
+> node, considering failovers, recoveries etc.
 
-Regards
-Henrik
+  Yes, of course. Full re-sync would be a somewhat more complicated
+problem as well. But if we maintain some per-conntrack mark indicating
+which node "owns" that entry, then even full re-sync could be
+implemented quite easily: each node dumps all entries it is responsible
+for. The protocol itself should be extended as well, we would need
+per-node sequence numbers and per-node recovery requests.
+
+--=20
+ Regards,
+   Krisztian KOVACS
