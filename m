@@ -1,17 +1,22 @@
-From: Cedric de Launois <delaunois@info.ucl.ac.be>
-Subject: Re: [PATCH] info file for ROUTE target
-Date: Fri, 10 Dec 2004 10:03:25 +0100
-Message-ID: <1102669404.11255.29.camel@descartes.info.ucl.ac.be>
-References: <1102603380.7528.98.camel@descartes.info.ucl.ac.be>
-	<20041209195706.GA4121@oknodo.bof.de>  <41B8EB72.50502@trash.net>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: TCP window tracking has bad side effects
+Date: Fri, 10 Dec 2004 11:51:49 -0800
+Message-ID: <20041210115149.68429d39.davem@davemloft.net>
+References: <20041201110253.GA9536@suse.de>
+	<Pine.LNX.4.58.0412011308520.27175@blackhole.kfki.hu>
+	<20041201153903.GA16807@suse.de>
+	<Pine.LNX.4.58.0412030942320.30157@blackhole.kfki.hu>
+	<Pine.LNX.4.58.0412060934050.5880@blackhole.kfki.hu>
+	<20041209162656.GA9569@suse.de>
+	<20041210172217.GA4323@ti64.telemetry-investments.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: "netfilter-devel@lists.netfilter.org"
-	<netfilter-devel@lists.netfilter.org>, Patrick Schaaf <bof@bof.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, ludwig.nussel@suse.de,
+	kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <41B8EB72.50502@trash.net>
+To: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
+In-Reply-To: <20041210172217.GA4323@ti64.telemetry-investments.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,49 +28,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le ven 10/12/2004 =E0 01:18, Patrick McHardy a =E9crit :
-> >I also made a new contribution, my --tee extension to ROUTE, which als=
-o
-> >went completely uncommented.
-> >
-> >https://lists.netfilter.org/pipermail/netfilter-devel/2004-November/01=
-7515.html
-> >
-> I'll apply this if Cedric is fine with it.
+On Fri, 10 Dec 2004 12:22:17 -0500
+"Bill Rugolsky Jr." <brugolsky@telemetry-investments.com> wrote:
 
-In fact, I advised Patrick (Schaaf) to collect reactions related to its
-tee extension from this list. This is because --tee duplicates a packet,
-which could cause DoS security problems if not used carefully.
-Thanks to conntrack, we can avoid flooding ourself with duplicated
-packets. My fear is that you could still have something like this :
+> On Thu, Dec 09, 2004 at 05:26:56PM +0100, Ludwig Nussel wrote:
+> > Seems to work. The client machine no longer drops the packet and
+> > properly sends RST.
+>  
+> Will you push this to DaveM for 2.6.10?
 
-          PC1                                    PC2
-
-      orig packet    =20
-           |
-           v                  dup pkt 1
-   [ROUTE --tee --gw PC2] -------------------------.
-         | |   ^                                   |
-         | |   |                                   v
-         | |   '-----dup pkt 2 ---------- [ROUTE --tee --gw PC1]
-         | |                                      | |
-         v v                                      v v
- Flood of duplicated packets            Flood of duplicated packets
-
-So we cannot make sure that people don't shoot themself. But anyway,
-people using the ROUTE target are warned enough by pom...
-Maybe I'm too paranoid ?
-
-However, I think the --tee extension can really be useful. For example
-to inspect pkt on other machine(s) and detect problems at line rate.
-
-Since the ROUTE target is still an experimental target, my position is
-to promote innovative (though sometimes risky) extensions. If the
-extension introduces too many problems, I reserve the right to remove
-it.
-
-Thus, let's apply the patch ;)
-
-Regards,
-
-Cedric
+Patrick and I are working on getting this integrated.  We just
+came up with a final version of the patch, so I'll push it at
+my next opportunity.
