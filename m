@@ -1,12 +1,35 @@
-From: Alexander Larsson <alexl@redhat.com>
-Subject: netbios broadcast connection tracking module
-Date: Wed, 29 Sep 2004 15:39:46 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
+Date: Wed, 29 Sep 2004 15:41:03 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1096465186.18592.378.camel@greebo.homeip.net>
+Message-ID: <Pine.LNX.4.61.0409291527520.13941@filer.marasystems.com>
+References: <1092407190.2402.120.camel@nienna.balabit>
+	<1095993739.1044.9.camel@jzny.localdomain>
+	<20040925075253.GQ3236@sunbeam.de.gnumonks.org>
+	<1096290473.1075.64.camel@jzny.localdomain>
+	<20040927133904.GP3236@sunbeam.de.gnumonks.org>
+	<1096339276.8660.30.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0409280834520.29563@filer.marasystems.com>
+	<1096369001.8661.165.camel@jzny.localdomain>
+	<1096374273.7192.27.camel@nienna.balabit>
+	<Pine.LNX.4.61.0409281432550.31930@filer.marasystems.com>
+	<1096376252.7192.47.camel@nienna.balabit>
+	<1096377276.8661.252.camel@jzny.localdomain>
+	<1096379957.1026.5.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0409281642500.32737@filer.marasystems.com>
+	<1096383406.7192.165.camel@nienna.balabit>
+	<Pine.LNX.4.61.0409281658330.32737@filer.marasystems.com>
+	<1096424069.1046.84.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0409291000490.11661@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-Wy3XIVTFr7efQj6XRyQn"
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Harald Welte <laforge@netfilter.org>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
+	KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Jamal Hadi Salim <hadi@znyx.com>
+In-Reply-To: <1096463006.1041.310.camel@jzny.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,125 +40,65 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 29 Sep 2004, Jamal Hadi Salim wrote:
 
---=-Wy3XIVTFr7efQj6XRyQn
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+> Ok, so my math was off. A relief. But if all were going to the same
+> external IP then limit is 64K.
 
-[Sorry if this posting appears twice, for some reason the mailing list
-didn't accept me as a subscriber the first time, so i had to subscribe
-again.]
+Yes, unless you have more than one masquerade IP or they go to different 
+ports.
 
-I'd like to make the default Fedora firewall allow SMB browsing, per bug
-reports like:
-http://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=113918
-http://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=133478
+Basic limitation of TCP/IP. Not much netfilter can do about. Between two 
+IP addresses where one is server (single port) the other client (dynamic 
+port) there can be no more than 64K connections as the only piece of the 
+tuple identifying such connections is the source port of the client, 
+limited to 2^16.
 
-What happens here is that the smb browser client sends a local udp
-broadcast to port 137, and then local servers reply to this from port
-137 to the port the broadcast was sent to. However, since these replies
-come from another address than the broadcast was sent to, the udp
-conntrack module doesn't help here.
+>> For a firewall you have to care about traffic on both sides, unless you
+>> are doing multicast balancing.
+>
+> I am assuming ct_sync is creating these states for me.
 
-So, I've written a small conntrack helper that makes replies to such a
-broadcast package be reported as a RELATED connection. This means the
-default firewall will allow them through.
+ct_sync or not does not really matter in this part discussion. ct_sync 
+only allows for graceful failover of the session from one firewall to 
+another.
 
-The code is attached. This is my first ever look at the netfilter code,
-so please look for stupid mistakes. Also, is there any other possible
-solution to this problem that I've missed? I tried using the "recent"
-module, but that doesn't save/match against the port, so i couldn't use
-that.
+if you want to have an active-active firewall using unicast distribution 
+then your network (not the firewall) must somehow ensure that traffic in 
+both directions goes via the correct firewall with no asymmetric data 
+flows. If not the state syncronization becomes impractical.
 
-Maybe the module should also verify that the replies are from the local
-subnet? I'm not sure how to get the mask of the subnet the package will
-be sent to though, because skbuff->dev is NULL when my helper gets
-called.
-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
- Alexander Larsson                                            Red Hat, Inc 
-                   alexl@redhat.com    alla@lysator.liu.se 
-He's an underprivileged vegetarian farmboy looking for a cure to the poison 
-coursing through his veins. She's a radical hip-hop soap star who hides her 
-beauty behind a pair of thick-framed spectacles. They fight crime! 
+Internal Network -> Firewall
 
---=-Wy3XIVTFr7efQj6XRyQn
-Content-Disposition: attachment; filename=ip_conntrack_netbios_ns.c
-Content-Type: text/x-csrc; name=ip_conntrack_netbios_ns.c; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Internet -> Firewall
 
-#include <linux/module.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
+>> Your distribution must be 100% equal on
+>> both sides.
+>
+> Given above assumption, why do i need this?
 
-#include <linux/netfilter.h>
-#include <linux/netfilter_ipv4/ip_tables.h>
-#include <linux/netfilter_ipv4/ip_conntrack_helper.h>
+because syncronosation of the firewalls is not instantaneous or atomic. 
+There is a delay before a state change on one firewall is replicated to 
+all other firewalls.
 
-MODULE_AUTHOR("Alexander Larsson <alexl@redhat.com>");
-MODULE_DESCRIPTION("netbios ns conntrack helper");
-MODULE_LICENSE("GPL");
+>> Beause you don't have the all the state. There is significant delays in
+>> the state distribution unless you accept to make the state syncronization
+>> syncronous with the packet flow (no packet forwarded before the state
+>> change this packet implies have been verifiable syncronized to all
+>> firewalls) which would in effect make the total cluster performance some
+>> orders of magnitude worse than having a single firewall with no or very
+>> little options for load balancing.
+>
+> I was assuming all along we have agreed that all necessary state would
+> be synced. Yes, this may generate a lot of traffic, but it does seem to
+> be neccessary evil.
 
-#define NETBIOS_NS_PORT 137
-#define NETBIOS_NS_REPLY_TIMEOUT 20
+Syncing state in absolute realtime is in my opinion not an option. This 
+would require delaying forwarding of every packet until the state change 
+inflicted by this packet has been fully replicated to all nodes in the 
+cluster, which in terms of performance is some orders of magnitude worse 
+than using the multicast approach to have the traffic distributed among 
+the nodes.
 
-#if 0
-#define DEBUGP(format, args...) printk(KERN_ERR "%s:" format, \
-                                       __FUNCTION__ , ## args)
-#else
-#define DEBUGP(format, args...)
-#endif
-
-static int netbios_ns_help(struct sk_buff *skb,
-			   struct ip_conntrack *ct,
-			   enum ip_conntrack_info ctinfo)
-{
-	struct ip_conntrack_expect *exp;
-
-	exp = ip_conntrack_expect_alloc();
-	if (exp == NULL)
-		return NF_ACCEPT;
-	
-	exp->tuple = ct->tuplehash[IP_CT_DIR_REPLY].tuple;
-	exp->mask.src.ip = 0;
-	exp->mask.dst.ip = 0xffffffff;
-	exp->mask.dst.u.udp.port = 0xffff;
-	exp->mask.dst.protonum = 0xffff;
-	exp->expectfn = NULL;
-	
-	ip_conntrack_expect_related(exp, ct);
-	
-	return NF_ACCEPT;
-}
-
-static struct ip_conntrack_helper netbios_ns;
-
-static int __init init(void)
-{
-	memset(&netbios_ns, 0, sizeof(struct ip_conntrack_helper));
-
-	netbios_ns.name = "netbios-ns";
-	netbios_ns.max_expected = 0; /* No maximum */
-	netbios_ns.timeout = NETBIOS_NS_REPLY_TIMEOUT;
-	netbios_ns.flags = IP_CT_HELPER_F_REUSE_EXPECT;
-	netbios_ns.me = THIS_MODULE;
-	netbios_ns.help = netbios_ns_help;
-	
-	netbios_ns.tuple.dst.protonum = IPPROTO_UDP;
-	netbios_ns.mask.dst.protonum = 0xFFFF;
-	netbios_ns.tuple.src.u.udp.port = htons(NETBIOS_NS_PORT);
-	netbios_ns.mask.src.u.udp.port = 0xFFFF;
-	
-	return ip_conntrack_helper_register(&netbios_ns);
-}
-
-static void fini(void)
-{
-	ip_conntrack_helper_unregister(&netbios_ns);
-}
-
-PROVIDES_CONNTRACK(netbios_ns);
-
-module_init(init);
-module_exit(fini);
-
---=-Wy3XIVTFr7efQj6XRyQn--
+Regards
+Henrik
