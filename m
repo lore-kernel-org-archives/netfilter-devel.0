@@ -1,7 +1,7 @@
 From: cranium 2003 <cranium.2003@gmail.com>
-Subject: TCP/IP Packet sending ARP resolve
-Date: Fri, 4 Feb 2005 08:09:12 +0530
-Message-ID: <1d55641b0502031839404a7537@mail.gmail.com>
+Subject: ARP HOOKS
+Date: Fri, 4 Feb 2005 10:37:17 +0530
+Message-ID: <1d55641b050203210773771cd8@mail.gmail.com>
 Reply-To: cranium 2003 <cranium.2003@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -18,18 +18,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
- Hello sir,
-                   In Linux kernel by adding debug statement i observe
-that if i ping to host 10.0.0.5 with 10 packets then first i know
-network stack require to resolve hosts IP to its Hardware ID by
-sending ARP on Ethernet LAN. But then what i get that if i again ping
-for another 10 packets to 10.0.0.5 then ARP routine is called.
-               Why? Why linux kernel is not caching it. Infact its
-caching i check it in debug statements then why network stack require
-to resolve 10.0.0.5 host to send packets to it?
-
-                Also i want to know once eth_header_cache called then
-all successive packet to that cache host goes directly from
-hh->hh_output(skb) to hard_start_xmit?
+Hello,
+        Can anybody provide me netfilter kernel module that prints
+each outgoing/incoming ARP packet's analysis. I want to check ARP
+routine behaviour. What main thing i want is to have kernel module
+print ipaddress Hardware addresses of ARP packets sent/Received?
+        Also i want to know about ARP HOOKS. Does they used same as
+netfilter hooks?
 regards,
-cranium
+cranium.
