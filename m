@@ -1,19 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: --log-uid target?
-Date: Thu, 4 Nov 2004 12:20:59 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0411041213580.11446@filer.marasystems.com>
-References: <1099109256.1798.411.camel@ws102.darkcore.net>
-	<41898F60.8080004@trash.net>
-	<1099535517.26577.586.camel@ws102.darkcore.net>
-	<4189A271.5060702@trash.net>
-	<1099545501.26579.649.camel@ws102.darkcore.net>
+From: Matthias Andree <matthias.andree@gmx.de>
+Subject: [BK PATCH] Fix ip_conntrack_amanda data corruption bug that breaks
+	amanda dumps
+Date: Thu, 4 Nov 2004 13:15:22 +0100
+Message-ID: <20041104121522.GA16547@merlin.emma.line.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-develop <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: John Lange <john.lange@bighostbox.com>
-In-Reply-To: <1099545501.26579.649.camel@ws102.darkcore.net>
+To: netfilter-devel@lists.netfilter.org, linux-net@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Content-Disposition: inline; filename=p5
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,36 +20,86 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 3 Nov 2004, John Lange wrote:
+You can use "bk receive" to patch with this mail.
 
-> Thanks for the information Patrick.
->
-> Unfortunately I don't know enough about the underlying TCP layer to
-> translate your email into english :)
+BK: Parent repository is bk://linux.bkbits.net/linux-2.5
 
-TCP RESET is the RST flag. No lines with the RST flag will have a UID as 
-these are not sent by applications but the kernel in response to "invalid" 
-traffic not beloning to a existing TCP connection.
+Patch description:
+ChangeSet@1.2427, 2004-11-04 13:00:54+01:00, matthias.andree@gmx.de
+    Fix ip_conntrack_amanda data corruption bug that breaks amanda dumps.
+  
+    Fix a bug where the ip_conntrack_amanda module replaces the first LF
+    after "CONNECT " by a NUL byte. This causes the UDP checksum to become
+    corrupt and strips off the OPTIONS argument from the received packet,
+    breaking amanda's sendbackup component altogether.  Replace the LF
+    character before releasing the buffer.
+  
+    Signed-off-by: Matthias Andree <matthias.andree@gmx.de>
 
-The same applies to most packets with PROTO=ICMP
+Matthias Andree
 
-> RST packet being something used to "tear down" a TCP connection in a
-> hurry, for example when the port you are connecting isn't listening.
+------------------------------------------------------------------------
 
-Exacly. "TCP Reset"
+##### DIFFSTAT #####
+ ip_conntrack_amanda.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-> Here is what I don't understand, why are these hosts trying to connect
-> to a non-existent port and, why would the RST be destined for port 25?
+##### GNUPATCH #####
+--- 1.10/net/ipv4/netfilter/ip_conntrack_amanda.c	2004-08-19 02:14:53 +02:00
++++ 1.11/net/ipv4/netfilter/ip_conntrack_amanda.c	2004-11-04 12:59:26 +01:00
+@@ -49,7 +49,7 @@
+ {
+ 	struct ip_conntrack_expect *exp;
+ 	struct ip_ct_amanda_expect *exp_amanda_info;
+-	char *amp, *data, *data_limit, *tmp;
++	char *amp, *data, *data_limit, *tmp, *le = 0;
+ 	unsigned int dataoff, i;
+ 	u_int16_t port, len;
+ 
+@@ -83,9 +83,10 @@
+ 		goto out;
+ 	data += strlen("CONNECT ");
+ 
+-	/* Only search first line. */	
+-	if ((tmp = strchr(data, '\n')))
+-		*tmp = '\0';
++	/* Only search first line.
++	 * NB: The change to the data must be reverted later! */
++	if ((le = strchr(data, '\n')))
++		*le = '\0';
+ 
+ 	for (i = 0; i < ARRAY_SIZE(conns); i++) {
+ 		char *match = strstr(data, conns[i]);
+@@ -120,6 +121,9 @@
+ 	}
+ 
+ out:
++	/* replace LF character to repair the packet */
++	if (le)
++	    *le = '\n';
+ 	UNLOCK_BH(&amanda_buffer_lock);
+ 	return NF_ACCEPT;
+ }
 
-It could be a delayed reply packet to a connection already long gone on 
-your side.
 
-Your server made a connection to port 25 on the remote IP. Then aborted 
-the connection (timeout or whatever), and then a while later the remote IP 
-came back trying to answer your request.
 
-TCP Reset is not only about connection establishement, but any situation 
-where a packet is received not matching a valid connection.
+##### BKPATCH #####
 
-Regards
-Henrik
+## Wrapped with gzip_b64 ##
+H4sIADodikECA+1WWW/bRhB+5v6KafIgW4nIXV6SmSpQbCWtEFcyfDw1hbFcLiXWvLC7VCxA
+P75D6mhauGhcBH2KJFJ7zH5zfTPYlzCbRpap1JrniZ5ws8qr0jaKl7qQhtuiKrYXK14u5Y00
+W5dSF78BG3o0CLcspP5wK1jCGPeZTKjrj0KfvIQ7LVVkFdyYVca1zctESYnrP1faRNayeLST
+dnpdVTh1Gq0crYSTZ2XzOHDtcHD+keD2FTdiBWupdGQx2zuumE0tI+v6/U93l++uCRmP4Wgh
+jMfk2zpjJC9VVVcTIezfN42dZr8eFPz2VzCfMcpY4DN3uA1Y6IZkCsx2fXcI1HcYc6gPzIso
+jQL/FWU4gL9FaLKLDLxiMKDkHL6tJxdEAMCH7BGy+l5UZYlw4uGeF6icQ8INB1Ep1dQmq0qI
+myWYFTcQK8kfNBzEmqLWNiIdwXgn+nkllcQD8knwokqaXIKSdc6F1J1cmilt4PJDB8RTIxW8
+uFjM5+8vbuEFxBsEnt9d4sBIG25XmQbBG70/fDe9ArGS4kE3BYYJYokRkR3U3gdAxaCNymoN
+VZp2pxZXt7PF/Aa4WjaFLA2kqiq6HSWFzNYygRqtluZ1h9R5npXLve89DVqWSYwSTY1qiroq
+WxCem2opEUXZANc7FzvQvW9ixTEWrX+xTCvVKssl1y1wKxU3aYpHDyG9yZalTAZo8iDeRPDL
+niHwrmMI/Pg0Zd6SjxAwL6Tk6s9iIINnfgihnJK3UEqTZjlaPMlKfGNdPtqxsAXf4o6T1Wvf
+OYo4T+TbFi0lPep5zPW8M6wHb0jpcMvdNKVuSgM6FCPXH/4D/5+lpa06fIIzN9z6qM/tGsLX
+IrT94v/yliR8LYtJ2Rhtd8O8So2N0M/zl47YGaXMD7yt547Yrssw9kWPcaPgLHLDf+kxIxj4
+33vM9x7zrB6zq7AFDNTn/Q8bztfS9z/0o2ngAiOz7m21TkKfF/Vr6LdU2v/d51mRGZyYbgc5
+MAb6hkxHIXhkNhqBTyynD4sy32BwucIbxI4XWOnSJhb0YX4eYfplG0ake5vsNmodXYsGJeM2
+oHgRMZi9nKODP0DfIVaWwslJpw9JIFbqZGdV71PZOz09JZa1M6b3ifbekBlGDg1qTdlzFJP3
+ReJQKa7zTHW6dxw5asklwmHm4IBYIuLxQnRg6Zhzj8mQJuQPFIcUW9cJAAA=
