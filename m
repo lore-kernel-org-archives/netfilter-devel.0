@@ -1,15 +1,11 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: DNAT/SNAT and logging
-Date: Wed, 21 Jan 2004 21:16:52 +0100 (CET)
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: (FORWARD) "emad hazza": iplimit error
+Date: Thu, 22 Jan 2004 15:22:28 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401212112170.12563-100000@filer.marasystems.com>
-References: <1074710915.16080.4.camel@ankarloo.got.volvo.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Message-ID: <20040122044428.5169B2C100@lists.samba.org>
+Cc: "emad hazza" <emad@nets.jo>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Johan Ankarloo <johan.ankarloo@volvo.com>
-In-Reply-To: <1074710915.16080.4.camel@ankarloo.got.volvo.net>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,29 +16,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 21 Jan 2004, Johan Ankarloo wrote:
+I'm forwarding to netfilter-devel, where people might know...
 
-> So you don't think that this is a lot of work just to get the logging to
-> work correctly? I mean that this is something that ( in my opinion )
-> should be done out of the box so to say. 
+Cheers,
+Rusty.
 
-It is some work, but not very much.
+Message-ID: <008d01c3e00a$afd51ce0$01c81fac@reporter.nets.com.jo>
+From: "emad hazza" <emad@nets.jo>
+To: <rusty@rustcorp.com.au>
+Subject: iplimit error
+Date: Wed, 21 Jan 2004 13:07:48 +0300
 
-> How should this be done through /dev/net/ip_conntrack?
+Hi Rusty, 
 
-When I say conntrack I mean in the kernel, not the proc files. By writing 
-another LOG target using the information from conntrack rather than the 
-packet you can log the information you requested.
+I am getting this error on my firewall 
+kernel: ipt_iplimit: Oops: invalid ct state ?
 
-See the LOG target and the conntrack match for details, also read the NAT 
-& Conntrack sections of the hacking howto.
-
-The most tricky part is when to log the first packet of the session. This
-has to be done after all information has been entered into the session,
-i.e. after any SNAT targets have been applied.
-
-Another approach is to look into using ctnetlink for detailed session
-logging. This is something we are currently implementing.
+Could you please tell me what does this mean
 
 Regards
-Henrik
+
+Emad
