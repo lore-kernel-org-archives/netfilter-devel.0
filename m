@@ -1,17 +1,15 @@
-From: William Stearns <wstearns@pobox.com>
-Subject: PSD and recent are _very_ picky about option order: "missing optarg"
-Date: Mon, 8 Dec 2003 22:04:13 -0500 (EST)
+From: Jesse Peng <jesse@deansoft.com.tw>
+Subject: Re: ip_conntrack_get
+Date: Tue, 09 Dec 2003 11:58:34 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0312082118580.1981-100000@sparrow>
-Reply-To: William Stearns <wstearns@pobox.com>
+Message-ID: <3FD5486A.6060007@deansoft.com.tw>
+References: <Pine.LNX.4.44.0311120051400.14633-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: William Stearns <wstearns@pobox.com>
+Content-Type: multipart/alternative;
+ boundary="------------070608090201050009000108"
+Cc: pablo neira <pablo@eurodev.net>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: ML-recent <ipt_recent@snowman.net>, Stephen Frost <sfrost@snowman.net>,
-   ML-netfilter-devel <netfilter-devel@lists.netfilter.org>,
-   Markus Hennig <hennig@astaro.de>, Dennis Koslowski <koslowski@astaro.de>,
-   Jan Rekorajski <baggins@pld.org.pl>
+To: Henrik Nordstrom <hno@marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,68 +20,146 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Good day, all,
-	I'm trying to use psd to detect port scans.  Once I find a 
-scanning IP address, I'd like to save that IP in a recent table called 
-"mappers".
-	Here's a simple run, lines wrapped for readability.  The first 
-fails when psd is loaded first; in the second command I load "recent" 
-first:
+
+--------------070608090201050009000108
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Henrik Nordstrom wrote:
+
+>>I also don't understand the way ctinfo is calculate. This stuff...
+>>
+>>403 <http://lxr.linux.no/source/net/ipv4/netfilter/ip_conntrack_core.c#L403>         *//* ctinfo is the index of the nfct inside the conntrack *//*
+>>404 <http://lxr.linux.no/source/net/ipv4/netfilter/ip_conntrack_core.c#L404>         *ctinfo = nfct - ct->infos;
+>>    
+>>
+>
+>Neither do I.. but then I have never needed to care as ip_conntrack_get()  
+>and the conntrack core does a good job of hiding the magics in that area.. 
+>it is probably quite simple reasons behind this odd looking construct.
+>
+>Regards
+>Henrik
+>
+>
+>  
+>
+Execuse me for the late response,for I thought my colleague would taken 
+the responsibility. As I think, just same as me, Pablo must be very 
+interested in learning netfilter ;)!
+
+while a new ip_conntrack cache initiates, every member 
+infos[i](nf_ct_info structure) then be charged with the same address 
+value pointing to the ip_conntrack cache's begining address(it's the 
+address of its first member nf_conntrack structure naming ct_general also).
+
+code reference:ip_conntrack_core.c ->init_conntrack ->
+for (i=0; i < IP_CT_NUMBER; i++)
+conntrack->infos[i].master = &conntrack->ct_general;
+
+either the first packet which initiates the ip_conntrack initiation or 
+any subsequent packets belonging to this connection, after 
+resolve_normal_ct, will get its member pointer structure nf_ct_info 
+naming nfct burned the address pointing to the concerning infos[i](the i 
+is right the ctinfo we figure out during resolve_normal_ct, as you know, 
+which indecates the relation this packet with its belonging connection).
+
+code reference:ip_conntrack_core.c ->resolve_normal_ct ->
+skb->nfct = &h->ctrack->infos[*ctinfo];
+
+ok! now with the address of info[i] the pskb get, we can figure out two 
+things.First, following the pointer to its address, with the value it 
+keeps, we get the address of the ip_conntrack.Second,following the 
+ip_conntrack we can get the address of infos[0],then with 
+infos[i]-infos[0](nfct-ct->infos),we get the i, which is right the 
+*ctinfo we wanna know!
+
+code reference:ip_conntrack_core.c ->__ip_conntrack_get ->
+struct ip_conntrack *ct
+= (struct ip_conntrack *)nfct->master; 
+-------------------------------------->first
+
+/* ctinfo is the index of the nfct inside the conntrack */
+*ctinfo = nfct - ct->infos; -------------------------------------->second
+
+I don't know if this answer your question? if not, it's time to improve 
+my English expression ;)!
 
 
-# iptables -N testchain
 
-# iptables -A testchain -m psd -m recent --name mapper --set
-iptables v1.2.9-20031126: missing optarg
-Try `iptables -h' or 'iptables --help' for more information.
+--------------070608090201050009000108
+Content-Type: text/html; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-# iptables -A testchain -m recent --name mapper --set -m psd
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+Henrik Nordstrom wrote:<br>
+<blockquote type="cite"
+ cite="midPine.LNX.4.44.0311120051400.14633-100000@filer.marasystems.com">
+  <pre wrap=""></pre>
+  <blockquote type="cite">
+    <pre wrap="">I also don't understand the way ctinfo is calculate. This stuff...
 
-	The first form fails, but I can't understand why; what option 
-would psd require?  Shouldn't it stop parsing at the next "-m"?
-	If I add all the parameters it should want, I don't get any 
-further:
+403 <a class="moz-txt-link-rfc2396E" href="http://lxr.linux.no/source/net/ipv4/netfilter/ip_conntrack_core.c#L403">&lt;http://lxr.linux.no/source/net/ipv4/netfilter/ip_conntrack_core.c#L403&gt;</a>         *//* ctinfo is the index of the nfct inside the conntrack *//*
+404 <a class="moz-txt-link-rfc2396E" href="http://lxr.linux.no/source/net/ipv4/netfilter/ip_conntrack_core.c#L404">&lt;http://lxr.linux.no/source/net/ipv4/netfilter/ip_conntrack_core.c#L404&gt;</a>         *ctinfo = nfct - ct-&gt;infos;
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+Neither do I.. but then I have never needed to care as ip_conntrack_get()  
+and the conntrack core does a good job of hiding the magics in that area.. 
+it is probably quite simple reasons behind this odd looking construct.
 
-# iptables -A testchain -m psd --psd-weight-threshold 21
---psd-delay-threshold 300 --psd-lo-ports-weight 3 --psd-hi-ports-weight 1
--m recent --name mapper --set
-
-iptables v1.2.9-20031126: missing optarg
-Try `iptables -h' or 'iptables --help' for more information.
-
-	If I leave off the recent module, it loads fine:
-
-# iptables -A testchain -m psd --psd-weight-threshold 21
---psd-delay-threshold 300 --psd-lo-ports-weight 3 --psd-hi-ports-weight 1
+Regards
+Henrik
 
 
-	The only way I can seem to get them to load together is this:
+  </pre>
+</blockquote>
+Execuse me for the late response,for I thought my colleague would taken the
+responsibility. As I think, just same as me, Pablo must be very interested
+in learning netfilter ;)!<br>
+<br>
+while a new ip_conntrack cache initiates, every member infos[i](nf_ct_info
+structure) then be charged with the same address value pointing to the ip_conntrack
+cache's begining address(it's the address of its first member nf_conntrack
+structure naming ct_general also).<br>
+<br>
+code reference:ip_conntrack_core.c -&gt;init_conntrack -&gt;<br>
+&nbsp;&nbsp;&nbsp; for (i=0; i &lt; IP_CT_NUMBER; i++)<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; conntrack-&gt;infos[i].master = &amp;conntrack-&gt;ct_general;<br>
+<br>
+either the first packet which initiates the ip_conntrack initiation or any
+subsequent packets belonging to this connection, after resolve_normal_ct,
+will get its member pointer structure nf_ct_info naming nfct burned the address
+pointing to the concerning infos[i](the i is right the ctinfo we figure out
+during resolve_normal_ct, as you know, which indecates the relation this
+packet with its belonging connection).<br>
+<br>
+code reference:ip_conntrack_core.c -&gt;resolve_normal_ct -&gt;<br>
+skb-&gt;nfct = &amp;h-&gt;ctrack-&gt;infos[*ctinfo];<br>
+<br>
+ok! now with the address of info[i] the pskb get, we can figure out two things.First,
+following the pointer to its address, with the value it keeps, we get&nbsp; the
+address of the ip_conntrack.Second,following the ip_conntrack we can get
+the address of infos[0],then with infos[i]-infos[0](nfct-ct-&gt;infos),we
+get the i, which is right the *ctinfo we wanna know! <br>
+<br>
+code reference:ip_conntrack_core.c -&gt;__ip_conntrack_get -&gt;<br>
+struct ip_conntrack *ct<br>
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; = (struct ip_conntrack *)nfct-&gt;master; --------------------------------------&gt;first<br>
+<br>
+&nbsp;&nbsp;&nbsp; /* ctinfo is the index of the nfct inside the conntrack */<br>
+&nbsp;&nbsp;&nbsp; *ctinfo = nfct - ct-&gt;infos; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;--------------------------------------&gt;second<br>
+<br>
+I don't know if this answer your question? if not, it's time to improve my
+English expression ;)!<br>
+<br>
+<br>
+</body>
+</html>
 
-# iptables -A testchain -m recent --name mapper -m psd --set
-
-	Recent first, psd next, and recent's "--set" at the end (it works 
-with or without the --psd* parameters between "-m psd" and "--set").
-
-	The order makes a difference to me.  If I do the original way 
-("iptables -A testchain -m recent --name mapper --set -m psd"), the rule 
-adds the source IP to the mapper table before I've even tested to see if 
-this is part of a port scan.
-
-	Why does the --set need to be after the -m psd?  Am I doing 
-something _really_ stupid?
-
-	iptables and patch-o-matic are both 20031126, kernel is 
-2.6.0-test11.
-	Cheers,
-	- Bill
-
----------------------------------------------------------------------------
-        "I've discovered that using VMS is a lot like driving a nail
-with your head: sure, you eventually get something practical done, but
-it usually results in a headache and some blood loss."
-(Courtesy of Dmitri <dmitri@users.sourceforge.net> and Sean A. Simpson)
---------------------------------------------------------------------------
-William Stearns (wstearns@pobox.com).  Mason, Buildkernel, freedups, p0f,
-rsync-backup, ssh-keyinstall, dns-check, more at:   http://www.stearns.org
-Linux articles at:                         http://www.opensourcedigest.com
---------------------------------------------------------------------------
+--------------070608090201050009000108--
