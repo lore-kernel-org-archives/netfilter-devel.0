@@ -1,16 +1,16 @@
-From: Pablo Neira <pablo@eurodev.net>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] peer_pid checking in ip_queue
-Date: Wed, 24 Mar 2004 01:42:17 +0100
+Date: Wed, 24 Mar 2004 01:47:47 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4060D969.9040900@eurodev.net>
+Message-ID: <4060DAB3.7010400@trash.net>
 References: <Pine.LNX.4.44.0403240106490.15222-100000@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>,
- netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+Cc: Pablo Neira <pablo@eurodev.net>,  netfilter-devel@lists.netfilter.org,
  Harald Welte <laforge@netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Henrik Nordstrom <hno@marasystems.com>
 In-Reply-To: <Pine.LNX.4.44.0403240106490.15222-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -22,20 +22,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-
 Henrik Nordstrom wrote:
+> On Tue, 23 Mar 2004, Patrick McHardy wrote:
+> 
+> 
+>>It can happen if peer_pid is checked outside the locked section on one
+>>CPU and changed on another at the same time. I don't consider it
+>>important, as the exact point in time at which the first packet will be
+>>received is non-deterministic for userspace anyway.
+> 
+> 
+> What about when the user program closes? How bad it is to have read the 
+> pid and then there is no userspace there?
 
->What about when the user program closes? How bad it is to have read the 
->pid and then there is no userspace there?
->  
->
-As Patrick pointed out before, netlink is not reliable, so it will drop 
-the packets sent to an user space which doesn't exist without 
-notification. But if the user space program closes properly, peer_pid 
-will be reset. Have a look at ipq_rcv_nl_event and netlink_release. 
-AFAIK, if the user space program hangs or dies, kernel will release the 
-socket later, so for quite some time netlink will drop packets. Am I right?
+It's no problem, netlink_unicast checks for existance of the socket,
+which will be gone with the reader. If no socket is found it returns
+-ECONNREFUSED.
 
-regards,
-Pablo
+Regards
+Patrick
+
+
+> 
+> Regards
+> Henrik
+> 
