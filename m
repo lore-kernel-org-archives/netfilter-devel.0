@@ -1,16 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter/ipsec packet flow
-Date: Thu, 15 Apr 2004 05:58:13 +0200
+Subject: Re: [PATCH] clean up for ftp conntrack helper
+Date: Thu, 15 Apr 2004 06:14:39 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <407E0855.2080705@trash.net>
-References: <20040414173749.GA6170@obs.bg>
+Message-ID: <407E0C2F.6070803@trash.net>
+References: <407DB66B.9090300@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed;
+ boundary="------------090903020906070408080007"
+Cc: netfilter-devel@lists.netfilter.org,
+ Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ivan Mitev <imitev@obs.bg>
-In-Reply-To: <20040414173749.GA6170@obs.bg>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <407DB66B.9090300@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,93 +22,165 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Ivan Mitev wrote:
-> hi
-> 
-> sorry if that sounds like a stupid question; but let's ask, as more people
-> should be concerned by that when they'll migrate their freeswan/2.4 to 2.6's
-> ipsec... 
-> 
-> 1- is this 2.6 ipsec packet flow "freezed" ? 
-> 
->             [incoming packet]
->                     |<-----------------. 
->                     v                  |
->                PREROUTING              |
->     dest!=local?  /  \  dest==local?   |
->                 /      \               |
->          FORWARD        LOCAL_IN       |
->              |            |            |
->              |      (ipsec?decrypt:nop)|
->              |            |   \        / dest!=local ?
->              |            |    `------'
->              v            v  dest==local ?
-> 
-> (excellent ascii-art stolen from willy tarreau in
-> http://lists.netfilter.org/pipermail/netfilter-devel/2004-March/014464.html
-> in a discussion about patrick's new netfilter/ipsec patches)
-> 
-> because for those of us that need to begin to migrate to 2.6 and that have
-> very complex traffic control done with mangle/fwmark, it's important to know
-> where ipsec packets will be seen twice (encrypted/de-encrypted). (and where
-> they won't be seen, eg. encrypted ESP/AH pkts in OUTPUT/filter ?) 
+This is a multi-part message in MIME format.
+--------------090903020906070408080007
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This doesn't represent the packet flow accurately, it's basically like
-this (I put X's at the positions where the packet would enter/leave the
-ipsec devices with freeswan)
+Pablo Neira wrote:
+> that patch was already reviewed by Patrick and you. Anyway that one is 
+> simple so I have no problem in merge them to this one.
 
-INPUT:
-1. -> (encrypted) PRE_ROUTING -> LOCAL_IN -> (X plain) PRE_ROUTING -> 
-LOCAL_IN
-2. -> (encrypted) PRE_ROUTING -> LOCAL_IN -> (X plain) PRE_ROUTING -> 
-FORWARD
+The patch looks good to me. I've merged it with the datalen patch and
+fixed intendation/removed some newlines, I will add this after giving
+it a run tomorrow.
 
-OUTPUT:
-1. -> (plain) FORWARD   -> POST_ROUTING -> (X encrypted) LOCAL_OUT -> 
-POST_ROUTING
-2. -> (plain) LOCAL_OUT -> POST_ROUTING -> (X encrypted) LOCAL_OUT -> 
-POST_ROUTING
-
-> 2- does the ipsec policy match by patrick McHardy is considered as the
-> "standard" way of matching de-encrypted packets ? (eg. compared to the earlier
-> fwmark hack), or are there other ways ?
-
-There is no "standard way" yet, but the policy match is meant to become
-the standard way.
-
-> ...or do some netfilter core developers have other design ideas ? (i'm talking
-> only of the packet flow here; not the internals/implementation)
-> 
-
-The packet flow (hook-wise) was discussed here a couple of month ago,
-IIRC everyone agreed on this order.
-
-> question for patrick: does the last patch in pom-ng change the design above ?
-> ("The input patch is replaced with a new version which...")
-> (http://lists.netfilter.org/pipermail/netfilter-devel/2004-April/014977.html) 
-
-It doesn't change the order in which hooks are traversed,
-it only changes the packet flow through the network stack.
-
-> another thing (sorry for the lengthy post), can someone put patrick's xfig pic
-> somewhere (or send it to me); i don't manage to "unbase64" it.
-> (http://lists.netfilter.org/pipermail/netfilter-devel/2004-March/014469.html)
-
-It's not correct anymore with the new input patch. It's not important
-from a user's perspective anyway, the order in which hooks are traversed
-is what matters.
-
-> oh, and btw let me know if i can help with testing - i have a full 2.6 network
-> testbed here ...
-
-Sure, the most useful would be if you try to replicate your 2.4 setup
-with 2.6 and see if everything works. Otherwise just testing the patches
-and reporting problems is also helpful.
-
-Regards
+Regards,
 Patrick
 
 > 
-> thanks !
-> 
-> ivan
+> regards,
+> Pablo
+
+
+--------------090903020906070408080007
+Content-Type: text/x-patch;
+ name="ftp_helper.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ftp_helper.patch"
+
+===== net/ipv4/netfilter/ip_conntrack_ftp.c 1.18 vs edited =====
+--- 1.18/net/ipv4/netfilter/ip_conntrack_ftp.c	Thu Jan 29 00:59:33 2004
++++ edited/net/ipv4/netfilter/ip_conntrack_ftp.c	Thu Apr 15 06:16:25 2004
+@@ -51,38 +51,37 @@
+ static int try_epsv_response(const char *, size_t, u_int32_t [], char);
+ 
+ static struct ftp_search {
+-	enum ip_conntrack_dir dir;
+ 	const char *pattern;
+ 	size_t plen;
+ 	char skip;
+ 	char term;
+ 	enum ip_ct_ftp_type ftptype;
+ 	int (*getnum)(const char *, size_t, u_int32_t[], char);
+-} search[] = {
+-	{
+-		IP_CT_DIR_ORIGINAL,
+-		"PORT",	sizeof("PORT") - 1, ' ', '\r',
+-		IP_CT_FTP_PORT,
+-		try_rfc959,
+-	},
+-	{
+-		IP_CT_DIR_REPLY,
+-		"227 ",	sizeof("227 ") - 1, '(', ')',
+-		IP_CT_FTP_PASV,
+-		try_rfc959,
+-	},
+-	{
+-		IP_CT_DIR_ORIGINAL,
+-		"EPRT", sizeof("EPRT") - 1, ' ', '\r',
+-		IP_CT_FTP_EPRT,
+-		try_eprt,
+-	},
+-	{
+-		IP_CT_DIR_REPLY,
+-		"229 ", sizeof("229 ") - 1, '(', ')',
+-		IP_CT_FTP_EPSV,
+-		try_epsv_response,
++} search[IP_CT_DIR_MAX][2] = {
++	{ 
++		{
++			"PORT",	sizeof("PORT") - 1, ' ', '\r',
++			IP_CT_FTP_PORT,
++			try_rfc959,
++		},
++		{
++			"EPRT", sizeof("EPRT") - 1, ' ', '\r',
++			IP_CT_FTP_EPRT,
++			try_eprt,
++		}
+ 	},
++	{ 
++		{
++			"227 ", sizeof("227 ") - 1, '(', ')',
++			IP_CT_FTP_PASV,
++			try_rfc959,
++		},
++		{
++			"229 ", sizeof("229 ") - 1, '(', ')',
++			IP_CT_FTP_EPSV,
++			try_epsv_response,
++		}
++	}
+ };
+ 
+ static int try_number(const char *data, size_t dlen, u_int32_t array[],
+@@ -281,7 +280,7 @@
+ 	datalen = skb->len - dataoff;
+ 
+ 	LOCK_BH(&ip_ftp_lock);
+-	skb_copy_bits(skb, dataoff, ftp_buffer, skb->len - dataoff);
++	skb_copy_bits(skb, dataoff, ftp_buffer, datalen);
+ 
+ 	old_seq_aft_nl_set = ct_ftp_info->seq_aft_nl_set[dir];
+ 	old_seq_aft_nl = ct_ftp_info->seq_aft_nl[dir];
+@@ -314,33 +313,33 @@
+ 	array[2] = (ntohl(ct->tuplehash[dir].tuple.src.ip) >> 8) & 0xFF;
+ 	array[3] = ntohl(ct->tuplehash[dir].tuple.src.ip) & 0xFF;
+ 
+-	for (i = 0; i < ARRAY_SIZE(search); i++) {
+-		if (search[i].dir != dir) continue;
+-
+-		found = find_pattern(ftp_buffer, skb->len - dataoff,
+-				     search[i].pattern,
+-				     search[i].plen,
+-				     search[i].skip,
+-				     search[i].term,
++	for (i = 0; i < ARRAY_SIZE(search[dir]); i++) {
++		found = find_pattern(ftp_buffer, datalen,
++				     search[dir][i].pattern,
++				     search[dir][i].plen,
++				     search[dir][i].skip,
++				     search[dir][i].term,
+ 				     &matchoff, &matchlen,
+ 				     array,
+-				     search[i].getnum);
++				     search[dir][i].getnum);
+ 		if (found) break;
+ 	}
+-	if (found == -1) {
++
++	if (found == 0) {
++		/* General case: No match */
++		ret = NF_ACCEPT;
++		goto out;
++	} else if (found == -1) {
+ 		/* We don't usually drop packets.  After all, this is
+ 		   connection tracking, not packet filtering.
+ 		   However, it is necessary for accurate tracking in
+ 		   this case. */
+ 		if (net_ratelimit())
+ 			printk("conntrack_ftp: partial %s %u+%u\n",
+-			       search[i].pattern,
++			       search[dir][i].pattern,
+ 			       ntohl(tcph.seq), datalen);
+ 		ret = NF_DROP;
+ 		goto out;
+-	} else if (found == 0) { /* No match */
+-		ret = NF_ACCEPT;
+-		goto out;
+ 	}
+ 
+ 	DEBUGP("conntrack_ftp: match `%.*s' (%u bytes at %u)\n",
+@@ -354,7 +353,7 @@
+ 	    == ct->tuplehash[dir].tuple.src.ip) {
+ 		exp->seq = ntohl(tcph.seq) + matchoff;
+ 		exp_ftp_info->len = matchlen;
+-		exp_ftp_info->ftptype = search[i].ftptype;
++		exp_ftp_info->ftptype = search[dir][i].ftptype;
+ 		exp_ftp_info->port = array[4] << 8 | array[5];
+ 	} else {
+ 		/* Enrico Scholz's passive FTP to partially RNAT'd ftp
+
+--------------090903020906070408080007--
