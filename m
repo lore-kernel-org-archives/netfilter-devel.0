@@ -1,12 +1,15 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: re: find_appropriate_src() BUG also exist in 2.4.24
-Date: Sun, 4 Apr 2004 15:37:35 -0700
+From: Philipp =?iso-8859-1?q?G=FChring?= <pg@futureware.at>
+Subject: Table-based branching
+Date: Mon, 5 Apr 2004 15:08:15 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040404223735.GA1334@linuxace.com>
+Message-ID: <200404051508.15935.pg@futureware.at>
+Reply-To: pg@futureware.at
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -18,31 +21,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I too am having lockups every few hours on a heavily used gateway.  
+Hi!
 
-Back in September, Rusty offered this patch:
+I am working on a scalable captive Portal Gateway software.
+I have several huge networks (/20) that have to be managed individually per=
+ IP=20
+address.
+=46or every IP adress I have to store in a table, whether that IP Address i=
+s=20
+allowed or not yet allowed.
+When an IP address is allowed, it either has to be router or NATed, dependi=
+ng=20
+on the network address.
 
-http://lists.netfilter.org/pipermail/netfilter-devel/2003-September/012388.html
+When an IP address is not allowed, all Traffic has to be redirected to the=
+=20
+captive portal on the firewall.
 
-Which to this point is not in either 2.4 or 2.6, but looks as though
-it may actually fix the endless loop we seem to be experiencing.
+My idea now is to have different rule tables for allowed and disallowed IP=
+=20
+addresses, and special kernel module that branches into either rule table.
+That module contains a large Bit-Array in kernel memory to store for every =
+IP=20
+addresse whether it is allowed or disallowed.
 
-Alternatively, the following patch was merged in 2.6, but is not present
-in 2.4.24 -- could this also help?
+Has anyone done that before (or something similar)?
 
---- 1.34/net/ipv4/netfilter/ip_nat_core.c	Sun Apr  4 15:21:19 2004
-+++ 1.35/net/ipv4/netfilter/ip_nat_core.c	Sun Apr  4 15:21:19 2004
-@@ -421,7 +421,8 @@
- 			*tuple = ((struct ip_conntrack_tuple)
- 				  { *manip, orig_tuple->dst });
- 			DEBUGP("get_unique_tuple: Found current src map\n");
--			return 1;
-+			if (!ip_nat_used_tuple(tuple, conntrack))
-+				return 1;
- 		}
- 	}
+Is it a bad idea to do it that way?
 
-
-Any thoughts on either of the above would be appreciated.
-
-Phil Oester
+Many greetings,
+Philipp G=FChring
