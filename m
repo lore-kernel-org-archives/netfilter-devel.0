@@ -1,17 +1,18 @@
-From: Steven J Scott <sjscott@ra.rockwell.com>
-Subject: Re: How can I get these packets in the user space application?
- Performance Issues?
-Date: Thu, 9 Dec 2004 09:38:52 -0600
-Message-ID: <OF3990817D.244AD4C0-ON86256F65.005572ED-86256F65.0055EDC2@ra.rockwell.com>
+From: Ludwig Nussel <ludwig.nussel@suse.de>
+Subject: Re: TCP window tracking has bad side effects
+Date: Thu, 9 Dec 2004 17:26:56 +0100
+Message-ID: <20041209162656.GA9569@suse.de>
+References: <20041201110253.GA9536@suse.de>
+	<Pine.LNX.4.58.0412011308520.27175@blackhole.kfki.hu>
+	<20041201153903.GA16807@suse.de>
+	<Pine.LNX.4.58.0412030942320.30157@blackhole.kfki.hu>
+	<Pine.LNX.4.58.0412060934050.5880@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Cc: Henrik Nordstrom <hno@marasystems.com>, kung@uiuc.edu,
-	netfilter-devel@lists.netfilter.org,
-	"Mukund JB." <mukundjb@esntechnologies.co.in>,
-	netfilter-devel-bounces@lists.netfilter.org,
-	Diego Woitasen <diegows@linux.org.ar>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Maarten Wijnants" <maarten.wijnants@pandora.be>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0412060934050.5880@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,59 +24,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I have a side question on this.  I have a kernel module that creates a 
-netfilter hook that looks for packets with a certain source port, and then 
-directs them to NF_QUEUE, and I have a user space application that receives the queued packets. 
-Since I am only queuing packets I want to monitor/modify is my performance 
-hit significant?  Or am I better off doing everything within the kernel 
-module?
+Jozsef Kadlecsik wrote:
+> On Fri, 3 Dec 2004, Jozsef Kadlecsik wrote:
+> 
+> > On Wed, 1 Dec 2004, Ludwig Nussel wrote:
+> >
+> > > My description probably wasn't unambiguous. The client has the
+> > > packetfilter, crashes and reboots.
+> >
+> > I see - that case was not handled in the code. Please try the patch below
+> > and report the result.
+> 
+> Oh, I'm sorry that was an incomplete patch. This is the fixed code, please
+> give it a try.
 
-Thanks,
+Seems to work. The client machine no longer drops the packet and
+properly sends RST.
 
-Steven Scott - CISSP, CISA, RHCT, LCP, MCSE
-Rockwell Automation / Advanced Technology
-sjscott@ra.rockwell.com
-<---------------------------------------------------->
-(This email was sent via Notes running on Linux)
+cu
+Ludwig
 
-
-
-
-"Maarten Wijnants" <maarten.wijnants@pandora.be>
-Sent by: netfilter-devel-bounces@lists.netfilter.org
-09/12/2004 07:24 AM
-
- 
-        To:     "Srinivas G." <srinivasg@esntechnologies.co.in>, "Henrik Nordstrom" 
-<hno@marasystems.com>
-        cc:     kung@uiuc.edu, netfilter-devel@lists.netfilter.org, "Mukund JB." 
-<mukundjb@esntechnologies.co.in>, Diego Woitasen <diegows@linux.org.ar>
-        Subject:        Re: How can I get these packets in the user space application?
-
-
-Hello Srinivas G,
-
-> My doubt is: How the user application can get the packet from the 'hook'
-> function? What APIs are used in the user space application to access the
-> packet from the hook function?
-
-I am trying to understand your current situation. So you have a kernel 
-module that is subscribed to a certain netfilter hook and as a result 
-starts 
-receiving packets; and now you want to pass these packets from your kernel 
-
-module to a userspace application? Is this correct?
-
-If this is your current situation, you should issue a NF_QUEUE verdict for 
-
-arriving packets in your kernel module to queue the packets to userspace. 
-Subsequently, you will need to create a userspace application to receive 
-the 
-queued packets and run it. You can use libipq to write a userspace 
-application that will accept queued packets. See the man page of libipq 
-for 
-more information on how to do this (the man page contains a fully working 
-example).
-
-I hope this helps you. Regards,
-Maarten 
+-- 
+ (o_   Ludwig Nussel
+ //\   SUSE LINUX Products GmbH, Development
+ V_/_  http://www.suse.de/
