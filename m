@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: IPQ Userspace Filtering
-Date: Fri, 23 May 2003 22:05:06 +0200
+Subject: Re: invalid packets
+Date: Fri, 23 May 2003 22:06:45 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030523200506.GT3077@sunbeam.de.gnumonks.org>
-References: <20030516161823.31741.qmail@web10705.mail.yahoo.com>
+Message-ID: <20030523200645.GU3077@sunbeam.de.gnumonks.org>
+References: <3EC5140F.1030203@Linux.ie>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Pk/CTwBz1VvfPIDp"
+	protocol="application/pgp-signature"; boundary="OwXh6gFRjCd3qPCM"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: John Minnis <jminnis@yahoo.com>
+To: Padraig@Linux.ie
 Content-Disposition: inline
-In-Reply-To: <20030516161823.31741.qmail@web10705.mail.yahoo.com>
+In-Reply-To: <3EC5140F.1030203@Linux.ie>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,31 +23,31 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Pk/CTwBz1VvfPIDp
-Content-Type: text/plain; charset=us-ascii
+--OwXh6gFRjCd3qPCM
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, May 16, 2003 at 09:18:23AM -0700, John Minnis wrote:
-> Does anyone know of a way to determine if another
-> userspace application has created an IPQ handler
-> (NETLINK_FIREWALL socket)?  I understand that the only
-> one may be used at a time, however currently the
-> second one is allowed to open, and then all traffic is
-> directed to this one.  Neither instance receives any
-> indication that there is a conflict. I am using the
-> intercept.c example code to test this.  My first
-> preference would be to prevent the second socket from
-> being opened until the first program exited.
+On Fri, May 16, 2003 at 05:38:39PM +0100, Padraig@Linux.ie wrote:
+> Hi, under what circumstances would iptraf (PF_PACKET)
+> be able to recieve packets on an interface, and
+> for those same packets to be not registered
+> with netfilter at all. I'm setting the filter on
+> the PREROUTING chain in the mangle table and no
+> packets are registered?
 
-IP queue is not designed with support for multiple processes.=20
+PF_PACKET has no relation to the IP stack.  So PF_PACKET sockets will always
+receive copies of all packets on a higher layer (layer2) than
+netfilter/iptables.
 
-Maybe you want to look into ipqmpd, the ip queue multiplex daemon.  It
-allows multiple processes from usersapace use ip_queue.
+> Hmm I suppose if the checksum is wrong you can't depend
+> on anything, but I'm just surprised iptraf can
+> log them which netfilter can't.
 
-> Thanks,
-> John
-=20
+packets with wrong checksums are dropped by the higher layers (3/4)
+
+> cheers,
+> P=E1draig.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -59,16 +59,16 @@ allows multiple processes from usersapace use ip_queue.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Pk/CTwBz1VvfPIDp
+--OwXh6gFRjCd3qPCM
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE+zn7yXaXGVTD0i/8RAk5VAJoDuCMqHNN+ZhEjNLX3LABGlDA7iACfdkYZ
-BV84ETW+NA3la3zXCfKwzB0=
-=NtZM
+iD8DBQE+zn9VXaXGVTD0i/8RAk6IAKCGCfnBchtl+mfA6BUln/e9NCB1HQCePLPy
+n4Sk6OKK4GTBQzQf681TK8w=
+=oUKn
 -----END PGP SIGNATURE-----
 
---Pk/CTwBz1VvfPIDp--
+--OwXh6gFRjCd3qPCM--
