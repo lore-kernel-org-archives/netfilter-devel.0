@@ -1,18 +1,16 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: new ipt_ACCOUNT version
-Date: Sun, 13 Jun 2004 23:09:36 +0200
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: ip_queue_vwmark for pom-ng
+Date: Sun, 13 Jun 2004 23:00:22 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200406132309.36093.thomas.jarosch@intra2net.com>
-References: <200405291527.43712.thomas.jarosch@intra2net.com> <200406101907.05352.thomas.jarosch@intra2net.com> <1087159457.11287.39.camel@ws>
+Message-ID: <1087160421.3320.5.camel@coati>
+References: <1086903111.4794.4.camel@coati>  <1087157463.11287.20.camel@ws>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <1087159457.11287.39.camel@ws>
-Content-Disposition: inline
+In-Reply-To: <1087157463.11287.20.camel@ws>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,16 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> On Thu, 2004-06-10 at 19:07, Thomas Jarosch wrote:
-> > Hi Patrick,
-> >
-> > Please see the attached file. Hope the userspace patch is ok.
->
-> Applied with the attached patch on top (trailing whitespace cleanup
-> and missing statics).
+On Sun, 2004-06-13 at 22:11, Patrick McHardy wrote:
+> On Thu, 2004-06-10 at 23:31, Eric Leblond wrote:
+> Applied, thanks Eric. Am I right that this patch doesn't break userspace
+> compatiblity ?
 
-Nice! :-)
+I add to change the definition of a structure related to libipq. So it
+can break compatibility of application using the size of this structure.
 
-Out of curiosity, where did the "info", "help" or userspace stuff go to?
+But It should not impact libipq applications.
 
-Thomas
+Regards
+-- 
+Eric Leblond <eric@inl.fr>
+INL
