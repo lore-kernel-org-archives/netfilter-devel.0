@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] remove exessive timer updates (3/4)
-Date: Sat, 8 Jun 2002 09:37:33 +0200
+Subject: Re: Security flaw in Stateful filtering ??????
+Date: Sat, 8 Jun 2002 09:44:17 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020608073733.GB1109@naboo.de.gnumonks.org>
-References: <1023365846.845.26.camel@tux>
+Message-ID: <20020608074417.GC1109@naboo.de.gnumonks.org>
+References: <3D007FF0.2080304@cs.auc.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter-devel <netfilter-devel@lists.samba.org>
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
+To: Mikkel Christiansen <mixxel@cs.auc.dk>
 Content-Disposition: inline
-In-Reply-To: <1023365846.845.26.camel@tux>
+In-Reply-To: <3D007FF0.2080304@cs.auc.dk>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,22 +21,32 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jun 06, 2002 at 02:24:04PM +0200, Martin Josefsson wrote:
-> Here's the patch that lead up to the first patch (the renaming of
-> death_by_timeout and exporting it).
+On Fri, Jun 07, 2002 at 11:42:08AM +0200, Mikkel Christiansen wrote:
+> Hi 
+> 
+> I'm still not sure I quite understand what actions an 
+> ACK packet from an unregistered connection causes when 
+> running in connection-pickup mode. Mainly, I'm interested
+> in knowing whether it causes a new connection to be 
+> registered in the connnection table or not?
 
-ah. now I understand what the exporting was all about :)
+yes, of course, it causes a new conntrack table entry to be created.
+the entry will be UNREPLIED.  So in case the other end behind the
+firewall will reply with an ACK packet, we call the connection
+ESTABLISHED.
 
-> This patch adds a check to ip_ct_refresh() so it doesn't update the
-> timer of a connection unless it's been >HZ ticks since the last update.
-> both del_timer() and add_timer() disables interrupts while
-> removing/inserting the timer, no reason to do this for each packet.
+In case we run out of conntrack entries, the UNREPLIED entries are
+deleted, because they _could_ be from an ACK scan.
 
-sounds interesting and should give quite some speedup.  Did you do any
-benchmarking on that?
+> Thanks for all the feedback - atleast to us - this is 
+> a quite interesting discussion.
 
+... a discussion which has happened multiple times before.
 
-> /Martin
+look in the mailinglist archives and search for conntrack entries with
+high timeount and UNREPLIED state.
+
+> -Mikkel
 
 -- 
 Live long and prosper
