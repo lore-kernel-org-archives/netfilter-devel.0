@@ -1,17 +1,16 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH] sparc64 compatibility netfilter patches
-Date: Wed, 01 Jan 2003 22:22:23 -0800 (PST)
+From: Markus Schaber <markus.schaber@student.uni-ulm.de>
+Subject: Re: [Fwd: ACCEPT/DROP]
+Date: Thu, 2 Jan 2003 00:10:23 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030101.222223.122334112.davem@redhat.com>
-References: <20030101171654.B25870@linux.karinthy.hu>
-	<20030101213205.A27131@linux.karinthy.hu>
+Message-ID: <20030102001023.75d8d3da.markus.schaber@student.uni-ulm.de>
+References: <Pine.LNX.4.44.0212241649520.27999-100000@el-zoido.localnet>
+	<3E099B19.50705@hipac.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: valko@linux.karinthy.hu
-In-Reply-To: <20030101213205.A27131@linux.karinthy.hu>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <3E099B19.50705@hipac.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,12 +21,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-The hack for building the tools is wrong, there are 64-bit
-compilers and userspace available.
+Thomas Heinz wrote:
 
-The real fix for that (for when your tools are 32-bit) is
-to run "sparc32 /bin/sh" and compile in that environment.
+> You wrote:
+> > This may be true for code, but iptables rules describe sets of
+> > packets
+> 
+> This is true for the basic cases only. In general the matches of a
+> rule must be considered to be arbitrary packet action (ACCEPT, DROP,
+> CONTINUE) returning functions that may even return different actions
+> for the same packet. The only constraint for matches is that they
+> should work read-only on the packet content, i.e. not modify it.
 
-I'll be looking at the kernel side patch next, it should be
-ok.
+That's true, as examples one may see the state matches, or the random
+match.
+
+
+Markus
+
+-- 
+Schabi's Flohmarkt: http://www.uni-ulm.de/~s_mschab/flohmarkt/
+
+Der Dienstweg ist die Verbindung der Sackgasse mit dem Holzweg!
+[DoLi in unibwm.studium]
