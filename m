@@ -1,8 +1,8 @@
 From: "David S. Miller" <davem@redhat.com>
 Subject: Re: [PATCH] IPv6: Functions Clean-up
-Date: Sun, 23 Feb 2003 22:25:57 -0800 (PST)
+Date: Sun, 23 Feb 2003 22:54:26 -0800 (PST)
 Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20030223.222557.132586554.davem@redhat.com>
+Message-ID: <20030223.225426.28829614.davem@redhat.com>
 References: <20021103.115427.104445233.yoshfuji@linux-ipv6.org>
 	<20030223.011816.108201183.davem@redhat.com>
 	<20030224.125702.13403857.yoshfuji@linux-ipv6.org>
@@ -21,14 +21,22 @@ List-Id: netfilter-devel.vger.kernel.org
    From: YOSHIFUJI Hideaki / 吉藤英明 <yoshfuji@linux-ipv6.org>
    Date: Mon, 24 Feb 2003 12:57:02 +0900 (JST)
 
-   > I will apply this patch once you make the change.  Would you
-   > like me to add it to 2.4.x as well?
-   
-   yes.  Do I need to send a patch for linux-2.4.xx, too?
-   
-Not necessary, I know what is different in the networking
-between these two trees.
-   
    Here's the patch for linux-2.5.62.
+   
+Hideaki-san, do you try to compile the patches you send
+to me?  :-)
 
-Applied, thanks.
+   -static void ipv6_wash_prefix(struct in6_addr *pfx, int plen)
+   +static void ipv6_addr_prefix(struct in6_addr *pfx,
+   +			     const struct in6_addr *addr, int plen)
+    {
+    	int b = plen&0x7;
+   -	int o = (plen + 7)>>3;
+   +	int o = plen>>3;
+    
+   +	memcpy(prefix, addr, o);
+
+Where is the variable 'prefix' declared?  You probably mean
+'pfx->s6_addr' and that is the change I will make in my tree.
+
+Thanks.
