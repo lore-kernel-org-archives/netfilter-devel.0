@@ -1,12 +1,15 @@
-From: Leonardo Henrique Machado <leoh@dcc.ufmg.br>
-Subject: Question about procfs function
-Date: Sun, 25 Jan 2004 19:23:18 -0200 (BRST)
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: Question about procfs function
+Date: Mon, 26 Jan 2004 17:34:40 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401251921480.2228-100000@truta.dcc.ufmg.br>
+Message-ID: <401541A0.3030906@eurodev.net>
+References: <Pine.LNX.4.44.0401251921480.2228-100000@truta.dcc.ufmg.br>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.44.0401251921480.2228-100000@truta.dcc.ufmg.br>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,29 +20,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi leonardo,
 
-Where can I find a complete tutorial about procfs?
+Leonardo Henrique Machado wrote:
 
-I need to print a whole table in a procfs file.
-I have created the file but I cannot understand
-one of it's functions:
+>Where can I find a complete tutorial about procfs?
+>  
+>
 
-proc = proc_net_create(procfs_name, 0, procfs_getinfo);
+This question is not netfilter related at all, better the linux kernel
+maillist, anyway have a look at:
 
-procfs_getinfo is a very confusing function! I would like
-to save a linked list in a buffer and after that I'll print
-it in the procfs buffer file.
+Linux Device Drivers, 2nd edition
+http://www.xml.com/ldd/chapter/book/
 
-I know that procfs_getinfo (or whatever name you gave it)
-must return a integer representing the size of the buffer
-that will store my table. Anyway, where can I find good
-tutorials and examples about using this procfs buffer
-function?
+and
 
-Is there a better place to ask about it?
+Linux Kernel Modules Programming (mostly for kernel 2.2, so some things
+won't work for your 2.4 and 2.6 kernel but it's a reference anyway).
 
+http://www.faqs.org/docs/kernel/
 
-//leoh
-main(){int j=1234;char t[]=":@abcdefghijklmnopqrstuvwxyz.\n"
-,*i = "iqgbgxmlvivuc\n:wwnfwsdoi"; char *strchr(char *,int);
-while(*i){j+=strchr(t,*i++)-t;j%=sizeof t-1;putchar(t[j]);}}
+>procfs_getinfo is a very confusing function! I would like
+>to save a linked list in a buffer and after that I'll print
+>it in the procfs buffer file.
+>  
+>
+
+I think that there's some examples in those docs.
+
+Pablo
