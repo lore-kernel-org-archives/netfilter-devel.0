@@ -1,21 +1,15 @@
-From: "lartc@manchotnetworks.net" <lartc@manchotnetworks.net>
-Subject: Re: policy routing on locally generated packets
-Date: 26 Aug 2003 10:47:53 +0200
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re: New target - how to publish?
+Date: Tue, 26 Aug 2003 12:31:45 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1061887675.1273.37.camel@drs0.manchotnetworks.net>
-References: <1061813400.1289.36.camel@drs0.manchotnetworks.net>
-	<3F4A01BE.1090805@trash.net> <3F4A2795.3030805@trash.net>
-	<1061837608.1333.9.camel@drs0.manchotnetworks.net>
-	<20030825190750.GH423@oknodo.bof.de>
+Message-ID: <Pine.LNX.4.51.0308261212330.5081@dns.toxicfilms.tv>
+References: <001501c36b98$ad6452a0$0a02a8c0@apiscomp>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
-   netfilter-devel
-	 <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <20030825190750.GH423@oknodo.bof.de>
+To: Tomasz Krzyzaniak <apisek@czubki.za.net>
+In-Reply-To: <001501c36b98$ad6452a0$0a02a8c0@apiscomp>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -26,65 +20,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick(s),
+> Hi!
+>
+> I wrote brand new target, but i don't know how to publish it and add it to
+> iptables, just to be avaiable to everyone. Any sugestions?
+Get the latest iptables source and patch-o-matic source.
+Add your own libipt_BRANDEWTARGET.c to userspace/extensions
+Add your own .BRANDNEWTARGET-test to userspace/extensions
+Prepare a set of files for patch-o-matic:
+BRANDNEW.patch
+BRANDNEW.patch.config.in
+BRANDNEW.patch.configure.help
+BRANDNEW.patch.help
+BRANDNEW.patch.makefile
 
+Put them depending on their character to appropriate directory like: base,
+extra, ...
 
-On Mon, 2003-08-25 at 21:07, Patrick Schaaf wrote:
-> > This would provide a way to fiddle with the packet properties without
-> > the neccesity of changing bind() in a specific application ... or would
-> > it? 
-> 
-> Regarding this path, two comments:
-> 
-> 1) you can most easily LD_PRELOAD a small bit of library which replaces
-> bind() and friends, and does the thing you want.
-Most likely true, but I am a non-programmmer, and if I had preference,
-changes to routing would be done without touching code.
+For more information read the patch-o-matic/NEWPATCHES file.
 
-> 2) the chbind functionality of http://www.solucorp.qc.ca/miscprj/s_context.hc
-> is a somewhat more / somewhat less intrusive method.
-I'll have a look, but (1)
+Test your version of patch-o-matic, recompile iptables and re-check if
+your TARGET works.
 
-> What about mangle/PREROUTING? Doesn't it / shouldn't it sit before a
-> routing decision for locally generated packets?
-PREROUTING is "before" a routing decision. but only affects packets
-coming in over the wire, and not locally generated. 
+And then create a patch against an original netfilter tree like so:
+# diff -Nru netfilter.orig netfilter > BRANDNEW_TARGET.diff
 
-My issue arises from ip accounting -- that is -- each user on a linux
-box must have their wire traffic accounted for. As in the first message
-of the thread:
+Recheck that diff, and send it off to netfilter-devel for inclusion to
+CVS. This way it'll be possible for CVS and patch-o-matic users to check
+that patch.
 
-#!/bin/bash
-iptables --append OUTPUT --table mangle --match owner \
-     --gid-owner 500 --jump MARK --set-mark 0x2
-
-iptables --append OUTPUT --table mangle --match owner \
-     --gid-owner 501 --jump MARK --set-mark 0x3
-
-ip rule add fwmark 0x2 table 2
-ip route add default dev eth0 src 192.168.0.1 via 192.168.0.254 table 2
-ip rule add fwmark 0x3 table 3
-ip route add default dev eth0 src 192.168.0.2 via 192.168.0.253 table 3
-ip route flush cache
-#end_script
-
-This script would cause group 500 to use src address .1 and group 501
-src address .2. Because each group has its own src address, I can do
-wire level accounting/routing by group (or eventually user). In the
-example, I am also selecting a router based on the gid. 
-
-So I am searching for a hopefully simple way to implement this without
-having to recompile a bunch of stuff.
-
-Thanks Again!
-
-Ciao
-
-Charles
-
-
-
-
-> 
-> best regards
->   Patrick
+Regards,
+Maciej
