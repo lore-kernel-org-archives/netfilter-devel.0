@@ -1,15 +1,14 @@
-From: "Eddie Shi" <eddieshi@broadcom.com>
-Subject: ftp client hang
-Date: Fri, 15 Nov 2002 11:35:24 -0800
+From: "Alexandre Carlos" <alexandre@redes.unb.br>
+Subject: iptables problem
+Date: Mon, 18 Nov 2002 18:11:34 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <00b601c28cde$24ce1870$018f030a@broadcom.com>
+Message-ID: <04bf01c28f47$14f389b0$1543a8c0@sanches>
 Mime-Version: 1.0
 Content-Type: text/plain;
- charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org,
-	netfilter-devel@lists.samba.org
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,54 +19,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-  I am using the 2.4.17 kernel with newnat patch. When I use ftp with
-passive mode off, the ftp client would hang if client tries to get a file
-which does not exist.
+My experimental backbone is the following:
 
-  Does anyone have similar problem? My router is masquerading 192.168.1.2 ->
-63.206.100.200
+                                         B
+                                    3.4/|\2.4
+                                       /5.4\
+                                      /   |    \
+   (A1)                     1.3/     |     \2.2
+10.1.1.2--10.1.1.1 -- A     |      C----192.168.67.91---192.168.67.90 (C1=
+)
+                                1.1\    |     /4.2
+                                      \   |    /
+                                       \5.3/
+                                    1.3\|/4.3
+                                         D
 
+I=B4m using IPTABLES version 1.2.4-dscp do set up the tos value of the
+packets. I=B4m creating the following rule on A and C
 
-  1. ftp oss.sgi.com
-    login
-    password:
+iptables -A PREROUTING -t mangle -p icmp -j FTOS --set-ftos 0x28 or
+iptables -A FORWARD -t mangle -p icmp -j FTOS --set-ftos 0x28
 
-  ftp> cd pub
-  ftp> get junk	  ***junk does not exist in the directory***
+But when i try do ping from A1 to C1 or from C1 to A1
 
-     200 PORT command successful
-     500 Can't open junk: No such file or directory
+The chechshum of the ip on the reply message is incorrect, so the packet =
+is
+droped on (B) or (D)
 
-  ftp> ls
+I would like to know, how can i avoid dropping the packet and still using
+the same version of iptables and rules
 
-     *** this would hang the client****
-
-
-    I then patched the latest ip_conntrack_ftp.c and ip_nat_ftp.c , the
-resuld is the same.
-
-    When "ls" is issued, the ftp server sees the following from ethereal
-dump:
-      Request: PORT 63,206,100,200,4,88
-      .
-       Response: 200 PORT command successful
-       Request: RETR junk
-       Response: 550 junk: NO such file or directory
-      .
-      Request: PORT 192,168,1,2,4,89         **** I think here is the
-problem when "ls" command is issued ******
-      Response: 502 Illegal PORT command
-
-    The following entry in /proc/net/ip_conntrack
-
-    EXPECTING: proto=6 src=128.167.58.27 dst=63.206.100.200 sport=0
-dport=1112
-
-
-   Please include me in the response since I am not in the mailing list.
-   Thanks
-
-
-
- Eddie
+Alex
