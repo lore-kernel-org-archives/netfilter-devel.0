@@ -1,19 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: RFC: promote netfilter MARK value from IPv6 packets to sit packets
-Date: Mon, 24 Feb 2003 15:41:16 +0100
+From: Eicke Friedrich <tady@gmx.net>
+Subject: marking connections
+Date: Tue, 25 Feb 2003 00:25:28 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030224144116.GN24960@sunbeam.de.gnumonks.org>
-References: <20030217145727.GA3413@hensema.net> <20030223193339.GD15385@sunbeam.de.gnumonks.org> <20030223234225.GA23556@hensema.net> <20030224083946.H34066@shell.cyberus.ca>
+Message-ID: <3E5AA9E8.3060208@gmx.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lYetfuAxy9ic4HK3"
-Cc: Erik Hensema <erik@hensema.net>, Harald Welte <laforge@netfilter.org>,
-	netdev@oss.sgi.com,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: jamal <hadi@cyberus.ca>
-Content-Disposition: inline
-In-Reply-To: <20030224083946.H34066@shell.cyberus.ca>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,45 +18,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
---lYetfuAxy9ic4HK3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm running a linux box as bridge and firewall using iptables. In my understanding 
+iptables decides for the first packet of a stream if it's accepted or not and treats the 
+rest in the same way. In my setup the problem seems to be that I can't decide if I want to 
+accept or drop the packet until the first PSH packet containing data arrives.
+Is there a way to solve this problem? Sorry for the question but I'm kind of new to 
+writing iptables extensions!
+I hope you can give me a piece of advice howto solve this problem. Thanks a lot!
 
-On Mon, Feb 24, 2003 at 08:41:10AM -0500, jamal wrote:
-> If this is to be a config option, it should not be restricted to
-> netfilter specifics but rather skb specifics. Example the tcindex
-> (maybe even the cb) etc.
+Eicke
 
-No problem with me.  I do understand the usefulness of tcindex, but what
-would a totally different protcol (or the user) do with the cb of a
-different protocol?
-
-> cheers,
-> jamal
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---lYetfuAxy9ic4HK3
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+Wi8MXaXGVTD0i/8RAmfCAJsGL4Ga6R62Yezoj1HCJWC58wWR5gCfcEsv
-1Bm/rI31ua78Rs9d20eNLfw=
-=mrzP
------END PGP SIGNATURE-----
-
---lYetfuAxy9ic4HK3--
+---------------
+Linux is like a whigwham: no windows, no gates but an apache inside! :)
