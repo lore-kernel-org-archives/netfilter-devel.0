@@ -1,12 +1,14 @@
-From: "Julio Kriger" <jkriger@cwazy.co.uk>
-Subject: Can be done? reodering and delay SCTP packages?
-Date: Thu, 24 Mar 2005 19:00:29 -0300 (ART)
-Message-ID: <33837.200.127.126.201.1111701629.squirrel@200.127.126.201>
-Reply-To: jkriger@hotpop.com
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: Can be done? reodering and delay SCTP packages?
+Date: Thu, 24 Mar 2005 14:09:44 -0800
+Message-ID: <20050324140944.303e3f48.davem@davemloft.net>
+References: <33837.200.127.126.201.1111701629.squirrel@200.127.126.201>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-To: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, jkriger@cwazy.co.uk
+To: jkriger@hotpop.com
+In-Reply-To: <33837.200.127.126.201.1111701629.squirrel@200.127.126.201>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,28 +20,6 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
-I've developed some modifications to SCTP protocol on Linux kernel. Now I
-want to test it. So here comes the problem.
-I need to simulate reordending and random delay of SCTP packages between =
-a
-server and client application.
-On the kernel there is implentation of sctp for iptables. Great! Also rea=
-d
-there is ip_queue or libipq which manage the package queue. Now, how can =
-I
-reorder the queue of packages? How can I do delay packages?
-Thanks in advance.
 
-Julio
-
-
-PS: Hope this is the right maillits, sorry the bother if it's not.
-
-
-
---=20
--------------------------------
-Julio Kriger
-jkriger AT hotpop DOT com
-jkriger AT cwazy DOT co DOT uk
+Have a look at the network emulator packet scheduler (sch_netem.c),
+you don't need netfilter to do what you want.
