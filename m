@@ -1,16 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: VPN Masq support in new kernel?
-Date: Mon, 20 Oct 2003 05:04:07 +0200
+Subject: Re: ctnetlink questions
+Date: Mon, 20 Oct 2003 05:09:08 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F9350A7.9010704@trash.net>
-References: <BAY2-F83HXbgp0UcS380000ad32@hotmail.com>
+Message-ID: <3F9351D4.3070704@trash.net>
+References: <Pine.LNX.4.44.0310200244580.17141-100000@filer.marasystems.com> <3F934FFD.7090700@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+ Harald Welte <laforge@netfilter.org>,
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Dave B <dragin33@hotmail.com>
-In-Reply-To: <BAY2-F83HXbgp0UcS380000ad32@hotmail.com>
+In-Reply-To: <3F934FFD.7090700@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,20 +22,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dave B wrote:
+Patrick McHardy wrote:
 
-> Hi, i was just wondering if anyone could tell me if VPN Masquerading 
-> support would be built into the new 2.6 kernel or not.  If not, do you 
-> know where i can find a patch/module that's compatable with 2.6?
->
+> - we can use some sorting algorithm which benefits from pre-sorted 
+> input. this would
+>  give better average performance. IIRC new conntracks are added at the 
+> head of the
+>  chains, so if we sort and walk backwards through the chains we only 
+> have to resort
+>  after an id counter wrap. Sorting is also pretty easy in that case: 
+> move all entries at
+>  head of list whose id is smaller than the last one's to the tail 
+> while preserving order,
+>  stop at first one thats bigger. This also means we only need the 
+> write lock in a very
+>  very rare case. 
 
-"VPN Masquerading" or NAT-Traversal is not really related to netfilter, 
-however
-the 2.6 ipsec implementation has support for NAT-T. That only means you can
-make ipsec connections that are masqueraded, not that the box itself 
-could do
-anything to make masquerading work for other clients using ipsec without 
-NAT-T.
+
+One small addition, this it not completly correct we need to resort more 
+often, but never
+before the first counter wrap.
 
 Best regards,
-Patrick
+patrick
