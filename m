@@ -1,14 +1,13 @@
-From: "Amit Kumar Gupta" <amitkumar.gupta@wipro.com>
-Subject: Plz Help
-Date: Tue, 3 Dec 2002 10:30:25 +0530
+From: "Eduard Calvo (B-teljpa) EXP JAN 03" <ecalvo@mat.upc.es>
+Subject: SNAT own module
+Date: Tue,  3 Dec 2002 16:40:33 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4223A04BF7D1B941A25246ADD0462FF51BC18B@blr-m3-msg.wipro.com>
+Message-ID: <1038930033.3decd071443b6@wmail-mat.upc.es>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPartTM-000-e9fc6ea5-afaa-4542-bfc3-eb63f11d33b3"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,50 +18,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-
-This is a multi-part message in MIME format.
-
-------=_NextPartTM-000-e9fc6ea5-afaa-4542-bfc3-eb63f11d33b3
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
-
-Hi List,
-
-I am having a problem abt IPtables Logging.
-The LOG target logs the messages to a particular file say =
-/var/log/messages depending on the entries in syslog.conf. Now my =
-problem is, i want to log messages in some other special file. Or i can =
-say, a process is running which will receive all the LOg messages and =
-will store it. I was thinking abt the sol for this. I went thro the code =
-of iptables Logging in extensions folder. There are files like =
-libipt_LOG.c where we are having print statements. So is it fine if =
-those statements gets replaced with the api i will provide for logging =
-in some special file. If it is, Then i think i have to write the patch =
-for it.( And i think this patch is for iptables in usr mode only).=20
-
-If it is not okay, Then i think i have to provide a new target which =
-will do these things. But in that case, i don't know how i can do this.
-
-Plz give ur suggestions in both the cases.
-
-Thanks & Regards.
-Amit.
-
-------=_NextPartTM-000-e9fc6ea5-afaa-4542-bfc3-eb63f11d33b3
-Content-Type: text/plain;
-	name="Wipro_Disclaimer.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="Wipro_Disclaimer.txt"
-
-**************************Disclaimer**************************************************    
+  
+  Hi gurus,  
+  
+  I posted a message a few days ago about doing a forced SNAT before routing.  
+A good guy (thanks, Peter) answered me that it was impossible to SNAT the  
+packet before routing because doing SNAT makes the packet impossible to route.  
+  
+  What I want to know is if is possible to do this in a raw manner. I mean, I  
+have an ethernet card (let it be eth0) which IP address 10.0.0.1, which  
+manages the 10.0.0.X network. The problem is that hosts attached to that  
+network don't have to have an IP address on that range. I want to "manage" all 
+these address doing SNAT the sooner the better when a packet enters my Linux 
+box so my machine only sees addresses on that range. I mean, independently of 
+what an address a host has, I want my machine to view it as an owner of one of 
+the 10.0.0.X's suitables addresses. This has to be done before routing (I also 
+run a transparent www proxy) because I want to do MASQUERADING on POSTROUTING. 
+The only thing I need is to change the address and update the checksums of the 
+packet. My configuration is like this: 
  
- Information contained in this E-MAIL being proprietary to Wipro Limited is 'privileged' 
-and 'confidential' and intended for use only by the individual or entity to which it is 
-addressed. You are notified that any use, copying or dissemination of the information 
-contained in the E-MAIL in any manner whatsoever is strictly prohibited.
+ 
+      x.y.z.t ___               _____ 
+      s.u.w.q ___|             |     | 
+		 |	       |LINUX| 
+                 |    10.0.0.1 |     | a.b.c.d 
+               . |-------------| BOX |---------- 
+               . |             |_____| 
+               . | MY LAN               TO THE ISP's ROUTER  
+      g.h.j.k ___| 
+ \_______  _______/ 
+         \/ 
+  I want this addresses to appear as a normal, homogeneus network to my box. 
+And I need to do that before routing. I have resolved the routing of the 
+packets, but this point worries me a lot. 
+ 
+  Does anyone know the better way to do this? 
+  Thanks in advanced, 
+ 
+                                             Eduard. 
 
-****************************************************************************************
-
-------=_NextPartTM-000-e9fc6ea5-afaa-4542-bfc3-eb63f11d33b3--
+-------------------------------------------------
+This mail sent through IMP: http://horde.org/imp/
