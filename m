@@ -1,15 +1,15 @@
-From: "Yong" <sdssly@sina.com>
-Subject: ipq+AF8-set+AF8-verdict problem in bridge+-iptables
-Date: Wed, 16 Jul 2003 09:09:52 +0800
+From: "Sumit Pandya" <sumit@elitecore.com>
+Subject: Re: Delition of rule after altering data in check/match entry
+Date: Wed, 16 Jul 2003 13:57:57 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <001e01c34b36$f8e94460$8101a8c0@dev>
+Message-ID: <00a201c34b74$29540e90$010f430a@elitecore7>
+References: <02b201c34a1c$faef6ac0$010f430a@elitecore7> <20030715122846.GH7198@naboo>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="utf-7"
-Content-Transfer-Encoding: base64
-Cc: <netfilter-devel@lists.netfilter.org>
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Harald Welte" <laforge@netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,41 +20,58 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-IEhlbGxvIEhhcmFsZCwNCiANCiBUaGFuayB5b3UgZm9yIHlvdXIgZW1haWxzK0FDRS0NCiANCiBJ
-IHdhbnQgdG8gdXNlIHRoZSBpcHRhYmxlK0FGOC1xdWV1ZSBpbiBicmlkZ2UrLWlwdGFibGVzIGVu
-dmlyb25tZW50LiBJIGNhbiBnZXQgdGhlIHBhY2tldCBpbiB1c2Vyc3BhY2UgdXNpbmcgLWogUVVF
-VUUgY29tbWFuZC4gSG93ZXZlciwgSWYgSSBjaGFuZ2UgdGhlIHBhY2tldCBzaXplLiBmb3IgZXhh
-bXBsZSwgSSBjaGFuZ2UgdGhlIHBpbmcgaWNtcCBwYWNrZXQgc2l6ZSB0byA0MDAsIHRoZSBwYWNr
-ZXQgRXRoZXJuZXQgaGVhZGVyIGlzIGNoYW5nZWQuIEluIG15IHRlc3QsIHRoZSBNQUMgYWRkcmVz
-cyBpcyBjaGFuZ2VkIHRvIDB4ZmZmZmZmZmZmZi4gSSBjYW4gY2FwdHVyZSB0aGlzIHBhY2tldCB1
-c2luZyBzbmlmZmVyIHRvb2wuIFNpbmNlIHRoZSBNQUMgYWRkcmVzcyBpcyBjaGFuZ2VkLCB0aGUg
-b3RoZXIgY29tcHV0ZXIgY2Fubm90IHJlY2VpdmUgdGhlIElDTVAgcGFja2V0Lg0KIA0KIEl0IHNl
-ZW1zIHRoYXQgdGhlIGJyaWRnZSBpcHRhYmxlcyBwYXRjaCBjaGFuZ2VkIHNvbWV0aGluZyBpbiB0
-aGUgZnVuY3Rpb24gaXBxK0FGOC1zZXQrQUY4LXZlcmRpY3QoKS4gDQogDQogUmVnYXJkaW5nIHRo
-ZSBNVFUgaXNzdWUsIHlvdSBhcmUgcmlnaHQuIHRoZSBpcHErQUY4LXNldCtBRjgtdmVyZGljdCBm
-dW5jdGlvbiBkb2VzIG5vdCBwZXJmb3JtIHRoZSBJUCBmcmFnbWVudC4gSWYgSSBzZW5kIGEgcGFj
-a2V0IGxhcmdlciB0aGFuIE1UVSwgaXQgaXMgbWlzc2luZy4gSXMgaXQgYnkgZGVzaWduPw0KIA0K
-IENhbiBJIG1vZGlmeSB0aGUgaXBxK0FGOC1zZXQrQUY4LXZlcmRpY3QgZnVuY3Rpb24gdG8gcGVy
-Zm9ybSB0aGUgSVAgZnJhZ21lbnQ/ICBJcyB0aGVyZSBhbnkgcGF0Y2ggZm9yIHRoaXMgSVAgZnJh
-Z21lbnQgaXNzdWU/DQogDQogVGhhbmsgeW91IGFnYWluIGZvciB5b3VyIGhlbHArQUNFLQ0KIA0K
-IFlvbmcNCiANCitBRDQtIC0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLS0gDQorQUQ0LSBGcm9t
-OiArQUNJLUhhcmFsZCBXZWx0ZStBQ0ktICtBRHctbGFmb3JnZStBRUEtbmV0ZmlsdGVyLm9yZytB
-RDQtDQorQUQ0LSBUbzogK0FDSS1Zb25nIExpK0FDSS0gK0FEdy1zZHNzbHkrQUVBLXNpbmEuY29t
-K0FENC0NCitBRDQtIENjOiArQUR3LW5ldGZpbHRlci1kZXZlbCtBRUEtbGlzdHMubmV0ZmlsdGVy
-Lm9yZytBRDQtDQorQUQ0LSBTZW50OiBNb25kYXksIEp1bHkgMTQsIDIwMDMgNDowNyBQTQ0KK0FE
-NC0gU3ViamVjdDogUmU6IGlwcStBRjgtc2V0K0FGOC12ZXJkaWN0IHByb2JsZW0gaW4gYnJpZGdl
-Ky1pcHRhYmxlcw0KK0FENC0gDQorQUQ0LSBPbiBTdW4sIEp1bCAxMywgMjAwMyBhdCAxMToxMTox
-NkFNICstMDgwMCwgWW9uZyBMaSB3cm90ZToNCitBRDQtICtBRDQtIEhlbGxvIEFsbCwNCitBRDQt
-ICtBRDQtIA0KK0FENC0gK0FENC0gSSBlbmNvdW50ZXJlZCBhIHByb2JsZW0gd2l0aCB0aGUgaXBx
-K0FGOC1zZXQrQUY4LXZlcmRpY3QgZnVuY3Rpb24uIEkgd2FudCB0byBtb2RpZnkNCitBRDQtICtB
-RDQtIHRoZSBwYWNrZXQgY29udGVudCBhbmQgc2l6ZSB1c2luZyB0aGUgaXBxK0FGOC1zZXQrQUY4
-LXZlcmRpY3QgZnVuY3Rpb24uIEhvd2V2ZXIsIEkNCitBRDQtICtBRDQtIGZvdW5kIEkgY2Fubm90
-IGNoYW5nZSB0aGUgSVAgcGFja2V0IHNpemUgbW9yZSB0aGFuIDQwMCstIGJ5dGVzLiBJcyBpdCBh
-IGtub3duDQorQUQ0LSArQUQ0LSBpc3N1ZT8NCitBRDQtIA0KK0FENC0gd2hhdCBkbyB5b3UgbWVh
-biBieSAnSSBjYW5ub3QnID8gV2hhdCBoYXBwZW5zPyAgSXMgYW4gZXJyb3IgcmV0dXJuZWQgdG8N
-CitBRDQtIHRoZSBpcHErQUY4LXNldCtBRjgtdmVyZGljdCgpIGNhbGw/ICBJcyB0aGUgcGFja2V0
-IHNpbGVudGx5IGRpc2NhcmRlZD8gIElzIHRoZQ0KK0FENC0gcGFja2V0IHRydW5jYXRlZD8NCitB
-RDQtIA0KK0FENC0gQW55d2F5LCBpdCBzaG91bGQgd29yay4gIEJ1dCBpZiB5b3UgZXhjZWVkIHRo
-ZSBvdXRnb2luZyBpbnRlcmZhY2UncyBNVFUsDQorQUQ0LSBJIGNvdWxkIGltYWdpbmUgdGhhdCBu
-byBmcmFnbWVudGF0aW9uIGhhcHBlbnMuLi4NCitBRDQtIA0KK0FENC0gK0FENC0gVGhhbmtzIGlu
-IGFkdmFuY2UrQUNFLQ0KK0FENC0gK0FENC0gWW9uZw==
+Hi Harald,
+    Thanks for reply. I'm sorry that without thorough study of nice document
+netfilter-hacking-HOWTO I posted this as a problem. I seen ipt_limit as
+reference and problem fixed.
+
+static
+struct iptables_match problem_foo = {
+        NULL,
+        "foo",
+        NETFILTER_VERSION,
+        IPT_ALIGN(sizeof(struct ipt_foo_target_info)),
+        IPT_ALIGN(sizeof(struct ipt_foo_target_info) - sizeof(struct
+__kern_set)),
+        &help,
+        &init,
+        &parse,
+        &final,
+        &print,
+        &save,
+        opts
+};
+static
+struct iptables_match right_foo = {
+        NULL,
+        "foo",
+        NETFILTER_VERSION,
+        IPT_ALIGN(sizeof(struct ipt_foo_target_info)),
+        offsetof(struct ipt_foo_target_info, kern_set),
+        &help,
+        &init,
+        &parse,
+        &final,
+        &print,
+        &save,
+        opts
+};
+
+----- Original Message -----
+From: "Harald Welte" <laforge@netfilter.org>
+Sent: Tuesday, July 15, 2003 5:58 PM
+
+On Mon, Jul 14, 2003 at 09:01:22PM +0530, Sumit Pandya wrote:
+> Hi All,
+>     In a netfilter match or check extension at the time of rule-insertion,
+> If I update any data passed along
+>     1> void *matchinfo (argument to matchentry) or
+>     2> void *targinfo  (argument to checkentry)
+> Then I'm not able to delete same inserted rule.
+>     Is there something regarding caching of the data? Does It require to
+> notify iptables somewhere about this change?
+
+Just at first glance, I think this is quite possible (and certainly not
+the desired behaviour).   Can you please verify that this bug is also
+present with already-existing matches/targets that change
+targinfo/matchinfo contents (like the nth or random match)?
