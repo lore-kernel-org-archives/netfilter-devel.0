@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: IPTables API & documentation
-Date: Thu, 16 Oct 2003 10:10:44 +0200
+From: =?iso-8859-1?q?Daryl=20ong?= <yjong1977extramail@yahoo.com.sg>
+Subject: Re: Help in netfilter kernel module
+Date: Thu, 16 Oct 2003 17:26:49 +0800 (CST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031016081044.GI14807@obroa-skai.de.gnumonks.org>
-References: <20031016033411.51850.qmail@web13111.mail.yahoo.com>
+Message-ID: <20031016092649.35565.qmail@web13103.mail.yahoo.com>
+References: <Pine.LNX.4.44.0310160911240.6046-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="J+eNKFoVC4T1DV3f"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/alternative; boundary="0-226053798-1066296409=:35529"
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Daniel Fonseca <danielonline_2@yahoo.com>
-Content-Disposition: inline
-In-Reply-To: <20031016033411.51850.qmail@web13111.mail.yahoo.com>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0310160911240.6046-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,81 +21,70 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+--0-226053798-1066296409=:35529
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 
---J+eNKFoVC4T1DV3f
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Henrik,
+               Thanks for replying my mail.  I think you are right as i have test it with an application using PF_PACKETS.  So is it any way i can go around this problem.  Thank you in advance.
+ 
+Regards, 
+Daryl
 
-On Wed, Oct 15, 2003 at 08:34:11PM -0700, Daniel Fonseca wrote:
-> Hi Harald,
->=20
-> I am involved in a project for CS undergrad
-> qualifying, it's about a new protocol being developed
-> by IETF called midcom. Have you heard about it?
+Henrik Nordstrom <hno@marasystems.com> wrote:
+On Thu, 16 Oct 2003, Daryl ong wrote:
 
-yes.  I was following MIDCOM at some point in the past, but haven't
-looked at it's proceedings for at least a year.
+> i am a new developer in this netfilter module. i am developing a
+> kernel module on a rehat linux 8 and using iptables v1.2.6a. i came
+> across a problem when i want to kfree_skb(skb).
 
-> I would like to know how can firewall (packet filter)
-> and NAT rules be added, removed and read from the
-> iptables configuration in a programming (C/C++)
-> environment. Is there an API or something similar? If
-> so, do you have any documentation for it, or happen to
-> know references where I can search or ask more about
-> it?
+> i have try to use NF_DROP to drop the packet if it doesnt match what i
+> want to filter away. But as netfilter currently didnt filter for
+> PF_PACKET, my packet is able to go up to application layer. So i
+> intended to use kfree_skb but encounter the error. Please tell me if
+> there is any solutions. Thank you.
 
-no, we don't have such an API.  It will  be added in the future, there
-is some work on libpkttables - but I won't expect a stable API to be
-ready within the next 6 months or so.
+If you want to drop a packet from netfilter you MUST NF_DROP it. Freeing
+it with kfree_skb won't help, and if done carelessly will really crash
+things as the kernel expects the skb reference to be there.
 
-> So far, I have found a lib called libiptc, and a HOWTO
-> ("Querying libiptc HOWTO") describing its function
-> calls with some examples. Those calls were also
-> mentioned in the netfilter hacking HOWTO, but neither
-> document describe them in the necessary depth for one
-> to add and remove both filters and NAT.
+I do not think you can filter PF_PACKET sockets using netfilter. These get 
+the packet very early in the processing chain while netfilter operates 
+at the IPv4/IPv6 layers.
 
-libiptc was _NEVER_ meant as a public interface.  It's a bunch of
-routines used by iptables internally.  We do not guarantee stability of
-that interface, and in the 2.7 (and maybe 2.6 at some point) kernel it will
-be removed without replacement.
+In netfilter you can
 
-This has been mentioned so often on the netfilter developer mailinglist,
-that it should be very obvious to find in the list archives.
+a) Drop the packet via NF_DROP. This also terminates the session if you
+are using conntrack.
 
-I've now also added it as an FAQ.
+b) Replace/modify the packet, making further processing see another
+packet. See for example ipt_TCPMSS.c for a simple example of how to
+replace a packet (this is a iptables module, but the same rules in how to
+replace/modify a packet applies to a netfilter module)
 
-> Thanks in advance,
-> Daniel Fonseca
+c) Steal the packet, stopping further processing of this packet without 
+terminating the session. (NF_STOLEN verdict)
 
-> PS: I have been told you know brazilian portuguese.
-> Isso e verdade? (Is that true?)
+In all three cases I think the original packet is still sent to PF_PACKET 
+sockets for the reason outlined above.
 
-sim, falo um pouco de portugues.  morava para um meio ano em curitiba,
-trabalhando para a conectiva.  Agora eu nao tenho muito possibilidade de
-praticar.
+Regards
+Henrik
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+ The New Yahoo! Search
+- Now with image search!
+--0-226053798-1066296409=:35529
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 
---J+eNKFoVC4T1DV3f
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/jlKDXaXGVTD0i/8RAr7tAKCArvZYOmFFB1ZBTv19TpEiuQ5/hACfXFZc
-beplainH8TzQgbNrdjndN98=
-=8qyA
------END PGP SIGNATURE-----
-
---J+eNKFoVC4T1DV3f--
+<DIV>Hi Henrik,</DIV>
+<DIV>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Thanks for replying my mail.&nbsp; I think you are right as i have test it with an application using PF_PACKETS.&nbsp; So is it any way i can go around this problem.&nbsp; Thank you in advance.</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>Regards, </DIV>
+<DIV>Daryl<BR><BR><B><I>Henrik Nordstrom &lt;hno@marasystems.com&gt;</I></B> wrote:</DIV>
+<BLOCKQUOTE class=replbq style="PADDING-LEFT: 5px; MARGIN-LEFT: 5px; BORDER-LEFT: #1010ff 2px solid">On Thu, 16 Oct 2003, Daryl ong wrote:<BR><BR>&gt; i am a new developer in this netfilter module. i am developing a<BR>&gt; kernel module on a rehat linux 8 and using iptables v1.2.6a. i came<BR>&gt; across a problem when i want to kfree_skb(skb).<BR><BR>&gt; i have try to use NF_DROP to drop the packet if it doesnt match what i<BR>&gt; want to filter away. But as netfilter currently didnt filter for<BR>&gt; PF_PACKET, my packet is able to go up to application layer. So i<BR>&gt; intended to use kfree_skb but encounter the error. Please tell me if<BR>&gt; there is any solutions. Thank you.<BR><BR>If you want to drop a packet from netfilter you MUST NF_DROP it. Freeing<BR>it with kfree_skb won't help, and if done carelessly will really crash<BR>things as the kernel expects the skb reference to be there.<BR><BR>I do not think you can filter PF_PACKET sockets using netfilter. Thes
+ e get
+ <BR>the packet very early in the processing chain while netfilter operates <BR>at the IPv4/IPv6 layers.<BR><BR>In netfilter you can<BR><BR>a) Drop the packet via NF_DROP. This also terminates the session if you<BR>are using conntrack.<BR><BR>b) Replace/modify the packet, making further processing see another<BR>packet. See for example ipt_TCPMSS.c for a simple example of how to<BR>replace a packet (this is a iptables module, but the same rules in how to<BR>replace/modify a packet applies to a netfilter module)<BR><BR>c) Steal the packet, stopping further processing of this packet without <BR>terminating the session. (NF_STOLEN verdict)<BR><BR>In all three cases I think the original packet is still sent to PF_PACKET <BR>sockets for the reason outlined above.<BR><BR>Regards<BR>Henrik<BR></BLOCKQUOTE><p><img src=http://sg.yimg.com/i/sg/icons/16/search.gif> <b><a 
+href="http://sg.rd.yahoo.com/mail/tagline/?http://sg.search.yahoo.com" 
+target=_blank>The New Yahoo! Search</a></b><br><small>- Now with <a href="http://sg.rd.yahoo.com/mail/tagline/?http://sg.search.yahoo.com/images" target=_blank>image search</a>!</small>
+--0-226053798-1066296409=:35529--
