@@ -1,14 +1,17 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: [PATCH] REJECT for 2.6.9+
-Date: Mon, 21 Mar 2005 22:51:36 +0200
-Message-ID: <423F33D8.1090706@outerspace.dyndns.org>
-References: <423BF227.8030502@outerspace.dyndns.org> <423DA194.40100@trash.net>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: ip_conntrack table full problem
+Date: Mon, 21 Mar 2005 13:14:41 -0800
+Message-ID: <20050321211441.GA15155@linuxace.com>
+References: <200503141647.42299.thomas.jarosch@intra2net.com>
+	<200503211803.18918.thomas.jarosch@intra2net.com>
+	<20050321180812.GA14954@linuxace.com>
+	<200503211923.48964.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <423DA194.40100@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Content-Disposition: inline
+In-Reply-To: <200503211923.48964.thomas.jarosch@intra2net.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,32 +23,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Mon, Mar 21, 2005 at 07:23:48PM +0100, Thomas Jarosch wrote:
+> > No easy way.  Last week I posted a patch which would have made
+> > this possible by creating a 'cleaned' list, but since you cannot
+> > upgrade kernels, you could not use this anyway.
+> 
+> But I can still patch kernels ;-)
 
-Patrick McHardy wrote:
+OK, I'll send along a 2.4.21 -> 2.6.11 patch shortly ;-)
 
-|> The empty patch file is there so that the original patch won't be
-|> attempted.
-|
-| Why add a new branch instead of simply restoring that file?
+> IIRC the box makes heavy use of SNAT/DNAT for port forwarding.
+> I'll try to get a copy of the firewall rules tomorrow and
+> test it locally here.
+> 
+> Is there an easy way to see if it leaked conntracks?
+> Should the information in /proc/slabinfo be somewhat proportional
+> to the number of connections/lines in /proc/net/ip_conntrack?
 
-Maybe I have not understood the pom-ng functionality correctly/fully. I
-thought that plain files in the tree must not exist already and so I thought
-I needed to keep the old branch for the <=2.6.8 kernels that still have the
-file that was deleted in 2.6.9..
+Yes, the numbers should be in the same ballpark.  Conntracks are being
+cleaned from the lists (i.e. /proc/net/ip_conntrack), but never being
+destroyed.  In my testing this is caused by a process not freeing
+the skb.  What kinds of processes are running on this box?
 
-| Even better, I think I'm simply going to submit the IPv6
-| REJECT target of nobody objects.
-
-No objections here :)
-
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCPzPWxyF48ZTvn+4RAo2ZAJ9RUpp6LzOk2J6vT38QCfulSLODCQCfeu83
-m2JTEwyTHKe4iZwPrfkeaiI=
-=3VtI
------END PGP SIGNATURE-----
+Phil
