@@ -1,15 +1,16 @@
-From: Brad Chapman <kakadu_croc@yahoo.com>
-Subject: Re: [NEW EXTENSION] Condition Match
-Date: Wed, 30 Oct 2002 03:59:30 -0800 (PST)
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH] Small SMP-race found in ip_conntrack_proto_tcp.c
+Date: 30 Oct 2002 13:15:24 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021030115930.24839.qmail@web40910.mail.yahoo.com>
-References: <20021030100457.X8635@sunbeam.de.gnumonks.org>
+Message-ID: <1035980125.28830.2.camel@tux>
+References: <1035472754.722.129.camel@tux>
+	<20021030094837.Q8635@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="=-guUuGs9LHGQtVwG++dnH"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20021030100457.X8635@sunbeam.de.gnumonks.org>
+In-Reply-To: <20021030094837.Q8635@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,52 +21,59 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald,
 
---- Harald Welte <laforge@gnumonks.org> wrote:
-> On Tue, Oct 29, 2002 at 10:43:07PM -0600, allen wrote:
-> > 
-> > 
-> > On Tuesday 29 October 2002 12:54 pm, Stephane Ouellette wrote:
-> > >    I developped last week a new extension to Netfilter in order to
-> > > enable or disable a set of rules using /proc files.
-> > 
-> > 
-> > Yeah, as others have said, the idea is definitely cool.
+--=-guUuGs9LHGQtVwG++dnH
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+On Wed, 2002-10-30 at 09:48, Harald Welte wrote:
+> On Thu, Oct 24, 2002 at 05:19:14PM +0200, Martin Josefsson wrote:
+> > Patch to move the unlock further down is attached, I unlock before
+> > calling ip_ct_refresh as it is unfriendly to hold the lock longer than
+> > neccessary.
 > 
-> Though the idea is cool, I think we are solving a problem the wrong way.  Why
-> add complexity to the kernel for a problem which can be solved without
-> any problem from userspace?
-> 
-> Where is the problem in having a couple of different rulesets (e.g. created
-> with iptables-save) which are then loaded using an iptables-restore
-> commandline or a script at the shell of the firewall?
+> I can't see a patch :)
 
-Because right now the method of reloading rules is still inefficient. What if you
-have a ruleset of 1000-10000 rules and only want to toggle 5? Removing those rules
-would require a full replacement of the ruleset for the table and chain the rules
-were placed in (IIRC). Doing it this way allows you to disable/enable rules without
-having to actually modify them.
+Damn, I was sure I attached it... well well...
+Here it is.
 
-Maybe once nfnetlink goes into the 2.7 kernel this will go away, but that's a long
-time IMHO.....
+-- 
+/Martin
 
-> 
-> 
-> -- 
-> Live long and prosper
-> - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+Never argue with an idiot. They drag you down to their level, then beat
+you with experience.
 
-Brad
+--=-guUuGs9LHGQtVwG++dnH
+Content-Disposition: attachment; filename=ip_conntrack_proto_tcp-lockfix
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; name=ip_conntrack_proto_tcp-lockfix; charset=ISO-8859-15
 
+--- linux-2.4.20-pre10/net/ipv4/netfilter/ip_conntrack_proto_tcp.c.meep	200=
+2-10-24 17:05:49.000000000 +0200
++++ linux-2.4.20-pre10/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2002-10-=
+24 17:11:19.000000000 +0200
+@@ -186,13 +186,13 @@
+ 	    && tcph->syn && tcph->ack)
+ 		conntrack->proto.tcp.handshake_ack
+ 			=3D htonl(ntohl(tcph->seq) + 1);
+-	WRITE_UNLOCK(&tcp_lock);
+=20
+ 	/* If only reply is a RST, we can consider ourselves not to
+ 	   have an established connection: this is a fairly common
+ 	   problem case, so we can delete the conntrack
+ 	   immediately.  --RR */
+ 	if (!(conntrack->status & IPS_SEEN_REPLY) && tcph->rst) {
++		WRITE_UNLOCK(&tcp_lock);
+ 		if (del_timer(&conntrack->timeout))
+ 			conntrack->timeout.function((unsigned long)conntrack);
+ 	} else {
+@@ -203,6 +203,7 @@
+ 		    && tcph->ack_seq =3D=3D conntrack->proto.tcp.handshake_ack)
+ 			set_bit(IPS_ASSURED_BIT, &conntrack->status);
+=20
++		WRITE_UNLOCK(&tcp_lock);
+ 		ip_ct_refresh(conntrack, tcp_timeouts[newconntrack]);
+ 	}
+=20
 
-
-=====
-Brad Chapman
-
-Permanent e-mail: kakadu_croc@yahoo.com
-
-__________________________________________________
-Do you Yahoo!?
-HotJobs - Search new jobs daily now
-http://hotjobs.yahoo.com/
+--=-guUuGs9LHGQtVwG++dnH--
