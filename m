@@ -1,19 +1,13 @@
-From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
-	<yoshfuji@linux-ipv6.org>
-Subject: Re: netfilter6: ICMPv6 type 143 doesn't match
-Date: Mon, 27 Dec 2004 10:02:05 +0100 (CET)
-Message-ID: <20041227.100205.102356251.yoshfuji@linux-ipv6.org>
-References: <6050E336B1A0D7D8E70C66F3@t1mobil.muc.aerasec.de>
-	<200412270417.iBR4HZRG021429@toshiba.co.jp>
+From: Stindl Wolfgang EXT <Wolfgang.Stindl.extern@icn.siemens.de>
+Subject: AW: MARK target
+Date: Mon, 27 Dec 2004 10:24:49 +0100
+Message-ID: <47D438A0510BD611B9470002A58EDAE70770A832@mchh2a6e.mchh.siemens.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: usagi-users@linux-ipv6.org, netdev@oss.sgi.com, yoshfuji@linux-ipv6.org,
-	netfilter-devel@lists.netfilter.org, laforge@gnumonks.org,
-	pb@bieringer.de, kaber@trash.net
+Content-Type: text/plain;
+	charset="ISO-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: yasuyuki.kozakai@toshiba.co.jp
-In-Reply-To: <200412270417.iBR4HZRG021429@toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,14 +19,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In article <200412270417.iBR4HZRG021429@toshiba.co.jp> (at Mon, 27 Dec 2004 13:17:34 +0900 (JST)), Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> says:
+Hi,
+I'm running an normal Intel-system with
+Dual 2.4 Xeon and one with
+Single 3.06 P4 with Hyperthreading.
 
->  
-> -		ptr = IPV6_HDR_LEN;
-> +		ptr = ((u8*)skb->nh.ipv6h - skb->data) + IPV6_HDR_LEN;
->  
+Regards
+wolfgang
 
-IMHO, skb->nh.ipv6h does not points ipv6 header anymore;
-it should be skb->nh.raw in this case.
-
---yoshfuji
+> -----Urspr=FCngliche Nachricht-----
+> Von: Henrik Nordstrom [mailto:hno@marasystems.com]=20
+> Gesendet: Dienstag, 14. Dezember 2004 15:17
+> An: Stindl Wolfgang EXT
+> Cc: netfilter-devel@lists.netfilter.org
+> Betreff: Re: MARK target
+>=20
+>=20
+> On Tue, 14 Dec 2004, Stindl Wolfgang EXT wrote:
+>=20
+> > When I try to enter an iptables rule with the MARK target,=20
+> I get the following error
+> >
+> > Iptables: Target problem
+> > (the console shows MARK: targinfosize 4 !=3D 8)
+> >
+> > How can I solve this problem?
+> >
+> > Kernel: 2.4.26 smp
+> > Iptables v 1.2.11
+>=20
+> What CPU type?
+>=20
+> Regards
+> Henrik
+>=20
