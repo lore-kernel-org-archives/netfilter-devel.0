@@ -1,15 +1,14 @@
-From: David Poole <davep@portsmith.com>
-Subject: Re: Raw Sockets and Netfiter
-Date: 25 Mar 2003 07:30:58 -0700
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: 12_contrack_nat_dependency.patch
+Date: 25 Mar 2003 23:18:32 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1048602658.14036.4.camel@athlon>
-References: <001701c2f29d$20afe1e0$6b01a8c0@COURVOISIER>
+Message-ID: <1048630711.14738.71.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <001701c2f29d$20afe1e0$6b01a8c0@COURVOISIER>
+To: Rusty Russell <rusty@rustcorp.com.au>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,29 +19,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2003-03-25 at 00:06, Ethan Dameron wrote:
-> If I have a an IP datagram in userspace and I send it via a raw socket
-> created with socket(PF_INET, SOCK_RAW, IPPROTO_RAW) using the send()
-> system call, will this packet traverse the netfilter chains?  If it
-> does not traverse the firewall, how can I make it do so?
-> Version: 6.0.463 / Virus Database: 262 - Release Date: 03/17/2003
+Hi Rusty,
 
-What are you trying to do?  Not that I have a solution, but I'm running
-into the same problem.  
+I have a question about the 12_contrack_nat_dependency.patch in
+p-o-m/pending...
 
-The DHCP client uses PF_PACKET which bypasses the firewall. 
-Consequently, I can't firewall off certain machines.  I've been fiddling
-with -j QUEUE and running a user-space DHCP client but the reinjected
-packets are going I know not where.
+The patch you sent Harald was for 2.5, will a similar patch work for
+2.4? I've backported it and it compiles but I can't really test it.
 
-Also, with PF_PACKET, the DHCP client will receive all unicast and
-broadcast packets.  On a busy network and a slow system (our embedded
-Linux product), the client gets flooded.
-
+It looks like it should work but I try to stay away from the module
+voodoo...
 
 -- 
-David Poole <davep@portsmith.com>
-Portsmith   http://www.portsmith.com
-960 Broadway Avenue, Suite 300
-Boise, ID  83706
-208-395-1300 x241
+/Martin
