@@ -1,16 +1,15 @@
-From: "Accardi, Kristen C" <kristen.c.accardi@intel.com>
-Subject: RE: connection destruction question
-Date: Fri, 19 Mar 2004 10:04:03 -0800
+From: Victor Julien <victor@nk.nl>
+Subject: Re: Creating rules without the /sbin/iptables command?
+Date: Fri, 19 Mar 2004 20:01:48 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <F3DAEAD1F408F44FA1AF0BFAC11FEF9510DEF1@orsmsx408.jf.intel.com>
+Message-ID: <405B439C.7090009@nk.nl>
+References: <Pine.LNX.4.44.0403190042550.32344-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-content-class: urn:content-classes:message
-To: "Unit Zero" <onyx@zero.fdns.net>, "Kristen Carlson" <kristenc@cs.pdx.edu>
+To: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.44.0403190042550.32344-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,63 +20,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Thank you, that does interest me.  It does seem to match my needs more
-closely than the other patch. I also have realized that my approach of
-making a helper module to be notified when connections were created
-wasn't going to work since I realized it would only be called on the
-master connection and not on any of the related connections, and I need
-to see state changes for all connections.  I will take a look at the
-patch and see if it works out.
+Henrik Nordstrom wrote:
+> On Thu, 18 Mar 2004, Victor Julien wrote:
+> 
+> 
+>>using 'iptables-restore' (without noflush) is there a way to preserve 
+>>the accounting data from the first rule?
+> 
+> Then you must use incremental commands, keepint the accounting rule 
+> untouched.
 
-By the way, what are your plans for this patch?  I always hate the idea
-of using a patch I actually have to maintain myself :), although of
-course I will do that if that's what it takes to get my job done.
+Hmmm, that i don't want.
 
-Kristen
+> 
+>>Is this what the -c option of iptables-restore is for?
+> 
+> No. This instructs iptables-restore to restore any packet/byte counters 
+> found in the input data. Without this option any such counters is ignored 
+> and the installed rules have zeroed counters.
 
+So i have to read the current counters first by parsing 
+'iptables-save'-output. And i can then recreate the rules and set the 
+counters to their old values?
 
+Using 'iptables-restore' can i flush one chain, but leave another 
+untouched? If so, i can create an accounting chain which will not be 
+flushed...
 
------Original Message-----
-From: netfilter-devel-admin@lists.netfilter.org
-[mailto:netfilter-devel-admin@lists.netfilter.org] On Behalf Of Unit
-Zero
-Sent: Friday, March 19, 2004 7:34 AM
-To: Kristen Carlson
-Cc: netfilter-devel@lists.netfilter.org
-Subject: Re: connection destruction question
+Regards,
+Victor
 
-
-
-
-On Wed, 10 Mar 2004, Kristen Carlson wrote:
-
-> Hello,
-> Is there a way to be notified in a kernel module=20
-> when a connection is destroyed?  I have a nice helper
-> module that would like to know when connections are destroyed
-> so it can do some internal cleanup work.=20
-> Thanks,
-> Kristen
->=20
-
-Actually I ran into the exact same issue not long ago with a module I've
-
-been working on. My solution was to add a couple lines here and there in
-
-conntrack_core.c and ip_conntrack.h to implement a notifier chain and=20
-export register/unregister routines from the ip_conntrack module,
-allowing=20
-other modules to add callback functions to the chain. The notifier chain
-
-is then called from various parts of the conntrack_core code with an=20
-event-code and a struct ip_conntrack ptr reference when conntracks are=20
-created, destroyed (either explicitly or by timeout), become confirmed,=20
-or become replied.
-
-I've got a small patch that I put together about a month ago which has=20
-my modifications described above. I'm pretty sure it will apply cleanly=20
-to a 2.4.24-25 kernel source tree, but if not the modifications are
-pretty=20
-straight forward. Just thought it might be of interest.
-
-- V. M. Condino
+> 
+> Regards
+> Henrik
+> 
