@@ -1,15 +1,12 @@
-From: Kishore Dharmavaram <kishored@servgate.com>
-Subject: RE: iptable_nat module slows/hoses my Redhat 9.0 box
-Date: Fri, 12 Dec 2003 01:19:45 -0800
+From: Andy Loukes <andy@navaho.co.uk>
+Subject: memory leak related to bridging, conntrack and frags in 2.6.0
+Date: Fri, 12 Dec 2003 10:10:33 +0000 (GMT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <EFBADA8C200C2B418DA39734FD15475B0B20F0@skat.sky.com>
+Message-ID: <Pine.LNX.4.58.0312121001360.14007@picea.navaho>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: "''netfilter@lists.netfilter.org' '" <netfilter@lists.netfilter.org>,
-	"''netfilter-devel@lists.netfilter.org' '"
-	 <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: 'Harald Welte ' <laforge@netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,76 +17,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Harald & All,
+2.6.0-test11-bk8
+eepro100 driver
 
-Thanks for your reply. Eventhough I don't use NAT now, I will have to use it
-soon. 
+I'm getting a major memory leak across a bridge. It goes away if I remove 
+the conntrack module or I use packets < MTU.
 
-Connection setup really sucks after 'iptable_nat' module is inserted, my
-Pentium-4 RH9.0 box hangs with 7Mbps traffic using 20,000 concurrent UDP
-streams.
+With this:
+ttcp -tus 172.16.0.12 -n 25000 -b 5000
+(25000 x 5000 byte udp packets)
 
-Are there any tweaks that I can do in NAT code to increase performance of
-NAT, like: increase NAT hash-table size(I have got 1G RAM) or change hash
-algorithm etc?. 
+I see size-64 in slabinfo go up by 8472kB
 
-For e.g: based on a recommendation from netfilter FAQ, I passed an
-odd-number(not a power of 2) as 'hashsize' parameter value  to
-'ip_conntrack' module,  session-setup performance improved a lot after that
-in my tests when UDP packet streams with incrementing source IP address are
-sent. But this 'hashsize' tweak did not improve session-setup performance
-when UDP streams with incrementing destination IP address are sent.
+Some colleagues and I are trying to figure out where the problem is but I 
+thought I'd post to see if anyone has any debugging tips (we are just 
+starting to get our heads round NF!) or whether this is a known problem.
 
-Is connection setup slow because of hash collisions i.e due to lot of
-connections getting hashed to same hash-bucket? or it due to lot of
-memcopies?. Can you please give some specific reasons for poor performance
-of NAT, it will help me in optimizing/tuning, if possible, that specifc part
-of netfilter nat functionality.
-
-Thanks,
-Kishore
-
-
------Original Message-----
-From: Harald Welte
-To: Kishore Dharmavaram
-Cc: 'netfilter@lists.netfilter.org'; 'netfilter-devel@lists.netfilter.org'
-Sent: 12/11/2003 11:13 PM
-Subject: Re: iptable_nat module slows/hoses my Redhat 9.0 box
-
-On Thu, Dec 11, 2003 at 09:47:25PM -0800, Kishore Dharmavaram wrote:
-> Hi All,
-> 
-> I find that after inserting "iptable_nat" module on my
-RH9.0(2.4.20-19.9)
-> box, session-setup(ip_conntrack)  performance gets very bad. 
-
-yes, that's true.  I think we cannot state often enogh: DO NOT load
-iptable_nat if you don't need nat.  
-
-> I am wondering why "iptable_nat" is slowing doing the box so much when
-I
-> don't have any NAT rules defined.
-
-NAT is inherently complex.  and in order to support any kind of nat,
-every connection (even the non-nat'ed ones) need to be placed in two
-additional hash tables.  
-
-If you just use conntrack, a single hash table is sufficient.. 
-
-> Do you guys know of any netfilter patches made to address/fix this
-issue?.
-
-There is no way to 'address' this issue other than not using NAT.
-
-> Thanks,
-> Kishore
+regds,
 
 -- 
-- Harald Welte <laforge@netfilter.org>
-http://www.netfilter.org/
-========================================================================
-====
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Andy Loukes
+http://www.navaho.co.uk						Complete Appliance Technology
