@@ -1,17 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Kernel patch for nat/conntrack xdmcp
-Date: Wed, 21 May 2003 08:37:44 +0200
+From: diegows <diegows@linux.org.ar>
+Subject: [PATCH] quota match with quota per ip
+Date: Wed, 21 May 2003 13:33:45 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030521063744.GZ28587@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.44.0305201029560.7078-100000@luna.as.arizona.edu>
+Message-ID: <3ECBAA69.9000809@linux.org.ar>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3bc47Eih9dS+biPM"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed;
+ boundary="------------070908070602020709080809"
+Cc: samj@samj.net, Brad Fisher <brad@info-link.net>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: nlauver@as.arizona.edu
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0305201029560.7078-100000@luna.as.arizona.edu>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,64 +19,138 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------070908070602020709080809
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
---3bc47Eih9dS+biPM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Here is a modified patch of quota match. I add the destination ip quota 
+match. I maintain a table with the quota used by each destination IP 
+address, and match (or not match "!") according to the used quota.
+We use this in www.linux.org.ar for bandwith control. With this we mark 
+the packets that have exceeded the quota and then we do shaping with 
+QoS. For example:
 
-On Tue, May 20, 2003 at 10:32:56AM -0700, Neal Lauver wrote:
-> Hello,
->=20
-> I see that you have developed a netfilter module to handle XDMCP=20
-> connection tracking for NATed connections.  Do you happen to have either =
-a=20
-> kernel patch that I can apply to 2.4.20 or instructions for manually=20
-> building the modules?  Any assistance you can offer would be greatly=20
-> appreciated.  Thanks for all of your work on this.
+iptables -I OUTPUT -m quota --ipdstquota ! 50000000 -j MARK --set-mark XX
 
-It wasn't me, who developed the patches.  I have just taken a
-contributed implementation and did some modifications.  The original
-code did implement NAT support, but would at the same time introduce
-severe security holes.
+Then all the packets that exceeded the 50 mb quota are mark for shaping.
+This is for avoiding bandwith abuses, for people that like download 
+mirrors without sense.
 
-Unfortunately XDMCP never was important enough to have this work
-finished. =20
+Suggestions and comments are welcome, I 'm newbie...
 
-Due to time restrictions, I am not sure when I will be able to continue
-my work on those helper modules.
 
-I'm sorry for this un-satisfactory reply :(
+Diego Woitasen
+Lanux - Lanus Linux Users Group
+Lanus, Buenos Aires, Argentina
 
-Maybe you can find somebody at netfilter-devel who is willing to spend
-some time on the code, it is available from the netfilter-extensions CVS
-repository.
+--------------070908070602020709080809
+Content-Type: application/x-gzip;
+ name="patch.tgz"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="patch.tgz"
 
-> Neal Lauver
-> Steward Observatory
-> University of Arizona
-> Tucson, AZ, USA
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---3bc47Eih9dS+biPM
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE+yx64XaXGVTD0i/8RAg5AAJ9Rgp/L5SCaqISzX1wWexKrYCIo0ACeIJUF
-FvHe22snq4eHCIoMdYa/yBk=
-=TCQN
------END PGP SIGNATURE-----
-
---3bc47Eih9dS+biPM--
+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
+--------------070908070602020709080809--
