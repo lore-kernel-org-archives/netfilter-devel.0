@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
 Subject: Re: performance issues (nat / conntrack)
-Date: Tue, 25 Jun 2002 18:11:23 +0200
+Date: Tue, 25 Jun 2002 21:03:42 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020625161123.GH7975@naboo.ols.wavesec.org>
-References: <Pine.LNX.4.33.0206251238390.4927-100000@blackhole.kfki.hu> <021a01c21c4b$47b2f2b0$0489cb8a@etbx180> <20020625135113.GE7975@naboo.ols.wavesec.org> <028101c21c57$cf018130$0489cb8a@etbx180>
+Message-ID: <20020625190342.GK7975@naboo.ols.wavesec.org>
+References: <Pine.LNX.4.33.0206251119260.4927-100000@blackhole.kfki.hu> <01ff01c21c45$c90eb2a0$0489cb8a@etbx180> <20020625155038.A527@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+Cc: Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>,
 	netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>
+To: Patrick Schaaf <bof@bof.de>
 Content-Disposition: inline
-In-Reply-To: <028101c21c57$cf018130$0489cb8a@etbx180>
+In-Reply-To: <20020625155038.A527@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,43 +22,30 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 25, 2002 at 04:51:37PM +0200, Jean-Michel Hemstedt wrote:
-> > both of this is already true. look at the module loadtime parameters of
-> > ip_conntrack.o and iptable_nat.o
+On Tue, Jun 25, 2002 at 03:50:38PM +0200, Patrick Schaaf wrote:
+> > In my opinion, a first step should be to reconsider timeout values but
+> > also timer mechanisms.
 > 
-> right for conntrack, but i can't find something similar for nat:
-
-strange. I though we already had that.
-
-> conntrack:
-> ----------
+> No. A first step MUST be pointing out that the current timeouts become
+> a problem in REAL LIFE. Right now you are speculating.  On all setups
+> I personally know, the timeouts are NOT a problem.
 > 
-> but in ip_conntrack_init():
-> 1093          ip_conntrack_max = 8 * ip_conntrack_htable_size;
-> => when the module is loaded, it is loaded with this default value.
->    could be good to have it as loadable parameter in order to
->    save it and restore in modules.conf
+> Regarding timer _mechanisms_ I have seen no indication at all that the
+> current mechanism is a problem. If you want to insist, _please_ learn
+> about kernel profiling, and start posting FACT.
 
-wheres the problem with having a 'echo 12345 >
-/proc/sys/net/ipv4/ip_conntrack_max' in the post-load script in
-modules.conf?
+I've been talking about this with a couple of people here at the kernel
+summit, and it looks like the per-packet del_timer/add_timer in
+ip_ct_refresh should be a severe performance hit on SMP boxes.
 
-> nat:
-> ----
-> (from ip_nat_init):
-> - ip_nat_htable_size = ip_conntrack_htable_size; (not configurable)
->                      : allocated at init twice
->                        (for bysource and byisproto hashes)
-> - max tuples??? haven't found any value neither any config data.
->                 (is it in patch-o-matic)?
->                 but the tuples are allocated on demand.
-> 
-> 
-> PS: the fact that tuples are allocated on demand (392bytes/tuple) and not at
-> init
+Changing this to 'do not update timer if update would be < HZ different
+than current timer' is a two-line patch.  
 
-a tuple does not have 329 bytes. this sounds more like the size of a 
-struct ip_conntrack.
+As stated before, I'm currently away of my testing equipment, so if 
+anybody wants to give it a try...
+
+> regards
+>   Patrick
 
 -- 
 Live long and prosper
