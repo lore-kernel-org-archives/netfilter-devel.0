@@ -1,12 +1,18 @@
-From: James Morris <jmorris@intercode.com.au>
-Subject: ECN target bug report (fwd)
-Date: Mon, 9 Dec 2002 11:52:27 +1100 (EST)
+From: Fabrice MARIE <fabrice@netfilter.org>
+Subject: Re: [BUG] nth match: using more than 1 counter
+Date: Mon, 9 Dec 2002 11:26:54 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Mutt.LNX.4.44.0212091152190.26086-100000@blackbird.intercode.com.au>
+Message-ID: <200212091126.54324.fabrice@netfilter.org>
+References: <20021207124913.GA15801@fouk.org>
+Reply-To: fabrice@netfilter.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.samba.org
+To: Mateusz Golicz <mtg@elsat.net.pl>, netfilter-devel@lists.netfilter.org
+In-Reply-To: <20021207124913.GA15801@fouk.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,82 +23,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
----------- Forwarded message ----------
-Date: Sat, 07 Dec 2002 14:14:42 +0100
-From: Andrea Rossato <mailing_list@istitutocolli.org>
-To: netfilter@lists.netfilter.org
-Subject: ECN target bug report
 
-below you will find a coupe of emails sent to this list at the end of 
-september.
+Dzien Dobre Mateusz,
 
-the first one states that there is a problem with tcp checksum in the 
-case a packet had been stripped of ecn bits. The problem was also 
-reported by Graham Murray in Agust.
+On Saturday 07 December 2002 20:49, Mateusz Golicz wrote:
+> Hello,
+>   The userspace part of the nth match (BTW, quite an useful one)
+> seems to be a bit broken. [...]
 
-the answer was that this is due to tcpdump getting a cloned copy of the 
-packet:
-now, if I send tcp packet stripped with -ecn-tcp-remove to a box and i 
-dump packets there, tcp checksum is incorrect and the box will be not 
-respondig. If I remove the rule, packets are getting there with the 
-correct checksum and the box responds.
+Thanks for the report, I'll look into it shortly. It's been a very
+long time I didn't touch any line of code of this target so it might
+take me longer that what I hope..
 
-What's interesting is that if I put these rules:
+Have a nice day,
 
-iptables -A OUTPUT -t mangle -o ppp0 -p tcp -d my.host.org --dport 80 -j 
-ECN --ecn-tcp-remove
-iptables -A OUTPUT -o ppp0 -p tcp -d my.host.org --dport 80 -m unclean 
--j DROP
+Fabrice.
+--
+Fabrice MARIE
 
-packets will be actually dropped! something strange for being normal, 
-isn't it? or iptables treats as unclean ecn stripped packets, and this 
-is supposed to be normal? anyway iptables seems not to be the only one, 
-so ECN target is actually preatty useless.
-
-(using linux-2.4.20 and iptables-1.2.7a)
-
-Thanks for you attention.
-Andrea
-
-
-
-> Subject:-j ECN --ecn-tcp-remove seems to be mangling the TCP checksum...
-> From: netfilter@horizon.com
-> Date: 27 Sep 2002 06:27:53 -0000
-> To: netfilter@lists.netfilter.org
-
-> bash-2.05b# iptables -t mangle -A fix-ecn -d 1.1.1.1 -p tcp -j ECN --ecn-tcp-remove
-> bash-2.05b# echo 1 > /proc/sys/net/ipv4/tcp_ecn ; telnet 1.1.1.1 80
-> 01:52:20.662338 science.horizon.com.11058 > 1.1.1.1.www: S [bad tcp cksum bf40!] 2655433521:2655433521(0) win 5840 <mss 1460,sackOK,timestamp 14290984 0,nop,wscale 0> (DF) [tos 0x10]  (ttl 64, id 41753, len 60)
->                          4510 003c a319 4000 4006 716c c023 6401
->                          0101 0101 2b32 0050 9e46 b331 0000 0000
->                          a002 16d0 3c55 0000 0204 05b4 0402 080a
->                          00da 1028 0000 0000 0103 0300
-> 
-> Now I'll turn tcp_ecn off again:
-> bash-2.05b# echo 0 > /proc/sys/net/ipv4/tcp_ecn ; telnet 1.1.1.1 80
-> 01:52:36.771155 science.horizon.com.11059 > 1.1.1.1.www: S [tcp sum ok] 2671050014:2671050014(0) win 5840 <mss 1460,sackOK,timestamp 14292595 0,nop,wscale 0> (DF) [tos 0x10]  (ttl 64, id 60269, len 60)
->                          4510 003c eb6d 4000 4006 2918 c023 6401
->                          0101 0101 2b33 0050 9f34 fd1e 0000 0000
->                          a002 16d0 2bed 0000 0204 05b4 0402 080a
->                          00da 1673 0000 0000 0103 0300
-> 
-> Notice the bad tcp checksum in the third case.
-
-> Subject: Re: -j ECN --ecn-tcp-remove seems to be mangling the TCP checksum...
-> From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-> Date: Mon, 30 Sep 2002 11:55:56 +0200 (CEST)
-> To: netfilter@horizon.com
-> CC: netfilter@lists.netfilter.org
-
->>> Is this a bug?  The ipt_ECN.c file is
->>> ipt_ECN.c,v 1.4 2002/08/05 19:36:51 laforge Exp
-> 
-> No it is not. Do the same with a remote host.
-> Send a ECNstripped packets to some other host, and tcpdump there.
-> The checksum will be ok.
-> It is the problem with tcpdump getting a cloned copy of the packet,
-> read the RR's FIXME notes in netfilter sources about it.
-> 
-> I noticed that too, once, and thought it's a checksum calculation bug.
-> Maciej Soltysiak
+"Silly hacker, root is for administrators"
+       -Unknown
