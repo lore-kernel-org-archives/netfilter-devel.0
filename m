@@ -1,14 +1,14 @@
-From: Marc Zyngier <mzyngier@freesurf.fr>
-Subject: [PATCH] PF_PACKET filtering hooks for netfilter
-Date: 07 Sep 2002 18:45:19 +0200
+From: Harald Welte <laforge@gnumonks.org>
+Subject: [mzyngier@freesurf.fr: [PATCH] PF_PACKET filtering hooks for netfilter]
+Date: Sat, 7 Sep 2002 20:22:32 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <wrpheh1da00.fsf@hina.wild-wind.fr.eu.org>
-Reply-To: mzyngier@freesurf.fr
+Message-ID: <20020907202232.P9675@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-=-="
-Cc: linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="1YtYzP3stTOlsn9I"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,6 +18,73 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
+
+
+--1YtYzP3stTOlsn9I
+Content-Type: multipart/mixed; boundary="+wcwqhATTmTB6/2m"
+Content-Disposition: inline
+
+
+--+wcwqhATTmTB6/2m
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+JFYI
+
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
+=20
+V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
+
+--+wcwqhATTmTB6/2m
+Content-Type: message/rfc822
+Content-Disposition: inline
+
+Return-Path: X-Sieve: cmu-sieve 2.0
+Received: from mail by coruscant.gnumonks.org with spam-scanned (Exim 3.34 #1)
+	id 17nijs-00061W-00
+	for laforge@gnumonks.org; Sat, 07 Sep 2002 18:47:16 +0200
+Received: from vger.kernel.org ([209.116.70.75])
+	by coruscant.gnumonks.org with esmtp (Exim 3.34 #1)
+	id 17nijq-00061T-00
+	for laforge@gnumonks.org; Sat, 07 Sep 2002 18:47:14 +0200
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+	id <S319262AbSIGQlH>; Sat, 7 Sep 2002 12:41:07 -0400
+Received: (majordomo@vger.kernel.org) by vger.kernel.org
+	id <S319268AbSIGQlH>; Sat, 7 Sep 2002 12:41:07 -0400
+Received: from lopsy-lu.misterjones.org ([62.4.18.26]:14215 "EHLO
+	crisis.wild-wind.fr.eu.org") by vger.kernel.org with ESMTP
+	id <S319262AbSIGQlB>; Sat, 7 Sep 2002 12:41:01 -0400
+Received: from hina.wild-wind.fr.eu.org ([192.168.70.139])
+	by crisis.wild-wind.fr.eu.org with esmtp (Exim 3.35 #1 (Debian))
+	id 17nijJ-0002mq-00; Sat, 07 Sep 2002 18:46:41 +0200
+Received: from maz by hina.wild-wind.fr.eu.org with local (Exim 3.35 #1 (Debian))
+	id 17nihz-0005Vc-00; Sat, 07 Sep 2002 18:45:19 +0200
+To: netfilter-devel@lists.netfilter.org
+Cc: linux-kernel@vger.kernel.org
+Subject: [PATCH] PF_PACKET filtering hooks for netfilter
+Organization: Metropolis -- Nowhere
+X-Attribution: maz
+X-Baby-1: =?iso-8859-1?q?Lo=EBn?= 12 juin 1996 13:10
+X-Baby-2: None
+X-Love-1: Gone
+X-Love-2: Crazy-Cat
+Reply-to: mzyngier@freesurf.fr
+From: Marc Zyngier <mzyngier@freesurf.fr>
+Date: 07 Sep 2002 18:45:19 +0200
+Message-ID: <wrpheh1da00.fsf@hina.wild-wind.fr.eu.org>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="=-=-="
+Sender: linux-kernel-owner@vger.kernel.org
+Precedence: bulk
+X-Mailing-List: linux-kernel@vger.kernel.org
 
 --=-=-=
 
@@ -528,3 +595,26 @@ diff -Nru a/net/packet/af_packet.c b/net/packet/af_packet.c
 Places change, faces change. Life is so very strange.
 
 --=-=-=--
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
+
+
+--+wcwqhATTmTB6/2m--
+
+--1YtYzP3stTOlsn9I
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9ekPoXaXGVTD0i/8RAut4AKCVGZMQCv1J0Tju+jdcdXpX4KSNGgCeMIPi
+FDY6Qa21GV4eVbq6RWrPBX0=
+=UwRF
+-----END PGP SIGNATURE-----
+
+--1YtYzP3stTOlsn9I--
