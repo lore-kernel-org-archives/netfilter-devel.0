@@ -1,12 +1,18 @@
-From: "Sergio C" <sergnut@hotmail.com>
-Subject: Defragmentation question
-Date: Fri, 10 Sep 2004 20:26:31 +0000
+From: "Nix N. Nix" <nix@go-nix.ca>
+Subject: Re: Minor modification of function dcc_parse in ip_conntrack_irc.c
+Date: Fri, 10 Sep 2004 14:29:58 -0600
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <BAY10-F49ZndN8dtdCV0001bf58@hotmail.com>
+Message-ID: <1094848198.30069.3.camel@mactop.go-nix.ca>
+References: <1092170081.9955.12.camel@dana.go-nix.ca>
+	<411A1F1D.7080804@trash.net> <1092436283.4792.34.camel@dana.go-nix.ca>
+	<20040819113532.GO3921@sunbeam.de.gnumonks.org>
+	<1093213589.14159.9.camel@dana.go-nix.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <1093213589.14159.9.camel@dana.go-nix.ca>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,30 +23,4 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all!!
-
-I'm currently developing some IDS sensors that detects the source of an 
-attack, for example one of them detects if from the machine where it is 
-installed someone is doing IP spoofing, ICMP or UDP Flooding, SYN scan, 
-etc... The sensors add a function to NF_IP_LOCAL_OUT.
-
-I thought about the possibility that an intruder uses IP fragmentation for 
-evade the sensors, for example, the SYN scan sensor could be evaded if the 
-fragmentation cuts the TCP header, same with ICMP header and ICMP flooding 
-sensor, etc... I was doing some tests with fragroute and hping2 to see what 
-happens if an intruder try to fragment their packets. The results are that 
-all the sensors continue working without problems. And my question is... 
-Does netfilter apply some kind of defragmentation before NF_IP_LOCAL_OUT?
-
-Someone from #netfilter ask me if I have conntrack loaded but the answer is 
-NO... then why they contine working? I suppose that netfilter apply some 
-kind of defragmenation even if conntrack is not loaded because in some 
-maneer the architecture need to manage the packets, I mean... if no 
-defragmentation is applied then no rules for another protocols different 
-from IP can be used. Can anyone explain me a little more about that?
-
-Thanx, and sorry if my question is so basic.
-
-_________________________________________________________________
-Dale rienda suelta a tu tiempo libre. Encuentra mil ideas para exprimir tu 
-ocio con MSN Entretenimiento. http://entretenimiento.msn.es/
+So ... uuuhh ... what is to become of this patch ?
