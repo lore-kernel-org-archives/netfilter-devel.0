@@ -1,16 +1,17 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: building libctnetlink
-Date: Mon, 21 Mar 2005 18:12:31 +0100
-Message-ID: <423F007F.2060102@eurodev.net>
-References: <423BF227.8030502@outerspace.dyndns.org>	<423BF4DC.2070902@outerspace.dyndns.org>	<1111335091.2523.46.camel@lap-ufomechanic>	<1111335425.2523.49.camel@lap-ufomechanic>
-	<423DF940.100@eurodev.net>
-	<1111412190.2716.55.camel@lap-ufomechanic>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: ip_conntrack table full problem
+Date: Mon, 21 Mar 2005 10:08:12 -0800
+Message-ID: <20050321180812.GA14954@linuxace.com>
+References: <200503141647.42299.thomas.jarosch@intra2net.com>
+	<200503211513.59943.thomas.jarosch@intra2net.com>
+	<20050321162147.GA14696@linuxace.com>
+	<200503211803.18918.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: oscar@ufomechanic.net
-In-Reply-To: <1111412190.2716.55.camel@lap-ufomechanic>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Content-Disposition: inline
+In-Reply-To: <200503211803.18918.thomas.jarosch@intra2net.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,17 +23,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Just another UFO mechanic wrote:
-> Hi 
->     Thanks but when I run autoconf it creates the configure script then
-> when I run configure it says 
+On Mon, Mar 21, 2005 at 06:03:18PM +0100, Thomas Jarosch wrote:
+> > Yes, you're leaking conntracks somewhere.  Any possibility of testing
+> > a somewhat newer kernel than 2.4.21?  This may have already been
+> > fixed.
 > 
-> creating libtool
-> configure: creating ./config.status
-> config.status: creating Makefile
-> config.status: error: cannot find input file: Makefile.in
+> Thank you for your response.
+> Unfortunately I cannot update to a newer kernel soon.
+> 
+> Would it be possible to dump the internal conntrack tables
+> once the error occurs? Then we would at least know what
+> is filling the table up. Is there some kind of debug macro
+> I could add before the printk("conntrack table full") code?
 
-yes, type automake before.
+No easy way.  Last week I posted a patch which would have made
+this possible by creating a 'cleaned' list, but since you cannot
+upgrade kernels, you could not use this anyway.
 
---
-Pablo
+> Or a more aggressive solution:
+> Flush the complete conntrack table once the error occurs.
+> This would kill all running connections, but the machine
+> would still be reachable afterwards.
+
+Even if conntrack were modular, you would be unable to unload
+it (see the thread referenced above).
+
+> Any other ideas?
+
+I'm still studying the root cause and have narrowed it down
+somewhat, but no patch yet.
+
+> I'll try to reproduce the problem in a test environment,
+> but it will be hard to narrow the cause down.
+
+What's the traffic pattern on this box?  In my testing I've
+never seen such high rates of leakage.
+
+Phil
