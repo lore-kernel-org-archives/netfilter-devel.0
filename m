@@ -1,18 +1,18 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH] MASQUERADE not flushing conntracks on ip change
-Date: Thu, 4 Nov 2004 14:47:13 -0800
-Message-ID: <20041104224713.GA11255@linuxace.com>
-References: <20041102210440.GA1851@linuxace.com> <418999B2.3070600@trash.net>
-	<20041104154355.GA8553@linuxace.com> <418A6D29.60004@trash.net>
-	<Pine.LNX.4.61.0411042254020.18136@filer.marasystems.com>
-	<418AAF0A.4000201@trash.net>
+From: Matthias Andree <matthias.andree@gmx.de>
+Subject: Re: [BK PATCH] Fix ip_conntrack_amanda data corruption bug that
+	breaks amanda dumps
+Date: Fri, 5 Nov 2004 00:17:34 +0100
+Message-ID: <20041104231734.GA30029@merlin.emma.line.org>
+References: <20041104121522.GA16547@merlin.emma.line.org>
+	<418A7B0B.7040803@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, Henrik Nordstrom <hno@marasystems.com>
+Cc: linux-net@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <418AAF0A.4000201@trash.net>
+In-Reply-To: <418A7B0B.7040803@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,25 +24,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Nov 04, 2004 at 11:36:58PM +0100, Patrick McHardy wrote:
-> The problem is the opposite, living conntracks are killed
-> when more than one IP address is added to the interface.
+On Thu, 04 Nov 2004, Patrick McHardy wrote:
+
+> Matthias Andree wrote:
 > 
-> Phil mentioned Router/switch/dslmodem/cablemodem power cycles.
-> Contrary to what I said earlier, I don't see what value this
-> optimization might have. Router/switch powercycle doesn't matter
-> The optimization doesn't work for dslmodems (ppp devices), with
-> cablemodems you don't loose your IP, except in the very unlucky
-> situation that your DHCP lease times out while you are disconnected
-> and you get a different one afterwards.
+> >You can use "bk receive" to patch with this mail.
+> >
+> >BK: Parent repository is bk://linux.bkbits.net/linux-2.5
+> >
+> >Patch description:
+> >ChangeSet@1.2427, 2004-11-04 13:00:54+01:00, matthias.andree@gmx.de
+> >   Fix ip_conntrack_amanda data corruption bug that breaks amanda dumps.
+> > 
+> >   Fix a bug where the ip_conntrack_amanda module replaces the first LF
+> >   after "CONNECT " by a NUL byte. This causes the UDP checksum to become
+> >   corrupt and strips off the OPTIONS argument from the received packet,
+> >   breaking amanda's sendbackup component altogether.  Replace the LF
+> >   character before releasing the buffer.
+> >
+> The data that is changed is only a copy, the actual packet is not touched.
 
-My dsl modem attaches to my pc via ethernet cable.  If I powercycle
-the modem, ethx up/down, conntracks get lost.  Same goes for cablemodems.
+Why then does the application not see the packets as long as
+ip_conntrack_amanda is loaded and starts seeing them again as soon as
+"rmmod ip_conntrack_amanda" has completed?
 
-Unconditionally flushing conntracks on dev down still doesn't seem
-the right behaviour.  But I agree Patrick that the ip address add case
-is problematic.
+And I'm not even arguing with tcpdump which may get the altered copy of the packet.
 
-I'm investigating another possible solution at the moment...
+I am unaware of two things:
+1. detailed packet flow and SKBs
+2. internal ip_conntrack API.
 
-Phil
+I am however seeing that ip_conntrack_amanda
+1. jams the application's protocol
+2. modifies the packet.
+
+So is there any evidence to support the "only a copy" theory?
+
+-- 
+Matthias Andree
