@@ -1,124 +1,75 @@
-From: Netfilter Core Team <coreteam@netfilter.org>
-Subject: [ANNOUNCE] Release of iptables-1.3.1
-Date: Mon, 7 Mar 2005 15:35:32 +0100
-Message-ID: <20050307143532.GI30487@sunbeam.de.gnumonks.org>
-Reply-To: coreteam@netfilter.org
+From: =?ISO-8859-1?Q?S=E9rgio_Bernardino?= <sergio.bernardino@gmail.com>
+Subject: Re: LibIPQ issue
+Date: Mon, 7 Mar 2005 19:17:15 +0000
+Message-ID: <e54bc1880503071117322999d@mail.gmail.com>
+References: <e54bc1880503070451419fc57@mail.gmail.com>
+	<422C52AB.4030801@trash.net>
+Reply-To: =?ISO-8859-1?Q?S=E9rgio_Bernardino?= <sergio.bernardino@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ECAkxgSy0pGoHfdA"
-Cc: lwn@lwn.net
-To: Netfilter Announcement List <netfilter-announce@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <422C52AB.4030801@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 07 Mar 2005 14:10:03 +0100, Patrick McHardy <kaber@trash.net> wrote=
+:
+> S=E9rgio Bernardino wrote:
+> >
+> > iptables -t filter -A OUTPUT -p ip -j QUEUE
+> >
+> > I can alter the destination address of the outgoing packet (for
+> > example, a packet that goes from A to B becomes a packet that goes
+> > from A to A, a localhost packet), and it all works fine.
+> > I seems like i'm doing something wrong but i can't quite figure out
+> > what. Any ideas?
+>=20
+> Packets in LOCAL_OUT are manually rerouted by ip_queue. Packets
+> mangled in PRE_ROUTING should be routed correctly according to
+> the data contained in the new packet. Could it be that you are
+> testing on loopback ?
+>=20
+> Regards
+> Patrick
+>=20
 
---ECAkxgSy0pGoHfdA
-Content-Type: multipart/mixed; boundary="Zll6mx50Q8J7qlLQ"
-Content-Disposition: inline
-
-
---Zll6mx50Q8J7qlLQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi!
-
-The netfilter coreteam proudly presents:
-
-	iptables version 1.3.1
-
-The final 1.3.1 version contains some minor bugfixes to the
-recently-released version 1.3.0
-
-The ChangeLog is attached to this mail.
-
-Version 1.3.1 can be obtained from:
-
-	http://www.netfilter.org/files/iptables-1.3.1.tar.bz2
-	ftp://ftp.netfilter.org/pub/iptables/iptables-1.3.1.tar.bz2
-
-Please also note: Since Kernel 2.6.x is out, we now use
-patch-o-matic-ng for both 2.4.x and 2.6.x. patch-o-matic-ng is
-Distributed as seperate package:=20
-	ftp://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot/
-=09
-More information can be found at the netfilter/iptables project homepage,
-available at:
-
-	http://www.netfilter.org/
-	http://www.iptables.org/
-
-Happy firewalling,
+I've always tested it with two or three different machines and the
+only rerouting that always worked was the one that occurred when i
+changed packet caught in LOCAL_OUT. Curiously enough the packet that i
+mangle in PRE_ROUTING seems to disappear. It doesn't "show" on the
+current machine (machine B, according to my previous example), on the
+intended machine (machine C) and i can't seem to track it with tcpdump
+after i committed the changes and ACCEPTed the packet.
+The example i gave with LOCAL_OUT rerouting a packet to make it seem
+like it's a localhost packet is just that, an example. In fact, i can
+reroute packets intended to a machine so that they show up on another
+one by changing them in LOCAL_OUT. It works fine. But since you say
+that that ip_queue manually reroutes the packets, the situation is
+clearly different from what occurs in PRE_ROUTING. I pretty certain
+that the information is modified correctly. In fact, the code i use to
+change packets caught in PRE_ROUTING is virtually identical to the
+code i use to change packets caught in LOCAL_OUT. So, basically, i'm
+quite unsure of what's exactly wrong. Specially since you've confirmed
+that it should work.
+Thank you for your time.
 
 --=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+S=E9rgio Bernardino
+
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---Zll6mx50Q8J7qlLQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="changes-iptables-1.3.1.txt"
-
-iptables v1.3.1 Changelog
-======================================================================
-This version requires kernel >= 2.4.4
-This version recommends kernel >= 2.4.18
-
-Bugs fixed from 1.3.0:
-
-- Fix CLUSTERIP rule deletion
-	[ Pablo Neira ]
-
-- Fix libip6t_random compilation
-	[ Harald Welte ]
-
-- Fix CONNMARK on 32bit userspace / 64bit kernel archs
-	[ Pablo Neira ]
-
-Changes from 1.3.0:
-
-- remove bogus NFC_* stuff in iptables
-	[ Pablo Neira ]
-
-- libiptc: don't sort builtin chains, restores iptables-1.2.x sort order
-	[ Olaf Rempel ]
-
-
-Please note: Since version 1.2.7a, patch-o-matic is now no longer part of
-iptables but rather distributed as a seperate package
-(ftp://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot)
-
-
---Zll6mx50Q8J7qlLQ--
-
---ECAkxgSy0pGoHfdA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFCLGa0NfqJzMqajVsRAvSwAJ4g++23LvPnbAGwYmr7iLFzLdm9XACgt8yk
-wLl/c3V9XSk5ohn3359hkIo=
-=fWic
------END PGP SIGNATURE-----
-
---ECAkxgSy0pGoHfdA--
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+"The Dragon awakens in the darkness
+with a frozen heart he roars.
+If you are close, the dragon sleeps
+And when the wings appear before him
+people's dreams will fill the sky..."
