@@ -1,17 +1,13 @@
-From: Sven Schuster <schuster.sven@gmx.de>
-Subject: Re: NF_QUEUE examples
-Date: Thu, 15 Apr 2004 19:25:08 +0200
+From: "Dev" <devietf@hotmail.com>
+Subject: ip6_queue.o module missing in Red Hat linux 9 with 2.4.20-8 kernel
+Date: Thu, 15 Apr 2004 21:18:09 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040415172508.GA6700@zion.homelinux.com>
-References: <20040415162220.GA5747@maluco.com.br>
+Message-ID: <BAY14-DAV4QhExkiyPo00019965@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="nFreZHaLTZJo0R7j"
-Cc: Netfilter Devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_00B0_01C4232F.26C50E20"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ulysses Almeida <munky@maluco.com.br>
-Content-Disposition: inline
-In-Reply-To: <20040415162220.GA5747@maluco.com.br>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,59 +18,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---nFreZHaLTZJo0R7j
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+------=_NextPart_000_00B0_01C4232F.26C50E20
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 15, 2004 at 12:22:20PM -0400, Ulysses Almeida told us:
->   I alredy googled for this topic, but couldn't find any nice text
-> about.
->=20
->   I want to understand more about NF_QUEUE return, and possibly use
-> it. So, where can i find simple examples of using it? Or a text
-> explaining about it.
->=20
->   What I understand, is: with NF_QUEUE, I can queue some packet to be
-> manipulated on userspace. After this, can this packet be dequeued back
-> to kernel space, and continue with it's journey? How can I write a
-> userspace code, to handle with packetd queued bu NF_QUEUE? Or I didn't
-> understand nothing about it?
+Dear netfilter developers
 
-You might want to take a look at net/ipv4/netfilter/ip_queue.c. This
-registers a queue handler, delivers packets to user space via netlink
-and reinjects them into netfilter when the packet is send back from
-userspace.
+I am using redhat linux 9 with 2.4.20-8 kernel.  I need the modules =
+ip6_queue.o to run an aodv routing protocol. But i couldnt find the =
+ip6_queue.o modules is /lib/modules/2.4.20/kernel/net/ipv6/netfilter. In =
+that directory i have other netfilter modules like ip6_tables.o =
+ip6table_filter.o etc.... Can any one please let me how i should make =
+the modules ip6_queue.o
 
+Many thanks
 
-HTH
+Dev
+------=_NextPart_000_00B0_01C4232F.26C50E20
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Sven
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2800.1106" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV>
+<DIV><FONT face=3DArial size=3D2>Dear netfilter developers</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>I am using redhat linux 9 with 2.4.20-8 =
 
->=20
->   Thanks for any help in advance!
->=20
-> --=20
->     .~.  Ulysses Almeida
->    / V \  munky@maluco.com.br
->  / (   ) \  Seja livre, use GNU/Linux!=20
->    ^^-^^
+kernel.&nbsp; I need the modules ip6_queue.o to run an aodv routing =
+protocol.=20
+But i couldnt find the ip6_queue.o modules is=20
+/lib/modules/2.4.20/kernel/net/ipv6/netfilter. In that directory i have =
+other=20
+netfilter modules like ip6_tables.o ip6table_filter.o etc.... Can any =
+one please=20
+let me how i should make the modules ip6_queue.o</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Many thanks</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Dev</FONT></DIV></DIV></BODY></HTML>
 
---=20
-Linux zion 2.6.5 #1 Sun Apr 4 19:56:55 CEST 2004 i686 athlon i386 GNU/Linux
- 19:20:35  up 10 days, 20:04,  2 users,  load average: 0.06, 0.03, 0.00
-
---nFreZHaLTZJo0R7j
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQFAfsV0o4FAdB2PneQRAn9oAJ9tNkdNCOstMGQM879H4tt+WrAPKgCfXqI9
-jE7wNPzrAb9j2+UhtyaTgUU=
-=aKQk
------END PGP SIGNATURE-----
-
---nFreZHaLTZJo0R7j--
+------=_NextPart_000_00B0_01C4232F.26C50E20--
