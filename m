@@ -1,17 +1,15 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [testsuite] ipt_tos
-Date: Mon, 20 Dec 2004 17:12:14 +1100
-Message-ID: <1103523134.15405.2.camel@localhost.localdomain>
-References: <32914.66.11.161.14.1103516524.squirrel@66.11.161.14>
-	<33003.66.11.161.14.1103523626.squirrel@66.11.161.14>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH 2.4 0/18]: Netfilter resync with 2.6
+Date: Mon, 20 Dec 2004 16:55:09 -0800
+Message-ID: <20041220165509.152c058a.davem@davemloft.net>
+References: <41C67BBB.6010100@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
-	sjean@cookinglinux.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Nicolas Bouliane <nib@cookinglinux.org>
-In-Reply-To: <33003.66.11.161.14.1103523626.squirrel@66.11.161.14>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <41C67BBB.6010100@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,15 +21,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2004-12-20 at 01:20 -0500, Nicolas Bouliane wrote:
-> Hi Rusty,
+On Mon, 20 Dec 2004 08:14:03 +0100
+Patrick McHardy <kaber@trash.net> wrote:
+
+> the following 18 patches resync netfilter in 2.4 with 2.6.
+> They contains the ICMP+NAT fixes, Yasuyuki's IPv6 fixes
+> and two misc. fixes.
 > 
-> Since libipt_tos works well, I kick the sim out from 'expected-failure'
-> and did some clean-up. Its life was kinda short, eh! :-)
+> You can pull all changes from bk://212.42.230.204/nf-2.4
 
-expected failure should still apply for 1.2*, so I just changed that.
+Please don't put things like the Bitkeeper/etc/config changeset
+in your tree.  I can't pull in changes like that.
 
-Cheers,
-Rusty.
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+Unfortunately, I can't even "bk undo -r" that bogus change since
+it's not at the tip of the tree.  And I don't want to "bk cset -x"
+the changeset since that leaves the history of this crap in there.
+
+Can you put together a clean tree without the Bitkeeper/etc/config
+change in it?  Thanks.
