@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.6] destroy_conntrack optimization
-Date: Thu, 2 Oct 2003 16:25:04 +0200
+Subject: [PATCH 2.4] netfilter: fix UDP incremental checksumming
+Date: Thu, 2 Oct 2003 16:26:46 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031002142504.GB5758@sunbeam.de.gnumonks.org>
+Message-ID: <20031002142646.GC5758@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VZGTJogoWKdbG5sF"
+	protocol="application/pgp-signature"; boundary="/pwFaPbQJiTDEB5I"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,24 +21,25 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---VZGTJogoWKdbG5sF
-Content-Type: multipart/mixed; boundary="QKFUq+IbM9AW97yF"
+--/pwFaPbQJiTDEB5I
+Content-Type: multipart/mixed; boundary="iiGw1pLv4Q7HfyNL"
 Content-Disposition: inline
 
 
---QKFUq+IbM9AW97yF
+--iiGw1pLv4Q7HfyNL
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Davem!
 
-Please apply the following patch to your 2.6 tree and push it to Marcelo.
+Please apply the following patchto your 2.4 tree and push it to Marcelo.
 Thanks.
+
 
 Author: Patrick McHardy <kaber@trash.net>
 
-Don't call ip_conntrack_put with ip_conntrack_lock held
+Add size check to ip_nat_mangle_udp_packet
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -50,66 +51,55 @@ Don't call ip_conntrack_put with ip_conntrack_lock held
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---QKFUq+IbM9AW97yF
+--iiGw1pLv4Q7HfyNL
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="77_destroy-conntrack.patch"
+Content-Disposition: attachment; filename="79_mangle_udp-sizecheck.patch"
 Content-Transfer-Encoding: quoted-printable
 
 # This is a BitKeeper generated patch for the following project:
 # Project Name: Linux kernel tree
 # This patch format is intended for GNU patch command version 2.5 or higher.
 # This patch includes the following deltas:
-#	           ChangeSet	1.1357  -> 1.1358=20
-#	net/ipv4/netfilter/ip_conntrack_core.c	1.37    -> 1.38  =20
+#	           ChangeSet	1.1134  -> 1.1135=20
+#	net/ipv4/netfilter/ip_nat_helper.c	1.10    -> 1.11  =20
 #
 # The following is the BitKeeper ChangeSet Log
 # --------------------------------------------
-# 03/09/27	kaber@trash.net	1.1358
-# [NETFILTER]: Don't call ip_conntrack_put with ip_conntrack_lock held
+# 03/09/28	kaber@trash.net	1.1135
+# [NETFILTER]: Add size check to ip_nat_mangle_udp_packet
 # --------------------------------------------
 #
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_=
-conntrack_core.c
---- a/net/ipv4/netfilter/ip_conntrack_core.c	Sat Sep 27 21:09:18 2003
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c	Sat Sep 27 21:09:18 2003
-@@ -301,7 +301,7 @@
- static void
- destroy_conntrack(struct nf_conntrack *nfct)
- {
--	struct ip_conntrack *ct =3D (struct ip_conntrack *)nfct;
-+	struct ip_conntrack *ct =3D (struct ip_conntrack *)nfct, *master =3D NULL;
- 	struct ip_conntrack_protocol *proto;
+diff -Nru a/net/ipv4/netfilter/ip_nat_helper.c b/net/ipv4/netfilter/ip_nat_=
+helper.c
+--- a/net/ipv4/netfilter/ip_nat_helper.c	Sun Sep 28 04:40:29 2003
++++ b/net/ipv4/netfilter/ip_nat_helper.c	Sun Sep 28 04:40:29 2003
+@@ -233,6 +233,13 @@
+ 	newudplen =3D udplen - match_len + rep_len;
+ 	newlen =3D iph->ihl*4 + newudplen;
 =20
- 	DEBUGP("destroy_conntrack(%p)\n", ct);
-@@ -328,11 +328,14 @@
- 			/* can't call __unexpect_related here,
- 			 * since it would screw up expect_list */
- 			list_del(&ct->master->expected_list);
--			ip_conntrack_put(ct->master->expectant);
-+			master =3D ct->master->expectant;
- 		}
- 		kfree(ct->master);
- 	}
- 	WRITE_UNLOCK(&ip_conntrack_lock);
++	/* UDP helpers might accidentally mangle the wrong packet */
++	if (udplen < sizeof(*udph) + match_offset + match_len) {
++		if (net_ratelimit())
++			printk("ip_nat_mangle_udp_packet: undersized packet\n");
++		return 0;
++	}
 +
-+	if (master)
-+		ip_conntrack_put(master);
-=20
- 	DEBUGP("destroy_conntrack: returning ct=3D%p to slab\n", ct);
- 	kmem_cache_free(ip_conntrack_cachep, ct);
+ 	if (newlen > 65535) {
+ 		if (net_ratelimit())
+ 			printk("ip_nat_mangle_udp_packet: nat'ed packet "
 
---QKFUq+IbM9AW97yF--
+--iiGw1pLv4Q7HfyNL--
 
---VZGTJogoWKdbG5sF
+--/pwFaPbQJiTDEB5I
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/fDVAXaXGVTD0i/8RAgYNAJ4gTAMfR3RtQ2wcnKFQ3XHnMbC0sACgpuYW
-MFzLwdH7ZnnPkD+krbzBZJQ=
-=Ad7V
+iD8DBQE/fDWmXaXGVTD0i/8RAu3BAJ9RDO5D4zUhFPhZ0qihaEC84oUf/gCfb94f
+XnDqU0HhEjlBoRTjYMnSfCI=
+=AOLg
 -----END PGP SIGNATURE-----
 
---VZGTJogoWKdbG5sF--
+--/pwFaPbQJiTDEB5I--
