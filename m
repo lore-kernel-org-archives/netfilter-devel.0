@@ -1,17 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Syncookie firewall
-Date: Wed, 5 Jun 2002 21:38:14 +0200
+From: "bob" <netfilter@hanmail.net>
+Subject: any body help me...
+Date: Thu, 06 Jun 2002 04:53:02 +0900 (KST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206052138.14928.hno@marasystems.com>
-References: <20020603132204.7934546FF@lists.samba.org> <15614.26348.278645.301276@isis.cs3-inc.com>
+Message-ID: <20020606045302.HM.00000000000zGSd@www81.hanmail.net>
+Reply-To: "bob" <netfilter@hanmail.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/html; charset=euc-kr
 Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: don-nf@isis.cs3-inc.com (Don Cohen),
-	netfilter-devel@lists.samba.org
-In-Reply-To: <15614.26348.278645.301276@isis.cs3-inc.com>
+To: <netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,20 +19,27 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Don Cohen wrote:
+sorry for my poor English
 
-> There are some tcp options that have to be sent in the syn packet,
-> e.g., window scale.  These become unusable if this packet is supplied
-> by the firewall, unless the firewall somehow knows how the original
-> destination host "would have" answered.  This seems unfortunate, and
-> I don't see a good solution.
+i finding method that kernel-user communication method
+ans i found this method is it right??
 
-Not to mention that there is TCP options a firewall cannot know, such as the 
-timestamp option.
+proc file system,ioctl,netlink,file,sysctl
 
-In my opinion, If you do "syncookie" in a firewall then the TCP should be 
-terminated there, with another TCP in to the real server. I.e. a proxy 
-solution.
+i want to simple example above method or releated doc
+and i want to know iptables's kernel-user communication method
 
-Regards
-Henrik Nordström
+thans for reading ...
+
+<img src="http://www81.hanmail.net/Mail-bin/chkcmail?from=netfilter&rcpt=netfilter%2Ddevel%40lists%2Esamba%2Eorg&msgid=20020606045302%2EHM%2E00000000000zGSd%40www81%2Ehanmail%2Enet">
+
+<br><table border=0 cellpadding=5 cellspacing=0 width=100%%>
+<tr><td background='http://image.hanmail.net/hanmail/general/dotline_sim.gif' colspan=2 height=1></td></tr>
+<tr>
+<td valign="top" nowrap><font color="#312400" style="font-size:9pt;">
+"¿ì¸® ÀÎÅÍ³Ý, Daum" <a href=http://www.daum.net target=_top><font color="#312400">http://www.daum.net</font></a></font></td>
+</tr>
+<tr>
+<td align="center"><img src='http://image.hanmail.net/hm/im_wcup.gif' width=510 height=67></td>
+</tr>
+</table>
