@@ -1,11 +1,10 @@
-From: Joern Nettingsmeier <nettings@folkwang-hochschule.de>
-Subject: [Fwd: trivial netfilter compile problem in 2.5.4[34]-mm2]
-Date: Tue, 22 Oct 2002 08:45:24 +0200
+From: g_braad@survion.com
+Subject: problem compiling using uclibc
+Date: Mon, 21 Oct 2002 01:07:34 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DB4F404.B728EEEF@folkwang-hochschule.de>
+Message-ID: <1035155254.3db33736a41e5@horde.survion.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="-MOQ1035155254dfa3f09fda1bfaa8a57019676f17ddc9"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,39 +17,73 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-hello !
+This message is in MIME format.
 
-someone on lkml told me to forward my post here:
+---MOQ1035155254dfa3f09fda1bfaa8a57019676f17ddc9
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 
-Joern Nettingsmeier wrote:
-> =
+Hello,
 
-> hi *!
-> =
 
-> in order to compile 2.5.4[34], i had to add #include
-> <linux/netfilter_ipv4> to net/ipv4/raw.c, since it choked on
-> NF_IP_LOCAL_OUT being undefined in line 297.
-> =
+i'm trying to build iptables against uclibc for use on a very small system. I'm
+using the 2.4.7 kernel.
 
-> since i've had this problem for two kernel releases now, i thought i'd
-> bring this to your attention.
-> =
+the error messages of my build are included as an attachment. Please send any
+reactions to me directly. (haven't subscribed here since i'm already subscribed
+to lots of other mailman operated mailinglist :oP).
 
-> regards,
-> =
+if you need more information, please let me know...
 
-> j=F6rn
-> =
+greets,
 
-> (please cc: me on followups, the archive i'm using to read lkml lags
-> badly. thx.)
 
--- =
+Gerard
 
-J=F6rn Nettingsmeier     =
 
-Kurf=FCrstenstr 49, 45138 Essen, Germany      =
+-------------------------------------------------
+   Sur-V-ioN: Surviving unioN / Surreal Vision
 
-http://spunk.dnsalias.org (my server)
-http://www.linuxdj.com/audio/lad/ (Linux Audio Developers)
+---MOQ1035155254dfa3f09fda1bfaa8a57019676f17ddc9
+Content-Type: application/octet-stream; name="error"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="error"
+
+Zm9yIGRpciBpbiBpcHRhYmxlcyA7IGRvIFwKCWlmICEgbWFrZSAtQyAkZGlyIFwKCQlLRVJORUxf
+RElSPS9ob21lL2dfYnJhYWQvZmlsZXMvd2lmaS9saW51eCBcCgkJQ0M9L3Vzci9pMzg2LWxpbnV4
+LXVjbGliYy9iaW4vZ2NjIFwKCQk7IHRoZW4gXAoJICAgIGV4aXQgMTsgXAoJZmkgXApkb25lCm1h
+a2VbMV06IEVudGVyaW5nIGRpcmVjdG9yeSBgL2hvbWUvZ19icmFhZC9maWxlcy93aWZpL2lwdGFi
+bGVzJwpNYWtpbmcgZGVwZW5kZW5jaWVzOiBwbGVhc2Ugd2FpdC4uLgptYWtlWzFdOiBMZWF2aW5n
+IGRpcmVjdG9yeSBgL2hvbWUvZ19icmFhZC9maWxlcy93aWZpL2lwdGFibGVzJwptYWtlWzFdOiBF
+bnRlcmluZyBkaXJlY3RvcnkgYC9ob21lL2dfYnJhYWQvZmlsZXMvd2lmaS9pcHRhYmxlcycKRXh0
+ZW5zaW9ucyBmb3VuZDoKL3Vzci9pMzg2LWxpbnV4LXVjbGliYy9iaW4vZ2NjIC1PMiAtV2FsbCAt
+V3VudXNlZCAtSS9ob21lL2dfYnJhYWQvZmlsZXMvd2lmaS9saW51eC9pbmNsdWRlIC1JLi9pbmNs
+dWRlLyAtRElQVEFCTEVTX1ZFUlNJT049XCIxLjIuN2FcIiAgLWZQSUMgLW8gZXh0ZW5zaW9ucy9s
+aWJpcHRfYWhfc2gubyAtYyBleHRlbnNpb25zL2xpYmlwdF9haC5jCmxkIC1zaGFyZWQgLW8gZXh0
+ZW5zaW9ucy9saWJpcHRfYWguc28gZXh0ZW5zaW9ucy9saWJpcHRfYWhfc2gubwovdXNyL2kzODYt
+bGludXgtdWNsaWJjL2Jpbi9nY2MgLU8yIC1XYWxsIC1XdW51c2VkIC1JL2hvbWUvZ19icmFhZC9m
+aWxlcy93aWZpL2xpbnV4L2luY2x1ZGUgLUkuL2luY2x1ZGUvIC1ESVBUQUJMRVNfVkVSU0lPTj1c
+IjEuMi43YVwiICAtZlBJQyAtbyBleHRlbnNpb25zL2xpYmlwdF9jb25udHJhY2tfc2gubyAtYyBl
+eHRlbnNpb25zL2xpYmlwdF9jb25udHJhY2suYwpJbiBmaWxlIGluY2x1ZGVkIGZyb20gZXh0ZW5z
+aW9ucy9saWJpcHRfY29ubnRyYWNrLmM6MTQ6CmluY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQv
+aXB0X2Nvbm50cmFjay5oOjI4OiBgSVBfQ1RfRElSX01BWCcgdW5kZWNsYXJlZCBoZXJlIChub3Qg
+aW4gYSBmdW5jdGlvbikKaW5jbHVkZS9saW51eC9uZXRmaWx0ZXJfaXB2NC9pcHRfY29ubnRyYWNr
+Lmg6Mjk6IGBJUF9DVF9ESVJfTUFYJyB1bmRlY2xhcmVkIGhlcmUgKG5vdCBpbiBhIGZ1bmN0aW9u
+KQppbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0L2lwdF9jb25udHJhY2suaDoyOTogYElQX0NU
+X0RJUl9NQVgnIHVuZGVjbGFyZWQgaGVyZSAobm90IGluIGEgZnVuY3Rpb24pCmV4dGVuc2lvbnMv
+bGliaXB0X2Nvbm50cmFjay5jOiBJbiBmdW5jdGlvbiBgcGFyc2UnOgpleHRlbnNpb25zL2xpYmlw
+dF9jb25udHJhY2suYzoyMDI6IGBJUF9DVF9ESVJfT1JJR0lOQUwnIHVuZGVjbGFyZWQgKGZpcnN0
+IHVzZSBpbiB0aGlzIGZ1bmN0aW9uKQpleHRlbnNpb25zL2xpYmlwdF9jb25udHJhY2suYzoyMDI6
+IChFYWNoIHVuZGVjbGFyZWQgaWRlbnRpZmllciBpcyByZXBvcnRlZCBvbmx5IG9uY2UKZXh0ZW5z
+aW9ucy9saWJpcHRfY29ubnRyYWNrLmM6MjAyOiBmb3IgZWFjaCBmdW5jdGlvbiBpdCBhcHBlYXJz
+IGluLikKZXh0ZW5zaW9ucy9saWJpcHRfY29ubnRyYWNrLmM6MjU5OiBgSVBfQ1RfRElSX1JFUExZ
+JyB1bmRlY2xhcmVkIChmaXJzdCB1c2UgaW4gdGhpcyBmdW5jdGlvbikKZXh0ZW5zaW9ucy9saWJp
+cHRfY29ubnRyYWNrLmM6IEluIGZ1bmN0aW9uIGBtYXRjaGluZm9fcHJpbnQnOgpleHRlbnNpb25z
+L2xpYmlwdF9jb25udHJhY2suYzo0MjA6IGBJUF9DVF9ESVJfT1JJR0lOQUwnIHVuZGVjbGFyZWQg
+KGZpcnN0IHVzZSBpbiB0aGlzIGZ1bmN0aW9uKQpleHRlbnNpb25zL2xpYmlwdF9jb25udHJhY2su
+Yzo0NDA6IGBJUF9DVF9ESVJfUkVQTFknIHVuZGVjbGFyZWQgKGZpcnN0IHVzZSBpbiB0aGlzIGZ1
+bmN0aW9uKQptYWtlWzFdOiAqKiogW2V4dGVuc2lvbnMvbGliaXB0X2Nvbm50cmFja19zaC5vXSBF
+cnJvciAxCm1ha2VbMV06IExlYXZpbmcgZGlyZWN0b3J5IGAvaG9tZS9nX2JyYWFkL2ZpbGVzL3dp
+ZmkvaXB0YWJsZXMnCm1ha2U6ICoqKiBbc3ViZGlyc10gRXJyb3IgMQo=
+
+---MOQ1035155254dfa3f09fda1bfaa8a57019676f17ddc9--
