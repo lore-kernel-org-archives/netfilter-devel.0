@@ -1,12 +1,15 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Fixed some memoryleaks in ip(6)tables.c
-Date: Tue, 18 May 2004 20:23:55 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Fixed some memoryleaks in ip(6)tables.c
+Date: Tue, 18 May 2004 21:47:03 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1084904635.969.10.camel@tux.rsn.bth.se>
+Message-ID: <Pine.LNX.4.44.0405182143100.10300-100000@filer.marasystems.com>
+References: <1084904635.969.10.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-l5QdTcEC07GsM5Z5ZT2f"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <1084904635.969.10.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,43 +20,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, 18 May 2004, Martin Josefsson wrote:
 
---=-l5QdTcEC07GsM5Z5ZT2f
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> I converted an application from direct libiptc fiddling to use
+> do_command() from iptables.c instead (why use the horrible lowlevel
+> interface of libiptc when you don't have to?) and found some
+> memoryleaks. These changes has been running in a small testprogram under
+> valgrind and seems to work fine.
 
-Hi
+Then there is more good news for you. You can now easily complete the
+migration to not at all link the application directly to iptables by using
+a iptables-restore session. iptables-restore is essentially the same
+interface as do_command with only some nice syntactical sugar added.
 
-I just committed a fix for 7 memoryleaks in iptables.c (ip6tables.c got
-the same treatment).
+> People with large iptables-restore "sessions" might notice a decrease in
+> memory-usage.
 
-As always when messing with things that interact with libiptc you need
-to give people a heads up... this is it.
+Thanks!
 
-If it breaks you know who to blame :)
-
-I converted an application from direct libiptc fiddling to use
-do_command() from iptables.c instead (why use the horrible lowlevel
-interface of libiptc when you don't have to?) and found some
-memoryleaks. These changes has been running in a small testprogram under
-valgrind and seems to work fine.
-
-People with large iptables-restore "sessions" might notice a decrease in
-memory-usage.
-
---=20
-/Martin
-
---=-l5QdTcEC07GsM5Z5ZT2f
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQBAqlS6Wm2vlfa207ERAoZ0AJwM3Wj0Yd07f8WjUHvPWkjbq6icrACfVMP2
-Gxsuh7azm+pcWQVpVC0I6YI=
-=Hipf
------END PGP SIGNATURE-----
-
---=-l5QdTcEC07GsM5Z5ZT2f--
+Regards
+Henrik
