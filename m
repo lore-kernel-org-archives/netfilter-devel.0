@@ -1,16 +1,15 @@
-From: John Lange <john.lange@open-it.ca>
-Subject: Re: iptables --log-uid patch for 2.6
-Date: Wed, 08 Dec 2004 00:10:59 -0600
-Message-ID: <1102486259.2214.2276.camel@ws102.darkcore.net>
-References: <1101668109.2922.1618.camel@ws102.darkcore.net>
-	<41B6840C.1030706@trash.net>
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: [1/1] OSF: pom-ng - linux-2.6.
+Date: Wed, 08 Dec 2004 13:58:53 +0300
+Message-ID: <1102503533.3363.48.camel@uganda>
+Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-develop <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-SLXC8BttGhZzdW4O+wHA"
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <41B6840C.1030706@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,118 +21,94 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks for response Patrick.
 
-One small note... 
+--=-SLXC8BttGhZzdW4O+wHA
+Content-Type: multipart/mixed; boundary="=-VzoeZjXlNKXsuc00JdIX"
 
-I believe there is a limitation to this approach that makes it tricky
-for blocking outbound packets. I hope you have a work-around.
 
-Specifically, there is no way to allow packets that have no UID set such
-as packets generated directly by the kernel.
+--=-VzoeZjXlNKXsuc00JdIX
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-The following rules were designed to block users from (accidentally)
-installing spam relays on their web accounts (bad CGI scripts for
-example).
+Since OSF originally was created in 2.5 environment=20
+it is strange not to have 2.6 support for OSF.
+This(similar) patch was sent some time ago but was lost.
+Please apply.
 
-I hope this example makes some sense:
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+--=20
+        Evgeniy Polyakov
 
-e.g.
+Crash is better than data corruption -- Arthur Grabowski
 
-# first allow root (this allows root, but NOT the kernel!)
-iptables -A OUTPUT -p ALL -m owner --uid-owner 0 -j ACCEPT
+--=-VzoeZjXlNKXsuc00JdIX
+Content-Disposition: attachment; filename=ipt_osf
+Content-Type: text/plain; name=ipt_osf; charset=KOI8-R
+Content-Transfer-Encoding: base64
 
-# allow anyone in the mail group
-iptables -A OUTPUT -p tcp -m owner --gid-owner 102 --dport 25 -j ACCEPT
+LS0tIC90bXAvb3NmL2lwdF9vc2YuYwkyMDA0LTEyLTA4IDEzOjM5OjAyLjYyMTkyNzEyOCArMDMw
+MA0KKysrIC9ob21lL3MwbWJyZS9hV29yay90bXAvb3NmL2lwdF9vc2YuYwkyMDA0LTA4LTI1IDA5
+OjAyOjI1LjAwMDAwMDAwMCArMDQwMA0KQEAgLTUyLDE0ICs1MiwxNSBAQA0KIA0KICNpbmNsdWRl
+ICJpcHRfb3NmLmgiDQogDQotI2RlZmluZSBPU0ZfREVCVUcNCisvLyNkZWZpbmUgT1NGX0RFQlVH
+DQorI3VuZGVmIE9TRl9ERUJVRw0KIA0KICNpZmRlZiBPU0ZfREVCVUcNCiAjZGVmaW5lIGxvZyh4
+Li4uKSAJCXByaW50ayhLRVJOX0lORk8gImlwdF9vc2Y6ICIgeCkNCiAjZGVmaW5lIGxvZ2EoeC4u
+LikgCQlwcmludGsoeCkNCiAjZWxzZQ0KLSNkZWZpbmUgbG9nKHguLi4pIAkJZG8ge30gd2hpbGUo
+MCkNCi0jZGVmaW5lIGxvZ2EoeC4uLikgCQlkbyB7fSB3aGlsZSgwKQ0KKyNkZWZpbmUgbG9nKHgu
+Li4pDQorI2RlZmluZSBsb2dhKHguLi4pDQogI2VuZGlmDQogDQogI2RlZmluZSBGTUFUQ0hfV1JP
+TkcJCTANCkBAIC03Niw3ICs3Nyw3IEBADQogc3RhdGljIHN0cnVjdCBsaXN0X2hlYWQJZmluZ2Vy
+X2xpc3Q7CQ0KIHN0YXRpYyBpbnQgbWF0Y2goY29uc3Qgc3RydWN0IHNrX2J1ZmYgKiwgY29uc3Qg
+c3RydWN0IG5ldF9kZXZpY2UgKiwgY29uc3Qgc3RydWN0IG5ldF9kZXZpY2UgKiwNCiAJCSAgICAg
+IGNvbnN0IHZvaWQgKiwgaW50LCANCi0JCSAgICAgIGNvbnN0IHZvaWQgKiwgdV9pbnQxNl90LCAN
+CisJCSAgICAgIC8vY29uc3Qgdm9pZCAqLCB1X2ludDE2X3QsIA0KIAkJICAgICAgaW50ICopOw0K
+IHN0YXRpYyBpbnQgY2hlY2tlbnRyeShjb25zdCBjaGFyICosIGNvbnN0IHN0cnVjdCBpcHRfaXAg
+Kiwgdm9pZCAqLA0KIAkJICAgICAgICAgICB1bnNpZ25lZCBpbnQsIHVuc2lnbmVkIGludCk7DQpA
+QCAtMTUzLDcgKzE1NCw3IEBADQogc3RhdGljIGludA0KIG1hdGNoKGNvbnN0IHN0cnVjdCBza19i
+dWZmICpza2IsIGNvbnN0IHN0cnVjdCBuZXRfZGV2aWNlICppbiwgY29uc3Qgc3RydWN0IG5ldF9k
+ZXZpY2UgKm91dCwNCiAgICAgICBjb25zdCB2b2lkICptYXRjaGluZm8sIGludCBvZmZzZXQsDQot
+ICAgICAgY29uc3Qgdm9pZCAqaGRyLCB1X2ludDE2X3QgZGF0YWxlbiwNCisgICAgICAvL2NvbnN0
+IHZvaWQgKmhkciwgdV9pbnQxNl90IGRhdGFsZW4sDQogICAgICAgaW50ICpob3Rkcm9wKQ0KIHsN
+CiAJc3RydWN0IGlwdF9vc2ZfaW5mbyAqaW5mbyA9IChzdHJ1Y3QgaXB0X29zZl9pbmZvICopbWF0
+Y2hpbmZvOw0KQEAgLTE4NCw3ICsxODUsNiBAQA0KIAkJb3B0c2l6ZSA9IHRjcC0+ZG9mZio0IC0g
+c2l6ZW9mKHN0cnVjdCB0Y3BoZHIpOw0KIAl9DQogDQotCQ0KIAkvKiBBY3R1YWxseSB3ZSBjYW4g
+Y3JlYXRlIGhhc2gvdGFibGUgb2YgYWxsIGdlbnJlcyBhbmQgc2VhcmNoDQogCSAqIG9ubHkgaW4g
+YXBwcm9wcmlhdGUgcGFydCwgYnV0IGhlcmUgaXMgaW5pdGlhbCB2YXJpYW50LA0KIAkgKiBzbyB3
+aWxsIHVzZSBzbG93IHBhdGguDQpAQCAtNDE0LDcgKzQxNCwxMCBAQA0KIAl9DQogDQogCXJlYWRf
+dW5sb2NrKCZvc2ZfbG9jayk7DQotDQorCQ0KKwlpZiAoZmNvdW50KQ0KKwkJZm1hdGNoID0gRk1B
+VENIX09LOw0KKwkNCiAJcmV0dXJuIChmbWF0Y2ggPT0gRk1BVENIX09LKT8xOjA7DQogfQ0KIA0K
+QEAgLTYwMCw5ICs2MDMsMTAgQEANCiB7DQogCXN0cnVjdCBsaXN0X2hlYWQgKmVudDsNCiAJc3Ry
+dWN0IG9zZl9maW5nZXIgKmYgPSBOVUxMOw0KLQlpbnQgaTsNCisJaW50IGksIF9fY291bnQsIGVy
+cjsNCiAJDQogCSplb2YgPSAxOw0KKwlfX2NvdW50ID0gY291bnQ7DQogCWNvdW50ID0gMDsNCiAN
+CiAJcmVhZF9sb2NrX2JoKCZvc2ZfbG9jayk7DQpAQCAtNjEyLDEwICs2MTYsMTMgQEANCiANCiAJ
+CWxvZygiJXMgWyVzXSIsIGYtPmdlbnJlLCBmLT5kZXRhaWxzKTsNCiAJCQ0KLQkJY291bnQgKz0g
+c3ByaW50ZihidWYrY291bnQsICIlcyAtICVzWyVzXSA6ICVzIiwgDQorCQllcnIgPSBzbnByaW50
+ZihidWYrY291bnQsIF9fY291bnQtY291bnQsICIlcyAtICVzWyVzXSA6ICVzIiwgDQogCQkJCQlm
+LT5nZW5yZSwgZi0+dmVyc2lvbiwNCiAJCQkJCWYtPnN1YnR5cGUsIGYtPmRldGFpbHMpOw0KLQkJ
+DQorCQlpZiAoZXJyID09IDAgfHwgX19jb3VudCA8PSBjb3VudCArIGVycikNCisJCQlicmVhazsN
+CisJCWVsc2UNCisJCQljb3VudCArPSBlcnI7DQogCQlpZiAoZi0+b3B0X251bSkNCiAJCXsNCiAJ
+CQlsb2dhKCIgT1BUOiAiKTsNCkBAIC02MjksNyArNjM2LDExIEBADQogCQkJfQ0KIAkJfQ0KIAkJ
+bG9nYSgiXG4iKTsNCi0JCWNvdW50ICs9IHNwcmludGYoYnVmK2NvdW50LCAiXG4iKTsNCisJCWVy
+ciA9IHNucHJpbnRmKGJ1Zitjb3VudCwgX19jb3VudC1jb3VudCwgIlxuIik7DQorCQlpZiAoZXJy
+ID09IDAgfHwgX19jb3VudCA8PSBjb3VudCArIGVycikNCisJCQlicmVhazsNCisJCWVsc2UNCisJ
+CQljb3VudCArPSBlcnI7DQogCX0NCiAJcmVhZF91bmxvY2tfYmgoJm9zZl9sb2NrKTsNCiANCkBA
+IC04NDQsOCArODU1LDggQEANCiAJDQogCXJlbW92ZV9wcm9jX2VudHJ5KCJzeXMvbmV0L2lwdjQv
+b3NmIiwgTlVMTCk7DQogCWlwdF91bnJlZ2lzdGVyX21hdGNoKCZvc2ZfbWF0Y2gpOw0KLQlpZiAo
+bnRzICYmIG50cy0+c29ja2V0KQ0KLQkJc29ja19yZWxlYXNlKG50cy0+c29ja2V0KTsNCisJaWYg
+KG50cyAmJiBudHMtPnNrX3NvY2tldCkNCisJCXNvY2tfcmVsZWFzZShudHMtPnNrX3NvY2tldCk7
+DQogDQogCWxpc3RfZm9yX2VhY2hfc2FmZShlbnQsIG4sICZmaW5nZXJfbGlzdCkNCiAJew0K
 
-iptables -A OUTPUT -p tcp --dport 25 -j LOG --log-uid
-iptables -A OUTPUT -p tcp --dport 25 -j DROP
 
-----
+--=-VzoeZjXlNKXsuc00JdIX--
 
-Packets generated directly by the kernel (like RST packets) have no UID
-set and therefore get blocked....
+--=-SLXC8BttGhZzdW4O+wHA
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-I suppose you could allow based on the type of packet but its not
-exactly what you expect.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
 
--- 
-John Lange
-OpenIT ltd.
-(204) 885 0872
+iD8DBQBBtt5tIKTPhE+8wY0RAie9AJ4mf/sFP/uA5G1jrIlRJ0r1KOc8+ACfWk1m
+5BIiHdYjxVbbaP04uMed6iU=
+=D5Rk
+-----END PGP SIGNATURE-----
 
-On Tue, 2004-12-07 at 22:33, Patrick McHardy wrote:
-> John Lange wrote:
-> 
-> >I sent this to the list yesterday but I don't think it made it through.
-> >Apologies if it is a duplicate.
-> >
-> >Here are patches against the userspace and the kernel which allows the
-> >logging of the uid that generated the (outgoing) packet.
-> >
-> >This patch was originally the work of Martin Josefsson for the 2.4
-> >kernel but was never incorporated into the main code base. My work here
-> >simply ports it to the 2.6 kernel and the current version of netfilter
-> >(iptables).
-> >
-> Thanks, I've fixed locking (packets with skb->sk set may reach ipt_LOG
-> without the socket lock held through tunnel devices, so we need extra
-> locking) and added this patch to my tree. I'm going to add the userspace
-> patch when SVN is up again.
-> 
-> Regards
-> Patrick
-> 
-> 
-> ______________________________________________________________________
-> # This is a BitKeeper generated diff -Nru style patch.
-> #
-> # ChangeSet
-> #   2004/12/08 04:53:15+01:00 kaber@coreworks.de 
-> #   [NETFILTER]: Add --log-uid option to ipt_LOG
-> #   
-> #   Signed-off-by: Patrick McHardy <kaber@trash.net>
-> # 
-> # net/ipv4/netfilter/ipt_LOG.c
-> #   2004/12/08 04:53:08+01:00 kaber@coreworks.de +8 -0
-> #   [NETFILTER]: Add --log-uid option to ipt_LOG
-> #   
-> #   Signed-off-by: Patrick McHardy <kaber@trash.net>
-> # 
-> # include/linux/netfilter_ipv4/ipt_LOG.h
-> #   2004/12/08 04:53:08+01:00 kaber@coreworks.de +2 -1
-> #   [NETFILTER]: Add --log-uid option to ipt_LOG
-> #   
-> #   Signed-off-by: Patrick McHardy <kaber@trash.net>
-> # 
-> diff -Nru a/include/linux/netfilter_ipv4/ipt_LOG.h b/include/linux/netfilter_ipv4/ipt_LOG.h
-> --- a/include/linux/netfilter_ipv4/ipt_LOG.h	2004-12-08 05:26:20 +01:00
-> +++ b/include/linux/netfilter_ipv4/ipt_LOG.h	2004-12-08 05:26:20 +01:00
-> @@ -4,7 +4,8 @@
->  #define IPT_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
->  #define IPT_LOG_TCPOPT		0x02	/* Log TCP options */
->  #define IPT_LOG_IPOPT		0x04	/* Log IP options */
-> -#define IPT_LOG_MASK		0x07
-> +#define IPT_LOG_UID		0x08	/* Log UID owning local socket */
-> +#define IPT_LOG_MASK		0x0f
->  
->  struct ipt_log_info {
->  	unsigned char level;
-> diff -Nru a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
-> --- a/net/ipv4/netfilter/ipt_LOG.c	2004-12-08 05:26:20 +01:00
-> +++ b/net/ipv4/netfilter/ipt_LOG.c	2004-12-08 05:26:20 +01:00
-> @@ -327,6 +327,14 @@
->  		printk("PROTO=%u ", ih->protocol);
->  	}
->  
-> +	/* Max length: 15 "UID=4294967295 " */
-> + 	if ((info->logflags & IPT_LOG_UID) && !iphoff && skb->sk) {
-> +		read_lock_bh(&skb->sk->sk_callback_lock);
-> +		if (skb->sk->sk_socket && skb->sk->sk_socket->file)
-> + 			printk("UID=%u ", skb->sk->sk_socket->file->f_uid);
-> +		read_unlock_bh(&skb->sk->sk_callback_lock);
-> +	}
-> +
->  	/* Proto    Max log string length */
->  	/* IP:      40+46+6+11+127 = 230 */
->  	/* TCP:     10+max(25,20+30+13+9+32+11+127) = 252 */
+--=-SLXC8BttGhZzdW4O+wHA--
