@@ -1,64 +1,731 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Oops in replace_in_hashes (ip_net_core.c) 2.4.19 (and 2.4.21)
-Date: Tue, 22 Jul 2003 11:50:25 +0200 (CEST)
-Sender: linux-net-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.52.0307221141050.20491@tux.rsn.bth.se>
-References: <S261808AbTGAJfh/20030701093537Z+14616@vger.kernel.org>
- <20030721084011.8347162D3E@wlug.westbo.se> <Pine.LNX.4.52.0307211319260.16207@tux.rsn.bth.se>
- <20030722090917.BC18E62D3A@wlug.westbo.se>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: linux-net@vger.kernel.org,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>
-Return-path: <linux-net-owner@vger.kernel.org>
-To: Mike Smith <mikesmith1@btconnect.com>
-In-Reply-To: <20030722090917.BC18E62D3A@wlug.westbo.se>
+From: diegows@linux.org.ar (Diego Woitasen (Lanux))
+Subject: (no subject)
+Date: Tue, 22 Jul 2003 14:17:52 -0300 (ART)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20030722171752.6280411775B@superhijitus>
+Cc: samj@samj.net
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 22 Jul 2003, Mike Smith wrote:
+This patch add support for quotas per source ip. Please I want to hear your opinion about this.
 
-> On Monday 21 Jul 2003 11:22 am, Martin Josefsson wrote:
-> > I'll look over it again later tonight, in the mean time could you switch
-> > to 2.4.21? And apply everything from submitted and pending in
-> > patch-o-matic from cvs (cvs instructions can be found on
-> > http://netfilter.org). Any eventual debugging-patches will be against that
-> > kernel and those patches.
-> >
-> > /Martin
->
-> Martin,
->
-> vanilla 2.4.21 oopsed last night. Hand-transcribed oops below. I want to
-> apply all the cvs fixes but am a bit short of clues. Is it pom-20030107
-> that I want? (it is advertised as 2.4.18 thru 2.4.20...) or do I need to
-> do a 'cvs update -d -P' ? Sorry to be so clueless but it's the first
-> time I've had to do stuff like this. Help!
+Sorry, this is the correct patch against patch-o-matic and iptables-userspace.
+and excuses by the previous mail, badly were written up.
 
-You don't want that pom release, it's very old.
-You want to get pom from cvs. You have instructions on netfilter.org
+Thanks.
 
-cvs -d :pserver:cvs@pserver.netfilter.org:/cvspublic login
-(password cvs)
 
-cvs -d :pserver:cvs@pserver.netfilter.org:/cvspublic co netfilter/userspace netfilter/patch-o-matic
-(you need the userspace directory since there's a patch that tries to
-patch that as well)
 
-cd netfilter/patch-o-matic
-KERNEL_DIR=/usr/src/yourkernel ./runme --batch pending
-
-then recompile and reboot.
-
-It would be helpful if you could give me all your rules. If you don't want
-the whole world to see them you can send them to me privately. And if you
-could describe the type of traffic that goes through the router...
-
-That way I might be able to reproduce the bug.
-
-UP/SMP? any other patches applied? Which modules do you have loaded?
-Or do you have the iptables stuff compiled into your kernel? If so, which
-things did you select? ...
-(You probably wrote some of this stuff in your first mail but I'm too lazy
-to find it :)
-
-/Martin
+diff -urN patch-o-matic-20030107-old/base/quota.patch patch-o-matic-20030107/base/quota.patch
+--- patch-o-matic-20030107-old/base/quota.patch	2001-12-03 19:22:56.000000000 -0300
++++ patch-o-matic-20030107/base/quota.patch	2003-06-30 14:37:20.000000000 -0300
+@@ -1,39 +1,223 @@
+-diff -urN kernel-source-2.4.16/include/linux/netfilter_ipv4/ipt_quota.h kernel-source-2.4.16-samj/include/linux/netfilter_ipv4/ipt_quota.h
+---- kernel-source-2.4.16/include/linux/netfilter_ipv4/ipt_quota.h	Thu Jan  1 10:00:00 1970
+-+++ kernel-source-2.4.16-samj/include/linux/netfilter_ipv4/ipt_quota.h	Mon Dec  3 21:43:07 2001
+-@@ -0,0 +1,11 @@
++diff -urN -X dontdiff linux-2.4.20-orig/include/linux/netfilter_ipv4/ipt_quota.h linux-2.4.20/include/linux/netfilter_ipv4/ipt_quota.h
++--- linux-2.4.20-orig/include/linux/netfilter_ipv4/ipt_quota.h	Wed Dec 31 21:00:00 1969
+++++ linux-2.4.20/include/linux/netfilter_ipv4/ipt_quota.h	Wed May 21 12:38:05 2003
++@@ -0,0 +1,20 @@
+ +#ifndef _IPT_QUOTA_H
+ +#define _IPT_QUOTA_H
+ +
+++#include <linux/list.h>
+++
+ +/* print debug info in both kernel/netfilter module & iptable library */
+-+//#define DEBUG_IPT_QUOTA
+++/* #define DEBUG_IPT_QUOTA */
+++
+++#define IPT_QUOTA				0x0001
+++#define IPT_IPDSTQUOTA				0x0002
+++#define IPT_QUOTA_FLAG_NEGATE		   	0x0004
+++#define IPT_QUOTA_FLAG_COUNT_FULL		0x0009
+ +
+ +struct ipt_quota_info {
+-+        u_int64_t quota;
+++	u_int64_t quota;	
+++	u_int16_t flags;
+++	struct list_head *ipquota_hash;
+ +};
+ +
+ +#endif /*_IPT_QUOTA_H*/
+-diff -urN kernel-source-2.4.16/net/ipv4/netfilter/ipt_quota.c kernel-source-2.4.16-samj/net/ipv4/netfilter/ipt_quota.c
+---- kernel-source-2.4.16/net/ipv4/netfilter/ipt_quota.c	Thu Jan  1 10:00:00 1970
+-+++ kernel-source-2.4.16-samj/net/ipv4/netfilter/ipt_quota.c	Mon Dec  3 21:42:08 2001
+-@@ -0,0 +1,81 @@
++diff -urN -X dontdiff linux-2.4.20-orig/net/ipv4/netfilter/ipt_quota.c linux-2.4.20/net/ipv4/netfilter/ipt_quota.c
++--- linux-2.4.20-orig/net/ipv4/netfilter/ipt_quota.c	Wed Dec 31 21:00:00 1969
+++++ linux-2.4.20/net/ipv4/netfilter/ipt_quota.c	Wed May 21 12:38:17 2003
++@@ -0,0 +1,381 @@
+ +/* 
+ + * netfilter module to enforce network quotas
+ + *
+ + * Sam Johnston <samj@samj.net>
+++ *
+++ * 20 May 2003: Diego Woitasen (diegows@linux.org.ar):
+++ *	- new quota per destination ip
+++ * 29 Apr 2003: Brad Fisher (brad@info-link.net):
+++ *	- ! inverse match and add the option to count total packet size
+++ *	    (headers + data)
+++ *
+ + */
+++
+ +#include <linux/module.h>
+ +#include <linux/skbuff.h>
+ +#include <linux/spinlock.h>
+ +#include <linux/interrupt.h>
+-+
+++#include <linux/vmalloc.h>
+++#include <linux/ip.h>
+++#include <linux/tcp.h>
+ +#include <linux/netfilter_ipv4/ip_tables.h>
+ +#include <linux/netfilter_ipv4/ipt_quota.h>
+++#include <linux/netfilter_ipv4/ip_conntrack.h>
+++#include <linux/proc_fs.h>
+++#include <linux/netfilter_ipv4/lockhelp.h>
+++#include <linux/sysctl.h>
+++
+++/* I don't need this DW */
+++#define ASSERT_READ_LOCK(x)
+++#define ASSERT_WRITE_LOCK(x)
+++
+++#include <linux/netfilter_ipv4/listhelp.h>
+++
+++#define QUOTA_KEY(ip) (ip % quota_hash_size)
+ +
+ +MODULE_LICENSE("GPL");
+ +
+ +static spinlock_t quota_lock = SPIN_LOCK_UNLOCKED;
+ +
+++static int kmem = 0;
+++static int vmem = 0;
+++static int hashsize = 0;
+++static int quota_hash_size = 0;
+++static int ipquota_kmem_max = 0;	/* max struct ipquota that could be alloc. */
+++
+++static kmem_cache_t *ipquota_cache;
+++
+++MODULE_PARM(hashsize, "i");
+++MODULE_PARM(ipquota_kmem_max, "i");
+++
+++struct ipquota {
+++	struct list_head list;
+++	u_int32_t ip;
+++	u_int64_t quota;
+++};
+++
+++#ifdef CONFIG_SYSCTL
+++
+++static struct ctl_table_header *ip_quota_sysctl_header;
+++
+++static ctl_table ipquota_table[] = {
+++	{4048, "ipquota_kmem_max", &ipquota_kmem_max, sizeof (ipquota_kmem_max),
+++	 0644, NULL, proc_dointvec}
+++	,
+++	{0}
+++};
+++
+++static ctl_table ipquota_table_dir[] = {
+++	{NET_IPV4, "ipv4", NULL, 0, 0555, ipquota_table, 0, 0, 0, 0, 0},
+++	{0}
+++};
+++
+++static ctl_table ipquota_table_root[] = {
+++	{CTL_NET, "net", NULL, 0, 0555, ipquota_table_dir, 0, 0, 0, 0, 0},
+++	{0}
+++};
+++
+++#endif
+++
+++static inline void *
+++quota_alloc(void)
+++{
+++
+++	if (kmem > ipquota_kmem_max)
+++		return NULL;
+++	kmem++;
+++	return kmem_cache_alloc(ipquota_cache, GFP_ATOMIC);
+++
+++}
+++
+++static inline void
+++quota_free(void *tmp_if)
+++{
+++
+++	kmem--;
+++	kmem_cache_free(ipquota_cache, tmp_if);
+++
+++}
+++
+++static inline void *
+++quota_valloc(size_t size)
+++{
+++
+++	vmem++;
+++	return vmalloc(size);
+++
+++}
+++
+++static inline void
+++quota_vfree(void *tmp_if)
+++{
+++
+++	vmem--;
+++	vfree(tmp_if);
+++
+++}
+++
+++static inline int
+++quota_cmpfn(const struct ipquota *ipquota_tmp, u_int32_t ip)
+++{
+++
+++	return ipquota_tmp->ip == ip;
+++
+++}
+++
+++static struct ipquota *
+++quota_get(struct ipt_quota_info *info, u_int32_t ip)
+++{
+++
+++	struct list_head *bucket;
+++	struct ipquota *ipquota_tmp;
+++
+++	bucket = &info->ipquota_hash[QUOTA_KEY(ip)];
+++
+++	ipquota_tmp = LIST_FIND(bucket, quota_cmpfn, struct ipquota *, ip);
+++
+++	if (!ipquota_tmp) {
+++		ipquota_tmp = quota_alloc();
+++		if (!ipquota_tmp) {
+++			printk(KERN_ERR
+++			       "unable to create ipquota item (quota_alloc),"
+++			       "ipquota_kmem_max reached");
+++			return ipquota_tmp;
+++		}
+++
+++		ipquota_tmp->ip = ip;
+++		ipquota_tmp->quota = 0;
+++		list_append(bucket, ipquota_tmp);
+++	}
+++	return ipquota_tmp;
+++
+++}
+++
+++static int
+++quota_hash_init(struct ipt_quota_info *info)
+++{
+++
+++	int i;
+++
+++	info->ipquota_hash =
+++	    quota_valloc(sizeof (struct list_head) * quota_hash_size);
+++
+++	if (!info->ipquota_hash) {
+++		printk(KERN_ERR "Unable to create quota_hash\n");
+++		return (-1);
+++	}
+++
+++	for (i = 0; i < quota_hash_size; i++)
+++		INIT_LIST_HEAD(&info->ipquota_hash[i]);
+++
+++	return (quota_hash_size);
+++
+++}
+++
+++static int
+++quota_hash_destroy(struct ipt_quota_info *info)
+++{
+++
+++	int i;
+++
+++	for (i = 0; i < quota_hash_size; i++) {
+++		struct list_head *pos_tmp, *n_tmp;
+++		list_for_each_safe(pos_tmp, n_tmp, &info->ipquota_hash[i]) {
+++			list_del(pos_tmp);
+++			quota_free(pos_tmp);
+++		}
+++
+++	}
+++	quota_vfree(info->ipquota_hash);
+++
+++}
+++
+ +static int
+ +match(const struct sk_buff *skb,
+ +      const struct net_device *in,
+@@ -42,59 +226,184 @@
+ +      int offset, const void *hdr, u_int16_t datalen, int *hotdrop)
+ +{
+ +
+-+        struct ipt_quota_info *q = (struct ipt_quota_info *) matchinfo;
+++	struct ipt_quota_info *q = (struct ipt_quota_info *) matchinfo;
+++
+++	if (q->flags & IPT_QUOTA_FLAG_COUNT_FULL)
+++		datalen = skb->len;
+ +
+-+        spin_lock_bh(&quota_lock);
+++	spin_lock_bh(&quota_lock);
+ +
+-+        if (q->quota >= datalen) {
+-+                /* we can afford this one */
+-+                q->quota -= datalen;
+-+                spin_unlock_bh(&quota_lock);
+++	if (q->flags & IPT_QUOTA) {
+++		if (q->quota >= datalen) {
+++			/* we can afford this one */
+++			q->quota -= datalen;
+++			goto quota;
+++		}
+++		/* so we do not allow even small packets from now on */
+++		q->quota = 0;
+++	} else if (q->flags & IPT_IPDSTQUOTA) {
+++
+++		struct ipquota *ipquota_tmp;
+++
+++		ipquota_tmp = quota_get(q, skb->nh.iph->daddr);
+++		if (!ipquota_tmp)
+++			goto xquota;
+++
+++		if ((ipquota_tmp->quota + datalen) < q->quota) {
+++			ipquota_tmp->quota += datalen;
+++			goto quota;
+++		} else
+++			goto xquota;
+++
+++	}
+++
+++      xquota:
+++	spin_unlock_bh(&quota_lock);
+ +
+ +#ifdef DEBUG_IPT_QUOTA
+-+                printk("IPT Quota OK: %llu datlen %d \n", q->quota, datalen);
+++	printk("IPT Quota Failed: max=%llu\n", q->quota);
+ +#endif
+-+                return 1;
+-+        }
+ +
+-+        /* so we do not allow even small packets from now on */
+-+        q->quota = 0;
+++	if (q->flags & IPT_QUOTA_FLAG_NEGATE)
+++		return 1;
+++	return 0;
+++
+++      quota:
+++	spin_unlock_bh(&quota_lock);
+ +
+ +#ifdef DEBUG_IPT_QUOTA
+-+        printk("IPT Quota Failed: %llu datlen %d \n", q->quota, datalen);
+++	printk("IPT Quota OK: %llu datlen %d \n", q->quota, datalen);
+ +#endif
+ +
+-+        spin_unlock_bh(&quota_lock);
+-+        return 0;
+++	if (q->flags & IPT_QUOTA_FLAG_NEGATE)
+++		return 0;
+++	return 1;
+++
+ +}
+ +
+ +static int
+ +checkentry(const char *tablename,
+-+           const struct ipt_ip *ip,
+-+           void *matchinfo, unsigned int matchsize, unsigned int hook_mask)
+++	   const struct ipt_ip *ip,
+++	   void *matchinfo, unsigned int matchsize, unsigned int hook_mask)
+ +{
+-+        /* TODO: spinlocks? sanity checks? */
+-+        if (matchsize != IPT_ALIGN(sizeof (struct ipt_quota_info)))
+-+                return 0;
+ +
+-+        return 1;
+++	struct ipt_quota_info *info = (struct ipt_quota_info *) matchinfo;
+++
+++	/* TODO: spinlocks? sanity checks? */
+++	if (matchsize != IPT_ALIGN(sizeof (struct ipt_quota_info)))
+++		return 0;
+++
+++	if (info->flags & IPT_IPDSTQUOTA)
+++		if (quota_hash_init(info) < 0)
+++			return 0;
+++
+++	return 1;
+++
+ +}
+ +
+-+static struct ipt_match quota_match
+-+    = { {NULL, NULL}, "quota", &match, &checkentry, NULL, THIS_MODULE };
+++static void
+++destroy(void *matchinfo, unsigned int size)
+++{
+++
+++	struct ipt_quota_info *q = (struct ipt_quota_info *)
+++	    matchinfo;
+++
+++	if (q->flags & IPT_IPDSTQUOTA) {
+++		quota_hash_destroy(q);
+++	}
+++
+++}
+++
+++static struct ipt_match quota_match = {
+++	{NULL, NULL}, "quota", &match, &checkentry, &destroy, THIS_MODULE
+++};
+++
+++int
+++read_kmem(char *buf, char **start,
+++	  off_t offset, int count, int *eof, void *data)
+++{
+++
+++	*start = NULL;
+++	*eof = 1;
+++	return (sprintf(buf, "%d\n", kmem));
+++}
+++
+++int
+++read_vmem(char *buf, char **start,
+++	  off_t offset, int count, int *eof, void *data)
+++{
+++
+++	*start = NULL;
+++	*eof = 1;
+++	return (sprintf(buf, "%d\n", vmem));
+++}
+ +
+ +static int __init
+ +init(void)
+ +{
+-+        return ipt_register_match(&quota_match);
+++
+++	ipquota_cache =
+++	    kmem_cache_create("ipquota", sizeof (struct ipquota), 0,
+++			      SLAB_HWCACHE_ALIGN, NULL, NULL);
+++
+++	if (!ipquota_cache) {
+++		printk(KERN_ERR "Unable to create ipquota slab cache\n");
+++		return -1;
+++	}
+++
+++	/* Idea from tcp.c: use 1/16384 of memory.  On i386: 32MB
+++	 * machine has 256 buckets.  >= 1GB machines have 8192 buckets. */
+++	if (hashsize) {
+++		quota_hash_size = hashsize;
+++	} else {
+++		quota_hash_size = (((num_physpages << PAGE_SHIFT) / 16384)
+++				   / sizeof (struct list_head));
+++		if (num_physpages > (1024 * 1024 * 1024 / PAGE_SIZE))
+++			quota_hash_size = 8192;
+++		if (quota_hash_size < 16)
+++			quota_hash_size = 16;
+++	}
+++
+++	if (!ipquota_kmem_max)
+++		ipquota_kmem_max = 8 * quota_hash_size;
+++
+++	create_proc_read_entry("ipquota_kmem", 600, proc_net, read_kmem, NULL);
+++	create_proc_read_entry("ipquota_vmem", 600, proc_net, read_vmem, NULL);
+++
+++#ifdef CONFIG_SYSCTL
+++	ip_quota_sysctl_header = register_sysctl_table(ipquota_table_root, 0);
+++	if (ip_quota_sysctl_header == NULL) {
+++		kmem_cache_destroy(ipquota_cache);
+++		remove_proc_entry("ipquota_kmem", NULL);
+++		remove_proc_entry("ipquota_vmem", NULL);
+++		return -1;
+++	}
+++#endif
+++
+++	printk(KERN_INFO
+++	       "quota/ipquota initialized (ipquota_kmem_max %d, buckets %d)\n",
+++	       ipquota_kmem_max, quota_hash_size);
+++
+++	return ipt_register_match(&quota_match);
+++
+ +}
+ +
+ +static void __exit
+ +fini(void)
+ +{
+-+        ipt_unregister_match(&quota_match);
+++
+++	remove_proc_entry("ipquota_kmem", NULL);
+++	remove_proc_entry("ipquota_vmem", NULL);
+++
+++	kmem_cache_destroy(ipquota_cache);
+++
+++	ipt_unregister_match(&quota_match);
+++
+++#ifdef CONFIG_SYSCTL
+++	unregister_sysctl_table(ip_quota_sysctl_header);
+++#endif
+++
+ +}
+ +
+ +module_init(init);
+ +module_exit(fini);
+-+
+diff -urN patch-o-matic-20030107-old/base/quota.patch.configure.help patch-o-matic-20030107/base/quota.patch.configure.help
+--- patch-o-matic-20030107-old/base/quota.patch.configure.help	2001-12-03 19:22:56.000000000 -0300
++++ patch-o-matic-20030107/base/quota.patch.configure.help	2003-06-30 14:37:20.000000000 -0300
+@@ -1,7 +1,7 @@
+ CONFIG_IP_NF_MATCH_LIMIT
+ quota match support
+ CONFIG_IP_NF_MATCH_QUOTA
+-  This match implements network quotas.
++  This match implements network quotas and quotas per destination ip.
+ 
+   If you want to compile it as a module, say M here and read
+   Documentation/modules.txt.  If unsure, say `N'.
+diff -urN patch-o-matic-20030107-old/base/quota.patch.help patch-o-matic-20030107/base/quota.patch.help
+--- patch-o-matic-20030107-old/base/quota.patch.help	2001-12-03 19:22:56.000000000 -0300
++++ patch-o-matic-20030107/base/quota.patch.help	2003-06-30 14:37:20.000000000 -0300
+@@ -3,8 +3,13 @@
+ 
+ This option adds CONFIG_IP_NF_MATCH_QUOTA, which implements network
+ quotas by decrementing a byte counter with each packet.
++Also implements quota per destination ip address. 
++(Diego Woitasen <diegows@linux.org.ar>)
+ 
+ Supported options are:
+ --quota <bytes>
+   The quota in bytes.
++  
++--ipdstquota <bytes>
++  The quota per destination ip address in bytes
+ 
+diff -urN iptables-1.2.8-old/extensions/libipt_quota.c iptables-1.2.8/extensions/libipt_quota.c
+--- iptables-1.2.8-old/extensions/libipt_quota.c	2002-05-29 10:08:16.000000000 -0300
++++ iptables-1.2.8/extensions/libipt_quota.c	2003-06-30 14:53:28.000000000 -0300
+@@ -2,7 +2,11 @@
+  * Shared library add-on to iptables to add quota support
+  *
+  * Sam Johnston <samj@samj.net>
++ *
++ * 2003/04/02 Diego Woitasen (diegows@linux.org.ar) add quota per dst ip 
++ *
+  */
++
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <getopt.h>
+@@ -12,103 +16,157 @@
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ 
+ static struct option opts[] = {
+-        {"quota", 1, 0, '1'},
+-        {0}
++  {"quota", 1, 0, IPT_QUOTA},
++  {"ipdstquota", 1, 0, IPT_IPDSTQUOTA},
++  {"count-headers", 0, 0, IPT_QUOTA_FLAG_COUNT_FULL},
++  {0}
+ };
+ 
+ /* print usage */
+ static void
+-help(void)
++help (void)
+ {
+-        printf("quota options:\n"
+-               " --quota quota			quota (bytes)\n" "\n");
++  printf ("quota options:\n\n"
++	  " --quota [!] quota			quota (bytes)\n"
++	  " --ipdstquota [!] quota		quota per ip (bytes)\n"
++	  "\n"
++	  " --count-headers		count headers as well as data\n");
+ }
+ 
+ /* initialise match */
+ static void
+-init(struct ipt_entry_match *m, unsigned int *nfcache)
++init (struct ipt_entry_match *m, unsigned int *nfcache)
+ {
+-        /* no can cache */
+-        *nfcache |= NFC_UNKNOWN;
++
++  struct ipt_quota_info *info = (struct ipt_quota_info *) m->data;
++
++  info->flags = 0;
++  info->quota = 0;
++  info->ipquota_hash = NULL;
++
++  /* no can cache */
++  *nfcache |= NFC_UNKNOWN;
++
+ }
+ 
+ /* print matchinfo */
+ static void
+-print(const struct ipt_ip *ip, const struct ipt_entry_match *match, int numeric)
++print (const struct ipt_ip *ip, const struct ipt_entry_match *match,
++       int numeric)
+ {
+-        struct ipt_quota_info *q = (struct ipt_quota_info *) match->data;
+-        printf("quota: %llu bytes", (unsigned long long) q->quota);
++  struct ipt_quota_info *q = (struct ipt_quota_info *) match->data;
++
++  if (IPT_QUOTA & q->flags)
++    printf ("quota");
++  else if (IPT_IPDSTQUOTA & q->flags)
++    printf ("ipdstquota");
++  if (IPT_QUOTA_FLAG_NEGATE & q->flags)
++    printf (" ! ");
++  printf ("%llu bytes", (unsigned long long) q->quota);
++  if (IPT_QUOTA_FLAG_COUNT_FULL & q->flags)
++    printf (" (incl. headers)");
++
+ }
+ 
+ /* save matchinfo */
+ static void
+-save(const struct ipt_ip *ip, const struct ipt_entry_match *match)
++save (const struct ipt_ip *ip, const struct ipt_entry_match *match)
+ {
+-        struct ipt_quota_info *q = (struct ipt_quota_info *) match->data;
+-        printf("--quota %llu ", (unsigned long long) q->quota);
++  struct ipt_quota_info *q = (struct ipt_quota_info *) match->data;
++
++  if (IPT_QUOTA & q->flags)
++    printf ("--quota");
++  else if (IPT_IPDSTQUOTA & q->flags)
++    printf ("--ipdstquota");
++  if (IPT_QUOTA_FLAG_NEGATE & q->flags)
++    printf (" ! ");
++  printf (" %llu", (unsigned long long) q->quota);
++  if (IPT_QUOTA_FLAG_COUNT_FULL & q->flags)
++    printf (" --count-headers");
++
+ }
+ 
+ /* parse quota option */
+ static int
+-parse_quota(const char *s, u_int64_t * quota)
++parse_quota (const char *s, struct ipt_quota_info *quota, int c)
+ {
+-        *quota = strtoull(s, (char **) NULL, 10);
++
++  if (s && (*s == '-'))
++    exit_error (PARAMETER_PROBLEM, "quota invalid: '%s'\n", s);
++
++  quota->quota = strtoull (s, (char **) NULL, 10);
+ 
+ #ifdef DEBUG_IPT_QUOTA
+-        printf("Quota: %llu\n", *quota);
++  printf ("Quota: %llu\n", quota->quota);
+ #endif
+ 
+-        if (*quota == -1)
+-                exit_error(PARAMETER_PROBLEM, "quota invalid: '%s'\n", s);
+-        else
+-                return 1;
++  if (quota->quota == -1)
++    exit_error (PARAMETER_PROBLEM, "quota invalid: '%s'\n", s);
++  else
++    return 1;
++
+ }
+ 
+ /* parse all options, returning true if we found any for us */
+ static int
+-parse(int c, char **argv, int invert, unsigned int *flags,
+-      const struct ipt_entry *entry,
+-      unsigned int *nfcache, struct ipt_entry_match **match)
+-{
+-        struct ipt_quota_info *info = (struct ipt_quota_info *) (*match)->data;
+-
+-        switch (c) {
+-        case '1':
+-                if (check_inverse(optarg, &invert, NULL, 0))
+-                        exit_error(PARAMETER_PROBLEM, "quota: unexpected '!'");
+-                if (!parse_quota(optarg, &info->quota))
+-                        exit_error(PARAMETER_PROBLEM,
+-                                   "bad quota: '%s'", optarg);
+-                break;
+-
+-        default:
+-                return 0;
+-        }
+-        return 1;
++parse (int c, char **argv, int invert, unsigned int *flags,
++       const struct ipt_entry *entry,
++       unsigned int *nfcache, struct ipt_entry_match **match)
++{
++  struct ipt_quota_info *info = (struct ipt_quota_info *) (*match)->data;
++
++  switch (c)
++    {
++    case IPT_QUOTA_FLAG_COUNT_FULL:
++      if (check_inverse (optarg, &invert, NULL, 0))
++	exit_error (PARAMETER_PROBLEM, "count-headers: unexpected '!'");
++      info->flags |= IPT_QUOTA_FLAG_COUNT_FULL;
++      break;
++    case IPT_QUOTA:
++    case IPT_IPDSTQUOTA:
++      if ((info->flags & IPT_QUOTA) && (info->flags & IPT_IPDSTQUOTA))
++	exit_error (PARAMETER_PROBLEM,
++		    "syntax error: you can't use --quota and --ipdstquota");
++      check_inverse (optarg, &invert, &optind, 0);
++      if (invert)
++	info->flags |= IPT_QUOTA_FLAG_NEGATE;
++      parse_quota (argv[optind - 1], info, c);
++      info->flags |= (u_int16_t) c;
++      *flags = 1;
++      break;
++    default:
++      exit_error (PARAMETER_PROBLEM, "unknown option: try --help");
++      return 0;
++    }
++  return 1;
+ }
+ 
+ /* no final check */
+ static void
+-final_check(unsigned int flags)
++final_check (unsigned int flags)
+ {
++
++  if (flags != 1)
++    exit_error (PARAMETER_PROBLEM, "quota: missing arguments");
++
+ }
+ 
+ struct iptables_match quota = { NULL,
+-        "quota",
+-        IPTABLES_VERSION,
+-        IPT_ALIGN(sizeof (struct ipt_quota_info)),
+-        IPT_ALIGN(sizeof (struct ipt_quota_info)),
+-        &help,
+-        &init,
+-        &parse,
+-        &final_check,
+-        &print,
+-        &save,
+-        opts
++  "quota",
++  NETFILTER_VERSION,
++  IPT_ALIGN (sizeof (struct ipt_quota_info)),
++  IPT_ALIGN (sizeof (struct ipt_quota_info)),
++  &help,
++  &init,
++  &parse,
++  &final_check,
++  &print,
++  &save,
++  opts
+ };
+ 
+ void
+-_init(void)
++_init (void)
+ {
+-        register_match(&quota);
++  register_match (&quota);
+ }
