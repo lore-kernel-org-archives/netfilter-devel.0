@@ -1,16 +1,18 @@
-From: Samuel Jean <sj-netfilter@cookinglinux.org>
-Subject: Re: ipt_time fixes (resend, sorry)
-Date: Fri, 14 Jan 2005 17:47:22 -0500
-Message-ID: <41E84BFA.1030900@cookinglinux.org>
-References: <Pine.LNX.4.61.0501141503220.9908@bizon.gios.gov.pl>	<20050114143722.GA10088@ti64.telemetry-investments.com>	<Pine.LNX.4.61.0501141542230.3572@bizon.gios.gov.pl>
-	<57991.142.169.215.10.1105716756.squirrel@142.169.215.10>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: Re[2]: DoS on kernel 2.4.27+ -j LOG (fwd)
+Date: Sat, 15 Jan 2005 09:31:31 +0100
+Message-ID: <1105777891.3391.11.camel@localhost.localdomain>
+References: <Pine.LNX.4.61.0411270340420.15105@filer.marasystems.com>
+	<Pine.LNX.4.61.0501141722040.11870@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Crazy AMD K7 <snort2004@mail.ru>,
+	Netfilter Developers <netfilter-devel@lists.netfilter.org>,
+	ebtables-devel@lists.sourceforge.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: olenf@ans.pl
-In-Reply-To: <57991.142.169.215.10.1105716756.squirrel@142.169.215.10>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0501141722040.11870@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,23 +24,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I wrote:
-> I use an ugly hack of this kind:
-> 
->    /* We might not have a timestamp, get one */
->    if (skb->stamp.tv_sec == 0)
->       do_gettimeofday((struct timeval *)&skb->stamp);
-> 
->    now = timeval_to_jiffies(&skb->stamp);
+Op vr, 14-01-2005 te 17:31 +0100, schreef Henrik Nordstrom:
+> On Sat, 27 Nov 2004, Crazy AMD K7 wrote:
 > 
 > 
->    if (struct->curr != now)
->       struct->prev = xchg(&struct->curr, now);
+> > Code;  c022dcdc <ip_sabotage_out+2c/110>
+> > 00000000 <_EIP>:
+> > Code;  c022dcdc <ip_sabotage_out+2c/110>   <=====
+> >   0:   66 83 79 10 08            cmpw   $0x8,0x10(%ecx)   <=====
+> > Code;  c022dce1 <ip_sabotage_out+31/110>
+> >   5:   75 1d                     jne    24 <_EIP+0x24> c022dd00 
+> > <ip_sabotage_out+50/110>
 > 
+> 
+> I am now also experiencing this exact same problem, and it seems a handful
+> other people also experience this problem.
+> 
+> Have you found any additional clues to what may be causing this?
 
-Hey, just realized it really doesn't make sense in that module 
-(ipt_time). Sorry, I think I was blinded by my current module.
 
-Please discard my post.
+The fix is already available. I haven't updated the 2.4 patch yet
+because DaveM hasn't included the fix yet in 2.6. Hmm, I just checked
+Linus' tree and the fix is there. Expect a new patch later today...
 
-Samuel
+You can find the fix at
+http://ebtables.sourceforge.net/fixbrnf.diff
+
+cheers,
+Bart
