@@ -1,12 +1,18 @@
-From: "Hsiao Kevin" <kevinhsiao@msn.com>
-Subject: iptables 1.2.7a bug report for conntrack
-Date: Mon, 25 Nov 2002 16:53:31 +0800
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: /etc/sysconfig/iptables format
+Date: Sun, 24 Nov 2002 13:28:57 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <DAV60HW2Qxc0fHqr8k600025ce4@hotmail.com>
+Message-ID: <200211241328.57401.bdschuym@pandora.be>
+References: <Pine.LNX.4.44.0211200005530.5235-100000@azalea.cs.jmu.edu> <20021124104018.GC14672@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="----=_NextPart_001_0000_01C294A3.2F7DF840"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Patrick Schaaf <bof@bof.de>,
+	Arch Harris <netfilter02@jah.cs.jmu.edu>
+In-Reply-To: <20021124104018.GC14672@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,35 +23,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sunday 24 November 2002 11:40, Patrick Schaaf wrote:
+Hello,
 
-------=_NextPart_001_0000_01C294A3.2F7DF840
-Content-Type: text/plain; charset="big5"
-Content-Transfer-Encoding: quoted-printable
+I'd like your opinion about the way ebtables makes atomically writing a=20
+complete table to the kernel, possible.
 
-TO WHOM IT MAY CONCERN,
+ebtables uses another approach for getting table data into the kernel=20
+atomically.
+If you add the parameter --atomic <<FILE>> for each rule added on the com=
+mand=20
+line, ebtables will use the FILE instead of the kernel data to operate on=
+=2E=20
+The data in the FILE is a binary format, which can be read with this comm=
+and:
+ebtables --atomic <<FILE>> -L. The binary format is the exact binary data=
+ that=20
+have to be given to the kernel to put the table data in the kernel.
+Once the rules are set up in FILE, ebtables --atomic-commit <<FILE>> will=
+ give=20
+the table inside FILE to the kernel. So, only the last command actually=20
+changes the kernel data.
+Example:
+# inits the file filter_table with the default filter table
+# (no rules, policies on ACCEPT)
+ebtables -t filter --atomic-init  filter_table
+# adds a silly rule to the forward chain in filter_table
+# this command doesn't talk to the kernel
+ebtables -t filter --atomic filter_table -A FORWARD
+# overwrites the current kernel filter table data with the filter table d=
+ata
+# inside the file filter_table
+ebtables --atomic-commit filter_table
 
-I found some error in =20
+I was wondering if this is a good scheme, from a user's point of view...
+One could say the file being binary is a problem. But the init script for=
+ the=20
+ebtables tables can be written using the --atomic parameters, and that fo=
+rmat=20
+is well-defined (just the command line format)... Directly using the bina=
+ry=20
+file (without constructing it in the scripts) is just an option, it's not=
+=20
+necessary.
 
-iptables-1.2.7a/extensions/libipt_conntrack.c
-Line#437: printf("%sctreplsrc ", optpfx);
-Line#447: printf("%sctrepldst ", optpfx);
-
-Sincerely,
-
-Kevin=A6b=BA=F4=B8=F4=A4W=A8=CF=A5=CE=A7=F3=A6h=A5\=AF=E0=A1C=A4U=B8=FC=A7=
-K=B6O MSN Explorer: http://explorer.msn.com.tw/intl.asp
-
-------=_NextPart_001_0000_01C294A3.2F7DF840
-Content-Type: text/html; charset="big5"
-Content-Transfer-Encoding: quoted-printable
-
-<HTML><BODY STYLE=3D"font:10pt verdana; border:none;"><DIV>TO WHOM IT MAY=
- CONCERN,</DIV> <DIV>&nbsp;</DIV> <DIV>I found some error in <BR><BR>ipta=
-bles-1.2.7a/extensions/libipt_conntrack.c</DIV> <DIV>Line#437: printf("%s=
-ctreplsrc ", optpfx);</DIV> <DIV>Line#447: printf("%sctrepldst ", optpfx)=
-;</DIV> <DIV>&nbsp;</DIV> <DIV>Sincerely,</DIV> <DIV>&nbsp;</DIV> <DIV>Ke=
-vin</DIV></BODY></HTML><br clear=3Dall><hr>=A6b=BA=F4=B8=F4=A4W=A8=CF=A5=CE=
-=A7=F3=A6h=A5\=AF=E0=A1C=A4U=B8=FC=A7K=B6O <a href=3D'http://explorer.msn=
-.com.tw/intl.asp'>MSN Explorer</a><br></p>
-
-------=_NextPart_001_0000_01C294A3.2F7DF840--
+cheers,
+Bart
