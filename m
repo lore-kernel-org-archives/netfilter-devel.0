@@ -1,13 +1,14 @@
-From: Gong Su <gongsu@lightforge.cs.columbia.edu>
-Subject: access skb from conntrack helper?
-Date: Thu, 27 Feb 2003 18:58:46 -0500
+From: bobo <boboaq@163.com>
+Subject: Are  there any good iptables tools using  PERL script samples?
+Date: Fri, 28 Feb 2003 11:34:17 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200302272358.h1RNwlq23691@lightforge.cs.columbia.edu>
-Reply-To: "Gong Su" <gongsu@cs.columbia.edu>
+Message-ID: <20030228032831.E91161C9C1D38@sm204.163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="GB2312"
+Content-Transfer-Encoding: 7bit
+Cc: bobowd@sohu.com <bobowd@sohu.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,11 +19,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I'd like to be able to track, for each conntrack record satisfying certain
-condition, some higher layer info such as the socket from which the packets
-are being sent, etc. Unfortunately, only the packet header, not the skb, is
-passed to conntrack helpers. Is there any way for a conntrack helper to
-get access to the skb when it's called? Thank you.
+Hello all:
 
--- 
-/Gong
+       Now I am studying IPTABELS.
+
+       I would like to use perl script to manipulate IPTABLES rules.
+       
+       Are  there any good iptables tools using  PERL script samples?
+
+       Thanks
+       
