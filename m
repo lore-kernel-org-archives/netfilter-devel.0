@@ -1,17 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipt_helper-any error
-Date: Mon, 22 Mar 2004 12:53:19 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: netflow/sflow & Linux
+Date: Mon, 22 Mar 2004 14:31:00 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <405ED3AF.8030304@trash.net>
-References: <NEBBJFIAIKIHKGJDONCDAEMMCCAA.smith-peter@comcast.net> <20040317135825.GA21899@sunbeam.de.gnumonks.org> <Pine.LNX.4.58L.0403221249000.1288@alpha.zarz.agh.edu.pl>
+Message-ID: <Pine.LNX.4.44.0403221428520.19177-100000@filer.marasystems.com>
+References: <20040322110710.GC8314@oasis.frogfoot.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter developmnet mailing list <netfilter-devel@lists.netfilter.org>,
-  laforge@gnumonks.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Wojciech 'Sas' Cieciwa <cieciwa@alpha.zarz.agh.edu.pl>
-In-Reply-To: <Pine.LNX.4.58L.0403221249000.1288@alpha.zarz.agh.edu.pl>
+To: Abraham van der Merwe <abz@frogfoot.net>
+In-Reply-To: <20040322110710.GC8314@oasis.frogfoot.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,18 +20,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Wojciech 'Sas' Cieciwa wrote:
-> in ipt_helper-any modules is IMHO error
-> In line 74 id :
-> 	if (info->data[0] == '\0')
-> 
-> but data isn't declared, here is nedded this "data" not "name" ??
+On Mon, 22 Mar 2004, Abraham van der Merwe wrote:
 
-Thanks Wojciech, I'm going to fix this.
+> Has anyone done any work to enable Linux to do netflow (capturing not
+> processing)?
+
+See www.ntop.org
 
 Regards
-Patrick
-
-
-> 
-> 					Sas.
+Henrik
