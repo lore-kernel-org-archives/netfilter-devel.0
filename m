@@ -1,16 +1,17 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+From: Phil Oester <kernel@linuxace.com>
 Subject: Re: [PATCH] new 'tcpack' match
-Date: Mon, 04 Apr 2005 02:36:24 +0300
-Message-ID: <42507DF8.9030102@outerspace.dyndns.org>
+Date: Sun, 3 Apr 2005 16:51:41 -0700
+Message-ID: <20050403235141.GA28850@linuxace.com>
 References: <42464598.9040707@outerspace.dyndns.org>
 	<425032D5.2010302@trash.net>
+	<42507DF8.9030102@outerspace.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <425032D5.2010302@trash.net>
+To: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Content-Disposition: inline
+In-Reply-To: <42507DF8.9030102@outerspace.dyndns.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,45 +23,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Mon, Apr 04, 2005 at 02:36:24AM +0300, Jonas Berlin wrote:
+> | bit more generic. Perhaps a data-len match option.
+> 
+> I was thinking of this too but couldn't think of much use for more specific
+> length-matching, so I thought I'd save a few cycles.. but ok if you think
+> it's the way to go, I go. :)
+> 
+> Any parameter name suggestions? "[!] --has-payload" ?
 
-Patrick McHardy wrote:
+How bout just a '--datalen [!] X', where X can be any number, including 0?
 
-|> Matches TCP packets that has no payload, i.e. contains only ACKs.
-|
-| I can see that it would be useful, given all the half-working ACK
-| matching rules for shaping floating around, but we already a tcp
-| match, so it should be done in there, and, if possible, kept a little
-
-I was thinking of this, but my mind tricked me into believing that it was a
-too bold thing to do..
-
-Speaking of tcp match.. would you happen to know when the "h" union of
-sk_buff is instantiated?
-~   a) first time someone does -p something
-~   b) somewhere before the filter table
-~   c) in a seemingly unpredictable fashion
-~   d) ?
-
-I kindof recall sometimes using it and oopsing the kernel because it was not
-yet initialized.. The patch I posted currently starts from nh and calculates
-the tcp header start itself.. :)
-
-| bit more generic. Perhaps a data-len match option.
-
-I was thinking of this too but couldn't think of much use for more specific
-length-matching, so I thought I'd save a few cycles.. but ok if you think
-it's the way to go, I go. :)
-
-Any parameter name suggestions? "[!] --has-payload" ?
-
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCUH32xyF48ZTvn+4RAk4DAJ9cnX1IXU6Qn0HuWoBoZvZPakpBAACeK/lY
-PsmEkZ6Bk0G9cpixt0FaJic=
-=j2oo
------END PGP SIGNATURE-----
+Phil
