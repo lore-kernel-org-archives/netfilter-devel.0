@@ -1,16 +1,12 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re[2]: REJECT target
-Date: Thu, 26 Jun 2003 12:31:29 +0200 (CEST)
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: [PATCH] English FAQ update
+Date: Thu, 26 Jun 2003 13:25:58 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0306261228540.10573-100000@blackhole.kfki.hu>
-References: <Pine.LNX.4.51.0306261214300.14851@dns.toxicfilms.tv>
+Message-ID: <Pine.LNX.4.51.0306261322210.27167@dns.toxicfilms.tv>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: DarKRaveR <DarKRaveR@habitat-b.de>,
-	<netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-In-Reply-To: <Pine.LNX.4.51.0306261214300.14851@dns.toxicfilms.tv>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,18 +17,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 26 Jun 2003, Maciej Soltysiak wrote:
+Hi,
 
-> > [Check out the mailing list archive and the documentation if you do not
-> > know why. We discussed it countless times.]
-> Shouldn't it be in the FAQ then ?
+this patch adds the 'REJECT in PREROUTING' issue item to the FAQ.
+And also it fixes a tiny syntax error with sgml tags.
 
-Yes, definitely. The docs should be refreshed anyway.
+I will send an update to the polish FAQ soon as soon as i resolve some
+translation issues. The polish update besides the REJECT issue will
+introduce typo fixes and more proper translations.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards,
+Maciej
+
+
+diff -u netfilter.orig/documentation/FAQ/netfilter-faq.sgml netfilter/documentation/FAQ/netfilter-faq.sgml
+--- netfilter.orig/documentation/FAQ/netfilter-faq.sgml	2003-04-08 21:49:18.000000000 +0200
++++ netfilter/documentation/FAQ/netfilter-faq.sgml	2003-06-26 12:58:57.000000000 +0200
+@@ -274,7 +274,7 @@
+ <tscreen><verb>
+ ip_conntrack: max number of expected connections N of M reached for aaa.aaa.aaa.aaa -> bbb.bbb.bbb.bbb
+ </verb></tscreen>
+-</sect1>
++
+ <p>
+ This is normally nothing to worry about, especially if <tt>N</tt> and
+ <tt>M</tt> are <tt>1</tt>, and the message is followed by <tt>, reusing</tt>.
+@@ -506,6 +506,15 @@
+ as well as header+payload of previous packets within this connection.
+ </sect1>
+
++<sect1>Why can't i use the REJECT target in PREROUTING chains?
++<p>
++The REJECT target is for filtering. The filter table has got the
++INPUT/OUPUT/FORWARD chains, therfore the REJECT target can only be used in
++those chains (and sub-chains, naturally).
++
++Netfilter users do not filter packets in the nat or mangle tables.
++</sect1>
++
+ </sect>
+
+ <sect>Questions about netfilter development
