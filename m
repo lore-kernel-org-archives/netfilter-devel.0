@@ -1,12 +1,15 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: [PATCH] patch-o-matic/base/HL.patch.ipv6.makefile typo
-Date: Sat, 5 Apr 2003 16:53:24 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: tcp-window-tracking vs. pending/24_conntrack-nosysctl.patch
+Date: Sat, 5 Apr 2003 16:51:27 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0304051651410.2780@dns.toxicfilms.tv>
+Message-ID: <Pine.LNX.4.33.0304051645460.21072-100000@blackhole.kfki.hu>
+References: <1049545687.25167.177.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-23717851-2141118742-1049554404=:2780"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.samba.org
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <1049545687.25167.177.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,46 +20,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+On 5 Apr 2003, Martin Josefsson wrote:
 
----23717851-2141118742-1049554404=:2780
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+> > > - removed copying the source trees at patch testing (faster processing)
+> >
+> > Gives a quite nice speedup :)
+>
+> And makes dependencies fail :(
+>
+> If patch A requires that patch B is applied before it can apply we are
+> screwed :) Nothing is applied during testing so even if patch B tests
+> fine, patch A won't apply since it depends on B which wasn't applied.
 
-Hi,
+I see what you mean. Strange, the patches I used at the testing did depend
+on each other.
 
-there's a typo that prevents the module from actually being built after
-we patch the kernel.
+Then if a patch depends on other patches an any of them isn't applied yet,
+then stop and ask to apply that missing patch immediately. Thus we can
+keep consistency without the need of copying the source trees.
 
-Regards,
-Maciej
+What do you think?
 
-diff -Nru netfilter.orig/patch-o-matic/base/HL.patch.ipv6.makefile netfilter/patch-o-matic/base/HL.patch.ipv6.makefile
---- netfilter.orig/patch-o-matic/base/HL.patch.ipv6.makefile	2003-04-05 16:26:20.000000000 +0200
-+++ netfilter/patch-o-matic/base/HL.patch.ipv6.makefile	2003-04-05 16:27:13.000000000 +0200
-@@ -1,2 +1,2 @@
- obj-$(CONFIG_IP6_NF_TARGET_LOG) += ip6t_LOG.o
--obj-$(CONFIG_IP_NF_TARGET_HL) += ipt_HL.o
-+obj-$(CONFIG_IP6_NF_TARGET_HL) += ip6t_HL.o
-
----23717851-2141118742-1049554404=:2780
-Content-Type: TEXT/plain; name="HL.patch.ipv6.makefile.diff"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.51.0304051653240.2780@dns.toxicfilms.tv>
-Content-Description: 
-Content-Disposition: attachment; filename="HL.patch.ipv6.makefile.diff"
-
-ZGlmZiAtTnJ1IG5ldGZpbHRlci5vcmlnL3BhdGNoLW8tbWF0aWMvYmFzZS9I
-TC5wYXRjaC5pcHY2Lm1ha2VmaWxlIG5ldGZpbHRlci9wYXRjaC1vLW1hdGlj
-L2Jhc2UvSEwucGF0Y2guaXB2Ni5tYWtlZmlsZQ0KLS0tIG5ldGZpbHRlci5v
-cmlnL3BhdGNoLW8tbWF0aWMvYmFzZS9ITC5wYXRjaC5pcHY2Lm1ha2VmaWxl
-CTIwMDMtMDQtMDUgMTY6MjY6MjAuMDAwMDAwMDAwICswMjAwDQorKysgbmV0
-ZmlsdGVyL3BhdGNoLW8tbWF0aWMvYmFzZS9ITC5wYXRjaC5pcHY2Lm1ha2Vm
-aWxlCTIwMDMtMDQtMDUgMTY6Mjc6MTMuMDAwMDAwMDAwICswMjAwDQpAQCAt
-MSwyICsxLDIgQEANCiBvYmotJChDT05GSUdfSVA2X05GX1RBUkdFVF9MT0cp
-ICs9IGlwNnRfTE9HLm8NCi1vYmotJChDT05GSUdfSVBfTkZfVEFSR0VUX0hM
-KSArPSBpcHRfSEwubw0KK29iai0kKENPTkZJR19JUDZfTkZfVEFSR0VUX0hM
-KSArPSBpcDZ0X0hMLm8NCg==
-
----23717851-2141118742-1049554404=:2780--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
