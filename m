@@ -1,15 +1,15 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] list register ip6tables targets/matches in /proc/net
-Date: Fri, 11 Apr 2003 11:48:29 +0200 (CEST)
+Subject: Re: [PATCH] remove unnessesary 0-initilization of data in bss segment
+Date: Fri, 11 Apr 2003 11:55:40 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0304111147480.31394-100000@blackhole.kfki.hu>
-References: <3E92F1D2.4070902@trash.net>
+Message-ID: <Pine.LNX.4.33.0304111152490.31394-100000@blackhole.kfki.hu>
+References: <3E92F428.4050707@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <3E92F1D2.4070902@trash.net>
+In-Reply-To: <3E92F428.4050707@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,12 +24,11 @@ Hi Patrick,
 
 On Tue, 8 Apr 2003, Patrick McHardy wrote:
 
-> This patch lists registered ip6tables matches/targets in /proc/net,
-> the equivalent patch to iptables is already included in pom. I sent
-> this patch multiple times before, hopefully this time it won't be
-> overseen.
+> This patch removes a couple of memset(.., 0, ..) of data in the bss
+> segment.
 
-Sorry for the wasted efforts: patch is applied in cvs.
+Thank you the patch, I'm going to integrate it with C99 initialization
+fixes.
 
 Best regards,
 Jozsef
