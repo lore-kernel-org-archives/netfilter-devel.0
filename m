@@ -1,56 +1,56 @@
-From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?= <yoshfuji@linux-ipv6.org>
-Subject: Re: [PATCH|RFC] IPv6 netfilter: a module for complete proxy ND
- support
-Date: Fri, 16 Jan 2004 00:54:43 +0900 (JST)
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040116.005443.92504522.yoshfuji@linux-ipv6.org>
-References: <Pine.LNX.4.58.0401151705500.29722@rhea.tcs.hut.fi>
-	<20040116.001317.73950271.yoshfuji@linux-ipv6.org>
-	<Pine.LNX.4.58.0401151719160.29722@rhea.tcs.hut.fi>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: How/where does the kernel map packets to an application ...
+Date: Thu, 15 Jan 2004 20:34:18 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <1074195257.21470.24.camel@tux.rsn.bth.se>
+References: <Pine.LNX.4.44.0401150801330.11137-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org, davem@redhat.com, netdev@oss.sgi.com,
-        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: vnuorval@tcs.hut.fi
-In-Reply-To: <Pine.LNX.4.58.0401151719160.29722@rhea.tcs.hut.fi>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-tc15ZLXuUwdw3BUuMgYq"
+Cc: Andrej Ricnik <andrej@paradise.net.nz>,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0401150801330.11137-100000@filer.marasystems.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-In article <Pine.LNX.4.58.0401151719160.29722@rhea.tcs.hut.fi> (at Thu, 1=
-5 Jan 2004 17:34:50 +0200 (EET)), Ville Nuorvala <vnuorval@tcs.hut.fi> sa=
-ys:
 
-> On Fri, 16 Jan 2004, YOSHIFUJI Hideaki / [iso-2022-jp] =B5=C8=C6=A3=B1=D1=
-=CC=C0 wrote:
+--=-tc15ZLXuUwdw3BUuMgYq
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, 2004-01-15 at 08:10, Henrik Nordstrom wrote:
+
+> > At which point does the kernel determine which application
+> > a incoming packet is meant for?
 >=20
-> > net/ipv4/arp.c:
-> > | *              Alan Cox        :       Don't proxy across hardware =
-types!
-> >
-> > This implies that proxy works across devices and
-> > it is NOT what the "proxy" does in rfc2461.
->=20
-> Yes, as Pekka said, Thaler's proxy is like proxy ARP.
+> Ah, incoming packets. Then the situation is a little harder. The owner=20
+> match only works on outgoing packets.
 
-So, all usage of pneigh_XXX() is not for rfc2461 but for proxy arp.
-1) We need to consider how to implement rfc2461-proxy.
-2) We need to revisit all usages in net/ipv6.
-
-> In the current implementation the proxying router captures the multicas=
-t
-> queries since it has joined the solicited-node multicast group, but it
-> doesn't capture the unicast queries.
-
-It is VERY strange to handle multicast / unicast in different way.
-I really hate such a hetero (or an inconsistent) implementation.
-
-
-> This is what I want to fix.
-
-I understand the issue, but the fix is unappropriate.
+extra/owner-socketlookup.patch from patch-o-matic adds support for
+looking it up for incoming packets.
+It's basicly a layering violation but it works...
 
 --=20
-Hideaki YOSHIFUJI @ USAGI Project <yoshfuji@linux-ipv6.org>
-GPG FP: 9022 65EB 1ECF 3AD1 0BDF  80D8 4807 F894 E062 0EEA
+/Martin
+
+--=-tc15ZLXuUwdw3BUuMgYq
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQBABus5Wm2vlfa207ERAudTAJ9x3IhGImbxVTwTqs6wYuK+ov3gUACdEIaN
+3mDIBWYTOUHqBLnjnq6/89U=
+=siUN
+-----END PGP SIGNATURE-----
+
+--=-tc15ZLXuUwdw3BUuMgYq--
