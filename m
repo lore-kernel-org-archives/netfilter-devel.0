@@ -1,12 +1,12 @@
 From: KOVACS Krisztian <hidden@balabit.hu>
 Subject: Re: [RFC] ct_sync 0.15 (corrected)
-Date: Thu, 19 Aug 2004 14:13:51 +0200
+Date: Thu, 19 Aug 2004 14:13:52 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1092917551.2425.28.camel@nienna.balabit>
+Message-ID: <1092917631.2425.29.camel@nienna.balabit>
 References: <1092407190.2402.120.camel@nienna.balabit>
 	 <20040819110646.GJ3921@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=ISO-8859-2
 Content-Transfer-Encoding: quoted-printable
 Cc: Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
 	netfilter-devel <netfilter-devel@lists.netfilter.org>
