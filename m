@@ -1,15 +1,13 @@
-From: don-cs3@isis.cs3-inc.com (Don Cohen)
-Subject: hashing answers
-Date: Sun, 7 Jul 2002 01:26:40 -0700
+From: Patrick Schaaf <bof@bof.de>
+Subject: init_conntrack() low hanging fruit
+Date: Sun, 7 Jul 2002 12:37:54 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <15655.64320.272481.341687@isis.cs3-inc.com>
-References: <200207022303.g62N3No03454@baskerville.CS.Arizona.EDU>
+Message-ID: <20020707123754.K13116@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="NzB8fVQJ5HfG6fxh"
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: netfilter-devel@lists.samba.org
-In-Reply-To: <200207022303.g62N3No03454@baskerville.CS.Arizona.EDU>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,57 +19,109 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-I see why table sizes that are powers of two don't work well
-in the ABCD(EF) algorithm and how to fix it.  Similarly why
-multiples of 2 in A-F cause trouble.
+--NzB8fVQJ5HfG6fxh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Suppose your modulus is 2^i.
+HiHo,
 
-[Sorry, I mix c notation with normal math:
- ^ means expt, << means shift]
+while wandering idly within init_conntrack() [ip_conntrack_core.c], I see
+some low-hanging fruit we could easily reap. Find appended a totally untested
+patch, for your review. Here's the issues:
 
-In the term A*srcip only the bottom i bits of srcip and A matter.
-Consider A = Ahigh<<i + Alow and
-         srcip = shigh<<i + slow
-with slow and Alow < 2^i
+- upon entry of init_conntrack(), the hash function computes the hash bucket
+  corresponding to the tuple, unconditionally. There are two opportunities:
+  first, the caller already just computed that hash function (which is
+  hopefully constant on the same tuple). Pass the precomputed value and
+  reuse it. Also, observe that the only _use_ of the computed hash value,
+  is in the last chance of the early_drop logic, which has a miniscule
+  probability of running at all. Thus, the interface change appears
+  undesirable, so move the recomputation right to where it is needed.
+- Having thought about the rareness of the early_out stuff, I move it out
+  of line, to improve readability. Beat me up if you must, but goto's pretty.
+- later in init_conntrack(), the hash function computes repl_hash, the hash
+  value for the reply connection. I don't see any piece of code _using_
+  that computed value. I remove the computation.
+- as noted earlier, drop_next needs some more sanity. I think it is now ok.
+  The rearranged code never writes anything >= the bucket count into
+  memory, so no processor can read a bad index from there. They'll hover
+  a bit at bucket nr. 0, but that's about as likely as the original race.
 
-Then A*srcip =
- Alow * slow + 
- 1<<i * (Ahigh * slow + Alow * shigh) +
- 1<<(i+i) * Ahigh * shigh
-which, mod 2^i is Alow*slow mod 2^i
+Note that I didn't even compile the patch. Incorporate any way you want.
 
-If you want to use 2^i as a modulus then in order to make every part
-of the input count you have to process it in chunks no larger than
-i bits.  So for my standard test table size of 8K (2^13) it's not even
-good enough to split ip addresses in half and use ports as-is - all
-these 16 bit quantities are ignoring the top 3 bits.  
+best regards
+  Patrick
 
-Similarly, if we use 32 bit arithmetic in the ABCD algorithm, even if
-the modulus is odd, the high order bit of srcip can only affect
-srcip*A in the high order bit, and even then only if A is odd!  In
-fact, if A has i multiples of 2 then the top i bits of srcip have no
-effect on the intermediate 32 bit result, and hence no effect on the
-final answer.
 
-On the other hand, if you want a table size or 1M (2^20) then it's not
-good enough to take the sum of a bunch of products of pairs of 8-bit
-quantities - the answer would only be on the order of n*2^16 where n
-is the number of terms.  This problem can be solved by multiplying 
-the 8 bit pieces of key by secret random numbers that are much larger
-than 8 bits so as to spread the result across the larger modulus.
+--NzB8fVQJ5HfG6fxh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="bof-conntrack.1.patch"
 
-This all suggests the safe thing would be to take very small pieces of
-the key (in the ultimate case, single bits) and multiply each by its
-own constant which is large enough to supply bits to the whole
-modulus.  Of course, the smaller the pieces and the bigger the
-modulus, the more multiplies you have to do.  (I did get the
-theoretically expected results for my 8K table by processing the
-data one byte at a time.)
+--- linux-2.4.19-post7/net/ipv4/netfilter/ip_conntrack_core.c	Fri Apr 19 21:50:25 2002
++++ bof-conntrack/net/ipv4/netfilter/ip_conntrack_core.c	Sun Jul  7 12:19:29 2002
+@@ -485,35 +485,20 @@
+ {
+ 	struct ip_conntrack *conntrack;
+ 	struct ip_conntrack_tuple repl_tuple;
+-	size_t hash, repl_hash;
+ 	struct ip_conntrack_expect *expected;
+ 	int i;
+-	static unsigned int drop_next = 0;
+-
+-	hash = hash_conntrack(tuple);
+ 
+ 	if (ip_conntrack_max &&
+ 	    atomic_read(&ip_conntrack_count) >= ip_conntrack_max) {
+-		/* Try dropping from random chain, or else from the
+-                   chain about to put into (in case they're trying to
+-                   bomb one hash chain). */
+-		if (drop_next >= ip_conntrack_htable_size)
+-			drop_next = 0;
+-		if (!early_drop(&ip_conntrack_hash[drop_next++])
+-		    && !early_drop(&ip_conntrack_hash[hash])) {
+-			if (net_ratelimit())
+-				printk(KERN_WARNING
+-				       "ip_conntrack: table full, dropping"
+-				       " packet.\n");
+-			return ERR_PTR(-ENOMEM);
+-		}
++		goto under_pressure;
+ 	}
+ 
++let_it_pass:
++
+ 	if (!invert_tuple(&repl_tuple, tuple, protocol)) {
+ 		DEBUGP("Can't invert tuple.\n");
+ 		return NULL;
+ 	}
+-	repl_hash = hash_conntrack(&repl_tuple);
+ 
+ 	conntrack = kmem_cache_alloc(ip_conntrack_cachep, GFP_ATOMIC);
+ 	if (!conntrack) {
+@@ -572,6 +557,24 @@
+ 	if (expected && expected->expectfn)
+ 		expected->expectfn(conntrack);
+ 	return &conntrack->tuplehash[IP_CT_DIR_ORIGINAL];
++
++under_pressure: {
++		/* Try dropping from random chain, or else from the
++		   chain about to put into (in case they're trying to
++		   bomb one hash chain). */
++		static size_t drop_next = 0;
++		size_t victim = drop_next;
++		size_t next = victim + 1;
++		drop_next = (next < ip_conntrack_htable_size) ? next : 0;
++		if (	early_drop(&ip_conntrack_hash[victim])
++		     || early_drop(&ip_conntrack_hash[hash_conntrack(tuple)]))
++			goto let_it_pass;
++		if (net_ratelimit())
++			printk(KERN_WARNING
++		       "ip_conntrack: table full, dropping"
++		       " packet.\n");
++		return ERR_PTR(-ENOMEM);
++	}
+ }
+ 
+ /* On success, returns conntrack ptr, sets skb->nfct and ctinfo */
 
-At the moment I think it's a reasonable compromise to require the
-modulus to be odd and break the key into 16 bit pieces.  If we
-multiply 16 bit pieces of key by 16 bit random numbers, then each
-bit of key affects 16 bits of intermediate result, and the fact that 
-the modulus is odd means that each of these bits affects the
-remainder. 
+--NzB8fVQJ5HfG6fxh--
