@@ -1,18 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [netfilter-core] Re: [ANNOUNCE] Release of iptables-1.2.9
-Date: Fri, 7 Nov 2003 19:44:05 +0100
+From: Kishore Dharmavaram <kishored@servgate.com>
+Subject: Memory leaks in ip_conntrack?
+Date: Fri, 7 Nov 2003 14:21:13 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031107184405.GX5741@sunbeam.de.gnumonks.org>
-References: <20031107135520.GM5741@sunbeam.de.gnumonks.org> <Pine.LNX.4.44.0311071901580.12681-100000@filer.marasystems.com>
+Message-ID: <EFBADA8C200C2B418DA39734FD15475B0B2041@skat.sky.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="309evMHi/619oHyA"
-Cc: Netfilter Core Team <coreteam@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0311071901580.12681-100000@filer.marasystems.com>
+To: "'netfilter@lists.netfilter.org'" <netfilter@lists.netfilter.org>,
+	"'netfilter-devel@lists.netfilter.org'"
+	 <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,54 +20,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi All,
 
---309evMHi/619oHyA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I have a Linux box running 2.4.20 kernel with netfilter(ip_conntrack)
+compiled-in. When I do stress test on the box I find from /proc/slabinfo
+that ip_conntracks have reached maximum value 131072 and box stopped
+processing to any traffic, but strange thing is there are only 21 entries in
+/proc/net/ip_conntrack. 
 
-On Fri, Nov 07, 2003 at 07:09:38PM +0100, Henrik Nordstrom wrote:
+My question is why are there only 21 entries in "/proc/net/ip_conntrack"
+when /proc/slabinfo shows 131072 entries, does this indicate memory leaks in
+netfilter code? 
 
-> It is always a good idea to use "cvs export" when making releases. This=
-=20
-> makes sure there is no crap left over in the directory, and also=20
-> automatically gets rid of those CVS directories..
+Please provide me some insight, hints into the problem, is there any way I
+can find out rest of ip_conntracks. 
 
-yes, that's what I used to do all the time.  unfortunately something in
-our cvs repositorry seems to be broken, and all I get are failed
-assertions of the cvs binary :(  Something like "assertion failed: "
-followed by about 4kbytes of source code mangled into a single line).
+Note: There are application proxies, squid(Http), POP, SMTP, FTP, running on
+the Linux box. 
 
-> The procedure we use for Squid is something like this once the release is=
-=20
-> decided by the core team:
+Thanks,
+Kishore
 
-yup, that's exactly what I used to do (and still do for other projects
-like ulogd).
-
-> Regards
-> Henrik
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---309evMHi/619oHyA
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/q+f1XaXGVTD0i/8RAg+aAJ0Xpe08mIutnwMZ3j8vVoeWuA9pDQCghVSh
-mIYYRjrWJaYis4wJFwOU714=
-=Kiqy
------END PGP SIGNATURE-----
-
---309evMHi/619oHyA--
+[root@Firewall root]# uname -a
+Linux Firewall 2.4.20 #9 Thu Oct 30 00:49:56 PST 2003 i686 i686 i386
+GNU/Linux
+[root@Firewall root]# cat /proc/slabinfo | fgrep ip_conn
+ip_conntrack      131072 131080    384 13108 13108    1
+[root@Firewall root]#
+[root@Firewall root]# cat /proc/net/ip_conntrack | wc -l
+     21
+[root@Firewall root]#
