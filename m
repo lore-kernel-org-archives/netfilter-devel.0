@@ -1,17 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: the performance of big packets on Giga system
-Date: Mon, 22 Dec 2003 11:54:25 +0100
+From: Herve Eychenne <rv@wallfire.org>
+Subject: Re: iptables: memory allocation problem
+Date: Tue, 23 Dec 2003 00:58:55 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031222105425.GI5058@obroa-skai.de.gnumonks.org>
-References: <200312221309281.SM00864@zhengcb>
+Message-ID: <20031222235855.GE7269@eychenne.org>
+References: <20031216182959.GA1216@eychenne.org> <20031220121218.GA1370@eychenne.org> <1071923429.24067.76.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ik0NlRzMGhMnxrMX"
-Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: zhengchuanbo <zhengcb@netpower.com.cn>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
 Content-Disposition: inline
-In-Reply-To: <200312221309281.SM00864@zhengcb>
+In-Reply-To: <1071923429.24067.76.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,55 +22,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, Dec 20, 2003 at 01:30:29PM +0100, Martin Josefsson wrote:
 
---ik0NlRzMGhMnxrMX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On Sat, 2003-12-20 at 13:12, Herve Eychenne wrote:
 
-On Mon, Dec 22, 2003 at 01:21:06PM +0800, zhengchuanbo wrote:
->=20
-> I'm curious on the performance of big packets forwarding on Giga system.
-> Our system could forward 580kpps for 64byte packets. As the line rate of=
-=20
-> 1518byte packets is similar to 80kpps,I supposed we could get line rate
-> forwarding for 1518byte packets.
+> > Well, anyway, as conntrack listing locks conntrack state, don't you
+> > think we should definitely provide a way to read ip_conntrack_count
+> > through /proc/sys/net/ipv4/netfilter/ip_conntrack_count ? (aka
+> > "Yet Another Oneliner Patch For Patch-O-Matic")
 
-first, this does seem to be a question about packet forwarding
-(routing), not about packet filtering.  Thus you are on the wrong
-mailinglist, please ask the netdev list instead.
+> Just a quick response before I vanish for some christmas vacation.
 
-second, you don't mention a single detail about your setup.  No
-indication of kernel version, which hardware (cpu, memory, what kind of
-pci bus, which ethernet chips), which drivers, etc.
+> Look at extra/ctstat.patch*
+> Apply it and download the util, it will give you what you want and more=
+.
 
-I can assure you that there is quite a number of people doing 400kpps on
-less-than-modern hardware.
+Ok, let me put it differently... :-)
+This patch is interesting, and it adds so little overhead that I don't
+understand why it isn't already in submitted.
 
-> regards,
-> Jack Zheng
-> zhengcb@netpower.com.cn
+If, for any reason, the coreteam doesn't want to include it as-is,
+then we could consider adding ip_conntrack_count to /proc, and add a
+kernel config option (defaulting to no) for conntrack stats.
+What do you think?
+
+ Herve
 
 --=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---ik0NlRzMGhMnxrMX
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/5s1hXaXGVTD0i/8RAvveAJ9eI72vgj8O5OH7kPpEMHnElTJdEQCfY6jw
-Cz/XkACxMHlwDO2PnLIVH2g=
-=20WP
------END PGP SIGNATURE-----
-
---ik0NlRzMGhMnxrMX--
+ _
+(=B0=3D  Herv=E9 Eychenne
+//)
+v_/_ WallFire project:  http://www.wallfire.org/
