@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: (no subject)
-Date: Thu, 6 Jun 2002 07:41:16 +0200
+Subject: Re: iptables bad byte counter?!?
+Date: Thu, 6 Jun 2002 07:42:43 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020606074116.F28940@sunbeam.de.gnumonks.org>
-References: <F591WZJ4kidNwZNDmb4000152bf@hotmail.com>
+Message-ID: <20020606074243.G28940@sunbeam.de.gnumonks.org>
+References: <1023304055.2845.69.camel@cygnus> <200206052129.54254.hno@marasystems.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Zs/RYxT/hKAHzkfQ"
-Cc: netfilter-devel@lists.samba.org
+	protocol="application/pgp-signature"; boundary="5UGlQXeG3ziZS81+"
+Cc: Torge Szczepanek <netfilter-devel@szczepanek.de>,
+	netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: "Saaid Anwar Khan" <saaidak@hotmail.com>
+To: Henrik Nordstrom <hno@marasystems.com>
 Content-Disposition: inline
-In-Reply-To: <F591WZJ4kidNwZNDmb4000152bf@hotmail.com>; from saaidak@hotmail.com on Wed, Jun 05, 2002 at 12:49:05PM +0500
+In-Reply-To: <200206052129.54254.hno@marasystems.com>; from hno@marasystems.com on Wed, Jun 05, 2002 at 09:29:54PM +0200
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -23,23 +24,34 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Zs/RYxT/hKAHzkfQ
+--5UGlQXeG3ziZS81+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jun 05, 2002 at 12:49:05PM +0500, Saaid Anwar Khan wrote:
-> hello
+On Wed, Jun 05, 2002 at 09:29:54PM +0200, Henrik Nordstrom wrote:
+> Torge Szczepanek wrote:
 >=20
-> i would like to knnow the source and destination port in user space packe=
-t=20
-> provided by the libipq library.
+> > I am getting byte counters like this:
+> >
+> > 18446744073707058701
+>=20
+> Very much looks like a negative number.. the above is the same as 64 bit=
+=20
+> integer -2492915 printed as a unsigned value.
+>=20
+> > The byte counters differ (18446744073707 is mostly the same) so I think
+> > this might be an overflow of a (longint?!?) counter.
+>=20
+> Very unlikely as it is 64 bits in size and unsigned..
 
-you have the packet in userspace. just read out the values from the IP/TCP
-header.
+no, this is clearly a problem within the 32bit-userspace / 64bit kernelspace
+handling of iptables.
 
-> Thank you
-> Saaid Anwar Khan
+Don't assume any reasonable value to be in the counters on sparc64.
+
+> Regards
+> Henrik
 
 --=20
 Live long and prosper
@@ -52,7 +64,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
 =20
 V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
---Zs/RYxT/hKAHzkfQ
+--5UGlQXeG3ziZS81+
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -60,9 +72,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE8/vX8XaXGVTD0i/8RAmIBAJkBsyWkIXzAtkFS0sJx+bFxoi6rqQCfbXlq
-WV5+k4HDmvrLO3gfdrvFnW0=
-=ea2f
+iD8DBQE8/vZSXaXGVTD0i/8RAkvcAJ9EnIvG6XgHM1WDyJNAvQaOZIfelgCeJJzl
+3sl2E03iwzVgE5d14kAH9bc=
+=7pDJ
 -----END PGP SIGNATURE-----
 
---Zs/RYxT/hKAHzkfQ--
+--5UGlQXeG3ziZS81+--
