@@ -1,14 +1,16 @@
-From: Maciek Zobniow <maciek@zobniow.net>
-Subject: [PATCH][MARKCB] Balancing connections betewen a few internet links
- with HA.
-Date: Wed, 17 Sep 2003 22:38:22 +0200
+From: "Craig Box" <craig@itpartners.co.nz>
+Subject: RE: PPTP conntracking saga continued
+Date: Thu, 18 Sep 2003 09:58:05 +1200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F68C63E.4070309@zobniow.net>
+Message-ID: <44AD3126A8CE26439BBD21AB2F9CC1D81286E4@commsserver.itpartners.co.nz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+content-class: urn:content-classes:message
+To: "Philip Craig" <philipc@snapgear.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,12 +21,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-The patch and explanation you can find on
-http://markcb.zobniow.net
-Best Regards
+> I have had success with the following:
+>=20
+> 1. Start with Linux 2.4.22
+> 2. Apply patch-o-matic/pending/63_getorigdst-tuple-zero.patch
+> 3. Apply patch-o-matic/extra/pptp-conntrack-nat.patch
+> 4. Copy in the files from netfilter-extensions/helpers/pptp
+> 5. Apply the patches from:
+>
+http://lists.netfilter.org/pipermail/netfilter-devel/2003-September/0123
+62.html
 
--- 
-Maciej Zobniow
-Open Source - Free software for free people.
-http://markcb.zobniow.net
-http://mysql.zobniow.net
+Well, the kernel compiled cleanly (which is a first!), even with IPSEC
+and MPPE patches.
+
+However, something about NAT and forwarding doesn't go.  The problem
+isn't the firewalling ruleset; the machine still forwards (I can ping
+between networks that the machine routes between) but it doesn't let me
+ping from an internal machine to an internet machine.  I can access the
+internet from the machine locally however.
+
+The (two) internet connections are to ADSL routers via PPTP; could this
+be part of the problem?
+
+I didn't spend as much time as I'd have wanted to tcpdumping, as in
+order to test everything works I really need to run it on a real world
+connected machine instead of a proper test environment, and people
+needed their internet connection back. I'll experiment again without the
+other patches, but is there any known fault here, or is there anything
+in the way of debugging information I should post to try and solve this
+one?
+
+Craig
