@@ -1,11 +1,11 @@
 From: Felipe W Damasio <felipewd@terra.com.br>
-Subject: [PATCH 7/9] Remove unneeded linux/version.h from net/ipv4/netfilter/ip_nat_helper
-Date: Fri, 29 Aug 2003 17:09:26 -0300
+Subject: [PATCH 8/9] Remove unneeded linux/version.h from net/ipv4/netfilter/ip_nat_rule
+Date: Fri, 29 Aug 2003 17:09:28 -0300
 Sender: kernel-janitor-discuss-admin@lists.sourceforge.net
-Message-ID: <3F4FB2F6.1070107@terra.com.br>
+Message-ID: <3F4FB2F8.1000109@terra.com.br>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------090807070407030300040301"
+ boundary="------------060708000805010105090102"
 Return-path: <kernel-janitor-discuss-admin@lists.sourceforge.net>
 To: netfilter-devel@lists.netfilter.org,
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
@@ -21,7 +21,7 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=kernel-janitor
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090807070407030300040301
+--------------060708000805010105090102
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
@@ -35,25 +35,25 @@ Content-Transfer-Encoding: 7bit
 
 Felipe
 
---------------090807070407030300040301
+--------------060708000805010105090102
 Content-Type: text/plain;
- name="ip_nat_helper.patch"
+ name="ip_nat_rule.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="ip_nat_helper.patch"
+ filename="ip_nat_rule.patch"
 
---- linux-2.6.0-test4/net/ipv4/netfilter/ip_nat_helper.c.orig	Fri Aug 29 16:45:27 2003
-+++ linux-2.6.0-test4/net/ipv4/netfilter/ip_nat_helper.c	Fri Aug 29 16:45:31 2003
-@@ -12,7 +12,6 @@
-  *		- make ip_nat_resize_packet more generic (TCP and UDP)
-  *		- add ip_nat_mangle_udp_packet
-  */
+--- linux-2.6.0-test4/net/ipv4/netfilter/ip_nat_rule.c.orig	Fri Aug 29 16:45:09 2003
++++ linux-2.6.0-test4/net/ipv4/netfilter/ip_nat_rule.c	Fri Aug 29 16:45:14 2003
+@@ -9,7 +9,6 @@
+ #include <linux/proc_fs.h>
+ #include <net/checksum.h>
+ #include <linux/bitops.h>
 -#include <linux/version.h>
- #include <linux/config.h>
- #include <linux/module.h>
- #include <linux/kmod.h>
+ 
+ #define ASSERT_READ_LOCK(x) MUST_BE_READ_LOCKED(&ip_nat_lock)
+ #define ASSERT_WRITE_LOCK(x) MUST_BE_WRITE_LOCKED(&ip_nat_lock)
 
---------------090807070407030300040301--
+--------------060708000805010105090102--
 
 
 
