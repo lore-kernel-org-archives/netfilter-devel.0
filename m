@@ -1,14 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2.6 0/8]: Netfilter Update
-Date: Sat, 05 Mar 2005 13:16:18 +0100
-Message-ID: <4229A312.1080406@trash.net>
-References: <42284DD6.5090301@trash.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: IPTables 1.3.0 on RaQ2
+Date: Sat, 5 Mar 2005 13:57:10 +0100
+Message-ID: <20050305125710.GP30487@sunbeam.de.gnumonks.org>
+References: <42292642.6030504@jg555.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <42284DD6.5090301@trash.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+HmK7y6O+lKZIGkr"
+Cc: netfilter-devel@lists.netfilter.org
+To: Jim Gifford <maillist@jg555.com>
+Content-Disposition: inline
+In-Reply-To: <42292642.6030504@jg555.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,16 +21,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> following are a couple of netfilter fixes for 2.6. The patches
-> are based on your net-2.6 tree, but also apply cleanly to your
-> 2.6.12 tree. Unfortunately no bitkeeper tree this time because
-> someone messed up our firewall rules.
 
-I moved it to a different port, now both trees should be pullable at:
+--+HmK7y6O+lKZIGkr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-bk://212.42.230.204:994/nf-2.4
-bk://212.42.230.204:994/nf-2.6
+On Fri, Mar 04, 2005 at 07:23:46PM -0800, Jim Gifford wrote:
+> When I tried to compile iptables 1.3.0 on a MIPS based machine (Cobalt=20
+> RaQ2), I get the following error.
 
-Regards
-Patrick
+without some information on what distribution you are using, which
+kernel source version or kernel headers, ... you will certainly not
+receive any answer :(
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--+HmK7y6O+lKZIGkr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFCKaymXaXGVTD0i/8RAhxkAJ4xWx0KiViRrMhcI1uurBTdLvHk0wCgrvC+
+HB2C7Z+ii7oBqhsABVQe2h4=
+=qKY3
+-----END PGP SIGNATURE-----
+
+--+HmK7y6O+lKZIGkr--
