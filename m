@@ -1,13 +1,15 @@
-From: qhou <qhou_acornsoft@sohu.com>
-Subject: Re:Re: Q: Any other way on handling "conntrack DESTROY" without ip_conntrack_destroyed()
-Date: Tue, 9 Jul 2002 15:23:31 +0800 (CST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: TCP tracking states
+Date: Tue, 9 Jul 2002 13:18:25 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <2244491.1026199411988.JavaMail.postfix@mailsrv10.mail.sohu.com>
+Message-ID: <Pine.LNX.4.33.0207091257050.2809-100000@blackhole.kfki.hu>
+References: <200207060038.59577@henrik.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: <netfilter-devel@lists.samba.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <200207060038.59577@henrik.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,23 +20,30 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, 6 Jul 2002, Henrik Nordstrom wrote:
 
-> What are you implementing? A layer four helper (like
-> ip_conntrack_proto_tcp.c?)
+> The recent discussions and Oskar Andreassons work on a iptables
+> tutorial made me take a closer look into the TCP tracking states, and
+> I notices a couple of odd things that looks like they may be bugs..
+>
+> 1. What is the use of LAST_ACK? From what I can tell this state can
+> only be reached if the connection is already in the LAST_ACK state..
+>
+> 2. The support for half-closed connections is very poor, and differs a
+> lot depending on which side closed first.
 
-I previously implemented one Match module,
-and the trouble is: I need to release my own data when the conn_track is released.
-For I don't want to use timeout to judge the conn_track's release.
+[...]
 
-> In CVS is a patch which adds a proto->destroy function to the l4 proto
-> helpers (ip_conntrack_protocol_destroy.patch)
+Yes, those are inconsystencies.
 
-Now I implement one netfilter hook to trace the connection (TCP/UDP/*ICMP),
-and use ioctl(), to get the UI operation. Feel silly I am :(
-
-
-
-Thanks, Harald Welte.
+Could you have a look at the tcp_window_tracking patch? I spent a couple
+of time on refining the state transitions in that patch, still there
+might be room to improve them...
 
 Regards,
-HouQing
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+WWW-Home: http://www.kfki.hu/~kadlec
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
