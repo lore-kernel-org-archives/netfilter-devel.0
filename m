@@ -1,11 +1,16 @@
-From: Cedric de Launois <delaunois@info.ucl.ac.be>
-Subject: [PATCH] ROUTE patch, oops forgot it ;)
-Date: Wed, 10 Nov 2004 17:36:44 +0100
-Message-ID: <1100104604.1748.98.camel@descartes.info.ucl.ac.be>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH] ROUTE target : kernel 2.6 fix for --gw option
+Date: Wed, 10 Nov 2004 17:45:36 +0100
+Message-ID: <1100105135.6496.18.camel@tux.rsn.bth.se>
+References: <1100104390.1748.95.camel@descartes.info.ucl.ac.be>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-4gY1Gu3wJE8hP8jhS9lN"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-As9enDg4C4t047WFNeJy"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+To: Cedric de Launois <delaunois@info.ucl.ac.be>
+In-Reply-To: <1100104390.1748.95.camel@descartes.info.ucl.ac.be>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,37 +23,31 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-4gY1Gu3wJE8hP8jhS9lN
+--=-As9enDg4C4t047WFNeJy
 Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 
-Sorry, I forgot to attach it...
+On Wed, 2004-11-10 at 17:33, Cedric de Launois wrote:
+> Hi all,
+>=20
+> Here a small patch to fix a bug in the kernel 2.6 version of the ROUTE
+> target.
 
---=-4gY1Gu3wJE8hP8jhS9lN
-Content-Disposition: attachment; filename=ipt_ROUTE-fl4_dst-fix.patch
-Content-Type: text/x-patch; name=ipt_ROUTE-fl4_dst-fix.patch;
-	charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Applied, thanks.
 
---- patch-o-matic-ng.orig/ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c	2004-11-10 17:12:35.000000000 +0100
-+++ patch-o-matic-ng/ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c	2004-11-10 17:14:50.000000000 +0100
-@@ -4,7 +4,7 @@
-  *
-  * Copyright (C) 2002 Cedric de Launois <delaunois@info.ucl.ac.be>
-  *
-- * v 1.9 2004/05/14
-+ * v 1.10 2004/11/10
-  *
-  * This software is distributed under GNU GPL v2, 1991
-  */
-@@ -69,7 +69,7 @@
- 	
- 	/* The destination address may be overloaded by the target */
- 	if (route_info->gw)
--		fl.fld_dst = route_info->gw;
-+		fl.fl4_dst = route_info->gw;
- 	
- 	/* Trying to route the packet using the standard routing table. */
- 	if ((err = ip_route_output_key(&rt, &fl))) {
+--=20
+/Martin
 
---=-4gY1Gu3wJE8hP8jhS9lN--
+--=-As9enDg4C4t047WFNeJy
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQBBkkWvWm2vlfa207ERAixGAJ0Xw6neU5Oqep67PWaHbX+bzG2NXwCggeOK
+wRTs7g2RUcIzwOdydayAaT4=
+=JeMQ
+-----END PGP SIGNATURE-----
+
+--=-As9enDg4C4t047WFNeJy--
