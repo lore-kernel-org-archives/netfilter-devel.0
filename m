@@ -1,198 +1,122 @@
-From: Ville Nuorvala <vnuorval@tcs.hut.fi>
-Subject: Re: [PATCH|RFC] IPv6 netfilter: a module for complete proxy ND
- support
-Date: Wed, 14 Jan 2004 13:34:16 +0200 (EET)
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <Pine.LNX.4.58.0401141332390.24125@rhea.tcs.hut.fi>
-References: <Pine.LNX.4.58.0401141250470.24125@rhea.tcs.hut.fi>
+From: pablo neira <pablo@eurodev.net>
+Subject: Re: problems with netlink_broadcast
+Date: Wed, 14 Jan 2004 12:25:58 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <40052746.80400@eurodev.net>
+References: <4003DCD7.6040602@fokus.fraunhofer.de> <400424F7.9040508@trash.net> <400435F7.7070309@fokus.fraunhofer.de>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-377318441-531813261-1074080056=:24125"
-Cc: netdev@oss.sgi.com
-Return-path: <netdev-bounce@oss.sgi.com>
-To: netfilter-devel@lists.netfilter.org, davem@redhat.com
-In-Reply-To: <Pine.LNX.4.58.0401141250470.24125@rhea.tcs.hut.fi>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: John Williams Floroiu <floroiu@fokus.fraunhofer.de>,
+	netfilter-devel@lists.netfilter.org
+In-Reply-To: <400435F7.7070309@fokus.fraunhofer.de>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+Hi John,
 
----377318441-531813261-1074080056=:24125
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+John Williams Floroiu wrote:
 
-Sorry about that,
-
-here's the patch. Shouldn't try to do too many things at once...
-
-Regards,
-Ville
-
-On Wed, 14 Jan 2004, Ville Nuorvala wrote:
-
-> Hello all,
+> void uk_task(void *arg) {
 >
-> a proxy needs to capture and process Neighbor Solicitations on behalf of
-> the proxied node. Normal multicast NS messages are already handled by the
-> existing neigbor discovery code, but unicast NS messages used for Neighbor
-> Unreachability Detection will only be handled by the proxy if it captures
-> the packets for local processing. I think the cleanest solution for this
-> is a netfilter module (which I have incidentally written already :)
+>         local_bh_disable();
+>         printk(KERN_INFO "--- calling netlink_broadcast ---\n");
+>         netlink_broadcast(uknl, (struct sk_buff *)arg, 0, UKGRP_TEST, 
+> GFP_ATOMIC);
+>         local_bh_enable();
+>         printk(KERN_INFO "### uk_task terminates ###\n");
+> }
 >
-> The attached patch contains the afore mentioned module.
+> void uk_timer_handler(unsigned long arg){
 >
-> Any comments are welcome!
+>         struct nlmsghdr *nl;
+>         struct sk_buff *skb;
 >
-> Thanks,
-> Ville
-> --
-> Ville Nuorvala
-> Research Assistant, Institute of Digital Communications,
-> Helsinki University of Technology
-> email: vnuorval@tcs.hut.fi, phone: +358 (0)9 451 5257
+>         uktimer.expires = jiffies + HZ/2;
+>         add_timer(&uktimer);
 >
+>         skb = alloc_skb(NLMSG_SPACE(256), GFP_ATOMIC);
+>         if (!skb) {
+>                 printk(KERN_INFO "### uk_task skb allocation failure 
+> ###\n");
+>                 return;
+>         }
+>         NLMSG_PUT(skb, 0, 0, UK_NOTIF_TEST, 0); 
 
---
-Ville Nuorvala
-Research Assistant, Institute of Digital Communications,
-Helsinki University of Technology
-email: vnuorval@tcs.hut.fi, phone: +358 (0)9 451 5257
----377318441-531813261-1074080056=:24125
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="nf_proxy_nd.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.58.0401141334160.24125@rhea.tcs.hut.fi>
-Content-Description: 
-Content-Disposition: attachment; filename="nf_proxy_nd.patch"
 
-IyBUaGlzIGlzIGEgQml0S2VlcGVyIGdlbmVyYXRlZCBwYXRjaCBmb3IgdGhl
-IGZvbGxvd2luZyBwcm9qZWN0Og0KIyBQcm9qZWN0IE5hbWU6IExpbnV4IGtl
-cm5lbCB0cmVlDQojIFRoaXMgcGF0Y2ggZm9ybWF0IGlzIGludGVuZGVkIGZv
-ciBHTlUgcGF0Y2ggY29tbWFuZCB2ZXJzaW9uIDIuNSBvciBoaWdoZXIuDQoj
-IFRoaXMgcGF0Y2ggaW5jbHVkZXMgdGhlIGZvbGxvd2luZyBkZWx0YXM6DQoj
-CSAgICAgICAgICAgQ2hhbmdlU2V0CTEuMTUxNSAgLT4gMS4xNTE2IA0KIwlu
-ZXQvaXB2Ni9uZXRmaWx0ZXIvTWFrZWZpbGUJMS4xMiAgICAtPiAxLjEzICAg
-DQojCW5ldC9pcHY2L2lwdjZfc3ltcy5jCTEuMTggICAgLT4gMS4xOSAgIA0K
-IwluZXQvaXB2Ni9uZXRmaWx0ZXIvS2NvbmZpZwkxLjQgICAgIC0+IDEuNSAg
-ICANCiMJICAgICAgICAgICAgICAgKG5ldykJICAgICAgICAtPiAxLjEgICAg
-IG5ldC9pcHY2L25ldGZpbHRlci9pcDZfcHJveHlfbmQuYw0KIw0KIyBUaGUg
-Zm9sbG93aW5nIGlzIHRoZSBCaXRLZWVwZXIgQ2hhbmdlU2V0IExvZw0KIyAt
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0K
-IyAwNC8wMS8xMwl2bnVvcnZhbEBhbWJlci5odXQubWVkaWFwb2xpLmNvbQkx
-LjE1MTYNCiMgQSBwcm94eSBuZWVkcyB0byBjYXB0dXJlIGFuZCBwcm9jZXNz
-IE5laWdoYm9yIFNvbGljaXRhdGlvbnMgb24gYmVoYWxmIG9mIHRoZSBwcm94
-aWVkIG5vZGUuDQojIE5vcm1hbCBtdWx0aWNhc3QgTlMgbWVzc2FnZXMgYXJl
-IGFscmVhZHkgaGFuZGxlZCBieSB0aGUgZXhpc3RpbmcgbmVpZ2JvciBkaXNj
-b3ZlcnkgY29kZSwNCiMgYnV0IHVuaWNhc3QgTlMgbWVzc2FnZXMgdXNlZCBm
-b3IgTmVpZ2hib3IgVW5yZWFjaGFiaWxpdHkgRGV0ZWN0aW9uIHdpbGwgb25s
-eSBiZSBoYW5kbGVkIGJ5DQojIHRoZSBwcm94eSBpZiBpdCBjYXB0dXJlcyB0
-aGUgcGFja2V0cyBmb3IgbG9jYWwgcHJvY2Vzc2luZyB1c2luZyBuZXRmaWx0
-ZXIuDQojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tDQojDQpkaWZmIC1OcnUgYS9uZXQvaXB2Ni9pcHY2X3N5bXMuYyBi
-L25ldC9pcHY2L2lwdjZfc3ltcy5jDQotLS0gYS9uZXQvaXB2Ni9pcHY2X3N5
-bXMuYwlUdWUgSmFuIDEzIDIxOjAyOjE4IDIwMDQNCisrKyBiL25ldC9pcHY2
-L2lwdjZfc3ltcy5jCVR1ZSBKYW4gMTMgMjE6MDI6MTggMjAwNA0KQEAgLTE3
-LDYgKzE3LDkgQEANCiBFWFBPUlRfU1lNQk9MKGlwNl9yb3V0ZV9vdXRwdXQp
-Ow0KICNpZmRlZiBDT05GSUdfTkVURklMVEVSDQogRVhQT1JUX1NZTUJPTChp
-cDZfcm91dGVfbWVfaGFyZGVyKTsNCitFWFBPUlRfU1lNQk9MKGlwdjZfc2tp
-cF9leHRoZHIpOw0KK0VYUE9SVF9TWU1CT0woaXA2X2lucHV0KTsNCitFWFBP
-UlRfU1lNQk9MKG5kX3RibCk7DQogI2VuZGlmDQogRVhQT1JUX1NZTUJPTChh
-ZGRyY29uZl9sb2NrKTsNCiBFWFBPUlRfU1lNQk9MKGlwdjZfc2V0c29ja29w
-dCk7DQpkaWZmIC1OcnUgYS9uZXQvaXB2Ni9uZXRmaWx0ZXIvS2NvbmZpZyBi
-L25ldC9pcHY2L25ldGZpbHRlci9LY29uZmlnDQotLS0gYS9uZXQvaXB2Ni9u
-ZXRmaWx0ZXIvS2NvbmZpZwlUdWUgSmFuIDEzIDIxOjAyOjE4IDIwMDQNCisr
-KyBiL25ldC9pcHY2L25ldGZpbHRlci9LY29uZmlnCVR1ZSBKYW4gMTMgMjE6
-MDI6MTggMjAwNA0KQEAgLTIxOCw1ICsyMTgsMTQgQEANCiAJICBUbyBjb21w
-aWxlIGl0IGFzIGEgbW9kdWxlLCBjaG9vc2UgTSBoZXJlLiAgSWYgdW5zdXJl
-LCBzYXkgTi4NCiANCiAjZGVwX3RyaXN0YXRlICcgIExPRyB0YXJnZXQgc3Vw
-cG9ydCcgQ09ORklHX0lQNl9ORl9UQVJHRVRfTE9HICRDT05GSUdfSVA2X05G
-X0lQVEFCTEVTDQorDQorY29uZmlnIElQNl9ORl9QUk9YWV9ORA0KKwl0cmlz
-dGF0ZSAiQ29tcGxldGUgcHJveHkgTmVpZ2JvciBEaXNjb3Zlcnkgc3VwcG9y
-dCINCisJaGVscA0KKwkgIFRoaXMgZmlsdGVyIGFsbG93cyB0aGUgcHJveHkg
-dG8gcHJvY2VzcyB1bmljYXN0IE5laWdoYm9yDQorCSAgVW5yZWFjaGFiaWxp
-dHkgUHJvYmVzIGFzIHdlbGwgYXMgbm9ybWFsIG11bHRpY2FzdA0KKwkgIE5l
-aWdoYm9yIFNvbGljaXRhdGlvbnMgc2VudCB0byB0aGUgcHJveGllZCBub2Rl
-Lg0KKw0KKwkgIFRvIGNvbXBpbGUgaXQgYXMgYSBtb2R1bGUsIGNob29zZSBN
-IGhlcmUuICBJZiB1bnN1cmUsIHNheSBOLg0KIGVuZG1lbnUNCiANCmRpZmYg
-LU5ydSBhL25ldC9pcHY2L25ldGZpbHRlci9NYWtlZmlsZSBiL25ldC9pcHY2
-L25ldGZpbHRlci9NYWtlZmlsZQ0KLS0tIGEvbmV0L2lwdjYvbmV0ZmlsdGVy
-L01ha2VmaWxlCVR1ZSBKYW4gMTMgMjE6MDI6MTggMjAwNA0KKysrIGIvbmV0
-L2lwdjYvbmV0ZmlsdGVyL01ha2VmaWxlCVR1ZSBKYW4gMTMgMjE6MDI6MTgg
-MjAwNA0KQEAgLTIyLDMgKzIyLDQgQEANCiBvYmotJChDT05GSUdfSVA2X05G
-X1FVRVVFKSArPSBpcDZfcXVldWUubw0KIG9iai0kKENPTkZJR19JUDZfTkZf
-VEFSR0VUX0xPRykgKz0gaXA2dF9MT0cubw0KIG9iai0kKENPTkZJR19JUDZf
-TkZfTUFUQ0hfSEwpICs9IGlwNnRfaGwubw0KK29iai0kKENPTkZJR19JUDZf
-TkZfUFJPWFlfTkQpICs9IGlwNl9wcm94eV9uZC5vDQpkaWZmIC1OcnUgYS9u
-ZXQvaXB2Ni9uZXRmaWx0ZXIvaXA2X3Byb3h5X25kLmMgYi9uZXQvaXB2Ni9u
-ZXRmaWx0ZXIvaXA2X3Byb3h5X25kLmMNCi0tLSAvZGV2L251bGwJV2VkIERl
-YyAzMSAxNjowMDowMCAxOTY5DQorKysgYi9uZXQvaXB2Ni9uZXRmaWx0ZXIv
-aXA2X3Byb3h5X25kLmMJVHVlIEphbiAxMyAyMTowMjoxOCAyMDA0DQpAQCAt
-MCwwICsxLDEwMCBAQA0KKy8qDQorICogQ29weXJpZ2h0IChDKTIwMDMgSGVs
-c2lua2kgVW5pdmVyc2l0eSBvZiBUZWNobm9sb2d5DQorICogDQorICogVGhp
-cyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmli
-dXRlIGl0IGFuZC9vciBtb2RpZnkNCisgKiBpdCB1bmRlciB0aGUgdGVybXMg
-b2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFzIHB1Ymxpc2hl
-ZCBieQ0KKyAqIHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247IGVpdGhl
-ciB2ZXJzaW9uIDIgb2YgdGhlIExpY2Vuc2UsIG9yDQorICogKGF0IHlvdXIg
-b3B0aW9uKSBhbnkgbGF0ZXIgdmVyc2lvbi4NCisgKiANCisgKiBUaGlzIHBy
-b2dyYW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhlIGhvcGUgdGhhdCBpdCB3aWxs
-IGJlIHVzZWZ1bCwNCisgKiBidXQgV0lUSE9VVCBBTlkgV0FSUkFOVFk7IHdp
-dGhvdXQgZXZlbiB0aGUgaW1wbGllZCB3YXJyYW50eSBvZg0KKyAqIE1FUkNI
-QU5UQUJJTElUWSBvciBGSVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9T
-RS4gIFNlZSB0aGUNCisgKiBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBm
-b3IgbW9yZSBkZXRhaWxzLg0KKyAqIA0KKyAqIFlvdSBzaG91bGQgaGF2ZSBy
-ZWNlaXZlZCBhIGNvcHkgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNl
-bnNlDQorICogYWxvbmcgd2l0aCB0aGlzIHByb2dyYW07IGlmIG5vdCwgd3Jp
-dGUgdG8gdGhlIEZyZWUgU29mdHdhcmUNCisgKiBGb3VuZGF0aW9uLCBJbmMu
-LCA1OSBUZW1wbGUgUGxhY2UsIFN1aXRlIDMzMCwgQm9zdG9uLCBNQSAgMDIx
-MTEtMTMwNyAgVVNBDQorICoNCisgKiBMaW51eCBJTkVUNiBpbXBsZW1lbnRh
-dGlvbiANCisgKg0KKyAqIG5mIGhvb2sgZm9yIGNhcHR1cmluZyB1bmljYXN0
-IG5laWdoYm9yIGRpc2NvdmVyeSBtZXNzYWdlcyBzbyBhIHByb3h5DQorICog
-Y2FuIHBhcnRpY2lwYXRlIGluIE5laWdoYm9yIFVucmVhY2hhYmlsaXR5IERl
-dGVjdGlvbiBvbiBiZWhhbGYgb2YgaXRzDQorICogY2xpZW50DQorICoNCisg
-KiBBdXRob3JzDQorICoJVmlsbGUgTnVvcnZhbGEJCTx2bnVvcnZhbEB0Y3Mu
-aHV0LmZpPgkNCisgKi8NCisNCisjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+
-DQorI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlcl9pcHY2Lmg+DQorI2luY2x1
-ZGUgPG5ldC9pcHY2Lmg+DQorI2luY2x1ZGUgPG5ldC9uZGlzYy5oPg0KKw0K
-K01PRFVMRV9MSUNFTlNFKCJHUEwiKTsNCitNT0RVTEVfQVVUSE9SKCJWaWxs
-ZSBOdW9ydmFsYSA8dm51b3J2YWxAdGNzLmh1dC5maT4iKTsNCitNT0RVTEVf
-REVTQ1JJUFRJT04oIklQdjYgUHJveHkgTkQgZmlsdGVyIik7DQorDQorDQor
-c3RhdGljIHVuc2lnbmVkIGludCBpcDZfcHJveHlfbmRfaG9vayh1bnNpZ25l
-ZCBpbnQgaG9va251bSwNCisJCQkJICAgICAgc3RydWN0IHNrX2J1ZmYgKipw
-c2tiLA0KKwkJCQkgICAgICBjb25zdCBzdHJ1Y3QgbmV0X2RldmljZSAqaW4s
-DQorCQkJCSAgICAgIGNvbnN0IHN0cnVjdCBuZXRfZGV2aWNlICpvdXQsDQor
-CQkJCSAgICAgIGludCAoKm9rZm4pKHN0cnVjdCBza19idWZmICopKQ0KK3sN
-CisJc3RydWN0IHNrX2J1ZmYgKnNrYiA9ICpwc2tiOw0KKwlzdHJ1Y3QgaXB2
-NmhkciAqaXB2NmggPSBza2ItPm5oLmlwdjZoOw0KKwl1OCBuZXh0aGRyID0g
-aXB2NmgtPm5leHRoZHI7DQorCWludCBvZmZzZXQ7DQorCXN0cnVjdCBpbjZf
-YWRkciAqZGFkZHIgPSAmc2tiLT5uaC5pcHY2aC0+ZGFkZHI7DQorCXN0cnVj
-dCBpY21wNmhkciBtc2c7DQorDQorCWlmIChpcHY2X2V4dF9oZHIobmV4dGhk
-cikpIHsNCisJCW9mZnNldCA9IGlwdjZfc2tpcF9leHRoZHIoc2tiLCBzaXpl
-b2Yoc3RydWN0IGlwdjZoZHIpLCANCisJCQkJCSAgJm5leHRoZHIsIA0KKwkJ
-CQkJICBza2ItPmxlbiAtIHNpemVvZihzdHJ1Y3QgaXB2NmhkcikpOw0KKwkJ
-aWYgKG9mZnNldCA8IDApDQorCQkJcmV0dXJuIE5GX0FDQ0VQVDsNCisJfSBl
-bHNlDQorCQlvZmZzZXQgPSBzaXplb2Yoc3RydWN0IGlwdjZoZHIpOw0KKw0K
-KwkvKiBjYXB0dXJlIHVuaWNhc3QgTlVEIHByb2JlcyBvbiBiZWhhbGYgb2Yg
-dGhlIHByb3hpZWQgbm9kZSAqLw0KKwlpZiAobmV4dGhkciA9PSBJUFBST1RP
-X0lDTVBWNiAmJiANCisJICAgIGlwdjZfYWRkcl90eXBlKGRhZGRyKSAmIElQ
-VjZfQUREUl9VTklDQVNUICYmIA0KKwkgICAgIXNrYl9jb3B5X2JpdHMoc2ti
-LCBvZmZzZXQsICZtc2csIHNpemVvZihtc2cpKSkgew0KKwkJaW50IGlpZjsg
-DQorCQlzdHJ1Y3QgbmV0X2RldmljZSAqZGV2Ow0KKwkJc3dpdGNoIChtc2cu
-aWNtcDZfdHlwZSkgew0KKwkJY2FzZSBORElTQ19ORUlHSEJPVVJfU09MSUNJ
-VEFUSU9OOg0KKwkJCWlpZiA9ICgoc3RydWN0IGluZXQ2X3NrYl9wYXJtICop
-c2tiLT5jYiktPmlpZjsNCisJCQlkZXYgPSBfX2Rldl9nZXRfYnlfaW5kZXgo
-aWlmKTsNCisJCQlpZiAoZGV2ICYmIHBuZWlnaF9sb29rdXAoJm5kX3RibCwg
-ZGFkZHIsIGRldiwgMCkpIHsNCisJCQkJaXA2X2lucHV0KHNrYik7DQorCQkJ
-CXJldHVybiBORl9TVE9MRU47DQorCQkJfQ0KKwkJfQ0KKwl9DQorCXJldHVy
-biBORl9BQ0NFUFQ7DQorfQ0KKw0KK3N0YXRpYyBzdHJ1Y3QgbmZfaG9va19v
-cHMgaXA2X3Byb3h5X25kX29wcyA9IHsNCisJLmhvb2sgPSBpcDZfcHJveHlf
-bmRfaG9vaywNCisJLm93bmVyID0gVEhJU19NT0RVTEUsDQorCS5wZiA9IFBG
-X0lORVQ2LA0KKwkuaG9va251bSA9IE5GX0lQNl9QUkVfUk9VVElORywNCisJ
-LnByaW9yaXR5ID0gTkZfSVA2X1BSSV9MQVNULA0KK307DQorDQorDQorc3Rh
-dGljIGludCBfX2luaXQgaXA2X3Byb3h5X25kX2luaXQodm9pZCkNCit7DQor
-CXJldHVybiBuZl9yZWdpc3Rlcl9ob29rKCZpcDZfcHJveHlfbmRfb3BzKTsN
-Cit9DQorDQorc3RhdGljIHZvaWQgX19leGl0IGlwNl9wcm94eV9uZF9leGl0
-KHZvaWQpDQorew0KKwluZl91bnJlZ2lzdGVyX2hvb2soJmlwNl9wcm94eV9u
-ZF9vcHMpOw0KK30NCisNCittb2R1bGVfaW5pdChpcDZfcHJveHlfbmRfaW5p
-dCk7DQorbW9kdWxlX2V4aXQoaXA2X3Byb3h5X25kX2V4aXQpOw0KKw0K
+I think that you are trying to create a skbuff with no netlink header 
+because you set last parameter of NLMSG_PUT to 0.
 
----377318441-531813261-1074080056=:24125--
+Set it to:
+NLMSG_SPACE(256) - sizeof(struct nlmsghdr)
+
+Have a look at the function __nlmsg_put which is called by the macro 
+NLMSG_PUT:
+http://lxr.linux.no/source/include/linux/netlink.h#L141
+
+Anyway, if it doesn't work have a look at ip_queue.c and ipt_ULOG.c. It 
+could help you out.
+
+cheers,
+Pablo
+
+>
+>         NETLINK_CB(skb).dst_groups = UKGRP_TEST;
+>         printk(KERN_INFO "### skb->len = %d ###\n", skb->len);
+>
+>         uk_work.data = skb;
+>         schedule_work(&uk_work);
+>         printk(KERN_INFO "### uk_timer_handler terminates ###\n");
+>
+>         return;
+>
+> nlmsg_failure:
+>         skb_trim(skb, skb->tail - skb->data);
+>         printk(KERN_INFO "### uk_task NLMSG_PUT failure ###\n");
+> }
+>
+> ----------------------------------------------------------------
+>
+> Unable to handle kernel paging request at virtual address f6a34fb0
+>   printing eip:
+>  f88233ca
+>  *pde = 00488067
+>  *pte = 36a34000
+>  Oops: 0000 [#1]
+>  CPU:    1
+>  EIP:    0060:[__crc_utf8_wctomb+5448385/6417782]    Not tainted
+>  EFLAGS: 00010246
+>  EIP is at uk_task+0xda/0x160 [uk]
+>  eax: 00000000   ebx: f6a34f4c   ecx: 00000000   edx: fffffffd
+>  esi: f2f1fbf8   edi: f8824460   ebp: c1a95f64   esp: c1a95f48
+>  ds: 007b   es: 007b   ss: 0068
+>  Process events/1 (pid: 7, threadinfo=c1a94000 task=c1a619b0)
+>  Stack: f2fa7e94 f6a34f4c 00000000 00000159 00000020 c1a94000 f8824464 
+> c1a95fec
+>         c01370f6 00000000 c1a95fa0 00000000 c1a64f90 c1a64fa0 00000000 
+> f88232f0
+>         00000212 c1a64f88 c1a64f78 5a5a5a5a 5a5a5a5a 5a5a5a5a 00000001 
+> 00000000
+>  Call Trace:
+>   [worker_thread+534/960] worker_thread+0x216/0x3c0
+>   [__crc_utf8_wctomb+5448167/6417782] uk_task+0x0/0x160 [uk]
+>   [default_wake_function+0/32] default_wake_function+0x0/0x20
+>   [ret_from_fork+6/20] ret_from_fork+0x6/0x14
+>   [default_wake_function+0/32] default_wake_function+0x0/0x20
+>   [worker_thread+0/960] worker_thread+0x0/0x3c0
+>   [kernel_thread_helper+5/24] kernel_thread_helper+0x5/0x18
+>
+>  Code: 8b 43 64 c7 04 24 a0 36 82 f8 89 44 24 04 e8 73 10 90 c7 83
+>
+>
+>
+>
+>
