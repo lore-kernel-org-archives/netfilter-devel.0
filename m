@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: RAM and conntrack performance: first draft of the document is online
-Date: Thu, 27 Nov 2003 12:10:19 +0100
+Subject: Re: 76_conntrack_bucket_sysctl.patch
+Date: Thu, 27 Nov 2003 12:15:27 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031127111019.GC3373@obroa-skai.de.gnumonks.org>
-References: <20031028151032.GD726@eychenne.org> <20031103081240.GQ1536@sunbeam.de.gnumonks.org> <20031125153543.GD1082@eychenne.org> <20031125205723.GE2971@obroa-skai.de.gnumonks.org> <20031126034231.GA1044@eychenne.org> <20031126113645.GF3121@obroa-skai.de.gnumonks.org> <3FC4D429.3050401@trash.net>
+Message-ID: <20031127111527.GE3373@obroa-skai.de.gnumonks.org>
+References: <Pine.LNX.4.58.0311270631070.1622@gw.localnet>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gKMricLos+KVdGMg"
-Cc: Herve Eychenne <rv@wallfire.org>,
-	Netfilter Development <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="tqI+Z3u+9OQ7kwn0"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <3FC4D429.3050401@trash.net>
+In-Reply-To: <Pine.LNX.4.58.0311270631070.1622@gw.localnet>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,21 +23,27 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---gKMricLos+KVdGMg
+--tqI+Z3u+9OQ7kwn0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Nov 26, 2003 at 05:26:17PM +0100, Patrick McHardy wrote:
-> I recall someone wanted to make a patch for this some time ago to
-> prevent timer storms, do you have any information if anyone is currently
-> working on this ? Otherwise I might just do both ..
+On Thu, Nov 27, 2003 at 06:35:49AM +0100, Patrick McHardy wrote:
+> Hi Harald,
+>=20
+> I just had a look at 76_conntrack_bucket_sysctl.patch, it adds an
+> unneccessary strategy routine. The file permission check is done before
+> the strategy is called so that alone should be fine. In fact, I didn't
+> even manage to get it called at all. The attached patch is tested and
+> works.
 
-I think somebody had already written such a patch (gandalf?), however
-he didn't see any significant performance difference.
+thanks.  I thought I'd better make really, really sure that it never
+gets written...=20
 
 > Best regards,
 > Patrick
+
+I'll apply your patch, thanks.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -50,16 +55,16 @@ he didn't see any significant performance difference.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---gKMricLos+KVdGMg
+--tqI+Z3u+9OQ7kwn0
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/xduaXaXGVTD0i/8RAtB9AJ93vJUoUEVFllEHaj4cIDAge0HwdwCglnhW
-/G2qAUAjSaxJ4p2dx1JUUpg=
-=xM7W
+iD8DBQE/xdzPXaXGVTD0i/8RArD6AJ9DBd4ndPaNJaZG69tVazh0zWI7agCgl4/W
+Kn0GJKT/PSHbKQ+24BhKZEM=
+=ws1s
 -----END PGP SIGNATURE-----
 
---gKMricLos+KVdGMg--
+--tqI+Z3u+9OQ7kwn0--
