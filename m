@@ -1,13 +1,12 @@
-From: Roberto Nibali <ratz@tac.ch>
-Subject: TCP window tracking patch status query for further design considerations
-Date: Mon, 07 Oct 2002 17:56:14 +0200
+From: Oskar Andreasson <blueflux@koffein.net>
+Subject: [almost OT] ipsysctl-tutorial pre-beta version
+Date: Mon, 7 Oct 2002 19:43:40 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3DA1AE9E.6030106@tac.ch>
+Message-ID: <Pine.LNX.4.44.0210071935500.1772-100000@laptop1.agatha>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: netfilter@lists.netfilter.org, <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,33 +17,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello guys,
+Hi All,
 
-Is/Are there any news about the possibly impaired functionality of the TCP 
-window tracking patch? I recall the thread about the mailinglist problems where 
-Harald concluded that it was this patch that caused headaches to several people 
-trying to send emails to the netfilter lists. Has the problem been investigated 
-any further or is the status still unclear?
+Just wanted to let everyone know that the ipsysctl-tutorial is released 
+in a kind of super-pre-beta version or so. It's far far from complete, it 
+probably contain 500 errors per word that it consists of, but.... I'd just 
+like to see if some people would like to read through parts of it and see 
+what they think of it? This is the URL to the current version:
 
-Unfortunately we depend on it because we do not use netfilter in a 'Intranet <-> 
-Internet' way but in a 'multiple zones -> multiple zones' way. We do not have 
-any trusted zones and without the TCP window tracking patch for example someone 
-sending a RST can delete ESTABLISHED entries from the conntrack table. This is 
-not an issue if you come from a trusted network like your Intranet for example, 
-but it sure takes all the fun away if you have different customers on each NIC.
+http://ipsysctl-tutorial.frozentux.net
 
-You can test things very efficiently with sendip (example to flush entries):
-./sendip <dst> -p tcp -is <src> -ts <sport> -td <dport> -tfr 1
+Is this document worth the effort? Is this anything along the lines what 
+you have wished for? Is there anything missing (yes, tons that I know 
+of=))? Find any bugs or errors on my part? 
 
-Without this patch, netfilter is completely useless to us. Could someone please 
-give me a status report of this patch? What about a possible inclusion into 
-mainstream kernel (this question is important to our management to create 
-appropriate SLAs)?
+I will be totally honest, this document probably took me several hundreds 
+of hours getting this far, since I had to pretty much read up on every 
+single variable in the source code. Considering that I am a fairly bad 
+coder, this took some considerable part of the time:). I am pretty damn 
+certain that this has led to hundreds of errors, and people will probably 
+want to kill me for some of them.
 
-TIA and best regards,
-Roberto Nibali, ratz
+Thanks for any kind of feedback!
 
-PS.: FYI, I'm running and testing the stuff with the latest iptables, kernel 
-2.4.20-pre8 and latest pom. I've not applied other patches yet.
 -- 
-echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
+----
+Oskar Andreasson
+http://www.frozentux.net
+http://iptables-tutorial.frozentux.net
+http://ipsysctl-tutorial.frozentux.net
+mailto:blueflux@koffein.net
