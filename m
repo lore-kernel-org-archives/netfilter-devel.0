@@ -1,15 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] connlimit match fixes for >= 2.6.10
-Date: Tue, 15 Feb 2005 00:05:45 +0100
-Message-ID: <20050214230545.GC3829@sunbeam.de.gnumonks.org>
-References: <20050212213254.GA11884@linuxace.com>
+Subject: Re: [PATCH pom-ng] port ip_conntrack_h323 to the linux 2.6.11-rc3
+	API
+Date: Tue, 15 Feb 2005 00:13:23 +0100
+Message-ID: <20050214231323.GF3829@sunbeam.de.gnumonks.org>
+References: <20050211223858.GA27306@roonstrasse.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6zdv2QT/q3FMhpsV"
-Cc: netfilter-devel@lists.netfilter.org
-To: Phil Oester <kernel@linuxace.com>
+	protocol="application/pgp-signature"; boundary="MZf7D3rAEoQgPanC"
+Cc: netfilter-devel@lists.netfilter.org, kadlec@blackhole.kfki.hu
+To: Max Kellermann <max@duempel.org>
 Content-Disposition: inline
-In-Reply-To: <20050212213254.GA11884@linuxace.com>
+In-Reply-To: <20050211223858.GA27306@roonstrasse.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,24 +23,24 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---6zdv2QT/q3FMhpsV
+--MZf7D3rAEoQgPanC
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Feb 12, 2005 at 01:32:54PM -0800, Phil Oester wrote:
-> Below updates connlimit for:
+On Fri, Feb 11, 2005 at 11:38:58PM +0100, Max Kellermann wrote:
+> Hi,
 >=20
-> 1) removal of nf_ct_info
-> 2) removal of ctrack
->=20
-> Fixes bugzilla #'s 268 and 286.
+> this patch ports the H.323 conntrack module to the new linux
+> 2.6.11-rc3 API. I havn't tested that thoroughly; my nfsim tests
+> succeed (these will be published later), and it compiles with the real
+> kernel.
 
-Ok, applied to the pom-ng 2.6 branch .  Can you close Bugzilla referring to=
- Rev. 3688 (http://svn.netfilter.org/cgi-bin/viewcvs.cgi/branches/patch-o-m=
-atic-ng/linux-2.6.11/?rev=3D3688)
-
-Thanks!
+Thanks, I've merged the patch into the
+http://svn.netfilter.org/cgi-bin/viewcvs.cgi/branches/patch-o-matic-ng/linu=
+x-2.6.11
+branch.  Please submit any updates to that branch rather than pom-ng
+trunk.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -51,7 +52,7 @@ Thanks!
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---6zdv2QT/q3FMhpsV
+--MZf7D3rAEoQgPanC
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -59,9 +60,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFCES7JXaXGVTD0i/8RAirYAJ9JNDp0jQYV45jaNj8jaAB2bscAkACgjBV8
-qapEO1sFXTcqwNwLo6NphUM=
-=F12i
+iD8DBQFCETCTXaXGVTD0i/8RApA9AJ4gtnoBWkOXwyv2QPdTsamQq8iHGwCfekwf
+nwglWnkWKrTE0vnvvWiC03I=
+=ZSvw
 -----END PGP SIGNATURE-----
 
---6zdv2QT/q3FMhpsV--
+--MZf7D3rAEoQgPanC--
