@@ -1,11 +1,11 @@
 From: Felipe W Damasio <felipewd@terra.com.br>
-Subject: [PATCH 2/9] Remove unneeded linux/version.h from net/ipv4/netfilter/ip_conntrack_standalone
-Date: Fri, 29 Aug 2003 17:09:00 -0300
+Subject: [PATCH 4/9] Remove unneeded linux/version.h from net/ipv4/netfilter/ip_fw_compat_masq
+Date: Fri, 29 Aug 2003 17:09:12 -0300
 Sender: kernel-janitor-discuss-admin@lists.sourceforge.net
-Message-ID: <3F4FB2DC.50006@terra.com.br>
+Message-ID: <3F4FB2E8.7030508@terra.com.br>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------030207070504020807030206"
+ boundary="------------040800050604000406000800"
 Return-path: <kernel-janitor-discuss-admin@lists.sourceforge.net>
 To: netfilter-devel@lists.netfilter.org,
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
@@ -21,7 +21,7 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=kernel-janitor
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------030207070504020807030206
+--------------040800050604000406000800
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
@@ -35,25 +35,25 @@ Content-Transfer-Encoding: 7bit
 
 Felipe
 
---------------030207070504020807030206
+--------------040800050604000406000800
 Content-Type: text/plain;
- name="ip_conntrack_standalone.patch"
+ name="ip_fw_compat_masq.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="ip_conntrack_standalone.patch"
+ filename="ip_fw_compat_masq.patch"
 
---- linux-2.6.0-test4/net/ipv4/netfilter/ip_conntrack_standalone.c.orig	Fri Aug 29 16:44:23 2003
-+++ linux-2.6.0-test4/net/ipv4/netfilter/ip_conntrack_standalone.c	Fri Aug 29 16:44:28 2003
-@@ -14,7 +14,6 @@
- #include <linux/module.h>
- #include <linux/skbuff.h>
+--- linux-2.6.0-test4/net/ipv4/netfilter/ip_fw_compat_masq.c.orig	Fri Aug 29 16:44:04 2003
++++ linux-2.6.0-test4/net/ipv4/netfilter/ip_fw_compat_masq.c	Fri Aug 29 16:44:11 2003
+@@ -13,7 +13,6 @@
+ #include <linux/netdevice.h>
+ #include <linux/inetdevice.h>
  #include <linux/proc_fs.h>
 -#include <linux/version.h>
- #include <net/checksum.h>
+ #include <linux/module.h>
+ #include <net/route.h>
  
- #define ASSERT_READ_LOCK(x) MUST_BE_READ_LOCKED(&ip_conntrack_lock)
 
---------------030207070504020807030206--
+--------------040800050604000406000800--
 
 
 
