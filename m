@@ -1,12 +1,14 @@
-From: Wim Ceulemans <wim.ceulemans@able.be>
-Subject: Routing decision?
-Date: Mon, 15 Sep 2003 15:16:50 +0200
+From: Frank Meerkoetter <meerkoetter@stud.fbi.fh-darmstadt.de>
+Subject: Netfilter on an IXDP-2400/2800
+Date: Mon, 15 Sep 2003 16:04:11 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F65BBC2.8030208@able.be>
+Message-ID: <20030915140411.GA3166@mandark.chaos.lab>
+Reply-To: meerkoetter@stud.fbi.fh-darmstadt.de
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_1063631808-25283-109"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,44 +19,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format...
+Hello,
 
-------------=_1063631808-25283-109
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+during the next 6 month i've maybe the possibility to play around with an 
+intel network processor board [1].
 
-Hi
+The IXP-2400 is a processor based on the xscale architecture, running at 
+600Mhz [2]. It contains among other things 8 io-processors, called 
+microengines which are optimized for packet-processing. The setup will 
+most probably have a quad gigabit ethernet card.
 
-In paragraph 6.2 of the iptables-tutorial the following is said:
-"The OUTPUT chain is used for altering locally generated packets (i.e., 
-on the firewall) before they get to the routing decision.
+A first idea for a project was to modify the netfilter framework to make use
+of the special hardware features of this platform.
 
-But in paragraph 3.1, the "Traversing of tables and chains" diagram, we 
-see the "Routing decision" is listed after the "Local process" and
-BEFORE! the packet goes to the output chain.
+Could someone please comment on the usefullness/feasibility of such a 
+modification?
 
-So which one is right? Does the routing decision take place after or 
-before the packet travels through the output chain?
+sincerely 
+  Frank Meerkoetter
 
-Regards
-
--- 
-Wim Ceulemans
-R&D Engineer
-
-Secure Internet Communication with aXs Guard
-
-Able NV
-Leuvensesteenweg 282 - B-3190 Boortmeerbeek - Belgium
-Phone: + 32 15 50.44.00 - Fax: + 32 15 50.44.09
-E-mail: wim.ceulemans@able.be
-
-
-
---
-Security check on this e-mail has been done by aXs GUARD
-(http://www.axsguard.com)
-
-
-------------=_1063631808-25283-109--
+[1] an IXDP-2400 or even an IXDP-2800
+[2] http://www.intel.com/design/network/products/npfamily/ixp2400.htm
