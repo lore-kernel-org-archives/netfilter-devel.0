@@ -1,21 +1,16 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: Policy match with a bridge
-Date: Sat, 16 Oct 2004 15:30:58 +0200
+From: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
+Subject: RE: IPSEC and NAT
+Date: Sat, 16 Oct 2004 10:59:34 -0400
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <200410161530.58439.bdschuym@pandora.be>
-References: <411EAF08.3000401@shorewall.net>
-	<200408192010.28417.bdschuym@pandora.be>
-	<416DC6EF.9050001@shorewall.net>
+Message-ID: <1097938773.2833.87.camel@localhost>
+References: <200410160653.i9G6rmMc025506@nmibwkms1.nexusmgmt.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, bridge@osdl.org,
-	Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tom Eastep <teastep@shorewall.net>
-In-Reply-To: <416DC6EF.9050001@shorewall.net>
-Content-Disposition: inline
+To: Emiel Mols <emiel@fulgor-hosting.nl>
+In-Reply-To: <200410160653.i9G6rmMc025506@nmibwkms1.nexusmgmt.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,26 +21,34 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thursday 14 October 2004 02:23, Tom Eastep wrote:
-> Bart De Schuymer wrote:
-> > On Monday 16 August 2004 03:31, Patrick McHardy wrote:
-> >>The problem is ipv4_sabotage_out in the briding code. It prevents the
-> >>packet from hitting the LOCAL_OUT hook while it is still unencrypted.
-> >>When it hits the bridging code and its LOCAL_OUT hook it's too late.
-> >>Not sure how to handle it yet.
-> >
-> > I'll have a look at that after I'm finished with the IPv6 bridge
->
-> firewalling
->
-> > stuff.
->
-> Any progress on this?
-
-You should be able to do what you want in the iptables mangle OUTPUT chain 
-instead of the one in the filter table.
-Patrick, a hack solution would be to temporarily change out->hard_start_xmit 
-to something else than br_dev_xmit, that way you fool ipv4_sabotage_out.
-
-cheers,
-Bart
+On Sat, 2004-10-16 at 02:53, Emiel Mols wrote:
+<snip>
+> Indeed, the problem is that the packets get encrypted before reaching
+> POSTROUTING. I've managed the patch you're referring to:
+> 
+> router linux # cat ../patch-o-matic-ng-20040621/ipsec-01-output-hooks/help
+> [NETFILTER+IPSEC 1/4]
+> 
+> This patch adds new output hooks for IPsec. Packets traverse the hooks like
+> this:
+> 
+> 1. -> (plain) FORWARD   -> POST_ROUTING -> (encrypted) LOCAL_OUT ->
+> POST_ROUTING
+> 2. -> (plain) LOCAL_OUT -> POST_ROUTING -> (encrypted) LOCAL_OUT ->
+> POST_ROUTING
+> 
+> However, I can't get it patched on 2.6.8.1 (about 5 rejects) and 2.6.7 (1
+> reject). This patch is just what I need, but further downgrading isn't an
+> option. Has anyone succeeded with this patch in a recent 2.6 kernel?
+I'd imagine you have but, just in case, have you applied any dependent
+patches? For example, when I first applied the tcp window patch, I had
+the same problem until I realized I had to apply all the pending patches
+first.
+> 
+<snip>
+-- 
+John A. Sullivan III
+Chief Technology Officer
+Nexus Management
++1 207-985-7880
+john.sullivan@nexusmgmt.com
