@@ -1,41 +1,62 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] tcp window tracking initial port to 2.6
-Date: Mon, 8 Mar 2004 15:41:22 +0100 (CET)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0403081540320.10575-100000@blackhole.kfki.hu>
-References: <Pine.LNX.4.33.0403081111190.10575-100000@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: ip_route_me_harder -> xfrm_lookup
+Date: Mon, 08 Mar 2004 15:46:37 +0100
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <404C874D.4000907@trash.net>
+References: <20040308110331.GA20719@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <Pine.LNX.4.33.0403081111190.10575-100000@blackhole.kfki.hu>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: "David S. Miller" <davem@redhat.com>, netdev@oss.sgi.com,
+        netfilter-devel@lists.netfilter.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Herbert Xu <herbert@gondor.apana.org.au>
+In-Reply-To: <20040308110331.GA20719@gondor.apana.org.au>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 8 Mar 2004, Jozsef Kadlecsik wrote:
+Hi Herbert,
 
-> > I spent my sunday evening in porting the tcp window tracking system to
-> > the 2.6.x tree. Attached to this email the incremental fix to the CVS
-> > and the merge to the 2.6.x tree.
->
-> Sorry, that was a waste of time. I had already done the porting, but
-> because pom-ng is not fully ready yet, I haven't put it into the cvs.
+Herbert Xu wrote:
+> Hi:
+> 
+> I've received a number of reports that the any packets that are modified
+> by the PREROUTING mangle table will not be protected by IPsec.
+> 
+> The reason is that ip_route_me_harder which is called upon the exit
+> of the mangle table does not set the proto field.  This means that
+> xfrm_lookup is never called.
+> 
+> The following patch sets the proto field so that the packet can be
+> protected by IPsec.
 
-I have added my 2.6 port of the tcp-window-tracking code to pom-ng in
-cvs.
+I have been working on a set of patches for IPsec+Netfilter, the
+latest set has been posted to netfilter-devel last week. They will
+go in patch-o-matic for testing soon, but I will post them
+to netdev later today, so we won't waste time testing patches
+before Dave is fine with them.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards,
+Patrick
+
+> 
+> Cheers,
+> 
+> 
+> ------------------------------------------------------------------------
+> 
+> Index: kernel-2.5/net/core/netfilter.c
+> ===================================================================
+> RCS file: /home/gondolin/herbert/src/CVS/debian/kernel-source-2.5/net/core/netfilter.c,v
+> retrieving revision 1.1.1.10
+> diff -u -r1.1.1.10 netfilter.c
+> --- kernel-2.5/net/core/netfilter.c	8 Oct 2003 19:24:04 -0000	1.1.1.10
+> +++ kernel-2.5/net/core/netfilter.c	8 Mar 2004 10:52:39 -0000
+> @@ -639,6 +639,7 @@
+>  #ifdef CONFIG_IP_ROUTE_FWMARK
+>  		fl.nl_u.ip4_u.fwmark = (*pskb)->nfmark;
+>  #endif
+> +		fl.proto = iph->protocol;
+>  		if (ip_route_output_key(&rt, &fl) != 0)
+>  			return -1;
+>  
