@@ -1,14 +1,16 @@
-From: =?iso-8859-1?Q?Carmen_M_Yago_S=E1nchez?= <carmen@dif.um.es>
-Subject: mac filtering and multicast
-Date: Tue, 26 Oct 2004 10:12:59 +0200
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: Libipq sequence doubt
+Date: Tue, 26 Oct 2004 11:17:56 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <008801c4bb33$9b55bc70$31d2369b@pepito>
+Message-ID: <1098782278.3512.26.camel@coati>
+References: <20041025234729.GA3141@maluco.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Ulysses Almeida <munky@maluco.com.br>
+In-Reply-To: <20041025234729.GA3141@maluco.com.br>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,14 +21,15 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello all,
-I need to filter and drop some input IPv6 Multicast traffic from some =
-MAC addresses. I have to use Mandrake 10.0 with kernel 2.6 and I tried  =
-iptables/iptables-ipv6 1.2.9-7mdk but it didn't work.
-It is neccesary to modify the code  to filter  multicast traffic by MAC =
-source? How can I do this?Thank you in advance
-Best Regards
-Carmen
----Outgoing mail is certified Virus Free.Checked by AVG anti-virus =
-system (http://www.grisoft.com).Version: 6.0.782 / Virus Database: 528 - =
-Release Date: 22/10/2004
+On Mon, 2004-10-25 at 19:47 -0400, Ulysses Almeida wrote:
+>   I have a doubt about packets sequence, on libipq.
+>   Other libipq question, can I mark packets on userspace?
+
+Yes but you need to patch your kernel for that : use ip_queue_vwmark
+patch from patch-o-matic
+http://www.netfilter.org/patch-o-matic/pom-extra.html#pom-extra-ip_queue_vwmark
+
+BR,
+-- 
+Eric Leblond <eric@inl.fr>
+INL
