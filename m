@@ -1,17 +1,15 @@
-From: Andy Furniss <andy.furniss@dsl.pipex.com>
-Subject: Re: [LARTC] How to balance OUTBOUND traffic by packet if..
-Date: Thu, 13 Jan 2005 12:27:54 +0000
-Message-ID: <41E6694A.2020203@dsl.pipex.com>
-References: <1483.192.168.1.2.1105403313@maild.mine.nu>
-	<41E5E91C.6050606@dsl.pipex.com>
+From: "Steve Ashley" <sashley@bsafeonline.com>
+Subject: ip_conntrack questions
+Date: Thu, 13 Jan 2005 09:44:54 -0600
+Message-ID: <A516FD6F11040F4E881C92EDA23F31A8033C2514@mx1.bsafeonline.com>
+Reply-To: spanishmack@mchsi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: LARTC@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org,
-	junk@maild.mine.nu
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Andy Furniss <andy.furniss@dsl.pipex.com>
-In-Reply-To: <41E5E91C.6050606@dsl.pipex.com>
+content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,58 +21,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Andy Furniss wrote:
-> junk@maild.mine.nu wrote:
-> 
->> I am still looking for a solution to this problem.......
->>
->>> junk@maild.mine.nu wrote:
->>>
->>>> Hi,
->>>> Yes i did give this a try a couple of times before with no success
->>>>
->>>> /sbin/iptables -I OUTPUT -m nth --every 2 --packet 1 -t mangle -j MARK
->>>> --set-mark 0x2
->>>> /sbin/iptables -I OUTPUT -m nth --every 2 --packet 0 -t mangle -j MARK
->>>> --set-mark 0x1
-> 
-> 
-> Had a go at this on 2.6.9 / iptables 1.2.11 and it seeems nth is broken.
-> 
-> I'll try again tomorrow.
+Hi all,
 
-Seems still broken.
+I had previously developed a successful userspace app using libipq =
+functionality and I'm now trying to build the same functionality into a =
+new netfilter target.=A0 I'm having better success so far than I thought =
+I would, using the REDIRECT code as an example.=A0 I have a couple of =
+questions relating to kernel space data structures / netfilter =
+structures.
 
-I built vanilla(apart from nth) 2.6.10, new iptables 1.2.11 + 
-pom-200400621 with runme extra only said y to nth.
+In my previous userspace app, I kept track of connections by hashing =
+source and destination IPs and ports to index my own data.=A0 It seems =
+as if I could use ip_conntrack_get to get at the ip_conntrack stuff and =
+just use information from here to help me keep track of my data per =
+connections, but I guess I'm still an ultra noob here, because looking =
+at all the ip_conntrack stuff is making my head hurt quicker than =
+usual.=A0 I've read thru all the docs I can get via netfilter.org, and =
+I'm still kind of struggling to understand some of this stuff.=A0 I =
+THINK, I kind of get the tuple concept, but I start bogging down quickly =
+once I start looking at the hash related stuff.=A0 What information / =
+calls would I use to get some unique number I could use in a hashmap or =
+a tree structure?
 
-I see -
+Now, having asked that question, would it be easier to add some custom =
+data fields to the ip_conntrack_tuple structure?=A0 I know there are =
+people who could do that without even blinking here, but, try to keep =
+the answers in the scope of someone who is pretty happy at this point to =
+have gotten a working new target that doesn't do much but print out some =
+IP info at this point.
 
-Chain OUTPUT (policy ACCEPT 817 packets, 103K bytes)
-  pkts bytes target     prot opt in     out     source 
-destination
-    15  1260 MARK       all  --  *      eth0    0.0.0.0/0 
-0.0.0.0/0           every 2th packet #0 MARK set 0x1
-    15  1260 MARK       all  --  *      eth0    0.0.0.0/0 
-0.0.0.0/0           every 2th packet #1 MARK set 0x2
+Now, having asked the previous questions, maybe it's time for a "forest =
+for the trees" question.=A0 What would be the suggestions from this =
+group as to the best way to keep track of custom per connection =
+information?
 
-Chain POSTROUTING (policy ACCEPT 817 packets, 103K bytes)
-  pkts bytes target     prot opt in     out     source 
-destination
-     0     0            all  --  *      eth0    0.0.0.0/0 
-0.0.0.0/0           MARK match 0x1
-    15  1260            all  --  *      eth0    0.0.0.0/0 
-0.0.0.0/0           MARK match 0x2
-[root@amd /home/andy]# cat ./nth-test
-iptables -t mangle -A OUTPUT -o eth0 -m nth --counter 1 --every 2 
---packet 0 -j MARK --set-mark 1
-iptables -t mangle -A OUTPUT -o eth0 -m nth --counter 1 --every 2 
---packet 1 -j MARK --set-mark 2
-iptables -t mangle -A POSTROUTING -o eth0 -m mark --mark 1
-iptables -t mangle -A POSTROUTING -o eth0 -m mark --mark 2
+Thanks for any information / suggestions in advance.
 
-Any Ideas anyone?
-
-TIA
-
-Andy.
+Steve Ashley
+Ashley Professional Services, PA
