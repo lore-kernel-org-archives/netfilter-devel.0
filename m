@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.6] NETFILTER (9/x): make 'helper' list of ip_nat_core static
-Date: Sat, 24 Jul 2004 10:55:24 -0400
+Subject: [PATCH 2.6] NETFILTER (5/x): use slab cache for ip_conntrack_expect
+Date: Sat, 24 Jul 2004 10:32:23 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040724145524.GR2848@obroa-skai.de.gnumonks.org>
+Message-ID: <20040724143223.GN2848@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KqBSqvdnnccM6+Kg"
+	protocol="application/pgp-signature"; boundary="QAdlk5ze2izLk3Ap"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,120 +21,139 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---KqBSqvdnnccM6+Kg
+--QAdlk5ze2izLk3Ap
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Dave!
+Hi Dave,
 
-This patch makes the 'helper' symbol static to not pollute the namespace
+This patch adds a new slab cache (ip_conntrack_expect) for expectations.
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Pablo Neira <pablo@eurodev.net>
 Signed-off-by: Harald Welte <laforge@netfilter.org>
 
-diff -Nru --exclude-from /space/home/laforge/scripts/dontdiff --exclude .de=
-pend --exclude '*.o' --exclude '*.ko' --exclude '*.ver' --exclude '.*.flags=
-' --exclude '*.orig' --exclude '*.rej' --exclude '*.cmd' --exclude '*.mod.c=
-' --exclude '*~' linux-2.6.7-newmodparam/include/linux/netfilter_ipv4/ip_na=
-t_helper.h linux-2.6.7-newmodparam-nathelper/include/linux/netfilter_ipv4/i=
-p_nat_helper.h
---- linux-2.6.7-newmodparam/include/linux/netfilter_ipv4/ip_nat_helper.h	20=
-04-07-20 11:26:37.277081608 -0400
-+++ linux-2.6.7-newmodparam-nathelper/include/linux/netfilter_ipv4/ip_nat_h=
-elper.h	2004-07-20 11:26:55.726276904 -0400
-@@ -38,11 +38,12 @@
- 			       struct ip_nat_info *info);
- };
+diff -u -r1.1.1.1 ip_conntrack_core.c
+--- a/net/ipv4/netfilter/ip_conntrack_core.c	11 May 2004 13:07:08 -0000	1.1=
+=2E1.1
++++ b/net/ipv4/netfilter/ip_conntrack_core.c	2 Jun 2004 11:06:44 -0000
+@@ -67,6 +67,7 @@
+ static atomic_t ip_conntrack_count =3D ATOMIC_INIT(0);
+ struct list_head *ip_conntrack_hash;
+ static kmem_cache_t *ip_conntrack_cachep;
++static kmem_cache_t *ip_conntrack_expect_cachep;
+ struct ip_conntrack ip_conntrack_untracked;
 =20
--extern struct list_head helpers;
--
- extern int ip_nat_helper_register(struct ip_nat_helper *me);
- extern void ip_nat_helper_unregister(struct ip_nat_helper *me);
+ extern struct ip_conntrack_protocol ip_conntrack_generic_protocol;
+@@ -176,7 +177,7 @@
+ 	IP_NF_ASSERT(atomic_read(&exp->use));
+ 	IP_NF_ASSERT(!timer_pending(&exp->timeout));
 =20
-+extern struct ip_nat_helper *
-+ip_nat_find_helper(const struct ip_conntrack_tuple *tuple);
-+
- /* These return true or false. */
- extern int ip_nat_mangle_tcp_packet(struct sk_buff **skb,
- 				struct ip_conntrack *ct,
-diff -Nru --exclude-from /space/home/laforge/scripts/dontdiff --exclude .de=
-pend --exclude '*.o' --exclude '*.ko' --exclude '*.ver' --exclude '.*.flags=
-' --exclude '*.orig' --exclude '*.rej' --exclude '*.cmd' --exclude '*.mod.c=
-' --exclude '*~' linux-2.6.7-newmodparam/net/ipv4/netfilter/ip_nat_core.c l=
-inux-2.6.7-newmodparam-nathelper/net/ipv4/netfilter/ip_nat_core.c
---- linux-2.6.7-newmodparam/net/ipv4/netfilter/ip_nat_core.c	2004-07-20 11:=
-26:37.279081304 -0400
-+++ linux-2.6.7-newmodparam-nathelper/net/ipv4/netfilter/ip_nat_core.c	2004=
--07-20 11:26:55.729276448 -0400
-@@ -49,7 +49,6 @@
- static struct list_head *bysource;
- static struct list_head *byipsproto;
- LIST_HEAD(protos);
--LIST_HEAD(helpers);
-=20
- extern struct ip_nat_protocol unknown_nat_protocol;
-=20
-@@ -498,13 +497,6 @@
- 	return ret;
+-	kfree(exp);
++	kmem_cache_free(ip_conntrack_expect_cachep, exp);
  }
 =20
--static inline int
--helper_cmp(const struct ip_nat_helper *helper,
--	   const struct ip_conntrack_tuple *tuple)
--{
--	return ip_ct_tuple_mask_cmp(tuple, &helper->tuple, &helper->mask);
--}
--
- /* Where to manip the reply packets (will be reverse manip). */
- static unsigned int opposite_hook[NF_IP_NUMHOOKS]
- =3D { [NF_IP_PRE_ROUTING] =3D NF_IP_POST_ROUTING,
-@@ -642,8 +634,7 @@
 =20
- 	/* If there's a helper, assign it; based on new tuple. */
- 	if (!conntrack->master)
--		info->helper =3D LIST_FIND(&helpers, helper_cmp, struct ip_nat_helper *,
--					 &reply);
-+		info->helper =3D ip_nat_find_helper(&reply);
+@@ -335,7 +336,7 @@
+ 			list_del(&ct->master->expected_list);
+ 			master =3D ct->master->expectant;
+ 		}
+-		kfree(ct->master);
++		kmem_cache_free(ip_conntrack_expect_cachep, ct->master);
+ 	}
+ 	WRITE_UNLOCK(&ip_conntrack_lock);
 =20
- 	/* It's done. */
- 	info->initialized |=3D (1 << HOOK2MANIP(hooknum));
-diff -Nru --exclude-from /space/home/laforge/scripts/dontdiff --exclude .de=
-pend --exclude '*.o' --exclude '*.ko' --exclude '*.ver' --exclude '.*.flags=
-' --exclude '*.orig' --exclude '*.rej' --exclude '*.cmd' --exclude '*.mod.c=
-' --exclude '*~' linux-2.6.7-newmodparam/net/ipv4/netfilter/ip_nat_helper.c=
- linux-2.6.7-newmodparam-nathelper/net/ipv4/netfilter/ip_nat_helper.c
---- linux-2.6.7-newmodparam/net/ipv4/netfilter/ip_nat_helper.c	2004-07-20 1=
-1:26:37.281081000 -0400
-+++ linux-2.6.7-newmodparam-nathelper/net/ipv4/netfilter/ip_nat_helper.c	20=
-04-07-20 15:16:53.672014608 -0400
-@@ -47,6 +47,7 @@
- #define DUMP_OFFSET(x)
- #endif
-=20
-+static LIST_HEAD(helpers);
- DECLARE_LOCK(ip_nat_seqofs_lock);
-=20
- /* Setup TCP sequence correction given this change at this sequence */
-@@ -419,6 +420,18 @@
- 	return ret;
- }
-=20
-+struct ip_nat_helper *
-+ip_nat_find_helper(const struct ip_conntrack_tuple *tuple)
-+{
-+	struct ip_nat_helper *h;
-+
-+	READ_LOCK(&ip_nat_lock);
-+	h =3D LIST_FIND(&helpers, helper_cmp, struct ip_nat_helper *, tuple);
-+	READ_UNLOCK(&ip_nat_lock);
-+
-+	return h;
-+}
-+
- static int
- kill_helper(const struct ip_conntrack *i, void *helper)
+@@ -923,9 +924,8 @@
+ ip_conntrack_expect_alloc()
  {
+ 	struct ip_conntrack_expect *new;
+-=09
+-	new =3D (struct ip_conntrack_expect *)
+-		kmalloc(sizeof(struct ip_conntrack_expect), GFP_ATOMIC);
++
++	new =3D kmem_cache_alloc(ip_conntrack_expect_cachep, GFP_ATOMIC);
+ 	if (!new) {
+ 		DEBUGP("expect_related: OOM allocating expect\n");
+ 		return NULL;
+@@ -933,6 +933,7 @@
+=20
+ 	/* tuple_cmp compares whole union, we have to initialized cleanly */
+ 	memset(new, 0, sizeof(struct ip_conntrack_expect));
++	atomic_set(&new->use, 1);
+=20
+ 	return new;
+ }
+@@ -944,7 +945,6 @@
+ 	DEBUGP("new expectation %p of conntrack %p\n", new, related_to);
+ 	new->expectant =3D related_to;
+ 	new->sibling =3D NULL;
+-	atomic_set(&new->use, 1);
+=20
+ 	/* add to expected list for this connection */
+ 	list_add(&new->expected_list, &related_to->sibling_list);
+@@ -998,7 +998,8 @@
+ 		}
+=20
+ 		WRITE_UNLOCK(&ip_conntrack_lock);
+-		kfree(expect);
++		/* This expectation is not inserted so no need to lock */
++		kmem_cache_free(ip_conntrack_expect_cachep, expect);
+ 		return -EEXIST;
+=20
+ 	} else if (related_to->helper->max_expected &&=20
+@@ -1017,7 +1018,7 @@
+ 				       related_to->helper->name,
+  		    	       	       NIPQUAD(related_to->tuplehash[IP_CT_DIR_ORIGINAL].t=
+uple.src.ip),
+  		    	       	       NIPQUAD(related_to->tuplehash[IP_CT_DIR_ORIGINAL].t=
+uple.dst.ip));
+-			kfree(expect);
++			kmem_cache_free(ip_conntrack_expect_cachep, expect);
+ 			return -EPERM;
+ 		}
+ 		DEBUGP("ip_conntrack: max number of expected "
+@@ -1058,7 +1059,7 @@
+ 		WRITE_UNLOCK(&ip_conntrack_lock);
+ 		DEBUGP("expect_related: busy!\n");
+=20
+-		kfree(expect);
++		kmem_cache_free(ip_conntrack_expect_cachep, expect);
+ 		return -EBUSY;
+ 	}
+=20
+@@ -1379,6 +1380,7 @@
+ 	}
+=20
+ 	kmem_cache_destroy(ip_conntrack_cachep);
++	kmem_cache_destroy(ip_conntrack_expect_cachep);
+ 	vfree(ip_conntrack_hash);
+ 	nf_unregister_sockopt(&so_getorigdst);
+ }
+@@ -1431,6 +1433,15 @@
+ 		printk(KERN_ERR "Unable to create ip_conntrack slab cache\n");
+ 		goto err_free_hash;
+ 	}
++
++	ip_conntrack_expect_cachep =3D kmem_cache_create("ip_conntrack_expect",
++					sizeof(struct ip_conntrack_expect),
++					0, SLAB_HWCACHE_ALIGN, NULL, NULL);
++	if (!ip_conntrack_expect_cachep) {
++		printk(KERN_ERR "Unable to create ip_expect slab cache\n");
++		goto err_free_conntrack_slab;
++	}
++
+ 	/* Don't NEED lock here, but good form anyway. */
+ 	WRITE_LOCK(&ip_conntrack_lock);
+ 	/* Sew in builtin protocols. */
+@@ -1458,6 +1469,8 @@
+=20
+ 	return ret;
+=20
++err_free_conntrack_slab:
++	kmem_cache_destroy(ip_conntrack_cachep);
+ err_free_hash:
+ 	vfree(ip_conntrack_hash);
+ err_unreg_sockopt:
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -145,7 +164,7 @@ pend --exclude '*.o' --exclude '*.ko' --exclude '*.ver' --exclude '.*.flags=
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---KqBSqvdnnccM6+Kg
+--QAdlk5ze2izLk3Ap
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -153,9 +172,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFBAnhbXaXGVTD0i/8RAviqAKCG3ViY0DTnDuA1HAgNxA2Wr+Ei7ACeNNCb
-DwryZA0UK0j6N/Occv4QbSA=
-=cCto
+iD8DBQFBAnL2XaXGVTD0i/8RAiuBAKCPCTDtH4Iyb3EhJONdMQHskgFrgwCfSeMJ
++jX6FD0O2L3aYaHsBgcVBTQ=
+=pGJC
 -----END PGP SIGNATURE-----
 
---KqBSqvdnnccM6+Kg--
+--QAdlk5ze2izLk3Ap--
