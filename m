@@ -1,16 +1,17 @@
-From: Internet Protocol version Six <inet6@mail.be>
-Subject: --reject-with admin-prohib not working
-Date: Sat, 26 Jul 2003 00:15:22 +0200 (GMT+02:00)
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: Update: [PATCH 2.6] iptables MIRROR target fixes
+Date: Fri, 25 Jul 2003 15:22:21 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1052431003.1059171322687.JavaMail.Administrator@pumbaa>
-References: <20030721155732.GA3733@naboo>
-Reply-To: Internet Protocol version Six <inet6@mail.be>
+Message-ID: <20030725152221.1b751bd0.davem@redhat.com>
+References: <20030719142648.GS32475@sunbeam.de.gnumonks.org>
+	<20030725205242.GH3244@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20030721155732.GA3733@naboo>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030725205242.GH3244@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,13 +22,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello all,
+On Fri, 25 Jul 2003 22:52:42 +0200
+Harald Welte <laforge@netfilter.org> wrote:
 
-like the subject says, it is not working for me, I applied the PoM patch to the kernel, compiled the kernel, even recompiled iptables and it still gives me "iptables v1.2.8: unknown reject type `admin-prohib'"
+> On Sat, Jul 19, 2003 at 04:26:48PM +0200, Harald Welte wrote:
+> 
+> > This is the first of my 2.6 merge of the recent bugfixes (all tested
+> > against 2.6.0-test1).  You might need to apply them incrementally
+> > (didn't test it in a different order).
+> 
+> Unfortunately I introduced a typo during the merge (which in turn
+> introduced a new bug).
+> 
+> Please incrementially apply the following patch, thanks.
 
-Is there some patch that needs to be applied to iptables itself? Because I can't find one
-
-Any help is greatly appriciated
------------------------------------------------------
-Mail.be, WebMail and Virtual Office
-http://www.mail.be
+All 2.6.x netfilter patches applied, thanks.
