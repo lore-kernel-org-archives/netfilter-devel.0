@@ -1,13 +1,16 @@
-From: "Reilly, John" <john@xelector.com>
-Subject: RE: Is it possible
-Date: Sat, 6 Jul 2002 16:15:41 +0100
+From: gozem@aaricia.hemmet.chalmers.se (Joakim Axelsson)
+Subject: Re: cttest-0.1
+Date: Sat, 6 Jul 2002 23:14:51 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <F54DD05BD063D411920200D0B77E68510131F133@mail.xelector.com>
+Message-ID: <20020706211451.GG3729@aaricia.hemmet.chalmers.se>
+References: <20020705165354.GD3729@aaricia.hemmet.chalmers.se> <53889.203.134.158.15.1025935801.squirrel@iw.k1k2.com> <20020706091259.F13116@oknodo.bof.de> <20020706172342.H13116@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C224FF.FDF30DA0"
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: 'Peter Gosens' <ptha@mac.com>, netfilter-devel@lists.samba.org
+To: Patrick Schaaf <bof@bof.de>
+Content-Disposition: inline
+In-Reply-To: <20020706172342.H13116@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,90 +21,78 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This message is in MIME format. Since your mail reader does not understand
-this format, some or all of this message may not be legible.
+2002-07-06 17:23:42+0200, Patrick Schaaf <bof@bof.de> ->
+> Hi all,
+> 
+> I have released http://bei.bof.de/cttest-0.2.tar.gz. It is now easier
+> to modify the list of sizes and hashes that should be plotted, and
+> there's timing code for the hash functions, together with average
+> used list length analysis.
+> 
 
-------_=_NextPart_001_01C224FF.FDF30DA0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Me and Martin Josefsson has tested the new cttest-0.2. Martin also took the
+idea of using the hash-function that the routingcache uses in Linux:
 
-Since forwarding/proxying is based on hostname, it must be proxied based on
-application protocol (if the hostname is included into the protocol
-request/response).
- 
-For http you can use apache with mod_proxy to do the proxying.  I'm not sure
-about https - I think I've heard that the different virtual servers in
-apache need different IP addresses for the certs to work correctly in all
-cases, but I'm not 100% sure about that.
- 
-Cheers,
-jr
+res = ((key->dip & 0xF0F0F0F0) >> 4) | ((key->dip & 0x0F0F0F0F) << 4);
+res ^= key->sip ^ key->tos;
+res ^= (res >> 16);
+res ^= (res >> 8););
 
-Is it possible to make iptables forward packets based on hostname. 
- 
-I've one.cc.com and two.cc.com three.cc.com pointing to 213.93.43.28 . And I
-want that traffic with one.cc.com is going to 213.93.43.84. But the
-two.cc.com and three.cc.com traffic need to be forwarded to an internal
-network ip (suchs as 192.168.100.2).
- 
-Is this possible with iptables. Or do I have to add an loadbalancer or use
-an proxy. I also thought about using ipv6, but it has an lack of supporting
-program's.
- 
-If you have any other idea's about this matter. Please tell me.
- 
-Peter Gosens
+Together we tried to make one that fitted for conntrack. Since we don't
+understand completly why the things are done as they are, there might be
+some more tuning where can be done to this function:
+
+static u32 hash_rt(struct ct_key *key)
+{
+        u32 res;
+
+        PER_HASH_TIMER_1(       
+                res = ((key->dip & 0xF0F0F0F0) >> 4) | ((key->dip & 0x0F0F0F0F) << 4);
+                res ^= key->sip ^ key->proto;
+                res ^= key->dport ^ key->sport;
+                res ^= (res >> 16);
+                res ^= (res >> 8);
+        );
+        
+        return res;
+}
+
+Also with this idea of using power of (^), we tested the abcd hash using
+power of instead of just adding the values up:
+
+static u32 hash_abcd_power(struct ct_key *key)
+{
+        u32 res;
+
+        PER_HASH_TIMER_1(
+                res = (0x47441DFB * key->sip)
+                ^ (0x57655A7D * key->dip)
+                ^ (0x1C7F1D2D * key->sport)
+                ^ (0xDF91D738 * key->dport)
+                ^ key->proto;
+        );
+        return res;
+}
+
+Results can be viewed at the following url with my 85K entry conntrack:
+http://aaricia.hemmet.chalmers.se/~gozem/cttest-0.2/rt/
+
+Conculsions are that the rt-hash is just as fast as abcd and has a good
+distribusion, even on the 2^n hash-sizes. This concludes us and with the
+fact that we are going to use prime-hashsizes that this rt-hash is the best
+alternitive we have right now. rt uses about 21 cycles on my CPU and abcd
+about 22. crc32 is up on 134.
+
+The tests was computed on my (Dual) Athlon MP 1800+ (1533Mhz), with ECC/REG
+DDR266 memory. Ofcouse only using one CPU.
+
+For the test of your prime.c I can't say more than its not even measureable
+on my computer. But I got a very fast CPU.
+
+>time ./prime 3457675589
+3457675579
+0.000u 0.000s 0:00.00 0.0%	0+0k 0+0io 87pf+0w
 
 
-------_=_NextPart_001_01C224FF.FDF30DA0
-Content-Type: text/html;
-	charset="iso-8859-1"
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-
-
-<META content="MSHTML 5.00.2920.0" name=GENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=#ffffff>
-<DIV><FONT color=#0000ff face=Arial size=2><SPAN class=703390015-06072002>Since 
-forwarding/proxying is based on hostname, it must be proxied based on 
-application protocol (if the hostname is included into the protocol 
-request/response).</SPAN></FONT></DIV>
-<DIV><FONT color=#0000ff face=Arial size=2><SPAN 
-class=703390015-06072002></SPAN></FONT>&nbsp;</DIV>
-<DIV><FONT color=#0000ff face=Arial size=2><SPAN class=703390015-06072002>For 
-http you can use apache with mod_proxy to do the proxying.&nbsp; I'm not sure 
-about https - I think I've heard that the different virtual servers in apache 
-need different IP addresses for the certs to work correctly in all cases, but 
-I'm not 100% sure about that.</SPAN></FONT></DIV>
-<DIV><FONT color=#0000ff face=Arial size=2><SPAN 
-class=703390015-06072002></SPAN></FONT>&nbsp;</DIV>
-<DIV><FONT color=#0000ff face=Arial size=2><SPAN 
-class=703390015-06072002>Cheers,</SPAN></FONT></DIV>
-<DIV><FONT color=#0000ff face=Arial size=2><SPAN 
-class=703390015-06072002>jr</SPAN></FONT></DIV>
-<BLOCKQUOTE 
-style="BORDER-LEFT: #0000ff 2px solid; MARGIN-LEFT: 5px; MARGIN-RIGHT: 0px; PADDING-LEFT: 5px">
-  <DIV><FONT face=Arial size=2>Is it possible to make iptables forward packets 
-  based on hostname. </FONT></DIV>
-  <DIV><FONT face=Arial size=2></FONT>&nbsp;</DIV>
-  <DIV><FONT face=Arial size=2>I've one.cc.com and two.cc.com three.cc.com 
-  pointing to 213.93.43.28 . </FONT><FONT face=Arial size=2>And I want that 
-  traffic with one.cc.com is going to 213.93.43.84. But&nbsp;the two.cc.com and 
-  three.cc.com traffic need&nbsp;to be forwarded to an internal network ip 
-  (suchs as 192.168.100.2).</FONT></DIV>
-  <DIV><FONT face=Arial size=2></FONT>&nbsp;</DIV>
-  <DIV><FONT face=Arial size=2>Is this possible with iptables.&nbsp;Or do I have 
-  to&nbsp;add an loadbalancer or&nbsp;use an proxy. I also thought about using 
-  ipv6, but it has an&nbsp;lack of supporting program's.</FONT></DIV>
-  <DIV><FONT face=Arial size=2></FONT>&nbsp;</DIV>
-  <DIV><FONT face=Arial size=2>If you have any other idea's about this matter. 
-  Please tell me.</FONT></DIV>
-  <DIV><FONT face=Arial size=2></FONT>&nbsp;</DIV>
-  <DIV><FONT face=Arial size=2>Peter 
-Gosens</FONT></DIV></BLOCKQUOTE></BODY></HTML>
-
-------_=_NextPart_001_01C224FF.FDF30DA0--
+-- 
+/Joakim Axelsson A.K.A Gozem@EFnet & OPN
