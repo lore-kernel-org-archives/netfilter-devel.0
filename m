@@ -1,16 +1,15 @@
-From: Markus Schaber <markus.schaber@student.uni-ulm.de>
-Subject: Re: Easy question, how to use stdio.h
-Date: Tue, 22 Apr 2003 19:05:27 +0200
+From: Eicke Friedrich <e.friedrich@uni.de>
+Subject: Re: Feasability of Protocol Filtering
+Date: Wed, 23 Apr 2003 23:15:25 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030422190527.400dcc77.markus.schaber@student.uni-ulm.de>
-References: <e3f7fde643.de643e3f7f@teleline.es>
+Message-ID: <3EA7026D.2010101@uni.de>
+References: <Pine.LNX.4.44+maildir.0304230816280.20974-100000@woozle.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "ISLERO77@telefonica.net" <ISLERO77@telefonica.net>
-In-Reply-To: <e3f7fde643.de643e3f7f@teleline.es>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.44+maildir.0304230816280.20974-100000@woozle.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,34 +20,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hallo,
+Hi there,
 
-"ISLERO77@telefonica.net" <ISLERO77@telefonica.net> schrieb:
+Matt Skidmore wrote:
+ > I have gained some interest in adding a new module to the netfilter code
+ > for filtering by protocol. However, I do not know how realistic this
+ > project would be. I have not found any projects similar to it as of yet.
+ > But, I would like to be able to REJECT, DENY, or REDIRECT packets based on
+ > the protocol of their connection.
 
-> Maybe my question is very easy, but I'm new developing in Linux. =20
-> I'm trying to use fopen, fprintf and fclose in a match, so I'm
-> writting   #include <stdio.h> =20
-> but when I compile the kernel and I do  =20
-> make modules =20
-> the system doesn't recognize any of these functions =20
-> How can I use them??? =20
+i'm doing a quite similar thing at the moment: i'm developing a match that recognizes p2p 
+traffic (kazaa, edonkey finished but more to come) by their protocol and mark them. After 
+that i use a tc filter to read the marks and put the packets in QoS classes.
+What you need is something characteristic for every protocol. For example: every 
+kazaa-download starts with a packet containing the string "GET /.hash=" - i do a 
+string-match on each packet and if i find a match i just mark the whole connection with 
+CONNMARK.
+By doing this i can treat every kazaa-download in the same way regardless of port or 
+ip-adress. But i'm a little bit concerned about the required ressources. If you're going 
+to use this match for many protocols and in a highly stressed environment you will need 
+much ram and lots of cpu power.
+I'm going to test the behavior of my match in a couple of weeks for a 10MBit/sec 
+environment - if someone is interessted i can send the results to the list or put it on a 
+webpage.
+I started doing some network sniffin' and if you can find something characteristic for the 
+protocols you're going to match it should be easy to create an appropriate module. Hope my 
+thoughts will help you a little bit.
 
-Basically, you can't.
-
-As matches are kernel modules, they run in kernel space. They don't have
-the usual application infrastructure (as it is the kernel's task to
-provide the fundament of this infrastructure, and the libc's task to
-provide the rest.)
-
-Maybe you could tell us what you want to achieve, so we can possibly
-tell you how to do it.
-
-
-Gru=DF,
-Markus
-
---=20
-Schabi's Flohmarkt: http://schabi.de/flohmarkt/
-
-Der Dienstweg ist die Verbindung der Sackgasse mit dem Holzweg!
-[DoLi in unibwm.studium]
+Regards,
+Eicke.
