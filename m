@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] New target: DUMP
-Date: Tue, 3 Jun 2003 21:10:12 +0200
+From: "Ricky Foo" <blue_pion@hotmail.com>
+Subject: Re: ALGs
+Date: Wed, 04 Jun 2003 07:06:30 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030603191012.GA12531@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.51.0306031932430.18676@dns.toxicfilms.tv>
+Message-ID: <Sea2-F11MieZutGvO8n00003af5@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jRHKVT23PllUwdXP"
+Content-Type: text/plain; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.51.0306031932430.18676@dns.toxicfilms.tv>
+To: laforge@netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,48 +18,69 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Good day,
 
---jRHKVT23PllUwdXP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Some doubts about the conntrack helper module.
 
-On Tue, Jun 03, 2003 at 07:35:43PM +0200, Maciej Soltysiak wrote:
-> Hello,
+1. For the "help" callback, what exactly am I suppose to do with the packets 
+when this function is activated?
 
-Hi!
+2. For the netbios protocol, there are a couple of ports to monitor, such as 
+137 for name-service, 138 for datagram service, 139 for session service. 
+Does that mean I have to write 3 different tracking modules or do I follow 
+what has been done in the ftp module...i.e register the 3 different ports to 
+track.
 
-> I wrote a target to DUMP packets in a tcpdump -x -X style:
-> It supports prefixes (like LOG) and length of the packet to dump.
-> This patch introduces both ipv4 and ipv6 versions.
+3. In the corresponding header files, what do we normally have to define for 
+the various structure? I kinda got confused by what I have read from the 
+source code!
 
-I don't think we should put any further efforts in this direction.  Why
-don't use ulogd?  It can even create pcap packet dumps, and you can do
-any kind of formatting you want in userspace.  This doesn't belong int
-the kernel, IMHO.
+4. How do I get to the payload part where the netbios data-fields are?
 
-> Regards,
-> Maciej
---=20
+Please pardon me if my questions do seems silly to you guys.
+
+    Ricky
+
+
+----Original Message Follows----
+From: Harald Welte <laforge@netfilter.org>
+To: Ricky Foo <blue_pion@hotmail.com>
+CC: netfilter-devel@lists.netfilter.org
+Subject: Re: ALGs
+Date: Tue, 3 Jun 2003 12:26:51 +0200
+
+On Mon, Jun 02, 2003 at 11:08:42AM +0000, Ricky Foo wrote:
+ > Hi guys,
+ >
+ > I am new to this list. Currently, I need to develop a ALG for netbios but 
+i
+ > can't seems to find the source-code anywhere in the kernel directory. Can
+ > anybody lend a helping hand?
+
+for examples see:
+/usr/src/linux/net/ipv4/netfilter/ip_{conntrack,nat}_{ftp,irc}.c
+/usr/src/linux/include/linux/netfilter_ipv4/ip_{conntrack,nat}_{ftp,irc}.h
+
+please also note the newnat-summary.txt from CVS and the outdated
+netfilter hacking howto - as well as lots of other conntrack/NAT helper
+modules in patch-o-matic.
+
+ > Hopefully I can contribute the code back when I am finished since
+ > there aren't any ALG for netbios if I am not wrong.
+
+No, there are none.  We're always happy about contributions.
+
+ > Thanks.
+ >    Ricky
+
+--
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+============================================================================
+   "Fragmentation is like classful addressing -- an interesting early
+    architectural error that shows how much experimentation was going
+    on while IP was being designed."                    -- Paul Vixie
+<< attach3 >>
 
---jRHKVT23PllUwdXP
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE+3PKUXaXGVTD0i/8RAtkeAKCx/6ODOwxaSmVDkGfwHBYgTi5x0ACglk4i
-nX2aiDRujtVqSoNUJ/0qWkE=
-=KdOu
------END PGP SIGNATURE-----
-
---jRHKVT23PllUwdXP--
+_________________________________________________________________
+Send a fun phone greeting to your friend! 
+http://www.msn.com.sg/mobile/fungreetings/
