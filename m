@@ -1,13 +1,15 @@
-From: =?iso-8859-1?q?FieDa=20MuHD?= <are_tun@yahoo.com>
-Subject: pf
-Date: Tue, 2 Sep 2003 04:06:45 +0100 (BST)
+From: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
+Subject: [PATCH] [bdschuym@pandora.be: Re: ipt_physdev.c alignment problems on parisc64]
+Date: Wed, 3 Sep 2003 13:20:23 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030902030645.39419.qmail@web20610.mail.yahoo.com>
+Message-ID: <20030903162022.GI6405@conectiva.com.br>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="0-1029781492-1062472005=:38038"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "David S. Miller" <davem@redhat.com>,
+	Bart De Schuymer <bdschuym@pandora.be>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,39 +20,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---0-1029781492-1062472005=:38038
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Bart,
 
-hello,
- 
-i need help to start my thesis...but i don't know how to do it....
-my thesis is about how to make a firewall (packet filtering) in IPv6 environment use redhat9.
- 
-can u give my a direction how to start my thesis?
-what must i do at the beginning after i had install my linux and set up to ipv6
- 
-thanks
- 
+	Yes, it makes ipt_pysdev.c compile on parisc, Dave, could you please
+apply it? Or perhaps wait for the netfilter patches, your call.
 
+- Arnaldo
 
+----- Forwarded message from Bart De Schuymer <bdschuym@pandora.be> -----
 
----------------------------------
-Want to chat instantly with your online friends? Get the FREE Yahoo!Messenger
---0-1029781492-1062472005=:38038
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Date: Tue, 2 Sep 2003 21:16:41 +0200
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: ipt_physdev.c alignment problems on parisc64
+To: Arnaldo Carvalho de Melo <acme@conectiva.com.br>,
+	netfilter-devel@lists.netfilter.org
+Cc: Linux Networking Development Mailing List <netdev@oss.sgi.com>
 
-<DIV>
-<DIV>hello,</DIV>
-<DIV>&nbsp;</DIV>
-<DIV>i need help to start my thesis...but i don't know how to do it....</DIV>
-<DIV>my thesis is about how to make a firewall (packet filtering) in IPv6 environment use redhat9.</DIV>
-<DIV>&nbsp;</DIV>
-<DIV>can u give my a direction how to start my thesis?</DIV>
-<DIV>what must i do at the beginning after i had install my linux and set up to ipv6</DIV>
-<DIV>&nbsp;</DIV>
-<DIV>thanks</DIV>
-<DIV>&nbsp;</DIV></DIV><p><hr size=1><font face="Arial" size="2">Want to chat instantly with your online friends? <a href="http://uk.rd.yahoo.com/mail/tagline_messenger/*http://uk.messenger.yahoo.com/"><b>Get the FREE Yahoo!
-Messenger</b></a></font>
---0-1029781492-1062472005=:38038--
+On Tuesday 02 September 2003 16:30, Arnaldo Carvalho de Melo wrote:
+> The 1.786.1.54 changeset (i.e. the initial ipt_physdev.c one 8) created
+
+Does this fix it?
+
+cheers,
+Bart
+
+--- linux-2.6.0-test4/include/linux/netfilter_ipv4/ipt_physdev.h.old	2003-09-02 21:11:12.000000000 +0200
++++ linux-2.6.0-test4/include/linux/netfilter_ipv4/ipt_physdev.h	2003-09-02 21:12:30.000000000 +0200
+@@ -15,7 +15,7 @@
+ struct ipt_physdev_info {
+ 	u_int8_t invert;
+ 	u_int8_t bitmask;
+-	char physindev[IFNAMSIZ];
++	char physindev[IFNAMSIZ] __attribute__ ((aligned (__alignof__(unsigned long))));
+ 	char in_mask[IFNAMSIZ];
+ 	char physoutdev[IFNAMSIZ];
+ 	char out_mask[IFNAMSIZ];
+
+----- End forwarded message -----
