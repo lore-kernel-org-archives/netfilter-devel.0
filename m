@@ -1,18 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [2.6 patch] netfilter/ip_nat_snmp_basic.c: fix inlines (fwd)
-Date: Sun, 1 Aug 2004 19:31:52 +0200
+Subject: Re: [PATCH]: 1st step to remove skb_linearize() in ip6_tables.c and optimization
+Date: Sun, 1 Aug 2004 20:11:50 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040801173152.GG14539@sunbeam2>
-References: <20040729212048.GD23589@fs.tum.de>
+Message-ID: <20040801181150.GI14539@sunbeam2>
+References: <200406250457.NAA07080@toshiba.co.jp> <Pine.LNX.4.33.0406251133230.11001-100000@blackhole.kfki.hu> <20040721213653.GR27487@obroa-skai.de.gnumonks.org> <200407290609.PAA13928@toshiba.co.jp> <20040801164653.GA10656@sunbeam2> <410D23AB.2070203@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xs+9IvWevLaxKUtW"
-Cc: James Morris <jmorris@intercode.com.au>, Andrew Morton <akpm@osdl.org>,
-	linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="dCSxeJc5W8HZXZrD"
+Cc: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
+	kadlec@blackhole.kfki.hu, netfilter-devel@lists.netfilter.org,
+	kisza@securityaudit.hu, usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Adrian Bunk <bunk@fs.tum.de>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <20040729212048.GD23589@fs.tum.de>
+In-Reply-To: <410D23AB.2070203@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,18 +25,34 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---xs+9IvWevLaxKUtW
+--dCSxeJc5W8HZXZrD
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jul 29, 2004 at 11:20:49PM +0200, Adrian Bunk wrote:
->=20
-> FYI:
-> The patch forwarded below is still required in 2.6.8-rc2-mm1.
+On Sun, Aug 01, 2004 at 07:08:59PM +0200, Patrick McHardy wrote:
 
-I've pushed your patch to DaveM now.  Apparently some gcc-3.4 specific
-issue...
+> >>	struct tcphdr hdr;
+> >>	struct tcphdr *tcph
+> >>
+> >>	tcph =3D skb_get_bits(skb, &hdr, skb->nh.iph->ihl*4, sizeof(hdr));
+> >>
+> >>If skb is neither shared nor cloned, this function linearize up to tcp=
+=20
+> >>header and returns the pointer to tcp header in skb.
+> >>Otherwise, copies tcp header to "hdr" and return the pointer to it.
+> >>If error, return NULL.
+>
+> The number of copies will still depend on the ruleset with non-linear skb=
+s.
+> skb_linearize_partial sounds like a much better idea to me.
+
+Oh yes, indeed.  I somehow mis-interpreted Yasuyiki's approach.  We
+should linearize with the first call, so that every 2nd, 3rd, ... call
+do nothing but immediately return.
+
+> Regards
+> Patrick
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -47,7 +64,7 @@ issue...
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---xs+9IvWevLaxKUtW
+--dCSxeJc5W8HZXZrD
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -55,9 +72,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFBDSkIXaXGVTD0i/8RAsD8AJ4txHIHfG1T6pLzJ2iCaqwxvZ3avQCeNN5y
-L3IoXydcPIb8H0N9IxwcIO8=
-=plPE
+iD8DBQFBDTJmXaXGVTD0i/8RAgcXAJ98XRW38WY2RLgvb9txCMQk399y7ACfXndn
+RaI8VHI8ty+XVy71BrSjPcs=
+=KbUq
 -----END PGP SIGNATURE-----
 
---xs+9IvWevLaxKUtW--
+--dCSxeJc5W8HZXZrD--
