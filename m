@@ -1,14 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables --log-uid patch for 2.6
-Date: Wed, 08 Dec 2004 05:33:16 +0100
-Message-ID: <41B6840C.1030706@trash.net>
-References: <1101668109.2922.1618.camel@ws102.darkcore.net>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [PATCH 1/2] ipt_MARK extension with backwards
+	compatibility	(kernel side).
+Date: Wed, 08 Dec 2004 16:44:45 +1100
+Message-ID: <1102484685.20129.41.camel@localhost.localdomain>
+References: <1101358191.5842.26.camel@localhost.localdomain>
+	<41A7B514.9030703@eurodev.net>  <41B61E84.7020304@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090104010906080803000100"
-Cc: netfilter-develop <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Anders Fugmann <afu@fugmann.dhs.org>,
+	Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
+	Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: John Lange <john.lange@open-it.ca>
-In-Reply-To: <1101668109.2922.1618.camel@ws102.darkcore.net>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <41B61E84.7020304@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,90 +25,116 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090104010906080803000100
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+On Tue, 2004-12-07 at 22:20 +0100, Pablo Neira wrote:
+> Pablo Neira wrote:
+> 
+> >> 2) If not, you must extend the size of the structure, so old kernels
+> >> will fail, and new kernels will be able to tell whether they are to use
+> >> the new or old structure.  The IPT_ALIGN'ed size of the structure must
+> >> change for this to work!
+> >
+> >
+> > My idea, I don't know how crazy it is. Instead of using the size to 
+> > guess the target/match version, we could steal 1 byte from char name[] 
+> > to define a new field called version, so we could register different 
+> > versions of a match/target.
+> >
+> > Possible scenarios:
+> > a) Old kernel, new iptables binary: since names are manipulated with 
+> > str* functions, it shouldn't be any problem with the version stuff 
+> > because it will be ignored since info after first '\0' is ignored.
+> > b) New kernel, old iptables: version value is zero, so kernel guess 
+> > that it must handle the thing with first version of the target/match.
+> 
+> 
+> I finally found some spare time to go back this issue, I've finished two 
+> patches for the kernel part of my idea of adding versions to 
+> targets/matches. One for ip_tables, and other for ipt_MARK, this based 
+> on Rusty's.
 
-John Lange wrote:
+This is so evil that my first reaction was to say "ick!".  My second
+reaction was to say "cool"!.  My third reaction was "ick!" again.
 
->I sent this to the list yesterday but I don't think it made it through.
->Apologies if it is a duplicate.
->
->Here are patches against the userspace and the kernel which allows the
->logging of the uid that generated the (outgoing) packet.
->
->This patch was originally the work of Martin Josefsson for the 2.4
->kernel but was never incorporated into the main code base. My work here
->simply ports it to the 2.6 kernel and the current version of netfilter
->(iptables).
->
-Thanks, I've fixed locking (packets with skb->sk set may reach ipt_LOG
-without the socket lock held through tunnel devices, so we need extra
-locking) and added this patch to my tree. I'm going to add the userspace
-patch when SVN is up again.
+> iptables (user space) patches is still missing  :(
 
-Regards
-Patrick
+OK.  For the other variant, I wrote a userspace patch, built it, and
+used nfsim to test it.  Unfortunately, SVN is having trouble at the
+moment, so the test script I used is below (use env var
+NFSIM_IPTABLES_PREFIX to override /sbin for iptables)
 
+If you ensure that works, I'm relatively happy with this.
+Rusty.
 
---------------090104010906080803000100
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+# Test the ipt_MARK target, which has a backwards compatbility mode.
 
-# This is a BitKeeper generated diff -Nru style patch.
-#
-# ChangeSet
-#   2004/12/08 04:53:15+01:00 kaber@coreworks.de 
-#   [NETFILTER]: Add --log-uid option to ipt_LOG
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/ipt_LOG.c
-#   2004/12/08 04:53:08+01:00 kaber@coreworks.de +8 -0
-#   [NETFILTER]: Add --log-uid option to ipt_LOG
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# include/linux/netfilter_ipv4/ipt_LOG.h
-#   2004/12/08 04:53:08+01:00 kaber@coreworks.de +2 -1
-#   [NETFILTER]: Add --log-uid option to ipt_LOG
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/include/linux/netfilter_ipv4/ipt_LOG.h b/include/linux/netfilter_ipv4/ipt_LOG.h
---- a/include/linux/netfilter_ipv4/ipt_LOG.h	2004-12-08 05:26:20 +01:00
-+++ b/include/linux/netfilter_ipv4/ipt_LOG.h	2004-12-08 05:26:20 +01:00
-@@ -4,7 +4,8 @@
- #define IPT_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
- #define IPT_LOG_TCPOPT		0x02	/* Log TCP options */
- #define IPT_LOG_IPOPT		0x04	/* Log IP options */
--#define IPT_LOG_MASK		0x07
-+#define IPT_LOG_UID		0x08	/* Log UID owning local socket */
-+#define IPT_LOG_MASK		0x0f
- 
- struct ipt_log_info {
- 	unsigned char level;
-diff -Nru a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
---- a/net/ipv4/netfilter/ipt_LOG.c	2004-12-08 05:26:20 +01:00
-+++ b/net/ipv4/netfilter/ipt_LOG.c	2004-12-08 05:26:20 +01:00
-@@ -327,6 +327,14 @@
- 		printk("PROTO=%u ", ih->protocol);
- 	}
- 
-+	/* Max length: 15 "UID=4294967295 " */
-+ 	if ((info->logflags & IPT_LOG_UID) && !iphoff && skb->sk) {
-+		read_lock_bh(&skb->sk->sk_callback_lock);
-+		if (skb->sk->sk_socket && skb->sk->sk_socket->file)
-+ 			printk("UID=%u ", skb->sk->sk_socket->file->f_uid);
-+		read_unlock_bh(&skb->sk->sk_callback_lock);
-+	}
-+
- 	/* Proto    Max log string length */
- 	/* IP:      40+46+6+11+127 = 230 */
- 	/* TCP:     10+max(25,20+30+13+9+32+11+127) = 252 */
+# Test old-style first, insert and delete.
+iptables -t mangle -A PREROUTING -j MARK --set-mark 7
+iptables -t mangle -D PREROUTING -j MARK --set-mark 7
 
---------------090104010906080803000100--
+iptables -t mangle -A PREROUTING -s 192.160.0.2 -j MARK --set-mark 7
+iptables -t mangle -D PREROUTING -s 192.160.0.2 -j MARK --set-mark 7
+
+# Test that it works.
+iptables -t mangle -A PREROUTING -j MARK --set-mark 7
+expect gen_ip send:eth1 MARK 7 {IPv4 192.168.0.2 192.168.1.2 10 17 1 2}
+gen_ip IF=eth0 192.168.0.2 192.168.1.2 10 17 1 2
+iptables -t mangle -D PREROUTING -j MARK --set-mark 7
+
+# Test new-style, insert and delete.
+iptables -t mangle -A PREROUTING -j MARK --or-mark 7
+iptables -t mangle -D PREROUTING -j MARK --or-mark 7
+
+iptables -t mangle -A PREROUTING -j MARK --and-mark 7
+iptables -t mangle -D PREROUTING -j MARK --and-mark 7
+
+iptables -t mangle -A PREROUTING -s 192.160.0.2 -j MARK --or-mark 7
+iptables -t mangle -D PREROUTING -s 192.160.0.2 -j MARK --or-mark 7
+
+iptables -t mangle -A PREROUTING -s 192.160.0.2 -j MARK --and-mark 7
+iptables -t mangle -D PREROUTING -s 192.160.0.2 -j MARK --and-mark 7
+
+# Test that they work.
+iptables -t mangle -A PREROUTING -j MARK --or-mark 7
+expect gen_ip send:eth1 MARK 7 {IPv4 192.168.0.2 192.168.1.2 10 17 1 2}
+gen_ip IF=eth0 192.168.0.2 192.168.1.2 10 17 1 2
+iptables -t mangle -D PREROUTING -j MARK --or-mark 7
+
+iptables -t mangle -A PREROUTING -j MARK --set-mark 3
+iptables -t mangle -A PREROUTING -j MARK --or-mark 4
+expect gen_ip send:eth1 MARK 7 {IPv4 192.168.0.2 192.168.1.2 10 17 1 2}
+gen_ip IF=eth0 192.168.0.2 192.168.1.2 10 17 1 2
+iptables -t mangle -D PREROUTING -j MARK --set-mark 3
+iptables -t mangle -D PREROUTING -j MARK --or-mark 4
+
+iptables -t mangle -A PREROUTING -j MARK --set-mark 3
+iptables -t mangle -A PREROUTING -j MARK --and-mark 6
+expect gen_ip send:eth1 MARK 2 {IPv4 192.168.0.2 192.168.1.2 10 17 1 2}
+gen_ip IF=eth0 192.168.0.2 192.168.1.2 10 17 1 2
+iptables -t mangle -D PREROUTING -j MARK --set-mark 3
+iptables -t mangle -D PREROUTING -j MARK --and-mark 6
+
+# Now mix them up: check we delete the right one.
+iptables -t mangle -A PREROUTING -j MARK --set-mark 7
+iptables -t mangle -A PREROUTING -j MARK --or-mark 7
+iptables -t mangle -A PREROUTING -j MARK --and-mark 7
+
+# Delete old-style.
+iptables -t mangle -D PREROUTING -j MARK --set-mark 7
+expect iptables iptables: command failed
+iptables -t mangle -D PREROUTING -j MARK --set-mark 7
+iptables -t mangle -A PREROUTING -j MARK --set-mark 7
+
+# Delete or.
+iptables -t mangle -D PREROUTING -j MARK --or-mark 7
+expect iptables iptables: command failed
+iptables -t mangle -D PREROUTING -j MARK --or-mark 7
+iptables -t mangle -A PREROUTING -j MARK --or-mark 7
+
+# Delete and.
+iptables -t mangle -D PREROUTING -j MARK --and-mark 7
+expect iptables iptables: command failed
+iptables -t mangle -D PREROUTING -j MARK --and-mark 7
+iptables -t mangle -A PREROUTING -j MARK --and-mark 7
+
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
