@@ -1,14 +1,13 @@
-From: Kevin McConnell <kevymac@yahoo.com>
-Subject: Re: [NEW TARGET]: CLASSIFY
-Date: Thu, 30 Jan 2003 08:57:11 -0800 (PST)
+From: Xuan Chen <xuanc@isi.edu>
+Subject: examples on flow rate monitoring and token bucket filter
+Date: Thu, 30 Jan 2003 10:20:36 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030130165711.66771.qmail@web40303.mail.yahoo.com>
-References: <3E395811.9080908@trash.net>
+Message-ID: <Pine.LNX.4.44.0301301018140.6884-100000@yen.isi.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <3E395811.9080908@trash.net>
+To: netfilter@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,21 +18,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---- Patrick McHardy <kaber@trash.net> wrote:
-> I doubt that Harald would really prefer it that way,
-> bugzilla is a 
-> bugtracker
-> and this is the development list.
+Could somebody give me some reference on how to extend netfilter/iptables 
+to monitor incoming flow rate? Also, how to implement a token bucket 
+filters with netfilter/iptables? Thaks.
 
-Oh, I thought that this would qualify as an
-enhancement.
+Cheers,
+-chen
 
-
-=====
-Kevin C. McConnell --RHCE-- <Red Hat Certified Engineer>
-
-__________________________________________________
-Do you Yahoo!?
-Yahoo! Mail Plus - Powerful. Affordable. Sign up now.
-http://mailplus.yahoo.com
+-- 
+Xuan Chen
+USC/ISI
