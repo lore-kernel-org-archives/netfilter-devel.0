@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: changes in 2.5/2.6 Kernels
-Date: Mon, 4 Nov 2002 12:09:09 +0100
+From: Peter Surda <shurdeek@panorama.sth.ac.at>
+Subject: Re: Correct list
+Date: Mon, 4 Nov 2002 14:54:29 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021104120909.Q8635@sunbeam.de.gnumonks.org>
-References: <3DC14A46.5010506@vt.edu>
+Message-ID: <20021104135429.GE32094@noir.cb.ac.at>
+References: <F114fNSXBzh5Em5vS3z00023c7e@hotmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="H0flIYUxnzbhZUOY"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="zjcmjzIkjQU2rmur"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Brad Tilley <rtilley@vt.edu>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <3DC14A46.5010506@vt.edu>; from rtilley@vt.edu on Thu, Oct 31, 2002 at 10:20:38AM -0500
+In-Reply-To: <F114fNSXBzh5Em5vS3z00023c7e@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,43 +22,31 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---H0flIYUxnzbhZUOY
+--zjcmjzIkjQU2rmur
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 31, 2002 at 10:20:38AM -0500, Brad Tilley wrote:
-> Hello and thanks for a great piece of software!!!
+>  Thanks for being so rude to me but I really need to get working
+> on this document. I am sure there are plenty of people who could
+> use it.
+Hmm.
 
-you're welcome :)
+>  COMMENT: I have studied Netfilter and its usage for about 1 year
+>now and I _still_ do not fully "get it". Either I am stupid or all
+>of the documentation from third party people is in error/poorly
+>written. Maybe a little both. ;-)
+What EXACTLY don't you understand? I have only written little code into
+netfilter, but I think it's pretty easy. Didn't even read docs, found what I
+needed in the code self.
 
-> I have been told that there are major changes in netfilter/iptables in=20
-> the latest beta kernel 2.5 and that the changes will be made permanent=20
-> in the next stable release 2.6
+Bye,
 
-well, there was the planned pkttables change, but unfortunately it didn't
-get finished before the kernel freeze.
+Peter Surda (Shurdeek) <shurdeek@panorama.sth.ac.at>, ICQ 10236103, +436505122023
 
-> My question is, will the command syntax change again (like it did from=20
-> ipchains to iptables)? I use iptables daily on routers and I'm very=20
-> comfortable with its logic and syntax. If there is going to be a major=20
-> change, I'd like to know so I can study the change and test it out.
+--
+                           Reboot America.
 
-it doesn't look like those changes will make it in before the next stable
-release, so everything will stay the same for some time :(
-
-> R. Bradley Tilley (Brad), System Administrator
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
-
---H0flIYUxnzbhZUOY
+--zjcmjzIkjQU2rmur
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -67,9 +54,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9xlVVXaXGVTD0i/8RAvN0AJ9dKK7HC8+XOp4uF8T6OUWiGcMGfwCfR+YZ
-GHI54lZklifN6XD/Bl9ZQsM=
-=2YQ7
+iD8DBQE9xnwVzogxsPZwLzcRAuKlAJ9ENtjbDnQNDVfNGicrQPnsnUSrVQCffnDY
+/7cHRrI2bTwKdP7vFgydxIA=
+=z3Fe
 -----END PGP SIGNATURE-----
 
---H0flIYUxnzbhZUOY--
+--zjcmjzIkjQU2rmur--
