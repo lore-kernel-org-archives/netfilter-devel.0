@@ -1,17 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [RFC][PATCH] NAT reservations
-Date: Thu, 11 Dec 2003 14:14:37 +0100
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: pom for 2.6
+Date: Thu, 11 Dec 2003 14:27:13 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031211131437.GD22826@sunbeam.de.gnumonks.org>
-References: <3FCF5F23.5060800@balabit.hu>
+Message-ID: <3FD870B1.9080801@trash.net>
+References: <2244.10.1.1.4.1070972755.squirrel@mail> <20031211125711.GZ22826@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HSHpc5A+GJc9BHcd"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Laurens Blankers <lblankers@xs4all.nl>,
+ netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-Content-Disposition: inline
-In-Reply-To: <3FCF5F23.5060800@balabit.hu>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031211125711.GZ22826@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,50 +22,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
+> On Tue, Dec 09, 2003 at 01:25:55PM +0100, Laurens Blankers wrote:
+> 
+>>Hi,
+>>
+>>This question has been asked several times on the netfilter-user
+>>mailinglist but I can find an answer to it, so therefor I'm asking it
+>>here: When can we expect a patch-o-matic for kernel 2.6?
+> 
+> 
+> SCNR: as soon as it is finished.  jeez, I'm working on it.  
 
---HSHpc5A+GJc9BHcd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Harald, could you commit what you've got so far to CVS or maybe
+create a list in bugzilla so people can see what remains to be done
+and leave a note if they want to do some part of it ? I would very
+likely do some parts of it.
 
-On Thu, Dec 04, 2003 at 05:21:55PM +0100, KOVACS Krisztian wrote:
->=20
->   Hi,
->=20
->   Any feedback is welcome. :)
-
-Looks fine so far, however two cosmetic remarks:
-
-don't change existing definitions for bits in bitmasks.  this annoys
-developers who know them out of their head, didn't notice your change
-and then try to debug something.
-
-also, please try to not export that many new symbols.  range reservation
-and range removal should be enough, the __ symbols aren't even used
-outside the code, are they?
-
->   Regards,
->     Krisztian KOVACS
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---HSHpc5A+GJc9BHcd
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/2G28XaXGVTD0i/8RAn/NAJ4jtpaIdOJruC7j8+LPFww+u9qH/QCfVLPL
-d3uWt89nShnpXqQegPYampM=
-=1VTV
------END PGP SIGNATURE-----
-
---HSHpc5A+GJc9BHcd--
+Best regards,
+Patrick
