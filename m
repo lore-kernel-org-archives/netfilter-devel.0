@@ -1,18 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2.6] 2/2:  Fix NAT helper locking
-Date: Fri, 03 Sep 2004 17:53:21 +0200
+Subject: Re: [PATCH] kernel panic with rpc.patch
+Date: Fri, 03 Sep 2004 18:15:52 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <41389371.2030009@trash.net>
-References: <20040903070234.GQ26263@sunbeam.de.gnumonks.org>
-	<20040903002453.77beee16.davem@davemloft.net>
+Message-ID: <413898B8.6080406@trash.net>
+References: <20040902232357.GA18422@linuxace.com> <4137CE4D.7070702@trash.net>
+	<20040903042113.GA19923@linuxace.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netdev@oss.sgi.com,
-	netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20040903002453.77beee16.davem@davemloft.net>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20040903042113.GA19923@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,25 +22,26 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David S. Miller wrote:
+Phil Oester wrote:
 
->Applied both patches, but the first had serious offsets
->and the second had to be applied by hand due to rejects
->against the current 2.6.x sources.
+>On Fri, Sep 03, 2004 at 03:52:13AM +0200, Patrick McHardy wrote:
 >
->Ummm... wow what ancient tree did you patch against
->Harald?  The tree you patched against didn't even have the
->skb_header_pointer() changes in it, that's caveman
->era :-)  That's what caused the rejects.
+>>Applied, but wondering on second thought. There are still two
+>>__MOD_DEC_USE_COUNT left, and __MOD_INC_USE_COUNT does actually
+>>do something :) Why are they useless ?
+>>    
+>>
+>
+>Yes, perhaps 'useless' is the wrong word -- they do something, but 
+>something which is deprecated and in 2.6 netfilter nonexistent. And
+>following davem's policy of no refcounts for network drivers [1], it
+>seems to make sense.
+>
+>Agreed, however, that removing the INC without also removing the DEC
+>is sloppy.  Attached find a patch to do so.
 >  
 >
-My fault, I put the patches into patch-o-matic about two or
-three weeks ago and didn't expect they wouldn't apply anymore
-so quickly :)
+Thanks, applied.
 
->
->Anyways, I merged it all in cleanly.
->
-Thanks.
-
+Regards
 Patrick
