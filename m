@@ -1,27 +1,63 @@
-From: eric@regit.org
-Subject: Re: avoid some indicative messages
-Date: Thu, 28 Aug 2003 17:17:32 +0200 (CEST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <37610.194.98.166.58.1062083852.squirrel@mail.regit.org>
-References: <12bff612dda5.12dda512bff6@teleline.es>
+From: Felipe W Damasio <felipewd@terra.com.br>
+Subject: [PATCH 1/9] Remove unneeded linux/version.h from net/ipv4/netfilter/ip_conntrack_core.c
+Date: Fri, 29 Aug 2003 17:08:51 -0300
+Sender: kernel-janitor-discuss-admin@lists.sourceforge.net
+Message-ID: <3F4FB2D3.1040709@terra.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
+Content-Type: multipart/mixed;
+ boundary="------------000806080403040002080607"
 Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-In-Reply-To: <12bff612dda5.12dda512bff6@teleline.es>
-To: "MYRIAM15" <MYRIAM15@terra.es>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Return-path: <kernel-janitor-discuss-admin@lists.sourceforge.net>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	kernel-janitor-discuss@lists.sourceforge.net
+Errors-To: kernel-janitor-discuss-admin@lists.sourceforge.net
+List-Help: <mailto:kernel-janitor-discuss-request@lists.sourceforge.net?subject=help>
+List-Post: <mailto:kernel-janitor-discuss@lists.sourceforge.net>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/kernel-janitor-discuss>,
+	<mailto:kernel-janitor-discuss-request@lists.sourceforge.net?subject=subscribe>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/kernel-janitor-discuss>,
+	<mailto:kernel-janitor-discuss-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=kernel-janitor-discuss>
 List-Id: netfilter-devel.vger.kernel.org
 
-> Hi,
-> Maybe it is a stupid question. It's just that use a C program that if
-> exist". My question then is: is there any way to avoid these messages?
+This is a multi-part message in MIME format.
+--------------000806080403040002080607
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-close stdout ?
+	Based on Randy's modified checkversion.pl script.
+
+	Compile fine against 2.6.0-test4.
+
+	Please consider applying.
+
+	Cheers,
+
+Felipe
+
+--------------000806080403040002080607
+Content-Type: text/plain;
+ name="ip_conntrack_core.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ip_conntrack_core.patch"
+
+--- linux-2.6.0-test4/net/ipv4/netfilter/ip_conntrack_core.c.orig	Fri Aug 29 16:42:56 2003
++++ linux-2.6.0-test4/net/ipv4/netfilter/ip_conntrack_core.c	Fri Aug 29 16:43:04 2003
+@@ -13,7 +13,6 @@
+  *	- export ip_conntrack[_expect]_{find_get,put} functions
+  * */
+ 
+-#include <linux/version.h>
+ #include <linux/config.h>
+ #include <linux/types.h>
+ #include <linux/icmp.h>
+
+--------------000806080403040002080607--
+
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
