@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [RFC] cloned skbs - if i am right there is a bug in ipt_ECN.c
-Date: Sat, 13 Dec 2003 09:53:58 +0100
+Subject: Re: memory leak related to bridging, conntrack and frags in 2.6.0
+Date: Sat, 13 Dec 2003 07:47:29 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031213085358.GF8950@obroa-skai.de.gnumonks.org>
-References: <002701c3c0ea$e26efa70$0e25fe0a@southpark.ae.poznan.pl>
+Message-ID: <20031213064729.GC8950@obroa-skai.de.gnumonks.org>
+References: <20031212155543.GD14920@sunbeam.de.gnumonks.org> <Pine.LNX.4.44.0312121606000.8670-100000@sorbus2.navaho>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2FkSFaIQeDFoAt0B"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="E/DnYTRukya0zdZ1"
+Cc: Andy Loukes <andy@navaho.co.uk>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+To: Steve Hill <steve@navaho.co.uk>
 Content-Disposition: inline
-In-Reply-To: <002701c3c0ea$e26efa70$0e25fe0a@southpark.ae.poznan.pl>
+In-Reply-To: <Pine.LNX.4.44.0312121606000.8670-100000@sorbus2.navaho>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,38 +23,45 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---2FkSFaIQeDFoAt0B
+--E/DnYTRukya0zdZ1
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Dec 12, 2003 at 09:02:25PM +0100, Maciej Soltysiak wrote:
-> I know it may sound lame. All of this came out when I was hacking
-> on some netfilter module and noticed, that there might be a bug in
-> ipt_ECN.c:
+On Fri, Dec 12, 2003 at 04:11:38PM +0000, Steve Hill wrote:
+> On Fri, 12 Dec 2003, Harald Welte wrote:
 >=20
-> in set_ect_tcp() we have:
->                 kfree_skb(*pskb);
->                 *pskb =3D nskb;
->                 iph =3D (*pskb)->nh.iph;
->         }
+> > are you sure it's a memory leak?  Please explain why.  Which number in
+> > /proc/slabinfo are you looking at?  And did you confirm that this is not
+> > just some cache that expires after some time?
 >=20
-> But iph is not used, we are using tcph later on in the code, so we should:
->                 tcph =3D (*pskb)->nh.tcph;
+> I am looking into this too - size-64 is increasing (and keeps increasing=
+=20
+> until the box dies after it's filled all 128MB of RAM).
 >=20
-> If this is not a bug, that line could be at least removed, because iph is
-> not used.
+> The memory that is leaking seems to be allocated on line 299 on=20
+> net/bridge/br_netfilter.c:
+>  =20
+>         if ((nf_bridge =3D nf_bridge_alloc(skb)) =3D=3D NULL)
+>                 return NF_DROP;
+>  =20
+> Only the first fragment gets freed later on, all the other fragments seem=
+=20
+> to get leaked during defragmentation.  (I'm not an expert on netfilter,=
+=20
+> but I presume that the defrag routines defragment the packet and puts it=
+=20
+> in the first skb, leaving the skbs for the other packets needing to be=20
+> freed?)
 
-This is indeed a bug.  This one is only present in 2.4.x, 2.6.x has a
-quite seperate code piece in that function.
+now that sounds interesting.  Please make sure you contact the linux
+bridging maintainer (Bart De Schuymer) or the respective linux bridging
+mailinglist about your findings.
 
-> If this my mail shows my ignorance with reading some docs, please show me
-> which should i read.
+Maybe something screws up the reference counting to the skb->nf_bridge
+attached structure.
 
-I doubt there would be any other way than RTFS ;)
-
-> Regards,
-> Maciej
+> - Steve Hill
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -66,16 +73,16 @@ I doubt there would be any other way than RTFS ;)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---2FkSFaIQeDFoAt0B
+--E/DnYTRukya0zdZ1
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/2tOlXaXGVTD0i/8RAsO1AJ4yU9LyPbW+ZTo2zx0dYeIyCng79wCgss3B
-LMHqKys9P2Dc0TuJ0Gj2TCo=
-=6F9d
+iD8DBQE/2rYBXaXGVTD0i/8RAsNcAJ90HnvQdQ2lunDrZYVT+17qg1LXSwCdELM1
+6xHrh+Jw8H6GRbkLxZ5iFO4=
+=/Pgm
 -----END PGP SIGNATURE-----
 
---2FkSFaIQeDFoAt0B--
+--E/DnYTRukya0zdZ1--
