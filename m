@@ -1,16 +1,16 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: how to add packet or byte couters to connection tracking module
-Date: Thu, 20 Feb 2003 19:33:40 +0100
+From: Laszlo Valko <valko@linux.karinthy.hu>
+Subject: Re: [PATCH] ip_nat_cuseeme NAT helper
+Date: Thu, 20 Feb 2003 21:40:21 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030220183340.GA17248@oknodo.bof.de>
-References: <Pine.LNX.4.44.0302200959310.13403-100000@ski.isi.edu>
+Message-ID: <20030220214021.A24628@linux.karinthy.hu>
+References: <1045530785.1570.12.camel@exile>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Xuan Chen <xuanc@isi.edu>
+To: "Filip Sneppe \(Cronos\)" <filip.sneppe@cronos.be>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0302200959310.13403-100000@ski.isi.edu>
+In-Reply-To: <1045530785.1570.12.camel@exile>; from filip.sneppe@cronos.be on Tue, Feb 18, 2003 at 02:13:05AM +0100
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,46 +21,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> I want to add a packet or byte counter to the connection tracking module 
-> in netfilter. That is, I want to track how many packets and bytes having 
-> been sent through one connection. Where should I start?
+On Tue, Feb 18, 2003 at 02:13:05AM +0100, Filip Sneppe (Cronos) wrote:
+> Hi Harald & others,
+> 
+> This implements a NAT helper for the CuSeeMe protocol, both as a
+> patch against 2.4.20 and as a patch-o-matic patch.
+> 
+> Note that it requires Brian J. Murrell's newnat-udp-helper.patch
+> that should be in 2.4.21+ kernels (the 2.4.20 patch has Brian's
+> patch in it).
+> 
+> The module should work in DNAT and SNAT scenarios - I posted an
+> earlier version a couple of months ago, but that code had one
+> bug where one would see his/her own messages, yet others didn't
+> see anything. This version works in all my SNAT/DNAT tests...
+> 
+> Regards,
+> Filip
 
-1) Get the kernel source code.
+Hi Filip!
 
-2) Get enough RAM to hold the full kernel source code, and your normal apps.
-   To test whether you have enough RAM, use 'vmstat' to see whether you
-   start swapping on this command:
-	find /usr/src/linux -type f | grep -l 'struct ip_conntrack'
+I've just looked at the patch you sent, and found this piece of code:
 
-3) you are set up for work with the kernel. "grep for this" is the
-   basic navigation aid. Now that you have found the include file
-   (they end in '.h') where 'struct ip_conntrack' is defined,
-   add the neccessary counter fields to it.
+++      char new_port_ip[6];
+...
+++              *((u_int32_t *)(new_port_ip+2)) = ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip;
 
-4) Study the other files the find/grep above found, especially the files
-   with 'conntrack' in their names. Add the counter updates to the
-   relevant files.
+This will make oopses on all platforms with strict alignment restrictions.
+Probably most RISC platforms fall into this category, some (like Alpha) have
+software trap emulation for such cases causing horrible slowdown (a
+single assignment could take a few thousand CPU cycles).
 
-5) Provide ways for userlevel to access those counters. I would be
-   interested to hear about the access methods you imagine.
+Generally, you should not access a 32-bit dword at a memory location whose
+two LSB bits are non-zero.
+Please consider reworking your patch to make it portable.
 
-6) Test. Test. Test.
-
-> Any examples will be very helpful!
-
-A concrete example, would mean writing the code. I hope you persist
-and implement and share your code, because if you do, we will have
-an example. I hope my six step program, above, helps you along a bit.
- 
-> btw, is there a search engine on netfilter's web page? I think that's 
-> really helpful if people want to search for previous work and discussions.
-
-I'm sure that google has it indexed fully; use the advanced search
-features, there, to restrict any search to a particular domain.
-An example URL, searching for "byte counters" on www.netfilter.org,
-would be:
-
-	http://www.google.com/search?q=+site%3Awww.netfilter.org+byte+counters
-
-best regards
-  Patrick
+Thanks,
+Laszlo
