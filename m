@@ -1,16 +1,21 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2.6] connection tracking events
-Date: Sat, 16 Oct 2004 15:21:06 +0200
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: Policy match with a bridge
+Date: Sat, 16 Oct 2004 15:30:58 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <41712042.2000505@trash.net>
-References: <20041015175406.GK17516@obroa-skai.de.gnumonks.org>
+Message-ID: <200410161530.58439.bdschuym@pandora.be>
+References: <411EAF08.3000401@shorewall.net>
+	<200408192010.28417.bdschuym@pandora.be>
+	<416DC6EF.9050001@shorewall.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org, bridge@osdl.org,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20041015175406.GK17516@obroa-skai.de.gnumonks.org>
+To: Tom Eastep <teastep@shorewall.net>
+In-Reply-To: <416DC6EF.9050001@shorewall.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,28 +26,26 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
-
-Harald Welte wrote:
-
->Hi!
+On Thursday 14 October 2004 02:23, Tom Eastep wrote:
+> Bart De Schuymer wrote:
+> > On Monday 16 August 2004 03:31, Patrick McHardy wrote:
+> >>The problem is ipv4_sabotage_out in the briding code. It prevents the
+> >>packet from hitting the LOCAL_OUT hook while it is still unencrypted.
+> >>When it hits the bridging code and its LOCAL_OUT hook it's too late.
+> >>Not sure how to handle it yet.
+> >
+> > I'll have a look at that after I'm finished with the IPv6 bridge
 >
->Since we decided at the netfilter developer workshop that we want to
->split conntrack events from the rest of ctnetlink, I've now done that
->(and ported it to use percpu allocations).  This is needed mostly for 
->ct_sync.
->  
+> firewalling
 >
-I've already did this in Erlangen. Pablo is currently working with
-Krizstian on this patch.
+> > stuff.
+>
+> Any progress on this?
 
->Totally untested, but seems to compile.  Comments welcome.
->
->As it is quite non-intrusive, I think we should consider it for
->post-2.6.9.
->  
->
-Agreed.
+You should be able to do what you want in the iptables mangle OUTPUT chain 
+instead of the one in the filter table.
+Patrick, a hack solution would be to temporarily change out->hard_start_xmit 
+to something else than br_dev_xmit, that way you fool ipv4_sabotage_out.
 
-Regards
-Patrick
+cheers,
+Bart
