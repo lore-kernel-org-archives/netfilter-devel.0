@@ -1,16 +1,14 @@
-From: Laszlo Valko <valko@linux.karinthy.hu>
-Subject: Re: Comments about IPT_ALIGN
-Date: Mon, 27 Jan 2003 01:43:04 +0100
+From: Bob Arctor <curious@pb194.luban.sdi.tpnet.pl>
+Subject: udp REJECT....
+Date: Mon, 27 Jan 2003 05:13:19 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030127014304.A10076@linux.karinthy.hu>
-References: <3E335CB1.9070101@hipac.org> <20030126120159.A3045@linux.karinthy.hu> <3E33C665.9080106@fugmann.dhs.org> <20030126152227.A6811@linux.karinthy.hu> <3E342355.1030707@hipac.org> <20030126204358.B9418@linux.karinthy.hu> <3E346A9A.5020305@hipac.org>
+Message-ID: <200301270513.19862.curious@pb194.luban.sdi.tpnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Anders Fugmann <afu@fugmann.dhs.org>, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Thomas Heinz <creatix@hipac.org>
-Content-Disposition: inline
-In-Reply-To: <3E346A9A.5020305@hipac.org>; from creatix@hipac.org on Mon, Jan 27, 2003 at 12:09:14AM +0100
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,34 +19,76 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Thomas!
+hello... i have problems with dDoS attacks, and would like to set up my l=
+inux=20
+routers dDoS proof and not being relays like most of available commercial=
+=20
+routers.
 
-On Mon, Jan 27, 2003 at 12:09:14AM +0100, Thomas Heinz wrote:
-> > The problem is that you _cannot_ determine from an x-bit userspace compiler
-> > what alignment restrictions do exist on a y-bit kernelspace compiler. Since
-> > they are two distinct compilers.
-> > That's the fundamental flaw in __alignof__/IPT_ALIGN-type "hacking".
-> 
-> Hm, but we agree that the alignment of types of fixed width is the
-> same even if x != y, e.g. __u64 is 8 byte aligned in sparc64 user and
-> kernel space. The problem of stacking structs with different alignment
+i am not very skilled in using iptables, but as far i know it is not poss=
+ible=20
+to write following rule :
 
-On sparc, it happens to be the same. I'm not sure how much pure luck
-or intention this is. However, on x86, __u64 is definitely 4 byte aligned,
-and I would expect x86-64 to do it differently (8 byte alignment).
-This might even be a function of using different compiler options...
+ip A is attacker ip V is victim.
 
-> requirements next to each other can be solved by aligning the structures
-> according to what you call "strictest alignment on this platform"
-> which IMO can be expressed by:
->    struct foo {[...]}__attribute__((aligned(__alignof__(u_int64_t))));
+R is our router.
 
-I think the "strictest alignment on this platform" should not come
-from the compiler. It should be defined in some kernel header under
-linux/include/asm-*.
+udp packets go from A to V via R . Victim have soft/alive admin and start=
+s to=20
+reject packtets from Attacker (udp flood) . they go via same route - beca=
+use=20
+they're rejected. so first router hitted by them should be R .
 
-Regards,
-Laszlo
+router should then block 10x packets recieved from attacker - by rejectin=
+g=20
+them too, instead of forwarding them to victim.
+so for each rejected packtet from victim router should reject next 10 pac=
+kets=20
+recieved from attacker .  this way victim'll recieve only 1/10 of origina=
+l=20
+packets coming from attacker. it would be also nice to add feature to=20
+dynamically set how much packets Router should reject.
+this way there is also possible shaping of traffic while Victim have=20
+congested connection - by rejecting packets which can't fit queue. this w=
+ay=20
+Attacker can stop sending packets for a while, while they would be droppe=
+d=20
+anyway, so it could reduce network load ...
 
-> Thomas
-> 
+i think something like syncookies plugin could help - because it have to=20
+build up new iptables rule basing on analyse of incoming packets...
+
+i think about quick nasty hack :=20
+forward all rejected packets back to forward queue (to it's input)
+deny forwarding of rejected packets (on output of this queue, so victim'l=
+l=20
+not recieve his own rejected packets back, but they'll pass thru forward=20
+queue anyway...)
+apply TBF on each forward queue  and set it up so it would 'overflow' onl=
+y if=20
+rejected packet is in . when overflowed it should block all traffic.
+i think there is iptables rule for counting packets. it should be set up =
+this=20
+way, that this 'locked' state would last for at least 10 packets no matte=
+r=20
+rejected or not.=20
+
+this is very ugly, as you need to set up tbf queue with detecting of reje=
+cted=20
+packet presence and drop queue for each rejected packet on out of this qu=
+eue=20
+for each udp port you forward...
+but if someone owns powerfull machine for router - it is better than leav=
+ing=20
+machine unprotected acting as dDoS relay.
+
+
+i know this solution contains many logical errors, i would be gratefull i=
+f=20
+someone at least tried to understand what i meant, and wrote working=20
+solution...=20
+
+
+
+--=20
+--=20
