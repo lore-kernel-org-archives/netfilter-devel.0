@@ -1,14 +1,14 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: [wojtektm@poczta.onet.pl: Odp: problem with iplimit]
-Date: Sat, 19 Oct 2002 22:37:40 +0200
+From: "luoqiang" <luoqiang@ict.ac.cn>
+Subject: libiptc: the question about struct ipt_entry
+Date: Mon, 21 Oct 2002 17:27:20 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021019203740.GI3039@naboo.club.berlin.ccc.de>
+Message-ID: <LLEJLJOMFGPFJFEGAKBJOENPCCAA.luoqiang@ict.ac.cn>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="lEGEL1/lMxI0MVQ2"
-Cc: wojtektm@poczta.onet.pl
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,75 +19,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-
---lEGEL1/lMxI0MVQ2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-I'm forwarding this to here, since it belongs to this list and not in my
-private mail.
-
--- 
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-============================================================================
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
-V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
-
---lEGEL1/lMxI0MVQ2
-Content-Type: message/rfc822
-Content-Disposition: inline
-
-Return-Path: X-Sieve: cmu-sieve 2.0
-Received: from mail by coruscant.gnumonks.org with spam-scanned (Exim 3.34 #1)
-	id 182wGN-0006E2-00
-	for laforge@gnumonks.org; Sat, 19 Oct 2002 18:15:43 +0200
-Received: from smtp4.poczta.onet.pl ([213.180.130.28])
-	by coruscant.gnumonks.org with esmtp (Exim 3.34 #1)
-	id 182wGM-0006Dz-00
-	for laforge@gnumonks.org; Sat, 19 Oct 2002 18:15:42 +0200
-Received: from pa84.krzeszowice.sdi.tpnet.pl ([217.99.138.84]:25351 "HELO
-	user1") by ps4.test.onet.pl with SMTP id <S840122AbSJSQOk>;
-	Sat, 19 Oct 2002 18:14:40 +0200
-Message-ID: <006f01c2778a$8f8a6880$060110ac@localdomain>
-From: "Wojciech Maj" <wojtektm@poczta.onet.pl>
-To: "Harald Welte" <laforge@gnumonks.org>
-References: <003c01c25b36$a86d6b60$060110ac@localdomain> <20020915102430.C3810@sunbeam.de.gnumonks.org> <004601c25c98$58481aa0$060110ac@localdomain> <20020915135531.S3810@sunbeam.de.gnumonks.org>
-Subject: Odp: problem with iplimit
-Date: Sat, 19 Oct 2002 18:14:11 +0200
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 5.00.2615.200
-X-MimeOLE: Produced By Microsoft MimeOLE V5.00.2615.200
-
-Dear Sir
-
-As You know, Gerd Knorr (the author of iplimit ) doesn't want to maintain
-it any more.
-Could You please have a look at iplimit code? It contain a nasty bug, which
-shows up
- if I try to limit the number of  parallel connections. Simply, sometimes
-the next incoming
-connection - which should be denied - is accepted. Because of this iplimit
-is useless.
-I need it to avoid some abuses in our local network.
-Would You help me?
-
-thanks in advance
-
-            Wojtek
-
-P.S.
-Forgive me my english please.I hope You know what I mean
-
-
-
-
-
-
-
---lEGEL1/lMxI0MVQ2--
+SGksIGFsbA0KDQogICAgSSB1c2UgbGliaXB0YyB0byBjb250cm9sIHRoZSBydWxlLCBidXQgSSBo
+YXZlIHNvbWUgcXVlc3Rpb25zIGFib3V0IGlwdF9lbnRyeSBub3cuDQogICAgRm9yIGV4YW1wbGUs
+IEkgdXNlICJpcHRhYmxlcyAtdCBuYXQgLUEgUFJFUk9VVElORyAtcCB1ZHAgLS1zcG9ydCA1MDAw
+IC1qIEROQVQgLS10byAxMC4xMC41Ljk6NTAwMCINCnRvIGZvcm0gYSBpcHRfZW50cnkuDQogICAg
+MS4gIEkgZm91bmQgdGhhdCAgdGhlIHRvdGFsIHNpemUgb2YgbWF0Y2ggaW4gdGhpcyBpcHRfZW50
+cnl0ICBpcyA0NCwgYnV0IGl0IG9ubHkgaW5jbHVkZSBhIGlwdF9lbnRyeV9tYXRjaA0KYW5kIGEg
+IGlwdF91ZHAsIGFuZCBzaXplb2YoaXB0X2VudHJ5X21hdGNoKStzaXplb2YoaXB0X3VkcCkgPSAz
+MiArIDEwID00Miwgd2h5IDIgYnl0ZXMgZGlmZmVyZW5jZT8NCiAgICAyLiAgRm9yIHRhcmdldCBp
+biB0aGlzIGV4YW1wbGUsIHRoZSB0b3RhbCBzaXplIGlzIDUyLCAzMiBvZiB3aGljaCBpcyB0aGUg
+c2l6ZW9mIHN0cnVjdCBpcHRfZW50cnlfdGFyZ2V0LA0KSSBkb24ndCBrbm93IHdoYXQgc3RydWN0
+IHNob3VsZCBiZSBmb3IgdGhlIG90aGVyIDIwIGJ5dGVzLCB3aGljaCBpcyBwb2ludGVkICBieSB0
+YXJnZXQtPmRhdGEuIGFuZCBJIHRoaW5rDQppdCBzaG91bGQgc3RvcmUgdGhlIGluZm9ybWF0aW9u
+IGFib3V0ICIgLS10byAxMC4xMC41Ljk6NTAwMCIuIFNvbWUgb25lIGNhbiB0ZWxsIG1lIHdoYXQg
+c3RydWN0IGl0IGlzID8NCg0KICh0aGUgc2l6ZSBvZiB0aGUgbWF0Y2ggYW5kIHRoZSB0YXJnZXQg
+aXMgZ2V0IGJ5IG1hdGNoLnUudXNlci5tYXRjaF9zaXplIGFuZCB0YXJnZXQudS51c2VyLnRhcmdl
+dF9zaXplIC4pDQoNCiBUaGFua3MhDQoNCmx1b3FpYW5n
