@@ -1,14 +1,15 @@
-From: Nikola Ciprich <extmaillist@linuxbox.cz>
-Subject: p-o-m: nf-log fix
-Date: Tue, 10 Aug 2004 13:13:29 +0200
+From: "kesineni sai pratap" <kesineni@woojininc.net>
+Subject: what use of ip_ptr in netdevice structure
+Date: Tue, 10 Aug 2004 21:09:31 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1092136409.2905.357.camel@develbox.linuxbox.cz>
+Message-ID: <000601c47ed2$e48ffc90$0201020a@kesineni>
+References: <20040803151102.30082.31199.Mailman@vishnu.netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: kadlec@blackhole.kfki.hu
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,24 +20,10 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, I think there is small bug in nf-log p'o'm patchset,
-can You please apply following patch: (in case it is correct)
+Hello ,
 
-diff -Naur patch-o-matic-ng-20040809/nf-log/linux-2.4.patch
-patch-o-matic-ng-20040809-nf-log_fix/nf-log/linux-2.4.patch
---- patch-o-matic-ng-20040809/nf-log/linux-2.4.patch    2004-02-19
-12:36:55.000000000 +0100
-+++ patch-o-matic-ng-20040809-nf-log_fix/nf-log/linux-2.4.patch
-2004-08-10 12:07:10.644846287 +0200
-@@ -402,7 +402,7 @@
- +      }
- +
- +      /* if threshold is reached, send message to userspace */
--+      if (qlen >= loginfo.qthreshold) {
-++      if (ub->qlen >= loginfo.qthreshold) {
- +              if (loginfo.qthreshold > 1)
- +                      nlh->nlmsg_type = NLMSG_DONE;
- +      }
+     Any body know about  what is use of ip_ptr void pointer in netdevice. 
+why use this field in netdevice
 
-thanks,
-n.
+thanks &regards
+LEO
