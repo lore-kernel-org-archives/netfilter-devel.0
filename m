@@ -1,13 +1,17 @@
-From: "Juan Torres" <islero77@telefonica.net>
-Subject: How to change a match options
-Date: Tue, 8 Apr 2003 13:42:43 +0200
+From: Cedric Blancher <blancher@cartel-securite.fr>
+Subject: Re: more questions about kernel config options for iptables
+Date: 08 Apr 2003 14:59:32 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000001c2fdc3$fd33ddc0$0300000a@juan>
+Message-ID: <1049806772.11714.187.camel@elendil.intranet.cartel-securite.net>
+References: <Pine.LNX.4.44.0304080806380.10072-100000@dell>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0001_01C2FDD4.C0BCADC0"
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+Cc: iptables mailing list <netfilter@lists.netfilter.org>,
+   Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Netfilter-devel" <netfilter-devel@lists.netfilter.org>
+To: "Robert P. J. Day" <rpjday@mindspring.com>
+In-Reply-To: <Pine.LNX.4.44.0304080806380.10072-100000@dell>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,120 +22,70 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Le mar 08/04/2003 =E0 14:23, Robert P. J. Day a =E9crit :
+> in other words, you're building in a *support system* for unselected
+> features, but without actually picking these features, it's not
+> doing you much good.  that's why i was thinking that a reworking
+> of that entire config menu might be in order -- why let users
+> pick what turns out to be a non-functional set of options?
 
-------=_NextPart_000_0001_01C2FDD4.C0BCADC0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+It is not really non-functional. If I were a developper, I could build a
+kernel with IP tables selected and no table, just to test the table I am
+developping. That's just an example, but I think someone can find some
+good reason ;)
+I must admit that, from a strict user poijnt of vue, I can't see any
+good reason.
+
+> it would make far more sense to have a list of menu options
+> that reflects what a user would want to *do*, and have the
+> underlying dependencies kept invisible.  a more readable menu
+> like:
+>=20
+>    Basic filtering
+>      Connection tracking
+>    NAT
+>    Packet mangling
+
+This does not reflect reality. Connection tracking does not depend on
+basic filtering. It's even completly independent form it. It does not
+depend on NAT either.
+
+> gotcha.  if you want masq/NAT, you would have to select
+> not only Connection tracking, but IPtables support and,
+> within that, "Full NAT".  and that's why i dislike the current
+> menu layout.  it would be more reasonable for someone to say,
+> "i want NAT", and have the underlying dependencies automatically
+> satisfied.
+
+I see your point. But I do think connection tracking has to appear as a
+independent choice. But some conntrack dependencies could appear
+non-selected. As an example, NAT could appear anyway, and if you were to
+select it, then it would automaticly select connection tracking as well.
+I don't know if it's possible to do such dependencies into kernel
+configuration (in fact, I don't think so).
+
+My 0.02=A4 about this is that I personaly prefer a configuration script
+that reflect reality, than something more "user convenient" that could
+fool people about the way things work. Netfilter insides, as well as
+kernel insides, are already complicated enough to me, for I do not need
+stuff that could make me misunderstand something. Reality is that NAT
+depends on conntrack. Your point would be to invert this for user's
+sake, and this is, imho, a baaaaad thing ;)
+
+I don't know if any of them are reading this thread, but if we could
+have some core developper's point of vue about his, would be great.
+
+It is a very tough subject to discuss how kernel configuration must be
+presented. I wouldn't show nerd's behaviours, e.g. dumb users do not
+compile kernel, but I tend to think that if someone wants to build its
+own kernel, then it's up to him to (try to ?) understand how it is going
+and what are the choices he's about to make.
 
 
-Hi, I want to make my own match, but before, to understand how it works,
-I'm modifying an existing match, ipt_multiport to be precise, so, I have
-changed the ipt_multiport.c file. But now I want to change the match
-writing options (for example, to add a new option similar than -dport,
-or to make that it wouldn't be necessary to write any option) So I need
-to know which file I have to modify to change the "writing options" of a
-match.
+Cc netfilter-devel.
 
-Thanks a lot.
-
-	Juan
-
-
-
-------=_NextPart_000_0001_01C2FDD4.C0BCADC0
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<HTML>
-<HEAD>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
-charset=3Dus-ascii">
-<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
-6.0.4630.0">
-<TITLE>How to change a match options</TITLE>
-</HEAD>
-<BODY>
-<!-- Converted from text/rtf format -->
-<BR>
-
-<P ALIGN=3DJUSTIFY><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 =
-FACE=3D"Arial">Hi,</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 FACE=3D"Arial">I =
-want to make my own match, but before, to understand how it =
-works,</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
-FACE=3D"Arial">I</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 =
-FACE=3D"Arial">&#8217;</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 FACE=3D"Arial">m =
-modifying</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
-FACE=3D"Arial">an existing</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 FACE=3D"Arial"> =
-match,</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
-FACE=3D"Arial">ipt_multiport to be precise</FONT></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
-SIZE=3D2 FACE=3D"Arial">,</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 =
-FACE=3D"Arial"></FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
-FACE=3D"Arial">s</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 FACE=3D"Arial">o, =
-I have changed</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
-FACE=3D"Arial">the ipt_multiport.c file. But now I want to =
-change</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
-FACE=3D"Arial">the match writing options (for =
-example,</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
-FACE=3D"Arial">to add a new option similar than</FONT></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT =
-SIZE=3D2 FACE=3D"Arial">&#8211;</FONT></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
-SIZE=3D2 FACE=3D"Arial">dport</FONT></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
-SIZE=3D2 FACE=3D"Arial">, or to make that it wouldn</FONT></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
-SIZE=3D2 FACE=3D"Arial">&#8217;</FONT></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
-SIZE=3D2 FACE=3D"Arial">t be nece</FONT></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
-SIZE=3D2 FACE=3D"Arial">s</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 =
-FACE=3D"Arial">sary to write any option</FONT></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
-SIZE=3D2 FACE=3D"Arial">) So I need to know which file I have to =
-modify</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 FACE=3D"Arial"> =
-to change the</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
-FACE=3D"Arial">&#8220;</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 =
-FACE=3D"Arial">writing</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
-FACE=3D"Arial">options</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 =
-FACE=3D"Arial">&#8221;</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 FACE=3D"Arial"> =
-of a match</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 =
-FACE=3D"Arial">.</FONT></SPAN></P>
-
-<P ALIGN=3DJUSTIFY><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 =
-FACE=3D"Arial">Thanks a lot.</FONT></SPAN></P>
-
-<P ALIGN=3DJUSTIFY><SPAN =
-LANG=3D"en-gb">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <FONT SIZE=3D2 =
-FACE=3D"Arial">Juan</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"></SPAN></P>
-<BR>
-
-</BODY>
-</HTML>
-------=_NextPart_000_0001_01C2FDD4.C0BCADC0--
+--=20
+C=E9dric Blancher  <blancher@cartel-securite.fr>
+IT systems and networks security - Cartel S=E9curit=E9
+Phone : +33 (0)1 44 06 97 87 - Fax: +33 (0)1 44 06 97 99
+PGP KeyID:157E98EE  FingerPrint:FA62226DA9E72FA8AECAA240008B480E157E98EE
