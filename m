@@ -1,14 +1,11 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] Move tcp_adjust to generic layer
-Date: Wed, 09 Mar 2005 01:38:41 +0100
-Message-ID: <422E4591.7080805@trash.net>
-References: <422B86D6.8040905@eurodev.net> <422B8D98.3000501@trash.net>
+From: Wang Jian <lark@linux.net.cn>
+Subject: bidirectional CONNMARK?
+Date: Wed, 09 Mar 2005 13:26:19 +0800
+Message-ID: <20050309124806.A55C.LARK@linux.net.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <422B8D98.3000501@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,26 +17,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira wrote:
-> 
->> Hi Patrick,
->>
->> This patch moves tcp_adjust to a generic layer. I sent something 
->> similar some time ago but it seems that it got lost.
-> 
-> 
-> IIRC the argument against this patch was that it is entirely specific
-> to TCP. Can't we simply move it all to TCP's manip_pkt() function ?
+Hi folks,
 
-Thinking about it, this would also allow to solve a differnt issue
-nicely. TCP packets contained in ICMP errors don't have their
-sequence numbers adjusted backwards, theoretically this can cause
-them to be discarded by the receipient. It would require an additional
-argument to manip_pkt, for ICMP packets we can't simply apply the
-adjustment of the reverse direction, but need to apply it inversely.
-Perhaps it can also be deduced from iphdroff and skb->nh.iph.
-What do you think ?
+What is the CONNMARK's purpose? I think it is to reduce rule traversal,
+like this:
 
-Regards
-Patrick
+# iptables -A PREROUTING -t mangle \
+   -m connmark --mark 0xEF000000/0xFF000000 -j CONNMARK --restore-mark
+
+# iptables -A PREROUTING -t mangle <matching rule 1-1> -j CONNMARK --set-mark 0xEF000001
+# iptables -A PREROUTING -t mangle <matching rule 1-2> -j CONNMARK --set-mark 0xEF000001
+# iptables -A PREROUTING -t mangle <matching rule 1-3> -j CONNMARK --set-mark 0xEF000001
+# iptables -A PREROUTING -t mangle <matching rule 2-1> -j CONNMARK --set-mark 0xEF000002
+# iptables -A PREROUTING -t mangle <matching rule 3-1> -j CONNMARK --set-mark 0xEF000003
+<snip a lot of rules>
+
+But an issue occurs, when we want to set 2 different marks for a single
+session in two directions.
+
+When doing QoS control as an router between two or more interfaces,
+bi-directional control is neccessary. Since nfmark is the most
+convenient way to classify packet, should we extend CONNMARK to support
+two marks?
+
+Comment on this issue is welcome.
+
+If it is a good idea, I will provide a patch for it.
+
+
+
+
+-- 
+  lark
