@@ -1,12 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: CONNMARK patch
-Date: Wed, 10 Sep 2003 03:54:48 +0200 (CEST)
+From: Karlis Peisenieks <karlis@mt.lv>
+Subject: recent in_range fix uncovered another bug?
+Date: Wed, 10 Sep 2003 14:05:55 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0309100327010.31337-100000@filer.marasystems.com>
+Message-ID: <20030910110555.GA30240@mt.lv>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed; boundary="k1lZvvs/B4yU6o8G"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: coreteam@netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,49 +19,94 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-For those who have forgot the purposes of the CONNMARK patch in extra, 
-here is a short reminder.
 
-The basic desing idea behind CONNMARK is the ability to provide
-per-session routing & classification information. Such per-session routing
-information can be used in a variety of different applications:
+--k1lZvvs/B4yU6o8G
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-* transparent proxying where the router must route a complete TCP session
-(including ICMP and RELATED sessions if any) to the proxy without using
-NAT. Using NAT hides important information from the proxy and is not 
-possible with all protocols (think FTP).
+Hello!
 
-* routing of multiple links without a global routing table. Allows for
-example a standard three-legged firewall (internal/external/dmz) with a
-very complex and dynamic (as in frequent changes of what networks are part
-of the internal network) to run without any routingtable except for
-internal & external default gateways simply by remembering from which
-interface the session was initiated.
+I came across "lockup" in conntrack code using 2.4 kernel with bridge 
+netfilter (which is standart in 2.6 kernel) patch applied. Lockup can be 
+reproduced by pinging some host over bridge interface if the host is 
+unreachable in the beginning (e.g. ARP does not resolve) and then 
+becomes reachable (ARP resolves).
 
-* Simplified setup of multihomed firewall using NAT to DMZ servers. By 
-remembering which interface the traffic was originanly seen from return 
-traffic from the DMZ can easily be routed back the same way.
+Here is what happens:
 
-Most routing problems except for the first can in theory be solved by
-other means. i.e. the second can be solved by having full routing
-information and the third by conntrack based policy routing using the
-conntrack match nullifying the hiding of relevant information done by NAT,
-but the CONNMARK makes these things a lot easier to manage and saves the
-need of walking the whole classification ruleset on each packet (initial
-packet classified with mark, all future packets in the session inherits
-this information by a single rule)
+- echo request is conntrack-ed, new conntrack is created
+- bridge netfilter code "sabotages" in post-routing hook, so it can 
+process the rest of hooks when actual outgoing interface is determined
+- neigbour code takes over packet and holds it until ARP is resolved, 
+conntrack for packet is "hanging in the air"
+- above repeats for _every_ echo request packet created
 
-The first (routing redirection of a whole session) can not be done easily
-without CONNMARK or a equivalent function.
+At this point ARP gets resolved
+
+- neighbour code "flushes" its queue, sending packets one by one to 
+bridge interface
+- bridge code determines outgoing interface and calls IP post-routing 
+hook
+- nat code creates null-binding
+- post-routing hook confirms conntrack, it gets linked in lists
+- packet is queued for hw interface
+
+- neighbour code sends second packet
+- all goes as above up to creating of null-binding
+- in ip_nat_setup_info loop that is calling get_unique_tuple loops 
+forever because:
+
+- find_appropriate_src finds existing src-mainp (which is not doing 
+anything anyway) and decides to use it
+- ip_conntrack_alter_reply fails because it finds conntrack looking 
+exactly the same as this (remember - that conntrack got confirmed when 
+sending first packet) and thinks that get_unique_tuple will return 
+better unique tuple.
+
+So problem here are 2 equal conntrack-s, that should normaly be one, but
+as confirmation of first got delayed (because of bridge interface
+standing in the middle), second one got created.
+
+It did not happen before in_range logic fix because every time 
+completely new manip was created (with different icmp id) which made 
+those conntracks different.
+
+I hope the problem is more or less clear :). What should be fixed here? 
+I doubt it is bridge code (although this "sabotage" is evil - at least 
+in how it makes code hard to understand), because there can be other 
+cases when packet can be delayed (e.g. with ip_queue?) without 
+conntrack confirmation.
+
+Quick and dirty fix to avoid lockup was to avoid ip_nat_setup_info 
+looping forever. Patch attached.
 
 
-The CONNMARK can also be used as a generic per-connection memory to allow 
-for some interesting rule constructs in combination with limit/string or 
-other "advanced" iptables matches, especially when using nfmark for 
-traffic shaping or similar purposes but also for log/auditing of 
-suspicious sessions, but this is just a bonus of having additional 
-per-session state in conntrack allowing for a long-term memory of events 
-(long-term = longer than a single packet)
+Karlis
 
-Regards
-Henrik
+--k1lZvvs/B4yU6o8G
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="nat.patch"
+
+diff -u -r1.3.4.8 ip_nat_core.c
+--- ip_nat_core.c	2 Sep 2003 10:21:18 -0000	1.3.4.8
++++ ip_nat_core.c	10 Sep 2003 09:22:50 -0000
+@@ -516,6 +516,7 @@
+ 	struct ip_conntrack_tuple new_tuple, inv_tuple, reply;
+ 	struct ip_conntrack_tuple orig_tp;
+ 	struct ip_nat_info *info = &conntrack->nat.info;
++	int i;
+ 
+ 	MUST_BE_WRITE_LOCKED(&ip_nat_lock);
+ 	IP_NF_ASSERT(hooknum == NF_IP_PRE_ROUTING
+@@ -557,7 +558,9 @@
+ 	}
+ #endif
+ 
++	i = 0;
+ 	do {
++		if (i++ == 3) return NF_DROP;
+ 		if (!get_unique_tuple(&new_tuple, &orig_tp, mr, conntrack,
+ 				      hooknum)) {
+ 			DEBUGP("ip_nat_setup_info: Can't get unique for %p.\n",
+
+--k1lZvvs/B4yU6o8G--
