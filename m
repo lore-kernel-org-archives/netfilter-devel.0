@@ -1,15 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Fw: Re: 2.6.11-rc2 TCP ignores PMTU ICMP (Re: Linux 2.6.11-rc2)
-Date: Fri, 28 Jan 2005 02:56:08 +0100
-Message-ID: <41F99BB8.4070409@trash.net>
-References: <20050127154118.45e59991.davem@davemloft.net>
-	<41F992E3.20005@trash.net>
+From: "Colin Harrison" <colin.harrison@virgin.net>
+Subject: Unable to build iptables on linux kernel 2.6.10 + 2.6.11-rc2 +
+	2.6.11-rc2-bk5
+Date: Thu, 27 Jan 2005 15:53:05 -0000
+Message-ID: <200501271553.j0RFr747004108@StraightRunning.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080607040901090805050209"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <41F992E3.20005@trash.net>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,65 +20,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080607040901090805050209
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Patrick McHardy wrote:
-
-> IP (tos 0xd0, ttl  64, id 40755, offset 0, flags [none], length: 88) 
-> 172.16.1.123 > 172.16.1.123: icmp 68: type-#142 for IP (tos 0x10, ttl 
-> 180, id 13605, offset 0, flags [DF], length: 60, bad cksum e8b3 
-> (->73d8)!) 172.16.1.123 > 172.16.195.55:  ip-proto-225 40
->
-> This patch fixes it.
-
-This patch on top fixes corrupt checksums of ICMP errors. The
-function returns before recalculating the checksum in some cases.
-
->
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
+Hi
+I am experimenting with the linux kernel 2.6.10 + 2.6.11-rc2 +
+2.6.11-rc2-bk5.
+When I try to build CVS snapshot iptables (iptables-1.3.0-20050125) against
+this kernel I get:-
 
 
+make KERNEL_DIR=/home/src/kernel/linux-2.6.10
+....
+cc -O2 -Wall -Wunused -I/home/src/kernel/linux-2.6.10/include -Iinclude/
+-DIPTABLES_VERSION=\"1.3.0-20050125\"  -fPIC -o
+extensions/libipt_conntrack_sh.o -c extensions/libipt_conntrack.c
+In file included from extensions/libipt_conntrack.c:13:
+/home/src/kernel/linux-2.6.10/include/linux/netfilter_ipv4/ip_conntrack_tupl
+e.h:67: error: parse error before "u8"
+/home/src/kernel/linux-2.6.10/include/linux/netfilter_ipv4/ip_conntrack_tupl
+e.h:67: warning: no semicolon at end of struct or union
+/home/src/kernel/linux-2.6.10/include/linux/netfilter_ipv4/ip_conntrack_tupl
+e.h:67: warning: no semicolon at end of struct or union
+/home/src/kernel/linux-2.6.10/include/linux/netfilter_ipv4/ip_conntrack_tupl
+e.h:70: warning: type defaults to `int' in declaration of `dir'
+...
 
---------------080607040901090805050209
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+The kernel appears to be patched with all the latest conntrack changes and
+compiles cleanly.
 
-===== net/ipv4/netfilter/ip_nat_core.c 1.67 vs edited =====
---- 1.67/net/ipv4/netfilter/ip_nat_core.c	2005-01-18 21:27:23 +01:00
-+++ edited/net/ipv4/netfilter/ip_nat_core.c	2005-01-28 02:48:04 +01:00
-@@ -450,6 +450,13 @@
- 		       !manip))
- 		return 0;
- 
-+	/* Reloading "inside" here since manip_pkt inner. */
-+	inside = (void *)(*pskb)->data + (*pskb)->nh.iph->ihl*4;
-+	inside->icmp.checksum = 0;
-+	inside->icmp.checksum = csum_fold(skb_checksum(*pskb, hdrlen,
-+						       (*pskb)->len - hdrlen,
-+						       0));
-+
- 	/* Change outer to look the reply to an incoming packet
- 	 * (proto 0 means don't invert per-proto part). */
- 
-@@ -468,13 +475,6 @@
- 			return 0;
- 	}
- 
--	/* Reloading "inside" here since manip_pkt inner. */
--	inside = (void *)(*pskb)->data + (*pskb)->nh.iph->ihl*4;
--
--	inside->icmp.checksum = 0;
--	inside->icmp.checksum = csum_fold(skb_checksum(*pskb, hdrlen,
--						       (*pskb)->len - hdrlen,
--						       0));
- 	return 1;
- }
- 
+More info. can be supplied, as required.
 
---------------080607040901090805050209--
+Thanks
+
+Colin Harrison
