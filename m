@@ -1,15 +1,15 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH 2.6 0/6]: misc netfilter patches
-Date: Thu, 13 Jan 2005 21:11:13 -0800
-Message-ID: <20050113211113.2ca9a9d2.davem@davemloft.net>
-References: <41E3CB6A.4030200@trash.net>
+Subject: Re: skb_ip_make_writable and skbs not owned by a socket
+Date: Thu, 13 Jan 2005 21:31:22 -0800
+Message-ID: <20050113213122.7e70c3c2.davem@davemloft.net>
+References: <41D86571.6070501@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: rusty@rustcorp.com.au, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <41E3CB6A.4030200@trash.net>
+In-Reply-To: <41D86571.6070501@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,11 +21,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 11 Jan 2005 13:49:46 +0100
+On Sun, 02 Jan 2005 22:19:45 +0100
 Patrick McHardy <kaber@trash.net> wrote:
 
-> bk://212.42.230.204/nf-2.6
+> skb_ip_make_writable copies the packet as soon as the data area needs
+> to be touched. This is of course necessary for packets generated locally,
+> but can't we mangle the data area of skbs with skb->sk == NULL without
+> copying them ?
 
-All looks good, pulled.
-
-Thanks Patrick.
+Not if they are cloned.  tcpdump can still share access to the
+packet.
