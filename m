@@ -1,17 +1,13 @@
-From: Stephen Frost <sfrost@snowman.net>
-Subject: Re: Talking about recent (was: Re: [PATCH] 2.4.x new amanda conntrack + NAT support)
-Date: Mon, 7 Apr 2003 12:46:26 -0400
+From: "Kevin Smith" <ksmith@perfht.com>
+Subject: Patch Errors
+Date: Mon, 7 Apr 2003 14:14:00 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030407164626.GS18434@ns.snowman.net>
-References: <20030330200750.GZ7718@sunbeam.de.gnumonks.org> <20030331.070910.52982765.davem@redhat.com> <3E894C92.5010801@rtij.nl>
+Message-ID: <NGBBLGFEALDADHNDAAFFAEFLDJAA.ksmith@perfht.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="T2qahi4UwJNXfvXD"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0000_01C2FD0F.F1334100"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martijn Lievaart <m@rtij.nl>
-Content-Disposition: inline
-In-Reply-To: <3E894C92.5010801@rtij.nl>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,73 +18,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---T2qahi4UwJNXfvXD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+------=_NextPart_000_0000_01C2FD0F.F1334100
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
-* Martijn Lievaart (m@rtij.nl) wrote:
-> >Harald, what is the state of ipt_recent?  Will I see it soon?
->=20
-> Talking about recent, I'm not completely happy with the way it is now.=20
+I was wondering where I can get a list of error codes patch o matic uses.
+What is error 1 and error 2 mean? 
+Kev
 
-I don't think you've looked at ipt_recent in quite a while...
-tables->side was done away with a long time ago and the current version
-does exactly what you describe.  I think it was changed in 0.2.6 or
-0.2.7 (that was before it was all in my own CVS tree).  The initial
-intent really had been to have it be specified on the command-line but I
-wasn't entirely thinking straight when I added it. :)
+------=_NextPart_000_0000_01C2FD0F.F1334100
+Content-Type: application/ms-tnef;
+	name="winmail.dat"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="winmail.dat"
 
-> installations. I think I see a way of making this work without breaking=
-=20
-> any compatibility. I'll submit a patch once I have it working, based on=
-=20
-> the new recent module.
+eJ8+IgMSAQaQCAAEAAAAAAABAAEAAQeQBgAIAAAA5AQAAAAAAADoAAEIgAcAGAAAAElQTS5NaWNy
+b3NvZnQgTWFpbC5Ob3RlADEIAQ2ABAACAAAAAgACAAEGgAMADgAAANMHBAAHAA4ADQAAAAEAAQEB
+A5AGAAQFAAAlAAAACwACAAEAAAALACMAAAAAAAMAJgAAAAAACwApAAAAAAADADYAAAAAAB4AcAAB
+AAAADQAAAFBhdGNoIEVycm9ycwAAAAACAXEAAQAAABYAAAABwv0xda45VFxSaQIR17ZiAKDJ2dlL
+AAACAR0MAQAAABcAAABTTVRQOktTTUlUSEBQRVJGSFQuQ09NAAALAAEOAAAAAEAABg4AHo1SMf3C
+AQIBCg4BAAAAGAAAAAAAAAALkP4K2R7WEbZUAKDJ2dlLwoAAAAsAHw4BAAAAAgEJEAEAAADLAAAA
+xwAAAO0AAABMWkZ1j21W4AMACgByY3BnMTI1FjIA+Atgbg4QMDMzTwH3AqQD4wIAY2gKwHOwZXQw
+IAcTAoB9CoGSdgiQd2sLgGQ0DGAOYwBQCwMLtSBJIHe6YQQgdwIgBIELgGcT4KpoBJBlE8FjA5Fn
+ETAwIGEgbAQABUBvZv4gBJADYAXABaABAAQgCrBWdBDgFjAgAMB0DeAgwnURIHMuIFcQ8AVAuwQA
+FmUxFcASgBZlMhegGmUAcD8K4wqAS2V2CxqUEeEAG8AACwABgAggBgAAAAAAwAAAAAAAAEYAAAAA
+A4UAAAAAAAADAAOACCAGAAAAAADAAAAAAAAARgAAAAAQhQAAAAAAAAMAB4AIIAYAAAAAAMAAAAAA
+AABGAAAAAFKFAAAnagEAHgAJgAggBgAAAAAAwAAAAAAAAEYAAAAAVIUAAAEAAAAEAAAAOS4wAB4A
+CoAIIAYAAAAAAMAAAAAAAABGAAAAADaFAAABAAAAAQAAAAAAAAAeAAuACCAGAAAAAADAAAAAAAAA
+RgAAAAA3hQAAAQAAAAEAAAAAAAAAHgAMgAggBgAAAAAAwAAAAAAAAEYAAAAAOIUAAAEAAAABAAAA
+AAAAAAsADYAIIAYAAAAAAMAAAAAAAABGAAAAAIKFAAABAAAACwA6gAggBgAAAAAAwAAAAAAAAEYA
+AAAADoUAAAAAAAADADyACCAGAAAAAADAAAAAAAAARgAAAAARhQAAAAAAAAMAPYAIIAYAAAAAAMAA
+AAAAAABGAAAAABiFAAAAAAAACwBSgAggBgAAAAAAwAAAAAAAAEYAAAAABoUAAAAAAAADAFOACCAG
+AAAAAADAAAAAAAAARgAAAAABhQAAAAAAAAIB+A8BAAAAEAAAAAuQ/grZHtYRtlQAoMnZ2UsCAfoP
+AQAAABAAAAALkP4K2R7WEbZUAKDJ2dlLAgH7DwEAAACCAAAAAAAAADihuxAF5RAaobsIACsqVsIA
+AFBTVFBSWC5ETEwAAAAAAAAAAE5JVEH5v7gBAKoAN9luAAAAQzpcV0lORE9XU1xMb2NhbCBTZXR0
+aW5nc1xBcHBsaWNhdGlvbiBEYXRhXE1pY3Jvc29mdFxPdXRsb29rXG91dGxvb2sucHN0AAAAAwD+
+DwUAAAADAA00/TcAAAIBfwABAAAAMQAAADxOR0JCTEdGRUFMREFESE5EQUFGRkFFRkxESkFBLmtz
+bWl0aEBwZXJmaHQuY29tPgAAAAADAAYQjGrhRwMABxBWAAAAAwAQEAAAAAADABEQAAAAAB4ACBAB
+AAAAVwAAAElXQVNXT05ERVJJTkdXSEVSRUlDQU5HRVRBTElTVE9GRVJST1JDT0RFU1BBVENIT01B
+VElDVVNFU1dIQVRJU0VSUk9SMUFOREVSUk9SMk1FQU4/S0VWAAC57w==
 
-Personally I doubt existing installations will be broken but if you want
-to develop a patch to make them work just in case please do so against
-the ipt_recent CVS at
-http://cvs.snowman.net/cgi-bin/viewcvs.cgi/ipt_recent/ to avoid making
-alot of extra work for me to merge it.
-
-> Why is this useful? F.i. track all outgoing connections and reject with=
-=20
-> tcp reset incomming idents that match the table. Otherwise fall through=
-=20
-> to the default drop. This would need a reversing of source and=20
-> destination between the --set and the --rcheck. This would allow a real=
-=20
-> stealthy firewall that still handles idents in a sane way. I once looked=
-=20
-> at creating a helper for this, but that would need some major surgery on=
-=20
-> the iptables core I think. Using the recent match would be a rather=20
-> clean solution at the cost of some additional memory used. Also, other=20
-> dynamic protocols could be made a little safer by this as well, pending=
-=20
-> a real contrack helper.
-
-I actually use ipt_recent for exactly this currently with both IRC/ident
-and sendmail/ident.  Amusingly enough it doesn't actually work
-everywhere because, for example, if you establish an outbound SMTP
-connection to a mail server you may get an ident response back from a
-different IP address because of a poorly set up NAT.  In general it
-works quite well, just be aware of that situation when you're wondering
-why these ident packets aren't going to the right place. :)
-
-	Stephen
-
---T2qahi4UwJNXfvXD
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE+kathrzgMPqB3kigRApIQAJwLQb4cIfmA3C3BrpzewFOk7qlRAQCeOjg3
-nUap0/nO/8dOeB2vwwxEF2g=
-=Y6dq
------END PGP SIGNATURE-----
-
---T2qahi4UwJNXfvXD--
+------=_NextPart_000_0000_01C2FD0F.F1334100--
