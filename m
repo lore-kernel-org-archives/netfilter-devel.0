@@ -1,18 +1,15 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: locking issue in ip_conntrack_alter_reply
-Date: Tue, 04 May 2004 09:01:48 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: additional netfilter queue verdict
+Date: Tue, 4 May 2004 09:24:22 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1083654107.1742.6.camel@nienna.balabit>
-References: <Pine.LNX.4.33.0405031057120.24224-100000@blackhole.kfki.hu>
+Message-ID: <Pine.LNX.4.44.0405040922030.25896-100000@filer.marasystems.com>
+References: <200405032125.46793.rmiller@duskglow.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
-Cc: Pablo Neira <pablo@eurodev.net>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.33.0405031057120.24224-100000@blackhole.kfki.hu>
+To: Russell Miller <rmiller@duskglow.com>
+In-Reply-To: <200405032125.46793.rmiller@duskglow.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,46 +20,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 3 May 2004, Russell Miller wrote:
 
-  Hi,
-
-2004-05-03, h keltezéssel 11:05-kor Jozsef Kadlecsik ezt írta:
-> > Well, actually I found a contradiction here, we write-locked the
-> > conntrack table but that assertion says that this conntrack is not
-> > confirmed, this implies that the conntrack is not in the hash table yet.
-> > If that assertion is right, we should replace that write_lock for a
-> > read_lock while calling __ip_conntrack_find and remove that write_lock
-> > at the end of the function.
-> >
-> > int ip_conntrack_alter_reply(struct ip_conntrack *conntrack,
-> >                              const struct ip_conntrack_tuple *newreply)
-> > {
-> >         WRITE_LOCK(&ip_conntrack_lock);
-> >         if (__ip_conntrack_find(newreply, conntrack)) {
-> >                 WRITE_UNLOCK(&ip_conntrack_lock);
-> >                 return 0;
-> >         }
-> >         /* Should be unconfirmed, so not in hash table yet */
-> >         IP_NF_ASSERT(!is_confirmed(conntrack)); <--------------------------
-> >
-> >
-> > I'll study if that assertion is right before submitting a patch.
+> NF_CONTINUE
 > 
-> The assertion is right, because we alter unconfirmed packets when setting
-> up nat info. And you're also right, write-locking is unnecessary: the
-> entry is not in the hash table yet, so nobody else can grab and modify the
-> conntrack entry. [And it is overlooked in the per bucket locking patch too.]
+> This verdict would remove the packet from the queue and allow processing to 
+> continue in the table that the rule is part of.
 
-  Why is the whole check necessary here? ip_conntrack_alter_reply() is
-called by ip_nat_setup_info() to change the reply tuple of the
-conntrack. However, by assuring that there is no clashing conntrack
-entry at this time, we gain nothing. get_unique_tuple() tries to return
-such a tuple, and ip_conntrack_alter_reply() checks once more in vain: a
-new clashing conntrack entry can be created and confirmed before
-confirmation of this conntrack.
+This is not technically possible due to the way QUEUE works.. QUEUE is a 
+Netfilter operation, not an iptables operation.
 
-  So I'd say this hash lookup should be removed completely.
+> In the alternative or in addition, an NF_REJECT verdict might be nice too, but 
+> I note there are multiple ways to reject a packet, and perhaps it would be 
+> too much trouble to implement.
 
--- 
- Regards,
-   Krisztian KOVACS
+REJECT does not exists in Netfilter. This is an iptables thingy...
+
+
+I think what would benefit you and many others of QUEUE is to add a nfmark 
+field in the verdict. This has been discussed many times and done by 
+several people but nobody seems to have submitted their results for 
+inclusion in pom-ng...
+
+Regards
+Henrik
