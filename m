@@ -1,21 +1,18 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH]: 1st step to remove skb_linearize() in ip6_tables.c
- and optimization
-Date: Mon, 02 Aug 2004 13:05:53 +0900 (JST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: adding field into conntrack
+Date: Mon, 2 Aug 2004 10:46:02 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200408020405.NAA27078@toshiba.co.jp>
-References: <20040801164653.GA10656@sunbeam2>
-	<410D23AB.2070203@trash.net>
-	<20040801181150.GI14539@sunbeam2>
+Message-ID: <20040802084602.GJ18758@sunbeam2>
+References: <1091042173.4107fb7d2cabf@mail.crocetta.org> <1091060982.28111.30.camel@bach> <20040801171930.GD14539@sunbeam2> <1091434360.410df7789a879@mail.crocetta.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, yasuyuki.kozakai@toshiba.co.jp, kadlec@blackhole.kfki.hu,
-        netfilter-devel@lists.netfilter.org, kisza@securityaudit.hu,
-        usagi-core@linux-ipv6.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0FM4RQAc0jwHekq5"
+Cc: Rusty Russell <rusty@rustcorp.com.au>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20040801181150.GI14539@sunbeam2>
+To: sandr8@crocetta.org
+Content-Disposition: inline
+In-Reply-To: <1091434360.410df7789a879@mail.crocetta.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -27,41 +24,61 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi,
+--0FM4RQAc0jwHekq5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Sun, 1 Aug 2004 20:11:50 +0200
+On Mon, Aug 02, 2004 at 10:12:40AM +0200, sandr8@crocetta.org wrote:
 
-> On Sun, Aug 01, 2004 at 07:08:59PM +0200, Patrick McHardy wrote:
-> 
-> > >>	struct tcphdr hdr;
-> > >>	struct tcphdr *tcph
-> > >>
-> > >>	tcph = skb_get_bits(skb, &hdr, skb->nh.iph->ihl*4, sizeof(hdr));
-> > >>
-> > >>If skb is neither shared nor cloned, this function linearize up to tcp 
-> > >>header and returns the pointer to tcp header in skb.
-> > >>Otherwise, copies tcp header to "hdr" and return the pointer to it.
-> > >>If error, return NULL.
-> >
-> > The number of copies will still depend on the ruleset with non-linear skbs.
-> > skb_linearize_partial sounds like a much better idea to me.
-> 
-> Oh yes, indeed.  I somehow mis-interpreted Yasuyiki's approach.  We
-> should linearize with the first call, so that every 2nd, 3rd, ... call
-> do nothing but immediately return.
+> Around line 1320 of net/core/dev.c, the packet is fed to the queueing
+> discipline associated with the egressing interface. The enqueuing
+> operation might not be succesful or even being succesful it could have
+> made the queueing discipline drop an other packet (possibly belonging
+> to an other stream).
 
-Oh, sorry. I misstook about pskb_may_pull(). And please forget my patch
-because it's inefficient.
+Yes, indeed.
 
+> The error we made could be huge with respect to open loop streams
+> (such as UDP), while with closed loop ones we could imagine that there
+> will be not that much difference between the throughput seen before
+> the enqueuing and the goodput seen after the deuqueuing.
 
-> 
-> > Regards
-> > Patrick
-> 
-> -- 
-> - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-> ============================================================================
->   "Fragmentation is like classful addressing -- an interesting early
->    architectural error that shows how much experimentation was going
->    on while IP was being designed."                    -- Paul Vixie
+My reason for making it less accurate was performance.  By putting the
+counter updates into the ip_ct_refresh_acct() function, we minimize
+write lock contention on ip_conntrack_lock, since we only need to grab
+it once per packet (as opposed to a second time after qdisc enqueue).
+
+But if I understood your approach corretly, you would want to keep this
+code in place but later check for enqueue result and decrement
+accounting?  This means that the extra write lock grab would only happen
+in case of dropped packets... that sounds fine.
+
+Please prepare an incremental patch and we'll review & discuss with
+netdev people.
+
+> Alessandro
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--0FM4RQAc0jwHekq5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFBDf9JXaXGVTD0i/8RAqhhAJ9sYkfzFnlDAseI4yuSNpC4RQa5GQCfam1i
+fmkUR2lpL3xWWkd8PzQeCGU=
+=SuLx
+-----END PGP SIGNATURE-----
+
+--0FM4RQAc0jwHekq5--
