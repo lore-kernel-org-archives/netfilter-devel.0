@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: conntrack hash function comparison
-Date: Fri, 31 Jan 2003 12:41:45 +0100
+Subject: Re: iptables u32 match patch-o-matic (attempt)
+Date: Fri, 31 Jan 2003 11:19:19 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030131114145.GS9073@naboo.cybercafe42>
-References: <15916.59019.853598.788888@isis.cs3-inc.com> <Pine.LNX.4.33.0301211136020.19820-100000@blackhole.kfki.hu> <15917.31840.767508.76359@isis.cs3-inc.com>
+Message-ID: <20030131101919.GD9073@naboo.cybercafe42>
+References: <20030128234654.29362.28104.Mailman@kashyyyk> <15927.22044.618895.821767@isis.cs3-inc.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hXth9cGL35Nvpk4x"
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="cHMo6Wbp1wrKhbfi"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Don Cohen <don-netf@isis.cs3-inc.com>
 Content-Disposition: inline
-In-Reply-To: <15917.31840.767508.76359@isis.cs3-inc.com>
+In-Reply-To: <15927.22044.618895.821767@isis.cs3-inc.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,38 +23,29 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---hXth9cGL35Nvpk4x
+--cHMo6Wbp1wrKhbfi
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 21, 2003 at 08:59:12AM -0800, Don Cohen wrote:
->  > I don't really like the idea of rehashing if the hash function is
->  > (so) strong.
-> At some point it's clearly worth rehashing.  You have to decide what
-> that point is.  If the function is so good and successfully resists
-> attack then you'll never (or hardly ever) need to rehash, so all you
-> pay is a tiny amount of space for code that's never used.
-> Whereas, if you're extremely unlucky, or a clever new attack method
-> comes along, that small amount of code will help you a whole lot.
-> You choose your table size and rehash threshold in order to make the=20
-> search time acceptable (max length of bucket) and also the probability
-> of rehash very small.=20
+On Tue, Jan 28, 2003 at 08:18:36PM -0800, Don Cohen wrote:
+Content-Description: message body text
 
-not that I totally disagree with rehashing being a good idea... but in
-the case you add this 'small piece of code', you also introduce a new
-vulnerability: If somebody can provoke the firewall to rehash all the
-time ;(
+>  > no. I'm really surprised that it seems to be that difficult to explain
+>  > in which format the patches are submitted in the ideal case.
+> Me too.  Perhaps it would be worth while to store several of these
+> ideal patches on the netfilter site as examples we could try to
+> emulate.
 
-> Right now I simply rely on rehash to fix any such problems (or any
-> OTHER problems for that matter) that actually arise.  Since I argue
-> you really ought to have that as a backup anyway, I don't mind using
-> it to solve this problem.  I do recommend a log entry if you ever have
-> to rehash, and frequent rehash would be worth notification if you have
-> such a facility.
+mh. that would be an idea, though there are quite some in the
+mailinglist archives.  Maybe this is something for the FAQ (which needs
+lots of updates anyway *sigh*).
 
-yup. rehash parameters should be a sysctl, and rehash statistics kept
-somewhere in /proc.
+>  > So please just send me anything you have and I will bring it into the
+>  > correct format as soon as I have some time left.
+> An offer I can't refuse.  Thank you VERY much.
+
+;) It will appear in CVS soon.
 
 --=20
 Live long and prosper
@@ -68,7 +58,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---hXth9cGL35Nvpk4x
+--cHMo6Wbp1wrKhbfi
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -76,9 +66,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+OmD5XaXGVTD0i/8RAv57AJ468x0hGdeseR7JIjzuN8htiYOJYACeIyxF
-J0GWHwrW1ASqLKMWQzlFeMo=
-=d2l0
+iD8DBQE+Ok2nXaXGVTD0i/8RAlzWAJ4olN0MAM4vH4kp1NEMqQKVTbuGRwCcDmMW
+6CyeDKA0ffNEzOEYNUPCcJU=
+=/8rP
 -----END PGP SIGNATURE-----
 
---hXth9cGL35Nvpk4x--
+--cHMo6Wbp1wrKhbfi--
