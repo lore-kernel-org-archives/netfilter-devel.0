@@ -1,17 +1,16 @@
-From: Sam Johnston <samj@aos.net.au>
-Subject: Re: Patch with additional options for quota match
-Date: Tue, 29 Apr 2003 07:09:41 +1000
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: PATCH: extra conntrack stats
+Date: Wed, 30 Apr 2003 00:15:07 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EAD9895.6020408@aos.net.au>
-References: <3E9DCA15.40C99A6C@info-link.net> <20030427124055.GX990@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.33.0304300014090.2169-100000@blackhole.kfki.hu>
+References: <200304271523.h3RFNZk05880@fokkensr.vertis.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Brad Fisher <brad@info-link.net>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+	<netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030427124055.GX990@sunbeam.de.gnumonks.org>
+To: Rolf Fokkens <fokkensr@fokkensr.vertis.nl>
+In-Reply-To: <200304271523.h3RFNZk05880@fokkensr.vertis.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,43 +21,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Sun, 27 Apr 2003, Rolf Fokkens wrote:
 
-Harald Welte wrote:
+> Well, after all this panic and calming down something constructive:
+>
+> Should a lock per contrack entry be considered? This increases the
+> concurrency for different connections anyhow.
 
-| On Wed, Apr 16, 2003 at 04:24:37PM -0500, Brad Fisher wrote:
-|
-|>I have made up a small patch for the quota match by Sam Johnston to add
-|>a couple of options I find useful - negated matching and the option to
-|>count total packet size (data + headers) instead of just data size.
-|
-|
-| I don't want to include this without the orignal author's permission.
-| Please contact Sam Johnston about your changes and ask him if he agrees
-| with those changes.
+Yep, I'm working on such a patch.
 
-Harald,
-
-Thankyou for confirming changes with me. I haven't seen this patch, so
-can someone please forward it on. The changes requested sound reasonable
-in principal - for most applications counting the headers is probably
-what is intended although this is a change in functionality. I'm not
-sure about the applications for negated matching but no doubt someone
-somewhere will find it useful.
-
-Sam
-
-- --
-Sam Johnston, Director
-Australian Online Solutions
-1300 132 809
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQE+rZiVj4XJViLpTR0RAmW3AJ48YYYbgoNHI0bc18nRd4rszsmtTQCfcoeN
-4mg8d/NVh50OSF9A2fMPTHY=
-=obWm
------END PGP SIGNATURE-----
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
