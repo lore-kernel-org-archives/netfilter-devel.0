@@ -1,17 +1,16 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: Re: [FUN] new netfilter matching module : passive OS fingerprint
-Date: Thu, 11 Sep 2003 13:12:39 +0200 (CEST)
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [PATCH 2.6] clear nf_debug in ipsec tunnel case
+Date: Thu, 11 Sep 2003 16:38:27 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0309111308560.17138@dns.toxicfilms.tv>
-References: <20030908161734.7c0f7420.johnpol@2ka.mipt.ru>
- <Pine.LNX.4.51.0309101651030.9903@dns.toxicfilms.tv>
- <20030910200113.3113dd1c.johnpol@2ka.mipt.ru>
+Message-ID: <20030911163827.7115e86e.davem@redhat.com>
+References: <20030905121955.GH665@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-In-Reply-To: <20030910200113.3113dd1c.johnpol@2ka.mipt.ru>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030905121955.GH665@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,17 +21,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> I have an idea to make fingerprint table dynamic and write a little
-> program to parse and load whole Michal's table through  ioctl or
-> /proc.
-That would be great, then fingerprints could be easily added without
-recompilating the modules.
+On Fri, 5 Sep 2003 14:19:55 +0200
+Harald Welte <laforge@netfilter.org> wrote:
 
-osf could also be made a target, that would work like LOG, and would
-log basically things that are with OSF_DEBUG, but maybe showed the IP
-too.
-You could then do simple OS accounting and see if there's more linux or
-any other traffic.
+> This patch (again by Patrick McHardy) clears nf_debug in
+> ip_local_deliver_finish so the "hook ... already set" message in
+> nf_hook_slow won't get triggered for decapsulated ipsec-tunnel packets
+> when passing them through the network stack again.
 
-> 	Evgeniy Polyakov ( s0mbre )
-Maciej
+Applied, thanks.
