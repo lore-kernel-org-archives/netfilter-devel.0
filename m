@@ -1,16 +1,12 @@
-From: Oskar Berggren <beo@sgs.o.se>
-Subject: Re: Need IPSTATS
-Date: Thu, 13 Feb 2003 00:30:00 +0100
+From: "Andrej Ricnik" <lemmetink@hotmail.com>
+Subject: accounting
+Date: Wed, 12 Feb 2003 23:27:24 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E4AD8F8.9020101@sgs.o.se>
-References: <3E4A86DF.50807@gmx.net>
+Message-ID: <F14LEZF98vvwNeZsjSF0004b9b0@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Eicke Friedrich <tady@gmx.net>
-In-Reply-To: <3E4A86DF.50807@gmx.net>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,30 +17,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Eicke Friedrich wrote:
-> Hi there,
-> 
-> I'm looking for the source code of IPSTATS by Oskar Berggren. Also, if 
-> you have some links/tutorials/explainations on writing iptables 
-> extensions don't hesitate sending them to me. Thank you in advance.
-> 
-> Cheers,
-> Eicke.
-> 
-> 
 
-You can find the current version at
 
-     http://www.sgs.studenthem.gu.se/ipstats-0.8.5.tar.gz
 
-This is just a temporary location, I won't guarantee how long it
-will be accessible there.
+Hi Guys!
 
-/Oskar
+I've been searching for a decent Linux IP accounting
+solution (I have a 5GB limit a month and don't want
+to pay a penalty just because the kids are greedy :})
+but couldn't find anything easy to use/decent that would
+allow me to keep track of traffic per IP and/or user
+and stop traffic from that IP/user once their "fair share"
+is used up ...
 
--- 
-/----------------------------------------------------------------------\
-| Oskar Berggren        beo@sgs.o.se                                   |
-| Network and Software Engineer                     SGS Datanätgrupp   |
-|                                                   Gothenburg, Sweden |
-\----------------------------------------------------------------------/
+So I was wondering how difficult it would be to intercept
+logging information from userland, and where to find
+info's on how to do it.
+
+
+
+Cheers,
+Tink
+
+-----BEGIN GEEK CODE BLOCK-----
+Version: 3.12
+GCM/IT/O d-(++)@ a C+(+++)@ UL++>+++ P+>+++ L++ E+@ W+@ N+ o? K? w---@(+) 
+O+++(+)@ M-@ V? PS+ PE- Y+ PGP++ t- 5- X- R-(*) tv-@ b+ DI++ D-- G++ !e* 
+h--- r++ z?
+------END GEEK CODE BLOCK------
+
+
+
+_________________________________________________________________
+Tired of spam? Get advanced junk mail protection with MSN 8. 
+http://join.msn.com/?page=features/junkmail
