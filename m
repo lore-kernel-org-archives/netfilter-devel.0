@@ -1,15 +1,18 @@
-From: Sam Liddicott <sliddicott@dbamsystems.com>
-Subject: no ctstat? Re: building libctnetlink
-Date: Mon, 04 Apr 2005 17:25:33 +0100
-Message-ID: <d2rpmi$3n8$1@sea.gmane.org>
-References: <423BF227.8030502@outerspace.dyndns.org>		<423BF4DC.2070902@outerspace.dyndns.org>		<1111335091.2523.46.camel@lap-ufomechanic>		<1111335425.2523.49.camel@lap-ufomechanic>	<423DF940.100@eurodev.net>		<1111412190.2716.55.camel@lap-ufomechanic>	<423F007F.2060102@eurodev.net>	<1111667756.2526.19.camel@lap-ufomechanic>
-	<4242B977.1030607@eurodev.net>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [PATCH] Fix NAT TCP sequence adjustment
+Date: Mon, 4 Apr 2005 13:47:16 -0700
+Message-ID: <20050404204716.GA4067@linuxace.com>
+References: <20050402202438.GA2968@linuxace.com> <4250435E.1090309@trash.net>
+	<20050403235320.GB28850@linuxace.com>
+	<20050404044033.GA1847@linuxace.com> <4250FA72.3020502@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: Harald Welte <laforge@netfilter.org>, Rusty Russell <rusty@rustcorp.com.au>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <4242B977.1030607@eurodev.net>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <4250FA72.3020502@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,33 +24,67 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> Just another UFO mechanic wrote:
-> 
->> I am still trying to compile libctnetlink and libnfnetlink I cannot find
->> a whole lot of info on it. I have 2 questions
->>
->> When I try compile
->> I get the error
->> libctnetlink.c:32:39 linux/nfnetlink_conntrack.h: No such file or
->> directory
-> 
-> 
-> Have you applied `nfnetlink-ctnetlink-0.13' in pom-ng? Add 
-> -I/your/kernel/include/path to your compilation script.
+On Mon, Apr 04, 2005 at 10:27:30AM +0200, Patrick McHardy wrote:
+> So in conclusion it seems simply doing "seq -= this_way->offset_after"
+> without the seq != this_way->correction_pos check handles all cases
+> correctly. Please someone verify I didn't make a mistake. I think a
+> comment explaining the cases would also be appropriate.
 
-Thanks for the tip Pablo; probably a case of user error; but:
+I think you are only thinking in terms of positive sizediff, while this
+is not always the case.  Perhaps easiest to explain by observed example.
 
-When I try to apply nfnetlink-ctnetlink-0.13 from the latest pom-ng 
-(20050403), I am told:
+ip_nat_seq_adjust: seq 467631623 after co_pos 467631577
+Adjusting sequence number from 467631623->467631622
+...
+ip_nat_mangle_packet: Shrinking packet by 1 from 66 bytes
+adjust_tcp_sequence: sizediff = -1
+adjust_tcp_sequence: Seq_offset before: offset_before=0, 
+	offset_after=-1, correction_pos=467631577
+adjust_tcp_sequence: Seq_offset after: offset_before=-1, 
+	offset_after=-2, correction_pos=467631623
 
-nfnetlink-ctnetlink-0.13 has dependency on ctstat, but ctstat is not known
-cannot apply (9 rejects out of 42 hunks)
+Given the above, assume we now receive a retransmit of this packet.
+467631623 will have offset_before added to it by ip_nat_seq_adjust,
+becoming 467631622.  It will then have offset_after subtracted from
+it in adjust_tcp_sequence, making it 467631624, which will then
+cause a false positive on the before() test.
 
-As far as I can tell ctstats was added to pom-ng in around September 
-2004 time. There is a ctstat folder in my un-tar'd pom-ng, but it is empty.
+If we change the example above to a positive sizediff:
 
-I'm running patch-o-matic against iptables 1.2.11 and kernel 2.6.10
-source.
+ip_nat_seq_adjust: seq 467631623 after co_pos 467631577
+Adjusting sequence number from 467631623->467631624
+...
+ip_nat_mangle_packet: Extending packet by 1 from 66 bytes
+adjust_tcp_sequence: sizediff = 1
+adjust_tcp_sequence: Seq_offset before: offset_before=0, 
+        offset_after=1, correction_pos=467631577
+adjust_tcp_sequence: Seq_offset after: offset_before=1, 
+        offset_after=2, correction_pos=467631623
 
-Sam
+Assuming a retransmit in this example,
+467631623 will have offset_before added to it by ip_nat_seq_adjust,
+becoming 467631624.  It will then have offset_after subtracted from
+it in adjust_tcp_sequence, making it 467631622 which will correctly
+evaluate as being before correction_pos.
+
+So as it stands, only retransmits on positive sizediff are handled
+properly.  But my original check to compensate for this was flawed,
+since seq != correction_pos when entering adjust_tcp_sequence - but
+it does seem clear we cannot blindly -= offset_after.
+
+I think this will handle all permutations, since it essentially
+reverses ip_nat_seq_adjust's adjustment before checking for retransmit.
+
+        if (seq - this_way->offset_before != this_way->correction_pos) {
+                seq -= this_way->offset_after;
+                if (this_way->offset_before == this_way->offset_after
+                    || before(this_way->correction_pos, seq)) {
+                        this_way->correction_pos = seq;
+                        this_way->offset_before = this_way->offset_after;
+                        this_way->offset_after += sizediff;
+                }
+        }
+
+Ack?
+
+Phil
