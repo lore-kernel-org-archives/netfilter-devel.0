@@ -1,12 +1,14 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: [patch] pom-ng batch mode, and minor convert script fixes
-Date: Fri, 27 Feb 2004 09:25:38 +0100 (CET)
+Subject: Re: [patch] pom-ng batch mode, and minor convert script fixes
+Date: Fri, 27 Feb 2004 09:32:18 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402270919050.21192-300000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0402270929180.21288-200000@filer.marasystems.com>
+References: <Pine.LNX.4.44.0402270919050.21192-300000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811839-985628887-1077870338=:21192"
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811839-675350442-1077870738=:21288"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.44.0402270919050.21192-300000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,79 +23,55 @@ List-Id: netfilter-devel.vger.kernel.org
   while the remaining parts are likely unreadable without MIME-aware tools.
   Send mail to mime@docserver.cac.washington.edu for more info.
 
----1463811839-985628887-1077870338=:21192
+---1463811839-675350442-1077870738=:21288
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-Attached to this message is two minor pom-ng patches
+Minor update to the batch mode etc.
 
-a) Implementation of runme --batch option
+Disable stdout buffering to allow runme to be usedin a pipe such as in
 
-b) Minor corrections in patch file name when converting pom patchlets to 
-pom-ng patchlets using the convert2pomng script.
+ ./runme  | tee logfile
+
 
 Regards
 Henrik
 
----1463811839-985628887-1077870338=:21192
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="pomng-convert.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44.0402270925380.21192@filer.marasystems.com>
-Content-Description: 
-Content-Disposition: attachment; filename="pomng-convert.patch"
-
-ZGlmZiAtdSBwYXRjaC1vLW1hdGljLW5nLTIwMDQwMjI2L2NvbnZlcnQycG9t
-bmcuc2ggcGF0Y2gtby1tYXRpYy1uZy9jb252ZXJ0MnBvbW5nLnNoDQotLS0g
-cGF0Y2gtby1tYXRpYy1uZy0yMDA0MDIyNi9jb252ZXJ0MnBvbW5nLnNoCVRo
-dSBGZWIgMTkgMTI6MTY6MzkgMjAwNA0KKysrIHBhdGNoLW8tbWF0aWMtbmcv
-Y29udmVydDJwb21uZy5zaAlGcmkgRmViIDI3IDA5OjEyOjQzIDIwMDQNCkBA
-IC0xLDEzICsxLDEzIEBADQogIyEvYmluL2Jhc2gNCiANCi0jQ1ZTPWVjaG8N
-Ci1DVlM9YHdoaWNoIGN2c2ANCitDVlM9ZWNobw0KKyNDVlM9YHdoaWNoIGN2
-c2ANCiANCiBSRVBPU0lUT1JZPSQxDQogTkFNRT0kMg0KIE5FV05BTUU9JDMN
-CiANCi1QUkVGSVg9cGF0Y2gtby1tYXRpYy8kUkVQT1NJVE9SWS8kTkFNRS5s
-aW51eC5wYXRjaA0KK1BSRUZJWD1wYXRjaC1vLW1hdGljLyRSRVBPU0lUT1JZ
-LyROQU1FLnBhdGNoDQogREVTVERJUj1wYXRjaC1vLW1hdGljLW5nLyRORVdO
-QU1FDQogDQogbWtkaXIgJERFU1RESVINCkBAIC01Miw4ICs1Miw4IEBADQog
-CXJtZGlyIC1wICRERVNURElSLyRkDQogZG9uZQ0KIA0KLWNwICRQUkVGSVgg
-JERFU1RESVIvcGF0Y2gNCi1wYXRjaCAtZCAkREVTVERJUi9saW51eCAtcDEg
-LWkgLi4vcGF0Y2ggLXIgL2Rldi9udWxsIC1iDQorY3AgJFBSRUZJWCAkREVT
-VERJUi9saW51eC5wYXRjaA0KK3BhdGNoIC1kICRERVNURElSL2xpbnV4IC1w
-MSAtaSAuLi9saW51eC5wYXRjaCAtciAvZGV2L251bGwgLWINCiBmaW5kICRE
-RVNURElSL2xpbnV4IC1uYW1lIFwqLm9yaWcgLWV4ZWMgcm0gLWYgXHtcfSBc
-Ow0KIA0KICMgYWRkIHRvIENWUw0K
----1463811839-985628887-1077870338=:21192
+---1463811839-675350442-1077870738=:21288
 Content-Type: TEXT/PLAIN; charset=US-ASCII; name="pomng-batch.patch"
 Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44.0402270925381.21192@filer.marasystems.com>
+Content-ID: <Pine.LNX.4.44.0402270932181.21288@filer.marasystems.com>
 Content-Description: 
 Content-Disposition: attachment; filename="pomng-batch.patch"
 
-ZGlmZiAtdSBwYXRjaC1vLW1hdGljLW5nLTIwMDQwMjI2L3J1bm1lIHBhdGNo
-LW8tbWF0aWMtbmcvcnVubWUNCi0tLSBwYXRjaC1vLW1hdGljLW5nLTIwMDQw
-MjI2L3J1bm1lCVN1biBGZWIgMjIgMjI6NTk6NDQgMjAwNA0KKysrIHBhdGNo
-LW8tbWF0aWMtbmcvcnVubWUJRnJpIEZlYiAyNyAwMjowNDowMCAyMDA0DQpA
-QCAtODMsNyArODMsNyBAQA0KIG15IEBwYXRjaGRpcnM7DQogbXkgQHJlcG9z
-aXRvcmllczsNCiBteSBAYXBwbGllZDsNCi1teSAkY2xyc2NyOw0KK215ICRj
-bHJzY3IgPSAiXG5cblxuXG5cblxuXG5cblxuXG4iOw0KIA0KIG15ICRvcHRf
-YmF0Y2g7IA0KIG15ICRvcHRfdGVzdDsNCkBAIC0xODIsMTEgKzE4Miw2IEBA
-DQogT1VUOg0KIH0NCiANCi1pZiAoJG9wdF9iYXRjaCkgew0KLQlwcmludCBT
-VERFUlIgKCItLWJhdGNoIG5vdCBpbXBsZW1lbnRlZCB5ZXRcbiIpOw0KLQll
-eGl0KDEpOw0KLX0NCi0NCiBteSAka3BhdGggPSAnL3Vzci9zcmMvbGludXgn
-Ow0KIA0KIGlmICghZGVmaW5lZCgkRU5We0tFUk5FTF9ESVJ9KSAmJiAhJG9w
-dF9wYXRoKSB7DQpAQCAtMjM1LDcgKzIzMCw3IEBADQogCWV4aXQoMSk7DQog
-fQ0KIA0KLWlmIChkZWZpbmVkKCRFTlZ7VEVSTX0pKSB7DQoraWYgKGRlZmlu
-ZWQoJEVOVntURVJNfSkgJiYgISRvcHRfYmF0Y2gpIHsNCiAJbXkgJHRlcm1p
-bmFsID0gVGdldGVudCBUZXJtOjpDYXAge307DQogCSRjbHJzY3IgPSAkdGVy
-bWluYWwtPlRwdXRzKCdjbCcsIDEpOw0KIH0NCkBAIC0yODAsOSArMjc1LDE2
-IEBADQogCQlwcmludGYoIiAgIEF1dGhvcjogJXNcbiIsICQkcGF0Y2hsZXR7
-aW5mb317YXV0aG9yfSk7DQogCQlwcmludGYoIiAgIFN0YXR1czogJXNcblxu
-IiwgJCRwYXRjaGxldHtpbmZvfXtzdGF0dXN9KTsNCiAJCXByaW50X2hlbHBm
-aWxlKCRwYXRjaGxldCk7DQorCQlteSAkZmlyc3RfdHJ5ID0gMTsNCiAJUFJP
-TVBUOg0KLQkJcHJpbnRfcHJvbXB0KCRvcHRfcmV2ZXJzZSk7DQotCQlteSAk
-a2V5ID0gPFNURElOPjsNCisJCW15ICRrZXk7DQorCQlpZiAoJG9wdF9iYXRj
-aCAmJiAkZmlyc3RfdHJ5KSB7DQorCQkgICAgJGtleSA9ICd5JzsNCisJCSAg
-ICAkZmlyc3RfdHJ5ID0gMDsNCisJCX0gZWxzZSB7DQorCQkgICAgcHJpbnRf
-cHJvbXB0KCRvcHRfcmV2ZXJzZSk7DQorCQkgICAgJGtleSA9IDxTVERJTj47
-DQorCQl9DQogCQljaG9tcCgka2V5KTsNCiAJCWlmICgka2V5IGVxICd5Jykg
-ew0KIAkJCW15ICRyZXQgPSBOZXRmaWx0ZXJfUE9NOjpkZXBlbmRlbmNpZXNf
-ZnVsZmlsbGVkKCRwbGV0cywNCg==
----1463811839-985628887-1077870338=:21192--
+LS0tIHBhdGNoLW8tbWF0aWMtbmctMjAwNDAyMjYvcnVubWUJU3VuIEZlYiAy
+MiAyMjo1OTo0NCAyMDA0DQorKysgcGF0Y2gtby1tYXRpYy1uZy9ydW5tZQlG
+cmkgRmViIDI3IDA5OjI2OjQ4IDIwMDQNCkBAIC0yMSw2ICsyMSw4IEBADQog
+cHVzaChASU5DLCAkUE9NTkdfUk9PVF9ESVIpOw0KIHVzZSBOZXRmaWx0ZXJf
+UE9NOw0KIA0KKyR8PTE7DQorDQogc3ViIHByaW50X2hlYWRlcigpDQogew0K
+IAlwcmludCgiV2VsY29tZSB0byBQYXRjaC1vLW1hdGljICgkVkVSU0lPTikh
+XG5cbiIpOw0KQEAgLTgzLDcgKzg1LDcgQEANCiBteSBAcGF0Y2hkaXJzOw0K
+IG15IEByZXBvc2l0b3JpZXM7DQogbXkgQGFwcGxpZWQ7DQotbXkgJGNscnNj
+cjsNCitteSAkY2xyc2NyID0gIlxuXG5cblxuXG5cblxuXG5cblxuIjsNCiAN
+CiBteSAkb3B0X2JhdGNoOyANCiBteSAkb3B0X3Rlc3Q7DQpAQCAtMTgyLDEx
+ICsxODQsNiBAQA0KIE9VVDoNCiB9DQogDQotaWYgKCRvcHRfYmF0Y2gpIHsN
+Ci0JcHJpbnQgU1RERVJSICgiLS1iYXRjaCBub3QgaW1wbGVtZW50ZWQgeWV0
+XG4iKTsNCi0JZXhpdCgxKTsNCi19DQotDQogbXkgJGtwYXRoID0gJy91c3Iv
+c3JjL2xpbnV4JzsNCiANCiBpZiAoIWRlZmluZWQoJEVOVntLRVJORUxfRElS
+fSkgJiYgISRvcHRfcGF0aCkgew0KQEAgLTIzNSw3ICsyMzIsNyBAQA0KIAll
+eGl0KDEpOw0KIH0NCiANCi1pZiAoZGVmaW5lZCgkRU5We1RFUk19KSkgew0K
+K2lmIChkZWZpbmVkKCRFTlZ7VEVSTX0pICYmICEkb3B0X2JhdGNoKSB7DQog
+CW15ICR0ZXJtaW5hbCA9IFRnZXRlbnQgVGVybTo6Q2FwIHt9Ow0KIAkkY2xy
+c2NyID0gJHRlcm1pbmFsLT5UcHV0cygnY2wnLCAxKTsNCiB9DQpAQCAtMjgw
+LDkgKzI3NywxNiBAQA0KIAkJcHJpbnRmKCIgICBBdXRob3I6ICVzXG4iLCAk
+JHBhdGNobGV0e2luZm99e2F1dGhvcn0pOw0KIAkJcHJpbnRmKCIgICBTdGF0
+dXM6ICVzXG5cbiIsICQkcGF0Y2hsZXR7aW5mb317c3RhdHVzfSk7DQogCQlw
+cmludF9oZWxwZmlsZSgkcGF0Y2hsZXQpOw0KKwkJbXkgJGZpcnN0X3RyeSA9
+IDE7DQogCVBST01QVDoNCi0JCXByaW50X3Byb21wdCgkb3B0X3JldmVyc2Up
+Ow0KLQkJbXkgJGtleSA9IDxTVERJTj47DQorCQlteSAka2V5Ow0KKwkJaWYg
+KCRvcHRfYmF0Y2ggJiYgJGZpcnN0X3RyeSkgew0KKwkJICAgICRrZXkgPSAn
+eSc7DQorCQkgICAgJGZpcnN0X3RyeSA9IDA7DQorCQl9IGVsc2Ugew0KKwkJ
+ICAgIHByaW50X3Byb21wdCgkb3B0X3JldmVyc2UpOw0KKwkJICAgICRrZXkg
+PSA8U1RESU4+Ow0KKwkJfQ0KIAkJY2hvbXAoJGtleSk7DQogCQlpZiAoJGtl
+eSBlcSAneScpIHsNCiAJCQlteSAkcmV0ID0gTmV0ZmlsdGVyX1BPTTo6ZGVw
+ZW5kZW5jaWVzX2Z1bGZpbGxlZCgkcGxldHMsDQo=
+---1463811839-675350442-1077870738=:21288--
