@@ -1,15 +1,20 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: is this make sense: iptables -A PREROUTING -t nat -j SNAT --to
- 0.0.0.0
-Date: Sat, 26 Mar 2005 14:03:12 +0200
-Message-ID: <42454F80.4090603@outerspace.dyndns.org>
-References: <42403008.9070006@cardvn.net> <42444A4A.5090308@cardvn.net>
+From: Wichert Akkerman <wichert@wiggy.net>
+Subject: Re: building libctnetlink
+Date: Sat, 26 Mar 2005 13:31:31 +0100
+Message-ID: <20050326123130.GW23991@wiggy.net>
+References: <423BF227.8030502@outerspace.dyndns.org>
+	<423BF4DC.2070902@outerspace.dyndns.org>
+	<1111335091.2523.46.camel@lap-ufomechanic>
+	<1111335425.2523.49.camel@lap-ufomechanic>
+	<423DF940.100@eurodev.net>
+	<1111412190.2716.55.camel@lap-ufomechanic>
+	<423F007F.2060102@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.netfilter.org
-To: Nguyen Dinh Nam <64vn@cardvn.net>
-In-Reply-To: <42444A4A.5090308@cardvn.net>
+To: Pablo Neira <pablo@eurodev.net>
+Content-Disposition: inline
+In-Reply-To: <423F007F.2060102@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,22 +26,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Previously Pablo Neira wrote:
+> yes, type automake before.
 
-Nguyen Dinh Nam wrote:
-| Senior netfilter developers, please tell me if SNAT in PREROUTING is
-| worth the effort to implement. At least, tell me if it is fit with the
-| linux networking architecture?
+Or use autoreconf, which seems to be the magic-du-jour to generate all
+the necessary bits.
 
-I'm no senior, but could the SAME target in patch-o-matic-ng maybe help you out?
+Wichert.
 
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCRU9+xyF48ZTvn+4RAjCgAKDFc0QJvIsOxAxGXqJd4wCmtY3iXQCgnAAI
-M6Jxpx7DfqrBeRsrkF9SRXE=
-=xcEV
------END PGP SIGNATURE-----
+-- 
+Wichert Akkerman <wichert@wiggy.net>    It is simple to make things.
+http://www.wiggy.net/                   It is hard to make things simple.
