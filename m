@@ -1,16 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: userspace tool for ctnetlink
-Date: Wed, 22 Oct 2003 05:39:43 +0200
+From: "yangrunhua" <yangrunhua@njupt.edu.cn>
+Subject: RE: How to take over TCP connection from userspace process?
+Date: Wed, 22 Oct 2003 11:44:56 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F95FBFF.90703@trash.net>
-References: <200310221116812.SM00868@zhengcb>
+Message-ID: <006f01c3984e$e045fce0$d32f110a@yrhd>
+References: <20031021134729.GB12049@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: zhengchuanbo <zhengcb@netpower.com.cn>
-In-Reply-To: <200310221116812.SM00868@zhengcb>
+To: "'Harald Welte'" <laforge@netfilter.org>
+In-Reply-To: <20031021134729.GB12049@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,32 +22,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I'm sorry I deleted my old compile environment just today.
-IPS_CONFIRMED should be defined in the kernel header files
-so you probably need to adjust the location of these in the
-Makefile. IIRC you also need this patch:
-http://trash.net/~kaber/ctnetlink/libnfnetlink-nfnl_talk.diff
+But sendfile() system call could not support copying from socket to =
+socket, and only transfer in one direction.
 
-Best regards,
-Patrick
+What I need is: after I authenticated TCP connection A(host A connected =
+to me) and TCP connection B(host B connected to me), then let what host =
+A send (through TCP connection A)directly forward to host B(through TCP =
+connection B) in the kernel ,meanwhile, what host B send directly =
+forward to host A in the kernel.
 
-zhengchuanbo wrote:
+That's much like MSN Messenger Server's relaying webcam video stream =
+between two peers after authenticated them. I want to do this relay in =
+kernel space and auth in the userspace. It's much like NGN softswitch's =
+theory: control and auth separate from transfer.
 
->Patrick,
->	
->sorry to disturb you. I got your code ct.tar.gz. There are some
->problem when compile. 
->first,it reported that the libnfnetlink.h is missed. So I copied
->this file from iptables2.
->Then it reported some error like this,
->	utils.c:225: `IPS_CONFIRMED' undeclared (first use in this function)
->	utils.c:225: (Each undeclared identifier is reported only once
->	utils.c:225: for each function it appears in.) 
->So I don't know if I got the right version.
->
->Best regards,
->Jack
->zhengcb@netpower.com.cn
->
->  
->
+That's much useful functionality. Can netfilter/iptables help this? done =
+this by writing a new target or something?
+
+Thanks,
+	Runhua Yang
+
+
+-----Original Message-----
+From: Harald Welte [mailto:laforge@netfilter.org]=20
+Sent: Tuesday, October 21, 2003 9:47 PM
+To: yangrunhua
+Cc: netfilter-devel@lists.netfilter.org
+Subject: Re: How to take over TCP connection from userspace process?
+
+On Tue, Oct 21, 2003 at 03:33:22PM +0800, yangrunhua wrote:
+> Hi all,
+> 	With the help of netfilter/iptables, is there any way to high-speed =
+forwarding between 2 already-connected TCP connections in the kernel?
+
+I don't see how this could be related to netfilter/iptables at all.
+The normal sendfile() systemcall may be helpful to you.
+
+> 	Thanks,
+> 				Runhua Yang
+
+--=20
+- Harald Welte <laforge@netfilter.org>             =
+http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
