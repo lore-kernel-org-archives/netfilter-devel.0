@@ -1,10 +1,10 @@
 From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] limit match does not support invert
-Date: Mon, 20 Sep 2004 16:32:52 -0700
+Subject: [PATCH] dstlimit does not support invert
+Date: Mon, 20 Sep 2004 16:52:38 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040920233252.GA4094@linuxace.com>
+Message-ID: <20040920235238.GB4094@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="9jxsPFA5p3P2qPhR"
+Content-Type: multipart/mixed; boundary="SkvwRMAIpAhPCcCJ"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -19,72 +19,125 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---9jxsPFA5p3P2qPhR
+--SkvwRMAIpAhPCcCJ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-Limit match does not support invert, and without loss of backwards
-compatibility, it won't anytime soon.  It doesn't help that the
-iptables tutorial claims it does.
-
-The userspace code tries to warn users it won't work, but only correctly
-deals with one of the two possible invert cases:
-
-# iptables -A foo -m limit --limit ! 1/sec
-iptables v1.2.11: Unexpected `!' after --limit
-Try `iptables -h' or 'iptables --help' for more information.
-
-but not this one:
-
-# iptables -A foo -m limit ! --limit 1/sec    
-
-The below patch fixes this up, closing bugzilla #95, perhaps to the
-chagrin of those who would like to see limit support invert.
+Like limit match, userspace only partially handled invert case.  Patch
+below handles the other one.
 
 Phil
 
 
 
 
---9jxsPFA5p3P2qPhR
+--SkvwRMAIpAhPCcCJ
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-limitinvert
+Content-Disposition: attachment; filename=patch-dstlimit
 
-diff -ru ipt-orig/extensions/libipt_limit.c ipt-new/extensions/libipt_limit.c
---- ipt-orig/extensions/libipt_limit.c	2004-06-14 15:02:17.000000000 -0700
-+++ ipt-new/extensions/libipt_limit.c	2004-09-20 16:25:00.344128844 -0700
-@@ -104,19 +104,14 @@
+diff -ru ipt-orig/extensions/libipt_dstlimit.c ipt-new/extensions/libipt_dstlimit.c
+--- ipt-orig/extensions/libipt_dstlimit.c	2004-02-23 03:10:55.000000000 -0800
++++ ipt-new/extensions/libipt_dstlimit.c	2004-09-20 16:45:19.587967284 -0700
+@@ -132,9 +132,7 @@
  
  	switch(c) {
  	case '%':
 -		if (check_inverse(optarg, &invert, NULL, 0))
 -			exit_error(PARAMETER_PROBLEM,
--				   "Unexpected `!' after --limit");
+-				   "Unexpected `!' after --dstlimit");
 +		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
- 		if (!parse_rate(optarg, &r->avg))
+ 		if (!parse_rate(optarg, &r->cfg.avg))
  			exit_error(PARAMETER_PROBLEM,
  				   "bad rate `%s'", optarg);
+@@ -142,10 +140,7 @@
  		break;
  
  	case '$':
 -		if (check_inverse(optarg, &invert, NULL, 0))
 -			exit_error(PARAMETER_PROBLEM,
--				   "Unexpected `!' after --limit-burst");
+-				   "Unexpected `!' after --dstlimit-burst");
 -
 +		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
  		if (string_to_number(optarg, 0, 10000, &num) == -1)
  			exit_error(PARAMETER_PROBLEM,
- 				   "bad --limit-burst `%s'", optarg);
-@@ -127,6 +122,10 @@
+ 				   "bad --dstlimit-burst `%s'", optarg);
+@@ -153,10 +148,7 @@
+ 		*flags |= PARAM_BURST;
+ 		break;
+ 	case '&':
+-		if (check_inverse(optarg, &invert, NULL, 0))
+-			exit_error(PARAMETER_PROBLEM,
+-				"Unexpected `!' after --dstlimit-htable-size");
+-
++		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
+ 		if (string_to_number(optarg, 0, 0xffffffff, &num) == -1)
+ 			exit_error(PARAMETER_PROBLEM,
+ 				"bad --dstlimit-htable-size: `%s'", optarg);
+@@ -164,9 +156,7 @@
+ 		*flags |= PARAM_SIZE;
+ 		break;
+ 	case '*':
+-		if (check_inverse(optarg, &invert, NULL, 0))
+-			exit_error(PARAMETER_PROBLEM,
+-				"Unexpected `!' after --dstlimit-htable-max");
++		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
+ 		if (string_to_number(optarg, 0, 0xffffffff, &num) == -1)
+ 			exit_error(PARAMETER_PROBLEM,
+ 				"bad --dstlimit-htable-max: `%s'", optarg);
+@@ -174,9 +164,7 @@
+ 		*flags |= PARAM_MAX;
+ 		break;
+ 	case '(':
+-		if (check_inverse(optarg, &invert, NULL, 0))
+-			exit_error(PARAMETER_PROBLEM, "Unexpected `!' after "
+-					"--dstlimit-htable-gcinterval");
++		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
+ 		if (string_to_number(optarg, 0, 0xffffffff, &num) == -1)
+ 			exit_error(PARAMETER_PROBLEM,
+ 				"bad --dstlimit-htable-gcinterval: `%s'", 
+@@ -186,9 +174,7 @@
+ 		*flags |= PARAM_GCINTERVAL;
+ 		break;
+ 	case ')':
+-		if (check_inverse(optarg, &invert, NULL, 0))
+-			exit_error(PARAMETER_PROBLEM, "Unexpected `!' after " 
+-					"--dstlimit-htable-expire");
++		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
+ 		if (string_to_number(optarg, 0, 0xffffffff, &num) == -1)
+ 			exit_error(PARAMETER_PROBLEM,
+ 				"bad --dstlimit-htable-expire: `%s'", optarg);
+@@ -197,9 +183,7 @@
+ 		*flags |= PARAM_EXPIRE;
+ 		break;
+ 	case '_':
+-		if (check_inverse(optarg, &invert, NULL, 0))
+-			exit_error(PARAMETER_PROBLEM, "Unexpected `!' after "
+-					"--dstlimit-mode");
++		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
+ 		if (!strcmp(optarg, "dstip"))
+ 			r->cfg.mode = IPT_DSTLIMIT_HASH_DIP;
+ 		else if (!strcmp(optarg, "dstip-destport") ||
+@@ -216,9 +200,7 @@
+ 		*flags |= PARAM_MODE;
+ 		break;
+ 	case '"':
+-		if (check_inverse(optarg, &invert, NULL, 0))
+-			exit_error(PARAMETER_PROBLEM, "Unexpected `!' after "
+-					"--dstlimit-name");
++		if (check_inverse(argv[optind-1], &invert, &optind, 0)) break;
+ 		if (strlen(optarg) == 0)
+ 			exit_error(PARAMETER_PROBLEM, "Zero-length name?");
+ 		strncpy(r->name, optarg, sizeof(r->name));
+@@ -228,6 +210,10 @@
  		return 0;
  	}
  
 +	if (invert)
 +		exit_error(PARAMETER_PROBLEM,
-+			   "limit does not support invert");
++			   "dstlimit does not support invert");
 +
  	return 1;
  }
  
 
---9jxsPFA5p3P2qPhR--
+--SkvwRMAIpAhPCcCJ--
