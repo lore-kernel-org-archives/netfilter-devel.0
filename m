@@ -1,18 +1,21 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: PATCH: extra conntrack stats
-Date: Thu, 01 May 2003 14:05:52 +1000
+Date: Thu, 1 May 2003 07:48:30 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030501050235.F0DCE2C04F@lists.samba.org>
-References: <1051743903.8213.188.camel@tux.rsn.bth.se>
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Message-ID: <20030501054830.GA15143@oknodo.bof.de>
+References: <Pine.LNX.4.33.0304301227530.3328-100000@blackhole.kfki.hu> <20030501015802.2CB152C2D9@lists.samba.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+  Rolf Fokkens <fokkensr@fokkensr.vertis.nl>,
+  Harald Welte <laforge@netfilter.org>,
+  Martin Josefsson <gandalf@wlug.westbo.se>,
+  Netfilter-devel <netfilter-devel@lists.netfilter.org>,
+  Patrick Schaaf <bof@bof.de>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-Cc: Rolf Fokkens <fokkensr@fokkensr.vertis.nl>,
-	Harald Welte <laforge@netfilter.org>,
-	Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Patrick Schaaf <bof@bof.de>
-In-reply-to: Your message of "01 May 2003 01:05:03 +0200."
-             <1051743903.8213.188.camel@tux.rsn.bth.se>
+To: Rusty Russell <rusty@rustcorp.com.au>
+Content-Disposition: inline
+In-Reply-To: <20030501015802.2CB152C2D9@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,124 +26,57 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-In message <1051743903.8213.188.camel@tux.rsn.bth.se> you write:
-> On Wed, 2003-04-30 at 13:19, Martin Josefsson wrote:
-> - Switch to using hlists for the hashtable
+> > As usual, it's Rusty's locking patch what triggered me to think over the
+> > locking issues. In that patch Rusty actually eliminates ip_conntrack
+> > lock:
+> 
+> Ah, but I think I might have a better trick.  Patrick cc'd since he's
+> the hashing man.
+> 
+> Can we compromise the hash so that every packet hashes to the same
+> chain as its reply?
+> 
+> If we can do this without making our hash really suck, we only need one
+> entry per conntrack (and we then compare both ways).  This means a
+> smaller table, and hence better cache utilization, as well as simpler
+> locking.
 
-OK.  Please implement hlist_for_each_entry(), though, a-la
-list_for_each_entry.
+Thanks for the Cc, I have indeed thought about such an approach.
 
-> - Rearrange struct ip_conntrack to be more cachefriendly if possible
+Basically, it is possible for non-NAT conntracks. Those have
+what I'd call "mirror" key material. Sort the keys, resulting
+in A) a "flipped" bit, and B) first the smaller key, then the
+larger, you have broken down both sides of the connection to
+the same key (and the flipped bit, giving the direction);
+look up the "sorted" key in the hash table, then choose the
+real tuple to compare to based on the flipped bit.
 
-Leave 'til last, I think, since that structure will be changing
-anyway.  Most important is that next ptr and tuple are at the start
-(ie. only one cacheline per hash chain entry).
+Unfortunately, once NAT is set up for a conntrack, the keys
+for both connections lose the mirror property. The approach
+then becomes a small loss, compared to what we have now.
 
-> - Add prefetching in list-searching
+That means we have a tradeoff based on how we are deployed.
+I stopped thinking about it at that point...
 
-Can be done, but it's a micro-optimization and you'd want to check
-carefully that recent gcc's don't do this anyway.
 
-> - Turn protocol_list into an array
+As an aside, and independant of the key sorting/flipping,
+we could eliminate completely the info struct array we
+now have in each conntrack. Interested? Then I'll write
+how I envision that.
 
-Or hardcode the three builtins and use the list for others.
 
-> - Switch to a better hashfunction
+Finally, regarding the locking, I would like to mention
+the memory conservative "sectored locks" approach.
+Break the hash table into sectors, about N*NR_CPU
+of them. Use one rwlock per sector.  Given an equally
+distributing hash function, the probability that two
+of our NR_CPU cpus will lock the same sector at the
+same time, becomes small with growing N, fast.
 
-Yes!  See comments below on secret hashing...
+This way, a lot less locks than with one-lock-per-chain
+or one-lock-per-conntrack can be used, without compromising
+concurrency too much.
 
-> - Remove pointless timer-updating
 
-We could revisit this altogether: go for one timer which sweeps the
-hash chains and an "expiry" date on each one.  You end up with some
-icky deletion issues, but...
-
-> - Rework locking to be finer grained, start with per bucket spinlocks
->   (goal: RCU?)
-
-Well, might as well go straight to RCU for the infrastructure
-locking.  
-
-It's a little tricky.  RCU can be used for the read side, but since
-writes are not uncommon (I always guesstimated 1 in 10), we still
-probably want per-chain locks.  Hmm, actually, since that bloats the
-hash, let's start with one lock and see how it goes.
-
-The protection of the conntrack objects themselves should become a
-lock per conntrack I think.  We currently use the timer lock as a form
-of synchronization: if we have a conntrack.lock we should use that.
-
-> - Remove tcp_lock if using per bucket spinlocks, otherwise move it into
->   the entries
-
-Agreed: use conntrack.lock.
-
-> - Remove pointless rehashing of tuples
-
-Hmmm, does this happen?
-
-> - Rework overload support (early_drop)
-
-OK, you've probably seen my "hash with secret key" scheme.
-Unfortunately, it relies on being able to grab the network brlock to
-stop all activity while it redoes the hash.  But Dave is removing the
-brlock, so this becomes more tricky (ie. readers have to be aware that
-there could be two hash tables, ick).
-
-It might still be worth it though (this same trick would allow us to
-resize the hash through /proc).  Needs more thought.
-
-> - Avoid as many memory-writes as possible, no need to dirty cachelines if
->   we don't have to
-
-Well, yes, but it's usually secondary after correctness.
-
-> - Eliminate listhelp.h and lockhelp.h by request from hch
-
-Yeah, list.h is more sophisticated now, and we have lock debugging
-
-> - Try to shrink struct ip_conntrack
-
-Ignoring NAT for the moment, and using a 32-bit arch:
-
-	struct nf_conntrack ct_general;
-8 bytes: hard to shrink.
-
-	struct ip_conntrack_tuple_hash tuplehash[IP_CT_DIR_MAX];
-2 x 28 bytes: we can get rid of one.
-
-	unsigned long status;
-8 bytes. Needs to be ulong for bitops.
-
-	struct timer_list timeout;
-48 bytes: could be one ulong (time for expiry).
-
-	struct list_head sibling_list;
-8 bytes.  Hard to remove without getting tricky...
-	
-	unsigned int expecting;
-4 bytes. Maybe could merge this with upper bits of status, maybe...
-
-	struct ip_conntrack_expect *master;
-4 bytes. Needed.
-
-	struct ip_conntrack_helper *helper;
-4 bytes.  Needed.
-
-	struct nf_ct_info infos[IP_CT_NUMBER];
-7 * 4 bytes.  We could eliminate this by adding an skb field to hold
-the state.
-
-	union ip_conntrack_proto proto;
-8 bytes, will get bigger with tcp tracking.
-
-	union ip_conntrack_help help;
-16 bytes, could use flags in status for ftp's seq_aft_nl_set and cut
-to 8 bytes.
-
-So, we're about 192 bytes.  We could get to 80 bytes.
-
-Cheers,
-Rusty.
---
-  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+best regards
+  Patrick
