@@ -1,13 +1,12 @@
-From: "Wilmar jose  wagner" <wilmarw@terra.com.br>
-Subject: iptables
-Date: Fri, 16 Jan 2004 20:36:51 -0200
+From: Zeeshan Ali <zeelists@yahoo.com>
+Subject: A humble request
+Date: Thu, 22 Jan 2004 14:07:14 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <005101c3dc81$3e310e00$0600000a@pc6>
+Message-ID: <20040122220714.10159.qmail@web60702.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_004E_01C3DC70.78DB6D40"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,45 +17,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hello,
+   Most of the mailing-lists that i have subscribed
+to, follow a tradition that make it quite easy to
+identify emails: they add a prefix at the beginning of
+each email's topic. Would'nt it be better if we do the
+same too. Bye.
 
-------=_NextPart_000_004E_01C3DC70.78DB6D40
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-I migrate from iptables 1.2.7 to 1.2.9 and after the MASQUERADE     is =
-no more accepted
-
-My syntax is:
-
-iptables -t nat -A POSTROURING -o ppp0 -j MASQUERADE
-
-
-
-------=_NextPart_000_004E_01C3DC70.78DB6D40
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2600.0" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>I migrate from iptables 1.2.7 to 1.2.9 =
-and after=20
-the MASQUERADE &nbsp;&nbsp;&nbsp; is no more accepted</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>My syntax is:</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>iptables -t nat -A POSTROURING -o ppp0 =
--j=20
-MASQUERADE</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV>&nbsp;</DIV></BODY></HTML>
-
-------=_NextPart_000_004E_01C3DC70.78DB6D40--
+__________________________________
+Do you Yahoo!?
+Yahoo! SiteBuilder - Free web site building tool. Try it!
+http://webhosting.yahoo.com/ps/sb/
