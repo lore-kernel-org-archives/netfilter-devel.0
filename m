@@ -1,8 +1,8 @@
 From: "Nikolai Dahlem" <Nikolai.Dahlem@epygi.de>
-Subject: (no subject)
-Date: Wed, 24 Sep 2003 15:53:07 +0200
+Subject: UDP-conntrack/nat question
+Date: Thu, 25 Sep 2003 09:13:08 +0200
 Sender: netfilter-admin@lists.netfilter.org
-Message-ID: <DAELKAPIKOFAFFKELNHOAEADCAAA.Nikolai.Dahlem@epygi.de>
+Message-ID: <DAELKAPIKOFAFFKELNHOIEADCAAA.Nikolai.Dahlem@epygi.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
