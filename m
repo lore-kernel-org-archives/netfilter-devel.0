@@ -1,12 +1,15 @@
-From: Max Kellermann <max@duempel.org>
-Subject: nfsim problem with NAT
-Date: Wed, 19 Jan 2005 00:17:29 +0100
-Message-ID: <20050118231729.GA11445@roonstrasse.net>
+From: Samuel Jean <sj-netfilter@cookinglinux.org>
+Subject: Re: nfsim problem with NAT
+Date: Tue, 18 Jan 2005 18:28:22 -0500
+Message-ID: <41ED9B96.5010105@cookinglinux.org>
+References: <20050118231729.GA11445@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Max Kellermann <max@duempel.org>
+In-Reply-To: <20050118231729.GA11445@roonstrasse.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,20 +21,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Max Kellermann wrote:
+> Hi,
 
-I'm trying to write a nfsim test for the H.323 conntrack module. The
-NAT part fails, because I cannot set up the NAT rule:
+Hi Max !
 
- > 14:iptables -t nat -A POSTROUTING -o eth1 -p tcp --dport 1720 -j SNAT --to-source 192.168.0.100
- iptables: Invalid argument
- iptables: command failed
- Script failed at line 14: 
- iptables failed
+> 
+> I'm trying to write a nfsim test for the H.323 conntrack module. The
+> NAT part fails, because I cannot set up the NAT rule:
+> 
+>14:iptables -t nat -A POSTROUTING -o eth1 -p tcp --dport 1720 -j SNAT --to-source 192.168.0.100
+>  iptables: Invalid argument
+>  iptables: command failed
+>  Script failed at line 14: 
+>  iptables failed
 
-I get the same message with the NAT tests from nfsim-testsuite
-(e.g. 03NAT/62ftpdata-port.sim). My iptables version is v1.2.11, Linux
-kernel 2.6.11-rc1 (nfsim fails to compile 2.6.11-rc1-mm1, anyone
-interested in a detailed report or patch?).
+both userspace and kernelspace use same structure ?
 
-Max
+it works well for me:
+
+ > iptables -t nat -A POSTROUTING -o eth1 -p tcp --dport 1720 -j SNAT 
+--to-source 192.168.0.100
+ >
+
+NOTE: I use SVN iptables. but shouldn't matter. I think.
+
+Samuel
