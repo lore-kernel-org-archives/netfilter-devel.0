@@ -1,11 +1,17 @@
-From: =?ISO-8859-2?Q?Tom=E1=B9_Macek?= <maca02@atlas.cz>
-Subject: cannot kmalloc nor vmalloc
-Date: Mon, 17 Jan 2005 20:00:55 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0501171957130.8115@maca.fortech.cz>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: skb_ip_make_writable and skbs not owned by a socket
+Date: Mon, 17 Jan 2005 13:50:29 -0800
+Message-ID: <20050117135029.04e6580f.davem@davemloft.net>
+References: <41D86571.6070501@trash.net>
+	<20050113213122.7e70c3c2.davem@davemloft.net>
+	<41E75FA4.907@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: rusty@rustcorp.com.au, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <41E75FA4.907@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,15 +23,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, I'm just developing a new "match" (like ipt_limit for example) iptables module under RH FC 2, kernel 2.6.5-1.328.
-If I make a request for about 100 kB of memory in the registered match function in my module by means of kmalloc(size, GPF_ATOMIC) and set it via memset() to zero, the computer freezes with kernel panic and debugging output. Maybe it has not enaugh memory. I tried something more and never got more than about 40 kB.
+On Fri, 14 Jan 2005 06:59:00 +0100
+Patrick McHardy <kaber@trash.net> wrote:
 
-Then I tried to get more memory with the vmalloc() function. But vmalloc() is called with the GPF_KERNEL flag, so I cannot use it in the interrupt = I cannot use it in the match function. The vmalloc gives also the debugging output to the log, but it does not freezes the computer when called from inside the match function.
+> I wasn't very clear in my question, it only makes sense if you look at
+> skb_ip_make_writable :) It already checks for skb_shared || skb_cloned
+> to decide when to copy, but additionally makes some guesses based on the
+> protocol. I think the checks for skb_shared || skb_clones should already
+> catch all cases where copying is necessary, and the additional cases
+> could be removed.
 
-I also tried to get large chunk of memory outside the match function, just before I register the match - in the __init() of my module, and I was able to get more than 100 MB via vmalloc().
+This code is doing something different.  Even if we unclone and
+unshare the SKB, the packet header portion can still be non-linear.
 
-How can I get bigger chunk of memory in the interrupt? I will need more (about 5-10) chunks of 100 kB memory.
-
-Any help will be very appreciated!
-
-Tomas
+It will be possible for devices to create this situation on receive.
+That's why we have all the pskb_may_pull() checks in all the major
+ipv4 protocol input paths.
