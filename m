@@ -1,12 +1,15 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] ulogd specfile typos
-Date: Mon, 28 Mar 2005 10:06:20 -0800
-Message-ID: <20050328180620.GA1576@linuxace.com>
+From: Tom Eastep <teastep@shorewall.net>
+Subject: Re: status of netfilter+ipsec patches
+Date: Mon, 28 Mar 2005 10:58:00 -0800
+Message-ID: <424853B8.9090607@shorewall.net>
+References: <42289633.6020804@sysgo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="LQksG6bCIzRHxTLp"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42289633.6020804@sysgo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,52 +21,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Rolf Offermanns wrote:
+> Hi!
+> I read in the archives of this ml that the netfilter+ipsec patches were
+> supposed to be submitted after 2.6.10 release.
+> 
+> Are there any open issues? What keeps them from going into the main kernel?
+> 
 
---LQksG6bCIzRHxTLp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I second this question -- I'm giving a presentation about Shorewall and
+IPSEC next month at Linuxfest Northwest and I'd like to be able to give
+the audience the current status of the patches.
 
-As pointed out by Kenneth Porter, a few typos/inaccuracies in ulogd .spec.
-
-Closes bugzilla #313
-
-Phil
-
-
-
---LQksG6bCIzRHxTLp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-ulogspec
-
-diff -ru ulogd-orig/ulogd.spec ulogd-1.22/ulogd.spec
---- ulogd-orig/ulogd.spec	2005-02-16 02:11:39.000000000 -0800
-+++ ulogd-1.22/ulogd.spec	2005-03-28 10:04:31.000000000 -0800
-@@ -1,10 +1,10 @@
- Summary: ulogd - The userspace logging daemon for netfilter
- Name: ulogd
--Version: 1.21
-+Version: 1.22
- Release: 1gm
- License: GPL
- Group: Network
--Source: http://ftp.netfilter.org/pub/ulogd/%{name}-%{version}.tar.gz
-+Source: ftp://ftp.netfilter.org/pub/ulogd/%{name}-%{version}.tar.bz2
- BuildRoot: %{_tmppath}/%{name}-%{version}-root
- Packager: Harald Welte <laforge@gnumonks.org>
- BuildRequires: MySQL-devel postgresql-devel libpcap-devel libsqlite3-devel
-@@ -19,11 +19,11 @@
- Group: Network
- 
- %package sqlite
--Summarry: SQLITE3 output plugin for ulogd
-+Summary: SQLITE3 output plugin for ulogd
- Group: Network
- 
- %package pcap
--Summarry: PCAP output plugin for ulogd
-+Summary: PCAP output plugin for ulogd
- Group: Network
- 
- 
-
---LQksG6bCIzRHxTLp--
+-Tom
+-- 
+Tom Eastep    \ Nothing is foolproof to a sufficiently talented fool
+Shoreline,     \ http://shorewall.net
+Washington USA  \ teastep@shorewall.net
+PGP Public Key   \ https://lists.shorewall.net/teastep.pgp.key
