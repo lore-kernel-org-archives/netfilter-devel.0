@@ -1,13 +1,16 @@
-From: Patrascu Eugeniu <epatrascu@go.ro>
-Subject: kernel rule insertion question/suggestion
-Date: Tue, 06 Jan 2004 12:30:10 +0200
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Call for testing: patch-o-matic-ng
+Date: Tue, 6 Jan 2004 11:32:15 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1073385010.1106.15.camel@sin.nobugconsulting.ro>
-Reply-To: epatrascu@go.ro
+Message-ID: <Pine.LNX.4.33.0401061016250.16609-100000@blackhole.kfki.hu>
+References: <20040105132256.GA4074@eychenne.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-bke0sY7CskAuzJCZLKri"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Herve Eychenne <rv@wallfire.org>
+In-Reply-To: <20040105132256.GA4074@eychenne.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,44 +21,63 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 5 Jan 2004, Herve Eychenne wrote:
 
---=-bke0sY7CskAuzJCZLKri
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> > foo/
+> > foo/info			# Common auxiliary files
+> > foo/help
+> > foo/linux-2.4.patch		# 2.4 speficic patch and whole files
+> > foo/linux-2.4/...
+> > foo/linux-2.6.patch		# 2.6 specific patch and whole files
+> > foo/linux-2.6/...
+>
+> > The Requires (in your context: Depends) lines can be added to the info
+> > file, which thus valid for all patch-versions. In Debian, you have one
+> > specific package. Here we have multiple versions of the same patch.
+>
+> It's pretty much the same as the Debian scheme.
+> A Debian package name is equivalent to your "foo". Several
+> versions of it may exist at the same time.
+> Debian has several files (.deb) containing a package name and version.
+> A "Packages" file is computed based on that files.
 
-Hi,
+As Harald wrote, I was misleading: it's not truly patch "version", but
+patch flavours against kernel versions. What we'd like to solve is the
+clean handling of which patch flavour should be applied against a given
+kernel source.
 
-As explained by a list member a while ago, to insert a netfilter rule in
-the running kernel the following things happen:
-	I. the whole ruleset is being downloaded in userspace
-	II. the rules are checked for loops/errors/whatever and the new rule is
-added to the chain.
-	III. then the whole ruleset is uploaded back into the running kernel.
-	IV. the steps above are repeated for each and every rule added.
+> Your "info" is the equivalent of a single entry in the Debian Packages
+> file, no problem...
+> Your "linux-2.4" is the equivalent of the package-version.deb
+> Your "help" could probably be integrated into "info".
+>
+> So I see no problem with your scheme. Yet, what would you put in
+> "linux-2.4/..."?  Why doesn't it get into linux-2.4.patch?
 
-I was wondering (in case what I wrote above is really true) if there
-would be a good ideea to have a userspace rule compiler that can check
-for errors in the rules and then just upload them in the kernel, without
-using the mecanism described above. this would be useful for compiling
-firewall rules on a central machine and after that just deploying them
-thru out the network; also, this would be very helpful for people who
-have slow machines as firewalls.
+That subdirectory tree contains the whole files and the special files from
+the patch file. So the original patch file is split into several chunks:
 
-PS: I apologize for my writing, but english is not my native language.
+- whole files added to the kernel tree
+- specially handled files (Config.in/Kconfig/Makefile/ip_conntrack.h/etc)
+- rest as normal patch file
 
---=20
-Patrascu Eugeniu <epatrascu@go.ro>
+So we don't want to collapse them into two files (control + "deb").
 
---=-bke0sY7CskAuzJCZLKri
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+In my opinion, patch-o-matic-ng should be flexible enough to handle
+patches against different kernel versions with the mininal maintenance
+overhead. We have to name the patch file/subdir, so we can encode the
+kernel dependency simply there. Why should we store the dependecy
+explicitly in a separated control file? Of course the naming does not give
+enough flexibility in some cases, so general dependecy setting still could
+be stated in the control file - if required.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+Scanning my machine, I could not find a perl module which implements the
+deb dependecy checking. :-(
 
-iD8DBQA/+o4yV1VUlYp+JSYRAkr3AJ9Yyh4lYjmYDHdE4v/VV7asLkJ0uQCeJuwl
-MSQgHlVn8QMR6VO0bzgsnR8=
-=jF8m
------END PGP SIGNATURE-----
-
---=-bke0sY7CskAuzJCZLKri--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
