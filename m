@@ -1,16 +1,13 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: Table-based branching
-Date: Mon, 05 Apr 2004 17:37:53 +0200
+From: Phil Oester <kernel@linuxace.com>
+Subject: re: find_appropriate_src() BUG also exist in 2.4.24
+Date: Sun, 4 Apr 2004 15:37:35 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1081179473.1200.29.camel@nienna.balabit>
-References: <200404051727.13704.mailinglists@futureware.at>
+Message-ID: <20040404223735.GA1334@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: pg@futureware.at
-In-Reply-To: <200404051727.13704.mailinglists@futureware.at>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,22 +18,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+I too am having lockups every few hours on a heavily used gateway.  
 
-  Hi,
+Back in September, Rusty offered this patch:
 
-On Mon, 2004-04-05 at 17:27, Philipp Gühring wrote:
-> My idea now is to have different rule tables for allowed and disallowed IP 
-> addresses, and special kernel module that branches into either rule table.
-> That module contains a large Bit-Array in kernel memory to store for every IP 
-> addresse whether it is allowed or disallowed.
-> 
-> Has anyone done that before (or something similar)?
+http://lists.netfilter.org/pipermail/netfilter-devel/2003-September/012388.html
 
-  Of course! Take a look at the old ippool, or the new ipset module.
-(Modules 'pool' and 'set' in Patch-o-matic-NG.) The ippool module does
-exactly what you described, the ipset addon by Jozsef Kadlecsik is much
-more powerful.
+Which to this point is not in either 2.4 or 2.6, but looks as though
+it may actually fix the endless loop we seem to be experiencing.
 
--- 
- Regards,
-   Krisztian KOVACS
+Alternatively, the following patch was merged in 2.6, but is not present
+in 2.4.24 -- could this also help?
+
+--- 1.34/net/ipv4/netfilter/ip_nat_core.c	Sun Apr  4 15:21:19 2004
++++ 1.35/net/ipv4/netfilter/ip_nat_core.c	Sun Apr  4 15:21:19 2004
+@@ -421,7 +421,8 @@
+ 			*tuple = ((struct ip_conntrack_tuple)
+ 				  { *manip, orig_tuple->dst });
+ 			DEBUGP("get_unique_tuple: Found current src map\n");
+-			return 1;
++			if (!ip_nat_used_tuple(tuple, conntrack))
++				return 1;
+ 		}
+ 	}
+
+
+Any thoughts on either of the above would be appreciated.
+
+Phil Oester
