@@ -1,15 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: What can i do ? When i rmmod the modules .
-Date: Fri, 9 May 2003 15:42:03 +0200 (CEST)
+From: Patrick McHardy <kaber@trash.net>
+Subject: {OT] Sigcomm 2003 in Karlsruhe
+Date: Fri, 09 May 2003 20:31:38 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0305091536320.9035-100000@blackhole.kfki.hu>
-References: <002f01c3162d$45b49db0$01e7a8c0@zpeak>
+Message-ID: <3EBBF40A.4060506@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: cyberyam <zpeak@cyberyam.com>
-In-Reply-To: <002f01c3162d$45b49db0$01e7a8c0@zpeak>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,65 +18,11 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 9 May 2003, cyberyam wrote:
+This is offtopic but might be interesting for those of us living
+in Europe. Sigcomm is in Karlsruhe this year, they just put
+out a preliminary programm which sound very interesting.
 
-Just scanning, there might be other bugs as well:
+http://www.acm.org/sigcomm/sigcomm2003/index.html
 
-> static unsigned int myfirewall(unsigned int hooknum,struct sk_buff **skb,
->   const struct net_device *in,
->   const struct net_device *out,int (*okfn)(struct sk_buff*))
-> {
->  struct sk_buff *newskb ;
->  int len ;
->  len = (*skb)->truesize ;
->
->  newskb = alloc_skb(len,GFP_ATOMIC);
->  if(!newskb) {
->   printk("can't alloc whole buffer \n");
->  }
-
-You continue to work even when the system could not allocate the memory,
-and then try to copy to the nonexistent space:
-
->  newskb = skb_copy(*skb,GFP_ATOMIC);
->
->  netlink_broadcast(nfmylog,skb,0 , 1,GFP_ATOMIC) ;
->  kfree_skb(newskb) ;
->
->  return NF_ACCEPT;
-> }
->
-> static struct nf_hook_ops iplimitfilter=
-> {
->  {NULL,NULL},
->  myfirewall,
->  PF_INET,
->  NF_IP_PRE_ROUTING,
->  NF_IP_PRI_FILTER
-> };
->
-> int  init_module(void)
-> {
->  nfmylog = netlink_kernel_create(NETLINK_MYLOG,NULL);
-
-You does not check wether you could create the netlink.
-NULL is not a protocol indentifier.
-
->  return nf_register_hook(&iplimitfilter);
-> }
->
-> static  void  cleanup_module(void)
-> {
->  nf_unregister_hook(&iplimitfilter);
->  sock_release(nfmylog->socket);
-> }
-
-sock_release is not appropriare to release a netlink.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Bye
+Patrick
