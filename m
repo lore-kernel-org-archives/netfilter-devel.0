@@ -1,15 +1,16 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] kill NFC_* stuff in iptables [was Re: iptables compile
- error: NFC_IP_TOS undeclared]
-Date: Fri, 11 Feb 2005 22:47:07 +0100
-Message-ID: <420D27DB.9000608@eurodev.net>
-References: <Pine.GSO.4.33.0502101758010.19216-100000@indigo>	<420B8623.9050308@niksula.hut.fi>	<420B9ED0.1020303@trash.net>
-	<420BEB36.7080209@eurodev.net> <420D0276.5080200@trash.net>
+From: Pedro Fortuna <pedro.fortuna@gmail.com>
+Subject: netfilter question
+Date: Fri, 11 Feb 2005 22:10:41 +0000
+Message-ID: <db95d40c050211141019b71bf5@mail.gmail.com>
+References: <42086F50.9090504@niksula.hut.fi>
+	<53965.213.236.112.75.1107867276.squirrel@213.236.112.75>
+	<420BEAFB.9070405@niksula.hut.fi>
+Reply-To: Pedro Fortuna <pedro.fortuna@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010803000305040703040402"
-Cc: netfilter-devel@lists.netfilter.org
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <420D0276.5080200@trash.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <420BEAFB.9070405@niksula.hut.fi>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,144 +22,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010803000305040703040402
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hello guys. I'll try to make it as short an simple as I can.
 
-Patrick McHardy wrote:
+I want to develop a kernel module which will be running in two linux
+hosts, connected by a crossover network cable (ethernet). This kernel
+module will intercept a specific type of traffic (as an example, let's
+say FTP packets (encapsulated in DIX frames)), both incomming and
+outgoing, and change the ethertype in the frame header.
 
-> Pablo Neira wrote:
->
->> I've renamed all NFC_* stuff != NFC_UNKNOWN to NFC_UNKNOWN. So people 
->> using ct_sync won't complain about this again. I see this as a first 
->> step to remove the old behaviour of nfcache. Please, see the patch 
->> attached.
->
->
-> Why didn't you remove it entirely instead ?
+Outgoing dix frames carrying FTP packets get their ethertype changed
+to a private, non standard ethertype number, just before they leave
+the host (i.e. before they are passed to the network driver). The
+frame is intercepted with the NF_IP_POST_ROUTING hook.
 
+Incoming dix frames carrying FTP packets are get their ethertype
+changed (at this point, a non standard ethertype number) to the
+standard IPv4 ethertype number (i.e. 0x800), just after they are
+processed by the network driver. The frame is intercepted with the
+NF_IP_PRE_ROUTING hook.
 
-true :), patch attached. I've gzip'ed it, it's too big for sending it in 
-clear text.
+My doubt is:
+I'm not sure if I will be able to intercept the incoming frames
+because they have a non standard ethertype number. They might get
+dropped before passing through the NF_IP_PRE_ROUTING hook, due to the
+unrecognized ethertype number. Is this true or false?
+If the frame passes the hook before trying to identify the packet
+type, then I'll have no trouble, because my netfilter module changes
+the frame to the original ethertype number, thus making the hole
+process transparent to the TCP/IP stacks running in both hosts.
 
-Next step, what do you think about removing nfcache passed as parameter 
-from the iptables API?
+I could explain what the hell I need to this for, but then you would
+have three times more text to read :P I tried to restrict this post to
+a minimum-painless-size.
 
---
-Pablo
-
---------------010803000305040703040402
-Content-Type: application/gzip;
- name="kill-NFChicken.patch.gz"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="kill-NFChicken.patch.gz"
-
-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
---------------010803000305040703040402--
+Regards,
+-Pedro Fortuna
