@@ -1,16 +1,15 @@
-From: Vijaya Chandra Vupputuri <vijay@tachyontech.net>
-Subject: Re: Dynamic rule creation and deletion
-Date: Thu, 26 Feb 2004 11:04:44 +0530
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: libipq and ip_queue
+Date: Thu, 26 Feb 2004 09:03:58 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1077773683.10637.37.camel@vijay>
-References: <20040225171842.54119.qmail@web25105.mail.ukl.yahoo.com>
+Message-ID: <Pine.LNX.4.44.0402260842260.7600-100000@filer.marasystems.com>
+References: <20040226023731.GE826@hserus.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jambunathan Kalyanasundaram <k_jambunathan@yahoo.co.uk>
-In-Reply-To: <20040225171842.54119.qmail@web25105.mail.ukl.yahoo.com>
+To: Chandrakanth Chereddi <kanth@hserus.net>
+In-Reply-To: <20040226023731.GE826@hserus.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,71 +20,60 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Wouldn't a REDIRECTion to the port on which your proxy listens, be
-sufficient ( which I guess is the suggested way to have transparent
-proxying with squid )?
+On Thu, 26 Feb 2004, Chandrakanth Chereddi wrote:
 
-Appending entries using iptc should be possible but as had been
-mentioned by others in the list, iptc seems to have been developed
-specifically for the userspace iptables; So using the binary seems to be
-a better option in my opinion.
+> nfmark and the contrack entries are not of much concern, cause they are
+> specific netfilter headers. But, could you probably tell me what the
+> routing entries will stop me from doing - Mirroring?, Masquerading?
 
-On Wed, 2004-02-25 at 22:48, Jambunathan Kalyanasundaram wrote:
-> Just to give context to my query ...
-> 
-> Transparent http proxy is at times required to talk to
-> the origin web server with it's own ip address spoofed
-> to that of the browser for which it is forwarding the
-> request.
-> 
-> This requirement can be implemented though a SNAT rule
-> that translates the source ip address of the outgoing
-> packet to the browser's ip address.
-> 
-> Before the tproxy sends out a SYN to the to the web
-> server the 4-tuple needs to be noted so that even the
-> SYN packet gets spoofed. This can be realised by doing
-> a non-wildcard bind() before doing the connect(). This
-> way the 4-tuple would be available in advance and the
-> following SNAT rule can be created on the tproxy box
-> 
-> iptables -A POSTROUTING -t nat -s <local ip> -d <web
-> server ip> -p tcp --sport <local port> --dport 80 -j
-> SNAT --to <browser ip>
-> 
-> Problem (1): The above rule should be created on the
-> fly through programmatic invocation as the all the
-> translation info is available only at run time.
-> 
-> Can I use iptc_append-entry() with a suitbale
-> ipt_entry ( just the same as iptables would have
-> created for the above command ) suffices to create the
-> above rule in kernel. I have looked the libiptc doc
-> and is not clear whether this could indeed be done.
-> 
-> Are there any helper functions to fill out the boring,
-> monolithic ipt_entry ( with tcp match and SNAT target
-> )
-> 
-> Problem (2): The above rule needs to be deleted on the
-> fly once the connection tears down. This should not be
-> through a programmatic invocation. Because it's
-> possible that the deletion thread is put to sleep and
-> the deletion wwould actually take effect *much after*
-> the connection is torn down. In which case, it can
-> potentially interfere with the reincarnation of the
-> same tuple. Ofcourse 2MSL time out may help us not see
-> this issue if the connection progresses gracefully all
-> the way to an elegant close but what if the connection
-> is ungracefully torn with a RST.
-> 
-> 
-> Please let me know how you think probelm 1 and problem
-> 2 be addressed. 
-> 
-> ps: I had done a similar posting yesterday but I don't
-> see my posting in the archives. Just sending the same
-> query again with good amount of rephrase.
-> 
-> Thanks in advance,
-> Jambunathan K.
+You can do everything, as long as you do not need to change how the packet 
+is routed if the packet you are looking at has already got it's route 
+calculated.
+
+For the fine details on when routes are calculated in relation to the 
+netfilter hooks see the netfilter hacking howto.
+
+nfmark is not netfilter specific. It is a means whereby netfilter can
+provide hints to other parts of the kernel about how this packet should be
+processed. Both routing and tc have directives to make use of the nfmark
+in the decision process.
+
+> mean, how often does netfilter have to modify routing entries and under
+> what circumstances. (Yes, I am newbie to the netfilter arch.)
+
+The routing is primarily modified as part of NAT, to have the packets
+rerouted according to the packet headers after NAT. For forwarded packets
+this is rarely needed but in cases where NAT is applied to locally
+generated traffic there is cases where the packet will be routed even
+before it exists (first packet of a unbound session).  See the smallprint
+in the netfilter hacking howto for the fine details.
+
+> I do want to implement NAT, but in the userspace, (can this be done!!!).
+
+Ok.
+
+As long as you do not plan on using the conntrack or NAT kernel parts of
+Netfilter you are fine, or at least unless the re-routing restrictions
+bite you.
+
+What I am saying is that if you are doing NAT or similar packet mangling
+in userspace then the conntrack or NAT functions of netfilter must not be
+used.
+
+> And one last question, can I set the "policy" on a chain to "QUEUE", I
+> wasn't successful in doing that on my machine though.
+
+Never tried, but I do not see any reason why this should not be possible. 
+QUEUE is a builtin target primitive in netfilter. But it seems you are 
+right, the iptables command does not accept QUEUE as policy. 
+
+Available options:
+
+ * use a single iptables rule with QUEUE target instead of having it as a 
+policy.
+ * or modify the iptables command to accept QUEUE as a valid policy,
+ * or write your own netfilter hook returning QUEUE as verdict, avoiding 
+the need of iptables entirely.
+
+Regards
+Henrik
