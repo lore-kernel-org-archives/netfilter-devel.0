@@ -1,17 +1,17 @@
-From: "Javier Martin" <martin@trymedia.com>
-Subject: RE: Wrong count on bytes
-Date: Mon, 21 Oct 2002 12:34:25 -0700
+From: Jean-Francois Dive <jef@linuxbe.org>
+Subject: Re: NAT-PT (again)
+Date: Tue, 22 Oct 2002 12:39:54 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <002101c27938$dded96a0$8432a8c0@mcpollo>
-References: <20021019063938.GA19783@oknodo.bof.de>
+Message-ID: <20021022023954.GA2317@gnoll.homeip.net>
+References: <E182txR-0006ro-00@kashyyyk.netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'Patrick Schaaf'" <bof@bof.de>
-In-Reply-To: <20021019063938.GA19783@oknodo.bof.de>
+To: Ulises =?iso-8859-1?Q?Cervi=F1o?= <ulisescervino@fullzero.com.ar>
+Content-Disposition: inline
+In-Reply-To: <E182txR-0006ro-00@kashyyyk.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,44 +22,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> >   Chain OUTPUT (policy ACCEPT 410429507 packets, 581914465274 bytes)
-> >   Chain OUTPUT (policy ACCEPT 410555345 packets, 582099636248 bytes)
-> > 
-> > I'm using the following rules:
-> > 
-> >   iptables -I INPUT -i eth0 --destination x.x.x.x
-> >   iptables -I OUTPUT -o eth0 --source x.x.x.x
+i am not sure, but check the work done by USAGI people as they touched
+a lot of code and netfilter is one of them. Maybe they have something
+implementing it, or at least a place to start.
+
+JeF
+
+On Sat, Oct 19, 2002 at 10:40:44AM -0300, Ulises Cerviño wrote:
+> Sorry, I forgot to post the RFC number. It is 2766.
 > 
-> Maybe you are using these rules, but you certainly are not 
-> showing their counters in the two lines above. You are 
-> showing the chain defaults of the OUTPUT chain, counting 
-> anything _not_ covered by terminating earlier rules.
+> Ciao,
+> -- 
+> Cerviño Ulises <ulisescervino@fullzero.com.ar>
+> ----------------------------------------------------------------
+> Dance is Life!
 
-Hmmm.. If I display the bytes conters per IP, they show similar numbers
-(ie. Exceeding 100 mbit/sec).
+-- 
 
-> I'd guess that your chain defaults cover localhost 
-> communication and other stuff besides that which you thing 
-> you want to measure.
+-> Jean-Francois Dive
+--> jef@linuxbe.org
 
-I think localhost has nothing to do with this. There is no traffic
-through the lo interface at all.
-
-On the other hand, if the server is not peaking at the ethernet maximum
-100 Mbit/sec, the numbers more or less match. For example, if I get 60
-Mbit/sec from the driver, I will also get 60 Mb/sec from iptables. BUT
-things change when the server saturates. So my guess is the following:
-
-The server is trying to throw more than 100 Mbit/sec. Iptables accounts
-each packet that passes through the OUTPUT chain, but as the network
-card has reached is limit, it starts dropping frames. Those frames are
-not actually transmited, but in fact they account from the iptables
-point of view.
-
-So what iptables measures when the server saturates is the minimum
-amount of bytes that 'could have been' transmitted if the interface was
-faster.
-
-I don't know if this theory is correct, but at least satisfies me :-)
-
-Javier
+  There is no such thing as randomness.  Only order of infinite
+  complexity.  - _The Holographic Universe_, Michael Talbot
