@@ -1,15 +1,14 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: ICMP match bug
-Date: Mon, 27 Jan 2003 18:39:37 +0100
+From: George Vieira <GeorgeV@citadelcomputer.com.au>
+Subject: iptables -L %table% <with rule matching>
+Date: Tue, 28 Jan 2003 11:22:28 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030127173937.GB31017@balabit.hu>
-References: <20030127140143.GA29965@balabit.hu>
+Message-ID: <200FAA488DE0D41194F10010B597610D5BEAFB@jupiter.citadelcomputer.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20030127140143.GA29965@balabit.hu>
+To: "'netfilter-devel@lists.netfilter.org'"
+	 <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,23 +19,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jan 27, 2003 at 03:01:43PM +0100, Balazs Scheidler wrote:
-> We encountered this problem because we generate iptables-restore compatible
-> output. iptables-restore does not demand load protocol matchers (thus we
-> needed explicit match specifications to be able to use --dport & friends).
-> We rewrite rules by sed -e 's/-p \(.*\)/-p \1 -m \1/', thus iptables -p icmp
-> becomes iptables -p icmp -m icmp unconditionally.
-> 
-> The solution would be either to create a 'wildcard' match for -m icmp which
-> would match all packets (I'm afraid this would create incompatibilities)
-> _or_ to fix iptables-restore to load matches the same way as iptables itself
-> does.
+Hi all,
 
-Let me fix myself, the latest iptables version seems to have this demand
-loading fixed, thus our problem is solved. 
+I've gone through the source code for iptables 1.2.7a and found it's quite
+possible to change it a little to make the -L command list 1 rule instead of
+the whole table by using part of the "-D" routines and change it to LIST and
+not DELETE, but I'm not a very good linux C programmer.
 
-However the way the icmp match defaults does not seem to be correct to me.
+Is there anyone who could help be achieve this function and make a patch, or
+tell me if there is a way to look up a rules byte count without having to
+"grep" through the "-L"ist and this takes up valuable CPU when searching
+many rules..
 
--- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+I'm trying to write graphing scripts, but on every swoop it chews heaps of
+CPU coz' it has to sweep through and grep on every rule it's checking (which
+I have around 20-30 rules so far).... 
+
+I hope I made myself clear, and I hope it's possible.. ;)
+ 
+ 
+Thanks,
+____________________________________________
+George Vieira
+Systems Manager
+georgev@citadelcomputer.com.au 
+Citadel Computer Systems Pty Ltd
+Phone : +61 2 9955 2644
+HelpDesk: +61 2 9955 2698  
+http://www.citadelcomputer.com.au
+ 
