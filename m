@@ -1,13 +1,16 @@
-From: "Alan Stead" <alan@stead.com>
-Subject: getting PID and task name from sk_buff
-Date: Wed, 23 Feb 2005 22:17:01 -0800
-Message-ID: <DEEDILHNOLKHPLJKLINBOEFHJMAC.alan@stead.com>
-Reply-To: alan@stead.com
+From: Tobias DiPasquale <codeslinger@gmail.com>
+Subject: Re: getting PID and task name from sk_buff
+Date: Thu, 24 Feb 2005 08:22:29 -0500
+Message-ID: <876ef97a050224052244efa6f3@mail.gmail.com>
+References: <DEEDILHNOLKHPLJKLINBOEFHJMAC.alan@stead.com>
+Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: alan@stead.com
+In-Reply-To: <DEEDILHNOLKHPLJKLINBOEFHJMAC.alan@stead.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,19 +22,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
-I am trying to get the PID and Task Name from the sk_buff and am having a
-hard time doing this.
+On Wed, 23 Feb 2005 22:17:01 -0800, Alan Stead <alan@stead.com> wrote:
+> Any suggestions on a better way to do this?
+> I am trying to track network traffic based on the process name and the
+> process ID.
 
-I have tried the following:
-sk_buff->sk->sk_socket->file->fowner.pid
-but that always seems to return 0.
+Check out how the ipt_owner match module does it. However, I think
+that this is not perfect, either. Maybe someone else has a better
+idea?
 
-I was then planning on using the pid to get the specific task and get the
-task->comm to get the name...but I am only getting PID(0): swapper.
-
-Any suggestions on a better way to do this?
-I am trying to track network traffic based on the process name and the
-process ID.
-Thanks!
-Alan Stead
+-- 
+[ Tobias DiPasquale ]
+0x636f6465736c696e67657240676d61696c2e636f6d
