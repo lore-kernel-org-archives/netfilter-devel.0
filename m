@@ -1,17 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Set NAT to Full Cone
-Date: Tue, 4 Jan 2005 11:37:43 +0100
-Message-ID: <20050104103742.GT11370@sunbeam.de.gnumonks.org>
-References: <I9690Z$CF67F2C818604363F16F9093A1422E17@bol.com.br>
+Subject: Re: IPP2P 0.7 update (POM-ng patch included)
+Date: Tue, 4 Jan 2005 11:41:08 +0100
+Message-ID: <20050104104108.GU11370@sunbeam.de.gnumonks.org>
+References: <41CB587A.4000402@studserv.uni-leipzig.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="L1jMvVksOaqpmjJm"
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="1rohIOZGhsaeEmnk"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: fernandonach <fernandonach@bol.com.br>
+To: Eicke Friedrich <mai97bwf@studserv.uni-leipzig.de>
 Content-Disposition: inline
-In-Reply-To: <I9690Z$CF67F2C818604363F16F9093A1422E17@bol.com.br>
+In-Reply-To: <41CB587A.4000402@studserv.uni-leipzig.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,20 +23,26 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---L1jMvVksOaqpmjJm
+--1rohIOZGhsaeEmnk
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Dec 23, 2004 at 08:55:47AM -0200, fernandonach wrote:
+On Fri, Dec 24, 2004 at 12:44:58AM +0100, Eicke Friedrich wrote:
+> Hi,
+>=20
+> IPP2P 0.7 has been released. It offers a couple of new features including:
+> -UDP filtering support for some P2P networks
+> -improved SoulSeek filter
+> -Ares/AresLite matching support
+> -debug option to print matchinfo into kernel log
 
-> I need to set IPtables to work on Full Cone mode. If possible, how can
-> I do that!?!?
+you forgot to mention that you reimplemented udp and tcp protocol
+matching.  I disagree.  Why was this required?
 
-no way, it is impossible.  iptable_nat is a fully symmetric nat
-implementation, the most perfect variant of NAT ;)
-
-> Fernando
+> -iptables -A FORWARD -p tcp -m ipp2p --edk --kazaa --dc --gnu --bit --app=
+le -j DROP
+> +iptables -A FORWARD -m ipp2p --edk --kazaa --tcp --udp  -j DROP
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -49,7 +54,7 @@ implementation, the most perfect variant of NAT ;)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---L1jMvVksOaqpmjJm
+--1rohIOZGhsaeEmnk
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -57,9 +62,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFB2nH2XaXGVTD0i/8RAlgQAKCE4l45VV+KHzraY3osSja7zpNd8ACcCyrl
-lW5foB7yL0mGRvDWtideW4U=
-=kwY5
+iD8DBQFB2nLEXaXGVTD0i/8RAlAgAJ43UvMy28tgA1NeYi6W2R/GHUFhfwCdEFHt
+ASRloEHCRfg+NPAB26VxAZ0=
+=N+ww
 -----END PGP SIGNATURE-----
 
---L1jMvVksOaqpmjJm--
+--1rohIOZGhsaeEmnk--
