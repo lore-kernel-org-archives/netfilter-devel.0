@@ -1,18 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
+From: Rick Kennell <kennell@ecn.purdue.edu>
 Subject: Re: port-based filtering of ESP packets with in-kernel IPsec?
-Date: Wed, 30 Jul 2003 17:16:53 +0200
+Date: 30 Jul 2003 10:42:36 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030730151653.GB5161@sunbeam.de.gnumonks.org>
-References: <1059540296.16545.305.camel@k7.localnet> <20030730142411.GD4553@sunbeam.de.gnumonks.org> <1059576701.4586.20.camel@simulacron>
+Message-ID: <1059579755.22690.6.camel@k7.localnet>
+References: <Pine.LNX.4.44.0307301124150.22684-100000@localhost>
+Reply-To: netfilter-devel@lists.netfilter.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WYTEVAkct0FjGQmd"
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org,
-	netdev@oss.sgi.com
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andreas Jellinghaus <aj@dungeon.inka.de>
-Content-Disposition: inline
-In-Reply-To: <1059576701.4586.20.camel@simulacron>
+To: Chris Wilson <chris@netservers.co.uk>
+In-Reply-To: <Pine.LNX.4.44.0307301124150.22684-100000@localhost>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,61 +22,39 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 2003-07-30 at 05:34, Chris Wilson wrote:
+> Hi Rick,
+> 
+> > Since ESP packets that reach the mangle INPUT chain are destined for a
+> > local process, why not unencapsulate them just before that point?  It
+> > might still be nice to have an indication that this was once an ESP
+> > packet for filtering, but that could be done by setting a mark in the
+> > mangle PREROUTING chain.
+> 
+> The ESP itself will presumably be for a security association (SA) which
+> terminates on the machine, but it could easily be for some tunnel, in
+> which case the unencrypted packet should be sent through FORWARD instead 
+> of INPUT.
 
---WYTEVAkct0FjGQmd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Mmm, sure.  But if it is directed to INPUT, it should still be
+decapsulated.
 
-On Wed, Jul 30, 2003 at 04:51:41PM +0200, Andreas Jellinghaus wrote:
-=20
-> [netfilter]
-> incoming encrypted packets are seen as ESP/AH in INPUT
-> and then as decrypted packet in INPUT or FORWARD.
+> Logically, it makes sense to me that the packet should pass through the 
+> whole of Netfilter _again_ after it's been decapsulated, similarly to what 
+> now happens with FreeS/WAN (but presumably without an ipsec0 interface 
+> being involved).
 
-ok, great.
+I thought about this for a while trying to figure out how to do so
+without an extra interface.  Maybe a netfilter rule to decapsulate and
+requeue to PREROUTING?
 
-> outgoing packets are only seen as ESP in OUTPUT.
+> Or, maybe it should be decapsulated before routing (and 
+> hence visible unencrypted in FORWARD, INPUT and OUTPUT).
 
-this could be a problem.  I think there is quite a number of users who
-want to impose packet filtering on outgoing locally-originated
-packets... and obviously you want to do that at some time _before_ you
-hide everything behind crypto..
+If the packet were being routed by the local host (i.e. from one subnet
+to another) we'd want to preserve the encapsulation.  Actually, we
+probably wouldn't be able to decapsulate it.
 
-> you can already filter incoming packets. The problem is you
-> don't know if they came in that way they look now, or if they
-> came in via ESP packets and got decrypted.
->=20
-> maybe decryption/unencapsulating could leave a mark on the
-> packet, so we know packets without that mark came in without
-> ipsec and are bad / attempts to access resources without ipsec?
-> (maybe fwmark works on that. or an explicit ipip tunnel, so you
-> have "ipip0" or something as incoming interface).
-
-This sounds a bit like the existing problem with bridgewalling.  They
-also have no idea of where the packet originally came from (at least
-before the physdev stuff was introduced as solution to this).
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---WYTEVAkct0FjGQmd
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE/J+FlXaXGVTD0i/8RArRjAJ9fqF6G+ARS6eXqnPYBIDyuFftoXQCdH2vT
-2xabS84rlPcSCPbOyNMpYNI=
-=rQbl
------END PGP SIGNATURE-----
-
---WYTEVAkct0FjGQmd--
+-- 
+Rick Kennell <kennell@ecn.purdue.edu>
+Purdue University School of Electrical and Computer Engineering
