@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] DSCP match/target patches
-Date: Tue, 11 Jun 2002 09:41:30 +0200
+Subject: Re: [PATCH] small optimization in __ip_conntrack_find()
+Date: Tue, 11 Jun 2002 09:51:35 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020611094130.E11177@sunbeam.de.gnumonks.org>
-References: <20020610135311.246C1453D@lists.samba.org>
+Message-ID: <20020611095135.F11177@sunbeam.de.gnumonks.org>
+References: <1023490707.19838.14.camel@tux>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bi5JUZtvcfApsciF"
-Cc: <netfilter-devel@lists.samba.org>
+	protocol="application/pgp-signature"; boundary="/aVve/J9H4Wl5yVO"
+Cc: Netfilter-devel <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: <zenadsl3030@zen.co.uk>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
 Content-Disposition: inline
-In-Reply-To: <20020610135311.246C1453D@lists.samba.org>; from zenadsl3030@zen.co.uk on Mon, Jun 10, 2002 at 01:49:13PM +0000
+In-Reply-To: <1023490707.19838.14.camel@tux>; from gandalf@wlug.westbo.se on Sat, Jun 08, 2002 at 01:00:59AM +0200
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -23,29 +23,28 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---bi5JUZtvcfApsciF
+--/aVve/J9H4Wl5yVO
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 10, 2002 at 01:49:13PM +0000, zenadsl3030@zen.co.uk wrote:
+On Sat, Jun 08, 2002 at 01:00:59AM +0200, Martin Josefsson wrote:
 > Hi,
 >=20
-> Here is a simple patch to the DSCP match to allow the use of DiffServ cla=
-ss
-> names in the matches, in a similar manner to the target.
->=20
-> Also attached is a one line fix for a typo in the DSCP target where CS6 w=
-as
-> defined twice in the match list.
+> Attached is a small optimization for __ip_conntrack_find().
+> The way I read the use of the LIST_FIND macro it seems that we are
+> calling hash_conntrack() for each iteration with the same inparameters.
 
-thanks for your contribution.  What about putting all the class name <->
-numerical resolving in a seperate .c file, which is then compiled once and
-linked into both libipt_dscp.so and libipt_DSCP.so ?
+Thanks.  My assumption was that this is actually done by the optimization
+code of gcc.  But from looking at the disassembled compiler output, there
+is actually quite a difference between the old and the new code.
 
-I think this would be the ideal case, without any code duplication.
+> My change calls it once before looping.
 
-> Iain
+i'll put this into pending.
+
+> /Martin
+
 
 --=20
 Live long and prosper
@@ -58,7 +57,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
 =20
 V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
---bi5JUZtvcfApsciF
+--/aVve/J9H4Wl5yVO
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -66,9 +65,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9BamqXaXGVTD0i/8RAsRtAJ92kbAp/htQNtOYlnuTrujrsEX0nACghqe4
-oJ1cohOctU6J43wiRya0wjo=
-=+A4Q
+iD8DBQE9BawHXaXGVTD0i/8RAhK0AJ4jCUd4ygO8tYuM8/BJ0YS10q0cRQCgjlaN
+mduTpMoTXL4wVf2Ft1GPb1Q=
+=cE29
 -----END PGP SIGNATURE-----
 
---bi5JUZtvcfApsciF--
+--/aVve/J9H4Wl5yVO--
