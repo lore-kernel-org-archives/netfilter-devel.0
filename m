@@ -1,13 +1,30 @@
-From: Simon Lodal <simonl@parknet.dk>
-Subject: RFC: Partial IP4 syntax
-Date: Wed, 29 Sep 2004 03:41:02 +0200
+From: Tobias DiPasquale <codeslinger@gmail.com>
+Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
+Date: Tue, 28 Sep 2004 23:00:23 -0400
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <415A12AE.1060901@parknet.dk>
+Message-ID: <876ef97a040928200055db3741@mail.gmail.com>
+References: <1096374273.7192.27.camel@nienna.balabit>
+	<1096379957.1026.5.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0409281642500.32737@filer.marasystems.com>
+	<1096383406.7192.165.camel@nienna.balabit>
+	<Pine.LNX.4.61.0409281658330.32737@filer.marasystems.com>
+	<20040928180425.GA21097@zion.homelinux.com>
+	<Pine.LNX.4.61.0409282042150.2167@filer.marasystems.com>
+	<20040928205723.GA23352@zion.homelinux.com>
+	<876ef97a04092815306fa270f@mail.gmail.com>
+	<Pine.LNX.4.61.0409290111570.3760@filer.marasystems.com>
+Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+Cc: KOVACS Krisztian <hidden@balabit.hu>, Harald Welte <laforge@netfilter.org>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Sven Schuster <schuster.sven@gmx.de>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
+	Jamal Hadi Salim <hadi@znyx.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0409290111570.3760@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,43 +35,80 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 29 Sep 2004 01:36:19 +0200 (CEST), Henrik Nordstrom
+<hno@marasystems.com> wrote:
+> There is many ways to get traffic on an node, each having their
+> complications and limitations.
+> 
+> For unicast you need to find some method to divide the address space using
+> existing metrics supported by your network. If we assume the trivial setup
+> of an HA active-active server then this can for example be done by routing
+> the traffic based on the source IP or by client based balancing by
+> publishing the service using multiple IPs. In a forwarding NAT firewall it
+> gets a little more complex as you have two sides with slightly different
+> metrics to care about.  And N node setups gets even more complex as you
+> then need to be able to divide and merge contexts across several nodes
+> when adding/removing nodes unless you accept a imbalance in the load if a
+> node member has failed (fixed contexts, where one node at a time is master
+> per context).
 
-While writing yet another IP4 address parser I came up with an idea for 
-a more compact IP address/mask notation, to make stuff simpler to write 
-and read.
+The idea of what I was saying is still the same: active-active implies
+making multiple machines answer for a single address, whether its a
+firewall, load-balancer, DNS server, HTTP server or anything else.
+Advertising the service on multiple IPs just means you have x * y
+machines, where x == number of advertised addresses and y == number of
+machines that actively service each individual advertised address.
 
-The idea is to just leave out irrelevant octets. There are 3 forms of 
-partial addresses:
-1) .b.c.d | .c.d | .d (leading dot): Incomplete at beginning.
-2) a..d | a..c.d | a.b..d (double dot): Incomplete in the middle.
-3) a | a. | a.b | a.b. | a.b.c | a.b.c. (trailing dot or missing 
-octets): Incomplete at end.
+> If you do not have any reasonable support for balancing in your network
+> layer then you can either introduce a load balancer layer or use multicast
+> (broadcast MAC, or by MAC cloning if supported by the network equipment..
+> not all switches like MAC cloning)
 
-In each case the position and number of missing octets can be deduced 
-and zeroes inserted for them. The parser then calculates a default mask 
-which only covers the octets that were defined.
+I thought that having all of the active nodes respond to ARP requests
+for the virtual IP would handle that, as the switch could no longer
+bind an IP address to a particular switch port? Is that not the case
+with some hardware?
+ 
+> The multicast approach provides full flexibility in how connections are
+> migrated among the nodes, but does not scale very well as all nodes sees
+> all traffic.
 
-Examples:
-10 = 10.0.0.0/8
-10. = 10.0.0.0/8
-10.0 = 10.0.0.0/16
-10.0. = 10.0.0.0/16
-.4 = 0.0.0.4/0.0.0.255
-.3.4 = 0.0.3.4/0.0.255.255
-1..4 = 1.0.0.4/255.0.0.255
-.2.3. = invalid, can only be incomplete at one end
+Yeah, that's for sure.
+ 
+> A simple unicast load balancing which does work with most equipment is
+> policy routing based on IP's. Ports is also doable in most equipment but
+> limits the protocols which can be supported.
+> 
+> Statically divide the "clients" in N groups, each group assigned to one
+> virtual firewall with a virtual MAC address.
+> 
+> failover this virtual firewall among the nodes in the cluster as needed.
+> there may only be one master at a time per virtual firewall but each node
+> can be master for several virtual firewalls.
 
-I know IP address syntax should not change every day. But this will not 
-break or exclude old syntax. I do not see it clashing with other/future 
-syntax.
+Right, but same situation as above. There are still multiple machines
+acting as one by way of a virtual address.
+ 
+> connections need to be ct_sync:ed from the current master to all potential
+> backups, multiplied by each virtual firewall.
 
-Only minor problem I know of is when parsing netmask which can be in 
-cidr or dotted quad form: /32 could be interpreted as a partial address, 
-expanded to 32.0.0.0. But it is simple to special case this; make it a 
-cidr mask when there is only one octet and it is <=32, otherwise 
-interpret as dotted quad (partial or not).
+Is that desired? I'm now thinking that perhaps the goals of ct_sync
+are not in line with in-cluster active-active load-balancing.
 
-What do you think? Old hat?
+Here's what I mean: if you have a 4-node cluster of firewalls in
+active-active configuration, then the states of all connections
+flowing through ALL the boxes are replicated on all of the boxes. This
+defeats the purpose of active-active load-balancing as each of the
+boxes would then handle almost all of the load of the whole cluster. I
+don't see why I'd want to synchronize the connection states between
+_all_ of the machines in an active-active cluster.
 
+> For virtual MAC address support to Linux see the mac_vlan patch. Allows
+> you to create any number of virtual ethernet interfaces per real
+> interface, each with their own MAC.
 
-Simon
+Nice, that sounds better than the hidden patch I was looking at. Thanks :)
+
+-- 
+[ Tobias DiPasquale ]
+0x636f6465736c696e67657240676d61696c2e636f6d
