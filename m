@@ -1,8 +1,11 @@
-From: don-nf@isis.cs3-inc.com (Don Cohen)
-Subject: trouble building iptables-1.2.7a in 2.4.17
-Date: Fri, 20 Dec 2002 00:59:44 -0800
+From: Venkatesh Prasad Ranganath <vranganath@cox.net>
+Subject: [Fwd: ACCEPT/DROP]
+Date: Fri, 20 Dec 2002 07:54:38 -0600
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200212200859.gBK8xiR08854@isis.cs3-inc.com>
+Message-ID: <3E03211E.20900@cox.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -16,42 +19,34 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-transcript follows
-I do see, e.g., IP_CT_DIR_MAX declared in 
-/home/user/linux-2.4.17/include/linux/netfilter_ipv4/ip_conntrack_tuple.h
-but that seems to be only #ifdef __KERNEL__
 
-It looks like this is corrected in
-patch-o-matic-20020825/submitted/2.4.18.patch but I'm in .17 and
-iptables-1.2.7a claims to require 2.4.4 + so should build here, right?
+Hi,
 
-====
+I was looking into the iptables implementation and was intrigued about 
+how iptables would handle a situation in which we have identical rules 
+except for their targets which are contradicting, say ACCEPT and DROP. 
+ By looking at ipt_do_table() function it seems that the first 
+non-IPT_RETURN  verdict from any standard target will end the traversal 
+of a chain of a table, which seems to be a bit odd.  First, such 
+conflicting rules must not be allowed.  Even beyond, this fails in the 
+situation where you have a dropping rule added after an accepting rule.
 
-[root@router2 /root]# cd iptables-1.2.7a/
-[root@router2 iptables-1.2.7a]# make KERNEL_DIR=/home/user/linux-2.4.17
-Making dependencies: please wait...
-Extensions found:
-cc -O2 -Wall -Wunused -I/home/user/linux-2.4.17/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -fPIC -o extensions/libipt_ah_sh.o -c extensions/libipt_ah.c
-ld -shared -o extensions/libipt_ah.so extensions/libipt_ah_sh.o
-cc -O2 -Wall -Wunused -I/home/user/linux-2.4.17/include -Iinclude/ -DIPTABLES_VERSION=\"1.2.7a\"  -fPIC -o extensions/libipt_conntrack_sh.o -c extensions/libipt_conntrack.c
-In file included from extensions/libipt_conntrack.c:15:
-include/linux/netfilter_ipv4/ipt_conntrack.h:28: `IP_CT_DIR_MAX' undeclared here (not in a function)
-include/linux/netfilter_ipv4/ipt_conntrack.h:29: `IP_CT_DIR_MAX' undeclared here (not in a function)
-include/linux/netfilter_ipv4/ipt_conntrack.h:29: `IP_CT_DIR_MAX' undeclared here (not in a function)
-extensions/libipt_conntrack.c: In function `parse_status':
-extensions/libipt_conntrack.c:103: `IPS_EXPECTED' undeclared (first use in this function)
-extensions/libipt_conntrack.c:103: (Each undeclared identifier is reported only once
-extensions/libipt_conntrack.c:103: for each function it appears in.)
-extensions/libipt_conntrack.c:105: `IPS_SEEN_REPLY' undeclared (first use in this function)
-extensions/libipt_conntrack.c:107: `IPS_ASSURED' undeclared (first use in this function)
-extensions/libipt_conntrack.c: In function `parse':
-extensions/libipt_conntrack.c:202: `IP_CT_DIR_ORIGINAL' undeclared (first use in this function)
-extensions/libipt_conntrack.c:259: `IP_CT_DIR_REPLY' undeclared (first use in this function)
-extensions/libipt_conntrack.c: In function `print_status':
-extensions/libipt_conntrack.c:364: `IPS_EXPECTED' undeclared (first use in this function)
-extensions/libipt_conntrack.c:368: `IPS_SEEN_REPLY' undeclared (first use in this function)
-extensions/libipt_conntrack.c:372: `IPS_ASSURED' undeclared (first use in this function)
-extensions/libipt_conntrack.c: In function `matchinfo_print':
-extensions/libipt_conntrack.c:420: `IP_CT_DIR_ORIGINAL' undeclared (first use in this function)
-extensions/libipt_conntrack.c:440: `IP_CT_DIR_REPLY' undeclared (first use in this function)
-make: *** [extensions/libipt_conntrack_sh.o] Error 1
+For example, a packet from m.n.o.p to a.b.c.d would be accepted at 
+a.b.c.d because of the first rule, although it had to be dropped 
+according to the second rule.   And this would result because of the 
+order in which the rules are added to the table.
+
+iptables -A INPUT -d a.b.c.d -j ACCEPT
+iptables -A INPUT -s m.n.o.p -j DROP
+
+Is my understanding correct?  If so, I am curious to know how nf-hipac 
+behaves in such situations?
+
+waiting for reply,
+
+-- 
+
+Venkatesh Prasad Ranganath,
+Dept. Computing and Information Science,
+Kansas State University, US.
+web: http://www.cis.ksu.edu/~rvprasad
