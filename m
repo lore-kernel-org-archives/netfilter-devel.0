@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [ANNOUNCE] netfilter bug tracking system
-Date: Thu, 16 Jan 2003 14:38:43 +0100
+From: Laszlo Valko <valko@linux.karinthy.hu>
+Subject: Re: failed loading SNAT and DNAT library
+Date: Thu, 16 Jan 2003 20:12:52 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030116133843.GF7774@sunbeam.de.gnumonks.org>
-Reply-To: coreteam@netfilter.org
+Message-ID: <20030116201252.A9728@linux.karinthy.hu>
+References: <20030114141102.14779.87181.Mailman@kashyyyk> <20030114184457.A25511@protei.ru>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yrj/dFKFPuw6o+aM"
-Cc: Netfilter Announcement List <netfilter-announce@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: nickolay@protei.ru
 Content-Disposition: inline
+In-Reply-To: <20030114184457.A25511@protei.ru>; from nickolay@protei.ru on Tue, Jan 14, 2003 at 06:44:57PM +0300
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,62 +21,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, Jan 14, 2003 at 06:44:57PM +0300, nickolay@protei.ru wrote:
+> Hi Guys!
+> 
+> I'm newbe to developing netfilter code and i have some troubles 
+> with it. I need to working with SNAT and DNAT target rules in my 
+> new project, but when i trying load shared librarys libipt_SNAT.so 
+> for SNAT or libipt_DNAT.so for DNAT targets with dlopen(), program
+> executing is stopped on dlopen() call with next error:
+> /usr/local/lib/iptables/libipt_SNAT.so: undefined symbol: dotted_to_addr.
+> Compile step:
+> cc iptest.c -ldl -liptc -o myprog
 
---yrj/dFKFPuw6o+aM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Basically, you would have to export symbols from the main program (myprog)
+so that the modules to be loaded can resolve symbols from the libiptc.a
 
-Hi!
+Check out iptables makefiles. There's an extra -rdynamic argument to cc,
+which will in turn add -export-dynamic to ld:
 
-Today the netfilter core team announces the new bug-tracking system for
-netfilter/iptables.  This step really was necessarry, because I started
-to get the feeling that I'm losing track of all the concurrent issues.
+       -export-dynamic
+              When  creating  an ELF file, add all symbols to the
+              dynamic symbol table.  Normally, the dynamic symbol
+              table contains only symbols which are used by a dy-
+              namic object.  This option is needed for some  uses
+              of dlopen.
 
-So if you are aware of any bugs in the netfilter/iptables kernel or
-userspace part, please report them to our bugtracking system ASAP.  We
-rely on bugreports by the users in order to improve the quality of the
-project.
+This should do it for you.
 
-The netfilter bugzilla system is available at
-http://bugzilla.netfilter.org/
-
-Please note that all further links (besides the entry page) are on a
-https server for security reason.  The SSL certificate was created by my
-own 'gnumonks.org CA'.  In order to get rid of the dialog your browser
-will present you, you will need to trust this CA.  The same CA has
-signed all certificates of netfilter.org, including SMTP-TLS and
-https://lists.netfilter.org/.
-
-The CA certificate is available for download at
-http://www.gnumonks.org/static/gnumonks-CA.crt
-
-If you have any questions, please contact us at coreteam@netfilter.org.
-
-Thanks for your interest,
-
-	Harald
-
---=20
-- Harald Welte / laforge@netfilter.org             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
-
---yrj/dFKFPuw6o+aM
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+JrXjNfqJzMqajVsRAjmGAKDR75Nj5DmKJfQgZjpazYvgs/TTIgCfZk/k
-xU//fgAJE9To//eCbJiv5G0=
-=0HaM
------END PGP SIGNATURE-----
-
---yrj/dFKFPuw6o+aM--
+Laszlo
