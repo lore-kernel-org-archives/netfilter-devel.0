@@ -1,14 +1,12 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: CLASSIFY target in POSTROUTING only?
-Date: Fri, 04 Mar 2005 12:45:38 +0100
-Message-ID: <42284A62.6040305@trash.net>
-References: <20050304112306.29481.qmail@web90007.mail.scd.yahoo.com>
+Subject: [PATCH 2.6 0/8]: Netfilter Update
+Date: Fri, 04 Mar 2005 13:00:22 +0100
+Message-ID: <42284DD6.5090301@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Peter Lenci <peterlenci@yahoo.ca>
-In-Reply-To: <20050304112306.29481.qmail@web90007.mail.scd.yahoo.com>
+To: "David S. Miller" <davem@davemloft.net>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,18 +18,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Peter Lenci wrote:
-> Hi all
-> 
-> The CLASSIFY extension can only be used in the POSTROUTING chain of the
-> mangle table. Is there a technical reason for this or is it just an aid
-> to prevent misconfiguration? In particular I'd like to use the CLASSIFY
-> target in the PREROUTING table (in combination with ingress tcp shaping
-> with the IMQ device).
+Hi Dave,
 
-The CLASSIFY target is useable in LOCAL_OUT/FORWARD/POST_ROUTING.
-PRE_ROUTING is not possible because the value will be overwritten
-in ip_forward(). For IMQ you could simply remove that restriction.
+following are a couple of netfilter fixes for 2.6. The patches
+are based on your net-2.6 tree, but also apply cleanly to your
+2.6.12 tree. Unfortunately no bitkeeper tree this time because
+someone messed up our firewall rules.
 
-Regards
-Patrick
+
+<ariel:blueslice.com>:
+   o [NETFILTER]: SCTP conntrack: fix association restart
+
+<mstjohns:mindspring.com>:
+   o [NETFILTER]: fix ip6_queue inefficiencies
+
+Andi Kleen:
+   o [NETFILTER]: Reduce netfilter memory use on MP systems
+
+Jozsef Kadlecsik:
+   o [NETFILTER]: Fix multiple problems with TCP window tracking
+
+Patrick McHardy:
+   o [NETFILTER]: Don't insist on ICMP errors carrying 8 byte of 
+protocol header
+   o [NETFILTER]: Fix /proc/net/ip_conntrack seq_file operations
+   o [NETFILTER]: Use num_possible_cpus instead of NR_CPUS in 
+{ip6_,arp_,eb}tables
+   o [NETFILTER]: Use correct types in seq_printf calls
