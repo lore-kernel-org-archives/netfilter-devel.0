@@ -1,16 +1,16 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: performance issues (nat / conntrack)
-Date: Tue, 25 Jun 2002 16:23:15 +0200 (CEST)
+Date: Tue, 25 Jun 2002 16:33:50 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <Pine.LNX.4.33.0206251618580.539-100000@blackhole.kfki.hu>
-References: <20020625124744.GB7975@naboo.ols.wavesec.org>
+Message-ID: <Pine.LNX.4.33.0206251628480.539-100000@blackhole.kfki.hu>
+References: <20020625135113.GE7975@naboo.ols.wavesec.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>,
 	<netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20020625124744.GB7975@naboo.ols.wavesec.org>
+In-Reply-To: <20020625135113.GE7975@naboo.ols.wavesec.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -23,22 +23,22 @@ List-Id: netfilter-devel.vger.kernel.org
 
 On Tue, 25 Jun 2002, Harald Welte wrote:
 
-> > According to your first mail, the machine has 256M RAM and you issued
-> >
-> > insmod ip_conntrack 16384
-> >
-> > That requires 16384*8*~600byte ~= 75MB non-swappable RAM.
-> >
-> > When you issued "iptables -t nat -L", the system tried to reserve plus
-> > 2x75MB. That's in total pretty near to all your available physical RAM
-> > and the machine might died in swapping.
+> > But this raises one additional problem:
+> > 1) the hash index size and the hash total size should be configurable
+> > separately (get rid of that factor 8, and use a free list for the tuple
+> > allocation).
+> > 2) NAT hash sizes should also be configurable independently from conntrack.
+> > Normally the nat hashes are smaller than conntrack hash, since conntrack
+> > is based on ports, while nat is not.
 >
-> ??? Why should listing an IP table try to reserve twice the size of the
-> conntrack table?
+> both of this is already true. look at the module loadtime parameters of
+> ip_conntrack.o and iptable_nat.o
 
-By entering the command above, he loads in the iptable_nat kernel module,
-which at initializing itself try to allocate memory for the bysource and
-byipsproto hashes (with the same size as of ip_conntrack_hash).
+One must set hashsize for the ip_conntrack module and then tweak of
+/proc/sys/net/ip_conntrack_max in order to get rid of the factor 8.
+
+But we do not have a module parameter yet for setting the hashsizes
+of iptable_nat independently.
 
 Regards,
 Jozsef
