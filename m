@@ -1,16 +1,17 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: Any known issues with iptables-1.3.0 from cvs/svn ?
-Date: Mon, 10 Jan 2005 19:04:14 +0100
-Message-ID: <1105380254.4514.38.camel@tux.rsn.bth.se>
-References: <699F7BBB368A10479166148511F524177A0598@gn-ex01.Go80211.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: nf_conntrack [was Re: [PATCH 1/4] RFC: fast string matching
+ infrastrure for netfilter]
+Date: Mon, 10 Jan 2005 20:54:40 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0501102041430.28819@blackhole.kfki.hu>
+References: <41E1AECD.6020209@eurodev.net> <41E1B9F1.7010106@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-4pt5hh9igMyb7iFPWNHH"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>, pablo@eurodev.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Robert Iakobashvili <roberti@GoNetworks.com>
-In-Reply-To: <699F7BBB368A10479166148511F524177A0598@gn-ex01.Go80211.com>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <41E1B9F1.7010106@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,41 +23,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 10 Jan 2005, Patrick McHardy wrote:
 
---=-4pt5hh9igMyb7iFPWNHH
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> I have actually given up keeping nf_conntrack up to date currently, but
+> I hope we can now really put ip_conntrack in maintenance mode and
+> concentrate
+> on nf_conntrack. Any chance you want to base this on the nf_conntrack
+> patch ?
 
-On Mon, 2005-01-10 at 18:23 +0200, Robert Iakobashvili wrote:
-> Dear Pablo , Russell,
->=20
-> delete-by-specifying-the-complete-rule doesn't work
+Actually, what is the opinion that nf_conntrack uses the union of IPv4 and
+IPv6 addresses in the tuples?
 
-This has been fixed in svn. Current svn should really work.
-A lot of the testcases in nfsim-testsuite uses this and it works fine,
-and I just tested it with a fresh compile:
+The infrastructure is there in the patch to support IPv4/IPv6 conntrack
+separatedly in spite of the common code and not to waste so many bytes at
+every IPv4 connections for the sake of supporting IPv6. Shouldn't there be
+put more effort into this long standing issue, before swithcing over it?
 
-# iptables -A OUTPUT -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 111 --dport 222 -=
-j ACCEPT
-# iptables -D OUTPUT -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 111 --dport 222 -=
-j ACCEPT
-#
-
-Works just fine.
-
---=20
-/Martin
-
---=-4pt5hh9igMyb7iFPWNHH
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQBB4sOeWm2vlfa207ERAlo5AJ9pq/1t4x70m2Hba81IRySh+yaPaQCggfz9
-QJcEcunRkmlTEMnmDL0hkkc=
-=Zi49
------END PGP SIGNATURE-----
-
---=-4pt5hh9igMyb7iFPWNHH--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
