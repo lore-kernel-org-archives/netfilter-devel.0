@@ -1,13 +1,18 @@
-From: Chris Friesen <chris_friesen@sympatico.ca>
-Subject: any plan for firewalling before the packet socket hooks?
-Date: Tue, 09 Sep 2003 22:58:38 -0400
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Re: [FUN] new netfilter matching module : passive OS fingerprint
+Date: Wed, 10 Sep 2003 20:01:13 +0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F5E935E.5020006@sympatico.ca>
+Message-ID: <20030910200113.3113dd1c.johnpol@2ka.mipt.ru>
+References: <20030908161734.7c0f7420.johnpol@2ka.mipt.ru>
+	<Pine.LNX.4.51.0309101651030.9903@dns.toxicfilms.tv>
+Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+In-Reply-To: <Pine.LNX.4.51.0309101651030.9903@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,23 +23,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 10 Sep 2003 17:00:25 +0200 (CEST)
+Maciej Soltysiak <solt@dns.toxicfilms.tv> wrote:
 
-I'm interested in filtering packets before the packet socket gets a copy
-of them, and after the packet socket writes them but before it gets to
-the device.
+> Hello Evgeniy, folks,
 
-Would it be sufficient to add a new NF_HOOK call (for
-PF_PACKET/NF_PACKET_PRE_ROUTING or something similar) in
-netif_receive_skb() to handle the incoming side?
+Good day.
 
-Is there anything else required to allow me to create a module to bind
-in at that hook and do my filtering?
+> > So, if you are interested in, please see and comment :)
+> I took the privilege and made a patch for netfilter CVS to include
+> this module in patch-o-matic, so it would be easier for people to test
+> this module as a simple patch.
+> 
+> I also wrote an example, added lists of available genres and wrote
+> osf.patch.configure.help and osf.patch.help messages.
+> 
+> I am sending the patch attached for the netfilter CVS.
+> 
+> Also this patch is available at
+> http://soltysiak.com/linux/osf.patch
 
-In my personal case, I'm trying to filter the traffic going into my
-vmware session, and it seems to use a packet socket to do networking,
-which means that the normal iptables stuff doesn't affect it at all.  I'm
-sure there would be other uses for this kind of thing.
+Super!
 
-Thanks,
+I have an idea to make fingerprint table dynamic and write a little
+program to parse and load whole Michal's table through  ioctl or
+/proc.
 
-Chris
+> Maciej Soltysiak
+
+	Evgeniy Polyakov ( s0mbre )
