@@ -1,15 +1,15 @@
-From: Paul Mielke <paulm@routefree.com>
-Subject: another PPTP conntrack problem (no fix this time)
-Date: Wed, 29 Jan 2003 16:31:11 -0800
+From: "Chris Poon" <Chris.Poon@TELUS.COM>
+Subject: RE: sparc64 kernel, netfilter-20021115, iptables-1.2.7a -
+ conntra ck issue with expecting related connections, FTP
+Date: Tue, 28 Jan 2003 16:48:58 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4.2.0.58.20030129161653.01aab6e8@avocetgw>
-References: <200301180029.h0I0T3d29430@stilton.routefree.com>
+Message-ID: <771F217D7A4AF84494632457889470A412D77A@bcmsg011.corp.ads>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/alternative;
+ boundary="----_=_NextPart_001_01C2C727.D3683230"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org,paulm@broadon.com,
- philipc@snapgear.com
-In-Reply-To: <200301180029.h0I0T3d29430@stilton.routefree.com>
+To: "'netfilter-devel@lists.netfilter.org'"
+	<netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,37 +20,58 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, Philip.
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
 
-Thanks for following up on the issues I mentioned in my recent message (BTW there
-seems to be something funny happening to my messages to netfilter-devel, as they
-seem to appear there either late or never).
+------_=_NextPart_001_01C2C727.D3683230
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-I have noticed one more serious problem with the PPTP connection tracking
-implementation, but I do not yet have a fix to propose:
+After running a kernel with debugging on ip_conntrack_core.c, I can see that it
+doesn't find a match in the expected connections list, but the print out suggests
+that the expectation for the related connection is set correctly. That points me
+to two scenarios: 1) the related connection entry was not found in the expectation
+list due to a failed masked comparison or 2) the related connection entry was
+found and further operations in ip_conntrack_core.c:init_conntrack invalidated
+the expectation. Again, I feel that this might be strictly a 64 bit kernel issue as I'm
+sure if the conntrack for related connection didn't work for 32 bit kernels, I would
+have found a lot more discussion about it (which I found none so far). And I don't
+think this is strictly with FTP connection tracking either, but rather connection
+tracking for related connection in general under a 64 bit kernel.
 
-The support for generating an ICMP response to an error on a GRE packet is hopelessly
-broken.  We ran into this in the course of testing two layers of nested PPTP
-connections.  In our particular error case, the second layer of PPTP (only from
-Windows XP for some reason) generates a packet with DF set that is too large
-by the time the two layers of encapsulation get added.  When the ICMP response
-is generated, the rejected packet has already been through NAT.  When the logic
-in icmp_error_track attempts to look up the connection in order to NAT the header
-of the dropped packet that is buried inside the ICMP response, it is unable to find
-the GRE connection tuple.  As a result, it sends the encapsulated header of
-the dropped packet back in its un-NATted form.  The original sender who needs to
-adjust his MTU can't map the packet to a connection, because the dropped header
-is untranslated.  As a result, the connection just hangs and no further traffic gets
-through.
+Thanks...
 
-Suggestions?  We are working on a fix, but the only idea I have had so far is
-pretty distasteful (put a special purpose check for GRE and call a routine that
-does a brute force search through the GRE keymap hash looking for a match to the
-callid).  It's not even clear this will work.  Failing that, we'd need another hash that
-indexes the keymaps in the "inverse" direction, if you see what I mean.
+------_=_NextPart_001_01C2C727.D3683230
+Content-Type: text/html;
+ charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Regards,
-Paul
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=us-ascii">
+<META NAME="Generator" CONTENT="MS Exchange Server version 5.5.2653.12">
+<TITLE>RE: sparc64 kernel, netfilter-20021115, iptables-1.2.7a - conntrack issue with expecting related connections, FTP</TITLE>
+</HEAD>
+<BODY>
 
-Paul Mielke                        paulm@routefree.com
-RouteFree, Inc.                   (650) 739-5377
+<P><FONT SIZE=2>After running a kernel with debugging on ip_conntrack_core.c, I can see that it</FONT>
+<BR><FONT SIZE=2>doesn't find a match in the expected connections list, but the print out suggests</FONT>
+<BR><FONT SIZE=2>that the expectation for the related connection is set correctly. That points me</FONT>
+<BR><FONT SIZE=2>to two scenarios: 1) the related connection entry was not found in the expectation</FONT>
+<BR><FONT SIZE=2>list due to a failed masked comparison or 2) the related connection entry was</FONT>
+<BR><FONT SIZE=2>found and further operations in ip_conntrack_core.c:init_conntrack invalidated</FONT>
+<BR><FONT SIZE=2>the expectation. Again, I feel that this might be strictly a 64 bit kernel issue as I'm</FONT>
+<BR><FONT SIZE=2>sure if the conntrack for related connection didn't work for 32 bit kernels, I would</FONT>
+<BR><FONT SIZE=2>have found a lot more discussion about it (which I found none so far). And I don't</FONT>
+<BR><FONT SIZE=2>think this is strictly with FTP connection tracking either, but rather connection</FONT>
+<BR><FONT SIZE=2>tracking for related connection in general under a 64 bit kernel.</FONT>
+</P>
+
+<P><FONT SIZE=2>Thanks...</FONT>
+</P>
+
+</BODY>
+</HTML>
+------_=_NextPart_001_01C2C727.D3683230--
