@@ -1,57 +1,58 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] /proc/net/ip_conntrack_expect on module removal
-Date: Thu, 28 Oct 2004 20:20:20 +0200
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <41813864.6040107@eurodev.net>
-References: <20041027163559.GA8502@wsc.edu>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [2.6 patch] netfilter/ipt_tcpmss.c: remove an unused function
+Date: Fri, 29 Oct 2004 01:02:02 +0200
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20041028230202.GV3207@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Josh Samuelson <josamue1@wsc.edu>
-In-Reply-To: <20041027163559.GA8502@wsc.edu>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; x-action=pgp-signed
+Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net,
+        netdev@oss.sgi.com, linux-kernel@vger.kernel.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: coreteam@netfilter.org, Marc Boucher <marc@mbsi.ca>
+Content-Disposition: inline
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Josh Samuelson wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
->Greetings,
->
->On module removal "/proc/net/ip_conntrack_exp" is the proc entry that
->is attempted to proc_net_remove() instead of "/proc/net/ip_conntrack_expect".
->
->Attached diff fixes this issue.
->  
->
+The patch below removes an unused function from 
+net/ipv4/netfilter/ipt_tcpmss.c
 
-already fixed in 2.6.10-rc1
 
-regards,
-Pablo
+diffstat output:
+ net/ipv4/netfilter/ipt_tcpmss.c |   12 ------------
+ 1 files changed, 12 deletions(-)
 
->-Josh
->  
->
->------------------------------------------------------------------------
->
->--- orig/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-10-21 15:08:44.000000000 -0500
->+++ patch/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-10-27 11:25:57.000000000 -0500
->@@ -816,7 +816,7 @@
-> #ifdef CONFIG_PROC_FS
-> 	proc_net_remove("ip_conntrack_stat");
-> cleanup_proc_exp:
->-	proc_net_remove("ip_conntrack_exp");
->+	proc_net_remove("ip_conntrack_expect");
->  cleanup_proc:
-> 	proc_net_remove("ip_conntrack");
->  cleanup_init:
->  
->
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
+- --- linux-2.6.10-rc1-mm1-full/net/ipv4/netfilter/ipt_tcpmss.c.old	2004-10-28 23:51:17.000000000 +0200
++++ linux-2.6.10-rc1-mm1-full/net/ipv4/netfilter/ipt_tcpmss.c	2004-10-28 23:51:28.000000000 +0200
+@@ -87,18 +87,6 @@
+ 			       info->invert, hotdrop);
+ }
+ 
+- -static inline int find_syn_match(const struct ipt_entry_match *m)
+- -{
+- -	const struct ipt_tcp *tcpinfo = (const struct ipt_tcp *)m->data;
+- -
+- -	if (strcmp(m->u.kernel.match->name, "tcp") == 0
+- -	    && (tcpinfo->flg_cmp & TH_SYN)
+- -	    && !(tcpinfo->invflags & IPT_TCP_INV_FLAGS))
+- -		return 1;
+- -
+- -	return 0;
+- -}
+- -
+ static int
+ checkentry(const char *tablename,
+            const struct ipt_ip *ip,
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+iD8DBQFBgXpqmfzqmE8StAARAlfTAJ9tZB577aVYlmz3j91H4DvBkX4KMwCglbcK
+xolcBq4HFXSsy8N9BZIJiW8=
+=pbup
+-----END PGP SIGNATURE-----
