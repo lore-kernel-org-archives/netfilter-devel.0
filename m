@@ -1,10 +1,10 @@
-From: Michael Deegan <michael-nf@cnspc18.murdoch.edu.au>
-Subject: libipq and NF_ACCEPT
-Date: Tue, 29 Oct 2002 17:25:00 +0800
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: new version of transparency patches released
+Date: Tue, 29 Oct 2002 11:26:01 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021029092500.GC3457@zaphod.murdoch.edu.au>
+Message-ID: <20021029102601.GA6159@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -20,191 +20,101 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-I'm working on some traffic accounting software, and while debugging I
-noticed that queued traffic marked NF_ACCEPT doesn't seem to traverse the
-rest of my firewall rules.
+I've finally prepared a downloadable version of my transparent proxy
+patches. It's been in production on a firewall for a couple of months now,
+and it proved to be quite stable, so let's call it a BETA version.
 
-This is my test client (which incidentally serves as an example for those
-wanting to use select() with their ipq clients):
+The question is how this could be integrated into netfilter someday? Should
+it become a patch-o-matic extension? What about the patchlets touching the
+kernel core? Advice on this matter is welcome.
 
-/* just some testing code for the netfilter packet queuing to userspace 
-   Based on code (C) 2000 by Harald Welte <laforge@sunbeam.franken.de>
+The patch is available at http://www.balabit.hu/en/downloads/tproxy/ (the
+link at the end of the page), and is released as a .tar.gz with the
+following files:
 
-   This code is licensed under GPL conditions 
-   
-   For your makefile:
-   nfqtest: nfqtest.c
-        gcc -Wall nfqtest.c -o nfqtest -lipq
-           
-*/
+README		-- a short intro to tproxy
+iptables	-- iptables extension (a single TPROXY target, and a tproxy match)
+patch_tree	-- a set of files to be applied to a kernel in alphabetical order
+		   see details below
+tests		-- a couple of test programs to show how to use the
+		   functions provided by the patches, these might be
+		   somewhat out of date, but should get you started
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <libipq/libipq.h>
-#include <linux/netfilter.h>
-#include <sys/socket.h>
-#include <sys/un.h>
+patch_tree details:
 
-#include <linux/icmp.h>
-#include <linux/ip.h>
+01_origaddrs.diff	-- a patch to make it possible to query the
+			   original destination of an UDP packet via recvmsg()
+			   This one touches the network core.
 
-#define IPQ_BUF_SIZE 10240
+02_nfsockrelease.diff	-- This is an extension to nf_sockopts to allow a
+			   callback to be called when a socket is released. 
+			   It is tightly integrated to the way
+			   set/getsockopt calls are delegated.
+			   This one also touches the network core slightly.
 
-#if 1
-#define CAPTURE_SIZE IPQ_BUF_SIZE
-#else
-#define CAPTURE_SIZE sizeof (struct iphdr)
-#endif
+03_snaticmpfix.diff	-- This is my fix for an SNAT icmp problem, as I
+			   reported to this list a couple of times. This
+			   should be fixed in stock netfilter as well.
+			   (the bug can be triggered w/o this tproxy patch)
 
-#if 1
-#define DEBUGP  printf
-#else
-#define DEBUGP(format, args...)
-#endif
+04_cttproxy-10.diff	-- the TPROXY patch itself. It defines a new table,
+			   and installs a couple of hooks.
 
-static  struct ipq_handle *qh;
+The only program I know of with for these patches is Zorp. Zorp GPL 1.4.6 or
+above can be configure to run on a patched kernel like this. (Zorp 1.4.x
+supports TCP only, Zorp 2 to be released RSN supports both TCP & UDP)
 
-void handle_packet(ipq_packet_msg_t *packet) {
-    int ret;
-    struct iphdr *ip=(struct iphdr *)packet->payload;
-    int i;
-    int verdict;
+Here are the features I wanted to implement (excerpt from the web page):
 
-#ifdef DROP_TEST
-    static int count;
-#endif
+Real transparent proxying requires the following three features from the IP stack of the computer it is running on:
 
-    DEBUGP("PACKET id:0x%lX mark:%lu timestamp:%ld hook:%d indev:'%s' outdev:'%s' hw_protocol:%u datalen:%d\n",
-           packet->packet_id, packet->mark, packet->timestamp_sec, packet->hook, packet->indev_name,
-           packet->outdev_name, packet->hw_protocol, packet->data_len);
-    
-    printf("IP     size=%d src=0x%X dest=0x%X",ntohs(ip->tot_len),ntohl(ip->saddr),ntohl(ip->daddr));
-    for (i=0;i<packet->data_len;++i) {
-        if (!(i&31))
-            printf("\n0x%04X ",i);
-        else if (!(i&7))
-            putchar(' ');
-        else if (!(i&3))
-            putchar(':');
-        printf("%02X",packet->payload[i]);
-    }
-    putchar('\n');
-    putchar('\n');
+   1. Redirect sessions destined to the outer network to a local process
+      using a packet filter rule.
 
-#ifdef DROP_TEST
-    verdict=(++count&3)?NF_ACCEPT:NF_DROP; /* drop every fourth packet */
-#else
-    verdict=NF_ACCEPT;
-#endif
+   2. Make it possible for a process to listen to connections on a foreign
+      address.
 
-#if CAPTURE_SIZE
-    /* this will break if packet->data_len!=ip->tot_len (ie. CAPTURE_SIZE is too small) */
-    ret = ipq_set_verdict(qh, packet->packet_id, verdict, packet->data_len, packet->payload);
-#else
-    /* actually, you could also use this branch if you're not modifying the packet */
-    ret = ipq_set_verdict(qh, packet->packet_id, verdict, 0, NULL);
-#endif
-    if (ret < 0) {
-        printf("error setting verdict\n");
-        ipq_perror(NULL);
-    }
-}
+   3. Make it possible for a process to initiate a connection with a foreign
+      address as a source.
 
-int main() {
-    ssize_t len;
-    unsigned char *buf;
+Excerpt from the README file:
 
-    int nready;
-    fd_set rset, allset;
+How it works?
+-------------
 
-    qh = ipq_create_handle(0,PF_INET);
-    if (!qh) {
-        printf("can't create netlink socket\n");
-        ipq_perror(NULL);
-        exit(1);
-    }
-#if CAPTURE_SIZE
-    if (ipq_set_mode(qh, IPQ_COPY_PACKET, CAPTURE_SIZE) < 0) {
-#else
-    if (ipq_set_mode(qh, IPQ_COPY_META, 0) < 0) {
-#endif
-        printf("can't set netlink mode\n");
-        ipq_perror(NULL);
-        exit(2);
-    }
+Within the tproxy module in the kernel there's a table describing the
+relationship between local sockets and a non-local IP address/port pair. A
+local socket is referenced by its local IP/port, therefore all sockets to be
+used for transparent proxy purposes must be bound to a local IP prior
+anything can be done.
 
-    FD_ZERO(&allset);
-    FD_SET(qh->fd, &allset); /* hack! */
+To connect from, or listen on a foreign address an entry to this table must
+be added.
 
-    buf = (unsigned char *) malloc(IPQ_BUF_SIZE);
-    while (1) {
-        rset=allset;
-        nready = select(FD_SETSIZE, &rset, NULL, NULL, NULL);
-        
-        if (FD_ISSET(qh->fd, &rset)) {
-            int ptype,error;
-            ipq_packet_msg_t *packet;
+To add a translation table entry, create a socket (bind it to a local
+interface), and call the setsockopt IP_TPROXY_ASSIGN at level SOL_IP with a
+structure describing the nonlocal address (struct in_tproxy).
 
-            len = ipq_read(qh, buf, IPQ_BUF_SIZE, 0);
-            if (len < 0) {
-                printf("len < 0\n");
-                break;
-            } else if (len == 0) {
-                printf("timeout exceeded\n");
-            } else {
-                ptype = ipq_message_type(buf);
-                packet = ipq_get_packet(buf);
-                DEBUGP("received packet, length=%d, type=%d, mark=%lx\n", len, ptype,packet->mark);
-                DEBUGP("received packet: type=%d length=%d '%s'->'%s' mark:%lX hook:%d proto:%u datalen:%d\n",
-                       ptype, len, packet->indev_name, packet->outdev_name, packet->mark, packet->hook, packet->hw_protocol, packet->data_len);
-                switch (ptype) {
-                    case NLMSG_ERROR:
-                        error = ipq_get_msgerr(buf);
-                        printf("NLMSG_ERROR: (%d) %s\n",error,strerror(error));
-                        exit(3);
-                        break;
+If this setsockopt succeeds, specify what you want to do with the given
+socket, by calling IP_TPROXY_FLAGS with the combination of the bits in
+in_tproxy.h:
 
-                    case IPQM_PACKET:
-                        handle_packet(packet);
-                        break;
+/* bitfields in IP_TPROXY_FLAGS */
+#define ITP_CONNECT  0x00000001
+#define ITP_LISTEN   0x00000002
+#define ITP_ONCE     0x00010000
 
-                    default:
-                        printf("Unknown packet type %d!\n",ptype);
-                }
-            }
-        } else
-            printf("Gah, select() returned but nothing to do!\n");
-    }
-    ipq_perror(NULL);
-    return 0;
-}
+ITP_CONNECT means you want to initiate a connection, ITP_LISTEN means you
+want to accept connections on the foreign address specified in
+IP_TPROXY_ASSIGN.
 
-Partial 'iptables -L -v' output:
+ITP_ONCE means that this translation is to be performed only once, and then
+it should be removed from the table atomically. You usually want to specify
+ITP_ONCE with ITP_CONNECT, and may specify ITP_ONCE for listening socket
+when only one connection is to be accepted. (FTP data connection for
+example)
 
-Chain FORWARD (policy ACCEPT 122 packets, 7094 bytes)
- pkts bytes target     prot opt in     out     source               destination
-    4   240 LOG        icmp --  any    any     anywhere             anywhere           LOG level warning prefix `prequeued: '
-    4   240 QUEUE      icmp --  any    any     anywhere             anywhere
-    0     0 LOG        icmp --  any    any     anywhere             anywhere           LOG level warning prefix `postqueued: '
-    0     0 ACCEPT     icmp --  any    any     anywhere             anywhere
-
-(in practice these rules will probably live in the POSTROUTING chain of the
-mangle table)
-
-I'm filtering only ICMP so that I can just use ping from a box that is
-routed through the routing box. From the above it looks like that the QUEUE
-target is a 'terminating' rule. Is it possible to get 'non-terminating'
-behaviour instead? It makes it hard to tell whether changes (whether to the
-packets themselves or metadata such as the nfmark) are actually occurring
-properly. I can put the queuing rule in a separate table but I still notice
-that flow does not return to the calling table.
-
-I'm using kernel 2.4.20-pre11, iptables 1.2.6a-5 and Debian.
-
-TIA,
-
--MD
 
 -- 
-_____________________________________________________________________________
-Michael Deegan, Unix Support Officer, Murdoch University, Ph. +61 8 9360 6967
+Bazsi
+PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
