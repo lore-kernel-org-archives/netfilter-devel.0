@@ -1,18 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Passive OS fingerprint matching module update. Dynamic fingerprint loading.
-Date: Mon, 22 Sep 2003 17:09:28 +0200
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: IPSEC-TUNNEL gives error messages: ip_finish_output: bad unowned
+ skb = c5b619e0: PRE_ROUTING LOCAL_IN FORWARD POST_ROUTING
+Date: Mon, 22 Sep 2003 19:03:02 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030922150928.GR31401@sunbeam.de.gnumonks.org>
-References: <20030922171921.009b2133.johnpol@2ka.mipt.ru> <20030922173231.5bd6a7ae.johnpol@2ka.mipt.ru> <20030922135151.GM31401@sunbeam.de.gnumonks.org> <20030922190325.3c4b19f8.johnpol@2ka.mipt.ru>
+Message-ID: <3F6F2B46.2000703@trash.net>
+References: <OF73D4154E.C6C4D37F-ONC1256DA9.005340B9@nice.mindspeed.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="o0y1lerN6xYE2ROn"
-Cc: netfilter-devel@lists.netfilter.org, quaker@ondraszek.eu.org,
-	solt@dns.toxicfilms.tv
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org,
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Content-Disposition: inline
-In-Reply-To: <20030922190325.3c4b19f8.johnpol@2ka.mipt.ru>
+To: philippe.vivarelli@mindspeed.com
+In-Reply-To: <OF73D4154E.C6C4D37F-ONC1256DA9.005340B9@nice.mindspeed.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,43 +23,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Philippe,
 
---o0y1lerN6xYE2ROn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+philippe.vivarelli@mindspeed.com wrote:
 
-On Mon, Sep 22, 2003 at 07:03:25PM +0400, Evgeniy Polyakov wrote:
+>Does someone has already seen thes messages ?.
+>
 
-> Please recheck, comment and apply.
+Please try the latest -bk or apply these two patches, there have been recent
+changes which affect these messages:
 
-looks fine to me, I'va applied both patches.
+ChangeSet 1.1283.2.5, 2003/09/11 16:46:44-07:00, laforge@netfilter.org
 
-> I'm planning to send a bit of documentation(from the first e-mail) in
-> form of patch-o-matic later today.
-=20
-> Thanks.
+	[NETFILTER]: Clear nf_debug in ipsec tunnel case.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+ChangeSet 1.1315.1.2, 2003/09/12 17:14:53-07:00, acme@conectiva.com.br
 
---o0y1lerN6xYE2ROn
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+	[NETFILTER]: Fix typo in recent ip_input.c changes.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+or just disable CONFIG_NETFILTER_DEBUG.
 
-iD8DBQE/bxCoXaXGVTD0i/8RAp8zAJ9y7R+zX2rZJgizktUzDoPW69vCmgCbBWRb
-9yXrnFBLmTYPH7t+GNTAfCU=
-=aEdo
------END PGP SIGNATURE-----
 
---o0y1lerN6xYE2ROn--
+Regards,
+Patrick
