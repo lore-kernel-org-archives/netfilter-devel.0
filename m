@@ -1,14 +1,16 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH NF_CONNTRACK]: fixed the bug that conntrack becomes its
- master.
-Date: Thu, 17 Mar 2005 04:02:05 +0900 (JST)
-Message-ID: <200503161902.j2GJ26J2028676@toshiba.co.jp>
+Subject: Re: nf_conntrack tree
+Date: Thu, 17 Mar 2005 04:22:16 +0900 (JST)
+Message-ID: <200503161922.j2GJMGZE006465@toshiba.co.jp>
+References: <42377F54.8070408@trash.net>
+	<200503160648.j2G6mXVV014699@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Thu_Mar_17_04:02:05_2005_460)--"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: usagi-core@linux-ipv6.org
-To: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
+	kaber@trash.net
+To: yasuyuki.kozakai@toshiba.co.jp
+In-Reply-To: <200503160648.j2G6mXVV014699@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,37 +22,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Thu_Mar_17_04:02:05_2005_460)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 
+Hi,
 
-Hi, Patrick,
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Date: Wed, 16 Mar 2005 15:48:33 +0900 (JST)
 
-This patch for nf_conntrack fixes a shameful bug that conntrack becomes
-its master.
+> 	2. I would not like to change UI. If ip_conntrack isn't loaded when
+> 	   these matches/targets are loaded, I want kernel to load ip_conntrack
+> 	   automatically. I suggests changes in init() as following.
+> 
+> 		int ret = -1;	   
+> 
+> 		if (get_symbols(need_ip_conntrack) != NULL) {
+> 			ret = ip_register_match(match_func_with_ip_conntrack);
+> 
+> 		} else if (get_symbols(need_nf_conntrack) != NULL) {
+> 			ret = ip_register_match(match_func_with_nf_conntrack);
+> 		} else
+> 			return -1;
+> 
+> 		return ret;
+> 
+> 	  I don't know this usage of get_symbols() is right or not.
+> 	  If right, ip_conntrack will be loaded automatically in the case that
+> 	  ip_conntrack and nf_conntrack are not loaded.
+> 	  If either of them is loaded, it will be used.
 
-Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Oh, this is bad code. What I really want to do is following.
+Anyway, this issue would be resolved.
 
-Regards,
-
-----Next_Part(Thu_Mar_17_04:02:05_2005_460)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="fix-master.patch"
-
-Index: linux-2.6/net/netfilter/nf_conntrack_core.c
-===================================================================
---- linux-2.6/net/netfilter/nf_conntrack_core.c	(revision 3776)
-+++ linux-2.6/net/netfilter/nf_conntrack_core.c	(working copy)
-@@ -761,7 +761,7 @@
- 			conntrack, exp);
- 		/* Welcome, Mr. Bond.  We've been expecting you... */
- 		__set_bit(NF_S_EXPECTED_BIT, &conntrack->status);
--		conntrack->master = conntrack;
-+		conntrack->master = exp->master;
- #if CONFIG_NF_CONNTRACK_MARK
- 		conntrack->mark = exp->master->mark;
- #endif
-
-----Next_Part(Thu_Mar_17_04:02:05_2005_460)----
+ static struct ipt_match helper_match = {
+ 	.name		= "helper",
+-	.match		= &match,
+ 	.checkentry	= &check,
+ 	.me		= THIS_MODULE,
+ };
+ 
+ static int __init init(void)
+ {
+-	need_ip_conntrack();
++	if (!request_module("ip_conntrack"))
++		helper_match.match = &ip_match;
++	} else if (!request_module("nf_conntrack"))
++		helper_match.match = &nf_match;
++	} else
++		return -1;
++
+ 	return ipt_register_match(&helper_match);
+ }
+ 
+-----------------------------------------------------------------
+Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
