@@ -1,16 +1,13 @@
 From: Andras Kis-Szabo <kisza@securityaudit.hu>
-Subject: Re: [CRAP] Some patches
-Date: Mon, 8 Jul 2002 09:31:06 +0200
+Subject: [PATCH] libip6t_tcp
+Date: Mon, 8 Jul 2002 09:56:51 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020708093106.B13285@sch.bme.hu>
-References: <20020616200239.GI23720@stingr.net> <20020705140810.GI21280@naboo.ists.dartmouth.edu>
+Message-ID: <20020708095651.A17100@sch.bme.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="pWyiEgJYm5f9v55/"
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: netfilter-devel@lists.samba.org
 Content-Disposition: inline
-In-Reply-To: <20020705140810.GI21280@naboo.ists.dartmouth.edu>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,24 +18,16 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte ........................................ (2002. július 05.)
 
- Hi!
+--pWyiEgJYm5f9v55/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+Hi,
 
-> > But ipv6 stuff seems awful :( it just duplicating one function already
-> > present in ipv6 code :( and doing it without static keyword ...
-> I think kisza has dealt with this..
-There are 5(6?) independent patches. 
-I started a thread at the netdev about this problem. The result was: the
-firewall should be independent drom the network code... (We can not trust in
-the network code.)
-(The two function wasn't the same...)
+2 misstyping bug in libip6t_tcp.c.
 
-BTW: the function will be included in 2.4.19, with the export. After this the
-p-o-m will be changed (and wil depend on the 2.4.19-patch).
-
-regards,
+Regards,
 
 	kisza
 
@@ -46,3 +35,30 @@ regards,
     Andras Kis-Szabo       Security Development, Design and Audit
 -------------------------/        Zorp, NetFilter and IPv6
  kisza@SecurityAudit.hu /-----Member of the BUTE-MIS-SEARCHlab---------->
+
+--pWyiEgJYm5f9v55/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="tcp6.20020708"
+
+--- netfilter.old/userspace/extensions/libip6t_tcp.c	Mon Jul  8 09:44:13 2002
++++ netfilter/userspace/extensions/libip6t_tcp.c	Mon Jul  8 09:47:52 2002
+@@ -143,7 +143,7 @@
+ {
+ 	unsigned int ret;
+ 
+-	if (string_to_number(option, 1, 266, &ret) == -1)
++	if (string_to_number(option, 1, 255, &ret) == -1)
+ 		exit_error(PARAMETER_PROBLEM, "Bad TCP option `%s'", option);
+ 
+ 	*result = (u_int8_t)ret;
+@@ -371,7 +371,7 @@
+ 	const struct ip6t_tcp *tcpinfo = (struct ip6t_tcp *)match->data;
+ 
+ 	if (tcpinfo->spts[0] != 0
+-	    && tcpinfo->spts[1] != 0xFFFF) {
++	    || tcpinfo->spts[1] != 0xFFFF) {
+ 		if (tcpinfo->invflags & IP6T_TCP_INV_SRCPT)
+ 			printf("! ");
+ 		if (tcpinfo->spts[0]
+
+--pWyiEgJYm5f9v55/--
