@@ -1,8 +1,8 @@
 From: Jamal Hadi Salim <hadi@znyx.com>
 Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
-Date: 28 Sep 2004 22:14:29 -0400
+Date: 29 Sep 2004 07:13:10 -0400
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1096424069.1046.84.camel@jzny.localdomain>
+Message-ID: <1096456390.1044.212.camel@jzny.localdomain>
 References: <1092407190.2402.120.camel@nienna.balabit>
 	<1095993739.1044.9.camel@jzny.localdomain>
 	<20040925075253.GQ3236@sunbeam.de.gnumonks.org>
@@ -19,6 +19,8 @@ References: <1092407190.2402.120.camel@nienna.balabit>
 	<Pine.LNX.4.61.0409281642500.32737@filer.marasystems.com>
 	<1096383406.7192.165.camel@nienna.balabit>
 	<Pine.LNX.4.61.0409281658330.32737@filer.marasystems.com>
+	<1096424069.1046.84.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0409291000490.11661@filer.marasystems.com>
 Reply-To: hadi@znyx.com
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -29,7 +31,7 @@ Cc: Harald Welte <laforge@netfilter.org>,
 	KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0409281658330.32737@filer.marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0409291000490.11661@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -40,65 +42,90 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2004-09-28 at 11:07, Henrik Nordstrom wrote:
-> On Tue, 28 Sep 2004, KOVACS Krisztian wrote:
+On Wed, 2004-09-29 at 04:12, Henrik Nordstrom wrote:
+> On Wed, 28 Sep 2004, Jamal Hadi Salim wrote:
 
+> > Unfortunately i am not sure if you can force current to always get
+> > its port allocation from the allocated range _only_. Is this doable?
 > 
-> If you only have a single IP using division by IP addresses is clearly not 
-> an option.
+> iptables NAT allows you to specify the IP and port range acceptable.
+> 
 
-Like you said earlier, the allocation is IPaddress:portrange. I do think
-this will require some extra hack for the mapping. Am i mistaken? 
-So instead if you just zeroed out the IPaddres piece, then the only
-change left is por range.
-I believe this is already supported in the form of
-/proc/sys/net/ipv4/ip_local_port_range
-So even if the protocol is not ready, make this a static config
-in each node. Ensure unique ranges on each node whose alloaction is 
-synchronized by a human to start with. 
-Unfortunately i am not sure if you can force current to always get
-its port allocation from the allocated range _only_. Is this doable?
-Caveat: You just limited your active connections for your cluster to 64K
-flows. Clearly ability to get IPaddress:port range mapping will fix
-that; I ma just thinking first steps.
+My brain access is getting slow - I knew this. But does the machine then
+only restrict itself to those ports for that IP defined?
 
-> The full re-sync is just one more facet of the same problem. If one is 
-> solved you can solve both. It needs to be known per connection which node 
-> is currently the master, and the addressing/forwarding scheme needs to 
-> make sure the node who is master for a connection sees the traffic it 
-> needs to se.
+> > Caveat: You just limited your active connections for your cluster to 64K
+> > flows.
 > 
-> > But if we maintain some per-conntrack mark indicating
-> > which node "owns" that entry, then even full re-sync could be
-> > implemented quite easily: each node dumps all entries it is responsible
-> > for. The protocol itself should be extended as well, we would need
-> > per-node sequence numbers and per-node recovery requests.
-> 
-> Indeed.
-> 
-> And the flow question of existing connections is also not such big problem 
-> as all you need is to look up the connection in conntrack and if not 
-> master you either drop the packet (multicast forwarding model) or 
-> request to become master of the connection (unicast forwarding model). 
-> The multicast forwarding model is a lot easier to implement but does not 
-> scale as well as all nodes need to see all traffic and drop the traffic 
-> for which they are not master.
-> 
-> This moves the "clusterIP" decision to after the conntrack lookup but 
-> before creating new conntrack sessions.
+> Not really. But if you only have a single IP address then the port 
+> allocation limits you to 64K flows per "other" IP. As already discussed 
+> the tuple needs to be unique between different flows, not neccesarily the 
+> port.
 
-I think we should make the issue of balancing a separate item.
-It shouldnt matter how the packet gets delivered to an active node
-(pigeons, expensive loadbalancers, LVS, some routing tricks,
- etc all is fine by me). 
-Assuming:
-- The state is already synced across all the nodes;
-- assuming theres no conflict and 
-- assuming asymetry (ok, maybe thats too restrictive) but a good start. 
+To clarify what you are saying: you will have (in the case of
+masquareding single external realm IP) 64K possible flows per internal
+realm _src_ IP?
 
-Then:
-any node should be able to masquarade any packet. And any packet coming
-from the external realm should get to its origin just fine.
+> > I think we should make the issue of balancing a separate item.
+> 
+> It is separate from the matter of syncronization. But the reason why the 
+> syncronization protocol has not yet been designed for active-active is 
+> because no load balancing scheme has been designed which would work. The 
+> two goes hand in hand and both needs to be solved.
+
+The cluster shouldnt care how the packet got there. Put LVS infront of
+cluster or play ARP tricks - It doesnt matter.
+Maybe iam missing something.
+
+> Most likely the first load balancing method which will get implemented 
+> (and forcing ct_sync to add the two minor pieces missing for active-active 
+> syncronization) is the multicast balancing method in a no-NAT clused where 
+> each firewall sees all traffic and selects what it looks closer at.
+
+I am not saying this shouldnt be supported, but why the restiction
+to _only_ this? 
+
+>  This 
+> is by far the easiest to implement. But even this is not entirely trivial 
+> as there may be conflicts in flow key balance IDs depending on the 
+> direction of the flow, but most likely this problem is more theoretical 
+> than practical.
+> 
+
+Thats what it seems to me. 
+Maybe the piece i am missing is this "flow key balance IDs"...
+If i have all the state of peer firewall, why should i not be able
+to process packets you throw at me?
+
+> > It shouldnt matter how the packet gets delivered to an active node
+> > (pigeons, expensive loadbalancers, LVS, some routing tricks,
+> > etc all is fine by me).
+> > Assuming:
+> >
+> > - The state is already synced across all the nodes;
+> >
+> > - assuming theres no conflict and
+> >
+> > - assuming asymetry (ok, maybe thats too restrictive) but a good start.
+> 
+> Allowing for assymetric flows is not something which is realistic to aim 
+> for unless you also aim for absolute syncronization by delaying packets 
+> until the firewalls have been syncronized. Such design will scale very 
+> badly.
+
+Sorry, I meant symetric setup .. i.e equal looking machines with same or
+similar set of addresses. Two masquareding examples:
+
+I:
+Machine A: internal IP: 10.0.0.1, external 1.1.1.1
+Machine B: internal IP: 10.0.0.2, external 1.1.1.2
+
+On failover, all addresses taken over by peer; state synced, things 
+run as before.
+
+II:
+Machine A: internal IP: 10.0.0.1, external 1.1.1.1
+Machine B: internal IP: 10.0.0.2, external 1.1.1.1
 
 cheers,
 jamal
