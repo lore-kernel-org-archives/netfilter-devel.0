@@ -1,11 +1,10 @@
-From: Lenard-Alexander Wiedenroth <lwiede@et-inf.fho-emden.de>
-Subject: problem with udp nat/conntrack module programming
-Date: Tue, 21 Jan 2003 05:34:52 +0100
+From: Paul Mielke <paulm@routefree.com>
+Subject: PPTP connection tracking
+Date: Sun, 19 Jan 2003 15:01:09 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1043123692.3e2ccdecbc5a2@secure.et-inf.fho-emden.de>
+Message-ID: <4.2.0.58.20030119145120.00b1c6f0@avocetgw>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,84 +17,153 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-hi list,
-i'm trying to write a iptables-module to capture special udp-packets and open TCP-ports according to the udp-packets data. yet i'm not much more than a newbie, but i'm working on it ;-)
-Right now, i'm plainly stuck; i got as far as compiling a conntrack and nat module and registering the helpers accordingly. but when i send a this-should-match-udp-packet, the callbackfunctions don't get called.
-what i did looks like this:
---------------------------------
-/* ip_nat_test.c */
-...
-static unsigned int expectme(...) {
-  printk("something happened\n");
-  return 1;
-}
+Greetings netfilter-devel denizens,
 
-static unsigned int help(...) {
-  printk("packet caught\n");
-  return NF_ACCEPT;
-}
+I have taken the PPTP connection tracking patch version 1.11
+and applied it to the 2.4.20 kernel's version of netfilter. 
+I then applied Philip Craig's subsequent patch to get his
+fixes.  I would like to express my appreciation for the
+excellent work done by Philip, Harald and the other folks
+who have contributed to the PPTP/GRE connection tracking
+implementation.
 
-static struct ip_nat_helper hlpr;
+In the course of getting this to work on my target systems,
+it became clear that our situation differs from those of
+the previous developers in the following respects:
 
-static int __init init(void) {
-  int ret;
-  memset(&hlpr, 0, sizeof(struct ip_nat_helper));
-  hlpr.tuple.dst.protonum = IPPROTO_UDP;
-  hlpr.tuple.dst.u.udp.port = htons(12345);
-  hlpr.mask.dst.protonum = 0xFFFF;
-  hlpr.mask.dst.u.udp.port = 0xFFFF;
-  hlpr.help = help;
-  hlpr.me = THIS_MODULE;
-  hlpr.expect = expectme;
-  printk("trying to register helper\n");
-  if(ret=ip_nat_helper_register(&hlpr))
-    printk("error, exiting\n");
-  return ret;
-}
-static void __exit fini(void){
-  ip_nat_helper_unregister(&hlpr);
-}
-module_init(init);
-module_exit(fini);
+1)  In our case, we need to support the PPTP server running
+on the firewall machine itself, as well as the pass-through
+cases.
 
--------------------------------
-/* ip_conntrack_test.c */
-...
-static int help(...) {
-  printk("conntrack: found packet\n");
-  return NF_ACCEPT;
-}
-static struct ip_conntrack_helper hlpr;
-static int __init init(void){
-  int ret;
-  memset(&hlpr, 0, sizeof(struct ip_conntrack_helper));
-  hlpr.tuple.dst.protonum = IPPROTO_UDP;
-  hlpr.tuple.dst.u.udp.port = htons(12345);
-  hlpr.mask.dst.protonum = 0xFFFF;
-  hlpr.mask.dst.u.udp.port = 0xFFFF;
-  hlpr.max_expected = 2;
-  hlpr.timeout = 300;
-  hlpr.flags = IP_CT_HELPER_F_REUSE_EXPECT;
-  hlpr.me = THIS_MODULE;
-  hlpr.help = help;
-  printk("conntrack: tryin to register helper\n");
-  if(ret=ip_conntrack_helper_register(&hlpr))
-    printk("conntrack: error, exiting\n");
-  return ret;
-}
-static void fini(void) {
-  ip_conntrack_helper_unregister(&hlpr);
-}
-module_init(init);
-module_exit(fini);
+2)  At least one of our platforms is big-endian.
 
--------------------------------
-so, then i do "gcc -c -O2 -DMODULE -D__KERNEL__ -DLINUX -I{kerneldir}/include ip_{nat/conntrack}_test.c"
-and "insmod ip_conntrack_test.o && insmod ip_nat_test.o".
-both modules are loaded correctly, but as soon as i send an udp-packet ("nmap -sU -vvp 12345 123.234.45.6"), i cant find any messages in my kern.log.
-what am i getting wrong ?? this should at least print "conntrack: packet found" in my logs (or segfault :]), but it doesnt ?!? i am using iptables 1.2.7a together with a 2.4.20 kernel and no p-o-m. any help is apprechiated !
-thanx in advance,
-lenard
+The change required to make 1) work is pretty straightforward.
+Case 2) is a bit uglier.
 
--------------------------------------------------
-This mail sent through IMP: http://horde.org/imp/
+The thing that prevented case 1) from working is the following
+fragment in the routine ip_nat_fn() in ip_nat_standalone.c starting
+around line 111:
+
+         case IP_CT_NEW:
+#ifdef CONFIG_IP_NF_NAT_LOCAL
+                 /* LOCAL_IN hook doesn't have a chain and thus doesn't care
+                  * about new packets -HW */
+                 if (hooknum == NF_IP_LOCAL_IN)
+                         return NF_ACCEPT;
+#endif
+
+The result of this code in the CONFIG_IP_NF_NAT_LOCAL case is that
+the rest of the NAT initialization code gets skipped for a LOCAL_IN
+packet.  This means that one direction of the manipulations doesn't
+get set up.  The way I think about it is that hook NF_IP_LOCAL_IN
+is the equivalent of NF_POST_ROUTING for an INPUT packet.  The
+DST manip gets initialized in NF_PRE_ROUTING, but if you skip
+this code for LOCAL_IN then the SRC manip doesn't get initialized
+on the first inbound packet.  By the time the reply is sent, the
+connection entry is already hashed and it's too late to mess with
+it.  My solution was just to turn the
+
+#ifdef CONFIG_IP_NF_NAT_LOCAL
+
+into
+
+#if 0
+
+thus removing this section of code.  Things seem to work fine after
+this change, but perhaps there are other cases that I don't understand
+in which this change would break things.  Harald, do you see any harm
+in this solution?
+
+The endianness issue is a good deal uglier.  The root cause of the
+problem is that the PPTP conntrack patch adds a 32 bit element to
+the union ip_conntrack_manip_proto and also to the corresponding
+destination portion of ip_conntrack_tuple, making them both a mix
+of 16 bit and 32 bit elements.  There are a number of places in the
+netfilter code that use structure initializers to set a value for 
+one of these structures and it now does the wrong thing on a big-
+endian machine.  In fact, I claim it also does a more subtly
+incorrect thing on a little-endian machine.  Consider the following
+example from ftp_nat_expected() in ip_nat_ftp.c:
+
+         /* ... unless we're doing a MANIP_DST, in which case, make
+            sure we map to the correct port */
+         if (HOOK2MANIP(hooknum) == IP_NAT_MANIP_DST) {
+                 mr.range[0].flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
+                 mr.range[0].min = mr.range[0].max
+                         = ((union ip_conntrack_manip_proto)
+                                 { htons(exp_ftp_info->port) });
+
+The structure "mr" is (struct ip_nat_multi_range) and is declared
+on the stack and never explicitly cleared.  The code generated by
+the compiler we're using (gcc 2.95.2) does a 16 bit store word into
+the address of the min and max elements.  This puts the data in
+the right place on an LE cpu, but in the wrong place on a BE cpu.
+On an LE cpu, the upper 16 bits of the union remain unitialized,
+which may also cause problems depending on how the union is referenced
+later.
+
+Unfortunately this idiom exists in a number of places.  I'm in
+the process of looking for more, but I have already found and fixed
+two bugs caused by this endianness issue.  Diffs are attached below.
+
+Comments?
+
+Regards,
+Paul Mielke
+BroadOn Communications Corp.
+
+diff -u netfilter-2.4.20_philpatch/net/ipv4/netfilter/ip_nat_ftp.c netfilter_pptfixes/net/ipv4/netfilter/ip_nat_ftp.c
+--- netfilter-2.4.20_philpatch/net/ipv4/netfilter/ip_nat_ftp.c	2002-11-28 18:53:15.000000000 -0500
++++ netfilter_pptp_fixes/net/ipv4/netfilter/ip_nat_ftp.c	2003-01-17 16:03:30.000000000 -0500
+@@ -47,6 +47,7 @@
+  
+  	DEBUGP("nat_expected: We have a connection!\n");
+  	exp_ftp_info = &ct->master->help.exp_ftp_info;
++	memset((void *)&mr, 0, sizeof (struct ip_nat_multi_range));
+  
+  	LOCK_BH(&ip_ftp_lock);
+  
+@@ -82,9 +83,8 @@
+  	   sure we map to the correct port */
+  	if (HOOK2MANIP(hooknum) == IP_NAT_MANIP_DST) {
+  		mr.range[0].flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
+-		mr.range[0].min = mr.range[0].max
+-			= ((union ip_conntrack_manip_proto)
+-				{ htons(exp_ftp_info->port) });
++		mr.range[0].min.tcp.port = mr.range[0].max.tcp.port =
++			htons(exp_ftp_info->port);
+  	}
+  	return ip_nat_setup_info(ct, &mr, hooknum);
+  }
+@@ -182,6 +182,7 @@
+  	DEBUGP("FTP_NAT: seq %u + %u in %u\n",
+  	       expect->seq, ct_ftp_info->len,
+  	       ntohl(tcph->seq));
++	memset((void *)&newtuple, 0, sizeof(struct ip_conntrack_tuple));
+  
+  	/* Change address inside packet to match way we're mapping
+  	   this connection. */
+diff -u netfilter-2.4.20_philpatch/net/ipv4/netfilter/ip_conntrack_core.c netfilter_pptp_fixes/net/ipv4/netfilter/ip_conntrack_core.c
+--- netfilter-2.4.20_philpatch/net/ipv4/netfilter/ip_conntrack_core.c	2002-12-08 23:12:10.000000000 -0500
++++ netfilter_pptp_fixes/net/ipv4/netfilter/ip_conntrack_core.c	2003-01-17 16:09:21.000000000 -0500
+@@ -1302,9 +1302,14 @@
+  getorigdst(struct sock *sk, int optval, void *user, int *len)
+  {
+  	struct ip_conntrack_tuple_hash *h;
+-	struct ip_conntrack_tuple tuple = { { sk->rcv_saddr, { sk->sport } },
+-					    { sk->daddr, { sk->dport },
+-					      IPPROTO_TCP } };
++	struct ip_conntrack_tuple tuple;
++
++	memset((void *)&tuple, 0, sizeof (struct ip_conntrack_tuple));
++	tuple.src.ip = sk->rcv_saddr;
++	tuple.src.u.tcp.port = sk->sport;
++	tuple.dst.ip = sk->daddr;
++	tuple.dst.u.tcp.port = sk->dport;
++	tuple.dst.protonum = IPPROTO_TCP;
+  
+  	/* We only do TCP at the moment: is there a better way? */
+  	if (strcmp(sk->prot->name, "TCP") != 0) {
+
+Paul Mielke                        paulm@routefree.com
+RouteFree, Inc.                   (650) 739-5377
