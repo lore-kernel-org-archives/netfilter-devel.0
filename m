@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH}: Make MARK target terminate (resend)
-Date: Tue, 02 Jul 2002 15:02:10 +0200
+Date: Tue, 02 Jul 2002 15:32:04 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <3D21A452.5060302@trash.net>
-References: <3D1D81F8.9080309@trash.net> <20020629120320.K4136@oknodo.bof.de>
+Message-ID: <3D21AB54.2000701@trash.net>
+References: <3D1D81F8.9080309@trash.net> <200206291236.36997@henrik.marasystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.samba.org>
+Cc: netfilter-devel <netfilter-devel@lists.samba.org>,
+	Harald Welte <laforge@gnumonks.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Patrick Schaaf <bof@bof.de>
+To: Henrik Nordstrom <hno@marasystems.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,57 +21,67 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi.
+Henrik Nordstrom wrote:
 
-Patrick Schaaf wrote:
-
->>After not receiving a response for two weeks second try:
+>On Saturday 29 June 2002 11.46, Patrick McHardy wrote:
+>
+>>A CONNMARK patch will follow but currently CONNMARK doesn't apply
+>>clean against 2.4.18/2.4.19-pre10 ..
 >>
 >
->Sorry. Here we go:
+>Note: There is two versions of the CONNMARK patch. The one in extra 
+>applies if you are using the new_nat patch, the one on old_nat if 
+>not.
 >
->>The attached patch adds a new option --terminate to the MARK target 
->>which lets the user choose if MARK should return IPT_CONTINUE
->>(normal behaviour) or NF_ACCEPT (to terminate further rule processing).
->>
->[...]
+thanks, so it was my mistake :)
+i also need a terminating CONNMARK, but i guess i'm going to wait with
+it until it's clear where this is going ..
+
 >
->>A CONNMARK patch will follow
->>
+>Your last posting did stir up some discussion on how to deal with 
+>this. Adding a "terminate" option to each and every of these 
+>psuedo-targets is clearly not the way to go, and only cover a very 
+>small subset of what is needed.
 >
->Will you also add this to LOG, ULOG, and any other IPT_CONTINUE target
->that may come up in the future? In my opinion, this is misguided, because
->it leads to much code duplication in target modules.
->
-Hmm probably not :) Although i can't see why someone would like (U)LOG 
-to return NF_ACCEPT
-you're point is clear ..
+
+also at least i do not plan do something like that :) you're right of
+course, the terminate option to MARK was just something i needed now ..
 
 >
 >
->There is already a flexible, but somewhat ugly, way to do what you want:
->create a user defined chain that first MARKs then ACCEPTs (or does whatever
->else one may want to be done after MARK). Obviously, this is a bit ugly
->because you need one such chain per MARK value.
+>I proposed adding a new class of iptables things between matches and 
+>targets, being neither a match for filtering or a target that 
+>determines the ultimate fate of the packet. The names proposed for 
+>these in the discussion was modifiers or actions.
 >
-Thats not really what i want to do .. especially since we need lots of 
-marking rules, basically everything
-allowed needs to be marked with different values.
+
+I like the idea very much. The name 'actions' would be better in my
+opinion, LOG f.e. doesn't sound like a modifier.
 
 >
->The good way to do it, in my opinion, would be to permit more than one
->target per iptables rule. You could then write
 >
->	iptables -A somewhere -m something -j MARK --mark 1 -j ACCEPT
+>The implementation of these can be done without needing to change the 
+>kernel iptables API by simply piggying back on the match list in the 
+>table structure. The modifiers/actions need to register themselves as 
+>a match, and for compability with old rulesets and/or userspace tools 
+>as a target as well.
 >
->Note that I do _not_ oppose adding your --terminate option to MARK, as a
->stopgap measure. If that is helpful now, it should be done, IMHO.
+>The userspace tools need to have a new option for calling a 
+>modifier/action. These should clearly be separated from matches.
 >
->However, I'd like to hear people's opinions on the multitarget approach.
+>So the question to the Netfilter core team is if it would be OK to add 
+>a new option and "module class" to the userspace tools, and have the 
+>existing IPT_CONTINUE targets dual-register as both a target and a 
+>match. I can try to whip something together if this is seen as 
+>something acceptable. Should be fully backwards/forward compatible 
+>with existing rulesets with only a minimal amount of code 
+>duplication. The only compability issue is that if you make use the 
+>new feature then you cannot go back to a older userspace or kernel..
 >
-I like that idea very much, although (like Henrik already suggested) i 
-favour the idea of something new
-between targets and matches for IPT_CONTINUE targets ..
+>
+So all IPT_CONTINUE targets would need to be changed to register as a
+module too .. if you need some help doing the silly-work just drop me
+a mail ..
 
-Bye,
+Bye
 Patrick
