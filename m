@@ -1,13 +1,13 @@
 From: aksingh@hss.hns.com
 Subject: Re: FW: injecting new packets into the netfilter
-Date: Wed, 30 Jun 2004 10:35:40 +0530
+Date: Wed, 30 Jun 2004 10:49:59 +0530
 Sender: netfilter-admin@lists.netfilter.org
-Message-ID: <OFCF2776AE.6C81672D-ON65256EC3.001BBD08@hss.hns.com>
+Message-ID: <OF7F81886A.9A4F0468-ON65256EC3.001C9B46@hss.hns.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Cc: <netfilter@lists.netfilter.org>, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-admin@lists.netfilter.org>
-To: "Mayank Kumar" <mayank_kumar@intersolutions.stpn.soft.net>
+To: "Mayank Kumar" <mayank_kumar@intersolutions.stpn.soft.net>,
+        <netfilter@lists.netfilter.org>, <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter@lists.netfilter.org>
@@ -22,10 +22,24 @@ List-Id: netfilter-devel.vger.kernel.org
 
 
 
+
+
+
+
+
+Amit Kumar Singh
+06/30/2004 10:35 AM
+
+To:    "Mayank Kumar" <mayank_kumar@intersolutions.stpn.soft.net>
+cc:    <netfilter@lists.netfilter.org>,
+       <netfilter-devel@lists.netfilter.org>
+
+Subject:    Re: FW: injecting new packets into the netfilter  (Document
+       link: Amit Kumar Singh)
+
 hi,
 
   pls see inline
-
 
 
 
@@ -70,7 +84,7 @@ that
    that you inject using libnet(they are caught first by IP_LOCAL_OUT ..
    then they might hit other hooks), oor if they are coming from ethernet
    or any sort of mac layer(in this case caught first by PRE_ROUTING hook
-   and then by others ) ...
+   and then by others ) ...>>>>
 
 Now what i want to do is steal(NF_STOLEN) packets at specific hooks
 (generally pre routing)
@@ -78,12 +92,37 @@ within the netfilter and queue them to a user mode process.
 The User mode process does some processing and either sends
 the same packet or completely new and umpteen in number packets
 at the post routing hook in netfilter(from ur answer using libnet).
+
+>>> libnet is just one of the ways, you can use normal BSD sockets, or raw
+sockets "any" packet that reaches IP wld be caught by the netfilter
+hooks(provided you have registered your call back functions). For user
+space queueing, better would be to return an NF_QUEUE, then use inbuilt
+kernel module ip_queue.o and the user space library libipq. Once you return
+NF_QUEUE and if ip_queue is already insmoded, your user level
+applciationthat is doing a ipq_read()(a function call from library libipq),
+wld get it, then you can play with the packet and return in without
+problems .. read about libipq for this, if u jave iptables, then doing a
+make install-devel in the directory where iptables asource is, wld install
+libipq >>>>>>>
+
+
 >From ur answer it seems quite possible very easily. Correct
-me if i am wrong here. Also is there any advantage of using
+me if i am wrong here.
+>>>>>
+if you understand how ip_queue, libipq and libnet work it shld be fine ;-)
+
+>>>>>
+
+ Also is there any advantage of using
 libnet over bsd sockets in terms of performance. Is there any
 other performance optmized way of sending and receiving packets from
 user to kernel mode?? Does netlink sockets way offer a more
 optimized way of doing it?? (Sorry for a flurry of questions!!)
+
+>>>>> ip_queue the kernel module i talk to and libipq use netlink sockets
+to tarnsfer packets from kernel space to use space, if you want to transfer
+new packets from user space to kernel space, i suggested libnet, you can
+use normal raw sockets, bsd sockets, whatever you wish to >>>>>
 
 
 Now the second part is what if i want to move it all to kernel mode for
@@ -93,7 +132,18 @@ a kernel thread which was created using a kernel module. The kernel
 thread then does some processing on the packets and then sends either
 the captured packet or completely new packets out through the post routing
 hook.
+>>>>>>>>
+yes it is possible, you can do it in kernel itself, performance wld
+certainly be better but in that case maintenance/debugging might be a
+problem, theres a trade off, you can make a kernel module which does all
+the processing on the packets that netfilter hook functions capture,
+depends on how complex you want that module to be.
+
+>>>>>>
+?
+
 How can this be achieved??
+>>> yes this can be achievded as above >>>>
 
 regds
 Mayank
