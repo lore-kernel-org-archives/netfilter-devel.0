@@ -1,13 +1,13 @@
-From: Chris Wilson <chris@netservers.co.uk>
-Subject: ROUTE and MASQUERADE don't work together
-Date: Fri, 28 May 2004 17:41:25 +0100 (BST)
+From: Matthias Dettling <m-dettling@gmx.de>
+Subject: Reviewing a piece of code, locking questions
+Date: Fri, 28 May 2004 23:46:06 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0405281722570.26979@chris.camcom.co.uk>
+Message-ID: <40B7B31E.8040001@gmx.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: delaunois@info.ucl.ac.be
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,90 +18,189 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+Hello developers,
 
-I think I've discovered a problem when the ROUTE and MASQUERADE targets 
-are used together. It prevents the re-ROUTEd packets from being 
-masqueraded properly. They get masqueraded to the same address that they 
-would have done if the packet had not been re-ROUTEd, not to the address 
-of the new outbound interface.
+I have modified a patched version of "ipt_conntrack.c" for matching 
+packets on the informations of a related connection that were tracked 
+before. The following is the most important piece of my modification in 
+the function "match".
+There is to remark that the flag fields were extended to "u_int32_t" to 
+take up additional flags (IPT_CONNTRACK_RELORIGSRCPORT, 
+IPT_CONNTRACK_RELORIGDSTPORT, IPT_CONNTRACK_RELREPLSRCPORT, 
+IPT_CONNTRACK_RELREPLDSTPORT).
 
-The ROUTE target does a route lookup to find the appropriate new 
-destination route, and updates skb->dst and skb->dev:
-
-        struct rt_key key = {
-                dst:iph->daddr,
-                src:0,
-                oif:ifindex,
-                tos:RT_TOS(iph->tos)
-        };
-	...
-        if ((err = ip_route_output_key(&rt, &key))) {
-		... return -1;
-	}
-	...	
-        /* Success if no oif specified or if the oif correspond to the
-         * one desired */
-        if (!ifindex || rt->u.dst.dev->ifindex == ifindex) {
-                skb->dst = &rt->u.dst;
-                skb->dev = skb->dst->dev;
-                return 1;
+modifications "ipt_conntrack.c":
+static int match(.....)
+{
+....
+/* 
+###################################################################################### 
+*/
+    if(sinfo->flags & IPT_CONNTRACK_RELORIGSRCPORT) {
+        READ_LOCK(&ip_conntrack_lock);
+       
+        if (!ct)
+        {
+            READ_UNLOCK(&ip_conntrack_lock);
+            return 0;
         }
 
-However, the MASQUERADE target does not use this new information. Instead 
-it does another route lookup, and uses the returned source address as the 
-address for masquerading:
-
-        key.dst = (*pskb)->nh.iph->daddr;
-        key.src = 0; /* Unknown: that's what we're trying to establish */
-        key.tos = RT_TOS((*pskb)->nh.iph->tos)|RTO_CONN;
-        key.oif = 0;
-	...
-        if (ip_route_output_key(&rt, &key) != 0) {
-		... return NF_DROP;
+        if (!ct->master)
+        {
+            READ_UNLOCK(&ip_conntrack_lock);
+            return 0;
         }
-        if (rt->u.dst.dev != out) {
-		... return NF_DROP;
-	}
-        newsrc = rt->rt_src;
 
-Thus, the packet will leave the new interface, but with the old 
-interface's IP address as its source.
+        if (!ct->master->expectant || 
+FWINV(!port_match(sinfo->rel_srcports[IP_CT_DIR_ORIGINAL][0], \ 
+sinfo->rel_srcports[IP_CT_DIR_ORIGINAL][1], \ 
+ntohs(ct->master->expectant->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u.tcp.port)), 
+\ IPT_CONNTRACK_RELORIGSRCPORT))
+        {
+            READ_UNLOCK(&ip_conntrack_lock);
+            return 0;
+        }
 
-While I can understand that this is part of the power of iptables :-), it 
-nevertheless means that you can't easily use ROUTE to send your traffic 
-out of a device with a dynamic address (say a dialup PPP connection or an 
-ADSL interface).
+        READ_UNLOCK(&ip_conntrack_lock);
+    }
 
-I tried to fix it by adding a field to struct skbuff to cache the route
-information looked up in ipt_ROUTE.c, and use that (if present) instead of
-doing a route lookup in ipt_MASQUERADE.c. However, this caused a number of
-other problems:
+    if(sinfo->flags & IPT_CONNTRACK_RELORIGDSTPORT) {
+        READ_LOCK(&ip_conntrack_lock);
+       
+        if (!ct)
+        {
+            READ_UNLOCK(&ip_conntrack_lock);
+            return 0;
+        }
 
-*   Locally generated traffic isn't masqueraded, so you can't ping 
-    from the iptables box to test your ROUTE/MASQUERADE combination. 
-    See ipt_MASQUERADE.c:
+        if (!ct->master)
+        {
+            READ_UNLOCK(&ip_conntrack_lock);
+            return 0;
+        }
 
-        /* FIXME: For the moment, don't do local packets, breaks
-           testsuite for 2.3.49 --RR */
-        if ((*pskb)->sk)
-                return NF_ACCEPT;
+        if (!ct->master->expectant || 
+FWINV(!port_match(sinfo->rel_dstports[IP_CT_DIR_ORIGINAL][0], \ 
+sinfo->rel_dstports[IP_CT_DIR_ORIGINAL][1], \ 
+ntohs(ct->master->expectant->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u.tcp.port)), 
+\ IPT_CONNTRACK_RELORIGDSTPORT))
+        {
+            READ_UNLOCK(&ip_conntrack_lock);
+            return 0;
+        }
 
-    Does anyone know what test was being failed here?
+        READ_UNLOCK(&ip_conntrack_lock);
+    }
 
-*   I removed the above test, and sometimes locally generated traffic 
-    comes out with a source of 0.0.0.0, I don't know why yet.
+    if(sinfo->flags & IPT_CONNTRACK_RELREPLSRCPORT) {
+        READ_LOCK(&ip_conntrack_lock);
+       
+        if (!ct)
+        {
+            READ_UNLOCK(&ip_conntrack_lock);
+            return 0;
+        }
 
-*   Also, the kernel randomly crashes with "Unable to handle kernel paging 
-    request at virtual address 20000017" (the address changes, and this 
-    may not be related, as I'm developing a new module at the same time).
+        if (!ct->master)
+        {
+            READ_UNLOCK(&ip_conntrack_lock);
+            return 0;
+        }
 
-Does anyone have any ideas for a better fix for this problem? If not, I 
-can submit my patch, but I don't really trust it yet.
+        if (!ct->master->expectant || 
+FWINV(!port_match(sinfo->rel_srcports[IP_CT_DIR_REPLY][0], \ 
+sinfo->rel_srcports[IP_CT_DIR_REPLY][1], \ 
+ntohs(ct->master->expectant->tuplehash[IP_CT_DIR_REPLY].tuple.src.u.tcp.port)), 
+\ IPT_CONNTRACK_RELREPLSRCPORT))
+        {
+            READ_UNLOCK(&ip_conntrack_lock);
+            return 0;
+        }
 
-Cheers, Chris.
--- 
-_  __ __     _
- / __/ / ,__(_)_  | Chris Wilson -- UNIX Firewall Lead Developer |
-/ (_  ,\/ _/ /_ \ | NetServers.co.uk http://www.netservers.co.uk |
-\__/_/_/_//_/___/ | 21 Signet Court, Cambridge, UK. 01223 576516 |
+        READ_UNLOCK(&ip_conntrack_lock);
+    }
+
+    if(sinfo->flags & IPT_CONNTRACK_RELREPLDSTPORT) {
+        READ_LOCK(&ip_conntrack_lock);
+       
+        if (!ct)
+        {
+            READ_UNLOCK(&ip_conntrack_lock);
+            return 0;
+        }
+
+        if (!ct->master)
+        {
+            READ_UNLOCK(&ip_conntrack_lock);
+            return 0;
+        }
+
+        if (!ct->master->expectant || 
+FWINV(!port_match(sinfo->rel_dstports[IP_CT_DIR_REPLY][0], \ 
+sinfo->rel_dstports[IP_CT_DIR_REPLY][1], \ 
+ntohs(ct->master->expectant->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u.tcp.port)), 
+\ IPT_CONNTRACK_RELREPLDSTPORT))
+        {
+            READ_UNLOCK(&ip_conntrack_lock);
+            return 0;
+        }
+
+        READ_UNLOCK(&ip_conntrack_lock);
+    }
+/* 
+###################################################################################### 
+*/
+....
+}
+
+modifications "ipt_conntrack.h":
+/* 
+###################################################################################### 
+*/
+#define IPT_CONNTRACK_RELORIGSRCPORT    0x00001000
+#define IPT_CONNTRACK_RELORIGDSTPORT    0x00002000
+#define IPT_CONNTRACK_RELREPLSRCPORT    0x00004000
+#define IPT_CONNTRACK_RELREPLDSTPORT    0x00008000
+/* 
+###################################################################################### 
+*/
+......
+struct ipt_conntrack_info
+{
+......
+/* 
+###################################################################################### 
+*/
+    /* Ports of the master connection, if existent */
+    u_int16_t rel_srcports[IP_CT_DIR_MAX][2];
+    u_int16_t rel_dstports[IP_CT_DIR_MAX][2];
+/* 
+###################################################################################### 
+*/
+......
+};
+
+Can someone look at the code to see if there are any mistakes? 
+Especially the parts with locking should be reviewed because I am really 
+unsure if I have locked properly. Do I need a "WRITE_LOCK" or only a 
+"READ_LOCK", is "&ip_conntrack_lock" right or need I 
+"&ip_conntrack_expect_tuple" or even some other locking?
+This is very important because I have no SMP machine to test the code there.
+For me on my i386 it works without problems.
+
+I didn't post the userspace code because this is nearly straightforward 
+and I'm almost sure that it is correct.
+If it is required I will of course post the whole code.
+
+An other question I have is if it is legal to modifiy the structure 
+"ipt_conntrack_info" in "ipt_conntrack.h" or could this cause problems 
+or errors?
+I have added 2 arrays with the ports of the related connection for the 
+matching as also extended the flag fields (see above).
+
+If all should be OK, how can I publish the modification, that it could 
+be part of later versions of iptables and the kernel, because I think it 
+could be interesting for others too?
+
+Best regards
+Matthias Dettling
