@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: iptables-save (1.2.8): ports and levels
-Date: Mon, 14 Jul 2003 09:44:57 +0200
+Subject: Re: ipq_set_verdict problem in bridge+iptables
+Date: Mon, 14 Jul 2003 10:07:28 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030714074457.GB6538@naboo>
-References: <3F0D705B.8000708@redhat.com>
+Message-ID: <20030714080728.GF6538@naboo>
+References: <20030712222620.28732.48265.Mailman@kashyyyk> <001901c348ec$6dbbc5d0$e84ce9db@win2ken>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="U+BazGySraz5kW0T"
+	protocol="application/pgp-signature"; boundary="eDB11BtaWSyaBkpc"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Thomas Woerner <twoerner@redhat.com>
+To: Yong Li <sdssly@sina.com>
 Content-Disposition: inline
-In-Reply-To: <3F0D705B.8000708@redhat.com>
+In-Reply-To: <001901c348ec$6dbbc5d0$e84ce9db@win2ken>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,26 +23,31 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---U+BazGySraz5kW0T
+--eDB11BtaWSyaBkpc
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jul 10, 2003 at 03:55:39PM +0200, Thomas Woerner wrote:
-> Hello,
+On Sun, Jul 13, 2003 at 11:11:16AM +0800, Yong Li wrote:
+> Hello All,
 >=20
-> I have attached a patch to fix iptable-save behavior. Normally port=20
-> numbers are saved. But multiport and mport are saving service names=20
-> instead of port numbers.
-> LOG is also saving log names instead of log levels.
->=20
-> The patch enables numeric output for multiport and mport. The patch is=20
-> fixing this.
+> I encountered a problem with the ipq_set_verdict function. I want to modi=
+fy
+> the packet content and size using the ipq_set_verdict function. However, I
+> found I cannot change the IP packet size more than 400+ bytes. Is it a kn=
+own
+> issue?
 
-Thanks.  I will include this patch in iptables CVS as soon as I have
-some IP connectivity again (travelling).
+what do you mean by 'I cannot' ? What happens?  Is an error returned to
+the ipq_set_verdict() call?  Is the packet silently discarded?  Is the
+packet truncated?
 
-> Thomas Woerner
+Anyway, it should work.  But if you exceed the outgoing interface's MTU,
+I could imagine that no fragmentation happens...
+
+> Thanks in advance!
+> Yong
+
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -53,16 +58,16 @@ some IP connectivity again (travelling).
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---U+BazGySraz5kW0T
+--eDB11BtaWSyaBkpc
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE/El94XaXGVTD0i/8RAlcWAJ9Unq47mCWCdbom6NuOYqnniYQ0bACdH2wy
-vrh3DhQzPX5kfmOki7zaHdI=
-=LCZR
+iD8DBQE/EmTAXaXGVTD0i/8RAiuRAJ9cS4YVCKqCbDq1RfTpZrZ9sJxCVgCeNRXs
+Hevk0ofvvdieiqPzv3TEUgw=
+=Qin4
 -----END PGP SIGNATURE-----
 
---U+BazGySraz5kW0T--
+--eDB11BtaWSyaBkpc--
