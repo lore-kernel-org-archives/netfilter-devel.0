@@ -1,16 +1,13 @@
-From: netfilter@interlinx.bc.ca
-Subject: Re: tcp-window-tracking vs. pending/24_conntrack-nosysctl.patch
-Date: Thu, 3 Apr 2003 08:57:58 -0500
+From: dmorris <dmorris@neogenen.com>
+Subject: Interface matching on bridge interfaces in 2.5
+Date: 03 Apr 2003 16:56:58 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030403135757.GB1702@pc.ilinx>
-References: <20030403025151.GA1702@pc.ilinx> <1049364942.25148.60.camel@tux.rsn.bth.se>
+Message-ID: <1049417824.18371.2399.camel@timmy>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hHWLQfXTYDoKhP50"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <1049364942.25148.60.camel@tux.rsn.bth.se>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,45 +18,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+I'm running a bridge on 2.5.66 (br0 with two interface, eth0 and eth1)
 
---hHWLQfXTYDoKhP50
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm trying to get the interface matching to work like it used to.
 
-On Thu, Apr 03, 2003 at 12:15:43PM +0200, Martin Josefsson wrote:
->=20
-> Thanks for the report, I'll try to fix it up.
+In 2.4.18 with the bridge-nf patch, I could say 
+iptables -t nat -A PREROUTING -p tcp -i eth0 -j REDIRECT --to-port 1234
+or
+iptables -t nat -A PREROUTING -p tcp -i br0 -j REDIRECT --to-port 1234
+and it would match the correct things.
 
-Excellent!
+In 2.5.66 with ebtables and ebtables-nf, it will only match if I say
+iptables -t nat -A PREROUTING -p tcp -i br0 -j REDIRECT --to-port 1234
+and not
+iptables -t nat -A PREROUTING -p tcp -i eth0 -j REDIRECT --to-port 1234
+even if the packets were coming from eth0
 
-> The answer is that I don't have time to check all the time if everything
-> still applies after new stuff has been added to pom.
+It used to match on eth0 or br0 if it was coming in on the eth0
+interface.
+not it only matchs on br0 even if its coming in on eth0.
 
-No, of course not.  My appologies if that is how my message came
-across.  My question was more a case of, "should I report when this
-happens or is it to be expected with so many patches to be applied"
-(kinda like maintaining a kernel these days :-).
+Where would I go about 'fixing' this?
+I'm uncertain whether this is from the new bridging code, or from a
+change in netfilter.
 
-You are welcome for the report in any case however.
+Thanks,
+-dirk
 
-Thanx for the great work!
 
-b.
-
---=20
-Brian J. Murrell
-
---hHWLQfXTYDoKhP50
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE+jD3ll3EQlGLyuXARAoGvAKDWpX3y6iOJQRxGCMRAkgJDF3Oc5gCggvQv
-nDPjv/u78KnplODbu0dLM5w=
-=PJSb
------END PGP SIGNATURE-----
-
---hHWLQfXTYDoKhP50--
+-- 
+//* */   dmorris   (* www.neogenen.com *)
+main(){int _=0;for(;_!=1687193639&&putchar(" \
+dn\nc@oge.m"[abs(_%11)]);_=(_*42913)+115127);}
