@@ -1,16 +1,13 @@
-From: Ilguiz Latypov <ilatypov@infradead.org>
-Subject: Re: Transparent broadband network connectivity (IP PnP)
-Date: Thu, 13 Mar 2003 13:18:28 -0500 (EST)
+From: Jean-Yves Provost <jyppy@adsl.on.net>
+Subject: conntrack timer UNREPLIED !!!
+Date: 13 Mar 2003 17:27:20 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0303131312340.30700-100000@localhost.localdomain>
-References: <20030313090821.GA7053@naboo.de.gnumonks.org>
+Message-ID: <1047536841.2074.19.camel@beurre.telux.me>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: dragon_nlt@yahoo.com,
-    Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030313090821.GA7053@naboo.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,22 +18,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-On Thu, 13 Mar 2003, Harald Welte wrote:
+I'm unable to find the reason why this occurs.
 
-> A broken setup like you describe breaks about any of the fundamental
-> assumptions of a working IP network. (and of layering in a network)
+I'm running an unpatched 2.4.19 kernel.
 
-Not to start a flame war, but I think the only missing part in that
-"broken" network topology was the automatic addition/removal of host
-routes on the gateway pointing to eth0 for any packets destined to the
-clients' IP addresses.
+I found some reference to similar problems over a year ago but no
+reference to a fix.
 
-SNAT-ting would still be required, as it was shown in the original
-message.
+I've tried to replicate by applying filters mid connection or
+disconnection (filter FIN, ACK, FINACK ...) cannot reproduce it.
 
---
-Ilguiz Latypov
-Net Integration Technologies, Inc
+What the current status?
 
-tel. +1 (514) 281 9191 x 117
+tcp      6 160183 ESTABLISHED src=1.2.3.4 dst=2.3.4.5 sport=42165
+dport=80 [UNREPLIED] src=2.3.4.5 dst=1.2.3.4 sport=80 dport=42165 use=1 
+
+tcp      6 160183 ESTABLISHED src=1.2.3.4 dst=2.3.4.5 sport=42167
+dport=34917 [UNREPLIED] src=2.3.4.5 dst=1.2.3.4 sport=34917 dport=42167
+use=1 
