@@ -1,13 +1,17 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: [RFC] matching tproxied packets
-Date: Tue, 4 Jun 2002 16:50:36 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [RFC] matching tproxied packets
+Date: Tue, 4 Jun 2002 17:14:47 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020604145036.GA1295@balabit.hu>
+Message-ID: <200206041714.47683.hno@marasystems.com>
+References: <20020604145036.GA1295@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
-Content-Disposition: inline
+To: Balazs Scheidler <bazsi@balabit.hu>,
+	netfilter-devel@lists.samba.org
+In-Reply-To: <20020604145036.GA1295@balabit.hu>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,31 +22,24 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Balazs Scheidler wrote:
 
-Suppose you have a TCP session, which is transparently redirected to a local
-proxy. With the current state of the tproxy framework one need to add two
-rules to iptables:
+> * use a new state (called TPROXY), which would be applied to all TPROXYed
+>   packets (might interact badly with nat/conntrack).
 
-- one to the tproxy table to actually redirect a session
-- one to the filter table to let the NATed traffic enter the local stack (in
-  INPUT)
+It will in no doubt interact badly with connection tracking (and therefore 
+NAT).
 
-I'd like to make tproxies easier to administer, so I'm thinking about a
-simple way of matching tproxied packets, which can be ACCEPTed from the
-INPUT chain.
+> * have the tproxy framework mark all packets with an fwmark, and let the
+>   packets in based on the value of fwmark
 
-Possible solutions:
+Will interact badly with fwmark based routing.
 
-* use a new state (called TPROXY), which would be applied to all TPROXYed
-  packets (might interact badly with nat/conntrack).
-* have the tproxy framework mark all packets with an fwmark, and let the
-  packets in based on the value of fwmark
-* have a separate match (called tproxy), which matches tproxied sessions
-  based on some value stored in the associated conntrack entry
+> * have a separate match (called tproxy), which matches tproxied sessions
+>   based on some value stored in the associated conntrack entry
 
-which one do you prefer?
+Defenitely my preference, but I might be biased as I make heavy use of 
+connection tracking and fwmark based routing in combination.
 
--- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+Regards
+Henrik
