@@ -1,17 +1,13 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: nfsim updates
-Date: Tue, 21 Sep 2004 12:13:39 +1000
+From: "=?gb2312?B?aGFuYm8xNjNjb20=?=" <hanbo163com@163.com>
+Subject: about extension ROUTE
+Date: Tue, 21 Sep 2004 10:57:15 +0800 (CST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1095732625.1940.166.camel@bach>
-References: <20040919223457.GL1307@sunbeam.de.gnumonks.org>
+Message-ID: <414F988B.0000A7.25490@m144.163.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Jeremy Kerr <jk@ozlabs.org>
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040919223457.GL1307@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,30 +18,11 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2004-09-20 at 08:34, Harald Welte wrote:
-> Hi!
-> 
-> I was actually over the last days using nfsim for useful debugging the
-> first time :)
-> 
-> Please review (+ integrate?) the following changes:
-> 
-> 1) add open/fopen support to fakesockopt (for iptables-save)
-> 2) block SIGCHILD in message.c (if exec()ed program dies)
-> 3) fix wrong "((len = read(fd, msg, sizeof(*msg)) != sizeof(*msg)))"
-> 4) add iptables-save and iptables-restore as commands
 
-Committed, with some minor changes to merge with later work.  I'll also
-be committing the nfsim-related testcases soon.
-
-> btw: Could you please make your current SVN tree publicly accessible
-> at some point?  As stated before, we could also move it to
-> svn.netfilter.org (which actually exists, but also has no public
-> interface yet).
-
-Jeremy?
-
-Thanks!
-Rusty.
--- 
-Anyone who quotes me in their signature is an idiot -- Rusty Russell
+d2hvIGNhbiB0ZWxsIG1lIHRoZSBkaWZmZXJlbmNlIGJldHdlZW4gZXh0ZW5zaW9uIFJPVVRF
+IGFuZCB0aGUgc3RhbmRhcmQgcm91dGluZyB0YWJsZT93aHkgaXMgaXBfcm91dGVfb3V0cHV0
+X2tleSgpIGNhbGxlZCBpbiByb3V0ZSgpPw0Kd2h5IGlzIGlwX3JvdXRlX291dHB1dCgpIGNh
+bGxlZCBpbiBpcHRfcm91dGVfdGFyZ2V0KCk/DQoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLQpBT0Moudq93SnB+bTzy+bQxLy8LL+qxvQiy+bQxMrTIrT6IGh0dHA6Ly9kZXNp
+Z24uMTYzLmNvbS9hb2Ntb25pdG9yL2luZGV4Lmh0bWw=
