@@ -1,13 +1,14 @@
-From: Alexey Toptygin <alexeyt@freeshell.org>
-Subject: Re: Reverse the behavior change of -L option?
-Date: Mon, 21 Feb 2005 15:02:47 +0000 (UTC)
-Message-ID: <Pine.NEB.4.61.0502211502170.23033@ukato.freeshell.org>
-References: <421840E5.2F11BB81@iswest.com>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [PATCH] nfsim TCP related fixes
+Date: Tue, 22 Feb 2005 02:24:41 +1100
+Message-ID: <1108999481.16083.1.camel@localhost.localdomain>
+References: <Pine.LNX.4.58.0502210859300.834@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
-To: gypsy <gypsy@iswest.com>
-In-Reply-To: <421840E5.2F11BB81@iswest.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0502210859300.834@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,13 +20,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 19 Feb 2005, gypsy wrote:
+On Mon, 2005-02-21 at 09:07 +0100, Jozsef Kadlecsik wrote:
+> Hi,
+> 
+> I discovered two TCP related bugs in gen_ip: TCP SEQ and ACK numbers were
+> converted from string to u_int16_t instead of u_int32_t and full length
+> TCP options could not be specified.
 
-> Since 1.3.0 none of the scripts I parse the output of 'iptables -nvL'
-> works anymore because the order has changed from INPUT FORWARD OUTPUT
-> USER to alphabetical.  How do I revert back to the prior behavior?
+Don't think so: string_to_number uses int.  You couldn't specify >
+2billion though.  We should just make string_to_number() use unsigned
+since noone wants -ve numbers anyway.  Other fix looks fine: feel free
+to simply commit.
 
-Change your scripts so that they don't assume any particular table order, 
-and this problem will never happen again.
-
- 			Alexey
+Rusty.
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
