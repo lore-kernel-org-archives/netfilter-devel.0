@@ -1,16 +1,18 @@
 From: Andy Polyakov <appro@fy.chalmers.se>
 Subject: Re: [netfilter-core] linux-2.6.0-testX ipchains oops in NAT
-Date: Thu, 23 Oct 2003 16:29:30 +0200
+Date: Sun, 26 Oct 2003 14:31:32 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F97E5CA.E561289D@fy.chalmers.se>
-References: <3F964F9D.D5C69498@fy.chalmers.se> <20031023090238.GE1418@sunbeam.de.gnumonks.org> <3F97A4C5.982725B0@fy.chalmers.se> <20031023105739.GL1418@sunbeam.de.gnumonks.org>
+Message-ID: <3F9BCCB4.A7B190AD@fy.chalmers.se>
+References: <20031026063626.D0FCE2C04B@lists.samba.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: coreteam@netfilter.org,
-        Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Harald Welte <laforge@netfilter.org>, coreteam@netfilter.org,
+        Netfilter Development Mailinglist
+ <netfilter-devel@lists.netfilter.org>,
+        davem@redhat.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
+To: Rusty Russell <rusty@rustcorp.com.au>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,13 +23,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> > > What about using iptables?  Does it produce a similar behaviour?
-> >
-> > I don't know. I'll check at some point, but not right away...
+> We updated ip_nat_setup_info to set the initialized flag and call
+> place_in_hashes, but *didn't* change the call in ip_fw_compat_masq.c
+> which also calls place_in_hashes() itself (again!).  Result: corrupt
+> list, and next thing which lands in the same hash bucket goes boom.
 > 
-> That would be helpful, since it would become a way more important bug if
-> it was in iptables.
+> This should fix it.
 
-The bug appears to be ipchains specific. Meaning that I can confirm that
-my kernel does *not* crash [after VMware guest OS reboot] if I use
-iptables to implement equivalent setup. A.
+I can confirm that the proposed patch does resolve the problem. Thank
+you. A.
