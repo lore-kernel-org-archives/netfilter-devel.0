@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: any body help me...
-Date: Thu, 6 Jun 2002 07:43:34 +0200
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: [RFC} handling closed sockets from netfilter
+Date: Thu, 6 Jun 2002 10:51:11 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020606074334.H28940@sunbeam.de.gnumonks.org>
-References: <20020606045302.HM.00000000000zGSd@www81.hanmail.net>
+Message-ID: <20020606085111.GA17615@balabit.hu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bygAmIonOAIqBxQB"
-Cc: <netfilter-devel@lists.samba.org>
+Content-Type: text/plain; charset=iso-8859-1
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: "bob" <netfilter@hanmail.net>
+To: netfilter-devel@lists.samba.org
 Content-Disposition: inline
-In-Reply-To: <20020606045302.HM.00000000000zGSd@www81.hanmail.net>; from netfilter@hanmail.net on Thu, Jun 06, 2002 at 04:53:02AM +0900
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,40 +18,24 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---bygAmIonOAIqBxQB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Yet another request for comments. I promise I'll stop with these soon. :)
 
-On Thu, Jun 06, 2002 at 04:53:02AM +0900, bob wrote:
+So I've mentioned that I need a notification when a socket is closed. As
+there are other parts in netfilter which might assign state to sockets
+through setsockopt/getsockopt, I wanted to make the close callback as
+general as possible.
 
-HTML is not the right format for an email.  emails are either plain 7 bit a=
-scii
-or mime encoded text.
+I'm thinking about putting a close() function pointer into struct
+nf_sockopt_ops, and call it from nf_sock_release (new function), which is
+called from inet_release() when CONFIG_NETFILTER is defined.
 
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
-=20
-V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
+This way any parts of netfilter might register a close callback. (even
+conntrack might use it to deregister local sockets from the conntrack table)
 
---bygAmIonOAIqBxQB
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Opinions?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE8/vaGXaXGVTD0i/8RAmHtAKCP4ukvPnrLoyrweE1ZZsfbvzDq/gCffaOs
-QazVrwdPqrWWW3aK0l7quhY=
-=LKjC
------END PGP SIGNATURE-----
-
---bygAmIonOAIqBxQB--
+-- 
+Bazsi
+PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
