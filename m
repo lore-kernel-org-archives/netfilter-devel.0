@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: TARPIT on linux-2.6
-Date: Wed, 15 Oct 2003 15:32:23 +0200
+From: Eicke Friedrich <tady@gmx.net>
+Subject: Re: how to clear the conntrack table!
+Date: Thu, 16 Oct 2003 09:57:45 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031015133223.GB14807@obroa-skai.de.gnumonks.org>
-References: <0e2701c392ee$3e198f00$d800a8c0@edumazet>
+Message-ID: <3F8E4F79.3010700@gmx.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="L6iaP+gRLNZHKoI4"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: dada1 <dada1@cosmosbay.com>
-Content-Disposition: inline
-In-Reply-To: <0e2701c392ee$3e198f00$d800a8c0@edumazet>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,50 +18,78 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi again,
 
---L6iaP+gRLNZHKoI4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Patrick McHardy wrote:
 
-On Wed, Oct 15, 2003 at 09:30:42AM +0200, dada1 wrote:
-> It seems linux-2.6 made some changes on ip_route_output() stuff, that I d=
-ont
-> understand at all to try my own patches... :)
+> Eicke Friedrich wrote:
+> 
+>> Harald Welte wrote:
+>> 
+>>> unfortunately there is currently no other way than to unload 
+>>> and reload the ip_conntrack module
+>> 
+>> 
+>> 
+>> I've tried this a couple of times. The module seems to get 
+>> deleted (lsmod still shows ip_conntrack but as deleted) but rmmod
+>>  does NOT finish. It grabs 100% CPU for minutes. I had to reboot 
+>> the box then. Any hints?
+> 
+> In case your running an older kernel (before -pre9), try the latest
+>  -rc kernel or
+submitted/70_ip-conntrack-expect-drop-refcnt-combined.patch from
+> patch-o-matic.
 
-yes, patch-o-matic is currently only for 2.4.x kernels, sorry.
 
-I'm in the process of re-implementing the 'runme' script in perl, in
-order to allow for 2.6.x compatible patches.  After this system has been
-put in place, all new development will _really_ be based on 2.6.x
-only... and patch-o-matic for 2.4.x will mostly stay like it is today.
+Not having time before I updated my box today to kernel version 2.4.22
+from kernel.org. The system works still very well but I'm still not
+able to unload the conntrack module. It's the same problem as I
+described above using 2.4.21. So anyone there who knows an answer?
+Thanks in advance.
 
-security patches and bugfixes will move out of patch-o-matic and be
-distributed as standard patches against every kernel release.
+Regards,
+Eicke Friedrich
 
-> Thanks
-> Eric Dumazet
+PS: Sorry Patrick for sending this message directly to you - I forgot
+to change the receiver. :-(
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---L6iaP+gRLNZHKoI4
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/jUxnXaXGVTD0i/8RAgafAKCk8f/3Blxs+nTc605CoV9aNadZVQCgklF+
-r94FlpSagApld2URI96Pkt8=
-=n7TK
------END PGP SIGNATURE-----
-
---L6iaP+gRLNZHKoI4--
+My system:
+Dual Athlon MP, 512 MB RAM
+Following patches applied:
+Enable NF on a bridge: ebtables-brnf-2_vs_2.4.22.diff
+NETFILTER P-O-M:
+Already applied: submitted/01_2.4.19
+                  submitted/02_2.4.20
+                  submitted/03_2.4.21
+                  submitted/04_2.4.22
+                  submitted/44_backport_ah_esp_fixes
+                  submitted/45_masq_routing_check
+                  submitted/54_ip_nat-macro-args
+                  submitted/58-ip_conntrack-macro-args
+                  submitted/60_nat_tftp-remove-warning
+                  submitted/73_ipt_MASQUERADE-oif
+                  submitted/74_nat-range-fix
+                  submitted/75_REJECT_localpmtu-fix
+                  submitted/76_snmp-checksum_h-fix
+                  submitted/77_destroy-conntrack
+                  submitted/78_nathelper-udp-csum
+                  submitted/79_mangle_udp-sizecheck
+                  submitted/80_ip_conntrack-proc
+                  submitted/81_ipt_unclean-tcp-flag-table
+                  submitted/83_nolocalout
+                  submitted/84_local-nullbinding
+                  submitted/86_getorigdst-tuple-zero
+                  submitted/87_nat-helpers-u16
+                  pending/59_ip_nat_h-unused-var
+                  pending/61-remove-memsets
+                  pending/64_masquerade-sameip-noflush
+                  pending/69_amanda-helpers
+                  pending/70_expect-evict-order
+                  pending/72_recent_procfs_fix
+                  base/connlimit
+                  base/mport
+                  base/quota
+                  extra/CLASSIFY
+                  extra/CONNMARK
+                  extra/string
