@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: Dependence issue on today cvs
-Date: Tue, 4 Jun 2002 09:58:55 +0200
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Stange ip_conntrack (newnat) behaviour.
+Date: Tue, 4 Jun 2002 10:06:21 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020604095855.E13631@sunbeam.de.gnumonks.org>
-References: <1023161627.8328.4.camel@dentro>
+Message-ID: <Pine.LNX.4.33.0206040957240.6390-100000@blackhole.kfki.hu>
+References: <200206031640.g53Ge3j14419@mint.home.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="e7MbhXUj+2isZwqc"
-Cc: netfilter-devel@lists.samba.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: "Thomas T. Soares" <ttsoares@brturbo.com>
-Content-Disposition: inline
-In-Reply-To: <1023161627.8328.4.camel@dentro>; from ttsoares@brturbo.com on Tue, Jun 04, 2002 at 12:33:46AM -0300
+To: "A. van Schie" <a.van.schie@quicknet.nl>
+In-Reply-To: <200206031640.g53Ge3j14419@mint.home.net>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,44 +20,55 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 3 Jun 2002, A. van Schie wrote:
 
---e7MbhXUj+2isZwqc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > > What I find strange is that it starts with 2 almost the same packets
+> > > (except for ip_id), and that they both get the conntrack state NEW!
+> >
+> > What else state should they got? But those first two packets looks
+> > strange, that's true.
+>
+> I expected that conntrack gives the second packet the state ESTABLISHED,
+> because all fields that conntrack checks are equal, or is there some other
+> special tcp connection tracking code that I missed.
 
-On Tue, Jun 04, 2002 at 12:33:46AM -0300, Thomas T. Soares wrote:
-> Hi all packets hackers...
->=20
-> This is just to inform that the today CVS of netfilter is giving this
->   to me:
+>From conntrack point of view all parameters of the first two packets are
+identical, so the second one is a resent packet. There was no response
+yet from the destination, therefore the state remains the same: NEW.
 
-typo is fixed now, should work again.
+> And I didn't expected the third "response" packet to be DROPPED.
 
-> | Thomas Tschoepke Soares                   |     //   En brujas no
+This is the first response. :-). But it should not be dropped. :-(
 
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
-=20
-V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
+> > > I think there is a problem in conntrack,
+> > > maybe the newnat patch or the "double packet" is introduced in the
+> > > kernel.
+> >
+> > If you suspect something like that, then start tcpdumping both involved
+> > interfaces and look at the generated logs.
+>
+> I'm not to handy with that tool, I hope that the current netfilter logging is enough
+> to see what has happend.
 
---e7MbhXUj+2isZwqc
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+If you suspect that the kernel generates packets just out of the blue,
+then the netfilter logging alone won't help. One has to compare what one
+can catch on the interface itself (by tcpdump) and compare the result with
+the netfilter logging.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+> > Did you applied other patches from p-o-m?
+[..]
+>                  extra/tcp-window-tracking
 
-iD8DBQE8/HM+XaXGVTD0i/8RAgjbAJ9Js1k/CDB1PHrWGyvkryDEIwewcACeI7v1
-hvmEshUiWwWKry793b1gmqI=
-=ZJ5G
------END PGP SIGNATURE-----
+Don't you see any logs about out of window packets?
 
---e7MbhXUj+2isZwqc--
+If yes, I'd suggest to use the new version of the tcp-window-tracking
+patch. There were problems with window scaling support in the older
+versions of the patch, which could break connections.
+
+Regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+WWW-Home: http://www.kfki.hu/~kadlec
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
