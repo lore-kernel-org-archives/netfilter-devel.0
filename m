@@ -1,13 +1,17 @@
-From: "Wei Koong CHAI" <eem1wc@eim.surrey.ac.uk>
-Subject: [libipq] Shutdown problem
-Date: Wed, 3 Jul 2002 22:54:00 +0100 (BST)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [PATCH}: Make MARK target terminate (resend)
+Date: Thu, 4 Jul 2002 01:50:55 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <1257.131.227.137.112.1025733240.squirrel@ike.ee.surrey.ac.uk>
+Message-ID: <200207040150.55236@henrik.marasystems.com>
+References: <Pine.LNX.4.33.0207031255220.17202-100000@blackhole.kfki.hu> <200207032041.49134.fabrice@celestix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: <netfilter-devel@lists.samba.org>
+To: fabrice@celestix.com
+In-Reply-To: <200207032041.49134.fabrice@celestix.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,31 +22,37 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear all,
+On Wednesday 03 July 2002 14.41, Fabrice MARIE wrote:
 
-   I have successfully setup my bridge with netfilter capability to 
-connect two segment of LANs together and now using the below: -
+> I proposed the last one some time ago. A solution to the ordering
+> issue is to have two kind of targets:
+> 1- terminal target (ie ACCEPT, DROP, REJECT, jump to chain, etc...)
+> 2- non terminal target (ie TTL, MARK, IPV4OPTSSTRIP, etc...)
+> The userland would basically use the order the admin provide,
+> and would reply with an error if a non-terminal target is used
+> after a terminal target.
+>
+> But I was answered that it was impossible/difficult with the
+> current framework (which I agree).
 
-[1] kernel 2.4.18 (patched with bridge-nf-0.0.6-against-2.4.18.diff)
-[2] iptables-1.2.5
-[3] bridge-utils-0.9.5
+Not really. To address this in the current framework one only needs to 
+piggyback on the match list.
 
-   Then i started to develop a userspace program using libipq. Everything 
-works fine until i want to shutdown my linux box. I get the message below 
-every time i try to shutdown my system.
+The kernel components needs to be modified to register themselves as 
+matches as well as targets.
 
-unregister_netdevice: waiting for eth1 to become free. Usage count = 14157
+The userspace components needs to be extended with a additional flag 
+telling the userspace tool that the "target" is a non-terminal target 
+and can be installed as a match in the kernel space table if multiple 
+targets are used.
 
-   I get the same message (except the number of usage count)... 
+The same datatypes should be possible to use for both the match info 
+and the target info.
 
-   Has anybody ever encounter this problem before? Please advice me on how 
-to solve this. I have actually post this problem to the bridge mailing list 
-but after several exchange of mails with the bridge maintainer, it seems 
-that it's not the bridge problem. Most probably, it is with my userspace 
-program. But then, i am writing my program strictly base on the example 
-given in the libipq man pages. 
+> I was also answered that it would break what people are used to,
+> (having only one target) which I don't really agree with.
 
-   There is a suggestion that maybe there's packet leaking but i can't 
-figure out how could there be any leak.
+Neither do I.
 
-Thank you in advance.
+Regards
+Henrik
