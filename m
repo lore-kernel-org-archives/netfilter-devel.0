@@ -1,14 +1,15 @@
-From: "Xiaonan Lu" <zplxn@mail.com>
-Subject: Questions
-Date: Wed, 12 Nov 2003 14:26:18 -0500
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Questions
+Date: Wed, 12 Nov 2003 22:51:11 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031112192618.16434.qmail@mail.com>
+Message-ID: <Pine.LNX.4.44.0311122248280.4923-100000@filer.marasystems.com>
+References: <20031112192618.16434.qmail@mail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-Content-Disposition: inline
-To: netfilter-devel@lists.netfilter.org
+To: Xiaonan Lu <zplxn@mail.com>
+In-Reply-To: <20031112192618.16434.qmail@mail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,18 +20,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, 
-I am a new guy to linux and netfilter/proc. 
-I am working on a program right now, its main purpose is develope a module to peek every outgoing packet to log the timestamp information. I hook this module at the netfilter's POST_ROUTING hook. 
-Questions: 
-When my module is hooked and begin to run, I can not use netscape, ssh, .etc anymore. The typical result is: I type: ssh <hostname> -l username, the machine seems to stop, no any response except I stop my module. It seems every IP packet were stop by somebody. In my module, I don't drop any packet, for every packet I get, I just record the timestamp and return NF_ACCEPT. 
-Thanks
-ping
+On Wed, 12 Nov 2003, Xiaonan Lu wrote:
 
--- 
-__________________________________________________________
-Sign-up for your own personalized E-mail at Mail.com
-http://www.mail.com/?sr=signup
+> When my module is hooked and begin to run, I can not use netscape, ssh,
+> .etc anymore. The typical result is: I type: ssh <hostname> -l username,
+> the machine seems to stop, no any response except I stop my module. It
+> seems every IP packet were stop by somebody. In my module, I don't drop
+> any packet, for every packet I get, I just record the timestamp and
+> return NF_ACCEPT.
 
-Search Smarter - get the new eXact Search Bar for free!
-http://www.exactsearchbar.com/
+Verify your module. The problem is most likely to be found there.
+
+Hint: Debugging kernel modules is very easily done using user-mode-linux 
+<urlhttp://user-mode-linux.sourceforge.net/>. This allows you to run and 
+debug the kernel as if it was no more than a plain application.
+
+Regards
+Henrik
