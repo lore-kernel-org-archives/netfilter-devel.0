@@ -1,14 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: [PATCH] netfilter unclean match extension
-Date: Tue, 22 Oct 2002 16:40:50 +0200
+Subject: Re: libiptc: the question about struct ipt_entry
+Date: Tue, 22 Oct 2002 17:24:53 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021022144050.GH3039@naboo.club.berlin.ccc.de>
+Message-ID: <20021022152452.GC6419@naboo.club.berlin.ccc.de>
+References: <LLEJLJOMFGPFJFEGAKBJOENPCCAA.luoqiang@ict.ac.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Y5rl02BVI9TCfPar"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: David Miller <davem@redhat.com>
+To: luoqiang <luoqiang@ict.ac.cn>
 Content-Disposition: inline
+In-Reply-To: <LLEJLJOMFGPFJFEGAKBJOENPCCAA.luoqiang@ict.ac.cn>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,52 +22,60 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Dave!
 
-Below is a non-crucial extension of the ipt_unclean.c module (courtesy
-of Maciej Soltysiak).  Inclusion of this patch has time until
-2.4.21-preX, no need for this in 2.4.20.
+--Y5rl02BVI9TCfPar
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This patch extends unclean's module to match packets with IP unused bit
-set.  This bit is the first bit in the fragmentation offset field of the
-IP header. 
+On Mon, Oct 21, 2002 at 05:27:20PM +0800, luoqiang wrote:
+> Hi, all
+>=20
+>     I use libiptc to control the rule, but I have some questions about ip=
+t_entry now.
+>     For example, I use "iptables -t nat -A PREROUTING -p udp --sport 5000=
+ -j DNAT --to 10.10.5.9:5000"
+> to form a ipt_entry.
+>     1.  I found that  the total size of match in this ipt_entryt  is
+>     44, but it only include a ipt_entry_match and a  ipt_udp, and
+>     sizeof(ipt_entry_match)+sizeof(ipt_udp) =3D 32 + 10 =3D42, why 2 bytes
+>     difference?
 
-Exerpt from RFC 791: Various Control Flags.  Bit 0: reserved, must be zero
+It's padding to a 32bit boundary (42 is not a multiple of 4)
 
-Checking for this zero-ness of Bit 0 is what the patch adds.
+>     2.  For target in this example, the total size is 52, 32 of which
+>     is the sizeof struct ipt_entry_target, I don't know what struct
+>     should be for the other 20 bytes, which is pointed  by
+>     target->data. and I think it should store the information about "
+>     --to 10.10.5.9:5000". Some one can tell me what struct it is ?
 
-The bit may be used in very discrete OS fingerprinting as described by
-Ofir Arkin in "Unverified Fields - A Problem with Firewalls & Firewall
-Technology Today" available to read at:
-http://www.sys-security.com/archive/papers/Unverified_Fields_1.0.pdf
-http://www.sys-security.com/archive/papers/Unverified_Fields_1.0.ps
+struct ip_nat_multi_range, and again maybe some padding at the end.
 
-Please apply, thanks.
+>  Thanks!
+> luoqiang
 
-
-diff -Nru linux.orig/net/ipv4/netfilter/ipt_unclean.c linux/net/ipv4/netfilter/ipt_unclean.c
---- linux.orig/net/ipv4/netfilter/ipt_unclean.c	Thu Jan  1 01:00:00 1970
-+++ linux/net/ipv4/netfilter/ipt_unclean.c	Tue Jun 11 19:26:11 2002
-@@ -522,6 +522,16 @@
- 		return 0;
- 	}
- 
-+	/* CHECK: Do not use what is unused.
-+	 * First bit of fragmentation flags should be unused.
-+	 * May be used by OS fingerprinting tools.
-+	 * 04 Jun 2002, Maciej Soltysiak, solt@dns.toxicfilms.tv
-+	 */
-+	if (ntohs(iph->frag_off)>>15) {
-+		limpk("IP unused bit set\n");
-+		return 0;
-+	}
-+
- 	/* Per-protocol checks. */
- 	switch (iph->protocol) {
- 	case IPPROTO_ICMP:
--- 
+--=20
 Live long and prosper
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-============================================================================
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
+=20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
+
+--Y5rl02BVI9TCfPar
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9tW3EXaXGVTD0i/8RAsZDAJ9MnCKxSof9GMW2iTEI5SWbela6qgCgh5dk
++EXhaoRGCO1waPW2ctiPSYM=
+=Qayo
+-----END PGP SIGNATURE-----
+
+--Y5rl02BVI9TCfPar--
