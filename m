@@ -1,48 +1,32 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Herbert Xu <herbert@gondor.apana.org.au>
 Subject: Re: [RFC, PATCH 4/5]: netfilter+ipsec - policy lookup
-Date: Mon, 22 Mar 2004 00:34:11 +0100
+Date: Mon, 22 Mar 2004 13:03:22 +1100
 Sender: netdev-bounce@oss.sgi.com
-Message-ID: <405E2673.4090808@trash.net>
-References: <20040308110331.GA20719@gondor.apana.org.au> <404C874D.4000907@trash.net> <20040308115858.75cdddca.davem@redhat.com> <4059CF17.8090907@trash.net> <20040321221604.GA32277@gondor.apana.org.au>
+Message-ID: <20040322020322.GA1187@gondor.apana.org.au>
+References: <20040308110331.GA20719@gondor.apana.org.au> <404C874D.4000907@trash.net> <20040308115858.75cdddca.davem@redhat.com> <4059CF17.8090907@trash.net> <20040321221604.GA32277@gondor.apana.org.au> <405E2673.4090808@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: "David S. Miller" <davem@redhat.com>, netdev@oss.sgi.com,
         netfilter-devel@lists.netfilter.org
 Return-path: <netdev-bounce@oss.sgi.com>
-To: Herbert Xu <herbert@gondor.apana.org.au>
-In-Reply-To: <20040321221604.GA32277@gondor.apana.org.au>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <405E2673.4090808@trash.net>
 Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Herbert Xu wrote:
-> On Thu, Mar 18, 2004 at 05:32:23PM +0100, Patrick McHardy wrote:
+On Mon, Mar 22, 2004 at 12:34:11AM +0100, Patrick McHardy wrote:
+> Herbert Xu wrote:
+> >
+> >BTW, you can xfrm4_route_forward here.
 > 
->> 
->>@@ -661,6 +661,20 @@
->> 	
->> 	if ((*pskb)->dst->error)
->> 		return -1;
->>+
->>+#ifdef CONFIG_XFRM
->>+	if (!(IPCB(*pskb)->flags & IPSKB_XFRM_TRANSFORMED)) {
->>+		struct xfrm_policy_afinfo *afinfo;
->>+
->>+		afinfo = xfrm_policy_get_afinfo(AF_INET);
->>+		if (afinfo != NULL) {
->>+			afinfo->decode_session(*pskb, &fl);
->>+			xfrm_policy_put_afinfo(afinfo);
->>+			if (xfrm_lookup(&(*pskb)->dst, &fl, (*pskb)->sk, 0) != 0)
->>+				return -1;
->>+		}
->>+	}
->>+#endif
-> 
-> 
-> BTW, you can xfrm4_route_forward here.
+> Is it correct that __xfrm_route_forward will use NULL for the sock
+> parameter to xfrm_lookup even if the packet is from a local socket ?
 
-Is it correct that __xfrm_route_forward will use NULL for the sock
-parameter to xfrm_lookup even if the packet is from a local socket ?
-
-Regards
-Patrick
+No that would be wrong as socket policies won't be applied correctly.
+Forget about that idea :)
+-- 
+Debian GNU/Linux 3.0 is out! ( http://www.debian.org/ )
+Email:  Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
