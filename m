@@ -1,13 +1,15 @@
-From: Antoine Luu <aluu@cse.ogi.edu>
-Subject: How to build a new tarjet ?
-Date: Wed, 30 Jul 2003 11:38:20 -0700
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: port-based filtering of ESP packets with in-kernel IPsec?
+Date: Wed, 30 Jul 2003 21:10:10 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <FE1B8578-C2BC-11D7-A544-000A95A021F6@cse.ogi.edu>
-Mime-Version: 1.0 (Apple Message framework v552)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Message-ID: <Pine.LNX.4.44.0307302108370.14762-100000@filer.marasystems.com>
+References: <Pine.LNX.4.44.0307301124150.22684-100000@localhost>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org, <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Chris Wilson <chris@netservers.co.uk>
+In-Reply-To: <Pine.LNX.4.44.0307301124150.22684-100000@localhost>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,16 +20,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-I want use netfilter/iptables to create a new target. I read the=20
-netfilter-hacking-HOWTO, and I know how to make the kernel module but I=20=
+On Wed, 30 Jul 2003, Chris Wilson wrote:
 
-can not find any information about iptables hacking (how to program the=20=
+> Logically, it makes sense to me that the packet should pass through the 
+> whole of Netfilter _again_ after it's been decapsulated, similarly to what 
+> now happens with FreeS/WAN (but presumably without an ipsec0 interface 
+> being involved). Or, maybe it should be decapsulated before routing (and 
+> hence visible unencrypted in FORWARD, INPUT and OUTPUT).
 
-libipt_*.c ?).
+It needs to pass routing first unless something has changed drastically 
+in the 2.6 IP networking code, or else the kernel won't know if the 
+ipsec packet is to be decapsulated or routed.
 
-Thanks for all
-
---
-Antoine Luu
-El=E8ve ing=E9nieur ENSEIRB
+Regards
+Henrik
