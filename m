@@ -1,16 +1,18 @@
-From: Joost Remijn <remijnj@eidetica.com>
-Subject: Re: libipq packet id
-Date: Thu, 26 Sep 2002 17:04:05 +0200 (CEST)
+From: "Moshe Ashkenazi" <moshea@checkpoint.com>
+Subject: RE: libipq packet id
+Date: Thu, 26 Sep 2002 18:21:01 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0209261702120.7774-100000@fruit.eidetica.com>
-References: <Mutt.LNX.4.44.0209270037340.12159-100000@blackbird.intercode.com.au>
+Message-ID: <003801c26578$b48e22d0$97025a3e@SHAGWELL>
+References: <Pine.LNX.4.44.0209261702120.7774-100000@fruit.eidetica.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Moshe Ashkenazi <moshea@checkpoint.com>,
-   <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: James Morris <jmorris@intercode.com.au>
-In-Reply-To: <Mutt.LNX.4.44.0209270037340.12159-100000@blackbird.intercode.com.au>
+To: "'Joost Remijn'" <remijnj@eidetica.com>,
+   "'James Morris'" <jmorris@intercode.com.au>
+In-Reply-To: <Pine.LNX.4.44.0209261702120.7774-100000@fruit.eidetica.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,6 +23,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+If have those two rules:
+
+1    QUEUE      icmp --  anywhere             anywhere           
+2    QUEUE      tcp  --  anywhere             anywhere           tcp
+dpt:ftp
+
+mark return always zero and hook return 1 even the second rule queue the
+packet (I did ftp)
+
+
+Moshe Ashkenazi, 
+
+-----Original Message-----
+From: Joost Remijn [mailto:remijnj@eidetica.com] 
+Sent: Thursday, September 26, 2002 5:04 PM
+To: James Morris
+Cc: Moshe Ashkenazi; netfilter-devel@lists.netfilter.org
+Subject: Re: libipq packet id
+
 
 
 On Fri, 27 Sep 2002, James Morris wrote:
@@ -29,7 +50,8 @@ On Fri, 27 Sep 2002, James Morris wrote:
 >
 > > Hi, All -
 > >
-> > I'm using libipq to retrieve packet from netfilter in userspace, and its
+> > I'm using libipq to retrieve packet from netfilter in userspace, and
+its
 > > work cool.
 > >
 > > My question is how can I know on userspace mode from which netfilter
