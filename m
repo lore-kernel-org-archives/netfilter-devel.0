@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: "Atomic" snapshot of counters
-Date: Fri, 31 Jan 2003 12:45:14 +0100
+Subject: Re: Comments about IPT_ALIGN
+Date: Fri, 31 Jan 2003 12:55:12 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030131114514.GT9073@naboo.cybercafe42>
-References: <3E308A34.4020501@hipac.org>
+Message-ID: <20030131115512.GW9073@naboo.cybercafe42>
+References: <3E335CB1.9070101@hipac.org> <20030126120159.A3045@linux.karinthy.hu> <3E33C665.9080106@fugmann.dhs.org> <20030126152227.A6811@linux.karinthy.hu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/DkgDsqJFFamjKX0"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="BuGwuXnZwGGQ9GEc"
+Cc: Anders Fugmann <afu@fugmann.dhs.org>, Thomas Heinz <creatix@hipac.org>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Thomas Heinz <creatix@hipac.org>
+To: Laszlo Valko <valko@linux.karinthy.hu>
 Content-Disposition: inline
-In-Reply-To: <3E308A34.4020501@hipac.org>
+In-Reply-To: <20030126152227.A6811@linux.karinthy.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,29 +24,38 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---/DkgDsqJFFamjKX0
+--BuGwuXnZwGGQ9GEc
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jan 24, 2003 at 01:35:00AM +0100, Thomas Heinz wrote:
-> Hi
->=20
-> Netfilter produces an atomic snapshot of counters, i.e. the table is
-> locked during the gathering of the counter values. Of course no packet
-> is matched while this lock is active.
+On Sun, Jan 26, 2003 at 03:22:27PM +0100, Laszlo Valko wrote:
+> Currently, I see two ways:
+> 1) make a translation function for all currently existing netfilter struc=
+tures
+>    that use longs or pointers (difficult, as modules can be added
+>    independently), like those in arch/sparc64/sys_sparc32.c, and its
+>    friends,
 
-yes. This was thought to be one of 'the' advantages of iptables over
-ipchains.
+it's a hack, but it would work.
 
-> How important is it to have such an atomic snapshot?=20
+> 2) introduce a new way of passing structures, with new structures, probab=
+ly
+>    with new setsockopt/getsockopt numbers, essentially creating an API
+>    incompatible with the existing one (there are a few other bleeding wou=
+nds
+>    waiting to be solved in the existing interface as I saw).
 
-=46rom my current point of view: not that important.  My pkt_tables plans
-[which are meant to eventually replace ip_tables] also don't have this
-atomicity anymore.
+please don't go for solution #2.  There is already one new interface
+between kernel an userspace in development... we don't need more
+interfaces than we already have. =20
+
+And yes, the new interface still has the matchinfo of all matches
+concatenated in one memory area.  Everything else has linked lists,
+though (e.g. every rule is a seperately allocated memory chunk).
 
 > Regards,
-> Thomas
+> Laszlo
 
 --=20
 Live long and prosper
@@ -58,7 +68,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---/DkgDsqJFFamjKX0
+--BuGwuXnZwGGQ9GEc
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -66,9 +76,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+OmHKXaXGVTD0i/8RAuJ7AKCybiH2aCRqyPKR3AixbeHNBeSnWgCgqZih
-LABCi9mUl6BC9xg+LjYM9Rw=
-=/lGU
+iD8DBQE+OmQgXaXGVTD0i/8RAuqSAKCBVgtEIw1Ymp7com0jNS4hZ8XNvwCeNN1D
+LcTLuRpubWggLqiXpLvelew=
+=QgzG
 -----END PGP SIGNATURE-----
 
---/DkgDsqJFFamjKX0--
+--BuGwuXnZwGGQ9GEc--
