@@ -1,15 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] netfilter cosmetic changes
-Date: Tue, 24 Jun 2003 16:13:26 +0200
+From: Cedric de Launois <delaunois@info.ucl.ac.be>
+Subject: [PATCH] ROUTE target
+Date: 24 Jun 2003 16:42:08 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030624141326.GH2645@sunbeam.de.gnumonks.org>
+Message-ID: <1056465726.2457.30.camel@descartes>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZYOWEO2dMm2Af3e3"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="=-DtJDVT8yn7LGPX1ZSC85"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: David Miller <davem@redhat.com>
-Content-Disposition: inline
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,240 +18,495 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---ZYOWEO2dMm2Af3e3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-DtJDVT8yn7LGPX1ZSC85
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+Hi !
+
+Here is a new version of the ROUTE target. Following discussions,
+it seems that there is a need to make the ROUTE target also a
+non-final target. So I added a new option --force. When not using
+this option, the behaviour is to set the route and continue traversal.
+When using this option, the behaviour is as before, i.e. the packet
+is sent and the packet is stolen. This remains useful when we have
+to force the use of an interface (rather unfrequent).
+
+Changes :
+- ipt_ROUTE.c : 
+     added --force option
+     cosmetic changes
+- ipt_ROUTE.h : added --force option
+- libipt_ROUTE.c : added --force option
+- ROUTE.patch.config.in : target kernel option now depends on
+     CONFIG_IP_NF_MANGLE kernel option
+
+The patch is against current cvs.
+
+Cedric
+
+
+--=-DtJDVT8yn7LGPX1ZSC85
+Content-Disposition: attachment; filename=ROUTE.cvs.patch
+Content-Type: text/x-patch; name=ROUTE.cvs.patch; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
+X-MIME-Autoconverted: from 8bit to quoted-printable by info.ucl.ac.be id h5OEe5JX017137
 
-Hi Dave!
-
-I decided to merge the cosmetic changes into one big patch.  They are
-meant to be incremental to the 7 fixes I've sent you already.
-
-
-- The 04_newnat-udp-helper patch submitted to 2.4.20 introduced an
-  unused variable.  This patch gets rid of it.
-- Removes dead code in case CONFIG_SYSCTL is not defined
-- Change order of NFC_ defines in netfilter.h to be more logical.  Add
-  comment that <=3D 0x2000 are already used
-- Removes some old outdated comments
-- Removes an obslete check (master_ct() checks for ct->master, no
-  need for the caller to do it before).
-- Remove some unneeded initializiations / memsets
-- Clean up some ip_conntrack_core code (use some common macro instead of
-  reimplementing list iteration again).
-
-
---- linux-2.4.21-unconfirmed_expect/include/linux/netfilter.h	2003-06-24 16=
-:00:38.000000000 +0200
-+++ linux-2.4.21-cosmetic/include/linux/netfilter.h	2003-06-24 16:15:36.000=
+diff -Nru netfilter.orig/patch-o-matic/extra/ROUTE.patch netfilter/patch-=
+o-matic/extra/ROUTE.patch
+--- netfilter.orig/patch-o-matic/extra/ROUTE.patch	2003-06-24 15:10:12.00=
+0000000 +0200
++++ netfilter/patch-o-matic/extra/ROUTE.patch	2003-06-24 15:22:19.0000000=
+00 +0200
+@@ -1,7 +1,7 @@
+ diff -Nru linux.orig/include/linux/netfilter_ipv4/ipt_ROUTE.h linux/incl=
+ude/linux/netfilter_ipv4/ipt_ROUTE.h
+---- linux.orig/include/linux/netfilter_ipv4/ipt_ROUTE.h	Thu Jan  1 01:00=
+:00 1970
+-+++ linux/include/linux/netfilter_ipv4/ipt_ROUTE.h	Tue Dec 17 16:49:04 2=
+002
+-@@ -0,0 +1,18 @@
++--- linux.orig/include/linux/netfilter_ipv4/ipt_ROUTE.h	1970-01-01 01:00=
+:00.000000000 +0100
+++++ linux/include/linux/netfilter_ipv4/ipt_ROUTE.h	2003-06-24 10:40:54.0=
+00000000 +0200
++@@ -0,0 +1,22 @@
+ +/* Header file for iptables ipt_ROUTE target
+ + *
+ + * (C) 2002 by C=E9dric de Launois <delaunois@info.ucl.ac.be>
+@@ -14,23 +14,27 @@
+ +#define IPT_ROUTE_IFNAMSIZ 16
+ +
+ +struct ipt_route_target_info {
+-+	char oif[IPT_ROUTE_IFNAMSIZ];
+-+	char iif[IPT_ROUTE_IFNAMSIZ];
+-+	unsigned int gw;
+++	char      oif[IPT_ROUTE_IFNAMSIZ];      /* Output Interface Name */
+++	char      iif[IPT_ROUTE_IFNAMSIZ];      /* Input Interface Name  */
+++	u_int32_t gw;                           /* IP address of gateway */
+++	u_int8_t  flags;
+ +};
+ +
+++/* Values for "flags" field */
+++#define IPT_ROUTE_FORCE        0x01
+++
+ +#endif /*_IPT_ROUTE_H_target*/
+ diff -Nru linux.orig/net/ipv4/netfilter/ipt_ROUTE.c linux/net/ipv4/netfi=
+lter/ipt_ROUTE.c
+---- linux.orig/net/ipv4/netfilter/ipt_ROUTE.c	Thu Jan  1 01:00:00 1970
+-+++ linux/net/ipv4/netfilter/ipt_ROUTE.c	Wed Feb 26 17:25:39 2003
+-@@ -0,0 +1,359 @@
++--- linux.orig/net/ipv4/netfilter/ipt_ROUTE.c	1970-01-01 01:00:00.000000=
+000 +0100
+++++ linux/net/ipv4/netfilter/ipt_ROUTE.c	2003-06-24 15:19:15.000000000 +=
+0200
++@@ -0,0 +1,370 @@
+ +/*
+ + * This implements the ROUTE target, which enables you to setup unusual
+ + * routes not supported by the standard kernel routing table.
+ + *
+ + * Copyright (C) 2002 Cedric de Launois <delaunois@info.ucl.ac.be>
+ + *
+-+ * v 1.6 2003/02/26
+++ * v 1.8 2003/06/24
+ + *
+ + * This software is distributed under GNU GPL v2, 1991
+ + */
+@@ -56,7 +60,7 @@
+ +/* Try to route the packet according to the routing keys specified in
+ + * route_info. Keys are :
+ + *  - ifindex :=20
+-+ *      0 if no oif prefered,=20
+++ *      0 if no oif preferred,=20
+ + *      otherwise set to the index of the desired oif
+ + *  - route_info->gw :
+ + *      0 if no gateway specified,
+@@ -88,9 +92,10 @@
+ +	if (route_info->gw)
+ +		key.dst =3D route_info->gw;
+ +=09
+-+	/* Trying to route the packet with the standard routing table. */
+++	/* Trying to route the packet using the standard routing table. */
+ +	if ((err =3D ip_route_output_key(&rt, &key))) {
+-+		DEBUGP("ipt_ROUTE: couldn't route pkt (err: %i)",err);
+++		if (net_ratelimit())=20
+++			DEBUGP("ipt_ROUTE: couldn't route pkt (err: %i)",err);
+ +		return -1;
+ +	}
+ +=09
+@@ -101,7 +106,6 @@
+ +	/* Success if no oif specified or if the oif correspond to the=20
+ +	 * one desired */
+ +	if (!ifindex || rt->u.dst.dev->ifindex =3D=3D ifindex) {
+-+		/* Drop old route. */
+ +		skb->dst =3D &rt->u.dst;
+ +		skb->dev =3D skb->dst->dev;
+ +		return 1;
+@@ -111,8 +115,9 @@
+ +	 * specified by the user. This may happen because the dst address
+ +	 * is one of our own addresses.
+ +	 */
+-+	DEBUGP("ipt_ROUTE: failed to route as desired (oif: %i)",=20
+-+	       rt->u.dst.dev->ifindex);
+++	if (net_ratelimit())=20
+++		DEBUGP("ipt_ROUTE: failed to route as desired gw=3D%u.%u.%u.%u oif=3D=
+%i (got oif=3D%i)\n",=20
+++		       NIPQUAD(route_info->gw), ifindex, rt->u.dst.dev->ifindex);
+ +=09
+ +	return 0;
+ +}
+@@ -159,64 +164,70 @@
+ +static unsigned int route_oif(const struct ipt_route_target_info *route=
+_info,
+ +			      struct sk_buff *skb)=20
+ +{
+-+	int err;
+ +	unsigned int ifindex =3D 0;
+ +	struct net_device *dev_out =3D NULL;
+ +
+ +	/* The user set the interface name to use.
+ +	 * Getting the current interface index.
+ +	 */
+-+	if ((dev_out =3D dev_get_by_name(route_info->oif)))
+++	if ((dev_out =3D dev_get_by_name(route_info->oif))) {
+ +		ifindex =3D dev_out->ifindex;
+-+	else=20
+++	} else {
+ +		/* Unknown interface name : packet dropped */
+++		if (net_ratelimit())=20
+++			DEBUGP("ipt_ROUTE: oif interface %s not found\n", route_info->oif);
+ +		return NF_DROP;
+-+=09
+-+	DEBUGP(KERN_DEBUG "oif index of %s is %i\n", route_info->oif, ifindex)=
+;
+-+
+-+
+-+	/* Trying the standard way of routing packets */
+-+	err =3D route(skb, ifindex, route_info);
+-+	if (err=3D=3D1) {
+-+		DEBUGP(KERN_DEBUG "ROUTE oif ok, skb->dev->index=3D%i\n",
+-+		       skb->dev->ifindex);
+-+
+-+		dev_put(dev_out);
+-+		ip_direct_send(skb);
+-+		return NF_STOLEN;
+ +	}
+ +
+-+	if (err) {
+++	/* Trying the standard way of routing packets */
+++	switch (route(skb, ifindex, route_info)) {
+++	case 1:
+ +		dev_put(dev_out);
+-+		return NF_DROP;
+-+	}
+++		if (route_info->flags & IPT_ROUTE_FORCE) {
+++			ip_direct_send(skb);
+++			return NF_STOLEN;
+++		}
+ +
+-+	/* Failed to send to oif. Trying the hard way */
+++		return IPT_CONTINUE;
+ +
+-+	DEBUGP(KERN_DEBUG "HARD ROUTING\n");
+++	case 0:
+++		/* Failed to send to oif. Trying the hard way */
+++		if (!(route_info->flags & IPT_ROUTE_FORCE))
+++			return NF_DROP;
+ +
+-+	/* We have to force the use of an interface.
+-+	 * This interface must be a tunnel interface since
+-+	 * otherwise we can't guess the hw address for
+-+	 * the packet. For a tunnel interface, no hw address
+-+	 * is needed.
+-+	 */
+-+	if ((dev_out->type !=3D ARPHRD_TUNNEL)
+-+	    && (dev_out->type !=3D ARPHRD_IPGRE)) {
+-+		DEBUGP("ipt_ROUTE: can't guess the hw addr !\n");
+++		if (net_ratelimit())=20
+++			DEBUGP("ipt_ROUTE: forcing the use of %i\n",
+++			       ifindex);
+++
+++		/* We have to force the use of an interface.
+++		 * This interface must be a tunnel interface since
+++		 * otherwise we can't guess the hw address for
+++		 * the packet. For a tunnel interface, no hw address
+++		 * is needed.
+++		 */
+++		if ((dev_out->type !=3D ARPHRD_TUNNEL)
+++		    && (dev_out->type !=3D ARPHRD_IPGRE)) {
+++			if (net_ratelimit())=20
+++				DEBUGP("ipt_ROUTE: can't guess the hw addr !\n");
+++			dev_put(dev_out);
+++			return NF_DROP;
+++		}
+++=09
+++		/* Send the packet. This will also free skb
+++		 * Do not go through the POST_ROUTING hook because=20
+++		 * skb->dst is not set and because it will probably
+++		 * get confused by the destination IP address.
+++		 */
+++		skb->dev =3D dev_out;
+++		dev_direct_send(skb);
+++		dev_put(dev_out);
+++		return NF_STOLEN;
+++	=09
+++	default:
+++		/* Unexpected error */
+ +		dev_put(dev_out);
+ +		return NF_DROP;
+ +	}
+-+=09
+-+	/* Send the packet. This will also free skb
+-+	 * Do not go through the POST_ROUTING hook because=20
+-+	 * skb->dst is not set and because it will probably
+-+	 * get confused by the destination IP address.
+-+	 */
+-+	skb->dev =3D dev_out;
+-+	dev_direct_send(skb);
+-+	dev_put(dev_out);
+-+	return NF_STOLEN;
+ +}
+ +
+ +
+@@ -229,11 +240,12 @@
+ +	/* Getting the current interface index. */
+ +	if ((dev_out =3D dev_get_by_name(route_info->iif)))
+ +		ifindex =3D dev_out->ifindex;
+-+	else=20
+++	else {
+ +		/* Unknown interface name : packet dropped */
+++		if (net_ratelimit())=20
+++			DEBUGP("ipt_ROUTE: iif interface %s not found\n", route_info->oif);
+ +		return NF_DROP;
+-+
+-+	DEBUGP(KERN_DEBUG "iif index of %s is %i\n", route_info->iif, ifindex)=
+;
+++	}
+ +
+ +	skb->dev =3D dev_out;
+ +	dst_release(skb->dst);
+@@ -251,12 +263,11 @@
+ +	if (route(skb, 0, route_info)!=3D1)
+ +		return NF_DROP;
+ +
+-+	DEBUGP(KERN_DEBUG "ROUTE gw ok, skb->dev->index=3D%i\n",
+-+	       skb->dev->ifindex);
+-+
+-+	ip_direct_send(skb);
+-+
+-+	return NF_STOLEN;
+++	if (route_info->flags & IPT_ROUTE_FORCE) {
+++		ip_direct_send(skb);
+++		return NF_STOLEN;
+++	} else
+++		return IPT_CONTINUE;
+ +}
+ +
+ +
+@@ -308,12 +319,14 @@
+ +	 * when a packet is leaving with dst address =3D=3D our address.
+ +	 * Good idea ? Dunno. Need advice.
+ +	 */
+-+	nf_conntrack_put(skb->nfct);
+-+	skb->nfct =3D NULL;
+-+	skb->nfcache =3D 0;
+++	if (route_info->flags & IPT_ROUTE_FORCE) {
+++		nf_conntrack_put(skb->nfct);
+++		skb->nfct =3D NULL;
+++		skb->nfcache =3D 0;
+ +#ifdef CONFIG_NETFILTER_DEBUG
+-+	skb->nf_debug =3D 0;
+++		skb->nf_debug =3D 0;
+ +#endif
+++	}
+ +
+ +	if (route_info->oif[0])=20
+ +		return route_oif(route_info, *pskb);
+@@ -324,8 +337,10 @@
+ +	if (route_info->gw)=20
+ +		return route_gw(route_info, *pskb);
+ +
+-+	DEBUGP(KERN_DEBUG "ipt_ROUTE: no parameter !\n");
+-+	return NF_ACCEPT;
+++	if (net_ratelimit())=20
+++		DEBUGP(KERN_DEBUG "ipt_ROUTE: no parameter !\n");
+++
+++	return IPT_CONTINUE;
+ +}
+ +
+ +
+diff -Nru netfilter.orig/patch-o-matic/extra/ROUTE.patch.config.in netfil=
+ter/patch-o-matic/extra/ROUTE.patch.config.in
+--- netfilter.orig/patch-o-matic/extra/ROUTE.patch.config.in	2003-06-24 1=
+5:10:12.000000000 +0200
++++ netfilter/patch-o-matic/extra/ROUTE.patch.config.in	2003-06-24 12:46:=
+28.000000000 +0200
+@@ -1,2 +1,2 @@
+-  dep_tristate '  LOG target support' CONFIG_IP_NF_TARGET_LOG $CONFIG_IP=
+_NF_IPTABLES
+-  dep_tristate '  ROUTE target support' CONFIG_IP_NF_TARGET_ROUTE $CONFI=
+G_IP_NF_IPTABLES
++    dep_tristate '    MARK target support' CONFIG_IP_NF_TARGET_MARK $CON=
+FIG_IP_NF_MANGLE
++    dep_tristate '    ROUTE target support' CONFIG_IP_NF_TARGET_ROUTE $C=
+ONFIG_IP_NF_MANGLE
+diff -Nru netfilter.orig/patch-o-matic/extra/ROUTE.patch.configure.help n=
+etfilter/patch-o-matic/extra/ROUTE.patch.configure.help
+--- netfilter.orig/patch-o-matic/extra/ROUTE.patch.configure.help	2003-06=
+-24 15:10:12.000000000 +0200
++++ netfilter/patch-o-matic/extra/ROUTE.patch.configure.help	2003-06-24 1=
+1:33:25.000000000 +0200
+@@ -8,8 +8,8 @@
+   packet is the router itself. The ROUTE target is also able to change t=
+he=20
+   incoming interface of a packet.
+=20
+-  This target does never modify the packet and is a final target.
+-  It has to be used inside the mangle table.
++  The target can be or not a final target and has to be used inside the=20
++  mangle table.
+=20
+  =20
+   If you want to compile it as a module, say M here and read
+diff -Nru netfilter.orig/patch-o-matic/extra/ROUTE.patch.help netfilter/p=
+atch-o-matic/extra/ROUTE.patch.help
+--- netfilter.orig/patch-o-matic/extra/ROUTE.patch.help	2003-06-24 15:10:=
+12.000000000 +0200
++++ netfilter/patch-o-matic/extra/ROUTE.patch.help	2003-06-24 12:35:59.00=
+0000000 +0200
+@@ -8,24 +8,29 @@
+   packet is the router itself. The ROUTE target is also able to change t=
+he=20
+   incoming interface of a packet.
+=20
+-  This target does never modify the packet and is a final target.
+-  It has to be used inside the mangle table.
++  The target has to be used inside the mangle table.
+=20
+   ROUTE target options:
+-    --oif   ifname    Send the packet out using `ifname' network interfa=
+ce.
++    --oif   ifname    Route the packet through `ifname' network interfac=
+e
+     --iif   ifname    Change the packet's incoming interface to `ifname'.
+     --gw    ip        Route the packet via this gateway.
++    --force           Force the use of the interface and send the packet.
++
++  The --force option can be used together with --oif or --gw. When using
++  this option, the target becomes a final target. Otherwise, the route
++  is simply set for the packet.
+=20
+   Examples :
+=20
+-  To redirect all outgoing icmp packet to the eth1 interface :
+-  # iptables -A POSTROUTING -t mangle -p icmp -j ROUTE --oif eth1
++  To force all outgoing icmp packet to go through the eth1 interface=20
++  (final target) :
++  # iptables -A POSTROUTING -t mangle -p icmp -j ROUTE --oif eth1 --forc=
+e
+=20
+   To tunnel all incoming http packets :
+   # iptables -A PREROUTING -t mangle -p tcp --dport 80 -j ROUTE --oif tu=
+nl1
+=20
+-  To force the next-hop used for ssh packets :
+-  # iptables -A PREROUTING -t mangle -p tcp --dport 22 -j ROUTE --gw w.x=
+.y.z
++  To change the the next-hop used for ssh packets :
++  # iptables -A POSTROUTING -t mangle -p tcp --dport 22 -j ROUTE --gw w.=
+x.y.z
+=20
+   To change the incoming network interface from eth0 to eth1 for icmp pa=
+ckets :
+   # iptables -A PREROUTING -t mangle -p icmp -i eth0 -j ROUTE --iif eth1
+diff -Nru netfilter.orig/userspace/extensions/libipt_ROUTE.c netfilter/us=
+erspace/extensions/libipt_ROUTE.c
+--- netfilter.orig/userspace/extensions/libipt_ROUTE.c	2003-06-24 15:10:1=
+2.000000000 +0200
++++ netfilter/userspace/extensions/libipt_ROUTE.c	2003-06-24 15:19:48.000=
 000000 +0200
-@@ -19,9 +19,10 @@
- #define NF_REPEAT 4
- #define NF_MAX_VERDICT NF_REPEAT
+@@ -1,5 +1,6 @@
+ /* Shared library add-on to iptables to add ROUTE target support.
+- * Author : C=E9dric de Launois, <delaunois@info.ucl.ac.be>
++ * Author : Cedric de Launois, <delaunois@info.ucl.ac.be>
++ * v 1.8 2003/06/24
+  */
 =20
--/* Generic cache responses from hook functions. */
--#define NFC_ALTERED 0x8000
-+/* Generic cache responses from hook functions.
-+   <=3D 0x2000 is used for protocol-flags. */
- #define NFC_UNKNOWN 0x4000
-+#define NFC_ALTERED 0x8000
+ #include <stdio.h>
+@@ -20,17 +21,19 @@
+ {
+ 	printf(
+ "ROUTE target v%s options:\n"
+-"  --oif   \tifname \t\tSend the packet out using `ifname' network inter=
+face\n"
++"  --oif   \tifname \t\tRoute the packet through `ifname' network interf=
+ace\n"
+ "  --iif   \tifname \t\tChange the packet's incoming interface to `ifnam=
+e'\n"
+ "  --gw    \tip     \t\tRoute the packet via this gateway\n"
++"  --force \t       \t\tForce the use of the interface and send the pack=
+et\n"
+ "\n",
+-IPTABLES_VERSION);
++"1.8");
+ }
 =20
- #ifdef __KERNEL__
- #include <linux/config.h>
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ver' --exclude '.*=
-=2Eflags' --exclude '*.orig' --exclude '*.rej' --exclude '*~' linux-2.4.21-=
-unconfirmed_expect/net/ipv4/netfilter/ip_conntrack_core.c linux-2.4.21-cosm=
-etic/net/ipv4/netfilter/ip_conntrack_core.c
---- linux-2.4.21-unconfirmed_expect/net/ipv4/netfilter/ip_conntrack_core.c	=
-2003-06-24 15:58:40.000000000 +0200
-+++ linux-2.4.21-cosmetic/net/ipv4/netfilter/ip_conntrack_core.c	2003-06-24=
- 16:15:36.000000000 +0200
-@@ -264,9 +264,7 @@
+ static struct option opts[] =3D {
+ 	{ "oif", 1, 0, '1' },
+ 	{ "iif", 1, 0, '2' },
+ 	{ "gw", 1, 0, '3' },
++	{ "force", 0, 0, '4' },
+ 	{ 0 }
+ };
 =20
- 	DEBUGP("remove_expectations(%p)\n", ct);
+@@ -44,6 +47,7 @@
+ 	route_info->oif[0] =3D '\0';
+ 	route_info->iif[0] =3D '\0';
+ 	route_info->gw =3D 0;
++	route_info->flags =3D 0;
+ }
 =20
--	for (exp_entry =3D ct->sibling_list.next;
--	     exp_entry !=3D &ct->sibling_list; exp_entry =3D next) {
--		next =3D exp_entry->next;
-+	list_for_each_safe(exp_entry, next, &ct->sibling_list) {
- 		exp =3D list_entry(exp_entry, struct ip_conntrack_expect,
- 				 expected_list);
 =20
-@@ -313,7 +311,7 @@
- 	IP_NF_ASSERT(atomic_read(&nfct->use) =3D=3D 0);
- 	IP_NF_ASSERT(!timer_pending(&ct->timeout));
+@@ -111,6 +115,10 @@
+ 		*flags |=3D IPT_ROUTE_OPT_GW;
+ 		break;
 =20
--	if (ct->master && master_ct(ct))
-+	if (master_ct(ct))
- 		ip_conntrack_put(master_ct(ct));
-=20
- 	/* To make sure we don't get any weird locking issues here:
-@@ -695,9 +693,6 @@
-=20
- 	INIT_LIST_HEAD(&conntrack->sibling_list);
-=20
--	/* Mark clearly that it's not in the hash table. */
--	conntrack->tuplehash[IP_CT_DIR_ORIGINAL].list.next =3D NULL;
--
- 	WRITE_LOCK(&ip_conntrack_lock);
- 	/* Need finding and deleting of expected ONLY if we win race */
- 	READ_LOCK(&ip_conntrack_expect_tuple_lock);
-@@ -1036,18 +1031,11 @@
- 		return -ENOMEM;
++	case '4':
++		route_info->flags |=3D IPT_ROUTE_FORCE;
++		break;
++
+ 	default:
+ 		return 0;
  	}
- =09
--	/* Zero out the new structure, then fill out it with the data */
- 	DEBUGP("new expectation %p of conntrack %p\n", new, related_to);
--	memset(new, 0, sizeof(*expect));
--	INIT_LIST_HEAD(&new->list);
--	INIT_LIST_HEAD(&new->expected_list);
- 	memcpy(new, expect, sizeof(*expect));
- 	new->expectant =3D related_to;
- 	new->sibling =3D NULL;
--	/* increase usage count. This sucks. The memset above overwrites
--	 * old usage count [if still present] and we increase to one.  Only
--	 * works because everything is done under ip_conntrack_lock() */
--	atomic_inc(&new->use);
-+	atomic_set(&new->use, 1);
- =09
- 	/* add to expected list for this connection */=09
- 	list_add(&new->expected_list, &related_to->sibling_list);
-@@ -1486,8 +1474,10 @@
- 	ip_ct_attach =3D ip_conntrack_attach;
- 	return ret;
+@@ -124,7 +132,7 @@
+ {
+ 	if (!flags)
+ 		exit_error(PARAMETER_PROBLEM,
+-		           "ROUTE target: one parameter is required");
++		           "ROUTE target: a oif, iif or gw parameter is required");
+ }
 =20
-+#ifdef CONFIG_SYSCTL
- err_free_ct_cachep:
- 	kmem_cache_destroy(ip_conntrack_cachep);
-+#endif /*CONFIG_SYSCTL*/
- err_free_hash:
- 	vfree(ip_conntrack_hash);
- err_unreg_sockopt:
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ver' --exclude '.*=
-=2Eflags' --exclude '*.orig' --exclude '*.rej' --exclude '*~' linux-2.4.21-=
-unconfirmed_expect/net/ipv4/netfilter/ip_conntrack_ftp.c linux-2.4.21-cosme=
-tic/net/ipv4/netfilter/ip_conntrack_ftp.c
---- linux-2.4.21-unconfirmed_expect/net/ipv4/netfilter/ip_conntrack_ftp.c	2=
-003-06-24 15:56:23.000000000 +0200
-+++ linux-2.4.21-cosmetic/net/ipv4/netfilter/ip_conntrack_ftp.c	2003-06-24 =
-16:15:36.000000000 +0200
-@@ -405,7 +405,6 @@
- 		ports[0] =3D FTP_PORT;
 =20
- 	for (i =3D 0; (i < MAX_PORTS) && ports[i]; i++) {
--		memset(&ftp[i], 0, sizeof(struct ip_conntrack_helper));
- 		ftp[i].tuple.src.u.tcp.port =3D htons(ports[i]);
- 		ftp[i].tuple.dst.protonum =3D IPPROTO_TCP;
- 		ftp[i].mask.src.u.tcp.port =3D 0xFFFF;
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ver' --exclude '.*=
-=2Eflags' --exclude '*.orig' --exclude '*.rej' --exclude '*~' linux-2.4.21-=
-unconfirmed_expect/net/ipv4/netfilter/ip_conntrack_irc.c linux-2.4.21-cosme=
-tic/net/ipv4/netfilter/ip_conntrack_irc.c
---- linux-2.4.21-unconfirmed_expect/net/ipv4/netfilter/ip_conntrack_irc.c	2=
-003-06-24 15:56:23.000000000 +0200
-+++ linux-2.4.21-cosmetic/net/ipv4/netfilter/ip_conntrack_irc.c	2003-06-24 =
-16:15:36.000000000 +0200
-@@ -259,8 +259,6 @@
+@@ -149,6 +157,10 @@
+ 		struct in_addr ip =3D { route_info->gw };
+ 		printf("gw %s ", inet_ntoa(ip));
+ 	}
++
++	if (route_info->flags & IPT_ROUTE_FORCE)
++		printf("force");
++
+ }
 =20
- 	for (i =3D 0; (i < MAX_PORTS) && ports[i]; i++) {
- 		hlpr =3D &irc_helpers[i];
--		memset(hlpr, 0,
--		       sizeof(struct ip_conntrack_helper));
- 		hlpr->tuple.src.u.tcp.port =3D htons(ports[i]);
- 		hlpr->tuple.dst.protonum =3D IPPROTO_TCP;
- 		hlpr->mask.src.u.tcp.port =3D 0xFFFF;
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ver' --exclude '.*=
-=2Eflags' --exclude '*.orig' --exclude '*.rej' --exclude '*~' linux-2.4.21-=
-unconfirmed_expect/net/ipv4/netfilter/ip_nat_ftp.c linux-2.4.21-cosmetic/ne=
-t/ipv4/netfilter/ip_nat_ftp.c
---- linux-2.4.21-unconfirmed_expect/net/ipv4/netfilter/ip_nat_ftp.c	2003-06=
--24 15:58:01.000000000 +0200
-+++ linux-2.4.21-cosmetic/net/ipv4/netfilter/ip_nat_ftp.c	2003-06-24 16:15:=
-36.000000000 +0200
-@@ -306,9 +306,6 @@
- 		ports[0] =3D FTP_PORT;
 =20
- 	for (i =3D 0; (i < MAX_PORTS) && ports[i]; i++) {
--
--		memset(&ftp[i], 0, sizeof(struct ip_nat_helper));
--
- 		ftp[i].tuple.dst.protonum =3D IPPROTO_TCP;
- 		ftp[i].tuple.src.u.tcp.port =3D htons(ports[i]);
- 		ftp[i].mask.dst.protonum =3D 0xFFFF;
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ver' --exclude '.*=
-=2Eflags' --exclude '*.orig' --exclude '*.rej' --exclude '*~' linux-2.4.21-=
-unconfirmed_expect/net/ipv4/netfilter/ip_nat_helper.c linux-2.4.21-cosmetic=
-/net/ipv4/netfilter/ip_nat_helper.c
---- linux-2.4.21-unconfirmed_expect/net/ipv4/netfilter/ip_nat_helper.c	2003=
--06-13 16:51:39.000000000 +0200
-+++ linux-2.4.21-cosmetic/net/ipv4/netfilter/ip_nat_helper.c	2003-06-24 16:=
-15:36.000000000 +0200
-@@ -84,7 +84,6 @@
- 	iph =3D (*skb)->nh.iph;
- 	if (iph->protocol =3D=3D IPPROTO_TCP) {
- 		struct tcphdr *tcph =3D (void *)iph + iph->ihl*4;
--		void *data =3D (void *)tcph + tcph->doff*4;
+@@ -168,6 +180,9 @@
+ 		struct in_addr ip =3D { route_info->gw };
+ 		printf("--gw %s ", inet_ntoa(ip));
+ 	}
++
++	if (route_info->flags & IPT_ROUTE_FORCE)
++		printf("--force ");
+ }
 =20
- 		DEBUGP("ip_nat_resize_packet: Seq_offset before: ");
- 		DUMP_OFFSET(this_way);
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ver' --exclude '.*=
-=2Eflags' --exclude '*.orig' --exclude '*.rej' --exclude '*~' linux-2.4.21-=
-unconfirmed_expect/net/ipv4/netfilter/ip_nat_irc.c linux-2.4.21-cosmetic/ne=
-t/ipv4/netfilter/ip_nat_irc.c
---- linux-2.4.21-unconfirmed_expect/net/ipv4/netfilter/ip_nat_irc.c	2002-11=
--29 00:53:15.000000000 +0100
-+++ linux-2.4.21-cosmetic/net/ipv4/netfilter/ip_nat_irc.c	2003-06-24 16:15:=
-36.000000000 +0200
-@@ -243,9 +243,6 @@
 =20
- 	for (i =3D 0; (i < MAX_PORTS) && ports[i] !=3D 0; i++) {
- 		hlpr =3D &ip_nat_irc_helpers[i];
--		memset(hlpr, 0,
--		       sizeof(struct ip_nat_helper));
--
- 		hlpr->tuple.dst.protonum =3D IPPROTO_TCP;
- 		hlpr->tuple.src.u.tcp.port =3D htons(ports[i]);
- 		hlpr->mask.src.u.tcp.port =3D 0xFFFF;
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ver' --exclude '.*=
-=2Eflags' --exclude '*.orig' --exclude '*.rej' --exclude '*~' linux-2.4.21-=
-unconfirmed_expect/net/ipv4/netfilter/ipt_ULOG.c linux-2.4.21-cosmetic/net/=
-ipv4/netfilter/ipt_ULOG.c
---- linux-2.4.21-unconfirmed_expect/net/ipv4/netfilter/ipt_ULOG.c	2003-06-1=
-3 16:51:39.000000000 +0200
-+++ linux-2.4.21-cosmetic/net/ipv4/netfilter/ipt_ULOG.c	2003-06-24 16:15:36=
-=2E000000000 +0200
-@@ -322,7 +322,6 @@
-=20
- 	/* initialize ulog_buffers */
- 	for (i =3D 0; i < ULOG_MAXNLGROUPS; i++) {
--		memset(&ulog_buffers[i], 0, sizeof(ulog_buff_t));
- 		init_timer(&ulog_buffers[i].timer);
- 		ulog_buffers[i].timer.function =3D ulog_timer;
- 		ulog_buffers[i].timer.data =3D i;
 
-Please apply, thanks.
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---ZYOWEO2dMm2Af3e3
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE++FyGXaXGVTD0i/8RAn6hAJ4+R6HIh9X1NWriWn+9SSdHmL8XuQCgsUzo
-CWKgXUi3cZbhH7ke5VM0T3g=
-=bzlp
------END PGP SIGNATURE-----
-
---ZYOWEO2dMm2Af3e3--
+--=-DtJDVT8yn7LGPX1ZSC85--
