@@ -1,101 +1,104 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: New netfilter/iptables patch-o-matic release
-Date: Tue, 7 Jan 2003 21:13:34 +0100
-Sender: netfilter-announce-admin@lists.netfilter.org
-Message-ID: <20030107201334.GX9467@sunbeam.de.gnumonks.org>
-Reply-To: coreteam@netfilter.org
+From: "Wojciech Maj" <wojtektm@poczta.fm>
+Subject: How to match CLOSE or TIME_WAIT state
+Date: Fri, 3 Jan 2003 22:01:43 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <000801c2b36b$53036840$060110ac@localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KMIs29sPfC/9Gbii"
-Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
-	Netfilter Announcement List <netfilter-announce@lists.netfilter.org>
-Return-path: <netfilter-announce-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
-Errors-To: netfilter-announce-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-announce@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-announce/>
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0005_01C2B373.B3A2D840"
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---KMIs29sPfC/9Gbii
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+------=_NextPart_000_0005_01C2B373.B3A2D840
+Content-Type: text/plain;
+	charset="iso-8859-2"
 Content-Transfer-Encoding: quoted-printable
 
-Good news, Everyone! (TM)
+Hi all
 
-The netfilter core team announces a new release of the netfilter
-patch-o-matic suite:
+I would like to know, how to match packets which have TIME_WAIT (etc..) =
+state (I need to match packets which are related with already closed =
+connection - which "close" connection).
+It is impossible to do with state or conntrack module, but I think It =
+would be easy to do after few changes in these modules.=20
+I don't know netfilter code enough, so I can't do that.
+Would anybody help me?  PLEASE HELP !
 
-	patch-o-matic-20030107
+Thanks in advance
 
-This release contains the most up-to-date bugfixes and new features for=20
-the netfilter/iptables subsystem of the 2.4.x Linux kernel.
+Wojtek=20
 
-The patches are devided into several repositories.  Which ones are to be
-used, depends on how conservative or adventurous the user is ;)
-
-'submitted':
-	Patches which have been submitted for kernel inclusion, most of
-	them have already appeared in 2.4.20.  It's really recommended
-	to always apply those
-
-'pending':
-	Patches currently pending for kernel inclusion.  They will
-	almost certainly appear in the next official kernel release.
-
-'base':
-	New features which are self-contained enough so it's sure they
-	don't clash with each other.  Those are safe in the way that they
-	don't harm already existing functionality.  Playing with them
-	might discover one or the other remaining bug... you've been
-	warned.
-
-'extra':
-	New features which might cause other patches from 'extra' to
-	clash with each other.  Most interestingly, you will find here
-	conntrack/nat helpers for H.323, PPTP, talk/ntalk, rsh, tftp,
-	mms and amanda.
+(Forgive me my English please)
 
 
-Read more about the individual patches of this new patch-o-matic release
-at: http://www.netfilter.org/documentation/pomlist/pom-summary.html
-
-The new patch-o-matic release including a cryptographic GPG signature
-is available for download at
-
-	http://www.netfilter.org/downloads.html#pom-20030107
 
 
-Enjoy,
-	Harald (for the netfilter core team)
 
---=20
-- Harald Welte / laforge@netfilter.org             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---KMIs29sPfC/9Gbii
-Content-Type: application/pgp-signature
-Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+------=_NextPart_000_0005_01C2B373.B3A2D840
+Content-Type: text/html;
+	charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 
-iD8DBQE+GzTuNfqJzMqajVsRAlEZAKCd5jUcymQKmbiy4yVqBGopkKJ/fwCfQkc9
-Frm8NfPGv4MyOM47cFJbJd0=
-=Kf6n
------END PGP SIGNATURE-----
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META content=3D"text/html; charset=3Diso-8859-2" =
+http-equiv=3DContent-Type>
+<META content=3D"MSHTML 5.00.2614.3500" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3D"Arial CE" size=3D2>Hi all</FONT></DIV>
+<DIV>&nbsp;</DIV>
+<DIV><FONT face=3D"Arial CE" size=3D2>I would like to know, how to match =
+packets=20
+which have TIME_WAIT (etc..) state (I need to</FONT><FONT face=3D"Arial =
+CE"=20
+size=3D2> match packets which are related with already closed connection =
+- which=20
+"close" connection).</FONT></DIV>
+<DIV><FONT face=3D"Arial CE" size=3D2>It is impossible to do with state =
+or conntrack=20
+module, but I think It would be easy to do after few changes in these =
+modules.=20
+</FONT></DIV>
+<DIV><FONT face=3D"Arial CE" size=3D2>I don't know netfilter code =
+enough, so I can't=20
+do that.</FONT></DIV>
+<DIV><FONT face=3D"Arial CE" size=3D2>Would anybody help me?</FONT><FONT =
 
---KMIs29sPfC/9Gbii--
+face=3D"Arial CE" size=3D2>&nbsp; PLEASE HELP !</FONT></DIV>
+<DIV>&nbsp;</DIV>
+<DIV><FONT face=3D"Arial CE" size=3D2>Thanks in advance</FONT></DIV>
+<DIV>&nbsp;</DIV>
+<DIV><FONT face=3D"Arial CE" size=3D2>Wojtek </FONT></DIV>
+<DIV>&nbsp;</DIV>
+<DIV><FONT face=3D"Arial CE" size=3D2>(Forgive me my English =
+please)</FONT></DIV>
+<DIV>&nbsp;</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>&nbsp;</DIV>
+<DIV>&nbsp;</DIV></BODY></HTML>
+
+
+<TABLE cellPadding=3D"3" bgColor=3D"#ffffff"><TBODY><TR><TD style=3D"font: 12px Courier New, Courier, monotype.com; padding: 3px; background: #ffffff; color: #000000">----------------------------------------------------------------------
+<BR>
+Oficjalny serwis Polskiej Reprezentacji Skoczkow Narciarskich!
+<BR>
+&gt;&gt;&gt; <A href=3D"http://link.interia.pl/f16b1">http://link.interia.pl/f16b1</a></TD></TR></TBODY></TABLE>
+
+------=_NextPart_000_0005_01C2B373.B3A2D840--
