@@ -1,17 +1,19 @@
-From: Martijn Lievaart <m@rtij.nl>
-Subject: Re: [PATCH] Warn people that ipchains and ipfwadm are going away.
-Date: Thu, 23 Sep 2004 16:56:12 +0200
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [PATCH 2.6 0/12]: netfilter update
+Date: Fri, 24 Sep 2004 15:40:32 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <4152E40C.5080705@rtij.nl>
-References: <1095721742.5886.128.camel@bach>	<Pine.LNX.4.58.0409221347010.23967@tux.rsn.bth.se>	<Pine.LNX.4.53.0409220800200.2147@chaos.analogic.com>
-	<200409220841.34453.gene.heskett@verizon.net>
+Message-ID: <20040924154032.5a0c32e1.davem@redhat.com>
+References: <414F9DFC.701@trash.net> <20040921143611.6a6e2f60.davem@redhat.com>
+	<4150BB62.2060904@trash.net>
+	<20040921171857.2c720c8e.davem@redhat.com>
+	<4150D880.70108@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: gene.heskett@verizon.net
-In-Reply-To: <200409220841.34453.gene.heskett@verizon.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4150D880.70108@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,39 +24,41 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Gene Heskett wrote:
+On Wed, 22 Sep 2004 03:42:24 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
->[root@gene root]# grep attackalert /var/log/messages*
->/var/log/messages.1:Sep 16 18:09:16 gene portsentry[1159]: 
->attackalert: UDP scan from host: home1.bellatlantic.net/199.45.32.43 
->to UDP port: 32771
->/var/log/messages.1:Sep 16 18:09:16 gene portsentry[1159]: 
->attackalert: Host 199.45.32.43 has been blocked via wrappers with 
->string: "ALL: 199.45.32.43"
->/var/log/messages.1:Sep 16 18:09:17 gene portsentry[1159]: 
->attackalert: Host 199.45.32.43 has been blocked via dropped route 
->using command: "/sbin/iptables -I INPUT -s 199.45.32.43 -j DROP"
->/var/log/messages.1:Sep 16 18:09:17 gene portsentry[1159]: 
->attackalert: UDP scan from host: home1.bellatlantic.net/199.45.32.43 
->to UDP port: 32771
->/var/log/messages.1:Sep 16 18:09:17 gene portsentry[1159]: 
->attackalert: Host: home1.bellatlantic.net/199.45.32.43 is already 
->blocked Ignoring
->
->Time to send another nastygram to verizon since thats one of their 
->nameservers, and clear out that address from the hosts.deny file.
->
->FWIW, the last time that happened, in April 2003, the hack attempt  
->trashed a siemans router and I had to replace it with that linksys.  
->Must be time to change the user and password in it again too...
->
->FWIW, verizon has apparently a problem keeping their nameservers from 
->being hacked.
->  
->
+> The existing scheme has one problem, it takes files->file_lock
+> in a BH, but the patch doesn't mean to fix this. Besides
+> this, it works fine. The patch extends the owner match so it
+> can also be used in the input path, where skb->sk isn't set.
+> This is quite useful for filtering input traffic based on user
+> etc., unfortunately it can't be done without exporting
+> {tcp,udp}_v4_lookup. Do you see an alternative to dropping the
+> patch ?
 
-Isn't this just the replies to legitimate dns queries? Wouldn't be the 
-first time legitimate traffic is recognised as a portscan.
+I think the scheme is a bit illogical.
 
-HTH,
-M4
+Until the actual TCP socket lookup call, you cannot say for sure
+what that lookup would result in.
+
+For example, let's say that between where the ipt_owner match
+is invoked on input, and the actual call to tcp_v4_rcv(), some
+filtering or other packet mangling scheme changes the IP address
+or ports.  You're going to get different results in ipt_owner()
+than TCP was going to achieve.
+
+It sounds like we want some kind of socket resolution policy check.
+It's starting to get rediculious, as we have two filters _already_
+in that code path, one for the per-socket BPF style filtering, and
+the other for IPSEC.
+
+The IPSEC check is available on output too.
+
+I don't see how it's avoidable to add another condition there.
+So what if we had something like:
+
+	NF_SK_HOOK(PF_INET, NF_TCP_IN, sk, skb, skb->dev, NULL,
+		   tcp_v4_rcv_finish)
+
+or something along those lines?  Perhaps you can simplify the
+argument set even further.
