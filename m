@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: pptp connection tracking in iptables
-Date: Tue, 17 Jun 2003 18:28:17 +0200
+Subject: Re: [PATCH]: several small patches
+Date: Tue, 17 Jun 2003 18:04:38 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030617162817.GL936@naboo>
-References: <B44230956615E549B1DA9D4FF0A6294702D182@mail.remoteops.net>
+Message-ID: <20030617160438.GE936@naboo>
+References: <3EECBFF1.2070503@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XRwESHC7KXlqFpSs"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="RpqchZ26BWispMcB"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Brent DeWitt <brent@remoteops.net>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <B44230956615E549B1DA9D4FF0A6294702D182@mail.remoteops.net>
+In-Reply-To: <3EECBFF1.2070503@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,46 +24,73 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---XRwESHC7KXlqFpSs
+--RpqchZ26BWispMcB
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jun 04, 2003 at 11:29:34AM -0600, Brent DeWitt wrote:
+On Sun, Jun 15, 2003 at 08:50:25PM +0200, Patrick McHardy wrote:
+> Hi Harald,
+> these are some patches that summed up, mostly one liners.
 
-> I have been using connection tracking for pptp in the 2.4.19 kernel using=
- a
-> kernel patch I downloaded called "netfilter_pptp_patch_2.4.19_rev1"  This
-> allows me to make connections in and out and multiple sessions. =20
+Thanks.
 
-I am not familiar with a patch of this name.  However, I assume it is
-based on my pptp/gre ct+nat helper.
+> 1. ip_conntrack-outdated-comment.diff:
+> remove outdated comment in ip_conntrack_expect_related
+> that seems to have it's origin in time before newnat. it also
+> makes the initialization of new->use explicit.
 
-> With the 2.4.20 kernel. I have been using the Iptables POM to apply the p=
-ptp
-> connection tracking.  I apply the pending scripts and the pptp patch in
-> extra.  I compile the kernel with all the IPtables options included or as
-> modules, like I did with the 2.4.19 kernel.  But when I go to make the
-> connection, it times out and an error is posted ip_conntrack_pptp.c : bad
-> csum
+fine with me.
 
-the timeout should not happen.  Are you sure your ruleset is correct?
-What happens to the GRE entries in /proc/net/ip_conntrack while you try
-to establish the session?  What does tcpdump/ethereal tell you during
-the connection setup?
+> 2. ip-conntrack-unneeded-check.diff:
+> remove double-check for ct->master, master_ct() also does the
+> check.
 
-the 'bad csum' is just a debugging statement.
+ack.
+
+> 3. ip-conntrack-unconfirmed-expect.diff:
+> in init_conntrack: do not delete timer/call expect function for
+> connections matching expectations from unconfirmed connections.
+
+Again, correct.
+
+> 4. unneeded-init.diff:
+> this is an old patch which removes some memset(x,0,..) for
+> data in bss segment. some more unneeded initializations since
+> last post:
+>=20
+> - conntrack->tuplehash[IP_CT_DIR_ORIGINAL].list.next =3D NULL
+> in init_conntrack() seems to be forgotten when IPS_CONFIRMED
+> was introduced.
+
+true.
+
+> - memset and INIT_LIST_HEAD in ip_conntrack_expect_related()
+> are not required, memory is overwritten in the next line anyway
+> and list-member heads don't need to be initialized.
+
+ok, that was my mistake... I somehow didn't notice the fact that only
+the master list head needs to be initialized.  But this is, obviously,
+correct.
+
+> 5. ip-conntrack-expect-drop-refcnt.diff:
+> drop master conntrack refcnt before setting expectant =3D NULL in
+> remove_expectations. untested but seems to make sense.
+
+There have been recent changes in this part of code...
+
+Jozsef: Any objections?
+
 =20
-> I looked through the patch code at it seems that windows pptp isn't being
-> passed right to post that message.  What I don't understand is how it wor=
-ked
-> with 2.4.19 but not with 2.4.20.
+> 6. ip-conntrack-remove_expectations-list_for_each_safe.diff:
+> use list_for_each_safe in remove_expectations
 
-no, it is passed through.  and the windows pptp implementation has to
-retransmit the erroneous packet anyway.
+ok, a cosmetic correction.
 
-> Brent
+I'll put 1-4 and 6 into patch-o-matic, 5 is Jozsef's call.
 
+> Best regards,
+> Patrick
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -73,16 +101,16 @@ retransmit the erroneous packet anyway.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---XRwESHC7KXlqFpSs
+--RpqchZ26BWispMcB
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE+70GgXaXGVTD0i/8RAnd/AJ9osUwNEpVr/ZUIG+ascDzZ3MmJ5ACggQQu
-bpvJ3I0x4MBLlbUEVmqB3TE=
-=D9pH
+iD8DBQE+7zwWXaXGVTD0i/8RAvuFAJ9cfL9TDKhdHFq85WCQeiIMKU774wCfTKmR
+1de/CmSanNR3WXfZfep6QbI=
+=Gwzr
 -----END PGP SIGNATURE-----
 
---XRwESHC7KXlqFpSs--
+--RpqchZ26BWispMcB--
