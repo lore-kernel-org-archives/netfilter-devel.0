@@ -1,13 +1,17 @@
-From: Richard Bishop <R.J.Bishop@exeter.ac.uk>
-Subject: Help writing netfilter match
-Date: Sun, 28 Mar 2004 17:20:11 +0100
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: RPC conntrack code status
+Date: Sun, 28 Mar 2004 20:32:48 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <406DFCFE@minerva.ex.ac.uk>
+Message-ID: <20040328183248.GV7039@sunbeam.de.gnumonks.org>
+References: <20040323174953.GF2611@conectiva.com.br> <20040323193958.GB18517@duckman.distro.conectiva> <20040326145554.GJ18517@duckman.distro.conectiva>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Ou5B7nmexOOGXbzo"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Eduardo Pereira Habkost <ehabkost@conectiva.com.br>
+Content-Disposition: inline
+In-Reply-To: <20040326145554.GJ18517@duckman.distro.conectiva>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,119 +22,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I'm trying to write a netfilter match and have run into some problems. I've 
-read through the how-to documents, though they only seem to skim over things 
-and don't really explain what I need to know.
+--Ou5B7nmexOOGXbzo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-As I understand it, in order to write a netfilter match, you have a kernel 
-level module that integrates with the ip_tables module in the kernel and does 
-your classification of packets coming to it and telling the iptables module 
-what to drop etc. You then have a userspace shared library (or a furby in 
-Rusty's case :-) ) which you call with "iptables -A [table] -m [matchname]" 
-which then determines what to send to the kernel module. - Can somebody 
-confirm that my interpretation of things is right here please.
+On Fri, Mar 26, 2004 at 11:55:54AM -0300, Eduardo Pereira Habkost wrote:
+> Hi, All,
+>=20
+> I've been looking at the Netfilter RPC conntrack module, and I would
+> like to know the status of the permanent inclusion of this module. Is
+> this module considered stable and there are plans to include it, soon?
 
-I have a kernel module working, though the userspace module is elluding me 
-somewhat.  I have the following skeleton code, put together from various match 
-libraries that I've found, saved as libipt_net.c
+It is by no means stable, and there are no plans to include it.
 
-----------------------------------------------------------------------------
-#include <stdio.h>
-#include <netdb.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <getopt.h>
-#include <iptables.h>
-#include <linux/netfilter_ipv4/ip_conntrack.h>
+I would consider it abandoned by the original author / unmaintained.
 
-static void help(void) {
-	print("iptables v%s options:\n some options here\n)",IPTABLES_VERSION);
-}
+> Regards,
 
-static struct option opts[] = {
-	{ "option", 1, 0, '1' },
-	{0}
-};
+[]'s ;)
 
-static void init(struct ipt_entry_match *m, unsigned int *nfcache) {
-	printf("Hello from iptables match library\n");
-}
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-/* Function which parses command options; returns true if it
-   ate an option */
-static int parse(int c, char **argv,
-		int invert,
-		unsigned int *flags,
-		const struct ipt_entry *entry,
-		unsigned int *nfcache,
-		struct ipt_entry_match **match)
-{
-	return 1;
-}
+--Ou5B7nmexOOGXbzo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-/* Final check - we really don't care in this instance */
-static void final_check(unsigned int flags) {
-}
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-/* Print the match info to stdout */
-static void print(	const struct ipt_ip *ip,
-			const struct ipt_entry_match *match,
-			int numeric) {
-	int *net = (int*)match->data;
+iD8DBQFAZxpQXaXGVTD0i/8RAi8VAKCSlqebeSy3lLv9nY3k1AkjsgLkSgCfWjE8
+BL5zrBwR2mvPj2loMFQoAE4=
+=TSbb
+-----END PGP SIGNATURE-----
 
-	printf("net %d");
-}
-
-/* Dump the match info in a parseable form to stdout */
-static void save(	const struct ipt_ip *ip,
-			const struct ipt_entry_match *match) {
-
-	int *net = (int*)match->data;
-
-	printf("--option %d",*net);
-}
-
-static struct iptables_match net = {
-	.name		= "net",
-	.version	= IPTABLES_VERSION,
-	.size		= IPT_ALIGN(sizeof(int)),
-	.userspacesize	= IPT_ALIGN(sizeof(int)),
-	.help		= &help,
-	.init		= &init,
-	.parse		= &parse,
-	.final_check	= &final_check,
-	.print		= &print,
-	.save		= &save,
-	.extra_opts	= opts
-};
-
-void __init(void) {
-	register_match(&net);
-}
-----------------------------------------------------------------------------
-
-This is compiled with the command  "gcc -shared -o libipt_net.so 
--DIPTABLES_VERSION=\"1.2.9\" -I/usr/src/linux/include libipt_net.c"  and the 
-.so file placed in /lib/iptables. Incidentally I'm compiling and running on 
-Debian with kernel 2.4.24-1-k7.
-
-As root I then run "iptables -A INPUT -m net --help" and get "iptables v1.2.9: 
-Couldn't load match `net'". I've obviously missed something somewhere - can 
-somebody point me in the right direction please?!  After a day or so of 
-googling I've got nowhere. I've also tried compiling with the '-c' option, but 
-get an error that "ELF file's phentsize not the expected size".
-
-Can anybody help please!
-
-Many thanks in advance
-
-
-Richard
-
----
-Richard Bishop
-Department of Computer Science
-University of Exeter. UK
+--Ou5B7nmexOOGXbzo--
