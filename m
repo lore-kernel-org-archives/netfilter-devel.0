@@ -1,14 +1,16 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: [PATCH] fix problem with netfilter compat code removal
-Date: 16 Apr 2003 16:00:37 +0200
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [PATCH] fix problem with netfilter compat code removal
+Date: Wed, 16 Apr 2003 10:43:45 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1050501636.30792.50.camel@tux.rsn.bth.se>
+Message-ID: <20030416.104345.103615702.davem@redhat.com>
+References: <1050501636.30792.50.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
+To: gandalf@wlug.westbo.se
+In-Reply-To: <1050501636.30792.50.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,29 +21,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+   From: Martin Josefsson <gandalf@wlug.westbo.se>
+   Date: 16 Apr 2003 16:00:37 +0200
 
-Here's a fix for 2.4, the netfilter compat code removal forgot to remove
-one instance of 'reset'. Doesn't compile without this fix.
+   Here's a fix for 2.4, the netfilter compat code removal forgot to remove
+   one instance of 'reset'. Doesn't compile without this fix.
+   
+   Please apply to 2.4 (it's ok in 2.5)
 
-Please apply to 2.4 (it's ok in 2.5)
-
---- linux-2.4-bk.error/net/ipv4/netfilter/ipfwadm_core.c	2003-04-15 17:42:15.000000000 +0200
-+++ linux-2.4-bk.fixed/net/ipv4/netfilter/ipfwadm_core.c	2003-04-16 15:44:16.000000000 +0200
-@@ -1176,12 +1176,6 @@
- 			len = last_len;
- 			break;
- 		}
--		else if(reset)
--		{
--			/* This needs to be done at this specific place! */
--			i->fw_pcnt=0L;
--			i->fw_bcnt=0L;
--		}
- 		last_len = len;
- 		i=i->fw_next;
- 	}
-
-
--- 
-/Martin
+Applied, thanks Martin.
