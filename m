@@ -1,14 +1,13 @@
 From: "Swaroop Ashish" <sashish@novell.com>
 Subject: How to implement attack detection?
-Date: Tue, 06 Apr 2004 03:37:11 -0600
+Date: Tue, 06 Apr 2004 04:05:16 -0600
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <s07225f2.012@prv-mail25.provo.novell.com>
+Message-ID: <s0722c8c.085@prv-mail25.provo.novell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>,
-	<netfilter-devel-request@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
