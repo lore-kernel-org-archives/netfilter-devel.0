@@ -1,16 +1,16 @@
-From: Willy TARREAU <willy@w.ods.org>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: [ANNOUNCE] call for testing of patch-o-matic-ng
-Date: Sun, 29 Feb 2004 16:54:00 +0100
+Date: Sun, 29 Feb 2004 17:43:22 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040229155400.GA28077@pcw.home.local>
-References: <20040229150335.GB23662@pcw.home.local> <MJEGLLMOCKDFLDKPELCNOEBPCCAA.stevec3@bellsouth.net>
+Message-ID: <Pine.LNX.4.44.0402291720220.27254-100000@filer.marasystems.com>
+References: <20040229151700.GA26747@pcw.home.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Steve Croom III <stevec3@bellsouth.net>
-Content-Disposition: inline
-In-Reply-To: <MJEGLLMOCKDFLDKPELCNOEBPCCAA.stevec3@bellsouth.net>
+To: Willy TARREAU <willy@w.ods.org>
+In-Reply-To: <20040229151700.GA26747@pcw.home.local>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,26 +21,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Feb 29, 2004 at 10:21:11AM -0500, Steve Croom III wrote:
-> Willy,
-> 
-> I am very interested in this little script. 
-> Where can I aquire it at or if you dont mind sending it to me.
+On Sun, 29 Feb 2004, Willy TARREAU wrote:
 
-OK, I've put it there :
+> Yesterday, I saw that you sent lots of pom-ng patches, but I didn't look
+> at them because I didn't think that pom-ng was so much advanced. Today,
+> I tried it for the first time, and looked back in the archives. I've found
+> some of them again, but not all it seems.
 
-   http://w.ods.org/tools/netfilter/
+The current ones interesting to users of pom-ng are:
 
-You need to start it from the patch-o-matic-ng directory.
-If you run it with '-n', it will display the patches in the patches
-in this directory which the script does not know about. Then you
-simply cut'n'paste the pre-formated entries into the script.
-Warning: it doesn't handle missing patches, it's very elementary.
+[patch pomng] missing .ladd files etc 
+[pomng patch] correctly break linked sources in ladd
+[patch pomng] NETMAP c99 target initializer typo 
 
-Then you start it with '-a', and it applies all patches prefixed
-with a '+' at once with 'runme'. You'll also have to set the
-KERNEL_DIR and IPTABLE_DIR variables, or change them in the script
-itself.
+All three patches can be found in the netfilter archives or from
+http://marasystems.com/download/netfilter/
 
-Hoping this helps,
-Willy
+With these pom-ng is at least up to the same level as pom for the set of 
+patches we are using, and our only use of pom at this time is for the 
+"submitted" category which still has a few patches of interest to us.
+
+The convert2pomng.sh related patches are only of interest to developers
+who need to convert their existing patches from pom to pomng format. This
+script was used for making the large patch of missing .ladd files etc, and
+to convert our local iptables patches not part of the standard pom tree
+(mainly patches which has not been accepted into pom, plus some which is
+not yet mature to be published)
+
+Regards
+Henrik
