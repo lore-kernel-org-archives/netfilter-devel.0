@@ -1,19 +1,21 @@
-From: "David S. Miller" <davem@redhat.com>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: Linux 2.6.9-rc1
-Date: Wed, 25 Aug 2004 16:44:01 -0700
+Date: Thu, 26 Aug 2004 01:48:39 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040825164401.12259308.davem@redhat.com>
+Message-ID: <20040825234839.GT5824@sunbeam.de.gnumonks.org>
 References: <Pine.LNX.4.58.0408240031560.17766@ppc970.osdl.org>
 	<412CDFEE.1010505@triplehelix.org>
 	<20040825203206.GS5824@sunbeam.de.gnumonks.org>
+	<Pine.LNX.4.61.0408252334230.28603@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: joshk@triplehelix.org, netfilter-devel@lists.netfilter.org,
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Hlh2aiwFLCZwGcpw"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040825203206.GS5824@sunbeam.de.gnumonks.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.61.0408252334230.28603@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,32 +26,53 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 25 Aug 2004 22:32:06 +0200
-Harald Welte <laforge@netfilter.org> wrote:
 
-Harald, a question about this fix.
+--Hlh2aiwFLCZwGcpw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> +__ip_nat_find_helper(const struct ip_conntrack_tuple *tuple)
-> +{
-> +	return LIST_FIND(&helpers, helper_cmp, struct ip_nat_helper *, tuple);
-> +}
-> +
-> +struct ip_nat_helper *
->  ip_nat_find_helper(const struct ip_conntrack_tuple *tuple)
->  {
->  	struct ip_nat_helper *h;
->  
->  	READ_LOCK(&ip_nat_lock);
-> -	h = LIST_FIND(&helpers, helper_cmp, struct ip_nat_helper *, tuple);
-> +	h = __ip_nat_find_helper(tuple);
->  	READ_UNLOCK(&ip_nat_lock);
->  
+On Wed, Aug 25, 2004 at 11:35:05PM +0200, Henrik Nordstrom wrote:
+> On Wed, 25 Aug 2004, Harald Welte wrote:
+>=20
+> >The 'problem' is that we try to get a readlock while we're already
+> >protected under a write lock.
+> >
+> >Please see the following [quite trivial, but yet untested] patch:
+> >
+> >EXPORT_SYMBOL(ip_nat_used_tuple);
+> >+EXPORT_SYMBOL(ip_nat_find_helper);
+>=20
+> Why this new exported symbol?
 
-So we're converting over to using __ip_nat_find_helper().
+Because other code that is not yet in the kernel needs it (like
+ct_sync).  That's one of the reasons to get the API's straightened out
+:)
 
-> +EXPORT_SYMBOL(ip_nat_find_helper);
+> Regards
+> Henrik
 
-And adding an export of ip_nat_find_helper (ie. without the two underscore
-prefix).  Why?
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-If we need to export one, then we need to export both.
+--Hlh2aiwFLCZwGcpw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFBLSVXXaXGVTD0i/8RAgGAAJ9XCMFisXx4c0gkIuPGghcRt1dk3QCfQpZx
+G3+ul7abzCbmKiRMthsu7Qg=
+=5MII
+-----END PGP SIGNATURE-----
+
+--Hlh2aiwFLCZwGcpw--
