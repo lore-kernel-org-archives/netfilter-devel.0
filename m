@@ -1,16 +1,17 @@
-From: Christian Riechmann <riechmann@fgan.de>
-Subject: Re: Change proposal for consistent "skb->pkt_type" after re-injection
-Date: Wed, 30 Jun 2004 21:30:25 +0200
+From: James Morris <jmorris@redhat.com>
+Subject: Re: Remote DoS vulnerability in Linux kernel 2.6.x (fwd)
+Date: Wed, 30 Jun 2004 15:11:25 -0400 (EDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040630193025.GC1520@rie.rie.priv>
-References: <20040629094835.GA3141@rie.rie.priv> <Pine.LNX.4.44.0406301239040.3767-100000@filer.marasystems.com>
+Message-ID: <Xine.LNX.4.44.0406301507320.32316-100000@thoron.boston.redhat.com>
+References: <Xine.LNX.4.44.0406301423320.32212-100000@thoron.boston.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, bus@fgan.de
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netdev@oss.sgi.com, Arjan van de Ven <arjanv@redhat.com>,
+        "David S. Miller" <davem@redhat.com>, <kuznet@ms2.inr.ac.ru>,
+        =?iso-2022-jp?Q?YOSHIFUJI_Hideaki_=2F_=1B$B5HF#1QL=40=1B=28B?= <yoshfuji@linux-ipv6.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0406301239040.3767-100000@filer.marasystems.com>
+To: netfilter-devel@lists.netfilter.org, Harald Welte <laforge@netfilter.org>
+In-Reply-To: <Xine.LNX.4.44.0406301423320.32212-100000@thoron.boston.redhat.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,66 +22,110 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-HenriK,
+FYI, I have audited options parsing code in TCP, IPv4 input and Netfilter 
+for any similar problems and not found any.  Further review would be 
+useful (I have not looked at the IPv6 header parsing for example).
 
-thanks for your reply. Some comments inline...
 
-On 2004-06-30 12:43:50 +0200, Henrik Nordstrom wrote:
-> On Tue, 29 Jun 2004, Christian Riechmann wrote:
+On Wed, 30 Jun 2004, James Morris wrote:
+> ---------- Forwarded message ----------
+> Date: Wed, 30 Jun 2004 12:57:17 +0200
+> From: Adam Osuchowski <adwol@polsl.gliwice.pl>
+> To: bugtraq@securityfocus.com
+> Subject: Remote DoS vulnerability in Linux kernel 2.6.x
 > 
-> > Apparantly the skb->pkt_type is set very early within one of the
-> > kernel IP routines passed by the broadcasted or multicasted packet
-> > BEFORE iptables gave it to the user space program and the
-> > modified (now TCP packet with a host address) packet is re-injected
-> > into the kernel processing.
+> 1. Overview
+> -----------
 > 
-> Correct, and ip_queue does not have an option to let the userspace return 
-> a new packet type. But there is other iptables modules allowing you to do 
-> this kind of thing either before or after the packet is sent to ip_queue.
-
-Maybe you can give me a pointer which are these modules.
-
+> There is a remotely exploitable bug in all Linux kernel 2.6 series due to
+> using incorrect variable type. Vulnerability is connected to netfilter
+> subsystem and may cause DoS. It's disclosed only when using iptables with
+> rules matching TCP options (i.e.  --tcp-option). There is no difference
+> what action is taking up by matching rule.
 > 
-> > One - bad - solution for this problem could be to delete the above
-> > test within the TCP functions, but this would produce difficulties,
-> > if some people (hacker?) would send IP/TCP packets with multicast or
-> > broadcast addresses.
+> Vulnerability was detected on i386 architecture. The other ones weren't tested
+> but it seems to be vulnerable too.
 > 
-> Deleting these tests from TCP would cause serious problems. These tests 
-> exists there for good reasons.
-
-This is exactly what I meant with "bad" solution.
-
+> 2. Details
+> ----------
 > 
-> > As a better solution I would propose, that the processing initiated
-> > by ipq_set_verdict should update the packet type (skb->pkt_type)
-> > according to the re-injected packet.
+> Problem lies in tcp_find_option() function (net/ipv4/netfilter/ip_tables.c).
+> There is local array `opt' defined as:
 > 
-> How would it know? The packet type is dictated by how the packet arrived 
-> to the box, not the IP content.
-
-You are right, but if it is possible to re-inject another-type-packet, then
-the skp->pkt_type should be updated FOR CONSISTENCY. The decision can
-easily be done in the same way as it is done, when the packet enters the box:
-By testing the address type of th re-injected packet, which by definition
-is an IP packet.
-
+>     char opt[60 - sizeof(struct tcphdr)];
+> 
+> which contains TCP options extracted from packet. Function mentioned above
+> searches for specified option in this array.
+> 
+> Options in TCP packet, with some exceptions, are organized in the following
+> way:
+> 
+> 	Octet no.	Length	Field
+> 	-----------------------------
+> 		0	1	Opcode
+> 		1	1	Length of all option (N + 2)
+> 		2	N	Params
 > 
 > 
-> But honestly I would recommend reinjecting the packets via a TUN device.  
-> This way a whole can of problems is avioded with very little complexity. I
-> would even get the encapsulated packets out of the kernel via the same TUN
-> device and just use iptables to have them routed there but that it me.
+> The function iterates over options in array:
+> 
+>     for (i = 0; i < optlen; ) {
+> 	    if (opt[i] == option) return !invert;
+> 	    if (opt[i] < 2) i++;
+> 	    else i += opt[i+1]?:1;
+>     }
+> 
+> moving counter by the option length.
+> 
+> But, in case the `length' value is greater than 127, the value of this octet
+> in `opt' is implicitly casted to char, which results in negative number and
+> the loop counter moving back. In some cases it is possible, that counter
+> cycles throught the contents of this array infinitely.
+> 
+> 3. Impact
+> ---------
+> 
+> After sending one suitably prepared TCP packet to victim host, kernel goes
+> into infinite loop consuming all CPU resources, rendering the box
+> unresponsable. Of course, there is no need to have a shell access to attacked
+> host.
+> 
+> 4. Exploitation
+> ---------------
+> 
+> Example of packet-of-death:
+> 
+> 0x0000:  4500 0030 1234 4000 ff06 e83f c0a8 0001
+> 0x0010:  c0a8 0002 0400 1000 0000 0064 0000 0064
+> 0x0020:  7000 0fa0 dc6a 0000 0204 05b4 0101 04fd
+> 
+> 5. Fix
+> ------
+> 
+> There is only need to change type of `opt' array from signed char to unsigned
+> (or, better to u_int8_t) as it was defined in 2.4 kernel or prior to version
+> 1.16 of net/ipv4/netfilter/ip_tables.c file.
+> 
+> --- net/ipv4/netfilter/ip_tables.c.orig	2004-04-04 05:36:47.000000000 +0200
+> +++ net/ipv4/netfilter/ip_tables.c	2004-06-24 21:24:26.000000000 +0200
+> @@ -1461,7 +1461,7 @@
+>  		int *hotdrop)
+>  {
+>  	/* tcp.doff is only 4 bits, ie. max 15 * 4 bytes */
+> -	char opt[60 - sizeof(struct tcphdr)];
+> +	u_int8_t opt[60 - sizeof(struct tcphdr)];
+>  	unsigned int i;
+>  
+>  	duprintf("tcp_match: finding option\n");
+> 
+> 6. Credits
+> ----------
+> 
+> Vulnerability was discovered, identified and fixed by Adam Osuchowski
+> and Tomasz Dubinski.
+> 
+> 
 
-My understanding of TUN is that it offers only 1_to_1 and not 1_to_n
-connections which I do need (IP/TCP packets have to be encapsulated within
-UDP packets, which are broadcasted to the neighbor hosts). That is why I
-did not yet overtake this proposal you made some weeks ago.
-
-Regards
-Christian
 -- 
-Christian Riechmann    E-Mail: riechmann@fgan.de
-c/o FGAN/FKIE          Tel: (+49) 228/9435 345,378
-Neuenahrer Strasse 20  Fax: (+49) 228/9435 685
-D-53343 Wachtberg, Germany
+James Morris
+<jmorris@redhat.com>
