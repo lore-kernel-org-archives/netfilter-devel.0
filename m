@@ -1,13 +1,18 @@
-From: Thomas Woerner <twoerner@redhat.com>
-Subject: iptables does not handle hostname with DNAT
-Date: Fri, 21 May 2004 15:17:34 +0200
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] for some issues in tcp window tracking patch
+Date: Fri, 21 May 2004 18:07:05 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40AE016E.6050007@redhat.com>
+Message-ID: <40AE2929.4040408@trash.net>
+References: <Pine.LNX.4.44.0405211156380.22237-100000@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira <pablo@eurodev.net>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>,
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0405211156380.22237-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,19 +23,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Henrik Nordstrom wrote:
+> On Fri, 21 May 2004, Patrick McHardy wrote:
+> 
+> 
+>>It should be, on x86 set_bit locks the bus:
+> 
+> 
+> Which was my second question.. does this set_bit really need to be atomic 
+> with a memory barrier?
 
-Hello,
+I missed that question. It's probably not neccessary, we will get a
+small race when zapping conntracks, but according to this comment in
+unreplied() we already have one anyway.
 
+/* There's a small race here where we may free a just-assured
+    connection.  Too bad: we're in trouble anyway. */
 
-is there a reason why DNAT can only be used with ip adresses and not with 
-hostnames?
+Not sure if it's still correct, though.
 
+Regards
+Patrick
 
-Thanks in advance,
-Thomas
-
--- 
-Thomas Woerner, Software Developer     Phone: +49-711-96437-0
-Red Hat GmbH                           Fax  : +49-711-96437-111
-Hauptstaetterstr. 58                   Email: twoerner@redhat.com
-D-70178 Stuttgart                      Web  : http://www.redhat.de/
+PS: As it turns out, I won't be gone over the weekend like I wrote.
