@@ -1,26 +1,28 @@
-From: Greg Stark <gsstark@mit.edu>
-Subject: oops
-Date: 29 Jun 2003 17:58:56 -0400
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <87n0g04kbj.fsf@stark.dyndns.tv>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [2.4 patch] netfilter Configure.help cleanup
+Date: Mon, 30 Jun 2003 14:38:12 +1000
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <20030630051516.AAEC12C220@lists.samba.org>
+References: <20030627233357.GN24661@fs.tum.de>
+Cc: Marcelo Tosatti <marcelo@conectiva.com.br>,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	linux-net@vger.kernel.org
+Return-path: <linux-net-owner@vger.kernel.org>
+To: Adrian Bunk <bunk@fs.tum.de>
+In-reply-to: Your message of "Sat, 28 Jun 2003 01:33:58 +0200."
+             <20030627233357.GN24661@fs.tum.de>
 List-Id: netfilter-devel.vger.kernel.org
 
+In message <20030627233357.GN24661@fs.tum.de> you write:
+> - remove useless short descriptions above CONFIG_*
 
-Sorry, I just sent a message here that I intended to send to the non-devel
-list. My MUA was misconfigured and thought this was the place to send messages
-for that list.
+> -Connection tracking (required for masq/NAT)
+>  CONFIG_IP_NF_CONNTRACK
 
--- 
-greg
+Can you really do this?  A quick skim didn't find anyone else skipping
+this line...
+
+Thanks,
+Rusty.
+--
+  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
