@@ -1,16 +1,16 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: oops in replace_in_hashes
-Date: Fri, 25 Jul 2003 12:41:08 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH] corrected ROUTE target
+Date: Fri, 25 Jul 2003 13:36:25 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030725104107.GA6015@balabit.hu>
-References: <20030725085731.GA5776@balabit.hu> <Pine.LNX.4.52.0307251104001.5333@tux.rsn.bth.se>
+Message-ID: <Pine.LNX.4.52.0307251336050.5863@tux.rsn.bth.se>
+References: <1056465726.2457.30.camel@descartes>  <1058517461.25182.139.camel@descartes>
+  <1058724909.8305.307.camel@tux.rsn.bth.se> <1059126202.17206.15.camel@descartes>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.52.0307251104001.5333@tux.rsn.bth.se>
+To: Cedric de Launois <delaunois@info.ucl.ac.be>
+In-Reply-To: <1059126202.17206.15.camel@descartes>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,35 +21,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jul 25, 2003 at 11:08:16AM +0200, Martin Josefsson wrote:
-> On Fri, 25 Jul 2003, Balazs Scheidler wrote:
-> > In our situation we do not have _any_ helpers loaded, only TPROXY generates
-> > dynamic NAT mappings as they are needed. Is it possible that the reference
-> > counting problem affects us?
-> 
-> Shouldn't be. This problem exists in 2.4.19 and 2.4.21 with
-> submitted/pending patches from pom.
-> 
-> And it shouldn't be the TPROXY stuff either since it's seen without that
-> stuff as well.
-> 
-> I'm a bit short on time but I hope I'll be able to look at it next week.
-> Maybe someone else feels like going on a bughunt during the weekend?
+On Fri, 25 Jul 2003, Cedric de Launois wrote:
 
-I'm definitely interested in hunting this bug down before next week. 
+> Ok. So here is the ROUTE patch that preserves the old behaviour.
+> The new option is called --continue. When using it, the packet is routed
+> and then continues travering the rules. If the option is not used, the
+> behaviour is as before (i.e. the packet is sent).
+>
+> The patch is against current cvs.
 
-The problem is that it is very difficult to reproduce it, and I can't put
-any debug patches to where it happens.
+Applied, thanks
 
-I've already checked out the hashtable locking, and it seems to be correct
-to me, e.g. all NAT hash table manipulation is protected by the ip_nat_lock
-lock. As the oops happens during the list manipulation in replace_in_hashes,
-I think this is some reference counting problem again (e.g. the conntrack is
-freed while it is still in the NAT hash)
-
-I'm going to validate conntrack reference counting, similarly to what I've
-done with locking. I'd be grateful for further hints you might have.
-
--- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+/Martin
