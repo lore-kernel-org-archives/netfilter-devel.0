@@ -1,16 +1,16 @@
-From: Jon Webb <jon_webb@binary-one.com>
-Subject: Re: mac dest match
-Date: Wed, 05 Jan 2005 19:24:51 -0800
-Message-ID: <41DCAF83.5040805@binary-one.com>
-References: <645d37c505010511185e63eb1b@mail.gmail.com>
-	<20050105211829.GA6225@soldats.localdomain>
+From: Leandro Melo de Sales <leandroal@gmail.com>
+Subject: Re: Nat types implemented by IPTABLES - STUN issue
+Date: Thu, 6 Jan 2005 03:08:20 -0300
+Message-ID: <5bc4c45705010522084d524973@mail.gmail.com>
+References: <5bc4c45705010511286ee56a0d@mail.gmail.com>
+	<876ef97a05010517193799cae6@mail.gmail.com>
+Reply-To: Leandro Melo de Sales <leandroal@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Peter Surda <shurdeek@routehat.org>
-In-Reply-To: <20050105211829.GA6225@soldats.localdomain>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <876ef97a05010517193799cae6@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,56 +22,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Peter,
-I've had to do this before with regards to testing adhoc wireless 
-network protocols. For mac filtering, you are on the right track - 
-filter everything you can using routing/iptables rules and set the 
-[send|accept|secure]_redirects appropriately. However, the problem is 
-that ARP will not live by those rules. Therefore, you must disable ARP 
-using ifconfig and then add static entries manually with the arp command.
+Hi....
 
-- Jon
+  So, I can't understand. The STUN RFC says that STUN doesn't support
+Symmetric nat. I'm behind a iptables firewall with nat for UDP packets
+and I can run some tests successfully. Are you sure that iptables just
+cover symmetric nat? If yes, I really need to check that situation.
 
-Peter Surda wrote:
+  Leandro.
 
->On Wed, Jan 05, 2005 at 01:18:43PM -0600, Vivek raghunathan wrote:
->  
->
->>Hi all.
->>    
->>
->Hi,
->
->  
->
->>I have 3 nodes A, B, C on the same subnet and I would like to create a
->>line topology:
->>
->>A -> B -> C
->>
->>To do this, I need to prevent any MAC packet from A to C from getting
->>across and vice versa.
->>    
->>
->I think it would be easier to use separate subnets and deactivate sending icmp
->source redirects on "B". No need to play with iptables.
->Assuming the network device is always eth0, you'd do something like:
->
->A: ip addr add 192.168.0.1/30 dev eth0
->B: ip addr add 192.168.0.2/30 dev eth0;ip addr add 192.268.0.6/30 dev eth0
->C: ip addr add 192.168.0.5/30 dev eth0
->
->(on B)
->echo 0 > /proc/sys/net/ipv4/conf/eth0/send_redirects
->
->  
->
->>-Vivek
->>    
->>
->Bye,
->
->Peter Surda (Shurdeek) <shurdeek@routehat.org>, ICQ 10236103, +436505122023
->
->  
+On Wed, 5 Jan 2005 20:19:43 -0500, Tobias DiPasquale
+<codeslinger@gmail.com> wrote:
+> On Wed, 5 Jan 2005 16:28:42 -0300, Leandro Melo de Sales
+> <leandroal@gmail.com> wrote:
+> >  I'm using an implementation for STUN (RFC 3489:
+> > http://www.faqs.org/rfcs/rfc3489.html) written in JAVA
+> > (http://stun4j.dev.java.net/).
+> >  In this RFC, they describes some nats variations (see STUN RFC
+> > chapter 5) some of them supported by STUN specification, like: Full
+> > Cone, Restricted Cone, Port Restricted Cone and Symmetric.
+> >  So, I have a simple question for iptables developers: what types of
+> > nat iptables supports?
+> 
+> Symmetric only.
+> 
+> --
+> [ Tobias DiPasquale ]
+> 0x636f6465736c696e67657240676d61696c2e636f6d
 >
