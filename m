@@ -1,57 +1,61 @@
-From: Florian Zwoch <zwoch@backendmedia.com>
-Subject: Re: why does netfilter make upload very slow? (was: Re: e1000 ->
- 82540EM on linux 2.6.0-test[45] very slow in one direction)
-Date: Wed, 15 Oct 2003 10:28:50 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <3F8D0542.1060101@backendmedia.com>
-References: <20031008131320.GD16964@favonius> <20031008153237.GC25743@sunbeam.de.gnumonks.org>
+From: "dada1" <dada1@cosmosbay.com>
+Subject: TARPIT on linux-2.6
+Date: Wed, 15 Oct 2003 09:30:42 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <0e2701c392ee$3e198f00$d800a8c0@edumazet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: linux-kernel@vger.kernel.org
-In-Reply-To: <20031008153237.GC25743@sunbeam.de.gnumonks.org>
-Cc: linux-kernel@vger.kernel.org, netdev@oss.sgi.com
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
->>Would somebody like to explain why netfilter (in kernel, but not in use)
->>makes upload go very slow? I am by no means a network guru, but eager to
->>learn :-)
-> 
-> 
-> let's get this straight.  There are five possible cases
-> 
-> a) CONFIG_NETFILTER disabled.  you won't even have the netfilter hooks
->    in the network stack (so certainly no netfilter-using modules loaded)
+Hi all
 
-no problem
+I tried to compile TARPIT module (from patch-o-matic-20030912.tar.bz2) on a
+linux-2.6.0-test5 kernel :
 
-> b) CONFIG_NETFILTER enabled, but _no_ modules (iptable_filter,
->    ip_conntrack, ...) attached to the netfilter hook
+make modules
+  CC [M]  net/ipv4/netfilter/ipt_TARPIT.o
+net/ipv4/netfilter/ipt_TARPIT.c: In function `tarpit_tcp':
+net/ipv4/netfilter/ipt_TARPIT.c:182: warning: implicit declaration of
+function `ip_route_output'
+net/ipv4/netfilter/ipt_TARPIT.c:192: structure has no member named `pmtu'
+net/ipv4/netfilter/ipt_TARPIT.c: At top level:
+net/ipv4/netfilter/ipt_TARPIT.c:268: warning: initialization from
+incompatible pointer type
+net/ipv4/netfilter/ipt_TARPIT.c:268: warning: initialization from
+incompatible pointer type
 
-no problem
+It seems linux-2.6 made some changes on ip_route_output() stuff, that I dont
+understand at all to try my own patches... :)
 
-> c) CONFIG_NETFILTER enabled and iptable_filter.o (which pulls ip_tables.o)
->    loaded, NO RULES in the table
+The pmtu part is easy : (line 192)
 
-no problem
+-   if (nskb->len > nskb->dst->pmtu)
++   if (nskb->len > dst_pmtu(nskb->dst))
 
-> d) CONFIG_NETFILTER enabled and iptable_filter.o (which pulls ip_tables.o)
->    loaded, RULES in the table
+The ipt_target part too (line 270)
 
-no problem (as long as i dont load any rules that require ip_conntrack)
+- static struct ipt_target ipt_tarpit_reg
+- = { { NULL, NULL }, "TARPIT", tarpit, check, NULL, THIS_MODULE };
++ static struct ipt_target ipt_tarpit_reg = {
++  .name       = "TARPIT",
++   .target     = tarpit,
++  .checkentry = check,
++    .me     = THIS_MODULE,
++ }
 
-> e) CONFIG_NETFILTER enabled and ip_conntrack.o loaded, iptable_filter
->    loaded or not, rules or not
+Anybody willing to help about ip_route_output() ?
 
-*boink*
-
-whenever i try to load ip_conntrack the nic performance drops from 5mb/s 
-to 200k/s.
-
-still using 2.6.0-test6.
-
-regards,
-Florian
+Thanks
+Eric Dumazet
