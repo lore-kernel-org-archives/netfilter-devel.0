@@ -1,12 +1,15 @@
-From: Weiguang Shi <wgshi2002@yahoo.ca>
-Subject: TCP's response to NF_STOLEN
-Date: Mon, 14 Jun 2004 00:31:49 -0400 (EDT)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Checksum problem in tcp-window-tracking
+Date: Mon, 14 Jun 2004 10:23:52 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040614043149.39553.qmail@web90003.mail.scd.yahoo.com>
+Message-ID: <Pine.LNX.4.33.0406141018360.12847-100000@blackhole.kfki.hu>
+References: <1087068742.1019.53.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <1087068742.1019.53.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,26 +20,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi Martin,
 
-My netfilter NF_IP_OUTPUT_HOOK function matches a TCP
-connection and returns NF_STOLEN now and then when 
-certain conditions are satisfied.
+On Sat, 12 Jun 2004, Martin Josefsson wrote:
 
-I'm wondering how the local TCP code responses. 
-Specifically, I was wondering whether this can cause
-sk_buff leak or anything. I known after receiving 
-enough dup-ACK's, TCP will retransmit? How is the 
-stolen packet reserved before that? Will it be the 
-exactly the one retransmitted (I didn't do any 
-kfree_skb(), shall I do it?)? Or will TCP re-alloc a
-skb header in retransmitting, leaving the stolen one
-floating in the memory?
+> I only get the complaints on localhost<->localhost traffic, all other
+> traffic is complaint-free and working great :)
+>
+> Jun 12 21:14:30 tux ip_conntrack_tcp: INVALID: bad T IN= OUT= MAC=
+> SRC=127.0.0.1 DST=127.0.0.1 LEN=93 TOS=00 PREC=0x00 TTL=64 ID=6306 DF
+> PROTO=TCP SPT=6667 DPT=32813 SEQ=2226635880 ACK=2237541190 WINDOW=4095
+> ACK PSH URGP=0
+>
+> "bad T" can only be this code from unclean()
 
-Thank you,
-Wei
+Why did the prefix get truncated to 'ip_conntrack_tcp: INVALID: bad T'???
+Anything special with your kernel?
 
-
-
-______________________________________________________________________ 
-Post your free ad now! http://personals.yahoo.ca
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
