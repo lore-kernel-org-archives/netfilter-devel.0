@@ -1,34 +1,29 @@
 From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
-Date: Wed, 29 Sep 2004 10:12:04 +0200 (CEST)
+Date: Wed, 29 Sep 2004 10:34:46 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0409291000490.11661@filer.marasystems.com>
-References: <1092407190.2402.120.camel@nienna.balabit>
-	<1095993739.1044.9.camel@jzny.localdomain>
-	<20040925075253.GQ3236@sunbeam.de.gnumonks.org>
-	<1096290473.1075.64.camel@jzny.localdomain>
-	<20040927133904.GP3236@sunbeam.de.gnumonks.org>
-	<1096339276.8660.30.camel@jzny.localdomain>
-	<Pine.LNX.4.61.0409280834520.29563@filer.marasystems.com>
-	<1096369001.8661.165.camel@jzny.localdomain>
-	<1096374273.7192.27.camel@nienna.balabit>
-	<Pine.LNX.4.61.0409281432550.31930@filer.marasystems.com>
-	<1096376252.7192.47.camel@nienna.balabit>
-	<1096377276.8661.252.camel@jzny.localdomain>
+Message-ID: <Pine.LNX.4.61.0409291012530.11661@filer.marasystems.com>
+References: <1096374273.7192.27.camel@nienna.balabit>
 	<1096379957.1026.5.camel@jzny.localdomain>
 	<Pine.LNX.4.61.0409281642500.32737@filer.marasystems.com>
 	<1096383406.7192.165.camel@nienna.balabit>
 	<Pine.LNX.4.61.0409281658330.32737@filer.marasystems.com>
-	<1096424069.1046.84.camel@jzny.localdomain>
+	<20040928180425.GA21097@zion.homelinux.com>
+	<Pine.LNX.4.61.0409282042150.2167@filer.marasystems.com>
+	<20040928205723.GA23352@zion.homelinux.com>
+	<876ef97a04092815306fa270f@mail.gmail.com>
+	<Pine.LNX.4.61.0409290111570.3760@filer.marasystems.com>
+	<876ef97a040928200055db3741@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Harald Welte <laforge@netfilter.org>,
+Cc: KOVACS Krisztian <hidden@balabit.hu>, Harald Welte <laforge@netfilter.org>,
 	netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Sven Schuster <schuster.sven@gmx.de>,
 	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
-	KOVACS Krisztian <hidden@balabit.hu>
+	Jamal Hadi Salim <hadi@znyx.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jamal Hadi Salim <hadi@znyx.com>
-In-Reply-To: <1096424069.1046.84.camel@jzny.localdomain>
+To: Tobias DiPasquale <codeslinger@gmail.com>
+In-Reply-To: <876ef97a040928200055db3741@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -39,61 +34,87 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 28 Sep 2004, Jamal Hadi Salim wrote:
+On Tue, 28 Sep 2004, Tobias DiPasquale wrote:
 
-> Like you said earlier, the allocation is IPaddress:portrange. I do think
-> this will require some extra hack for the mapping. Am i mistaken?
-> So instead if you just zeroed out the IPaddres piece, then the only
-> change left is por range.
-> I believe this is already supported in the form of
-> /proc/sys/net/ipv4/ip_local_port_range
+> I thought that having all of the active nodes respond to ARP requests
+> for the virtual IP would handle that, as the switch could no longer
+> bind an IP address to a particular switch port? Is that not the case
+> with some hardware?
 
-This is for local connections, not related to NAT.
+Switches dont work with IP addreses, they work with MAC addresses.
 
-> Unfortunately i am not sure if you can force current to always get
-> its port allocation from the allocated range _only_. Is this doable?
+There is some odd switches which only allows one port per MAC, cutting the 
+traffic on the old port when seeing the MAC on a new port. But we are not 
+likely to see these switches in environments where this type of firewalls 
+are intended to be deployed.
 
-iptables NAT allows you to specify the IP and port range acceptable.
-
-> Caveat: You just limited your active connections for your cluster to 64K
-> flows.
-
-Not really. But if you only have a single IP address then the port 
-allocation limits you to 64K flows per "other" IP. As already discussed 
-the tuple needs to be unique between different flows, not neccesarily the 
-port.
-
-> I think we should make the issue of balancing a separate item.
-
-It is separate from the matter of syncronization. But the reason why the 
-syncronization protocol has not yet been designed for active-active is 
-because no load balancing scheme has been designed which would work. The 
-two goes hand in hand and both needs to be solved.
-
-Most likely the first load balancing method which will get implemented 
-(and forcing ct_sync to add the two minor pieces missing for active-active 
-syncronization) is the multicast balancing method in a no-NAT clused where 
-each firewall sees all traffic and selects what it looks closer at. This 
-is by far the easiest to implement. But even this is not entirely trivial 
-as there may be conflicts in flow key balance IDs depending on the 
-direction of the flow, but most likely this problem is more theoretical 
-than practical.
-
-> It shouldnt matter how the packet gets delivered to an active node
-> (pigeons, expensive loadbalancers, LVS, some routing tricks,
-> etc all is fine by me).
-> Assuming:
+>> failover this virtual firewall among the nodes in the cluster as needed.
+>> there may only be one master at a time per virtual firewall but each node
+>> can be master for several virtual firewalls.
 >
-> - The state is already synced across all the nodes;
->
-> - assuming theres no conflict and
->
-> - assuming asymetry (ok, maybe thats too restrictive) but a good start.
+> Right, but same situation as above. There are still multiple machines
+> acting as one by way of a virtual address.
 
-Allowing for assymetric flows is not something which is realistic to aim 
-for unless you also aim for absolute syncronization by delaying packets 
-until the firewalls have been syncronized. Such design will scale very 
-badly.
+Well, to be honest I am not at all considering load balancing of a host, 
+only load balancing of firewalls. A firewall does not really have a 
+address in such sense, it has a ruleset on what is allowed to be forwarded 
+and how the traffic should be mangled (NAT:ed) while it is forwarded. 
+Traffic is not addressed TO the firewall, it is addressed to something on 
+the other side of the firewall.  The load balancing of hosts is already 
+done very well by LVS and is not really a problem which iptables/netfilter 
+ct_sync needs to address. Because of this I do not restrict my thinking to 
+load balancing methods which would work for a single host/service.
+
+The network simply needs to know which firewall to send the traffic to 
+depending on the type of flow. Depending on how smart your network is this 
+places certain limitaitons on the type of load balancing methods you can 
+select and what restrictions there is on the firewall/NAT rules.
+
+>> connections need to be ct_sync:ed from the current master to all potential
+>> backups, multiplied by each virtual firewall.
+>
+> Is that desired? I'm now thinking that perhaps the goals of ct_sync
+> are not in line with in-cluster active-active load-balancing.
+
+Let me reprhase the above
+
+connections need to be ct_sync:ed from the current master to all potential 
+backups of this virtual firewall. The potential backup nodes can be a 
+subset of the total nodes of the clusted, at least one. This is multiplied 
+by each virtual firewall as each virtual firewall needs to have it's 
+connections syncronized from it's current master to it's potential 
+backups.
+
+The syncronization needs to be online, allowing a backup to recover the 
+traffic in case the current master crashes and it's connection table is 
+lost.
+
+> Here's what I mean: if you have a 4-node cluster of firewalls in
+> active-active configuration, then the states of all connections
+> flowing through ALL the boxes are replicated on all of the boxes.
+
+Not neccesarily, this cluster can be divided into 4 virtual firewalls each 
+handling a subset of the traffic and each having with at least one 
+potential backup node assigned. Each virtual firewall has a unique MAC 
+shared among the potential nodes of this virtual firewall.
+
+The drawback is that if one node fails then the load will be doubled on 
+it's backup node as that node then gets two virtual firewalls. But the 
+benefit is that this design allows for relatively easy unicast 
+partitioning of the traffic flows using standard equipment.
+
+If you want more granular load balancing then "simply" divide the setup in 
+more virtual firewalls just as you would do if there was more nodes in the 
+cluster. With 4 * 3 virtual firewalls you can get very good load 
+distribution even in case of one, two or three node failures. The drawback 
+is that the network setup gets more complex.
+
+> This defeats the purpose of active-active load-balancing as each of the 
+> boxes would then handle almost all of the load of the whole cluster. I 
+> don't see why I'd want to synchronize the connection states between 
+> _all_ of the machines in an active-active cluster.
+
+Which is exacly what I am saying. Just different words.
 
 Regards
 Henrik
