@@ -1,10 +1,10 @@
-From: Matteo Croce <3297627799@wind.it>
-Subject: UNWANTED state
-Date: Wed, 29 Dec 2004 23:58:15 +0100
-Message-ID: <200412292358.16490.3297627799@wind.it>
+From: Donato Diaz <donatodd@itcsoluciones.com>
+Subject: NAT Server, SMP box or Single CPU box?
+Date: Mon, 27 Dec 2004 10:04:59 -0300
+Message-ID: <41D0087B.2060600@itcsoluciones.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_Iaz0B4ayWLKIgtB"
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature";
+	micalg=sha1; boundary="------------ms060200040409050305030701"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,70 +18,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_Iaz0B4ayWLKIgtB
-Content-Type: text/plain;
-  charset="us-ascii"
+This is a cryptographically signed message in MIME format.
+
+--------------ms060200040409050305030701
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 Hi,
-time ago i wanted to stealth may gateway, so i start dropping outgoing 
-icmp-port-unreachable packets, to avoid UDP scans.
-But i had also a '--dport 113 -j REJECT' target to allow faster irc logins,
-that stopped working since those ICMP were rejected by the new rule.
-So i hacked the kernel with a patch i also attach, to prevent those packets 
-being generated.
-I also start dropping outgoing RST/ACK to prevent TCP scans, but now i have a 
-question:
-can an UNWANTED state be useful?
-I mean, incoming packets which dstport is closed were classified as UNWANTED.
-So were possible to drop UNWANTED packets, and a port will be open when some 
-service listens to it and filtered (not closed) when the service doesn't 
-listens.
-A simple firewall is having a DROP default policy and open used ports.
-But what happens when the service listening behind that port stop listenings?
-The port remains not filtered, and send RST/ACK (or icmp-port-unreachable) 
-when someone tries to connect to it.
 
-Regards, Matteo
+I have read in different lists that some people are having problem doing 
+NAT with SMP Servers, due to the way the kernel manage conntrack with 
+two or more CPUs.
+Can anyone tell me if it's true that NAT runs slower on SMP servers ?
+Is it better a Server with one faster CPU than a server with two CPUs?
+I need to buy a NAT Server for +1500 users. I would like to know if an 
+SMP Server with two CPUs is the best choice.
 
--- 
-  .""`.     Matteo Croce <3297627799@wind.it>
- : :"  :    proud Debian admin and user
- `. `"`
-   `-  Debian - when you have better things to do than fix a system
+Any help would be really appreciated.
+Thanks all,
+Donato.
 
---Boundary-00=_Iaz0B4ayWLKIgtB
-Content-Type: text/x-diff;
-  charset="us-ascii";
-  name="udp.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="udp.diff"
+--------------ms060200040409050305030701
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
 
-diff -urN linux-2.6.10-vanilla/net/ipv4/udp.c linux-2.6.10/net/ipv4/udp.c
---- linux-2.6.10-vanilla/net/ipv4/udp.c	2004-12-26 17:17:09.000000000 +0100
-+++ linux-2.6.10/net/ipv4/udp.c	2004-12-29 02:57:26.000000000 +0100
-@@ -1165,7 +1165,7 @@
- 		goto csum_error;
- 
- 	UDP_INC_STATS_BH(UDP_MIB_NOPORTS);
--	icmp_send(skb, ICMP_DEST_UNREACH, ICMP_PORT_UNREACH, 0);
-+//	icmp_send(skb, ICMP_DEST_UNREACH, ICMP_PORT_UNREACH, 0);
- 
- 	/*
- 	 * Hmm.  We got an UDP packet to a port to which we
-diff -urN linux-2.6.10-vanilla/net/ipv6/udp.c linux-2.6.10/net/ipv6/udp.c
---- linux-2.6.10-vanilla/net/ipv6/udp.c	2004-12-26 17:17:10.000000000 +0100
-+++ linux-2.6.10/net/ipv6/udp.c	2004-12-29 02:57:48.000000000 +0100
-@@ -523,7 +523,7 @@
- 			goto discard;
- 		UDP6_INC_STATS_BH(UDP_MIB_NOPORTS);
- 
--		icmpv6_send(skb, ICMPV6_DEST_UNREACH, ICMPV6_PORT_UNREACH, 0, dev);
-+//		icmpv6_send(skb, ICMPV6_DEST_UNREACH, ICMPV6_PORT_UNREACH, 0, dev);
- 
- 		kfree_skb(skb);
- 		return(0);
-
---Boundary-00=_Iaz0B4ayWLKIgtB--
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAMYICvzCC
+ArsCAQEwgawwgaYxCzAJBgNVBAYTAkFSMRAwDgYDVQQIEwdNZW5kb3phMRAwDgYDVQQHEwdN
+ZW5kb3phMRYwFAYDVQQKEw1JVENTb2x1Y2lvbmVzMRAwDgYDVQQLEwdEZXZMYWJzMR4wHAYD
+VQQDExV3d3cuaXRjc29sdWNpb25lcy5jb20xKTAnBgkqhkiG9w0BCQEWGmRvbmF0b2RkQGl0
+Y3NvbHVjaW9uZXMuY29tAgEBMAkGBSsOAwIaBQCgggH0MBwGCSqGSIb3DQEJBTEPFw0wNDEy
+MjcxMzA0NTlaMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwICAgCA
+MA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIG/BgsqhkiG9w0BCRAC
+CzGBr6CBrDCBpjELMAkGA1UEBhMCQVIxEDAOBgNVBAgTB01lbmRvemExEDAOBgNVBAcTB01l
+bmRvemExFjAUBgNVBAoTDUlUQ1NvbHVjaW9uZXMxEDAOBgNVBAsTB0RldkxhYnMxHjAcBgNV
+BAMTFXd3dy5pdGNzb2x1Y2lvbmVzLmNvbTEpMCcGCSqGSIb3DQEJARYaZG9uYXRvZGRAaXRj
+c29sdWNpb25lcy5jb20CAQEwgb0GCSsGAQQBgjcQBDGBrzCBrDCBpjELMAkGA1UEBhMCQVIx
+EDAOBgNVBAgTB01lbmRvemExEDAOBgNVBAcTB01lbmRvemExFjAUBgNVBAoTDUlUQ1NvbHVj
+aW9uZXMxEDAOBgNVBAsTB0RldkxhYnMxHjAcBgNVBAMTFXd3dy5pdGNzb2x1Y2lvbmVzLmNv
+bTEpMCcGCSqGSIb3DQEJARYaZG9uYXRvZGRAaXRjc29sdWNpb25lcy5jb20CAQEwAgYABAAA
+AAAAAAA=
+--------------ms060200040409050305030701--
