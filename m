@@ -1,15 +1,20 @@
-From: "Drake Henderson" <dhenderson@n2bb.com>
-Subject: packet forwarding
-Date: Wed, 25 Jun 2003 11:27:42 -0400
+From: Gael Mauleon <gmauleon@free.fr>
+Subject: Re: Why huge timeout btw ?
+Date: Wed, 25 Jun 2003 17:38:49 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <382BC0C28F397F4785E7414B8279F5272BA1BC@n2-atl-exch.it.n2bb.com>
+Message-ID: <5.2.1.1.0.20030625173350.00b14a20@192.168.0.1>
+References: <5.2.1.1.0.20030624231830.00b148e0@192.168.0.1>
+ <5.2.1.1.0.20030624214109.00b147c8@192.168.0.1>
+ <5.2.1.1.0.20030623234428.00b14690@192.168.0.1>
+ <5.2.1.1.0.20030623234428.00b14690@192.168.0.1>
+ <5.2.1.1.0.20030624214109.00b147c8@192.168.0.1>
+ <5.2.1.1.0.20030624231830.00b148e0@192.168.0.1>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: Patrick Schaaf <bof@bof.de>
+In-Reply-To: <20030625062124.GB8673@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,45 +25,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+At 08:21 25/06/2003 +0200, Patrick Schaaf wrote:
 
+>Please end this discussion NOW. It has been held numerous times,
+>and we were NEVER convinced to do a change. You did not mention
+>anything that wasn't mentioned numerous times in past discussions.
+>I have not written anything we didn't mention in reply, before.
+>
+>I wouldn't have contributed, and won't do it again, but I thought
+>Harald shouldn't stand out as the sole defender of the truth.
+>
+>We have a concensus, and you will not change it.
+>
+>Got it?
 
-I am trying to use libipq to forward packets.
+Yeah got it as you said, didn't want to bore anyone with my
+thoughts but I thought a list was for that....
 
-Using the following iptable rules, forwarding works.
+Sorry to had missed the discussion in the archive must be a long time ago,
+I got the point now, just wanted it not to be so rude.
 
-A. iptables -t nat -A PREROUTING -d 192.168.0.220 -p udp --dport 4488 -j
-DNAT --to-destination 192.168.0.212:4488
-B. iptables -t filter -A FORWARD -p udp -d 192.168.0.212 -j ACCEPT
-
-In addition, adding rules to log the path of the packet based on the
-script at
-http://iptables-tutorial.frozentux.net/scripts/rc.test-iptables.txt, I
-can see the packet move along the path
-
-  mangle:prerouting, nat:prerouting, mangle:forward, filter:forward,
-mangle:postrouting, nat:postrouting  (the right side path in the picture
-at the below link)
-
-
-http://iptables-tutorial.frozentux.net/chunkyhtml/traversingoftables.htm
-l#TRAVERSINGGENERAL
-
-
-The problem occurs when I change the target in rule A from DNAT to
-QUEUE.  The handler program changes the destination of the packet and
-then accepts it.  The packet, however, follows the path
-
-  mangle:prerouting, nat:prerouting, mangle:input, filter:input (the
-left side path in the picture)
-
-Why, if the destination is changed at the nat:prerouting step, does the
-routing decision not branch to the forward path instead of the input
-path?
-
-I know that the handler program is receiving the packets because if it
-drops them, the path stops after nat:prerouting.
-
-
-Thanks for you help,
-
-Drake
+Thanks  :(
