@@ -1,16 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: raw table breaks iptables binary compatibility
-Date: Thu, 13 Nov 2003 11:20:55 +0100 (CET)
+From: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
+Subject: Re: PROBLEM: 2.4.23-rc4 -> rc1 hang with change to ip_nat_core.c
+ made in pre4
+Date: Thu, 13 Nov 2003 09:07:05 -0200 (BRST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0311131111300.28150-100000@blackhole.kfki.hu>
-References: <20031109093255.GB1005@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.44.0311130850030.3878-100000@logos.cnet>
+References: <20031112212025.5eb29f52.davem@redhat.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Henrik Nordstrom <hno@marasystems.com>,
+Cc: "Beau E. Cox" <beau@beaucox.com>, <linux-kernel@vger.kernel.org>,
 	<netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031109093255.GB1005@sunbeam.de.gnumonks.org>
+To: "David S. Miller" <davem@redhat.com>
+In-Reply-To: <20031112212025.5eb29f52.davem@redhat.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,35 +22,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 9 Nov 2003, Harald Welte wrote:
 
-> On Sun, Nov 09, 2003 at 02:12:43AM +0100, Henrik Nordstrom wrote:
-> > I don't quite see why these are required for the 'raw' table. Seems to be
-> > related to debugging or error management on rulesets incompatible with
-> > 'raw'. In any case the effect is probably not that desireable from a
-> > p-o-m/base patch..
->
-> yes, they are for the 'TRACE' target that is included with the raw
-> patch.  Initially the patch didn't add these fields, but then jozsef
-> implemented it for speeding up the logging of rule numbers.
->
-> Jozsef: could you split out the raw.patch in
->
-> a) one that just adds the table (and the NOTRACK target)
-> b) another one that adds the TRACE target (and thus depends on the LOG changes)
 
-I have committed the separation of the raw target into a backward
-compatible raw patch (with NOTRACK target) and a backward
-incompatible TRACE target patch in cvs.
+On Wed, 12 Nov 2003, David S. Miller wrote:
 
-The defragmentation of locally generated packets bug you reported and
-fixed is included in the raw patches under patch-o-matic/ and
-patch-o-matic_2.5/ as well.
+> On Wed, 12 Nov 2003 19:24:38 -1000
+> "Beau E. Cox" <beau@beaucox.com> wrote:
+> 
+> > On Wednesday 12 November 2003 05:59 pm, David S. Miller wrote:
+> > > Marcelo has reverted the change in question, so his current
+> > > 2.4.x tree should be fine.
+> > 
+> > Thank you so much.
+> > 
+> > I guess this makes me an honary Linux kernel contribitor, er...
+> > uncontributor... :)
+> 
+> I take what I said back temporarily, Marcelo didn't revert the
+> change yet but I have just reminded him to do so.
+> 
+> It should be fixed by the time 2.4.23 final rolls out.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+The mentioned change is already in bkbits.net.
