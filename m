@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: checkentry() and detroy ()  called multiple times
-Date: Fri, 23 May 2003 21:54:43 +0200
+Subject: Re: Netfilter Inconsistency?
+Date: Fri, 23 May 2003 22:01:12 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030523195443.GP3077@sunbeam.de.gnumonks.org>
-References: <3EBFAE08.5050006@linux.org.ar>
+Message-ID: <20030523200112.GR3077@sunbeam.de.gnumonks.org>
+References: <20030515174951.32627.qmail@web20002.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UlsYxwg8UDQn+EKZ"
+	protocol="application/pgp-signature"; boundary="vTfKKTivj/mQoluA"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: diegows <diegows@linux.org.ar>
+To: Brian Deep <brian_deep@yahoo.com>
 Content-Disposition: inline
-In-Reply-To: <3EBFAE08.5050006@linux.org.ar>
+In-Reply-To: <20030515174951.32627.qmail@web20002.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,28 +23,38 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---UlsYxwg8UDQn+EKZ
+--vTfKKTivj/mQoluA
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, May 12, 2003 at 11:22:00AM -0300, diegows wrote:
-> I 'm doing a match module and I have i little confusion.
->=20
-> If I insert a rule using my match module, I see that checkentry() is=20
-> called once. If I insert a rule using my match module again I see that=20
-> checkentry() is called twice and destroy is called once, and If i insert=
-=20
-> a rule for third time I see that checkentry is called tree times and=20
-> destroy twice.
+On Thu, May 15, 2003 at 10:49:51AM -0700, Brian Deep wrote:
 
-because checkentry is called for every rule that is using your match in
-this table.  It is supposed to check the *matchinfo data passed on from
-userspace.
+>  I can add and delete rules fine and open up
+> connections correctly using the SNAT rules, but if I
+> change the source IP address on the SNAT rule I run
+> into problems.  The SNAT rule is added correctly and
+> verified using iptables userspace, but when the
+> connection actually gets NAT'd, it gets the source IP
+> address of the SNAT rule I had in previous.  I have
+> tried manually inserting and appending  SNAT rules,
+> but the connection is still NAT'd with the previous
+> rule source IP.  At some point, this rule "time's out"
+> and I am able to correctly add my SNAT rule in.
 
-> Is this the right? why?
+the NAT tables are only traversed for every first packet of a
+connection. if you alter the ruleset, it will only work for new
+connections.  All further packets within this connection will be
+transformed according to what was determined by the first packet.
 
-yes. see above.
+> Anyone have any thoughts?  And why the he** would it
+> timeout after several minutes?
+
+because then the entry times out from the conntrack table (you can
+confirm this by watching /proc/net/ip_conntrack)
+
+> Thanks,
+> -- Brian
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -56,16 +66,16 @@ yes. see above.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---UlsYxwg8UDQn+EKZ
+--vTfKKTivj/mQoluA
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE+znyDXaXGVTD0i/8RArezAJ0cMm6cf8AlU9+irqbMT8RfQNSCqQCfTiMk
-MsxkweKaV7l0x6Imssc9dRM=
-=mI81
+iD8DBQE+zn4IXaXGVTD0i/8RAn9UAKCbauxJ/X/0MgHuPm4nonbxF/3UtACdGDrD
+H2Rga99+8a6SgAvMXZz+HR0=
+=FDhT
 -----END PGP SIGNATURE-----
 
---UlsYxwg8UDQn+EKZ--
+--vTfKKTivj/mQoluA--
