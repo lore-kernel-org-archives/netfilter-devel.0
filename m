@@ -1,22 +1,37 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Fw: [Bug 133788] New: ip_conntrack_in: Frag of proto 17
-Date: Wed, 29 Sep 2004 12:11:08 +0200
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: [nf-failover] Re: [RFC] ct_sync 0.15 (corrected)
+Date: Wed, 29 Sep 2004 13:29:57 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040929101108.GO31674@sunbeam.de.gnumonks.org>
-References: <20040928130512.57479400.davem@davemloft.net>
-	<20040928220532.GN29961@sunbeam.de.gnumonks.org>
-	<4159F559.3040400@trash.net>
-	<20040929074328.GB31674@sunbeam.de.gnumonks.org>
-	<Pine.LNX.4.61.0409291038080.11661@filer.marasystems.com>
+Message-ID: <1096457397.3744.21.camel@nienna.balabit>
+References: <1092407190.2402.120.camel@nienna.balabit>
+	<1095993739.1044.9.camel@jzny.localdomain>
+	<20040925075253.GQ3236@sunbeam.de.gnumonks.org>
+	<1096290473.1075.64.camel@jzny.localdomain>
+	<20040927133904.GP3236@sunbeam.de.gnumonks.org>
+	<1096339276.8660.30.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0409280834520.29563@filer.marasystems.com>
+	<1096369001.8661.165.camel@jzny.localdomain>
+	<1096374273.7192.27.camel@nienna.balabit>
+	<Pine.LNX.4.61.0409281432550.31930@filer.marasystems.com>
+	<1096376252.7192.47.camel@nienna.balabit>
+	<1096377276.8661.252.camel@jzny.localdomain>
+	<1096379957.1026.5.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0409281642500.32737@filer.marasystems.com>
+	<1096383406.7192.165.camel@nienna.balabit>
+	<Pine.LNX.4.61.0409281658330.32737@filer.marasystems.com>
+	<1096424069.1046.84.camel@jzny.localdomain>
+	<Pine.LNX.4.61.0409291000490.11661@filer.marasystems.com>
+	<10964
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="s9kDAZ2EyO0AcRYa"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: quoted-printable
+Cc: Harald Welte <laforge@netfilter.org>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>,
+	Henrik Nordstrom <hno@marasystems.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0409291038080.11661@filer.marasystems.com>
+To: hadi@znyx.com
+In-Reply-To: <1096456390.1044.212.camel@jzny.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,62 +43,25 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---s9kDAZ2EyO0AcRYa
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+  Hi,
 
-On Wed, Sep 29, 2004 at 10:41:31AM +0200, Henrik Nordstrom wrote:
+2004-09-29, sze keltez=E9ssel 13:13-kor Jamal Hadi Salim ezt =EDrta:
+> Sorry, I meant symetric setup .. i.e equal looking machines with same o=
+r
+> similar set of addresses. Two masquareding examples:
+>=20
+> I:
+> Machine A: internal IP: 10.0.0.1, external 1.1.1.1
+> Machine B: internal IP: 10.0.0.2, external 1.1.1.2
+>=20
+> On failover, all addresses taken over by peer; state synced, things=20
+> run as before.
 
-> will get fragmented (by conntrack) and then reinjected..  has it been=20
-> fixed so the reinjected traffic (which is the same skbuff) has it's=20
-> conntrack state cleared?
-
-no, the nfct remains the same, so we just ignore it from conntrack point
-of view (NF_ACCEPT very early, see patrick's patch).
-
-> I remember this issue coming up before wrt NAT where loopback packets wer=
-e=20
-> seen as NEW twice, but I don't remember what the fix was.
-
-No, this shouldn't happen (now anymore?), since the nfct of
-LOCAL_OUT/POST_ROUTING is still present in PRE_ROUTING/LOCAL_IN.
-
-I am not sure whether we can make this 'optimiziation'.  Thinking of TCP
-window tracking and someone having packet filter rules for the loopback
-device...  But at the moment I cannot think why conntrack'ing the packet
-twice would make any difference at all.
-
-NAT on loopback connections.  *sigh*.  I think this is beyond my
-imagination at this point.
-
-Most firewalls I've deployed have NOTRACK rules for loopback traffic, so
-I tend not to see those issues.
-
-> Regards
-> Henrik
+  This is (almost) possible with the current code: all we should do is
+to extend cts_proto to handle multiple redundancy groups at the same
+time. Such a solution plus some simple VRRP-based redundancy would be
+able to handle such a setup.
 
 --=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---s9kDAZ2EyO0AcRYa
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFBWoo8XaXGVTD0i/8RAov1AKCjOBOq1h1SsOBYG8bbIjHnGGlWKwCfRQjF
-s9N4CPkmTLloo1A29h9AU8M=
-=IJpe
------END PGP SIGNATURE-----
-
---s9kDAZ2EyO0AcRYa--
+ Regards,
+   Krisztian KOVACS
