@@ -1,14 +1,13 @@
-From: Min Li <li9@expert.ics.purdue.edu>
-Subject: xdmcp
-Date: Mon, 4 Nov 2002 05:39:22 -0500 (EST)
+From: =?gb2312?B?0+G0uurN?= <ych@tcte.com.cn>
+Subject: SIP
+Date: Wed, 6 Nov 2002 17:07:56 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.GSO.4.44.0211040539070.4935-100000@expert.ics.purdue.edu>
-References: <20021104101704.GF3894@oknodo.bof.de>
+Message-ID: <000a01c28573$ff6900c0$1301a8c0@tcte.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@lists.netfilter.org, <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0007_01C285B7.0D417C20"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-In-Reply-To: <20021104101704.GF3894@oknodo.bof.de>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,11 +18,27 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear all,
-I am trying to make xdmcp work on red-hat 7.3. What I did was turn on the
-flag in /etc/kde/kdm/kdmrc, make "enable = true", since I'm using kde.
-However, my exceed on the windows still cannot see the broadcast from the
-linux machine. Please advise. Thanks a lot. I also checked the firewall
-rules in /etc/sysconfig/iptables, and make sure port 177 is not blocked.
+This is a multi-part message in MIME format.
 
-Min
+------=_NextPart_000_0007_01C285B7.0D417C20
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
+
+ZG9zZSBpcHRhYmxlcyBzdXBwb3J0IFNJUCBub3c/IEkgd2FudCBpdCB0byBtYWtlIG15IElQIHBo
+b25lIHdvcmsuIHRoYW5rIHlvdS4=
+
+------=_NextPart_000_0007_01C285B7.0D417C20
+Content-Type: text/html;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
+
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
+L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgaHR0cC1lcXVpdj1Db250ZW50LVR5cGUgY29udGVu
+dD0idGV4dC9odG1sOyBjaGFyc2V0PWdiMjMxMiI+DQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNS41
+MC40OTE5LjIyMDAiIG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8
+Qk9EWSBiZ0NvbG9yPSNmZmZmZmY+DQo8RElWPjxGT05UIHNpemU9Mj5kb3NlIGlwdGFibGVzIHN1
+cHBvcnQgU0lQIG5vdz8gSSB3YW50IGl0IHRvIG1ha2UgbXkgSVAgcGhvbmUgDQp3b3JrLiB0aGFu
+ayB5b3UuPC9GT05UPjwvRElWPjwvQk9EWT48L0hUTUw+DQo=
+
+------=_NextPart_000_0007_01C285B7.0D417C20--
