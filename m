@@ -1,13 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: PATCH: make MARK target terminate
-Date: Mon, 17 Jun 2002 05:46:09 +0200
+From: Andras Kis-Szabo <kisza@securityaudit.hu>
+Subject: Re: [CRAP] Some patches
+Date: Mon, 17 Jun 2002 10:45:38 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <3D0D5B81.7010106@trash.net>
+Message-ID: <20020617104538.B8138@sch.bme.hu>
+References: <20020616200239.GI23720@stingr.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080309030808090901030203"
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: 8bit
+Cc: Paul P Komkoff Jr <i@stingr.net>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel <netfilter-devel@lists.samba.org>
+To: netfilter-devel@lists.samba.org
+Content-Disposition: inline
+In-Reply-To: <20020616200239.GI23720@stingr.net>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,118 +22,74 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080309030808090901030203
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Paul P Komkoff Jr ................................... (2002. június 17.)
 
-Hi.
+ Hi!
 
-The attached patch adds a new option --terminate to the MARK target 
-which lets the user choose
-if MARK should return IPT_CONTINUE (normal behaviour) or NF_ACCEPT (to 
-terminate further rule processing).
-This can be useful if you have complex marking rules, f.e. for QoS.
-The current patch is against a clean MARK target, if anyone wishes i can 
-also make a patch which will apply after MARK-operations.
-A CONNMARK patch will follow but currently CONNMARK doesn't apply clean 
-against 2.4.18/2.4.19-pre10 ..
+> But ipv6 stuff seems awful :( it just duplicating one function already
+> present in ipv6 code :( and doing it without static keyword ...
+Please, read the code again!
+In firewall I had to use the ESP and AH headers, too, but the core kernel does
+not support it!
+But the other side: yes, it's awful, I now. All the code contain the some
+search and parser (not exactly the same, but can be changed). While the
+patches are in the p-o-m and they are independent ones, I can not create exact
+debedencies. (The core ipv6 code will be changed soon, after it the search
+function will be placed into it - I can remove it from the extensions.)
 
-Bye,
-Patrick
+> diff -Nur --exclude=SCCS --exclude=BitKeeper --exclude=ChangeSet a/net/ipv6/Makefile.in linux-2.4.19-pre10-ac2-s3/net/ipv6/Makefile.in
+> diff -Nur --exclude=SCCS --exclude=BitKeeper --exclude=ChangeSet a/net/ipv6/exthdrs.c linux-2.4.19-pre10-ac2-s3/net/ipv6/exthdrs.c
+> --- a/net/ipv6/exthdrs.c	Sat Jun 15 12:49:53 2002
+> +++ linux-2.4.19-pre10-ac2-s3/net/ipv6/exthdrs.c	Fri Jun 14 20:03:51 2002
+> @@ -20,6 +20,8 @@
+>   *				  tlv options.
+>   */
+>  
+> +#include <linux/config.h>
+> +#include <linux/module.h>
+>  #include <linux/errno.h>
+>  #include <linux/types.h>
+>  #include <linux/socket.h>
+> @@ -729,6 +731,8 @@
+>  		 (nexthdr == NEXTHDR_NONE)	||
+>  		 (nexthdr == NEXTHDR_DEST) );
+>  }
+> +
+> +EXPORT_SYMBOL(ipv6_ext_hdr);
+>  
+>  /*
+>   * Skip any extension headers. This is used by the ICMP module.
+It would be nice, but it is not the Netfilter code. (And these patches are in
+p-o-m.)
+The exported function:
+int ipv6_ext_hdr(u8 nexthdr)
+{
+        return ( (nexthdr == NEXTHDR_HOP)       ||
+                 (nexthdr == NEXTHDR_ROUTING)   ||
+                 (nexthdr == NEXTHDR_FRAGMENT)  ||
+                 (nexthdr == NEXTHDR_AUTH)      ||
+                 (nexthdr == NEXTHDR_NONE)      ||
+                 (nexthdr == NEXTHDR_DEST) );
+}
 
---------------080309030808090901030203
-Content-Type: text/plain;
- name="iptables-terminate.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="iptables-terminate.diff"
+> -int ipv6_ext_hdr(u8 nexthdr)
+> -{
+> -        return ( (nexthdr == NEXTHDR_HOP)       ||
+> -                 (nexthdr == NEXTHDR_ROUTING)   ||
+> -                 (nexthdr == NEXTHDR_FRAGMENT)  ||
+> -                 (nexthdr == NEXTHDR_AUTH)      ||
+> -                 (nexthdr == NEXTHDR_ESP)       ||
+> -                 (nexthdr == NEXTHDR_NONE)      ||
+> -                 (nexthdr == NEXTHDR_DEST) );
+> -}
 
-diff -urN userspace-clean/patch-o-matic/extra/MARK-terminate.patch userspace/patch-o-matic/extra/MARK-terminate.patch
---- userspace-clean/patch-o-matic/extra/MARK-terminate.patch	Thu Jan  1 01:00:00 1970
-+++ userspace/patch-o-matic/extra/MARK-terminate.patch	Mon Jun 17 05:36:21 2002
-@@ -0,0 +1,23 @@
-+diff -urN linux/include/linux/netfilter_ipv4/ipt_MARK.h linux-2.4.18-terminate/include/linux/netfilter_ipv4/ipt_MARK.h
-+--- linux/include/linux/netfilter_ipv4/ipt_MARK.h	Fri Mar 17 19:56:20 2000
-++++ linux-2.4.18-terminate/include/linux/netfilter_ipv4/ipt_MARK.h	Mon Jun 17 05:07:29 2002
-+@@ -3,6 +3,7 @@
-+ 
-+ struct ipt_mark_target_info {
-+ 	unsigned long mark;
-++	u_int8_t terminate;
-+ };
-+ 
-+ #endif /*_IPT_MARK_H_target*/
-+diff -urN linux/net/ipv4/netfilter/ipt_MARK.c linux-2.4.18-terminate/net/ipv4/netfilter/ipt_MARK.c
-+--- linux/net/ipv4/netfilter/ipt_MARK.c	Sun Sep 30 21:26:08 2001
-++++ linux-2.4.18-terminate/net/ipv4/netfilter/ipt_MARK.c	Mon Jun 17 05:07:58 2002
-+@@ -21,7 +21,7 @@
-+ 		(*pskb)->nfmark = markinfo->mark;
-+ 		(*pskb)->nfcache |= NFC_ALTERED;
-+ 	}
-+-	return IPT_CONTINUE;
-++	return markinfo->terminate ? NF_ACCEPT : IPT_CONTINUE;
-+ }
-+ 
-+ static int
-diff -urN userspace-clean/patch-o-matic/extra/MARK-terminate.patch.help userspace/patch-o-matic/extra/MARK-terminate.patch.help
---- userspace-clean/patch-o-matic/extra/MARK-terminate.patch.help	Thu Jan  1 01:00:00 1970
-+++ userspace/patch-o-matic/extra/MARK-terminate.patch.help	Mon Jun 17 05:36:21 2002
-@@ -0,0 +1,9 @@
-+Author: Patrick McHardy <kaber@trash.net>
-+Status: Working
-+
-+This patch adds a new option --terminate to MARK to terminate chain traversal.
-+
-+# iptables -t mangle -A PREROUTING -m tos --tos 0x08 -j MARK --set-mark 0x15 --terminate
-+
-+***** WARNING ***** This patch also patch the userspace directory which means that you
-+                    you have to recompile and reinstall the iptables package after that.
-diff -urN userspace-clean/patch-o-matic/extra/MARK-terminate.patch.userspace userspace/patch-o-matic/extra/MARK-terminate.patch.userspace
---- userspace-clean/patch-o-matic/extra/MARK-terminate.patch.userspace	Thu Jan  1 01:00:00 1970
-+++ userspace/patch-o-matic/extra/MARK-terminate.patch.userspace	Mon Jun 17 05:36:21 2002
-@@ -0,0 +1,42 @@
-+diff -urN extensions/libipt_MARK.c extensions/libipt_MARK.c
-+--- extensions/libipt_MARK.c	Wed May 29 15:08:16 2002
-++++ extensions/libipt_MARK.c	Mon Jun 17 05:21:16 2002
-+@@ -26,6 +26,7 @@
-+ 
-+ static struct option opts[] = {
-+ 	{ "set-mark", 1, 0, '1' },
-++	{ "terminate", 0, 0, '2' },
-+ 	{ 0 }
-+ };
-+ 
-+@@ -57,6 +58,10 @@
-+ 		*flags = 1;
-+ 		break;
-+ 
-++	case '2':
-++		markinfo->terminate = 1;
-++		break;
-++		
-+ 	default:
-+ 		return 0;
-+ 	}
-+@@ -88,6 +93,9 @@
-+ 		(const struct ipt_mark_target_info *)target->data;
-+ 	printf("MARK set ");
-+ 	print_mark(markinfo->mark, numeric);
-++	
-++	if (markinfo->terminate)
-++		printf("terminate ");
-+ }
-+ 
-+ /* Saves the union ipt_targinfo in parsable form to stdout. */
-+@@ -98,6 +106,9 @@
-+ 		(const struct ipt_mark_target_info *)target->data;
-+ 
-+ 	printf("--set-mark 0x%lx ", markinfo->mark);
-++
-++	if (markinfo->terminate)
-++		printf("--terminate ");
-+ }
-+ 
-+ static
+(Yes, I know that is a real problem, I'll solve it gracefullly, I promise! :) )
 
---------------080309030808090901030203--
+Regards,
+
+	kisza
+
+-- 
+    Andras Kis-Szabo       Security Development, Design and Audit
+-------------------------/        Zorp, NetFilter and IPv6
+ kisza@SecurityAudit.hu /-----Member of the BUTE-MIS-SEARCHlab---------->
