@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Why huge timeout btw ?
-Date: Tue, 24 Jun 2003 17:39:04 +0200
+Subject: Re: Difference between match and target
+Date: Tue, 24 Jun 2003 18:08:24 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030624153904.GP2645@sunbeam.de.gnumonks.org>
-References: <5.2.1.1.0.20030623234428.00b14690@192.168.0.1>
+Message-ID: <20030624160824.GR2645@sunbeam.de.gnumonks.org>
+References: <20030618222710.9325.98884.Mailman@kashyyyk> <009301c3372c$69cc47f0$010f430a@elitecore7>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JWOY2/vB4uO4FuME"
+	protocol="application/pgp-signature"; boundary="xku3GkZTJumTa1rO"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Gael Mauleon <gmauleon@free.fr>
+To: Sumit Pandya <sumit@elitecore.com>
 Content-Disposition: inline
-In-Reply-To: <5.2.1.1.0.20030623234428.00b14690@192.168.0.1>
+In-Reply-To: <009301c3372c$69cc47f0$010f430a@elitecore7>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,29 +23,27 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---JWOY2/vB4uO4FuME
+--xku3GkZTJumTa1rO
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 23, 2003 at 11:48:15PM +0200, Gael Mauleon wrote:
-> I'm just wondering as i realise my conntrack entry regarding tcp had huge
-> timeouts. I saw the patch regarding the tweak of those timeouts but
-> why a 5 day one by default ??
+On Fri, Jun 20, 2003 at 06:33:58PM +0530, Sumit Pandya wrote:
+> Hi All,
+>=20
+>     What is difference between writing match and target extension for
+> netfilter? Is there something in match which I cannot achieve in target a=
+nd
+> vice-versa?
 
-because an ESTABLISHED TCP session that hasn't been closed down by
-either RST or FIN can live _forever_ without any data.
+=66rom a technical point of view, there is not much differrence.=20
+There are no technical restrictions, it's a mere policy:
+Matches match against packet data
+Targets connect some action with previously matched packets.
 
-5 days is a trade-off between 'forever' and 'broken applications not
-closing connection correctly'.
-
-> Sorry if it had been discuss on this list before but maybe you can refres=
-h=20
-> my mind :)
-
-There is a list archive...
-
-> Gael.
+>  Someone to throw some light on this design? Mr. Rusty, Mr. Harald?
+>=20
+> -- Sumit
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -57,16 +55,16 @@ There is a list archive...
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---JWOY2/vB4uO4FuME
+--xku3GkZTJumTa1rO
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE++HCYXaXGVTD0i/8RAqJNAKCFimtxzBtRkFSEycDibHxUbnBWfACgncw5
-6Md21m5SoXM9JpRJdfSCWqM=
-=08ok
+iD8DBQE++Hd4XaXGVTD0i/8RAmg/AJwPkpFi3S7bTD75ZAvl2AbpcOfNogCeITiz
+SHtehV4C8KM3NyznSA/8TKo=
+=FeV7
 -----END PGP SIGNATURE-----
 
---JWOY2/vB4uO4FuME--
+--xku3GkZTJumTa1rO--
