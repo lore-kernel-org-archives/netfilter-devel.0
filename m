@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: conversion to pom-ng
-Date: Thu, 19 Feb 2004 21:43:52 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [ANNOUNCE] IP sets
+Date: Thu, 19 Feb 2004 23:34:18 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040219204352.GL4797@sunbeam.de.gnumonks.org>
-References: <1077196218.3684.3.camel@tech004.alphalink.fr>
+Message-ID: <Pine.LNX.4.44.0402192309030.5143-100000@filer.marasystems.com>
+References: <20040219203113.GI4797@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bX/mw5riLlTkt+Gv"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Eric Leblond <eric@regit.org>
-Content-Disposition: inline
-In-Reply-To: <1077196218.3684.3.camel@tech004.alphalink.fr>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040219203113.GI4797@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,51 +20,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, 19 Feb 2004, Harald Welte wrote:
 
---bX/mw5riLlTkt+Gv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Yes, we could still use a big conntrack lock for the whole tree.  But
+> for the current hash table, the direction is heading towards per bucket
+> locks.  
+> 
+> What do you want to do in the tree case? 
 
-On Thu, Feb 19, 2004 at 02:10:19PM +0100, Eric Leblond wrote:
-> Hi,
->=20
-> I like to know who has to convert patch from p-o-m version to pom-ng
-> version.
->  (my ip_queue_vwmark patch was integrated to p-o-m and I did not found
-> it in pom-ng)
+For the primitive operations the locking requirements are similar to
+per-bucket hash locks, but the rebalancing operation is very tricky wrt
+locking. I do not really have the tree experience to dive too deaply into
+these complications but I would guess that for a environment like the
+conntrack frequent lookups, semifrequent modifications (add/delete) and
+low lateny requirements something like the following should work out 
+acceptable:
 
-If you could do it, that would be perfect.  As you can imagine, we are
-very busy with lots of other stuff.
+a) A compressed lookup tree with internal and leaf nodes, using a
+relatively high fanout and prefix comresed keys in internal nodes
 
-If you don't do it, it will be pending until somebody will find the time
-to do it.
+b) A kernel thread for rebalancing and other low-prio maintenance 
+operations. Rebalancing builds new internal nodes of the rebalanced part 
+of the tree and then atomically replaces that part of the tree.
 
-Thanks.
+c) Overflow chains for registering additions/deletes while a rebalance 
+operation is rebalancing the relevant parts of the tree, to make sure the 
+changes is included in the rebalanced tree before replace. The operation 
+is also carried directly in the active tree but limited to the primitive 
+add/delete operations with no rebalancing keeping locking etc at a 
+trivial level.
 
-> Eric Leblond
+> Does somebody know any papers discussing performance comparison between
+> hashtables and various different trees in a multithreaded environment?
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+I am not that much into academics, but my gut feeling is that there should
+be quite much written in that area. Trees have a very broad field of
+applications.
 
---bX/mw5riLlTkt+Gv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFANSAIXaXGVTD0i/8RAvk/AJ0R9iN3tPnDo3iZRCTyHDlZFha8LgCZATco
-r5wEtQ3RxTNOeWpPIuj4AtA=
-=8Y7L
------END PGP SIGNATURE-----
-
---bX/mw5riLlTkt+Gv--
+Regards
+Henrik
