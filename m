@@ -1,118 +1,92 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Troubles with NFS & ip_conntrack: packets go to wrong mac
-Date: Thu, 13 Feb 2003 17:40:35 +0100
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <3E4BCA83.4060304@trash.net>
-References: <3E4A7ECB.1020207@trash.net>
+From: Thomas Poehnitzsch <thomas.poehnitzsch@informatik.tu-chemnitz.de>
+Subject: Re: accounting
+Date: Thu, 13 Feb 2003 17:46:48 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20030213164648.GI30133@calix.csn.tu-chemnitz.de>
+References: <F14LEZF98vvwNeZsjSF0004b9b0@hotmail.com> <17921743084.20030213010212@habitat-b.de> <F14LEZF98vvwNeZsjSF0004b9b0@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netdev-bounce@oss.sgi.com>
-To: netdev@oss.sgi.com
-In-Reply-To: <3E4A7ECB.1020207@trash.net>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Fnm8lRGFTVS/3GuM"
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <17921743084.20030213010212@habitat-b.de> <F14LEZF98vvwNeZsjSF0004b9b0@hotmail.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Some of the information in my last mail was wrong, i'll cut-and-paste 
-the information entered into the netfilter
-bugtracking system, maybe someone has a suggestion. The important part 
-is the packets checksum turns out to
-be right if the destination ip is replaced by the ip the mac belongs to, 
-so the mac is correct.
 
---cut-n-paste--
+--Fnm8lRGFTVS/3GuM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-With ip_conntrack loaded on the nfs server, client reads time out.
-Clients start logging:
+Hi,
+=20
+On Wed, Feb 12, 2003 at 11:27:24PM +0000, Andrej Ricnik wrote:
 
-UDP: short packet: 192.168.0.1:0 0/120 to 192.168.0.23:0
-UDP: short packet: 192.168.0.1:6439 28562/120 to 192.168.0.23:60558
+> I've been searching for a decent Linux IP accounting
+> solution (I have a 5GB limit a month and don't want
+> to pay a penalty just because the kids are greedy :})
+> but couldn't find anything easy to use/decent that would
+> allow me to keep track of traffic per IP and/or user
+> and stop traffic from that IP/user once their "fair share"
+> is used up ...
+>=20
+> So I was wondering how difficult it would be to intercept
+> logging information from userland, and where to find
+> info's on how to do it.
 
-tcpdump shows corrupted packets:
-0:e0:7d:74:ab:cc 0:e0:7d:74:ab:cd 0800 1514: 192.168.0.1 > 192.168.0.223: (frag
-42878:1480@4440+) (ttl 64, len 1500, bad cksum 29ff!)
-0:e0:7d:74:ab:cc 0:e0:7d:74:ab:cd 0800 1514: 192.168.0.1 > 192.168.0.223: (frag
-42879:1480@4440+) (ttl 64, len 1500, bad cksum 29fe!)
+as for the logging of traffic, this is really easy. You could use an
+iptables rule, as DarKRaveR suggested, or just use snmp
+(interfaces.ifTable.ifEntry.ifInOctets*).
 
-0:e0:7d:74:ab:cd is not the mac of 192.168.0.223 but 192.168.0.23. Both are
-nfs-clients. If more nfs-clients show up more incorrect destination ips appear.
-The packets checksum is correct if the (incorrect) destination ip is replaced by
-the correct destination ip. Only single fragments have incorrect destination,
-the remaining fragments of a packet are fine. Packets verified (checksum) in
-ip_finish_output2 show no corruption.
+But for the assurance of a given limit, you will need a lot more.
 
-Neighbour table of nfs server:
-192.168.0.223 dev eth0 lladdr 00:e0:29:3c:c1:c9 nud reachable
-192.168.0.23 dev eth0 lladdr 00:e0:7d:74:ab:cd nud reachable
+On Thu, Feb 13, 2003 at 01:02:12AM +0100, DarKRaveR wrote:
 
-The problem goes away as soon as ip_conntrack is unloaded. Another possibility
-is to set the interface mtu to 1486 on the nfs server.
+> I kinda face the same problem here, just that I want the whole
+> enchilada database backed, and the rules should be generated from a
+> database with user information.
+> I am working on some c++ progs etc. to make a solution for our
+> scenario ... but it's all still earliest work in progress.
+>=20
+> it's a pitty, I couldn'T find anythign usefull :-( could have save me
+> hours of work :-)
 
-CPU: AMD-K6(tm) 3D processor, 256MB RAM
-Kernel: 2.4.21-pre3 with few netfilter patches applied, problem also exists in
-vanilla kernel, first noticed around 2.4.17
+Stop working, look here:
+https://rnvs.informatik.tu-chemnitz.de/Dynshaper/
 
-lspci:
-00:00.0 Host bridge: Acer Laboratories Inc. [ALi] M1541 (rev 04)
-00:01.0 PCI bridge: Acer Laboratories Inc. [ALi] M5243 (rev 04)
-00:07.0 ISA bridge: Acer Laboratories Inc. [ALi] M1533 PCI to ISA Bridge
-[Aladdin IV] (rev c3)
-00:08.0 VGA compatible unclassified device: S3 Inc. 86c864 [Vision 864 DRAM] vers 0
-00:09.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8139 (rev 10)
-00:0a.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8139 (rev 10)
-00:0f.0 IDE interface: Acer Laboratories Inc. [ALi] M5229 IDE (rev c2)
+It is already up and running, doing everything you can dream of: shaping
+to a given limit, dynamic traffic adjustment based on long term traffic
+analysis, database backend, IP based class allocation, Web-Frontend,
+Database-Backend, ... and it's GPL!
 
---end-cut-n-paste--
+The only disadvantage: it seems there is only a German documentation.
 
-Bye,
-Patrick
+Ciao!
+    Thomas
 
+--=20
+"vi is my shepard, I shalt not font."
 
+--Fnm8lRGFTVS/3GuM
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Patrick McHardy wrote:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-> I've been experiencing strange problems with nfs and ip_conntrack for 
-> a while now,
-> unfortunately noone so far was able to help. The problem occurs when 
-> ip_conntrack
-> is loaded on the nfs server. nfs reads hang and the clients start logging
->
-> UDP: short packet: 192.168.0.1:0 0/120 to 192.168.0.23:0
-> UDP: short packet: 192.168.0.1:6439 28562/120 to 192.168.0.23:60558
->
-> There are two ways to make it work: 1. remove ip_conntrack or 2. set 
-> mtu to 1484 on
-> the nfs server. One suspicion was ip_conntrack breaking udp path mtu 
-> discovery
-> since it seems to defragment packets with DF|MF and refragment them 
-> (with possibly
-> different mtu) at POSTROUTING. This doesn't seem to be the problem, 
-> but i noted the
-> nfs server sends out fragments with wrong destination mac.
->
-> This is a packet captured on 192.168.0.23:
-> 0:e0:7d:74:ab:cc 0:e0:7d:74:ab:cd 0800 1514: 192.168.0.1 > 
-> 192.168.0.223: (frag 44777:1480@4440+) (ttl 64, len 1500, bad cksum 
-> 2294!)
->
-> This happens every 1-30 seconds. I never saw more than one misdirected 
-> fragment per packet.
->
-> Relevent parts from neighbour table:
-> 192.168.0.223 dev eth0 lladdr 00:e0:29:3c:c1:c9 nud reachable
-> 192.168.0.23 dev eth0 lladdr 00:e0:7d:74:ab:cd nud reachable
->
-> On 192.168.0.223 packets for 192.168.0.23 show up. Both clients time 
-> out during reassembly.
-> I placed some printks though the netfilter code and ip_output.c but 
-> couldn't find any further
-> pointers. I looked for broken checksums (something seems to alter the 
-> ip after checksumming)
-> in ip_finish_output2, but everything is ok there. I can't see anything 
-> netfilter related touching packets after that.
-> Any help and/or pointers where to look further would be appreciated.
->
-> Regards,
-> Patrick
->
+iD8DBQE+S8v4T7fd1jhuy5cRAhsqAKCEipL4xsKLg9BcGXTFEvjemlb86gCfURqB
+W3Fkg8QyzxeGG4Y1TGt5ed8=
+=O4pw
+-----END PGP SIGNATURE-----
+
+--Fnm8lRGFTVS/3GuM--
