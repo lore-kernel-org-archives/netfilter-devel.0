@@ -1,17 +1,15 @@
-From: "Robert Iakobashvili" <roberti@GoNetworks.com>
-Subject: RE: [PATCH pom-ng 0/5] RFC: ip_nat|conntrack_h323.c on 2.6,
-	first preview
-Date: Wed, 19 Jan 2005 15:08:36 +0200
-Message-ID: <699F7BBB368A10479166148511F524177A0FCA@gn-ex01.Go80211.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH pom-ng] prepare a 2.6 tree in h323-conntrack-nat
+Date: Wed, 19 Jan 2005 15:45:06 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0501191544010.10783@blackhole.kfki.hu>
+References: <20050119113504.GA17232@roonstrasse.net>
+	<Pine.LNX.4.58.0501191241320.10783@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>,
-	"Herve Eychenne" <rv@wallfire.org>, "Max Kellermann" <max@duempel.org>
+To: Max Kellermann <max@duempel.org>
+In-Reply-To: <Pine.LNX.4.58.0501191241320.10783@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,53 +21,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thank you, Max, for your patches and Jozsef and Herve for discussion.
+On Wed, 19 Jan 2005, Jozsef Kadlecsik wrote:
 
-The architecture where a part of job done in kernel and=20
-another in user-space with communication
-seems to have its performance penalties (although more flexibility
--similar=20
-To layer-7 application classifier project on the top of netfilter).=20
-
-Keeping in mind industry needs, user space intervention
-better to be limited by just configuration/settings,=20
-putting classification rules/filters like BPF does.
-
-Sincerely,
-Robert Iakobashvili
-roberti@gonetworks.com
-  =20
-
------Original Message-----
-From: Jozsef Kadlecsik [mailto:kadlec@blackhole.kfki.hu]=20
-Sent: Wednesday, January 19, 2005 12:00 PM
-To: Herve Eychenne
-Cc: Max Kellermann; netfilter-devel@lists.netfilter.org; Robert
-Iakobashvili
-Subject: Re: [PATCH pom-ng 0/5] RFC: ip_nat|conntrack_h323.c on 2.6,
-first preview
-
-On Wed, 19 Jan 2005, Herve Eychenne wrote:
-
-> > If you want to write a decent helper, then ethereal has got a H.323=20
-> > (ASN) decoder written in C, which could probably be re-used. :-)
+[...]
+> > This allows me to publish patches for the existing codebase for my
+> > Linux 2.6 port of the module, and preserves the svn log once my
+> > patches are accepted.
 >
-> Yes... but do we really want a big ASN-1 parser in the kernel?
-> Is there a nice way to have it rely on kernel facilities, while=20
-> staying in userspace though?
+> I'll do it afternoon. You don't need to send new patches, I'll use what
+> you posted earlier.
 
-We don't really need the complete parsing of H.225/H.245 and that'd make
-the code a little bit simpler.
-
-If ctnetlink would be in the vanilla kernel, we could rely on it as
-well:
-the H.323 "helper" could just pass the packets to userspace for
-inspection and the expectations would then set up from there.
+Done. Please give a try to the pom-ng from svn.
 
 Best regards,
 Jozsef
 -
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu PGP key :
-http://www.kfki.hu/~kadlec/pgp_public_key.txt
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
 Address : KFKI Research Institute for Particle and Nuclear Physics
           H-1525 Budapest 114, POB. 49, Hungary
