@@ -1,17 +1,17 @@
-From: Andras Kis-Szabo <kisza@securityaudit.hu>
-Subject: Re: ip6t_ROUTE target
-Date: Mon, 19 May 2003 14:46:03 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Target ipt_ACCOUNT
+Date: Mon, 19 May 2003 15:07:28 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030519124603.GA27460@sch.bme.hu>
-References: <20030516221652.3d86c00a.xraz@rwxr-xr-x.de>
+Message-ID: <20030519130728.GL2073@sunbeam.de.gnumonks.org>
+References: <200305162018.h4GKIvu02359@moonlight.crew-kg.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="g3RkK9jYN81zD2N+"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Frank 'xraz' Fricke" <xraz@rwxr-xr-x.de>
+To: Rolf Wuerdemann <rowue@crew-kg.de>
 Content-Disposition: inline
-In-Reply-To: <20030516221652.3d86c00a.xraz@rwxr-xr-x.de>
+In-Reply-To: <200305162018.h4GKIvu02359@moonlight.crew-kg.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,30 +22,65 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Frank 'xraz' Fricke ............................ (2003. m=E1jus 16.)
 
-Hi Frank,
+--g3RkK9jYN81zD2N+
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> This was my first netfilter/kernel-work an was all done from
-> scratch - maybe it's alls wrong, but it really seem to do it's
-> job.
-But the id of the file says libip6t_REJECT ;)
-> It's not working as a module because it uses rt6_lookup wich is not
-> exported - but i found it suitable for this case.
-Probably it could be exported ... (in the future).
-Until that we should set the mod.count to -1. ;)
+On Fri, May 16, 2003 at 10:18:54PM +0200, Rolf Wuerdemann wrote:
+> Hi Harald ...
+>=20
+> long time not heared ...
 
-As I know - the new modules should be added to 2.5.x. You have the old
-Configure.help format instead of Kconfig.
-You do not use the C99 initializers in the structures.
+indeed.
 
-Could you update your patches?
+> if you remember I wrote an target for iptables/netfilter last year
+> wo packet-based accounting - besides some "cosmetic" changes
+> (> 80 chars/line, c-- style comments) you've metioned that you
+> dislike the use of netfilter-sockets to get the data from kernel- to
+> user-space ...
 
-Thank you in advance,
+Yes, I remember.
 
-	kisza
+> besides the cosmetic changes (which where done very fast) I've
+> changed to data-transfer to the use of "/dev/accounting" via "normal"
+> kernel file i/o (no proc fs or so) (this takes some "spare time" which
+> I've gotten now)
+
+I see.
+
+> Although I've used "dynamic-major-number-relocation" I've also heared
+> that someone should ask for a "real" major number if he wants to publish
+> code...
+>
+> May you give me a hint where to ask?
+
+The 'Linux Assigned Names and Numbers Authority' at http://www.lanana.org/
+
+> 	Rolf W=FCrdemann
+> 	Wieske's Crew KG
 
 --=20
-    Andras Kis-Szabo       Security Development, Design and Audit
--------------------------/        Zorp, NetFilter and IPv6
- kisza@SecurityAudit.hu /----------------------------------------------->
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--g3RkK9jYN81zD2N+
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQE+yNcQXaXGVTD0i/8RAlVEAJ0ZJXKVwrOL2LtA0g0lmKL3QoCl1ACglnCY
+W5Qpk6X7zT6BG4ZsiJVAjCk=
+=LpSa
+-----END PGP SIGNATURE-----
+
+--g3RkK9jYN81zD2N+--
