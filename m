@@ -1,15 +1,13 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: String match then SNAT from find
-Date: Sun, 14 Mar 2004 01:08:51 +0100 (CET)
+From: Daniel 'NebuchadnezzaR' Dehennin <nebuchadnezzar@nerim.net>
+Subject: ipt_sctp undeclared variable
+Date: Sun, 14 Mar 2004 14:17:17 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403140106450.17900-100000@filer.marasystems.com>
-References: <Pine.LNX.4.44.0403122223210.16818-100000@Trademart-1.ednet.ns.ca>
+Message-ID: <87znajva8y.fsf@thorr.asgardr.info>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: James MacLean <macleajb@ednet.ns.ca>
-In-Reply-To: <Pine.LNX.4.44.0403122223210.16818-100000@Trademart-1.ednet.ns.ca>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,17 +18,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 12 Mar 2004, James MacLean wrote:
+--=-=-=
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> Method was to use Squid to add the X-Forwarded-For: <ip> header, then in 
-> POSTROUTING, use it to set the SNAT address. Would this even work?
+hello,
 
-Won't work. You need to apply NAT on the initial SYN packet of the 
-session, and this is before the X-Forwarded-For header is seen...
+I try the latest pom-ng (from cvs) and I have an error during
+the build:
 
-As for the rest of your questions.. a target can act as a match. If you in 
-a target finds that you do not really want to act on this packet then 
-return IPT_CONTINUE and iptables continues with the next rule.
+net/ipv4/netfilter/ipt_sctp.c: In function =AB match_packet =BB:
+net/ipv4/netfilter/ipt_sctp.c:59: error: `i' undeclared (first use in this =
+function)
+net/ipv4/netfilter/ipt_sctp.c:59: error: (Each undeclared identifier is rep=
+orted only once
+net/ipv4/netfilter/ipt_sctp.c:59: error: for each function it appears in.)
+make[4]: *** [net/ipv4/netfilter/ipt_sctp.o] Erreur 1
 
-Regards
-Henrik
+Thanks.
+=2D-=20
+Daniel 'NebuchadnezzaR' Dehennin
+R=E9cupp=E9rer ma clef GPG:
+gpg --keyserver pgp.mit.edu --recv-keys 0x4CA73DC6
+
+--=-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iQEVAwUAQFRbYdWamn5Mpz3GAQK5QQf8D+sDmcaA4a1+MbEoewhzRBgEIPKwnXqY
+37qi4ASqbu8Vbgm1W2WTqKc03SR+z/A9zJ5N0B30o4PgKxkqa7ZyKdl1davIKof0
+5mssS9g08IlN/i6eZdhPG7KSIyhrXQR3m5OVbaZ8MwgN9afW88K3PGlk/kl1vZlY
+h9Nh49WmvBsPW9aPDdCmc2ynkUJQdC0rDYlKybRBWqajUjjLoPLzKtrdK94PNeeN
+EfmGNJ0wp2eMiEvgwBD0tOs1yA0P0z4m8bZwAc0hHAI01cwtnQy/ZXdg4BftbQ2Y
+c9HYeU7qI7Zem8D/5bxn/4F2ym4CVLKj2cazyqodU6SjkWQGUEuiQQ==
+=YS3m
+-----END PGP SIGNATURE-----
+--=-=-=--
