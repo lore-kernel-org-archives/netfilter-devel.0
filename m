@@ -1,149 +1,118 @@
-From: DarKRaveR <DarKRaveR@habitat-b.de>
-Subject: Re[2]: libiptc/rules with MAC match
-Date: Thu, 13 Feb 2003 12:34:48 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <18963299109.20030213123448@habitat-b.de>
-References: <647994215.20030212211303@habitat-b.de>
- <15940504432.20030213061453@habitat-b.de>
- <20030213105503.GH30133@calix.csn.tu-chemnitz.de>
-Reply-To: DarKRaveR <DarKRaveR@habitat-b.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Troubles with NFS & ip_conntrack: packets go to wrong mac
+Date: Thu, 13 Feb 2003 17:40:35 +0100
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <3E4BCA83.4060304@trash.net>
+References: <3E4A7ECB.1020207@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
-Cc: netfilter developer mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Thomas Poehnitzsch <thomas.poehnitzsch@informatik.tu-chemnitz.de>
-In-Reply-To: <20030213105503.GH30133@calix.csn.tu-chemnitz.de>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netdev-bounce@oss.sgi.com>
+To: netdev@oss.sgi.com
+In-Reply-To: <3E4A7ECB.1020207@trash.net>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Thomas,
+Some of the information in my last mail was wrong, i'll cut-and-paste 
+the information entered into the netfilter
+bugtracking system, maybe someone has a suggestion. The important part 
+is the packets checksum turns out to
+be right if the destination ip is replaced by the ip the mac belongs to, 
+so the mac is correct.
 
-Thanx for you email, this looks really promising, I think ...
-Okay, further down are some more remarks ...
+--cut-n-paste--
 
-Thursday, February 13, 2003, 11:55:03 AM, you wrote:
+With ip_conntrack loaded on the nfs server, client reads time out.
+Clients start logging:
 
-TP> Hi,
+UDP: short packet: 192.168.0.1:0 0/120 to 192.168.0.23:0
+UDP: short packet: 192.168.0.1:6439 28562/120 to 192.168.0.23:60558
 
-TP> On Thu, Feb 13, 2003 at 06:14:53AM +0100, DarKRaveR wrote:
+tcpdump shows corrupted packets:
+0:e0:7d:74:ab:cc 0:e0:7d:74:ab:cd 0800 1514: 192.168.0.1 > 192.168.0.223: (frag
+42878:1480@4440+) (ttl 64, len 1500, bad cksum 29ff!)
+0:e0:7d:74:ab:cc 0:e0:7d:74:ab:cd 0800 1514: 192.168.0.1 > 192.168.0.223: (frag
+42879:1480@4440+) (ttl 64, len 1500, bad cksum 29fe!)
 
->> I use libiptc to get a rule ...
+0:e0:7d:74:ab:cd is not the mac of 192.168.0.223 but 192.168.0.23. Both are
+nfs-clients. If more nfs-clients show up more incorrect destination ips appear.
+The packets checksum is correct if the (incorrect) destination ip is replaced by
+the correct destination ip. Only single fragments have incorrect destination,
+the remaining fragments of a packet are fine. Packets verified (checksum) in
+ip_finish_output2 show no corruption.
 
-TP> ok so far.
+Neighbour table of nfs server:
+192.168.0.223 dev eth0 lladdr 00:e0:29:3c:c1:c9 nud reachable
+192.168.0.23 dev eth0 lladdr 00:e0:7d:74:ab:cd nud reachable
 
->> there's destinations source, etc.
+The problem goes away as soon as ip_conntrack is unloaded. Another possibility
+is to set the interface mtu to 1486 on the nfs server.
 
-TP> yep
+CPU: AMD-K6(tm) 3D processor, 256MB RAM
+Kernel: 2.4.21-pre3 with few netfilter patches applied, problem also exists in
+vanilla kernel, first noticed around 2.4.17
 
->> if target_offset is bigger than sizeof(struct ipt_entry),
->> there's a match present.
+lspci:
+00:00.0 Host bridge: Acer Laboratories Inc. [ALi] M1541 (rev 04)
+00:01.0 PCI bridge: Acer Laboratories Inc. [ALi] M5243 (rev 04)
+00:07.0 ISA bridge: Acer Laboratories Inc. [ALi] M1533 PCI to ISA Bridge
+[Aladdin IV] (rev c3)
+00:08.0 VGA compatible unclassified device: S3 Inc. 86c864 [Vision 864 DRAM] vers 0
+00:09.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8139 (rev 10)
+00:0a.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8139 (rev 10)
+00:0f.0 IDE interface: Acer Laboratories Inc. [ALi] M5229 IDE (rev c2)
 
-TP> yep
+--end-cut-n-paste--
 
->> elems points to the first match ...
+Bye,
+Patrick
 
-TP> sorry, you lost me.
-TP> I'll just describe what I would do, from the point where you had
-TP> ipt_entry, ok? If this is what you did, just skip this part.
 
-Okay, I see, the way you do it, is pretty much the way it is done in
-IPT_ITERATE_MATCH function? in one of the header files ...
-at least it looks familiar.
 
-anyway, I came to the conclusion that ...
+Patrick McHardy wrote:
 
-(void *)e+offset .. is the same as (void *)e+sizeof(struct ipt_entry)
-and that this address is the same stored in unsigned char elems[0]
-(within ipt_entry, which is a one char array or basicly a char pointer)
-so (void *)e+sizeof(struct ipt_entry) is the same as (void *)elems.
-
-But from there, you have to work with the u.match_size ...
-Just a thought, using a pointer to create some sort of 'linked list'
-like in the case of ipt_entry, and the pointer, pointing to the
-matches and targets, might be a cleaner design ? you wouldn't have to
-calculate memory offsets and use so much pointer arithmetic in your
-code, and maybe move the dirty stuff where it belongs, in iptc
-somewhere under the hood :-)
-
-But that's just a general thought ...
-
-TP> struct ipt_entry *e;
-TP> struct ipt_entry_match *em;
-TP> unsigned int offset;
-
-TP> for(offset = sizeof(struct ipt_entry);
-TP>     offset < e->target_offset;
-TP>     offset += em->u.match_size) 
-TP> { 
-TP>     em = (void* )e + offset;
-TP> }
-
->> If I cast it to ipt_entry_match, and then check the vars in that
->> structure, I can see various sizes etc.
->> u.user.name gives me 'mac'.
-
-TP> this looks promising
-
-That's what I thought myself ;-)
-
->> but, what I am wondering:
->> where can I find the actual mac address ?
->> there ipt_entry_match.data, but the data in there didn't make too much
->> sense ...
-
-TP> Have you had a look at $IPTABLES_SRC/extensions/libipt_mac.c ?  It is
-
-No unfortunately not, reading all sources was a little bit too much,
-at the current situation, but I guess, I'll have to do that :-)
-
-TP> just right there, at your fingertips. Its the first ETH_ALEN unsigned
-chars in match->>data. Just look at the function print() in the above
-TP> mentioned file and try to parse the output as they do it. Works for them
-TP> and works for me, why shouldn't it work for you? ;-)
-
-Okay, I will check back on that, I guess, my own routine ... aight
-*DAMN* thats the point, THANX ! I was runnign through the data
-searching for a \0 just because I read unsigned char pointer, what a
-fool I am, esp. when my MAC starts with 00: ... okay, good point, that
-HELPED alot, I think, I was/am just too tired ;-) maybe I should sleep
-some time ...
-
->> Can anyone help me out on that ?
-
-TP> Hope I did.
-
-Sure did, many thanx, sometimes things are so obvious and just won'T
-pop up to your eyes ...
-
->> And how can I construct a rule myself, that does mac matching ?
-
-TP> iptables -I $chain -m mac --mac-source ...
-TP> or have a look at parse_mac() in libipt_mac.c
-
-I'll stick to the latter I fear, spawning iptables is not an option,
-if you want to update a pile of rules (delete/add) in a set of a dozen
-chains with approx 200 rules each ;-) that would not be too much fun I
-assume :-)
-
-TP> Happy hacking,
-TP>     Thomas
-
-Yeah, thanx, I'll try that tomorrow I think, tonight I will be too
-tired, after being up for 30 hrs ;-)
-
-I really appreciate your help ..
-
--- 
-Best regards,
- DarKRaveR (Sven)                           mailto:DarKRaveR@habitat-b.de
-
-P.S.: In Deutsch wärs einfacher ;-) und wenn etwas unverständlich ist,
-nochmal fragen, ich schlafe schon halb :-O
+> I've been experiencing strange problems with nfs and ip_conntrack for 
+> a while now,
+> unfortunately noone so far was able to help. The problem occurs when 
+> ip_conntrack
+> is loaded on the nfs server. nfs reads hang and the clients start logging
+>
+> UDP: short packet: 192.168.0.1:0 0/120 to 192.168.0.23:0
+> UDP: short packet: 192.168.0.1:6439 28562/120 to 192.168.0.23:60558
+>
+> There are two ways to make it work: 1. remove ip_conntrack or 2. set 
+> mtu to 1484 on
+> the nfs server. One suspicion was ip_conntrack breaking udp path mtu 
+> discovery
+> since it seems to defragment packets with DF|MF and refragment them 
+> (with possibly
+> different mtu) at POSTROUTING. This doesn't seem to be the problem, 
+> but i noted the
+> nfs server sends out fragments with wrong destination mac.
+>
+> This is a packet captured on 192.168.0.23:
+> 0:e0:7d:74:ab:cc 0:e0:7d:74:ab:cd 0800 1514: 192.168.0.1 > 
+> 192.168.0.223: (frag 44777:1480@4440+) (ttl 64, len 1500, bad cksum 
+> 2294!)
+>
+> This happens every 1-30 seconds. I never saw more than one misdirected 
+> fragment per packet.
+>
+> Relevent parts from neighbour table:
+> 192.168.0.223 dev eth0 lladdr 00:e0:29:3c:c1:c9 nud reachable
+> 192.168.0.23 dev eth0 lladdr 00:e0:7d:74:ab:cd nud reachable
+>
+> On 192.168.0.223 packets for 192.168.0.23 show up. Both clients time 
+> out during reassembly.
+> I placed some printks though the netfilter code and ip_output.c but 
+> couldn't find any further
+> pointers. I looked for broken checksums (something seems to alter the 
+> ip after checksumming)
+> in ip_finish_output2, but everything is ok there. I can't see anything 
+> netfilter related touching packets after that.
+> Any help and/or pointers where to look further would be appreciated.
+>
+> Regards,
+> Patrick
+>
