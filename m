@@ -1,12 +1,12 @@
-From: Wang Jian <lark@linux.net.cn>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: bidirectional CONNMARK?
-Date: Wed, 09 Mar 2005 16:30:13 +0800
-Message-ID: <20050309161949.A568.LARK@linux.net.cn>
+Date: Wed, 9 Mar 2005 10:24:50 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0503091019020.6780@filer.marasystems.com>
 References: <20050309124806.A55C.LARK@linux.net.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
+To: Wang Jian <lark@linux.net.cn>
 In-Reply-To: <20050309124806.A55C.LARK@linux.net.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,53 +19,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Wed, 9 Mar 2005, Wang Jian wrote:
 
-I have figured out how to do it with CONNMARK. Using --mask, I can
-choose bits to use.
+> What is the CONNMARK's purpose?
 
-My iptables 1.2.9 doesn't give hint on mask for --set-mark, --save-mark
-and --restore-mask. I just read the code from HEAD and realize.
+To act as a decision memory on the connection. What you use this memory 
+for is up to you.
 
-I am happy. Thanks.
+> I think it is to reduce rule traversal,
 
-On Wed, 09 Mar 2005 13:26:19 +0800, Wang Jian <lark@linux.net.cn> wrote:
+This is one of many applications.
 
-> Hi folks,
-> 
-> What is the CONNMARK's purpose? I think it is to reduce rule traversal,
-> like this:
-> 
-> # iptables -A PREROUTING -t mangle \
->    -m connmark --mark 0xEF000000/0xFF000000 -j CONNMARK --restore-mark
-> 
-> # iptables -A PREROUTING -t mangle <matching rule 1-1> -j CONNMARK --set-mark 0xEF000001
-> # iptables -A PREROUTING -t mangle <matching rule 1-2> -j CONNMARK --set-mark 0xEF000001
-> # iptables -A PREROUTING -t mangle <matching rule 1-3> -j CONNMARK --set-mark 0xEF000001
-> # iptables -A PREROUTING -t mangle <matching rule 2-1> -j CONNMARK --set-mark 0xEF000002
-> # iptables -A PREROUTING -t mangle <matching rule 3-1> -j CONNMARK --set-mark 0xEF000003
-> <snip a lot of rules>
-> 
+The --save-mark/--restore-mark options to CONNMARK should be seen as a 
+bonus. It is not the main purpose of CONNMARK. The main purpose of 
+CONNMARK is to act as a connection oriented state memory, allowing you to 
+remember an earlier decision about something on later packets in the same 
+session.
+
 > But an issue occurs, when we want to set 2 different marks for a single
 > session in two directions.
-> 
+
+Then you need to structure the use of CONNMARK differently, and depending 
+on the direction set different marks.
+
 > When doing QoS control as an router between two or more interfaces,
 > bi-directional control is neccessary. Since nfmark is the most
 > convenient way to classify packet, should we extend CONNMARK to support
 > two marks?
-> 
-> Comment on this issue is welcome.
-> 
-> If it is a good idea, I will provide a patch for it.
-> 
-> 
-> 
-> 
-> -- 
->   lark
-> 
 
+If it helps you in reducing your ruleset, why not? Adjusting the tools to 
+your needs is one of the cornerstones of using Open Source software.
 
+But I don't think it is generally suitable for CONNMARK.
 
--- 
-  lark
+Regards
+Henrik
