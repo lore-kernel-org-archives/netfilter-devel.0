@@ -1,19 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Bug 50 in the bugzilla.netfilter.org
-Date: Wed, 19 Feb 2003 10:55:37 +0100
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: RFC: conntrack hash function comparison II
+Date: Wed, 19 Feb 2003 12:40:56 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030219095537.GD11812@sunbeam.de.gnumonks.org>
-References: <3E534D23.BD102A54@alcatel.be>
+Message-ID: <Pine.LNX.4.33.0302191233330.10818-100000@blackhole.kfki.hu>
+References: <Pine.LNX.4.33.0301201113510.17671-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qa1NXTiqN6KSzHv0"
-Cc: laforge@netfilter.org, georg.wild@gmx.de,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Ian.Latter@mq.edu.au
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: erik.duys@alcatel.be
-Content-Disposition: inline
-In-Reply-To: <3E534D23.BD102A54@alcatel.be>
+To: <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.33.0301201113510.17671-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,76 +19,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---qa1NXTiqN6KSzHv0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I have finished my second try to compare the candidate hash functions for
+conntrack. The very short summary of my findings:
 
-On Wed, Feb 19, 2003 at 10:23:47AM +0100, erik.duys@alcatel.be wrote:
-> Hi,
->=20
-> My name is Erik Duys and I am using Linux for about 3 weeks now; of
-> course I know for longer time that it exists.  I don't know the habits
-> wrt to bugreports etc for Linux.  That is why I try it via this mail.
+The best hashes are the jenkinks ones and the abcd64 hash. However
 
-less /usr/src/linux/REPORTING-BUGS ;)
+- the jenkins hashes work reliably for even hash sizes as well while
+  the abcd64 hash doesn't
+- the jenkins2b hash is a little bit faster than the abcd64 hash
+- the strength of the abcd family is in the random coefficients
+  while the strength of the jenkins family is in the algorithm. In
+  another words, in the case of abcd hashes we should have to solve
+  the problem of rehashing while there is no such thing for the
+  jenkins hashes.
 
-> I came across bugzilla.netfilter.org and found bug 50 reported by
-> Georg.  I am also busy with the rpc.patch and I also found out that I
-> get the same error as Georg.  The only difference is that I use the
-> Redhat 8.0 package on a i686 machine.  RH8.0 uses iptables1.2.6 and gcc
-> version 3.2 20020903 (Red Hat Linux 8.0 3.2-7) and kernel 2.4.18-14).
+In my opinion we should adopt the jenkins2b hash for conntrack.
 
-ok, could you pleae add a comment with exactly this data to bugzilla?
-This way we see that more people are experiencing the same bug.
+All the graphs and results can be found at
 
-> By the way I applied the rpc.patch by hand (via patch -p0...) and not
-> via the POM-system.  I am new to this.
+http://www.kfki.hu/~kadlec/sw/netfilter/ct2
 
-cd patch-o-matic
-=2E/runme extra/rpc.patch
+The cttest package has been updated with the new hashes and the script
+which created all the graphs and pages was added to the package as well.
 
-> Sorry again for not knowing the habits.
-
-No problem, everybody has to start at some point.
-
-> Thank you for your time.
-
-As the rpc patch is not something particular important (and very
-experimental), please don't expect this bug fixed immediately.
-
-> Kind regards,
-> Erik
->=20
-> PS: tried to contact the author of this patch but his mail-adress is not
-> correct.
-
-oops, which one? Marcelo Barbosa Lima? I think he gave up on this code
-two years ago.  Ian Latter seems to have done most recent work, I've
-added him to the Cc'
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---qa1NXTiqN6KSzHv0
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+U1SZXaXGVTD0i/8RAimAAJ0UbHoCSzrptwgtLtjKcjcybzCsxACfcfG9
-Eaf1dEOqGagbWOwvAY4Krsk=
-=h2+4
------END PGP SIGNATURE-----
-
---qa1NXTiqN6KSzHv0--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
