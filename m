@@ -1,14 +1,11 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: NEW MATCH -m statmux
-Date: Sun, 28 Nov 2004 19:19:44 +0100
-Message-ID: <20041128181944.GC4605@oknodo.bof.de>
-References: <20041128111858.GB4605@oknodo.bof.de>
+From: John Lange <john.lange@open-it.ca>
+Subject: iptables --log-uid patch for 2.6
+Date: Sun, 28 Nov 2004 12:55:09 -0600
+Message-ID: <1101668109.2922.1618.camel@ws102.darkcore.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="H1spWtNR+x+ondvy"
+Content-Type: multipart/mixed; boundary="=-sXm10I/Xj2lR0FACK/Y2"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20041128111858.GB4605@oknodo.bof.de>
+To: netfilter-develop <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,103 +18,249 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---H1spWtNR+x+ondvy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-sXm10I/Xj2lR0FACK/Y2
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Damn. tar file was missing statmux/iptables/ user level part. Thus, a resend...
+I sent this to the list yesterday but I don't think it made it through.
+Apologies if it is a duplicate.
 
---H1spWtNR+x+ondvy
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename="pom-statmux.tar.gz"
-Content-Transfer-Encoding: base64
+Here are patches against the userspace and the kernel which allows the
+logging of the uid that generated the (outgoing) packet.
 
-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
+This patch was originally the work of Martin Josefsson for the 2.4
+kernel but was never incorporated into the main code base. My work here
+simply ports it to the 2.6 kernel and the current version of netfilter
+(iptables).
 
---H1spWtNR+x+ondvy--
+It is useful for figuring out which users might have had their accounts
+compromised by spam relays, IRC bots or other such things.
+
+I've been running this patch on a production server since Oct 30 without
+any problems.
+
+
+--- linux-2.6.9/include/linux/netfilter_ipv4/ipt_LOG.h  2004-10-18 16:55:07.000000000 -0500
++++
+linux-2.6.9-jl1/include/linux/netfilter_ipv4/ipt_LOG.h      2004-10-30
+16:42:12.000000000 -0500
+@@ -4,7 +4,8 @@
+ #define IPT_LOG_TCPSEQ         0x01    /* Log TCP sequence numbers */
+ #define IPT_LOG_TCPOPT         0x02    /* Log TCP options */
+ #define IPT_LOG_IPOPT          0x04    /* Log IP options */
+-#define IPT_LOG_MASK           0x07
++#define IPT_LOG_UID            0x08    /* Log UID owning local socket
+*/
++#define IPT_LOG_MASK           0x0f
+ 
+ struct ipt_log_info {
+        unsigned char level;
+--- linux-2.6.9/net/ipv4/netfilter/ipt_LOG.c    2004-10-18
+16:55:06.000000000 -0500
++++ linux-2.6.9-jl1/net/ipv4/netfilter/ipt_LOG.c        2004-10-30
+19:21:12.000000000 -0500
+@@ -384,6 +384,8 @@
+        }
+ 
+        dump_packet(loginfo, skb, 0);
++       if ((loginfo->logflags & IPT_LOG_UID) && skb->sk &&
+skb->sk->sk_socket && skb->sk->sk_socket->file)
++               printk("UID=%u ", skb->sk->sk_socket->file->f_uid);
+        printk("\n");
+        spin_unlock_bh(&log_lock);
+ }
+
+
+--- iptables-1.2.11/extensions/libipt_LOG.c     2004-06-14
+17:02:16.000000000 -0500
++++ iptables-1.2.11-jl/extensions/libipt_LOG.c  2004-10-30
+16:39:16.000000000 -0500
+@@ -21,7 +21,8 @@
+ " --log-prefix prefix          Prefix log messages with this
+prefix.\n\n"
+ " --log-tcp-sequence           Log TCP sequence numbers.\n\n"
+ " --log-tcp-options            Log TCP options.\n\n"
+-" --log-ip-options             Log IP options.\n\n",
++" --log-ip-options             Log IP options.\n\n"
++" --log-uid                    Log UID owning the local socket.\n\n",
+ IPTABLES_VERSION);
+ }
+ 
+@@ -31,6 +32,7 @@
+        { .name = "log-tcp-sequence", .has_arg = 0, .flag = 0, .val =
+'1' },
+        { .name = "log-tcp-options",  .has_arg = 0, .flag = 0, .val =
+'2' },
+        { .name = "log-ip-options",   .has_arg = 0, .flag = 0, .val =
+'3' },
++       { .name = "log-uid",          .has_arg = 0, .flag = 0, .val =
+'4' },
+        { .name = 0 }
+ };
+ 
+@@ -98,6 +100,7 @@
+ #define IPT_LOG_OPT_TCPSEQ 0x04
+ #define IPT_LOG_OPT_TCPOPT 0x08
+ #define IPT_LOG_OPT_IPOPT 0x10
++#define IPT_LOG_OPT_UID 0x20
+ 
+ /* Function which parses command options; returns true if it
+    ate an option */
+@@ -168,6 +171,15 @@
+                *flags |= IPT_LOG_OPT_IPOPT;
+                break;
+ 
++       case '4':
++               if (*flags & IPT_LOG_OPT_UID)
++                       exit_error(PARAMETER_PROBLEM,
++                                  "Can't specify --log-uid twice");
++
++               loginfo->logflags |= IPT_LOG_UID;
++               *flags |= IPT_LOG_OPT_UID;
++               break;
++
+        default:
+                return 0;
+        }
+@@ -211,6 +223,8 @@
+                        printf("tcp-options ");
+                if (loginfo->logflags & IPT_LOG_IPOPT)
+                        printf("ip-options ");
++               if (loginfo->logflags & IPT_LOG_UID)
++                       printf("uid ");
+                if (loginfo->logflags & ~(IPT_LOG_MASK))
+                        printf("unknown-flags ");
+        }
+@@ -238,6 +252,8 @@
+                printf("--log-tcp-options ");
+        if (loginfo->logflags & IPT_LOG_IPOPT)
+                printf("--log-ip-options ");
++       if (loginfo->logflags & IPT_LOG_UID)
++               printf("--log-uid ");
+ }
+ 
+ static
+--- iptables-1.2.11/extensions/libipt_LOG.man   2004-01-22
+09:04:24.000000000 -0600
++++ iptables-1.2.11-jl/extensions/libipt_LOG.man        2004-10-30
+19:28:09.000000000 -0500
+@@ -26,3 +26,6 @@
+ .TP
+ .B --log-ip-options
+ Log options from the IP packet header.
++.TP
++.B --log-uid
++Log the userid of the process which generated the packet.
+-- 
+John Lange
+OpenIT ltd.
+(204) 885 0872
+
+--=-sXm10I/Xj2lR0FACK/Y2
+Content-Disposition: attachment; filename=ipt_LOG-uid.patch
+Content-Type: text/x-patch; name=ipt_LOG-uid.patch; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+--- linux-2.6.9/include/linux/netfilter_ipv4/ipt_LOG.h	2004-10-18 16:55:07.000000000 -0500
++++ linux-2.6.9-jl1/include/linux/netfilter_ipv4/ipt_LOG.h	2004-10-30 16:42:12.000000000 -0500
+@@ -4,7 +4,8 @@
+ #define IPT_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
+ #define IPT_LOG_TCPOPT		0x02	/* Log TCP options */
+ #define IPT_LOG_IPOPT		0x04	/* Log IP options */
+-#define IPT_LOG_MASK		0x07
++#define IPT_LOG_UID		0x08	/* Log UID owning local socket */
++#define IPT_LOG_MASK		0x0f
+ 
+ struct ipt_log_info {
+ 	unsigned char level;
+--- linux-2.6.9/net/ipv4/netfilter/ipt_LOG.c	2004-10-18 16:55:06.000000000 -0500
++++ linux-2.6.9-jl1/net/ipv4/netfilter/ipt_LOG.c	2004-10-30 19:21:12.000000000 -0500
+@@ -384,6 +384,8 @@
+ 	}
+ 
+ 	dump_packet(loginfo, skb, 0);
++ 	if ((loginfo->logflags & IPT_LOG_UID) && skb->sk && skb->sk->sk_socket && skb->sk->sk_socket->file)
++ 		printk("UID=%u ", skb->sk->sk_socket->file->f_uid);
+ 	printk("\n");
+ 	spin_unlock_bh(&log_lock);
+ }
+
+--=-sXm10I/Xj2lR0FACK/Y2
+Content-Disposition: attachment; filename=ipt_LOG-uid.userspace.patch
+Content-Type: text/x-patch; name=ipt_LOG-uid.userspace.patch;
+	charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+--- iptables-1.2.11/extensions/libipt_LOG.c	2004-06-14 17:02:16.000000000 -0500
++++ iptables-1.2.11-jl/extensions/libipt_LOG.c	2004-10-30 16:39:16.000000000 -0500
+@@ -21,7 +21,8 @@
+ " --log-prefix prefix		Prefix log messages with this prefix.\n\n"
+ " --log-tcp-sequence		Log TCP sequence numbers.\n\n"
+ " --log-tcp-options		Log TCP options.\n\n"
+-" --log-ip-options		Log IP options.\n\n",
++" --log-ip-options		Log IP options.\n\n"
++" --log-uid			Log UID owning the local socket.\n\n",
+ IPTABLES_VERSION);
+ }
+ 
+@@ -31,6 +32,7 @@
+ 	{ .name = "log-tcp-sequence", .has_arg = 0, .flag = 0, .val = '1' },
+ 	{ .name = "log-tcp-options",  .has_arg = 0, .flag = 0, .val = '2' },
+ 	{ .name = "log-ip-options",   .has_arg = 0, .flag = 0, .val = '3' },
++	{ .name = "log-uid",          .has_arg = 0, .flag = 0, .val = '4' },
+ 	{ .name = 0 }
+ };
+ 
+@@ -98,6 +100,7 @@
+ #define IPT_LOG_OPT_TCPSEQ 0x04
+ #define IPT_LOG_OPT_TCPOPT 0x08
+ #define IPT_LOG_OPT_IPOPT 0x10
++#define IPT_LOG_OPT_UID 0x20
+ 
+ /* Function which parses command options; returns true if it
+    ate an option */
+@@ -168,6 +171,15 @@
+ 		*flags |= IPT_LOG_OPT_IPOPT;
+ 		break;
+ 
++	case '4':
++		if (*flags & IPT_LOG_OPT_UID)
++			exit_error(PARAMETER_PROBLEM,
++				   "Can't specify --log-uid twice");
++
++		loginfo->logflags |= IPT_LOG_UID;
++		*flags |= IPT_LOG_OPT_UID;
++		break;
++
+ 	default:
+ 		return 0;
+ 	}
+@@ -211,6 +223,8 @@
+ 			printf("tcp-options ");
+ 		if (loginfo->logflags & IPT_LOG_IPOPT)
+ 			printf("ip-options ");
++		if (loginfo->logflags & IPT_LOG_UID)
++			printf("uid ");
+ 		if (loginfo->logflags & ~(IPT_LOG_MASK))
+ 			printf("unknown-flags ");
+ 	}
+@@ -238,6 +252,8 @@
+ 		printf("--log-tcp-options ");
+ 	if (loginfo->logflags & IPT_LOG_IPOPT)
+ 		printf("--log-ip-options ");
++	if (loginfo->logflags & IPT_LOG_UID)
++		printf("--log-uid ");
+ }
+ 
+ static
+--- iptables-1.2.11/extensions/libipt_LOG.man	2004-01-22 09:04:24.000000000 -0600
++++ iptables-1.2.11-jl/extensions/libipt_LOG.man	2004-10-30 19:28:09.000000000 -0500
+@@ -26,3 +26,6 @@
+ .TP
+ .B --log-ip-options
+ Log options from the IP packet header.
++.TP
++.B --log-uid
++Log the userid of the process which generated the packet.
+
+--=-sXm10I/Xj2lR0FACK/Y2--
