@@ -1,15 +1,18 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: raw patch = kernel panic :(
-Date: Mon, 6 Oct 2003 12:44:17 +0200 (CEST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Using iptables with x86_64 static kernel (module problems)?
+Date: Mon, 6 Oct 2003 13:05:09 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0310061238480.15175-100000@blackhole.kfki.hu>
-References: <3F8045B3.6000607@wp.pl>
+Message-ID: <20031006110509.GH5758@sunbeam.de.gnumonks.org>
+References: <20031003102156.GV5758@sunbeam.de.gnumonks.org> <20031005001333.GA8589@cc.jyu.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>, <laforge@netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="9vtvPJo8mpgWPkkI"
+Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: c0g <c0g@wp.pl>
-In-Reply-To: <3F8045B3.6000607@wp.pl>
+To: Jani Averbach <jaa@cc.jyu.fi>
+Content-Disposition: inline
+In-Reply-To: <20031005001333.GA8589@cc.jyu.fi>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,22 +23,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 5 Oct 2003, c0g wrote:
 
-> I applied raw-patch from CVS patch-o-matic (20031003), and it appears
-> that loading rule in PREROUTING chain of table raw causes kernel panic.
+--9vtvPJo8mpgWPkkI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes, that was due to a stupid bug in the NOTRACK target. I have applied
-the fixed patch in p-o-m. Sorry for the previous buggy release.
+On Sun, Oct 05, 2003 at 03:13:33AM +0300, Jani Averbach wrote:
 
-Harald, I added the ported nf-log patch to the 2.5 p-o-m tree as
-pending. But what to do with the port of the raw patch, which is ready?
-Shall we introduce the userspace tree under patch-o-matic_2.5/?
+> > yes, please.   I have no idea what you are talking about, sorry.
+>=20
+> Here is the transcript of what I have done, I hope it will bring some
+> light to this issue. If this is not a result of some kind of stupidity
+> what I have done, and this is real issue, I could test patch etc.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+I have installed a 2.4.23-pre5-x86_64-1 kernel on my Redhat Taroon Beta
+Dual Opteron box, downloaded iptables-1.2.8, compiled it and it is
+running without any problems.
+
+Which distribution are you running?  Debian?  The Debian compiler
+behaves inconsistent with all other x86_64 distributions wrt. 32/64bit
+code generation - but this is a well-known and well-documented fact.=20
+
+> BR, Jani
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--9vtvPJo8mpgWPkkI
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/gUxkXaXGVTD0i/8RAh70AJsHkp1V1VlPxJP99jx8Heu2iQh6aACgg4Lk
+GUNII/8BtPVdWFD9AgGnePQ=
+=6EEC
+-----END PGP SIGNATURE-----
+
+--9vtvPJo8mpgWPkkI--
