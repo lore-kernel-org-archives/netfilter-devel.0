@@ -1,14 +1,11 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: REDIRECT
-Date: Mon, 13 Dec 2004 16:59:40 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0412131657200.10816@filer.marasystems.com>
-References: <1538174627.20041213183631@server.titansoft.ru>
+From: Steven J Scott <sjscott@ra.rockwell.com>
+Subject: libipq and ipq_packet_msg_t
+Date: Mon, 13 Dec 2004 12:27:22 -0600
+Message-ID: <OF1F21349A.31FAB9C9-ON86256F69.0064C45B-86256F69.00655B02@ra.rockwell.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: r00t <root@server.titansoft.ru>
-In-Reply-To: <1538174627.20041213183631@server.titansoft.ru>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,18 +17,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 13 Dec 2004, r00t wrote:
+Hello,
 
-> Ok, but if i use this:
->
-> -A PREROUTING -p tcp -j QUEUE
-> -A PREROUTING -i eth1 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 3128
+I am trying to parse the first two bytes of the payload of a TCP packet. 
+Am I casting the payload part of the TCP packet right?  Below is the code 
+in question.
 
-You can't. QUEUE terminates the PREROUTING hook.
 
-You need to queue before nat PREROUTING if you want to apply NAT rules on 
-packets after QUEUE reinjects them to the kernel, i.e. from mangle or raw 
-tables.
+case IPQM_PACKET: {
+                     ipq_packet_msg_t *m = ipq_get_packet(buf);
 
-Regards
-Henrik
+                     struct iphdr *ip = (struct iphdr*) m->payload;
+
+                     struct tcphdr *tcp = (struct tcphdr*) (m->payload + 
+(4 * ip->ihl));
+ 
+                     char *data = (char *)((int32_t *)tcp + tcp->doff);
+ 
+ 
+                     __u16 command = *(__u16 *) data;
+ 
+ 
+                         printf("COMMAND: %d\n",ntohs(command) );
+  
+                     printf("Len data : %d\n", ntohs(m->data_len));
+ 
+                     status = ipq_set_verdict(h, m->packet_id, NF_ACCEPT, 
+0, NULL); 
+  
+                     }
+ 
+
+Thanks,
+
+Steven Scott - CISSP, CISA, RHCT, LCP, MCSE
+Rockwell Automation / Advanced Technology
+sjscott@ra.rockwell.com
+<---------------------------------------------------->
+(This email was sent via Notes running on Linux)
