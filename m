@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: about the tcp connection state
-Date: Sun, 15 Feb 2004 23:57:29 +0100 (CET)
+Subject: Re: Reading ICMP packet data
+Date: Mon, 16 Feb 2004 00:03:30 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402152337450.2594-100000@filer.marasystems.com>
-References: <20040215183662.SM00868@guozheng>
+Message-ID: <Pine.LNX.4.44.0402152357470.2594-100000@filer.marasystems.com>
+References: <Pine.LNX.4.44.0402151827300.18606-100000@sillypoint.zayanionline.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: chuanbo zheng <zhengcb@netpower.com.cn>
-In-Reply-To: <20040215183662.SM00868@guozheng>
+To: Vineet Mehta <extreme@zayanionline.com>
+In-Reply-To: <Pine.LNX.4.44.0402151827300.18606-100000@sillypoint.zayanionline.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,23 +20,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 15 Feb 2004, chuanbo zheng wrote:
+On Sun, 15 Feb 2004, Vineet Mehta wrote:
 
-> I noticed in the difination of tcp_conntracks, tcp_conntracks[0][2][TCP_CONNTRACK_NONE]
-> will be TCP_CONNTRACK_ESTABLISHED. then when an ACK packet without SYN is received by
-> netfilter, the state would be directly changed to ESTABLISHED. Is there reason for doing
-> like this?
+> Now my problem is how do i know that the packet contains data i.e.
+> 
+> IP Header+ICMP header+Data
+> 
+> and not
+> 
+> IP header+ICMP header
 
-I think you are confusing to different ESTABLISHED concepts here.
-
-TCP_CONNTRACK_ESTABLISHED is just the TCP state of the tracked connection,
-not the conntrack state. The two are not related other than timeouts.
-
-The conntrack state of this packet is still NEW, as it would be for a SYN, 
-as traffic has only been seen in one direction.
-
-Note: conntrack is not about firewalling, it is about classifying traffic
-into connections.
+By the IP packet length and then when you know there is data by verifying
+the data looks sane before you use it.
 
 Regards
 Henrik
