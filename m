@@ -1,16 +1,16 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] fine grain locking for tcp helper
-Date: Mon, 3 May 2004 10:55:28 +0200 (CEST)
+Subject: Re: locking issue in ip_conntrack_alter_reply
+Date: Mon, 3 May 2004 11:05:42 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405031034400.24224-100000@blackhole.kfki.hu>
-References: <40946DB9.6050705@eurodev.net>
+Message-ID: <Pine.LNX.4.33.0405031057120.24224-100000@blackhole.kfki.hu>
+References: <40928861.2010902@eurodev.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <40946DB9.6050705@eurodev.net>
+In-Reply-To: <40928861.2010902@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,26 +23,33 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi Pablo,
 
-On Sun, 2 May 2004, Pablo Neira wrote:
+On Fri, 30 Apr 2004, Pablo Neira wrote:
 
-> This patch provides a fine-grain locking for the tcp helper in
-> conntrack. A per-conntrack lock is used, instead of having a global lock
-> to protect tcp specific data. If I'm missing something, please let me know.
+> Well, actually I found a contradiction here, we write-locked the
+> conntrack table but that assertion says that this conntrack is not
+> confirmed, this implies that the conntrack is not in the hash table yet.
+> If that assertion is right, we should replace that write_lock for a
+> read_lock while calling __ip_conntrack_find and remove that write_lock
+> at the end of the function.
+>
+> int ip_conntrack_alter_reply(struct ip_conntrack *conntrack,
+>                              const struct ip_conntrack_tuple *newreply)
+> {
+>         WRITE_LOCK(&ip_conntrack_lock);
+>         if (__ip_conntrack_find(newreply, conntrack)) {
+>                 WRITE_UNLOCK(&ip_conntrack_lock);
+>                 return 0;
+>         }
+>         /* Should be unconfirmed, so not in hash table yet */
+>         IP_NF_ASSERT(!is_confirmed(conntrack)); <--------------------------
+>
+>
+> I'll study if that assertion is right before submitting a patch.
 
-I'm not conviced that much could be gained with per TCP locking assuming
-normal traffic, predominated by TCP. I'm fairly sure that per bucket
-locking is the way we should go.
-
-Could you check and revive the patches
-
-conntrack_arefcount	- revised reference counting
-conntrack_locking	- per bucket locking
-[conntrack_nonat	- optimization for the conntrack-only case]
-
-The patches could be pushed forward if there were independent
-success reports for general cases, not just performance test reports.
-
-Thank you your work indeed!
+The assertion is right, because we alter unconfirmed packets when setting
+up nat info. And you're also right, write-locking is unnecessary: the
+entry is not in the hash table yet, so nobody else can grab and modify the
+conntrack entry. [And it is overlooked in the per bucket locking patch too.]
 
 Best regards,
 Jozsef
