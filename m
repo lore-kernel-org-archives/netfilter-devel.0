@@ -1,13 +1,12 @@
-From: Mateusz Golicz <mtg@elsat.net.pl>
-Subject: [BUG] nth match: using more than 1 counter
-Date: Sat, 7 Dec 2002 04:58:17 +0100
+From: "Hans Jorgensen" <jorgensenhans@hotmail.com>
+Subject: FTP and connection tracking
+Date: Fri, 13 Dec 2002 15:16:10 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021207035817.GA15544@fouk.org>
+Message-ID: <F445ldfZWjSeKg1bzuD00006800@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,49 +17,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Dear list
 
-Hello,
+I am currently developing an application which is using DNAT and 
+masquerading. First an incoming packet is DNAT'ed to have as specific dest. 
+ip. The it is masquerading when it is leaving the decided interface.
 
-  The userspace part of the nth match (BTW, quite an useful one)
-seems to be a bit broken. (at least in the CVS version from the
-WWW frontend (don't know if there are any other ones ;), i'm
-new to netfilter developement): http://cvs.netfilter.org/cgi-bin/cvsweb/~checkout~/netfilter/userspace/extensions/libipt_nth.c)
+This works fine, but when I use FTP, the following shows up in the kernel 
+log:
 
-around line 102, in parse(), there is a fragment doing some
-checks concerning the --every option:
+<4>ip_conntrack_in: related packet for c3a22310
+<4>nat_expected: We have a connection!
+<4>nat_expected: PASV cmd. 192.168.1.254->192.168.4.1
+<4>nat_expected: IP to 192.168.4.1
+<4>Found best for tuple c3d69db8: 6 10.0.0.8:1026 -> 192.168.4.1:11697
+<4>nat_expected: We have a connection!
+<4>nat_expected: PASV cmd. 192.168.1.254->192.168.4.1
+<4>nat_expected: IP to 192.168.1.254
+<4>Found best for tuple c3d69cf0: 6 192.168.1.254:1026 -> 192.168.4.1:11697
+<4>Altering reply tuple of c3a22310 to tuple c3d69cd0: 6 192.168.4.1:11697 
+-> 192.168.1.254:1026
+<4>Mangling c3ad4140: SRC to 192.168.1.254 1026
+<4>Confirming conntrack c3a22310
 
---- CUT ---
-                nthinfo->packet = 0xFF;
-                if(!(*flags & IPT_NTH_OPT_EVERY))
-                {
-                        nthinfo->counter = 0;
-                }
---- CUT ---
+My question is:
+Why does: "We have a connection!" and the following lines show up two times? 
+Is the connection data traversing the same chain twice?
 
-... but actually, the IPT_NTH_OPT_EVERY flag is
-set only in this function, but after this part. So, if
-you specify --every after --counter, the previous nthinfo->counter
-will be always lost, which will make the match behave quite improperly in
-case you use more than a one counter... i guess this check should be
-something like:
+Does anybody know where I can find more information on how the code in 
+connection tracking and NAT works?
 
---- CUT ---
---- extensions/libipt_nth.c.old Sat Dec  7 05:47:47 2002
-+++ extensions/libipt_nth.c     Sat Dec  7 05:29:28 2002
-@@ -100,7 +101,7 @@
-                nthinfo->every = num-1;
-                nthinfo->startat = 0;
-                 nthinfo->packet = 0xFF;
--                if(!(*flags & IPT_NTH_OPT_EVERY))
-+                if(!(*flags & IPT_NTH_OPT_COUNTER))
-                 {
-                         nthinfo->counter = 0;
-                 }
---- CUT ---
+Thanks in advance.
 
-Matthew Golicz, IP Network Dept., Cable Television "Elsat" Ltd.
--- 
-______________________________________________________________________
-mteg <mtg@elsat.net.pl>       * MG452-RIPE *            Mateusz Golicz
-* ,,I just had a thought I have seen everything in this lifetime, but*
-* now I sit here and watch a cyborg diving ... in her spare time!''  *
+/Hans
+
+
+_________________________________________________________________
+STOP MORE SPAM with the new MSN 8 and get 2 months FREE* 
+http://join.msn.com/?page=features/junkmail
