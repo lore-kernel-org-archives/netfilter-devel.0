@@ -1,13 +1,16 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: conntrack and ICMP errors
-Date: Thu, 10 Apr 2003 20:20:56 +0200
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: conntrack and ICMP errors
+Date: Thu, 10 Apr 2003 22:08:16 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030410182056.GA17723@bzorp.balabit.hu>
+Message-ID: <20030410200816.GA18520@oknodo.bof.de>
+References: <20030410182056.GA17723@bzorp.balabit.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Balazs Scheidler <bazsi@balabit.hu>
 Content-Disposition: inline
+In-Reply-To: <20030410182056.GA17723@bzorp.balabit.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,48 +21,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Balazs,
 
-I've ran into a fact recently which may or may not be intended behaviour for
-conntrack. Given a connection in the ESTABLISHED state and a related ICMP
-error is received by conntrack the connection state is not affected in any
-ways.  In practice this might mean that when a connection is terminated by
-an ICMP destination unreachable instead of a normal TCP packet the
-connection will not terminate.
+I'm skipping your UDP redirect stuff (too much for my brain now), but
+one note on the TCP part.
 
-I encountered this problem when proxying UDP based protocols: a connection
-is NATed to the proxy and when the proxy quits the stack returns ICMP errors
-to the sender. The error is correctly deNATed but the connection is not
-terminated, thus further packets are still being taken as part of the
-previous connection.
+In the situation you allude to at the end of your mail, think about
+how the _client_ will react to the ICMP error (which you route through
+to it, don't you?) What will the client do? What effect will that have
+on the netfilter box? I can tell you: it will sit there and patiently
+wait for the other side to come back up, keeping the TCP connection
+ESTABLISHED, just like the iptables box. And, better yet: if the
+intermittent reason for the "destination unreachable" goes away,
+and we find out the server did NOT crash, but its link was flakey,
+my ssh connection STILL WORKS THE SECOND I TYPE AGAIN!
 
-UDP session:
-192.168.1.1:1025	-> 		1.2.3.4:53
-			|
-			+> session redirected to the local stack (IP 192.168.1.2:50053)
+Yes, I would call that intentional.
 
-Proxy runs on port 50053, the conntrack session starts as the first packet
-is sent to the server, this triggers the DNAT mapping (1.2.3.4:53 ->
-192.168.1.2:50053) to be applied.
+To summarize:
 
-Now the proxy exits, the local port 192.168.1.2:50053 is closed. Another
-packet is sent by the client within the session timeout, this packet is
-assumed to be part of the previously established connection, thus it is
-NATed to 192.168.1.2:50053, there is no program listening, thus the stack
-returns the ICMP error destination unreachable (port unreachable), this is
-taken as a RELATED packet, and correctly deNATed just like anything, but the
-conntrack session is still not terminated.
+	ICMP messages DO NOT TERMINATE TCP CONNECTIONS.
 
-Of course using transparent proxying is still not a common usage scenario,
-but the same problem can be applied to other situations as well: you have an
-ESTABLISHED TCP connection when one of the endpoints dies (either the host
-crashes or the corresponding IP connection is broken), no TCP packets are
-sent prior the connection is broken, thus the conntrack session remains in
-ESTABLISHED case. Even if the last-hop router returns a host unreachable
-error the conntrack entry stays in the table for 5 days.
+Please print that out, and eat the printout. You may add salt and pepper.
 
-My question is: is this behaviour intended or simply accidental?
-
-
--- 
-Bazsi
+best regards
+  Patrick
