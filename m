@@ -1,16 +1,13 @@
 From: "yong" <sdssly@sina.com>
-Subject: Re: How to use the Intercept.c example in iptables?
-Date: Fri, 6 Jun 2003 13:23:38 +0800
+Subject: How to debug netfilter loadded module?
+Date: Fri, 6 Jun 2003 15:58:29 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <003501c32beb$c9e0d5d0$6f01a8c0@li>
-References: <6330DC96389A924A804F52FA3848930E888E48@MBXSRV26.stu.nus.edu.sg>
+Message-ID: <005801c32c01$6b7ba2c0$6f01a8c0@li>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: base64
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0055_01C32C44.78E2E5C0"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Colin Cyrille" <engp2437@nus.edu.sg>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,25 +18,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-VGhhbmsgeW91IGZvciB5b3VyIGhlbHAuIHByb2JsZW0gcmVzb2x2ZWQhIEkgZGlkIG5vdCBsb2Fk
-IHRoZSBpcF9xdWV1ZSBtb2R1bGUhDQoNCkFub3RoZXIgcXVlc3Rpb24sIGlzIHRoZXJlIGFueSBt
-b3JlIGV4YW1wbGVzIGFuZCB0dXRvcmlhbHMgYWJvdXQgdGhlIG5ldGZpbHRlcj8gSSB3YW50IHRv
-IGVuY3J5cHQgVENQIGRhdGEsIGRvIGkgbXVzdCB1c2UgdXNlciBzcGFjZSBhcHBsaWN0aW9uPyBD
-YW4gSSB1c2UgYSBtb2R1bGUgdG8gcHJvY2VzcyBpdD8NCg0KVGhhbmsgeW91IGFnYWluIQ0KDQpZ
-b25nDQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogIkNvbGluIEN5cmlsbGUi
-IDxlbmdwMjQzN0BudXMuZWR1LnNnPg0KVG86ICJ5b25nIiA8c2Rzc2x5QHNpbmEuY29tPg0KU2Vu
-dDogRnJpZGF5LCBKdW5lIDA2LCAyMDAzIDEyOjQ0IFBNDQpTdWJqZWN0OiBSRTogSG93IHRvIHVz
-ZSB0aGUgSW50ZXJjZXB0LmMgZXhhbXBsZSBpbiBpcHRhYmxlcz8NCg0KDQpIYXZlIHlvdSBsb2Fk
-ZWQgdGhlIGZvbGxvd2luZyBtb2R1bGVzIDoNCg0KIyBtb2Rwcm9iZSBpcF9xdWV1ZQ0KIyBtb2Rw
-cm9iZSBpcHRhYmxlX2ZpbHRlcg0KDQpBbmQgc2V0IHVwIHVyIGZpbHRlcmluZyANCg0KI2lwdGFi
-bGVzIC1BIC4uLi4uLiAtaiBRVUVVRQ0KDQoNCkN5cmlsbGUNCg0KLS0tLS1PcmlnaW5hbCBNZXNz
-YWdlLS0tLS0NCkZyb206IHlvbmcgW21haWx0bzpzZHNzbHlAc2luYS5jb21dIA0KU2VudDogRnJp
-ZGF5LCBKdW5lIDA2LCAyMDAzIDExOjMxIEFNDQpUbzogbmV0ZmlsdGVyLWRldmVsQGxpc3RzLm5l
-dGZpbHRlci5vcmcNClN1YmplY3Q6IEhvdyB0byB1c2UgdGhlIEludGVyY2VwdC5jIGV4YW1wbGUg
-aW4gaXB0YWJsZXM/DQoNCg0KSGVsbG8gQWxsLA0KDQpJIHdhbnQgdG8gdXNlIHRoZSBsaWJpcHEs
-IEkgZW5jb3VudGVyZWQgYW4gZXJyb3IgbWVzc2FnZSB3aXRoIHRoZQ0KSW50ZXJjZXB0cy5jIGV4
-YW1wbGU6DQoNCiMuL2Eub3V0IExPQ0FMX0lOIERST1AgNSA1DQoNCkdldCB0aGUgZXJyb3IgbWVz
-c2FnZToNCg0KSW50ZXJjZXB0OiBjb25uZWN0aW9uIHJlZnVzZWQNCkludGVyY2VwdDogZmFpbGVk
-IHRvIHNlbmQgbmV0bGluayBtZXNzYWdlOiBpbGxlZ2FsIHNlZWsNCg0KVGhlIGlwcV9jcmVhdGVf
-aGFuZGxlIGZ1bmN0aW9uIHJldHVybmVzIHRoZSBhYm92ZSBlcnJvciBtZXNzYWdlLiBIb3cgdG8N
-CnVzZSB0aGlzIGV4YW1wbGU/DQoNClRoYW5rcyBpbiBhZHZhbmNlIQ0KDQo=
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0055_01C32C44.78E2E5C0
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
+
+SGVsbG8gQWxsLA0KDQpUaGFuayB5b3UgZm9yIHlvdXIgaGVscC4gSSBjYW4gaW5zbW9kIHRoZSBu
+ZXRmaWx0ZXIgbW9kdWxlIGV4YW1wbGUgYW5kIGdldCB0aGUgcHJpbnRrIG1lc3NhZ2Ugbm93LiBJ
+IHdhbnQgdG8gZGVidWcgdGhlIG1vZHVsZSBleGFtcGxlLCBjYW4gSSB1c2UgZGJnIHRvb2w/DQoN
+ClRoYW5rcyBhZ2FpbiENCg0KWW9uZw==
+
+------=_NextPart_000_0055_01C32C44.78E2E5C0
+Content-Type: text/html;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
+
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
+L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgaHR0cC1lcXVpdj1Db250ZW50LVR5cGUgY29udGVu
+dD0idGV4dC9odG1sOyBjaGFyc2V0PWdiMjMxMiI+DQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNi4w
+MC4yODAwLjExNzAiIG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8
+Qk9EWSBiZ0NvbG9yPSNmZmZmZmY+DQo8RElWPjxGT05UIHNpemU9Mj5IZWxsbyBBbGwsPC9GT05U
+PjwvRElWPg0KPERJVj48Rk9OVCBzaXplPTI+PC9GT05UPiZuYnNwOzwvRElWPg0KPERJVj48Rk9O
+VCBzaXplPTI+VGhhbmsgeW91IGZvciB5b3VyIGhlbHAuIEkgY2FuIGluc21vZCB0aGUgbmV0Zmls
+dGVyIG1vZHVsZSANCmV4YW1wbGUgYW5kIGdldCB0aGUgcHJpbnRrIG1lc3NhZ2Ugbm93LiBJIHdh
+bnQgdG8gZGVidWcgdGhlIG1vZHVsZSBleGFtcGxlLCBjYW4gDQpJIHVzZSBkYmcgdG9vbD88L0ZP
+TlQ+PC9ESVY+DQo8RElWPjxGT05UIHNpemU9Mj48L0ZPTlQ+Jm5ic3A7PC9ESVY+DQo8RElWPjxG
+T05UIHNpemU9Mj5UaGFua3MgYWdhaW4hPC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBzaXplPTI+
+PC9GT05UPiZuYnNwOzwvRElWPg0KPERJVj48Rk9OVCBzaXplPTI+WW9uZzwvRk9OVD48L0RJVj48
+L0JPRFk+PC9IVE1MPg0K
+
+------=_NextPart_000_0055_01C32C44.78E2E5C0--
