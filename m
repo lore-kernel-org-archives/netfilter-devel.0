@@ -1,12 +1,17 @@
-From: Null Device <nulldevice83@yahoo.com>
-Subject: limiting connection rate
-Date: Thu, 22 Apr 2004 13:17:32 -0700 (PDT)
+From: Friedrich Lobenstock <fl@fl.priv.at>
+Subject: Re: question regarding iptables tuning (was Re: iptables denial of
+ services)
+Date: Thu, 22 Apr 2004 22:44:41 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040422201732.60347.qmail@web41906.mail.yahoo.com>
+Message-ID: <40882EB9.7090306@fl.priv.at>
+References: <Pine.LNX.4.44.0404171843020.22016-100000@filer.marasystems.com> <408167F2.9060501@fl.priv.at> <408180C7.6080302@eurodev.net> <40818C75.8010609@fl.priv.at> <4081911D.1070307@fl.priv.at> <1082234028.13261.375.camel@tux.rsn.bth.se> <4081967F.8040005@fl.priv.at> <1082235494.13261.385.camel@tux.rsn.bth.se> <20040422122301.GC1211@eychenne.org>
+Reply-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20040422122301.GC1211@eychenne.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,42 +22,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Helloo list,
+Herve Eychenne wrote on 22.04.2004 14:23 MET:
+> 
+> I've checked, and the change in hash algorithm appeared in 2.4.21.
+> I have updated the document accordingly.
+> 
+> Here is the new version:
+> http://www.wallfire.org/misc/netfilter_conntrack_perf.txt
+> 
 
-I am new here. 
-I am working on a firewall, as an LKM on 2.4.22
-kernel. (still stateless filtering) at the network
-layer + i have the following features in it.
--> shellcode filtering ( very basic)
--> snort rules supports.( alil proggie to convert
-those rules to my firewall rules)
--> HTTP request control method.
--> Anti -( XSS and SQL Injection) measures.
+Hmmmm....."Last changes on 12/02/2003" ?
 
-just the imp ones.....as ur sites says keep the mails
-short.
+PS: A BIG THANKS for that document. I has helped me a lot getting a better 
+understanding of the matter.
 
-i am using netfilter hooks only.
-is there a way i can limit the no of connections per
-second per ip using certail iptable or netfilter
-modules.
-i was unable to find any documentation on it.
-
-As my firewall is stateless, if i want to implement,
-firstly i will have to make it stateful filtering and
-then add the code to get the job done...so i was
-looking for something which can same my work.
-
-any guidance in the regard will prove a great help.
-
-thx in advanve to everyone.
-
-ND
-
-
-	
-		
-__________________________________
-Do you Yahoo!?
-Yahoo! Photos: High-quality 4x6 digital prints for 25¢
-http://photos.yahoo.com/ph/print_splash
+-- 
+MfG / Regards
+Friedrich Lobenstock
