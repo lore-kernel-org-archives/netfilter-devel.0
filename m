@@ -1,17 +1,15 @@
-From: Rolf Fokkens <fokkensr@fokkensr.vertis.nl>
-Subject: Re: PATCH: extra conntrack stats
-Date: Sun, 27 Apr 2003 17:23:30 +0200
+From: Stephane Ouellette <ouellettes@videotron.ca>
+Subject: [PATCH]  Re: [PATCH]  libipt_string.c issue with save()
+Date: Sun, 27 Apr 2003 11:56:18 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200304271523.h3RFNZk05880@fokkensr.vertis.nl>
-References: <200304192142.h3JLg1S03466@fokkensr.vertis.nl> <20030427124835.GA990@sunbeam.de.gnumonks.org>
+Message-ID: <3EABFDA2.3030602@videotron.ca>
+References: <3EA46781.6010000@videotron.ca>
+ <20030427125514.GE990@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="Boundary_(ID_KuZ0g2Q1cC4n64IaIc2MOA)"
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030427124835.GA990@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,16 +20,52 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sunday 27 April 2003 02:48 pm, Harald Welte wrote:
-> This is inacceptable, the only way to implement this is via per-cpu
-> counters that are added at the time you read them out (like the iptables
-> per-cpu local counters)
+This is a multi-part message in MIME format.
 
-Oh boy! It's even worse! Even without this patch we have a concurrency 
-problem: the timout! It's updated frequently I guess, and it's also protected 
-by the same lock: ip_conntrack_lock!
+--Boundary_(ID_KuZ0g2Q1cC4n64IaIc2MOA)
+Content-type: text/plain; charset=us-ascii; format=flowed
+Content-transfer-encoding: 7BIT
 
-Well, after all this panic and calming down something constructive:
+Harald Welte wrote:
 
-Should a lock per contrack entry be considered? This increases the 
-concurrency for different connections anyhow.
+>On Mon, Apr 21, 2003 at 05:49:53PM -0400, Stephane Ouellette wrote:
+>  
+>
+>>Folks,
+>>
+>>  the attached patch contains the following modifications:
+>>    
+>>
+>
+>thanks, applied
+>
+>  
+>
+Harald,
+
+   I noticed that you applied the first patch I sent you, it contains a 
+typo.  The attached patch fixes the error in question.
+The error was introduced by hitting the "undo" key in my editor.
+
+Stephane.
+
+
+
+--Boundary_(ID_KuZ0g2Q1cC4n64IaIc2MOA)
+Content-type: text/plain; name=libipt_string.c.patch; CHARSET=US-ASCII
+Content-transfer-encoding: 7BIT
+Content-disposition: inline; filename=libipt_string.c.patch
+
+--- netfilter-orig/userspace/extensions/libipt_string.c	Sun Apr 27 11:50:00 2003
++++ netfilter-fixed/userspace/extensions/libipt_string.c	Mon Apr 21 23:37:45 2003
+@@ -202,7 +202,7 @@
+ 	const struct ipt_string_info *info =
+ 	    (const struct ipt_string_info*) match->data;
+ 
+-	printf("--string %s%s ", (info->invert) ? "! ", "", info->string);
++	printf("--string %s%s ", (info->invert) ? "! " : "", info->string);
+ }
+ 
+ 
+
+--Boundary_(ID_KuZ0g2Q1cC4n64IaIc2MOA)--
