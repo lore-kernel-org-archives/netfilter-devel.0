@@ -1,10 +1,10 @@
 From: Michal Pokrywka <mpokrywka@hoga.pl>
 Subject: IP SET target iptables fix
-Date: Thu, 17 Mar 2005 18:40:01 +0100
-Message-ID: <200503171840.01301.mpokrywka@hoga.pl>
+Date: Thu, 17 Mar 2005 15:16:53 +0100
+Message-ID: <200503171516.53398.mpokrywka@hoga.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
