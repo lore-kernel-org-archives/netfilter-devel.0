@@ -1,13 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [RFC][PATCH]: match supplementary gids in owner match
-Date: Thu, 17 Jul 2003 15:38:46 +0200
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: [PATCH] ip_queue and bridge-nf
+Date: Thu, 17 Jul 2003 17:51:12 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F16A6E6.8060900@trash.net>
+Message-ID: <200307171751.12670.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060400070909060805070703"
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_wXsF/OjA0ViNUeL"
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,91 +19,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060400070909060805070703
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
-This patch adds support for matching supplementary gids to the owner match.
-I wrote it for someone else, i haven't even tested it. According to him, 
-it works as
-expected. If someone likes it, feel free to add to pom. I was thinking 
-about making
-an extra flag so normal behaviour would be as before and matching 
-supplementary
-gid matching would be optional. If someone wants this, just tell me.
-
-Bye
-Patrick
-
---------------060400070909060805070703
+--Boundary-00=_wXsF/OjA0ViNUeL
 Content-Type: text/plain;
- name="ipt_owner-supgids.diff"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ipt_owner-supgids.diff"
+Content-Disposition: inline
 
-===== net/ipv4/netfilter/ipt_owner.c 1.3 vs edited =====
---- 1.3/net/ipv4/netfilter/ipt_owner.c	Thu Aug  8 16:55:29 2002
-+++ edited/net/ipv4/netfilter/ipt_owner.c	Mon Jul 14 19:25:36 2003
-@@ -109,6 +109,49 @@
- }
- 
- static int
-+match_gid(const struct sk_buff *skb, gid_t gid)
-+{
-+	struct task_struct *p;
-+	struct files_struct *files;
-+	int i;
-+
-+	/* direct match */
-+	if (gid == skb->sk->socket->file->f_gid)
-+		return 1;
-+
-+	/* find owner of socket and check supplementary gids */
-+	read_lock(&tasklist_lock);
-+	for_each_task(p) {
-+		/* racy, owner could have called setfsgid */
-+		if (p->fsgid != skb->sk->socket->file->f_gid)
-+			continue;
-+
-+		task_lock(p);
-+		files = p->files;
-+		if(files) {
-+			read_lock(&files->file_lock);
-+			for (i=0; i < files->max_fds; i++) {
-+				if (fcheck_files(files, i) == skb->sk->socket->file) {
-+					int j, ret = 0;
-+					read_unlock(&files->file_lock);
-+					for (j = 0; j < p->ngroups; j++)
-+						if (p->groups[j] == gid) {
-+							ret = 1;
-+							break;
-+						}
-+					task_unlock(p);
-+					read_unlock(&tasklist_lock);
-+					return ret;
-+				}
-+			}
-+			read_unlock(&files->file_lock);
-+		}
-+		task_unlock(p);
-+	}
-+	read_unlock(&tasklist_lock);
-+	return 0;
-+}
-+static int
- match(const struct sk_buff *skb,
-       const struct net_device *in,
-       const struct net_device *out,
-@@ -130,7 +173,7 @@
- 	}
- 
- 	if(info->match & IPT_OWNER_GID) {
--		if((skb->sk->socket->file->f_gid != info->gid) ^
-+		if(!match_gid(skb, info->gid) ^
- 		    !!(info->invert & IPT_OWNER_GID))
- 			return 0;
- 	}
+Hi Harald,
 
---------------060400070909060805070703--
+The attached patch solves the bridge-nf problem discussed in another mail on 
+this list. Please send it to Dave at your convenience, it's vs 2.6.0-test1.
+
+Here's the problem summary:
+When copying skbuffs, iptables targets don't care about the Data Link header, 
+since they assume that will be filled in later. When the packet is being 
+bridged, however, the MAC header needs to be copied since it won't and can't 
+be filled in later.
+There are probably other iptables modules that will need a similar patch.
+
+cheers,
+Bart
+
+--Boundary-00=_wXsF/OjA0ViNUeL
+Content-Type: text/x-diff;
+  charset="us-ascii";
+  name="ip_queue.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="ip_queue.diff"
+
+--- linux-2.6.0-test1/net/ipv4/netfilter/ip_queue.c.old	2003-07-16 19:35:07.000000000 +0200
++++ linux-2.6.0-test1/net/ipv4/netfilter/ip_queue.c	2003-07-16 19:39:05.000000000 +0200
+@@ -353,6 +353,11 @@ ipq_mangle_ipv4(ipq_verdict_msg_t *v, st
+ 			}
+ 			if (e->skb->sk)
+ 				skb_set_owner_w(newskb, e->skb->sk);
++#if defined(CONFIG_BRIDGE) || defined(CONFIG_BRIDGE_MODULE)
++			/* bridged packets already have their Ethernet header */
++			if (e->skb->nf_bridge)
++				memcpy(newskb->data - 16, e->skb->data - 16, 16);
++#endif
+ 			kfree_skb(e->skb);
+ 			e->skb = newskb;
+ 		}
+
+--Boundary-00=_wXsF/OjA0ViNUeL--
