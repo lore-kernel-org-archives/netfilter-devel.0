@@ -1,13 +1,15 @@
-From: Friedrich Lobenstock <fl@fl.priv.at>
-Subject: [PATCH] fix missing include in iptables-1.2.9-20040409
-Date: Sun, 11 Apr 2004 12:37:44 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: can I map a specific priv. ip to a pub ip? How?
+Date: Sun, 11 Apr 2004 12:40:24 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40791FF8.9030503@fl.priv.at>
+Message-ID: <Pine.LNX.4.44.0404111239480.19213-100000@filer.marasystems.com>
+References: <1081674472.40790ae8a9361@mail.homeccess.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000703080304090908080205"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: aso@homeccess.com
+In-Reply-To: <1081674472.40790ae8a9361@mail.homeccess.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,36 +20,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000703080304090908080205
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+On Sun, 11 Apr 2004 aso@homeccess.com wrote:
 
-Hi netfilter team!
+> however, I want to give the following private ip address to the customer,  
+> 192.168.6.10. This address has to be mapped to XXX.XXX.128.35 both internally 
+> and externally so as to allow a two way on-going connection. How do I go about 
+> this?  
 
-iptables-save.c in iptables-1.2.9-20040409 needs "#include <netdb.h>" for 
-getprotobynumber() so it compiles.
+Proxy-arp and routing. Not netfilter related.
 
--- 
-MfG / Regards
-Friedrich Lobenstock
-
---------------000703080304090908080205
-Content-Type: text/plain;
- name="patch-iptables-1.2.9-20040409"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="patch-iptables-1.2.9-20040409"
-
---- iptables-1.2.9-20040409/iptables-save.c~	2004-04-11 13:22:32.000000000 +0200
-+++ iptables-1.2.9-20040409/iptables-save.c	2004-04-11 13:22:32.000000000 +0200
-@@ -13,6 +13,7 @@
- #include <string.h>
- #include <dlfcn.h>
- #include <time.h>
-+#include <netdb.h>
- #include "libiptc/libiptc.h"
- #include "iptables.h"
- 
-
---------------000703080304090908080205--
+Regards
+Henrik
