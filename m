@@ -1,13 +1,18 @@
-From: Olivier <olivier@lx.student.wau.nl>
-Subject: status  on extremely slow traffic with linux-2.6.0-test9 ?
-Date: Fri, 7 Nov 2003 08:33:01 +0100
+From: Willy Tarreau <willy@w.ods.org>
+Subject: Re: [ANNOUNCE] Release of iptables-1.2.9
+Date: Fri, 7 Nov 2003 08:35:18 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031107083301.22522f4a.olivier@lx.student.wau.nl>
+Message-ID: <20031107073518.GA1215@alpha.home.local>
+References: <20031102171611.GF1536@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Netfilter Core Team <coreteam@netfilter.org>,
+   Netfilter Announcement List <netfilter-announce@lists.netfilter.org>,
+   Netfilter Mailinglist <netfilter@lists.netfilter.org>,
+   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <20031102171611.GF1536@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,23 +23,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+Hi Harald,
 
-I switched to linux-2.6.0-test9 and I noticed an incredible slowdown in
-outbound traffic (10 minutes to upload 5mb over a 10Mbit line). I saw in
-the archives of this list that some more people reported this.
+> 	http://www.netfilter.org/files/iptables-1.2.9.tar.bz2
+> 	ftp://ftp.netfilter.org/pub/iptables/iptables-1.2.9.tar.bz2
 
-I've loaded the following modules:
-ipt_multiport           2176  8
-ipt_state               2048  2
-ip_conntrack           31792  1 ipt_state
-iptable_filter          2944  1
-ip_tables              18048  3 ipt_multiport,ipt_state,iptable_filter
-e1000                  80772  0
+I was wondering why this file was nearly 50kB bigger than rc1. In fact, the
+archive contains some old files, totalizing about 160 kB :
 
-it seems I have the same problem  as reported by other people. But I was
-wondering if the problem is fixed, and if there is a patch available for
-testing?
+  extensions/.#libipt_ECN.c.1.7
+  extensions/.#libipt_recent.c.1.6
+  .#iptables.c.1.54
+  .#iptables.c.1.55
+  libiptc2/.libiptc.c.1.40
 
-thanks for the excellent work,
-	Olivier
+That's harmless however. I will probably upgrade today some hosts on which
+I installed rc1 a few days ago and which didn't have any problem with it.
+
+Cheers,
+Willy
