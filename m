@@ -1,8 +1,8 @@
 From: "Amir Khandani" <amirk@broadcom.com>
-Subject: Quack ALG
-Date: Mon, 17 Jun 2002 18:06:11 -0700
+Subject: Games ALGs
+Date: Mon, 17 Jun 2002 18:07:56 -0700
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <NEBBLANGHHJHJJOGHIJGKEPACBAA.amirk@broadcom.com>
+Message-ID: <NEBBLANGHHJHJJOGHIJGOEPACBAA.amirk@broadcom.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
  charset=iso-8859-1
@@ -21,10 +21,9 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-I am trying to play Quack from a PC behind firewall running iptables. Doest
-anyone know if there is an ALG module for Quack? Something similar to
-ip_masq_quake for ipchains.
+Is there a web-site with comprehensive list of iptables ALGs for various
+networking games.
 
-thanks
+Any help is very much appreciated,
 
 amir
