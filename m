@@ -1,15 +1,18 @@
-From: Jeff Hall <hall@vdata.com>
-Subject: Re: PPTP connection tracking and Poptop on same box
-Date: Wed, 3 Sep 2003 19:21:27 -0400 (EDT)
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [PATCH] [bdschuym@pandora.be: Re: ipt_physdev.c alignment
+ problems on parisc64]
+Date: Wed, 3 Sep 2003 20:05:17 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.GSO.4.56.0309031853090.10914@shemp.vdata.com>
-References: <3F542C4E.1000307@netbox.biz>
+Message-ID: <20030903200517.5b031fa4.davem@redhat.com>
+References: <20030903162022.GI6405@conectiva.com.br>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: bdschuym@pandora.be, netfilter-devel@lists.netfilter.org,
+        netdev@oss.sgi.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Menno Smits <menno@netbox.biz>
-In-Reply-To: <3F542C4E.1000307@netbox.biz>
+To: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
+In-Reply-To: <20030903162022.GI6405@conectiva.com.br>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,149 +23,11 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I experienced some of these problems also trying to get 2.4.20 working
-with PoPToP and making outgoing connections from PCs behind the PoPToP
-server. Take a look at my messages dated March 2,3,20,21 and
-April 8 of this year in the netfilter-devel archives. With the patches
-in those messages I have multiple sessions connecting to a PoPToP server
-running on my firewall server and can make at least one outgoing
-connection from a PC behind that server (I didn't test making multiple
-outgoing connections but I believe that will also worked based on some
-tests I ran months ago). I also successfully tested running a PPTP client
-on the PoPToP server.
+On Wed, 3 Sep 2003 13:20:23 -0300
+Arnaldo Carvalho de Melo <acme@conectiva.com.br> wrote:
 
-I have not (at least knowingly) modified the connection MTU, MRU, or
-TCPMSS and while I occassionally get the 'out of order' messages from
-pptpd the connection seems to recover. I'm using PoPToP v 1.1.3-2 with a
-patch to generate unique call ids.
+> 	Yes, it makes ipt_pysdev.c compile on parisc, Dave, could you please
+> apply it? Or perhaps wait for the netfilter patches, your call.
 
-Hope this helps.
-
-Jeff Hall
-
-  On Tue, 2 Sep 2003, Menno Smits wrote:
-
-  > Hi,
-  >
-  > I'm experiencing some frustrating problems using PPTP connection
-  > tracking/NAT with Poptop on the same box.
-  >
-  > I'm using kernel 2.4.21 with the latest PPTP (and related) POM patches
-  > from CVS. I'm using Poptop v1.1.4.
-  >
-  > Without ip_nat_pptp and friends loaded connections to Poptop work
-  > flawlessly.
-  >
-  > When ip_nat_pptp etc is loaded connection tracking and NAT _through_
-  > the box to external servers works great.
-  >
-  > However, when the PPTP NAT+conntrack modules are loaded, connections
-  > to Poptop running on the Linux box are highly unreliable.  Connections
-  > to Poptop are difficult to establish and generally take several
-  > attempts before they work.  Sometimes you get lucky and the connection
-  > works first go. Other times it can take 10s of attempts. Once a
-  > connection is established it seems to function and remain that way.
-  >
-  > There seems to be two types of errors I get from Poptop and pppd when
-  > a connection attempt fails. They seem to be fairly interchangable.
-  >
-  > The first is the "Operation not permitted" error:
-  >
-  > Sep  2 12:25:47 host pptpd[19967]: CTRL: Client 10.233.0.1 control
-  > connection started
-  > Sep  2 12:25:47 host pptpd[19967]: CTRL: Starting call (launching pppd,
-  > opening GRE)
-  > Sep  2 12:25:47 host pppd[19968]: pppd 2.4.2b3 started by root, uid 0
-  > Sep  2 12:25:47 host pppd[19968]: Using interface ppp1
-  > Sep  2 12:25:47 host pppd[19968]: Connect: ppp1 <--> /dev/pts/2
-  > Sep  2 12:25:47 host pptpd[19967]: GRE: Bad checksum from pppd.
-  > Sep  2 12:25:47 host pptpd[19967]: GRE: xmit failed from decaps_hdlc:
-  > Operation not permitted
-  > Sep  2 12:25:47 host pptpd[19967]: CTRL: PTY read or GRE write failed
-  > (pty,gre)=(5,6)
-  > Sep  2 12:25:47 host pptpd[19967]: CTRL: Client 10.233.0.1 control
-  > connection finished
-  > Sep  2 12:25:47 host pppd[19968]: Terminating on signal 2.
-  > Sep  2 12:25:47 host pppd[19968]: Modem hangup
-  > Sep  2 12:25:47 host pppd[19968]: Connection terminated.
-  > Sep  2 12:25:47 host pppd[19968]: Exit.
-  >
-  > The second is the "LCP: timeout sending Config-Requests" error:
-  >
-  > Aug 26 11:07:38 host pptpd[16915]: CTRL: Client 10.233.0.8 control
-  > connection started
-  > Aug 26 11:07:38 host pptpd[16915]: CTRL: Starting call (launching pppd,
-  > opening GRE)
-  > Aug 26 11:07:38 host pppd[16916]: pppd 2.4.2b3 started by root, uid 0
-  > Aug 26 11:07:38 host pppd[16916]: Using interface ppp1
-  > Aug 26 11:07:38 host pppd[16916]: Connect: ppp1 <--> /dev/pts/1
-  > Aug 26 11:07:38 host pptpd[16915]: GRE: Bad checksum from pppd.
-  > Aug 26 11:08:08 host pppd[16916]: LCP: timeout sending Config-Requests
-  > Aug 26 11:08:08 host pppd[16916]: Connection terminated.
-  > Aug 26 11:08:08 host pppd[16916]: Exit.
-  > Aug 26 11:08:08 host pptpd[16915]: GRE:
-  > read(fd=5,buffer=804d960,len=8196) from PTY failed: status = -1 error =
-  > Input/output error
-  > Aug 26 11:08:08 host pptpd[16915]: CTRL: PTY read or GRE write failed
-  > (pty,gre)=(5,6)
-  > Aug 26 11:08:08 host pptpd[16915]: CTRL: Client 10.233.0.8 control
-  > connection finished
-  >
-  > Some other possibly relevant details:
-  >
-  > The MTU and MRU on PPTP PPP intefaces is set quite low (750) to avoid
-  > "out of order packet" issues commonly experienced with Poptop.
-  >
-  > TCPMSS is set to 706 for all TCP traffic going through PPTP interfaces
-  > for similar reasons. This is done with the following rules:
-  >
-  > TCPMSS     tcp  --  ppp+   *       0.0.0.0/0            0.0.0.0/0
-  > tcp flags:0x06/0x02 TCPMSS set 706
-  > TCPMSS     tcp  --  *      ppp+    0.0.0.0/0            0.0.0.0/0
-  >    tcp flags:0x06/0x02 TCPMSS set 706
-  >
-  > During my testing generally only _one_ host is used for anything to do
-  > with PPTP (either PPTP NAT thru the firewall or PPTP connection to the
-  > firewall). I would of course like multiple clients working both thru
-  > and connecting to the firewall box.
-  >
-  > I've primarily been testing with WinXP and Win2k clients.
-  >
-  > I've tested this with a totally clear firewall (just ACCEPT policies
-  > on the default chains) with the PPTP conntrack modules loaded and the
-  > problem still occurs.
-  >
-  > A possibly useful observation:
-  > I've found that when I'm having troubles connecting from a Windows
-  > client to Poptop, connecting to a Windows 2000 PPTP server,
-  > disconnecting, and then trying Poptop again causes things to work in
-  > straight away or with 1 retry. I suspect the whole problem here is
-  > timing related (hence the intermittent nature).  I'm guessing that
-  > once the Windows client has successfully connected somewhere the
-  > timing of packet transmissions during future connections changes in
-  > our favour wrt the Linux config. I know this sounds "out there" but
-  > this is repeatable behaviour.
-  >
-  > I've googled around extensively and hunted through the netfilter
-  > mailing list archives and have found some posts describing similar
-  > problems but no conclusive answers. I've tried with and without
-  > LOCAL_NAT compiled in.
-  >
-  > Is there a way to get PPTP NAT and Poptop to co-exist happily on the
-  > same box?
-  >
-  > I would really like to get this working and am happy to try patches,
-  > test various scenarios, provide packet dumps or whatever is required.
-  >
-  > Any help or pointers would be greatly appreciated.
-  >
-  > The PPTP NAT modules seem really close to being fully functional. It
-  > would be fantastic to iron out the last remaining issues.
-  >
-  > Thanks,
-  > Menno
-  >
-  >
-  >
-  >
-  >
+As I mentioned in another email, this patch can't be used, it
+breaks in mixed 32/64 bit environments.
