@@ -1,19 +1,14 @@
-From: Fabrice MARIE <fabrice@netfilter.org>
-Subject: Re: Netfilter Design
-Date: Thu, 26 Jun 2003 23:42:34 +0800
+From: "Paul J. Caritj" <pcaritj@riovia.net>
+Subject: Basic API Question
+Date: 26 Jun 2003 03:39:46 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200306262342.34359.fabrice@netfilter.org>
-References: <01C33A40.D7C36290.rhagelstrom@atcorp.com>
-Reply-To: fabrice@netfilter.org
+Message-ID: <1056613186.8171.11.camel@localhost.localdomain>
+Reply-To: pcaritj@riovia.net
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "rhagelstrom@atcorp.com" <rhagelstrom@atcorp.com>,
-   netfilter-devel@lists.netfilter.org
-In-Reply-To: <01C33A40.D7C36290.rhagelstrom@atcorp.com>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,35 +19,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wednesday 25 June 2003 00:07, Ryan Hagelstrom wrote:
-> [...]
-> Also, this isn't the only list like this but why on earth in this day and 
-> age do the archives not have a search feature, but rather download and do
-> search yourself. I feel that a lot of the repeat questions and "search the
-> archives" responses could be eliminated if it was not so much of a pain in
-> the ass to search the archives.
+Geetings,
+I am trying to accomplish a very simple task: the addition, removal, etc
+of iptables rules through C. I have found ample documentation on
+developing modules, etc, but nothing to answer this basic question. 
 
-I know it's not the best solution, bu it's definitely the best search engine : google :)
-You can simply use the 'site:' keyword of google (i.e. site:lists.netfilter.org)
-OK, it won't feature the very recent posts, but it's better than nothing.
+Does such an interface exist or will I basically have to pipe out shell
+commands (eew)?
 
-example:
-http://www.google.com/search?hl=en&q=Netfilter+Design+site%3Alists.netfilter.org
+For the sake of illustration, lets say I wanted to mark all packets
+bound to IP [IP] with fw-mark [mark] on the PREROUTING chain.
 
-Finally, there are already existing proper search engine for the netfilter
-and netfilter devel mailing lists:
 
-netfilter searchable archive:
-http://marc.theaimsgroup.com/?l=netfilter&r=1&w=2
 
-netfilter-devel searchable archive:
-http://marc.theaimsgroup.com/?l=netfilter-devel&r=1&w=2
 
-Have a nice day,
-
-Fabrice.
---
-Fabrice MARIE
-
-"Silly hacker, root is for administrators"
-       -Unknown
+Thanks all,
+Paul
