@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [feature request] packet replication for easier NAT
-Date: Mon, 14 Oct 2002 13:13:55 +0200
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [PATCH] fixes for ipt_unclean.c
+Date: Mon, 14 Oct 2002 04:20:23 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021014131355.K13233@sunbeam.de.gnumonks.org>
-References: <20021010173619.65782c29.haferfrost@web.de>
+Message-ID: <20021014.042023.27389949.davem@redhat.com>
+References: <20021014132237.N13233@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="O1+DDjaLRatPxzPT"
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Matthias Benkmann <haferfrost@web.de>
-Content-Disposition: inline
-In-Reply-To: <20021010173619.65782c29.haferfrost@web.de>; from haferfrost@web.de on Thu, Oct 10, 2002 at 05:36:19PM +0200
+To: laforge@gnumonks.org
+In-Reply-To: <20021014132237.N13233@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,62 +21,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+   From: Harald Welte <laforge@gnumonks.org>
+   Date: Mon, 14 Oct 2002 13:22:37 +0200
 
---O1+DDjaLRatPxzPT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+   It fixes two bugs:
+   
+   - packets with UDP sport == 0 are OK according to RFC768
+   - UDP checksum is optional (old code required packet to have a checksum)
+   
+Harald, at least the UDP checksum fix is already in Marcelo's 2.4.x
+tree.
 
-On Thu, Oct 10, 2002 at 05:36:19PM +0200, Matthias Benkmann wrote:
-> This feature (if it can be implemented, I don't know enough about TCP/IP
-> and NAT to say for sure) would make NAT a lot more transparent. It would
-> lose the firewall aspects but that's no worse than a direct connection.=
-=20
-
-It would compromise the little bit of security you have. What happens if
-somebody makes one machine listen on all ports? he gets all connections
-for everybody. great.
-
-And: every connection attempt would flood your network.  Every syn packet
-coming in on the NAT gateway would need to be replicated N times, where N
-is the number of machines on the internal network.
-
-> It would fail sometimes (2 programs on different computers picking the
-> same port for listening) but in a small home LAN that can be coordinated
-> easily.=20
-
-No, it cannot. =20
-
-> On the bright side, this feature should make it possible to use a
-> lot of services from behind a NAT router without any additional
-> configuration effort.
-
-It is a horrible hack fro administrators who are too lazy to do even the
-smallest task.
-
-> MSB
-
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
-
---O1+DDjaLRatPxzPT
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE9qqbzXaXGVTD0i/8RAi9ZAJ42J7dW/tQKljBHFdCR/bVrTnVG5ACfSIdW
-vxKVRpa+sKz8Rdz2kqDp7Bc=
-=HhB8
------END PGP SIGNATURE-----
-
---O1+DDjaLRatPxzPT--
+Please recheck your patches against 2.4.20-pre10 which matches
+what I currently have for 2.4.x networking, thanks!
