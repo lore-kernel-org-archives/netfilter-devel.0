@@ -1,13 +1,17 @@
-From: "Eduard Calvo (B-teljpa) EXP JAN 03" <ecalvo@mat.upc.es>
-Subject: Handling packets in userspace with libipq
-Date: Thu, 12 Dec 2002 16:42:43 +0100
+From: Michael Schwendt <rh0209ms@arcor.de>
+Subject: Re: [PATCH] save inverted MAC match
+Date: Thu, 12 Dec 2002 18:27:14 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1039707763.3df8ae73aac54@wmail-mat.upc.es>
+Message-ID: <20021212182714.47791aa0.rh0209ms@arcor.de>
+References: <20021106172119.609b16f8.rh0209ms@arcor.de>
+	<20021114234340.59dbc60a.rh0209ms@arcor.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed;
+ boundary="Multipart_Thu__12_Dec_2002_18:27:14_+0100_08249738"
+Cc: Harald Welte <laforge@gnumonks.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20021114234340.59dbc60a.rh0209ms@arcor.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,34 +22,88 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
- 
-  Hi gurus! 
- 
-  I have a brand new ip_queue handler to do SNAT before routing. It is located 
-in PREROUTING, and everything related to the caching of the packets and its 
-information seems to go right. 
- 
-  The problem arises when I have to return the NAT'ed packet to the next hook 
-with ip_set_verdict. I don't know quite well how to tell the kernel to get the 
-modifyed packet and not the copy it has. 
-  
-  In my code I have: 
- 
-	ret = ipq_set_verdict(qh, p->packet_id, NF_ACCEPT, (int) 
-ip_header->tot_len, p->payload); 
- 
-	And ret takes always -1. 
- 
-	Where: "p" is a ipq_message_t struct pointer that refers to the 
-modified packet read with ipq_read ant then ipq_get_packet. 
-	       "ip_header" is a iphdr struct pointer that starts in 
-p->payload.  
- 
-  Do you have any idea? 
-  Thanks in advanced. 
-				 
-				         Eduard 
-                                       
 
--------------------------------------------------
-This mail sent through IMP: http://horde.org/imp/
+--Multipart_Thu__12_Dec_2002_18:27:14_+0100_08249738
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+In CVS, only the IPv4 code has been fixed. Hopefully this was the
+last "missing space in saved rules" bug.
+
+The patch is for current CVS codebase, both IPv6 and IPv4.
+
+It's a bit longer again because it tidies up save() as used by
+iptables-save without adding white-space in print() as used by
+iptables -L.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+
+iD8DBQE9+Mby0iMVcrivHFQRAprxAJ4viAlVrnJ9O+78kO+tKOO7XXgu7QCcCdbX
+U8auSUapy/8PJFzbW1I95cQ=
+=9r4z
+-----END PGP SIGNATURE-----
+
+--Multipart_Thu__12_Dec_2002_18:27:14_+0100_08249738
+Content-Type: application/octet-stream;
+ name="iptables-CVS-invertmac.patch"
+Content-Disposition: attachment;
+ filename="iptables-CVS-invertmac.patch"
+Content-Transfer-Encoding: base64
+
+QWRkIG1pc3Npbmcgc3BhY2UgaW4gZnJvbnQgb2YgaW52ZXJ0ZWQgTUFDIG1hdGNoIHVwb24gc2F2
+aW5nIHJ1bGVzLApidXQgbm90IHVwb24gcHJpbnRpbmcgcnVsZXMuCgpkaWZmIC1OYXVyIGlwdGFi
+bGVzLUNWUy1vcmlnL2V4dGVuc2lvbnMvbGliaXA2dF9tYWMuYyBpcHRhYmxlcy1DVlMvZXh0ZW5z
+aW9ucy9saWJpcDZ0X21hYy5jCi0tLSBpcHRhYmxlcy1DVlMtb3JpZy9leHRlbnNpb25zL2xpYmlw
+NnRfbWFjLmMJVGh1IERlYyAxMiAxNzo1Mjo1MCAyMDAyCisrKyBpcHRhYmxlcy1DVlMvZXh0ZW5z
+aW9ucy9saWJpcDZ0X21hYy5jCVRodSBEZWMgMTIgMTg6MTY6MzcgMjAwMgpAQCAtODYsMTEgKzg2
+LDExIEBACiAJcmV0dXJuIDE7CiB9CiAKLXN0YXRpYyB2b2lkIHByaW50X21hYyh1bnNpZ25lZCBj
+aGFyIG1hY2FkZHJlc3NbRVRIX0FMRU5dLCBpbnQgaW52ZXJ0KQorc3RhdGljIHZvaWQgcHJpbnRf
+bWFjKHVuc2lnbmVkIGNoYXIgbWFjYWRkcmVzc1tFVEhfQUxFTl0pCiB7CiAJdW5zaWduZWQgaW50
+IGk7CiAKLQlwcmludGYoIiVzJTAyWCIsIGludmVydCA/ICIhIiA6ICIiLCBtYWNhZGRyZXNzWzBd
+KTsKKwlwcmludGYoIiUwMlgiLCBtYWNhZGRyZXNzWzBdKTsKIAlmb3IgKGkgPSAxOyBpIDwgRVRI
+X0FMRU47IGkrKykKIAkJcHJpbnRmKCI6JTAyWCIsIG1hY2FkZHJlc3NbaV0pOwogCXByaW50Zigi
+ICIpOwpAQCAtMTEwLDE3ICsxMTAsMjMgQEAKICAgICAgIGNvbnN0IHN0cnVjdCBpcDZ0X2VudHJ5
+X21hdGNoICptYXRjaCwKICAgICAgIGludCBudW1lcmljKQogeworCXN0cnVjdCBpcDZ0X21hY19p
+bmZvICppbmZvID0gKHN0cnVjdCBpcDZ0X21hY19pbmZvICopbWF0Y2gtPmRhdGE7CisJCiAJcHJp
+bnRmKCJNQUMgIik7Ci0JcHJpbnRfbWFjKCgoc3RydWN0IGlwNnRfbWFjX2luZm8gKiltYXRjaC0+
+ZGF0YSktPnNyY2FkZHIsCi0JCSAgKChzdHJ1Y3QgaXA2dF9tYWNfaW5mbyAqKW1hdGNoLT5kYXRh
+KS0+aW52ZXJ0KTsKKwlpZiAoIGluZm8tPmludmVydCApCisJCXByaW50ZigiISIpOworCXByaW50
+X21hYyhpbmZvLT5zcmNhZGRyKTsKIH0KIAogLyogU2F2ZXMgdGhlIHVuaW9uIGlwNnRfbWF0Y2hp
+bmZvIGluIHBhcnNhYmxlIGZvcm0gdG8gc3Rkb3V0LiAqLwogc3RhdGljIHZvaWQgc2F2ZShjb25z
+dCBzdHJ1Y3QgaXA2dF9pcDYgKmlwLCBjb25zdCBzdHJ1Y3QgaXA2dF9lbnRyeV9tYXRjaCAqbWF0
+Y2gpCiB7CisJc3RydWN0IGlwNnRfbWFjX2luZm8gKmluZm8gPSAoc3RydWN0IGlwNnRfbWFjX2lu
+Zm8gKiltYXRjaC0+ZGF0YTsKKwkKIAlwcmludGYoIi0tbWFjLXNvdXJjZSAiKTsKLQlwcmludF9t
+YWMoKChzdHJ1Y3QgaXA2dF9tYWNfaW5mbyAqKW1hdGNoLT5kYXRhKS0+c3JjYWRkciwKLQkJICAo
+KHN0cnVjdCBpcDZ0X21hY19pbmZvICopbWF0Y2gtPmRhdGEpLT5pbnZlcnQpOworCWlmICggaW5m
+by0+aW52ZXJ0ICkKKwkJcHJpbnRmKCIhICIpOworCXByaW50X21hYyhpbmZvLT5zcmNhZGRyKTsK
+IH0KIAogc3RhdGljCmRpZmYgLU5hdXIgaXB0YWJsZXMtQ1ZTLW9yaWcvZXh0ZW5zaW9ucy9saWJp
+cHRfbWFjLmMgaXB0YWJsZXMtQ1ZTL2V4dGVuc2lvbnMvbGliaXB0X21hYy5jCi0tLSBpcHRhYmxl
+cy1DVlMtb3JpZy9leHRlbnNpb25zL2xpYmlwdF9tYWMuYwlUaHUgRGVjIDEyIDE3OjU0OjA3IDIw
+MDIKKysrIGlwdGFibGVzLUNWUy9leHRlbnNpb25zL2xpYmlwdF9tYWMuYwlUaHUgRGVjIDEyIDE4
+OjE0OjUxIDIwMDIKQEAgLTg2LDExICs4NiwxMSBAQAogCXJldHVybiAxOwogfQogCi1zdGF0aWMg
+dm9pZCBwcmludF9tYWModW5zaWduZWQgY2hhciBtYWNhZGRyZXNzW0VUSF9BTEVOXSwgaW50IGlu
+dmVydCkKK3N0YXRpYyB2b2lkIHByaW50X21hYyh1bnNpZ25lZCBjaGFyIG1hY2FkZHJlc3NbRVRI
+X0FMRU5dKQogewogCXVuc2lnbmVkIGludCBpOwogCi0JcHJpbnRmKCIlcyUwMlgiLCBpbnZlcnQg
+PyAiISAiIDogIiIsIG1hY2FkZHJlc3NbMF0pOworCXByaW50ZigiJTAyWCIsIG1hY2FkZHJlc3Nb
+MF0pOwogCWZvciAoaSA9IDE7IGkgPCBFVEhfQUxFTjsgaSsrKQogCQlwcmludGYoIjolMDJYIiwg
+bWFjYWRkcmVzc1tpXSk7CiAJcHJpbnRmKCIgIik7CkBAIC0xMTAsMTcgKzExMCwyMyBAQAogICAg
+ICAgY29uc3Qgc3RydWN0IGlwdF9lbnRyeV9tYXRjaCAqbWF0Y2gsCiAgICAgICBpbnQgbnVtZXJp
+YykKIHsKKwlzdHJ1Y3QgaXB0X21hY19pbmZvICppbmZvID0gKHN0cnVjdCBpcHRfbWFjX2luZm8g
+KiltYXRjaC0+ZGF0YTsKKwkKIAlwcmludGYoIk1BQyAiKTsKLQlwcmludF9tYWMoKChzdHJ1Y3Qg
+aXB0X21hY19pbmZvICopbWF0Y2gtPmRhdGEpLT5zcmNhZGRyLAotCQkgICgoc3RydWN0IGlwdF9t
+YWNfaW5mbyAqKW1hdGNoLT5kYXRhKS0+aW52ZXJ0KTsKKwlpZiAoIGluZm8tPmludmVydCApCisJ
+CXByaW50ZigiISIpOworCXByaW50X21hYyhpbmZvLT5zcmNhZGRyKTsKIH0KIAogLyogU2F2ZXMg
+dGhlIHVuaW9uIGlwdF9tYXRjaGluZm8gaW4gcGFyc2FibGUgZm9ybSB0byBzdGRvdXQuICovCiBz
+dGF0aWMgdm9pZCBzYXZlKGNvbnN0IHN0cnVjdCBpcHRfaXAgKmlwLCBjb25zdCBzdHJ1Y3QgaXB0
+X2VudHJ5X21hdGNoICptYXRjaCkKIHsKKwlzdHJ1Y3QgaXB0X21hY19pbmZvICppbmZvID0gKHN0
+cnVjdCBpcHRfbWFjX2luZm8gKiltYXRjaC0+ZGF0YTsKKwkKIAlwcmludGYoIi0tbWFjLXNvdXJj
+ZSAiKTsKLQlwcmludF9tYWMoKChzdHJ1Y3QgaXB0X21hY19pbmZvICopbWF0Y2gtPmRhdGEpLT5z
+cmNhZGRyLAotCQkgICgoc3RydWN0IGlwdF9tYWNfaW5mbyAqKW1hdGNoLT5kYXRhKS0+aW52ZXJ0
+KTsKKwlpZiAoIGluZm8tPmludmVydCApCisJCXByaW50ZigiISAiKTsKKwlwcmludF9tYWMoaW5m
+by0+c3JjYWRkcik7CiB9CiAKIHN0YXRpYwo=
+
+--Multipart_Thu__12_Dec_2002_18:27:14_+0100_08249738--
