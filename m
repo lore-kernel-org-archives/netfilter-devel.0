@@ -1,17 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nat/conntrack helper locking problem?
-Date: Thu, 20 Nov 2003 12:52:23 +0100
+Subject: Re: can't change expectation: change_expect returns -1 (resend packet)
+Date: Thu, 20 Nov 2003 12:56:06 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FBCAAF7.3040704@trash.net>
-References: <Pine.LNX.4.44.0311201137310.2389-100000@filer.marasystems.com>
+Message-ID: <3FBCABD6.6010108@trash.net>
+References: <DAELKAPIKOFAFFKELNHOAEALCAAA.listuser@epygi.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050807020504020407010001"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
- Harald Welte <laforge@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0311201137310.2389-100000@filer.marasystems.com>
+To: Nikolai Dahlem <listuser@epygi.de>
+In-Reply-To: <DAELKAPIKOFAFFKELNHOAEALCAAA.listuser@epygi.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,70 +21,50 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050807020504020407010001
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+People can help you better if you post your code, otherwise it's just guessing around.
 
-It's a relative uncritical error, ip_nat_helper_register races with
-ip_conntrack_helper_unregister. The attached patch should
-fix it.
-
-Best regards,
+Regards,
 Patrick
 
-Henrik Nordstrom wrote:
 
->The warning have been isolated to the nat helpers only. The conntrack 
->helpers are silent.
->
->The full trace is
->
->#0  printk (fmt=0xa2812140 "ASSERT %s:%u %s not readlocked\n") at 
->printk.c:416
->#1  0xa280efec in ip_ct_find_helper (tuple=0xa282aab4)
->    at ip_conntrack_core.c:630
->#2  0xa281dd24 in ip_nat_helper_register (me=0xa282aaa0) at 
->ip_nat_helper.c:474
->#3  0xa282a724 in init () at ip_nat_ftp.c:327
->#4  0xa0010eb3 in sys_init_module (name_user=0x807cfe8 "ip_nat_ftp", 
->    mod_user=0x80a7578) at module.c:563
->
->this is not 100% the exact same kernel so the line number differs 
->slightly, but it is the exact same error.
->
->Regards
->Henrik
+Nikolai Dahlem wrote:
+
+> Hi,
 >  
+> I'm raising an expectation in conntrack and im trying to change it in 
+> nat to the ip of the firewall + getting a free port, but in (almost) 
+> all cases change_expect returns -1 (resend packet without the same 
+> port). the odd thing is, in some cases it works ...
+> I suppose I'm basically doing something plain wrong/stupid, because it 
+> shouldn't be treated as a resend packet.
+> I attached some snippets from my syslog, how the expectation is risen 
+> in conntrack, and how it try to change it in nat.
+>  
+> conntrack:
+> ip_conntrack_sip.c:help:expect_related 172.30.8.100:5022-0.0.0.0:0
+> ip_conntrack_expect_related c280d4a0
+> tuple: tuple c01fdc00: 17 0.0.0.0:0x0000 0000 -> 172.30.8.100:0xc03fd840
+> mask:  tuple c01fdc20: 65535 255.255.255.255:0xffff0000 -> 
+> 255.255.255.255:0x00000000
+> new expectation c2b8f370 of conntrack c280d4a0
+> nat:
+> starting with port: 5022
 >
-
-
---------------050807020504020407010001
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-===== net/ipv4/netfilter/ip_nat_helper.c 1.11 vs edited =====
---- 1.11/net/ipv4/netfilter/ip_nat_helper.c	Mon Oct 13 21:40:48 2003
-+++ edited/net/ipv4/netfilter/ip_nat_helper.c	Thu Nov 20 12:48:17 2003
-@@ -469,10 +469,13 @@
- 	int ret = 0;
- 
- 	if (me->me && !(me->flags & IP_NAT_HELPER_F_STANDALONE)) {
--		struct ip_conntrack_helper *ct_helper;
-+		struct ip_conntrack_helper *ct_helper = NULL;
- 		
--		if ((ct_helper = ip_ct_find_helper(&me->tuple))
--		    && ct_helper->me) {
-+		READ_LOCK(&ip_conntrack_lock);
-+		ct_helper = ip_ct_find_helper(&me->tuple);
-+		READ_UNLOCK(&ip_conntrack_lock);
-+
-+		if (ct_helper && ct_helper->me) {
- 			__MOD_INC_USE_COUNT(ct_helper->me);
- 		} else {
- 
-
---------------050807020504020407010001--
+> change_expect:
+> exp tuple: tuple c2b8f3c8: 17 0.0.0.0:0x00000000 -> 
+> 172.30.8.100:0xc03fd840
+> exp mask:  tuple c2b8f3e8: 65535 255.255.255.255:0xffff0000 -> 
+> 255.255.255.255:0x00000000
+> newtuple:  tuple c01fdb58: 17 0.0.0.0:0x00000000 -> 
+> 10.20.10.213:0xc03fd840
+> change expect: resent packet
+> ....
+> <happens for all port>
+> ....
+> no free port found
+>  
+> Can anybody please shed some light on this
+>  
+> regards
+>  
+> Nikolai Dahlem
