@@ -1,15 +1,16 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: Security flaw in Stateful filtering ??????
-Date: Sun, 9 Jun 2002 10:29:28 +0200
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: [PATCH] remove exessive timer updates (3/4)
+Date: Sun, 9 Jun 2002 19:17:15 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020609102928.F23410@oknodo.bof.de>
-References: <3D007D73.9030609@cs.auc.dk> <3D016699.9010301@cs.auc.dk> <20020608102140.C23410@oknodo.bof.de> <200206081402.17562@henrik.marasystems.com> <3D02FDBF.6070005@cs.auc.dk>
+Message-ID: <20020609171715.GC3181@naboo.de.gnumonks.org>
+References: <1023365846.845.26.camel@tux> <20020608073733.GB1109@naboo.de.gnumonks.org> <1023548616.19835.59.camel@tux>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter-devel <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
+To: Martin Josefsson <gandalf@wlug.westbo.se>
 Content-Disposition: inline
-In-Reply-To: <3D02FDBF.6070005@cs.auc.dk>; from fleury@cs.auc.dk on Sun, Jun 09, 2002 at 09:03:27AM +0200
+In-Reply-To: <1023548616.19835.59.camel@tux>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,42 +21,45 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> Thanks a lot for pointing ip_conntrack_core.c and explain all this !
-
-Agreed. Thanks, Henrik.
-
-> The problem is that the definition of the HOWTO states that NEW match:
+On Sat, Jun 08, 2002 at 05:03:36PM +0200, Martin Josefsson wrote:
+> On Sat, 2002-06-08 at 09:37, Harald Welte wrote:
+>  
+> > ah. now I understand what the exporting was all about :)
 > 
->      A packet which creates a new connection.
+> :)
+>  
+> > sounds interesting and should give quite some speedup.  Did you do any
+> > benchmarking on that?
 > 
-> That's not true if you consider this from the protocol point of view
+> I need to get a slower test-router so I can benchmark properly :(
+> I need to get a very old pentium or high-end 486 with PCI.
 
-I think you are correct here; there's an ambiguity here, and I'd wish
-connection tracking would be called flow tracking or something. However,
-it's too late for that, now.
+ok, but even then the benchmarking results would most likely be a bit 
+different, since modern CPU's tend to have quite different cache sizes
+and I/O respectively memory bandwidth.
 
-Realistically, I think that the docs would be best augmented by an extra
-chapter on "why does the man-in-the-middle say connection to different
-things than the protocols". Bad title, I know, but instead of explaining
-the difference partially and clumsily everywhere it matters, a lucid extra
-part of the docs would be preferrable (and then reference that where it
-matters).
+> I implemented this a while ago and then accidentally lost the sourcetree
+> but I did do some profiling which I can't find now :(
 
-> > Of these, only ASSURED is directly dependent on the TCP connection 
-> > tracking state, the others are only dependent on the ability of 
-> > identifying which connection the packet may belong to.
-> 
-> Actually, ASSURED seems to be related to all the protocols which
-> expect a confirmation from the receiver before establishing the
-> connection (but in your case only TCP need a confirmation. UDP and
-> ICMP does not need this). Right ?
+no problem.  I was just asking in case you had some numbers handy...
 
-Right, I think. If another protocol parallel to TCP comes along which has
-such a setup phase (SCTP comes to mind), it could be handled likewise.
-Also, I could imagine special TCP conntrack helpers to go even further,
-and defer the ASSURED marking to a point where more of the connection
-is known, e.g. real data has been seen in one direction, and correctly
-acked.
+> A similar thing was recently done in VFS in kernel 2.5 for the atime
+> updates and it gave a very nice speedup, I doubt the speedup will be as
+> large here since the timer handling is a lot faster than disk-io.
 
-best regards
-  Patrick
+I think I will do some stress testing with and without your patch.
+
+> I'm currently in the process of going through the locking in conntrack
+> to try and make it more scalable (splitting ip_conntrack_lock) and
+> trying to fix things I find.
+
+great, improvements are always welcome, as you might assume :)
+
+> /Martin
+
+-- 
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+============================================================================
+GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M- 
+V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
