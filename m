@@ -1,14 +1,17 @@
-From: "Alexandre Carlos" <alexandre@redes.unb.br>
-Subject: IPtables
-Date: Thu, 17 Oct 2002 20:25:30 -0300
+From: Jimmy Hedman <jimmy.hedman@southpole.se>
+Subject: Re: active failover ..
+Date: 18 Oct 2002 08:52:29 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <053201c27634$7de19d30$1543a8c0@sanches>
+Message-ID: <1034923953.22519.37.camel@goofy>
+References: <20021016012047.GC563@gnoll.homeip.net>
+	<20021016224148.GB2408@naboo.club.berlin.ccc.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
+Cc: Jean-Francois Dive <jef@linuxbe.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <20021016224148.GB2408@naboo.club.berlin.ccc.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,30 +22,38 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I have the following network
+Hello,
+is there some code for active failover? I started looking at the
+netfilter code to try to implement this myself, but if there exist some
+code allready, i'd be glad to use that one instead.
 
+// Jimmy
 
-            B
-          /  |  \
-A1--A  |    C--C1
-          \  |    /
-             D
-
-I wanto A1 to ping C1 through the following path a-b-c,
-so i created the following rule in the nat table of iptable
-
-iptable -t nat -A PREROUTING -s 10.1.1.0/24 -d 192.168.67.0/24 -p icmp -j
-DNAT --to-destination 192.168.3.1
-
-The network 10.1.1.0 representes A1, the network 192.168.67.0 C1 and the
-address 192.168.3.1 is the interface that the packet shoulkd reach B.
-
-But when i start the ping i can=B4t capture the packet using the sniffer =
-and
-when a turn down all the interfaces of B and D the ping don=B4t stop.
-
-Can anyone help me please.
-
-Regards,
-
-Alex
+On Thu, 2002-10-17 at 00:41, Harald Welte wrote:
+> On Wed, Oct 16, 2002 at 11:20:47AM +1000, Jean-Francois Dive wrote:
+> > Hi guys,
+> >=20
+> > I was wondering if there was any changes in the standstill for active f=
+ailover
+> > developement ?=20
+>=20
+> no, at least for my part I won't be able to continue this project before
+> Qarter 2 / 2003
+>=20
+> > -> Jean-Francois Dive
+> --=20
+> Live long and prosper
+> - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.o=
+rg/
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
+> GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
+=20
+> V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
+--=20
+Jimmy Hedman                       South Pole AB
+Phone:  +46 8 51420420             Gelbjutarv=E4gen 5
+Fax:    +46 8 51420429             SE - 17148 Solna=20
+e-mail: jimmy.hedman@southpole.se  www.southpole.se
