@@ -1,12 +1,15 @@
-From: Unit Zero <onyx@zero.fdns.net>
-Subject: using ip_queue in kernel space
-Date: Thu, 4 Mar 2004 17:21:23 -0500 (EST)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: childlevel's pom comment
+Date: Thu, 4 Mar 2004 23:47:09 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.56L0.0403041712040.12794@zero.fdns.net>
+Message-ID: <Pine.LNX.4.44.0403042341580.30943-100000@filer.marasystems.com>
+References: <Pine.LNX.4.60.0403041500280.10634@dsl093-017-216.msp1.dsl.speakeasy.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Matthew Strait <quadong@users.sourceforge.net>
+In-Reply-To: <Pine.LNX.4.60.0403041500280.10634@dsl093-017-216.msp1.dsl.speakeasy.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,18 +20,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I've been curious for a while about the viability of using ip_queue from 
-a kernel module, without any userland side. It seems that ip_queue is 
-really only used for deferring the verdict on packets to a userspace 
-program, but if I simply install a queue handler in the module init 
-entrypoint and then install a netfilter hook that returns a QUEUE verdict 
-on packets I want, and then do whatever in my queue handler, (kick off 
-timer tasks to issue verdicts or some other such thing) will this work? 
+On Thu, 4 Mar 2004, Matthew Strait wrote:
 
-I've been meaning to just throw together a quickie test module, strap on 
-my kernel-panic helmet and give it a spin, but haven't gotten around to 
-it, since I've been busy developing alot of traffic/bandwidth stuff 
-(hashing dest-host/port pairs in a netfilter hook and counting total 
-incoming/outgoing traffic per port on a server is fun!)
+> It seems like I'd have to make significantly more invasive changes than
+> are really called for to get it to accept an empty string.  What do you
+> think?
 
-- Vic M. Condino
+Not really invasive, but yes some changes is needed in the kernel module 
+to relax the input verification. See the check() function.
+
+Regards
+Henrik
