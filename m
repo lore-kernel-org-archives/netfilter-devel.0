@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: READ_LOCK?
-Date: Tue, 6 Jan 2004 20:09:08 +0100
+Subject: Re: runme
+Date: Tue, 6 Jan 2004 20:11:22 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040106190908.GE934@obroa-skai.de.gnumonks.org>
-References: <E1Ad25t-00083p-3R@vishnu.netfilter.org>
+Message-ID: <20040106191122.GG934@obroa-skai.de.gnumonks.org>
+References: <Pine.LNX.4.58L.0401061514080.17738@gandalf.uznam.net.pl>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="nYySOmuH/HDX6pKp"
-Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="pfTAc8Cvt8L6I27a"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: zhaoyao <zhaoyao@harbournetworks.com>
+To: Michal Margula <alchemyx@uznam.net.pl>
 Content-Disposition: inline
-In-Reply-To: <E1Ad25t-00083p-3R@vishnu.netfilter.org>
+In-Reply-To: <Pine.LNX.4.58L.0401061514080.17738@gandalf.uznam.net.pl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,23 +23,33 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---nYySOmuH/HDX6pKp
+--pfTAc8Cvt8L6I27a
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Jan 04, 2004 at 02:53:03PM +0800, zhaoyao wrote:
-> netfilter-devel,hello!
-> In init_conntrack, why will READ_LOCK or WRITE_LOCK, we'are already in
-> bh, why lock it again?
+On Tue, Jan 06, 2004 at 03:17:22PM +0100, Michal Margula wrote:
+> Hello!
+>=20
+> 	Yesterday I was fighting with patch-o-matic. It was complaining=20
+> about "bad substitution" at some line. After few minutes of googling, i=
+=20
+> found out that runme is bash-based shell. So it requires bash to run. OK,=
+=20
+> fine. But in header it has #!/bin/sh and it shouldn't. Some distribution=
+=20
+> (PLD for example) use other shells like pdksh for /bin/sh.=20
+>=20
+> Solution is simple - changing #!/bin/sh into #!/bin/bash and everything=
+=20
+> should be fine. I don't know if I should to report it at=20
+> bugs.netfilter.org or maybe someone can commit a change to CVS?
 
-ip_conntrack is part of netfilter, which in turn is part of the 2.4.x
-and 2.6.x kernel.  Both 2.4 and 2.6 kernel series don't have a 'bottom
-half' for the network stack anymore.  Instead, softirq's are used.
-Softirq's are fully parallelized, i.e. they can run on any number of
-cpu's simultaneously.
+thanks, I'll fix it in CVS.  but normally bugzilla would be the right
+way to do this.  thanks.
 
-> ????????????????????2004-01-04
+> Thanks.
+=20
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -51,7 +61,7 @@ cpu's simultaneously.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---nYySOmuH/HDX6pKp
+--pfTAc8Cvt8L6I27a
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -59,9 +69,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/+wfUXaXGVTD0i/8RAubgAJ9necTbIg0ZP83Sl8CaEzrKGMbgewCgqIfe
-3jSItYEUm8aI7VAOlX6kHXs=
-=Aqcg
+iD8DBQE/+whaXaXGVTD0i/8RAo2wAKCUiX72KFa5PnjDeVmW6UyHRaQB1wCeMA+5
+5ScPXvKcF7zpTqyw/L2oBH0=
+=/2sP
 -----END PGP SIGNATURE-----
 
---nYySOmuH/HDX6pKp--
+--pfTAc8Cvt8L6I27a--
