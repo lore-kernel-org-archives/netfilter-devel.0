@@ -1,17 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [ANNOUNCE] IP sets
-Date: Sat, 14 Feb 2004 22:23:40 +0100
+Subject: ipt_string / 2.6.x (smp_num_cpus)
+Date: Sat, 14 Feb 2004 22:38:49 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040214212340.GC7756@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.33.0402091505440.23818-100000@blackhole.kfki.hu>
+Message-ID: <20040214213849.GD7756@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.44.0402071412270.27286-100000@sparrow>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rAc+36e7LRL7Dg7x"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="jn9znQ5OoOl0oegR"
+Cc: Gianni Tedesco <gianni@ecsc.co.uk>,
+	ML-netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Rusty Russell <rusty@rustcorp.com.au>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: William Stearns <wstearns@pobox.com>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0402091505440.23818-100000@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.44.0402071412270.27286-100000@sparrow>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,30 +25,39 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---rAc+36e7LRL7Dg7x
+--jn9znQ5OoOl0oegR
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Feb 09, 2004 at 03:41:56PM +0100, Jozsef Kadlecsik wrote:
-> Hello,
+I'm Cc'ing Rusty, since he's the hotplug cpu expert=20
+
+On Sat, Feb 07, 2004 at 02:19:14PM -0500, William Stearns wrote:
+> 	ipt_string.c didn't compile correctly out of the box, because of a=20
+> missing symbol smp_num_cpus.  I know there's a _correct_ fix for that=20
+> (something like NR_CPUS?), but I couldn't find it.  Adding the line
 >=20
-> The IP sets support is available from the netfilter cvs repository!
+> int smp_num_cpus =3D 1;
 
-Thanks a lot, I will take some time to review the code.
+NR_CPUS is set to the maximum number of cpu's that particular kernel
+image can support.  on x86, that's usually 32. =20
 
-One of the first issues that I ran into was the use of vmalloc.
-Please refer to http://lwn.net/Articles/57800/.
+If I understood correctly, smp_num_cpus went away because there is no
+longer a static number of cpus in a system.  Instead, there is now a
+list of 'currently active' cpus and one of 'cpus that could possibly
+run'.
 
-In fact, we should even consider to not use it for ip_tables itself,
-too.
+There is only a macro for num_online_cpus().  We would need
+num_possible_cpus() as replacement for smp_num_cpus.
 
-Since ipset is sufficiently independent (in fact, totally independent)
-of iptables, we could make it a seperate package, and thus a seperate
-cvs module.  What do you think?
+#define num_possible_cpus()	cpus_weight(cpu_possible_map)
+#define smp_num_cpus		num_possible_cpus()
 
-> Best regards,
-> Jozsef
+should therefore be a working and semantically correct fix.
+
+Rusty: Any comments?
+
+> 	- Bill
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -58,7 +69,7 @@ cvs module.  What do you think?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---rAc+36e7LRL7Dg7x
+--jn9znQ5OoOl0oegR
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -66,9 +77,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFALpHcXaXGVTD0i/8RAlLlAJ49eVq/Zhb+sCL9y6Y2Vn+sRmE4mwCgsbNX
-f+2U6ys3H8vXdSnszR7og7o=
-=TErS
+iD8DBQFALpVpXaXGVTD0i/8RAnxAAJ9/v4YkTA492dSdCKj+i4j6iAP9sQCcDSrd
+OMDUg3vVTut8K5sOw3IjpHI=
+=SzwH
 -----END PGP SIGNATURE-----
 
---rAc+36e7LRL7Dg7x--
+--jn9znQ5OoOl0oegR--
