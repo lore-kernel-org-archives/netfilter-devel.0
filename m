@@ -1,55 +1,85 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH]: 1st step to remove skb_linearize() in ip6_tables.c and optimization
-Date: Tue, 6 Jul 2004 12:35:44 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040706103544.GU32707@sunbeam2>
-References: <200406240404.NAA01264@toshiba.co.jp> <40DABA52.9070700@trash.net> <19040125165321.GA4640@obroa-skai.de.gnumonks.org> <40EA7CE7.2000502@trash.net>
+From: sebek64@post.cz (Marcel Sebek)
+Subject: [PATCH 2.6] ip6t_LOG and packets with hop-by-hop options
+Date: Tue, 6 Jul 2004 17:09:18 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20040706150918.GA5009@penguin.localdomain>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ibvzjYYg+QDzMCy1"
-Cc: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
-	netfilter-devel@lists.netfilter.org, kisza@securityaudit.hu,
-	usagi-core@linux-ipv6.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+	protocol="application/pgp-signature"; boundary="XsQoSWH+UP9D9v3l"
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S263979AbUGFPJv@vger.kernel.org>
+To: davem@redhat.com, linux-kernel@vger.kernel.org, netdev@oss.sgi.com,
+	netfilter-devel@lists.netfilter.org, laforge@netfilter.org
 Content-Disposition: inline
-In-Reply-To: <40EA7CE7.2000502@trash.net>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---ibvzjYYg+QDzMCy1
+--XsQoSWH+UP9D9v3l
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 06, 2004 at 12:20:23PM +0200, Patrick McHardy wrote:
-> skb_copy_bits is taking about twice as much cycles as tcp_match
-> and 20% of total cycles.
+Packet with IPPROTO_HOPOPTS extended header isn't logged properly by
+ip6t_LOG.c. It only prints PROTO=3D0 and nothing more, because
+IPPROTO_HOPOPTS=3D0 and in this file 0 is used to indicate last header.
+This patch fix it by using IPPROTO_NONE to indicate last header.
 
-Well, I am convinced ;)
+Signed-off-by: Marcel Sebek <sebek64@post.cz>
 
-> Regards
-> Patrick
+
+diff -urpN linux-2.6/net/ipv6/netfilter/ip6t_LOG.c linux-2.6-new/net/ipv6/n=
+etfilter/ip6t_LOG.c
+--- linux-2.6/net/ipv6/netfilter/ip6t_LOG.c	2004-04-21 20:01:54.000000000 +=
+0200
++++ linux-2.6-new/net/ipv6/netfilter/ip6t_LOG.c	2004-07-06 16:48:20.0000000=
+00 +0200
+@@ -48,10 +48,10 @@ static spinlock_t log_lock =3D SPIN_LOCK_U
+=20
+ /* takes in current header and pointer to the header */
+ /* if another header exists, sets hdrptr to the next header
+-   and returns the new header value, else returns 0 */
++   and returns the new header value, else returns IPPROTO_NONE */
+ static u_int8_t ip6_nexthdr(u_int8_t currenthdr, u_int8_t **hdrptr)
+ {
+-	u_int8_t hdrlen, nexthdr =3D 0;
++	u_int8_t hdrlen, nexthdr =3D IPPROTO_NONE;
+=20
+ 	switch(currenthdr){
+ 		case IPPROTO_AH:
+@@ -77,7 +77,6 @@ static u_int8_t ip6_nexthdr(u_int8_t cur
+ 			break;
+ 	}=09
+ 	return nexthdr;
+-
+ }
+=20
+ /* One level of recursion won't kill us */
+@@ -101,7 +100,7 @@ static void dump_packet(const struct ip6
+=20
+ 	fragment =3D 0;
+ 	hdrptr =3D (u_int8_t *)(ipv6h + 1);
+-	while (currenthdr) {
++	while (currenthdr !=3D IPPROTO_NONE) {
+ 		if ((currenthdr =3D=3D IPPROTO_TCP) ||
+ 		    (currenthdr =3D=3D IPPROTO_UDP) ||
+ 		    (currenthdr =3D=3D IPPROTO_ICMPV6))
+@@ -264,7 +263,7 @@ static void dump_packet(const struct ip6
+ 		}
+ 		break;
+ 	}
+-	/* Max length: 10 "PROTO 255 " */
++	/* Max length: 10 "PROTO=3D255 " */
+ 	default:
+ 		printk("PROTO=3D%u ", currenthdr);
+ 	}
 
 --=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Marcel Sebek
+jabber: sebek@jabber.cz                     ICQ: 279852819
+linux user number: 307850                 GPG ID: 5F88735E
+GPG FP: 0F01 BAB8 3148 94DB B95D  1FCA 8B63 CA06 5F88 735E
 
---ibvzjYYg+QDzMCy1
+
+--XsQoSWH+UP9D9v3l
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -57,9 +87,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFA6oCAXaXGVTD0i/8RAs6nAJwPpzHXlMxJV7P3D/U/vO6ADW5OzACeMjGE
-hr6/yqiA0T/57eSYEfjxkaE=
-=M98P
+iD8DBQFA6sCei2PKBl+Ic14RAnMzAJ0eiT7tjALg/NK/CBncrOx4T7483ACgsbLW
+CH8XFhFINipmMwaX8CnB/4w=
+=dWBX
 -----END PGP SIGNATURE-----
 
---ibvzjYYg+QDzMCy1--
+--XsQoSWH+UP9D9v3l--
