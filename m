@@ -1,17 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] complete nfnl_talk
-Date: Mon, 02 Jun 2003 21:31:16 +0200
+Date: Mon, 02 Jun 2003 21:48:53 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3EDBA604.9000109@trash.net>
-References: <3EDB99E2.8050100@trash.net> <1054581106.1691.7.camel@tux.rsn.bth.se>
+Message-ID: <3EDBAA25.9090808@trash.net>
+References: <3EDB99E2.8050100@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@gnumonks.org>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <1054581106.1691.7.camel@tux.rsn.bth.se>
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <3EDB99E2.8050100@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,39 +21,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Martin,
+One tought about the patch:
 
-Martin Josefsson wrote:
+> int nfnl_talk(struct nfnl_handle *nfnlh, struct nlmsghdr *n, pid_t peer,
+> 	      unsigned groups, struct nlmsghdr *answer,
+> 	      int (*junk)(struct sockaddr_nl *, struct nlmsghdr *n, void *),
+> 	      void *jarg)
+> 
+>
+...
 
->Hi Patrick
->
->Good thing that you are fixing up this stuff.
->
->I have two patches that might be of interest. They are old and quite
->ugly...
->
->http://kashyyyk.netfilter.org/~gandalf/patches/nfnetlink_conntrack-fix.diff
->Without this patch it's very easy for a regular user to cause a NULL
->pointer dereference. Harald has already included the kfree hunk in cvs
->but not the memset's.
->
-
-I don't know if you've seen my changes to nfnetlink, i've added the memsets
-to nfnetlink_check_attributes and changed ctnl_dump_table (iirc thats where
-the kfree_skb was) quite a bit.
-
->http://kashyyyk.netfilter.org/~gandalf/patches/libctnetlink-020809-2.diff
->Change the ctnl_get_conntrack() interface a bit (incremental to my
->earlier fixes to that stuff).
->
->And finally the patch I use for oidentd
->http://kashyyyk.netfilter.org/~gandalf/patches/oidentd-2.0.3+cvs20020603-ctnetlink-diff
->Just here so people can see the interface.
+> 
+>+			if (h->nlmsg_type == NLMSG_ERROR) {
+>+				struct nlmsgerr *err = NLMSG_DATA(h);
+>+				if (l < sizeof(struct nlmsgerr))
+>+					nfnl_error("ERROR truncated\n");
+>+				else {
+>+					errno = -err->error;
+>+					if (errno == 0) {
+>+						if (answer)
+>+							memcpy(answer, h, h->nlmsg_len);
+>+						return 0;
+>+					}
+>+					perror("CTNETLINK answers");
+>+				}
+>+				return -1;
 >  
 >
 
-I have to get the source and patch it, i tried figuring out what exactly it
-does from the diffs but didn't got it ;)
+applications might want to handle the error themselves, an alternative 
+would be:
 
-Thanks for the hints,
+errno = -err->error;
+if (anwer) {
+        memcpy(answer, h, h->nlmsg_len);
+        return errno;
+} else if (errno)
+        perror("CTNETLINK answers);
+return errno;
+
+What do you think ?
 Patrick
