@@ -1,17 +1,15 @@
-From: "Pavel A. Nekrasov" <pnekrasov@gmail.com>
-Subject: Re: [1/1] OSF: pom-ng - linux-2.6.
-Date: Wed, 8 Dec 2004 14:32:33 +0100
-Message-ID: <fa78a99804120805326fed423b@mail.gmail.com>
-References: <1102503533.3363.48.camel@uganda>
-Reply-To: "Pavel A. Nekrasov" <pnekrasov@gmail.com>
+From: "Srinivas G." <srinivasg@esntechnologies.co.in>
+Subject: How can I get these packets in the user space application?
+Date: Wed, 8 Dec 2004 19:31:18 +0530
+Message-ID: <4EE0CBA31942E547B99B3D4BFAB348112588BA@mail.esn.co.in>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: "Mukund JB." <mukundjb@esntechnologies.co.in>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: johnpol@2ka.mipt.ru
-In-Reply-To: <1102503533.3363.48.camel@uganda>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,17 +21,115 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-i got you doing the same.
+Dear all,
 
-Evgeniy Polyakov wrote:
+I have developed a very simple/small net filter driver to capture the
+network packets from my network path. It was working fine. Whenever a
+packet goes through my network path it was simply prints a message. It
+was printing the messages fine.
 
->+      nts = netlink_kernel_create(NETLINK_NFLOG, NULL);
+The kernel version is 2.4.18-3 with Red Hat 7.3
 
-drivers/w1/w1_int.c:    dev->nls = netlink_kernel_create(NETLINK_NFLOG, NULL);
+My question is: How can I get these packets in the user space
+application?
+What APIs can I use? Is there any specific APIs are available? If
+possible give some links or sample code which explains about it.
 
-NETLINK_NFLOG is used by ipt_ULOG, you can't use that socket because
-you are breaking compatibility. You have to use different sockets,
-call davem and request new ones.
+Please see the code attached below.
 
-kind regards,
-Pavel
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+#include <linux/module.h>		/* for module parameters */
+#include <linux/kernel.h>		/* for printk function */
+#include <linux/init.h>			/* for module explicit
+definitions */
+#include <linux/netfilter.h>		/* for netfilter structure */
+#include <linux/netfilter_ipv4.h>	/* for IPv4 specific defines */
+#include <linux/vmalloc.h>		/* for vmalloc function */
+
+#ifdef NETFILTER_DBG
+#define PRINTK(fmt,arg...) printk("NET_DBG <%s> | "
+fmt,__FUNCTION__,##arg); #else #define PRINTK(fmt,arg...) while(0)
+#endif
+
+/* define the maximum packet buffer */
+#define MAX_PACK_BUFF   2048
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Srinivas G at ESN Technologies");
+
+/* define netfilter structure here */
+static struct nf_hook_ops netfilter_hook;
+
+/* pointer to a buffer */
+unsigned char *ptr_packet_buff;
+
+/* function prototype which is called when a packet arrives */ unsigned
+int netfilter_drv_hook(unsigned int hooknum,=20
+				struct sk_buff **skb,
+		      		const struct net_device *in,=20
+				const struct net_device *out,
+		      		int (*okfn)(struct sk_buff *))
+{
+	PRINTK("One Packet arrvied!\n");
+
+	/* alocate the packet buffer */
+	ptr_packet_buff =3D (unsigned char *)vmalloc(MAX_PACK_BUFF);
+=09
+	/* the received packet was dropped here itself */
+	return NF_DROP;
+}
+=09
+=09
+
+/* netfilter_init: initialization function */
+static int
+__init init_netfilter(void)
+{
+	PRINTK("invoked!\n");
+=09
+	/* assign the function pointer */
+	netfilter_hook.hook =3D netfilter_drv_hook;
+
+	/* assign the protocol family i.e. IPv4 */
+	netfilter_hook.pf =3D PF_INET;
+
+	/* assign the hook number like NF_IP_LOCAL_IN etc. */
+	netfilter_hook.hooknum =3D NF_IP_PRE_ROUTING;
+
+	/* assign the hook priority */
+	netfilter_hook.priority =3D NF_IP_PRI_FIRST;
+
+	/* register the netfilter driver with pointer to structure */
+	nf_register_hook(&netfilter_hook);
+
+	return 0;
+}
+
+/* netfilter_exit: cleanup function */
+static void
+__exit netfilter_exit(void)
+{
+	PRINTK("invoked!\n");
+
+	/* unregister the driver */
+	nf_unregister_hook(&netfilter_hook);
+=09
+}
+
+/* explicit module definitions */
+module_init(init_netfilter);
+module_exit(netfilter_exit);
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=3D=3D=3D=3D
+
+Any help greatly appreciated.
+
+Thanks and regards,
+Srinivas G
