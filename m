@@ -1,11 +1,11 @@
 From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH] introducing skb_header_pointer() to ip6t_{ah,esp}.c
-Date: Thu, 07 Oct 2004 11:18:33 +0900 (JST)
+Subject: [PATCH] bug fixes and introducing skb_header_pointer() to ip6t_rt.c
+Date: Thu, 07 Oct 2004 12:34:14 +0900 (JST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <200410070218.i972IZJd002109@toshiba.co.jp>
+Message-ID: <200410070334.i973YF9A027425@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Thu_Oct__7_11:18:33_2004_516)--"
+	boundary="--Next_Part(Thu_Oct__7_12:34:14_2004_795)--"
 Content-Transfer-Encoding: 7bit
 Cc: usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -20,15 +20,24 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Thu_Oct__7_11:18:33_2004_516)--
+----Next_Part(Thu_Oct__7_12:34:14_2004_795)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
+
 Hi,
 
-These patches enable ip6t_{ah,esp}.c to work without skb_linearize().
+The first patch fixes the following bugs
 
-Before trying these patches, don't forget to apply the patch which prepare
+	- Wrong cast the pointer to extension header.
+	- "Segments Left" field in Routing Header isn't treated as 1 octet.
+
+And the second patch enables ip6t_rt.c to work without skb_linearize().
+
+Please note that the second patch overrides all of changes by the first patch.
+I divided into them for just ease to read.
+
+And before trying these patches, don't forget to apply the patch which prepare
 to removing skb_linearize().
 
 https://lists.netfilter.org/pipermail/netfilter-devel/2004-October/017028.html
@@ -38,36 +47,84 @@ Regards,
 -----------------------------------------------------------------
 Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
-----Next_Part(Thu_Oct__7_11:18:33_2004_516)--
+----Next_Part(Thu_Oct__7_12:34:14_2004_795)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="ah-nolin.patch"
+Content-Disposition: inline; filename="rt-fix.patch"
 
---- linux-2.6.9-rc3-nolin/net/ipv6/netfilter/ip6t_ah.c	2004-09-30 19:36:23.000000000 +0900
-+++ linux-2.6.9-rc3-nolin-ext/net/ipv6/netfilter/ip6t_ah.c	2004-09-29 14:59:05.000000000 +0900
-@@ -48,7 +48,7 @@ match(const struct sk_buff *skb,
+--- linux-2.6.9-rc3-nolin/net/ipv6/netfilter/ip6t_rt.c	2004-09-30 19:36:23.000000000 +0900
++++ linux-2.6.9-rc3-nolin-extfix/net/ipv6/netfilter/ip6t_rt.c	2004-10-07 11:25:33.231912056 +0900
+@@ -84,7 +84,7 @@ match(const struct sk_buff *skb,
+                      break;
+               }
+ 
+-              hdr=(struct ipv6_opt_hdr *)skb->data+ptr;
++              hdr=(struct ipv6_opt_hdr *)(skb->data+ptr);
+ 
+               /* Calculate the header length */
+                 if (nexthdr == NEXTHDR_FRAGMENT) {
+@@ -141,11 +141,11 @@ match(const struct sk_buff *skb,
+ 
+        DEBUGP("IPv6 RT LEN %u %u ", hdrlen, route->hdrlen);
+        DEBUGP("TYPE %04X ", route->type);
+-       DEBUGP("SGS_LEFT %u %08X\n", ntohl(route->segments_left), ntohl(route->segments_left));
++       DEBUGP("SGS_LEFT %u %02X\n", route->segments_left, route->segments_left);
+ 
+        DEBUGP("IPv6 RT segsleft %02X ",
+        		(segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
+-                           ntohl(route->segments_left),
++                           route->segments_left,
+                            !!(rtinfo->invflags & IP6T_RT_INV_SGS))));
+        DEBUGP("type %02X %02X %02X ",
+        		rtinfo->rt_type, route->type, 
+@@ -164,7 +164,7 @@ match(const struct sk_buff *skb,
+        ret = (route != NULL)
+        		&&
+        		(segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
+-                           ntohl(route->segments_left),
++                           route->segments_left,
+                            !!(rtinfo->invflags & IP6T_RT_INV_SGS)))
+ 		&&
+ 	      	(!(rtinfo->flags & IP6T_RT_LEN) ||
+
+----Next_Part(Thu_Oct__7_12:34:14_2004_795)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="rt-nolin.patch"
+
+--- linux-2.6.9-rc3-nolin-extfix/net/ipv6/netfilter/ip6t_rt.c	2004-10-07 11:25:33.231912056 +0900
++++ linux-2.6.9-rc3-nolin-ext/net/ipv6/netfilter/ip6t_rt.c	2004-10-05 22:17:19.000000000 +0900
+@@ -50,7 +50,7 @@ match(const struct sk_buff *skb,
        unsigned int protoff,
        int *hotdrop)
  {
--       struct ip_auth_hdr *ah = NULL;
-+       struct ip_auth_hdr *ah = NULL, _ah;
-        const struct ip6t_ah *ahinfo = matchinfo;
+-       struct ipv6_rt_hdr *route = NULL;
++       struct ipv6_rt_hdr _route, *rh = NULL;
+        const struct ip6t_rt *rtinfo = matchinfo;
         unsigned int temp;
-        int len;
-@@ -69,7 +69,7 @@ match(const struct sk_buff *skb,
+        unsigned int len;
+@@ -58,6 +58,7 @@ match(const struct sk_buff *skb,
+        unsigned int ptr;
+        unsigned int hdrlen = 0;
+        unsigned int ret = 0;
++       struct in6_addr *ap, _addr;
+ 
+        /* type of the 1st exthdr */
+        nexthdr = skb->nh.ipv6h->nexthdr;
+@@ -68,7 +69,7 @@ match(const struct sk_buff *skb,
         temp = 0;
  
          while (ip6t_ext_hdr(nexthdr)) {
 -               struct ipv6_opt_hdr *hdr;
 +               struct ipv6_opt_hdr _hdr, *hp;
  
-               DEBUGP("ipv6_ah header iteration \n");
+               DEBUGP("ipv6_rt header iteration \n");
  
-@@ -85,15 +85,16 @@ match(const struct sk_buff *skb,
+@@ -84,15 +85,16 @@ match(const struct sk_buff *skb,
                       break;
                }
  
--              hdr=(struct ipv6_opt_hdr *)skb->data+ptr;
+-              hdr=(struct ipv6_opt_hdr *)(skb->data+ptr);
 +	      hp = skb_header_pointer(skb, ptr, sizeof(_hdr), &_hdr);
 +	      BUG_ON(hp == NULL);
  
@@ -81,9 +138,9 @@ Content-Disposition: inline; filename="ah-nolin.patch"
 -                        hdrlen = ipv6_optlen(hdr);
 +                        hdrlen = ipv6_optlen(hp);
  
-               /* AH -> evaluate */
-                 if (nexthdr == NEXTHDR_AUTH) {
-@@ -116,7 +117,7 @@ match(const struct sk_buff *skb,
+               /* ROUTING -> evaluate */
+                 if (nexthdr == NEXTHDR_ROUTING) {
+@@ -115,7 +117,7 @@ match(const struct sk_buff *skb,
                              break;
                }
  
@@ -92,89 +149,165 @@ Content-Disposition: inline; filename="ah-nolin.patch"
                  len -= hdrlen;
                  ptr += hdrlen;
  		if ( ptr > skb->len ) {
-@@ -133,7 +134,8 @@ match(const struct sk_buff *skb,
+@@ -137,20 +139,21 @@ match(const struct sk_buff *skb,
         		return 0;
         }
  
--       ah = (struct ip_auth_hdr *) (skb->data + ptr);
-+       ah = skb_header_pointer(skb, ptr, sizeof(_ah), &_ah);
-+       BUG_ON(ah == NULL);
+-       route = (struct ipv6_rt_hdr *) (skb->data + ptr);
++       rh = skb_header_pointer(skb, ptr, sizeof(_route), &_route);
++       BUG_ON(rh == NULL);
  
-        DEBUGP("IPv6 AH LEN %u %u ", hdrlen, ah->hdrlen);
-        DEBUGP("RES %04X ", ah->reserved);
-
-----Next_Part(Thu_Oct__7_11:18:33_2004_516)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="esp-nolin.patch"
-
---- linux-2.6.9-rc3-nolin/net/ipv6/netfilter/ip6t_esp.c	2004-09-30 19:36:23.000000000 +0900
-+++ linux-2.6.9-rc3-nolin-ext/net/ipv6/netfilter/ip6t_esp.c	2004-09-29 14:57:47.000000000 +0900
-@@ -48,7 +48,7 @@ match(const struct sk_buff *skb,
-       unsigned int protoff,
-       int *hotdrop)
- {
--	struct ip_esp_hdr *esp = NULL;
-+	struct ip_esp_hdr _esp, *eh = NULL;
- 	const struct ip6t_esp *espinfo = matchinfo;
- 	unsigned int temp;
- 	int len;
-@@ -67,7 +67,7 @@ match(const struct sk_buff *skb,
- 	temp = 0;
+-       DEBUGP("IPv6 RT LEN %u %u ", hdrlen, route->hdrlen);
+-       DEBUGP("TYPE %04X ", route->type);
+-       DEBUGP("SGS_LEFT %u %02X\n", route->segments_left, route->segments_left);
++       DEBUGP("IPv6 RT LEN %u %u ", hdrlen, rh->hdrlen);
++       DEBUGP("TYPE %04X ", rh->type);
++       DEBUGP("SGS_LEFT %u %02X\n", rh->segments_left, rh->segments_left);
  
-         while (ip6t_ext_hdr(nexthdr)) {
--        	struct ipv6_opt_hdr *hdr;
-+        	struct ipv6_opt_hdr _hdr, *hp;
-         	int hdrlen;
+        DEBUGP("IPv6 RT segsleft %02X ",
+        		(segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
+-                           route->segments_left,
++                           rh->segments_left,
+                            !!(rtinfo->invflags & IP6T_RT_INV_SGS))));
+        DEBUGP("type %02X %02X %02X ",
+-       		rtinfo->rt_type, route->type, 
++       		rtinfo->rt_type, rh->type, 
+        		(!(rtinfo->flags & IP6T_RT_TYP) ||
+-                           ((rtinfo->rt_type == route->type) ^
++                           ((rtinfo->rt_type == rh->type) ^
+                            !!(rtinfo->invflags & IP6T_RT_INV_TYP))));
+        DEBUGP("len %02X %04X %02X ",
+        		rtinfo->hdrlen, hdrlen,
+@@ -158,13 +161,13 @@ match(const struct sk_buff *skb,
+                            ((rtinfo->hdrlen == hdrlen) ^
+                            !!(rtinfo->invflags & IP6T_RT_INV_LEN))));
+        DEBUGP("res %02X %02X %02X ", 
+-       		(rtinfo->flags & IP6T_RT_RES), ((struct rt0_hdr *)route)->bitmap,
+-       		!((rtinfo->flags & IP6T_RT_RES) && (((struct rt0_hdr *)route)->bitmap)));
++       		(rtinfo->flags & IP6T_RT_RES), ((struct rt0_hdr *)rh)->bitmap,
++       		!((rtinfo->flags & IP6T_RT_RES) && (((struct rt0_hdr *)rh)->bitmap)));
  
- 		DEBUGP("ipv6_esp header iteration \n");
-@@ -85,15 +85,16 @@ match(const struct sk_buff *skb,
- 			break;
+-       ret = (route != NULL)
++       ret = (rh != NULL)
+        		&&
+        		(segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
+-                           route->segments_left,
++                           rh->segments_left,
+                            !!(rtinfo->invflags & IP6T_RT_INV_SGS)))
+ 		&&
+ 	      	(!(rtinfo->flags & IP6T_RT_LEN) ||
+@@ -172,13 +175,19 @@ match(const struct sk_buff *skb,
+                            !!(rtinfo->invflags & IP6T_RT_INV_LEN)))
+ 		&&
+        		(!(rtinfo->flags & IP6T_RT_TYP) ||
+-                           ((rtinfo->rt_type == route->type) ^
+-                           !!(rtinfo->invflags & IP6T_RT_INV_TYP)))
+-		&&
+-       		!((rtinfo->flags & IP6T_RT_RES) && (((struct rt0_hdr *)route)->bitmap));
++                           ((rtinfo->rt_type == rh->type) ^
++                           !!(rtinfo->invflags & IP6T_RT_INV_TYP)));
++
++	if (ret && (rtinfo->flags & IP6T_RT_RES)) {
++		u_int32_t *bp, _bitmap;
++		bp = skb_header_pointer(skb,
++					ptr + offsetof(struct rt0_hdr, bitmap),
++					sizeof(_bitmap), &_bitmap);
++
++		ret = (*bp == 0);
++	}
+ 
+ 	DEBUGP("#%d ",rtinfo->addrnr);
+-       temp = len = ptr = 0;
+        if ( !(rtinfo->flags & IP6T_RT_FST) ){
+ 	       return ret;
+ 	} else if (rtinfo->flags & IP6T_RT_FST_NSTRICT) {
+@@ -187,32 +196,27 @@ match(const struct sk_buff *skb,
+ 			DEBUGP("There isn't enough space\n");
+ 			return 0;
+ 		} else {
++			unsigned int i = 0;
++
+ 			DEBUGP("#%d ",rtinfo->addrnr);
+-			ptr = 0;
+ 			for(temp=0; temp<(unsigned int)((hdrlen-8)/16); temp++){
+-				len = 0;
+-				while ((u8)(((struct rt0_hdr *)route)->
+-						addr[temp].s6_addr[len]) ==
+-					(u8)(rtinfo->addrs[ptr].s6_addr[len])){
+-					DEBUGP("%02X?%02X ",
+-		(u8)(((struct rt0_hdr *)route)->addr[temp].s6_addr[len]),
+-					(u8)(rtinfo->addrs[ptr].s6_addr[len]));
+-					len++;
+-					if ( len == 16 ) break;
++				ap = skb_header_pointer(skb,
++							ptr
++							+ sizeof(struct rt0_hdr)
++							+ temp * sizeof(_addr),
++							sizeof(_addr),
++							&_addr);
++
++				BUG_ON(ap == NULL);
++
++				if (!ipv6_addr_cmp(ap, &rtinfo->addrs[i])) {
++					DEBUGP("i=%d temp=%d;\n",i,temp);
++					i++;
+ 				}
+-				if (len==16) {
+-					DEBUGP("ptr=%d temp=%d;\n",ptr,temp);
+-					ptr++;
+-				} else {
+-					DEBUGP("%02X?%02X ",
+-		(u8)(((struct rt0_hdr *)route)->addr[temp].s6_addr[len]),
+-					(u8)(rtinfo->addrs[ptr].s6_addr[len]));
+-					DEBUGP("!ptr=%d temp=%d;\n",ptr,temp);
+-				}
+-				if (ptr==rtinfo->addrnr) break;
++				if (i==rtinfo->addrnr) break;
+ 			}
+-			DEBUGP("ptr=%d len=%d #%d\n",ptr,len, rtinfo->addrnr);
+-			if ( (len == 16) && (ptr == rtinfo->addrnr))
++			DEBUGP("i=%d #%d\n", i, rtinfo->addrnr);
++			if (i == rtinfo->addrnr)
+ 				return ret;
+ 			else return 0;
  		}
- 
--		hdr=(struct ipv6_opt_hdr *)skb->data+ptr;
-+		hp = skb_header_pointer(skb, ptr, sizeof(_hdr), &_hdr);
-+		BUG_ON(hp == NULL);
- 
- 		/* Calculate the header length */
-                 if (nexthdr == NEXTHDR_FRAGMENT) {
-                         hdrlen = 8;
-                 } else if (nexthdr == NEXTHDR_AUTH)
--                        hdrlen = (hdr->hdrlen+2)<<2;
-+                        hdrlen = (hp->hdrlen+2)<<2;
-                 else
--                        hdrlen = ipv6_optlen(hdr);
-+                        hdrlen = ipv6_optlen(hp);
- 
- 		/* set the flag */
- 		switch (nexthdr){
-@@ -109,7 +110,7 @@ match(const struct sk_buff *skb,
- 				break;
+@@ -224,26 +228,19 @@ match(const struct sk_buff *skb,
+ 		} else {
+ 			DEBUGP("#%d ",rtinfo->addrnr);
+ 			for(temp=0; temp<rtinfo->addrnr; temp++){
+-				len = 0;
+-				while ((u8)(((struct rt0_hdr *)route)->
+-						addr[temp].s6_addr[len]) ==
+-					(u8)(rtinfo->addrs[temp].s6_addr[len])){
+-					DEBUGP("%02X?%02X ",
+-		(u8)(((struct rt0_hdr *)route)->addr[temp].s6_addr[len]),
+-					(u8)(rtinfo->addrs[temp].s6_addr[len]));
+-					len++;
+-					if ( len == 16 ) break;
+-				}
+-				if (len!=16) {
+-					DEBUGP("%02X?%02X ",
+-		(u8)(((struct rt0_hdr *)route)->addr[temp].s6_addr[len]),
+-					(u8)(rtinfo->addrs[temp].s6_addr[len]));
+-					DEBUGP("!len=%d temp=%d;\n",len,temp);
++				ap = skb_header_pointer(skb,
++							ptr
++							+ sizeof(struct rt0_hdr)
++							+ temp * sizeof(_addr),
++							sizeof(_addr),
++							&_addr);
++				BUG_ON(ap == NULL);
++
++				if (ipv6_addr_cmp(ap, &rtinfo->addrs[temp]))
+ 					break;
+-				}
+ 			}
+-			DEBUGP("temp=%d len=%d #%d\n",temp,len,rtinfo->addrnr);
+-			if ( (len == 16) && (temp == rtinfo->addrnr) && (temp == (unsigned int)((hdrlen-8)/16)))
++			DEBUGP("temp=%d #%d\n", temp, rtinfo->addrnr);
++			if ((temp == rtinfo->addrnr) && (temp == (unsigned int)((hdrlen-8)/16)))
+ 				return ret;
+ 			else return 0;
  		}
- 
--                nexthdr = hdr->nexthdr;
-+                nexthdr = hp->nexthdr;
-                 len -= hdrlen;
-                 ptr += hdrlen;
- 		if ( ptr > skb->len ) {
-@@ -126,13 +127,14 @@ match(const struct sk_buff *skb,
-        		return 0;
-        }
- 
--	esp = (struct ip_esp_hdr *) (skb->data + ptr);
-+	eh = skb_header_pointer(skb, ptr, sizeof(_esp), &_esp);
-+	BUG_ON(eh == NULL);
- 
--	DEBUGP("IPv6 ESP SPI %u %08X\n", ntohl(esp->spi), ntohl(esp->spi));
-+	DEBUGP("IPv6 ESP SPI %u %08X\n", ntohl(eh->spi), ntohl(eh->spi));
- 
--	return (esp != NULL)
-+	return (eh != NULL)
- 		&& spi_match(espinfo->spis[0], espinfo->spis[1],
--			      ntohl(esp->spi),
-+			      ntohl(eh->spi),
- 			      !!(espinfo->invflags & IP6T_ESP_INV_SPI));
- }
- 
 
-----Next_Part(Thu_Oct__7_11:18:33_2004_516)----
+----Next_Part(Thu_Oct__7_12:34:14_2004_795)----
