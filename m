@@ -1,15 +1,16 @@
-From: Pablo Neira <pablo@eurodev.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: sparc64 match module - bug id 94
-Date: Thu, 06 May 2004 16:56:28 +0200
+Date: Thu, 6 May 2004 17:33:25 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <409A521C.5020406@eurodev.net>
-References: <Pine.LNX.4.44.0405061211230.29759-100000@filer.marasystems.com> <1083852576.1822.18.camel@nienna.balabit>
+Message-ID: <Pine.LNX.4.33.0405061729170.1102-100000@blackhole.kfki.hu>
+References: <1083852576.1822.18.camel@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+	dan radom <netfilter@radom.org>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: KOVACS Krisztian <hidden@balabit.hu>
 In-Reply-To: <1083852576.1822.18.camel@nienna.balabit>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -21,21 +22,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Krisztian,
+On Thu, 6 May 2004, KOVACS Krisztian wrote:
 
-KOVACS Krisztian wrote:
-
->  A possible hack: let's define two separate structures, one for
->in-kernel use, and one for the userspace.
->  
+> struct ipt_rateinfo {
+> 	u_int32_t avg;    /* Average secs between packets * scale */
+> 	u_int32_t burst;  /* Period multiplier for upper limit. */
 >
+> 	/* Used internally by the kernel */
+> 	unsigned long prev;
+> 	u_int32_t credit;
+> 	u_int32_t credit_cap, cost;
+>
+> 	/* Ugly, ugly fucker. */
+> 	struct ipt_rateinfo *master;
+> };
+>
+>   The problem point is *master, which, however, is for in-kernel use
+> only.
 
-I thought about that possibility, it's an interesting hack, but I think 
-that the problem is much more specific, we have only this problem with 
-ipt_limit. Actually, when we have some internal match information which 
-is shared by some processors, we need to know which one is the selected 
-to work with. So, we could add a pointer to the master of internal match 
-data in struct ipt_entry_match. what do you think?
+Just a thought: in 'pool' there was a similar problem and it was solved in
+'set' by keeping the kernel info structures in an array. Then instead of
+the pointer like above, the user part stored the index of the
+corresponding structure in the array.
 
-regards,
-Pablo
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
