@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Traffic accounting match
-Date: Wed, 21 Jan 2004 08:22:32 -0500
+Subject: Re: MAC Filtering
+Date: Wed, 21 Jan 2004 08:55:31 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040121132232.GN8642@obroa-skai.de.gnumonks.org>
-References: <20031212182346.GA21222@moon.ondraszek.ds.polsl.gliwice.pl> <20031213084905.GE8950@obroa-skai.de.gnumonks.org> <20040116181043.GJ12709@chloe.cb.ac.at>
+Message-ID: <20040121135531.GQ8642@obroa-skai.de.gnumonks.org>
+References: <4005D62A.3080609@rtc.bosch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="n2Pv11Ogg/Ox8ay5"
-Cc: Piotr Gasid?o <quaker@ondraszek.eu.org>,
-	netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="6BvahUXLYAruDZOj"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Peter Surda <shurdeek@routehat.org>
+To: Gopal Chandavarapu <Gopal.Chandavarapu@rtc.bosch.com>
 Content-Disposition: inline
-In-Reply-To: <20040116181043.GJ12709@chloe.cb.ac.at>
+In-Reply-To: <4005D62A.3080609@rtc.bosch.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,26 +23,34 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---n2Pv11Ogg/Ox8ay5
+--6BvahUXLYAruDZOj
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jan 16, 2004 at 07:10:44PM +0100, Peter Surda wrote:
+On Wed, Jan 14, 2004 at 03:52:10PM -0800, Gopal Chandavarapu wrote:
+> Hi All,
+>=20
+> A specific hardware and its cross compiler need 2.4.14 version of the=20
+> linux kernel. I have to do MAC filtering for these devices, so I found th=
+at
+>=20
+> http://ebtables.sourceforge.net/documentation.html#whatdo
+>=20
+>  does MAC filtering. -----------   Good till now.
+>=20
+>=20
+>=20
+> Problem : The problem is ebtables works only with linux kernel 2.4.22/23=
+=20
+> and version 2.6.x
 
-> I have been using the patch for a couple of days and it seems to work fin=
-e,
-> and I think it is a very useful thing. I looked at the code and seem to be
-> able to understand most of the comments (I don't actually speak Polish, b=
-ut 3
-> other slavic languages :-)). If I translate it into english, is there any=
-thing
-> more preventing it from going into p-o-m?
+This is the netfilter/iptables mailinglist.  Please ask questions
+related to ebtables on the linux bridging mailinglist.
 
-No, at least not from my point of view.
 
-But please discuss this with Piotr first, since he is the original
-author.
+> Thanks
+> Gopal.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -55,7 +62,7 @@ author.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---n2Pv11Ogg/Ox8ay5
+--6BvahUXLYAruDZOj
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -63,9 +70,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQFADn0YXaXGVTD0i/8RAgEjAJ9nQA0HPZznH9kAk026QAKmr9djPgCglyvG
-t2qBVhYegBGTnk3dQFHKxbk=
-=2ck+
+iD8DBQFADoTTXaXGVTD0i/8RAkp/AJ9lppV1hiWbCNq03RSSK2QM6O0grgCePJ/+
+XdxLB2ZabIkyd0Sey1gD+Ns=
+=VLg+
 -----END PGP SIGNATURE-----
 
---n2Pv11Ogg/Ox8ay5--
+--6BvahUXLYAruDZOj--
