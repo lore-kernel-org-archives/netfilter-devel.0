@@ -1,16 +1,14 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: Re: Rule optimization scheme openbsd-like
-Date: Thu, 30 Oct 2003 13:57:44 +0100 (CET)
+From: "sina" <wanglonge@vip.sina.com>
+Subject: how to flush conntrack entry?
+Date: Fri, 31 Oct 2003 14:07:12 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0310301350260.25629@dns.toxicfilms.tv>
-References: <Pine.LNX.4.51.0310131004000.17633@dns.toxicfilms.tv>
- <20031014112305.GD3752@obroa-skai.de.gnumonks.org>
+Message-ID: <003201c39f75$3e40a5c0$0200200a@wangle>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031014112305.GD3752@obroa-skai.de.gnumonks.org>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,12 +19,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> yes, that was something I always wanted to do but never got around
-> doing.  Actually I started it once, but didn't get very far.
->
-> When I'm back home next weekend, I'll see if I can find that old piece
-> of document and send it to you.
-A long weekend :)
-Could you send me the document in free time ?
-
-Maciej
+aGVsbG8NCiAgICAgICBpIHJ1biBpbnRvIHRoZSBwcm9ibGVtIGRlc2NyaWJlZCBoZXJlIGFuZCBp
+IHdvbmRlcmVkIGlmIHNvbWVvbmUga25vd3Mgb2YNCmEgc29sdXRpb246DQoNCiAgICAgICArLS0t
+LS0tLS0tLSsNCiAgICAgICB8ICBTTkFUICAgIHwNCnByaXZhdGV8LS0tLS0tLS0+IHwoZXRoMTog
+cHVibGljIGlwKQ0KICBpcCAgICstLS0tLS0tLS0tKw0KDQoxKSBzZXR1cCBtYXNxdWVyYWRpbmcg
+DQooaXB0YWJsZXMgLXQgbmF0IC1BIFBPU1RST1VUSU5HIC1vIGV0aDEgLWogTUFTUVVFUkFESU5H
+KQ0KDQphbmQgcGluZyBjb250aW51b3VzbHkgZnJvbSBwcml2YXRlIHRvIHB1YmxpYy4gYWxsIG9r
+Lg0KDQoyKSBmbHVzaCB0aGUgTkFUDQoNCmlwdGFibGVzIC10IG5hdCAtRg0KDQoocGluZyB3aWxs
+IHN0b3Agd29ya2luZyBvYnZpb3VzbHkgYnV0IGkgZG9uJ3Qga2lsbCB0aGUgcGluZyBwcm9jZXNz
+LA0KanVzdCBrZWVwIHNlbmRpbmcgZWNobywgbm8gcmVwbHkpDQoNCjMpIHB1dCBiYWNrIG5hdDoN
+CihpcHRhYmxlcyAtdCBuYXQgLUEgUE9TVFJPVVRJTkcgLW8gZXRoMSAtaiBNQVNRVUVSQURJTkcp
+DQoNCiEhISBwaW5nIGRvZXMgbm90IGNvbWUgYmFjayAhISENCg0KNCkgSSBoYXZlIHRvIHN0b3Ag
+dGhlIHBpbmdzIGFuZCANCg0KNSkgcmVzdGFydCB0aGVtIHRvIG1ha2UgaXQgd29yay4NCg0KbG9v
+a2luZyBhdCB0aGUgaXBfY29ubnRyYWNrIHByb2MgZW50cnkgaXQgd2FzIG5vdGljZWQgdGhhdDoN
+Cg0KYWZ0ZXIgZmx1c2hpbmcgKHN0ZXAgMikgYW4gVU5SRVBMSUVEIGVudHJ5IGZvciBpY21wIGlz
+IHRoZXJlDQoobm8gcmVwbHkgaGVuY2UgdW5yZXBsaWVkKSBidXQgaXRzIHR0bCBkb2VzIG5vdCBk
+ZWNyZW1lbnQuDQoocGluZyBlY2hvcyBhcmUgc3RpbGwgaGl0dGluZyB0aGUgbmF0IGJveCBmcm9t
+IHByaXZhdGUgc2lkZSkNCg0Kc3RvcGluZyB0aGUgcGluZyAoc3RlcCA0KSBhbGxvd3MgdGhlIHR0
+bCB0aW1lciBvZiB0aGUgY29ubnRyYWNrIGVudHJ5IA0KdG8gc3RhcnQgZGVjcmVtZW50aW5nICgz
+MCBzZWMpDQoNCnJlc3RhcmluZyB0aGUgcGluZ3MgKGkgZG9uJ3QgaGF2ZSB0byB3YWl0IHRpbGwg
+dHRsIGdvZXMgdG8gemVybyA/IT8pDQooc3RlcCA1KSBidXQgbm93IHdpdGggbmF0IGJhY2sgb24g
+KHN0ZXAgMykgSSBkb247dCBnZXQgdGhlIGljbXAgZW50cnkgb24NCmNvbm50cmFjayBidXQgYWxs
+IGlzIG9rIChwaW5ncyBnb2VzIHRocnUpLg0KDQpxdWVzdGlvbiBpczogaXMgdGhlcmUgYSB3YXkg
+dG8gYWNoaWV2ZSB0aGlzIChsb29rcyBsaWtlIHN0YXJ0DQpkZWNyZW1lbnRpbmcgdGhhdCB0dGwg
+b3IgcmVzZXRpbmcgaXQgdG8gemVybyBpbiBjb25udHJhY2spIGluIHRoZSBuYXQNCmJveCB3aXRo
+b3V0IGhhdmluZyB0byBzdG9wIHRoZSBwaW5ncyBvbiB0aGUgaG9zdCBzaWRlID8NCg0KdGhhbmtz
+LA0KbWFyaWFuDQoNCg0KDQoNCg0K
