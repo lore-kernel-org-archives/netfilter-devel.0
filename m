@@ -1,8 +1,8 @@
 From: Kishore Dharmavaram <kishored@servgate.com>
 Subject: RE: Memory leaks in ip_conntrack?
-Date: Mon, 10 Nov 2003 16:44:43 -0800
+Date: Mon, 10 Nov 2003 19:07:09 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <EFBADA8C200C2B418DA39734FD15475B0B2053@skat.sky.com>
+Message-ID: <EFBADA8C200C2B418DA39734FD15475B0B2057@skat.sky.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -20,96 +20,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Alistair & All,
-
-tcp_wmem numbers on my system are as follows:
-[root@Firewall root]# cat /proc/sys/net/ipv4/tcp_wmem
-4096    16384   1048576
-
-What does tcp_wmem numbers mean, how would they affect ip_conntracks?.
-
+Anthony & All,
+Earlier when I checked, /proc/net/ip_conntrack  and /proc/slabinfo were both
+showing a number around 34000 to 36000, when I checked again after sometime,
+number of connections in /proc/slabinfo hit the maximum 131072 and number of
+connections went down to 20 to 30 in /proc/net/ip_conntrack andbox is
+rejecting new connections.
 Thanks,
 Kishore
 
 -----Original Message-----
-From: Alistair Tonner [mailto:Alistair@nerdnet.ca]
-Sent: Monday, November 10, 2003 4:03 PM
-To: Kishore Dharmavaram; netfilter@lists.netfilter.org
-Cc: 'netfilter-devel@lists.netfilter.org'
+From: Antony Stone [mailto:Antony@Soft-Solutions.co.uk]
+Sent: Monday, November 10, 2003 4:33 PM
+To: netfilter@lists.netfilter.org
 Subject: Re: Memory leaks in ip_conntrack?
 
 
-On November 10, 2003 03:10 pm, Kishore Dharmavaram wrote:
+On Tuesday 11 November 2003 12:03 am, Alistair Tonner wrote:
 
-	Kishore:
+> 	what is set in /proc/sys/net/ipv4/tcp_wmem?
+>
+> 	I suspect that what is STOPPing the network is there ..
+> 	cat /proc/sys/net/ipv4/tcp_wmem -- on my system the max is ...
+> 	!! 131072 !!
+>
+> 	Maybe you've maxed your memory allocation for TCP?
 
-	what is set in /proc/sys/net/ipv4/tcp_wmem?
+I can understand why you think this might be the magic number causing the 
+problem, but why would Kishore be running into this limit with only 20 to 30
 
-	I suspect that what is STOPPing the network is there .. 
-	cat /proc/sys/net/ipv4/tcp_wmem -- on my system the max is ... 
-	!! 131072 !!
-	
-	Maybe you've maxed your memory allocation for TCP?
+connections active on the machine?
 
+> > I believe /proc/slabinfo gives # of conntracks being used, in my tests I
+> > usually find slabinfo number is same as number of entries in
+> > /proc/net/ip_conntrack. But, after 18hrs or so the number in
+> > /proc/slabinfo reaches maximum and box starts refusing connections,
+> > /proc/net/ip_conntrack show 20 to 30 entries, I hear
+> > /proc/net/ip_conntrack is unreliable and broken. Anyway, I guess I have
+> > to dig into the code.
 
-> Alistair & All,
->
-> I believe /proc/slabinfo gives # of conntracks being used, in my tests I
-> usually find slabinfo number is same as number of entries in
-> /proc/net/ip_conntrack. But, after 18hrs or so the number in
-/proc/slabinfo
-> reaches maximum and box starts refusing connections,
-/proc/net/ip_conntrack
-> show 20 to 30 entries, I hear /proc/net/ip_conntrack is unreliable and
-> broken. Anyway, I guess I have to dig into the code.
->
-> Thanks,
-> -Kishore
->
-> -----Original Message-----
-> From: Alistair Tonner [mailto:Alistair@nerdnet.ca]
-> Sent: Sunday, November 09, 2003 4:40 PM
-> To: netfilter@lists.netfilter.org
-> Subject: Re: Memory leaks in ip_conntrack?
->
->
->
-> 	Actually Anthony I'm inclined to agree with you .. I was just
-> pointing out
-> that the assumption that the count in /proc/slabinfo (ip_conntrack) is  an
-> indication of the count in /proc/net/ipv4/ip_conntrack is completely
-> incorrect.  i.e. the two counters are keeping track of dfferent things.
->
-> 	I'm curious myself (as to what is causing this gent's problem) as
-> there have
-> been so many queries on this subject lately, and as I pointed out to Oskar
-> we
-> *really* are starting to need a FAQ on this.
->
-> 	i.e. -- if you think this is a problem, here's best how to determine
-> if
-> iptables is causing memory issues on your system.  Frequenly folks are
-> implementing iptables and don't understand linux memory management schema
-> and the affects it has on what they see on their screens.
->
-> 	Not that I'm complaining, ... Its good learning for me as I try to
-> diagnose
-> the issue on my system, but it might make new users lives easier if we had
-> the info out there to start with.
->
->
-> 	Alistair Tonner
-> 	nerdnet.ca
-> 	Senior Systems Analyst - RSS
->
->      Any sufficiently advanced technology will have the appearance of
-> magic. Lets get magical!
+Antony.
 
 -- 
 
-	Alistair Tonner
-	nerdnet.ca
-	Senior Systems Analyst - RSS
-	
-     Any sufficiently advanced technology will have the appearance of magic.
-	Lets get magical!
+What a waste it is to lose one's mind -- or not to have a mind.   How true 
+that is.
+
+ - Dan Quayle, vice-president of the United States of America
+                                                     Please reply to the
+list;
+                                                           please don't CC
+me.
