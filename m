@@ -1,16 +1,17 @@
-From: netfilter@interlinx.bc.ca
-Subject: Re: [PATCH] Amanda conntrack/nat module update
-Date: Sat, 2 Nov 2002 09:35:20 -0500
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: design-feature of nat?
+Date: Sat, 2 Nov 2002 15:34:51 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021102143520.GF16306@pc.ilinx>
-References: <20021101232337.GD16306@pc.ilinx> <1036244727.28830.66.camel@tux>
+Message-ID: <20021102153451.N8635@sunbeam.de.gnumonks.org>
+References: <200211012254.ERB510IOAA@gate.tbc.sub.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Bg2esWel0ueIH/G/"
+	protocol="application/pgp-signature"; boundary="qPRehgwKaTVCe+gW"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: jb@is-kassel.de
 Content-Disposition: inline
-In-Reply-To: <1036244727.28830.66.camel@tux>
+In-Reply-To: <200211012254.ERB510IOAA@gate.tbc.sub.de>; from jb@moenia.de on Fri, Nov 01, 2002 at 11:52:45PM +0100
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,43 +23,71 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Bg2esWel0ueIH/G/
+--qPRehgwKaTVCe+gW
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Nov 02, 2002 at 02:45:27PM +0100, Martin Josefsson wrote:
-> On Sat, 2002-11-02 at 00:23, netfilter@interlinx.bc.ca wrote:
-> >=20
-> > Please find attached an update patch to patch-o-matic for my Amanda
-> > protocol conntrack/nat helper.  This patch corrects a minor error in
-> > the Config.in indentation as well as, and more importantly, lengthens
-> > the timeout for the master Amanda connection from the default UDP
-> > stream timeout (normally 180 seconds) to 300 seconds.
+On Fri, Nov 01, 2002 at 11:52:45PM +0100, juergen baumann wrote:
 
-So, I am assuming that the theory and my implementation of a
-conntracker extending the timeout for it's own master connection
-beyond the default is/was correct?
+Hi Juergen.
 
-> Applied,
+> possible design-problem within snat.
+>=20
+> connecting with certain source-port to any destination.
+> normal stop of this connection.
+>=20
+> establishing a snat-rule which replaces the address used by the connection
+> before.
+>=20
+> conencting again with same source-port to same destination.
+>=20
+> neither the established snat-rule will be used, nor any further
+> packet-counter will be increased.
+>=20
+> problem will not occure, if the corresponding conntrack-entry is deleted
+> before.
 
-Thanx!!
+I don't really understand the problem.  Are you talking about SNAT not
+occurring as long as the old conntrack entry is still in TIME_WAIT state?
 
-b.
+Please describe it a bit more verbose (you can also write directly to me
+and use german language, if you want to).
+
+> maybe you can fix a small bug in iptables-user, too:
+>=20
+> in iptables.c (iptables6.c)
+>=20
+> the long-option "rename-chain" should have a second arg of '1', not '2', =
+or
+> the option will fail.  short option 'E' does work normally.
+
+thanks, fixed.
+
+> greetings
+> jb
 
 --=20
-Brian J. Murrell
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long
+ as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---Bg2esWel0ueIH/G/
+--qPRehgwKaTVCe+gW
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-iD8DBQE9w+Kol3EQlGLyuXARAi+nAKDWCUUNq3LtOhHWsWL7nEkygHLdzQCcDVYd
-hzL59Ej9UDN9esJgvKZff1Q=
-=aZDZ
+iD8DBQE9w+KLXaXGVTD0i/8RAhvNAJ0aPXXLy6j0DqA5eNtojn+AjRtlDACbBwYA
+n6lps9HABEhwaTA3IsevdHE=
+=lTB1
 -----END PGP SIGNATURE-----
 
---Bg2esWel0ueIH/G/--
+--qPRehgwKaTVCe+gW--
