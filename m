@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: New logging module
-Date: Fri, 12 Sep 2003 22:39:07 +0200
+Subject: Re: iptables userspace build patch (CLASSIFY & NETMAP extensions)
+Date: Fri, 12 Sep 2003 23:26:51 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030912203907.GC4398@obroa-skai.de.gnumonks.org>
-References: <20030905140435.GI1597@obroa-skai.de.gnumonks.org> <Pine.LNX.4.44.0309060259570.4937-100000@filer.marasystems.com>
+Message-ID: <20030912212651.GG4398@obroa-skai.de.gnumonks.org>
+References: <200309091239.43164@henrik.marasystems.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yVhtmJPUSI46BTXb"
+	protocol="application/pgp-signature"; boundary="EDJsL2R9iCFAt7IV"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Henrik Nordstrom <hno@marasystems.com>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0309060259570.4937-100000@filer.marasystems.com>
+In-Reply-To: <200309091239.43164@henrik.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,61 +23,34 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---yVhtmJPUSI46BTXb
+--EDJsL2R9iCFAt7IV
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Sep 06, 2003 at 03:13:08AM +0200, Henrik Nordstrom wrote:
-> On Fri, 5 Sep 2003, Harald Welte wrote:
-
-Sorry for my late reply.
-
-> > 3) as part of ip_conntrack
-> >=20
-> > this means that every struct ip_conntrack gets two byte counters (one
-> > for each direction).  when a connection is terminated, you send the
-> > accounting information about this connection to usrerspace (preferrably
-> > via netlink).   you can sum up traffic for certain ports / addresses in
-> > userspace.
+On Tue, Sep 09, 2003 at 12:40:37PM +0200, Henrik Nordstrom wrote:
+> Both CLASSIFY and NETMAP are optional extensions and should not be=20
+> built unless supported by the kernel headers.
 >=20
-> 3 looks very intersting and is something which we have been thinking we
-> need for a long time to implement meaningful accounting in a
-> iptables+conntrack+NAT based firewall.
->=20
-> What we have considered to log from conntrack is maybe a little more than
-> described above:
->=20
-> 1. Start of session
 
-have you seen the last ctnetlink  changes from Patrick McHardy?  He
-already has a event interface where you can receive notifications about
-state changes (creation/deletion/...)
+Well, that is not true.
 
-> 2. Periodically while the conntrack session is active (preferably=20
-> by a configurable interval)
+We currently have three kinds of possible extensions:
 
-this would be something new.  Does this have to be event-based from the
-kernel?  Why can't you just periodically dump the whole table via GET
-requests from userspace?
+1) included in mainstream kernel
+This means we always build the plugin
 
-> 3. End of session
+2) included only in patch-o-matic
+This means we execute a test
 
-again covered by patrick's event code.  If you send the whole conntrack
-for every event (start/stop of session), the counters would be included.
+3) extension is about to be submitted to the kernel
+This means we have the kernel header files included in the iptables=20
+userspace code to make sure it always compiles.  Include paths are
+ordered in a way that kernel headers precede our provided headers.
 
-> with byte and packet counters in both directions.
-
-> Do you know if anyone else is attempting to do this?  If not we might give
-> it a stab shortly..
-
-no, I am not aware of any ongoing effort.  If you would dig into this,
-it would be greatly appreciated.
-
-Please make sure that struct ip_conntrack is layed out in a way that all
-writeable parts (timer, counters) are packed together in the same
-cacheline. this way we don't get cache ping-pong for the whole
-structure.
+Both of the targets fall in category three.  This means that if the
+kernel headers are missing, they need to be committed to the CVS
+repository (which I seem to have forgotten).
 
 > Regards
 > Henrik
@@ -92,16 +65,16 @@ structure.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---yVhtmJPUSI46BTXb
+--EDJsL2R9iCFAt7IV
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/Yi7qXaXGVTD0i/8RAmRRAJ4/XuIzNv2vX5XUgsZDAB3s59phZQCff0t1
-KlAS4OrxaQvUyoOWa/QlEu4=
-=+Grl
+iD8DBQE/YjobXaXGVTD0i/8RArAeAKCXjjz3T88r73CEsn9pDNajbGR9UQCeN4C0
+9huZ3uvrVRJobKpfceC8GG0=
+=SA2J
 -----END PGP SIGNATURE-----
 
---yVhtmJPUSI46BTXb--
+--EDJsL2R9iCFAt7IV--
