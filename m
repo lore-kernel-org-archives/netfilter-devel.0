@@ -1,10 +1,10 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH] ip_queue_vwmark for pom-ng
-Date: Fri, 11 Jun 2004 11:02:41 +0200
+Subject: ip_queue_vwmark for pom-ng
+Date: Thu, 10 Jun 2004 23:31:52 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1086944561.4257.9.camel@porky>
+Message-ID: <1086903111.4794.4.camel@coati>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-qBMsahiKI5t1AbJuyfUQ"
+Content-Type: multipart/mixed; boundary="=-VU0EGc4MuCLO7RbPFIu/"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,159 +18,225 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-qBMsahiKI5t1AbJuyfUQ
+--=-VU0EGc4MuCLO7RbPFIu/
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
 Hi everyone,
 
-I've just port my ip_queue_vwmark patch from p-o-m to p-o-m-ng. I
-join a patch against p-o-m-ng to this mail.
-
-Description of the patch :
+I finally found the time to port my ip_queue_vwmark patch to pom-ng. I
+join a patch to this mail.
+Little reminder :
 ip_queue_vwmark adds a function to libipq (ipq_set_vwmark for
 ipq_set_verdict_with_mark) that permits to put a mark on the packet when
 reinjecting it into the kernel.
 
 It is used by the Nufw project (http://www.nufw.org) to mark packet with
-user identity thus enabling a per-user QOS or any other mark based stuff.
+user identity thus enabling a per-user QOS.
 
 BR,
 -- 
 Eric Leblond <eric@inl.fr>
 INL
 
---=-qBMsahiKI5t1AbJuyfUQ
+--=-VU0EGc4MuCLO7RbPFIu/
 Content-Disposition: attachment; filename=ip_queue_vmark.patch
 Content-Type: text/x-patch; name=ip_queue_vmark.patch; charset=us-ascii
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
 
-ZGlmZiAtdU5yIHBhdGNoLW8tbWF0aWMtbmctMjAwNDAzMDIvaXBfcXVldWVfdndtYXJrL2hlbHAg
-cGF0Y2gtby1tYXRpYy1uZy0yMDA0MDMwMi5uZXcvaXBfcXVldWVfdndtYXJrL2hlbHANCi0tLSBw
-YXRjaC1vLW1hdGljLW5nLTIwMDQwMzAyL2lwX3F1ZXVlX3Z3bWFyay9oZWxwCTE5NzAtMDEtMDEg
-MDE6MDA6MDAuMDAwMDAwMDAwICswMTAwDQorKysgcGF0Y2gtby1tYXRpYy1uZy0yMDA0MDMwMi5u
-ZXcvaXBfcXVldWVfdndtYXJrL2hlbHAJMjAwNC0wNi0xMCAyMjoxMzo1MS4wMDAwMDAwMDAgKzAy
-MDANCkBAIC0wLDAgKzEsMTIgQEANCisNCitBZGRzIHRoZSBwb3NzaWJpbGl0eSB0byBjaGFuZ2Ug
-bWFyayBvZiBhIHBhY2tldCBpbiB1c2Vyc3BhY2UuDQorVGhlIGlwX3F1ZXVlIG1vZHVsZSBpcyBj
-aGFuZ2VkIGFuZCBhIG5ldyBmdW5jdGlvbiBpcyBhZGRlZCB0byANCitsaWJpcHEgdG8gZGVjaWRl
-IGFuZCBjaGFuZ2UgdGhlIG1hcmsgb2YgYSBwYWNrZXQuIA0KKw0KK1RoaXMgaXMgdXNlZCBieSB0
-aGUgTnVGVyBwcm9qZWN0IChodHRwOi8vd3d3Lm51Zncub3JnKS4NCisNCisqKioqKiBXQVJOSU5H
-ICoqKioqIA0KK1RoaXMgcGF0Y2ggYnJlYWtzIGNvbXBhdGliaWxpdHkgd2l0aCB0aGUgcHJlY2Vk
-aW5nIHZlcnNpb24gb2YgbGliaXBxDQorYW5kIGlwX3F1ZXVlIG1vZHVsZS4NCitUaGlzIHBhdGNo
-IGFsc28gcGF0Y2ggdGhlIHVzZXJzcGFjZSBkaXJlY3Rvcnkgd2hpY2ggbWVhbnMgdGhhdCB5b3UN
-Cit5b3UgaGF2ZSB0byByZWNvbXBpbGUgYW5kIHJlaW5zdGFsbCB0aGUgaXB0YWJsZXMgcGFja2Fn
-ZSBhZnRlciB0aGF0Lg0KZGlmZiAtdU5yIHBhdGNoLW8tbWF0aWMtbmctMjAwNDAzMDIvaXBfcXVl
-dWVfdndtYXJrL2luZm8gcGF0Y2gtby1tYXRpYy1uZy0yMDA0MDMwMi5uZXcvaXBfcXVldWVfdndt
-YXJrL2luZm8NCi0tLSBwYXRjaC1vLW1hdGljLW5nLTIwMDQwMzAyL2lwX3F1ZXVlX3Z3bWFyay9p
-bmZvCTE5NzAtMDEtMDEgMDE6MDA6MDAuMDAwMDAwMDAwICswMTAwDQorKysgcGF0Y2gtby1tYXRp
-Yy1uZy0yMDA0MDMwMi5uZXcvaXBfcXVldWVfdndtYXJrL2luZm8JMjAwNC0wNi0xMCAyMjoyNDo1
-OS4wMDAwMDAwMDAgKzAyMDANCkBAIC0wLDAgKzEsNSBAQA0KK1RpdGxlOiBBZGQgYSBmdW5jdGlv
-biB0byBsaWJpcHEgdG8gcHV0IGEgbWFyayBvbiBwYXF1ZXQgZnJvbSB1c2Vyc3BhY2UNCitBdXRo
-b3I6IEVyaWMgTGVibG9uZCA8ZXJpY0BpbmwuZnI+DQorU3RhdHVzOiBJdCBXb3JrcyBGb3IgTWUu
-DQorUmVwb3NpdG9yeTogZXh0cmENCitSZWNvbXBpbGU6IG5ldGZpbHRlcnxpcHRhYmxlcw0KZGlm
-ZiAtdU5yIHBhdGNoLW8tbWF0aWMtbmctMjAwNDAzMDIvaXBfcXVldWVfdndtYXJrL2lwdGFibGVz
-LnBhdGNoIHBhdGNoLW8tbWF0aWMtbmctMjAwNDAzMDIubmV3L2lwX3F1ZXVlX3Z3bWFyay9pcHRh
-Ymxlcy5wYXRjaA0KLS0tIHBhdGNoLW8tbWF0aWMtbmctMjAwNDAzMDIvaXBfcXVldWVfdndtYXJr
-L2lwdGFibGVzLnBhdGNoCTE5NzAtMDEtMDEgMDE6MDA6MDAuMDAwMDAwMDAwICswMTAwDQorKysg
-cGF0Y2gtby1tYXRpYy1uZy0yMDA0MDMwMi5uZXcvaXBfcXVldWVfdndtYXJrL2lwdGFibGVzLnBh
-dGNoCTIwMDQtMDYtMTAgMjI6MTQ6MzQuMDAwMDAwMDAwICswMjAwDQpAQCAtMCwwICsxLDc2IEBA
-DQorZGlmZiAtTnJ1IGluY2x1ZGUub3JpZy9saWJpcHEvbGliaXBxLmggaW5jbHVkZS9saWJpcHEv
-bGliaXBxLmgNCistLS0gdXNlcnNwYWNlL2luY2x1ZGUub3JpZy9saWJpcHEvbGliaXBxLmgJMjAw
-My0xMC0xNiAwMTo1MzowOC4wMDAwMDAwMDAgKzAyMDANCisrKysgdXNlcnNwYWNlL2luY2x1ZGUv
-bGliaXBxL2xpYmlwcS5oCTIwMDMtMTAtMTYgMjM6NDc6MzUuMDAwMDAwMDAwICswMjAwDQorQEAg
-LTc5LDYgKzc5LDEzIEBADQorICAgICAgICAgICAgICAgICAgICAgc2l6ZV90IGRhdGFfbGVuLA0K
-KyAgICAgICAgICAgICAgICAgICAgIHVuc2lnbmVkIGNoYXIgKmJ1Zik7DQorIA0KKytpbnQgaXBx
-X3NldF92d21hcmsoY29uc3Qgc3RydWN0IGlwcV9oYW5kbGUgKmgsDQorKyAgICAgICAgICAgICAg
-ICAgICAgaXBxX2lkX3QgaWQsDQorKyAgICAgICAgICAgICAgICAgICAgdW5zaWduZWQgaW50IHZl
-cmRpY3QsDQorKyAgICAgICAgICAgICAgICAgICAgdW5zaWduZWQgbG9uZyBuZm1hcmssDQorKyAg
-ICAgICAgICAgICAgICAgICAgc2l6ZV90IGRhdGFfbGVuLA0KKysgICAgICAgICAgICAgICAgICAg
-IHVuc2lnbmVkIGNoYXIgKmJ1Zik7DQorKw0KKyBpbnQgaXBxX2N0bChjb25zdCBzdHJ1Y3QgaXBx
-X2hhbmRsZSAqaCwgaW50IHJlcXVlc3QsIC4uLik7DQorIA0KKyBjaGFyICppcHFfZXJyc3RyKHZv
-aWQpOw0KKw0KK2RpZmYgLU5ydSBsaWJpcHEub3JpZy9saWJpcHEuYyBsaWJpcHEvbGliaXBxLmMN
-CistLS0gdXNlcnNwYWNlL2xpYmlwcS5vcmlnL2xpYmlwcS5jCTIwMDMtMTAtMTYgMDE6NTg6NDYu
-MDAwMDAwMDAwICswMjAwDQorKysrIHVzZXJzcGFjZS9saWJpcHEvbGliaXBxLmMJMjAwMy0xMC0x
-NiAyMzozMzoxMC4wMDAwMDAwMDAgKzAyMDANCitAQCAtMzQ4LDYgKzM0OCw1NCBAQA0KKyAJcmV0
-dXJuIGlwcV9uZXRsaW5rX3NlbmRtc2coaCwgJm1zZywgMCk7DQorIH0NCisgDQorK2ludCBpcHFf
-c2V0X3Z3bWFyayhjb25zdCBzdHJ1Y3QgaXBxX2hhbmRsZSAqaCwNCisrICAgICAgICAgICAgICAg
-ICAgICBpcHFfaWRfdCBpZCwNCisrICAgICAgICAgICAgICAgICAgICB1bnNpZ25lZCBpbnQgdmVy
-ZGljdCwNCisrICAgICAgICAgICAgICAgICAgICB1bnNpZ25lZCBsb25nIG5mbWFyaywNCisrICAg
-ICAgICAgICAgICAgICAgICBzaXplX3QgZGF0YV9sZW4sDQorKyAgICAgICAgICAgICAgICAgICAg
-dW5zaWduZWQgY2hhciAqYnVmKQ0KKyt7DQorKwl1bnNpZ25lZCBjaGFyIG52ZWNzOw0KKysJc2l6
-ZV90IHRsZW47DQorKwlzdHJ1Y3Qgbmxtc2doZHIgbmxoOw0KKysJaXBxX3BlZXJfbXNnX3QgcG07
-DQorKwlzdHJ1Y3QgaW92ZWMgaW92WzNdOw0KKysJc3RydWN0IG1zZ2hkciBtc2c7DQorKw0KKysJ
-bWVtc2V0KCZubGgsIDAsIHNpemVvZihubGgpKTsNCisrCW5saC5ubG1zZ19mbGFncyA9IE5MTV9G
-X1JFUVVFU1Q7DQorKwlubGgubmxtc2dfdHlwZSA9IElQUU1fVldNQVJLOw0KKysJbmxoLm5sbXNn
-X3BpZCA9IGgtPmxvY2FsLm5sX3BpZDsNCisrCW1lbXNldCgmcG0sIDAsIHNpemVvZihwbSkpOw0K
-KysJcG0ubXNnLnZ3bWFyay52YWx1ZSA9IHZlcmRpY3Q7DQorKwlwbS5tc2cudndtYXJrLmlkID0g
-aWQ7DQorKwlwbS5tc2cudndtYXJrLmRhdGFfbGVuID0gZGF0YV9sZW47DQorKwlwbS5tc2cudndt
-YXJrLm5mbWFyayA9IG5mbWFyazsNCisrCWlvdlswXS5pb3ZfYmFzZSA9ICZubGg7DQorKwlpb3Zb
-MF0uaW92X2xlbiA9IHNpemVvZihubGgpOw0KKysJaW92WzFdLmlvdl9iYXNlID0gJnBtOw0KKysJ
-aW92WzFdLmlvdl9sZW4gPSBzaXplb2YocG0pOw0KKysJdGxlbiA9IHNpemVvZihubGgpICsgc2l6
-ZW9mKHBtKTsNCisrCW52ZWNzID0gMjsNCisrCWlmIChkYXRhX2xlbiAmJiBidWYpIHsNCisrCQlp
-b3ZbMl0uaW92X2Jhc2UgPSBidWY7DQorKwkJaW92WzJdLmlvdl9sZW4gPSBkYXRhX2xlbjsNCisr
-CQl0bGVuICs9IGRhdGFfbGVuOw0KKysJCW52ZWNzKys7DQorKwl9DQorKwltc2cubXNnX25hbWUg
-PSAodm9pZCAqKSZoLT5wZWVyOw0KKysJbXNnLm1zZ19uYW1lbGVuID0gc2l6ZW9mKGgtPnBlZXIp
-Ow0KKysJbXNnLm1zZ19pb3YgPSBpb3Y7DQorKwltc2cubXNnX2lvdmxlbiA9IG52ZWNzOw0KKysJ
-bXNnLm1zZ19jb250cm9sID0gTlVMTDsNCisrCW1zZy5tc2dfY29udHJvbGxlbiA9IDA7DQorKwlt
-c2cubXNnX2ZsYWdzID0gMDsNCisrCW5saC5ubG1zZ19sZW4gPSB0bGVuOw0KKysJcmV0dXJuIGlw
-cV9uZXRsaW5rX3NlbmRtc2coaCwgJm1zZywgMCk7DQorK30NCisrDQorKw0KKysNCisgLyogTm90
-IGltcGxlbWVudGVkIHlldCAqLw0KKyBpbnQgaXBxX2N0bChjb25zdCBzdHJ1Y3QgaXBxX2hhbmRs
-ZSAqaCwgaW50IHJlcXVlc3QsIC4uLikNCisgew0KZGlmZiAtdU5yIHBhdGNoLW8tbWF0aWMtbmct
-MjAwNDAzMDIvaXBfcXVldWVfdndtYXJrL2xpbnV4LnBhdGNoIHBhdGNoLW8tbWF0aWMtbmctMjAw
-NDAzMDIubmV3L2lwX3F1ZXVlX3Z3bWFyay9saW51eC5wYXRjaA0KLS0tIHBhdGNoLW8tbWF0aWMt
-bmctMjAwNDAzMDIvaXBfcXVldWVfdndtYXJrL2xpbnV4LnBhdGNoCTE5NzAtMDEtMDEgMDE6MDA6
-MDAuMDAwMDAwMDAwICswMTAwDQorKysgcGF0Y2gtby1tYXRpYy1uZy0yMDA0MDMwMi5uZXcvaXBf
-cXVldWVfdndtYXJrL2xpbnV4LnBhdGNoCTIwMDQtMDYtMTAgMjI6MTM6NTEuMDAwMDAwMDAwICsw
-MjAwDQpAQCAtMCwwICsxLDg1IEBADQorZGlmZiAtdU5yIGxpbnV4LTIuNC4yMi5vcmlnL2luY2x1
-ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXBfcXVldWUuaCBsaW51eC0yLjQuMjIvaW5jbHVkZS9s
-aW51eC9uZXRmaWx0ZXJfaXB2NC9pcF9xdWV1ZS5oDQorLS0tIGxpbnV4LTIuNC4yMi5vcmlnL2lu
-Y2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXBfcXVldWUuaAkyMDAwLTA4LTEwIDIxOjM1OjE1
-LjAwMDAwMDAwMCArMDIwMA0KKysrKyBsaW51eC0yLjQuMjIvaW5jbHVkZS9saW51eC9uZXRmaWx0
-ZXJfaXB2NC9pcF9xdWV1ZS5oCTIwMDMtMTAtMjEgMjM6MDE6MzYuMDAwMDAwMDAwICswMjAwDQor
-QEAgLTQ3LDEwICs0NywyMCBAQA0KKyAJdW5zaWduZWQgY2hhciBwYXlsb2FkWzBdOwkvKiBPcHRp
-b25hbCByZXBsYWNlbWVudCBwYWNrZXQgKi8NCisgfSBpcHFfdmVyZGljdF9tc2dfdDsNCisgDQor
-K3R5cGVkZWYgc3RydWN0IGlwcV92d21hcmtfbXNnIHsNCisrCXVuc2lnbmVkIGludCB2YWx1ZTsJ
-CS8qIFZlcmRpY3QgdG8gaGFuZCB0byBuZXRmaWx0ZXIgKi8NCisrCXVuc2lnbmVkIGxvbmcgaWQ7
-CQkvKiBQYWNrZXQgSUQgZm9yIHRoaXMgdmVyZGljdCAqLw0KKysJc2l6ZV90IGRhdGFfbGVuOwkJ
-LyogTGVuZ3RoIG9mIHJlcGxhY2VtZW50IGRhdGEgKi8NCisrCXVuc2lnbmVkIGNoYXIgcGF5bG9h
-ZFswXTsJLyogT3B0aW9uYWwgcmVwbGFjZW1lbnQgcGFja2V0ICovDQorKwl1bnNpZ25lZCBsb25n
-IG5mbWFyazsJCS8qIE1hcmsgZm9yIHRoZSBQYWNrZXQgKi8NCisrfSBpcHFfdndtYXJrX21zZ190
-Ow0KKysNCisrDQorIHR5cGVkZWYgc3RydWN0IGlwcV9wZWVyX21zZyB7DQorIAl1bmlvbiB7DQor
-IAkJaXBxX3ZlcmRpY3RfbXNnX3QgdmVyZGljdDsNCisgCQlpcHFfbW9kZV9tc2dfdCBtb2RlOw0K
-KysgICAgICAgICAgICAgICAgaXBxX3Z3bWFya19tc2dfdCB2d21hcms7DQorIAl9IG1zZzsNCisg
-fSBpcHFfcGVlcl9tc2dfdDsNCisgDQorQEAgLTY3LDYgKzc3LDcgQEANCisgI2RlZmluZSBJUFFN
-X01PREUJKElQUU1fQkFTRSArIDEpCQkvKiBNb2RlIHJlcXVlc3QgZnJvbSBwZWVyICovDQorICNk
-ZWZpbmUgSVBRTV9WRVJESUNUCShJUFFNX0JBU0UgKyAyKQkJLyogVmVyZGljdCBmcm9tIHBlZXIg
-Ki8gDQorICNkZWZpbmUgSVBRTV9QQUNLRVQJKElQUU1fQkFTRSArIDMpCQkvKiBQYWNrZXQgZnJv
-bSBrZXJuZWwgKi8NCistI2RlZmluZSBJUFFNX01BWAkoSVBRTV9CQVNFICsgNCkNCisrI2RlZmlu
-ZSBJUFFNX1ZXTUFSSwkoSVBRTV9CQVNFICsgNCkJCS8qIFZlcmRpY3QgYW5kIG1hcmsgZnJvbSBw
-ZWVyICovDQorKyNkZWZpbmUgSVBRTV9NQVgJKElQUU1fQkFTRSArIDUpDQorIA0KKyAjZW5kaWYg
-LypfSVBfUVVFVUVfSCovDQorZGlmZiAtdU5yIGxpbnV4LTIuNC4yMi5vcmlnL25ldC9pcHY0L25l
-dGZpbHRlci9pcF9xdWV1ZS5jIGxpbnV4LTIuNC4yMi9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfcXVl
-dWUuYw0KKy0tLSBsaW51eC0yLjQuMjIub3JpZy9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfcXVldWUu
-YwkyMDAzLTA2LTEzIDE2OjUxOjM5LjAwMDAwMDAwMCArMDIwMA0KKysrKyBsaW51eC0yLjQuMjIv
-bmV0L2lwdjQvbmV0ZmlsdGVyL2lwX3F1ZXVlLmMJMjAwMy0xMC0yMSAyMzowMTozNi4wMDAwMDAw
-MDAgKzAyMDANCitAQCAtNDE3LDYgKzQxNywzMyBAQA0KKyB9DQorIA0KKyBzdGF0aWMgaW50DQor
-K2lwcV9zZXRfdndtYXJrKHN0cnVjdCBpcHFfdndtYXJrX21zZyAqdm1zZywgdW5zaWduZWQgaW50
-IGxlbikNCisrew0KKysJc3RydWN0IGlwcV9xdWV1ZV9lbnRyeSAqZW50cnk7DQorKw0KKysJaWYg
-KHZtc2ctPnZhbHVlID4gTkZfTUFYX1ZFUkRJQ1QpDQorKwkJcmV0dXJuIC1FSU5WQUw7DQorKw0K
-KysJZW50cnkgPSBpcHFfZmluZF9kZXF1ZXVlX2VudHJ5KGlkX2NtcCwgdm1zZy0+aWQpOw0KKysJ
-aWYgKGVudHJ5ID09IE5VTEwpDQorKwkJcmV0dXJuIC1FTk9FTlQ7DQorKwllbHNlIHsNCisrCQlp
-bnQgdmVyZGljdCA9IHZtc2ctPnZhbHVlOw0KKysJCQ0KKysJCWlmICh2bXNnLT5kYXRhX2xlbiAm
-JiB2bXNnLT5kYXRhX2xlbiA9PSBsZW4pDQorKwkJCWlmIChpcHFfbWFuZ2xlX2lwdjQoKGlwcV92
-ZXJkaWN0X21zZ190ICopdm1zZywgZW50cnkpIDwgMCkNCisrCQkJCXZlcmRpY3QgPSBORl9EUk9Q
-Ow0KKysNCisrCQkvKiBzZXQgbWFyayBvZiBhc3NvY2lhdGVkIHNrYiAqLw0KKysJCWVudHJ5LT5z
-a2ItPm5mbWFyayA9IHZtc2ctPm5mbWFyazsNCisrCQkNCisrCQlpcHFfaXNzdWVfdmVyZGljdChl
-bnRyeSwgdmVyZGljdCk7DQorKwkJcmV0dXJuIDA7DQorKwl9DQorK30NCisrDQorKw0KKytzdGF0
-aWMgaW50DQorIGlwcV9yZWNlaXZlX3BlZXIoc3RydWN0IGlwcV9wZWVyX21zZyAqcG1zZywNCisg
-ICAgICAgICAgICAgICAgICB1bnNpZ25lZCBjaGFyIHR5cGUsIHVuc2lnbmVkIGludCBsZW4pDQor
-IHsNCitAQCAtNDM4LDYgKzQ2NSwxNCBAQA0KKyAJCQlzdGF0dXMgPSBpcHFfc2V0X3ZlcmRpY3Qo
-JnBtc2ctPm1zZy52ZXJkaWN0LA0KKyAJCQkgICAgICAgICAgICAgICAgICAgICAgICAgbGVuIC0g
-c2l6ZW9mKCpwbXNnKSk7DQorIAkJCWJyZWFrOw0KKysgICAgICAgIGNhc2UgSVBRTV9WV01BUks6
-DQorKwkJaWYgKHBtc2ctPm1zZy52ZXJkaWN0LnZhbHVlID4gTkZfTUFYX1ZFUkRJQ1QpDQorKwkJ
-CXN0YXR1cyA9IC1FSU5WQUw7DQorKwkJZWxzZQ0KKysJCQlzdGF0dXMgPSBpcHFfc2V0X3Z3bWFy
-aygmcG1zZy0+bXNnLnZ3bWFyaywNCisrCQkJICAgICAgICAgICAgICAgICAgICAgICAgIGxlbiAt
-IHNpemVvZigqcG1zZykpOw0KKysJCQlicmVhazsNCisrDQorIAlkZWZhdWx0Og0KKyAJCXN0YXR1
-cyA9IC1FSU5WQUw7DQorIAl9DQo=
+diff -uNr patch-o-matic-ng-20040302/ip_queue_vwmark/help patch-o-matic-ng-20040302.new/ip_queue_vwmark/help
+--- patch-o-matic-ng-20040302/ip_queue_vwmark/help	1970-01-01 01:00:00.000000000 +0100
++++ patch-o-matic-ng-20040302.new/ip_queue_vwmark/help	2004-06-10 22:13:51.000000000 +0200
+@@ -0,0 +1,12 @@
++
++Adds the possibility to change mark of a packet in userspace.
++The ip_queue module is changed and a new function is added to 
++libipq to decide and change the mark of a packet. 
++
++This is used by the NuFW project (http://www.nufw.org).
++
++***** WARNING ***** 
++This patch breaks compatibility with the preceding version of libipq
++and ip_queue module.
++This patch also patch the userspace directory which means that you
++you have to recompile and reinstall the iptables package after that.
+diff -uNr patch-o-matic-ng-20040302/ip_queue_vwmark/info patch-o-matic-ng-20040302.new/ip_queue_vwmark/info
+--- patch-o-matic-ng-20040302/ip_queue_vwmark/info	1970-01-01 01:00:00.000000000 +0100
++++ patch-o-matic-ng-20040302.new/ip_queue_vwmark/info	2004-06-10 22:24:59.000000000 +0200
+@@ -0,0 +1,5 @@
++Title: Add a function to libipq to put a mark on paquet from userspace
++Author: Eric Leblond <eric@inl.fr>
++Status: It Works For Me.
++Repository: extra
++Recompile: netfilter|iptables
+diff -uNr patch-o-matic-ng-20040302/ip_queue_vwmark/iptables.patch patch-o-matic-ng-20040302.new/ip_queue_vwmark/iptables.patch
+--- patch-o-matic-ng-20040302/ip_queue_vwmark/iptables.patch	1970-01-01 01:00:00.000000000 +0100
++++ patch-o-matic-ng-20040302.new/ip_queue_vwmark/iptables.patch	2004-06-10 22:14:34.000000000 +0200
+@@ -0,0 +1,76 @@
++diff -Nru include.orig/libipq/libipq.h include/libipq/libipq.h
++--- userspace/include.orig/libipq/libipq.h	2003-10-16 01:53:08.000000000 +0200
+++++ userspace/include/libipq/libipq.h	2003-10-16 23:47:35.000000000 +0200
++@@ -79,6 +79,13 @@
++                     size_t data_len,
++                     unsigned char *buf);
++ 
+++int ipq_set_vwmark(const struct ipq_handle *h,
+++                    ipq_id_t id,
+++                    unsigned int verdict,
+++                    unsigned long nfmark,
+++                    size_t data_len,
+++                    unsigned char *buf);
+++
++ int ipq_ctl(const struct ipq_handle *h, int request, ...);
++ 
++ char *ipq_errstr(void);
++
++diff -Nru libipq.orig/libipq.c libipq/libipq.c
++--- userspace/libipq.orig/libipq.c	2003-10-16 01:58:46.000000000 +0200
+++++ userspace/libipq/libipq.c	2003-10-16 23:33:10.000000000 +0200
++@@ -348,6 +348,54 @@
++ 	return ipq_netlink_sendmsg(h, &msg, 0);
++ }
++ 
+++int ipq_set_vwmark(const struct ipq_handle *h,
+++                    ipq_id_t id,
+++                    unsigned int verdict,
+++                    unsigned long nfmark,
+++                    size_t data_len,
+++                    unsigned char *buf)
+++{
+++	unsigned char nvecs;
+++	size_t tlen;
+++	struct nlmsghdr nlh;
+++	ipq_peer_msg_t pm;
+++	struct iovec iov[3];
+++	struct msghdr msg;
+++
+++	memset(&nlh, 0, sizeof(nlh));
+++	nlh.nlmsg_flags = NLM_F_REQUEST;
+++	nlh.nlmsg_type = IPQM_VWMARK;
+++	nlh.nlmsg_pid = h->local.nl_pid;
+++	memset(&pm, 0, sizeof(pm));
+++	pm.msg.vwmark.value = verdict;
+++	pm.msg.vwmark.id = id;
+++	pm.msg.vwmark.data_len = data_len;
+++	pm.msg.vwmark.nfmark = nfmark;
+++	iov[0].iov_base = &nlh;
+++	iov[0].iov_len = sizeof(nlh);
+++	iov[1].iov_base = &pm;
+++	iov[1].iov_len = sizeof(pm);
+++	tlen = sizeof(nlh) + sizeof(pm);
+++	nvecs = 2;
+++	if (data_len && buf) {
+++		iov[2].iov_base = buf;
+++		iov[2].iov_len = data_len;
+++		tlen += data_len;
+++		nvecs++;
+++	}
+++	msg.msg_name = (void *)&h->peer;
+++	msg.msg_namelen = sizeof(h->peer);
+++	msg.msg_iov = iov;
+++	msg.msg_iovlen = nvecs;
+++	msg.msg_control = NULL;
+++	msg.msg_controllen = 0;
+++	msg.msg_flags = 0;
+++	nlh.nlmsg_len = tlen;
+++	return ipq_netlink_sendmsg(h, &msg, 0);
+++}
+++
+++
+++
++ /* Not implemented yet */
++ int ipq_ctl(const struct ipq_handle *h, int request, ...)
++ {
+diff -uNr patch-o-matic-ng-20040302/ip_queue_vwmark/linux.patch patch-o-matic-ng-20040302.new/ip_queue_vwmark/linux.patch
+--- patch-o-matic-ng-20040302/ip_queue_vwmark/linux.patch	1970-01-01 01:00:00.000000000 +0100
++++ patch-o-matic-ng-20040302.new/ip_queue_vwmark/linux.patch	2004-06-10 22:13:51.000000000 +0200
+@@ -0,0 +1,85 @@
++diff -uNr linux-2.4.22.orig/include/linux/netfilter_ipv4/ip_queue.h linux-2.4.22/include/linux/netfilter_ipv4/ip_queue.h
++--- linux-2.4.22.orig/include/linux/netfilter_ipv4/ip_queue.h	2000-08-10 21:35:15.000000000 +0200
+++++ linux-2.4.22/include/linux/netfilter_ipv4/ip_queue.h	2003-10-21 23:01:36.000000000 +0200
++@@ -47,10 +47,20 @@
++ 	unsigned char payload[0];	/* Optional replacement packet */
++ } ipq_verdict_msg_t;
++ 
+++typedef struct ipq_vwmark_msg {
+++	unsigned int value;		/* Verdict to hand to netfilter */
+++	unsigned long id;		/* Packet ID for this verdict */
+++	size_t data_len;		/* Length of replacement data */
+++	unsigned char payload[0];	/* Optional replacement packet */
+++	unsigned long nfmark;		/* Mark for the Packet */
+++} ipq_vwmark_msg_t;
+++
+++
++ typedef struct ipq_peer_msg {
++ 	union {
++ 		ipq_verdict_msg_t verdict;
++ 		ipq_mode_msg_t mode;
+++                ipq_vwmark_msg_t vwmark;
++ 	} msg;
++ } ipq_peer_msg_t;
++ 
++@@ -67,6 +77,7 @@
++ #define IPQM_MODE	(IPQM_BASE + 1)		/* Mode request from peer */
++ #define IPQM_VERDICT	(IPQM_BASE + 2)		/* Verdict from peer */ 
++ #define IPQM_PACKET	(IPQM_BASE + 3)		/* Packet from kernel */
++-#define IPQM_MAX	(IPQM_BASE + 4)
+++#define IPQM_VWMARK	(IPQM_BASE + 4)		/* Verdict and mark from peer */
+++#define IPQM_MAX	(IPQM_BASE + 5)
++ 
++ #endif /*_IP_QUEUE_H*/
++diff -uNr linux-2.4.22.orig/net/ipv4/netfilter/ip_queue.c linux-2.4.22/net/ipv4/netfilter/ip_queue.c
++--- linux-2.4.22.orig/net/ipv4/netfilter/ip_queue.c	2003-06-13 16:51:39.000000000 +0200
+++++ linux-2.4.22/net/ipv4/netfilter/ip_queue.c	2003-10-21 23:01:36.000000000 +0200
++@@ -417,6 +417,33 @@
++ }
++ 
++ static int
+++ipq_set_vwmark(struct ipq_vwmark_msg *vmsg, unsigned int len)
+++{
+++	struct ipq_queue_entry *entry;
+++
+++	if (vmsg->value > NF_MAX_VERDICT)
+++		return -EINVAL;
+++
+++	entry = ipq_find_dequeue_entry(id_cmp, vmsg->id);
+++	if (entry == NULL)
+++		return -ENOENT;
+++	else {
+++		int verdict = vmsg->value;
+++		
+++		if (vmsg->data_len && vmsg->data_len == len)
+++			if (ipq_mangle_ipv4((ipq_verdict_msg_t *)vmsg, entry) < 0)
+++				verdict = NF_DROP;
+++
+++		/* set mark of associated skb */
+++		entry->skb->nfmark = vmsg->nfmark;
+++		
+++		ipq_issue_verdict(entry, verdict);
+++		return 0;
+++	}
+++}
+++
+++
+++static int
++ ipq_receive_peer(struct ipq_peer_msg *pmsg,
++                  unsigned char type, unsigned int len)
++ {
++@@ -438,6 +465,14 @@
++ 			status = ipq_set_verdict(&pmsg->msg.verdict,
++ 			                         len - sizeof(*pmsg));
++ 			break;
+++        case IPQM_VWMARK:
+++		if (pmsg->msg.verdict.value > NF_MAX_VERDICT)
+++			status = -EINVAL;
+++		else
+++			status = ipq_set_vwmark(&pmsg->msg.vwmark,
+++			                         len - sizeof(*pmsg));
+++			break;
+++
++ 	default:
++ 		status = -EINVAL;
++ 	}
 
---=-qBMsahiKI5t1AbJuyfUQ--
+--=-VU0EGc4MuCLO7RbPFIu/--
