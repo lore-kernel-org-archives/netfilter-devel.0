@@ -1,16 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Need some clarification or help
-Date: Thu, 22 Apr 2004 02:38:36 +0200 (CEST)
+Subject: Re: more about martians
+Date: Thu, 22 Apr 2004 02:41:36 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404220231510.27078-100000@filer.marasystems.com>
-References: <20040420182205.GA2948@rie.rie.priv>
+Message-ID: <Pine.LNX.4.44.0404220240150.27078-100000@filer.marasystems.com>
+References: <20040420170544.87914.qmail@web40702.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@lists.netfilter.org, <netfilter-devel@lists.netfilter.org>,
-   <mail@criechmann.de>
+Cc: netfilter@lists.netfilter.org, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Christian Riechmann <riechmann@fgan.de>
-In-Reply-To: <20040420182205.GA2948@rie.rie.priv>
+To: udo <udovdh@yahoo.com>
+In-Reply-To: <20040420170544.87914.qmail@web40702.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,29 +20,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 20 Apr 2004, Christian Riechmann wrote:
+On Tue, 20 Apr 2004, udo wrote:
 
-> is it possible to read - via ipq_read/ipq_get_packet - a UDP packetr
-> and after some changes to accept - via ipq_set_verdict with NF_ACCEPT and
-> shorter length - it as a TCP packet?
+> Hello,
+> 
+> As a follow up on my post about portforwarding to
+> 127.0.0.1 and the 'martian destination 127.0.0.1'
+> message I can tell I found the probable cause in
+> /usr/src/linux/net/ipv4/route.c.
 
-Should be possible.
+Why do you want to forward to 127.0.0.1? Why not a global IP?
 
-> Here is what I wish to do:
-> For the transmission of IP packets (UDP, ICMP, TCP) between two hosts
-> I want to send these packets through a UDP tunnel.
-
-This is best accomplished using a virtual tunnel device for the packet
-transformations. This way the packet flow gets natural to netfilter with
-no risk of confusing conntrack, and MTU processing etc gets more
-natural...  If you want to do the transformations in userspace then use a
-tun device.
-
-If you rewrite packets "in the middle of everything" then conntrack will 
-get somewaht confused as the packets will look differently depending on 
-the direction (conntrack will see forward traffic original, return traffic 
-tunneled).  Also, firewalling gets a bit odd. So I would not recommend 
-using QUEUE for what you describe.
+The loopback addresses (127.X/8) are handled very special.
 
 Regards
 Henrik
