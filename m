@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.4] netfilter: optimization of listhelp.h
-Date: Sun, 30 Nov 2003 21:06:27 +0530
+Subject: [PATCH 2.4] netfilter: remove unnccessarry memsets
+Date: Sun, 30 Nov 2003 18:00:15 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031130153627.GG26749@obroa-skai.de.gnumonks.org>
+Message-ID: <20031130123014.GA26749@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Encpt1P6Mxii2VuT"
+	protocol="application/pgp-signature"; boundary="NDin8bjvE/0mNLFQ"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,107 +21,23 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Encpt1P6Mxii2VuT
+--NDin8bjvE/0mNLFQ
+Content-Type: multipart/mixed; boundary="4Ckj6UjgE2iN1+kY"
+Content-Disposition: inline
+
+
+--4Ckj6UjgE2iN1+kY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Dave!
 
-This mail contains the fifth netfilter patch, please apply.
+Since 2.4.23 is out, I am now sending you a couple of pending 2.4.x=20
+netfilter fixes.
 
-Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+This mail contains the first one.  Please apply.
 
-List macro optimization patch so that we can benefit
-=66rom prefetching automatically.
-
---- linux-2.4.22-locking-base/include/linux/netfilter_ipv4/listhelp.h	2003-=
-09-17 17:14:54.000000000 +0200
-+++ linux-2.4.22-locking-refcount/include/linux/netfilter_ipv4/listhelp.h	2=
-003-11-14 14:02:25.000000000 +0100
-@@ -11,48 +11,42 @@
-    required to allow inlining of cmpfn. */
- #define LIST_FIND(head, cmpfn, type, args...)		\
- ({							\
--	const struct list_head *__i =3D (head);		\
-+	const struct list_head *__i, *__j =3D NULL;	\
- 							\
- 	ASSERT_READ_LOCK(head);				\
--	do {						\
--		__i =3D __i->next;			\
--		if (__i =3D=3D (head)) {			\
--			__i =3D NULL;			\
-+	list_for_each(__i, (head))			\
-+		if (cmpfn((const type)__i , ## args)) {	\
-+			__j =3D __i;			\
- 			break;				\
- 		}					\
--	} while (!cmpfn((const type)__i , ## args));	\
--	(type)__i;					\
-+	(type)__j;					\
- })
-=20
--#define LIST_FIND_W(head, cmpfn, type, args...)	\
--({						\
--	const struct list_head *__i =3D (head);	\
--						\
--	ASSERT_WRITE_LOCK(head);		\
--	do {					\
--		__i =3D __i->next;		\
--		if (__i =3D=3D (head)) {		\
--			__i =3D NULL;		\
--			break;			\
--		}				\
--	} while (!cmpfn((type)__i , ## args));	\
--	(type)__i;				\
-+#define LIST_FIND_W(head, cmpfn, type, args...)		\
-+({							\
-+	const struct list_head *__i, *__j =3D NULL;	\
-+							\
-+	ASSERT_WRITE_LOCK(head);			\
-+	list_for_each(__i, (head))			\
-+		if (cmpfn((const type)__i , ## args)) {	\
-+			__j =3D __i;			\
-+			break;				\
-+		}					\
-+	(type)__j;					\
- })
-=20
- /* Just like LIST_FIND but we search backwards */
- #define LIST_FIND_B(head, cmpfn, type, args...)		\
- ({							\
--	const struct list_head *__i =3D (head);		\
-+	const struct list_head *__i, *__j =3D NULL;	\
- 							\
- 	ASSERT_READ_LOCK(head);				\
--	do {						\
--		__i =3D __i->prev;			\
--		if (__i =3D=3D (head)) {			\
--			__i =3D NULL;			\
-+	list_for_each_prev(__i, (head))			\
-+		if (cmpfn((const type)__i , ## args)) {	\
-+			__j =3D __i;			\
- 			break;				\
- 		}					\
--	} while (!cmpfn((const type)__i , ## args));	\
--	(type)__i;					\
-+	(type)__j;					\
- })
-=20
- static inline int
-@@ -100,9 +94,9 @@
- do {								\
- 	struct list_head *__i;					\
- 	ASSERT_WRITE_LOCK(head);				\
--	for (__i =3D (head)->next;				\
--	     !cmpfn((new), (typeof (new))__i) && __i !=3D (head);	\
--	     __i =3D __i->next);					\
-+	list_for_each(__i, (head))				\
-+		if ((new), (typeof (new))__i)			\
-+			break;					\
- 	list_add((struct list_head *)(new), __i->prev);		\
- } while(0)
-=20
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -132,16 +48,50 @@ List macro optimization patch so that we can benefit
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Encpt1P6Mxii2VuT
+--4Ckj6UjgE2iN1+kY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="61-remove-memsets.patch"
+Content-Transfer-Encoding: quoted-printable
+
+=3D=3D=3D=3D=3D net/ipv4/netfilter/ip_conntrack_tftp.c 1.1 vs edited =3D=3D=
+=3D=3D=3D
+--- 1.1/net/ipv4/netfilter/ip_conntrack_tftp.c	Mon Mar 31 17:08:21 2003
++++ edited/net/ipv4/netfilter/ip_conntrack_tftp.c	Sun Jun 29 21:31:10 2003
+@@ -94,8 +94,6 @@
+=20
+ 	for (i =3D 0 ; (i < MAX_PORTS) && ports[i] ; i++) {
+ 		/* Create helper structure */
+-		memset(&tftp[i], 0, sizeof(struct ip_conntrack_helper));
+-
+ 		tftp[i].tuple.dst.protonum =3D IPPROTO_UDP;
+ 		tftp[i].tuple.src.u.udp.port =3D htons(ports[i]);
+ 		tftp[i].mask.dst.protonum =3D 0xFFFF;
+=3D=3D=3D=3D=3D net/ipv4/netfilter/ip_nat_tftp.c 1.1 vs edited =3D=3D=3D=3D=
+=3D
+--- 1.1/net/ipv4/netfilter/ip_nat_tftp.c	Mon Mar 31 17:08:21 2003
++++ edited/net/ipv4/netfilter/ip_nat_tftp.c	Sun Jun 29 21:31:53 2003
+@@ -160,8 +160,6 @@
+ 		ports[0] =3D TFTP_PORT;
+=20
+ 	for (i =3D 0 ; (i < MAX_PORTS) && ports[i] ; i++) {
+-		memset(&tftp[i], 0, sizeof(struct ip_nat_helper));
+-
+ 		tftp[i].tuple.dst.protonum =3D IPPROTO_UDP;
+ 		tftp[i].tuple.src.u.udp.port =3D htons(ports[i]);
+ 		tftp[i].mask.dst.protonum =3D 0xFFFF;
+
+--4Ckj6UjgE2iN1+kY--
+
+--NDin8bjvE/0mNLFQ
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/yg6QXaXGVTD0i/8RAnAAAJ9Zm5F+cxmCdGcFODKcDva3pFvsDQCePetm
-ky4uGvFnxVlVqRt6yzlp1Ps=
-=NWSF
+iD8DBQE/yeLsXaXGVTD0i/8RAivdAJ4xUYKtUppt9gDfll4KMrQgaK9PxQCeN0IA
+JNoVBS0Lab/VJLcVLAy/W0I=
+=9Rqe
 -----END PGP SIGNATURE-----
 
---Encpt1P6Mxii2VuT--
+--NDin8bjvE/0mNLFQ--
