@@ -1,19 +1,16 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: nf_conntrack (l3 independent conntrack)
-Date: Tue, 18 Nov 2003 12:04:49 +0900 (JST)
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: [RFC] NAT tuple reservation
+Date: Tue, 18 Nov 2003 08:47:26 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200311180305.MAA20518@toshiba.co.jp>
-References: <20031113010159.GD835@mea-ext.zmailer.org>
-	<200311131303.WAA28664@toshiba.co.jp>
-	<20031115105020.GI656@obroa-skai.de.gnumonks.org>
+Message-ID: <3FB9CE8E.4000105@balabit.hu>
+References: <3FB8DF90.5090505@balabit.hu> <20031117222933.GE5075@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: yasuyuki.kozakai@toshiba.co.jp, netfilter-devel@lists.netfilter.org,
-        usagi-core@linux-ipv6.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20031115105020.GI656@obroa-skai.de.gnumonks.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031117222933.GE5075@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -25,82 +22,60 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi, Harald,
+   Hi,
 
-From: Harald Welte <laforge@netfilter.org>
-Subject: nf_conntrack (l3 independent conntrack)
-Date: Sat, 15 Nov 2003 11:50:20 +0100
-
-> Hi again Yasuyuki.  Sorry for not getting back to you earlier.  I'm just
-> busy with way too much work and don't really know where to start and
-> when I'll be ever finished with all that stuff.
+Harald Welte wrote:
+>>  The allocation routines in ip_nat_core.c should be extended to check if 
+>>a tuple is reserved. ip_nat_used_tuple() would be extended to check if the 
+>>given tuple uses an already reserved manip. The reserved manips would be 
+>>stored in a hash table, hashed based on the manip structure. The stored 
+>>structures would look something like this:
 > 
-> Please be assured that I didn't forget about the issue, but I just
-> didn't find the time to finish the design paper on l3 independent
-> conntrack.
->
-> However, I'll attach the current (icomplete) start of my paper to this
-> email and also put it in CVS.  
+> 
+> However, I fear this would add considerable overhead.  Yet another hash
+> table... however, most of the time this table would be empty, or almost
+> empty.  So let's rather optimize on the speed of the hash function than
+> on the hash distribution in that case.
 
-I read. It's very usefull to implement nf_conntrack. Thank you.
+   The empty case could be made fast using a reservation-counter.
 
->      * Size of Addresses. ip_conntrack keeps two address tuples
->        per connection (every tuple is
->        2*(sizeof(l3_addr)+sizeof(l4_addr)), thus adding up to 32
->        bytes. In IPv6 the size of a tuple would grow up to at
->        least 80 bytes due to the large address size. If a union
->        for struct nf_conntrack_tuple was used, every IPv4
->        conntrack entry would waste 48 bytes of memory, which is
->        not acceptable considering the effect on wasting
->        cachelines. Thus, a mechanism must be implemented to have
->        differently sizes nf_conntrack structures, allocated from
->        different slab caches, allocated from different slab
->        caches. The dynamic part could be added to the end of a
->        structure, so all l3 independent structure members can be
->        transparently accessed by the core.
+>>struct ip_nat_reserved {
+>>  /* hash chain */
+>>  list_head prev, next;
+> 
+> you only need one list head for the hash table ;)
 
-OK, I understand this problem, but I don't perfectly understand the detail of
-your solution. 
-Is "The dynamic part" equal to tuple ? or does this part include the private
-structures for L3, protocol, and helper ?
+   Of course... :)
 
-> net/ipv4/netfilter/nf_conntrack_ipv4.c
-> - init()
->         - register with nf_conntrack core. tell it the size of the l4
+>>  /* reference count */
+>>  atomic_t use;
+> 
+> do we really need to do sophisticated reference counting on those
+> objects?  I think it is enough to protect the whole hash table under the
+> already existing nat lock.  Entries are inserted/deleted under that lock, and
+> hash table lookups also only happen under that lock.   The only
+> reference would be a pointer from a single ip_conntrack_expect - thus
+> the refcount would always be one.
+> 
+> 
+>>ip_nat_setup_info_reserved(...): This is basically the same as 
+>>ip_nat_setup_info, except that it calls ip_nat_setup_info() with the 
+>>appropriate flag, and deletes the reservation in case of successful 
+>>allocation.
+>>
+>>  Do you see any shortcomings/problems with this?
+> 
+> 
+> It doesn't cover allocation/reservation of contiguous port numbers,
+> which especially RTP/RTSP require. 
 
-I think it is not l4 but l3. Is this right ?
+   It could be extended, however, it would make checking/allocating even 
+more slow... If you could register ranges, for example, how do you define 
+the hash function? Or, for example, you should be able to delete parts of 
+that range from the reserved list, so that splitting the original range 
+could be necessary... Cannot problems like these solved by allowing more 
+than one reservation per expectation to be registered?
 
-BTW, 
-
-> Maybe this is a start and somebody else will pick it up and express his
-> idea about how the implementation / organization of data structures can
-> look like.
-
-Actually, I already started implementing L3 independent conntrack....
-
-At present, I have implemented ipv4, ipv6, tcp, udp, icmp[v6], generic,
-standard, and core except for the following items.
-
-	- separating "struct tuple" of IPv4 and IPv6
-	- hash function of tuple
-	- handling fragmented IPv6 packet
-	- DUMP_TUPLE()
-	- SO_ORIGINAL_DST
-
-And I'm debugging now. I can see that it tracks the connections of ssh(TCP),
-iperf(UDP), and ping[6](ICMP[v6]), and output /proc/net/netfilter/nf_conntrack .
-
-I'll send the patches as snapshot when I finish debugging.
-Or should I send them after I finish implementing above items ?
-
-Regeards,
-
-----------------------------------------
-Yasuyuki KOZAKAI
-
-Communication Platform Laboratory,
-Corporate Research & Development Center,
-Toshiba Corporation
-
-yasuyuki.kozakai@toshiba.co.jp
-----------------------------------------
+-- 
+   Regards,
+     Krisztian KOVACS
