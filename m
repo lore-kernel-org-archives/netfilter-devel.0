@@ -1,15 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Packet Fragementation
-Date: Wed, 31 Mar 2004 01:47:38 +0200 (CEST)
+From: lmn@mail.xprtsol.com
+Subject: Re: change ip address in the hook
+Date: Tue, 30 Mar 2004 19:08:00 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0403310138340.11956-100000@filer.marasystems.com>
-References: <20040330200603.52210.qmail@web13903.mail.yahoo.com>
+Message-ID: <20040331000800.GB24425@mail.xprtsol.com>
+References: <20040328215738.GA19392@mail.xprtsol.com> <40690211.4030606@netlab.hut.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Scott MacKay <scottmackay@yahoo.com>
-In-Reply-To: <20040330200603.52210.qmail@web13903.mail.yahoo.com>
+To: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+Content-Disposition: inline
+In-Reply-To: <40690211.4030606@netlab.hut.fi>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,38 +21,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 30 Mar 2004, Scott MacKay wrote:
+Hello,
 
-> Is the defragmented packet the thing passed up to the
-> userspace application?
+Thanks so much. I just found out the reason may be that I didn't do IP checksum after I changed the source IP in the LOCAL_OUT hook. Is the ip_fast_csum() good to use here? Also I want to change the destination IP of an incoming packet in PRE_ROUTING hook, do I need to calculate the checksum at this point again?
 
-Yes.
+I read the ipt_MIRROR.c and didn't see IP checksum there. Maybe it just exchanges source IP with destination IP, and the checksum algorithm will get the same result.
 
-> If so, where in the whole netfilter process is the
-> packet re-fragmented? 
+Regards,
 
-Just before it is sent out on the wire. Done by a conntrack hook running
-very last at NF_IP_POST_ROUTING (search for ip_refrag).
+LMN
 
-> Oh, also, if a defragmented packet is passed up, then
-> I could see the buffer needs to be fairly large
-> (potentially).
-
-Yes, or to be exact up to the maximum size of an IP packet (65535 octets).
-
-> Is there a way to tell how big an
-> incoming message awaiting delivery via ipq_read() is? 
-
-libipq does not support this, but it should be possible to peek the size 
-with a recvfrom using MSG_PEEK | MSG_TRUNC.
-
-> Is there a way to keep conntrack from passing up a
-> de-fragmented packet (so still have conntrack make
-> it's session info, but not pass up defragmented data)?
-
-Not yet. In the way things are designed the original fragments is 
-completely lost. This is considered a design bug in how conntrack deals 
-with fragmented packets bug unfortunately is how things work.
-
-Regards
-Henrik
+On Tue, Mar 30, 2004 at 08:13:53AM +0300, Emmanuel Guiton wrote:
+> 
+> Hi!
+> 
+> Can you be a bit more precise in what you do when you "change the ip 
+> address of a packet in the LOCAL_OUT hook and let it send out"? What are 
+> all the operations you do? Which address (source / destination) do you 
+> change? Do you calculate a new IP checksum after having changed the IP 
+> address?
+> 
+>       Emmanuel
+> 
+> 
+> lmn@mail.xprtsol.com wrote:
+> 
+> >Hi,
+> >
+> >For example, I want to change the ip address of a packet in the LOCAL_OUT 
+> >hook and let it send out, but I didn't see the packet on the wire. (Route 
+> >for the modified ip addresses existed.) Similar things happen for the 
+> >PRE_ROUTING hook. This is like doing the NAT manually.
+> >
+> >If I use iptables command to add a rule doing the similar function, I can 
+> >see the packet was sent out. So what is the difference inside these two 
+> >approaches?
+> >
+> >Thanks,
+> >
+> >LMN
+> >
+> > 
+> >
+> 
+> 
