@@ -1,15 +1,15 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] ROUTE target fixes for 2.6.10+
-Date: Tue, 15 Feb 2005 00:15:38 +0100
-Message-ID: <20050214231538.GG3829@sunbeam.de.gnumonks.org>
-References: <20050210182516.GA3903@linuxace.com>
+Subject: Re: [PATCH] raw for 2.4.29
+Date: Tue, 15 Feb 2005 00:17:14 +0100
+Message-ID: <20050214231714.GH3829@sunbeam.de.gnumonks.org>
+References: <20050210173320.GD4353@kuleuven.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MiFvc8Vo6wRSORdP"
+	protocol="application/pgp-signature"; boundary="OgApRN/oydYDdnYz"
 Cc: netfilter-devel@lists.netfilter.org
-To: Phil Oester <kernel@linuxace.com>
+To: Jan Du Caju <Jan.DuCaju@kuleuven.net>
 Content-Disposition: inline
-In-Reply-To: <20050210182516.GA3903@linuxace.com>
+In-Reply-To: <20050210173320.GD4353@kuleuven.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,19 +22,19 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---MiFvc8Vo6wRSORdP
+--OgApRN/oydYDdnYz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Feb 10, 2005 at 10:25:16AM -0800, Phil Oester wrote:
-> Since initialized has been removed, the below is needed for 2.6.10+
-> kernels.
->=20
-> This fixes bugzilla #284
+On Thu, Feb 10, 2005 at 06:33:20PM +0100, Jan Du Caju wrote:
 
-thanks, committed to the http://svn.netfilter.org/cgi-bin/viewcvs.cgi/branc=
-hes/patch-o-matic-ng/linux-2.6.11 tree (Rev 3691)
+> the raw patch can not be applied to a 2.4.29 kernel with=20
+> patch-o-matic-ng-20050208. Please find in attachment a patch that tries t=
+o=20
+> change this.
+
+Thanks, patch applied (rev. 3692)
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -46,7 +46,7 @@ hes/patch-o-matic-ng/linux-2.6.11 tree (Rev 3691)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---MiFvc8Vo6wRSORdP
+--OgApRN/oydYDdnYz
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -54,9 +54,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD4DBQFCETEaXaXGVTD0i/8RAgzDAKCEzumgJiU9tfaEzXnatPU/jN4m7ACYziM3
-/T98pZuvVRxfTmq5TMF/bQ==
-=pnhN
+iD8DBQFCETF6XaXGVTD0i/8RAjYmAJsFfN6CgtK0yV3kZSf2CxcALGdapQCeLKTY
+coP6PwHxvOxWZxIHcLUwTAQ=
+=pr8M
 -----END PGP SIGNATURE-----
 
---MiFvc8Vo6wRSORdP--
+--OgApRN/oydYDdnYz--
