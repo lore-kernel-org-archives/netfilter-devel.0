@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: Reg Connection Tracking
-Date: Fri, 31 Jan 2003 12:20:44 +0100
+Subject: Re: some question about libiptc
+Date: Fri, 31 Jan 2003 12:22:36 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030131112044.GO9073@naboo.cybercafe42>
-References: <1042791460.1694.38.camel@knoppix> <20030120055531.62252.qmail@web41505.mail.yahoo.com>
+Message-ID: <20030131112235.GP9073@naboo.cybercafe42>
+References: <F97GAGoMLk4vQd5GQrW00006ede@hotmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lZZ4ablUVnt2XgAh"
-Cc: Ranjeet Shetye <ranjeet.shetye2@zultys.com>,
-	netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="S6vg04ofUPzW4qJg"
+Cc: sumit@elitecore.com, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Amit Kumar <amitkumargupta_wip@yahoo.com>
+To: PAUL FABRICIO VILLACRESES LEON <paulvillacreses@hotmail.com>
 Content-Disposition: inline
-In-Reply-To: <20030120055531.62252.qmail@web41505.mail.yahoo.com>
+In-Reply-To: <F97GAGoMLk4vQd5GQrW00006ede@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,30 +23,43 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---lZZ4ablUVnt2XgAh
+--S6vg04ofUPzW4qJg
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Jan 19, 2003 at 09:55:31PM -0800, Amit Kumar wrote:
+On Fri, Jan 17, 2003 at 08:00:05PM +0000, PAUL FABRICIO VILLACRESES LEON wr=
+ote:
 >=20
-> HI List,
-> Thanks for ur suggestions List.
-> Well, Now Again I tested the firewall and this time without NAT.
-> So it means that connection tracking is used only for the iptables
-> cases. Even in that case i have the same problem. My first setup has
-> worked flawlessly and only second one has problems. Another thing is I
-> am using standard PING utility.
+>=20
+> Hi
+>=20
+>=20
+>=20
+> I'm Paul Villacreses
+> Student ESPOL ECUADOR
+> TOPIC : Firewall content
+>=20
+> I had develop a program with libiptc.a and othes library libpcap, i had t=
+he=20
+> following
 
-please use a more recent version of the linux kernel.  Even I am unable
-to reacall what number of bugs 2.4.3 had in the netfilter code, and how
-we have solved them since then.
+*sigh* Somebody else using libiptc as if it was intended as a public
+interface.  I'm sorry that it still hasn't been replaced by something
+more useful.
 
-If this is impossible, please try to [at least] use one of the older
-patch-o-matic versions [like iptables-1.2.5 or something] which still
-support 2.4.3.  Apply all 'pending' patches (which includes the
-'submitted' ones).
+As of now, I feel unable to answer to any more support questions on
+libiptc.=20
+=20
+> Please can anybody help me!!!! a response HOW i can put rules in table na=
+t=20
+> , and HOW TO put rules whith port TCP like 80(HTTP),53(DNS),23(TELNET) wi=
+th=20
+> programming NOT with scripts.
 
+pipe your commands into 'iptables-restore --noflush'
+
+> Thank you Developers
 --=20
 Live long and prosper
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -59,7 +71,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M-=
 =20
 V-- PS+ PE-- Y+ PGP++ t++ 5-- !X !R tv-- b+++ DI? !D G+ e* h+ r% y+(*)
 
---lZZ4ablUVnt2XgAh
+--S6vg04ofUPzW4qJg
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -67,9 +79,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+OlwMXaXGVTD0i/8RAtJKAJ9tB77XyuOziIpgx8lTAio7uIj8oACgmvuS
-j62P11wAZOSRZFBy7+1AQ0s=
-=DuE+
+iD8DBQE+Olx7XaXGVTD0i/8RAskGAJ442KDBSZFe5xIQTT3UENkGXVY09wCeMHZM
+KN6izt6XKWK96QXVI1Gs2ws=
+=DLEv
 -----END PGP SIGNATURE-----
 
---lZZ4ablUVnt2XgAh--
+--S6vg04ofUPzW4qJg--
