@@ -1,38 +1,41 @@
-From: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
-Subject: Re: GUI for managing iptable
-Date: Wed, 27 Oct 2004 08:32:35 -0400
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1098880355.2038.62.camel@localhost>
-References: <498D2534FBEB784686D402666966F6161C07BA@sophia.crossbeamsys.com>
+From: "dravya" <dravya@magma.ca>
+Subject: icmp packets going over wrong link for Local traffic!!!
+Date: Wed, 27 Oct 2004 16:51:25 -0400 (EDT)
+Sender: netfilter-bounces@lists.netfilter.org
+Message-ID: <200410272051.i9RKpPoW018624@webmail2.magma.ca>
 Mime-Version: 1.0
 Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Zelmans, Bernard" <BZelmans@CROSSBEAMSYS.COM>
-In-Reply-To: <498D2534FBEB784686D402666966F6161C07BA@sophia.crossbeamsys.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: Netfilter mailing list <netfilter@lists.netfilter.org>,
+	<netfilter-devel@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2004-10-22 at 04:37, Zelmans, Bernard wrote:
-> Is there any open source GUI to manage iptable?
-> Thanks, b
-I've used fwbuilder (http://www.fwbuilder.org) in the past but there are
-many others available.  I am the maintainer for a very ambitious,
-enterprise/carrier class GUI that creates, distributes and reconciles
-the dynamic and static states of not only iptables, *swan and iproute2
-but potentially other proprietary firewalls/VPNs named ISCS - Integrated
-Secure Communications System (http://iscs.sourceforge.net). It has not
-yet made a production release - John
--- 
-John A. Sullivan III
-Open Source Development Corporation
-Financially sustainable open source development
-http://www.opensourcedevel.com
+
+Hi all,
+
+I have applied the Masquerade patch suggested by Rusty (and now Herbert) and everything
+works just fine. All packets are masqueraded correctly even when there are multiple
+interfaces.
+
+However, there are icmp dest unreachable messages that still go over the wrong link. i.e.
+source addr of the wrong link. Since it is local traffic, it will not go through the
+masquerading code as the socket would exist ( (*pskb)->sk ) will exist, thereby returning
+with NF_ACCEPT and bypassing the masquerade code. 
+
+Therefore the problem lies someplace else.... has anyone encountered this problem
+before??? I know there was a similar issue with arp requests but don't know what came out
+of that.
+
+Any tips or suggestions are welcome.
+
+Thanks
+
+Dravya
