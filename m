@@ -1,15 +1,14 @@
-From: Cedric Blancher <blancher@cartel-securite.fr>
-Subject: RE: LAND check: 2.4.20
-Date: Tue, 15 Mar 2005 17:52:36 +0100
-Message-ID: <1110905556.5602.84.camel@anduril.intranet.cartel-securite.net>
-References: <BB6D74C75CC76A419B6D6FA7C38317B26A263D@sinett-sbs.SiNett.LAN>
-	<19921.213.236.112.75.1110904976.squirrel@213.236.112.75>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [PATCH] Fix hang on netfilter module unload
+Date: Tue, 15 Mar 2005 09:23:30 -0800
+Message-ID: <20050315172330.GA3130@linuxace.com>
+References: <20050315050641.GA334@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org, Vishwas Manral <Vishwas@sinett.com>
-To: Martijn Lievaart <m@rtij.nl>
-In-Reply-To: <19921.213.236.112.75.1110904976.squirrel@213.236.112.75>
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@eurodev.net
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <20050315050641.GA334@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,24 +20,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le mardi 15 mars 2005 =E0 17:42 +0100, Martijn Lievaart a =E9crit :
-> They should be in your ruleset or you can use the Linux built in routing
-> checks.
+> So we are leaking conntracks for some reason that we must diagnose.
 
-There are 2 major cases :
+No...the app is leaking skbs.  Since the skb never goes away (at least
+until closing the app), the conntrack can thus not go away.  Isn't
+it better for us to work around stupid apps like this?  Seems preferable
+to not hang the box on iptables restart/unload, eh?
 
-	. Packet is seen by a filtering box, then rp_filter should
-	  destroy the packet as source is not routed through receiving
-	  interface.
-	. Packet is received by destination, then routing code will
-	  destroy it as a packet with local IP as source must be
-	  received on loopback.
+> But this is cheating, of course that the module will unload if we set 
+> all refcounts to 1 we won't spin forever in the i_see_dead_people loop 
+> but we are leaking somewhere anyway.
 
-I don't think there's a real security issue that implies hardcoding.
+Well, again, the admin has asked to unload iptables -- should we unload,
+or lockup the box?
 
-
---=20
-http://sid.rstack.org/
-PGP KeyID: 157E98EE FingerPrint: FA62226DA9E72FA8AECAA240008B480E157E98EE
->> Hi! I'm your friendly neighbourhood signature virus.
->> Copy me to your signature file and help me spread!
+Phil
