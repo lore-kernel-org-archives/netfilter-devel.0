@@ -1,18 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] for some issues in tcp window tracking patch
-Date: Fri, 21 May 2004 04:23:49 +0200
+From: Ozgur Akan <akan@aiqa.com>
+Subject: Re: chain_cache
+Date: Fri, 21 May 2004 09:33:26 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40AD6835.2060105@trash.net>
-References: <Pine.LNX.4.44.0405210317470.14542-100000@filer.marasystems.com>
+Message-ID: <40ADA2B6.3040107@aiqa.com>
+References: <Pine.LNX.4.44.0405201705320.7143-100000@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira <pablo@eurodev.net>,
- Jozsef Kadlecsik <kadlec@netfilter.org>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0405210317470.14542-100000@filer.marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0405201705320.7143-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,48 +21,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+
+
 Henrik Nordstrom wrote:
-> On Fri, 21 May 2004, Pablo Neira wrote:
-> 
-> 
->>b) We don't need to set assured bit all the time, I think that I told 
->>you, well if so, sorry for repeating me.
-> 
-> 
->>         } else if ((old_state == TCP_CONNTRACK_SYN_RECV
->>                    || old_state == TCP_CONNTRACK_ESTABLISHED)
->>-                   && new_state == TCP_CONNTRACK_ESTABLISHED)
->>+                 && new_state == TCP_CONNTRACK_ESTABLISHED
->>+                 && !test_bit(IPS_ASSURED_BIT, &conntrack->status)) {
-> 
-> 
-> Are you sure this really is an optimization in the current code? Is 
-> test_bit really faster than set_bit when the bit is already set?
 
-It should be, on x86 set_bit locks the bus:
+>The task you are amiming at (detect duplicate rules) purely involves
+>modifying libiptc and requires a reasonable understanding of libiptc as 
+>you need to find the previous rule when inserting a new rule.. This is 
+>unfortunately not as easy as it may sound as the rules is managed in-place 
+>in their binary format and all you have is the offset where the new rule 
+>should be inserted.
+>
 
-static __inline__ void set_bit(int nr, volatile unsigned long * addr)
-{
-         __asm__ __volatile__( LOCK_PREFIX
-                 "btsl %1,%0"
-                 :"=m" (ADDR)
-                 :"Ir" (nr));
-}
+Yes after some study I understand that libiptc needs to be modified. 
+When a rule is modified, deleted, appended or inserted we have to check 
+the previous and next rule in the chain. (Of course for the first rule 
+there will be no previous rule and for the last there will be no next 
+rule, so append and insert 1 are easier to check)
 
-but test_bit doesn't:
+>
+>The best place for to detect this is probably TC_INSERT_ENTRY. There you 
+>have a somewhat reasonable view of the chain in question and access to the 
+>binary rule representations.
+>  
+>
+What I think to do is to write a function to check previous and next 
+rule. It may get an argument of -1 to check previous rule, 1 to check 
+next rule and 0 to check both.
 
-static __inline__ int variable_test_bit(int nr, const volatile unsigned 
-long * addr)
-{
-         int oldbit;
- 
+Also it may be a patch for insert_rules. insert_rules is used in all 
+rule manuplation functions in libiptc.
 
-         __asm__ __volatile__(
-                 "btl %2,%1\n\tsbbl %0,%0"
-                 :"=r" (oldbit)
-                 :"m" (ADDR),"Ir" (nr));
-         return oldbit;
-}
+I have not decided yet which solution will be the best but I am about to 
+find it...
 
-Regards
-Patrick
+thank you for your comments.
+
+regards,
+
+-- 
+Ozgur Akan
