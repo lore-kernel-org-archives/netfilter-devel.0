@@ -1,69 +1,33 @@
-From: Balint Cristian <rezso@rdsor.ro>
+From: "David S. Miller" <davem@redhat.com>
 Subject: Re: iptables+2.6-test8-bk4 : Still problems
-Date: Sun, 26 Oct 2003 10:52:25 -0500
-Sender: sparclinux-owner@vger.kernel.org
-Message-ID: <200310261052.25944.rezso@rdsor.ro>
+Date: Sun, 26 Oct 2003 22:34:38 -0800
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20031026223438.1cf757ce.davem@redhat.com>
 References: <3F9B8A5D.9010803@triaton-webhosting.com>
+	<200310261052.25944.rezso@rdsor.ro>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <sparclinux-owner@vger.kernel.org>
-To: Georg Chini <georg.chini@triaton-webhosting.com>,
-	sparclinux@vger.kernel.org, netfilter-devel@lists.netfilter.org
-In-Reply-To: <3F9B8A5D.9010803@triaton-webhosting.com>
-Content-Disposition: inline
+Cc: georg.chini@triaton-webhosting.com, sparclinux@vger.kernel.org,
+        netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Balint Cristian <rezso@rdsor.ro>
+In-Reply-To: <200310261052.25944.rezso@rdsor.ro>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sunday 26 October 2003 03:48, Georg Chini wrote:
 
-> /usr/local/sbin/iptables -A INPUT -i ppp0 -j ACCEPT
-> works, but the corresponding
-> /usr/local/sbin/iptables -D INPUT -i ppp0 -j ACCEPT
-> does not, again I get "invalid argument".
+It's some bug in the translation code in net/compat.c
 
+If someone could review that code and try to find the bug
+I'd appreciate it as I have a million other things to do
+over the next few days.
 
-I object too, a simple "iptables -F" not work, see here:
-
--------------------------------------------///-------------------------------------
-[root@sun root]# iptables -L -n
-Chain INPUT (policy ACCEPT)
-target     prot opt source               destination
-REJECT     tcp  --  0.0.0.0/0            0.0.0.0/0          tcp dpt:631 reject-with tcp-reset
-
-Chain FORWARD (policy ACCEPT)
-target     prot opt source               destination
-
-Chain OUTPUT (policy ACCEPT)
-target     prot opt source               destination
-[root@sun root]# iptables -F INPUT
-iptables: No chain/target/match by that name
-[root@sun root]#
-------------------------------------////------------------------------------------------------------
-
-	I can add rules even can delete rules, accounting seems to work on rules but only rules FLUSH
-don't work.
-
-Using: iptables v1.2.8 + 2.6.0-test8-bk2 + davem.netfilter-compat-patch
-
-cristian
-
-
->
-> Thanks in advance
->                    Georg Chini
->
-> -
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-Life in itself has no meaning. 
-Life is an opportunity to create meaning.
-
-              \|/ ____ \|/ 
-              "@'/ .. \`@" 
-              /_| \__/ |_\ 
-                 \__U_/ 
-
+Thanks.
