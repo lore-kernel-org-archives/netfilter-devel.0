@@ -1,16 +1,16 @@
 From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH 2.4] ip_conntrack_irc update
-Date: Thu, 2 Oct 2003 23:21:28 -0700
+Subject: Re: [PATCH 2.4] LOCAL_OUT Nat fix
+Date: Thu, 2 Oct 2003 23:22:49 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031002232128.1d088634.davem@redhat.com>
-References: <20031002144525.GI5758@sunbeam.de.gnumonks.org>
+Message-ID: <20031002232249.09174cb9.davem@redhat.com>
+References: <20031002144817.GJ5758@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031002144525.GI5758@sunbeam.de.gnumonks.org>
+In-Reply-To: <20031002144817.GJ5758@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,7 +21,7 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2 Oct 2003 16:45:26 +0200
+On Thu, 2 Oct 2003 16:48:17 +0200
 Harald Welte <laforge@netfilter.org> wrote:
 
 > Please apply the following patch to your 2.4 tree and push it to Marcelo.
