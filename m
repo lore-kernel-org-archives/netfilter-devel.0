@@ -1,12 +1,12 @@
 From: Fabrice MARIE <fabrice@celestix.com>
-Subject: (no subject)
-Date: Thu, 4 Jul 2002 19:11:08 +0800
+Subject: [PATCH] tftp conntrack patch makefile fix
+Date: Thu, 4 Jul 2002 19:12:35 +0800
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200207041911.08783.fabrice@celestix.com>
+Message-ID: <ag17f3$su9$2@main.gmane.org>
 Reply-To: fabrice@celestix.com
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="------------Boundary-00=_KQ1Q3FSKFDF5B3AVW1SP"
+  boundary="------------Boundary-00=_ZS1QFC3S9AI5NJR832ZB"
 Return-path: <netfilter-devel-admin@lists.samba.org>
 To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
@@ -20,11 +20,13 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---------------Boundary-00=_KQ1Q3FSKFDF5B3AVW1SP
+--------------Boundary-00=_ZS1QFC3S9AI5NJR832ZB
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 8bit
 
+
+[oops .. pressed enter too fast :( ]
 
 Hello,
 
@@ -44,7 +46,7 @@ http://www.celestix.com/
 
 "Silly hacker, root is for administrators"
        -Unknown
---------------Boundary-00=_KQ1Q3FSKFDF5B3AVW1SP
+--------------Boundary-00=_ZS1QFC3S9AI5NJR832ZB
 Content-Type: text/x-diff;
   charset="us-ascii";
   name="conntrack_tftp_patch_makefile_fix.patch"
@@ -59,4 +61,4 @@ diff -uNr cvs/netfilter/userspace/patch-o-matic/extra/tftp-conntrack-nat.patch.m
 +# NAT helpers 
  obj-$(CONFIG_IP_NF_NAT_TFTP) += ip_nat_tftp.o
 
---------------Boundary-00=_KQ1Q3FSKFDF5B3AVW1SP--
+--------------Boundary-00=_ZS1QFC3S9AI5NJR832ZB--
