@@ -1,16 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: p-o-m: nf-log fix
-Date: Tue, 10 Aug 2004 14:21:23 +0200
+From: Swapnil Nagle <swapsn@rediffmail.com>
+Subject: positive target->verdict
+Date: Tue, 10 Aug 2004 21:26:59 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4118BDC3.5020801@trash.net>
-References: <1092136409.2905.357.camel@develbox.linuxbox.cz>
+Message-ID: <4118F04B.5090505@rediffmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: kadlec@blackhole.kfki.hu, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Nikola Ciprich <extmaillist@linuxbox.cz>
-In-Reply-To: <1092136409.2905.357.camel@develbox.linuxbox.cz>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,36 +18,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Nikola Ciprich wrote:
 
->Hi, I think there is small bug in nf-log p'o'm patchset,
->can You please apply following patch: (in case it is correct)
->  
->
-Applied, thanks.
+Hi all,
 
-Regards
-Patrick
+Short query :
 
->diff -Naur patch-o-matic-ng-20040809/nf-log/linux-2.4.patch
->patch-o-matic-ng-20040809-nf-log_fix/nf-log/linux-2.4.patch
->--- patch-o-matic-ng-20040809/nf-log/linux-2.4.patch    2004-02-19
->12:36:55.000000000 +0100
->+++ patch-o-matic-ng-20040809-nf-log_fix/nf-log/linux-2.4.patch
->2004-08-10 12:07:10.644846287 +0200
->@@ -402,7 +402,7 @@
-> +      }
-> +
-> +      /* if threshold is reached, send message to userspace */
->-+      if (qlen >= loginfo.qthreshold) {
->++      if (ub->qlen >= loginfo.qthreshold) {
-> +              if (loginfo.qthreshold > 1)
-> +                      nlh->nlmsg_type = NLMSG_DONE;
-> +      }
->
->thanks,
->n.
->
->
->  
->
+What is the significance of a positive verdict in ipt_standard_target ?
+ Its supposed to be a jump offset, but is it from :
+ - beginning of current chain
+ - relative to a current ipt_entry
+
+The netfilter-hacking howto only mentions that its an offset.
+
+Long version :
+
+I was looking at the struct ipt_replace generated for this rule :
+
+iptables -A INPUT -d 192.168.1.1 -j REJECT
+
+The first ipt_entry for INPUT chain (i.e repl->hook_entry[1]) has a 
+verdict 3.
+
+Does that mean that its a jump and the next ipt_entry is the 3rd one 
+from the beginning of this chain ?
+
+Regards,
+Swapnil.
