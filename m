@@ -1,12 +1,15 @@
-From: Peter Parkkali <peter.parkkali@iki.fi>
-Subject: Question + patch: FTP conntrack fails to recognize a PORT command
-Date: 25 Nov 2003 20:02:32 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: how to parse options?
+Date: Sat, 29 Nov 2003 19:35:44 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1069783352.19640.104.camel@ferrari>
+Message-ID: <Pine.LNX.4.44.0311291928460.20615-100000@filer.marasystems.com>
+References: <3FBE2337.8090901@tom.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-z4BzAhCKEvL5/FEU4scd"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: nicho <fessboy@tom.com>
+In-Reply-To: <3FBE2337.8090901@tom.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,65 +20,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, 21 Nov 2003, nicho wrote:
 
---=-z4BzAhCKEvL5/FEU4scd
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+> As we know, in kernel there is a structure called multi_range. When we
+> do nat, we choose a proper IP from the multi_range, and a proper port if
+> necessory. My question is, how multi_range is set into kernel, and how
+> option '--to-source' is parsed?
 
-Hi all,
+userspace/extensions/libipt_SNAT.c parses the option.
 
-I've found a case where an ftp PORT command is not recognized 
-by help() in ip_conntrack_ftp.c. This happens only with one 
-particular client, so there could be something wrong w/ the 
-client too. Anyway, in this case the address in the PORT command
-is not rewritten but instead the 192.168.etc address is let through.
+The multi_range is sent as part of the target data when the table ruleset
+is installed in the kernel.
 
-The bug can be avoided by commenting out the "return NF_ACCEPT;"
-from line 298 (uhh... 2.4.22 source, not cvs, sorry). This allows
-the rest of help() to find the "PORT" string, do NAT etc. 
+>     By the way, I'm confused at getsockopt(... SO_GET_ENTRY...) . As the
+> name implies, we want to get entry info from kernel, but why it dose
+> copy data from user level to kernel level indeed. What does it do at all?
 
-This works, but since I don't really understand the code, I thought
-somebody could advice me on the sanity of this approach? ;) Is it safe
-to bypass this check is could the actual bug be somewhere else?
+I don't have a SO_GET_ENTRY in the sources I have... what kernel are you 
+using?
 
+Note: The iptables kernel interface are subject to change and should not
+be relied upon.  It is better if you call the iptables or
+iptables-save/restore commands which is a well defined interface and also 
+has the correct infrastructure for building iptables to be installed into 
+the kernel.
 
-The affected code (patch attached):
-
-        if(!old_seq_aft_nl_set ||
-                        (ntohl(tcph->seq) != old_seq_aft_nl)) {
-                DEBUGP("ip_conntrack_ftp_help: wrong seq pos %s(%u)\n",
-                       old_seq_aft_nl_set ? "":"(UNSET) ",
-old_seq_aft_nl);
-                return NF_ACCEPT;
-        }
-
-
-   Thanks,
-	-peter
-
--- 
-pp / pfp@iki.fi / peter.parkkali@profiz.com / 
-040-532 95 80 / +358-40-532 95 80
-
-
-
---=-z4BzAhCKEvL5/FEU4scd
-Content-Disposition: attachment; filename=ftp_port_cmd.patch
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; name=ftp_port_cmd.patch; charset=ISO-8859-1
-
---- net/ipv4/netfilter/ip_conntrack_ftp.c	2003-11-25 19:47:15.000000000 +02=
-00
-+++ net/ipv4/netfilter/ip_conntrack_ftp.c.orig	2003-11-25 19:06:36.00000000=
-0 +0200
-@@ -295,7 +295,7 @@
- 			(ntohl(tcph->seq) !=3D old_seq_aft_nl)) {
- 		DEBUGP("ip_conntrack_ftp_help: wrong seq pos %s(%u)\n",
- 		       old_seq_aft_nl_set ? "":"(UNSET) ", old_seq_aft_nl);
--		// return NF_ACCEPT;
-+		return NF_ACCEPT;
- 	}
-=20
- 	/* Initialize IP array to expected address (it's not mentioned
-
---=-z4BzAhCKEvL5/FEU4scd--
+Regards
+Henrik
