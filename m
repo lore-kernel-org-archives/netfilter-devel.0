@@ -1,17 +1,10 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Help needed on standalone nat for opening new ports inside the
- code
-Date: Sat, 14 Feb 2004 12:17:24 +0100
+From: scp@bbs-ce.uab.es
+Subject: (no subject)
+Date: Sat, 14 Feb 2004 16:13:02 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <402E03C4.20007@trash.net>
-References: <1076755824.13168.10.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Message-ID: <01L6LLAK8FJC0007Z9@cc.uab.es>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Nagaraj G <gnraj@teneoris.com>
-In-Reply-To: <1076755824.13168.10.camel@localhost.localdomain>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,22 +15,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Nagaraj G wrote:
-> Hello,
-> 
-> I am writing a new netfilter application module where-in I have to
-> mangle each and every packet. So, I have made the module as a standalone
-> NAT with NAT_ALWAYS flag defined.
-> 
-> ...
->
-> I tried doing ip_conntrack_expect_related(). But it fails with -16
-> (EBUSY).
+Hi all!!
 
-EBUSY is returned when max_expected is not set and the expectation
-clashes with existing ones. My guess is that you haven't initialized
-the mask of the expectation properly. If that's not it, please post
-the relevant sections of code, that makes it easier for people to help.
+I'm new in the netfilter-devel list. I'm a computer science enginieering student
+in the last year. Currently I'm working in my final project :)
 
-Regards,
-Patrick
+Well... my first question:
+
+I'm coding a module that uses netfilter to detect some DDoS attacks, like
+synflooding, icmpflooding, etc... The way to detect is based on an adaptative
+treslhold algorithm. The behaviour of the algorithm must be changed if I modify
+some parameters. The idea is that these parameters could be modified when I
+want, I mean to say to the module "the new values are n=3 k=2, etc...". Then I
+need a communication between user-space and kernel-space. What is the best way
+to do it? I have readed some documentation about using ioctl but I'm not sure if
+this is the best way. I know that iptables uses getsockopt to build the rules in
+the netfilter-space (kernel space) but I don't understand how it does. Can
+anyone explain me a little about how it does and if this method is better than
+ioctl (or another options)?
+
+Thanks in advance,
+
+Sergio.
