@@ -1,15 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: tc filtering vs iptables
-Date: Fri, 27 Aug 2004 17:54:41 +0200 (CEST)
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] multiple changes/fixes
+Date: Fri, 27 Aug 2004 17:58:52 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0408271751360.32691@filer.marasystems.com>
-References: <1093614389.1068.20.camel@jzny.localdomain>
+Message-ID: <412F5A3C.1000704@trash.net>
+References: <20040827133700.GT23981@eychenne.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: jamal <hadi@cyberus.ca>
-In-Reply-To: <1093614389.1068.20.camel@jzny.localdomain>
+To: Herve Eychenne <rv@wallfire.org>
+In-Reply-To: <20040827133700.GT23981@eychenne.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,20 +21,16 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 27 Aug 2004, jamal wrote:
+Herve Eychenne wrote:
 
-> Let me know how to create proper chains for a range of hosts
-> {1,2,8, 64,256,4096,8192,16384,32768,64K}
-
-For very many unique hosts in iptables it is better to use an ippool for 
-matching the source IP, or to look into using hipac.
-
-ippool has the benefit that it allows you to create a group of hosts where 
-the lookup is relatively fast to determine if the IP is among those hosts 
-or not.
-
-The benefit of hipac is that any kind of lookup is fast with no need to 
-arrange the ruleset in a special mannner.
+>I tried my best not to forget anything, especially regarding global
+>coherence, synchronisation between IPv4 and IPv6 parts, or between
+>options, help messages and man pages.
+>Yet, this patch touches quite simple but multiple things, so one never
+>knows... Further reviews/testing welcome!
+>
+Would it be possible that you split the patch into logical changes
+so it's easier to review ?
 
 Regards
-Henrik
+Patrick
