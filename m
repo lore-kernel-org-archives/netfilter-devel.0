@@ -1,14 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH]: warn for icmp type 255
-Date: Tue, 05 Aug 2003 01:59:49 +0200
+From: Yuval Pemper <YuvalP@Radware.com>
+Subject: oops in replace_in_hashes
+Date: Tue, 5 Aug 2003 12:32:17 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F2EF375.407@trash.net>
+Message-ID: <45FCD7CD775DD411B4C100508B691BBB05C4EBAC@WARE-MAIL>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060609060901060303060902"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="WINDOWS-1255"
+Cc: Sagi  Grabois <SagiG@Radware.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
+To: "'netfilter-devel@lists.netfilter.org'"
+	 <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,52 +20,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060609060901060303060902
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+I saw the archived correspondence regarding this problem from July. We are
+using Balazs Scheidler's tproxy patch on a proxy application and were able
+to easily reproduce the oops with load that produced a high rate of new
+client connections per second. Each client connection caused the opening of
+a matching connection to the server side with the client's source IP and
+source port.
 
-This patch adds a warning if icmp-type 255 is given. Maybe we should fix 
-this
-right in 2.6 as long as it's still possible, even if that means having 
-some #ifdefs
-in the userspace code ?
+For whatever it's worth, after applying the 20030728 patch-o-matic and the
+latest tproxy patch available at the time (cttproxy-2.4.21-16) the oops
+problem disappeared.
 
-Best regards,
-Patrick
-
---------------060609060901060303060902
-Content-Type: text/plain;
- name="libipt_icmp-warn-icmp-0xff.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="libipt_icmp-warn-icmp-0xff.diff"
-
-Index: libipt_icmp.c
-===================================================================
-RCS file: /cvspublic/netfilter/userspace/extensions/libipt_icmp.c,v
-retrieving revision 1.8
-diff -u -r1.8 libipt_icmp.c
---- libipt_icmp.c	25 Feb 2003 10:50:59 -0000	1.8
-+++ libipt_icmp.c	4 Aug 2003 23:49:00 -0000
-@@ -77,7 +77,7 @@
- };
- 
- static void
--print_icmptypes()
-+print_icmptypes(void)
- {
- 	unsigned int i;
- 	printf("Valid ICMP Types:");
-@@ -153,6 +153,9 @@
- 		if (string_to_number(buffer, 0, 255, &number) == -1)
- 			exit_error(PARAMETER_PROBLEM,
- 				   "Invalid ICMP type `%s'\n", buffer);
-+		if (number == 0xFF)
-+			fprintf(stderr, "Warning: ICMP type 255 is used "
-+					"internally and matches all types!\n");
- 		*type = number;
- 		if (slash) {
- 			if (string_to_number(slash+1, 0, 255, &number) == -1)
-
---------------060609060901060303060902--
+--
+Yuval Pemper
