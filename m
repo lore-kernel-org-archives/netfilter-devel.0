@@ -1,16 +1,12 @@
-From: Peter Surda <shurdeek@panorama.sth.ac.at>
-Subject: Re: Correct list
-Date: Mon, 4 Nov 2002 14:54:29 +0100
+From: "Joel Linuxdude" <linuxlists@hotmail.com>
+Subject: Great responses....
+Date: Mon, 04 Nov 2002 10:32:56 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021104135429.GE32094@noir.cb.ac.at>
-References: <F114fNSXBzh5Em5vS3z00023c7e@hotmail.com>
+Message-ID: <F1336mLos8jJUt1Zy7Z0001f620@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zjcmjzIkjQU2rmur"
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <F114fNSXBzh5Em5vS3z00023c7e@hotmail.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,42 +17,38 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Thank you all for the good replies.
 
---zjcmjzIkjQU2rmur
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I wanted to tell you that I am not yet a good programmer.
+Purposely, I want to create the Netfilter documentation NOW
+because I still have the mind of a simple end user!
 
->  Thanks for being so rude to me but I really need to get working
-> on this document. I am sure there are plenty of people who could
-> use it.
-Hmm.
+It seems to me that as developers, you all know the great
+details of Netfilter. Therefore, when you write your
+documentation, you overlook many small details that end
+users NEED/WANT to know! This is a very easy mistake to
+make for a developer.
 
->  COMMENT: I have studied Netfilter and its usage for about 1 year
->now and I _still_ do not fully "get it". Either I am stupid or all
->of the documentation from third party people is in error/poorly
->written. Maybe a little both. ;-)
-What EXACTLY don't you understand? I have only written little code into
-netfilter, but I think it's pretty easy. Didn't even read docs, found what I
-needed in the code self.
+In fact, my professors have insisted upon many tedious
+and "dumb" documentation. Many times we are given bad grades
+because we have not documented something so simple. But,
+they say "Over-document is better than under-documenting".
+I hope this is correct.
 
-Bye,
+Right now, I have a simple non-developer mind and it is the
+best mind to have in order to help an end user! I speak their
+language! Haha!
 
-Peter Surda (Shurdeek) <shurdeek@panorama.sth.ac.at>, ICQ 10236103, +436505122023
+I promise I will do as you have all suggested and search
+the list archives for answers FIRST. Then, I will exhaust
+the end-user Netfilter list. After that, you are all in
+trouble! Hahaha. ;-)
 
---
-                           Reboot America.
+Wish me luck!
 
---zjcmjzIkjQU2rmur
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Joel
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
 
-iD8DBQE9xnwVzogxsPZwLzcRAuKlAJ9ENtjbDnQNDVfNGicrQPnsnUSrVQCffnDY
-/7cHRrI2bTwKdP7vFgydxIA=
-=z3Fe
------END PGP SIGNATURE-----
-
---zjcmjzIkjQU2rmur--
+_________________________________________________________________
+Unlimited Internet access -- and 2 months free!  Try MSN. 
+http://resourcecenter.msn.com/access/plans/2monthsfree.asp
