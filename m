@@ -1,16 +1,16 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: Re[2]: [PATCH] new 'tcpack' match
-Date: Sun, 3 Apr 2005 23:30:59 +0200
-Message-ID: <878113493.20050403233059@dns.toxicfilms.tv>
-References: <42464598.9040707@outerspace.dyndns.org>
-	<425032D5.2010302@trash.net>
-Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+From: Piotr Chytla <pch@fouk.org>
+Subject: Re: Backported conntrack-acct/connbytes to 2.4 tree
+Date: Mon, 4 Apr 2005 00:47:03 +0200
+Message-ID: <20050403224703.GA15036@fouk.org>
+References: <20041116220502.GA2677@fouk.org> <20041121163442.GA99261@fouk.org>
+	<1112349726.20323.23.camel@develbox.linuxbox.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <425032D5.2010302@trash.net>
+To: Nikola Ciprich <extmaillist@linuxbox.cz>
+Content-Disposition: inline
+In-Reply-To: <1112349726.20323.23.camel@develbox.linuxbox.cz>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,12 +22,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> I can see that it would be useful, given all the half-working ACK
-> matching rules for shaping floating around, but we already a tcp
-> match, so it should be done in there, and, if possible, kept a little
-> bit more generic. Perhaps a data-len match option.
-Hmm. I'm no guru, but isn't it possible to do that using the u32 filter
-with tc? Which propably is faster than doing it in iptables anyway.
+On Fri, Apr 01, 2005 at 12:02:06PM +0200, Nikola Ciprich wrote:
+> Hi all, I'd like to ask, what is state of this patch? Is it going to
+> main tree? 
+conntrack-acct is in 2.6 main tree but Herald wrote this patch not me , my patch is 
+only dirty backport :>
 
---
-Maciej
+>I'm not able to build iptables-1.3.1 without it, but it
+> breaks (at least) conntrack_{gre,mppe}
+What kernel version? maybe you have old kernel headers.
+
+/pch
