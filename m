@@ -1,13 +1,15 @@
-From: "Ian Latter" <Ian.Latter@mq.edu.au>
-Subject: Re: Mangle on a Connection, not on a Packet
-Date: Fri, 17 Oct 2003 15:10:39 +1000
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ASN.1 decoder for h323-conntrack-nat
+Date: Fri, 17 Oct 2003 10:02:28 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200310170510.h9H5Adv17981@singularity.tronunltd.com>
-Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
-Content-Type: text/plain; charset="us-ascii"
+Message-ID: <Pine.LNX.4.33.0310170956080.7119-100000@blackhole.kfki.hu>
+References: <3F8EA725.9090000@yandex.ru>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Henrik Nordstrom" <hno@marasystems.com>
+To: Alexander Nasonov <alnsn-mycop@yandex.ru>
+In-Reply-To: <3F8EA725.9090000@yandex.ru>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,53 +20,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> > possible?  (and I'd need that mark to be made free when
-> > the connection is removed from netfilter).
-> 
-> Then you need something a little more advanced than CONNMARK I think.
+On Thu, 16 Oct 2003, Alexander Nasonov wrote:
 
-ok ..
+> >[Actually, I have just discovered that the source code of the most recent
+> >ethereal contains ASN.1 PER/H225/H245 decoders written in C.]
+> >
+> This tool helped me a lot to understand what PER is. Hmm, I thought that
+> ethereal is based on openh323 ASN.1 generator which is C++-based. I'll
+> take a look at the code later. Is there any free ASN.1 decoder?
 
- 
-> From your description it sounds like you could be using the conntract 
-> handle as is. This will give you an arbitrary integer of size (void *).
+Earlier there was a H.323 plugin for ethereal, which was based on openh323
+and therefore was in C++. Now H.323 support is integrated into ethereal
+(no external plugin) and written in pure C. As far as I see it's not based
+on openh323.
 
-Hmm .. this would be good ...
- 
-> The conntrack mark is available as ct->mark.
-> 
-> Examle code snipped accessing the conntrack mark:
-> 
->       enum ip_conntrack_info ctinfo;
->       struct ip_conntrack *ct = ip_conntrack_get((struct sk_buff *)skb, &ctinfo);
->       if (!ct)
->           return 0;
-> 
->       mark = ct->mark;
+> I wish I had a better code. I could implement more optimization then.
+> For example, if a type after extention mark (...) doesn't have callbacks
+> it could be just skiped as open type. I could also try to simplify
+> parsing of fixed-length types. May be later I'll find more time to
+> rewrite the code.
 
-This was the bit that had me thinking .. if this was implemented in the XOR
-target .. with rules sending NEW and other traffic to that target .. then
-unmarked conns could be marked (and seeds could be seeded) while
-marked ones could be referenced and dealt with ..
+Such optimizations would be highly preferred. The code ran not only
+faster but I think were smaller as well.
 
-The only issue that would be left then is removed connections .. is there
-a substantial scratch space available within the conntrack structure(s) ?
-Ie; would I be able to attach the key to the connection, such that when the
-connection is destroyed I don't need to worry about deallocating structures
-or structure memory within the target ?   Or would this be something that
-I would (or should) need to add to ip_conntrack.h ..   like ..
-
-+#if defined(CONFIG_IP_NF_CONNTRACK_CRYPTO)
-+	unsigned long key_xor;
-+#endif
-
-
-Hmm .. I think I'm almost there .. thanks for your help Henrick.
-
-
-
-
---
-Ian Latter
-Internet and Networking Security Officer
-Macquarie University
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
