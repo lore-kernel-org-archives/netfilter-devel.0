@@ -1,16 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Max Kellermann <max@duempel.org>
 Subject: Re: [RFC] h323 module unloading fix
-Date: Wed, 9 Feb 2005 09:59:09 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0502090933250.2846@blackhole.kfki.hu>
+Date: Wed, 9 Feb 2005 10:10:23 +0100
+Message-ID: <20050209091023.GA6830@roonstrasse.net>
 References: <20050208145908.GS6878@sunbeam.de.gnumonks.org>
 	<420946FF.107@trash.net>
 	<20050209082459.GY6878@sunbeam.de.gnumonks.org>
+	<Pine.LNX.4.58.0502090933250.2846@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-1786650938-1107939549=:2846"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050209082459.GY6878@sunbeam.de.gnumonks.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0502090933250.2846@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,129 +22,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+On 2005/02/09 09:59, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
+> I like Patrick's idea. There are not so many modules wich rely on
+> unregistered helpers, and we could retain backward compatibility in the
+> API like in the attached (untested) patch. What do you think?
 
---110391808-1786650938-1107939549=:2846
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Calling an "evicting" function in a module destructor for something
+which the netfilter core didn't even know about until now doesn't look
+elegant to me. For me, to every destructing function, there must be a
+prior constructor call.
 
-Hi,
+There is no compatibility problem with Harald's/my solution. My
+proposition allows the "register_helper" function to register
+"disabled" helpers, meaning that you have to both register and
+unregister the H.245 helper.
 
-On Wed, 9 Feb 2005, Harald Welte wrote:
+If we ever decide that it is required to register "disabled" helpers,
+we don't have to change the API again, and it costs us near to nothing
+to instruct that now.
 
-> On Wed, Feb 09, 2005 at 12:10:55AM +0100, Patrick McHardy wrote:
-> > But I think splitting the code to evict expectations and expected
-> > conntracks from ip_conntrack_helper_unregister is a cleaner solution.
->
-> Mh, but then every author of a helper would explicitly have to take care
-> of calling the 'evicting function'.  Considering that any existing
-> helper, tutorial and other documentation tells him that he doesn't have
-> to, it's easy to get it wrong and introduce further bugs.
+It does not matter if "register_helper" ignores disabled helpers for
+now, and "unregister_helper" works like the "evicting" function
+Patrick proposed; we can change internals like this any time we want
+without having to touch modules again.
 
-I like Patrick's idea. There are not so many modules wich rely on
-unregistered helpers, and we could retain backward compatibility in the
-API like in the attached (untested) patch. What do you think?
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
---110391808-1786650938-1107939549=:2846
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="unhelp.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.58.0502090959090.2846@blackhole.kfki.hu>
-Content-Description: unhelp.patch
-Content-Disposition: attachment; filename="unhelp.patch"
-
-ZGlmZiAtdXJOIC0tZXhjbHVkZS1mcm9tPS91c3Ivc3JjL2RpZmYuZXhjbHVk
-ZSBsaW51eC0yLjQuMjYtb3JpZy9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9p
-cHY0L2lwX2Nvbm50cmFja19oZWxwZXIuaCBsaW51eC0yLjQuMjYtdW5oZWxw
-L2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXBfY29ubnRyYWNrX2hl
-bHBlci5oDQotLS0gbGludXgtMi40LjI2LW9yaWcvaW5jbHVkZS9saW51eC9u
-ZXRmaWx0ZXJfaXB2NC9pcF9jb25udHJhY2tfaGVscGVyLmgJMjAwMi0xMS0y
-OSAwMDo1MzoxNS4wMDAwMDAwMDAgKzAxMDANCisrKyBsaW51eC0yLjQuMjYt
-dW5oZWxwL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXBfY29ubnRy
-YWNrX2hlbHBlci5oCTIwMDUtMDItMDkgMDk6Mjg6NTAuMDAwMDAwMDAwICsw
-MTAwDQpAQCAtNDIsNCArNDIsNyBAQA0KIAkJCQkgICAgICBzdHJ1Y3QgaXBf
-Y29ubnRyYWNrX3R1cGxlICpuZXd0dXBsZSk7DQogZXh0ZXJuIHZvaWQgaXBf
-Y29ubnRyYWNrX3VuZXhwZWN0X3JlbGF0ZWQoc3RydWN0IGlwX2Nvbm50cmFj
-a19leHBlY3QgKmV4cCk7DQogDQorLyogRGVsZXRlIGV4cGVjdGF0aW9ucyBi
-ZWxvbmdpbmcgdG8gYSAodW5yZWdpc3RlcmVkKSBoZWxwZXIgKi8NCitleHRl
-cm4gdm9pZCBpcF9jb25udHJhY2tfZXZpY3RfZXhwZWN0YXRpb25zKHN0cnVj
-dCBpcF9jb25udHJhY2tfaGVscGVyICopOw0KKw0KICNlbmRpZiAvKl9JUF9D
-T05OVFJBQ0tfSEVMUEVSX0gqLw0KZGlmZiAtdXJOIC0tZXhjbHVkZS1mcm9t
-PS91c3Ivc3JjL2RpZmYuZXhjbHVkZSBsaW51eC0yLjQuMjYtb3JpZy9uZXQv
-aXB2NC9uZXRmaWx0ZXIvaXBfY29ubnRyYWNrX2NvcmUuYyBsaW51eC0yLjQu
-MjYtdW5oZWxwL25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfY29y
-ZS5jDQotLS0gbGludXgtMi40LjI2LW9yaWcvbmV0L2lwdjQvbmV0ZmlsdGVy
-L2lwX2Nvbm50cmFja19jb3JlLmMJMjAwNC0wMi0xOCAxNDozNjozMi4wMDAw
-MDAwMDAgKzAxMDANCisrKyBsaW51eC0yLjQuMjYtdW5oZWxwL25ldC9pcHY0
-L25ldGZpbHRlci9pcF9jb25udHJhY2tfY29yZS5jCTIwMDUtMDItMDkgMDk6
-MjY6MzMuMDAwMDAwMDAwICswMTAwDQpAQCAtMTE0NywyNyArMTE0NywzOSBA
-QA0KIAlyZXR1cm4gMDsNCiB9DQogDQotdm9pZCBpcF9jb25udHJhY2tfaGVs
-cGVyX3VucmVnaXN0ZXIoc3RydWN0IGlwX2Nvbm50cmFja19oZWxwZXIgKm1l
-KQ0KK3N0YXRpYyBpbmxpbmUgdm9pZCBfX2V2aWN0X2V4cGVjdGF0aW9ucyhz
-dHJ1Y3QgaXBfY29ubnRyYWNrX2hlbHBlciAqbWUpDQogew0KIAl1bnNpZ25l
-ZCBpbnQgaTsNCiANCi0JLyogTmVlZCB3cml0ZSBsb2NrIGhlcmUsIHRvIGRl
-bGV0ZSBoZWxwZXIuICovDQogCVdSSVRFX0xPQ0soJmlwX2Nvbm50cmFja19s
-b2NrKTsNCi0JTElTVF9ERUxFVEUoJmhlbHBlcnMsIG1lKTsNCi0NCiAJLyog
-R2V0IHJpZCBvZiBleHBlY3RlZHMsIHNldCBoZWxwZXJzIHRvIE5VTEwuICov
-DQogCWZvciAoaSA9IDA7IGkgPCBpcF9jb25udHJhY2tfaHRhYmxlX3NpemU7
-IGkrKykNCiAJCUxJU1RfRklORF9XKCZpcF9jb25udHJhY2tfaGFzaFtpXSwg
-dW5oZWxwLA0KIAkJCSAgICBzdHJ1Y3QgaXBfY29ubnRyYWNrX3R1cGxlX2hh
-c2ggKiwgbWUpOw0KIAlXUklURV9VTkxPQ0soJmlwX2Nvbm50cmFja19sb2Nr
-KTsNCit9DQorDQordm9pZCBpcF9jb25udHJhY2tfaGVscGVyX3VucmVnaXN0
-ZXIoc3RydWN0IGlwX2Nvbm50cmFja19oZWxwZXIgKm1lKQ0KK3sNCisJV1JJ
-VEVfTE9DSygmaXBfY29ubnRyYWNrX2xvY2spOw0KKwlMSVNUX0RFTEVURSgm
-aGVscGVycywgbWUpOw0KKwlXUklURV9VTkxPQ0soJmlwX2Nvbm50cmFja19s
-b2NrKTsNCiANCiAJLyogU29tZW9uZSBjb3VsZCBiZSBzdGlsbCBsb29raW5n
-IGF0IHRoZSBoZWxwZXIgaW4gYSBiaC4gKi8NCiAJYnJfd3JpdGVfbG9ja19i
-aChCUl9ORVRQUk9UT19MT0NLKTsNCiAJYnJfd3JpdGVfdW5sb2NrX2JoKEJS
-X05FVFBST1RPX0xPQ0spOw0KIA0KKwkvKiBEZWxldGUgZXhwZWN0YXRpb25z
-IGJlbG9uZ2luZyB0byB0aGUgaGVscGVyICovDQorCV9fZXZpY3RfZXhwZWN0
-YXRpb25zKG1lKTsNCisJDQogCU1PRF9ERUNfVVNFX0NPVU5UOw0KIH0NCiAN
-Cit2b2lkIGlwX2Nvbm50cmFja19ldmljdF9leHBlY3RhdGlvbnMoc3RydWN0
-IGlwX2Nvbm50cmFja19oZWxwZXIgKm1lKQ0KK3sNCisJX19ldmljdF9leHBl
-Y3RhdGlvbnMobWUpOw0KK30NCisNCiAvKiBSZWZyZXNoIGNvbm50cmFjayBm
-b3IgdGhpcyBtYW55IGppZmZpZXMuICovDQogdm9pZCBpcF9jdF9yZWZyZXNo
-KHN0cnVjdCBpcF9jb25udHJhY2sgKmN0LCB1bnNpZ25lZCBsb25nIGV4dHJh
-X2ppZmZpZXMpDQogew0KZGlmZiAtdXJOIC0tZXhjbHVkZS1mcm9tPS91c3Iv
-c3JjL2RpZmYuZXhjbHVkZSBsaW51eC0yLjQuMjYtb3JpZy9uZXQvaXB2NC9u
-ZXRmaWx0ZXIvaXBfY29ubnRyYWNrX3N0YW5kYWxvbmUuYyBsaW51eC0yLjQu
-MjYtdW5oZWxwL25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfc3Rh
-bmRhbG9uZS5jDQotLS0gbGludXgtMi40LjI2LW9yaWcvbmV0L2lwdjQvbmV0
-ZmlsdGVyL2lwX2Nvbm50cmFja19zdGFuZGFsb25lLmMJMjAwNC0wMi0xOCAx
-NDozNjozMi4wMDAwMDAwMDAgKzAxMDANCisrKyBsaW51eC0yLjQuMjYtdW5o
-ZWxwL25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfc3RhbmRhbG9u
-ZS5jCTIwMDUtMDItMDkgMDk6MjY6NTguMDAwMDAwMDAwICswMTAwDQpAQCAt
-NDY2LDYgKzQ2Niw3IEBADQogRVhQT1JUX1NZTUJPTChpcF9jb25udHJhY2tf
-Z2V0KTsNCiBFWFBPUlRfU1lNQk9MKGlwX2Nvbm50cmFja19oZWxwZXJfcmVn
-aXN0ZXIpOw0KIEVYUE9SVF9TWU1CT0woaXBfY29ubnRyYWNrX2hlbHBlcl91
-bnJlZ2lzdGVyKTsNCitFWFBPUlRfU1lNQk9MKGlwX2Nvbm50cmFja19ldmlj
-dF9leHBlY3RhdGlvbnMpOw0KIEVYUE9SVF9TWU1CT0woaXBfY3Rfc2VsZWN0
-aXZlX2NsZWFudXApOw0KIEVYUE9SVF9TWU1CT0woaXBfY3RfcmVmcmVzaCk7
-DQogRVhQT1JUX1NZTUJPTChpcF9jdF9maW5kX3Byb3RvKTsNCg==
-
---110391808-1786650938-1107939549=:2846
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="h323.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.58.0502090959091.2846@blackhole.kfki.hu>
-Content-Description: h323.patch
-Content-Disposition: attachment; filename="h323.patch"
-
-DQotLS0gYS9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29ubnRyYWNrX2gzMjMu
-YwkyMDA1LTAyLTA4IDE1OjMzOjM2LjAwMDAwMDAwMCArMDEwMA0KKysrIGIv
-bmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19oMzIzLmMJMjAwNS0w
-Mi0wOCAxNTozMzo1MS4wMDAwMDAwMDAgKzAxMDANCkBAIC0zMDAsNiArMzAw
-LDggQEANCiB7DQogCS8qIFVucmVnaXN0ZXIgSC4yMjUgaGVscGVyICovCQ0K
-IAlpcF9jb25udHJhY2tfaGVscGVyX3VucmVnaXN0ZXIoJmgyMjUpOw0KKwkv
-KiBEZWxldGUgZXhwZWN0YXRpb25zIGJlbG9uZ2luZyB0byB0aGUgdW5yZWdp
-c3RlcmVkIGhlbHBlciAqLw0KKwlpcF9jb25udHJhY2tfZXZpY3RfZXhwZWN0
-YXRpb25zKCZoMjQ1KTsNCiB9DQogDQogRVhQT1JUX1NZTUJPTChpcF9oMzIz
-X2xvY2spOw0KDQo=
-
---110391808-1786650938-1107939549=:2846--
+Max
