@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: TCP/IP checksums and changing destination address
-Date: Sat, 15 Jun 2002 14:58:05 +0200
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: Re: netfilter on solaris?
+Date: Sat, 15 Jun 2002 15:37:25 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020615145805.U2543@sunbeam.de.gnumonks.org>
-References: <03781128C7B74B4DBC27C55859C9D73809840639@es06snlnt>
+Message-ID: <20020615133725.GC13464@balabit.hu>
+References: <20020614100540.GA6399@balabit.hu> <20020615145212.S2543@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="K9yN6gtjNHvbaj05"
-Cc: "'netfilter-devel@lists.samba.org'" <netfilter-devel@lists.samba.org>
+Content-Type: text/plain; charset=iso-8859-1
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: "Shipman, Jeffrey E" <jeshipm@sandia.gov>
+To: Harald Welte <laforge@gnumonks.org>,
+	netfilter-devel@lists.samba.org
 Content-Disposition: inline
-In-Reply-To: <03781128C7B74B4DBC27C55859C9D73809840639@es06snlnt>; from jeshipm@sandia.gov on Fri, Jun 14, 2002 at 08:03:38AM -0600
+In-Reply-To: <20020615145212.S2543@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,55 +21,55 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, Jun 15, 2002 at 02:52:12PM +0200, Harald Welte wrote:
+> On Fri, Jun 14, 2002 at 12:05:40PM +0200, Balazs Scheidler wrote:
+> > Hi,
+> > 
+> > It is a strange idea I know, but I'd be interested in what the opinion of
+> > the core netfilter developers is on porting the whole netfilter subsystem to
+> > Solaris?
+> 
+> After my netfilter presentation at linuxtag, somebody was asking me exactly
+> this question.
 
---K9yN6gtjNHvbaj05
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+And your answer was?
 
-On Fri, Jun 14, 2002 at 08:03:38AM -0600, Shipman, Jeffrey E wrote:
-> I'm currently writing a netfilter module to modify
-> some options in TCP packets. Currently, I'm just
-> trying to learn a bit about it so I've written a
-> module that 1) Sets the PSH flag in all TCP packets
-> and 2) Modifies the destination address to be the
-> source address.
->=20
-> I wrote a small function that uses tcp_v4_check()
-> and ip_fast_csum() to recalculate the checksums
-> on the packets.=20
+> > Apart from the technical issues, would there be any problems? Does the GPL
+> > allow this kind of usage? (it would be implemented as a module)
+> 
+> This is basically the same question like binary-only kernel modules. 
 
-This is wrong. Just think of a packet arriving with broken checksum, and th=
-en
-you recalculate the checksum - passing on a broken packet with a valid
-checksum. Please use incremental checksumming, as used by netfilter/iptables
-all over the place (like in ipt_TOS.c, or ipt_TCPMSS.c)
+I think it is more similar to Gimp plugins under Photoshop case.
 
-> Jeff Shipman - CCD
-> Sandia National Laboratories
+> 
+> Having netfilter within a different kernel, is technically the same: 
+> GPL'd netfilter/iptables code is called from a binary-only kernel.  
 
---=20
-Live long and prosper
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
-=20
-V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
+Under binary-only you mean propriatery, or something nonGPLd? Solaris kernel
+source _is_ available, though it doesn't use the GPL.
 
---K9yN6gtjNHvbaj05
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+> Thus, my conclusion would be: Without the explicit permission of the authors,
+> it is legally not possible to use netfilter/iptables within a proprietary
+> OS kernel.  But of coursel, I am not a lawyer.
+> 
+> I for myself are somewhat undecided, but I tend to share Rusty's view:
+> I haven't ever given permission for using my code by binary only kernel
+> modules.  All new code I'm working on wil export GPLONLY to make sure
+> about that.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+I think while disallowing binary only modules restrict the vendors who
+release propriatery software relying on free software, disallowing netfilter
+on propriatery platforms restrict users who would like to use free software
+on their platform. Even the GPL makes difference between propriatery system
+and non-system libraries.
 
-iD8DBQE9CzncXaXGVTD0i/8RAg9kAKCt/PtKgbVpc3Jk76H4rFLLmonPqwCfXmvP
-dw8E2OEI6/k9japiyI4ZT2E=
-=7YMb
------END PGP SIGNATURE-----
+While it is a possibility to dump the native OS, and replace it with Linux,
+most non-x86 platforms work with their native OS best (be it HP-UX, Solaris
+or Tru64).
 
---K9yN6gtjNHvbaj05--
+This argument is worthless anyway. The task is tedious, and without support
+of the original developers it would die immediately.
+
+-- 
+Bazsi
+PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
