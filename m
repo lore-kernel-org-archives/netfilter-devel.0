@@ -1,7 +1,7 @@
 From: "Rimas" <rmocius@auste.elnet.lt>
 Subject: Re: conntrack error
-Date: Mon, 14 Feb 2005 13:24:59 -0000
-Message-ID: <065f01c51298$953effb0$6e69690a@RIMAS>
+Date: Mon, 14 Feb 2005 14:01:19 -0000
+Message-ID: <068001c5129d$a8d9d220$6e69690a@RIMAS>
 References: <20050212110358.GA32095@daleka.net> <420E8F79.1010802@trash.net>
 	<05e801c51294$1c7b9c90$6e69690a@RIMAS> <4210A35B.6050000@trash.net>
 Mime-Version: 1.0
@@ -20,29 +20,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks Patrick,
+Patrick,
 
-I will try with 2.6.11-rc4.
+The patch 2.diff does not apply to 2.6.11-rc4.
+
+Is any chance to get the conntrack working properly with 2.6.11?
+
+Thanks
 
 Remus
 
------ Original Message ----- 
-From: "Patrick McHardy" <kaber@trash.net>
-To: "Rimas" <rmocius@auste.elnet.lt>
-Cc: <netfilter-devel@lists.netfilter.org>
-Sent: Monday, February 14, 2005 1:10 PM
-Subject: Re: conntrack error
 
-
-> Rimas wrote:
-> 
->> Hi Patrick,
->>
->>
->> I have the same problem with the conntrack.
->> I tried to use your patches on 2.6.10 vanila kernel but I got these 
->> error messages 
-> 
 > They are based on my 2.6.12 tree, but I think they should apply to 
 > 2.6.11-rc4.
 > 
