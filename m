@@ -1,16 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: ippool -X not working
-Date: Fri, 5 Dec 2003 16:10:48 +0100 (CET)
+From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+Subject: Re: How do I use ip_conntrack_destroyed? [previous message erratum]
+Date: Fri, 05 Dec 2003 17:56:29 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0312051604100.3680-300000@filer.marasystems.com>
-References: <3FD07C48.9040801@fabricadeideias.com>
+Message-ID: <3FD0AAAD.5020609@netlab.hut.fi>
+References: <Pine.LNX.4.44.0312032243000.11739-100000@filer.marasystems.com> <3FCEE93C.5040104@balabit.hu> <3FCF413D.1060405@netlab.hut.fi> <3FCF4E6A.8070202@balabit.hu> <3FD09CF7.1090402@netlab.hut.fi>
+Reply-To: emmanuel@netlab.hut.fi
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811839-41115736-1070636891=:3680"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rodrigo Severo <rodrigo.lists@fabricadeideias.com>
-In-Reply-To: <3FD07C48.9040801@fabricadeideias.com>
-Content-ID: <Pine.LNX.4.44.0312051608200.3680@filer.marasystems.com>
+To: emmanuel@netlab.hut.fi
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,120 +21,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+>
+> About this patch, I cannot install it. I started over from a clean 
+> linux 2.4.22 kernel and applied the patches. First I used ./runme base 
+> and applied everything I could. then I used ./runme extra and in the 
+> extra patches I only tried to apply the nfnetlinc patch (thus I did 
+> not install the two conflicting patches - ctstat and 
+> netfilter-docbook). Still, it does not work. Is there any other 
+> required/conflicted patch that I am not aware of?
+>
+>
+>             Emmanuel
+>
+I got it work with a new 2.23 kernel and applying _only_ this patch. 
+Please, forget about my previous message.
 
----1463811839-41115736-1070636891=:3680
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
-Content-ID: <Pine.LNX.4.44.0312051608201.3680@filer.marasystems.com>
-
-On Fri, 5 Dec 2003, Rodrigo Severo wrote:
-
-> I can't make neither -x nor the -X POOL options work. I always get a 
-> "IP_POOL_DESTROY POOL failed: Device or resource busy" message. The POOL 
-> isn't used yet anywhere, I'm justing testing pool creation by now.
-
-These operations are not implemented in the ippool version in 
-base/ippool.patch.
-
-Attached is a patch implementing the flush and destroy ippool operations.  
-We have had this patch for a while but not posted it yet as there was talk
-about replacing the ippool implementation with the new modularized
-implementation by Joakim Axelsson and that the current implementation is
-not actively maintained and we did not want to stir up confusion on that
-subject. The patch obviously depends on the base/ippool.patch.
-
-Regards
-Henrik
-
----1463811839-41115736-1070636891=:3680
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII; NAME="ippool-flush_destroy.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44.0312051608110.3680@filer.marasystems.com>
-Content-Description: ippool patch file
-Content-Disposition: ATTACHMENT; FILENAME="ippool-flush_destroy.patch"
-
-LS0tIGxpbnV4LTIuNC4xOS11bWwvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX3Bv
-b2wuYy5vcmlnCU1vbiBTZXAgMjMgMTc6MDc6MTkgMjAwMg0KKysrIGxpbnV4
-LTIuNC4xOS11bWwvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX3Bvb2wuYwlUdWUg
-U2VwIDI0IDA4OjIyOjUzIDIwMDINCkBAIC0xODYsNyArMTg2LDcgQEANCiAJ
-CXJlcS5hZGRyMiA9IHBvb2wtPm5yX21hdGNoOw0KIAkJcmV0dXJuIGNvcHlf
-dG9fdXNlcih1c2VyLCAmcmVxLCBzaXplb2YocmVxKSk7DQogCWNhc2UgSVBf
-UE9PTF9URVNUX0FERFI6DQotCQlEUCgiaXBfcG9vbCBURVNUIDB4JTA4eFxu
-IiwgcmVxLmFkZHIpOw0KKwkJRFAoImlwX3Bvb2wgVEVTVCAweCUwOHhcbiIs
-IG50b2hsKHJlcS5hZGRyKSk7DQogCQlwb29sID0gbG9va3VwKHJlcS5pbmRl
-eCk7DQogCQlpZiAoIXBvb2wpDQogCQkJcmV0dXJuIC1FSU5WQUw7DQpAQCAt
-MjEzLDEzICsyMTMsMzkgQEANCiAJCXJlYWRfdW5sb2NrX2JoKCZwb29sLT5s
-b2NrKTsNCiAJCXJldHVybiBjb3B5X3RvX3VzZXIodXNlciwgJnJlcSwgc2l6
-ZW9mKHJlcSkpOw0KIAljYXNlIElQX1BPT0xfRkxVU0g6DQotCQlEUCgiaXBf
-cG9vbCBGTFVTSCBub3QgeWV0IGltcGxlbWVudGVkLlxuIik7DQotCQlyZXR1
-cm4gLUVCVVNZOw0KKwkJcG9vbCA9IGxvb2t1cChyZXEuaW5kZXgpOw0KKwkJ
-aWYgKCFwb29sKQ0KKwkJICAgIHJldHVybiAtRUlOVkFMOw0KKwkJd3JpdGVf
-bG9ja19iaCgmcG9vbC0+bG9jayk7DQorCQlpZiAoIXBvb2wtPm1lbWJlcnMp
-IHsNCisJCSAgICByZXMgPSAtRUJBREY7DQorCQkgICAgZ290byB1bmxvY2tf
-d3JpdGVfYW5kX3JldHVybl9yZXM7DQorCQl9DQorCQluZXdieXRlcyA9IGJp
-dG1hcF9ieXRlcyhwb29sLT5maXJzdF9pcCwgcG9vbC0+bGFzdF9pcCk7DQor
-CQltZW1zZXQocG9vbC0+bWVtYmVycywgMCwgbmV3Ynl0ZXMpOw0KKwkJcG9v
-bC0+bnJfdXNlID0gMDsNCisJCXBvb2wtPm5yX21hdGNoID0gMDsNCisJCXdy
-aXRlX3VubG9ja19iaCgmcG9vbC0+bG9jayk7DQorCQlyZXR1cm4gMDsNCiAJ
-Y2FzZSBJUF9QT09MX0RFU1RST1k6DQotCQlEUCgiaXBfcG9vbCBERVNUUk9Z
-IG5vdCB5ZXQgaW1wbGVtZW50ZWQuXG4iKTsNCi0JCXJldHVybiAtRUJVU1k7
-DQorCQlwb29sID0gbG9va3VwKHJlcS5pbmRleCk7DQorCQlpZiAoIXBvb2wp
-DQorCQkgICAgcmV0dXJuIC1FSU5WQUw7DQorCQl3cml0ZV9sb2NrX2JoKCZw
-b29sLT5sb2NrKTsNCisJCWlmICghcG9vbC0+bWVtYmVycykgew0KKwkJICAg
-IHJlcyA9IC1FQkFERjsNCisJCSAgICBnb3RvIHVubG9ja193cml0ZV9hbmRf
-cmV0dXJuX3JlczsNCisJCX0NCisJCWtmcmVlKHBvb2wtPm1lbWJlcnMpOw0K
-KwkJcG9vbC0+bWVtYmVycyA9IE5VTEw7DQorCQlwb29sLT5maXJzdF9pcCA9
-IDA7DQorCQlwb29sLT5sYXN0X2lwID0gMDsNCisJCXBvb2wtPm5yX3VzZSA9
-IDA7DQorCQlwb29sLT5ucl9tYXRjaCA9IDA7DQorCQl3cml0ZV91bmxvY2tf
-YmgocG9vbC0+bG9jayk7DQorCQlyZXR1cm4gMDsNCiAJY2FzZSBJUF9QT09M
-X0lOSVQ6DQotCQlEUCgiaXBfcG9vbCBJTklUIDB4JTA4eC0weCUwOHhcbiIs
-IHJlcS5hZGRyLCByZXEuYWRkcjIpOw0KKwkJRFAoImlwX3Bvb2wgSU5JVCAw
-eCUwOHgtMHglMDh4XG4iLCBudG9obChyZXEuYWRkciksIG50b2hsKHJlcS5h
-ZGRyMikpOw0KIAkJcG9vbCA9IGxvb2t1cChyZXEuaW5kZXgpOw0KIAkJaWYg
-KCFwb29sKQ0KIAkJCXJldHVybiAtRUlOVkFMOw0KQEAgLTI0MSw3ICsyNjcs
-NyBAQA0KIAkJCURQKCJpcF9wb29sIElOSVQgcG9vbCAlZCBleGlzdHNcbiIs
-IHJlcS5pbmRleCk7DQogCQkJa2ZyZWUobmV3bWVtYmVycyk7DQogCQkJcmVz
-ID0gLUVCVVNZOw0KLQkJCWdvdG8gdW5sb2NrX2FuZF9yZXR1cm5fcmVzOw0K
-KwkJCWdvdG8gdW5sb2NrX3dyaXRlX2FuZF9yZXR1cm5fcmVzOw0KIAkJfQ0K
-IAkJcG9vbC0+Zmlyc3RfaXAgPSByZXEuYWRkcjsNCiAJCXBvb2wtPmxhc3Rf
-aXAgPSByZXEuYWRkcjI7DQpAQCAtMjQ5LDE0ICsyNzUsMjMgQEANCiAJCXBv
-b2wtPm5yX21hdGNoID0gMDsNCiAJCXBvb2wtPm1lbWJlcnMgPSBuZXdtZW1i
-ZXJzOw0KIAkJd3JpdGVfdW5sb2NrX2JoKCZwb29sLT5sb2NrKTsNCisJCURQ
-KCJpcF9wb29sIElOSVQgJWQgYnl0ZXNcbiIsIG5ld2J5dGVzKTsNCiAJCXJl
-dHVybiAwOw0KIAljYXNlIElQX1BPT0xfQUREX0FERFI6DQotCQlEUCgiaXBf
-cG9vbCBBRERfQUREUiAweCUwOHhcbiIsIHJlcS5hZGRyKTsNCisJCURQKCJp
-cF9wb29sIEFERF9BRERSIDB4JTA4eFxuIiwgbnRvaGwocmVxLmFkZHIpKTsN
-CiAJCXJlcS5hZGRyID0gcG9vbF9jaGFuZ2UocmVxLmluZGV4LCBudG9obChy
-ZXEuYWRkciksIDApOw0KKwkJaWYgKHJlcS5hZGRyID09IC0xKSB7DQorCQkg
-ICAgRFAoImlwX3Bvb2wgQUREX0FERFIgaW52YWxpZFxuIik7DQorCQkgICAg
-cmV0dXJuIC1FUkFOR0U7DQorCQl9DQogCQlyZXR1cm4gY29weV90b191c2Vy
-KHVzZXIsICZyZXEsIHNpemVvZihyZXEpKTsNCiAJY2FzZSBJUF9QT09MX0RF
-TF9BRERSOg0KLQkJRFAoImlwX3Bvb2wgREVMX0FERFIgMHglMDh4XG4iLCBy
-ZXEuYWRkcik7DQorCQlEUCgiaXBfcG9vbCBERUxfQUREUiAweCUwOHhcbiIs
-IG50b2hsKHJlcS5hZGRyKSk7DQogCQlyZXEuYWRkciA9IHBvb2xfY2hhbmdl
-KHJlcS5pbmRleCwgbnRvaGwocmVxLmFkZHIpLCAxKTsNCisJCWlmIChyZXEu
-YWRkciA9PSAtMSkgew0KKwkJICAgIERQKCJpcF9wb29sIEFERF9BRERSIGlu
-dmFsaWRcbiIpOw0KKwkJICAgIHJldHVybiAtRVJBTkdFOw0KKwkJfQ0KIAkJ
-cmV0dXJuIGNvcHlfdG9fdXNlcih1c2VyLCAmcmVxLCBzaXplb2YocmVxKSk7
-DQogCWRlZmF1bHQ6DQogCQlEUCgiaXBfcG9vbDpnZXRwb29sIGJhZCBvcCAl
-ZFxuIiwgcmVxLm9wKTsNCkBAIC0yNjgsNiArMzAzLDEwIEBADQogCWlmIChw
-b29sKQ0KIAkJcmVhZF91bmxvY2tfYmgoJnBvb2wtPmxvY2spOw0KIAlyZXR1
-cm4gcmVzOw0KK3VubG9ja193cml0ZV9hbmRfcmV0dXJuX3JlczoNCisJaWYg
-KHBvb2wpDQorCSAgICAJd3JpdGVfdW5sb2NrX2JoKCZwb29sLT5sb2NrKTsN
-CisJcmV0dXJuIHJlczsNCiB9DQogDQogc3RhdGljIHN0cnVjdCBuZl9zb2Nr
-b3B0X29wcyBzb19wb29sDQo=
----1463811839-41115736-1070636891=:3680
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII; NAME="ippool-flush_destroy.patch.help"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44.0312051608111.3680@filer.marasystems.com>
-Content-Description: readme
-Content-Disposition: ATTACHMENT; FILENAME="ippool-flush_destroy.patch.help"
-
-QXV0aG9yOiBIZW5yaWsgTm9yZHN0cm9tIDxobm9AbWFyYXN5c3RlbXMuY29t
-Pg0KU3RhdHVzOiBkZXZlbG9wbWVudA0KDQpUaGlzIHBhdGNoIGFkZHMgdGhl
-IGRlbGV0ZSBhbmQgZmx1c2ggb3BlcmF0aW9ucyB0byBpcF9wb29sLCBhbmQg
-c29tZQ0KbWlub3IgY2xlYW51cHMgb2YgbG9ja2luZyAoYW5kIGRlYnVnIG1l
-c3NhZ2VzKQ0K
----1463811839-41115736-1070636891=:3680--
+                Emmanuel
