@@ -1,14 +1,11 @@
-From: "time" <time@mail.phinny.net>
-Subject: Recoed destination IP in userspace before DNAT ??
-Date: Tue, 20 May 2003 23:37:27 +0800
+From: Jason Lunz <lunz@falooley.org>
+Subject: Re: [PATCH] admin-prohibited option. Let us look at it again.
+Date: Wed, 21 May 2003 16:02:05 +0000 (UTC)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <001d01c31ee5$b9cba160$3702a8c0@MICROSOFT>
-Reply-To: "time" <time@mail.phinny.net>
-Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_001A_01C31F28.C61E4010"
+Message-ID: <slrnbcn8rd.440.lunz@stoli.localnet>
+References: <Pine.LNX.4.51.0304091927060.13250@dns.toxicfilms.tv>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,179 +16,58 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+solt@dns.toxicfilms.tv said:
+> Harald wrote in:
+> http://lists.netfilter.org/pipermail/netfilter-devel/2002-December/009962.html
+> 
+> that we should add this option and make an INCOMPATIBILITIES file as Jozsef
+> suggested. Also as Jozsef suggested this patch does not have kernel version
+> checking, just a warning in the man page, the INCOMPATIBILITIES file and
+> the '-j REJECT --help' message.
+> 
+> Please recall our exchange of opinions back then and review the patch to
+> the netfilter tree:
 
-------=_NextPart_000_001A_01C31F28.C61E4010
-Content-Type: text/plain;
-	charset="big5"
-Content-Transfer-Encoding: quoted-printable
+I noticed that netfilter doesn't support rfc 1812 admin-prohibited
+messages, and so I tracked down this thread and others in the archives.
+I also found the patch to fix it in bugzilla bug #3 and the
+patch-o-matic.
 
-Hi my dear friend,
-    I am an engineer , and I am developing a special system need to =
-record the destination IP before doing DNAT, and the Application will =
-use the destination IP to do something in user space.
-I have choose the ip_queue to mangle the packet to userspace, And use =
-the sharememory to record all destination IP of the connections( sync ).
-I hvave tried to extend my netlink recieve buffer, I have tried to copy =
-a shorter length to userspace, I also tried to minize my userspace =
-application to handle the packet from kernel.....
-In a normal condition ( not too many connections ) , it works, and the =
-flow just like this ( I use printk and printf )
+So my question is, since this has been known about since January and
+netfilter 1.2.8 was released last month, what's holding up the inclusion
+of this feature? What needs to be done to get it included? Why didn't it
+go into 1.2.8? Not supporting RFC 1812 out of the box is a bug, IMO.
 
-1. nf_hook: Verdict =3D QUEUE.
-2. enqueue!
-3. going to send=20
-4. status > 0=20
-5. ipq receive
-6. com!
-7. Dequeue a packet if matched by cmp!
-8. user space receive here
+Also, I checked to see whether it was feasible to code it so that the
+userspace could attempt to add an admin-prohibited rule, then fall back
+to host- or -net-prohibited if that fails on the running kernel. The
+problem is that it doesn't fail. In linux 2.4.20, the check() function
+in ipt_REJECT.c doesn't care whether it recognizes the reject type or
+not, and happily adds a rule with a bogus type if one is passed. Should
+something like the patch below be applied?
 
-But when I use some test tool to make a lot of connections in a short =
-time ( maybe 500 or 1000 connections ), I found that the flow changed. =
-It looks like this
-
-1. nf_hook: Verdict =3D QUEUE.
-2. enqueue!
-3. going to send
-4. nf_hook: Verdict =3D QUEUE.
-5. enqueue!
-6. going to send
-7.  ....
-8.  ....
-9.  .... (all the same as 1->2->3)
-....
-n.  user space receive here
-n+1. read(): Failed to receive netlink message: No buffer space =
-available
-
-the queue will not send one by one ..... and will send at one time to =
-make my netlink buffer full ....
-I have setsockoption  to  655350, <- it's quite huge !
-
-May I ask you.... Is the ip_queue working like this ?
-Where can I tune in the ip_queue ?
-Or, is there any other method to record the destination IP before DNAT =
-in userspace ?
-
-If I parse the /proc/net/ip_conntrack, will it make sense ?
-
-I hope someone can help me, My god, It makes me mad !
-
-By the way, thanks you at first , when you can be patient to read this =
-letter. Thanks !!
-
-                                                                         =
-                                                                       =
-time
+Jason
 
 
-
-------=_NextPart_000_001A_01C31F28.C61E4010
-Content-Type: text/html;
-	charset="big5"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dbig5">
-<META content=3D"MSHTML 6.00.2722.900" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT size=3D2>Hi my dear friend,</FONT></DIV>
-<DIV><FONT size=3D2>&nbsp;&nbsp;&nbsp; I am an engineer , and I am =
-developing a=20
-special system need to record the destination IP before doing DNAT, and =
-the=20
-Application will use the destination IP to do something in user=20
-space.</FONT></DIV>
-<DIV><FONT size=3D2>I have choose the ip_queue to mangle the packet to =
-userspace,=20
-And use the sharememory to record all destination IP of the connections( =
-sync=20
-).</FONT></DIV>
-<DIV><FONT size=3D2>I hvave tried to extend my netlink recieve buffer, I =
-have=20
-tried to copy a shorter length to userspace, I also tried to minize my =
-userspace=20
-application to handle the packet from kernel.....</FONT></DIV>
-<DIV><FONT size=3D2>In a normal condition (&nbsp;not too many =
-connections )&nbsp;,=20
-it works, and the flow&nbsp;just like this ( I use printk and printf=20
-)</FONT></DIV>
-<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT size=3D2>1. nf_hook: Verdict =3D QUEUE.<BR>2. enqueue!<BR>3. =
-going to=20
-send <BR>4. status &gt; 0 <BR>5. ipq receive<BR>6. com!<BR>7. Dequeue a =
-packet=20
-if matched by cmp!<BR>8. user space receive here</FONT></DIV>
-<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT size=3D2>But when I use some test tool to make a lot of =
-connections in=20
-a short time ( maybe 500 or 1000 connections ), I found that the flow =
-changed.=20
-It looks like this</FONT></DIV>
-<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT size=3D2>1. nf_hook: Verdict =3D QUEUE.<BR>2. enqueue!<BR>3. =
-going to=20
-send<BR>4. nf_hook: Verdict =3D QUEUE.<BR>5. enqueue!<BR>6. going to=20
-send<BR>7.&nbsp; ....</FONT></DIV>
-<DIV><FONT size=3D2>8.&nbsp; ....</FONT></DIV>
-<DIV><FONT size=3D2>9.&nbsp; .... (all the same as =
-1-&gt;2-&gt;3)</FONT></DIV>
-<DIV><FONT size=3D2>....</FONT></DIV>
-<DIV><FONT size=3D2>n.&nbsp; </FONT><FONT size=3D2>user space receive =
-here<BR>n+1.=20
-read(): Failed to receive netlink message: No buffer space=20
-available</FONT></DIV>
-<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT size=3D2>the queue will not send one by one ..... and will =
-send at one=20
-time to make my netlink buffer full ....</FONT></DIV>
-<DIV><FONT size=3D2>I have&nbsp;setsockoption &nbsp;to&nbsp; 655350, =
-&lt;- it's=20
-quite huge&nbsp;!</FONT></DIV>
-<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT size=3D2>May I ask you.... Is the&nbsp;ip_queue&nbsp;working =
-like this=20
-?</FONT></DIV>
-<DIV><FONT size=3D2>Where can I tune&nbsp;in the ip_queue ?</FONT></DIV>
-<DIV><FONT size=3D2>Or, is there any other method to record the =
-destination IP=20
-before DNAT in userspace ?</FONT></DIV>
-<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT size=3D2>If I parse the /proc/net/ip_conntrack, will it make =
-sense=20
-?</FONT></DIV>
-<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT size=3D2>I hope someone can help me, My god, It makes me mad=20
-!</FONT></DIV>
-<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT size=3D2>By the way, thanks you at first , when you can be =
-patient to=20
-read this letter. Thanks !!</FONT></DIV>
-<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT size=3D2>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;=20
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;=20
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;=20
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;=20
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;=20
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;=20
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;=20
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;=20
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;=20
-&nbsp;&nbsp;&nbsp; time</FONT></DIV>
-<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
-
-------=_NextPart_000_001A_01C31F28.C61E4010--
+--- net/ipv4/netfilter/ipt_REJECT.c.orig	Wed May 21 11:56:11 2003
++++ net/ipv4/netfilter/ipt_REJECT.c	Wed May 21 11:59:09 2003
+@@ -353,6 +353,19 @@
+ 			DEBUGP("REJECT: TCP_RESET illegal for non-tcp\n");
+ 			return 0;
+ 		}
++	} else {
++		switch(rejinfo->with) {
++			case IPT_ICMP_NET_UNREACHABLE:
++			case IPT_ICMP_HOST_UNREACHABLE:
++			case IPT_ICMP_PROT_UNREACHABLE:
++			case IPT_ICMP_PORT_UNREACHABLE:
++			case IPT_ICMP_NET_PROHIBITED:
++			case IPT_ICMP_HOST_PROHIBITED:
++				break;
++			default:
++				printk(KERN_ERR "REJECT: invalid reject type.\n");
++				return 0;
++		}
+ 	}
+ 
+ 	return 1;
