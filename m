@@ -1,19 +1,19 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH, RFC] possible use of freed skbuff in netfilter.c
-Date: Tue, 29 Apr 2003 16:51:29 +0200
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: ICMP unreachable (DF) does not report the NATed IP
+Date: 29 Apr 2003 21:13:06 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030429145129.GG684@naboo.intranet.astaro.de>
-References: <200304251957.18012.bdschuym@pandora.be>
+Message-ID: <1051643586.8214.37.camel@tux.rsn.bth.se>
+References: <4F9AFAF72B246745B6847C7EECD8FF6901D17A81@EXCHANGE1.charite.de>
+	 <1051552224.5946.239.camel@tux.rsn.bth.se>
+	 <20030429145046.GF684@naboo.intranet.astaro.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JkW1gnuWHDypiMFO"
-Cc: "David S. Miller" <davem@redhat.com>,
-	Rusty Russel <rusty@rustcorp.com.au>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: "Hillmann, Oliver" <Oliver.Hillmann@charite.de>,
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
-Content-Disposition: inline
-In-Reply-To: <200304251957.18012.bdschuym@pandora.be>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030429145046.GF684@naboo.intranet.astaro.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,50 +24,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, 2003-04-29 at 16:50, Harald Welte wrote:
 
---JkW1gnuWHDypiMFO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > That's the wrong way to do it, fix the cause of the problem. It's the
+> > code in icmp_reply_translation() in ip_nat_core.c
+> 
+> please don't tell me there is still an unhandled ICMP reply translation
+> problem.  If yes, I think I need a new brain.
 
-On Fri, Apr 25, 2003 at 07:57:17PM +0200, Bart De Schuymer wrote:
-> Hello Dave,
->=20
-> When dev_put'ing bridge devices in netfilter.c::reinject the skb can alre=
-ady=20
-> be freed. The patch below fixes this by delaying the freeing of the skb a=
-=20
-> bit. AFAIK, calling kfree_skb outside the read_lock causes no problems.
-> Could someone of the netfilter core team approve or disapprove this chang=
-e?
-> This is bug 86 of the netfilter bugtracking system.
+I actually havn't verified it :) I see problems with kernels without the
+inner-icmp-translation-fix. I see two cases:
 
-I'm fine with this fix, please apply (if it isn't already).
+1. no NAT rules but ip_conntrack_ftp and ip_nat_ftp are loaded.
+   router which has these modules loaded generate an icmp frag needed
+   packet and the outer header is rewritten to the ip of the ftpserver.
+   Internal header is probably untouched, hard to tell from a tcpdump.
 
-> cheers,
-> Bart
+2. DNAT and the icmp frag needed gets the outer header rewritten but not
+   the internal.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+So with the fix both headers will be rewritten if I understand it
+correctly. It's been a little while since I looked at it.
+Case 1 won't happen anymore because of pending/25_natcore-nohelper.patch
 
---JkW1gnuWHDypiMFO
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Case 2 will get both headers rewritten and hosts do not expect to get an
+icmp frag needed from the ip they are trying to send packets to. I've
+tested and Linux ipstack will drop those packets.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+This can't always be avoided, think about the case where the DNAT is for
+packets destined for the router itself. But if the DNAT is for other
+ip's the external header shouldn't be rewritten, just the internal.
 
-iD8DBQE+rpFxXaXGVTD0i/8RAjvoAKCTKFs0iClaFuDSmAYWzukWb1ecoACgkGcE
-TBbnSLWYRvG4JVCuPNyIZI0=
-=+vHz
------END PGP SIGNATURE-----
+It's tricky, I understand why it's always been a problematic area :)
 
---JkW1gnuWHDypiMFO--
+> > Also look at the submitted/11_inner-icmp-translation-fix.patch patch in
+> > patch-o-matic as it modifies this function.
+> 
+> This patch was supposed to handle all the remaining cases we had with
+> fixing ICMP translation.  The case Oliver Hillmann was talking about
+> sounds exactly like one of them.
+
+I hope I'm wrong :)
+
+-- 
+/Martin
