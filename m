@@ -1,10 +1,10 @@
-From: =?ISO-8859-1?Q?J=F8rn_Andre?= <jornandr@stud.ntnu.no>
-Subject: Olsr and Netfilter
-Date: Mon, 14 Mar 2005 21:57:54 +0100
-Message-ID: <4235FAD2.9090009@stud.ntnu.no>
+From: Robert Borger <bborger@navcorp.com>
+Subject: NAT behind IPSEC GW working OK - please review patch
+Date: Fri, 11 Mar 2005 11:38:14 -0600
+Message-ID: <DB15CAD558452949A35006D66C5C5A99010F8B@nav-post.navcorp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset="iso-8859-1"
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -17,26 +17,61 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+Hello,
 
-I'm a newbie on kernel programming and on NETFILTER and in the middle of
-making a netfilter-hook into PREROUTING and INPUT that simply changes=20
-the destination
-of a packet. From the source-code I've read from Rusty Russel
-and Harald Welte guide I can not see any difficulties with doing this,=20
-but in case
-I'm wrong and before I try to break my kernel open....is it not=20
-possibly  to hook
-in and change the destination of a packet  and then push it on without=20
-further notice?
+I have a subnet behind an IPSEC GW which is
+NATed to the IPSEC GW address.  The IPSEC tunnel
+is between the GW host address and the subnet
+behind the remote IPSEC GW. It is required that
+the NATed packets from the local subnet and the
+packets originating on the GW must both pass
+through the tunnel to the remote subnet.
 
-I'm making a plugin for the Unik Olsrd implementation which is supposed=20
-to eliminate
-the gateway-problem it has. By changing the destination in INPUT  at the=20
-source-host and then
-change it back to the original in PREROUTING at the gateway I can=20
-preserve the route
-and avoid a reset when the protocol changes default gateway because of=20
-topology changes.
+Before applying the Patrick McHardy ipsec0x
+and policy patches, there where problems
+getting the NATed packets out over the tunnel.
 
-J=F8rn Andre
+After the patches where applied, the packets
+got out the tunnel and returned via the tunnel
+as expected, but were dropped during forwarding.
+
+It appeared that the packet was still considered
+to be an part of the encrypted stream and there
+was no policy to forward it to the local subnet.
+
+I changed the "xfrm_policy_check" function in
+"./include/net/xfrm.h" to allow forwarding if
+the "decap_done" flag is set.
+
+Does anyone see any detrimental effects for this change?
+
+Could I have achieved the same result with a
+configuration change?
+
+I started with a virgin 2.6.10 kernel then applied the
+Patrick McHardy patches ported for the 2.6.10 kernel from:
+http://www.zcu.cz/ftp/pub/network/shorewall/contrib/IPSEC
+
+Then I made this change to "xfrm.h":
+
+static inline int xfrm_policy_check(struct sock *sk, int dir, struct sk_buff
+*skb, unsigned short family)
+{
+  if (sk && sk->sk_policy[XFRM_POLICY_IN])
+    return __xfrm_policy_check(sk, dir, skb, family);
+		
+  return(!xfrm_policy_list[dir] && !skb->sp) ||
+    (skb->sp && skb->sp->decap_done) || /* Added this line */
+    (skb->dst->flags & DST_NOPOLICY) ||
+    __xfrm_policy_check(sk, dir, skb, family);
+}
+
+
+Thank You,
+Bob Borger
+
+-- 
+No virus found in this outgoing message.
+Checked by AVG Anti-Virus.
+Version: 7.0.308 / Virus Database: 266.7.1 - Release Date: 3/9/05
+ 
