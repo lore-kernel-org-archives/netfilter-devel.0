@@ -1,16 +1,15 @@
-From: Jeremy Kerr <jeremy@redfishsoftware.com.au>
-Subject: [ANNOUNCE] nfsim - 20040209 snapshot
-Date: Mon, 9 Feb 2004 15:36:32 +1100
+From: "VeNoMouS" <venom@gen-x.co.nz>
+Subject: iptables
+Date: Mon, 9 Feb 2004 17:48:42 +1300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200402091536.32954.jeremy@redfishsoftware.com.au>
+Message-ID: <015201c3eec8$0728f360$5746370a@nsp.co.nz>
+References: <20040205052840.10884.25667.Mailman@netfilter-sponsored-by.noris.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: Martin Josefsson <gandalf@wlug.westbo.se>, carlos@ufrnet.br
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,23 +20,9 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+why does the iptc not account for the traffic in input/output for packets
+that it has forwarded when you itpables -nxvL
 
-A new snapshot of the netfilter simulator project has been released: 20040209.
-
-Changes for this snapshot:
-
-* Modified wait_for_message to behave properly when select() returns EAGAIN or
-  EINTR (thanks to Martin Josefsson for the patch)
-* Inline help is now processed with a text stylesheet, rather than through
-  links/lynx
-* log() changed to nfsim_log() to reduce warnings
-* Added reference to HOWTO in the README
-
-
-Download from the nfsim website:
-
-   http://www.ozlabs.org/~jk/projects/nfsim/
-
-
-Jeremy
+ie: say our masq network is x.x.x.x/24 but our external ip is a.a.a.a any
+data bound for or from  x.x.x.x/24 does not get allocated onto a.a.a.a.a why
+is that, even tho in effect it is actally bound for the external ip first.
