@@ -1,12 +1,14 @@
-From: Michael Jung <michaj@cs.tu-berlin.de>
-Subject: Netfilter: Ensuring serial packet delivery to the hooks ?
-Date: Thu, 30 Oct 2003 15:10:32 +0100 (MET)
+From: Scott MacKay <scottmackay@yahoo.com>
+Subject: Re: [PATCH] Fix ip_queue for bridged packets
+Date: Fri, 31 Oct 2003 04:53:06 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.SOL.4.56.0310301455410.18298@fiesta>
+Message-ID: <20031031125306.66465.qmail@web13907.mail.yahoo.com>
+References: <200310280002.12023.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <200310280002.12023.bdschuym@pandora.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,31 +19,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+I had a question on this item and was wondering if it
+is caused by the topic of this thread.
 
-Hello Netfilter Team !
+I have a QUEUE target, a custom C app running off of
+ip_queue in userspace.  I am using the ebtables
+bridging software under linux 2.4.20.  My QUEUE target
+does some packet alteration (data content of TCP/UDP &
+re-checksums, otherwise does not change header).  In
+bridge mode, I cannot seem to place the QUEUE in
+PREROUTING mangle or raw tables.  When I try, it seems
+to not do any traffic.  If it is in POSTROUTING or
+FORWARD or whatever, it is OK.  It also is OK if it is
+routing in PREROUTING as opposed to bridging.  Are the
+issued addressed by this patch discussion possibly the
+cause of my problems?
 
-I have a question related to the kind of packet delivery in Netfilter.
+-Scott
 
-I want to make some packet checks on hook PREROUTING and LOCALOUT.
-(That is the combination where I get all packets without doing the
- same checks on the same packet multiple times, because a packet may
- pass several hooks on one host.)
-
-May problem is, that the result of these checks must be known and
-applicable on all other hooks like FORWARD, where my program does
-other packet mangling things.
-
-So, can I set a global flag when a packet passes PREROUTING or
-LOCALOUT, and then use this flag on hook FORWARD ?
-May be, that at the time between the hooks PREROUTING (or LOCALOUT)
-and FORWARD another packet could come from the network (or process).
-This second packet will be handled regularly by my check routine on
-PREROUTING (or LOCALOUT). This would change the global flag and I
-will loose my first result related to the first packet, which will
-pass FORWARD soon.
-
-My direct question:  Does Netfilter ensure that each packet passes
-all hooks for which it is directed, before the next packet enters
-the hook chain ?
-
-Mic
+__________________________________
+Do you Yahoo!?
+Exclusive Video Premiere - Britney Spears
+http://launch.yahoo.com/promos/britneyspears/
