@@ -1,15 +1,12 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [patch] pom-ng version check confusion
-Date: Fri, 27 Feb 2004 22:43:22 +0100 (CET)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: pom-ng and kernel/iptables
+Date: Sat, 28 Feb 2004 12:14:45 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0402272240330.27750-100000@blackhole.kfki.hu>
-References: <Pine.LNX.4.44.0402271011310.21531-200000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.44.0402281157190.8846-100000@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.44.0402271011310.21531-200000@filer.marasystems.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,31 +17,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Henrik,
+Some thoughts.. 
 
-On Fri, 27 Feb 2004, Henrik Nordstrom wrote:
+pom-ng already have the support for multiple projects (kernel / iptables), 
+and moving the non-standard extensions from iptables to pom has already 
+been discussed which I am all favor for.
 
-> The pom-ng version check failed if the difference was not in the last
-> version number, i.e. 2.4.25 < 2.6.0 test failed.
->
-> The attached patch simplifies the version check so it works
-> somewhat better.
+So what do you think about the following ideas:
 
-I have applied all your pomng patches in cvs.
+* non-standard extensions moved from iptables to pom-ng entirely,
+eleminating the need to update/maintain the iptables package separately
+for extensions.
 
-> There is still room for improvement. The returned weight is not sufficient
-> for determining the best match if there is multiple subversions. Should be
-> acceptable if the weight is multiplied by a factor 1000 of the version
-> depth I think.
+* to make like easier for distributors or other binary package maintainers
+pom-ng is modified to allow selecting which project should be patched 
+instead of always applying to all projects at the same time. This to allow 
+iptables and the kernel to be packaged separately.
 
-Yes, exactly. It could pick a wrong version as best match. Fortunately we
-haven't got any patch yet, for which it could happen :-). Patches are
-welcomed :-))
+* a special case for iptables extensions is added, automating copying of
+the kernel extension headers to the iptables package to allow building of
+most iptables extensions without requiring the extension to be added to
+the kernel, and also avoiding the duplicate maintenance of the same 
+header.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+* the iptables package is slightly restructured to allow for a 
+"iptables-devel" binary package with the files required for compiling 
+extensions, combined with a little wrapper in pom-ng to compile a iptables 
+extensions directly from pom-ng without patching the iptables sources.
+
+
+
+Time permitting I may look into some of the above once the basic
+functionality of pom-ng works and you agree the idea is good..  but I am
+currently trying to track down very noticeable bugs in .ldadd processing
+(results currently repeated many many times for some reason).
+
+Regards
+Henrik
