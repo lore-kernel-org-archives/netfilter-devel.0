@@ -1,12 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Does netfilter disable TCP checksum offload? (fwd)
-Date: Thu, 6 Nov 2003 13:43:53 +0100 (CET)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: patch-o-matic-20031105 looking a bit small ;-)
+Date: Thu, 6 Nov 2003 13:54:50 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0311061338200.18271-100000@blackhole.kfki.hu>
+Message-ID: <20031106125450.GU5741@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.44.0311052244020.3507-100000@sparrow>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="5vjQsMS/9MbKYGLq"
+Cc: ML-netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: William Stearns <wstearns@pobox.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0311052244020.3507-100000@sparrow>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,49 +22,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-Actually, I cannot myself answer why skb->ip_summed is set to
-CHECKSUM_NONE in nf_hook_slow.
+--5vjQsMS/9MbKYGLq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Shouldn't we simply remove that little part from the code and reset
-skb->ip_summed only in the relevant targets (as it is already done in
-ipt_TCPMSS.c).
+On Wed, Nov 05, 2003 at 10:45:56PM -0500, William Stearns wrote:
+> Good day, all,
+> 	It appears that the patch-o-matic file for 20031105 in
+> ftp.netfilter.org/pub/patch-o-matic/snapshot/ is an empty tar file. =20
+> 20031104 looks like the right size.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+thanks for the hint.  I'm in the process of moving the CVS repository to
+another machine, and the scipts haven't been updated yet.
 
----------- Forwarded message ----------
-Date: Mon, 20 Oct 2003 08:08:46 -0700 (PDT)
-From: Bluesea Yreen <big_bluesea@yahoo.com>
-To: netfilter@lists.netfilter.org
-Subject: Does netfilter disable TCP checksum offload?
+> 	Cheers,
+> 	- Bill
 
-Hi There,
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-I am trying to use TCP checksum offload under Linux. I
-found that if I install the netfilter, I cannot use
-TCP checksum offload feature. Because "nf_hook_slow"
-is called if there is any HOOK registered in the
-output path, and "skb->ip_summed" is set to
-"CHECKSUM_NONE" eventually.
+--5vjQsMS/9MbKYGLq
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Am I right about that I cannot use TCP checksum
-offload feature if there is any HOOK registered in the
-output path? If it's right, how can I use TCP checksum
-offload feature while having the netfilter installed.
-Can I do it but disabling some netfilter options?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
 
-Thanks,
+iD8DBQE/qkSaXaXGVTD0i/8RAhnTAJ9Ns7wVmf4BzEzpznF8J+2SqBzN+QCgm137
+FzOgeCOwIsQ+P3c0/ipRYmY=
+=ItJb
+-----END PGP SIGNATURE-----
 
-Bluesea
-
-__________________________________
-Do you Yahoo!?
-The New Yahoo! Shopping - with improved product search
-http://shopping.yahoo.com
+--5vjQsMS/9MbKYGLq--
