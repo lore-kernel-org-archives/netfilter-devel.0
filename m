@@ -1,12 +1,13 @@
-From: "Colin Paton" <cozzarp@hotmail.com>
-Subject: How to make conntrack ignore packets on certain interfaces?
-Date: Wed, 23 Jun 2004 15:20:30 +0000
+From: Eric Leblond <eric@inl.fr>
+Subject: [ANNOUNCE] mod_auth_nufw, an apache authentication module
+Date: Wed, 23 Jun 2004 17:30:04 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <BAY22-F9OxHp2sdp2Mn0009ff98@hotmail.com>
+Message-ID: <1088004603.5595.57.camel@porky>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-X/6ohQgYPlYjMVah3bJf"
+Cc: Vincent Deffontaines <vincent@inl.fr>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,79 +18,72 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-With the aid of someone on this mailing list I've figured out why the PPTP 
-connection tracking wasn't working correctly with tun interfaces. I have 
-created a really hacky solution which fixes the problem - but it's extremely 
-inelegant and I think there must be a better way.
+--=-X/6ohQgYPlYjMVah3bJf
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-To recap:
+Hello everyone,
 
-- Packets come in through an eth1.6 interface. This interface has no IP 
-address assigned; packets are read from it using a user-space program. This 
-program can perform certain packet mangling, and it then reinjects the 
-packets back into a tap interface. Netfilter/IP tables are then used to 
-route packets and do NAT, etc as usual.
+NuFW core team and INL are proud to introduce mod_auth_nufw, an SSO
+apache authentication module using the NuFW authentication framework, to
+you.
 
-Connection tracking wasn't correctly working with this scenario. It would 
-appear that a conntrack was created when the packet arrived, but was then 
-removed as the incoming packet was never routed through the kernel.
+You may think "Hey, we're talking about Netfilter here. Not apache !",
+but this is indeed about Netfilter :
+Let's have first a few word about NuFW. NuFW is a GPL authentication
+firewall suite working under Linux, based on Netfilter.
+Its main feature is that it can trustfully authenticate connections, and
+link them to actual user IDs (stored in an LDAP tree).=20
+It also provides other features, such as user id marking of packet,
+dynamic acls list, ...
 
-My evil hack which fixes things was just to ignore traffic on the incoming 
-interface - this way, packets reinjected via the tap interface would be 
-tracked, which is what is wanted.
+For more information on NuFW see :
+        http://www.nufw.org
 
-My hack therefore looks like (from the code in ip_conntrack_core.c):
+NuFW 0.7.1, which was released last week, introduces an option that
+permits to build a real-time authenticated connection tracking table :
+it's a sort of Conntrack table where each entry contains IP parameters
+of the connection and the identity of user at the origin of this
+connection and the state of the connection. This table is stored in an
+SQL database (both MySQL and PostgreSQL are supported).
 
-/* Netfilter hook itself. */
-unsigned int ip_conntrack_in(unsigned int hooknum,
-			     struct sk_buff **pskb,
-			     const struct net_device *in,
-			     const struct net_device *out,
-			     int (*okfn)(struct sk_buff *))
-{
-	struct ip_conntrack *ct;
-	enum ip_conntrack_info ctinfo;
-	struct ip_conntrack_protocol *proto;
-	int set_reply;
-	int ret;
+As a server (like Apache) knows about the IP parameters of the
+connections it receives, it can query the SQL database to find the
+corresponding entry for each connection. Mod_auth_nufw performs this
+exact task for Apache : lookup in the Nufw "conntrack" for the userID,
+and let Apache know this user is now identified (and authenticated).
+(The authorization task then lays on other Apache modules, and is just
+the classical process)
 
-	/* FIXME: Do this right please. --RR */
-	(*pskb)->nfcache |= NFC_UNKNOWN;
+This gives the server the identity of the user who opened the
+connection. So the authentication of the user by the server is done and
+it's fully transparent to the user. Thus, this principle allows to build
+complete Single Sign On systems where the key is a netfilter firewall
+using NuFW.
 
+mod_auth_nufw is the first authentication module that uses NuFW
+authentication principle. It permits to achieve Single Sign On for a
+whole set of apache servers.
 
-+	/* cpaton hack stuff begins here... */
-+       if (in && (!strcmp(in->name,"eth1.6")))
-+	  {
-+	    printk("ip_conntrack_in - ignoring packet on interface 
-%s\n",in->name);
-+           return NF_ACCEPT;
-+	  }
+mod_auth_nufw is available for download at :
+        http://www.inl.fr/article.php3?id_article=3D24
 
-....so that packets coming in on the eth1.6 interface aren't tracked. NAT 
-now works well.
+Best regards,
+--=20
+Eric Leblond <eric@inl.fr>
+INL
 
-I've been trying to think of a better way of doing this, but nothing jumps 
-out at me - connection tracking seems to have its own hook into netfilter, 
-so most iptables rules won't have any effect.
+--=-X/6ohQgYPlYjMVah3bJf
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-The options I've considered are:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-- Register a higher-priority netfilter hook which is called before 
-conntrack_in() - this somehow(?!) causes the packet to jump over netfilter. 
-I'm not sure if 'jumping' over netfilter hooks is possible however.
-- Tell the conntrack code (somehow) to ignore packet coming on eth1.6. While 
-it seems that iptables can read the connection tracking state I don't think 
-it can alter it.
+iD8DBQBA2aH6nxA7CdMWjzIRAmG9AJ9i73/XcrQvKBERPD0NuImf/2ri5gCdG1IO
+O7FWWXP50I9ihRM9izOP+3E=
+=TjFt
+-----END PGP SIGNATURE-----
 
-I'm not sure if this is at all possible - is it possible to replicate my 
-evil hack using a better method?
-
-Thanks,
-
-Colin
-
-_________________________________________________________________
-It's fast, it's easy and it's free. Get MSN Messenger today! 
-http://www.msn.co.uk/messenger
+--=-X/6ohQgYPlYjMVah3bJf--
