@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: conntrack and ICMP errors
-Date: Sun, 13 Apr 2003 18:43:13 +0200
+From: Leen Besselink <leen@wirehub.nl>
+Subject: Bug (?) in ipt_reject doesn't follow policy routing (2.4.x)
+Date: Sun, 13 Apr 2003 20:53:43 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030413164313.GZ1922@sunbeam.de.gnumonks.org>
-References: <20030410182056.GA17723@bzorp.balabit.hu> <20030410200816.GA18520@oknodo.bof.de> <20030411094340.GA32552@balabit.hu> <20030411094956.GC18520@oknodo.bof.de> <20030411101648.GB32552@balabit.hu>
+Message-ID: <Pine.LNX.4.21.0304132035370.31823-100000@debian.besselink>
+Reply-To: leen@wirehub.nl
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qa1NXTiqN6KSzHv0"
-Cc: Patrick Schaaf <bof@bof.de>, netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Balazs Scheidler <bazsi@balabit.hu>
-Content-Disposition: inline
-In-Reply-To: <20030411101648.GB32552@balabit.hu>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,77 +18,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi netfilter-hackers,
 
---qa1NXTiqN6KSzHv0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+OK, first the situation...
 
-On Fri, Apr 11, 2003 at 12:16:48PM +0200, Balazs Scheidler wrote:
+I use policy routing to decide (based on the from-address) on what
+out-interface to send a packet (and thus a different sender IP-address and
+gateway).
 
-> You are right, ICMP port unreachable is sent only in reaction to a SYN. S=
-o I
-> was not right, however:
->=20
-> when an RST is received to a SYN the timeout becomes 60 secs
-> (ip_conntrack_proto_tcp.c, timeout in state CONNTRACK_CLOSE)
->=20
-> when an ICMP error is received to a SYN it is not considered therefore the
-> SYN_SENT timeout applies which is 120 secs
->=20
-> OK, this is not a grave problem but is still an inconsistency.
+But... when I use reject-with tcp-reset, for a port on a host on the
+network behind my firewall, the tcp-reset-packet goes over the wrong
+interface.
 
-Yes, it is.  If there is an easy fix, I'm happy to include it.
+I looked at the code and it looks like a bug to me, but there is a
+comment, maybe there is a good reason not to:
 
-> But this error is propagated to userspace if IP_RECVERR socket option is
-> enabled for the socket:
+        /* Routing: if not headed for us, route won't like source */
+        if (ip_route_output(&rt, nskb->nh.iph->daddr,
+                            local ? nskb->nh.iph->saddr : 0,
+                            RT_TOS(nskb->nh.iph->tos) | RTO_CONN,
+                            0) != 0)
+                goto free_nskb;
 
-which is the case for 0.1% of all applications (unfortunately) :(
+If it's not a local destinated-packet it sends the sender-address to 0
+when making the routing decision (probably 0.0.0.0 ?).
 
-> err_soft is picked up only in case send() timeouts. Therefore other than =
-the
-> small timeout difference between the SYN-RST and SYN-ICMP UNREACH scenari=
-os
-> TCP would not necessary need to consider ICMP errors.
+The calling code for send_reset sets local:
 
-ok.  So we are talking about a tiny inconsistency that doesn't have
-that grave practical implications.  The question would be: How to solve
-this interdependency of icmp/tcp resp. icmp/udp within our current
-modular 'ip_conntrack_protocol' approach, without making the code too
-much interdependent.
+        case IPT_TCP_RESET:
+                send_reset(*pskb, hooknum == NF_IP_LOCAL_IN);
 
-> The more I think about this the more I understand the my scenario (with t=
-he
-> proxies) would not be solved by terminating sessions when an ICMP error
-> occurs, the solution would be more to explicitly request a state removal
-> from userspace. Hmm... it might be time to check ctnetlink?
+When I use the send_unreach (for example with: icmp_host_unreachable),
+this is not done and thus the source-based routing rules have effect:
 
-removing a conntrack entry by ctnetlink is one of the few things that
-are in the current ctnetlink code.  ctnltest.c even uses it.
+        if (ip_route_output(&rt, iph->saddr, saddr, RT_TOS(tos), 0))
+                return;
 
-> Bazsi
+So, I think the 'local ? nskb->nh.iph->saddr : 0' can actually be
+removed, am I right ?
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+But if there is a good reason, then I don't understand why it's not doing
+the same thing for an unreachable, maybe that needs fixing instead then.
 
---qa1NXTiqN6KSzHv0
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+mZOhXaXGVTD0i/8RApmgAJ9ZysfGcqj9hAyQvTtX9TtojdlakgCfa+E2
-8cjg0CSdXXT67uKa9tjUoBI=
-=EbWM
------END PGP SIGNATURE-----
-
---qa1NXTiqN6KSzHv0--
+Any help would be greatly appreciated and tia,
+	Leen.
+_____________________________________
+New things are always on the horizon.
