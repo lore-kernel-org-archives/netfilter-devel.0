@@ -1,17 +1,19 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] big endian patch against netfilter after PPTP NAT pat ch
-Date: Sun, 9 Feb 2003 10:26:41 +0100
+From: Fabrice MARIE <fabrice@netfilter.org>
+Subject: Re: regular expressions - how to
+Date: Sun, 9 Feb 2003 22:42:08 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030209092640.GN13269@naboo.fugue.com>
-References: <771F217D7A4AF84494632457889470A412D77E@bcmsg011.corp.ads>
+Message-ID: <200302092242.08611.fabrice@netfilter.org>
+References: <18022761969.20030208171208@yahoo.es>
+Reply-To: fabrice@netfilter.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hl1kWnBARzJiTscN"
-Cc: "'netfilter-devel@lists.netfilter.org'" <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Chris Poon <Chris.Poon@TELUS.COM>
+To: macadanet@yahoo.es,
+   lista de correo netfilter <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <18022761969.20030208171208@yahoo.es>
 Content-Disposition: inline
-In-Reply-To: <771F217D7A4AF84494632457889470A412D77E@bcmsg011.corp.ads>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,58 +25,26 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---hl1kWnBARzJiTscN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hola,
 
-On Mon, Feb 03, 2003 at 10:56:09AM -0700, Chris Poon wrote:
-> Padding was the first way I think of how to solve it, but now that I
-> look at it again, the problem is actually the size assumption of the
-> mask - almost all helpers assumes a 16 bit mask.=20
+On Sunday 09 February 2003 00:12, macadanet@yahoo.es wrote:
+> Hello group,
+> I want to develop a patch for netfilter (kernel 2.4.20). I want compare
+> many strings in a packet. I didn't find a kernel library to work in this
+> project.
+> With regular expresions I want to find strings in a packet. Anybody
+> can helps me?
 
-Yes, this is correct.
+I'm afraid some people have previously proposed the same thing on this list
+sometime around last year, and the reply was generally that it was a bad idea.
+Regexps are _very_ heavy/time consuming, and should generally not be in the kernel..
+I believe I won't be the only one to tell you this :)
 
-> The PPTP patch breaks that assumption, and because of the nature of
-> the patches, I wouldn't have modified all the places where the mask is
-> filled out. Maybe the correct way is solve this is to make the field
-> size change permanent in ip_conntrack_manip_proto and
-> ip_conntrack_tuple, and change all the places that fill out the mask
-> to use the right sized mask instead of 0xffff, which happens to break
-> the big-endian machines but not the little endian machines. What do
-> you think?
+Have a nice day,
 
-Yes, this is definitely the way to go.  If you want to provide me a
-patch for this (against a plain 2.4.20 or 2.4.21-preX kernel), it would
-be really great.  Otherwise I'll just put it on my TODO list, and I
-don't know how long it will take...
+Fabrice.
+--
+Fabrice MARIE
 
-> -----Original Message-----
-
-Please stop full quoting on a mailinglist.  This is a very basic
-netiquette rule... if people want to read the original posting, they
-will use a mailreader that supports threading - or alternatively go to
-the list archives and read the old postings.
---=20
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
-
---hl1kWnBARzJiTscN
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+Rh7QXaXGVTD0i/8RAlRhAJ9tYYZnlIjjiwRdkT1QPunF2aj6pwCglYe1
-LQKb0LC7o1OwtaizAF/KSO4=
-=8Qa0
------END PGP SIGNATURE-----
-
---hl1kWnBARzJiTscN--
+"Silly hacker, root is for administrators"
+       -Unknown
