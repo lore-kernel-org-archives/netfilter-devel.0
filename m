@@ -1,136 +1,66 @@
-From: Jon Byrne <jon.byrne@athenet.net>
-Subject: A Neato feature to have.
-Date: Wed, 30 Oct 2002 00:33:33 -0600
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <F4967D8438B17E41B0FE2C37B3D508139BF826@newexchange.athenet.net>
+From: Loic Jaquemet <ljaquemet@gatwick.westerngeco.slb.com>
+Subject: Re: Patch?: linux-2.5.45/net/ipv4/netfilter dst.pmtu compilation fixes
+Date: Fri, 01 Nov 2002 14:34:40 +0000
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <3DC29100.FDA579A5@gatwick.westerngeco.slb.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C27FDE.44F465D0"
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'netfilter-devel@lists.netfilter.org'"
-	 <netfilter-devel@lists.netfilter.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7BIT
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: netfilter-devel@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This message is in MIME format. Since your mail reader does not understand
-this format, some or all of this message may not be legible.
 
-------_=_NextPart_001_01C27FDE.44F465D0
-Content-Type: text/plain
+also see
+http://marc.theaimsgroup.com/?l=linux-kernel&m=103614599321384&w=1
 
-Dear netfilter team,
+linux-2.5.45 appears to have replaced dst_entry.pmtu with
+dst_entry.metrics[RTAX_PMTU] and created a helper function
+dst_pmtu(struct dst_entry*), presumably to simplify future changes
+like this one.   Now the
+files compile.  That is as much as I have tested.
 
- 
-
-I'd just like to start with the generic praise stuff:  iptables is great; I
-use it every day, etc.  I've been throwing around some load balancing ideas,
-and one idea was some NAT'ing with iptables.  Right now, iptables, using the
--to-destination option, only allows one to send to a single IP or a range of
-IP's.  I'd really like to see support for a comma-delimited list of IP's in
-addition to those other options.  I know I should write it myself, but I
-only do Perl and dabble in C++, and, having taken some time to look at the
-iptables code, feel its really out of my league.  If you guys think it's
-important enough to dedicate resources to, please do so.  This would make
-iptables a very viable possibility for situations where a commercial load
-balancer is out of budget and unnecessary but where a single, very high end
-server cannot handle the load alone.  Thanks for your time, I understand if
-its not a high priority.  Thanks again.
-
- 
-
-John Byrne
-
-jonb@athenet.net <mailto:jonb@athenet.net> 
-
- 
+ I am not currently familiar with this code, so I could easily
+have misunderstood something in this patch.
 
 
-------_=_NextPart_001_01C27FDE.44F465D0
-Content-Type: text/html
+--- linux-2.5.45.orig/net/ipv4/netfilter/ipt_TCPMSS.c   2002-10-31
+01:42:56.000000000 +0100
++++ linux-2.5.45/net/ipv4/netfilter/ipt_TCPMSS.c        2002-11-01
+15:18:12.000000000 +0100
+@@ -85,14 +85,14 @@
+                        return NF_DROP; /* or IPT_CONTINUE ?? */
+                }
 
-<html>
+-               if((*pskb)->dst->pmtu <= (sizeof(struct iphdr) +
+sizeof(struct tcphdr))) {
++               if( dst_pmtu( (*pskb)->dst ) <= (sizeof(struct iphdr) +
+sizeof(struct tcphdr))) {
+                        if (net_ratelimit())
+                                printk(KERN_ERR
+-                                       "ipt_tcpmss_target: unknown or
+invalid path-MTU (%d)\n", (*pskb)->dst->pmtu);
++                                       "ipt_tcpmss_target: unknown or
+invalid path-MTU (%d)\n", dst_pmtu( (*pskb)->dst ) );
+                        return NF_DROP; /* or IPT_CONTINUE ?? */
+                }
 
-<head>
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=US-ASCII">
+-               newmss = (*pskb)->dst->pmtu - sizeof(struct iphdr) -
+sizeof(struct tcphdr);
++               newmss = dst_pmtu( (*pskb)->dst ) - sizeof(struct iphdr)
+- sizeof(struct tcphdr);
+        } else
+                newmss = tcpmssinfo->mss;
 
 
-<meta name=Generator content="Microsoft Word 10 (filtered)">
 
-<style>
-<!--
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0in;
-	margin-bottom:.0001pt;
-	font-size:12.0pt;
-	font-family:"Times New Roman";}
-a:link, span.MsoHyperlink
-	{color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{color:purple;
-	text-decoration:underline;}
-span.EmailStyle17
-	{font-family:Arial;
-	color:windowtext;}
-@page Section1
-	{size:8.5in 11.0in;
-	margin:1.0in 1.25in 1.0in 1.25in;}
-div.Section1
-	{page:Section1;}
--->
-</style>
-
-</head>
-
-<body lang=EN-US link=blue vlink=purple>
-
-<div class=Section1>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>Dear netfilter team,</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>&nbsp;</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>I'd just like to start with the generic praise stuff:&nbsp;
-iptables is great; I use it every day, etc.&nbsp; I've been throwing around
-some load balancing ideas, and one idea was some NAT'ing with iptables.&nbsp;
-Right now, iptables, using the -to-destination option, only allows one to
-send to a single IP or a range of IP's.&nbsp; I'd really like to see support for
-a comma-delimited list of IP's in addition to those other options.&nbsp; I know
-I should write it myself, but I only do Perl and dabble in C++, and, having
-taken some time to look at the iptables code, feel its really out of my
-league.&nbsp; If you guys think it's important enough to dedicate resources to,
-please do so.&nbsp; This would make iptables a very viable possibility for
-situations where a commercial load balancer is out of budget and unnecessary
-but where a single, very high end server cannot handle the load alone.&nbsp; Thanks
-for your time, I understand if its not a high priority.&nbsp; Thanks again.</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>&nbsp;</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>John Byrne</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'><a href="mailto:jonb@athenet.net">jonb@athenet.net</a></span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span style='font-size:10.0pt;
-font-family:Arial'>&nbsp;</span></font></p>
-
-</div>
-
-</body>
-
-</html>
-
-------_=_NextPart_001_01C27FDE.44F465D0--
+--
++----------------------------------------------+
+|Jaquemet Loic                                 |
+|Intern in WesternGeco, Schlumberger in Gatwick|
+|Phone: 44-(0)1293-55-6876                     |
+|Eleve ingenieur en informatique FIIFO, ORSAY  |
++----------------------------------------------+
+http://sourceforge.net/projects/ffss/
+#wirelessfr @ irc.freenode.net
