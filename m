@@ -1,15 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [patch, resent] Updated CONNMARK
-Date: Tue, 3 Feb 2004 10:03:23 +0100 (CET)
+Date: Tue, 3 Feb 2004 10:50:09 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402031001090.21619-200000@filer.marasystems.com>
-References: <20040203082052.GO24449@obroa-skai.de.gnumonks.org>
+Message-ID: <20040203095009.GV24449@obroa-skai.de.gnumonks.org>
+References: <20040203082052.GO24449@obroa-skai.de.gnumonks.org> <Pine.LNX.4.44.0402031001090.21619-200000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811839-1704458873-1075799003=:21619"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Lez9QO3Seu3ycz0M"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040203082052.GO24449@obroa-skai.de.gnumonks.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0402031001090.21619-200000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,77 +22,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
 
----1463811839-1704458873-1075799003=:21619
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+--Lez9QO3Seu3ycz0M
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, 3 Feb 2004, Harald Welte wrote:
+On Tue, Feb 03, 2004 at 10:03:23AM +0100, Henrik Nordstrom wrote:
+> On Tue, 3 Feb 2004, Harald Welte wrote:
+>=20
+> > Now it's applied.
+>=20
+> Thanks!
+>=20
+> Unfortunately I forgot the userspace includes in the patch I sent it
+> seems. Needed in case the kernel is not patched. Please apply.
 
-> Now it's applied.
+applied.
 
-Thanks!
+> Regards
+> Henrik
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Unfortunately I forgot the userspace includes in the patch I sent it
-seems. Needed in case the kernel is not patched. Please apply.
+--Lez9QO3Seu3ycz0M
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-Regards
-Henrik
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
 
----1463811839-1704458873-1075799003=:21619
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="CONNMARK-userspace-include.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44.0402031003230.21619@filer.marasystems.com>
-Content-Description: 
-Content-Disposition: attachment; filename="CONNMARK-userspace-include.patch"
+iD8DBQFAH27RXaXGVTD0i/8RAmQHAKCNaN2Ed7xOQ7mTS4lxJphYpymhiwCeOX5G
+S6wPgqa4Jdno4bxk9ULY/Wg=
+=QCPt
+-----END PGP SIGNATURE-----
 
-SW5kZXg6IHVzZXJzcGFjZS9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0
-L2lwdF9DT05OTUFSSy5oDQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQpSQ1Mg
-ZmlsZTogL2N2c3B1YmxpYy9pcHRhYmxlcy9pbmNsdWRlL2xpbnV4L25ldGZp
-bHRlcl9pcHY0L2lwdF9DT05OTUFSSy5oLHYNCnJldHJpZXZpbmcgcmV2aXNp
-b24gMS4xDQpkaWZmIC11IC1wIC1yMS4xIGlwdF9DT05OTUFSSy5oDQotLS0g
-dXNlcnNwYWNlL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXB0X0NP
-Tk5NQVJLLmgJMjMgQXVnIDIwMDMgMjI6MTA6MTEgLTAwMDAJMS4xDQorKysg
-dXNlcnNwYWNlL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXB0X0NP
-Tk5NQVJLLmgJMyBGZWIgMjAwNCAwODo1NDoxNiAtMDAwMA0KQEAgLTEsNiAr
-MSwxNSBAQA0KICNpZm5kZWYgX0lQVF9DT05OTUFSS19IX3RhcmdldA0KICNk
-ZWZpbmUgX0lQVF9DT05OTUFSS19IX3RhcmdldA0KIA0KKy8qIENvcHlyaWdo
-dCAoQykgMjAwMiwyMDA0IE1BUkEgU3lzdGVtcyBBQiA8aHR0cDovL3d3dy5t
-YXJhc3lzdGVtcy5jb20+DQorICogYnkgSGVucmlrIE5vcmRzdHJvbSA8aG5v
-QG1hcmFzeXN0ZW1zLmNvbT4NCisgKg0KKyAqIFRoaXMgcHJvZ3JhbSBpcyBm
-cmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3Ig
-bW9kaWZ5DQorICogaXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2Vu
-ZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBwdWJsaXNoZWQgYnkNCisgKiB0aGUg
-RnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uOyBlaXRoZXIgdmVyc2lvbiAyIG9m
-IHRoZSBMaWNlbnNlLCBvcg0KKyAqIChhdCB5b3VyIG9wdGlvbikgYW55IGxh
-dGVyIHZlcnNpb24uDQorICovDQorDQogZW51bSB7DQogCUlQVF9DT05OTUFS
-S19TRVQgPSAwLA0KIAlJUFRfQ09OTk1BUktfU0FWRSwNCkBAIC05LDYgKzE4
-LDcgQEAgZW51bSB7DQogDQogc3RydWN0IGlwdF9jb25ubWFya190YXJnZXRf
-aW5mbyB7DQogCXVuc2lnbmVkIGxvbmcgbWFyazsNCisJdW5zaWduZWQgbG9u
-ZyBtYXNrOw0KIAl1X2ludDhfdCBtb2RlOw0KIH07DQogDQpJbmRleDogdXNl
-cnNwYWNlL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXB0X2Nvbm5t
-YXJrLmgNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NClJDUyBmaWxlOiAvY3Zz
-cHVibGljL2lwdGFibGVzL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQv
-aXB0X2Nvbm5tYXJrLmgsdg0KcmV0cmlldmluZyByZXZpc2lvbiAxLjENCmRp
-ZmYgLXUgLXAgLXIxLjEgaXB0X2Nvbm5tYXJrLmgNCi0tLSB1c2Vyc3BhY2Uv
-aW5jbHVkZS9saW51eC9uZXRmaWx0ZXJfaXB2NC9pcHRfY29ubm1hcmsuaAky
-MyBBdWcgMjAwMyAyMjoxMDoxMSAtMDAwMAkxLjENCisrKyB1c2Vyc3BhY2Uv
-aW5jbHVkZS9saW51eC9uZXRmaWx0ZXJfaXB2NC9pcHRfY29ubm1hcmsuaAkz
-IEZlYiAyMDA0IDA4OjU0OjE2IC0wMDAwDQpAQCAtMSw2ICsxLDE1IEBADQog
-I2lmbmRlZiBfSVBUX0NPTk5NQVJLX0gNCiAjZGVmaW5lIF9JUFRfQ09OTk1B
-UktfSA0KIA0KKy8qIENvcHlyaWdodCAoQykgMjAwMiwyMDA0IE1BUkEgU3lz
-dGVtcyBBQiA8aHR0cDovL3d3dy5tYXJhc3lzdGVtcy5jb20+DQorICogYnkg
-SGVucmlrIE5vcmRzdHJvbSA8aG5vQG1hcmFzeXN0ZW1zLmNvbT4NCisgKg0K
-KyAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJl
-ZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5DQorICogaXQgdW5kZXIgdGhl
-IHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBw
-dWJsaXNoZWQgYnkNCisgKiB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9u
-OyBlaXRoZXIgdmVyc2lvbiAyIG9mIHRoZSBMaWNlbnNlLCBvcg0KKyAqIChh
-dCB5b3VyIG9wdGlvbikgYW55IGxhdGVyIHZlcnNpb24uDQorICovDQorDQog
-c3RydWN0IGlwdF9jb25ubWFya19pbmZvIHsNCiAJdW5zaWduZWQgbG9uZyBt
-YXJrLCBtYXNrOw0KIAl1X2ludDhfdCBpbnZlcnQ7DQo=
----1463811839-1704458873-1075799003=:21619--
+--Lez9QO3Seu3ycz0M--
