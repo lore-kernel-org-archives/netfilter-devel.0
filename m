@@ -1,15 +1,17 @@
-From: Kishore Dharmavaram <kishored@servgate.com>
-Subject: RE: Memory leaks in ip_conntrack?
-Date: Wed, 12 Nov 2003 17:20:50 -0800
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: PROBLEM: 2.4.23-rc4 -> rc1 hang with change to ip_nat_core.c
+ made in pre4
+Date: Wed, 12 Nov 2003 19:59:08 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <EFBADA8C200C2B418DA39734FD15475B0B2074@skat.sky.com>
+Message-ID: <20031112195908.0611fe2e.davem@redhat.com>
+References: <200311121442.27406.beau@beaucox.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Cc: netfilter@lists.netfilter.org, "'netfilter-devel@lists.netfilter.org'"
-	 <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: 'Jozsef Kadlecsik' <kadlec@blackhole.kfki.hu>
+To: "Beau E. Cox" <beau@beaucox.com>
+In-Reply-To: <200311121442.27406.beau@beaucox.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,33 +22,6 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks Jozsef, I will try that.
--Kishore
 
-
------Original Message-----
-From: Jozsef Kadlecsik [mailto:kadlec@blackhole.kfki.hu]
-Sent: Wednesday, November 12, 2003 4:55 AM
-To: Kishore Dharmavaram
-Cc: netfilter@lists.netfilter.org; 'netfilter-devel@lists.netfilter.org'
-Subject: RE: Memory leaks in ip_conntrack?
-
-
-On Tue, 11 Nov 2003, Kishore Dharmavaram wrote:
-
-> It seems some patches were already applied on base 2.4.20 kernel netfilter
-> sources that iam working with, is there a way to findout what patches were
-> applied on netfilter code? and are some must-apply patches for 2.4.20?, if
-> so can you please give me a list or pointout few?
-
-Run './runme extra' from patch-o-matic with pointing to the correct kernel
-tree and don't apply any patches. The already applied ones will be listed
-on your screen.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Marcelo has reverted the change in question, so his current
+2.4.x tree should be fine.
