@@ -1,17 +1,15 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: Conntrack & NAT question
-Date: Mon, 19 Jul 2004 08:51:57 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Working on a match extension (ipt_gateway)
+Date: Mon, 19 Jul 2004 08:56:05 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1090219917.2551.6.camel@nienna.balabit>
-References: <1089882225.2556.10.camel@nienna.balabit>
-	 <40F69EC8.80903@eurodev.net>
+Message-ID: <Pine.LNX.4.44.0407190832190.27199-100000@filer.marasystems.com>
+References: <33169.207.236.167.154.1090066493.squirrel@207.236.167.154>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <40F69EC8.80903@eurodev.net>
+To: Samuel Jean <sjean@cookinglinux.org>
+In-Reply-To: <33169.207.236.167.154.1090066493.squirrel@207.236.167.154>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,37 +20,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, 17 Jul 2004, Samuel Jean wrote:
 
-  Hi,
+> Forget about the MASQUERADE example, it's not a good one at all !
+> I'm sorry for such a poor example which I've quickly writen whithout
+> thinking.
 
-2004-07-15, cs keltez=E9ssel 17:12-kor Pablo Neira ezt =EDrta:
-> >  The 'new' parameter means we're updating an entry we've just created=
-.
-> >So, unless the entry is new, we check whether the tuples in the update
-> >message are the same as ours. And, unfortunately, I have a few asserti=
-on
-> >failed messages in the logs... :(
-> > =20
-> >
->=20
-> maybe this could be related to the initialization of the tuple and=20
-> repl_tuple contained in ct_sync message. I didn't have much time to hav=
-e=20
-> a look at ct_sync implementation so far, if I'm missing anything, pleas=
-e=20
-> let me know.
+It is a reasonable example except that SNAT is probably more suited for 
+the job...
 
-  I don't think this is a problem here, the two memcpy() calls overwrite
-the whole tuples anyway. And the problem is much more rare, it happened
-maybe five times an hour on our test system. (Note: the test system did
-not have l2drop enabled, that is, broadcast messages on the attached
-ethernet segments were received on both nodes. This was already a source
-of a couple of problems before, but I thought that problem was solved by
-checking if the conntrack entry is active (its timer is initialized),
-and not touching it in that case.)
+> (The netfilter box doesn't have to MASQUERADE packets since he's not
+> attached to a public network.)
 
-  But thanks for the idea, of course. :)
+Doesn't really matter. There is situations on private networks where SNAT 
+is equally needed/wanted to hide "internal" addressing details or 
+otherwise simplify networking.
 
---=20
- Regards,
-   Krisztian KOVACS
+What can be said about using routing information in this manner (for any
+result, being it SNAT or accounting) is that it is only needed in
+situations where it is unfeasible to replicate the needed destination
+classifications in iptables. It should also be noted that the information 
+needs to be trusted for this to be done in any meaningful manner.
+
+The example discussed can be solved equally well using vlans with one
+router per vlan. The question is, should this be required by iptables in
+order to be able to access information about which route was selected by
+routing or is having a "gateway/route" match suitable?  Also, not all such
+situations can be solved by using vlans.
+
+Personally I would not mind having a POSTROUTING "route" match available
+in patch-o-matic-ng to match details about the selected route (next hop,
+metric, dynamic/static, whatelse is available).
+
+Regards
+Henrik
