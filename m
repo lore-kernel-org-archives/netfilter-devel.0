@@ -1,18 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: nf_conntrack
-Date: Tue, 24 Feb 2004 10:21:37 +0100
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: init_conntrack optimization
+Date: Wed, 25 Feb 2004 16:58:57 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040224092137.GU13386@sunbeam.de.gnumonks.org>
-References: <200312240144.KAA15346@toshiba.co.jp>
+Message-ID: <403CC641.6010206@eurodev.net>
+References: <403C97A5.7070109@eurodev.net> <20040225144054.GB13386@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Wn0J+vu9+NMIXK57"
-Cc: netfilter-devel@lists.netfilter.org,
-	Rusty Russell <rusty@rustcorp.com.au>, jozef@sunbeam.gnumonks.org
+Content-Type: multipart/mixed;
+ boundary="------------090909010206040008020301"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Content-Disposition: inline
-In-Reply-To: <200312240144.KAA15346@toshiba.co.jp>
+To: Harald Welte <laforge@netfilter.org>,
+	netfilter-devel@lists.netfilter.org
+In-Reply-To: <20040225144054.GB13386@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,110 +21,162 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------090909010206040008020301
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
---Wn0J+vu9+NMIXK57
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi again Harald,
 
-[explicitly Cc'ing rusty and jozsef since they did a lot of conntrack
-work]
+Harald Welte wrote:
 
-On Wed, Dec 24, 2003 at 10:43:20AM +0900, Yasuyuki Kozakai wrote:
->=20
-> Hi, All,
->=20
-> This is other version of L3 independent connection tracking.
+>>With this patch, if an expectation is not found for the conntrack, it 
+>>will look for an helper and go out, this way we save three "if's". By 
+>>other hand, if an expectation is found we save one "if".
+>>    
+>>
+>
+>yes, thanks for the patch.  It definitely makes the code more readable.
+>If it really makes a difference in performance - I don't know.
+>
+>The compiler will certainly not recompute the value of 'expected', and
+>since it also knows that expected is not written to, it could actually
+>optimize here.  Whether gcc is smart enough to do so, I don't know.. one
+>would have to look at the generated assembly code.
+>
+>  
+>
+well, I'm not a compiler geek so I don't know either. But it's true,
+it's more readable :-). So maybe "optimization" wasn't the correct subject.
 
-Thank you very much.  Sorry for this extremely late reply, but I missed
-your email from december and just noted it after the current follow-up
-on this issue.
+>>I consider that the general case is that an expectation is not found, 
+>>isn't it? because most connection tracked by the system don't need a 
+>>helper, so they not need to handle expectations.
+>>    
+>>
+>
+>yes.  Maybe it's even worth using 'if (unlikely(expected))' in that
+>case.
+>
+>  
+>
+I didn't modify the patch, well I think it's ok anyway.
 
-> In previous version, the l3 part in tuple is represented by "union" of IP=
-v4
-> and IPv6 address.
->=20
-> And in this version, size of the l3 part in tuple varies with layer 3
-> protocol.  Then it's more complex than the previous version, but can
-> save memory spaces where many IPv4 connections are created.
+>>BTW, can we consider that if there's no helper for a given tuple, it 
+>>won't have expectations? because while writing the patch i had more 
+>>ideas, maybe this could be optimized a bit more. Well, I'm not sure...
+>>    
+>>
+>
+>No, this is an invalid assumption. 
+>  
+>
+ok, thanks!
 
-Yes, this is definitely something we need.  Although I still don't like
-the idea of having to explicitly allocate three pieces of memory
-(2*tuple, 1*nf_conntrack) per new connection.  This will hurt connection
-setup rate very badly, I expect :(
+>>hope that i'm not missing anything! if so, please let me know.
+>>    
+>>
+>
+>looks fine to me.  would you mind submitting a patch syncing 2.4.x to
+>your changes?  Thanks.
+>  
+>
+I attached the patch for the 2.4.x tree.
 
-What I initially had in mind (but don't know if it can be implemented in
-any reasonable way) was:
+Pablo
 
-- have a static part of struct np_conntrack without tuples
-- this static part contains a bitmask
-- this bitmask determines which 'extension structures' are present at
-  the end
-- possible 'extension structures' might be:
-	- ipv4 orig/reply tuple
-	- ipv6 orig/reply tuple
-	- ipv4 l3 protocol (and helper) data
-	- ipv6 l3 protocol (and helper) data
+--------------090909010206040008020301
+Content-Type: text/plain;
+ name="init_conntrack.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="init_conntrack.patch"
 
-I know it sounds very tricky.  We always guarantee the ordering of such
-extension structures.  The nf_conntrack core would maintain a list of
-slab caches for every reasonable combination of extensions structures. =20
-The extension structures are always allocated in one chunk gogether with
-the static nf_conntrack 'header'.
+--- ../linux-2.4.25-old/net/ipv4/netfilter/ip_conntrack_core.c	2004-02-18 14:36:32.000000000 +0100
++++ net/ipv4/netfilter/ip_conntrack_core.c	2004-02-25 16:46:30.000000000 +0100
+@@ -708,42 +708,50 @@
+ 			     struct ip_conntrack_expect *, tuple);
+ 	READ_UNLOCK(&ip_conntrack_expect_tuple_lock);
+ 
+-	/* If master is not in hash table yet (ie. packet hasn't left
+-	   this machine yet), how can other end know about expected?
+-	   Hence these are not the droids you are looking for (if
+-	   master ct never got confirmed, we'd hold a reference to it
+-	   and weird things would happen to future packets). */
+-	if (expected && !is_confirmed(expected->expectant))
+-		expected = NULL;
+-
+-	/* Look up the conntrack helper for master connections only */
+-	if (!expected)
+-		conntrack->helper = ip_ct_find_helper(&repl_tuple);
+-
+-	/* If the expectation is dying, then this is a looser. */
+-	if (expected
+-	    && expected->expectant->helper->timeout
+-	    && ! del_timer(&expected->timeout))
+-		expected = NULL;
+-
+ 	if (expected) {
+-		DEBUGP("conntrack: expectation arrives ct=%p exp=%p\n",
+-			conntrack, expected);
+-		/* Welcome, Mr. Bond.  We've been expecting you... */
+-		IP_NF_ASSERT(master_ct(conntrack));
+-		__set_bit(IPS_EXPECTED_BIT, &conntrack->status);
+-		conntrack->master = expected;
+-		expected->sibling = conntrack;
+-		LIST_DELETE(&ip_conntrack_expect_list, expected);
+-		expected->expectant->expecting--;
+-		nf_conntrack_get(&master_ct(conntrack)->infos[0]);
+-	}
+-	atomic_inc(&ip_conntrack_count);
++		/* If master is not in hash table yet (ie. packet hasn't left
++		   this machine yet), how can other end know about expected?
++		   Hence these are not the droids you are looking for (if
++                   master ct never got confirmed, we'd hold a reference to it
++                   and weird things would happen to future packets). */
++		if (!is_confirmed(expected->expectant)) {
++			
++			conntrack->helper = ip_ct_find_helper(&repl_tuple);
++			goto end;
++		}
++
++		/* Expectation is dying... */
++		if (expected->expectant->helper->timeout
++		    && ! del_timer(&expected->timeout)) {
++			goto end;	
++		}
++
++                DEBUGP("conntrack: expectation arrives ct=%p exp=%p\n",
++                       conntrack, expected);
++                /* Welcome, Mr. Bond.  We've been expecting you... */
++                IP_NF_ASSERT(master_ct(conntrack));
++                __set_bit(IPS_EXPECTED_BIT, &conntrack->status);
++                conntrack->master = expected;
++                expected->sibling = conntrack;
++                LIST_DELETE(&ip_conntrack_expect_list, expected);
++                expected->expectant->expecting--;
++                nf_conntrack_get(&master_ct(conntrack)->infos[0]);
++
++		/* this is a braindead... */
++	        atomic_inc(&ip_conntrack_count);
++	        WRITE_UNLOCK(&ip_conntrack_lock);
++
++	        if (expected->expectfn)
++			expected->expectfn(conntrack);
++
++		goto ret;
++        } else 
++                conntrack->helper = ip_ct_find_helper(&repl_tuple);
++
++end:	atomic_inc(&ip_conntrack_count);
+ 	WRITE_UNLOCK(&ip_conntrack_lock);
+ 
+-	if (expected && expected->expectfn)
+-		expected->expectfn(conntrack);
+-	return &conntrack->tuplehash[IP_CT_DIR_ORIGINAL];
++ret:	return &conntrack->tuplehash[IP_CT_DIR_ORIGINAL];
+ }
+ 
+ /* On success, returns conntrack ptr, sets skb->nfct and ctinfo */
 
-Extension structures would always be accessed via pre-defined macros
-(which just add an offset depending on the bitmask)
-
-Even thinking further, this would enable us to put more parts than just
-the tuple into those extensions (let's say the nat or helper union).
-This in turn means that we can make conntrack structures for the normal
-case (ipv4 only, no helper, no nat) even smaller. =20
-
-I'm not sure if it's worth performance-wise.  The benefits of such a
-solution would be:
-
-1) still one chunk of memory for any conntrack
-	- one allocation at connection setup time
-	- conntrack+tuple still physically close in memory instead of
-	  having to dereference every tuple=20
-2) potentially smaller conntracks even in the current 'normal' case
-   (one of our long-term wishes)
-
-As disadvantage I can see
-1) difficult implementation with lots of macros/offset calculation
-2) we'd have to determine which slab we came from at destroy() time
-   [maybe save cachep in nf_contrack?]
-3) slightly higher computational cost when we want to access extension
-   structures (like tuples), since relative offset has to be calculated
-   at runtime.
-
-What do you think? =20
-
-Rusty, Jozsef: Do you think it's worth the effort?
-=20
-> Yasuyuki KOZAKAI
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---Wn0J+vu9+NMIXK57
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAOxehXaXGVTD0i/8RAh/QAJ9GlFQ5ktYTPOO7nJFENcadbYdFdgCgiib8
-ahxu9MtEI4u/KO3stllgcGk=
-=iDGJ
------END PGP SIGNATURE-----
-
---Wn0J+vu9+NMIXK57--
+--------------090909010206040008020301--
