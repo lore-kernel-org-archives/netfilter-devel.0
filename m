@@ -1,10 +1,10 @@
 From: sam@cerbere.dyndns.info (Samir Bellabes)
-Subject: Update ip_conntrack_count in kernel 2.6
-Date: Sun, 15 Aug 2004 04:22:49 +0200
+Subject: ip_conntrack_count broken - kernel 2.6 - New patch
+Date: Sun, 15 Aug 2004 15:17:40 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040815022249.GA13604@cerbere.dyndns.info>
+Message-ID: <20040815131740.GA23767@cerbere.dyndns.info>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="G4iJoqBmSsgzjUCe"
+Content-Type: multipart/mixed; boundary="OXfL5xGRrasGEqWY"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -19,14 +19,13 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---G4iJoqBmSsgzjUCe
+--OXfL5xGRrasGEqWY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 Hi Harald,
-
-   The ip_conntrack_count patch is broken with the last kernel
-   2.6.8. This patch, which do the same thing, applies correctly.
+   The ip_conntrack_count is broken with kernel 2.6.8.
+   This patch, which do the same thing, applies correctly.
 
 thanks.
 
@@ -34,7 +33,7 @@ thanks.
 samir bellabes
 sam@cerbere.dyndns.info
 
---G4iJoqBmSsgzjUCe
+--OXfL5xGRrasGEqWY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: attachment; filename="linux-2.6-ip_conntrack_count.patch"
 
@@ -88,4 +87,4 @@ diff -Nru --exclude '*~' linux-2.6.8/net/ipv4/netfilter/ip_conntrack_standalone.
  		.procname	= "ip_conntrack_buckets",
  		.data		= &ip_conntrack_htable_size,
 
---G4iJoqBmSsgzjUCe--
+--OXfL5xGRrasGEqWY--
