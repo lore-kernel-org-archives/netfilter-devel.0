@@ -1,15 +1,16 @@
-From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
-Subject: Modifying conntrack information on the fly & generating packets through
- hard_start_xmit
-Date: Fri, 05 Mar 2004 10:14:53 +0200
+From: "John P. Looney" <valen@tuatha.org>
+Subject: Re: taking related connections to the limit
+Date: Fri, 5 Mar 2004 08:54:34 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <404836FD.2070107@netlab.hut.fi>
-Reply-To: emmanuel@netlab.hut.fi
+Message-ID: <20040305085434.GB22275@magicbluesmoke.net>
+References: <20040304120402.GH14383@magicbluesmoke.net> <Pine.LNX.4.56L0.0403041728280.12843@zero.fdns.net>
+Reply-To: valen@tuatha.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.56L0.0403041728280.12843@zero.fdns.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,17 +21,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+On Thu, Mar 04, 2004 at 05:30:54PM -0500, Unit Zero mentioned:
+> Umm, yes I belive you're looking for the "recent" module, a very nice bit 
+> of code by Stephen Frost <sfrost@snowman.net>.
 
-The module I'm writing makes my computer crashes and I am now 
-investigating the reasons. It seems to trigger an undesirable effect in 
-some other parts of the netfilter code. Thus, I'd like to know if the 
-following - that I'm doing - is possible: under certain conditions, my 
-target module changes the conntrack information, for example it changes 
-the tracked source address for another one.
-Moreover, I sometimes generate packets using the hard_start_xmit 
-function. Can packets generated in such a way go through any netfilter hook?
+ I've not seen that in patch-o-matic-20031219.tar.bz2...ah:
 
-Thanks for any help,
+http://www.collaborium.org/onsite/benin/docs/services/NETFILTER_RELATED/netfilter-extensions/netfilter-extensions-HOWTO-3.html#ss3.14
 
-         Emmanuel
+ Perfect. What I'm trying to do is send pop-before-smtp users to a
+different server to standard smtp connections.
+
+John
