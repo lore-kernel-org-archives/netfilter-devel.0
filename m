@@ -1,16 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC]: ip_conntrack breaks UDP PMTU
-Date: Sat, 15 Feb 2003 21:50:59 +0100
+From: don-netf@isis.cs3-inc.com (Don Cohen)
+Subject: Re: [RFC]: ip_conntrack breaks UDP PMTU (Patrick McHardy)
+Date: Sat, 15 Feb 2003 17:43:55 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E4EA833.5050504@trash.net>
-References: <20030214080612.GN14794@sunbeam.de.gnumonks.org> <20030215175841.GL30133@calix.csn.tu-chemnitz.de>
+Message-ID: <15950.60635.389199.836425@isis.cs3-inc.com>
+References: <20030215232635.25928.78900.Mailman@kashyyyk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter developer mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Thomas Poehnitzsch <thomas.poehnitzsch@informatik.tu-chemnitz.de>
-In-Reply-To: <20030215175841.GL30133@calix.csn.tu-chemnitz.de>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20030215232635.25928.78900.Mailman@kashyyyk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,102 +20,103 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Thomas Poehnitzsch wrote:
 
->>>ip_conntrack defrags packets at PRE_ROUTING and LOCAL_OUT and
->>>refragments them at POST_ROUTING without careing about IP_DF. packets
->>>      
->>>
->
->What has IP_DF (I hope you mean the "Don't Fragment" bit in the
->IP-header) to do with _de_-fragmentation? As far as I understood RFC791
->
-nothing.
+ > I guess some cruel decisions have to be made here, and we haven't even
+ > started to think about mangling nat helpers ..
 
->Could somebody please explain the notation: "IP_DF|IP_MF" to me? Does
->this mean at least one of both flags is set? And if so this is against
->my understanding of the above mentioned RFC791. If IP_DF is set, the
->packet _must not_ be fragmented, so IP_MF can't be set.
->
-both are set. "|" is logical or. nfs (always?) generates packets bigger 
-than mtu
-so they are fragmented and have IP_MF set (except last one). If linux 
-wants to
-know path mtu it sets IP_DF on these, so the fragments may not be _further_
-fragmented.
+Clearly when you alter packet sizes PMTU can only be approximate,
+with an error of the amount that a packet size could change.
+On the other hand, internet routes are supposed to be somewhat
+dynamic, so it's clear that PMTU discovery must be treated as only
+heuristic, i.e., you have to be prepared for a size that worked before
+to not work now.
 
->
->Let me go through an example of PMTUD and correct me if I am wrong with
->my view of this protocol:
->
->Assume host A wants to send a packet to host B and pmtud is enabled 
->(/proc/sys/net/ipv4/ip_no_pmtu_disc = 0) the IP_DF flag will be set in
->the packet sent. In case this packet will not pass through the eye of a
->needle further down the line, it will be droped and an ICMP Message
->(type 3 code 4: fragmentation needed and DF set) will be sent to A.
->Host A will then resend smaller packets (again with IP_DF set) until the
->packet reaches host B. 
->The way I understand it, there won't be any fragmented packet on the
->line in this connection, so iptables will not break anything.
->
->If on the other hand the IP_DF bit is not set, any host on the route
->from A to B is allowed to refragment the packet to fit the MTU of the
->next connection.
->
->Now I can't see any reason why iptables should not be allowed to
->reassemble and refragment a packet with IP_DF not set.
->
+ > I hope this discussion is not already over. Sorry, but it took me a
+ > while to understand all the implications and to skip through some RFC's.
 
-see above.
+I'm also more than a little confused.
+My understanding is that the UDP user can't receive fragments, just a 
+defragmented "datagram", from which he can't tell whether or how it
+was fragmented.  Is this correct?
+The only thing the program can do to determine PMTU then is to set the
+DF flag and find out whether the data(*) is delivered (either from a
+reply that indicates it was or an ICMP that indicates otherwise).
+Is that still correct?  I don't even see the word "fragment" in rfc
+768 (UDP).
+(*) the term data here in intentionally ambiguous, trying to not yet
+deal with issues below
 
->
->  
->
->>>The problem is that we _need_ to defragment at NF_IP_PRE_ROUTING in
->>>order to have the be able to do connection tracking.  So at this point
->>>we would need to save the sizes of all individual fragments.  This
->>>would enable us to re-fragment to exactly the same size at
->>>POST_ROUTING. 
->>>      
->>>
->
->Do we really have to re-fragment to exactly the same size? Wouldn't it
->be sufficient to re-fragment to fragments not bigger in size than the
->biggest incoming fragment of this connection?
->
->  
->
->>>And then, what happens if NAT has to resize (enlarge/shrink) a packet.
->>>How should we deal with this while re-fragmenting? 
->>>      
->>>
->
->In my opinion we should just refragment it, as any router would do it.
->
-that router is broken too. think about a host doing path mtu discovery, 
-the packet
-doesn't fit the interface mtu but nat shrinks the packet so it does fit 
-.. the host gets
-a wrong idea of the pmtu. unfortunately i don't know of a way to fix it 
-except maybe
-to also consider the removed bytes when deciding if a packet needs to be 
-fragmented.
+Is there some other RFC I should be looking for?
 
->>And if we go for my first propsal, how/where would we store the
->>list-of-fragment-sizes?  We certainly don't want it to be dynamically
->>allocated... but according to RFC791 there kan be 8192 fragments of 8
->>octets each...
->>    
->>
->
->I think we have to store fragment sizes of each connection, but storing
->
-even worse we need to store the fragment sizes of each reassembled 
-packet. if we consider
-the case not all fragments have DF set and we would want to handle nat 
-resizing correctly
-besides fragment sizes we also need fragment boundaries and fragment 
-flags (-> iph->frag_off).
+ > > >>ip_conntrack defrags packets at PRE_ROUTING and LOCAL_OUT and
+ > > >>refragments them at POST_ROUTING without careing about IP_DF. packets
+ > > >>with IP_DF|IP_MF can be refragmented with a different size, so path
+ > > >>mtu discovery is broken.  Linux nfs itself sends out packets with
+ > > >>IP_DF|IP_MF.
 
-Bye,
-Patrick
+ > both are set. "|" is logical or. nfs (always?) generates packets bigger 
+ > than mtu
+ > so they are fragmented and have IP_MF set (except last one). If linux 
+ > wants to
+ > know path mtu it sets IP_DF on these, so the fragments may not be _further_
+ > fragmented.
+
+This already seems suspicious to me.  Is there any RFC that
+specifically says this is allowed or does this fall into the area
+that violates the robustness principle (i.e., not being conservative 
+in what you send to others)?
+
+Is a user program allowed to specify what fragments to send?
+I guess you're saying it's the system that's doing this, perhaps in
+order to decide what size fragments to send.  In that case you might
+even argue that the system on the other side should react differently
+to different size fragments that arrive.  
+
+So the scenario is:
+You want to test PMTU <=1000
+You send a "datagram" of size 2000 in fragments of size 1000 and 1000
+both with DF set, expecting to get an icmp complaint only if PMTU
+<1000.
+A conntracking firewall (FW) defragments to a single datagram of size
+2000.
+At this point it has to refragment to forward the datagram.
+Several possibilities:
+- FW notices DF and rejects the datagram, telling you that fragmentation
+was needed when DF was set
+This might be considered incorrect since fragmentation was not needed
+for the packets you sent.  On the other hand, the IP header in the icmp 
+packet shows that the size that was too big was 2000.
+- FW refragments to sizes 1500 and 500.  It's entirely unclear to me
+whether those should be marked DF.  What if some of the incoming
+fragments were DF and others were not?
+In any case, the danger again is that one has to be fragmented later
+on, but again the icmp reply contains the header showing the size of
+the packet that was rejected.
+
+In other words, when you do this DF PMTU discovery you ought to look
+at the size of the packet that was rejected and draw conclusions from
+that.  
+
+ > What about storing the biggest fragment size of a packet at
+ > defragmentation and refragmenting the packet with that size at
+ > POST_ROUTING if MTU is not smaller.
+So at this point I gather the goal is the other side of the
+robustness principle - trying to make something work that probably 
+shouldn't have been tried to begin with.  Are there lots of other
+things out there that play the same (questionable?) tricks?
+
+The suggestion above seems fair enough, but if the problem that
+we're trying to fix is specifically in linux, perhaps the other 
+end should also be fixed?
+
+ > >I think we have to store fragment sizes of each connection, but storing
+ > >
+ > even worse we need to store the fragment sizes of each reassembled 
+ > packet. if we consider
+ > the case not all fragments have DF set and we would want to handle nat 
+ > resizing correctly
+ > besides fragment sizes we also need fragment boundaries and fragment 
+ > flags (-> iph->frag_off).
+Keeping in mind that PMTU can change as path changes, it seems 
+reasonable to do this on a -per-datagram basis rather than
+per-connection.  That still doesn't seem so expensive.
