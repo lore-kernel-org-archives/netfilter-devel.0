@@ -1,12 +1,18 @@
-From: Stelios Sidiroglou-Douskos <ss1759@cs.columbia.edu>
-Subject: IPIP and SNAT
-Date: Wed, 30 Jul 2003 11:37:23 -0400 (EDT)
+From: Andreas Jellinghaus <aj@dungeon.inka.de>
+Subject: Re: port-based filtering of ESP packets with in-kernel IPsec?
+Date: 30 Jul 2003 16:51:41 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.GSO.4.31.0307301130240.13487-100000@disco.cs.columbia.edu>
+Message-ID: <1059576701.4586.20.camel__49480.113053187$1059749587@simulacron>
+References: <1059540296.16545.305.camel@k7.localnet>
+	 <20030730142411.GD4553@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org,
+	netfilter@lists.netfilter.org, netdev@oss.sgi.com
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030730142411.GD4553@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,19 +23,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-I am having some trouble with SNAT and my IPIP implementation. I have the
-ipip part working (I use code from ipip.c) but when I clear the nfct field
-of the sk_buff that packet that gets fwd to the other interface doesn't
-get NATed. I tried not clearing conntrack but obviously that results in
-the packets not matching up when they return.
+if you are using ipsec from kernel 2.6.* there is no "ipsec0"
+interface, and thus using netfilter isn't as easy as it was with
+freeswan.
 
-Do I have to rebuild the conntrack tuple and insert it back? If so, is
-there a code or a helper function to do just that?
+three ways to solve the problem, only tried the first one so far:
+1.) configure ipsec in tunnel mode, add your tunnel ip to 
+    the outgoing interface, change the default route to
+    set the source ip to the tunnel ip.
+note: there is no routing step after encapsulating a packet
+with ipsec, there was one with freeswan, so this is different.
 
-thanks in advance,
+2.) set a fwmark on an esp packet, it should be there after
+    unpacking/decryption. didn't try this one.
 
-stelios.
+3.) do not use the build in tunneling. use an explicit ipip tunnel.
+	that way you have the interface, can use it in netfilter,
+	can route into it, and the interface will set the right
+	source address.
 
+[netfilter]
+incoming encrypted packets are seen as ESP/AH in INPUT
+and then as decrypted packet in INPUT or FORWARD.
 
-p.s Please reply to this address directly also.
+outgoing packets are only seen as ESP in OUTPUT.
+
+> > Since ESP packets that reach the mangle INPUT chain are destined for a
+> > local process, why not unencapsulate them just before that point?  
+
+INPUT only means the ESP will be decrypted/unecapsulated.
+after that the decrypted packet will show up in INPUT or FORWARD.
+
+> no. My preferred solution was something like adding a netfilter hook to
+> the xfrm4 engine, exactly after decapsulation / decryption of one layer,
+> i.e.  after xfrm_type.input was called. 
+>
+> iptables could then register the INPUT chain (or probably even a
+> seperate POSTXFRM chain) in order to filter on the respective packets.
+
+you can already filter incoming packets. The problem is you
+don't know if they came in that way they look now, or if they
+came in via ESP packets and got decrypted.
+
+maybe decryption/unencapsulating could leave a mark on the
+packet, so we know packets without that mark came in without
+ipsec and are bad / attempts to access resources without ipsec?
+(maybe fwmark works on that. or an explicit ipip tunnel, so you
+have "ipip0" or something as incoming interface).
+
+> Any comments are appreciated.
+
+Regards, Andreas
