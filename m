@@ -1,14 +1,16 @@
-From: "Alexandre Carlos" <alexandre@redes.unb.br>
-Subject: iptables
-Date: Mon, 18 Nov 2002 19:30:41 -0300
+From: netfilter@interlinx.bc.ca
+Subject: Re: [PATCH] tcp window tracking patch with SACK support
+Date: Mon, 18 Nov 2002 09:08:38 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <058d01c28f52$20836f10$1543a8c0@sanches>
+Message-ID: <20021118140838.GH1754@pc.ilinx>
+References: <20021017163909.GO344@pc.ilinx> <Pine.LNX.4.33.0210181255170.10340-100000@blackhole.kfki.hu> <20021018144818.GJ2408@naboo.club.berlin.ccc.de> <3DC8FDF5.7050906@tac.ch> <3DD8B788.2090109@tac.ch>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="17/8oYur5Y32USnW"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <3DD8B788.2090109@tac.ch>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,30 +21,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all
 
-My experimental backbone is the following:
+--17/8oYur5Y32USnW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-           67.91  4.2     4.3   1.3   1.1    10.1
-             --------        ------       --------
- 67.90- | ingress |----| core |----| egrees |-----10.2
-             --------         -----        --------
+On Mon, Nov 18, 2002 at 10:48:56AM +0100, Roberto Nibali wrote:
+>=20
+> I see now however, that there is still one open report from Brian.
 
+Actually, I sent a second one to Jozsef by private mail just the other
+day.
 
-I=B4m using IPTABLES version 1.2.4-dscp do set up the tos value of the
-packets. I=B4m creating the following rule on the ingress and the egress
-hosts.
+b.
 
-iptables -A PREROUTING -t mangle -p icmp -j FTOS --set-ftos 0x28 or
-iptables -A FORWARD -t mangle -p icmp -j FTOS --set-ftos 0x28
+--=20
+Brian J. Murrell
 
-But when i try do ping from 67.90 to 10.2
+--17/8oYur5Y32USnW
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-The chechshum of the ip on the reply message is incorrect, so the packet =
-is
-droped on core hosts.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-I would like to know, how can i avoid dropping the packet and still using
-the same version of iptables and rules
+iD8DBQE92PRll3EQlGLyuXARAsOUAKDX2ZDrGQvvh7jQ4hPbMv9pR87uhQCgg3OI
+HP4ESS74znAN8e//SxgGyUg=
+=poTl
+-----END PGP SIGNATURE-----
 
-Alex
+--17/8oYur5Y32USnW--
