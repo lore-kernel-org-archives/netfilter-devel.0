@@ -1,15 +1,12 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] patch-o-matic-ng patch
-Date: Thu, 19 Feb 2004 09:47:19 +0100 (CET)
+Subject: [PATCH] patch-o-matic-ng reorganization and updated patches
+Date: Thu, 19 Feb 2004 13:22:14 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0402190944010.14327-100000@blackhole.kfki.hu>
-References: <20040218171848.GV9464@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.33.0402191309230.14327-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040218171848.GV9464@sunbeam.de.gnumonks.org>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,15 +17,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 18 Feb 2004, Harald Welte wrote:
+Hello,
 
-> feel free to apply
->
-> and please don't always ask me for permission, but rather apply by yourself.
-> That's why we all have CVS write access ;)
+A lot of modification happened today in pom-ng:
 
-It's your child. I'll apply then myself, but keep you informed so
-you can catch if I'd do something heretical. :-)
+- last two Netfilter_POM.pm patches are applied
+- configure.help files are renamed as
+  linux/Documentation/Configure.help.ladd and Netfilter_POM.pm
+  is changed to take the change into account
+- the 2.6 port of the nf-log, raw and TRACE patches are added
+  to pom-ng
+
+Upcoming modifications:
+
+- relax the version checking, because it's too rigid: foo-1.2.patch
+  should support anything equal and above 1.2 if there is no better
+  match
+- 2.6 ports of tcp-window-tracking and conntrack_foo patches
 
 Best regards,
 Jozsef
