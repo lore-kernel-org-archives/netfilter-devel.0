@@ -1,12 +1,19 @@
-From: "andre achternaam" <andreiscmeel@hotmail.com>
-Subject: ip_conntrack_expect_related() cannot handle already established connections
-Date: Tue, 24 Sep 2002 15:14:21 +0000
+From: Marian Stagarescu <marian@ti.com>
+Subject: PPTP conntrack w/out DEBUG is broken ???
+Date: Wed, 25 Sep 2002 16:48:42 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <F75wF0SsAtYBM5OnEfT00004e2c@hotmail.com>
+Message-ID: <200209251648.42936.marian@ti.com>
+References: <87d6r9jaa4.fsf@sensi.yemanja.net> <1032690651.9594.13.camel@tux>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
+   Netfilter <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.samba.org
+To: Martin Josefsson <gandalf@wlug.westbo.se>,
+   =?iso-8859-15?q?C=E9dric=20Rivard?= <cedric@yemanja.net>
+In-Reply-To: <1032690651.9594.13.camel@tux>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,91 +24,61 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+i run into one problem with PPTP conntrack:
 
-Hi all,
+run it with debug on: works
+run it w/out debug on: does not.
 
-I have some difficulties with my Nat/connection tracking module that is very 
-similar like the ftp one.
+i also turned on the patch below and configure the CONFIG_NETFILTER_DEBUG=
+:
+compile ip_conntrack_pptp with debug on: all ok
+compile ip_conntrack_pptp w/out debug: does not even print the ASSERT rea=
+dlock=20
+statements from CONFIG_NETFILTER_DEBUG, PPTP connection is not establishe=
+d.
 
-My setup up:
+this debug issue was tracked down to a single printk statement in=20
+ip_conntrack_pptp.c: line 244,245:
 
-I have a server that sends streams (UDP packets) to clients. Between the 
-clients and the server a gateway is located. The gateway is configured with 
-all the masquerade stuff you would expect.
->From the gateway point of view the server streams are coming form the 
-external site. The streams are a result from another (master/control) 
-connection. The same way it is for ftp. The only difference is the expected 
-connection is a UDP stream and not a TCP stream.
+DEBUGP("%s, CID=3D%X, PCID=3D%X\n", strMName[msg]                 =20
+                     ntohs(*cid), ntohs(*pcid));
 
-My conntrack/NAT module looks very similar like the ftp one and works file 
-for one client and even for multiple clients behind the gateway. But it 
-works only properly when the clients specify their "port command (where to 
-receive the UDP stream)" differently thus not the same. However I understand 
-that the ftp module can handle the same port numbers, by mangling the 
-outgoing "port command" (Doing NAPT). I also implemented this in my module.
+i run this on a 2.4.17 mips little endian, single proc, latest pptp ALG f=
+iles=20
+from netfilter, newnat13.
 
-When I register an expected related connection it mostly uses the 
-"ctMyInfo->portOrg" port since it is free and sometimes another number when 
-in use.
+how this can be ?=20
 
-…
-memset(&tuple, 0, sizeof(tuple));
-tuple.dst.ip = ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip;
-tuple.dst.protonum = IPPROTO_UDP;
-/* Try to get same port: if not, try to change it. */
-for (port = ctMyInfo->portOrg; port != 0; port++)
-{
-tuple.dst.u.udp.port = htons(port);
-	if (ip_conntrack_expect_related(ct, &tuple, &mask, NULL) == 0)
-break;
-}
-…
-
-When a packet of the expected_related connection comes in and the entry is 
-removed from the expect_list in the init_conntrack function.
-
-…. Init_conntrack(…)
-…
-if (expected && is_confirmed(expected->expectant)) {
-/* Welcome, Mr. Bond.  We've been expecting you... */
-	conntrack->status = IPS_EXPECTED;
-		conntrack->master.master = &expected->expectant->ct_general;
-	IP_NF_ASSERT(conntrack->master.master);
-		LIST_DELETE(&expect_list, expected);
-	MyDebugPrint(expected, "LIST_DELETED(init_conntrack)");
-		expected->expectant = NULL;
-	nf_conntrack_get(&conntrack->master);
-}
-….
-}
-
-Oke now it is removed from the expect_list but what if I register a new 
-expected connection with ip_conntrack_expect_related() function and with the 
-same port number as the previous one. The previous one is still in use by my 
-previously started UDP stream but it can be registered as well since the 
-init_conntrack() function removed this expected connection from the 
-expect_list and the ip_conntrack_expect_related() will only look in the 
-expected_list.
-
-Here is the question:
-
-Why is it also not checking the existing (established) connections to see if 
-this port number/ipaddress combination is in use? At the moment I'am able to 
-register expected related connections that are in use. This might be by 
-designs but than this is a bug in the ftp (and thus my modules as wel)?
-
-And how can I figure out if the expected connection is in use by something 
-else. It seems that checking the return value of 
-ip_conntrack_expect_related() is not enough because it only looks in the 
-expected_list of connections you expect….
-
-
-Thanx in advance for all the effort…
-Andre
+thanks for any input,
+marian
 
 
 
-
-_________________________________________________________________
-MSN Photos is the easiest way to share and print your photos: 
-http://photos.msn.com/support/worldwide.aspx
+On Sunday 22 September 2002 06:30 am, Martin Josefsson wrote:
+> On Fri, 2002-09-20 at 11:11, C=E9dric Rivard wrote:
+> > Hi all,
+> >
+> > As I've already reported, there is a problem with the PPTP conntrack
+> > module of pom. It can't be built with the option CONFIG_NETFILTER_DEB=
+UG.
+> > And I still receive questions about the first thread I started on thi=
+s
+> > problem but without pointing the cause. I hope that everyone is now a=
+ware
+> > of this issue.
+>
+> This issue came to my attention in the end of August, I produced a patc=
+h
+> and I never heard from that person again. The patch is quite ugly but i=
+t
+> does solve this specific problem. I was waiting for some more input fro=
+m
+> other developers before submitting it to cvs but now I've given up on
+> that and I've submitted it. patch-o-matic in cvs now works with
+> debugging enabled.
+>
+> or you can apply this patch on your kernel after patching with the
+> patch-o-matic you are currently using:
+>
+> http://www.netfilter.org/~gandalf/patches/ip_conntrack_proto_gre.c-lock=
+fix
