@@ -1,13 +1,17 @@
-From: Ozgur AKAN <akan@aiqa.com>
-Subject: "args..." and "## args" ?
-Date: Thu, 29 Apr 2004 18:33:11 +0300
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] ROUTE target : update to pom-ng + new version for	kernel
+ 2.6.x
+Date: Thu, 29 Apr 2004 18:45:37 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40912037.7080504@aiqa.com>
+Message-ID: <40913131.3010400@trash.net>
+References: <1082535373.17611.39.camel@descartes.info.ucl.ac.be>	 <408AF23C.3060300@trash.net> <1083165943.709.18.camel@descartes.info.ucl.ac.be>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
- boundary="------------020402050800030806050501"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+To: Cedric de Launois <delaunois@info.ucl.ac.be>
+In-Reply-To: <1083165943.709.18.camel@descartes.info.ucl.ac.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,59 +22,35 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020402050800030806050501
-Content-Type: text/plain; charset=ISO-8859-9; format=flowed
-Content-Transfer-Encoding: 7bit
+Cedric de Launois wrote:
 
-While I was looking for match info in iptables.c I found 
-IPT_MATCH_ITERATE. In ip_tables.h IPT_MATCH_ITERATE is defined but there 
-are two lines which I can  not understand!
+>Oops, sorry. This patch should be better.
+>  
+>
+Still can't apply, the patch contains changes to a
+non-existing file, linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c.
 
-#define IPT_MATCH_ITERATE(e, fn, args...)
-....
-....
-    __ret = fn(__match , ## args);
+Regards
+Patrick
 
-Can you please tell me abour "args..." and "## args" notation?
-
-thanks,
-
--- 
-Ozgur Akan
-
-
---------------020402050800030806050501
-Content-Type: text/html; charset=ISO-8859-9
-Content-Transfer-Encoding: 8bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-9">
-  <title></title>
-</head>
-<body text="#000000" bgcolor="#ffffff">
-<font face="microsoft-verdana-iso10646-1">While I was looking for match
-info in iptables.c I found </font><font
- face="microsoft-verdana-iso10646-1">IPT_MATCH_ITERATE. In ip_tables.h </font><font
- face="microsoft-verdana-iso10646-1">IPT_MATCH_ITERATE is defined but
-there are</font><font face="microsoft-verdana-iso10646-1"> two lines
-which I can  not understand!<br>
-<br>
-#define IPT_MATCH_ITERATE(e, fn, args...)<br>
-....<br>
-....<br>
-    __ret = fn(__match , ## args);<br>
-<br>
-Can you please tell me abour "args..." and "## args" notation?<br>
-<br>
-thanks,<br>
-</font>
-<pre class="moz-signature" cols="72">-- 
-Ozgur Akan
-</pre>
-</body>
-</html>
-
---------------020402050800030806050501--
+>Regards,
+>
+>Cedric
+>
+>  
+>
+>diff -Nru ./ROUTE.orig/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c ./ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c
+>--- ./ROUTE.orig/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c	2004-02-22 18:29:10.000000000 +0100
+>+++ ./ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c	2004-04-21 10:17:44.000000000 +0200
+>@@ -19,6 +19,7 @@
+> #include <net/ip.h>
+> #include <net/route.h>
+> #include <net/icmp.h>
+>+#include <net/checksum.h>
+> 
+> #if 0
+> #define DEBUGP printk
+>@@ -28,6 +29,7 @@
+> 
+>  
+>
