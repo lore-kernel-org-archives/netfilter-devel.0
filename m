@@ -1,13 +1,15 @@
-From: "Wei Ming Long" <WEI_Ming_Long@dsi.a-star.edu.sg>
-Subject: iptables help
-Date: Thu, 04 Nov 2004 10:42:47 +0800
-Message-ID: <s18a07b5.035@dsi.a-star.edu.sg>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] MASQUERADE not flushing conntracks on ip change
+Date: Thu, 04 Nov 2004 03:53:38 +0100
+Message-ID: <418999B2.3070600@trash.net>
+References: <20041102210440.GA1851@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>,
-	<Netfiltermailinglistnetfilter@lists.netfilter.org>
-Content-Disposition: inline
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20041102210440.GA1851@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,46 +21,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Phil Oester wrote:
 
-Hi everone,
+>About 14 months ago, MASQUERADE target was modified to only flush conntracks
+>on interface up/down if the IP address changed [1].  Unfortunately, there were
+>a few problems with this change:
+>
+>1) ina->ifa_address was used as the IP address of the interface for
+>   comparison purposes.  This works great for ethernet interfaces
+>   since ifa_address and ifa_local are identical.  But on ppp interfaces
+>   ifa_address is the address of the remote side, not the local side
+>
+>2) dev->ifindex was used to determine whether the interface which cycled
+>   matches the interface the conntrack is masquerading out.  Again, this
+>   works fine for ethernet (static ifindex), but not at all for ppp which
+>   uses sequentially increasing interface indexes.  The ifindex associated
+>   with pppX increments on each up/down cycle
+>
+>3) even if #2 were not true, in a scenario where multiple ppp interfaces
+>   are utilized, the order in which they are cycled makes the ifindex
+>   comparison haphazard
+>
+>The below patch addresses these issues by returning to the old behavior
+>for ppp interfaces: flush all conntracks masquerading out that interface
+>on device down.  I can think of no other foolproof way to ensure the proper
+>conntracks get destroyed.
+>  
+>
+I think we should revert to the old behaviour for all interfaces.
+When MASQUERADE was using a route-lookup for selecting the source
+there were good reasons for using MASQUERADE on devices with statically
+configured adresses, and some people (like me) still do it today.
+Simple adding a second IP address to an interface flushes all
+MASQUERADEDED conntracks on the device, which is not very nice.
+The optimization was meant for ppp devices anyway, if we can't use
+it there I don't see much reason to keep it.
 
-I have a setup as shown below:
+Opinions anyone ?
 
-                   VNC Server 192.168.1.4
-                          |
-                          | --------> ssh tunnel on port 5800
-                          |
-                eth1= 192.168.1.2
-                          |
-                Linux Gateway
-                          |
-                 eth0=192.168.33.167
-                          |
-                          |
-                 WindowsXP 192.168.33.164 
-          
-
-Requirement: To be able to access the VNC Server behind the Linux gateway
-using the web browser on port 5800 tunneled through ssh.
-
-I created a ssh tunnel between the VNC Server(192.168.1.4) & the Linux
-Gateway(192.168.1.2) for port 5800 and the following iptables command in
-Gateway:
-
-iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j DNAT --to
-192.168.1.2:5800 
-
-When I type in http://192.168.33.167 in the browser on the WindowsXP machine,
-I was expecting that the http request on port 80 would be redirected to port
-5800 & go through the tunnel & reach the VNC Server.
-
-But it doesn't work, what is wrong? can someone please help me with this?
-
-
-Best regards
-Matthew
-
-
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-This email is confidential and may be privileged. If you are not the intended recipient, please delete it and notify us immediately. Please do not copy or use it for any purpose, or disclose its contents to any other person. Thank You.
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Regards
+Patrick
