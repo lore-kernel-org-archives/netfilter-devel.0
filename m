@@ -1,7 +1,7 @@
 From: Christophe Saout <christophe@saout.de>
-Subject: Re: [PATCH 1/4] IPSEC output hooks
-Date: Thu, 17 Feb 2005 20:10:36 +0100
-Message-ID: <1108667437.21912.16.camel@leto.cs.pocnet.net>
+Subject: [PATCH 2/4] IPSEC input hooks
+Date: Thu, 17 Feb 2005 20:11:35 +0100
+Message-ID: <1108667496.21912.18.camel@leto.cs.pocnet.net>
 References: <1108667319.21912.14.camel@leto.cs.pocnet.net>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -19,213 +19,262 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Updated ipsec-01-output-hooks.diff
+The updated ipsec-02-input-hooks.diff
 
---- linux-2.6.11-rc4/net/ipv4/xfrm4_output.c	2005-02-16 00:59:44.000000000 +0100
-+++ linux-2.6.11-rc4-cs1/net/ipv4/xfrm4_output.c	2005-02-17 18:07:38.357656232 +0100
-@@ -129,6 +129,7 @@
- 		err = -EHOSTUNREACH;
- 		goto error_nolock;
- 	}
-+	IPCB(skb)->flags |= IPSKB_XFRM_TRANSFORMED;
- 	err = NET_XMIT_BYPASS;
- 
- out_exit:
---- linux-2.6.11-rc4/net/ipv4/raw.c	2005-02-16 00:59:44.000000000 +0100
-+++ linux-2.6.11-rc4-cs1/net/ipv4/raw.c	2005-02-17 18:07:21.314247224 +0100
-@@ -310,7 +310,7 @@
- 	}
- 
- 	err = NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, rt->u.dst.dev,
--		      dst_output);
-+	              ip_dst_output);
- 	if (err > 0)
- 		err = inet->recverr ? net_xmit_errno(err) : 0;
- 	if (err)
---- linux-2.6.11-rc4/net/ipv4/ipmr.c	2005-02-16 00:59:44.000000000 +0100
-+++ linux-2.6.11-rc4-cs1/net/ipv4/ipmr.c	2005-02-17 18:05:59.814637048 +0100
-@@ -1119,7 +1119,7 @@
- 	if (unlikely(opt->optlen))
- 		ip_forward_options(skb);
- 
--	return dst_output(skb);
-+	return ip_dst_output(skb);
- }
- 
- /*
---- linux-2.6.11-rc4/net/ipv4/ip_output.c	2005-02-16 00:59:44.000000000 +0100
-+++ linux-2.6.11-rc4-cs1/net/ipv4/ip_output.c	2005-02-17 18:06:29.153176912 +0100
-@@ -124,6 +124,15 @@
- 	return ttl;
- }
+--- linux-2.6.11-rc4/net/xfrm/xfrm_input.c	2005-02-16 00:59:44.000000000 +0100
++++ linux-2.6.11-rc4-cs1/net/xfrm/xfrm_input.c	2005-02-17 18:15:38.728620048 +0100
+@@ -31,6 +31,9 @@
+ 	if (!sp)
+ 		return NULL;
  
 +#ifdef CONFIG_NETFILTER
-+/* out-of-line copy is only required with netfilter */
-+int ip_dst_output(struct sk_buff *skb)
-+{
-+	return NF_HOOK_COND(PF_INET, NF_IP_POST_ROUTING, skb, NULL,
-+	                    skb->dst->dev, dst_output, skb->dst->xfrm != NULL);
-+}
++	sp->decap_done = 0;
 +#endif
-+
- /* 
-  *		Add an ip header to a skbuff and send it out.
-  *
-@@ -166,7 +175,7 @@
- 
- 	/* Send it out. */
- 	return NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, rt->u.dst.dev,
--		       dst_output);
-+		       ip_dst_output);
- }
- 
- static inline int ip_finish_output2(struct sk_buff *skb)
-@@ -284,7 +293,7 @@
- 		return ip_finish_output(skb);
- }
- 
--int ip_output(struct sk_buff *skb)
-+static inline int ip_output2(struct sk_buff *skb)
- {
- 	IP_INC_STATS(IPSTATS_MIB_OUTREQUESTS);
- 
-@@ -294,6 +303,16 @@
- 		return ip_finish_output(skb);
- }
- 
-+int ip_output(struct sk_buff *skb)
-+{
-+	int transformed = IPCB(skb)->flags & IPSKB_XFRM_TRANSFORMED;
-+
-+	if (transformed)
-+		nf_reset(skb);
-+	return NF_HOOK_COND(PF_INET, NF_IP_LOCAL_OUT, skb, NULL,
-+	                    skb->dst->dev, ip_output2, transformed);
-+}
-+
- int ip_queue_xmit(struct sk_buff *skb, int ipfragok)
- {
- 	struct sock *sk = skb->sk;
-@@ -374,7 +393,7 @@
- 	skb->priority = sk->sk_priority;
- 
- 	return NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, rt->u.dst.dev,
--		       dst_output);
-+		       ip_dst_output);
- 
- no_route:
- 	IP_INC_STATS(IPSTATS_MIB_OUTNOROUTES);
-@@ -1189,7 +1208,7 @@
- 
- 	/* Netfilter gets whole the not fragmented skb. */
- 	err = NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, 
--		      skb->dst->dev, dst_output);
-+		      skb->dst->dev, ip_dst_output);
- 	if (err) {
- 		if (err > 0)
- 			err = inet->recverr ? net_xmit_errno(err) : 0;
---- linux-2.6.11-rc4/net/ipv4/ip_forward.c	2005-02-16 00:59:44.000000000 +0100
-+++ linux-2.6.11-rc4-cs1/net/ipv4/ip_forward.c	2005-02-17 18:05:39.617707448 +0100
-@@ -51,7 +51,7 @@
- 	if (unlikely(opt->optlen))
- 		ip_forward_options(skb);
- 
--	return dst_output(skb);
-+	return ip_dst_output(skb);
- }
- 
- int ip_forward(struct sk_buff *skb)
---- linux-2.6.11-rc4/net/ipv4/igmp.c	2005-02-16 00:59:44.000000000 +0100
-+++ linux-2.6.11-rc4-cs1/net/ipv4/igmp.c	2005-02-17 18:05:38.713844856 +0100
-@@ -343,7 +343,7 @@
- 	pig->csum = ip_compute_csum((void *)skb->h.igmph, igmplen);
- 
- 	return NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, skb->dev,
--		       dst_output);
-+	               ip_dst_output);
- }
- 
- static int grec_size(struct ip_mc_list *pmc, int type, int gdel, int sdel)
-@@ -674,7 +674,7 @@
- 	ih->csum=ip_compute_csum((void *)ih, sizeof(struct igmphdr));
- 
- 	return NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, rt->u.dst.dev,
--		       dst_output);
-+	               ip_dst_output);
- }
- 
- static void igmp_gq_timer_expire(unsigned long data)
---- linux-2.6.11-rc4/include/net/ip.h	2005-02-16 00:59:44.000000000 +0100
-+++ linux-2.6.11-rc4-cs1/include/net/ip.h	2005-02-17 18:04:59.112627968 +0100
-@@ -30,6 +30,8 @@
- #include <linux/netdevice.h>
- #include <linux/inetdevice.h>
- #include <linux/in_route.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter_ipv4.h>
- #include <net/route.h>
- #include <net/arp.h>
- #include <net/snmp.h>
-@@ -45,6 +47,7 @@
- #define IPSKB_TRANSLATED	2
- #define IPSKB_FORWARDED		4
- #define IPSKB_XFRM_TUNNEL_SIZE	8
-+#define IPSKB_XFRM_TRANSFORMED	16
+ 	sp->len = 0;
+ 	if (src) {
+ 		int i;
+--- linux-2.6.11-rc4/net/ipv4/xfrm4_tunnel.c	2005-02-16 00:59:44.000000000 +0100
++++ linux-2.6.11-rc4-cs1/net/ipv4/xfrm4_tunnel.c	2005-02-17 18:15:39.770461664 +0100
+@@ -115,6 +115,7 @@
+ 	.handler	=	ipip_rcv,
+ 	.err_handler	=	ipip_err,
+ 	.no_policy	=	1,
++	.xfrm_prot	=	1,
  };
  
- struct ipcm_cookie
-@@ -212,6 +215,16 @@
- 		__ip_select_ident(iph, dst, more);
+ static int __init ipip_init(void)
+--- linux-2.6.11-rc4/net/ipv4/ipip.c	2005-02-16 00:59:44.000000000 +0100
++++ linux-2.6.11-rc4-cs1/net/ipv4/ipip.c	2005-02-17 18:15:40.466355872 +0100
+@@ -476,6 +476,11 @@
+ 
+ 	read_lock(&ipip_lock);
+ 	if ((tunnel = ipip_tunnel_lookup(iph->saddr, iph->daddr)) != NULL) {
++		/* IPIP packets decapsulated by IPsec missed netfilter hooks */
++		if (nf_xfrm_local_done(skb, NULL)) {
++			nf_rcv_postxfrm_local(skb);
++			return 0;
++		}
+ 		if (!xfrm4_policy_check(NULL, XFRM_POLICY_IN, skb)) {
+ 			read_unlock(&ipip_lock);
+ 			kfree_skb(skb);
+--- linux-2.6.11-rc4/net/ipv4/ipcomp.c	2005-02-16 00:59:44.000000000 +0100
++++ linux-2.6.11-rc4-cs1/net/ipv4/ipcomp.c	2005-02-17 18:15:41.048267408 +0100
+@@ -503,6 +503,7 @@
+ 	.handler	=	xfrm4_rcv,
+ 	.err_handler	=	ipcomp4_err,
+ 	.no_policy	=	1,
++	.xfrm_prot	=	1,
+ };
+ 
+ static int __init ipcomp4_init(void)
+--- linux-2.6.11-rc4/net/ipv4/ip_input.c	2005-02-16 00:59:44.000000000 +0100
++++ linux-2.6.11-rc4-cs1/net/ipv4/ip_input.c	2005-02-17 18:15:41.773157208 +0100
+@@ -224,6 +224,12 @@
+ 	resubmit:
+ 		hash = protocol & (MAX_INET_PROTOS - 1);
+ 		raw_sk = sk_head(&raw_v4_htable[hash]);
++		ipprot = rcu_dereference(inet_protos[hash]);
++
++		if (nf_xfrm_local_done(skb, ipprot)) {
++			nf_rcv_postxfrm_local(skb);
++			goto out;
++		}
+ 
+ 		/* If there maybe a raw socket we must check - if not we
+ 		 * don't care less
+@@ -231,7 +237,7 @@
+ 		if (raw_sk)
+ 			raw_v4_input(skb, skb->nh.iph, hash);
+ 
+-		if ((ipprot = rcu_dereference(inet_protos[hash])) != NULL) {
++		if (ipprot != NULL) {
+ 			int ret;
+ 
+ 			if (!ipprot->no_policy &&
+@@ -278,8 +284,8 @@
+ 			return 0;
+ 	}
+ 
+-	return NF_HOOK(PF_INET, NF_IP_LOCAL_IN, skb, skb->dev, NULL,
+-		       ip_local_deliver_finish);
++	return NF_HOOK_COND(PF_INET, NF_IP_LOCAL_IN, skb, skb->dev, NULL,
++	                    ip_local_deliver_finish, nf_hook_input_cond(skb));
  }
  
-+#ifdef CONFIG_NETFILTER
-+extern int ip_dst_output(struct sk_buff *skb);
-+#else
-+static inline int ip_dst_output(struct sk_buff *skb)
-+{
-+	return NF_HOOK_COND(PF_INET, NF_IP_POST_ROUTING, skb, NULL,
-+	                    skb->dst->dev, dst_output, skb->dst->xfrm != NULL);
-+}
-+#endif
+ static inline int ip_rcv_finish(struct sk_buff *skb)
+@@ -296,6 +302,9 @@
+ 			goto drop; 
+ 	}
+ 
++	if (nf_xfrm_nonlocal_done(skb))
++		return nf_rcv_postxfrm_nonlocal(skb);
 +
- /*
-  *	Map a multicast IP onto multicast MAC for type ethernet.
-  */
---- linux-2.6.11-rc4/include/linux/netfilter.h	2005-02-16 00:59:44.000000000 +0100
-+++ linux-2.6.11-rc4-cs1/include/linux/netfilter.h	2005-02-17 18:04:16.640084776 +0100
-@@ -138,12 +138,14 @@
- /* This is gross, but inline doesn't cut it for avoiding the function
-    call in fast path: gcc doesn't inline (needs value tracking?). --RR */
- #ifdef CONFIG_NETFILTER_DEBUG
--#define NF_HOOK(pf, hook, skb, indev, outdev, okfn)			\
-- nf_hook_slow((pf), (hook), (skb), (indev), (outdev), (okfn), INT_MIN)
-+#define NF_HOOK_COND(pf, hook, skb, indev, outdev, okfn, cond)		\
-+(!(cond)								\
-+ ? (okfn)(skb) 								\
-+ : nf_hook_slow((pf), (hook), (skb), (indev), (outdev), (okfn), INT_MIN))
- #define NF_HOOK_THRESH nf_hook_slow
- #else
--#define NF_HOOK(pf, hook, skb, indev, outdev, okfn)			\
--(list_empty(&nf_hooks[(pf)][(hook)])					\
-+#define NF_HOOK_COND(pf, hook, skb, indev, outdev, okfn, cond)		\
-+(!(cond) || list_empty(&nf_hooks[(pf)][(hook)])				\
-  ? (okfn)(skb)								\
-  : nf_hook_slow((pf), (hook), (skb), (indev), (outdev), (okfn), INT_MIN))
- #define NF_HOOK_THRESH(pf, hook, skb, indev, outdev, okfn, thresh)	\
-@@ -151,6 +153,8 @@
-  ? (okfn)(skb)								\
-  : nf_hook_slow((pf), (hook), (skb), (indev), (outdev), (okfn), (thresh)))
- #endif
-+#define NF_HOOK(pf, hook, skb, indev, outdev, okfn)			\
-+ NF_HOOK_COND((pf), (hook), (skb), (indev), (outdev), (okfn), 1)
+ #ifdef CONFIG_NET_CLS_ROUTE
+ 	if (skb->dst->tclassid) {
+ 		struct ip_rt_acct *st = ip_rt_acct + 256*smp_processor_id();
+@@ -417,8 +426,8 @@
+ 		}
+ 	}
  
- int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
- 		 struct net_device *indev, struct net_device *outdev,
-@@ -180,6 +184,7 @@
+-	return NF_HOOK(PF_INET, NF_IP_PRE_ROUTING, skb, dev, NULL,
+-		       ip_rcv_finish);
++	return NF_HOOK_COND(PF_INET, NF_IP_PRE_ROUTING, skb, dev, NULL,
++	                    ip_rcv_finish, nf_hook_input_cond(skb));
  
- #else /* !CONFIG_NETFILTER */
- #define NF_HOOK(pf, hook, skb, indev, outdev, okfn) (okfn)(skb)
-+#define NF_HOOK_COND(pf, hook, skb, indev, outdev, okfn, cond) (okfn)(skb)
- static inline void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb) {}
- #endif /*CONFIG_NETFILTER*/
+ inhdr_error:
+ 	IP_INC_STATS_BH(IPSTATS_MIB_INHDRERRORS);
+--- linux-2.6.11-rc4/net/ipv4/esp4.c	2005-02-16 00:59:44.000000000 +0100
++++ linux-2.6.11-rc4-cs1/net/ipv4/esp4.c	2005-02-17 18:16:06.954329088 +0100
+@@ -474,6 +474,7 @@
+ 	.handler	=	xfrm4_rcv,
+ 	.err_handler	=	esp4_err,
+ 	.no_policy	=	1,
++	.xfrm_prot	=	1,
+ };
  
+ static int __init esp4_init(void)
+--- linux-2.6.11-rc4/net/ipv4/ah4.c	2005-02-16 00:59:44.000000000 +0100
++++ linux-2.6.11-rc4-cs1/net/ipv4/ah4.c	2005-02-17 18:16:06.951329544 +0100
+@@ -308,6 +308,7 @@
+ 	.handler	=	xfrm4_rcv,
+ 	.err_handler	=	ah4_err,
+ 	.no_policy	=	1,
++	.xfrm_prot	=	1,
+ };
+ 
+ static int __init ah4_init(void)
+--- linux-2.6.11-rc4/net/core/netfilter.c	2005-02-16 00:59:44.000000000 +0100
++++ linux-2.6.11-rc4-cs1/net/core/netfilter.c	2005-02-17 18:20:27.782685304 +0100
+@@ -27,6 +27,7 @@
+ #include <linux/icmp.h>
+ #include <net/sock.h>
+ #include <net/route.h>
++#include <net/xfrm.h>
+ #include <linux/ip.h>
+ 
+ /* In this code, we can be waiting indefinitely for userspace to
+@@ -675,6 +676,27 @@
+ }
+ EXPORT_SYMBOL(ip_route_me_harder);
+ 
++#ifdef CONFIG_XFRM
++inline int nf_rcv_postxfrm_nonlocal(struct sk_buff *skb)
++{
++	skb->sp->decap_done = 1;
++	dst_release(skb->dst);
++	skb->dst = NULL;
++	nf_reset(skb);
++	return netif_rx(skb);
++}
++
++int nf_rcv_postxfrm_local(struct sk_buff *skb)
++{
++	__skb_push(skb, skb->data - skb->nh.raw);
++	/* Fix header len and checksum if last xfrm was transport mode */
++	if (!skb->sp->x[skb->sp->len - 1].xvec->props.mode) {
++		skb->nh.iph->tot_len = htons(skb->len);
++		ip_send_check(skb->nh.iph);
++	}
++	return nf_rcv_postxfrm_nonlocal(skb);
++}
++ 
+ int skb_ip_make_writable(struct sk_buff **pskb, unsigned int writable_len)
+ {
+ 	struct sk_buff *nskb;
+@@ -840,3 +862,4 @@
+ EXPORT_SYMBOL(nf_unregister_hook);
+ EXPORT_SYMBOL(nf_unregister_queue_handler);
+ EXPORT_SYMBOL(nf_unregister_sockopt);
++EXPORT_SYMBOL(nf_rcv_postxfrm_local);
+--- linux-2.6.11-rc4/include/net/xfrm.h	2005-02-16 00:59:44.000000000 +0100
++++ linux-2.6.11-rc4-cs1/include/net/xfrm.h	2005-02-17 18:21:47.995491104 +0100
+@@ -531,6 +531,9 @@
+ {
+ 	atomic_t		refcnt;
+ 	int			len;
++#ifdef CONFIG_NETFILTER
++	int			decap_done;
++#endif
+ 	struct sec_decap_state	x[XFRM_MAX_DEPTH];
+ };
+ 
+--- linux-2.6.11-rc4/include/net/protocol.h	2005-02-16 00:59:44.000000000 +0100
++++ linux-2.6.11-rc4-cs1/include/net/protocol.h	2005-02-17 18:22:05.457836424 +0100
+@@ -38,6 +38,7 @@
+ 	int			(*handler)(struct sk_buff *skb);
+ 	void			(*err_handler)(struct sk_buff *skb, u32 info);
+ 	int			no_policy;
++	int			xfrm_prot;
+ };
+ 
+ #if defined(CONFIG_IPV6) || defined (CONFIG_IPV6_MODULE)
+--- linux-2.6.11-rc4/include/linux/netfilter_ipv4.h	2005-02-16 00:59:44.000000000 +0100
++++ linux-2.6.11-rc4-cs1/include/linux/netfilter_ipv4.h	2005-02-17 18:22:30.163080656 +0100
+@@ -7,6 +7,8 @@
+ 
+ #include <linux/config.h>
+ #include <linux/netfilter.h>
++#include <linux/netdevice.h>
++#include <net/protocol.h>
+ 
+ /* IP Cache bits. */
+ /* Src IP address. */
+@@ -85,6 +87,58 @@
+    Returns true or false. */
+ extern int skb_ip_make_writable(struct sk_buff **pskb,
+ 				unsigned int writable_len);
++
++#if defined(CONFIG_XFRM) && defined(CONFIG_NETFILTER)
++#include <net/route.h>
++#include <net/xfrm.h>
++
++static inline int nf_hook_input_cond(struct sk_buff *skb)
++{
++	return !skb->sp || skb->sp->decap_done;
++}
++
++static inline int
++nf_xfrm_local_done(struct sk_buff *skb, struct net_protocol *ipprot)
++{
++	return skb->sp && !skb->sp->decap_done
++	       && (!ipprot || !ipprot->xfrm_prot);
++}
++
++static inline int nf_xfrm_nonlocal_done(struct sk_buff *skb)
++{
++	return skb->sp && !skb->sp->decap_done
++	       && !(((struct rtable *)skb->dst)->rt_flags & RTCF_LOCAL);
++}
++
++extern int nf_rcv_postxfrm_local(struct sk_buff *skb);
++extern int nf_rcv_postxfrm_nonlocal(struct sk_buff *skb);
++#else /* CONFIG_XFRM */
++static inline int nf_hook_input_cond(struct sk_buff *skb)
++{
++	return 1;
++}
++
++static inline int
++nf_xfrm_local_done(struct sk_buff *skb, struct net_protocol *ipprot)
++{
++	return 0;
++}
++
++static inline int nf_xfrm_nonlocal_done(struct sk_buff *skb)
++{
++	return 0;
++}
++
++static inline int nf_rcv_postxfrm_local(struct sk_buff *skb)
++{
++	return 0;
++}
++
++static inline int nf_rcv_postxfrm_nonlocal(struct sk_buff *skb)
++{
++	return 0; 
++}
++#endif /* CONFIG_XFRM */
+ #endif /*__KERNEL__*/
+ 
+ #endif /*__LINUX_IP_NETFILTER_H*/
