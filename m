@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: ipt_recent-0.2.1 [PATCH]
-Date: Fri, 21 Jun 2002 19:17:13 +0200
+Subject: Re: [PATCH] DSCP match/target patches
+Date: Fri, 21 Jun 2002 19:28:29 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020621191713.H2543@sunbeam.de.gnumonks.org>
-References: <20020618043438.GV9519@ns>
+Message-ID: <20020621192829.I2543@sunbeam.de.gnumonks.org>
+References: <20020610135311.246C1453D@lists.samba.org> <20020611094130.E11177@sunbeam.de.gnumonks.org> <1024336232.1301.3.camel@desktop>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1S54LkJK1KLPdA7X"
+	protocol="application/pgp-signature"; boundary="IaBBgDMWciIyOY7c"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.samba.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Stephen Frost <sfrost@snowman.net>
+To: Iain Barnes <zenadsl3030@zen.co.uk>
 Content-Disposition: inline
-In-Reply-To: <20020618043438.GV9519@ns>; from sfrost@snowman.net on Tue, Jun 18, 2002 at 12:34:39AM -0400
+In-Reply-To: <1024336232.1301.3.camel@desktop>; from zenadsl3030@zen.co.uk on Mon, Jun 17, 2002 at 06:50:32PM +0100
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -23,22 +23,22 @@ List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---1S54LkJK1KLPdA7X
+--IaBBgDMWciIyOY7c
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jun 18, 2002 at 12:34:39AM -0400, Stephen Frost wrote:
-> Hey all,
+On Mon, Jun 17, 2002 at 06:50:32PM +0100, Iain Barnes wrote:
+> Harald
 >=20
->   Version 0.2.1 of my ipt_recent module has been up and running on my
+> The only thing missing is the Makefile modifications. My knowledge of
+> the fine art of Makefile writing is sorely lacking, so any help on that
+> front, from anybody, would be greatly appreciated.
 
-thanks. For future reference: please send patches as mime attachment,
-uncompressed. this way i can read them in the mailer and don't need to save,
-unzip them before.
+I've now managed to solve the problem without Makefile modifications.
+Feel free to look at the current CVS code :)
 
->   	Thanks,
-> 		Stephen
+> Iain=20
 
 --=20
 Live long and prosper
@@ -51,7 +51,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
 =20
 V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
---1S54LkJK1KLPdA7X
+--IaBBgDMWciIyOY7c
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -59,9 +59,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9E1+YXaXGVTD0i/8RArkhAJ4ytbK6ZcVV/zuRy4UFoeBmTNQOwgCgmLl7
-pnq9BhaT06RVnK/qDXMhlok=
-=G2J4
+iD8DBQE9E2I9XaXGVTD0i/8RAuN9AJ9osXU4CIgFkDSBPWcSCKNnncqwKgCaA4XT
+M+gAXlPUxDbAjMUIVhGZBuY=
+=tGz5
 -----END PGP SIGNATURE-----
 
---1S54LkJK1KLPdA7X--
+--IaBBgDMWciIyOY7c--
