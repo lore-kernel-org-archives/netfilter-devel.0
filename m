@@ -1,19 +1,17 @@
-From: Phil Oester <kernel@linuxace.com>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Subject: Re: ip_conntrack table full problem
-Date: Mon, 21 Mar 2005 13:15:37 -0800
-Message-ID: <20050321211537.GB15155@linuxace.com>
+Date: Mon, 21 Mar 2005 23:58:17 +0100
+Message-ID: <200503212358.17729.thomas.jarosch@intra2net.com>
 References: <200503141647.42299.thomas.jarosch@intra2net.com>
-	<200503211513.59943.thomas.jarosch@intra2net.com>
-	<20050321162147.GA14696@linuxace.com>
-	<200503211803.18918.thomas.jarosch@intra2net.com>
-	<20050321184105.GA378@oknodo.bof.de>
+	<200503211923.48964.thomas.jarosch@intra2net.com>
+	<20050321211441.GA15155@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Thomas Jarosch <thomas.jarosch@intra2net.com>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20050321211441.GA15155@linuxace.com>
 Content-Disposition: inline
-In-Reply-To: <20050321184105.GA378@oknodo.bof.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,16 +23,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Mar 21, 2005 at 07:41:06PM +0100, Patrick Schaaf wrote:
-> > Would it be possible to dump the internal conntrack tables
-> > once the error occurs?
-> 
-> The interface for such dumping is /proc/net/ip_conntrack, where you
-> only find 35 conntracks in your table-full situation. So I would
-> strongly doubt that extra "show them all" code would show much
-> more than that...
+> > IIRC the box makes heavy use of SNAT/DNAT for port forwarding.
+> > I'll try to get a copy of the firewall rules tomorrow and
+> > test it locally here.
+> >
+> > Is there an easy way to see if it leaked conntracks?
+> > Should the information in /proc/slabinfo be somewhat proportional
+> > to the number of connections/lines in /proc/net/ip_conntrack?
+>
+> Yes, the numbers should be in the same ballpark.  Conntracks are being
+> cleaned from the lists (i.e. /proc/net/ip_conntrack), but never being
+> destroyed.  In my testing this is caused by a process not freeing
+> the skb.  What kinds of processes are running on this box?
 
-It would show the conntracks which have been removed from ip_conntrack
-but not yet destroyed.
+There are the usual suspects like apache, mailserver etc.,
+but I can't think of anything that manipulates skbs directly.
+FreeS/WAN is also installed on the box, but I use the same
+configuration at home with no trouble ever.
 
-Phil
+The best thing would be to find a way of reproducing the problem,
+which I start tomorrow. Just checked another box with the same installation
+and 32 days uptime, /proc/slabinfo looks good. IMHO the problem
+is related somehow to the heavy use of SNAT/DNAT as it's the main
+difference between the freezing box and mine.
+
+Thomas
