@@ -1,15 +1,13 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: svn.netfilter.org down again?
-Date: Thu, 31 Mar 2005 12:54:35 +0300
-Message-ID: <424BC8DB.7060303@outerspace.dyndns.org>
-References: <20050331163116.01C9.LARK@linux.net.cn>
+From: Simon Kirby <sim@netnation.com>
+Subject: iptables STILL incorrectly using TCP packet contents without
+	checking header!
+Date: Thu, 31 Mar 2005 10:57:32 -0800
+Message-ID: <20050331185732.GA20249@netnation.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Wang Jian <lark@linux.net.cn>
-In-Reply-To: <20050331163116.01C9.LARK@linux.net.cn>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,23 +19,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi,
 
-Wang Jian wrote:
+Since my post in December, iptables is STILL incorrectly using TCP packet
+contents without checking the header.  I bet this is resulting in dropped
+connections and other issues all over the place but people aren't easily
+able to see why.
 
-| It seems that svn.netfilter.org is out of memory.
+Example:
 
-It happens every now and then.. afaik LaF0rge usually fixes this. It would
-be nice with some watchdog that cheked it at some interval and restarted it
-if necessary...
+iptables -A INPUT -i eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A INPUT -p tcp -j REJECT --reject-with tcp-reset
 
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+These two lines will set up a typical stateful TCP firewall that blocks
+anything incoming that isn't related to outgoing traffic.  Unfortunately,
+it also immediately disconnects any TCP sessions as soon as a corrupted
+packet is received.  Why?  Because:
 
-iD8DBQFCS8jZxyF48ZTvn+4RAia8AKCCDSpTl2lWP4xnNZ2PaR+HvaKsSACguxqV
-RnLmz5eEuYFvSt0DXrw1pb4=
-=4EPQ
------END PGP SIGNATURE-----
+The "state" module checks the TCP checksum.  Good.
+The REJECT module uses TCP data without checking the checksum.  Bad.
+
+In fact, a simple "-p tcp --dport 80" also matches without checking the
+TCP checksum.  This is bad -- the port could be corrupted!
+
+IMHO:
+
+1: -p tcp needs to verify that the IP header is valid (it probably does
+   this already), since the protocol is specified there.
+
+2: -p tcp --dport 80 needs to verify that the IP _AND_ TCP header is
+   valid, since the port is in the TCP header.  It does not do this now.
+
+3: REJECT needs to verify that the data it is using in --tcp-reset is
+   actually valid, because it can be used with just "-p tcp".  ICMP
+   REJECT might also need checking.
+
+Right?  Does this make sense?  Anyone?
+
+(Yes, I'll fix the corrupted packets next..)
+
+Simon-
