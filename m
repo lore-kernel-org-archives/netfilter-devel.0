@@ -1,29 +1,41 @@
-From: "David S. Miller" <davem@redhat.com>
+From: Emmanuel Fleury <fleury@cs.auc.dk>
 Subject: Re: Announce: NetKeeper Firewall For Linux
-Date: Tue, 28 Oct 2003 01:42:23 -0800
+Date: Tue, 28 Oct 2003 11:07:35 +0100
 Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20031028014223.129933be.davem@redhat.com>
+Message-ID: <1067335655.10628.7.camel@rade7.s.cs.auc.dk>
 References: <1067285612.552.9.camel@aphrodite.olympus.net>
+	 <20031028014223.129933be.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com, hadi@cyberus.ca
+Cc: netfilter-devel@lists.netfilter.org, netdev@oss.sgi.com, hadi@cyberus.ca,
+        Mikkel Christiansen <mixxel@cs.auc.dk>
 Return-path: <netdev-bounce@oss.sgi.com>
-To: Emmanuel Fleury <fleury@cs.auc.dk>
-In-Reply-To: <1067285612.552.9.camel@aphrodite.olympus.net>
+To: "David S. Miller" <davem@redhat.com>
+In-Reply-To: <20031028014223.129933be.davem@redhat.com>
 Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-On Mon, 27 Oct 2003 21:13:32 +0100
-Emmanuel Fleury <fleury@cs.auc.dk> wrote:
+On Tue, 2003-10-28 at 10:42, David S. Miller wrote:
+> On Mon, 27 Oct 2003 21:13:32 +0100
+> Emmanuel Fleury <fleury@cs.auc.dk> wrote:
+> 
+> > For more details check out the netkeeper web-site:
+> >     http://www.cs.auc.dk/~fleury/netkeeper/
+> 
+> You may want to have a look at:
+> 
+>   http://www.cyberus.ca/~hadi/patches/action/README
+> 
+> which I believe is the way to implement these kinds
+> of things.
 
-> For more details check out the netkeeper web-site:
->     http://www.cs.auc.dk/~fleury/netkeeper/
+Actually, that is exactly the direction which we have been aiming at.
 
-You may want to have a look at:
+Thanks for this valuable input.
 
-  http://www.cyberus.ca/~hadi/patches/action/README
-
-which I believe is the way to implement these kinds
-of things.
+Regards
+-- 
+Mikkel & Emmanuel
