@@ -1,15 +1,17 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: PATCH: new match: userindex
-Date: Wed, 8 Dec 2004 14:18:34 +0100
-Message-ID: <20041208131834.GA20371@oknodo.bof.de>
-References: <3801.217.169.232.210.1102511374.squirrel@hupie.xs4all.nl>
+From: "Pavel A. Nekrasov" <pnekrasov@gmail.com>
+Subject: Re: [1/1] OSF: pom-ng - linux-2.6.
+Date: Wed, 8 Dec 2004 14:32:33 +0100
+Message-ID: <fa78a99804120805326fed423b@mail.gmail.com>
+References: <1102503533.3363.48.camel@uganda>
+Reply-To: "Pavel A. Nekrasov" <pnekrasov@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Ferry Huberts <ferry@Hupie.com>
-Content-Disposition: inline
-In-Reply-To: <3801.217.169.232.210.1102511374.squirrel@hupie.xs4all.nl>
+To: johnpol@2ka.mipt.ru
+In-Reply-To: <1102503533.3363.48.camel@uganda>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,12 +23,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Kernel module for attaching a user specified index to a rule.
-> It matches every packet in order to have no influence on packet matching,
-> the only effect is to add a user index to a rule
+i got you doing the same.
 
-I think this is already covered - in extended form, i.e. arbitrary string
-instead of an integer - by the comment match, found in patch-o-matic.
+Evgeniy Polyakov wrote:
 
-best regards
-  Patrick
+>+      nts = netlink_kernel_create(NETLINK_NFLOG, NULL);
+
+drivers/w1/w1_int.c:    dev->nls = netlink_kernel_create(NETLINK_NFLOG, NULL);
+
+NETLINK_NFLOG is used by ipt_ULOG, you can't use that socket because
+you are breaking compatibility. You have to use different sockets,
+call davem and request new ones.
+
+kind regards,
+Pavel
