@@ -1,15 +1,15 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [NEW TARGET] target for modifying conntrack timeout value
-Date: Sun, 02 Jan 2005 14:15:19 +0100
-Message-ID: <41D7F3E7.2070002@eurodev.net>
-References: <EINSTEINUuEhjJ8uT6S00000759@einstein.systemmetrics.com>
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re: [PATCH] netfilter: ECN target corrupts packets (2.6 only)
+Date: Sun, 2 Jan 2005 16:07:29 +0100
+Message-ID: <1625859504.20050102160729@dns.toxicfilms.tv>
+References: <1104664660.17292.19.camel@localhost.localdomain>
+Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: 'Netfilter Development Mailinglist' <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Richard <richard@o-matrix.org>
-In-Reply-To: <EINSTEINUuEhjJ8uT6S00000759@einstein.systemmetrics.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <1104664660.17292.19.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,24 +21,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Richard wrote:
+Hello Rusty,
 
->The only change I made is 
->
->+#if 0
->+	ip_ct_refresh_acct(ct, 0, NULL, new_expires);
->+#endif
->+	ip_ct_refresh(ct, new_expires);
->
->This is because I got unresolved symbol ip_ct_refresh_acct when loading the
->kernel module. I am using kernel version 2.4.25.
->  
->
-I forgot to tell you,  ip_ct_refresh was renamed to ip_ct_refresh_acct 
-in 2.6.9. Ick, the API is kinda broken now :(. Since I work with lastest 
-2.6 bk snapshot, I needed to use the new name. I think that it would be 
-nice if you add a comment in that section of code to explain why you did 
-that?
+Sunday, January 2, 2005, 12:17:40 PM, you wrote:
 
---
-Pablo
+> Name: ipt_ECN corrupt checksum fix
+> Status: Tested under nfsim
+> Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+
+> Nasty bug, caught while writing the ECN target test.  Corrupts
+> checksums of packets when target is used on them.
+
+> Let this be a warning on the evils of casts.
+Heh, so that's why ECN stopped working for me :-)
+I will check that out.
+
+I did tcpdumps but for some strange reason I could not see
+the problem there. Maybe tcpdump got premangled packets..
+
+Regards,
+Maciej
