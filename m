@@ -1,70 +1,45 @@
-From: Adrian Bunk <bunk@fs.tum.de>
-Subject: [2.4 patch] add some ipv6 netfilter Configure.help entries
-Date: Sun, 3 Aug 2003 13:54:10 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20030803115410.GT16426@fs.tum.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: iptables icmp protocol match bug.
+Date: Mon, 04 Aug 2003 22:50:50 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <3F2EC72A.7040308@trash.net>
+References: <54265908055.20030731224710@lf.lv> <3F298F80.2000304@trash.net> <20030802160551.GB21637@naboo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, trivial@rustcorp.com.au
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: Marcelo Tosatti <marcelo@conectiva.com.br>, davem@redhat.com,
-	netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Peteris Krumins <newsgroups@lf.lv>,
+ netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030802160551.GB21637@naboo>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-The patch below against 2.4.22-pre10 adds some missing ipv6 netfilter 
-entries to Configure.help (texts stolen from 2.6.0-test2).
+Harald Welte wrote:
 
-Please apply
-Adrian
+>On Thu, Jul 31, 2003 at 11:52:00PM +0200, Patrick McHardy wrote:
+> 
+>  
+>
+>>This is deliberate. There is no valid icmp-type 255, it is used as a
+>>wildcard to match every possible type. See icmp_type_code_match()
+>>in ip_tables.c. Perhaps the userspace tool should warn about invalid
+>>types ?
+>>    
+>>
+>
+>yes, please make this a bugzilla entry so we don't forget about that.
+>  
+>
 
---- linux-2.4.22-pre10-full/Documentation/Configure.help.old	2003-08-03 13:46:47.000000000 +0200
-+++ linux-2.4.22-pre10-full/Documentation/Configure.help	2003-08-03 13:50:39.000000000 +0200
-@@ -2982,6 +2982,47 @@
-   If you want to compile it as a module, say M here and read
-   <file:Documentation/modules.txt>.  If unsure, say `N'.
- 
-+CONFIG_IP6_NF_MATCH_RT
-+  rt matching allows you to match packets based on the routing
-+  header of the packet.
-+
-+  If you want to compile it as a module, say M here and read
-+  <file:Documentation/modules.txt>.  If unsure, say `N'.
-+
-+CONFIG_IP6_NF_MATCH_OPTS
-+  This allows one to match packets based on the hop-by-hop
-+  and destination options headers of a packet.
-+
-+  If you want to compile it as a module, say M here and read
-+  <file:Documentation/modules.txt>.  If unsure, say `N'.
-+
-+CONFIG_IP6_NF_MATCH_FRAG
-+  frag matching allows you to match packets based on the fragmentation
-+  header of the packet.
-+
-+  If you want to compile it as a module, say M here and read
-+  <file:Documentation/modules.txt>.  If unsure, say `N'.
-+
-+CONFIG_IP6_NF_MATCH_HL
-+  HL matching allows you to match packets based on the hop
-+  limit of the packet.
-+
-+  If you want to compile it as a module, say M here and read
-+  <file:Documentation/modules.txt>.  If unsure, say `N'.
-+
-+CONFIG_IP6_NF_MATCH_IPV6HEADER
-+  This module allows one to match packets based upon
-+  the ipv6 extension headers.
-+
-+  If you want to compile it as a module, say M here and read
-+  <file:Documentation/modules.txt>.  If unsure, say `N'.
-+
-+CONFIG_IP6_NF_MATCH_AHESP
-+  This module allows one to match AH and ESP packets.
-+
-+  If you want to compile it as a module, say M here and read
-+  <file:Documentation/modules.txt>.  If unsure, say `N'.
-+
- length match support
- CONFIG_IP6_NF_MATCH_LENGTH
-   This option allows you to match the length of a packet against a
+I'll do that later or just send a patch.
+
+Bye
+Patrick
