@@ -1,11 +1,12 @@
-From: Daimonion <daimonion@misanthropos.de>
-Subject: ip_conntrack cleanup on reconnection?
-Date: Mon, 05 Jul 2004 15:20:28 +0200
+From: eremin <eremin@rosbi.ru>
+Subject: libiptc
+Date: Tue, 6 Jul 2004 10:58:56 +0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <opsan10edrkwfgqe@starbug.karlshof.de>
+Message-ID: <1123133956.20040706105856@rosbi.ru>
+Reply-To: eremin <eremin@rosbi.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-15
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,29 +19,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+Hello netfilter-devel,
 
-I have a with my DSL uplink reconnects (ppp restart) for kernels with  
-higher versions than 2.4.23.
-I am using Teamspeak (TS) connected to a public server.
-With 2.4.23 I can restart the ppp-connection and my TS-client still keeps  
-connected with the TS-server, which
-I appreciate. But eversince 2.4.25 or 2.6.x a ppp reconnect disconnects  
-the TS-client and I have to reconnect
-manually.
-Additionally, if I played a game (Enemy Territory) while getting  
-disconnected, I can?t reconnect to that
-server anymore for a while. It seems like an entry in ip_conntrack  
-prevents me from reconnecting (UDP) until
-it has timed out.
+  How with the libiptc to work with ports? (i.e. source-port or
+  dest-port)? If it is impossible, what to use?
 
-Any suggestions, or ideas on this one?
+-- 
+Best regards,
 
-Having a look at net/ip_MASQUARDE.c the ip_conntrack list should be empty  
-after a device was down (cleanup?), but
-the list still is full of entries.
-Shouldnt the list be empty or, at least rewritten with the new  
-ip-addresses?
-
-Regards,
-Richard
+Alex
