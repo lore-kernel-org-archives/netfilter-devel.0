@@ -1,19 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH]: 1st step to remove skb_linearize() in ip6_tables.c and
- optimization
-Date: Mon, 28 Jun 2004 22:31:48 +0200
+From: Fallucchi Antonio <fallucch@cisbic.com>
+Subject: Re: Userspace queuing
+Date: Tue, 29 Jun 2004 11:08:49 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40E08034.8040301@trash.net>
-References: <200406240404.NAA01264@toshiba.co.jp> <40DABA52.9070700@trash.net> <19040125165321.GA4640@obroa-skai.de.gnumonks.org>
+Message-ID: <40E131A1.3060409@cisbic.com>
+References: <Pine.LNX.4.44.0406261535140.16464-100000@filer.marasystems.com> <200406280718.i5S7I1MX005242@madinah.ccse.kfupm.edu.sa> <20040628171625.GB32388@maluco.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
- netfilter-devel@lists.netfilter.org,  kisza@securityaudit.hu,
- usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <19040125165321.GA4640@obroa-skai.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20040628171625.GB32388@maluco.com.br>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,27 +20,59 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> On Thu, Jun 24, 2004 at 01:26:10PM +0200, Patrick McHardy wrote:
-> 
->>One call to skb_linearize would most likely be less expensive. I'm
->>thinking about putting the copied protocol header in the control
->>buffer, this would reduce this extensive copying a lot. We could also
->>do some common preprocessing steps in one place, like converting
->>things to host byte order.
-> 
-> 
-> yes, it would be only one copy... but to real memory..
-> Maybe we need some benchmarking on this.
+hi,
 
-It may be only to cache, but in case the skb is non-linear skb_copy_bits
-calls local_bh_disable and kmap_atomic for the paged part, and walks
-frag_list. I don't expect skb_ip_make_writable to be much faster in
-all cases, but a new function which would only linearize the transport
-headers, without copying the entire skb, probably would be.
-Unfortunately I don't have time to implement and benchmark it right now.
+i use libipq and "QUEUE" for read the SYN  pachet sent from local 
+application...
+now I must REDIRECT all packet (width nat) to a local service (proxy).
 
->>Regards
->>Patrick
-> 
-> 
+I have configure the netfilter:
+
+*nat
+:PREROUTING ACCEPT [4:240]
+:POSTROUTING ACCEPT [22:1306]
+:OUTPUT ACCEPT [18:1066]
+-A OUTPUT -d ! 127.0.0.1 -p tcp -m tcp --dport 80 ! --tcp-flags SYN SYN 
+-j DNAT --to-destination 127.0.0.1:80
+-A OUTPUT -d ! 127.0.0.1 -p tcp -m tcp --dport 80 --tcp-flags SYN SYN -j 
+QUEUE
+COMMIT
+
+or
+
+*nat
+:PREROUTING ACCEPT [4:240]
+:POSTROUTING ACCEPT [22:1306]
+:OUTPUT ACCEPT [18:1066]
+-A OUTPUT -d ! 127.0.0.1 -p tcp -m tcp --dport 80 --tcp-flags SYN SYN -j 
+QUEUE
+-A OUTPUT -d ! 127.0.0.1 -p tcp -m tcp --dport 80 ! --tcp-flags SYN SYN 
+-j DNAT --to-destination 127.0.0.1:80
+COMMIT
+
+in all the solution the packets bypass the nat rule..
+there is other solution ??
+
+Ulysses Almeida wrote:
+
+>Sorry, I forgot the link http://www.glug.ucdb.br/~ulysses/libipq.html
+>
+>  Regards
+>
+>On Mon, Jun 28, 2004 at 10:17:21AM +0300, Muhammad R. Sami wrote:
+>  
+>
+>>Thanks Henrik for your help, I have 2 questions, first of all I could not
+>>find anyway to extract and read packet payload through libipq, I know it has
+>>a function to do so but how to use it (any examples??) and secondly is there
+>>any implementation of priority queues (multiple FIFOs) at userspace using
+>>libipq. If you can help me on these, I would be thankful. 
+>>Regards,
+>>
+>>
+>>
+>>    
+>>
+>
+>  
+>
