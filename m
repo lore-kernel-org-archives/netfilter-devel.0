@@ -1,34 +1,34 @@
-From: "David S. Miller" <davem@davemloft.net>
+From: Oliver Neukum <oliver@neukum.org>
 Subject: Re: [Coverity] Untrusted user data in kernel
-Date: Fri, 17 Dec 2004 11:16:34 -0800
-Message-ID: <20041217111634.740d4d46.davem@davemloft.net>
-References: <Xine.LNX.4.44.0412170144410.12579-100000@thoron.boston.redhat.com>
-	<41C2DCBC.1080302@dbservice.com>
+Date: Fri, 17 Dec 2004 20:30:04 +0100
+Message-ID: <200412172030.04831.oliver@neukum.org>
+References: <41C26DD1.7070006@trash.net> <Pine.LNX.4.61.0412171108340.4216@chaos.analogic.com> <41C330F7.4000806@dbservice.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Cc: bryan@coverity.com, jmorris@redhat.com, netdev@oss.sgi.com,
-	netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org, kaber@trash.net
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Cc: linux-os@analogic.com, Bill Davidsen <davidsen@tmr.com>,
+        James Morris <jmorris@redhat.com>, Patrick McHardy <kaber@trash.net>,
+        Bryan Fulton <bryan@coverity.com>, netdev@oss.sgi.com,
+        netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Return-path: <netdev-bounce@oss.sgi.com>
 To: Tomas Carnecky <tom@dbservice.com>
-In-Reply-To: <41C2DCBC.1080302@dbservice.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+In-Reply-To: <41C330F7.4000806@dbservice.com>
+Content-Disposition: inline
+Sender: netdev-bounce@oss.sgi.com
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 17 Dec 2004 14:18:52 +0100
-Tomas Carnecky <tom@dbservice.com> wrote:
 
-> IMHO such things (passing values between user/kernel space) should 
-> always be checked.
+> But the difference between you example (cp /dev/zero /dev/mem) and 
+> passing unchecked data to the kernel is... you _can_ check the data and 
 
-As per Patrick's posting, which James was responding to, it is
-checked at the level above this function.
+This is the difference:
+static int open_port(struct inode * inode, struct file * filp)
+{
+	return capable(CAP_SYS_RAWIO) ? 0 : -EPERM;
+}
+(from mem.c)
+
+	Regards
+		Oliver
