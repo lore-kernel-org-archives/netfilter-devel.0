@@ -1,17 +1,17 @@
-From: "Saber zrelli" <saber_z@fastmail.fm>
-Subject: Re: real time stateful filtering question
-Date: Wed, 17 Mar 2004 16:49:37 +0900
+From: Vijaya Chandra Vupputuri <vijay@tachyontech.net>
+Subject: Re: More on LIST_DELETE message with kernels 2.4.23 through 2.4.25
+Date: Wed, 17 Mar 2004 15:08:02 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1079509777.8006.182822495@webmail.messagingengine.com>
-References: <Pine.LNX.4.44.0403170807250.4188-100000@filer.marasystems.com>
+Message-ID: <1079516281.4874.11.camel@vijay>
+References: <Pine.LNX.4.33.0403121424070.20054-100000@blackhole.kfki.hu>
+	 <1079458116.843.62.camel@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: "Netfilter Community" <netfilter-devel@lists.netfilter.org>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-Content-Disposition: inline
-To: "peter smith" <smith-peter@comcast.net>
-In-Reply-To: <Pine.LNX.4.44.0403170807250.4188-100000@filer.marasystems.com>
+To: KOVACS Krisztian <hidden@balabit.hu>
+In-Reply-To: <1079458116.843.62.camel@nienna.balabit>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,42 +22,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-On Wed, 17 Mar 2004 08:13:43 +0100 (CET), "Henrik Nordstrom"
-<hno@marasystems.com> said:
-> On Mon, 15 Mar 2004, peter smith wrote:
-> 
-> > Unfortunately, packets sent on the data channel are also in your receive
-> > buffer, and get processed by netfilter *before* the "PORT COMMAND" packet
-> > gets processed by the userland monitor, or before the monitor can
-> > sucessfully re-program the netfilter filter list. So they are dropped,
-> > silently.
-> 
-> This is a somewhat bad example as FTP does not do anything with the data 
-> channel until a response to the PORT command is seen and thus there can 
-> not be such race window there.
-> 
-> For most other protocols with "related" channels the same criteria is
-> also
-> true. But there probably is some protocols not waiting for a response to
-> their control message before starting to use the "related" channel and
-> where the race you discuss can occur.
-> 
-> You can minimize the race by running your session tracking in the kernel 
-> as conntrack protocol helpers, but even then there will be a small race 
-> window if the appliaction does not wait for some response to the control 
-> message before starting to use the related connection.
+'ve tried to do the same but I don't seem to have any problem on a test
+box with redhat 7.3 (2.4.18-3)
 
-if there is a kernel module that does the filtering , why does race still
-exist ,
-if the filtering is programatically set then no packet will be proceeded
-until your return from the hook function .
-thats why it is called interruption also .
+If I understood what you said properly the following is your setup,
+the ip of the test box is 10.1.0.1 and you have a lan 10.1.0.0/16 whose
+gateway is 10.1.0.1
+on 10.1.0.1 you redirect any traffic to port 80 to the local port 8080
 
+now if 10.1.0.2 tries to connect to, say, 216.239.41.104 it gets
+redirected to the port 8080 on 10.1.0.1
 
-Regards.
--- 
-  Saber Zrelli
-  kanazawa university international house 
-  kakuma-machi , kanazawa , Ishikawa 
-  920-1192 Japan. 
+but, from 10.1.0.2, if you try to connect directly to port 80 on
+10.1.0.1, with your setup where nothing is listening on 80, the box
+would hang. am i right?!
+
+please do let me know if i've missed anything obvious.
+
+Regards,
+Vijaya Chandra Vupputuri,
+Tachyon Technologies.
+
+On Tue, 2004-03-16 at 22:58, KOVACS Krisztian wrote:
+>   Hi,
+> 
+> On Fri, 2004-03-12 at 14:30, Jozsef Kadlecsik wrote:
+> > >   Jozsef, and others pursuing this ugly thing. Please take a look at
+> > > http://lists.netfilter.org/pipermail/netfilter-devel/2004-March/014442.html
+> > > and probably the thread about find_appropriate_src(). I'd be really glad
+> > > to have someone answer it, or somehow show some interest in it.
+> > 
+> > I'll try to look at it. Unfortunately at the moment I'm very busy with
+> > issues from the institute I work for. Sigh. Hopefully I'll find some
+> > time-slot...
+> 
+>   I can reliably reproduce the bug. One of the IPs of the host is
+> 10.1.0.1. Only one NAT rule is needed:
+> 
+> # iptables -t nat -A PREROUTING -p tcp -s 10.1.0.0/16 --dport 80 -j
+> REDIRECT --to-ports 8080
+> 
+>   Then try to connect to port 80 of 10.1.0.1. The connection gets stuck
+> in SYN_SENT state, and when it times out, corrupts its REPLY_DIR hash
+> chain. Note that LOCAL_NAT is _off_, so this connection won't have a
+> null binding allocated.
