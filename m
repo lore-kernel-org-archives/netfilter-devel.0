@@ -1,16 +1,15 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: [PATCH] Re: INVALID state incorrectly explained in iptables.8 manpage
-Date: Sat, 28 Jun 2003 13:00:51 +0200 (CEST)
+From: Oskar Andreasson <blueflux@koffein.net>
+Subject: Re: Error in rules DNAT
+Date: Sun, 29 Jun 2003 16:03:15 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0306281258150.11999@dns.toxicfilms.tv>
-References: <1056796902.1233.25.camel@elendil.intranet.cartel-securite.net>
+Message-ID: <Pine.LNX.4.44.0306291601130.24424-100000@laptop1.agatha>
+References: <007b01c34328$5449a050$0100000a@william>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=iso-8859-2
-Content-Transfer-Encoding: 8BIT
-Cc: netfilter-devel@lists.netfilter.org, gkweb <gkweb@wanadoo.fr>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Cedric Blancher <blancher@cartel-securite.fr>
-In-Reply-To: <1056796902.1233.25.camel@elendil.intranet.cartel-securite.net>
+To: William da Rocha Lima <wrochal@linuxit.com.br>
+In-Reply-To: <007b01c34328$5449a050$0100000a@william>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,26 +20,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi William,
 
-> What do you think of including this definition into man page ?
-I would agree, it sounds better, here is a patch.
+Sorry to say this, but I must ask, what are you talking about? 
 
-> Cédric Blancher  <blancher@cartel-securite.fr>
-Maciej
+On Sat, 5 Jul 2003, William da Rocha Lima wrote:
 
+> Oskar Andreasson,
+> 
+> Verifies that rule DNAT this incorrect one:
+> iptables - t nat - the PREROUTING - p tcp - d 15,45,23,67 -- dport 80 - j
+> DNAT -- to-destination 192,168,1,1
+> 
+> the correct one is:
+> 
+> iptables - t nat - the PREROUTING - p tcp - i ethX - d 15,45,23,67 -- 
+> dport - 80 j DNAT -- to-destination 192,168,1,1
+> 
+> being that ethX is entrance interface
+> 
+> Articles write iam:
+> http://www.linuxit.com.br/modules.php?name=Sections&op=viewarticle&artid=21
+> 
+> bye,
+> 
+> ====================
+> William da Rocha Lima
+> wrochal@linuxit.com.br
+> www.linuxit.com.br
+> 
+> 
+> 
 
-diff -u netfilter.orig/userspace/iptables.8 netfilter/userspace/iptables.8
---- netfilter.orig/userspace/iptables.8	2003-05-24 13:44:18.000000000 +0200
-+++ netfilter/userspace/iptables.8	2003-06-28 12:56:42.000000000 +0200
-@@ -610,7 +610,9 @@
- Where state is a comma separated list of the connection states to
- match.  Possible states are
- .B INVALID
--meaning that the packet is associated with no known connection,
-+meaning that the packet could not be identified for some reason which
-+includes running out of memory and ICMP errors which don't correspond to any
-+known connection,
- .B ESTABLISHED
- meaning that the packet is associated with a connection which has seen
- packets in both directions,
+-- 
+----
+Oskar Andreasson
+http://www.frozentux.net
+http://iptables-tutorial.frozentux.net
+http://ipsysctl-tutorial.frozentux.net
+mailto:blueflux@koffein.net
