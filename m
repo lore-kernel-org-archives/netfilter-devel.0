@@ -1,16 +1,17 @@
-From: Peter Surda <shurdeek@panorama.sth.ac.at>
-Subject: Re: using string match - was: my new option calls httpr
-Date: Mon, 3 Mar 2003 13:43:35 +0100
+From: Esteban <eribicic@sinectis.com>
+Subject: Re: [NEW TARGET] MARKCB connection marking balancing
+Date: 03 Mar 2003 12:31:11 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030303124335.GF20786@smith.cb.ac.at>
-References: <618861251.20030301124005@yahoo.es> <200303031637.30785.fabrice@netfilter.org>
+Message-ID: <1046705471.2728.150.camel@debian>
+References: <3E62AF18.8010000@zobniow.priv.pl>
+	<200303031653.47644.fabrice@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wTWi5aaYRw9ix9vO"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: lista de correo netfilter <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <200303031637.30785.fabrice@netfilter.org>
+To: fabrice@netfilter.org
+In-Reply-To: <200303031653.47644.fabrice@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,73 +22,63 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+what is that nth? i couldnt find in iptables man page.
+where can i find more information?
+thanks,
 
---wTWi5aaYRw9ix9vO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+ps: is there any diference between using -j SNAT --to-source and -j
+MASQUERADE? ive got static ip address on my internet connection? 
 
-On Mon, Mar 03, 2003 at 04:37:30PM +0800, Fabrice MARIE wrote:
-> Hola,
-hi
+cause ive got my internal network masqueraded and i try to use fwmarks
+in preroutinng to route to another  gw i have (iproute2)..and it works
+(packets goes from internal to destination over the gw i choose) but
+they dont come back because nat is not applyed and ofcourse, internal
+packets are not routeable packets (10.0.0.0/24)..any idea? that would be
+a smooth solution for balance traffic.
 
-> On Saturday 01 March 2003 19:40, macadanet@yahoo.es wrote:
-> > When I didn't modify -string option. I created a new option -httpr
-> > (http request).
-> > I had done a test suite above my network with this patch aplied. In
-> > Input string on NETFILTER hook, I had a 4 rules:
-> > iptables -A INPUT -m httpr --httpr '"GET"?"cmd.exe"?"dir"?"HTTP"' -j LOG
-> > iptables -A INPUT -m httpr --httpr '"GET"?"tftp"?"HTTP"' -j LOG
-> > iptables -A INPUT -m httpr --httpr '"GET"?"root.exe"?"HTTP"' -j LOG
-> > iptables -A INPUT -m httpr --httpr '"GET"?"default.ida"?[XNO]*?"HTTP"' =
--j LOG
+On Mon, 2003-03-03 at 05:53, Fabrice MARIE wrote:
+> 
+> Dzien Dobre Maciek,
+> 
+> On Monday 03 March 2003 09:25, Maciek Zobniow wrote:
+> > Hi all!
+> >   This is my first message to this list and I want to annouce a first
+> > version of my new netfilter module for connection tracking balancing.
+> > First maybe I will try to describe what this target should do:
+> > I made this as a solution for balancing connections from one LAN,
+> > betewen a few providers links, but I think that is possible to find
+> > another good usages for this target.
+> > Idea is quite simply: each connection (yes, connection not packet) which
+> > arrived to this target is marked. It recive one mark which is use for
+> > marking all packets  from this connection. Marks are sharing by choosen
+> > algorithm (for now I implemented RR, WRR and special one- basing on
+> > amout of data for each mark for last 1000 packets).
 > > [...]
-> Don't get me wrong, I'm just trying to explain why you shouldn't be doing=
- this,
-> please don't take it personally. This is a reminder for a lot of people, =
-not
-> just you.
-I had a slightly similar problem to solve. I solved it by writing a daemon =
-in
-perl that processes logs in realtime and if it finds out someone is hitting=
- it
-with nimda, it calls iptables to DROP the IP and sends me an email with
-description and excerpts from the logs. The advantage is, this method can be
-used both for squid and httpd.
-
-> All the HTTP rules above will be exploited trivially with Unicode encodin=
-g,
-> or ASCII encoding (for example you can write the URL as GET /cmd.%65x%65
-> %65 being the hexadecimal ASCII number for 'e'). Look at the tool whisker
-> for more informations on IDS evasion techniques, a lot of them are applic=
-able
-> to the string match.
-Basically you are right, but in this case it doesn't happen. Nimda hits only
-with non-escaped URLs. Anyway, user space daemon can take care of that as
-well.
-
+> 
+> Just out of curiosity, how different is that from using the nth match
+> to do RR SNATting ?
+> 
+> [
+> i.e, Taken from the example section of the patch:
+> 
+> iptables -t nat -A POSTROUTING -o eth0 -m nth --counter 7 --every 3 --packet 0 -j SNAT --to-source 10.0.0.5
+> iptables -t nat -A POSTROUTING -o eth0 -m nth --counter 7 --every 3 --packet 1 -j SNAT --to-source 10.0.0.6
+> iptables -t nat -A POSTROUTING -o eth0 -m nth --counter 7 --every 3 --packet 2 -j SNAT --to-source 10.0.0.7
+> 
+> This example evenly splits connections between the three SNAT addresses.
+> ]
+> 
+> Using nth, we use the fact that only the first packet of connections need to be SNATed.
+> This extension to the nth original patch was made by Richard. I haven't tried it myself yet though
+> as I have only one ISP :-)
+> 
 > Have a nice day,
->=20
+> 
 > Fabrice.
-Bye,
-
-Peter Surda (Shurdeek) <shurdeek@panorama.sth.ac.at>, ICQ 10236103, +436505=
-122023
-
---
-                   Disc space - The final frontier.
-
---wTWi5aaYRw9ix9vO
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: Weitere Infos: siehe http://www.gnupg.org
-
-iD8DBQE+Y033zogxsPZwLzcRAgr6AJwJRbm4m9A47Ta/8jGPG5RYf/tv5ACgia92
-KPmbMre+rrD97e+5Q2M4NlA=
-=BSQt
------END PGP SIGNATURE-----
-
---wTWi5aaYRw9ix9vO--
+> --
+> Fabrice MARIE
+> 
+> "Silly hacker, root is for administrators"
+>        -Unknown
+> 
+> 
