@@ -1,13 +1,12 @@
 From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 1/4] fixes for dst match
-Date: Fri, 22 Oct 2004 11:56:51 +0900 (JST)
+Subject: [PATCH 2/4] fixes for hbh match
+Date: Fri, 22 Oct 2004 11:57:16 +0900 (JST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <200410220256.i9M2uqMD003834@toshiba.co.jp>
+Message-ID: <200410220257.i9M2vIRL007112@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Fri_Oct_22_11:56:51_2004_331)--"
+	boundary="--Next_Part(Fri_Oct_22_11:57:16_2004_061)--"
 Content-Transfer-Encoding: 7bit
-Cc: usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -20,13 +19,11 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Fri_Oct_22_11:56:51_2004_331)--
+----Next_Part(Fri_Oct_22_11:57:16_2004_061)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-This patch fixes the following bugs in ip6t_dst.c.
-
-	- ".me = THIS_MODULE," is missing 
+This patch fixes the following bugs in ip6t_hbh.c.
 
 	- The cast of the pointer to the next IPv6 extension header is wrong.
 
@@ -43,31 +40,24 @@ Signed-off-by Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 -----------------------------------------------------------------
 Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
-----Next_Part(Fri_Oct_22_11:56:51_2004_331)--
+
+----Next_Part(Fri_Oct_22_11:57:16_2004_061)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="dst-fix.patch"
+Content-Disposition: inline; filename="hbh-fix.patch"
 
---- linux-2.6.9-rc3-nolin/net/ipv6/netfilter/ip6t_dst.c	2004-10-10 15:06:05.000000000 +0900
-+++ linux-2.6.9-rc3-nolin-extfix/net/ipv6/netfilter/ip6t_dst.c	2004-10-20 23:57:35.000000000 +0900
-@@ -7,7 +7,6 @@
-  * published by the Free Software Foundation.
-  */
- 
--
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/ipv6.h>
-@@ -20,8 +19,6 @@
+--- linux-2.6.9-rc3-nolin/net/ipv6/netfilter/ip6t_hbh.c	2004-09-30 19:36:23.000000000 +0900
++++ linux-2.6.9-rc3-nolin-extfix/net/ipv6/netfilter/ip6t_hbh.c	2004-10-21 10:35:33.068081256 +0900
+@@ -19,8 +19,6 @@
  #include <linux/netfilter_ipv6/ip6_tables.h>
  #include <linux/netfilter_ipv6/ip6t_opts.h>
  
 -#define LOW(n)		(n & 0x00FF)
 -
- #define HOPBYHOP	0
+ #define HOPBYHOP	1
  
  MODULE_LICENSE("GPL");
-@@ -48,8 +45,8 @@
+@@ -47,8 +45,8 @@
   *  	0	-> invariant
   *  	1	-> can change the routing
   *  (Type & 0x1F) Type
@@ -78,7 +68,7 @@ Content-Disposition: inline; filename="dst-fix.patch"
   *      C0 | 2	-> JUMBO 4 x x x x ( xxxx > 64k )
   *      5	-> RTALERT 2 x x
   */
-@@ -71,7 +68,8 @@
+@@ -70,7 +68,8 @@
         unsigned int ptr;
         unsigned int hdrlen = 0;
         unsigned int ret = 0;
@@ -88,7 +78,7 @@ Content-Disposition: inline; filename="dst-fix.patch"
         
         /* type of the 1st exthdr */
         nexthdr = skb->nh.ipv6h->nexthdr;
-@@ -98,7 +96,7 @@
+@@ -97,7 +96,7 @@
                       break;
                }
  
@@ -97,7 +87,7 @@ Content-Disposition: inline; filename="dst-fix.patch"
  
                /* Calculate the header length */
                  if (nexthdr == NEXTHDR_FRAGMENT) {
-@@ -160,7 +158,7 @@
+@@ -159,7 +158,7 @@
         		return 0;
         }
  
@@ -106,7 +96,7 @@ Content-Disposition: inline; filename="dst-fix.patch"
  
         DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, optsh->hdrlen);
  
-@@ -176,7 +174,6 @@
+@@ -175,7 +174,6 @@
                             ((optinfo->hdrlen == hdrlen) ^
                             !!(optinfo->invflags & IP6T_OPTS_INV_LEN)));
  
@@ -114,7 +104,7 @@ Content-Disposition: inline; filename="dst-fix.patch"
         ptr += 2;
         hdrlen -= 2;
         if ( !(optinfo->flags & IP6T_OPTS_OPTS) ){
-@@ -187,48 +184,52 @@
+@@ -186,48 +184,52 @@
  		DEBUGP("Strict ");
  		DEBUGP("#%d ",optinfo->optsnr);
  		for(temp=0; temp<optinfo->optsnr; temp++){
@@ -195,13 +185,5 @@ Content-Disposition: inline; filename="dst-fix.patch"
  		}
  		if (temp == optinfo->optsnr)
  			return ret;
-@@ -270,6 +271,7 @@
- #endif
- 	.match		= &match,
- 	.checkentry	= &checkentry,
-+	.me		= THIS_MODULE,
- };
- 
- static int __init init(void)
 
-----Next_Part(Fri_Oct_22_11:56:51_2004_331)----
+----Next_Part(Fri_Oct_22_11:57:16_2004_061)----
