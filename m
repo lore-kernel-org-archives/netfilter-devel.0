@@ -1,16 +1,17 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: Per site de-window-scaling
-Date: Thu, 2 Sep 2004 13:17:15 -0700
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Fix for u32 match, problems when parsing arguments
+Date: Thu, 02 Sep 2004 22:55:27 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040902131715.7b83805f.davem@redhat.com>
-References: <20040902120144.0b811b73@dell_ss3.pdx.osdl.net>
+Message-ID: <413788BF.1080807@trash.net>
+References: <20040902122802.GA6427@barbara.eu.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Stephen Hemminger <shemminger@osdl.org>
-In-Reply-To: <20040902120144.0b811b73@dell_ss3.pdx.osdl.net>
+To: =?ISO-8859-15?Q?Piotr_Gasid=B3o?=
+	<quaker@pandora.barbara.ds.polsl.gliwice.pl>
+In-Reply-To: <20040902122802.GA6427@barbara.eu.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,11 +22,39 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2 Sep 2004 12:01:44 -0700
-Stephen Hemminger <shemminger@osdl.org> wrote:
+Piotr Gasid³o wrote:
 
-> Is there a simple way with netfilter to do per-site TCP SYN mangling
-> to remove the window scale option?  That way sites that have window-scale
-> corrupting firewalls could be blacklisted.
+>Hello,
+>
+>I've found bug in u32 iptables helper library.
+>
+># iptables -A FORWARD -m u32 --u32 "0&0xffffffff=0"
+>iptables v1.2.11: u32: at char 2 error reading number
+>  
+>
+>Attached patch, fixes problem.
+>  
+>
+Applied, thanks.
 
-We could make this a routing metric, RTAX_MAX_WINDOW or something.
+Regards
+Patrick
+
+>  
+>
+>------------------------------------------------------------------------
+>
+>diff -uNr iptables.orig/extensions/libipt_u32.c iptables/extensions/libipt_u32.c
+>--- iptables.orig/extensions/libipt_u32.c	Thu Sep  2 14:13:50 2004
+>+++ iptables/extensions/libipt_u32.c	Thu Sep  2 13:20:23 2004
+>@@ -85,7 +85,7 @@
+> 	char *end;
+> 	errno = 0;
+> 
+>-	number = strtol(*s, &end, 0);
+>+	number = strtoul(*s, &end, 0);
+> 	if (end == *s)
+> 		exit_error(PARAMETER_PROBLEM, 
+> 			   "u32: at char %d expected number", pos);
+>  
+>
