@@ -1,15 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.6] netfilter conntrack optimization (LIST_DELETE)
-Date: Sun, 24 Aug 2003 10:57:42 +0200
+Subject: Re: Making ip_queue l3 independent
+Date: Sun, 24 Aug 2003 11:01:06 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030824085742.GQ6750@sunbeam.de.gnumonks.org>
+Message-ID: <20030824090106.GA10987@sunbeam.de.gnumonks.org>
+References: <20030823210022.GA6750@sunbeam.de.gnumonks.org> <Mutt.LNX.4.44.0308241738460.20308-100000@excalibur.intercode.com.au>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6zn93sY2JrH9m7VZ"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="x+6KMIRAuhnl3hBn"
+Cc: coreteam@netfilter.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: David Miller <davem@redhat.com>
+To: James Morris <jmorris@intercode.com.au>
 Content-Disposition: inline
+In-Reply-To: <Mutt.LNX.4.44.0308241738460.20308-100000@excalibur.intercode.com.au>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,63 +24,48 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---6zn93sY2JrH9m7VZ
+--x+6KMIRAuhnl3hBn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Dave!
+On Sun, Aug 24, 2003 at 05:51:27PM +1000, James Morris wrote:
+> On Sat, 23 Aug 2003, Harald Welte wrote:
+>=20
+> > James, what is your take on this?  What do you think?  If you agree, do
+> > you have the time to do the change, or would you be fine if I'd work out
+> > a patch?
+>=20
+> Yes it's a good idea.  Most of the code is indeed protocol independent,
+> and things like the mangle function could be registerable as part of e.g.=
+ =20
+> nf_queue_handler_ops.
 
-The following patch against 2.6.0-test4 (courtesy of Patrick McHardy)
-optimizes the conntrack code.  In the old implementation, the hash function
-was passed to the LIST_DELETE macro, which resulted in it being called
-two times instead of one.
+that was what I've been thinking about.
 
-This patch also applies to 2.4.x - but I think we should wait for
-2.4.23-preX to come up first.  Do you want me to re-submit it for
-2.4.23-preX, once it shows up?
+> It is unlikely that I would have time to work on this before 2.6.0, due t=
+o=20
+> other projects and the fact that I'm moving to the US in a few weeks. =20
 
-Please apply, thanks!
+ok.  I think I can spend some time on implementing the change.
 
+> Please feel free to hack on the code.  Another potentially useful
+> improvement would be to allow for multiple packet messages and verdicts,
+> which I don't think would be difficult to implement (using the same or
+> similar technique in your ulogd code).
 
-=3D=3D=3D=3D=3D net/ipv4/netfilter/ip_conntrack_core.c 1.25 vs edited =3D=
-=3D=3D=3D=3D
---- 1.25/net/ipv4/netfilter/ip_conntrack_core.c	Fri Jul 25 23:14:23 2003
-+++ edited/net/ipv4/netfilter/ip_conntrack_core.c	Mon Aug 18 16:31:22 2003
-@@ -291,14 +291,15 @@
- static void
- clean_from_lists(struct ip_conntrack *ct)
- {
-+	unsigned int ho, hr;
-+=09
- 	DEBUGP("clean_from_lists(%p)\n", ct);
- 	MUST_BE_WRITE_LOCKED(&ip_conntrack_lock);
--	LIST_DELETE(&ip_conntrack_hash
--		    [hash_conntrack(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple)],
--		    &ct->tuplehash[IP_CT_DIR_ORIGINAL]);
--	LIST_DELETE(&ip_conntrack_hash
--		    [hash_conntrack(&ct->tuplehash[IP_CT_DIR_REPLY].tuple)],
--		    &ct->tuplehash[IP_CT_DIR_REPLY]);
-+
-+	ho =3D hash_conntrack(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
-+	hr =3D hash_conntrack(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-+	LIST_DELETE(&ip_conntrack_hash[ho], &ct->tuplehash[IP_CT_DIR_ORIGINAL]);
-+	LIST_DELETE(&ip_conntrack_hash[hr], &ct->tuplehash[IP_CT_DIR_REPLY]);
+Well, I think this can be added later on, as it doesn't really change
+anything.
+
+> It would be nice to maintain binary compatibility with current libipq, if=
 =20
- 	/* Destroy all un-established, pending expectations */
- 	remove_expectations(ct, 1);
-@@ -370,9 +371,10 @@
- 		    const struct ip_conntrack *ignored_conntrack)
- {
- 	struct ip_conntrack_tuple_hash *h;
-+	unsigned int hash =3D hash_conntrack(tuple);
-=20
- 	MUST_BE_READ_LOCKED(&ip_conntrack_lock);
--	h =3D LIST_FIND(&ip_conntrack_hash[hash_conntrack(tuple)],
-+	h =3D LIST_FIND(&ip_conntrack_hash[hash],
- 		      conntrack_tuple_cmp,
- 		      struct ip_conntrack_tuple_hash *,
- 		      tuple, ignored_conntrack);
+> possible.
+
+Are you talking about userspace API compatibility to libipq, or binary
+compatiblity on the netlink socket?
+
+> - James
+
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -88,16 +76,16 @@ Please apply, thanks!
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---6zn93sY2JrH9m7VZ
+--x+6KMIRAuhnl3hBn
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/SH4GXaXGVTD0i/8RAlSAAJ9Xzo7mMYVfmkl7Z4OAC7oxHaLxzgCeJHBJ
-PhWnJV4DxhIweQe4AGb5aDY=
-=dFAY
+iD8DBQE/SH7SXaXGVTD0i/8RAt3VAJ9t5WKWXZg06PuHgaafaW9sUGJgcQCfX9oi
+46TLoe2lzFADPVnxnq1BKrY=
+=xQ+q
 -----END PGP SIGNATURE-----
 
---6zn93sY2JrH9m7VZ--
+--x+6KMIRAuhnl3hBn--
