@@ -1,50 +1,75 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: [RFC] NAT tuple reservation
-Date: Fri, 28 Nov 2003 16:06:45 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FC76485.5000202@balabit.hu>
-References: <3FB8DF90.5090505@balabit.hu>
+From: Martin Josefsson <gandalf@netfilter.org>
+Subject: [PATCH 2.6] Netfilter: Sane ip_ct_tcp_timeout_close_wait value
+Date: Fri, 28 Nov 2003 20:06:54 +0100
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <1070046413.18456.23.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <3FB8DF90.5090505@balabit.hu>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-Z8Pz66szwxPS3LCKFoY/"
+Cc: Harald Welte <laforge@netfilter.org>,
+        Netfilter-devel <netfilter-devel@lists.netfilter.org>,
+        netdev@oss.sgi.com
+Return-path: <netdev-bounce@oss.sgi.com>
+To: "David S. Miller" <davem@redhat.com>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
 
-   Hi,
+--=-Z8Pz66szwxPS3LCKFoY/
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-KOVACS Krisztian wrote:
-> ip_nat_setup_info_reserved(...): This is basically the same as 
-> ip_nat_setup_info, except that it calls ip_nat_setup_info() with the 
-> appropriate flag, and deletes the reservation in case of successful 
-> allocation.
+Hi Dave.
 
-   Oh, one more question, suggested by Nikolai Dahlem: to be able to 
-decide if ip_nat_setup_info() may allocate a reserved tuple, we need some 
-kind of additional argument (flags). However, ip_nat_setup_info() is 
-called from a number of places, for example NAT helpers. So, modifying 
-ip_nat_setup_info() would mean those calls need to be updated.
+Harald submitted this to you for 2.4.23
+It's needed for 2.6 as well, couldn't find the original mail on any list
+so here's the bk-commits-24 mail (slightly edited)
 
-   Nikolai suggested we could provide an ip_nat_setup_info_extended() 
-function, and make ip_nat_setup_info be a simple call with the default 
-flags. However, I feel that this flags attribute could be used more 
-universally, for example, our transparent proxying patch already adds it, 
-and uses it actively to bypass calling helpers.
+It applies fine to -test11.
+It's needed before 2.6.0 is out.
 
-   So, the question is: what about extending ip_nat_setup_info() with an 
-additional flag attribute in the NAT core? Or should we stay with a 
-"workaround" for now?
+ChangeSet 1.1211, 2003/11/17 15:26:43-02:00, laforge@netfilter.org
 
--- 
-   Regards,
-     Krisztian KOVACS
+	[PATCH] Netfilter: Sane ip_ct_tcp_timeout_close_wait value
+=09
+	Hi Dave, hi Marcelo.
+=09
+	The following (trivial) patch _needs_ to go into 2.4.22-preX before
+	2.4.23 is released.
+=09
+	While doing the backport of the tune-conntrack-timeouts-via-procfs
+	patch, we have made the default for the CLOSE_WAIT state accidentially
+	to 3 days.  3 days are the timeout when using the tcp window tracking
+	patch, but not for the stock kernel.
+=09
+	Please apply, thanks.
+
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c b/net/ipv4/netfilte=
+r/ip_conntrack_proto_tcp.c
+--- a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	Mon Nov 17 10:02:36 2003
++++ b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	Mon Nov 17 10:02:36 2003
+@@ -53,7 +53,7 @@
+ unsigned long ip_ct_tcp_timeout_syn_recv =3D     60 SECS;
+ unsigned long ip_ct_tcp_timeout_established =3D   5 DAYS;
+ unsigned long ip_ct_tcp_timeout_fin_wait =3D      2 MINS;
+-unsigned long ip_ct_tcp_timeout_close_wait =3D    3 DAYS;
++unsigned long ip_ct_tcp_timeout_close_wait =3D   60 SECS;
+ unsigned long ip_ct_tcp_timeout_last_ack =3D     30 SECS;
+ unsigned long ip_ct_tcp_timeout_time_wait =3D     2 MINS;
+ unsigned long ip_ct_tcp_timeout_close =3D        10 SECS;
+
+--=20
+/Martin
+
+--=-Z8Pz66szwxPS3LCKFoY/
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQA/x5zNWm2vlfa207ERAowZAJ0RzFCCL/KVaLrTCukkkSWBkkWA6gCguYUN
+Qrv0yjWDTKlfxP+ErcQ75jc=
+=HKdP
+-----END PGP SIGNATURE-----
+
+--=-Z8Pz66szwxPS3LCKFoY/--
