@@ -1,40 +1,67 @@
-From: Dinil Divakaran <dinil@lantana.tenet.res.in>
-Subject: Re: stability of IMQ?
-Date: Thu, 2 Sep 2004 09:28:05 +0530 (IST)
-Sender: netfilter-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.60.0409020925530.3129@dahlia.cs.iitm.ernet.in>
-References: <876ef97a040901130117c0e91a@mail.gmail.com>
+From: =?iso-8859-1?Q?KUCKAERTZ_R=E9gis_-_NVISION?= <regis@nvision.lu>
+Subject: Port forwarding with iptables
+Date: Wed, 1 Sep 2004 17:47:49 +0200
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Message-ID: <E1C2j6E-0002HL-00@deer.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: linux-net <linux-net@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	netfilter <netfilter@lists.netfilter.org>
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Tobias DiPasquale <codeslinger@gmail.com>
-In-Reply-To: <876ef97a040901130117c0e91a@mail.gmail.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
->
-> I am considering using IMQ for some ingress shaping action and I was
-> wondering if anyone else was using it and how stable it is. Have their
-> been an persistent Oops problems? Any other serious issues? The site
-> seems to indicate some problems in certain situations, so I was
-> wondering about this before I got into it too heavily. Thanks for all
-> the help in advance!
+Hello,
 
-I 've used IMQ on kernel 2.4.21 and it doesn't seem to have
-any kind of problem.
+Our ISP only allows connections coming from a well-defined list of IP
+addresses. Since we must be able to log on to our servers no matter =
+where we
+are, I just thought using iptables on one host having one of the =
+authorized
+IP addresses would be the solution.
 
-I couldn't get it working for 2.6.7 kernel. There was some problem
-patching iptabels !
+So I went on reading iptables docs and howtos, but as you might guess I
+couldn't stand how to do it exactly. Let's put it correctly stated: =
+every
+incoming connection to, say, port 3999 of my host ($HOST_IP) should be
+forwarded to port 123 of the protected server ($SERVER_IP). I tried the
+following two rules:
 
-Cheers,
-Dinil
+$IPTABLES -t nat -A PREROUTING -p tcp --dst $HOST_IP --dport 3999 -j =
+DNAT
+--to-destination $SERVER_IP:123
+
+   This one should do the forwarding
+
+$IPTABLES -t nat -a POSTROUTING -p tcp --dst $SERVER_IP --dport 123 -j
+MASQUERADE
+
+   ... and this one should masquerade
+
+As I'm new to iptables, I don't know at that time every aspect that I =
+must
+be careful of, so as a first tip can anybody tell me what would the =
+exact
+solution be?
+
+I have set IP forwarding to 1 in /proc/sys/net/ipv4/ip_forward
+
+Best regards,
+R=E9gis KUCKAERTZ
+-----------------------------------------
+NVISION sa - Luxembourg
+Internet Services & Network Programming
+
+50, rue des Pr=E9s
+L-7333 Steinsel
+T=E9l: (+352) 26 34 09 08
+Fax: (+352) 26 34 09 07
+http://www.nvision.lu/
