@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Delition of rule after altering data in check/match entry
-Date: Tue, 15 Jul 2003 14:28:46 +0200
+Subject: Re: nopickup-patch
+Date: Tue, 15 Jul 2003 18:06:06 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030715122846.GH7198@naboo>
-References: <02b201c34a1c$faef6ac0$010f430a@elitecore7>
+Message-ID: <20030715160606.GN7198@naboo>
+References: <000001c34999$97f22a80$0200a8c0@basti79>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="z0eOaCaDLjvTGF2l"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="2EnvhqpWJq810sZn"
+Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Sumit Pandya <sumit@elitecore.com>
+To: Sebastian <netfilter@basti79.de>
 Content-Disposition: inline
-In-Reply-To: <02b201c34a1c$faef6ac0$010f430a@elitecore7>
+In-Reply-To: <000001c34999$97f22a80$0200a8c0@basti79>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,30 +24,28 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---z0eOaCaDLjvTGF2l
+--2EnvhqpWJq810sZn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jul 14, 2003 at 09:01:22PM +0530, Sumit Pandya wrote:
-> Hi All,
->     In a netfilter match or check extension at the time of rule-insertion,
-> If I update any data passed along
->     1> void *matchinfo (argument to matchentry) or
->     2> void *targinfo  (argument to checkentry)
-> Then I'm not able to delete same inserted rule.
->     Is there something regarding caching of the data? Does It require to
-> notify iptables somewhere about this change?
+On Mon, Jul 14, 2003 at 01:50:52AM +0200, Sebastian wrote:
+> Hi list...
+>=20
+> I just wondered, when u r talking about this nopickup-patch, then u mean
+> that one located in directory oldnat of POM? Or is there any newer
+> version available?
 
-Just at first glance, I think this is quite possible (and certainly not
-the desired behaviour).   Can you please verify that this bug is also
-present with already-existing matches/targets that change
-targinfo/matchinfo contents (like the nth or random match)?
+I did a quick 'port' of the patch.  You can now switch pickup off by
+using 'echo 0 > /proc/sys/net/ipv4/netfilter/ip_conntrack_tcp_pickup'.
 
-If so, please commit this as a bug report to bugzilla.netfilter.org.
+The patch is untested, so it might not even compile (maybe a stupid
+typo somewhere). Please give it some testing...
 
-> Thanks,
-> -- Sumit
+Find the patch in patch-o-matic/pending/57_*
+
+> Greets
+> Sebastian.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -58,16 +57,16 @@ If so, please commit this as a bug report to bugzilla.netfilter.org.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---z0eOaCaDLjvTGF2l
+--2EnvhqpWJq810sZn
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE/E/N9XaXGVTD0i/8RAkipAKCNuMynSHX5g69yT9zCp2wUaBxDAACgiF9r
-GCXHmZ88nmvmOl5tnxEJHqo=
-=iBRt
+iD8DBQE/FCZtXaXGVTD0i/8RAvqeAJ9+amfFBBYXjpxmRU2ikWYWls65TgCghkxL
+XHmt7tKumFaPZj7ySGM7kuQ=
+=1xBq
 -----END PGP SIGNATURE-----
 
---z0eOaCaDLjvTGF2l--
+--2EnvhqpWJq810sZn--
