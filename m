@@ -1,17 +1,17 @@
 From: Martin Josefsson <gandalf@netfilter.org>
-Subject: [PATCH 2.4 RESEND] netfilter: add size check for udp packet
-	mangling
-Date: Mon, 13 Oct 2003 20:17:38 +0200
+Subject: [PATCH 2.4 correct] cosmetic update to ip6t_ipv6header
+Date: Mon, 13 Oct 2003 20:20:52 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1066069057.29182.155.camel@tux.rsn.bth.se>
-References: <20031002142646.GC5758@sunbeam.de.gnumonks.org>
+Message-ID: <1066069251.29179.159.camel@tux.rsn.bth.se>
+References: <20031002162456.GT5758@sunbeam.de.gnumonks.org>
+	 <20031002233619.5c43cae7.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-CKZHcURE4C6S3ALSBj8c"
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-nSTpQ+sawpTtvcQsA9KN"
 Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: David Miller <davem@redhat.com>
-In-Reply-To: <20031002142646.GC5758@sunbeam.de.gnumonks.org>
+To: "David S. Miller" <davem@redhat.com>
+In-Reply-To: <20031002233619.5c43cae7.davem@redhat.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,80 +23,65 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-CKZHcURE4C6S3ALSBj8c
-Content-Type: multipart/mixed; boundary="=-liNxTJwLYgnfm3k3N1HT"
+--=-nSTpQ+sawpTtvcQsA9KN
+Content-Type: multipart/mixed; boundary="=-RNhYGjOSdUlv+4wcb0Hx"
 
 
---=-liNxTJwLYgnfm3k3N1HT
+--=-RNhYGjOSdUlv+4wcb0Hx
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 2003-10-02 at 16:26, Harald Welte wrote:
-> Hi Davem!
+On Fri, 2003-10-03 at 08:36, David S. Miller wrote:
+> On Thu, 2 Oct 2003 18:24:56 +0200
+> Harald Welte <laforge@netfilter.org> wrote:
 >=20
-> Please apply the following patchto your 2.4 tree and push it to Marcelo.
-> Thanks.
+> > Please apply the following patch to your 2.6 tree, thanks.
 >=20
+> Mass confusion... the subject says 2.4, here you're saying
+> 2.6..
 >=20
-> Author: Patrick McHardy <kaber@trash.net>
->=20
-> Add size check to ip_nat_mangle_udp_packet
+> Because you sent me the 2.6.x variant of this patch already I
+> tried to put it into 2.4.x but that got rejects.
 
-Hi Dave
+Here's the correct 2.4 version.
+Found to be missing when syncing patch-o-matic.
 
-Harald sent this with the wrong subject and it got dropped.
-Here it is with the correct subject.
-Found when syncing patch-o-matic with 2.4-bk
-Please apply. More resends are coming.
+Author: Maciej Soltysiak
 
-
-Author: Patrick McHardy <kaber@trash.net>
-
-Add size check to ip_nat_mangle_udp_packet
+This patch removes unused destroy callback in ip6t_ipv6header.c
 
 --=20
 /Martin
 
---=-liNxTJwLYgnfm3k3N1HT
-Content-Disposition: attachment; filename=79_mangle_udp-sizecheck.patch
-Content-Type: text/plain; name=79_mangle_udp-sizecheck.patch; charset=ISO-8859-15
+--=-RNhYGjOSdUlv+4wcb0Hx
+Content-Disposition: attachment; filename=85_ipv6header.patch
+Content-Type: text/x-patch; name=85_ipv6header.patch; charset=iso-8859-15
 Content-Transfer-Encoding: base64
 
-IyBUaGlzIGlzIGEgQml0S2VlcGVyIGdlbmVyYXRlZCBwYXRjaCBmb3IgdGhlIGZvbGxvd2luZyBw
-cm9qZWN0Og0KIyBQcm9qZWN0IE5hbWU6IExpbnV4IGtlcm5lbCB0cmVlDQojIFRoaXMgcGF0Y2gg
-Zm9ybWF0IGlzIGludGVuZGVkIGZvciBHTlUgcGF0Y2ggY29tbWFuZCB2ZXJzaW9uIDIuNSBvciBo
-aWdoZXIuDQojIFRoaXMgcGF0Y2ggaW5jbHVkZXMgdGhlIGZvbGxvd2luZyBkZWx0YXM6DQojCSAg
-ICAgICAgICAgQ2hhbmdlU2V0CTEuMTEzNCAgLT4gMS4xMTM1IA0KIwluZXQvaXB2NC9uZXRmaWx0
-ZXIvaXBfbmF0X2hlbHBlci5jCTEuMTAgICAgLT4gMS4xMSAgIA0KIw0KIyBUaGUgZm9sbG93aW5n
-IGlzIHRoZSBCaXRLZWVwZXIgQ2hhbmdlU2V0IExvZw0KIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KIyAwMy8wOS8yOAlrYWJlckB0cmFzaC5uZXQJMS4xMTM1
-DQojIFtORVRGSUxURVJdOiBBZGQgc2l6ZSBjaGVjayB0byBpcF9uYXRfbWFuZ2xlX3VkcF9wYWNr
-ZXQNCiMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCiMNCmRp
-ZmYgLU5ydSBhL25ldC9pcHY0L25ldGZpbHRlci9pcF9uYXRfaGVscGVyLmMgYi9uZXQvaXB2NC9u
-ZXRmaWx0ZXIvaXBfbmF0X2hlbHBlci5jDQotLS0gYS9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfbmF0
-X2hlbHBlci5jCVN1biBTZXAgMjggMDQ6NDA6MjkgMjAwMw0KKysrIGIvbmV0L2lwdjQvbmV0Zmls
-dGVyL2lwX25hdF9oZWxwZXIuYwlTdW4gU2VwIDI4IDA0OjQwOjI5IDIwMDMNCkBAIC0yMzMsNiAr
-MjMzLDEzIEBADQogCW5ld3VkcGxlbiA9IHVkcGxlbiAtIG1hdGNoX2xlbiArIHJlcF9sZW47DQog
-CW5ld2xlbiA9IGlwaC0+aWhsKjQgKyBuZXd1ZHBsZW47DQogDQorCS8qIFVEUCBoZWxwZXJzIG1p
-Z2h0IGFjY2lkZW50YWxseSBtYW5nbGUgdGhlIHdyb25nIHBhY2tldCAqLw0KKwlpZiAodWRwbGVu
-IDwgc2l6ZW9mKCp1ZHBoKSArIG1hdGNoX29mZnNldCArIG1hdGNoX2xlbikgew0KKwkJaWYgKG5l
-dF9yYXRlbGltaXQoKSkNCisJCQlwcmludGsoImlwX25hdF9tYW5nbGVfdWRwX3BhY2tldDogdW5k
-ZXJzaXplZCBwYWNrZXRcbiIpOw0KKwkJcmV0dXJuIDA7DQorCX0NCisNCiAJaWYgKG5ld2xlbiA+
-IDY1NTM1KSB7DQogCQlpZiAobmV0X3JhdGVsaW1pdCgpKQ0KIAkJCXByaW50aygiaXBfbmF0X21h
-bmdsZV91ZHBfcGFja2V0OiBuYXQnZWQgcGFja2V0ICINCg==
+ZGlmZiAtdSBsaW51eC5vcmlnL25ldC9pcHY2L25ldGZpbHRlci9pcDZ0X2lwdjZoZWFkZXIuYyBs
+aW51eC9uZXQvaXB2Ni9uZXRmaWx0ZXIvaXA2dF9pcHY2aGVhZGVyLmMNCi0tLSBsaW51eC5vcmln
+L25ldC9pcHY2L25ldGZpbHRlci9pcDZ0X2lwdjZoZWFkZXIuYwkyMDAzLTA3LTI3IDE5OjEyOjA5
+LjAwMDAwMDAwMCArMDIwMA0KKysrIGxpbnV4L25ldC9pcHY2L25ldGZpbHRlci9pcDZ0X2lwdjZo
+ZWFkZXIuYwkyMDAzLTA5LTAyIDAwOjE5OjAxLjI5NTE3MzU0NCArMDIwMA0KQEAgLTEyOSwyMCAr
+MTI5LDEzIEBADQogCXJldHVybiAxOw0KIH0NCiANCi1zdGF0aWMgdm9pZA0KLWlwdjZoZWFkZXJf
+ZGVzdHJveSh2b2lkICptYXRjaGluZm8sDQotCQkgICB1bnNpZ25lZCBpbnQgbWF0Y2hpbmZvc2l6
+ZSkNCi17DQotCXJldHVybjsNCi19DQotDQogc3RhdGljIHN0cnVjdCBpcDZ0X21hdGNoDQogaXA2
+dF9pcHY2aGVhZGVyX21hdGNoID0gew0KIAl7IE5VTEwsIE5VTEwgfSwNCiAJImlwdjZoZWFkZXIi
+LA0KIAkmaXB2NmhlYWRlcl9tYXRjaCwNCiAJJmlwdjZoZWFkZXJfY2hlY2tlbnRyeSwNCi0JJmlw
+djZoZWFkZXJfZGVzdHJveSwNCisJTlVMTCwNCiAJVEhJU19NT0RVTEUNCiB9Ow0KIA0K
 
---=-liNxTJwLYgnfm3k3N1HT--
+--=-RNhYGjOSdUlv+4wcb0Hx--
 
---=-CKZHcURE4C6S3ALSBj8c
+--=-nSTpQ+sawpTtvcQsA9KN
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQA/iuxBWm2vlfa207ERApqsAJwKCLntENhPqBYc//LN752MYejboQCeLq2R
-03ozWBndsD/SVcVaDIxvGJI=
-=EKoO
+iD8DBQA/iu0CWm2vlfa207ERAqfLAJ4wOS3ZGgQM3s9DUieeVTLJTtMnNQCfXTof
+Ts42jPlg07Lxu3mYVYON8jA=
+=o0nF
 -----END PGP SIGNATURE-----
 
---=-CKZHcURE4C6S3ALSBj8c--
+--=-nSTpQ+sawpTtvcQsA9KN--
