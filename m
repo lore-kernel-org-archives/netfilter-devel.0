@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: netfilter vs iptables naming confusion
-Date: Mon, 8 Dec 2003 13:09:47 +0100 (CET)
+Subject: Re: Maximum chain name length
+Date: Mon, 8 Dec 2003 13:17:44 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0312081257120.10693-100000@filer.marasystems.com>
-References: <3FD45DDC.9030901@epmhs.gr>
+Message-ID: <Pine.LNX.4.44.0312081311370.10693-100000@filer.marasystems.com>
+References: <1070883753.1932.7.camel@jasiiitosh.nexusmgmt.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Haris Koutsouris <harisk@epmhs.gr>
-In-Reply-To: <3FD45DDC.9030901@epmhs.gr>
+To: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
+In-Reply-To: <1070883753.1932.7.camel@jasiiitosh.nexusmgmt.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,41 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 8 Dec 2003, Haris Koutsouris wrote:
+On Mon, 8 Dec 2003, John A. Sullivan III wrote:
 
-> <my understanding>
-> Netfilter is a set of hooks in the networking code of the linux kernel
->   that allows another piece of code (kernel module) to register for 
-> access  to the packets that pass through these points.
+> Is there any way to extend the maximum allowed chain name length in
+> iptables? Thanks - John
 
-Yes.
+You can change the limit by redefining IPT_FUNCTION_MAXNAMELEN in
+include/linux/netfilter_ipv4/ip_tables.h, but this will render any
+binaries compiled with the old length unuseable and also considerably
+increases the kernel memory usage of iptables as the maximum space is
+allocated for each rule even if it uses a long chain name or not.
 
-> Several iptables kernel modules (e.g ip_tables,
-> iptable_mangle,ipt_conntrack, ipt_LOG)  implement the firewalling
-> functionality and in addition the user space utility iptables is used as
-> a user interface to the iptables functionality.
-
-Many also consider the connection tracking as part of the netfilter
-framework, and maybe even the NAT core in some respect, but it is a thin
-boundary especially considering that it is mainly iptables which use 
-these.
-
-But it is certainly correct to say that netfilter is the hook
-infrastrucure allowing the firewall access to the packet flow, and
-iptables is the firewalling code of iptables.
-
-> A final question are the kernel modules named iptables modules or 
-> netfilter modules?????
-
-There are both. The design is layered with modules at both layers.
-
-modules which registers netfilter hooks are netfilter modules. This
-includes iptables itself and the connection tracking, but there is also
-several other netfilter modules such as Linux Virtual Server or the HiPac
-firewall.
-
-modules which registers iptables targets/matches for use in the iptables
-firewall are iptables modules.
+If you really need this long names I would recommend you to just use 
+abstract names in the kernel and save a index file on the system for 
+in-field analysis. By using a small wrapper you can even have the names 
+translated automatically if you like.
 
 Regards
 Henrik
