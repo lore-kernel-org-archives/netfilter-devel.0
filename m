@@ -1,11 +1,15 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: [ANNOUNCE] Core Team Announces Emeritus Members
-Date: Wed, 28 Jan 2004 14:19:25 +1100
+From: Kiran Kumar <immidi_kiran@yahoo.com>
+Subject: Re: subject-prefixing of ml postings (was Re: A humble request)
+Date: Wed, 28 Jan 2004 19:32:58 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040129003227.34BFC2C25F@lists.samba.org>
+Message-ID: <20040129033258.98625.qmail@web14006.mail.yahoo.com>
+References: <20040128194433.75040.qmail@web60710.mail.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-annnounce@lists.netfilter.org
+To: Zeeshan Ali <zeelists@yahoo.com>
+In-Reply-To: <20040128194433.75040.qmail@web60710.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -16,21 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-The Netfilter Core Team has long discussed the issue of Core Team
-members who are no longer active.  Dismissing them from the Core Team
-would deny them the benefits of such a prestigious title, should any
-become apparent.
+--- Zeeshan Ali <zeelists@yahoo.com> wrote:
 
-Hence the conclusion is that Marc Boucher, James Morris and Rusty
-Russell are now "emeritus"[1] members of the Netfilter Core Team.
+> (1) you are supposing here that everyone would be
+> using email clients which is'nt true, atleat it is
+> not
+> true for me (as i use web-based yahoo email).
 
-In this status, their involvement in the Core Team will be merely
-advisory.  If they again become active and request reinstatement, they
-will return to full Core Team membership.
+Yahoo provides filters, which is what I use.
 
-Happy hacking!
-Marc Boucher, James Morris, and Rusty Russell.
 
-[1] Latin for "burnt-out freeriding slacker", I believe.
---
-  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+=====
+Regards,
+Kiran Kumar Immidi
+
+__________________________________
+Do you Yahoo!?
+Yahoo! SiteBuilder - Free web site building tool. Try it!
+http://webhosting.yahoo.com/ps/sb/
