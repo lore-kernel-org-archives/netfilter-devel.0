@@ -1,16 +1,14 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: modifications for SMP processor
-Date: Wed, 04 Aug 2004 13:11:39 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [PATCH] trivial CONNMARK typo
+Date: Wed, 4 Aug 2004 15:04:59 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4110C46B.6000100@eurodev.net>
-References: <PAEMKCJPEJFAMHHIJGBOCELBMLAB.laurent.schweizer@eivd.ch>
+Message-ID: <Pine.LNX.4.44.0408041504410.14280-100000@filer.marasystems.com>
+References: <20040803045826.GA22598@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: laurent Schweizer <laurent.schweizer@eivd.ch>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <PAEMKCJPEJFAMHHIJGBOCELBMLAB.laurent.schweizer@eivd.ch>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20040803045826.GA22598@linuxace.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,34 +19,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Laurent,
+Please apply
 
-laurent Schweizer wrote:
+Regards
+Henrik
 
->I am writing a target for iptables.
->
->My target has a table and I see that it is not working correctly on SMP
->processor.
+On Mon, 2 Aug 2004, Phil Oester wrote:
+
+> The below fixes bugzilla #207...
+> 
+> Phil
+> 
+> 
+> 
+> diff -ru pom-orig/CONNMARK/linux/Documentation/Configure.help.ladd pom-new/CONNMARK/linux/Documentation/Configure.help.ladd
+> --- pom-orig/CONNMARK/linux/Documentation/Configure.help.ladd   2004-02-19 06:30:07.000000000 -0500
+> +++ pom-new/CONNMARK/linux/Documentation/Configure.help.ladd    2004-07-30 18:30:19.000000000 -0400
+> @@ -17,7 +17,7 @@
+>    ipt_CONNMARK.o.  If unsure, say `N'.
 >  
->
-
-well, that's not enough info. Anyway, if all iptables rules are sharing
-that table (I mean that table is defined inside the target as a global
-var), I guess that you need reader/writer lock.
-
-On the other hand, if the table is inside the target's private
-information, that's different... you should have a look at ipt_limit.c
-for a reference.
-
->I want to know which modifications I must make, or where I can find an
->example.
+>  connmark match support
+> -CONFIP_IP_NF_MATCH_CONNMARK
+> +CONFIG_IP_NF_MATCH_CONNMARK
+>    This option adds a `connmark' match, which allows you to match the
+>    connection mark value previously set for the session by `CONNMARK'. 
 >  
->
-
-Robert Love has written a good article about this:
-http://www.linuxjournal.com/article.php?sid=5833
-
-Check out also Rusty's unreliable guide for locking in the kernel.
-
-regards,
-Pablo
+> 
+> 
