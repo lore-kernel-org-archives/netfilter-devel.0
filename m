@@ -1,19 +1,14 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH] bug fixes and introducing skb_header_pointer() to
- ip6t_frag.c
-Date: Wed, 13 Oct 2004 16:19:27 +0900 (JST)
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] resend: Fix MASQUERADE
+Date: Thu, 14 Oct 2004 01:24:30 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <200410130719.i9D7JS8n003916@toshiba.co.jp>
-References: <200410070456.i974usIv027450@toshiba.co.jp>
-	<416CD206.5080201@trash.net>
+Message-ID: <416DB92E.1030208@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
-	yasuyuki.kozakai@toshiba.co.jp
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <416CD206.5080201@trash.net>
+To: Phil Oester <kernel@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,39 +19,16 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-Hi, Patrick,
-
-From: Patrick McHardy <kaber@trash.net>
-Date: Wed, 13 Oct 2004 08:58:14 +0200
-
-> Yasuyuki Kozakai wrote:
+> Back on 9/7, Rusty sent the patch below to the list, and after some debate,
+> Dave Miller asked for a resend.  Nearly a month has passed, 2.6.9 is near,
+> and the patch has not yet been merged.  Original thread here:
 > 
-> >Hi,
-> >
-> >The first patch fixes following bugs in ip6t_frag.c,
-> >
-> >	- Wrong cast the pointer to extension header.
-> >	- header length of Fragment Header is statically 8 octets.
-> >	  Then the option "--frag-len" doesn't make sense.
-> >	- There are endian issues where using frag->info.
-> >	- Reserved fields are not 2 bit but 8bit + 2 bit. (see RFC2460)
-> >
-> >And the second patch enables ip6t_frag.c to work without skb_linearize().
-> >
-> >Before trying these patches, don't forget to apply the patch which prepare
-> >to removing skb_linearize().
-> >
+> http://lists.netfilter.org/pipermail/netfilter-devel/2004-September/016708.html
 > 
-> Thanks Yasuyuki, your patches all look great. I've applied the
-> prepare-to-remove-skb_linearize and skb_header_pointer patches
-> to a post-2.6.9 tree and will push the fixes to Dave immediately.
-> Just one thing, please sign off your patches next time.
+> In case the patch was forgotten, I've attached it below.  If it is queued
+> for 2.6.10, appologies for the noise.
 
-Thanks a lot. Just in case...
+Thanks for the reminder, I already picked the patch up for post-2.6.9.
 
-	 Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-
-Regards,
------------------------------------------------------------------
-Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+Regards
+Patrick
