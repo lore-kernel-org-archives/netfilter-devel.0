@@ -1,16 +1,19 @@
-From: "Henrik Nordstrom" <hno@marasystems.com>
-Subject: Re: Idea: Check session source and destination
-Date: Sun, 23 May 2004 12:59:02 +0200 (CEST)
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC] Die to NOTRACK/TRACE, long live MARK!
+Date: Sun, 23 May 2004 19:00:49 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <2113.80.53.224.38.1085309942.gloport@www.tmuras.2000.cd>
-Reply-To: nexor@mybaby.cd
+Message-ID: <40B0D8C1.6040209@trash.net>
+References: <Pine.LNX.4.33.0405211416341.8045-100000@blackhole.kfki.hu>	 <40AF6A60.70406@trash.net> <1085302540.969.51.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
-Cc: "Netfilter Developers List  netfilter@lists.netfilter.org"
-     <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+ Philip Craig <philipc@snapgear.com>,
+ Jozsef Kadlecsik <kadlec@netfilter.org>,
+ Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: yooman@fnet.pl
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <1085302540.969.51.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,58 +24,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 27 Apr 2004, Mike Andersen wrote:
+Martin Josefsson wrote:
 
-> I reconfigured my test setup and used the FW for filtering instead of
-mirroring (physical reconfiguration, all software .  Then the rules works as
-intended.
+> Nice, I hope you succeed. We also need to rearrange struct ip_conntrack
+> so often updated fields aren't sharing the same cacheline as mostly read
+> fields. That and adding more test_bit() before we set_bit() (or
+> something similar) will bring down the cache-trashing we have right now,
+> especially on SMP.
 
-Good.
-
-> So the problem I'm having here, seems to be related to the mirroring. My gut
-feeling says that it may be related to the fact that the state table is
-being built independently of the netfilter rules.
-
-netfilter conntrack requires traffic to be successfully forwarded to operate
-correctly. If you drop traffic then netfilter assumes that packet was dropped
-and never forwarded.
-
-If you are mirroring then you must never drop or reject any packets as this
-will disturb the connection tracking, but you can make whatever other
-decisions on the packets you like.
-
-
-> Here is some more data. First the rules used in this test case:
->
-> iptables -A FORWARD -m conntrack --ctorigdst 10.10.10.199/32 -j LOG
---log-level  DEBUG --log-prefix '>ctorigdst> '
-> iptables -A FORWARD -m conntrack --ctorigdst 10.10.10.199/32 -j ACCEPT
-iptables -A FORWARD -j LOG --log-level DEBUG --log-prefix '>drop> ' iptables
--A FORWARD -j DROP
->
-> Then I try to connect _from_ 10.10.10.199, and this is what the log says:
->
-> Apr 27 14:22:35 local kernel: >drop> IN=br0 OUT=br0 PHYSIN=eth0
-> PHYSOUT=eth1 SRC=10.10.10.199 DST=10.10.10.200 LEN=60 TOS=0x00
-> PREC=0x00 TTL=64 ID=19660 DF PROTO=TCP SPT=51905 DPT=80 WINDOW=65535
-RES=0x00 SYN URGP=0
-
-This will also stop netfilter from setting up the connection tracking of this
-session.
-
-> Apr 27 14:22:35 local kernel: >ctorigdst> IN=br0 OUT=br0 PHYSIN=eth0
-PHYSOUT=eth1 SRC=10.10.10.200 DST=10.10.10.199 LEN=60 TOS=0x00
-> PREC=0x00 TTL=61 ID=0 DF PROTO=TCP SPT=80 DPT=51905 WINDOW=5792
-> RES=0x00 ACK SYN URGP=0
-
-This is then counted as the first packet of the session, and connection
-tracking starts with 10.10.10.199 as the original destination (first packet
-seen while tracking the session).
-
-for TCP you can look for SYN to "work around" this and only accept NEW SYN,
-not other NEW packets.
-
-UDP is trickier as there is no connection control..
+I will make a test_bit patch on top of my memsave-patches (which are
+on top of Joszef's conntrack patches). When we rearrange struct
+ip_conntrack we should also try to get rid of the holes in the
+structure, which are responsible for approximately 20bytes of wasted
+memory.
 
 Regards
-Henrik
+Patrick
