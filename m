@@ -1,17 +1,14 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: CONNMARK Patching Problem
-Date: 12 Nov 2002 11:11:34 +0100
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: --reject-with admin-prohib - Suggested Solution.
+Date: Tue, 12 Nov 2002 17:16:47 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1037095894.4403.25.camel@tux>
-References: <005a01c287e5$2d0862a0$0200000a@parseerror.dk>
+Message-ID: <Pine.LNX.4.44.0211121712540.1461-100000@dns.toxicfilms.tv>
+References: <Pine.LNX.4.44.0211120952040.29168-100000@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Netfilter <netfilter@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Matias =?ISO-8859-1?Q?Bj=F8rling?= <mb@ncparty.dk>
-In-Reply-To: <005a01c287e5$2d0862a0$0200000a@parseerror.dk>
+To: netfilter-devel@lists.samba.org
+In-Reply-To: <Pine.LNX.4.44.0211120952040.29168-100000@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,40 +19,84 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 2002-11-09 at 12:43, Matias Bj=F8rling wrote:
-> Hey! :D
->=20
-> I'm having a very anoying problem.
->=20
-> I have patched 2.4.18-19 kernels where both have the same problem, when i
-> run patch-o-magic on a fresh kernel, then when i come to where i can patc=
-h
-> the CONNMARK module into the kernel, it always fail, even if it's the onl=
-y
-> thing i select, and with both kernels, even they both are fresh installed=
-.
+Hi,
 
-> iptables 1.2.7a
-> patch-o-magic 20021008
-> have tried with newer cvs image patch-o-magic and did'nt even work
-> kernel 2.4.18-19 both have the same problem.
->=20
-> Does anybody know if theres a workaround for this thingie?.. or am i just
-> lost in my dreams until a new release come? Is there a way i can check wh=
-at
-> the error is?
+Let's say the patch below has been submitted to 2.5 kernel, at 2.5.48
+stage. It adds admin-prohib to the REJECT target.
 
-You've failed to read the docs :)
+--- /2/linux-2.4.19/include/linux/netfilter_ipv4/ipt_REJECT.h	2000-07-14 21:20:23.000000000 +0200
++++ /usr/src/linux-2.4.19/include/linux/netfilter_ipv4/ipt_REJECT.h	2002-11-12 14:31:13.000000000 +0100
+@@ -9,7 +9,8 @@
+ 	IPT_ICMP_ECHOREPLY,
+ 	IPT_ICMP_NET_PROHIBITED,
+ 	IPT_ICMP_HOST_PROHIBITED,
+-	IPT_TCP_RESET
++	IPT_TCP_RESET,
++	IPT_ICMP_ADMIN_PROHIBITED
+ };
 
-you didn't run ./runme --batch pending
-after that CONNMARK works fine.
+ struct ipt_reject_info {
+--- /2/linux-2.4.19/net/ipv4/netfilter/ipt_REJECT.c	2002-11-12 14:40:08.000000000 +0100
++++ /usr/src/linux-2.4.19/net/ipv4/netfilter/ipt_REJECT.c	2002-11-12 14:31:25.000000000 +0100
+@@ -1,6 +1,7 @@
+ /*
+  * This is a module which is used for rejecting packets.
+  * Added support for customized reject packets (Jozsef Kadlecsik).
++ * Added support for ICMP type-3-code-13 (Maciej Soltysiak). [RFC 1812]
+  */
+ #include <linux/config.h>
+ #include <linux/module.h>
+@@ -308,6 +308,9 @@
+ 	case IPT_ICMP_HOST_PROHIBITED:
+     		send_unreach(*pskb, ICMP_HOST_ANO);
+     		break;
++    	case IPT_ICMP_ADMIN_PROHIBITED:
++		send_unreach(*pskb, ICMP_PKT_FILTERED);
++		break;
+ 	case IPT_TCP_RESET:
+ 		send_reset(*pskb, hooknum == NF_IP_LOCAL_IN);
+ 	case IPT_ICMP_ECHOREPLY:
 
-(two patches in pending won't apply correctly, they need to be applied
-after the newnat patch and not before (just run the same command one
-more time and they should apply), I've just fixed it in cvs)
 
---=20
-/Martin
+Okay, having that, let's say we have patched the current userspace with
+this patch:
 
-Never argue with an idiot. They drag you down to their level, then beat
-you with experience.
+--- iptables-1.2.8-20020825/extensions/libipt_REJECT.c	2002-05-29 15:08:16.000000000 +0200
++++ iptables/extensions/libipt_REJECT.c	2002-11-12 17:06:19.000000000 +0100
+@@ -9,6 +9,11 @@
+ #include <iptables.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv4/ipt_REJECT.h>
++#include <linux/version.h>
++
++#ifndef IPT_ICMP_ADMIN_PROHIBITED
++#define IPT_ICMP_ADMIN_PROHIBITED	8
++#endif
+
+ struct reject_names {
+ 	const char *name;
+@@ -36,6 +41,11 @@
+ 	 IPT_ICMP_HOST_PROHIBITED, "ICMP host prohibited"},
+ 	{"tcp-reset", "tcp-reset",
+ 	 IPT_TCP_RESET, "TCP RST packet"}
++#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,5,48))
++	,
++	{"icmp-admin-prohibited", "admin-prohib",
++	 IPT_ICMP_ADMIN_PROHIBITED, "ICMP administratively prohibited"}
++#endif
+ };
+
+ static void
+
+
+Now, if the 2.5.48 kernel has the admin-prohib support, the userspace will
+detect it, and will show the option in -j REJECT --help and will accept
+admin-prohib.
+
+What do you think?
+
+I think we can safely submit the change to the 2.5 kernel, and when it is
+there, we can patch the oficial userspace.
+
+Best Regards,
+Maciej Soltysiak
