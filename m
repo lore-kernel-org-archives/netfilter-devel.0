@@ -1,12 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
+From: Ozgur AKAN <akan@aiqa.com>
 Subject: Re: prohibiting iptables to insert a rule twice
-Date: Thu, 6 May 2004 13:41:54 +0200 (CEST)
+Date: Thu, 06 May 2004 14:48:49 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0405061338260.30286-100000@filer.marasystems.com>
-References: <409A239B.2040409@aiqa.com>
+Message-ID: <409A2621.1020109@aiqa.com>
+References: <Pine.LNX.4.44.0405061320210.30218-100000@filer.marasystems.com> <409A239B.2040409@aiqa.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-9; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Henrik Nordstrom <hno@marasystems.com>,
+ "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Ozgur AKAN <akan@aiqa.com>
 In-Reply-To: <409A239B.2040409@aiqa.com>
@@ -20,22 +22,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 6 May 2004, Ozgur AKAN wrote:
+Lets examine this stuation
 
-> hmm.. can you please give an example?  I can not imagine when it shall 
-> be meaningful.
+1 iptables -A INPUT -p tcp -d 10.1.1.2 --dport 80 -j ACCEPT
+2 iptables -A INPUT -m fuzzy --lower-limit 100 --upper-limit 1000 -j REJECT
+3 iptables -A INPUT -p tcp -d 10.1.1.2 --dport 80 -j ACCEPT
 
-One example is when MARK target for the mark to apply for a number of
-following rules:
+by the example below 3th rule`s byte/packet count  is used to check how 
+effective 2nd rule is used!
 
-iptables -t mangle -j MARK --set-mark A
-[number of rules using mark A]
-iptables -t mangle -j MARK --set-mark B
-[number of rules using mark B]
-iptables -t mangle -j MARK --set-mark A
-[more rules using mark A]
+This is a good example, I hope.
 
-I am not saying it is the best design, but still useful.
+Then inserting same rule afterwards is not meaningful but inserting same 
+rule in other order my be meaningful!
 
-Regards
-Henrik
+-- 
+Ozgur Akan
