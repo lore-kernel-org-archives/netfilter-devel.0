@@ -1,89 +1,86 @@
-From: "Nedko Nedev" <nedco@unacs.bg>
-Subject: Re: "...packets with TOS 0x0  also packets with TOS 0x10..."
-Date: Wed, 5 Mar 2003 23:31:05 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000401c2e35e$89d65030$8268493e@coldunacs>
-References: <001901c2e340$848891b0$8268493e@coldunacs> <069401c2e34e$64aae1f0$8500a8c0@repligate>
+From: Harald Welte <laforge@gnumonks.org>
+Subject: ulogd-1.00 released
+Date: Thu, 6 Mar 2003 01:51:45 +0100
+Sender: netfilter-announce-admin@lists.netfilter.org
+Message-ID: <20030306005145.GK4880@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="koi8-r"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Jim Fleming" <JimFleming@ameritech.net>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+HwY7O+GdaLKMYOv"
+Cc: netfilter-announce@lists.netfilter.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-announce-admin@lists.netfilter.org>
+To: ulogd@lists.gnumonks.org
+Content-Disposition: inline
+Errors-To: netfilter-announce-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-announce@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-announce/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
+--+HwY7O+GdaLKMYOv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+Hi!
 
-Hi,
-i read several times your response but still can't understand why
-iptables rule
-1    36142    16M ACCEPT     all  --  *      *       0.0.0.0/0 0.0.0.0/0
-TOS match 0x00
-2     168K    54M ACCEPT     all  --  *      *       0.0.0.0/0 0.0.0.0/0
-TOS match 0x10
-not ACCEPT some packets with TOS 0x00 ( Normal-Service  )  also packets with
-TOS 0x10 (Minimize-Delay)
-and they go respectively to next rule
-3       27       1782 LOG            all  --  *      *       0.0.0.0/0
-0.0.0.0/0         LOG  flags 0 level 4
-and loged
-Mar  5 04:32:10 proliant kernel: IN=eth0 OUT=eth1 SRC=62.176.73.4
-DST=62.176.105.30 LEN=76 TOS=0x00 PREC=0xC0
+I have finally released Version 1.00 of the iptables userspace logging
+daemon (ulogd).=20
 
+After being around for almost three years, and receiving lots of positive
+reports, I have decided to make this new release the 1.00 release,
+the first official stable release.
 
------ Original Message -----
-From: "Jim Fleming" <JimFleming@ameritech.net>
-To: "Nedko Nedev" <nedco@unacs.bg>; <netfilter-devel@lists.netfilter.org>
-Sent: Wednesday, March 05, 2003 9:35 PM
-Subject: "...packets with TOS 0x0 also packets with TOS 0x10..."
+The new Version is available as tar.bz2 only and can be retrieved from:
+ftp://ftp.netfilter.org/pub/ulogd/ulogd-1.00.tar.bz2
 
+There is a GPG signature for verification of the authenticity of the=20
+archive: ftp://ftp.netfilter.org/pub/ulogd/ulogd-1.00.tar.bz2.sig
 
->
->
->
-> ----- Original Message -----
-> From: "Nedko Nedev" <nedco@unacs.bg>
-> >
-> > in log we can see packets with TOS 0x0  also packets with TOS 0x10
-> >
->
-> The TOS field is divided into two 4-bit fields. 0x0* and 0x*0 are legacy
-values.
-> The other values help to expand the address spaces by adding 15 more flows
-or layers.
-> The Identification Field is also used to add 14 more bits of addressing,
-in two 7-bit fields.
-> The 7 plus 4 is 11 and when added to the 32-bits of addressing provide a
-43 bit address space.
-> The extra AM/FM bit is common to all of the address spaces.
->
-> http://IPv8.no-ip.com
-> http://www.go-mono.com/
-> http://www.knoppix.com
-> http://www.netfilter.org
-> http://www.digium.com
-> http://www.asterisk.org
-> http://www.openss7.org
-> http://www.zapatatelephony.org
-> http://www.new.net
-> http://IPv8.dyn.ee
->
-> Jim Fleming
-> Inter.C@T.Inter.NAT Consultant
-> http://www.Unir.NET
-> http://www.Unir.com
-> http://www.Uni%ae.com
-> http://www.UniR.com
->
->
->
+ChangeLog (from 0.98):
+- update documentation to reflect recent additions
+- renamed LOCALTIME plugin to LOCAL plugin, since it now also returns
+  the hostname
+- cleanup #include statements
+- tcp.window is a 16bit value
+- always return tcp flags, even if they are not set [to not cause NULL entr=
+ies
+  in the database table
+- cosmetic fixes to acommodate most compiler warnings
+- moved location of conffile.h and ulog.h
+- big update to ulogd_PGSQL.c
+- more verbose error reporting when unable to load plugin
+- print usage information
+- add '--configfile' directive to allow multiple instances with multiple
+  configfiles
+
+Thanks for all your patience with my not-so-frequend release cycle.
+
+--=20
+- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+Programming is like sex: One mistake and you have to support it your lifeti=
+me
+
+--+HwY7O+GdaLKMYOv
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+ZpuhXaXGVTD0i/8RAj+vAJ9rW4+VSg9PMecYmTLqkALoQfYquQCfZpB3
+WCMqXWWVRl4VvrKRMbwF5rU=
+=59C1
+-----END PGP SIGNATURE-----
+
+--+HwY7O+GdaLKMYOv--
