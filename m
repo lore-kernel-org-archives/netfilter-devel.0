@@ -1,15 +1,16 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: size of a rule
-Date: Mon, 26 Apr 2004 16:24:11 +0200 (CEST)
+Subject: Re: Idea: Check session source and destination
+Date: Mon, 26 Apr 2004 16:44:34 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404261609030.6443-100000@filer.marasystems.com>
-References: <408D1482.5030009@aiqa.com>
+Message-ID: <Pine.LNX.4.44.0404261640210.6443-100000@filer.marasystems.com>
+References: <427EA2C2-9787-11D8-8B47-000A957FD99E@src.no>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>,
+   <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ozgur AKAN <akan@aiqa.com>
-In-Reply-To: <408D1482.5030009@aiqa.com>
+To: Mike Andersen <mike@src.no>
+In-Reply-To: <427EA2C2-9787-11D8-8B47-000A957FD99E@src.no>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,33 +21,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 26 Apr 2004, Ozgur AKAN wrote:
+On Mon, 26 Apr 2004, Mike Andersen wrote:
 
-> Hi,
-> I am trying to find the size of a rule in memory.
-> 
-> const struct ipt_entry *e;
-> 
-> sizeof (*e) is equal to 112 always. But the size of rule should be 
-> different because we can give different parameters to each rule. (I 
-> guess that this is the size of the header-like place)
+> iptables -A FORWARD -m conntrack --ctorigdst <int_ip> -j ACCEPT
+> iptables -A FORWARD -j DROP
 
-ipt_entry->next_offset gives the size of this rule from what I can 
-understand.
+Works here..
 
-> So I looked at the source of libiptc and found this in linux_list.h 
-> while searching for the size value.
-> 
-> #define list_entry(ptr, type, member) \
->         ((type *) ( (char *)(ptr)-(unsigned long)(&((type *)0)->member) ) )
-> 
-> What is the meaning of ((type *)0)->member ? I can not understand the 
-> part with 0.  
+> I then look more closely at the state table (/proc/net/ip_conntrack)  
+> and see that there are two sets of source definition, and two sets for  
+> the destination:
 
-The (&((type *)0)->member) is just one way of calculating the offset of
-"member" within the datatype "type".
+One is the ORIGINAL direction, the other the REPLY direction. Each is 
+matched independently by the "conntrack" match (--ctorigdst vs 
+--ctreplydst).
 
-This macro is used by iptables to index various lists.
+> Any idea of why the "-m conntrack --ctorigdst <int_ip>" also passes  
+> through traffic where int_ip is the source of the session?
+
+Does work like intended here and only matches where it is the original
+destination. But I am using this for packet filtering, not mirroring.  
+Not that I see any difference. Also I am using an extended version of the
+conntrack match which can match additional deatils such as ports etc,
+based on the conntrack match found in patch-o-matic-ng. (see
+netfilter-devel discussions some many months ago).. but that should not 
+make any difference either.
 
 Regards
 Henrik
