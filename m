@@ -1,70 +1,43 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: A patch to delete items in ip_conntrack hash table
-Date: Wed, 16 Jul 2003 18:54:34 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030716165434.GB735@naboo>
-References: <096f01c34926$57c4b540$e600a8c0@udtech.net>
+From: Adrian Bunk <bunk@fs.tum.de>
+Subject: Re: [2.4 patch] netfilter Configure.help cleanup
+Date: Thu, 17 Jul 2003 22:11:27 +0200
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <20030717201127.GK1407@fs.tum.de>
+References: <20030627233357.GN24661@fs.tum.de> <20030630051516.AAEC12C220@lists.samba.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JYK4vJDZwFMowpUq"
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Shen Rong <rshen@udtech.com.cn>
+Content-Type: text/plain; charset=us-ascii
+Cc: Marcelo Tosatti <marcelo@conectiva.com.br>,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	linux-net@vger.kernel.org
+Return-path: <linux-net-owner@vger.kernel.org>
+To: Rusty Russell <rusty@rustcorp.com.au>
 Content-Disposition: inline
-In-Reply-To: <096f01c34926$57c4b540$e600a8c0@udtech.net>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+In-Reply-To: <20030630051516.AAEC12C220@lists.samba.org>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, Jun 30, 2003 at 02:38:12PM +1000, Rusty Russell wrote:
+> In message <20030627233357.GN24661@fs.tum.de> you write:
+> > - remove useless short descriptions above CONFIG_*
+> 
+> > -Connection tracking (required for masq/NAT)
+> >  CONFIG_IP_NF_CONNTRACK
+> 
+> Can you really do this?  A quick skim didn't find anyone else skipping
+> this line...
 
---JYK4vJDZwFMowpUq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+These lines are only (sometimes outdated) copies of the lines in the
+Config.in files that are not used by any tool I am aware of. 
 
-On Sun, Jul 13, 2003 at 06:05:52PM +0800, Shen Rong wrote:
-> Hi,
->    I write a patch to delete specified item in ip_conntrack hash
-> table through setsockopt. A demo program is also attached.
+> Thanks,
+> Rusty.
 
-Thanks for contributing to the netfilter project.
+cu
+Adrian
 
->    Will it be ok for normal use? Is there any hidden issues on it?
-> Please give me any type of feedback. Thanks a lot.
+-- 
 
-Why didn't you use the already-existing means of deleting connection
-tracking items:  ctnetlink?
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
-Unless I am missing anything, I think we will stick with one mechanism
-rather than replicating the same functionality.
-
-> Shenrong
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---JYK4vJDZwFMowpUq
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE/FYNJXaXGVTD0i/8RAnfnAJ44l7jneBqJ+dYLcyhMg/ESdKSdwACfQreY
-Q00Rt+1ElOm5Sz7hXRAM9wU=
-=T3oI
------END PGP SIGNATURE-----
-
---JYK4vJDZwFMowpUq--
