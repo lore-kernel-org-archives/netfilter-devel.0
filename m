@@ -1,13 +1,13 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: 64bit changes in cvs
-Date: Thu, 27 May 2004 00:12:01 +0200
+From: Matthias Dettling <m-dettling@gmx.de>
+Subject: where is the right entry point for matching a tracked related connection?
+Date: Thu, 27 May 2004 01:47:32 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1085609520.969.128.camel@tux.rsn.bth.se>
+Message-ID: <40B52C94.20008@gmx.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-ZImnj1pBnC4KeWRy3CLt"
-Cc: Netfilter <netfilter@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,46 +18,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello developers,
 
---=-ZImnj1pBnC4KeWRy3CLt
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I am searching the right place in my linux kernel source (v 2.4.26) for 
+extending the iptables command to match in a packet "RELATED" to a 
+specific connection, informations that were tracked before.
 
-Hi
+In detail I want to use this for a FTP-connection.
+My aim is to open a FTP control-connection on port 21 in passive mode. 
+In the so opened channel, the port for the real data transfer is 
+negotiated. This negotiated connection is tracked by the 
+ftp-helper-module and is allowed, because it corresponds to the related 
+connection on port 21 (FW-Rule: "iptables -A INPUT -p tcp --sport 1024: 
+--dport 1024: -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT").
 
-During the day I've committed some patches into the iptables tree to get
-things working better on 64bit kernels (with both 32bit and 64bit
-userspace).
-(only tested on sparc64 and compile-tested on alpha. x86_64 and ia64
-will most likely need more love in order to work correctly with 32bit
-userspace, more on that later)
+But there is no possibility to test wheter the related connection is 
+really on port 21.
+So I want to modify the matching module "conntrack" (ipt_conntrack.c) 
+written by Marc Boucher to do so.
 
-All matches and targets in the 2.6 kernel works fine on the sparc64
-kernel now. One thing to mention concerns the ULOG target, the iptables
-part of it works fine with both 32bit and 64bit userspace, but the ulogd
-daemon _must_ be 64bit compiled in order to recieve packets correctly
-from kernel, this is true for all 64bit kernels.
+The thing i should know for doing this, is how i can get access to the 
+information of a tracked "RELATED" connection.
+After reading the hacking-howto i thought that access is gained through 
+the pointer "nfct" of the "sk_buff" structure, but with this i can't 
+find anywhere port informations of the originating packet (of the 
+related connection).
+Can somebody help me?
 
-I've reworked the part of the makefile that tries to detect if you are
-compiling a 32bit iptables against a 64bit kernel. I hope it works...
+best regards
 
-To those of you who have 64bit machines, please test and report any
-problems (including x86_64 / ia64 if you are feeling brave but it will
-probably fail :)
-
---=20
-/Martin
-
---=-ZImnj1pBnC4KeWRy3CLt
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQBAtRYwWm2vlfa207ERAj0GAJ9Nt1Z1Nn00oXfGnHlrc0Mkf5YuqQCeJG6e
-4ulhpTbwjw8SkAsPCxidHek=
-=FHVX
------END PGP SIGNATURE-----
-
---=-ZImnj1pBnC4KeWRy3CLt--
+M. Dettling
