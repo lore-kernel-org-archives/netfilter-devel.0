@@ -1,56 +1,80 @@
-From: Nicolas Bouliane <nib@cookinglinux.org>
-Subject: [PATCH] libipt_helper
-Date: Sun, 02 Jan 2005 02:35:26 -0500
-Message-ID: <41D7A43E.9060903@cookinglinux.org>
+From: Peter Bieringer <pb@bieringer.de>
+Subject: Re: ip6tables: accept of IPv6 transport esp packages not possible -
+ no rule matches
+Date: Sun, 02 Jan 2005 10:01:20 +0100
+Message-ID: <85346B5DA83795C08812E782@worker.muc.bieringer.de>
+References: <019064D0423CE6C823CBF476@t1mobil.muc.aerasec.de>
+ <5F6ACA5CEF52DBFBF11FBF94@t1mobil.muc.aerasec.de>
+ <41CD8B4F.6010402@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060005000500060008000105"
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel <netfilter-devel@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
-List-Id: netfilter-devel.vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------060005000500060008000105
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: USAGI core <usagi-core@linux-ipv6.org>,
+        Maillist netdev <netdev@oss.sgi.com>,
+        Harald Welte <laforge@gnumonks.org>,
+        Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <41CD8B4F.6010402@trash.net>
+Content-Disposition: inline
+Sender: netdev-bounce@oss.sgi.com
+Errors-to: netdev-bounce@oss.sgi.com
+List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-This trivial patch prevents from using `--helper` several time, which 
-case would overwriting previous value.
+--On Saturday, December 25, 2004 04:46:23 PM +0100 Patrick McHardy
+<kaber@trash.net> wrote:
 
-Cheers :)
+> Peter Bieringer wrote:
+>> Looks like there is something going wrong in the protocol matching 
+>> algorithm in netfilter6.
+> 
+> Does this patch fix the problem ?
+> 
+> Regards
+> Patrick
 
--acidfu
+Yes, this patch fix the problem on the incoming side:
 
---------------060005000500060008000105
-Content-Type: text/x-patch;
- name="libipt_helper.c.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="libipt_helper.c.patch"
+I ping6 to a remote host via IPsec in transport mode:
 
-Index: extensions/libipt_helper.c
-===================================================================
---- extensions/libipt_helper.c	(revision 3540)
-+++ extensions/libipt_helper.c	(working copy)
-@@ -44,6 +44,9 @@
- 
- 	switch (c) {
- 	case '1':
-+		if (*flags)
-+			exit_error(PARAMETER_PROBLEM,
-+					"helper match: Only use --helper ONCE!");
- 		check_inverse(optarg, &invert, &invert, 0);
- 		strncpy(info->name, optarg, 29);
- 		info->name[29] = '\0';
+IPv6 INPUT chain:
 
---------------060005000500060008000105--
+    0     0 ACCEPT     icmpv6    *      *       ::/0                 ::/0
+ipv6-icmp type 128
+    0     0 ACCEPT     icmpv6    *      *       ::/0                 ::/0
+ipv6-icmp type 129
+    1   156 ACCEPT     esp      *      *       remote/128  local/128
+    0     0 ACCEPT     all      *      *       remote/128  local/128
+
+
+So the proper chain matches.
+
+
+But I wonder a little bit because of the result of the OUTPUT chain:
+
+    0     0 ACCEPT     icmpv6    *      *       ::/0                 ::/0
+ipv6-icmp type 129
+    1   104 ACCEPT     icmpv6    *      *       ::/0                 ::/0
+ipv6-icmp type 128
+    0     0 ACCEPT     esp      *      *       local/128  remote/128
+    0     0 ACCEPT     all      *      *       local/128  remote/128
+
+
+Here, the ICMPv6 rule matches.
+
+This means for me that the traffic goes like this:
+
+OUTPUT: ping6 -> netfilter -> encryption -> ESP
+INPUT : ESP -> netfilter -> decryption -> ping6
+
+Is this logical?
+
+BTW: how to filter incoming traffic after decryption?
+
+        Peter
+-- 
+Dr. Peter Bieringer                     http://www.bieringer.de/pb/
+GPG/PGP Key 0x958F422D               mailto: pb at bieringer dot de 
+Deep Space 6 Co-Founder and Core Member  http://www.deepspace6.net/
