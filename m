@@ -1,14 +1,15 @@
-From: "Swaroop Ashish" <sashish@novell.com>
-Subject: Re: Unable to receive data Netlinks sockets
-Date: Thu, 25 Mar 2004 02:37:15 -0700
+From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+Subject: Re: problem when loading ip_tables - solved.
+Date: Thu, 25 Mar 2004 11:43:55 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <s06245ee.077@prv-mail25.provo.novell.com>
+Message-ID: <4062A9DB.4050803@netlab.hut.fi>
+References: <Pine.LNX.4.44.0403241750440.31592-100000@filer.marasystems.com> <4061BEA7.80800@netlab.hut.fi>
+Reply-To: emmanuel@netlab.hut.fi
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <pablo@eurodev.net>,<netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,35 +20,59 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks Pablo, 
 
-I have already used libipq successfully, but I want to play around with
-Netlink sockets now. I have a problem in recieving packets through
-Netlink sockets. Any help on that will be really great :-)
+Hi!
 
-Thanks
-Ashish
+The problem was the interdependance I mentioned earlier. I had included 
+the header file of my module in the ip_conntrack_standalone.c which 
+caused the ip_conntrack module to depend on my module which depends on 
+ip_conntrack.
 
->>> Pablo Neira <pablo@eurodev.net> 3/25/2004 2:58:07 PM >>>
-Hi,
+Thanks you Henrik for the clue about modules.dep!
 
-Swaroop Ashish wrote:
+Bye,
 
-> I want to write a test program to
->receive all the packets recieved on the system via this test program
->using Netlinks sockets.  Can anyone please tell me what is wrong in
-the
->following program and what configuration/rules should be added to
->Iptables to do the same.
->  
+         Emmanuel
+
+
+
+Emmanuel Guiton wrote:
+
 >
-
-if you want to play around with ip_queue, the module which let you send
-
-packets from kernel space to user space and vice-versa, you *should*
-use 
-libipq instead of using raw netlink sockets, please have a look at 
-libipq available in iptables source code.
-
-regards,
-Pablo
+> hi!
+>
+> Thanks for your suggestion, but I guess it may not be the problem. 
+> When I recompiled the kernel, I did it from scratch icluding make dep. 
+> So it should be up to date. However how can I ensure it?
+> However, looking at modules.dep i noticed that I have a module A that 
+> depends on a module B that itself depend on A. Can this 
+> interdependance be a problem?
+>
+>        Emmanuel
+>
+>
+>
+> Henrik Nordstrom wrote:
+>
+>> On Wed, 24 Mar 2004, Emmanuel Guiton wrote:
+>>
+>>  
+>>
+>>> insmod: ip_tables: no module by that name found
+>>>
+>>> while the module ip_tables.o exists. insmod finds without problem 
+>>> the other modules like for example ipt_REDIRECT, ip_conntrack, 
+>>> iptable_nat...
+>>>   
+>>
+>>
+>>
+>> Probably your modules.dep is not up to date.
+>>
+>> Regards
+>> Henrik
+>>  
+>>
+>
+>
+>
