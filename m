@@ -1,14 +1,14 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Iptables Match on Direction (IP_CT_IS_REPLY)
-Date: Sat, 05 Mar 2005 00:27:08 +0100
-Message-ID: <4228EECC.5000504@trash.net>
-References: <20050304093542.23600.qmail@web90010.mail.scd.yahoo.com>
+Subject: Re: [rfc] ipt_owner.c improvements
+Date: Sat, 05 Mar 2005 00:35:57 +0100
+Message-ID: <4228F0DD.7030307@trash.net>
+References: <4227B908.4070900@evtek.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Peter Lenci <peterlenci@yahoo.ca>
-In-Reply-To: <20050304093542.23600.qmail@web90010.mail.scd.yahoo.com>
+To: Juha Heljoranta <juha.heljoranta@evtek.fi>
+In-Reply-To: <4227B908.4070900@evtek.fi>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,17 +20,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Peter Lenci wrote:
-> I studied conntrack but didn't find a way to read the direction
-> of the packet. In fact I was thinking about writing a patch for that
-> module to add an option "--direction original|reply|both".
+Juha Heljoranta wrote:
+> I'd like to make few improvements to ipt_owner.c or perhaps to create 
+> something new that is like owner match.
 > 
-> How exactly would you determine the direction with conntrack?
+> First I'd like to improve performance for incoming packet matches. The 
+> next thing is to reliably identify sending/receiving process. Last 
+> proposal is to improve performance when matching is done several times 
+> per packet.
 
-CTINFO2DIR(ctinfo) of ctinfo returned by ip_conntrack_get gives you the
-direction. If you want to make a patch for ipt_conntrack it should be
-similar to Rusty's recent patch "Add bitops to ipt_MARK without breaking
-compatbility".
+As Dave Miller pointed out, the only sensible thing to do is add new
+hooks to the protocols themselves, anything else is racy. The main
+challenges are making sure incoming connections using protocols that
+support sockets aren't confirmed before they survived the socket
+hooks, with all possible module combinations, and possibly hooks for
+outgoing packets, I haven't thought about that very much.
 
 Regards
 Patrick
