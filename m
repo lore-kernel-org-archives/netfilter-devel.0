@@ -1,16 +1,15 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: dhcp-filtering
-Date: Thu, 14 Nov 2002 18:03:17 +0100
+From: Michael Schwendt <rh0209ms@arcor.de>
+Subject: Re: [PATCH] save inverted MAC match
+Date: Thu, 14 Nov 2002 23:43:40 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021114170317.GA2214@oknodo.bof.de>
-References: <Pine.LNX.4.44.0211141238440.773-100000@neon.rooth.de>
+Message-ID: <20021114234340.59dbc60a.rh0209ms@arcor.de>
+References: <20021106172119.609b16f8.rh0209ms@arcor.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed;
+ boundary="Multipart_Thu__14_Nov_2002_23:43:40_+0100_08421500"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Fabian Thorns <fthorns@rooTH.DE>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0211141238440.773-100000@neon.rooth.de>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20021106172119.609b16f8.rh0209ms@arcor.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,24 +20,64 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Fabian,
 
-> kernel: IN=eth0 OUT= MAC=ff:ff:ff:ff:ff:ff:00:00:e8:61:b4:26:08:00 SRC=0.0.0.0 DST=255.255.255.255 LEN=576 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=UDP SPT=68 DPT=67 LEN=556
-> dhcpd: DHCPREQUEST for 192.168.207.210 (192.168.207.3) from 00:00:e8:61:b4:26 via eth0
-[...]
-> i thing that it should be possible to filter dhcp-requests and since i
-> never heard of some special requirements needed for that propose it looks
-> like a bug or misbehavior to me.
+--Multipart_Thu__14_Nov_2002_23:43:40_+0100_08421500
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-The LOG output from iptables clearly shows you that the packets DO pass
-the iptables chain, and they WILL be dropped by the DROP policy of the
-input chain. Unfortunately, DHCPD appears to be running on a raw socket,
-instead of being an ordinary UDP process. raw sockets receive COPIES
-of the normally routed packets, and those COPIES to not pass through the
-iptables chains, resulting in the behaviour you are seeing.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Whether a DHCPD must run on a raw socket - I don't know. I avoid DHCP
-about as hard as I avoid SNMP.
+On Wed, 6 Nov 2002 17:21:19 +0100, Michael Schwendt wrote:
 
-best regards
-  Patrick
+> The "mac" userspace extension contains a minor bug for both IPv4 and
+> IPv6. Upon printing/saving a rule which matches inverted MAC
+> addresses, a space character is missing between the '!' prefix and
+> the MAC address. Hence iptables-restore fails to parse the output of
+> iptables-save. iptables 1.2.5, 1.2.6a, 1.2.7a and CVS are affected.
+> 
+> Steps to reproduce:
+> 
+>   iptables -N test
+>   iptables -I test -m mac --mac-source ! 01:02:03:04:05:06
+>   iptables-save | iptables-restore
+> 
+> Further reference:
+> 
+>   https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=77337
+
+In CVS, only the IPv4 code has been fixed (somehow I've missed v1.8
+of libipt_mac.c - don't know why).
+
+The IPv6 code still contains the same bug (in CVS libip6t_mac.c
+v1.5). Please don't forget to apply the patch. 
+
+- -- 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+
+iD8DBQE91Ccc0iMVcrivHFQRArM7AJ4x4n0YdhEYD45Bg3FYNKHgfky+9gCghax1
+Thx88ZNFK4KpS2kSQXXlCgg=
+=l7w/
+-----END PGP SIGNATURE-----
+
+--Multipart_Thu__14_Nov_2002_23:43:40_+0100_08421500
+Content-Type: application/octet-stream;
+ name="iptables-1.2.7a-invertmac.patch"
+Content-Disposition: attachment;
+ filename="iptables-1.2.7a-invertmac.patch"
+Content-Transfer-Encoding: base64
+
+UmVkIEhhdCBMaW51eCBidWcgIzc3MzM3OiBBZGQgbWlzc2luZyBzcGFjZSBiZXR3ZWVuICchJyBh
+bmQgTUFDCmFkZHJlc3MgdXBvbiBwcmludGluZy9zYXZpbmcgcnVsZXMuCgpkaWZmIC1OYXVyIGlw
+dGFibGVzLTEuMi43YS1vcmlnL2V4dGVuc2lvbnMvbGliaXA2dF9tYWMuYyBpcHRhYmxlcy0xLjIu
+N2EvZXh0ZW5zaW9ucy9saWJpcDZ0X21hYy5jCi0tLSBpcHRhYmxlcy0xLjIuN2Etb3JpZy9leHRl
+bnNpb25zL2xpYmlwNnRfbWFjLmMJV2VkIE1heSAyOSAxNTowODoxNiAyMDAyCisrKyBpcHRhYmxl
+cy0xLjIuN2EvZXh0ZW5zaW9ucy9saWJpcDZ0X21hYy5jCVdlZCBOb3YgIDYgMTY6NTA6MTcgMjAw
+MgpAQCAtOTAsNyArOTAsNyBAQAogewogCXVuc2lnbmVkIGludCBpOwogCi0JcHJpbnRmKCIlcyUw
+MlgiLCBpbnZlcnQgPyAiISIgOiAiIiwgbWFjYWRkcmVzc1swXSk7CisJcHJpbnRmKCIlcyUwMlgi
+LCBpbnZlcnQgPyAiISAiIDogIiIsIG1hY2FkZHJlc3NbMF0pOwogCWZvciAoaSA9IDE7IGkgPCBF
+VEhfQUxFTjsgaSsrKQogCQlwcmludGYoIjolMDJYIiwgbWFjYWRkcmVzc1tpXSk7CiAJcHJpbnRm
+KCIgIik7Cg==
+
+--Multipart_Thu__14_Nov_2002_23:43:40_+0100_08421500--
