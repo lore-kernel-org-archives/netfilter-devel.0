@@ -1,13 +1,17 @@
-From: "Joseph Tung" <jst1@pacbell.net>
-Subject: Masquerading and loading balancing among several outbound Internet connections
-Date: Tue, 1 Jun 2004 07:52:38 -0700
+From: Andy Furniss <andy.furniss@dsl.pipex.com>
+Subject: Re: [linuximq] Re: [PATCH] pom-ng version of IMQ target (file is
+ attached this time)
+Date: Wed, 02 Jun 2004 01:18:15 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <063e01c447e8$16d81060$650011ac@knxshunsfjwpvc>
+Message-ID: <40BD1CC7.7080605@dsl.pipex.com>
+References: <40A29E4A.94165870@info-link.net> <40A2D9D8.2050201@trash.net> <40A39C34.639DC30E@info-link.net> <40BB2C43.90704@dsl.pipex.com> <40BD0E6E.7040608@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_063B_01C447AD.68D377A0"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: linuximq@yahoogroups.com, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <40BD0E6E.7040608@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,97 +22,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Patrick McHardy wrote:
+> Andy Furniss wrote:
+> 
+>> I am still not sure whether using Dummy will satisfy other IMQ users 
+>> though, the thread above just deals with my setup - using ingress IMQ. 
+>> There must be people on here using IMQ for egress/ multiple IMQs to 
+>> solve their own problems. I changed IMQ to hook before NAT for egress, 
+>> just to see if it worked, as someone on the LARTC list wanted to use 
+>> ESFQ for a large NATed LAN - it appears to be OK - but will a 
+>> netfilter independent replacement allow this sort of flexability?
+> 
+> 
+> It probably could, but I don't know how the dummy device receives it's
+> packets, so I don't know if you can make it see the real source IP.
+> 
+> Your mail made me realize I need patch for exactly the same issue
+> with ESFQ for work, so if you need it I can send it to you.
 
-------=_NextPart_000_063B_01C447AD.68D377A0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Yea - it would be nice to see the right way to do it :-)
 
-Hello,
+I guessed using the example of the ingress NAT patch and changed egress 
+postrouting hook to NF_IP_PRI_NAT_SRC - 1.
 
-I have several internal networks that are to be ipmasqueraded or snat'd =
-among several outbound Internet connections (all going to this one =
-router/bridge).
-1) Is it possible to ipmasquerade to more than 1 outbound Internet =
-connection? (I have Fedora Core 1).
-2) If so, are there any samples of how this is done?  For now, I'd be =
-happy just assigning each private network one outgoing ip address; but I =
-want to do this with one box.  Then I'll bridge the two (or more) by =
-modifying the routing table?
-3) I'd like to provide webservices via several low bandwidth =
-connections, so I'd like to dynamically route the traffic based on the =
-load.  My sense is that this is impossible with the current release.
-_________________________
+It seems to be OK for me - are there other safe places where IMQ is OK 
+or any to be avoided?
 
-Joseph Tung
-eXnium Inc.
-
-5255 Stevens Creek Blvd Ste 336
-Santa Clara, CA 95051
-   main:     408.253.9970
-   mobile:  408.393.1123
-   fax::       408.253.9971
-   email:     joe.tung@eXnium.com
-
-   url:         http://www.eXnium.com
-_________________________
-
-
-------=_NextPart_000_063B_01C447AD.68D377A0
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2800.1400" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>Hello,</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>I have several internal networks that =
-are to be=20
-ipmasqueraded or snat'd among several outbound Internet connections (all =
-going=20
-to this one router/bridge).</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>1) Is it possible to ipmasquerade to =
-more than 1=20
-outbound Internet connection? (I have Fedora Core 1).</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>2) If so, are there any samples of how =
-this is=20
-done?&nbsp; For now, I'd be happy just assigning each private network =
-one=20
-outgoing ip address; but I want to do this with one box.&nbsp; Then I'll =
-bridge=20
-the two (or more) by modifying the routing table?</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>3) I'd like to provide webservices via =
-several low=20
-bandwidth connections, so I'd like to dynamically route the traffic =
-based on the=20
-load.&nbsp; My sense is that this is impossible with the current=20
-release.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>_________________________</FONT></DIV>
-<DIV>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Joseph Tung<BR>eXnium Inc.</FONT></DIV>
-<DIV>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>5255 Stevens Creek Blvd Ste =
-336<BR>Santa Clara, CA=20
-95051<BR>&nbsp;&nbsp; main:&nbsp;&nbsp;&nbsp;&nbsp; =
-408.253.9970<BR>&nbsp;&nbsp;=20
-mobile:&nbsp; 408.393.1123<BR>&nbsp;&nbsp;=20
-fax::&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 408.253.9971<BR>&nbsp;&nbsp;=20
-email:&nbsp;&nbsp;&nbsp;&nbsp; <A=20
-href=3D"mailto:joe.tung@eXnium.com">joe.tung@eXnium.com</A></FONT></DIV>
-<DIV>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>&nbsp;&nbsp;=20
-url:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <A=20
-href=3D"http://www.eXnium.com">http://www.eXnium.com</A><BR>_____________=
-____________</FONT></DIV>
-<DIV>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
-
-------=_NextPart_000_063B_01C447AD.68D377A0--
+Andy.
