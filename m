@@ -1,91 +1,26 @@
-From: Valentijn Sessink <valentyn+netfilter-dev@nospam.openoffice.nl>
-Subject: alien TCP RST packets
-Date: Mon, 7 Jul 2003 10:46:23 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030707084622.GA15410@openoffice.nl>
+From: Yuan ChunYang <cyyuanml@sonata.iscas.ac.cn>
+Subject: priority in netfilter
+Date: 09 Jul 2003 11:40:10 +0800
+Sender: linux-net-owner@vger.kernel.org
+Message-ID: <1057722010.1302.21.camel@sonata>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Return-path: <linux-net-owner@vger.kernel.org>
+To: ml_linux-net <linux-net@vger.kernel.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello netfilter developers,
+Can somebody explain priority in netfilter hooks?
+We know netfilter defined 
+ enum nf_ip_hook_priorities {
+         NF_IP_PRI_FIRST = INT_MIN,
+         NF_IP_PRI_CONNTRACK = -200,
+          NF_IP_PRI_MANGLE = -150,
+          NF_IP_PRI_NAT_DST = -100,
+          NF_IP_PRI_FILTER = 0,
+          NF_IP_PRI_NAT_SRC = 100,
+          NF_IP_PRI_LAST = INT_MAX,
+ };
+They are ordered by ascend. But i do not know when to use which priority?
 
-I have a server with a really simple setup, that once in a while sends out
-TCP resets from alien ports. The firewalling setup is really simple, it only
-does -P DROP for all, then accepts traffic on lo, accepts ICMP, accepts tcp
---dport 80, 443 and --sport 80, 443. There's no statefull firewalling, no
-DNAT, no REJECT rules. It logs outgoing traffic from non-http[s] ports. The
-web server's IP address is 192.168.193.2, as it is behind a port forwarding
-Cisco PIX.
-
-Now this:
-
-Jun 21 13:32:16 www kernel: IN= OUT=eth1 SRC=192.168.193.2 DST=142.123.43.59
-LEN=40 TOS=0x00 PREC=0x00 TTL=64 ID=5365 PROTO=TCP SPT=39821 DPT=1041
-WINDOW=7504 RES=0x00 ACK RST URGP=0 Jun 22 06:31:07 www kernel: IN= OUT=eth1
-SRC=192.168.193.2 DST=184.111.49.2 LEN=40 TOS=0x00 PREC=0x00 TTL=64 ID=22616
-PROTO=TCP SPT=40865 DPT=28013 WINDOW=6432 RES=0x00 ACK RST URGP=0
-... and does this a couple of times more (about ten times a week, sometimes
-a whole bunch of RST's from one IP address).
-
-I can't think of a reason why the Linux kernel would try to output a packet
-with SPT=39821 and DPT=1041, as anything to this source port is DROPPED
-totally. As we grew suspicious, we started to log traffic to/from this web
-server and saw things like:
-[time] 142.123.43.59.1041 > 192.168.193.2.https: R
-
-... showing the exact source port number that the RST packets were directed
-to. Note that this is regular https traffic where the client sends a RST.
-Pleas also note that the source port for this reset is the destination port
-for the spurious RST from the server. This reset from the client with the
-same source port seems always the case when this spurious RST occurs. This,
-unfortunately, still doesn't explain the high source port number the Linux
-kernel shows in the logs.
-
-I'm starting to think I'm stupid or I oversee something really simple, as I
-can't think of a way a RST packet tries to find a way out of a port that has
-no way in.
-
-So, my questions: Is this sending of RST's a kernel thing? Is there a valid
-way Websphere could "send" such packets? Or am I just being stupid (in this
-case only, please ;-) ?
-
-Finally some info: Linux 2.4.18 with LIDS (www.lids.org) patch, compiled
-with GCC 2.95.4 20011002 (Debian Prerelease); HP 2000r SMP machine, Debian
-GNU/Linux distribution, IBM Websphere 3.5-something.
-
-(Oh, BTW, full disclosure: yes, there is a second network interface. This
-one is internal, and only connects to two very small subnets with private IP
-space. The first thing I suspected was spurious fake packets on the inside.
-We did analyse the traffic on this subnet, but could not find a single trace
-of any of the mentioned IP addresses, so I don't think this is alien source
-traffic from the inside).
-
-I sent this report to netfilter-users, to linux-net and to larc, but
-the only answer I got was a link to
-http://mailman.ds9a.nl/pipermail/lartc/2003q3/009189.html (which is a
-totally different setup - it only shares the alien RST's)
-
-BTW: I'm still not confident that these RST's really are generated by the
-kernel, i.e. that an application cannot generate these RST's (except when
-using raw sockets, of course), so if someone could confirm this, that would
-really help as then it would be a kernel and/or netfilter issue, not some
-silly IMBHttp-fault. I hope I'm not bothering the dev-list too much, but I
-really don't know what's happening here and it doesn't seem normal.
-
-Best regards,
-
-Valentijn
--- 
-http://www.openoffice.nl/   Open Office - Linux Office Solutions
-Valentijn Sessink  valentyn+sessink@nospam.openoffice.nl
