@@ -1,15 +1,12 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: timeout storms make the box unresponsive
-Date: Mon, 11 Aug 2003 13:02:58 +0200 (CEST)
+From: Ranjeet Shetye <ranjeet.shetye2@zultys.com>
+Subject: [Fwd: IPSec + NAT interaction in Linux 2.6]
+Date: 11 Aug 2003 10:57:05 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0308111255490.830-100000@blackhole.kfki.hu>
-References: <20030727103422.GA23621@oknodo.bof.de>
+Message-ID: <1060624625.3696.3.camel@ranjeet-pc2.zultys.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="=-ELSWO+URbWTxgRgLVliI"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <20030727103422.GA23621@oknodo.bof.de>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,55 +17,123 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
 
-[...back from holiday]
+--=-ELSWO+URbWTxgRgLVliI
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-On Sun, 27 Jul 2003, Patrick Schaaf wrote:
 
-> > 03_locking.patch	per bucket locking patch with a couple of
-> > 			optimizations
->
-> some questions, during first pass reading over the patch;
->
-> 1) regarding the 'ifdef CONFIG_IP_NF_NAT_NEEDED' gymnastics, reading
->    hash_conntrack(), am I correct that this is the "non-NAT symmetry"
->    optimization I proposed a long time ago, i.e. if both direction's
->    tuples are mirrors of each other, hash/chain them only once?
->    If yes, I feel that warrants breaking out into a separate patch.
+Hi,
 
-Yes, that's the implementation of your proposal. I was simply too lazy to
-create a separate patch...
+I asked this question in linux-net, but I didn't get any good answers.
+Was hoping someone in NetFilter can answer my question as to whether a
+an incoming packet undergoes IPSec or NAT first ?
 
-> 2) assuming I am correct wrt the goal in 1), I object to the seperate
->    "sorting" of IP and port in hash_conntrack(). Although it is unlikely,
->    consider a situation where between two specific IP addresses,
->    two independant connections run from (IPA,portA)<->(IPB,portB)
->    and (IPA,portB)<->(IPB,portA). The code in your patch would
->    throw both into the same hash chain, without need. Better:
->
->    	if (IPa < IPb) {
-> 		/* fine, do nothing */
-> 	} else if (IPa > IPb) {
-> 		swap IPs _and_ ports
-> 	} else /* IPa == IPb */ if (portA > port B) {
-> 		swap ports (IPs are identical, swap is noop)
-> 	}
+In Linux-net, someone did post that I can try out practical experiments
+and figure out which comes first, IPSec or NAT, but I am primarily
+interested in the call graph and see the order of operations. Please see
+my detailed forwarded message.
 
-Good point, thank you the suggestion!
+thanks,
+Ranjeet.
 
-> 3) there is much activity related to managing expectations and
->    helper stuff. Is that directly related to the conntrack locking
->    changes themselves?  If not, I would also advocate breaking those
->    into a separate patch. I never looked closely into the expectation
->    stuff, so it is nothing but confusing (to me) to see it in this patch.
+-- 
 
-That'd require a lot of work. I don't think it would worth the effort.
+Ranjeet Shetye
+Senior Software Engineer
+Zultys Technologies
+Ranjeet dot Shetye2 at Zultys dot com
+http://www.zultys.com/
+ 
+The views, opinions, and judgements expressed in this message are solely
+those of the author. The message contents have not been reviewed or
+approved by Zultys.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+
+--=-ELSWO+URbWTxgRgLVliI
+Content-Disposition: inline
+Content-Description: Forwarded message - IPSec + NAT interaction in Linux
+	2.6
+Content-Type: message/rfc822
+
+Subject: IPSec + NAT interaction in Linux 2.6
+From: Ranjeet Shetye <ranjeet.shetye2@zultys.com>
+To: linux-net@vger.kernel.org
+Content-Type: text/plain
+Organization: Zultys Technologies Inc.
+Message-Id: <1060390954.3373.22.camel@ranjeet-pc2.zultys.com>
+Mime-Version: 1.0
+X-Mailer: Ximian Evolution 1.4.3 
+Date: 08 Aug 2003 18:02:34 -0700
+Content-Transfer-Encoding: 7bit
+
+
+Hi,
+
+I was wondering if anyone has tested the IPSec functionality in
+conjunction with NAT for the Linux 2.6 kernel ? with/without VLAN thrown
+in.
+
+Over the weekend I will need to do a lot of kernel code reading because
+I need to understand the interaction between the NetFilter (NAT) code
+and the IPSec code, how they tie in, how to play with this interaction
+to ensure that it will not break under any circumstances, even when
+deployed with VLANs under various field conditions.
+
+Over the last couple of days, I googled for documents that would explain
+NAT IPSec interaction, and read up on stuff from the Documentation
+directory. I also did a preliminary review of the code. My background is
+that I am comfortable with IPSec/IKE, and reasonably familiar with Linux
+networking code.
+
+Here's what I understand. Feel free to correct/berate/curse.
+
+1. Using RFC and BSD terminology, security policies (SP) are stored in
+the kernel using setkey, and security associations (SA) are then
+negotiated using IKE (racoon), based on the SP "guidelines" that are
+programmed into the kernel.
+
+2. xfrm4_policy_check() seems to be the main IPSec policy check function
+for IPv4 packets. It calls the generic xfrm_policy_check() which then
+does a match using xfrm_selector_match() and does lookups using
+"xfrm_sk_policy_lookup()" and "xfrm_policy_lookup()" as necessary, to
+finally retrieve a policy, if one exists.
+
+3. xfrm4_policy_check() itself is called from many places like ip_rcv(),
+udp_rcv(), tcp_v4_rcv(), and ip_local_deliver().
+
+4. When a packet is received, ip_rcv() calls the NF_HOOK (PF_INET,
+NF_IP_PRE_ROUTING, ip_rcv_finish()...).
+
+5. ip_rcv_finish() then calls ip_route_input(), and dst_input() for
+forwarded packets. dst_input() calls skb->dst->input() which is set to
+ip_forward().
+
+6. ip_forward() is the first place where xfrm4_policy_check() takes
+place for a packet being forwarded.
+
+7. Thus NAT [step 4] takes place before IPSec policies are invoked [step
+6]. Is this correct ?
+
+I am trying to understand if NAT takes place before or after IPSec.
+Ideally, for IPSec + NAT to work smoothly, the IPSec sub-system should
+be between the NAT sub-system and the Internet. Any explainations here
+would be greatly appreciated.
+
+Thanks,
+Ranjeet.
+
+-- 
+
+Ranjeet Shetye
+Senior Software Engineer
+Zultys Technologies
+Ranjeet dot Shetye2 at Zultys dot com
+http://www.zultys.com/
+ 
+The views, opinions, and judgements expressed in this message are solely
+those of the author. The message contents have not been reviewed or
+approved by Zultys.
+
+
+--=-ELSWO+URbWTxgRgLVliI--
