@@ -1,12 +1,15 @@
-From: Kiran Kumar <immidi_kiran@yahoo.com>
-Subject: TCP conntrack queries
-Date: Sun, 21 Mar 2004 21:04:38 -0800 (PST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Bug-Report 3-19-03 patch-o-matic-ng
+Date: Mon, 22 Mar 2004 10:12:56 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040322050438.56577.qmail@web14009.mail.yahoo.com>
+Message-ID: <Pine.LNX.4.33.0403221004140.24116-100000@blackhole.kfki.hu>
+References: <029901c40ee1$3c847280$d100a8c0@W2RZ8L4S02>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Jim Gifford <maillist@jg555.com>
+In-Reply-To: <029901c40ee1$3c847280$d100a8c0@W2RZ8L4S02>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,23 +20,45 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-  As I went through ip_conntrack_proto_tcp.c, I had
-these couple of queries.
+On Sat, 20 Mar 2004, Jim Gifford wrote:
 
-- Why is there a distinction b/w states NONE and
-CLOSED?
+> Welcome to Patch-o-matic (1.15)!
+>
+> Kernel:         /usr/src/linux
+> Iptables:       /usr/src/iptables
+>
+> Each patch is a new feature: many have minimal impact, some do not.
+> Almost every one has bugs, so don't apply what you don't need!
+> -------------------------------------------------------
+> Already applied: init_conntrack-optimize ipt_helper-invert-fix nf-log NETMAP
+> SAME TTL connlimit fuzzy iprange mport nth sctp CLASSIFY
+> iptables-loopcheck-speedup netfilter-docbook
+>
+> Testing tcp-window-tracking... not applied
+> The tcp-window-tracking patch:
+>    Author: Jozsef Kadlecsik
+>    Status: proven to be quite stable, but still experimental
+>
+> Now for the error message
+> -----------------------------------------------------------------
+> Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
+> present 'ctstat' conflicts with to-be-installed 'tcp-window-tracking'
+> -----------------------------------------------------------------
+> Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
+> apply_dependencies: unable to apply dependent nf-log: cannot apply (22
+> rejects out of 24 hunks)
+> -----------------------------------------------------------------
+>
+> As you notice ctstat is not installed and nf-log is installed.
 
-- The array of timeouts has been replaced (as I get
-from the diff b/w my RH9 kernel sources and 2.6
-sources) by an array of pointers to variables. Why was
-this done?
+Thank you the bug report. Unfortunately deadlines are hanging over
+my head and I'm not going to have any time to look at into the problem
+until the first days of April :-((.
 
-=====
-Regards,
-Kiran Kumar Immidi
-
-__________________________________
-Do you Yahoo!?
-Yahoo! Finance Tax Center - File online. File on time.
-http://taxes.yahoo.com/filing.html
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
