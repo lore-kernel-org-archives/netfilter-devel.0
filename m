@@ -1,15 +1,13 @@
-From: Sven Schuster <schuster.sven@gmx.de>
-Subject: [PATCH] fix bug in convert2pomng.sh
-Date: Wed, 18 Feb 2004 11:18:16 +0100
+From: Nagaraj G <gnraj@teneoris.com>
+Subject: Can I create an Incoming Connection from NAT which goes through NAT
+Date: Wed, 18 Feb 2004 16:54:23 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040218101816.GA13588@zion.homelinux.com>
+Message-ID: <1077103462.3772.7.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-Content-Disposition: inline
+To: Netfilter <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,98 +18,39 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello Everyone,
 
---tKW2IUtsqtDRztdT
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I am facing a major problem using the Linux NAT. I am having Linux
+2.4.10 with netfilter.
 
+I have a NAT Application for which I hook my Standalone NAT Module on
+that port (STANDALONE and ALWAYS_NAT). I don't have a
+connection-tracking module as I don't get a reply packet on the original
+connection.
 
-Hi Harald, hi Netfilter-devel-list,
+I want to open an Incoming connection for a specific destination and all
+the packets that are destined to that port should go through my NAT
+Helper.
 
-attached you find a patch against convert2pomng.sh.
-The original version didn't create additional .ladd files if there where
-more than one entries to add. For example with the nfnetlink-ctnetlink
-patch there were the files
+Is this possible at all using netfilter NAT?
 
-nfnetlink-ctnetlink-0.13.patch.ip_conntrack.h
-nfnetlink-ctnetlink-0.13.patch.ip_conntrack.h-2
-nfnetlink-ctnetlink-0.13.patch.ip_conntrack.h-3
-nfnetlink-ctnetlink-0.13.patch.ip_conntrack.h-3
-nfnetlink-ctnetlink-0.13.patch.ip_conntrack.h-4
-nfnetlink-ctnetlink-0.13.patch.ip_conntrack.h-5
-nfnetlink-ctnetlink-0.13.patch.ip_conntrack.h-6
-nfnetlink-ctnetlink-0.13.patch.ip_conntrack.h-7
-nfnetlink-ctnetlink-0.13.patch.ip_conntrack.h-8
+I tried creating a connection using expect_related. But only the first
+packet goes through my Nat_Expected function. But none of the packets
+come to my NAT helper even though I have registered for NAT for that
+port.
 
-But because of an error in the script each part was created as=20
+Is there any way by which I create an Incoming connection which goes
+through my NAT helper?
 
-ip_conntrack.h.ladd
+Netfilter being so popular, there should be a way to do this. But I
+didn't see such details in any documentation available.
 
-and so just the last part (...-8) went into pom-ng.
+Am I missing something?
 
-I tested this one and it worked, the parts were correctly created as
+Please..please...help!!!
 
-ip_conntrack.h.ladd
-ip_conntrack.h.ladd_2
-=2E..
+Thanks a lot in advance...
 
-I hope the fix is fine (and a diff for patch -p0 too :-)! If it is,
-wouldn't most patches from pom need to be converted to pom-ng again??
+Best Regards,
 
-BTW, I'm currently about to port the nfnetlink-ctnetlink patch to 2.6
-(which actually brought my attention to this bug), is anyone else=20
-working on this??
-
-
-Regards
-
-Sven
-
-
-
---- convert2pomng.sh.orig	Wed Feb 18 10:32:33 2004
-+++ convert2pomng.sh	Wed Feb 18 10:55:54 2004
-@@ -31,19 +31,19 @@
- done
-=20
- for f in $PREFIX.makefile*; do
--	postfix=3D${f##$PREFIX.makefile} | sed -e s/-/_/
-+	postfix=3D$(echo "${f##$PREFIX.makefile}" | sed -e s/-/_/)
- 	newfile=3D$DESTDIR/linux/net/ipv4/netfilter/Makefile.ladd$postfix
- 	cp $f $newfile
- done
-=20
- for f in $PREFIX.config.in*; do
--	postfix=3D${f##$PREFIX.config.in} | sed -e s/-/_/
-+	postfix=3D$(echo "${f##$PREFIX.config.in}" | sed -e s/-/_/)
- 	newfile=3D$DESTDIR/linux/net/ipv4/netfilter/Config.in.ladd$postfix
- 	cp $f $newfile
- done
-=20
- for f in $PREFIX.ip_conntrack.h*; do
--	postfix=3D${f##$PREFIX.ip_conntrack.h} | sed -e s/-/_/
-+	postfix=3D$(echo "${f##$PREFIX.ip_conntrack.h}" | sed -e s/-/_/)
- 	newfile=3D$DESTDIR/linux/include/linux/netfilter_ipv4/ip_conntrack.h.ladd=
-$postfix
- 	cp $f $newfile
- done
-
---=20
-Linux zion 2.6.3-rc2 #2 Fri Feb 13 00:07:44 CET 2004 i686 athlon i386 GNU/L=
-inux
- 11:14:59  up 1 day, 10:47,  4 users,  load average: 0.04, 0.04, 0.00
-
---tKW2IUtsqtDRztdT
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQFAMzvoo4FAdB2PneQRAnFTAJ0VXAgWqWK7AbC2gpMSTy9PoppOggCfQlOp
-cB8dZMZgfZgNIk3GxCcrMOA=
-=eFT9
------END PGP SIGNATURE-----
-
---tKW2IUtsqtDRztdT--
+Nagaraj
