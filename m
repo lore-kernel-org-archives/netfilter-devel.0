@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: iptables extensions
-Date: Sun, 27 Apr 2003 14:39:27 +0200
+Subject: Re: Patch with additional options for quota match
+Date: Sun, 27 Apr 2003 14:40:55 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030427123927.GW990@sunbeam.de.gnumonks.org>
-References: <20030416180232.15493.qmail@web13907.mail.yahoo.com> <20030416181404.54392.qmail@web13906.mail.yahoo.com>
+Message-ID: <20030427124055.GX990@sunbeam.de.gnumonks.org>
+References: <3E9DCA15.40C99A6C@info-link.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZUxj+kVYsk1YKJSS"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="qxpYSgLynlcP4boX"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	samj@samj.net
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Scott MacKay <scottmackay@yahoo.com>
+To: Brad Fisher <brad@info-link.net>
 Content-Disposition: inline
-In-Reply-To: <20030416181404.54392.qmail@web13906.mail.yahoo.com>
+In-Reply-To: <3E9DCA15.40C99A6C@info-link.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,34 +24,21 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---ZUxj+kVYsk1YKJSS
+--qxpYSgLynlcP4boX
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 16, 2003 at 11:14:04AM -0700, Scott MacKay wrote:
-> Hiyas,
->    I don't know if there is a 'request' area for
-> development or not, but would there be any way to get
-> a new function added to the extensions library?  While
-> printing the field (->print()) is yippie skippie, I
-> would really like it of the string representation of
-> the field could be dumped into a character buffer,
-> maybe using a function like:=20
-> static const void sprint(const struct ipt_ip
-> *ip,ipt_entry_match *match, char *sbuffer, int
-> sbuffer_len);
-> Basically would do what print() does, but dump the
-> results into a character buffer, to examine/deliver in
-> a means other than printf(). =20
+On Wed, Apr 16, 2003 at 04:24:37PM -0500, Brad Fisher wrote:
+> I have made up a small patch for the quota match by Sam Johnston to add
+> a couple of options I find useful - negated matching and the option to
+> count total packet size (data + headers) instead of just data size.
 
-As the iptables userspace was not designed to be used (as a library) by
-other applications, there is no support for doing so.
+I don't want to include this without the orignal author's permission.
+Please contact Sam Johnston about your changes and ask him if he agrees
+with those changes.
 
-With good luck, we will eventually see libiptables show up in the far
-future...
-
-> -Scott
+Thanks.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -62,7 +50,7 @@ future...
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---ZUxj+kVYsk1YKJSS
+--qxpYSgLynlcP4boX
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -70,9 +58,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+q89/XaXGVTD0i/8RApokAJ9sCFFHHen5jq9TlAm5aB9ZZ7LLZACcDACx
-ISa0fGrl/2985HhjjlMNbcQ=
-=McZA
+iD8DBQE+q8/XXaXGVTD0i/8RArpcAJ9FnXcy23SoBCG97N3EwYOl+PAGRgCZAf5M
+29td8VfPZ7D0t21MuCfj5WQ=
+=XLbx
 -----END PGP SIGNATURE-----
 
---ZUxj+kVYsk1YKJSS--
+--qxpYSgLynlcP4boX--
