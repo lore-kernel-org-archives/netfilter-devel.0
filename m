@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] netfilter fix (5/7): conntrack 64bit bigendian fixes
-Date: Tue, 24 Jun 2003 16:04:36 +0200
+Subject: [PATCH] netfilter fix (2/7): don't call nat helper for connection with no manips
+Date: Tue, 24 Jun 2003 15:59:19 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030624140436.GE2645@sunbeam.de.gnumonks.org>
+Message-ID: <20030624135919.GB2645@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zaRBsRFn0XYhEU69"
+	protocol="application/pgp-signature"; boundary="NMuMz9nt05w80d4+"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,99 +21,80 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---zaRBsRFn0XYhEU69
+--NMuMz9nt05w80d4+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Dave!
 
-Here goes the fifth...
+Here goes the second...
 
+Author: Jeff Hall <hall@vdata.com>, Harald Welte <laforge@netfilter.org>
 
-Author: Jakub Bogusz <qboosh@pld.org.pl>
+This patch fixes two issues in the newnat core that are particularly releva=
+nt
+for the pptp helper:
 
-This patch fixes bugs related to machine endianess (harmless on
-little-endians, but causing that some of conntrack modules don't
-work on big-endian machines).
-
+1) Don't call a NAT helper for a connection without any nat manips
+2) Really call NAT helper with IP_NAT_HELPER_F_ALWAYS always
 
 diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ver' --exclude '.*=
 =2Eflags' --exclude '*.orig' --exclude '*.rej' --exclude '*~' linux-2.4.21-=
-ip6t_alignment/net/ipv4/netfilter/ip_conntrack_core.c linux-2.4.21-ct_bigen=
-dian/net/ipv4/netfilter/ip_conntrack_core.c
---- linux-2.4.21-ip6t_alignment/net/ipv4/netfilter/ip_conntrack_core.c	2003=
--06-24 15:50:53.000000000 +0200
-+++ linux-2.4.21-ct_bigendian/net/ipv4/netfilter/ip_conntrack_core.c	2003-0=
-6-24 15:56:23.000000000 +0200
-@@ -174,8 +174,8 @@
- static void
- destroy_expect(struct ip_conntrack_expect *exp)
- {
--	DEBUGP("destroy_expect(%p) use=3D%d\n", exp, atomic_read(exp->use));
--	IP_NF_ASSERT(atomic_read(exp->use));
-+	DEBUGP("destroy_expect(%p) use=3D%d\n", exp, atomic_read(&exp->use));
-+	IP_NF_ASSERT(atomic_read(&exp->use));
- 	IP_NF_ASSERT(!timer_pending(&exp->timeout));
+dropback/net/ipv4/netfilter/ip_nat_core.c linux-2.4.21-nohelper/net/ipv4/ne=
+tfilter/ip_nat_core.c
+--- linux-2.4.21-dropback/net/ipv4/netfilter/ip_nat_core.c	2003-06-13 16:51=
+:39.000000000 +0200
++++ linux-2.4.21-nohelper/net/ipv4/netfilter/ip_nat_core.c	2003-06-24 15:52=
+:56.000000000 +0200
+@@ -756,6 +756,11 @@
+ 	enum ip_conntrack_dir dir =3D CTINFO2DIR(ctinfo);
+ 	int is_tcp =3D (*pskb)->nh.iph->protocol =3D=3D IPPROTO_TCP;
 =20
- 	kfree(exp);
-@@ -1309,8 +1309,8 @@
- getorigdst(struct sock *sk, int optval, void *user, int *len)
- {
- 	struct ip_conntrack_tuple_hash *h;
--	struct ip_conntrack_tuple tuple =3D { { sk->rcv_saddr, { sk->sport } },
--					    { sk->daddr, { sk->dport },
-+	struct ip_conntrack_tuple tuple =3D { { sk->rcv_saddr, { .tcp =3D { sk->s=
-port } } },
-+					    { sk->daddr, { .tcp =3D { sk->dport } },
- 					      IPPROTO_TCP } };
++	/* Skip everything and don't call helpers if there are no
++	 * manips for this connection */
++	if (info->num_manips =3D=3D 0)
++		return NF_ACCEPT;
++
+ 	/* Need nat lock to protect against modification, but neither
+ 	   conntrack (referenced) and helper (deleted with
+ 	   synchronize_bh()) can vanish. */
+@@ -796,6 +801,7 @@
+ 		struct ip_conntrack_expect *exp =3D NULL;
+ 		struct list_head *cur_item;
+ 		int ret =3D NF_ACCEPT;
++		int helper_called =3D 0;
 =20
- 	/* We only do TCP at the moment: is there a better way? */
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ver' --exclude '.*=
-=2Eflags' --exclude '*.orig' --exclude '*.rej' --exclude '*~' linux-2.4.21-=
-ip6t_alignment/net/ipv4/netfilter/ip_conntrack_ftp.c linux-2.4.21-ct_bigend=
-ian/net/ipv4/netfilter/ip_conntrack_ftp.c
---- linux-2.4.21-ip6t_alignment/net/ipv4/netfilter/ip_conntrack_ftp.c	2003-=
-06-13 16:51:39.000000000 +0200
-+++ linux-2.4.21-ct_bigendian/net/ipv4/netfilter/ip_conntrack_ftp.c	2003-06=
--24 15:56:23.000000000 +0200
-@@ -366,11 +366,11 @@
- 		    { 0 } },
- 		  { htonl((array[0] << 24) | (array[1] << 16)
- 			  | (array[2] << 8) | array[3]),
--		    { htons(array[4] << 8 | array[5]) },
-+		    { .tcp =3D { htons(array[4] << 8 | array[5]) } },
- 		    IPPROTO_TCP }});
- 	exp->mask =3D ((struct ip_conntrack_tuple)
- 		{ { 0xFFFFFFFF, { 0 } },
--		  { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
-+		  { 0xFFFFFFFF, { .tcp =3D { 0xFFFF } }, 0xFFFF }});
+ 		DEBUGP("do_bindings: helper existing for (%p)\n", ct);
 =20
- 	exp->expectfn =3D NULL;
+@@ -814,19 +820,21 @@
+ 				continue;
 =20
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ver' --exclude '.*=
-=2Eflags' --exclude '*.orig' --exclude '*.rej' --exclude '*~' linux-2.4.21-=
-ip6t_alignment/net/ipv4/netfilter/ip_conntrack_irc.c linux-2.4.21-ct_bigend=
-ian/net/ipv4/netfilter/ip_conntrack_irc.c
---- linux-2.4.21-ip6t_alignment/net/ipv4/netfilter/ip_conntrack_irc.c	2003-=
-06-13 16:51:39.000000000 +0200
-+++ linux-2.4.21-ct_bigendian/net/ipv4/netfilter/ip_conntrack_irc.c	2003-06=
--24 15:56:23.000000000 +0200
-@@ -209,11 +209,11 @@
-=20
- 			exp->tuple =3D ((struct ip_conntrack_tuple)
- 				{ { 0, { 0 } },
--				  { htonl(dcc_ip), { htons(dcc_port) },
-+				  { htonl(dcc_ip), { .tcp =3D { htons(dcc_port) } },
- 				    IPPROTO_TCP }});
- 			exp->mask =3D ((struct ip_conntrack_tuple)
- 				{ { 0, { 0 } },
--				  { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
-+				  { 0xFFFFFFFF, { .tcp =3D { 0xFFFF } }, 0xFFFF }});
-=20
- 			exp->expectfn =3D NULL;
-=20
-
+ 			if (exp_for_packet(exp, pskb)) {
+-				/* FIXME: May be true multiple times in the case of UDP!! */
+-				DEBUGP("calling nat helper (exp=3D%p) for packet\n",
+-					exp);
++				/* FIXME: May be true multiple times in the
++				 * case of UDP!! */
++				DEBUGP("calling nat helper (exp=3D%p) for	packet\n", exp);
+ 				ret =3D helper->help(ct, exp, info, ctinfo,=20
+ 						   hooknum, pskb);
+ 				if (ret !=3D NF_ACCEPT) {
+ 					READ_UNLOCK(&ip_conntrack_lock);
+ 					return ret;
+ 				}
++				helper_called =3D 1;
+ 			}
+ 		}
+-		/* Helper might want to manip the packet even when there is no expectati=
+on */
+-		if (!exp && helper->flags & IP_NAT_HELPER_F_ALWAYS) {
++		/* Helper might want to manip the packet even when there is no
++		 * matching expectation for this packet */
++		if (!helper_called && helper->flags & IP_NAT_HELPER_F_ALWAYS) {
+ 			DEBUGP("calling nat helper for packet without expectation\n");
+ 			ret =3D helper->help(ct, NULL, info, ctinfo,=20
+ 					   hooknum, pskb);
 Please apply, thanks.
 
 --=20
@@ -126,16 +107,16 @@ Please apply, thanks.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---zaRBsRFn0XYhEU69
+--NMuMz9nt05w80d4+
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE++FpzXaXGVTD0i/8RAt5tAKCl6OHJQ7xWG2/cl5iYrfHLmhgdgwCfbnUx
-vQgqZUY7V8yppl+DUUw/Ask=
-=AVoO
+iD8DBQE++Fk3XaXGVTD0i/8RAnRRAJ9gYC166KkTeh3XqYVOERejqfP+EACfRMXp
+NSsYGYt5ShHGJEHWnZswJtU=
+=25F3
 -----END PGP SIGNATURE-----
 
---zaRBsRFn0XYhEU69--
+--NMuMz9nt05w80d4+--
