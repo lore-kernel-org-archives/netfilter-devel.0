@@ -1,15 +1,18 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Compilation error: nf_debug in nfnetlink.c
-Date: Fri, 5 Dec 2003 23:11:48 +0100 (CET)
+From: Stephen Lee <mukansai@emailplus.org>
+Subject: Re: Extremely slow network with e1000 & ip_conntrack
+Date: Sat, 06 Dec 2003 07:20:09 +0900
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0312052311030.6015-100000@filer.marasystems.com>
-References: <3FD0C640.50801@netlab.hut.fi>
+Message-ID: <20031206071129.D31D.MUKANSAI@emailplus.org>
+References: <20031204213030.2B75.MUKANSAI@emailplus.org> <20031205122819.25ac14ab.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Cc: Stephen Lee <mukansai@emailplus.org>, scott.feldman@intel.com,
+   laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
+   linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Emmanuel Guiton <emmanuel@netlab.hut.fi>
-In-Reply-To: <3FD0C640.50801@netlab.hut.fi>
+To: "David S. Miller" <davem@redhat.com>
+In-Reply-To: <20031205122819.25ac14ab.davem@redhat.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,13 +23,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 5 Dec 2003, Emmanuel Guiton wrote:
+"David S. Miller" <davem@redhat.com> wrote:
+> 
+> OK, I've found out what IP conntack does that creates the problems.
+> [...]
+> People can confirm this analysis by applying the patch below, enabling
+> TSO with conntrack loaded, and see if the problem goes away.
 
-> Sorry, I was thinking about GNU make...
-> gcc version 2.95.4
+I tested it with both e1000 & tg3, TSO on, and it is working fine for me
+using ftp and scp.
 
-There was a message just a day ago about how to compile ct_netlink with 
-GCC 2.95.4..
-
-Regards
-Henrik
+Thanks,
+Stephen
