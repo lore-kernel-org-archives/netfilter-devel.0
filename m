@@ -1,12 +1,15 @@
-From: "=?gb2312?B?s8Lsvw==?=" <buaacst@163.com>
-Subject: a question of mtu
-Date: Sat, 23 Nov 2002 20:11:03 +0800
+From: "Martin Bene" <martin.bene@icomedias.com>
+Subject: really fix iplimit 'second try' bug
+Date: Sat, 23 Nov 2002 14:00:48 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000201c292e9$98dc87e0$5101a8c0@workstation>
+Message-ID: <4D618F6493CE064A844A5D496733D6670314EC@freedom.icomedias.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_000D_01C2932C.72DA7A00"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: <laforge@gnumonks.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
+content-class: urn:content-classes:message
 To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -18,52 +21,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+There's still a problem in the iplimit module: when trying to connect =
+using
+the same source port twice, the second connection succeeds.
+The patch proposed by Sumit Pandya sumit@elitecore.com for fixing this
+doesn't work - it doesn't address the actual problem.
 
-------=_NextPart_000_000D_01C2932C.72DA7A00
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+Please remove the non-working fix from cvs; I've posted a working patch =
+to
+the list (see
+http://lists.netfilter.org/pipermail/netfilter-devel/2002-November/009849=
+.htm
+l)
 
-DQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogs8LsvyANClRvOiBuZXRmaWx0
-ZXItZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9yZyANClNlbnQ6IEZyaWRheSwgTm92ZW1iZXIgMjIs
-IDIwMDIgOTowMCBQTQ0KU3ViamVjdDogYSBxdWVzdGlvbiBvZiBtdHUNCg0KDQpIaSwNCiAgICBJ
-IHRyeSB0byBnZXQgdGhlIHBtdHUgYXQgdGhlIHBvaW50IG9mIE5GX0lQX0xPQ0FMX09VVC5JIHdy
-aXRlIHRocmVlIHNlbnRlbmNlIHRvIGRvIHRoaXMuDQoNCnN0cnVjdCBza19idWZmICpza19iID0g
-KnNrYjsNCnN0cnVjdCBydGFibGUgKnJfdCA9IChzdHJ1Y3QgcnRhYmxlICopc2tfYi0+ZHN0Ow0K
-cG10dSA9IHJfdC0+dS5kc3QucG10dTsNCg0KVGhlIHJlc3VsdCBpcyAwLGJ1dCBpbiBuZXQvaXB2
-NC9pcF9vdXRwdXQuYy9pcF9xdWV1ZV94bWl0MixydC0+dS5kc3QucG10dSBpcyBub3QgMC5Eb2Vz
-IHNvbWUgb25lIGtub3cgdGhlIHJlYXNvbix0aGFua3MgdmVyeSBtdWNoIQ0K
+To sum up the problem:=20
+iplimit keeps a list of active connections for each rule; new =
+connections are
+only added (and counted against the limit) if they don't yet exist on =
+the
+list. Current code disregards the new connection even if the found list =
+entry
+describes a connection that doesn't exist any longer (and gets removed =
+from
+the list a few lines further down). the patch changes this to ignore the
+packet only if the found table extry describes a connection that's still
+valid.
 
-------=_NextPart_000_000D_01C2932C.72DA7A00
-Content-Type: text/html;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
-
-PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
-L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgY29udGVudD0idGV4dC9odG1sOyBjaGFyc2V0PWdi
-MjMxMiIgaHR0cC1lcXVpdj1Db250ZW50LVR5cGU+DQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNS4w
-MC4yOTIwLjAiIG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8Qk9E
-WSBiZ0NvbG9yPSNmZmZmZmY+DQo8RElWPiZuYnNwOzwvRElWPg0KPERJViBzdHlsZT0iRk9OVDog
-OXB0IMvOzOUiPi0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLS0gDQo8RElWIHN0eWxlPSJCQUNL
-R1JPVU5EOiAjZTRlNGU0OyBmb250LWNvbG9yOiBibGFjayI+PEI+RnJvbTo8L0I+IDxBIA0KaHJl
-Zj0ibWFpbHRvOmJ1YWFjc3RAMTYzLmNvbSIgdGl0bGU9YnVhYWNzdEAxNjMuY29tPrPC7L88L0E+
-IDwvRElWPg0KPERJVj48Qj5Ubzo8L0I+IDxBIGhyZWY9Im1haWx0bzpuZXRmaWx0ZXItZGV2ZWxA
-bGlzdHMubmV0ZmlsdGVyLm9yZyIgDQp0aXRsZT1uZXRmaWx0ZXItZGV2ZWxAbGlzdHMubmV0Zmls
-dGVyLm9yZz5uZXRmaWx0ZXItZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9yZzwvQT4gDQo8L0RJVj4N
-CjxESVY+PEI+U2VudDo8L0I+IEZyaWRheSwgTm92ZW1iZXIgMjIsIDIwMDIgOTowMCBQTTwvRElW
-Pg0KPERJVj48Qj5TdWJqZWN0OjwvQj4gYSBxdWVzdGlvbiBvZiBtdHU8L0RJVj48L0RJVj4NCjxE
-SVY+PEJSPjwvRElWPg0KPERJVj48Rk9OVCBzaXplPTI+SGksPC9GT05UPjwvRElWPg0KPERJVj48
-Rk9OVCBzaXplPTI+Jm5ic3A7Jm5ic3A7Jm5ic3A7IEkgdHJ5IHRvIGdldCB0aGUgcG10dSBhdCB0
-aGUgcG9pbnQgb2YgDQpORl9JUF9MT0NBTF9PVVQuSSB3cml0ZSZuYnNwO3RocmVlIHNlbnRlbmNl
-Jm5ic3A7dG8gZG8gdGhpcy48L0ZPTlQ+PC9ESVY+DQo8RElWPiZuYnNwOzwvRElWPg0KPERJVj48
-Rk9OVCBzaXplPTI+c3RydWN0IHNrX2J1ZmYgKnNrX2IgPSAqc2tiOzwvRk9OVD48L0RJVj4NCjxE
-SVY+PEZPTlQgc2l6ZT0yPnN0cnVjdCBydGFibGUgKnJfdCA9IChzdHJ1Y3QgcnRhYmxlIA0KKilz
-a19iLSZndDtkc3Q7PC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBzaXplPTI+cG10dSA9IHJfdC0m
-Z3Q7dS5kc3QucG10dTs8L0ZPTlQ+PC9ESVY+DQo8RElWPiZuYnNwOzwvRElWPg0KPERJVj48Rk9O
-VCBzaXplPTI+VGhlIHJlc3VsdCBpcyAwLGJ1dCZuYnNwO2luIA0KbmV0L2lwdjQvaXBfb3V0cHV0
-LmMvaXBfcXVldWVfeG1pdDIscnQtJmd0O3UuZHN0LnBtdHUgaXMgbm90IDAuRG9lcyBzb21lIG9u
-ZSANCmtub3cgdGhlIHJlYXNvbix0aGFua3MgdmVyeSBtdWNoITwvRk9OVD48L0RJVj48L0JPRFk+
-PC9IVE1MPg0K
-
-------=_NextPart_000_000D_01C2932C.72DA7A00--
+Bye, Martin
