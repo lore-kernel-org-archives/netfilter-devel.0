@@ -1,13 +1,17 @@
-From: Rommy Taslim <rommyt@transportservices.com.au>
-Subject: Forward UDP broadcast
-Date: 03 Jun 2003 14:48:37 +1000
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: Question
+Date: Sun, 1 Jun 2003 10:22:20 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1054615717.23000.34.camel@hyperno.canodesc.com>
+Message-ID: <20030601082220.GH29312@sunbeam.de.gnumonks.org>
+References: <1054404695.3ed8f057467a1@unlp.unlp.edu.ar> <20030531195305.GA6917@sunbeam.de.gnumonks.org> <1054429282.3ed95062b0c41@unlp.unlp.edu.ar>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="BeiMt4EphvRJ5ehf"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: mluengo@unlp.edu.ar
+Content-Disposition: inline
+In-Reply-To: <1054429282.3ed95062b0c41@unlp.unlp.edu.ar>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,24 +22,53 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-Anyone knows how to forward UDP broadcast using iptables ?
-I need to do something like ipportfw does:
-ipportfw -A -u 192.168.4.255/699 -R 192.168.2.255/699
+--BeiMt4EphvRJ5ehf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-which forward all the broadcast on network 4 for port 699 to network 2.
+On Sat, May 31, 2003 at 10:01:22PM -0300, mluengo@unlp.edu.ar wrote:
+> I have a Kernel 2.4.20 patched with patch-o-matic . I have the modules lo=
+aded=20
+> (ip_conntrack_pptp, ip_nat_pptp, ip_nat_prot_gre, and so) but my server p=
+ptpd=20
+> is logging:=20
+> "pptpd[6249]: GRE: Discarding out of order packet" if two client is conne=
+cted=20
+> (not if only one)
 
-I have something like this for iptables:
+Are you aware that the linux pptpd doesn't even support multiple clients
+=66rom a single ip?  This is a severe bug in pptpd, not in the netfilter
+nat helper module.
 
-iptables -t nat -A PREROUTING -p udp \
-	-d 192.168.4.255 --dport 699 \
-	--to-destination 192.168.2.255:699
+Try it for yourself... make two pptp connections  from one client to the
+same server, and you will end up with the same error.
 
-But it didn't work.
+You need to use a pptp server that supports multiple connections from
+one IP.
 
-Anyone can give me some pointers ??
+> Thank you in advance.
+> Miguel
+--=20
+- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+Programming is like sex: One mistake and you have to support it your lifeti=
+me
 
-Thanks in advance.
+--BeiMt4EphvRJ5ehf
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Rommy
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQE+2be8XaXGVTD0i/8RAhGsAJ9XeekyxuUhBdkoxDtzrsGbpYIOtgCcD2/S
+hRSjs3EjWjRxux0zeJggmXU=
+=kQjS
+-----END PGP SIGNATURE-----
+
+--BeiMt4EphvRJ5ehf--
