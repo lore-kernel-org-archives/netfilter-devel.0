@@ -1,15 +1,15 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
+From: Roberto Nibali <ratz@tac.ch>
 Subject: Re: 2.4.22-pre9 and pending patches issues
-Date: Wed, 30 Jul 2003 09:36:57 +0200 (CEST)
+Date: Wed, 30 Jul 2003 11:06:24 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.52.0307300933570.27087@tux.rsn.bth.se>
-References: <3F27723B.7040502@tac.ch>
+Message-ID: <3F278A90.6010209@tac.ch>
+References: <3F27723B.7040502@tac.ch> <Pine.LNX.4.52.0307300933570.27087@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Roberto Nibali <ratz@tac.ch>
-In-Reply-To: <3F27723B.7040502@tac.ch>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,24 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 30 Jul 2003, Roberto Nibali wrote:
+> I'll look into it tonight.
 
-> Hi,
->
-> Sorry if this is a no-brainer but I have not been able to apply
-> 57_conntrack-tcp-nopickup.patch to the newest 2.4.22-pre9 kernel. Does anyone
-> have a quick solution or do I have to merge manually? 39_ip_conntrack-proc.patch
-> 40_nf-log.patch 54_ip_nat-macro-args.patch 55_ipt_unclean-tcp-flag-table.patch,
-> all to apply more or less cleanly to the newest drop.
->
-> Also the tcp-window-tracking patch is not applicable to this kernel. I reckon
-> this is because 57_* doesn't apply. I haven't looked further into this.
+Thanks.
 
-I'll look into it tonight.
+> When stuff like this happens it's usually because of another change in
+> that kernel that modified a file we also want to modify. It's a major
+> pain when that happens since it makes it harder to support both older
+> kernels and newer kernels with the same patch.
 
-When stuff like this happens it's usually because of another change in
-that kernel that modified a file we also want to modify. It's a major
-pain when that happens since it makes it harder to support both older
-kernels and newer kernels with the same patch.
+<OT>
+I know the feelings, been there done that. I'll see what I can do since this 
+week my task is to finally get a working 2.4.x kernel for our distribution ;).
+</OT>
 
-/Martin
+TIA and best regards,
+Roberto Nibali, ratz
+-- 
+echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
