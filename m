@@ -1,10 +1,10 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH 1/2] Modify CLUSTERIP layout
-Date: Sun, 06 Mar 2005 23:41:44 +0100
-Message-ID: <422B8728.2030703@eurodev.net>
+Subject: [PATCH 2/2] fix CLUSTERIP rule deletion in iptables
+Date: Sun, 06 Mar 2005 23:41:56 +0100
+Message-ID: <422B8734.9040404@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040006060702040201020202"
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed; boundary="------------000204060108050103010306"
+Cc: Harald Welte <laforge@netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -18,47 +18,93 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040006060702040201020202
+--------------000204060108050103010306
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi,
-
-This modifies the ipt_clusterip_tgt_info layout in order to fix rule 
-deletion, it's the easier way to fix this problem. Since CLUSTERIP is 
-marked as experimental and after some discussing we decided to forget 
-about backward compatibility this time.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
+This fixes rule deletion in CLUSTERIP in iptables.
 
 --
 Pablo
 
---------------040006060702040201020202
+--------------000204060108050103010306
 Content-Type: text/x-patch;
- name="fix-layout.patch"
+ name="fix-cluster-del.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="fix-layout.patch"
+ filename="fix-cluster-del.patch"
 
-===== include/linux/netfilter_ipv4/ipt_CLUSTERIP.h 1.1 vs edited =====
---- 1.1/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h	2004-10-22 07:34:30 +02:00
-+++ edited/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h	2005-03-06 15:48:09 +01:00
-@@ -18,7 +18,6 @@
- struct ipt_clusterip_tgt_info {
- 
- 	u_int32_t flags;
--	struct clusterip_config *config;
- 	
- 	/* only relevant for new ones */
- 	u_int8_t clustermac[6];
-@@ -27,6 +26,7 @@
- 	u_int16_t local_nodes[CLUSTERIP_MAX_NODES];
- 	enum clusterip_hashmode hash_mode;
- 	u_int32_t hash_initval;
+Index: include/linux/netfilter_ipv4/ipt_CLUSTERIP.h
+===================================================================
+--- include/linux/netfilter_ipv4/ipt_CLUSTERIP.h	(revision 0)
++++ include/linux/netfilter_ipv4/ipt_CLUSTERIP.h	(revision 0)
+@@ -0,0 +1,37 @@
++#ifndef _IPT_CLUSTERIP_H_target
++#define _IPT_CLUSTERIP_H_target
++
++enum clusterip_hashmode {
++    CLUSTERIP_HASHMODE_SIP = 0,
++    CLUSTERIP_HASHMODE_SIP_SPT,
++    CLUSTERIP_HASHMODE_SIP_SPT_DPT,
++};
++
++#define CLUSTERIP_HASHMODE_MAX CLUSTERIP_HASHMODE_SIP_SPT_DPT
++
++#define CLUSTERIP_MAX_NODES 16
++
++#define CLUSTERIP_FLAG_NEW 0x00000001
++
++struct clusterip_config;
++
++struct ipt_clusterip_tgt_info {
++
++	u_int32_t flags;
++	
++	/* only relevant for new ones */
++	u_int8_t clustermac[6];
++	u_int16_t num_total_nodes;
++	u_int16_t num_local_nodes;
++	u_int16_t local_nodes[CLUSTERIP_MAX_NODES];
++	enum clusterip_hashmode hash_mode;
++	u_int32_t hash_initval;
++	
++#ifdef KERNEL_64_USERSPACE_32
++	u_int64_t config;
++#else
 +	struct clusterip_config *config;
- };
++#endif
++};
++
++#endif /*_IPT_CLUSTERIP_H_target*/
+Index: extensions/libipt_CLUSTERIP.c
+===================================================================
+--- extensions/libipt_CLUSTERIP.c	(revision 3742)
++++ extensions/libipt_CLUSTERIP.c	(working copy)
+@@ -7,6 +7,7 @@
+ #include <string.h>
+ #include <stdlib.h>
+ #include <getopt.h>
++#include <stddef.h>
  
- #endif /*_IPT_CLUSTERIP_H_target*/
+ #if defined(__GLIBC__) && __GLIBC__ == 2
+ #include <net/ethernet.h>
+@@ -16,7 +17,7 @@
+ 
+ #include <iptables.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+-#include <linux/netfilter_ipv4/ipt_CLUSTERIP.h>
++#include "../include/linux/netfilter_ipv4/ipt_CLUSTERIP.h"
+ 
+ static void
+ help(void)
+@@ -242,7 +243,7 @@
+ 	.name		= "CLUSTERIP",
+ 	.version	= IPTABLES_VERSION,
+ 	.size		= IPT_ALIGN(sizeof(struct ipt_clusterip_tgt_info)),
+-	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_clusterip_tgt_info)),
++	.userspacesize	= offsetof(struct ipt_clusterip_tgt_info, config),
+  	.help		= &help,
+ 	.init		= &init,
+ 	.parse		= &parse,
 
---------------040006060702040201020202--
+--------------000204060108050103010306--
