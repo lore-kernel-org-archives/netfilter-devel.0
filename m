@@ -1,15 +1,14 @@
-From: Just another UFO mechanic <oscar@ufomechanic.net>
-Subject: building libctnetlink
-Date: 20 Mar 2005 16:11:32 +0000
-Message-ID: <1111335091.2523.46.camel@lap-ufomechanic>
-References: <423BF227.8030502@outerspace.dyndns.org>
-	<423BF4DC.2070902@outerspace.dyndns.org>
-Reply-To: oscar@ufomechanic.net
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: 2.6.11 corrupting FTP session
+Date: Sun, 20 Mar 2005 17:16:59 +0100
+Message-ID: <423DA1FB.6030209@trash.net>
+References: <1111176664.423b35d80b351@webmail.conectcor.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <423BF4DC.2070902@outerspace.dyndns.org>
+Cc: netfilter-devel@lists.netfilter.org
+To: Michel Pereira <michel@michel.eti.br>
+In-Reply-To: <1111176664.423b35d80b351@webmail.conectcor.com.br>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,28 +20,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi
+Michel Pereira wrote:
+>    Hi, after a upgrade to 2.6.11 I'm experiencing a corruption on the commands
+> send from the user and to the user like this:
+>    "500 'R'" Command understood.
 
-    I have tried to build libctnetlink I have got the current version using svn
-as there is no README i do not know how to build it. I had a look around and
-thought by running ltmain compile should work. But I am just poking around in 
-the dark. I realize it is pre release but I would like to contribute where 
-possible. Can someone point me off in the right direction.
+What is your setup (NAT rules, network topology between client and
+server)?
 
-
-Thanks
-Danke
-TchuB
-
-
-
-Aside -------
-Also note svn from the website link does not work svn replies unknown URL 
-instead use http rather than https
-
-You can access the <a>Subversion</a> server in two ways. For casual
-browsing, you can use the ViewCVS web interface. To grab the latest
-sources, you can do the following: 
-
-      * Check out the iptables code using: 
-        svn co https://svn.netfilter.org/netfilter/trunk/iptables
+Regards
+Patrick
