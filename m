@@ -1,12 +1,16 @@
-From: zhi wang <pangy2004@yahoo.com>
-Subject: What is the good of find_appropriate_src?
-Date: Mon, 29 Mar 2004 21:58:08 -0800 (PST)
+From: Ozgur AKAN <akan@aiqa.com>
+Subject: Re: mask for interface
+Date: Tue, 30 Mar 2004 11:32:41 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040330055808.97213.qmail@web41703.mail.yahoo.com>
+Message-ID: <406930A9.5070908@aiqa.com>
+References: <Pine.LNX.4.44.0403270155130.11373-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-9; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Develop <netfilter-devel@lists.netfilter.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0403270155130.11373-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,32 +21,50 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-find_appropriate_src is a function in ip_nat_core.c.
-What is this function for? Although  confused, I
-figured the following facts about this function(only
-udp is consided):
+Finally I understand it !
 
-1. The packet hit a SNAT target.
-2. There is already a NATed connection. It has the
-same srcip/proto/src-proto-part, and the connection's
-srcip/proto/src-proto-part is in ip_nat_multi_range.
-3. The very same srcip/proto/src-proto-part are kept
-intacted.
+iptables -A test -i eth+ -j ACCEPT
+iptables -A test -i eth0 -j ACCEPT
+iptables -A test -i eth0+ -j ACCEPT
+iptables -A test -i + -j ACCEPT
+iptables -A test -i e+ -j ACCEPT
 
-In short, "If this srcip/proto/src-proto-part is
-currently mapped, and that same mapping gives a unique
-tuple within the given range, use that"
+output of a test program is
 
-I don't know under what condition the No.1 and No.2
-conditions will be fulfilled. I also notice, that when
-this function is called, only nat table is locked, but
-conntrak table is not locked. I suspet that there
-could be a race condition here in SMP machines with
-some odd configuration. And if that race condition
-occurs, get_unique_tuple will be called over and over
-again until the racing conntrack entry times out. 
+iface : eth+, Mask is :FF,FF,FF
+iface : eth0, Mask is :FF,FF,FF,FF,FF
+iface : eth0+, Mask is :FF,FF,FF,FF
+iface : +, Mask is :
+iface : e+, Mask is :FF
 
-__________________________________
-Do you Yahoo!?
-Yahoo! Finance Tax Center - File online. File on time.
-http://taxes.yahoo.com/filing.html
+
+-------test function to print mask value------
+static void printMask(unsigned char *mask)
+{
+    printf("Mask is :");
+
+    while (*mask != '\0') {
+        printf("%X%s", *mask, *(mask+1) != '\0' ? "," : "\n");
+        ++mask;
+    }
+}
+-----------------------------------------------------
+
+
+
+Thanks for your help...
+
+Ozgur AKAN
+
+>Again, it is used for the + wildcard.
+>
+>In theory it could be used for other things as well, but only the + 
+>wildcard is implemented in the iptables application.
+>
+>Regards
+>Henrik
+>
+>
+>
+>  
+>
