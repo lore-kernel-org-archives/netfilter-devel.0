@@ -1,16 +1,14 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: netfilter testsuite
-Date: Mon, 06 Sep 2004 14:03:12 +0200
+From: "Robbert" <hanbo163com@163.com>
+Subject: why iptables has no ruleset?
+Date: Mon, 6 Sep 2004 21:47:55 +0800
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <413C5200.1020603@eurodev.net>
-References: <413C0DD3.8090108@rediffmail.com>
+Message-ID: <001401c49418$1f1544b0$8e5f78ca@nic.ecnu.edu.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Swapnil Nagle <swapsn@rediffmail.com>
-In-Reply-To: <413C0DD3.8090108@rediffmail.com>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,22 +19,8 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Swapnil Nagle wrote:
-
->
-> Hi all,
->
-> I couldn't find the testsuite mentioned in the Netfilter Hacking HOWTO 
-> in CVS :
->
-> http://netfilter.org/documentation/HOWTO//netfilter-hacking-HOWTO-7.html
->
-> Is it removed/moved ?
-
-
-they are deprecated, you could try nfsim instead:
-
-http://ozlabs.org/~jk/projects/nfsim/
-
-regards,
-Pablo
+UEYgaW4gT3BlbkJTRCx3aGljaCBsaWtlIE5ldGZpbHRlci9JcHRhYmxlcyBpbiBsaW51eCxoYXMg
+aW50cm9kdWNlZCBhIGNvbmNlcHQgY2FsbGVkIFJVTEVTRVQsYW5kIFBGIG9wdGltaXplIGl0IHdp
+dGggInNraXAtc3RlcHMiLldoeSBpcHRhYmxlcyBoYXMgbm8gc3VjaCB0aGluZz8gSSB3YW50IHRv
+IGNoYW5nZSB0aGUgc3RydWN0IGlwdF9lbnRyeSB0byBtYWtlIHNvbWUgcnVsZXNldCBvciBhIHJ1
+bGUgdHJlZSxkb2VzIHRoYXQgbWFrZSBzZW5zZT8=
