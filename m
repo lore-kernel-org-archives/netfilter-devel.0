@@ -1,16 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Fwd: Explanation: Was: Please Remove: Mike Andersen
-Date: Wed, 26 May 2004 16:31:04 +0200 (CEST)
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: [TRIVIAL PATCH] remove 'use of cast expressions as lvalues is deprecated' warning in XOR
+Date: Wed, 26 May 2004 17:43:01 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0405261627130.30588-100000@filer.marasystems.com>
-References: <200405251249.57273.keaafloy@online.no>
+Message-ID: <1658365406.20040526174301@dns.toxicfilms.tv>
+Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org, <mike@src.no>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Kenneth =?iso-8859-1?q?Aafl=F8y?= <keaafloy@online.no>
-In-Reply-To: <200405251249.57273.keaafloy@online.no>
+To: Tim.Vandermeersch@pandora.be
+Resent-Message-Id: <E1BT0Yl-0003dj-71@vishnu.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,28 +21,63 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 25 May 2004, Kenneth Aafl=F8y wrote:
+Hello,
 
-> Mike Andersen requested that I should forward this as an explaination t=
-hat he=20
-> was not the source of the bulk mail-transfer recently expirienced. He s=
-tates=20
-> that he was removed from the list, but I don't know if he's able to re-=
-join=20
-> or not. If the list-maintainers please could get in contact with him to=
- sort=20
-> this out, it would be nice.
+gcc-3.3.3 and later have deprecated using casts as lvalues.
 
-I second this. There is full proof in the message headers of the offendin=
-g=20
-messages that Mikael is not responsible for the loop, he just happened to=
-=20
-be the first one sending a message after the guilty one created the loop=20
-and can not be held responsible for the event. It could have been any of=20
-us who contribute to this list who got caught in that loop.
+This patch suggests removing casts in ipt_XOR.c and ip6t_XOR.c
+from patch-o-matic.
 
-I myself had one or two messages trapped in that loop, but entered much=20
-later why the duplication of my messages was not as noticeable.
+Regards,
+Maciej
 
-Regards
-Henrik
+Index: XOR/linux/net/ipv4/netfilter/ipt_XOR.c
+===================================================================
+RCS file: /cvspublic/patch-o-matic-ng/XOR/linux/net/ipv4/netfilter/ipt_XOR.c,v
+retrieving revision 1.1
+diff -u -r1.1 ipt_XOR.c
+--- XOR/linux/net/ipv4/netfilter/ipt_XOR.c      18 Dec 2003 18:47:55 -0000      1.1
++++ XOR/linux/net/ipv4/netfilter/ipt_XOR.c      26 May 2004 15:36:33 -0000
+@@ -34,7 +34,7 @@
+                tcph = (struct tcphdr *) ((*pskb)->data + iph->ihl*4);
+                for (i=0, j=0; i<(ntohs(iph->tot_len) - iph->ihl*4 - tcph->doff*4); ) {
+                        for (k=0; k<=info->block_size; k++) {
+-                               (char) (*pskb)->data[ iph->ihl*4 + tcph->doff*4 + i ] ^= 
++                               (*pskb)->data[ iph->ihl*4 + tcph->doff*4 + i ] ^= 
+                                                info->key[j];
+                                i++;
+                        }
+@@ -46,7 +46,7 @@
+                udph = (struct udphdr *) ((*pskb)->data + iph->ihl*4);
+                for (i=0, j=0; i<(ntohs(udph->len)-8); ) {
+                        for (k=0; k<=info->block_size; k++) {
+-                               (char) (*pskb)->data[ iph->ihl*4 + sizeof(struct udphdr) + i ] ^= 
++                               (*pskb)->data[ iph->ihl*4 + sizeof(struct udphdr) + i ] ^= 
+                                                info->key[j];
+                                i++;
+                        }
+Index: XOR/linux-2.6/net/ipv4/netfilter/ipt_XOR.c
+===================================================================
+RCS file: /cvspublic/patch-o-matic-ng/XOR/linux-2.6/net/ipv4/netfilter/ipt_XOR.c,v
+retrieving revision 1.3
+diff -u -r1.3 ipt_XOR.c
+--- XOR/linux-2.6/net/ipv4/netfilter/ipt_XOR.c  25 Feb 2004 08:59:06 -0000      1.3
++++ XOR/linux-2.6/net/ipv4/netfilter/ipt_XOR.c  26 May 2004 15:36:33 -0000
+@@ -40,7 +40,7 @@
+                tcph = (struct tcphdr *) ((*pskb)->data + iph->ihl*4);
+                for (i=0, j=0; i<(ntohs(iph->tot_len) - iph->ihl*4 - tcph->doff*4); ) {
+                        for (k=0; k<=info->block_size; k++) {
+-                               (char) (*pskb)->data[ iph->ihl*4 + tcph->doff*4 + i ] ^= 
++                               (*pskb)->data[ iph->ihl*4 + tcph->doff*4 + i ] ^= 
+                                                info->key[j];
+                                i++;
+                        }
+@@ -52,7 +52,7 @@
+                udph = (struct udphdr *) ((*pskb)->data + iph->ihl*4);
+                for (i=0, j=0; i<(ntohs(udph->len)-8); ) {
+                        for (k=0; k<=info->block_size; k++) {
+-                               (char) (*pskb)->data[ iph->ihl*4 + sizeof(struct udphdr) + i ] ^= 
++                               (*pskb)->data[ iph->ihl*4 + sizeof(struct udphdr) + i ] ^= 
+                                                info->key[j];
+                                i++;
+                        }
