@@ -1,16 +1,14 @@
-From: Max Kellermann <max@duempel.org>
-Subject: Re: linux 2.6.10: ip_conntrack table overflowing
-Date: Tue, 4 Jan 2005 15:50:11 +0100
-Message-ID: <20050104145011.GA29076@roonstrasse.net>
-References: <20050104124034.GA28010@roonstrasse.net>
-	<1104845507.4725.31.camel@nienna.balabit>
+From: Nicolas Bouliane <nib@cookinglinux.org>
+Subject: Re: [PATCH] ip_conntrack_ftp segfault
+Date: Tue, 04 Jan 2005 13:45:41 -0500
+Message-ID: <41DAE455.9090207@cookinglinux.org>
+References: <41D99B6B.6050601@cookinglinux.org> <41DA715D.2080704@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------000408060401000809010900"
+Cc: Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-Content-Disposition: inline
-In-Reply-To: <1104845507.4725.31.camel@nienna.balabit>
+To: netfilter-devel <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <41DA715D.2080704@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,17 +20,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2005/01/04 14:31, KOVACS Krisztian <hidden@balabit.hu> wrote:
-> > later (last night), all of them stopped responding; the conntrack
-> > tables were full:
-> 
->   Seems to be the problem already reported and fixed by Martin. Take a
-> look at
-> 
-> https://lists.netfilter.org/pipermail/netfilter-devel/2004-December/017908.html
+This is a multi-part message in MIME format.
+--------------000408060401000809010900
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-True. That patch solved my problem. Thanks for your help (and Patrick
-Schaaf who also sent me this URL). I saw it's already included in
-2.6.10-mm1.
+Pablo Neira wrote:
+> nice catch, but read the comments below.
 
-Max
+> Since this is a minor fix, try to modify as less things as you can. data 
+> doesn't exist but look for its natural replacement which is fb_ptr.
+
+Hey Pablo, thanks for the hints! :)
+
+>> This patch fix two bugs (when DEBUGP is defined):
+>> o The var `data` doesn't exist, hence gcc complains.
+>> o It segfault because we print an integer with `%s`.
+
+Signed-off-by: Nicolas Bouliane <nib@cookinglinux.org>
+
+
+
+--------------000408060401000809010900
+Content-Type: text/x-patch;
+ name="ip_conntrack_ftp.c.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ip_conntrack_ftp.c.patch"
+
+--- linux-2.6.10/net/ipv4/netfilter/ip_conntrack_ftp.c	2004-12-24 16:35:59.000000000 -0500
++++ linux-2.6.10NIB/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-01-04 13:24:35.000000000 -0500
+@@ -347,10 +347,9 @@
+ 		goto out;
+ 	}
+ 
+-	DEBUGP("conntrack_ftp: match `%.*s' (%u bytes at %u)\n",
+-	       (int)matchlen, data + matchoff,
+-	       matchlen, ntohl(th->seq) + matchoff);
+-
++	DEBUGP("conntrack_ftp: match `%s' (%u bytes at %u)\n",
++	       fb_ptr + matchoff, matchlen, ntohl(th->seq) + matchoff);
++			 
+ 	/* Allocate expectation which will be inserted */
+ 	exp = ip_conntrack_expect_alloc();
+ 	if (exp == NULL) {
+
+--------------000408060401000809010900--
