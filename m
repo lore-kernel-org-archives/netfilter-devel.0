@@ -1,65 +1,36 @@
-From: Tom Eastep <teastep@shorewall.net>
-Subject: Re: [PATCH]Re: NAT before IPsec with 2.6
-Date: Wed, 28 Jan 2004 07:58:39 -0800
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200401280758.39917.teastep@shorewall.net>
-References: <20040127103917.GC11761@sunbeam.de.gnumonks.org> <20040128103000.GP11761@sunbeam.de.gnumonks.org> <20040128112419.GA11961@alpha.home.local>
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: NAT before IPsec with 2.6
+Date: Wed, 28 Jan 2004 11:38:25 -0800
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040128113825.769fd89c.davem@redhat.com>
+References: <20040124082252.GA19035@alpha.home.local>
+	<Pine.LNX.4.44.0401241015470.32723-100000@filer.marasystems.com>
+	<20040124092721.GA19140@alpha.home.local>
+	<20040127103917.GC11761@sunbeam.de.gnumonks.org>
+	<20040127132725.GA14685@openoffice.nl>
+	<pan.2004.01.27.21.13.32.754125@dungeon.inka.de>
+	<20040128085831.GM11761@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Willy Tarreau <willy@w.ods.org>,
-	Harald Welte <laforge@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Henrik Nordstrom <hno@marasystems.com>,
-	Michal Ludvig <mludvig@suse.cz>, netfilter-devel@lists.netfilter.org
-In-Reply-To: <20040128112419.GA11961@alpha.home.local>
-Content-Disposition: inline
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Cc: aj@dungeon.inka.de, netfilter-devel@lists.netfilter.org,
+        netdev@oss.sgi.com
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20040128085831.GM11761@sunbeam.de.gnumonks.org>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wednesday 28 January 2004 03:24 am, Willy Tarreau wrote:
-> On Wed, Jan 28, 2004 at 11:30:00AM +0100, Harald Welte wrote:
-> > > If NAT is used, ip_route_{input,output} might even return a different
-> > > policy bundle.
-> >
-> > The question is, again: What ist the desired behaviour?  Should the
-> > policy be determined on the un-NAT'ed packet or on the NAT'ed one?
->
-> Harald, I believe it's important to remember that NAT is not the only usage
-> of this extension. For many people seeking security (=those who install VPN
-> gateways for customers), it is very important to :
->   - be able to filter what enters and leaves a tunnel
->   - be able to filter where the encapsulated packets go to/come from
->
+On Wed, 28 Jan 2004 09:58:31 +0100
+Harald Welte <laforge@netfilter.org> wrote:
 
-I agree. And the 2.4 implementation of IPSEC allowed this control to be 
-exercised in a natural and uniform way (the same model applied for all tunnel 
-types including IPSEC).
+> No, we don't achieve this by manipulating the routing code, but by
+> placing the respective hooks in ah{4,6}.c and esp{4,6}.c
+> {ah,esp}_output() function respectively. We also need to (again) reset
+> the skb->nfct and drop the conntrack reference again.
 
-- Unencrypted traffic is exchanged between the client and a special device.
-- encrypted traffic is exchanged between the gateways.
+Why not just do this right when we pop into the dst_output() call
+in ip_output.c  This way we don't have to add all of this stuff
+for every new encapsulator we ever implement.
 
-These are separately tracked connections that obey the normal netfilter rules. 
-
-For configured tunnels, I still believe that this is the proper model. 
-
-Opportunistic keying OTOH probably shouldn't follow that model.
-
-> NAT is complementary IMHO.
-
-But there are instances where it is necessary.
-
--Tom
--- 
-Tom Eastep    \ Nothing is foolproof to a sufficiently talented fool
-Shoreline,     \ http://shorewall.net
-Washington USA  \ teastep@shorewall.net
+Maybe not like this precisely, but something like it.
