@@ -1,17 +1,13 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [RFC] matching tproxied packets
-Date: Tue, 4 Jun 2002 18:37:00 +0200
+From: <miner@kwdomains.net>
+Subject: Solution:  Squid + ReiserFS + Iptables + H.323
+Date: Tue, 4 Jun 2002 20:46:41 +0300 (AST)
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206041837.00635.hno@marasystems.com>
-References: <20020604145036.GA1295@balabit.hu> <200206041714.47683.hno@marasystems.com> <20020604162837.GA2365@balabit.hu>
+Message-ID: <63094.194.126.42.61.1023212801.squirrel@www.kwdomains.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Balazs Scheidler <bazsi@balabit.hu>
-In-Reply-To: <20020604162837.GA2365@balabit.hu>
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,31 +18,11 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Balazs Scheidler wrote:
 
-> > Will interact badly with fwmark based routing.
->
-> of course the mark value would be controlled by the user, and not assigned
-> automatically.
+Help required with Squid + ReiserFS + Iptables + H.323 ???
 
-As routing rules cannot mask fwmark, anything that touches the fwmark value 
-for whatever purpose will affect your fwmark based routing.
+Please take a look at http://www.zedeks.com/wormhole.html
 
-The main purpose of fwmark is to communicate state between netfilter and other 
-kernel parts such as routing, not as a storage within netfilter.
 
-But sure, if all other uses of fmark supported masked operations then I would 
-probably not object..
-
-> > > * have a separate match (called tproxy), which matches tproxied
-> > > sessions based on some value stored in the associated conntrack entry
-> >
-> > Defenitely my preference, but I might be biased as I make heavy use of
-> > connection tracking and fwmark based routing in combination.
->
-> This was my conclusion as well. So I'll go for this solution.
-
-Good ;-)
-
-Regards
-Henrik
+Regards,
+tHeMiNeR
