@@ -1,17 +1,12 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: ctnetlink delete conntrack performance
-Date: Tue, 15 Mar 2005 23:47:40 +0100
-Message-ID: <4237660C.90602@eurodev.net>
-References: <422C3A1B.5080604@ingate.com>
-	<422C5370.9050204@trash.net>	<42372984.9090807@ingate.com>
-	<4237302B.5040606@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: nf_conntrack tree
+Date: Wed, 16 Mar 2005 01:35:32 +0100
+Message-ID: <42377F54.8070408@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Marcus Sundberg <marcus@ingate.com>,
-	KOVACS Krisztian <hidden@balabit.hu>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4237302B.5040606@trash.net>
+Cc: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,22 +18,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
->> Also, is there anyone else working on ctnetlink currently, or planning
->> to work on it? Is the goal to get it into the standard kernel, and if
->> so what must be done before that?
-> 
-> 
-> No, we won't try to get it into the kernel. If someone ports it over
-> to nf_conntrack we will think about it.
+I'm working on getting nf_conntrack ready for submission. To make it
+easier for people to participate, I've exported my tree through
+bitkeeper and as plain patch. It currently contains nf_conntrack as
+found in pomng plus a couple of ported ip_conntrack fixes:
 
-I'm working on porting it to 2.6 following Patrick advices. Now I got 
-working fine table dumping. My efforts are currently based on 
-ip_conntrack and the conntrack-event-API patch but just to make the 
-transition to nf_conntrack easier. I'll be on holidays in one week so 
-hope to finish with this soon.
+bk://numenor.coreworks.de/nf-2.6-nfct
+http://numenor.coreworks.de/~kaber
 
-Marcus, could you send me your modification? I'll merge it to my port.
+The tree and the diff will be kept up-to-date when changes are made.
 
---
-Pablo
+In my opinion the most important issue at this time is making
+ip_conntrack matches and targets work properly with nf_conntrack and
+adding their IPv6 equivalents. Before doing the IPv6 part, I would like
+to get sorted out if we can share the IPv4 matches/targets between
+ip_conntrack and nf_conntrack.
+
+Regards
+Patrick
