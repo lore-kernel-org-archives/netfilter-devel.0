@@ -1,14 +1,16 @@
-From: =?iso-8859-2?q?Micha=B3=20Margula?= <alchemyx@uznam.net.pl>
-Subject: ip_conntrack
-Date: Tue, 4 Mar 2003 01:07:28 +0100
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: ip_conntrack
+Date: Tue, 4 Mar 2003 08:33:24 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200303040107.28400.alchemyx@uznam.net.pl>
+Message-ID: <20030304073324.GI25876@oknodo.bof.de>
+References: <200303040107.28400.alchemyx@uznam.net.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: Micha? Margula <alchemyx@uznam.net.pl>
+Content-Disposition: inline
+In-Reply-To: <200303040107.28400.alchemyx@uznam.net.pl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,24 +21,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello!
+> ip_conntrack: table full, dropping packet.
+> Doing
+> echo 256000 > /proc/net/ip_conntrack
+> Does not help.
 
-Still not having time to try ctnetlink so currently another problem to so=
-lve.
-Number of ip_conntrack entries varies from 40 000 to about 120 000. I get=
-=20
-messages:
+Sigh.  Your command is not supposed to work.  Use:
 
-ip_conntrack: table full, dropping packet.
+echo 256000 > /proc/sys/net/ipv4/ip_conntrack_max
 
-I understand source of problems and solution.
-
-Doing
-
-echo 256000 > /proc/net/ip_conntrack
-
-Does not help.
-
---=20
-Micha=B3 Margula, alchemyx@uznam.net.pl, http://alchemyx.uznam.net.pl/ +)
-"W =BFyciu pi=EAkne s=B1 tylko chwile" [Ryszard Riedel]
+regards
+  Patrick
