@@ -1,16 +1,13 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH]: Fix ip_conntrack_core arguments to macros
-Date: Thu, 17 Jul 2003 14:29:37 +0200
+Subject: [RFC][PATCH]: match supplementary gids in owner match
+Date: Thu, 17 Jul 2003 15:38:46 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F1696B1.9080409@trash.net>
-References: <Pine.LNX.4.44.0307121230550.30873-200000@gw.localnet> <20030714081214.GH6538@naboo>
+Message-ID: <3F16A6E6.8060900@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed;
+ boundary="------------060400070909060805070703"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030714081214.GH6538@naboo>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,36 +18,91 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
-you've only added 54_ip_nat-macro-args.patch, i assume the other patch 
-was 53...
-(the conntrack part) and you forgot to add it. Could you also please 
-have a look at
-http://lists.netfilter.org/pipermail/netfilter-devel/2003-June/011869.html ?
-I believe it got lost.
+This is a multi-part message in MIME format.
+--------------060400070909060805070703
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
->Thanks for the patch, give me another day to investigate (and apply)
->this and your other patches.
->
->  
->
->>BTW: nice talk yesterday, i've seen the slides before but it still was
->>alot more interesting to here it directly from you. Sorry i didn't showed
->>up anymore, i had to get some sleep fast after getting up at 7 in the
->>morning (and drinking too much beer) ;) Are you still at linuxtag ?
->>    
->>
->
->Yes, a real pity.  I was expecting to have some chat with you.
->Unfortunately I needed to cut down my linuxtag visit to a single day
->(just friday to give my presentation) due to a personal issue :(
->  
->
-
-;( next time for sure. it's not the same but .. i usually hang out on 
-efnet, so if
-you'd like to chat you can always step by in #königkaber (don't laugh at the
-name, it wasn't meant to last ;).
+This patch adds support for matching supplementary gids to the owner match.
+I wrote it for someone else, i haven't even tested it. According to him, 
+it works as
+expected. If someone likes it, feel free to add to pom. I was thinking 
+about making
+an extra flag so normal behaviour would be as before and matching 
+supplementary
+gid matching would be optional. If someone wants this, just tell me.
 
 Bye
 Patrick
+
+--------------060400070909060805070703
+Content-Type: text/plain;
+ name="ipt_owner-supgids.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ipt_owner-supgids.diff"
+
+===== net/ipv4/netfilter/ipt_owner.c 1.3 vs edited =====
+--- 1.3/net/ipv4/netfilter/ipt_owner.c	Thu Aug  8 16:55:29 2002
++++ edited/net/ipv4/netfilter/ipt_owner.c	Mon Jul 14 19:25:36 2003
+@@ -109,6 +109,49 @@
+ }
+ 
+ static int
++match_gid(const struct sk_buff *skb, gid_t gid)
++{
++	struct task_struct *p;
++	struct files_struct *files;
++	int i;
++
++	/* direct match */
++	if (gid == skb->sk->socket->file->f_gid)
++		return 1;
++
++	/* find owner of socket and check supplementary gids */
++	read_lock(&tasklist_lock);
++	for_each_task(p) {
++		/* racy, owner could have called setfsgid */
++		if (p->fsgid != skb->sk->socket->file->f_gid)
++			continue;
++
++		task_lock(p);
++		files = p->files;
++		if(files) {
++			read_lock(&files->file_lock);
++			for (i=0; i < files->max_fds; i++) {
++				if (fcheck_files(files, i) == skb->sk->socket->file) {
++					int j, ret = 0;
++					read_unlock(&files->file_lock);
++					for (j = 0; j < p->ngroups; j++)
++						if (p->groups[j] == gid) {
++							ret = 1;
++							break;
++						}
++					task_unlock(p);
++					read_unlock(&tasklist_lock);
++					return ret;
++				}
++			}
++			read_unlock(&files->file_lock);
++		}
++		task_unlock(p);
++	}
++	read_unlock(&tasklist_lock);
++	return 0;
++}
++static int
+ match(const struct sk_buff *skb,
+       const struct net_device *in,
+       const struct net_device *out,
+@@ -130,7 +173,7 @@
+ 	}
+ 
+ 	if(info->match & IPT_OWNER_GID) {
+-		if((skb->sk->socket->file->f_gid != info->gid) ^
++		if(!match_gid(skb, info->gid) ^
+ 		    !!(info->invert & IPT_OWNER_GID))
+ 			return 0;
+ 	}
+
+--------------060400070909060805070703--
