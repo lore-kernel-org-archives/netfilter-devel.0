@@ -1,12 +1,12 @@
 From: "Fangweiwei" <fangweiwei@tom.com>
-Subject: how to reinject the packet to the net
-Date: Tue, 25 Nov 2003 9:30:54 +0800
+Subject: why I cann't compile the program?
+Date: Tue, 25 Nov 2003 9:41:21 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <E1AOS1t-0003iC-Kg@vishnu.netfilter.org>
+Message-ID: <E1AOSBp-0003rO-Sc@vishnu.netfilter.org>
 Reply-To: fangweiwei@tom.com
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-      boundary="=====000_Dragon615867734827_====="
+      boundary="=====000_Dragon261860205874_====="
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -21,22 +21,114 @@ List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
 
---=====000_Dragon615867734827_=====
+--=====000_Dragon261860205874_=====
 Content-Type: text/plain;
       charset="GB2312"
 Content-Transfer-Encoding: quoted-printable
 
 Hello everyone!
-I want to use the libipq to capture the packets and then reinject=
- it to the net.but I cann't find the function to do it? can you=
- help me? 
- =09=09=09=09
+I try to compile the following code,but it gives some msg to show=
+ something wrong?what should I do ? 
+------------------------------------------
+/*
+ * This code is GPL.
+ */
+#include <linux/netfilter.h>
+#include <libipq.h>
+#include <stdio.h>
+
+#define BUFSIZE 2048 
+
+static void die(struct ipq_handle *h)
+{
+        ipq_perror("passer");
+        ipq_destroy_handle(h);
+        exit(1);
+}
+
+int main(int argc, char **argv)
+{
+        int status;
+        unsigned char buf[BUFSIZE];
+        struct ipq_handle *h;
+        
+        h =3D ipq_create_handle(0, PF_INET);
+        if (!h)
+                die(h);
+                
+        status =3D ipq_set_mode(h, IPQ_COPY_PACKET, BUFSIZE);
+        if (status < 0)
+                die(h);
+                
+        do{
+                status =3D ipq_read(h, buf, BUFSIZE, 0);
+                if (status < 0)
+                        die(h);
+                        
+                switch (ipq_message_type(buf)) {
+                        case NLMSG_ERROR:
+                                fprintf(stderr, "Received error=
+ message %d\n",
+                                        ipq_get_msgerr(buf));
+                                break;
+                                
+                        case IPQM_PACKET: {
+                                ipq_packet_msg_t *m =3D=
+ ipq_get_packet(buf);
+                                
+                                status =3D ipq_set_verdict(h,=
+ m->packet_id,
+                                                        =
+ NF_ACCEPT, 0, NULL);
+                                if (status < 0)
+                                        die(h);
+                                break;
+                        }
+                        
+                        default:
+                                fprintf(stderr, "Unknown message=
+ type!\n");
+                                break;
+                }
+        } while (1);
+        
+        ipq_destroy_handle(h);
+        return 0;
+}
+
+----------------------------------------------
+I try to compile it using: gcc test.c 
+but it gives me some msg as following:
+
+/tmp/ccYcdyBh.o: In function `die':
+/tmp/ccYcdyBh.o(.text+0xf): undefined reference to `ipq_perror'
+/tmp/ccYcdyBh.o(.text+0x1d): undefined reference to=
+ `ipq_destroy_handle'
+/tmp/ccYcdyBh.o: In function `main':
+/tmp/ccYcdyBh.o(.text+0x41): undefined reference to=
+ `ipq_create_handle'
+/tmp/ccYcdyBh.o(.text+0x7b): undefined reference to=
+ `ipq_set_mode'
+/tmp/ccYcdyBh.o(.text+0xb5): undefined reference to `ipq_read'
+/tmp/ccYcdyBh.o(.text+0xe3): undefined reference to=
+ `ipq_message_type'
+/tmp/ccYcdyBh.o(.text+0x12a): undefined reference to=
+ `ipq_get_msgerr'
+/tmp/ccYcdyBh.o(.text+0x157): undefined reference to=
+ `ipq_get_packet'
+/tmp/ccYcdyBh.o(.text+0x17e): undefined reference to=
+ `ipq_set_verdict'
+collect2: ld returned 1 exit status
+
+----------------------------------------------
+
+can you help me? thanks a lot.
 
 =A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1Fangweiwei
 =A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1fangweiwei@tom.com
 =A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A12003-11-25
 
---=====000_Dragon615867734827_=====
+--=====000_Dragon261860205874_=====
 Content-Type: image/gif;
       name="fox.gif"
 Content-Transfer-Encoding: base64
@@ -212,4 +304,4 @@ Qy7igX/bAkiyiKAhMzbtUk4siYCAS5dCqGlb5qWdC4QtX8KcRs0GzRd4RgodSjQCACH+PEZJTEUg
 SURFTlRJVFkNCkNyZWF0ZWQgb3IgbW9kaWZpZWQgYnkNCkVEIVNPTiAnOTYgW1hmL1VDZl0NCgA7
 
 
---=====000_Dragon615867734827_=====--
+--=====000_Dragon261860205874_=====--
