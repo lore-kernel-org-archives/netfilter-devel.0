@@ -1,68 +1,106 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: help wanted regarding connction limits.
-Date: Tue, 27 Apr 2004 23:37:58 +0200 (CEST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404272328380.29115-100000@filer.marasystems.com>
-References: <20040427212007.42770.qmail@web41908.mail.yahoo.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Null Device <nulldevice83@yahoo.com>
-In-Reply-To: <20040427212007.42770.qmail@web41908.mail.yahoo.com>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+From: Mike Andersen <mike@src.no>
+Subject: Re: Idea: Check session source and destination
+Date: Tue, 27 Apr 2004 14:47:42 +0200
+Sender: netfilter-admin@lists.netfilter.org
+Message-ID: <132609FB-9849-11D8-8B47-000A957FD99E@src.no>
+References: <Pine.LNX.4.44.0404261640210.6443-100000@filer.marasystems.com>
+Mime-Version: 1.0 (Apple Message framework v613)
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>,
+	<netfilter@lists.netfilter.org>
+Return-path: <netfilter-admin@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.44.0404261640210.6443-100000@filer.marasystems.com>
+To: Henrik Nordstrom <hno@marasystems.com>
+Errors-To: netfilter-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 27 Apr 2004, Null Device wrote:
+On Apr 26, 2004, at 16:44, Henrik Nordstrom wrote:
 
-> well he prob is i am unable to make out how can i
-> integrate this code in mine own module.
+> On Mon, 26 Apr 2004, Mike Andersen wrote:
+>
+>> iptables -A FORWARD -m conntrack --ctorigdst <int_ip> -j ACCEPT
+>> iptables -A FORWARD -j DROP
+>
+> Works here..
+>
+>> I then look more closely at the state table (/proc/net/ip_conntrack)
+>> and see that there are two sets of source definition, and two sets for
+>> the destination:
+>
+> One is the ORIGINAL direction, the other the REPLY direction. Each is
+> matched independently by the "conntrack" match (--ctorigdst vs
+> --ctreplydst).
 
-Just do the same things as this module is doing in your own netfilter 
-module.
+Ah, that explains it.  Thanks for clearing up that.
 
-It is not practical to call iptables modules from other netfilter modules,
-but practically anything iptables modules do wrt packet matching can you
-do in your netfilter modules in the same manner.
+>> Any idea of why the "-m conntrack --ctorigdst <int_ip>" also passes
+>> through traffic where int_ip is the source of the session?
+>
+> Does work like intended here and only matches where it is the original
+> destination. But I am using this for packet filtering, not mirroring.
+> Not that I see any difference.
 
-> "Connection Tarcking Helper Module", I tried
-> ip_conntrack_helper_register(&modified_connlimit) in
-> my module.
+I reconfigured my test setup and used the FW for filtering instead of 
+mirroring (physical reconfiguration, all software .  Then the rules 
+works as intended.
 
-This is a completely different thing, only relevant if you need to 
-implement connection tracking helpers for parsing various protocols. FTP 
-is a good example requiring this to figure our that the data transfers 
-belong to the same FTP session.
+So the problem I'm having here, seems to be related to the mirroring.  
+My gut feeling says that it may be related to the fact that the state 
+table is being built independently of the netfilter rules.
 
-> But then i realized, connlimit depends on usual
-> parametesr which are supposed to be passed to the
-> matching function when i registers with
-> ip_register_match ie ptr to skbuff, in and out
-> devices, ptr to header, and ptr to match info.
-> And i was lost in the dark how can make it work.
+Here is some more data. First the rules used in this test case:
 
-You are simply looking too hard at connlimit.
+iptables -A FORWARD -m conntrack --ctorigdst 10.10.10.199/32 -j LOG 
+--log-level  DEBUG --log-prefix '>ctorigdst> '
+iptables -A FORWARD -m conntrack --ctorigdst 10.10.10.199/32 -j ACCEPT
+iptables -A FORWARD -j LOG --log-level DEBUG --log-prefix '>drop> '
+iptables -A FORWARD -j DROP
 
-What you need in your module is a equivalence to the connlimit match() 
-function and anything used by this function. Any arguments such as 
-interfaces, offset etc not used by the connlimit match() function can be 
-ignored as these are just artifacts of the iptables module interface.
+Then I try to connect _from_ 10.10.10.199, and this is what the log 
+says:
 
-The hotdrop thing can also be ignored. This is just a way for an iptables 
-match to say the packet is invalid and should be dropped to not conflict 
-with the match. In a netfilter module this is the same as returning 
-NF_DROP.
+Apr 27 14:22:35 local kernel: >drop> IN=br0 OUT=br0 PHYSIN=eth0 
+PHYSOUT=eth1 SRC=10.10.10.199 DST=10.10.10.200 LEN=60 TOS=0x00 
+PREC=0x00 TTL=64 ID=19660 DF PROTO=TCP SPT=51905 DPT=80 WINDOW=65535 
+RES=0x00 SYN URGP=0
 
-There will automatically be a dependency on netfilter conntrack, and the 
-info returned from ip_conntrack_get can be used to determine if this is a 
-new or ongoing connection.
+Apr 27 14:22:35 local kernel: >ctorigdst> IN=br0 OUT=br0 PHYSIN=eth0 
+PHYSOUT=eth1 SRC=10.10.10.200 DST=10.10.10.199 LEN=60 TOS=0x00 
+PREC=0x00 TTL=61 ID=0 DF PROTO=TCP SPT=80 DPT=51905 WINDOW=5792 
+RES=0x00 ACK SYN URGP=0
 
-Regards
-Henrik
+Apr 27 14:22:35 local kernel: >ctorigdst> IN=br0 OUT=br0 PHYSIN=eth0 
+PHYSOUT=eth1 SRC=10.10.10.199 DST=10.10.10.200 LEN=52 TOS=0x00 
+PREC=0x00 TTL=64 ID=19661 DF PROTO=TCP SPT=51905 DPT=80 WINDOW=65535 
+RES=0x00 ACK URGP=0
+
+Apr 27 14:22:35 local kernel: >ctorigdst> IN=br0 OUT=br0 PHYSIN=eth0 
+PHYSOUT=eth1 SRC=10.10.10.199 DST=10.10.10.200 LEN=536 TOS=0x00 
+PREC=0x00 TTL=64 ID=19662 DF PROTO=TCP SPT=51905 DPT=80 WINDOW=65535 
+RES=0x00 ACK PSH URGP=0
+
+Apr 27 14:22:36 local kernel: >ctorigdst> IN=br0 OUT=br0 PHYSIN=eth0 
+PHYSOUT=eth1 SRC=10.10.10.200 DST=10.10.10.199 LEN=52 TOS=0x00 
+PREC=0x00 TTL=61 ID=58220 DF PROTO=TCP SPT=80 DPT=51905 WINDOW=6432 
+RES=0x00 ACK URGP=0
+
+As you see, the first SYN package is dropped, while the rest of the 
+traffic is passed through.
+
+I really want to figure out _why_ this is not working as intended, and 
+are therefore willing to put a lot of hours into testing.  But I'm 
+pretty stuck here.  Any suggestion and hints about what I should try 
+out next (tools/configurations etc) is very welcome.
+
+mike
+-- 
+"It is a lesson which all history teaches wise men, to put trust in
+  ideas, and not in circumstances."            --Ralph Waldo Emerson
