@@ -1,13 +1,15 @@
-From: "Colin Paton" <cozzarp@hotmail.com>
-Subject: Re: PPTP connttrack problem - 'unexpecting' performed too early?
-Date: Tue, 13 Apr 2004 13:31:51 +0000
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: ipt_ACCOUNT accounting target released
+Date: Tue, 13 Apr 2004 17:31:01 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <BAY13-F4JacRZ21n9x80005e0d9@hotmail.com>
+Message-ID: <200404131731.02001.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: philipc@snapgear.com
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,34 +20,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hello together,
 
->Your log doesn't have any debug info from ip_nat_pptp.c or
->ip_nat_proto_gre.c.  Have you insmod'ed them?  If you haven't then
->that would explain why the keymap is wrong.
+I'm pleased to announce the first alpha release
+of the high performance ipt_ACCOUNT target module.
 
-D'oh!
+You can find it here:
+http://www.intra2net.com/opensource/ipt_account/
 
-These modules weren't installed - I added them, as you suggested, and 
-everything seems to work OK now!
+It's my first attempt at kernel/netfilter hacking,
+so I'm open for any suggestions.
 
-I had originally built 'GRE protocol support' and 'PPTP protocol support' 
-into the kernel - but if I build them as modules, then
+Two design issue still need to be resolved:
+Is it possible to register a callback if a raw socket gets closed?
+I want to free any possible left-over "handles".
 
-modprobe ip_nat_pptp
-modprobe ip_nat_proto_gre
+Can I patch the "iptables" tool with the userspace part of the module
+using pom-ng?
 
-...then everything works!
+Best Regards,
+Thomas Jarosch
 
-Thanks so much for your advice. I was busy going down a blind alleyway 
-trying to figure out when the expects should be deleted - but didn't realise 
-that they were incorrect. I'm still not quite sure why it worked when I kept 
-them in, but it does appear to work properly now!
+-- 
+Intra2net AG
+Moempelgarder Weg 8
+72072 Tuebingen
+Germany
 
-Thanks,
-
-Colin
-
-_________________________________________________________________
-It's fast, it's easy and it's free. Get MSN Messenger today! 
-http://www.msn.co.uk/messenger
+Tel: +49-7071-56510-0
+Fax: +49-7071-56510-50
+thomas.jarosch@intra2net.com
+http://www.intra2net.com
