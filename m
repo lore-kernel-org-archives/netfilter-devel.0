@@ -1,8 +1,8 @@
 From: "Eble, Dan" <DanE@aiinet.com>
 Subject: [PATCH] Default policy for user-defined chains.
-Date: Thu, 12 Sep 2002 11:34:08 -0400
+Date: Thu, 12 Sep 2002 15:39:39 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <638AA0336D7ED411928700D0B7B0D75B03053C82@aimail.aiinet.com>
+Message-ID: <638AA0336D7ED411928700D0B7B0D75B03053C84@aimail.aiinet.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
@@ -17,6 +17,13 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
+
+/* Please accept my humblest apology for the awful patch I sent earlier
+ * today.  Apparently, Outlook defaults to wrapping lines at 76 characters
+ * when it transmits messages.  I've increased the line length to the max
+ * (132 for some strange reason), so there should be no problems this time.
+ * Keep your fingers peeled and your eyes crossed.
+ */
 
 Well, not exactly--this is better!
 
