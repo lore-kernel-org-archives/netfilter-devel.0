@@ -1,11 +1,10 @@
-From: dhobson@csa.concordia.ab.ca
-Subject: iptables problems
-Date: Fri, 18 Oct 2002 15:15:27 -0600 (MDT)
+From: "Shen Qiyu" <shenqiyu@hotmail.com>
+Subject: For netfilter ipt_ops, init() and nf_register_hook()
+Date: Wed, 23 Oct 2002 15:15:44 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1034975727.3db079ef4b83d@unclehenry.csa.concordia.ab.ca>
+Message-ID: <F225AtxXuGSkXlVg2R20000850c@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=gb2312; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -18,19 +17,59 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Using Linux Firewalls 2nd edition by Ziegler and iptables documentation on the
-various web sites as a guide I developed a firewall for a small LAN.    To
-enable the use of private addresses on the LAN I incorporated SNAT in the script.
+Hi, guys,
+ 
+When I read the source of netfilter(withe kernel 2.4.18), something pullzed 
+me.
+ 
+net/ipv4/netfilter/Iptable_filter.c
+....
+static struct nf_hook_ops ipt_ops[]
+= { { { NULL, NULL }, ipt_hook, PF_INET, NF_IP_LOCAL_IN, NF_IP_PRI_FILTER 
+},
+    { { NULL, NULL }, ipt_hook, PF_INET, NF_IP_FORWARD, NF_IP_PRI_FILTER },
+    { { NULL, NULL }, ipt_local_out_hook, PF_INET, NF_IP_LOCAL_OUT,
+  NF_IP_PRI_FILTER }
+};
+...
+static int __init init(void)
+{
+ ...
+ ret = nf_register_hook(&ipt_ops[0]);
+...
+}
+ 
+net\core\Netfilter.c
+ 
+int nf_register_hook(struct nf_hook_ops *reg)
+{
+ struct list_head *i;
+ 
+ br_write_lock_bh(BR_NETPROTO_LOCK);
+ for (i = nf_hooks[reg->pf][reg->hooknum].next; 
+      i != &nf_hooks[reg->pf][reg->hooknum]; 
+      i = i->next) {
+  if (reg->priority < ((struct nf_hook_ops *)i)->priority)
+   break;
+ }
+ list_add(&reg->list, i->prev);
+ br_write_unlock_bh(BR_NETPROTO_LOCK);
+ return 0;
+}
+ 
+It seems that in list_add(&reg->list, i->prev), only a {NULL, NULL} list 
+head is added, so how it run?
+ 
+Regards.
+ 
+Paul.
+2002.10.23
 
-One of the recommendation I found was to flush all existing tables and set the
-various policies to DROP at the start of the script.  
 
-To make a long story short if I use the following command "iptables -t -nat
---policy POSTROUTING DROP" in the script I cannot surf, if it's commented out I
-can surf.  I have this line after I have enabled SNAT.  Should I have it before
-the line?
 
-All the examples I found show the enabling SNAT  before the DROP line. 
 
-thanks
-brock
+
+
+
+_________________________________________________________________
+与联机的朋友进行交流，请使用 MSN Messenger: http://messenger.msn.com/lccn/ 
