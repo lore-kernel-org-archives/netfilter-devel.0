@@ -1,35 +1,36 @@
-From: Robert Scott <rbscott@axentra.net>
-Subject: ipq_get_msgerr: No such file or directory
-Date: Tue, 22 Mar 2005 12:30:05 -0800
-Message-ID: <bfbae0cc011856c1dbdca5bedf862015@axentra.net>
-Mime-Version: 1.0 (Apple Message framework v619.2)
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: iptables breakage WAS(Re: dummy as IMQ replacement
+Date: Wed, 23 Mar 2005 02:31:58 +0100
+Message-ID: <4240C70E.8060503@trash.net>
+References: <1107123123.8021.80.camel@jzny.localdomain>	 <0fcf01c5077f$579e4b80$6e69690a@RIMAS>	 <1107174142.8021.121.camel@jzny.localdomain>	 <00c301c524b4$938cd240$6e69690a@RIMAS>	 <1110379135.1091.143.camel@jzny.localdomain>	 <1110416767.1111.76.camel@jzny.localdomain>	 <025501c52552$2dbf87c0$6e69690a@RIMAS>	 <1110453757.1108.87.camel@jzny.localdomain>  <423B7BCB.10400@dsl.pipex.com> <1111410890.1092.195.camel@jzny.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: Andy Furniss <andy.furniss@dsl.pipex.com>,
+        Harald Welte <laforge@gnumonks.org>, Remus <rmocius@auste.elnet.lt>,
+        netdev@oss.sgi.com, Nguyen Dinh Nam <nguyendinhnam@gmail.com>,
+        Andre Tomt <andre@tomt.net>, syrius.ml@no-log.org,
+        Damion de Soto <damion@snapgear.com>,
+        Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: hadi@cyberus.ca
+In-Reply-To: <1111410890.1092.195.camel@jzny.localdomain>
+Sender: netdev-bounce@oss.sgi.com
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-I am receiving this error code from ipq_get_msgerr.  The read is 
-successful, and returns a non-zero positive number, but when I call 
-ipq_message_type on the buffer used to read the packet, I get 
-NLMSG_ERROR, and then, when I call strerror( ipq_get_msgerr( buffer ))  
-where "buffer" is the second argument to ipq_read, I receive the error 
-message "No such file or directory".
+jamal wrote:
+> As i was suspecting this is related to iptables breaking backwards
+> compatibility. Starting with 1.3.0 the target structure changed ;->
+> (right at the top is a new field called version)
+> I suspect the iptables folks maybe unaware that there are other users of
+> iptables and assume that anyone needing to use new iptables will
+> recompile everything from scratch. BAD! BAD!
+> I am ccing the necessary evil doers (Harald and Patrick - at least they
+> would know who the real evildoer is). 
 
-This has occurred on a Linux 2.6.8.1 kernel with version 1.2.9 of 
-iptables.  The box where this occurred is acting as a bridge, and this 
-started happening when the internet connection on one of its interfaces 
-went down for a few hours.
+We'll try to keep this in mind in the future. We could move
+the version field to the end, but I guess its already too
+late. What do you think?
 
-Any ideas as to why this may be happening?
-
-thanks,
---robert
+Regards
+Patrick
