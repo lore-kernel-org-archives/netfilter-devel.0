@@ -1,15 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: chain_cache
-Date: Thu, 20 May 2004 11:52:31 +0200 (CEST)
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [RFC] Die to NOTRACK/TRACE, long live MARK!
+Date: Thu, 20 May 2004 12:48:39 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0405201116470.7143-100000@filer.marasystems.com>
-References: <40AC600C.2090500@aiqa.com>
+Message-ID: <40AC8D07.3090308@eurodev.net>
+References: <Pine.LNX.4.33.0405192236590.3749-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Ozgur Akan <akan@aiqa.com>
-In-Reply-To: <40AC600C.2090500@aiqa.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.33.0405192236590.3749-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,81 +21,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 20 May 2004, Ozgur Akan wrote:
+Hi Jozsef,
 
-> I thought that if I will learn iptables kernel side, I have to learn 
-> libiptc because libiptc is the lowest level interface to interact with 
-> kernel that I can work on.
+Jozsef Kadlecsik wrote:
 
-Not really interesting to most people. It is sufficient for most people to
-say that this code compiles your supplied ruleset into an iptable and
-inserts that table into the kernel.
+>Willy Tarreau suggested that the TCP window tracking code could be used to
+>protect connections against the "TCP vulnerabilities" brought up recently
+>(see for example http://www.uniras.gov.uk/vuls/2004/236929). After some
+>discussion and code-fragments the result is that it could be done fairly
+>easily: the SYN/RST probes could be counted and when a threshold is
+>reached, we'd deliberately drop in-window SYN/RST segments to protect the
+>connection. However, it'd then mean a violation of the TCP protocol
+>specification and therefore I'd definitely not like to enable it by
+>default or to enable it for all traffic. So there should be a way to tell
+>the system which connections (packets) to protect.
+>  
+>
 
-> When we insert a rule with iptables command all checks are done with 
-> iptables command itself. Does kernel do some checks and give error or 
-> warning if one modifies iptables.c and try to insert buggy rules to 
-> iptables?
+I agree, these options shouldn't be enable by default, as I told you in 
+my last email related to window-tracking stuff that we could set the 
+default action (NF_*) applied to packet via sysctl, so a sysadmin could 
+choose to perform an agressive window /secuence tracking, this way if we 
+see out-of-window packets, we could log and drop them.
 
-See the checkentry functions of each target/match.
+>We could introduce a new silly target for that purpose like NOTRACK or
+>TRACE. However it's pure marking and we do have a interface to mark
+>packets: the MARK target. So if we could tell the system which mark value
+>has got the given special meaning, we wouldn't need a new target and we
+>could even eliminate the NOTRACK/TRACE targets.
+>  
+>
 
-net/ipv4/netfilter/ip_tables.c also verifies the basic structure of the
-iptable before it is accepted by the kernel. If you want to learn the gory
-details see the following functions (in approximate call chain order), but
-in fact most people only need to know that this code exists, not in 
-detail how it works as it has no impact on how a packet is processed.
+yes, I think that's ok, we could implement a set of "security" matches 
+which perform some action depending on the mark. For example, 
+mark_rst_protection could use internal tcp conntrack information to see 
+if an rst was retransmited too many times and block rst's during a 
+timeout to reduce effects of an rst attack or whatsoever. So we should 
+reserve a range of marks.
 
-  translate_table
-  check_entry_size_and_hooks
-  check_entry
-  ip_check_entry
-  check_match
-  checkentry function of each match used
-  checkentry function of the target used
-
-The purpose of all of this code until /* And one copy for every other CPU 
-*/ in translate_table is to verify the sanity of the iptable sent 
-from userspace.
-
-It is worth remembering that iptables has it's name for a reason. The
-ruleset in iptables is one single large table of rules (per table:  
-filter, nat, mangle etc). Each modification you make to the ruleset
-actually downloads the existing iptable from the kernel, compiles a new
-iptable and uploads the new iptable to the kernel. Each hook then starts 
-at predefined locations/chains within the compiled table when called from 
-the Linux TCP/IP stack.
-
-> Actually I have little idea about the journey of a packet in netfilter. 
-> Beside reading ip_tables.c which sources or docs do you recommend me to 
-> read?
-
-In recommended order:
-
-Packet Filtering Howto chapter 6
-
-Netfilter Hacking Howto
-
-The journey of a packet through the Linux 2.4.x network stack. 
-
-skb - Linux network buffers (briefly, so you remember this later)
-
-and most other documents linked from the Netfilter documentation page as 
-you feel interesting.
-
-Then where to go next depends on what you want to focus on. The internals
-of ip_tables.c is not very sexy and not something most peple need to care
-about other than understanding that it simply walks the chains of rules
-when called from the different hooks. What most people is interesting in
-learning more of is how the matches/targets works and how to extend
-iptables with new functions. Here the best method is to study the existing
-sources of an existing match/target, both in the kernel and userspace. For
-example the mark match:
-
-   ipt_mark.c    (kernel)
-   ipt_mark.h    (kernel)
-   libipt_mark.c (userspace)
-
-Then there is connection tracking, NAT and many other functions more part 
-of netfilter than iptables but equally interesting.
-
-Regards
-Henrik
+regards,
+Pablo
