@@ -1,13 +1,12 @@
-From: "Jack" <jack@cosmism.com>
-Subject: what is ippool?
-Date: Thu, 12 Jun 2003 16:34:43 +0800
+From: "Ricky Foo" <blue_pion@hotmail.com>
+Subject: Conntrack Entries
+Date: Thu, 12 Jun 2003 08:45:01 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <010901c330bd$7e5d6cf0$0b00a8c0@haf>
+Message-ID: <Sea2-F465SpDz9vUkUq0000c036@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0106_01C33100.872166A0"
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,30 +17,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi all,
 
-------=_NextPart_000_0106_01C33100.872166A0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+I have written a netbios conntrack module for port 139. However when I 
+tested it, it shows several entries because the source port on my side keeps 
+changing.....e.g. 32900, then 32901, 32902.... in this case, there will be 3 
+lines as if there are 3 different connections are going on. Is this the 
+correct expected behaviour or should they just go into 1 line?
 
-SGkgYWxsLA0Kd2hhdCBpcyBpcHBvb2w/IA0KbWFuIGlwcG9vbCBnaXZlcyBub3RoaW5nLg0KaXQg
-c2VlbXMgYW4gaXAgcG9vbC5idXQgaG93IHRvIHVzZSBpdD8NCnRoYW5rcw==
+What does the "use" field mean?
 
-------=_NextPart_000_0106_01C33100.872166A0
-Content-Type: text/html;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+    Ricky
 
-PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
-L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgaHR0cC1lcXVpdj1Db250ZW50LVR5cGUgY29udGVu
-dD0idGV4dC9odG1sOyBjaGFyc2V0PWdiMjMxMiI+DQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNi4w
-MC4yODAwLjExNDEiIG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8
-Qk9EWSBiZ0NvbG9yPSNmZmZmZmY+DQo8RElWPjxGT05UIHNpemU9Mj5IaSBhbGwsPC9GT05UPjwv
-RElWPg0KPERJVj48Rk9OVCBzaXplPTI+d2hhdCBpcyBpcHBvb2w/IDwvRk9OVD48L0RJVj4NCjxE
-SVY+PEZPTlQgc2l6ZT0yPm1hbiBpcHBvb2wgZ2l2ZXMgbm90aGluZy48L0ZPTlQ+PC9ESVY+DQo8
-RElWPjxGT05UIHNpemU9Mj5pdCBzZWVtcyBhbiBpcCBwb29sLmJ1dCA8L0ZPTlQ+PEZPTlQgc2l6
-ZT0yPmhvdyB0byB1c2UgDQppdD88L0ZPTlQ+PC9ESVY+DQo8RElWPjxGT05UIHNpemU9Mj50aGFu
-a3M8L0ZPTlQ+PC9ESVY+PC9CT0RZPjwvSFRNTD4NCg==
-
-------=_NextPart_000_0106_01C33100.872166A0--
+_________________________________________________________________
+Get 10mb of inbox space with MSN Hotmail Extra Storage 
+http://join.msn.com/?pgmarket=en-sg
