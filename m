@@ -1,36 +1,47 @@
-From: "Zachary Link" <zack@the-links.net>
-Subject: Re: src/dest wilcard matching
-Date: Tue, 21 Sep 2004 09:12:15 -0400 (EDT)
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <65001.139.76.128.1.1095772335.squirrel@www.the-links.net>
-References: <54512.139.76.128.1.1095257166.squirrel@www.the-links.net>
-	<200409161256.23156.apw@shadowen.org>
-Reply-To: zack@the-links.net
+From: "Richard B. Johnson" <root@chaos.analogic.com>
+Subject: Re: [PATCH] Warn people that ipchains and ipfwadm are going away.
+Date: Wed, 22 Sep 2004 07:36:47 -0400 (EDT)
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <Pine.LNX.4.53.0409220735080.2066@chaos.analogic.com>
+References: <1095721742.5886.128.camel@bach>  <20040921143613.2dc78e2f.Ballarin.Marc@gmx.de>
+ <1095803902.1942.211.camel@bach>
+Reply-To: root@chaos.analogic.com
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <200409161256.23156.apw@shadowen.org>
-To: "Andy Whitcroft" <apw@shadowen.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Marc Ballarin <Ballarin.Marc@gmx.de>,
+	Linus Torvalds <torvalds@osdl.org>,
+	netfilter-devel@lists.netfilter.org,
+	lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	"David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S263769AbUIVLiJ@vger.kernel.org>
+To: Rusty Russell <rusty@rustcorp.com.au>
+In-Reply-To: <1095803902.1942.211.camel@bach>
 List-Id: netfilter-devel.vger.kernel.org
 
-<quote who="Andy Whitcroft">
-<snip>
-> iptables -A FORWARD -d 10.0.0.1/255.0.0.255 -j ACCEPT
-</snip>
+On Wed, 22 Sep 2004, Rusty Russell wrote:
 
-That is cool, I hadn't thought of masking like that.  While it might not
-be the perfect solution for me, I can probably make this work pretty well.
+> On Tue, 2004-09-21 at 22:36, Marc Ballarin wrote:
+> > On Tue, 21 Sep 2004 09:09:02 +1000
+> > "Rusty Russell (IBM)" <rusty@au1.ibm.com> wrote:
+> >
+> > > Name: Warn that ipchains and ipfwadm are going away
+> > > Status: Trivial
+> > > Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+> >
+> > Isn't a compile-time warning a bit "soft"? Especially when compilation of
+> > a kernel easily produces > 100 warnings, as it does right now.
+>
+> Sure, but you have to start somewhere.  Next step will be #error.  Then
+> finally remove the whole thing (I don't want to remove the whole thing
+> to start with, since that would create a silent failure).
+>
+> Cheers,
+> Rusty.
+> --
 
-Thanks to all who responded, much appreciated.
+What replaces the firewall stuff? It can't just "go away"!
 
-Zack
+Cheers,
+Dick Johnson
+Penguin : Linux version 2.4.26 on an i686 machine (5570.56 BogoMips).
+            Note 96.31% of all statistics are fiction.
