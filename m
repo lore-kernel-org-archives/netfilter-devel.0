@@ -1,13 +1,18 @@
-From: Alan Turner <alan@suburbia.com.au>
-Subject: IMQ patch?
-Date: Sun, 4 Jan 2004 21:20:34 +1100 (EST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Call for testing: patch-o-matic-ng
+Date: Mon, 5 Jan 2004 13:03:32 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200401041020.i04AKYj1011282@freddy.localdomain>
+Message-ID: <20040105120332.GJ830@obroa-skai.de.gnumonks.org>
+References: <20040101163627.GD3530@obroa-skai.de.gnumonks.org> <Pine.LNX.4.33.0401051150120.15063-100000@blackhole.kfki.hu> <20040105115533.GK1133@eychenne.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mGCtrYeZ202LI9ZG"
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Herve Eychenne <rv@wallfire.org>
+Content-Disposition: inline
+In-Reply-To: <20040105115533.GK1133@eychenne.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,42 +23,57 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi folks
 
-[Could you CC me on replies? pretty please :)]
+--mGCtrYeZ202LI9ZG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I imagine everyone here is sick of "please include this patch" emails
-from users. My apologies in advance. I've searched around a bit and
-haven't found anything about this - so here goes.
+On Mon, Jan 05, 2004 at 12:55:33PM +0100, Herve Eychenne wrote:
+> I think the convention of Debian Packages files with a line like
+> Depends: zope, python2.1-popy (>=3D 2.0.8), python2.1-popy (<< 2.0.9)
+> would just be perfect.
+> I just hope there is some kind of out-of-the-box perl module which
+> would deal with these kinds of versioning issues (handle parsing,
+> compare versions, resolve recursive dependencies, etc).
 
-The IMQ patch adds a dummy device to which egress queueing/shaping
-disciplines can be attached. Incoming packets may be redirected to the
-IMQ device by adding an entry to the PREROUTING table.
+I wish there was.  At least my last search of the CPAN didn't reveal
+anything like that.  If anyone knows such a module, please send me a
+link.
 
-This allows the linux kernel to do ingress shaping, which is *very*
-useful if you're on a slow link.
+> That would imply versioning of patches, which would be a good
+> thing.
 
-A port of the IMQ device to the 2.6 kernel may be found here:
+no.  Currently we are just talking about dependencies of a patch towards
+an installed kernel version.
 
-http://www.digriz.org.uk/jdg-qos-script/index.html
+Having one patch depend on a particular version of another patch is
+something different - and I don't see a way to implement that without=20
+storing that version information somewhere in the kernel tree.
 
-The IMQ device homepage is here:
+>  Herve
 
-http://trash.net/~kaber/imq/
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Is there any chance of this patch being included in POM, or in the
-standard kernel?
+--mGCtrYeZ202LI9ZG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
 
-Thanks muchly for your time.
+iD8DBQE/+VKUXaXGVTD0i/8RAo3MAJ44gmqGIeeFHVdpEQDz1E3N3bmEWQCfWHzC
+KKurGWQ1jBVvsGa23ZX2JL0=
+=pHyN
+-----END PGP SIGNATURE-----
 
-Cheers,
-Alan
-
-
-
-
-
--- 
-Alan R. Turner | (02) 9481 8223 | 0413 190 128
-Live never to be ashamed of anything you do or say.
+--mGCtrYeZ202LI9ZG--
