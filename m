@@ -1,15 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: sparc64 match module - bug id 94
-Date: Fri, 7 May 2004 08:30:01 +0200 (CEST)
+From: Martijn Lievaart <netfilter-devel@rtij.nl>
+Subject: Re: 2.6.6-rc3 - "ip_conntrack_in: Frag of proto 17" (udp) with kNFS
+ r/wsize > 8192
+Date: Fri, 07 May 2004 08:33:01 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0405070825520.9465-100000@filer.marasystems.com>
-References: <409A521C.5020406@eurodev.net>
+Message-ID: <409B2D9D.4000101@rtij.nl>
+References: <200405070411.48918.keaafloy@online.no>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <409A521C.5020406@eurodev.net>
+To: "=?ISO-8859-15?Q?Kenneth_Aafl=F8y?=" <keaafloy@online.no>
+In-Reply-To: <200405070411.48918.keaafloy@online.no>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,24 +22,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 6 May 2004, Pablo Neira wrote:
+Kenneth Aafl=F8y wrote:
 
-> I thought about that possibility, it's an interesting hack, but I think 
-> that the problem is much more specific, we have only this problem with 
-> ipt_limit. Actually, when we have some internal match information which 
-> is shared by some processors, we need to know which one is the selected 
-> to work with. So, we could add a pointer to the master of internal match 
-> data in struct ipt_entry_match. what do you think?
+>Hi!
+>
+>I hope this problem has not been reported before or that I'm not just p=
+icking 
+>up on some user-keyboard troubles, I've read over the archives, but cou=
+ld not 
+>find anything relevat to this issue.
+>
+>I've come across some strange behavior with a nfs server running on 2.6=
+.6-rc3 
+>today. My clients is also running this version. Basically when I set th=
+e NFS 
+>client r/wsize =3D 8192, or remove the connection tracking netfilter mo=
+dules 
+>the problem goes away. If I set the r/wsize to 16834 and the conntrack =
+module 
+>is loaded I end up in the code segment below. When this happens the NFS=
+ 
+>client will almost lose connection with the server, and print a lot of;
+>NFS server not responding, still trying. NFS server OK.
+>  
+>
 
-This is what it does and why there is problems. The problem is because the
-size of that pointer is different between userspace and kernelspace on
-SPARC64 with 32-bit userspace.
+I'm seeing this to on a 2.4.22 kernel. I didn't change anything on the 
+r/wsize, so I have the default of 4096, I think. Both have conntrack loa=
+ded.
 
-There is also an "unsigned long" which may be troublesome. This should be
-a "u_int_32_t" I think. The pointer is however a little more troublesome
-to convert to a fixed size datatype as it needs to match the size of a
-pointer in kernelspace. The size of pointers in userspace is irrelevant as
-it is only a placeholder in userspace. This calls for some #ifdefs.
-
-Regards
-Henrik
+Martijn Lievaart
