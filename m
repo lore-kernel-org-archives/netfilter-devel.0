@@ -1,55 +1,43 @@
-From: "rruegner" <robowarp@gmx.de>
-Subject: Re: [ANNOUNCE] call for testing of patch-o-matic-ng
-Date: Wed, 25 Feb 2004 20:31:47 +0100
-Sender: netfilter-admin@lists.netfilter.org
-Message-ID: <001101c3fbd6$0310ed80$32640a0a@robopc>
-References: <20040225182828.GP13386@sunbeam.de.gnumonks.org>
+From: "Ryan W. Maple" <ryan@guardiandigital.com>
+Subject: PPTP conntrack/NAT Problems
+Date: Wed, 25 Feb 2004 15:51:40 -0500 (EST)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <Pine.LNX.4.58.0402251550120.12632@mastermind.inside.guardiandigital.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: "Netfilter Mailinglist" <netfilter@lists.netfilter.org>
-Return-path: <netfilter-admin@lists.netfilter.org>
-To: "Harald Welte" <laforge@netfilter.org>,
-	"Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
-Errors-To: netfilter-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
 
-do you mean something like this ?
-fresh 2.6.3 kernel with patch-o-matic-ng-20040224
+I've been searching high and low for the 1.13 "version" of the PPTP
+helpers referred to in this message:
 
-Welcome to Patch-o-matic (1.13)!
+  http://marc.theaimsgroup.com/?l=netfilter-devel&m=106426344328158&w=4
 
-Kernel:         /usr/src/linux
-Iptables:       /usr/src/iptables
+I cannot find it _anywhere_.  The latest POM has revisions 1.9 (conntrack)
+and 1.5 (nat) while the netfilter-extensions repository has 1.10/1.6.
+Could somebody please tell me exactly which of these (if either) are
+"version 1.13"?
 
-Each patch is a new feature: many have minimal impact, some do not.
-Almost every one has bugs, so don't apply what you don't need!
--------------------------------------------------------
-Already applied:
+We're having a very hard time trying to NAT outbound PPTP connections
+_and_ accept incoming PPTP connections on the same box -- an issue that it
+appears was fixed in this version.  However it still does not seem to work
+on 1.10/1.6 so I'm hoping there is a more recent version somewhere that
+I'm just not seeing.
 
-Not all requirements fulfilled for quake3-conntrack-nat, skipping:
- requirement 'linux < 2.6.0' not fulfilled
+Thank you very much,
+Ryan
 
-Excellent! Source trees are ready for compilation.
-
-your rewrite seems to work , but the h323 which i could compile in the past
-was rejected too
-is this current state of art ?
-Regards Robert
------ Original Message ----- 
-From: "Harald Welte" <laforge@netfilter.org>
-To: "Netfilter Development Mailinglist"
-<netfilter-devel@lists.netfilter.org>
-Cc: "Netfilter Mailinglist" <netfilter@lists.netfilter.org>
-Sent: Wednesday, February 25, 2004 7:28 PM
-Subject: [ANNOUNCE] call for testing of patch-o-matic-ng
+ +-- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --+
+   Ryan W. Maple          "I dunno, I dream in Perl sometimes..."  -LW
+   Guardian Digital, Inc.                     ryan@guardiandigital.com
+ +-- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --+
