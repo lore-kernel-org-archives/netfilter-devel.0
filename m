@@ -1,18 +1,17 @@
-From: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
-Subject: Re: Maximum chain name length
-Date: Thu, 11 Dec 2003 08:54:10 -0500
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [netfilter-core] Need your help
+Date: Thu, 11 Dec 2003 17:09:19 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1071150850.1871.37.camel@jasiiitosh.nexusmgmt.com>
-References: <1070674657.3314.9.camel@jasiiitosh.nexusmgmt.com>
-	 <1070883753.1932.7.camel@jasiiitosh.nexusmgmt.com>
-	 <20031211130446.GA22826@sunbeam.de.gnumonks.org>
+Message-ID: <20031211160919.GI15606@sunbeam.de.gnumonks.org>
+References: <38751.212.39.69.1.1071154312.squirrel@mail.bnt.bg>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="u/L2/WlOHZg+YGU4"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031211130446.GA22826@sunbeam.de.gnumonks.org>
+To: Stefan Stoyanov <stef@bnt.bg>
+Content-Disposition: inline
+In-Reply-To: <38751.212.39.69.1.1071154312.squirrel@mail.bnt.bg>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,56 +22,68 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Yes, that's what we have now done.  It was just a major, unexpected
-rewrite of a lot of complex code.  We do some pretty complex
-manipulation in our effort to move security administration away from
-individual "gateway" devices and make it a function of network policy. 
-So when an administrator says, "Give Sales access to Sales Data anywhere
-in the world and deny access for all of my users worldwide to the latest
-virus password stealing target server", we've got to figure out what
-that means in rules and chains on every device throughout our global
-network and then distribute it.
 
-We should be finished with debugging the work around today and then on
-with the rest of the project.  By the way, if anyone is interested in
-assisting with such an enormous project, we can use all the help we can
-get.  The pertinent sites are http://iscs.sourceforge.net and
-http:sourceforge.net/projects/iscs.  Please don't be put off by the 0%
-activity.  Sourceforge's CVS stat tracker is broken.  It is a very
-active project.
+--u/L2/WlOHZg+YGU4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks again, Harald - John
+On Thu, Dec 11, 2003 at 04:51:52PM +0200, Stefan Stoyanov wrote:
+> Hi Coreteam!!!!
+>=20
+> Before a week I precompile my kernel with iptables-1.2.9.Today on my
+> /var/log/syslog and on my console i see the following message:
 
-On Thu, 2003-12-11 at 08:04, Harald Welte wrote:
-> On Mon, Dec 08, 2003 at 06:42:33AM -0500, John A. Sullivan III wrote:
-> > I have posted this to netfilter-devel at the suggestion of the netfilter
-> > mailing list.
-> > 
-> > We've posted a large number of screen shots on the project web page
-> > (http://iscs.sourceforge.net/ScreenShots/ScreenShots.html) to show what
-> > the application looks like and why the thirty character limit is a
-> > problem for us.  Any help or input will be greatly appreciated - John
-> 
-> Well, you can recompile the kernel and the iptables program, changing
-> the IPT_FUNCTION_MAXNAMELEN constant (defined in
-> include/linux/netfilter_ipv4/ip_tables.h) to something more than 30
-> chars.
-> 
-> We will certainly not do this by default in the kernel, since it would
-> artificially bloat all the iptables internal structures.
-> 
-> but since you are building a higher layer anyway (and I doubt that you
-> don't want more abstractions than the simple 'chain' approach we have),
-> you could implement a translation layer for chain names.  So the User
-> gets shown some indefinitely long chain name, but the
-> iptables-chain-name is used more like some id/key that is looked up in a translation table (that could even be automagically created).
-> 
-> > -- 
-> > John A. Sullivan III
->  
--- 
-John A. Sullivan III
-Chief Technology Officer
-Nexus Management
-+1 207-985-7880
-john.sullivan@nexusmgmt.com
+Please contact netfilter-devel, in accordance with http://netfilter.org/con=
+tact.html
+
+> Dec 11 16:47:25 mail kernel: LIST_DELETE: ip_nat_core.c:90
+> `&info->bysource'(c3dc5484) not in &bysource[hs].
+> Dec 11 16:47:25 mail kernel: LIST_DELETE: ip_nat_core.c:91
+> `&info->byipsproto'(c3dc5490) not in &byipsproto[hp].
+> Dec 11 16:47:26 mail kernel: LIST_DELETE: ip_nat_core.c:90
+> `&info->bysource'(dc56aa84) not in &bysource[hs].
+> Dec 11 16:47:26 mail kernel: LIST_DELETE: ip_nat_core.c:91
+> `&info->byipsproto'(dc56aa90) not in &byipsproto[hp].
+> Dec 11 16:47:27 mail kernel: LIST_DELETE: ip_nat_core.c:90
+> `&info->bysource'(dc56aa84) not in &bysource[hs].
+> Dec 11 16:47:27 mail kernel: LIST_DELETE: ip_nat_core.c:91
+> `&info->byipsproto'(dc56aa90) not in &byipsproto[hp].
+> Dec 11 16:47:28 mail kernel: LIST_DELETE: ip_nat_core.c:90
+> `&info->bysource'(c3dc5304) not in &bysource[hs].
+> Dec 11 16:47:28 mail kernel: LIST_DELETE: ip_nat_core.c:91
+> `&info->byipsproto'(c3dc5310) not in &byipsproto[hp].
+>=20
+>=20
+>=20
+> One of the modules where loaded in my linux is iptable_nat and ip_conntra=
+ck.
+> When I remove iptable_nat the message stoped, can you help me about that?
+> My kernel is 2.4.23.
+
+plain 2.4.23 source?  In my case, the line numbers of ip_nat_core.c
+don't seem to match what you are describing above.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--u/L2/WlOHZg+YGU4
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/2JavXaXGVTD0i/8RAoLuAKCklqNMs3efl/u+l5nOGjsEZr3mhgCffRog
+xzBuZD4ri554s2sZjt5I5Fs=
+=uG1j
+-----END PGP SIGNATURE-----
+
+--u/L2/WlOHZg+YGU4--
