@@ -1,16 +1,18 @@
-From: Anders Fugmann <afu@fugmann.dhs.org>
-Subject: Re: Fixed proken MARK target in POM.
-Date: Sun, 12 Jan 2003 20:58:02 +0100
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: remove usage of __MOD_XXX_USAGE_COUNT and derivatives
+Date: Sun, 12 Jan 2003 23:14:17 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E21C8CA.3070207@fugmann.dhs.org>
-References: <3E1D7419.1060502@fugmann.dhs.org> <20030110140024.GU1353@sunbeam.de.gnumonks.org> <3E1EE68C.7030004@fugmann.dhs.org> <3E1EF712.8000100@fugmann.dhs.org> <20030111191647.GD24488@naboo.de.gnumonks.org>
+Message-ID: <200301122314.17191.bdschuym@pandora.be>
+References: <3E1DEF2D.4080703@fugmann.dhs.org> <3E1EE4EC.7010703@fugmann.dhs.org> <20030112163616.GA426@naboo.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20030111191647.GD24488@naboo.de.gnumonks.org>
+To: Harald Welte <laforge@gnumonks.org>,
+	Anders Fugmann <afu@fugmann.dhs.org>
+In-Reply-To: <20030112163616.GA426@naboo.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,53 +23,65 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
->>Are defines tolerated? Something like:
->>#define MARK_BITOPS
->>
->>and then in the userspace do a:
->>#ifdef MARK_BITOPS
->>Whenever the new fileds in the structure is used.
-> 
-> 
-> I don't understand how this could solve the problem.  #defines are about
-> compile time.  We need one runtime iptables that copes with old and new
-> kernels (and vice-versa).
-I can see a way to make it somewhat compatible.
+On Sunday 12 January 2003 17:36, Harald Welte wrote:
+> > Ok - I will split my answer up into two parts.
+> > 1. It seems that we agree upon modules should not have their module
+> > count increased because a new module is loaded. This is the current c=
+ase.
+>
+> Well, I don't consider it important, if there is 'just' a module
+> dependency, or an increased module usage count (or both, like now).  As
+> long as it is assured that the system is in a consistent state.
+>=20
+> It's a minor (cosmetic) issue, that we do both right now... it doesn't
+> even affect runtime performance in any noticeable way - how often are
+> new matches/targets loaded?
 
-Kernel:
-   Make a totally new structure (Keep the old one for compability)
-   When checkentry is called, examine the size of argument:
-	If it equals the old size, set a module-global variable
-	meaning that the module should run in compability mode.	
-   Othervice use the new structure.
+Well, as is stated in Rusty's FAQ, a module doesn't need to increment its=
+ own=20
+usage count. Anyway, MOD_{INC,DEC}_USE_COUNT are deprecated in 2.5 now an=
+d=20
+even cause the module to be unable to be unloaded because "unsafe".
 
-This should sort out kernel compability with whatever iptables version.
+> > 2. If the general design goal is to have modules reflect all rules, I
+> > guess that the sum of all module counts should be equal or greater th=
+an
+> > the total number of rules. If this is the case, then where which modu=
+le
+> > should be increased when inserting the rule "iptables -A INPUT". In
+> > general - Should not iptables_filter's module count be incremented fo=
+r
+> > every inserted rule in the filter tabel (Same goes for NAT and MANGLE=
+).
+>
+> iptable_filter usage count needs to be incremented.  Either per rule, o=
+r
+> increased to one as soon as there is >0 rules, and decreased to zero as
+> soon as there is <1 rules.
 
-Userspace:
-   This is a bit more tricky, as compability is defined by compile time. 
-That is, if iptables is compiled against 2.4.21 with the new MARK 
-target, it will not work with a kernel without the MARK target. If this 
-is acceptable, then a #define MARK_BITOPS can help solve the userspace 
-compability. Something like
+Sorry if I misunderstand you, but the reason why the table modules don't =
+need=20
+to get an incremented usage count for every rule is because it's a featur=
+e=20
+that an rmmod iptable_filter removes all rules from the table before remo=
+ving=20
+the table module.
+It's the usage count of match and target modules that needs to be increme=
+nted=20
+when they are used in a rule, and obviously that's being done.
 
-#ifdef MARK_BITOPS
-   Accept --or-mark and --and-mark, and use the new structure.
-#else
-   Only accept --set-mark and usethe old structure.
-#endif
+inserting a rule "iptables -A INPUT" does not cause an increment in modul=
+e=20
+usage count. Module usage count is not a rule count.
 
-Is this acceptable (no backward compability with iptables - it only 
-works with the kernel its compiled against and newer, but not older)?
-	
-> 
-> We have quite a couple of other cases where we have the same problem -
-> without any solution :((  But during a stable kernel series, we cannot
-> put compatibility aside.  People are not supposed to upgrade their
-> iptables after they upgraded their kernel...
-If the above procedure is acceptable, then it migh be a template for 
-such updates in the stable kernel series. It is important that the old 
-structures are removed for 2.6 though.
+> > I'm asking, as I'm willing to spend some time understanding the syste=
+m,
+> > and make patches for Netfilter.
+>
+> great, although I don't really see the need (see above).
 
-Regards
-Anders Fugmann
+There is a need.
+
+--=20
+cheers,
+Bart
