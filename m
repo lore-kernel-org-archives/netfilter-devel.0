@@ -1,12 +1,11 @@
-From: "Robert Iakobashvili" <roberti@Go-WLAN.com>
-Subject: ipset 2.0 - Minor fix
-Date: Thu, 9 Dec 2004 17:51:40 +0200
-Message-ID: <699F7BBB368A10479166148511F5241710DA52@gn-ex01.Go80211.com>
+From: Steven J Scott <sjscott@ra.rockwell.com>
+Subject: ipq_packet_msg_t Structure
+Date: Thu, 9 Dec 2004 09:48:59 -0600
+Message-ID: <OF55D1BD89.BF0B8B01-ON86256F65.0056BF60-86256F65.0056DAF0@ra.rockwell.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C4DE06.F94A0A38"
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,41 +17,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+What is the sturctue of ipq_packet_msg_t?  Is this the same as sk_buff? Or 
+is this just the payload?
 
-------_=_NextPart_001_01C4DE06.F94A0A38
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Thanks,
 
-SVBzZXQgMi4wIHdvcmtzIGdyZWF0IHdpdGggdGhlIHJlY29tbWVuZGVkIHBhdGNoLW8tcGF0aWMg
-YW5kIGlwdGFibGVzIHZlcnNpb24NCm9uIGxpbnV4IHZhbmlsbGEga2VybmVsIDIuNi45Lg0KDQpU
-aGUgbWlub3IgaXNzdWUgb24gYSBEZWJpYW4gNjQtYml0IGRlc3RyaWJ1dGlvbiBmb3IgQU1EOg0K
-I2NhdCAvZXRjL2RlYmlhbl92ZXJzaW9uIA0KMy4xDQojZmlsZSAvYmluL2xzDQovYmluL2xzOiBF
-TEYgNjQtYml0IExTQiBleGVjdXRhYmxlLCBBTUQgeDg2LTY0LCB2ZXJzaW9uIDEgKFNZU1YpLCBm
-b3IgR05VL0xpbnV4IDIuNC4wLCBkeW5hbWljYWxseSBsaW5rZWQgKHVzZXMgc2hhcmVkIGxpYnMp
-LCBzdHJpcHBlZA0KI2djYyAtdjoNClJlYWRpbmcgc3BlY3MgZnJvbSAvdXNyL2xpYi9nY2MtbGli
-L3g4Nl82NC1saW51eC8zLjMuNS9zcGVjcw0KQ29uZmlndXJlZCB3aXRoOiAuLi9zcmMvY29uZmln
-dXJlIC12IC0tZW5hYmxlLWxhbmd1YWdlcz1jLGMrKyxqYXZhLGY3NyxwYXNjYWwsb2JqYyxhZGEs
-dHJlZWxhbmcgLS1wcmVmaXg9L3VzciAtLW1hbmRpcj0vdXNyL3NoYXJlL21hbiAtLWluZm9kaXI9
-L3Vzci9zaGFyZS9pbmZvIC0td2l0aC1neHgtaW5jbHVkZS1kaXI9L3Vzci9pbmNsdWRlL2MrKy8z
-LjMgLS1lbmFibGUtc2hhcmVkIC0td2l0aC1zeXN0ZW0temxpYiAtLWVuYWJsZS1ubHMgLS13aXRo
-b3V0LWluY2x1ZGVkLWdldHRleHQgLS1lbmFibGUtX19jeGFfYXRleGl0IC0tZW5hYmxlLWNsb2Nh
-bGU9Z251IC0tZW5hYmxlLWRlYnVnIC0tZW5hYmxlLWphdmEtZ2M9Ym9laG0gLS1lbmFibGUtamF2
-YS1hd3Q9eGxpYiAtLWVuYWJsZS1vYmpjLWdjIC0tZGlzYWJsZS1tdWx0aWxpYiB4ODZfNjQtbGlu
-dXgNClRocmVhZCBtb2RlbDogcG9zaXgNCmdjYyB2ZXJzaW9uIDMuMy41IChEZWJpYW4gMTozLjMu
-NS0yKQ0KIyBsZCAtdg0KR05VIGxkIHZlcnNpb24gMi4xNQ0KDQppcHNldCBjb21waWxhdGlvbiBm
-YWlscyB3aXRoIDoNCg0KY2MgLU8yIC1XYWxsIC1XdW51c2VkIC1JL3NjcmFwL3JvYmVydC9saW51
-eC0yLjYuOS1yb2IvaW5jbHVkZSAtSS4gLWcgLURJUFNFVF9ERUJVRyAgLWxkbCAtcmR5bmFtaWMg
-LW8gaXBzZXQgaXBzZXQubw0KY2MgLU8yIC1XYWxsIC1XdW51c2VkIC1JL3NjcmFwL3JvYmVydC9s
-aW51eC0yLjYuOS1yb2IvaW5jbHVkZSAtSS4gLWcgLURJUFNFVF9ERUJVRyAgLWMgLW8gaXBzZXRf
-aXBtYXAubyBpcHNldF9pcG1hcC5jDQpsZCAtc2hhcmVkIC1vIGxpYmlwc2V0X2lwbWFwLnNvIGlw
-c2V0X2lwbWFwLm8NCmxkOiBpcHNldF9pcG1hcC5vOiByZWxvY2F0aW9uIFJfWDg2XzY0XzMyIGNh
-biBub3QgYmUgdXNlZCB3aGVuIG1ha2luZyBhIHNoYXJlZCBvYmplY3Q7IHJlY29tcGlsZSB3aXRo
-IC1mUElDDQppcHNldF9pcG1hcC5vOiBjb3VsZCBub3QgcmVhZCBzeW1ib2xzOiBCYWQgdmFsdWUN
-Cm1ha2U6ICoqKiBbbGliaXBzZXRfaXBtYXAuc29dIEVycm9yIDENCnJtIGlwc2V0X2lwbWFwLm8N
-Cg0KZml4ZWQgYnkgYWRkaW5nIHRvIENGTEFHUyAtZlBJQy4NCg0KVGhhbmtzIGZvciB0aGUgZ3Jl
-YXQgaXBzZXQuDQoNClNpbmNlcmVseSwNClJvYmVydCBJYWtvYmFzaHZpbGksDQpyb2JlcnRpQGdv
-LXdsYW4uY29tDQoNCg0KDQo=
-
-------_=_NextPart_001_01C4DE06.F94A0A38--
+Steven Scott - CISSP, CISA, RHCT, LCP, MCSE
+Rockwell Automation / Advanced Technology
+sjscott@ra.rockwell.com
+<---------------------------------------------------->
+(This email was sent via Notes running on Linux)
