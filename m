@@ -1,10 +1,15 @@
-From: don-nf@isis.cs3-inc.com (Don Cohen)
-Subject: conntrack hashing - ABCDEF
-Date: Sat, 6 Jul 2002 14:13:24 -0700
+From: gozem@aaricia.hemmet.chalmers.se (Joakim Axelsson)
+Subject: Re: cttest-0.1
+Date: Sun, 7 Jul 2002 00:41:09 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200207062113.g66LDOV13922@isis.cs3-inc.com>
+Message-ID: <20020706224109.GH3729@aaricia.hemmet.chalmers.se>
+References: <20020705165354.GD3729@aaricia.hemmet.chalmers.se> <53889.203.134.158.15.1025935801.squirrel@iw.k1k2.com> <20020706091259.F13116@oknodo.bof.de> <20020706172342.H13116@oknodo.bof.de> <20020706211451.GG3729@aaricia.hemmet.chalmers.se>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org
+To: Patrick Schaaf <bof@bof.de>, netfilter-devel@lists.samba.org
+Content-Disposition: inline
+In-Reply-To: <20020706211451.GG3729@aaricia.hemmet.chalmers.se>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -15,83 +20,61 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+2002-07-06 23:14:51+0200, Joakim Axelsson <gozem@aaricia.hemmet.chalmers.se> ->
+>
+> Me and Martin Josefsson has tested the new cttest-0.2. Martin also took the
+> idea of using the hash-function that the routingcache uses in Linux:
+> 
 
-No new theory, but some data collected with small modification
-to cttest using originally posted data (no duplicates), -u.
+Some more on this issue. Martin discovered that changing "res ^= (res >>
+16);" into "res ^= (res >> 24);" gave a much better result. Actually better
+than any of the hash-functions we have. To the smalest calculation price.
+The somewhat bad distribution on 2^n hashsizes has now vanished.
 
- int A = 0x47441DFB,
-   B = 0x57655A7D,
-   C = 0x1C7F1D2D,
-   D = 0xDF91D737,
-   E = 0x2F6FE8DB,
-   F = 0x39E5C2D7;
+Now to make it even more impossible to attack I added a A,B factor to it:
+"res ^= A ^ B;" Same A and B as in abcd*
 
- static u32 hash_conntrack(struct ct_key *key)
- {
-  return
-    (A * key->sip
-     + B * key->dip
-     + C * key->sport
-     + D * key->dport
-     + E * key->proto) ^ F;
+static u32 hash_rt_ab(struct ct_key *key)
+{
+ 	u32 res;
 
-The columns 0-6 below correspond to left shifting A-F by that many
-bits.  (Note they all start odd.)  Each entry in the table reports
-the max bucket size for one run of cttest.
+ 	PER_HASH_TIMER_1(       
+ 	  	res = ((key->dip & 0xF0F0F0F0) >> 4) | ((key->dip & 0x0F0F0F0F) << 4);
+ 	  	res ^= key->sip ^ key->proto;  
+ 	  	res ^= key->dport ^ key->sport;
+ 	  	res ^= 0x47441DFB ^ 0x57655A7D;
+ 	  	res ^= (res >> 24);
+ 	  	res ^= (res >> 8);
+ 	);
+ 	
+ 	return res;
+}
 
-My conclusion from below is that it's probably fine to just
-make the table size odd and choose A-F randomly.  
+This addition of A,B only adds 2 more cycles on my CPU (from about 20 to
+about 22). In my believe is this hashfunction what we are looking for. Two
+random constanst makes sure that a studied attack can't fill just any
+bucket, not knowing which one as might be possible with only one random
+constant.
 
-
-[total number of entries: 32866]
-all table sizes approx 8K
-
-For reference,
-P(n) = probability that a given bucket is length n, 
-E(n) = expected # buckets of length n
- n   P    E
- 18 2e-7  .002
- 17 1e-6  .008
- 16 4e-6  .03
- 15 2e-5  .14
- 14 6e-5  .5
- 13 2e-4  2
+I also tested Don's abcdef. Conclusion is that abcdef is about the same as
+abcd or worse and takes longer time to caluclate. From about 22 to about 25. On my
+test-data. It still has a bad distribution on 2^n hashsizes.
 
 
-table size   A-F end with how many 0 bits        comment
-             0     1     2    3    4    5    6
+Results are from my calculations:
+http://aaricia.hemmet.chalmers.se/~gozem/cttest-0.2/rt_ab/
 
- -s 8192:    127   218   414			2^13
 
- -s 8160:    24    34    44   62   92		5 factors of 2
+And from Martin who did test alot of attacking tools against his lab-router:
+Look at each index.html to what type of attack it was.
 
- -s 8176:    21    27    37   54		4 factors of 2
+http://gandalf.hjorten.nu/cttest/kna-gw-rt24-rt_ab-abcdef/
+http://gandalf.hjorten.nu/cttest/labbrouter-172000-randip-randport-rt24-rt_ab-abcdef/
+http://gandalf.hjorten.nu/cttest/labbrouter-172000-same-rt24-rt_ab-abcdef/
 
- -s 8184:    15    20    32   53		3 factors of 2
- -s 8200:    16    20
 
- -s 8188:    16    19    32   35		2 factors of 2
- -s 8196:    14    21
+The modified cttest.c we have used can be found at:
+http://aaricia.hemmet.chalmers.se/~gozem/cttest-0.2/cttest.c
 
- -s 8190:    12    21    20			1 factor of 2
- -s 8194:    15    21    19
-
- -s 8189:    15    13    13   13   13   14   15 odd non-prime table sizes
- -s 8187:    14    12    14   15   15   14   15
- -s 8185:    13    12    14   13   15   14   15
- -s 8183:    13    13    12   12   13   14   16
-
- -s 8191:    13    14    14   16   12   13   14 prime table sizes
- -s 8179:    13    14    15   17   16   14   16
- -s 8171:    13    15    14   14   16   15   18
- -s 8209:    14    13    13   13   13   14   15  ... (see below) 38
-
-E and F, btw do not much influence these numbers.
-They're included to make it harder to attack.
-A little more data with -s 8209:
-If A-F are all left shifted 16, max bucket size is 38,
- only A-E are shifted 16 - 35
- only A-D are shifted 16 - 37
- only A-C are shifted 16 - 30
- only A-B are shifted 16 - 30
- only A shifted 16       - 20
+-- 
+/Joakim Axelsson A.K.A Gozem@EFnet & OPN
