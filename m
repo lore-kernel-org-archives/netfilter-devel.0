@@ -1,59 +1,53 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: list delete bug: kernel crash
-Date: Tue, 31 Aug 2004 12:50:37 +0200
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1093949437.2435.4.camel@nienna.balabit>
-References: <003701c48ee9$e1ad1f40$0a00a8c0@aziz>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [RFC] MASQUERADE / policy routing ("Route send us somewhere
+ else")
+Date: Tue, 31 Aug 2004 13:54:21 +0300 (EEST)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <Pine.LNX.4.44.0408311326540.4022-100000@l>
+References: <20040831101203.GA1951@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	netfilter@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: security <security@lea-linux.com>
-In-Reply-To: <003701c48ee9$e1ad1f40$0a00a8c0@aziz>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "David S. Miller" <davem@davemloft.net>, <laforge@netfilter.org>,
+        <netfilter-devel@lists.netfilter.org>, <rusty@rustcorp.com.au>,
+        <netdev@oss.sgi.com>, <kuznet@ms2.inr.ac.ru>
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Herbert Xu <herbert@gondor.apana.org.au>
+In-Reply-To: <20040831101203.GA1951@gondor.apana.org.au>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
 
-  Hi,
+	Hello,
 
-2004-08-31, k keltez=E9ssel 01:34-kor security ezt =EDrta:
-> Aug 30 20:42:24 gateway kernel: NF_IP_ASSERT:
-> net/ipv4/netfilter/ip_conntrack_core.c:1115(ip_conntrack_alter_reply)
-> Aug 30 20:42:24 gateway kernel: NF_IP_ASSERT:
-> net/ipv4/netfilter/ip_conntrack_core.c:1115(ip_conntrack_alter_reply)
-> Aug 30 20:44:24 gateway kernel: LIST_DELETE:
-> net/ipv4/netfilter/ip_conntrack_core.c:300
-> `&ct->tuplehash[IP_CT_DIR_REPLY]'(f3cedca4) not in
->  &ip_conntrack_hash[hr].
->=20
-> I have search in bugzilla and google and, apparently, this bug has been=
- solve
-> since kernel 2.6.5.
-> But i have kernel 2.6.8.1 and i have try kernel 2.6.6 and 2.6.7: same c=
-rash
->=20
-> But it hard to "see" because i can stay 1 week without crash, or 5mn.
->=20
-> I have the "local NAT" activated.
+On Tue, 31 Aug 2004, Herbert Xu wrote:
 
-  As always, the first thing you should try is testing the memory of
-your computer. The problems seems to be caused by trying to call
-ip_nat_setup_info() on an already confirmed connection, which is known
-to cause hash corruption.
+> I knew it can't be that easy :)
+>
+> So let's go back to the previous idea of using inet_select_addr?
+> Can you find any problems with this? In fact, it seems that the
+> 2.2 compatibility code does exactly this.
 
-  BTW, while running memtest, could you send us the nat table of your
-iptables ruleset, along with the routing setup? And also a list of
-loaded (iptables-related) kernel modules would be useful.
+	Yes, 2.2 worked somehow, until some users wanted more
+control from the routing. Now ip_fw_compat_masq.c has such call,
+it can be fast in some setups with small number of IPs but may
+be now there some setups using nfmark for selecting maddr from
+ISP-specific routing tables. I'm not sure we can avoid the routing
+and the cache pollution, we have to live with the old behavoir, not
+the current one.
 
---=20
- Regards,
-   Krisztian KOVACS
+	I have some related work, you can check it for more ideas:
+
+http://www.ssi.bg/~ja/#routes
+see dgd-usage.txt
+
+	In short, I use the mpath route as a nexthop selector (on
+first packet), the next packets do not hit the mpath route, they feed the 
+routing with the maddr already bound to the NAT connection. This survives
+cache expiration. May be using connmark is a better idea:
+assign nfmark to connection and route it always via same GW. But
+may be the oif key remains, I'm not sure.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
