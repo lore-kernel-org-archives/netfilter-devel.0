@@ -1,17 +1,13 @@
-From: Friedrich Lobenstock <fl@fl.priv.at>
-Subject: Re: latest pom: base/connlimit breaks kernel 2.4.25 compile (+possible
- fix)
-Date: Sun, 11 Apr 2004 02:04:46 +0200
+From: aso@homeccess.com
+Subject: can I map a specific priv. ip to a pub ip? How?
+Date: Sun, 11 Apr 2004 10:07:52 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40788B9E.20009@fl.priv.at>
-References: <Pine.LNX.4.44.0404110147400.6583-100000@filer.marasystems.com>
-Reply-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Message-ID: <1081674472.40790ae8a9361@mail.homeccess.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.44.0404110147400.6583-100000@filer.marasystems.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,16 +18,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote on 11.04.2004 01:58 MET:
-> On Sat, 10 Apr 2004, Friedrich Lobenstock wrote:
-> 
->>Can I really remove those lines completely?
-> 
-> Yes. The connlimit module already depends on conntrack by the calls to
-> functions within conntrack.
+   
+a client has the following public address on his voip phone, XXX.XXX.13.35.    
+ 
+This address I have given to the voip provider as that of the particular phone 
+at which he can reach the client when packets are coming back in (necessary 
+for QoS)  
+   
+however, I want to give the following private ip address to the customer,  
+192.168.6.10. This address has to be mapped to XXX.XXX.128.35 both internally 
+and externally so as to allow a two way on-going connection. How do I go about 
+this?  
+   
+can I map to a particularly ip:port?  
+   
+ T.  
+ 
 
-Ok. So what do you want then? A corrected patch or a patch for the patch?
-
--- 
-MfG / Regards
-Friedrich Lobenstock
+----------------------------------------------------------------------
+Please visit http://www.homeccess.com
