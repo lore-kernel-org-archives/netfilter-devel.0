@@ -1,17 +1,17 @@
-From: Mike Andersen <mike@src.no>
-Subject: Re: Idea: Check session source and destination
-Date: Mon, 26 Apr 2004 15:40:19 +0200
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: ipt_ACCOUNT accounting target released
+Date: Tue, 27 Apr 2004 10:12:29 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <427EA2C2-9787-11D8-8B47-000A957FD99E@src.no>
-References: <Pine.LNX.4.44.0404241042450.2578-100000@filer.marasystems.com>
-Mime-Version: 1.0 (Apple Message framework v613)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
+Message-ID: <200404271012.29136.thomas.jarosch@intra2net.com>
+References: <200404131731.02001.thomas.jarosch@intra2net.com> <200404261336.08119.thomas.jarosch@intra2net.com> <408DB05E.6010706@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.44.0404241042450.2578-100000@filer.marasystems.com>
-To: Henrik Nordstrom <hno@marasystems.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <408DB05E.6010706@trash.net>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,65 +22,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Apr 24, 2004, at 10:43, Henrik Nordstrom wrote:
+Hi Patrick,
 
-> Already done. See the conntrack match.
-
-Ah, I was not aware of that one.
-
->> My assumptions here is that the source address in the state table
->> _always_ is the one that initiates the session.
+> > Did anyone had a chance to take a look?
+> > I really would like to see this one in netfilter CVS ;-)
 >
-> Correct. Even on related connections (unless the related connections  
-> goes
-> to another IP on the initiator side but I know of no such protocols)
+> The pom-ng tar has the include and net directory in the
+> ACCOUNT directory. You need to place them inside the
+> linux directory. Also, the target is very long (>1000 lines)
+> and formatted improperly, this makes it hard to review.
+> Please stick to Documentation/CodingStyle, especially
+> regaring overly long lines (>80 chars) and wasted lines:
+>
+>      if (table_nr == -1)
+>      {
+>
+> should be:
+>
+>      if (table_nr == -1) {
+>
+> C-style comments are prefered over C++-style comments.
 
-Hm.  I'm having some odd problems here.  I'll try to explain... Take a  
-look at my last message:
-http://article.gmane.org/gmane.comp.security.firewalls.netfilter.devel/ 
-6417 for more information about the scenario I'm working on.
+Thanks for your reply. I'll fix the coding style
+and will post a new patch soon.
 
-I'm here trying to use netfilter to filter out which sessions the  
-packet sniffer should be allowed to see.  The state table is being  
-built independently of the rules configured in netfilter. Here is an  
-example of a rule I use:
+> It also looks like some common blocks of code could
+> be placed in a seperate function, for example the inner
+> blocks in ipt_account_handle_get_data().
 
-iptables -A FORWARD -m conntrack --ctorigdst <int_ip> -j ACCEPT
-iptables -A FORWARD -j DROP
+Premature optimization is the root of all evil ;-)
+Is see what I can do, but IMHO this will increase
+the complexity of the ipt_account_handle_get_data() function.
 
-The way I understand this, this rule should pass through all traffic  
-from sessions initiated against my internal IP (here: int_ip).  What  
-really happens in my test environment is:
+> Why does it need a PAGE_SIZE >= 4096 ?
 
-Sessions started against int_ip: All traffic is seen, as intended.
-Sessions started from int_ip: The SYN packet is not mirrored to the  
-packet sniffer, but the rest of that session is mirrored -- everything  
-from the SYN-ACK to the end of the session.
+The internal data layout for a 8 bit network (256 hosts/CLASS C) is
+designed to fit into a kernel zero page. As the code is designed for constant
+(meaning every second/every 10 seconds) readout of the data,
+kmalloc would be too expensive as snapshots of the data are created.
 
-I then look more closely at the state table (/proc/net/ip_conntrack)  
-and see that there are two sets of source definition, and two sets for  
-the destination:
+> Please post the patch to the list for easier review.
 
-tcp 6 <sec> ESTABLISHED src=<external ip> dst=<internal ip> sport=1367  
-dport=80 src=<internal ip> dst=<external ip> sport=80 dport=1367 use=1
+Ah, ok. I didn't want to spoil the list as it's rather huge
+(at least when the userspace library is included),
+but I'll post the kernel space part once I've fixed the coding style.
 
-The direction of the second pair of src/dst addresses, are the opposite  
-of the first pair.  Which pair is the conntrack code checking?
-
-Any idea of why the "-m conntrack --ctorigdst <int_ip>" also passes  
-through traffic where int_ip is the source of the session?
-
-I'm using the version of netfilter that are included in the linux  
-2.4.25 source code, which the patches from  
-http://www.sentryfirewall.com/docs.html (also using the .config file  
-from that project to compile the kernel). In addition to that, I've  
-changed the bridge code according to the message here:
-http://article.gmane.org/gmane.linux.network.bridge/1603
-
-PS, this discussion should probably move from the developer list to the  
-general netfilter list?
-
-mike
--- 
-"It is a lesson which all history teaches wise men, to put trust in
-  ideas, and not in circumstances."            --Ralph Waldo Emerson
+Thomas
