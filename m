@@ -1,19 +1,12 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [RESEND][PATCH] net/ipv6/netfilter warnings removal
-Date: 23 Apr 2003 21:50:44 -0700
+From: Andre Uratsuka Manoel <andre@insite.com.br>
+Subject: using a hash table for netfilter tables?
+Date: Thu, 24 Apr 2003 02:19:58 -0300 (BRT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1051159844.18160.1.camel@rth.ninka.net>
-References: <Pine.LNX.4.51.0304051607310.32140@dns.toxicfilms.tv>
-	 <Pine.LNX.4.51.0304072115010.19830@dns.toxicfilms.tv>
-	 <Pine.LNX.4.51.0304231434540.4838@dns.toxicfilms.tv>
+Message-ID: <Pine.LNX.4.33.0304240213430.8241-100000@fantomas.insite.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, alan@lxorguk.ukuu.org.uk,
-   netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-In-Reply-To: <Pine.LNX.4.51.0304231434540.4838@dns.toxicfilms.tv>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,18 +17,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 2003-04-23 at 05:38, Maciej Soltysiak wrote:
-> And here is the patch to remove those by using casts.
 
-It's kind of rediculious that these modules don't use the
-existing AH/ESP/etc. header structure types (ip_auth_header et
-al.)
+	Hi all,
 
-That's why I'm not applying this patch, please fix all of these
-modules up to use the same header structures as the IPSEC layer
-does.  Then I'll take the patch.
+	I need to replace the current list-based netfilter code for 
+something using hashtables. The reason is that I have hundreds of tables 
+in a project, but set up times are killing me. I took a peek at the code 
+and it looked easy to do, since the current list-based code already takes 
+care of locking, that's a huge problem I don't have to care about.
 
-Thanks.
+	Is there something I should know abot? Any tips? Is this stupid?
 
-> -- 
-> David S. Miller <davem@redhat.com>
+	Thanks in advance,
+	Andre
