@@ -1,14 +1,17 @@
 From: Francesco Sportolari <francesco@unipg.it>
 Subject: Re: [PATCH] New behaviour for early_drop()
-Date: Mon, 14 Apr 2003 16:16:59 +0200
+Date: Mon, 14 Apr 2003 17:34:40 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200304141616.59355.francesco@unipg.it>
+Message-ID: <200304141734.40065.francesco@unipg.it>
+References: <200304141140.18647.francesco@unipg.it> <1050329196.11154.244.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <1050329196.11154.244.camel@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,42 +22,20 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Monday 14 April 2003 13:06, Patrick Schaaf wrote:
-> Hi Francesco,
->
-> I have some comments. First, thanks for taking the effort to implement
-> this idea.  Regarding space overhead, it's 8 byte (two 4-byte pointers)
-> for the struct list_head, not 2 byte. By itself, that's still acceptabl=
-e.
+On Monday 14 April 2003 16:06, Martin Josefsson wrote:
 
-Yeah, you're right, my fault... it's two pointers, so 8 bytes :)
+> I've thought about something like this as well... The problem is that
+> this probably makes it easier to attack a certain chain.=20
 
-> However, the additional locking (cross-CPU) will have an impact on
-> high packet load performance. The traditional early_drop does not
-> influence normal (nondropping case) operation in any way, so that's
-> a new, additional serialization. I feel that's reason enough to make
-> the whole thing optional, in some way.
-
-I'm going to try this patch on a very busy firewall machine (dual Power3
-IBM RS/6000), then i can give you some hints on the performance differenc=
-e...
-I agree with you that this serialization introduces delay in the processi=
-ng
-queue of the packet, but it can be good anyway.
-
-> Finally, a stylistic comment, also directed at the other developers her=
-e:
-> you add a list_pop() macro to the netfilter listhelp.h file. I notice
-> that about half the macros in that file are written in BIG_LETTERS(),
-> the rest is small_caps(). Why this variance? I cannot see any system!
-
-I've only followed the style used for list_append() and list_del()... How=
-ever
-i think that for the inline functions is acceptable to use low case.
-
-> best regards
->   Patrick
-
-Ciao,
+I don't think that, because if a chain is under attack, and we have not
+reached the ip_conntrack_max limit, the hash collision will expand the li=
+st
+in each of the two cases (with or without my patch). It's true that my=20
+early_drop() free more slots than the previous version, but the attacker,=
+=20
+when he's doing something nasty against a precise chain, a lot probably w=
+ill=20
+re-use one of its not-assured connections, keeping the overflow list=20
+constantly of the same dimension.
 
 -- Francesco
