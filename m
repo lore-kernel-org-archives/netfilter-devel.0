@@ -1,17 +1,21 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
 Subject: Re: [PATCH] aggressive early_drop and reserved conntrack entries
-Date: Fri, 10 Dec 2004 23:27:26 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0412102315110.15772@blackhole.kfki.hu>
+Date: Sat, 11 Dec 2004 14:34:14 +0100
+Message-ID: <1102772053.12078.40.camel@tux.rsn.bth.se>
 References: <Pine.LNX.4.58.0412090845060.11649@blackhole.kfki.hu>
 	<20041209085249.GA22714@oknodo.bof.de>
 	<Pine.LNX.4.58.0412091108420.11649@blackhole.kfki.hu>
+	<Pine.LNX.4.58.0412102315110.15772@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-997533568-1102717646=:15772"
-Cc: netfilter-devel@lists.netfilter.org,
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-Vo+fBHNFdUmWLAlh8hdL"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Patrick Schaaf <bof@bof.de>,
 	Grzegorz Piotr Jaskiewicz <gj@pointblue.com.pl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <Pine.LNX.4.58.0412091108420.11649@blackhole.kfki.hu>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0412102315110.15772@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,255 +27,130 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
 
---110391808-997533568-1102717646=:15772
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+--=-Vo+fBHNFdUmWLAlh8hdL
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, 9 Dec 2004, Jozsef Kadlecsik wrote:
+On Fri, 2004-12-10 at 23:27, Jozsef Kadlecsik wrote:
+> On Thu, 9 Dec 2004, Jozsef Kadlecsik wrote:
+>=20
+> > On Thu, 9 Dec 2004, Patrick Schaaf wrote:
+> >
+> > > This suggest, to me, that we keep unreplied connections on a new,
+> > > additional list. They are put there at the HEAD upon creation,
+> > > they are removed form the list when they make their transition
+> > > to assured. And early_drop becomes a simple, O(1) operation:
+> > > reap the connection which is at the TAIL of this new list.
+> >
+> > But I like it! Hmm, expect some new code soon...
+>=20
+> Attached (;-) is the new patch, which implements the list of unassured
+> connections. (Reserving conntracks is dropped completely as unnecessary.)
+> I tested it slighgtly and seems to work fine. What do you think about it?
 
-> On Thu, 9 Dec 2004, Patrick Schaaf wrote:
->
-> > This suggest, to me, that we keep unreplied connections on a new,
-> > additional list. They are put there at the HEAD upon creation,
-> > they are removed form the list when they make their transition
-> > to assured. And early_drop becomes a simple, O(1) operation:
-> > reap the connection which is at the TAIL of this new list.
->
-> But I like it! Hmm, expect some new code soon...
+I've been thinking about this as well, but mostly I've been thinking
+about how to get it to scale when we go for more finegrained locking.
+The locking is going to be nasty.
 
-Attached (;-) is the new patch, which implements the list of unassured
-connections. (Reserving conntracks is dropped completely as unnecessary.)
-I tested it slighgtly and seems to work fine. What do you think about it?
+The patch looks pretty good, just a few things...
 
-Best regards,
-Jozsef
+@@ -461,34 +467,36 @@
+ 	return h !=3D NULL;
+ }
+=20
+-/* There's a small race here where we may free a just-assured
+-   connection.  Too bad: we're in trouble anyway. */
+-static inline int unreplied(const struct ip_conntrack_tuple_hash *i)
++static int early_drop(void)
+ {
+-	return !(test_bit(IPS_ASSURED_BIT, &i->ctrack->status));
+-}
 -
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
---110391808-997533568-1102717646=:15772
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="early_drop.patch3"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.58.0412102327260.15772@blackhole.kfki.hu>
-Content-Description: early_drop.patch3
-Content-Disposition: attachment; filename="early_drop.patch3"
+-static int early_drop(struct list_head *chain)
+-{
+-	/* Traverse backwards: gives us oldest, which is roughly LRU */
+-	struct ip_conntrack_tuple_hash *h;
++	struct ip_conntrack *ct =3D NULL;
++	struct list_head *entry;
+ 	int dropped =3D 0;
+=20
++    	/* There's a small race here where we may free a just-assured
++	   connection.  Too bad: we're in trouble anyway. */
+ 	READ_LOCK(&ip_conntrack_lock);
+-	h =3D LIST_FIND_B(chain, unreplied, struct ip_conntrack_tuple_hash *);
+-	if (h)
+-		atomic_inc(&h->ctrack->ct_general.use);
++	__list_for_each(entry, &unassured_list) {
++		ct =3D list_entry(entry,
++			        struct ip_conntrack, unassured);
++		atomic_inc(&ct->ct_general.use);
++		break;
++	}
+ 	READ_UNLOCK(&ip_conntrack_lock);
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Why not loop and kill multiple entries each time? Saves some locking and
+cache. But in order to do that in a good way wee need a counter of how
+many entries we have in the unassured list. But we don't want to kill
+too many each time, then almost no real connections will get through.
 
-ZGlmZiAtdXJOIC0tZXhjbHVkZS1mcm9tPS91c3Ivc3JjL2RpZmYuZXhjbHVk
-ZSBsaW51eC0yLjYuOS1vcmlnL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lw
-djQvaXBfY29ubnRyYWNrLmggbGludXgtMi42LjktZWFybHlfZHJvcC9pbmNs
-dWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0L2lwX2Nvbm50cmFjay5oDQotLS0g
-bGludXgtMi42Ljktb3JpZy9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0
-L2lwX2Nvbm50cmFjay5oCTIwMDQtMTAtMTggMjM6NTU6MjEuMDAwMDAwMDAw
-ICswMjAwDQorKysgbGludXgtMi42LjktZWFybHlfZHJvcC9pbmNsdWRlL2xp
-bnV4L25ldGZpbHRlcl9pcHY0L2lwX2Nvbm50cmFjay5oCTIwMDQtMTItMDkg
-MTY6MDg6MjkuMDAwMDAwMDAwICswMTAwDQpAQCAtMTk2LDYgKzE5Niw5IEBA
-DQogCS8qIEhlbHBlciwgaWYgYW55LiAqLw0KIAlzdHJ1Y3QgaXBfY29ubnRy
-YWNrX2hlbHBlciAqaGVscGVyOw0KIA0KKwkvKiBMaXN0IG9mIHVuYXNzdXJl
-ZCBjb25uZWN0aW9ucyAqLw0KKwlzdHJ1Y3QgbGlzdF9oZWFkIHVuYXNzdXJl
-ZDsNCisNCiAJLyogU3RvcmFnZSByZXNlcnZlZCBmb3Igb3RoZXIgbW9kdWxl
-czogKi8NCiAJdW5pb24gaXBfY29ubnRyYWNrX3Byb3RvIHByb3RvOw0KIA0K
-QEAgLTI2MCw3ICsyNjMsOCBAQA0KIGV4dGVybiB2b2lkIGlwX2N0X3JlZnJl
-c2hfYWNjdChzdHJ1Y3QgaXBfY29ubnRyYWNrICpjdCwNCiAJCQkgICAgICAg
-ZW51bSBpcF9jb25udHJhY2tfaW5mbyBjdGluZm8sDQogCQkJICAgICAgIGNv
-bnN0IHN0cnVjdCBza19idWZmICpza2IsDQotCQkJICAgICAgIHVuc2lnbmVk
-IGxvbmcgZXh0cmFfamlmZmllcyk7DQorCQkJICAgICAgIHVuc2lnbmVkIGxv
-bmcgZXh0cmFfamlmZmllcywNCisJCQkgICAgICAgaW50IHNldF9hc3N1cmVk
-KTsNCiANCiAvKiBUaGVzZSBhcmUgZm9yIE5BVC4gIElja3kuICovDQogLyog
-VXBkYXRlIFRDUCB3aW5kb3cgdHJhY2tpbmcgZGF0YSB3aGVuIE5BVCBtYW5n
-bGVzIHRoZSBwYWNrZXQgKi8NCmRpZmYgLXVyTiAtLWV4Y2x1ZGUtZnJvbT0v
-dXNyL3NyYy9kaWZmLmV4Y2x1ZGUgbGludXgtMi42Ljktb3JpZy9uZXQvaXB2
-NC9uZXRmaWx0ZXIvaXBfY29ubnRyYWNrX2NvcmUuYyBsaW51eC0yLjYuOS1l
-YXJseV9kcm9wL25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfY29y
-ZS5jDQotLS0gbGludXgtMi42Ljktb3JpZy9uZXQvaXB2NC9uZXRmaWx0ZXIv
-aXBfY29ubnRyYWNrX2NvcmUuYwkyMDA0LTEwLTE4IDIzOjUzOjA1LjAwMDAw
-MDAwMCArMDIwMA0KKysrIGxpbnV4LTIuNi45LWVhcmx5X2Ryb3AvbmV0L2lw
-djQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19jb3JlLmMJMjAwNC0xMi0xMCAy
-MTozMjo0Ni4wMDAwMDAwMDAgKzAxMDANCkBAIC02Niw2ICs2Niw3IEBADQog
-DQogdm9pZCAoKmlwX2Nvbm50cmFja19kZXN0cm95ZWQpKHN0cnVjdCBpcF9j
-b25udHJhY2sgKmNvbm50cmFjaykgPSBOVUxMOw0KIExJU1RfSEVBRChpcF9j
-b25udHJhY2tfZXhwZWN0X2xpc3QpOw0KK3N0YXRpYyBMSVNUX0hFQUQodW5h
-c3N1cmVkX2xpc3QpOw0KIHN0cnVjdCBpcF9jb25udHJhY2tfcHJvdG9jb2wg
-KmlwX2N0X3Byb3Rvc1tNQVhfSVBfQ1RfUFJPVE9dOw0KIHN0YXRpYyBMSVNU
-X0hFQUQoaGVscGVycyk7DQogdW5zaWduZWQgaW50IGlwX2Nvbm50cmFja19o
-dGFibGVfc2l6ZSA9IDA7DQpAQCAtMzEzLDYgKzMxNCwxMCBAQA0KIAkJfQ0K
-IAkJa21lbV9jYWNoZV9mcmVlKGlwX2Nvbm50cmFja19leHBlY3RfY2FjaGVw
-LCBjdC0+bWFzdGVyKTsNCiAJfQ0KKwkvKiBEZWxldGUgZnJvbSB0aGUgbGlz
-dCBvZiB1bmFzc3VyZWQgY29ubnRyYWNrcyAqLw0KKwlpZiAoIXRlc3RfYml0
-KElQU19BU1NVUkVEX0JJVCwgJmN0LT5zdGF0dXMpDQorCSAgICAmJiB0ZXN0
-X2JpdChJUFNfQ09ORklSTUVEX0JJVCwgJmN0LT5zdGF0dXMpKQ0KKwkJbGlz
-dF9kZWwoJmN0LT51bmFzc3VyZWQpOw0KIAlXUklURV9VTkxPQ0soJmlwX2Nv
-bm50cmFja19sb2NrKTsNCiANCiAJaWYgKG1hc3RlcikNCkBAIC00MzYsNiAr
-NDQxLDcgQEANCiAJCWFkZF90aW1lcigmY3QtPnRpbWVvdXQpOw0KIAkJYXRv
-bWljX2luYygmY3QtPmN0X2dlbmVyYWwudXNlKTsNCiAJCXNldF9iaXQoSVBT
-X0NPTkZJUk1FRF9CSVQsICZjdC0+c3RhdHVzKTsNCisJCWxpc3RfYWRkX3Rh
-aWwoJmN0LT51bmFzc3VyZWQsICZ1bmFzc3VyZWRfbGlzdCk7DQogCQlXUklU
-RV9VTkxPQ0soJmlwX2Nvbm50cmFja19sb2NrKTsNCiAJCUNPTk5UUkFDS19T
-VEFUX0lOQyhpbnNlcnQpOw0KIAkJcmV0dXJuIE5GX0FDQ0VQVDsNCkBAIC00
-NjEsMzQgKzQ2NywzNiBAQA0KIAlyZXR1cm4gaCAhPSBOVUxMOw0KIH0NCiAN
-Ci0vKiBUaGVyZSdzIGEgc21hbGwgcmFjZSBoZXJlIHdoZXJlIHdlIG1heSBm
-cmVlIGEganVzdC1hc3N1cmVkDQotICAgY29ubmVjdGlvbi4gIFRvbyBiYWQ6
-IHdlJ3JlIGluIHRyb3VibGUgYW55d2F5LiAqLw0KLXN0YXRpYyBpbmxpbmUg
-aW50IHVucmVwbGllZChjb25zdCBzdHJ1Y3QgaXBfY29ubnRyYWNrX3R1cGxl
-X2hhc2ggKmkpDQorc3RhdGljIGludCBlYXJseV9kcm9wKHZvaWQpDQogew0K
-LQlyZXR1cm4gISh0ZXN0X2JpdChJUFNfQVNTVVJFRF9CSVQsICZpLT5jdHJh
-Y2stPnN0YXR1cykpOw0KLX0NCi0NCi1zdGF0aWMgaW50IGVhcmx5X2Ryb3Ao
-c3RydWN0IGxpc3RfaGVhZCAqY2hhaW4pDQotew0KLQkvKiBUcmF2ZXJzZSBi
-YWNrd2FyZHM6IGdpdmVzIHVzIG9sZGVzdCwgd2hpY2ggaXMgcm91Z2hseSBM
-UlUgKi8NCi0Jc3RydWN0IGlwX2Nvbm50cmFja190dXBsZV9oYXNoICpoOw0K
-KwlzdHJ1Y3QgaXBfY29ubnRyYWNrICpjdCA9IE5VTEw7DQorCXN0cnVjdCBs
-aXN0X2hlYWQgKmVudHJ5Ow0KIAlpbnQgZHJvcHBlZCA9IDA7DQogDQorICAg
-IAkvKiBUaGVyZSdzIGEgc21hbGwgcmFjZSBoZXJlIHdoZXJlIHdlIG1heSBm
-cmVlIGEganVzdC1hc3N1cmVkDQorCSAgIGNvbm5lY3Rpb24uICBUb28gYmFk
-OiB3ZSdyZSBpbiB0cm91YmxlIGFueXdheS4gKi8NCiAJUkVBRF9MT0NLKCZp
-cF9jb25udHJhY2tfbG9jayk7DQotCWggPSBMSVNUX0ZJTkRfQihjaGFpbiwg
-dW5yZXBsaWVkLCBzdHJ1Y3QgaXBfY29ubnRyYWNrX3R1cGxlX2hhc2ggKik7
-DQotCWlmIChoKQ0KLQkJYXRvbWljX2luYygmaC0+Y3RyYWNrLT5jdF9nZW5l
-cmFsLnVzZSk7DQorCV9fbGlzdF9mb3JfZWFjaChlbnRyeSwgJnVuYXNzdXJl
-ZF9saXN0KSB7DQorCQljdCA9IGxpc3RfZW50cnkoZW50cnksDQorCQkJICAg
-ICAgICBzdHJ1Y3QgaXBfY29ubnRyYWNrLCB1bmFzc3VyZWQpOw0KKwkJYXRv
-bWljX2luYygmY3QtPmN0X2dlbmVyYWwudXNlKTsNCisJCWJyZWFrOw0KKwl9
-DQogCVJFQURfVU5MT0NLKCZpcF9jb25udHJhY2tfbG9jayk7DQogDQotCWlm
-ICghaCkNCisJaWYgKCFjdCkNCiAJCXJldHVybiBkcm9wcGVkOw0KIA0KLQlp
-ZiAoZGVsX3RpbWVyKCZoLT5jdHJhY2stPnRpbWVvdXQpKSB7DQotCQlkZWF0
-aF9ieV90aW1lb3V0KCh1bnNpZ25lZCBsb25nKWgtPmN0cmFjayk7DQorCWlm
-IChkZWxfdGltZXIoJmN0LT50aW1lb3V0KSkgew0KKwkJZGVhdGhfYnlfdGlt
-ZW91dCgodW5zaWduZWQgbG9uZyljdCk7DQogCQlkcm9wcGVkID0gMTsNCisJ
-CWlmIChuZXRfcmF0ZWxpbWl0KCkpDQorCQkJcHJpbnRrKEtFUk5fV0FSTklO
-Rw0KKwkJCSAgICAgICAiaXBfY29ubnRyYWNrOiB0YWJsZSBmdWxsLCBkcm9w
-cGluZyINCisJCQkgICAgICAgIiB1bmFzc3VyZWQgY29ubmVjdGlvbi5cbiIp
-Ow0KIAkJQ09OTlRSQUNLX1NUQVRfSU5DKGVhcmx5X2Ryb3ApOw0KIAl9DQot
-CWlwX2Nvbm50cmFja19wdXQoaC0+Y3RyYWNrKTsNCisJaXBfY29ubnRyYWNr
-X3B1dChjdCk7DQogCXJldHVybiBkcm9wcGVkOw0KIH0NCiANCkBAIC01MjYs
-OCArNTM0LDggQEANCiANCiAJaWYgKGlwX2Nvbm50cmFja19tYXgNCiAJICAg
-ICYmIGF0b21pY19yZWFkKCZpcF9jb25udHJhY2tfY291bnQpID49IGlwX2Nv
-bm50cmFja19tYXgpIHsNCi0JCS8qIFRyeSBkcm9wcGluZyBmcm9tIHRoaXMg
-aGFzaCBjaGFpbi4gKi8NCi0JCWlmICghZWFybHlfZHJvcCgmaXBfY29ubnRy
-YWNrX2hhc2hbaGFzaF0pKSB7DQorCQkvKiBUcnkgdG8gZHJvcCB1bmFzc3Vy
-ZWQgY29ubmVjdGlvbi4gKi8NCisJCWlmICghZWFybHlfZHJvcCgpKSB7DQog
-CQkJaWYgKG5ldF9yYXRlbGltaXQoKSkNCiAJCQkJcHJpbnRrKEtFUk5fV0FS
-TklORw0KIAkJCQkgICAgICAgImlwX2Nvbm50cmFjazogdGFibGUgZnVsbCwg
-ZHJvcHBpbmciDQpAQCAtNTY0LDYgKzU3Miw3IEBADQogCWNvbm50cmFjay0+
-dGltZW91dC5mdW5jdGlvbiA9IGRlYXRoX2J5X3RpbWVvdXQ7DQogDQogCUlO
-SVRfTElTVF9IRUFEKCZjb25udHJhY2stPnNpYmxpbmdfbGlzdCk7DQorCUlO
-SVRfTElTVF9IRUFEKCZjb25udHJhY2stPnVuYXNzdXJlZCk7DQogDQogCVdS
-SVRFX0xPQ0soJmlwX2Nvbm50cmFja19sb2NrKTsNCiAJLyogTmVlZCBmaW5k
-aW5nIGFuZCBkZWxldGluZyBvZiBleHBlY3RlZCBPTkxZIGlmIHdlIHdpbiBy
-YWNlICovDQpAQCAtMTA5MSw3ICsxMTAwLDggQEANCiB2b2lkIGlwX2N0X3Jl
-ZnJlc2hfYWNjdChzdHJ1Y3QgaXBfY29ubnRyYWNrICpjdCwgDQogCQkgICAg
-ICAgIGVudW0gaXBfY29ubnRyYWNrX2luZm8gY3RpbmZvLA0KIAkJCWNvbnN0
-IHN0cnVjdCBza19idWZmICpza2IsDQotCQkJdW5zaWduZWQgbG9uZyBleHRy
-YV9qaWZmaWVzKQ0KKwkJCXVuc2lnbmVkIGxvbmcgZXh0cmFfamlmZmllcywN
-CisJCQlpbnQgc2V0X2Fzc3VyZWQpDQogew0KIAlJUF9ORl9BU1NFUlQoY3Qt
-PnRpbWVvdXQuZGF0YSA9PSAodW5zaWduZWQgbG9uZyljdCk7DQogDQpAQCAt
-MTEwNyw2ICsxMTE3LDEwIEBADQogCQkJYWRkX3RpbWVyKCZjdC0+dGltZW91
-dCk7DQogCQl9DQogCQljdF9hZGRfY291bnRlcnMoY3QsIGN0aW5mbywgc2ti
-KTsNCisJCWlmIChzZXRfYXNzdXJlZCkgew0KKwkJCXNldF9iaXQoSVBTX0FT
-U1VSRURfQklULCAmY3QtPnN0YXR1cyk7DQorCQkJbGlzdF9kZWwoJmN0LT51
-bmFzc3VyZWQpOw0KKwkJfQ0KIAkJV1JJVEVfVU5MT0NLKCZpcF9jb25udHJh
-Y2tfbG9jayk7DQogCX0NCiB9DQpkaWZmIC11ck4gLS1leGNsdWRlLWZyb209
-L3Vzci9zcmMvZGlmZi5leGNsdWRlIGxpbnV4LTIuNi45LW9yaWcvbmV0L2lw
-djQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19wcm90b19nZW5lcmljLmMgbGlu
-dXgtMi42LjktZWFybHlfZHJvcC9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29u
-bnRyYWNrX3Byb3RvX2dlbmVyaWMuYw0KLS0tIGxpbnV4LTIuNi45LW9yaWcv
-bmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19wcm90b19nZW5lcmlj
-LmMJMjAwNC0xMC0xOCAyMzo1Mzo0Ni4wMDAwMDAwMDAgKzAyMDANCisrKyBs
-aW51eC0yLjYuOS1lYXJseV9kcm9wL25ldC9pcHY0L25ldGZpbHRlci9pcF9j
-b25udHJhY2tfcHJvdG9fZ2VuZXJpYy5jCTIwMDQtMTItMDkgMTY6MDE6MzAu
-MDAwMDAwMDAwICswMTAwDQpAQCAtNTIsNyArNTIsOCBAQA0KIAkJICBjb25z
-dCBzdHJ1Y3Qgc2tfYnVmZiAqc2tiLA0KIAkJICBlbnVtIGlwX2Nvbm50cmFj
-a19pbmZvIGN0aW5mbykNCiB7DQotCWlwX2N0X3JlZnJlc2hfYWNjdChjb25u
-dHJhY2ssIGN0aW5mbywgc2tiLCBpcF9jdF9nZW5lcmljX3RpbWVvdXQpOw0K
-KwlpcF9jdF9yZWZyZXNoX2FjY3QoY29ubnRyYWNrLCBjdGluZm8sIHNrYiwg
-aXBfY3RfZ2VuZXJpY190aW1lb3V0LA0KKwkJCSAgIENUSU5GTzJESVIoY3Rp
-bmZvKSA9PSBJUF9DVF9ESVJfUkVQTFkpOw0KIAlyZXR1cm4gTkZfQUNDRVBU
-Ow0KIH0NCiANCmRpZmYgLXVyTiAtLWV4Y2x1ZGUtZnJvbT0vdXNyL3NyYy9k
-aWZmLmV4Y2x1ZGUgbGludXgtMi42Ljktb3JpZy9uZXQvaXB2NC9uZXRmaWx0
-ZXIvaXBfY29ubnRyYWNrX3Byb3RvX2ljbXAuYyBsaW51eC0yLjYuOS1lYXJs
-eV9kcm9wL25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfcHJvdG9f
-aWNtcC5jDQotLS0gbGludXgtMi42Ljktb3JpZy9uZXQvaXB2NC9uZXRmaWx0
-ZXIvaXBfY29ubnRyYWNrX3Byb3RvX2ljbXAuYwkyMDA0LTEwLTE4IDIzOjUz
-OjA2LjAwMDAwMDAwMCArMDIwMA0KKysrIGxpbnV4LTIuNi45LWVhcmx5X2Ry
-b3AvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19wcm90b19pY21w
-LmMJMjAwNC0xMi0wOSAxNTozNDozMi4wMDAwMDAwMDAgKzAxMDANCkBAIC0x
-MDIsNyArMTAyLDcgQEANCiAJCQljdC0+dGltZW91dC5mdW5jdGlvbigodW5z
-aWduZWQgbG9uZyljdCk7DQogCX0gZWxzZSB7DQogCQlhdG9taWNfaW5jKCZj
-dC0+cHJvdG8uaWNtcC5jb3VudCk7DQotCQlpcF9jdF9yZWZyZXNoX2FjY3Qo
-Y3QsIGN0aW5mbywgc2tiLCBpcF9jdF9pY21wX3RpbWVvdXQpOw0KKwkJaXBf
-Y3RfcmVmcmVzaF9hY2N0KGN0LCBjdGluZm8sIHNrYiwgaXBfY3RfaWNtcF90
-aW1lb3V0LCAwKTsNCiAJfQ0KIA0KIAlyZXR1cm4gTkZfQUNDRVBUOw0KZGlm
-ZiAtdXJOIC0tZXhjbHVkZS1mcm9tPS91c3Ivc3JjL2RpZmYuZXhjbHVkZSBs
-aW51eC0yLjYuOS1vcmlnL25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJh
-Y2tfcHJvdG9fc2N0cC5jIGxpbnV4LTIuNi45LWVhcmx5X2Ryb3AvbmV0L2lw
-djQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19wcm90b19zY3RwLmMNCi0tLSBs
-aW51eC0yLjYuOS1vcmlnL25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJh
-Y2tfcHJvdG9fc2N0cC5jCTIwMDQtMTAtMTggMjM6NTU6MDcuMDAwMDAwMDAw
-ICswMjAwDQorKysgbGludXgtMi42LjktZWFybHlfZHJvcC9uZXQvaXB2NC9u
-ZXRmaWx0ZXIvaXBfY29ubnRyYWNrX3Byb3RvX3NjdHAuYwkyMDA0LTEyLTA5
-IDE1OjM3OjUyLjAwMDAwMDAwMCArMDEwMA0KQEAgLTMxOSw2ICszMTksNyBA
-QA0KIAlzY3RwX2NodW5raGRyX3QgX3NjaCwgKnNjaDsNCiAJdV9pbnQzMl90
-IG9mZnNldCwgY291bnQ7DQogCWNoYXIgbWFwWzI1NiAvIHNpemVvZiAoY2hh
-cildID0gezB9Ow0KKwlpbnQgc2V0X2Fzc3VyZWQgPSAwOw0KIA0KIAlERUJV
-R1AoX19GVU5DVElPTl9fKTsNCiAJREVCVUdQKCJcbiIpOw0KQEAgLTQwOCwx
-NCArNDA5LDE0IEBADQogCQlXUklURV9VTkxPQ0soJnNjdHBfbG9jayk7DQog
-CX0NCiANCi0JaXBfY3RfcmVmcmVzaF9hY2N0KGNvbm50cmFjaywgY3RpbmZv
-LCBza2IsICpzY3RwX3RpbWVvdXRzW25ld2Nvbm50cmFja10pOw0KLQ0KIAlp
-ZiAob2xkc2N0cHN0YXRlID09IFNDVFBfQ09OTlRSQUNLX0NPT0tJRV9FQ0hP
-RUQNCiAJCSYmIENUSU5GTzJESVIoY3RpbmZvKSA9PSBJUF9DVF9ESVJfUkVQ
-TFkNCiAJCSYmIG5ld2Nvbm50cmFjayA9PSBTQ1RQX0NPTk5UUkFDS19FU1RB
-QkxJU0hFRCkgew0KIAkJREVCVUdQKCJTZXR0aW5nIGFzc3VyZWQgYml0XG4i
-KTsNCi0JCXNldF9iaXQoSVBTX0FTU1VSRURfQklULCAmY29ubnRyYWNrLT5z
-dGF0dXMpOw0KKwkJc2V0X2Fzc3VyZWQgPSAxOw0KIAl9DQorCWlwX2N0X3Jl
-ZnJlc2hfYWNjdChjb25udHJhY2ssIGN0aW5mbywgc2tiLA0KKwkJCSAgICpz
-Y3RwX3RpbWVvdXRzW25ld2Nvbm50cmFja10sIHNldF9hc3N1cmVkKTsNCiAN
-CiAJcmV0dXJuIE5GX0FDQ0VQVDsNCiB9DQpkaWZmIC11ck4gLS1leGNsdWRl
-LWZyb209L3Vzci9zcmMvZGlmZi5leGNsdWRlIGxpbnV4LTIuNi45LW9yaWcv
-bmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19wcm90b190Y3AuYyBs
-aW51eC0yLjYuOS1lYXJseV9kcm9wL25ldC9pcHY0L25ldGZpbHRlci9pcF9j
-b25udHJhY2tfcHJvdG9fdGNwLmMNCi0tLSBsaW51eC0yLjYuOS1vcmlnL25l
-dC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfcHJvdG9fdGNwLmMJMjAw
-NC0xMC0xOCAyMzo1NToyOS4wMDAwMDAwMDAgKzAyMDANCisrKyBsaW51eC0y
-LjYuOS1lYXJseV9kcm9wL25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJh
-Y2tfcHJvdG9fdGNwLmMJMjAwNC0xMi0wOSAxNTozNjozNi4wMDAwMDAwMDAg
-KzAxMDANCkBAIC04MzQsNiArODM0LDcgQEANCiAJc3RydWN0IHRjcGhkciAq
-dGgsIF90Y3BoOw0KIAl1bnNpZ25lZCBsb25nIHRpbWVvdXQ7DQogCXVuc2ln
-bmVkIGludCBpbmRleDsNCisJaW50IHNldF9hc3N1cmVkID0gMDsNCiAJDQog
-CXRoID0gc2tiX2hlYWRlcl9wb2ludGVyKHNrYiwgaXBoLT5paGwgKiA0LA0K
-IAkJCQlzaXplb2YoX3RjcGgpLCAmX3RjcGgpOw0KQEAgLTk2Miw5ICs5NjMs
-OSBAQA0KIAkJLyogU2V0IEFTU1VSRUQgaWYgd2Ugc2VlIHNlZSB2YWxpZCBh
-Y2sgaW4gRVNUQUJMSVNIRUQgDQogCQkgICBhZnRlciBTWU5fUkVDViBvciBh
-IHZhbGlkIGFuc3dlciBmb3IgYSBwaWNrZWQgdXAgDQogCQkgICBjb25uZWN0
-aW9uLiAqLw0KLQkJCXNldF9iaXQoSVBTX0FTU1VSRURfQklULCAmY29ubnRy
-YWNrLT5zdGF0dXMpOw0KKwkJc2V0X2Fzc3VyZWQgPSAxOw0KIAl9DQotCWlw
-X2N0X3JlZnJlc2hfYWNjdChjb25udHJhY2ssIGN0aW5mbywgc2tiLCB0aW1l
-b3V0KTsNCisJaXBfY3RfcmVmcmVzaF9hY2N0KGNvbm50cmFjaywgY3RpbmZv
-LCBza2IsIHRpbWVvdXQsIHNldF9hc3N1cmVkKTsNCiANCiAJcmV0dXJuIE5G
-X0FDQ0VQVDsNCiB9DQpkaWZmIC11ck4gLS1leGNsdWRlLWZyb209L3Vzci9z
-cmMvZGlmZi5leGNsdWRlIGxpbnV4LTIuNi45LW9yaWcvbmV0L2lwdjQvbmV0
-ZmlsdGVyL2lwX2Nvbm50cmFja19wcm90b191ZHAuYyBsaW51eC0yLjYuOS1l
-YXJseV9kcm9wL25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfcHJv
-dG9fdWRwLmMNCi0tLSBsaW51eC0yLjYuOS1vcmlnL25ldC9pcHY0L25ldGZp
-bHRlci9pcF9jb25udHJhY2tfcHJvdG9fdWRwLmMJMjAwNC0xMC0xOCAyMzo1
-MzowNS4wMDAwMDAwMDAgKzAyMDANCisrKyBsaW51eC0yLjYuOS1lYXJseV9k
-cm9wL25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfcHJvdG9fdWRw
-LmMJMjAwNC0xMi0wOSAxNTozNToxNi4wMDAwMDAwMDAgKzAxMDANCkBAIC03
-MCwxMiArNzAsMTIgQEANCiAJLyogSWYgd2UndmUgc2VlbiB0cmFmZmljIGJv
-dGggd2F5cywgdGhpcyBpcyBzb21lIGtpbmQgb2YgVURQDQogCSAgIHN0cmVh
-bS4gIEV4dGVuZCB0aW1lb3V0LiAqLw0KIAlpZiAodGVzdF9iaXQoSVBTX1NF
-RU5fUkVQTFlfQklULCAmY29ubnRyYWNrLT5zdGF0dXMpKSB7DQotCQlpcF9j
-dF9yZWZyZXNoX2FjY3QoY29ubnRyYWNrLCBjdGluZm8sIHNrYiwgDQotCQkJ
-CSAgIGlwX2N0X3VkcF90aW1lb3V0X3N0cmVhbSk7DQogCQkvKiBBbHNvLCBt
-b3JlIGxpa2VseSB0byBiZSBpbXBvcnRhbnQsIGFuZCBub3QgYSBwcm9iZSAq
-Lw0KLQkJc2V0X2JpdChJUFNfQVNTVVJFRF9CSVQsICZjb25udHJhY2stPnN0
-YXR1cyk7DQorCQlpcF9jdF9yZWZyZXNoX2FjY3QoY29ubnRyYWNrLCBjdGlu
-Zm8sIHNrYiwgDQorCQkJCSAgIGlwX2N0X3VkcF90aW1lb3V0X3N0cmVhbSwg
-MSk7DQogCX0gZWxzZQ0KLQkJaXBfY3RfcmVmcmVzaF9hY2N0KGNvbm50cmFj
-aywgY3RpbmZvLCBza2IsIGlwX2N0X3VkcF90aW1lb3V0KTsNCisJCWlwX2N0
-X3JlZnJlc2hfYWNjdChjb25udHJhY2ssIGN0aW5mbywgc2tiLA0KKwkJCQkg
-ICBpcF9jdF91ZHBfdGltZW91dCwgMCk7DQogDQogCXJldHVybiBORl9BQ0NF
-UFQ7DQogfQ0K
+-	if (!h)
++	if (!ct)
+ 		return dropped;
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+I think we are pretty much guranteed to have a valid ct here, otherwise
+we would oops above :)
+=20
+-	if (del_timer(&h->ctrack->timeout)) {
+-		death_by_timeout((unsigned long)h->ctrack);
++	if (del_timer(&ct->timeout)) {
++		death_by_timeout((unsigned long)ct);
+ 		dropped =3D 1;
++		if (net_ratelimit())
++			printk(KERN_WARNING
++			       "ip_conntrack: table full, dropping"
++			       " unassured connection.\n");
+ 		CONNTRACK_STAT_INC(early_drop);
+ 	}
+-	ip_conntrack_put(h->ctrack);
++	ip_conntrack_put(ct);
+ 	return dropped;
+ }
+=20
+@@ -1091,7 +1100,8 @@
+ void ip_ct_refresh_acct(struct ip_conntrack *ct,=20
+ 		        enum ip_conntrack_info ctinfo,
+ 			const struct sk_buff *skb,
+-			unsigned long extra_jiffies)
++			unsigned long extra_jiffies,
++			int set_assured)
+ {
+ 	IP_NF_ASSERT(ct->timeout.data =3D=3D (unsigned long)ct);
+=20
+@@ -1107,6 +1117,10 @@
+ 			add_timer(&ct->timeout);
+ 		}
+ 		ct_add_counters(ct, ctinfo, skb);
++		if (set_assured) {
++			set_bit(IPS_ASSURED_BIT, &ct->status);
++			list_del(&ct->unassured);
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Huh? No check to see if we already are assured or not?
+Not needed for icmp, tcp or sctp but udp and the generic handler does.
 
---110391808-997533568-1102717646=:15772--
+--=20
+/Martin
+
+--=-Vo+fBHNFdUmWLAlh8hdL
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQBBuvdVWm2vlfa207ERAuvCAJ9nTWHLBbHRDz6g2jZe9zolu6lEKACfQ1A/
+2psMd+D3r3IlENvsQ+gOBZI=
+=1RJM
+-----END PGP SIGNATURE-----
+
+--=-Vo+fBHNFdUmWLAlh8hdL--
