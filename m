@@ -1,17 +1,15 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: check timer active
-Date: Sun, 05 Dec 2004 23:31:35 +0100
-Message-ID: <41B38C47.90600@eurodev.net>
-References: <EINSTEIN4FR0rmTIVvL000068ca@einstein.systemmetrics.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2.4 0/10] fixes for ip6tables
+Date: Sun, 05 Dec 2004 23:38:28 +0100
+Message-ID: <41B38DE4.6010308@trash.net>
+References: <200412010803.iB183XIL000087@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	'Henrik Nordstrom' <hno@marasystems.com>,
-	'Patrick McHardy' <kaber@trash.net>, 'Krisztian Kovacs' <hidden@sch.bme.hu>
+Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Richard <richard@o-matrix.org>
-In-Reply-To: <EINSTEIN4FR0rmTIVvL000068ca@einstein.systemmetrics.com>
+To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200412010803.iB183XIL000087@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,27 +21,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Richard wrote:
+Yasuyuki Kozakai wrote:
 
->>Pablo Neira wrote:
->>
->>    
->>
->>>still think that you should use that function.
->>>
->>>Hm, I just realized that the amanda helper is faking counters, I guess
->>>that we need a version of ip_ct_refresh_acct which doesn't the
->>>increase skb counters. I'll send a patch to fix this once I know what
->>>is scheduled with nf_conntrack.
->>>      
->>>
+>Hi, Patrick and all,
 >
->I only saw ip_ct_refresh. What's the difference between ip_ct_refresh_acct
->and it?
->  
+>Sorry for long waiting. These fixes are backport from 2.6 .
 >
+All patches applied, thanks alot Yasuyuki.
 
-because you are using a caveman kernel tree :) try with 2.6.10-rc3
-
---
-Pablo
+Regards
+Patrick
