@@ -1,42 +1,55 @@
 From: Luke Kenneth Casson Leighton <lkcl@lkcl.net>
 Subject: Re: [PATCH 2.6 NETFILTER] new netfilter module ipt_program.c
-Date: Sat, 11 Sep 2004 18:36:52 +0100
+Date: Sat, 11 Sep 2004 18:57:26 +0100
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040911173651.GC12835@lkcl.net>
-References: <20040911124106.GD24787@lkcl.net> <4142F4CC.7080708@trash.net> <1094914175.8495.66.camel@sherbert>
+Message-ID: <20040911175726.GD12835@lkcl.net>
+References: <20040911124106.GD24787@lkcl.net> <4142F4CC.7080708@trash.net> <20040911132935.GF24787@lkcl.net> <20040911133443.GG24787@lkcl.net> <41430D5E.9030207@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, linux-kernel@vger.kernel.org,
+Cc: linux-kernel@vger.kernel.org,
 	Netfilter Development Mailinglist
 	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268249AbUIKR06@vger.kernel.org>
-To: Gianni Tedesco <gianni@scaramanga.co.uk>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268234AbUIKRrA@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <1094914175.8495.66.camel@sherbert>
+In-Reply-To: <41430D5E.9030207@trash.net>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Sep 11, 2004 at 03:49:35PM +0100, Gianni Tedesco wrote:
-> On Sat, 2004-09-11 at 14:51 +0200, Patrick McHardy wrote:
-> > Luke Kenneth Casson Leighton wrote:
-> > > decided to put this into a separate module.  based on ipt_owner.c.
-> > > does full program's pathname.  like ipt_owner, only suitable for
-> > > outgoing connections.
-> > 
-> > I agree that it would be useful to match the full path, but
-> > the patch is broken, as are the owner match's pid-, sid- and
-> > command-matching options. You can't grab files->file_lock
-> > outside of process context. Besides, we want to consolidate
-> > functionality, not add new matches that do basically the same
-> > as existing ones.
+On Sat, Sep 11, 2004 at 04:36:14PM +0200, Patrick McHardy wrote:
+> Luke Kenneth Casson Leighton wrote:
+> >On Sat, Sep 11, 2004 at 02:29:35PM +0100, Luke Kenneth Casson Leighton 
+> >wrote:
+> >
+> > thing is, you see, i know just enough to be dangerous.
+> >
+> > using files->file_lock a) seems to work b) is accepted code in the
+> > kernel.
 > 
-> This is a binary compatibility issue, I don't think it's possible to add
-> Lukes functionality to ipt_owner without breaking iptables
-> compatibility.
+> It seems to work - on UP where it is a NOP. On SMP it will deadlock.
+> That we have some broken code doesn't mean we want more of it :)
  
- weeeelllll... there's nothing to stop you adding a header file
- ipt_owner_program.h instead :)
+ *cackle*
 
- i know it breaks the convention but hey.
+> > if someone else has the experience and knowledge to fix ipt_owner.c
+> > i'll quite happily cut/paste that instead - once it's fixed.
+> 
+> The "fix" is quite easy, replace all occurences of
+> spin_lock(&files->file_lock) in the kernel by spin_lock_bh.
+ 
+> But that's not going to be accepted. 
+
+ 's'just'a'big'job'for "replace", innit?
+
+ [btw _what_ is the "replace" command doing in the debian mysql package??]
+
+> IIRC the SELinux guys
+> want to label packets with the name of the sending process,
+> maybe we can use this for the owner match once it's done.
+
+ ... well, given that i'll be rolling this out (broken or not)
+ on a single-processor SELinux system, whatever is added
+ [for selinux] would also need to be useable by thingy.
+ ipt_owner.c.  as well.
 
  l.
 
