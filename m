@@ -1,75 +1,71 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: ulogd-1.01 released
-Date: Sat, 23 Aug 2003 20:14:26 +0200
-Sender: netfilter-announce-admin@lists.netfilter.org
-Message-ID: <20030823181426.GA5107@sunbeam.de.gnumonks.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH]    Less printf() calls for libip6t_esp.c
+Date: Sat, 23 Aug 2003 20:42:13 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20030823184213.GC10603@obroa-skai.de.gnumonks.org>
+References: <3F392D0C.7080104@videotron.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mYCpIKhGyMATD0i+"
-Cc: netfilter-announce@lists.netfilter.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-announce-admin@lists.netfilter.org>
-To: ulogd@lists.gnumonks.org
+	protocol="application/pgp-signature"; boundary="eRtJSFbw+EEWtPj3"
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Stephane Ouellette <ouellettes@videotron.ca>
 Content-Disposition: inline
-Errors-To: netfilter-announce-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-announce@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-announce/>
+In-Reply-To: <3F392D0C.7080104@videotron.ca>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---mYCpIKhGyMATD0i+
+--eRtJSFbw+EEWtPj3
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
+On Tue, Aug 12, 2003 at 02:08:12PM -0400, Stephane Ouellette wrote:
+> Harald,
+>=20
+>    this attached patch contains C99 initializers and printf()=20
+> simplifications fo libip6t_esp.c.
 
-I have released Version 1.01 of the iptables userspace logging
-daemon (ulogd).=20
+Thanks!
 
-The new Version is available as tar.bz2 only and can be retrieved from:
-ftp://ftp.netfilter.org/pub/ulogd/ulogd-1.01.tar.bz2
+Sorry for the late reply, but first was the netfilter developer summit
+in Budapest, and then our project's server was down - so I didn't really
+have the time to take care of your patches. Please don't misunderstand
+this as lack of interest in your contributions.
 
-There is a GPG signature for verification of the authenticity of the=20
-archive: ftp://ftp.netfilter.org/pub/ulogd/ulogd-1.01.tar.bz2.sig
+They are now all applied.
 
-Changes (since Version 1.00)
-- use $(LD) macro in order to provide cross-compiling/linking support
-- add 'rmem' configuration key to set the netlink socket rmem buffsize
-- don't use kernel header files for IP/TCP header definitions
-- various cosmetic cleanup to compile with -Wall
-- fix usage of libmysqlclient: call mysql_init() before mysql_real_connect()
-- don't have LOGEMU read the system time, ulogd_LOCAL.so does this already
-
-Please direct any questions / bug reports to the
-ulogd@lists.gnumonks.org mailinglist.
-
-Thanks for all your patience with my not-so-frequend release cycle.
+>    Please apply.
+> Stephane
 
 --=20
-- Harald Welte <laforge@gnumonks.org>               http://www.gnumonks.org/
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D
-Programming is like sex: One mistake and you have to support it your lifeti=
-me
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
---mYCpIKhGyMATD0i+
+--eRtJSFbw+EEWtPj3
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/R68CXaXGVTD0i/8RApU4AJ9CIkAy0+XJJl5yj0W7aw6mByPwcACeP/sn
-wstqwSaDeTB/rNZPgt671G4=
-=PPdN
+iD8DBQE/R7WEXaXGVTD0i/8RAj/IAKCj3psDWyTc5sGyxjE2kVwml7WcoACfdrwd
+3vYbadPFMUZclK0j4/Ww08w=
+=q0tH
 -----END PGP SIGNATURE-----
 
---mYCpIKhGyMATD0i+--
+--eRtJSFbw+EEWtPj3--
