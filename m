@@ -1,12 +1,21 @@
 From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: New ROUTE patch does not work with conntrack+nat disabled
-Date: Thu, 20 Jan 2005 14:23:29 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0501201253440.5089@bizon.gios.gov.pl>
+Subject: Re: ipt_time fixes (resend, sorry)
+Date: Thu, 20 Jan 2005 14:40:25 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0501201424140.5089@bizon.gios.gov.pl>
+References: <Pine.LNX.4.61.0501141503220.9908@bizon.gios.gov.pl>
+	<20050114143722.GA10088@ti64.telemetry-investments.com>
+	<Pine.LNX.4.61.0501141542230.3572@bizon.gios.gov.pl>
+	<57991.142.169.215.10.1105716756.squirrel@142.169.215.10>
+	<Pine.LNX.4.61.0501141622190.4865@bizon.gios.gov.pl>
+	<41E7F2DA.608@info-link.net> <41E7F4B9.4080103@info-link.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-416457481-1106227409=:5089"
-Cc: Patrick Schaaf <bof@bof.de>, Cedric de Launois <delaunois@info.ucl.ac.be>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1172203057-1106228425=:5089"
+Cc: netfilter-devel@lists.netfilter.org,
+	Samuel Jean <sj-netfilter@cookinglinux.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Brad Fisher <brad@info-link.net>
+In-Reply-To: <41E7F4B9.4080103@info-link.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,48 +30,87 @@ List-Id: netfilter-devel.vger.kernel.org
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-416457481-1106227409=:5089
+---187430788-1172203057-1106228425=:5089
 Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Hello,
-
-ipt_ROUTE.c: In function `init':
-ipt_ROUTE.c:405: structure has no member named `nat'
-ipt_ROUTE.c:406: `IP_NAT_MANIP_SRC' undeclared (first use in this function)
-ipt_ROUTE.c:406: (Each undeclared identifier is reported only once
-ipt_ROUTE.c:406: for each function it appears in.)
-ipt_ROUTE.c:406: `IP_NAT_MANIP_DST' undeclared (first use in this function)
-make[3]: *** [ipt_ROUTE.o] Error 1
-make[3]: Leaving directory `/usr/src/linux-2.4.29/net/ipv4/netfilter'
-make[2]: *** [first_rule] Error 2
-make[2]: Leaving directory `/usr/src/linux-2.4.29/net/ipv4/netfilter'
-make[1]: *** [_subdir_ipv4/netfilter] Error 2
-make[1]: Leaving directory `/usr/src/linux-2.4.29/net'
-make: *** [_dir_net] Error 2
-
-This is the problematic part of the code:
-+       /* Set up fake conntrack (stolen from raw.patch):
-+           - to never be deleted, not in any hashes */
-+       atomic_set(&route_tee_track.ct_general.use, 1);
-+       /*  - and look it like as a confirmed connection */
-+       set_bit(IPS_CONFIRMED_BIT, &route_tee_track.status);
-+       /*  - and prepare the ctinfo field for REJECT/NAT. */
-+       route_tee_track.infos[IP_CT_NEW].master =3D
-+       route_tee_track.infos[IP_CT_RELATED].master =3D
-+       route_tee_track.infos[IP_CT_RELATED + IP_CT_IS_REPLY].master =3D
-+               &route_tee_track.ct_general;
-+       /* Initialize fake conntrack so that NAT will skip it */
-+       route_tee_track.nat.info.initialized |=3D
-+               (1 << IP_NAT_MANIP_SRC) | (1 << IP_NAT_MANIP_DST);
-+
 
 
-I'm afraid ipt_ROUTE.c is not the right place for such code. Oryginal=20
-code (stolen from raw.patch) exists in ip_conntrack_core.c and=20
-ip_nat_core.c.
+On Fri, 14 Jan 2005, Brad Fisher wrote:
+
+> Brad Fisher wrote:
+>
+>> Krzysztof Oledzki wrote:
+>>=20
+>>>=20
+>>> -        packet_local_time =3D skb->stamp.tv_sec;
+>>> +    /* We might not have a timestamp, get one */
+>>> +    if (skb->stamp.tv_sec =3D=3D 0)
+>>> +        do_gettimeofday((struct timeval *)&skb->stamp);
+>>>=20
+>>>      /* First we make sure we are in the date start-stop boundaries */
+>>> -    if ((packet_local_time < info->date_start) || (packet_local_time >=
+=20
+>>> info->date_stop))
+>>> +    if ((skb->stamp.tv_sec < info->date_start) || (skb->stamp.tv_sec >=
+=20
+>>> info->date_stop))
+>>>          return 0; /* We are outside the date boundaries */
+>>>=20
+>> I'd like to see the above like become:
+>>=20
+>> +    if ((skb->stamp.tv_sec >=3D info->date_start) && (skb->stamp.tv_sec=
+ <=3D=20
+>> info->date_stop))
+>>         return 0; /* We are outside the date boundaries */
+>>=20
+>> This will have the same logic in most situations, and fix a problem with=
+=20
+>> the time match where you need 2 rules to match something like all times=
+=20
+>> between 20:00-04:00 (ie. the start time is "greater" than the end time).=
+=20
+>> I've used something similar for years and enjoy not needing multiple rul=
+es=20
+>> for this.  I also have a patch (and I believe I've submitted it in the=
+=20
+>> past) for grabbing the kernel time if no time is known (and with that=20
+>> patch, or what's being discussed here, I believe the time match should w=
+ork=20
+>> in any chain).
+>>=20
+>> -Brad Fisher
+>>=20
+>>=20
+>> !DSPAM:41e7f37a167171105578672!
+>>=20
+>
+> Sorry for the additional spam :(
+>
+> The check should be changed to something like the following:
+>
+> +      if (info->date_start <=3D info->date_stop) {
+> +              /* normal order: start <=3D stop */
+> +              if ((skb->stamp.tv_sec < info->date_start) ||=20
+> (skb->stamp.tv_sec > info->date_stop))
+> +                        return 0;
+> +        } else {
+> +              /* reversed order: stop < start */
+> +                if ((skb->stamp.tv_sec < info->date_start) &&=20
+> (skb->stamp.tv_sec > info->date_stop))
+> +                        return 0;
+> +        }
+>
+> Sorry about the previous crap :)  Anyway, this only adds one more if test=
+ per=20
+> packet, which in my opintion is acceptable when the alternative is an=20
+> additional rule.
+
+
+OK.. You need to match 20:00-4:00, right? So why you just cannot reverse=20
+the match of 4:00-20:00?
 
 Best regards,
 
- =09=09=09Krzysztof Ol=EAdzki
----187430788-416457481-1106227409=:5089--
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1172203057-1106228425=:5089--
