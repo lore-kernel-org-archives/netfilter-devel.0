@@ -1,14 +1,16 @@
-From: James Ralston <qralston+ml.netfilter-devel@andrew.cmu.edu>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: separation of sysctl and tcp-window-tracking patch?
-Date: Fri, 13 Dec 2002 03:58:59 -0500 (EST)
+Date: Fri, 13 Dec 2002 13:06:25 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0212130314131.2834-100000@shieldbreaker.l33tskillz.org>
-References: <1039702486.2373.17.camel@pc>
+Message-ID: <20021213120625.GA21253@oknodo.bof.de>
+References: <1039702486.2373.17.camel@pc> <Pine.LNX.4.44.0212130314131.2834-100000@shieldbreaker.l33tskillz.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <1039702486.2373.17.camel@pc>
+To: James Ralston <qralston+ml.netfilter-devel@andrew.cmu.edu>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0212130314131.2834-100000@shieldbreaker.l33tskillz.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,47 +21,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On 12 Dec 2002, Brian J. Murrell wrote:
+> Failing a helper, I'm unable to come up with anything better than
+> adjusting timeouts on a per-port basis...
 
-> I had this problem with the Amanda protocol, but it was with the UDP
-> streaming timeout.  It was not long enough to allow an Amanda client
-> to go do it's work and still respond to the server when it was done.
-> 
-> Fortunately (for this situation), the Amanda protocol requires a
-> helper, so I just upped the timeout on the connection in the helper.
-> But this led me to think about UDP timeouts in general.
+What about a single new target, CTTIMEOUT or something, having a single
+parameter, a relative timeout in seconds. Whenever that target hits,
+and we have a connection hanging off our skb, the connection's timeout
+will be refreshed to now+the_given_timeout.
 
-Well, the best way to solve this particular problem for DNS traffic
-would be to use a helper.  Have the helper use a table to track the
-state of DNS queries and replies via the 16-bit identifiers.  That
-way, a DNS response that took more than 30 seconds could still be
-permitted as RELATED traffic, by matching the ID of reply to the ID of
-the query.
+This could be equally used to lower TCP ESTABLISHED timeouts for
+certain uses, and for extending the UDP timeouts discussed here.
+You would use normal, arbitrary matches to select _which_ packets
+should receive the treatment.
 
-> # insmod ip_conntrack.o udp_timeouts="53=60,123=10"
-> 
-> [...]
-> 
-> This could be done via proc too however.  Maybe something like:
-> 
-> # cat /proc/sys/net/ipv4/netfilter/udp_timeout
-> default=30
-> 53=60
-> 123=10
-> 
-> [...]
-> 
-> Of course we have two udp timeouts to deal with, initial UDP
-> connection setup timeout and the UDP streaming timeout.  Perhaps two
-> different /proc nodes.
+I have not thought about the interplay with the current automatic
+timeout selection. Anybody?
 
-While this will work, I suspect that a fair number of protocols could
-be adequately supported by using helpers.
-
-Failing a helper, I'm unable to come up with anything better than
-adjusting timeouts on a per-port basis...
-
--- 
-James Ralston, Information Technology
-Software Engineering Institute
-Carnegie Mellon University, Pittsburgh, PA, USA
+best regards
+  Patrick
