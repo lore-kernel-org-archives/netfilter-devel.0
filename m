@@ -1,13 +1,13 @@
-From: Roberto Nibali <ratz@tac.ch>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: to solve the performance problem of netfilter
-Date: Wed, 17 Dec 2003 18:01:45 +0100
+Date: Wed, 17 Dec 2003 18:09:46 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3FE08BF9.8060404@tac.ch>
-References: <32301.1071658647@www15.gmx.net>  <3FE075CC.2060707@tac.ch> <1071676553.1058.48.camel@nienna.balabit>
+Message-ID: <Pine.LNX.4.44.0312171753560.18408-100000@filer.marasystems.com>
+References: <1071676553.1058.48.camel@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: tady@gmx.net, netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Roberto Nibali <ratz@tac.ch>, <tady@gmx.net>,
+   <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: KOVACS Krisztian <hidden@balabit.hu>
 In-Reply-To: <1071676553.1058.48.camel@nienna.balabit>
@@ -21,50 +21,51 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On Wed, 17 Dec 2003, KOVACS Krisztian wrote:
 
->   Jozsef Kadlecsik has also done some benchmarking of ip_conntrack in a
-> Gigabit environment. The slides of his presentation prepared for the
-> Netfilter Workshop held in Budapest can be found at 
-> 
-> http://www.netfilter.org/~kadlec/workshop-2003-budapest/benchmark.sxi
-
-Thank you very much for the pointer. Highly interesting, indeed. I was going to 
-check out what happened during that workshop one of these days ;).
-
->   It contains tuning tips also, and is very interesting indeed.
-
- From a quick skimming over the slides I get the impression that due to 
-excessive tweaking of certain variables in the proc-fs a possible discussion of 
-his results is highly difficult. Some of the graphs looked extremely suspicious 
-due to their sharp and steep curves. I'll have to invest some time into his 
-findings. But his tests are indeed extremely interesting.
-
-> However,
+>   It contains tuning tips also, and is very interesting indeed. However,
 > I'd like to see NAT benchmarks as well. Jozsef mentioned that NAT
-> performance is horrible compared to conntrack, 
+> performance is horrible compared to conntrack, and it would be really
+> useful if bottlenecks could be identified.
 
-Aehhm, cough, NAT compared to conntrack??
+The bottlenecks of NAT is pretty much known I think.. the NAT operation is 
+very complex as it needs to support a wide variety of different traffic 
+patterns. Because of this there is some hefty locking going on on each new 
+session and several "conntrack" hash entries to be able to keep track of 
+the various packet variants seen for the session.
 
-> and it would be really
-> useful if bottlenecks could be identified. Would an OProfile benchmark
-> be useful? 
+But still having benchmarks showing how much of a penalty NAT really is
+would inedeed be interesting. To give interesting results wrt where the 
+bottlenecks of NAT are the following set of benchmarks would be good I 
+thinkg:
 
-When I did my high speed packet filtering tests with huge numbers of rules I 
-used OProfile to measure L1 -> L2 transitions and TLB miss rates dependent on 
-the amount of rules netfilter has to match against.
+  - No netfilter
+  - Just iptable_filter loaded (no rules)
+  - Just ip_conntrack loaded
+  - Just ip_conntrack + iptable_nat loaded
+  - Some simple NAT rules added
 
-I am not sure OProfile helps in identifying the issues which are at work when 
-using conntrack, NAT and Gbit networks. I suspect certain performance penalties 
-due to the size of the conntrack (-slabs), the bucket size, the functions which 
-parse the table and bad hardware ;).
+Using each of the following profiles  
 
-My first try would be to readprofile the packet filter kernel and get some 
-information from therein and then continue to isolate the culprit(s).
+  * Lots of small TCP sessions such as a syn flood to a closed port always 
+responding with RST (and no RST rate filtering on the targeted host)
 
-BTW, if you need fast NAT, use iproute2: ip rule add nat ...
+  * A few sessions (TCP or UDP) pushing large packets
 
-Best regards,
-Roberto Nibali, ratz
--- 
-echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
+  * A few sessions (TCP or UDP) pushing small packets
+
+  * Lots of concurrent sessions forcing the NAT to resolve addressing
+overlaps, for example testing with a fixed source port from a wide range
+of source IP address and using SNAT to a single fixed address.
+
+
+The above will/should give a pretty clear picture of what of NAT is 
+causing the performance drop.
+
+and then ofcouse a benchmark using a "typical" pattern is also interesting 
+to get a feeling of how much of an impact NAT is in the typical case not 
+caring why.
+
+
+Regards
+Henrik
