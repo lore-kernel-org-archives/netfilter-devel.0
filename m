@@ -1,30 +1,44 @@
-From: Rik van Riel <riel@conectiva.com.br>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: ip_conntrack_hash() problem
-Date: Thu, 5 Sep 2002 10:37:10 -0300 (BRT)
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.44L.0209051036531.1857-100000@imladris.surriel.com>
-References: <20020905083932.F19551@oknodo.bof.de>
+Date: Thu, 5 Sep 2002 19:55:47 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20020905195547.A21899@oknodo.bof.de>
+References: <1031210342.9785.159.camel@biker.pdb.fsc.net> <20020905115208.4D0A02C064@lists.samba.org> <20020905135440.A10805@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "David S. Miller" <davem@redhat.com>, <rusty@rustcorp.com.au>,
-	<ak@suse.de>, <laforge@gnumonks.org>,
-	<netfilter-devel@lists.netfilter.org>,
-	<linux-kernel@vger.kernel.org>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <20020905083932.F19551@oknodo.bof.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: Rusty Russell <rusty@rustcorp.com.au>,
+  Martin Wilck <Martin.Wilck@Fujitsu-Siemens.com>,
+  Harald Welte <laforge@gnumonks.org>,
+  Netfilter Mailing List <netfilter-devel@lists.netfilter.org>,
+  Linux Kernel mailing list <linux-kernel@vger.kernel.org>,
+  Patrick Schaaf <bof@bof.de>
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Andi Kleen <ak@suse.de>
+Content-Disposition: inline
+In-Reply-To: <20020905135440.A10805@wotan.suse.de>; from ak@suse.de on Thu, Sep 05, 2002 at 01:54:40PM +0200
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 5 Sep 2002, Patrick Schaaf wrote:
+On Thu, Sep 05, 2002 at 01:54:40PM +0200, Andi Kleen wrote:
+> > I'll feed this through 2.5, once it's had some more testing (hint
+> > hint!).  Then Harald will make a call on 2.4.
+> 
+> I would propose to include Martin's simple patch as a short term fix 
+> for 2.4 until Rusty's full work can get in. It fixes an bad performance
+> problems in some not too uncommon cases.
 
-> Sorry, but I was under the impression that code readability was worth
-> the occasional static-global additional 4 bytes. I must have been
-> mistaken.
+As a short time fix, seeing that it's mostly even hash bucket counts
+that give a problem, I would still propose just making the bucket count
+the nearest odd number, i.e. basically htable_size |= 1 in the startup code.
 
-If you want code readability, you could use a #define ;)
+I don't expect any user to notice such a miniscule change.
 
-Rik
--- 
-Bravely reimplemented by the knights who say "NIH".
-
-http://www.surriel.com/		http://distro.conectiva.com/
+best regards
+  Patrick
