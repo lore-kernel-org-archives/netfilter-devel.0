@@ -1,55 +1,65 @@
-From: Sander Smeenk <ssmeenk+netfilter@freshdot.net>
-Subject: Re: ip_conntrack_in: Frag of proto 17
-Date: Sat, 14 Aug 2004 16:24:07 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040814142407.GD7528@freshdot.net>
-References: <1089646231.3157.23.camel@scratch.dynamic.vt.edu>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: [PATCH 2/4] deferred drop, __parent workaround, reshape_fail
+Date: 14 Aug 2004 17:21:31 -0400
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <1092518370.2876.3.camel@jzny.localdomain>
+References: <411C0FCE.9060906@crocetta.org>
+	 <1092401484.1043.30.camel@jzny.localdomain> <411CCB98.4080904@crocetta.org>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <1089646231.3157.23.camel@scratch.dynamic.vt.edu>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Alexey <kuznet@ms2.inr.ac.ru>, "David S. Miller" <davem@redhat.com>,
+        devik@cdi.cz, shemminger@osdl.org, kaber@trash.net,
+        rusty@rustcorp.com.au, Harald Welte <laforge@netfilter.org>,
+        netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: sandr8@crocetta.org
+In-Reply-To: <411CCB98.4080904@crocetta.org>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Quoting Tim Rhodes (rhodes@vt.edu):
+[please wrap your email at about 76 characters; makes it easier to
+respond to]
 
-> Is there any additional information/understanding of this condition. 
+On Fri, 2004-08-13 at 10:09, sandr8 wrote:
+> jamal wrote:
 
-It has to do with the size of UDP packets, as I understood. The packets
-can not exceed 8K in size or ip_conntrack_in starts messing up.
+> >1) You cant change the enqueue/dequeue API just because one qdisc
+> >doesnt seem to use it right. Whats all that contrack stuff doing in 
+> >dev.c and pkt sched areas?
+> >
+> the conntrack stuff (actually that little part of code that adds 
+> unbilling to ACCT in case of a drop) is something that comes later 
+> (patch 4) and is not in the pkt sched part. please, don't let it 
+> divert your mind from the real point. just forget it for the moment...
+>  [in any case it is _not_ in the pkt sched area and as i said in mail 
+> 4/4 i don't like to put the variables into dev.c, that's why i am 
+> there asking for alternatives]
 
-You can test this by mounting an nfs share locally, and play with
-rsize/wsize parameters.
+This actually seems to be the core issue. 
+Correct me if i misunderstood what you are trying to achieve: 
+Somewhere above, the netfilter code bills some packet. Packet gets 
+all the way to the scheduler on egress.
+Scheduler drops packet although it has been billed already.
+You being a man looking for justice ;-> decides that was unfair and
+you are trying to undo it. Is this accurate?
 
-> Is there and if so, what's the limit.
+Also is their a corrective factor that happens once the _accounting_ 
+data has been shipped? Example: 
+- account for packet
+- ship accounting data to some billing server
+- oops, unbill
+- what now?
 
-There is. 8K. Exceed that and it will fail.
+BTW, what happens if you clone the packet below netfilter and send
+several copies of it possibly over several different interfaces? This
+may happen with tc extensions.
+I think accounting is important - especially if it is almost free with
+contracking.
+ 
+Lets talk about this issue first instead of confusing it with everything
+else you have in other patches.
 
-What I don't understand is WHY this limit suddenly appeared, and why
-there's so little discussion about it. I think this is a really big
-problem, since not all tools that do UDP can (easily) be told to use
-blocks of <= 8192 bytes. For example, my sfs shares are now completely
-useless, which bites me ever since I switched to kernels >2.6.5.
-
-Yet, nobody knows why this change was made, or what can be done to work
-around it. I *HAD* a working solution: no udp tracking:
-	ipv4 -t raw -A PREROUTING -p udp -j NOTRACK
-	ipv4 -A FORWARD -m state --state UNTRACKED -j ACCEPT
-but that stopped working with kernels >2.6.7.
-
-So, can anyone from the netfilter-dev team shed some light?
-
-Thanks,
-Sander.
--- 
-| There's nothing like waking up with your Dickin's Cider!
-| 1024D/08CEC94D - 34B3 3314 B146 E13C 70C8  9BDB D463 7E41 08CE C94D
+cheers,
+jamal
