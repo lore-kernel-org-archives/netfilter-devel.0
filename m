@@ -1,13 +1,13 @@
-From: Ozgur AKAN <akan@aiqa.com>
-Subject: target, match and checkentry functions
-Date: Wed, 28 Apr 2004 12:04:08 +0300
+From: Chris Wilson <chris@netservers.co.uk>
+Subject: TOS target broken wrt RFC 1349
+Date: Wed, 28 Apr 2004 13:15:04 +0100 (BST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <408F7388.5010704@aiqa.com>
+Message-ID: <Pine.LNX.4.58.0404281230300.3120@chris.camcom.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
- boundary="------------070809030001040007030801"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+To: "Fred N. van Kempen" <waltje@uWalt.NL.Mugnet.ORG>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,91 +18,76 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070809030001040007030801
-Content-Type: text/plain; charset=ISO-8859-9; format=flowed
-Content-Transfer-Encoding: 7bit
+Summary: the TOS target (and indeed the whole Linux kernel) appears to use 
+different bits in the IP header than those defined in RFC 1349 for TOS 
+use, therefore TOS under Linux is seriously broken?
 
-Hi,
+Hi all,
 
-I am reading ip_tables.h. There is a structure called  ipt_target. In it 
-there is pointer to a function which is below.
+I have a question about the TOS target, because I'm confused about how it 
+works. I know that TOS has been superceded by DSCP, but most routers 
+and networks still do not support DSCP but do support TOS.
 
-unsigned int (*target <http://lxr.linux.no/ident?i=target>)(struct sk_buff <http://lxr.linux.no/ident?i=sk_buff> **pskb, .......)
+RFC 1349 [ftp://ftp.isi.edu/in-notes/rfc1349.txt] defines the use of the 
+TOS octet in the IP header as follows:
 
-I can not find the original function that this function pointer(*target) points. When I search for target, I see that it is defined in 6 files. Which one is used and when? How can I understand it? (this is same for match and checkentry functions)
+   The Type of Service octet consists of three fields:
 
-6 files in which target is defined;
+                0     1     2     3     4     5     6     7
+             +-----+-----+-----+-----+-----+-----+-----+-----+
+             |                 |                       |     |
+             |   PRECEDENCE    |          TOS          | MBZ |
+             |                 |                       |     |
+             +-----+-----+-----+-----+-----+-----+-----+-----+
 
-    * net/ipv4/netfilter/ipt_ECN.c, line 104
-      <http://lxr.linux.no/source/net/ipv4/netfilter/ipt_ECN.c#L104>
-    * net/ipv4/netfilter/ipt_DSCP.c, line 25
-      <http://lxr.linux.no/source/net/ipv4/netfilter/ipt_DSCP.c#L25>
-    * net/ipv4/netfilter/ipt_MARK.c, line 11
-      <http://lxr.linux.no/source/net/ipv4/netfilter/ipt_MARK.c#L11>
-    * net/ipv4/netfilter/ipt_TOS.c, line 11
-      <http://lxr.linux.no/source/net/ipv4/netfilter/ipt_TOS.c#L11>
-    * net/ipv6/netfilter/ip6t_MARK.c, line 11
-      <http://lxr.linux.no/source/net/ipv6/netfilter/ip6t_MARK.c#L11>
+   The first field, labeled "PRECEDENCE" above, is intended to denote
+   the importance or priority of the datagram.  This field is not
+   discussed in detail in this memo.
 
-thanks,
+   The second field, labeled "TOS" above, denotes how the network should
+   make tradeoffs between throughput, delay, reliability, and cost.  The
+   TOS field is the primary topic of this memo.
 
+Now, if we look at linux/include/ip.h:
+
+   #define IPTOS_TOS_MASK          0x1E
+   #define IPTOS_TOS(tos)          ((tos)&IPTOS_TOS_MASK)
+   #define IPTOS_LOWDELAY          0x10
+   #define IPTOS_THROUGHPUT        0x08
+   #define IPTOS_RELIABILITY       0x04
+   #define IPTOS_MINCOST           0x02
+
+It seems to me that the four bits which ip.h specifies for TOS flags are 
+bits 1-5, not bits 3-7, in the TOS octet. Bits 0 and 1 are currently 
+redefined by RFC 3168 [ftp://ftp.isi.edu/in-notes/rfc3168.txt] for use in 
+ECN.
+
+Therefore, it appears that use of the iptables TOS target, which modifies
+bits 1-5 using the constants defined inip.h, will have unexpected results,
+corrupting the ECN flags and not setting the actual TOS flags to the 
+expected values.
+
+Can anyone tell me where I'm going wrong, if at all, or whether in their
+experience the TOS target works as expected under Linux? I would guess
+that this problem permeates the whole kernel, and as a result would only
+be a problem for interoperability between Linux and non-Linux systems.
+
+tcpdump shows that the value of the TOS octet (which it reports as
+[tos 0x??]) is set to the value specified on the iptables command line, 
+and provides additional confirmation that the TOS target does indeed set 
+the wrong bits in this octet. For example, with "-j TOS --set-tos 0x02", 
+we see:
+
+  12:55:28.150000 xxx.115.249.2.smtp > xxx.255.116.207.3225: . ack 2770120 
+	win 62780 (DF) [tos 0x2,ECT]
+
+(tcpdump's interpretation of the ECT bit is also wrong under RFC 2481
+[ftp://ftp.isi.edu/in-notes/rfc2481.txt], since it uses bits 0-1 instead
+of 6-7 as mandated by the RFC for ECN).
+
+Cheers, Chris.
 -- 
-Ozgur Akan
-
-
---------------070809030001040007030801
-Content-Type: text/html; charset=ISO-8859-9
-Content-Transfer-Encoding: 8bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-9">
-  <title></title>
-</head>
-<body text="#000000" bgcolor="#ffffff">
-<font face="microsoft-verdana-iso10646-1">Hi,<br>
-<br>
-I am reading ip_tables.h. There is a structure called  ipt_target. In
-it there is pointer to a function which is below.</font><br>
-<pre class="moz-signature" cols="72">unsigned int (*<a
- href="http://lxr.linux.no/ident?i=target">target</a>)(struct <a
- href="http://lxr.linux.no/ident?i=sk_buff">sk_buff</a> **pskb, .......)
-
-I can not find the original function that this function pointer(*target) points. When I search for target, I see that it is defined in 6 files. Which one is used and when? How can I understand it? (this is same for match and checkentry functions)
-
-6 files in which target is defined;
-</pre>
-<ul>
-  <li><a
- href="http://lxr.linux.no/source/net/ipv4/netfilter/ipt_ECN.c#L104">net/ipv4/netfilter/ipt_ECN.c,
-line 104</a>
-  </li>
-  <li><a
- href="http://lxr.linux.no/source/net/ipv4/netfilter/ipt_DSCP.c#L25">net/ipv4/netfilter/ipt_DSCP.c,
-line 25</a>
-  </li>
-  <li><a
- href="http://lxr.linux.no/source/net/ipv4/netfilter/ipt_MARK.c#L11">net/ipv4/netfilter/ipt_MARK.c,
-line 11</a>
-  </li>
-  <li><a
- href="http://lxr.linux.no/source/net/ipv4/netfilter/ipt_TOS.c#L11">net/ipv4/netfilter/ipt_TOS.c,
-line 11</a>
-  </li>
-  <li><a
- href="http://lxr.linux.no/source/net/ipv6/netfilter/ip6t_MARK.c#L11">net/ipv6/netfilter/ip6t_MARK.c,
-line 11</a>
-  </li>
-</ul>
-<pre class="moz-signature" cols="72">
-thanks,
-
--- 
-Ozgur Akan
-</pre>
-</body>
-</html>
-
---------------070809030001040007030801--
+_  __ __     _
+ / __/ / ,__(_)_  | Chris Wilson -- UNIX Firewall Lead Developer |
+/ (_  ,\/ _/ /_ \ | NetServers.co.uk http://www.netservers.co.uk |
+\__/_/_/_//_/___/ | 21 Signet Court, Cambridge, UK. 01223 576516 |
