@@ -1,16 +1,15 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: possible race in init_conntrack()?
-Date: Fri, 5 Jul 2002 16:18:44 +0200
+Subject: Re: [CRAP] Some patches
+Date: Fri, 5 Jul 2002 16:08:10 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020705141844.GJ21280@naboo.ists.dartmouth.edu>
-References: <20020702111451.D7684@oknodo.bof.de>
+Message-ID: <20020705140810.GI21280@naboo.ists.dartmouth.edu>
+References: <20020616200239.GI23720@stingr.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Patrick Schaaf <bof@bof.de>
+To: netfilter-devel@lists.samba.org
 Content-Disposition: inline
-In-Reply-To: <20020702111451.D7684@oknodo.bof.de>
+In-Reply-To: <20020616200239.GI23720@stingr.net>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,18 +20,49 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jul 02, 2002 at 11:14:51AM +0200, Patrick Schaaf wrote:
-> Hi devel,
-> Did I overlook something? Making drop_next atomic_t should be a good fix.
+On Mon, Jun 17, 2002 at 12:02:39AM +0400, Paul P Komkoff Jr wrote:
+> This is the result of make allyesconfig
+> 
+> Actually, make allyesconfig won't link vmlinux due to netfilter p-o-m
+> additions. While conntrack_egg part isn't very clean (I'll resend
+> cleaner version later), and conntrack_rpc bombing out the kernel to panic,
+> and needs a big rewrite just because _tcp and _udp files ARE just a
+> copy&paste results (Harald, so please move it to b0rken suite for now).
 
-no, you didn't.  I'm not going to submit a patch for this, since we've
-never had a single bug report and it is very theoretic [whatever reason
-has to become true], and we are currently redesigning the conntrack hash
-anyway.... so I'd expect the new conntrack hash code including the
-limit-number-of-entries-per-chain code to fix this issue as well :)
+ok, I'll move conntrack_rpc.
 
-> best regards
->   Patrick
+> But ipv6 stuff seems awful :( it just duplicating one function already
+> present in ipv6 code :( and doing it without static keyword ...
+
+I think kisza has dealt with this..
+
+> diff -Nur --exclude=SCCS --exclude=BitKeeper --exclude=ChangeSet a/net/ipv4/netfilter/ip_conntrack_egg.c linux-2.4.19-pre10-ac2-s3/net/ipv4/netfilter/ip_conntrack_egg.c
+
+ok, applied this one...
+
+> diff -Nur --exclude=SCCS --exclude=BitKeeper --exclude=ChangeSet a/net/ipv4/netfilter/ipt_ah.c linux-2.4.19-pre10-ac2-s3/net/ipv4/netfilter/ipt_ah.c
+> --- a/net/ipv4/netfilter/ipt_ah.c	Sat Jun 15 12:51:20 2002
+> +++ linux-2.4.19-pre10-ac2-s3/net/ipv4/netfilter/ipt_ah.c	Fri Jun 14 12:31:05 2002
+> @@ -91,12 +91,12 @@
+>  static struct ipt_match ah_match
+>  = { { NULL, NULL }, "ah", &match, &checkentry, NULL, THIS_MODULE };
+>  
+> -int __init init(void)
+> +static int __init init(void)
+>  {
+>  	return ipt_register_match(&ah_match);
+>  }
+>  
+> -void __exit cleanup(void)
+> +static void __exit cleanup(void)
+>  {
+>  	ipt_unregister_match(&ah_match);
+>  }
+
+this one is now pending for kernel inclusion... (though it will be
+post-2.4.19)
+
+> Paul P 'Stingray' Komkoff 'Greatest' Jr /// (icq)23200764 /// (http)stingr.net
 
 -- 
 Live long and prosper
