@@ -1,15 +1,18 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: question about log kernel modules and log of iptables
-Date: Mon, 4 Oct 2004 13:59:56 +0200 (CEST)
+From: Stephen Hemminger <shemminger@osdl.org>
+Subject: Re: iptables as a state machine
+Date: Mon, 04 Oct 2004 08:51:51 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0410041358140.28418@filer.marasystems.com>
-References: <4160C993.000072.19484@m250.163.com>
+Message-ID: <1096905111.27100.0.camel@localhost.localdomain>
+References: <20040930193955.6fa24afc.davem@davemloft.net>
+	<61687.63.170.215.71.1096602469.squirrel@www.osdl.org>
+	<415E6A86.6040707@drugphish.ch>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?gb2312?B?Z2FpbHlh?= <gailya@163.com>
-In-Reply-To: <4160C993.000072.19484@m250.163.com>
+To: Roberto Nibali <ratz@drugphish.ch>
+In-Reply-To: <415E6A86.6040707@drugphish.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,22 +23,12 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 4 Oct 2004, [gb2312] gailya wrote:
+On Sat, 2004-10-02 at 10:44 +0200, Roberto Nibali wrote:
+> > Have you looked at nf-hipac.  It works and is fast but is limited
+> > to 2.4 right now.  It's on my to do list...
+> 
+> I've started porting it as well, except a few locking issues and some 
+> Makefile hazzle I should be done with it. I can send it to you in private.
 
-> However, I don't know how iptables generates log messages and how it 
-> deals with it.
-
-Normally via the kernel message rinbugger processed by klogd.
-
-There is also the ULOG target which sends log messages via netlink to a 
-log deamon of your choice.
-
-> I wonder whether I should alter the log kernel module if 
-> I want more detailed info, and how. Anyone can give me some help or 
-> hints. Any related information and hints would be appreciated.
-
-See the ipt_LOG.c file for the normal log function. Nothing strange 
-there..
-
-Regards
-Henrik
+Great, I planned to convert it to RCU and get rid of the netdevice
+unregister changes.
