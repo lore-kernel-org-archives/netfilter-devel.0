@@ -1,18 +1,17 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH]: fix all iptables problems with '!' (hopefully)
-Date: Tue, 7 Jan 2003 18:15:26 +0100
+Subject: Re: Is libiptc responsible for any memory leak?
+Date: Tue, 7 Jan 2003 18:17:45 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030107171526.GL1353@sunbeam.de.gnumonks.org>
-References: <35565.195.97.5.193.1041816667.squirrel@fs.tsaousis.gr> <20030106020219.GC423@comet.rv-int> <3E193B0E.9030602@trash.net> <36373.195.97.5.193.1041856153.squirrel@fs.tsaousis.gr> <3E19A1D8.7080605@trash.net>
+Message-ID: <20030107171745.GM1353@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.43.0301071139010.282-100000@abodh.pesit.deeproot.co.in>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8cpS+6Cx+xtICsjy"
-Cc: Costa Tsaousis <costa@tsaousis.gr>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="rpGc+ACYPE+RMC+Z"
+Cc: netfilter-devel@lists.netfilter.org, leonardo@opalsoft.net
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: "Narendra Prabhu. B" <naren@deeproot.co.in>
 Content-Disposition: inline
-In-Reply-To: <3E19A1D8.7080605@trash.net>
+In-Reply-To: <Pine.LNX.4.43.0301071139010.282-100000@abodh.pesit.deeproot.co.in>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,26 +23,26 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---8cpS+6Cx+xtICsjy
+--rpGc+ACYPE+RMC+Z
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jan 06, 2003 at 04:33:44PM +0100, Patrick McHardy wrote:
-> In fact ! is used in many matches in a non-boolean context.
-> After the patch is applied, both it always possible
-> (! --uid-owner xxx / --uid-owner ! xxx).
-> It would still be nice to have the helptexts unified concerning
-> the use of '!', i think.
+On Tue, Jan 07, 2003 at 12:10:39PM +0530, Narendra Prabhu. B wrote:
 
-This is why I'm still unsure whether to apply your patch or not.
+> Are the developers aware of this?
 
-I'd rather like to enforce one unique syntax than offering two different
-options giving the same result (and possibly causing confusion with the
-user).
+Please read the archives, and you will find out
+
+- libiptc was never meant to be a public interface
+  [unfortunately there still is no alternative to calling the iptables
+  command]
+- thus libiptc was developed for one-shot applications like iptables,
+  and memory leaks were never considered harmful
+- but we of course happily accept contributed fixes :)
 
 > Regards,
-> Patrick
+> Narendra.
 
 --=20
 - Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
@@ -54,7 +53,7 @@ user).
 "If this were a dictatorship, it'd be a heck of a lot easier, just so long
  as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---8cpS+6Cx+xtICsjy
+--rpGc+ACYPE+RMC+Z
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -62,9 +61,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+GwsuXaXGVTD0i/8RAu85AKChBdkNICGK8Fog1S70zeVTxw2bFQCgkEVL
-YvvCQ6x+kouvqX/6pBZ+Yb4=
-=pLOA
+iD8DBQE+Gwu5XaXGVTD0i/8RAghcAKCBhRaJ1+5OY19+N7oipmoyMG0VwwCfU9CR
+8bu0zKY4YCDJScCKILkizJc=
+=PWaY
 -----END PGP SIGNATURE-----
 
---8cpS+6Cx+xtICsjy--
+--rpGc+ACYPE+RMC+Z--
