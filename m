@@ -1,15 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Quota / SMP / IRQBalance
-Date: Thu, 18 Dec 2003 08:04:28 +0100 (CET)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: to solve the performance problem of netfilter
+Date: Thu, 18 Dec 2003 13:02:00 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0312180745070.26987-100000@filer.marasystems.com>
-References: <0E051BDF2E73C847B9220964CBD1B8F32BC3@EXCHANGE.SHSU.EDU>
+Message-ID: <Pine.LNX.4.33.0312181253130.23897-100000@blackhole.kfki.hu>
+References: <Pine.LNX.4.44.0312171753560.18408-100000@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Cc: KOVACS Krisztian <hidden@balabit.hu>,
+	Roberto Nibali <ratz@tac.ch>, <tady@gmx.net>,
+	<netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "McGuffin, Tim" <UCS_TIM@exchange.shsu.edu>
-In-Reply-To: <0E051BDF2E73C847B9220964CBD1B8F32BC3@EXCHANGE.SHSU.EDU>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0312171753560.18408-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,26 +22,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 17 Dec 2003, McGuffin, Tim wrote:
+On Wed, 17 Dec 2003, Henrik Nordstrom wrote:
 
-> On the Dual 800 running Redhat 9 or Fedora Core 1, the quota match is
-> completely broken by enabling the irqbalance service.  With irqbalance
-> enabled, the box is able to transfer roughly twice the amount of data
-> before the quota is exhausted (11437662 bytes out of a 5000000 byte
-> quota).
+> But still having benchmarks showing how much of a penalty NAT really is
+> would inedeed be interesting. To give interesting results wrt where the
+> bottlenecks of NAT are the following set of benchmarks would be good I
+> thinkg:
+>
+>   - No netfilter
+>   - Just iptable_filter loaded (no rules)
+>   - Just ip_conntrack loaded
+>   - Just ip_conntrack + iptable_nat loaded
+>   - Some simple NAT rules added
+>
+> Using each of the following profiles
+>
+>   * Lots of small TCP sessions such as a syn flood to a closed port always
+> responding with RST (and no RST rate filtering on the targeted host)
+>
+>   * A few sessions (TCP or UDP) pushing large packets
+>
+>   * A few sessions (TCP or UDP) pushing small packets
+>
+>   * Lots of concurrent sessions forcing the NAT to resolve addressing
+> overlaps, for example testing with a fixed source port from a wide range
+> of source IP address and using SNAT to a single fixed address.
 
-Odd.. from what I can se it should be broken on SMP even without
-irqbalance, but maybe irqbalance causes both processors to be used in a
-more even fashion making the problem more visible.
+Next year January we'll repeat our testings with the same targets as you
+listed. But I'd like to add architectural testings as well: sparc64
+besides i386 at least.
 
-The problem is due to the quota match saving the quota counter within the
-iptables matchinfo. As this is duplicated per CPU a SMP system gives a
-quota up to the number of CPUs times the specified quota and may cause
-unwanted packet reordering when the quota is reached on one CPU (packets 
-hitting other CPUs may still get accepted).
-
-Btw, iptables -L (and iptables-save) just prints the quota counter from 
-CPU #0.
-
-Regards
-Henrik
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
