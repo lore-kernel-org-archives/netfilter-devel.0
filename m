@@ -1,16 +1,16 @@
 From: Patrick Schaaf <bof@bof.de>
-Subject: Re: Netfilter and IPPROTO_RAW
-Date: Sun, 24 Nov 2002 10:55:10 +0100
+Subject: Re: /etc/sysconfig/iptables format
+Date: Sun, 24 Nov 2002 11:40:18 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021124095510.GB14672@oknodo.bof.de>
-References: <00ba01c28ffe$3bc9a0d0$6a00a8c0@witbe>
+Message-ID: <20021124104018.GC14672@oknodo.bof.de>
+References: <Pine.LNX.4.44.0211200005530.5235-100000@azalea.cs.jmu.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Paul Rolland <rol@as2917.net>
+To: Arch Harris <netfilter02@jah.cs.jmu.edu>
 Content-Disposition: inline
-In-Reply-To: <00ba01c28ffe$3bc9a0d0$6a00a8c0@witbe>
+In-Reply-To: <Pine.LNX.4.44.0211200005530.5235-100000@azalea.cs.jmu.edu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,21 +21,34 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-> My problem is that one of the program we are using is sending
-> its packets to a socket that has been created by :
-> theSocket = socket(PF_INET, SOCK_RAW, IPPROTO_RAW);
-> and it seems from all the tests I've conducted that these packets
-> are bypassing all the rules aboved mentionned...
+Hi Arch,
 
-Correct, as far as I know. Using RAW sockets is not "normal".
-iptables caters to what "normal" usage needs. And that's basically
-a good thing.
+[regarding iptables-save format]
 
-> Is there a way to interact on packets sent to such a socket ?
+> I realize the syntax fllows the iptables command arguments.  But there
+> are some differences.  Things like: *filter, COMMIT, etc.  I think
+> I have figured most of this stuff out, but a man page and/or HOWTO
+> chapter describing the file format sure would be nice.
 
-Change the app, or give it an LD_PRELOAD library overwriting
-the recvmsg/sendmsg calls, or change the kernel so RAW sockets
-have netfilter hooks. Those are your possibilities. Good luck.
+I agree to the need for docs (do you volunteer writing them?), if, and
+only if, at the same time, future compatibility promises regarding the
+format, are carefully formulated. I'd propose "can change completely
+any time soon when the new pkttables replaces the current mess that
+is iptables". To Harald Welte: would that be an appropriate formulation?
+
+As far as I know, the format was never intended for end user usage,
+and distributions (redhat, in your case, right?) were wrong basing
+their operation on it. At least the Debian maintainers seem to be
+aware of that fact, as the comments in the relevant startup scripts
+basically say not to use or rely on them (my information stemming
+from the Woody distribution of Debian.)
+
+Personally, I write my iptables "templates" in the traditional shell
+script form, executing anew on each boot, and when I need to change
+the rules, I change the scripts, and rerun "init.d/xxx start".
+Sometimes, first I prototype the change by modifying the running
+ruleset. Never do I use save/restore. The lack of structure and
+comments alone, is reason enough for me to avoid going that route.
 
 best regards
   Patrick
