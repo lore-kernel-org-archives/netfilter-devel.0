@@ -1,14 +1,15 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH]: invalid port number in libipt_MASQUERADE.c
-Date: Thu, 30 Oct 2003 14:36:26 +0900 (JST)
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH]: invalid port number in libipt_MASQUERADE.c
+Date: Thu, 30 Oct 2003 07:37:24 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200310300536.OAA14264@toshiba.co.jp>
+Message-ID: <1067495843.19734.0.camel@tux.rsn.bth.se>
+References: <200310300536.OAA14264@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
- boundary="--Next_Part(Thu_Oct_30_14:36:26_2003_460)--"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-QQ9KdOHuQ5cykAz0cRUu"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200310300536.OAA14264@toshiba.co.jp>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,41 +20,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Thu_Oct_30_14:36:26_2003_460)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 
-Hi,
+--=-QQ9KdOHuQ5cykAz0cRUu
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-This small patch fixes the bug that allows
-	iptables -t nat -I POSTROUTING -p tcp -j MASQUERADE --to-port -1
-	                                                             ^^^^
-----------------------------------------
-Yasuyuki KOZAKAI
+On Thu, 2003-10-30 at 06:36, Yasuyuki Kozakai wrote:
+> Hi,
+>=20
+> This small patch fixes the bug that allows
+> 	iptables -t nat -I POSTROUTING -p tcp -j MASQUERADE --to-port -1
 
-Communication Platform Laboratory,
-Corporate Research & Development Center,
-Toshiba Corporation
+Thanks, applied.
 
-yasuyuki.kozakai@toshiba.co.jp
-----------------------------------------
+--=20
+/Martin
 
+--=-QQ9KdOHuQ5cykAz0cRUu
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-----Next_Part(Thu_Oct_30_14:36:26_2003_460)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="libipt_MASQUERADE-invalid-port.patch"
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
 
---- userspace.orig/extensions/libipt_MASQUERADE.c	2003-10-29 06:49:32.000000000 +0900
-+++ userspace/extensions/libipt_MASQUERADE.c	2003-10-29 18:36:41.000000000 +0900
-@@ -47,7 +47,7 @@
- 	mr->range[0].flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
- 
- 	port = atoi(arg);
--	if (port == 0 || port > 65535)
-+	if (port <= 0 || port > 65535)
- 		exit_error(PARAMETER_PROBLEM, "Port `%s' not valid\n", arg);
- 
- 	dash = strchr(arg, '-');
+iD8DBQA/oLGiWm2vlfa207ERArClAKCRBxOblwlR+Kw4og1PRt/mvG9JLgCfUnR6
+C1+N4qrmQS0d9zI3ZFFM7g0=
+=A9OC
+-----END PGP SIGNATURE-----
 
-----Next_Part(Thu_Oct_30_14:36:26_2003_460)----
+--=-QQ9KdOHuQ5cykAz0cRUu--
