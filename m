@@ -1,13 +1,12 @@
-From: MaXxX <maxxx@anime-h.com>
-Subject: terminating connections when an interface goes down
-Date: Mon, 15 Mar 2004 13:02:31 +0100
+From: Jorge Garcia <anarkophobia@latinmail.com>
+Subject: RE:Re: fisrt post on the list whit a few questions
+Date: Mon, 15 Mar 2004 09:55:05 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <21127330.20040315130231@anime-h.com>
+Message-ID: <20040315145505.274B93CB70@smtp.latinmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="latinmail.com_linux02100.dn.net_5e0de1b2ae81e22c79b32e4e6c7e109e"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,48 +17,112 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello.
 
-Having recently switched to a faster ISP but with dynamically assigned
-(and forcibly changed every 24h) IP, I'd like netfilter to TERMINATE
-all active connections when the IP changes. Some programs behave very
-badly when their connections are left to time out, and some services
-ban a user for quite a long time when they detect a double login (and
-that's how a timeout-IPchange-relogin sequence looks to them)... I
-believe that for many dynamic IP users this might be a great addition
-to netfilter, and I'd be willing to code it in, abilities permitting.
+--latinmail.com_linux02100.dn.net_5e0de1b2ae81e22c79b32e4e6c7e109e
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Terminating a connection on the NAT side seems fairly easy. A FIN
-packet with seq=0 tricks the NATted machine into sending an ACK with a
-corrected seq, and a RST in response to it closes the connection. On
-the Internet side, however, things are much more hairy, as my IP
-address has just changed and there is no way to receive an ACK
-response, besides that sending anything out is going to require
-spoofing the previous IP. It seems to me that I'd have to make
-netfilter keep an internal table of seq numbers (which I suspect it
-already has, to NAT properly?) and use it to send a spoofed RST. And
-all of it before netfilter cleans out ip_conntrack, if it's going to
-be used at all in this case, that is.
+Hi, here is one of the codes from prhrack article:
+/* Sample code to install a Netfilter hook function that will
+ * drop all incoming packets on an interface we specify */
+ #define __KERNEL__
+ #define MODULE
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/netdevice.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_ipv4.h>
+ /* This is the structure we shall use to register our function */
+  static struct nf_hook_ops nfho;
 
-If I were to add such an option to netfilter, given my fair but not
-excellent C capabilities, what source file should I be mostly looking
-at? And can I hope for some guidance along the way, if some
-experienced developer finds my idea worthy of it?
+ /* Name of the interface we want to drop packets from */
+  static char *drop_if =3D "lo";
 
-Thanks.
+ /* This is the hook function itself */
+  unsigned int hook_func(unsigned int hooknum,
+                         struct sk_buff **skb,
+                         const struct net_device *in,
+                         const struct net_device *out,
+                         int (*okfn)(struct sk_buff *))
+{
+    if (strcmp(in->name, drop_if) =3D=3D 0) {
+        printk("Dropped packet on %s...\n", drop_if);
+        return NF_DROP;
+    } else {
+        return NF_ACCEPT;
+    }
+}
 
--- 
- |\  /|      \~~~/     \~~~/
- | \/ |  /\   > <  \~/  > <    ICQ# 3146019
- |____| /__\ /___\ /_\ /___\    IQ# 3.14159
-"This is Pearl Harbor! Japanese aircraft incom-" NO CARRIER
+/* Initialisation routine */
+int init_module()
+{
+    /* Fill in our hook structure */
+    nfho.hook     =3D hook_func;         /* Handler function */
+    nfho.hooknum  =3D NF_IP_PRE_ROUTING; /* First hook for IPv4 */
+    nfho.pf       =3D PF_INET;
+    nfho.priority =3D NF_IP_PRI_FIRST;   /* Make our function first */
+ =20
+    nf_register_hook(&nfho);
+   =20
+    return 0;
+}
+=09
+/* Cleanup routine */
+void cleanup_module()
+{
+    nf_unregister_hook(&nfho);
+}
+
+OK, this filter incoming anbd outcomming connections, how do i filter f=
+or example only incoming traffic??
+I have more questions abouts some codes in this article but for now i w=
+ant to know how to do this.
+Thanx for everithing and here is the link to the phrack article that is=
+ very intresting:
+http://www.phrack.org/show.php?p=3D61&a=3D13
 
 
 
 
--- 
- |\  /|      \~~~/     \~~~/
- | \/ |  /\   > <  \~/  > <    ICQ# 3146019
- |____| /__\ /___\ /_\ /___\    IQ# 3.14159
-Random church bulletin blooper: This being Easter Sunday, we will ask
-Mrs. Lewis to come forward and lay an egg on the altar.
+Hi Jorge,
+
+Jorge Garcia wrote:
+
+>Hi, Im from Montevideo Uruguay, so u have to excuse my english.
+>Im using netfilter iptables for about 4 months and i really like the p=
+roduct, now im reading about the netfilter programming modules that i f=
+ind in a phrack article.
+> =20
+>
+I recommend you reading the netfilter hacking-how. Those articles that=20=
+
+you read are ok, but maybe they consider some things obvious.
+
+>The modules dont do ehat is expected to do, like in list2.c the progra=
+m filter input and output interfaces.
+> =20
+>
+could you could post to the list the relevance section of the source=20=
+
+code? I don't know where's that file.
+
+>If i want to filter only incoming packets, how do i do that??
+> =20
+>
+>My second question its about security, the security advisories on the =
+page are old ones and doesnt work for new kernels.
+>I want to know if is there any vulneability more new for testing becou=
+se im writing a paper about netfilter security in spanish.
+> =20
+>
+as far as I know, those are all the security asvisories. If there's=20
+more, they would be published.
+
+regards,
+Pablo
+
+
+
+http://www.latinmail.com - La forma m=E1s c=F3moda de enviar y recibir =
+tus e-mails
+--latinmail.com_linux02100.dn.net_5e0de1b2ae81e22c79b32e4e6c7e109e--
