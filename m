@@ -1,14 +1,18 @@
-From: Chris Lowth <chris@lowth.com>
-Subject: Re: "rope" match module
-Date: Thu, 4 Nov 2004 09:57:38 +0000 (GMT)
-Message-ID: <Pine.LNX.4.44.0411040956460.3602-100000@stirling.lowth.com>
-References: <4188FFA9.9030708@core.gen.tr>
+From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 0/3] fixes for ipv6header/eui64 and introduce
+ skb_header_pointer
+Date: Thu, 04 Nov 2004 19:44:27 +0900 (JST)
+Message-ID: <200411041044.iA4AiSWj006510@toshiba.co.jp>
+References: <200411010840.iA18eeia001852@toshiba.co.jp>
+	<41899235.1030309@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
+	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Evrim ULU <evrim@core.gen.tr>
-In-Reply-To: <4188FFA9.9030708@core.gen.tr>
+To: kaber@trash.net
+In-Reply-To: <41899235.1030309@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,37 +24,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Evrim,
 
-Thanks for the link - I'll take a look and comment back.
+Hi, Patrick,
 
-Chris
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 04 Nov 2004 03:21:41 +0100
 
-On Wed, 3 Nov 2004, Evrim ULU wrote:
+> Yasuyuki Kozakai wrote:
+> 
+> >Hi, all
+> >
+> >These patches fix bugs in ipv6header and eui64 match.
+> >And also introduce skb_header_pointer() to ipv6header match.
+> >
+> All applied, thanks Yasuyuki. Could you also provide patches
+> with the fixes needed for 2.4 ?
 
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> Chris Lowth wrote:
-> | I have been working for a while on a match module that provides the
-> | facility of matching packets based on a simple pseduo-scripting language
-> | compiled in user-land and executed in kernel-land.
-> |
-> 
-> Have you seen prolac? Maybe u'll be interested alhought its old (i.e.
-> for 2.0.26).
-> 
-> http://www.pdos.lcs.mit.edu/prolac/
-> 
-> 
-> Evrim.
-> 
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.2.4 (GNU/Linux)
-> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-> 
-> iD8DBQFBiP+pR2rUfDW+YFIRAkx9AJ4+DbcExZibaVIIeaTWji0x66Z2xQCeNJSt
-> 90MMl5ztPCgOUpD86muFzzM=
-> =84/N
-> -----END PGP SIGNATURE-----
-> 
+OK, today I wrote patches for 2.4 and started testing them. But I don't have
+enough time to test next week, maybe I'll send them at the week after next.
+
+By the way, is there any other IPv6 module which is needed to change to work
+without skb_linearize() ? If no, we can finally remove it from ip6_tables.c
+
+Regards,
+-----------------------------------------------------------------
+Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
