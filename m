@@ -1,15 +1,15 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: RE: iptables and SPI...
-Date: Fri, 31 Oct 2003 23:01:42 +0100 (CET)
+From: Harald Welte <laforge@netfilter.org>
+Subject: raw.patch needs defrag at LOCAL_OUT
+Date: Sat, 1 Nov 2003 19:38:12 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0310312251150.22626-100000@filer.marasystems.com>
-References: <Law10-F5700goZolmRB000000bb@hotmail.com>
+Message-ID: <20031101183812.GL15184@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wRokNccIwvMzawGl"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: dimitri borjac <dimitri_borjac@hotmail.com>
-In-Reply-To: <Law10-F5700goZolmRB000000bb@hotmail.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,19 +20,44 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 31 Oct 2003, dimitri borjac wrote:
 
-> So the problem is still there... is it possible to extend the NAT functions 
-> of iptables in order to make the local gateway read and use the SPI for 
-> NATting packets ?
+--wRokNccIwvMzawGl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-You will need to write a ESP protocol conntrack module, similar to the UDP
-or ICMP conntrack modules. Note however that this will only work assuming
-it is the NAT:ed endpoint which sends the initial packet ESP per SPI. For 
-situations where it is the other endpoint who sends the initial ESP packet 
-for this SPI then you need to somehow decode IKE to know that the SPI has 
-been negotiated. Unless my memory is wrong this may be a little hard due 
-to encryption of the IKE protocol..
+Hi Jozsef!
 
-Regards
-Henrik
+I'm not sure if this bug was already discovered in the recent
+discussion, but the raw.patch moves ip_ct_gather_frags() to a seperate
+netfilter hook entry. =20
+
+However, that hook entry is only called from PRE_ROUTING and not from
+LOCAL_OUT, resulting in ip_conntrack_in() seeing fragmented packets e.g.
+in case of NFS.
+
+I'll prepare a fix (need it working for my own NFS server).
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--wRokNccIwvMzawGl
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/o/2UXaXGVTD0i/8RAuv7AJ44Ie1M9Gf7opN1kOabuaFWaNmH4wCfdeRX
+YCzOChInvT2R5ro7sPrLlAw=
+=HxxW
+-----END PGP SIGNATURE-----
+
+--wRokNccIwvMzawGl--
