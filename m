@@ -1,13 +1,14 @@
-From: Michael Rash <mbr@cipherdyne.com>
-Subject: string match and hex strings
-Date: Fri, 28 Feb 2003 20:05:34 -0500
+From: macadanet@yahoo.es
+Subject: string match -> new option
+Date: Sat, 1 Mar 2003 02:53:08 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030228200534.B22879@orthanc.gambrl01.md.comcast.net>
+Message-ID: <15760529186.20030301025308@yahoo.es>
+Reply-To: macadanet@yahoo.es
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: lista de correo netfilter <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,30 +19,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-My patch to libipt_string.c may introduce a slight problem which I
-would like to bring up to the list and ask for input.
 
-Any new version of iptables that contains the patch will allow
-hex chars to be mixed within ascii strings in the "--string"
-option:
+Hi.
 
-iptables -A INPUT -m string --string "|45 45|blah" -j LOG
+I'm sorry for my english
 
-The problem is that all old versions of iptables will also accept
-the same "|45 45|blah" string, but the hex chars won't mean
-anything; it will just be treated as ascii data.  So we descend
-into version problems...
+I modificated ipt_string.c and I created a new patch. This patch
+acepts regular expresions.
 
-My thought is that perhaps it would be better to reinstate my
-original "--hex-string" option and leave the "--string" option to
-just take input as-is.  The --hex-string option would be flexible
-in the same way the patch is by allowing hex and ascii chars to
-be mixed.
+For example:
 
-What do people think?
+iptables -A INPUT -m string --string '"GET"[0-9]"HTTP"' -j LOG
 
---Mike
+If some package includes the string: GET ???????8????????? HTTP
+the system will write in log file.
 
-Michael Rash
-http://www.cipherdyne.com
-Key fingerprint = 53EA 13EA 472E 3771 894F  AC69 95D8 5D6B A742 839F
+It's a good idea, for firewalls between WAN network (Internet) and LAN
+network where exists some IIS server (Internet Information Servers).
+This server are great bugs when received bad requests like:
+
+"http://www.servidor.com/msadc/..%c0%af../..%c0%af../..%c0%af../winnt/system32/cmd.exe?/c+dir+c:\"
+attack with Unicodes
+
+
+GET http://<ipaddress>/default.ida?NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN%u9090%u6858%ucbd3%u7
+801%u9090%u6858%ucbd3%u7801%u9090%u6858%ucbd3%u7801%u9090%u9090%u8190%
+u00c3%u0003%u8b00%u531b%u53ff%u0078%u0000%u00=a HTTP/1.0
+Red Code Virus.
+
+this solution can be apply to diferents kind servers.
+
+
+What do people think? Is a good idea?
+
+
+Thanks for read this (my) email.
+
+
+___________________________________________________
+Yahoo! Móviles
+Personaliza tu móvil con tu logo y melodía favorito 
+en http://moviles.yahoo.es
