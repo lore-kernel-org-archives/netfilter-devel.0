@@ -1,14 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: conntrack-acct patch
-Date: Fri, 23 Jul 2004 02:32:54 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Multicast & iptables
+Date: Thu, 22 Jul 2004 19:57:10 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <41005CB6.9070400@trash.net>
+Message-ID: <20040722235709.GT27487@obroa-skai.de.gnumonks.org>
+References: <62095.217.169.232.210.1089106503.squirrel@hupie.xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
+To: Ferry Huberts <ferry@hupie.com>
+Content-Disposition: inline
+In-Reply-To: <62095.217.169.232.210.1089106503.squirrel@hupie.xs4all.nl>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,14 +21,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
+On Tue, Jul 06, 2004 at 11:35:03AM +0200, Ferry Huberts wrote:
+> Hello guys & gals
 
-I have a question about the conntrack-acct patch. Why is accounting
-done with timer refreshing ? Is it just because the function already
-takes ip_conntrack_lock ? I think accounting should be done in the
-core after the conntrack protocol accepted the packet, instead of
-adding side-effects to ip_ct_refresh, which might even need some
-no-account flag one day for things like ctnetlink.
+as connection tracking doesn't support multicast, iptable_nat doesn't
+support multicast either.
 
-Regards
-Patrick
+-- 
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+============================================================================
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
