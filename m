@@ -1,16 +1,17 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [RFC] string matching based packet classification/filtering
-Date: Wed, 16 Feb 2005 23:30:38 +0100
-Message-ID: <20050216223038.GQ31837@postel.suug.ch>
-References: <20050215203211.GL31837@postel.suug.ch>
-	<42126C9B.5060406@eurodev.net>
+From: Samuel Jean <sj-netfilter@cookinglinux.org>
+Subject: Re: Suggestions for some patch-o-matic extensions (comment, ipp2p,
+ random, etc...)
+Date: Wed, 16 Feb 2005 19:00:16 -0500
+Message-ID: <4213DE90.7060106@cookinglinux.org>
+References: <4213C6FD.5080705@arcoscom.com> <4213CF7F.6060901@arcoscom.com>
+	<4213D403.3000202@cookinglinux.org> <4213DB25.1080604@arcoscom.com>
+Reply-To: sjean@cookinglinux.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
-	Harald Welte <laforge@gnumonks.org>
-To: Pablo Neira <pablo@eurodev.net>
-Content-Disposition: inline
-In-Reply-To: <42126C9B.5060406@eurodev.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
+To: =?ISO-8859-1?Q?Samuel_D=EDaz_Garc=EDa?= <samueldg@arcoscom.com>
+In-Reply-To: <4213DB25.1080604@arcoscom.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,38 +23,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Actually I wanted to contact Harald after this friday, once I'm done 
-> with my exams. I'd like to merge my work with his libqsearch hackings 
-> that were about to be finished.
+Samuel Díaz García wrote:
+> Well, I have 3 iptables extensions patched for the use with iptables 1.3.0.
+> 
+> libipt_comment.c
+> libipt_ipp2p.c
+> libip6t_random.c
+> 
+> They are compiling fine now (after I done some changes in the "struct 
+> iptables_match" variable definition.
+> 
+> The way to correct compile errors is revise the "struct iptables_match" 
+> variable definition.
 
-Thinking about it, we can use the architecture to implement a regular
-expression match. The pattern would consist of an array of tokens
-in the form of:
+Please take a look at :
+https://lists.netfilter.org/pipermail/netfilter-devel/2005-February/018468.html
 
-struct regexp_token
-{
-	__u8 type;
-	__u8 recur;
-	__u8 value;
-	__u8 unused;
-};
+comment and ipp2p are done yet.
 
-where type would be
-  - specific character (must match `value')
-  - wildcard
-  - digit
-  - xdigit
-  - alpha ...
+Patch for 6_random is, I guess, welcome.
 
-and recur
- - 1
- - 0..1
- - 0..n
- - 1..0
+ > [...]
+> 
+>    Samuel Díaz García
+>     Director Gerente
+> ArcosCom Wireless, S.L.L.
 
-The matching algorithm would parse the array as a finite automation
-eating up byte by byte in the text. I think it would be efficient
-enough, easy to implement, not too error prone and powerful enough
-for most needs but we can discuss this in more details once libqsearch
-is ready. It would be one step closer to the increasing need for 
-application level based filtering and classification.
+
+Best regards,
+Samuel
