@@ -1,17 +1,15 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: [PATCH] remove exessive timer updates (3/4)
-Date: 08 Jun 2002 17:03:36 +0200
+From: Ben Reser <ben@reser.org>
+Subject: Re: Security flaw in Stateful filtering ??????
+Date: Sat, 8 Jun 2002 09:41:20 -0700
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <1023548616.19835.59.camel@tux>
-References: <1023365846.845.26.camel@tux>
-	<20020608073733.GB1109@naboo.de.gnumonks.org>
+Message-ID: <20020608164120.GQ28055@titanium.brain.org>
+References: <E17G6im-0000FK-00@wagner.rustcorp.com.au> <3D006B9E.1040809@cs.auc.dk> <20020607220256.GT28055@titanium.brain.org> <3D016866.3090304@cs.auc.dk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.samba.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20020608073733.GB1109@naboo.de.gnumonks.org>
+To: netfilter-devel@lists.samba.org
+Content-Disposition: inline
+In-Reply-To: <3D016866.3090304@cs.auc.dk>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -22,32 +20,25 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 2002-06-08 at 09:37, Harald Welte wrote:
- 
-> ah. now I understand what the exporting was all about :)
+On Sat, Jun 08, 2002 at 04:13:58AM +0200, Emmanuel Fleury wrote:
+> If I have to fix the documentation, I would like to understand the
+> exact behaviour of the connection tracking module.
+> 
+> My point is not to go "on and on and on", but "deeper and deeper
+> and deeper". Once I reach to right amount of knowledge about it,
+> I will fix it (or I will make it so clear that anybody which
+> has followed the thread will be abble to fix it).
+> 
+> Is it ok ?
 
-:)
- 
-> sounds interesting and should give quite some speedup.  Did you do any
-> benchmarking on that?
-
-I need to get a slower test-router so I can benchmark properly :(
-
-I need to get a very old pentium or high-end 486 with PCI.
-
-I implemented this a while ago and then accidentally lost the sourcetree
-but I did do some profiling which I can't find now :(
-
-A similar thing was recently done in VFS in kernel 2.5 for the atime
-updates and it gave a very nice speedup, I doubt the speedup will be as
-large here since the timer handling is a lot faster than disk-io.
-
-I'm currently in the process of going through the locking in conntrack
-to try and make it more scalable (splitting ip_conntrack_lock) and
-trying to fix things I find.
+Sorry I was a bit cranky yesterday.  Things wore thin on me...
+But I still think this has ben discussed to death and not just this time
+either.
 
 -- 
-/Martin
+Ben Reser <ben@reser.org>
+http://ben.reser.org
 
-Never argue with an idiot. They drag you down to their level, then beat
-you with experience.
+We tend to see all wars through the lens of the current conflict, and we
+mine history for lessons convenient to the present purpose.
+- Brian Hayes
