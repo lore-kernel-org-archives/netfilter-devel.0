@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: mangle MSS via tcp_manip_pkt() in ip_nat_proto_tcp.c [patch]
-Date: Fri, 25 Jul 2003 22:50:21 +0200
+Subject: Re: about netfilter priority
+Date: Fri, 25 Jul 2003 22:50:29 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030725205020.GZ3244@sunbeam.de.gnumonks.org>
-References: <BE229ADC976AC343830DFF9BC159FAEB011E46AA@KUEXCHANGE.kvhinternal.kvhi>
+Message-ID: <20030725205029.GB3244@sunbeam.de.gnumonks.org>
+References: <1057760867.2143.15.camel@sonata>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3fquP/57BBR2yLsK"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="DQ8UAJma2QEM50Gm"
+Cc: ml_linux-net <linux-net@vger.kernel.org>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Michael Glaum <mglaum@kvh.com>
+To: Yuan ChunYang <cyyuanml@sonata.iscas.ac.cn>
 Content-Disposition: inline
-In-Reply-To: <BE229ADC976AC343830DFF9BC159FAEB011E46AA@KUEXCHANGE.kvhinternal.kvhi>
+In-Reply-To: <1057760867.2143.15.camel@sonata>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,27 +24,30 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---3fquP/57BBR2yLsK
+--DQ8UAJma2QEM50Gm
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 18, 2003 at 10:57:05AM -0400, Michael Glaum wrote:
+Hi!
 
-> I tried several things, e.g. pathMTU, etc but in view of severe time
-> constraints I decided to HACK tcp_manip_pkt() in ip_nat_proto_tcp.c
-> so that when it does source and destination address translation it also
-> drops the MSS on outgoing and incoming packets to be below 1360. This
-> appears to work. I didn't even bother to check if the packets had
-> tcphdr->syn =3D=3D1 set.
+On Wed, Jul 09, 2003 at 10:27:48PM +0800, Yuan ChunYang wrote:
 >=20
-> Please advise if there is a more elegant way to do this!
+> As we know ,netfilter supply seven priorities,
+>         NF_IP_PRI_FIRST =3D INT_MIN,
+>         NF_IP_PRI_CONNTRACK =3D -200,
+>         NF_IP_PRI_MANGLE =3D -150,
+>         NF_IP_PRI_NAT_DST =3D -100,
+>         NF_IP_PRI_FILTER =3D 0,
+>         NF_IP_PRI_NAT_SRC =3D 100,
+>         NF_IP_PRI_LAST =3D INT_MAX,
+>=20
+> 1.Can somebody can tell me how to use this priority?
 
-Use the TCPMSS target  (iptables -j TCPMSS -h).
+The priority determines the order in which registered functions are
+called [in case you have multiple functions registered at one hook].
 
-> 								Michael Glaum
-> 								KVH Industries
-
+> Please help me!
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -54,16 +58,16 @@ Use the TCPMSS target  (iptables -j TCPMSS -h).
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---3fquP/57BBR2yLsK
+--DQ8UAJma2QEM50Gm
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/IZgMXaXGVTD0i/8RAsuoAJ4qi8BTc/DjL92b9+h5BMikbYZ8awCgnqJg
-PdRCEmKGf+ja36X+vXUA4kg=
-=MX/F
+iD8DBQE/IZgVXaXGVTD0i/8RAi9KAKCSe0ANtbsw8TFjwHPRPX1DB/r4jQCgomMT
+U316CZCkX4Dzs6b4hp7pthE=
+=Rr3y
 -----END PGP SIGNATURE-----
 
---3fquP/57BBR2yLsK--
+--DQ8UAJma2QEM50Gm--
