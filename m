@@ -1,48 +1,78 @@
-From: Guillaume Morin <guillaume@morinfr.org>
-Subject: Re: [RFC] ipt_REJECT.c - option to use different ICMP source address
-Date: Tue, 5 Nov 2002 10:18:53 +0100
-Sender: bridge-admin@math.leidenuniv.nl
-Message-ID: <20021105091853.GB576@siri>
-References: <20021102153451.N8635@sunbeam.de.gnumonks.org> <200211022032.46007.bart.de.schuymer@pandora.be> <20021104092757.C8635@sunbeam.de.gnumonks.org> <200211042343.19949.bart.de.schuymer@pandora.be>
+From: Kevin McConnell <kevymac@yahoo.com>
+Subject: Re: RFC 2694 and iptables
+Date: Tue, 5 Nov 2002 11:26:31 -0800 (PST)
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <20021105192631.82028.qmail@web40301.mail.yahoo.com>
+References: <3DC78B1B.2050805@gemplus.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: Harald Welte <laforge@gnumonks.org>,
-   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-   bridge@math.leidenuniv.nl, Pekka Savola <pekkas@netcore.fi>
-Return-path: <bridge-admin@math.leidenuniv.nl>
-To: Bart De Schuymer <bart.de.schuymer@pandora.be>
-Content-Disposition: inline
-In-Reply-To: <200211042343.19949.bart.de.schuymer@pandora.be>
-Errors-To: bridge-admin@math.leidenuniv.nl
-List-Help: <mailto:bridge-request@math.leidenuniv.nl?subject=help>
-List-Post: <mailto:bridge@math.leidenuniv.nl>
-List-Subscribe: <http://www.math.leidenuniv.nl/mailman/listinfo/bridge>,
-	<mailto:bridge-request@math.leidenuniv.nl?subject=subscribe>
-List-Unsubscribe: <http://www.math.leidenuniv.nl/mailman/listinfo/bridge>,
-	<mailto:bridge-request@math.leidenuniv.nl?subject=unsubscribe>
-List-Archive: <http://www.math.leidenuniv.nl/pipermail/bridge/>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Didier Tournier <Didier.TOURNIER@gemplus.com>
+In-Reply-To: <3DC78B1B.2050805@gemplus.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Bart,
 
-Dans un message du 04 Nov =E0 23:43, Bart De Schuymer =E9crivait :
-> So, if I were to implement code inside ipt_REJECT.c (for 2.5) that
-> checks if the packet is being bridged and we are on the NF_IP_FORWARD
-> hook. And if so, it uses the destination address of the original
-> packet as the source address of the ICMP message. Would this then be
-> accepted (if it looks ok)?  Ofcourse, this code would only be compiled
-> if the bridge is enabled.
+--- Didier Tournier <Didier.TOURNIER@gemplus.com>
+wrote:
 
-Something in the patch-o-matic already does that. Look at
-http://www.netfilter.org/documentation/pomlist/pom-userspace.html#ipt_REJ=
-ECT-fake-source
+> The application is a way to manage mobile servers in
+> a private area.
+> We want to allow any client residing on the internet
+> to connect any 
+> server in a private zone.
+> This could be done by using Bind9 but....
+> We also have to know that we have a lot of servers
+> and only few public 
+> address (IPV4).
+> In the bind9 documentation I didn't saw the way to
+> update the zone files 
+> dynamically (for the public adress of course), and
+> the lonely way to 
+> predict a future connection can be done by the DNS
+> itself.
 
-I guess you would just need to slightly modify it.
+You mean that you want to be able to assign fully
+qualified domain names to mobile hosts on the
+internet, dynamically no matter where they connect
+from but you want to be able to make sure that only
+those hosts which are allowed to do this have
+authority to do this. Does this sound correct? If so,
+then you can do this without an IPtables module. Your
+solution is to setup bind on the mobile hosts
+themselves and allow them to connect to your
+nameservers using rndc keys.
 
-Regards,
+> If I missed something in the Bind doc, let me know.
+> In the RFC 2694, the DNS request is used to predict
+> that a connection 
+> will be required on a specific host, and to
+> configure the NAT. The 
+> response TTL have also to be set (or reset) to 0.
+> Most of time, I compare that need with what a NAP-PT
+> does, because 
+> there's a need for a DNS-ALG too.
 
---=20
-Guillaume Morin <guillaume@morinfr.org>
+Are you saying that your mobile hosts are going to
+connect to your internal network using assigned RFC
+1918 addresses via ppp or something like this... I am
+still unsure of what you are trying to accomplish, but
+I am sure that if you check out the bind-* lists you
+might find some more useful help there....
 
-                       Pastis servi, pastis bu (Patrice)
+
+=====
+Kevin C. McConnell --RHCE-- <Red Hat Certified Engineer>
+
+__________________________________________________
+Do you Yahoo!?
+HotJobs - Search new jobs daily now
+http://hotjobs.yahoo.com/
