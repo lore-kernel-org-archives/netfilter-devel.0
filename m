@@ -1,17 +1,14 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] Orphaned expectations
-Date: Thu, 22 Apr 2004 00:54:15 +0200
+Subject: [PATCH] locking issue in __unexpect_related
+Date: Thu, 22 Apr 2004 01:05:23 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4086FB97.9020902@eurodev.net>
-References: <Pine.LNX.4.44.0404211215030.726-100000@chris.camcom.co.uk>
+Message-ID: <4086FE33.3020804@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------030104080903060602000401"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Chris Wilson <chris@netservers.co.uk>,
- Phil Oester <kernel@linuxace.com>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.44.0404211215030.726-100000@chris.camcom.co.uk>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+ Harald Welte <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,37 +19,43 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Chris,
+This is a multi-part message in MIME format.
+--------------030104080903060602000401
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Chris Wilson wrote:
+Hi Harald and list,
 
->>So now, with only an udp packet, we have a conntrack which is not 
->>confirmed with an expectation associated, and as Phil pointed out, if 
->>this conntrack is destroyed the expectation keeps there forever.
->>    
->>
->
->Thanks very much for your explanation. So, to prevent this from happening, 
->what is the best thing to do?
->
->1. Audit all helpers to check that they don't create expectations to 
->unconfirmed conntracks
->  
->
+In the function __unexpect_related:
 
-I think that this assumption is wrong for udp based helpers. When 
-connection tracking sees udp packet which has a helper associated for 
-first time, a conntrack (not confirmed yet) and its respective 
-expectation are created, and surely this conntrack will be confirmed later.
+         /* delete from global and local lists */
+         list_del(&expect->list);
+         list_del(&expect->expected_list);
 
->2. Modify destroy_conntrack to destroy any associated expectations, 
->whether or not the conntrack is confirmed (presumably right now it only 
->does so if the conntrack is confirmed? hence the problem?)
->  
->
-
-yes, I think that Phil's solution is ok, this could also prevent any 
-other weird combinations.
+If an entry of the global list of expectation is erased, shouldn't this 
+operation be write_lock'ed? If missing something, please let me know.
 
 regards,
 Pablo
+
+--------------030104080903060602000401
+Content-Type: text/plain;
+ name="unexpect_related-lock.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="unexpect_related-lock.patch"
+
+--- linux-2.6.3-old/net/ipv4/netfilter/ip_conntrack_core.c	2004-04-14 21:32:58.000000000 +0200
++++ linux-2.6.3/net/ipv4/netfilter/ip_conntrack_core.c	2004-04-22 00:55:42.000000000 +0200
+@@ -226,7 +226,9 @@
+ 	IP_NF_ASSERT(!expect->sibling);
+ 
+ 	/* delete from global and local lists */
++	WRITE_LOCK(&ip_conntrack_expect_list);
+ 	list_del(&expect->list);
++	WRITE_UNLOCK(&ip_conntrack_expect_list);
+ 	list_del(&expect->expected_list);
+ 
+ 	/* decrement expect-count of master conntrack */
+
+--------------030104080903060602000401--
