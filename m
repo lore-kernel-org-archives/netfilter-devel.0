@@ -1,17 +1,19 @@
-From: "Emiel Mols" <emiel@fulgor-hosting.nl>
-Subject: RE: IPSEC and NAT
-Date: Sat, 16 Oct 2004 08:53:41 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [nf-failover] [PATCH] Numerous ct_sync updates.
+Date: Sat, 16 Oct 2004 10:12:40 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <E1CIiRl-0001Ak-00@deer.gmane.org>
-References: <1097892588.2748.84.camel@localhost>
+Message-ID: <20041016081240.GD29413@sunbeam.de.gnumonks.org>
+References: <20041014191624.GH12694@obroa-skai.de.gnumonks.org>
+	<1097849367.2498.107.camel@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="pZs/OQEoSSbxGlYw"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Netfilter-failover list <netfilter-failover@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "'John A. Sullivan III'" <john.sullivan@nexusmgmt.com>
-In-Reply-To: <1097892588.2748.84.camel@localhost>
+To: KOVACS Krisztian <hidden@balabit.hu>
+Content-Disposition: inline
+In-Reply-To: <1097849367.2498.107.camel@nienna.balabit>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,101 +24,89 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Well, then I suppose it would depend on exactly what the problem is. 
-> I'm quite new to the 2.6 IPSec implementation so I might be quite wrong
-> but I will share my thoughts.
->
-> If the problem is just that the ESP packets (I assume that's what you
-> are using) need to be from the one address, I would think the solution
-> is quite simple.  The SA and SP will define the end points just as they
-> are - using your assigned address.  The SP would change the inside
-> source to your subnet rather than your external IP address.
->
-> If the problem is that the SP on the other side will only allow the
-> decrypted packet to be from the one assigned IP, then, I would think,
-> you have some limitations.  I would think that you could initiate
-> traffic into the tunnel from your side.  I would not think that you
-> could initiate traffic from the other side.
 
-It is not necessary to initiate traffic from the other side, however, if
-SNAT'ing in POSTROUTING works, I can also 'map' ports to internal ip
-addresses, like in ordinary NAT'ing.
+--pZs/OQEoSSbxGlYw
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->
-> I had briefly looked into this for my work on the ISCS network security
-> management project (http://iscs.sourceforge.net) because we use the
-> *swan virtual interfaces to implement the technology that allows us to
-> use out-of-band forms of user authentication throughout the entire VPN
-> WAN.  I recall that the initial implementation of the 2.6 IPSec only
-> passed through the netfilter hooks once.  Thus, by the time it hit the
-> POSTROUTING chain of the nat table, it was already encrypted and that
-> would break your scenario.  However, I think that has either been
-> changed, is in the process of being changed or is changed by a PoM
-> patch.  I'm sure someone on this list can clarify that.  The idea of the
-> change is that the packet would be processed completely once unencrypted
-> and then completely again encrypted.
+On Fri, Oct 15, 2004 at 04:09:27PM +0200, KOVACS Krisztian wrote:
+> 2004-10-14, cs keltez=E9ssel 21:16-kor Harald Welte ezt =EDrta:
+> > - comment out INITSYNC_FOLLOWS code, it shouldn't be needed anymore
+>=20
+>   Yes, it's obsolete now that MASTER_ANNOUNCE is sent before each
+> initial resync. If the end of an initsync run would be signalled as well
+> (by always sending the empty update message for example) the following
+> code could be obsoleted as well (it is a hack, after all):
 
-Indeed, the problem is that the packets get encrypted before reaching
-POSTROUTING. I've managed the patch you're referring to:
+the end is not explicitly signalled.  At the moment we just have a flag
+indicating whether the message is part ofan initsync or not.  I have to=20
+think about this.  Maybe another flag set in the last message (F_DONE)
+to indicate this is the last msg of a dump.
 
-router linux # cat ../patch-o-matic-ng-20040621/ipsec-01-output-hooks/help
-[NETFILTER+IPSEC 1/4]
+>   Hmm, the log message does not seem to be correct, CT_SYNC_INFO should
+> be _after_ setting csr->seqno to the new value.=20
 
-This patch adds new output hooks for IPsec. Packets traverse the hooks like
-this:
+Yes, I'll fix that.
 
-1. -> (plain) FORWARD   -> POST_ROUTING -> (encrypted) LOCAL_OUT ->
-POST_ROUTING
-2. -> (plain) LOCAL_OUT -> POST_ROUTING -> (encrypted) LOCAL_OUT ->
-POST_ROUTING
+> And because the master announcement is now sent without incrementing
+> the sender's seqno (which is correct in my opinion), we really have to
+> subtract 1 in the second part, don't we?
 
-However, I can't get it patched on 2.6.8.1 (about 5 rejects) and 2.6.7 (1
-reject). This patch is just what I need, but further downgrading isn't an
-option. Has anyone succeeded with this patch in a recent 2.6 kernel?
+It worked here... I spent quite some amount of time debugging sequence
+number issues and it turned out that we always announced a wrong
+sequence number, since the seqno was incremented at the time we enqueued
+packets into the ring.
 
->
-> If that is the case then you should be able to SNAT the packet and then
-> encrypt it.  The part where I'm a little hazy (I've never tried this) is
-> how to tell the kernel to encrypt the packet after SNAT.  I would think
-> one needs an SP which defines both internal addresses, i.e., the
-> internal addresses of both sides of the connection.  Here is where my
-> knowledge runs thin so I'll just spew ideas in the hope that someone
-> more knowledgeable will correct me and we'll all learn.
->
-> If your original address is a.a.a.a/n and the other side is z.z.z.z/n
-> and your assigned address is b.b.b.b, the other side will have a
-> Security Policy between b.b.b.b and z.z.z.z/n.  If you define an SP on
-> your side between a.a.a.a/n and z.z.z.z/n, I would think that sets the
-> stage for netfilter to pass the packet to IPSec for encryption and a
-> second pass through netfilter.  However, I think the phase II
-> negotiation will fail because your policy is a.a.a.a/n <-> z.z.z.z/n and
-> the other side is b.b.b.b <-> z.z.z.z/n.
+>   I have some updates as well, I'll commit them if I find the time
+> needed to do some basic testing. (Mostly trivial ones not affecting
+> normal operation at all...)
 
-The Security policies are assigned by isakmpd and if I change the local and
-remote address/netmask, negotiation fails.
+Ok.
 
->
-> If you create an SP of b.b.b.b <-> z.z.z.z/n on your side, since the
-> packet did not start processing as b.b.b.b until after its first pass
-> through netfilter, I do not know if netfilter would know that it has to
-> be passed to IPSec for encryption.
->
-> I wonder if you could create an SP of 0.0.0.0/0 <-> z.z.z.z/n.  I think
-> this would tell netfilter to send any packets for z.z.z.z/n to IPSec and
-> give you the chance to change the source address before it hits IPSec. 
-> My question would be what happens during phase II negotiation.  Do the
-> SPs have to match exactly in which case 0.0.0.0/0 <-> z.z.z.z/n does not
-> match b.b.b.b <-> z.z.z.z/n? Or does it just not need to conflict in
-> which case b.b.b.b <-> z.z.z.z/n is contained within 0.0.0.0/0
-> <->z.z.z.z/n, does not conflict and would thus result in a successful
-> phase II? I'd imagine if anyone in the world knows that answer, they are
-> on this mailing list :-)
->
-> I think you're out of luck for traffic initiated from the other side as
-> it would have no idea of where to send the decrypted packet.
->
-> This must surely be a case of the blind leading the sight impaired! I
-> hope it has at least sparked some useful thoughts in your mind - John
->
+>   BTW, I think the protocol/ct_sync needs some more work. At the moment,
+> it is not possible for a single node to be part of more sync groups, and
+> this is a problem if you try to use ct_sync in a typical VRRP setup...
 
-Thanks for your insights; it surely helped me get closer to a solution.
+yes, I agree.
+
+However, at the moment I can still have the master (of a
+2-identical-node setup) generate too many state packets for the slave to
+process.  If I look on the wire, I see the messages, but the slave
+apparently doesn't get them and sends NACK). =20
+
+running nmap through your ct_sync cluster seems to be enough for that.
+I have to check where the problem is and find out what we can do about
+it :(
+
+>  Regards,
+>    Krisztian KOVACS
+
+btw: I've now ported the conntrack events to 2.6.x (see other mail), so
+porting ct_sync to 2.6.x should be fairly easy - although I think it
+should stabilize on 2.4.x first.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--pZs/OQEoSSbxGlYw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFBcNf4XaXGVTD0i/8RAvVnAJ44OwNtkO3R2gTQXL79K+iS1Bl6sACfa/nm
+Q+VBlxvkMu4lNyXuDFbm9HM=
+=ID3x
+-----END PGP SIGNATURE-----
+
+--pZs/OQEoSSbxGlYw--
