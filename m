@@ -1,16 +1,17 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH 1/4] RFC: fast string matching infrastrure for netfilter
-Date: Mon, 10 Jan 2005 00:19:00 +0100
-Message-ID: <41E1BBE4.9010104@eurodev.net>
-References: <41E1AECD.6020209@eurodev.net> <41E1B9F1.7010106@trash.net>
+Subject: Re: [PATCH 4/4] conntrack ftp helper modification to use new
+	infrastrure
+Date: Mon, 10 Jan 2005 00:31:08 +0100
+Message-ID: <41E1BEBC.3030703@eurodev.net>
+References: <41E1AEEF.9050005@eurodev.net> <41E1BC3B.5070101@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Harald Welte <laforge@netfilter.org>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <41E1B9F1.7010106@trash.net>
+In-Reply-To: <41E1BC3B.5070101@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,42 +23,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
-
 Patrick McHardy wrote:
 
->> I've finished a first usable version of a infrastructure to look for 
->> matchings in a packet. Features:
+>> #define MAX_PORTS 8
+>> static int ports[MAX_PORTS];
+>> static int ports_c;
+>> @@ -56,30 +56,35 @@
+>>     char skip;
+>>     char term;
+>>     enum ip_ct_ftp_type ftptype;
+>> +    struct nf_string_match *sm;
+>>  
 >>
->> * A library consisting in three public functions: constructor, 
->> destructor and searching.
->> * Boyer-moore algorithm to perform fast matchings.
->> * Brute force search on the edges of two fragments to look for 
->> fragmented matches, that is O(m) searchs where m is the size of the 
->> pattern, it's not that bad for small pattern I think. It's fragment 
->> aware by means of rusty's skb_iter functions.
 >
->
-> Looks good. A problem is that it's only in-tree user is part of 
-> ip_conntrack.
-> I have actually given up keeping nf_conntrack up to date currently, but
-> I hope we can now really put ip_conntrack in maintenance mode and 
-> concentrate
-> on nf_conntrack. Any chance you want to base this on the nf_conntrack 
-> patch ?
+> Why is is part of struct ftpsearch ? One struct nf_string_match per 
+> helper
+> should be enough as long as we take the global lock.
 
 
-Sure, I don't mind about porting this to nf_conntrack. Expect a patch in 
-next days.
+because the ftp helper looks for four different patterns. The goodshift 
+and badshift arrays required by the boyer-moore algorithm are different 
+for every pattern.
 
->> Comments welcome.
->
->
-> See below.
-
-
-I'll fix those leaks, thanks for those good catches. The module_init and 
-exit stuff is because I've compiling this as module and AFAIK I need them.
+Actually, I started a version using lists of nf_string_match to look for 
+a set of patterns iteratively but I finally decided to simplify the 
+thing. If someone finds this feature interesting I could recover it in 
+future.
 
 --
 Pablo
