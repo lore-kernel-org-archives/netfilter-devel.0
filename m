@@ -1,14 +1,12 @@
-From: Ludwig Nussel <ludwig.nussel@suse.de>
-Subject: [PATCH] iptables-batch
-Date: Mon, 6 Sep 2004 18:24:53 +0200
+From: Robert Hardy <rhardy@webcon.ca>
+Subject: Optimizing rule loading, iptables-1.3.0 and iptables-batch
+Date: Tue, 7 Sep 2004 00:45:10 -0400 (EDT)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040906162453.GA27149@suse.de>
+Message-ID: <Pine.LNX.4.61.0409070017220.23341@vortex.int.webcon.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bg08WKrSYDhXBjb5"
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,357 +17,86 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+I've been trying out various ways of optimizing the loading of large
+iptables rule sets.
 
---bg08WKrSYDhXBjb5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I recently tried out iptables-batch. It loaded 30000 iprange rules in
+roughly 26 minutes, on an fairly idle P4 2.4GHz w/ 1GB of ram. Obviously
+that it quite painful but I don't believe it is a reflection on how well
+iptables-batch works... It may be better than running a bunch of iptables
+commands in series from a shell script but I must admit I got bored and
+didn't finish the test without iptables-batch....
 
-Hi,
+iptables-batch has the advantage of being able to batch install a single
+chain (or part of a chain) of a table in a more optimal manner. This was
+sorely lacking in iptables-restore. Even when patched with the recent "fixes
+patch" off the devel list, iptables-restore still only allows you to save
+and restore whole tables.
 
-Shell scripts that need to generate a lot of filter rules spend
-quite some time forking iptables. The following patch implements
-"iptables-batch" and "ip6tables-batch" commands which read the rules
-to setup from a file. That's basically the same as iptables-restore
-since the hard work is done by do_command() anyways but the file
-format is exactly the same as when calling iptables from the shell,
-without special additional key words. Therefore all you have to do
-to make an existing shell script use iptables-batch is replacing
-"iptables" with "echo iptables", redirect the output to a file and
-run iptables-batch on it (for more complicated scripts use a shell
-function that adds quotes around arguments to protect spaces).
+Given some of the comments in CVS I because quite excited about iptables
+1.3.0. I took a CVS snapshot from 20040906 (all the automatic snapshot
+tarballs stopped on 2004/08/23 BTW.)
 
-cu
-Ludwig
+While it does compile nicely, it unforunately segfaults after every
+command. Even something simple like iptables -L with no rules loaded.
 
+Is there something I'm missing?
 
-Index: iptables-1.2.9/iptables-batch.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- /dev/null
-+++ iptables-1.2.9/iptables-batch.c
-@@ -0,0 +1,280 @@
-+/*
-+ * Author: Ludwig Nussel <ludwig.nussel@suse.de>
-+ *
-+ * Based on the ipchains code by Paul Russell and Michael Neuling
-+ *
-+ * (C) 2000-2002 by the netfilter coreteam <coreteam@netfilter.org>:
-+ * 		    Paul 'Rusty' Russell <rusty@rustcorp.com.au>
-+ * 		    Marc Boucher <marc+nf@mbsi.ca>
-+ * 		    James Morris <jmorris@intercode.com.au>
-+ * 		    Harald Welte <laforge@gnumonks.org>
-+ * 		    Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-+ *
-+ *	iptables -- IP firewall administration for kernels with
-+ *	firewall table (aimed for the 2.3 kernels)
-+ *
-+ *	See the accompanying manual page iptables(8) for information
-+ *	about proper usage of this program.
-+ *
-+ *	This program is free software; you can redistribute it and/or modify
-+ *	it under the terms of the GNU General Public License as published by
-+ *	the Free Software Foundation; either version 2 of the License, or
-+ *	(at your option) any later version.
-+ *
-+ *	This program is distributed in the hope that it will be useful,
-+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *	GNU General Public License for more details.
-+ *
-+ *	You should have received a copy of the GNU General Public License
-+ *	along with this program; if not, write to the Free Software
-+ *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#define _GNU_SOURCE
-+#include <stdio.h>
-+#include <ctype.h>
-+#include <stdlib.h>
-+#include <errno.h>
-+#include <string.h>
-+
-+#ifdef IP6T_LIB_DIR
-+#include <ip6tables.h>
-+#else
-+#include <iptables.h>
-+#endif
-+
-+static char* errstr =3D NULL;
-+
-+static char*
-+skipspace(char* ptr)
-+{
-+	while(*ptr && isspace(*ptr))
-+		++ptr;
-+	return ptr;
-+}
-+
-+static char*
-+getliteral(char** ptr)
-+{
-+	char* start =3D *ptr;
-+	char* p =3D start;
-+
-+	while(*p && !isspace(*p))
-+		++p;
-+
-+	if(*p)
-+	{
-+		*p =3D '\0';
-+		++p;
-+	}
-+
-+	*ptr =3D p;
-+	return start;
-+}
-+
-+static char*
-+getstring(char** ptr)
-+{
-+	char* start =3D *ptr+1; // skip leading "
-+	char* p =3D start;
-+	char* o =3D start;
-+	int backslash =3D 0;
-+	int done =3D 0;
-+
-+	while(*p && !done)
-+	{
-+		if(backslash)
-+		{
-+			backslash =3D 0;
-+			// no escapes supported, just eat the backslash
-+			*o++ =3D *p++;
-+		}
-+		else if(*p =3D=3D '\\')
-+		{
-+			backslash =3D 1;
-+			p++;
-+		}
-+		else if(*p =3D=3D '"')
-+		{
-+			done =3D 1;
-+		}
-+		else
-+		{
-+			*o++ =3D *p++;
-+		}
-+	}
-+
-+	if(done)
-+	{
-+		*o =3D '\0';
-+		*p =3D '\0';
-+		++p;
-+		*ptr =3D p;
-+	}
-+	else
-+	{
-+		errstr =3D "missing \" at end of string";
-+		start =3D NULL;
-+	}
-+	return start;
-+}
-+
-+static char*
-+getword(char** ptr)
-+{
-+	*ptr =3D skipspace(*ptr);
-+	if(**ptr =3D=3D '"')
-+		return getstring(ptr);
-+	return getliteral(ptr);
-+}
-+
-+// destructive
-+static int
-+tokenize(int* argc, char* argv[], size_t nargvsize, char* line)
-+{
-+	char* ptr =3D skipspace(line);
-+	int ret =3D 0;
-+	char* word;
-+
-+	while(ptr && *ptr)
-+	{
-+		if(*ptr =3D=3D '#')
-+			break;
-+		if(*argc >=3D nargvsize)
-+		{
-+			errstr =3D "too many arguments";
-+			ret =3D -1;
-+			break;
-+		}
-+		word =3D getword(&ptr);
-+		if(!word)
-+		{
-+			ret =3D -1;
-+			break;
-+		}
-+		argv[(*argc)++] =3D word;
-+		++ret;
-+	}
-+	return ret;
-+}
-+
-+static void
-+dumpargv(int argc, char* argv[])
-+{
-+	int i;
-+	for(i=3D0; i < argc; ++i)
-+	{
-+		printf("%s\"%s\"",i?" ":"", argv[i]);
-+	}
-+	puts("");
-+}
-+
-+static int
-+do_iptables(unsigned lineno, int argc, char* argv[])
-+{
-+	char *table =3D "filter";
-+	int ret =3D 0;
-+
-+#ifdef IP6T_LIB_DIR
-+	if(!strcmp(argv[0], "ip6tables"))
-+	{
-+		ip6tc_handle_t handle =3D NULL;
-+		ret =3D do_command6(argc, argv, &table, &handle);
-+		if (ret)
-+			ret =3D ip6tc_commit(&handle);
-+
-+		if (!ret)
-+			fprintf(stderr, "line %d: %s\n", lineno, ip6tc_strerror(errno));
-+	}
-+#else
-+	if(!strcmp(argv[0], "iptables"))
-+	{
-+		iptc_handle_t handle =3D NULL;
-+
-+		ret =3D do_command(argc, argv, &table, &handle);
-+		if (ret)
-+			ret =3D iptc_commit(&handle);
-+
-+		if (!ret)
-+			fprintf(stderr, "line %d: %s\n", lineno, iptc_strerror(errno));
-+	}
-+#endif
-+	else
-+	{
-+		fprintf(stderr, "line %d: invalid command '%s'\n", lineno, argv[0]);
-+	}
-+
-+	return ret;
-+}
-+
-+int
-+main(int argc, char *argv[])
-+{
-+	int ret =3D 1;
-+	size_t llen =3D 0;
-+	char* line =3D NULL;
-+	ssize_t r =3D -1;
-+	int nargc =3D 0;
-+	char* nargv[256];
-+	unsigned lineno =3D 0;
-+	FILE* fp =3D stdin;
-+
-+#ifdef IP6T_LIB_DIR
-+	program_name =3D "ip6tables-batch";
-+#else
-+	program_name =3D "iptables-batch";
-+#endif
-+	program_version =3D IPTABLES_VERSION;
-+
-+#ifdef NO_SHARED_LIBS
-+	init_extensions();
-+#endif
-+	if(argc > 1)
-+	{
-+		fp =3D fopen(argv[1], "r");
-+		if(!fp)
-+		{
-+			perror("fopen");
-+			exit(1);
-+		}
-+	}
-+
-+	while((r =3D getline(&line, &llen, fp)) !=3D -1)
-+	{
-+		if(llen < 1)
-+			continue;
-+		if(line[strlen(line)-1] =3D=3D '\n')
-+			line[strlen(line) -1 ] =3D '\0';
-+
-+		++lineno;
-+		nargc =3D 0;
-+		errstr =3D NULL;
-+		ret =3D tokenize(&nargc, nargv, (sizeof(nargv)/sizeof(nargv[0])), line);
-+		if(ret =3D=3D -1)
-+		{
-+		}
-+		else if (ret =3D=3D 0)
-+		{
-+			continue;
-+		}
-+		else if(nargc < 2)
-+		{
-+			errstr =3D "not enough arguments";
-+		}
-+
-+		if(errstr)
-+		{
-+			fprintf(stderr, "parse error in line %d: %s\n", lineno, errstr);
-+			ret =3D 0;
-+			break;
-+		}
-+
-+		ret =3D do_iptables(lineno, nargc, nargv);
-+		if(!ret) break;
-+		//dumpargv(nargc, nargv);
-+
-+	}
-+
-+	exit(!ret);
-+}
-Index: iptables-1.2.9/Makefile
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- iptables-1.2.9.orig/Makefile
-+++ iptables-1.2.9/Makefile
-@@ -102,6 +102,12 @@
- iptables: iptables-standalone.c iptables.o $(STATIC_LIBS) libiptc/libiptc.a
- 	$(CC) $(CFLAGS) -DIPT_LIB_DIR=3D\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(L=
-DLIBS)
-=20
-+iptables-batch: iptables-batch.c iptables.o $(STATIC_LIBS) libiptc/libiptc=
-=2Ea
-+	$(CC) $(CFLAGS) -DIPT_LIB_DIR=3D\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(L=
-DLIBS)
-+
-+ip6tables-batch: iptables-batch.c ip6tables.o $(STATIC6_LIBS) libiptc/libi=
-ptc.a
-+	$(CC) $(CFLAGS) -DIP6T_LIB_DIR=3D\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(=
-LDLIBS)
-+
- $(DESTDIR)$(BINDIR)/iptables: iptables
- 	@[ -d $(DESTDIR)$(BINDIR) ] || mkdir -p $(DESTDIR)$(BINDIR)
- 	cp $< $@
+Like a hidden kernel patch or some kind of kernel requirement I'm missing?
 
---=20
- (o_   Ludwig Nussel
- //\   SUSE LINUX AG, Development
- V_/_  http://www.suse.de/
+It may be pointless but here is a diff between the working and failing
+commands.
 
---bg08WKrSYDhXBjb5
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+With empty tables: strace -fF iptables-1.2.11 -L >& strace1211.log
+With empty tables: strace -fF iptables-1.3.0 -L >& strace130.log
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+iptables-1.3.0 segfaults
 
-iD8DBQFBPI9VI5RDGv+BNc4RAgjnAJ49wc9ftLyNnqYBAiRS7BqEVbpltgCfbu4d
-qS46etLFkO2hCDWuL5eV39Y=
-=f+fa
------END PGP SIGNATURE-----
+# diff -urNbB strace1211.log strace130.log
+--- strace1211.log      2004-09-06 22:48:12.253187032 -0400
++++ strace130.log       2004-09-06 22:47:48.442806760 -0400
+@@ -1,6 +1,6 @@
+execve("/sbin/iptables", ["iptables", "-L"], [/* 31 vars */]) = 0
+uname({sys="Linux", node="vortex.int.webcon.net", ...}) = 0
+-brk(0)                                  = 0x8054000
++brk(0)                                  = 0x8053000
+open("/etc/ld.so.preload", O_RDONLY)    = -1 ENOENT (No such file or directory)
+open("/etc/ld.so.cache", O_RDONLY)      = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=109104, ...}) = 0
+@@ -25,21 +25,13 @@
+set_thread_area({entry_number:-1 -> 6, base_addr:0xb7fe4880, limit:1048575, seg_32bit:1, contents:0, read_exec_only:0, limit_in_pages:1, seg_not_present:0, useable:1}) = 0
+munmap(0xb7fe5000, 109104)              = 0
+socket(PF_INET, SOCK_RAW, IPPROTO_RAW)  = 3
+-getsockopt(3, SOL_IP, 0x40 /* IP_??? */, "filter\0\301\1\0\0\0\10\335p\364\320\334p\364\0\0\0\0\0"..., [84]) = 0
+-brk(0)                                  = 0x8054000
+-brk(0x8075000)                          = 0x8075000
++getsockopt(3, SOL_IP, 0x40 /* IP_??? */, "filter\0\301\1\0\0\0\10\375K\331\320\374K\331\0\0\0\0\0"..., [84]) = 0
++brk(0)                                  = 0x8053000
++brk(0x8074000)                          = 0x8074000
+getsockopt(3, SOL_IP, 0x41 /* IP_??? */, "filter\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"..., [656]) = 0
+-fstat64(1, {st_mode=S_IFREG|0644, st_size=2230, ...}) = 0
++brk(0x8095000)                          = 0x8095000
++fstat64(1, {st_mode=S_IFREG|0644, st_size=2282, ...}) = 0
+mmap2(NULL, 131072, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xb7fc4000
+close(3)                                = 0
+-write(1, "Chain INPUT (policy ACCEPT)\ntarg"..., 273Chain INPUT (policy ACCEPT)
+-target     prot opt source               destination
+-
+-Chain FORWARD (policy DROP)
+-target     prot opt source               destination
+-
+-Chain OUTPUT (policy ACCEPT)
+-target     prot opt source               destination
+-) = 273
+-munmap(0xb7fc4000, 131072)              = 0
+-exit_group(0)                           = ?
++--- SIGSEGV (Segmentation fault) @ 0 (0) ---
+++++ killed by SIGSEGV (core dumped) +++
 
---bg08WKrSYDhXBjb5--
+Regards,
+Rob
+
+-- 
+---------------------"Happiness is understanding."----------------------
+Robert Hardy, B.Eng Computer Systems                  C.E.O. Webcon Inc.
+rhardy <at> webcon <dot> ca    GPG Key available          (613) 276-7327
