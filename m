@@ -1,16 +1,16 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: linux packet forwarding rate
-Date: Thu, 6 Mar 2003 08:13:36 +0100
+From: =?iso-8859-2?q?Micha=B3=20Margula?= <alchemyx@uznam.net.pl>
+Subject: Re: ip_conntrack
+Date: Thu, 6 Mar 2003 09:21:23 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030306071336.GE2829@oknodo.bof.de>
-References: <3E66F084.3F396F59@ie.cuhk.edu.hk>
+Message-ID: <200303060921.23809.alchemyx@uznam.net.pl>
+References: <200303040107.28400.alchemyx@uznam.net.pl> <200303052128.12562.alchemyx@uznam.net.pl> <20030305210652.GI4880@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Philip Ho <cbho@ie.cuhk.edu.hk>
-Content-Disposition: inline
-In-Reply-To: <3E66F084.3F396F59@ie.cuhk.edu.hk>
+To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20030305210652.GI4880@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,38 +21,28 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Mar 06, 2003 at 02:53:56PM +0800, Philip Ho wrote:
-> Dear all
-> 
-> I want to forward 1Gbps at line rate. Has anyone successfully used linux
-> to forward 1Gbps (assuming 1500 byte packet length, that is equivalent
-> to 80kpps) on gigabit ethernet?
+Dnia =B6ro 5. marzec 2003 22:06, Harald Welte napisa=B3:
+>
+> is there anything particular about the /proc/net/ip_conntrack entries?
+> like lots of UNREPLIED entries, ...?
+>
 
-Please ask again on a more suitable mailing list. The question has
-nothing to do with further development of iptables / netfilter.
-A suitable list may be:
+Main problem with ip_conntrack entries is that when I scan it, let say wi=
+th=20
+"wc -l" my network traffic stops for one or two minutes.
 
-http://www.uwsg.iu.edu/hypermail/linux/net/
+> > Please tell me how. Thank you!
+>
+> modinfo ip_conntrack
+>
+> please refer to the mailinglists(s), I cannot support all tens of
+> thousands of netfilter users on my own.
 
-Nevertheless, I'm sure the S/390, PowerPC, Sparc, Alpha, and HP/UX ports
-managed that for some years, now. Also high end four- and eight-processor
-x86 systems, may have made it.
+Sorry. Didn't notice it was comming directly to you.
+Another solution given by few people on other lists is to play with timeo=
+uts=20
+on ip_conntrack?
 
-BTW, with line rate, one usually means the absolute worst case line
-rate with SMALL packets. Also, Ethernet is full duplex nowadays,
-so the line rate of a single GE interface, at 2gbit/s, with 64 byte
-packets, would be roughly 4000000 (4 million) packets per second.
-
-On a (dual) Pentium-III 800Mhz system, on a 64/66 Mhz bus, I was able, about
-two years ago, to push slightly more than 700mbit/s (synthetic UDP)
-with jumbo frames, and I vaguely remember about 50000 packets per
-second a processing ceiling.
-
-Finally, the ONLY way to REALLY find out about these things, is to
-get some hardware, test software, UNDERSTAND WHAT IS TESTED, and
-the TEST!
-
-Oh, and on 99% of real life linux servers, it just doesn't matter at all.
-
-best regards
-  Patrick
+--=20
+Micha=B3 Margula, alchemyx@uznam.net.pl, http://alchemyx.uznam.net.pl/ +)
+"W =BFyciu pi=EAkne s=B1 tylko chwile" [Ryszard Riedel]
