@@ -1,17 +1,15 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: RAM and conntrack performance: first draft of the document is online
-Date: Mon, 1 Dec 2003 03:55:05 +0530
+Subject: [PATCH 2.4.23] pending ip_queue_maxlen fix
+Date: Sun, 30 Nov 2003 17:46:50 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031130222505.GB12920@obroa-skai.de.gnumonks.org>
-References: <20031126113645.GF3121@obroa-skai.de.gnumonks.org> <20031127033351.GC1084@eychenne.org>
+Message-ID: <20031130121650.GC1506@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jho1yZJdad60DJr+"
-Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="ey/N+yb7u/X9mFhi"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Herve Eychenne <rv@wallfire.org>
+To: David Miller <davem@redhat.com>
 Content-Disposition: inline
-In-Reply-To: <20031127033351.GC1084@eychenne.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,47 +21,61 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---jho1yZJdad60DJr+
+--ey/N+yb7u/X9mFhi
+Content-Type: multipart/mixed; boundary="vni90+aGYgRvsTuO"
+Content-Disposition: inline
+
+
+--vni90+aGYgRvsTuO
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 27, 2003 at 04:33:30AM +0100, Herve Eychenne wrote:
+Hi Dave!
 
-> > well, it might be a good idea.  but I somehow doubt this is a valid
-> > scenario.  And if we would shrink the list:  how do we select which
-> > entries to evict?
->=20
-> That seems relatively simple to me:
-> - reduce timeouts on every entries proportionally
-> - sort the entries by order of importance (state, timeout (time to
->   live), protocol (icmp ping/pong, udp, tcp), maybe unprivileged ports
->   matter less, etc.). Then evict "bad scores" first.
+Somehow the attached fix didn't make it into 2.4.23.  I thought I had
+submitted this before, but I must have be mistaken.  Anyway, please make su=
+re
+this included in 2.4.24.
 
-well, but how do you set those 'scores' or the 'importance'?  somebody
-running a packet filter in front of an important DNS server will care
-more about UDP than somebody else with a large ftp server.  And you
-definitely don't want to add a sophisticated user-configurable interface
-for this rare case.
+Thanks!
 
-I'd rather say we provide a mechanism for userspace: =20
-1) limiting ip_conntrack_max via sysctl()
-2) evicting entries via ctnetlink, based on whatever choice a userspace
-   program might want.
-
-> > I'd rather wait for ctnetlink to appear in mainstream
-> > kernels and then leave that to a userspace process.
->=20
-> Maybe such a job (probably happening while network is stressed) is
-> better done in kernel space? That doesn't seem so complicated...
-
-mh.  when the network is stressed you want to add addotional pressure by=20
-reducing the number of conntracks?  doesn't really sound like a
-reasonable thing to me.  Also, ordering and priorizing the list would
-have to be done with a WRITE_LOCK on ip_conntrack_lock... again
-something that wouldn'd be a wise thing if  your network is stressed.
-
->  Herve
+--- linux/net/ipv4/netfilter/ip_queue.c	2002-11-29 00:53:15.000000000 +0100
++++ linux-new/net/ipv4/netfilter/ip_queue.c	2003-11-04 16:46:54.000000000 +=
+0100
+@@ -581,12 +581,11 @@
+ 	0
+ };
+=20
+-static int sysctl_maxlen =3D IPQ_QMAX_DEFAULT;
+ static struct ctl_table_header *ipq_sysctl_header;
+=20
+ static ctl_table ipq_table[] =3D {
+-	{ NET_IPQ_QMAX, NET_IPQ_QMAX_NAME, &sysctl_maxlen,
+-	  sizeof(sysctl_maxlen), 0644,  NULL, proc_dointvec },
++	{ NET_IPQ_QMAX, NET_IPQ_QMAX_NAME, &queue_maxlen,
++	  sizeof(queue_maxlen), 0644,  NULL, proc_dointvec },
+  	{ 0 }
+ };
+=20
+--- linux/net/ipv6/netfilter/ip6_queue.c	2002-11-29 00:53:15.000000000 +0100
++++ linux-new/net/ipv6/netfilter/ip6_queue.c	2003-11-04 16:47:57.000000000 =
++0100
+@@ -624,12 +624,11 @@
+ 	0
+ };
+=20
+-static int sysctl_maxlen =3D IPQ_QMAX_DEFAULT;
+ static struct ctl_table_header *ipq_sysctl_header;
+=20
+ static ctl_table ipq_table[] =3D {
+-	{ NET_IPQ_QMAX, NET_IPQ_QMAX_NAME, &sysctl_maxlen,
+-	  sizeof(sysctl_maxlen), 0644,  NULL, proc_dointvec },
++	{ NET_IPQ_QMAX, NET_IPQ_QMAX_NAME, &queue_maxlen,
++	  sizeof(queue_maxlen), 0644,  NULL, proc_dointvec },
+  	{ 0 }
+ };
+=20
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -74,16 +86,60 @@ something that wouldn'd be a wise thing if  your network is stressed.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---jho1yZJdad60DJr+
+--vni90+aGYgRvsTuO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="88_ip_queue-maxlen.patch"
+Content-Transfer-Encoding: quoted-printable
+
+--- linux/net/ipv4/netfilter/ip_queue.c	2002-11-29 00:53:15.000000000 +0100
++++ linux-new/net/ipv4/netfilter/ip_queue.c	2003-11-04 16:46:54.000000000 +=
+0100
+@@ -581,12 +581,11 @@
+ 	0
+ };
+=20
+-static int sysctl_maxlen =3D IPQ_QMAX_DEFAULT;
+ static struct ctl_table_header *ipq_sysctl_header;
+=20
+ static ctl_table ipq_table[] =3D {
+-	{ NET_IPQ_QMAX, NET_IPQ_QMAX_NAME, &sysctl_maxlen,
+-	  sizeof(sysctl_maxlen), 0644,  NULL, proc_dointvec },
++	{ NET_IPQ_QMAX, NET_IPQ_QMAX_NAME, &queue_maxlen,
++	  sizeof(queue_maxlen), 0644,  NULL, proc_dointvec },
+  	{ 0 }
+ };
+=20
+--- linux/net/ipv6/netfilter/ip6_queue.c	2002-11-29 00:53:15.000000000 +0100
++++ linux-new/net/ipv6/netfilter/ip6_queue.c	2003-11-04 16:47:57.000000000 =
++0100
+@@ -624,12 +624,11 @@
+ 	0
+ };
+=20
+-static int sysctl_maxlen =3D IPQ_QMAX_DEFAULT;
+ static struct ctl_table_header *ipq_sysctl_header;
+=20
+ static ctl_table ipq_table[] =3D {
+-	{ NET_IPQ_QMAX, NET_IPQ_QMAX_NAME, &sysctl_maxlen,
+-	  sizeof(sysctl_maxlen), 0644,  NULL, proc_dointvec },
++	{ NET_IPQ_QMAX, NET_IPQ_QMAX_NAME, &queue_maxlen,
++	  sizeof(queue_maxlen), 0644,  NULL, proc_dointvec },
+  	{ 0 }
+ };
+=20
+
+--vni90+aGYgRvsTuO--
+
+--ey/N+yb7u/X9mFhi
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/ym5WXaXGVTD0i/8RAqYhAKC1ML+tF0zrwhHWVla52klWsubfNACfSRJi
-eLjOywy9QLpkigHRDoiY9v8=
-=Mk3j
+iD8DBQE/yd/HXaXGVTD0i/8RAsVpAJ9WSsv4QJ/AD3pfPXlmXS92mXmdNwCdFVhY
+XknWtqi//PgWSBFrj0f3Sys=
+=sNls
 -----END PGP SIGNATURE-----
 
---jho1yZJdad60DJr+--
+--ey/N+yb7u/X9mFhi--
