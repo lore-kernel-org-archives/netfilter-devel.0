@@ -1,7 +1,7 @@
-From: "David S. Miller" <davem@davemloft.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: TCP window tracking has bad side effects
-Date: Fri, 10 Dec 2004 12:32:52 -0800
-Message-ID: <20041210123252.6b2b82ed.davem@davemloft.net>
+Date: Fri, 10 Dec 2004 23:14:11 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0412102306310.15772@blackhole.kfki.hu>
 References: <20041201110253.GA9536@suse.de>
 	<Pine.LNX.4.58.0412011308520.27175@blackhole.kfki.hu>
 	<20041201153903.GA16807@suse.de>
@@ -9,13 +9,14 @@ References: <20041201110253.GA9536@suse.de>
 	<Pine.LNX.4.58.0412060934050.5880@blackhole.kfki.hu>
 	<20041209162656.GA9569@suse.de>
 	<Pine.LNX.4.58.0412101052450.14449@blackhole.kfki.hu>
+	<20041210123252.6b2b82ed.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-194515752-1102716654=:15772"
 Cc: netfilter-devel@lists.netfilter.org, ludwig.nussel@suse.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0412101052450.14449@blackhole.kfki.hu>
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20041210123252.6b2b82ed.davem@davemloft.net>
+Content-ID: <Pine.LNX.4.58.0412102311140.15772@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,81 +28,240 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 10 Dec 2004 11:03:29 +0100 (CET)
-Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-> Hi Ludwing,
-> 
-> On Thu, 9 Dec 2004, Ludwig Nussel wrote:
-> 
-> > Seems to work. The client machine no longer drops the packet and
-> > properly sends RST.
-> 
-> Thank you for the bug and test reports. Attached is the patch for kernel
-> inclusion by Dave: Patrick rewived the previous one and noted that a
-> condition was errorneously dropped - it's back now and a typo in logging
-> is fixed as well. If you run the previous code on a production machine,
-> please replace it with the new one.
+--110391808-194515752-1102716654=:15772
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
+Content-ID: <Pine.LNX.4.58.0412102311141.15772@blackhole.kfki.hu>
 
-Jozsef, btw, can I ask you to stop using whatever patch generating
-tool you use that removes trailing spaces?  It makes it so that I have
-to apply your patches by hand.
+On Fri, 10 Dec 2004, David S. Miller wrote:
 
-For example:
+> Jozsef, btw, can I ask you to stop using whatever patch generating
+> tool you use that removes trailing spaces?  It makes it so that I have
+> to apply your patches by hand.
 
-> @@ -552,8 +552,8 @@
->  			 * Both sides must send the Window Scale option
->  			 * to enable window scaling in either direction.
->  			 */
-> -			if (!(sender->flags & IP_CT_TCP_STATE_FLAG_WINDOW_SCALE
-> -			      && receiver->flags & IP_CT_TCP_STATE_FLAG_WINDOW_SCALE))
-> +			if (!(sender->flags & IP_CT_TCP_FLAG_WINDOW_SCALE
-> +			      && receiver->flags & IP_CT_TCP_FLAG_WINDOW_SCALE))
->  				sender->td_scale =
->  				receiver->td_scale = 0;
->  		} else {
+It's my MUA (pine, ughhh) which messes with the trailing spaces when
+the patch is included inline. Attached the patch instead and sorry.
 
-In the sources, there is a space at the end of the line
-with the "sender->td_scale =" assignment statement.  Yet
-in your patch, it is not there.
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
+--110391808-194515752-1102716654=:15772
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII; NAME="tcp-win-half-open.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.58.0412102310540.15772@blackhole.kfki.hu>
+Content-Description: tcp-win-half-open.patch
+Content-Disposition: ATTACHMENT; FILENAME="tcp-win-half-open.patch"
 
-Same thing here:
+ZGlmZiAtdXJOIC0tZXhjbHVkZS1mcm9tPS91c3Ivc3JjL2RpZmYuZXhjbHVk
 
-> @@ -876,7 +880,7 @@
->  		WRITE_UNLOCK(&tcp_lock);
->  		if (LOG_INVALID(IPPROTO_TCP))
->  			nf_log_packet(PF_INET, 0, skb, NULL, NULL,
-> -				  "ip_ct_tcp: invalid SYN (ignored) ");
-> +				  "ip_ct_tcp: invalid packet ignored ");
->  		return NF_ACCEPT;
->  	case TCP_CONNTRACK_MAX:
->  		/* Invalid packet */
+ZSBsaW51eC0yLjYuOS1vcmlnL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lw
 
-The "nf_log_packet(..." line should have a trailing space,
-yet you are patching against a line that does not have it.
+djQvaXBfY29ubnRyYWNrX3RjcC5oIGxpbnV4LTIuNi45LXRjcC13aW4vaW5j
 
-And finally it occurs a third time in this hunk.
+bHVkZS9saW51eC9uZXRmaWx0ZXJfaXB2NC9pcF9jb25udHJhY2tfdGNwLmgN
 
-> @@ -901,11 +905,12 @@
->  		break;
->  	case TCP_CONNTRACK_CLOSE:
->  		if (index == TCP_RST_SET
-> -		    && test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)
-> -		    && conntrack->proto.tcp.last_index <= TCP_SYNACK_SET
-> +		    && ((test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)
-> +		         && conntrack->proto.tcp.last_index <= TCP_SYNACK_SET)
-> +		        || conntrack->proto.tcp.last_index == TCP_ACK_SET)
->  		    && after(ntohl(th->ack_seq),
->  		    	     conntrack->proto.tcp.last_seq)) {
-> -			/* Ignore RST closing down invalid SYN
-> +			/* Ignore RST closing down invalid SYN or ACK
->  			   we had let trough. */
->  		    	WRITE_UNLOCK(&tcp_lock);
->  			if (LOG_INVALID(IPPROTO_TCP))
+Ci0tLSBsaW51eC0yLjYuOS1vcmlnL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVy
 
-The line with the "/* Ignore ..." comment should have a trailing
-space, yet it does not in what your patch is against.
+X2lwdjQvaXBfY29ubnRyYWNrX3RjcC5oCTIwMDQtMTAtMTggMjM6NTM6NTEu
 
-I've read recently that one of the commonly used patch
-generating tools removes the training spaces.  But whatever
-it is, please stop doing this :-)
+MDAwMDAwMDAwICswMjAwDQorKysgbGludXgtMi42LjktdGNwLXdpbi9pbmNs
+
+dWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0L2lwX2Nvbm50cmFja190Y3AuaAky
+
+MDA0LTEyLTA2IDA2OjUyOjA3LjAwMDAwMDAwMCArMDEwMA0KQEAgLTE4LDcg
+
+KzE4LDcgQEANCiB9Ow0KIA0KIC8qIFdpbmRvdyBzY2FsaW5nIGlzIGFkdmVy
+
+dGlzZWQgYnkgdGhlIHNlbmRlciAqLw0KLSNkZWZpbmUgSVBfQ1RfVENQX1NU
+
+QVRFX0ZMQUdfV0lORE9XX1NDQUxFCTB4MDENCisjZGVmaW5lIElQX0NUX1RD
+
+UF9GTEFHX1dJTkRPV19TQ0FMRQkJMHgwMQ0KIA0KIC8qIFNBQ0sgaXMgcGVy
+
+bWl0dGVkIGJ5IHRoZSBzZW5kZXIgKi8NCiAjZGVmaW5lIElQX0NUX1RDUF9G
+
+TEFHX1NBQ0tfUEVSTQkJMHgwMg0KZGlmZiAtdXJOIC0tZXhjbHVkZS1mcm9t
+
+PS91c3Ivc3JjL2RpZmYuZXhjbHVkZSBsaW51eC0yLjYuOS1vcmlnL25ldC9p
+
+cHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfcHJvdG9fdGNwLmMgbGludXgt
+
+Mi42LjktdGNwLXdpbi9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29ubnRyYWNr
+
+X3Byb3RvX3RjcC5jDQotLS0gbGludXgtMi42Ljktb3JpZy9uZXQvaXB2NC9u
+
+ZXRmaWx0ZXIvaXBfY29ubnRyYWNrX3Byb3RvX3RjcC5jCTIwMDQtMTAtMTgg
+
+MjM6NTU6MjkuMDAwMDAwMDAwICswMjAwDQorKysgbGludXgtMi42LjktdGNw
+
+LXdpbi9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29ubnRyYWNrX3Byb3RvX3Rj
+
+cC5jCTIwMDQtMTItMTAgMDg6NTI6NTUuMDAwMDAwMDAwICswMTAwDQpAQCAt
+
+MjczLDkgKzI3Myw5IEBADQogICoJc0NMIC0+IHNDTA0KICAqLw0KIC8qIAkg
+
+ICAgIHNOTywgc1NTLCBzU1IsIHNFUywgc0ZXLCBzQ1csIHNMQSwgc1RXLCBz
+
+Q0wsIHNMSQkqLw0KLS8qYWNrKi8JICAgeyBzSVYsIHNJViwgc0lWLCBzRVMs
+
+IHNDVywgc0NXLCBzVFcsIHNUVywgc0NMLCBzSVYgfSwNCisvKmFjayovCSAg
+
+IHsgc0lWLCBzSUcsIHNJViwgc0VTLCBzQ1csIHNDVywgc1RXLCBzVFcsIHND
+
+TCwgc0lWIH0sDQogLyoNCi0gKglzU1MgLT4gc0lWCUFDSyBpcyBpbnZhbGlk
+
+OiB3ZSBoYXZlbid0IHNlZW4gYSBTWU4vQUNLIHlldC4NCisgKglzU1MgLT4g
+
+c0lHCU1pZ2h0IGJlIGEgaGFsZi1vcGVuIGNvbm5lY3Rpb24uDQogICoJc1NS
+
+IC0+IHNJVglTaW11bHRhbmVvdXMgb3Blbi4NCiAgKglzRVMgLT4gc0VTCTot
+
+KQ0KICAqCXNGVyAtPiBzQ1cJTm9ybWFsIGNsb3NlIHJlcXVlc3QgYW5zd2Vy
+
+ZWQgYnkgQUNLLg0KQEAgLTQzNiw3ICs0MzYsNyBAQA0KIAkJCQkJc3RhdGUt
+
+PnRkX3NjYWxlID0gMTQ7DQogCQkJCX0NCiAJCQkJc3RhdGUtPmZsYWdzIHw9
+
+DQotCQkJCQlJUF9DVF9UQ1BfU1RBVEVfRkxBR19XSU5ET1dfU0NBTEU7DQor
+
+CQkJCQlJUF9DVF9UQ1BfRkxBR19XSU5ET1dfU0NBTEU7DQogCQkJfQ0KIAkJ
+
+CXB0ciArPSBvcHNpemUgLSAyOw0KIAkJCWxlbmd0aCAtPSBvcHNpemU7DQpA
+
+QCAtNTUyLDggKzU1Miw4IEBADQogCQkJICogQm90aCBzaWRlcyBtdXN0IHNl
+
+bmQgdGhlIFdpbmRvdyBTY2FsZSBvcHRpb24NCiAJCQkgKiB0byBlbmFibGUg
+
+d2luZG93IHNjYWxpbmcgaW4gZWl0aGVyIGRpcmVjdGlvbi4NCiAJCQkgKi8N
+
+Ci0JCQlpZiAoIShzZW5kZXItPmZsYWdzICYgSVBfQ1RfVENQX1NUQVRFX0ZM
+
+QUdfV0lORE9XX1NDQUxFDQotCQkJICAgICAgJiYgcmVjZWl2ZXItPmZsYWdz
+
+ICYgSVBfQ1RfVENQX1NUQVRFX0ZMQUdfV0lORE9XX1NDQUxFKSkNCisJCQlp
+
+ZiAoIShzZW5kZXItPmZsYWdzICYgSVBfQ1RfVENQX0ZMQUdfV0lORE9XX1ND
+
+QUxFDQorCQkJICAgICAgJiYgcmVjZWl2ZXItPmZsYWdzICYgSVBfQ1RfVENQ
+
+X0ZMQUdfV0lORE9XX1NDQUxFKSkNCiAJCQkJc2VuZGVyLT50ZF9zY2FsZSA9
+
+IA0KIAkJCQlyZWNlaXZlci0+dGRfc2NhbGUgPSAwOw0KIAkJfSBlbHNlIHsN
+
+CkBAIC01NjYsOSArNTY2LDExIEBADQogCQkJc2VuZGVyLT50ZF9tYXh3aW4g
+
+PSAod2luID09IDAgPyAxIDogd2luKTsNCiAJCQlzZW5kZXItPnRkX21heGVu
+
+ZCA9IGVuZCArIHNlbmRlci0+dGRfbWF4d2luOw0KIAkJfQ0KLQl9IGVsc2Ug
+
+aWYgKHN0YXRlLT5zdGF0ZSA9PSBUQ1BfQ09OTlRSQUNLX1NZTl9TRU5UDQot
+
+CQkgICAmJiBkaXIgPT0gSVBfQ1RfRElSX09SSUdJTkFMDQotCQkgICAmJiBh
+
+ZnRlcihlbmQsIHNlbmRlci0+dGRfZW5kKSkgew0KKwl9IGVsc2UgaWYgKCgo
+
+c3RhdGUtPnN0YXRlID09IFRDUF9DT05OVFJBQ0tfU1lOX1NFTlQNCisJCSAg
+
+ICAgJiYgZGlyID09IElQX0NUX0RJUl9PUklHSU5BTCkNCisJCSAgICB8fCAo
+
+c3RhdGUtPnN0YXRlID09IFRDUF9DT05OVFJBQ0tfU1lOX1JFQ1YNCisJCSAg
+
+ICAgICAgJiYgZGlyID09IElQX0NUX0RJUl9SRVBMWSkpDQorCQkgICAgJiYg
+
+YWZ0ZXIoZW5kLCBzZW5kZXItPnRkX2VuZCkpIHsNCiAJCS8qDQogCQkgKiBS
+
+RkMgNzkzOiAiaWYgYSBUQ1AgaXMgcmVpbml0aWFsaXplZCAuLi4gdGhlbiBp
+
+dCBuZWVkDQogCQkgKiBub3Qgd2FpdCBhdCBhbGw7IGl0IG11c3Qgb25seSBi
+
+ZSBzdXJlIHRvIHVzZSBzZXF1ZW5jZSANCkBAIC02ODUsNyArNjg3LDcgQEAN
+
+CiAJCQkiaXBfY3RfdGNwOiAlcyAiLA0KIAkJCWJlZm9yZShlbmQsIHNlbmRl
+
+ci0+dGRfbWF4ZW5kICsgMSkgPw0KIAkJCWFmdGVyKHNlcSwgc2VuZGVyLT50
+
+ZF9lbmQgLSByZWNlaXZlci0+dGRfbWF4d2luIC0gMSkgPw0KLQkJCWJlZm9y
+
+ZShhY2ssIHJlY2VpdmVyLT50ZF9lbmQgKyAxKSA/DQorCQkJYmVmb3JlKHNh
+
+Y2ssIHJlY2VpdmVyLT50ZF9lbmQgKyAxKSA/DQogCQkJYWZ0ZXIoYWNrLCBy
+
+ZWNlaXZlci0+dGRfZW5kIC0gTUFYQUNLV0lORE9XKHNlbmRlcikpID8gIkJV
+
+RyINCiAJCQk6ICJBQ0sgaXMgdW5kZXIgdGhlIGxvd2VyIGJvdW5kIChwb3Nz
+
+aWJseSBvdmVybHkgZGVsYXllZCBBQ0spIg0KIAkJCTogIkFDSyBpcyBvdmVy
+
+IHRoZSB1cHBlciBib3VuZCAoQUNLZWQgZGF0YSBoYXMgbmV2ZXIgc2VlbiB5
+
+ZXQpIg0KQEAgLTg0Nyw3ICs4NDksOSBAQA0KIA0KIAlzd2l0Y2ggKG5ld19z
+
+dGF0ZSkgew0KIAljYXNlIFRDUF9DT05OVFJBQ0tfSUdOT1JFOg0KLQkJLyog
+
+RWl0aGVyIFNZTiBpbiBPUklHSU5BTCwgb3IgU1lOL0FDSyBpbiBSRVBMWSBk
+
+aXJlY3Rpb24uICovDQorCQkvKiBFaXRoZXIgU1lOIGluIE9SSUdJTkFMDQor
+
+CQkgKiBvciBTWU4vQUNLIGluIFJFUExZDQorCQkgKiBvciBBQ0sgaW4gUkVQ
+
+TFkgZGlyZWN0aW9uIChoYWxmLW9wZW4gY29ubmVjdGlvbikuICovDQogCQlp
+
+ZiAoaW5kZXggPT0gVENQX1NZTkFDS19TRVQNCiAJCSAgICAmJiBjb25udHJh
+
+Y2stPnByb3RvLnRjcC5sYXN0X2luZGV4ID09IFRDUF9TWU5fU0VUDQogCQkg
+
+ICAgJiYgY29ubnRyYWNrLT5wcm90by50Y3AubGFzdF9kaXIgIT0gZGlyDQpA
+
+QCAtODc2LDcgKzg4MCw3IEBADQogCQlXUklURV9VTkxPQ0soJnRjcF9sb2Nr
+
+KTsNCiAJCWlmIChMT0dfSU5WQUxJRChJUFBST1RPX1RDUCkpDQogCQkJbmZf
+
+bG9nX3BhY2tldChQRl9JTkVULCAwLCBza2IsIE5VTEwsIE5VTEwsIA0KLQkJ
+
+CQkgICJpcF9jdF90Y3A6IGludmFsaWQgU1lOIChpZ25vcmVkKSAiKTsNCisJ
+
+CQkJICAiaXBfY3RfdGNwOiBpbnZhbGlkIHBhY2tldCBpZ25vcmVkICIpOw0K
+
+IAkJcmV0dXJuIE5GX0FDQ0VQVDsNCiAJY2FzZSBUQ1BfQ09OTlRSQUNLX01B
+
+WDoNCiAJCS8qIEludmFsaWQgcGFja2V0ICovDQpAQCAtOTAxLDExICs5MDUs
+
+MTIgQEANCiAJCWJyZWFrOw0KIAljYXNlIFRDUF9DT05OVFJBQ0tfQ0xPU0U6
+
+DQogCQlpZiAoaW5kZXggPT0gVENQX1JTVF9TRVQNCi0JCSAgICAmJiB0ZXN0
+
+X2JpdChJUFNfU0VFTl9SRVBMWV9CSVQsICZjb25udHJhY2stPnN0YXR1cykN
+
+Ci0JCSAgICAmJiBjb25udHJhY2stPnByb3RvLnRjcC5sYXN0X2luZGV4IDw9
+
+IFRDUF9TWU5BQ0tfU0VUDQorCQkgICAgJiYgKCh0ZXN0X2JpdChJUFNfU0VF
+
+Tl9SRVBMWV9CSVQsICZjb25udHJhY2stPnN0YXR1cykNCisJCSAgICAgICAg
+
+ICYmIGNvbm50cmFjay0+cHJvdG8udGNwLmxhc3RfaW5kZXggPD0gVENQX1NZ
+
+TkFDS19TRVQpDQorCQkgICAgICAgIHx8IGNvbm50cmFjay0+cHJvdG8udGNw
+
+Lmxhc3RfaW5kZXggPT0gVENQX0FDS19TRVQpDQogCQkgICAgJiYgYWZ0ZXIo
+
+bnRvaGwodGgtPmFja19zZXEpLA0KIAkJICAgIAkgICAgIGNvbm50cmFjay0+
+
+cHJvdG8udGNwLmxhc3Rfc2VxKSkgew0KLQkJCS8qIElnbm9yZSBSU1QgY2xv
+
+c2luZyBkb3duIGludmFsaWQgU1lOIA0KKwkJCS8qIElnbm9yZSBSU1QgY2xv
+
+c2luZyBkb3duIGludmFsaWQgU1lOIG9yIEFDSw0KIAkJCSAgIHdlIGhhZCBs
+
+ZXQgdHJvdWdoLiAqLyANCiAJCSAgICAJV1JJVEVfVU5MT0NLKCZ0Y3BfbG9j
+
+ayk7DQogCQkJaWYgKExPR19JTlZBTElEKElQUFJPVE9fVENQKSkNCg==
+
+
+--110391808-194515752-1102716654=:15772--
