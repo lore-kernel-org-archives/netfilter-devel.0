@@ -1,11 +1,11 @@
 From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 2/4] fixes for hbh match
-Date: Fri, 22 Oct 2004 11:57:16 +0900 (JST)
+Subject: [PATCH 3/4] introducing skb_header_pointer() to dst match
+Date: Fri, 22 Oct 2004 11:59:42 +0900 (JST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <200410220257.i9M2vIRL007112@toshiba.co.jp>
+Message-ID: <200410220259.i9M2xhnZ007641@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Fri_Oct_22_11:57:16_2004_061)--"
+	boundary="--Next_Part(Fri_Oct_22_11:59:42_2004_791)--"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
@@ -19,21 +19,11 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Fri_Oct_22_11:57:16_2004_061)--
+----Next_Part(Fri_Oct_22_11:59:42_2004_791)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-This patch fixes the following bugs in ip6t_hbh.c.
-
-	- The cast of the pointer to the next IPv6 extension header is wrong.
-
-	- hdrlen may underflow.
-
-	- (u16)*optdesc causes to alignment problem.
-
-	- The calculation of the offset to next option is wrong. In the case
-	  that the type isn't 0, it should be "Opt Data Len" field + 2
-	  (see RFC2460).
+This patch introduces skb_header_pointer() to ip6t_dst.c
 
 Signed-off-by Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 
@@ -41,149 +31,145 @@ Signed-off-by Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
 
-----Next_Part(Fri_Oct_22_11:57:16_2004_061)--
+----Next_Part(Fri_Oct_22_11:59:42_2004_791)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="hbh-fix.patch"
+Content-Disposition: inline; filename="dst-nolin.patch"
 
---- linux-2.6.9-rc3-nolin/net/ipv6/netfilter/ip6t_hbh.c	2004-09-30 19:36:23.000000000 +0900
-+++ linux-2.6.9-rc3-nolin-extfix/net/ipv6/netfilter/ip6t_hbh.c	2004-10-21 10:35:33.068081256 +0900
-@@ -19,8 +19,6 @@
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter_ipv6/ip6t_opts.h>
- 
--#define LOW(n)		(n & 0x00FF)
--
- #define HOPBYHOP	1
- 
- MODULE_LICENSE("GPL");
-@@ -47,8 +45,8 @@
-  *  	0	-> invariant
-  *  	1	-> can change the routing
-  *  (Type & 0x1F) Type
-- *      0	-> PAD0 (only 1 byte!)
-- *      1	-> PAD1 LENGTH info (total length = length + 2)
-+ *      0	-> Pad1 (only 1 byte!)
-+ *      1	-> PadN LENGTH info (total length = length + 2)
-  *      C0 | 2	-> JUMBO 4 x x x x ( xxxx > 64k )
-  *      5	-> RTALERT 2 x x
-  */
-@@ -70,7 +68,8 @@
+--- linux-2.6.9-rc3-nolin-extfix/net/ipv6/netfilter/ip6t_dst.c	2004-10-20 23:57:35.000000000 +0900
++++ linux-2.6.9-rc3-nolin-ext/net/ipv6/netfilter/ip6t_dst.c	2004-10-21 01:27:20.940686768 +0900
+@@ -60,7 +60,7 @@
+       unsigned int protoff,
+       int *hotdrop)
+ {
+-       struct ipv6_opt_hdr *optsh = NULL;
++       struct ipv6_opt_hdr _optsh, *oh;
+        const struct ip6t_opts *optinfo = matchinfo;
+        unsigned int temp;
+        unsigned int len;
+@@ -68,7 +68,8 @@
         unsigned int ptr;
         unsigned int hdrlen = 0;
         unsigned int ret = 0;
--       u_int16_t *optdesc = NULL;
-+       u8 *opttype = NULL;
-+       unsigned int optlen;
+-       u8 *opttype = NULL;
++       u8 _opttype, *tp = NULL;
++       u8 _optlen, *lp = NULL;
+        unsigned int optlen;
         
         /* type of the 1st exthdr */
-        nexthdr = skb->nh.ipv6h->nexthdr;
-@@ -97,7 +96,7 @@
+@@ -80,7 +81,7 @@
+        temp = 0;
+ 
+         while (ip6t_ext_hdr(nexthdr)) {
+-               struct ipv6_opt_hdr *hdr;
++               struct ipv6_opt_hdr _hdr, *hp;
+ 
+               DEBUGP("ipv6_opts header iteration \n");
+ 
+@@ -96,15 +97,16 @@
                       break;
                }
  
--              hdr=(void *)(skb->data)+ptr;
-+	      hdr = (void *)(skb->data + ptr);
+-	      hdr = (void *)(skb->data + ptr);
++	      hp = skb_header_pointer(skb, ptr, sizeof(_hdr), &_hdr);
++	      BUG_ON(hp == NULL);
  
                /* Calculate the header length */
                  if (nexthdr == NEXTHDR_FRAGMENT) {
-@@ -159,7 +158,7 @@
+                         hdrlen = 8;
+                 } else if (nexthdr == NEXTHDR_AUTH)
+-                        hdrlen = (hdr->hdrlen+2)<<2;
++                        hdrlen = (hp->hdrlen+2)<<2;
+                 else
+-                        hdrlen = ipv6_optlen(hdr);
++                        hdrlen = ipv6_optlen(hp);
+ 
+               /* OPTS -> evaluate */
+ #if HOPBYHOP
+@@ -132,7 +134,7 @@
+                             break;
+               }
+ 
+-                nexthdr = hdr->nexthdr;
++                nexthdr = hp->nexthdr;
+                 len -= hdrlen;
+                 ptr += hdrlen;
+ 		if ( ptr > skb->len ) {
+@@ -158,9 +160,10 @@
         		return 0;
         }
  
--       optsh=(void *)(skb->data)+ptr;
-+       optsh = (void *)(skb->data + ptr);
+-       optsh = (void *)(skb->data + ptr);
++       oh = skb_header_pointer(skb, ptr, sizeof(_optsh), &_optsh);
++       BUG_ON(oh == NULL);
  
-        DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, optsh->hdrlen);
+-       DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, optsh->hdrlen);
++       DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, oh->hdrlen);
  
-@@ -175,7 +174,6 @@
+        DEBUGP("len %02X %04X %02X ",
+        		optinfo->hdrlen, hdrlen,
+@@ -168,7 +171,7 @@
                             ((optinfo->hdrlen == hdrlen) ^
-                            !!(optinfo->invflags & IP6T_OPTS_INV_LEN)));
+                            !!(optinfo->invflags & IP6T_OPTS_INV_LEN))));
  
--       temp = len = 0;
-        ptr += 2;
-        hdrlen -= 2;
-        if ( !(optinfo->flags & IP6T_OPTS_OPTS) ){
-@@ -186,48 +184,52 @@
- 		DEBUGP("Strict ");
+-       ret = (optsh != NULL)
++       ret = (oh != NULL)
+        		&&
+ 	      	(!(optinfo->flags & IP6T_OPTS_LEN) ||
+                            ((optinfo->hdrlen == hdrlen) ^
+@@ -185,36 +188,43 @@
  		DEBUGP("#%d ",optinfo->optsnr);
  		for(temp=0; temp<optinfo->optsnr; temp++){
--			optdesc = (void *)(skb->data)+ptr;
-+			/* type field exists ? */
-+			if (ptr > skb->len - 1 || hdrlen < 1)
+ 			/* type field exists ? */
+-			if (ptr > skb->len - 1 || hdrlen < 1)
++			if (hdrlen < 1)
 +				break;
-+			opttype = (void *)(skb->data + ptr);
-+
++			tp = skb_header_pointer(skb, ptr, sizeof(_opttype),
++						&_opttype);
++			if (tp == NULL)
+ 				break;
+-			opttype = (void *)(skb->data + ptr);
+ 
  			/* Type check */
--			if ( (unsigned char)*optdesc != 
--				(optinfo->opts[temp] & 0xFF00)>>8 ){
-+			if (*opttype != (optinfo->opts[temp] & 0xFF00)>>8){
+-			if (*opttype != (optinfo->opts[temp] & 0xFF00)>>8){
++			if (*tp != (optinfo->opts[temp] & 0xFF00)>>8){
  				DEBUGP("Tbad %02X %02X\n",
--						(unsigned char)*optdesc,
--						(optinfo->opts[temp] &
--						 0xFF00)>>8);
-+				       *opttype,
-+				       (optinfo->opts[temp] & 0xFF00)>>8);
+-				       *opttype,
++				       *tp,
+ 				       (optinfo->opts[temp] & 0xFF00)>>8);
  				return 0;
  			} else {
  				DEBUGP("Tok ");
  			}
  			/* Length check */
--			if (((optinfo->opts[temp] & 0x00FF) != 0xFF) &&
--				(unsigned char)*optdesc != 0){
--				if ( ntohs((u16)*optdesc) != 
--						optinfo->opts[temp] ){
--					DEBUGP("Lbad %02X %04X %04X\n",
--							(unsigned char)*optdesc,
--							ntohs((u16)*optdesc),
--							optinfo->opts[temp]);
-+			if (*opttype) {
-+				u16 spec_len;
-+
-+				/* length field exists ? */
-+				if (ptr > skb->len - 2 || hdrlen < 2)
+-			if (*opttype) {
++			if (*tp) {
+ 				u16 spec_len;
+ 
+ 				/* length field exists ? */
+-				if (ptr > skb->len - 2 || hdrlen < 2)
++				if (hdrlen < 2)
 +					break;
-+				optlen = *((u8 *)(skb->data + ptr + 1));
-+				spec_len = optinfo->opts[temp] & 0x00FF;
-+
-+				if (spec_len != 0x00FF && spec_len != optlen) {
-+					DEBUGP("Lbad %02X %04X\n", optlen,
-+					       spec_len);
++				lp = skb_header_pointer(skb, ptr + 1,
++							sizeof(_optlen),
++							&_optlen);
++				if (lp == NULL)
+ 					break;
+-				optlen = *((u8 *)(skb->data + ptr + 1));
+ 				spec_len = optinfo->opts[temp] & 0x00FF;
+ 
+-				if (spec_len != 0x00FF && spec_len != optlen) {
+-					DEBUGP("Lbad %02X %04X\n", optlen,
++				if (spec_len != 0x00FF && spec_len != *lp) {
++					DEBUGP("Lbad %02X %04X\n", *lp,
+ 					       spec_len);
  					return 0;
--				} else {
--					DEBUGP("Lok ");
  				}
--			}
--			/* Step to the next */
--			if ((unsigned char)*optdesc == 0){
--				DEBUGP("PAD0 \n");
--				ptr++;
--				hdrlen--;
-+				DEBUGP("Lok ");
-+				optlen += 2;
+ 				DEBUGP("Lok ");
+-				optlen += 2;
++				optlen = *lp + 2;
  			} else {
--				ptr += LOW(ntohs(*optdesc));
--				hdrlen -= LOW(ntohs(*optdesc));
--				DEBUGP("len%04X \n", 
--					LOW(ntohs(*optdesc)));
-+				DEBUGP("Pad1\n");
-+				optlen = 1;
- 			}
--			if (ptr > skb->len || ( !hdrlen && 
--				(temp != optinfo->optsnr - 1))) {
-+
-+			/* Step to the next */
-+			DEBUGP("len%04X \n", optlen);
-+
-+			if ((ptr > skb->len - optlen || hdrlen < optlen) &&
-+			    (temp < optinfo->optsnr - 1)) {
- 				DEBUGP("new pointer is too large! \n");
- 				break;
- 			}
-+			ptr += optlen;
-+			hdrlen -= optlen;
- 		}
- 		if (temp == optinfo->optsnr)
- 			return ret;
+ 				DEBUGP("Pad1\n");
+ 				optlen = 1;
 
-----Next_Part(Fri_Oct_22_11:57:16_2004_061)----
+----Next_Part(Fri_Oct_22_11:59:42_2004_791)----
