@@ -1,11 +1,11 @@
-From: "cyberyam" <zpeak@cyberyam.com>
-Subject: Help me ,Help me .
-Date: Sat, 26 Apr 2003 13:07:03 +0800
+From: =?gb2312?B?uN+35UDN+NLX?= <zpeak@163.com>
+Subject: In iptables, I can't write open ,help me
+Date: Sat, 26 Apr 2003 13:41:54 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000c01c30bb1$ad85a640$01e7a8c0@zpeak>
+Message-ID: <008f01c30bb6$8bee0090$01e7a8c0@zpeak>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0009_01C30BF4.BB50B420"
+	boundary="----=_NextPart_000_008C_01C30BF9.9997A3C0"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -20,7 +20,7 @@ List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------=_NextPart_000_0009_01C30BF4.BB50B420
+------=_NextPart_000_008C_01C30BF9.9997A3C0
 Content-Type: text/plain;
 	charset="gb2312"
 Content-Transfer-Encoding: base64
@@ -78,7 +78,7 @@ LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCmdjYyAtRF9fS0VS
 TkVMX18gLVdBTEwgLUkgL3Vzci9zcmMvbGludXguMi40LjE4L2luY2x1ZGUgIG15ZmlyZXdhbGwu
 YyANCg==
 
-------=_NextPart_000_0009_01C30BF4.BB50B420
+------=_NextPart_000_008C_01C30BF9.9997A3C0
 Content-Type: text/html;
 	charset="gb2312"
 Content-Transfer-Encoding: base64
@@ -194,4 +194,4 @@ bHVkZSZuYnNwOyANCm15ZmlyZXdhbGwuYyZuYnNwOzwvRk9OVD48L0RJVj4NCjxESVY+PEZPTlQg
 c2l6ZT0yPjwvRk9OVD4mbmJzcDs8L0RJVj48L0ZPTlQ+PC9ESVY+PC9ESVY+PC9CT0RZPjwvSFRN
 TD4NCg==
 
-------=_NextPart_000_0009_01C30BF4.BB50B420--
+------=_NextPart_000_008C_01C30BF9.9997A3C0--
