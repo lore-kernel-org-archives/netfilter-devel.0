@@ -1,16 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: iptables and external processes
-Date: Wed, 18 Feb 2004 05:51:06 +0100 (CET)
+Date: Wed, 18 Feb 2004 05:57:41 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402180549200.10256-100000@filer.marasystems.com>
-References: <20040217161130.K27680@tempest.prismnet.com>
+Message-ID: <Pine.LNX.4.44.0402180552310.10256-100000@filer.marasystems.com>
+References: <1077060658.2011.19.camel@ca.gts.nexusmgmt.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>,
-   <netfilter-devel@lists.netfilter.org>
+Cc: Allen Francom <aef@prismnet.com>, <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Allen Francom <aef@prismnet.com>
-In-Reply-To: <20040217161130.K27680@tempest.prismnet.com>
+To: "John A. Sullivan III" <john.sullivan@nexusmgmt.com>
+In-Reply-To: <1077060658.2011.19.camel@ca.gts.nexusmgmt.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,19 +20,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 17 Feb 2004, Allen Francom wrote:
+On Tue, 17 Feb 2004, John A. Sullivan III wrote:
 
-> I thought it was possible to actually change the packet
-> and send the packet back in again ?
+> That's where the packet processing comes in.  We know what we have to do
+> to have iptables confirm that the packet is not spoofed and to track the
+> NAT.  We just needed to find a way to pass that decision back to
+> iptables to know whether to pass the packet on to the chains that were
+> built in the pre-authentication or to drop the packet as a spoof. 
+> Assuming that I have the client part and logic straight, does this seem
+> feasible? I take from the little I read about QUEUE that this is quite
+> possible.  Thanks again - John
 
-Yes.
+Nothing of what you have said indicates QUEUE can not be used from what I 
+can tell.
 
-> Just rule processing stops once -J QUEUE happens ?
+The main complication is that once you have processed the QUEUE:ed packet
+in userspace, the verdict set by the userspace is final for this hook. But
+this is rarely a problem. In most cases you can duplicate the little extra
+rules needed if any in the userspace, or have the QUEUE called from
+another hook running before your firewall hook (i.e. mangle).
 
-Yes.
-
-And the verdict from QUEUE is final for this hook. iptables will NOT 
-continue on the next rule.
+Also, if you need to modify NAT rules while processing the packet in
+userspace then you must call QUEUE from mangle PREROUTING as this is the
+only hook which is executed before NAT.
 
 Regards
 Henrik
