@@ -1,14 +1,14 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: [PATCH] REJECT for 2.6.9+
-Date: Sat, 19 Mar 2005 12:50:11 +0200
-Message-ID: <423C03E3.9020905@outerspace.dyndns.org>
-References: <423BF227.8030502@outerspace.dyndns.org>
+From: Ian Norton <bredroll@darkspace.org.uk>
+Subject: Re: ipsec implementation using netfilter
+Date: Sat, 19 Mar 2005 11:31:37 +0000
+Message-ID: <20050319113137.GA28048@earth.dsh.org.uk>
+References: <20050319065622.45027.qmail@web31402.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-ripemd160;
-	protocol="application/pgp-signature";
-	boundary="------------enig66486D3BEA6FCE5A668C8FE7"
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <423BF227.8030502@outerspace.dyndns.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
+To: avinash m <kukzme@yahoo.com>
+Content-Disposition: inline
+In-Reply-To: <20050319065622.45027.qmail@web31402.mail.mud.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,36 +20,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig66486D3BEA6FCE5A668C8FE7
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi there,
 
-Jonas Berlin wrote:
+I Have recently (almost) completed work on building an ipcomp implementation
+using netfilter to handle packet input. It works, but have you ever heard of a
+'filter' that lets stuff through and makes it bigger or smaller :-) 
 
-> Because include/linux/netfilter_ipv6/ip6t_REJECT.h was removed in 2.6.9, 
+In the same way as IMQD is used for ingress and egress queuing, it 'is'
+possible to do these things in netfilter but it really isnt the place to build
+this sort of thing, (my ipcomp system happily interoperates with the 2.6ipcomp
+on other machines but really doesnt make sense when observing packets at my end
+with ethereal)
 
-This seems to be a bug in python, which is used by mailman, which is used by 
-netfilter-devel.
+building another driver maybe called hw_ipsec shouldnt be that hard, i should
+imagine it would have the same interfaces to the kernel as the current ipsec.
 
-http://sourceforge.net/tracker/index.php?func=detail&aid=968430&group_id=5470&atid=105470
+Ian
 
-And there seems to be no activity on the bug :P
+On Fri, Mar 18, 2005 at 10:56:21PM -0800, avinash m wrote:
+> Hi 
+> 
+>   I am a newbie trying to implement ipsec in transport
+> mode. i am new to writing networking code too.
+> 
+> The crypto algorithms are actually implemented on a
+> crypto accelerator card which can be programmed using
+> some registers to setup an encryption/decryption
+> sessions. The security associations are also stored in
+> the crypto card.  
+> 
+> I have seen the openswan.org but that didnt get me
+> anywhere. I am also not clear hoe i could place this
+> customization into the existing ipsec stack(if i could
+> understand that)
+> 
+>  Now i am of the idea of implementing this using the
+> netfilter module. I am planning to place hook on the
+> loca input and local output hooks. The packets are
+> then sent to the card for enc/dec.
+> 
+> I this the right way to implement? if not could i get
+> some pointers to do this the right way.
+> 
+> Thanx in advance.
+> shawn
+> 
+> 
+> 		
+> __________________________________ 
+> Do you Yahoo!? 
+> Yahoo! Small Business - Try our new resources site!
+> http://smallbusiness.yahoo.com/resources/ 
+> 
 
 -- 
-- xkr47
-
---------------enig66486D3BEA6FCE5A668C8FE7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCPAPmxyF48ZTvn+4RA2udAKCn1lI+SZCRkML0/7Wuvi19bQB1+QCfZnbP
-PmrSxlW5k9CmjW060F8eZ18=
-=mO7h
------END PGP SIGNATURE-----
-
---------------enig66486D3BEA6FCE5A668C8FE7--
+Ian Norton-Badrul
