@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: performance issues (nat / conntrack)
-Date: Wed, 26 Jun 2002 16:50:11 +0200
+Subject: Re: Connection Tracking and FIN+ACK packets
+Date: Wed, 26 Jun 2002 17:00:31 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020626145011.GC8557@naboo.rchrd.phub.net.cable.rogers.com>
-References: <20020625151007.980D14140@lists.samba.org> <15640.41407.432907.402311@isis.cs3-inc.com> <046a01c21c91$dd980b80$0489cb8a@etbx180>
+Message-ID: <20020626150031.GD8557@naboo.rchrd.phub.net.cable.rogers.com>
+References: <00d301c21cf9$9a96be40$2e14f496@iic.uam.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>
+To: Antonio.Martinez@iic.uam.es
 Content-Disposition: inline
-In-Reply-To: <046a01c21c91$dd980b80$0489cb8a@etbx180>
+In-Reply-To: <00d301c21cf9$9a96be40$2e14f496@iic.uam.es>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,35 +21,11 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 25, 2002 at 11:47:12PM +0200, Jean-Michel Hemstedt wrote:
-> agreed.
-> 
-> (strange thing is that ethernet irq's reported by procinfo are 
->  decreasing when the machine is overloaded. It suppose that it 
->  means either that irq's are not even caught by the kernel/driver, 
->  which is quite worrying, or either that irq's counters refer to 
->  'processessed' interrupts)
+On Wed, Jun 26, 2002 at 12:09:48PM +0200, Antonio E. Mart?nez wrote:
+> I am not sure if this matter has been discussed previously... If that's
+> true, please, point me to the place where the answer is...
 
-are you using a driver which uses the irq mitigation interface of 2.4.x
-or the NAPI of 2.5.x ?
-
-> Harld: could you ask to your kernel specialist what is the weakpoint of
-> kmem_cache_alloc()? (locks, allocs, ...), and how we could possibly
-> improve it (batch alloc, but isn't it already the case?)
-
-I don't think that the slab allocator is the bottleneck. please show me
-profiling data pointing this out.
-
-> > I've been talking about this with a couple of people here at the kernel
-> > summit, and it looks like the per-packet del_timer/add_timer in
-> > ip_ct_refresh should be a severe performance hit on SMP boxes.
-> 
-> Any indications that it would not be the same on non SMP boxes? 
-
-well, it's still a performance problem, but on UP it doesn't involve
-disabling interrupts across all cpus.
-
-> -jmhe-
+yes. please look at the list archives.
 
 -- 
 Live long and prosper
