@@ -1,16 +1,17 @@
-From: Laszlo Valko <valko@linux.karinthy.hu>
+From: "David S. Miller" <davem@redhat.com>
 Subject: Re: [PATCH] sparc64 compatibility netfilter patches
-Date: Thu, 2 Jan 2003 10:20:11 +0100
+Date: Thu, 02 Jan 2003 01:09:53 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030102102011.A28219@linux.karinthy.hu>
-References: <20030101171654.B25870@linux.karinthy.hu> <20030101213205.A27131@linux.karinthy.hu> <20030101.222223.122334112.davem@redhat.com>
+Message-ID: <20030102.010953.113716640.davem@redhat.com>
+References: <20030101171654.B25870@linux.karinthy.hu>
+	<20030102085734.GL9467@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: valko@linux.karinthy.hu, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
-Content-Disposition: inline
-In-Reply-To: <20030101.222223.122334112.davem@redhat.com>; from davem@redhat.com on Wed, Jan 01, 2003 at 10:22:23PM -0800
+To: laforge@gnumonks.org
+In-Reply-To: <20030102085734.GL9467@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,51 +22,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jan 01, 2003 at 10:22:23PM -0800, David S. Miller wrote:
-> 
-> The hack for building the tools is wrong, there are 64-bit
-> compilers and userspace available.
+   From: Harald Welte <laforge@gnumonks.org>
+   Date: Thu, 2 Jan 2003 09:57:34 +0100
 
-I totally agree that this hack is the wrong way to do it.
-It will definitely not work with 64-bit userspace.
+   Unfortunately we will never get netfilter-specific code into the
+   sys_sparc32.c file (and we also really don't want it to be there).
+   
+   Is there no solution which only touches iptables userspace and kernel
+   code? (net/ipv4/netfilter/* as well as libiptc.c in userspace)?
+   
+It is the only way to translate socket options that include user
+pointers or other types that are not identical in the 32-bit
+and 64-bit environment.
 
-> The real fix for that (for when your tools are 32-bit) is
-> to run "sparc32 /bin/sh" and compile in that environment.
-
-I don't see how that would solve our problem. It will probably
-produce working code with 64-bit userspace, but not in the mixed
-bit-length case.
-
-Actually, the hack with KERNEL_64_USERSPACE_32 in the tools had
-existed before I even looked at the code. It was too tempting to
-extend it to my case even tough I know it's not good :)
-
-
-There are basically two "good" and a "worse" solution:
-
-1) make the kernel interface saner by excluding longs and pointers
-   altogether, and cleaning it up by separating "interface" and
-   "kernel internal" variables/structures (complicated, introducing
-   incompatible API changes),
-
-2) do kernel side 32-64 bit conversions (ugly, big performance
-   penalty, looks like a big hack, difficult to maintain),
-
-3) make a similar hack, like there currently is, but with correct
-   userspace-kernelspace bit-length checking, and do the magic in
-   the tools (even uglier, but no performance penalty and easier to
-   maintain).
-
-None of them are simple.
-
-In the long run, I vote for the first one.
-If I have a spare week, I might as well try to "sink" into the
-netfilter code, and implement something...
-
-> I'll be looking at the kernel side patch next, it should be
-> ok.
-
-Thanks.
-
-Laszlo
-e-mail: <valko@linux.karinthy.hu>
+It is always a bad idea to pass pointers and other non-hardcoded
+types (ie. something other than u8, u16 etc.) via APIs.
