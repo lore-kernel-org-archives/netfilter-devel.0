@@ -1,14 +1,17 @@
-From: =?iso-8859-1?Q?KUCKAERTZ_R=E9gis_-_NVISION?= <regis@nvision.lu>
-Subject: Port forwarding with iptables
-Date: Wed, 1 Sep 2004 17:47:49 +0200
+From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] Add bridged IPv6 packet filtering
+Date: Thu, 02 Sep 2004 13:40:06 +0900 (JST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <E1C2j6E-0002HL-00@deer.gmane.org>
+Message-ID: <200409020440.i824e8Jl020613@toshiba.co.jp>
+References: <200409012234.26310.bdschuym@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: davem@redhat.com, netfilter-devel@lists.netfilter.org,
+	usagi-core@linux-ipv6.org, yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: bdschuym@pandora.be
+In-Reply-To: <200409012234.26310.bdschuym@pandora.be>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,49 +22,49 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
 
-Our ISP only allows connections coming from a well-defined list of IP
-addresses. Since we must be able to log on to our servers no matter =
-where we
-are, I just thought using iptables on one host having one of the =
-authorized
-IP addresses would be the solution.
+Hi,
 
-So I went on reading iptables docs and howtos, but as you might guess I
-couldn't stand how to do it exactly. Let's put it correctly stated: =
-every
-incoming connection to, say, port 3999 of my host ($HOST_IP) should be
-forwarded to port 123 of the protected server ($SERVER_IP). I tried the
-following two rules:
+From: Bart De Schuymer <bdschuym@pandora.be>
+Date: Wed, 1 Sep 2004 22:34:26 +0200
 
-$IPTABLES -t nat -A PREROUTING -p tcp --dst $HOST_IP --dport 3999 -j =
-DNAT
---to-destination $SERVER_IP:123
+> Hi Dave,
+> 
+> >From reading Yasuyuki's reply and the specific code, the IPv6 checks
+> before giving a bridged packet to ip6tables should now be accurate.
+> 
+> These are the changes made to the original patch:
+> 
+> - *	Aug 28 2004: add IPv6 filtering (bdschuym)
+> + *	Sep 01 2004: add IPv6 filtering (bdschuym)
+> 
+> @@ -321,11 +321,12 @@ static unsigned int br_nf_pre_routing_ip
+>  			goto inhdr_error;
+>  	}
+>  	if (hdr->nexthdr == NEXTHDR_HOP) {
+> -		skb->h.raw = (u8*)(hdr+1);
+> -#if 0
+> -		if (ipv6_parse_hopopts(skb, offsetof(struct ipv6hdr, nexthdr))<0)
+> +		/* We only check the length. A bridge shouldn't do any
+> +		 * hop-by-hop stuff anyway. */
+> +		unsigned char *raw = (u8*)(skb->nh.ipv6h+1);
+> +
+> +		if ((raw + ((int)(raw[1]+1)<<3)) - skb->data > skb_headlen(skb))
+>  			goto inhdr_error;
+> -#endif
 
-   This one should do the forwarding
+You forgot to find "Jumbo Payload Option" in Hop-by-Hop Options header.
+Other options may exist in this header.
 
-$IPTABLES -t nat -a POSTROUTING -p tcp --dst $SERVER_IP --dport 123 -j
-MASQUERADE
+And please truncate packet if actual packet length is greater than
+Jumbo Payload Length + IPv6 header length.
 
-   ... and this one should masquerade
+Maybe you need to write the function that finds "Jumbo Payload Option" by
+parsing Hop-by-Hop Options header, checks the payload length, and truncates
+packet if necessary.
 
-As I'm new to iptables, I don't know at that time every aspect that I =
-must
-be careful of, so as a first tip can anybody tell me what would the =
-exact
-solution be?
+I think it is not preferable to call ipv6_parse_hopopts() at this point.
+Because Hop-by-Hop Options header may include other options and
+ipv6_hop_jumbo() may send ICMPv6 error.
 
-I have set IP forwarding to 1 in /proc/sys/net/ipv4/ip_forward
-
-Best regards,
-R=E9gis KUCKAERTZ
------------------------------------------
-NVISION sa - Luxembourg
-Internet Services & Network Programming
-
-50, rue des Pr=E9s
-L-7333 Steinsel
-T=E9l: (+352) 26 34 09 08
-Fax: (+352) 26 34 09 07
-http://www.nvision.lu/
+Regards,
