@@ -1,14 +1,17 @@
-From: Stephen Hemminger <shemminger@osdl.org>
-Subject: [PATCH] get rid of warnings if /proc not defined.
-Date: Fri, 25 Jul 2003 13:47:29 -0700
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: mangle MSS via tcp_manip_pkt() in ip_nat_proto_tcp.c [patch]
+Date: Fri, 25 Jul 2003 22:50:21 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030725134729.1b4698d0.shemminger@osdl.org>
+Message-ID: <20030725205020.GZ3244@sunbeam.de.gnumonks.org>
+References: <BE229ADC976AC343830DFF9BC159FAEB011E46AA@KUEXCHANGE.kvhinternal.kvhi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3fquP/57BBR2yLsK"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
+To: Michael Glaum <mglaum@kvh.com>
+Content-Disposition: inline
+In-Reply-To: <BE229ADC976AC343830DFF9BC159FAEB011E46AA@KUEXCHANGE.kvhinternal.kvhi>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,31 +22,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Trivial -- Get rid of warnings in netfilter if /proc is not configured on.
-Patch against 2.6.0-test1
 
-diff -Nru a/net/ipv4/netfilter/ipt_recent.c b/net/ipv4/netfilter/ipt_recent.c
---- a/net/ipv4/netfilter/ipt_recent.c	Fri Jul 25 12:30:29 2003
-+++ b/net/ipv4/netfilter/ipt_recent.c	Fri Jul 25 12:30:29 2003
-@@ -91,8 +91,10 @@
-  */
- static spinlock_t recent_lock = SPIN_LOCK_UNLOCKED;
- 
-+#ifdef CONFIG_PROC_FS
- /* Our /proc/net/ipt_recent entry */
- static struct proc_dir_entry *proc_net_ipt_recent = NULL;
-+#endif
- 
- /* Function declaration for later. */
- static int
-@@ -959,8 +961,10 @@
- 	int count;
- 
- 	printk(version);
-+#ifdef CONFIG_PROC_FS
- 	proc_net_ipt_recent = proc_mkdir("ipt_recent",proc_net);
- 	if(!proc_net_ipt_recent) return -ENOMEM;
-+#endif
- 
- 	if(ip_list_hash_size && ip_list_hash_size <= ip_list_tot) {
- 	  printk(KERN_WARNING RECENT_NAME ": ip_list_hash_size too small, resetting to default.\n");
+--3fquP/57BBR2yLsK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Jul 18, 2003 at 10:57:05AM -0400, Michael Glaum wrote:
+
+> I tried several things, e.g. pathMTU, etc but in view of severe time
+> constraints I decided to HACK tcp_manip_pkt() in ip_nat_proto_tcp.c
+> so that when it does source and destination address translation it also
+> drops the MSS on outgoing and incoming packets to be below 1360. This
+> appears to work. I didn't even bother to check if the packets had
+> tcphdr->syn =3D=3D1 set.
+>=20
+> Please advise if there is a more elegant way to do this!
+
+Use the TCPMSS target  (iptables -j TCPMSS -h).
+
+> 								Michael Glaum
+> 								KVH Industries
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--3fquP/57BBR2yLsK
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+
+iD8DBQE/IZgMXaXGVTD0i/8RAsuoAJ4qi8BTc/DjL92b9+h5BMikbYZ8awCgnqJg
+PdRCEmKGf+ja36X+vXUA4kg=
+=MX/F
+-----END PGP SIGNATURE-----
+
+--3fquP/57BBR2yLsK--
