@@ -1,15 +1,17 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [ANNOUNCE] iptables-1.2.8 feature freeze
-Date: Mon, 31 Mar 2003 13:53:11 +0200 (CEST)
+Date: Mon, 31 Mar 2003 14:12:21 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.51.0303311351520.14297@dns.toxicfilms.tv>
-References: <20030330202322.GA7718@sunbeam.de.gnumonks.org>
+Message-ID: <20030331121221.GL7718@sunbeam.de.gnumonks.org>
+References: <20030330202322.GA7718@sunbeam.de.gnumonks.org> <Pine.LNX.4.51.0303311351520.14297@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-23717851-1193720516-1049111591=:14297"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="roRPt/Cw7eYGd+Rv"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030330202322.GA7718@sunbeam.de.gnumonks.org>
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.51.0303311351520.14297@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,48 +22,46 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
 
----23717851-1193720516-1049111591=:14297
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+--roRPt/Cw7eYGd+Rv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi Harald,
+On Mon, Mar 31, 2003 at 01:53:11PM +0200, Maciej Soltysiak wrote:
+> Hi Harald,
+>=20
+> > Please test the CVS snapshot of today (will be published in 2 hours,
+> > just before midnight german time). The snapshot will be available at
+> > ftp://ftp.netfilter.org/pub/iptables/snapshot/iptables-1.2.7a-20030330.=
+tar.bz2
+> Ok, it is a typo here, look:
 
-> Please test the CVS snapshot of today (will be published in 2 hours,
-> just before midnight german time). The snapshot will be available at
-> ftp://ftp.netfilter.org/pub/iptables/snapshot/iptables-1.2.7a-20030330.tar.bz2
-Ok, it is a typo here, look:
+Thanks, I knew  this one.  Thought it has been fixed, though ?!?.
 
-diff -ru iptables.orig/iptables.c iptables/iptables.c
---- iptables.orig/iptables.c	2003-03-03 09:08:37.000000000 +0100
-+++ iptables/iptables.c	2003-03-31 13:46:11.000000000 +0200
-@@ -336,7 +336,7 @@
- void
- exit_tryhelp(int status)
- {
--	if (line =! -1)
-+	if (line != -1)
- 		fprintf(stderr, "Error occured at line: %d\n", line);
- 	fprintf(stderr, "Try `%s -h' or '%s --help' for more information.\n",
- 			program_name, program_name );
----23717851-1193720516-1049111591=:14297
-Content-Type: TEXT/plain; name="iptables.c.diff"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.51.0303311353110.14297@dns.toxicfilms.tv>
-Content-Description: iptables.c.diff
-Content-Disposition: attachment; filename="iptables.c.diff"
+Anyway, applied your patch.
 
-ZGlmZiAtcnUgaXB0YWJsZXMub3JpZy9pcHRhYmxlcy5jIGlwdGFibGVzL2lw
-dGFibGVzLmMNCi0tLSBpcHRhYmxlcy5vcmlnL2lwdGFibGVzLmMJMjAwMy0w
-My0wMyAwOTowODozNy4wMDAwMDAwMDAgKzAxMDANCisrKyBpcHRhYmxlcy9p
-cHRhYmxlcy5jCTIwMDMtMDMtMzEgMTM6NDY6MTEuMDAwMDAwMDAwICswMjAw
-DQpAQCAtMzM2LDcgKzMzNiw3IEBADQogdm9pZA0KIGV4aXRfdHJ5aGVscChp
-bnQgc3RhdHVzKQ0KIHsNCi0JaWYgKGxpbmUgPSEgLTEpDQorCWlmIChsaW5l
-ICE9IC0xKQ0KIAkJZnByaW50ZihzdGRlcnIsICJFcnJvciBvY2N1cmVkIGF0
-IGxpbmU6ICVkXG4iLCBsaW5lKTsNCiAJZnByaW50ZihzdGRlcnIsICJUcnkg
-YCVzIC1oJyBvciAnJXMgLS1oZWxwJyBmb3IgbW9yZSBpbmZvcm1hdGlvbi5c
-biIsDQogCQkJcHJvZ3JhbV9uYW1lLCBwcm9ncmFtX25hbWUgKTsNCg==
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
----23717851-1193720516-1049111591=:14297--
+--roRPt/Cw7eYGd+Rv
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+iDClXaXGVTD0i/8RAh5gAKCgDbqjbzsC3ZIz/m+kbBzuPLHJhQCfUqo8
+OUiR/ShAZluVmik3gNTQYgs=
+=ptUb
+-----END PGP SIGNATURE-----
+
+--roRPt/Cw7eYGd+Rv--
