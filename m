@@ -1,8 +1,8 @@
-From: Phil Oester <phil@linuxace.com>
+From: Phil Oester <kernel@linuxace.com>
 Subject: [PATCH] conntrack match typo
-Date: Sat, 21 Aug 2004 14:54:19 -0700
+Date: Sat, 21 Aug 2004 14:56:16 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040821215419.GA29488@linuxace.com>
+Message-ID: <20040821215616.GA29585@linuxace.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
@@ -21,10 +21,10 @@ List-Id: netfilter-devel.vger.kernel.org
 Status option should use IPT_CONNTRACK_STATUS, not IPT_CONNTRACK_STATE.
 Originally noticed by M. J. Pomraning. 
 
-This fixes bug #194
+This fixes bug #194 
 
 Phil
- 
+
 
 diff -ru ipt-orig/extensions/libipt_conntrack.c ipt-new/extensions/libipt_conntrack.c
 --- ipt-orig/extensions/libipt_conntrack.c      2004-06-14 18:02:17.000000000 -0400
