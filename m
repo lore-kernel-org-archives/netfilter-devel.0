@@ -1,17 +1,14 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: per-cpu table information
-Date: Wed, 15 Sep 2004 15:47:38 -0700
+From: Tobias DiPasquale <codeslinger@gmail.com>
+Subject: active-active?
+Date: Wed, 15 Sep 2004 20:36:13 -0400
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040915154738.7cb24983.davem@davemloft.net>
-References: <41402D9E.5050906@rediffmail.com>
-	<20040915223602.GF2678@sunbeam.de.gnumonks.org>
+Message-ID: <876ef97a040915173652156948@mail.gmail.com>
+Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, swapsn@rediffmail.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040915223602.GF2678@sunbeam.de.gnumonks.org>
+To: netfilter-devel <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,11 +19,15 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 16 Sep 2004 00:36:02 +0200
-Harald Welte <laforge@netfilter.org> wrote:
+Hi all,
 
-> Because we don't need any locking and we don't have cache line ping-pong
-> between the CPU's, if there is no shared data.
+What's the status of active-active in netfilter? I was reading a paper
+some time ago from ultramonkey.org about something they called Saru
+which would have provided kernel-level active-active characteristics,
+but I haven't heard anything about it since and can't find much about
+the subject. Does anyone know what's going on with that or if any work
+is being done? I'd love to help out. Thanks :)
 
-In my opinion the disadvantages (both in code complexity and table
-update cost) far outweigh whatever speed gains you this obtains.
+-- 
+[ Tobias DiPasquale ]
+0x636f6465736c696e67657240676d61696c2e636f6d
