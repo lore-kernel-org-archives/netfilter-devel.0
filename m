@@ -1,17 +1,17 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [Q]what is the net_ratelimit() ?
-Date: Mon, 6 Jan 2003 14:02:45 +0100
+From: "Costa Tsaousis" <costa@tsaousis.gr>
+Subject: Re: Corruption on mangle/INPUT when MARKing packets
+Date: Mon, 6 Jan 2003 15:13:22 +0200 (EET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030106130245.GH9467@sunbeam.de.gnumonks.org>
-References: <CKEGJOPDOMNNFIGIMICAGENDCCAA.caster@postech.ac.kr>
+Message-ID: <36676.195.97.5.193.1041858802.squirrel@fs.tsaousis.gr>
+References: <37584.195.97.5.193.1041644841.squirrel@fs.tsaousis.gr>
+        <20030106125230.GE9467@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mjrw6G9AoRBv8oQK"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-7
+Content-Transfer-Encoding: 8bit
+Cc: <laforge@gnumonks.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: caster@postech.ac.kr
-Content-Disposition: inline
-In-Reply-To: <CKEGJOPDOMNNFIGIMICAGENDCCAA.caster@postech.ac.kr>
+To: <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20030106125230.GE9467@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,37 +23,30 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---mjrw6G9AoRBv8oQK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Harald Welte said:
+> This is really strange.  I can perfectly reproduce the bug, but I cannot
+> see how this happens.  the whole net/ipv4/icmp.c code doesn't do
+> anything with the nfmark of the original skb.
+>
+> I'll have to investigate this further. Stay tuned.
 
-On Fri, Dec 20, 2002 at 11:26:39AM +0900, caster@postech.ac.kr wrote:
-> Must  every printk messages in network BH  use net_ratelimit?
+Well, I don't think this is a problem in net/ipv4/icmp.c
+If it was, setting the mark in PREROUTING should have the same effect, but
+it does not.
 
-this is just a ratelimiting of the error messages to ensure we don't
-clog up syslog.
+So, my guess is that something is happenning in mangle/INPUT handling, or
+due to the fact that the packet has changed after the routing decision, or
+... (keep in mind that I have never seen the iptables code, so this is
+really a guess out of nowhere...).
 
---=20
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
+Kind regards
 
---mjrw6G9AoRBv8oQK
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+-- 
+Costa Tsaousis
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+GX51XaXGVTD0i/8RAvjbAJ0cvKasxZwf0vlZsBATrt5+F8RkMACgiuWt
-sUdDIDRoRfWrIV5y2ZikopA=
-=HY7e
------END PGP SIGNATURE-----
-
---mjrw6G9AoRBv8oQK--
+Author of
+FireHOL (http://firehol.sf.net)
+-------------------------------
+An iptables stateful firewall generator,
+that allows you to configure your firewall...
+...the way you think of it!
