@@ -1,15 +1,15 @@
-From: Jon Webb <jon_webb@binary-one.com>
+From: Unit Zero <onyx@zero.fdns.net>
 Subject: Re: using ip_queue in kernel space
-Date: Thu, 04 Mar 2004 15:20:34 -0800
+Date: Thu, 4 Mar 2004 18:32:47 -0500 (EST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <4047B9C2.6050706@binary-one.com>
-References: <Pine.LNX.4.56L0.0403041712040.12794@zero.fdns.net>
+Message-ID: <Pine.LNX.4.56L0.0403041829370.12843@zero.fdns.net>
+References: <Pine.LNX.4.44.0403042353310.30943-100000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <Pine.LNX.4.56L0.0403041712040.12794@zero.fdns.net>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0403042353310.30943-100000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,24 +20,31 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Great, thanks. This is exactly what I wanted to know. Well, time to go 
+play with queue handler code I guess :)
 
-Unit Zero wrote:
+- Vic M. Condino
 
->I've been curious for a while about the viability of using ip_queue from 
->a kernel module, without any userland side. It seems that ip_queue is 
->really only used for deferring the verdict on packets to a userspace 
->program, but if I simply install a queue handler in the module init 
->entrypoint and then install a netfilter hook that returns a QUEUE verdict 
->on packets I want, and then do whatever in my queue handler, (kick off 
->timer tasks to issue verdicts or some other such thing) will this work? 
->
->  
->
-Of course, there are kernel level calls for getting packets out and 
-reinjecting them... They can be called from a kernel module. I tried to 
-do this once, and it worked ok, except that I needed access to the 
-kernel routing table flags to decide what to do with the packets, and I 
-could only get at those from userspace (ironically), so I had to abandon 
-that implementation.
+On Thu, 4 Mar 2004, Henrik Nordstrom wrote:
 
-- Jon Webb
+> On Thu, 4 Mar 2004, Unit Zero wrote:
+> 
+> > I've been curious for a while about the viability of using ip_queue from 
+> > a kernel module, without any userland side. It seems that ip_queue is 
+> > really only used for deferring the verdict on packets to a userspace 
+> > program
+> 
+> This is the purpose of the ip_queue module yes, but another QUEUE handlers
+> may be installed if you prefer differently.
+> 
+> QUEUE is a function of netfilter to defer the verdict of a packet.
+> 
+> ip_queue is a QUEUE handler communicating to userspace to get the 
+> verdirct.
+> 
+> As long as your QUEUE handler follows the defined API for QUEUE handlers 
+> it should work. Netfilter does not care what the QUEUE handler does, only 
+> that there is a handler and how/when it returns the verdict.
+> 
+> Regards
+> Henrik
