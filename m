@@ -1,16 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] psd option parsing
-Date: Sat, 18 Sep 2004 19:46:16 +0200
+From: Kenneth Porter <shiva@sewingwitch.com>
+Subject: Re: Discrete packaging of experimental modules
+Date: Sat, 18 Sep 2004 14:55:42 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <414C7468.2090000@trash.net>
-References: <20040917234902.GA1131@linuxace.com>
+Message-ID: <BB3C25FF8798E8E693A13041@[10.0.0.4]>
+References: <0D0567C424F9F491BBAACF88@[10.169.6.246]>
+	<Pine.LNX.4.61.0409181842420.17139@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20040917234902.GA1131@linuxace.com>
+To: Netfilter Development <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <Pine.LNX.4.61.0409181842420.17139@filer.marasystems.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,21 +22,21 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
+--On Saturday, September 18, 2004 6:45 PM +0200 Henrik Nordstrom 
+<hno@marasystems.com> wrote:
 
->psd match is too greedy with options, and doesn't play well with
->other matches.  For example:
->
->	# iptables -A INPUT -m psd -m recent --set -j DROP
->	iptables v1.2.11: missing optarg
->	Try `iptables -h' or 'iptables --help' for more information.
->
->Below patch makes it less greedy.
->
->This fixes bugzilla #18
->  
->
-Applied, thanks.
+> Extensions which is self-contained (header + c file, no patching of other
+> files) can be compiled outside of the kernel just as any other kernel
+> module, but there is no infrastructure in the netfilter project for doing
+> this kind of out-of-kernel module builds and how to do this is left as an
+> excersise to the reader.
 
->Phil
->
+Oh, good, thanks.
+
+> Please note that you also need to build the userspace extension object.
+
+Expected, hence my question/suggestion about making the extensions 
+dynamically loadable. For instance, it would be nice if an extension could 
+drop its userspace into, say, /usr/libexec/netfilter/xxx.so and be 
+instantly recognized. One could then release a kernel-matched rpm or deb 
+with the kernel module and the userspace component for the extension.
