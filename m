@@ -1,18 +1,20 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: The latest nf_conntrack
-Date: Wed, 10 Nov 2004 15:20:04 -0800
-Message-ID: <20041110152004.4dbeb8cc.davem@davemloft.net>
-References: <200411010827.iA18RJGT024881@toshiba.co.jp>
-	<20041108134709.GE12437@sunbeam.de.gnumonks.org>
-	<200411102151.iAALpOKa016683@toshiba.co.jp>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: New draft document on nat / traversal / hole punching (with
+	Dan Kegel)
+Date: Thu, 11 Nov 2004 11:30:56 +1100
+Message-ID: <1100133056.9643.23.camel@localhost.localdomain>
+References: <20041109154946.GD22257@sunbeam.de.gnumonks.org>
+	<1100024526.6496.10.camel@tux.rsn.bth.se>
+	<1100043724.25963.19.camel@localhost.localdomain>
+	<20041110162500.GA7485@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
-	usagi-core@linux-ipv6.org, yasuyuki.kozakai@toshiba.co.jp
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>,
+	Martin Josefsson <gandalf@wlug.westbo.se>, coreteam@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200411102151.iAALpOKa016683@toshiba.co.jp>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20041110162500.GA7485@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,23 +26,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 2004-11-10 at 17:25 +0100, Harald Welte wrote:
+> On Wed, Nov 10, 2004 at 10:42:04AM +1100, Rusty Russell wrote:
+> > Name: Fix find_appropriate_src() To Actually Work
+> > Status: Tested under nfsim
+> > Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+> 
+> > [...]
+> 
+> > -			if (newtuple.src.ip != tuple->src.ip)
+> > +			if (tuple->src.ip != tuple->src.ip)
+> 
+> Rusty, are you sure this is really what you want?  ;)
 
-Hello Yasuyuki-san,
+Ew... Dave, please drop that patch as it was crap.
 
-On Thu, 11 Nov 2004 06:51:23 +0900 (JST)
-Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> wrote:
+I merged two patches (a cleanup and the fix) and didn't re-test.
 
-> And a lot codes are copied from ip_conntrack, I suspects that we can
-> enumerate all Signed-off-by. How we should manage this ?
+I'll fix, test and re-send.
 
-The best thing to do in this case is something like this:
-
-/*
- ...
- * Based largely upon the original ip_conntrack code which
- * had the following copyright information:
- *
- *   (C) 1999-2001 Paul `Rusty' Russell  
- *   (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
- ...
- */
+Sorry,
+Rusty.
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
