@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Introducing iptables-snmp...
-Date: Wed, 26 Mar 2003 15:59:10 +0100
+Subject: Re: Accept and remove
+Date: Wed, 26 Mar 2003 16:01:10 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030326145910.GW21953@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.44.0303191155100.24978-100000@peter.stamf.pr.at>
+Message-ID: <20030326150110.GX21953@sunbeam.de.gnumonks.org>
+References: <20030319140857.GB21417@ra.is>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lt3WynA+XK9Fj6D4"
+	protocol="application/pgp-signature"; boundary="tgGnixv3tJWXBxdL"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Peter Stamfest <peter@stamfest.at>
+To: Richard Allen <ra@ra.is>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0303191155100.24978-100000@peter.stamf.pr.at>
+In-Reply-To: <20030319140857.GB21417@ra.is>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,22 +23,34 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---lt3WynA+XK9Fj6D4
+--tgGnixv3tJWXBxdL
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 19, 2003 at 12:02:27PM +0100, Peter Stamfest wrote:
-> It also requires iptables-1.2.7a (+a small patch to introduce=20
-> "iptc_free" - I would suggest to actually apply this patch to the=20
-> iptables-distribution) - it uses the libiptc.a library.
+On Wed, Mar 19, 2003 at 02:08:57PM +0000, Richard Allen wrote:
+> Hi all.
+>=20
+> I was wondering if there is a feature in iptables where I can add a rule
+> that matches for example a SYN packet and jump to a target that lets it
+> through and then removes the rule.
 
-please post this patch here, I would like to include it.=20
+rule changes (removal, ..) are not possible from within the kernel,
+sorry.  The kernel just has code to iterate over a ruleset, not to
+create/modify it.
 
-if you consider fixing the memory holes, please also post the fixes
-here.  thanks.
+> If not, I was considering to take the ACCEPT target and copy it to someth=
+ing
+> else (ACCEPTONCE) and making the necessary changes.  Is there any way for
+> targets to know which rule called them ?
 
-> peter
+no.  but you have a per-rule private data (targinfo) for your target.
+So you can just write a '1' to this data area when your rule was
+matched, and then don't match for all further packets if there is this
+magic '1'.
+
+> Rikki.         --  RHCE, RHCX, HP-UX Certified Administrator.
+=20
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -50,7 +62,7 @@ here.  thanks.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---lt3WynA+XK9Fj6D4
+--tgGnixv3tJWXBxdL
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -58,9 +70,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+gcA+XaXGVTD0i/8RAo8RAKCYeTOVeZDfqfMe/RRjMm7XjgFVGQCfc4et
-FnaMJk5fXOMR5aVwPQVN26w=
-=dyV5
+iD8DBQE+gcC2XaXGVTD0i/8RAsSPAKCwpfqqGnITWDMCXbRpBhSVMLG7eACfbxnA
+BBAaunpI89fqreqHUF1Ft9Y=
+=/lK9
 -----END PGP SIGNATURE-----
 
---lt3WynA+XK9Fj6D4--
+--tgGnixv3tJWXBxdL--
