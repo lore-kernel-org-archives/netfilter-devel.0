@@ -1,14 +1,16 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: [PATCH] remove old cruft from ipv6 Kconfig
-Date: 26 May 2003 16:56:28 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Experimental RTSP modules
+Date: Sun, 25 May 2003 14:12:35 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1053960987.749.2.camel@tux.rsn.bth.se>
+Message-ID: <20030525121235.GA4273@naboo>
+References: <20030406033532.GA23082@home.tig-grr.com> <20030523195843.GQ3077@sunbeam.de.gnumonks.org> <20030524143023.GA31579@home.tig-grr.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UugvWAfsgieZRqgk"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
+To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <20030524143023.GA31579@home.tig-grr.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,76 +21,62 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
 
-Can you please forward this patch to davem?
+--UugvWAfsgieZRqgk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
---- linux-2.5.69-mm9/net/ipv6/netfilter/Kconfig.orig	2003-05-26 16:48:52.000000000 +0200
-+++ linux-2.5.69-mm9/net/ipv6/netfilter/Kconfig	2003-05-26 16:52:28.000000000 +0200
-@@ -5,10 +5,6 @@
- menu "IPv6: Netfilter Configuration"
- 	depends on INET && EXPERIMENTAL && IPV6!=n && NETFILTER
- 
--#tristate 'Connection tracking (required for masq/NAT)' CONFIG_IP6_NF_CONNTRACK
--#if [ "$CONFIG_IP6_NF_CONNTRACK" != "n" ]; then
--#  dep_tristate '  FTP protocol support' CONFIG_IP6_NF_FTP $CONFIG_IP6_NF_CONNTRACK
--#fi
- config IP6_NF_QUEUE
- 	tristate "Userspace queueing via NETLINK (EXPERIMENTAL)"
- 	---help---
-@@ -121,7 +117,6 @@
- 	  If you want to compile it as a module, say M here and read
- 	  <file:Documentation/modules.txt>.  If unsure, say `N'.
- 
--#  dep_tristate '  MAC address match support' CONFIG_IP6_NF_MATCH_MAC $CONFIG_IP6_NF_IPTABLES
- config IP6_NF_MATCH_MARK
- 	tristate "netfilter MARK match support"
- 	depends on IP6_NF_IPTABLES
-@@ -173,15 +168,6 @@
- 	  If you want to compile it as a module, say M here and read
- 	  Documentation/modules.txt.  If unsure, say `N'.
- 
--#  dep_tristate '  Multiple port match support' CONFIG_IP6_NF_MATCH_MULTIPORT $CONFIG_IP6_NF_IPTABLES
--#  dep_tristate '  TOS match support' CONFIG_IP6_NF_MATCH_TOS $CONFIG_IP6_NF_IPTABLES
--#  if [ "$CONFIG_IP6_NF_CONNTRACK" != "n" ]; then
--#    dep_tristate '  Connection state match support' CONFIG_IP6_NF_MATCH_STATE $CONFIG_IP6_NF_CONNTRACK $CONFIG_IP6_NF_IPTABLES 
--#  fi
--#  if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
--#    dep_tristate '  Unclean match support (EXPERIMENTAL)' CONFIG_IP6_NF_MATCH_UNCLEAN $CONFIG_IP6_NF_IPTABLES
--#    dep_tristate '  Owner match support (EXPERIMENTAL)' CONFIG_IP6_NF_MATCH_OWNER $CONFIG_IP6_NF_IPTABLES
--#  fi
- # The targets
- config IP6_NF_FILTER
- 	tristate "Packet filtering"
-@@ -204,12 +190,6 @@
- 	  If you want to compile it as a module, say M here and read
- 	  <file:Documentation/modules.txt>.  If unsure, say `N'.
- 
--#  if [ "$CONFIG_IP6_NF_FILTER" != "n" ]; then
--#    dep_tristate '    REJECT target support' CONFIG_IP6_NF_TARGET_REJECT $CONFIG_IP6_NF_FILTER
--#    if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
--#      dep_tristate '    MIRROR target support (EXPERIMENTAL)' CONFIG_IP6_NF_TARGET_MIRROR $CONFIG_IP6_NF_FILTER
--#    fi
--#  fi
- config IP6_NF_MANGLE
- 	tristate "Packet mangling"
- 	depends on IP6_NF_IPTABLES
-@@ -221,7 +201,6 @@
- 	  If you want to compile it as a module, say M here and read
- 	  <file:Documentation/modules.txt>.  If unsure, say `N'.
- 
--#    dep_tristate '    TOS target support' CONFIG_IP6_NF_TARGET_TOS $CONFIG_IP_NF_MANGLE
- config IP6_NF_TARGET_MARK
- 	tristate "MARK target support"
- 	depends on IP6_NF_MANGLE
-@@ -236,6 +215,5 @@
- 	  If you want to compile it as a module, say M here and read
- 	  <file:Documentation/modules.txt>.  If unsure, say `N'.
- 
--#dep_tristate '  LOG target support' CONFIG_IP6_NF_TARGET_LOG $CONFIG_IP6_NF_IPTABLES
- endmenu
- 
+On Sat, May 24, 2003 at 07:30:23AM -0700, Tom Marshall wrote:
 
+> Thank you.
+>=20
+> I am interested in getting the module into the mainline kernel.  I believe
+> this is where the majority of users are.  I have not and will not use p-o=
+-m.=20
+> I will convert the patch to use kernel coding standards if someone would
+> sponsor the change to the 2.4 kernel, but any changes necessary to use p-=
+o-m
+> will need to be done by someone else because I have zero interest.
 
--- 
-/Martin
+It is not a change of the actual code, it's just a different formatting
+for the patch.  And as you want to get it into the mainline kernel, you
+will have to submit it to the netfilter maintainer(s), which is the
+netfilter coreteam (us).
+
+And we prefer patch-o-matic format, since this is the opportunity to
+have the code being tested for some time, until we conclude that it is
+safe to submit it to the mainline kernel.
+
+Of course you are free to submit in any form, it would just make our
+work easier if it was p-o-m.  I think we already receive 95% of the
+contributions in this format.
+
+> Well, no feedback so far at all so I have left the code alone for the
+> moment.  I'm sure you are familiar with the phenomenon.  ;-)
+
+yes, indeed :)
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--UugvWAfsgieZRqgk
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQE+0LMyXaXGVTD0i/8RAu7kAKCNVXnBTdkspWnhWgDO6JU0mxGZ9ACdGKmY
+N6pg+ZRSUQ2Y6BIfDZLYEbc=
+=fEXy
+-----END PGP SIGNATURE-----
+
+--UugvWAfsgieZRqgk--
