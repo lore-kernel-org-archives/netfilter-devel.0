@@ -1,34 +1,41 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: iptables+2.6-test8-bk4 : Still problems
-Date: Wed, 29 Oct 2003 10:34:48 -0800
-Sender: sparclinux-owner@vger.kernel.org
-Message-ID: <20031029103448.7255b095.davem@redhat.com>
-References: <3F9B8A5D.9010803@triaton-webhosting.com>
-	<200310261052.25944.rezso@rdsor.ro>
-	<20031026223438.1cf757ce.davem@redhat.com>
-	<3F9ED206.4040806@triaton-webhosting.com>
-	<20031028231317.7840e47f.davem@redhat.com>
-	<Pine.LNX.4.58.0310291303270.22903@ryanspc.com>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [PATCH] Fix ip_queue for bridged packets
+Date: Wed, 29 Oct 2003 23:25:44 +0100
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <200310292325.44927.bdschuym@pandora.be>
+References: <200310251709.13913.bdschuym@pandora.be> <200310280002.12023.bdschuym@pandora.be> <20031028065610.499a5b01.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: georg.chini@triaton-webhosting.com, rezso@rdsor.ro,
-	sparclinux@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Return-path: <sparclinux-owner@vger.kernel.org>
-To: Ryan Veety <ryan@ryanspc.com>
-In-Reply-To: <Pine.LNX.4.58.0310291303270.22903@ryanspc.com>
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: "David S. Miller" <davem@redhat.com>
+In-Reply-To: <20031028065610.499a5b01.davem@redhat.com>
+Content-Disposition: inline
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 29 Oct 2003 13:20:30 -0500 (EST)
-Ryan Veety <ryan@ryanspc.com> wrote:
+On Tuesday 28 October 2003 15:56, David S. Miller wrote:
+> Ok, there are other parts of netfilter (both ipv4 and ipv6) that
+> call skb_copy_expand() like this and I suspect we'll be copying
+> this bridging hack over to those places as well.  Not good.
 
-> # iptables -A INPUT -i eth0 -p icmp -m limit --limit 10/second -j ACCEPT
-> iptables: Invalid argument
-> 
-> No biggie for me, just happened to notice it.
+Note that bridged ipv6 is currently not seen by iptables6.
 
-I suspect it's the "unsigned long" in "struct ipt_rateinfo", we'd need
-to translate these structures going in/out of netfilter :-(
+> skb_copy_expand() is not exactly a fast path, so let's just make
+> it copy the header area too.
+>
+> Bart, does this fix your bug too?  Please test it, thanks.
 
-There are a bunch of other iptables target modules that would need
-similar translations.
+It fixes the bug.
+
+Thanks,
+Bart
