@@ -1,14 +1,17 @@
-From: "Maciej Soltysiak" <solt@dns.toxicfilms.tv>
-Subject: [PATCH] Re: HOPLIMIT again
-Date: Tue, 17 Feb 2004 19:13:32 +0100
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: patch for conntrack expectations
+Date: Tue, 17 Feb 2004 22:32:17 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <001301c3f581$c0bca280$0e25fe96@pysiak>
-References: <Pine.LNX.4.58L.0402171931520.31804@alpha.zarz.agh.edu.pl>
+Message-ID: <20040217213217.GF30968@obroa-skai.de.gnumonks.org>
+References: <403014C5.8080102@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0010_01C3F58A.2240A620"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NGIwU0kFl1Z1A3An"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Pablo Neira <pablo@eurodev.net>
+Content-Disposition: inline
+In-Reply-To: <403014C5.8080102@eurodev.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,295 +22,62 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
 
-------=_NextPart_000_0010_01C3F58A.2240A620
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-> once again HOPLIMIT, in 
-> HOPLIMIT/linux/include/linux/netfilter_ipv6/ip6t_HL.h
-> 
-> is IP6T_HOPLIMIT_*  but iptables required IP6T_HL_*
-> What version is correct ?
-> IP6T_HOPLIMIT_SET [kernel] or IP6T_HL_SET [iptables] ?
-Nobody seemed to care to answer my question about which
-should we stick to. Maybe it was because I totally forgot that
-we're talking about the HL target, not the match and what I wrote
-was propably just rubbish :-)
-
-Anyway, as author being the author, I say it is HL.
-This was the name since the beginning. Maybe it should be called
-hlim/HLIM, as this is the most popular and propably best
-recognized in the community, but as of now to keep it clear and
-concise let's change HOPLIMIT to HL
-
-The following patch changes the names so they
-1) compile
-2) follow the naming scheme
-
-Note that this changes the files in patch-o-matic-ng/HOPLIMIT.
-I did not send a patch that removes HOPLIMIT and adds HL
-because it is easier that way to read it.
-
-You, the core team, may decide to keep the changes in
-HOPLIMIT dir, or change it to HL in the directory _and_
-in cvs.
-
-Please apply, it will only make it work, further decisions on naming
-the directory is up to you, although I am in favor of HL
-
-Regards,
-Maciej
-
-------=_NextPart_000_0010_01C3F58A.2240A620
-Content-Type: application/octet-stream;
-	name="HL.patch"
+--NGIwU0kFl1Z1A3An
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="HL.patch"
 
-Index: HOPLIMIT/help=0A=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: /cvspublic/patch-o-matic-ng/HOPLIMIT/help,v=0A=
-retrieving revision 1.1=0A=
-diff -u -r1.1 help=0A=
---- HOPLIMIT/help	20 Dec 2003 16:26:42 -0000	1.1=0A=
-+++ HOPLIMIT/help	17 Feb 2004 18:09:02 -0000=0A=
-@@ -2,6 +2,6 @@=0A=
- to increment or decrement it by a given value.=0A=
- =0A=
- Example:=0A=
--# ip6tables -t mangle -A OUTPUT -j HOPLIMIT --hl-inc 1=0A=
--# ip6tables -t mangle -A INPUT -j HOPLIMIT --hl-eq 64=0A=
--# ip6tables -t mangle -A OUTPUT -j HOPLIMIT --hl-dec 2=0A=
-+# ip6tables -t mangle -A OUTPUT -j HL --hl-inc 1=0A=
-+# ip6tables -t mangle -A INPUT -j HL --hl-eq 64=0A=
-+# ip6tables -t mangle -A OUTPUT -j HL --hl-dec 2=0A=
-Index: HOPLIMIT/info=0A=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: /cvspublic/patch-o-matic-ng/HOPLIMIT/info,v=0A=
-retrieving revision 1.1=0A=
-diff -u -r1.1 info=0A=
---- HOPLIMIT/info	20 Dec 2003 16:26:42 -0000	1.1=0A=
-+++ HOPLIMIT/info	17 Feb 2004 18:09:02 -0000=0A=
-@@ -1,4 +1,4 @@=0A=
--Title: ip6tables HOPLIMIT target=0A=
-+Title: ip6tables HL target=0A=
- Author: Maciej Soltysiak <solt@dns.toxicfilms.tv>=0A=
- Status: Works for me.=0A=
- Repository: base=0A=
-Index: HOPLIMIT/linux/include/linux/netfilter_ipv6/ip6t_HL.h=0A=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: =
-/cvspublic/patch-o-matic-ng/HOPLIMIT/linux/include/linux/netfilter_ipv6/i=
-p6t_HL.h,v=0A=
-retrieving revision 1.1=0A=
-diff -u -r1.1 ip6t_HL.h=0A=
---- HOPLIMIT/linux/include/linux/netfilter_ipv6/ip6t_HL.h	20 Dec 2003 =
-16:26:42 -0000	1.1=0A=
-+++ HOPLIMIT/linux/include/linux/netfilter_ipv6/ip6t_HL.h	17 Feb 2004 =
-18:09:02 -0000=0A=
-@@ -2,18 +2,18 @@=0A=
-  * Maciej Soltysiak <solt@dns.toxicfilms.tv>=0A=
-  * Based on HW's TTL module */=0A=
- =0A=
--#ifndef _IP6T_HOPLIMIT_H=0A=
--#define _IP6T_HOPLIMIT_H=0A=
-+#ifndef _IP6T_HL_H=0A=
-+#define _IP6T_HL_H=0A=
- =0A=
- enum {=0A=
--	IP6T_HOPLIMIT_SET =3D 0,=0A=
--	IP6T_HOPLIMIT_INC,=0A=
--	IP6T_HOPLIMIT_DEC=0A=
-+	IP6T_HL_SET =3D 0,=0A=
-+	IP6T_HL_INC,=0A=
-+	IP6T_HL_DEC=0A=
- };=0A=
- =0A=
--#define IP6T_HOPLIMIT_MAXMODE	IP6T_HOPLIMIT_DEC=0A=
-+#define IP6T_HL_MAXMODE	IP6T_HL_DEC=0A=
- =0A=
--struct ip6t_HOPLIMIT_info {=0A=
-+struct ip6t_HL_info {=0A=
- 	u_int8_t	mode;=0A=
- 	u_int8_t	hop_limit;=0A=
- };=0A=
-Index: HOPLIMIT/linux/net/ipv6/netfilter/Config.in.ladd=0A=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: =
-/cvspublic/patch-o-matic-ng/HOPLIMIT/linux/net/ipv6/netfilter/Config.in.l=
-add,v=0A=
-retrieving revision 1.1=0A=
-diff -u -r1.1 Config.in.ladd=0A=
---- HOPLIMIT/linux/net/ipv6/netfilter/Config.in.ladd	20 Dec 2003 =
-16:26:42 -0000	1.1=0A=
-+++ HOPLIMIT/linux/net/ipv6/netfilter/Config.in.ladd	17 Feb 2004 =
-18:09:02 -0000=0A=
-@@ -1,4 +1,4 @@=0A=
-   dep_tristate '  Packet filtering' CONFIG_IP6_NF_FILTER =
-$CONFIG_IP6_NF_IPTABLES =0A=
-   if [ "$CONFIG_IP6_NF_FILTER" !=3D "n" ]; then=0A=
--    dep_tristate '    HOPLIMIT target support' =
-CONFIG_IP6_NF_TARGET_HOPLIMIT $CONFIG_IP6_NF_FILTER=0A=
-+    dep_tristate '    HL target support' CONFIG_IP6_NF_TARGET_HL =
-$CONFIG_IP6_NF_FILTER=0A=
-   fi=0A=
-Index: HOPLIMIT/linux/net/ipv6/netfilter/Kconfig.ladd=0A=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: =
-/cvspublic/patch-o-matic-ng/HOPLIMIT/linux/net/ipv6/netfilter/Kconfig.lad=
-d,v=0A=
-retrieving revision 1.1=0A=
-diff -u -r1.1 Kconfig.ladd=0A=
---- HOPLIMIT/linux/net/ipv6/netfilter/Kconfig.ladd	21 Dec 2003 20:09:27 =
--0000	1.1=0A=
-+++ HOPLIMIT/linux/net/ipv6/netfilter/Kconfig.ladd	17 Feb 2004 18:09:02 =
--0000=0A=
-@@ -1,3 +1,3 @@=0A=
--config IP6_NF_TARGET_HOPLIMIT=0A=
--	tristate  'HOPLIMIT target support'=0A=
-+config IP6_NF_TARGET_HL=0A=
-+	tristate  'HL target support'=0A=
- 	depends on IP6_NF_MANGLE=0A=
-Index: HOPLIMIT/linux/net/ipv6/netfilter/Makefile.ladd=0A=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: =
-/cvspublic/patch-o-matic-ng/HOPLIMIT/linux/net/ipv6/netfilter/Makefile.la=
-dd,v=0A=
-retrieving revision 1.1=0A=
-diff -u -r1.1 Makefile.ladd=0A=
---- HOPLIMIT/linux/net/ipv6/netfilter/Makefile.ladd	20 Dec 2003 16:26:42 =
--0000	1.1=0A=
-+++ HOPLIMIT/linux/net/ipv6/netfilter/Makefile.ladd	17 Feb 2004 18:09:02 =
--0000=0A=
-@@ -1,2 +1,2 @@=0A=
- obj-$(CONFIG_IP6_NF_TARGET_LOG) +=3D ip6t_LOG.o=0A=
--obj-$(CONFIG_IP6_NF_TARGET_HOPLIMIT) +=3D ip6t_HOPLIMIT.o=0A=
-+obj-$(CONFIG_IP6_NF_TARGET_HL) +=3D ip6t_HL.o=0A=
-Index: HOPLIMIT/linux/net/ipv6/netfilter/ip6t_HL.c=0A=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
-RCS file: =
-/cvspublic/patch-o-matic-ng/HOPLIMIT/linux/net/ipv6/netfilter/ip6t_HL.c,v=0A=
-retrieving revision 1.1=0A=
-diff -u -r1.1 ip6t_HL.c=0A=
---- HOPLIMIT/linux/net/ipv6/netfilter/ip6t_HL.c	20 Dec 2003 16:26:42 =
--0000	1.1=0A=
-+++ HOPLIMIT/linux/net/ipv6/netfilter/ip6t_HL.c	17 Feb 2004 18:09:02 =
--0000=0A=
-@@ -11,7 +11,7 @@=0A=
- #include <linux/ip.h>=0A=
- =0A=
- #include <linux/netfilter_ipv6/ip6_tables.h>=0A=
--#include <linux/netfilter_ipv6/ip6t_HOPLIMIT.h>=0A=
-+#include <linux/netfilter_ipv6/ip6t_HL.h>=0A=
- =0A=
- MODULE_AUTHOR("Maciej Soltysiak <solt@dns.toxicfilms.tv>");=0A=
- MODULE_DESCRIPTION("IP tables Hop Limit modification module");=0A=
-@@ -22,20 +22,20 @@=0A=
- 		const void *targinfo, void *userinfo)=0A=
- {=0A=
- 	struct ipv6hdr *ip6h =3D (*pskb)->nh.ipv6h;=0A=
--	const struct ip6t_HOPLIMIT_info *info =3D targinfo;=0A=
-+	const struct ip6t_HL_info *info =3D targinfo;=0A=
- 	u_int16_t diffs[2];=0A=
- 	int new_hl;=0A=
- 			 =0A=
- 	switch (info->mode) {=0A=
--		case IP6T_HOPLIMIT_SET:=0A=
-+		case IP6T_HL_SET:=0A=
- 			new_hl =3D info->hop_limit;=0A=
- 			break;=0A=
--		case IP6T_HOPLIMIT_INC:=0A=
-+		case IP6T_HL_INC:=0A=
- 			new_hl =3D ip6h->hop_limit + info->hop_limit;=0A=
- 			if (new_hl > 255)=0A=
- 				new_hl =3D 255;=0A=
- 			break;=0A=
--		case IP6T_HOPLIMIT_DEC:=0A=
-+		case IP6T_HL_DEC:=0A=
- 			new_hl =3D ip6h->hop_limit + info->hop_limit;=0A=
- 			if (new_hl < 0)=0A=
- 				new_hl =3D 0;=0A=
-@@ -60,45 +60,45 @@=0A=
- 		unsigned int targinfosize,=0A=
- 		unsigned int hook_mask)=0A=
- {=0A=
--	struct ip6t_HOPLIMIT_info *info =3D targinfo;=0A=
-+	struct ip6t_HL_info *info =3D targinfo;=0A=
- =0A=
--	if (targinfosize !=3D IP6T_ALIGN(sizeof(struct ip6t_HOPLIMIT_info))) {=0A=
--		printk(KERN_WARNING "HOPLIMIT: targinfosize %u !=3D %Zu\n",=0A=
-+	if (targinfosize !=3D IP6T_ALIGN(sizeof(struct ip6t_HL_info))) {=0A=
-+		printk(KERN_WARNING "HL: targinfosize %u !=3D %Zu\n",=0A=
- 				targinfosize,=0A=
--				IP6T_ALIGN(sizeof(struct ip6t_HOPLIMIT_info)));=0A=
-+				IP6T_ALIGN(sizeof(struct ip6t_HL_info)));=0A=
- 		return 0;	=0A=
- 	}	=0A=
- =0A=
- 	if (strcmp(tablename, "mangle")) {=0A=
--		printk(KERN_WARNING "HOPLIMIT: can only be called from \"mangle\" =
-table, not \"%s\"\n", tablename);=0A=
-+		printk(KERN_WARNING "HL: can only be called from \"mangle\" table, =
-not \"%s\"\n", tablename);=0A=
- 		return 0;=0A=
- 	}=0A=
- =0A=
--	if (info->mode > IP6T_HOPLIMIT_MAXMODE) {=0A=
--		printk(KERN_WARNING "HOPLIMIT: invalid or unknown Mode %u\n", =0A=
-+	if (info->mode > IP6T_HL_MAXMODE) {=0A=
-+		printk(KERN_WARNING "HL: invalid or unknown Mode %u\n", =0A=
- 			info->mode);=0A=
- 		return 0;=0A=
- 	}=0A=
- =0A=
--	if ((info->mode !=3D IP6T_HOPLIMIT_SET) && (info->hop_limit =3D=3D 0)) =
-{=0A=
--		printk(KERN_WARNING "HOPLIMIT: increment/decrement doesn't make sense =
-with value 0\n");=0A=
-+	if ((info->mode !=3D IP6T_HL_SET) && (info->hop_limit =3D=3D 0)) {=0A=
-+		printk(KERN_WARNING "HL: increment/decrement doesn't make sense with =
-value 0\n");=0A=
- 		return 0;=0A=
- 	}=0A=
- 	=0A=
- 	return 1;=0A=
- }=0A=
- =0A=
--static struct ip6t_target ip6t_HOPLIMIT =3D { { NULL, NULL }, =
-"HOPLIMIT", =0A=
-+static struct ip6t_target ip6t_HL =3D { { NULL, NULL }, "HL", =0A=
- 	ip6t_hl_target, ip6t_hl_checkentry, NULL, THIS_MODULE };=0A=
- =0A=
- static int __init init(void)=0A=
- {=0A=
--	return ip6t_register_target(&ip6t_HOPLIMIT);=0A=
-+	return ip6t_register_target(&ip6t_HL);=0A=
- }=0A=
- =0A=
- static void __exit fini(void)=0A=
- {=0A=
--	ip6t_unregister_target(&ip6t_HOPLIMIT);=0A=
-+	ip6t_unregister_target(&ip6t_HL);=0A=
- }=0A=
- =0A=
- module_init(init);=0A=
+On Mon, Feb 16, 2004 at 01:54:29AM +0100, Pablo Neira wrote:
+> Hi harald!
+> So I decided to implement the  function:
+>=20
+> int ip_conntrack_alloc_expect(struct ip_conntrack_expect **new)
+>=20
+> This function is exported. It's called from the help(...) function when=
+=20
+> the pattern is found.
+> It creates an expectation which will be manipulated by the helper and=20
+> which will be inserted by ip_conntrack_expect_related(...).
+>=20
+> This way we don't need to work with a fake expectation and pass it to=20
+> ip_conntrack_expect_related which will copy the information to the real=
+=20
+> ip_conntrack_expect_related.
 
-------=_NextPart_000_0010_01C3F58A.2240A620--
+This is indeed a true observation and good suggestion.=20
+
+Hoever, I'm not sure whether it would make any measurable difference.
+The expect was allocated on the stack [which is cheap], and now we have
+one additional (inter-module) function call instead of the allocation of
+a couple of bytes on the stack.  I'm not sure which one is really worse.
+
+Also, 2.4.x kernel series are heading for a freeze pretty soon.
+So if at all, such a patch would be accepted for 2.6.x.  But then I
+would like to ask you to change all the helpers (esp. the ones in
+patch-o-matic-ng), too.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--NGIwU0kFl1Z1A3An
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAMohhXaXGVTD0i/8RAo0sAJ0aACxU2/gu3ESavmY4IVQg32TRGQCfcFqG
+M+6OZJqryVomJegrSoLSwQk=
+=7y6o
+-----END PGP SIGNATURE-----
+
+--NGIwU0kFl1Z1A3An--
