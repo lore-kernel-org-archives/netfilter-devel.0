@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: filter for adding/checking TCP MD5 option
-Date: Fri, 23 Jan 2004 13:03:57 +0100 (CET)
+Subject: Re: =?iso-8859-1?Q?question?=
+Date: Fri, 23 Jan 2004 13:21:51 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0401231248320.12080-100000@filer.marasystems.com>
-References: <E1Aitrb-0004cA-00@services3.virtu.nl>
+Message-ID: <Pine.LNX.4.44.0401231307440.12080-100000@filer.marasystems.com>
+References: <HRU2W7$64C9358E9A23239906B5624603A3F140@tiscali.fr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Cc: =?iso-8859-1?Q?netfilter-devel?= <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Remco van Mook <remco@virtu.nl>
-In-Reply-To: <E1Aitrb-0004cA-00@services3.virtu.nl>
+To: =?iso-8859-1?Q?Jeanmich?= <jm.cornilleau@freesbee.fr>
+In-Reply-To: <HRU2W7$64C9358E9A23239906B5624603A3F140@tiscali.fr>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,55 +20,45 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 20 Jan 2004, Remco van Mook wrote:
+On Wed, 21 Jan 2004, Jeanmich wrote:
 
-> The first line would do something as follows:
-> - decrease MSS to make the extra option fit (a staggering 18 bytes extra in
-> the TCP header)
-> - calculate the MD5 based on the key and the information contained in the
-> packet
-> - insert the TCP MD5 option field, recalculate checksum and send the packet
-> on its way
+> I would like to protect myself against syn flooding.
+
+What kind of SYN flooding of what?
+
+> Obviously, i've looked on the web and i found 2 solutions :
 > 
-> The second line would:
-> - check whether the MD5 matches the key
-> - DROP the packet if it doesn't match
-> - if the MD5 matches, strip off the MD5 option field, recalculate checksum
-> and treat the packet as if nothing happened
+> -1- echo 1 in the file /proc/sys/net/ipv4/tcp_syncookies
+> -2- iptables -A FORWARD -p tcp --syn -m limit --limit
+> 1/second -J ACCEPT
 
-Some conceptual changes to make this more in line with iptables:
+The first makes Linux deal with SYN flooding on any services given by THIS 
+Linux box. It does nothing on forwarded traffic.
 
-1. a match which can verify the MD5 option. The same match should also be 
-able to check if a MD5 option exists or not, allowing differentiation into 
-the following packet classes:
-   - Has valid TCPMD5 option
-   - Has invalid TCPMD5 option
-   - Does not have TCPMD5 option
+THe second makes sure SYN "flooding" guantees a Denial of Service any new
+sessions matching that rule in order to protect servers from becoming
+overloaded by too many new sessions too fast, but without regard to the
+actual load on the server.  This type of protection is highly overrated
+and almost always causes more problems than it solves.  SYN flooding
+SHOULD be addressed on the actual server using approach '1' or equivalent
+(depending on the Server OS).
 
-2. a target which can add/delete/modify the MD5 option.
+Neither protects from connection flooding if the server accepts long 
+connections. And again connection flooding SHOULD be addressed on the 
+server if possible as firewalling has much less knowledge of what is 
+actually going on within the active sessions.
 
+> When i've have a look in
+> /usr/scr/linux/Documentation/networking/ip-sysctl.txt, i
+> understand that it is a "facility" to use -1-, and that -1-
+> is often hiding "misconfigured" servers.
 
-Note: As this is TCP payload dependent you need to make sure packets are 
-defragmented before processed. This is most easily accomplished by 
-depending on conntrack.
+This is not what the documentation says. What it says is that 
+syncookies is not a substitute for a large SYN backlog unless there 
+actually is a synflood in progress.
 
-
-> As I'm a complete newbie when it comes to netfilter development, could
-> anybody provide me some pointers on how to do this in the right way?
-> Borrowing code from TCPMSS and using the Crypto API from the kernel for
-> the MD5 checksum are things I'm currently considering.
-
-Looks like a very reasonable approach to me.
-
-If you look closely at the TCPMSS you will also notice there is a tcpmss 
-match along the lines described above.
-
-There is also a netfilter hacking howto which partially describes how to
-write matches/targets which may be good to read if you have not already.
-
-Note: The userspace part is found in the iptables tree under extensions in 
-case you have not found these already.
-
+Both syncookies and SYN backlog is only relevant on connections to this
+server. It is not related to forwarded traffic.
 
 Regards
 Henrik
