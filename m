@@ -1,16 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: only first TCP SYN packet consulted in nat table chains - bug
- or feature?
-Date: Tue, 22 Jun 2004 17:26:42 +0200 (CEST)
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: How to fill a ipt_entry structure to add a rule using iptc_append_entry()
+Date: Tue, 22 Jun 2004 17:49:03 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0406221724120.23944-100000@filer.marasystems.com>
-References: <1087911233.7536.2.camel@coati>
+Message-ID: <20040622154903.GK24374@sunbeam.de.gnumonks.org>
+References: <20040622114755.61596.qmail@web20024.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DmRfE5nj5SdCaIcH"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
-In-Reply-To: <1087911233.7536.2.camel@coati>
+To: babula allu <allubabula@yahoo.com>
+Content-Disposition: inline
+In-Reply-To: <20040622114755.61596.qmail@web20024.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,17 +22,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 22 Jun 2004, Eric Leblond wrote:
 
-> This extension is one more time useful to someone. Does somebody know
-> why it has not been included into the standard kernel ?
+--DmRfE5nj5SdCaIcH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It has been proposed a number of times, but never seems to get the final 
-goahead. And right now is not a good time as changes is again discussed.
+On Tue, Jun 22, 2004 at 04:47:55AM -0700, babula allu wrote:
+> Hi,
+>=20
+>=20
+> I am trying to add a simple rule to INPUT chain using
+> iptc_append_entry  but it fails.It says invalid
+> argument.
+>=20
+>  I also tried sending the same ipt_entry structure
+> which was returned by the iptc_first_rule API.In this
+> case iptc_append _entry doesn't return an error but
+> iptables -L doesn't display the rule in the list also.
+>=20
+> If somebody knows about the cause and solution please
+> help me.
 
-Hopefully the third revision discussed a few days ago will finally make
-it.. (changes in mark mask logics to express a much richer set of
-operations).
+1) please read http://www.netfilter.org/contact.html
 
-Regards
-Henrik
+2) libiptc is not a public interface, we do not encourage neither
+   support anybody using it.
+
+> Babula
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--DmRfE5nj5SdCaIcH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFA2FTvXaXGVTD0i/8RAiyUAJ9ndr4ZZMpRkDTA335KLEQvIZ+5cwCfW+lf
+91qQtmzflheLdHaSpQBGkjI=
+=2alI
+-----END PGP SIGNATURE-----
+
+--DmRfE5nj5SdCaIcH--
