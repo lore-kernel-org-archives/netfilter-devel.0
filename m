@@ -1,14 +1,16 @@
-From: Martijn Lievaart <m@rtij.nl>
-Subject: Re: LAND check: 2.4.20
-Date: Wed, 16 Mar 2005 09:44:00 +0100
-Message-ID: <4237F1D0.1020406@rtij.nl>
-References: <BB6D74C75CC76A419B6D6FA7C38317B26A26DE@sinett-sbs.SiNett.LAN>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: nf_conntrack tree
+Date: Wed, 16 Mar 2005 10:53:08 +0100
+Message-ID: <42380204.5020201@eurodev.net>
+References: <42377F54.8070408@trash.net>
+	<200503160648.j2G6mXVT014699@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-To: Vishwas Manral <Vishwas@sinett.com>
-In-Reply-To: <BB6D74C75CC76A419B6D6FA7C38317B26A26DE@sinett-sbs.SiNett.LAN>
+Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
+	kaber@trash.net
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200503160648.j2G6mXVT014699@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,42 +22,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Vishwas Manral wrote:
+Yasuyuki KOZAKAI wrote:
+> 	3. The symbol "ip_conntrack_untracked" which depends on ip_conntrack.
+> 	   state, conntrack, NOTRACK use this symbol. How about defining
+> 	   "void *nf_ct_untracked" in net/core/netfilter.c and
+> 	   set &ip_conntrack_untracked.general/&nf_conntrack_untracked.general
+> 	   to it when initializing ip_conntrack/nf_conntrack ?
 
->Hi Cedric/ Martin,
->
->Thanks for the reply. There are a few things you may be missing:-
->
->1. They cannot be in the rule set, unless we can put a rule which says for any Source-IP/ Port if destination will be the same value then drop. You cannot put the value of every possible IP/port in your rule set. Besides as you yourself mentioned the solution you state it may not work for all scenarios.
->  
->
+Something I have in mind. I think that we could use one of the bits of 
+nfcache explicitely mark invalid connections. If we get an invalid 
+packet, conntrack can set the NFC_INVALID bit. That way we interpret a 
+NULL pointer in skb->nfct as a untracked connection and kill that fake 
+conntrack.
 
-Yes they can. You don't need a rule that syas srcip==dstip. If eth0 is 
-connected to 1.2.3.0/24, put in a rule that drops traffic from any other 
-interface with source address 1.2.3.0/24. In practice this works in any 
-scenario where it matters imo.
-
->2. The source and destination address may be routed, though the same. So from a machine X I could send a packet with source and Destination IP of Y.
->  
->
-
-Yes, that is possible. However, do you want to catch LAND attacks on a 
-machine that has such weird routing functionality? If this really 
-bothers you, write a custom match, it should be trivial.
-
->3. I am not sure which routing code checks for Source IP Address? Can you point me to some code (destroy it as a packet with local IP as source must be received on loopback)?
->  
->
-
-See Patricks reply.
-
->The solution as done by most firewalls is to add a simple check in the check_tcp and check_udp. I think we need to add this to the iptables code.
->  
->
-
-If you really need this functionality, it is trivial to write a custom 
-match for it. If case 2 above is a reality for you, you need the 
-flexibility of a custom match anyhow, as you cannot solve the problem 
-generically in that case.
-
-M4
+--
+Pablo
