@@ -1,10 +1,10 @@
 From: Stephane Ouellette <ouellettes@videotron.ca>
-Subject: [PATCH]   Condition match - error while parsing parameters
-Date: Sat, 15 Mar 2003 10:15:37 -0500
+Subject: [PATCH]   Dead code elimination in ip_conntrack_core.c
+Date: Sat, 15 Mar 2003 12:30:04 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E734399.9050709@videotron.ca>
+Message-ID: <3E73631C.1060102@videotron.ca>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_rMllxklZw7/qgeDtQrIuqg)"
+Content-Type: multipart/mixed; boundary="Boundary_(ID_04zQ9GGhZjtsH58eNbrpFg)"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -19,65 +19,38 @@ List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
 
---Boundary_(ID_rMllxklZw7/qgeDtQrIuqg)
+--Boundary_(ID_04zQ9GGhZjtsH58eNbrpFg)
 Content-type: text/plain; charset=us-ascii; format=flowed
 Content-transfer-encoding: 7BIT
 
-Folks,
+List members,
 
-   here are two small patches that fix a parsing error.  The error made 
-the condition match module think that multiple conditions were specified 
-on the iptables command line.
+    the following cosmetic patch removes dead code in 
+ip_conntrack_init() if CONFIG_SYSCTL is not defined.
+The patch applies against a plain 2.4.21-pre5-ac3 kernel.
 
-Stephane Ouellette.
+Regards,
+
+Stephane Ouellette
 
 
---Boundary_(ID_rMllxklZw7/qgeDtQrIuqg)
-Content-type: text/plain; name=libip6t_condition.c.patch; CHARSET=US-ASCII
+--Boundary_(ID_04zQ9GGhZjtsH58eNbrpFg)
+Content-type: text/plain; name=ip_conntrack_core.c.patch; CHARSET=US-ASCII
 Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=libip6t_condition.c.patch
+Content-disposition: inline; filename=ip_conntrack_core.c.patch
 
---- netfilter.orig/userspace/extensions/libip6t_condition.c	Sat Mar 15 10:04:36 2003
-+++ netfilter/userspace/extensions/libip6t_condition.c	Sat Mar 15 10:05:27 2003
-@@ -41,11 +41,11 @@
+--- linux-2.4.21-pre5-ac3/net/ipv4/netfilter/ip_conntrack_core.c	Sat Mar 15 12:16:55 2003
++++ linux-2.4.21-pre5-ac3-fixed/net/ipv4/netfilter/ip_conntrack_core.c	Sat Mar 15 12:23:34 2003
+@@ -1478,8 +1478,10 @@
+ 	ip_ct_attach = ip_conntrack_attach;
+ 	return ret;
  
- 	check_inverse(optarg, &invert, &optind, 0);
- 
--	if (*flags)
--		exit_error(PARAMETER_PROBLEM,
--			   "Can't specify multiple conditions");
--
- 	if (c == 'X') {
-+		if (*flags)
-+			exit_error(PARAMETER_PROBLEM,
-+				   "Can't specify multiple conditions");
-+
- 		if (strlen(argv[optind - 1]) < CONDITION6_NAME_LEN)
- 			strcpy(info->name, argv[optind - 1]);
- 		else
++#ifdef CONFIG_SYSCTL
+ err_free_ct_cachep:
+ 	kmem_cache_destroy(ip_conntrack_cachep);
++#endif /*CONFIG_SYSCTL*/
+ err_free_hash:
+ 	vfree(ip_conntrack_hash);
+ err_unreg_sockopt:
 
---Boundary_(ID_rMllxklZw7/qgeDtQrIuqg)
-Content-type: text/plain; name=libipt_condition.c.patch; CHARSET=US-ASCII
-Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=libipt_condition.c.patch
-
---- netfilter.orig/userspace/extensions/libipt_condition.c	Sat Mar 15 10:04:36 2003
-+++ netfilter/userspace/extensions/libipt_condition.c	Sat Mar 15 10:05:20 2003
-@@ -41,11 +41,11 @@
- 
- 	check_inverse(optarg, &invert, &optind, 0);
- 
--	if (*flags)
--		exit_error(PARAMETER_PROBLEM,
--			   "Can't specify multiple conditions");
--
- 	if (c == 'X') {
-+		if (*flags)
-+			exit_error(PARAMETER_PROBLEM,
-+				   "Can't specify multiple conditions");
-+
- 		if (strlen(argv[optind - 1]) < CONDITION_NAME_LEN)
- 			strcpy(info->name, argv[optind - 1]);
- 		else
-
---Boundary_(ID_rMllxklZw7/qgeDtQrIuqg)--
+--Boundary_(ID_04zQ9GGhZjtsH58eNbrpFg)--
