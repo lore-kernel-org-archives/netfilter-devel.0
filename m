@@ -1,13 +1,18 @@
-From: "Juan Torres" <islero77@telefonica.net>
-Subject: RV: Problems installing Netfilter extensions
-Date: Fri, 20 Jun 2003 06:52:19 +0200
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Suggestion regarding masquerading / action when the link goes down
+Date: Fri, 20 Jun 2003 10:15:18 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000901c336e7$bb9b5390$0300000a@juan>
+Message-ID: <20030620081518.GL26270@sunbeam.de.gnumonks.org>
+References: <005001c32c4d$6e2c3240$7b00a8c0@chr> <20030619121154.GI20125@sunbeam.de.gnumonks.org> <3EF256E0.3090707@snapgear.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_000A_01C336F8.7F242390"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8SdtHY/0P4yzaavF"
+Cc: Christian Morgenstern <C.Morgenstern@gmx.de>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Netfilter-devel" <netfilter-devel@lists.netfilter.org>
+To: Philip Craig <philipc@snapgear.com>
+Content-Disposition: inline
+In-Reply-To: <3EF256E0.3090707@snapgear.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,158 +23,49 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
 
-------=_NextPart_000_000A_01C336F8.7F242390
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-
-
-	Hi!!
-
-	I'm trying to install a Netfilter extension, mport, but it
-doesn't work
-
-	I make all the steps that comes on the Netfilter Extensions
-HOWTO, but, when I try to use the new match, it appears an error saying
-that it doesn't exists the libipt_mport.so file, I have observed that
-there are the ipt_mport.c and ipt_mport.h files, but no this other file.
-
-	I think that the problem is because I can't make the last step
-explained in the documentation, where is written:
-
-		Once your new kernel is installed, you can go ahead and
-compile and install the "iptables" package, from the "userspace/"
-directory as follows:
-			# make all install
-
-	This last step doesn't work!! When I execute this command in the
-userspace/ subdirectory inside the patch-o-matic directory, It appears
-an error saying that It can't find the "all" option (or something
-similar), I have proved to do "make all" and "make install", but it
-doesn't work anyway
-
-
-	What I'm not doing properly??
-
-
-Maybe this is not the best list to send this message, but in the
-Netfilter-users list nobody could help me...
-
-
-	Than you very much
-
-
-
-------=_NextPart_000_000A_01C336F8.7F242390
-Content-Type: text/html;
-	charset="us-ascii"
+--8SdtHY/0P4yzaavF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<HTML>
-<HEAD>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
-charset=3Dus-ascii">
-<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
-6.0.4630.0">
-<TITLE>RV: Problems installing Netfilter extensions</TITLE>
-</HEAD>
-<BODY>
-<!-- Converted from text/rtf format -->
-<BR>
+On Fri, Jun 20, 2003 at 10:35:44AM +1000, Philip Craig wrote:
+>=20
+> Shouldn't this be a new option for the MASQUERADE target, so that it
+> can be set per rule rather than as a global setting for all rules?
+>=20
+> Alternatively, you could change the SNAT target so that it doesn't
+> require an address to be specified.
 
-<P ALIGN=3DJUSTIFY><SPAN =
-LANG=3D"es">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT =
-SIZE=3D2 FACE=3D"Arial">Hi</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"><FONT SIZE=3D2 =
-FACE=3D"Arial">!!</FONT></SPAN></P>
+Both of those ideas seem impractical.  The first would require this
+choice to be saved together with the rule - that would increase the
+targinfo structure size and thus render it incompatible with older
+MASQUERADE targets.  The second ignores the fact that SNAT is a builtin
+nat target of the nat core, which has no idea at all about interfaces.
 
-<P ALIGN=3DJUSTIFY><SPAN =
-LANG=3D"es">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT =
-SIZE=3D2 FACE=3D"Arial">I&#8217;m trying to install a Netfilter =
-extension, mport, but it doesn&#8217;t work</FONT></SPAN></P>
+> Philip Craig - philipc@snapgear.com - http://www.SnapGear.com
+> SnapGear - Custom Embedded Solutions and Security Appliances
 
-<P ALIGN=3DJUSTIFY><SPAN =
-LANG=3D"en-gb">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <FONT SIZE=3D2 =
-FACE=3D"Arial">I make all the steps that comes on the Netfilter =
-Extensions HOWTO, but, when I try to use the new match, it appears an =
-error saying that it doesn&#8217;t exists the libipt_mport.so file, I =
-have observed that there are the ipt_mport.c and ipt_mport.h files, but =
-no this other file.</FONT></SPAN></P>
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-<P ALIGN=3DJUSTIFY><SPAN =
-LANG=3D"en-gb">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <FONT SIZE=3D2 =
-FACE=3D"Arial">I think that the problem is because I can&#8217;t make =
-the last step explained in the documentation, where is =
-written:</FONT></SPAN></P>
+--8SdtHY/0P4yzaavF
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-<P ALIGN=3DJUSTIFY><SPAN =
-LANG=3D"en-gb">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <FONT SIZE=3D2 =
-FACE=3D"Arial">Once your new kernel is installed, you can go ahead and =
-compile and install the &#8220;iptables&#8221; package, from the =
-&#8220;userspace/&#8221; directory as follows:</FONT></SPAN></P>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-<P ALIGN=3DJUSTIFY><SPAN =
-LANG=3D"en-gb">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <FONT SIZE=3D2 =
-FACE=3D"Arial"># make all install</FONT></SPAN></P>
+iD8DBQE+8sKWXaXGVTD0i/8RAgrhAJ4jXmIt6oxrod1y8AkuuKbQQ+BANgCghogf
+XU1a37T6WSIlsULcRpCaIqU=
+=oA7B
+-----END PGP SIGNATURE-----
 
-<P ALIGN=3DJUSTIFY><SPAN =
-LANG=3D"en-gb">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT =
-SIZE=3D2 FACE=3D"Arial">This last step doesn&#8217;t work!! When I =
-execute this command in the userspace/ subdirectory inside the =
-patch-o-matic directory, It appears an error saying that It can&#8217;t =
-find the &#8220;all&#8221; option (or something similar), I have =
-proved</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
-FACE=3D"Arial">to do</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"> <FONT SIZE=3D2 =
-FACE=3D"Arial">&#8220;</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 =
-FACE=3D"Arial">make all</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 =
-FACE=3D"Arial">&#8221;</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 FACE=3D"Arial"> =
-and</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"en-gb"> <FONT SIZE=3D2 FACE=3D"Arial">&#8220;</FONT></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
-SIZE=3D2 FACE=3D"Arial">make install</FONT></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
-SIZE=3D2 FACE=3D"Arial">&#8221;</FONT></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
-SIZE=3D2 FACE=3D"Arial">, but it doesn</FONT></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
-SIZE=3D2 FACE=3D"Arial">&#8217;</FONT></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"en-gb"><FONT =
-SIZE=3D2 FACE=3D"Arial">t work anyway</FONT></SPAN><SPAN =
-LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"en-gb"></SPAN></P>
-<BR>
-
-<P ALIGN=3DJUSTIFY><SPAN =
-LANG=3D"en-gb">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <FONT SIZE=3D2 =
-FACE=3D"Arial">What I&#8217;m not doing properly??</FONT></SPAN></P>
-<BR>
-
-<P ALIGN=3DJUSTIFY><SPAN LANG=3D"en-gb"><FONT SIZE=3D2 =
-FACE=3D"Arial">Maybe this is not the best list to send this message, but =
-in</FONT></SPAN><SPAN LANG=3D"es"></SPAN><SPAN LANG=3D"es"></SPAN><SPAN =
-LANG=3D"en-gb"> <FONT SIZE=3D2 FACE=3D"Arial">the Netfilter-users list =
-nobody could help me...</FONT></SPAN></P>
-<BR>
-
-<P ALIGN=3DJUSTIFY><SPAN =
-LANG=3D"en-gb">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <FONT SIZE=3D2 =
-FACE=3D"Arial">Than you very much</FONT></SPAN></P>
-<BR>
-
-</BODY>
-</HTML>
-------=_NextPart_000_000A_01C336F8.7F242390--
+--8SdtHY/0P4yzaavF--
