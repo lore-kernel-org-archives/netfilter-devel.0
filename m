@@ -1,18 +1,14 @@
-From: gideon olam <gideon@gideonolam.com>
-Subject: Re: RBAC Integration
-Date: 28 Jun 2003 00:30:40 -0600
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re: [PATCH] admin-prohibited option. Let us look at it again.
+Date: Sat, 28 Jun 2003 11:58:00 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1056781840.16194.17.camel@skinny.gideonolam.com>
-References: <1056734756.7156.2.camel@skinny.gideonolam.com>
-	 <20030627174010.GB10045@oknodo.bof.de>
-	 <1056741347.7156.10.camel@skinny.gideonolam.com>
-	 <20030628054834.GC10045@oknodo.bof.de>
+Message-ID: <Pine.LNX.4.51.0306281147310.8133@dns.toxicfilms.tv>
+References: <Pine.LNX.4.51.0304091722270.12113@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-+mQQ45ARPw1wuKz0OOcl"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <20030628054834.GC10045@oknodo.bof.de>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.51.0304091722270.12113@dns.toxicfilms.tv>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,113 +19,142 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
---=-+mQQ45ARPw1wuKz0OOcl
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I guess it is time to send admin-prohib to davem, as we discussed earlier
+on.
 
-On Fri, 2003-06-27 at 23:48, Patrick Schaaf wrote:
-> Hi Joe,
->=20
-> > Well,  I was thinking about "role" matches for filters and other policy
-> > type matches,  be it MAC or whatever.
->=20
-> In the existing RBAC systems, is there already a well defined notion
-> of "role" for individual network packets (aka sk_buffs), as they pass
-> through the stack?
->=20
+Here is what I suggested back then:
 
-The state of network control in the different systems are at varying
-levels.   Grsecurity is adding network controls in 2.0.
+ patch-o-matic/extra/admin-prohib.patch      |   34 ++++++++++++++++++++++++++++
+ patch-o-matic/extra/admin-prohib.patch.help |    9 +++++++
+ userspace/INCOMPATIBILITIES                 |    6 ++++
+ userspace/extensions/libipt_REJECT.c        |   16 ++++++++++++-
+ userspace/iptables.8                        |    7 ++++-
+ 5 files changed, 69 insertions(+), 3 deletions(-)
 
+diff -Nru netfilter.orig/patch-o-matic/extra/admin-prohib.patch netfilter/patch-o-matic/extra/admin-prohib.patch
+--- netfilter.orig/patch-o-matic/extra/admin-prohib.patch	1970-01-01 01:00:00.000000000 +0100
++++ netfilter/patch-o-matic/extra/admin-prohib.patch	2003-04-09 16:43:50.000000000 +0200
+@@ -0,0 +1,34 @@
++diff -Nru linux.bak/include/linux/netfilter_ipv4/ipt_REJECT.h linux/include/linux/netfilter_ipv4/ipt_REJECT.h
++--- linux.bak/include/linux/netfilter_ipv4/ipt_REJECT.h	2003-04-08 20:21:22.000000000 +0200
+++++ linux/include/linux/netfilter_ipv4/ipt_REJECT.h	2003-04-09 16:40:05.000000000 +0200
++@@ -9,7 +9,8 @@
++ 	IPT_ICMP_ECHOREPLY,
++ 	IPT_ICMP_NET_PROHIBITED,
++ 	IPT_ICMP_HOST_PROHIBITED,
++-	IPT_TCP_RESET
+++	IPT_TCP_RESET,
+++	IPT_ICMP_ADMIN_PROHIBITED
++ };
++
++ struct ipt_reject_info {
++diff -Nru linux.bak/net/ipv4/netfilter/ipt_REJECT.c linux/net/ipv4/netfilter/ipt_REJECT.c
++--- linux.bak/net/ipv4/netfilter/ipt_REJECT.c	2003-04-08 20:21:56.000000000 +0200
+++++ linux/net/ipv4/netfilter/ipt_REJECT.c	2003-04-09 16:41:07.000000000 +0200
++@@ -1,6 +1,7 @@
++ /*
++  * This is a module which is used for rejecting packets.
++  * Added support for customized reject packets (Jozsef Kadlecsik).
+++ * Added support for ICMP type-3-code-13 (Maciej Soltysiak). [RFC 1812]
++  */
++ #include <linux/config.h>
++ #include <linux/module.h>
++@@ -330,6 +331,9 @@
++ 	case IPT_ICMP_HOST_PROHIBITED:
++     		send_unreach(*pskb, ICMP_HOST_ANO);
++     		break;
+++    	case IPT_ICMP_ADMIN_PROHIBITED:
+++		send_unreach(*pskb, ICMP_PKT_FILTERED);
+++		break;
++ 	case IPT_TCP_RESET:
++ 		send_reset(*pskb, hooknum == NF_IP_LOCAL_IN);
++ 	case IPT_ICMP_ECHOREPLY:
+diff -Nru netfilter.orig/patch-o-matic/extra/admin-prohib.patch.help netfilter/patch-o-matic/extra/admin-prohib.patch.help
+--- netfilter.orig/patch-o-matic/extra/admin-prohib.patch.help	1970-01-01 01:00:00.000000000 +0100
++++ netfilter/patch-o-matic/extra/admin-prohib.patch.help	2003-04-09 16:47:14.000000000 +0200
+@@ -0,0 +1,9 @@
++Author: Maciej Soltysiak <solt@dns.toxicfilms.tv>
++Status: Working, causes incompatibilities.
++
++This patch adds --reject-with admin-prohib option to the REJECT targe
++making it compliant with RFC 1812 and making an incompatibility
++with kernels that do not support this ipt_REJECT.c option.
++
++Usage of this option with kernels that do not support will effect in
++a DROP, not REJECT.
+diff -Nru netfilter.orig/userspace/INCOMPATIBILITIES netfilter/userspace/INCOMPATIBILITIES
+--- netfilter.orig/userspace/INCOMPATIBILITIES	1970-01-01 01:00:00.000000000 +0100
++++ netfilter/userspace/INCOMPATIBILITIES	2003-04-09 16:53:01.000000000 +0200
+@@ -0,0 +1,6 @@
++INCOMPATIBILITIES:
++
++- The REJECT target has an '--reject-with admin-prohib' option which used
++  with kernels that do not support it, will result in a plain DROP instead
++  of REJECT.  Use with caution.
++  Kernels that do support it:
+diff -Nru netfilter.orig/userspace/extensions/libipt_REJECT.c netfilter/userspace/extensions/libipt_REJECT.c
+--- netfilter.orig/userspace/extensions/libipt_REJECT.c	2003-04-08 21:49:15.000000000 +0200
++++ netfilter/userspace/extensions/libipt_REJECT.c	2003-04-09 16:59:53.000000000 +0200
+@@ -9,6 +9,16 @@
+ #include <iptables.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv4/ipt_REJECT.h>
++#include <linux/version.h>
++
++/* If we are compiling against a kernel that does not support
++ * IPT_ICMP_ADMIN_PROHIBITED, we are emulating it.
++ * The result will be a plain DROP of the packet instead of
++ * reject. -- Maciej Soltysiak <solt@dns.toxicfilms.tv>
++ */
++#ifndef IPT_ICMP_ADMIN_PROHIBITED
++#define IPT_ICMP_ADMIN_PROHIBITED	IPT_TCP_RESET + 1
++#endif
 
-> > Matches like owner might be able to benefit.
->=20
-> That one is obvious. It should be straightforward to do, in that
-> case, right? Processes have role tags, the owner match is the
-> sole point which knows process context, so process roles could
-> be checked by some clone of the owner match.
->=20
+ struct reject_names {
+ 	const char *name;
+@@ -35,7 +45,9 @@
+ 	{"icmp-host-prohibited", "host-prohib",
+ 	 IPT_ICMP_HOST_PROHIBITED, "ICMP host prohibited"},
+ 	{"tcp-reset", "tcp-reset",
+-	 IPT_TCP_RESET, "TCP RST packet"}
++	 IPT_TCP_RESET, "TCP RST packet"},
++	{"icmp-admin-prohibited", "admin-prohib",
++	 IPT_ICMP_ADMIN_PROHIBITED, "ICMP administratively prohibited (*)"}
+ };
 
-This would follow from the above,  if there is already a context for the
-objects in the RBAC,  then it follows there would be a role associated
-with the object.
+ static void
+@@ -64,6 +76,8 @@
+ "                                a reply packet according to type:\n");
 
+ 	print_reject_types();
++
++	printf("(*) See man page or read the INCOMPATIBILITES file for compatibility issues.\n");
+ }
 
-> > Userspace could use roles to determine who has what access rights
-> > to a table.
->=20
-> You mean something like this: who is permitted to modify this or that cha=
-in,
-> e.g. a userspace role "permitted to set MARKs from 1 to 100 in
-> mangle/PREROUTING"?
->=20
-> That could be very useful. Also very complex to get all interesting
-> criteria (like the MARK range I mention) covered.
->=20
-
-Yes,  but even more simply,  on a secure system root shouldn't have to
-manage filters.  The RBAC MAC could control access to the iptables
-objects at a more granular level then just read/write. =20
-
-Perhaps even new filters could be checked against some policy to
-determine whether or not to apply it.   This could be very useful in a
-dynamic firewall application.
-
-
-> A last comment: an owner like role match, and probably other similar
-> things, would better be part of the respective RBAC system. At least
-> until the time when that RBAC system is part of the base kernel.
-> I don't think that the iptables core implementation could / should
-> contain parts useful solely by out-of-kernel patches / modules.
-> Maybe patch-o-matic/extra could cope with this.
->=20
-
-Well,  most of these modules are kernel patches and the like.  I suspect
-any project would become part of the RBAC's patches to the kernel, an
-add-on to the RBAC to provide iptables integration.  That being the
-case, the RBAC and how it integrates,  what capabilities are feasible,=20
-really depend upon the specific RBAC chosen.  It would be nice if any
-interface could satisfy them all,  but I do not think that's realistic
-considering the nature of these projects. =20
-
-http://www.rsbac.org
-http://www.grsecurity.org
-http://www.nasa.gov/selinux
-
-Selinux has some possible patent issues (search google on selinux
-patent)  It is available as part of the Hardened Gentoo project (see
-below)
-
-RSBAC is used in Adamantix (previously Trusted Debian)
-http://www.adamantix.org
-
-GRSecurity is getting more mature and is available as part of the
-Hardened Gentoo Project
-http://www.gentoo.org/proj/en/hardened/
-
-Most of these can go right on top of any distro,  though some of these
-features can break apps on an OS.  For instance, some PaX options in
-grsecurity can wreak havoc on XFree,  but it's other adds are sweet,=20
-things like IP ID randomization,  TCP Seq randomization,  source port
-randomization, pid randomization, etc..
-
-
-> best regards
->   Patrick
-
---jrs
-
---=-+mQQ45ARPw1wuKz0OOcl
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQA+/TYPnOx3U+/N6ccRArv2AKCW9E+mxi7Bdlv/KFtfGlyi1EqmcQCfT0l5
-CZmidI9k0nswxw2ctTWs0JI=
-=KEAE
------END PGP SIGNATURE-----
-
---=-+mQQ45ARPw1wuKz0OOcl--
+ static struct option opts[] = {
+diff -Nru netfilter.orig/userspace/iptables.8 netfilter/userspace/iptables.8
+--- netfilter.orig/userspace/iptables.8	2003-04-08 21:49:17.000000000 +0200
++++ netfilter/userspace/iptables.8	2003-04-09 17:11:20.000000000 +0200
+@@ -852,8 +852,9 @@
+ .BR icmp-host-unreachable ,
+ .BR icmp-port-unreachable ,
+ .BR icmp-proto-unreachable ,
+-.BR "icmp-net-prohibited or"
+-.BR icmp-host-prohibited ,
++.BR icmp-net-prohibited ,
++.BR "icmp-host-prohibited or"
++.BR "icmp-admin-prohibited (*)"
+ which return the appropriate ICMP error message (\fBport-unreachable\fP is
+ the default).  The option
+ .B tcp-reset
+@@ -862,6 +863,8 @@
+ .I ident
+ (113/tcp) probes which frequently occur when sending mail to broken mail
+ hosts (which won't accept your mail otherwise).
++.TP
++(*) Using icmp-admin-prohibited with kernels that do not support it will result in a plain DROP instead of REJECT
+ .SS SNAT
+ This target is only valid in the
+ .B nat
