@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.6 3/14]: Change permissions of /proc/net/ip_conntrack to 0440
-Date: Mon, 21 Jun 2004 21:39:59 +0200
+Subject: [PATCH 2.6 5/14]: Fix inverted matching in ipt_helper
+Date: Mon, 21 Jun 2004 21:40:48 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040621193959.GH24374@sunbeam.de.gnumonks.org>
+Message-ID: <20040621194048.GJ24374@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="G1IH56i3DES2a+WZ"
+	protocol="application/pgp-signature"; boundary="171LwGa4zcdgM9o6"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,17 +21,16 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---G1IH56i3DES2a+WZ
-Content-Type: multipart/mixed; boundary="/8Xxy37xq6kDVsli"
+--171LwGa4zcdgM9o6
+Content-Type: multipart/mixed; boundary="/sFzBD2UPiMqxCFT"
 Content-Disposition: inline
 
 
---/8Xxy37xq6kDVsli
+--/sFzBD2UPiMqxCFT
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
 
-This patch for 2.6 changes permissions of /proc/net/ip_conntrack to
-0440.
+This patch for 2.6 fixes inverted matching in ipt_helper.
 
 Author: Patrick McHardy <kaber@trash.net>
 
@@ -45,41 +44,70 @@ Signed-off-by: Harald Welte <laforge@netfilter.org>
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---/8Xxy37xq6kDVsli
-Content-Type: text/plain; charset=us-ascii; name="03.diff"
-Content-Disposition: inline; filename="03.diff"
+--/sFzBD2UPiMqxCFT
+Content-Type: text/plain; charset=us-ascii; name="05.diff"
+Content-Disposition: inline; filename="05.diff"
 Content-Transfer-Encoding: quoted-printable
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/06/20 22:29:39+02:00 kaber@trash.net=20
-#   [NETFILTER]: Change permissions of /proc/net/ip_conntrack to 0440
+#   2004/06/20 22:36:48+02:00 kaber@trash.net=20
+#   [NETFILTER]: Fix inverted matching in ipt_helper
 #=20
-# net/ipv4/netfilter/ip_conntrack_standalone.c
-#   2004/06/20 22:29:30+02:00 kaber@trash.net +1 -1
-#   [NETFILTER]: Change permissions of /proc/net/ip_conntrack to 0440
+# net/ipv4/netfilter/ipt_helper.c
+#   2004/06/20 22:36:38+02:00 kaber@trash.net +5 -6
+#   [NETFILTER]: Fix inverted matching in ipt_helper
 #=20
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_standalone.c b/net/ipv4/netfilt=
-er/ip_conntrack_standalone.c
---- a/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-06-20 22:59:41 +02:=
-00
-+++ b/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-06-20 22:59:41 +02:=
-00
-@@ -502,7 +502,7 @@
- 	if (ret < 0)
- 		goto cleanup_nothing;
+diff -Nru a/net/ipv4/netfilter/ipt_helper.c b/net/ipv4/netfilter/ipt_helper=
+=2Ec
+--- a/net/ipv4/netfilter/ipt_helper.c	2004-06-20 23:00:01 +02:00
++++ b/net/ipv4/netfilter/ipt_helper.c	2004-06-20 23:00:01 +02:00
+@@ -41,17 +41,17 @@
+ 	struct ip_conntrack_expect *exp;
+ 	struct ip_conntrack *ct;
+ 	enum ip_conntrack_info ctinfo;
+-	int ret =3D 0;
++	int ret =3D info->invert;
+ =09
+ 	ct =3D ip_conntrack_get((struct sk_buff *)skb, &ctinfo);
+ 	if (!ct) {
+ 		DEBUGP("ipt_helper: Eek! invalid conntrack?\n");
+-		return 0;
++		return ret;
+ 	}
 =20
--	proc =3D proc_net_create("ip_conntrack",0,list_conntracks);
-+	proc =3D proc_net_create("ip_conntrack", 0440, list_conntracks);
- 	if (!proc) goto cleanup_init;
- 	proc->owner =3D THIS_MODULE;
+ 	if (!ct->master) {
+ 		DEBUGP("ipt_helper: conntrack %p has no master\n", ct);
+-		return 0;
++		return ret;
+ 	}
+=20
+ 	exp =3D ct->master;
+@@ -71,8 +71,8 @@
+ 	DEBUGP("master's name =3D %s , info->name =3D %s\n",=20
+ 		exp->expectant->helper->name, info->name);
+=20
+-	ret =3D !strncmp(exp->expectant->helper->name, info->name,=20
+-	               strlen(exp->expectant->helper->name)) ^ info->invert;
++	ret ^=3D !strncmp(exp->expectant->helper->name, info->name,=20
++	                strlen(exp->expectant->helper->name));
+ out_unlock:
+ 	READ_UNLOCK(&ip_conntrack_lock);
+ 	return ret;
+@@ -108,7 +108,6 @@
+=20
+ static int __init init(void)
+ {
+-	need_ip_conntrack();
+ 	return ipt_register_match(&helper_match);
+ }
 =20
 
 
---/8Xxy37xq6kDVsli--
+--/sFzBD2UPiMqxCFT--
 
---G1IH56i3DES2a+WZ
+--171LwGa4zcdgM9o6
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -87,9 +115,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFA1zmPXaXGVTD0i/8RAkFQAJsGtFpqJ/FHmE5nIVRcaqusGDFcNQCgoh6Y
-TTRt1q2NsxP1x4k0cxFKFRA=
-=R8aN
+iD8DBQFA1znAXaXGVTD0i/8RAqQjAJsE6ZElfwBD3ct1vTLkkCrg7GVW0ACgq68V
+1C3OKkF3aBTYjwZeSkW4TLs=
+=+m0G
 -----END PGP SIGNATURE-----
 
---G1IH56i3DES2a+WZ--
+--171LwGa4zcdgM9o6--
