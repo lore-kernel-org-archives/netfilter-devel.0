@@ -1,15 +1,11 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: New patches
-Date: Tue, 18 Jan 2005 13:53:37 +1100
-Message-ID: <1106016817.30801.30.camel@localhost.localdomain>
-References: <00be01c4fc0c$ddd6b760$5746370a@nsp.local>
+From: =?ISO-8859-2?Q?Tom=E1=B9_Macek?= <maca02@atlas.cz>
+Subject: cannot kmalloc nor vmalloc
+Date: Mon, 17 Jan 2005 16:03:01 +0100 (CET)
+Message-ID: <Pine.LNX.4.61.0501171548280.6167@maca.fortech.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: VeNoMouS <venom@gen-x.co.nz>
-In-Reply-To: <00be01c4fc0c$ddd6b760$5746370a@nsp.local>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,25 +17,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2005-01-17 at 09:49 +1300, VeNoMouS wrote:
-> Ive written a bidirectional matching patch and rewritten the quota
-> patch to include packet header length as well into the quota these
-> patches can be found at http://www.gen-x.co.nz/patches/ Ive included a
-> patch for iptables-1.2.11 for the bidirectional match perhaps these
-> can be entered into PoM?
+Hi, I'm just developing a new "match" (like ipt_limit for example) iptables module under RH FC 2, kernel 2.6.5-1.328.
+If I make a request for about 100 kB of memory in the registered match function in my module by means of kmalloc(size, GPF_ATOMIC) and set it via memset() to zero, the computer freezes with kernel panic and debugging output. Maybe it has not enaugh memory. I tried something more and never got more than about 40 kB.
 
-OK, first step is to grab the latest subversion tree and patch against
-that.  Secondly, I'd suggest:
+Then I tried to get more memory with the vmalloc() function. But vmalloc() is called with the GPF_KERNEL flag, so I cannot use it in the interrupt = I cannot use it in the match function. The vmalloc gives also the debugging output to the log, but it does not freezes the computer.
 
-1) Rename to "bidir" since "bidirectional" is a little long,
-2) Use a single structure, rather than separating into two.
-3) Don't define "IP", use *flags = 1, and you don't need to check
-   for it anywhere else.
+I also tried to get large amount of memory outside the match function - in the __init() of my module, and I was able to get more than 100 MB via vmalloc().
 
-You might want to consider the merits of allow TCP/UDP ports, too.  I
-don't know if this is a good idea or even has clear semantics.
+How can I get bigger chunk of memory in the interrupt? I will need more (about 5-10) chunks of 100 kB memory.
 
-Cheers,
-Rusty.
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+Any help will be very appreciated!
+
+Tomas
