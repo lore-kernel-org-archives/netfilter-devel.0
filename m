@@ -1,16 +1,13 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: extra/pptp-conntrack-nat.patch
-Date: 11 Apr 2003 19:00:58 +0200
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: [PATCH] net/ipv6/netfilter warning removal 2.[45]
+Date: Fri, 11 Apr 2003 19:07:53 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1050080457.11132.113.camel@tux.rsn.bth.se>
-References: <Pine.LNX.4.44.0304110659110.12367-100000@localhost.localdomain>
-	 <3E96F002.5000700@fl.priv.at>
+Message-ID: <Pine.LNX.4.51.0304111904240.17912__25006.1444742189$1050081339@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <3E96F002.5000700@fl.priv.at>
+To: linux-kernel@vger.kernel.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,15 +18,77 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2003-04-11 at 18:40, Friedrich Lobenstock wrote:
+Hi,
 
-> PS: Can I tell the runme script of patch-o-matic to list all applied
-> patches? As far as I know it only shows the applied patches when you
-> tell it to apply some patches, but I can not export this list to a file.
+there are simple warning to remove in 4 files there, here are the
+warnings:
+net/ipv6/netfilter/ip6t_rt.c: In function `match':
+net/ipv6/netfilter/ip6t_rt.c:133: warning: assignment from incompatible pointer type
+net/ipv6/netfilter/ip6t_frag.c: In function `match':
+net/ipv6/netfilter/ip6t_frag.c:150: warning: assignment from incompatible pointer type
+net/ipv6/netfilter/ip6t_esp.c: In function `match':
+net/ipv6/netfilter/ip6t_esp.c:126: warning: assignment from incompatible pointer type
+net/ipv6/netfilter/ip6t_ah.c: In function `match':
+net/ipv6/netfilter/ip6t_ah.c:136: warning: assignment from incompatible pointer type
 
-This feature is missing, I might add it if I get bored enough (I've
-already spent quite some time digging through it and fixing/adding
-stuff)
+And here is the patch to remove those by using casts.
 
--- 
-/Martin
+It applies both to 2.4.20 and 2.5.67.
+
+Regards,
+Maciej
+
+diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.c
+--- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.c	2003-04-11 18:41:29.000000000 +0200
++++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.c	2003-04-11 18:49:41.000000000 +0200
+@@ -133,7 +133,7 @@
+        		return 0;
+        }
+
+-       ah=skb->data+ptr;
++       ah = (struct ahhdr *) skb->data+ptr;
+
+        DEBUGP("IPv6 AH LEN %u %u ", hdrlen, ah->hdrlen);
+        DEBUGP("RES %04X ", ah->reserved);
+Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.ko and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.ko differ
+Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_ah.o and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_ah.o differ
+diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.c
+--- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.c	2003-04-11 18:41:29.000000000 +0200
++++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.c	2003-04-11 18:48:24.000000000 +0200
+@@ -123,7 +123,7 @@
+        		return 0;
+        }
+
+-	esp=skb->data+ptr;
++	esp = (struct esphdr *) skb->data+ptr;
+
+ 	DEBUGP("IPv6 ESP SPI %u %08X\n", ntohl(esp->spi), ntohl(esp->spi));
+
+Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.ko and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.ko differ
+Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_esp.o and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_esp.o differ
+diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.c
+--- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.c	2003-04-11 18:41:29.000000000 +0200
++++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.c	2003-04-11 18:48:09.000000000 +0200
+@@ -147,7 +147,7 @@
+        		return 0;
+        }
+
+-       frag=skb->data+ptr;
++       frag = (struct fraghdr *) skb->data+ptr;
+
+        DEBUGP("IPv6 FRAG LEN %u %u ", hdrlen, frag->hdrlen);
+        DEBUGP("INFO %04X ", frag->info);
+Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.ko and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.ko differ
+Binary files linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_frag.o and linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_frag.o differ
+diff -Nru linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_rt.c linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_rt.c
+--- linux-2.5.67-bk3.orig/net/ipv6/netfilter/ip6t_rt.c	2003-04-11 18:41:29.000000000 +0200
++++ linux-2.5.67-bk3/net/ipv6/netfilter/ip6t_rt.c	2003-04-11 18:53:36.000000000 +0200
+@@ -130,7 +130,7 @@
+        		return 0;
+        }
+
+-       route=skb->data+ptr;
++       route = (struct ipv6_rt_hdr *) skb->data+ptr;
+
+        DEBUGP("IPv6 RT LEN %u %u ", hdrlen, route->hdrlen);
+        DEBUGP("TYPE %04X ", route->type);
