@@ -1,15 +1,14 @@
 From: Peter Stamfest <peter@stamfest.at>
-Subject: Re: Introducing iptables-snmp...
-Date: Wed, 26 Mar 2003 17:33:04 +0100 (CET)
+Subject: Re: Accessing iptables from within an application...
+Date: Wed, 26 Mar 2003 17:54:46 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0303261728120.25652-100000@peter.stamf.pr.at>
-References: <20030326145910.GW21953@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.44.0303261733140.25652-100000@peter.stamf.pr.at>
+References: <20030326145319.GT21953@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030326145910.GW21953@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20030326145319.GT21953@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,94 +21,88 @@ List-Id: netfilter-devel.vger.kernel.org
 
 On Wed, 26 Mar 2003, Harald Welte wrote:
 
-> On Wed, Mar 19, 2003 at 12:02:27PM +0100, Peter Stamfest wrote:
-> > It also requires iptables-1.2.7a (+a small patch to introduce 
-> > "iptc_free" - I would suggest to actually apply this patch to the 
-> > iptables-distribution) - it uses the libiptc.a library.
+> On Sat, Mar 15, 2003 at 10:05:51PM +0100, Peter Stamfest wrote:
+>  
+> > The problem now is quite obvious: How to access module specific 
+> > iptables extension information ("-m")? I stumbled across the "save" method 
+> > in the iptables modules, but this prints to stdout. Is there any similar 
+> > mechanism to get the same information in some other form? Even a "sprintf" 
+> > based solution would be OK in addition to the "printf" version to have the 
+> > info in a character buffer, ready to send via SNMP....
+> > 
+> > If anything of this makes any sense to you: Is there any such interface 
+> > that I simply missed?
 > 
-> please post this patch here, I would like to include it. 
+> no.  There is no API outside the iptables command to access this
+> information.  We've discovered this as a design mistake, but fixing this
+> requires the whole architecture to change.
 > 
 
-Ok, see at the end...
+FWIW, some thoughts about it and some things I changed for myself, I might 
+repeat things discussed previously - if so do not hesitate to flame me...
 
-> if you consider fixing the memory holes, please also post the fixes
-> here.  thanks.
+1 libiptc.a, libip6tc.a plus the iptables.o and ip6tables.o files contain 
+  most of what is needed for an API
 
-Unfortunatly ;-) I'm not experiencing any currently. I cannot talk about 
-extensions/modules right now, as my test-system doesn't use many of them. 
-A quick grep for "alloc" showed only some modules to use *alloc functions.
+2 the splitting of libiptc and libip6tc  using a common libiptc.c and 
+  #including it is not an example of "good" C-programming, however, the 
+  fact that it (libiptc.c) contains functions common to both libraries 
+  leads to trouble when using BOTH ipv4 and ipv6 versions.
 
-Do you have any more information?
+3 The modules and the libraries are STDOUT-centric. So many printfs all 
+  over the place. And sometimes this is the only way to get at some 
+  information.
+
+4 There is no proper way to query a module for its configuration settings 
+  besides the stuff that just printf's it.
+
+Some possible solutions:
+
+ad 1: IMHO the functionality in ip(6)tables.o useful to be in a proper API 
+should be moved into the libip(6)tc libraries. After all: libraries are 
+there to hold generally useful functionality.
+
+ad 2: take out _common_ code from libiptc.c so that it becomes possible to 
+link with both libiptc and libip6tc
+
+ad 3: Replace all the calls to "printf" in all the modules by some 
+"iptables_printf" function and use that function to actually put the 
+information anywhere it is needed. Provide a way to change the way 
+information is "printed". I implemented this using a "vprintf"-style 
+function to be registered with this mechanism. I ALREADY HAVE A PATCH 
+DOING THIS. (sorry for shouting). Beware: the patch (trivial as it is) has 
+an incredible size of 163k (it mostly changes printf -> iptables_printf.
+
+ad 4: Extend the module API with a proper way to query for these
+informations. Provide a fall-back mechanism using the 
+(iptables_)printf-based if such methods aren't available (good for a 
+transition period).
+
+What do you think? Personally, I could use this for my iptables-snmp
+project, that currently is able to actually present most settings of a
+rule via SNMP. This will finally allow tools like MRTG (or a similar toll
+I am currently developing) to be used to monitor rules. Eg. here is an
+example of the information it is able to provide for a given rule
+(incidentally the counters are 0, but be assured that they can be read):
+
+IPTABLES-MIB::ruleIndex.1.0.1 = INTEGER: 1
+IPTABLES-MIB::chainIndexR.1.0.1 = INTEGER: 0
+IPTABLES-MIB::tableIndexR.1.0.1 = INTEGER: 1
+IPTABLES-MIB::chainNameR.1.0.1 = STRING: "INPUT"
+IPTABLES-MIB::chainTableNameR.1.0.1 = STRING: "filter"
+IPTABLES-MIB::ruleOctets.1.0.1 = Counter64: 0
+IPTABLES-MIB::rulePackets.1.0.1 = Counter64: 0
+IPTABLES-MIB::chainRule.1.0.1 = STRING: ";p 6;s 192.168.3.0/24;j ACCEPT;tcp spt:666"
+IPTABLES-MIB::sourceIP.1.0.1 = IpAddress: 192.168.3.0
+IPTABLES-MIB::sourceMask.1.0.1 = IpAddress: 255.255.255.0
+IPTABLES-MIB::destinationIP.1.0.1 = IpAddress: 0.0.0.0
+IPTABLES-MIB::destinationMask.1.0.1 = IpAddress: 0.0.0.0
+IPTABLES-MIB::matches.1.0.1 = STRING: ";tcp spt:666"
+
+I know that the proposed changes are at the core of the iptables
+utilities, but eventually something will have to be done about it. I would
+like to compare this to eg. rpm and its librpm: did anybody think about an
+API when first inventing something like RPM?? I think the same thing 
+happened to iptables.
 
 peter
-
-PS: The patch
-
-
-diff -ur iptables-1.2.7a-org/include/libiptc/libip6tc.h iptables-1.2.7a/include/libiptc/libip6tc.h
---- iptables-1.2.7a-org/include/libiptc/libip6tc.h	Mon Feb 25 10:00:36 2002
-+++ iptables-1.2.7a/include/libiptc/libip6tc.h	Mon Mar 17 15:14:23 2003
-@@ -26,6 +26,9 @@
- /* Take a snapshot of the rules. Returns NULL on error. */
- ip6tc_handle_t ip6tc_init(const char *tablename);
- 
-+/* Frees space allocated for the handle. */
-+void ip6tc_free(ip6tc_handle_t h);
-+
- /* Iterator functions to run through the chains.  Returns NULL at end. */
- const char *ip6tc_first_chain(ip6tc_handle_t *handle);
- const char *ip6tc_next_chain(ip6tc_handle_t *handle);
-diff -ur iptables-1.2.7a-org/include/libiptc/libiptc.h iptables-1.2.7a/include/libiptc/libiptc.h
---- iptables-1.2.7a-org/include/libiptc/libiptc.h	Thu Apr 19 18:35:39 2001
-+++ iptables-1.2.7a/include/libiptc/libiptc.h	Mon Mar 17 15:12:36 2003
-@@ -34,6 +34,9 @@
- /* Take a snapshot of the rules.  Returns NULL on error. */
- iptc_handle_t iptc_init(const char *tablename);
- 
-+/* Frees space allocated for the handle. */
-+void iptc_free(iptc_handle_t h);
-+
- /* Iterator functions to run through the chains.  Returns NULL at end. */
- const char *iptc_first_chain(iptc_handle_t *handle);
- const char *iptc_next_chain(iptc_handle_t *handle);
-diff -ur iptables-1.2.7a-org/libiptc/libip4tc.c iptables-1.2.7a/libiptc/libip4tc.c
---- iptables-1.2.7a-org/libiptc/libip4tc.c	Wed Jun 12 21:22:29 2002
-+++ iptables-1.2.7a/libiptc/libip4tc.c	Mon Mar 17 15:13:14 2003
-@@ -91,6 +91,7 @@
- #define TC_SET_POLICY		iptc_set_policy
- #define TC_GET_RAW_SOCKET	iptc_get_raw_socket
- #define TC_INIT			iptc_init
-+#define TC_FREE			iptc_free
- #define TC_COMMIT		iptc_commit
- #define TC_STRERROR		iptc_strerror
- 
-diff -ur iptables-1.2.7a-org/libiptc/libip6tc.c iptables-1.2.7a/libiptc/libip6tc.c
---- iptables-1.2.7a-org/libiptc/libip6tc.c	Thu Feb 14 00:13:23 2002
-+++ iptables-1.2.7a/libiptc/libip6tc.c	Mon Mar 17 15:13:29 2003
-@@ -86,6 +86,7 @@
- #define TC_SET_POLICY		ip6tc_set_policy
- #define TC_GET_RAW_SOCKET	ip6tc_get_raw_socket
- #define TC_INIT			ip6tc_init
-+#define TC_FREE			ip6tc_free
- #define TC_COMMIT		ip6tc_commit
- #define TC_STRERROR		ip6tc_strerror
- 
-diff -ur iptables-1.2.7a-org/libiptc/libiptc.c iptables-1.2.7a/libiptc/libiptc.c
---- iptables-1.2.7a-org/libiptc/libiptc.c	Wed May 29 15:08:16 2002
-+++ iptables-1.2.7a/libiptc/libiptc.c	Mon Mar 17 15:14:54 2003
-@@ -292,6 +292,15 @@
- 	return h;
- }
- 
-+void 
-+TC_FREE(TC_HANDLE_T h)
-+{
-+    if (h) {
-+	if (h->cache_chain_heads) free(h->cache_chain_heads);
-+	free(h);
-+    }
-+}
-+
- static inline int
- print_match(const STRUCT_ENTRY_MATCH *m)
- {
