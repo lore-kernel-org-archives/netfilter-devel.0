@@ -1,13 +1,15 @@
-From: Tom Eastep <teastep@shorewall.net>
-Subject: iptables-save and match formatting
-Date: Wed, 28 Apr 2004 20:48:44 -0700
+From: <Atanu.Mondal@infineon.com>
+Subject: Getting the interface info of the packet in the helper modules ....
+Date: Thu, 29 Apr 2004 12:15:37 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40907B1C.8060308@shorewall.net>
+Message-ID: <04EE7AD0450F7B498BA216312943A1A1155558@blrse201.ap.infineon.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070900000903000904000808"
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,48 +20,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070900000903000904000808
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
+I am very much new in Iptable, Netfilter world..I am trying to write a
+ALG
+for SIP. I need information in my helper..whether the packet is leaving
+the secured
+network or coming into the secured network...How do I get this info in
+the=20
+conntrack or NAT helper modules... Does anybody has any idea... Please
+help ...
 
-My project for the evening is to integrate Shorewall with 
-iptables-save/iptables-restore. While debugging this facility, I found 
-that iptables-save was generating DNS names when outputing "-m conntrack 
---ctorigdst <address>". The attached patch corrects the problem for me 
-but may have undesirable side effects not obvious to the casual hacker 
-such as myself :-)
-
--Tom
-
-PS -- I'm using a Windoze system in the family room while watching a 
-hockey game so the patch may need 'dos2unix'.
-
--Tom
--- 
-Tom Eastep    \ Nothing is foolproof to a sufficiently talented fool
-Shoreline,     \ http://shorewall.net
-Washington USA  \ teastep@shorewall.net
-
-
-
---------------070900000903000904000808
-Content-Type: text/plain;
- name="iptables-1.2.9.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="iptables-1.2.9.diff"
-
---- extensions/libipt_conntrack.c~	2003-10-07 11:54:30.000000000 -0700
-+++ extensions/libipt_conntrack.c	2004-04-28 19:01:08.000000000 -0700
-@@ -504,7 +504,7 @@
- /* Saves the matchinfo in parsable form to stdout. */
- static void save(const struct ipt_ip *ip, const struct ipt_entry_match *match)
- {
--	matchinfo_print(ip, match, 0, "--");
-+	matchinfo_print(ip, match, 1, "--");
- }
- 
- static
-
---------------070900000903000904000808--
+Regards
+Atanu
