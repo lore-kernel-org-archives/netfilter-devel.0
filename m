@@ -1,15 +1,12 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: ipt_entry_match and data field
-Date: Fri, 7 May 2004 15:29:27 +0200 (CEST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: patch-o-matic-ng release candidate in cvs
+Date: Fri, 7 May 2004 17:03:35 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0405071528210.14348-100000@filer.marasystems.com>
-References: <409B8A3C.1030009@eurodev.net>
+Message-ID: <Pine.LNX.4.33.0405071658020.4133-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <409B8A3C.1030009@eurodev.net>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,13 +17,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 7 May 2004, Pablo Neira wrote:
+Hi,
 
-> can anyone explain me the use of data as unsigned char in the structure 
-> ipt_entry_match? I mean, why are we using unsigned char?
+In the last few days a couple of changes happened in pom-ng:
 
-We are not. It is just a placeholder for the match extension. The actual 
-data type and size differs depending on the match used.
+- a bug in Netfilter_POM.pm was fixed (thanks to Krisztian for the
+  bugreport)
+- *all* linux-2.6 trees was fixed by a script and manually checked
+  wether the tree corresponds to the pom-ng
 
-Regards
-Henrik
+Please try it out and report me any pending issue.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
