@@ -1,16 +1,16 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] for some issues in tcp window tracking patch
-Date: Fri, 21 May 2004 01:18:15 +0200
+From: Philip Craig <philipc@snapgear.com>
+Subject: Re: [RFC] Die to NOTRACK/TRACE, long live MARK!
+Date: Fri, 21 May 2004 10:20:06 +1000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40AD3CB7.1070107@eurodev.net>
-References: <Pine.LNX.4.33.0405201307440.5246-100000@blackhole.kfki.hu>
+Message-ID: <40AD4B36.50202@snapgear.com>
+References: <Pine.LNX.4.33.0405192236590.3749-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.33.0405201307440.5246-100000@blackhole.kfki.hu>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.33.0405192236590.3749-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,55 +21,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jozsef,
-
 Jozsef Kadlecsik wrote:
+> We could introduce a new silly target for that purpose like NOTRACK or
+> TRACE. However it's pure marking and we do have a interface to mark
+> packets: the MARK target. So if we could tell the system which mark value
+> has got the given special meaning, we wouldn't need a new target and we
+> could even eliminate the NOTRACK/TRACE targets.
 
->It's funny: (practically) connection tracking itself does not drop
->packets, it leaves the administrator to do the dirty job by setting up
->explicit rules to drop INVALID packets (or implicitly, by letting trough
->only valid packets) :-)
->  
->
+I assume this will mean allowing the MARK target to be used in the raw
+table, otherwise you can't mark the packets before conntrack.
 
-sorry! I missed that... I should know better iptables !:-)
+Will this mean that only one of these features can be used at a time,
+since a packet cannot have multiple marks?  And use of any of these
+features would preclude current uses of MARK, such as policy routing?
+You could add support for masking bits of the mark, but you would have
+to add this to the policy routing also.
 
->
->Some tests are done before checking the window boundaries from good
->reasons: checking special cases when packets are possibly (mostly!) out of
->window. You cannot move them behind the boundary checkings.
->  
->
+What happens when you modify the /proc setting?  This will change the
+state of packets currently being processed, which could cause problems.
 
-ok, I also missed that... more issues:
-
-a) Sometimes we destroy the conntrack calling 
-conntrack->timeout.function((unsigned long)conntrack) but we are 
-returning -NF_ACCEPT, so we are calling implicitely nf_conntrack_put 
-from conntrack core, could we have any unexpected problem?
-
-b) We don't need to set assured bit all the time, I think that I told 
-you, well if so, sorry for repeating me.
-
-         } else if ((old_state == TCP_CONNTRACK_SYN_RECV
-                    || old_state == TCP_CONNTRACK_ESTABLISHED)
--                   && new_state == TCP_CONNTRACK_ESTABLISHED)
-+                 && new_state == TCP_CONNTRACK_ESTABLISHED
-+                 && !test_bit(IPS_ASSURED_BIT, &conntrack->status)) {
-
-c) In the TCP_CONNTRACK_SYN_SENT case, we saw a SYN packet while staying 
-in state TIME_WAIT, so there's a reopened connection. Why do we destroy 
-the conntrack and don't recycle /reuse this conntrack? I mean, 
-reinitilize all the fields and let it continue its travel through the 
-tcp tracking of instead of returning NF_REPEAT.
-
-d) We could move up WRITE_UNLOCK(&tcp_lock) just before timeout is updated.
-
-e) I'm not sure if it's worthy optimizing this case. In tcp_new, we are 
-checking if a packet is clean as well as size of tcp header, then in 
-tcp_packet we will do the same, so we are doing twice the same checking. 
-If we consider that general case is that packets are clean, will be this 
-double check worthy?
-
-thanks Jozsef!,
-insidious Pablo
+-- 
+Philip Craig - SnapGear, A CyberGuard Company - http://www.SnapGear.com
