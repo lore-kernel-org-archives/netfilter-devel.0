@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.4] LOCAL_OUT Nat fix
-Date: Thu, 2 Oct 2003 16:48:17 +0200
+Subject: [PATCH 2.6] LOCAL_OUT Nat fix, part 2
+Date: Thu, 2 Oct 2003 18:18:36 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031002144817.GJ5758@sunbeam.de.gnumonks.org>
+Message-ID: <20031002161836.GR5758@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MIh0bEfVBykExQEj"
+	protocol="application/pgp-signature"; boundary="rMTo2AP+XrZXQCI6"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,34 +21,27 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---MIh0bEfVBykExQEj
-Content-Type: multipart/mixed; boundary="v9GM59ztqFZSwQjD"
+--rMTo2AP+XrZXQCI6
+Content-Type: multipart/mixed; boundary="XAxdu+gdzyY/jMFv"
 Content-Disposition: inline
 
 
---v9GM59ztqFZSwQjD
+--XAxdu+gdzyY/jMFv
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Davem!
 
-Please apply the following patch to your 2.4 tree and push it to Marcelo.
-Thanks.
+Please apply the following patch to your 2.6 tree, thanks.
 
 
-Author: Harald Welte <laforge@netfilter.org>
+Author: Rusty Russell / Harald Welte
 Status: Pending for kernel inclusion
 
-D: the 25_natcore-nohelper.patch (incorporated in 2.4.22) did actually make
-D: things not better.  If a NAT rule was matched, num_manips can still be 0.
-D: However, some helpers (like PPTP) need to _always mangle the packets,
-D: even if there is no NAT mapping for a particular connection.
-D: On the other hand, as soon as CONFIG_IP_NF_LOCAL_NAT was disabled,
-D: we did end up half-mangling local (non-NAT'ed) connections.  This patch
-D: removes the LOCAL_OUT hook from the NAT core unless CONFIG_IP_NF_NAT_LOC=
-AL
-D: is enabled.
+D: Balazs Scheidler pointed out that we can fail to call ip_nat_setup_info
+D: for local NAT, which causes the connection to be added twice. Boom.
+D: Also move the hash table insertion into ip_nat_setup_info.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -60,127 +53,146 @@ D: is enabled.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---v9GM59ztqFZSwQjD
+--XAxdu+gdzyY/jMFv
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="67_nolocalout.patch"
+Content-Disposition: attachment; filename="84_local-nullbinding.patch"
 Content-Transfer-Encoding: quoted-printable
 
-Author: Harald Welte <laforge@netfilter.org>
-Status: Pending for kernel inclusion
-
-D: the 25_natcore-nohelper.patch (incorporated in 2.4.22) did actually make
-D: things not better.  If a NAT rule was matched, num_manips can still be 0.
-D: However, some helpers (like PPTP) need to _always mangle the packets,
-D: even if there is no NAT mapping for a particular connection.
-D: On the other hand, as soon as CONFIG_IP_NF_LOCAL_NAT was disabled,
-D: we did end up half-mangling local (non-NAT'ed) connections.  This patch
-D: removes the LOCAL_OUT hook from the NAT core unless CONFIG_IP_NF_NAT_LOC=
-AL
-D: is enabled.
-
 diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
 er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.4.22-plain/net/ipv4/netfilt=
-er/ip_nat_core.c linux-2.4.22-pptp_new/net/ipv4/netfilter/ip_nat_core.c
---- linux-2.4.22-plain/net/ipv4/netfilter/ip_nat_core.c	2003-08-25 13:44:44=
-=2E000000000 +0200
-+++ linux-2.4.22-pptp_new/net/ipv4/netfilter/ip_nat_core.c	2003-09-21 19:00=
-:47.000000000 +0200
-@@ -756,11 +766,6 @@
- 	enum ip_conntrack_dir dir =3D CTINFO2DIR(ctinfo);
- 	int is_tcp =3D (*pskb)->nh.iph->protocol =3D=3D IPPROTO_TCP;
-=20
--	/* Skip everything and don't call helpers if there are no
--	 * manips for this connection */
--	if (info->num_manips =3D=3D 0)
--		return NF_ACCEPT;
--
- 	/* Need nat lock to protect against modification, but neither
- 	   conntrack (referenced) and helper (deleted with
- 	   synchronize_bh()) can vanish. */
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
-er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.4.22-plain/net/ipv4/netfilt=
-er/ip_nat_standalone.c linux-2.4.22-pptp_new/net/ipv4/netfilter/ip_nat_stan=
-dalone.c
---- linux-2.4.22-plain/net/ipv4/netfilter/ip_nat_standalone.c	2003-06-13 16=
-:51:39.000000000 +0200
-+++ linux-2.4.22-pptp_new/net/ipv4/netfilter/ip_nat_standalone.c	2003-09-22=
- 10:54:48.000000000 +0200
-@@ -195,6 +188,7 @@
- 	return ip_nat_fn(hooknum, pskb, in, out, okfn);
- }
-=20
-+#ifdef CONFIG_IP_NF_NAT_LOCAL
- static unsigned int
- ip_nat_local_fn(unsigned int hooknum,
- 		struct sk_buff **pskb,
-@@ -220,6 +214,7 @@
- 		return ip_route_me_harder(pskb) =3D=3D 0 ? ret : NF_DROP;
- 	return ret;
- }
-+#endif
-=20
- /* We must be after connection tracking and before packet filtering. */
-=20
-@@ -229,11 +224,12 @@
- /* After packet filtering, change source */
- static struct nf_hook_ops ip_nat_out_ops
- =3D { { NULL, NULL }, ip_nat_out, PF_INET, NF_IP_POST_ROUTING, NF_IP_PRI_N=
-AT_SRC};
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.6.0-test6-localnat/include/=
+linux/netfilter_ipv4/ip_nat_rule.h linux-2.6.0-test6-localnat2/include/linu=
+x/netfilter_ipv4/ip_nat_rule.h
+--- linux-2.6.0-test6-localnat/include/linux/netfilter_ipv4/ip_nat_rule.h	2=
+003-09-28 02:51:00.000000000 +0200
++++ linux-2.6.0-test6-localnat2/include/linux/netfilter_ipv4/ip_nat_rule.h	=
+2003-10-02 18:29:05.000000000 +0200
+@@ -14,5 +14,10 @@
+ 			    const struct net_device *out,
+ 			    struct ip_conntrack *ct,
+ 			    struct ip_nat_info *info);
 +
-+#ifdef CONFIG_IP_NF_NAT_LOCAL
- /* Before packet filtering, change destination */
- static struct nf_hook_ops ip_nat_local_out_ops
- =3D { { NULL, NULL }, ip_nat_local_fn, PF_INET, NF_IP_LOCAL_OUT, NF_IP_PRI=
-_NAT_DST };
--
--#ifdef CONFIG_IP_NF_NAT_LOCAL
-+/* After packet filtering, change source for reply packets of LOCAL_OUT DN=
-AT */
- static struct nf_hook_ops ip_nat_local_in_ops
- =3D { { NULL, NULL }, ip_nat_fn, PF_INET, NF_IP_LOCAL_IN, NF_IP_PRI_NAT_SR=
-C };
++extern unsigned int
++alloc_null_binding(struct ip_conntrack *conntrack,
++		   struct ip_nat_info *info,
++		   unsigned int hooknum);
  #endif
-@@ -301,12 +297,12 @@
- 		printk("ip_nat_init: can't register out hook.\n");
- 		goto cleanup_inops;
- 	}
-+#ifdef CONFIG_IP_NF_NAT_LOCAL
- 	ret =3D nf_register_hook(&ip_nat_local_out_ops);
- 	if (ret < 0) {
- 		printk("ip_nat_init: can't register local out hook.\n");
- 		goto cleanup_outops;
- 	}
--#ifdef CONFIG_IP_NF_NAT_LOCAL
- 	ret =3D nf_register_hook(&ip_nat_local_in_ops);
- 	if (ret < 0) {
- 		printk("ip_nat_init: can't register local in hook.\n");
-@@ -323,10 +319,10 @@
+ #endif /* _IP_NAT_RULE_H */
+diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
+er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.6.0-test6-localnat/net/ipv4=
+/netfilter/ip_nat_core.c linux-2.6.0-test6-localnat2/net/ipv4/netfilter/ip_=
+nat_core.c
+--- linux-2.6.0-test6-localnat/net/ipv4/netfilter/ip_nat_core.c	2003-10-02 =
+18:24:44.000000000 +0200
++++ linux-2.6.0-test6-localnat2/net/ipv4/netfilter/ip_nat_core.c	2003-10-02=
+ 18:29:05.000000000 +0200
+@@ -516,12 +516,14 @@
+ 	struct ip_conntrack_tuple new_tuple, inv_tuple, reply;
+ 	struct ip_conntrack_tuple orig_tp;
+ 	struct ip_nat_info *info =3D &conntrack->nat.info;
++	int in_hashes =3D info->initialized;
+=20
+ 	MUST_BE_WRITE_LOCKED(&ip_nat_lock);
+ 	IP_NF_ASSERT(hooknum =3D=3D NF_IP_PRE_ROUTING
+ 		     || hooknum =3D=3D NF_IP_POST_ROUTING
+ 		     || hooknum =3D=3D NF_IP_LOCAL_OUT);
+ 	IP_NF_ASSERT(info->num_manips < IP_NAT_MAX_MANIPS);
++	IP_NF_ASSERT(!(info->initialized & (1 << HOOK2MANIP(hooknum))));
+=20
+ 	/* What we've got will look like inverse of reply. Normally
+ 	   this is what is in the conntrack, except for prior
+@@ -638,6 +640,14 @@
+=20
+ 	/* It's done. */
+ 	info->initialized |=3D (1 << HOOK2MANIP(hooknum));
++
++	if (in_hashes) {
++		IP_NF_ASSERT(info->bysource.conntrack);
++		replace_in_hashes(conntrack, info);
++	} else {
++		place_in_hashes(conntrack, info);
++	}
++
+ 	return NF_ACCEPT;
+ }
+=20
+diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
+er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.6.0-test6-localnat/net/ipv4=
+/netfilter/ip_nat_rule.c linux-2.6.0-test6-localnat2/net/ipv4/netfilter/ip_=
+nat_rule.c
+--- linux-2.6.0-test6-localnat/net/ipv4/netfilter/ip_nat_rule.c	2003-09-28 =
+02:50:16.000000000 +0200
++++ linux-2.6.0-test6-localnat2/net/ipv4/netfilter/ip_nat_rule.c	2003-10-02=
+ 18:29:05.000000000 +0200
+@@ -233,7 +233,7 @@
+ 	return 1;
+ }
+=20
+-static inline unsigned int
++inline unsigned int
+ alloc_null_binding(struct ip_conntrack *conntrack,
+ 		   struct ip_nat_info *info,
+ 		   unsigned int hooknum)
+diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
+er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.6.0-test6-localnat/net/ipv4=
+/netfilter/ip_nat_standalone.c linux-2.6.0-test6-localnat2/net/ipv4/netfilt=
+er/ip_nat_standalone.c
+--- linux-2.6.0-test6-localnat/net/ipv4/netfilter/ip_nat_standalone.c	2003-=
+10-02 18:26:02.000000000 +0200
++++ linux-2.6.0-test6-localnat2/net/ipv4/netfilter/ip_nat_standalone.c	2003=
+-10-02 18:29:05.000000000 +0200
+@@ -119,7 +119,6 @@
+ 		/* Seen it before?  This can happen for loopback, retrans,
+ 		   or local packets.. */
+ 		if (!(info->initialized & (1 << maniptype))) {
+-			int in_hashes =3D info->initialized;
+ 			unsigned int ret;
+=20
+ 			if (ct->master
+@@ -130,9 +129,10 @@
+ 			} else {
  #ifdef CONFIG_IP_NF_NAT_LOCAL
- 	nf_unregister_hook(&ip_nat_local_in_ops);
-  cleanup_localoutops:
--#endif
- 	nf_unregister_hook(&ip_nat_local_out_ops);
-  cleanup_outops:
-+#endif
- 	nf_unregister_hook(&ip_nat_out_ops);
-  cleanup_inops:
- 	nf_unregister_hook(&ip_nat_in_ops);
-  cleanup_nat:
+ 				/* LOCAL_IN hook doesn't have a chain!  */
+-				if (hooknum =3D=3D NF_IP_LOCAL_IN) {
+-					ret =3D NF_ACCEPT;
+-				} else
++				if (hooknum =3D=3D NF_IP_LOCAL_IN)
++					ret =3D alloc_null_binding(ct, info,
++								 hooknum);
++				else
+ #endif
+ 				ret =3D ip_nat_rule_find(pskb, hooknum, in, out,
+ 						       ct, info);
+@@ -142,13 +142,6 @@
+ 				WRITE_UNLOCK(&ip_nat_lock);
+ 				return ret;
+ 			}
+-
+-			if (in_hashes) {
+-				IP_NF_ASSERT(info->bysource.conntrack);
+-				replace_in_hashes(ct, info);
+-			} else {
+-				place_in_hashes(ct, info);
+-			}
+ 		} else
+ 			DEBUGP("Already setup manip %s for ct %p\n",
+ 			       maniptype =3D=3D IP_NAT_MANIP_SRC ? "SRC" : "DST",
 
---v9GM59ztqFZSwQjD--
+--XAxdu+gdzyY/jMFv--
 
---MIh0bEfVBykExQEj
+--rMTo2AP+XrZXQCI6
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 
-iD8DBQE/fDqxXaXGVTD0i/8RAsBsAKCe1qNUJ/x5KHxxzXqxykhZ55ik9gCdEhbn
-CJZzzGtFzFWhpgqA1xuD8Yk=
-=U4BV
+iD8DBQE/fE/cXaXGVTD0i/8RAk4yAJ98FKXJc6MiptqjPRGqJNE0LLULhACeKDNn
+m9uZPoFKEsGzUr5M+oVuMNw=
+=5bSb
 -----END PGP SIGNATURE-----
 
---MIh0bEfVBykExQEj--
+--rMTo2AP+XrZXQCI6--
