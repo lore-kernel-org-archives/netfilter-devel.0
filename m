@@ -1,15 +1,17 @@
-From: "Piotr =?iso-8859-2?Q?Gasid=B3o?=" <quaker@pandora.barbara.eu.org>
-Subject: Re: ipt_account match, 0.2.x tree - english documentation
-Date: Wed, 19 May 2004 12:11:25 +0200
+From: Pasi =?iso-8859-1?Q?K=E4rkk=E4inen?= <pasik@iki.fi>
+Subject: Re: Netfilter state table sync status?
+Date: Wed, 19 May 2004 15:13:28 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040519101125.GA6476@pandora.barbara.eu.org>
-References: <20040512205950.GB21447@pandora.barbara.eu.org>
+Message-ID: <20040519121328.GM1775@edu.joroinen.fi>
+References: <20040513121639.GK1775@edu.joroinen.fi> <20040517134545.GE11060@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=_pandora.barbara.ds.polsl.gliwice.pl-9827-1084961486-0001-2"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>,
+	netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20040512205950.GB21447@pandora.barbara.eu.org>
+In-Reply-To: <20040517134545.GE11060@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,49 +22,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a MIME-formatted message.  If you see this text it means that your
-E-mail software does not support MIME-formatted messages.
+On Mon, May 17, 2004 at 03:45:45PM +0200, Harald Welte wrote:
+> On Thu, May 13, 2004 at 03:16:39PM +0300, Pasi K=E4rkk=E4inen wrote:
+> > Hi,
+> >=20
+> > What's the current state of the Netfilter state table sync code? Is i=
+t
+> > already functional?=20
+>=20
+> It's working, at least sort-of.  There are three currently known bugs
+> that I'm hunting down.
+>=20
 
---=_pandora.barbara.ds.polsl.gliwice.pl-9827-1084961486-0001-2
-Content-Type: text/plain; charset=iso-8859-2
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+OK. Mind to comment what are these bugs?
 
-On Wed, 12/05, 10:59:50PM, Piotr Gasid=B3o wrote:
+> > I would like to synchronize the state tables of two different Netfilt=
+er
+> > boxes.
+>=20
+> The current code is in CVS (netfilter-ha/ct_sync).  There are no
+> 'easy-to-apply' patches yet.
+>=20
+> the code has dependencies on nfnetlink-ctnetlink and l2netfilter from
+> pom-ng.
+>=20
 
-Hello again,
+I'll try to play with these and see if I can get them working.
 
-> (...)
-> Homesite: http://www.barbara.eu.org/~quaker/ipt_account2/
-> (sorry, it's in polish only, I'm looking for someone who may translate
-> it, even partialy, into english).
+If you have time to post some kind of short help that would be nice :)
 
-I wrote simple english HOWTO for ipt_account (version 0.2.x) module.=20
-It covers most of essencial information from polish documentation.
-It can be found:
-
-http://www.barbara.eu.org/~quaker/ipt_account2/english/mini-howto.txt
-
-Comments welcome.
-
---=20
-Piotr 'QuakeR' Gasid=B3o, BOFH @ pandora.barbara.eu.org
-############## sending lusers to /dev/null since 1998
-##### Waiting for tomorrow, for a little ray of light
-### Waiting for tomorrow just to see your smile again
-
---=_pandora.barbara.ds.polsl.gliwice.pl-9827-1084961486-0001-2
-Content-Type: application/pgp-signature
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQFAqzLNgEmu6PNADqoRAgG7AJ4kDIIatGYH2gHIwBC7KVIqtoJ53ACfct9k
-r0GvlaHxUyGx51oUhOP2xP4=
-=1g2+
------END PGP SIGNATURE-----
-
---=_pandora.barbara.ds.polsl.gliwice.pl-9827-1084961486-0001-2--
+-- Pasi K=E4rkk=E4inen
+      =20
+                                   ^
+                                .     .
+                                 Linux
+                              /    -    \
+                             Choice.of.the
+                           .Next.Generation.
