@@ -1,19 +1,17 @@
-From: Alexander Samad <alex@samad.com.au>
-Subject: Re: Netfilter+IPsec patches in pom-ng now
-Date: Wed, 21 Apr 2004 07:34:05 +1000
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [PATCH] Orphaned expectations
+Date: Wed, 21 Apr 2004 01:33:14 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040420213405.GF19221@samad.com.au>
-References: <407CA248.3000302@trash.net> <20040420104853.GB19221@samad.com.au> <20040420132046.GC1357@obs.bg>
+Message-ID: <4085B33A.2080805@eurodev.net>
+References: <Pine.LNX.4.44.0404201250190.4160-100000@chris.camcom.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4D0iojmU0rbTyz/6"
-Cc: Patrick McHardy <kaber@trash.net>, mludvig@suse.cz,
-	guillaume@morinfr.org, herbert@gondor.apana.org.au,
-	JMChandonia@lbl.gov
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <20040420132046.GC1357@obs.bg>
+To: Chris Wilson <chris@netservers.co.uk>,
+ Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+  kernel@linuxace.com
+In-Reply-To: <Pine.LNX.4.44.0404201250190.4160-100000@chris.camcom.co.uk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,41 +22,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---4D0iojmU0rbTyz/6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Chris Wilson wrote:
 
-On Tue, Apr 20, 2004 at 04:20:47PM +0300, Ivan Mitev wrote:
-> > Patrick I have noted that 04 doesn't apply cleanly to 2.6.5
-Have to admit I used a debian 2.6.5, will check it out
+>Do you think that any other helpers might be vulnerable to the same 
+>problem?
+>  
+>
 
->=20
-> the only problem i noticed when patching kernel 2.6.5 was with patch 02 (=
-i use
-> the cvs versions of pom-ng and iptables of april 14). i'll try to check a=
-gain.
->=20
-> btw i'm experimenting with them for a few days now, and i didn't encounte=
-r any=20
-> problem. everything's fine!
->=20
-> ivan
->=20
->=20
+I think that only helpers for udp based protocols. So, I think that it 
+could be also reproduced with the amanda helper in a weird scenario 
+since this helper only looks for patterns in packets which comes from 
+server to client.
 
---4D0iojmU0rbTyz/6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Actually, when an udp packet hits the connection tracking system for 
+first time, in the ip_conntrack_in function:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+a) a new conntrack is created.
+b) a helper is asigned to this conntrack.
+c) and if this helper exists (case of tftp helper), it is also called.
 
-iD8DBQFAhZdMkZz88chpJ2MRAmEPAJ9HBH4y7lZlrwL+BFxEtEvO0FwZwwCgl3GA
-OdIByRjQs94YgFPMXLlh/Po=
-=WwnV
------END PGP SIGNATURE-----
+So now, with only an udp packet, we have a conntrack which is not 
+confirmed with an expectation associated, and as Phil pointed out, if 
+this conntrack is destroyed the expectation keeps there forever.
 
---4D0iojmU0rbTyz/6--
+regards,
+Pablo
