@@ -1,16 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: It is possible to route the bridge packet?
-Date: Fri, 20 Aug 2004 13:04:19 +0200 (CEST)
+Subject: Re: Flushing Conntrack Entrys
+Date: Fri, 20 Aug 2004 13:09:09 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0408201302290.24377@filer.marasystems.com>
-References: <20040819121547.15140.70414.Mailman@vishnu.netfilter.org>
- <001801c48681$cd08ddb0$a06464c0@kesineni>
+Message-ID: <Pine.LNX.4.61.0408201304280.24377@filer.marasystems.com>
+References: <009a01c4865a$72e55fb0$5746370a@nsp.co.nz>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: kesineni sai pratap <kesineni@woojininc.net>
-In-Reply-To: <001801c48681$cd08ddb0$a06464c0@kesineni>
+To: VeNoMouS <venom@gen-x.co.nz>
+In-Reply-To: <009a01c4865a$72e55fb0$5746370a@nsp.co.nz>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,21 +20,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 20 Aug 2004, kesineni sai pratap wrote:
+On Fri, 20 Aug 2004, VeNoMouS wrote:
 
-> I configured bridge in between two interfaces eth1 , eth2. when
-> packet arrives at eth1 , pass through the bridge reaches the eth2. My
-> requirement is  send this packets to routing  module, route the packet.
+> How hard would it be to flush conntrack entries matching to a certain ip?
 
-Then you need to tell the bridge to divert the packet to the local host as 
-if it hat a destination MAC of the bridge interface.
+See ctnetlink for an official API for doing this kind of stuff.
 
-> I change linux source code making a way for packet to go another 
-> interface. iam getting problem in ip_route_input_slow because of 
-> fib_lookup.because of that reason my system hangs.
+Or if you want to do it in kernelspace see the MASQUERADE target. It does 
+exacly this when the IP of the MASQUERADE:d interface changes.
 
->From my understanding of the bridge no changes should be needed, just a 
-matter of configuration.
+Or you could continue filtering the traffic even if the connection is not 
+NEW. CONNMARK could be helpful there to aid in information about the 
+specific connection especially so if there is NAT involved.
+
+> now how badly would the conntrack go mental if i were to delete an entry 
+> from the conntrack with some code.
+
+It should be quite happy.
 
 Regards
 Henrik
