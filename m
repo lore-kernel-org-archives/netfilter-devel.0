@@ -1,13 +1,13 @@
-From: Blesson Paul <blessonpaul@softhome.net>
-Subject: (no subject)
-Date: Thu, 23 Jan 2003 18:05:08 +0530
+From: Xuan Chen <xuanc@isi.edu>
+Subject: examples on extending netfilter or ip tables
+Date: Thu, 23 Jan 2003 11:05:14 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <5.2.0.9.0.20030123180502.009e7320@mail.SoftHome.net>
+Message-ID: <Pine.LNX.4.44.0301231056420.11654-100000@yen.isi.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter@lists.netfilter.org,
-	netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,12 +18,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Test Mail
+Hi,
 
-Blesson Paul,
-Software Engineer,
-Integrated Computing Environments Ltd,
-Cochin Special Economic Zone,
-Cochin - 682 030, India.
-Tel: +91-484-2413 083(O),  +91-484-2413 096(O)
-       +91-481-2380 893(R)
+I am planning to implement my own admission control scheme by extending 
+ip tables (or netfilter---I have not decided yet). I have read Linux 
+netfilter Hacking HOWTO and other documents at the web site. I am 
+wondering if somebody could point me to some sample extentions so that I 
+can have a clearer idea. Thanks.
+
+Cheers,
+-chen xuan
+
+-- 
+Xuan Chen
+USC/ISI
