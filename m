@@ -1,14 +1,17 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 4/4] introducing skb_header_pointer() to hbh match
-Date: Fri, 22 Oct 2004 11:59:51 +0900 (JST)
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH 2.6] iptables CLUSTERIP target, seq_file version
+Date: Thu, 21 Oct 2004 22:52:08 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <200410220259.i9M2xqR5010725@toshiba.co.jp>
+Message-ID: <20041021225208.44ddaa10.davem@davemloft.net>
+References: <20041020223828.GP19899@sunbeam.de.gnumonks.org>
+	<20041021163655.GK3551@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Fri_Oct_22_11:59:51_2004_409)--"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org, lmb@suse.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20041021163655.GK3551@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,157 +22,18 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Fri_Oct_22_11:59:51_2004_409)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+On Thu, 21 Oct 2004 18:36:55 +0200
+Harald Welte <laforge@netfilter.org> wrote:
 
-This patch introduces skb_header_pointer() to ip6t_hbh.c
+> This is the 'CLUSTERIP' target for iptables, this time no core kernel
+> changes required, please apply.
+> 
+> This enables you to build a static load sharing cluster between multiple
+> nodes - without the requirement to have a load balancer.  It uses a
+> series of [evil] tricks like replying with linklayer multicast addresses
+> to ARP requests, and using CONNMARK for stateful blocking all traffic
+> not intended for the local node.
 
-Signed-off-by Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+It's clever and nasty, I like it :-)
 
------------------------------------------------------------------
-Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
-
-
-----Next_Part(Fri_Oct_22_11:59:51_2004_409)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="hbh-nolin.patch"
-
---- linux-2.6.9-rc3-nolin-extfix/net/ipv6/netfilter/ip6t_hbh.c	2004-10-21 10:35:33.068081256 +0900
-+++ linux-2.6.9-rc3-nolin-ext/net/ipv6/netfilter/ip6t_hbh.c	2004-10-21 10:43:27.996881104 +0900
-@@ -60,7 +60,7 @@
-       unsigned int protoff,
-       int *hotdrop)
- {
--       struct ipv6_opt_hdr *optsh = NULL;
-+       struct ipv6_opt_hdr _optsh, *oh;
-        const struct ip6t_opts *optinfo = matchinfo;
-        unsigned int temp;
-        unsigned int len;
-@@ -68,7 +68,8 @@
-        unsigned int ptr;
-        unsigned int hdrlen = 0;
-        unsigned int ret = 0;
--       u8 *opttype = NULL;
-+       u8 _opttype, *tp = NULL;
-+       u8 _optlen, *lp = NULL;
-        unsigned int optlen;
-        
-        /* type of the 1st exthdr */
-@@ -80,7 +81,7 @@
-        temp = 0;
- 
-         while (ip6t_ext_hdr(nexthdr)) {
--               struct ipv6_opt_hdr *hdr;
-+               struct ipv6_opt_hdr _hdr, *hp;
- 
-               DEBUGP("ipv6_opts header iteration \n");
- 
-@@ -96,15 +97,16 @@
-                      break;
-               }
- 
--	      hdr = (void *)(skb->data + ptr);
-+	      hp = skb_header_pointer(skb, ptr, sizeof(_hdr), &_hdr);
-+	      BUG_ON(hp == NULL);
- 
-               /* Calculate the header length */
-                 if (nexthdr == NEXTHDR_FRAGMENT) {
-                         hdrlen = 8;
-                 } else if (nexthdr == NEXTHDR_AUTH)
--                        hdrlen = (hdr->hdrlen+2)<<2;
-+                        hdrlen = (hp->hdrlen+2)<<2;
-                 else
--                        hdrlen = ipv6_optlen(hdr);
-+                        hdrlen = ipv6_optlen(hp);
- 
-               /* OPTS -> evaluate */
- #if HOPBYHOP
-@@ -132,7 +134,7 @@
-                             break;
-               }
- 
--                nexthdr = hdr->nexthdr;
-+                nexthdr = hp->nexthdr;
-                 len -= hdrlen;
-                 ptr += hdrlen;
- 		if ( ptr > skb->len ) {
-@@ -158,9 +160,10 @@
-        		return 0;
-        }
- 
--       optsh = (void *)(skb->data + ptr);
-+       oh = skb_header_pointer(skb, ptr, sizeof(_optsh), &_optsh);
-+       BUG_ON(oh == NULL);
- 
--       DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, optsh->hdrlen);
-+       DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, oh->hdrlen);
- 
-        DEBUGP("len %02X %04X %02X ",
-        		optinfo->hdrlen, hdrlen,
-@@ -168,7 +171,7 @@
-                            ((optinfo->hdrlen == hdrlen) ^
-                            !!(optinfo->invflags & IP6T_OPTS_INV_LEN))));
- 
--       ret = (optsh != NULL)
-+       ret = (oh != NULL)
-        		&&
- 	      	(!(optinfo->flags & IP6T_OPTS_LEN) ||
-                            ((optinfo->hdrlen == hdrlen) ^
-@@ -185,36 +188,43 @@
- 		DEBUGP("#%d ",optinfo->optsnr);
- 		for(temp=0; temp<optinfo->optsnr; temp++){
- 			/* type field exists ? */
--			if (ptr > skb->len - 1 || hdrlen < 1)
-+			if (hdrlen < 1)
-+				break;
-+			tp = skb_header_pointer(skb, ptr, sizeof(_opttype),
-+						&_opttype);
-+			if (tp == NULL)
- 				break;
--			opttype = (void *)(skb->data + ptr);
- 
- 			/* Type check */
--			if (*opttype != (optinfo->opts[temp] & 0xFF00)>>8){
-+			if (*tp != (optinfo->opts[temp] & 0xFF00)>>8){
- 				DEBUGP("Tbad %02X %02X\n",
--				       *opttype,
-+				       *tp,
- 				       (optinfo->opts[temp] & 0xFF00)>>8);
- 				return 0;
- 			} else {
- 				DEBUGP("Tok ");
- 			}
- 			/* Length check */
--			if (*opttype) {
-+			if (*tp) {
- 				u16 spec_len;
- 
- 				/* length field exists ? */
--				if (ptr > skb->len - 2 || hdrlen < 2)
-+				if (hdrlen < 2)
-+					break;
-+				lp = skb_header_pointer(skb, ptr + 1,
-+							sizeof(_optlen),
-+							&_optlen);
-+				if (lp == NULL)
- 					break;
--				optlen = *((u8 *)(skb->data + ptr + 1));
- 				spec_len = optinfo->opts[temp] & 0x00FF;
- 
--				if (spec_len != 0x00FF && spec_len != optlen) {
--					DEBUGP("Lbad %02X %04X\n", optlen,
-+				if (spec_len != 0x00FF && spec_len != *lp) {
-+					DEBUGP("Lbad %02X %04X\n", *lp,
- 					       spec_len);
- 					return 0;
- 				}
- 				DEBUGP("Lok ");
--				optlen += 2;
-+				optlen = *lp + 2;
- 			} else {
- 				DEBUGP("Pad1\n");
- 				optlen = 1;
-
-----Next_Part(Fri_Oct_22_11:59:51_2004_409)----
+Thanks for cleaning it up to use seq_file.  Patch applied.
