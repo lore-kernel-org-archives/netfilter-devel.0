@@ -1,77 +1,48 @@
-From: "David S. Miller" <davem@redhat.com>
+From: Stephen Lee <mukansai@emailplus.org>
 Subject: Re: Extremely slow network with e1000 & ip_conntrack
-Date: Fri, 5 Dec 2003 12:28:19 -0800
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031205122819.25ac14ab.davem@redhat.com>
-References: <C6F5CF431189FA4CBAEC9E7DD5441E0102CBDD1F@orsmsx402.jf.intel.com>
-	<20031204213030.2B75.MUKANSAI@emailplus.org>
+Date: Sat, 06 Dec 2003 05:45:59 +0900
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20031206054545.A192.MUKANSAI@emailplus.org>
+References: <20031204213030.2B75.MUKANSAI@emailplus.org> <20031204102420.2aa43b43.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Cc: scott.feldman@intel.com, laforge@netfilter.org,
-        netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Stephen Lee <mukansai@emailplus.org>
-In-Reply-To: <20031204213030.2B75.MUKANSAI@emailplus.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Cc: torvalds@osdl.org, scott.feldman@intel.com, laforge@netfilter.org,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: "David S. Miller" <davem@redhat.com>
+In-Reply-To: <20031204102420.2aa43b43.davem@redhat.com>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 04 Dec 2003 21:36:09 +0900
-Stephen Lee <mukansai@emailplus.org> wrote:
-
-> "Feldman, Scott" <scott.feldman@intel.com> wrote:
-> > 
-> > Try turning off TSO by disabling this code or by using "ethtool -K tso
-> > off" (need version 1.8).
+"David S. Miller" <davem@redhat.com> wrote:
+> Stephen Lee <mukansai@emailplus.org> wrote:
+> > Yes, turning off TSO with ethtool fixed it (tested on 2.6.0-test11).  At
+> > least we have a workaround now.
 > 
-> Yes, turning off TSO with ethtool fixed it (tested on 2.6.0-test11).  At
-> least we have a workaround now.
+> This workaround explains everything.  The TSO packets have to be
+> "un-TSO'd" in order for netfilter to look at the packet and parse
+> the contents.  This means copying all the data around, allocating
+> several networking buffers, etc.
 
-OK, I've found out what IP conntack does that creates the problems.
+Sorry if I am talking out of my ass, but can this be solved in one
+of the following ways?  (But it would seem 2, 3 or 4 are not 2.6
+material).
 
-In fact, it's a bug in conntrack and this ends up corrupting the TSO
-packet.  This forces TSO-disabling on that connection, and
-retransmission of all the data.  Then the data flows correctly so TSO
-is re-enabled, and on and on and on like this.  Performance goes into
-the toilet.
+(1) Turn off TSO altogether (Duh).
 
-The culprit is net/ipv4/netfilter/ip_conntrack_standalone.c,
-in ip_refrag(), it does this:
+(2) Do what you suggest, but pass the original TSO packet to the
+ethernet chip.  Still have to copy around, but save us some interrupts? 
+(Could introduce subtle bugs if we un-TSO it differently from the
+hardware).
 
-        if ((*pskb)->len > dst_pmtu(&rt->u.dst)) {
-                /* No hook can be after us, so this should be OK. */
-                ip_fragment(*pskb, okfn);
-                return NF_STOLEN;
-        }
+(3) Just pass the original packet to netfilter with a special flag and
+have netfilter "deduce" what the rest of the headers are.
 
-Which fragments TSO packets, oops :)
+(4) Similar idea, but totally separate the headers and the payload.  (I
+think this was suggested somewhere for some other problem...  I read it
+in one of the archives but can't find it now)  Then we can just generate
+a set of "un-TSO'd" headers (with appropriate pointers into the big
+payload) for netfilter to look at, but leave the original for passing to
+hardware eventually.
 
-People can confirm this analysis by applying the patch below, enabling
-TSO with conntrack loaded, and see if the problem goes away.
-
-Some auditing is definitely necessary wrt. TSO and netfilter.  In particular
-I am incredibly confident that we have issues in cases like when the FTP
-netfilter modules mangle the data.  Another area for inspection are the
-cases where TCP header bits are changed and thus the checksum needs to
-be adjusted.
-
-===== net/ipv4/netfilter/ip_conntrack_standalone.c 1.22 vs edited =====
---- 1.22/net/ipv4/netfilter/ip_conntrack_standalone.c	Thu Oct  2 23:21:19 2003
-+++ edited/net/ipv4/netfilter/ip_conntrack_standalone.c	Fri Dec  5 12:25:22 2003
-@@ -201,7 +201,8 @@
- 	/* Local packets are never produced too large for their
- 	   interface.  We degfragment them at LOCAL_OUT, however,
- 	   so we have to refragment them here. */
--	if ((*pskb)->len > dst_pmtu(&rt->u.dst)) {
-+	if ((*pskb)->len > dst_pmtu(&rt->u.dst) &&
-+	    !skb_shinfo(*pskb)->tso_size) {
- 		/* No hook can be after us, so this should be OK. */
- 		ip_fragment(*pskb, okfn);
- 		return NF_STOLEN;
+Stephen
