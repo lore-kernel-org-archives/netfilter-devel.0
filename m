@@ -1,16 +1,15 @@
-From: Stephen Hemminger <shemminger@osdl.org>
-Subject: Re: [PATCH 2.5.68] netfilter using Read Copy Update
-Date: Thu, 24 Apr 2003 13:11:10 -0700
+From: Eicke Friedrich <tady@gmx.net>
+Subject: Re: Feasability of Protocol Filtering
+Date: Thu, 24 Apr 2003 22:31:58 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030424131110.04726145.shemminger@osdl.org>
-References: <20030424090406.504ada94.shemminger@osdl.org>
+Message-ID: <3EA849BE.7080205@gmx.net>
+References: <Pine.LNX.4.44+maildir.0304231452150.9967-100000@woozle.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-In-Reply-To: <20030424090406.504ada94.shemminger@osdl.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.44+maildir.0304231452150.9967-100000@woozle.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,13 +20,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-The motivation for this is to eventually get rid of all use's of brlock
-in the 2.5 kernel.  The existing netfilter code uses the standard doubly
-linked list structure so converting to RCU was not hard.
+Matt Skidmore wrote:
+> the downside to this is, say you want to reject SSH traffic. you
+> issue the command to reject it based on protocol. if there is a
+> connection already in progress it probably wouldnt get it unless
+> there are some telltale signs in the data packets, but since you 
+> can at least identify the initial connection packets you could at
+> least stop additional connections.
+Yes, you are absolute right. But i don't see a way to change this. For
+p2p the already
+established connections are not worth any effort. At some point the
+file is completly
+transfered (kazaa) or the transfered segment has to be acknowlegded
+(edk). My match will
+find this ack and treat the following packets as p2p-traffic.
 
-The only non-obvious change was introducing list_for_each_continue_rcu
-which is just a way to move the loop used in nf_iterate up into the
-include file where the other RCU list magic is held.
+> I would be interested in seeing what you have so far. as for CPU
+> and RAM concerns, I thought about this a bit myself. it could also
+> intoduce latency as well.
+I can send you the source-code if you want to.
 
-The netfilter hooks run in the same context as before (no preempt) and
-have the same restrictions (can't sleep).
+Regards,
+Eicke.
