@@ -1,14 +1,15 @@
-From: Scott MacKay <scottmackay@yahoo.com>
-Subject: extending ipq_packet_msg_t
-Date: Mon, 5 May 2003 09:53:08 -0700 (PDT)
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: [PATCH] cvs compile error.
+Date: Mon, 5 May 2003 21:51:42 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030505165308.23470.qmail@web13904.mail.yahoo.com>
-References: <20030427123927.GW990@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.51.0305052144430.31233@dns.toxicfilms.tv>
+References: <E19CliW-0004pJ-00@kashyyyk.netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20030427123927.GW990@sunbeam.de.gnumonks.org>
+To: Martin Josefsson <gandalf@netfilter.org>
+In-Reply-To: <E19CliW-0004pJ-00@kashyyyk.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,26 +20,84 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I was curious, what is required to add fields into the
-ipq_packte_msg_t structure (passed to userspace
-QUEUE)?
+Hi,
 
-I wanted to obtain the physical dev names from the
-ebtables patch for userspace queue targets (so
-forwards rules go from indev "eth0" to outdev "eth1"
-instead of "br0" to "br0").  One way would be to alter
-netfilter/ip_queue.c and strcpy the skb's
-nf_bridge->physindev->name and
-nf_bridge->phyoutdev->name over the indev_name and
-outdev_name.
-If I wanted to add fields, however, are there any
-special concerns aside from recompiling iptables and
-kernel?
-(this would be for 2.4.20 kernel)
+it seems as:
+ipt_get_target(struct ipt_entry *e)
 
--Scott
+is defined in <kernel_source>/include/linux/netfilter_ipv4/ip_tables.h
+and in iptables.c
 
-__________________________________
-Do you Yahoo!?
-The New Yahoo! Search - Faster. Easier. Bingo.
-http://search.yahoo.com
+The same goes for libiptc/libiptc.c
+
+iptables.c:153: redefinition of `ipt_get_target'
+/usr/src/linux/include/linux/netfilter_ipv4/ip_tables.h:294: `ipt_get_target' previously defined here
+make: *** [iptables.o] Error 1
+
+Regards,
+Maciej
+
+Is this below okay?
+It compiles with it, and seems to work just fine.
+
+diff -u -r1.28 ip6tables.c
+--- ip6tables.c	5 May 2003 19:33:40 -0000	1.28
++++ ip6tables.c	5 May 2003 19:49:14 -0000
+@@ -148,14 +148,6 @@
+  * magic number of -1 */
+ int line = -1;
+
+-#ifndef __OPTIMIZE__
+-struct ip6t_entry_target *
+-ip6t_get_target(struct ip6t_entry *e)
+-{
+-	return (void *)e + e->target_offset;
+-}
+-#endif
+-
+ static struct option *opts = original_opts;
+ static unsigned int global_option_offset = 0;
+
+Index: iptables.c
+===================================================================
+RCS file: /cvspublic/netfilter/userspace/iptables.c,v
+retrieving revision 1.58
+diff -u -r1.58 iptables.c
+--- iptables.c	5 May 2003 19:33:40 -0000	1.58
++++ iptables.c	5 May 2003 19:49:14 -0000
+@@ -147,14 +147,6 @@
+  * magic number of -1 */
+ int line = -1;
+
+-#ifndef __OPTIMIZE__
+-struct ipt_entry_target *
+-ipt_get_target(struct ipt_entry *e)
+-{
+-	return (void *)e + e->target_offset;
+-}
+-#endif
+-
+ static struct option *opts = original_opts;
+ static unsigned int global_option_offset = 0;
+
+Index: libiptc/libiptc.c
+===================================================================
+RCS file: /cvspublic/netfilter/userspace/libiptc/libiptc.c,v
+retrieving revision 1.37
+diff -u -r1.37 libiptc.c
+--- libiptc/libiptc.c	2 May 2003 15:30:11 -0000	1.37
++++ libiptc/libiptc.c	5 May 2003 19:49:15 -0000
+@@ -15,14 +15,6 @@
+ #define IPT_LIB_DIR "/usr/local/lib/iptables"
+ #endif
+
+-#ifndef __OPTIMIZE__
+-STRUCT_ENTRY_TARGET *
+-GET_TARGET(STRUCT_ENTRY *e)
+-{
+-	return (void *)e + e->target_offset;
+-}
+-#endif
+-
+ static int sockfd = -1;
+ static void *iptc_fn = NULL;
