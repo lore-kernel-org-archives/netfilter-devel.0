@@ -1,15 +1,12 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: [PATCH] ROUTE --tee target extension
-Date: Tue, 23 Nov 2004 10:05:30 +0100
-Message-ID: <20041123090530.GC13622@oknodo.bof.de>
-References: <20041123085911.GB13622@oknodo.bof.de>
+From: Alan Hourihane <alanh@fairlite.demon.co.uk>
+Subject: POMNG problems
+Date: Tue, 23 Nov 2004 19:23:49 +0000
+Message-ID: <20041123192348.GS10113@fairlite.demon.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, delaunois@info.ucl.ac.be
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20041123085911.GB13622@oknodo.bof.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,10 +18,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Grr... My dainbramage... Please disregard this hunk from my previous message:
+I'm using pomng-20040621 and it fails to apply some of the base patches
+with kernel 2.4.27, and 2.4.28 has caused another one to fail.
 
-> diff --exclude=CVS --exclude=.svn -urN svn-20041120-iptables/extensions/xxx iptables/extensions/xxx
-> --- svn-20041120-iptables/extensions/xxx	Thu Jan  1 01:00:00 1970
-> +++ iptables/extensions/xxx	Tue Nov 23 08:36:14 2004
-> @@ -0,0 +1,15 @@
-...
+Currently, I have to delete...
+
+init_conntrack-optimize
+ipt_helper-invert-fix
+nf_reset
+
+for 2.4.27 to compile successfully, and with 2.4.28 I now have to remove
+
+raw
+
+to build a kernel.
+
+Is there a new release of pomng coming soon ?
+
+Alan.
