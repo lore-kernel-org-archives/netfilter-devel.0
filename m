@@ -1,16 +1,15 @@
-From: "Oskar Andreasson" <blueflux@koffein.net>
+From: Emmanuel Fleury <fleury@cs.auc.dk>
 Subject: Re: Security flaw in Stateful filtering ??????
-Date: Mon, 10 Jun 2002 10:04:56 +0200
+Date: Mon, 10 Jun 2002 10:26:27 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <015d01c21055$82f7aed0$6501a8c0@multisofteducation.com>
-References: <Pine.LNX.4.33.0206071425210.4373-100000@blackhole.kfki.hu>
+Message-ID: <3D0462B3.80208@cs.auc.dk>
+References: <Pine.LNX.4.33.0206071425210.4373-100000@blackhole.kfki.hu> <015d01c21055$82f7aed0$6501a8c0@multisofteducation.com>
+Reply-To: netfilter-devel@lists.samba.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: <netfilter-devel@lists.samba.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@lists.samba.org
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,63 +20,49 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jozsef,
+Hi Oskar,
 
-Sorry for the late reply. I never suggested that this usage (see below) =
-is only theoretical and I'm very sorry if it was misinterpreted as that. =
+Oskar Andreasson wrote:
+> 
+> My proposal was to create a way of doing more secure, and
+ > stateful, redundancy mechanism. For example, 2 or more firewalls
+ > which shares their conntrack tables via some userspace daemons.
+ > This would require the daemon to have read/write access to the
+ > conntrack tables via netlink however, and I am not fully aware
+ > of the possibilities of this.
 
+Well I don't know if it will be more secure, but this idea is
+interesting for me.
 
-My proposal was to create a way of doing more secure, and stateful, =
-redundancy mechanism. For example, 2 or more firewalls which shares =
-their conntrack tables via some userspace daemons. This would require =
-the daemon to have read/write access to the conntrack tables via netlink =
-however, and I am not fully aware of the possibilities of this.=20
+I already was thinking about something similar.
 
-Once again, I am extremely sorry if you misinterpreted the whole mail as =
-a suggestion that this is only theoretical. I know that you among others =
-have told me and others that you've already implemented this in =
-practice.=20
+Indeed, if you consider a network which has several access points
+to the Internet (let say FW1 and FW2). It is very 'dangerous' to
+run stateful on these access point because a packet which is part
+of a connection can go either through FW1 either trough FW2 (no static
+routing is assumed).
 
-Oskar Andreasson
-http://www.boingworld.com
-http://people.unix-fu.org/andreasson/
-mailto: blueflux@koffein.net
+As only one of your firewall had registered the connection (in the best
+case), the other one will drop all the packets... (except if you
+consider the "ACK is NEW" behaviour).
 
------ Original Message -----=20
-From: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>
-To: "Oskar Andreasson" <blueflux@koffein.net>
-Cc: <netfilter-devel@lists.samba.org>
-Sent: Friday, June 07, 2002 2:27 PM
-Subject: Re: Security flaw in Stateful filtering ??????
+The 'solution' would be to consider what can be called a 'distributed
+stateful firewall' which maintain a centralized connection table for
+all your firewalls...
 
+But, it raises a lot of problems like cache consistency over a network,
+what to do if the three way handshake is distributed on the your
+firewalls, and so on....
 
-> On Fri, 7 Jun 2002, Oskar Andreasson wrote:
->=20
-> > Another, related, usage is
-> > if we have a redundant firewall (I haven't seen this discussed so =
-far
-> > so.... Consider this:
-> >
-> > 1 main firewall
-> > 1 router
-> > and a secondary firewall.
-> >
-> > The three are set up in a routing zone. If the main firewall goes
-> > down, the router will notice, and route packets through the =
-redundant
-> > firewall. If the NEW target was to allow only SYN packets, this =
-would
-> > be impossible as you can understand from this.
->=20
-> We have been using such a redundant setup for more than a year.
-> It's *not* theoretical.
->=20
-> Regards,
-> Jozsef
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-> WWW-Home: http://www.kfki.hu/~kadlec
-> Address : KFKI Research Institute for Particle and Nuclear Physics
->           H-1525 Budapest 114, POB. 49, Hungary
->=20
->=20
+The most surprising is that this 'ACK is NEW' thing is solving
+this problem also (even if I think that this is a dirty hack ;-)).
+
+-- 
+Emmanuel
+
+You have to understand what the primary objective of an OS is:
+To create a virtual environment that is simple and sane to program
+against....
+
+Have you learned nothing at all from DOS and Windows?
+   -- Linus Torvalds
