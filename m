@@ -1,16 +1,16 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: conntrack match and locking
-Date: Fri, 28 May 2004 14:39:53 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: 64bit changes in cvs
+Date: Fri, 28 May 2004 17:12:00 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <40B73319.6050503@eurodev.net>
-References: <Pine.LNX.4.44.0405261804070.31237-100000@filer.marasystems.com> <Pine.LNX.4.58.0405271104570.27895@chris.camcom.co.uk> <40B72B46.9050908@eurodev.net>
+Message-ID: <Pine.LNX.4.44.0405281709390.31197-100000@filer.marasystems.com>
+References: <Pine.LNX.4.58.0405281413510.7322@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira <pablo@eurodev.net>,
+   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>,
- Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <40B72B46.9050908@eurodev.net>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <Pine.LNX.4.58.0405281413510.7322@tux.rsn.bth.se>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,17 +21,15 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+On Fri, 28 May 2004, Martin Josefsson wrote:
 
-Pablo Neira wrote:
+> I know almost nothing about autoconf (more than I think it's very bloated
+> :), I'll see if I can make some time to actually look at it.
 
-> Actually this is the process, when we read a conntrack from the 
-> conntrack table we read_lock the table and increase its refcount (see 
-> ip_conntrack_get). We don't lock a conntrack, we lock the table while 
-> reading the conntrack/tuples pair.
+It is very bloated for a project targeting only a single OS / libc..
 
+But for any other project the bloat makes detecting all those platform 
+dependent junk, compile time options etc a magnitude easier to manage..
 
-sorry, see ip_conntrack_find_get! :-)
-
-regards,
-Pablo
+Regards
+Henrik
