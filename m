@@ -1,38 +1,42 @@
-From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: NAT before IPsec with 2.6
-Date: Tue, 27 Jan 2004 23:41:36 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040127224136.GA9758@alpha.home.local>
-References: <20040127130739.GR11761@sunbeam.de.gnumonks.org> <Pine.LNX.4.44.0401271457370.17979-100000@filer.marasystems.com> <20040127205123.GA11761@sunbeam.de.gnumonks.org>
+From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?= <yoshfuji@linux-ipv6.org>
+Subject: Re: [PATCH|RFC] IPv6 netfilter: a module for complete proxy ND
+ support
+Date: Wed, 28 Jan 2004 08:46:01 +0900 (JST)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20040128.084601.13486645.yoshfuji@linux-ipv6.org>
+References: <Pine.LNX.4.58.0401151719160.29722@rhea.tcs.hut.fi>
+	<20040116.005443.92504522.yoshfuji@linux-ipv6.org>
+	<Pine.LNX.4.58.0401272244360.28384@rhea.tcs.hut.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
-   Henrik Nordstrom <hno@marasystems.com>, Willy Tarreau <willy@w.ods.org>,
-   Tom Eastep <teastep@shorewall.net>, Michal Ludvig <mludvig@suse.cz>,
-   netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20040127205123.GA11761@sunbeam.de.gnumonks.org>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, davem@redhat.com, netdev@oss.sgi.com,
+        kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: vnuorval@tcs.hut.fi
+In-Reply-To: <Pine.LNX.4.58.0401272244360.28384@rhea.tcs.hut.fi>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi guys,
+In article <Pine.LNX.4.58.0401272244360.28384@rhea.tcs.hut.fi> (at Tue, 27 Jan 2004 22:58:02 +0200 (EET)), Ville Nuorvala <vnuorval@tcs.hut.fi> says:
 
-On Tue, Jan 27, 2004 at 09:51:23PM +0100, Harald Welte wrote:
-<...> 
-> Hm.  You have a point, but I'm still not really sure.  I'll do it the
-> way you proposed, but I might change my mind again in the future ;)
+> How about this fix? I think it's cleaner than the one I proposed
+> earlier. The down side with it is that all nodes, no matter if they are
+:
 
-Cool, I'm very glad that we're at least several ones to think it the same
-way. I didn't respond because my proposal would have been identical to
-Henrik's. So please count my vote :-)
+Well, it seems better to me.
 
-Thanks,
-Willy
+I however think it should be done in ip6_forward()
+because "proxying" is done at the router, acting as proxy.
+Packets sent to the proxying router are basically forwarded 
+to the original node even if the destination is link-local.
+
+On performance issue: as IPv4, we may want to have 
+net.ipv6.conf.<if>.proxy_ndisc sysctl.
+We may also want to have another configuration 
+option (to enable proxy) bacause not all routers require this 
+feature.
+
+BTW, would you please give me a few days, till my defence over? :-)
+
+--yoshfuji
