@@ -1,16 +1,15 @@
-From: Patrick Schaaf <bof@bof.de>
+From: Eric Leblond <eric@regit.org>
 Subject: Re: differences between 2.4.19 and 2.4.20?
-Date: Tue, 12 Aug 2003 10:14:04 +0200
+Date: 12 Aug 2003 10:21:36 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030812081404.GA350@oknodo.bof.de>
+Message-ID: <1060676495.16298.12.camel@tech004.alphalink.fr>
 References: <3F381BFB.6060805@hotmail.com>
+	 <20030812081404.GA350@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-qLbemtSCEWP+cILQhK0P"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Srinivas Kommu <kommu@hotmail.com>
-Content-Disposition: inline
-In-Reply-To: <3F381BFB.6060805@hotmail.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20030812081404.GA350@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,24 +20,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Aug 11, 2003 at 03:43:07PM -0700, Srinivas Kommu wrote:
-> Is there a major difference in the netfilter functionality in the 2.4.19 
-> and 2.4.20 kernels? What are the differences?
-> 
-> Is there a general way to find out?
 
-Yes. It's called 'diff', the result is a 'patch file'. There is also
-the usual overall ChangeLog:
+--=-qLbemtSCEWP+cILQhK0P
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-http://www.kernel.org/pub/linux/kernel/v2.4/ChangeLog-2.4.20
+On Tue, 2003-08-12 at 10:14, Patrick Schaaf wrote:
+> On Mon, Aug 11, 2003 at 03:43:07PM -0700, Srinivas Kommu wrote:
+> . But I'm not sure: I avoided 2.4.20
+> for some reason, but don't remember specifics.
 
-The major change, from the ChangeLog, was this:
+The possible DOS attack that was announced one week ago ?
 
-  o [NETFILTER]: Backport newnat infrastructure to 2.4.x
+BR,
+--=20
+Eric Leblond <eric@regit.org>
+Regit.org
 
-IIRC, you want to use the newest 2.4.21, and 2.4.20 had its share
-of bugs in the area of netfilter. But I'm not sure: I avoided 2.4.20
-for some reason, but don't remember specifics.
+--=-qLbemtSCEWP+cILQhK0P
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-best regards
-  Patrick
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+
+iD8DBQA/OKOPnxA7CdMWjzIRAmlYAJ47W1g7UmCwGWlimOdHhrpEwKxnzwCfd2br
+mponITmHmOh5fbhoODZW+2M=
+=Q+eU
+-----END PGP SIGNATURE-----
+
+--=-qLbemtSCEWP+cILQhK0P--
