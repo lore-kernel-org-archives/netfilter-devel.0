@@ -1,13 +1,18 @@
-From: "Wei koong Chai" <eem1wc@eim.surrey.ac.uk>
-Subject: {libipq] Netlink Connection Refused
-Date: Fri, 27 Sep 2002 16:03:27 +0100 (BST)
+From: "Moshe Ashkenazi" <moshea@checkpoint.com>
+Subject: RE: libipq packet id
+Date: Sun, 29 Sep 2002 12:19:11 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <2222.131.227.74.158.1033139007.squirrel@www.ecm.surrey.ac.uk>
+Message-ID: <005501c267a1$aeaeebd0$97025a3e@SHAGWELL>
+References: <Pine.LNX.4.44.0209261748150.7774-100000@fruit.eidetica.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Cc: "'James Morris'" <jmorris@intercode.com.au>,
+   <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: "'Joost Remijn'" <remijnj@eidetica.com>
+In-Reply-To: <Pine.LNX.4.44.0209261748150.7774-100000@fruit.eidetica.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,31 +23,83 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi again...
+After adding new rule which mark the packet, I succeed to see the mark
+number on user space, so base on the mark value I can know on user space
+from which netfilter rule the packet came from.
 
-   I have developed a network emulator using libipq together with brctl
-under Redhat Linux 7.2. It works fine. Recently, I am asked to install
-my emulator for an old machine running Mandrake.
+Thanks, for the help
 
-   The iptables of that machine isn't working and thus, it is re-installed
-and works fine afterwards. Then i tried to run my emulator but received
-an error message as below:
+Moshe Ashkenazi, 
 
-Netlink Connection Refused.
+-----Original Message-----
+From: netfilter-devel-admin@lists.netfilter.org
+[mailto:netfilter-devel-admin@lists.netfilter.org] On Behalf Of Joost
+Remijn
+Sent: Thursday, September 26, 2002 5:51 PM
+To: Moshe Ashkenazi
+Cc: 'James Morris'; netfilter-devel@lists.netfilter.org
+Subject: RE: libipq packet id
 
-   This problem does not exist before the re-installation of the iptables.
-I tried again with and without brctl but still receive the same error
-message. So, my guess is that the communication between iptables with
-the userspace is problematic. But i can't be sure. So, here i am asking
-the experts what could be the real cause and how do i solve such
-problems.
+But did you actually mark the packet. Check the iptables manpage to see
+how to mark a packet.
 
+Joost
 
-Thank you.
+On Thu, 26 Sep 2002, Moshe Ashkenazi wrote:
 
-
-
-*I have subscribe the netfilter mailing list but without apparent reason,
-i have not receive any mail from the list for quite some time already.
-Thus, I would appreciate that the reply for this mail to be sent straight
-to my mailbox. Thank you.
+> If have those two rules:
+>
+> 1    QUEUE      icmp --  anywhere             anywhere
+> 2    QUEUE      tcp  --  anywhere             anywhere           tcp
+> dpt:ftp
+>
+> mark return always zero and hook return 1 even the second rule queue
+the
+> packet (I did ftp)
+>
+>
+> Moshe Ashkenazi,
+>
+> -----Original Message-----
+> From: Joost Remijn [mailto:remijnj@eidetica.com]
+> Sent: Thursday, September 26, 2002 5:04 PM
+> To: James Morris
+> Cc: Moshe Ashkenazi; netfilter-devel@lists.netfilter.org
+> Subject: Re: libipq packet id
+>
+>
+>
+> On Fri, 27 Sep 2002, James Morris wrote:
+>
+> > On Thu, 26 Sep 2002, Moshe Ashkenazi wrote:
+> >
+> > > Hi, All -
+> > >
+> > > I'm using libipq to retrieve packet from netfilter in userspace,
+and
+> its
+> > > work cool.
+> > >
+> > > My question is how can I know on userspace mode from which
+netfilter
+> > > rule the packet arrive?
+> > >
+> >
+> > This information is not passed to userspace.
+>
+> What about the mark and hook values in the struct ipq_packet_msg_t.
+> That looks like a possibility to get some info from userspace about
+the
+> rule.
+>
+> Joost
+>
+> > --
+> > James Morris
+> > <jmorris@intercode.com.au>
+> >
+> >
+> >
+>
+>
+>
