@@ -1,16 +1,15 @@
-From: don-nf@isis.cs3-inc.com (Don Cohen)
-Subject: performance issues (nat / conntrack)
-Date: Fri, 21 Jun 2002 10:35:05 -0700
+From: Ben Reser <ben@reser.org>
+Subject: Re: MIME Patches (was [PATCH] ROUTE target : bug fixes)
+Date: Fri, 21 Jun 2002 10:56:24 -0700
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <15635.25545.469973.950625@isis.cs3-inc.com>
-References: <20020621132640.2C326472B@lists.samba.org>
+Message-ID: <20020621175624.GF2355@titanium.brain.org>
+References: <1024582362.2418.30.camel@descartes> <20020621191526.G2543@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: netfilter-devel@lists.samba.org,
-	"Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
-In-Reply-To: <20020621132640.2C326472B@lists.samba.org>
+To: netfilter-devel@lists.samba.org
+Content-Disposition: inline
+In-Reply-To: <20020621191526.G2543@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -21,24 +20,36 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
- > I'm doing some tcp benches on a netfilter enabled box and noticed
- > huge and surprising perf decrease when loading iptable_nat module. 
-Rather similar to the results I posted about a week ago.
+On Fri, Jun 21, 2002 at 07:15:26PM +0200, Harald Welte wrote:
+> Please try to send patches as mime attachment to ensure no corruption 
+> occurs.
 
- > - Another (old) question: why are conntrack or nat active when there are
- > no rules configured (using them or not)? 
-I noticed this too.  After a test using conntrack the next test
-without "using" conntrack would perfom poorly unless I did rmmod.
+Okay this is confusing.  Your scoreboard guidelines
+(http://www.netfilter.org/scoreboard/) say that you should include
+patches "straight in the body of the message, not MIME'd."  Honestly
+I've always found this policy bizzare.
 
- > Since in my test, each connection is ephemeral (<10ms) ...
-When all works correctly, the end of each connection should be noticed
-by conntrack and the connection removed from the table, right?
-In which case the table should never get very full.
-So I'm guessing that large number of entries in conntrack table is
-evidence that packets are being lost.  In particular, if the syn
-packet arrives but is never forwarded, you get one of those conntrack
-entries where conntrack thinks (incorrectly) the syn has been
-forwarded so it's waiting for the reply.  Ideally the entry should
-not be added to the table until the packet goes out.
+It wasn't but a week ago that Henrik was asking that someone resend a
+MIME'd patch in plain text.
+(http://lists.samba.org/pipermail/netfilter-devel/2002-June/004760.html)
+Yes I understand that one was base64'ed but some people may not have
+complete control over how their MIME implementation works.
 
-Just wondering, how did you measure cpu load?
+If the argument against MIME is that the mailing list archives can't
+handle it.  Perhaps those people should switch to using
+marc.theaimsgroup.com.  For instance the very message Henrik was
+complaining about not being readable because it was base64 is handled
+properly here:
+http://marc.theaimsgroup.com/?l=netfilter-devel&m=102389029101252&w=2
+
+Either way we should pick a standard and follow it.  Frankly MIME is a
+common standard and attaching patch is intuitive.  So I think we should
+go that route.  
+
+-- 
+Ben Reser <ben@reser.org>
+http://ben.reser.org
+
+We tend to see all wars through the lens of the current conflict, and we
+mine history for lessons convenient to the present purpose.
+- Brian Hayes
