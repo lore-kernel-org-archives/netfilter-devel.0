@@ -1,13 +1,13 @@
-From: Krzysztof Rusocki <kszysiu@iceberg.elsat.net.pl>
-Subject: only first TCP SYN packet consulted in nat table chains - bug or feature?
-Date: Mon, 21 Jun 2004 22:06:52 +0200
+From: Bastiaan Bakker <bastiaan.bakker@lifeline.nl>
+Subject: [PATCH] combine iptables, iptables-save and iptables-restore for
+	size reduction
+Date: Mon, 21 Jun 2004 23:19:13 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040621200651.GB1323@iceberg.elsat.net.pl>
+Message-ID: <1087852753.2962.27.camel@x1722074250.edup.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="=-QA/SL6BdPKe2I1Zi7NqA"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,42 +19,116 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
+--=-QA/SL6BdPKe2I1Zi7NqA
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
 Hi,
 
-I have a Linux 2.4.27-pre2 based nat box,
-which also alters TCPMSS of packets it
-passes through.
+The iptables, iptables-save and iptables-restore binaries contain a
+relatively large amount of identical code. In most cases this doesn't
+matter, but on embedded platforms 100KB can make a difference.
+Attached is a small patch against iptables 1.2.10 which enables building
+iptables, iptables-save and iptables-restore into 1 multi-purpose
+binary. In BusyBoxy style it selects the correct command based on
+argv[0].
 
-For really long period of time I used
-rule created by the following iptables combo:
+To build, do 'make DO_MULTI=1' instead of 'make'.
 
-iptables -t nat -A POSTROUTING -o ppp0 -p tcp --tcp-flags SYN,RST SYN \
-	-m tcpmss --mss 1453: -j TCPMSS --set-mss 1452
+Regards,
 
-However, quite recently I discovered
-that first TCP SYN packet's MSS is altered
-and latter SYN packets (in case of retransmission)
-have MSS unchanged (1460 - ether).
-
-Relevant tcpdump output (ppp0) follows:
-19:23:33.178771 83.27.53.238.1206 > 1.2.3.4.45454: S [tcp sum ok]
-	1844185893:1844185893(0) win 5840
-	<mss 1452,sackOK,timestamp 54616709 0,nop,wscale 0> (DF)
-	[tos 0x10]  (ttl 63, id 27040, len 60)   
-19:23:36.177492 83.27.53.238.1206 > 1.2.3.4.45454: S [tcp sum ok]
-	1844185893:1844185893(0) win 5840
-	<mss 1460,sackOK,timestamp 54619709 0,nop,wscale 0> (DF)
-	[tos 0x10]  (ttl 63, id 27041, len 60)   
-19:23:42.175696 83.27.53.238.1206 > 1.2.3.4.45454: S [tcp sum ok]
-	1844185893:1844185893(0) win 5840
-	<mss 1460,sackOK,timestamp 54625709 0,nop,wscale 0> (DF)
-	[tos 0x10]  (ttl 63, id 27042, len 60)
-
-I'm just being curious here - is this a bug or feature?
-
-For the time being I have changed that rule to use
-mangle table...
+Bastiaan Bakker
 
 
-Cheers,
-Krzysztof
+
+
+--=-QA/SL6BdPKe2I1Zi7NqA
+Content-Disposition: attachment; filename=iptables-1.2.10-multi.patch
+Content-Type: text/x-patch; name=iptables-1.2.10-multi.patch; charset=utf-8
+Content-Transfer-Encoding: base64
+
+SW5kZXg6IGlwdGFibGVzLXNhdmUuYw0KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0tIGlwdGFibGVzLXNhdmUuYwko
+Li4uL3JlbGVhc2VzLzEuMi4xMCkJKHJldmlzaW9uIDgpDQorKysgaXB0YWJsZXMtc2F2ZS5jCSgu
+Li4vdHJ1bmspCShyZXZpc2lvbiA4KQ0KQEAgLTMyMSw3ICszMjEsMTMgQEANCiAgKiA6Q2hhaW4g
+bmFtZSBQT0xJQ1kgcGFja2V0cyBieXRlcw0KICAqIHJ1bGUNCiAgKi8NCi1pbnQgbWFpbihpbnQg
+YXJnYywgY2hhciAqYXJndltdKQ0KKyNpZmRlZiBJUFRBQkxFU19NVUxUSQ0KK2ludA0KK2lwdGFi
+bGVzX3NhdmVfbWFpbihpbnQgYXJnYywgY2hhciAqYXJndltdKQ0KKyNlbHNlDQoraW50DQorbWFp
+bihpbnQgYXJnYywgY2hhciAqYXJndltdKQ0KKyNlbmRpZg0KIHsNCiAJY29uc3QgY2hhciAqdGFi
+bGVuYW1lID0gTlVMTDsNCiAJaW50IGM7DQpJbmRleDogaXB0YWJsZXMtcmVzdG9yZS5jDQo9PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09DQotLS0gaXB0YWJsZXMtcmVzdG9yZS5jCSguLi4vcmVsZWFzZXMvMS4yLjEwKQkocmV2
+aXNpb24gOCkNCisrKyBpcHRhYmxlcy1yZXN0b3JlLmMJKC4uLi90cnVuaykJKHJldmlzaW9uIDgp
+DQpAQCAtOTksNyArOTksMTMgQEANCiAJCWZyZWUobmV3YXJndltpXSk7DQogfQ0KIA0KLWludCBt
+YWluKGludCBhcmdjLCBjaGFyICphcmd2W10pDQorI2lmZGVmIElQVEFCTEVTX01VTFRJDQoraW50
+DQoraXB0YWJsZXNfcmVzdG9yZV9tYWluKGludCBhcmdjLCBjaGFyICphcmd2W10pDQorI2Vsc2UN
+CitpbnQNCittYWluKGludCBhcmdjLCBjaGFyICphcmd2W10pDQorI2VuZGlmDQogew0KIAlpcHRj
+X2hhbmRsZV90IGhhbmRsZSA9IE5VTEw7DQogCWNoYXIgYnVmZmVyWzEwMjQwXTsNCkluZGV4OiBp
+cHRhYmxlcy1zdGFuZGFsb25lLmMNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCi0tLSBpcHRhYmxlcy1zdGFuZGFsb25l
+LmMJKC4uLi9yZWxlYXNlcy8xLjIuMTApCShyZXZpc2lvbiA4KQ0KKysrIGlwdGFibGVzLXN0YW5k
+YWxvbmUuYwkoLi4uL3RydW5rKQkocmV2aXNpb24gOCkNCkBAIC0zNyw4ICszNywxMyBAQA0KICNp
+bmNsdWRlIDxzdHJpbmcuaD4NCiAjaW5jbHVkZSA8aXB0YWJsZXMuaD4NCiANCisjaWZkZWYgSVBU
+QUJMRVNfTVVMVEkNCiBpbnQNCitpcHRhYmxlc19tYWluKGludCBhcmdjLCBjaGFyICphcmd2W10p
+DQorI2Vsc2UNCitpbnQNCiBtYWluKGludCBhcmdjLCBjaGFyICphcmd2W10pDQorI2VuZGlmDQog
+ew0KIAlpbnQgcmV0Ow0KIAljaGFyICp0YWJsZSA9ICJmaWx0ZXIiOw0KSW5kZXg6IGlwdGFibGVz
+LW11bHRpLmMNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT0NCi0tLSBpcHRhYmxlcy1tdWx0aS5jCShyZXZpc2lvbiAwKQ0K
+KysrIGlwdGFibGVzLW11bHRpLmMJKHJldmlzaW9uIDgpDQpAQCAtMCwwICsxLDMxIEBADQorI2lu
+Y2x1ZGUgPHN0ZGlvLmg+DQorI2luY2x1ZGUgPHN0ZGxpYi5oPg0KKyNpbmNsdWRlIDxzdHJpbmcu
+aD4NCisjaW5jbHVkZSA8bGliZ2VuLmg+DQorDQoraW50IGlwdGFibGVzX21haW4oaW50IGFyZ2Ms
+IGNoYXIgKiphcmd2KTsNCitpbnQgaXB0YWJsZXNfc2F2ZV9tYWluKGludCBhcmdjLCBjaGFyICoq
+YXJndik7DQoraW50IGlwdGFibGVzX3Jlc3RvcmVfbWFpbihpbnQgYXJnYywgY2hhciAqKmFyZ3Yp
+Ow0KKw0KK2ludCBtYWluKGludCBhcmdjLCBjaGFyICoqYXJndikgew0KKyAgY2hhciAqcHJvZ25h
+bWU7DQorDQorICBpZiAoYXJnYyA9PSAwKSB7DQorICAgIGZwcmludGYoc3RkZXJyLCAibm8gYXJn
+dlswXT8iKTsNCisgICAgZXhpdCgxKTsNCisgIH0gZWxzZSB7DQorICAgIHByb2duYW1lID0gYmFz
+ZW5hbWUoYXJndlswXSk7DQorDQorICAgIGlmICghc3RyY21wKHByb2duYW1lLCAiaXB0YWJsZXMi
+KSkNCisgICAgICByZXR1cm4gaXB0YWJsZXNfbWFpbihhcmdjLCBhcmd2KTsNCisgICAgDQorICAg
+IGlmICghc3RyY21wKHByb2duYW1lLCAiaXB0YWJsZXMtc2F2ZSIpKQ0KKyAgICAgIHJldHVybiBp
+cHRhYmxlc19zYXZlX21haW4oYXJnYywgYXJndik7DQorICAgIA0KKyAgICBpZiAoIXN0cmNtcChw
+cm9nbmFtZSwgImlwdGFibGVzLXJlc3RvcmUiKSkNCisgICAgICByZXR1cm4gaXB0YWJsZXNfcmVz
+dG9yZV9tYWluKGFyZ2MsIGFyZ3YpOw0KKyAgICANCisgICAgZnByaW50ZihzdGRlcnIsICJpcHRh
+YmxlcyBtdWx0aS1wdXJwb3NlIHZlcnNpb246IHVua25vd24gYXBwbGV0IG5hbWUgJXNcbiIsIHBy
+b2duYW1lKTsNCisgICAgZXhpdCgxKTsNCisgIH0NCit9DQpJbmRleDogTWFrZWZpbGUNCj09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT0NCi0tLSBNYWtlZmlsZQkoLi4uL3JlbGVhc2VzLzEuMi4xMCkJKHJldmlzaW9uIDgpDQor
+KysgTWFrZWZpbGUJKC4uLi90cnVuaykJKHJldmlzaW9uIDgpDQpAQCAtNDIsNyArNDIsOSBAQA0K
+IEVYVFJBX0lOU1RBTExTKz0kKERFU1RESVIpJChCSU5ESVIpL2lwdGFibGVzICQoREVTVERJUikk
+KE1BTkRJUikvbWFuOC9pcHRhYmxlcy44DQogDQogIyBObyBsb25nZXIgZXhwZXJpbWVudGFsLg0K
+K2lmbmVxICgkKERPX01VTFRJKSwgMSkNCiBFWFRSQVMrPWlwdGFibGVzLXNhdmUgaXB0YWJsZXMt
+cmVzdG9yZQ0KK2VuZGlmDQogRVhUUkFfSU5TVEFMTFMrPSQoREVTVERJUikkKEJJTkRJUikvaXB0
+YWJsZXMtc2F2ZSAkKERFU1RESVIpJChCSU5ESVIpL2lwdGFibGVzLXJlc3RvcmUgJChERVNURElS
+KSQoTUFORElSKS9tYW44L2lwdGFibGVzLXJlc3RvcmUuOCAkKERFU1RESVIpJChNQU5ESVIpL21h
+bjgvaXB0YWJsZXMtc2F2ZS44DQogDQogaWZlcSAoJChET19JUFY2KSwgMSkNCkBAIC0xMTQsOCAr
+MTE2LDEzIEBADQogaXB0YWJsZXMubzogaXB0YWJsZXMuYw0KIAkkKENDKSAkKENGTEFHUykgLURJ
+UFRfTElCX0RJUj1cIiQoSVBUX0xJQkRJUilcIiAtYyAtbyAkQCAkPA0KIA0KK2lmZXEgKCQoRE9f
+TVVMVEkpLCAxKQ0KK2lwdGFibGVzOiBpcHRhYmxlcy1tdWx0aS5jIGlwdGFibGVzLXNhdmUuYyBp
+cHRhYmxlcy1yZXN0b3JlLmMgaXB0YWJsZXMtc3RhbmRhbG9uZS5jIGlwdGFibGVzLm8gJChTVEFU
+SUNfTElCUykgbGliaXB0Yy9saWJpcHRjLmENCisJJChDQykgJChDRkxBR1MpIC1ESVBUQUJMRVNf
+TVVMVEkgLURJUFRfTElCX0RJUj1cIiQoSVBUX0xJQkRJUilcIiAkKExERkxBR1MpIC1vICRAICRe
+ICQoTERMSUJTKQ0KK2Vsc2UNCiBpcHRhYmxlczogaXB0YWJsZXMtc3RhbmRhbG9uZS5jIGlwdGFi
+bGVzLm8gJChTVEFUSUNfTElCUykgbGliaXB0Yy9saWJpcHRjLmENCiAJJChDQykgJChDRkxBR1Mp
+IC1ESVBUX0xJQl9ESVI9XCIkKElQVF9MSUJESVIpXCIgJChMREZMQUdTKSAtbyAkQCAkXiAkKExE
+TElCUykNCitlbmRpZg0KIA0KICQoREVTVERJUikkKEJJTkRJUikvaXB0YWJsZXM6IGlwdGFibGVz
+DQogCUBbIC1kICQoREVTVERJUikkKEJJTkRJUikgXSB8fCBta2RpciAtcCAkKERFU1RESVIpJChC
+SU5ESVIpDQpAQCAtMTI0LDE2ICsxMzEsMjggQEANCiBpcHRhYmxlcy1zYXZlOiBpcHRhYmxlcy1z
+YXZlLmMgaXB0YWJsZXMubyAkKFNUQVRJQ19MSUJTKSBsaWJpcHRjL2xpYmlwdGMuYQ0KIAkkKEND
+KSAkKENGTEFHUykgLURJUFRfTElCX0RJUj1cIiQoSVBUX0xJQkRJUilcIiAkKExERkxBR1MpIC1v
+ICRAICReICQoTERMSUJTKQ0KIA0KK2lmZXEgKCQoRE9fTVVMVEkpLCAxKQ0KKyQoREVTVERJUikk
+KEJJTkRJUikvaXB0YWJsZXMtc2F2ZTogaXB0YWJsZXMNCisJQFsgLWQgJChERVNURElSKSQoQklO
+RElSKSBdIHx8IG1rZGlyIC1wICQoREVTVERJUikkKEJJTkRJUikNCisJbG4gLXNmICQ8ICRADQor
+ZWxzZQ0KICQoREVTVERJUikkKEJJTkRJUikvaXB0YWJsZXMtc2F2ZTogaXB0YWJsZXMtc2F2ZQ0K
+IAlAWyAtZCAkKERFU1RESVIpJChCSU5ESVIpIF0gfHwgbWtkaXIgLXAgJChERVNURElSKSQoQklO
+RElSKQ0KIAljcCAkPCAkQA0KK2VuZGlmDQogDQogaXB0YWJsZXMtcmVzdG9yZTogaXB0YWJsZXMt
+cmVzdG9yZS5jIGlwdGFibGVzLm8gJChTVEFUSUNfTElCUykgbGliaXB0Yy9saWJpcHRjLmENCiAJ
+JChDQykgJChDRkxBR1MpIC1ESVBUX0xJQl9ESVI9XCIkKElQVF9MSUJESVIpXCIgJChMREZMQUdT
+KSAtbyAkQCAkXiAkKExETElCUykNCiANCitpZmVxICgkKERPX01VTFRJKSwgMSkNCiskKERFU1RE
+SVIpJChCSU5ESVIpL2lwdGFibGVzLXJlc3RvcmU6IGlwdGFibGVzDQorCUBbIC1kICQoREVTVERJ
+UikkKEJJTkRJUikgXSB8fCBta2RpciAtcCAkKERFU1RESVIpJChCSU5ESVIpDQorCWxuIC1zZiAk
+PCAkQA0KK2Vsc2UNCiAkKERFU1RESVIpJChCSU5ESVIpL2lwdGFibGVzLXJlc3RvcmU6IGlwdGFi
+bGVzLXJlc3RvcmUNCiAJQFsgLWQgJChERVNURElSKSQoQklORElSKSBdIHx8IG1rZGlyIC1wICQo
+REVTVERJUikkKEJJTkRJUikNCiAJY3AgJDwgJEANCitlbmRpZg0KIA0KIGlwNnRhYmxlcy5vOiBp
+cDZ0YWJsZXMuYw0KIAkkKENDKSAkKENGTEFHUykgLURJUDZUX0xJQl9ESVI9XCIkKElQVF9MSUJE
+SVIpXCIgLWMgLW8gJEAgJDwNCg==
+
+--=-QA/SL6BdPKe2I1Zi7NqA--
