@@ -1,17 +1,16 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: [1/2] ipt_osf: move kernel headers into appropriate ifdef/endif
- area.
-Date: Sun, 27 Feb 2005 20:11:50 +0300
-Message-ID: <20050227201150.68e7239f@zanzibar.2ka.mipt.ru>
-References: <1109308057.6728.54.camel@uganda>
-	<4221F609.3060305@trash.net>
-Reply-To: johnpol@2ka.mipt.ru
+From: Max Kellermann <max@duempel.org>
+Subject: Re: new REBOOT target
+Date: Tue, 1 Mar 2005 01:20:58 +0100
+Message-ID: <20050301002058.GA981@roonstrasse.net>
+References: <20050226215628.C7D1.LARK@linux.net.cn>
+	<20050228090635.GA25632@roonstrasse.net>
+	<20050228174120.C816.LARK@linux.net.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4221F609.3060305@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
+To: Wang Jian <lark@linux.net.cn>
+Content-Disposition: inline
+In-Reply-To: <20050228174120.C816.LARK@linux.net.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,36 +22,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Move kernel headers into appropriate ifdef/endif area.
+On 2005/02/28 10:41, Wang Jian <lark@linux.net.cn> wrote:
+> Beside my laziness, the --passphrase is an error-proof mechanism per
+> se.  Let's assume some one wants to use -j REBOOT, but he doesn't
+> specified a good enough match, just '-p icmp', then boom ;) In this
+> sense, the --passphrase is not match, but part of target.
 
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+(my first reply to you didn't get to the list, maybe a mailman
+failure?)
 
---- orig/osf/linux-2.6/include/linux/netfilter_ipv4/ipt_osf.h 2005-02-07 19:11:08.237624320+0300
-+++ mod/osf/linux-2.6/include/linux/netfilter_ipv4/ipt_osf.h 2005-02-07 19:11:43.854209776 +0300 
-@@ -33,9 +33,6 @@
- #define IPT_OSF_LOGLEVEL_ALL   0
- #define IPT_OSF_LOGLEVEL_FIRST 1
+Now what about an error proof admin? ;)
 
--#include <linux/list.h>
--#include <net/tcp.h>
--
- #ifndef __KERNEL__
- #include <netinet/ip.h>
- #include <netinet/tcp.h>
-@@ -98,6 +95,10 @@
+Sorry, I don't think this is a good argument, don't try to find an
+excuse for writing a dangerous rule (and for writing such a netfilter
+"design violation"). If an admin is brave enough to compile REBOOT
+into the kernel and write "-j REBOOT" somewhere, it's his own fault he
+didn't implement the correct match. Someone with root access should
+know better.
 
- #ifdef __KERNEL__
+REBOOT should ... reboot! Not match the protocol or a certain pass
+phrase.
 
-+#include <linux/list.h>
-+#include <net/tcp.h>
-+
-+
- /* Defines for IANA option kinds */
-
- #define OSFOPT_EOL             0       /* End of options */
-
-
-
-	Evgeniy Polyakov
-
-Only failure makes us experts. -- Theo de Raadt
+Max
