@@ -1,15 +1,17 @@
-From: Wang Jian <lark@linux.net.cn>
-Subject: Re[2]: new REBOOT target
-Date: Tue, 01 Mar 2005 17:49:21 +0800
-Message-ID: <20050301173801.C851.LARK@linux.net.cn>
-References: <20050301131208.C848.LARK@linux.net.cn>
-	<4224265E.5050309@entri.com.ua>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] pptp_conntrack-nat: Fix compile errors DEBUGP() macro
+	in ip_nat_proto_gre.c and ip_nat_pptp.c,
+	fix typo in ip_conntrack_pptp.h
+Date: Tue, 1 Mar 2005 10:56:19 +0100
+Message-ID: <20050301095619.GK6825@sunbeam.de.gnumonks.org>
+References: <1268323301.20050226002305@stud.tue.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Oiv9uiLrevHtW1RS"
 Cc: netfilter-devel@lists.netfilter.org
-To: Andrew Kozachenko <andrew@entri.com.ua>
-In-Reply-To: <4224265E.5050309@entri.com.ua>
+To: Sander Eikelenboom <S.Eikelenboom@stud.tue.nl>
+Content-Disposition: inline
+In-Reply-To: <1268323301.20050226002305@stud.tue.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,30 +23,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Andrew Kozachenko,
 
+--Oiv9uiLrevHtW1RS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, 01 Mar 2005 10:22:54 +0200, Andrew Kozachenko <andrew@entri.com.ua> wrote:
+On Sat, Feb 26, 2005 at 12:23:05AM +0100, Sander Eikelenboom wrote:
+> 3 small fixes:
+> - Fixed compile errors in 2.6 DEBUGP() macro of  ip_nat_proto_gre.c and i=
+p_nat_pptp.c
+> - Fixed typo in ip_conntrack_pptp.h
 
-> >>    
-> >>
-> Why don't you use snmp trap for this purpose. You can send special snmp 
-> trap from wherever to machine needs rebooting and running snmptrapd and 
-> reboots it in a traphandle script.
-> Consider using net-snmp for this not netfilter.
-> 
-> >
+thanks, applied.
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Because, in this case, user space programs have no chance to run
-correctly, only kernel space has chance to do something, for example,
-calling machine_restart();
+--Oiv9uiLrevHtW1RS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-I suspect that some program is hogging the memory system, and system is
-busy swapping to death, but I can't make sure that because the console
-is locked in this situation. Before I find the culpit, I have to reboot
-it when the system is stuck.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
+iD4DBQFCJDxDXaXGVTD0i/8RAufeAJQNMFDE3FGAch0G+rVe+xVff2lGAJ4z1QHQ
+iVjwrDhczWmXIy/iunH9cw==
+=6y0n
+-----END PGP SIGNATURE-----
 
-
--- 
-  lark
+--Oiv9uiLrevHtW1RS--
