@@ -1,16 +1,17 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH] Fix conntrack iteration.
-Date: Tue, 28 Dec 2004 12:22:42 +1100
-Message-ID: <1104196962.6910.10.camel@localhost.localdomain>
-References: <1103888157.4000.2.camel@localhost.localdomain>
-	<41CD79F8.5060003@trash.net>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH 2.4 0/18]: Netfilter resync with 2.6
+Date: Mon, 27 Dec 2004 21:33:54 -0800
+Message-ID: <20041227213354.0a0d0ef7.davem@davemloft.net>
+References: <41C67BBB.6010100@trash.net>
+	<20041220165509.152c058a.davem@davemloft.net>
+	<41C93261.4060808@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <41CD79F8.5060003@trash.net>
+In-Reply-To: <41C93261.4060808@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,21 +23,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 2004-12-25 at 15:32 +0100, Patrick McHardy wrote:
-> >  	WRITE_LOCK(&ip_conntrack_lock);
-> > -	/* Make sure don't leave any orphaned expectations lying around */
-> > -	if (ct->expecting)
-> > -		remove_expectations(ct, 1);
-> > +	BUG_ON(ct->expecting);
+On Wed, 22 Dec 2004 09:37:53 +0100
+Patrick McHardy <kaber@trash.net> wrote:
+
+> David S. Miller wrote:
+> > Can you put together a clean tree without the Bitkeeper/etc/config
+> > change in it?  Thanks.
 > 
-> This doesn't look right. The call to remove_expectations was
-> added to deal with the TFTP helper registering expectations
-> for unconfirmed connections.
+> I've put together a new tree without the config change at
+> bk://212.42.230.204/nf-2.4
 
-Ah, right!  I'll add a comment there instead.  I couldn't see how it
-could happen, but this makes sense.
+Pulled, thanks a lot Patrick.
 
-Thanks,
-Rusty.
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+I'll push this on to Marcelo this evening.
