@@ -1,15 +1,10 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Reviewing a piece of code, locking questions
-Date: Mon, 31 May 2004 10:36:49 +0200 (CEST)
+From: bryanh@giraffe-data.com (Bryan Henderson)
+Subject: variable IPT_LIB_DIR
+Date: Sun, 30 May 2004 21:30:47 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0405311028450.4215-100000@filer.marasystems.com>
-References: <40BA6F4E.1050706@gmx.de>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+Message-ID: <E1BUXtH-0001e8-00@giraffe.giraffe-data.com>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Matthias Dettling <m-dettling@gmx.de>
-In-Reply-To: <40BA6F4E.1050706@gmx.de>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,40 +15,100 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 31 May 2004, Matthias Dettling wrote:
+I don't like hardcoded file paths in programs, so I added to Iptables
+the ability take the IPT_LIB_DIR value (where Iptables looks for its
+dynamically loaded code) from an environment variable.
 
-> many thanks for your help.
-> This is what I meant, when saying "a patched version" of ipt_conntrack.c.
-> I found your patch on the net and applied it. So my work was only 
-> extending ipt_conntrack.c for matching tracked informations.
+Here it is, in case it can be useful to others.
 
-Is this the old patch where I add port matches to ipt_conntrack?
+The handling of the pathological out-of-memory condition probably
+needs work.  It wasn't immediately obvious what the right response is,
+so I punted.
 
-> This means that my work depends on your patch because I use the same 
-> functions as your code does. I looked in the current CVS version of 
-> patch-o-matic about your patch as also in the file 
-> patch-o-matic-ng-20040302.tar.bz2 but didn't find it.
+-- 
+Bryan Henderson                                    Phone 408-621-2000
+San Jose, California
 
-I never got any response from the ipt_conntrack author on these changes.
 
-> Because my work needs your patch am I allowed to add your patch to my 
-> patch (of course I would mention your name)?
 
-Yes.
-
-> You gave me the hint for simplifying kernel code storing the port 
-> numbers in network byte order. If I'm right I think that you don't do so 
-> in your patch. Because my work depends strongly on your it would be 
-> awkward to do so. But if it is really better for performance I could 
-> change the whole code in this way.
-
-If I don't do so then please change my patch by moving the ntohs calls to 
-libipt_conntrack.
-
-> If I have created a patch as tarball where should I send this that it 
-> will be included in future releases of patch-o-matic?
-
-Here to the mailinglist.
-
-Regards
-Henrik
+diff --rec --unif iptables-1.2.9/iptables.c iptables/iptables.c
+--- iptables-1.2.9/iptables.c	Sat Jun 14 22:39:35 2003
++++ iptables/iptables.c	Tue May 25 03:24:11 2004
+@@ -25,6 +25,7 @@
+  *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#define _GNU_SOURCE
+ #include <getopt.h>
+ #include <string.h>
+ #include <netdb.h>
+@@ -238,6 +239,16 @@
+ 	{ "all", 0 },
+ };
+ 
++
++static const char * ipt_lib_dir;
++
++static void
++read_environment(void) {
++    ipt_lib_dir = getenv("IPTABLES_LIB_DIR");
++    if (ipt_lib_dir == NULL)
++        ipt_lib_dir = IPT_LIB_DIR;
++}
++
+ static char *
+ proto_to_name(u_int8_t proto, int nolookup)
+ {
+@@ -658,6 +669,19 @@
+ 	}
+ }
+ 
++static void *
++dlopen_lib(const char * const name) {
++
++    void * handle;
++    char *path;
++    asprintf(&path, "%s/libipt_%s.so", ipt_lib_dir, name);
++    if (path == NULL)
++        exit_error(PARAMETER_PROBLEM, "out of memory");
++    handle = dlopen(path, RTLD_NOW);
++    free(path);
++    return handle;
++}
++
+ struct iptables_match *
+ find_match(const char *name, enum ipt_tryload tryload)
+ {
+@@ -670,10 +694,7 @@
+ 
+ #ifndef NO_SHARED_LIBS
+ 	if (!ptr && tryload != DONT_LOAD) {
+-		char path[sizeof(IPT_LIB_DIR) + sizeof("/libipt_.so")
+-			 + strlen(name)];
+-		sprintf(path, IPT_LIB_DIR "/libipt_%s.so", name);
+-		if (dlopen(path, RTLD_NOW)) {
++        if (dlopen_lib(name)) {
+ 			/* Found library.  If it didn't register itself,
+ 			   maybe they specified target as match. */
+ 			ptr = find_match(name, DONT_LOAD);
+@@ -946,10 +967,7 @@
+ 
+ #ifndef NO_SHARED_LIBS
+ 	if (!ptr && tryload != DONT_LOAD) {
+-		char path[sizeof(IPT_LIB_DIR) + sizeof("/libipt_.so")
+-			 + strlen(name)];
+-		sprintf(path, IPT_LIB_DIR "/libipt_%s.so", name);
+-		if (dlopen(path, RTLD_NOW)) {
++		if (dlopen_lib(name)) {
+ 			/* Found library.  If it didn't register itself,
+ 			   maybe they specified match as a target. */
+ 			ptr = find_target(name, DONT_LOAD);
+@@ -1668,6 +1686,8 @@
+ 	char *protocol = NULL;
+ 	const char *modprobe = NULL;
+ 	int proto_used = 0;
++
++    read_environment();
+ 
+ 	memset(&fw, 0, sizeof(fw));
+ 
