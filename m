@@ -1,8 +1,8 @@
 From: Samuel Jean <sj-netfilter@cookinglinux.org>
-Subject: [PATCH 1/2] ipt_hashlimit.c: expire's type overflow when showing
- tuples at bad moment.
-Date: Wed, 26 Jan 2005 22:51:43 -0500
-Message-ID: <41F8654F.2020607@cookinglinux.org>
+Subject: [PATCH 2/2] ipt_hashlimit.c: sleeping function called from invalid
+ context
+Date: Wed, 26 Jan 2005 22:51:51 -0500
+Message-ID: <41F86557.2000208@cookinglinux.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -20,28 +20,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Name: Expire's type overflow when showing tuples at bad moment.
+Name: sleeping function called from invalid context
 Status: Tested under Linux 2.6.10
 Signed-off-by: Samuel Jean <sjean@cookinglinux.org>
 
-When garbage collector runs slow enough, we have a chance to print
-expired tuples before they get freed. We see weird expiry time.
+When we cat our proc entries, we get:
 
-This patch just prints 0 if expiry is less than or equal to current
-jiffie.
+Jan 26 22:07:33 Workstation kernel: Debug: sleeping function called from invalid context at
+mm/slab.c:2055
+Jan 26 22:07:33 Workstation kernel: in_atomic():1, irqs_disabled():0
+Jan 26 22:07:33 Workstation kernel:  [<c0116f80>] __might_sleep+0xb0/0xe0
+Jan 26 22:07:33 Workstation kernel:  [<c013f3ec>] kmem_cache_alloc+0x6c/0x70
+Jan 26 22:07:33 Workstation kernel:  [<e0a84b31>] dl_seq_start+0x61/0x80 [ipt_hashlimit]
+Jan 26 22:07:33 Workstation kernel:  [<c01752bf>] seq_read+0xbf/0x2b0
+Jan 26 22:07:33 Workstation kernel:  [<c0154618>] vfs_read+0xb8/0x130
+Jan 26 22:07:33 Workstation kernel:  [<c0154901>] sys_read+0x51/0x80
+Jan 26 22:07:33 Workstation kernel:  [<c01031bf>] syscall_call+0x7/0xb
 
-Please disregard my previous patch.
+This incremental patch to the previous fixes it by disallowing kmalloc to sleep.
 
---- net/ipv4/netfilter/ipt_hashlimit.c.orig  2005-01-26 22:17:54.000000000 -0500
-+++ net/ipv4/netfilter/ipt_hashlimit.c 2005-01-26 22:22:07.000000000 -0500
-@@ -608,8 +608,8 @@ static inline int dl_seq_real_show(struc
-    /* recalculate to show accurate numbers */
-    rateinfo_recalc(ent, jiffies);
+--- net/ipv4/netfilter/ipt_hashlimit.c.orig  2005-01-26 22:35:43.000000000 -0500
++++ net/ipv4/netfilter/ipt_hashlimit.c 2005-01-26 22:36:14.000000000 -0500
+@@ -570,7 +570,7 @@ static void *dl_seq_start(struct seq_fil
+    if (*pos >= htable->cfg.size)
+       return NULL;
 
--  return seq_printf(s, "%ld %u.%u.%u.%u:%u->%u.%u.%u.%u:%u %u %u %u\n",
--        (ent->expires - jiffies)/HZ,
-+  return seq_printf(s, "%lu %u.%u.%u.%u:%u->%u.%u.%u.%u:%u %u %u %u\n",
-+        (ent->expires > jiffies) ? (ent->expires - jiffies)/HZ : 0,
-          NIPQUAD(ent->dst.src_ip), ntohs(ent->dst.src_port),
-          NIPQUAD(ent->dst.dst_ip), ntohs(ent->dst.dst_port),
-          ent->rateinfo.credit, ent->rateinfo.credit_cap,
+-  bucket = kmalloc(sizeof(unsigned int), GFP_KERNEL);
++  bucket = kmalloc(sizeof(unsigned int), GFP_ATOMIC);
+    if (!bucket)
+       return ERR_PTR(-ENOMEM);
