@@ -1,12 +1,16 @@
-From: Ahmad Almulhem <feltah@yahoo.com>
-Subject: ip_queue question
-Date: Fri, 20 Feb 2004 14:51:56 -0800 (PST)
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [PATCH 2.6] netfilter resync with 2.4.x
+Date: Fri, 20 Feb 2004 14:56:41 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040220225156.40182.qmail@web13422.mail.yahoo.com>
+Message-ID: <20040220145641.7b9633e7.davem@redhat.com>
+References: <20040220195452.GM4797@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <20040220195452.GM4797@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,40 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+On Fri, 20 Feb 2004 20:54:52 +0100
+Harald Welte <laforge@gnumonks.org> wrote:
 
-I am trying to run 2 program to
-use ip_queue module at the same time. 
+> The attached patch re-syncs 2.6.x netfilter with recent changes in
+> 2.4.x.  Let's hope this is the last time we sync in this direction.
+> 
+> - update listhelp.h to benefit from prefetching
+> - more efficient selective_cleanup() implementation in conntrack
+> - export number of conntrack buckets via r/o sysctl
 
-I basically start the first program 
-and it runs fine receiving packets 
-correctly. I then run the second 
-program, which prints the following 
-error:
+Missing linux/sysctl.h change to add the buckets conntrack sysctl number,
+conflicted with the C99 patch which I already applied...
 
-"Received error message 16"
-
-and keeps running without receiving
-any packets!
-
-The two programs that I am running are
-snort inline and my code based on the
-sample which comes with libipq(3).
-Both programs runs fine when run alone.
-I only get this problem when I try to run
-them together.
-
-My question: does libipq module support
-more than one program at one time? is
-there any options I should set when
-modprobe ip_queue?
-
-thank u for ur help,
-
-ahamd
-
-
-__________________________________
-Do you Yahoo!?
-Yahoo! Mail SpamGuard - Read only the mail you want.
-http://antispam.yahoo.com/tools
+But don't worry, I fixed all of these problems and the changes are in :)
