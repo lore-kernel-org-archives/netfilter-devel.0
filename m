@@ -1,19 +1,14 @@
-From: "David S. Miller" <davem@davemloft.net>
+From: "Gonzalo A. Arana" <garana@uolsinectis.com.ar>
 Subject: Re: iptables as a state machine
-Date: Fri, 1 Oct 2004 12:46:08 -0700
+Date: Fri, 1 Oct 2004 17:06:14 -0300
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041001124608.6a6b374c.davem@davemloft.net>
+Message-ID: <20041001170614.62da9ef7@garana.hq.sinectis.com.ar>
 References: <20040930193955.6fa24afc.davem@davemloft.net>
-	<61687.63.170.215.71.1096602469.squirrel@www.osdl.org>
-	<20040930210127.0ac9623c.davem@davemloft.net>
-	<415D1437.6030503@hipac.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, shemminger@osdl.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Heinz <creatix@hipac.org>
-In-Reply-To: <415D1437.6030503@hipac.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20040930193955.6fa24afc.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,18 +19,24 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 01 Oct 2004 10:24:23 +0200
-Thomas Heinz <creatix@hipac.org> wrote:
+Content-Transfer-Encoding: 7bit
 
-> Your statement about the algorithmic approach of nf-hipac
-> is wrong.
 
-Thanks for the correction.
+On Thu, 30 Sep 2004 19:39:55 -0700
+"David S. Miller" <davem@davemloft.net> wrote:
 
-> This approach was already considered very early in history
-> of packet classification. Even more complex matchings as
-> context free grammars have been used. Nonetheless, even
-> regular expressions have been found to not being able to
-> cope with high performance demands of todays rule bases.
+> 
+> So while waiting for a kernel build to finish I was sniffing
+> around the iptables code thinking about how one might optimize
+> the lookups.
+> 
+> The ipt targets are simple enough already, and I think this
+> shows the elegance of the core iptables design.
+> 
+> It's the main ip header + indev + outdev matching that is
+> the real memory and cpu cycle killer in these paths.  Once
+> we match the target, the verdict is determined quickly.
 
-Any pointers to papers on this topic?
+Are you trying to optimize a single rule matching?  Or the traveral of an entire chain?
+
+> ...
