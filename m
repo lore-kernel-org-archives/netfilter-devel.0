@@ -1,15 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: ip_conntrack_proto_sctp INIT_ACK messages droppedg
-Date: Tue, 15 Feb 2005 00:20:45 +0100
-Message-ID: <20050214232045.GJ3829@sunbeam.de.gnumonks.org>
-References: <001d01c50dda$f317c4e0$320aa8c0@blueslicemtl>
+Subject: Re: ULOG target for ipv6
+Date: Tue, 15 Feb 2005 00:25:10 +0100
+Message-ID: <20050214232510.GK3829@sunbeam.de.gnumonks.org>
+References: <42086F50.9090504@niksula.hut.fi>
+	<53965.213.236.112.75.1107867276.squirrel@213.236.112.75>
+	<420BEAFB.9070405@niksula.hut.fi>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Tu8ztk+XgTAiG9Id"
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
-To: Ariel Rosenblatt <ariel@blueslice.com>
+	protocol="application/pgp-signature"; boundary="DozTQjXnjm3C9Xhk"
+Cc: netfilter-devel@lists.netfilter.org, Martijn Lievaart <m@rtij.nl>
+To: Jonas Berlin <jberlin@niksula.hut.fi>
 Content-Disposition: inline
-In-Reply-To: <001d01c50dda$f317c4e0$320aa8c0@blueslicemtl>
+In-Reply-To: <420BEAFB.9070405@niksula.hut.fi>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,24 +24,25 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Tu8ztk+XgTAiG9Id
+--DozTQjXnjm3C9Xhk
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Feb 08, 2005 at 07:37:22AM -0500, Ariel Rosenblatt wrote:
-> The following patch seems to solve the problem, the INIT "init_tag" is now
-> saved properly for an ESTABLISHED sctp association. The "init_tag" (of an
-> INIT message) wasn't being saved in the proper direction, causing the
-> INIT_ACK to be dropped while verifying the tag ("vtag") at the beginning =
-of
-> sctp_packet().
+On Fri, Feb 11, 2005 at 01:15:07AM +0200, Jonas Berlin wrote:
 
-Thanks for your patch.  Patrick, would you please include the patch with
-your next patches to davem?
+> Here's my first attempt of ULOG for ipv6. It's _untested_, but it=20
+> compiles at least on 2.6 and it patches fine against 2.4.28 also.
 
-> Cheers,
-> - Ariel
+;) I've merged it into pom-ng (Rev. 3694).  I'm not quite happy about
+ulogd from userspace having no idea whether the packet came from the
+ipv4 or ipv6 stack - but I think it's fine for now.
+
+> Someone could also point me to the latest instructions on how to=20
+> contribute - the online docs I found here didn't work very well:
+
+Well, there are no instructions.  Patches to the HOWTO's or new
+documentation is always welcome.
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -51,7 +54,7 @@ your next patches to davem?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Tu8ztk+XgTAiG9Id
+--DozTQjXnjm3C9Xhk
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -59,9 +62,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFCETJNXaXGVTD0i/8RAm81AJ9eDIkEmdFmO9UEIt+mRFqQH7hulQCcDCJP
-YiLQ9OU8rr/n53VB7xoj+Ak=
-=YN3u
+iD8DBQFCETNWXaXGVTD0i/8RAtwzAJ9fuWmT1IzgIkobNrxR4uje0NTjVQCcCL5j
+XGWBuKqMhrKAT6tVRABbgJs=
+=IC2n
 -----END PGP SIGNATURE-----
 
---Tu8ztk+XgTAiG9Id--
+--DozTQjXnjm3C9Xhk--
