@@ -1,22 +1,16 @@
-From: "David S. Miller" <davem@redhat.com>
-Subject: Re: [PATCH-2.4.26] ip6tables cleanup
-Date: Sun, 28 Mar 2004 15:00:27 -0800
+From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+Subject: Re: Sequence number translation explanations.
+Date: Mon, 29 Mar 2004 11:12:15 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040328150027.6095cfee.davem@redhat.com>
-References: <20040328042608.GA17969@logos.cnet>
-	<20040328115439.GA24421@pcw.home.local>
-	<m2d66wsrg2.fsf@p4.localdomain>
-	<20040328200932.GA19852@pcw.home.local>
-	<20040328123318.63c54ee8.davem@redhat.com>
-	<20040328223805.GA27147@pcw.home.local>
+Message-ID: <4067DA5F.9020102@netlab.hut.fi>
+References: <4065A500.8060107@netlab.hut.fi> <20040328183643.GW7039@sunbeam.de.gnumonks.org>
+Reply-To: emmanuel@netlab.hut.fi
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: petero2@telia.com, marcelo.tosatti@cyclades.com,
-        linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Willy TARREAU <willy@w.ods.org>
-In-Reply-To: <20040328223805.GA27147@pcw.home.local>
+To: Harald Welte <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -27,12 +21,36 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 29 Mar 2004 00:38:05 +0200
-Willy TARREAU <willy@w.ods.org> wrote:
 
-> I sent last one too quickly, it needs this one to compile :
+Harald Welte wrote:
 
-I know, I fixed this already when I tried to compile your
-original version :-)
+>On Sat, Mar 27, 2004 at 06:00:01PM +0200, Emmanuel Guiton wrote:
+>  
+>
+>>Hi!
+>>
+>>I need to translate sequence numbers between the two networks that are 
+>>separated by the firewall. In fact, I just need to translate on of them 
+>>(so tcph->ack_seq in one direction, and tcph->seq in the opposite 
+>>direction).
+>>I found the ip_nat_seq stucture and the ip_nat_seq_adjust function but I 
+>>do not understand them. Particularly this "correction_pos", what is it?
+>>
+>>Could someone provide me with some explanations?
+>>    
+>>
+>
+>It is for inserting/removing bytes from a TCP stream, as needed with NAT
+>of protocols like FTP (IP address printed in ASCII has different length,
+>compare strlen('1.1.1.1') to strlen('255.255.255.255').
+>
+>correction_pos is the position (sequence number) where the
+>addition/subtraction occurred, and offset is the number of bytes added
+>(positive) or removed (negative).
+>  
+>
+Ok, then it does not fit my problem. I will operate the change like for 
+the TCP port number.
+Thanks!
 
-Thanks.
+           Emmanuel
