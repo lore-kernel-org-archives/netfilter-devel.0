@@ -1,17 +1,17 @@
-From: Gonzalo Augusto Arana Tagle <garana@uolsinectis.com.ar>
-Subject: Re: [PATCH] New Target SWITCH
-Date: Wed, 2 Oct 2002 10:56:09 -0300
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: ICMP reject types?
+Date: Wed, 2 Oct 2002 15:47:06 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021002105609.7cc8578c.garana@uolsinectis.com.ar>
-References: <200209241349.g8ODnQI01594@gonzalo.hq.sinectis.com.ar>
-	<20021002153736.B13233@sunbeam.de.gnumonks.org>
+Message-ID: <20021002154706.E13233@sunbeam.de.gnumonks.org>
+References: <20021001100755.GC5609@aba.krakow.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tVmo9FyGdCe4F4YN"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20021002153736.B13233@sunbeam.de.gnumonks.org>
+To: Pawe? Krawczyk <kravietz@aba.krakow.pl>
+Content-Disposition: inline
+In-Reply-To: <20021001100755.GC5609@aba.krakow.pl>; from kravietz@aba.krakow.pl on Tue, Oct 01, 2002 at 12:07:55PM +0200
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,25 +23,46 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-> >   I am developing a new target which should redirect
-> > packets to a given host, no matter what routing table
-> > says.
-> 
-> where is the difference between this and the ROUTE target?
+--tVmo9FyGdCe4F4YN
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-As far as I know, the ROUTE target just let you choose an interface,
-not a next-hop.  SWITCH target (probably should be renamed) would let
-you choose a next-hop.
+On Tue, Oct 01, 2002 at 12:07:55PM +0200, Pawe? Krawczyk wrote:
+> Maybe it's my ignorance, but I feel that REJECT target --reject-with
+> option is somewhat broken - you can set icmp-net-prohibited or
+> host-prohibited ICMP replies, which are discouraged and obsoleted by RFC
+> 1812, but you cannot use 0/13 ICMP (Admin prohibited), which is the one
+> recommended by the RFC. Can anyone comment?
 
-> 
-> And even if there is a difference, the functionality seems to be quite
-> similar, doesn't it make sense to implement the two functions in a single
-> target?
+please read the list archives.  The problem is that adding a new different
+REJECT type is hurting binary compatibility between new iptables userspace
+command and old kernel.
 
-mmm.... If I am right about ROUTE target capabilities, this target is
-quite more flexible, right?
+> Pawe? Krawczyk, Krak=F3w, Poland  http://echelon.pl/kravietz/
 
-> 
+--=20
+Live long and prosper
+- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"If this were a dictatorship, it'd be a heck of a lot easier, just so long =
+as
+ I'm the dictator."  --  George W. Bush Dec 18, 2000
 
--- 
-Gonzalo A. Arana
+--tVmo9FyGdCe4F4YN
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE9mvjaXaXGVTD0i/8RAmgZAJwMj3MF1kW34RrQdrLO4ytbOFXQBwCbBw0V
+Xdb7sM4ts0Rb2kqGEKC8phY=
+=Ucqy
+-----END PGP SIGNATURE-----
+
+--tVmo9FyGdCe4F4YN--
