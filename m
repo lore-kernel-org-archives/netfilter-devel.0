@@ -1,12 +1,12 @@
-From: "Alexandre Carlos" <alexandre@redes.unb.br>
-Subject: iptables problem
-Date: Mon, 18 Nov 2002 18:11:34 -0300
+From: "Simon May" <simon@imsl.es>
+Subject: re &ip_conntrack_lock not readlocked
+Date: Tue, 12 Nov 2002 10:21:51 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <04bf01c28f47$14f389b0$1543a8c0@sanches>
+Message-ID: <013701c28a2c$ef342000$4200000a@simon>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -19,34 +19,29 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-My experimental backbone is the following:
+I have been seeing the message
+=======================
+Nov 12 09:58:01 clients kernel: ASSERT: ip_nat_core.c:839 &ip_conntrack_lock
+not readlocked
+Nov 12 09:58:01 clients kernel: ASSERT ip_conntrack_core.c:94
+&ip_conntrack_lock_Rsmp_4193d6ac readlocked
+Nov 12 09:58:01 clients kernel: ASSERT: ip_nat_core.c:839 &ip_conntrack_lock
+not readlocked
+=======================
+in the logs and believe it may be related to
+having aliases on the card eg eth0:1 etc
 
-                                         B
-                                    3.4/|\2.4
-                                       /5.4\
-                                      /   |    \
-   (A1)                     1.3/     |     \2.2
-10.1.1.2--10.1.1.1 -- A     |      C----192.168.67.91---192.168.67.90 (C1=
-)
-                                1.1\    |     /4.2
-                                      \   |    /
-                                       \5.3/
-                                    1.3\|/4.3
-                                         D
+This is with kernel 2.4.18 and iptables-1.2.7a
 
-I=B4m using IPTABLES version 1.2.4-dscp do set up the tos value of the
-packets. I=B4m creating the following rule on A and C
+I'm not sure that it's actually doing any harm but
+can not find much about it.
 
-iptables -A PREROUTING -t mangle -p icmp -j FTOS --set-ftos 0x28 or
-iptables -A FORWARD -t mangle -p icmp -j FTOS --set-ftos 0x28
+any helpful comments would be apreciated
 
-But when i try do ping from A1 to C1 or from C1 to A1
-
-The chechshum of the ip on the reply message is incorrect, so the packet =
-is
-droped on (B) or (D)
-
-I would like to know, how can i avoid dropping the packet and still using
-the same version of iptables and rules
-
-Alex
+Kind Regards
+Simon May
+Network Administrator
+Internet Marketing S.L.
+Telephone 971 72 92 04
+Fax 971 71 92 04
+Email simon@imsl.es
