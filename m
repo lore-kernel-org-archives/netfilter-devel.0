@@ -1,13 +1,14 @@
-From: caster@postech.ac.kr
-Subject: =?iso-8859-1?B?VElNRUJMT0NLIGFuZCBwZXJmb3JtYW5jZQ==?=
-Date: Thu, 10 Oct 2002 20:54:54 +0900
+From: "David S. Miller" <davem@redhat.com>
+Subject: Fw: PROBLEM: Conntrack/NAT bug
+Date: Thu, 10 Oct 2002 06:20:46 -0700 (PDT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021010.AAA1034250856@postech.ac.kr>
+Message-ID: <20021010.062046.47003148.davem@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_NG5FGCKEXUAOD7IP5KOZ7LKQ"
+Content-Type: Multipart/Mixed;
+ boundary="--Next_Part(Thu_Oct_10_06:20:46_2002_765)--"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,220 +19,269 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
-
-------=_NextPart_NG5FGCKEXUAOD7IP5KOZ7LKQ
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_485F6B1FSXUBZX6S501O9OFF"
-
-
-------=_NextPart_485F6B1FSXUBZX6S501O9OFF
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: base64
-
-IA0KPiBUaGFua3MgdG8gcmVwbHkgbXkgcXVlc3Rpb24uDQo+IA0KPiAgDQo+IA0KPiBTb3JyeSB0
-byBtYWtlIGEgdHJpdmlhbCBxdWVzdGlvbiBvbiB0aGUgbmVmaWx0ZXItZGV2IGJvYXJkLg0KPiAN
-Cj4gQnV0LCBJIGp1c3QgdHJ5IHRvIG1ha2UgYSBpbml0aWF0aXZlIHRoYXQgbWVldHMgIGJvdGgg
-cGVyZm9ybWFuY2Ugb2YgbmV0ZmlsdGVyIGFuZCANCj4gDQo+IFNvbHZpbmcgcHJvYmxlbSBvZiBp
-bW1pZGF0ZSBhcHBseSBvZiByZWplY3QgcnVsZSBmb3IgY3VycmVudGx5IHVzaW5nIHNlc3Npb24u
-DQo+IA0KPiAgDQo+IA0KPiBJZiBBQ0NFUFQgcnVsZSBhYm91dCBFc3RhYmxpc2hlZCBzZXNzaW9u
-IG9uIHRoZSB0b3Agb2YgZm9yd2FyZCBjaGFpbiBpbiBpcHRhYmxlcyBpcyBub3QgdGhlcmUgDQo+
-IA0KPiAsIGFuZCA1IHRob3VzYW5kcyBvZiBydWxlIHdpdGggdGltZWJsb2NrIGlzIHJlc2lkZWQg
-YmVmb3JlIEFDQ0VQVCBydWxlIGFib3V0IEVzdGFibHNpaGVkIHNlc3Npb24gDQo+IA0KPiAgDQo+
-IA0KPiB0aGluay4gDQo+IA0KPiAgDQo+IA0KPiBIb3cgbWFueSBDUFUgY3ljbGUgaXMgY29uc3Vt
-ZWQgZm9yIHRoZSBwYWNrZXQgd2hpY2ggZG8gbm90IG1hdGNoIHRpbWVibG9jayBydWxlIGJlZm9y
-ZSBFc3RhYmxpc2ggb25lPw0KPiANCj4gV2hhdCBoYXBwZW5zIElmIHRoZXJlIGlzIDUwME1iaXQv
-cyBmbG93IHdpdGggNjRieXRlcyBpbiB0aGVyZSAuDQo+IA0KPiAgDQo+IA0KPiBJIHRlc3QgbmV0
-ZmlsdGVyIGZpcmV3YWxsIHdpdGggZ2lnYWJpdCBOSUMgaW4gbXkgc2Nob29sLiBBbmQgSSB0aGlu
-ayB0aGF0IG5ldGZpbHRlciBzaG91bGQgYmUgbW9kaWZpZWQgdG8gc3VwcG9ydCBmdWxsLWR1cGxl
-eA0KPiANCj4gMSBnaWdhYml0IGZsb3cgd2l0aCA2NCBieXRlcy4oIEkgaG9wZSkgDQo+IA0KPiAg
-DQo+IA0KPiBNeSBsaW51eCBib3ggaXMgZHVhbCBYZW9uIHdpdGggMmdpZ2EgcmFtLiBCdXQgaXSh
-r3MgcGVyZm9ybWFuY2UgaW4gZ2lnYWJpdCBlbnZpcm9ubWVudCBpcyBub3QgZ29vZC4gQW5kDQo+
-IA0KPiBXaGF0IGRvIG5vdCBoYXBwZW4gaW4xMDBNIGVudmlyb25tZW50IG9jY3VycyBsaWtlIFVM
-T0cgYW5kIExPRyBwcm9ibGVtLg0KPiANCj4gIA0KPiANCj4gc28sIEkgd2FudCB0byBwdXQgdGhl
-IEVzdGFibGlzaGVkLXN0YXRlIGFjY2VwdGluZyBydWxlIG9uIHRoZSB0b3Agb2YgIEZPUldBUkQg
-Y2hhaW4gLiANCj4gDQo+ICANCj4gDQo+IGFuZCB0byBzb2x2ZSB0aGUgcHJvYmxlbSBvZiBpbW1p
-ZGF0ZSBhcHBseSBvZiByZWplY3QgcnVsZSBmb3IgY3VycmVudGx5IHVzaW5nIHNlc3Npb24gd2hl
-biBFc3RhYmxpc2hlZC1zdGF0ZSBhY2NlcHRpbmcgcnVsZQ0KPiANCj4gaXMgb24gdGhlIHRvcCBv
-ZiBGT1JXQVJEIGNoYWluICwgDQo+IA0KPiBJIHRyeSB0byByZWVzdGltYXRlIHRoZSBzZXNzaW9u
-IGluIHBhcnRpY3VsYXIgbW9tZW50LiANCj4gDQo+ICANCj4gDQo+IEl0IFJlYWRzIHRoZSBjb25u
-dHJhY2sgZW50cnkgaW4gaGFzaCBhbmQgcmVkbyBkb19pcHRhYmxlcygpIGluIEZPUldBUkQgY2hh
-aW4gZXhjZXB0IHN0YXRlLW1hdGNoaW5nIHJ1bGUuDQo+IA0KPiBBbmQgaWYgZXhpc3Rpbmcgc2Vz
-c2lvbiBjYW6hr3QgcGFzcyB0aGUgY2hhaW4gLCBydW4gdGhlaXIgdGltZXIgZnVjdGlvbiBhbmQg
-ZGVzdHJveSBpdC4NCj4gDQo+ICANCj4gDQo+IERvIFlvdSB0aGluayB0aGF0IGl0IHdvcmtzIGNv
-cnJlY3RseT8NCj4gDQo+ICANCj4gDQo+IEFuZCBvbmUgbW9yZSBRdWVzdGlvbi4NCj4gDQo+IEkg
-anVzdCB3YW5uYSBpbXByb3ZlIHBlcmZvcm1hbmNlIG9mIG5ldGZpbHRlciBpbiBnaWdhYml0IGVu
-dmlyb25tZW50Lg0KPiANCj4gV2hhdCBkbyB5b3UgdGhpbmsgbmV0ZmlsdGVyoa9zIGJvdHRsZW5l
-Y2sgaXM/DQo+IA0KPiBBbmQgd2hpY2ggcGFydCBvZiBrZXJuZWwgaXMgbW9kaWZpZWQgdG8gb3B0
-aW1pemUgcGVyZm9ybWFuY2U/DQo+IA0KPiAgDQo+IA0KPiB3aXphcmQNCj4gDQo+IA0KPiANCj4g
-DQo+IA0KPiANCgoK
-
-------=_NextPart_485F6B1FSXUBZX6S501O9OFF
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: base64
-
-PEhUTUw+CjxIRUFEPjwvSEVBRD4KPEJPRFkgQkdDT0xPUj0id2hpdGUiPgo8Rk9OVCBTSVpFPTI+
-CiA8QlI+Cj4gVGhhbmtzIHRvIHJlcGx5IG15IHF1ZXN0aW9uLjxCUj4KPiA8QlI+Cj4gIDxCUj4K
-PiA8QlI+Cj4gU29ycnkgdG8gbWFrZSBhIHRyaXZpYWwgcXVlc3Rpb24gb24gdGhlIG5lZmlsdGVy
-LWRldiBib2FyZC48QlI+Cj4gPEJSPgo+IEJ1dCwgSSBqdXN0IHRyeSB0byBtYWtlIGEgaW5pdGlh
-dGl2ZSB0aGF0IG1lZXRzICBib3RoIHBlcmZvcm1hbmNlIG9mIG5ldGZpbHRlciBhbmQgPEJSPgo+
-IDxCUj4KPiBTb2x2aW5nIHByb2JsZW0gb2YgaW1taWRhdGUgYXBwbHkgb2YgcmVqZWN0IHJ1bGUg
-Zm9yIGN1cnJlbnRseSB1c2luZyBzZXNzaW9uLjxCUj4KPiA8QlI+Cj4gIDxCUj4KPiA8QlI+Cj4g
-SWYgQUNDRVBUIHJ1bGUgYWJvdXQgRXN0YWJsaXNoZWQgc2Vzc2lvbiBvbiB0aGUgdG9wIG9mIGZv
-cndhcmQgY2hhaW4gaW4gaXB0YWJsZXMgaXMgbm90IHRoZXJlIDxCUj4KPiA8QlI+Cj4gLCBhbmQg
-NSB0aG91c2FuZHMgb2YgcnVsZSB3aXRoIHRpbWVibG9jayBpcyByZXNpZGVkIGJlZm9yZSBBQ0NF
-UFQgcnVsZSBhYm91dCBFc3RhYmxzaWhlZCBzZXNzaW9uIDxCUj4KPiA8QlI+Cj4gIDxCUj4KPiA8
-QlI+Cj4gdGhpbmsuIDxCUj4KPiA8QlI+Cj4gIDxCUj4KPiA8QlI+Cj4gSG93IG1hbnkgQ1BVIGN5
-Y2xlIGlzIGNvbnN1bWVkIGZvciB0aGUgcGFja2V0IHdoaWNoIGRvIG5vdCBtYXRjaCB0aW1lYmxv
-Y2sgcnVsZSBiZWZvcmUgRXN0YWJsaXNoIG9uZT88QlI+Cj4gPEJSPgo+IFdoYXQgaGFwcGVucyBJ
-ZiB0aGVyZSBpcyA1MDBNYml0L3MgZmxvdyB3aXRoIDY0Ynl0ZXMgaW4gdGhlcmUgLjxCUj4KPiA8
-QlI+Cj4gIDxCUj4KPiA8QlI+Cj4gSSB0ZXN0IG5ldGZpbHRlciBmaXJld2FsbCB3aXRoIGdpZ2Fi
-aXQgTklDIGluIG15IHNjaG9vbC4gQW5kIEkgdGhpbmsgdGhhdCBuZXRmaWx0ZXIgc2hvdWxkIGJl
-IG1vZGlmaWVkIHRvIHN1cHBvcnQgZnVsbC1kdXBsZXg8QlI+Cj4gPEJSPgo+IDEgZ2lnYWJpdCBm
-bG93IHdpdGggNjQgYnl0ZXMuKCBJIGhvcGUpIDxCUj4KPiA8QlI+Cj4gIDxCUj4KPiA8QlI+Cj4g
-TXkgbGludXggYm94IGlzIGR1YWwgWGVvbiB3aXRoIDJnaWdhIHJhbS4gQnV0IGl0oa9zIHBlcmZv
-cm1hbmNlIGluIGdpZ2FiaXQgZW52aXJvbm1lbnQgaXMgbm90IGdvb2QuIEFuZDxCUj4KPiA8QlI+
-Cj4gV2hhdCBkbyBub3QgaGFwcGVuIGluMTAwTSBlbnZpcm9ubWVudCBvY2N1cnMgbGlrZSBVTE9H
-IGFuZCBMT0cgcHJvYmxlbS48QlI+Cj4gPEJSPgo+ICA8QlI+Cj4gPEJSPgo+IHNvLCBJIHdhbnQg
-dG8gcHV0IHRoZSBFc3RhYmxpc2hlZC1zdGF0ZSBhY2NlcHRpbmcgcnVsZSBvbiB0aGUgdG9wIG9m
-ICBGT1JXQVJEIGNoYWluIC4gPEJSPgo+IDxCUj4KPiAgPEJSPgo+IDxCUj4KPiBhbmQgdG8gc29s
-dmUgdGhlIHByb2JsZW0gb2YgaW1taWRhdGUgYXBwbHkgb2YgcmVqZWN0IHJ1bGUgZm9yIGN1cnJl
-bnRseSB1c2luZyBzZXNzaW9uIHdoZW4gRXN0YWJsaXNoZWQtc3RhdGUgYWNjZXB0aW5nIHJ1bGU8
-QlI+Cj4gPEJSPgo+IGlzIG9uIHRoZSB0b3Agb2YgRk9SV0FSRCBjaGFpbiAsIDxCUj4KPiA8QlI+
-Cj4gSSB0cnkgdG8gcmVlc3RpbWF0ZSB0aGUgc2Vzc2lvbiBpbiBwYXJ0aWN1bGFyIG1vbWVudC4g
-PEJSPgo+IDxCUj4KPiAgPEJSPgo+IDxCUj4KPiBJdCBSZWFkcyB0aGUgY29ubnRyYWNrIGVudHJ5
-IGluIGhhc2ggYW5kIHJlZG8gZG9faXB0YWJsZXMoKSBpbiBGT1JXQVJEIGNoYWluIGV4Y2VwdCBz
-dGF0ZS1tYXRjaGluZyBydWxlLjxCUj4KPiA8QlI+Cj4gQW5kIGlmIGV4aXN0aW5nIHNlc3Npb24g
-Y2Fuoa90IHBhc3MgdGhlIGNoYWluICwgcnVuIHRoZWlyIHRpbWVyIGZ1Y3Rpb24gYW5kIGRlc3Ry
-b3kgaXQuPEJSPgo+IDxCUj4KPiAgPEJSPgo+IDxCUj4KPiBEbyBZb3UgdGhpbmsgdGhhdCBpdCB3
-b3JrcyBjb3JyZWN0bHk/PEJSPgo+IDxCUj4KPiAgPEJSPgo+IDxCUj4KPiBBbmQgb25lIG1vcmUg
-UXVlc3Rpb24uPEJSPgo+IDxCUj4KPiBJIGp1c3Qgd2FubmEgaW1wcm92ZSBwZXJmb3JtYW5jZSBv
-ZiBuZXRmaWx0ZXIgaW4gZ2lnYWJpdCBlbnZpcm9ubWVudC48QlI+Cj4gPEJSPgo+IFdoYXQgZG8g
-eW91IHRoaW5rIG5ldGZpbHRlcqGvcyBib3R0bGVuZWNrIGlzPzxCUj4KPiA8QlI+Cj4gQW5kIHdo
-aWNoIHBhcnQgb2Yga2VybmVsIGlzIG1vZGlmaWVkIHRvIG9wdGltaXplIHBlcmZvcm1hbmNlPzxC
-Uj4KPiA8QlI+Cj4gIDxCUj4KPiA8QlI+Cj4gd2l6YXJkPEJSPgo+IDxCUj4KPiA8QlI+Cj4gPEJS
-Pgo+IDxCUj4KPiA8QlI+Cj4gPEJSPgo8QlI+PEJSPgo8SU1HIFNSQz0iaHR0cDovL3dtYWlsLnBv
-c3RlY2guYWMua3I6ODAvY2dpLWF1dGgvbWFpbHJjcHQuY2dpP3VzZXJpZD1jYXN0ZXImbWFpbGRv
-bWFpbm5hbWU9cG9zdGVjaC5hYy5rciZtc2dpZD0yMDAyMTAxMC5BQUExMDM0MjUwODU2QHBvc3Rl
-Y2guYWMua3IiPgo8L0ZPTlQ+CjwvQk9EWT48L0hUTUw+Cgo=
-
-------=_NextPart_485F6B1FSXUBZX6S501O9OFF--
-
-------=_NextPart_NG5FGCKEXUAOD7IP5KOZ7LKQ
-Content-Type: message/rfc822
-Content-Disposition: inline
+----Next_Part(Thu_Oct_10_06:20:46_2002_765)--
+Content-Type: Message/Rfc822
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Message-Id: <20021010.AAA1034248479@postech.ac.kr>
-From: caster@postech.ac.kr
-To: netfilter-devel@lists.netfilter.org
-Subject: =?iso-8859-1?B?VElNRUJMT0NLIGFuZCBwZXJmb3JtYW5jZQ==?=
-Date: Thu, 10 Oct 2002 20:16:20 +0900
+Return-Path: <linux-kernel-owner+davem=40redhat.com@vger.kernel.org>
+Received: from localhost (IDENT:davem@localhost.localdomain [127.0.0.1])
+	by pizda.ninka.net (8.9.3/8.9.3) with ESMTP id GAA04686
+	for <davem@localhost>; Thu, 10 Oct 2002 06:17:40 -0700
+Received: from localhost
+	by localhost with POP3 (fetchmail-5.3.1)
+	for davem@localhost (single-drop); Thu, 10 Oct 2002 06:17:40 -0700 (PDT)
+Received: from int-mx1.corp.redhat.com (int-mx1.corp.redhat.com [172.16.52.254])
+	by devserv.devel.redhat.com (8.11.6/8.11.0) with ESMTP id g9ADO0127234
+	for <davem@devserv.devel.redhat.com>; Thu, 10 Oct 2002 09:24:00 -0400
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.11.6/8.11.6) with SMTP id g9ADO0f27720
+	for <davem@redhat.com>; Thu, 10 Oct 2002 09:24:00 -0400
+Received: from vger.kernel.org (vger.kernel.org [209.116.70.75])
+	by mx1.redhat.com (8.11.6/8.11.6) with SMTP id g9AD45X30933
+	for <davem@redhat.com>; Thu, 10 Oct 2002 09:04:05 -0400
+Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
+	id <S261330AbSJJNPq>; Thu, 10 Oct 2002 09:15:46 -0400
+Received: (majordomo@vger.kernel.org) by vger.kernel.org
+	id <S261515AbSJJNPq>; Thu, 10 Oct 2002 09:15:46 -0400
+Received: from smtp0.adl1.internode.on.net ([203.16.214.194]:57616 "EHLO
+	smtp0.adl1.internode.on.net") by vger.kernel.org with ESMTP
+	id <S261330AbSJJNPn>; Thu, 10 Oct 2002 09:15:43 -0400
+Received: from bert (ppp715.sa.padsl.internode.on.net [150.101.245.202])
+	by smtp0.adl1.internode.on.net (8.12.4/8.12.4) with SMTP id g9ADLPp6027416
+	for <linux-kernel@vger.kernel.org>; Thu, 10 Oct 2002 22:51:25 +0930 (CST)
+Message-ID: <001101c2705f$ef082e50$1a0da8c0@bert>
+Reply-To: "Tom Lanyon" <toml@internode.on.net>
+From: "Tom Lanyon" <toml@internode.on.net>
+To: <linux-kernel@vger.kernel.org>
+Subject: PROBLEM: Conntrack/NAT bug
+Date: Thu, 10 Oct 2002 22:51:25 +0930
 MIME-Version: 1.0
-X-Priority: 3
-X-Mailer: 5.05.7 BUILD1720 (HP-UX B.11.00)
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_Y52V6SC40GLF86USV8KU2N07"
-
-This is a multi-part message in MIME format.
-
-------=_NextPart_Y52V6SC40GLF86USV8KU2N07
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_W7MGILG6RB430VKRKMUI2CQ8"
-
-
-------=_NextPart_W7MGILG6RB430VKRKMUI2CQ8
 Content-Type: text/plain;
 	charset="iso-8859-1"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
+Sender: linux-kernel-owner@vger.kernel.org
+Precedence: bulk
+X-Mailing-List: linux-kernel@vger.kernel.org
 
-VGhhbmtzIHRvIHJlcGx5IG15IHF1ZXN0aW9uLg0KDQogDQoNClNvcnJ5IHRvIG1ha2UgYSB0cml2
-aWFsIHF1ZXN0aW9uIG9uIHRoZSBuZWZpbHRlci1kZXYgYm9hcmQuDQoNCkJ1dCwgSSBqdXN0IHRy
-eSB0byBtYWtlIGEgaW5pdGlhdGl2ZSB0aGF0IG1lZXRzICBib3RoIHBlcmZvcm1hbmNlIG9mIG5l
-dGZpbHRlciBhbmQgDQoNClNvbHZpbmcgcHJvYmxlbSBvZiBpbW1pZGF0ZSBhcHBseSBvZiByZWpl
-Y3QgcnVsZSBmb3IgY3VycmVudGx5IHVzaW5nIHNlc3Npb24uDQoNCiANCg0KSWYgQUNDRVBUIHJ1
-bGUgYWJvdXQgRXN0YWJsaXNoZWQgc2Vzc2lvbiBvbiB0aGUgdG9wIG9mIGZvcndhcmQgY2hhaW4g
-aW4gaXB0YWJsZXMgaXMgbm90IHRoZXJlIA0KDQosIGFuZCA1IHRob3VzYW5kcyBvZiBydWxlIHdp
-dGggdGltZWJsb2NrIGlzIHJlc2lkZWQgYmVmb3JlIEFDQ0VQVCBydWxlIGFib3V0IEVzdGFibHNp
-aGVkIHNlc3Npb24gDQoNCiANCg0KdGhpbmsuIA0KDQogDQoNCkhvdyBtYW55IENQVSBjeWNsZSBp
-cyBjb25zdW1lZCBmb3IgdGhlIHBhY2tldCB3aGljaCBkbyBub3QgbWF0Y2ggdGltZWJsb2NrIHJ1
-bGUgYmVmb3JlIEVzdGFibGlzaCBvbmU/DQoNCldoYXQgaGFwcGVucyBJZiB0aGVyZSBpcyA1MDBN
-Yml0L3MgZmxvdyB3aXRoIDY0Ynl0ZXMgaW4gdGhlcmUgLg0KDQogDQoNCkkgdGVzdCBuZXRmaWx0
-ZXIgZmlyZXdhbGwgd2l0aCBnaWdhYml0IE5JQyBpbiBteSBzY2hvb2wuIEFuZCBJIHRoaW5rIHRo
-YXQgbmV0ZmlsdGVyIHNob3VsZCBiZSBtb2RpZmllZCB0byBzdXBwb3J0IGZ1bGwtZHVwbGV4DQoN
-CjEgZ2lnYWJpdCBmbG93IHdpdGggNjQgYnl0ZXMuKCBJIGhvcGUpIA0KDQogDQoNCk15IGxpbnV4
-IGJveCBpcyBkdWFsIFhlb24gd2l0aCAyZ2lnYSByYW0uIEJ1dCBpdKGvcyBwZXJmb3JtYW5jZSBp
-biBnaWdhYml0IGVudmlyb25tZW50IGlzIG5vdCBnb29kLiBBbmQNCg0KV2hhdCBkbyBub3QgaGFw
-cGVuIGluMTAwTSBlbnZpcm9ubWVudCBvY2N1cnMgbGlrZSBVTE9HIGFuZCBMT0cgcHJvYmxlbS4N
-Cg0KIA0KDQpzbywgSSB3YW50IHRvIHB1dCB0aGUgRXN0YWJsaXNoZWQtc3RhdGUgYWNjZXB0aW5n
-IHJ1bGUgb24gdGhlIHRvcCBvZiAgRk9SV0FSRCBjaGFpbiAuIA0KDQogDQoNCmFuZCB0byBzb2x2
-ZSB0aGUgcHJvYmxlbSBvZiBpbW1pZGF0ZSBhcHBseSBvZiByZWplY3QgcnVsZSBmb3IgY3VycmVu
-dGx5IHVzaW5nIHNlc3Npb24gd2hlbiBFc3RhYmxpc2hlZC1zdGF0ZSBhY2NlcHRpbmcgcnVsZQ0K
-DQppcyBvbiB0aGUgdG9wIG9mIEZPUldBUkQgY2hhaW4gLCANCg0KSSB0cnkgdG8gcmVlc3RpbWF0
-ZSB0aGUgc2Vzc2lvbiBpbiBwYXJ0aWN1bGFyIG1vbWVudC4gDQoNCiANCg0KSXQgUmVhZHMgdGhl
-IGNvbm50cmFjayBlbnRyeSBpbiBoYXNoIGFuZCByZWRvIGRvX2lwdGFibGVzKCkgaW4gRk9SV0FS
-RCBjaGFpbiBleGNlcHQgc3RhdGUtbWF0Y2hpbmcgcnVsZS4NCg0KQW5kIGlmIGV4aXN0aW5nIHNl
-c3Npb24gY2Fuoa90IHBhc3MgdGhlIGNoYWluICwgcnVuIHRoZWlyIHRpbWVyIGZ1Y3Rpb24gYW5k
-IGRlc3Ryb3kgaXQuDQoNCiANCg0KRG8gWW91IHRoaW5rIHRoYXQgaXQgd29ya3MgY29ycmVjdGx5
-Pw0KDQogDQoNCkFuZCBvbmUgbW9yZSBRdWVzdGlvbi4NCg0KSSBqdXN0IHdhbm5hIGltcHJvdmUg
-cGVyZm9ybWFuY2Ugb2YgbmV0ZmlsdGVyIGluIGdpZ2FiaXQgZW52aXJvbm1lbnQuDQoNCldoYXQg
-ZG8geW91IHRoaW5rIG5ldGZpbHRlcqGvcyBib3R0bGVuZWNrIGlzPw0KDQpBbmQgd2hpY2ggcGFy
-dCBvZiBrZXJuZWwgaXMgbW9kaWZpZWQgdG8gb3B0aW1pemUgcGVyZm9ybWFuY2U/DQoNCiANCg0K
-d2l6YXJkDQoNCgoKCgoK
+[1.] One line summary of the problem:   Some sort of coding problem in
+conntrack.
+[2.] Full description of the problem/report:
+The following error pops up quite often in my console:
+ASSERT ip_conntrack_core.c:94 &ip_conntrack_lock readlocked
+ASSERT: ip_nat_core.c:841 &ip_conntrack_lock not readlocked
+[3.]
+[4.] Kernel version - 2.4.20-pre8-ac3
+[5.]
+[6.]
+[7.] Environment
+[7.1.] Software:
+Gnu C                  2.95.4
+Gnu make               3.79.1
+util-linux             2.11n
+mount                  2.11n
+modutils               2.4.15
+e2fsprogs              1.27
+PPP                    2.4.1
+Linux C Library        2.2.5
+Dynamic linker (ldd)   2.2.5
+Procps                 2.0.7
+Net-tools              1.60
+Console-tools          0.2.3
+Sh-utils               2.0.11
+Modules Loaded         e100
+[7.2.] Processor information:
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 15
+model           : 2
+model name      : Intel(R) Pentium(R) 4 CPU 2.00GHz
+stepping        : 4
+cpu MHz         : 2017.996
+cache size      : 512 KB
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 2
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca
+cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm
+bogomips        : 4023.91
 
-------=_NextPart_W7MGILG6RB430VKRKMUI2CQ8
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: base64
+[7.3.] Module information:
+e100                   51576   1
 
-PEhUTUw+CjxIRUFEPjwvSEVBRD4KPEJPRFkgQkdDT0xPUj0id2hpdGUiPgo8Rk9OVCBTSVpFPTI+
-ClRoYW5rcyB0byByZXBseSBteSBxdWVzdGlvbi48QlI+CjxCUj4KIDxCUj4KPEJSPgpTb3JyeSB0
-byBtYWtlIGEgdHJpdmlhbCBxdWVzdGlvbiBvbiB0aGUgbmVmaWx0ZXItZGV2IGJvYXJkLjxCUj4K
-PEJSPgpCdXQsIEkganVzdCB0cnkgdG8gbWFrZSBhIGluaXRpYXRpdmUgdGhhdCBtZWV0cyAgYm90
-aCBwZXJmb3JtYW5jZSBvZiBuZXRmaWx0ZXIgYW5kIDxCUj4KPEJSPgpTb2x2aW5nIHByb2JsZW0g
-b2YgaW1taWRhdGUgYXBwbHkgb2YgcmVqZWN0IHJ1bGUgZm9yIGN1cnJlbnRseSB1c2luZyBzZXNz
-aW9uLjxCUj4KPEJSPgogPEJSPgo8QlI+CklmIEFDQ0VQVCBydWxlIGFib3V0IEVzdGFibGlzaGVk
-IHNlc3Npb24gb24gdGhlIHRvcCBvZiBmb3J3YXJkIGNoYWluIGluIGlwdGFibGVzIGlzIG5vdCB0
-aGVyZSA8QlI+CjxCUj4KLCBhbmQgNSB0aG91c2FuZHMgb2YgcnVsZSB3aXRoIHRpbWVibG9jayBp
-cyByZXNpZGVkIGJlZm9yZSBBQ0NFUFQgcnVsZSBhYm91dCBFc3RhYmxzaWhlZCBzZXNzaW9uIDxC
-Uj4KPEJSPgogPEJSPgo8QlI+CnRoaW5rLiA8QlI+CjxCUj4KIDxCUj4KPEJSPgpIb3cgbWFueSBD
-UFUgY3ljbGUgaXMgY29uc3VtZWQgZm9yIHRoZSBwYWNrZXQgd2hpY2ggZG8gbm90IG1hdGNoIHRp
-bWVibG9jayBydWxlIGJlZm9yZSBFc3RhYmxpc2ggb25lPzxCUj4KPEJSPgpXaGF0IGhhcHBlbnMg
-SWYgdGhlcmUgaXMgNTAwTWJpdC9zIGZsb3cgd2l0aCA2NGJ5dGVzIGluIHRoZXJlIC48QlI+CjxC
-Uj4KIDxCUj4KPEJSPgpJIHRlc3QgbmV0ZmlsdGVyIGZpcmV3YWxsIHdpdGggZ2lnYWJpdCBOSUMg
-aW4gbXkgc2Nob29sLiBBbmQgSSB0aGluayB0aGF0IG5ldGZpbHRlciBzaG91bGQgYmUgbW9kaWZp
-ZWQgdG8gc3VwcG9ydCBmdWxsLWR1cGxleDxCUj4KPEJSPgoxIGdpZ2FiaXQgZmxvdyB3aXRoIDY0
-IGJ5dGVzLiggSSBob3BlKSA8QlI+CjxCUj4KIDxCUj4KPEJSPgpNeSBsaW51eCBib3ggaXMgZHVh
-bCBYZW9uIHdpdGggMmdpZ2EgcmFtLiBCdXQgaXShr3MgcGVyZm9ybWFuY2UgaW4gZ2lnYWJpdCBl
-bnZpcm9ubWVudCBpcyBub3QgZ29vZC4gQW5kPEJSPgo8QlI+CldoYXQgZG8gbm90IGhhcHBlbiBp
-bjEwME0gZW52aXJvbm1lbnQgb2NjdXJzIGxpa2UgVUxPRyBhbmQgTE9HIHByb2JsZW0uPEJSPgo8
-QlI+CiA8QlI+CjxCUj4Kc28sIEkgd2FudCB0byBwdXQgdGhlIEVzdGFibGlzaGVkLXN0YXRlIGFj
-Y2VwdGluZyBydWxlIG9uIHRoZSB0b3Agb2YgIEZPUldBUkQgY2hhaW4gLiA8QlI+CjxCUj4KIDxC
-Uj4KPEJSPgphbmQgdG8gc29sdmUgdGhlIHByb2JsZW0gb2YgaW1taWRhdGUgYXBwbHkgb2YgcmVq
-ZWN0IHJ1bGUgZm9yIGN1cnJlbnRseSB1c2luZyBzZXNzaW9uIHdoZW4gRXN0YWJsaXNoZWQtc3Rh
-dGUgYWNjZXB0aW5nIHJ1bGU8QlI+CjxCUj4KaXMgb24gdGhlIHRvcCBvZiBGT1JXQVJEIGNoYWlu
-ICwgPEJSPgo8QlI+CkkgdHJ5IHRvIHJlZXN0aW1hdGUgdGhlIHNlc3Npb24gaW4gcGFydGljdWxh
-ciBtb21lbnQuIDxCUj4KPEJSPgogPEJSPgo8QlI+Ckl0IFJlYWRzIHRoZSBjb25udHJhY2sgZW50
-cnkgaW4gaGFzaCBhbmQgcmVkbyBkb19pcHRhYmxlcygpIGluIEZPUldBUkQgY2hhaW4gZXhjZXB0
-IHN0YXRlLW1hdGNoaW5nIHJ1bGUuPEJSPgo8QlI+CkFuZCBpZiBleGlzdGluZyBzZXNzaW9uIGNh
-bqGvdCBwYXNzIHRoZSBjaGFpbiAsIHJ1biB0aGVpciB0aW1lciBmdWN0aW9uIGFuZCBkZXN0cm95
-IGl0LjxCUj4KPEJSPgogPEJSPgo8QlI+CkRvIFlvdSB0aGluayB0aGF0IGl0IHdvcmtzIGNvcnJl
-Y3RseT88QlI+CjxCUj4KIDxCUj4KPEJSPgpBbmQgb25lIG1vcmUgUXVlc3Rpb24uPEJSPgo8QlI+
-CkkganVzdCB3YW5uYSBpbXByb3ZlIHBlcmZvcm1hbmNlIG9mIG5ldGZpbHRlciBpbiBnaWdhYml0
-IGVudmlyb25tZW50LjxCUj4KPEJSPgpXaGF0IGRvIHlvdSB0aGluayBuZXRmaWx0ZXKhr3MgYm90
-dGxlbmVjayBpcz88QlI+CjxCUj4KQW5kIHdoaWNoIHBhcnQgb2Yga2VybmVsIGlzIG1vZGlmaWVk
-IHRvIG9wdGltaXplIHBlcmZvcm1hbmNlPzxCUj4KPEJSPgogPEJSPgo8QlI+CndpemFyZDxCUj4K
-PEJSPgo8QlI+CjxCUj4KPEJSPgo8QlI+PEJSPgo8L0ZPTlQ+CjwvQk9EWT48L0hUTUw+Cgo=
+[7.4.] Loaded driver and hardware information:
+00000000-0009ffff : System RAM
+000a0000-000bffff : Video RAM area
+000c0000-000c7fff : Video ROM
+000f0000-000fffff : System ROM
+00100000-0fef9fff : System RAM
+  00100000-0023c353 : Kernel code
+  0023c354-002a0817 : Kernel data
+0fefa000-0fefcfff : ACPI Tables
+0fefd000-0fefdfff : ACPI Non-volatile Storage
+0fefe000-0fefffff : reserved
+10000000-100003ff : Intel Corp. 82801DB ICH4 IDE
+e6800000-e6800fff : Intel Corp. 82801BD PRO/100 VE (CNR) Ethernet Controller
+  e6800000-e6800fff : e100
+e7000000-e70003ff : Intel Corp. 82801DB USB EHCI Controller
+e7800000-e787ffff : Intel Corp. 82845G/GL [Brookdale-G] Chipset Integrated
+Graphics Device
+e8000000-efffffff : Intel Corp. 82845G/GL [Brookdale-G] Chipset Integrated
+Graphics Device
+f0000000-f7ffffff : Intel Corp. 82845G/GL [Brookdale-G] Chipset Host Bridge
+fec00000-fec00fff : reserved
+fee00000-fee00fff : reserved
+ffff0000-ffffffff : reserved
 
-------=_NextPart_W7MGILG6RB430VKRKMUI2CQ8--
+[7.5.] PCI information ('lspci -vvv' as root)
+00:00.0 Host bridge: Intel Corp.: Unknown device 2560 (rev 01)
+        Subsystem: Asustek Computer, Inc.: Unknown device 8093
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B-
+        Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort-
+<TAbort- <MAbort+ >SERR- <PERR-
+        Latency: 0
+        Region 0: Memory at f0000000 (32-bit, prefetchable) [size=128M]
+        Capabilities: [e4] #09 [0105]
 
-------=_NextPart_Y52V6SC40GLF86USV8KU2N07--
+00:02.0 VGA compatible controller: Intel Corp.: Unknown device 2562 (rev 01)
+(prog-if 00 [VGA])
+        Subsystem: Asustek Computer, Inc.: Unknown device 2562
+        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B-
+        Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+        Latency: 0
+        Interrupt: pin A routed to IRQ 11
+        Region 0: Memory at e8000000 (32-bit, prefetchable) [size=128M]
+        Region 1: Memory at e7800000 (32-bit, non-prefetchable) [size=512K]
+        Capabilities: [d0] Power Management version 1
+                Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+00:1d.0 USB Controller: Intel Corp.: Unknown device 24c2 (rev 01) (prog-if
+00 [UHCI])
+        Subsystem: Asustek Computer, Inc.: Unknown device 8089
+        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B-
+        Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+        Latency: 0
+        Interrupt: pin A routed to IRQ 11
+        Region 4: I/O ports at d800 [size=32]
+
+00:1d.1 USB Controller: Intel Corp.: Unknown device 24c4 (rev 01) (prog-if
+00 [UHCI])
+        Subsystem: Asustek Computer, Inc.: Unknown device 8089
+        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B-
+        Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+        Latency: 0
+        Interrupt: pin B routed to IRQ 12
+        Region 4: I/O ports at d400 [size=32]
+
+00:1d.2 USB Controller: Intel Corp.: Unknown device 24c7 (rev 01) (prog-if
+00 [UHCI])
+        Subsystem: Asustek Computer, Inc.: Unknown device 8089
+        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B-
+        Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+        Latency: 0
+        Interrupt: pin C routed to IRQ 10
+        Region 4: I/O ports at d000 [size=32]
+
+00:1d.7 USB Controller: Intel Corp.: Unknown device 24cd (rev 01) (prog-if
+20)
+        Subsystem: Asustek Computer, Inc.: Unknown device 8089
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B-
+        Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+        Latency: 0
+        Interrupt: pin D routed to IRQ 3
+        Region 0: Memory at e7000000 (32-bit, non-prefetchable) [size=1K]
+        Capabilities: [50] Power Management version 2
+                Flags: PMEClk- DSI- D1- D2- AuxCurrent=375mA
+PME(D0+,D1-,D2-,D3hot+,D3cold+)
+                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [58] #0a [2080]
+
+00:1e.0 PCI bridge: Intel Corp. 82820 820 (Camino 2) Chipset PCI (rev 81)
+(prog-if 00 [Normal decode])
+        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR+ FastB2B-
+        Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort-
+<TAbort- <MAbort- >SERR- <PERR+
+        Latency: 0
+        Bus: primary=00, secondary=01, subordinate=01, sec-latency=32
+        I/O behind bridge: 0000b000-0000bfff
+        Memory behind bridge: e6800000-e6ffffff
+        BridgeCtl: Parity- SERR+ NoISA+ VGA- MAbort- >Reset- FastB2B-
+
+00:1f.0 ISA bridge: Intel Corp.: Unknown device 24c0 (rev 01)
+        Control: I/O+ Mem+ BusMaster+ SpecCycle+ MemWINV- VGASnoop- ParErr-
+Stepping- SERR+ FastB2B-
+        Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+        Latency: 0
+
+00:1f.1 IDE interface: Intel Corp.: Unknown device 24cb (rev 01) (prog-if 8a
+[Master SecP PriP])
+        Subsystem: Asustek Computer, Inc.: Unknown device 8089
+        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B-
+        Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+        Latency: 0
+        Interrupt: pin A routed to IRQ 10
+        Region 0: I/O ports at <unassigned> [size=8]
+        Region 1: I/O ports at <unassigned> [size=4]
+        Region 2: I/O ports at <unassigned> [size=8]
+        Region 3: I/O ports at <unassigned> [size=4]
+        Region 4: I/O ports at f000 [size=16]
+        Region 5: Memory at 10000000 (32-bit, non-prefetchable) [size=1K]
+
+01:08.0 Ethernet controller: Intel Corp.: Unknown device 103a (rev 81)
+        Subsystem: Asustek Computer, Inc.: Unknown device 8071
+        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr-
+Stepping- SERR- FastB2B-
+        Status: Cap+ 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+        Latency: 64 (2000ns min, 14000ns max), cache line size 08
+        Interrupt: pin A routed to IRQ 4
+        Region 0: Memory at e6800000 (32-bit, non-prefetchable) [size=4K]
+        Region 1: I/O ports at b800 [size=64]
+        Capabilities: [dc] Power Management version 2
+                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA
+PME(D0+,D1+,D2+,D3hot+,D3cold+)
+                Status: D0 PME-Enable- DSel=0 DScale=2 PME-
+
+[7.6.] SCSI information : None
+[7.7.] Other information that might be relevant to the problem
+[X.] Other notes, patches, fixes, workarounds:
+
+Thanks for your help
+Tom Lanyon
+toml@internode.on.net
 
 
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
 
 
-
-
-------=_NextPart_NG5FGCKEXUAOD7IP5KOZ7LKQ--
+----Next_Part(Thu_Oct_10_06:20:46_2002_765)----
