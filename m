@@ -1,16 +1,20 @@
-From: "John P. Looney" <valen@tuatha.org>
-Subject: Re: taking related connections to the limit
-Date: Fri, 5 Mar 2004 08:54:34 +0000
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH] matching any helper in ipt_helper.c
+Date: Fri, 5 Mar 2004 10:23:30 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040305085434.GB22275@magicbluesmoke.net>
-References: <20040304120402.GH14383@magicbluesmoke.net> <Pine.LNX.4.56L0.0403041728280.12843@zero.fdns.net>
-Reply-To: valen@tuatha.org
+Message-ID: <Pine.LNX.4.58.0403051022150.17613@tux.rsn.bth.se>
+References: <Pine.LNX.4.60.0403031947450.8957@dsl093-017-216.msp1.dsl.speakeasy.net>
+ <40469E10.7080100@trash.net> <Pine.LNX.4.60.0403032150000.8957@dsl093-017-216.msp1.dsl.speakeasy.net>
+ <4046BFB9.809@trash.net> <Pine.LNX.4.60.0403041500280.10634@dsl093-017-216.msp1.dsl.speakeasy.net>
+ <4047A42E.6080307@trash.net> <Pine.LNX.4.60.0403041821010.21790@dsl093-017-216.msp1.dsl.speakeasy.net>
+ <4047E231.60304@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Matthew Strait <quadong@users.sourceforge.net>,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.56L0.0403041728280.12843@zero.fdns.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4047E231.60304@trash.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,15 +25,18 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Mar 04, 2004 at 05:30:54PM -0500, Unit Zero mentioned:
-> Umm, yes I belive you're looking for the "recent" module, a very nice bit 
-> of code by Stephen Frost <sfrost@snowman.net>.
+On Fri, 5 Mar 2004, Patrick McHardy wrote:
 
- I've not seen that in patch-o-matic-20031219.tar.bz2...ah:
+> Matthew Strait wrote:
+> > Silly me, I assumed that the error was generated in user space.  Ok.  In
+> > that case, let's forget translating "any" to "", because that just makes
+> > the output of "iptables -L" confusing.  Sound good?
+> >
+>
+> I actually meant translate in both direction. But no problem, I'm going
+> to make a patch for iptables myself, if Martin is fine with it we can
+> remove the childlevel match.
 
-http://www.collaborium.org/onsite/benin/docs/services/NETFILTER_RELATED/netfilter-extensions/netfilter-extensions-HOWTO-3.html#ss3.14
+I'm fine with making ipt_helper able to match any helper if so desired.
 
- Perfect. What I'm trying to do is send pop-before-smtp users to a
-different server to standard smtp connections.
-
-John
+/Martin
