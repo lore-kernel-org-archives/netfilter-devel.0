@@ -1,13 +1,19 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] init-conntrack-optimize does not apply to 2.4
-Date: Fri, 1 Oct 2004 15:05:55 -0700
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: [BUG] active ftp doesn't work since 2.6.9-rc1
+Date: Fri, 1 Oct 2004 15:30:42 -0700
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041001220555.GB30842@linuxace.com>
+Message-ID: <20041001153042.15ed4a82.davem@redhat.com>
+References: <20041001111201.GA23033@pc11.op.pod.cz>
+	<20041001132248.GG27499@sunbeam.de.gnumonks.org>
+	<20041001141050.GH27499@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="H1spWtNR+x+ondvy"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	samel@mail.cz
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20041001141050.GH27499@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,120 +24,21 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, 1 Oct 2004 16:10:50 +0200
+Harald Welte <laforge@netfilter.org> wrote:
 
---H1spWtNR+x+ondvy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> On Fri, Oct 01, 2004 at 03:22:48PM +0200, Harald Welte wrote:
+> > On Fri, Oct 01, 2004 at 01:12:01PM +0200, Vitezslav Samel wrote:
+> > > 	Hi!
+> > > 
+> > >   After upgrade to 2.6.9-rc3 on the firewall (with NAT), active ftp stopped
+> > > working. The first kernel, which doesn't work is 2.6.9-rc1.
+> > > Sympotms: passive ftp works O.K., active FTP doesn't open data
+> > > stream (and in logs there entries about invalid packets - using
+> > > iptables ... -m state --state INVALID -j LOG)
+> 
+> Please use the following (attached) fix:
+> 
+> DaveM: Please apply and push to Linus:
 
-init-conntrack-optimize in pom-ng depends on expect-slab-cache,
-which requires kernel >= 2.6.6.  This breaks --batch mode on 2.4.
-The below patch removes the 2.4 version and adds the proper 'requires'
-entry.
-
-Phil
-
-
-
---H1spWtNR+x+ondvy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-initconntrack
-
-diff -ruN pom-orig/init_conntrack-optimize/info pom-new/init_conntrack-optimize/info
---- pom-orig/init_conntrack-optimize/info	2004-07-22 16:30:39.000000000 -0400
-+++ pom-new/init_conntrack-optimize/info	2004-10-01 17:59:05.299613768 -0400
-@@ -1,4 +1,5 @@
- Author: Pablo Neira <pablo@eurodev.net>
- Status: Pending for kernel inclusion
- Repository: pending
-+Requires: linux >= 2.6.6
- Depends: expect-slab-cache
-diff -ruN pom-orig/init_conntrack-optimize/linux-2.4.patch pom-new/init_conntrack-optimize/linux-2.4.patch
---- pom-orig/init_conntrack-optimize/linux-2.4.patch	2004-05-08 10:27:54.000000000 -0400
-+++ pom-new/init_conntrack-optimize/linux-2.4.patch	1969-12-31 19:00:00.000000000 -0500
-@@ -1,84 +0,0 @@
----- linux-2.4.25-old/net/ipv4/netfilter/ip_conntrack_core.c	2004-02-18 14:36:32.000000000 +0100
--+++ linux-2.4.25/net/ipv4/netfilter/ip_conntrack_core.c	2004-02-25 16:46:30.000000000 +0100
--@@ -708,42 +708,48 @@
-- 			     struct ip_conntrack_expect *, tuple);
-- 	READ_UNLOCK(&ip_conntrack_expect_tuple_lock);
-- 
---	/* If master is not in hash table yet (ie. packet hasn't left
---	   this machine yet), how can other end know about expected?
---	   Hence these are not the droids you are looking for (if
---	   master ct never got confirmed, we'd hold a reference to it
---	   and weird things would happen to future packets). */
---	if (expected && !is_confirmed(expected->expectant))
---		expected = NULL;
---
---	/* Look up the conntrack helper for master connections only */
---	if (!expected)
---		conntrack->helper = ip_ct_find_helper(&repl_tuple);
---
---	/* If the expectation is dying, then this is a looser. */
---	if (expected
---	    && expected->expectant->helper->timeout
---	    && ! del_timer(&expected->timeout))
---		expected = NULL;
---
-- 	if (expected) {
---		DEBUGP("conntrack: expectation arrives ct=%p exp=%p\n",
---			conntrack, expected);
---		/* Welcome, Mr. Bond.  We've been expecting you... */
---		IP_NF_ASSERT(master_ct(conntrack));
---		__set_bit(IPS_EXPECTED_BIT, &conntrack->status);
---		conntrack->master = expected;
---		expected->sibling = conntrack;
---		LIST_DELETE(&ip_conntrack_expect_list, expected);
---		expected->expectant->expecting--;
---		nf_conntrack_get(&master_ct(conntrack)->infos[0]);
---	}
---	atomic_inc(&ip_conntrack_count);
--+		/* If master is not in hash table yet (ie. packet hasn't left
--+		   this machine yet), how can other end know about expected?
--+		   Hence these are not the droids you are looking for (if
--+		   master ct never got confirmed, we'd hold a reference to it
--+		   and weird things would happen to future packets). */
--+		if (!is_confirmed(expected->expectant)) {
--+			conntrack->helper = ip_ct_find_helper(&repl_tuple);
--+			goto end;
--+		}
--+
--+		/* Expectation is dying... */
--+		if (expected->expectant->helper->timeout
--+		    && !del_timer(&expected->timeout))
--+			goto end;	
--+
--+		DEBUGP("conntrack: expectation arrives ct=%p exp=%p\n",
--+			conntrack, expected);
--+		/* Welcome, Mr. Bond.  We've been expecting you... */
--+		IP_NF_ASSERT(master_ct(conntrack));
--+		__set_bit(IPS_EXPECTED_BIT, &conntrack->status);
--+		conntrack->master = expected;
--+		expected->sibling = conntrack;
--+		LIST_DELETE(&ip_conntrack_expect_list, expected);
--+		expected->expectant->expecting--;
--+		nf_conntrack_get(&master_ct(conntrack)->infos[0]);
--+
--+		/* this is a braindead... */
--+		atomic_inc(&ip_conntrack_count);
--+		WRITE_UNLOCK(&ip_conntrack_lock);
--+
--+		if (expected->expectfn)
--+			expected->expectfn(conntrack);
--+
--+		goto ret;
--+	} else 
--+		conntrack->helper = ip_ct_find_helper(&repl_tuple);
--+
--+end:	atomic_inc(&ip_conntrack_count);
-- 	WRITE_UNLOCK(&ip_conntrack_lock);
-- 
---	if (expected && expected->expectfn)
---		expected->expectfn(conntrack);
---	return &conntrack->tuplehash[IP_CT_DIR_ORIGINAL];
--+ret:	return &conntrack->tuplehash[IP_CT_DIR_ORIGINAL];
-- }
-- 
-- /* On success, returns conntrack ptr, sets skb->nfct and ctinfo */
-
---H1spWtNR+x+ondvy--
+Will do, thanks Harald.
