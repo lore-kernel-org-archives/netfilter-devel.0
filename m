@@ -1,17 +1,16 @@
-From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: filter for adding/checking TCP MD5 option
-Date: Sat, 24 Jan 2004 09:37:30 +0100
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: NAT before IPsec with 2.6
+Date: Sat, 24 Jan 2004 10:21:12 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040124083730.GB19035@alpha.home.local>
-References: <Pine.LNX.4.44.0401231248320.12080-100000@filer.marasystems.com> <Pine.LNX.4.58.0401232037420.22515@biereco.slashme.org>
+Message-ID: <Pine.LNX.4.44.0401241015470.32723-100000@filer.marasystems.com>
+References: <20040124082252.GA19035@alpha.home.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Henrik Nordstrom <hno@marasystems.com>,
-   netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Tom Eastep <teastep@shorewall.net>, Michal Ludvig <mludvig@suse.cz>,
+   <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Remco van Mook <remco@virtu.nl>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0401232037420.22515@biereco.slashme.org>
+To: Willy Tarreau <willy@w.ods.org>
+In-Reply-To: <20040124082252.GA19035@alpha.home.local>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,45 +21,19 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jan 23, 2004 at 08:59:24PM +0100, Remco van Mook wrote:
+On Sat, 24 Jan 2004, Willy Tarreau wrote:
 
-> > Note: As this is TCP payload dependent you need to make sure packets are
-> > defragmented before processed. This is most easily accomplished by
-> > depending on conntrack.
-> >
-> 
-> ...which is precisely something I'm not too happy about. A box running tcpmd5
-> would typically be a router handling positively *huge* amounts of data.
+> That was my point too. Even if the packet is only encapsulated, from an IP
+> point of view, this is a completely new locally generated packet, and we
+> need to be able to apply filtering before and after encapsulation.
 
-For this you can play with the NOTRACK target to escape tracking for normally
-routed packets.
+Yes, and to do that the required netfilter hooks needs to be added to the 
+new IPSec code when packets leave the IP stack and enters IPSec or the 
+reverse, similar to how there was hooks for the ipsecX: interfaces.
 
-> Filtering is kept to an absolute minimum, and for the filtering I'm currently
-> using nf-hipac, not netfilter.
+These hooks have not yet been done, mostly because nobody has contributed
+the code adding these hooks to the new IPSec implementation in a 
+reasonable manner I guess.
 
-Unless I'm wrong, nf-hipac's goal is to allow to keep maximum performance with
-*huge* amounts of rules.
-
-> Adding a dependency on conntrack would, correct
-> me if I'm wrong, require any connection that comes through the box to be
-> tracked. Tens of thousands of connections would wind up in conntrack and eat
-> loads of cpu.
-
-For info, I have installed two netfilter boxes (P4/2.4 GHz) load-balanced
-behind 30 Mbps traffic. Last time I checked, there were 60k sessions in
-/proc/net/ip_conntrack and they received 1k sessions/second (all logged).
-All this with less than 12% CPU usage. Admittedly, there only are about
-one hundred rules.
-
-> The way BGP is organised, fragmented BGP packets would be horribly braindead
-> and should not ever occur in the wild. I know that this doesn't fix the
-> problem you described, but I would also very much like to see how a box from
-> Vendor C or Vendor J would behave if it would get its BGP session handed to
-> it in fragments, with MD5 enabled.
-
-So you can log and drop BGP fragments to ensure that there's no problem.
-IIRC, the routers in front of the firewalls described above already block
-all fragments, and use BGP without problem.
-
-Cheers,
-Willy
+Regards
+Henrik
