@@ -1,10 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 2/5]: Don't export common symbols from ipfwadm.ko
-Date: Thu, 14 Oct 2004 02:18:46 +0200
+Subject: [PATCH 2.6 3/5]: Fix multiple bugs in ip6rt.c
+Date: Thu, 14 Oct 2004 02:18:51 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <416DC5E6.40308@trash.net>
+Message-ID: <416DC5EB.3060500@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080802070809030506030703"
+Content-Type: multipart/mixed; boundary="------------080708040606080709030407"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@redhat.com>
@@ -19,101 +19,82 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------080802070809030506030703
+--------------080708040606080709030407
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-ip_conntrack_tcp_update is exported from both ip_conntrack and
-ipfwadm, causing bogus module dependencies. This patch moves it
-to ip_conntrack_standalone. ip_conntrack_count doesn't need to
-be exported at all.
+This patch fixes an invalid cast and wrong use of the
+segments_left field in the routing header in ip6rt.c.
 
 
 
---------------080802070809030506030703
+--------------080708040606080709030407
 Content-Type: text/x-patch;
- name="2.diff"
+ name="3.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="2.diff"
+ filename="3.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/10/14 00:57:06+02:00 okir@suse.de 
-#   [NETFILTER]: Don't export common symbols from ipfwadm.ko
+#   2004/10/14 01:00:37+02:00 yasuyuki.kozakai@toshiba.co.jp 
+#   [NETFILTER]: Fix multiple bugs in ip6rt.c
 #   
-#   Exported kernel symbols ip_conntrack_count and ip_conntrack_tcp_update were
-#   showing up both in ip_conntrack.ko and ipfwadm.ko, causing bogus dependencies
-#   in modules.dep.
+#   The first patch fixes the following bugs
 #   
-#   Signed-off-by: Olaf Kirch <okir@suse.de>
+#     - Wrong cast the pointer to extension header.
+#     - "Segments Left" field in Routing Header isn't treated as 1 octet.
+#   
+#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_conntrack_standalone.c
-#   2004/10/14 00:56:40+02:00 okir@suse.de +3 -0
-#   [NETFILTER]: Don't export common symbols from ipfwadm.ko
+# net/ipv6/netfilter/ip6t_rt.c
+#   2004/10/14 01:00:09+02:00 yasuyuki.kozakai@toshiba.co.jp +4 -4
+#   [NETFILTER]: Fix multiple bugs in ip6rt.c
 #   
-#   Exported kernel symbols ip_conntrack_count and ip_conntrack_tcp_update were
-#   showing up both in ip_conntrack.ko and ipfwadm.ko, causing bogus dependencies
-#   in modules.dep.
+#   The first patch fixes the following bugs
 #   
-#   Signed-off-by: Olaf Kirch <okir@suse.de>
+#     - Wrong cast the pointer to extension header.
+#     - "Segments Left" field in Routing Header isn't treated as 1 octet.
+#   
+#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-#   2004/10/14 00:56:39+02:00 okir@suse.de +0 -1
-#   [NETFILTER]: Don't export common symbols from ipfwadm.ko
-#   
-#   Exported kernel symbols ip_conntrack_count and ip_conntrack_tcp_update were
-#   showing up both in ip_conntrack.ko and ipfwadm.ko, causing bogus dependencies
-#   in modules.dep.
-#   
-#   Signed-off-by: Olaf Kirch <okir@suse.de>
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-# net/ipv4/netfilter/ip_conntrack_core.c
-#   2004/10/14 00:56:39+02:00 okir@suse.de +0 -1
-#   [NETFILTER]: Don't export common symbols from ipfwadm.ko
-#   
-#   Exported kernel symbols ip_conntrack_count and ip_conntrack_tcp_update were
-#   showing up both in ip_conntrack.ko and ipfwadm.ko, causing bogus dependencies
-#   in modules.dep.
-#   
-#   Signed-off-by: Olaf Kirch <okir@suse.de>
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
---- a/net/ipv4/netfilter/ip_conntrack_core.c	2004-10-14 01:36:39 +02:00
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c	2004-10-14 01:36:39 +02:00
-@@ -62,7 +62,6 @@
+diff -Nru a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
+--- a/net/ipv6/netfilter/ip6t_rt.c	2004-10-14 01:36:59 +02:00
++++ b/net/ipv6/netfilter/ip6t_rt.c	2004-10-14 01:36:59 +02:00
+@@ -85,7 +85,7 @@
+                      break;
+               }
  
- /* ip_conntrack_standalone needs this */
- atomic_t ip_conntrack_count = ATOMIC_INIT(0);
--EXPORT_SYMBOL(ip_conntrack_count);
+-              hdr=(struct ipv6_opt_hdr *)skb->data+ptr;
++              hdr=(struct ipv6_opt_hdr *)(skb->data+ptr);
  
- void (*ip_conntrack_destroyed)(struct ip_conntrack *conntrack) = NULL;
- LIST_HEAD(ip_conntrack_expect_list);
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
---- a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2004-10-14 01:36:39 +02:00
-+++ b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2004-10-14 01:36:39 +02:00
-@@ -737,7 +737,6 @@
- 	return 1;
- }
-  
--EXPORT_SYMBOL(ip_conntrack_tcp_update);
- #endif
+               /* Calculate the header length */
+                 if (nexthdr == NEXTHDR_FRAGMENT) {
+@@ -142,11 +142,11 @@
  
- #define	TH_FIN	0x01
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_standalone.c b/net/ipv4/netfilter/ip_conntrack_standalone.c
---- a/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-10-14 01:36:39 +02:00
-+++ b/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-10-14 01:36:39 +02:00
-@@ -903,3 +903,6 @@
- EXPORT_SYMBOL(ip_conntrack_untracked);
- EXPORT_SYMBOL_GPL(ip_conntrack_find_get);
- EXPORT_SYMBOL_GPL(ip_conntrack_put);
-+#ifdef CONFIG_IP_NF_NAT_NEEDED
-+EXPORT_SYMBOL(ip_conntrack_tcp_update);
-+#endif
+        DEBUGP("IPv6 RT LEN %u %u ", hdrlen, route->hdrlen);
+        DEBUGP("TYPE %04X ", route->type);
+-       DEBUGP("SGS_LEFT %u %08X\n", ntohl(route->segments_left), ntohl(route->segments_left));
++       DEBUGP("SGS_LEFT %u %02X\n", route->segments_left, route->segments_left);
+ 
+        DEBUGP("IPv6 RT segsleft %02X ",
+        		(segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
+-                           ntohl(route->segments_left),
++                           route->segments_left,
+                            !!(rtinfo->invflags & IP6T_RT_INV_SGS))));
+        DEBUGP("type %02X %02X %02X ",
+        		rtinfo->rt_type, route->type, 
+@@ -165,7 +165,7 @@
+        ret = (route != NULL)
+        		&&
+        		(segsleft_match(rtinfo->segsleft[0], rtinfo->segsleft[1],
+-                           ntohl(route->segments_left),
++                           route->segments_left,
+                            !!(rtinfo->invflags & IP6T_RT_INV_SGS)))
+ 		&&
+ 	      	(!(rtinfo->flags & IP6T_RT_LEN) ||
 
---------------080802070809030506030703--
+--------------080708040606080709030407--
