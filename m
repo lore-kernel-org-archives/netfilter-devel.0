@@ -1,7 +1,7 @@
 From: "Wei Ming Long" <WEI_Ming_Long@dsi.a-star.edu.sg>
 Subject: iptables help
-Date: Thu, 04 Nov 2004 10:40:51 +0800
-Message-ID: <s18a0743.030@dsi.a-star.edu.sg>
+Date: Thu, 04 Nov 2004 10:42:47 +0800
+Message-ID: <s18a07b5.035@dsi.a-star.edu.sg>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -49,7 +49,7 @@ iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j DNAT --to
 192.168.1.2:5800 
 
 When I type in http://192.168.33.167 in the browser on the WindowsXP machine,
-Iwas expecting that the http request on port 80 would be redirected to port
+I was expecting that the http request on port 80 would be redirected to port
 5800 & go through the tunnel & reach the VNC Server.
 
 But it doesn't work, what is wrong? can someone please help me with this?
