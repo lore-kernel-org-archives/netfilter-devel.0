@@ -1,10 +1,9 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 5/5]: Verify NAT manips have been applied before reversing
- them in ic mp_reply_translation
-Date: Sat, 27 Nov 2004 13:48:39 +0100
-Message-ID: <41A877A7.6000007@trash.net>
+Subject: [PATCH 1/5]: Release dst_entry in PRE_ROUTING after NAT
+Date: Sat, 27 Nov 2004 13:48:04 +0100
+Message-ID: <41A87784.4070308@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060801060504060608010602"
+Content-Type: multipart/mixed; boundary="------------000802070603010501090202"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -19,133 +18,82 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060801060504060608010602
+--------------000802070603010501090202
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-ICMP errors may be generated for packets that don't have
-all NAT manips applied yet. Verify manips have been applied
-before reversing them. Fixes invalid ICMP errors in multiple
-situations.
+Release dst_entry in PRE_ROUTING after NAT. The loopback driver doesn't
+reset the dst_entry itself, ip_rcv_finish only routes the packet if it
+doesn't already have a dst_entry. Fixes DNAT on loopback.
 
 
 
---------------060801060504060608010602
+--------------000802070603010501090202
 Content-Type: text/x-patch;
- name="05.diff"
+ name="01.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="05.diff"
+ filename="01.diff"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/11/27 13:35:38+01:00 kaber@coreworks.de 
-#   [NETFILTER]: Verify NAT manips have been applied before reversing them in icmp_reply_translation
+#   2004/11/27 12:14:54+01:00 kaber@coreworks.de 
+#   [NETFILTER]: Release dst_entry in PRE_ROUTING after NAT
 #   
-#   ICMP errors may be generated for packets that don't have
-#   all NAT manips applied yet. Verify manips have been applied
-#   before reversing them.
+#   Fixes NAT on loopback.
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_nat_core.c
-#   2004/11/27 13:35:30+01:00 kaber@coreworks.de +36 -0
-#   [NETFILTER]: Verify NAT manips have been applied before reversing them in icmp_reply_translation
+# net/ipv4/netfilter/ip_nat_standalone.c
+#   2004/11/27 12:14:47+01:00 kaber@coreworks.de +24 -1
+#   [NETFILTER]: Release dst_entry in PRE_ROUTING after NAT
 #   
-#   ICMP errors may be generated for packets that don't have
-#   all NAT manips applied yet. Verify manips have been applied
-#   before reversing them.
+#   Fixes NAT on loopback.
 #   
 #   Signed-off-by: Patrick McHardy <kaber@trash.net>
 # 
-# net/ipv4/netfilter/ip_conntrack_standalone.c
-#   2004/11/27 13:35:30+01:00 kaber@coreworks.de +1 -0
-#   [NETFILTER]: Verify NAT manips have been applied before reversing them in icmp_reply_translation
-#   
-#   ICMP errors may be generated for packets that don't have
-#   all NAT manips applied yet. Verify manips have been applied
-#   before reversing them.
-#   
-#   Signed-off-by: Patrick McHardy <kaber@trash.net>
-# 
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_standalone.c b/net/ipv4/netfilter/ip_conntrack_standalone.c
---- a/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-11-27 13:37:58 +01:00
-+++ b/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-11-27 13:37:58 +01:00
-@@ -882,6 +882,7 @@
- 
- EXPORT_SYMBOL(ip_conntrack_protocol_register);
- EXPORT_SYMBOL(ip_conntrack_protocol_unregister);
-+EXPORT_SYMBOL(ip_ct_get_tuple);
- EXPORT_SYMBOL(invert_tuplepr);
- EXPORT_SYMBOL(ip_conntrack_alter_reply);
- EXPORT_SYMBOL(ip_conntrack_destroyed);
-diff -Nru a/net/ipv4/netfilter/ip_nat_core.c b/net/ipv4/netfilter/ip_nat_core.c
---- a/net/ipv4/netfilter/ip_nat_core.c	2004-11-27 13:37:58 +01:00
-+++ b/net/ipv4/netfilter/ip_nat_core.c	2004-11-27 13:37:58 +01:00
-@@ -813,6 +813,23 @@
- 	/* not reached */
+diff -Nru a/net/ipv4/netfilter/ip_nat_standalone.c b/net/ipv4/netfilter/ip_nat_standalone.c
+--- a/net/ipv4/netfilter/ip_nat_standalone.c	2004-11-27 13:37:39 +01:00
++++ b/net/ipv4/netfilter/ip_nat_standalone.c	2004-11-27 13:37:39 +01:00
+@@ -180,6 +180,29 @@
  }
  
-+static inline int tuple_src_equal_dst(const struct ip_conntrack_tuple *t1,
-+                                      const struct ip_conntrack_tuple *t2)
+ static unsigned int
++ip_nat_in(unsigned int hooknum,
++          struct sk_buff **pskb,
++          const struct net_device *in,
++          const struct net_device *out,
++          int (*okfn)(struct sk_buff *))
 +{
-+	if (t1->dst.protonum != t2->dst.protonum || t1->src.ip != t2->dst.ip)
-+		return 0;
-+	if (t1->dst.protonum != IPPROTO_ICMP)
-+		return t1->src.u.all == t2->dst.u.all;
-+	else {
-+		struct ip_conntrack_tuple inv;
++	u_int32_t saddr, daddr;
++	unsigned int ret;
 +
-+		/* ICMP tuples are asymetric */
-+		invert_tuplepr(&inv, t1);
-+		return inv.src.u.all == t2->src.u.all &&
-+		       inv.dst.u.all == t2->dst.u.all;
++	saddr = (*pskb)->nh.iph->saddr;
++	daddr = (*pskb)->nh.iph->daddr;
++
++	ret = ip_nat_fn(hooknum, pskb, in, out, okfn);
++	if (ret != NF_DROP && ret != NF_STOLEN
++	    && ((*pskb)->nh.iph->saddr != saddr
++	        || (*pskb)->nh.iph->daddr != daddr)) {
++		dst_release((*pskb)->dst);
++		(*pskb)->dst = NULL;
 +	}
++	return ret;
 +}
 +
- int
- icmp_reply_translation(struct sk_buff **pskb,
- 		       struct ip_conntrack *conntrack,
-@@ -825,6 +842,7 @@
- 	} *inside;
- 	unsigned int i;
- 	struct ip_nat_info *info = &conntrack->nat.info;
-+	struct ip_conntrack_tuple *cttuple, innertuple;
- 	int hdrlen;
++static unsigned int
+ ip_nat_out(unsigned int hooknum,
+ 	   struct sk_buff **pskb,
+ 	   const struct net_device *in,
+@@ -243,7 +266,7 @@
  
- 	if (!skb_ip_make_writable(pskb,(*pskb)->nh.iph->ihl*4+sizeof(*inside)))
-@@ -868,6 +886,13 @@
- 	   such addresses are not too uncommon, as Alan Cox points
- 	   out) */
- 
-+	if (!ip_ct_get_tuple(&inside->ip, *pskb, (*pskb)->nh.iph->ihl*4 +
-+	                     sizeof(struct icmphdr) + inside->ip.ihl*4,
-+	                     &innertuple,
-+	                     ip_ct_find_proto(inside->ip.protocol)))
-+		return 0;
-+	cttuple = &conntrack->tuplehash[dir].tuple;
-+
- 	READ_LOCK(&ip_nat_lock);
- 	for (i = 0; i < info->num_manips; i++) {
- 		DEBUGP("icmp_reply: manip %u dir %s hook %u\n",
-@@ -890,6 +915,17 @@
- 
- 		if (info->manips[i].hooknum != hooknum)
- 			continue;
-+
-+		/* ICMP errors may be generated locally for packets that
-+		 * don't have all NAT manips applied yet. Verify manips
-+		 * have been applied before reversing them */
-+		if (info->manips[i].maniptype == IP_NAT_MANIP_SRC) {
-+			if (!tuple_src_equal_dst(cttuple, &innertuple))
-+				continue;
-+		} else {
-+			if (!tuple_src_equal_dst(&innertuple, cttuple))
-+				continue;
-+		}
- 
- 		DEBUGP("icmp_reply: inner %s -> %u.%u.%u.%u %u\n",
- 		       info->manips[i].maniptype == IP_NAT_MANIP_SRC
+ /* Before packet filtering, change destination */
+ static struct nf_hook_ops ip_nat_in_ops = {
+-	.hook		= ip_nat_fn,
++	.hook		= ip_nat_in,
+ 	.owner		= THIS_MODULE,
+ 	.pf		= PF_INET,
+ 	.hooknum	= NF_IP_PRE_ROUTING,
 
---------------060801060504060608010602--
+--------------000802070603010501090202--
