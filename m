@@ -1,34 +1,40 @@
-From: Eicke Friedrich <tady@gmx.net>
-Subject: marking connections
-Date: Tue, 25 Feb 2003 00:25:28 +0100
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E5AA9E8.3060208@gmx.net>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: RFC: promote netfilter MARK value from IPv6 packets to sit
+ packets
+Date: Mon, 24 Feb 2003 21:30:11 -0500 (EST)
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20030224212312.Y44654@shell.cyberus.ca>
+References: <20030217145727.GA3413@hensema.net> <20030223193339.GD15385@sunbeam.de.gnumonks.org>
+ <20030223234225.GA23556@hensema.net> <20030224083946.H34066@shell.cyberus.ca>
+ <20030224144116.GN24960@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Erik Hensema <erik@hensema.net>, "" <netdev@oss.sgi.com>,
+   Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netdev-bounce@oss.sgi.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030224144116.GN24960@sunbeam.de.gnumonks.org>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
 
-I'm running a linux box as bridge and firewall using iptables. In my understanding 
-iptables decides for the first packet of a stream if it's accepted or not and treats the 
-rest in the same way. In my setup the problem seems to be that I can't decide if I want to 
-accept or drop the packet until the first PSH packet containing data arrives.
-Is there a way to solve this problem? Sorry for the question but I'm kind of new to 
-writing iptables extensions!
-I hope you can give me a piece of advice howto solve this problem. Thanks a lot!
 
-Eicke
+On Mon, 24 Feb 2003, Harald Welte wrote:
 
----------------
-Linux is like a whigwham: no windows, no gates but an apache inside! :)
+> On Mon, Feb 24, 2003 at 08:41:10AM -0500, jamal wrote:
+> > If this is to be a config option, it should not be restricted to
+> > netfilter specifics but rather skb specifics. Example the tcindex
+> > (maybe even the cb) etc.
+>
+> No problem with me.  I do understand the usefulness of tcindex, but what
+> would a totally different protcol (or the user) do with the cb of a
+> different protocol?
+>
+
+cb is a maybe - it could be useful i think since the inner and outer
+headers may be closely related and so share the same state.
+I gacve tcindex as an example; others are: priority and some of the
+other netfilter stuff (is nfcache still used?) etc.
+
+cheers,
+jamal
