@@ -1,13 +1,13 @@
-From: "Ian Latter" <Ian.Latter@mq.edu.au>
-Subject: Re:help
-Date: Sun, 09 Mar 2003 09:59:28 +1100
+From: teddy <vijay_jose007@yahoo.com>
+Subject: urgent help on libiptc
+Date: Sun, 9 Mar 2003 11:06:18 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200303082359.h28NxVd08405@singularity.tronunltd.com>
-Reply-To: "Ian Latter" <Ian.Latter@mq.edu.au>
-Content-Type: text/plain; charset="us-ascii"
-Cc: netfilter-devel@lists.netfilter.org
+Message-ID: <20030309190618.11970.qmail@web41007.mail.yahoo.com>
+Reply-To: teddybear4u@sify.com
+Mime-Version: 1.0
+Content-Type: multipart/alternative; boundary="0-662654360-1047236778=:11215"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <kalpesh@kalupurbank.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,70 +18,54 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+--0-662654360-1047236778=:11215
+Content-Type: text/plain; charset=us-ascii
 
-The other thing you may be missing is ident ....
+ 
+Hi 
+
+            I am working on a project to create a firewall using iptables. I am using ‘libiptc’ library. Now actually I am stucked with the iptc_commit,iptc_insert_entry functions.
+
+There is no tutorial connecting those two topics. From net I got a document “querying libiptc” but in that file that do not tell how to implement the rules for a firewall with an example. So if u please can help me in this topic regarding the implementation of rules then that will be very grateful.
+
+I am also stucked with how to specify target to the rule that I get from the user.
+
+Please can u help me in specifying target to the rule and what are the uses of ipt_match and ipt_target structures?
+
+ 
+
+Please contact me soon because it is an urgent task.
+
+ 
+
+Awaiting u r reply
+
+ 
+
+Vijay
+
+ 
 
 
------ Original Message -----
->From: <kalpesh@kalupurbank.com>
->To: <netfilter-devel@lists.netfilter.org>
->Subject:  help
->Date: Sat, 08 Mar 2003 11:40:17 +0530
->
-> help
-> 
-> Slow respose after using IPTABLES
-> 
-> Hi all,
-> My mail server is runnig on Redhat 7.2 with Sendmail.
-> Now I want to use IPTABLES for the Security Point of view. For this I made
-> test server and implemented IPTABLES on it. But after using IPTABLES
-> respose from the server is SLOW  when i use POP3 clients but it works.
-> 
-> I am using following script.
-> 
-> # Deny All
-> 
-> /sbin/iptables -P INPUT DROP
-> /sbin/iptables -P FORWARD DROP
-> /sbin/iptables -P OUTPUT DROP
-> 
-> # Local host
-> 
-> /sbin/iptables -A INPUT -s localhost -d localhost -j ACCEPT
-> /sbin/iptables -A OUTPUT -s localhost -d localhost -j ACCEPT
-> 
-> # ICMP
-> 
-> /sbin/iptables -A INPUT -s $INTRANET  -d $MYHOST -p icmp -j ACCEPT
-> /sbin/iptables -A OUTPUT -s $MYHOST -d $INTRANET  -p icmp -j ACCEPT
-> 
-> 
-> # SMTP
-> 
-> /sbin/iptables -A INPUT -s $INTRANET -d $MYHOST -p tcp --dport smtp    -j
-> ACCEPT
-> /sbin/iptables -A OUTPUT -s $MYHOST -d $INTRANET -p tcp --sport smtp   -j
-> ACCEPT
-> 
-> # POP3
-> 
-> /sbin/iptables -A INPUT -s $INTRANET -d $MYHOST -p tcp --dport pop3    -j
-> ACCEPT
-> /sbin/iptables -A OUTPUT -s $MYHOST -d $INTRANET -p tcp --sport  pop3   -j
->   ACCEPT
-> 
-> Any suggestions ? help ? Please
-> 
-> with warm regards
-> 
-> kalpesh
-> 
-> 
-> 
-> 
 
---
-Ian Latter
-Internet and Networking Security Officer
-Macquarie University
+---------------------------------
+Do you Yahoo!?
+Yahoo! Tax Center - forms, calculators, tips, and more
+--0-662654360-1047236778=:11215
+Content-Type: text/html; charset=us-ascii
+
+&nbsp;
+<P class=MsoNormal>Hi </P>
+<P class=MsoNormal><SPAN style="mso-tab-count: 1">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </SPAN>I am working on a project to create a firewall using iptables. I am using ‘libiptc’ library. Now actually I am stucked with the iptc_commit,iptc_insert_entry functions.</P>
+<P class=MsoNormal>There is no tutorial connecting those two topics. From net I got a document “querying libiptc” but in that file that do not tell how to implement the rules for a firewall with an example. So if u please can help me in this topic regarding the implementation of rules then that will be very grateful.</P>
+<P class=MsoNormal>I am also stucked with how to specify target to the rule that I get from the user.</P>
+<P class=MsoNormal>Please can u help me in specifying target to the rule and what are the uses of ipt_match and ipt_target structures?</P>
+<P class=MsoNormal><?xml:namespace prefix = o ns = "urn:schemas-microsoft-com:office:office" /><o:p>&nbsp;</o:p></P>
+<P class=MsoNormal>Please contact me soon because it is an urgent task.</P>
+<P class=MsoNormal><o:p>&nbsp;</o:p></P>
+<P class=MsoNormal>Awaiting u r reply</P>
+<P class=MsoNormal><o:p>&nbsp;</o:p></P>
+<P class=MsoNormal>Vijay</P>
+<P class=MsoNormal><o:p>&nbsp;</o:p></P><p><br><hr size=1>Do you Yahoo!?<br>
+<a href="http://rd.yahoo.com/finance/mailtagline/*http://taxes.yahoo.com/">Yahoo! Tax Center</a> - forms, calculators, tips, and more
+--0-662654360-1047236778=:11215--
