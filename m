@@ -1,12 +1,14 @@
-From: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
-Subject: using netfilter with mpls
-Date: Wed, 9 Jun 2004 22:41:12 +0300
+From: "Shannon J. Field" <shannon.field@backbonesecurity.com>
+Subject: FW: Questions about Iptable extensions
+Date: Wed, 9 Jun 2004 16:17:39 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <026301c44e59$b892c9a0$248610ac@pc.ccse.kfupm.edu.sa>
+Message-ID: <4807CA09ACACCF4BBDACF1EF2455D8B3AB8DC4@bbserver3.backbonesecurity.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0260_01C44E72.DDB06620"
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
+content-class: urn:content-classes:message
 To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
@@ -18,59 +20,81 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0260_01C44E72.DDB06620
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-I am a newbee to netfilter. Can I use netfilter along with MPLS to =
-identify packets with special payload and then set EXP bits to certain =
-value in the MPLS header.
-regards
-
-------------
-
-Muhammad R. Sami
-Research Assistant,
-Computer Engineering Department
-P.O.Box 354
-King Fahd University of Petroleum & Minerals
-Dhahran 31261
-Saudi Arabia.
-Tel: +96638601423
-Cell: +96657982951
-www.ccse.kfupm.edu.sa/sami
-------=_NextPart_000_0260_01C44E72.DDB06620
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2800.1400" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DVerdana size=3D1>I am a newbee to netfilter. Can I use =
-netfilter=20
-along with MPLS to identify packets with special payload and then set =
-EXP bits=20
-to certain value in the MPLS header.</FONT></DIV>
-<DIV><FONT face=3DVerdana size=3D1>regards</FONT></DIV>
-<DIV><FONT face=3DVerdana size=3D1></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DVerdana size=3D1>------------</FONT></DIV>
-<DIV><FONT face=3DVerdana size=3D1></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DVerdana size=3D1>Muhammad R. Sami<BR>Research=20
-Assistant,<BR>Computer Engineering Department<BR>P.O.Box 354<BR>King =
-Fahd=20
-University of Petroleum &amp; Minerals<BR>Dhahran 31261<BR>Saudi =
-Arabia.<BR>Tel:=20
-+96638601423<BR>Cell: +96657982951<BR><A=20
-href=3D"http://www.ccse.kfupm.edu.sa/sami">www.ccse.kfupm.edu.sa/sami</A>=
-</FONT></DIV></BODY></HTML>
-
-------=_NextPart_000_0260_01C44E72.DDB06620--
+CUhpLA0KDQoJIA0KDQoJSSBhbSB0cnlpbmcgdG8gcGxheSBhcm91bmQgd2l0aCBJcHRhYmxlIGV4
+dGVuc2lvbnMgYW5kIEkgaGF2ZSBydW4gaW50byBhIGxpdHRsZSB0cm91YmxlLiBJIGhvcGUgc29t
+ZWJvZHkgY2FuIHBvaW50IG1lIGluIHRoZSByaWdodCBkaXJlY3Rpb24sIG9yIHRlbGwgbWUgd2hh
+dCBJIGFtIGRvaW5nIHdyb25nLg0KDQoJSSB3YXMgYXR0ZW1wdGluZyB0byBjb21waWxlIHNhbXBs
+ZSBjb2RlIGZyb20gdGhpcyB0dXRvcmlhbDoNCg0KCWh0dHA6Ly93d3cubmV0ZmlsdGVyLm9yZy9k
+b2N1bWVudGF0aW9uL3R1dG9yaWFscy9sdy0yMDAwL3R1dC02Lmh0bWwNCg0KCXRvIGdldCBhIGZl
+ZWwgZm9yIGhvdyBpdCBhbGwgd29ya3MgYW5kIGNvbWVzIHRvZ2V0aGVyLiAgSG93ZXZlciBJIGhh
+ZCB0cm91YmxlIGNvbXBpbGluZyB0aGUgc2hhcmVkIGxpYnJhcnkgcG9ydGlvbiBvZiB0aGlzIGNv
+ZGUuICBJJ3ZlIHRyaWVkIHRvIHVzZSB0aGUgc2FtZSBjb21waWxlciBmbGFncyBhcyBJIGhhZCBz
+ZWVuIGluIHRoZSBpcHRhYmxlIG1ha2VmaWxlIGZvciB0aGUgaW5jbHVkZWQgZXh0ZW5zaW9ucy4g
+VGhlc2UgYXJlIHRoZSBjb21waWxlciBmbGFncyBJIHVzZWQsIGFuZCB0aGUgZXJyb3JzIEkgcmVj
+aWV2ZWQuDQoNCgkjIGNjIC1PMiAtV2FsbCAtV3VudXNlZCAtSS91c3Ivc3JjL2xpbnV4L2luY2x1
+ZGUgLUkvaG9tZS9zaGFubm9uLmZpZWxkL3NyYy9pcHRhYmxlcy0xLjIuOS9pbmNsdWRlLyAtSS8g
+LURJUFRBQkxFU19WRVJTSU9OPVwiMS4yLjlcIiAtSS8gLURORVRGSUxURVJfVkVSU0lPTj1cIjEu
+Mi45XCIgIC1mUElDIC1vIGxpYmlwdF9sZW5ndGgubyAtYyBsaWJpcHRfbGVuZ3RoLmMNCgkNCg0K
+CWxpYmlwdF9sZW5ndGguYzogSW4gZnVuY3Rpb24gYHBhcnNlJzoNCglsaWJpcHRfbGVuZ3RoLmM6
+NDg6IHRvbyBmZXcgYXJndW1lbnRzIHRvIGZ1bmN0aW9uIGBzdHJpbmdfdG9fbnVtYmVyJw0KCWxp
+YmlwdF9sZW5ndGguYzo1MTogYHMnIHVuZGVjbGFyZWQgKGZpcnN0IHVzZSBpbiB0aGlzIGZ1bmN0
+aW9uKQ0KCWxpYmlwdF9sZW5ndGguYzo1MTogKEVhY2ggdW5kZWNsYXJlZCBpZGVudGlmaWVyIGlz
+IHJlcG9ydGVkIG9ubHkgb25jZQ0KCWxpYmlwdF9sZW5ndGguYzo1MTogZm9yIGVhY2ggZnVuY3Rp
+b24gaXQgYXBwZWFycyBpbi4pDQoJbGliaXB0X2xlbmd0aC5jOjM5OiB3YXJuaW5nOiB1bnVzZWQg
+dmFyaWFibGUgYGluZm8nDQoJbGliaXB0X2xlbmd0aC5jOiBJbiBmdW5jdGlvbiBgcHJpbnRfbGVu
+Z3RoJzoNCglsaWJpcHRfbGVuZ3RoLmM6NzQ6IHN0cnVjdHVyZSBoYXMgbm8gbWVtYmVyIG5hbWVk
+IGBsZW5ndGgnDQoNCglJIHBhc3RlZCB0aGUgY29kZSBiZWxvdzoNCg0KCS8qIFNoYXJlZCBsaWJy
+YXJ5IGFkZC1vbiB0byBpcHRhYmxlcyB0byBhZGQgcGFja2V0IGxlbmd0aCBtYXRjaGluZyBzdXBw
+b3J0LiAqLw0KCSNpbmNsdWRlIDxzdGRpby5oPg0KCSNpbmNsdWRlIDxuZXRkYi5oPg0KCSNpbmNs
+dWRlIDxzdHJpbmcuaD4NCgkjaW5jbHVkZSA8c3RkbGliLmg+DQoJI2luY2x1ZGUgPGdldG9wdC5o
+Pg0KCSNpbmNsdWRlIDxpcHRhYmxlcy5oPg0KCSNpbmNsdWRlIDxsaW51eC9uZXRmaWx0ZXJfaXB2
+NC9pcHRfbGVuZ3RoLmg+DQoJDQoJLyogRnVuY3Rpb24gd2hpY2ggcHJpbnRzIG91dCB1c2FnZSBt
+ZXNzYWdlLiAqLw0KCXN0YXRpYyB2b2lkDQoJaGVscCh2b2lkKQ0KCXsNCgkgICAgICAgIHByaW50
+ZigibGVuZ3RoIHYlcyBvcHRpb25zOlxuIg0KCSAgICAgICAgICAgICAgIi0tbGVuZ3RoIGxlbmd0
+aCAgICBNYXRjaCB0aGlzIHBhY2tldCBsZW5ndGhcbiIsDQoJICAgICAgICAgICAgICBORVRGSUxU
+RVJfVkVSU0lPTik7DQoJfQ0KCQ0KCXN0YXRpYyBzdHJ1Y3Qgb3B0aW9uIG9wdHNbXSA9IHsNCgkg
+ICAgICAgIHsgImxlbmd0aCIsIDEsIDAsICcxJyB9LA0KCSAgICAgICAgezB9DQoJfTsNCgkNCgkv
+KiBJbml0aWFsaXplIHRoZSBtYXRjaC4gKi8NCglzdGF0aWMgdm9pZA0KCWluaXQoc3RydWN0IGlw
+dF9lbnRyeV9tYXRjaCAqbSwgdW5zaWduZWQgaW50ICpuZmNhY2hlKQ0KCXsNCgkgICAgICAgICpu
+ZmNhY2hlIHw9IE5GQ19VTktOT1dOOw0KCX0NCgkNCgkvKiBGdW5jdGlvbiB3aGljaCBwYXJzZXMg
+Y29tbWFuZCBvcHRpb25zOyByZXR1cm5zIHRydWUgaWYgaXQNCgkgICBhdGUgYW4gb3B0aW9uICov
+DQoJc3RhdGljIGludA0KCXBhcnNlKGludCBjLCBjaGFyICoqYXJndiwgaW50IGludmVydCwgdW5z
+aWduZWQgaW50ICpmbGFncywNCgkgICAgICBjb25zdCBzdHJ1Y3QgaXB0X2VudHJ5ICplbnRyeSwN
+CgkgICAgICB1bnNpZ25lZCBpbnQgKm5mY2FjaGUsDQoJICAgICAgc3RydWN0IGlwdF9lbnRyeV9t
+YXRjaCAqKm1hdGNoKQ0KCXsNCgkgICAgICAgc3RydWN0IGlwdF9sZW5ndGhfaW5mbyAqaW5mbyA9
+IChzdHJ1Y3QgaXB0X2xlbmd0aF9pbmZvICopKCptYXRjaCktPmRhdGE7DQoJICAgICAgIGludCBs
+ZW47DQoJDQoJICAgICAgICBzd2l0Y2ggKGMpIHsNCgkgICAgICAgICAgICAgICAgY2FzZSAnMSc6
+DQoJICAgICAgICAgICAgICAgICAgICAgICAgaWYgKCpmbGFncykNCgkgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgIGV4aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sDQoJICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJsZW5ndGg6IGAtLWxlbmd0aCcgbWF5
+IG9ubHkgYmUgIg0KCSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAi
+c3BlY2lmaWVkIG9uY2UiKTsNCgkgICAgICAgICAgICAgICAgICAgICAgIGxlbiA9IHN0cmluZ190
+b19udW1iZXIoYXJndltvcHRpbmQtMV0sIDAsIDB4RkZGRik7DQoJICAgICAgICAgICAgICAgICAg
+ICAgICBpZiAobGVuID09IC0xKQ0KCSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBleGl0
+X2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLA0KCSAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICJsZW5ndGggaW52YWxpZDogYCVzJ1xuIiwgcyk7DQoJICAgICAgICAgICAg
+ICAgICAgICAgICAgKmZsYWdzID0gMTsNCgkgICAgICAgICAgICAgICAgICAgICAgICBicmVhazsN
+CgkNCgkgICAgICAgICAgICAgICAgZGVmYXVsdDoNCgkgICAgICAgICAgICAgICAgICAgICAgICBy
+ZXR1cm4gMDsNCgkgICAgICAgIH0NCgkgICAgICAgIHJldHVybiAxOw0KCX0NCgkNCgkvKiBGaW5h
+bCBjaGVjazsgbXVzdCBoYXZlIHNwZWNpZmllZCAtLWxlbmd0aC4gKi8NCglzdGF0aWMgdm9pZA0K
+CWZpbmFsX2NoZWNrKHVuc2lnbmVkIGludCBmbGFncykNCgl7DQoJICAgICAgICBpZiAoIWZsYWdz
+KQ0KCSAgICAgICAgICAgICAgICBleGl0X2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLA0KCSAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICJsZW5ndGg6IFlvdSBtdXN0IHNwZWNpZnkgYC0tbGVuZ3Ro
+JyIpOw0KCX0NCgkNCgkvKiBDb21tb24gbWF0Y2ggcHJpbnRpbmcgY29kZS4gKi8NCglzdGF0aWMg
+dm9pZA0KCXByaW50X2xlbmd0aChzdHJ1Y3QgaXB0X2xlbmd0aF9pbmZvICppbmZvKQ0KCXsNCgkg
+ICAgICAgIHByaW50ZigiJXUgIiwgaW5mby0+bGVuZ3RoKTsNCgl9DQoJDQoJLyogUHJpbnRzIG91
+dCB0aGUgbWF0Y2hpbmZvLiAqLw0KCXN0YXRpYyB2b2lkDQoJcHJpbnQoY29uc3Qgc3RydWN0IGlw
+dF9pcCAqaXAsDQoJICAgICAgY29uc3Qgc3RydWN0IGlwdF9lbnRyeV9tYXRjaCAqbWF0Y2gsDQoJ
+ICAgICAgaW50IG51bWVyaWMpDQoJew0KCSAgICAgICAgcHJpbnRmKCJsZW5ndGggIik7DQoJICAg
+ICAgICBwcmludF9sZW5ndGgoKHN0cnVjdCBpcHRfbGVuZ3RoX2luZm8gKiltYXRjaC0+ZGF0YSk7
+DQoJfQ0KCQ0KCS8qIFNhdmVzIHRoZSB1bmlvbiBpcHRfbWF0Y2hpbmZvIGluIHBhcnNhYmxlIGZv
+cm0gdG8gc3Rkb3V0LiAqLw0KCXN0YXRpYyB2b2lkDQoJc2F2ZShjb25zdCBzdHJ1Y3QgaXB0X2lw
+ICppcCwgY29uc3Qgc3RydWN0IGlwdF9lbnRyeV9tYXRjaCAqbWF0Y2gpDQoJew0KCSAgICAgICAg
+cHJpbnRmKCItLWxlbmd0aCAiKTsNCgkgICAgICAgIHByaW50X2xlbmd0aCgoc3RydWN0IGlwdF9s
+ZW5ndGhfaW5mbyAqKW1hdGNoLT5kYXRhKTsNCgl9DQoJDQoJc3RydWN0IGlwdGFibGVzX21hdGNo
+IGxlbmd0aA0KCT0geyBOVUxMLA0KCSAgICAibGVuZ3RoIiwNCgkgICAgTkVURklMVEVSX1ZFUlNJ
+T04sDQoJICAgIHNpemVvZihzdHJ1Y3QgaXB0X2xlbmd0aF9pbmZvKSwNCgkgICAgc2l6ZW9mKHN0
+cnVjdCBpcHRfbGVuZ3RoX2luZm8pLA0KCSAgICAmaGVscCwNCgkgICAgJmluaXQsDQoJICAgICZw
+YXJzZSwNCgkgICAgJmZpbmFsX2NoZWNrLA0KCSAgICAmcHJpbnQsDQoJICAgICZzYXZlLA0KCSAg
+ICBvcHRzDQoJfTsNCgkNCgl2b2lkIF9pbml0KHZvaWQpDQoJew0KCSAgICAgICAgcmVnaXN0ZXJf
+bWF0Y2goJmxlbmd0aCk7DQoJfQ0KCQ0KDQo=
