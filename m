@@ -1,52 +1,52 @@
-From: Adrian Bunk <bunk@fs.tum.de>
-Subject: [2.6 patch] ipv4/netfilter/Kconfig: simplify dependencies
-Date: Sat, 17 Jul 2004 18:53:04 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040717165303.GE4759@fs.tum.de>
+From: FS <futurasci@gmail.com>
+Subject: Strange ip_conntrack values
+Date: Sun, 18 Jul 2004 12:22:56 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <ef83df6b040718032245f93c05@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S266182AbUGQQxN@vger.kernel.org>
-To: coreteam@netfilter.org
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-It seems that originating from the automatic Kconfig transition, some 
-dependencies in ipv4/netfilter/Kconfig are correct, but too complicated.
+Hi,
 
-The patch below makes them a bit more simple.
+When I run the command 
 
---- linux-2.6.8-rc1-mm1-full/net/ipv4/netfilter/Kconfig.old	2004-07-17 17:43:55.000000000 +0200
-+++ linux-2.6.8-rc1-mm1-full/net/ipv4/netfilter/Kconfig	2004-07-17 18:12:43.000000000 +0200
-@@ -307,7 +307,7 @@
- 
- config IP_NF_NAT_NEEDED
- 	bool
--	depends on IP_NF_CONNTRACK!=y && IP_NF_IPTABLES!=y && (IP_NF_COMPAT_IPCHAINS!=y && IP_NF_COMPAT_IPFWADM || IP_NF_COMPAT_IPCHAINS) || IP_NF_IPTABLES && IP_NF_CONNTRACK && IP_NF_NAT
-+	depends on IP_NF_COMPAT_IPFWADM || IP_NF_COMPAT_IPCHAINS || IP_NF_NAT
- 	default y
- 
- config IP_NF_TARGET_MASQUERADE
-@@ -392,19 +392,19 @@
- # or $CONFIG_IP_NF_FTP (m or y), whichever is weaker.  Argh.
- config IP_NF_NAT_FTP
- 	tristate
--	depends on IP_NF_IPTABLES!=n && IP_NF_CONNTRACK!=n && IP_NF_NAT!=n
-+	depends on IP_NF_NAT!=n
- 	default IP_NF_NAT if IP_NF_FTP=y
- 	default m if IP_NF_FTP=m
- 
- config IP_NF_NAT_TFTP
- 	tristate
--	depends on IP_NF_IPTABLES!=n && IP_NF_CONNTRACK!=n && IP_NF_NAT!=n
-+	depends on IP_NF_NAT!=n
- 	default IP_NF_NAT if IP_NF_TFTP=y
- 	default m if IP_NF_TFTP=m
- 
- config IP_NF_NAT_AMANDA
- 	tristate
--	depends on IP_NF_IPTABLES!=n && IP_NF_CONNTRACK!=n && IP_NF_NAT!=n
-+	depends on IP_NF_NAT!=n
- 	default IP_NF_NAT if IP_NF_AMANDA=y
- 	default m if IP_NF_AMANDA=m
- 
+grep ^tcp /proc/net/ip_conntrack | awk '{print $4}' | sort | uniq -c
+
+I get these lines ...
+
+     26 CLOSE
+     11 CLOSE_WAIT
+    883 ESTABLISHED
+     57 FIN_WAIT
+     34 SYN_RECV
+    116 SYN_SENT
+  23720 TIME_WAIT
+
+the TIME_WAIT number seems very strange ... network interrupts
+increased a lot three months ago and I couldn't find an explanation
+for this. The number of our visitors didn't increased like this ...
+
+For example, before this "event", network interrups from MRTG, went
+down to nearly 0 at 4 AM, but now even at this hour they are at 1000
+....
+
+We are under RH 7.2 
+2.4.26
+
+I hope you could help me ...
+
+Thanks a lot,
+
+John
