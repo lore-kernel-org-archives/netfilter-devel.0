@@ -1,17 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [RFC] h323 module unloading fix
-Date: Wed, 9 Feb 2005 11:25:23 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0502091122510.2846@blackhole.kfki.hu>
-References: <20050208145908.GS6878@sunbeam.de.gnumonks.org>
-	<420946FF.107@trash.net>
-	<20050209082459.GY6878@sunbeam.de.gnumonks.org>
-	<Pine.LNX.4.58.0502090933250.2846@blackhole.kfki.hu>
-	<20050209091023.GA6830@roonstrasse.net>
+From: Paolo Rossi <paolo_76@inwind.it>
+Subject: Re: SNAT multicast traffic
+Date: Tue, 08 Feb 2005 14:52:05 +0100
+Message-ID: <4208C405.9020907@inwind.it>
+References: <420882B9.3050108@inwind.it>
+	<20050208144638.GQ6878@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-184121263-1107944723=:2846"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
-To: Max Kellermann <max@duempel.org>
-In-Reply-To: <20050209091023.GA6830@roonstrasse.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050208144638.GQ6878@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,171 +21,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+Harald Welte wrote:
 
---110391808-184121263-1107944723=:2846
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-
-On Wed, 9 Feb 2005, Max Kellermann wrote:
-
-> On 2005/02/09 09:59, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
-> > I like Patrick's idea. There are not so many modules wich rely on
-> > unregistered helpers, and we could retain backward compatibility in the
-> > API like in the attached (untested) patch. What do you think?
+>On Tue, Feb 08, 2005 at 10:13:29AM +0100, Paolo Rossi wrote:
+>  
 >
-> Calling an "evicting" function in a module destructor for something
-> which the netfilter core didn't even know about until now doesn't look
-> elegant to me. For me, to every destructing function, there must be a
-> prior constructor call.
+>>Hi all,
+>>
+>>
+>>I have a trouble with netfilter. I need to perform a SNAT to outgoing 
+>>multicast packet. Multicast packet come from private network and i can't 
+>>annunce this private network in my routing domain. Becauseour routers 
+>>manage multicast traffic with PIM-SM protocol and PIM perform RPF (reverse 
+>>path forwarding), the clients can't see the multicast traffic. I've read 
+>>that netfilter don't support multicast SNAT, why?
+>>    
+>>
 >
-> There is no compatibility problem with Harald's/my solution. My
-> proposition allows the "register_helper" function to register
-> "disabled" helpers, meaning that you have to both register and
-> unregister the H.245 helper.
+>netfilter/iptables doesn't implement multicast NAT at all.  this is due
+>to it's strictly stateful fully-symmetric implementation, which
+>obviously doesn't fit the multicast paradigm (where 'reply' packets of a
+>multicast 'connection' don't have the inverted
+>sourceip<->destinationip).
 >
-> If we ever decide that it is required to register "disabled" helpers,
-> we don't have to change the API again, and it costs us near to nothing
-> to instruct that now.
-
-Good reasoning. What about then the attached (again, untested) variants?
-:-)
-
-Bes regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
---110391808-184121263-1107944723=:2846
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="unhelp2.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.58.0502091125230.2846@blackhole.kfki.hu>
-Content-Description: unhelp2.patch
-Content-Disposition: attachment; filename="unhelp2.patch"
-
-ZGlmZiAtdXJOIC0tZXhjbHVkZS1mcm9tPS91c3Ivc3JjL2RpZmYuZXhjbHVk
-ZSBsaW51eC0yLjQuMjYtb3JpZy9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9p
-cHY0L2lwX2Nvbm50cmFja19oZWxwZXIuaCBsaW51eC0yLjQuMjYtdW5oZWxw
-L2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXBfY29ubnRyYWNrX2hl
-bHBlci5oDQotLS0gbGludXgtMi40LjI2LW9yaWcvaW5jbHVkZS9saW51eC9u
-ZXRmaWx0ZXJfaXB2NC9pcF9jb25udHJhY2tfaGVscGVyLmgJMjAwMi0xMS0y
-OSAwMDo1MzoxNS4wMDAwMDAwMDAgKzAxMDANCisrKyBsaW51eC0yLjQuMjYt
-dW5oZWxwL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXBfY29ubnRy
-YWNrX2hlbHBlci5oCTIwMDUtMDItMDkgMTA6MjM6MDcuMDAwMDAwMDAwICsw
-MTAwDQpAQCAtOCw2ICs4LDkgQEANCiAvKiBSZXVzZSBleHBlY3RhdGlvbiB3
-aGVuIG1heF9leHBlY3RlZCByZWFjaGVkICovDQogI2RlZmluZSBJUF9DVF9I
-RUxQRVJfRl9SRVVTRV9FWFBFQ1QJMHgwMQ0KIA0KKy8qIER5bmFtaWMgaGVs
-cGVyLCBhdHRhY2hlZCB0byBjb25udHJhY2sgYnkgZXhwZWN0Zm4gKi8NCisj
-ZGVmaW5lIElQX0NUX0hFTFBFUl9GX0RZTkFNSUMJCTB4MDINCisNCiBzdHJ1
-Y3QgaXBfY29ubnRyYWNrX2hlbHBlcg0KIHsJDQogCXN0cnVjdCBsaXN0X2hl
-YWQgbGlzdDsgCQkvKiBJbnRlcm5hbCB1c2UuICovDQpkaWZmIC11ck4gLS1l
-eGNsdWRlLWZyb209L3Vzci9zcmMvZGlmZi5leGNsdWRlIGxpbnV4LTIuNC4y
-Ni1vcmlnL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXBfbmF0X2hl
-bHBlci5oIGxpbnV4LTIuNC4yNi11bmhlbHAvaW5jbHVkZS9saW51eC9uZXRm
-aWx0ZXJfaXB2NC9pcF9uYXRfaGVscGVyLmgNCi0tLSBsaW51eC0yLjQuMjYt
-b3JpZy9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0L2lwX25hdF9oZWxw
-ZXIuaAkyMDAzLTA2LTEzIDE2OjUxOjM4LjAwMDAwMDAwMCArMDIwMA0KKysr
-IGxpbnV4LTIuNC4yNi11bmhlbHAvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXJf
-aXB2NC9pcF9uYXRfaGVscGVyLmgJMjAwNS0wMi0wOSAxMDo0MDoyMi4wMDAw
-MDAwMDAgKzAxMDANCkBAIC0xMSw2ICsxMSw4IEBADQogI2RlZmluZSBJUF9O
-QVRfSEVMUEVSX0ZfQUxXQVlTCQkweDAxDQogLyogU3RhbmRhbG9uZSBOQVQg
-aGVscGVyLCB3aXRob3V0IGEgY29ubnRyYWNrIHBhcnQgKi8NCiAjZGVmaW5l
-IElQX05BVF9IRUxQRVJfRl9TVEFOREFMT05FCTB4MDINCisvKiBEeW5hbWlj
-YWxseSBhdHRhY2hlZCBoZWxwZXIgKi8NCisjZGVmaW5lIElQX05BVF9IRUxQ
-RVJfRl9EWU5BTUlDCQkweDAzDQogDQogc3RydWN0IGlwX25hdF9oZWxwZXIN
-CiB7DQpkaWZmIC11ck4gLS1leGNsdWRlLWZyb209L3Vzci9zcmMvZGlmZi5l
-eGNsdWRlIGxpbnV4LTIuNC4yNi1vcmlnL25ldC9pcHY0L25ldGZpbHRlci9p
-cF9jb25udHJhY2tfY29yZS5jIGxpbnV4LTIuNC4yNi11bmhlbHAvbmV0L2lw
-djQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19jb3JlLmMNCi0tLSBsaW51eC0y
-LjQuMjYtb3JpZy9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29ubnRyYWNrX2Nv
-cmUuYwkyMDA0LTAyLTE4IDE0OjM2OjMyLjAwMDAwMDAwMCArMDEwMA0KKysr
-IGxpbnV4LTIuNC4yNi11bmhlbHAvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nv
-bm50cmFja19jb3JlLmMJMjAwNS0wMi0wOSAxMDo1ODowMi4wMDAwMDAwMDAg
-KzAxMDANCkBAIC02MjEsNyArNjIxLDggQEANCiBzdGF0aWMgaW5saW5lIGlu
-dCBoZWxwZXJfY21wKGNvbnN0IHN0cnVjdCBpcF9jb25udHJhY2tfaGVscGVy
-ICppLA0KIAkJCSAgICAgY29uc3Qgc3RydWN0IGlwX2Nvbm50cmFja190dXBs
-ZSAqcnR1cGxlKQ0KIHsNCi0JcmV0dXJuIGlwX2N0X3R1cGxlX21hc2tfY21w
-KHJ0dXBsZSwgJmktPnR1cGxlLCAmaS0+bWFzayk7DQorCXJldHVybiAoIShp
-LT5mbGFncyAmIElQX0NUX0hFTFBFUl9GX0RZTkFNSUMpDQorCQkmJiBpcF9j
-dF90dXBsZV9tYXNrX2NtcChydHVwbGUsICZpLT50dXBsZSwgJmktPm1hc2sp
-KTsNCiB9DQogDQogc3RydWN0IGlwX2Nvbm50cmFja19oZWxwZXIgKmlwX2N0
-X2ZpbmRfaGVscGVyKGNvbnN0IHN0cnVjdCBpcF9jb25udHJhY2tfdHVwbGUg
-KnR1cGxlKQ0KZGlmZiAtdXJOIC0tZXhjbHVkZS1mcm9tPS91c3Ivc3JjL2Rp
-ZmYuZXhjbHVkZSBsaW51eC0yLjQuMjYtb3JpZy9uZXQvaXB2NC9uZXRmaWx0
-ZXIvaXBfbmF0X2hlbHBlci5jIGxpbnV4LTIuNC4yNi11bmhlbHAvbmV0L2lw
-djQvbmV0ZmlsdGVyL2lwX25hdF9oZWxwZXIuYw0KLS0tIGxpbnV4LTIuNC4y
-Ni1vcmlnL25ldC9pcHY0L25ldGZpbHRlci9pcF9uYXRfaGVscGVyLmMJMjAw
-My0xMS0yOCAxOToyNjoyMS4wMDAwMDAwMDAgKzAxMDANCisrKyBsaW51eC0y
-LjQuMjYtdW5oZWxwL25ldC9pcHY0L25ldGZpbHRlci9pcF9uYXRfaGVscGVy
-LmMJMjAwNS0wMi0wOSAxMDo1NDoyNi4wMDAwMDAwMDAgKzAxMDANCkBAIC00
-NTksNyArNDU5LDggQEANCiBoZWxwZXJfY21wKGNvbnN0IHN0cnVjdCBpcF9u
-YXRfaGVscGVyICpoZWxwZXIsDQogCSAgIGNvbnN0IHN0cnVjdCBpcF9jb25u
-dHJhY2tfdHVwbGUgKnR1cGxlKQ0KIHsNCi0JcmV0dXJuIGlwX2N0X3R1cGxl
-X21hc2tfY21wKHR1cGxlLCAmaGVscGVyLT50dXBsZSwgJmhlbHBlci0+bWFz
-ayk7DQorCXJldHVybiAoIShpLT5oZWxwZXIgJiBJUF9OQVRfSEVMUEVSX0Zf
-RFlOQU1JQykNCisJCSYmIGlwX2N0X3R1cGxlX21hc2tfY21wKHR1cGxlLCAm
-aGVscGVyLT50dXBsZSwgJmhlbHBlci0+bWFzaykpOw0KIH0NCiANCiAjZGVm
-aW5lIE1PRFVMRV9NQVhfTkFNRUxFTgkJMzINCg==
-
---110391808-184121263-1107944723=:2846
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="h323_2.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.58.0502091125231.2846@blackhole.kfki.hu>
-Content-Description: h323_2.patch
-Content-Disposition: attachment; filename="h323_2.patch"
-
-ZGlmZiAtdXJOIGxpbnV4L25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJh
-Y2tfaDMyMy5jIGEvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19o
-MzIzLmMNCi0tLSBsaW51eC9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29ubnRy
-YWNrX2gzMjMuYwkyMDA0LTEwLTE0IDExOjQyOjQwLjAwMDAwMDAwMCArMDIw
-MA0KKysrIGEvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19oMzIz
-LmMJMjAwNS0wMi0wOSAxMDo1NzowNC4wMDAwMDAwMDAgKzAxMDANCkBAIC0x
-MzAsOCArMTMwLDggQEANCiAvKiBILjI0NSBoZWxwZXIgaXMgbm90IHJlZ2lz
-dGVyZWQhICovDQogc3RhdGljIHN0cnVjdCBpcF9jb25udHJhY2tfaGVscGVy
-IGgyNDUgPSANCiAJeyB7IE5VTEwsIE5VTEwgfSwNCi0gICAgICAgICAgIkgu
-MjQ1IiwJCQkJLyogbmFtZSAqLw0KLSAgICAgICAgICBJUF9DVF9IRUxQRVJf
-Rl9SRVVTRV9FWFBFQ1QsCQkvKiBmbGFncyAqLw0KKyAgICAgICAgICAiSC4y
-NDUiLAkJCQkvKiBuYW1lLCB0aGVuIGZsYWdzICovDQorICAgICAgICAgIElQ
-X0NUX0hFTFBFUl9GX1JFVVNFX0VYUEVDVCB8IElQX0NUX0hFTFBFUl9GX0RZ
-TkFNSUMsDQogICAgICAgICAgIE5VTEwsCQkJCQkvKiBtb2R1bGUgKi8NCiAg
-ICAgICAgICAgOCwJCQkJCS8qIG1heF8gZXhwZWN0ZWQgKi8NCiAgICAgICAg
-ICAgMjQwLAkJCQkJLyogdGltZW91dCAqLw0KQEAgLTI5MywxMyArMjkzLDI1
-IEBADQogDQogc3RhdGljIGludCBfX2luaXQgaW5pdCh2b2lkKQ0KIHsNCi0J
-cmV0dXJuIGlwX2Nvbm50cmFja19oZWxwZXJfcmVnaXN0ZXIoJmgyMjUpOw0K
-KwlpbnQgcmV0Ow0KKwkNCisJcmV0ID0gaXBfY29ubnRyYWNrX2hlbHBlcl9y
-ZWdpc3RlcigmaDIyNSk7DQorCWlmIChyZXQgIT0gMCkNCisJCXJldHVybiBy
-ZXQ7DQorCQkNCisJcmV0ID0gaXBfY29ubnRyYWNrX2hlbHBlcl9yZWdpc3Rl
-cigmaDI0NSk7DQorCWlmIChyZXQgIT0gMCkgew0KKwkJaXBfY29ubnRyYWNr
-X2hlbHBlcl91bnJlZ2lzdGVyKCZoMjI1KTsNCisJCXJldHVybiByZXQ7DQor
-CX0NCisJDQorCXJldHVybiAwOw0KIH0NCiANCiBzdGF0aWMgdm9pZCBfX2V4
-aXQgZmluaSh2b2lkKQ0KIHsNCi0JLyogVW5yZWdpc3RlciBILjIyNSBoZWxw
-ZXIgKi8JDQogCWlwX2Nvbm50cmFja19oZWxwZXJfdW5yZWdpc3RlcigmaDIy
-NSk7DQorCWlwX2Nvbm50cmFja19oZWxwZXJfdW5yZWdpc3RlcigmaDI0NSk7
-DQogfQ0KIA0KIEVYUE9SVF9TWU1CT0woaXBfaDMyM19sb2NrKTsNCmRpZmYg
-LXVyTiBsaW51eC9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfbmF0X2gzMjMuYyBh
-L25ldC9pcHY0L25ldGZpbHRlci9pcF9uYXRfaDMyMy5jDQotLS0gbGludXgv
-bmV0L2lwdjQvbmV0ZmlsdGVyL2lwX25hdF9oMzIzLmMJMjAwNC0xMC0xNCAx
-MTo0Mjo0MC4wMDAwMDAwMDAgKzAyMDANCisrKyBhL25ldC9pcHY0L25ldGZp
-bHRlci9pcF9uYXRfaDMyMy5jCTIwMDUtMDItMDkgMTA6NTY6NDkuMDAwMDAw
-MDAwICswMTAwDQpAQCAtNTQsNyArNTQsNyBAQA0KIHN0YXRpYyBzdHJ1Y3Qg
-aXBfbmF0X2hlbHBlciBoMjQ1ID0gDQogCXsgeyBOVUxMLCBOVUxMIH0sDQog
-ICAgICAgICAgICJILjI0NSIsCQkJCS8qIG5hbWUgKi8NCi0JICAwLAkJCQkJ
-LyogZmxhZ3MgKi8NCisJICBJUF9OQVRfSEVMUEVSX0ZfRFlOQU1JQywJCS8q
-IGZsYWdzICovDQogCSAgTlVMTCwJCQkJCS8qIG1vZHVsZSAqLw0KIAkgIHsg
-eyAwLCB7IDAgfSB9LAkJCS8qIHR1cGxlICovDQogCSAgICB7IDAsIHsgMCB9
-LCBJUFBST1RPX1RDUCB9IH0sDQpAQCAtNDAzLDE2ICs0MDMsMjEgQEANCiAJ
-aW50IHJldDsNCiAJDQogCXJldCA9IGlwX25hdF9oZWxwZXJfcmVnaXN0ZXIo
-JmgyMjUpOw0KLQ0KIAlpZiAocmV0ICE9IDApDQotCQlwcmludGsoImlwX25h
-dF9oMzIzOiBjYW5ub3QgaW5pdGlhbGl6ZSB0aGUgbW9kdWxlIVxuIik7DQot
-DQotCXJldHVybiByZXQ7DQorCQlyZXR1cm4gcmV0Ow0KKwkJDQorCXJldCA9
-IGlwX25hdF9oZWxwZXJfcmVnaXN0ZXIoJmgyNDUpOw0KKwlpZiAocmV0ICE9
-IDApIHsNCisJCWlwX25hdF9oZWxwZXJfdW5yZWdpc3RlcigmaDIyNSk7DQor
-CQlyZXR1cm4gcmV0Ow0KKwl9DQorCXJldHVybiAwOw0KIH0NCiANCiBzdGF0
-aWMgdm9pZCBfX2V4aXQgZmluaSh2b2lkKQ0KIHsNCiAJaXBfbmF0X2hlbHBl
-cl91bnJlZ2lzdGVyKCZoMjI1KTsNCisJaXBfbmF0X2hlbHBlcl91bnJlZ2lz
-dGVyKCZoMjQ1KTsNCiB9DQogDQogbW9kdWxlX2luaXQoaW5pdCk7DQo=
-
---110391808-184121263-1107944723=:2846--
+>  
+>
+Thank you very much Harald.
+Is it possible to perform stateless nat in Linux ?
