@@ -1,17 +1,12 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: a question about ip_conntrack_max
-Date: Thu, 12 Dec 2002 13:32:20 +0100
+From: "Brian J. Murrell" <netfilter@interlinx.bc.ca>
+Subject: Re: separation of sysctl and tcp-window-tracking patch?
+Date: 12 Dec 2002 09:14:47 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021212123220.GO3611@sunbeam.de.gnumonks.org>
-References: <F78gEj4v5iJarnJ3kEP000004e7@hotmail.com>
+Message-ID: <1039702486.2373.17.camel@pc>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2iBwrppp/7QCDedR"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-J1vNvCZvsqFteAohawGJ"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: jump lee <zomby_cn@hotmail.com>
-Content-Disposition: inline
-In-Reply-To: <F78gEj4v5iJarnJ3kEP000004e7@hotmail.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,46 +18,87 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---2iBwrppp/7QCDedR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-J1vNvCZvsqFteAohawGJ
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Dec 12, 2002 at 02:35:56PM +0800, jump lee wrote:
+On Thu, 2002-12-12 at 04:02, Jozsef Kadlecsik wrote:=20
+> On Thu, 12 Dec 2002, James Ralston wrote:
 >=20
-> i am hacking ip_conntrack.
-> in function ip_conntrack_init (ip_conntrack_core.c), i can not understand=
-=20
-> this statement:
->=20
-> ip_conntrack_max=3D8*ip_conntrack_htable_size;
->=20
-> what's the reason of multiplying ip_conntrack_htable_size by 8?
+> > (My specific need is related to DNS service: namely, in many cases, 30
+> > seconds to establish a UDP session simply isn't enough time to permit
+> > a reply to an outstanding DNS query.  I want to be able to up that
+> > timeout to something closer to 60 or 120 seconds.)
 
-please read the mailinglist archive.  There have been discussions about
-this subject going on all the time.  You can greatly improve performance
-by using different values (higher prime numbers, ...) here.
+I had this problem with the Amanda protocol, but it was with the UDP
+streaming timeout.  It was not long enough to allow an Amanda client to
+go do it's work and still respond to the server when it was done.
+
+Fortunately (for this situation), the Amanda protocol requires a helper,
+so I just upped the timeout on the connection in the helper.  But this
+led me to think about UDP timeouts in general.
+
+You might want to refer to this message:
+
+http://lists.netfilter.org/pipermail/netfilter-devel/2002-September/009259.=
+html
+
+> Please note, that the timeout settings via /proc introduced in the
+> tcp-window-tracking patch are global. You cannot raise the UDP timeout
+> values just for DNS.
+
+Indeed.  I had thought about this when I was doing my Amanda
+modification for the UDP streaming timeout on it's connection.  For UDP
+timeouts in general I had originally thought of doing this with
+load-time module parameters.  Something along the lines of:
+
+# insmod ip_conntrack.o udp_timeouts=3D"53=3D60,123=3D10"
+
+which would be added to a table already defined in
+ip_conntrack_proto_udp.c with a set of common defaults.
+
+This could be done via proc too however.  Maybe something like:
+
+# cat /proc/sys/net/ipv4/netfilter/udp_timeout
+default=3D30
+53=3D60
+123=3D10
+
+to see the current timeout table and
+
+# echo "default=3D45,520=3D30" > /proc/sys/net/ipv4/netfilter/udp_timeout
+
+to set/modify entries in the table.
+
+Of course we have two udp timeouts to deal with, initial UDP connection
+setup timeout and the UDP streaming timeout.  Perhaps two different
+/proc nodes.
+
+> Also, we have to handle the backward compatibility issue of
+> /proc/sys/net/ipv4/ip_conntrack_max, if the introduction of
+> /proc/sys/net/ipv4/netfilter/ is accepted.
+
+Right.  But let's not let this be a lone issue holding-up on moving
+forward with general netfilter tunables via proc.
+
+b.
+
+
 
 --=20
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---2iBwrppp/7QCDedR
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Brian J. Murrell <netfilter@interlinx.bc.ca>
+
+--=-J1vNvCZvsqFteAohawGJ
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE9+IHUXaXGVTD0i/8RAqXGAKCqcxoBPgNdTtf9e84AQy99mkvbaQCfZPT4
-3bLGUhJ18o0FqOQOejQWoRU=
-=lipr
+iD8DBQA9+JnWl3EQlGLyuXARAnl9AJ9qrfXBm9MMwLeMKapDIWGgux8aogCbBDaz
+pG+oNxZ36X4Yi3XIXBnSsiM=
+=nWrw
 -----END PGP SIGNATURE-----
 
---2iBwrppp/7QCDedR--
+--=-J1vNvCZvsqFteAohawGJ--
