@@ -1,16 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [ANNOUNCE] netfilter T-Shirts available again
-Date: Wed, 30 Jul 2003 19:16:51 +0200
+From: Antoine Luu <aluu@cse.ogi.edu>
+Subject: How to build a new tarjet ?
+Date: Wed, 30 Jul 2003 11:38:20 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030730171651.GA5618@sunbeam.de.gnumonks.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Netfilter Announcement List <netfilter-announce@lists.netfilter.org>
+Message-ID: <FE1B8578-C2BC-11D7-A544-000A95A021F6@cse.ogi.edu>
+Mime-Version: 1.0 (Apple Message framework v552)
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Mailinglist <netfilter@lists.netfilter.org>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,54 +18,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
+I want use netfilter/iptables to create a new target. I read the=20
+netfilter-hacking-HOWTO, and I know how to make the kernel module but I=20=
 
---+QahgC5+KEYLbs62
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+can not find any information about iptables hacking (how to program the=20=
 
-Hi!
+libipt_*.c ?).
 
-The long-awaited reprint of the netfilter T-Shirts has just arrived.
+Thanks for all
 
-They are plain white T-Shirts with the blue netfilter logo (as in the
-upper left corner of the homepage) printed on front.  The shirts are
-available in sizes S,M,L,XL,XXL and are EUR 10 + shipping (EUR 5 intl.
-for one t-shirt). =20
-
-We accept orders at tshirt@netfilter.org
-
-Payment can be done either via Eurocheque/Mail, COD (Europe only) or=20
-Paypal.
-
-btw: If you come to the UKUUG Linux Developer Conference (Edinburgh), the
-netfilter development workshop (Budapest), Openfest (Sofia),
-Linux-Kongress (Saarbruecken), Kiblix (Maribor) or the CCC-Congress
-(Berlin): I'll bring some t-shirts with me, so you can save money on
-P&P.
-
-Thanks!
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---+QahgC5+KEYLbs62
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE/J/2DXaXGVTD0i/8RAnyzAJ93U12cvDBW+YyoRaDtUm43CwckFACfaCXg
-yebJ0dT1aKSvFRTi+pZatsw=
-=PNos
------END PGP SIGNATURE-----
-
---+QahgC5+KEYLbs62--
+--
+Antoine Luu
+El=E8ve ing=E9nieur ENSEIRB
