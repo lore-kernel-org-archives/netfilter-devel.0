@@ -1,18 +1,15 @@
-From: Mario <netfilter@mail.bg>
-Subject: Re: Faking ethernet source MAC in NF_IP_POST_ROUTING
-Date: Mon, 28 Jun 2004 12:31:32 +0300
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: RE: Userspace queuing
+Date: Mon, 28 Jun 2004 11:45:23 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200406281231.33026.netfilter@mail.bg>
-References: <20040623161503.188c007f@mindrape>
+Message-ID: <Pine.LNX.4.44.0406281034460.12179-100000@filer.marasystems.com>
+References: <200406280718.i5S7I1MX005242@madinah.ccse.kfupm.edu.sa>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Phillip Whelan <pwhelan@exis.cl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20040623161503.188c007f@mindrape>
-Content-Disposition: inline
+To: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
+In-Reply-To: <200406280718.i5S7I1MX005242@madinah.ccse.kfupm.edu.sa>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,32 +20,21 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wednesday 23 June 2004 19:15, Phillip Whelan wrote:
-> Hello,
->
-> Quote: (myself)
->   "I've been working lately on a netfilter hook extension which Rewrites
-> outgoing ARP packets to spoof a host's MAC address."
->
-> I already managed to solve a problem involving ARP replies automagically
-> updating arp caches by modifying the arp payload's sender hw_addr. (or
-> perhaps, the tha... whatever, it works).
->
-> The kernel is now spoofing itself, etc... but, it still sends out packets
-> with the real MAC address. This, of course confuses the end host to no
-> ends.
->
-> In NF_IP_POST_ROUTING, the skb->mac is not NULL, but skb->mac_len is 0.
-> Directly modifying the skb->mac would just lead to memory corruption.
-> How would I modify the source MAC address? (Im inside NF_IP_POST_ROUTING).
-> Can I access through a negative offset from skb->data? (net/ipv4/arp.c does
-> this, I think).
+On Mon, 28 Jun 2004, Muhammad R. Sami wrote:
 
+> Thanks Henrik for your help, I have 2 questions, first of all I could not
+> find anyway to extract and read packet payload through libipq, I know it has
+> a function to do so but how to use it (any examples??)
 
-You can modify MAC address by using ebtables & bridge extentions.
-Using ebtables on bridge device you can have multiple MACs and can do MAC SNAT 
-or DNAT.iptables can't change MAC addresses because iptables is 
-layer3.ebtables is layer2 and it can modify MACs.Try it! It works! Tested ;P~
-You can use it also if you want to conflict huge ip classes...some ISPs are 
-using this way to stop their clients using their local area networks if they 
-are not paying.It can be useful in your case.
+See the very extensive documentation included in libipq.
+
+> and secondly is there any implementation of priority queues (multiple
+> FIFOs) at userspace using libipq.
+
+Not that I know of, but I thougt this was what you wanted to implement 
+yourself..
+
+What is it actually that you want to do?
+
+Regards
+Henrik
