@@ -1,17 +1,14 @@
-From: Peter Surda <shurdeek@routehat.org>
-Subject: Re: [PATCH] Traffic accounting match
-Date: Fri, 16 Jan 2004 19:10:44 +0100
+From: Gopal Chandavarapu <Gopal.Chandavarapu@rtc.bosch.com>
+Subject: MAC Filtering
+Date: Wed, 14 Jan 2004 15:52:10 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040116181043.GJ12709@chloe.cb.ac.at>
-References: <20031212182346.GA21222@moon.ondraszek.ds.polsl.gliwice.pl> <20031213084905.GE8950@obroa-skai.de.gnumonks.org>
+Message-ID: <4005D62A.3080609@rtc.bosch.com>
+Reply-To: Gopal.Chandavarapu@rtc.bosch.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
-   Piotr Gasid?o <quaker@ondraszek.eu.org>,
-   netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20031213084905.GE8950@obroa-skai.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,28 +19,32 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Dec 13, 2003 at 09:49:05AM +0100, Harald Welte wrote:
-> On Fri, Dec 12, 2003 at 07:23:46PM +0100, Piotr Gasid?o wrote:
-> > This is my first patch for patch-o-matic. Comments welcome.
-> sorry, but we use the kernel 'CodingStyle' in the netfilter/iptables
-> project.  And that clearly states: all comments/variable names / ...
-> have to be in english.
-I have been using the patch for a couple of days and it seems to work fine,
-and I think it is a very useful thing. I looked at the code and seem to be
-able to understand most of the comments (I don't actually speak Polish, but 3
-other slavic languages :-)). If I translate it into english, is there anything
-more preventing it from going into p-o-m?
+Hi All,
 
-> > Piotr 'QuakeR' Gasid?o, just another user @ ondraszek.eu.org
-> -- 
-> - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-> ============================================================================
->   "Fragmentation is like classful addressing -- an interesting early
->    architectural error that shows how much experimentation was going
->    on while IP was being designed."                    -- Paul Vixie
-Bye,
+A specific hardware and its cross compiler need 2.4.14 version of the 
+linux kernel. I have to do MAC filtering for these devices, so I found that
 
-Peter Surda (Shurdeek) <shurdeek@routehat.org>, ICQ 10236103, +436505122023
+http://ebtables.sourceforge.net/documentation.html#whatdo
 
--- 
-         To understand recursion, one must first understand recursion.
+  does MAC filtering. -----------   Good till now.
+
+
+
+Problem : The problem is ebtables works only with linux kernel 2.4.22/23 
+and version 2.6.x
+
+Question 1: Is there any other module like ebtables which does MAC 
+filtering and works with 2.4.14 kernel.
+
+
+Question 2: The MAC filter module should be capable of filtering the 
+packets at run time.
+That means that the filter should be able to ACCEPT all packets from MAC 
+address A for some time and upon users request at run time, it should be 
+able to take a new MAC address B and ACCEPT only from B and DROP/ACCEPT 
+packets from A.
+
+Please let me know.
+
+Thanks
+Gopal.
