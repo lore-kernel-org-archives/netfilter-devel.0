@@ -1,101 +1,91 @@
-From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [Patch]: IPv6 Connection Tracking
-Date: Fri, 26 Sep 2003 12:54:21 +0900 (JST)
-Sender: netdev-bounce@oss.sgi.com
-Message-ID: <200309260354.MAA29078@toshiba.co.jp>
-References: <200309250521.OAA29293@toshiba.co.jp>
-	<1064515680.995.41.camel@localhost>
+From: Eric Leblond <eric@regit.org>
+Subject: RE: A humble proposal
+Date: Fri, 26 Sep 2003 09:21:58 +0200
+Sender: netfilter-admin@lists.netfilter.org
+Message-ID: <1064560917.3997.26.camel@porky>
+References: <7C9884991ADAE0479C14F10C858BCDF5122E53@alderaan.smgtec.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: yasuyuki.kozakai@toshiba.co.jp, netfilter-devel@lists.netfilter.org,
-        netdev@oss.sgi.com, usagi-core@linux-ipv6.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: kisza@securityaudit.hu
-In-Reply-To: <1064515680.995.41.camel@localhost>
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-vg8VmcECxMvwwnLuhHBZ"
+Cc: firewalldude@newkirk.us, netfilter@lists.netfilter.org,  netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-admin@lists.netfilter.org>
+To: Daniel Chemko <dchemko@smgtec.com>
+In-Reply-To: <7C9884991ADAE0479C14F10C858BCDF5122E53@alderaan.smgtec.com>
+Errors-To: netfilter-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi, Andras,
+--=-vg8VmcECxMvwwnLuhHBZ
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-From: Andras Kis-Szabo <kisza@securityaudit.hu>
-Subject: Re: [Patch]: IPv6 Connection Tracking
-Date: 25 Sep 2003 20:48:01 +0200
+Le ven 26/09/2003 =C3=A0 02:19, Daniel Chemko a =C3=A9crit :
+> I had a thought about this, and I see a lot of work taking this
+> approach.
+>=20
+> How about this:
+>=20
+> Write a jump target that applies only inside the filter table, since the
+> first revision would just implement filtering control.
+>=20
+> The module itself would be initialized by a userspace tool be adding
+> rules. An example would be:
+>=20
+> iptables -I INPUT -m expire --expire-condition timer=3D6000 --expire-id
+> 12123124325 --source 192.168.1.1/24 -j ACCEPT
+> iptables -I OUTPUT -m expire --expire-condition timer=3D6000 --expire-id
+> 12123124326 --destination 192.168.1.1/24 -j ACCEPT
 
-kisza> I have used an own 'external header skipper' routine which was very
-kisza> close the the kernel's one. So I would like to update the netfilter code
-kisza> to use the kernel's function. For this, we have to export the
-kisza> ipv6_skip_exthdr() function from net/ipv6/exthdrs.c . I have checked
-kisza> your code, too. It looks very close to the kernel's code.
-kisza> As I have noticed, the differences:
-kisza> - handling of the fragments
+Great, but Have you any idea of the induced overload ? (I've never work
+with dynamic rules).
 
-No, ip6_ct_skip_exthdr() in my code may return NEXTHDR_NONE.
-I want to distinguish the packet with NEXTHDR_NONE and the packet with unknown
-extension header. I want to let "proto_generic" module to handle it.
+> - The CONNTRACK entries for the allowed sessions are not dropped. Once
+> again, it would be nice if the jump module could clean up the CONNTRACK
+> entry.
+> My humble suggestion would be that this should be handled in the
+> stateful
+> connection tracking - If a session is authenticated and certain
+> connections
+> allowing different chains to be traversed based on the mark found.
 
-BTW, handling of the fragments is bug fix.
-"fhdr->frag_off" in ipv6_skip_exthdr() is out of area of "hdr".
-I thought that it's already reported but look like still not fixed...
+=46rom my point of view this is a good idea for a mono user machine land.
+But I think this appproach is for more too restrictive and too unsecure.
 
-kisza>   your code checks that the member of the extension are in the skb or
-kisza> not since the common part checks only the basic extension header size.
-kisza> After it your code linearizes the skb to cover the extension header.
-kisza> So, the kernel does not check the size and does not linearize. After
-kisza> these fixes the 2 codes will be similar.
+First, lot's of people use "terminal server" (X remote server, rdesktop,
+cytrix,...) so you've got different people coming from the same IP who
+should have dissociated IPs. In such a case, the permissions of these
+users is the sum of the permissions of all users. It's really unsecure.
 
-Excuse me, I don't understand which code you said about. find_prev_fhdr() ?
-This function finds previous header of fragment header. We can't use
-ipv6_skip_exthdr() to do this. Even though we can find offset of fragment
-header, we can't find offset of previous header because we can't parse
-extension header backwards.
+Second, you encounter harsh limitation with Full multiuser server. It's
+a nice security feature to be able to say for example :
+  - Clamav daemon can connect directly to sites providing antivirus
+pattern update
+  - Other users can't go directly out by http.
+It's a small example taken from my test environnement of NuFW, but I
+think it shows what can be done.
 
-kisza> Would not be better to export the kernel's function and use the
-kisza> ipv6_skip_exthdr() in the netfilter codes?
+BR,
+--=20
+Eric Leblond
+Nufw, Now User Filtering Works (http://www.nufw.org)
 
-I think so about ip6_ct_skip_exthdr(). I'm going to delete this function
-from my patch if 
+--=-vg8VmcECxMvwwnLuhHBZ
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Ceci est une partie de message
+	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e=2E?=
 
-	we don't need to distinguish packets with NEXTHDR_NONE and the packet
-	with unknown extension header.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
 
-and when
+iD8DBQA/c+kVnxA7CdMWjzIRAv6DAJ9l+mrTL1+3sgRmn+hkKyV1prQxwwCfbeN0
+TDFv8yu/ruiIv1zAnmpeKPQ=
+=V2vm
+-----END PGP SIGNATURE-----
 
-	the bug in ipv6_skip_exthdr() is fixed.
-
-kisza> My second commet is near this area. I have planned that an offset value
-kisza> which points after the last extension header and a variable which
-kisza> contain the last nexthdr value would be very helpful for the future -
-kisza> but I was too lazy to do this work. With the connection tracking this
-kisza> function (ipv6_skip_exthdr) will be called several time on the same
-kisza> packet (in the main kernel, at every LOG, at every match, at every ct,
-kisza> ...) With USAGI we could - probably - find the space for this 2
-kisza> variable. Do you have any recommendation?
-
-I think we'd be better that extension header is parsed in L3 specific code
-at once, and the offset and the nexthdr value is passed the functions
-which need one as argument. This eases writing l3 independent codes in future.
-
-kisza> Your FTP code uses EPSV and EPRT from rfc2428. What's about the FOOBAR
-kisza> RFC (1639)? OK, it's a joke :)
-
-I want to think that's joke, too...
-
-kisza> Could we open an IPv4 data connection next to the IPv6 controll
-kisza> connection?
-
-You can't open even though you load ip_conntrack_ftp and ip6_conntrack_ftp.
-I don't want to allow that because I don't know what happens.
-
-Regards,
-
-----------------------------------------
-Yasuyuki KOZAKAI
-
-Communication Platform Laboratory,
-Corporate Research & Development Center,
-Toshiba Corporation
-
-yasuyuki.kozakai@toshiba.co.jp
-----------------------------------------
+--=-vg8VmcECxMvwwnLuhHBZ--
