@@ -1,32 +1,30 @@
-From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?= <yoshfuji@linux-ipv6.org>
+From: Andrew Walrond <andrew@walrond.org>
 Subject: Re: Iptables-1.2.9/10 compile failure with linux 2.6.7 headers
-Date: Sat, 19 Jun 2004 07:51:28 +0900 (JST)
+Date: Sat, 19 Jun 2004 10:38:50 +0100
 Sender: netdev-bounce@oss.sgi.com
-Message-ID: <20040619.075128.106025605.yoshfuji@linux-ipv6.org>
-References: <40D31EA6.5030207@ThinRope.net>
-	<20040619.021818.04202102.yoshfuji@linux-ipv6.org>
-	<40D3361B.5020304@ThinRope.net>
+Message-ID: <200406191038.51118.andrew@walrond.org>
+References: <40D313DC.7000202@blue-labs.org> <40D31EA6.5030207@ThinRope.net> <20040619.021818.04202102.yoshfuji@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, netdev@oss.sgi.com,
-        netfilter-devel@lists.netfilter.org, yoshfuji@linux-ipv6.org
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Cc: kalin@ThinRope.net, linux-kernel@vger.kernel.org, netdev@oss.sgi.com,
+        netfilter-devel@lists.netfilter.org
 Return-path: <netdev-bounce@oss.sgi.com>
-To: kalin@ThinRope.net, andrew@walrond.org
-In-Reply-To: <40D3361B.5020304@ThinRope.net>
+To: YOSHIFUJI Hideaki / =?utf-8?q?=E5=90=89=E8=97=A4=E8=8B=B1=E6=98=8E?= <yoshfuji@linux-ipv6.org>
+In-Reply-To: <20040619.021818.04202102.yoshfuji@linux-ipv6.org>
+Content-Disposition: inline
 Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-In article <40D3361B.5020304@ThinRope.net> (at Sat, 19 Jun 2004 03:36:11 +0900), Kalin KOZHUHAROV <kalin@ThinRope.net> says:
+On Friday 18 Jun 2004 18:18, YOSHIFUJI Hideaki / =E5=90=89=E8=97=A4=E8=8B=
+=B1=E6=98=8E wrote:
+>
+> Please try this. Thanks
+>
 
-> As far as I understand from this patch, this should be applied to the system headers...
+I can confirm that iptables-1.2.10 builds fine with your patch applied to=
+=20
+linux-2.6.7
 
-Patch is for current linux-2.5 bk tree,
-not for linux-headers.
-
-Please try to patch your kernel and set KERNEL_DIR to 
-/path/to/your/kernel when you compile iptables.
-
-Thanks.
-
---yoshfuji
+Andrew Walrond
