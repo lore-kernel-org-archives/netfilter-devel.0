@@ -1,15 +1,15 @@
-From: Michael Schwendt <mschwendt@yahoo.com>
-Subject: Re: [PATCH] libipt_mac.c: minor bug and questions
-Date: Mon, 9 Sep 2002 06:07:00 -0700 (PDT)
+From: "Hime Junior" <hime@engineer.com>
+Subject: Re: fuzzy match pseudo-bug
+Date: Mon, 09 Sep 2002 09:13:57 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020909130700.79853.qmail@web14602.mail.yahoo.com>
-References: <638AA0336D7ED411928700D0B7B0D75B03053C7E@aimail.aiinet.com>
+Message-ID: <20020909141357.57407.qmail@mail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-2045304795-1031576820=:78090"
-Cc: "Eble, Dan" <DanE@aiinet.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <638AA0336D7ED411928700D0B7B0D75B03053C7E@aimail.aiinet.com>
+Content-Disposition: inline
+To: laforge@gnumonks.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,72 +20,47 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
---0-2045304795-1031576820=:78090
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
---- "Eble, Dan" <DanE@aiinet.com> wrote:
-> Yesterday I began evaluating iptables for MAC and IP address ACLs.  It
-> looks like it will work very well, but I think there is a bug at
-> libipt_mac.c:121.
-> It says printf("--mac ") instead of printf("--mac-source ").  Please
-> forgive me if I am a clueless newbie, but this seem like a bad thing.
+----- Original Message -----
+From: Harald Welte <laforge@gnumonks.org>
+Date: Sat, 7 Sep 2002 17:29:09 +0200 
+To: "Hime Junior" <hime@engineer.com>
+Subject: Re: fuzzy match pseudo-bug
 
-No, not a clueless newbie. It's well-spotted!
+ Dear Harald:
 
-I consider such bugs in iptables-save as crucial, because some system
-firewall solutions save/load their rules with the
-iptables-save/iptables-restore tools. I found this yesterday night in
-1.2.6a, too, when I had to block one host based on its MAC address, but
-couldn't reach netfilter.org.
+> > 
+> >  I don´t think it´s worth to apply a patch to eliminate a space character in
+> >  the source code .  After all , the compiler has to cope with this (that is
+> >  not a bug in the code) and if it doesn´t , somebody has to correct its
+> >  scanner (lexical analyser) .
+> 
+> You are misunderstanding the problem...
+> the '\' _has_ to be at the end of a line, since it is an escape-character
+> for the following newline at the end of the line.  If you add a space between
+> the \ and the end of line, you are escaping this space character and not 
+> the end of line character (\n).
+> 
 
-Attached is the trivial patch against 1.2.7a for both ipv4 and ipv6
-mac-match extension.
+ OK - you are right and I understand that . But my point is not about
+how the things are , but how they should be . I don´t wish to bore all of you with unimportant details , but what I suggested was a 
+different (and smarter - I think) compiler behavior that , 
+after all , just emitted a (undesirable) warning .
+ As a compiler writer , I couldn´t resist - I´m sorry...
 
-Regards,
-Michael
+> >  But , if you think it´s worth to eliminate the space character , it´ll be a
+> >  pleasure to send a new file ( ipt_fuzzy.c ) .
+> 
+> I have modified the ipt_fuzzy.c file by myself.  
+> 
+    I couldn´t expect better !
+
+    Thanks a lot and congratulations for the excellent job.
+
+
+                     Hime
 
 -- 
-
-
-
-
-__________________________________________________
-Do You Yahoo!?
-Yahoo! Finance - Get real-time stock quotes
-http://finance.yahoo.com
---0-2045304795-1031576820=:78090
-Content-Type: application/octet-stream; name="iptables-1.2.7a-matchmac.patch"
-Content-Transfer-Encoding: base64
-Content-Description: iptables-1.2.7a-matchmac.patch
-Content-Disposition: attachment; filename="iptables-1.2.7a-matchmac.patch"
-
-W2J1Zy1maXhdIHByaW50IC0tbWFjLXNvdXJjZSBpbnN0ZWFkIG9mIC0tbWFj
-CgpkaWZmIC1OYXVyIGlwdGFibGVzLTEuMi43YS1vcmlnL2V4dGVuc2lvbnMv
-bGliaXA2dF9tYWMuYyBpcHRhYmxlcy0xLjIuN2EvZXh0ZW5zaW9ucy9saWJp
-cDZ0X21hYy5jCi0tLSBpcHRhYmxlcy0xLjIuN2Etb3JpZy9leHRlbnNpb25z
-L2xpYmlwNnRfbWFjLmMJV2VkIE1heSAyOSAxNTowODoxNiAyMDAyCisrKyBp
-cHRhYmxlcy0xLjIuN2EvZXh0ZW5zaW9ucy9saWJpcDZ0X21hYy5jCVN1biBT
-ZXAgIDggMjM6Mjc6MjIgMjAwMgpAQCAtMTE4LDcgKzExOCw3IEBACiAvKiBT
-YXZlcyB0aGUgdW5pb24gaXA2dF9tYXRjaGluZm8gaW4gcGFyc2FibGUgZm9y
-bSB0byBzdGRvdXQuICovCiBzdGF0aWMgdm9pZCBzYXZlKGNvbnN0IHN0cnVj
-dCBpcDZ0X2lwNiAqaXAsIGNvbnN0IHN0cnVjdCBpcDZ0X2VudHJ5X21hdGNo
-ICptYXRjaCkKIHsKLQlwcmludGYoIi0tbWFjICIpOworCXByaW50ZigiLS1t
-YWMtc291cmNlICIpOwogCXByaW50X21hYygoKHN0cnVjdCBpcDZ0X21hY19p
-bmZvICopbWF0Y2gtPmRhdGEpLT5zcmNhZGRyLAogCQkgICgoc3RydWN0IGlw
-NnRfbWFjX2luZm8gKiltYXRjaC0+ZGF0YSktPmludmVydCk7CiB9CmRpZmYg
-LU5hdXIgaXB0YWJsZXMtMS4yLjdhLW9yaWcvZXh0ZW5zaW9ucy9saWJpcHRf
-bWFjLmMgaXB0YWJsZXMtMS4yLjdhL2V4dGVuc2lvbnMvbGliaXB0X21hYy5j
-Ci0tLSBpcHRhYmxlcy0xLjIuN2Etb3JpZy9leHRlbnNpb25zL2xpYmlwdF9t
-YWMuYwlXZWQgTWF5IDI5IDE1OjA4OjE2IDIwMDIKKysrIGlwdGFibGVzLTEu
-Mi43YS9leHRlbnNpb25zL2xpYmlwdF9tYWMuYwlTdW4gU2VwICA4IDIzOjI3
-OjQ3IDIwMDIKQEAgLTExOCw3ICsxMTgsNyBAQAogLyogU2F2ZXMgdGhlIHVu
-aW9uIGlwdF9tYXRjaGluZm8gaW4gcGFyc2FibGUgZm9ybSB0byBzdGRvdXQu
-ICovCiBzdGF0aWMgdm9pZCBzYXZlKGNvbnN0IHN0cnVjdCBpcHRfaXAgKmlw
-LCBjb25zdCBzdHJ1Y3QgaXB0X2VudHJ5X21hdGNoICptYXRjaCkKIHsKLQlw
-cmludGYoIi0tbWFjICIpOworCXByaW50ZigiLS1tYWMtc291cmNlICIpOwog
-CXByaW50X21hYygoKHN0cnVjdCBpcHRfbWFjX2luZm8gKiltYXRjaC0+ZGF0
-YSktPnNyY2FkZHIsCiAJCSAgKChzdHJ1Y3QgaXB0X21hY19pbmZvICopbWF0
-Y2gtPmRhdGEpLT5pbnZlcnQpOwogfQo=
-
---0-2045304795-1031576820=:78090--
+__________________________________________________________
+Sign-up for your own FREE Personalized E-mail at Mail.com
+http://www.mail.com/?sr=signup
