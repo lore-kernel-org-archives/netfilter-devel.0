@@ -1,19 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: conntrack DoS
-Date: Tue, 25 Jun 2002 22:53:15 +0200
+From: "Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
+Subject: Re: conntrack hash function
+Date: Tue, 25 Jun 2002 22:58:39 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <200206252253.15622.hno@marasystems.com>
-References: <Pine.LNX.4.33.0206251119260.4927-100000@blackhole.kfki.hu> <01ff01c21c45$c90eb2a0$0489cb8a@etbx180> <20020625190125.GJ7975@naboo.ols.wavesec.org>
+Message-ID: <040601c21c8b$14c93e00$0489cb8a@etbx180>
+References: <20020625132643.C31BD45CF@lists.samba.org> <15640.49204.886734.272701@isis.cs3-inc.com>
+Reply-To: "Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@lists.samba.org
+	charset="Windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: Harald Welte <laforge@gnumonks.org>,
-	Jean-Michel Hemstedt <jean-michel.hemstedt@alcatel.be>
-In-Reply-To: <20020625190125.GJ7975@naboo.ols.wavesec.org>
+To: "Don Cohen" <don-nf@isis.cs3-inc.com>,
+	<netfilter-devel@lists.samba.org>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -24,83 +22,56 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
+hi,
 
-> if conntrack  doesn't see a FIN or RST packet, it won't be forwarded by
-> the machine and thus never arrive at the receiver.  The sender will thus
-> retransmit, and hope the packet makes it next time.
-
-FIN will be retransmitted a couple of times, but RST won't. RST will only be 
-retransmitted indirectly if data arrives from the other end.
-
-This brings me back to the important cases where TCP closes down without 
-conntrack noticing. Have tried to bring this up a couple of times before but 
-I do not recall seeing much of a response..
-
-There exists at least two real-life cenarios where conntrack won't notice that 
-a TCP connection is gone:
-
-If the RST is lost on a aborted connection where the other endpoint has 
-disappeared.
-
-when the TCP is dropped due to retransmission timeouts after one of the 
-endpoints have disappeared.
-
-The two cases above is only slight variations of the same scenario. A TCP is 
-established, then one of the endpoints disappears from the network preventing 
-the connection to be shut down in a normal manner.
-
-The first very uncommon and probably not easily exploitable.
-
-The second case is a real problem and can quite easily be used to DoS 
-conntrack with a relatively small amount of packets. (total ~20 minimum size 
-TCP packets per wasted conntrack entry)
-
-The good news is that second case can be detected by detecting a long term 
-uni-directional packet flow, and we probably do not need to care about the 
-first..
+just FYI, hash was already discussed in a previous thread:
+'connection tracking scaling' [19 March 2002]
+sorry if you were aware of it.
 
 
+> > From: "Jean-Michel Hemstedt" <jean-michel.hemstedt@alcatel.be>
+> 
+>  > 98  static inline u_int32_t
+>  > 99  hash_conntrack(const struct ip_conntrack_tuple *tuple)
+>  > 100  {
+>  > 101  #if 0
+>  > 102          dump_tuple(tuple);
+>  > 103  #endif
+>  > 104          /* ntohl because more differences in low bits. */
+>  > 105          /* To ensure that halves of the same connection don't hash
+>  > 106             clash, we add the source per-proto again. */
+>  > 107          return (ntohl(tuple->src.ip + tuple->dst.ip
+>  > 108                       + tuple->src.u.all + tuple->dst.u.all
+>  > 109                       + tuple->dst.protonum)
+>  > 110                  + ntohs(tuple->src.u.all))
+>  > 111                  % ip_conntrack_htable_size;
+>  > 112  }
+> 
+> A few questions here:
+> - Why make the two halves of the connection hash to different buckets?
+>   I'd think you'd want to consider the two halves to be the same
+>   connection.  So you want them to hash the same.  It would make the
+>   comparison a little more expensive, but save half the space.
 
-A simple test case illustrating the second case:
+and would even avoid a second key computation (modulo may be costly on
+prime numbers for instance) and it would also avoid a second collision 
+list scanning (interresting in case of large number of collisions).
 
-Have three machines
+> - % table size seems not quite ideal.  Especially since the table size
+>   is likely a power of 2, which means that you effectively ignore all
+>   but the low order bits of the addresses and ports.
 
-A <-> conntrack server <-> B
+yes, modulo is slower but more robust than bit masking (&), and
+is generally considered a good tradeoff between computation time
+and element distribution.
 
-On A, set up the following two simple rules to simulate connection dropout
--A OUPUT -p tcp --tcp-flags RST RST -j DROP
--A OUPUT -p tcp --tcp-flags FIN FIN -j DROP
+Another common practice consists in bitshifting src and dst
+(i.e: ipa+ipa<<20+ipa<<13) to enforce domain LSB variations.
 
-On B, enable the chargen TCP service to have a simple TCP data source, and for 
-the sake of accelerating the test, conserver resources of B and more 
-obviously illustrate the point lower tcp_retries2 to something like 5.
+> Perhaps one less than table size if it's even, which will lose the
+> use of one bucket but then use all of the data bits in the hash.  
+> Of course, the low order bits might well be good enough.
+> Then again, that depends on what the -per-proto data looks like,
+> and for some protos this might not vary in the low order bits.
 
-Then run the following silly test program on A
-
-while true; do telnet B chargen </dev/null >/dev/null; done
-
-
-Note: This is only a superficial twist of the traditional TCP connection flood 
-DoS. The attacker finishes the SYN handshake and then ignores the connection. 
-Can be launched on conntrack via any TCP service that returns data, causing a 
-TCP data queue on the connection preventing a FIN to be sent when the server 
-aborts the connection.
-
-
-> yes, they should.  They are TCP connections.  We shouldn't impose
-> any application-protocol specific layer4 timeouts, that sounds horrible.
->
-> the port versus application protocol (i.e. 80 == http) are by
-> convention, not by protocol design.
-
-I agree.
-
-Should also note that there exists fully valid HTTP applications utilizing 
-very long idle periods on a HTTP connection. How long the HTTP connection is 
-kept open is a business between the user-agent and the server only, nobody 
-else. The fact that most HTTP connections are short lived does not say that 
-all are and that it is OK to drop idle HTTP connections.
-
-Regards
-Henrik
+-jmhe-
