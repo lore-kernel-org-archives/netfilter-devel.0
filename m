@@ -1,13 +1,12 @@
-From: Henrik Nordstrom <hno@marasystems.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: [ANNOUNCE] pom-ng new release
-Date: Tue, 4 May 2004 22:38:52 +0200 (CEST)
+Date: Tue, 4 May 2004 22:30:01 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0405042230350.3961-100000@filer.marasystems.com>
+Message-ID: <Pine.LNX.4.33.0405042225140.28629-100000@blackhole.kfki.hu>
 References: <4097B2BA.7000500@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-   <netfilter-devel@lists.netfilter.org>
+Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 In-Reply-To: <4097B2BA.7000500@trash.net>
@@ -26,32 +25,19 @@ On Tue, 4 May 2004, Patrick McHardy wrote:
 > >      for my $dep (@{$$patchlet{info}{depends}}) {
 > >		$dep =~ s/^!//;
 > >      }
-> 
+>
 > My local Perl guru is surprised, too, but if you really want
-> to modify only $dep (why, it's scope is just the loop?)
+> to modify only $dep (why, it's scope is just the loop?), you
+> can just assign $dep it to a new variable and modify this
+> one, in this case the content of the array won't be touched.
 
-Well.. it is one of many Perl oddities, but it is well documented, and 
-also a great strength of Perl (even if confusing, but a lot is in Perl..)
+Yes, that's how the problem solved in Netfilter_POM.pm. It smells
+as a weird Perl bug.
 
- Foreach Loops
-
-  [...]
-
-If any element of LIST is an lvalue, you can modify it by modifying VAR
-inside the loop.  Conversely, if any element of LIST is NOT an lvalue, any
-attempt to modify that element will fail.  In other words, the "foreach"
-loop index variable is an implicit alias for each item in the list that
-you're looping over.
-
-
-
-Or in other words, do not touch the loop variable unless you want to
-modify the source elements. If you want to process/filter the value
-without modifying the source element then use a "dummy" loop variable and
-assign it to a local variable within the loop. This implicit reference is
-a very poverful idiom for processing lists of elements, but can be
-confusing very confusing when not expected..
-
-
-Regards
-Henrik
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
