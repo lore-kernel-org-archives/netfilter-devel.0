@@ -1,14 +1,16 @@
-From: George Vieira <GeorgeV@citadelcomputer.com.au>
-Subject: RE: iptables -L %table% <with rule matching>
-Date: Thu, 30 Jan 2003 12:04:33 +1100
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: iptables -L %table% <with rule matching>
+Date: Thu, 30 Jan 2003 07:59:42 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200FAA488DE0D41194F10010B597610D5BEB1B@jupiter.citadelcomputer.com.au>
+Message-ID: <20030130065942.GA20695@oknodo.bof.de>
+References: <200FAA488DE0D41194F10010B597610D5BEB1B@jupiter.citadelcomputer.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
+Cc: "'netfilter-devel@lists.netfilter.org'" <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'netfilter-devel@lists.netfilter.org'"
-	 <netfilter-devel@lists.netfilter.org>
+To: George Vieira <GeorgeV@citadelcomputer.com.au>
+Content-Disposition: inline
+In-Reply-To: <200FAA488DE0D41194F10010B597610D5BEB1B@jupiter.citadelcomputer.com.au>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,56 +21,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-With the no response to my last request, I guess everybody has their own
-patching projects and/or cannot help me with mine? 
+On Thu, Jan 30, 2003 at 12:04:33PM +1100, George Vieira wrote:
+> With the no response to my last request, I guess everybody has their own
+> patching projects and/or cannot help me with mine? 
 
-Can anyone give me some guidance to do this?
+No. It's just that the last 20 times such a topic came up, the
+unanimous answer on this development list was "iptables userspace
+is broken by design, we don't want to meddle with it more than
+absolutely neccessary."
 
-Thanks,
-____________________________________________
-George Vieira
-Systems Manager
-georgev@citadelcomputer.com.au 
-Citadel Computer Systems Pty Ltd
-Phone : +61 2 9955 2644
-HelpDesk: +61 2 9955 2698  
-http://www.citadelcomputer.com.au
- 
+There are specific reasons, one of them making your proposal
+a lot less intresting: even when you have a "delete me this rule"
+option, the command will nevertheless pull the whole table out
+of the kernel, modify it, and write the full table back to the
+kernel.
 
+There are solutions, e.g. the ctnetlink patch, which show how to
+approach that general problem group. People are in the process
+of developing such a new user space framework, but nothing usable
+has come from this, yet.
 
------Original Message-----
-From: George Vieira 
-Sent: Tuesday, 28 January 2003 11:22 AM
-To: 'netfilter-devel@lists.netfilter.org'
-Subject: iptables -L %table% <with rule matching>
+In any case, not many people seem keen to even think about giving
+the existing iptables user space more than bugfixes; any patch to
+functionality is seen as waste of time, as far as I can tell.
 
+As this situation has not changed for the whole last year, and the
+questions like yours come in every one or two weeks, you should not
+be too surprised that they are just ignored.
 
-Hi all,
-
-I've gone through the source code for iptables 1.2.7a and found it's quite
-possible to change it a little to make the -L command list 1 rule instead of
-the whole table by using part of the "-D" routines and change it to LIST and
-not DELETE, but I'm not a very good linux C programmer.
-
-Is there anyone who could help be achieve this function and make a patch, or
-tell me if there is a way to look up a rules byte count without having to
-"grep" through the "-L"ist and this takes up valuable CPU when searching
-many rules..
-
-I'm trying to write graphing scripts, but on every swoop it chews heaps of
-CPU coz' it has to sweep through and grep on every rule it's checking (which
-I have around 20-30 rules so far).... 
-
-I hope I made myself clear, and I hope it's possible.. ;)
- 
- 
-Thanks,
-____________________________________________
-George Vieira
-Systems Manager
-georgev@citadelcomputer.com.au 
-Citadel Computer Systems Pty Ltd
-Phone : +61 2 9955 2644
-HelpDesk: +61 2 9955 2698  
-http://www.citadelcomputer.com.au
- 
+best regards
+  Patrick
