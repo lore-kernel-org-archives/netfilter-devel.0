@@ -1,15 +1,12 @@
-From: Devesh Agrawal <devesh.agrawal@gmail.com>
-Subject: Re: Newbie question about fragmentation and the PRE_ROUTING hook
-Date: Sat, 26 Mar 2005 05:02:02 +0530
-Message-ID: <db01ab350503251532128566c@mail.gmail.com>
-References: <42403008.9070006@cardvn.net> <42444A4A.5090308@cardvn.net>
-	<db01ab3505032511079d11ea4@mail.gmail.com>
-Reply-To: Devesh Agrawal <devesh.agrawal@gmail.com>
+From: Alexander Samad <alex@samad.com.au>
+Subject: Problem with apply patch connlimit to 2.6.10 (debian 2.6.10-6)
+Date: Sat, 26 Mar 2005 10:43:32 +1100
+Message-ID: <20050325234332.GD10616@samad.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="llIrKcgUOe3dCx0c"
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <db01ab3505032511079d11ea4@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,51 +18,66 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-Just to add some more info:
-I wrote a simple src routing protocol , which adds a new hdr b/w the
-ip and the tcp headers. I fragment a packet, such that each fragment
-has the ip and my header (so that I decide the route for every frag).
-However if I allow the kernel to reassemble my fragments it will screw
-things up for me as it does not know anything about my header. Hence I
-want to process each of the fragments in pre route as it is (basically
-I remove my header and pass it up to local_in, where it can be
-defragged in ip_local_deliver before calling my local in hander).
-I have given NF_IP_PRE_FIRST priority to my pre route handler, but
-still it is getting some screwed up reassembled packet, as probably
-Netfilter is trying to reassemble my packet and hence messing it up.
-I read up that conntrack defrags the packet, but it does so with a
-lower priority (higher value) than NF_IP_PRE_FIRST, inspite of all
-this, I do not know why my pre route handler is getting a defragged
-packet. Any idea of what I am missing out.
-PS: My sender explicitly frags a packet if its size is greater than
-some value (currently set to 500). Hence I am sure that I am
-generating those fragments. I will be greatful for any insight into
-this problem.
-Regards,
-Devesh Agrawal
 
-On Sat, 26 Mar 2005 00:37:41 +0530, Devesh Agrawal
-<devesh.agrawal@gmail.com> wrote:
-> Hi,
-> I have a very basic question about netfilter and IP fragments. My
-> understanding is that the pre routing hook gets the fragmented packet
-> , which is later in defragged in local in in the ip_local_input funx.
-> ie If I print the skb in pre route hook, I shall get the individual
-> frags, whereas in local in hook I would get the complete packet. Is
-> this absolutely correct ?
-> Am I gettting the right picture or is there anything else that I should know?
-> I would be grateful if someone could clear my doubt.
-> Sincerely,
-> Devesh Agrawal
-> 
+--llIrKcgUOe3dCx0c
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi
 
 
--- 
-Devesh Agrawal
-4th year Dual Degree.
-Dept of CSE 
-Indian Institute of Technology , Madras
-Room No . 309 , Alakananda Hostel 
-Chennai 600036 ,India
-Ph : +91 9382102431
+I have been trying to apply the connlimit patch to a debian kernel
+source package.  These are the other patches I apply
+
+policy TARPIT iprange raw dstlimit ROUTE time IPMARK CLASSIFY
+dropped-table pool realm TCPLAG ULOG account connlimit nf_conntrack nth
+owner-socketlookup ownercmd conntrack-cacheline-opt
+
+But I this error when I try and compile the kernel=20
+
+  CC [M]  net/ipv4/netfilter/ipt_connlimit.o
+net/ipv4/netfilter/ipt_connlimit.c: In function `count_them':
+net/ipv4/netfilter/ipt_connlimit.c:100: error: structure has no member
+named `infos'
+net/ipv4/netfilter/ipt_connlimit.c:107: error: structure has no member
+named `infos'
+make[5]: *** [net/ipv4/netfilter/ipt_connlimit.o] Error 1
+make[4]: *** [net/ipv4/netfilter] Error 2
+make[3]: *** [net/ipv4] Error 2
+make[2]: *** [net] Error 2
+make[2]: Leaving directory
+`/mnt/space0/alex/src/kernel/debian/kernel-source-2.6.10.wrk'
+make[1]: *** [stamp-build] Error 2
+make[1]: Leaving directory
+`/mnt/space0/alex/src/kernel/debian/kernel-source-2.6.10.wrk'
+make: *** [kernel] Error 2
+
+
+I have had a look in include/linux/netfilter_ipv4/ip_conntrack.h  and it
+seems like the structure has gone  and I am not sure what else I need to
+apply to make it compile.
+
+I have had similiar problems with ipv6 REJECT patch, but I have built a
+linux/include/linux/netfilter_ipv6/ip6t_REJECT.h that can be patched
+(but there might be stuff missing from there as well!
+
+and suggestions what I can do
+
+Thanks
+Alex
+
+--llIrKcgUOe3dCx0c
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFCRKIkkZz88chpJ2MRAvgVAKDLCWvKHk3FvxZ36JIV9tadC1gRFQCff/01
+hqBxZZv5WSogHsocRuk3DB0=
+=Kp6h
+-----END PGP SIGNATURE-----
+
+--llIrKcgUOe3dCx0c--
