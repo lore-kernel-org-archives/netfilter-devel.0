@@ -1,16 +1,18 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] p-o-mification of nfnetlink-ctnetlink patch
-Date: Sun, 15 Sep 2002 13:33:49 +0200
+Subject: Re: ipt_iplimit bug fixed+questions
+Date: Sun, 15 Sep 2002 13:54:43 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20020915133348.L3810@sunbeam.de.gnumonks.org>
-References: <20020913201706.GE2689@pc.ilinx>
+Message-ID: <20020915135443.R3810@sunbeam.de.gnumonks.org>
+References: <B9QQOYXRWS74TSZXYU05OJYSFE08QL.3ce15cb3@hernyo>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Q935UqjMul3XuJv7"
+	protocol="application/pgp-signature"; boundary="JqtTuO3XTyKM6PLB"
+Cc: netfilter-devel@lists.samba.org, Gerd Knorr <kraxel@bytesex.org>,
+	"Wojciech Maj" <wojtektm@poczta.onet.pl>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'netfilter-devel@lists.netfilter.org'" <netfilter-devel@lists.netfilter.org>
+To: Laszlo Hermann <hernyo@c7.campus.utcluj.ro>
 Content-Disposition: inline
-In-Reply-To: <20020913201706.GE2689@pc.ilinx>; from f292db31bff748d971287c5061481d2e@interlinx.bc.ca on Fri, Sep 13, 2002 at 04:17:06PM -0400
+In-Reply-To: <B9QQOYXRWS74TSZXYU05OJYSFE08QL.3ce15cb3@hernyo>; from hernyo@c7.campus.utcluj.ro on Tue, May 14, 2002 at 09:51:31PM +0300
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,23 +24,37 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Q935UqjMul3XuJv7
+--JqtTuO3XTyKM6PLB
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Sep 13, 2002 at 04:17:06PM -0400, Brian J. Murrell wrote:
-> Hi all,
+On Tue, May 14, 2002 at 09:51:31PM +0300, Laszlo Hermann wrote:
 >=20
-> I noticed when working on my Amanda conntrack/nat module that the
-> nfnetlink-ctnetlink in p-o-m was not quite to p-o-m standards with
-> regard to separation of the parts of the patch.  Please find attached
-> a patch to p-o-m which "p-o-mifies" the one nfnetlink-ctnetlink patch.
+> Dear Netfilter Team,
+>=20
+> I was testing the ipt_iplimit module (extension) while I encountered the
+> following problem:
+>=20
+Sorry for following up this late.  I didn't read your code back in may, bec=
+ause
+it was a C file compressed in  a ZIP binary. =20
 
-thanks, applied.
+Proposed code changes are usually submitted as unified diff and
+attached/included in the mail - so people can read it out of their mailbox.
 
-> Thanx,
-> b.
+Wojciech has encountered the same problem and pointed me at your original m=
+ail.
+
+The ipt_iplimit module is contributed by Gerd Knorr, so he is the author
+and should make the decision whether he wants to include your changes or no=
+t.
+
+Gerd, could you please have a look and discuss the bug as well as the propo=
+sed
+fix with Laszlo and Wojciech?
+
+Thanks.
 
 --=20
 Live long and prosper
@@ -51,7 +67,7 @@ GCS/E/IT d- s-: a-- C+++ UL++++$ P+++ L++++$ E--- W- N++ o? K- w--- O- M+=
 =20
 V-- PS++ PE-- Y++ PGP++ t+ 5-- !X !R tv-- b+++ !DI !D G+ e* h--- r++ y+(*)
 
---Q935UqjMul3XuJv7
+--JqtTuO3XTyKM6PLB
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -59,9 +75,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE9hHAcXaXGVTD0i/8RAqtSAJ452wUyHVKLY4PXvIQ8ckmMXn/FggCfaQ99
-4kiNzCwj4kfU8DByCMKAHek=
-=E641
+iD8DBQE9hHUDXaXGVTD0i/8RAqtXAJ9WxNF4l01s+6sV7uWrbrhj3fD4pgCgoh9Q
+wDU36J4jkYdUgu3lYdg49hw=
+=fpZT
 -----END PGP SIGNATURE-----
 
---Q935UqjMul3XuJv7--
+--JqtTuO3XTyKM6PLB--
