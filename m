@@ -1,18 +1,15 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: Re: [FUN] new netfilter matching module : passive OS fingerprint
-Date: Wed, 10 Sep 2003 20:01:13 +0400
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [PATCH?] Fix getorigdst() in ip_conntrack_core.c on 2.4.22-ac2
+Date: Thu, 11 Sep 2003 08:13:03 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030910200113.3113dd1c.johnpol@2ka.mipt.ru>
-References: <20030908161734.7c0f7420.johnpol@2ka.mipt.ru>
-	<Pine.LNX.4.51.0309101651030.9903@dns.toxicfilms.tv>
-Reply-To: johnpol@2ka.mipt.ru
+Message-ID: <Pine.LNX.4.44.0309110809220.11007-100000@filer.marasystems.com>
+References: <20030910212715.80212.qmail@web40906.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-In-Reply-To: <Pine.LNX.4.51.0309101651030.9903@dns.toxicfilms.tv>
+To: Brad Chapman <kakadu_croc@yahoo.com>
+In-Reply-To: <20030910212715.80212.qmail@web40906.mail.yahoo.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,32 +20,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 10 Sep 2003 17:00:25 +0200 (CEST)
-Maciej Soltysiak <solt@dns.toxicfilms.tv> wrote:
+On Wed, 10 Sep 2003, Brad Chapman wrote:
 
-> Hello Evgeniy, folks,
+> Hmmmm, OK. Does that mean that the tuple can't be allocated on the stack
 
-Good day.
+It can (and should), but you only allocated a uninitialized pointer not 
+the tuple.. The *tuple needs to point at something before you try to 
+assign it's members some values..
 
-> > So, if you are interested in, please see and comment :)
-> I took the privilege and made a patch for netfilter CVS to include
-> this module in patch-o-matic, so it would be easier for people to test
-> this module as a simple patch.
-> 
-> I also wrote an example, added lists of available genres and wrote
-> osf.patch.configure.help and osf.patch.help messages.
-> 
-> I am sending the patch attached for the netfilter CVS.
-> 
-> Also this patch is available at
-> http://soltysiak.com/linux/osf.patch
+> static void ip_ct_tuple_blank(struct ip_conntrack_tuple *tuple)
+> {
+>          tuple->src.u.all = 0;
+>          tuple->dst.u.all = 0;
+> }
 
-Super!
+This is the intended semantics of the macro, but due to a missing 
+parantesis in the macro it is not how it ends up..
 
-I have an idea to make fingerprint table dynamic and write a little
-program to parse and load whole Michal's table through  ioctl or
-/proc.
-
-> Maciej Soltysiak
-
-	Evgeniy Polyakov ( s0mbre )
+Regards
+Henrik
