@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Question about nf_hookfn
-Date: Fri, 10 Oct 2003 22:23:36 +0200
+From: Markus Mikkolainen <itm@itmo.dyndns.org>
+Subject: Re: netfilter-devel digest, Vol 1 #689 - 4 msgs
+Date: Fri, 10 Oct 2003 00:03:37 +0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031010202336.GH13456@sunbeam.de.gnumonks.org>
-References: <1065798842.17392.38.camel@rade7.s.cs.auc.dk>
+Message-ID: <20031010000337.44c23ae2.itm@itmo.dyndns.org>
+References: <20031008042841.17580.88884.Mailman@netfilter-sponsored-by.noris.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3ecMC0kzqsE2ddMN"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Emmanuel Fleury <fleury@cs.auc.dk>
-Content-Disposition: inline
-In-Reply-To: <1065798842.17392.38.camel@rade7.s.cs.auc.dk>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20031008042841.17580.88884.Mailman@netfilter-sponsored-by.noris.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,52 +20,16 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+As a small note while reading the digest:
 
---3ecMC0kzqsE2ddMN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I wrote a small filter module as an experiment , but I havent had time to update it from 1.2.5 to later versions. It is a very simple module to match seq%n==c or !=c , where seq is the tcp sequence number and n is for example the number of machines serving a single ip. If you now define rules to drop everything else to the ip to be served except ones where connection is established and ones which are SYN and have seq%<number of servers>==<my number> , you get nice loadbalancing which 
+guarantees that if one server goes down, the numbers have to be reallocated but existing connections are not broken. and yes, it should scale 100% since the operations are totally independent, up to the point that the SYN flood is too much for the packet filter ;) The only problem here is that the machines have to either be behind a hub (bad , unless your traffic is very CPU intensive and not very network intensive) or a switch has to be tricked somehow to send the packets for the service IP
+to all of the servers. 
 
-On Fri, Oct 10, 2003 at 05:14:05PM +0200, Emmanuel Fleury wrote:
-> typedef unsigned int nf_hookfn(unsigned int hooknum,
->                                struct sk_buff **skb,
->                                const struct net_device *in,
->                                const struct net_device *out,
->                                int (*okfn)(struct sk_buff *));
->=20
-> I got all the other arguments but the last one...
->=20
-> What is it for ???
+Broadcasting some traffic is  not a bad option if you really need fault tolerance and you can afford a pair of switches in a spanking tree or something... 
 
-it is the function that gets called if the packet is to continue (i.e. when=
- the
-registered function returns NF_ACCEPT).
+nice things are also that since (usually) the sequence number is random enough (even for shit OS's) , the division is fairly even. Improvements
+could include something like seq*p%n or a real hash function to make the
+distribution even and still deterministic. 
 
-> Regards
-> --=20
-> Emmanuel
-
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---3ecMC0kzqsE2ddMN
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/hxVIXaXGVTD0i/8RAtTBAJ0WgjJwJcWhsCWszC3iE94jU3lr5QCfTZFZ
-Kmg9JxATuBxmMrBC0e8Ebpk=
-=j80B
------END PGP SIGNATURE-----
-
---3ecMC0kzqsE2ddMN--
+The code is very small/simple and mostly copied from the other examples. anyone want it?
