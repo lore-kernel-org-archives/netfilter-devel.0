@@ -1,15 +1,11 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: nf_conntrack resync with 2.6.11-rc4
-Date: Thu, 17 Feb 2005 22:56:42 +0900 (JST)
-Message-ID: <200502171356.j1HDuhRH026138@toshiba.co.jp>
-References: <20050215124751.GZ3829@sunbeam.de.gnumonks.org>
-	<200502151615.23463.michal@rokos.info>
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: ctnetlink unique id size?
+Date: Thu, 17 Feb 2005 18:41:49 +0100
+Message-ID: <4214D75D.5070005@ingate.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
-To: michal@rokos.info
-In-Reply-To: <200502151615.23463.michal@rokos.info>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,33 +17,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-Hi, Michal,
+isn't an unsigned int a bit (or rather about 32 bits) small for
+keeping the id field of the ip_conntrack struct? It's bound to wrap
+around, and with things like long-lived ssh sessions it's even
+possible for two connections to be assigned the same id after a
+wrap-around.
 
-I applied your patch. Thanks a lot.
+Am I missing something obvious when I think ctnetlink_dump_table()
+will break down when the wrap-around occurs?
 
-And I found other missing changes by using sed & diff technology ;)
-I'll commit them latter.
+Using an uint64_t would on the other hand guarantee that each
+connection really get a unique id.
 
-Regards,
-
-From: Michal Rokos <michal@rokos.info>
-Date: Tue, 15 Feb 2005 16:15:23 +0100
-
-> Hello Harald,
-> 
-> On Tuesday 15 February 2005 13:47, Harald Welte wrote:
-> > Since lots of changes went into ip_conntrack over the last months, I
-> > went through the pain of re-synchronizing nf_conntrack with
-> > ip_conntrack, hopefully this was the last time.
-> 
-> isn't this one missing?
-> 
->  Michal
-> 
-> -- 
->         Michal Rokos
-> 
->  email: <michal AT rokos DOT info>    
-> jabber: <majkl AT jabber DOT cz>
->    icq: 36118339 
+//Marcus
+-- 
+---------------------------------------+--------------------------
+   Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+  Software Developer, Ingate Systems AB |  http://www.ingate.com/
