@@ -1,56 +1,42 @@
-From: "Maarten Wijnants" <maarten.wijnants@pandora.be>
-Subject: UDP checksum problems after switching from kernel 2.4 to 2.6
-Date: Fri, 17 Dec 2004 16:48:52 +0100
-Message-ID: <008101c4e44f$e8adcc70$6c2813ac@in.edm.luc.ac.be>
+From: Bill Davidsen <davidsen@tmr.com>
+Subject: Re: [Coverity] Untrusted user data in kernel
+Date: Fri, 17 Dec 2004 10:47:37 -0500
+Message-ID: <41C2FF99.3020908@tmr.com>
+References: <41C26DD1.7070006@trash.net> <Xine.LNX.4.44.0412170144410.12579-100000@thoron.boston.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: Patrick McHardy <kaber@trash.net>,
+	Bryan Fulton <bryan@coverity.com>, netdev@oss.sgi.com,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261360AbULQPr7@vger.kernel.org>
+To: James Morris <jmorris@redhat.com>
+In-Reply-To: <Xine.LNX.4.44.0412170144410.12579-100000@thoron.boston.redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello all,
+James Morris wrote:
+> On Fri, 17 Dec 2004, Patrick McHardy wrote:
+> 
+> 
+>>James Morris wrote:
+>>
+>>
+>>>This at least needs CAP_NET_ADMIN.
+>>>
+>>
+>>It is already checked in do_ip6t_set_ctl(). Otherwise anyone could
+>>replace iptables rules :)
+> 
+> 
+> That's what I meant, you need the capability to do anything bad :-)
 
-I have written a libipq application that accepts QUEUEd packets from 
-userspace, checks them, and subsequently decides what to do with them. I 
-often change stuff inside a packet and then reinject it in the kernel 
-through ACCEPT. More specifically, I only need to do this for UDP packets. 
-As stated on the netfilter homepage, the checksum of a modified packet must 
-be recomputed before it is reinjected into kernelspace. So, every time I 
-change the content of a QUEUEd UDP packet, I recompute the IP checksum. 
-However, I just set the UDP checksum to 0 to save computation power.
+Are you saying that processes with capability don't make mistakes? This 
+isn't a bug related to untrusted users doing privileged operations, it's 
+a case of using unchecked user data.
 
-This all worked fine on kernel version 2.4. However, I have just upgraded to 
-kernel 2.6, and all of a sudden my application doesn't work anymore. 
-Although I manually set the UDP checksum to 0 in my libipq userspace 
-application, the UDP packet arrives at its destination with an incorrect UDP 
-checksum. As a result, the UDP packet is dropped by the network stack of the 
-receiving machine. Is this an issue in kernel 2.6? In other words, do I need 
-to recalculate the UDP checksum in order to garantuee correct execution of 
-my application? Also, if this is the case, does anyone know an efficient 
-algoritm for this?
 
-Thanks in advance for your help.
-
-Kinds regards,
-Maarten Wijnants
-
---
-
-Maarten Wijnants
-Expertisecentrum voor Digitale Media
-Limburgs Universitair Centrum
-Wetenschapspark 2 - 3590 Diepenbeek
-Tel: +32 (0)11 268419 - Mobile: +32 (0)497 341848
-E-mail: maarten.wijnants@luc.ac.be
-URL: http://edm.luc.ac.be 
+-- 
+    -bill davidsen (davidsen@tmr.com)
+"The secret to procrastination is to put things off until the
+  last possible moment - but no longer"  -me
