@@ -1,13 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: nfsim cmdline section alignment problems on x86_64
-Date: Thu, 06 Jan 2005 13:26:00 +0100
-Message-ID: <41DD2E58.9080800@trash.net>
+From: "Maarten Wijnants" <maarten.wijnants@luc.ac.be>
+Subject: ipq_set_verdict gives errors for multicast packets but works fine
+	for unicast (kernel 2.6)
+Date: Wed, 5 Jan 2005 17:12:12 +0100
+Message-ID: <013301c4f341$50919b00$642813ac@in.edm.luc.ac.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,20 +20,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Rusty,
+Hello group,
 
-I ran into some alignment problems with the cmdline section on x86_64
-with gcc 3.3.5. Entries are aligned to 32-byte, which causes every entry
-to occupy 64 bytes. sizeof(struct cmdline_option) is 40 byte however, so
-using them or calculating their number fails.
+I have written a libipq application that accepts QUEUEd packets from 
+kernelspace, checks them, and subsequently decides what to do with them. I 
+often change stuff inside a packet and then reinject it in the kernel 
+through ACCEPT. More specifically, I often need to change the source IP and 
+source port of UDP packets. Every time I change the content of a QUEUEd UDP 
+packet, I recompute the IP checksum, and I set the UDP checksum to 0. The 
+UDP checksum is optional (see RFC), so can be set to 0.
 
-  [Nr] Name              Type             Address           Offset
-       Size              EntSize          Flags  Link  Info  Align
-  [18] cmdline           PROGBITS         0000000000540e80  00040e80
-       0000000000000280  0000000000000000  WA       0     0     32
+This all worked fine on kernel version 2.4. However, I have just upgraded to 
+kernel 2.6.6, and all of a sudden my application doesn't work anymore. First 
+I thought this was because of the UDP checksum of 0 (see my previous mail to 
+the mailinglist). So I implemented an algorithm that calculates the UDP 
+checksum, but the problem persists. More specifically, when I want to 
+reinject an altered packet, I use the following rule of C code:
 
-My quick fix was to pad the structure to 64 bytes, hopefully you have a
-better idea :)
+ipq_set_verdict(ipq_handle, m->packet_id, NF_ACCEPT, m->data_len, packet);
 
-Regards
-Patrick
+Since I didn't change the payload of the UDP packet, only some header 
+information, I can use the original size of the QUEUEd packet (i.e. 
+m->data_len with m being an ipq_packet_msg_t pointer). Now the strange thing 
+is, if the packet is destined for a unicast destination, this line of code 
+works and the packet reaches its destination. However, if this packet has a 
+multicast destination, it seems to get lost. The result from ipq_set_verdict 
+is positive, but the packet doesn't reach its destination. What's more, if I 
+tcpdump on the host that issued the NF_ACCEPT verdict, I can't see the 
+multicast packet getting sent. The above rule of code worked for both 
+unicast and multicast destinations in kernel 2.4 ...
+
+Anyone got any idea what is wrong here? Are there issues with ip_queue in 
+combination with kernel 2.6? If anyone got any clues please help me, I am 
+getting kind of desperate here :/
+
+Kind regards,
+Maarten
+
+--
+
+Maarten Wijnants
+Expertisecentrum voor Digitale Media
+Limburgs Universitair Centrum
+Wetenschapspark 2 - 3590 Diepenbeek
+Tel: +32 (0)11 268419 - Mobile: +32 (0)497 341848
+E-mail: maarten.wijnants@luc.ac.be
+URL: http://research.edm.luc.ac.be/~mwijnants/ 
