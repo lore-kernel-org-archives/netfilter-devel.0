@@ -1,19 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: [PATCH 2.6] iptables CONNMARK match+target
-Date: Thu, 21 Oct 2004 11:16:32 +0200
+Date: Thu, 21 Oct 2004 12:25:35 +0200 (CEST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041021091632.GB3551@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.61.0410211215580.19600@filer.marasystems.com>
 References: <20041020222102.GO19899@sunbeam.de.gnumonks.org>
 	<Pine.LNX.4.61.0410210912280.18310@filer.marasystems.com>
+	<20041021091632.GB3551@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MW5yreqqjyrRcusr"
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: Linux Netdev List <netdev@oss.sgi.com>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0410210912280.18310@filer.marasystems.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20041021091632.GB3551@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,53 +23,32 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, 21 Oct 2004, Harald Welte wrote:
 
---MW5yreqqjyrRcusr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>> Is this with or without the mark operations?
+>
+> What is 'this' you are referring to?
 
-On Thu, Oct 21, 2004 at 09:12:48AM +0200, Henrik Nordstrom wrote:
-> On Thu, 21 Oct 2004, Harald Welte wrote:
->=20
-> >This is the first patch, adding something similar like nfmark, but on a
-> >per-conntrack (as opposed to per-skb) level.  Very useful especially for
-> >asymmatric routing in combination with MASQUERADE, as often found on
-> >home DSL setups with dymamic IP address that also have e.g. a tunnel
-> >device with static IP.
->=20
-> Is this with or without the mark operations?
+The CONNMARK patch.
 
-What is 'this' you are referring to?=20
+> 'very useful'? Yes, indeed.  I think it is already very useful, even
+> without MARK bit-wise operations (which AFAIK are not implemented with
+> the required compatibility issues we discussed at the netfilter
+> workshop, but which will be submitted once this is done).
 
-'patch'? Well you should know your patch ;)
+This is what I am talking about, and answers my question.
 
-'very useful'? Yes, indeed.  I think it is already very useful, even
-without MARK bit-wise operations (which AFAIK are not implemented with
-the required compatibility issues we discussed at the netfilter
-workshop, but which will be submitted once this is done).
+The MARK bit-wise operations is also available for CONNMARK and could in 
+theory be included in CONNMARK when submitted to the kernel as this won't 
+break compatibility with existing kernels (only patched kernels), but 
+probably not worth it unless the same functionality is also available in 
+MARK which we currently can't do due to the compatibility issue..
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Once the compatibility issue is solved for MARK there should not be a 
+problem to use the same to extend CONNMARK with mark bitwise operations if 
+not included in the initial submission.
 
---MW5yreqqjyrRcusr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+I am fine either way.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFBd35wXaXGVTD0i/8RAijmAJ4oHZSAHJ3wSN9eODFhVoqibYEkbQCfdP/Q
-oORpoVyrPojTod4DV94OR58=
-=UZ31
------END PGP SIGNATURE-----
-
---MW5yreqqjyrRcusr--
+Regards
+Henrik
