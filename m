@@ -1,13 +1,13 @@
-From: Samuel Jean <sj-netfilter@cookinglinux.org>
-Subject: [testsuite] ipt_multiport testcase
-Date: Sat, 18 Dec 2004 00:27:19 -0500
-Message-ID: <41C3BFB7.3030901@cookinglinux.org>
+From: Phil Dibowitz <phil@ipom.com>
+Subject: REPOST: nfnetlink / ctnetlink / iptables2 questions
+Date: Fri, 17 Dec 2004 21:48:35 -0800
+Message-ID: <41C3C4B3.2060003@ipom.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030507070500030206010200"
-Cc: netfilter-devel@lists.netfilter.org,
-	Nicolas Bouliane <nib@cookinglinux.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary=------------enigBA121E421DAAD2C0ABE2DDC3
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
+To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,112 +19,74 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030507070500030206010200
-Content-Type: text/plain; charset=us-ascii; format=flowed
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigBA121E421DAAD2C0ABE2DDC3
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi Rusty,
-
-Like the subject suggests, here's the ipt_multiport testcase.
-This is your fourth christmas gift. This one was very expensive
-so I hope you will like it.
-
-Cheers,
-
---peejix
+NOTE: I'm reposting this as I never got a response. I independently 
+posted to both netfilter and netfilter-devel before, but am now posting 
+to both. Hopefully _someone_ can answer this.
 
 
---------------030507070500030206010200
-Content-Type: text/plain;
- name="36ipt_multiport-bad-args.sim"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="36ipt_multiport-bad-args.sim"
+Hey folks,
 
-# the three options should work (expecting: success)
-# Default maximum ports number supported by the library is 15
-iptables -I INPUT -p tcp -m multiport --source-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-iptables -D INPUT -p tcp -m multiport --source-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-iptables -I INPUT -p tcp -m multiport --destination-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-iptables -D INPUT -p tcp -m multiport --destination-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-iptables -I INPUT -p tcp -m multiport --ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-iptables -D INPUT -p tcp -m multiport --ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+A while back Herald Welte emailed me (and CC'd the list) and suggested I 
+port my application (iptstate) to use the new ctnetlink/nfnetlink 
+framework (as opposed to reading data out of /proc).
 
-# Ensure UDP works too.. (expecting: success)
-# One test should be sufficient
-iptables -I INPUT -p udp -m multiport --source-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-iptables -D INPUT -p udp -m multiport --source-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+I haven't had much time since then, but I decided to sit down and look 
+at this, and I'm a bit confused by what I found. I found libnfnetlink here:
+http://ftp.iasi.roedu.net/netfilter/libnfnetlink/snapshot/
+and libctnetlink here:
+http://ftp.iasi.roedu.net/netfilter/libctnetlink/snapshot/
 
-# Multiport doesn't support invert nor complains about it. (expecting: answer from rusty)
-# Do we still test it Rusty ?
-iptables -I INPUT -p tcp -m multiport ! --source-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-iptables -D INPUT -p tcp -m multiport ! --source-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-iptables -I INPUT -p tcp -m multiport ! --destination-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-iptables -D INPUT -p tcp -m multiport ! --destination-ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-iptables -I INPUT -p tcp -m multiport ! --ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
-iptables -D INPUT -p tcp -m multiport ! --ports 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+And since cfnetlink requires nfnetlink, I went to compile that first. 
+And ran into some problems. So I started browsing the archives, and it 
+seems people refer to an old "ctnetlink/nfnetlink" and a new one... and 
+the new one is part of "iptables2" ? I haven't followed 
+netfilter/iptables developement very carefully, so I don't know what 
+iptables2 is, but seems to be the latest suite of "frontend" 
+applications to netfilter.
 
-# Multiport doesn't support multiple options. (expecting: failure)
-expect iptables iptables: command failed
-iptables -I INPUT -p tcp -m multiport --sports 1 --dports 2 --ports 3
-expect iptables iptables: command failed
-iptables -I INPUT -p tcp -m multiport --sports 1 --dports 2
+At the very least, libnfnetlink requires nfnetlink.h, which I would have 
+thought was part of libnfnetlink, but it appears it's not. I found a 
+mention of a "release" of iptables2 here:
 
-# Can we override ourself ? (expecting: failure)
-expect iptables iptables: command failed
-iptables -I INPUT -p tcp -m multiport --sports 1 --sports 1
-expect iptables iptables: command failed
-iptables -I INPUT -p tcp -m multiport --dports 2 --dports 2
-expect iptables iptables: command failed
-iptables -I INPUT -p tcp -m multiport --ports 3 --ports 3
+http://lists.netfilter.org/pipermail/netfilter/2001-November/016646.html
 
-# Reject ICMP and ALL (expecting: failure)
-expect iptables iptables: command failed
-iptables -I INPUT -p icmp -m multiport --ports 3
-expect iptables iptables: command failed
-iptables -I INPUT -m multiport --ports 3
+but the download requires a password which I don't have. Additionally 
+the post talkes about a whole lot of kernel incompatibilities between 
+old versions and new versions and it doesn't appear the latest versions 
+have made it into the main kernel tree yet. Is this correct? If so, this 
+doesn't actually sound like something ready for primetime yet...
 
---------------030507070500030206010200
-Content-Type: text/plain;
- name="37ipt_multiport.sh"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="37ipt_multiport.sh"
+Perhaps someone can relate ctnetlink/nfnetlink (old and new) to 
+libcfnetlink/libnfnetlink and iptables2, and the current kernels for me?
 
-#! /bin/sh
+Thanks...
+-- 
+Phil Dibowitz                             phil@ipom.com
+Freeware and Technical Pages              Insanity Palace of Metallica
+http://www.phildev.net/                   http://www.ipom.com/
 
-# For both TCP and UDP, test five ports against the three options
-# where port 1 and port 5 are always the excluded twin (NF_ACCEPT'ed).
-FLAG=" SYN"
-for proto in 6 17; do
-	if [[ $proto == 17 ]]; then
-			 unset FLAG
-	fi
-	for arg in sports dports ports
-	do
-		echo iptables -I INPUT -p $proto -m multiport --${arg} 2,3,4 -j DROP
-		for port in 1 2 3 4 5
-		do
-			case $port in
-				[1,5]) 	VERDICT=NF_ACCEPT ;;
-				*) 		VERDICT=NF_DROP	;;
-			esac
+"They that can give up essential liberty to obtain a little temporary
+safety deserve neither liberty nor safety."
+  - Benjamin Franklin, 1759
 
-			case $arg in
-				sports)	PORTS="${port} 1" ;;
-				dports)	PORTS="1 ${port}"	;;
-				ports)	PORTS="${port} ${port}"	;;
-			esac
-				
-				echo expect gen_ip hook:NF_IP_LOCAL_IN iptable_filter $VERDICT \
-				{IPv4 192.168.0.2 192.168.0.1 0 $proto ${PORTS}$FLAG}
-				echo gen_ip IF=eth0 192.168.0.2 192.168.0.1 0 $proto $PORTS $FLAG
-		done
-		echo iptables -D INPUT -p $proto -m multiport --${arg} 2,3,4 -j DROP
-	done
-done > $TMPFILE
 
-$NFSIM $NFSIM_ARGS < $TMPFILE
+--------------enigBA121E421DAAD2C0ABE2DDC3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
---------------030507070500030206010200--
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFBw8SzN5XoxaHnMrsRAvE7AJ4/kfpR0NBppSshbobanFv7ZKG9+QCgqAkn
+Q/pMYco5X+TNvn07cstXMoA=
+=Hetd
+-----END PGP SIGNATURE-----
+
+--------------enigBA121E421DAAD2C0ABE2DDC3--
