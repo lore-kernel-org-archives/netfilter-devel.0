@@ -1,13 +1,18 @@
-From: qhou <qhou_acornsoft@sohu.com>
-Subject: Re:Warm hearted man, Could you give me a suggestion on where to post this develop question of _NETFILTER_
-Date: Mon, 1 Jul 2002 12:25:58 +0800 (CST)
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: Re: [PATCH}: Make MARK target terminate (resend)
+Date: Mon, 1 Jul 2002 09:50:18 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <6021918.1025497558149.JavaMail.postfix@mailsrv10.mail.sohu.com>
+Message-ID: <20020701075018.GA440@balabit.hu>
+References: <3D1D81F8.9080309@trash.net> <200206291236.36997@henrik.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="GB2312"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=iso-8859-1
+Cc: Patrick McHardy <kaber@trash.net>,
+	netfilter-devel <netfilter-devel@lists.samba.org>,
+	Harald Welte <laforge@gnumonks.org>
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: <netfilter-devel@lists.samba.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+Content-Disposition: inline
+In-Reply-To: <200206291236.36997@henrik.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,46 +23,20 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Let me tell you, poor guy:
-Why they didn't reply is because they are busy working on their "difficulties".
-And they have perhaps already replied the message, but they even have no time to send out the mail.
+On Sat, Jun 29, 2002 at 12:36:36PM +0200, Henrik Nordstrom wrote:
+> On Saturday 29 June 2002 11.46, Patrick McHardy wrote:
+> So the question to the Netfilter core team is if it would be OK to add 
+> a new option and "module class" to the userspace tools, and have the 
+> existing IPT_CONTINUE targets dual-register as both a target and a 
+> match. I can try to whip something together if this is seen as 
+> something acceptable. Should be fully backwards/forward compatible 
+> with existing rulesets with only a minimal amount of code 
+> duplication. The only compability issue is that if you make use the 
+> new feature then you cannot go back to a older userspace or kernel..
 
-Take pains...
+I for one would second a feature like this. I see a good number of places
+where it could be used (the long standing missing -l option is one example)
 
-SIGH
-
-
------  т╜нд  -----
-From: qhou 
-To: qhou 
-Subject: Warm hearted man, Could you give me a suggestion on where to post this develop question of _NETFILTER_
-Sent: Fri Jun 28 14:33:25 CST 2002
-
-> Perhaps the question for you is very easy.
-> But I really don't know where to post yours easy my question on,
-> PLEASE AT LEAST give me any suggestion on where to post it...OR more...
-> 
-> Thanks in advance...very much
-> 
-> Yours honesty...
-> 
-> > I have a requirement:
-> > =====================
-> > 1.When a conntrack is created, I'll allocate memory for my private data, if the associated connect is what I am interested on.
-> > 2.And as the conntrack is destroyed for the connect is absolutely closed or timeout, I'll then release the memory of my private data.
-> > 
-> > The note(1) is easy to be done, but note(2) in some way is much more complex.
-> > 
-> > Currently I have two ideas on note(2):
-> > ======================================
-> > 1.Register a handle of the "void (*ip_conntrack_destroyed)()" in "ip_conntract_core.c" on my module's init function.
-> > 2.I implement the state and timeout tracking of my own in the module.
-> > 
-> > For idea(1), There'll be in conflict with the NAT, because the NAT uses the hook.(ip_nat_core.c:ip_nat_init()&:ip_nat_cleanup())
-> > For idea(2), I'll repeat the ip_conntrack's alogrithm, ALSO be not a good idea...
-> > 
-> > Then can I implement it in another way?
-> > Such as: the conntrack support me one safty hook on conntrack destroy...(I think there is no such hooks)
-> > 
-> > 
-> 
+-- 
+Bazsi
+PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
