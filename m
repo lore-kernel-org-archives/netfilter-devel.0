@@ -1,98 +1,83 @@
-From: Olaf Kirch <okir@suse.de>
-Subject: [PATCH] Don't export common symbols from ipfwadm.ko
-Date: Thu, 7 Oct 2004 15:42:07 +0200
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20041007134207.GA21992@suse.de>
+From: Harald Welte <laforge@netfilter.org>
+Subject: [ADMIN] netfilter.org CVS now converted to subversion
+Date: Thu, 7 Oct 2004 18:46:28 +0200
+Sender: netfilter-bounces@lists.netfilter.org
+Message-ID: <20041007164628.GN13901@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="a8Wt8u1KmwUX3Y2C"
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0kRkyLZR5zsR9u2P"
+Cc: netfilter@lists.netfilter.org, netfilter-announce@lists.netfilter.org
+Return-path: <netfilter-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---a8Wt8u1KmwUX3Y2C
+--0kRkyLZR5zsR9u2P
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi all,
+Important Announcement!
 
-As of 2.6.9-rc2, two symbols additional symbols (ip_conntrack_count and
-ip_conntrack_tcp_update). These are exported from conntrack*c files
-linked into both ip_conntrack.ko and ipfwadm.ko, so the symbols show
-up both in ip_conntrack.ko and ipfwadm.ko, causing bogus dependencies
-in modules.dep. The patch below moves the EXPORT_SYMBOL() statements
-to ip_conntrack_standalone.c.
+The netfilter.org CVS server (pserver.netfilter.org) has been deprecated
+by the new subversion repository at svn.netfilter.org.  More information
+about the subversion revision control system can be found at
+http://subversion.tigris.org/.
 
-Cheers
-Olaf
--- 
-Olaf Kirch     | Things that make Monday morning interesting, #1:
-okir@suse.de   |        "I want to use NFS over AX25, can you help me?"
----------------+ 
+Everybody has read-only access to the new subversion tree using either
+svn+http or svn+https. We do not provide the native svn protocol.
 
---a8Wt8u1KmwUX3Y2C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=ipfwadm-symbol-cleanup
+The respective URL's for the root of the tree are:
 
+	https://svn.netfilter.org/netfilter
+	http://svn.netfilter.org/netfilter
 
-Exported kernel symbols ip_conntrack_count and ip_conntrack_tcp_update were
-showing up both in ip_conntrack.ko and ipfwadm.ko, causing bogus dependencies
-in modules.dep. The patch below moves the EXPORT_SYMBOL() statements to
-ip_conntrack_standalone.c.
+The CVSweb/ViewCVS interface at http://cvs.netfilter.org/ now points to
+the subversion tree, as does the http://svn.netfilter.org/ URL.
 
-Signed-off-by: Olaf Kirch <okir@suse.de>
+The old CVS tree will be available for 30 days, so people can still
+create patches from their changes by using 'cvs diff'.  Startin from
+November 7, 2004 the CVS pserver service will be deactivated.
 
-Index: linux-2.6.8/net/ipv4/netfilter/ip_conntrack_core.c
-===================================================================
---- linux-2.6.8.orig/net/ipv4/netfilter/ip_conntrack_core.c	2004-09-30 13:35:33.000000000 +0200
-+++ linux-2.6.8/net/ipv4/netfilter/ip_conntrack_core.c	2004-10-06 11:28:59.000000000 +0200
-@@ -62,7 +62,6 @@
- 
- /* ip_conntrack_standalone needs this */
- atomic_t ip_conntrack_count = ATOMIC_INIT(0);
--EXPORT_SYMBOL(ip_conntrack_count);
- 
- void (*ip_conntrack_destroyed)(struct ip_conntrack *conntrack) = NULL;
- LIST_HEAD(ip_conntrack_expect_list);
-Index: linux-2.6.8/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-===================================================================
---- linux-2.6.8.orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2004-09-30 13:35:24.000000000 +0200
-+++ linux-2.6.8/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2004-10-06 11:29:53.000000000 +0200
-@@ -737,7 +737,6 @@
- 	return 1;
- }
-  
--EXPORT_SYMBOL(ip_conntrack_tcp_update);
- #endif
- 
- #define	TH_FIN	0x01
-Index: linux-2.6.8/net/ipv4/netfilter/ip_conntrack_standalone.c
-===================================================================
---- linux-2.6.8.orig/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-30 13:35:33.000000000 +0200
-+++ linux-2.6.8/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-10-06 11:30:34.000000000 +0200
-@@ -46,6 +46,14 @@
- MODULE_LICENSE("GPL");
- 
- extern atomic_t ip_conntrack_count;
-+/* We export these symbols here rather than where they're defined
-+ * to prevent them from showing up in ipfwadm.ko
-+ */
-+EXPORT_SYMBOL(ip_conntrack_count);
-+#ifdef CONFIG_IP_NF_NAT_NEEDED
-+EXPORT_SYMBOL(ip_conntrack_tcp_update);
-+#endif
-+
- DECLARE_PER_CPU(struct ip_conntrack_stat, ip_conntrack_stat);
- 
- unsigned int ip_ct_log_invalid = 0;
+The CVS changelog mailinglist and the snapshot scripts for providing
+iptables and patch-o-matic snapshots have not yet been converted to
+subversion.  They are expected to come back until Sunday, 10 Oct 2004.
 
---a8Wt8u1KmwUX3Y2C--
+In case you experience any problems, feel free to contact me.
+
+Happy Hacking,
+	Harald Welte, for the Netfilter Core Team.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--0kRkyLZR5zsR9u2P
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFBZXLkXaXGVTD0i/8RAuCiAJ0ZHVw+MiHu4z7OETg6wWhMdCFq7wCfZKg9
+v/wuns7QaOQudKSWZL7LbY8=
+=DDPE
+-----END PGP SIGNATURE-----
+
+--0kRkyLZR5zsR9u2P--
