@@ -1,15 +1,15 @@
-From: Nigel Kukard <nkukard@lbsd.net>
-Subject: Re: [PATCH] New match module: byte rate match
-Date: Tue, 21 Jan 2003 12:38:36 +0200 (SAST)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: re: conntrack hash function comparison
+Date: Tue, 21 Jan 2003 12:12:51 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0301211236040.13452-100000@mail.lbsd.net>
-References: <Pine.LNX.4.44.0301161438250.2232-100000@localhost>
+Message-ID: <Pine.LNX.4.33.0301211136020.19820-100000@blackhole.kfki.hu>
+References: <15916.59019.853598.788888@isis.cs3-inc.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Chris Wilson <chris@netservers.co.uk>
-In-Reply-To: <Pine.LNX.4.44.0301161438250.2232-100000@localhost>
+To: Don Cohen <don-netf@isis.cs3-inc.com>
+In-Reply-To: <15916.59019.853598.788888@isis.cs3-inc.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,83 +20,99 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-There is already a match like this, maintained by LBSD  (www.lbsd.net)
-and can be found at   ftp://www.lbsd.net
+On Mon, 20 Jan 2003, Don Cohen wrote:
 
-This patch was rejected because it was said to be a copy of ipt_limit.
+>  > Please look trough the web pages and comment it.
+>
+> I see several hash functions have been added since I last looked.
+> Aftr some search I see the code in http://bei.bof.de/
+> (I suggest a reference to it from the advertised page.)
 
-good luck!
+I added the reference to cttest to the frontpage as well.
 
+The extended cttest source I used hasn't been sent back to Patrick yet,
+because depending on the answer from the author, I might have to remove
+the buzhash code from the source.
 
-On Mon, 20 Jan 2003, Chris Wilson wrote:
+> This code looks a bit old.  Below is the version I'm using at
+> present.  I suggest you try testing this version too.
 
-> Hi all,
-> 
-> NetServers.co.uk would like to submit a new module for your perusal and
-> hopefully for inclusion in Netfilter. It's based on ipt_limit, but matches
-> the number of bytes per second instead of the number of packets. This
-> means that it can be used for basic quality-of-service implementation,
-> thus:
-> 
-> # limit SMTP traffic from A to B to 4kbytes/s
-> iptables -A FORWARD -s A -d B -p tcp --dport 25 -m bytelimit --limit 
-> 	4000/s -j ACCEPT
-> iptables -A FORWARD -s A -d B -p tcp --dport 25 -j DROP
-> 
-> # classify the first 8kbytes/s of SSH traffic as high priority
-> iptables -t mangle -A FORWARD -p tcp --dport 22 -m bytelimit --limit
->         8000/s -j TOS --set-tos minimize-delay
-> iptables -t mangle -A FORWARD -p tcp --dport 22 -j TOS --set-tos normal
-> 
-> You can download the patches against iptables-1.2.7a userspace and kernel
-> 2.4.19 here:
-> 
->   'http://www.netservers.co.uk/gpl/iptables-bytelimit-030116.tar.gz'
-> 
-> And more information about us, including other GPL software, here:
-> 
->   'http://www.netservers.co.uk/gpl/'
-> 
-> The module is licensed under the GPL, as it is based on ipt_limit. At this
-> stage, the module is only lightly tested, but it works for us. We hope it
-> will be useful to someone. 
-> 
-> Cheers, Chris.
-> 
+Fine, I'll test it.
 
--- 
+> I expect it will be a little slower (using long numbers) but
+> a little better, for instance, on table sizes that are powers of 2.
 
+I don't think we should restrict ourselves to hashes which work with any
+kind of hashsize. Be the hast as fast as possible and as good as possible
+:-).
 
-Nigel Kukard  (Chief Executive Officer)
-Lando Technologies Africa (Pty) Ltd
-nigel@lando.co.za   www.lando.co.za
-Tel: 083 399 5822  Fax: 086 1100036
-Hoheisen Park Bellville,  Cape Town
-National  Internet Service Provider
+> A few details:
+> - The ABCD(EF) algorithms were actually suggested to me by Rich
+> Schroeppel.
 
+Then credicts goes to him and to you as well.
 
-  The best language to use is the language that was designed for
-         what you want to use it for - 1997
+> - I don't see what you consider odd about the random results.
 
+I believe the random hash should give a smooth distribution of the
+entries. But for example in the case of the matrix dataset/8191 hash size
+it gives:
 
-=====================================================================
+Count   Length  CT
+5       21      0.14%
+3       20      0.22%
+11      19      0.50%
+29      18      1.19%
+50      17      2.32%
+99      16      4.43%
+180     15      8.02%
+290     14      13.41%
+445     13      21.11%
+662     12      31.67%
+833     11      43.85%
+1011    10      57.29%
+1051    9       69.87%
+1046    8       80.99%
+911     7       89.47%
+716     6       95.18%
+442     5       98.12%
+254     4       99.47%
+105     3       99.89%
+38      2       99.99%
+7       1       100.00%
+3       0       100.00%
 
-Disclaimer
-----------
-The contents of this message and any attachments are intended 
-solely for the addressee's use and may be legally privileged and/or 
-confidential information. This message may not be retained, 
-distributed, copied or used if you are not he addressee of this 
-message. If this message was sent to you in error, please notify 
-the sender immediately by reply e-mail and then destroy the message 
-and any copies thereof.
+The number of the longest hash buckets is out of the distribution - there
+are more of them than the hash buckets just shorter than the longest one.
+(As I wrote on the pages, we actually test the random number generator in
+Linux too so I count these examples as the indication of little
+weaknesses in the generator.) This is the very reason why I "measured" the
+distances from the ideal hash instead.
 
-Opinions, conclusions and other information in this message may be 
-personal to the sender and is not that of Lando Technologies Africa 
-or any of it's subsideries, associated companies or principals and 
-is therefore not endorsed by any of the Lando groups of companies. 
-Due to e-maill communication being insecure, Lando groups of 
-companies do not guarantee confidentiality, security, accuracy or  
-performance of the e-mail. Any liability for viruses is excluded 
-to the fullest extent.
+> The idea behind ABCD(EF) is that the coefficients A,B,C,D(,E,F) are
+> secrets, chosen randomly by each connection tracking machine.
+> So far I don't know how this can be attacked.  My current code assumes
+> that, if it can be attacked at all, this will at least take a long
+> time.  The solution is that (1) I detect that the current coeffecients
+> are not working as well as expected (simply that some bucket gets
+> filled past a very unlikely threshold), and in that case (2) we choose
+> new randome coeffecients and rehash everything (which probably takes
+> less than a second unless you have millions of connections).
+
+I don't really like the idea of rehashing if the hash function is
+(so) strong.
+
+What is your opinion on the abcdx variant, where the four random
+multipliers were chosen so that at any bit postition in the four
+numbers there are exactly two zeros and two ones (similarly to the
+rtable in buzhash, http://www.cl.cam.ac.uk/users/kw217/pub/Hash.adt.ps.gz).
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
