@@ -1,16 +1,12 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH]: fixed the bug of tracking TCP sequence number in ftp
- module
-Date: Thu, 10 Mar 2005 22:18:47 +0900 (JST)
-Message-ID: <200503101318.j2ADImxw013896@toshiba.co.jp>
-References: <200503092146.j29LkY7a006055@toshiba.co.jp>
-	<422F6FF3.2080603@trash.net> <422FA88B.6080509@trash.net>
+From: "Alexandre Chaves Fonseca" <alex.f-linux@specialist.com.br>
+Subject: Patch for CONFIG_IP_NF_NAT_LOCAL in 2.6.11 ?
+Date: Thu, 10 Mar 2005 14:02:01 -0300
+Message-ID: <019201c52592$e181a4b0$0a00a8c0@alexandre>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
-To: kaber@trash.net
-In-Reply-To: <422FA88B.6080509@trash.net>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,21 +18,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 10 Mar 2005 02:53:15 +0100
+Someone has a patch to CONFIG_IP_NF_NAT_LOCAL in kernel 2.6.11
+(it was removed in this version) ?
 
-> Yasuyuki KOZAKAI wrote:
-> 
-> > TCP sequence number is 32bits. 
-> 
-> BTW, I have a nf_conntrack tree outside of patch-o-matic to get it ready
-> for submission. I haven't exported it anywhere public yet, but since
-> you're updating nf_conntrack anyway, it would be great if you could also
-> send patches for nf_conntrack against your tree together with
-> ip_conntrack patches. I'll try to export my tree somewhere this
-> weekend.
+Best regards,
+Alexandre
 
-I see. Maybe I need to fix about 3 or 4 issues.
 
------------------------------------------------------------------
-Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+---------------------------------------------------------------
+Esta mensagem foi verificada pelo e-mail seguro wstation.
+McAfee VirusScan / Vacina v4443 atualizada em 09/03/2005
+powered by wstation (www.wstation.com.br)
