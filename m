@@ -1,19 +1,16 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: ICMP DNAT bug fix no longer applies?
-Date: Mon, 28 Apr 2003 12:49:30 +0200
+From: Chris Wilson <chris@netservers.co.uk>
+Subject: Re: IPtables performance (fwd)
+Date: Mon, 28 Apr 2003 13:25:59 +0100 (BST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030428104929.GA28196@balabit.hu>
-References: <Pine.LNX.4.44.0304241412470.24242-100000@localhost> <20030427132039.GN990@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.44.0304281155450.24242-100000@localhost>
+References: <20030427130229.GG990@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org, Robert Olsson <robban@robtex.com>,
+   John McEleney <john@netservers.co.uk>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
-	Chris Wilson <chris@netservers.co.uk>,
-	netfilter-devel@lists.netfilter.org,
-	John McEleney <john@netservers.co.uk>,
-	Philippe Biondi <biondi@cartel-securite.fr>
-Content-Disposition: inline
-In-Reply-To: <20030427132039.GN990@sunbeam.de.gnumonks.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20030427130229.GG990@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -24,35 +21,73 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Apr 27, 2003 at 03:20:39PM +0200, Harald Welte wrote:
-> On Thu, Apr 24, 2003 at 02:34:11PM +0100, Chris Wilson wrote:
-> > Hi all,
-> > 
-> > Since the ICMP DNAT advisory came out last year
-> > [http://www.iptables.org/security/2002-04-02-icmp-dnat.html], we have been 
-> > applying this patch to all kernels we build. However, in between 
-> > patch-o-matic 20030107 and 20030422 this has been broken and no longer 
-> > applies.
-> 
-> This is becaue this bug should now finally have disappeared from all
-> future kernels ;)
-> 
-> > Does anyone know why the DNAT bug fix hasn't been incorporated into 
-> > the main codebase yet?
-> 
-> The reason was that the solution at that time was too intrusive into the
-> core ipv4 stack to be applied by David Miller.
-> 
-> What we now have is a probably unclean solution, that mangles the same
-> stuff in a packet twice :(  But this was necessarry for yet another
-> number of ICMP NAT bugs (see bugzilla)
+Hi Harald,
 
-Which bugzilla bug do you mean? Assuming you mean bug#55, the patch I've
-submitted does not mangle packets twice. Instead of doing packet mangling at
-two different hooks as it was done originally (hook and its opposite hook),
-it does it one go, but translation is not performed twice. (or there's
-something I don't see)
+> yup, we are aware of this problem.  However, most people tend to execute
+> iptables 1000 times for inserting 1000 rules, which is obviously the
+> wrong way to do it.  This way you end up doing 1000 ruleset-loads and
+> 1000 loop checks.  iptables-restore takes away that burden.
 
+We have already been using iptables-restore since last year, with a big
+increase in performance, but the basic problem still remains. Without this
+patch however, it still takes 15 seconds in mark_source_chains every time
+we change the ruleset on a large firewall. This is a significant delay
+when it needs to happen every time a VPN user connects, for example,
+before they can send traffic.
+
+> However, the last patch seems to have changed, so I need to do some
+> analysis whether it would still detect all loops or not.
+> 
+> I will consider any optimization as soon as anybody can guarantee me
+> that it still detects all cases of loops ;)
+
+I don't claim to understand exactly how mark_source_chains works, but here
+is my argument that the patch does detect all loops. 
+
+It appears to me that loop check made by mark_source_chains is
+deterministic, so once we've visited a particular rule, and determined
+that there are no loops in the paths leading from it, then the rule is
+_safe_, and we don't need to check it again.
+
+On the other hand, detection of a loop leads to immediate return with a
+fatal error, so that rule will never be touched again either.
+
+However, the current algorithm in mark_source_chains is to check the rule
+once for every path leading _to_ it, despite the fact that each and every
+one of these checks will return precisely the same verdict.
+
+All that Robert's patch does is to add an array of "been" flags, one per
+rule, which tells us if the rule is a jump and we've checked it before.  
+Since we're still running mark_source_chains and didn't return earlier,
+the rule did not cuase a loop then, and if nobody's changed the rules then
+it still does not cause a loop, and doesn't need to be checked again.
+
+> I'll put your patch into patch-o-matic 'extra' and add a Status:
+> Experimental line.
+
+Thanks =)
+
+By the way, this code looks like it could be simplified:
+
+[net/ipv4/netfilter/ip_tables.c:mark_source_chains()]
+
+                                        e->comefrom ^= (1<<NF_IP_NUMHOOKS);
+#ifdef DEBUG_IP_FIREWALL_USER
+                                        if (e->comefrom
+                                            & (1 << NF_IP_NUMHOOKS)) {
+                                                duprintf("Back unset "
+                                                         "on hook %u "
+                                                         "rule %u\n",
+                                                         hook, pos);
+                                        }
+#endif
+
+because the condition inside the #ifdef will always be true, so we don't 
+need to check it.
+
+Cheers, Chris.
 -- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+   ___ __     _
+ / __// / ,__(_)_  | Chris Wilson -- UNIX Firewall Lead Developer |
+/ (_ / ,\/ _/ /_ \ | NetServers.co.uk http://www.netservers.co.uk |
+\ _//_/_/_//_/___/ | 21 Signet Court, Cambridge, UK. 01223 576516 |
