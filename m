@@ -1,15 +1,17 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
+From: Swapnil Nagle <swapsn@rediffmail.com>
 Subject: Re: IPT_ENTRY_ITERATE
-Date: Thu, 23 Sep 2004 09:43:17 +0200 (CEST)
+Date: Thu, 23 Sep 2004 13:37:14 +0530
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0409230932400.20426@tux.rsn.bth.se>
+Message-ID: <41528432.3020702@rediffmail.com>
 References: <415274A7.9030203@rediffmail.com>
+	<Pine.LNX.4.58.0409230932400.20426@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Swapnil Nagle <swapsn@rediffmail.com>
-In-Reply-To: <415274A7.9030203@rediffmail.com>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <Pine.LNX.4.58.0409230932400.20426@tux.rsn.bth.se>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,23 +22,29 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 23 Sep 2004, Swapnil Nagle wrote:
 
-> I am embarassed to ask this but : where is IPT_ENTRY_ITERATE defined ?
-
-Don't be.
-
-> grep shows  only one match :
+>>grep shows  only one match :
+>>
+>>libiptc/libip4tc.c:#define ENTRY_ITERATE    IPT_ENTRY_ITERATE
+>>    
+>>
 >
-> libiptc/libip4tc.c:#define ENTRY_ITERATE    IPT_ENTRY_ITERATE
+>These defines are used backwards... the function in libiptc.c is called
+>ENTRY_ITERATE() which then gets expanded to IPT_ENTRY_ITERATE() when it's
+>compiled for ipv4. This is because most of the libiptc code is shared
+>
+>  
+>
+...
 
-These defines are used backwards... the function in libiptc.c is called
-ENTRY_ITERATE() which then gets expanded to IPT_ENTRY_ITERATE() when it's
-compiled for ipv4. This is because most of the libiptc code is shared
-between ipv4 and ipv6 and we don't want massive code duplication when
-it's mostly just the names of the structures that change.
-(look at ENTRY_ITERATE in libip6tc.c and you'll see it's similar)
+>You want to look at ENTRY_ITERATE() in libiptc.c
+>
+>  
+>
+I couldn't find the definition for either ENTRY_ITERATE() or 
+IPT_ENTRY_ITERATE() in libiptc.c.
+Basically I want to see the code that iterates through the entries and 
+calls the function specified through ENTRY_ITERATE().
 
-You want to look at ENTRY_ITERATE() in libiptc.c
-
-/Martin
+Regards,
+Swapnil.
