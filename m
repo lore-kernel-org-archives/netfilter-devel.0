@@ -1,10 +1,9 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2.6 0/9]: Netfilter Update
-Date: Mon, 15 Nov 2004 22:43:42 +0100
-Message-ID: <4199230E.7070008@trash.net>
+Subject: [PATCH 2.6 2/9]: introduce skb_header_pointer() to ipv6header match
+Date: Mon, 15 Nov 2004 22:44:12 +0100
+Message-ID: <4199232C.6010408@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="------------030301000007000304090807"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
@@ -19,37 +18,78 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Dave,
+This is a multi-part message in MIME format.
+--------------030301000007000304090807
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-the next 9 patches contain Yasuyuki's remaining ip6tables fixes
-and skb_header_pointer conversions, some ip_queue fixes and a
-fix for an information leak with DNAT and locally generated icmp
-errors.
-
-You can pull all changes from bk changes bk://212.42.230.204/nf-2.6
-
-Regards
-Patrick
+Convert ipt_ipv6header match to skb_header_pointer.
 
 
-Patrick McHardy:
-  o Merge coreworks.de:/home/kaber/src/nf/nf-2.6-icmp into 
-coreworks.de:/home/kaber/src/nf/nf-2.6
-  o Merge coreworks.de:/home/kaber/src/nf/nf-2.6-ipq into 
-coreworks.de:/home/kaber/src/nf/nf-2.6
-  o Merge coreworks.de:/home/kaber/src/nf/nf-2.6-ip6tables into 
-coreworks.de:/home/kaber/src/nf/nf-2.6
-  o [NETFILTER]: Fix invalid tcp/udp checksums within NATed icmp errors
-  o [NETFILTER]: associate locally generated icmp errors with conntrack 
-of original packet
-  o [NETFILTER]: Enable rx timestamps in ip_queue/ip6_queue
-  o [NET]: Move rx timestamp functions to net/core/dev.c
-  o [NETFILTER]: Handle nonlinear skbs in ip_queue/ip6_queue
 
-Phil Oester:
-  o [NETFILTER]: revert MASQUERADE optimization for mostly static IPs
+--------------030301000007000304090807
+Content-Type: text/x-patch;
+ name="02.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="02.diff"
 
-Yasuyuki Kozakai:
-  o [NETFILTER]: Make eui64 match usuable in FORWARD chain
-  o [NETFILTER]: introduce skb_header_pointer() to ipv6header match
-  o [NETFILTER]: Fix multiple bugs in ipv6header match
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2004/11/04 03:14:26+01:00 yasuyuki.kozakai@toshiba.co.jp 
+#   [NETFILTER]: introduce skb_header_pointer() to ipv6header match
+#   
+#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# net/ipv6/netfilter/ip6t_ipv6header.c
+#   2004/11/04 03:14:19+01:00 yasuyuki.kozakai@toshiba.co.jp +6 -5
+#   [NETFILTER]: introduce skb_header_pointer() to ipv6header match
+#   
+#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+diff -Nru a/net/ipv6/netfilter/ip6t_ipv6header.c b/net/ipv6/netfilter/ip6t_ipv6header.c
+--- a/net/ipv6/netfilter/ip6t_ipv6header.c	2004-11-15 22:06:19 +01:00
++++ b/net/ipv6/netfilter/ip6t_ipv6header.c	2004-11-15 22:06:19 +01:00
+@@ -51,7 +51,7 @@
+ 	temp = 0;
+ 
+         while (ip6t_ext_hdr(nexthdr)) {
+-        	struct ipv6_opt_hdr *hdr;
++		struct ipv6_opt_hdr _hdr, *hp;
+         	int hdrlen;
+ 
+ 		/* Is there enough space for the next ext header? */
+@@ -68,15 +68,16 @@
+ 			break;
+ 		}
+ 
+-		hdr=(struct ipv6_opt_hdr *)(skb->data+ptr);
++		hp = skb_header_pointer(skb, ptr, sizeof(_hdr), &_hdr);
++		BUG_ON(hp == NULL);
+ 
+ 		/* Calculate the header length */
+                 if (nexthdr == NEXTHDR_FRAGMENT) {
+                         hdrlen = 8;
+                 } else if (nexthdr == NEXTHDR_AUTH)
+-                        hdrlen = (hdr->hdrlen+2)<<2;
++                        hdrlen = (hp->hdrlen+2)<<2;
+                 else
+-                        hdrlen = ipv6_optlen(hdr);
++                        hdrlen = ipv6_optlen(hp);
+ 
+ 		/* set the flag */
+ 		switch (nexthdr){
+@@ -100,7 +101,7 @@
+ 				break;
+ 		}
+ 
+-                nexthdr = hdr->nexthdr;
++                nexthdr = hp->nexthdr;
+                 len -= hdrlen;
+                 ptr += hdrlen;
+ 		if (ptr > skb->len)
+
+--------------030301000007000304090807--
