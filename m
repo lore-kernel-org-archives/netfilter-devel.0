@@ -1,16 +1,16 @@
-From: Vijaya Chandra Vupputuri <vijay@tachyontech.net>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: NAT question
-Date: Wed, 30 Jun 2004 19:32:37 +0530
+Date: Wed, 30 Jun 2004 16:21:46 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1088604156.27771.9.camel@vijay>
-References: <20040630132829.9B5144C0DC@spy10.spymac.net>
+Message-ID: <Pine.LNX.4.44.0406301620200.10756-100000@filer.marasystems.com>
+References: <20040630132511.BC8004C079@spy10.spymac.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: immidi@spymac.com
-In-Reply-To: <20040630132829.9B5144C0DC@spy10.spymac.net>
+To: Kiran Kumar Immidi <immidi@spymac.com>
+In-Reply-To: <20040630132511.BC8004C079@spy10.spymac.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,57 +21,25 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I have just grepped for icmp in /proc/net/ip_conntrack while pinging the
-same box from two systems
+On Wed, 30 Jun 2004, Kiran Kumar Immidi wrote:
 
-icmp     1 29 src=192.168.1.80 dst=172.16.0.102 type=8 code=0 id=62829
-src=172.16.0.102 dst=172.16.0.100 type=0 code=0 id=62829 use=1 
-icmp     1 29 src=192.168.1.180 dst=172.16.0.102 type=8 code=0 id=38527
-src=172.16.0.102 dst=172.16.0.100 type=0 code=0 id=38527 use=1
+> Suppose I have connections=A0from A and B (both with coincidentally the=
+ same local port, say 3000),
+> both connecting to the same dest ip, port (say D:80). Now both are SNAT=
+ted at C. Firstly, Is this possible?
 
-The 'identifier' of the ICMP msg seems to be the key that is being used
-for guessing the actual source while handling the response.
-No idea as to what would happen if both the systems decide to use the
-same identifier though.
+Yes, but one of them will be assigned another local port after the SNAT=20
+(SNAT gateway <-> web server)
 
-The ICMP RFC says
-      The identifier and sequence number may be used by the echo sender
-      to aid in matching the replies with the echo requests.  For
-      example, the identifier might be used like a port in TCP or UDP to
-      identify a session, and the sequence number might be incremented
-      on each echo request sent.  The echoer returns these same values
-      in the echo reply.
+> Then how about ICMP, suppose A and B send ICMP echo request to a machin=
+e D, and the
+> requests are NATted at C, the reply in both cases would be from D to C.=
+ Then would this be
+> allowed?
 
+There is magics with the request number for these. Is in all aspects=20
+similar to the port number of TCP/UDP except that there is only one (not=20
+source+destinattion).
 
-I guess conntrack would change the id just like it does with the tcp/udp
-ports in case of a clash to identify the correct destination while
-handling the response.
-
-Regards,
-Vijay.
-
-On Wed, 2004-06-30 at 18:58, Kiran Kumar Immidi wrote:
-> 
-> Regards, 
-> Kiran Kumar Immidi 
-> 
-> On Wed, 30 Jun 2004 17:56 , Vijaya Chandra Vupputuri
-> <vijay@tachyontech.net> sent:
-> 
-> >If A and B send packets to a server, say google.com:80 using the
-> local
-> >port 10000, when the pkts get SNATed on C, the source ports would be
-> >different from 10000 (21000 and 32000 for example) and when
-> google.com
-> >sends back the packets to those new port numbers, conntrack would
-> change
-> >the dst-port numbers to 10000 along with the dst-ip address.
-> 
->   Oh yes, this answers my question. But how about ICMP which does not
-> have a concept of port? 
-> I have asked this in another mail.
-> 
-> 
-> ______________________________________________________________________
-> Cool Things Happen When Mac Users Meet! Join the community in Boston
-> this July: www.macworldexpo.com
+Regards
+Henrik
