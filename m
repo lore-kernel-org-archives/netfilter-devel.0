@@ -1,16 +1,16 @@
-From: Chris Wilson <chris@netservers.co.uk>
-Subject: Re: IPtables performance (fwd)
-Date: Mon, 28 Apr 2003 13:25:59 +0100 (BST)
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: PATCH: extra conntrack stats
+Date: Mon, 28 Apr 2003 15:47:13 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0304281155450.24242-100000@localhost>
-References: <20030427130229.GG990@sunbeam.de.gnumonks.org>
+Message-ID: <20030428134713.GA12364@oknodo.bof.de>
+References: <200304192142.h3JLg1S03466@fokkensr.vertis.nl> <20030428091332.GB29390@dns2.italway.it>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, Robert Olsson <robban@robtex.com>,
-   John McEleney <john@netservers.co.uk>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20030427130229.GG990@sunbeam.de.gnumonks.org>
+To: vecna@s0ftpj.org
+Content-Disposition: inline
+In-Reply-To: <20030428091332.GB29390@dns2.italway.it>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,73 +21,30 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
+> in attach I've put a simple patch for make proc entry that report number of
+> connection tracked, if anyone is interesting ... I've used them because
+> cat /proc/net/ip_conntrack | wc -l is too low with a large number of 
+> connection tracked.
 
-> yup, we are aware of this problem.  However, most people tend to execute
-> iptables 1000 times for inserting 1000 rules, which is obviously the
-> wrong way to do it.  This way you end up doing 1000 ruleset-loads and
-> 1000 loop checks.  iptables-restore takes away that burden.
+I use 'grep conntrack /proc/slabinfo' for this task (first number column
+is the number of conntracks currently allocated).
 
-We have already been using iptables-restore since last year, with a big
-increase in performance, but the basic problem still remains. Without this
-patch however, it still takes 15 seconds in mark_source_chains every time
-we change the ruleset on a large firewall. This is a significant delay
-when it needs to happen every time a VPN user connects, for example,
-before they can send traffic.
+Regarding your patch, it introduces another new place for cache line
+pingpong, happening with the same frequency as creation of new conntracks.
+That's rather rare, so the new pingpong won't have as much impact as the
+per-packet cases, but it's still there.
 
-> However, the last patch seems to have changed, so I need to do some
-> analysis whether it would still detect all loops or not.
-> 
-> I will consider any optimization as soon as anybody can guarantee me
-> that it still detects all cases of loops ;)
+> in addiction, for large tracking of connection, I think that the problem
+> is on the manage of linked list, I'm thinking to implement a system for 
+> apply merge sort over sortder array of connection hashs, did you think
+> that this should be a good idea ? 
 
-I don't claim to understand exactly how mark_source_chains works, but here
-is my argument that the patch does detect all loops. 
+That is not a good idea, it's not the way hashing is supposed to work.
+There is no need for ordering anywhere, so no need to sort anything,
+as a mergesort would do.
 
-It appears to me that loop check made by mark_source_chains is
-deterministic, so once we've visited a particular rule, and determined
-that there are no loops in the paths leading from it, then the rule is
-_safe_, and we don't need to check it again.
+If you have overly long hash chains, use more hash buckets, and, if
+neccessary, a better distributing hash function.
 
-On the other hand, detection of a loop leads to immediate return with a
-fatal error, so that rule will never be touched again either.
-
-However, the current algorithm in mark_source_chains is to check the rule
-once for every path leading _to_ it, despite the fact that each and every
-one of these checks will return precisely the same verdict.
-
-All that Robert's patch does is to add an array of "been" flags, one per
-rule, which tells us if the rule is a jump and we've checked it before.  
-Since we're still running mark_source_chains and didn't return earlier,
-the rule did not cuase a loop then, and if nobody's changed the rules then
-it still does not cause a loop, and doesn't need to be checked again.
-
-> I'll put your patch into patch-o-matic 'extra' and add a Status:
-> Experimental line.
-
-Thanks =)
-
-By the way, this code looks like it could be simplified:
-
-[net/ipv4/netfilter/ip_tables.c:mark_source_chains()]
-
-                                        e->comefrom ^= (1<<NF_IP_NUMHOOKS);
-#ifdef DEBUG_IP_FIREWALL_USER
-                                        if (e->comefrom
-                                            & (1 << NF_IP_NUMHOOKS)) {
-                                                duprintf("Back unset "
-                                                         "on hook %u "
-                                                         "rule %u\n",
-                                                         hook, pos);
-                                        }
-#endif
-
-because the condition inside the #ifdef will always be true, so we don't 
-need to check it.
-
-Cheers, Chris.
--- 
-   ___ __     _
- / __// / ,__(_)_  | Chris Wilson -- UNIX Firewall Lead Developer |
-/ (_ / ,\/ _/ /_ \ | NetServers.co.uk http://www.netservers.co.uk |
-\ _//_/_/_//_/___/ | 21 Signet Court, Cambridge, UK. 01223 576516 |
+best regards
+  Patrick
