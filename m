@@ -1,15 +1,13 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: question regarding iptables tuning (was Re: iptables denial of
- services)
-Date: Sun, 18 Apr 2004 01:49:30 +0200 (CEST)
+From: "Piotr =?iso-8859-2?Q?Gasid=B3o?=" <quaker@pandora.barbara.eu.org>
+Subject: Changing packet data
+Date: Sat, 17 Apr 2004 14:32:52 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0404180141470.24117-100000@filer.marasystems.com>
-References: <40817D3E.3010202@fl.priv.at>
+Message-ID: <20040417123252.GA22087@pandora.barbara.eu.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=_pandora.barbara.ds.polsl.gliwice.pl-17304-1082205172-0001-2"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <40817D3E.3010202@fl.priv.at>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,60 +18,41 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 17 Apr 2004, Friedrich Lobenstock wrote:
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
 
-> What is the downside if that equation is not fullfilled by running
->    echo "xxxx" > /proc/sys/net/ipv4/ip_conntrack_max
-> without setting the hashsize=yyyy parameter?
+--=_pandora.barbara.ds.polsl.gliwice.pl-17304-1082205172-0001-2
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Overpopulated hash leading to poorer performance than if the hash size is 
-tuned accordingly.
+Hello,
 
-> > Depends a little on what conntrack & nat helpers etc you enabled when the
-> > kernel is built. In my kernel each conntrack currently uses ca 384 bytes, 
-> > most others probably use less..
-> 
-> Wouldn't it be good if ip_conntrack exports that size via /proc? Would help 
-> the average user to estimate the influence of increasing ip_conntrack_max.
+I'm trying to develop match which is able to change packet data
+according to perl regular expression, s/.../.../. Finding match is very
+easy. But I'm stuck in replacing it. One thing that bothers me it's how
+to resize packet (replacement can be shorter or taller than match) in
+match() function. I'm only beginner in <skbuff.h> functions, which should
+I use? And whether this is possible to do it in match (not in TARGET).
 
-It isn't that hard to figure out how much memory conntrack is using by
-reading the slab allocation statistics...
+--=20
+Piotr 'QuakeR' Gasid=B3o, BOFH @ pandora.barbara.eu.org
+############## sending lusers to /dev/null since 1998
+##### Waiting for tomorrow, for a little ray of light
+### Waiting for tomorrow just to see your smile again
 
-> > The amount of memory allocated based on the hash size is pretty marginal, 
-> > what one needs to keep track of is the total number of connections as this 
-> > is the bulk of the memory usage.
-> 
-> So the hash size also limits the amount of connections?
+--=_pandora.barbara.ds.polsl.gliwice.pl-17304-1082205172-0001-2
+Content-Type: application/pgp-signature
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-The hash size is only about performance.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
 
-The only down side of a oversized hash is somewhat greater memory usage
-and a slight waste of cache space. The downside of a too small hash is 
-higher CPU usage due to overly long hash chains. Nothing inherent to 
-iptables but a general aspect of hashing.
+iD8DBQFAgSP0gEmu6PNADqoRAsSyAJ4xRvNbGxeHQr6sfAXoJ7KHldYK9gCgjMKj
+fF1lUPKZL9L6+B5OOzvIrew=
+=92Po
+-----END PGP SIGNATURE-----
 
-The only thing limiting the amount of connections is ip_conntrack_max. 
-This controls the maximum number of connections conntrack will track.
-
-> > As for suggested defaults: If this is a general purpose server then the
-> > automatic defaults. On a dedicated firewall scale the memory and conntrack
-> > based on how many concurrent sessions you need to support but I would not
-> > recommend to assign more than 50% of your memory to conntrack.
-> 
-> And why if I may ask? Management overhead, or what?
-
-You do not want the kernel to run out of memory, and you want to be able 
-to run some userspace processes..
-
-> For example a machine with 1GB RAM router only, couldn't we assign eg. 
-> 768MB to conntrack?
-
-You could. And it would probably work.
-
-> Another side question, can you add this information to the netfilter FAQ?
-
-Probably. You are welcome to send an update. You have equal ability as me 
-to update the FAQ.
-
-Regards
-Henrik
+--=_pandora.barbara.ds.polsl.gliwice.pl-17304-1082205172-0001-2--
