@@ -1,16 +1,13 @@
-From: Martijn Lievaart <m@rtij.nl>
-Subject: Re: conntrack and application-triggered port forwarding
-Date: Wed, 09 Apr 2003 13:21:30 +0200
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: conntrack and ICMP errors
+Date: Thu, 10 Apr 2003 20:20:56 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E94023A.8080701@rtij.nl>
-References: <1049846579.16856.157.camel@gt4rvnd11.telogy.design.ti.com>
+Message-ID: <20030410182056.GA17723@bzorp.balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: marian stagarescu <marian@ti.com>
-In-Reply-To: <1049846579.16856.157.camel@gt4rvnd11.telogy.design.ti.com>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,49 +18,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-marian stagarescu wrote:
+Hi,
 
->i may be missing something elementary about conntrack & nat & firewall
->so please let me know if the following feature is supported in linux
->because i don't quite see it:
->
->outside the scope of specialized ALGs (e.g. ftp, h323,...) i want 
->to be able to specify that an outbound tcp/udp connection to dstport x
->will require that related traffic be allowed inbound on port y.
->
->that is to say, for a gateway:
->
->NET---| NAT/Conntrack/Firewall |---(private LAN)
->
->_IF_AND_ONLY_IF_ traffic goes from LAN on tcp/dstport X open
->forward chain to allow related udp/dstport Y to go back on LAN.
->(i have a drop policy on forward chain for traffic with input interface
->facing NET).
->
->in this example the tcp traffic will be playing the role of the control
->channel and the udp the data channel but since I know that it operates
->on predefined ports (or port ranges) i don't have to snoop into the
->control channel and get the data channel port.
->
->this will be some "generic" ALG mechanism so that for applications that
->are operating on known ports (or port ranges) i can use it without an
->ALG implementation proper.
->
->I can use static rules that will open udp/dstport Y but forward path
->will be open on this rule (proto/port) regardless of the presence of
->outbound tcp/dstport x traffic. so opening the firewall is not triggered
->by an application.
->
->
->Not being too familiar with the internals and api  of conntrack i
->wonder: is such a task easy (example pointers ?)? 
->  
->
+I've ran into a fact recently which may or may not be intended behaviour for
+conntrack. Given a connection in the ESTABLISHED state and a related ICMP
+error is received by conntrack the connection state is not affected in any
+ways.  In practice this might mean that when a connection is terminated by
+an ICMP destination unreachable instead of a normal TCP packet the
+connection will not terminate.
 
-The recent match should be able to do this.
-1. Create a rule that matches the control channel and add the packet to 
-a recent-table.
-2. Match on the udp reverse packets. and on the reversed source/dest in 
-the recent table. If match, accept.
+I encountered this problem when proxying UDP based protocols: a connection
+is NATed to the proxy and when the proxy quits the stack returns ICMP errors
+to the sender. The error is correctly deNATed but the connection is not
+terminated, thus further packets are still being taken as part of the
+previous connection.
 
-Martijn
+UDP session:
+192.168.1.1:1025	-> 		1.2.3.4:53
+			|
+			+> session redirected to the local stack (IP 192.168.1.2:50053)
+
+Proxy runs on port 50053, the conntrack session starts as the first packet
+is sent to the server, this triggers the DNAT mapping (1.2.3.4:53 ->
+192.168.1.2:50053) to be applied.
+
+Now the proxy exits, the local port 192.168.1.2:50053 is closed. Another
+packet is sent by the client within the session timeout, this packet is
+assumed to be part of the previously established connection, thus it is
+NATed to 192.168.1.2:50053, there is no program listening, thus the stack
+returns the ICMP error destination unreachable (port unreachable), this is
+taken as a RELATED packet, and correctly deNATed just like anything, but the
+conntrack session is still not terminated.
+
+Of course using transparent proxying is still not a common usage scenario,
+but the same problem can be applied to other situations as well: you have an
+ESTABLISHED TCP connection when one of the endpoints dies (either the host
+crashes or the corresponding IP connection is broken), no TCP packets are
+sent prior the connection is broken, thus the conntrack session remains in
+ESTABLISHED case. Even if the last-hop router returns a host unreachable
+error the conntrack entry stays in the table for 5 days.
+
+My question is: is this behaviour intended or simply accidental?
+
+
+-- 
+Bazsi
