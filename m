@@ -1,15 +1,17 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: memcmp() is slow?
-Date: Sat, 22 Jan 2005 21:31:52 +0100
-Message-ID: <69935817.20050122213152@dns.toxicfilms.tv>
-References: <E1CsQZH-0002AE-Ob@vishnu.netfilter.org>
-Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [PATCH] Resend: Add inversion to multiport match
+Date: Sat, 22 Jan 2005 12:45:21 -0800
+Message-ID: <20050122204521.GA1176@linuxace.com>
+References: <20050122174123.GA9269@linuxace.com>
+	<1106421939.20995.28.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="k1lZvvs/B4yU6o8G"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <E1CsQZH-0002AE-Ob@vishnu.netfilter.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+Content-Disposition: inline
+In-Reply-To: <1106421939.20995.28.camel@tux.rsn.bth.se>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,34 +23,86 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I have seen a patch that replaces memcmp() with a few comparison statements.
-The log for the change says that memcmp() is slow.
+--k1lZvvs/B4yU6o8G
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Why is it? Is it just due to the overhead of calling a function and going
-through the memory in a loop? Or are there other issues I am not aware of.
+On Sat, Jan 22, 2005 at 08:25:39PM +0100, Martin Josefsson wrote:
+> Phil, the userspace part only adds inverted printout to print_v1() not
+> to save_v1()
+> Either send an updated patch or I'll fix that up when applying it after
+> Patrick has submitted the kernel part.
 
-Ragards,
-Maciej
+Indeed -- appologies.  Attached is corrected userspace patch.
 
-Below is the mention patch:
+Phil
 
-trunk/patch-o-matic-ng/nf_conntrack/linux-2.6/include/linux/netfilter/nf_conntrack_tuple.h
-2005-01-22 19:05:07 UTC (rev 3607)
-@@ -142,19 +142,25 @@
- static inline int nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
-                                        const struct nf_conntrack_tuple *t2)
+
+
+--k1lZvvs/B4yU6o8G
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-mport-ipt2
+
+diff -ru iptables-orig/extensions/libipt_multiport.c iptables-new/extensions/libipt_multiport.c
+--- iptables-orig/extensions/libipt_multiport.c	2005-01-03 04:51:58.000000000 -0500
++++ iptables-new/extensions/libipt_multiport.c	2005-01-22 15:33:44.637388800 -0500
+@@ -31,13 +31,13 @@
  {
--       return (!memcmp(t1->src.u3.all, t2->src.u3.all, sizeof(t1->src.u3.all)))
--              && (t1->src.u.all == t2->src.u.all)
--              && (t1->src.l3num == t2->src.l3num)
--              && (t1->dst.protonum == t2->dst.protonum);
-+       return (t1->>src.u3.all[0] == t2->src.u3.all[0] &&
-+               t1->>src.u3.all[1] == t2->src.u3.all[1] &&
-+               t1->>src.u3.all[2] == t2->src.u3.all[2] &&
-+               t1->>src.u3.all[3] == t2->src.u3.all[3] &&
-+               t1->>src.u.all == t2->src.u.all &&
-+               t1->>src.l3num == t2->src.l3num &&
-+               t1->>dst.protonum == t2->dst.protonum);
->  }
+ 	printf(
+ "multiport v%s options:\n"
+-" --source-ports port[,port:port,port...]\n"
++" --source-ports [!] port[,port:port,port...]\n"
+ " --sports ...\n"
+ "				match source port(s)\n"
+-" --destination-ports port[,port:port,port...]\n"
++" --destination-ports [!] port[,port:port,port...]\n"
+ " --dports ...\n"
+ "				match destination port(s)\n"
+-" --ports port[,port:port,port]\n"
++" --ports [!] port[,port:port,port]\n"
+ "				match both source and destination port(s)\n",
+ IPTABLES_VERSION);
+ }
+@@ -255,8 +255,7 @@
+ 	}
+ 
+ 	if (invert)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "multiport does not support invert");
++		multiinfo->invert = 1;
+ 
+ 	if (*flags)
+ 		exit_error(PARAMETER_PROBLEM,
+@@ -362,6 +361,9 @@
+ 		break;
+ 	}
+ 
++	if (multiinfo->invert)
++		printf("! ");
++
+ 	for (i=0; i < multiinfo->count; i++) {
+ 		printf("%s", i ? "," : "");
+ 		print_port(multiinfo->ports[i], ip->proto, numeric);
+@@ -422,6 +424,9 @@
+ 		break;
+ 	}
+ 
++	if (multiinfo->invert)
++		printf("! ");
++
+ 	for (i=0; i < multiinfo->count; i++) {
+ 		printf("%s", i ? "," : "");
+ 		print_port(multiinfo->ports[i], ip->proto, 1);
+diff -ru iptables-orig/include/linux/netfilter_ipv4/ipt_multiport.h iptables-new/include/linux/netfilter_ipv4/ipt_multiport.h
+--- iptables-orig/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-03 04:37:07.000000000 -0500
++++ iptables-new/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-22 15:30:21.372289792 -0500
+@@ -24,5 +24,6 @@
+ 	u_int8_t count;				/* Number of ports */
+ 	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
+ 	u_int8_t pflags[IPT_MULTI_PORTS];	/* Port flags */
++	u_int8_t invert;			/* Invert flag */
+ };
+ #endif /*_IPT_MULTIPORT_H*/
+
+--k1lZvvs/B4yU6o8G--
