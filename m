@@ -1,10 +1,10 @@
 From: Stephane Ouellette <ouellettes@videotron.ca>
-Subject: [PATCH]   Dead code elimination in ip_conntrack_core.c
-Date: Sat, 15 Mar 2003 12:30:04 -0500
+Subject: [PATCH]  dead code elimination in ip6_queue.c
+Date: Sat, 15 Mar 2003 13:01:05 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E73631C.1060102@videotron.ca>
+Message-ID: <3E736A61.6020907@videotron.ca>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_04zQ9GGhZjtsH58eNbrpFg)"
+Content-Type: multipart/mixed; boundary="Boundary_(ID_7bQoxFBy/2LxElLQe4vU/A)"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -19,38 +19,40 @@ List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
 
---Boundary_(ID_04zQ9GGhZjtsH58eNbrpFg)
+--Boundary_(ID_7bQoxFBy/2LxElLQe4vU/A)
 Content-type: text/plain; charset=us-ascii; format=flowed
 Content-transfer-encoding: 7BIT
 
-List members,
+Folks,
 
-    the following cosmetic patch removes dead code in 
-ip_conntrack_init() if CONFIG_SYSCTL is not defined.
-The patch applies against a plain 2.4.21-pre5-ac3 kernel.
+   the following patch removes dead code in ip6_queue.c
 
-Regards,
-
-Stephane Ouellette
+Stephane Ouellette.
 
 
---Boundary_(ID_04zQ9GGhZjtsH58eNbrpFg)
-Content-type: text/plain; name=ip_conntrack_core.c.patch; CHARSET=US-ASCII
+--Boundary_(ID_7bQoxFBy/2LxElLQe4vU/A)
+Content-type: text/plain; name=ip6_queue.c.patch; CHARSET=US-ASCII
 Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=ip_conntrack_core.c.patch
+Content-disposition: inline; filename=ip6_queue.c.patch
 
---- linux-2.4.21-pre5-ac3/net/ipv4/netfilter/ip_conntrack_core.c	Sat Mar 15 12:16:55 2003
-+++ linux-2.4.21-pre5-ac3-fixed/net/ipv4/netfilter/ip_conntrack_core.c	Sat Mar 15 12:23:34 2003
-@@ -1478,8 +1478,10 @@
- 	ip_ct_attach = ip_conntrack_attach;
- 	return ret;
+--- linux-2.4.21-pre5-ac3/net/ipv6/netfilter/ip6_queue.c	Fri Mar 14 15:16:44 2003
++++ linux-2.4.21-pre5-ac3-fixed/net/ipv6/netfilter/ip6_queue.c	Sat Mar 15 12:58:50 2003
+@@ -265,8 +265,6 @@
+ 	return skb;
  
-+#ifdef CONFIG_SYSCTL
- err_free_ct_cachep:
- 	kmem_cache_destroy(ip_conntrack_cachep);
-+#endif /*CONFIG_SYSCTL*/
- err_free_hash:
- 	vfree(ip_conntrack_hash);
- err_unreg_sockopt:
+ nlmsg_failure:
+-	if (skb)
+-		kfree_skb(skb);
+ 	*errp = -EINVAL;
+ 	printk(KERN_ERR "ip6_queue: error creating packet message\n");
+ 	return NULL;
+@@ -730,7 +728,6 @@
+ 
+ static int __init init(void)
+ {
+-	
+ 	return init_or_cleanup(1);
+ }
+ 
 
---Boundary_(ID_04zQ9GGhZjtsH58eNbrpFg)--
+--Boundary_(ID_7bQoxFBy/2LxElLQe4vU/A)--
