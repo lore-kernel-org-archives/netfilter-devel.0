@@ -1,16 +1,16 @@
-From: Friedrich Lobenstock <fl@fl.priv.at>
-Subject: Re: extra/pptp-conntrack-nat.patch
-Date: Mon, 31 Mar 2003 14:44:57 +0200
+From: "Marcelo Barbosa Lima" <mlima@cpqd.com.br>
+Subject: ICMP NDISC: fake message with non-255 Hop Limit received: 254 - error message
+Date: Thu, 3 Apr 2003 16:58:46 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E883849.3050706@fl.priv.at>
-References: <3E8832B4.8030901@fl.priv.at> <20030331123134.GN7718@sunbeam.de.gnumonks.org>
+Message-ID: <D49EA2F934FFAD45B337C07A9753C00E01B3C25B@MAILSRV1.aquarius.cpqd.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20030331123134.GN7718@sunbeam.de.gnumonks.org>
+content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,28 +21,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> 
-> actually, _with_ the '//' in front, it accepts packets with broken
-> checksums.  If you remove the '//' in front, it will not consider
-> packets with broken checksums.
-> 
-> So W2k should work with the shipped patch ! (IIRC, it works in both
-> cases)
-> 
+Hello,
 
-So I conclude that there is not a W2k at the other side (I missinterpreted
-the comment ion the patch the other way round) because I needed to remove
-the '//' to get it working. But when I ask the people what they've got
-as PPTP-Server they tell me it's a W2k server.
+	We were doing tests with Ip6tables and we noticed a curious event after =
+that rules are created and loaded. After some few minutes,  the messages =
+"ICMP NDISC: fake message with non-255 Hop Limit received: 254" are =
+shown in display. If I do "ip6tables -F" after some few seconds this =
+messages are not printed in the screen again. Is there any bug regarding =
+to Neighbor Discovery Protocol and Ip6tables?=20
+Thanks and Regards,
 
-I'm using the patch that's in pom-20030107. Could that make a difference?
-
-As a side note, I do the following:
-  PPTP-Client --> Devil-Linux-Firewall -->...Internet....--> PPTP-Server
-
-At least it works now but it looks like a mistery now.
-
--- 
-MfG / Regards
-Friedrich Lobenstock
+		Marcelo.
