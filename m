@@ -1,18 +1,14 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] Conntrack targets/matches work with nfconntrack
-Date: Sat, 02 Apr 2005 23:42:33 +0200
-Message-ID: <424F11C9.7010902@eurodev.net>
-References: <424F0DD6.9070002@eurodev.net>
+From: "Robert Iakobashvili" <roberti@GoNetworks.com>
+Subject: Re: Iptables 1.3.1 still not very fast
+Date: Sun, 3 Apr 2005 08:44:39 +0300
+Message-ID: <7DC268DDBA95E14D8572DF824F92789E08E4B0@gn-ex01.Go80211.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: text/plain;
+	charset="windows-1255"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <424F0DD6.9070002@eurodev.net>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,15 +20,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> Hi,
-> 
-> This patch makes work conntrack related matches and targets with both 
-> ip_conntrack and nf_conntrack (ipt_state, ipt_CONNMARK, ipt_connmark, 
-> ipt_NOTRACK, ipt_conntrack). Two comments about this:
+ Gentlemen,
 
-Forgot to say that this patch applies on top of latest Yasuyuki 
-Kozakai's unification patches.
+My suggestion for you is to look at the great ipset
+Facility developed by Jozsef Kadlecsik and based on ippool=20
+by Joakim Axelsson, Patrick Schaaf and Martin Josefsson=F5
 
---
-Pablo
+http://people.netfilter.org/kadlec/ipset/
+
+It works great.
+
+Sincerely,
+Robert Iakobashvili
+roberti at gonetworks dot com
