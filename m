@@ -1,15 +1,14 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: [PATCH] PoM-NG Subversion compatibility fix
-Date: Wed, 20 Oct 2004 10:21:37 +0200
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH] Change masquerade code to use first IP address
+	of	interface.
+Date: Wed, 20 Oct 2004 18:28:53 +1000
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <1098260496.2477.8.camel@nienna.balabit>
-References: <1098259780.2477.3.camel@nienna.balabit>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: quoted-printable
+Message-ID: <E1CKBq1-0005EG-00@gondolin.me.apana.org.au>
+References: <1098241135.10571.19.camel@localhost.localdomain>
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <1098259780.2477.3.camel@nienna.balabit>
+To: rusty@rustcorp.com.au (Rusty Russell)
+In-Reply-To: <1098241135.10571.19.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,14 +19,12 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-2004-10-20, sze keltez=E9ssel 10:09-kor KOVACS Krisztian ezt =EDrta:
->   PoM-NG fails to apply any patches from a checked Subversion working
+Rusty Russell <rusty@rustcorp.com.au> wrote:
+> As discussed previously, let's try this in 2.6.10, and see who screams.
 
-  Oh, I meant 'checked out', of course... :(
-
-> area, because it fails to skip .svn directories when parsing directory
-> entries... The attached patch fixes this, please apply.
-
---=20
- Regards,
-   Krisztian KOVACS
+Rather than screaming, I'm going to thank you :)
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
