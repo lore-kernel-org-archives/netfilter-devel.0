@@ -1,13 +1,13 @@
-From: Jakub Bogusz <qboosh@pld.org.pl>
-Subject: [PATCH] endianess fix for ip_conntrack_amanda
-Date: Tue, 5 Aug 2003 21:06:57 +0200
+From: Stephane Ouellette <ouellettes@videotron.ca>
+Subject: [PATCH][COSMETIC]  libip6t_fuzzy.c
+Date: Tue, 12 Aug 2003 13:45:36 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030805190657.GA31073@satan.blackhosts>
+Message-ID: <3F3927C0.8040102@videotron.ca>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="k+w/mQv8wyuph6w0"
+Content-Type: multipart/mixed; boundary="Boundary_(ID_UfCiCjGqZfy9BubaAmEcag)"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,50 +18,114 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---k+w/mQv8wyuph6w0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--Boundary_(ID_UfCiCjGqZfy9BubaAmEcag)
+Content-type: text/plain; charset=us-ascii; format=flowed
+Content-transfer-encoding: 7BIT
 
-Hello,
+Harald,
 
-I've just noticed that I probably missed one place (in ip_conntrack_amanda)
-when I was making fixes for big-endian archs in conntrack and nat modules
-by using C99 initializers in May, and it remained unfixed (at least in
-2.6.0-test2, where all other fixes are already merged; probably the same
-in 2.4.22-pre).
+   this patch includes:
 
-So here is the missing element...
+1- Indentation fixes,
+2- Reduce the number of calls to printf(),
+3- C99 initializers.
+
+Please apply.
+
+Stephane.
 
 
--- 
-Jakub Bogusz    http://cyber.cs.net.pl/~qboosh/
-PLD Linux       http://www.pld-linux.org/
+--Boundary_(ID_UfCiCjGqZfy9BubaAmEcag)
+Content-type: text/plain; name=libip6t_fuzzy.c.patch; CHARSET=US-ASCII
+Content-transfer-encoding: 7BIT
+Content-disposition: inline; filename=libip6t_fuzzy.c.patch
 
---k+w/mQv8wyuph6w0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="linux-netfilter-ip_conntrack_amanda-endian.patch"
-
-This is one more fix for big-endian problems in conntrack and nat modules,
-similar to those merged about two months ago (this one was missing).
-
-	Jakub Bogusz <qboosh@pld.org.pl>
-
---- linux-2.6.0-test2/net/ipv4/netfilter/ip_conntrack_amanda.c.orig	2003-07-14 05:35:56.000000000 +0200
-+++ linux-2.6.0-test2/net/ipv4/netfilter/ip_conntrack_amanda.c	2003-08-05 20:38:55.000000000 +0200
-@@ -133,11 +133,11 @@
- 				{ { ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip,
- 				    { 0 } },
- 				  { ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.ip,
--				    { htons(exp_amanda_info->port) },
-+				    { .tcp = { htons(exp_amanda_info->port) } },
- 				    IPPROTO_TCP }});
- 			expect.mask = ((struct ip_conntrack_tuple)
- 				{ { 0, { 0 } },
--				  { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
-+				  { 0xFFFFFFFF, { .tcp = { 0xFFFF } }, 0xFFFF }});
+--- netfilter.orig/userspace/extensions/libip6t_fuzzy.c	Sat Jun 14 10:08:53 2003
++++ netfilter/userspace/extensions/libip6t_fuzzy.c	Mon Aug 11 22:16:27 2003
+@@ -34,9 +34,9 @@
+ };
  
- 			expect.expectfn = NULL;
+ static struct option opts[] = {
+-	{ "lower-limit", 1 , 0 , '1' } ,
+-	{ "upper-limit", 1 , 0 , '2' } ,
+-	{ 0 }
++	{ .name = "lower-limit", .has_arg = 1, .flag = 0, .val = '1' },
++	{ .name = "upper-limit", .has_arg = 1, .flag = 0, .val = '2' },
++	{ .name = 0 }
+ };
  
+ /* Initialize data structures */
+@@ -64,8 +64,8 @@
+       unsigned int *nfcache,
+       struct ip6t_entry_match **match)
+ {
+-
+-struct ip6t_fuzzy_info *fuzzyinfo = (struct ip6t_fuzzy_info *)(*match)->data;
++	struct ip6t_fuzzy_info *fuzzyinfo =
++		(struct ip6t_fuzzy_info *)(*match)->data;
+ 
+ 	u_int32_t num;
+ 
+@@ -99,7 +99,7 @@
+ 	if (string_to_number(optarg,1,MAXFUZZYRATE,&num) == -1 || num < 1)
+ 		exit_error(PARAMETER_PROBLEM,"BAD --upper-limit");
+ 
+-		fuzzyinfo->maximum_rate = num ;
++		fuzzyinfo->maximum_rate = num;
+ 
+ 		*flags |= IP6T_FUZZY_OPT_MAXIMUM;
+ 
+@@ -123,8 +123,8 @@
+ 	const struct ip6t_fuzzy_info *fuzzyinfo
+ 		= (const struct ip6t_fuzzy_info *)match->data;
+ 
+-	printf(" fuzzy: lower limit = %u pps - upper limit = %u pps ",fuzzyinfo->minimum_rate,fuzzyinfo->maximum_rate);
+-
++	printf(" fuzzy: lower limit = %u pps - upper limit = %u pps ",
++		fuzzyinfo->minimum_rate, fuzzyinfo->maximum_rate);
+ }
+ 
+ /* Saves the union ip6t_targinfo in parsable form to stdout. */
+@@ -134,24 +134,22 @@
+ 	const struct ip6t_fuzzy_info *fuzzyinfo
+ 		= (const struct ip6t_fuzzy_info *)match->data;
+ 
+-	printf("--lower-limit %u ",fuzzyinfo->minimum_rate);
+-	printf("--upper-limit %u ",fuzzyinfo->maximum_rate);
+-
++	printf("--lower-limit %u --upper-limit %u ",
++		fuzzyinfo->minimum_rate, fuzzyinfo->maximum_rate);
+ }
+ 
+-struct ip6tables_match fuzzy_match
+-= { NULL,
+-    "fuzzy",
+-    IPTABLES_VERSION,
+-    IP6T_ALIGN(sizeof(struct ip6t_fuzzy_info)),
+-    IP6T_ALIGN(sizeof(struct ip6t_fuzzy_info)),
+-    &help,
+-    &init,
+-    &parse,
+-    &final_check,
+-    &print,
+-    &save,
+-    opts
++struct ip6tables_match fuzzy_match = {
++	.name          = "fuzzy",
++	.version       = IPTABLES_VERSION,
++	.size          = IP6T_ALIGN(sizeof(struct ip6t_fuzzy_info)),
++	.userspacesize = IP6T_ALIGN(sizeof(struct ip6t_fuzzy_info)),
++	.help          = &help,
++	.init          = &init,
++	.parse         = &parse,
++	.final_check   = &final_check,
++	.print         = &print,
++	.save          = &save,
++	.extra_opts    = opts
+ };
+ 
+ void _init(void)
 
---k+w/mQv8wyuph6w0--
+--Boundary_(ID_UfCiCjGqZfy9BubaAmEcag)--
