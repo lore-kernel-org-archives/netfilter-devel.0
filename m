@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.4 3/10]: Change permissions of /proc/net/ip_conntrack to 0440
-Date: Mon, 21 Jun 2004 21:51:10 +0200
+Subject: [PATCH 2.6 9/14]: Fix offset calculation in amanda conntrack helper
+Date: Mon, 21 Jun 2004 21:44:06 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040621195110.GW24374@sunbeam.de.gnumonks.org>
+Message-ID: <20040621194406.GO24374@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zyFEcxsgI11YYMbz"
+	protocol="application/pgp-signature"; boundary="B4kTqtjDNMSIbfiv"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,19 +21,24 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---zyFEcxsgI11YYMbz
-Content-Type: multipart/mixed; boundary="tKC5HTBlrbpnwuKu"
+--B4kTqtjDNMSIbfiv
+Content-Type: multipart/mixed; boundary="yT5CehYOm/p2z10t"
 Content-Disposition: inline
 
 
---tKC5HTBlrbpnwuKu
+--yT5CehYOm/p2z10t
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
 
-This patch for 2.4 changes permissions of /proc/net/ip_conntrack to
-0440.
+This patch for 2.6 fixes offset calculation in the amanda conntrack
+helper, which was broken by the recent changes to the expectation API.
+Without this patch, the offset points beyond the port number instead
+of to it's beginning.
 
 Author: Patrick McHardy <kaber@trash.net>
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Harald Welte <laforge@netfilter.org>
 
 --
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -42,42 +47,39 @@ Author: Patrick McHardy <kaber@trash.net>
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---tKC5HTBlrbpnwuKu
-Content-Type: text/plain; charset=us-ascii; name="03.diff"
-Content-Disposition: inline; filename="03.diff"
+--yT5CehYOm/p2z10t
+Content-Type: text/plain; charset=us-ascii; name="09.diff"
+Content-Disposition: inline; filename="09.diff"
 Content-Transfer-Encoding: quoted-printable
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/06/20 22:30:15+02:00 kaber@trash.net=20
-#   [NETFILTER]: Change permissions of /proc/net/ip_conntrack to 0440
+#   2004/06/20 22:45:31+02:00 kaber@trash.net=20
+#   [NETFILTER]: Fix offset calculation in amanda conntrack helper
 #=20
-# net/ipv4/netfilter/ip_conntrack_standalone.c
-#   2004/06/20 22:30:13+02:00 kaber@trash.net +1 -1
-#   [NETFILTER]: Change permissions of /proc/net/ip_conntrack to 0440
+# net/ipv4/netfilter/ip_conntrack_amanda.c
+#   2004/06/20 22:45:22+02:00 kaber@trash.net +1 -1
+#   [NETFILTER]: Fix offset calculation in amanda conntrack helper
 #=20
-diff -Nru a/net/ipv4/netfilter/ip_conntrack_standalone.c b/net/ipv4/netfilt=
-er/ip_conntrack_standalone.c
---- a/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-06-20 23:02:40 +02:=
-00
-+++ b/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-06-20 23:02:40 +02:=
-00
-@@ -349,7 +349,7 @@
- 	if (ret < 0)
- 		goto cleanup_nothing;
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_amanda.c b/net/ipv4/netfilter/i=
+p_conntrack_amanda.c
+--- a/net/ipv4/netfilter/ip_conntrack_amanda.c	2004-06-20 23:00:42 +02:00
++++ b/net/ipv4/netfilter/ip_conntrack_amanda.c	2004-06-20 23:00:42 +02:00
+@@ -107,7 +107,7 @@
+ 		exp->mask.dst.u.tcp.port =3D 0xFFFF;
 =20
--	proc =3D proc_net_create("ip_conntrack",0,list_conntracks);
-+	proc =3D proc_net_create("ip_conntrack", 0440, list_conntracks);
- 	if (!proc) goto cleanup_init;
- 	proc->owner =3D THIS_MODULE;
+ 		exp_amanda_info =3D &exp->help.exp_amanda_info;
+-		exp_amanda_info->offset =3D data - amanda_buffer;
++		exp_amanda_info->offset =3D tmp - amanda_buffer;
+ 		exp_amanda_info->port   =3D port;
+ 		exp_amanda_info->len    =3D len;
 =20
 
 
+--yT5CehYOm/p2z10t--
 
---tKC5HTBlrbpnwuKu--
-
---zyFEcxsgI11YYMbz
+--B4kTqtjDNMSIbfiv
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -85,9 +87,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFA1zwuXaXGVTD0i/8RAvSyAKCcjq/WlFL4O91/VEZuuZL8J/lusgCeKW4e
-j45LugfiFqpvk65egesdNN4=
-=k155
+iD8DBQFA1zqGXaXGVTD0i/8RAjTpAKCBIDbD0nZbA78tpanNx1uWRkms3ACffjGN
+ajY836e6XqPbqEiBnijmgiQ=
+=aLgB
 -----END PGP SIGNATURE-----
 
---zyFEcxsgI11YYMbz--
+--B4kTqtjDNMSIbfiv--
