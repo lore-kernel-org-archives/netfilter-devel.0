@@ -1,17 +1,14 @@
-From: "Muhammad R. Sami" <sami@ccse.kfupm.edu.sa>
-Subject: RE: Userspace queuing
-Date: Tue, 29 Jun 2004 12:18:00 +0300
+From: Christian Riechmann <riechmann@fgan.de>
+Subject: Change proposal for consistent "skb->pkt_type" after re-injection
+Date: Tue, 29 Jun 2004 11:48:35 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200406290918.i5T9IfMX028725@madinah.ccse.kfupm.edu.sa>
-References: <20040628171625.GB32388@maluco.com.br>
+Message-ID: <20040629094835.GA3141@rie.rie.priv>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: "'Netfilter List'" <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: bus@fgan.de
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "'Ulysses Almeida'" <munky@maluco.com.br>
-In-Reply-To: <20040628171625.GB32388@maluco.com.br>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,46 +19,63 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-What I understand from the examples is that I have to create my own
-structure for my packet's application header. And then extract the payload
-using this approach:
+Hello,
 
-ipq_packet_msg_t *m = ipq_get_packet(buf);
-struct iphdr *iph = ((struct iphdr *)m->payload);
+sometimes ago I came up with a question to this list asking,
+whether iptables would allow the following processing:
 
-where struct iphdr will be struct "myhdr"
+Iptables filters and queues broadcasted or multicasted
+UDP packets for a user space program:
 
-and then decide queuing policy according to what I get.
+   iptables -t mangle -A PREROUTING -i eth0 -p udp \
+	--destination-port 140 -j QUEUE
 
-Am I on the right track?
-Regards,
+Such packets are bearing an encapsulated TCP packet, which by the user
+space program is decapsulated and re-injected by ipq_set_verdict 
+into the normal kernel processing.
 
------Original Message-----
-From: Ulysses Almeida [mailto:munky@maluco.com.br] 
-Sent: Monday, June 28, 2004 8:16 PM
-To: Muhammad R. Sami
-Cc: Netfilter List
-Subject: Re: Userspace queuing
+The answer was YES.
 
-Sorry, I forgot the link http://www.glug.ucdb.br/~ulysses/libipq.html
+But when I tested this situation, the TCP-packet were "lost"
+and the TCP connection was not installed.
 
-  Regards
+Michael Bussmann <bus@fgan.de> found out that the TCP packet
+were not LOST, but they were DISCARDED within the kernel function
+tcp_v4_rcv resp. tcp_v6_rcv, each doing an initial test:
 
-On Mon, Jun 28, 2004 at 10:17:21AM +0300, Muhammad R. Sami wrote:
-> Thanks Henrik for your help, I have 2 questions, first of all I could not
-> find anyway to extract and read packet payload through libipq, I know it
-has
-> a function to do so but how to use it (any examples??) and secondly is
-there
-> any implementation of priority queues (multiple FIFOs) at userspace using
-> libipq. If you can help me on these, I would be thankful. 
-> Regards,
-> 
-> 
-> 
+	if (skb->pkt_type!=PACKET_HOST)
+		goto discard_it;
 
+Apparantly the skb->pkt_type is set very early within one of the
+kernel IP routines passed by the broadcasted or multicasted packet
+BEFORE iptables gave it to the user space program and the
+modified (now TCP packet with a host address) packet is re-injected
+into the kernel processing. Unfortunately an update of 
+skb->pkt_type does not occur. This leads to the DISCARD of the
+TCP packet.
+
+We have the same behaviour within IPv4 and IPv6.
+
+One - bad - solution for this problem could be to delete the above
+test within the TCP functions, but this would produce difficulties,
+if some people (hacker?) would send IP/TCP packets with multicast or
+broadcast addresses.
+
+As a better solution I would propose, that the processing initiated
+by ipq_set_verdict should update the packet type (skb->pkt_type)
+according to the re-injected packet.
+This would lead to a consistent state of the re-injected packet and
+the kernel status indicator.
+
+I do not know, whether there exist other status indicators set before
+and not updated after the re-injection, but if yes, they should be
+updated as well.
+
+Regards
+
+Christian Riechmann
 -- 
-    .~.  Ulysses Almeida
-   / V \  munky@maluco.com.br
- / (   ) \  Seja livre, use GNU/Linux! 
-   ^^-^^
+Christian Riechmann    E-Mail: riechmann@fgan.de
+c/o FGAN/FKIE          Tel: (+49) 228/9435 345,378
+Neuenahrer Strasse 20  Fax: (+49) 228/9435 685
+D-53343 Wachtberg, Germany
