@@ -1,15 +1,14 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] pom-ng new release
-Date: Tue, 4 May 2004 22:40:59 +0200 (CEST)
+From: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
+Subject: [PATCH] fix undefined expression in RPC match target
+Date: Tue, 4 May 2004 16:41:19 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0405042238020.28629-100000@blackhole.kfki.hu>
-References: <4097F545.9030207@rtij.nl>
+Message-ID: <20040504204119.GE25872@ti64.telemetry-investments.com>
+Reply-To: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="MGYHOYXEY6WxJCY8"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Martijn Lievaart <m@rtij.nl>
-In-Reply-To: <4097F545.9030207@rtij.nl>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,29 +19,45 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 4 May 2004, Martijn Lievaart wrote:
 
-> Jozsef Kadlecsik wrote:
->
-> >      [Could any Perl guru explain in plain English while the code
-> >
-> >      for my $dep (@{$$patchlet{info}{depends}}) {
-> >		$dep =~ s/^!//;
-> >      }
-> >
-> >      modifies the content of array $patchlet{info}{depends} too??]
->
-> Basic Perl actually, no guru knowledge needed. A for loop aliases the
-> loop variable to the array element. Do a 'perldoc perlsyn' and look up
-> foreach. As Patrick already noted, make a copy if you don't want this. I
-> would use:
+--MGYHOYXEY6WxJCY8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Ahh, yes, you are absolutely right! Thank you the explanation.
+Hello,
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+The attached patch against patch-o-matic-ng
+corrects a typo in the RPC match target.
+
+Regards,
+
+	Bill Rugolsky
+
+--MGYHOYXEY6WxJCY8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="netfilter-conntrack-rpc-fixincr.patch"
+
+--- patch-o-matic-ng/rpc/linux/net/ipv4/netfilter/ip_conntrack_rpc_tcp.c.fixincr	2003-12-18 13:48:00.000000000 -0500
++++ patch-o-matic-ng/rpc/linux/net/ipv4/netfilter/ip_conntrack_rpc_tcp.c	2004-05-04 15:06:31.000000000 -0400
+@@ -249,7 +249,7 @@
+ 		}
+ 
+ 		/* Verifies if packet is really an RPC reply packet */
+-		data = data++;
++		data++;
+ 		if (IXDR_GET_INT32(data) != 1) {
+ 			DEBUGP("packet is not a valid RPC reply. [skip]\n");
+ 			return NF_ACCEPT;
+--- patch-o-matic-ng/rpc/linux/net/ipv4/netfilter/ip_conntrack_rpc_udp.c.fixincr	2003-12-18 13:48:00.000000000 -0500
++++ patch-o-matic-ng/rpc/linux/net/ipv4/netfilter/ip_conntrack_rpc_udp.c	2004-05-04 15:06:45.000000000 -0400
+@@ -249,7 +249,7 @@
+ 		}
+ 
+ 		/* Verifies if packet is really an RPC reply packet */
+-		data = data++;
++		data++;
+ 		if (IXDR_GET_INT32(data) != 1) {
+ 			DEBUGP("packet is not a valid RPC reply. [skip]\n");
+ 			return NF_ACCEPT;
+
+--MGYHOYXEY6WxJCY8--
