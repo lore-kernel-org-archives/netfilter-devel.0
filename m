@@ -1,13 +1,10 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: [1/1] ipt_osf: fix ipt_osf compilation on some distros.
-Date: Fri, 25 Feb 2005 08:07:37 +0300
-Message-ID: <1109308057.6728.54.camel@uganda>
-Reply-To: johnpol@2ka.mipt.ru
+From: Essien Ita Essien <essiene@gmail.com>
+Subject: ipq_packet_msg_t - dereferencing pointer to incomplete type
+Date: Fri, 25 Feb 2005 10:12:29 +0100
+Message-ID: <421EEBFD.2040000@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-rPWcJ9Iyxt+cl7ZxeD3B"
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -20,50 +17,169 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---=-rPWcJ9Iyxt+cl7ZxeD3B
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I'm trying to follow the tutorial in the libipq man page, with just a 
+little modification, and i get a compile error when i try to access the 
+ipq_packet_msg_t structure. I've checked where ipq_packet_msg_t is 
+defined, and found it in <linux/netfilter_ipv4/ip_queue.h>, which i've 
+found is conditionally included in <libipq.h> already. I even tried 
+including straight into the program.
 
-Some distros have magical header mess, which leads to undefined struct
-tcphdr,=20
-when net/tcp.h is not included directly.
-Following patch workarounds it.
+Any ideas what i'm doing wrong?
 
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+thanks.
 
---- orig/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c~ 2005-02-07
-18:55:56.000000000 +0300
-+++orig/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c  2005-02-24
-12:49:22.329311368 +0300
-@@ -47,6 +47,7 @@
+The error i get is:
 
- #include <net/sock.h>
- #include <net/ip.h>
-+#include <net/tcp.h>
-
- #include <linux/netfilter_ipv4/ip_tables.h>
+first.c: In function `main':
+first.c:47: error: dereferencing pointer to incomplete type
+first.c:51: error: dereferencing pointer to incomplete type
 
 
-P.S. Should I resend lost patch with Subject line=20
-"[1/1] libipt_osf: fix iptables-1.3.0rc1 compilation.", which moves
-kernel headers in ipt_osf.h into appropriate ifdef/endif?
-=20
---=20
-        Evgeniy Polyakov
 
-Crash is better than data corruption -- Arthur Grabowski
+The program is:
 
---=-rPWcJ9Iyxt+cl7ZxeD3B
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+#include <stdio.h>
+#include <linux/netfilter.h>
+#include <libipq.h>
+#include <linux/ip.h>
+#include <linux/tcp.h>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
 
-iD8DBQBCHrKZIKTPhE+8wY0RAtWnAJ418iwo6ySKNFrfkoVByIVYh5e+RgCgjiGF
-t4Hz0uy/xpgu2fNqsBExU+4=
-=URyH
------END PGP SIGNATURE-----
 
---=-rPWcJ9Iyxt+cl7ZxeD3B--
+#define BUFSIZE 2048
+
+static void die(struct ipq_handle *h)
+{
+     ipq_perror("passer");
+     ipq_destroy_handle(h);
+     exit(1);
+}
+
+
+int main(int argc, char **argv)
+{
+     int status;
+     unsigned char buf[BUFSIZE];
+
+
+     struct ipq_handle *h;
+     h = ipq_create_handle(0,PF_INET);
+     if (!h)
+         die(h);
+
+
+     status = ipq_set_mode(h,IPQ_COPY_PACKET,BUFSIZE);
+     if (status < 0)
+         die(h);
+
+     while (1) {
+         status = ipq_read(h,buf,BUFSIZE,0);
+         if (status < 0)
+             die(h);
+
+         switch(ipq_message_type(buf)) {
+             case NLMSG_ERROR:
+                 fprintf(stderr,"Recieved Error Message: 
+%d\n",ipq_get_msgerr(buf));
+                 break;
+
+             case IPQM_PACKET: {
+                 struct ipq_packet_msg_t *m = ipq_get_packet(buf);
+                 struct iphdr *ip = (struct iphdr*) m->payload; /*this 
+line give the error*/
+                 fprintf(stdout,"Saddr: %d\nDaddr: 
+%d\n",ip->saddr,ip->daddr);
+
+
+                 status = 
+ipq_set_verdict(h,m->packet_id,NF_ACCEPT,0,NULL); /*this line also borks*/
+                 if (status < 0)
+                     die(h);
+
+                 break;
+
+                 }
+
+             default:
+                 fprintf(stderr,"Unknown Message Type!\n");
+         }
+
+     }
+
+     ipq_destroy_handle(h);
+     return 0;
+}
+
+
+
+#include <stdio.h>
+#include <linux/netfilter.h>
+#include <libipq.h>
+#include <linux/ip.h>
+#include <linux/tcp.h>
+
+
+
+#define BUFSIZE 2048
+
+static void die(struct ipq_handle *h)
+{
+	ipq_perror("passer");
+	ipq_destroy_handle(h);
+	exit(1);
+}
+
+
+int main(int argc, char **argv)
+{
+	int status;
+	unsigned char buf[BUFSIZE];
+
+
+	struct ipq_handle *h;
+	h = ipq_create_handle(0,PF_INET);
+	if (!h)
+		die(h);
+
+
+	status = ipq_set_mode(h,IPQ_COPY_PACKET,BUFSIZE);
+	if (status < 0)
+		die(h);
+
+	while (1) {
+		status = ipq_read(h,buf,BUFSIZE,0);
+		if (status < 0)
+			die(h);
+
+		switch(ipq_message_type(buf)) {
+			case NLMSG_ERROR:
+				fprintf(stderr,"Recieved Error Message: %d\n",ipq_get_msgerr(buf));
+				break;
+
+			case IPQM_PACKET: {
+				struct ipq_packet_msg_t *m = ipq_get_packet(buf);
+				struct iphdr *ip = (struct iphdr*) m->payload; /*this line give the 
+error*/
+				fprintf(stdout,"Saddr: %d\nDaddr: %d\n",ip->saddr,ip->daddr);
+
+				
+				status = ipq_set_verdict(h,m->packet_id,NF_ACCEPT,0,NULL); /*this 
+line also borks*/
+				if (status < 0)
+					die(h);
+
+				break;
+
+				}
+
+			default:
+				fprintf(stderr,"Unknown Message Type!\n");
+		}
+
+	}
+
+	ipq_destroy_handle(h);
+	return 0;
+}
