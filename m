@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] netfilter 2.5 cosmetic changes
-Date: Tue, 24 Jun 2003 17:00:57 +0200
+Subject: [PATCH] netfilter 2.5 fixes (all 7 in one patch)
+Date: Tue, 24 Jun 2003 16:57:27 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030624150057.GL2645@sunbeam.de.gnumonks.org>
+Message-ID: <20030624145727.GK2645@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ai3I8gwHc37+ASRI"
+	protocol="application/pgp-signature"; boundary="tBhgiDt8dP1efIIJ"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,190 +21,363 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---ai3I8gwHc37+ASRI
+--tBhgiDt8dP1efIIJ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Dave!
 
-This is the 2.5.x merge of the cosmetic changes
-
-
---- linux-2.5.73-nf_fixes/include/linux/netfilter.h	2003-06-22 20:32:46.000=
-000000 +0200
-+++ linux-2.5.73-cosmetic/include/linux/netfilter.h	2003-06-24 17:05:04.000=
-000000 +0200
-@@ -19,9 +19,10 @@
- #define NF_REPEAT 4
- #define NF_MAX_VERDICT NF_REPEAT
+I've now created big cumulative 2.5.x patch to bring 2.5.73 in sync with
+the 7 fixes for 2.4.21 I've sent you previously.
 =20
--/* Generic cache responses from hook functions. */
--#define NFC_ALTERED 0x8000
-+/* Generic cache responses from hook functions.
-+   <=3D 0x2000 is used for protocol-flags. */
- #define NFC_UNKNOWN 0x4000
-+#define NFC_ALTERED 0x8000
-=20
- #ifdef __KERNEL__
- #include <linux/config.h>
 diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
 er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-nf_fixes/net/ipv4/netf=
-ilter/ip_conntrack_core.c linux-2.5.73-cosmetic/net/ipv4/netfilter/ip_connt=
-rack_core.c
---- linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_conntrack_core.c	2003-06-24=
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-plain/include/linux/ne=
+tfilter_ipv4/listhelp.h linux-2.5.73-nf_fixes/include/linux/netfilter_ipv4/=
+listhelp.h
+--- linux-2.5.73-plain/include/linux/netfilter_ipv4/listhelp.h	2003-06-22 2=
+0:32:33.000000000 +0200
++++ linux-2.5.73-nf_fixes/include/linux/netfilter_ipv4/listhelp.h	2003-06-2=
+4 16:45:54.000000000 +0200
+@@ -39,6 +39,22 @@
+ 	(type)__i;				\
+ })
+=20
++/* Just like LIST_FIND but we search backwards */
++#define LIST_FIND_B(head, cmpfn, type, args...)		\
++({							\
++	const struct list_head *__i =3D (head);		\
++							\
++	ASSERT_READ_LOCK(head);				\
++	do {						\
++		__i =3D __i->prev;			\
++		if (__i =3D=3D (head)) {			\
++			__i =3D NULL;			\
++			break;				\
++		}					\
++	} while (!cmpfn((const type)__i , ## args));	\
++	(type)__i;					\
++})
++
+ static inline int
+ __list_cmp_same(const void *p1, const void *p2) { return p1 =3D=3D p2; }
+=20
+diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
+er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-plain/include/linux/ne=
+tfilter_ipv4/lockhelp.h linux-2.5.73-nf_fixes/include/linux/netfilter_ipv4/=
+lockhelp.h
+--- linux-2.5.73-plain/include/linux/netfilter_ipv4/lockhelp.h	2003-06-22 2=
+0:32:32.000000000 +0200
++++ linux-2.5.73-nf_fixes/include/linux/netfilter_ipv4/lockhelp.h	2003-06-2=
+4 16:49:42.000000000 +0200
+@@ -42,22 +42,22 @@
+ 	printk("ASSERT %s:%u %s locked\n", __FILE__, __LINE__, #l);	\
+ } while(0)
+=20
+-/* Write locked OK as well. */						    \
++/* Write locked OK as well. */
+ #define MUST_BE_READ_LOCKED(l)						    \
+-do { if (!((l)->read_locked_map & (1 << smp_processor_id()))		    \
+-	 && !((l)->write_locked_map & (1 << smp_processor_id())))	    \
++do { if (!((l)->read_locked_map & (1UL << smp_processor_id()))		    \
++	 && !((l)->write_locked_map & (1UL << smp_processor_id())))	    \
+ 	printk("ASSERT %s:%u %s not readlocked\n", __FILE__, __LINE__, #l); \
+ } while(0)
+=20
+ #define MUST_BE_WRITE_LOCKED(l)						     \
+-do { if (!((l)->write_locked_map & (1 << smp_processor_id())))		     \
++do { if (!((l)->write_locked_map & (1UL << smp_processor_id())))	     \
+ 	printk("ASSERT %s:%u %s not writelocked\n", __FILE__, __LINE__, #l); \
+ } while(0)
+=20
+ #define MUST_BE_READ_WRITE_UNLOCKED(l)					  \
+-do { if ((l)->read_locked_map & (1 << smp_processor_id()))		  \
++do { if ((l)->read_locked_map & (1UL << smp_processor_id()))		  \
+ 	printk("ASSERT %s:%u %s readlocked\n", __FILE__, __LINE__, #l);	  \
+- else if ((l)->write_locked_map & (1 << smp_processor_id()))		  \
++ else if ((l)->write_locked_map & (1UL << smp_processor_id()))		  \
+ 	 printk("ASSERT %s:%u %s writelocked\n", __FILE__, __LINE__, #l); \
+ } while(0)
+=20
+@@ -91,7 +91,7 @@
+=20
+ #define READ_UNLOCK(lk)							\
+ do {									\
+-	if (!((lk)->read_locked_map & (1 << smp_processor_id())))	\
++	if (!((lk)->read_locked_map & (1UL << smp_processor_id())))	\
+ 		printk("ASSERT: %s:%u %s not readlocked\n", 		\
+ 		       __FILE__, __LINE__, #lk);			\
+ 	clear_bit(smp_processor_id(), &(lk)->read_locked_map);		\
+diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
+er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-plain/net/ipv4/netfilt=
+er/ip_conntrack_core.c linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_conntrac=
+k_core.c
+--- linux-2.5.73-plain/net/ipv4/netfilter/ip_conntrack_core.c	2003-06-22 20=
+:32:27.000000000 +0200
++++ linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_conntrack_core.c	2003-06-24=
  16:58:24.000000000 +0200
-+++ linux-2.5.73-cosmetic/net/ipv4/netfilter/ip_conntrack_core.c	2003-06-24=
- 17:05:04.000000000 +0200
-@@ -258,9 +258,7 @@
+@@ -168,8 +168,8 @@
+ static void
+ destroy_expect(struct ip_conntrack_expect *exp)
+ {
+-	DEBUGP("destroy_expect(%p) use=3D%d\n", exp, atomic_read(exp->use));
+-	IP_NF_ASSERT(atomic_read(exp->use));
++	DEBUGP("destroy_expect(%p) use=3D%d\n", exp, atomic_read(&exp->use));
++	IP_NF_ASSERT(atomic_read(&exp->use));
+ 	IP_NF_ASSERT(!timer_pending(&exp->timeout));
 =20
- 	DEBUGP("remove_expectations(%p)\n", ct);
+ 	kfree(exp);
+@@ -576,7 +576,7 @@
+ 	int dropped =3D 0;
 =20
--	for (exp_entry =3D ct->sibling_list.next;
--	     exp_entry !=3D &ct->sibling_list; exp_entry =3D next) {
--		next =3D exp_entry->next;
-+	list_for_each_safe(exp_entry, next, &ct->sibling_list) {
- 		exp =3D list_entry(exp_entry, struct ip_conntrack_expect,
- 				 expected_list);
+ 	READ_LOCK(&ip_conntrack_lock);
+-	h =3D LIST_FIND(chain, unreplied, struct ip_conntrack_tuple_hash *);
++	h =3D LIST_FIND_B(chain, unreplied, struct ip_conntrack_tuple_hash *);
+ 	if (h)
+ 		atomic_inc(&h->ctrack->ct_general.use);
+ 	READ_UNLOCK(&ip_conntrack_lock);
+@@ -685,6 +685,14 @@
+ 			     struct ip_conntrack_expect *, tuple);
+ 	READ_UNLOCK(&ip_conntrack_expect_tuple_lock);
 =20
-@@ -307,7 +305,7 @@
- 	IP_NF_ASSERT(atomic_read(&nfct->use) =3D=3D 0);
- 	IP_NF_ASSERT(!timer_pending(&ct->timeout));
++	/* If master is not in hash table yet (ie. packet hasn't left
++	   this machine yet), how can other end know about expected?
++	   Hence these are not the droids you are looking for (if
++	   master ct never got confirmed, we'd hold a reference to it
++	   and weird things would happen to future packets). */
++	if (expected && !is_confirmed(expected->expectant))
++		expected =3D NULL;
++
+ 	/* Look up the conntrack helper for master connections only */
+ 	if (!expected)
+ 		conntrack->helper =3D ip_ct_find_helper(&repl_tuple);
+@@ -695,12 +703,7 @@
+ 	    && ! del_timer(&expected->timeout))
+ 		expected =3D NULL;
 =20
--	if (ct->master && master_ct(ct))
-+	if (master_ct(ct))
- 		ip_conntrack_put(master_ct(ct));
+-	/* If master is not in hash table yet (ie. packet hasn't left
+-	   this machine yet), how can other end know about expected?
+-	   Hence these are not the droids you are looking for (if
+-	   master ct never got confirmed, we'd hold a reference to it
+-	   and weird things would happen to future packets). */
+-	if (expected && is_confirmed(expected->expectant)) {
++	if (expected) {
+ 		DEBUGP("conntrack: expectation arrives ct=3D%p exp=3D%p\n",
+ 			conntrack, expected);
+ 		/* Welcome, Mr. Bond.  We've been expecting you... */
+@@ -1282,9 +1285,9 @@
+ 	struct inet_opt *inet =3D inet_sk(sk);
+ 	struct ip_conntrack_tuple_hash *h;
+ 	struct ip_conntrack_tuple tuple =3D { { inet->rcv_saddr,
+-						{ inet->sport } },
++						{ .tcp =3D { inet->sport } } },
+ 					    { inet->daddr,
+-						{ inet->dport },
++						{ .tcp =3D { inet->dport } },
+ 					      IPPROTO_TCP } };
 =20
- 	/* To make sure we don't get any weird locking issues here:
-@@ -675,9 +673,6 @@
+ 	/* We only do TCP at the moment: is there a better way? */
+diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
+er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-plain/net/ipv4/netfilt=
+er/ip_conntrack_ftp.c linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_conntrack=
+_ftp.c
+--- linux-2.5.73-plain/net/ipv4/netfilter/ip_conntrack_ftp.c	2003-06-22 20:=
+33:07.000000000 +0200
++++ linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_conntrack_ftp.c	2003-06-24 =
+16:49:56.000000000 +0200
+@@ -367,11 +367,11 @@
+ 		    { 0 } },
+ 		  { htonl((array[0] << 24) | (array[1] << 16)
+ 			  | (array[2] << 8) | array[3]),
+-		    { htons(array[4] << 8 | array[5]) },
++		    { .tcp =3D { htons(array[4] << 8 | array[5]) } },
+ 		    IPPROTO_TCP }});
+ 	exp->mask =3D ((struct ip_conntrack_tuple)
+ 		{ { 0xFFFFFFFF, { 0 } },
+-		  { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
++		  { 0xFFFFFFFF, { .tcp =3D { 0xFFFF } }, 0xFFFF }});
 =20
- 	INIT_LIST_HEAD(&conntrack->sibling_list);
+ 	exp->expectfn =3D NULL;
 =20
--	/* Mark clearly that it's not in the hash table. */
--	conntrack->tuplehash[IP_CT_DIR_ORIGINAL].list.next =3D NULL;
--
- 	WRITE_LOCK(&ip_conntrack_lock);
- 	/* Need finding and deleting of expected ONLY if we win race */
- 	READ_LOCK(&ip_conntrack_expect_tuple_lock);
-@@ -1015,18 +1010,11 @@
- 		return -ENOMEM;
+diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
+er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-plain/net/ipv4/netfilt=
+er/ip_conntrack_irc.c linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_conntrack=
+_irc.c
+--- linux-2.5.73-plain/net/ipv4/netfilter/ip_conntrack_irc.c	2003-06-22 20:=
+33:07.000000000 +0200
++++ linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_conntrack_irc.c	2003-06-24 =
+16:49:56.000000000 +0200
+@@ -192,11 +192,11 @@
+=20
+ 			exp->tuple =3D ((struct ip_conntrack_tuple)
+ 				{ { 0, { 0 } },
+-				  { htonl(dcc_ip), { htons(dcc_port) },
++				  { htonl(dcc_ip), { .tcp =3D { htons(dcc_port) } },
+ 				    IPPROTO_TCP }});
+ 			exp->mask =3D ((struct ip_conntrack_tuple)
+ 				{ { 0, { 0 } },
+-				  { 0xFFFFFFFF, { 0xFFFF }, 0xFFFF }});
++				  { 0xFFFFFFFF, { .tcp =3D { 0xFFFF } }, 0xFFFF }});
+=20
+ 			exp->expectfn =3D NULL;
+=20
+diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
+er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-plain/net/ipv4/netfilt=
+er/ip_nat_amanda.c linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_nat_amanda.c
+--- linux-2.5.73-plain/net/ipv4/netfilter/ip_nat_amanda.c	2003-06-22 20:32:=
+36.000000000 +0200
++++ linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_nat_amanda.c	2003-06-24 16:=
+51:42.000000000 +0200
+@@ -84,7 +84,7 @@
+ 		mr.range[0].flags |=3D IP_NAT_RANGE_PROTO_SPECIFIED;
+ 		mr.range[0].min =3D mr.range[0].max
+ 			=3D ((union ip_conntrack_manip_proto)
+-				{ htons(port) });
++				{ .udp =3D { htons(port) } });
  	}
- =09
--	/* Zero out the new structure, then fill out it with the data */
- 	DEBUGP("new expectation %p of conntrack %p\n", new, related_to);
--	memset(new, 0, sizeof(*expect));
--	INIT_LIST_HEAD(&new->list);
--	INIT_LIST_HEAD(&new->expected_list);
- 	memcpy(new, expect, sizeof(*expect));
- 	new->expectant =3D related_to;
- 	new->sibling =3D NULL;
--	/* increase usage count. This sucks. The memset above overwrites
--	 * old usage count [if still present] and we increase to one.  Only
--	 * works because everything is done under ip_conntrack_lock() */
--	atomic_inc(&new->use);
-+	atomic_set(&new->use, 1);
- =09
- 	/* add to expected list for this connection */=09
- 	list_add(&new->expected_list, &related_to->sibling_list);
-@@ -1476,8 +1464,10 @@
- 	ip_ct_attach =3D ip_conntrack_attach;
- 	return ret;
 =20
-+#ifdef CONFIG_SYSCTL
- err_free_ct_cachep:
- 	kmem_cache_destroy(ip_conntrack_cachep);
-+#endif /*CONFIG_SYSCTL*/
- err_free_hash:
- 	vfree(ip_conntrack_hash);
- err_unreg_sockopt:
+ 	return ip_nat_setup_info(ct, &mr, hooknum);
 diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
 er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-nf_fixes/net/ipv4/netf=
-ilter/ip_conntrack_ftp.c linux-2.5.73-cosmetic/net/ipv4/netfilter/ip_conntr=
-ack_ftp.c
---- linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_conntrack_ftp.c	2003-06-24 =
-16:49:56.000000000 +0200
-+++ linux-2.5.73-cosmetic/net/ipv4/netfilter/ip_conntrack_ftp.c	2003-06-24 =
-17:05:04.000000000 +0200
-@@ -406,7 +406,6 @@
- 		ports[0] =3D FTP_PORT;
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-plain/net/ipv4/netfilt=
+er/ip_nat_core.c linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_nat_core.c
+--- linux-2.5.73-plain/net/ipv4/netfilter/ip_nat_core.c	2003-06-22 20:32:34=
+=2E000000000 +0200
++++ linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_nat_core.c	2003-06-24 16:49=
+:08.000000000 +0200
+@@ -763,6 +763,11 @@
+ 	enum ip_conntrack_dir dir =3D CTINFO2DIR(ctinfo);
+ 	int proto =3D (*pskb)->nh.iph->protocol;
 =20
- 	for (i =3D 0; (i < MAX_PORTS) && ports[i]; i++) {
--		memset(&ftp[i], 0, sizeof(struct ip_conntrack_helper));
- 		ftp[i].tuple.src.u.tcp.port =3D htons(ports[i]);
- 		ftp[i].tuple.dst.protonum =3D IPPROTO_TCP;
- 		ftp[i].mask.src.u.tcp.port =3D 0xFFFF;
++	/* Skip everything and don't call helpers if there are no
++	 * manips for this connection */
++	if (info->num_manips =3D=3D 0)
++		return NF_ACCEPT;
++
+ 	/* Need nat lock to protect against modification, but neither
+ 	   conntrack (referenced) and helper (deleted with
+ 	   synchronize_bh()) can vanish. */
+@@ -791,6 +796,7 @@
+ 		struct ip_conntrack_expect *exp =3D NULL;
+ 		struct list_head *cur_item;
+ 		int ret =3D NF_ACCEPT;
++		int helper_called =3D 0;
+=20
+ 		DEBUGP("do_bindings: helper existing for (%p)\n", ct);
+=20
+@@ -809,19 +815,21 @@
+ 				continue;
+=20
+ 			if (exp_for_packet(exp, *pskb)) {
+-				/* FIXME: May be true multiple times in the case of UDP!! */
+-				DEBUGP("calling nat helper (exp=3D%p) for packet\n",
+-					exp);
++				/* FIXME: May be true multiple times in the
++				 * case of UDP!! */
++				DEBUGP("calling nat helper (exp=3D%p) for packet\n", exp);
+ 				ret =3D helper->help(ct, exp, info, ctinfo,=20
+ 						   hooknum, pskb);
+ 				if (ret !=3D NF_ACCEPT) {
+ 					READ_UNLOCK(&ip_conntrack_lock);
+ 					return ret;
+ 				}
++				helper_called =3D 1;
+ 			}
+ 		}
+-		/* Helper might want to manip the packet even when there is no expectati=
+on */
+-		if (!exp && helper->flags & IP_NAT_HELPER_F_ALWAYS) {
++		/* Helper might want to manip the packet even when there is no
++		 * matching expectation for this packet */
++		if (!helper_called && helper->flags & IP_NAT_HELPER_F_ALWAYS) {
+ 			DEBUGP("calling nat helper for packet without expectation\n");
+ 			ret =3D helper->help(ct, NULL, info, ctinfo,=20
+ 					   hooknum, pskb);
 diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
 er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-nf_fixes/net/ipv4/netf=
-ilter/ip_conntrack_irc.c linux-2.5.73-cosmetic/net/ipv4/netfilter/ip_conntr=
-ack_irc.c
---- linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_conntrack_irc.c	2003-06-24 =
-16:49:56.000000000 +0200
-+++ linux-2.5.73-cosmetic/net/ipv4/netfilter/ip_conntrack_irc.c	2003-06-24 =
-17:05:04.000000000 +0200
-@@ -243,8 +243,6 @@
-=20
- 	for (i =3D 0; (i < MAX_PORTS) && ports[i]; i++) {
- 		hlpr =3D &irc_helpers[i];
--		memset(hlpr, 0,
--		       sizeof(struct ip_conntrack_helper));
- 		hlpr->tuple.src.u.tcp.port =3D htons(ports[i]);
- 		hlpr->tuple.dst.protonum =3D IPPROTO_TCP;
- 		hlpr->mask.src.u.tcp.port =3D 0xFFFF;
-diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
-er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-nf_fixes/net/ipv4/netf=
-ilter/ip_nat_ftp.c linux-2.5.73-cosmetic/net/ipv4/netfilter/ip_nat_ftp.c
---- linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_nat_ftp.c	2003-06-24 16:51:=
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-plain/net/ipv4/netfilt=
+er/ip_nat_ftp.c linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_nat_ftp.c
+--- linux-2.5.73-plain/net/ipv4/netfilter/ip_nat_ftp.c	2003-06-22 20:32:58.=
+000000000 +0200
++++ linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_nat_ftp.c	2003-06-24 16:51:=
 42.000000000 +0200
-+++ linux-2.5.73-cosmetic/net/ipv4/netfilter/ip_nat_ftp.c	2003-06-24 17:05:=
-04.000000000 +0200
-@@ -306,9 +306,6 @@
- 		ports[0] =3D FTP_PORT;
-=20
- 	for (i =3D 0; (i < MAX_PORTS) && ports[i]; i++) {
--
--		memset(&ftp[i], 0, sizeof(struct ip_nat_helper));
--
- 		ftp[i].tuple.dst.protonum =3D IPPROTO_TCP;
- 		ftp[i].tuple.src.u.tcp.port =3D htons(ports[i]);
- 		ftp[i].mask.dst.protonum =3D 0xFFFF;
+@@ -84,7 +84,7 @@
+ 		mr.range[0].flags |=3D IP_NAT_RANGE_PROTO_SPECIFIED;
+ 		mr.range[0].min =3D mr.range[0].max
+ 			=3D ((union ip_conntrack_manip_proto)
+-				{ htons(exp_ftp_info->port) });
++				{ .tcp =3D { htons(exp_ftp_info->port) } });
+ 	}
+ 	return ip_nat_setup_info(ct, &mr, hooknum);
+ }
 diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
 er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-nf_fixes/net/ipv4/netf=
-ilter/ip_nat_irc.c linux-2.5.73-cosmetic/net/ipv4/netfilter/ip_nat_irc.c
---- linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_nat_irc.c	2003-06-22 20:33:=
-35.000000000 +0200
-+++ linux-2.5.73-cosmetic/net/ipv4/netfilter/ip_nat_irc.c	2003-06-24 17:05:=
-04.000000000 +0200
-@@ -243,9 +243,6 @@
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-plain/net/ipv4/netfilt=
+er/ip_nat_snmp_basic.c linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_nat_snmp=
+_basic.c
+--- linux-2.5.73-plain/net/ipv4/netfilter/ip_nat_snmp_basic.c	2003-06-22 20=
+:33:08.000000000 +0200
++++ linux-2.5.73-nf_fixes/net/ipv4/netfilter/ip_nat_snmp_basic.c	2003-06-24=
+ 16:51:42.000000000 +0200
+@@ -1308,9 +1308,9 @@
+ 	"snmp",
+ 	0,
+ 	THIS_MODULE,
+-	{ { 0, { __constant_htons(SNMP_PORT) } },
++	{ { 0, { .udp =3D { __constant_htons(SNMP_PORT) } } },
+ 	  { 0, { 0 }, IPPROTO_UDP } },
+-	{ { 0, { 0xFFFF } },
++	{ { 0, { .udp =3D { 0xFFFF } } },
+ 	  { 0, { 0 }, 0xFFFF } },
+ 	nat_help, NULL };
+ =20
+@@ -1319,9 +1319,9 @@
+ 	"snmp_trap",
+ 	0,
+ 	THIS_MODULE,
+-	{ { 0, { __constant_htons(SNMP_TRAP_PORT) } },
++	{ { 0, { .udp =3D { __constant_htons(SNMP_TRAP_PORT) } } },
+ 	  { 0, { 0 }, IPPROTO_UDP } },
+-	{ { 0, { 0xFFFF } },
++	{ { 0, { .udp =3D { 0xFFFF } } },
+ 	  { 0, { 0 }, 0xFFFF } },
+ 	nat_help, NULL };
 =20
- 	for (i =3D 0; (i < MAX_PORTS) && ports[i] !=3D 0; i++) {
- 		hlpr =3D &ip_nat_irc_helpers[i];
--		memset(hlpr, 0,
--		       sizeof(struct ip_nat_helper));
--
- 		hlpr->tuple.dst.protonum =3D IPPROTO_TCP;
- 		hlpr->tuple.src.u.tcp.port =3D htons(ports[i]);
- 		hlpr->mask.src.u.tcp.port =3D 0xFFFF;
 diff -Nru --exclude .depend --exclude '*.o' --exclude '*.ko' --exclude '*.v=
 er' --exclude '.*.flags' --exclude '*.orig' --exclude '*.rej' --exclude '*.=
-cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-nf_fixes/net/ipv4/netf=
-ilter/ipt_ULOG.c linux-2.5.73-cosmetic/net/ipv4/netfilter/ipt_ULOG.c
---- linux-2.5.73-nf_fixes/net/ipv4/netfilter/ipt_ULOG.c	2003-06-22 20:32:41=
-=2E000000000 +0200
-+++ linux-2.5.73-cosmetic/net/ipv4/netfilter/ipt_ULOG.c	2003-06-24 17:05:04=
-=2E000000000 +0200
-@@ -325,7 +325,6 @@
+cmd' --exclude '*.mod.c' --exclude '*~' linux-2.5.73-plain/net/ipv6/netfilt=
+er/ip6_tables.c linux-2.5.73-nf_fixes/net/ipv6/netfilter/ip6_tables.c
+--- linux-2.5.73-plain/net/ipv6/netfilter/ip6_tables.c	2003-06-22 20:33:16.=
+000000000 +0200
++++ linux-2.5.73-nf_fixes/net/ipv6/netfilter/ip6_tables.c	2003-06-24 16:49:=
+49.000000000 +0200
+@@ -101,10 +101,8 @@
+ 	unsigned int hook_entry[NF_IP6_NUMHOOKS];
+ 	unsigned int underflow[NF_IP6_NUMHOOKS];
 =20
- 	/* initialize ulog_buffers */
- 	for (i =3D 0; i < ULOG_MAXNLGROUPS; i++) {
--		memset(&ulog_buffers[i], 0, sizeof(ulog_buff_t));
- 		init_timer(&ulog_buffers[i].timer);
- 		ulog_buffers[i].timer.function =3D ulog_timer;
- 		ulog_buffers[i].timer.data =3D i;
+-	char padding[SMP_ALIGN((NF_IP6_NUMHOOKS*2+2)*sizeof(unsigned int))];
+-
+ 	/* ip6t_entry tables: one per CPU */
+-	char entries[0];
++	char entries[0] ____cacheline_aligned;
+ };
+=20
+ static LIST_HEAD(ip6t_target);
+@@ -1451,7 +1449,7 @@
+ 	int ret;
+ 	struct ip6t_table_info *newinfo;
+ 	static struct ip6t_table_info bootstrap
+-		=3D { 0, 0, 0, { 0 }, { 0 }, { }, { } };
++		=3D { 0, 0, 0, { 0 }, { 0 }, { } };
+=20
+ 	newinfo =3D vmalloc(sizeof(struct ip6t_table_info)
+ 			  + SMP_ALIGN(table->table->size) * NR_CPUS);
 
 Please apply, thanks.
 
@@ -218,16 +391,16 @@ Please apply, thanks.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---ai3I8gwHc37+ASRI
+--tBhgiDt8dP1efIIJ
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQE++GepXaXGVTD0i/8RAst7AKCD8LRZJ4ptJxKQykQlcy2d/fUdtQCePcWN
-besK9QpV34vrIC2Z0PRCb+s=
-=Y8vY
+iD8DBQE++GbXXaXGVTD0i/8RAnMkAKCM6iSn8rUROSGSdymm9QK9EpBWJwCeJp01
+EvzaVVKdq/EzwUT2kzZapow=
+=U4eA
 -----END PGP SIGNATURE-----
 
---ai3I8gwHc37+ASRI--
+--tBhgiDt8dP1efIIJ--
