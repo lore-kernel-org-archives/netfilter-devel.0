@@ -1,11 +1,14 @@
-From: Guilherme Cesar Soares Ruppert <ruppert@las.ic.unicamp.br>
-Subject: Libipq Help!! How to steal UDP traffic?
-Date: Sat, 22 Jan 2005 19:26:00 -0200 (BRST)
-Message-ID: <Pine.LNX.4.61.0501221918080.6027@quasar.las.ic.unicamp.br>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: [PATCH 3/2] Fix compile with NAT but without modules
+Date: Sun, 23 Jan 2005 01:38:52 +0100
+Message-ID: <1106440732.20995.48.camel@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-ESO4zeyjnQZ2sdj9md33"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,37 +21,50 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi everyone, please I need some help!!
+--=-ESO4zeyjnQZ2sdj9md33
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-I'm developing a program that needs to intercept an UDP traffic generated 
-locally by another application. It's like a tunnel. My program will 
-steal the outgoing packets from the application (in the same machine) and 
-will send to a tcp tunnel.
+Hi Patrick
 
-I am using Libipq to do that, but I have a BIG problem. After send the 
-UDP packets to my tunnel, I need to DROP the packets because I don't want 
-them to be sent over the network. So I am doing:
-ipq_set_verdict(handle, m->packet_id, NF_DROP, 0, NULL);
+Here's another patch to fix compile-errors, this time with NAT but
+without modules.
+There's a missing 'extern' in ip_conntrack_tftp.h
 
-But the problem is that when I drop the packet, the application that 
-generated the packet remains blocked in sendto() until the packet is 
-accepted. When I change to NF_ACCEPT, the application doesn't block but 
-the packets are sent to the network and I don't want it.
+Please submit this patch to davem for inclusion in 2.6.11
 
-How could I drop a packet silently, without blocking the application? Is
-there any way to intercept outgoing packets locally without let the
-applications notice that their packet were stolen?
+Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
 
-Here is the same example using netcat:
-$ iptables -A OUTPUT -p udp -j QUEUE
-$ echo "Test" | nc -n -u 10.1.1.23 800
-And this last remains blocked, not returning to shell.
+diff -X /home/gandalf/dontdiff.ny -urNp linux-2.6.11-rc2.orig/include/linux=
+/netfilter_ipv4/ip_conntrack_tftp.h linux-2.6.11-rc2/include/linux/netfilte=
+r_ipv4/ip_conntrack_tftp.h
+--- linux-2.6.11-rc2.orig/include/linux/netfilter_ipv4/ip_conntrack_tftp.h	=
+2005-01-22 15:23:45.000000000 +0100
++++ linux-2.6.11-rc2/include/linux/netfilter_ipv4/ip_conntrack_tftp.h	2005-=
+01-23 01:31:25.000000000 +0100
+@@ -13,7 +13,7 @@ struct tftphdr {
+ #define TFTP_OPCODE_ACK		4
+ #define TFTP_OPCODE_ERROR	5
+=20
+-unsigned int (*ip_nat_tftp_hook)(struct sk_buff **pskb,
++extern unsigned int (*ip_nat_tftp_hook)(struct sk_buff **pskb,
+ 				 enum ip_conntrack_info ctinfo,
+ 				 struct ip_conntrack_expect *exp);
+=20
 
-I tested will ping (icmp echo) also and the same happened, but ping didn't
-block. Instead, it said "operation not permitted".
+--=20
+/Martin
 
-Please give me some hope!!! :-)
+--=-ESO4zeyjnQZ2sdj9md33
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-Thanks
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
-Guilherme Ruppert
+iD8DBQBB8vIbWm2vlfa207ERAqtoAJ0cUx2bbX/SiG+g5iUumMe+9xw5qgCfaH+M
+t7nFvJ1NhRz7jbEG46jO9KA=
+=Gngl
+-----END PGP SIGNATURE-----
+
+--=-ESO4zeyjnQZ2sdj9md33--
