@@ -1,16 +1,13 @@
-From: "zze-Proxy GRALL O ext FTRD/SVA/LAN" <ograll.ext@rd.francetelecom.com>
-Subject: RE : RE : RE : RE : Apply rules to 1 UDP port but port used as a socket: possible?
-Date: Fri, 13 Feb 2004 09:01:12 +0100
+From: Nagaraj G <gnraj@teneoris.com>
+Subject: Help needed on standalone nat for opening new ports inside the code
+Date: Sat, 14 Feb 2004 16:20:24 +0530
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <D4EF10CCEB2CE742BEEA9838C590B0E8011CBAA3@ftrdmel2.rd.francetelecom.fr>
+Message-ID: <1076755824.13168.10.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-content-class: urn:content-classes:message
-To: "Henrik Nordstrom" <hno@marasystems.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,87 +18,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Maybe I wasn't clear at the beginning...
+Hello,
 
--I have an UDP socket listening on port 1727.
+I am writing a new netfilter application module where-in I have to
+mangle each and every packet. So, I have made the module as a standalone
+NAT with NAT_ALWAYS flag defined.
 
--I must receive some (5 to 10) proprietary UDP packets from a Nated =
-client (it's for VoIP...).
+I am using linux 2.4.10 kernel and the related files.
 
--These packets contains an ID that permits me to know the destination =
-(and so the NAT rule to apply) which must be another Nated client.
+Masquerading is enabled.
 
--When I've received the packets from the 2 Nated clients (they are =
-behind a Router), I can apply the NAT rules SNAT+DNAT).
+My protocol behaves like this.
 
--Next packets are RTP or RTCP packets...
+1. A packet destined to the well-known port comes to the netfilter from
+an internal host. This packet gets mangled via the Nat_Help routine
+registered via the register_nat_helper.
 
--My problem was that the rules wasn't applied... And so the socket =
-receives all RTP/RTCP packets.
+2. The reply for the above packet does not come on the same connection.
+The reply comes in on the same well-known port from the remote
+ip-address.
 
-Thanks to you :
+For the above case, I don't want to define a "iptables" rule hard-coded
+as I don't know who is coming in and when.
 
--Now I can apply a new rule (mangle table PREROUTING -> QUEUE) after the =
-NAT rules.
+So, I want to create the connection dynamically to open the well-known
+port only for the remote ip-address.
 
--I'm building a NetLink socket to receive the packet
+I tried doing ip_conntrack_expect_related(). But it fails with -16
+(EBUSY).
 
--You said last time that the packet (coming from QUEUE) will go to NAT =
-table and will apply my NAT rules.
+I don't get the reply back from the remote ip-address unless I create
+the port-forwarding rule manually.
 
-Maybe I haven't well understood what you said. I wonder wether I =
-shouldn't=20
--not use socket on port 1727,
--only intercept the packet with QUEUE target and my handler,
--finally reenter packet in the nat table.
-... That's what you meant maybe ?
+How do I achieve the functionality required in case of standalone-nat?
 
-Regards,
+Thanks in advance for the great reply.
 
-Olivier GRALL=20
+Best Regards,
 
------Message d'origine-----
-De : Henrik Nordstrom [mailto:hno@marasystems.com]=20
-Envoy=E9 : jeudi 12 f=E9vrier 2004 12:35
-=C0 : zze-Proxy GRALL O ext FTRD/SVA/LAN
-Cc : netfilter-devel@lists.netfilter.org
-Objet : Re: RE : RE : RE : Apply rules to 1 UDP port but port used as a =
-socket: possible?
-
-
-On Thu, 12 Feb 2004, zze-Proxy GRALL O ext FTRD/SVA/LAN wrote:
-
-> Then packets which arrive on the socket stop
-
-Yes.
-
-> That's what I want!
-
-There is unfortunately not much to choose from here. Either you allow =
-the=20
-packet to be delivered locally and accept that all further packets of =
-the=20
-same session will be dealt with in the same manner, or you intercept the =
-
-packet early in the processing via QUEUE and have control over what=20
-happens with the session.
-
-
-> I will just approve the packet in my queue handler and I must receive=20
-> packets from the other side so I think it will be OK hoping it won't=20
-> load CPU too much more because I must treat thousands connection at=20
-> the end...
-
-You can not approve the packet until you have set up the required NAT=20
-rules for how this session is to be forwarded.
-
-If you let a single packet be forwarded to the local socket then all=20
-further packets of this session will be forwarded the same way.
-
-
-If you perhaps described what the actual problem you are trying to solve =
-
-is then we could help you finding a reasonable approach.
-
-Regards
-Henrik
+GNRaj
