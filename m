@@ -1,15 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: ip_conntrack_get
-Date: Wed, 12 Nov 2003 00:55:01 +0100 (CET)
+From: "David S. Miller" <davem@redhat.com>
+Subject: Re: Fw: PROBLEM: PATCH for 2.4.23-pre4 and up hang on one system
+Date: Tue, 11 Nov 2003 16:10:36 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0311120051400.14633-100000@filer.marasystems.com>
-References: <3FB16B63.8070603@eurodev.net>
+Message-ID: <20031111161036.108eb63a.davem@redhat.com>
+References: <20031110233225.00de7987.davem@redhat.com>
+	<20031111104317.GZ8206@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: pablo neira <pablo@eurodev.net>
-In-Reply-To: <3FB16B63.8070603@eurodev.net>
+To: Harald Welte <laforge@gnumonks.org>
+In-Reply-To: <20031111104317.GZ8206@sunbeam.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,22 +22,22 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 12 Nov 2003, pablo neira wrote:
+On Tue, 11 Nov 2003 11:43:17 +0100
+Harald Welte <laforge@gnumonks.org> wrote:
 
-> Actually nf_conntrack doesn't look like ip_conntrack structure anyway.
-
-Well.. it does. If you look closely at ip_conntrack you will notice the 
-first member is a nf_conntrack, making ip_conntrack a superset of 
-nf_conntrack.
-
-> I also don't understand the way ctinfo is calculate. This stuff...
+> On Mon, Nov 10, 2003 at 11:32:25PM -0800, David S. Miller wrote:
+> > Please have a look, thanks guys.
 > 
-> 403 <http://lxr.linux.no/source/net/ipv4/netfilter/ip_conntrack_core.c#L403>         *//* ctinfo is the index of the nfct inside the conntrack *//*
-> 404 <http://lxr.linux.no/source/net/ipv4/netfilter/ip_conntrack_core.c#L404>         *ctinfo = nfct - ct->infos;
+> Thanks, David.  Marcelo forwarded that message to the netfilter
+> (non-devel) list, see my reply attached.
+> 
+> I've read and change again and again: The change _is_ correct.  Also, it
+> is in effect for quite some time, we have it in CVS/patch-o-matic for
+> more than two months, and lots of people are using patch-o-matic.  
 
-Neither do I.. but then I have never needed to care as ip_conntrack_get()  
-and the conntrack core does a good job of hiding the magics in that area.. 
-it is probably quite simple reasons behind this odd looking construct.
+Ok.
 
-Regards
-Henrik
+If anything does need to be fixed, just let me know.  Even if you
+haven't coded up a patch yet, but you know the bug, let me know
+first.  This way I can tell Marcelo to hold up while the fix is
+being worked on.
