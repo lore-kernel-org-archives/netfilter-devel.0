@@ -1,13 +1,14 @@
-From: dwu@zipworld.com.au
-Subject: tip_packet_match causing kernel crash (?)
-Date: Wed, 02 Jul 2003 20:54:13 +1000 (EST)
+From: Michael Bauer <mihi@ch3cooh.org>
+Subject: iptables Parseing Bug
+Date: Tue, 1 Jul 2003 21:21:22 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1057143253.3f02b9d570008@webmail.pacific.net.au>
+Message-ID: <20030701192122.GA22816@nacl.ch3cooh.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jI8keyz6grp/JLjh"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,22 +20,47 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi,
+--jI8keyz6grp/JLjh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'm seeing a kernel crash in the netfilter section of the kernel and is trying 
-to get some help in tracking down the problem.
+Hi all,
+While rewriting my firewall rules I found a Bug in iptables/ip6tables
+command line parsing, it interpretes the correct beginning of an
+argument as the whole argument. For example:
 
-In my test environment, I see that the crash occurs if there is a mismatch 
-between the ip address in the iptables entry and the incoming packet, when the 
-function ip_packet_match from the file ip_tables.c returns 0.
+iptables -A INPUT -p tcp --sp 22 -j ACCEPT
 
-Analysing the code in ip_tables.c, in the function ipt_do_table, if the 
-ip_packet_match return 0, then it looks at the next ipt_entry (see the code 
-around line 384). It looks to me as if there is no way for the loop to get out 
-of the "do { ... } while (!hotdrop)" loop if ip_packet_match always
-return 0 (?) Is this causing the kernel crash in my test environment.
+works, it interpretes --sp as --sport. This is that far no problem.
+But what if you construct something like:
 
-Any comments would be greatly appreciated.
+iptables -A INPUT -p tcp -m mport --sport 22 --dports 1:1024 -j ACCEPT
 
-Thanks,
-Daniel
+it fails with the error:
+
+iptables v1.2.8: multiport can only have one option
+
+because it interpretes --sport as --sports. I worked around that useing
+--sport before -m mport, but it took a long time getting the error I
+made. I know it's only cosmetics, but it's a bug ;)
+
+greetings mihi
+--=20
+=2Eplan: Get an ibook
+	-> check http://unet.univie.ac.at/~a9900470/ibook
+
+--jI8keyz6grp/JLjh
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (OpenBSD)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE/Ad8yduFamyGEthkRAtY6AKC0YafwiglLS0qRNZBE6sSu90tlKACgz1Hp
+r/3IGrk1QtQdFrZ2pCLE+MQ=
+=qZhk
+-----END PGP SIGNATURE-----
+
+--jI8keyz6grp/JLjh--
