@@ -1,16 +1,13 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: ASSERT ip_conntrack_core.c:622 &ip_conntrack_lock not
-	readlocked
-Date: 12 Mar 2003 23:45:49 +0100
+From: "Shuanghu Luo" <shluo@yc.shu.edu.cn>
+Subject: about conntrack_ftp and FTP_NAT
+Date: Thu, 13 Mar 2003 16:32:28 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1047509148.824.53.camel@tux.rsn.bth.se>
-References: <3E6F99C5.1050101@netland.nl>
+Message-ID: <004201c2e93b$1e2d6930$e47378ca@Veloo>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-efwYsLVtZ8YarcPpvgQl"
-Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_003F_01C2E97E.2315FD70"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: raarts@office.netland.nl
-In-Reply-To: <3E6F99C5.1050101@netland.nl>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,131 +18,37 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---=-efwYsLVtZ8YarcPpvgQl
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+------=_NextPart_000_003F_01C2E97E.2315FD70
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-On Wed, 2003-03-12 at 21:34, Ron Arts wrote:
-> I get this error on kernel 2.4.21pre4 when I boot. RH 2.4.18 didn't have this problem:
-> 
-> Mar 12 14:05:52 n000007 kernel: ASSERT ip_conntrack_core.c:622 &ip_conntrack_lock not readlocked
->
-> Is this a known problem?
+aGksZXZlcnlvbmUhDQpNeSBzZXJ2ZXIncyBjb25zb2xlIG9mdGVuIGRpc3BsYXlzIHRoZSBpbmZv
+bWF0aW9uIGxpa2UgIHRoZSBmb2xsb3dpbmc6DQpjb25udHJhY2tfZnRwOiAgIFBhcnRpYWwgMjI3
+IDEzMzY0ODUzNjcrMzcNCkZUUF9OQVQ6ICAgICAgICAgUGFydGlhbCBwYWNrZXQgICAxNjMyMzk2
+MzYxLzE3IGluIDE2MzIzOTYzNzgvMTYzMjM5NjQwMA0Kd2hhdCdzIHRoZSBtZWFuaW5nPyANClRo
+YW5rIHlvdSE=
 
-It looks like it's the NAT code that's abusing the locking a bit.
-It calls a function in conntrack without taking the correct lock first.
+------=_NextPart_000_003F_01C2E97E.2315FD70
+Content-Type: text/html;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-I've attached a small patch that should fix it.
-The patch is completely untested, not even testcompiled...
-YMMV :)
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
+L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgaHR0cC1lcXVpdj1Db250ZW50LVR5cGUgY29udGVu
+dD0idGV4dC9odG1sOyBjaGFyc2V0PWdiMjMxMiI+DQo8TUVUQSBjb250ZW50PSJNU0hUTUwgNi4w
+MC4yODAwLjExNDEiIG5hbWU9R0VORVJBVE9SPg0KPFNUWUxFPjwvU1RZTEU+DQo8L0hFQUQ+DQo8
+Qk9EWSBiZ0NvbG9yPSNmZmZmZmY+DQo8RElWPjxGT05UIHNpemU9Mj5oaSxldmVyeW9uZSE8L0ZP
+TlQ+PC9ESVY+DQo8RElWPjxGT05UIHNpemU9Mj5NeSBzZXJ2ZXIncyBjb25zb2xlIG9mdGVuIGRp
+c3BsYXlzIHRoZSBpbmZvbWF0aW9uJm5ic3A7bGlrZSANCiZuYnNwO3RoZSBmb2xsb3dpbmc6PC9G
+T05UPjwvRElWPg0KPERJVj48Rk9OVCBzaXplPTI+Y29ubnRyYWNrX2Z0cDombmJzcDsmbmJzcDsg
+UGFydGlhbCAyMjcgDQoxMzM2NDg1MzY3KzM3PC9GT05UPjwvRElWPg0KPERJVj48Rk9OVCBzaXpl
+PTI+RlRQX05BVDombmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsgDQpQYXJ0aWFsIHBhY2tldCZuYnNwOyZuYnNwOyAxNjMyMzk2MzYxLzE3IGluIDE2MzIzOTYz
+NzgvMTYzMjM5NjQwMDwvRk9OVD48L0RJVj4NCjxESVY+PEZPTlQgc2l6ZT0yPndoYXQncyB0aGUg
+bWVhbmluZz88L0ZPTlQ+Jm5ic3A7PC9ESVY+DQo8RElWPjxGT05UIHNpemU9Mj5UaGFuayB5b3Uh
+PC9GT05UPjwvRElWPjwvQk9EWT48L0hUTUw+DQo=
 
-It would be great if you could try it out and report back if it fixes
-the problem or not. This patch will only fix the ASSERT warnings. Not
-the actual error that ip_conntrack_ftp couldn't be loaded.
-
-I havn't checked the RH 2.4.18 kernel but I doubt they have netfilter
-compiled with debugging like you have. It's the debugging code that
-prints out the ASSERT warnings.
-
-Oh now I noticed one more thing. I believe you are trying something like
-this:
-
-modprobe ip_nat_ftp ports=121
-
-This will fail unless ip_conntrack_ftp was loaded the same way:
-
-modprobe ip_conntrack_ftp ports=121
-
-The autoloading will not supply the correct arguments to
-ip_conntrack_ftp when it tries to autoload it which happens when you
-load ip_nat_ftp without having ip_conntrack_ftp loaded.
-
-The error-message could be improved to say what exactly went wrong...
-I've attached a small patch for that as well...
-(not tested or testcompiled either)
-
-Time to continue trying to get rid of the flu... good night.
-
--- 
-/Martin
-
-Never argue with an idiot. They drag you down to their level, then beat you with experience.
-
---=-efwYsLVtZ8YarcPpvgQl
-Content-Disposition: attachment; filename=ip_ct_find_helper.patch
-Content-Type: text/plain; name=ip_ct_find_helper.patch; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-
---- linux-2.4.20/net/ipv4/netfilter/ip_conntrack_core.c.orig	2003-03-12 23:=
-08:49.000000000 +0100
-+++ linux-2.4.20/net/ipv4/netfilter/ip_conntrack_core.c	2003-03-12 23:12:05=
-.000000000 +0100
-@@ -617,13 +617,24 @@
- 	return ip_ct_tuple_mask_cmp(rtuple, &i->tuple, &i->mask);
- }
-=20
--struct ip_conntrack_helper *ip_ct_find_helper(const struct ip_conntrack_tu=
-ple *tuple)
-+struct ip_conntrack_helper *__ip_ct_find_helper(const struct ip_conntrack_=
-tuple *tuple)
- {
- 	return LIST_FIND(&helpers, helper_cmp,
- 			 struct ip_conntrack_helper *,
- 			 tuple);
- }
-=20
-+struct ip_conntrack_helper *ip_ct_find_helper(const struct ip_conntrack_tu=
-ple *tuple)
-+{
-+	struct ip_conntrack_helper *helper;
-+=09
-+	READ_LOCK(&ip_conntrack_lock);
-+	helper =3D __ip_ct_find_helper(tuple);
-+	READ_UNLOCK(&ip_conntrack_lock);
-+
-+	return helper;
-+}
-+
- /* Allocate a new conntrack: we return -ENOMEM if classification
-    failed due to stress.  Otherwise it really is unclassifiable. */
- static struct ip_conntrack_tuple_hash *
-@@ -702,7 +713,7 @@
-=20
- 	/* Look up the conntrack helper for master connections only */
- 	if (!expected)
--		conntrack->helper =3D ip_ct_find_helper(&repl_tuple);
-+		conntrack->helper =3D __ip_ct_find_helper(&repl_tuple);
-=20
- 	/* If the expectation is dying, then this is a looser. */
- 	if (expected
-
---=-efwYsLVtZ8YarcPpvgQl
-Content-Disposition: attachment; filename=ip_nat_helper-request_module.patch
-Content-Type: text/plain; name=ip_nat_helper-request_module.patch; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-
---- linux-2.4.20/net/ipv4/netfilter/ip_nat_helper.c.orig	2003-03-12 23:33:5=
-6.000000000 +0100
-+++ linux-2.4.20/net/ipv4/netfilter/ip_nat_helper.c	2003-03-12 23:40:29.000=
-000000 +0100
-@@ -501,12 +501,14 @@
- 			tmp +=3D 6;
- 			sprintf(name, "ip_conntrack%s", tmp);
- #ifdef CONFIG_KMOD
--			if (!request_module(name)
--			    && (ct_helper =3D ip_ct_find_helper(&me->tuple))
-+			if (request_module(name)) {
-+				printk("unable to load module %s\n", name);
-+				return -EBUSY;
-+			} else if ((ct_helper =3D ip_ct_find_helper(&me->tuple))
- 			    && ct_helper->me) {
- 				__MOD_INC_USE_COUNT(ct_helper->me);
- 			} else {
--				printk("unable to load module %s\n", name);
-+				printk("unable to find sought helper from module %s\n", name);
- 				return -EBUSY;
- 			}
- #else
-
---=-efwYsLVtZ8YarcPpvgQl--
+------=_NextPart_000_003F_01C2E97E.2315FD70--
