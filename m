@@ -1,16 +1,15 @@
-From: Abraham van der Merwe <abz@frogfoot.net>
-Subject: Re: netflow/sflow & Linux
-Date: Mon, 22 Mar 2004 17:45:43 +0200
+From: Emmanuel Guiton <emmanuel@netlab.hut.fi>
+Subject: Using NF_DROP or NF_STOLEN?
+Date: Mon, 22 Mar 2004 17:58:44 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040322154543.GA11903@oasis.frogfoot.net>
-References: <20040322110710.GC8314@oasis.frogfoot.net> <Pine.LNX.4.44.0403221428520.19177-100000@filer.marasystems.com>
+Message-ID: <405F0D34.6090609@netlab.hut.fi>
+References: <4055C7C3.2030003@netlab.hut.fi> <20040317135934.GB21899@sunbeam.de.gnumonks.org>
+Reply-To: emmanuel@netlab.hut.fi
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0403221428520.19177-100000@filer.marasystems.com>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,41 +20,14 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Henrik                                        >@2004.03.22_15:31:00_+0200
+Hi!
 
-> > Has anyone done any work to enable Linux to do netflow (capturing not
-> > processing)?
-> 
-> See www.ntop.org
+I have a situation when I record in my module a packet for later 
+processing. When I do that, I do not wish hte iptables to do anyhting 
+with it anymore. As I do that operation in a conntrack  packet() 
+function, should I then return NF_STOLEN or NF_DROP? For my operations 
+it does not change anything as long as the packet is not in transit 
+anymore. But what about the netfilter code? I do not know what 
+operations iptables do regarding that flag.
 
-Yes, I know about that, but ntop is rather limited because it is just based
-on libpcap.
-
-Maybe I should rephrase the question:
-
-Has anyone done any work to do netflow in Linux the "real" way, i.e.
-
- (a) keep a "flow" in kernel space AND record routing information (e.g. AS
-     numbers would by extremely useful although we'd need some way for Zebra
-     to pass this information to the kernel).
-
- (b) export that flow to userspace again.
-
-My main gripe with ntop is that it can't record AS numbers. This is very
-useful! It also means that were missing out on connection tracking which
-would've been really useful (this is something Cisco, etc can't do yet).
-
--- 
-
-Regards
- Abraham
-
-TODAY the Pond!
-TOMORROW the World!
-                -- Frogs (1972)
-
-___________________________________________________
- Abraham vd Merwe - Frogfoot Networks CC
- 1st Floor, Albion Springs, 183 Main Road, Newlands
- Phone: +27 21 689 3873 Cell: +27 82 565 4451
- Http: http://www.frogfoot.net/ Email: abz@frogfoot.net
+Emmanuel
