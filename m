@@ -1,72 +1,49 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.6] iptables ipt_helper Kconfig fix
-Date: Sat, 30 Aug 2003 21:34:02 +0200
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030830193402.GL17715@sunbeam.de.gnumonks.org>
+From: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
+Subject: ipt_physdev.c alignment problems on parisc64
+Date: Tue, 2 Sep 2003 11:30:50 -0300
+Sender: netdev-bounce@oss.sgi.com
+Message-ID: <20030902143050.GC3398@conectiva.com.br>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vhOf6eAHdfH9MSjZ"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: David Miller <davem@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Linux Networking Development Mailing List <netdev@oss.sgi.com>
+Return-path: <netdev-bounce@oss.sgi.com>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
+The 1.786.1.54 changeset (i.e. the initial ipt_physdev.c one 8) created this
+alignment problems on parisc64:
 
---vhOf6eAHdfH9MSjZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+tmp.stdout.allegro.31506.s: Assembler messages:
+tmp.stdout.allegro.31506.s:97: Error: Field not properly aligned [8] (18).
+tmp.stdout.allegro.31506.s:97: Error: Invalid operands
+tmp.stdout.allegro.31506.s:125: Error: Field not properly aligned [8] (34).
+tmp.stdout.allegro.31506.s:125: Error: Invalid operands
+tmp.stdout.allegro.31506.s:129: Error: Field not properly aligned [8] (50).
+tmp.stdout.allegro.31506.s:129: Error: Invalid operands
 
-Hi Davem!
+I got this nailed to the match function, on these lines:
 
-Please apply the following patch (against 2.6.0-test4).  It fixes a bug
-in Kconfig causing ipt_helper not to be compiled if ip_conntrack is a
-module.
+        for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
+                ret |= (((const unsigned long *)indev)[i]
+                        ^ ((const unsigned long *)info->physindev)[i])
+                        & ((const unsigned long *)info->in_mask)[i];
+        }
 
-Thanks.
+and
 
---- linux-2.6.0-test4-plain/net/ipv4/netfilter/Kconfig	2003-08-30 20:19:56.=
-000000000 +0200
-+++ linux-2.6.0-test4-kconf/net/ipv4/netfilter/Kconfig	2003-08-30 20:20:50.=
-000000000 +0200
-@@ -239,7 +239,7 @@
-=20
- config IP_NF_MATCH_HELPER
- 	tristate "Helper match support"
--	depends on IP_NF_CONNTRACK!=3Dn && IP_NF_IPTABLES
-+	depends on IP_NF_CONNTRACK && IP_NF_IPTABLES
- 	help
- 	  Helper matching allows you to match packets in dynamic connections
- 	  tracked by a conntrack-helper, ie. ip_conntrack_ftp
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+        for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
+                ret |= (((const unsigned long *)outdev)[i]
+                        ^ ((const unsigned long *)info->physoutdev)[i])
+                        & ((const unsigned long *)info->out_mask)[i];
+        }
 
---vhOf6eAHdfH9MSjZ
-Content-Type: application/pgp-signature
-Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+Reading specs from /opt/palinux/lib/gcc-lib/hppa64-linux/3.0.4/specs
+Configured with: ../../gcc-3.0-3.0.4ds3/src/configure --host=hppa-linux --build=hppa-linux --target=hppa64-linux --disable-shared --disable-nls --enable-languages=c --prefix=/opt/palinux
+Thread model: single
+gcc version 3.0.4
+acme@allegro:~/bk/scsi-2.6$
 
-iD8DBQE/UPwqXaXGVTD0i/8RAvDlAJ9cfj3Ll4TP2CBZSnvwf8VlGM3qbACfXkHg
-M7hVPaOMrEMVaoA7MSnKXH8=
-=aSNc
------END PGP SIGNATURE-----
-
---vhOf6eAHdfH9MSjZ--
+- Arnaldo
