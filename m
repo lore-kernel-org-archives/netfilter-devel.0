@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: PPTP conntrack for kernel 2.6
-Date: Thu, 19 Aug 2004 13:23:24 +0200
+Subject: Re: Minor modification of function dcc_parse in ip_conntrack_irc.c
+Date: Thu, 19 Aug 2004 13:27:27 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040819112324.GL3921@sunbeam.de.gnumonks.org>
-References: <cfdmen$3hu$1@sea.gmane.org> <4121C8BD.5030203@microbus.com>
+Message-ID: <20040819112727.GM3921@sunbeam.de.gnumonks.org>
+References: <1092170081.9955.12.camel@dana.go-nix.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/aHqdxxe3Vo3WJ36"
+	protocol="application/pgp-signature"; boundary="7IzduDXdmGAvR4BO"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Robbie Dinn <robbie@microbus.com>
+To: "Nix N. Nix" <nix@go-nix.ca>
 Content-Disposition: inline
-In-Reply-To: <4121C8BD.5030203@microbus.com>
+In-Reply-To: <1092170081.9955.12.camel@dana.go-nix.ca>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,54 +23,27 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---/aHqdxxe3Vo3WJ36
+--7IzduDXdmGAvR4BO
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 17, 2004 at 09:58:37AM +0100, Robbie Dinn wrote:
-> Laurens Blankers wrote:
-> >Could someone please port the pptp conntrack module to kernel 2.6?
+On Tue, Aug 10, 2004 at 04:34:41PM -0400, Nix N. Nix wrote:
+
+> dcc_parse is responsible for finding the ip and port in this string.  It
+> gets the string starting at <param>.  Unfortunately, so far, dcc_parse
+> assumed that <param> does not contain any spaces.  Thus, the module
+> failed to track connections implied by a string of the form
 >=20
-> I thought I would have a go at this. It is a bit harder to do
-> than I thought.
+> \1DCC SEND "The Big Movie.avi" 10289477 1011 37546262\1\n
 
-Thanks for picking this issue up.
+I think I came across this issue once before.  I somewhere found a
+document specifying the dcc protocol, and IIRC it stated that spaces are
+not allowed.
 
-PPTP is actually the only helper that can be ported to 2.6.x without the
-big hazzle of implementing pattern matching on nonlinear skb's, so it
-can done in a safe way (as opposed to lots of other helpers).
+So my take was always: well, fix the broken irc clients.
 
-> I think I might have spotted something that looks a bit strange,
-> maybe even a bug? Please bear in mind that I don't understand the
-> code.
-
-It's not that difficult.  We're trying to assure that a certain part of
-the skb can be written to. (linearized, non-shared/cloned,...)
-
-> Both udp_manip_pkt() and tcp_manip_pkt() make a call to
-> skb_ip_make_writable(). It is the second parameter passed to
-> skb_ip_make_writable() that I am worried about.
->=20
-> In udp_manip_pkt() it is called like this:
->=20
->      if (!skb_ip_make_writable(pskb, hdroff + sizeof(hdr)))
->=20
-> where hdr is a pointer to a struct udphdr
-
-that is indeed a bug.  It has to be sizeof(*hdr)
-
-> In tcp_manip_pkt() it is called like this:
->=20
->      if (!skb_ip_make_writable(pskb, hdroff + hdrsize))
->=20
-> where hdrsize may have a value of sizeof(tcphdr)
-
-yes, depending on tcp options, ..
-
-Bugfix is in
-patch-o-matic-ng/updtes/18_linux-2.6.8.1-udp-nat-nonlinear.patch
-
+However, I think we should integrate a fix.  (see my other mail)
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -81,7 +54,7 @@ patch-o-matic-ng/updtes/18_linux-2.6.8.1-udp-nat-nonlinear.patch
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---/aHqdxxe3Vo3WJ36
+--7IzduDXdmGAvR4BO
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -89,9 +62,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFBJI2sXaXGVTD0i/8RAvlcAJ0Tb30vN4zG5BofFz/PIOkK5HtIWQCfWBRh
-ZHd2ITg05Tc+cFZ43inRSAc=
-=3wJ/
+iD8DBQFBJI6fXaXGVTD0i/8RAt6OAJ9+dEOSUkk2yI+izuNhSvZ5Vv2qfwCfSKWU
+JrWCWnQqNm2pAEe9kN+wYnw=
+=xKSF
 -----END PGP SIGNATURE-----
 
---/aHqdxxe3Vo3WJ36--
+--7IzduDXdmGAvR4BO--
