@@ -1,19 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [RFC] MASQUERADE / policy routing ("Route send us somewhere
- else")
-Date: Tue, 31 Aug 2004 12:24:34 +0200 (CEST)
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: list delete bug: kernel crash
+Date: Tue, 31 Aug 2004 12:50:37 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <Pine.LNX.4.61.0408311145580.12063@filer.marasystems.com>
-References: <20040830201957.GY5824@sunbeam.de.gnumonks.org>
-	<20040830140729.7309ecc0.davem@davemloft.net>
-	<20040831013841.GA5824@sunbeam.de.gnumonks.org>
+Message-ID: <1093949437.2435.4.camel@nienna.balabit>
+References: <003701c48ee9$e1ad1f40$0a00a8c0@aziz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netdev@oss.sgi.com, rusty@rustcorp.com.au,
-	netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20040831013841.GA5824@sunbeam.de.gnumonks.org>
+To: security <security@lea-linux.com>
+In-Reply-To: <003701c48ee9$e1ad1f40$0a00a8c0@aziz>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,40 +22,38 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 31 Aug 2004, Harald Welte wrote:
 
-> and it apparently happens in a lot of 'typical' setups where you have a
-> masqueraded DSL line with dynamic ip address for bulk traffic, and
-> fwmark-based routing through one or more tunnel interfaces, optionally
-> with different masqerading/SNAT.
+  Hi,
 
-Should only happen if the routing is screwed up, in principle..
+2004-08-31, k keltez=E9ssel 01:34-kor security ezt =EDrta:
+> Aug 30 20:42:24 gateway kernel: NF_IP_ASSERT:
+> net/ipv4/netfilter/ip_conntrack_core.c:1115(ip_conntrack_alter_reply)
+> Aug 30 20:42:24 gateway kernel: NF_IP_ASSERT:
+> net/ipv4/netfilter/ip_conntrack_core.c:1115(ip_conntrack_alter_reply)
+> Aug 30 20:44:24 gateway kernel: LIST_DELETE:
+> net/ipv4/netfilter/ip_conntrack_core.c:300
+> `&ct->tuplehash[IP_CT_DIR_REPLY]'(f3cedca4) not in
+>  &ip_conntrack_hash[hr].
+>=20
+> I have search in bugzilla and google and, apparently, this bug has been=
+ solve
+> since kernel 2.6.5.
+> But i have kernel 2.6.8.1 and i have try kernel 2.6.6 and 2.6.7: same c=
+rash
+>=20
+> But it hard to "see" because i can stay 1 week without crash, or 5mn.
+>=20
+> I have the "local NAT" activated.
 
-> Also, the MASQUERADE lookup (obviously) has no more saddr in the lookup,
-> that's another difference from the 'original' lookup.
+  As always, the first thing you should try is testing the memory of
+your computer. The problems seems to be caused by trying to call
+ip_nat_setup_info() on an already confirmed connection, which is known
+to cause hash corruption.
 
-This is a possible reason why it screws up for such many people? By not 
-including the source IP you make the route lookup for determining the 
-MASQUERADE information very different from the route lookup when 
-forwardning the packet.
+  BTW, while running memtest, could you send us the nat table of your
+iptables ruleset, along with the routing setup? And also a list of
+loaded (iptables-related) kernel modules would be useful.
 
-I think it would for most make more sense that the source IP assignment is 
-based on routing using the original source address as key.
-
-What I don't get is why MASQUERADE needs to do a route lookup at all. 
-Isn't the traffic already routed at this point, and shouldn't it simply 
-use the source IP of the current selected route or the interface primary 
-IP of no source IP set in the route?
-
-> That is the presumption I am about to challenge.  Is the 'original'
-> interface really the one we want in this case?
-
-If there is policy routing saying that packets with a given source 
-should go out another interface my opinion is that they should.
-
-I have been using SNAT in quite many complex routing setups and so far has 
-not run into any situation where routing gets wrong in an unmanageable and 
-unintuitive manner due to SNAT. MASQUERADE should not be more complex.
-
-Regards
-Henrik
+--=20
+ Regards,
+   Krisztian KOVACS
