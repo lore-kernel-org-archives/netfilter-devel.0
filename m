@@ -1,15 +1,16 @@
-From: "Temp02" <temp02@bluereef.com.au>
+From: Eric Leblond <eric@inl.fr>
 Subject: Re: Multiple Address specification or match
-Date: Thu, 30 Sep 2004 19:01:08 +1000
+Date: Thu, 30 Sep 2004 11:54:51 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <003301c4a6cc$069e3fb0$2201010a@bluereef.local>
+Message-ID: <1096538091.4406.12.camel@porky>
+References: <003301c4a6cc$069e3fb0$2201010a@bluereef.local>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Swapnil Nagle <swapsn@rediffmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-/6uTefYCwH3LuhFZXuek"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Henrik Nordstrom" <hno@marasystems.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <003301c4a6cc$069e3fb0$2201010a@bluereef.local>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,53 +21,35 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-thanks for your feedback but neither of these solutions are particularly
-elegant.
 
-The first (using more than one rule), requires the use of a lot more rules
-than are really necessary, as an example, lets say that I wanted to prevent
-access a range of subnets but allow everything else. Ideally I should be
-able to:
+--=-/6uTefYCwH3LuhFZXuek
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-iptables -A PREROUTING -d ! 10.0.0.0/8 -d ! 192.168.1.0/24 -d !
-172.16.0.0/16 -m whatever -j ACCEPT
+On Thu, 2004-09-30 at 11:01, Temp02 wrote:
+> thanks for your feedback but neither of these solutions are particularly
+> elegant.
 
-instead I would need three explicit drop rules and then an allow everything
-else rule. (assuming a default drop policy).
+iptables/netfilter has to be efficient, rules generation script has to
+be elegant. Having 3 rules is as efficient as your masked "or" rules if
+it was coded and 3 separate rules are more simple than your global one
+so in a way this is more elegant.
 
-The problem with the IPset/pool options are that they match only on a range
-of addresses, not specifically by source or destination, also they seem to
-require the use of another userspace program to actually build the sets
-which in itself complicates the process.
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+INL
 
-Is it hard to extend the source and destination match functions to accept
-multiple arguments?
+--=-/6uTefYCwH3LuhFZXuek
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
-> ----- Original Message -----
-> From: "Henrik Nordstrom" <hno@marasystems.com>
-> To: "Temp02" <temp02@bluereef.com.au>
-> Cc: <netfilter-devel@lists.netfilter.org>; "Swapnil Nagle"
-> <swapsn@rediffmail.com>
-> Sent: Thursday, September 30, 2004 6:34 PM
-> Subject: Re: Multiple Address specification or match
->
->
-> > On Thu, 30 Sep 2004, Temp02 wrote:
-> >
-> > > No obviously a single source can't be both addresses, but the intent
-is
-> to
-> > > allow a single rule to be used to match sources from both source
-ranges.
-> >
-> > There is two ways for doing this
-> >
-> > a) Using two rules, one per IP address.
-> >
-> > b) Using an ippool/ipset storing the IP addresses.
-> >
-> > Regards
-> > Henrik
-> >
->
+iD8DBQBBW9fqnxA7CdMWjzIRAn6WAJ4mMN1EHN2VC7xH54gLTLgJUdtdbQCfXtq6
+QZTV9g9xmBYCti9mM36lyrw=
+=9p/w
+-----END PGP SIGNATURE-----
+
+--=-/6uTefYCwH3LuhFZXuek--
