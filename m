@@ -1,22 +1,17 @@
-From: "Rajesh B. V." <rajeshbv@intotoinc.com>
-Subject: Re: Problem with MASQUERADE of L2TP packets
-Date: Mon, 17 Nov 2003 15:03:59 +0530
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: NAT for IPv6
+Date: Fri, 21 Nov 2003 01:24:15 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <5.1.0.14.0.20031117145511.01b3caa0@172.16.1.10>
-References: <5.1.0.14.0.20031117094700.01b6abf0@172.16.1.10>
- <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10>
- <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10>
- <5.1.0.14.0.20031117094700.01b6abf0@172.16.1.10> <20031117083821.GB22919@sunbeam.de.gnumonks.org>
+Message-ID: <Pine.LNX.4.44.0311210110290.23998-100000@filer.marasystems.com>
+References: <20031120174847.GA2254@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+   Maciej Soltysiak <solt@dns.toxicfilms.tv>,
+   <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20031117083821.GB22919@sunbeam.de.gnumonks.org>
-References: <5.1.0.14.0.20031117094700.01b6abf0@172.16.1.10>
- <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10>
- <5.1.0.14.0.20031113162903.01c504b0@172.16.1.10>
- <5.1.0.14.0.20031117094700.01b6abf0@172.16.1.10>
+To: Balazs Scheidler <bazsi@balabit.hu>
+In-Reply-To: <20031120174847.GA2254@balabit.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -27,69 +22,53 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald Welte,
+On Thu, 20 Nov 2003, Balazs Scheidler wrote:
 
-Thanks for sparing time to reply.
+> I still can't see what you think the "kinds of problems TPROXY and silimar
+> tools try to solve" is.
 
-What i observed is, for L2TP packets only the NAT is behaving improper by 
-changing the source IP to weired IP (last two octets of PPP IP + last two 
-octets of ethernet IP).
+In case of TPROXY it is any problem where you need to have traffic
+terminated at another place than the intended destination server for
+whatever reason without the knowledge of the sender. This is outside of IP
+specifications for very good reasons.
 
-Till the IP Tables hook function is called from " ip_finish_output () ", 
-the source IP in the IP header is proper and intact.
-But after NAT is done and packet is sent out by hook function using " 
-ip_finish_output2 () ", the source IP is changed to the weired IP, instead 
-of keeping the PPP IP.
+I don't see TPROXY or other interception techniques as that bad if every
+single packet is intercepted. If it is used for selective interception of
+only certain ports or similar then it is a different beast.
 
-That is the only reason i am suspecting IP tables handling of L2TP packets. 
-And i want to seek help from like you people to understand if any known 
-problem in IP tables masquerading.
+> We (and our customers) have the following requirements:
+> 
+> - application layer verification (URL filtering, virus checking, tasks that
+>   are difficult/impossible to solve from kernel space)
 
-Regards,
---Rajesh
+Yes.
 
-At 09:38 AM 11/17/2003 +0100, Harald Welte wrote:
->On Mon, Nov 17, 2003 at 09:52:28AM +0530, Rajesh B. V. wrote:
-> > Hi Harald Welte,
-> >
-> > Thankyou very much for the response.
-> >
-> > The L2TP implementation is ours. It is not free software or open source.
->
->In this case I have to admit that I am very reluctant to assist you with
->debugging your problem.  I have never been a fan of kernel binary-only
->modules, and I have never given anybody permission to link such modules
->with any netfilter/iptables code that is held by my copyright.
->
-> > We call " ip_finish_output () " to send the packet out. Till this function
-> > call the source IP in outer IP header is intact.
-> > But in this function the POSTROUTING Hook function of IP tables will be
-> > called. During this the NAT will happen as the masquerade rule is
-> > configured for POSTROUING.
->
->yes. but what is wrong about that?  If you configured masquerading to
->happen, it will happen.
->
-> > So i am suspecting iptables handling of L2TP packets.
->
->of course, if you use the IPv4 stack, iptables will act according to the
->configured ruleset.
->
-> > PS:
-> > I saw some patches for PPTP/IPSec masquerading in net. I guess, it may 
-> also
-> > be similar case for L2TP also, but which was not identified.
->
->One of the major design ideas behind l2tp was to encapsulate everything
->in UDP - and thus being able to NAT the protocol like any other
->udp-based protocol.  This is very different from AH/ESP or PPTP/GRE that
->come with their own layer 4 protocol.
->
-> > Regards,
-> > --Rajesh
->--
->- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
->============================================================================
->   "Fragmentation is like classful addressing -- an interesting early
->    architectural error that shows how much experimentation was going
->    on while IP was being designed."                    -- Paul Vixie
+> - transparency
+>   - because there are protocols which do not have a proxy mode 
+>   - because they do not want to reconfigure their clients when a firewall
+>     is installed.
+
+And these points I say should not be taken for granted when moving to a 
+IPv6 environment.
+
+There is very few protocols which can not be proxied using the proper 
+tools. And given some thought clients should not be needed to be manually 
+reconfigured when installing a firewall.
+
+> I can see cases when end-to-end IP connections are a must, but there are
+> other cases when proxying is the only viable solution, and I can't see why
+> we can't have a solution for both worlds.
+
+I am not against proxying (quite naturally given who I am). What I am
+against is violation of the fundamental end-to-end property of IP. Per
+definition proxying is not a violation of end-to-end, transparent
+interception is.
+
+In the state of IPv4 it is unfortunately a neccesary bad due to the large
+installed base of dumb applications not capable of using proxies. The
+situation in IPv6 is better and in my opinion in a position allowing this
+kind of problems to be solved at the application level without having to 
+resort to "dirty hacks".
+
+Regards
+Henrik
