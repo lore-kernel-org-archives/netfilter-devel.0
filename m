@@ -1,8 +1,8 @@
 From: "Henrik Nordstrom" <hno@marasystems.com>
 Subject: Re: Idea: Check session source and destination
-Date: Sun, 23 May 2004 12:54:13 +0200 (CEST)
+Date: Sun, 23 May 2004 12:59:02 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1979.80.53.224.38.1085309653.gloport@www.tmuras.2000.cd>
+Message-ID: <2113.80.53.224.38.1085309942.gloport@www.tmuras.2000.cd>
 Reply-To: nexor@mybaby.cd
 Mime-Version: 1.0
 Content-Type: text/plain;charset=iso-8859-2
