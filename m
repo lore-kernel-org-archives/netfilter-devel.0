@@ -1,17 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: PATCH: extra conntrack stats
-Date: Sun, 27 Apr 2003 22:42:18 +0200
+From: Kuba Wroniecki <kuba@stansat.pl>
+Subject: balanced SNAT
+Date: Sun, 27 Apr 2003 23:27:24 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030427204218.GT990@sunbeam.de.gnumonks.org>
-References: <200304192142.h3JLg1S03466@fokkensr.vertis.nl> <20030427124835.GA990@sunbeam.de.gnumonks.org> <200304271523.h3RFNZk05880@fokkensr.vertis.nl>
+Message-ID: <Pine.LNX.4.44.0304272302270.7613-100000@gateway.stansat.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UTgPAcoWnJ37G5eg"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Rolf Fokkens <fokkensr@fokkensr.vertis.nl>
-Content-Disposition: inline
-In-Reply-To: <200304271523.h3RFNZk05880@fokkensr.vertis.nl>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,55 +17,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is my first post here, so please be gentle...
 
---UTgPAcoWnJ37G5eg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+ehem...
 
-On Sun, Apr 27, 2003 at 05:23:30PM +0200, Rolf Fokkens wrote:
-> On Sunday 27 April 2003 02:48 pm, Harald Welte wrote:
-> > This is inacceptable, the only way to implement this is via per-cpu
-> > counters that are added at the time you read them out (like the iptables
-> > per-cpu local counters)
->=20
-> Oh boy! It's even worse! Even without this patch we have a concurrency=20
-> problem: the timout! It's updated frequently I guess, and it's also prote=
-cted=20
-> by the same lock: ip_conntrack_lock!
+I have a question regarding the following rule:
 
-Oh yes, sorry.  This issue never was fixed, although I seem to remember
-some patches implementing a solution where the timeout was not updated
-for every packet.
+iptables -A POSTROUTING -s x.x.x.x/m -j SNAT --to-source 1.2.3.4 
+--to-source 3.4.5.6 --to-source 5.6.7.8
 
-> Should a lock per contrack entry be considered? This increases the=20
-> concurrency for different connections anyhow.
+I have recently used this rule, hoping it would in some way evenly divide 
+the outgoing traffic between the 3 addresses. It didnt, and from what I 
+understood from the sources, it wasn't designed to. Instead, the choice of 
+the address to use is based on the number of connections with the same 
+(dst,src,proto). (Why?)
 
-Rusty has written some patches about this quite some time ago,
-unfortunately they seem to be discontinued.  IIRC Martin Josefsson
-wanted to look into them again.
+So my question is: does it make any sense to modify the nat code, to make 
+it possible to use the SNAT target to evenly distribute traffic between a 
+number of addresses? 
+perhaps something like:
+iptables -A POSTROUTING -j SNAT --balance-to 1.2.3.4 --balance-to 3.4.5.6 
+.....
+?
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
 
---UTgPAcoWnJ37G5eg
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+-- 
+Regards,
+Kuba Wroniecki
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iD8DBQE+rECqXaXGVTD0i/8RAg5NAJ9p4CoFYAq1pvlRFdRo3wXjuztxxQCfQXBj
-tXscrTRgLrRFxthGab04qZ8=
-=NtXB
------END PGP SIGNATURE-----
-
---UTgPAcoWnJ37G5eg--
+"I love deadlines. I especially like the whooshing sound they make as they 
+go flying by." (Dilbert's School of Thoughts)
