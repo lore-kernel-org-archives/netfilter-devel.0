@@ -1,13 +1,12 @@
-From: Alexander Samad <alex@samad.com.au>
-Subject: iptables 1.3.1 crashes on iptables-restore
-Date: Wed, 30 Mar 2005 13:46:16 +1000
-Message-ID: <20050330034616.GA8639@samad.com.au>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
+Subject: ACCOUNT target future (pkttables)
+Date: Wed, 30 Mar 2005 12:16:03 +0200
+Message-ID: <424A7C63.1050705@gmx.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,40 +18,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---ZPt4rx8FFjLCG7dd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm currently writing an ACCOUNT target for ebtables and I feel really
+uncomfortable in duplicating the existing iptables ACCOUNT code, adding
+a few tweaks and releasing it as ebtables ACCOUNT target. The tweaks
+would be:
+- efficient handling of sparsely poulated networks
+- accounting by MAC address
+- 64bit counters (optional)
+- saturated counters (optional)
+- choice of what to count (layer 2/3 length, packets, src/dst)
 
-Hi
-
-I have just build 1.3.1 (svn version 3805)  with these patches
- policy=20
-TARPIT iprange raw dstlimit time IPMARK CLASSIFY
-dropped-table pool realm TCPLAG ULOG account nf_conntrack nth owner-
-socketlookup ownercmd conntrack-cacheline-opt osf mport tcp-window-
-tracking quota from POM-NG
+Some time ago, I found notes from a netfilter developer workshop about
+future directions (reducing code duplication, switching to pkttables...)
+and my work would counteract your plans to reduce code duplication. Is
+there any working code using the new framework and does it make sense
+for me to write my code only for the new framework (will that be merged
+eventually into mainline)?
 
 
-when I try to do a iptables-restore with about 800 lines I get a
-segmentation fault.
-
-What is the most expediant way to track this problem down ?
-
-Alex
-
---ZPt4rx8FFjLCG7dd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFCSiEIkZz88chpJ2MRApf+AKDEQ/0NQ9buOyfAI83dkMmCAo/lPwCgv4Q0
-/T/RUjLiqfG9u2vrXq+Trbg=
-=OHUu
------END PGP SIGNATURE-----
-
---ZPt4rx8FFjLCG7dd--
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
