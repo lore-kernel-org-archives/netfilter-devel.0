@@ -1,16 +1,14 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Dynamic rule creation and deletion
-Date: Thu, 26 Feb 2004 09:10:06 +0100 (CET)
+From: "Andrew Hall" <temp02@bluereef.com.au>
+Subject: IPC performance
+Date: Thu, 26 Feb 2004 19:51:19 +1100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.44.0402260908040.7600-100000@filer.marasystems.com>
-References: <1077773683.10637.37.camel@vijay>
+Message-ID: <006f01c3fc45$b3cc27b0$2601010a@bluereef.local>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jambunathan Kalyanasundaram <k_jambunathan@yahoo.co.uk>,
-   <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Vijaya Chandra Vupputuri <vijay@tachyontech.net>
-In-Reply-To: <1077773683.10637.37.camel@vijay>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,19 +19,12 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 26 Feb 2004, Vijaya Chandra Vupputuri wrote:
+This question is a bit off the topic of specifically Netfilter but does
+anyone know of any information that outlines the relative performance
+tradeoff of performing various types of local Unix IPC. For instance using
+TCP/UDP or RAW sockets across a loopback compared to communicating by local
+domain sockets? Is there much of a difference in performance?
 
-> Wouldn't a REDIRECTion to the port on which your proxy listens, be
-> sufficient ( which I guess is the suggested way to have transparent
-> proxying with squid )?
+Thanks. Any info appreciated.
 
-No, this just makes traffic which was originally destined to the origin 
-server redirected to the proxy, it does not allow the proxy to masquerade 
-himself as the client when forwarding the request
-
-As said earlier the TPROXY patch is developed for this sepcific purpose, 
-allowing fully "transparent" proxy operation assuming so is acceptable by 
-your network design.
-
-Regards
-Henrik
+Andrew.
