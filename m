@@ -1,11 +1,14 @@
-From: Steven J Scott <sjscott@ra.rockwell.com>
-Subject: (SOLVED) libipq and ipq_packet_msg_t (desperate)
-Date: Thu, 16 Dec 2004 09:27:11 -0600
-Message-ID: <OFF65A26C7.8CCA41E8-ON86256F6C.004F64D7-86256F6C.0054DBE1@ra.rockwell.com>
+From: Miguel Angel Alvarez <maacruz@navegalia.com>
+Subject: GPL violation by router manufacturer Conceptronic
+Date: Thu, 16 Dec 2004 21:30:59 +0100
+Message-ID: <200412162130.59168.maacruz@navegalia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,93 +20,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-First and foremost I would like to thank Ulysses, Srinivas, Henrik, Maarteen for all their help.  If I forgot anyone else thank you 
-too!
+Hi all!
 
-Below is a code snippet for parsing out the raw packet found in the 
-structure ipq_packet_msg_t(ipq_packet_msg_t->payload).  This snippet fits 
-into the example from 
-http://www.crhc.uiuc.edu/~grier/projects/libipq.html.  I think this would 
-useful for people just getting started with LIBIPQ and I wanted to give 
-back what I got out.
+ I have found what may be (it surely seems to be) a GPL violation by
+Conceptronic (it was Tulip computers some years ago).
+ They sell a router, actual model is C100BRS4H. Their web page is
+http://www.conceptronic.net, go to products->networking and you'll find it
+here.
 
-case IPQM_PACKET: 
- {
-  ipq_packet_msg_t *m = ipq_get_packet(buf);
-  
-  __u16 first_two_bytes = 0; /* hold the first two bytes from payload */
-  
-  /* Cast the IP Header from the raw packet */
-  struct iphdr *iph = ((struct iphdr *)m->payload);
- 
-  /* Cast the TCP Header from the raw packet */
-  struct tcphdr *tcp = (struct tcphdr *)(m->payload + (iph->ihl << 2));    
- 
- 
-  /* get the payload offset from with the raw packet */
-  int unsigned payload_offset = ((iph->ihl << 2) + (tcp->doff << 2));
- 
-  /* calculate the length of the payload */
-  int unsigned payload_length = (unsigned int) ntohs(iph->tot_len) - 
-((iph->ihl << 2) + (tcp->doff << 2));
- 
-  /* Calculate the size of the IP  Header.  iph->ihl contains the number 
-of 32 bit
-     words that represent the header size.  Therfore to get the number of 
-bytes
-     multiple this number by 4 */
- 
- int iphdr_size = (iph->ihl << 2);
- 
-  /* Calculate the size of the TCP Header.  tcp->doff contains the number 
-of 32 bit
-     words that represent the header size.  Therfore to get the number of 
-bytes
-     multiple this number by 4 */
- 
- int tcphdr_size = (tcp->doff << 2);
- 
- /* get the destination port of the packet */ 
- 
- int port = ntohs(tcp->dest); 
- 
- /* Get the first two bytes of the payload if a payload is present*/
- if(payload_length)
-   first_two_bytes = *(__u16 *) (m->payload + payload_offset);
- 
- /* example code */
-   if (port == 9555)  /* check for a port match */
-     { 
-       printf("Matched a packet\n");
- 
-       if(payload_length) /* if payload_length is zero theres no payload! 
-*/ 
-        printf("First two bytes: 0x%x\n", first_two_bytes); /* prints in 
-HEX */
- 
-       printf("IP Header size: %d\n", iphdr_size);
-       printf("TCP Header size: %d\n", tcphdr_size);
-       printf("Payload Size : %d\n", payload_length);
-       printf("TOTAL IP Packet size: %d\n", ntohs(iph->tot_len));
-       printf("\n");
+ A friend of mine bought one today.
+ I first ran nmap against this device, and identified it as running linux
+2.4.18-2.4.20
+ Then I asked my friend to look for GPL notices and source code on the
+documentation and he could find none.
+ So, I went to the manufacturers web to look it myself, and could find no
+reference to linux or GPL code. What I found was and actual update to the
+router's ROM.
+ The download site is
+http://download.tulip.com/support/Conceptronic/Network/C100BRS4H/
+After i downloaded it (C100BRS4H_2.97.bin) and ran the strings command i
+ found the following significative strings:
+ webpages-6104k.bin
+ vmlinux.bin
 
-       status = ipq_set_verdict(h, m->packet_id, NF_ACCEPT, 0, NULL);      
-  
-     }
-     else
-     {
-       status = ipq_set_verdict(h, m->packet_id, NF_ACCEPT, 0, NULL);
-       if (status < 0)
-         die(h);
-     }
-       break;
- }
+ I couldn't dig more since I don't know what proccessor has the device nor
+what compression algorithm they are using.
+ The rest was garbage, so i suposse this are two compressed files.
+ I searched in google, but i couldn't find any reference to this particular
+violation, just another violation in a wireless router from same
+manufacturer.
 
+This is nmap output:
+ Starting nmap 3.50 ( http://www.insecure.org/nmap/ ) at 2004-12-16 16:58 CET
+ Interesting ports on (my friend's IP):
+ (The 1651 ports scanned but not shown below are in state: closed)
+ PORT STATE SERVICE
+ 53/tcp filtered domain
+ 80/tcp filtered http
+ 515/tcp filtered printer
+ 631/tcp filtered ipp
+ 8080/tcp open http-proxy
+ 9100/tcp filtered jetdirect
+ 9111/tcp filtered DragonIDSConsole
+ 9152/tcp filtered ms-sql2000
+ Device type: general purpose
+ Running: Linux 2.4.X
+ OS details: Linux 2.4.18 - 2.4.20 (X86)
+ Uptime 0.116 days (since Thu Dec 16 14:11:32 2004)
 
-Thanks again!
-
-Steven Scott - CISSP, CISA, RHCT, LCP, MCSE
-Rockwell Automation / Advanced Technology
-sjscott@ra.rockwell.com
-<---------------------------------------------------->
-(This email was sent via Notes running on Linux)
+ Nmap run completed -- 1 IP address (1 host up) scanned in 27.013 seconds
+--
+Don't see the world trought a window, be open{source}minded, and be free :-)
