@@ -1,14 +1,16 @@
-From: Jeff Hall <hall@vdata.com>
-Subject: Re: extra/pptp-conntrack-nat.patch
-Date: Thu, 10 Apr 2003 16:11:55 -0400 (EDT)
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH]  dead code elimination in libipt_ecn.c
+Date: Fri, 11 Apr 2003 10:20:25 +0200 (CEST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.GSO.4.03.10304101552590.4253-100000@shemp.vdata.com>
-References: <3E957173.6090103@fl.priv.at>
+Message-ID: <Pine.LNX.4.33.0304111020050.31394-100000@blackhole.kfki.hu>
+References: <3E8DB0F3.1070007@videotron.ca>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>,
+	Harald Welte <laforge@gnumonks.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <3E957173.6090103@fl.priv.at>
+To: Stephane Ouellette <ouellettes@videotron.ca>
+In-Reply-To: <3E8DB0F3.1070007@videotron.ca>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,65 +21,17 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 10 Apr 2003, Friedrich Lobenstock wrote:
+On Fri, 4 Apr 2003, Stephane Ouellette wrote:
 
-  > Hi!
-  > 
-  > Jeff Hall wrote:
-  > > I found the following discussion on the www.sonicwall.com/support site.
-  > > It may explain the mystery of the broken/not-broken check sums.
-  > > 
-  > > Jeff Hall
-  > > 
-  > > SonicWALL: In certain circumstances, a Windows 2000 PC cannot use PPTP to
-  > > access another node on the opposite side of the SonicWall. The issue
-  > > appears to be caused by how certain checksums are calculated differently
-  > > depending on whether this function is performed by the OS itself or if it
-  > > is off-loaded to the ethernet NIC. 
-  > > To work around the issue, you must make sure the OS is allowed to perform
-  > > the checksum calculations, not the ethernet NIC. This can be done by
-  > > following these steps: 
-  > > Right-click the 'My Network Places' desktop icon and select 'Properties'. 
-  > > Right-click on the icon for your ethernet NIC and select 'Properties'. 
-  > > Click on the 'Configure' button. 
-  > > Click on the 'Advanced' tab. 
-  > > Disable the Rx and Tx Checksum Offload options for the card.
-  > > This problem is known to occur with the following: 
-  > > OS: Windows 2000 with service pack 1 
-  > > Ethernet NIC: 3Com 905/920 series ethernet controller. 
-  > 
-  > May I recall that I really have to remove the // to get it running.
-  > 
-  > /* track caller id inside control connection, call expect_related */
-  > static int
-  > conntrack_pptp_help(const struct iphdr *iph, size_t len,
-  >                      struct ip_conntrack *ct, enum ip_conntrack_info ctinfo)
-  > 
-  > { ...
-  > 
-  >          /* checksum invalid? */
-  >          if (tcp_v4_check(tcph, tcplen, iph->saddr, iph->daddr,
-  >                          csum_partial((char *) tcph, tcplen, 0))) {
-  >                  printk(KERN_NOTICE __FILE__ ": bad csum\n");
-  > //             return NF_ACCEPT;
-  >          }
-  > 
-  > If I take a look at the cvs version of the patch there's a comment
-  > above the // line that says that w2k servers send out false csums.
-  > 
-  > So do I understand this correct that if I remove the //, the pptp
-  > contrack module actually is more RFC conform than before? Or is
-  > it just the other way round?
-If you remove the comment and include the line "return NF_ACCEPT", then any
-packet with an invalid checksum is NOT processed by the PPTP helper function.
-With the line commented out the incorrect checksum is ignored and the packet
-is processed by the rest of the PPTP helper function. Why this solved your
-problem I can't say.
-  > 
-  > -- 
-  > MfG / Regards
-  > Friedrich Lobenstock
-  > 
-  > 
-  > 
-  > 
+>     the following patch removes print_dscp() which is not used.  It also
+> converts all structures to C99.
+
+Thank you, patch is applied.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
