@@ -1,13 +1,16 @@
-From: "Jan Kaastrup" <jka@protego.dk>
-Subject: Iptables - disable statefull inspection?
-Date: Thu, 12 Dec 2002 12:12:19 +0100
+From: =?ISO-8859-1?Q?C=E9dric?= de Launois <delaunois@info.ucl.ac.be>
+Subject: Re: How to change a packet's arriving interface? -j ROUTE?
+Date: 06 Dec 2002 18:27:49 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <000001c2a1cf$55f818a0$2864a8c0@pcjka>
+Message-ID: <1039195669.3355.68.camel@descartes.info.ucl.ac.be>
+References: <3DF0D338.C2F4E50@Gallantry.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0001_01C2A1D7.B7BC80A0"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Jason Liao <maillist@gallantry.com>
+In-Reply-To: <3DF0D338.C2F4E50@Gallantry.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,237 +21,51 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0001_01C2A1D7.B7BC80A0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-
-Hi
-I am working with IT-security, and we are testing Peoples security.
-The problem is, we have an automatic scanner, which sends a lot of
-SYN_SENT packets.
-I want to disable the connections in ip_conntrack, because it completely
-kills the CPU because ip_conntrack reach Maximum connection.
-I could use another firewall, but I do really like Iptables.
- 
-I am very sure there must be a way to disable connection tracking and
-still use Iptables for other services?
- 
- 
-Med venlig hilsen / Best Regards
-Jan Kaastrup
-System Administrator 
-jka@protego.dk
-Mobil: 29 91 25 15
-PROTEGO
- 
-
-------=_NextPart_000_0001_01C2A1D7.B7BC80A0
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<html xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
-xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns=3D"http://www.w3.org/TR/REC-html40">
-
-<head>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
-charset=3Dus-ascii">
-
-
-<meta name=3DProgId content=3DWord.Document>
-<meta name=3DGenerator content=3D"Microsoft Word 10">
-<meta name=3DOriginator content=3D"Microsoft Word 10">
-<link rel=3DFile-List href=3D"cid:filelist.xml@01C2A1D7.B7731B90">
-<!--[if gte mso 9]><xml>
- <o:OfficeDocumentSettings>
-  <o:DoNotRelyOnCSS/>
- </o:OfficeDocumentSettings>
-</xml><![endif]--><!--[if gte mso 9]><xml>
- <w:WordDocument>
-  <w:SpellingState>Clean</w:SpellingState>
-  <w:GrammarState>Clean</w:GrammarState>
-  <w:DocumentKind>DocumentEmail</w:DocumentKind>
-  <w:EnvelopeVis/>
-  <w:Compatibility>
-   <w:BreakWrappedTables/>
-   <w:SnapToGridInCell/>
-   <w:WrapTextWithPunct/>
-   <w:UseAsianBreakRules/>
-  </w:Compatibility>
-  <w:BrowserLevel>MicrosoftInternetExplorer4</w:BrowserLevel>
- </w:WordDocument>
-</xml><![endif]-->
-<style>
-<!--
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{mso-style-parent:"";
-	margin:0cm;
-	margin-bottom:.0001pt;
-	mso-pagination:widow-orphan;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";}
-a:link, span.MsoHyperlink
-	{color:blue;
-	text-decoration:underline;
-	text-underline:single;}
-a:visited, span.MsoHyperlinkFollowed
-	{color:purple;
-	text-decoration:underline;
-	text-underline:single;}
-span.EmailStyle17
-	{mso-style-type:personal-compose;
-	mso-style-noshow:yes;
-	mso-ansi-font-size:10.0pt;
-	mso-bidi-font-size:10.0pt;
-	font-family:Arial;
-	mso-ascii-font-family:Arial;
-	mso-hansi-font-family:Arial;
-	mso-bidi-font-family:Arial;
-	color:windowtext;}
-span.SpellE
-	{mso-style-name:"";
-	mso-spl-e:yes;}
-span.GramE
-	{mso-style-name:"";
-	mso-gram-e:yes;}
-@page Section1
-	{size:612.0pt 792.0pt;
-	margin:72.0pt 90.0pt 72.0pt 90.0pt;
-	mso-header-margin:35.4pt;
-	mso-footer-margin:35.4pt;
-	mso-paper-source:0;}
-div.Section1
-	{page:Section1;}
--->
-</style>
-<!--[if gte mso 10]>
-<style>
- /* Style Definitions */=20
- table.MsoNormalTable
-	{mso-style-name:"Table Normal";
-	mso-tstyle-rowband-size:0;
-	mso-tstyle-colband-size:0;
-	mso-style-noshow:yes;
-	mso-style-parent:"";
-	mso-padding-alt:0cm 5.4pt 0cm 5.4pt;
-	mso-para-margin:0cm;
-	mso-para-margin-bottom:.0001pt;
-	mso-pagination:widow-orphan;
-	font-size:10.0pt;
-	font-family:"Times New Roman";}
-</style>
-<![endif]-->
-</head>
-
-<body lang=3DEN-US link=3Dblue vlink=3Dpurple =
-style=3D'tab-interval:36.0pt'>
-
-<div class=3DSection1>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>Hi<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>I am working with IT-security, and we are testing =
-Peoples security.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>The problem is<span class=3DGramE>,</span> we have an =
-automatic
-scanner, which sends a lot of SYN_SENT =
-packets.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>I want to disable the connections in <span =
-class=3DSpellE>ip_conntrack</span>,
-because it completely kills the CPU because <span =
-class=3DSpellE>ip_conntrack</span>
-reach Maximum connection.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>I could use another firewall, but I do really like =
-<span
-class=3DSpellE>Iptables</span>.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'>I am very sure there must be a way to disable =
-connection
-tracking and still use <span class=3DSpellE>Iptables</span> for other =
-services?<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial;mso-no-proof:yes'>Med venlig hilsen / Best =
-Regards</span></font><span
-style=3D'mso-no-proof:yes'><o:p></o:p></span></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial;mso-no-proof:yes'>Jan Kaastrup</span></font><span
-style=3D'mso-no-proof:yes'><o:p></o:p></span></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial;mso-no-proof:yes'>System Administrator =
-</span></font><span
-style=3D'mso-no-proof:yes'><o:p></o:p></span></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial;mso-no-proof:yes'><a =
-href=3D"mailto:jka@protego.dk">jka@protego.dk</a></span></font><span
-style=3D'mso-no-proof:yes'><o:p></o:p></span></p>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
-style=3D'font-size:10.0pt;
-font-family:Arial;mso-no-proof:yes'>Mobil: 29 91 25 =
-15</span></font><span
-style=3D'mso-no-proof:yes'><o:p></o:p></span></p>
-
-<p class=3DMsoNormal><font size=3D2 color=3Dnavy face=3DArial><span =
-style=3D'font-size:
-10.0pt;font-family:Arial;color:navy;mso-no-proof:yes'>P</span></font><fon=
+> I have a firewall running iptables with 3 interfaces: LAN, WAN and DMZ.=
+=20
+> The LAN IP address is 10.0.0.1/24, WAN 66.134.34.157/28, and DMZ
+> 66.134.34.249/28.  The WAN interface connects to the Internet and the
+> DMZ interface connects to a stub network.
+>=20
+> When someone sends a packet to the IP address of the DMZ interface from
+> the Internet, the packet x.x.x.x->66.134.34.249 arrives at the WAN
+> interface.  I want to know if there is a way using iptables (maybe with
+> other tools such as iproute2) to make this packet to appear as if it
+> arrives at the DMZ interface.  The packet itself should not be
+> modified.  I need this to work because I am running an IPSec VPN with
+> FreeS/WAN on the DMZ interface.  When the ESP packets arrives on the WA=
+N
+> interface, they cannot be properly processed by IPSec because the ipsec=
+0
+> interface is tied to the DMZ interface directly. =20
+>=20
+> I looked at the mangle table but could not figure out if it is the righ=
 t
-size=3D2 color=3Dgray face=3DArial><span =
-style=3D'font-size:10.0pt;font-family:Arial;
-color:gray;mso-no-proof:yes'>R</span></font><font size=3D2 color=3Dnavy =
-face=3DArial><span
-style=3D'font-size:10.0pt;font-family:Arial;color:navy;mso-no-proof:yes'>=
-OTEGO</span></font><span
-style=3D'mso-no-proof:yes'><o:p></o:p></span></p>
+> direction.  I read about the ROUTE target but do not know if this targe=
+t
+> is for diverting packets to be sent OUT on another interface, or can it
+> be used to change a packet's arriving interface.
 
-<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
-style=3D'font-size:
-12.0pt'><o:p>&nbsp;</o:p></span></font></p>
+With the ROUTE target, if you send a received packet to another
+interface, it will go out through this interface and will not appear
+as an incoming packet.
 
-</div>
+And if you use a rule such as :
+iptables -A PREROUTING -t mangle -i eth0 -j ROUTE --to
+<OTHER_IF__IP_ADDRESS>
 
-</body>
+then the packet will be sent through the local interface (this rule
+tells the kernel to route the packet as if the destination IP address
+was the address of the other interface).
 
-</html>
+Thus, at first look and as it is implemented now, the ROUTE target seems
+to be unable to help you.
 
-------=_NextPart_000_0001_01C2A1D7.B7BC80A0--
+>=20
+> Thanks in advance.
+>=20
+> Jason Liao
+>=20
+>=20
+
+C=E9dric de Launois
