@@ -1,14 +1,11 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: ip_conntrack table full problem
-Date: Mon, 14 Mar 2005 09:18:21 -0800
-Message-ID: <20050314171821.GA29034@linuxace.com>
-References: <200503141647.42299.thomas.jarosch@intra2net.com>
+From: =?ISO-8859-1?Q?J=F8rn_Andre?= <jornandr@stud.ntnu.no>
+Subject: Olsr and Netfilter
+Date: Mon, 14 Mar 2005 21:57:54 +0100
+Message-ID: <4235FAD2.9090009@stud.ntnu.no>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Content-Disposition: inline
-In-Reply-To: <200503141647.42299.thomas.jarosch@intra2net.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,16 +17,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Mar 14, 2005 at 04:47:42PM +0100, Thomas Jarosch wrote:
-> Hi,
-> 
-> I'm facing a problem with conntrack on a 2.4.21 kernel.
-> One machine which firewalls a webradio reproducable
-> becomes unresponsive every week with
-> "ip_conntrack: table full, dropping packet."
+Hi!
 
-When this happens, what does output from this look like:
+I'm a newbie on kernel programming and on NETFILTER and in the middle of
+making a netfilter-hook into PREROUTING and INPUT that simply changes=20
+the destination
+of a packet. From the source-code I've read from Rusty Russel
+and Harald Welte guide I can not see any difficulties with doing this,=20
+but in case
+I'm wrong and before I try to break my kernel open....is it not=20
+possibly  to hook
+in and change the destination of a packet  and then push it on without=20
+further notice?
 
-wc -l /proc/net/ip_conntrack ; grep ip_conntrack /proc/slabinfo
+I'm making a plugin for the Unik Olsrd implementation which is supposed=20
+to eliminate
+the gateway-problem it has. By changing the destination in INPUT  at the=20
+source-host and then
+change it back to the original in PREROUTING at the gateway I can=20
+preserve the route
+and avoid a reset when the protocol changes default gateway because of=20
+topology changes.
 
-Phil
+J=F8rn Andre
