@@ -1,44 +1,43 @@
-From: Tobias DiPasquale <codeslinger@gmail.com>
-Subject: del_timer[_sync]
-Date: Wed, 22 Sep 2004 07:41:02 -0400
-Sender: netfilter-bounces@lists.netfilter.org
-Message-ID: <876ef97a04092204415fb5f672@mail.gmail.com>
-Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH] Warn people that ipchains and ipfwadm are going away.
+Date: Wed, 22 Sep 2004 13:47:21 +0200 (CEST)
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Message-ID: <Pine.LNX.4.58.0409221347010.23967@tux.rsn.bth.se>
+References: <1095721742.5886.128.camel@bach>
+	<20040921143613.2dc78e2f.Ballarin.Marc@gmx.de>
+	<1095803902.1942.211.camel@bach>
+	<Pine.LNX.4.53.0409220735080.2066@chaos.analogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: linux-net <linux-net@vger.kernel.org>,
-	netfilter <netfilter@lists.netfilter.org>,
-	nf-devel <netfilter-devel@lists.netfilter.org>,
-	netfilter-failover@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org, Marc Ballarin <Ballarin.Marc@gmx.de>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linus Torvalds <torvalds@osdl.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: "Richard B. Johnson" <root@chaos.analogic.com>
+In-Reply-To: <Pine.LNX.4.53.0409220735080.2066@chaos.analogic.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+On Wed, 22 Sep 2004, Richard B. Johnson wrote:
 
-I have a timer that fires every $X seconds while the module is loaded.
-I want to stop and remove the timer upon module unload. What is the
-proper way to accomplish this?
+> > Sure, but you have to start somewhere.  Next step will be #error.  Then
+> > finally remove the whole thing (I don't want to remove the whole thing
+> > to start with, since that would create a silent failure).
+> >
+> > Cheers,
+> > Rusty.
+> > --
+>
+> What replaces the firewall stuff? It can't just "go away"!
 
-In the module's __exit function, I am using this code to remove the timer:
+Ever heard of iptables?
 
-[...]
-del_timer_sync( &timer);
-if (timer_pending( &timer))
-=A0 =A0 =A0 =A0del_timer( &timer);
-[...]
-
-Is this the right way, or unnecessary overkill? I've seen multiple
-ideas on how best to properly remove a timer. Thanks in advance! :)
-
---=20
-[ Tobias DiPasquale ]
-0x636f6465736c696e67657240676d61696c2e636f6d
+/Martin
