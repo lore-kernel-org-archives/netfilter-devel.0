@@ -1,12 +1,15 @@
-From: "Ryan W. Maple" <ryan@guardiandigital.com>
-Subject: PPTP conntrack/NAT Problems
-Date: Wed, 25 Feb 2004 15:51:40 -0500 (EST)
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: libipq and ip_queue
+Date: Wed, 25 Feb 2004 22:51:58 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.58.0402251550120.12632@mastermind.inside.guardiandigital.com>
+Message-ID: <Pine.LNX.4.44.0402252238180.32183-100000@filer.marasystems.com>
+References: <20040225041703.GG19291@hserus.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Chandrakanth Chereddi <kanth@hserus.net>
+In-Reply-To: <20040225041703.GG19291@hserus.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -17,27 +20,26 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 25 Feb 2004, Chandrakanth Chereddi wrote:
 
-I've been searching high and low for the 1.13 "version" of the PPTP
-helpers referred to in this message:
+> Marking the words *almost anything*, I had my doubts and thought that the
+> devel list would be the best place to get further information.
 
-  http://marc.theaimsgroup.com/?l=netfilter-devel&m=106426344328158&w=4
+There is a few limitations to ip_queue, but probably nothing major for 
+your application.
 
-I cannot find it _anywhere_.  The latest POM has revisions 1.9 (conntrack)
-and 1.5 (nat) while the netfilter-extensions repository has 1.10/1.6.
-Could somebody please tell me exactly which of these (if either) are
-"version 1.13"?
+ipqueue provides you access to the IP packet and payload, but does not
+give you access to the complete MAC header of the packet, only the
+destination MAC address.
 
-We're having a very hard time trying to NAT outbound PPTP connections
-_and_ accept incoming PPTP connections on the same box -- an issue that it
-appears was fixed in this version.  However it still does not seem to work
-on 1.10/1.6 so I'm hoping there is a more recent version somewhere that
-I'm just not seeing.
+You can modify the packet payload including IP header, but you can not
+modify the nfmark, routing or other skb fields outside the packet payload.
+I think there was a patch floating around to extend ipq with the ability 
+to set the nfmark if needed some time ago (many months).
 
-Thank you very much,
-Ryan
+In addition, packet mangling via ip_queue or in fact any netfilter hook
+outside the same does not work well together with netfilter conntrack or
+NAT so be careful if you plan on using any of these features.
 
- +-- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --+
-   Ryan W. Maple          "I dunno, I dream in Perl sometimes..."  -LW
-   Guardian Digital, Inc.                     ryan@guardiandigital.com
- +-- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --+
+Regards
+Henrik
