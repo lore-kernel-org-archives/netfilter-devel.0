@@ -1,13 +1,17 @@
-From: <zenadsl3030@zen.co.uk>
-Subject: [PATCH] DSCP match/target patches
-Date: Mon, 10 Jun 2002 13:49:13 GMT
+From: Tom Marshall <tommy@home.tig-grr.com>
+Subject: Re: DNS ALG
+Date: Mon, 10 Jun 2002 09:33:28 -0700
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <20020610135311.246C1453D@lists.samba.org>
+Message-ID: <20020610093328.A12947@home.tig-grr.com>
+References: <F67eOz8E9lEEsTmImmz000147c4@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary = "NextPart4b31ce7bcd41b45a264686ec7776bf29"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.samba.org
 Return-path: <netfilter-devel-admin@lists.samba.org>
-To: <netfilter-devel@lists.samba.org>
+To: andre achternaam <andreiscmeel@hotmail.com>
+Content-Disposition: inline
+In-Reply-To: <F67eOz8E9lEEsTmImmz000147c4@hotmail.com>; from andreiscmeel@hotmail.com on Mon, Jun 10, 2002 at 07:54:06AM +0000
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -18,84 +22,26 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a MIME encoded message.
+I would think that you can masq the DNS queries and responses using
+connection tracking, but I have not tried recently.  I have found that
+running a DNS cache on the masq machine is nicer.  It provides much faster
+responses and reduces traffic.  There are several available.  I think
+'dnsmasq' is probably one of the best.  If you are running Debian Woody or
+Sid, use "apt-get install dnsmasq", else look here:
 
---NextPart4b31ce7bcd41b45a264686ec7776bf29
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+http://www.thekelleys.org.uk/dnsmasq/doc.html
 
-Hi,
-
-Here is a simple patch to the DSCP match to allow the use of DiffServ class=
- names in the matches, in a similar manner to the target.
-
-Also attached is a one line fix for a typo in the DSCP target where CS6 was=
- defined twice in the match list.
-
-Iain
-
-
---NextPart4b31ce7bcd41b45a264686ec7776bf29
-Content-Type: application/octet-stream;
-	name="libipt_DSCP-target.diff"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="libipt_DSCP-target.diff"
-
-LS0tIGxpYmlwdF9EU0NQLmMub3JpZwlNb24gSnVuIDEwIDE0OjM1OjE0IDIwMDIKKysrIGxpYmlw
-dF9EU0NQLmMJTW9uIEp1biAxMCAxNDozNToyNCAyMDAyCkBAIC0zNSw3ICszNSw3IEBACiAJeyAi
-Q1M0IiwgIDB4MjAgfSwKIAl7ICJDUzUiLCAgMHgyOCB9LAogCXsgIkNTNiIsICAweDMwIH0sCi0J
-eyAiQ1M2IiwgIDB4MzggfSwKKwl7ICJDUzciLCAgMHgzOCB9LAogCXsgIkJFIiwgICAgMCB9LAog
-CXsgIkFGMTEiLCAweDBhIH0sCiAJeyAiQUYxMiIsIDB4MGMgfSwK
-
---NextPart4b31ce7bcd41b45a264686ec7776bf29
-Content-Type: application/octet-stream;
-	name="libipt_dscp-match.diff"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="libipt_dscp-match.diff"
-
-LS0tIGxpYmlwdF9kc2NwLmMub3JpZwlUaHUgTWFyIDE0IDEyOjE5OjQzIDIwMDIKKysrIGxpYmlw
-dF9kc2NwLmMJTW9uIEp1biAxMCAxNDozMjozOCAyMDAyCkBAIC05LDYgKzksNyBAQAogICogRm9y
-IGEgbGlzdCBvZiBEU0NQIGNvZGVwb2ludHMgc2VlIAogICogaHR0cDovL3d3dy5pYW5hLm9yZy9h
-c3NpZ25tZW50cy9kc2NwLXJlZ2lzdHJ5CiAgKgorICogRGlmZlNlcnYgY2xhc3Mgc3VwcG9ydCBi
-eSBJYWluIEJhcm5lcy4KICAqLwogI2luY2x1ZGUgPHN0ZGlvLmg+CiAjaW5jbHVkZSA8c3RyaW5n
-Lmg+CkBAIC0xOSw2ICsyMCwzOSBAQAogI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlcl9pcHY0L2lw
-X3RhYmxlcy5oPgogI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlcl9pcHY0L2lwdF9kc2NwLmg+CiAK
-Kworc3RhdGljIHN0cnVjdCBkc19jbGFzcworeworCWNoYXIgKmNsYXNzOworCXVuc2lnbmVkIGlu
-dCBkc2NwOworfSBkc19jbGFzc2VzW10gPSAKK3sKKwl7ICJDUzAiLCAwIH0sCisJeyAiQ1MxIiwg
-MHgwOCB9LAorCXsgIkNTMiIsIDB4MTAgfSwKKwl7ICJDUzMiLCAweDE4IH0sCisJeyAiQ1M0Iiwg
-MHgyMCB9LAorCXsgIkNTNSIsIDB4MjggfSwKKwl7ICJDUzYiLCAweDMwIH0sCisJeyAiQ1M3Iiwg
-MHgzOCB9LAorCXsgIkJFIiwgIDAgfSwKKwl7ICJBRjExIiwgMHgwYSB9LAorCXsgIkFGMTIiLCAw
-eDBjIH0sCisJeyAiQUYxMyIsIDB4MGUgfSwKKwl7ICJBRjIxIiwgMHgxMiB9LAorCXsgIkFGMjIi
-LCAweDE0IH0sCisJeyAiQUYyMyIsIDB4MTYgfSwKKwl7ICJBRjMxIiwgMHgxYSB9LAorCXsgIkFG
-MzIiLCAweDFjIH0sCisJeyAiQUYzMyIsIDB4MWUgfSwKKwl7ICJBRjQxIiwgMHgyMiB9LAorCXsg
-IkFGNDIiLCAweDI0IH0sCisJeyAiQUY0MyIsIDB4MjYgfSwKKwl7ICJFRiIsIDB4MmUgfQorfTsK
-KworCisKIHN0YXRpYyB2b2lkIGluaXQoc3RydWN0IGlwdF9lbnRyeV9tYXRjaCAqbSwgdW5zaWdu
-ZWQgaW50ICpuZmNhY2hlKSAKIHsKIAkqbmZjYWNoZSB8PSBORkNfSVBfVE9TOwpAQCAtMzAsMTIg
-KzY0LDE1IEBACiAiRFNDUCBtYXRjaCB2JXMgb3B0aW9uc1xuIgogIlshXSAtLWRzY3AgdmFsdWUJ
-CU1hdGNoIERTQ1AgY29kZXBvaW50IHdpdGggbnVtZXJpY2FsIHZhbHVlXG4iCiAiICAJCSAgICAg
-ICAgICAgICAgICBUaGlzIHZhbHVlIGNhbiBiZSBpbiBkZWNpbWFsIChleDogMzIpXG4iCi0iICAg
-ICAgICAgICAgICAgCQlvciBpbiBoZXggKGV4OiAweDIwKVxuIiwgTkVURklMVEVSX1ZFUlNJT04K
-KyIgICAgICAgICAgICAgICAJCW9yIGluIGhleCAoZXg6IDB4MjApXG4iCisiWyFdIC0tY2xhc3Mg
-bmFtZQkJTWF0Y2ggdGhlIERpZmZTZXJ2IENsYXNzIG5hbWVzIHN1Y2ggYXNcbiIKKyIJCQkJQUZ4
-eCxCRSxFRiBvciBDU3hcbiIsIE5FVEZJTFRFUl9WRVJTSU9OCiApOwogfQogCiBzdGF0aWMgc3Ry
-dWN0IG9wdGlvbiBvcHRzW10gPSB7CiAJeyAiZHNjcCIsIDEsIDAsICdGJyB9LAorCXsgImNsYXNz
-IiwgMSwgMCwgJ0cnIH0sCiAJeyAwIH0KIH07CiAKQEAgLTU2LDYgKzkzLDIzIEBACiAgICAgCXJl
-dHVybjsKIH0KIAorCitzdGF0aWMgdm9pZAorcGFyc2VfY2xhc3MoY29uc3QgdW5zaWduZWQgY2hh
-ciAqcywgc3RydWN0IGlwdF9kc2NwX2luZm8gKmRpbmZvKQoreworCWludCBpOworCisJZm9yKGkg
-PSAwOyBpIDwgc2l6ZW9mKGRzX2NsYXNzZXMpIC8gc2l6ZW9mKHN0cnVjdCBkc19jbGFzcyk7IGkr
-KykgeworCQlpZiAoIXN0cm5jYXNlY21wIChzLCBkc19jbGFzc2VzW2ldLmNsYXNzLAorCQkJCQlz
-dHJsZW4oZHNfY2xhc3Nlc1tpXS5jbGFzcykpKSB7CisJCQlkaW5mby0+ZHNjcCA9ICh1X2ludDhf
-dClkc19jbGFzc2VzW2ldLmRzY3A7CisJCQlyZXR1cm47CisJCX0KKwl9CisKKwlleGl0X2Vycm9y
-KFBBUkFNRVRFUl9QUk9CTEVNLCAiSW52YWxpZCBEaWZmU2VydiBjbGFzcyAnJXMnXG4iLCBzKTsK
-K30KKwogc3RhdGljIGludAogcGFyc2UoaW50IGMsIGNoYXIgKiphcmd2LCBpbnQgaW52ZXJ0LCB1
-bnNpZ25lZCBpbnQgKmZsYWdzLAogICAgICAgY29uc3Qgc3RydWN0IGlwdF9lbnRyeSAqZW50cnks
-CkBAIC03Nyw2ICsxMzEsMTggQEAKIAkJKmZsYWdzID0gMTsKIAkJYnJlYWs7CiAKKwljYXNlICdH
-JzoKKwkJaWYgKCpmbGFncykKKwkJCWV4aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sCisJCQkJ
-IkRTQ1AgbWF0Y2g6IE9ubHkgdXNlIC0tY2xhc3MgT05DRSEiKTsKKworCQljaGVja19pbnZlcnNl
-KG9wdGFyZywgJmludmVydCwgJm9wdGluZCwgMCk7CisJCXBhcnNlX2NsYXNzKGFyZ3Zbb3B0aW5k
-IC0gMV0sIGRpbmZvKTsKKwkJaWYgKGludmVydCkKKwkJCWRpbmZvLT5pbnZlcnQgPSAxOworCQkq
-ZmxhZ3MgPSAxOworCQlicmVhazsKKwkJCiAJZGVmYXVsdDoKIAkJcmV0dXJuIDA7CiAJfQo=
-
---NextPart4b31ce7bcd41b45a264686ec7776bf29--
+On Mon, Jun 10, 2002 at 07:54:06AM +0000, andre achternaam wrote:
+> Good day'
+> 
+> I have set-up a gateway that separates my (private ipv4) LAN from the 
+> Internet. The hosts on my LAN are DHCP enabled and using private addresses. 
+> Also set-up an authorive DNS server for the hosts with a domain. Since the 
+> gateway performs NA(P)T it is not allowed to do queries from the Internet 
+> because it get a private address. However I found a RFC (2694 DNS extensions 
+> to NAT) that covers this part as far as I understand.  (I don’t want to use 
+> it for ipv6).
+> 
+> Is there any developer who has looked into a DNS ALG in combination with 
+> NA(P)T for ipv4? When yes, what is the status and what are the difficulties 
+> he/she/you encounters up till now.
