@@ -1,17 +1,16 @@
 From: "David S. Miller" <davem@redhat.com>
-Subject: Re: Extremely slow network with e1000 & ip_conntrack
-Date: Thu, 4 Dec 2003 10:30:41 -0800
+Subject: Re: [PATCH 2.4.x] Fix ipchains MASQUEARDE oops
+Date: Thu, 4 Dec 2003 10:36:03 -0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031204103041.21aefd8d.davem@redhat.com>
-References: <C6F5CF431189FA4CBAEC9E7DD5441E0102CBDD21@orsmsx402.jf.intel.com>
+Message-ID: <20031204103603.333f3a7b.davem@redhat.com>
+References: <20031204093757.GA7680@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: mukansai@emailplus.org, laforge@netfilter.org,
-        netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Feldman, Scott" <scott.feldman@intel.com>
-In-Reply-To: <C6F5CF431189FA4CBAEC9E7DD5441E0102CBDD21@orsmsx402.jf.intel.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20031204093757.GA7680@obroa-skai.de.gnumonks.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,15 +21,23 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 4 Dec 2003 09:37:19 -0800
-"Feldman, Scott" <scott.feldman@intel.com> wrote:
+On Thu, 4 Dec 2003 15:07:57 +0530
+Harald Welte <laforge@netfilter.org> wrote:
 
-> TSO is support on 82540.  Turning off TSO is a workaround, but what's
-> behind the dependency of TSO and ip_conntrack?
+> Please apply the following patch (on top of 2.4.23).  It fixes an oops
+> that was introduced during  2.4.23 when we did a change in the NAT core
+> but forgot to update the compatibility layer.  2.6.x already contains
+> that fix.
+> 
+> Please apply, thanks.
 
-Netfilter wants to see the _real_ packets that will be sent onto the
-wire.  TSO is a template by which to create such packets, not the real
-thing.
+Applied, thanks Harald.
 
-So when and if we go into netfilter, we must un-TSO the packet so
-that netfilter can look at what it really wants to.
+> Which raises another issue... do you think it would still be possible to
+> rip out the ipfwadm and ipchains compatibility layer from 2.6.x?  I'm
+> just _asking_, if it was still possible - not asking you to do it.
+
+I think we could have done this say 2 or 3 months ago.  I would
+have supported such a move.  But now is certainly too late.
+
+Put it on your 2.7.1 TODO list :)
