@@ -1,16 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: policy routing on locally generated packets
-Date: Mon, 25 Aug 2003 17:13:25 +0200
+From: Samuele Giovanni Tonon <samu@mclink.it>
+Subject: Re: a question about ipv4 multicast and NAT
+Date: Mon, 25 Aug 2003 16:50:09 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3F4A2795.3030805@trash.net>
-References: <1061813400.1289.36.camel@drs0.manchotnetworks.net> <3F4A01BE.1090805@trash.net>
+Message-ID: <20030825145008.GA27075@linuxasylum.net>
+References: <20030825110055.GD423@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "lartc@manchotnetworks.net" <lartc@manchotnetworks.net>
-In-Reply-To: <3F4A01BE.1090805@trash.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <20030825110055.GD423@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,60 +20,81 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-I don't know what i was thinking, this patch is going to confuse
-all kinds of stuff (especially conntrack & nat). Sorry.
-Patrick
+On Mon, Aug 25, 2003 at 01:00:56PM +0200, Patrick Schaaf wrote:
+> (my reply to the last message from Samuele)
+> 
+> Hello Samuele,
+> 
+> > i'll try to be as clear as possible however tell me if there's 
+> > something you don't understand my english is not so fluent:
+> 
+> Most of the readers/writers here, are afflicted with that problem.
+> We'll understand you.
+we should switch to italian it could be easier for me :-)
 
-Patrick McHardy wrote:
+> > However they are inside a LAaN, so their request have to be "natted"
+> > from the linux gw to the outside
+> 
+> Really? Note that I'm not awfully proficient in things multicast,
+> but it was my impression that the first router in front of MC
+> clients, would speak IGMP with the clients, and talk to the
+> network accordingly; thus, I would expect that a proper multicast
+> router setup on the linux gw, would provide everything you need,
+> no NAT needed at all.
+yes, that's right but only if you have public ip, if you try to send 
+multicast packets from private ip, obviously they will go out 
+with src setted to that ip (e.g. 192.168/24) but these packets on
+the internet should be dropped by "big" routers (if i remember correctly).
 
-> lartc@manchotnetworks.net wrote:
->
->> The statement would force a new routing decision to be made using the
->> properties of the packet as it traverses the nat table, respecting any
->> marking, tos, etc.
->>
->> Could any of you be kind enough to offer an analysis of such a new
->> target, i.e. would it work, would it be terribly complex, ...
->>
->
-> A new lookup is performed for outgoing packet if any key affecting
-> routing decision is changed. However source address is not influenced
-> by this lookup, for locally originating packets it is set to rt_src in
-> ip_queue_xmit and ip_build_and_send_pkt but it doesn't happen
-> automatically with a new lookup. I'm not sure if it would be possible
-> to set a new source address, sockets which are bound to interfaces
-> might not accept packets anymore. You could try this patch, it changes
-> the packets source after the routing key changed, please make sure
-> both unbound and bound sockets work correctly.
->
-> Bye
-> Patrick
->
->>
->>
->> Sincerely Yours,
->>
->> Charles Shick
->>
->>
->>
->>
->>
->>
->>  
->>
->------------------------------------------------------------------------
->
->===== net/core/netfilter.c 1.23 vs edited =====
->--- 1.23/net/core/netfilter.c	Thu Jul 31 01:57:26 2003
->+++ edited/net/core/netfilter.c	Mon Aug 25 14:25:19 2003
->@@ -645,6 +645,7 @@
-> 		/* Drop old route. */
-> 		dst_release((*pskb)->dst);
-> 		(*pskb)->dst = &rt->u.dst;
->+		iph->saddr = rt->rt_src;
-> 	} else {
-> 		/* non-local src, find valid iif to satisfy
-> 		 * rp-filter when calling ip_route_input. */
->  
->
+> Did you try going that mroute?
+did you mean mrouted ? yes, in tunnel mode (i tried to set up
+an "mbone link" from university to home, and in normal mode to see
+multicast session inside the MAN of one of my isp (just allowing to forward
+multicast traffic because my two isp are multicast enable ) but it didn't
+worked. 
+ 
+> > the same thing should be possible if people from 192.168/24 wants to send
+> > their video stream to the outside, but in this case things could be a bit
+> > more complicated because you have to "nat" the outgoing stream and announce.
+> 
+> I imagine this is a _completely_ different scenario. I'd even question
+> the sanity of an ISP _permitting_ you to do that.
+:-)
+well, for example one of my two isp is selling T1 natted lines :
+you have 10Mbps but you can't accept incoming connection from "the internet"
+'cause you're nat.
+However you can see all the other customer of the isp (we have private ip
+of 10.0/4 class ) so it's a MAN.
+The isp sends us mpeg2 video streams over RTP/multicast (of course you'd 
+have to pay to see them however they seem not aware that vlc let see them
+without paying :-))  ) .
+I also were able to make video conferencing session with a friend of mine 
+which is in the same isp (we both were running linux without netfilter nat module) . 
+Of course i can't make a videoconferencing with my university (they drop
+multicast outside their backbone) but i'd like just to see the one in the MAN.
+
+> 
+> > In this manner, with an isp that is multicast capable people can use multicast
+> > for conferencing or just for fun .
+> > 
+> > Please tell me if something is not clear, or if i haven't answered correctly
+> > to your question.
+> 
+> I fear that I'm too naive about multicast to be of more help. 
+well, developing a multicast capable application it's a piece
+of cake, the problems come with routing and nat .
+
+Some times ago i found on the internet some very interesting papers
+on multicast under ipv4 and some possible implementation of correct 
+NAT router/firewall for it, obviously i cannot find them again 
+(Murphy's law) but i'll search for them.
+
+regards
+Samuele 
+
+-- 
+While various networks have become deeply rooted, and thoughts have been sent
+out as light and electrons in a singular direction, this era has yet to 
+digitize/computerize to the degree necessary for individuals to become 
+a singular complex entity.
+  KOUKAKU KIDOUTAI Stand Alone Complex
