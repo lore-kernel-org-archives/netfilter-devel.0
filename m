@@ -1,11 +1,11 @@
 From: netfilter@interlinx.bc.ca
-Subject: ip_conntrack-timeouts conflicts with tcp-window-tracking
-Date: Fri, 25 Oct 2002 16:34:34 -0400
+Subject: arptables in kernel produces "invalid argument" from iptables 1.2.7a
+Date: Fri, 25 Oct 2002 20:50:00 -0400
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021025203433.GJ23228@pc.ilinx>
+Message-ID: <20021026004959.GL23228@pc.ilinx>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ONvqYzh+7ST5RsLk"
+	protocol="application/pgp-signature"; boundary="KIbT1ud6duwZIwNL"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
@@ -20,106 +20,147 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---ONvqYzh+7ST5RsLk
+--KIbT1ud6duwZIwNL
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Which should I prefer, or should I merge them by taking the bulk of
-the tcp-window-tracking patch and replace the references to timeout
-constants with the sysctl controlled timeout values that
-ip_conntrack-timeouts provides?
+I found this problem while I was building my last production kernel
+and just worked around it by removing the arptables POM patches from
+the kernel.  But here I am building a new production kernel and
+running into the same problem.
 
-So for an example, tcp-window-tracking has this patch:
+If I include the arptables stuff from POM in my kernel tree and set
+the:
 
---- linux-2.4.19-base/net/ipv4/netfilter/ip_conntrack_proto_udp.c       Fri=
- Oct 18 11:38:10 2002
-+++ linux-2.4.19-tcp-window/net/ipv4/netfilter/ip_conntrack_proto_udp.c Fri=
- Oct 18 11:56:35 2002
-@@ -6,6 +6,9 @@
- #include <linux/udp.h>
- #include <linux/netfilter_ipv4/ip_conntrack_protocol.h>
- #include <linux/netfilter_ipv4/ip_conntrack_udp.h>
-+
-+unsigned long ip_ct_udp_timeout =3D 30*HZ;
-+unsigned long ip_ct_udp_timeout_stream =3D 180*HZ;
-=20
- static int udp_pkt_to_tuple(const void *datah, size_t datalen,
-                struct ip_conntrack_tuple *tuple)
-@@ -52,11 +52,11 @@
-    /* If we've seen traffic both ways, this is some kind of UDP
-       stream.  Extend timeout. */
-    if (conntrack->status & IPS_SEEN_REPLY) {
--               ip_ct_refresh(conntrack, UDP_STREAM_TIMEOUT);
-+               ip_ct_refresh(conntrack, ip_ct_udp_timeout_stream);
-        /* Also, more likely to be important, and not a probe */
-        set_bit(IPS_ASSURED_BIT, &conntrack->status);
-    } else
--               ip_ct_refresh(conntrack, UDP_TIMEOUT);
-+               ip_ct_refresh(conntrack, ip_ct_udp_timeout);
-=20
-    return NF_ACCEPT;
- }
+CONFIG_IP_NF_ARPTABLES
+CONFIG_IP_NF_ARPFILTER
 
-But, ip_conntrack-timeouts has this conflicting patch:
+config variables, the iptables command from 1.2.7a (current CVS) fails
+to operate on any of the nat table hooks.  I keep getting an "invalid
+argument" error:
 
---- linux-2.4.20-pre7.orig/net/ipv4/netfilter/ip_conntrack_proto_udp.c  200=
-2-09-14 20:08:16.000000000 +0200
-+++ linux-2.4.20-pre7/net/ipv4/netfilter/ip_conntrack_proto_udp.c       200=
-2-09-19 21:57:47.000000000 +0200
-@@ -5,9 +5,7 @@
- #include <linux/in.h>
- #include <linux/udp.h>
- #include <linux/netfilter_ipv4/ip_conntrack_protocol.h>
--
--#define UDP_TIMEOUT (30*HZ)
--#define UDP_STREAM_TIMEOUT (180*HZ)
-+#include <linux/netfilter_ipv4/ip_conntrack_udp.h>
-=20
- static int udp_pkt_to_tuple(const void *datah, size_t datalen,
-                struct ip_conntrack_tuple *tuple)
-@@ -52,11 +50,13 @@
-    /* If we've seen traffic both ways, this is some kind of UDP
-       stream.  Extend timeout. */
-    if (conntrack->status & IPS_SEEN_REPLY) {
--               ip_ct_refresh(conntrack, UDP_STREAM_TIMEOUT);
-+               ip_ct_refresh(conntrack,=20
-+                       sysctl_ip_conntrack_udp_timeouts[UDP_STREAM_TIMEOUT=
-]);
-        /* Also, more likely to be important, and not a probe */
-        set_bit(IPS_ASSURED_BIT, &conntrack->status);
-    } else
--               ip_ct_refresh(conntrack, UDP_TIMEOUT);
-+               ip_ct_refresh(conntrack,=20
-+                       sysctl_ip_conntrack_udp_timeouts[UDP_TIMEOUT]);
-=20
-    return NF_ACCEPT;
- }
+# iptables -t nat -A POSTROUTING -o ppp0 -s 10.75.22.0/24 -j MASQUERADE
+iptables: Invalid argument
 
+An strace from the iptables command:
 
-I sure like the idea of the tcp window tracking patch and would like it,
-but I also like being able to control timeouts via sysctl rather than
-having to use defined constants.
+execve("/sbin/iptables", ["iptables", "-t", "nat", "-A", "PREROUTING", "-i"=
+, "ppp0", "-p", "udp", "--dport", "6346", "-j", "DNAT", "--to-destination",=
+ "10.75.22.1"], [/* 35 vars */]) =3D 0
+uname({sys=3D"Linux", node=3D"gw.ilinx", ...}) =3D 0
+brk(0)                                  =3D 0x805577c
+open("/etc/ld.so.preload", O_RDONLY)    =3D 3
+fstat64(3, {st_mode=3DS_IFREG|0600, st_size=3D0, ...}) =3D 0
+close(3)                                =3D 0
+open("/etc/ld.so.cache", O_RDONLY)      =3D 3
+fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D9284, ...}) =3D 0
+old_mmap(NULL, 9284, PROT_READ, MAP_PRIVATE, 3, 0) =3D 0x40012000
+close(3)                                =3D 0
+open("/lib/libdl.so.2", O_RDONLY)       =3D 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0P\30\0\000"..., 102=
+4) =3D 1024
+fstat64(3, {st_mode=3DS_IFREG|0755, st_size=3D8220, ...}) =3D 0
+old_mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0=
+) =3D 0x40015000
+old_mmap(NULL, 11152, PROT_READ|PROT_EXEC, MAP_PRIVATE, 3, 0) =3D 0x40016000
+mprotect(0x40018000, 2960, PROT_NONE)   =3D 0
+old_mmap(0x40018000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, 3, =
+0x1000) =3D 0x40018000
+close(3)                                =3D 0
+open("/lib/libc.so.6", O_RDONLY)        =3D 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0P\202\1"..., 1024) =
+=3D 1024
+fstat64(3, {st_mode=3DS_IFREG|0755, st_size=3D1147848, ...}) =3D 0
+old_mmap(NULL, 1160224, PROT_READ|PROT_EXEC, MAP_PRIVATE, 3, 0) =3D 0x40019=
+000
+mprotect(0x4012b000, 37920, PROT_NONE)  =3D 0
+old_mmap(0x4012b000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, 3,=
+ 0x112000) =3D 0x4012b000
+old_mmap(0x40131000, 13344, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP=
+_ANONYMOUS, -1, 0) =3D 0x40131000
+close(3)                                =3D 0
+munmap(0x40012000, 9284)                =3D 0
+brk(0)                                  =3D 0x805577c
+brk(0x8055b94)                          =3D 0x8055b94
+brk(0x8056000)                          =3D 0x8056000
+open("/etc/nsswitch.conf", O_RDONLY)    =3D 3
+fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D1888, ...}) =3D 0
+old_mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0=
+) =3D 0x40012000
+read(3, "#\n# /etc/nsswitch.conf\n#\n# An ex"..., 4096) =3D 1888
+brk(0x8057000)                          =3D 0x8057000
+read(3, "", 4096)                       =3D 0
+close(3)                                =3D 0
+munmap(0x40012000, 4096)                =3D 0
+open("/etc/ld.so.cache", O_RDONLY)      =3D 3
+fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D9284, ...}) =3D 0
+old_mmap(NULL, 9284, PROT_READ, MAP_PRIVATE, 3, 0) =3D 0x40012000
+close(3)                                =3D 0
+open("/lib/libnss_files.so.2", O_RDONLY) =3D 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0P\35\0\000"..., 102=
+4) =3D 1024
+fstat64(3, {st_mode=3DS_IFREG|0755, st_size=3D36296, ...}) =3D 0
+old_mmap(NULL, 39676, PROT_READ|PROT_EXEC, MAP_PRIVATE, 3, 0) =3D 0x40135000
+mprotect(0x4013e000, 2812, PROT_NONE)   =3D 0
+old_mmap(0x4013e000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, 3, =
+0x8000) =3D 0x4013e000
+close(3)                                =3D 0
+munmap(0x40012000, 9284)                =3D 0
+open("/etc/protocols", O_RDONLY)        =3D 3
+fcntl64(3, F_GETFD)                     =3D 0
+fcntl64(3, F_SETFD, FD_CLOEXEC)         =3D 0
+fstat64(3, {st_mode=3DS_IFREG|0644, st_size=3D5809, ...}) =3D 0
+old_mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0=
+) =3D 0x40012000
+read(3, "# /etc/protocols:\n# $Id: protoco"..., 4096) =3D 4096
+close(3)                                =3D 0
+munmap(0x40012000, 4096)                =3D 0
+open("/lib/iptables/libipt_udp.so", O_RDONLY) =3D 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0\320\5\0"..., 1024)=
+ =3D 1024
+fstat64(3, {st_mode=3DS_IFREG|0755, st_size=3D5344, ...}) =3D 0
+old_mmap(NULL, 8788, PROT_READ|PROT_EXEC, MAP_PRIVATE, 3, 0) =3D 0x40012000
+mprotect(0x40014000, 596, PROT_NONE)    =3D 0
+old_mmap(0x40014000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, 3, =
+0x1000) =3D 0x40014000
+close(3)                                =3D 0
+open("/lib/iptables/libipt_DNAT.so", O_RDONLY) =3D 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0\3\0\1\0\0\0`\5\0\000"..., 1024=
+) =3D 1024
+fstat64(3, {st_mode=3DS_IFREG|0755, st_size=3D4376, ...}) =3D 0
+old_mmap(NULL, 7820, PROT_READ|PROT_EXEC, MAP_PRIVATE, 3, 0) =3D 0x4013f000
+mprotect(0x40140000, 3724, PROT_NONE)   =3D 0
+old_mmap(0x40140000, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED, 3, =
+0) =3D 0x40140000
+close(3)                                =3D 0
+socket(PF_INET, SOCK_RAW, IPPROTO_RAW)  =3D 3
+getsockopt(3, SOL_IP, 0x40 /* IP_??? */, [7627118], [84]) =3D 0
+getsockopt(3, SOL_IP, 0x41 /* IP_??? */, [7627118], [656]) =3D 0
+brk(0x8058000)                          =3D 0x8058000
+setsockopt(3, SOL_IP, 0x40 /* IP_??? */, [7627118], 920) =3D -1 EINVAL (Inv=
+alid argument)
+write(2, "iptables: Invalid argument\n", 27iptables: Invalid argument
+) =3D 27
+_exit(1)                                =3D ?
 
-Would there be any danger in merging these two features manually into my
-kernel source?
+Any thots other than disabling arptables?
 
 b.
 
 --=20
 Brian J. Murrell
 
---ONvqYzh+7ST5RsLk
+--KIbT1ud6duwZIwNL
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.0.7 (GNU/Linux)
 
-iD8DBQE9uarZl3EQlGLyuXARAp04AKDzwRFbLvIZBJwxHQ476I5hgle6uwCgoV+R
-Zk2jqXA6i7XKp7UN/cntkOQ=
-=wKdm
+iD8DBQE9uea3l3EQlGLyuXARAvCvAJwPFdM9JClKAK9vDIDX9TSXqkyKsACgy2ld
+gZMAVJSVz52soHThxRr1xLA=
+=vBW/
 -----END PGP SIGNATURE-----
 
---ONvqYzh+7ST5RsLk--
---ONvqYzh+7ST5RsLk--
+--KIbT1ud6duwZIwNL--
