@@ -1,15 +1,12 @@
-From: Willi Dyck <wdyck@gmx.net>
-Subject: Bug #2
-Date: Thu, 20 Feb 2003 00:50:24 +0100
+From: A K A <gello666@yahoo.com>
+Subject: Race Conditions
+Date: Wed, 19 Feb 2003 21:37:22 -0800 (PST)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030219235024.GA1228@tekilla.homeip.net>
-Reply-To: netfilter-devel@lists.netfilter.org
+Message-ID: <20030220053722.24368.qmail@web13104.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,41 +17,24 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+I have developed a module and in the init_module
+function i register two functions to two hooks
+-NF_IP_LOCAL_IN and NF_IP_POST_ROUTING. In the two
+functions i am acesssing a global data structure. Is
+it possible for me to have race condition while
+accessing the data structure or can I be sure that
+while one function is executing another will not
+because they are both running at the same IRQ level
+which is below the schedular, and hence cannot
+interupt each other. Is this assumption correct.
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+any coments, suggestions and pointers are appreciated.
 
-  "locally-generated icmp-frag-needed not correctly NATed when mtu
-   transition happens on nat box"
+regards,
+Asad
 
-I see in the Bugzilla system that there is a fix available but not yet
-tested enough to be implemented.
-Could someone please send me this fix (patch). I'd like to test it
-because today I've discovered that problem too and would like to help if
-possible. Many thanks in advance.
 
-Gru=DF/Regards
-
-Willi
-
---=20
-the three great virtues of a programmer:
-laziness, impatience and hubris.
-        Lary Wall
-
---Qxx1br4bt0+wmkIi
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iEYEARECAAYFAj5UGEAACgkQesP/Zk6Ni9YGvgCeNcZwKKwNHxZeLBhZ/xmC4u+L
-TlkAmQGTMGl+jigBxstF/jUlmr9gEOBJ
-=eDb5
------END PGP SIGNATURE-----
-
---Qxx1br4bt0+wmkIi--
+__________________________________________________
+Do you Yahoo!?
+Yahoo! Tax Center - forms, calculators, tips, more
+http://taxes.yahoo.com/
