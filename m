@@ -1,15 +1,15 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: conntrack manipulation
-Date: Mon, 12 May 2003 09:35:47 +0200 (CEST)
+From: "Hillmann, Oliver" <Oliver.Hillmann@charite.de>
+Subject: Re: ICMP unreachable (DF) does not report the NATed IP
+Date: Mon, 12 May 2003 14:10:06 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Pine.LNX.4.33.0305120933420.2472-100000@blackhole.kfki.hu>
-References: <200305100021.24860.lists@ohlmeier.de>
+Message-ID: <4F9AFAF72B246745B6847C7EECD8FF6901D17A88@EXCHANGE1.charite.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Nils Ohlmeier <lists@ohlmeier.de>
-In-Reply-To: <200305100021.24860.lists@ohlmeier.de>
+content-class: urn:content-classes:message
+To: "Netfilter-devel" <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,33 +20,33 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 10 May 2003, Nils Ohlmeier wrote:
+> -----Original Message-----
+> From: Harald Welte [mailto:laforge@netfilter.org]
+> Date: Dienstag, 29. April 2003 16:51
+> To: Martin Josefsson
+> Cc: Hillmann, Oliver; Netfilter-devel
+> Subject: Re: ICMP unreachable (DF) does not report the NATed IP
+> [..]
+> please don't tell me there is still an unhandled ICMP reply=20
+> translation
+> problem.  If yes, I think I need a new brain.
 
-> On Friday 09 May 2003 14:36, Jozsef Kadlecsik wrote:
-> > On Thu, 8 May 2003, Nils Ohlmeier wrote:
-> > > phone1 ------ NAT ------- Internet ----- phone2
-> > >
-> > > Phone1 starts a call to phone2 (INVITE message). Phone2 confirms the call
-> > > (200 OK message) after the user picked up and starts to send RTP packets
-> > > to the public NAT address immediately. Now the comfirmation message hits
-> > > the SIP
-> >
-> > How can the user (phone1) send RTP packets before receiving the 200 OK
-> > message from phone2?
->
-> Not phone1 sends but phone2 sends RTP packets immediately after it send the
-> '200 OK' to confirm that the user at phone2 picked up the hearer.
-> So the problem is basicly that the callee phone starts to send packets to fast
-> (at least to fast for our solution).
+The good news is that you can happily keep your brain, the
+11_inner-icmp-translation-fix fully fixed my problem. (That's why I
+originally sent my message to the netfilter-users list because something
+made me think this might have been an issue somebody has seen before and
+there is no need to bother the developers, rather need to find the right
+patch or documentation ;)
 
-Then enter the required rules when phone1 sends the command, without
-waiting for a confirmation from phone2. If phone2 would refuse the
-request, then delete the unnecessarily added rules.
+> > I've havn't given it much thought yet.
+> >=20
+> > Also look at the=20
+> submitted/11_inner-icmp-translation-fix.patch patch in
+> > patch-o-matic as it modifies this function.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Thanks, works perfectly (and still I am amazed by the small number of
+lines changed to fix this).
+
+Regards,
+
+Oliver
