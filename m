@@ -1,17 +1,13 @@
-From: Damien Sandras <dsandras@seconix.com>
-Subject: Re: GnomeMeeting STUN
-Date: Thu, 25 Dec 2003 17:48:42 +0100
+From: "LinkageXu" <xuln@stu.edu.cn>
+Subject: My Problems
+Date: Wed, 31 Dec 2003 17:53:38 +0800
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1072370922.680.6.camel@golgoth01>
-References: <1072260947.722.25.camel@golgoth01>
-	 <20031224143851.GD941@obroa-skai.de.gnumonks.org>
+Message-ID: <20031231092945.552E39E1A5@xfilter>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_009A_01C3CFC7.05338590"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>
-In-Reply-To: <20031224143851.GD941@obroa-skai.de.gnumonks.org>
+To: <netfilter-devel@lists.netfilter.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,41 +18,134 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Le mer 24/12/2003 =E0 15:38, Harald Welte a =E9crit :
-> On Wed, Dec 24, 2003 at 11:16:14AM +0100, Damien Sandras wrote:
-> > Hello Harald,
->=20
-> Hi Damien.  I'm Cc'ing your email to netfilter-devel, since there might
-> be other developers interested in a discussion about STUN.
->=20
+This is a multi-part message in MIME format.
 
-That's indeed a nice clarification :)
+------=_NextPart_000_009A_01C3CFC7.05338590
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-[...]
+Hi,
 
-> NAT didn't change at all between 2.4.x and 2.6.x, so there is no change
-> related to gnomemeeting.
->=20
-> I assume all we have to offer is ip_conntrack/nat_h323, which is in
-> patch-o-matic but has been reported not to work with gnomemeeting (but
-> with netmeeting) in the past ?  We'd be happy to receive any feedback
-> you would have regarding that subject.
->=20
+I want a new module for access data to file, That just a try for me.
 
-I will do my best. I already had sent some information to Joszef a long
-time ago, but I think it was lost.=20
+But I do not know how to add the my kernel and how to add the menucofig.
 
-The problem with the conntrack approach is that we will also have to do
-the same kind of connection tracker for the SIP protocol :(
+Would you like tell me the steps?
 
-Thanks for the answer,
+ 
 
-> > Thank you,
-> >  _      Damien Sandras
---=20
- _      Damien Sandras
-(o-    =20
-//\     It-Optics s.a.
-v_/_    GnomeMeeting: http://www.gnomemeeting.org/
-        FOSDEM 2004:  http://www.fosdem.org
-        H.323 phone:  callto:ils.seconix.com/dsandras@seconix.com
+Thanks very much
+
+ 
+
+ 
+
+Linkage xu
+
+
+------=_NextPart_000_009A_01C3CFC7.05338590
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns=3D"http://www.w3.org/TR/REC-html40">
+
+<head>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dus-ascii">
+<meta name=3DGenerator content=3D"Microsoft Word 11 (filtered medium)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:&#23435;&#20307;;
+	panose-1:2 1 6 0 3 1 1 1 1 1;}
+@font-face
+	{font-family:"\@&#23435;&#20307;";
+	panose-1:2 1 6 0 3 1 1 1 1 1;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	text-align:justify;
+	text-justify:inter-ideograph;
+	font-size:10.5pt;
+	font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:Arial;
+	color:windowtext;}
+ /* Page Definitions */
+ @page Section1
+	{size:595.3pt 841.9pt;
+	margin:72.0pt 90.0pt 72.0pt 90.0pt;
+	layout-grid:15.6pt;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+
+</head>
+
+<body lang=3DZH-CN link=3Dblue vlink=3Dpurple =
+style=3D'text-justify-trim:punctuation'>
+
+<div class=3DSection1 style=3D'layout-grid:15.6pt'>
+
+<p class=3DMsoNormal><font size=3D1 face=3DArial><span lang=3DEN-US =
+style=3D'font-size:
+9.0pt;font-family:Arial'>Hi,<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D1 face=3DArial><span lang=3DEN-US =
+style=3D'font-size:
+9.0pt;font-family:Arial'>I want a new module for access data to file, =
+That just
+a try for me.<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D1 face=3DArial><span lang=3DEN-US =
+style=3D'font-size:
+9.0pt;font-family:Arial'>But I do not know how to add the my kernel and =
+how to add
+the menucofig.<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D1 face=3DArial><span lang=3DEN-US =
+style=3D'font-size:
+9.0pt;font-family:Arial'>Would you like tell me the =
+steps?<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D1 face=3DArial><span lang=3DEN-US =
+style=3D'font-size:
+9.0pt;font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D1 face=3DArial><span lang=3DEN-US =
+style=3D'font-size:
+9.0pt;font-family:Arial'>Thanks very much<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D1 face=3DArial><span lang=3DEN-US =
+style=3D'font-size:
+9.0pt;font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D1 face=3DArial><span lang=3DEN-US =
+style=3D'font-size:
+9.0pt;font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D1 face=3DArial><span lang=3DEN-US =
+style=3D'font-size:
+9.0pt;font-family:Arial'>Linkage xu<o:p></o:p></span></font></p>
+
+</div>
+
+</body>
+
+</html>
+
+------=_NextPart_000_009A_01C3CFC7.05338590--
