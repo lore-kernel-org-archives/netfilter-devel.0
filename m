@@ -1,15 +1,17 @@
-From: "Sneppe Filip" <Filip.Sneppe@cronos.be>
-Subject: RE: Security flaw in Stateful filtering ??????
-Date: Thu, 6 Jun 2002 21:29:16 +0200
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Security flaw in Stateful filtering ??????
+Date: Thu, 6 Jun 2002 21:27:01 +0200
 Sender: netfilter-devel-admin@lists.samba.org
-Message-ID: <E131E9F1848D0148813EAF06A846608F615D9E@w2ks-e2k.iconos.be>
+Message-ID: <200206062127.01661.hno@marasystems.com>
+References: <3CFF9A00.2070805@cs.auc.dk> <20020606195706.A21880@oknodo.bof.de> <3CFFAB1C.902@cs.auc.dk>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C20D90.72502F00"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.samba.org>
-content-class: urn:content-classes:message
-To: "Emmanuel Fleury" <fleury@cs.auc.dk>,
-	<netfilter-devel@lists.samba.org>
+To: Emmanuel Fleury <fleury@cs.auc.dk>,
+	netfilter-devel@lists.samba.org
+In-Reply-To: <3CFFAB1C.902@cs.auc.dk>
 Errors-To: netfilter-devel-admin@lists.samba.org
 List-Help: <mailto:netfilter-devel-request@lists.samba.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.samba.org>
@@ -20,157 +22,76 @@ List-Unsubscribe: <http://lists.samba.org/listinfo/netfilter-devel>,
 List-Archive: <http://lists.samba.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Emmanuel Fleury wrote:
 
-------_=_NextPart_001_01C20D90.72502F00
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
+> I wouldn't accept to have such a flaw in my firewall just because of
+> an hypothetic reboot of one of my gateway !!!!
 
-Yes, it's that time of the month again :-)=20
+And exactly what is the flaw here? What is it that your firewall ruleset is 
+trying to achieve?
 
-Emmanuel Fleury [mailto:fleury@cs.auc.dk] wrote:
->
->Patrick Schaaf wrote:
->
->> The behaviour is intentional. The reason is "connection pickup". =
-Imagine
->> a situation where the firewall reboots. All active conntracking =
-information
->> will be lost. With the observed behaviour, connections are =
-"relearned"
->> on the fly as they create new traffic.
->
->I simply disagree with you on this point (sorry :-/).
->
->I wouldn't accept to have such a flaw in my firewall just because of
->an hypothetic reboot of one of my gateway !!!!
->
->Of course, I could be wrong, but in this case this 'feature' should be
->highly documented and be disabled as default. IMHO.
+Sure NEW matches more than SYN, but as demonstrated you can easily refine what 
+you accept as session initiations and this is what iptables firewalling is 
+about. Making a ruleset that allows exactly what you intend.
 
-Hi Emmanuel,
+To me the connection pickup feature is highly valuable, and I never seen it as 
+a problem.
 
-Please note that connection tracking doesn't just pick up connections
-based on ACK packets willy-nilly after hypothetical reboots. So there
-really is no security problem whatsoever.
+> Of course, I could be wrong, but in this case this 'feature' should be
+> highly documented and be disabled as default. IMHO.
 
-It's all a matter of the policy set by the admin. If you have rules
-that say to accept ESTABLISHED packets, and to accept tcp connections
-to port 25 of your mailserver's IP address, and if your firewall =
-reboots,
-it's not like all of a sudden other ports to the mailserver will open=20
-automagically!
+For most people the feature is no or minimal security risk as they always 
+combine NEW with other criteria.
 
-If the mailserver sends a packet with sourceip=3Dit's IP, source =
-port=3D25,
-destip=3Dremote IP, destport=3D > 1023, it will get dropped, and if=20
-the other end sends a non-SYN packet to port 25, it goes through and the =
+Only for people reading NEW as a synonym for SYN and therefore does not use 
+--syn in their rules for maching TCP session initiations is at risk.
 
-connection picks up, just like you specified in the rules.=20
+> One of the major argument in favor of the stateful inspection is that
+> it prevents from a lot of weird scans (NULL scan, X-MAS scan, ACK scan,
+> ...). If you just drop this feature, I really don't see the point to
+> activate this 'connection tracking thingy' and make your gateway
+> sensitive to DOS attack, just for fun...
 
-It's a feature I want, and I assume a lot of people want it, since
-Checkpoint has been behaving exactly like this for many years.
+And netfilter conntrack allows you detect such scans just fine. You just need 
+to refine a little bit what you accept as NEW.
 
-If you're worried about weird scans, just specify tighter rules
-and combine the ESTABLISHED and NEW states with additional checking
-of TCP flags.
+These scans will all show up as NEW in the filter.
 
-iptables offers flexibility, not a policy, and one should tailor=20
-netfilter/iptables to one's needs/policy.
+> And, even in case of reboot, what sort of connection is more important
+> than preventing such scan of your network ????
 
-Regards,
-Filip
+One does not rule out the other.
 
+> Actually, they are measuring the Round Trip Time (RTT) of SYN and ACK
+> packets in order to minimize the time-out of a connection in the
+> connection table.
 
+Why?
 
+conntrack already deals with DOS situations due to too many unassured 
+connections quite nicely..
 
+(unassured == have seen traffic in one direction only)
 
-------_=_NextPart_001_01C20D90.72502F00
-Content-Type: text/html;
-	charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
+and TCP is fairly strict on the minimum CLOSE_WAIT window to avoid false RST 
+(or connection hangs in precense of stateful firewalls) due to lost FIN+ACK. 
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<HTML>
-<HEAD>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
-charset=3DWindows-1252">
-<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
-6.0.5762.3">
-<TITLE>RE: Security flaw in Stateful filtering ??????</TITLE>
-</HEAD>
-<BODY>
-<!-- Converted from text/plain format -->
+> One of their experiment was trying to figure out what is the impact of
+> removing a connection too early from the connection table.
 
-<P><FONT SIZE=3D2>Yes, it's that time of the month again :-)<BR>
-<BR>
-Emmanuel Fleury [<A =
-HREF=3D"mailto:fleury@cs.auc.dk">mailto:fleury@cs.auc.dk</A>] wrote:<BR>
-&gt;<BR>
-&gt;Patrick Schaaf wrote:<BR>
-&gt;<BR>
-&gt;&gt; The behaviour is intentional. The reason is &quot;connection =
-pickup&quot;. Imagine<BR>
-&gt;&gt; a situation where the firewall reboots. All active conntracking =
-information<BR>
-&gt;&gt; will be lost. With the observed behaviour, connections are =
-&quot;relearned&quot;<BR>
-&gt;&gt; on the fly as they create new traffic.<BR>
-&gt;<BR>
-&gt;I simply disagree with you on this point (sorry :-/).<BR>
-&gt;<BR>
-&gt;I wouldn't accept to have such a flaw in my firewall just because =
-of<BR>
-&gt;an hypothetic reboot of one of my gateway !!!!<BR>
-&gt;<BR>
-&gt;Of course, I could be wrong, but in this case this 'feature' should =
-be<BR>
-&gt;highly documented and be disabled as default. IMHO.<BR>
-<BR>
-Hi Emmanuel,<BR>
-<BR>
-Please note that connection tracking doesn't just pick up =
-connections<BR>
-based on ACK packets willy-nilly after hypothetical reboots. So =
-there<BR>
-really is no security problem whatsoever.<BR>
-<BR>
-It's all a matter of the policy set by the admin. If you have rules<BR>
-that say to accept ESTABLISHED packets, and to accept tcp =
-connections<BR>
-to port 25 of your mailserver's IP address, and if your firewall =
-reboots,<BR>
-it's not like all of a sudden other ports to the mailserver will =
-open<BR>
-automagically!<BR>
-<BR>
-If the mailserver sends a packet with sourceip=3Dit's IP, source =
-port=3D25,<BR>
-destip=3Dremote IP, destport=3D &gt; 1023, it will get dropped, and =
-if<BR>
-the other end sends a non-SYN packet to port 25, it goes through and =
-the<BR>
-connection picks up, just like you specified in the rules.<BR>
-<BR>
-It's a feature I want, and I assume a lot of people want it, since<BR>
-Checkpoint has been behaving exactly like this for many years.<BR>
-<BR>
-If you're worried about weird scans, just specify tighter rules<BR>
-and combine the ESTABLISHED and NEW states with additional checking<BR>
-of TCP flags.<BR>
-<BR>
-iptables offers flexibility, not a policy, and one should tailor<BR>
-netfilter/iptables to one's needs/policy.<BR>
-<BR>
-Regards,<BR>
-Filip<BR>
-<BR>
-<BR>
-<BR>
-</FONT>
-</P>
+Not good, but sometimes there is no choice due to memory constraints..
 
-</BODY>
-</HTML>
-------_=_NextPart_001_01C20D90.72502F00--
+> The plan was to see what was happen when the last ACK (answering to
+> the FIN packet) was retransmitted because of the loss of the FIN packet.
+
+If you drop these too often you may DOS servers/clients..
+
+> Of course, it was expected that the firewall, as the connection has been
+> pruned from the connection list, would have dropped the retransmitted
+> ACK.... of course the behaviour that they get was somehow different of
+> what they were expected.
+
+Only because they assumed NEW is a synonym for SYN.
+
+Regards
+Henrik
