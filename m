@@ -1,66 +1,44 @@
-From: Loic Jaquemet <ljaquemet@gatwick.westerngeco.slb.com>
-Subject: Re: Patch?: linux-2.5.45/net/ipv4/netfilter dst.pmtu compilation fixes
-Date: Fri, 01 Nov 2002 14:34:40 +0000
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <3DC29100.FDA579A5@gatwick.westerngeco.slb.com>
+From: Brad Tilley <rtilley@vt.edu>
+Subject: changes in 2.5/2.6 Kernels
+Date: Thu, 31 Oct 2002 10:20:38 -0500
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <3DC14A46.5010506@vt.edu>
+Reply-To: rtilley@vt.edu
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello and thanks for a great piece of software!!!
 
-also see
-http://marc.theaimsgroup.com/?l=linux-kernel&m=103614599321384&w=1
+I have been told that there are major changes in netfilter/iptables in 
+the latest beta kernel 2.5 and that the changes will be made permanent 
+in the next stable release 2.6
 
-linux-2.5.45 appears to have replaced dst_entry.pmtu with
-dst_entry.metrics[RTAX_PMTU] and created a helper function
-dst_pmtu(struct dst_entry*), presumably to simplify future changes
-like this one.   Now the
-files compile.  That is as much as I have tested.
+My question is, will the command syntax change again (like it did from 
+ipchains to iptables)? I use iptables daily on routers and I'm very 
+comfortable with its logic and syntax. If there is going to be a major 
+change, I'd like to know so I can study the change and test it out.
 
- I am not currently familiar with this code, so I could easily
-have misunderstood something in this patch.
+I use iptables mainly for routing/NAT and firewalling networks and 
+stand-alone single systems.
 
-
---- linux-2.5.45.orig/net/ipv4/netfilter/ipt_TCPMSS.c   2002-10-31
-01:42:56.000000000 +0100
-+++ linux-2.5.45/net/ipv4/netfilter/ipt_TCPMSS.c        2002-11-01
-15:18:12.000000000 +0100
-@@ -85,14 +85,14 @@
-                        return NF_DROP; /* or IPT_CONTINUE ?? */
-                }
-
--               if((*pskb)->dst->pmtu <= (sizeof(struct iphdr) +
-sizeof(struct tcphdr))) {
-+               if( dst_pmtu( (*pskb)->dst ) <= (sizeof(struct iphdr) +
-sizeof(struct tcphdr))) {
-                        if (net_ratelimit())
-                                printk(KERN_ERR
--                                       "ipt_tcpmss_target: unknown or
-invalid path-MTU (%d)\n", (*pskb)->dst->pmtu);
-+                                       "ipt_tcpmss_target: unknown or
-invalid path-MTU (%d)\n", dst_pmtu( (*pskb)->dst ) );
-                        return NF_DROP; /* or IPT_CONTINUE ?? */
-                }
-
--               newmss = (*pskb)->dst->pmtu - sizeof(struct iphdr) -
-sizeof(struct tcphdr);
-+               newmss = dst_pmtu( (*pskb)->dst ) - sizeof(struct iphdr)
-- sizeof(struct tcphdr);
-        } else
-                newmss = tcpmssinfo->mss;
-
-
-
---
-+----------------------------------------------+
-|Jaquemet Loic                                 |
-|Intern in WesternGeco, Schlumberger in Gatwick|
-|Phone: 44-(0)1293-55-6876                     |
-|Eleve ingenieur en informatique FIIFO, ORSAY  |
-+----------------------------------------------+
-http://sourceforge.net/projects/ffss/
-#wirelessfr @ irc.freenode.net
+Thank you,
+-- 
+=======================================
+R. Bradley Tilley (Brad), System Administrator
+University of Virginia Tech
+Office of the University Bursar
+Phone 540.231.6277
+Fax 540.231.3238
+=======================================
