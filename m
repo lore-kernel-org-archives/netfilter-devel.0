@@ -1,16 +1,17 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [RFC] string matching based packet classification/filtering
-Date: Tue, 15 Feb 2005 22:56:09 +0100
-Message-ID: <20050215215609.GN31837@postel.suug.ch>
-References: <20050215203211.GL31837@postel.suug.ch>
-	<42126C9B.5060406@eurodev.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: nf_conntrack resync with 2.6.11-rc4
+Date: Wed, 16 Feb 2005 13:17:33 +0900 (JST)
+Message-ID: <200502160417.j1G4HYti004869@toshiba.co.jp>
+References: <20050215124751.GZ3829@sunbeam.de.gnumonks.org>
+	<200502151301.j1FD1E9a012759@toshiba.co.jp>
+	<20050215140401.GD3829@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
-	Harald Welte <laforge@gnumonks.org>
-To: Pablo Neira <pablo@eurodev.net>
-Content-Disposition: inline
-In-Reply-To: <42126C9B.5060406@eurodev.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
+	yasuyuki.kozakai@toshiba.co.jp
+To: laforge@netfilter.org
+In-Reply-To: <20050215140401.GD3829@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,24 +23,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo,
 
-> I agree with you. I'd like to finish see something usable. On the other 
-> hand, there's no need to rush anyway.
+Oh, sorry for mis-reading.
 
-Agreed, I need for work though and want to make a decision wether to
-keep putting effort in em_kmp.c or focus on a new way.
+OK, I'll check it.
 
-> Actually I wanted to contact Harald after this friday, once I'm done 
-> with my exams. I'd like to merge my work with his libqsearch hackings 
-> that were about to be finished.
+From: Harald Welte <laforge@netfilter.org>
+Date: Tue, 15 Feb 2005 15:04:02 +0100
 
-libqsearch, exactly. Let me know once it's finished.
-
-> Those look fine for me. Actually I also need more than a true of false, 
-> a pointer to where a matching happens. This is a requirement for 
-> conntrack helpers.
-
-Fine with me.
-
-I'll sit thight and wait for libqsearch to come up. Thanks.
+> On Tue, Feb 15, 2005 at 10:01:13PM +0900, Yasuyuki KOZAKAI wrote:
+> > 
+> > Hi, Harald,
+> > 
+> > Last week, I reviewed the recent changes to ip_conntrack.
+> > OK, then I'll re-sync nf_conntrack with it ASAP.
+> 
+> Yasuyuki, I was telling you that I already did all the work ;)  I was
+> just asking you to test it ;)
+> 
+> -- 
+> - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+> ============================================================================
+>   "Fragmentation is like classful addressing -- an interesting early
+>    architectural error that shows how much experimentation was going
+>    on while IP was being designed."                    -- Paul Vixie
