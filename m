@@ -1,12 +1,17 @@
-From: Sebastian Moster <sebastian.moster@gmx.net>
-Subject: New target for NAT: RETAIN
-Date: Thu, 25 Mar 2004 16:20:48 +0100
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: More on LIST_DELETE message with kernels 2.4.23 through 2.4.25
+Date: Thu, 25 Mar 2004 17:12:13 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <1080228048.8313.8.camel@nepu.stusta.swh.mhn.de>
+Message-ID: <1080231132.1650.14.camel@nienna.balabit>
+References: <Pine.LNX.4.44.0403171734230.11069-200000@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-mftTkn7aTC6bp3feyo9r"
+Content-Type: multipart/mixed; boundary="=-+pqSK1ygFZXfde1OZN5T"
+Cc: Vijaya Chandra Vupputuri <vijay@tachyontech.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.44.0403171734230.11069-200000@filer.marasystems.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,160 +23,67 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-mftTkn7aTC6bp3feyo9r
+--=-+pqSK1ygFZXfde1OZN5T
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-Hello!
 
-I made a new target for NAT. It has the same intent as the SAME target:
+  Hi,
 
-In many cases, you need the same source ip when opening several
-connections to a server. In some cases, you even need the same source ip
-when connecting to different servers (e.g. ICQ needs that).
+On Wed, 2004-03-17 at 17:35, Henrik Nordstrom wrote:
+> > On Wed, 2004-03-17 at 14:04, Henrik Nordstrom wrote:
+> > > nothing. Thinking.. ah, now I get it. The problem is that you are doing
+> > > traffic local->local and that the NAT code then gets confused as it sees
+> > > the same packet twice in each direction, and as no null mapping was
+> > > created the first time for the "local" side PREROUTING tries to when it
+> > > sees the traffic coming "in" (from itself).
+> > 
+> >   Yes, this is the case.
+> 
+> The attached patch MAY fix this issue (completely untested, I always 
+> compile with CONFIG_IP_NF_LOCAL_NAT enabled).
 
-In that case, the SAME target would map the original source ip to
-different ips, and the connection would be refused, as the source ips
-are not equal - unless you use the --nodst option. But whith that
-option, a host is always mapped to the same source ip, which might be
-not what you want (for security reasons, no equal distribution among the
-source ips...)
+  I think the patch is buggy. The check should be
 
-The RETAIN target works in the following way: when a client opens its
-very first connection, it will be mapped to an arbitrary source ip from
-the given NAT range. All future connections from that host will be
-mapped to the same source ip. When all connections from that host are
-closed, the mapping will be forgotten and when the host then reconnects,
-it gets a new source ip from the range.
+  if (!(info->initialized & (1 << maniptype))
+      && !(ct->status & IPS_CONFIRMED))
 
-I tested it only with kernel 2.6, but it should also work with kernel
-2.4.
+instead of
 
-Please try it out!
+  if (!(info->initialized & (1 << maniptype))
+      && ct->status & IPS_CONFIRMED)
 
+  Fixed patch attached. I've tested it on my UML testbed with stock
+2.4.24, and seems to solve the problem.
 
-Sebastian
+-- 
+ Regards,
+   Krisztian KOVACS
 
+--=-+pqSK1ygFZXfde1OZN5T
+Content-Disposition: attachment; filename=renat_confirmed.patch
+Content-Type: text/plain; name=renat_confirmed.patch; charset=iso-8859-2
+Content-Transfer-Encoding: 7bit
 
---=-mftTkn7aTC6bp3feyo9r
-Content-Disposition: attachment; filename=RETAIN.tar.gz
-Content-Type: application/x-compressed-tar; name=RETAIN.tar.gz
-Content-Transfer-Encoding: base64
+--- ip_nat_standalone.c.orig	Fri Nov 28 19:26:21 2003
++++ ip_nat_standalone.c	Thu Mar 25 16:43:29 2004
+@@ -114,7 +114,16 @@
+ 		WRITE_LOCK(&ip_nat_lock);
+ 		/* Seen it before?  This can happen for loopback, retrans,
+ 		   or local packets.. */
+-		if (!(info->initialized & (1 << maniptype))) {
++		if (!(info->initialized & (1 << maniptype))
++#ifndef CONFIG_IP_NF_NAT_LOCAL
++		    /* If this session has already been confirmed we must not
++		     * touch it again even if there is no mapping set up.
++		     * Can only happen on local->local traffic with
++		     * CONFIG_IP_NF_NAT_LOCAL disabled.
++		     */
++		    && !(ct->status & IPS_CONFIRMED)
++#endif
++		    ) {
+ 			unsigned int ret;
+ 
+ 			if (ct->master
 
-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
-
---=-mftTkn7aTC6bp3feyo9r--
+--=-+pqSK1ygFZXfde1OZN5T--
