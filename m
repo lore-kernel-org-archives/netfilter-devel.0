@@ -1,19 +1,19 @@
-From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
-	<yoshfuji@linux-ipv6.org>
-Subject: Re: [PATCH] [NETFILTER] Fix "undefined reference" error if
- CONFIG_SYSCTL=n
-Date: Fri, 10 Sep 2004 15:38:43 +0900 (JST)
+From: "Szabolcs Gyurko" <szabolcs.gyurko@tlt.hu>
+Subject: Re: Strange thing with iptables
+Date: Thu, 09 Sep 2004 16:36:06 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <20040910.153843.62140098.yoshfuji@linux-ipv6.org>
-References: <20040910.153135.121099678.yoshfuji@linux-ipv6.org>
+Message-ID: <opsd2dignwle1n2s@mail.tlt.hu>
+References: <opsd15s018le1n2s@mail.tlt.hu>
+	<1094732295.8900.7.camel@localhost.localdomain>
+	<Pine.NEB.4.60.0409091430510.3683@ukato.freeshell.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-2022-jp
-Content-Transfer-Encoding: 7bit
-Cc: yoshfuji@linux-ipv6.org, netdev@oss.sgi.com,
-	netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-2
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: davem@davemloft.net
-In-Reply-To: <20040910.153135.121099678.yoshfuji@linux-ipv6.org>
+To: "Alexey Toptygin" <alexeyt@freeshell.org>,
+	"Martin Josefsson" <gandalf@wlug.westbo.se>
+In-Reply-To: <Pine.NEB.4.60.0409091430510.3683@ukato.freeshell.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,53 +24,36 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In article <20040910.153135.121099678.yoshfuji@linux-ipv6.org> (at Fri, 10 Sep 2004 15:31:35 +0900 (JST)), YOSHIFUJI Hideaki / 吉藤英明 <yoshfuji@linux-ipv6.org> says:
+Sure. That is what seems to me an absolute discarding of the ipv4 rules.
+But it's a feature, so...
 
-> +unsigned int ip_ct_log_invalid = 0;
-> +
->  static int kill_proto(const struct ip_conntrack *i, void *data)
->  {
->  	return (i->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum == 
-> @@ -522,7 +524,6 @@
->  extern unsigned long ip_ct_generic_timeout;
->  
->  /* Log invalid packets of a given protocol */
-> -unsigned int ip_ct_log_invalid = 0;
->  static int log_invalid_proto_min = 0;
->  static int log_invalid_proto_max = 255;
 
-Or, you may prefer to move related things as well.
+On Thu, 9 Sep 2004 14:33:06 +0000 (UTC), Alexey Toptygin  
+<alexeyt@freeshell.org> wrote:
 
-Signed-off-by: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
+> On Thu, 9 Sep 2004, Martin Josefsson wrote:
+>
+>>> which looked like:
+>>>
+>>> iptables -A FORWARD -s $machine/255.255.0.255 -j ACCEPT
+>>>
+>>>
+>>> What I was surprised on is the netmask. Is this a feature or a bug? I  
+>>> mean
+>>> this is quite strange netmask for me.
+>>
+>> It's a feature :)
+>> It doesn't make the current code any more complicated.
+>> And ther are actually people using it to do weird stuff...
+>
+> Do you mean that one can use arbitrary bitmasks wherever netfilter wants  
+> a netmask value?
+> So, one might select all IPs with the LSB set with 0.0.0.1/0.0.0.1?
+>
+>  			Alexey
+>
 
-===== net/ipv4/netfilter/ip_conntrack_standalone.c 1.40 vs edited =====
---- 1.40/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-01 00:27:37 +09:00
-+++ edited/net/ipv4/netfilter/ip_conntrack_standalone.c	2004-09-10 15:32:44 +09:00
-@@ -48,6 +48,11 @@
- extern atomic_t ip_conntrack_count;
- DECLARE_PER_CPU(struct ip_conntrack_stat, ip_conntrack_stat);
- 
-+/* Log invalid packets of a given protocol */
-+unsigned int ip_ct_log_invalid = 0;
-+static int log_invalid_proto_min = 0;
-+static int log_invalid_proto_max = 255;
-+
- static int kill_proto(const struct ip_conntrack *i, void *data)
- {
- 	return (i->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum == 
-@@ -520,11 +525,6 @@
- 
- /* From ip_conntrack_proto_icmp.c */
- extern unsigned long ip_ct_generic_timeout;
--
--/* Log invalid packets of a given protocol */
--unsigned int ip_ct_log_invalid = 0;
--static int log_invalid_proto_min = 0;
--static int log_invalid_proto_max = 255;
- 
- static struct ctl_table_header *ip_ct_sysctl_header;
- 
+
 
 -- 
-Hideaki YOSHIFUJI @ USAGI Project <yoshfuji@linux-ipv6.org>
-GPG FP: 9022 65EB 1ECF 3AD1 0BDF  80D8 4807 F894 E062 0EEA
+Szabolcs Gyurko
