@@ -1,17 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Phil Oester <kernel@linuxace.com>
 Subject: Re: [PATCH] MASQUERADE not flushing conntracks on ip change
-Date: Thu, 04 Nov 2004 23:36:58 +0100
-Message-ID: <418AAF0A.4000201@trash.net>
+Date: Thu, 4 Nov 2004 14:47:13 -0800
+Message-ID: <20041104224713.GA11255@linuxace.com>
 References: <20041102210440.GA1851@linuxace.com> <418999B2.3070600@trash.net>
 	<20041104154355.GA8553@linuxace.com> <418A6D29.60004@trash.net>
 	<Pine.LNX.4.61.0411042254020.18136@filer.marasystems.com>
+	<418AAF0A.4000201@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, Henrik Nordstrom <hno@marasystems.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0411042254020.18136@filer.marasystems.com>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <418AAF0A.4000201@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,33 +24,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
+On Thu, Nov 04, 2004 at 11:36:58PM +0100, Patrick McHardy wrote:
+> The problem is the opposite, living conntracks are killed
+> when more than one IP address is added to the interface.
+> 
+> Phil mentioned Router/switch/dslmodem/cablemodem power cycles.
+> Contrary to what I said earlier, I don't see what value this
+> optimization might have. Router/switch powercycle doesn't matter
+> The optimization doesn't work for dslmodems (ppp devices), with
+> cablemodems you don't loose your IP, except in the very unlucky
+> situation that your DHCP lease times out while you are disconnected
+> and you get a different one afterwards.
 
-> On Thu, 4 Nov 2004, Patrick McHardy wrote:
->
->> Ok, I agree it is still useful, but using the inetaddr_notifier gives
->> false positives when more than one IP address is added to the interface.
->
->
-> Which is not an environment MASQUERADE is designed for, so it should 
-> be acceptable.
+My dsl modem attaches to my pc via ethernet cable.  If I powercycle
+the modem, ethx up/down, conntracks get lost.  Same goes for cablemodems.
 
-But we do try to handle such an environment gracefully by using
-rt_gateway for the inet_select_addr call.
+Unconditionally flushing conntracks on dev down still doesn't seem
+the right behaviour.  But I agree Patrick that the ip address add case
+is problematic.
 
-> There is always the fallback to plain SNAT with ctnetlink for cleaning 
-> up stale connections when needed.
+I'm investigating another possible solution at the moment...
 
-The problem is the opposite, living conntracks are killed
-when more than one IP address is added to the interface.
-
-Phil mentioned Router/switch/dslmodem/cablemodem power cycles.
-Contrary to what I said earlier, I don't see what value this
-optimization might have. Router/switch powercycle doesn't matter
-The optimization doesn't work for dslmodems (ppp devices), with
-cablemodems you don't loose your IP, except in the very unlucky
-situation that your DHCP lease times out while you are disconnected
-and you get a different one afterwards.
-
-Regards
-Patrick
+Phil
