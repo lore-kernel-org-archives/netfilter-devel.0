@@ -1,16 +1,14 @@
-From: jones.ian@comcast.net ("Ian Jones")
-Subject: Re: libipq and timestamp
-Date: Mon, 18 Aug 2003 19:37:47 -0500
+From: SZALAY Attila <sasa@balabit.hu>
+Subject: Possible deadlock
+Date: Tue, 12 Aug 2003 17:21:44 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <r83i4h44.fsf@comcast.net>
-References: <1061213776.21582.9.camel@tech004.alphalink.fr>
+Message-ID: <20030812152144.GB27237@mochrul.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Eric Leblond <eric@regit.org>
-In-Reply-To: <1061213776.21582.9.camel@tech004.alphalink.fr> (Eric Leblond's
- message of "18 Aug 2003 15:36:17 +0200")
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,37 +19,56 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi All!
+
+We have found a possible deadlock situation in netfilter in 2.4.21 kernel.
+
+If a function what gets a lock may be called from user thread and interrupt
+handler too, there may be a deadlock.
+
+For example:
+
+ip_conntrack_find_get function locks ip_conntrack_lock.
+
+It may be called from icmp_error_track what can be triggered by an icmp
+package and getorigdst what may be called from userspace.
+
+We call getorigdst - then ip_conntrack_find_get gets the lock - and an
+icmp package triggered icmp_error_track calls ip_conntrack_find_get
+again, deadlock is arised.
+
+The solution is - as we think - is a local_bh_disable around the
+problematic call. For example in this situation:
+
+--- ip_conntrack_core.c~        Tue Aug 12 14:25:41 2003
++++ ip_conntrack_core.c Tue Aug 12 14:28:05 2003
+@@ -1326,6 +1326,7 @@
+                return -EINVAL;
+        }
+ 
++       local_dh_disable();
+        h = ip_conntrack_find_get(&tuple, NULL);
+        if (h) {
+                struct sockaddr_in sin;
+@@ -1340,11 +1341,13 @@
+                DEBUGP("SO_ORIGINAL_DST: %u.%u.%u.%u %u\n",
+                       NIPQUAD(sin.sin_addr.s_addr), ntohs(sin.sin_port));
+                ip_conntrack_put(h->ctrack);
++               local_dh_enable();
+                if (copy_to_user(user, &sin, sizeof(sin)) != 0)
+                        return -EFAULT;
+                else
+                        return 0;
+        }
++       local_dh_enable();
+        DEBUGP("SO_ORIGINAL_DST: Can't find %u.%u.%u.%u/%u-%u.%u.%u.%u/%u.\n",
+               NIPQUAD(tuple.src.ip), ntohs(tuple.src.u.tcp.port),
+               NIPQUAD(tuple.dst.ip), ntohs(tuple.dst.u.tcp.port));
 
 
-Eric Leblond <eric@regit.org> writes:
+This problem may occur in other functions too.
 
-> I did not manage to get the timestamp of a packet in the message given
-> by libipq. It is just 0.
-> Is there something to do to have it fill in ?
-
-If the packet is locally generated then the timestamp is not filled
-in for you. Here is a snippet that may help:
-
- /* locally generated?, no timestamp */
-  if (!m->timestamp_sec)
-    {
-      memset (&tz, 0, sizeof (tz));
-      gettimeofday (&tv, &tz);
-      ph.ts.tv_sec = tv.tv_sec;
-      ph.ts.tv_usec = tv.tv_usec;
-    }
-  else
-    {
-      ph.ts.tv_sec = m->timestamp_sec;
-      ph.ts.tv_usec = m->timestamp_usec;
-    }
-
------BEGIN PGP SIGNATURE-----
-Comment: Keeping the world safe for geeks.
-
-iD8DBQE/QXFbwBVKl/Nci0oRAt91AJwMLTu43iFjrtAyAj4fGG2nvYK2pwCg7RgH
-ym7QrHv/NkFEa3Q/semyoS4=
-=fwjd
------END PGP SIGNATURE-----
+-- 
+Szalay Attila                     BalaBit IT Biztonságtechnikai Kft.
+tel:(36-1)-371-05-40              1116 Bp. Csurgoi ut 20/b
+fax:(36-1)-208-08-75              http://www.balabit.hu/
