@@ -1,101 +1,235 @@
 From: sandr8 <sandr8_NOSPAM_@crocetta.org>
-Subject: [PATCH 2/4] deferred drop, __parent workaround, reshape_fail
-Date: Fri, 13 Aug 2004 02:48:14 +0200
+Subject: Re: [PATCH 4/4] ACCT unbilling [PATCH 2/4] deferred drop, __parent
+ workaround, reshape_fail
+Date: Fri, 13 Aug 2004 03:11:53 +0200
 Sender: netdev-bounce@oss.sgi.com
-Message-ID: <411C0FCE.9060906@crocetta.org>
+Message-ID: <411C1559.4020401@crocetta.org>
+References: <411C0FDF.2040200@crocetta.org>
 Reply-To: sandr8_NOSPAM_@crocetta.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: hadi@cyberus.ca, kuznet@ms2.inr.ac.ru, davem@redhat.com, devik@cdi.cz,
+Cc: hadi@cyberus.ca, kuznet@ms2.inr.ac.ru, davem@redhat.com, devik@cdi.cz,
         shemminger@osdl.org, kaber@trash.net, rusty@rustcorp.com.au,
-        laforge@netfilter.org
+        laforge@netfilter.org, netdev@oss.sgi.com,
+        netfilter-devel@lists.netfilter.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: sandr8_NOSPAM_@crocetta.org
+In-Reply-To: <411C0FDF.2040200@crocetta.org>
 Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-2) The second patch eliminates the need for the deprecated __parent 
-field and eliminates some tricks such as the rx_class field...
-to do so it introduces a slight change in the interface of the enqueue() 
-and requeue() operations... the "struct sk_buff * skb" becomes now a 
-"struct sk_buff ** const skb". All the in-2.6.8-kernel packet schedulers 
-and the core/dev.c are updated consequently... changes are quite trivial 
-so there's no issue for out-of-the-kernel-tree schedulers.
+sorry i picked the wrong file for these two patches, it's too late in 
+the night :)
+i re-paste them here below
+alessandro
 
-in order to make it clearer i should give a broader insight... i hate to 
-describe the gory details but it's a bit delicate.
 
-a) the socket buffer for a dropped packet is freed as late as possible 
-(lazy lazy lazy!). in other words, locally, a packet is _candidated_ to 
-be dropped, but the latest word is the most global one.
 
-who's got the most global viewpoint? Elementary! My Dear Watson! the 
-most external enqueuing operation. Ok... now you get it... the stack is 
-your friend and will discriminate for free :) the pointer to the socket 
-buffer structure always stays at the same location, but is updated by 
-the enqueueing operations.
+##########
+[ PATCH 4 ]
+##########
 
-This means that whatever packet "Barabba" is choosen to be dropped 
-internally, it can be further saved by the caller, who can exchange it 
-with an other victim... (i think there's no need to say who)
-
-b) the changes in (a) made it possible to remove the deprecated
-__parent field due to cbq. this is done by handling the reshape 
-operation from the outside (in a very stupid loop cycle), whoever
-drops whatever.
-
-this way we also avoid saving the class in the rx_class field, calling a 
-function that retrieves it and doing complex tricks to cope with the old 
-byval api
-
-c) now it's possible to have (almost) a single point (core/dev.c) where 
-packets are dropped. Though there are some other few places, the inline 
-function before_explicit_drop() easies the centralization of the 
-operations. this comes into great help for patch 4.
-
-Also, the empty macro IMPLICIT_DROP() behaves as a marker for the 
-reader   and the coder, helping maintainance and readability.
-
-d) yet the reshape_fail field is kept, and the code that handled it in 
-the leaf disciplines is kept as well (slightly reworked but kept). this 
-just in case some out-of-the-kernel classful schedulers use it: we don't 
-want to break them (for what concerns the in-kernel-schedulers, you can 
-wipe out all the code related to reshape_fail without any harm, it is 
-not any more needed... with regard to it, what about wrapping it in some 
-#ifdef CONFIG_TC_DONT_BREAK_OUT_OF_THE_KERNEL_CLASSFUL_SCHEDULERS ?)
-
-NOTA BENE
-e) it is darn important that if a packet is dropped all the outmost 
-queueing discipline's enqueue()'s return value tells it!
-
-NOTA BENE
-f) kfree_skb() for locally allocated socket buffers are still there and 
-must stay there
-
-NOTA BENE
-g) kfree_skb() whose semantic is to just decrement the user count are 
-not a packet drop. furthermore, the same kfree_skb() could have a 
-different run-time semantic, and is hence splitted in two, as in the 
-following excerpt of code:
-
-         }
+diff -NaurX dontdiff 
+linux-2.6.8-rc4-apichanged-ACCT/include/net/pkt_sched.h 
+linux-2.6.8-rc4-apichanged-ACCT-unbill/include/net/pkt_sched.h
+--- linux-2.6.8-rc4-apichanged-ACCT/include/net/pkt_sched.h    
+2004-08-12 16:01:09.000000000 +0200
++++ linux-2.6.8-rc4-apichanged-ACCT-unbill/include/net/pkt_sched.h    
+2004-08-12 21:09:57.732378592 +0200
+@@ -10,6 +10,21 @@
+ #include <linux/module.h>
+ #include <linux/rtnetlink.h>
  
-         if (terminal) {
--            kfree_skb(skb);
-+            if( any_dropped(*qres) ){
-+                before_explicit_drop(*skb);
-+                IMPLICIT_DROP();
-+            } else
-+                kfree_skb(*skb);
-             return NULL;
-         }
++#ifdef CONFIG_IP_NF_CT_ACCT
++#include <linux/netfilter_ipv4/ip_conntrack.h>
++#include <linux/netfilter_ipv4/ip_conntrack_core.h>
++#include <linux/ip.h>
++extern struct ip_conntrack *
++(*ip_ct_get)(struct sk_buff *skb, enum ip_conntrack_info *ctinfo);
++
++#ifdef CONFIG_NETFILTER_DEBUG
++extern struct rwlock_debug * ip_conntrack_lockp;
++#else
++extern rwlock_t * ip_conntrack_lockp;
++#endif
++
++#endif
++
+ struct rtattr;
+ struct Qdisc;
+ 
+@@ -94,9 +109,51 @@
+ 
+ #define IMPLICIT_DROP() do; while (0) /* readability: just to be aware 
+of what you are doing!!! */
+ 
++static inline void ct_sub_counters(const struct sk_buff *skb)
++{
++    /* skb must not be NULL */
++#ifdef CONFIG_IP_NF_CT_ACCT
++    if(ip_ct_get){
++        enum ip_conntrack_info ctinfo;
++        struct ip_conntrack *ct;
++
++        struct ip_conntrack *
++        (*the_connection_tracking_is_loaded)(struct sk_buff *skb,
++                    enum ip_conntrack_info *ctinfo);
++
++        if(skb->nfct && (the_connection_tracking_is_loaded=ip_ct_get)){
++            mb();
++            ct=the_connection_tracking_is_loaded(
++                (struct sk_buff *)skb,
++                &ctinfo);
++            if(ct){
++                WRITE_LOCK(ip_conntrack_lockp);
++
++                ct->counters[CTINFO2DIR(ctinfo)].packets--;
++                ct->counters[CTINFO2DIR(ctinfo)].bytes -=
++                    ntohs(skb->nh.iph->tot_len); //no need to check 
+against wraparound
++                    //unless there's a bug it should not be possible to 
+unbill more than we have billed!
++                WRITE_UNLOCK(ip_conntrack_lockp);
++            }
++        }
++    }
++#endif
++}
++
+ static inline void before_explicit_drop(const struct sk_buff * skb)
+ {
+-    /* for the moment there's nothing to do. see next patch!!! */
++    ct_sub_counters(skb);
++
++    /* here, if some further development needs it, we could place
++     * a new HOOK that gets packets right before they are dropped...
++     * you would then be able to register packet filters functions
++     * that wanna gather informations from dropped packets...
++     *
++     * it would also be somehow dirty but technically feasible to
++     * use the kfree_skb() as the okfn: it has the right prototype
++     * to be used in that way and it could also make some sense,
++     * though the meaning of the value of filter functions would
++     * be pretty counterintuitive... */
+ }
+ 
+ #define    QDISC_ALIGN        32
+diff -NaurX dontdiff linux-2.6.8-rc4-apichanged-ACCT/net/core/dev.c 
+linux-2.6.8-rc4-apichanged-ACCT-unbill/net/core/dev.c
+--- linux-2.6.8-rc4-apichanged-ACCT/net/core/dev.c    2004-08-12 
+17:23:43.000000000 +0200
++++ linux-2.6.8-rc4-apichanged-ACCT-unbill/net/core/dev.c    2004-08-12 
+18:30:24.561721744 +0200
+@@ -115,6 +115,23 @@
+ #include <net/iw_handler.h>
+ #endif    /* CONFIG_NET_RADIO */
+ #include <asm/current.h>
++#include <linux/ip.h>
++#ifdef CONFIG_IP_NF_CT_ACCT
++struct ip_conntrack *
++(* ip_ct_get)(struct sk_buff *skb,
++    enum ip_conntrack_info *ctinfo)=NULL;
++DECLARE_RWLOCK(ct_load);
++#ifdef CONFIG_NETFILTER_DEBUG
++struct rwlock_debug * ip_conntrack_lockp=NULL;
++#else
++rwlock_t * ip_conntrack_lockp=NULL;
++#endif
++
++EXPORT_SYMBOL(ip_ct_get);
++EXPORT_SYMBOL(ip_conntrack_lockp);
++
++#endif
++
+ 
+ /* This define, if set, will randomly drop a packet when congestion
+  * is more than moderate.  It helps fairness in the multi-interface
+diff -NaurX dontdiff 
+linux-2.6.8-rc4-apichanged-ACCT/net/ipv4/netfilter/ip_conntrack_core.c 
+linux-2.6.8-rc4-apichanged-ACCT-unbill/net/ipv4/netfilter/ip_conntrack_core.c
+--- 
+linux-2.6.8-rc4-apichanged-ACCT/net/ipv4/netfilter/ip_conntrack_core.c    
+2004-08-12 17:43:07.049089232 +0200
++++ 
+linux-2.6.8-rc4-apichanged-ACCT-unbill/net/ipv4/netfilter/ip_conntrack_core.c    
+2004-08-12 18:30:24.614713688 +0200
+@@ -56,6 +56,21 @@
+ #define DEBUGP(format, args...)
+ #endif
+ 
++#ifdef CONFIG_IP_NF_CT_ACCT
++extern struct ip_conntrack *
++(*ip_ct_get)(struct sk_buff *skb, enum ip_conntrack_info *ctinfo);
++
++
++
++#ifdef CONFIG_NETFILTER_DEBUG 
++extern struct rwlock_debug * ip_conntrack_lockp;
++#else 
++extern rwlock_t * ip_conntrack_lockp;
++#endif 
++
++#endif
++
++
+ DECLARE_RWLOCK(ip_conntrack_lock);
+ DECLARE_RWLOCK(ip_conntrack_expect_tuple_lock);
+ 
+@@ -1373,6 +1388,10 @@
+ void ip_conntrack_cleanup(void)
+ {
+     ip_ct_attach = NULL;
++#ifdef CONFIG_IP_NF_CT_ACCT
++    ip_ct_get = NULL;
++#endif   
++   
+     /* This makes sure all current packets have passed through
+            netfilter framework.  Roll on, two-stage module
+            delete... */
+@@ -1451,6 +1470,12 @@
+ 
+     /* For use by ipt_REJECT */
+     ip_ct_attach = ip_conntrack_attach;
++   
++#ifdef CONFIG_IP_NF_CT_ACCT
++    /* For the core kernel, in net/core/dev.c */
++    ip_conntrack_lockp=&ip_conntrack_lock;
++    ip_ct_get = ip_conntrack_get;
++#endif
+ 
+     /* Set up fake conntrack:
+         - to never be deleted, not in any hashes */
+diff -NaurX dontdiff 
+linux-2.6.8-rc4-apichanged-ACCT/net/ipv4/netfilter/Kconfig 
+linux-2.6.8-rc4-apichanged-ACCT-unbill/net/ipv4/netfilter/Kconfig
+--- linux-2.6.8-rc4-apichanged-ACCT/net/ipv4/netfilter/Kconfig    
+2004-08-12 17:45:47.330722720 +0200
++++ linux-2.6.8-rc4-apichanged-ACCT-unbill/net/ipv4/netfilter/Kconfig    
+2004-08-12 18:30:24.651708064 +0200
+@@ -22,6 +22,14 @@
+ config IP_NF_CT_ACCT
+     bool "Connection tracking flow accounting"
+     depends on IP_NF_CONNTRACK
++    ---help---
++      If you enable this option, the connection tracking code will keep
++      per-flow packet and byte counters.
++
++      Those counters can be used for flow-based accounting or the
++      `connbytes' match.
++
++      If unsure, say N.
+ 
+ config IP_NF_FTP
+     tristate "FTP protocol support"
 
-Alessandro Salvatori
---
-the _NOSPAM_ account is the one i am subscribed with, please remove 
-_NOSPAM_ for personal replies
 
+
+
+
+##########
+[ PATCH 2 ]
+##########
 diff -NaurX dontdiff 
 linux-2.6.8-rc4-netxmitcodes/include/net/pkt_sched.h 
 linux-2.6.8-rc4-apichanged/include/net/pkt_sched.h
@@ -158,7 +292,17 @@ linux-2.6.8-rc4-apichanged/net/core/dev.c
 12:27:35.000000000 +0200
 +++ linux-2.6.8-rc4-apichanged/net/core/dev.c    2004-08-12 
 17:23:43.682947768 +0200
-@@ -1341,13 +1341,18 @@
+@@ -70,6 +70,8 @@
+  *                          indefinitely on dev->refcnt
+  *         J Hadi Salim    :    - Backlog queue sampling
+  *                        - netif_rx() feedback
++ *         Alessandro Salvatori :       enqueue() byref for centralized 
+tc drop,
++ *                                      before_explicit_drop()
+  */
+ 
+ #include <asm/uaccess.h>
+@@ -1341,13 +1343,18 @@
          /* Grab device queue */
          spin_lock_bh(&dev->queue_lock);
  
@@ -1467,7 +1611,7 @@ const skb)
  #endif
      DPRINTK("ingress_drop(sch %p,[qdisc %p])\n", sch, p);
 +   
-+    *skb=NULL; // if somebody tries to free me... :>
++    *skb=NULL;
 +   
      return 0;
  }
