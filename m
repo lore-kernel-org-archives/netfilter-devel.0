@@ -1,14 +1,11 @@
-From: Christian Hentschel <chentschel2@arnet.com.ar>
-Subject: Re: SIP/RTP support coming?
-Date: Sat, 12 Feb 2005 16:56:39 -0300
-Message-ID: <1108238199.1183.11.camel@www.l-chr.com.ar>
-References: <5caa9b8705021203527b3891d@mail.gmail.com>
-	<20050212120847.GA30461@roonstrasse.net>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] connlimit match fixes for >= 2.6.10
+Date: Sat, 12 Feb 2005 13:32:54 -0800
+Message-ID: <20050212213254.GA11884@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-DRbj6CQYDhMABmwMpocQ"
-Cc: netfilter-devel@lists.netfilter.org
-To: Max Kellermann <max@duempel.org>
-In-Reply-To: <20050212120847.GA30461@roonstrasse.net>
+Content-Type: multipart/mixed; boundary="ZPt4rx8FFjLCG7dd"
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,153 +18,81 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-DRbj6CQYDhMABmwMpocQ
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Hi, i'm very interesting in a conntrack/nat helper for sip.
-Currently i'm working on this and help with testing will be great.
-i've used kernel 2.6.10 for this.
+Below updates connlimit for:
 
-Christian.
+1) removal of nf_ct_info
+2) removal of ctrack
 
-On Sat, 2005-02-12 at 13:08 +0100, Max Kellermann wrote:
-> On 2005/02/12 12:52, Steve Davies <davies147@gmail.com> wrote:
-> > Are there plans to integrate this officially? Should I take time to
-> > (try to) update the patch to the 2.6.x kernel? Am I missing
-> > something?
-> 
-> I believe nobody is working on that yet; I planned to look at the code
-> when I'm done with the H.323 module, but that will take some time.
-> 
-> A lot people would be thankful if you hacked the source, and ported
-> that to Linux 2.6.11-rc3 (the API has changed very much since 2.6.10;
-> don't use the old API).
-> 
-> You should start with providing a patch-o-matic module (see netfilter
-> home page) of the original code, and then send patches with your
-> changes.
-> 
-> Max
-> 
-> 
--- 
+Fixes bugzilla #'s 268 and 286.
 
---=-DRbj6CQYDhMABmwMpocQ
-Content-Disposition: attachment; filename=Makefile
-Content-Type: text/x-makefile; name=Makefile; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-
-b2JqLW0gICAgOj0gaXBfY29ubnRyYWNrX3NpcC5vDQoNCktESVIgICAgOj0gL2xpYi9tb2R1bGVz
-LyQoc2hlbGwgdW5hbWUgLXIpL2J1aWxkDQpQV0QgICAgOj0gJChzaGVsbCBwd2QpDQoNCmRlZmF1
-bHQ6DQoJJChNQUtFKSAtQyAkKEtESVIpIFNVQkRJUlM9JChQV0QpIG1vZHVsZXMNCiAgIA0KY2xl
-YW46DQoJcm0gLWYgKi5rbyAqLm8gKm1vZC5jDQo=
+Phil
 
 
---=-DRbj6CQYDhMABmwMpocQ
-Content-Disposition: attachment; filename=ip_conntrack_sip.c
-Content-Type: text/x-csrc; name=ip_conntrack_sip.c; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
 
-LyogU0lQIGV4dGVuc2lvbiBmb3IgSVAgY29ubmVjdGlvbiB0cmFja2luZy4NCiAqDQogKiAoQykg
-MjAwNSBDaHJpc3RpYW4gSGVudHNjaGVsDQogKiBiYXNlZCBvbiBSUidzIGlwX2Nvbm50cmFja19m
-dHAuYyBhbmQgb3RoZXIgbW9kdWxlcy4NCiAqDQogKiBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0
-d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29yIG1vZGlmeQ0KICogaXQgdW5kZXIg
-dGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSB2ZXJzaW9uIDIgYXMN
-CiAqIHB1Ymxpc2hlZCBieSB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLg0KICovDQogDQoj
-aW5jbHVkZSA8bGludXgvY29uZmlnLmg+DQojaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+DQojaW5j
-bHVkZSA8bGludXgvbmV0ZmlsdGVyLmg+DQojaW5jbHVkZSA8bGludXgvaXAuaD4NCiNpbmNsdWRl
-IDxsaW51eC9jdHlwZS5oPg0KI2luY2x1ZGUgPG5ldC9jaGVja3N1bS5oPg0KI2luY2x1ZGUgPG5l
-dC91ZHAuaD4NCg0KI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlcl9pcHY0L2xvY2toZWxwLmg+DQoj
-aW5jbHVkZSA8bGludXgvbmV0ZmlsdGVyX2lwdjQvaXBfY29ubnRyYWNrX2hlbHBlci5oPg0KDQpN
-T0RVTEVfTElDRU5TRSgiR1BMIik7DQpNT0RVTEVfQVVUSE9SKCJDaHJpc3RpYW4gSGVudHNjaGVs
-IDxjaGVudHNjaGVsQGFybmV0LmNvbT4iKTsNCk1PRFVMRV9ERVNDUklQVElPTigiU0lQIGNvbm5l
-Y3Rpb24gdHJhY2tpbmcgaGVscGVyIik7DQoNCiNkZWZpbmUgU0lQX1BPUlQgICAgICAgIDUwNjAN
-CiNkZWZpbmUgUlRQX1RJTUVPVVQJMTgwDQoNCnN0YXRpYyBjaGFyIHNpcF9idWZmZXJbNjU1MzZd
-Ow0KDQpzdGF0aWMgREVDTEFSRV9MT0NLKHNpcGJmX2xvY2spOw0Kc3RydWN0IG1vZHVsZSAqaXBf
-Y29ubnRyYWNrX3NpcCA9IFRISVNfTU9EVUxFOw0KDQojZGVmaW5lIE1BWF9QT1JUUwk4DQpzdGF0
-aWMgaW50IHBvcnRzW01BWF9QT1JUU107DQpzdGF0aWMgaW50IHBvcnRzX2M7DQptb2R1bGVfcGFy
-YW1fYXJyYXkocG9ydHMsIGludCwgJnBvcnRzX2MsIDA0MDApOw0KTU9EVUxFX1BBUk1fREVTQyhw
-b3J0cywgIiBwb3J0IG51bWJlcnMgb2Ygc2lwIHNlcnZlcnMiKTsNCg0KLy8jaWYgMA0KI2RlZmlu
-ZSBERUJVR1AgcHJpbnRrDQovLyNlbHNlDQovLyNkZWZpbmUgREVCVUdQKGZvcm1hdCwgYXJncy4u
-LikNCi8vI2VuZGlmDQoNCg0Kc3RydWN0IGlwX2N0X3NpcF9leHBlY3Qgew0KCXVfaW50MzJfdCBp
-cF9vZmZzZXQ7DQoJdV9pbnQzMl90IGlwX2xlbjsNCgkNCgl1X2ludDMyX3QgcG9ydF9vZmZzZXQ7
-DQoJdV9pbnQzMl90IHBvcnRfbGVuOw0KCXVfaW50MTZfdCBwb3J0Ow0KfTsNCg0KDQpzdGF0aWMg
-aW50IHJ0cF9leHBlY3RmbihzdHJ1Y3QgaXBfY29ubnRyYWNrICpuZXcpDQp7DQoJREVCVUdQKCJj
-dF9zaXA6IEdvdCBSVFAuLlxuIik7DQoJDQoJcmV0dXJuIDA7DQp9DQoNCnN0YXRpYyBpbnQgc2tp
-cF9hdG9pKGNvbnN0IGNoYXIgKipzdHIpDQp7DQoJdW5zaWduZWQgaW50IHJlc3VsdCA9IDA7DQoN
-Cgl3aGlsZSAoaXNkaWdpdCgqKnN0cikpDQoJCXJlc3VsdCA9IHJlc3VsdCoxMCArICooKCpzdHIp
-KyspIC0gJzAnOw0KDQogICAgICAgIHJldHVybiByZXN1bHQ7DQp9DQoNCnN0YXRpYyBpbnQgZ2V0
-X2VwX2FkZHIoY29uc3QgY2hhciAqZHB0ciwNCgkJdV9pbnQzMl90ICppcCwgc3RydWN0IGlwX2N0
-X3NpcF9leHBlY3QgKmV4cCkNCnsNCglpbnQgaTsNCgljb25zdCBjaGFyICphdXggPSBkcHRyOw0K
-CQ0KCWRwdHIgPSBzdHJzdHIoZHB0ciwgImM9SU4gSVA0ICIpOw0KCWlmICghZHB0cikgew0KICAg
-ICAgICAgICAgICAgIERFQlVHUCgiY3Rfc2lwOiAnYz0nIG5vdCBmb3VuZC5cbiIpOw0KCQlyZXR1
-cm4gLTE7DQoJfQ0KCWRwdHIgKz0gOTsNCi8vCWV4cC0+aXBfb2Zmc2V0ID0gIChkcHRyIC0gYXV4
-KTsNCgkNCglmb3IgKGkgPSAzOyBpID49IDA7IGktLSl7DQoJCSgodW5zaWduZWQgY2hhciAqKWlw
-KVtpXSA9IHNraXBfYXRvaSgmZHB0cik7DQoJCWRwdHIrKzsNCgl9DQovLwlleHAtPmlwX2xlbiA9
-IChkcHRyIC0gZXhwLT5pcF9vZmZzZXQpOw0KCQ0KCWRwdHIgPSBzdHJzdHIoZHB0ciwgIm09YXVk
-aW8gIik7DQoJaWYgKCFkcHRyKSB7DQogICAgICAgICAgICAgICAgREVCVUdQKCJjdF9zaXA6ICdt
-PScgbm90IGZvdW5kLlxuIik7DQoJCXJldHVybiAtMTsNCiAgICAgICAgfQ0KCWRwdHIgKz0gODsN
-Ci8vCWV4cC0+cG9ydF9vZmZzZXQgPSAoZHB0ciAtIGF1eCk7DQoJZXhwLT5wb3J0ID0gc2tpcF9h
-dG9pKCZkcHRyKTsNCi8vCWV4cC0+cG9ydF9sZW4gPSAoZHB0ciAtIGV4cC0+cG9ydF9vZmZzZXQp
-Ow0KCQ0KCWlmIChleHAtPnBvcnQgPCAxMDI0KQ0KCQlyZXR1cm4gLTE7DQoNCglyZXR1cm4gMDsN
-Cn0NCg0Kc3RhdGljIGludCBzaXBfaGVscChzdHJ1Y3Qgc2tfYnVmZiAqc2tiLA0KCQlzdHJ1Y3Qg
-aXBfY29ubnRyYWNrICpjdCwgZW51bSBpcF9jb25udHJhY2tfaW5mbyBjdGluZm8pDQp7DQoJc3Ry
-dWN0IGlwX2N0X3NpcF9leHBlY3QgKmV4cF9zaXBfaW5mbywgZXhwX3RtcDsNCglzdHJ1Y3QgaXBf
-Y29ubnRyYWNrX2V4cGVjdCAqZXhwOw0KCXVuc2lnbmVkIGludCBkYXRhb2ZmLCBkYXRhbGVuOw0K
-CWNoYXIgKmRwdHI7DQoJdV9pbnQzMl90IHJ0cF9pcDsNCgkgICAgICAgIA0KCWlmIChjdGluZm8g
-Pj0gSVBfQ1RfSVNfUkVQTFkpDQoJCXJldHVybiBORl9BQ0NFUFQ7DQoNCgkvKiBObyBEYXRhID8g
-Ki8gDQoJZGF0YW9mZiA9IHNrYi0+bmguaXBoLT5paGwgKiA0ICsgc2l6ZW9mKHN0cnVjdCB1ZHBo
-ZHIpOw0KCWlmIChkYXRhb2ZmID49IHNrYi0+bGVuKXsNCgkJREVCVUdQKCJjdF9zaXA6IHNrYi0+
-bGVuID0gJXVcbiIsIHNrYi0+bGVuKTsNCgkJcmV0dXJuIE5GX0FDQ0VQVDsNCiAgICAgICAgfQ0K
-CQ0KCWRhdGFsZW4gPSBza2ItPmxlbiAtIGRhdGFvZmY7DQogICAgICAgIA0KCUxPQ0tfQkgoJnNp
-cGJmX2xvY2spOw0KCQ0KCWRwdHIgPSBza2JfaGVhZGVyX3BvaW50ZXIoc2tiLCBkYXRhb2ZmLCBk
-YXRhbGVuLCBzaXBfYnVmZmVyKTsNCglCVUdfT04oZHB0ciA9PSBOVUxMKTsNCg0KCURFQlVHUCgi
-Y3Rfc2lwOiBkYXRhbGVuICV1XG4iLCBkYXRhbGVuKTsNCg0KCWlmIChtZW1jbXAoZHB0ciwgIklO
-VklURSIsIDYpICE9IDAgJiYgbWVtY21wKGRwdHIsICJTSVAvMi4wIDIwMCIsIDExKSAhPSAwKSB7
-DQoJCURFQlVHUCgiY3Rfc2lwOiBOb3QgaW50ZXJlc3RpbmcgcGt0LlxuIik7DQoJCWdvdG8gb3V0
-Ow0KCX0NCgkNCgkqKGRwdHIgKyBkYXRhbGVuKSA9ICdcMCc7DQoJDQoJaWYgKGdldF9lcF9hZGRy
-KGRwdHIsICZydHBfaXAsICZleHBfdG1wKSA8IDApDQoJCWdvdG8gb3V0Ow0KCQkNCglEVU1QX1RV
-UExFKCZjdC0+dHVwbGVoYXNoW0lQX0NUX0RJUl9PUklHSU5BTF0udHVwbGUpOw0KCURVTVBfVFVQ
-TEUoJmN0LT50dXBsZWhhc2hbSVBfQ1RfRElSX1JFUExZXS50dXBsZSk7DQoNCglleHAgPSBpcF9j
-b25udHJhY2tfZXhwZWN0X2FsbG9jKCk7DQoJaWYgKGV4cCA9PSBOVUxMKQ0KCQlnb3RvIG91dDsN
-Cg0KLyoJZXhwX3NpcF9pbmZvID0gJmV4cC0+aGVscC5leHBfc2lwX2luZm87DQoJDQoJZXhwX3Np
-cF9pbmZvLT5wb3J0X29mZnNldCA9IGV4cF90bXAtPnBvcnRfb2Zmc2V0Ow0KCWV4cF9zaXBfaW5m
-by0+aXBfb2Zmc2V0ID0gZXhwX3RtcC0+aXBfb2Zmc2V0Ow0KCWV4cF9zaXBfaW5mby0+cG9ydF9s
-ZW4gPSBleHBfdG1wLT5wb3J0X2xlbjsNCglleHBfc2lwX2luZm8tPmlwX2xlbiA9IGV4cF90bXAt
-PmlwX2xlbjsNCglleHBfc2lwX2luZm8tPnBvcnQgPSBleHBfdG1wLT5wb3J0Ow0KKi8NCglleHAt
-PnR1cGxlID0gKChzdHJ1Y3QgaXBfY29ubnRyYWNrX3R1cGxlKQ0KCQl7IHsgY3QtPnR1cGxlaGFz
-aFtJUF9DVF9ESVJfUkVQTFldLnR1cGxlLnNyYy5pcCwgeyAwIH0gfSwNCgkJICB7IGh0b25sKHJ0
-cF9pcCksIHsgLnVkcCA9IHsgaHRvbnMoZXhwX3RtcC5wb3J0KSB9IH0sDQoJCSAgCUlQUFJPVE9f
-VURQIH19KTsNCglleHAtPm1hc2sgPSAoKHN0cnVjdCBpcF9jb25udHJhY2tfdHVwbGUpIA0KCQl7
-IHsgMHhGRkZGRkZGRiwgeyAwIH0gfSwNCgkJICB7IDB4RkZGRkZGRkYsIHsgLnVkcCA9IHsgMHhG
-RkZGIH0gfSwgMHhGRkZGIH19KTsNCg0KCWV4cC0+ZXhwZWN0Zm4gPSBydHBfZXhwZWN0Zm47IC8v
-TlVMTDsNCg0KCURVTVBfVFVQTEUoJmV4cC0+dHVwbGUpOw0KCURVTVBfVFVQTEUoJmV4cC0+bWFz
-ayk7DQoNCglpcF9jb25udHJhY2tfZXhwZWN0X3JlbGF0ZWQoZXhwLCBjdCk7CQ0Kb3V0Og0KCVVO
-TE9DS19CSCgmc2lwYmZfbG9jayk7DQoJcmV0dXJuIE5GX0FDQ0VQVDsNCn0gICAgICAgICAgICAg
-ICANCg0KDQpzdGF0aWMgc3RydWN0IGlwX2Nvbm50cmFja19oZWxwZXIgc2lwW01BWF9QT1JUU107
-DQpzdGF0aWMgY2hhciBzaXBfbmFtZXNbTUFYX1BPUlRTXVsxMF07DQoNCnN0YXRpYyB2b2lkIGZp
-bmkodm9pZCkNCnsNCglpbnQgaT0wOw0KCWZvciAoOyBpIDwgcG9ydHNfYzsgaSsrKSB7DQoJCURF
-QlVHUCgiaXBfY3Rfc2lwOiB1bnJlZ2lzdGVyaW5nIGhlbHBlciBmb3IgcG9ydCAlZFxuIiwgcG9y
-dHNbaV0pOw0KCQlpcF9jb25udHJhY2tfaGVscGVyX3VucmVnaXN0ZXIoJnNpcFtpXSk7DQoJfQ0K
-fQ0KDQpzdGF0aWMgaW50IF9faW5pdCBpbml0KHZvaWQpDQp7DQoJaW50IGksIHJldDsNCgljaGFy
-ICp0bXBuYW1lOw0KDQoJaWYgKHBvcnRzX2MgPT0gMCkNCgkJcG9ydHNbcG9ydHNfYysrXSA9IFNJ
-UF9QT1JUOw0KDQoJZm9yIChpPTA7IGkgPCBwb3J0c19jOyBpKyspIHsNCgkJc2lwW2ldLnR1cGxl
-LnNyYy51LnVkcC5wb3J0ID0gaHRvbnMocG9ydHNbaV0pOw0KCQlzaXBbaV0udHVwbGUuZHN0LnBy
-b3RvbnVtID0gSVBQUk9UT19VRFA7DQoJCXNpcFtpXS5tYXNrLnNyYy51LnVkcC5wb3J0ID0gMHhG
-RkZGOw0KCQlzaXBbaV0ubWFzay5kc3QucHJvdG9udW0gPSAweEZGRkY7DQoJCXNpcFtpXS5tYXhf
-ZXhwZWN0ZWQgPSAxOw0KCQlzaXBbaV0udGltZW91dCA9IFJUUF9USU1FT1VUOw0KCQlzaXBbaV0u
-ZmxhZ3MgPSBJUF9DVF9IRUxQRVJfRl9SRVVTRV9FWFBFQ1Q7DQoJCXNpcFtpXS5tZSA9IGlwX2Nv
-bm50cmFja19zaXA7DQoJCXNpcFtpXS5oZWxwID0gc2lwX2hlbHA7DQoNCgkJdG1wbmFtZSA9ICZz
-aXBfbmFtZXNbaV1bMF07DQoJCWlmIChwb3J0c1tpXSA9PSBTSVBfUE9SVCkNCgkJCXNwcmludGYo
-dG1wbmFtZSwgInNpcCIpOw0KCQllbHNlDQoJCQlzcHJpbnRmKHRtcG5hbWUsICJzaXAtJWQiLCBw
-b3J0c1tpXSk7DQoJCXNpcFtpXS5uYW1lID0gdG1wbmFtZTsNCg0KCQlERUJVR1AoImlwX2N0X3Np
-cDogcmVnaXN0ZXJpbmcgaGVscGVyIGZvciBwb3J0ICVkXG4iLCBwb3J0c1tpXSk7DQoJCXJldCA9
-IGlwX2Nvbm50cmFja19oZWxwZXJfcmVnaXN0ZXIoJnNpcFtpXSk7DQoNCgkJaWYgKHJldCkgew0K
-CQkJREVCVUdQKCJpcF9jdF9zaXA6IGVycm9yIHJlZ2lzdGVyaW5nICINCgkJCQkiaGVscGVyIGZv
-ciBwb3J0ICVkXG4iLCBwb3J0c1tpXSk7DQoJCQlmaW5pKCk7DQoJCQlyZXR1cm4gcmV0Ow0KCQl9
-DQogICAgICAgIH0NCiAgICAgICAgcmV0dXJuIDA7DQp9DQoNClBST1ZJREVTX0NPTk5UUkFDSyhz
-aXApOw0KbW9kdWxlX2luaXQoaW5pdCk7DQptb2R1bGVfZXhpdChmaW5pKTsNCg==
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-connlimit
 
+diff -ru pom-orig/connlimit/linux-2.6/net/ipv4/netfilter/ipt_connlimit.c pom-new/connlimit/linux-2.6/net/ipv4/netfilter/ipt_connlimit.c
+--- pom-orig/connlimit/linux-2.6/net/ipv4/netfilter/ipt_connlimit.c	2004-02-19 18:30:21.000000000 -0500
++++ pom-new/connlimit/linux-2.6/net/ipv4/netfilter/ipt_connlimit.c	2005-02-12 16:05:34.896897472 -0500
+@@ -58,6 +58,7 @@
+ 	int addit = 1, matches = 0;
+ 	struct ip_conntrack_tuple tuple;
+ 	struct ip_conntrack_tuple_hash *found;
++	struct ip_conntrack *foundct = NULL;
+ 	struct ipt_connlimit_conn *conn;
+ 	struct list_head *hash,*lh;
+ 
+@@ -69,9 +70,11 @@
+ 	for (lh = hash->next; lh != hash; lh = lh->next) {
+ 		conn = list_entry(lh,struct ipt_connlimit_conn,list);
+ 		found = ip_conntrack_find_get(&conn->tuple,ct);
++		if (found)
++			foundct = tuplehash_to_ctrack(found);
+ 		if (0 == memcmp(&conn->tuple,&tuple,sizeof(tuple)) &&
+ 		    found != NULL &&
+-		    found->ctrack->proto.tcp.state != TCP_CONNTRACK_TIME_WAIT) {
++		    foundct->proto.tcp.state != TCP_CONNTRACK_TIME_WAIT) {
+ 			/* Just to be sure we have it only once in the list.
+ 			   We should'nt see tuples twice unless someone hooks this
+ 			   into a table without "-p tcp --syn" */
+@@ -82,7 +85,7 @@
+ 		       ipt_iphash(addr & mask),
+ 		       NIPQUAD(conn->tuple.src.ip), ntohs(conn->tuple.src.u.tcp.port),
+ 		       NIPQUAD(conn->tuple.dst.ip), ntohs(conn->tuple.dst.u.tcp.port),
+-		       (NULL != found) ? tcp[found->ctrack->proto.tcp.state] : "gone");
++		       (NULL != found) ? tcp[foundct->proto.tcp.state] : "gone");
+ #endif
+ 		if (NULL == found) {
+ 			/* this one is gone */
+@@ -91,20 +94,20 @@
+ 			kfree(conn);
+ 			continue;
+ 		}
+-		if (found->ctrack->proto.tcp.state == TCP_CONNTRACK_TIME_WAIT) {
++		if (foundct->proto.tcp.state == TCP_CONNTRACK_TIME_WAIT) {
+ 			/* we don't care about connections which are
+ 			   closed already -> ditch it */
+ 			lh = lh->prev;
+ 			list_del(lh->next);
+ 			kfree(conn);
+-			nf_conntrack_put(&found->ctrack->infos[0]);
++			nf_conntrack_put(&foundct->ct_general);
+ 			continue;
+ 		}
+ 		if ((addr & mask) == (conn->tuple.src.ip & mask)) {
+ 			/* same source IP address -> be counted! */
+ 			matches++;
+ 		}
+-		nf_conntrack_put(&found->ctrack->infos[0]);
++		nf_conntrack_put(&foundct->ct_general);
+ 	}
+ 	if (addit) {
+ 		/* save the new connection in our list */
 
---=-DRbj6CQYDhMABmwMpocQ--
+--ZPt4rx8FFjLCG7dd--
