@@ -1,68 +1,44 @@
 From: James Morris <jmorris@intercode.com.au>
-Subject: [PATCH] export find_task_by_pid() for 2.5.38
-Date: Tue, 24 Sep 2002 22:54:36 +1000 (EST)
-Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <Mutt.LNX.4.44.0209242252160.1028-100000@blackbird.intercode.com.au>
-References: <200209230019.g8N0JmvC003642@jebril.pi.be>
+Subject: Re: Sleeping function called from illegal context at slab.c:1378
+Date: Tue, 24 Sep 2002 23:34:49 +1000 (EST)
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <Mutt.LNX.4.44.0209242331430.1239-100000@blackbird.intercode.com.au>
+References: <3D8F5DB2.A3E36E16@digeo.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Ingo Molnar <mingo@elte.hu>, <netfilter-devel@lists.samba.org>
-Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "Michel Eyckmans (MCE)" <mce@pi.be>
-In-Reply-To: <200209230019.g8N0JmvC003642@jebril.pi.be>
-Errors-To: netfilter-devel-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
+Cc: Steven Cole <scole@lanl.gov>, lkml <linux-kernel@vger.kernel.org>,
+	<netfilter-devel@lists.netfilter.org>,
+	Harald Welte <laforge@gnumonks.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: Andrew Morton <akpm@digeo.com>
+In-Reply-To: <3D8F5DB2.A3E36E16@digeo.com>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 23 Sep 2002, Michel Eyckmans (MCE) wrote:
+On Mon, 23 Sep 2002, Andrew Morton wrote:
 
-> By the way, 2.3.38 gives me this:
+> That's a bug in ip_fw_ctl().  It's calling convert_ipfw()
+> inside FWC_WRITE_LOCK_IRQ(&ip_fw_lock, flags);
 > 
-> depmod: *** Unresolved symbols in /lib/modules/2.5.38/kernel/net/ipv4/netfilter/ipt_owner.o
-> depmod:         find_task_by_pid
+> But convert_ipfw() does kmalloc(GFP_KERNEL).
 > 
 
-Below is a patch which exports the function, which used to be an inline.  
-(This is also an issue for ip6t_owner).
+Below a patch to correct this. The bug is also present in 2.2 and 2.4 
+(patches to follow on netfilter-devel).
 
 - James
 -- 
 James Morris
 <jmorris@intercode.com.au>
 
-diff -urN -X dontdiff linux-2.5.38.orig/kernel/Makefile linux-2.5.38.w1/kernel/Makefile
---- linux-2.5.38.orig/kernel/Makefile	Tue Sep 24 19:23:03 2002
-+++ linux-2.5.38.w1/kernel/Makefile	Tue Sep 24 22:14:47 2002
-@@ -3,7 +3,7 @@
- #
- 
- export-objs = signal.o sys.o kmod.o context.o ksyms.o pm.o exec_domain.o \
--		printk.o platform.o suspend.o dma.o
-+		printk.o platform.o suspend.o dma.o pid.o
- 
- obj-y     = sched.o fork.o exec_domain.o panic.o printk.o \
- 	    module.o exit.o itimer.o time.o softirq.o resource.o \
-diff -urN -X dontdiff linux-2.5.38.orig/kernel/pid.c linux-2.5.38.w1/kernel/pid.c
---- linux-2.5.38.orig/kernel/pid.c	Tue Sep 24 19:23:03 2002
-+++ linux-2.5.38.w1/kernel/pid.c	Tue Sep 24 22:23:56 2002
-@@ -23,6 +23,7 @@
- #include <linux/slab.h>
- #include <linux/init.h>
- #include <linux/bootmem.h>
-+#include <linux/module.h>
- 
- #define PIDHASH_SIZE 4096
- #define pid_hashfn(nr) ((nr >> 8) ^ nr) & (PIDHASH_SIZE - 1)
-@@ -217,3 +218,5 @@
- 		attach_pid(current, i, 0);
+diff -urN -X dontdiff linux-2.5.38.orig/net/ipv4/netfilter/ipchains_core.c linux-2.5.38.w1/net/ipv4/netfilter/ipchains_core.c
+--- linux-2.5.38.orig/net/ipv4/netfilter/ipchains_core.c	Tue Sep 10 09:43:30 2002
++++ linux-2.5.38.w1/net/ipv4/netfilter/ipchains_core.c	Tue Sep 24 23:09:50 2002
+@@ -1252,7 +1252,7 @@
+ 		return NULL;
  	}
- }
-+
-+EXPORT_SYMBOL(find_task_by_pid);
+ 
+-	fwkern = kmalloc(SIZEOF_STRUCT_IP_FW_KERNEL, GFP_KERNEL);
++	fwkern = kmalloc(SIZEOF_STRUCT_IP_FW_KERNEL, GFP_ATOMIC);
+ 	if (!fwkern) {
+ 		duprintf("convert_ipfw: kmalloc failed!\n");
+ 		*errno = ENOMEM;
