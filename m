@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: about install iptables_1.2.9
-Date: Sat, 14 Feb 2004 21:58:55 +0100
+Subject: Re: [ANNOUNCE] IP sets
+Date: Sat, 14 Feb 2004 22:23:40 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040214205855.GA7756@sunbeam.de.gnumonks.org>
-References: <002e01c409bf$04029c60$831e708c@yeta>
+Message-ID: <20040214212340.GC7756@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.33.0402091505440.23818-100000@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="alCHniwhwUTljuKz"
+	protocol="application/pgp-signature"; boundary="rAc+36e7LRL7Dg7x"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: yeta <yeta@orchid.ee.ntu.edu.tw>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Content-Disposition: inline
-In-Reply-To: <002e01c409bf$04029c60$831e708c@yeta>
+In-Reply-To: <Pine.LNX.4.33.0402091505440.23818-100000@blackhole.kfki.hu>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,23 +23,30 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---alCHniwhwUTljuKz
+--rAc+36e7LRL7Dg7x
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Mar 14, 2004 at 08:22:28PM +0800, yeta wrote:
+On Mon, Feb 09, 2004 at 03:41:56PM +0100, Jozsef Kadlecsik wrote:
+> Hello,
 >=20
->=20
-> hi.=20
-> I have try to install iptables_1.2.9. But it has some error messages,
-> they seems similar problems.
+> The IP sets support is available from the netfilter cvs repository!
 
-This looks strange.  libipt_conntrack.c includes ip_conntrack.h and
-ip_conntrack_tuple.h.  They both contain the IPS_* and IP_CT_DIR_* macro
-definitions.
+Thanks a lot, I will take some time to review the code.
 
-So I cannot see how this coulde possibly happen.
+One of the first issues that I ran into was the use of vmalloc.
+Please refer to http://lwn.net/Articles/57800/.
+
+In fact, we should even consider to not use it for ip_tables itself,
+too.
+
+Since ipset is sufficiently independent (in fact, totally independent)
+of iptables, we could make it a seperate package, and thus a seperate
+cvs module.  What do you think?
+
+> Best regards,
+> Jozsef
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -51,7 +58,7 @@ So I cannot see how this coulde possibly happen.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---alCHniwhwUTljuKz
+--rAc+36e7LRL7Dg7x
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -59,9 +66,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFALowPXaXGVTD0i/8RAsCaAKCXaN5WzfUde5GOpRB/bS74+IHrfgCfb0Qn
-Wo3LpND8CKAdc86vv3hAogk=
-=xa5u
+iD8DBQFALpHcXaXGVTD0i/8RAlLlAJ49eVq/Zhb+sCL9y6Y2Vn+sRmE4mwCgsbNX
+f+2U6ys3H8vXdSnszR7og7o=
+=TErS
 -----END PGP SIGNATURE-----
 
---alCHniwhwUTljuKz--
+--rAc+36e7LRL7Dg7x--
