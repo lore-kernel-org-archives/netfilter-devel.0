@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: libiptc - frustrating
-Date: Sat, 4 Oct 2003 15:12:57 +0200
+From: Juan Carlos Castro y Castro <jcastro@vialink.com.br>
+Subject: Li'l time match userspace patch o' mine
+Date: Sat, 04 Oct 2003 21:25:02 -0300
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20031004131257.GT5758@sunbeam.de.gnumonks.org>
-References: <3F7C4919.8060800@hhb.bonn.de> <20031002201344.GF5758@sunbeam.de.gnumonks.org> <3F7E872F.5070304@hhb.bonn.de>
+Message-ID: <3F7F64DE.4070506@vialink.com.br>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="H3Q1KZ3uZ2WB2VZA"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed;
+ boundary="------------010004050500080100060705"
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Karsten =?iso-8859-1?Q?R=F6mke?= <Biermann-Roemke@t-online.de>
-Content-Disposition: inline
-In-Reply-To: <3F7E872F.5070304@hhb.bonn.de>
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,55 +18,97 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------010004050500080100060705
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
---H3Q1KZ3uZ2WB2VZA
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This makes --days optional; if user gives only; if user gives only 
+--timestart and --timestop the rule will be recorded as if all weekdays 
+were specified (intuitive IMHO).
 
-On Sat, Oct 04, 2003 at 10:39:11AM +0200, Karsten R=F6mke wrote:
+You'll see I accomplished this in a rather ugly fashion (taking 
+advantage of the fact there are options that remain mandatory). I'm sure 
+there is a better way, but this works and the ugliness is totally 
+limited to userspace. Is this acceptable?
 
-> Is there some memory allocated which is used by the kernel (or somebody=
-=20
-> else, maybe rustys hamster)? I hope this question isn't to stupid -
-> hmm probably it is. If iptables allocates some memory and is
-> terminated then the memory should be free'd again by the kernel?
+--------------010004050500080100060705
+Content-Type: text/plain;
+ name="time-match-days-optional.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="time-match-days-optional.patch"
 
-no. There is nothing 'special' about iptables, it's an ordinary
-userspace program, adhering to all 'normal' rules.  So there are still
-leaks, obviously.  Patches welcome :)
+--- libipt_time.c.prejuan	2003-10-04 20:48:55.000000000 -0300
++++ libipt_time.c	2003-10-04 21:10:45.000000000 -0300
+@@ -17,10 +17,11 @@
+ {
+ 	printf(
+ "TIME v%s options:\n"
+-" --timestart value --timestop value --days listofdays\n"
+-"          timestart value : HH:MM\n"
+-"          timestop  value : HH:MM\n"
+-"          listofdays value: a list of days to apply -> ie. Mon,Tue,Wed,Thu,Fri. Case sensitive\n",
++" --timestart value --timestop value [ --days listofdays ]\n"
++"          timestart  value : HH:MM\n"
++"          timestop   value : HH:MM\n"
++"          listofdays value : a list of days to apply\n"
++"                             -> ie. Mon,Tue,Wed,Thu,Fri. Case sensitive\n",
+ IPTABLES_VERSION);
+ }
+ 
+@@ -173,6 +174,7 @@
+       unsigned int *nfcache,
+       struct ipt_entry_match **match)
+ {
++	static int setdaysalready = 0;	/* major cheat! */
+ 	struct ipt_time_info *timeinfo = (struct ipt_time_info *)(*match)->data;
+ 	int hours, minutes;
+ 
+@@ -180,6 +182,11 @@
+ 	{
+ 		/* timestart */
+ 	case '1':
++		if (!setdaysalready)
++		{
++			globaldays = 127;	/* All of them if not given */
++			timeinfo->days_match = globaldays;
++		}
+ 		if (invert)
+ 			exit_error(PARAMETER_PROBLEM,
+                                    "unexpected '!' with --timestart");
+@@ -192,6 +199,11 @@
+ 		break;
+ 		/* timestop */
+ 	case '2':
++		if (!setdaysalready)
++		{
++			globaldays = 127;	/* All of them if not given */
++			timeinfo->days_match = globaldays;
++		}
+ 		if (invert)
+ 			exit_error(PARAMETER_PROBLEM,
+                                    "unexpected '!' with --timestop");
+@@ -205,6 +217,7 @@
+ 
+ 		/* days */
+ 	case '3':
++		setdaysalready = 1;
+ 		if (invert)
+ 			exit_error(PARAMETER_PROBLEM,
+                                    "unexpected '!' with --days");
+@@ -225,9 +238,10 @@
+ static void
+ final_check(unsigned int flags)
+ {
+-	if (flags != (IPT_TIME_START | IPT_TIME_STOP | IPT_TIME_DAYS))
++	if (flags != (IPT_TIME_START | IPT_TIME_STOP | IPT_TIME_DAYS) &&
++	    flags != (IPT_TIME_START | IPT_TIME_STOP))
+ 		exit_error(PARAMETER_PROBLEM,
+-			   "TIME match: You must specify `--timestart --timestop and --days'");
++			   "TIME match: You must specify `--timestart and --timestop'");
+ }
+ 
+ 
 
-> Slightly off-topic: does somebody know what happens with the memory, if=
-=20
-> I do a system call like system("iptables ....")? If some memory is
-> allocated from iptables and not deallocated again - does the linux
-> kernel cares about deallocating this memory.
-
-the iptables process terminates, and all memory is free'd by the kernel.
-also just like normal processes.
-
-> Karsten
-
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---H3Q1KZ3uZ2WB2VZA
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE/fsdZXaXGVTD0i/8RAhssAKCDp4PrYHgz5gRFa2vHm3C+kdZI8gCgmjuQ
-TsWe0DO42XsRRXF4spnmrrY=
-=3aOB
------END PGP SIGNATURE-----
-
---H3Q1KZ3uZ2WB2VZA--
+--------------010004050500080100060705--
