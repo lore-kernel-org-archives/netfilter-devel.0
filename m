@@ -1,13 +1,12 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 2.6] Allow dynamic helper-port assignment
-Date: Sun, 13 Feb 2005 23:38:40 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0502132315570.10608@blackhole.kfki.hu>
-References: <20050213165638.GM20269@sunbeam.de.gnumonks.org>
+From: "Egon Phillips" <egon.phillips@sympatico.ca>
+Subject: Owner on Input table
+Date: Sat, 12 Feb 2005 19:26:35 -0500
+Message-ID: <000101c51162$aceabfa0$9600a8c0@netcontent>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050213165638.GM20269@sunbeam.de.gnumonks.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,41 +18,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
+I read in the docs that the owner match as described below is not
+available on the input chain.
 
-On Sun, 13 Feb 2005, Harald Welte wrote:
+    This module attempts to match various
+    characteristics of the packet creator, 
+    for locally-generated packets. It is 
+    only valid in the OUTPUT chain, and even
+    this some packets (such as ICMP ping responses)
+    may have no owner, and hence never match. 
 
-> The recent problem with h323 made me again consider the old idea of
-> having runtime-configurable port assignments for helpers.
->
-> Ideally, we would actually have conntrack helpers be iptables targets,
-> this way allowing totally dynamic assignemnt.  Maybe yet another
-> pkttables todo.
->
-> Meanwhile, the following patch uses the same mechanism as CLUSTERIP:
->
-> Add port 2121 to ftp helper:
-> 	echo "+2121" > /proc/net/ip_conntrack_helper/ftp
->
-> Remove port 6669 from irc helper:
-> 	echo "-6669" > /proc/net/ip_conntrack_helper/irc
-
-Let's imagine a real H.323 helper module, which works reliably (contrary
-to the current one) and thus deployed at sites which use videoconferencing
-heavily. Due to the nature of H.323, the dynamic H.245 helpers are truly
-created dynamically for every single H.225 session, which starts the whole
-H.323 protocol-tree . The currently nicely static helper list (which we
-could thus protect even by RCU locking) would become dynamic and
-could create *potentially* a new bottleneck.
-
-Let's assume another protocol, which uses dynamic sub-helpers. How
-could we handle the possible ports clashes of the different
-sub-helpers in your scheme?
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Are there any plans to change this policy?  If not, is this a limitation
+of the software or of the OS?  Is it not possible to use the destination
+ports process id to determine the owner?
+____________________________________________________
+The Brockton Initiative (http://brockton.dyndns.org)
+Egon Phillips, Chair
