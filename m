@@ -1,13 +1,16 @@
-From: Phil Oester <kernel@linuxace.com>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
 Subject: Re: [ANNOUNCE] Release of iptables-1.3.0rc1
-Date: Wed, 2 Feb 2005 08:04:44 -0800
-Message-ID: <20050202160444.GC30465@linuxace.com>
+Date: Wed, 02 Feb 2005 20:20:26 +0100
+Message-ID: <1107372027.17789.12.camel@tux.rsn.bth.se>
 References: <20050202154449.GA30465@linuxace.com>
+	<20050202160444.GC30465@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="d6Gm4EdcadzBjdND"
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20050202154449.GA30465@linuxace.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-tc9t3fRs6TVlw1BjuPF4"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20050202160444.GC30465@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,86 +23,42 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---d6Gm4EdcadzBjdND
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-tc9t3fRs6TVlw1BjuPF4
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Feb 02, 2005 at 07:44:49AM -0800, Phil Oester wrote:
-> > The netfilter coreteam proudly presents:
-> >	iptables version 1.3.0rc1
-> 
-> One note: the userspace side of multiport inversion has not yet
-> been merged (while the kernel side has).
-> 
-> Phil
+On Wed, 2005-02-02 at 08:04 -0800, Phil Oester wrote:
+> On Wed, Feb 02, 2005 at 07:44:49AM -0800, Phil Oester wrote:
+> > > The netfilter coreteam proudly presents:
+> > >	iptables version 1.3.0rc1
+> >=20
+> > One note: the userspace side of multiport inversion has not yet
+> > been merged (while the kernel side has).
+> >=20
+> > Phil
+>=20
+> Err...included again here for easy patching :)
 
-Err...included again here for easy patching :)
+Sorry for forgetting, will be in 1.3.0
 
+Sending        iptables/extensions/libipt_multiport.c
+Sending        iptables/include/linux/netfilter_ipv4/ipt_multiport.h
+Transmitting file data ..
+Committed revision 3651.
 
+--=20
+/Martin
 
---d6Gm4EdcadzBjdND
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-mport-ipt2
+--=-tc9t3fRs6TVlw1BjuPF4
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-diff -ru iptables-orig/extensions/libipt_multiport.c iptables-new/extensions/libipt_multiport.c
---- iptables-orig/extensions/libipt_multiport.c	2005-01-03 04:51:58.000000000 -0500
-+++ iptables-new/extensions/libipt_multiport.c	2005-01-22 15:33:44.637388800 -0500
-@@ -31,13 +31,13 @@
- {
- 	printf(
- "multiport v%s options:\n"
--" --source-ports port[,port:port,port...]\n"
-+" --source-ports [!] port[,port:port,port...]\n"
- " --sports ...\n"
- "				match source port(s)\n"
--" --destination-ports port[,port:port,port...]\n"
-+" --destination-ports [!] port[,port:port,port...]\n"
- " --dports ...\n"
- "				match destination port(s)\n"
--" --ports port[,port:port,port]\n"
-+" --ports [!] port[,port:port,port]\n"
- "				match both source and destination port(s)\n",
- IPTABLES_VERSION);
- }
-@@ -255,8 +255,7 @@
- 	}
- 
- 	if (invert)
--		exit_error(PARAMETER_PROBLEM,
--			   "multiport does not support invert");
-+		multiinfo->invert = 1;
- 
- 	if (*flags)
- 		exit_error(PARAMETER_PROBLEM,
-@@ -362,6 +361,9 @@
- 		break;
- 	}
- 
-+	if (multiinfo->invert)
-+		printf("! ");
-+
- 	for (i=0; i < multiinfo->count; i++) {
- 		printf("%s", i ? "," : "");
- 		print_port(multiinfo->ports[i], ip->proto, numeric);
-@@ -422,6 +424,9 @@
- 		break;
- 	}
- 
-+	if (multiinfo->invert)
-+		printf("! ");
-+
- 	for (i=0; i < multiinfo->count; i++) {
- 		printf("%s", i ? "," : "");
- 		print_port(multiinfo->ports[i], ip->proto, 1);
-diff -ru iptables-orig/include/linux/netfilter_ipv4/ipt_multiport.h iptables-new/include/linux/netfilter_ipv4/ipt_multiport.h
---- iptables-orig/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-03 04:37:07.000000000 -0500
-+++ iptables-new/include/linux/netfilter_ipv4/ipt_multiport.h	2005-01-22 15:30:21.372289792 -0500
-@@ -24,5 +24,6 @@
- 	u_int8_t count;				/* Number of ports */
- 	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
- 	u_int8_t pflags[IPT_MULTI_PORTS];	/* Port flags */
-+	u_int8_t invert;			/* Invert flag */
- };
- #endif /*_IPT_MULTIPORT_H*/
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
---d6Gm4EdcadzBjdND--
+iD8DBQBCASf6Wm2vlfa207ERAlR1AKCDCcDDitnhaPaoWPI0vKmA7syM5QCeKKc/
+VsIGjWhtQzx1byCIUlmMIrM=
+=pCx9
+-----END PGP SIGNATURE-----
+
+--=-tc9t3fRs6TVlw1BjuPF4--
