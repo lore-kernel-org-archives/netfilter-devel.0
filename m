@@ -1,106 +1,64 @@
-From: Mike Andersen <mike@src.no>
-Subject: Re: Idea: Check session source and destination
-Date: Tue, 27 Apr 2004 14:47:42 +0200
-Sender: netfilter-admin@lists.netfilter.org
-Message-ID: <132609FB-9849-11D8-8B47-000A957FD99E@src.no>
-References: <Pine.LNX.4.44.0404261640210.6443-100000@filer.marasystems.com>
-Mime-Version: 1.0 (Apple Message framework v613)
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: ipt_ACCOUNT accounting target released
+Date: Wed, 28 Apr 2004 00:16:44 +0200
+Sender: netfilter-devel-admin@lists.netfilter.org
+Message-ID: <408EDBCC.8050502@trash.net>
+References: <200404131731.02001.thomas.jarosch@intra2net.com> <200404261336.08119.thomas.jarosch@intra2net.com> <408DB05E.6010706@trash.net> <200404271012.29136.thomas.jarosch@intra2net.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>,
-	<netfilter@lists.netfilter.org>
-Return-path: <netfilter-admin@lists.netfilter.org>
-In-Reply-To: <Pine.LNX.4.44.0404261640210.6443-100000@filer.marasystems.com>
-To: Henrik Nordstrom <hno@marasystems.com>
-Errors-To: netfilter-admin@lists.netfilter.org
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <https://lists.netfilter.org/pipermail/netfilter/>
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-admin@lists.netfilter.org>
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+In-Reply-To: <200404271012.29136.thomas.jarosch@intra2net.com>
+Errors-To: netfilter-devel-admin@lists.netfilter.org
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Apr 26, 2004, at 16:44, Henrik Nordstrom wrote:
+Thomas Jarosch wrote:
+> Thanks for your reply. I'll fix the coding style
+> and will post a new patch soon.
 
-> On Mon, 26 Apr 2004, Mike Andersen wrote:
->
->> iptables -A FORWARD -m conntrack --ctorigdst <int_ip> -j ACCEPT
->> iptables -A FORWARD -j DROP
->
-> Works here..
->
->> I then look more closely at the state table (/proc/net/ip_conntrack)
->> and see that there are two sets of source definition, and two sets for
->> the destination:
->
-> One is the ORIGINAL direction, the other the REPLY direction. Each is
-> matched independently by the "conntrack" match (--ctorigdst vs
-> --ctreplydst).
+Thanks.
 
-Ah, that explains it.  Thanks for clearing up that.
+> Premature optimization is the root of all evil ;-)
+> Is see what I can do, but IMHO this will increase
+> the complexity of the ipt_account_handle_get_data() function.
+> 
+>>Why does it need a PAGE_SIZE >= 4096 ?
+> 
+> The internal data layout for a 8 bit network (256 hosts/CLASS C) is
+> designed to fit into a kernel zero page. As the code is designed for constant
+> (meaning every second/every 10 seconds) readout of the data,
+> kmalloc would be too expensive as snapshots of the data are created.
 
->> Any idea of why the "-m conntrack --ctorigdst <int_ip>" also passes
->> through traffic where int_ip is the source of the session?
->
-> Does work like intended here and only matches where it is the original
-> destination. But I am using this for packet filtering, not mirroring.
-> Not that I see any difference.
+Are you sure kmalloc is too slow for once a second allocations ?
+Or could this be a premature optimization ? ;) Anyway, PAGE_SIZE
+is a constant so you can check at compile time:
 
-I reconfigured my test setup and used the FW for filtering instead of 
-mirroring (physical reconfiguration, all software .  Then the rules 
-works as intended.
+#if (PAGE_SIZE < 4096)
+#error "..."
+#endif
 
-So the problem I'm having here, seems to be related to the mirroring.  
-My gut feeling says that it may be related to the fact that the state 
-table is being built independently of the netfilter rules.
+One more thing:
 
-Here is some more data. First the rules used in this test case:
+             if (copy_to_user(...))
+             {
+                 printk("ACCOUNT: ...");
 
-iptables -A FORWARD -m conntrack --ctorigdst 10.10.10.199/32 -j LOG 
---log-level  DEBUG --log-prefix '>ctorigdst> '
-iptables -A FORWARD -m conntrack --ctorigdst 10.10.10.199/32 -j ACCEPT
-iptables -A FORWARD -j LOG --log-level DEBUG --log-prefix '>drop> '
-iptables -A FORWARD -j DROP
+Just return -EFAULT.
 
-Then I try to connect _from_ 10.10.10.199, and this is what the log 
-says:
+             if (handle.handle_nr >= ACCOUNT_MAX_HANDLES)
+             {
+                 printk("ACCOUNT: ...);
+-EINVAL.
 
-Apr 27 14:22:35 local kernel: >drop> IN=br0 OUT=br0 PHYSIN=eth0 
-PHYSOUT=eth1 SRC=10.10.10.199 DST=10.10.10.200 LEN=60 TOS=0x00 
-PREC=0x00 TTL=64 ID=19660 DF PROTO=TCP SPT=51905 DPT=80 WINDOW=65535 
-RES=0x00 SYN URGP=0
 
-Apr 27 14:22:35 local kernel: >ctorigdst> IN=br0 OUT=br0 PHYSIN=eth0 
-PHYSOUT=eth1 SRC=10.10.10.200 DST=10.10.10.199 LEN=60 TOS=0x00 
-PREC=0x00 TTL=61 ID=0 DF PROTO=TCP SPT=80 DPT=51905 WINDOW=5792 
-RES=0x00 ACK SYN URGP=0
-
-Apr 27 14:22:35 local kernel: >ctorigdst> IN=br0 OUT=br0 PHYSIN=eth0 
-PHYSOUT=eth1 SRC=10.10.10.199 DST=10.10.10.200 LEN=52 TOS=0x00 
-PREC=0x00 TTL=64 ID=19661 DF PROTO=TCP SPT=51905 DPT=80 WINDOW=65535 
-RES=0x00 ACK URGP=0
-
-Apr 27 14:22:35 local kernel: >ctorigdst> IN=br0 OUT=br0 PHYSIN=eth0 
-PHYSOUT=eth1 SRC=10.10.10.199 DST=10.10.10.200 LEN=536 TOS=0x00 
-PREC=0x00 TTL=64 ID=19662 DF PROTO=TCP SPT=51905 DPT=80 WINDOW=65535 
-RES=0x00 ACK PSH URGP=0
-
-Apr 27 14:22:36 local kernel: >ctorigdst> IN=br0 OUT=br0 PHYSIN=eth0 
-PHYSOUT=eth1 SRC=10.10.10.200 DST=10.10.10.199 LEN=52 TOS=0x00 
-PREC=0x00 TTL=61 ID=58220 DF PROTO=TCP SPT=80 DPT=51905 WINDOW=6432 
-RES=0x00 ACK URGP=0
-
-As you see, the first SYN package is dropped, while the rest of the 
-traffic is passed through.
-
-I really want to figure out _why_ this is not working as intended, and 
-are therefore willing to put a lot of hours into testing.  But I'm 
-pretty stuck here.  Any suggestion and hints about what I should try 
-out next (tools/configurations etc) is very welcome.
-
-mike
--- 
-"It is a lesson which all history teaches wise men, to put trust in
-  ideas, and not in circumstances."            --Ralph Waldo Emerson
+Regards
+Patrick
