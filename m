@@ -1,85 +1,91 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: ipt_time fixes (resend, sorry)
-Date: Fri, 14 Jan 2005 15:48:13 +0100 (CET)
-Message-ID: <Pine.LNX.4.61.0501141542230.3572@bizon.gios.gov.pl>
-References: <Pine.LNX.4.61.0501141503220.9908@bizon.gios.gov.pl>
-	<20050114143722.GA10088@ti64.telemetry-investments.com>
+From: Andy Furniss <andy.furniss@dsl.pipex.com>
+Subject: Re: How to balance OUTBOUND traffic by packet if..
+Date: Fri, 14 Jan 2005 15:10:02 +0000
+Message-ID: <41E7E0CA.5090509@dsl.pipex.com>
+References: <1483.192.168.1.2.1105403313@maild.mine.nu>	<41E5E91C.6050606@dsl.pipex.com> <41E6694A.2020203@dsl.pipex.com> <41E72982.5000205@trash.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1891851402-1105714093=:3572"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Fabrice MARIE <fabrice@netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
-In-Reply-To: <20050114143722.GA10088@ti64.telemetry-investments.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: LARTC@mailman.ds9a.nl, netfilter-devel@lists.netfilter.org
+Return-path: <lartc-admin@mailman.ds9a.nl>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <41E72982.5000205@trash.net>
+Sender: lartc-admin@mailman.ds9a.nl
+Errors-To: lartc-admin@mailman.ds9a.nl
+List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
+List-Post: <mailto:lartc@mailman.ds9a.nl>
+List-Subscribe: <http://mailman.ds9a.nl/mailman/listinfo/lartc>,
+	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
+List-Unsubscribe: <http://mailman.ds9a.nl/mailman/listinfo/lartc>,
+	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
+List-Archive: <http://mailman.ds9a.nl/pipermail/lartc/>
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
----187430788-1891851402-1105714093=:3572
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Fri, 14 Jan 2005, Bill Rugolsky Jr. wrote:
-
-> On Fri, Jan 14, 2005 at 03:04:38PM +0100, Krzysztof Oledzki wrote:
->> Hello,
+Patrick McHardy wrote:
+> Andy Furniss wrote:
+> 
+>> Seems still broken.
 >>
->> My two patches fixes two problem I have just found. I tried to
->> migrate from 2.4.x to the 2.6.11-rc1 kernel. Patches are against
->> patch-o-matic-ng-20050105 but can be cleanly applied to the latest
->> patch-o-matic-ng (20050113).
+>> I built vanilla(apart from nth) 2.6.10, new iptables 1.2.11 + 
+>> pom-200400621 with runme extra only said y to nth.
 >>
->> 1. Fix compilation, without this patch I got:
->
-> Yes, I also sent a patch for this.
-Ah, sorry :(
+>> I see -
+>>
+>> Chain OUTPUT (policy ACCEPT 817 packets, 103K bytes)
+>>  pkts bytes target     prot opt in     out     source destination
+>>    15  1260 MARK       all  --  *      eth0    0.0.0.0/0 
+>> 0.0.0.0/0           every 2th packet #0 MARK set 0x1
+>>    15  1260 MARK       all  --  *      eth0    0.0.0.0/0 
+>> 0.0.0.0/0           every 2th packet #1 MARK set 0x2
+>>
+>> Chain POSTROUTING (policy ACCEPT 817 packets, 103K bytes)
+>>  pkts bytes target     prot opt in     out     source destination
+>>     0     0            all  --  *      eth0    0.0.0.0/0 
+>> 0.0.0.0/0           MARK match 0x1
+>>    15  1260            all  --  *      eth0    0.0.0.0/0 
+>> 0.0.0.0/0           MARK match 0x2
+>> [root@amd /home/andy]# cat ./nth-test
+>> iptables -t mangle -A OUTPUT -o eth0 -m nth --counter 1 --every 2 
+>> --packet 0 -j MARK --set-mark 1
+>> iptables -t mangle -A OUTPUT -o eth0 -m nth --counter 1 --every 2 
+>> --packet 1 -j MARK --set-mark 2
+>> iptables -t mangle -A POSTROUTING -o eth0 -m mark --mark 1
+>> iptables -t mangle -A POSTROUTING -o eth0 -m mark --mark 2
+>>
+>> Any Ideas anyone?
+> 
+> 
+> 
+> Try adding "-m mark --mark X -j RETURN" rules after the MARK rules. The 
+> MARK
+> target is non-terminal, so you are overwriting the mark in the second rule.
+> Alternatively you can use "--start 1" in the one of the nth matches.
 
-Anyway, which version is the correct one? With or without "&"?
+Thanks Patrick - I assumed that with the same counter and packet 0/1 
+that nth would only actually match alternate packets (start didn't work).
 
-+static struct ipt_match time_match =3D {
-+=09.name =3D "time",
-+=09.match =3D &match,
-+=09.checkentry =3D &checkentry,
-+=09.me =3D THIS_MODULE
-+};
+So this works -
 
-+static struct ipt_match time_match =3D {
-+=09.name=09=09=3D "time",
-+=09.match=09=09=3D match,
-+=09.checkentry=09=3D checkentry,
-+=09.me=09=09=3D THIS_MODULE,
-+};
+iptables -t mangle -A OUTPUT -o eth0 -m nth --counter 1 --every 2 
+--packet 0 -j MARK --set-mark 1
+iptables -t mangle -A OUTPUT -o eth0 -m mark --mark 1 -j RETURN
+iptables -t mangle -A OUTPUT -o eth0 -m nth --counter 1 --every 2 
+--packet 1 -j MARK --set-mark 2
+iptables -t mangle -A OUTPUT -o eth0 -m mark --mark 2 -j RETURN
 
+but is over complicated really - Why I didn't do it like below in the 
+first place I don't know <slaps self>
 
->> 2. Fix time match when skb->stamp.tv_sec is 0. I don't know why but on
->> 2.6.11-rc1 (and probably others 2.6.x kernels) skb->stamp.tv_sec seems t=
-o
->> be allways 0, even on PRE_ROUTING and LOCAL_IN. So I fixed it by allways
->> use kernel time byt only if skb->stamp.tv_sec is 0 (like in ULOG). With
->> such modification we no longer needs kerneltime in the "struct
->> ipt_time_info"
->> but I'm afraid we should keep it for binary compability, shouldn't we?
->
-> This is most likely due to Andi Kleen's net timestamp optimization, which
-> avoids calling gettimeofday in the network fastpath unless it is needed.
+iptables -t mangle -A OUTPUT -o eth0 -j MARK --set-mark 1
+iptables -t mangle -A OUTPUT -o eth0 -m nth --every 2  -j MARK --set-mark 2
 
-I see... So, where we should fix this in netfilter code?
+Andy.
 
-Best regards,
+PS had to remove junk@maild.mine.nu from CC as my ISP server threw a 
+domain not found - can someone else CC him please.
 
 
- =09=09=09Krzysztof Ol=EAdzki
----187430788-1891851402-1105714093=:3572--
+
+_______________________________________________
+LARTC mailing list / LARTC@mailman.ds9a.nl
+http://mailman.ds9a.nl/mailman/listinfo/lartc HOWTO: http://lartc.org/
