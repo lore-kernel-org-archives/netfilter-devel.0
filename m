@@ -1,11 +1,10 @@
-From: Michael Schwendt <rh0209ms@arcor.de>
-Subject: libipt_conntrack.c iptables-save bug [PATCH]
-Date: Tue, 26 Nov 2002 03:30:32 +0100
+From: "raquel toribio" <raqueltoribio@hotmail.com>
+Subject: Re: Problems using iqp_read
+Date: Tue, 26 Nov 2002 11:56:36 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20021126033032.45cb1c4b.rh0209ms@arcor.de>
+Message-ID: <F184epaBzhSCnxIw4oy0001ca80@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="Multipart_Tue__26_Nov_2002_03:30:32_+0100_08256fc8"
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
@@ -19,58 +18,90 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Multipart_Tue__26_Nov_2002_03:30:32_+0100_08256fc8
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Hi,
+please do not bother trying to solve my previous problem. The fact is that 
+it was returning the error of EPERM, cause I was running my userspace 
+program without being the root, i.e. I had no permissions.
+Regards
+Raquel
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-libipt_conntrack.c in several places also lacks a white-space
-character after the '!' prefix of an invertable argument.
 
-Since I don't know what the policy is with regard to the print() and
-save() functions, a temporary fix would be to simply add the missing
-spaces to the main print sub-function, although they would be
-printed for iptables -L then, too, and not just for iptables-save. A
-different solution would need bigger changes to libipt_conntrack.c.
 
-Michael
+>From: "raquel toribio" <raqueltoribio@hotmail.com>
+>To: netfilter-devel@lists.netfilter.org
+>Subject: Problems using iqp_read
+>Date: Mon, 25 Nov 2002 20:25:35 +0100
+>
+>
+>Hello,
+>Hi. I am quite new into Linux programming and I am having some difficulties 
+>trying to develop a userspace program that should intercept packets that 
+>are for the QUEUE target of the iptables.
+>I've created a program using the socket netlink, and libipq, but it fails 
+>to receive correct packets:  ipq_message_type(packet) returns NLMSG_ERROR, 
+>and ipq_errstr() returns Unknown error.
+>Does anybody know why this could be hapenning?
+>Any hint will be very appreciated!!
+>The code I have is the following: 
+>________________________________________________________
+>int main(void)
+>{    struct ipq_handle *h=NULL;
+>        int rval=0;
+>        unsigned char packet[65536];
+>        memset(packet, 0, 65536);
+>        if ((h = ipq_create_handle(0, PF_INET)) == NULL) exit(1);
+>        rval = ipq_set_mode(h, IPQ_COPY_META, 0);
+>        if (rval < 0) goto die;
+>        while (rval >= 0)
+>        {
+>        	int mType = 0;
+>        	rval = ipq_read(h, packet, sizeof(packet), 0);
+>        	 switch (mType = ipq_message_type(packet))
+>                {
+>                	case IPQM_PACKET:
+>                	{
+>                                ipq_packet_msg_t *m = 
+>ipq_get_packet(packet);
+>                                int verdict = NF_ACCEPT;
+>
+>                               if (m->data_len == 200)  verdict = NF_DROP;
+>                                ipq_set_verdict(h, m->packet_id, verdict, 
+>m->data_len, m->payload);
+>                                             break;
+>                        }
+>               		case NLMSG_ERROR:
+>               		{
+>
+>                        fprintf(stderr,  "Received error message: %s, 
+>messageType = %d\n", ipq_errstr(), mType);
+>                        rval = -1;
+>                        break;
+>                        }
+>                        default:
+>                        rval = -1;
+>                        fprintf(stderr, "Unknown message type %d!\n", 
+>mType);
+>                        break;
+>                }
+>        }
+>    die:
+>	printf("Die\n");
+>        ipq_destroy_handle(h);
+>        exit(1);
+>}
+>______________________________ End of code
+>
+>Thanks,
+>Raquel
+>
+>
+>
+>
+>_________________________________________________________________
+>Charla con tus amigos en línea mediante MSN Messenger: 
+>http://messenger.microsoft.com/es
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
 
-iD8DBQE94tzI0iMVcrivHFQRAjtaAJ0SxRseqfsne29+PTTepmyfmTcijgCggLi+
-tdc6Fx2KCOSbWKFC7/ILwVI=
-=TTzB
------END PGP SIGNATURE-----
-
---Multipart_Tue__26_Nov_2002_03:30:32_+0100_08256fc8
-Content-Type: application/octet-stream;
- name="iptables-1.2.7a-missingspace.patch"
-Content-Disposition: attachment;
- filename="iptables-1.2.7a-missingspace.patch"
-Content-Transfer-Encoding: base64
-
-ZGlmZiAtTmF1ciBpcHRhYmxlcy0xLjIuN2Etb3JpZy9leHRlbnNpb25zL2xpYmlwdF9jb25udHJh
-Y2suYyBpcHRhYmxlcy0xLjIuN2EvZXh0ZW5zaW9ucy9saWJpcHRfY29ubnRyYWNrLmMKLS0tIGlw
-dGFibGVzLTEuMi43YS1vcmlnL2V4dGVuc2lvbnMvbGliaXB0X2Nvbm50cmFjay5jCVdlZCBNYXkg
-MjkgMTU6MDg6MTYgMjAwMgorKysgaXB0YWJsZXMtMS4yLjdhL2V4dGVuc2lvbnMvbGliaXB0X2Nv
-bm50cmFjay5jCVR1ZSBOb3YgMjYgMDI6NTg6MDIgMjAwMgpAQCAtNDA5LDcgKzQwOSw3IEBACiAJ
-aWYoc2luZm8tPmZsYWdzICYgSVBUX0NPTk5UUkFDS19TVEFURSkgewogCQlwcmludGYoIiVzY3Rz
-dGF0ZSAiLCBvcHRwZngpOwogICAgICAgICAJaWYgKHNpbmZvLT5pbnZmbGFncyAmIElQVF9DT05O
-VFJBQ0tfU1RBVEUpCi0gICAgICAgICAgICAgICAgCWZwdXRjKCchJywgc3Rkb3V0KTsKKyAgICAg
-ICAgICAgICAgICAJcHJpbnRmKCIhICIpOwogCQlwcmludF9zdGF0ZShzaW5mby0+c3RhdGVtYXNr
-KTsKIAl9CiAKQEAgLTQ1NiwxNCArNDU2LDE0IEBACiAJaWYoc2luZm8tPmZsYWdzICYgSVBUX0NP
-Tk5UUkFDS19TVEFUVVMpIHsKIAkJcHJpbnRmKCIlc2N0c3RhdHVzICIsIG9wdHBmeCk7CiAgICAg
-ICAgIAlpZiAoc2luZm8tPmludmZsYWdzICYgSVBUX0NPTk5UUkFDS19TVEFURSkKLSAgICAgICAg
-ICAgICAgICAJZnB1dGMoJyEnLCBzdGRvdXQpOworICAgICAgICAgICAgICAgIAlwcmludGYoIiEg
-Iik7CiAJCXByaW50X3N0YXR1cyhzaW5mby0+c3RhdHVzbWFzayk7CiAJfQogCiAJaWYoc2luZm8t
-PmZsYWdzICYgSVBUX0NPTk5UUkFDS19FWFBJUkVTKSB7CiAJCXByaW50ZigiJXNjdGV4cGlyZSAi
-LCBvcHRwZngpOwogICAgICAgICAJaWYgKHNpbmZvLT5pbnZmbGFncyAmIElQVF9DT05OVFJBQ0tf
-RVhQSVJFUykKLSAgICAgICAgICAgICAgICAJZnB1dGMoJyEnLCBzdGRvdXQpOworICAgICAgICAg
-ICAgICAgIAlwcmludGYoIiEgIik7CiAKICAgICAgICAgCWlmIChzaW5mby0+ZXhwaXJlc19tYXgg
-PT0gc2luZm8tPmV4cGlyZXNfbWluKQogICAgICAgICAgICAgICAgIAlwcmludGYoIiVsdSAiLCBz
-aW5mby0+ZXhwaXJlc19taW4pOwo=
-
---Multipart_Tue__26_Nov_2002_03:30:32_+0100_08256fc8--
+_________________________________________________________________
+MSN. Más Útil Cada Día http://www.msn.es/intmap/
