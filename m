@@ -1,16 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] cleanup
-Date: Fri, 10 Sep 2004 13:08:45 +0200
+From: Eicke Friedrich <tady@gmx.net>
+Subject: [PATCH] ipp2p 0.6.1-2
+Date: Fri, 10 Sep 2004 13:10:58 +0200
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <41418B3D.3030808@trash.net>
-References: <414076C7.7000009@redhat.com>
+Message-ID: <41418BC2.7030705@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------010406060304040404090806"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Woerner <twoerner@redhat.com>
-In-Reply-To: <414076C7.7000009@redhat.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,81 +17,56 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thomas Woerner wrote:
-> 
-> Hello,
-> 
-> 
-> I got this patch for iptables in bugzilla #131848 from Steve Grubb. Are 
-> including it in the next version?
+This is a multi-part message in MIME format.
+--------------010406060304040404090806
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This doesn't look like cleanup and I'm not going to dig
-up bugreports from redhat bugzilla. What is this patch
-supposed to fix ?
+Hi again,
 
-Regards
-Patrick
+another patch for ipp2p. It covers a case that occured after the first
+patch was send to the list. Please apply on top of the first patch.
+Sorry for that.
 
-> 
-> 
-> Thanks in advance,
-> Thomas
-> 
-> 
-> ------------------------------------------------------------------------
-> 
-> diff -ur iptables-1.2.11.orig/extensions/libipt_REJECT.c iptables-1.2.11/extensions/libipt_REJECT.c
-> --- iptables-1.2.11.orig/extensions/libipt_REJECT.c	2004-09-05 11:27:49.000000000 -0400
-> +++ iptables-1.2.11/extensions/libipt_REJECT.c	2004-09-05 11:28:17.000000000 -0400
-> @@ -147,13 +147,16 @@
->  {
->  	const struct ipt_reject_info *reject
->  		= (const struct ipt_reject_info *)target->data;
-> -	unsigned int i;
-> +	unsigned int i, limit=sizeof(reject_table)/sizeof(struct reject_names);
->  
-> -	for (i = 0; i < sizeof(reject_table)/sizeof(struct reject_names); i++) {
-> +	for (i = 0; i < limit; i++) {
->  		if (reject_table[i].with == reject->with)
->  			break;
->  	}
-> -	printf("reject-with %s ", reject_table[i].name);
-> +	if (i < limit)
-> +		printf("reject-with %s ", reject_table[i].name);
-> +	else
-> +		printf("reject-with: error reject->with not found ");
->  }
->  
->  /* Saves ipt_reject in parsable form to stdout. */
-> @@ -161,13 +164,15 @@
->  {
->  	const struct ipt_reject_info *reject
->  		= (const struct ipt_reject_info *)target->data;
-> -	unsigned int i;
-> +	unsigned int i, limit=sizeof(reject_table)/sizeof(struct reject_names);
->  
-> -	for (i = 0; i < sizeof(reject_table)/sizeof(struct reject_names); i++)
-> +	for (i = 0; i < limit; i++)
->  		if (reject_table[i].with == reject->with)
->  			break;
-> -
-> -	printf("--reject-with %s ", reject_table[i].name);
-> +	if (i < limit)
-> +		printf("--reject-with %s ", reject_table[i].name);
-> +	else
-> +		fprintf(stderr, "--reject-with error reject->with not found");
->  }
->  
->  static
-> diff -ur iptables-1.2.11.orig/extensions/libipt_rpc.c iptables-1.2.11/extensions/libipt_rpc.c
-> --- iptables-1.2.11.orig/extensions/libipt_rpc.c	2004-09-05 11:27:50.000000000 -0400
-> +++ iptables-1.2.11/extensions/libipt_rpc.c	2004-09-05 11:41:11.000000000 -0400
-> @@ -252,7 +252,7 @@
->  
->  			idup = 0;
->  			memset(buf, 0, sizeof(buf));
-> -			dst = (char *)buf - 1;
-> +			dst = (char *)buf;
->  		}
->  	}
->  
+Regards,
+Eicke.
+
+--------------010406060304040404090806
+Content-Type: text/plain;
+ name="ipp2p-0.6.1-2.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ipp2p-0.6.1-2.diff"
+
+diff -Nru patch-o-matic-ng-new/ipp2p/linux/net/ipv4/netfilter/ipt_ipp2p.c patch-o-matic-ng-061/ipp2p/linux/net/ipv4/netfilter/ipt_ipp2p.c
+--- patch-o-matic-ng-new/ipp2p/linux/net/ipv4/netfilter/ipt_ipp2p.c	2004-09-10 11:01:56.511534576 +0200
++++ patch-o-matic-ng-061/ipp2p/linux/net/ipv4/netfilter/ipt_ipp2p.c	2004-09-10 12:35:36.131222528 +0200
+@@ -44,9 +44,10 @@
+     t += head_len;
+ 
+     if (((packet_len - head_len) == 4) && (memcmp(t, "SEND", 4) == 0))  return 1;
++    if (((packet_len - head_len) == 3) && (memcmp(t, "GET", 3) == 0))  return 1;
+     if (packet_len < (head_len + 10)) return 0;
+ 
+-    if (memcmp(t, "SEND", 4) == 0){
++    if ((memcmp(t, "SEND", 4) == 0) || (memcmp(t, "GET", 3) == 0)){
+         c = head_len + 4;
+         t += 4;
+         while (c < packet_len - 5) {
+diff -Nru patch-o-matic-ng-new/ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c patch-o-matic-ng-061/ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c
+--- patch-o-matic-ng-new/ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c	2004-09-10 11:02:17.171393800 +0200
++++ patch-o-matic-ng-061/ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c	2004-09-10 12:35:55.591264152 +0200
+@@ -41,9 +41,10 @@
+     t += head_len;
+ 
+     if (((packet_len - head_len) == 4) && (memcmp(t, "SEND", 4) == 0))  return 1;
++    if (((packet_len - head_len) == 3) && (memcmp(t, "GET", 3) == 0))  return 1;
+     if (packet_len < (head_len + 10)) return 0;
+ 
+-    if (memcmp(t, "SEND", 4) == 0){
++    if ((memcmp(t, "SEND", 4) == 0) || (memcmp(t, "GET", 3) == 0)){
+         c = head_len + 4;
+         t += 4;
+         while (c < packet_len - 5) {
+
+--------------010406060304040404090806--
