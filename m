@@ -1,17 +1,13 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: [PATCH] ftp helper typo (espv/epsv)
-Date: Fri, 17 Jan 2003 19:06:01 +0100
+From: "PAUL FABRICIO VILLACRESES LEON" <paulvillacreses@hotmail.com>
+Subject: some question about libiptc
+Date: Fri, 17 Jan 2003 20:00:05 +0000
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030117180601.GF535@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.51.0301101654540.30861@dns.toxicfilms.tv>
+Message-ID: <F97GAGoMLk4vQd5GQrW00006ede@hotmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TYecfFk8j8mZq+dy"
-Cc: netfilter-devel@lists.samba.org
+Content-Type: text/plain; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.51.0301101654540.30861@dns.toxicfilms.tv>
+To: sumit@elitecore.com
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,40 +19,144 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---TYecfFk8j8mZq+dy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jan 10, 2003 at 04:56:53PM +0100, Maciej Soltysiak wrote:
-> Hi,
->=20
-> this is the espv/epsv typo fix in ip_conntrack_ftp.c
+Hi
 
-Thanks, will put this into CVS soon.
 
-> regards,
-> Maciej Soltysiak
---=20
-- Harald Welte / laforge@gnumonks.org               http://www.gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"If this were a dictatorship, it'd be a heck of a lot easier, just so long
- as I'm the dictator."  --  George W. Bush Dec 18, 2000
 
---TYecfFk8j8mZq+dy
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+I'm Paul Villacreses
+Student ESPOL ECUADOR
+TOPIC : Firewall content
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+I had develop a program with libiptc.a and othes library libpcap, i had the 
+following
 
-iD8DBQE+KEYJXaXGVTD0i/8RAuMjAJ9Swmwb4eBK+OXzIuyaD/9BqeOquwCgkLBI
-v4FRuRvJ89r9X9YnPJgOt4U=
-=ROAL
------END PGP SIGNATURE-----
+|Internel |--------eth0 -------- Myfirewall ------ eth1 ------|LAN 
+protected|
 
---TYecfFk8j8mZq+dy--
+In Myfirewall program puts rules in the chain FORWARD with this function
+the following code work well .
+
+////////////////////////////IPTABLES////////////////////////////////////////////////////////
+int SetNuevaRegla(register const u_char *cp,char *stable,char *starget,char 
+*schain)
+{
+register const struct ip *ip;
+iptc_handle_t handle = NULL;
+struct ipt_entry *chain_entry;
+ipt_chainlabel labelit;
+long result = 0,size=0;
+
+
+ip = (const struct ip *)cp;
+//printf("Size of standard target: %d\n", sizeof(target));
+chain_entry = NULL;
+// the target of this rule is QUEUE
+strncpy(&target.target.u.user.name[0], starget, 30);  // other std rules 
+would include DROP etc
+// set the target size!!
+target.target.u.user.target_size=sizeof(target);
+chain_entry = malloc(sizeof(struct ipt_entry) + sizeof(target));
+memset(chain_entry, 0, sizeof(chain_entry));  // zero it out
+
+if(ip->ip_dst.s_addr && ip->ip_src.s_addr)
+{
+chain_entry->ip.src.s_addr=ip->ip_src.s_addr;   // src address
+chain_entry->ip.smsk.s_addr=-1;   // mask
+
+chain_entry->ip.dst.s_addr=ip->ip_dst.s_addr;   // dst address
+chain_entry->ip.dmsk.s_addr=-1;   // mask
+chain_entry->ip.proto=ip->ip_p; // any protocol ip
+// chain_entry->
+if(!GetExisteRegla(chain_entry,stable,starget,schain))
+{
+    // assuming matches do not need to be taken into account, as we are 
+matching everything!
+   size=sizeof(struct ipt_entry);
+//  printf("sizeof chain_target_offset: %d\n", size);
+   chain_entry->target_offset=size;
+   chain_entry->next_offset= size + sizeof(target);    // next target is the 
+next rule (offset is size of current entry)
+//  printf("value of chain entry next offset: %d\n", 
+chain_entry->next_offset);
+   memcpy(chain_entry->elems,&target, sizeof(target));
+   // standard is the name given to any of the system defined targets, like 
+DROP, ACCEPT, REJECT, QUEUE, RETURN
+   handle = iptc_init(stable);    // check if table is loaded
+   if (handle == NULL)
+   {
+   printf("Error en Crear Regla : Table not loaded!\n");
+   exit(0);
+   }
+   result = iptc_is_chain(schain, handle);
+   if(!result)
+     printf("Error en Crear Regla: Chain does not exist!\n");
+
+   // set the name of the chain we want to append to
+   strncpy(labelit,schain, 30);
+
+     result = iptc_append_entry(labelit,chain_entry, &handle);
+     if(result == 0)
+       printf("Append error en Crear Regla : %s\n", iptc_strerror(errno));
+     result=iptc_commit(&handle);//ejecuta la accion
+     if(result == 0)
+         printf("Commit error en Crear Regla: %s\n", iptc_strerror(errno));
+     else
+        printf("\nExito al crear un nueva Regla en filter\n");
+//      SetRedirect(cp,"nat","DNAT","PREROUTING","192.188.59.12");
+     free(chain_entry);
+     return result;
+
+}  //fin de GetExisteRegla
+
+} // Verifica que la ip distinto de cero
+else
+free(chain_entry);
+
+return 0;
+
+}
+
+i put the rules with the function and inside the packet have ipsrc, ipdst y 
+protocol .
+
+SetNuevaRegla(packet,"filter","FORWARD");
+
+the above rule is like in the following script
+iptables -s 1.2.3.4 -d 1.4.5.6 -p all|tcp|udp -j DROP or ACCEPT
+
+
+Ok all work very well i don't put script ,the program automatic put the rule 
+based in some data .
+
+BUT The PROBLEM IS :
+
+
+THE PROBLEM IS THAT libiptc.a DON'T  SUPPORT TABLES LIKE "nat" and of course
+I can't put rules with this library
+
+The main of this is I want to REDIRECT some packets ,put this rule
+itpables -t nat -A PREROUTING -s 1.2.3.4 -d 1.6.7.8 -p tcp --dport 80 -j 
+DNAT
+but with the program NOT with scripts .
+
+I read the iptables source code and this program load dinamic library for 
+example
+libipt_tcpmss.so libipt_SNAT.so etc...  in folter extensions
+and put the rule like the above i think
+
+Please can anybody help me!!!! a response HOW i can put rules in table nat , 
+and HOW TO put rules whith port TCP like 80(HTTP),53(DNS),23(TELNET) with 
+programming NOT with scripts.
+
+
+I will be grateful for you help
+
+Thank you Developers
+
+
+
+
+_________________________________________________________________
+The new MSN 8: smart spam protection and 2 months FREE*  
+http://join.msn.com/?page=features/junkmail
