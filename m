@@ -1,17 +1,17 @@
-From: Stephen Frost <sfrost@snowman.net>
-Subject: Re: [PATCH] 2.4.x new amanda conntrack + NAT support
-Date: Mon, 31 Mar 2003 10:24:54 -0500
+From: Stephane Ouellette <ouellettes@videotron.ca>
+Subject: Re: How to account traffic in IPTABLES?
+Date: Mon, 31 Mar 2003 12:10:29 -0500
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030331152454.GQ18434@ns.snowman.net>
-References: <20030330200750.GZ7718@sunbeam.de.gnumonks.org> <20030331.070910.52982765.davem@redhat.com>
+Message-ID: <3E887685.9070000@videotron.ca>
+References: <20030330134802.CF9351C462B39@sm204.163.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="F74xYepWx8quU230"
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7BIT
+Cc: "netfilter-devel@lists.netfilter.org"
+ <netfilter-devel@lists.netfilter.org>,
+ "netfilter@lists.netfilter.org" <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: "David S. Miller" <davem@redhat.com>
-Content-Disposition: inline
-In-Reply-To: <20030331.070910.52982765.davem@redhat.com>
+To: Bobo <boboaq@163.com>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -22,43 +22,48 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Bobo wrote:
 
---F74xYepWx8quU230
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> HI
+>
+>      I use the iptables + squid as the gateway of one LAN,and it is very good in fact.
+>
+>   Now,I would like to get the traffic accounting of each IP of the LAN.
+>
+>  How to get these data ? Does IPtables contain these data?
+>  
+>
 
-* David S. Miller (davem@redhat.com) wrote:
->    From: Harald Welte <laforge@netfilter.org>
->    Date: Sun, 30 Mar 2003 22:07:50 +0200
->=20
->    Author: Brian J. Murrell <netfilter@interlinx.bc.ca>
->    The attached patch for 2.4.x adds new support for connection tracking =
-and
->    NAT of the amanda backup protocol.  The patch is incremental to all
->    other 2.4.20 updates (including the tftp patch) I've sent you so far.
->=20
-> Applied to 2.4.x, thank you.
->=20
-> Harald, what is the state of ipt_recent?  Will I see it soon?
+try this one:
 
-I was hoping to release 0.3.1 over the weekend but got busy with real
-life. :)  I'll release it today, probably in the next hour or two.  It's
-working well for me though I havn't gotten as much feedback as I would
-have liked from other users.
+iptables -nvL INPUT
 
-	Stephen
+>  Are there some tools for traffic accounting of iptables?
+>  
+>
 
---F74xYepWx8quU230
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+The iptables command itself !!!
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+>  I could use perl and shell programing.Could I analyze the log file of iptables to account?
+>  
+>
 
-iD8DBQE+iF3GrzgMPqB3kigRAhtsAKCWfGz+Fzc30yXTBqRXrz8PLbKOYQCfZ6cY
-/m5t1o3NnXRrxuES98xfuGo=
-=UO3V
------END PGP SIGNATURE-----
+in Perl:
 
---F74xYepWx8quU230--
+open(CHAINS, "iptables -nvL INPUT|") or die "Error reading chains\n";
+
+while(<CHAINS>)
+{
+# read the lines one by one, matching on the text you want
+}
+
+close(CHAINS);
+
+>  Thanks
+>
+>
+>
+>
+>
+>  
+>
