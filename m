@@ -1,11 +1,11 @@
 From: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 3/4] introducing skb_header_pointer() to dst match
-Date: Fri, 22 Oct 2004 11:59:42 +0900 (JST)
+Subject: [PATCH 4/4] introducing skb_header_pointer() to hbh match
+Date: Fri, 22 Oct 2004 11:59:51 +0900 (JST)
 Sender: netfilter-devel-bounces@lists.netfilter.org
-Message-ID: <200410220259.i9M2xhnZ007641@toshiba.co.jp>
+Message-ID: <200410220259.i9M2xqR5010725@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Fri_Oct_22_11:59:42_2004_791)--"
+	boundary="--Next_Part(Fri_Oct_22_11:59:51_2004_409)--"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
@@ -19,11 +19,11 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Fri_Oct_22_11:59:42_2004_791)--
+----Next_Part(Fri_Oct_22_11:59:51_2004_409)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-This patch introduces skb_header_pointer() to ip6t_dst.c
+This patch introduces skb_header_pointer() to ip6t_hbh.c
 
 Signed-off-by Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 
@@ -31,13 +31,13 @@ Signed-off-by Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
 
-----Next_Part(Fri_Oct_22_11:59:42_2004_791)--
+----Next_Part(Fri_Oct_22_11:59:51_2004_409)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="dst-nolin.patch"
+Content-Disposition: inline; filename="hbh-nolin.patch"
 
---- linux-2.6.9-rc3-nolin-extfix/net/ipv6/netfilter/ip6t_dst.c	2004-10-20 23:57:35.000000000 +0900
-+++ linux-2.6.9-rc3-nolin-ext/net/ipv6/netfilter/ip6t_dst.c	2004-10-21 01:27:20.940686768 +0900
+--- linux-2.6.9-rc3-nolin-extfix/net/ipv6/netfilter/ip6t_hbh.c	2004-10-21 10:35:33.068081256 +0900
++++ linux-2.6.9-rc3-nolin-ext/net/ipv6/netfilter/ip6t_hbh.c	2004-10-21 10:43:27.996881104 +0900
 @@ -60,7 +60,7 @@
        unsigned int protoff,
        int *hotdrop)
@@ -172,4 +172,4 @@ Content-Disposition: inline; filename="dst-nolin.patch"
  				DEBUGP("Pad1\n");
  				optlen = 1;
 
-----Next_Part(Fri_Oct_22_11:59:42_2004_791)----
+----Next_Part(Fri_Oct_22_11:59:51_2004_409)----
