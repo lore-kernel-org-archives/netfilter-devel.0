@@ -1,17 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: using a hash table for netfilter tables?
-Date: Sun, 27 Apr 2003 15:17:05 +0200
+Subject: Re: ICMP DNAT bug fix no longer applies?
+Date: Sun, 27 Apr 2003 15:21:29 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030427131705.GM990@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.33.0304240213430.8241-100000@fantomas.insite.com.br>
+Message-ID: <20030427132129.GO990@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.44.0304241412470.24242-100000@localhost> <Pine.LNX.4.44.0304241539121.12543-100000@deneb.intranet.cartel-securite.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qMyE1nnBIN65x+Vj"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="+0pH9m6FYzpAKDUB"
+Cc: Chris Wilson <chris@netservers.co.uk>,
+	netfilter-devel@lists.netfilter.org,
+	John McEleney <john@netservers.co.uk>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Andre Uratsuka Manoel <andre@insite.com.br>
+To: Philippe Biondi <biondi@cartel-securite.fr>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0304240213430.8241-100000@fantomas.insite.com.br>
+In-Reply-To: <Pine.LNX.4.44.0304241539121.12543-100000@deneb.intranet.cartel-securite.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,30 +25,38 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---qMyE1nnBIN65x+Vj
-Content-Type: text/plain; charset=us-ascii
+--+0pH9m6FYzpAKDUB
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 24, 2003 at 02:19:58AM -0300, Andre Uratsuka Manoel wrote:
->=20
-> 	Hi all,
->=20
-> 	I need to replace the current list-based netfilter code for=20
-> something using hashtables. The reason is that I have hundreds of tables=
-=20
-> in a project, but set up times are killing me. I took a peek at the code=
-=20
-> and it looked easy to do, since the current list-based code already takes=
-=20
-> care of locking, that's a huge problem I don't have to care about.
->=20
-> 	Is there something I should know abot? Any tips? Is this stupid?
+On Thu, Apr 24, 2003 at 03:42:11PM +0200, Philippe Biondi wrote:
+> AFAIK, this patch was too intrusive into the IP layer of the linux kernel
+> to be included.
 
-please try to read about the nf-hipac project (www.hipac.org, IIRC)
+yup.
 
-> 	Thanks in advance,
-> 	Andre
+> But I've seen this some times ago :
+>=20
+> Summary of changes from v2.4.21-pre5 to v2.4.21-pre6
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>=20
+> [...]
+>=20
+> <laforge@netfilter.org>:
+>   o [NETFILTER]: fix NAT ICMP reply translation of inner packet
+> [...]
+>=20
+>=20
+> I see that as the so long waited fix. Harald, do you confirm that ?
+
+It is a fix two two or more related ICMP bugs.  And it should also fix
+the old DNAT information leak.
+
+Would be happy if anyboudy could explicitly test and verify that.
+
+> Philippe Biondi <biondi@ cartel-securite.fr> Cartel S=E9curit=E9
 
 --=20
 - Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
@@ -58,7 +68,7 @@ please try to read about the nf-hipac project (www.hipac.org, IIRC)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---qMyE1nnBIN65x+Vj
+--+0pH9m6FYzpAKDUB
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
@@ -66,9 +76,9 @@ Content-Disposition: inline
 Version: GnuPG v1.0.6 (GNU/Linux)
 Comment: For info see http://www.gnupg.org
 
-iD8DBQE+q9hRXaXGVTD0i/8RAp1vAKCE0WsSfADowphDt56UK2J5mmD3MwCcCQkq
-iYIDx3zso7vI3eIvuD1SxUw=
-=VXci
+iD8DBQE+q9lZXaXGVTD0i/8RAi5lAJ4twSZ3A+y0vKPSeqhGyXxLHNeXwQCgs1c4
+7BNyIjn8Xdfgk0YLi31mrW8=
+=iyDn
 -----END PGP SIGNATURE-----
 
---qMyE1nnBIN65x+Vj--
+--+0pH9m6FYzpAKDUB--
