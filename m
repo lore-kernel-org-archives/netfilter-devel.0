@@ -1,15 +1,14 @@
-From: "Vishwas Manral" <Vishwas@sinett.com>
-Subject: RE: LAND check: 2.4.20
-Date: Tue, 15 Mar 2005 23:29:59 -0800
-Message-ID: <BB6D74C75CC76A419B6D6FA7C38317B26A2716@sinett-sbs.SiNett.LAN>
+From: Martijn Lievaart <m@rtij.nl>
+Subject: Re: LAND check: 2.4.20
+Date: Wed, 16 Mar 2005 09:44:00 +0100
+Message-ID: <4237F1D0.1020406@rtij.nl>
+References: <BB6D74C75CC76A419B6D6FA7C38317B26A26DE@sinett-sbs.SiNett.LAN>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org,
-	Cedric Blancher <blancher@cartel-securite.fr>, Martijn Lievaart <m@rtij.nl>
-Content-class: urn:content-classes:message
-To: "Patrick Schaaf" <bof@bof.de>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+To: Vishwas Manral <Vishwas@sinett.com>
+In-Reply-To: <BB6D74C75CC76A419B6D6FA7C38317B26A26DE@sinett-sbs.SiNett.LAN>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,40 +20,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Peter,
+Vishwas Manral wrote:
 
-Thanks for pointing out. The check is called uRPF check needs to be
-enabled only in case we have symmetric routing and we are not using
-multihoming.
+>Hi Cedric/ Martin,
+>
+>Thanks for the reply. There are a few things you may be missing:-
+>
+>1. They cannot be in the rule set, unless we can put a rule which says for any Source-IP/ Port if destination will be the same value then drop. You cannot put the value of every possible IP/port in your rule set. Besides as you yourself mentioned the solution you state it may not work for all scenarios.
+>  
+>
 
-If you are saying RPF is done by default, it's a bigger problem. You may
-want to see the IETF opsec mailing list for the same.
+Yes they can. You don't need a rule that syas srcip==dstip. If eth0 is 
+connected to 1.2.3.0/24, put in a rule that drops traffic from any other 
+interface with source address 1.2.3.0/24. In practice this works in any 
+scenario where it matters imo.
 
-Thanks,
-Vishwas
------Original Message-----
-From: Patrick Schaaf [mailto:bof@bof.de]=20
-Sent: Wednesday, March 16, 2005 12:00 PM
-To: Vishwas Manral
-Cc: Cedric Blancher; Martijn Lievaart;
-netfilter-devel@lists.netfilter.org
-Subject: Re: LAND check: 2.4.20
+>2. The source and destination address may be routed, though the same. So from a machine X I could send a packet with source and Destination IP of Y.
+>  
+>
 
-> 3. I am not sure which routing code checks for Source IP Address? Can
-you point me to some code (destroy it as a packet with local IP as
-source must be received on loopback)?
+Yes, that is possible. However, do you want to catch LAND attacks on a 
+machine that has such weird routing functionality? If this really 
+bothers you, write a custom match, it should be trivial.
 
-net/ipv4/fib_frontend.c, function fib_validate_source().
+>3. I am not sure which routing code checks for Source IP Address? Can you point me to some code (destroy it as a packet with local IP as source must be received on loopback)?
+>  
+>
 
-The logic will be: destroy it because the route back to that source IP
-resolves to destination device lo, and not the device the packet came
-from.
+See Patricks reply.
 
-> The solution as done by most firewalls is to add a simple check in the
-check_tcp and check_udp. I think we need to add this to the iptables
-code.
+>The solution as done by most firewalls is to add a simple check in the check_tcp and check_udp. I think we need to add this to the iptables code.
+>  
+>
 
-No, we don't.
+If you really need this functionality, it is trivial to write a custom 
+match for it. If case 2 above is a reality for you, you need the 
+flexibility of a custom match anyhow, as you cannot solve the problem 
+generically in that case.
 
-best regards
-  Patrick
+M4
