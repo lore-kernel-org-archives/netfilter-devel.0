@@ -1,15 +1,12 @@
-From: Philip Craig <philipc@snapgear.com>
-Subject: Re: PPTP connection tracking fixes
-Date: Tue, 21 Jan 2003 18:25:03 +1000
+From: Chris Wilson <chris@netservers.co.uk>
+Subject: [PATCH] New match module: byte rate match
+Date: Mon, 20 Jan 2003 15:58:19 +0000 (GMT)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E2D03DF.4090407@snapgear.com>
-References: <200301180029.h0I0T3d29430@stilton.routefree.com>
+Message-ID: <Pine.LNX.4.44.0301161438250.2232-100000@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060106020107010608010501"
-Cc: netfilter-devel@lists.netfilter.org, paulm@broadon.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: paulm@routefree.com
+To: netfilter-devel@lists.netfilter.org
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,78 +17,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060106020107010608010501
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi all,
 
-paulm@routefree.com wrote:
-> My solution was just to turn the
-> 
-> #ifdef CONFIG_IP_NF_NAT_LOCAL
-> 
-> into
-> 
-> #if 0
-> 
-> thus removing this section of code.  Things seem to work fine after
-> this change, but perhaps there are other cases that I don't understand
-> in which this change would break things.  Harald, do you see any harm
-> in this solution?
+NetServers.co.uk would like to submit a new module for your perusal and
+hopefully for inclusion in Netfilter. It's based on ipt_limit, but matches
+the number of bytes per second instead of the number of packets. This
+means that it can be used for basic quality-of-service implementation,
+thus:
 
-If you do this and turn on CONFIG_NETFILTER_DEBUG, you get:
+# limit SMTP traffic from A to B to 4kbytes/s
+iptables -A FORWARD -s A -d B -p tcp --dport 25 -m bytelimit --limit 
+	4000/s -j ACCEPT
+iptables -A FORWARD -s A -d B -p tcp --dport 25 -j DROP
 
-IP_NF_ASSERT: ipt_do_table:ip_tables.c:290
+# classify the first 8kbytes/s of SSH traffic as high priority
+iptables -t mangle -A FORWARD -p tcp --dport 22 -m bytelimit --limit
+        8000/s -j TOS --set-tos minimize-delay
+iptables -t mangle -A FORWARD -p tcp --dport 22 -j TOS --set-tos normal
 
-which is a result of ipt_do_table being called for the LOCAL_IN
-hook in the nat table.
+You can download the patches against iptables-1.2.7a userspace and kernel
+2.4.19 here:
 
-I've attached a patch that moves the #ifdef down a bit, so that
-bindings can still be set up for expectations, but otherwise
-we skip doing ip_nat_rule_find() for the LOCAL_IN hook.
+  'http://www.netservers.co.uk/gpl/iptables-bytelimit-030116.tar.gz'
 
+And more information about us, including other GPL software, here:
+
+  'http://www.netservers.co.uk/gpl/'
+
+The module is licensed under the GPL, as it is based on ipt_limit. At this
+stage, the module is only lightly tested, but it works for us. We hope it
+will be useful to someone. 
+
+Cheers, Chris.
 -- 
-Philip Craig     Software Engineer     http://www.SnapGear.com
-philipc@snapgear.com  Ph: +61 7 3435 2821  Fx: +61 7 3891 3630
-SnapGear  -  Custom Embedded Solutions and Security Appliances
-
---------------060106020107010608010501
-Content-Type: text/plain;
- name="nat_local.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="nat_local.patch"
-
-diff -u -r1.3 ip_nat_standalone.c
---- linux-2.4.x/net/ipv4/netfilter/ip_nat_standalone.c	9 Dec 2002 15:18:06 -0000	1.3
-+++ linux-2.4.x/net/ipv4/netfilter/ip_nat_standalone.c	21 Jan 2003 08:20:45 -0000
-@@ -109,12 +109,6 @@
- 		}
- 		/* Fall thru... (Only ICMPs can be IP_CT_IS_REPLY) */
- 	case IP_CT_NEW:
--#ifdef CONFIG_IP_NF_NAT_LOCAL
--		/* LOCAL_IN hook doesn't have a chain and thus doesn't care
--		 * about new packets -HW */
--		if (hooknum == NF_IP_LOCAL_IN)
--			return NF_ACCEPT;
--#endif
- 		info = &ct->nat.info;
- 
- 		WRITE_LOCK(&ip_nat_lock);
-@@ -130,6 +124,14 @@
- 				ret = call_expect(master_ct(ct), pskb, 
- 						  hooknum, ct, info);
- 			} else {
-+#ifdef CONFIG_IP_NF_NAT_LOCAL
-+				/* LOCAL_IN hook doesn't have a chain and thus
-+				 * doesn't care about new packets -HW */
-+				if (hooknum == NF_IP_LOCAL_IN) {
-+					WRITE_UNLOCK(&ip_nat_lock);
-+					return NF_ACCEPT;
-+				}
-+#endif
- 				ret = ip_nat_rule_find(pskb, hooknum, in, out,
- 						       ct, info);
- 			}
-
---------------060106020107010608010501--
+   ___ __     _
+ / __// / ,__(_)_  | Chris Wilson -- UNIX Firewall Lead Developer |
+/ (_ / ,\/ _/ /_ \ | NetServers.co.uk http://www.netservers.co.uk |
+\ _//_/_/_//_/___/ | 21 Signet Court, Cambridge, UK. 01223 576516 |
