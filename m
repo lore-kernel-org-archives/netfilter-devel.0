@@ -1,16 +1,17 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: oops in tftp helper
-Date: Mon, 29 Sep 2003 15:30:12 +0200
+From: Tom Marshall <tommy@home.tig-grr.com>
+Subject: Re: dynamic rule for bi-directional udp conversation
+Date: Mon, 29 Sep 2003 13:16:39 -0700
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030929133012.GA4084@balabit.hu>
-References: <20030929130509.GA4010@balabit.hu> <Pine.LNX.4.33.0309291520000.2237-100000@blackhole.kfki.hu>
+Message-ID: <20030929201639.GA25065@home.tig-grr.com>
+References: <039b01c385c6$b4449c40$e600a8c0@udtech.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vtzGhvizbBRQ85DL"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Shen Rong <rshen@udtech.com.cn>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0309291520000.2237-100000@blackhole.kfki.hu>
+In-Reply-To: <039b01c385c6$b4449c40$e600a8c0@udtech.net>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -21,21 +22,40 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Sep 29, 2003 at 03:22:54PM +0200, Jozsef Kadlecsik wrote:
-> On Mon, 29 Sep 2003, Balazs Scheidler wrote:
-> 
-> > We have encountered the following oops when trying to use the TFTP conntrack
-> > helper. We do not use NAT, only connection tracking. The culprit seems to be
-> > this code in init_conntrack():
-> 
-> What is the kernel version? Could you write down exactly when the oops
-> happens, I mean what actions are going on in the tftp session?
 
-Nothing special, I've loaded the tftp helper, added the rules and were
-trying to initiate tftp sessions. and as it didn't work I started tcpdump
-several times to see what happens. After one of my tcpdump commands the box
-froze and displayed the oops I've included in my previous message.
+--vtzGhvizbBRQ85DL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Bazsi
-PGP info: KeyID 9AF8D0A9 Fingerprint CD27 CFB0 802C 0944 9CFD 804E C82C 8EB1
+On Sun, Sep 28, 2003 at 09:44:56PM +0800, Shen Rong wrote:
+> Hi,
+>=20
+>    Sorry for long mail.:)
+>=20
+>    We use dnat & snat to dynamically maintain the
+> RTP stream between the hosts from the internal
+> network and external network.
+
+What is your control protocol?  RTSP, SIP, or other?
+
+--=20
+More Wartime News: Bush denies reports that he hired psychic Miss Cleo to
+channel Alexander the Great. "I did not have psychic relations with Aunt
+Jemima," said chief executive.
+        -- Tatsuya Ishida, http://sinfest.net/
+
+--vtzGhvizbBRQ85DL
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iEYEARECAAYFAj94kyYACgkQFMm9uvwPXW407ACeJC/SUv0F0MgpPAC+EXP0OY2v
+J0cAn3FvAuFMuq4ZXGcXWXz2IsLbvK0b
+=2pzw
+-----END PGP SIGNATURE-----
+
+--vtzGhvizbBRQ85DL--
