@@ -1,15 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [ANNOUNCE] iptables-1.2.8 feature freeze
-Date: Sun, 30 Mar 2003 22:23:22 +0200
+From: Martijn Lievaart <m@rtij.nl>
+Subject: Re: writing a fragmentation-needed patch
+Date: Sun, 30 Mar 2003 12:14:49 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20030330202322.GA7718@sunbeam.de.gnumonks.org>
+Message-ID: <3E86C399.7020209@rtij.nl>
+References: <3E85D60D.7040304@rtij.nl> <20030330093514.GA1098@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qD80nKKiJWXm4UaL"
-Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: Patrick Schaaf <bof@bof.de>
+In-Reply-To: <20030330093514.GA1098@oknodo.bof.de>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -20,55 +21,82 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+Patrick Schaaf wrote:
 
---qD80nKKiJWXm4UaL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>>I have written a patch for ipt_REJECT that enables iptables to send back 
+>>fragmentation-needed. This is useful for testing PMTUD problems. It 
+>>works for me now, but needs some polishing before I release it.
+>>
+>>Questions:
+>>- Would such a patch have a chance to be submitted to pom?
+>>    
+>>
+>
+>Two questions:
+>
+>- why is it a patch against REJECT, instead of a standalone target?
+>
 
-Hi my fellow netfilter users ;)
+Because it feels (felt) right. It's the only subtype of 
+icmp-dest-unreach that is not handled in REJECT.
 
-iptbles-1.2.8 has been overdue for at least a couple of months now.  I'm
-starting to get lots of bug reports for stuff that is fixed in CVS for
-half a year.
+Advantage:
+- 99% of the code of a new target would be identical to ipt_REJECT, so 
+we avoid a lot of code replication.
+Disadvantage:
+- uncompatible with fake-source patch. Note that ipt_REJECT should imho 
+be rewritten anyhow, it's to rigid now. I guess this is not a real 
+option as that would invalidate the fake-source patch so we would get 
+patch on patch.
 
-I'm now officially announcing a feature freeze for the 1.2.8 iptables
-release. =20
+What do you think?
 
-Please test the CVS snapshot of today (will be published in 2 hours,
-just before midnight german time). The snapshot will be available at
-ftp://ftp.netfilter.org/pub/iptables/snapshot/iptables-1.2.7a-20030330.tar.=
-bz2
+>- how would you concretely use it to test PMTUD problems?
+>  
+>
 
-Report any bugs you encounter to http://bugzilla.netfilter.org/.
+I need this because we use a firewall that does not document how it 
+handles-fragmentation needed. Going through tech-support did not give 
+satisfactory answers, besides I want to see it on the wire before I 
+believe what really happens. (And no, replacing the firewall with a 
+better one is not an option :-( ). As out webservers run on HP/UX that 
+seems to have some problems with fragmentation-needed if not handled 
+correctly by the firewall (this may be lore, I intend to prove it 
+doesn't have these problems).
 
-Apart from that, I will refuse to include any new features (for iptables
-userspace) for 7 days; expect iptables-1.2.8 to come up at April 6,
-2003.
+ So we need to really know that it really works before we fully enable 
+pmtud on our servers, it was disabled because it caused /strange/ 
+problems with the webservers with a previous version of the firewall 
+(that probably just dropped the frag-neededs). And I mean /strange/ 
+problems, once pmtud kicked in for one connection, all connections on 
+that interface where affected, until finally the traffic just stopped. 
+As this was before I worked there I think much of what is known about 
+the problems, and possibly even the description of the problems 
+themselves, may be incorrect and/or lore.
 
-Thanks for your patience,
+An alternative was to set up a test situation with a small mtu somewhere 
+in the path. However it is easier for me to write this patch and apply 
+it to the endpoint used for testing. Note that you cannot just set the 
+mtu of the link at the endpoint smaller, as this will then be advertised 
+in the mss for tcp therefore avoiding pmtud with tcp.
 
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Concretely:
 
---qD80nKKiJWXm4UaL
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Take the following rule(s).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+LENGTH=1000
+iptables -F INPUT
+iptables -A INPUT -s ! 10.0.2.3 -m length --length $((LENGTH + 
+1)):0xffff -j REJECT --reject-with icmp-fragmentation-needed --mtu $LENGTH
 
-iD8DBQE+h1I6XaXGVTD0i/8RAkwZAJ92ATcDMjZaw0XMr1E+zjOGAl2LsQCeI5f+
-B9UTrebeKllMwhcF3f9//lQ=
-=Y91H
------END PGP SIGNATURE-----
+(10.0.2.3 is the address I use to ssh in to the box, I exclude it in 
+case there are problems with the patch. It is not needed now the patch 
+works, yet it doesn't hurt either).
 
---qD80nKKiJWXm4UaL--
+Now wget from the webserver, or telnet or do something else to get 
+packets flowing. Sniff the wire on all relevant points. Works like a 
+charm :-)
+
+Martijn Lievaart
+
+P.S. Replacing HP/UX with another OS is also not an option :-(
