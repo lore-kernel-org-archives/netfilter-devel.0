@@ -1,11 +1,11 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.4 8/10]: Fix truncated fragment check in ipt_unclean
-Date: Mon, 21 Jun 2004 21:54:33 +0200
+Subject: [PATCH 2.4 9/10]: Remove broken check for cleared IP_DF flag on fragments in ipt_unclean
+Date: Mon, 21 Jun 2004 21:54:51 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040621195433.GA24374@sunbeam.de.gnumonks.org>
+Message-ID: <20040621195450.GB24374@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xRyWJh9hklcBVNcB"
+	protocol="application/pgp-signature"; boundary="cRly6ju5PXq2bKeG"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: David Miller <davem@redhat.com>
@@ -21,18 +21,18 @@ List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
 
---xRyWJh9hklcBVNcB
-Content-Type: multipart/mixed; boundary="Wj6ursgR4TQyKGvE"
+--cRly6ju5PXq2bKeG
+Content-Type: multipart/mixed; boundary="c0HPpa7OPKmLGbgH"
 Content-Disposition: inline
 
 
---Wj6ursgR4TQyKGvE
+--c0HPpa7OPKmLGbgH
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
 
-This patch for 2.4 fixes the truncated fragment check in ipt_unclean.
-The check for length % 8 == 0 is performed on the total length of
-the packet instead of the data length.
+This patch for 2.4 removes a broken check for cleared IP_DF flag on
+fragments from ipt_owner. Linux NFS itself sends fragments with
+IP_DF|IP_MF.
 
 Author: Patrick McHardy <kaber@trash.net>
 
@@ -43,42 +43,47 @@ Author: Patrick McHardy <kaber@trash.net>
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Wj6ursgR4TQyKGvE
-Content-Type: text/plain; charset=us-ascii; name="08.diff"
-Content-Disposition: inline; filename="08.diff"
+--c0HPpa7OPKmLGbgH
+Content-Type: text/plain; charset=us-ascii; name="09.diff"
+Content-Disposition: inline; filename="09.diff"
 Content-Transfer-Encoding: quoted-printable
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
 # ChangeSet
-#   2004/06/20 22:49:42+02:00 kaber@trash.net=20
-#   [NETFILTER]: Fix truncated fragment check in ipt_unclean
+#   2004/06/20 22:50:06+02:00 kaber@trash.net=20
+#   [NETFILTER]: Remove broken check for cleared IP_DF flag on fragments in=
+ ipt_unclean
 #=20
 # net/ipv4/netfilter/ipt_unclean.c
-#   2004/06/20 22:49:39+02:00 kaber@trash.net +2 -3
-#   [NETFILTER]: Fix truncated fragment check in ipt_unclean
+#   2004/06/20 22:50:03+02:00 kaber@trash.net +0 -8
+#   [NETFILTER]: Remove broken check for cleared IP_DF flag on fragments in=
+ ipt_unclean
 #=20
 diff -Nru a/net/ipv4/netfilter/ipt_unclean.c b/net/ipv4/netfilter/ipt_uncle=
 an.c
---- a/net/ipv4/netfilter/ipt_unclean.c	2004-06-20 23:02:57 +02:00
-+++ b/net/ipv4/netfilter/ipt_unclean.c	2004-06-20 23:02:57 +02:00
-@@ -467,9 +467,8 @@
- 	/* Fragment checks. */
-=20
- 	/* CHECK: More fragments, but doesn't fill 8-byte boundary. */
--	if ((ntohs(iph->frag_off) & IP_MF)
--	    && (ntohs(iph->tot_len) % 8) !=3D 0) {
--		limpk("Truncated fragment %u long.\n", ntohs(iph->tot_len));
-+	if ((ntohs(iph->frag_off) & IP_MF) && datalen % 8 !=3D 0) {
-+		limpk("Truncated fragment %u long.\n", datalen);
+--- a/net/ipv4/netfilter/ipt_unclean.c	2004-06-20 23:03:01 +02:00
++++ b/net/ipv4/netfilter/ipt_unclean.c	2004-06-20 23:03:01 +02:00
+@@ -478,14 +478,6 @@
  		return 0;
  	}
 =20
+-	/* CHECK: DF set and offset or MF set. */
+-	if ((ntohs(iph->frag_off) & IP_DF)
+-	    && (offset || (ntohs(iph->frag_off) & IP_MF))) {
+-		limpk("DF set and offset=3D%u, MF=3D%u.\n",
+-		      offset, ntohs(iph->frag_off) & IP_MF);
+-		return 0;
+-	}
+-
+ 	/* CHECK: Zero-sized fragments. */
+ 	if ((offset || (ntohs(iph->frag_off) & IP_MF))
+ 	    && datalen =3D=3D 0) {
 
 
---Wj6ursgR4TQyKGvE--
+--c0HPpa7OPKmLGbgH--
 
---xRyWJh9hklcBVNcB
+--cRly6ju5PXq2bKeG
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -86,9 +91,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFA1zz5XaXGVTD0i/8RAnw0AJ432vX7uRM6h6Jhyu92GUB664GM7QCeKbcD
-4ySgSpZGHHtZgqpzytEBhoY=
-=YT1t
+iD8DBQFA1z0KXaXGVTD0i/8RAoP6AJ4l0NNHka/BeLJsY54aemvmgpwYPwCfTijd
+oj2rmJiJ20yyNcwHNHjKAaI=
+=V5XK
 -----END PGP SIGNATURE-----
 
---xRyWJh9hklcBVNcB--
+--cRly6ju5PXq2bKeG--
