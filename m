@@ -1,18 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Future of CONNMARK (was Re: MASQUERADE: Route sent us somewhere else (was Re: Fw: Rusty's brain broke!)
-Date: Tue, 20 Jan 2004 08:01:22 -0500
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: Future of CONNMARK (was Re: MASQUERADE: Route sent us somewhere
+ else (was Re: Fw: Rusty's brain broke!)
+Date: Wed, 21 Jan 2004 00:55:27 +0100 (CET)
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <20040120130122.GC8642@obroa-skai.de.gnumonks.org>
-References: <20040119231501.GB1142@eychenne.org> <Pine.LNX.4.44.0401200023120.17422-100000@filer.marasystems.com> <20040120011305.GD1142@eychenne.org>
+Message-ID: <Pine.LNX.4.44.0401210033400.29594-100000@filer.marasystems.com>
+References: <20040120232103.GB1143@eychenne.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oTHb8nViIGeoXxdp"
-Cc: Henrik Nordstrom <hno@marasystems.com>, Julian Anastasov <ja@ssi.bg>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: Herve Eychenne <rv@wallfire.org>
-Content-Disposition: inline
-In-Reply-To: <20040120011305.GD1142@eychenne.org>
+In-Reply-To: <20040120232103.GB1143@eychenne.org>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -23,104 +21,85 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 21 Jan 2004, Herve Eychenne wrote:
 
---oTHb8nViIGeoXxdp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Why isn't this done already? ;-)
 
-On Tue, Jan 20, 2004 at 02:13:05AM +0100, Herve Eychenne wrote:
-> > It is impossible for the man page to correctly reflect all possible=20
-> > combinations.
->=20
-> Yes, as it is always some kind of "static".
-> You'll note that the reason why I prefer a program to a "static" (even
-> if generated at iptables compile time) manpage is that the manpage will
-> not reflect your current combination (at least durably), again.
+Because we are all programmers on this list and we never type wrongly?
 
-I don't think that we should spend too much time developing such a
-program for iptables.  I'd rather move any big new (sub-)projects or
-changes to 2.7/pkttables.  (Yes, there's now some movement again... look
-at my cvs commits/changes in the libpkttables directory).
+More likely because we always think on how to solve the whole problem 
+instead rather than solving the most obvious shortcomings. To solve the 
+whole problem includes versioning and many other fancy features which is 
+way beyond the scope of what can be done in 2.4/2.6 lifetime due to their 
+freezed nature. To just solve the issue where a non-existing match/target 
+is used requires far less.
 
-However, if somebody wants to take the full job of=20
-- adding the respective information to the sourcecode
-- generating netfilter-extension-HOWTO snippets in docbook XML
-- generating the respective manpage snippets=20
+> If you think of the current scheme, where you're forced to recompile
+> userspace after having used patch-o-matic, not so much: filtering
+> capabilities... (mainstream or not, match or target, specific version
+> or all, currently available or not, etc.). 
+> A way to know all that is available in every kind of context is needed
+> anyway, independantly of the documentation, anyway.
 
-then I wouldn't refuse applying the patch.
+To me the only two contexts really interesting is
 
-My position on this whole discussion is:
+a) What is supported on this system
 
-'man iptables' should reflect what the iptables userspace command has
-built in.  So making the manpage dependent on what extensions are
-compiled at iptables compile time is fine with me.
+b) What may be added if you need it.
 
-And yes, I prefer the 'squid' way, listing all matches/targets and their
-options, but mark unavailable ones with a comment.  This comment could
-refer to a special section at the bottom of the page, where we list
-possible causes why it is disabled, and which steps one might need to
-take to make it available.
+all other contexts can be derived from there.
 
-> Usually, in such a case, most users get an obscur error and write to the
-> mailing-list. Pretty clear and quick, isn't it? ;-)
+> > Not easily in a way which allows the manpage to be packaged I think.
+> 
+> Packaged in the sense of a distribution package?
 
-we have no more verbose error reporting due to the getsockopt/setsockopt
-interface.  I don't see a way how this could change :(
+Yes, which is what the majority of the users where one has to care about 
+p-o-m/not p-o-m use.
 
-> People in real life (read "not developer life") often upgrade their
-> kernel and iptables command via packages, and if they get to know the
-> existence of p-o-m, they have only little time to keep tracking down if
-> their favorite p-o-m modules have been included into mainstream or removed
-> (from kernel, or cvs).
+Most users rolling their own binaries understand that both kernel and 
+userspace may need upgradign when adding a previously unsupported item so 
+I do not regard them as a problem in this discussion.
 
-If they only use vendor packages, it's fine.  The vendor would compile
-iptables against the matching kernel sources and thus end up with a
-manapge that either
-a) lists only the available matches/targets
-b) lists all matches/targets and marks unavailable ones as unavailable
+> If we really want a userspace-compile-time-built manpage, then yes,
+> probably.
 
-if they use their own kernel, they shoud also use their own iptables or
-otherwise expect some inconsistency in the documentation.
+I defenitely vote that there should be a reference manpage covering the 
+iptables extensions, in case there is any doubt on what my 
+preference is ;-)
 
-> I do not understand. A manpage with every extensions will only tell
-> you what you could have, and you would have to experiment quite much
-> (with uninformative error messages) to know what you can really _use_.
+Being a long-timer UNIX guy I don't really like HOWTO style documents for
+reference. But it is not what they are ment to be used for either. Man
+pages does a excellent job for that purpose, and the iptables man page is
+not bad at all it just lags behind a lot because extensions maintainers
+don't care about the man page and this is what should be addressed first. 
+Once documentation is structured in a way that allows it to be maintained 
+in a sane manner it is easy to improve on the scheme if so is needed.
 
-As long as it makes a comment about what is available/unavailable in the=20
-iptables userspace program you are currently running, I see this as an
-advantage.
+Today trying to make a scheme which solves the question on how the 
+iptables/kernel should be kept in synch, documentation reflecting 100% 
+correctly the status of different extensions etc is in my opinion trying 
+to grasp for to much and not likely to succeed.
 
-> And this is all to be done again when you upgrade the kernel...
-> Sigh...
+> Yes, but that should be different. There's unfortunately no easy way
+> to have a good module management system (fast adding, no recompilation
+> needed, no binary interface problems) for iptables. :-(  (pkttables
+> will be the place to do that, as we discussed during the workshop)
 
-> Besides, this situation is a nightmare for automatic programs (upper
-> layers) which try to take advantage of a maximum of extensions.
+With pkttables being rather far away at the moment and very far away for
+mainstream, lets try to focus on how to solve the documentation question
+for iptables. Any improvements done in iptables then sets the standards
+the same documentation for pkttables should live up to when it's time.
 
-this is why we now have /proc/net//ip_*_names
-=20
->  Herve
---=20
-- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
 
---oTHb8nViIGeoXxdp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Making close relation between p-o-m and the userspace is in my opinion a 
+big mistake and creates a big nest of maintain issues. The scheme where 
+the iptables userspace has to be built matching your kernel works 
+reasonably well in my opinion.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+If it was the case that we had all of iptables (kernel+user) in one single 
+package with no real dependencies on the kernel version used then the 
+situation would be different, but this is not how things work and 
+everything moves in the opposite direction.
 
-iD8DBQFADSahXaXGVTD0i/8RAqpjAKCsTBzorzcr5WWuZ9RdH2EPcl5WRACeL5Ut
-ZUESRI6q7kuF2dOJSy3k1Lc=
-=1rFA
------END PGP SIGNATURE-----
-
---oTHb8nViIGeoXxdp--
+Regards
+Henrik
