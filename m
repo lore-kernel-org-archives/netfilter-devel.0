@@ -1,14 +1,16 @@
-From: Calum <calum.sep02@umtstrial.co.uk>
-Subject: Session Initiation Protocol
-Date: Thu, 5 Sep 2002 15:25:43 +0100
+From: Nils Ohlmeier <lists@ohlmeier.de>
+Subject: Re: Session Initiation Protocol
+Date: Fri, 6 Sep 2002 15:54:00 +0200
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <200209051525.44011.calum.sep02@umtstrial.co.uk>
+Message-ID: <200209061554.01010.lists@ohlmeier.de>
+References: <200209051525.44011.calum.sep02@umtstrial.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 8bit
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <200209051525.44011.calum.sep02@umtstrial.co.uk>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -19,24 +21,42 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello all,
+Hello Calum,
 
-With SIP soon to be huge, especially with 3G phones, is there any work 
-underway to make a sip_masq module, a la FTP, or IRC?
+i'm not speaking for the netfilter team but i'm also working in a lab whi=
+ch=20
+deals with SIP.
 
-I work in a test lab where we deal with SIP, and would be willing to help out 
-if testing were needed. (tcpdump captures, etc)
+On Thursday 05 September 2002 16:25, Calum wrote:
+> With SIP soon to be huge, especially with 3G phones, is there any work
+> underway to make a sip_masq module, a la FTP, or IRC?
 
-If iptables beat the other firewall solutions to it (I think CheckPoint NG 
-supports it) , it would probably be contemplated for a lot of firewall 
-installations. And that can only be a good thing :)
+As far as i know: no.=20
+Search the mailinglist for previous discussions about this topic.
+Maybe http://fcpd.berlios.de as an application level gateway approach is=20
+inetresting for you.
 
-Here is the SIP RFC.
-(I cursed them when I found out that it didn't work through NAT. Although, 
-with IPv6, we might not need it as much)
-http://www.ietf.org/rfc/rfc2543.txt
+> I work in a test lab where we deal with SIP, and would be willing to he=
+lp
+> out if testing were needed. (tcpdump captures, etc)
 
+If you work in a test lab, you should be aware of the problems:=20
+- domain names in the protocol
+- encryption is possible and makes NAT impossible
+- masquerading the initiation protocol is not enough, because you also ha=
+ve to=20
+masquerade the content protocols (which ever this will be; RTP in most=20
+cases).
 
-Keep up the good work anyway.
+> Here is the SIP RFC.
+> (I cursed them when I found out that it didn't work through NAT. Althou=
+gh,
+> with IPv6, we might not need it as much)
+> http://www.ietf.org/rfc/rfc2543.txt
 
-Calum
+RFC3261 (http://www.ietf.org/rfc/rfc3261.txt?number=3D3261) makes RFS2543=
+=20
+obsolete.
+
+Regards
+   Nils Ohlmeier
