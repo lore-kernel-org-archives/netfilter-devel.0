@@ -1,13 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH] remove unnecessary initialization to 0
-Date: Wed, 26 Mar 2003 16:45:10 +0100
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Problems determining the correct tcp header size
+Date: Wed, 26 Mar 2003 16:35:02 +0100
 Sender: netfilter-devel-admin@lists.netfilter.org
-Message-ID: <3E81CB06.90208@trash.net>
+Message-ID: <20030326153502.GB21953@sunbeam.de.gnumonks.org>
+References: <3E809133.4050400@pandora.be>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060806040107040802020305"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SvF6CGw9fzJC4Rcx"
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-admin@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: qber66 <tim.vandermeersch@pandora.be>
+Content-Disposition: inline
+In-Reply-To: <3E809133.4050400@pandora.be>
 Errors-To: netfilter-devel-admin@lists.netfilter.org
 List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
 List-Post: <mailto:netfilter-devel@lists.netfilter.org>
@@ -18,83 +22,62 @@ List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>
 List-Archive: <https://lists.netfilter.org/pipermail/netfilter-devel/>
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060806040107040802020305
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
-This patch removes a couple of unnecessary memset()s for
-data which is located in the bss segment.
+--SvF6CGw9fzJC4Rcx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
-Patrick
+On Tue, Mar 25, 2003 at 06:26:11PM +0100, qber66 wrote:
+> Hi,
+>=20
+> I'm making a new target for iptables, but I'n having a problems with=20
+> determining the correct tcp header lenght in the following function:
+>=20
+> static unsigned int ipt_mytarget_target(struct sk_buff **pskb, unsigned=
+=20
+> int hooknum,
+>        const struct net_device *in, const struct net_device *out,
+>        const void *targetinfo, void *userinfo)
+> {
+>    struct tcphdr *tcph =3D (struct tcphdr *) (*pskb)->h.th;
 
---------------060806040107040802020305
-Content-Type: text/plain;
- name="netfilter-nobssinit.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="netfilter-nobssinit.diff"
+you cannot blindly assume that all packets are tcp.
 
-diff -urN a/net/ipv4/netfilter/ip_conntrack_ftp.c b/net/ipv4/netfilter/ip_conntrack_ftp.c
---- a/net/ipv4/netfilter/ip_conntrack_ftp.c	2002-11-29 00:53:15.000000000 +0100
-+++ b/net/ipv4/netfilter/ip_conntrack_ftp.c	2003-03-26 16:35:51.000000000 +0100
-@@ -405,7 +405,6 @@
- 		ports[0] = FTP_PORT;
- 
- 	for (i = 0; (i < MAX_PORTS) && ports[i]; i++) {
--		memset(&ftp[i], 0, sizeof(struct ip_conntrack_helper));
- 		ftp[i].tuple.src.u.tcp.port = htons(ports[i]);
- 		ftp[i].tuple.dst.protonum = IPPROTO_TCP;
- 		ftp[i].mask.src.u.tcp.port = 0xFFFF;
-diff -urN a/net/ipv4/netfilter/ip_conntrack_irc.c b/net/ipv4/netfilter/ip_conntrack_irc.c
---- a/net/ipv4/netfilter/ip_conntrack_irc.c	2002-11-29 00:53:15.000000000 +0100
-+++ b/net/ipv4/netfilter/ip_conntrack_irc.c	2003-03-26 16:35:32.000000000 +0100
-@@ -259,8 +259,6 @@
- 
- 	for (i = 0; (i < MAX_PORTS) && ports[i]; i++) {
- 		hlpr = &irc_helpers[i];
--		memset(hlpr, 0,
--		       sizeof(struct ip_conntrack_helper));
- 		hlpr->tuple.src.u.tcp.port = htons(ports[i]);
- 		hlpr->tuple.dst.protonum = IPPROTO_TCP;
- 		hlpr->mask.src.u.tcp.port = 0xFFFF;
-diff -urN a/net/ipv4/netfilter/ip_nat_ftp.c b/net/ipv4/netfilter/ip_nat_ftp.c
---- a/net/ipv4/netfilter/ip_nat_ftp.c	2002-11-29 00:53:15.000000000 +0100
-+++ b/net/ipv4/netfilter/ip_nat_ftp.c	2003-03-26 16:35:41.000000000 +0100
-@@ -306,9 +306,6 @@
- 		ports[0] = FTP_PORT;
- 
- 	for (i = 0; (i < MAX_PORTS) && ports[i]; i++) {
--
--		memset(&ftp[i], 0, sizeof(struct ip_nat_helper));
--
- 		ftp[i].tuple.dst.protonum = IPPROTO_TCP;
- 		ftp[i].tuple.src.u.tcp.port = htons(ports[i]);
- 		ftp[i].mask.dst.protonum = 0xFFFF;
-diff -urN a/net/ipv4/netfilter/ip_nat_irc.c b/net/ipv4/netfilter/ip_nat_irc.c
---- a/net/ipv4/netfilter/ip_nat_irc.c	2002-11-29 00:53:15.000000000 +0100
-+++ b/net/ipv4/netfilter/ip_nat_irc.c	2003-03-26 16:35:21.000000000 +0100
-@@ -243,9 +243,6 @@
- 
- 	for (i = 0; (i < MAX_PORTS) && ports[i] != 0; i++) {
- 		hlpr = &ip_nat_irc_helpers[i];
--		memset(hlpr, 0,
--		       sizeof(struct ip_nat_helper));
--
- 		hlpr->tuple.dst.protonum = IPPROTO_TCP;
- 		hlpr->tuple.src.u.tcp.port = htons(ports[i]);
- 		hlpr->mask.src.u.tcp.port = 0xFFFF;
-diff -urN a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
---- a/net/ipv4/netfilter/ipt_ULOG.c	2002-11-29 00:53:15.000000000 +0100
-+++ b/net/ipv4/netfilter/ipt_ULOG.c	2003-03-26 16:36:11.000000000 +0100
-@@ -320,7 +320,6 @@
- 
- 	/* initialize ulog_buffers */
- 	for (i = 0; i < ULOG_MAXNLGROUPS; i++) {
--		memset(&ulog_buffers[i], 0, sizeof(ulog_buff_t));
- 		init_timer(&ulog_buffers[i].timer);
- 		ulog_buffers[i].timer.function = ulog_timer;
- 		ulog_buffers[i].timer.data = i;
+> I get the following output:
+>=20
+> iphdr lenght: 20, tcphdr lenght: 0
+> iphdr lenght: 20, tcphdr lenght: 16
+> iphdr lenght: 20, tcphdr lenght: 4
 
---------------060806040107040802020305--
+> Can any one tell me what I'm doing wrong?
+
+maybe it's non-tcp packets?
+
+> Thanks in advance,
+> Tim Vandermeersch.
+
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--SvF6CGw9fzJC4Rcx
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+gcimXaXGVTD0i/8RAoVHAJ4wprhw4VnffSdBVk8hxBZscU4vbgCfTNB1
+BZyp+5M9T12tP73vA+fLC88=
+=1d8X
+-----END PGP SIGNATURE-----
+
+--SvF6CGw9fzJC4Rcx--
