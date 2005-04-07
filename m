@@ -1,16 +1,16 @@
 From: Wang Jian <lark@linux.net.cn>
-Subject: Re: About matching
-Date: Thu, 07 Apr 2005 11:54:06 +0800
-Message-ID: <20050407113830.02B0.LARK@linux.net.cn>
-References: <20050407000158.02AA.LARK@linux.net.cn>
-	<42542EBA.9050606@outerspace.dyndns.org>
+Subject: Re: [PATCH] ct-event API port to 2.6.11
+Date: Thu, 07 Apr 2005 12:17:49 +0800
+Message-ID: <20050407120310.02B4.LARK@linux.net.cn>
+References: <42540839.8020405@ufomechanic.net> <4254265F.6080607@eurodev.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, Amin Azez <azez@ufomechanic.net>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jonas Berlin <xkr47@outerspace.dyndns.org>
-In-Reply-To: <42542EBA.9050606@outerspace.dyndns.org>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <4254265F.6080607@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,68 +22,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jonas Berlin,
+Hi Pablo Neira,
 
-I have an idea before, that looks like the following
+I suggest that we split ctnetlink-nfnetlink into two parts: notification
+and manipulation.
 
-1. A match is marked as dup when insert into chain if it has the same
-match rule with previous;
-2. When a match gets deleted followed by match marked as dup , do
-housekeeping to make sure the dup relation is correct;
-3. When a match is hit, if non-return, the following match marked as dup
-is evaluated immediately as hit.
+The notification part is very useful and supposed to be stable (I mean,
+not changing so often) and I think we can make it work once and ever.
 
-This can be achieved with a little code. But the problem here is when
-used in mangle table, the target action may make the matching rule false.
+The manipulation part, however, is not needed by most of people, and apt
+to changing from time to time when the conntrack core changes.
 
---previous is an indication that the previous matching is used anyway
-even if the target action changes the evaluation result. You may use the
-same algorithm above and save a lot trouble :)
+I have a suggestion on the notification part, that we can provide a
+/proc/net/netfilter/notification. It is a bit mask that controls what
+kinds of notification should be sent.
 
 
-On Wed, 06 Apr 2005 21:47:22 +0300, Jonas Berlin <xkr47@outerspace.dyndns.org> wrote:
+On Wed, 06 Apr 2005 20:11:43 +0200, Pablo Neira <pablo@eurodev.net> wrote:
 
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+> Amin Azez wrote:
+> > It appears that pom-ng nfnetlink-ctnetlink-0.13 (ported by Pablo?) 
+> > requires ct-event (although this is not listed in the pom-ng dependancies).
+> > 
+> > Pablo, can you confirm this?
 > 
-> Wang Jian wrote:
+> I've just merged Harald's and my port. You can get it from:
 > 
-> | iptables <match rule 1> -j CONNMARK --set-mark value/mask
-> | iptables <match rule 1> -j RETURN
-> |
-> | How many times the match rule 1 is evaluated when matched? If two, then
-> | the second time is waste of CPU cycle.
+> http://people.netfilter.org/~pablo/patches/nfnetlink-conntrack-0.50-2.6.11/
 > 
-> It evaluates twice. I have made a "previous" match which I haven't finished
-> into a patch yet (some cleanup, documentation and iptables-save & -restore
-> support). It lets you do the above like this:
-> 
-> iptables <match rule 1> -j CONNMARK --set-mark value/mask
-> iptables --previous -j RETURN
-> 
-> | Then think these three
-> |
-> | iptables <match rule 1> -j CONNMARK --set-mark value/mask
-> | iptables <match rule 1> -j CONNMARK --restore --mask mask
-> | iptables <match rule 1> -j RETURN
-> |
-> | Are there any optimization for such case?
-> 
-> I would guess mask restoring is usually done globally without matching some
-> specific criteria.. but nevertheless, the --previous could be used here if
-> wanted, it can be used many times in a row.
-> 
-> I'll try to finish off the patch tomorrow.
-> 
-> - --
-> - - xkr47
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.4.1 (GNU/Linux)
-> 
-> iD8DBQFCVC64xyF48ZTvn+4RAi8pAJ4sjXT1KZf5Ora6S0Rr5dCXmcGj9gCgzKQi
-> OUx6jdlw3FvPEtVuWgZ2/j8=
-> =bp5F
-> -----END PGP SIGNATURE-----
+> --
+> Pablo
 
 
 
