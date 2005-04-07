@@ -1,16 +1,17 @@
-From: Wang Jian <lark@linux.net.cn>
-Subject: Re: [PATCH] ct-event API port to 2.6.11
-Date: Thu, 07 Apr 2005 12:17:49 +0800
-Message-ID: <20050407120310.02B4.LARK@linux.net.cn>
-References: <42540839.8020405@ufomechanic.net> <4254265F.6080607@eurodev.net>
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: About matching
+Date: Thu, 7 Apr 2005 07:43:02 +0200
+Message-ID: <20050407054302.GC20287@oknodo.bof.de>
+References: <20050407000158.02AA.LARK@linux.net.cn>
+	<42542EBA.9050606@outerspace.dyndns.org>
+	<20050407113830.02B0.LARK@linux.net.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Amin Azez <azez@ufomechanic.net>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <4254265F.6080607@eurodev.net>
+To: Wang Jian <lark@linux.net.cn>
+Content-Disposition: inline
+In-Reply-To: <20050407113830.02B0.LARK@linux.net.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,38 +23,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo Neira,
+Hello Wang Jian,
 
-I suggest that we split ctnetlink-nfnetlink into two parts: notification
-and manipulation.
-
-The notification part is very useful and supposed to be stable (I mean,
-not changing so often) and I think we can make it work once and ever.
-
-The manipulation part, however, is not needed by most of people, and apt
-to changing from time to time when the conntrack core changes.
-
-I have a suggestion on the notification part, that we can provide a
-/proc/net/netfilter/notification. It is a bit mask that controls what
-kinds of notification should be sent.
-
-
-On Wed, 06 Apr 2005 20:11:43 +0200, Pablo Neira <pablo@eurodev.net> wrote:
-
-> Amin Azez wrote:
-> > It appears that pom-ng nfnetlink-ctnetlink-0.13 (ported by Pablo?) 
-> > requires ct-event (although this is not listed in the pom-ng dependancies).
-> > 
-> > Pablo, can you confirm this?
+> I have an idea before, that looks like the following
 > 
-> I've just merged Harald's and my port. You can get it from:
+> 1. A match is marked as dup when insert into chain if it has the same
+> match rule with previous;
+> 2. When a match gets deleted followed by match marked as dup , do
+> housekeeping to make sure the dup relation is correct;
+> 3. When a match is hit, if non-return, the following match marked as dup
+> is evaluated immediately as hit.
 > 
-> http://people.netfilter.org/~pablo/patches/nfnetlink-conntrack-0.50-2.6.11/
-> 
-> --
-> Pablo
+> This can be achieved with a little code. But the problem here is when
+> used in mangle table, the target action may make the matching rule false.
 
+The other problem is that there are several kinds of matches that
+have direct or indirect side effects when run. Consider -m limit:
+if you have two lines directly following each other, both using
+only '-m limit --limit 1/s', your dup solution would decide the
+limit only once, where the current solution presents two independant
+limits of 1/s each. There are several more matches that are like that.
 
+These cases MUST be handled, i.e. dup logic deactivated, because it is
+not acceptable to change semantics of established rulesets just for the
+sake of efficiency (just my strong opinion).
 
--- 
-  lark
+best regards
+  Patrick
