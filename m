@@ -1,17 +1,15 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [PATCH] ct-event API port to 2.6.11
-Date: Thu, 07 Apr 2005 15:21:52 +0100
-Message-ID: <42554200.3020405@ufomechanic.net>
-References: <424747D5.8060500@eurodev.net>
-	<42502B1B.7090309@trash.net>	<42540839.8020405@ufomechanic.net>
-	<4254265F.6080607@eurodev.net>
+From: Max Kellermann <max@duempel.org>
+Subject: Re: [report] H323 failed.
+Date: Thu, 7 Apr 2005 17:49:58 +0200
+Message-ID: <20050407154958.GA8737@roonstrasse.net>
+References: <1112700374.26189.1.camel@sas>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <4254265F.6080607@eurodev.net>
+To: Wojciech 'Sas' Ci?ciwa <cieciwa@dzp.ntt.com.pl>
+Content-Disposition: inline
+In-Reply-To: <1112700374.26189.1.camel@sas>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,26 +21,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> Amin Azez wrote:
->> It appears that pom-ng nfnetlink-ctnetlink-0.13 (ported by Pablo?) 
->> requires ct-event (although this is not listed in the pom-ng 
->> dependancies).
->>
->> Pablo, can you confirm this?
-> 
-> I've just merged Harald's and my port. You can get it from:
-> 
-> http://people.netfilter.org/~pablo/patches/nfnetlink-conntrack-0.50-2.6.11/
+On 2005/04/05 13:26, Wojciech 'Sas' Ci?ciwa <cieciwa@dzp.ntt.com.pl> wrote:
+>   CC [M]  net/ipv4/netfilter/ip_conntrack_h323.o
+> net/ipv4/netfilter/ip_conntrack_h323.c: In function `h245_help':
+> net/ipv4/netfilter/ip_conntrack_h323.c:110: error: structure has no
+> member named `help'
+[...]
 
-I had thought that your merge with Harald replaced 
-nfnetlink-ctnetlink-0.13 on pom-ng.
+Can you please provide the following information:
+- which kernel version?
+- which h323-conntrack-nat (pom-ng) version? are you using my patches
+  from http://max.kellermann.name/projects/netfilter/h323.html ?
 
-After your new patch (which applies cleanly to 2.6.11) trying to compile 
-libctnetlink fails on not finding nfnetlink_conntrack.h which can't be 
-found in any kernel sources (patched or otherwise) but only be found in:
-patch-o-matic-ng/nfnetlink-ctnetlink-0.13/linux/include/linux/nfnetlink_conntrack.h
-
-Do I still need to grab any files from nfnetlink-ctnetlink-0.13 in pom-ng?
-
-Amin
+Max
