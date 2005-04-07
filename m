@@ -1,17 +1,16 @@
-From: hamid jafarian <hamid.jafarian@gmail.com>
-Subject: a new version of iptabes
-Date: Thu, 7 Apr 2005 01:04:53 -0700
-Message-ID: <464293e60504070104d1a3029@mail.gmail.com>
-References: <464293e605040500395fa1fe55@mail.gmail.com>
-	<464293e60504050045720b8e52@mail.gmail.com>
-Reply-To: hamid jafarian <hamid.jafarian@gmail.com>
+From: Wang Jian <lark@linux.net.cn>
+Subject: Re: About matching
+Date: Thu, 07 Apr 2005 16:34:48 +0800
+Message-ID: <20050407162331.02C8.LARK@linux.net.cn>
+References: <20050407113830.02B0.LARK@linux.net.cn>
+	<4254E338.6060007@outerspace.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Patrick Schaaf <bof@bof.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <464293e60504050045720b8e52@mail.gmail.com>
-Content-Disposition: inline
+To: Jonas Berlin <xkr47@outerspace.dyndns.org>
+In-Reply-To: <4254E338.6060007@outerspace.dyndns.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,81 +22,90 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-hello ...
+Hi Jonas Berlin,
 
-I was developed a new version of iptables .. this version is based on the=
-=20
-requirements of firewalls with 25,000 rules or may be more..
 
-Your version of iptables with continues memory for rule storage and linear=
-=20
-search in the classification activities, can only manage firewalls with les=
-s=20
-than 1000 rules ( base on my tests ) but in my version, there is a very goo=
-d=20
-chance for increasing the search activities: in this version you can use=20
-different classification algorithms to classify the packets ( up now only=
-=20
-"linear" & "tuple" ). this algorithms can be developed like of targets and=
-=20
-matches independent of the core .. and with a command option ( -C ) you can=
-=20
-change the classification algorithm of a chain .. every chain (in this=20
-development) could have his own algorithm .. by this we can hope that the=
-=20
-iptables will never be old.
-You know that the classification algorithms (like of HiCuts & BV & Hypercut=
-s=20
-) are developed to manage the classifying process of the packets.
- Another feature of this develop is using of link list instead of continues=
-=20
-memory for rule storage. By this strategy, adding or deleting a rule just=
-=20
-need to exchange the information of that rule between the user and kernel=
-=20
-space, but in your version, you should exchange all of the database between=
-=20
-the user and kernel space and also, do some expensive memory management=20
-activities ( free old database and allocate new memory for the new database=
-,=20
-copy all of the database from the user space to the kernel space and also=
-=20
-transform all of the rules, from user form to kernel form ) in the kernel=
-=20
-space. your iptables is not appropriate for interactive firewalls but in=20
-this version, interactivity is a base feature.
- By this .. i was transformed all of the rule management activities from=20
-user space to the kernel space ..
- This version is very flexible and powerful and can be used instead of the=
-=20
-current version of iptables.
- I also was done some tests on the new version. if you like i can give you=
-=20
-the results of this tests and also if you wish, give you this version for=
-=20
-testing, using and (may) replacing the current version with this powerful=
-=20
-version.
+On Thu, 07 Apr 2005 10:37:28 +0300, Jonas Berlin <xkr47@outerspace.dyndns.org> wrote:
 
-this version is developed only for IPV4 .. and the code that is used and=20
-changed for the user space is 1.2.9 ..
-in the coding of this version, i was used form many new and appropriate=20
-structures for easy to understand and change ... like of your style for=20
-coding in the user space ( using macroes for IPV4 and IPV6 coding) we can=
-=20
-use this style for coding the IPV6.
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> Wang Jian wrote:
+> 
+> | 1. A match is marked as dup when insert into chain if it has the same
+> | match rule with previous;
+> 
+> I completely agree with Patrick Schaaf on the side effects.
+> 
+> | --previous is an indication that the previous matching is used anyway
+> | even if the target action changes the evaluation result. You may use the
+> 
+> I think this feature is one of the strong points of --previous. You can
+> perform multiple actions without the possible side-effects from the
+> redundant matching, maybe especially when you do a -j RETURN or -j DROP as
+> the second (or even third) action.
 
-IMPORTANT: the "iptables" command is not changed and you can use from the=
-=20
-iptables and all of the current matches and targets without any changes or=
-=20
-new information, and also the commands of iptabes-save and iptables-restore=
-=20
-is changed to work with this new version.
+Yes. In the discussion with Patrick Schaaf, we all agree on this.
 
-this version is a GOOD CHANCE ............
+> I understand how the automatic optimization would be convenient in that it
+> would work with existing solutions, but currently we can't do that reliably,
+> and it would require changes to all matchers & targets for them to report
+> whether they have side-effects or not. And even then, the --previous match
+> would have to be used to explicitly optimize the cases where the implicit
+> optimization is disabled because of the side-effects.
 
-be happy ..
- ... hamid jafarian ...
- --=20
-H.T.
+I should make it clear, that the algorithm is not only for automatic
+optimization. I suggest it because it is very simple and clean and can
+be also used by your --previous match.
+
+Actually, because I take side effects of matches and targets into
+account, I am against automatic optimization. One should use -m previous
+to explicitly trigger optimization. But that doesn't mean the algorithm
+itself is bad. In other mails I have said that using this algorithm, the
+insertion and deletion is very simple and clean and fast.
+
+> I don't know if it really is worth making all those changes. The --previous
+> already gives the same power (although not automatically), is very well
+> defined and the side-effects are obvious. Also, the implicity could be
+> emulated in userspace to some degree if one would want to.
+> 
+
+Post your code finished or not, and we can discuss it :) I wish we can
+find the simpler if not simplest solution to current core.
+
+> //
+> 
+> In the shell script I use to set up my firewall, I have a helper function
+> like this:
+> 
+> iptv () {
+> ~  table="$1" ; shift
+> ~  chain="$1" ; shift
+> ~  verdict="$1" ; shift
+> ~  iptables -t $table -A $chain "$@"
+> ~  iptables -t $table -A $chain --previous -j $verdict
+> }
+> 
+> So I can do stuff like
+> 
+> iptv filter INPUT DROP -m random --average 50 -j LOG
+> 
+> which gives
+> 
+> iptables -t filter -A INPUT -m random --average 50 -j LOG
+> iptables -t filter -A INPUT --previous -j DROP
+> 
+> - --
+> - - xkr47
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.4.1 (GNU/Linux)
+> 
+> iD8DBQFCVOM2xyF48ZTvn+4RAlrRAKDn0GG165JQIwUmDGe4yKk9qVhnjQCgnw/B
+> ySA4iwsfG6h8MpidBc+U5MM=
+> =Unac
+> -----END PGP SIGNATURE-----
+
+
+
+-- 
+  lark
