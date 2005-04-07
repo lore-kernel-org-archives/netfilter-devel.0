@@ -1,16 +1,17 @@
-From: Wang Jian <lark@linux.net.cn>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
 Subject: Re: About matching
-Date: Thu, 07 Apr 2005 15:01:56 +0800
-Message-ID: <20050407145507.02C5.LARK@linux.net.cn>
-References: <20050407135853.02BA.LARK@linux.net.cn>
-	<20050407063547.GD20287@oknodo.bof.de>
+Date: Thu, 07 Apr 2005 10:37:28 +0300
+Message-ID: <4254E338.6060007@outerspace.dyndns.org>
+References: <20050407000158.02AA.LARK@linux.net.cn>
+	<42542EBA.9050606@outerspace.dyndns.org>
+	<20050407113830.02B0.LARK@linux.net.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, Patrick Schaaf <bof@bof.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <20050407063547.GD20287@oknodo.bof.de>
+To: Wang Jian <lark@linux.net.cn>
+In-Reply-To: <20050407113830.02B0.LARK@linux.net.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,59 +23,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick Schaaf,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
+Wang Jian wrote:
 
-On Thu, 7 Apr 2005 08:35:48 +0200, Patrick Schaaf <bof@bof.de> wrote:
+| 1. A match is marked as dup when insert into chain if it has the same
+| match rule with previous;
 
-> > Yes. So I think --previous is a strong indication that
-> > you-know-what-you-are-doing. With this option, kernel is instructed that
-> > this optimization is needed, and is ok even if there are conflicts.
-> 
-> I agree. Following implementation thougts and questions arise:
-> 
-> It would be a bit more typing work, but '-m previous' would be
-> more easy to implement, I think: just write it as a new match.
-> The match function will need access to a 'didmatch' boolean variable.
-> The variable value would be determined by the result of the immediately
-> previous match, surely available to the main table walking code.
-> 
-> Should this variable be set to 0 when entering each new chain? I think yes.
-> 
+I completely agree with Patrick Schaaf on the side effects.
 
-Here, first we should decide how -m previous is implemented.
+| --previous is an indication that the previous matching is used anyway
+| even if the target action changes the evaluation result. You may use the
 
-1. A real match;
-2. A pseudo match, which copy previous rule's match and mark itself a
-dup of previous match;
+I think this feature is one of the strong points of --previous. You can
+perform multiple actions without the possible side-effects from the
+redundant matching, maybe especially when you do a -j RETURN or -j DROP as
+the second (or even third) action.
 
-I prefer the later. The insertion and deletion logic will be very small
-and clean. When you delete the previous, this match still makes sense,
-and you just clear the 'dup' mark.
+I understand how the automatic optimization would be convenient in that it
+would work with existing solutions, but currently we can't do that reliably,
+and it would require changes to all matchers & targets for them to report
+whether they have side-effects or not. And even then, the --previous match
+would have to be used to explicitly optimize the cases where the implicit
+optimization is disabled because of the side-effects.
 
-> Then there is the question of how the previous match code would access
-> the variable. Without changing the call signature of match functions,
-> it needs to be somewhat global. Hmm: can there be several ruleset
-> walks active at the same time and on the same processor? If not,
-> this could be a CPU-private variable.
-> 
-> Last question: in the main match loop, some matching is handled by
-> the loop itself (input/output device, source/destination IP address).
-> Now, when a rule uses -m previous, should this rule's device and
-> IP address fields be checked, anyway, or should this check also
-> be ommitted? I think it could also be ommitted.
-> 
+I don't know if it really is worth making all those changes. The --previous
+already gives the same power (although not automatically), is very well
+defined and the side-effects are obvious. Also, the implicity could be
+emulated in userspace to some degree if one would want to.
 
-These two questions depends on the decision made above.
+//
 
-> Finally, a full common-subexpression-elimination, in user level,
-> before pushing the ruleset into the kernel, would be very nice.
-> Unfortunately this will be harder to do when single-rule-updates,
-> instead of full-table-loading, becomes state of the art. :)
-> 
+In the shell script I use to set up my firewall, I have a helper function
+like this:
 
-tc filter seems to be doing this in kernel space.
+iptv () {
+~  table="$1" ; shift
+~  chain="$1" ; shift
+~  verdict="$1" ; shift
+~  iptables -t $table -A $chain "$@"
+~  iptables -t $table -A $chain --previous -j $verdict
+}
 
+So I can do stuff like
 
--- 
-  lark
+iptv filter INPUT DROP -m random --average 50 -j LOG
+
+which gives
+
+iptables -t filter -A INPUT -m random --average 50 -j LOG
+iptables -t filter -A INPUT --previous -j DROP
+
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCVOM2xyF48ZTvn+4RAlrRAKDn0GG165JQIwUmDGe4yKk9qVhnjQCgnw/B
+ySA4iwsfG6h8MpidBc+U5MM=
+=Unac
+-----END PGP SIGNATURE-----
