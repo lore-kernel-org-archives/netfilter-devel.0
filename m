@@ -1,13 +1,15 @@
-From: Anatoly Pugachev <mator@rootshell.ru>
-Subject: POM extensions
-Date: Fri, 8 Apr 2005 18:39:28 +0400
-Message-ID: <20050408143928.GA16346@helminth.linuxhacker.ru>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [PATCH] ct-event API port to 2.6.11
+Date: Fri, 08 Apr 2005 16:07:27 +0100
+Message-ID: <42569E2F.3070802@ufomechanic.net>
+References: <424747D5.8060500@eurodev.net>	<42502B1B.7090309@trash.net>	<42540839.8020405@ufomechanic.net>	<4254265F.6080607@eurodev.net>	<42554200.3020405@ufomechanic.net>	<42555F99.8010201@ufomechanic.net>	<42564BA6.3040702@ufomechanic.net>	<42564FAA.2050302@eurodev.net>	<425658A8.6050200@ufomechanic.net>	<42565AB4.5000803@eurodev.net>	<42567910.4090601@ufomechanic.net>
+	<42567D15.8090102@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+In-Reply-To: <42567D15.8090102@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,29 +21,83 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+The procedure I outline below is not complete;
 
---h31gzZEtNLTqOjlF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I found that I can't set CONFIG_NETFILTER_NETLINK in the config file using
+make xconfig (which I use to sanity check .config done by hand)
 
-Hello.
-Is there any u32 for 2.6.x kernel exists?=20
-I need to match 2 bytes in packet.
-Thanks
---=20
-Anatoly Pugachev
+beause of this, IP_NF_CONNTRACK_NETLINK cannot be set, and so 
+ip_conntrack_netlink.c is never compiled.
 
---h31gzZEtNLTqOjlF
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+CONFIG_NETFILTER_NETLINK is available from 
+linux-2.6.11.6/net/netfilter/Kconfig (as opposed to ipv4/netfilter/Kconfig)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+For some reason it has spaces instead of tabs in it (most Kconfig have 
+tabs) but even if I fix this I still can't get NETFILTER_NETLINK to show 
+in the gui kernel config tools, which indicates something is wrong.
 
-iD8DBQFCVpeeoubiDytudlARAl4lAJ4jXB7ruNSQf2EcUsNveXym8ZQKfQCeMZKT
-9uceC6RCb1IzcqhXFgYhFRs=
-=DUYh
------END PGP SIGNATURE-----
+Amin
 
---h31gzZEtNLTqOjlF--
+Pablo Neira wrote:
+> Amin Azez wrote:
+> 
+>> Thanks for the patches Pablo, they seemed to do the trick.
+>> ctnl_del_conntrack has been expanded to 3 args, should I be using 
+>> CTA_UNSPEC or CTA_ORIG or CTA_STATUS as the 3rd arg on line 118 of 
+>> ctnltest.c?
+> 
+> 
+> +int ctnl_del_conntrack(struct ctnl_handle *cth,
+> +                      struct ip_conntrack_tuple *tuple,
+> +                      enum ctattr_type_t t)
+> 
+> The 3rd arguments says if you're referring to CTA_ORIG or CTA_RPLY. So 
+> you can kill conntracks based on the direction.
+> 
+> This stuff is under development so nobody can't assure that the API will 
+> change in future.
+> 
+>> ctnl_del_conntrack(cth, NFA_DATA(cb[CTA_ORIG]),XXXXX);
+>>
+>> For the record, to help those who follow, to get libctnetlink and 
+>> libnfnetlink working, here are the instructions.
+>>
+>> 1) unpack the pristine kernel sources of 2.6.11
+>> 2) apply pablos patches from 
+>> http://people.netfilter.org/pablo/patches/nfnetlink-conntrack-0.50-2.6.11/ 
+>>
+>> 3) build and install your kernel & modules with all the right NF 
+>> options enabled
+>> 4) unpack a recent libctnetlink from 
+>> ftp://ftp.netfilter.org/pub/libctnetlink/snapshot/
+>> 5) run:
+>>   automake-1.4
+>>   autoconf
+>> 6) unpack a recent libnfnetlink from 
+>> ftp://ftp.netfilter.org/pub/libnfnetlink/snapshot/
+>> make a symlink from libnfnetlink-2005xxxx to libnfnetlink so that 
+>> libctnetlink can find it
+>> 7) run:
+>>   automake-1.4
+>>   autoconf
+>> 8) inside the libctnetlink dir
+>> ./configure
+>> make
+>> make install
+>> 9) inside the libnfnetlink dir
+>> ./configure
+>> make
+>> make install
+> 
+> 
+> Thanks, people surely would appreciate this to save time.
+> 
+>> Attached is my candidate patch for ctnltest.c which can be compiled with:
+> 
+> 
+> fix ctnl_del_conntrack, CTA_UNSPEC isn't ok as 3rd param.
+> 
+> -- 
+> Pablo
+> 
+> 
