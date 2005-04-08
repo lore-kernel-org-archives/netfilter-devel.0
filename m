@@ -1,11 +1,16 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: [IPTABLES] [PATCH] fix ipt_conntrack leftover
-Date: Fri, 08 Apr 2005 10:42:09 +0200
-Message-ID: <425643E1.5040709@eurodev.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [PATCH] ct-event API port to 2.6.11
+Date: Fri, 08 Apr 2005 10:15:18 +0100
+Message-ID: <42564BA6.3040702@ufomechanic.net>
+References: <424747D5.8060500@eurodev.net>	<42502B1B.7090309@trash.net>	<42540839.8020405@ufomechanic.net>	<4254265F.6080607@eurodev.net>	<42554200.3020405@ufomechanic.net>
+	<42555F99.8010201@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030302070805070209010103"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira <pablo@eurodev.net>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <42555F99.8010201@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,63 +22,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030302070805070209010103
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Amin Azez wrote:
+>> After your new patch (which applies cleanly to 2.6.11) trying to 
+>> compile libctnetlink fails on not finding nfnetlink_conntrack.h which 
+>> can't be found in any kernel sources (patched or otherwise) but only 
+>> be found in:
+>> patch-o-matic-ng/nfnetlink-ctnetlink-0.13/linux/include/linux/nfnetlink_conntrack.h 
+>>
+>> Do I still need to grab any files from nfnetlink-ctnetlink-0.13 in 
+>> pom-ng?
 
-This patch is for iptables.
+I've transferred the whole source files from nfnetlink-ctnetlink-0.13 to 
+the 2.6.11 source tree and read the pom-ng source to work out what ladd 
+files are for, and I'm applying those by hand.
 
-someone forgot to update ipt_conntrack.h header in user space. So, 
-update it to use ip_conntrack_old_tuple.
+There seems to be a conceptual clash between IP_NF_CONNTRACK_NETLINK in 
+Kconfig and IP_NF_NETLINK_CONNTRACK in the ladd file which both have 
+exactly the same description "Connection tracking netlink interface", 
+similar names but different dependancies
 
---
-Pablo
+// from Kconfig ipv4/netfilter (2.6.11)
+config IP_NF_CONNTRACK_NETLINK
+         tristate 'Connection tracking netlink interface'
+         depends on IP_NF_CONNTRACK && 
+NETFILTER_NETLINK&&IP_NF_CONNTRACK_EVENTS
 
---------------030302070805070209010103
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+//from Kconfig.ladd (nfnetlink-ctnetlink-0.13)
+config IP_NF_NETLINK_CONNTRACK
+         tristate  'Connection tracking netlink interface'
+         depends on IP_NF_NETLINK && IP_NF_CONNTRACK
 
-Index: include/linux/netfilter_ipv4/ipt_conntrack.h
-===================================================================
---- include/linux/netfilter_ipv4/ipt_conntrack.h	(revision 3827)
-+++ include/linux/netfilter_ipv4/ipt_conntrack.h	(working copy)
-@@ -22,11 +22,32 @@
- #define IPT_CONNTRACK_STATUS	0x40
- #define IPT_CONNTRACK_EXPIRES	0x80
- 
-+/* This is exposed to userspace, so remains frozen in time. */
-+struct ip_conntrack_old_tuple
-+{
-+	struct {
-+		u_int32_t ip;
-+		union {
-+			u_int16_t all;
-+		} u;
-+	} src;
-+
-+	struct {
-+		u_int32_t ip;
-+		union {
-+			u_int16_t all;
-+		} u;
-+
-+		/* The protocol. */
-+		u_int16_t protonum;
-+	} dst;
-+};
-+
- struct ipt_conntrack_info
- {
- 	unsigned int statemask, statusmask;
- 
--	struct ip_conntrack_tuple tuple[IP_CT_DIR_MAX];
-+	struct ip_conntrack_old_tuple tuple[IP_CT_DIR_MAX];
- 	struct in_addr sipmsk[IP_CT_DIR_MAX], dipmsk[IP_CT_DIR_MAX];
- 
- #ifdef KERNEL_64_USERSPACE_32
 
---------------030302070805070209010103--
+Kconfig depends on NETFILTER_NETLINK which might be the same as the 
+KConfig.ladd's IP_NF_NETLINK
+
+The indication then is, that in kernel 2.6.11.6 the 
+IP_NF_CONNTRACK_NETLINK fragment is trying to do the same thing as the 
+IP_NF_NETLINK_CONNTRACK fragment in the ladd file.
+
+As neither of these definitions seems to be used in any of the source it 
+is all the more puzzling as there are no clues to resolve the question.
+
+Anyway, it looks like only the Makefile.ladd and the whole source files 
+from the pomg-ng/nfnetlink-ctnetlink-0.13 need importing in conjunction 
+with Pablo's new combined patch.
+
+So I'm giving that a go.
+
+Sam
