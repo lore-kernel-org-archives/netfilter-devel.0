@@ -1,17 +1,15 @@
-From: Pablo Neira <pablo@eurodev.net>
+From: Amin Azez <azez@ufomechanic.net>
 Subject: Re: [PATCH] ct-event API port to 2.6.11
-Date: Fri, 08 Apr 2005 12:19:32 +0200
-Message-ID: <42565AB4.5000803@eurodev.net>
-References: <424747D5.8060500@eurodev.net>	<42502B1B.7090309@trash.net>	<42540839.8020405@ufomechanic.net>	<4254265F.6080607@eurodev.net>	<42554200.3020405@ufomechanic.net>
-	<42555F99.8010201@ufomechanic.net>
-	<42564BA6.3040702@ufomechanic.net> <42564FAA.2050302@eurodev.net>
-	<425658A8.6050200@ufomechanic.net>
+Date: Fri, 08 Apr 2005 13:29:04 +0100
+Message-ID: <42567910.4090601@ufomechanic.net>
+References: <424747D5.8060500@eurodev.net>	<42502B1B.7090309@trash.net>	<42540839.8020405@ufomechanic.net>	<4254265F.6080607@eurodev.net>	<42554200.3020405@ufomechanic.net>	<42555F99.8010201@ufomechanic.net>	<42564BA6.3040702@ufomechanic.net>
+	<42564FAA.2050302@eurodev.net>	<425658A8.6050200@ufomechanic.net>
+	<42565AB4.5000803@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010308060006070005010509"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------070500050102030100050008"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <425658A8.6050200@ufomechanic.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <42565AB4.5000803@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,391 +22,99 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010308060006070005010509
-Content-Type: text/plain; charset=us-ascii; format=flowed
+--------------070500050102030100050008
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Amin Azez wrote:
-> Pablo Neira wrote:
-> 
->> Amin Azez wrote:
->>
->>> Anyway, it looks like only the Makefile.ladd and the whole source 
->>> files from the pomg-ng/nfnetlink-ctnetlink-0.13 need importing in 
->>> conjunction with Pablo's new combined patch.
->>
->>
->> You don't have to combine anything. This is a complete misconception, 
->> just apply patches in:
->>
->> http://people.netfilter.org/~pablo/patches/nfnetlink-conntrack-0.50-2.6.11/ 
->>
+[attached is a candidate patch for ctnltest.c]
+
+Pablo Neira wrote:
+> Amin Azez wrote:
+>> I seem to have missed something obvious, is that libctnetlink 
+>> dependancy out of date?
 > 
 > 
-> Hmm; I did that first but libctnetlink needs linux/nfnetlink_conntrack.h 
-> which I can't find anywhere but p-o-m/nfnetlink-ctnetlink-0.13
-> 
-> I seem to have missed something obvious, is that libctnetlink dependancy 
-> out of date?
+> yes, include files have changed its location.
 
-yes, include files have changed its location.
+Thanks for the patches Pablo, they seemed to do the trick.
+ctnl_del_conntrack has been expanded to 3 args, should I be using 
+CTA_UNSPEC or CTA_ORIG or CTA_STATUS as the 3rd arg on line 118 of 
+ctnltest.c?
 
---
-Pablo
+ctnl_del_conntrack(cth, NFA_DATA(cb[CTA_ORIG]),XXXXX);
 
---------------010308060006070005010509
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+For the record, to help those who follow, to get libctnetlink and 
+libnfnetlink working, here are the instructions.
 
-Index: libctnetlink.c
-===================================================================
---- libctnetlink.c	(revision 3742)
-+++ libctnetlink.c	(working copy)
-@@ -27,14 +27,12 @@
- #include <linux/netfilter_ipv4/ip_conntrack.h>
- #include <linux/netfilter_ipv4/ip_conntrack_tcp.h>
- #include <linux/netfilter_ipv4/ip_conntrack_ftp.h>
--#include <linux/netfilter_ipv4/ip_conntrack_icmp.h>
- #include <linux/netfilter_ipv4/ip_conntrack_tuple.h>
--#include <linux/nfnetlink_conntrack.h>
-+#include <linux/netfilter_ipv4/ip_conntrack_netlink.h>
- 
- #include "libctnetlink.h"
- 
--#define ctnl_error(format, args...) \
--	fprintf(stderr, "%s: " format, __FUNCTION__, ## args)
-+#define ctnl_error printf
- 
- /***********************************************************************
-  * low level stuff 
-@@ -65,11 +63,17 @@
- 	int type = NFNL_MSG_TYPE(n->nlmsg_type);
- 	struct ctnl_msg_handler *hdlr = cth->handler[type];
- 	int ret;
-+	struct nlmsgerr *msgerr;
- 
- 	/* end of messages reached, let's return */
- 	if (n->nlmsg_type == NLMSG_DONE)
- 		return -100;
- 
-+	if (n->nlmsg_type == NLMSG_ERROR) {
-+		msgerr = NLMSG_DATA(n);
-+		return msgerr->error;
-+	}
-+
- 	if (NFNL_SUBSYS_ID(n->nlmsg_type) != NFNL_SUBSYS_CTNETLINK) {
- 		ctnl_error("received message for wrong subsys, skipping\n");
- 		nfnl_dump_packet(n, n->nlmsg_len, "list_conntrack_handler");
-@@ -81,28 +85,16 @@
- 		return 0;
- 	}
- 
-+	if (!hdlr->handler) {
-+		ctnl_error("no handler function for type %d\n", type);
-+		return 0;
-+	}
-+
- 	ret = hdlr->handler(nladdr, n, arg);
- 
- 	return ret;
- }
- 
--/* handler used for nfnl_listen */
--static int get_conntrack_handler(struct sockaddr_nl *nladdr,
--                                  struct nlmsghdr *n, void *arg)
--{
--	struct nfgenmsg *cm = NLMSG_DATA(n);
--	struct nfattr **cb = (struct nfattr **)arg;
--
--	/* this is what we get when there's no match */
--	if (NFNL_SUBSYS_ID(n->nlmsg_type) != NFNL_SUBSYS_CTNETLINK)
--		return -1;
--        
--	nfnl_parse_attr(cb, CTA_MAX, NFM_NFA(cm), n->nlmsg_len);
--	
--	return -100; /* to get nfnl_listen to break out of the loop */
--}
--
--
- /***********************************************************************
-  * high level stuff 
-  ***********************************************************************/
-@@ -149,7 +141,7 @@
- int ctnl_register_handler(struct ctnl_handle *cth, 
- 			  struct ctnl_msg_handler *hndlr)
- {
--	if (hndlr->type >= CTNL_MSG_COUNT)
-+	if (hndlr->type >= IPCTNL_MSG_COUNT)
- 		return -EINVAL;
- 
- 	cth->handler[hndlr->type] = hndlr;
-@@ -165,7 +157,7 @@
-  */
- int ctnl_unregister_handler(struct ctnl_handle *cth, int type)
- {
--	if (type >= CTNL_MSG_COUNT)
-+	if (type >= IPCTNL_MSG_COUNT)
- 		return -EINVAL;
- 
- 	cth->handler[type] = NULL;
-@@ -180,7 +172,7 @@
-  */
- int ctnl_list_conntrack(struct ctnl_handle *cth, int family)
- {
--	if (ctnl_wilddump_request(cth, family, CTNL_MSG_GETCONNTRACK) < 0) {
-+	if (ctnl_wilddump_request(cth, family, IPCTNL_MSG_GETCONNTRACK) < 0) {
- 		ctnl_error("error during ctnl_wilddump_request\n");
- 		return -1;
- 	}
-@@ -189,42 +181,54 @@
- 
- }
- 
-+/* TODO: Don't user list_conntrack_handler */
-+int ctnl_event_conntrack(struct ctnl_handle *cth, int family)
-+{
-+	return nfnl_listen(&cth->nfnlh, &list_conntrack_handler, cth);
-+}
-+
- /**
-  * ctnl_get_conntrack - get a connection from conntrack hashtable
-  * cth: libctnetlink handle
-  * t: tuple of connection to get
-  * cb: a struct nfattr to put the connection in
-  */
--int ctnl_get_conntrack(struct ctnl_handle *cth,
--		     struct ip_conntrack_tuple *t,
--		     struct nfattr **cb)
-+int ctnl_get_conntrack(struct ctnl_handle *cth, 
-+		       struct ip_conntrack_tuple *tuple,
-+		       enum ctattr_type_t t)
- {
- 	struct {
- 		struct nlmsghdr nlh;
- 		struct nfgenmsg g;
- 	} *req;
- 
--	char buf[sizeof(*req) + NFA_LENGTH(sizeof(*t))];
-+	char buf[sizeof(*req) + NFA_LENGTH(sizeof(*tuple))
-+		 + NFA_LENGTH(sizeof(unsigned long))];
- 	memset(&buf, 0, sizeof(buf));
- 
- 	req = (void *) &buf;
--	
-+
-+	if (tuple == NULL) {
-+		ctnl_error("tuple must be specified\n");
-+		return -1;
-+	}
-+
- 	nfnl_fill_hdr(&cth->nfnlh, (struct nlmsghdr *) &buf,
--			0, AF_INET, CTNL_MSG_GETCONNTRACK,
-+			0, AF_INET, IPCTNL_MSG_GETCONNTRACK,
- 			NLM_F_REQUEST);
- 
--	if (nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_ORIG, t,
--			sizeof(*t)) < 0) {
-+	if (nfnl_addattr_l(&req->nlh, sizeof(buf), t, tuple,
-+				sizeof(*tuple)) < 0) {
- 		ctnl_error("error during nfnl_addattr_l\n");
- 		return -1;
- 	}
--	
-+
- 	if (nfnl_send(&cth->nfnlh, (struct nlmsghdr *)&buf) < 0 ) {
- 		ctnl_error("error while nfnl_send\n");
- 		return -1;
- 	}
- 
--	return nfnl_listen(&cth->nfnlh, &get_conntrack_handler, cb);
-+	return nfnl_listen(&cth->nfnlh, &list_conntrack_handler, cth);
- }
- 
- /**
-@@ -232,24 +236,32 @@
-  * cth: libctnetlink handle
-  * t: tuple of to-be-deleted connection
-  */
--int ctnl_del_conntrack(struct ctnl_handle *cth, struct ip_conntrack_tuple *t)
-+int ctnl_del_conntrack(struct ctnl_handle *cth, 
-+		       struct ip_conntrack_tuple *tuple,
-+		       enum ctattr_type_t t)
- {
- 	struct {
- 		struct nlmsghdr nlh;
- 		struct nfgenmsg nfmsg;
- 	} *req;
- 
--	char buf[sizeof(*req) + NFA_LENGTH(sizeof(*t))];
-+	char buf[sizeof(*req) + NFA_LENGTH(sizeof(*tuple))
-+		 + NFA_LENGTH(sizeof(unsigned long))];
- 	memset(&buf, 0, sizeof(buf));
- 
- 	req = (void *) &buf;
- 
-+	if (tuple == NULL) {
-+		ctnl_error("tuple must be specified\n");
-+		return -1;
-+	}
-+	
- 	nfnl_fill_hdr(&cth->nfnlh, (struct nlmsghdr *) &buf,
--		      0, AF_INET, CTNL_MSG_DELCONNTRACK,
-+		      0, AF_INET, IPCTNL_MSG_DELCONNTRACK,
- 		      NLM_F_ROOT|NLM_F_MATCH|NLM_F_REQUEST);
- 
--	if (nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_ORIG, t, 
--			   sizeof(*t)) < 0) {
-+	if (nfnl_addattr_l(&req->nlh, sizeof(buf), t, tuple, 
-+			   sizeof(*tuple)) < 0) {
- 		ctnl_error("error during nfnl_addattr_l\n");
- 		return -1;
- 	}
-@@ -258,13 +270,75 @@
- }
- 
- /**
-+ * ctnl_new_conntrack - create a connection in the conntrack hashtable
-+ * cth: libctnetlink handle
-+ * t: tuple of to-be-created connection
-+ */
-+int ctnl_new_conntrack(struct ctnl_handle *cth,
-+		       struct ip_conntrack_tuple *orig,
-+		       struct ip_conntrack_tuple *reply, 
-+		       unsigned long timeout, struct cta_proto *proto,
-+		       unsigned int status)
-+{
-+	struct {
-+		struct nlmsghdr nlh;
-+		struct nfgenmsg nfmsg;
-+	} *req;
-+
-+	char buf[sizeof(*req) + NFA_LENGTH(sizeof(*orig))
-+		 + NFA_LENGTH(sizeof(*reply)) 
-+		 + NFA_LENGTH(sizeof(unsigned long))
-+		 + NFA_LENGTH(sizeof(*proto))
-+		 + NFA_LENGTH(sizeof(unsigned int))];
-+	memset(&buf, 0, sizeof(buf));
-+
-+	req = (void *) &buf;
-+
-+	nfnl_fill_hdr(&cth->nfnlh, (struct nlmsghdr *) &buf,
-+		      0, AF_INET, IPCTNL_MSG_NEWCONNTRACK,
-+		      NLM_F_ROOT|NLM_F_MATCH|NLM_F_REQUEST|NLM_F_CREATE);
-+
-+	if (nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_ORIG, orig, 
-+			   sizeof(*orig)) < 0) {
-+		ctnl_error("error during nfnl_addattr_l\n");
-+		return -1;
-+	}
-+
-+	if (nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_RPLY, reply, 
-+			   sizeof(*reply)) < 0) {
-+		ctnl_error("error during nfnl_addattr_l\n");
-+		return -1;
-+	}
-+
-+	if (nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_TIMEOUT, &timeout, 
-+			   sizeof(unsigned long)) < 0) {
-+		ctnl_error("error during nfnl_addattr_l\n");
-+		return -1;
-+	}
-+
-+	if (nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_PROTOINFO, proto, 
-+			   sizeof(*proto)) < 0) {
-+		ctnl_error("error during nfnl_addattr_l\n");
-+		return -1;
-+	}
-+
-+	if (nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_STATUS, &status,
-+			   sizeof(unsigned int)) < 0) {
-+		ctnl_error("error during nfnl_addattr_l\n");
-+		return -1;
-+	}
-+
-+	return nfnl_send(&cth->nfnlh, (struct nlmsghdr *)&buf);
-+}
-+
-+/**
-  * ctnl_list_expect - retrieve a list of expectations from conntrack subsys
-  * cth: libctnetlink handle
-  * family: AF_INET, ...
-  */
- int ctnl_list_expect(struct ctnl_handle *cth, int family)
- {
--	if (ctnl_wilddump_request(cth, family, CTNL_MSG_GETEXPECT) < 0) {
-+	if (ctnl_wilddump_request(cth, family, IPCTNL_MSG_GETEXPECT) < 0) {
- 		ctnl_error("error during ctnl_wilddump_request\n");
- 		return -1;
- 	}
-@@ -292,7 +366,7 @@
- 	req = (void *) &buf;
- 
- 	nfnl_fill_hdr(&cth->nfnlh, (struct nlmsghdr *) &buf,
--		      0, AF_INET, CTNL_MSG_DELEXPECT,
-+		      0, AF_INET, IPCTNL_MSG_DELEXPECT,
- 		      NLM_F_ROOT|NLM_F_MATCH|NLM_F_REQUEST);
- 
- 	if (nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_ORIG, t, 
-Index: libctnetlink.h
-===================================================================
---- libctnetlink.h	(revision 3742)
-+++ libctnetlink.h	(working copy)
-@@ -13,8 +13,8 @@
- #include <netinet/in.h>
- #include <asm/types.h>
- #include <linux/if.h>
--#include <linux/nfnetlink.h>
--#include <linux/nfnetlink_conntrack.h> 
-+#include <linux/netfilter/nfnetlink.h>
-+#include <linux/netfilter_ipv4/ip_conntrack_netlink.h> 
- #include <linux/netfilter_ipv4/ip_conntrack.h>
- #include "../libnfnetlink/libnfnetlink.h"
- 
-@@ -27,7 +27,7 @@
- 
- struct ctnl_handle {
- 	struct nfnl_handle nfnlh;
--	struct ctnl_msg_handler *handler[CTNL_MSG_COUNT];
-+	struct ctnl_msg_handler *handler[IPCTNL_MSG_COUNT];
- };
- 
- extern int ctnl_open(struct ctnl_handle *cth, unsigned subscriptions);
-@@ -37,9 +37,10 @@
- 				 struct ctnl_msg_handler *hndlr);
- extern int ctnl_get_conntrack(struct ctnl_handle *cth,
- 			      struct ip_conntrack_tuple *tuple,
--			      struct nfattr **cb);
-+			      enum ctattr_type_t t);
- extern int ctnl_del_conntrack(struct ctnl_handle *cth,
--			      struct ip_conntrack_tuple *t);
-+			      struct ip_conntrack_tuple *tuple,
-+			      enum ctattr_type_t t);
- extern int ctnl_list_conntrack(struct ctnl_handle *cth, int family);
- 
- extern int ctnl_list_expect(struct ctnl_handle *cth, int family);
+1) unpack the pristine kernel sources of 2.6.11
+2) apply pablos patches from 
+http://people.netfilter.org/pablo/patches/nfnetlink-conntrack-0.50-2.6.11/
+3) build and install your kernel & modules with all the right NF options 
+enabled
+4) unpack a recent libctnetlink from 
+ftp://ftp.netfilter.org/pub/libctnetlink/snapshot/
+5) run:
+   automake-1.4
+   autoconf
+6) unpack a recent libnfnetlink from 
+ftp://ftp.netfilter.org/pub/libnfnetlink/snapshot/
+make a symlink from libnfnetlink-2005xxxx to libnfnetlink so that 
+libctnetlink can find it
+7) run:
+   automake-1.4
+   autoconf
+8) inside the libctnetlink dir
+./configure
+make
+make install
+9) inside the libnfnetlink dir
+./configure
+make
+make install
 
---------------010308060006070005010509
-Content-Type: text/plain;
- name="y"
+Attached is my candidate patch for ctnltest.c which can be compiled with:
+gcc -o ctnltest ctnltest.c -L/usr/local/lib 
+-I/opt/KERNEL/linux-2.6.11.6/include/ -lctnetlink -lnfnetlink
+
+(you might need to put /usr/local/lib in your /etc/ld.so.conf and run 
+ldconfig)
+
+
+--------------070500050102030100050008
+Content-Type: text/x-patch;
+ name="ctnltest.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="y"
+ filename="ctnltest.patch"
 
-Index: libnfnetlink.h
-===================================================================
---- libnfnetlink.h	(revision 3742)
-+++ libnfnetlink.h	(working copy)
-@@ -8,7 +8,7 @@
- 
+--- ctnltest.c.orig     2005-04-08 15:38:22.000000000 -0400
++++ ctnltest.c  2005-04-08 16:18:58.000000000 -0400
+@@ -10,7 +10,7 @@
+
  #include <linux/types.h>
  #include <linux/netlink.h>
--#include <linux/nfnetlink.h>
-+#include <linux/netfilter/nfnetlink.h>
- 
- #define NFNL_BUFFSIZE		8192
- 
+-#include <linux/nfnetlink_conntrack.h>
++#include <linux/netfilter_ipv4/ip_conntrack_netlink.h>
 
---------------010308060006070005010509--
+ #include "libctnetlink.h"
+
+@@ -115,7 +115,7 @@
+        if (cb[CTA_ORIG]) {
+                printf("orig: %s\n",
+                                display_tuple_flat(NFA_DATA(cb[CTA_ORIG])));
+-               ctnl_del_conntrack(cth, NFA_DATA(cb[CTA_ORIG]));
++               ctnl_del_conntrack(cth, NFA_DATA(cb[CTA_ORIG]),CTA_UNSPEC);
+        }
+        if (cb[CTA_RPLY])
+                printf("rply: %s\n",
+@@ -169,7 +169,7 @@
+                exit(2);
+        }
+
+-       ctnl_wilddump_request(cth, AF_INET, CTNL_MSG_GETCONNTRACK);
++       ctnl_wilddump_request(cth, AF_INET, IPCTNL_MSG_GETCONNTRACK);
+
+        while (len = recv(cth->nfnlh.fd, &buf, sizeof(buf), 0)) {
+                printf("pkt received\n");
+
+--------------070500050102030100050008--
