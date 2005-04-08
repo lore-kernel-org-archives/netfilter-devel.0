@@ -1,14 +1,19 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: About matching
-Date: Fri, 8 Apr 2005 09:18:46 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0504080901080.21705@blackhole.kfki.hu>
-References: <20050407000158.02AA.LARK@linux.net.cn>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] REJECT for 2.6.9+
+Date: Fri, 08 Apr 2005 16:58:45 +0900 (JST)
+Message-ID: <200504080758.j387wkif011777@toshiba.co.jp>
+References: <423DA194.40100@trash.net>
+	<200503300205.j2U25fCc021930@toshiba.co.jp>
+	<42503569.5080406@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Multipart/Mixed;
+	boundary="--Next_Part(Fri_Apr__8_16:58:45_2005_682)--"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
+	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Wang Jian <lark@linux.net.cn>
-In-Reply-To: <20050407000158.02AA.LARK@linux.net.cn>
+To: kaber@trash.net
+In-Reply-To: <42503569.5080406@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,33 +25,77 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+----Next_Part(Fri_Apr__8_16:58:45_2005_682)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-On Thu, 7 Apr 2005, Wang Jian wrote:
 
-> iptables <match rule 1> -j CONNMARK --set-mark value/mask
-> iptables <match rule 1> -j RETURN
->
-> How many times the match rule 1 is evaluated when matched? If two, then
-> the second time is waste of CPU cycle.
->
-> Then think these three
->
-> iptables <match rule 1> -j CONNMARK --set-mark value/mask
-> iptables <match rule 1> -j CONNMARK --restore --mask mask
-> iptables <match rule 1> -j RETURN
->
-> Are there any optimization for such case?
+Hi, Patrick,
 
-No, but what's wrong with a natural subchain called with the condition
-<match rule 1>? If the return position should be the chain according to
-the original rules above, one could dust off Henrik's goto patch from
-pom-ng.
+Sorry for late replying. I looked other parts.
+This patch makes send_reset() look xfrm policy and deletes unnecessary
+dst_hold().
 
-Best regards,
-Jozsef
+	Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+
+Regards,
+
+From: Patrick McHardy <kaber@trash.net>
+Date: Sun, 03 Apr 2005 20:26:49 +0200
+
+> Yasuyuki KOZAKAI wrote:
+> > I wrote ip6t_REJECT so that the source address of ICMPv6 error was
+> > destination address of original packet. Because of this behavior,
+> > send_unreach could not use icmpv6_send().
+> > But now I have found that the behavior of ipt_REJECT is different.
+> > The source address of ICMP error is its node. I think the behavior of them
+> > should be same. Moreover, ipt_REJECT has changed to use icmp_send() recently.
+> 
+> That makes sense. Do you have any other issues with submitting
+> this patch?
+
+
+-----------------------------------------------------------------
+Yasuyuki KOZAKAI @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+
+
+----Next_Part(Fri_Apr__8_16:58:45_2005_682)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="reject.patch"
+
+Index: linux-2.6/net/ipv6/netfilter/ip6t_REJECT.c
+===================================================================
+--- linux-2.6/net/ipv6/netfilter/ip6t_REJECT.c	(revision 3827)
++++ linux-2.6/net/ipv6/netfilter/ip6t_REJECT.c	(working copy)
+@@ -122,6 +122,11 @@
+ 		return;
+ 	}
+ 
++	if (xfrm_lookup(&dst, &fl, NULL, 0)) {
++		dst_release(dst);
++		return;
++	}
++
+ 	hh_len = (dst->dev->hard_header_len + 15)&~15;
+ 	nskb = alloc_skb(hh_len + 15 + dst->header_len + sizeof(struct ipv6hdr)
+ 			 + sizeof(struct tcphdr) + dst->trailer_len,
+@@ -135,7 +140,6 @@
+ 	}
+ 
+ 	nskb->dst = dst;
+-	dst_hold(dst);
+ 
+ 	skb_reserve(nskb, hh_len + dst->header_len);
+ 
+@@ -182,8 +186,6 @@
+ 
+ 	NF_HOOK(PF_INET6, NF_IP6_LOCAL_OUT, nskb, NULL, nskb->dst->dev,
+ 		maybe_reroute);
 -
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+-	dst_release(dst);
+ }
+ 
+ static inline void
+
+----Next_Part(Fri_Apr__8_16:58:45_2005_682)----
