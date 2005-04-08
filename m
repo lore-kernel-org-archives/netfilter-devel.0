@@ -1,18 +1,11 @@
-From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
-	<yoshfuji@linux-ipv6.org>
-Subject: Re: (usagi-core 22742) Re: [PATCH] REJECT for 2.6.9+
-Date: Fri, 08 Apr 2005 17:32:06 +0900 (JST)
-Message-ID: <20050408.173206.113294790.yoshfuji@linux-ipv6.org>
-References: <200503300205.j2U25fCc021930@toshiba.co.jp>
-	<42503569.5080406@trash.net>
-	<200504080758.j387wkif011777@toshiba.co.jp>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: [IPTABLES] [PATCH] fix ipt_conntrack leftover
+Date: Fri, 08 Apr 2005 10:42:09 +0200
+Message-ID: <425643E1.5040709@eurodev.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+Content-Type: multipart/mixed; boundary="------------030302070805070209010103"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: usagi-core@linux-ipv6.org, yasuyuki.kozakai@toshiba.co.jp
-In-Reply-To: <200504080758.j387wkif011777@toshiba.co.jp>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,13 +17,63 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In article <200504080758.j387wkif011777@toshiba.co.jp> (at Fri, 08 Apr 2005 16:58:45 +0900 (JST)), Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp> says:
+This is a multi-part message in MIME format.
+--------------030302070805070209010103
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> This patch makes send_reset() look xfrm policy and deletes unnecessary
-> dst_hold().
-> 
-> 	Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+This patch is for iptables.
 
-How about send_unreach()?
+someone forgot to update ipt_conntrack.h header in user space. So, 
+update it to use ip_conntrack_old_tuple.
 
---yoshfuji
+--
+Pablo
+
+--------------030302070805070209010103
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+Index: include/linux/netfilter_ipv4/ipt_conntrack.h
+===================================================================
+--- include/linux/netfilter_ipv4/ipt_conntrack.h	(revision 3827)
++++ include/linux/netfilter_ipv4/ipt_conntrack.h	(working copy)
+@@ -22,11 +22,32 @@
+ #define IPT_CONNTRACK_STATUS	0x40
+ #define IPT_CONNTRACK_EXPIRES	0x80
+ 
++/* This is exposed to userspace, so remains frozen in time. */
++struct ip_conntrack_old_tuple
++{
++	struct {
++		u_int32_t ip;
++		union {
++			u_int16_t all;
++		} u;
++	} src;
++
++	struct {
++		u_int32_t ip;
++		union {
++			u_int16_t all;
++		} u;
++
++		/* The protocol. */
++		u_int16_t protonum;
++	} dst;
++};
++
+ struct ipt_conntrack_info
+ {
+ 	unsigned int statemask, statusmask;
+ 
+-	struct ip_conntrack_tuple tuple[IP_CT_DIR_MAX];
++	struct ip_conntrack_old_tuple tuple[IP_CT_DIR_MAX];
+ 	struct in_addr sipmsk[IP_CT_DIR_MAX], dipmsk[IP_CT_DIR_MAX];
+ 
+ #ifdef KERNEL_64_USERSPACE_32
+
+--------------030302070805070209010103--
