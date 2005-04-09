@@ -1,20 +1,20 @@
-From: hamid jafarian <hamid.jafarian@gmail.com>
-Subject: Re: a new version of iptabes
-Date: Sat, 9 Apr 2005 12:25:50 +0430
-Message-ID: <464293e6050409005573f2c7fb@mail.gmail.com>
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re[2]: a new version of iptabes
+Date: Sat, 9 Apr 2005 10:56:16 +0200
+Message-ID: <939523513.20050409105616@dns.toxicfilms.tv>
 References: <464293e605040500395fa1fe55@mail.gmail.com>
 	<464293e60504050045720b8e52@mail.gmail.com>
 	<464293e60504070104d1a3029@mail.gmail.com>
 	<4254F592.6030703@eurodev.net>
-Reply-To: hamid jafarian <hamid.jafarian@gmail.com>
+	<464293e6050409005573f2c7fb@mail.gmail.com>
+Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>, "netfilter-devel@lists.netfilter.org"
-	<netfilter-devel@lists.netfilter.org>
-In-Reply-To: <4254F592.6030703@eurodev.net>
-Content-Disposition: inline
+To: hamid jafarian <hamid.jafarian@gmail.com>
+In-Reply-To: <464293e6050409005573f2c7fb@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,26 +26,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Apr 7, 2005 1:25 PM, Pablo Neira <pablo@eurodev.net> wrote:=20
->=20
-> hamid jafarian wrote:
-> > You know that the classification algorithms (like of HiCuts & BV &=20
-> Hypercuts
-> > ) are developed to manage the classifying process of the packets.
->=20
-> cool, where's your version ?
->=20
-> --
-> Pablo
->=20
+Hello hamid,
 
-easy .. beside me ...
-all of the files in the user space and also for the kernel space have been=
-=20
-changed .. and also been test
-if you want .. i will give you the files and also installation help .... bu=
-t=20
-to whom and also how
+Saturday, April 9, 2005, 9:55:50 AM, you wrote:
 
---=20
-H.T.
+> On Apr 7, 2005 1:25 PM, Pablo Neira <pablo@eurodev.net> wrote: 
+>> cool, where's your version ?
+
+> if you want .. i will give you the files and also installation help .... but
+> to whom and also how
+To show your work please refer to FAQ 4.4:
+http://www.iptables.org/documentation/FAQ/netfilter-faq-4.html#ss4.4
+
+Post the patch here or make a website with the patch and installation docs.
+You want this to be public, right?
+
+--
+Regards,
+Maciej
