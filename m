@@ -1,20 +1,16 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: Re[2]: a new version of iptabes
-Date: Sat, 9 Apr 2005 10:56:16 +0200
-Message-ID: <939523513.20050409105616@dns.toxicfilms.tv>
-References: <464293e605040500395fa1fe55@mail.gmail.com>
-	<464293e60504050045720b8e52@mail.gmail.com>
-	<464293e60504070104d1a3029@mail.gmail.com>
-	<4254F592.6030703@eurodev.net>
-	<464293e6050409005573f2c7fb@mail.gmail.com>
-Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: [PATCH] Some parameter fixes for ip(6)tables.c
+Date: Sat, 09 Apr 2005 23:35:40 +0000
+Message-ID: <425866CC.3020809@outerspace.dyndns.org>
+References: <424144D6.2090107@outerspace.dyndns.org>
+	<20050401063500.GM19835@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: hamid jafarian <hamid.jafarian@gmail.com>
-In-Reply-To: <464293e6050409005573f2c7fb@mail.gmail.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050401063500.GM19835@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,21 +22,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello hamid,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Saturday, April 9, 2005, 9:55:50 AM, you wrote:
+Hello, sorry for my late reply..
 
-> On Apr 7, 2005 1:25 PM, Pablo Neira <pablo@eurodev.net> wrote: 
->> cool, where's your version ?
+Quoting Harald Welte on 2005-04-01 06:35 UTC:
 
-> if you want .. i will give you the files and also installation help .... but
-> to whom and also how
-To show your work please refer to FAQ 4.4:
-http://www.iptables.org/documentation/FAQ/netfilter-faq-4.html#ss4.4
+|> 2. the commands_v_options two-dimensional array lacks a column for the
+|> -c flag. I tried to deduce feasible values, please look at them before
+|> accepting :)
+|>
+|> 3. the inverse_for_options array lacks a row for the -c flag. By
+|> looking at the code I figured it does not allow the "!" inversion
+|> option, so I constructed the line accordingly.
+|
+|
+| erm, do you find something that actually implements CMD_CHECK?
 
-Post the patch here or make a website with the patch and installation docs.
-You want this to be public, right?
+No I didn't..
 
---
-Regards,
-Maciej
+What would you like me to do? Should I improve my patch to take out
+CMD_CHECK and adjust the bit masks accordingly? Unless I got something
+wrong, my fix 3 above wasn't related to CMD_CHECK in any way..?
+
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCWGbKxyF48ZTvn+4RAhlOAJ4mSLXoXP7EGUhgi12YgSYPxgrPjgCcCTiC
+c22FIgr6OvJYk2Jb4XpyNgo=
+=XTlA
+-----END PGP SIGNATURE-----
