@@ -1,16 +1,22 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: [PATCH] Some parameter fixes for ip(6)tables.c
-Date: Sat, 09 Apr 2005 23:35:40 +0000
-Message-ID: <425866CC.3020809@outerspace.dyndns.org>
-References: <424144D6.2090107@outerspace.dyndns.org>
-	<20050401063500.GM19835@sunbeam.de.gnumonks.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: ipt_time fixes (resend, sorry)
+Date: Sun, 10 Apr 2005 22:26:32 +0200
+Message-ID: <20050410202632.GO9155@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.61.0501141503220.9908@bizon.gios.gov.pl>
+	<20050114143722.GA10088@ti64.telemetry-investments.com>
+	<Pine.LNX.4.61.0501141542230.3572@bizon.gios.gov.pl>
+	<57991.142.169.215.10.1105716756.squirrel@142.169.215.10>
+	<Pine.LNX.4.61.0501141622190.4865@bizon.gios.gov.pl>
+	<20050201120618.GA6878@sunbeam.de.gnumonks.org>
+	<Pine.LNX.4.62.0504051006020.4373@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zD4kWSsXNMryRTZe"
+Cc: netfilter-devel@lists.netfilter.org, Fabrice MARIE <fabrice@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050401063500.GM19835@sunbeam.de.gnumonks.org>
+To: Krzysztof Oledzki <olenf@ans.pl>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.62.0504051006020.4373@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,36 +28,57 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-Hello, sorry for my late reply..
+--zD4kWSsXNMryRTZe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Quoting Harald Welte on 2005-04-01 06:35 UTC:
+On Tue, Apr 05, 2005 at 10:18:34AM +0200, Krzysztof Oledzki wrote:
+>=20
+>=20
+> On Tue, 1 Feb 2005, Harald Welte wrote:
+>=20
+> >On Fri, Jan 14, 2005 at 04:24:01PM +0100, Krzysztof Oledzki wrote:
+> >>OK, How about...
+> >Could you please coordinate with Fabrice Marie (the author of the
+> >module?) and send me (personally) the final patch?
+>=20
+> Hello,
+>=20
+> I think it is good time to commit my ipt_time-fix-timestamp2.patch. I bel=
+ieve=20
+> it was ACKed by the author of ipt_time module:
 
-|> 2. the commands_v_options two-dimensional array lacks a column for the
-|> -c flag. I tried to deduce feasible values, please look at them before
-|> accepting :)
-|>
-|> 3. the inverse_for_options array lacks a row for the -c flag. By
-|> looking at the code I figured it does not allow the "!" inversion
-|> option, so I constructed the line accordingly.
-|
-|
-| erm, do you find something that actually implements CMD_CHECK?
+yes.  Unfortunately the patch didn't apply:
 
-No I didn't..
+patching file time/linux/net/ipv4/netfilter/ipt_time.c
+Hunk #1 FAILED at 48.
 
-What would you like me to do? Should I improve my patch to take out
-CMD_CHECK and adjust the bit masks accordingly? Unless I got something
-wrong, my fix 3 above wasn't related to CMD_CHECK in any way..?
+can you please provide a current verison of the patc and send it as
+mime-attachment?
 
-- --
-- - xkr47
+thanks!
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--zD4kWSsXNMryRTZe
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+Version: GnuPG v1.4.0 (GNU/Linux)
 
-iD8DBQFCWGbKxyF48ZTvn+4RAhlOAJ4mSLXoXP7EGUhgi12YgSYPxgrPjgCcCTiC
-c22FIgr6OvJYk2Jb4XpyNgo=
-=XTlA
+iD8DBQFCWYv4XaXGVTD0i/8RAlzrAJ93QIJIHt3S8N61FJtFKrQh2zjztQCdEfbu
+1f6ZQ8VDodTvsRRF3HBYcdQ=
+=7pX7
 -----END PGP SIGNATURE-----
+
+--zD4kWSsXNMryRTZe--
