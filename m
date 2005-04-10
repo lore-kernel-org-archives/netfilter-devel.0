@@ -1,16 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: patch for ulogd pgsql output plugin
-Date: Sun, 10 Apr 2005 23:02:03 +0200
-Message-ID: <20050410210203.GA9155@sunbeam.de.gnumonks.org>
-References: <425655C0.1080903@entri.com.ua>
+From: Max Kellermann <max@duempel.org>
+Subject: Re: [PATCH pom-ng] H.225 parser for h323-conntrack-nat
+Date: Sun, 10 Apr 2005 23:01:33 +0200
+Message-ID: <20050410210132.GA10790@roonstrasse.net>
+References: <Pine.LNX.4.58.0504040852460.12853@blackhole.kfki.hu>
+	<20050404091035.GB28490@roonstrasse.net>
+	<20050404215535.022F.LARK@linux.net.cn>
+	<20050404140639.GA31341@roonstrasse.net>
+	<20050410204121.GQ9155@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RqQx4rfNhO01Vpv5"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Andrew Kozachenko <andrew@entri.com.ua>
+To: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <425655C0.1080903@entri.com.ua>
+In-Reply-To: <20050410204121.GQ9155@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,39 +24,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On 2005/04/10 22:41, Harald Welte <laforge@netfilter.org> wrote:
+> hm, seems we now have your and my (unfinished) port.  I should have
+> read netfilter-devel more often, it seems.
 
---RqQx4rfNhO01Vpv5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Damn.. I'll Cc you from now on. I was unsure who of you guys was
+feeling responsible for applying my patches.
 
-On Fri, Apr 08, 2005 at 12:58:24PM +0300, Andrew Kozachenko wrote:
-> Bug in pgsql/ulogd_PGSQL.c causes ifinite loop on ulogd-1.21 startup.
-> Here is the fix.
+> I've now merged your code in svn trunk, please verify if everything
+> works allright.
 
-thanks, already fixed in subversion some time ago.  ulogd-1.22 (March 7)
-also contains the fix.
+Looks good, the code is identical to my local darcs tree (as far as
+I've submitted it already).
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---RqQx4rfNhO01Vpv5
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQFCWZRLXaXGVTD0i/8RAqsmAJ94VG66x5N5YT3qdwkwTEEIlxSmNACfYN+Y
-up8Dtvj7N+OfMWtL0VdK4Uc=
-=iClI
------END PGP SIGNATURE-----
-
---RqQx4rfNhO01Vpv5--
+Max
