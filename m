@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: ICMP error handling in CLUSTERIP
-Date: Sun, 10 Apr 2005 22:58:42 +0200
-Message-ID: <20050410205842.GY9155@sunbeam.de.gnumonks.org>
-References: <000001c53a8c$d5910290$aa28abc1@Vagabond>
+Subject: Re: [IPTABLES] [PATCH] fix ipt_conntrack leftover
+Date: Sun, 10 Apr 2005 23:01:13 +0200
+Message-ID: <20050410210113.GZ9155@sunbeam.de.gnumonks.org>
+References: <425643E1.5040709@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Q2eHRNFhq9YPz0FN"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="i2jtRfQnnEqHm4mE"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Alexander Stieglecker <a.stieglecker@gmx.net>
+To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
-In-Reply-To: <000001c53a8c$d5910290$aa28abc1@Vagabond>
+In-Reply-To: <425643E1.5040709@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,26 +23,18 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Q2eHRNFhq9YPz0FN
+--i2jtRfQnnEqHm4mE
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 06, 2005 at 11:41:39AM +0200, Alexander Stieglecker wrote:
-> /* special case: ICMP error handling. conntrack distinguishes between
->  * error messages (RELATED) and information requests (see below) */
-> if ((*pskb)->nh.iph->protocol =3D=3D IPPROTO_ICMP
->     && (ctinfo =3D=3D IP_CT_RELATED=20
-> 	|| ctinfo =3D=3D IP_CT_IS_REPLY+IP_CT_IS_REPLY))
-> 	return IPT_CONTINUE;
+On Fri, Apr 08, 2005 at 10:42:09AM +0200, Pablo Neira wrote:
+> This patch is for iptables.
 >=20
-> IP_CT_IS_REPLY+IP_CT_IS_REPLY equals six which is greater than IP_CT_NUMB=
-ER.
-> Shouldn't it be something like IP_CT_IS_RELATED+IP_CT_IS_REPLY?
+> someone forgot to update ipt_conntrack.h header in user space. So,
+> update it to use ip_conntrack_old_tuple.
 
-good catch.  Committing to svn now, patch for mainline added to my set
-of pending patches.
-
+thanks, applied.
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -53,16 +45,16 @@ of pending patches.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Q2eHRNFhq9YPz0FN
+--i2jtRfQnnEqHm4mE
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.0 (GNU/Linux)
 
-iD8DBQFCWZOCXaXGVTD0i/8RAsuXAKCnuQsmG+z+W/zUd0kyp0IUPo/UBgCePe7G
-HVCGNJqzXjo9+A3CLTH5sS0=
-=o3IO
+iD8DBQFCWZQZXaXGVTD0i/8RAsUXAJ9WJwYBVWVRQt2Tk35wlgwfpJOAdQCfRnkY
+mjXZX76DahT81Cp0VcJPxeQ=
+=TsYz
 -----END PGP SIGNATURE-----
 
---Q2eHRNFhq9YPz0FN--
+--i2jtRfQnnEqHm4mE--
