@@ -1,19 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: REJECT target / need-fragment ?
-Date: Sun, 10 Apr 2005 22:30:08 +0200
-Message-ID: <20050410203008.GP9155@sunbeam.de.gnumonks.org>
-References: <20050314125747.GA18233@paradigm.rfc822.org>
-	<42373578.8060806@trash.net>
-	<20050406113859.GA5335@paradigm.rfc822.org>
+Subject: Re: [PATCH pom-ng] H.225 parser for h323-conntrack-nat
+Date: Sun, 10 Apr 2005 22:41:21 +0200
+Message-ID: <20050410204121.GQ9155@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.58.0504040852460.12853@blackhole.kfki.hu>
+	<20050404091035.GB28490@roonstrasse.net>
+	<20050404215535.022F.LARK@linux.net.cn>
+	<20050404140639.GA31341@roonstrasse.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mN1JkpzzjA4mCWyC"
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+	protocol="application/pgp-signature"; boundary="U/R2oelL0JVaeI5e"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Florian Lohoff <flo@rfc822.org>
+To: Max Kellermann <max@duempel.org>
 Content-Disposition: inline
-In-Reply-To: <20050406113859.GA5335@paradigm.rfc822.org>
+In-Reply-To: <20050404140639.GA31341@roonstrasse.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,30 +26,33 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---mN1JkpzzjA4mCWyC
+--U/R2oelL0JVaeI5e
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 06, 2005 at 01:38:59PM +0200, Florian Lohoff wrote:
-> On Tue, Mar 15, 2005 at 08:20:24PM +0100, Patrick McHardy wrote:
-> > Florian Lohoff wrote:
-> > >Hi,
-> > >i'd like to reject packets based on their size and send back and
-> > >icmp-must-fragment with a configurable size. As i can see no such
-> > >possibility is there currently. The REJECT target itself does not
-> > >offer this.
+On Mon, Apr 04, 2005 at 04:06:39PM +0200, Max Kellermann wrote:
+> On 2005/04/04 16:01, Wang Jian <lark@linux.net.cn> wrote:
+> [...]
+> > I want to make it works under 2.6.11 or 2.6.12. I really need your help
+> > to finish it in time.
+> >=20
+> > I will spend a day (ideally) to look into the new conntrack
+> > infrastructure, and then I will spend time on every conntrack involved.
+> > If the old code works, I think it is not very hard to port them to new
+> > infrastructure. provided that new infrastruture is stable and good.
 >=20
-> > Yes, but adding yet another target that does something already done
-> > elsewhere is not a good idea. You could try to extend ipt_REJECT
-> > in a way similar to Rusty's patch "Add bitops to ipt_MARK without
-> > breaking compatbility".
+> I already ported h323-conntrack-nat to 2.6.11, but my port is hidden
+> in an obsolete branch in the pom-ng svn repository. Please grab my
+> patch from my home page:
 >=20
-> Ok - Had a boring network change this morning - results:
+>  http://max.kellermann.name/projects/netfilter/h323.html
 
-thanks, looks fine to me.  I've applied the userspace part and put the
-kernel part into my list of pending patches.
+hm, seems we now have your and my (unfinished) port.   I should have
+read netfilter-devel more often, it seems.
 
+I've now merged your code in svn trunk, please verify if everything
+works allright.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -61,16 +64,16 @@ kernel part into my list of pending patches.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---mN1JkpzzjA4mCWyC
+--U/R2oelL0JVaeI5e
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.0 (GNU/Linux)
 
-iD8DBQFCWYzQXaXGVTD0i/8RAgZAAJ0VZoSFi+PNo+sTC5T/3PFbfa/2MwCfWFgd
-GQNb7uipVC3D72GLfiVeOjk=
-=WXZx
+iD8DBQFCWY9xXaXGVTD0i/8RApbRAJ4gEjk3tu2aIvEULDkBdqN3hwUMfACfQGIa
+lyFv1zl6J9B8j2tFtL5Eo24=
+=iWXz
 -----END PGP SIGNATURE-----
 
---mN1JkpzzjA4mCWyC--
+--U/R2oelL0JVaeI5e--
