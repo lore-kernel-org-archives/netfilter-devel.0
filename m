@@ -1,22 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: ipt_time fixes (resend, sorry)
-Date: Sun, 10 Apr 2005 22:26:32 +0200
-Message-ID: <20050410202632.GO9155@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.61.0501141503220.9908@bizon.gios.gov.pl>
-	<20050114143722.GA10088@ti64.telemetry-investments.com>
-	<Pine.LNX.4.61.0501141542230.3572@bizon.gios.gov.pl>
-	<57991.142.169.215.10.1105716756.squirrel@142.169.215.10>
-	<Pine.LNX.4.61.0501141622190.4865@bizon.gios.gov.pl>
-	<20050201120618.GA6878@sunbeam.de.gnumonks.org>
-	<Pine.LNX.4.62.0504051006020.4373@bizon.gios.gov.pl>
+Subject: Re: REJECT target / need-fragment ?
+Date: Sun, 10 Apr 2005 22:30:08 +0200
+Message-ID: <20050410203008.GP9155@sunbeam.de.gnumonks.org>
+References: <20050314125747.GA18233@paradigm.rfc822.org>
+	<42373578.8060806@trash.net>
+	<20050406113859.GA5335@paradigm.rfc822.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zD4kWSsXNMryRTZe"
-Cc: netfilter-devel@lists.netfilter.org, Fabrice MARIE <fabrice@netfilter.org>
+	protocol="application/pgp-signature"; boundary="mN1JkpzzjA4mCWyC"
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
+To: Florian Lohoff <flo@rfc822.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.62.0504051006020.4373@bizon.gios.gov.pl>
+In-Reply-To: <20050406113859.GA5335@paradigm.rfc822.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,36 +26,31 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---zD4kWSsXNMryRTZe
+--mN1JkpzzjA4mCWyC
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Apr 05, 2005 at 10:18:34AM +0200, Krzysztof Oledzki wrote:
+On Wed, Apr 06, 2005 at 01:38:59PM +0200, Florian Lohoff wrote:
+> On Tue, Mar 15, 2005 at 08:20:24PM +0100, Patrick McHardy wrote:
+> > Florian Lohoff wrote:
+> > >Hi,
+> > >i'd like to reject packets based on their size and send back and
+> > >icmp-must-fragment with a configurable size. As i can see no such
+> > >possibility is there currently. The REJECT target itself does not
+> > >offer this.
 >=20
+> > Yes, but adding yet another target that does something already done
+> > elsewhere is not a good idea. You could try to extend ipt_REJECT
+> > in a way similar to Rusty's patch "Add bitops to ipt_MARK without
+> > breaking compatbility".
 >=20
-> On Tue, 1 Feb 2005, Harald Welte wrote:
->=20
-> >On Fri, Jan 14, 2005 at 04:24:01PM +0100, Krzysztof Oledzki wrote:
-> >>OK, How about...
-> >Could you please coordinate with Fabrice Marie (the author of the
-> >module?) and send me (personally) the final patch?
->=20
-> Hello,
->=20
-> I think it is good time to commit my ipt_time-fix-timestamp2.patch. I bel=
-ieve=20
-> it was ACKed by the author of ipt_time module:
+> Ok - Had a boring network change this morning - results:
 
-yes.  Unfortunately the patch didn't apply:
+thanks, looks fine to me.  I've applied the userspace part and put the
+kernel part into my list of pending patches.
 
-patching file time/linux/net/ipv4/netfilter/ipt_time.c
-Hunk #1 FAILED at 48.
 
-can you please provide a current verison of the patc and send it as
-mime-attachment?
-
-thanks!
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -69,16 +61,16 @@ thanks!
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---zD4kWSsXNMryRTZe
+--mN1JkpzzjA4mCWyC
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.0 (GNU/Linux)
 
-iD8DBQFCWYv4XaXGVTD0i/8RAlzrAJ93QIJIHt3S8N61FJtFKrQh2zjztQCdEfbu
-1f6ZQ8VDodTvsRRF3HBYcdQ=
-=7pX7
+iD8DBQFCWYzQXaXGVTD0i/8RAgZAAJ0VZoSFi+PNo+sTC5T/3PFbfa/2MwCfWFgd
+GQNb7uipVC3D72GLfiVeOjk=
+=WXZx
 -----END PGP SIGNATURE-----
 
---zD4kWSsXNMryRTZe--
+--mN1JkpzzjA4mCWyC--
