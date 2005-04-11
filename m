@@ -1,13 +1,15 @@
-From: Max Kellermann <max@duempel.org>
-Subject: [PATCH pom h323-conntrack-nat] set exp->master in h245_help()
-Date: Mon, 11 Apr 2005 22:08:55 +0200
-Message-ID: <20050411200855.GA24633@roonstrasse.net>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: POM extensions
+Date: Mon, 11 Apr 2005 22:02:17 +0000
+Message-ID: <425AF3E9.5010409@outerspace.dyndns.org>
+References: <20050408143928.GA16346@helminth.linuxhacker.ru>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="gKMricLos+KVdGMg"
-Cc: laforge@netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Anatoly Pugachev <mator@rootshell.ru>
+In-Reply-To: <20050408143928.GA16346@helminth.linuxhacker.ru>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,36 +21,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---gKMricLos+KVdGMg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Quoting Anatoly Pugachev on 2005-04-08 14:39 UTC:
 
-Hi,
+> Is there any u32 for 2.6.x kernel exists? 
 
-this small patch re-adds a line which had disappeared for an unknown
-reason from my sources...
+I'm working on it. It might take a week, I'm a bit busy.
 
-Max
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
-
---gKMricLos+KVdGMg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="h323-set_exp_master.patch"
-
-Mon Apr 11 21:56:02 CEST 2005  max@duempel.org
-  * bugfix: set exp->master in h245_help()
-diff -rN -u old-h323-8/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323.c new-h323-8/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323.c
---- old-h323-8/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323.c	2005-04-11 22:07:31.000000000 +0200
-+++ new-h323-8/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323.c	2005-04-11 22:07:31.000000000 +0200
-@@ -135,6 +135,7 @@
- 				  { 0xFFFFFFFF, { .tcp = { 0xFFFF } }, 0xFF }});
- 
- 			exp->expectfn = NULL;
-+			exp->master = ct;
- 
- 			if (ip_nat_h245_hook != NULL) {
- 				ret = ip_nat_h245_hook(pskb, ctinfo, i,
-
-
---gKMricLos+KVdGMg--
+iD8DBQFCWvPoxyF48ZTvn+4RAj8BAKCqUIg9O4HTYdHpa6KZYmsVTHKAewCeMao1
+E+SK7SyPjYSHNQ6Pau67nIk=
+=yAxz
+-----END PGP SIGNATURE-----
