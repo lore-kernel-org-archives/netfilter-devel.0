@@ -1,15 +1,19 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: POM extensions
-Date: Mon, 11 Apr 2005 22:02:17 +0000
-Message-ID: <425AF3E9.5010409@outerspace.dyndns.org>
-References: <20050408143928.GA16346@helminth.linuxhacker.ru>
+From: Florian Lohoff <flo@rfc822.org>
+Subject: Re: REJECT target / need-fragment ?
+Date: Tue, 12 Apr 2005 00:31:44 +0200
+Message-ID: <20050411223144.GA13620@paradigm.rfc822.org>
+References: <20050314125747.GA18233@paradigm.rfc822.org>
+	<42373578.8060806@trash.net>
+	<20050406113859.GA5335@paradigm.rfc822.org>
+	<20050410203008.GP9155@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="d6Gm4EdcadzBjdND"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Anatoly Pugachev <mator@rootshell.ru>
-In-Reply-To: <20050408143928.GA16346@helminth.linuxhacker.ru>
+To: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <20050410203008.GP9155@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,21 +25,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-Quoting Anatoly Pugachev on 2005-04-08 14:39 UTC:
+--d6Gm4EdcadzBjdND
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Is there any u32 for 2.6.x kernel exists? 
+On Sun, Apr 10, 2005 at 10:30:08PM +0200, Harald Welte wrote:
+>=20
+> thanks, looks fine to me.  I've applied the userspace part and put the
+> kernel part into my list of pending patches.
+>=20
 
-I'm working on it. It might take a week, I'm a bit busy.
+The kernel part needs an intialization in _v1 for the pmtu value -
+Otherwise we leak the short pmtu as it gets used uninitialized.
+Probably 1500 is a good value.
 
-- --
-- - xkr47
+Flo
+--=20
+Florian Lohoff                  flo@rfc822.org             +49-171-2280134
+                        Heisenberg may have been here.
+
+--d6Gm4EdcadzBjdND
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFCWvPoxyF48ZTvn+4RAj8BAKCqUIg9O4HTYdHpa6KZYmsVTHKAewCeMao1
-E+SK7SyPjYSHNQ6Pau67nIk=
-=yAxz
+iD8DBQFCWvrQUaz2rXW+gJcRAm4yAJ983Fjsi2qZHQHEusARXbYoiYwITACgvgrt
+zMbiFjsgcS5jCBpDK3tFs6o=
+=YRGV
 -----END PGP SIGNATURE-----
+
+--d6Gm4EdcadzBjdND--
