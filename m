@@ -1,15 +1,19 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
-Subject: Re: [patch] Fix ipt_ACCOUNT for large networks - 2nd try
-Date: Mon, 11 Apr 2005 15:30:46 +0200
-Message-ID: <425A7C06.9040600@gmx.net>
-References: <200504050948.51387.thomas.jarosch@intra2net.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: ICMP error handling in CLUSTERIP
+Date: Mon, 11 Apr 2005 17:03:13 +0200
+Message-ID: <20050411150313.GA7510@sunbeam.de.gnumonks.org>
+References: <000001c53a8c$d5910290$aa28abc1@Vagabond>
+	<20050410205842.GY9155@sunbeam.de.gnumonks.org>
+	<1113220795.4330.15.camel@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="7JfCtLOvnd9MIVvH"
+Cc: Alexander Stieglecker <a.stieglecker@gmx.net>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
-In-Reply-To: <200504050948.51387.thomas.jarosch@intra2net.com>
+To: KOVACS Krisztian <hidden@balabit.hu>
+Content-Disposition: inline
+In-Reply-To: <1113220795.4330.15.camel@nienna.balabit>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,40 +25,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Thomas,
 
-Thomas Jarosch schrieb:
-> 
-> attached is a patch to fix the ACCOUNT target for large networks.
-> This time for good ;-) Discard the patch I sent yesterday.
-> 
-> It runs stable now on a network with ~1300 active clients. Quoting the user:
-> "Nevertheless, from performance point of view, ipt_ACCOUNT rocks. I have a
-> distribution for routers (Route Hat) and last night switched from ipt_account
-> to ipt_ACCOUNT completely. What took half a minute before now takes 300ms
-> i.e. 100 times faster, same router, same net. Gr8 work :-)"
+--7JfCtLOvnd9MIVvH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-When reading the source, it seems to me that ACCOUNT has some room
-for improvement:
+On Mon, Apr 11, 2005 at 01:59:55PM +0200, KOVACS Krisztian wrote:
 
-- It is handling some sparsely populated networks inefficiently.
-Consider e.g. a 192.168/16 network with 512 clients spread over
-the whole range like 192.168.0.10,192.168.0.25,192.168.1.12 etc.
-This needs as much memory as a fully populated network of the same
-size.
-- It can only handle /8,/16 and /24 networks.
-- It can't account based on MAC or MAC/IP.
-- It is impossible to select what is accounted for (packets/bytes,
-in/out) and what should be added to the counters (layer 2 frame
-length, layer 3 packet length...).
+>   Harald, I'm afraid the fix you committed to svn isn't perfect (does
+> not compile.) Shouldn't that be IP_CT_RELATED instead of
+> IP_CT_IS_RELATED?
 
-Oh, and I'd like to run the code on a 64bit machine with a 2.6 kernel.
+thanks, fixed.
 
-Do you accept patches for the above items or are they already done/
-being worked on by somebody else?
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
+--7JfCtLOvnd9MIVvH
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+
+iD8DBQFCWpGxXaXGVTD0i/8RAtmRAJ9VKeEe1Ak6fLtpD9PfWcTasgoJDACgi2ov
+HTWxVCehcobQA4UyuC5isOY=
+=cV8Z
+-----END PGP SIGNATURE-----
+
+--7JfCtLOvnd9MIVvH--
