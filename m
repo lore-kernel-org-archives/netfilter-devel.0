@@ -1,21 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH pom-ng] H.225 parser for h323-conntrack-nat
-Date: Sun, 10 Apr 2005 23:21:31 +0200
-Message-ID: <20050410212131.GC9155@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.58.0504040852460.12853@blackhole.kfki.hu>
-	<20050404091035.GB28490@roonstrasse.net>
-	<20050404215535.022F.LARK@linux.net.cn>
-	<20050404140639.GA31341@roonstrasse.net>
-	<20050410204121.GQ9155@sunbeam.de.gnumonks.org>
-	<20050410210132.GA10790@roonstrasse.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCEMENT] ipset 2.2.0 released
+Date: Mon, 11 Apr 2005 10:51:08 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0504111021210.5292@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BipTYHwbFd8z9jk5"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Max Kellermann <max@duempel.org>
-Content-Disposition: inline
-In-Reply-To: <20050410210132.GA10790@roonstrasse.net>
+To: netfilter@lists.netfilter.org,
+	netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,48 +18,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---BipTYHwbFd8z9jk5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm happy to announce ipset 2.2.0. The new release contains the following
+fixes and new features:
 
-On Sun, Apr 10, 2005 at 11:01:33PM +0200, Max Kellermann wrote:
-> On 2005/04/10 22:41, Harald Welte <laforge@netfilter.org> wrote:
-> > hm, seems we now have your and my (unfinished) port.  I should have
-> > read netfilter-devel more often, it seems.
->=20
-> Damn.. I'll Cc you from now on. I was unsure who of you guys was
-> feeling responsible for applying my patches.
+- Locking bug in ip_set_nethash.c fixed (Clifford Wolf and Rob Carlson)
+- ipset Makefile contained an unnecessary variable in IPSET_LIB_DIR
+  (Clifford Wolf)
+- Safety checkings of restore mode in ipset was incomplete (Robin H.
+  Johnson)
+- More careful resizing mode added by avoiding running under lock
+- stdin stored internally in a temporary file, so from now on we can feed
+  'ipset -R' from a pipe
 
-well, it's always the one who tends to have more time at the given
-moment... which tends to change quite often.
+A new set type called 'iptree' (inspired and triggered by Clifford
+Wolf) added, which makes possible to store IP addresses which
+automatically time out. Please note, this is an initial new feature with
+some hardcoded parameter (like the frequency of garbage collection) and
+thus may change in the future.
 
-netfilter-devel is the right place, but at the moment we all seem a bit
-busy with catching up, sorry.  That's why I'm asking for the private cc.
+The svn repository at svn.netfilter.org contains the updated ipset and
+patch-o-matic-ng directories. Snapshots are available from the usual place
+at http://people.netfilter.org/kadlec/ipset.
 
-Thanks.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---BipTYHwbFd8z9jk5
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQFCWZjbXaXGVTD0i/8RAnDzAJ9dnoH/zgSRiBY9fBLlTKDYS5uSpQCfY1b0
-+tPv90wzPC7gjgbjaBsgpM8=
-=+qON
------END PGP SIGNATURE-----
-
---BipTYHwbFd8z9jk5--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
