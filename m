@@ -1,17 +1,12 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: [PATCH] Some parameter fixes for ip(6)tables.c
-Date: Mon, 11 Apr 2005 10:30:40 +0000
-Message-ID: <425A51D0.4060504@outerspace.dyndns.org>
-References: <424144D6.2090107@outerspace.dyndns.org>
-	<20050401063500.GM19835@sunbeam.de.gnumonks.org>
-	<425866CC.3020809@outerspace.dyndns.org>
-	<20050410204305.GR9155@sunbeam.de.gnumonks.org>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: nfnetlink-ctnetlink working: INSTRUCTIONS
+Date: Mon, 11 Apr 2005 11:45:23 +0100
+Message-ID: <425A5543.9000300@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020809000108090801010108"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050410204305.GR9155@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,173 +18,142 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020809000108090801010108
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Many thanks to Pablo (and Harald whose work was also contained in some 
+of the patches Pablo sent) I now have nfnetlink-ctnetlink modules and 
+libraries working such that ctnltest (part of libctnetlink) returns 
+valid data on open network connections.
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+[On note: It seems deliberate that the new nfnetlink module conflicts 
+with ip_queue because both listen on the same netlink socket number 
+NETLINK_FIREWALL (is that the right terminology). Is there a reason for 
+this?]
 
-Quoting Harald Welte on 2005-04-10 20:43 UTC:
+I document here the full steps required to make this work on pristine 
+2.6.11 kernel sources, and I repeat the steps as I write them here so 
+there will be full confidence that the steps are accurate.
 
-New patch includes fixes 2, 3 and 4 (since you already applied fix 1):
+(Perhaps there may be other patches that are desired, such as 
+http://lists.netfilter.org/pipermail/netfilter-devel/2005-April/019177.html)
 
-|>|> 2. the commands_v_options two-dimensional array lacks a column for the
-|>|> -c flag. I tried to deduce feasible values, please look at them before
-|>|> accepting :)
+This means that only one of these modules can be loaded at a time.
 
-for the record; the values were deduced from the commandline help texts.
+What is the reason for this?]
 
-|>|> 3. the inverse_for_options array lacks a row for the -c flag. By
-|>|> looking at the code I figured it does not allow the "!" inversion
-|>|> option, so I constructed the line accordingly.
 
-| just remove CMD_CHECK and anything relating to it.
+1) Get the pristine 2.6.11 sources and un-tar
 
-4. Removed CMD_CHECK; updated bitmasks and commands_v_options accordingly
+2) apply pablos patches from 
+http://people.netfilter.org/pablo/patches/nfnetlink-conntrack-0.50-2.6.11/
 
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+3) edit net/Kconfig and insert:
+source "net/netfilter/Kconfig"
+just before:
+source "net/ipv4/Kconfig"
 
-iD8DBQFCWlHOxyF48ZTvn+4RAo1XAKC3O1J8qQ6jEenNy/OGrgrEo4CJ3gCdGhsM
-qhya1K1gwxoc8Lw1+p6zTqs=
-=ctxE
------END PGP SIGNATURE-----
+4) edit net/Makefile
+obj-$(CONFIG_NETFILTER_NETLINK) += netfilter/
+just after:
+obj-$(CONFIG_NET)              += $(tmp-y)
 
---------------020809000108090801010108
-Content-Type: text/x-patch;
- name="iptables-1.3.1-c_flag_and_CHECK.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="iptables-1.3.1-c_flag_and_CHECK.patch"
+5) configure, build and install your kernel and modules
+My config includes:
+CONFIG_NETFILTER_NETLINK=m
+CONFIG_IP_NF_CONNTRACK=m
+CONFIG_IP_NF_CONNTRACK_NETLINK=m
+CONFIG_IP_NF_CT_ACCT=y
+CONFIG_IP_NF_CONNTRACK_MARK=y
+CONFIG_NETFILTER=y
+CONFIG_IP_NF_CONNTRACK_EVENTS=y
 
-diff --exclude-from=/tmp/srcdiff.excludes.AIs1cV -Np -ur orig-iptables-1.3.1/ip6tables.c iptables-1.3.1/ip6tables.c
---- orig-iptables-1.3.1/ip6tables.c	2005-04-02 09:38:39.000000000 +0300
-+++ iptables-1.3.1/ip6tables.c	2005-04-11 13:18:10.000000000 +0300
-@@ -81,11 +81,10 @@
- #define CMD_NEW_CHAIN		0x0100U
- #define CMD_DELETE_CHAIN	0x0200U
- #define CMD_SET_POLICY		0x0400U
--#define CMD_CHECK		0x0800U
--#define CMD_RENAME_CHAIN	0x1000U
--#define NUMBER_OF_CMD	13
--static const char cmdflags[] = { 'I', 'D', 'D', 'R', 'A', 'L', 'F', 'Z',
--				 'N', 'X', 'P', 'E' };
-+#define CMD_RENAME_CHAIN	0x0800U
-+#define NUMBER_OF_CMD	12
-+static const char cmdflags[NUMBER_OF_CMD]
-+= { 'I', 'D', 'D', 'R', 'A', 'L', 'F', 'Z', 'N', 'X', 'P', 'E' };
+once you done that, reboot to your new kernel (may as well)
+
+6) now get libctnetlink from: 
+ftp://ftp.netfilter.org/pub/libctnetlink/snapshot/
+I got the 20050410 snapshot. Possibly newer snapshots will have some of 
+the next patches already attached.
+
+7) now get libnfnetlink from:
+ftp://ftp.netfilter.org/pub/libnfnetlink/snapshot/
+I got the 20050410 snapshot. Possibly newer snapshots will have some of 
+the next patches already attached.
+
+8) untar both these files from the same dir, and then create a symlink 
+from your libnfnetlink-2005???? folder to libnfnetlink, so that 
+libctnetlink can find it. I did it like this:
+ln -s libnfnetlink-20050410 libnfnetlink
+
+9) Get and apply Pablos patches from
+http://lists.netfilter.org/pipermail/netfilter-devel/2005-April/019182.html
+(the last patch in the list is for libnfnetlink, the others are for 
+libctnetlink)
+
+10) Apply this patch in libctnetlink to fix the "test/demo" program
+--- ctnltest.c  2005-04-11 14:06:08.000000000 -0400
++++ ctnltest.c.orig     2005-04-11 13:58:53.000000000 -0400
+@@ -10,7 +10,7 @@
+
+  #include <linux/types.h>
+  #include <linux/netlink.h>
+-#include <linux/netfilter_ipv4/ip_conntrack_netlink.h>
++#include <linux/nfnetlink_conntrack.h>
+
+  #include "libctnetlink.h"
+
+@@ -115,7 +115,7 @@
+         if (cb[CTA_ORIG]) {
+                 printf("orig: %s\n",
  
- #define OPTION_OFFSET 256
- 
-@@ -159,20 +158,19 @@ static unsigned int global_option_offset
- static char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
- /* Well, it's better than "Re: Linux vs FreeBSD" */
- {
--	/*     -n  -s  -d  -p  -j  -v  -x  -i  -o  --line */
--/*INSERT*/    {'x',' ',' ',' ',' ',' ','x',' ',' ','x'},
--/*DELETE*/    {'x',' ',' ',' ',' ',' ','x',' ',' ','x'},
--/*DELETE_NUM*/{'x','x','x','x','x',' ','x','x','x','x'},
--/*REPLACE*/   {'x',' ',' ',' ',' ',' ','x',' ',' ','x'},
--/*APPEND*/    {'x',' ',' ',' ',' ',' ','x',' ',' ','x'},
--/*LIST*/      {' ','x','x','x','x',' ',' ','x','x',' '},
--/*FLUSH*/     {'x','x','x','x','x',' ','x','x','x','x'},
--/*ZERO*/      {'x','x','x','x','x',' ','x','x','x','x'},
--/*NEW_CHAIN*/ {'x','x','x','x','x',' ','x','x','x','x'},
--/*DEL_CHAIN*/ {'x','x','x','x','x',' ','x','x','x','x'},
--/*SET_POLICY*/{'x','x','x','x','x',' ','x','x','x','x'},
--/*CHECK*/     {'x','+','+','+','x',' ','x',' ',' ','x'},
--/*RENAME*/    {'x','x','x','x','x',' ','x','x','x','x'}
-+	/*     -n  -s  -d  -p  -j  -v  -x  -i  -o  --line -c */
-+/*INSERT*/    {'x',' ',' ',' ',' ',' ','x',' ',' ','x',   ' '},
-+/*DELETE*/    {'x',' ',' ',' ',' ',' ','x',' ',' ','x',   'x'},
-+/*DELETE_NUM*/{'x','x','x','x','x',' ','x','x','x','x',   'x'},
-+/*REPLACE*/   {'x',' ',' ',' ',' ',' ','x',' ',' ','x',   'x'},
-+/*APPEND*/    {'x',' ',' ',' ',' ',' ','x',' ',' ','x',   ' '},
-+/*LIST*/      {' ','x','x','x','x',' ',' ','x','x',' ',   'x'},
-+/*FLUSH*/     {'x','x','x','x','x',' ','x','x','x','x',   'x'},
-+/*ZERO*/      {'x','x','x','x','x',' ','x','x','x','x',   'x'},
-+/*NEW_CHAIN*/ {'x','x','x','x','x',' ','x','x','x','x',   'x'},
-+/*DEL_CHAIN*/ {'x','x','x','x','x',' ','x','x','x','x',   'x'},
-+/*SET_POLICY*/{'x','x','x','x','x',' ','x','x','x','x',   'x'},
-+/*RENAME*/    {'x','x','x','x','x',' ','x','x','x','x',   'x'}
- };
- 
- static int inverse_for_options[NUMBER_OF_OPT] =
-@@ -186,7 +184,8 @@ static int inverse_for_options[NUMBER_OF
- /* -x */ 0,
- /* -i */ IP6T_INV_VIA_IN,
- /* -o */ IP6T_INV_VIA_OUT,
--/*--line*/ 0
-+/*--line*/ 0,
-+/* -c */ 0,
- };
- 
- const char *program_version;
-diff --exclude-from=/tmp/srcdiff.excludes.AIs1cV -Np -ur orig-iptables-1.3.1/iptables.c iptables-1.3.1/iptables.c
---- orig-iptables-1.3.1/iptables.c	2005-04-02 09:38:39.000000000 +0300
-+++ iptables-1.3.1/iptables.c	2005-04-11 13:17:49.000000000 +0300
-@@ -78,11 +78,10 @@
- #define CMD_NEW_CHAIN		0x0100U
- #define CMD_DELETE_CHAIN	0x0200U
- #define CMD_SET_POLICY		0x0400U
--#define CMD_CHECK		0x0800U
--#define CMD_RENAME_CHAIN	0x1000U
--#define NUMBER_OF_CMD	13
--static const char cmdflags[] = { 'I', 'D', 'D', 'R', 'A', 'L', 'F', 'Z',
--				 'N', 'X', 'P', 'E' };
-+#define CMD_RENAME_CHAIN	0x0800U
-+#define NUMBER_OF_CMD	12
-+static const char cmdflags[NUMBER_OF_CMD]
-+= { 'I', 'D', 'D', 'R', 'A', 'L', 'F', 'Z', 'N', 'X', 'P', 'E' };
- 
- #define OPTION_OFFSET 256
- 
-@@ -158,20 +157,19 @@ static unsigned int global_option_offset
- static char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
- /* Well, it's better than "Re: Linux vs FreeBSD" */
- {
--	/*     -n  -s  -d  -p  -j  -v  -x  -i  -o  -f  --line */
--/*INSERT*/    {'x',' ',' ',' ',' ',' ','x',' ',' ',' ','x'},
--/*DELETE*/    {'x',' ',' ',' ',' ',' ','x',' ',' ',' ','x'},
--/*DELETE_NUM*/{'x','x','x','x','x',' ','x','x','x','x','x'},
--/*REPLACE*/   {'x',' ',' ',' ',' ',' ','x',' ',' ',' ','x'},
--/*APPEND*/    {'x',' ',' ',' ',' ',' ','x',' ',' ',' ','x'},
--/*LIST*/      {' ','x','x','x','x',' ',' ','x','x','x',' '},
--/*FLUSH*/     {'x','x','x','x','x',' ','x','x','x','x','x'},
--/*ZERO*/      {'x','x','x','x','x',' ','x','x','x','x','x'},
--/*NEW_CHAIN*/ {'x','x','x','x','x',' ','x','x','x','x','x'},
--/*DEL_CHAIN*/ {'x','x','x','x','x',' ','x','x','x','x','x'},
--/*SET_POLICY*/{'x','x','x','x','x',' ','x','x','x','x','x'},
--/*CHECK*/     {'x','+','+','+','x',' ','x',' ',' ',' ','x'},
--/*RENAME*/    {'x','x','x','x','x',' ','x','x','x','x','x'}
-+	/*     -n  -s  -d  -p  -j  -v  -x  -i  -o  -f  --line -c */
-+/*INSERT*/    {'x',' ',' ',' ',' ',' ','x',' ',' ',' ','x',   ' '},
-+/*DELETE*/    {'x',' ',' ',' ',' ',' ','x',' ',' ',' ','x',   'x'},
-+/*DELETE_NUM*/{'x','x','x','x','x',' ','x','x','x','x','x',   'x'},
-+/*REPLACE*/   {'x',' ',' ',' ',' ',' ','x',' ',' ',' ','x',   'x'},
-+/*APPEND*/    {'x',' ',' ',' ',' ',' ','x',' ',' ',' ','x',   ' '},
-+/*LIST*/      {' ','x','x','x','x',' ',' ','x','x','x',' ',   'x'},
-+/*FLUSH*/     {'x','x','x','x','x',' ','x','x','x','x','x',   'x'},
-+/*ZERO*/      {'x','x','x','x','x',' ','x','x','x','x','x',   'x'},
-+/*NEW_CHAIN*/ {'x','x','x','x','x',' ','x','x','x','x','x',   'x'},
-+/*DEL_CHAIN*/ {'x','x','x','x','x',' ','x','x','x','x','x',   'x'},
-+/*SET_POLICY*/{'x','x','x','x','x',' ','x','x','x','x','x',   'x'},
-+/*RENAME*/    {'x','x','x','x','x',' ','x','x','x','x','x',   'x'}
- };
- 
- static int inverse_for_options[NUMBER_OF_OPT] =
-@@ -186,7 +184,8 @@ static int inverse_for_options[NUMBER_OF
- /* -i */ IPT_INV_VIA_IN,
- /* -o */ IPT_INV_VIA_OUT,
- /* -f */ IPT_INV_FRAG,
--/*--line*/ 0
-+/*--line*/ 0,
-+/* -c */ 0,
- };
- 
- const char *program_version;
+display_tuple_flat(NFA_DATA(cb[CTA_ORIG])));
+-               ctnl_del_conntrack(cth, NFA_DATA(cb[CTA_ORIG]),CTA_UNSPEC);
++               ctnl_del_conntrack(cth, NFA_DATA(cb[CTA_ORIG]));
+         }
+         if (cb[CTA_RPLY])
+                 printf("rply: %s\n",
+@@ -169,7 +169,7 @@
+                 exit(2);
+         }
 
---------------020809000108090801010108--
+-       ctnl_wilddump_request(cth, AF_INET, IPCTNL_MSG_GETCONNTRACK);
++       ctnl_wilddump_request(cth, AF_INET, CTNL_MSG_GETCONNTRACK);
+
+         while (len = recv(cth->nfnlh.fd, &buf, sizeof(buf), 0)) {
+                 printf("pkt received\n");
+
+
+[BTW make sure libnfnetlink and libctnetlink see your new kernel source]
+
+11) build libnfnetlink:
+cd libnfnetlink-2005????
+automake-1.4
+autoconf
+./configure
+make && make install
+
+12) build libctnetlink
+cd libctnetlink-2005????
+automake-1.4
+autoconf
+./configure
+make && make install
+
+13) build ctnltest.c with
+gcc -o ctnltest ctnltest.c -L/usr/local/lib \
+-I/opt/KERNEL/linux-2.6.11.6/include/ -lctnetlink -lnfnetlink
+
+14) You may need to add /usr/local/lib to /etc/ld.so.conf and run ldconfig
+
+15) get kernel modules loaded:
+rmmod ip_queue # cos it conflicts with nfnetlink (used by 
+ip_conntrack_netlink)
+modprobe ip_conntrack_netlink
+
+15) try out ctnltest:
+./ctnltest
+It should print out data on active network connections
+It doesn't print out data on new connections as they form, I don't know 
+if it should.
+
+16) .... write your own userspace client based on ctnltest and any 
+documentation you can find?
+
+Amin
