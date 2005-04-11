@@ -1,15 +1,15 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: [PATCH] new 'tcpack' match
-Date: Mon, 11 Apr 2005 13:09:14 +0000
-Message-ID: <425A76FA.9060402@outerspace.dyndns.org>
-References: <42464598.9040707@outerspace.dyndns.org>	<425032D5.2010302@trash.net>	<878113493.20050403233059@dns.toxicfilms.tv>	<4250848E.5040207@outerspace.dyndns.org>	<5810131003.20050404153025@dns.toxicfilms.tv>
-	<425A5EE3.8060208@outerspace.dyndns.org>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
+Subject: Re: [patch] Fix ipt_ACCOUNT for large networks - 2nd try
+Date: Mon, 11 Apr 2005 15:30:46 +0200
+Message-ID: <425A7C06.9040600@gmx.net>
+References: <200504050948.51387.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <425A5EE3.8060208@outerspace.dyndns.org>
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+In-Reply-To: <200504050948.51387.thomas.jarosch@intra2net.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,22 +21,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi Thomas,
 
-Quoting Jonas Berlin on 2005-04-11 11:26 UTC:
+Thomas Jarosch schrieb:
+> 
+> attached is a patch to fix the ACCOUNT target for large networks.
+> This time for good ;-) Discard the patch I sent yesterday.
+> 
+> It runs stable now on a network with ~1300 active clients. Quoting the user:
+> "Nevertheless, from performance point of view, ipt_ACCOUNT rocks. I have a
+> distribution for routers (Route Hat) and last night switched from ipt_account
+> to ipt_ACCOUNT completely. What took half a minute before now takes 300ms
+> i.e. 100 times faster, same router, same net. Gr8 work :-)"
 
-> This should be done with the "length" match IMO. -m length
-> --layer2-length maybe ? I could implement this too while at it..
+When reading the source, it seems to me that ACCOUNT has some room
+for improvement:
 
-Actually, that should probably have been layer 3 instead of 2..
+- It is handling some sparsely populated networks inefficiently.
+Consider e.g. a 192.168/16 network with 512 clients spread over
+the whole range like 192.168.0.10,192.168.0.25,192.168.1.12 etc.
+This needs as much memory as a fully populated network of the same
+size.
+- It can only handle /8,/16 and /24 networks.
+- It can't account based on MAC or MAC/IP.
+- It is impossible to select what is accounted for (packets/bytes,
+in/out) and what should be added to the counters (layer 2 frame
+length, layer 3 packet length...).
 
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+Oh, and I'd like to run the code on a 64bit machine with a 2.6 kernel.
 
-iD8DBQFCWnbzxyF48ZTvn+4RAkS6AJ9QsGbuvsd0r4NS47tldVZIQtkTDwCgkEmu
-b4+EZEqkUI4DlUwGIHviaWs=
-=kotj
------END PGP SIGNATURE-----
+Do you accept patches for the above items or are they already done/
+being worked on by somebody else?
+
+
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
