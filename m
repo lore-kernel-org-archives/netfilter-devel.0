@@ -1,7 +1,7 @@
 From: "zhou fan" <zhoufanking@hotmail.com>
-Subject: A question about hook
-Date: Tue, 12 Apr 2005 11:26:52 +0800
-Message-ID: <BAY16-F417EDB1FC0D9C25A678D9EA5330@phx.gbl>
+Subject: A question about process on hook
+Date: Tue, 12 Apr 2005 11:28:33 +0800
+Message-ID: <BAY16-F3950D8555F85F461047F3BA5330@phx.gbl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=gb2312; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -33,4 +33,4 @@ pre_route_handler then ip_rcv_finish finally?
 Thank you for your help in advance!
 
 _________________________________________________________________
-与联机的朋友进行交流，请使用 MSN Messenger:  http://messenger.msn.com/cn  
+免费下载 MSN Explorer:   http://explorer.msn.com/lccn  
