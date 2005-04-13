@@ -1,15 +1,17 @@
-From: Wang Jian <lark@linux.net.cn>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: About matching (also was: Multiple Targets)
-Date: Wed, 13 Apr 2005 09:03:12 +0800
-Message-ID: <20050413085911.030C.LARK@linux.net.cn>
-References: <20050413084249.0309.LARK@linux.net.cn>
+Date: Wed, 13 Apr 2005 08:45:50 +0200
+Message-ID: <20050413064550.GA16534@oknodo.bof.de>
+References: <20050407064323.GE20287@oknodo.bof.de>
+	<425A47BD.9070508@outerspace.dyndns.org>
+	<20050413084249.0309.LARK@linux.net.cn>
 	<425C6D58.3090002@outerspace.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Content-Disposition: inline
 In-Reply-To: <425C6D58.3090002@outerspace.dyndns.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -22,19 +24,6 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jonas Berlin,
-
-My idea is --previous is pseudo match and will duplicate the previous
-match rule and mark itself a dup. When the previous rule is deleted,
-this one will de-mark the dup, but the matching rule itself still makes
-sense.
-
-
-On Wed, 13 Apr 2005 00:52:40 +0000, Jonas Berlin <xkr47@outerspace.dyndns.org> wrote:
-
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
 > Quoting Wang Jian on 2005-04-13 00:48 UTC:
 > > The problem is how to handle rule deletion, for example,
 > > 
@@ -49,18 +38,20 @@ On Wed, 13 Apr 2005 00:52:40 +0000, Jonas Berlin <xkr47@outerspace.dyndns.org> w
 > If the official netfilter guys think that --previous rules should be
 > deleted also when parent is gone, I can look at how to implemenent that
 > at some point.
-> 
-> - --
-> - - xkr47
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.4.1 (GNU/Linux)
-> 
-> iD8DBQFCXG1WxyF48ZTvn+4RArUaAKCZ1fg4r0MUbaPA9xvC1EeTESjiLwCfTYFY
-> 6e0f30D6sPZ/tEz8zMUzbo8=
-> =fU2n
-> -----END PGP SIGNATURE-----
 
+Not that I'm an official netfilter guy, but I think that there should
+not be any such automation. It will be up to the admin, and a delicate
+task, to _write_ rules using --previous - why wouldn't one also trust the
+admin to get deletion right, then?
 
+In a programming language, even an IDE (although I don't use them),
+I wouldn't expect the body of an if(){} statement to go away
+automatically when I delete the if condition itself. Why should
+it be different, here?
 
--- 
-  lark
+Finally, it could even be the desire of the admin to keep the --previous
+rule, and have it match the rule before the deleted rule. The hypothetic
+double-rule-deletion would make that impossible.
+
+best regards
+  Patrick
