@@ -1,21 +1,12 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: About matching (also was: Multiple Targets)
-Date: Wed, 13 Apr 2005 09:52:51 +0200
-Message-ID: <20050413075251.GD16534@oknodo.bof.de>
-References: <20050413084249.0309.LARK@linux.net.cn>
-	<425C6D58.3090002@outerspace.dyndns.org>
-	<20050413085911.030C.LARK@linux.net.cn>
-	<20050413065248.GB16534@oknodo.bof.de>
-	<Pine.LNX.4.58.0504130857010.10437@blackhole.kfki.hu>
-	<20050413071427.GC16534@oknodo.bof.de>
-	<Pine.LNX.4.58.0504130930060.10437@blackhole.kfki.hu>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: [PATCH] goto port to ipv6
+Date: Wed, 13 Apr 2005 08:03:01 +0000
+Message-ID: <425CD235.7060909@outerspace.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, Patrick Schaaf <bof@bof.de>
+Content-Type: multipart/mixed; boundary="------------080904060303000909080109"
+Cc: Henrik Nordstrom <hno@marasystems.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0504130930060.10437@blackhole.kfki.hu>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,28 +18,174 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> > Or with a code generator with proper common subexpression elimination.
-> > Wasn't there a tcng project going that way? I sometimes think that
-> > this must be the right approach, just because so much optimization
-> > work went into gcc - and it can't be too hard, at least on current
-> > server/desktop processors, when even a full kernel compile is only
-> > one or two minutes...
-> 
-> Have you seen Compact Filter (http://www.cs.aau.dk/~mixxel/cf/)?
-> Even ported to 2.6.7, but with large rulesets the compiling of the filter
-> is as crawling as iptables itself.
+This is a multi-part message in MIME format.
+--------------080904060303000909080109
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-Didn't notice before - thanks for the link, I'll look into it.
->From a first glance this does not seem to use gcc, right?
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Maybe using a generate-C/compile-C approach would become more feasible
-when both tcc (www.tinycc.org) and gcc are used. tcc is incredibly fast,
-but probably a lot worse than gcc at optimizing - one could imagine ordinary
-rule updates to usually be optimized using tcc, and only when the admin feels
-they have a stable ruleset, they could press some button which then takes
-the ruleset through gcc's optimizer.
+I ported the goto patch to ipv6.
 
-(see my hands waving? :)
+The attached files are meant to be placed in patch-o-matic-ng/goto/ to
+extend the current module with ipv6 functionality. The set of modified
+files is naturally mutually exclusive with that of the existing goto
+patches.
 
-best regards
-  Patrick
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCXNIzxyF48ZTvn+4RAtgcAJ0U44zwA60pYDhc5RvIb38AQ9Gj0QCgu2zg
+EQ3ui5RT2whIvz8KUU3UurM=
+=BqS0
+-----END PGP SIGNATURE-----
+
+--------------080904060303000909080109
+Content-Type: text/plain;
+ name="iptables.patch_5-ipv6"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="iptables.patch_5-ipv6"
+
+diff -Np -ur orig-iptables-1.3.1/ip6tables-save.c iptables-1.3.1/ip6tables-save.c
+--- orig-iptables-1.3.1/ip6tables-save.c	2005-03-26 17:32:13.000000000 +0200
++++ iptables-1.3.1/ip6tables-save.c	2005-04-13 10:40:36.000000000 +0300
+@@ -190,7 +190,7 @@ static void print_rule(const struct ip6t
+ 	/* Print target name */	
+ 	target_name = ip6tc_get_target(e, h);
+ 	if (target_name && (*target_name != '\0'))
+-		printf("-j %s ", target_name);
++		printf("-%c %s ", e->ipv6.flags & IP6T_F_GOTO ? 'g' : 'j', target_name);
+ 
+ 	/* Print targinfo part */
+ 	t = ip6t_get_target((struct ip6t_entry *)e);
+diff -Np -ur orig-iptables-1.3.1/ip6tables.8.in iptables-1.3.1/ip6tables.8.in
+--- orig-iptables-1.3.1/ip6tables.8.in	2005-03-26 17:32:13.000000000 +0200
++++ iptables-1.3.1/ip6tables.8.in	2005-04-13 10:39:08.000000000 +0300
+@@ -267,10 +267,18 @@ one this rule is in), one of the special
+ the fate of the packet immediately, or an extension (see
+ .B EXTENSIONS
+ below).  If this
+-option is omitted in a rule, then matching the rule will have no
++option is omitted in a rule (and
++.B -g
++is not used), then matching the rule will have no
+ effect on the packet's fate, but the counters on the rule will be
+ incremented.
+ .TP
++.BI "-g, --goto " "chain"
++This specifies that the processing should continue in a user
++specified chain. Unlike the --jump option return will not continue
++processing in this chain but instead in the chain that called us via
++--jump.
++.TP
+ .BR "-i, --in-interface " "[!] \fIname\fP"
+ Name of an interface via which a packet is going to be received (only for
+ packets entering the 
+diff -Np -ur orig-iptables-1.3.1/ip6tables.c iptables-1.3.1/ip6tables.c
+--- orig-iptables-1.3.1/ip6tables.c	2005-04-13 10:27:11.000000000 +0300
++++ iptables-1.3.1/ip6tables.c	2005-04-13 10:41:07.000000000 +0300
+@@ -134,6 +134,7 @@ static struct option original_opts[] = {
+ 	{ "line-numbers", 0, 0, '0' },
+ 	{ "modprobe", 1, 0, 'M' },
+ 	{ "set-counters", 1, 0, 'c' },
++	{ "goto", 1, 0, 'g' },
+ 	{ 0 }
+ };
+ 
+@@ -331,6 +332,10 @@ exit_printhelp(struct ip6tables_rule_mat
+ "				network interface name ([+] for wildcard)\n"
+ "  --jump	-j target\n"
+ "				target for rule (may load target extension)\n"
++#ifdef IP6T_F_GOTO
++"  --goto      -g chain\n"
++"				jump to chain with no return\n"
++#endif
+ "  --match	-m match\n"
+ "				extended match (may load extension)\n"
+ "  --numeric	-n		numeric output of addresses and ports\n"
+@@ -1296,6 +1301,9 @@ print_firewall(const struct ip6t_entry *
+ 	if (format & FMT_NOTABLE)
+ 		fputs("  ", stdout);
+ 
++	if(fw->ipv6.flags & IP6T_F_GOTO)
++		printf("[goto] ");
++
+ 	IP6T_MATCH_ITERATE(fw, print_match, &fw->ipv6, format & FMT_NUMERIC);
+ 
+ 	if (target) {
+@@ -1731,7 +1739,7 @@ int do_command6(int argc, char *argv[], 
+ 	opterr = 0;
+ 
+ 	while ((c = getopt_long(argc, argv,
+-	   "-A:D:R:I:L::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:bvnt:m:xc:",
++	   "-A:D:R:I:L::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:bvnt:m:xc:g:",
+ 					   opts, NULL)) != -1) {
+ 		switch (c) {
+ 			/*
+@@ -1902,6 +1910,15 @@ int do_command6(int argc, char *argv[], 
+ 			dhostnetworkmask = argv[optind-1];
+ 			break;
+ 
++#ifdef IP6T_F_GOTO
++		case 'g':
++			set_option(&options, OPT_JUMP, &fw.ipv6.invflags,
++				   invert);
++			fw.ipv6.flags |= IP6T_F_GOTO;
++			jumpto = parse_target(optarg);
++			break;
++#endif
++
+ 		case 'j':
+ 			set_option(&options, OPT_JUMP, &fw.ipv6.invflags,
+ 				   invert);
+@@ -2243,6 +2260,11 @@ int do_command6(int argc, char *argv[], 
+ 			 * We cannot know if the plugin is corrupt, non
+ 			 * existant OR if the user just misspelled a
+ 			 * chain. */
++#ifdef IP6T_F_GOTO
++			if (fw.ipv6.flags & IP6T_F_GOTO)
++				exit_error(PARAMETER_PROBLEM,
++					   "goto '%s' is not a chain\n", jumpto);
++#endif
+ 			find_target(jumpto, LOAD_MUST_SUCCEED);
+ 		} else {
+ 			e = generate_entry(&fw, matches, target->t);
+
+--------------080904060303000909080109
+Content-Type: text/plain;
+ name="linux.patch_5-ipv6"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="linux.patch_5-ipv6"
+
+diff -ur --exclude-from=/tmp/srcdiff.excludes.hsvBiq -N orig-linux-2.6.11/include/linux/netfilter_ipv6/ip6_tables.h linux-2.6.11/include/linux/netfilter_ipv6/ip6_tables.h
+--- orig-linux-2.6.11/include/linux/netfilter_ipv6/ip6_tables.h	2005-03-14 13:40:33.000000000 +0200
++++ linux-2.6.11/include/linux/netfilter_ipv6/ip6_tables.h	2005-03-15 04:09:12.197387923 +0200
+@@ -111,7 +111,8 @@
+ #define IP6T_F_PROTO		0x01	/* Set if rule cares about upper 
+ 					   protocols */
+ #define IP6T_F_TOS		0x02	/* Match the TOS. */
+-#define IP6T_F_MASK		0x03	/* All possible flag bits mask. */
++#define IP6T_F_GOTO		0x04	/* Set if jump is a goto */
++#define IP6T_F_MASK		0x07	/* All possible flag bits mask. */
+ 
+ /* Values for "inv" field in struct ip6t_ip6. */
+ #define IP6T_INV_VIA_IN		0x01	/* Invert the sense of IN IFACE. */
+diff -ur --exclude-from=/tmp/srcdiff.excludes.hsvBiq -N orig-linux-2.6.11/net/ipv6/netfilter/ip6_tables.c linux-2.6.11/net/ipv6/netfilter/ip6_tables.c
+--- orig-linux-2.6.11/net/ipv6/netfilter/ip6_tables.c	2005-03-14 13:40:34.000000000 +0200
++++ linux-2.6.11/net/ipv6/netfilter/ip6_tables.c	2005-03-15 03:51:43.298086457 +0200
+@@ -436,7 +436,7 @@
+ 					continue;
+ 				}
+ 				if (table_base + v
+-				    != (void *)e + e->next_offset) {
++				    != (void *)e + e->next_offset && !(e->ipv6.flags & IP6T_F_GOTO)) {
+ 					/* Save old back ptr in next entry */
+ 					struct ip6t_entry *next
+ 						= (void *)e + e->next_offset;
+
+--------------080904060303000909080109--
