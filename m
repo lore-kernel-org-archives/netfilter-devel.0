@@ -1,10 +1,11 @@
-From: Wang Jian <lark@linux.net.cn>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
 Subject: Re: About matching (also was: Multiple Targets)
-Date: Wed, 13 Apr 2005 18:45:47 +0800
-Message-ID: <20050413182822.0317.LARK@linux.net.cn>
-References: <20050413152307.0312.LARK@linux.net.cn> <425CEFE3.2010200@rtij.nl>
+Date: Wed, 13 Apr 2005 11:01:35 +0000
+Message-ID: <425CFC0F.5010006@outerspace.dyndns.org>
+References: <Pine.LNX.4.58.0504130857010.10437@blackhole.kfki.hu>	<20050413071427.GC16534@oknodo.bof.de>	<20050413152307.0312.LARK@linux.net.cn>
+	<425CEFE3.2010200@rtij.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -21,66 +22,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Martijn Lievaart,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-
-On Wed, 13 Apr 2005 12:09:39 +0200, Martijn Lievaart <m@rtij.nl> wrote:
-
-> 
-> This is so non-intuitive it makes my head hurt. Also:
-> 
-> iptables -A SOMECHAIN -m this -m that -j ACTION1
-> iptables -A SOMECHAIN -m this -m that -j ACTION2 (dup match)
-> iptables -A SOMECHAIN -m this -m that -j RETURN (dup match)
-> 
-> If delete the first
-> 
-> iptables -A SOMECHAIN -m this -m that -j ACTION2 <-- de-mark
-> iptables -A SOMECHAIN -m this -m that -j RETURN (dup match)
-> 
-> Now reinsert the first:
-> 
-> iptables -A SOMECHAIN -m this -m that -j ACTION1
-> iptables -A SOMECHAIN -m this -m that -j ACTION2 <-- NO DUP MATCH ANYMORE
-> iptables -A SOMECHAIN -m this -m that -j RETURN (dup match)
-> 
-> 
-
-Good catch. I am convinced.
-
-> which is bad when any of the matches have side effects.
-> 
-> IMO a better course of action is to only allow deletion of the last match(es) in a "previous-chain", which could be the complete chain. So given the example above:
-> 
-> 
-> iptables -A SOMECHAIN -m this -m that -j ACTION1
-> iptables -A SOMECHAIN --previous -j ACTION2
-> iptables -A SOMECHAIN --previous -j RETURN
-> 
-> This would only allow to delete the third, the third and the second or all three rules before a commit occurs. These semantics would also allow nicely for ! --previous.
-> 
-
-Good point. But insertion before the first?
-
-And how about
-
-iptables -A SOMECHAIN -m this -m that -j ACTION1
-iptables -A SOMECHAIN --previous -j ACTION2
-iptables -A SOMECHAIN !--previous -j ACTION3
-iptables -A SOMECHAIN --previous -j RETURN
-
-The ! --previous semantics is confusing in this case.
-
-
-> The more I think about it, the more I like it. This in effect gives multiple targets. Now someone is bound to come up with the idea that it should also be possible to write
+Quoting Martijn Lievaart on 2005-04-13 10:09 UTC:
+> The more I think about it, the more I like it. This in effect gives
+> multiple targets. Now someone is bound to come up with the idea that it
+> should also be possible to write
 > 
 > iptables -A SOMECHAIN -m this -m that -j ACTION1 -j ACTION2 -j RETURN
 > 
-> as syntactic sugar. This makes a lot of sense, but is not needed. Let some front-end tool compile the rules to the --previous form, don't burden netfilter with this, unless it can be implemented very easily, which I don't think it can. The semantics are to murky.
-> 
+> as syntactic sugar. This makes a lot of sense, but is not needed. Let
+> some front-end tool compile the rules to the --previous form, don't
+> burden netfilter with this, unless it can be implemented very easily,
+> which I don't think it can. The semantics are to murky.
 
-Yes, this sound good.
+Did you see the mail from me on Mon, 11 Apr 2005 09:47:41 +0000 ? It's
+the first email with the subject
+   "Re: About matching (also was: Multiple Targets)
 
+I wrote some thoughts on how multiple targets could be implemented.
 
--- 
-  lark
+Regarding the rule byte & packet counters, I guess they would be updated
+regardless of how the actions turn out.. (I guess that's how it works
+now too)
+
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCXPwNxyF48ZTvn+4RAgXnAKCl+Th3X9iGTb0CMrkmKTBJ7sjFvgCg4PSv
+p4DpDwdev7ZbrBAfmbkeJWE=
+=Rp43
+-----END PGP SIGNATURE-----
