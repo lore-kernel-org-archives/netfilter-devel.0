@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: SIP NAT conntracking for kernel 2.4.20
-Date: Thu, 14 Apr 2005 21:16:16 +0200
-Message-ID: <20050414191615.GL25433@sunbeam.de.gnumonks.org>
-References: <AEELJIBEDGDFGELIHALGKEGDCAAA.coroberti@bezeqint.net>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
+Subject: Re: [patch] Fix ipt_ACCOUNT for large networks - 2nd try
+Date: Fri, 15 Apr 2005 01:44:19 +0200
+Message-ID: <425F0053.2050302@gmx.net>
+References: <200504050948.51387.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cBogQDtremapRGMG"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	kadlec@blackhole.kfki.hu
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Robert Iakobashvili <coroberti@bezeqint.net>
-Content-Disposition: inline
-In-Reply-To: <AEELJIBEDGDFGELIHALGKEGDCAAA.coroberti@bezeqint.net>
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+In-Reply-To: <200504050948.51387.thomas.jarosch@intra2net.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,58 +22,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Thomas Jarosch schrieb:
+> Hi Patrick,
+> 
+> attached is a patch to fix the ACCOUNT target for large networks.
+> This time for good ;-) Discard the patch I sent yesterday.
+> 
+> It runs stable now on a network with ~1300 active clients. Quoting the user:
+> "Nevertheless, from performance point of view, ipt_ACCOUNT rocks. I have a
+> distribution for routers (Route Hat) and last night switched from ipt_account
+> to ipt_ACCOUNT completely. What took half a minute before now takes 300ms
+> i.e. 100 times faster, same router, same net. Gr8 work :-)"
+> 
+> Cheers,
+> Thomas
+> 
+> Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
+> 
+> diff -u -r -b ACCOUNT/linux/net/ipv4/netfilter/ipt_ACCOUNT.c ACCOUNT.1.4/linux/net/ipv4/netfilter/ipt_ACCOUNT.c
+> --- ACCOUNT/linux/net/ipv4/netfilter/ipt_ACCOUNT.c      2004-06-13 22:41:21.000000000 +0200
+> +++ ACCOUNT.1.4/linux/net/ipv4/netfilter/ipt_ACCOUNT.c  2005-04-05 09:33:52.000000000 +0200
+> @@ -694,7 +694,8 @@
+>  /* Copy 8 bit network data into a prepared buffer.
+>     We only copy entries != 0 to increase performance.
+>  */
+> -static int ipt_acc_handle_copy_data(void *to_user, int *pos,
+> +static int ipt_acc_handle_copy_data(void *to_user, u_int32_t *to_user_pos,
+> +                                  u_int32_t *tmpbuf_pos,
+>                                      struct ipt_acc_mask_24 *data,
+>                                      u_int32_t net_ip, u_int32_t net_OR_mask)
+>  {
 
---cBogQDtremapRGMG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+You seem to like u_int32_t as a type. That causes interesting behaviour
+on 64bit machines. Is there any design objective dictating that?
+I have a patch available changing most occurences of u_int32_t to
+something more generic (of course not for IPs, netmasks and such) which
+may make sense if you ever want to use your module on 64bit machines.
 
-On Thu, Apr 14, 2005 at 09:18:40PM +0200, Robert Iakobashvili wrote:
-> Hi Herald and Jozsef,
->=20
-> The SIP NAT conntracking patch for kernel 2.4.10 cutted from
-> Lynksys and posted earlier:
-> http://lists.netfilter.org/pipermail/netfilter-devel/2005-January/018252.=
-htm
-> l
->=20
-> is used by people, addressing to me their questions.
->=20
-> Is it worth adding to POM-ng?
-
-It is not licensed under GNU GPL, and we therefore cannot accept it as
-contribution.
-
-The header states 'All rights reserved' without any notice about the
-rights it grants the users under which license.
-
-In fact, strictly speaking this might be a gpl violation, since I
-consider conntrack helpers as derivative work of netfilter/iptables.
-
-Since I'm already in negotiations with Linksys/Cisco in a different
-case, I'll try to add this to the list of topics that need to be
-discussed.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---cBogQDtremapRGMG
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQFCXsF/XaXGVTD0i/8RAkXXAJ4mrJLA0Ju9Cev3iL7xvPiGbONphACfZV2l
-7wP5AnLw9ktdgkoJuKC05gM=
-=UxnJ
------END PGP SIGNATURE-----
-
---cBogQDtremapRGMG--
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
