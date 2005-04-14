@@ -1,15 +1,19 @@
-From: Wang Jian <lark@linux.net.cn>
-Subject: Re: nfnetlink-ctnetlink working: INSTRUCTIONS
-Date: Thu, 14 Apr 2005 16:35:12 +0800
-Message-ID: <20050414162843.032A.LARK@linux.net.cn>
-References: <425A5543.9000300@ufomechanic.net>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: About matching (also was: Multiple Targets)
+Date: Thu, 14 Apr 2005 08:56:18 +0000
+Message-ID: <425E3032.2060409@outerspace.dyndns.org>
+References: <20050413152307.0312.LARK@linux.net.cn>
+	<425CEFE3.2010200@rtij.nl>	<20050413182822.0317.LARK@linux.net.cn>
+	<425CFFE0.1000803@rtij.nl>	<20050413112518.GB22865@oknodo.bof.de>	<Pine.LNX.4.61.0504140315010.16405@filer.marasystems.com>
+	<7174b1e40504140101b5138e0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, Patrick Schaaf <bof@bof.de>,
+	Henrik Nordstrom <hno@marasystems.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <425A5543.9000300@ufomechanic.net>
+To: Ben La Monica <ben.lamonica@gmail.com>
+In-Reply-To: <7174b1e40504140101b5138e0@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,183 +25,57 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Amin Azez,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-The patch is not enough at least when compiled using gcc 3.4.
+Quoting Ben La Monica on 2005-04-14 08:01 UTC:
 
+> I actually started working on a patch, but then someone mentioned that
+> it had to be binary compatible with the current iptables. The problem
+> being that RETURN is a special case. The --up N option is only like 15
+> lines of code if nobody minds the fact that you'll need to use a newer
+> version of the iptables binary and newer kernel. Since RETURN is just
+> an ipt_standard_target like DROP or ACCEPT.
 
-[root@qos linux-2.6.11-w]# make O=/home/QoSTestBuild/ modules                     Using /home/linux-2.6.11-w as source for kernel
-  GEN    /home/QoSTestBuild/Makefile
-  CHK     include/linux/version.h
-  SPLIT   include/linux/autoconf.h -> include/config/*
-make[2]: `arch/i386/kernel/asm-offsets.s' is up to date.
-  CHK     include/asm-i386/asm_offsets.h
-gcc: drivers/atm/../../include/asm/byteorder.h: No such file or directory
-gcc: no input files
-  CC [M]  net/ipv4/netfilter/ip_conntrack_netlink.o
-/home/linux-2.6.11-w/net/ipv4/netfilter/ip_conntrack_netlink.c: In function `ctnetlink_create_conntrack':
-/home/linux-2.6.11-w/include/linux/netfilter_ipv4/ip_conntrack.h:344: sorry, unimplemented: inlining failed in call to 'ip_conntrack_free': function body not available
-/home/linux-2.6.11-w/net/ipv4/netfilter/ip_conntrack_netlink.c:652: sorry, unimplemented: called from here
-/home/linux-2.6.11-w/include/linux/netfilter_ipv4/ip_conntrack.h:346: sorry, unimplemented: inlining failed in call to 'ip_conntrack_insert': function body not available
-/home/linux-2.6.11-w/net/ipv4/netfilter/ip_conntrack_netlink.c:656: sorry, unimplemented: called from here
-make[4]: *** [net/ipv4/netfilter/ip_conntrack_netlink.o] Error 1
-make[3]: *** [net/ipv4/netfilter] Error 2
-make[2]: *** [net/ipv4] Error 2
-make[1]: *** [net] Error 2
-make: *** [modules] Error 2
+I think I'd rather decide on the calling side how up to go instead of on
+the return side.
 
-and net/ipv4/netfilter/ip_conntrack_core.c has the same problem.
+> Also, concerning the multiple targets for one match, what about a
+> module that did something like this:
+> 
+> iptables -I INPUT -p tcp -s 10.0.0.0/24 -j MULTIPLE --mjump ULOG
+> --ulog-prefix "bad" --mjump REJECT --reject-with tcp-reset
+> 
+> And then the MULTIPLE target would actually create the targets for
+> ULOG and REJECT, put them in a linked list, execute them in the order
+> received, and then use the last value to return to iptables with the
+> verdict.
 
-The ip_conntrac_free() is defined in ip_conntrack_core.c as inline after
-first usage.
+Interesting idea.. but I think I would still prefer to just write
+support for multiple targets, e.g.
 
-Didn't you meet the same problem?
+iptables ... -j MARK --set-mark 10 -j LOG --log-prefix "foo" -j ACCEPT
 
+The structures currently hold exactly one target, I think it wouldn't be
+too hard extending that to have multiple targets instead, just like
+there already is support for multiple matches. I think it might even be
+easier to implement this than to make targets work properly from a
+"MULTIPLE" target.. but that's just my guess :)
 
-On Mon, 11 Apr 2005 11:45:23 +0100, Amin Azez <azez@ufomechanic.net> wrote:
+Maybe one could use some unused bit in the structures to indicate that
+multiple targets are in use in order to remain binary compatible..
 
-> Many thanks to Pablo (and Harald whose work was also contained in some 
-> of the patches Pablo sent) I now have nfnetlink-ctnetlink modules and 
-> libraries working such that ctnltest (part of libctnetlink) returns 
-> valid data on open network connections.
-> 
-> [On note: It seems deliberate that the new nfnetlink module conflicts 
-> with ip_queue because both listen on the same netlink socket number 
-> NETLINK_FIREWALL (is that the right terminology). Is there a reason for 
-> this?]
-> 
-> I document here the full steps required to make this work on pristine 
-> 2.6.11 kernel sources, and I repeat the steps as I write them here so 
-> there will be full confidence that the steps are accurate.
-> 
-> (Perhaps there may be other patches that are desired, such as 
-> http://lists.netfilter.org/pipermail/netfilter-devel/2005-April/019177.html)
-> 
-> This means that only one of these modules can be loaded at a time.
-> 
-> What is the reason for this?]
-> 
-> 
-> 1) Get the pristine 2.6.11 sources and un-tar
-> 
-> 2) apply pablos patches from 
-> http://people.netfilter.org/pablo/patches/nfnetlink-conntrack-0.50-2.6.11/
-> 
-> 3) edit net/Kconfig and insert:
-> source "net/netfilter/Kconfig"
-> just before:
-> source "net/ipv4/Kconfig"
-> 
-> 4) edit net/Makefile
-> obj-$(CONFIG_NETFILTER_NETLINK) += netfilter/
-> just after:
-> obj-$(CONFIG_NET)              += $(tmp-y)
-> 
-> 5) configure, build and install your kernel and modules
-> My config includes:
-> CONFIG_NETFILTER_NETLINK=m
-> CONFIG_IP_NF_CONNTRACK=m
-> CONFIG_IP_NF_CONNTRACK_NETLINK=m
-> CONFIG_IP_NF_CT_ACCT=y
-> CONFIG_IP_NF_CONNTRACK_MARK=y
-> CONFIG_NETFILTER=y
-> CONFIG_IP_NF_CONNTRACK_EVENTS=y
-> 
-> once you done that, reboot to your new kernel (may as well)
-> 
-> 6) now get libctnetlink from: 
-> ftp://ftp.netfilter.org/pub/libctnetlink/snapshot/
-> I got the 20050410 snapshot. Possibly newer snapshots will have some of 
-> the next patches already attached.
-> 
-> 7) now get libnfnetlink from:
-> ftp://ftp.netfilter.org/pub/libnfnetlink/snapshot/
-> I got the 20050410 snapshot. Possibly newer snapshots will have some of 
-> the next patches already attached.
-> 
-> 8) untar both these files from the same dir, and then create a symlink 
-> from your libnfnetlink-2005???? folder to libnfnetlink, so that 
-> libctnetlink can find it. I did it like this:
-> ln -s libnfnetlink-20050410 libnfnetlink
-> 
-> 9) Get and apply Pablos patches from
-> http://lists.netfilter.org/pipermail/netfilter-devel/2005-April/019182.html
-> (the last patch in the list is for libnfnetlink, the others are for 
-> libctnetlink)
-> 
-> 10) Apply this patch in libctnetlink to fix the "test/demo" program
-> --- ctnltest.c  2005-04-11 14:06:08.000000000 -0400
-> +++ ctnltest.c.orig     2005-04-11 13:58:53.000000000 -0400
-> @@ -10,7 +10,7 @@
-> 
->   #include <linux/types.h>
->   #include <linux/netlink.h>
-> -#include <linux/netfilter_ipv4/ip_conntrack_netlink.h>
-> +#include <linux/nfnetlink_conntrack.h>
-> 
->   #include "libctnetlink.h"
-> 
-> @@ -115,7 +115,7 @@
->          if (cb[CTA_ORIG]) {
->                  printf("orig: %s\n",
->  
-> display_tuple_flat(NFA_DATA(cb[CTA_ORIG])));
-> -               ctnl_del_conntrack(cth, NFA_DATA(cb[CTA_ORIG]),CTA_UNSPEC);
-> +               ctnl_del_conntrack(cth, NFA_DATA(cb[CTA_ORIG]));
->          }
->          if (cb[CTA_RPLY])
->                  printf("rply: %s\n",
-> @@ -169,7 +169,7 @@
->                  exit(2);
->          }
-> 
-> -       ctnl_wilddump_request(cth, AF_INET, IPCTNL_MSG_GETCONNTRACK);
-> +       ctnl_wilddump_request(cth, AF_INET, CTNL_MSG_GETCONNTRACK);
-> 
->          while (len = recv(cth->nfnlh.fd, &buf, sizeof(buf), 0)) {
->                  printf("pkt received\n");
-> 
-> 
-> [BTW make sure libnfnetlink and libctnetlink see your new kernel source]
-> 
-> 11) build libnfnetlink:
-> cd libnfnetlink-2005????
-> automake-1.4
-> autoconf
-> ./configure
-> make && make install
-> 
-> 12) build libctnetlink
-> cd libctnetlink-2005????
-> automake-1.4
-> autoconf
-> ./configure
-> make && make install
-> 
-> 13) build ctnltest.c with
-> gcc -o ctnltest ctnltest.c -L/usr/local/lib \
-> -I/opt/KERNEL/linux-2.6.11.6/include/ -lctnetlink -lnfnetlink
-> 
-> 14) You may need to add /usr/local/lib to /etc/ld.so.conf and run ldconfig
-> 
-> 15) get kernel modules loaded:
-> rmmod ip_queue # cos it conflicts with nfnetlink (used by 
-> ip_conntrack_netlink)
-> modprobe ip_conntrack_netlink
-> 
-> 15) try out ctnltest:
-> ./ctnltest
-> It should print out data on active network connections
-> It doesn't print out data on new connections as they form, I don't know 
-> if it should.
-> 
-> 16) .... write your own userspace client based on ctnltest and any 
-> documentation you can find?
-> 
-> Amin
-> 
+> Anyway, if you have any input regarding this, I can try to write it
+> this weekend.
 
+Good luck :)
 
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
--- 
-  lark
+iD8DBQFCXjAwxyF48ZTvn+4RAtekAKChHmHI23Am8BaiAI2zYOQQB/mvogCg17EX
+IVypyxHSJvVjbBQJdHzoPk4=
+=pGSr
+-----END PGP SIGNATURE-----
