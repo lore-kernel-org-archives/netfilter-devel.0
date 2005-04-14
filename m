@@ -1,17 +1,16 @@
-From: Wang Jian <lark@linux.net.cn>
-Subject: Re: About matching (also was: Multiple Targets)
-Date: Thu, 14 Apr 2005 17:20:51 +0800
-Message-ID: <20050414171531.032E.LARK@linux.net.cn>
-References: <7174b1e40504140101b5138e0@mail.gmail.com>
-	<425E3032.2060409@outerspace.dyndns.org>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: nfnetlink-ctnetlink working: INSTRUCTIONS
+Date: Thu, 14 Apr 2005 11:40:10 +0200
+Message-ID: <425E3A7A.90905@eurodev.net>
+References: <425A5543.9000300@ufomechanic.net>
+	<20050414162843.032A.LARK@linux.net.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Ben La Monica <ben.lamonica@gmail.com>,
-	Patrick Schaaf <bof@bof.de>, Henrik Nordstrom <hno@marasystems.com>
+Cc: netfilter-devel@lists.netfilter.org, Amin Azez <azez@ufomechanic.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jonas Berlin <xkr47@outerspace.dyndns.org>
-In-Reply-To: <425E3032.2060409@outerspace.dyndns.org>
+To: Wang Jian <lark@linux.net.cn>
+In-Reply-To: <20050414162843.032A.LARK@linux.net.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,34 +22,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jonas Berlin,
-
-
-On Thu, 14 Apr 2005 08:56:18 +0000, Jonas Berlin <xkr47@outerspace.dyndns.org> wrote:
-
+Wang Jian wrote:
+> Hi Amin Azez,
 > 
-> Interesting idea.. but I think I would still prefer to just write
-> support for multiple targets, e.g.
+> The patch is not enough at least when compiled using gcc 3.4.
 > 
-> iptables ... -j MARK --set-mark 10 -j LOG --log-prefix "foo" -j ACCEPT
 > 
-> The structures currently hold exactly one target, I think it wouldn't be
-> too hard extending that to have multiple targets instead, just like
-> there already is support for multiple matches. I think it might even be
-> easier to implement this than to make targets work properly from a
-> "MULTIPLE" target.. but that's just my guess :)
+> [root@qos linux-2.6.11-w]# make O=/home/QoSTestBuild/ modules                     Using /home/linux-2.6.11-w as source for kernel
+>   GEN    /home/QoSTestBuild/Makefile
+>   CHK     include/linux/version.h
+>   SPLIT   include/linux/autoconf.h -> include/config/*
+> make[2]: `arch/i386/kernel/asm-offsets.s' is up to date.
+>   CHK     include/asm-i386/asm_offsets.h
+> gcc: drivers/atm/../../include/asm/byteorder.h: No such file or directory
+> gcc: no input files
+>   CC [M]  net/ipv4/netfilter/ip_conntrack_netlink.o
+> /home/linux-2.6.11-w/net/ipv4/netfilter/ip_conntrack_netlink.c: In function `ctnetlink_create_conntrack':
+> /home/linux-2.6.11-w/include/linux/netfilter_ipv4/ip_conntrack.h:344: sorry, unimplemented: inlining failed in call to 'ip_conntrack_free': function body not available
+> /home/linux-2.6.11-w/net/ipv4/netfilter/ip_conntrack_netlink.c:652: sorry, unimplemented: called from here
+> /home/linux-2.6.11-w/include/linux/netfilter_ipv4/ip_conntrack.h:346: sorry, unimplemented: inlining failed in call to 'ip_conntrack_insert': function body not available
+> /home/linux-2.6.11-w/net/ipv4/netfilter/ip_conntrack_netlink.c:656: sorry, unimplemented: called from here
+> make[4]: *** [net/ipv4/netfilter/ip_conntrack_netlink.o] Error 1
+> make[3]: *** [net/ipv4/netfilter] Error 2
+> make[2]: *** [net/ipv4] Error 2
+> make[1]: *** [net] Error 2
+> make: *** [modules] Error 2
 > 
-> Maybe one could use some unused bit in the structures to indicate that
-> multiple targets are in use in order to remain binary compatible..
-> 
+> and net/ipv4/netfilter/ip_conntrack_core.c has the same problem.
 
-I am for multiple targets support.
+Just eemove `inline' from ip_conntrack_free and ip_conntrack_insert. 
+I've just fixed those in the patches, so alternatively you could 
+download the patch again. This seems to be something gcc-3.4 related 
+since I didn't get such error with gcc-2.95.
 
---previous is a hack and it is not very easy to implement in a clean way,
-because of the semantics.
-
-Multiple targets' semantics is clean. This is the advantage.
-
-
--- 
-  lark
+--
+Pablo
