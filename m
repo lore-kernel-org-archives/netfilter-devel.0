@@ -1,15 +1,15 @@
 From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: About matching (also was: Multiple Targets)
-Date: Thu, 14 Apr 2005 03:09:55 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0504140304320.16405@filer.marasystems.com>
-References: <Pine.LNX.4.58.0504130857010.10437@blackhole.kfki.hu>
-	<20050413071427.GC16534@oknodo.bof.de>
-	<20050413152307.0312.LARK@linux.net.cn>
+Date: Thu, 14 Apr 2005 03:14:31 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0504140311270.16405@filer.marasystems.com>
+References: <20050413152307.0312.LARK@linux.net.cn> <425CEFE3.2010200@rtij.nl>
+	<20050413182822.0317.LARK@linux.net.cn> <425CFFE0.1000803@rtij.nl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20050413152307.0312.LARK@linux.net.cn>
+To: Martijn Lievaart <m@rtij.nl>
+In-Reply-To: <425CFFE0.1000803@rtij.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,19 +21,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 13 Apr 2005, Wang Jian wrote:
+On Wed, 13 Apr 2005, Martijn Lievaart wrote:
 
-> iptables -A SOMECHAIN -m this -m that -j ACTION1
-> iptables -A SOMECHAIN -m this -m that -j ACTION2 (dup match)
-> iptables -A SOMECHAIN -m this -m that -j RETURN (dup match)
+> The only real advantage I can think of is that using --previous makes it 
+> easier to generate rules automatically.
 
-If we would have matches indicate if they are const for the packet or 
-volatile (i.e. random) then this could all be automatic in the kernel, and 
-any later tree based approaches would benefit greatly from this info. No 
-need for any user action at all, just updated kernel and userspace.
+In automatic rule generation it is just as easy to create a subchain as it 
+is to remember to use --previous.
 
-on a related note hipac has a hardcoded list of "const" iptables matches 
-for pretty much this reason.
+But as seen in another thread iptables (the userspace) do have some 
+performance issues with large numbers of chains. But this in itself is not 
+an argument for --previous (just a sign that the chain management could do 
+with some improvement)
 
 Regards
 Henrik
