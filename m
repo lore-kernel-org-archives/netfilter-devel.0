@@ -1,15 +1,16 @@
 From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: About matching (also was: Multiple Targets)
-Date: Thu, 14 Apr 2005 03:14:31 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0504140311270.16405@filer.marasystems.com>
+Date: Thu, 14 Apr 2005 03:16:48 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0504140315010.16405@filer.marasystems.com>
 References: <20050413152307.0312.LARK@linux.net.cn> <425CEFE3.2010200@rtij.nl>
 	<20050413182822.0317.LARK@linux.net.cn> <425CFFE0.1000803@rtij.nl>
+	<20050413112518.GB22865@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, Martijn Lievaart <m@rtij.nl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Martijn Lievaart <m@rtij.nl>
-In-Reply-To: <425CFFE0.1000803@rtij.nl>
+To: Patrick Schaaf <bof@bof.de>
+In-Reply-To: <20050413112518.GB22865@oknodo.bof.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +22,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 13 Apr 2005, Martijn Lievaart wrote:
+On Wed, 13 Apr 2005, Patrick Schaaf wrote:
 
-> The only real advantage I can think of is that using --previous makes it 
-> easier to generate rules automatically.
+> BTW, anybody ever thought about giving -j RETURN an --up N option?
 
-In automatic rule generation it is just as easy to create a subchain as it 
-is to remember to use --previous.
+IIRC there was some talk about this when the --goto thing was discussed 
+some many months (year?) ago, but I do not remember what the final 
+conclusions was.
 
-But as seen in another thread iptables (the userspace) do have some 
-performance issues with large numbers of chains. But this in itself is not 
-an argument for --previous (just a sign that the chain management could do 
-with some improvement)
+Personally I think it would be good, but I think there was some opposion 
+(Harald?) from it being very confusing when the chain is called from more 
+than one place..
 
 Regards
 Henrik
