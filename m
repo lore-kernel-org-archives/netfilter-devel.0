@@ -1,17 +1,20 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: nfnetlink-ctnetlink working: INSTRUCTIONS
-Date: Thu, 14 Apr 2005 12:20:51 +0200
-Message-ID: <425E4403.5010101@eurodev.net>
-References: <20050414162843.032A.LARK@linux.net.cn>
-	<425E3A7A.90905@eurodev.net>
-	<20050414175616.0331.LARK@linux.net.cn>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: About matching (also was: Multiple Targets)
+Date: Thu, 14 Apr 2005 13:43:46 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0504141340130.28938@filer.marasystems.com>
+References: <20050413152307.0312.LARK@linux.net.cn> <425CEFE3.2010200@rtij.nl>
+	<20050413182822.0317.LARK@linux.net.cn> <425CFFE0.1000803@rtij.nl>
+	<20050413112518.GB22865@oknodo.bof.de>
+	<Pine.LNX.4.61.0504140315010.16405@filer.marasystems.com>
+	<7174b1e40504140101b5138e0@mail.gmail.com>
+	<425E3032.2060409@outerspace.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Amin Azez <azez@ufomechanic.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org, Ben La Monica <ben.lamonica@gmail.com>,
+	Patrick Schaaf <bof@bof.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Wang Jian <lark@linux.net.cn>
-In-Reply-To: <20050414175616.0331.LARK@linux.net.cn>
+To: Jonas Berlin <xkr47@outerspace.dyndns.org>
+In-Reply-To: <425E3032.2060409@outerspace.dyndns.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,24 +26,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Wang Jian wrote:
->>Just eemove `inline' from ip_conntrack_free and ip_conntrack_insert. 
->>I've just fixed those in the patches, so alternatively you could 
->>download the patch again. This seems to be something gcc-3.4 related 
->>since I didn't get such error with gcc-2.95.
->>
-> 
-> 
-> I remove the inline prefix from include/linux/netfilter_ipv4/ip_conntrack.h,
-> and now it compiles.
-> 
-> But I think 
-> 
-> EXPORT_SYMBOL(ip_conntrack_insert);
-> 
-> is missing in net/ipv4/netfilter/ip_conntrack_standalone.c, isn't it?
+On Thu, 14 Apr 2005, Jonas Berlin wrote:
 
-Right, I've just fixed it, thanks.
+> Interesting idea.. but I think I would still prefer to just write
+> support for multiple targets, e.g.
+>
+> iptables ... -j MARK --set-mark 10 -j LOG --log-prefix "foo" -j ACCEPT
 
---
-Pablo
+All which is technically required for this while keeping full binary 
+copatibility is to modify non-terminal targets to register themselves as 
+matches in addition to targets.
+
+The only thing holding this back is a conceptual design question if you 
+should be allowed to mix non-terminal targets and matches freely, but this 
+can be addressed in userspace if desired to force all non-terminal targets 
+last in the match list.
+
+Having more than one terminal target is nonsense ihmo.
+
+Regards
+Henrik
