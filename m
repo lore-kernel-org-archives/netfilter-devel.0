@@ -1,14 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: CONNMARK behaviour
-Date: Fri, 15 Apr 2005 02:31:38 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0504150220340.3687@filer.marasystems.com>
-References: <200504141447.19432.adrian.turcu@gmvinteractive.com>
+From: Wang Jian <lark@linux.net.cn>
+Subject: Re: nfnetlink-ctnetlink working: INSTRUCTIONS
+Date: Fri, 15 Apr 2005 14:54:47 +0800
+Message-ID: <20050415142613.033A.LARK@linux.net.cn>
+References: <20050414175616.0331.LARK@linux.net.cn>
+	<425E4403.5010101@eurodev.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Amin Azez <azez@ufomechanic.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Adrian Turcu <adrian.turcu@gmvinteractive.com>
-In-Reply-To: <200504141447.19432.adrian.turcu@gmvinteractive.com>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <425E4403.5010101@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,84 +22,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 14 Apr 2005, Adrian Turcu wrote:
+Hi Pablo Neira,
 
-> What really made me post it here was to ask the question of "How the various
-> CONNMARK options work?", aside from the brief description of parameters found
-> on netfilter manual in relation to this target. It seems that the connection
-> mark set with --set-mark is "reset" if followed by --save-mark. If the mark
-> is set at the packet level (by MARK), then --save-mark saves it to the
-> connection and restore it as needed. I thought that this marking stuff should
-> work at the connection level too.
+The current patches (dated 14-Apr), seems to not emit event messages,
+such as when new connection is established.
 
-You can only use on of --set-mark or --save-mark at a time.
+The only event emitter I find is in ip_conntrack_in()
 
---set-mark sets the connection mark to the given value.
+        if (set_reply && !test_and_set_bit(IPS_SEEN_REPLY_BIT, &ct->status))
+                ip_conntrack_event_cache(IPCT_STATUS, *pskb);
 
---save-mark sets the connection mark to the same as the packet mark (set 
-by MARK or other means)
+set_reply is set to 1 only when the first reply packet seen from server
+end of a "connection", and !test_and_set_bit(IPS_SEEN_REPLY_BIT, &ct->status)
+is supposed to be true at the moment. So it will emit event once. But
+in my test, cntltest doesn't receive this event.
 
---restore-mark is the opposite of --set-mark, copies the connection mark 
-to the packet mark similar to the MARK target.
+Did I miss something?
 
-> Just to mention that the behaviour bellow was also tested on 2.6.10 kernel and
-> with iptables 1.3.0 as well, but with the same result: most times CONNMARK
-> does not preserve the mark when set at connection level and I cannot say why
-> it's working when is working.
 
-The connection mark is distinct from the packet mark. They have no 
-relation other than that CONNMARK --save/restore-mark can copy one to the 
-other if you desire.
+On Thu, 14 Apr 2005 12:20:51 +0200, Pablo Neira <pablo@eurodev.net> wrote:
 
-The intention of the --save/restore-mark options is that you
+> Wang Jian wrote:
+> >>Just eemove `inline' from ip_conntrack_free and ip_conntrack_insert. 
+> >>I've just fixed those in the patches, so alternatively you could 
+> >>download the patch again. This seems to be something gcc-3.4 related 
+> >>since I didn't get such error with gcc-2.95.
+> >>
+> > 
+> > 
+> > I remove the inline prefix from include/linux/netfilter_ipv4/ip_conntrack.h,
+> > and now it compiles.
+> > 
+> > But I think 
+> > 
+> > EXPORT_SYMBOL(ip_conntrack_insert);
+> > 
+> > is missing in net/ipv4/netfilter/ip_conntrack_standalone.c, isn't it?
+> 
+> Right, I've just fixed it, thanks.
+> 
+> --
+> Pablo
 
-1. When the session is NEW set the desired connection mark with CONNMARK 
---set-mark.
 
-2. On all packets (including NEW), copy the connection mark to the packet 
-mark by CONNMARK --restore-mark.
 
-Or alternatively you
-
-1. On NEW packets set the mark with MARK, then CONNMARK --save-mark to 
-remember it for the next packet in the session.
-
-2. On other packets use CONNMARK --restore-mark.
-
->> # match 'n' skip already marked traffic
->> /sbin/iptables -t mangle -A PREROUTING -m connmark --mark 0x8000/0x8000 \
->> 	-j CONNMARK --restore-mark --mask 0xffff
->> /sbin/iptables -t mangle -A PREROUTING -m connmark --mark 0x8000/0x8000 \
->> 	-j RETURN
-
-ok.
-
->> #
->> # Assign different marks to different traffic:
->> # 192.168.1.218/32 is my server IP address and
->> # the traffic refers to Ingress (Egress will be similar)
->>
->> # create a class :3280x
->> /sbin/iptables -t mangle -N class_3280x
->> /sbin/iptables -t mangle -A PREROUTING -i eth1 \
->> 	-d ! 192.168.1.218/255.255.255.255 -j class_3280x
->> # mark the traffic matchin this class and return
->> # class :32801	(section 1)
->> /sbin/iptables -t mangle -A class_3280x -j CONNMARK --set-mark
->> 0x8021/0xFFFF /sbin/iptables -t mangle -A class_3280x -j RETURN
->>
->> # create a class: 6550x
->> /sbin/iptables -t mangle -N class_6550x
->> /sbin/iptables -t mangle -A PREROUTING -i eth1 \
->> 	-d 192.168.1.218/255.255.255.255 -j class_6550x
->> # mark the traffic matching this class and return
->> # class 65501 (section 2)
->> /sbin/iptables -t mangle -A class_6550x -j CONNMARK --set-mark
->> 0xFFDD/0xFFFF /sbin/iptables -t mangle -A class_6550x -j RETURN
-
-You are missing to set the packet mark here. Only the connection mark is 
-set by the above CONNMARK --set-mark .... You either need a MARK or 
-CONNMARK --restore-mark to set the packet mark on these packets.
-
-Regards
-Henrik
+-- 
+  lark
