@@ -1,12 +1,20 @@
-From: Hadrien HAMEL <hamel@enseirb.fr>
-Subject: Pb using DROP in a PREROUTING hook with ip6tables
-Date: Fri, 15 Apr 2005 17:54:46 +0200
-Message-ID: <425FE3C6.6070807@enseirb.fr>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: SIP/RTP support coming?
+Date: Fri, 15 Apr 2005 17:48:04 +0200
+Message-ID: <20050415154804.GF25433@sunbeam.de.gnumonks.org>
+References: <5caa9b8705021203527b3891d@mail.gmail.com>
+	<20050212120847.GA30461@roonstrasse.net>
+	<1108238199.1183.11.camel@www.l-chr.com.ar>
+	<5caa9b870504150144bc47d62@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YxhXyeZxSPLgOHN0"
+Cc: Christian Hentschel <chentschel2@arnet.com.ar>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Steve Davies <davies147@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <5caa9b870504150144bc47d62@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,29 +26,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I'm trying to develop a match module for filtering MLDv2 Reports packets
-(multicast group management protocol in an IPv6 context). My module is
-ready and works fine (at least, from what I see of the kernel messages I
-print during the tests in the match function), and so I try to use it to
-drop MLDv2 Reports.
-Since MLDv2 is addressed to multicast group and not to a host address,
-it is handled by the kernel before the routing stuff, so that I can't
-use INPUT or FORWARD hooks. I must use the PREROUTING hook :
+--YxhXyeZxSPLgOHN0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-#ip6tables -t raw -A PREROUTING -p ipv6-icmp -m mldv2 -j DROP
+On Fri, Apr 15, 2005 at 09:44:03AM +0100, Steve Davies wrote:
+> Christian,
+>=20
+> Sorry about taking so long to get back to you - I have been using your
+> SIP conntrack helper for a little while now, and it seems to work very
+> well for me, also with kernel 2.6.10.
+>=20
+> Many thanks for providing it.
+>=20
+> One small problem I do have is the netfilter API change in kernel
+> 2.6.11 - Is this change documented anywhere? Is there a
+> porting/updating guide anywhere?
 
-Kernel messages show that the mldv2 packets are recognized (and so the
-match function returns 1) but the packet aren't dropped. I've tried the
-"mangle" table and the "raw" table, but both were ineffective. To be
-sure that my module wasn't misbehaving, I tried to drop all the packets
-in PREROUTING, with no effects. In comparison, the same command with
-iptables (thus in IPv4) has blocked all the incoming packets (which is a
-normal behaviour!).
+unfortunately not.  I suggest looking at a diff between 2.6.10 and
+2.6.11 version of a helper (e.g. within patch-o-matic).
 
-Does anybody know if there is such a bug in ip6tables? Or is this a
-misuse of it?
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Thanks a lot!
-Hadrien
+--YxhXyeZxSPLgOHN0
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+
+iD8DBQFCX+IzXaXGVTD0i/8RAjiJAKCKFGtPRFSfCSDi/rJkX/NNhHUFhgCdFxKT
+170wJ0CHQp9q4tDjJuHHYHk=
+=qDG+
+-----END PGP SIGNATURE-----
+
+--YxhXyeZxSPLgOHN0--
