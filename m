@@ -1,17 +1,14 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
-Subject: Re: [patch] fix ACCOUNT locking
-Date: Fri, 15 Apr 2005 21:49:25 +0200
-Message-ID: <42601AC5.5070307@gmx.net>
-References: <200504151024.28858.thomas.jarosch@intra2net.com>	<20050415155430.GG25433@sunbeam.de.gnumonks.org>
-	<200504151808.37519.thomas.jarosch@intra2net.com>
+From: "Gary W. Smith" <gary@primeexalia.com>
+Subject: RE: Modifications to netmap target
+Date: Fri, 15 Apr 2005 12:55:53 -0700
+Message-ID: <27594E8BA9D5CA458F5EF87D88B6B48F1D51@pxtvjoexd01.pxt.primeexalia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
-In-Reply-To: <200504151808.37519.thomas.jarosch@intra2net.com>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +20,115 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thomas Jarosch schrieb:
-> Hello Harald,
-> 
-> 
->>>attached is a patch to fix ipt_ACCOUNT locking. ipt_ACCOUNT now works
->>>finally for large networks without trouble.
->>
->>somehow I was neither able to apply this patch to what we had in
->>patch-o-matic-ng, nor incremental to your last email from April 05.
+My dev environment seems to be okay with the patching of the two lines =
+for the output nat of netmap.  If it looks rational to the maintainers =
+I'd like to submit the patch for their formal review.  It they like it =
+they can keep it :).
+=20
+Chain PREROUTING (policy ACCEPT 30 packets, 2135 bytes)
+ pkts bytes target     prot opt in     out     source               =
+destination
+    1    48 NETMAP     all  --  *      *       0.0.0.0/0            =
+10.2.0.8/29     10.3.0.8/29
+   29  2292 NETMAP     all  --  *      *       0.0.0.0/0            =
+10.2.0.16/28    10.3.0.16/28
+  144 12104 NETMAP     all  --  *      *       0.0.0.0/0            =
+10.2.0.32/27    10.3.0.32/27
+   15  1412 NETMAP     all  --  *      *       0.0.0.0/0            =
+10.2.0.64/26    10.3.0.64/26
+Chain POSTROUTING (policy ACCEPT 195 packets, 17029 bytes)
+ pkts bytes target     prot opt in     out     source               =
+destination
+    0     0 NETMAP     all  --  *      *       10.3.0.8/29          =
+0.0.0.0/0       10.2.0.8/29
+    0     0 NETMAP     all  --  *      *       10.3.0.16/28         =
+0.0.0.0/0       10.2.0.16/28
+    1    60 NETMAP     all  --  *      *       10.3.0.32/27         =
+0.0.0.0/0       10.2.0.32/27
+    0     0 NETMAP     all  --  *      *       10.3.0.64/26         =
+0.0.0.0/0       10.2.0.64/26
+    3   229 SNAT      !esp  --  *      eth0    0.0.0.0/0            =
+0.0.0.0/0       to:10.2.0.2
+Chain OUTPUT (policy ACCEPT 2 packets, 129 bytes)
+ pkts bytes target     prot opt in     out     source               =
+destination
+    0     0 NETMAP     all  --  *      *       0.0.0.0/0            =
+10.2.0.8/29     10.3.0.8/29
+    4   336 NETMAP     all  --  *      *       0.0.0.0/0            =
+10.2.0.16/28    10.3.0.16/28
+    5   420 NETMAP     all  --  *      *       0.0.0.0/0            =
+10.2.0.32/27    10.3.0.32/27
+    0     0 NETMAP     all  --  *      *       0.0.0.0/0            =
+10.2.0.64/26    10.3.0.64/26
+=20
+Gary Smith
+=20
 
-This is probably due to the fact that the new version introduces loads
-of whitespace before the end of line. I struggled with that myself.
+________________________________
 
-I'll soon have my 64-bit-cleanliness patches ready. They needed some
-overhaul after the locking change.
+From: netfilter-devel-bounces@lists.netfilter.org on behalf of Gary W. =
+Smith
+Sent: Fri 4/15/2005 11:42 AM
+To: netfilter-devel@lists.netfilter.org
+Subject: Modifications to netmap target
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+
+
+After talking to Jason over on the netfilter users list about netmap =
+target I found that it doesn't support the output chain of nat.
+
+I was looking through the code and found that it only registers itself =
+with the pre and post route chains.  I was wondering if adding support =
+for the output chain was as simple as adding the hook for the local_out =
+and then ensuring that the correct modifications are made.  The =
+following looks logically correct from looking into some of the source =
+code for other modules.  Would more be required to make the ouput nat =
+work with netmap?
+
+Example.
+        if (hook_mask & ~((1 << NF_IP_PRE_ROUTING) | (1 << =
+NF_IP_POST_ROUTING))) {
+                DEBUGP(MODULENAME":check: bad hooks %x.\n", hook_mask);
+                return 0;
+        }
+to:
+        if (hook_mask & ~((1 << NF_IP_PRE_ROUTING) | (1 << =
+NF_IP_POST_ROUTING) | (1 << NF_IP_LOCAL_OUT) )) {
+                DEBUGP(MODULENAME":check: bad hooks %x.\n", hook_mask);
+                return 0;
+        }
+
+and
+   if (hooknum =3D=3D NF_IP_PRE_ROUTING)
+                new_ip =3D (*pskb)->nh.iph->daddr & ~netmask;
+        else
+to:
+   if (hooknum =3D=3D NF_IP_PRE_ROUTING || hooknum =3D=3D =
+NF_IP_LOCAL_OUT)
+                new_ip =3D (*pskb)->nh.iph->daddr & ~netmask;
+        else
+
+I put the above changes in and compiled and I was able load the table =
+but I'm not sure what the other imacts might be.  Comments would be =
+greatly appreciated.
+
+/sbin/iptables -t nat -A PREROUTING -d 10.0.0.56/29  -j NETMAP --to =
+10.0.0.80/29
+/sbin/iptables -t nat -A POSTROUTING -s 10.0.0.80/29 -j NETMAP --to =
+10.0.0.56/29
+/sbin/iptables -t nat -A OUTPUT -d 10.0.0.56/29  -j NETMAP --to =
+10.0.0.80/29
+
+target     prot opt source               destination       =20
+NETMAP     all  --  anywhere             10.0.0.56/29        =
+10.0.0.80/29
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination       =20
+NETMAP     all  --  10.0.0.80/29         anywhere            =
+10.0.0.56/29
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination       =20
+NETMAP     all  --  anywhere             10.0.0.56/29        =
+10.0.0.80/29
+
+Gary Smith
