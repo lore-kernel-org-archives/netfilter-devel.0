@@ -1,19 +1,16 @@
-From: Steve Davies <davies147@gmail.com>
-Subject: Re: SIP/RTP support coming?
-Date: Fri, 15 Apr 2005 09:44:03 +0100
-Message-ID: <5caa9b870504150144bc47d62@mail.gmail.com>
-References: <5caa9b8705021203527b3891d@mail.gmail.com>
-	<20050212120847.GA30461@roonstrasse.net>
-	<1108238199.1183.11.camel@www.l-chr.com.ar>
-Reply-To: Steve Davies <davies147@gmail.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH POM-NG] fix quota on SMP
+Date: Fri, 15 Apr 2005 11:26:29 +0200
+Message-ID: <20050415092629.GD25433@sunbeam.de.gnumonks.org>
+References: <425BE6E8.5040304@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="uR47HAPHj0Ivj7e6"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Christian Hentschel <chentschel2@arnet.com.ar>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <1108238199.1183.11.camel@www.l-chr.com.ar>
+To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
+In-Reply-To: <425BE6E8.5040304@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,49 +22,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Christian,
 
-Sorry about taking so long to get back to you - I have been using your
-SIP conntrack helper for a little while now, and it seems to work very
-well for me, also with kernel 2.6.10.
+--uR47HAPHj0Ivj7e6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Many thanks for providing it.
-
-One small problem I do have is the netfilter API change in kernel
-2.6.11 - Is this change documented anywhere? Is there a
-porting/updating guide anywhere?
-
-Thanks,
-Steve
-
-On 2/12/05, Christian Hentschel <chentschel2@arnet.com.ar> wrote:
-> Hi, i'm very interesting in a conntrack/nat helper for sip.
-> Currently i'm working on this and help with testing will be great.
-> i've used kernel 2.6.10 for this.
+On Tue, Apr 12, 2005 at 05:19:04PM +0200, Pablo Neira wrote:
+> This patch fixes quota on SMP boxes.
 >=20
-> Christian.
->=20
-> On Sat, 2005-02-12 at 13:08 +0100, Max Kellermann wrote:
-> > On 2005/02/12 12:52, Steve Davies <davies147@gmail.com> wrote:
-> > > Are there plans to integrate this officially? Should I take time to
-> > > (try to) update the patch to the 2.6.x kernel? Am I missing
-> > > something?
-> >
-> > I believe nobody is working on that yet; I planned to look at the code
-> > when I'm done with the H.323 module, but that will take some time.
-> >
-> > A lot people would be thankful if you hacked the source, and ported
-> > that to Linux 2.6.11-rc3 (the API has changed very much since 2.6.10;
-> > don't use the old API).
-> >
-> > You should start with providing a patch-o-matic module (see netfilter
-> > home page) of the original code, and then send patches with your
-> > changes.
-> >
-> > Max
-> >
-> >
-> --
->=20
->=20
->
+> o 01-24.patch: For 2.4.x
+> o 01-26.patch: For 2.6.x
+> o 02kill-ip-discount.patch: quota doesn't count the size of the IP header=
+ on=20
+> 2.6.x.
+> o quota-iptables.patch: iptables requires this patch to fix SMP for quota.
+> o x-help: remove `quota is broken on SMP' warning that isn't true anymore.
+
+thanks, applied.
+
+btw: I would appreciate if you would submit all hunks that belong to one
+issue (e.g. 01-24, 01-26 and x-help in this example) as one single
+patch.
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--uR47HAPHj0Ivj7e6
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+
+iD8DBQFCX4jFXaXGVTD0i/8RAiSxAJ9pPPwH7STInbRafCRjR2LGkmsgVwCgrpO+
+IOUTNHca07JKJ6PYMzfUFBM=
+=ZdIV
+-----END PGP SIGNATURE-----
+
+--uR47HAPHj0Ivj7e6--
