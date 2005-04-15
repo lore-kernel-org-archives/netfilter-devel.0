@@ -1,12 +1,14 @@
-From: Juha Heljoranta <juha.heljoranta@evtek.fi>
-Subject: arbitary length matchinfo
-Date: Fri, 15 Apr 2005 14:32:08 +0300
-Message-ID: <425FA638.5010601@evtek.fi>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: arbitary length matchinfo
+Date: Fri, 15 Apr 2005 17:23:22 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0504151721130.30308@filer.marasystems.com>
+References: <425FA638.5010601@evtek.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: Juha Heljoranta <juha.heljoranta@evtek.fi>
+In-Reply-To: <425FA638.5010601@evtek.fi>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,22 +20,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Is it possible to create arbitary length matchinfo? I couldn't find any
-info on this.
+On Fri, 15 Apr 2005, Juha Heljoranta wrote:
 
-What I want is an path:
+> Is it possible to create arbitary length matchinfo?
 
-	struct ipt_foo_info {
-		char *path;
-	}
+Not without modifying both libiptc and the kernel. The structures does 
+support this, but libiptc assumes the matchinfo is of fixed size, and the 
+kernel also verifies the size is the expected size.
 
-maximum path length in Linux is 4096 and doing
+> What I want is an path:
 
-	struct ipt_foo_info {
-		char path[4096];
-	}
+Just curious: why?
 
-is bit crazy.
-
-Regards,
-Juha Heljoranta
+Regards
+Henrik
