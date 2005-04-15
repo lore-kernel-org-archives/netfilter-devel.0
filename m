@@ -1,17 +1,15 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: nfnetlink-ctnetlink working: INSTRUCTIONS
-Date: Fri, 15 Apr 2005 22:25:21 +0200
-Message-ID: <42602331.6060706@eurodev.net>
-References: <20050414175616.0331.LARK@linux.net.cn>
-	<425E4403.5010101@eurodev.net>
-	<20050415142613.033A.LARK@linux.net.cn>
+Subject: Re: Modifications to netmap target
+Date: Fri, 15 Apr 2005 22:27:15 +0200
+Message-ID: <426023A3.4020001@eurodev.net>
+References: <27594E8BA9D5CA458F5EF87D88B6B48F1D4F@pxtvjoexd01.pxt.primeexalia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Amin Azez <azez@ufomechanic.net>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Wang Jian <lark@linux.net.cn>
-In-Reply-To: <20050415142613.033A.LARK@linux.net.cn>
+To: "Gary W. Smith" <gary@primeexalia.com>
+In-Reply-To: <27594E8BA9D5CA458F5EF87D88B6B48F1D4F@pxtvjoexd01.pxt.primeexalia.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,39 +21,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Wang Jian wrote:
-> Hi Pablo Neira,
-> 
-> The current patches (dated 14-Apr), seems to not emit event messages,
-> such as when new connection is established.
+Gary W. Smith wrote:
+> After talking to Jason over on the netfilter users list about netmap target I found that it doesn't support the output chain of nat. 
+>  
+> I was looking through the code and found that it only registers itself with the pre and post route chains.  I was wondering if adding support for the output chain was as simple as adding the hook for the local_out and then ensuring that the correct modifications are made.  The following looks logically correct from looking into some of the source code for other modules.  Would more be required to make the ouput nat work with netmap?
+>  
+> Example.
+>         if (hook_mask & ~((1 << NF_IP_PRE_ROUTING) | (1 << NF_IP_POST_ROUTING))) {
+>                 DEBUGP(MODULENAME":check: bad hooks %x.\n", hook_mask);
+>                 return 0;
+>         }
+> to:
+>         if (hook_mask & ~((1 << NF_IP_PRE_ROUTING) | (1 << NF_IP_POST_ROUTING) | (1 << NF_IP_LOCAL_OUT) )) {
+>                 DEBUGP(MODULENAME":check: bad hooks %x.\n", hook_mask);
+>                 return 0;
+>         }
+>  
+> and 
+>    if (hooknum == NF_IP_PRE_ROUTING)
+>                 new_ip = (*pskb)->nh.iph->daddr & ~netmask;
+>         else
+> to:
+>    if (hooknum == NF_IP_PRE_ROUTING || hooknum == NF_IP_LOCAL_OUT)
+>                 new_ip = (*pskb)->nh.iph->daddr & ~netmask;
+>         else
+>  
+> I put the above changes in and compiled and I was able load the table but I'm not sure what the other imacts might be.  Comments would be greatly appreciated.
+>  
+> /sbin/iptables -t nat -A PREROUTING -d 10.0.0.56/29  -j NETMAP --to 10.0.0.80/29
+> /sbin/iptables -t nat -A POSTROUTING -s 10.0.0.80/29 -j NETMAP --to 10.0.0.56/29
+> /sbin/iptables -t nat -A OUTPUT -d 10.0.0.56/29  -j NETMAP --to 10.0.0.80/29
 
-Hm it works just fine here.
-
-o The ct-event notification API is ok, try this test:
-http://people.netfilter.org/~pablo/patches/test/ct-event-test.tar.gz
-
-o Netlink notification works fine as well via:
-http://people.netfilter.org/~pablo/conntrack-tool/
-
-Try:
-# conntrack -E conntrack
-
-So I don't see any problem.
-
-> The only event emitter I find is in ip_conntrack_in()
-> 
->         if (set_reply && !test_and_set_bit(IPS_SEEN_REPLY_BIT, &ct->status))
->                 ip_conntrack_event_cache(IPCT_STATUS, *pskb);
-> 
-> set_reply is set to 1 only when the first reply packet seen from server
-> end of a "connection", and !test_and_set_bit(IPS_SEEN_REPLY_BIT, &ct->status)
-> is supposed to be true at the moment. So it will emit event once. But
-> in my test, cntltest doesn't receive this event.
-> 
-> Did I miss something?
-
-I'll update ctnltest.c soon since it's currently broken. I haven't mind 
-about it so far.
+There's something that I don't understand yet, why you want to use 
+NETMAP in the OUTPUT chain ?
 
 --
 Pablo
