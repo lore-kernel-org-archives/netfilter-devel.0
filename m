@@ -1,14 +1,14 @@
 From: Christian Hentschel <chentschel2@arnet.com.ar>
-Subject: [patch] Re: SIP/RTP support coming?
-Date: Fri, 15 Apr 2005 19:46:49 -0300
-Message-ID: <1113605209.2254.7.camel@www.l-chr.com.ar>
+Subject: Re: SIP/RTP support coming?
+Date: Fri, 15 Apr 2005 19:54:07 -0300
+Message-ID: <1113605647.2585.0.camel@www.l-chr.com.ar>
 References: <5caa9b8705021203527b3891d@mail.gmail.com>
 	<20050212120847.GA30461@roonstrasse.net>
 	<1108238199.1183.11.camel@www.l-chr.com.ar>
 	<5caa9b870504150144bc47d62@mail.gmail.com>
 	<20050415154804.GF25433@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-gOlkOTvB8M/Q4Cvh9qiA"
+Content-Type: multipart/mixed; boundary="=-SaFX5LM9XXPNTJNMPAfa"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
@@ -25,16 +25,11 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-gOlkOTvB8M/Q4Cvh9qiA
+--=-SaFX5LM9XXPNTJNMPAfa
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-Ok, here goes 2.6.11 patch. 
-I'm still working on nat SIP/SDP content mangling. But u should try this
-patch meanwhile. It'd be great some help with it. 
-Let me know later.
-
-Herald?  Would it be possible to add it to pom if this works realiable?
+Ups, sorry here goes again with "info" file fixed. 
 
 
 On Fri, 2005-04-15 at 17:48 +0200, Harald Welte wrote:
@@ -56,10 +51,10 @@ On Fri, 2005-04-15 at 17:48 +0200, Harald Welte wrote:
 > 
 -- 
 
---=-gOlkOTvB8M/Q4Cvh9qiA
+--=-SaFX5LM9XXPNTJNMPAfa
 Content-Disposition: attachment; filename=sip_conntrack.patch
-Content-Type: text/x-patch; name=sip_conntrack.patch; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: base64
+Content-Type: text/x-patch; name=sip_conntrack.patch; charset=ANSI_X3.4-1968
 
 SW5kZXg6IHNpcC1jb25udHJhY2stbmF0L2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXBf
 Y29ubnRyYWNrX3NpcC5oDQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
@@ -253,10 +248,10 @@ dChpbml0KTsNCittb2R1bGVfZXhpdChmaW5pKTsNCkluZGV4OiBzaXAtY29ubnRyYWNrLW5hdC9p
 bmZvDQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
 PT09PT09PT09PT09PT09DQotLS0gc2lwLWNvbm50cmFjay1uYXQvaW5mbwkocmV2aXNpb24gMCkN
 CisrKyBzaXAtY29ubnRyYWNrLW5hdC9pbmZvCShyZXZpc2lvbiAwKQ0KQEAgLTAsMCArMSw1IEBA
-DQorVGl0bGU6IGgzMjMgY29ubmVjdGlvbiB0cmFja2luZyBhbmQgTkFUIGhlbHBlcg0KK0F1dGhv
-cjogSm96c2VmIEthZGxlY3NpayA8a2FkbGVjQGJsYWNraG9sZS5rZmtpLmh1PiwgTWF4IEtlbGxl
-cm1hbm4gPG1heEBkdWVtcGVsLm9yZz4NCitTdGF0dXM6IEFscGhhDQorUmVwb3NpdG9yeTogZXh0
-cmENCitSZXF1aXJlczogbGludXgtMi42ID49IDIuNi4xMQ0K
+DQorVGl0bGU6IFNJUCBjb25uZWN0aW9uIHRyYWNraW5nIGFuZCBOQVQgaGVscGVyDQorQXV0aG9y
+OiBDaHJpc3RpYW4gSGVudHNjaGVsIDxjaGVudHNjaGVsQGFybmV0LmNvbS5hcj4NCitTdGF0dXM6
+IEFscGhhDQorUmVwb3NpdG9yeTogZXh0cmENCitSZXF1aXJlczogbGludXgtMi42ID49IDIuNi4x
+MQ0K
 
 
---=-gOlkOTvB8M/Q4Cvh9qiA--
+--=-SaFX5LM9XXPNTJNMPAfa--
