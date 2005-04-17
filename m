@@ -1,15 +1,16 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: random match on linux-2.6
-Date: Sun, 17 Apr 2005 19:54:21 +0000
-Message-ID: <4262BEED.203@outerspace.dyndns.org>
-References: <42617BAE.2040805@log01.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH NF_CONNTRACK 0/8]: conflict symbols and getorigdst
+	issue/bugs
+Date: Sun, 17 Apr 2005 23:49:30 +0200
+Message-ID: <4262D9EA.8010702@trash.net>
+References: <200503221323.j2MDNfXS028596@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Javier Valencia <jvalencia@log01.org>
-In-Reply-To: <42617BAE.2040805@log01.org>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200503221323.j2MDNfXS028596@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,29 +22,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi Yasuyuki,
 
-Quoting Javier Valencia on 2005-04-16 20:55 UTC:
-> I've seen that it's not available on 2.6, but it's just the same in both
-> kernels, copied contents of ...random/linux to ...random/linux-2.6, and
-> worked fine. I don't know if you already know that.
+Yasuyuki KOZAKAI wrote:
 
-There are some minor changes that usually needs to be done when
-migrating to 2.6.. it's mostly coding standard differencies, usually
-they work as is also..
+> These are patches for nf_conntrack which
+> 	- unify common enums/flags in ip_conntrack and nf_conntrack,
+> 	  as we talked,
+> 	- fix other conflicts by changing he name of them in nf_conntrack,
+> 	- change SO_ORIGINAL_DST to IPV6_ORIGINAL_DST in netfilter_ipv6.h
+> 	  SO_* are socket level option names, not IP level. This doesn't
+> 	  change netfilter_ipv4.h because of compatibility issue.
+> 	- fix the bug which cannot find the target conntrack.
+> 
+> BTW, getorigdst() for IPv6 connection is really useful ? IPv6 connections
+> are not NATed, then I think it's meaningless to call it.
+> If it looks like it's useless, deleting it is fine with me.
+> If not, please apply patches I send (08, 09).
 
-Someone already ported the random match in November last year. There are
-some other patches as well that have not gotten merged, I'm in the
-process of collecting them in order to remind the developers about their
-existence..
+sorry for takeing so long with this. I've applied patches 01-07 and
+removed getorigdst(), thanks a lot.
 
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCYr7rxyF48ZTvn+4RAsZHAKDhWvcyfHFhvJxYXcGww0eVGlAXQQCfbcW9
-n67tZVesixFmL0TsRM1Nh04=
-=kKhs
------END PGP SIGNATURE-----
+Regards
+Patrick
