@@ -1,17 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] new 'tcpack' match
-Date: Sun, 17 Apr 2005 16:36:29 +0200
-Message-ID: <4262746D.9060406@trash.net>
-References: <42464598.9040707@outerspace.dyndns.org>
-	<425032D5.2010302@trash.net>
-	<425A698F.6080703@outerspace.dyndns.org>
+Subject: Re: [RFC] [PATCH] ctnetlink updates
+Date: Sun, 17 Apr 2005 17:07:48 +0200
+Message-ID: <42627BC4.8070103@trash.net>
+References: <424747E3.7000300@eurodev.net> <42502F8D.5030504@trash.net>
+	<4254258E.5000204@eurodev.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jonas Berlin <xkr47@outerspace.dyndns.org>
-In-Reply-To: <425A698F.6080703@outerspace.dyndns.org>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <4254258E.5000204@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +23,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jonas Berlin wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+Pablo Neira wrote:
+> Now I've changed my mind :).
 > 
-> Quoting Patrick McHardy on 2005-04-03 18:15 UTC:
-> 
-> |> ~  iptables -A INPUT -p tcp -m tcpack --tcpack -j CLASSIFY 1:10
-> |
-> | I can see that it would be useful, given all the half-working ACK
-> | matching rules for shaping floating around, but we already a tcp
-> | match, so it should be done in there, and, if possible, kept a little
-> | bit more generic. Perhaps a data-len match option.
-> 
-> Should I make a new revision of the tcp match in order not to break
-> binary compatibility?
+> I think that we can identify a connection with both the original and 
+> reply tuple. Since a connection is represented by means of a conntrack, 
+> if a user kills a conntrack via ctnetlink, he's willing to kill the 
+> connection that the conntrack represents, and not to such conntrack itself.
 
-Yes.
+It depends on by what criteria the user selects the conntrack. I might
+choose to kill/remark/... every connection that has transfered more than
+X bytes, in which case I don't want to touch a new connection with the
+same tuples that has transfered less than X. How can we handle this
+and similar cases without an identifier that is unique over time?
 
 Regards
 Patrick
