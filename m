@@ -1,17 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] [PATCH] ctnetlink updates
-Date: Sun, 17 Apr 2005 17:07:48 +0200
-Message-ID: <42627BC4.8070103@trash.net>
-References: <424747E3.7000300@eurodev.net> <42502F8D.5030504@trash.net>
-	<4254258E.5000204@eurodev.net>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: random match on linux-2.6
+Date: Sun, 17 Apr 2005 19:54:21 +0000
+Message-ID: <4262BEED.203@outerspace.dyndns.org>
+References: <42617BAE.2040805@log01.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <4254258E.5000204@eurodev.net>
+To: Javier Valencia <jvalencia@log01.org>
+In-Reply-To: <42617BAE.2040805@log01.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,19 +21,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> Now I've changed my mind :).
-> 
-> I think that we can identify a connection with both the original and 
-> reply tuple. Since a connection is represented by means of a conntrack, 
-> if a user kills a conntrack via ctnetlink, he's willing to kill the 
-> connection that the conntrack represents, and not to such conntrack itself.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-It depends on by what criteria the user selects the conntrack. I might
-choose to kill/remark/... every connection that has transfered more than
-X bytes, in which case I don't want to touch a new connection with the
-same tuples that has transfered less than X. How can we handle this
-and similar cases without an identifier that is unique over time?
+Quoting Javier Valencia on 2005-04-16 20:55 UTC:
+> I've seen that it's not available on 2.6, but it's just the same in both
+> kernels, copied contents of ...random/linux to ...random/linux-2.6, and
+> worked fine. I don't know if you already know that.
 
-Regards
-Patrick
+There are some minor changes that usually needs to be done when
+migrating to 2.6.. it's mostly coding standard differencies, usually
+they work as is also..
+
+Someone already ported the random match in November last year. There are
+some other patches as well that have not gotten merged, I'm in the
+process of collecting them in order to remind the developers about their
+existence..
+
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCYr7rxyF48ZTvn+4RAsZHAKDhWvcyfHFhvJxYXcGww0eVGlAXQQCfbcW9
+n67tZVesixFmL0TsRM1Nh04=
+=kKhs
+-----END PGP SIGNATURE-----
