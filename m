@@ -1,17 +1,13 @@
-From: Anatoly Pugachev <mator@rootshell.ru>
-Subject: Re: [PATCH] u32 match ported to 2.6 and ipv6
-Date: Sat, 16 Apr 2005 12:13:37 +0400
-Message-ID: <20050416081337.GA9325@helminth.linuxhacker.ru>
-References: <425BF67E.4040903@outerspace.dyndns.org>
-	<20050415092754.GE25433@sunbeam.de.gnumonks.org>
+From: NIIBE Yutaka <gniibe@fsij.org>
+Subject: TCP Connection tracking and SYN/ACK/PSH
+Date: Sun, 17 Apr 2005 19:37:18 +0900
+Message-ID: <20050417193718.6a7f0809.gniibe@fsij.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="AqsLC8rIMeq19msA"
-Cc: Harald Welte <laforge@netfilter.org>, Pablo Neira <pablo@eurodev.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: ukai@debian.or.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20050415092754.GE25433@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,47 +19,126 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+I got a problem with netfilter connection tracking for TCP.
+Kernel version is 2.6.9 (of Debian sarge).
 
---AqsLC8rIMeq19msA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Linux 2.6 cannot connect to (a version of) MELCO Wireless Print
+Server.  It is because MELCO Wireless Print Server responds SYN/ACK/PSH, 
+when it gets SYN.  And Linux connection tracking for TCP cannot handle
+SYN/ACK/PSH.
 
-On Fri, Apr 15, 2005 at 11:27:54AM +0200, Harald Welte wrote:
-> On Tue, Apr 12, 2005 at 04:25:34PM +0000, Jonas Berlin wrote:
-> > Here goes, it compiles, haven't tested it. :)
->=20
-> well, I would really like the author (i.e. you) to test it (at least
-> basic features) before we include it.
->=20
-> Would that be possible?
+I found that there is a discussion about SYN/ACK/PSH:
+http://www.linuxforum.com/forums/index.php?s=6af41cf69e81a2cde189f6b7168ed535&showtopic=137778&st=0&#entry600234
 
-ok, i've just finished testing it with the following configuration:
+It seems that it is same issue.
 
--m u32 --u32 "117&0xFFFF=3D0x1804"=20
+I attach (formatted) output of tcpdump at the end of this message.
+Please note the packets with flags SP and ack.
 
-and it "works for me". It is ipv4 only test, since we don't have ipv6 here.
-Whole iptables command was following:
+The model of MELCO Wireless Print Server was:
+-------------------------------
+Server Name    :  WS-363251
+Server Model   :  LPV2-WS11GC
+F/W Version    :  0.10
+-------------------------------
 
-iptables -t nat -I PREROUTING -i eth1 -m u32 --u32 "117&0xFFFF=3D0x1804" -m=
- length --length 200:1000 -p udp -d 192.168.5.255 --dport 138 -j DNAT --to =
-192.168.0.255=20
+The iptables were:
+-------------------------------
+# iptables -L
+Chain INPUT (policy DROP)
+target     prot opt source               destination         
+ACCEPT     all  --  anywhere             anywhere            
+ACCEPT     all  --  anywhere             anywhere            state RELATED,ESTABLISHED 
+ACCEPT     icmp --  anywhere             anywhere            icmp echo-reply 
+ACCEPT     icmp --  anywhere             anywhere            icmp destination-unreachable 
+ACCEPT     icmp --  anywhere             anywhere            icmp echo-request 
+ACCEPT     icmp --  anywhere             anywhere            icmp time-exceeded 
+ACCEPT     udp  --  anywhere             anywhere            udp spt:netbios-ns dpts:1024:65535 
 
-as you can see i'm DNAT'ing to broadcast address , pretty unusual, eh? :)
+Chain FORWARD (policy DROP)
+target     prot opt source               destination         
 
---=20
-Anatoly Pugachev
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination         
+-------------------------------
 
---AqsLC8rIMeq19msA
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+I think that the protocol stack of MELCO Wireless Print Server is
+broken or at least, unusual.  But following patch fixes this issue...
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+--- net/ipv4/netfilter/ip_conntrack_proto_tcp.c~	2004-10-19 06:55:29.000000000 +0900
++++ net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-04-17 18:06:10.000000000 +0900
+@@ -754,6 +754,7 @@ static u8 tcp_valid_flags[(TH_FIN|TH_SYN
+ {
+ 	[TH_SYN]			= 1,
+ 	[TH_SYN|TH_ACK]			= 1,
++	[TH_SYN|TH_PUSH|TH_ACK]		= 1,
+ 	[TH_RST]			= 1,
+ 	[TH_RST|TH_ACK]			= 1,
+ 	[TH_RST|TH_ACK|TH_PUSH]		= 1,
+------------
 
-iD8DBQFCYMkvoubiDytudlARApI4AJ46P9YTd4cTrrqGn1kgy+XF87MBkQCfR836
-/f4C3H0Ti43kU8SyDvOnPZU=
-=inFA
------END PGP SIGNATURE-----
-
---AqsLC8rIMeq19msA--
+Here is the output of tcpdump, 192.168.2.5 is Linux box,
+192.168.2.70 is MELCO server.
+-------------------------------
+16:55:10.649183 IP (tos 0x10, ttl  64, id 26625, offset 0,
+		flags [DF], length: 60)
+	192.168.2.5.34139 > 192.168.2.70.telnet:
+	S [tcp sum ok] 1185703014:1185703014(0) win 5840
+	<mss 1460,sackOK,timestamp 277089383 0,nop,wscale 2>
+16:55:10.657457 IP (tos 0x0, ttl  30, id 5214, offset 0,
+		flags [none], length: 44)
+	192.168.2.70.telnet > 192.168.2.5.34139:
+	SP [tcp sum ok] 8419755:8419755(0) ack 1185703015 win 1024 <mss 1024>
+16:55:11.829212 IP (tos 0x0, ttl  30, id 5215, offset 0,
+		flags [none], length: 44)
+	192.168.2.70.telnet > 192.168.2.5.34139:
+	SP [tcp sum ok] 8419755:8419755(0) ack 1185703015 win 1024 <mss 1024>
+16:55:13.648646 IP (tos 0x10, ttl  64, id 26627, offset 0,
+		flags [DF], length: 60)
+	192.168.2.5.34139 > 192.168.2.70.telnet:
+	S [tcp sum ok] 1185703014:1185703014(0) win 5840
+	<mss 1460,sackOK,timestamp 277092383 0,nop,wscale 2>
+16:55:13.655225 IP (tos 0x0, ttl  30, id 5216, offset 0,
+		flags [none], length: 40)
+	192.168.2.70.telnet > 192.168.2.5.34139:
+	. [tcp sum ok] 1:1(0) ack 1 win 1024
+16:55:13.836717 IP (tos 0x0, ttl  30, id 5217, offset 0,
+		flags [none], length: 44)
+	192.168.2.70.telnet > 192.168.2.5.34139:
+	SP [tcp sum ok] 8419755:8419755(0) ack 1185703015 win 1024 <mss 1024>
+16:55:15.839199 IP (tos 0x0, ttl  30, id 5218, offset 0,
+		flags [none], length: 44)
+	192.168.2.70.telnet > 192.168.2.5.34139:
+	SP [tcp sum ok] 8419755:8419755(0) ack 1185703015 win 1024 <mss 1024>
+16:55:19.647731 IP (tos 0x10, ttl  64, id 26629, offset 0,
+		flags [DF], length: 60)
+	192.168.2.5.34139 > 192.168.2.70.telnet:
+	S [tcp sum ok] 1185703014:1185703014(0) win 5840
+	<mss 1460,sackOK,timestamp 277098383 0,nop,wscale 2>
+16:55:19.655215 IP (tos 0x0, ttl  30, id 5220, offset 0,
+		flags [none], length: 40)
+	192.168.2.70.telnet > 192.168.2.5.34139:
+	. [tcp sum ok] 1:1(0) ack 1 win 1024
+16:55:19.837037 IP (tos 0x0, ttl  30, id 5222, offset 0,
+		flags [none], length: 44)
+	192.168.2.70.telnet > 192.168.2.5.34139:
+	SP [tcp sum ok] 8419755:8419755(0) ack 1185703015 win 1024 <mss 1024>
+16:55:27.830395 IP (tos 0x0, ttl  30, id 5228, offset 0,
+		flags [none], length: 44)
+	192.168.2.70.telnet > 192.168.2.5.34139:
+	SP [tcp sum ok] 8419755:8419755(0) ack 1185703015 win 1024 <mss 1024>
+16:55:31.645907 IP (tos 0x10, ttl  64, id 26631, offset 0,
+		flags [DF], length: 60)
+	192.168.2.5.34139 > 192.168.2.70.telnet:
+	S [tcp sum ok] 1185703014:1185703014(0) win 5840
+	<mss 1460,sackOK,timestamp 277110383 0,nop,wscale 2>
+16:55:31.657868 IP (tos 0x0, ttl  30, id 5231, offset 0,
+		flags [none], length: 40)
+	192.168.2.70.telnet > 192.168.2.5.34139:
+	. [tcp sum ok] 1:1(0) ack 1 win 1024
+16:55:43.834948 IP (tos 0x0, ttl  30, id 5239, offset 0,
+		flags [none], length: 44)
+	192.168.2.70.telnet > 192.168.2.5.34139:
+	SP [tcp sum ok] 8419755:8419755(0) ack 1185703015 win 1024 <mss 1024>
+-------------------------------
+-- 
