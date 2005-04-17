@@ -1,15 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Dead loop on Virtual interface
-Date: Mon, 18 Apr 2005 00:26:21 +0200
-Message-ID: <4262E28D.1080900@trash.net>
-References: <0b8801c54001$bb029220$5001010a@bluereef.local>
+From: Piotrek Kaczmarek <kaczorek@k.daleka.net>
+Subject: libipt_connbytes.c bug in iptables-1.3.1
+Date: Mon, 18 Apr 2005 01:09:27 +0200
+Message-ID: <20050417230927.GA23821@daleka.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Andrew Hall <temp02@bluereef.com.au>
-In-Reply-To: <0b8801c54001$bb029220$5001010a@bluereef.local>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,21 +18,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Andrew Hall wrote:
-> Hi,
-> 
-> We've been using the native ipsec implementation in a routed environment 
-> with no real problems. We have now tried it with a combined 
-> bridging/routed setup and we see the message "dead loop on virtual 
-> interface BR0'. The endpoint is configured to be the bridge interface. 
-> We have tried 2.6.10 and 2.6.11.5 with the same effect. If we disable 
-> the ipsec transport the message goes away. Does anyone know if this is 
-> this a problem/bug with the way netfilter, the bridging code and ipsec 
-> interrelate? Or could there be some other issue.
+I've spent couple of hours seaching for a fix for this bug... can you apply the patch below?
 
-Probably a misconfiguration, this message occurs when a virtual
-device's hard_start_xmit() function tries to transmit a packet using
-itself as output device.
+# iptables -t mangle -A PREROUTING -m connbytes --connbytes-mode packets
+iptables v1.3.1: Unknown arg `packets'
+Try `iptables -h' or 'iptables --help' for more information.
 
-Regards
-Patrick
+# iptables -t mangle -A PREROUTING -m connbytes --connbytes-mode bytes
+iptables v1.3.1: Unknown arg `bytes'
+Try `iptables -h' or 'iptables --help' for more information.
+
+There's a patch:
+
+########### cut
+
+--- libipt_connbytes.c.fucked   2005-04-18 01:00:28.000000000 +0200
++++ libipt_connbytes.c  2005-04-18 00:56:10.000000000 +0200
+@@ -93,6 +93,7 @@
+                        exit_error(PARAMETER_PROBLEM,
+                                   "Unknown --connbytes-mode `%s'", optarg);
+                *flags |= 4;
++               break;
+        default:
+                return 0;
+        }
+
+########### cut
+
+-- 
+Piotrek Kaczmarek
