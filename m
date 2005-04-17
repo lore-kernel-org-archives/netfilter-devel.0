@@ -1,16 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] REJECT for 2.6.9+
-Date: Mon, 18 Apr 2005 00:00:42 +0200
-Message-ID: <4262DC8A.7070109@trash.net>
-References: <423DA194.40100@trash.net>	<200503300205.j2U25fCc021930@toshiba.co.jp>	<42503569.5080406@trash.net>
-	<200504080758.j387wkif011777@toshiba.co.jp>
+Subject: Re: struct nf_sockopt_ops
+Date: Mon, 18 Apr 2005 00:05:05 +0200
+Message-ID: <4262DD91.20203@trash.net>
+References: <426121BC.2040808@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200504080758.j387wkif011777@toshiba.co.jp>
+To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
+In-Reply-To: <426121BC.2040808@gmx.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,13 +21,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> This patch makes send_reset() look xfrm policy and deletes unnecessary
-> dst_hold().
+Carl-Daniel Hailfinger wrote:
+> Forgive me if that has already been discussed.
+> 
+> I'm wondering why the get and set members of the struct take
+> some form of int as last parameter. Wouldn't be a long be the
+> more logical choice? I can see changing the type here wouldn't
+> help because nf_sockopt also accepting only an int for len.
+> 
+> struct nf_sockopt_ops
+> {
+> /* snip */
+>         int (*set)(struct sock *sk, int optval, void __user *user, unsigned int len);
+> /* snip */
+>         int (*get)(struct sock *sk, int optval, void __user *user, int *len);
+> /* snip */
+> };
+> 
+> Or at least the last parameter of the set member being a
+> signed int to match the parameter to nf_sockopt.
+> 
+> Any insight into why the parameters were chosen that way
+> would be truly appreciated.
 
-Looks good, thanks. I've applied it to pom, but can't commit right
-now, there is some permission problem with SVN. I'll commit it once
-its working again.
+For compatibility. setsockopt(2):
+
+The fifth argument of getsockopt and setsockopt is in  reality  an  int
+[*]  (and  this  is what BSD 4.* and libc4 and libc5 have).  Some POSIX
+confusion resulted in the present socklen_t, also used by  glibc.   See
+also accept(2).
 
 Regards
 Patrick
