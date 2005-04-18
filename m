@@ -1,15 +1,17 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: nfnetlink-ctnetlink working: INSTRUCTIONS
-Date: Mon, 18 Apr 2005 13:49:48 +0100
-Message-ID: <4263ACEC.7070209@ufomechanic.net>
-References: <20050414175616.0331.LARK@linux.net.cn>	<425E4403.5010101@eurodev.net>	<20050415142613.033A.LARK@linux.net.cn>
-	<42602331.6060706@eurodev.net>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [PATCH] goto port to ipv6
+Date: Mon, 18 Apr 2005 16:17:38 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0504181602570.14603@filer.marasystems.com>
+References: <425CD235.7060909@outerspace.dyndns.org>
+	<4262E109.2010804@trash.net>
+	<Pine.LNX.4.61.0504180304580.4321@filer.marasystems.com>
+	<426310E5.2030207@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <42602331.6060706@eurodev.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <426310E5.2030207@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,34 +23,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> Wang Jian wrote:
-> 
->> Hi Pablo Neira,
->>
->> The current patches (dated 14-Apr), seems to not emit event messages,
->> such as when new connection is established.
-> 
-> 
-> Hm it works just fine here.
-> 
-> o The ct-event notification API is ok, try this test:
-> http://people.netfilter.org/~pablo/patches/test/ct-event-test.tar.gz
-> 
-> o Netlink notification works fine as well via:
-> http://people.netfilter.org/~pablo/conntrack-tool/
-> 
-> Try:
-> # conntrack -E conntrack
+On Mon, 18 Apr 2005, Patrick McHardy wrote:
 
-I'm just taking conntrack to bits, and I am puzzled about the existance 
-of libctnetlink.h and libnfnetlink.h in conntrack's include directory.
+> But it's a useful feature. If this was the only reason, I think we
+> should submit it for both IPv4 and IPv6.
 
-The main difference seems to be the extra parameter in 
-ctnl_get_conntrack and ctnl_del_conntrack which is not part of my 
-libctnetlink library.
+I am not against this.
 
-Pablo, is this the old id that is no longer needed because the tuples 
-are enough, but still in your libctnetlink? Or something else?
+I wrote the patch because someone asked if it was possible, and if people 
+find good uses of it then I am very happy B)
 
-Sam
+>From what I remember the patch is very non-intrusive and shouldn't cost 
+more than tree more instruction bytes in the kernel.. Only note of caution 
+is that I don't remember if old kernels rejects rulesets with goto or 
+silently accepts the goto as a jump. I think it is silently accepted 
+reading the goto as a jump, but hopefully the ruleset is rejected when the 
+kernel does not support goto (depends on how good the iptables kernel 
+verifies the content of the flags field)
+
+Regards
+Henrik
