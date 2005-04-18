@@ -1,16 +1,18 @@
-From: Wang Jian <lark@linux.net.cn>
+From: Amin Azez <azez@ufomechanic.net>
 Subject: Re: [PATCH] ct-event API port to 2.6.11
-Date: Mon, 18 Apr 2005 19:13:43 +0800
-Message-ID: <20050418185959.037A.LARK@linux.net.cn>
-References: <425BE280.3040904@eurodev.net> <42639065.70809@ufomechanic.net>
+Date: Mon, 18 Apr 2005 12:06:29 +0100
+Message-ID: <426394B5.9030401@ufomechanic.net>
+References: <424747D5.8060500@eurodev.net>
+	<42502B1B.7090309@trash.net>	<42540839.8020405@ufomechanic.net>
+	<4254265F.6080607@eurodev.net>
+	<20050410204542.GT9155@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Pablo Neira <pablo@eurodev.net>,
-	Patrick McHardy <kaber@trash.net>
+Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <42639065.70809@ufomechanic.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20050410204542.GT9155@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,55 +24,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Amin Azez,
-
-Pablo gave a patch the other day that patches pom-ng to get ctevent-api/.
-I use this patch along with new nfnetlink/ and ctnetlink/, and it works
-fine. Of course, you need to rename or symbol link ctevent-api/ to
-conntrack-event-api/, because Harald Welte chooses it as name.
-
-Execpt the ctevent-api, I think other parts have been put into new
-nfnetlink/ and ctnetlink/.
-
-Harald Welte also merged ctnetlink-conntrack_acct.patch, which seems to
-do per stream packets/bytes counting stuff. (I just take a look at it,
-so I may be wrong).
-
-
-On Mon, 18 Apr 2005 11:48:05 +0100, Amin Azez <azez@ufomechanic.net> wrote:
-
-> Pablo Neira wrote:
-> > Pablo Neira wrote:
-> > 
-> >> Harald Welte wrote:
-> >>
-> >>> do you mind creating a patch against svn so we can put it into
-> >>> nfnetlink-ctnetlink/linux-2.6.11 ?
-> >>
-> >>
-> >>
-> >> Attached two patches against pom-ng:
-> >>
-> >> o ctevent-api: conntrack event API
-> >> o nfnetlink-ctnetlink: nfnetlink + conntrack netlink interface
-> > 
-> > oops, sorry, forgot the patches...
+Harald Welte wrote:
+> On Wed, Apr 06, 2005 at 08:11:43PM +0200, Pablo Neira wrote:
 > 
-> Can I just check that nfnetlink-ctnetlink-0.13 and 
-> nfnetlink-ctnetlink-0.50 in pom-ng-20050404 have been replaced by
-> pom-ng/nfnetlink and pom-ng/ctnetlink in pom-ng-20050417
+>>Amin Azez wrote:
+>>
+>>>It appears that pom-ng nfnetlink-ctnetlink-0.13 (ported by Pablo?) requires 
+>>>ct-event (although this is not listed in the pom-ng dependancies).
+>>>Pablo, can you confirm this?
+>>
+>>I've just merged Harald's and my port. You can get it from:
+>>
+>>http://people.netfilter.org/~pablo/patches/nfnetlink-conntrack-0.50-2.6.11/
 > 
-> Pablo, do they also fully supercede your patches 1-5 at 
-> http://people.netfilter.org/~pablo/patches/nfnetlink-conntrack-0.50-2.6.11/ 
-> and that there is nothing new in those?
 > 
-> If so, do you want me to create a pom-ng for the netlink packet counting 
-> stuff I sent last week, our will you spit that out at an appropriate 
-> point combined with your pattern defined dumping?
+> do you mind creating a patch against svn so we can put it into
+> nfnetlink-ctnetlink/linux-2.6.11 ?
 > 
-> Sam
+> thanks!
 
+If anyone got a partial reply to this, I apologise. Thunderbird seems to 
+abort the NNTP part of the send and then closes the "progress window" 
+while it carries on with the SMTP part of the send. All the mad 
+"pressing escape" just prevents the sent message from being stored in my 
+sent-items folder so I have to start again. AGGH
 
+Anyway, I notice Haralds patch on flow-based-accounting and svn and 
+stuff, which answers my question.
 
--- 
-  lark
+Amin
