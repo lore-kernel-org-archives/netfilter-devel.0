@@ -1,16 +1,15 @@
-From: Wang Jian <lark@linux.net.cn>
-Subject: Re: double call to ip_conntrack_put() ?
-Date: Mon, 18 Apr 2005 18:25:29 +0800
-Message-ID: <20050418182442.0375.LARK@linux.net.cn>
-References: <20050418171657.0370.LARK@linux.net.cn>
-	<876ef97a05041802571f302bfe@mail.gmail.com>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: libipt_connbytes.c bug in iptables-1.3.1
+Date: Mon, 18 Apr 2005 10:26:27 +0000
+Message-ID: <42638B53.7080702@outerspace.dyndns.org>
+References: <20050417230927.GA23821@daleka.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-2
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tobias DiPasquale <codeslinger@gmail.com>
-In-Reply-To: <876ef97a05041802571f302bfe@mail.gmail.com>
+To: Piotrek Kaczmarek <kaczorek@k.daleka.net>
+In-Reply-To: <20050417230927.GA23821@daleka.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,22 +21,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Tobias DiPasquale,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
+Quoting Piotrek Kaczmarek on 2005-04-17 23:09 UTC:
 
-On Mon, 18 Apr 2005 05:57:30 -0400, Tobias DiPasquale <codeslinger@gmail.com> wrote:
+> I've spent couple of hours seaching for a fix for this bug... can you apply the patch below?
+>
+> +               break;
 
-> 
-> This is intended. tuplehash_to_ctrack() generates a reference to the
-> conntrack record. In death_by_timeout() the refcount is decremented,
-> yielding 1 for the second call to ip_conntrack_put(). The dec_and_test
-> in nf_conntrack_put() (called by ip_conntrack_put()) will result in a
-> refcount of 0, sending the record to the destroy_conntrack() function
-> (or more properly, whatever's registered in nfct->destroy(), which I'm
-> pretty sure is always either NULL or destroy_conntrack()).
-> 
+Thanks a lot! It fixes the problems I experienced as well :)
 
-Thanks for your clear answer :)
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
--- 
-  lark
+iD8DBQFCY4tSxyF48ZTvn+4RAlhjAJ0Q82R0SzUMkSelyJcsnVx0LQAHgQCfR0yw
+zX66WF6xvWMEkM4h651cZHg=
+=SmTE
+-----END PGP SIGNATURE-----
