@@ -1,12 +1,15 @@
-From: Juha Heljoranta <juha.heljoranta@evtek.fi>
-Subject: iptables module linking issue
-Date: Sun, 17 Apr 2005 15:07:45 +0300
-Message-ID: <42625191.8060805@evtek.fi>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [PATCH] goto port to ipv6
+Date: Mon, 18 Apr 2005 03:07:38 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0504180304580.4321@filer.marasystems.com>
+References: <425CD235.7060909@outerspace.dyndns.org>
+	<4262E109.2010804@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4262E109.2010804@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,35 +21,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Mon, 18 Apr 2005, Patrick McHardy wrote:
 
-I had a trouble while trying to get iptables to load my extension. Here
-is what I mean:
+> Jonas Berlin wrote:
+>> I ported the goto patch to ipv6.
+>
+> BTW: Can anyone remeber why it was decided not to submit the
+> goto patch at last years workshop?
 
+I don't remember exacly, but I think it wasn't considered an important 
+feature to have.
 
-$ /usr/local/sbin/iptables -A INPUT -m vmexec --vmexec-file \
-/usr/bin/wget -j ACCEPT
-iptables v1.2.11: Couldn't load match
-`vmexec':/usr/local/lib/iptables/libipt_vmexec.so: undefined symbol: stat
-
-Try `iptables -h' or 'iptables --help' for more information.
-$ # libc is missing, fix it with -lc
-$ ld -shared  -o extensions/libipt_vmexec.so \
-extensions/libipt_vmexec_sh.o -lc
-$ cp extensions/libipt_vmexec.so \
-/usr/local/lib/iptables/libipt_vmexec.so
-$ # now it works
-$ /usr/local/sbin/iptables -A INPUT -m vmexec --vmexec-file \
-/usr/bin/wget -j ACCEPT
-
-
-I tried to compile iptables with NO_SHARED_LIBS=1 resulting lot of
-compile errors.
-
-I also tried to add #include <sys/stat.h> into iptables.c with no effect.
-
-What would be the correct way to get some symbol properly linked into
-iptables module?
-
-Regards,
-Juha Heljoranta
+Regards
+Henrik
