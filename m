@@ -1,10 +1,11 @@
 From: Wang Jian <lark@linux.net.cn>
-Subject: double call to ip_conntrack_put() ?
-Date: Mon, 18 Apr 2005 17:29:45 +0800
-Message-ID: <20050418171657.0370.LARK@linux.net.cn>
+Subject: conntrack-tool core dumps
+Date: Mon, 18 Apr 2005 17:38:15 +0800
+Message-ID: <20050418173034.0372.LARK@linux.net.cn>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
+Cc: Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -20,33 +21,35 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-death_by_timeout() calls ip_conntrack_put() before return. And
-death_by_timeout() is called combined with ip_conntrack_put() in some
-places, such as
+When some packets hit the box, conntrack-tool core dumps, below is
+backtrace
 
-in early_drop()
+[root@qos conntrack-tool]# gdb conntrack core.3023=20
+=2E..
+Loaded symbols for extensions/libct_proto_tcp.so
+#0  0xb7f1fc2a in strcmp () from /lib/tls/libc.so.6
+(gdb) bt
+#0  0xb7f1fc2a in strcmp () from /lib/tls/libc.so.6
+#1  0x0804aaf8 in findproto (name=3D0x0) at src/libct.c:429
+#2  0x0804a301 in event_handler (sock=3D0xbffff710, nlh=3D0xbfffd75c,=20
+    arg=3D0xbffff770) at src/libct.c:181
+#3  0x0804ae9c in list_conntrack_handler ()
+#4  0x0804bb4b in nfnl_listen ()
+#5  0x0804b08d in ctnl_event_conntrack ()
+#6  0x0804aa82 in event_conntrack () at src/libct.c:413
+#7  0x08049d05 in main (argc=3D3, argv=3D0xbffff904) at src/conntrack.c:458
+(gdb) up
+#1  0x0804aaf8 in findproto (name=3D0x0) at src/libct.c:429
+429                     if (strcmp(cur->name, name) =3D=3D 0) {
+(gdb) print cur
+$1 =3D (struct ctproto_handler *) 0xb7fe9b60
+(gdb) print name
+$2 =3D 0x0
+(gdb) print cur->name
+$3 =3D 0xb7fe89a7 "tcp"
 
-        if (del_timer(&ct->timeout)) {
-                death_by_timeout((unsigned long)ct);
-                dropped = 1;
-                CONNTRACK_STAT_INC(early_drop);
-        }
-        ip_conntrack_put(ct);
-
-and in ip_ct_iterate_cleanup()
-
-        while ((h = get_next_corpse(iter, data, &bucket)) != NULL) {
-                struct ip_conntrack *ct = tuplehash_to_ctrack(h);
-                /* Time to push up daises... */
-                if (del_timer(&ct->timeout))
-                        death_by_timeout((unsigned long)ct);
-                /* ... else the timer will get him soon. */
-
-                ip_conntrack_put(ct);
-        }
-
-Is this intended or misuse?
 
 
--- 
+
+--=20
   lark
