@@ -1,18 +1,19 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [PATCH] ct-event API port to 2.6.11
-Date: Mon, 18 Apr 2005 12:06:29 +0100
-Message-ID: <426394B5.9030401@ufomechanic.net>
-References: <424747D5.8060500@eurodev.net>
-	<42502B1B.7090309@trash.net>	<42540839.8020405@ufomechanic.net>
-	<4254265F.6080607@eurodev.net>
-	<20050410204542.GT9155@sunbeam.de.gnumonks.org>
+From: Tobias DiPasquale <codeslinger@gmail.com>
+Subject: Re: double call to ip_conntrack_put() ?
+Date: Mon, 18 Apr 2005 07:22:07 -0400
+Message-ID: <876ef97a050418042210d7779e@mail.gmail.com>
+References: <20050418171657.0370.LARK@linux.net.cn>
+	<876ef97a05041802571f302bfe@mail.gmail.com>
+	<426393C7.1020006@ufomechanic.net>
+Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20050410204542.GT9155@sunbeam.de.gnumonks.org>
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <426393C7.1020006@ufomechanic.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,32 +25,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> On Wed, Apr 06, 2005 at 08:11:43PM +0200, Pablo Neira wrote:
-> 
->>Amin Azez wrote:
->>
->>>It appears that pom-ng nfnetlink-ctnetlink-0.13 (ported by Pablo?) requires 
->>>ct-event (although this is not listed in the pom-ng dependancies).
->>>Pablo, can you confirm this?
->>
->>I've just merged Harald's and my port. You can get it from:
->>
->>http://people.netfilter.org/~pablo/patches/nfnetlink-conntrack-0.50-2.6.11/
-> 
-> 
-> do you mind creating a patch against svn so we can put it into
-> nfnetlink-ctnetlink/linux-2.6.11 ?
-> 
-> thanks!
+On 4/18/05, Amin Azez <azez@ufomechanic.net> wrote:
+> What I found confusing initially was that "put" in "ip_conntrack_put"
+> means "release" or "refcount--" instead of "write" or "store" which
+> would have been my first guess.
 
-If anyone got a partial reply to this, I apologise. Thunderbird seems to 
-abort the NNTP part of the send and then closes the "progress window" 
-while it carries on with the SMTP part of the send. All the mad 
-"pressing escape" just prevents the sent message from being stored in my 
-sent-items folder so I have to start again. AGGH
+In the Linux kernel sources, *_get() usually increments a reference
+count on an object, and *_put() decrements it. This is a common naming
+convention, although I can see how it could be confusing.
 
-Anyway, I notice Haralds patch on flow-based-accounting and svn and 
-stuff, which answers my question.
-
-Amin
+--=20
+[ Tobias DiPasquale ]
+0x636f6465736c696e67657240676d61696c2e636f6d
