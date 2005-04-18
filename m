@@ -1,17 +1,12 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] goto port to ipv6
-Date: Mon, 18 Apr 2005 03:44:05 +0200
-Message-ID: <426310E5.2030207@trash.net>
-References: <425CD235.7060909@outerspace.dyndns.org>
-	<4262E109.2010804@trash.net>
-	<Pine.LNX.4.61.0504180304580.4321@filer.marasystems.com>
+Subject: [NETFILTER 1/2]: Fix truncated sequence numbers in FTP helper
+Date: Mon, 18 Apr 2005 04:27:52 +0200
+Message-ID: <42631B28.8030707@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------080608010107040308070008"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0504180304580.4321@filer.marasystems.com>
+To: "David S. Miller" <davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,18 +18,63 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom wrote:
-> On Mon, 18 Apr 2005, Patrick McHardy wrote:
->
->> BTW: Can anyone remeber why it was decided not to submit the
->> goto patch at last years workshop?
-> 
-> 
-> I don't remember exacly, but I think it wasn't considered an important 
-> feature to have.
+This is a multi-part message in MIME format.
+--------------080608010107040308070008
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-But it's a useful feature. If this was the only reason, I think we
-should submit it for both IPv4 and IPv6.
+Hi Dave,
 
-Regards
-Patrick
+these two fixes fix one rather serious and one annoying problem and
+should go in 2.6.12.
+
+This first patch fixes truncated sequence numbers in ip_conntrack_ftp,
+the types were changed to u16 by some unfortunate patch.
+
+
+--------------080608010107040308070008
+Content-Type: text/x-patch;
+ name="01.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="01.diff"
+
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2005/03/09 22:51:34+01:00 yasuyuki.kozakai@toshiba.co.jp 
+#   [NETFILTER]: Fix truncated sequence numbers in FTP helper
+#   
+#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozkaai@toshiba.co.jp>
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+# net/ipv4/netfilter/ip_conntrack_ftp.c
+#   2005/03/09 22:51:26+01:00 yasuyuki.kozakai@toshiba.co.jp +2 -2
+#   [NETFILTER]: Fix truncated sequence numbers in FTP helper
+#   
+#   Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozkaai@toshiba.co.jp>
+#   Signed-off-by: Patrick McHardy <kaber@trash.net>
+# 
+diff -Nru a/net/ipv4/netfilter/ip_conntrack_ftp.c b/net/ipv4/netfilter/ip_conntrack_ftp.c
+--- a/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-04-18 03:59:47 +02:00
++++ b/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-04-18 03:59:47 +02:00
+@@ -252,7 +252,7 @@
+ }
+ 
+ /* Look up to see if we're just after a \n. */
+-static int find_nl_seq(u16 seq, const struct ip_ct_ftp_master *info, int dir)
++static int find_nl_seq(u32 seq, const struct ip_ct_ftp_master *info, int dir)
+ {
+ 	unsigned int i;
+ 
+@@ -263,7 +263,7 @@
+ }
+ 
+ /* We don't update if it's older than what we have. */
+-static void update_nl_seq(u16 nl_seq, struct ip_ct_ftp_master *info, int dir)
++static void update_nl_seq(u32 nl_seq, struct ip_ct_ftp_master *info, int dir)
+ {
+ 	unsigned int i, oldest = NUM_SEQ_TO_REMEMBER;
+ 
+
+--------------080608010107040308070008--
