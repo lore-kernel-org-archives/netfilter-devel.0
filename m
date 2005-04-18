@@ -1,17 +1,15 @@
-From: Wang Jian <lark@linux.net.cn>
-Subject: Re: double call to ip_conntrack_put() ?
-Date: Mon, 18 Apr 2005 19:22:47 +0800
-Message-ID: <20050418192122.037D.LARK@linux.net.cn>
-References: <876ef97a05041802571f302bfe@mail.gmail.com>
-	<426393C7.1020006@ufomechanic.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: nfnetlink-ctnetlink working: INSTRUCTIONS
+Date: Mon, 18 Apr 2005 13:49:48 +0100
+Message-ID: <4263ACEC.7070209@ufomechanic.net>
+References: <20050414175616.0331.LARK@linux.net.cn>	<425E4403.5010101@eurodev.net>	<20050415142613.033A.LARK@linux.net.cn>
+	<42602331.6060706@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Tobias DiPasquale <codeslinger@gmail.com>,
-	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <426393C7.1020006@ufomechanic.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <42602331.6060706@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,30 +21,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Amin Azez,
-
-Yes, I am also confused by the _put for a while until I read the code.
-IMHO, it's more clear to rename it to _release.
-
-On Mon, 18 Apr 2005 12:02:31 +0100, Amin Azez <azez@ufomechanic.net> wrote:
-
-> Tobias DiPasquale wrote:
-> > This is intended. tuplehash_to_ctrack() generates a reference to the
-> > conntrack record. In death_by_timeout() the refcount is decremented,
-> > yielding 1 for the second call to ip_conntrack_put(). The dec_and_test
-> > in nf_conntrack_put() (called by ip_conntrack_put()) will result in a
-> > refcount of 0, sending the record to the destroy_conntrack() function
-> > (or more properly, whatever's registered in nfct->destroy(), which I'm
-> > pretty sure is always either NULL or destroy_conntrack()).
+Pablo Neira wrote:
+> Wang Jian wrote:
 > 
-> What I found confusing initially was that "put" in "ip_conntrack_put" 
-> means "release" or "refcount--" instead of "write" or "store" which 
-> would have been my first guess.
+>> Hi Pablo Neira,
+>>
+>> The current patches (dated 14-Apr), seems to not emit event messages,
+>> such as when new connection is established.
 > 
-> Sam Azez
 > 
+> Hm it works just fine here.
+> 
+> o The ct-event notification API is ok, try this test:
+> http://people.netfilter.org/~pablo/patches/test/ct-event-test.tar.gz
+> 
+> o Netlink notification works fine as well via:
+> http://people.netfilter.org/~pablo/conntrack-tool/
+> 
+> Try:
+> # conntrack -E conntrack
 
+I'm just taking conntrack to bits, and I am puzzled about the existance 
+of libctnetlink.h and libnfnetlink.h in conntrack's include directory.
 
+The main difference seems to be the extra parameter in 
+ctnl_get_conntrack and ctnl_del_conntrack which is not part of my 
+libctnetlink library.
 
--- 
-  lark
+Pablo, is this the old id that is no longer needed because the tuples 
+are enough, but still in your libctnetlink? Or something else?
+
+Sam
