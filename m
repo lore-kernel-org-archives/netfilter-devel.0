@@ -1,19 +1,15 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [PATCH] goto port to ipv6
-Date: Mon, 18 Apr 2005 16:41:24 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0504181618390.14603@filer.marasystems.com>
-References: <425CD235.7060909@outerspace.dyndns.org>
-	<4262E109.2010804@trash.net>
-	<Pine.LNX.4.61.0504180304580.4321@filer.marasystems.com>
-	<426310E5.2030207@trash.net>
-	<42635378.6050002@outerspace.dyndns.org>
-	<20050418072715.GE10801@oknodo.bof.de>
+From: Harald Welte <laforge@netfilter.org>
+Subject: [ulogd] [ANNOUNCE] ulogd-1.23 released
+Date: Mon, 18 Apr 2005 16:53:44 +0200
+Message-ID: <20050418145344.GZ15942@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ksW2gnyJUpgiZE5W"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	netfilter-announce@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-In-Reply-To: <20050418072715.GE10801@oknodo.bof.de>
+To: ulogd@lists.gnumonks.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,49 +21,53 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 18 Apr 2005, Patrick Schaaf wrote:
 
->> What's your opinion of my fix included in this IPv6 port (which I fixed
->> for IPv4 separately and Harald accepted last friday) to indicate "goto"
->> targets in iptables -L listings with a [goto] in the match extension part?
->>
->> One alternative could be adding some special character(s) around the
->> jump target itself, like *SUBCHAIN or SUBCHAIN* or ->SUBCHAIN or
->> something.. Also I have no idea whether one should consider the output
->> possibly being used by scripts etc, so I'd appreciate if people could
->> give their opinion on this (before it goes upstream :) ...
->
-> Hmm. Isn't iptables-save considered the parse-this-in-scripts format?
+--ksW2gnyJUpgiZE5W
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-He is talking about iptables -L, not iptables-save.
+Hi!
 
-iptable-save already prints it proper as a -g.
+I have released version 1.23 of the iptables userspace logging
+daemon (ulogd).  This release is a minor feature enhancement to the
+recently-announced 1.22 release.
 
-> Now, what magic character to use...
->
-> imap_in*    tcp  --  anywhere             anywhere            tcp dpt:imap
-> ssh_in)    tcp  --  anywhere             anywhere            tcp dpt:ssh
-> smtp_in.   tcp  --  anywhere             anywhere            tcp dpt:smtp
-> pop3_in!   tcp  --  anywhere             anywhere            tcp dpt:pop3
+The new Version is available as tar.bz2 only and can be retrieved from:
+ftp://ftp.netfilter.org/pub/ulogd/ulogd-1.23.tar.bz2
 
-Unfortunately all of these is swallowed as chain names.. but hopefully 
-this should not be a problem. Nobody in his sane mind uses such chain 
-names, righth?
+There is a GPG signature for verification of the authenticity of the=20
+archive: ftp://ftp.netfilter.org/pub/ulogd/ulogd-1.23.tar.bz2.sig
 
-I think I prefer the *. Or maybe #. Much better than having a goto flag at 
-the end of the line.
+Version 1.23 (2005-04-18)
+- Add supprt for ulogd logging in syslog (the daemon log, not packet log)
 
-! is not a good choice as this looks like a negation of some form..
+Please direct any questions / bug reports to the
+ulogd@lists.gnumonks.org mailinglist.
 
-. may be confusing as I suspect there is many already using . in chain 
-names..
+btw: Work in ulogd2 for packet- and flow- based logging) is going quite
+well, expect news in one to two weeks.
 
-) feels like the chain got isolated somehow, which isn't really what it is 
-aout. Goto is about terminating this chain.
+--=20
+- Harald Welte <laforge@netfilter.org>             http://www.netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-The > symbol is better than ) I think if this type of "isolation" symbol 
-is desired. > indicates to me some form of direction which is closer to 
-what the goto is about.
+--ksW2gnyJUpgiZE5W
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Regards
-Henrik
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+
+iD8DBQFCY8n4XaXGVTD0i/8RAv+vAJ0fCcbMKoPocbuZyNZqrJgyPPyrxwCcDc1t
+X/igA2b7ue0ZCZOiv58a42A=
+=IrTG
+-----END PGP SIGNATURE-----
+
+--ksW2gnyJUpgiZE5W--
