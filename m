@@ -1,15 +1,18 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: libipt_connbytes.c bug in iptables-1.3.1
-Date: Mon, 18 Apr 2005 10:26:27 +0000
-Message-ID: <42638B53.7080702@outerspace.dyndns.org>
-References: <20050417230927.GA23821@daleka.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [PATCH] ct-event API port to 2.6.11
+Date: Mon, 18 Apr 2005 11:48:05 +0100
+Message-ID: <42639065.70809@ufomechanic.net>
+References: <424747D5.8060500@eurodev.net>
+	<42502B1B.7090309@trash.net>	<42540839.8020405@ufomechanic.net>
+	<4254265F.6080607@eurodev.net>	<20050410204542.GT9155@sunbeam.de.gnumonks.org>	<425BE027.1060301@eurodev.net>
+	<425BE280.3040904@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Piotrek Kaczmarek <kaczorek@k.daleka.net>
-In-Reply-To: <20050417230927.GA23821@daleka.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <425BE280.3040904@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,23 +24,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Pablo Neira wrote:
+> Pablo Neira wrote:
+> 
+>> Harald Welte wrote:
+>>
+>>> do you mind creating a patch against svn so we can put it into
+>>> nfnetlink-ctnetlink/linux-2.6.11 ?
+>>
+>>
+>>
+>> Attached two patches against pom-ng:
+>>
+>> o ctevent-api: conntrack event API
+>> o nfnetlink-ctnetlink: nfnetlink + conntrack netlink interface
+> 
+> oops, sorry, forgot the patches...
 
-Quoting Piotrek Kaczmarek on 2005-04-17 23:09 UTC:
+Can I just check that nfnetlink-ctnetlink-0.13 and 
+nfnetlink-ctnetlink-0.50 in pom-ng-20050404 have been replaced by
+pom-ng/nfnetlink and pom-ng/ctnetlink in pom-ng-20050417
 
-> I've spent couple of hours seaching for a fix for this bug... can you apply the patch below?
->
-> +               break;
+Pablo, do they also fully supercede your patches 1-5 at 
+http://people.netfilter.org/~pablo/patches/nfnetlink-conntrack-0.50-2.6.11/ 
+and that there is nothing new in those?
 
-Thanks a lot! It fixes the problems I experienced as well :)
+If so, do you want me to create a pom-ng for the netlink packet counting 
+stuff I sent last week, our will you spit that out at an appropriate 
+point combined with your pattern defined dumping?
 
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCY4tSxyF48ZTvn+4RAlhjAJ0Q82R0SzUMkSelyJcsnVx0LQAHgQCfR0yw
-zX66WF6xvWMEkM4h651cZHg=
-=SmTE
------END PGP SIGNATURE-----
+Sam
