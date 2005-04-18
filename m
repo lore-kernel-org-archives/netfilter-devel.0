@@ -1,14 +1,17 @@
-From: Hadrien HAMEL <hamel@enseirb.fr>
-Subject: Re: Pb using DROP in a PREROUTING hook with ip6tables
-Date: Mon, 18 Apr 2005 19:33:14 +0200
-Message-ID: <4263EF5A.20804@enseirb.fr>
-References: <425FE3C6.6070807@enseirb.fr> <4262DFB4.6030308@trash.net>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: TCP Connection tracking and SYN/ACK/PSH
+Date: Mon, 18 Apr 2005 16:06:14 -0700
+Message-ID: <20050418230614.GA426@linuxace.com>
+References: <20050417193718.6a7f0809.gniibe@fsij.org>
+	<Pine.LNX.4.61.0504180316120.4321@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, NIIBE Yutaka <gniibe@fsij.org>,
+	ukai@debian.or.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <4262DFB4.6030308@trash.net>
+To: Henrik Nordstrom <hno@marasystems.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.61.0504180316120.4321@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,46 +23,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
+On Mon, Apr 18, 2005 at 03:34:41AM +0200, Henrik Nordstrom wrote:
+> Just a small note to support this: SYN+ACK+PSH is a perfectly valid flags 
+> combination, even more so if there actually is data enclosed in the 
+> SYN+ACK (which is valid, only a little odd).
+> 
+> There is not really any good reason why conntrack should care in detail 
+> about the PSH flag. Most if not all valid flag combinations are good both 
+> with and without PSH (even SYN).
 
-> Hadrien HAMEL wrote:
->
->> Kernel messages show that the mldv2 packets are recognized (and so the
->> match function returns 1) but the packet aren't dropped. I've tried the
->> "mangle" table and the "raw" table, but both were ineffective. To be
->> sure that my module wasn't misbehaving, I tried to drop all the packets
->> in PREROUTING, with no effects. In comparison, the same command with
->> iptables (thus in IPv4) has blocked all the incoming packets (which is a
->> normal behaviour!).
->>
->> Does anybody know if there is such a bug in ip6tables? Or is this a
->> misuse of it?
->
->
-> Works fine here:
-> # ip6tables -t raw -A PREROUTING -j DROP
->
-> ping6 ::1 gets no responses
->
-> # ip6tables -t raw -F
->
-> ping6 ::1 works again
->
-> Regards
-> Patrick
->
+Given that nmap's Xmas tree scan uses an invalid PSH flag combination to scan
+for open ports, I'd suggest conntrack should care about the flag.
 
-Hi,
+While the particular combination being seen here is likely always harmless,
+perhaps netfilter should only allow RFC-defined handshakes as a general
+rule.
 
-Indeed, ping6 and other unicast functions seem to be blocked. I tested
-it again with
-#ip6tables -t raw -P PREROUTING DROP
-on my multicast router. My multicast client cannot ping6 the router
-anymore, but MLDv2 reports are not blocked.
-I'm trying to find what could causes this problem (multicast packets are
-somewhat special).
-
-If anyone had an hint, it would be helpful!
-
-Regards
-Hadrien
+Phil
