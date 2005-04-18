@@ -1,13 +1,15 @@
-From: Wang Jian <lark@linux.net.cn>
-Subject: conntrack-tool core dumps
-Date: Mon, 18 Apr 2005 17:38:15 +0800
-Message-ID: <20050418173034.0372.LARK@linux.net.cn>
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: Re: double call to ip_conntrack_put() ?
+Date: Mon, 18 Apr 2005 11:56:30 +0200
+Message-ID: <1113818190.4167.12.camel@nienna.balabit>
+References: <20050418171657.0370.LARK@linux.net.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Cc: Pablo Neira <pablo@eurodev.net>
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+In-reply-to: <20050418171657.0370.LARK@linux.net.cn>
+To: Wang Jian <lark@linux.net.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,37 +21,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-When some packets hit the box, conntrack-tool core dumps, below is
-backtrace
+  Hi,
 
-[root@qos conntrack-tool]# gdb conntrack core.3023=20
-=2E..
-Loaded symbols for extensions/libct_proto_tcp.so
-#0  0xb7f1fc2a in strcmp () from /lib/tls/libc.so.6
-(gdb) bt
-#0  0xb7f1fc2a in strcmp () from /lib/tls/libc.so.6
-#1  0x0804aaf8 in findproto (name=3D0x0) at src/libct.c:429
-#2  0x0804a301 in event_handler (sock=3D0xbffff710, nlh=3D0xbfffd75c,=20
-    arg=3D0xbffff770) at src/libct.c:181
-#3  0x0804ae9c in list_conntrack_handler ()
-#4  0x0804bb4b in nfnl_listen ()
-#5  0x0804b08d in ctnl_event_conntrack ()
-#6  0x0804aa82 in event_conntrack () at src/libct.c:413
-#7  0x08049d05 in main (argc=3D3, argv=3D0xbffff904) at src/conntrack.c:458
-(gdb) up
-#1  0x0804aaf8 in findproto (name=3D0x0) at src/libct.c:429
-429                     if (strcmp(cur->name, name) =3D=3D 0) {
-(gdb) print cur
-$1 =3D (struct ctproto_handler *) 0xb7fe9b60
-(gdb) print name
-$2 =3D 0x0
-(gdb) print cur->name
-$3 =3D 0xb7fe89a7 "tcp"
+2005-04-18, h keltez=E9ssel 17.29-kor Wang Jian ezt =EDrta:
+> death_by_timeout() calls ip_conntrack_put() before return. And
+> death_by_timeout() is called combined with ip_conntrack_put() in so=
+me
+> places, such as
+>=20
+> in early_drop()
+>=20
+>         if (del_timer(&ct->timeout)) {
+>                 death_by_timeout((unsigned long)ct);
+>                 dropped =3D 1;
+>                 CONNTRACK_STAT_INC(early_drop);
+>         }
+>         ip_conntrack_put(ct);
 
+  This isn't a bug. The function gets a reference to the conntrack en=
+try
+before releasing the read lock of the hash table, so it must release =
+the
+entry after deleting it from the hash.
 
+> and in ip_ct_iterate_cleanup()
+>=20
+>         while ((h =3D get_next_corpse(iter, data, &bucket)) !=3D NU=
+LL) {
+>                 struct ip_conntrack *ct =3D tuplehash_to_ctrack(h);
+>                 /* Time to push up daises... */
+>                 if (del_timer(&ct->timeout))
+>                         death_by_timeout((unsigned long)ct);
+>                 /* ... else the timer will get him soon. */
+>=20
+>                 ip_conntrack_put(ct);
+>         }
 
+  Same here. get_next_corpse() increases the refcount of the returned
+conntrack, so the caller has to dereference it.
 
 --=20
-  lark
+KOVACS Krisztian <hidden@sch.bme.hu>
