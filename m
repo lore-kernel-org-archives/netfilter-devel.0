@@ -1,17 +1,15 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: TCP Connection tracking and SYN/ACK/PSH
-Date: Mon, 18 Apr 2005 16:06:14 -0700
-Message-ID: <20050418230614.GA426@linuxace.com>
-References: <20050417193718.6a7f0809.gniibe@fsij.org>
-	<Pine.LNX.4.61.0504180316120.4321@filer.marasystems.com>
+From: Andy Furniss <andy.furniss@dsl.pipex.com>
+Subject: Re: libipt_connbytes.c bug in iptables-1.3.1
+Date: Tue, 19 Apr 2005 01:21:14 +0100
+Message-ID: <42644EFA.2030803@dsl.pipex.com>
+References: <20050417230927.GA23821@daleka.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, NIIBE Yutaka <gniibe@fsij.org>,
-	ukai@debian.or.jp
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0504180316120.4321@filer.marasystems.com>
+To: Piotrek Kaczmarek <kaczorek@k.daleka.net>
+In-Reply-To: <20050417230927.GA23821@daleka.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,20 +21,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Apr 18, 2005 at 03:34:41AM +0200, Henrik Nordstrom wrote:
-> Just a small note to support this: SYN+ACK+PSH is a perfectly valid flags 
-> combination, even more so if there actually is data enclosed in the 
-> SYN+ACK (which is valid, only a little odd).
+Piotrek Kaczmarek wrote:
+> I've spent couple of hours seaching for a fix for this bug... can you apply the patch below?
 > 
-> There is not really any good reason why conntrack should care in detail 
-> about the PSH flag. Most if not all valid flag combinations are good both 
-> with and without PSH (even SYN).
+> # iptables -t mangle -A PREROUTING -m connbytes --connbytes-mode packets
+> iptables v1.3.1: Unknown arg `packets'
+> Try `iptables -h' or 'iptables --help' for more information.
+> 
+> # iptables -t mangle -A PREROUTING -m connbytes --connbytes-mode bytes
+> iptables v1.3.1: Unknown arg `bytes'
+> Try `iptables -h' or 'iptables --help' for more information.
+> 
+> There's a patch:
+> 
+> ########### cut
+> 
+> --- libipt_connbytes.c.fucked   2005-04-18 01:00:28.000000000 +0200
+> +++ libipt_connbytes.c  2005-04-18 00:56:10.000000000 +0200
+> @@ -93,6 +93,7 @@
+>                         exit_error(PARAMETER_PROBLEM,
+>                                    "Unknown --connbytes-mode `%s'", optarg);
+>                 *flags |= 4;
+> +               break;
+>         default:
+>                 return 0;
+>         }
+> 
+> ########### cut
+> 
 
-Given that nmap's Xmas tree scan uses an invalid PSH flag combination to scan
-for open ports, I'd suggest conntrack should care about the flag.
+Thanks from me aswell Piotrek - I've got connbytes back :-)
 
-While the particular combination being seen here is likely always harmless,
-perhaps netfilter should only allow RFC-defined handshakes as a general
-rule.
-
-Phil
+Andy.
