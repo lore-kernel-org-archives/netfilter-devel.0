@@ -1,15 +1,15 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: nfnetlink/ctnetlink - OOPS&panic
-Date: Tue, 19 Apr 2005 17:04:36 +0200 (CEST)
-Message-ID: <Pine.LNX.4.62.0504191659520.8375@bizon.gios.gov.pl>
-References: <Pine.LNX.4.62.0504191220390.27543@bizon.gios.gov.pl>
-	<4264F3B6.9010408@eurodev.net>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: [iptables 1.3.0 / libiptc patch] sort chains by hooknum/names
+Date: Tue, 19 Apr 2005 14:51:14 +0000
+Message-ID: <42651AE2.9050402@outerspace.dyndns.org>
+References: <20050304212114.130e2a7c@coruscant> <4228E962.8090005@trash.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-618821809-1113923076=:8375"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <4264F3B6.9010408@eurodev.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4228E962.8090005@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,54 +21,63 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
----187430788-618821809-1113923076=:8375
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Quoting Patrick McHardy on 2005-03-04 23:04 UTC:
 
+>> OK, why two patches? The first one need some preconditions: *all*
+>> buildin chains need to be "in order" and in front of *any* user chain
+>> when parsing the kernel-list.
+> 
+> I assume with "in order", you mean it relies on the current numbering of
+> the hooks:
+> 
+> This seems fine to me. I'm going to apply your first patch, thanks.
 
+What he meant by "in order" was that when getting a list of chains from
+the kernel, they would be returned like this:
 
-On Tue, 19 Apr 2005, Pablo Neira wrote:
+PREROUTING
+INPUT
+FORWARD
+OUTPUT
+POSTROUTING
+USER_CHAIN_B
+USER_CHAIN_A
+USER_CHAIN_C
+...
 
-> Krzysztof Oledzki wrote:
->> Hello,
->>=20
->> I have just compiled 2.6.11.7 kernel with nfnetlink/ctnetlink support (f=
-rom=20
->> pom-ng-20050418). Unfortunately, during system startup, kernel panics:
->>=20
->> Unable to handle kernel NULL pointer dereference at virtual address=20
->> 000000b3
->>  printing eip:
->> *pde =3D 00000000
->> Oops: 0000 [#1]
->> PREEMPT
->> Modules linked in: bonding
->
-> You've catch a race condition.
->
-> Since you've compiled nfnetlink and ctnetlink in kernel, not as module, i=
-t=20
-> seems that ctnetlink registers the subsystem via nfnetlink_subsys_registe=
-r=20
-> before nfnetlink has created the netlink socket. Then you've received an=
-=20
-> event that has been sent to a non-existing netlink socket. I can cook an =
-oops=20
-> with that.
->
-> I'll fix it as soon as I get some spare time.
+I.e. builtin chains first, and then user chains in random order.
 
-Hm.. I think I have just solved my problem. All I need to do is remove=20
-CONFIG_IP_NF_QUEUE=3Dy. It is not possible to load nfnetlink/ctnetlink=20
-modules with CONFIG_IP_NF_QUEUE and kernel oops when both options=20
-(CONFIG_IP_NF_QUEUE&CONFIG_IP_NF_CONNTRACK_NETLINK/CONFIG_NETFILTER_NETLINK=
-)=20
-are linked statically.
+This is not the case however (at least with my 2.6.11 kernel), they seem
+to come in a vaguely alphabetic order, with builtin chains being among
+the user chains like:
 
-Best regards,
+USER_CHAIN_A
+PREROUTING
+INPUT
+USER_CHAIN_B
+FORWARD
+OUTPUT
+POSTROUTING
+USER_CHAIN_C
+...
 
- =09=09=09Krzysztof Ol=EAdzki
----187430788-618821809-1113923076=:8375--
+Thus, his second patch is necessary (at least for me) in order to get
+them in the order
+
+<builtin chains sorted logically>
+<user chains sorted alphabetically>
+
+I tested switching to the second patch and the results were Good. :)
+
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCZRrhxyF48ZTvn+4RAiNKAJ0U96HA8lxIkWUvn8+vE4zEY7jHgACeJjaD
+94uZ+M79//yeo0xQi3397SA=
+=GShI
+-----END PGP SIGNATURE-----
