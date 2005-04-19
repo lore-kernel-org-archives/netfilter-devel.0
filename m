@@ -1,12 +1,15 @@
-From: Wang Jian <lark@linux.net.cn>
-Subject: nfnetlink/ctnetlink from pom-ng r3884
-Date: Tue, 19 Apr 2005 21:37:19 +0800
-Message-ID: <20050419212858.039E.LARK@linux.net.cn>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: nfnetlink/ctnetlink - OOPS&panic
+Date: Tue, 19 Apr 2005 15:39:09 +0200 (CEST)
+Message-ID: <Pine.LNX.4.62.0504191531390.2730@bizon.gios.gov.pl>
+References: <Pine.LNX.4.62.0504191220390.27543@bizon.gios.gov.pl>
+	<4264F3B6.9010408@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-12337631-1113917949=:2730"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <4264F3B6.9010408@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,63 +21,76 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I now use conntrack/ + libctnetlink/ + libnfnetlink/ + nfnetlink/ +
-ctnetlink/ + conntrack-event-api/, all are from r3884. I also enable
-CT_ACCT.
-
-First issue is this kind of duplicate in event message
-
-type: [NEW] src=3D192.168.0.27 dst=3D192.168.0.254 sport=3D22 dport=3D2846 =
-src=3D192.168.0.254 dst=3D192.168.0.27 sport=3D2846 dport=3D22 status:8 tim=
-eout:432000 tcp 6 orig_packets=3D1 orig_bytes=3D0, reply_packets=3D268 repl=
-y_bytes=3D0=20
-type: [UPDATE] src=3D192.168.0.27 dst=3D192.168.0.254 sport=3D22 dport=3D28=
-46 src=3D192.168.0.254 dst=3D192.168.0.27 sport=3D2846 dport=3D22 status:10=
- timeout:432000 orig_packets=3D1 orig_bytes=3D0, reply_packets=3D268 reply_=
-bytes=3D0=20
-orig_packets=3D1 orig_bytes=3D0, reply_packets=3D268 reply_bytes=3D0=20
-
-See the second event message. account information is printed twice, that
-means the netlink message has duplicated account information.
+---187430788-12337631-1113917949=:2730
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
 
-And
 
-# ./conntrack -E conntrack
-=2E..
-type: [UPDATE] src=3D192.168.0.254 dst=3D192.168.0.27 sport=3D4347 dport=3D=
-22 src=3D192.168.0.27 dst=3D192.168.0.254 sport=3D22 dport=3D4347 timeout:1=
-20 tcp 6 orig_packets=3D5 orig_bytes=3D0, reply_packets=3D270 reply_bytes=
-=3D0=20
-type: [DESTROY] src=3D192.168.0.254 dst=3D192.168.0.27 sport=3D4347 dport=
-=3D22 src=3D192.168.0.27 dst=3D192.168.0.254 sport=3D22 dport=3D4347 orig_p=
-ackets=3D5 orig_bytes=3D0, reply_packets=3D270 reply_bytes=3D0=20
-Segmentation fault (core dumped)
+On Tue, 19 Apr 2005, Pablo Neira wrote:
 
-core dumps again. This time the backtrace is
+> Krzysztof Oledzki wrote:
+>> Hello,
+>>=20
+>> I have just compiled 2.6.11.7 kernel with nfnetlink/ctnetlink support (f=
+rom=20
+>> pom-ng-20050418). Unfortunately, during system startup, kernel panics:
+>>=20
+>> Unable to handle kernel NULL pointer dereference at virtual address=20
+>> 000000b3
+>>  printing eip:
+>> *pde =3D 00000000
+>> Oops: 0000 [#1]
+>> PREEMPT
+>> Modules linked in: bonding
+>
+> You've catch a race condition.
+>
+> Since you've compiled nfnetlink and ctnetlink in kernel, not as module, i=
+t=20
+> seems that ctnetlink registers the subsystem via nfnetlink_subsys_registe=
+r=20
+> before nfnetlink has created the netlink socket. Then you've received an=
+=20
+> event that has been sent to a non-existing netlink socket. I can cook an =
+oops=20
+> with that.
+>
+> I'll fix it as soon as I get some spare time.
 
-[root@qos conntrack]# gdb conntrack core.31335=20
-Loaded symbols for extensions/libct_proto_tcp.so
-#0  0x0804a258 in event_handler (sock=3D0xbffff700, nlh=3D0xbfffd760,=20
-    arg=3D0xbffff760) at src/libct.c:186
-186                     while (NFA_OK(attr, attrlen)) {
-(gdb) bt
-#0  0x0804a258 in event_handler (sock=3D0xbffff700, nlh=3D0xbfffd760,=20
-    arg=3D0xbffff760) at src/libct.c:186
-#1  0x0804b03c in list_conntrack_handler ()
-#2  0x0804bceb in nfnl_listen ()
-#3  0x0804b22d in ctnl_event_conntrack ()
-#4  0x0804ac02 in event_conntrack () at src/libct.c:451
-#5  0x08049d51 in main (argc=3D3, argv=3D0xbffff8f4) at src/conntrack.c:473
-(gdb) print attr
-$1 =3D (struct nfattr *) 0xc00063c4
-(gdb) print attrlen
-$2 =3D 1525387413
+OK. So I have just checked modular configuration (CONFIG_IP_NF_CONNTRACK_NE=
+TLINK=3Dm & CONFIG_NETFILTER_NETLINK=3Dm)
 
-Pablo, if you need more information, just tell me.
+# modprobe nfnetlink
+FATAL: Error inserting nfnetlink (/lib/modules/2.6.11.7/kernel/net/netfilte=
+r/nfnetlink.ko): Operation not permitted
+
+dmesg shows:
+Netfilter messages via NETLINK v0.12.
+cannot initialize nfnetlink!
 
 
---=20
-  lark
+# modprobe ip_conntrack_netlink
+WARNING: Error inserting nfnetlink (/lib/modules/2.6.11.7/kernel/net/netfil=
+ter/nfnetlink.ko): Operation not permitted
+FATAL: Error inserting ip_conntrack_netlink (/lib/modules/2.6.11.7/kernel/n=
+et/ipv4/netfilter/ip_conntrack_netlink.ko): Unknown symbol in module, or un=
+known parameter (see dmesg)
+
+dmesg shows:
+ip_conntrack_netlink: Unknown symbol __nfa_fill
+ip_conntrack_netlink: Unknown symbol nfnetlink_subsys_register
+ip_conntrack_netlink: Unknown symbol nfnetlink_subsys_alloc
+ip_conntrack_netlink: Unknown symbol nfnetlink_send
+ip_conntrack_netlink: Unknown symbol nfnetlink_subsys_unregister
+ip_conntrack_netlink: Unknown symbol nfnetlink_check_attributes
+
+Hm... Did I forget about something obvious?
+
+Best regards,
+
+ =09=09=09Krzysztof Ol=EAdzki
+---187430788-12337631-1113917949=:2730--
