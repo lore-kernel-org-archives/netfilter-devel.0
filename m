@@ -1,15 +1,15 @@
-From: Samuel Liddicott <sliddicott@dbamsystems.com>
-Subject: Re: nfnetlink/ctnetlink from pom-ng r3884
-Date: Wed, 20 Apr 2005 15:17:48 +0100
-Message-ID: <4266648C.3030507@dbamsystems.com>
-References: <20050419212858.039E.LARK@linux.net.cn>
-	<42665BF9.9090707@ufomechanic.net>
+From: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
+Subject: Re: A top 10 statistics module?
+Date: Wed, 20 Apr 2005 10:52:35 -0400
+Message-ID: <20050420145235.GC6027@ti64.telemetry-investments.com>
+References: <20050420200757.03A9.LARK@linux.net.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <42665BF9.9090707@ufomechanic.net>
+To: Wang Jian <lark@linux.net.cn>
+Content-Disposition: inline
+In-Reply-To: <20050420200757.03A9.LARK@linux.net.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,16 +21,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, Apr 20, 2005 at 08:40:20PM +0800, Wang Jian wrote:
+> Top10 is used to monitor a while and then disabled. It could be expensive,
+> but is useful to investigate.
+> 
+> I will implement it anyway to complete the task, but before I code, I am
+> willing to listen to any one who has comment and suggestion.
 
-OK, I think this was my fault due to bad use of printk and 64 bit numbers.
+To be generally useful, the table must be bounded.  That will result in
+inaccurate order statistics, but often that doesn't matter much, if the
+table is an order of magnitude or two larger than the required order
+statistic, (i.e., 100-1000 entries for estimating the top 10).
 
-I used to think that printk/printf pushed a pointer to the number to the 
-stack, it seems to push the actual value to the stack, and I wasn't 
-properly specifying in my format string that it was a 64 bit number, so 
-the most significant 4 bytes were being used as the next argument.
+Given that the table must be bounded, there needs to be a replacement
+policy once it fills up.  The best choice of replacement strategy of
+course depends on the distribution of new entries; the problem is similar
+to that of the code table management in certain data compression algorithms.
+Heuristics and data structures tend to be somewhat intimate, as fast
+updates are required.
 
-This was shown by outputting only one value per printk statement.
+A common heuristic is to prioritize the entries via a scaled frequency
+that decays with a time (or packet count, etc.) scaling constant, and
+replace the lowest frequency members in the table with the new entries.
+This heuristic lends itself to being implemented with a heap-based
+priority queue whose top is the next entry to be expired.
+Complexity: O(log N)
 
-Apologies all.
+Other heuristics derive from various queuing models, the simplest
+being "move-to-front" -- every time an entry is referenced, it is moved
+to the front of the active list; entries are expired from the
+tail of the list. Complexity: O(1)
 
-Amin
+In the distant past I've used the scaled frequency heuristic to good
+effect on long time-series data.
+
+Regards,
+
+	Bill Rugolsky
