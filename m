@@ -1,15 +1,19 @@
-From: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
-Subject: Re: A top 10 statistics module?
-Date: Wed, 20 Apr 2005 10:52:35 -0400
-Message-ID: <20050420145235.GC6027@ti64.telemetry-investments.com>
-References: <20050420200757.03A9.LARK@linux.net.cn>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Fix NAT TCP sequence adjustment
+Date: Wed, 20 Apr 2005 17:03:40 +0200
+Message-ID: <42666F4C.5080706@trash.net>
+References: <20050402202438.GA2968@linuxace.com>
+	<4250435E.1090309@trash.net>	<20050403235320.GB28850@linuxace.com>	<20050404044033.GA1847@linuxace.com>
+	<4250FA72.3020502@trash.net>	<20050404204716.GA4067@linuxace.com>	<20050406044806.GA9711@linuxace.com>
+	<4263108E.1030707@trash.net> <20050419005847.GA591@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, Rusty Russell <rusty@rustcorp.com.au>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Wang Jian <lark@linux.net.cn>
-Content-Disposition: inline
-In-Reply-To: <20050420200757.03A9.LARK@linux.net.cn>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20050419005847.GA591@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,40 +25,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Apr 20, 2005 at 08:40:20PM +0800, Wang Jian wrote:
-> Top10 is used to monitor a while and then disabled. It could be expensive,
-> but is useful to investigate.
-> 
-> I will implement it anyway to complete the task, but before I code, I am
-> willing to listen to any one who has comment and suggestion.
+Phil Oester wrote:
+> If not, can you provide some sample seq/o_a/o_b numbers which you believe
+> would fail this test? 
 
-To be generally useful, the table must be bounded.  That will result in
-inaccurate order statistics, but often that doesn't matter much, if the
-table is an order of magnitude or two larger than the required order
-statistic, (i.e., 100-1000 entries for estimating the top 10).
+offset_before: 1000
+offset_after: -1000
+correction_pos: 1000000
 
-Given that the table must be bounded, there needs to be a replacement
-policy once it fills up.  The best choice of replacement strategy of
-course depends on the distribution of new entries; the problem is similar
-to that of the code table management in certain data compression algorithms.
-Heuristics and data structures tend to be somewhat intimate, as fast
-updates are required.
+Sequence number (pre-adjustment): 999500 (retransmit)
+Sequence number (post-adjustment): 1000500
 
-A common heuristic is to prioritize the entries via a scaled frequency
-that decays with a time (or packet count, etc.) scaling constant, and
-replace the lowest frequency members in the table with the new entries.
-This heuristic lends itself to being implemented with a heap-based
-priority queue whose top is the next entry to be expired.
-Complexity: O(log N)
+if (seq - this_way->offset_before != this_way->correction_pos)
 
-Other heuristics derive from various queuing models, the simplest
-being "move-to-front" -- every time an entry is referenced, it is moved
-to the front of the active list; entries are expired from the
-tail of the list. Complexity: O(1)
+adjusted seq - offset_before = 999500 => passes the test
+adjusted seq - offset_after = 1001500 => not detected as retransmit.
 
-In the distant past I've used the scaled frequency heuristic to good
-effect on long time-series data.
+You assume only identical retransmits of the packet that caused
+the last adjustment. It could also be an older packet or have
+different boundaries. This brings us to a different problem,
+the sequence number at which the correction occured should be
+stored, not the first sequence number contained in the packet.
+But this can be done in a seperate fix.
 
-Regards,
-
-	Bill Rugolsky
+Regards
+Patrick
