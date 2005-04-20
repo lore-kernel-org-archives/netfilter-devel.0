@@ -1,7 +1,7 @@
 From: Amin Azez <azez@ufomechanic.net>
 Subject: Re: conntrack session information
-Date: Wed, 20 Apr 2005 14:50:05 +0100
-Message-ID: <42665E0D.2090609@ufomechanic.net>
+Date: Wed, 20 Apr 2005 14:52:30 +0100
+Message-ID: <42665E9E.5080802@ufomechanic.net>
 References: <20050419000157.038C.LARK@linux.net.cn>	<426646E2.5040504@ufomechanic.net>
 	<20050420213357.03AF.LARK@linux.net.cn>
 Mime-Version: 1.0
