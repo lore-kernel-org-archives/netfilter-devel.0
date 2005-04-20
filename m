@@ -1,22 +1,20 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Phil Oester <kernel@linuxace.com>
 Subject: Re: [PATCH] Fix NAT TCP sequence adjustment
-Date: Wed, 20 Apr 2005 19:50:44 +0200
-Message-ID: <42669674.3020905@trash.net>
-References: <20050403235320.GB28850@linuxace.com>
-	<20050404044033.GA1847@linuxace.com> <4250FA72.3020502@trash.net>
-	<20050404204716.GA4067@linuxace.com>
+Date: Wed, 20 Apr 2005 11:25:05 -0700
+Message-ID: <20050420182505.GA7612@linuxace.com>
+References: <4250FA72.3020502@trash.net> <20050404204716.GA4067@linuxace.com>
 	<20050406044806.GA9711@linuxace.com> <4263108E.1030707@trash.net>
 	<20050419005847.GA591@linuxace.com> <42666F4C.5080706@trash.net>
 	<20050420155308.GA7057@linuxace.com> <42667E51.3060005@trash.net>
-	<20050420172406.GB7057@linuxace.com>
+	<20050420172406.GB7057@linuxace.com> <42669674.3020905@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: Harald Welte <laforge@netfilter.org>, Rusty Russell <rusty@rustcorp.com.au>,
 	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20050420172406.GB7057@linuxace.com>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <42669674.3020905@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,28 +26,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
-> On Wed, Apr 20, 2005 at 06:07:45PM +0200, Patrick McHardy wrote:
+On Wed, Apr 20, 2005 at 07:50:44PM +0200, Patrick McHardy wrote:
+> >I'm aware of that, but again I claim that it is irrelevant in this case
+> >because the PORT commands will not be processed out of order (even if the
+> >data packets are), and thus the adjustments will occur sequentially.
 > 
->>You forget about the network, which can duplicate, delay and reorder
->>packets. If we don't handle this is it will screw up the state.
-> 
-> I'm aware of that, but again I claim that it is irrelevant in this case
-> because the PORT commands will not be processed out of order (even if the
-> data packets are), and thus the adjustments will occur sequentially.
+> Why wouldn't they be processed out of order by nat?
 
-Why wouldn't they be processed out of order by nat?
+Because a second transfer will not be started until the first completes
+in my experience.  Thus, there will not be two 'PORT' packets floating 
+around to potentially arrive out of order
 
->>No, but this function should do the right thing anyway.
-> 
-> Agreed, but IMHO my approach is currently the best available fix for a problem
-> which is affecting many people.  If further testing shows it can be improved,
-> that is great -- but I certainly don't think it's any worse than the current
-> broken behaviour.
+> I agree that the problem should be fixed ASAP. I'll do a proper fix
+> now - either by moving seq adjustment after NAT helpers or by adding
+> a flag to the skb.
 
-I agree that the problem should be fixed ASAP. I'll do a proper fix
-now - either by moving seq adjustment after NAT helpers or by adding
-a flag to the skb.
+Doesn't sound like a -stable fix, but whatever you think is best.
 
-Regards
-Patrick
+Phil
