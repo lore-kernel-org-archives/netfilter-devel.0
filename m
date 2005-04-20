@@ -1,12 +1,16 @@
 From: Wang Jian <lark@linux.net.cn>
-Subject: A top 10 statistics module?
-Date: Wed, 20 Apr 2005 20:40:20 +0800
-Message-ID: <20050420200757.03A9.LARK@linux.net.cn>
+Subject: Re: conntrack session information
+Date: Wed, 20 Apr 2005 21:35:43 +0800
+Message-ID: <20050420213357.03AF.LARK@linux.net.cn>
+References: <20050419000157.038C.LARK@linux.net.cn>
+	<426646E2.5040504@ufomechanic.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <426646E2.5040504@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,32 +22,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi Amin Azez,
 
-I have a customer who needs functionality that list top 10 hosts 
-(listener or talker). It normally done in userspace, but in this case,
-the 10 hosts is for a tc class. Moreover, it is expected that 2 or more
-tc classes' top 10 are collected at the same time.
+It is most easy to use an unique id which will not wrap for quite
+sometime, but I think the overhead (size) is too much.
 
-So I think this is better handled in kernel space, because the classid
-and/or nfmark is only seen in kernel space.
+The alternative way to do it is just adding protocol information to
+every event message, so the tuple of conntrack is complete. The tuple
+will not duplicate during its lifetime, am I wrong? This is enough to
+build up the whole session. I assume that two conntracks using the same
+tuple are always perfect serialized, in the NEW, DESTROY, NEW, DESTROY
+order, not in NEW, NEW, DESTROY, DESTORY order.
 
-The idea is that a rule like
+If you are using a sql database to store the session, it is easy. If you
+are not using sql database, you have to do a little more work but not
+big deal.
 
- -m mark --mark 0x1 -j TOPHOST --count 10 --name FILENAME
+The tricky issue when building session is that DESTORY message gets lost.
+This troubles unique id way as well as tuple way.
 
-will collect top10 IPs (using conntrack flow account) and export the
-information under /proc/net/stat/top10/FILENAME based on the source
-address. (You may need add -i to indicate the direction)
+On Wed, 20 Apr 2005 13:11:14 +0100, Amin Azez <azez@ufomechanic.net> wrote:
 
-Of course, the top10 can be used to match any other criteria beside the
-nfmark. It can even collect top10 of all traffic.
+> 
+> Wang Jian wrote:
+> > There is problem to create whole sessions record from events. event
+> > messages should carry necessary information for correlation
+> 
+> I'm proposing that we base this session id on a 64 bit counter.
+> I will also want to adjust conntrack to record the system time at which 
+> the conntrack was created anyway.
+> 
+> If we also associate with this a serial number, the chances "in normal 
+> use" that the counter will wrap around with the same system time are 
+> miniscule.
+> 
+> For most purposes the connection serial number is unique, but the 
+> associated timestamp makes it historically unique.
+> 
+> Final question, I suppose that ip_conntrack.master references will cause 
+> the master conntrack (of related conntracks) to hang around until the 
+> related conntracks have been deleted? Thus, the netlink stuff can report 
+> the id of the master conntrack when it reports other conntrack info.
+> 
+> Does this sound reasonable to folk? Is this too much overheard per 
+> conntrack? What bottlenecks are there?
+> 
+> Maybe it would require a cross-cpu counter with serialized access. Is 
+> there a standard kernel form for this, or do we use spinlocked structs 
+> or something? Or is a per-cpu counter preferred, combined with a CPU-id?
+> 
+> Amin
+> 
 
-Top10 is used to monitor a while and then disabled. It could be expensive,
-but is useful to investigate.
-
-I will implement it anyway to complete the task, but before I code, I am
-willing to listen to any one who has comment and suggestion.
 
 
 -- 
