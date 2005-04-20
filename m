@@ -1,14 +1,16 @@
 From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: nfnetlink/ctnetlink from pom-ng r3884
-Date: Wed, 20 Apr 2005 14:41:13 +0100
-Message-ID: <42665BF9.9090707@ufomechanic.net>
-References: <20050419212858.039E.LARK@linux.net.cn>
+Subject: Re: conntrack session information
+Date: Wed, 20 Apr 2005 14:50:05 +0100
+Message-ID: <42665E0D.2090609@ufomechanic.net>
+References: <20050419000157.038C.LARK@linux.net.cn>	<426646E2.5040504@ufomechanic.net>
+	<20050420213357.03AF.LARK@linux.net.cn>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20050419212858.039E.LARK@linux.net.cn>
+In-Reply-To: <20050420213357.03AF.LARK@linux.net.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,60 +23,77 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Wang Jian wrote:
-> Hi,
+> Hi Amin Azez,
 > 
-> I now use conntrack/ + libctnetlink/ + libnfnetlink/ + nfnetlink/ +
-> ctnetlink/ + conntrack-event-api/, all are from r3884. I also enable
-> CT_ACCT.
+> It is most easy to use an unique id which will not wrap for quite
+> sometime, but I think the overhead (size) is too much.
 
-I'm using now kernel 2.6.11.7 with nfnetlink, ctnetlink, 
-conntrack-event-api from patch-o-matic-ng svn (3884)
+4 or 8 bytes per conntrack is small I think.
 
-I'm using conntrack (3880) and libctnetlink (3877) and libnfnetlink 
-(3876) from svn.
+> The alternative way to do it is just adding protocol information to
+> every event message, so the tuple of conntrack is complete. The tuple
+> will not duplicate during its lifetime, am I wrong? This is enough to
+> build up the whole session. I assume that two conntracks using the same
+> tuple are always perfect serialized, in the NEW, DESTROY, NEW, DESTROY
+> order, not in NEW, NEW, DESTROY, DESTORY order.
 
-I fixed conntrack to remove the "id" parameter, I also have
-CONFIG_IP_NF_CT_ACCT=y
+This is so, and /probably/ combined with the contrack creation time will 
+make a historically unique id.
 
-Yet conntrack -E conntrack shows for every packet a new connection
-type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
-type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
-type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
-type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
-type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
-type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
+> If you are using a sql database to store the session, it is easy. If you
+> are not using sql database, you have to do a little more work but not
+> big deal.
 
-I'm also still getting some kind of "alignment" problems in 
-ip_conntrack_netlink.c such that original-bytes is 0 and reply-packets 
-seems to have the value for originating bytes.
+It is a matter of convenience, not neccessity, and the ease with which 
+conntrack(-tool) and other clients can relate conntracks accross 
+conntrack events.
 
-printk("OP=%ld OB=%ld RP=%ld RB=%ld\n",
-ct->counters[IP_CT_DIR_ORIGINAL].packets,
-ct->counters[IP_CT_DIR_ORIGINAL].bytes,
-ct->counters[IP_CT_DIR_REPLY].packets,
-ct->counters[IP_CT_DIR_REPLY].bytes);
+> The tricky issue when building session is that DESTORY message gets lost.
+> This troubles unique id way as well as tuple way.
 
-OP=1 OB=0 RP=60 RB=0
-OP=1 OB=0 RP=60 RB=0
-OP=2 OB=0 RP=112 RB=0
-OP=2 OB=0 RP=112 RB=0
-OP=3 OB=0 RP=164 RB=0
-OP=4 OB=0 RP=238 RB=0
-OP=4 OB=0 RP=238 RB=0
-OP=5 OB=0 RP=930 RB=0
-OP=5 OB=0 RP=930 RB=0
-OP=5 OB=0 RP=930 RB=0
-OP=6 OB=0 RP=1006 RB=0
-OP=6 OB=0 RP=1006 RB=0
+When combined with conntrack creation time, this is not a problem either 
+way.
 
-I even put my debug in ctnetlink_conntrack_event() and it prints these 
-bogus values, and yet I can't see how this canbe the case unless the 
-kernel is walking all over the ip_conntrack struct, but then the box 
-wouldn't be this stable.
+How do you feel about conntrack creation time being part of the 
+conntrack data?
 
-All I can think of is to
-1) do binary dump of ip_conntrack
-2) back down the kernel to where the ct->counters are incremented until 
-they start to make sense.
+Sam
 
-Amin
+> 
+> On Wed, 20 Apr 2005 13:11:14 +0100, Amin Azez <azez@ufomechanic.net> wrote:
+> 
+> 
+>>Wang Jian wrote:
+>>
+>>>There is problem to create whole sessions record from events. event
+>>>messages should carry necessary information for correlation
+>>
+>>I'm proposing that we base this session id on a 64 bit counter.
+>>I will also want to adjust conntrack to record the system time at which 
+>>the conntrack was created anyway.
+>>
+>>If we also associate with this a serial number, the chances "in normal 
+>>use" that the counter will wrap around with the same system time are 
+>>miniscule.
+>>
+>>For most purposes the connection serial number is unique, but the 
+>>associated timestamp makes it historically unique.
+>>
+>>Final question, I suppose that ip_conntrack.master references will cause 
+>>the master conntrack (of related conntracks) to hang around until the 
+>>related conntracks have been deleted? Thus, the netlink stuff can report 
+>>the id of the master conntrack when it reports other conntrack info.
+>>
+>>Does this sound reasonable to folk? Is this too much overheard per 
+>>conntrack? What bottlenecks are there?
+>>
+>>Maybe it would require a cross-cpu counter with serialized access. Is 
+>>there a standard kernel form for this, or do we use spinlocked structs 
+>>or something? Or is a per-cpu counter preferred, combined with a CPU-id?
+>>
+>>Amin
+>>
+> 
+> 
+> 
+> 
