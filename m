@@ -1,16 +1,20 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: nfnetlink/ctnetlink from pom-ng r3884
-Date: Thu, 21 Apr 2005 00:44:10 +0200
-Message-ID: <4266DB3A.8060106@eurodev.net>
-References: <20050419212858.039E.LARK@linux.net.cn>
-	<42665BF9.9090707@ufomechanic.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Fix NAT TCP sequence adjustment
+Date: Thu, 21 Apr 2005 03:38:50 +0200
+Message-ID: <4267042A.2090906@trash.net>
+References: <4250FA72.3020502@trash.net> <20050404204716.GA4067@linuxace.com>
+	<20050406044806.GA9711@linuxace.com> <4263108E.1030707@trash.net>
+	<20050419005847.GA591@linuxace.com> <42666F4C.5080706@trash.net>
+	<20050420155308.GA7057@linuxace.com> <42667E51.3060005@trash.net>
+	<20050420172406.GB7057@linuxace.com> <42669674.3020905@trash.net>
+	<20050420182505.GA7612@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------080703040103050807070103"
+Cc: Harald Welte <laforge@netfilter.org>, Rusty Russell <rusty@rustcorp.com.au>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <42665BF9.9090707@ufomechanic.net>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20050420182505.GA7612@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,81 +26,267 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez wrote:
-> I'm using now kernel 2.6.11.7 with nfnetlink, ctnetlink, 
-> conntrack-event-api from patch-o-matic-ng svn (3884)
+This is a multi-part message in MIME format.
+--------------080703040103050807070103
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Phil Oester wrote:
+> On Wed, Apr 20, 2005 at 07:50:44PM +0200, Patrick McHardy wrote:
 > 
-> I'm using conntrack (3880) and libctnetlink (3877) and libnfnetlink 
-> (3876) from svn.
-
-Plus the three patches that I posted recently that fix:
-
-a) core dump when a packet of a not know protocol is received.
-b) core dump when you receive a destroy message.
-c) fail if ip_queue is loaded.
-
-Make sure that you install the libraries correctly and you aren't using 
-the old ones, this is *very* important.
-
-> I fixed conntrack to remove the "id" parameter, I also have
-> CONFIG_IP_NF_CT_ACCT=y
+>>I agree that the problem should be fixed ASAP. I'll do a proper fix
+>>now - either by moving seq adjustment after NAT helpers or by adding
+>>a flag to the skb.
 > 
-> Yet conntrack -E conntrack shows for every packet a new connection
-> type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
-> type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
-> type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
-> type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
-> type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
-> type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
+> Doesn't sound like a -stable fix, but whatever you think is best.
 
-I'm not able to reproduce such behaviour. It works just fine here. Make 
-sure that you are really using the lastest version. In such case, send 
-me in private a tcpdump trace and the full list of event displayed.
+Well, I also can't submit a patch that doesn't fix the problem properly
+to -stable. This patch moves helpers to a new hook two priorities below
+ip_conntrack_confirm() and sequence number adjustment to a new hook at
+the next priority, thereby restoreing the old order. Can someone
+affected by the problem please confirm that this patch fixes it?
 
-> I'm also still getting some kind of "alignment" problems in 
-> ip_conntrack_netlink.c such that original-bytes is 0 and reply-packets 
-> seems to have the value for originating bytes.
-> 
-> printk("OP=%ld OB=%ld RP=%ld RB=%ld\n",
-> ct->counters[IP_CT_DIR_ORIGINAL].packets,
-> ct->counters[IP_CT_DIR_ORIGINAL].bytes,
-> ct->counters[IP_CT_DIR_REPLY].packets,
-> ct->counters[IP_CT_DIR_REPLY].bytes);
-> 
-> OP=1 OB=0 RP=60 RB=0
-> OP=1 OB=0 RP=60 RB=0
-> OP=2 OB=0 RP=112 RB=0
-> OP=2 OB=0 RP=112 RB=0
-> OP=3 OB=0 RP=164 RB=0
-> OP=4 OB=0 RP=238 RB=0
-> OP=4 OB=0 RP=238 RB=0
-> OP=5 OB=0 RP=930 RB=0
-> OP=5 OB=0 RP=930 RB=0
-> OP=5 OB=0 RP=930 RB=0
-> OP=6 OB=0 RP=1006 RB=0
-> OP=6 OB=0 RP=1006 RB=0
-> 
-> I even put my debug in ctnetlink_conntrack_event() and it prints these 
-> bogus values, and yet I can't see how this canbe the case unless the 
-> kernel is walking all over the ip_conntrack struct, but then the box 
-> wouldn't be this stable.
+Thanks,
+Patrick
 
-They aren't bogus, actually you see snapshots of the counters value in 
-every event message.
+--------------080703040103050807070103
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
-See that we don't send a netlink message to user space every time a 
-packet is received, instead we do when the state of a conntrack changes. 
-So this is not a bug, it's a feature. As soon as I get some spare time 
-I'll write the proper documentation and a manpage. Alternatively I'll 
-appreciate if you could start writing it.
+===== include/linux/netfilter_ipv4.h 1.7 vs edited =====
+--- 1.7/include/linux/netfilter_ipv4.h	2004-03-30 06:24:38 +02:00
++++ edited/include/linux/netfilter_ipv4.h	2005-04-21 03:10:07 +02:00
+@@ -62,6 +62,9 @@
+ 	NF_IP_PRI_FILTER = 0,
+ 	NF_IP_PRI_NAT_SRC = 100,
+ 	NF_IP_PRI_SELINUX_LAST = 225,
++	NF_IP_PRI_CONNTRACK_HELPER = INT_MAX - 2,
++	NF_IP_PRI_NAT_SEQ_ADJUST = INT_MAX - 1,
++	NF_IP_PRI_CONNTRACK_CONFIRM = INT_MAX,
+ 	NF_IP_PRI_LAST = INT_MAX,
+ };
+ 
+===== net/ipv4/netfilter/ip_conntrack_standalone.c 1.67 vs edited =====
+--- 1.67/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-03-18 19:38:59 +01:00
++++ edited/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-04-21 03:10:44 +02:00
+@@ -401,6 +401,16 @@
+ 			       const struct net_device *out,
+ 			       int (*okfn)(struct sk_buff *))
+ {
++	/* We've seen it coming out the other side: confirm it */
++	return ip_conntrack_confirm(pskb);
++}
++
++static unsigned int ip_conntrack_help(unsigned int hooknum,
++				      struct sk_buff **pskb,
++				      const struct net_device *in,
++				      const struct net_device *out,
++				      int (*okfn)(struct sk_buff *))
++{
+ 	struct ip_conntrack *ct;
+ 	enum ip_conntrack_info ctinfo;
+ 
+@@ -412,9 +422,7 @@
+ 		if (ret != NF_ACCEPT)
+ 			return ret;
+ 	}
+-
+-	/* We've seen it coming out the other side: confirm it */
+-	return ip_conntrack_confirm(pskb);
++	return NF_ACCEPT;
+ }
+ 
+ static unsigned int ip_conntrack_defrag(unsigned int hooknum,
+@@ -516,13 +524,30 @@
+ 	.priority	= NF_IP_PRI_CONNTRACK,
+ };
+ 
++/* helpers */
++static struct nf_hook_ops ip_conntrack_helper_out_ops = {
++	.hook		= ip_conntrack_help,
++	.owner		= THIS_MODULE,
++	.pf		= PF_INET,
++	.hooknum	= NF_IP_POST_ROUTING,
++	.priority	= NF_IP_PRI_CONNTRACK_HELPER,
++};
++
++static struct nf_hook_ops ip_conntrack_helper_in_ops = {
++	.hook		= ip_conntrack_help,
++	.owner		= THIS_MODULE,
++	.pf		= PF_INET,
++	.hooknum	= NF_IP_LOCAL_IN,
++	.priority	= NF_IP_PRI_CONNTRACK_HELPER,
++};
++
+ /* Refragmenter; last chance. */
+ static struct nf_hook_ops ip_conntrack_out_ops = {
+ 	.hook		= ip_refrag,
+ 	.owner		= THIS_MODULE,
+ 	.pf		= PF_INET,
+ 	.hooknum	= NF_IP_POST_ROUTING,
+-	.priority	= NF_IP_PRI_LAST,
++	.priority	= NF_IP_PRI_CONNTRACK_CONFIRM,
+ };
+ 
+ static struct nf_hook_ops ip_conntrack_local_in_ops = {
+@@ -530,7 +555,7 @@
+ 	.owner		= THIS_MODULE,
+ 	.pf		= PF_INET,
+ 	.hooknum	= NF_IP_LOCAL_IN,
+-	.priority	= NF_IP_PRI_LAST-1,
++	.priority	= NF_IP_PRI_CONNTRACK_CONFIRM,
+ };
+ 
+ /* Sysctl support */
+@@ -831,10 +856,20 @@
+ 		printk("ip_conntrack: can't register local out hook.\n");
+ 		goto cleanup_inops;
+ 	}
++	ret = nf_register_hook(&ip_conntrack_helper_in_ops);
++	if (ret < 0) {
++		printk("ip_conntrack: can't register local in helper hook.\n");
++		goto cleanup_inandlocalops;
++	}
++	ret = nf_register_hook(&ip_conntrack_helper_out_ops);
++	if (ret < 0) {
++		printk("ip_conntrack: can't register postrouting helper hook.\n");
++		goto cleanup_helperinops;
++	}
+ 	ret = nf_register_hook(&ip_conntrack_out_ops);
+ 	if (ret < 0) {
+ 		printk("ip_conntrack: can't register post-routing hook.\n");
+-		goto cleanup_inandlocalops;
++		goto cleanup_helperoutops;
+ 	}
+ 	ret = nf_register_hook(&ip_conntrack_local_in_ops);
+ 	if (ret < 0) {
+@@ -860,6 +895,10 @@
+ 	nf_unregister_hook(&ip_conntrack_local_in_ops);
+  cleanup_inoutandlocalops:
+ 	nf_unregister_hook(&ip_conntrack_out_ops);
++ cleanup_helperoutops:
++	nf_unregister_hook(&ip_conntrack_helper_out_ops);
++ cleanup_helperinops:
++	nf_unregister_hook(&ip_conntrack_helper_in_ops);
+  cleanup_inandlocalops:
+ 	nf_unregister_hook(&ip_conntrack_local_out_ops);
+  cleanup_inops:
+===== net/ipv4/netfilter/ip_nat_core.c 1.69 vs edited =====
+--- 1.69/net/ipv4/netfilter/ip_nat_core.c	2005-02-07 06:48:35 +01:00
++++ edited/net/ipv4/netfilter/ip_nat_core.c	2005-04-21 03:05:08 +02:00
+@@ -356,15 +356,6 @@
+ 	unsigned long statusbit;
+ 	enum ip_nat_manip_type mtype = HOOK2MANIP(hooknum);
+ 
+-	if (test_bit(IPS_SEQ_ADJUST_BIT, &ct->status)
+-	    && (hooknum == NF_IP_POST_ROUTING || hooknum == NF_IP_LOCAL_IN)) {
+-		DEBUGP("ip_nat_core: adjusting sequence number\n");
+-		/* future: put this in a l4-proto specific function,
+-		 * and call this function here. */
+-		if (!ip_nat_seq_adjust(pskb, ct, ctinfo))
+-			return NF_DROP;
+-	}
+-
+ 	if (mtype == IP_NAT_MANIP_SRC)
+ 		statusbit = IPS_SRC_NAT;
+ 	else
+===== net/ipv4/netfilter/ip_nat_standalone.c 1.44 vs edited =====
+--- 1.44/net/ipv4/netfilter/ip_nat_standalone.c	2005-01-27 07:03:17 +01:00
++++ edited/net/ipv4/netfilter/ip_nat_standalone.c	2005-04-21 03:15:54 +02:00
+@@ -230,6 +230,25 @@
+ 	return ret;
+ }
+ 
++static unsigned int
++ip_nat_adjust(unsigned int hooknum,
++	      struct sk_buff **pskb,
++	      const struct net_device *in,
++	      const struct net_device *out,
++	      int (*okfn)(struct sk_buff *))
++{
++	struct ip_conntrack *ct;
++	enum ip_conntrack_info ctinfo;
++
++	ct = ip_conntrack_get(*pskb, &ctinfo);
++	if (ct && test_bit(IPS_SEQ_ADJUST_BIT, &ct->status)) {
++	        DEBUGP("ip_nat_standalone: adjusting sequence number\n");
++	        if (!ip_nat_seq_adjust(pskb, ct, ctinfo))
++	                return NF_DROP;
++	}
++	return NF_ACCEPT;
++}
++
+ /* We must be after connection tracking and before packet filtering. */
+ 
+ /* Before packet filtering, change destination */
+@@ -250,6 +269,15 @@
+ 	.priority	= NF_IP_PRI_NAT_SRC,
+ };
+ 
++/* After conntrack, adjust sequence number */
++static struct nf_hook_ops ip_nat_adjust_out_ops = {
++	.hook		= ip_nat_adjust,
++	.owner		= THIS_MODULE,
++	.pf		= PF_INET,
++	.hooknum	= NF_IP_POST_ROUTING,
++	.priority	= NF_IP_PRI_NAT_SEQ_ADJUST,
++};
++
+ /* Before packet filtering, change destination */
+ static struct nf_hook_ops ip_nat_local_out_ops = {
+ 	.hook		= ip_nat_local_fn,
+@@ -268,6 +296,16 @@
+ 	.priority	= NF_IP_PRI_NAT_SRC,
+ };
+ 
++/* After conntrack, adjust sequence number */
++static struct nf_hook_ops ip_nat_adjust_in_ops = {
++	.hook		= ip_nat_adjust,
++	.owner		= THIS_MODULE,
++	.pf		= PF_INET,
++	.hooknum	= NF_IP_LOCAL_IN,
++	.priority	= NF_IP_PRI_NAT_SEQ_ADJUST,
++};
++
++
+ static int init_or_cleanup(int init)
+ {
+ 	int ret = 0;
+@@ -296,10 +334,20 @@
+ 		printk("ip_nat_init: can't register out hook.\n");
+ 		goto cleanup_inops;
+ 	}
++	ret = nf_register_hook(&ip_nat_adjust_in_ops);
++	if (ret < 0) {
++		printk("ip_nat_init: can't register adjust in hook.\n");
++		goto cleanup_outops;
++	}
++	ret = nf_register_hook(&ip_nat_adjust_out_ops);
++	if (ret < 0) {
++		printk("ip_nat_init: can't register adjust out hook.\n");
++		goto cleanup_adjustin_ops;
++	}
+ 	ret = nf_register_hook(&ip_nat_local_out_ops);
+ 	if (ret < 0) {
+ 		printk("ip_nat_init: can't register local out hook.\n");
+-		goto cleanup_outops;
++		goto cleanup_adjustout_ops;;
+ 	}
+ 	ret = nf_register_hook(&ip_nat_local_in_ops);
+ 	if (ret < 0) {
+@@ -312,6 +360,10 @@
+ 	nf_unregister_hook(&ip_nat_local_in_ops);
+  cleanup_localoutops:
+ 	nf_unregister_hook(&ip_nat_local_out_ops);
++ cleanup_adjustout_ops:
++	nf_unregister_hook(&ip_nat_adjust_out_ops);
++ cleanup_adjustin_ops:
++	nf_unregister_hook(&ip_nat_adjust_in_ops);
+  cleanup_outops:
+ 	nf_unregister_hook(&ip_nat_out_ops);
+  cleanup_inops:
 
-Then, to see the current value of counters use: conntrack -L conntrack
-
-> All I can think of is to
-> 1) do binary dump of ip_conntrack
-
-if you're planning cat'ing from /proc/net/ip_conntrack, you must know 
-that it harm system performance. You've been warned.
-
---
-Pablo
+--------------080703040103050807070103--
