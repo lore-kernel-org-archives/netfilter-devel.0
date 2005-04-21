@@ -1,12 +1,16 @@
-From: Wang Jian <lark@linux.net.cn>
-Subject: --in-interface and --out-interface issue on bridge
-Date: Thu, 21 Apr 2005 15:41:58 +0800
-Message-ID: <20050421151458.03C6.LARK@linux.net.cn>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: nfnetlink/ctnetlink from pom-ng r3884
+Date: Thu, 21 Apr 2005 09:07:15 +0100
+Message-ID: <42675F33.6090201@ufomechanic.net>
+References: <20050419212858.039E.LARK@linux.net.cn>
+	<42665BF9.9090707@ufomechanic.net> <4266DB3A.8060106@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <4266DB3A.8060106@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,36 +22,110 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Pablo Neira wrote:
 
-During my test, I find that --in-interface doesn't work as I expected.
+> Amin Azez wrote:
+>
+>> I'm using now kernel 2.6.11.7 with nfnetlink, ctnetlink, 
+>> conntrack-event-api from patch-o-matic-ng svn (3884)
+>>
+>> I'm using conntrack (3880) and libctnetlink (3877) and libnfnetlink 
+>> (3876) from svn.
+>
+>
+> Plus the three patches that I posted recently that fix:
+>
+> a) core dump when a packet of a not know protocol is received.
+> b) core dump when you receive a destroy message.
+> c) fail if ip_queue is loaded.
 
-  web server -- (eth0--br0--eth1)  -- web client
+Aye, those too.
 
+> Make sure that you install the libraries correctly and you aren't 
+> using the old ones, this is *very* important.
+>
+Aye, I re=installed them to get the new id 10 instead of 3, so I know I 
+did that right.
 
-# iptables -t mangle -A PREROUTING -i eth0 -p tcp --sport 80 \
-	-j MARK --set-mark 1
+>> I fixed conntrack to remove the "id" parameter, I also have
+>> CONFIG_IP_NF_CT_ACCT=y
+>>
+>> Yet conntrack -E conntrack shows for every packet a new connection
+>> type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
+>> type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
+>> type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
+>> type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
+>> type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
+>> type: [NEW] src=192.168.0.204 dst=192.168.0.131 sport=41605 ...
+>
+>
+> I'm not able to reproduce such behaviour. It works just fine here. 
+> Make sure that you are really using the lastest version. In such case, 
+> send me in private a tcpdump trace and the full list of event displayed.
 
-doesn't set mark to 1.
+I may have to do that.
 
-I google a while and read some pages that use such a rule for bridged
-firewall.
+>>
+>> printk("OP=%ld OB=%ld RP=%ld RB=%ld\n",
+>> ct->counters[IP_CT_DIR_ORIGINAL].packets,
+>> ct->counters[IP_CT_DIR_ORIGINAL].bytes,
+>> ct->counters[IP_CT_DIR_REPLY].packets,
+>> ct->counters[IP_CT_DIR_REPLY].bytes);
+>>
+>> OP=1 OB=0 RP=60 RB=0
+>> OP=1 OB=0 RP=60 RB=0
+>> OP=2 OB=0 RP=112 RB=0
+>> OP=2 OB=0 RP=112 RB=0
+>> OP=3 OB=0 RP=164 RB=0
+>> OP=4 OB=0 RP=238 RB=0
+>> OP=4 OB=0 RP=238 RB=0
+>> OP=5 OB=0 RP=930 RB=0
+>> OP=5 OB=0 RP=930 RB=0
+>> OP=5 OB=0 RP=930 RB=0
+>> OP=6 OB=0 RP=1006 RB=0
+>> OP=6 OB=0 RP=1006 RB=0
+>>
+>> I even put my debug in ctnetlink_conntrack_event() and it prints 
+>> these bogus values, and yet I can't see how this canbe the case 
+>> unless the kernel is walking all over the ip_conntrack struct, but 
+>> then the box wouldn't be this stable.
+>
+> I'm also still getting some kind of "alignment" problems in 
+> ip_conntrack_netlink.c such that original-bytes is 0 and reply-packets 
+> seems to have the value for originating bytes.
+>
+> They aren't bogus, actually you see snapshots of the counters value in 
+> every event message.
+>
+You are right here, the bogus part was in my debug messages that cause 
+the counter values to be displayed against the wrong labels.
 
-# iptables -A FORWARD --in-interface eth0 --out-interface eth1 \
-	-j ACCEPT
+> See that we don't send a netlink message to user space every time a 
+> packet is received, instead we do when the state of a conntrack 
+> changes. So this is not a bug, it's a feature. As soon as I get some 
+> spare time I'll write the proper documentation and a manpage. 
+> Alternatively I'll appreciate if you could start writing it.
 
-I test this rule and fail
+I certainly am happy to start writing it. I just need to look at why I 
+do get a netlink message for every packet and they are all "new". Once I 
+have a some sane behaviour I will be glad to start.
 
-# iptables -t mangle -A FORWARD -i eth0 -p tcp --sport 80 \
-	-j MARK --set-mark 1
+I do get a destroy message after the TIMEWAIT expires. I could also do 
+with a notification when the connection close sequence begins, or an 
+RST, but I guess I can use an iptables rule to modify the conntrack 
+state and get one that way?
 
-If I removed -i eth0 or use -i br0 instead, then the mark is set.
+> Then, to see the current value of counters use: conntrack -L conntrack
+>
+>> All I can think of is to
+>> 1) do binary dump of ip_conntrack
+>
+>
+> if you're planning cat'ing from /proc/net/ip_conntrack, you must know 
+> that it harm system performance. You've been warned.
+>
+I wasn't, and I can't think what I did mean now!
 
-I looked into net/core/dev.c and net/bridge/* and didn't get clue about
-this.
+Thanks Pablo.
 
-kernel is vanilla 2.6.11 with bridge packet filtering on.
-
-
--- 
-  lark
+Sam
