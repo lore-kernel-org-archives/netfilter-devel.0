@@ -1,15 +1,16 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: [PATCH] ipt_connlimit / speed-up.
-Date: Thu, 21 Apr 2005 08:44:09 +0000
-Message-ID: <426767D9.3050808@outerspace.dyndns.org>
-References: <200504210510.01886.pluto@pld-linux.org>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: extending conntrack event data
+Date: Thu, 21 Apr 2005 10:25:20 +0100
+Message-ID: <42677180.60003@ufomechanic.net>
+References: <20050419212858.039E.LARK@linux.net.cn>
+	<42665BF9.9090707@ufomechanic.net> <4266DB3A.8060106@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pawel Sikora <pluto@pld-linux.org>
-In-Reply-To: <200504210510.01886.pluto@pld-linux.org>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <4266DB3A.8060106@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,102 +22,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+I realise that I may be extending the scope of ctevent too far for some, 
+but I would like to make some more info available for conntrack events.
 
-Quoting Pawel Sikora on 2005-04-21 03:10 UTC:
+Specifically: mac addresses, and the time stamp associated with the skb 
+that triggered the conntrack event.
 
-I just had to test one alternative.. :)
+notifier_call_chain in include/linux/netfilter_ipv4/ip_conntrack.h 
+extacts the ip_conntrack from the skb and passes that to each event 
+callback.
+As notifier_call_chain is not passed the addresses of any members of the 
+skb the callback can't use any container tricks to extract the skb address.
+For my own convenience, and for compatability, I would like to modifer 
+notify_call_chain to pass the skb address as a 4th parameter so that 
+callback handlers may receive it. How do others feel about this?
 
-> ipt_iphash: (fixed)
+Also, I realise that at the moment the mac member of an sk_buff presumes 
+that all mac info will be ethernet; however I would like to write clean 
+code that does not presume this will always be the case. What is the 
+best way to check from an sk_buff that the link layer is ethernet, or 
+rather that it is valid to presume that sk->mac.raw points to an ethhdr 
+(if not null)?  The best I could think of was sk->inputdev but this 
+seems to have no members to indicate device type. Is it true that the 
+kernel only supports ethernet-type devices, or devices that masquerade 
+as ethernet type devices?
 
->         movl    %eax, %edx
+Finally, I know the issue of conntrack id's has been discussed before, 
+and that in kernel space the tuples are actually the best way to relate 
+skb's to conntracks. I realise that tuple contents could also be used to 
+maintain user-space references there is a race condition that exists; if 
+a user-space application requests some action on a conntrack or related 
+connection, because by the time this instruction is acted on in the 
+kernel it might be applied to a different actual connection with the 
+same tuple (previous connection has been closed). As netlink/netfilter 
+stuff introduces more user-space connection management capabilities, we 
+surely need to consider this problem?
 
->         shrl    $8, %edx
-
->         xorl    %eax, %edx
->         shrl    $16, %eax
-
->         xorl    %eax, %edx
->         shrl    $8, %eax
-
->         xorl    %eax, %edx
-
->         movzbl  %dl,%eax
-
->         ret
-
-I grouped the instructions of your solution according to my outdated and
-maybe incomplete knowledge of how Pentium processors execute
-instructions in parallell. This gives 7 groups.
-
-> +	return ((addr ^
-> +		(addr >>  8) ^
-> +		(addr >> 16) ^
-> +		(addr >> 24)) & 0xff);
-
-My approach:
-
-	unsigned tmp = addr ^ (addr >> 16);
-	return ((tmp >> 8) ^ tmp) & 255;
-
-Which gives:
-
-        movl    %eax, %edx
-        shrl    $16, %eax
-
-        xorl    %edx, %eax
-
-        movl    %eax, %edx
-
-        shrl    $8, %edx
-
-        xorl    %edx, %eax
-
-        andl    $255, %eax
-
-        ret
-
-This also gives 7 groups. If the compiler had only used eax instead in
-"shrl $8, %edx", the instruction could have been grouped with the
-previous instruction and my solution would have beaten yours, but no,
-the compiler chose to modify the copy instead of the original.. :)
-
-So both my and your solution end up using the same amount of cpu
-although my code has one instruction less and also results in one byte
-less of assembler instructions.. :)
-
-However, on my processor, your solution results in 7 groups of code
-while mine results in 8 (again, the compiler chose to modify a copy
-instead of the original), so I'm going to vote for your version :D
-
-For the fun of it, here's what your version looks like on x86_64:
-
-	movl	%edi, %eax
-	movl	%edi, %edx
-
-	shrl	$8, %eax
-	shrl	$16, %edx
-
-	xorl	%edi, %eax
-	shrl	$24, %edi
-
-	xorl	%edx, %eax
-
-	xorl	%edi, %eax
-
-	andl	$255, %eax
-
-	ret
-
-Keep up the good work :)
-
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCZ2fYxyF48ZTvn+4RAgHyAJ9B3vcxnPRHZOhHT3Eh6U/p8Mjh8QCeJwL2
-OPiZ1VtkT8Y+Jug3UwCDdIg=
-=UwcV
------END PGP SIGNATURE-----
+Amin
