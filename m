@@ -1,13 +1,17 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: problem with active ftp masqarading in kernel newer than 2.6.10-rc1
- (fwd)
-Date: Fri, 22 Apr 2005 09:11:23 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0504220909400.21714@filer.marasystems.com>
+From: Tim Burress <tim@variosecure.net>
+Subject: Re: TCP Connection tracking and SYN/ACK/PSH
+Date: Fri, 22 Apr 2005 18:38:03 +0900
+Message-ID: <4268C5FB.5040201@variosecure.net>
+References: <20050417193718.6a7f0809.gniibe@fsij.org>	<Pine.LNX.4.61.0504180316120.4321@filer.marasystems.com>	<4265B0B7.5090707@variosecure.net>
+	<Pine.LNX.4.61.0504200842001.22001@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Mateusz <mateusz@republika.pl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, NIIBE Yutaka <gniibe@fsij.org>,
+	ukai@debian.or.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Developers <netfilter-devel@lists.netfilter.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0504200842001.22001@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,64 +23,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-found on linux-net.
+Hello!
 
+Henrik Nordstrom wrote:
 
----------- Forwarded message ----------
-Date: Fri, 22 Apr 2005 00:28:28 +0200
-From: Mateusz <mateusz@republika.pl>
-To: linux-net@vger.kernel.org
-Subject: problem with active ftp masqarading in kernel newer than 2.6.10-rc1
+> On Wed, 20 Apr 2005, Tim Burress wrote:
+>
+>> explicitly forbidden during the handshake [RFC 793, pg. 30]. In any 
+>> other protocol, a request to perform a prohibited operation would, I 
+>> think, be considered invalid, so in the end I think Netfilter is 
+>> doing the right thing, inconvenient as it may be for a few devices.
+>
+>
+> I am of a slightly different opinion. These segments is not invalid 
+> (only odd) and won't cause any disturbance to the TCP protocol as long 
+> as the standard on how to process received segments is followed.
+>
+> I am of the opinion that as long as the traffic is not explicitly 
+> violating the protocol conntrack should track it. Stricter checking 
+> belongs in a separate match such as unclean if desired imho.
 
-Hi, first I want to quote the person who have the same problem:
+I think the segments are invalid (or at least in-something), but I agree 
+with your second point. Since PSH has no bearing on TCP connection 
+state, it seems like it might be better to treat PSH the same way as ECE 
+and CWR, and have conntrack ignore it. Other layers could then decide 
+whether to accept or drop combinations like SYN+ACK+PSH depending on how 
+strictly they want to enforce protocol conventions in the firewall. It's 
+not so much a question of whether the segments are valid or not as 
+whether strict protocol enforcement (beyond what is needed for 
+connection tracking) is really conntrack's job. And since I didn't 
+design it, I'm not sure!
 
-"  Hello,
-
-I found problem with active ftp masqarading in kernel 2.6.11.
-I use linux firewall with masquarading for the local network.
-When I run ftp client in active mode on any machines in the local network,
-I can connect to remote ftp server in outside network (Internet). But
-when I get "mget *" command in this ftp session, client downloads about
-5 files only and then writes "500 R not understood" and then
-"ftp: bind: Address already in use" and it stops.
-I tried capture some packets and it looks firewall leaves off masqurading
-for
-this sessin.
-When I switch ftp client to "passive" mode, all works fine.
-When I run kernel 2.6.9 (and previous) on the firewall, all works fine (both
-
-active and passive mode).
-
-I tried it on miscellaneous firewalls (with 2.6.11 kernel), miscellaneous
-ftp
-servers and miscellaneous ftp clients (in active mode) with same results. I
-tried both iptables-1.3.1 and iptables-1.3.0 without success.
-
-Regards,
-                Milos Wimmer "
-
-I have testes my 2 servers, and investigate that in kernel 2.6.10-rc1
-all is OK., but in 2.6.10-rc2 and laters the problem occurs (tested to
-2.6.11.7 and 2.6.12-rc2)
-In my problem I don't have this message ""ftp: bind: Address already in use"
-and it stops.".
-Rest is the same - after uploading few files to the ftp server (out from my
-network) i have
-message:
-PORT 10,0,4,32,11,121
-200 PORT command successful.
-STOR P4020553.JPG
-500: " OR P4020553.JPG not understood."
-It seems, that first two letters from this command were cutted, and server
-gets "OR"
-instead of "STOR" command
-
-I have tested it on different ftp servers, clients, and hosts in my network,
-in passive
-mode all works fine.
-
-
-Redards, Mateusz Pluta
-
-
-
+Tim
