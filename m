@@ -1,19 +1,22 @@
-From: Pawel Sikora <pluto@pld-linux.org>
-Subject: Re: [PATCH] Warning: "nd_tbl" [net/ipv6/netfilter/ip6t_ROUTE.ko]
-	undefined!
-Date: Fri, 22 Apr 2005 17:00:33 +0200
-Message-ID: <200504221700.33444.pluto@pld-linux.org>
-References: <200504221331.27454.pluto@pld-linux.org>
-	<20050422.205957.47968472.yoshfuji@linux-ipv6.org>
-	<20050422.210704.52375730.yoshfuji@linux-ipv6.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: TCP Connection tracking and SYN/ACK/PSH
+Date: Fri, 22 Apr 2005 17:34:38 +0200
+Message-ID: <4269198E.7040002@trash.net>
+References: <20050417193718.6a7f0809.gniibe@fsij.org>
+	<Pine.LNX.4.61.0504180316120.4321@filer.marasystems.com>
+	<4265B0B7.5090707@variosecure.net>
+	<Pine.LNX.4.61.0504200842001.22001@filer.marasystems.com>
+	<4268C5FB.5040201@variosecure.net>
+	<Pine.LNX.4.58.0504221529520.28541@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-2022-jp"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: ukai@debian.or.jp, Tim Burress <tim@variosecure.net>,
+	netfilter-devel@lists.netfilter.org, NIIBE Yutaka <gniibe@fsij.org>,
+	Henrik Nordstrom <hno@marasystems.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Developers <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20050422.210704.52375730.yoshfuji@linux-ipv6.org>
-Content-Disposition: inline
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0504221529520.28541@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,42 +28,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 22 of April 2005 14:07, you wrote:
+Jozsef Kadlecsik wrote:
+> Patrick, could you submit NIIBE Yutaka's patch, which started this thread?
 
-<yoshfuji@linux-ipv6.org> says:
-> > I disagree. Please try not to use nd_tbl;
-> > maybe, by making and exporting neigh_lookup().
->
-> Oops, ndisc_lookup().
+Sure, I'll pass it on to Dave this weekend.
 
-I dont see ndisc_lookup() in 2.6.11.7 sources.
-
-ip6t_ROUTE uses ndisc_get_neigh from include/net/ndisc.h.
-
-[ ip6t_ROUTE.c ]
-rt->u.dst.neighbour = ndisc_get_neigh(rt->u.dst.dev, &rt->rt6i_dst.addr);
-
-
-[ include/net/ndisc.h ]
-static inline struct neighbour * ndisc_get_neigh(struct net_device *dev,
-                                                 struct in6_addr *addr)
-{
-    if (dev)
-        return __neigh_lookup(&nd_tbl, addr, dev, 1);
-                               ^^^^^^ this symbol should be exported
-                                      or this method should be reworked.
-
-    return NULL;
-}
-
---
-/* Copyright (C) 2003, SCO, Inc. This is valuable Intellectual Property. */
-
-                           #define say(x) lie(x)
-
--------------------------------------------------------
-
--- 
-/* Copyright (C) 2003, SCO, Inc. This is valuable Intellectual Property. */
-
-                           #define say(x) lie(x)
+Regards
+Patrick
