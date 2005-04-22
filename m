@@ -1,23 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Fix NAT TCP sequence adjustment
-Date: Fri, 22 Apr 2005 01:01:19 +0200
-Message-ID: <426830BF.7020107@trash.net>
-References: <4250FA72.3020502@trash.net>
-	<20050404204716.GA4067@linuxace.com>	<20050406044806.GA9711@linuxace.com>
-	<4263108E.1030707@trash.net>	<20050419005847.GA591@linuxace.com>
-	<42666F4C.5080706@trash.net>	<20050420155308.GA7057@linuxace.com>
-	<42667E51.3060005@trash.net>	<20050420172406.GB7057@linuxace.com>
-	<42669674.3020905@trash.net>	<20050420182505.GA7612@linuxace.com>
-	<4267042A.2090906@trash.net>
-	<4267AB2A.9050604@outerspace.dyndns.org>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: problem with active ftp masqarading in kernel newer than 2.6.10-rc1
+ (fwd)
+Date: Fri, 22 Apr 2005 09:11:23 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0504220909400.21714@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, Rusty Russell <rusty@rustcorp.com.au>,
-	netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Mateusz <mateusz@republika.pl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jonas Berlin <xkr47@outerspace.dyndns.org>
-In-Reply-To: <4267AB2A.9050604@outerspace.dyndns.org>
+To: Netfilter Developers <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,18 +19,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jonas Berlin wrote:
-> Would there be something to lose in using INT_MAX/2 (or something)
-> instead of INT_MAX as a base for the additions? And/or maybe have a bit
-> of space between them in case something new pops up later? Of course you
-> _can_ change them later, but there's always the risk that some 3rd party
-> software out there basing themselves on a standard kernel including
-> these additions, so I think it would be nice not to have to change them
-> later..
+found on linux-net.
 
-These hooks should be last. If anyone has a valid reason to call
-something after them they can post their code to the list and
-we can change it.
 
-Regards
-Patrick
+---------- Forwarded message ----------
+Date: Fri, 22 Apr 2005 00:28:28 +0200
+From: Mateusz <mateusz@republika.pl>
+To: linux-net@vger.kernel.org
+Subject: problem with active ftp masqarading in kernel newer than 2.6.10-rc1
+
+Hi, first I want to quote the person who have the same problem:
+
+"  Hello,
+
+I found problem with active ftp masqarading in kernel 2.6.11.
+I use linux firewall with masquarading for the local network.
+When I run ftp client in active mode on any machines in the local network,
+I can connect to remote ftp server in outside network (Internet). But
+when I get "mget *" command in this ftp session, client downloads about
+5 files only and then writes "500 R not understood" and then
+"ftp: bind: Address already in use" and it stops.
+I tried capture some packets and it looks firewall leaves off masqurading
+for
+this sessin.
+When I switch ftp client to "passive" mode, all works fine.
+When I run kernel 2.6.9 (and previous) on the firewall, all works fine (both
+
+active and passive mode).
+
+I tried it on miscellaneous firewalls (with 2.6.11 kernel), miscellaneous
+ftp
+servers and miscellaneous ftp clients (in active mode) with same results. I
+tried both iptables-1.3.1 and iptables-1.3.0 without success.
+
+Regards,
+                Milos Wimmer "
+
+I have testes my 2 servers, and investigate that in kernel 2.6.10-rc1
+all is OK., but in 2.6.10-rc2 and laters the problem occurs (tested to
+2.6.11.7 and 2.6.12-rc2)
+In my problem I don't have this message ""ftp: bind: Address already in use"
+and it stops.".
+Rest is the same - after uploading few files to the ftp server (out from my
+network) i have
+message:
+PORT 10,0,4,32,11,121
+200 PORT command successful.
+STOR P4020553.JPG
+500: " OR P4020553.JPG not understood."
+It seems, that first two letters from this command were cutted, and server
+gets "OR"
+instead of "STOR" command
+
+I have tested it on different ftp servers, clients, and hosts in my network,
+in passive
+mode all works fine.
+
+
+Redards, Mateusz Pluta
+
+
+
