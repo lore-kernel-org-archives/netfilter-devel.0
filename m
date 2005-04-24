@@ -1,15 +1,19 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: --in-interface and --out-interface issue on bridge
-Date: Sun, 24 Apr 2005 18:28:17 +0200
-Message-ID: <426BC921.1080403@trash.net>
-References: <20050421151458.03C6.LARK@linux.net.cn>
+Subject: Re: [PATCH] goto port to ipv6
+Date: Sun, 24 Apr 2005 18:41:35 +0200
+Message-ID: <426BCC3F.8040807@trash.net>
+References: <425CD235.7060909@outerspace.dyndns.org>
+	<4262E109.2010804@trash.net>
+	<Pine.LNX.4.61.0504180304580.4321@filer.marasystems.com>
+	<426310E5.2030207@trash.net>
+	<Pine.LNX.4.61.0504181602570.14603@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Wang Jian <lark@linux.net.cn>
-In-Reply-To: <20050421151458.03C6.LARK@linux.net.cn>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0504181602570.14603@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,21 +25,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Wang Jian wrote:
-> Hi,
+Henrik Nordstrom wrote:
+> From what I remember the patch is very non-intrusive and shouldn't cost 
 > 
-> During my test, I find that --in-interface doesn't work as I expected.
-> 
->   web server -- (eth0--br0--eth1)  -- web client
-> 
-> 
-> # iptables -t mangle -A PREROUTING -i eth0 -p tcp --sport 80 \
-> 	-j MARK --set-mark 1
-> 
-> doesn't set mark to 1.
+> more than tree more instruction bytes in the kernel.. Only note of 
+> caution is that I don't remember if old kernels rejects rulesets with 
+> goto or silently accepts the goto as a jump. I think it is silently 
+> accepted reading the goto as a jump, but hopefully the ruleset is 
+> rejected when the kernel does not support goto (depends on how good the 
+> iptables kernel verifies the content of the flags field)
 
-Find out which interface is used using LOG. There is a physdev-match
-for use with briding, perhaps this is what you need.
+It verifies that all unknown bits are set to 0, so old kernels should
+reject rulesets with goto.
 
 Regards
 Patrick
