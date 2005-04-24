@@ -1,17 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch] Fix ipt_ACCOUNT for large networks - 2nd try
-Date: Sun, 24 Apr 2005 18:54:35 +0200
-Message-ID: <426BCF4B.7030500@trash.net>
-References: <200504050948.51387.thomas.jarosch@intra2net.com>
-	<425F0053.2050302@gmx.net>
+From: Wang Jian <lark@linux.net.cn>
+Subject: Re: --in-interface and --out-interface issue on bridge
+Date: Mon, 25 Apr 2005 01:05:26 +0800
+Message-ID: <20050425005137.9381.LARK@linux.net.cn>
+References: <20050421151458.03C6.LARK@linux.net.cn>
+	<426BC921.1080403@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Cc: Thomas Jarosch <thomas.jarosch@intra2net.com>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
-In-Reply-To: <425F0053.2050302@gmx.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <426BC921.1080403@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,29 +22,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Carl-Daniel Hailfinger wrote:
->>diff -u -r -b ACCOUNT/linux/net/ipv4/netfilter/ipt_ACCOUNT.c ACCOUNT.1.4/linux/net/ipv4/netfilter/ipt_ACCOUNT.c
->>--- ACCOUNT/linux/net/ipv4/netfilter/ipt_ACCOUNT.c      2004-06-13 22:41:21.000000000 +0200
->>+++ ACCOUNT.1.4/linux/net/ipv4/netfilter/ipt_ACCOUNT.c  2005-04-05 09:33:52.000000000 +0200
->>@@ -694,7 +694,8 @@
->> /* Copy 8 bit network data into a prepared buffer.
->>    We only copy entries != 0 to increase performance.
->> */
->>-static int ipt_acc_handle_copy_data(void *to_user, int *pos,
->>+static int ipt_acc_handle_copy_data(void *to_user, u_int32_t *to_user_pos,
->>+                                  u_int32_t *tmpbuf_pos,
->>                                     struct ipt_acc_mask_24 *data,
->>                                     u_int32_t net_ip, u_int32_t net_OR_mask)
->> {
-> 
-> 
-> You seem to like u_int32_t as a type. That causes interesting behaviour
-> on 64bit machines. Is there any design objective dictating that?
-> I have a patch available changing most occurences of u_int32_t to
-> something more generic (of course not for IPs, netmasks and such) which
-> may make sense if you ever want to use your module on 64bit machines.
+Hi Patrick McHardy,
 
-Seems to be fine, AFAICT the u_int32_ts are only used as offsets.
+Thanks a lot for your hint.
 
-Regards
-Patrick
+Just in curiousness: when and why the -i and -o don't match on bridge's
+physic device? A lot of documents on bridging firewall give example
+using -i and -o.
+
+On Sun, 24 Apr 2005 18:28:17 +0200, Patrick McHardy <kaber@trash.net> wrote:
+
+> Wang Jian wrote:
+> > Hi,
+> > 
+> > During my test, I find that --in-interface doesn't work as I expected.
+> > 
+> >   web server -- (eth0--br0--eth1)  -- web client
+> > 
+> > 
+> > # iptables -t mangle -A PREROUTING -i eth0 -p tcp --sport 80 \
+> > 	-j MARK --set-mark 1
+> > 
+> > doesn't set mark to 1.
+> 
+> Find out which interface is used using LOG. There is a physdev-match
+> for use with briding, perhaps this is what you need.
+> 
+> Regards
+> Patrick
+
+
+
+-- 
+  lark
