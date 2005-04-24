@@ -1,16 +1,18 @@
-From: Wang Jian <lark@linux.net.cn>
-Subject: Re: --in-interface and --out-interface issue on bridge
-Date: Mon, 25 Apr 2005 01:05:26 +0800
-Message-ID: <20050425005137.9381.LARK@linux.net.cn>
-References: <20050421151458.03C6.LARK@linux.net.cn>
-	<426BC921.1080403@trash.net>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: [patch] Fix ipt_ACCOUNT for large networks - 2nd try
+Date: Sun, 24 Apr 2005 19:06:11 +0200
+Message-ID: <200504241906.11436.thomas.jarosch@intra2net.com>
+References: <200504050948.51387.thomas.jarosch@intra2net.com>
+	<426BCECE.1060103@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <426BC921.1080403@trash.net>
+In-Reply-To: <426BCECE.1060103@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,36 +24,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick McHardy,
+Hi Patrick,
 
-Thanks a lot for your hint.
+> Please resend as attachment, your mailer converted tabs to spaces.
+>
+> patching file linux/net/ipv4/netfilter/ipt_ACCOUNT.c
+> Hunk #1 FAILED at 3.
+> Hunk #2 FAILED at 694.
+> Hunk #3 FAILED at 713.
+> Hunk #4 FAILED at 734.
+> Hunk #5 FAILED at 755.
+> Hunk #6 FAILED at 776.
+> Hunk #7 FAILED at 803.
+> Hunk #8 FAILED at 814.
+> 8 out of 8 hunks FAILED -- saving rejects to file
+> linux/net/ipv4/netfilter/ipt_ACCOUNT.c.rej
 
-Just in curiousness: when and why the -i and -o don't match on bridge's
-physic device? A lot of documents on bridging firewall give example
-using -i and -o.
+It's already in ;-)
 
-On Sun, 24 Apr 2005 18:28:17 +0200, Patrick McHardy <kaber@trash.net> wrote:
-
-> Wang Jian wrote:
-> > Hi,
-> > 
-> > During my test, I find that --in-interface doesn't work as I expected.
-> > 
-> >   web server -- (eth0--br0--eth1)  -- web client
-> > 
-> > 
-> > # iptables -t mangle -A PREROUTING -i eth0 -p tcp --sport 80 \
-> > 	-j MARK --set-mark 1
-> > 
-> > doesn't set mark to 1.
-> 
-> Find out which interface is used using LOG. There is a physdev-match
-> for use with briding, perhaps this is what you need.
-> 
-> Regards
-> Patrick
-
-
-
--- 
-  lark
+Thomas
