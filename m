@@ -1,18 +1,15 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: [patch] Fix ipt_ACCOUNT for large networks - 2nd try
-Date: Sun, 24 Apr 2005 19:06:11 +0200
-Message-ID: <200504241906.11436.thomas.jarosch@intra2net.com>
-References: <200504050948.51387.thomas.jarosch@intra2net.com>
-	<426BCECE.1060103@trash.net>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
+Subject: Re: [PATCH] gcc4 fixes ip_conntrack_core.c/nf_conntrack.h.
+Date: Sun, 24 Apr 2005 21:05:44 +0200
+Message-ID: <426BEE08.9030300@gmx.net>
+References: <200504221657.37760.pluto@pld-linux.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <426BCECE.1060103@trash.net>
-Content-Disposition: inline
+To: Pawel Sikora <pluto@pld-linux.org>
+In-Reply-To: <200504221657.37760.pluto@pld-linux.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,22 +21,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
+Pawel Sikora wrote:
+> 
+> Attached patches fix build issues exposed by gcc4.
+> Please review and apply.
+> 
+> Regards,
+> Pawel.
+> 
+> -- 
+> /* Copyright (C) 2003, SCO, Inc. This is valuable Intellectual Property. */
+> #define say(x) lie(x)
 
-> Please resend as attachment, your mailer converted tabs to spaces.
->
-> patching file linux/net/ipv4/netfilter/ipt_ACCOUNT.c
-> Hunk #1 FAILED at 3.
-> Hunk #2 FAILED at 694.
-> Hunk #3 FAILED at 713.
-> Hunk #4 FAILED at 734.
-> Hunk #5 FAILED at 755.
-> Hunk #6 FAILED at 776.
-> Hunk #7 FAILED at 803.
-> Hunk #8 FAILED at 814.
-> 8 out of 8 hunks FAILED -- saving rejects to file
-> linux/net/ipv4/netfilter/ipt_ACCOUNT.c.rej
 
-It's already in ;-)
+Am I the only one getting nervous when somebody sends a patch
+which has no Signed-off-by line, but includes a comment saying
+that this is "(C) 2003, SCO, Inc."?
 
-Thomas
+Regards,
+Carl-Daniel
