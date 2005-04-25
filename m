@@ -1,17 +1,17 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: IPCT_NEW comes from was Re: extending conntrack event data
-Date: Mon, 25 Apr 2005 17:43:33 +0100
-Message-ID: <426D1E35.4030605@ufomechanic.net>
-References: <42677180.60003@ufomechanic.net> <42677732.1000905@ufomechanic.net>
-	<20050421180723.03CF.LARK@linux.net.cn>
-	<426788B0.4090908@eurodev.net> <426CF5FC.6090409@ufomechanic.net>
-	<426D1C69.2060107@ufomechanic.net>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: Re-routing packets via netfilter (ip_rt_bug)
+Date: Tue, 26 Apr 2005 07:34:00 +1000
+Message-ID: <20050425213400.GB29288@gondor.apana.org.au>
+References: <E1DQ1Ct-00055s-00@gondolin.me.apana.org.au>
+	<426D0CB9.4060500@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Pablo Neira <pablo@eurodev.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org, Yair@arx.com,
+	linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <426D1C69.2060107@ufomechanic.net>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <426D0CB9.4060500@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,43 +23,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Further investigation points to the layer 7 matching and mangle-tables 
-rules etc, once I remove those rules it stops the magical increment from 
-4078 to c079.
+On Mon, Apr 25, 2005 at 05:28:57PM +0200, Patrick McHardy wrote:
+> 
+> No, ip_route_me_harder() can be called for packets with non-local
+> source. ip_route_output_slow() rejects non-local source addresses,
+> so the only way to use them for policy routing is by using
+> ip_route_input().
 
-Possibly this has been the cuase of the problems, I'll check tomorrow to 
-see how this could cause it.
+You're right.  But then we can't call ip_route_output in the case
+where saddr is foreign but daddr is local.  Nor can we call
+ip_route_input since the output will be ip_rt_bug.
 
-Amin
-
-Amin Azez wrote:
-
-> Looking at some of my skb->nfcache debugging
-> (de8ce580 is the skb address)
->
-> during tcp_packet, I get calls to ip_conntrack_event_cache which 
-> changes nfcache thus:
-> * event_cache on de8ce580 from 4000 to 4040
-> * event_cache on de8ce580 from 4040 to 4060
-> * {leave tcp_packet}
-> * event_cache on de8ce580 from 4060 to 4068
-> * event_cache on de8ce580 from 4068 to 4078
-> * deliver_cached_events c079 right now skb de8ce580
->
-> By the time ip_confirm is called some more stuff has happened to 
-> nfcache, hence ip_confirm c079 de8ce580
->
-> Question is how did the nfcache get from 4078 to c079
-> It was c079 when ip_confirm was called
->
-> Whence the extra 8001 that has been combined? The 1 is IPCT_NEW, the 
-> 8000 is NFC_ALTERED
->
-> NFC_ALTERED is used in various places, the most like in 
-> ip_ct_gather_frags but this hardly seems likely if src and dst 
-> machines are on the same subnet?
-> I confirmed with logging that it isn't there so I will have to add 
-> debug to all the other places to see which one is guilty.
->
-> Azez
->
+Cheers,
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
