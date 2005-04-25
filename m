@@ -1,38 +1,52 @@
-From: "Yair Itzhaki" <Yair@arx.com>
-Subject: RE: Re-routing packets via netfilter (ip_rt_bug)
-Date: Mon, 25 Apr 2005 18:51:25 +0200
-Message-ID: <4151C0F9B9C25C47B3328922A6297A3286CFA5@post.arx.com>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: IPCT_NEW comes from was Re: extending conntrack event data
+Date: Mon, 25 Apr 2005 17:35:53 +0100
+Message-ID: <426D1C69.2060107@ufomechanic.net>
+References: <42677180.60003@ufomechanic.net> <42677732.1000905@ufomechanic.net>
+	<20050421180723.03CF.LARK@linux.net.cn>
+	<426788B0.4090908@eurodev.net> <426CF5FC.6090409@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Cc: <linux-kernel@vger.kernel.org>,
-	"Netfilter Development Mailinglist"
-	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262683AbVDYQAK@vger.kernel.org>
-Content-class: urn:content-classes:message
-To: "Patrick McHardy" <kaber@trash.net>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Pablo Neira <pablo@eurodev.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <426CF5FC.6090409@ufomechanic.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-No, this does not help.
-The failure is now inside "ip_route_output_slow", since the reversed address packet has the source address of the remote machine, and the call to "ip_dev_find" fails to find a device with matching address.
+Looking at some of my skb->nfcache debugging
+(de8ce580 is the skb address)
 
-In 2.4 the okfn pointer used to point to "ip_queue_xmit2" which evaluated the new route from scratch. 
-It was passed in as the completion function when calling the NF_HOOK chain.
-In 2.6 this function is gone (replaced with a reference to "dst_output).
+during tcp_packet, I get calls to ip_conntrack_event_cache which changes 
+nfcache thus:
+* event_cache on de8ce580 from 4000 to 4040
+* event_cache on de8ce580 from 4040 to 4060
+* {leave tcp_packet}
+* event_cache on de8ce580 from 4060 to 4068
+* event_cache on de8ce580 from 4068 to 4078
+* deliver_cached_events c079 right now skb de8ce580
 
-Was removing it a mistake?
+By the time ip_confirm is called some more stuff has happened to 
+nfcache, hence ip_confirm c079 de8ce580
 
+Question is how did the nfcache get from 4078 to c079
+It was c079 when ip_confirm was called
 
------Original Message-----
-From: Patrick McHardy [mailto:kaber@trash.net]
-Sent: Monday, April 25, 2005 11:07
-To: Yair Itzhaki
-Cc: linux-kernel@vger.kernel.org; Netfilter Development Mailinglist
-Subject: Re: Re-routing packets via netfilter (ip_rt_bug)
+Whence the extra 8001 that has been combined? The 1 is IPCT_NEW, the 
+8000 is NFC_ALTERED
 
+NFC_ALTERED is used in various places, the most like in 
+ip_ct_gather_frags but this hardly seems likely if src and dst machines 
+are on the same subnet?
+I confirmed with logging that it isn't there so I will have to add debug 
+to all the other places to see which one is guilty.
 
-Yair Itzhaki wrote:
-> While traversing packets through Netfilter, changing dest address from a foreign to a local address causes the packet to drop (and show up at ip_rt_bug(), along a syslog entry).
-
-Does this patch fix your problem?
+Azez
