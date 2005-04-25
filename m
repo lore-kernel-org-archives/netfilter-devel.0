@@ -1,50 +1,38 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Re-routing packets via netfilter (ip_rt_bug)
-Date: Mon, 25 Apr 2005 17:28:57 +0200
-Message-ID: <426D0CB9.4060500@trash.net>
-References: <E1DQ1Ct-00055s-00@gondolin.me.apana.org.au>
+From: "Yair Itzhaki" <Yair@arx.com>
+Subject: RE: Re-routing packets via netfilter (ip_rt_bug)
+Date: Mon, 25 Apr 2005 18:51:25 +0200
+Message-ID: <4151C0F9B9C25C47B3328922A6297A3286CFA5@post.arx.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org, Yair@arx.com,
-	linux-kernel@vger.kernel.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Herbert Xu <herbert@gondor.apana.org.au>
-In-Reply-To: <E1DQ1Ct-00055s-00@gondolin.me.apana.org.au>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Cc: <linux-kernel@vger.kernel.org>,
+	"Netfilter Development Mailinglist"
+	<netfilter-devel@lists.netfilter.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262683AbVDYQAK@vger.kernel.org>
+Content-class: urn:content-classes:message
+To: "Patrick McHardy" <kaber@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Herbert Xu wrote:
-> You'll still BUG if the destination is multicast/broadcast.  I'm also
-> unsure whether ipt_REJECT isn't susceptible to the same problem.
-> Luckily ipt_MIRROR is no more :)
+No, this does not help.
+The failure is now inside "ip_route_output_slow", since the reversed address packet has the source address of the remote machine, and the call to "ip_dev_find" fails to find a device with matching address.
 
-ipt_REJECT is fine, ip_route_input() is only used in NF_IP_FORWARD.
-But you're right about multicast/broadcast still causing problems,
-I'll have another look.
+In 2.4 the okfn pointer used to point to "ip_queue_xmit2" which evaluated the new route from scratch. 
+It was passed in as the completion function when calling the NF_HOOK chain.
+In 2.6 this function is gone (replaced with a reference to "dst_output).
 
-> What are the issues with getting rid of the ip_route_input path
-> altogether?
-> 
-> The only thing we gain over calling ip_route_output is the ability
-> to set the input device.  But even that is just a fake derived from
-> the source address in a deterministic way.  Therefore any effects
-> achievable through using ip_route_input can also be done by simply
-> reconfiguring the policy routing table to look at the local source
-> addresses instead of (or in conjunction with) the input device.
+Was removing it a mistake?
 
-No, ip_route_me_harder() can be called for packets with non-local
-source. ip_route_output_slow() rejects non-local source addresses,
-so the only way to use them for policy routing is by using
-ip_route_input().
 
-Regards
-Patrick
+-----Original Message-----
+From: Patrick McHardy [mailto:kaber@trash.net]
+Sent: Monday, April 25, 2005 11:07
+To: Yair Itzhaki
+Cc: linux-kernel@vger.kernel.org; Netfilter Development Mailinglist
+Subject: Re: Re-routing packets via netfilter (ip_rt_bug)
+
+
+Yair Itzhaki wrote:
+> While traversing packets through Netfilter, changing dest address from a foreign to a local address causes the packet to drop (and show up at ip_rt_bug(), along a syslog entry).
+
+Does this patch fix your problem?
