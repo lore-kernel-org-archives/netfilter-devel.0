@@ -1,15 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Herbert Xu <herbert@gondor.apana.org.au>
 Subject: Re: Re-routing packets via netfilter (ip_rt_bug)
-Date: Mon, 25 Apr 2005 11:07:14 +0200
-Message-ID: <426CB342.2010504@trash.net>
-References: <4151C0F9B9C25C47B3328922A6297A3286CF98@post.arx.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070005040209090404020705"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+Date: Mon, 25 Apr 2005 20:52:51 +1000
+Message-ID: <E1DQ1Ct-00055s-00@gondolin.me.apana.org.au>
+References: <426CB342.2010504@trash.net>
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org, Yair@arx.com,
 	linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yair Itzhaki <Yair@arx.com>
-In-Reply-To: <4151C0F9B9C25C47B3328922A6297A3286CF98@post.arx.com>
+To: kaber@trash.net (Patrick McHardy)
+In-Reply-To: <426CB342.2010504@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,50 +19,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070005040209090404020705
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Patrick McHardy <kaber@trash.net> wrote:
+> --- 70652aa8f30bea3ea83594cc4a47a11f7a8db89d/net/core/netfilter.c  (mode:100644 sha1:e51cfa46950cf8f1f4dea42be94e71d76d8c3c5b)
+> +++ a469360c577fdf6919b9a771521eca120103db45/net/core/netfilter.c  (mode:100644 sha1:85936a0b23d9ea42e2cd9d45e8254c2f780eb786)
+> @@ -611,7 +611,8 @@
+>        /* some non-standard hacks like ipt_REJECT.c:send_reset() can cause
+>         * packets with foreign saddr to appear on the NF_IP_LOCAL_OUT hook.
+>         */
+> -       if (inet_addr_type(iph->saddr) == RTN_LOCAL) {
+> +       if (inet_addr_type(iph->saddr) == RTN_LOCAL ||
+> +           inet_addr_type(iph->daddr) == RTN_LOCAL) {
+>                fl.nl_u.ip4_u.daddr = iph->daddr;
+>                fl.nl_u.ip4_u.saddr = iph->saddr;
+>                fl.nl_u.ip4_u.tos = RT_TOS(iph->tos);
 
-Yair Itzhaki wrote:
-> While traversing packets through Netfilter, changing dest address from a foreign to a local address causes the packet to drop (and show up at ip_rt_bug(), along a syslog entry).
+You'll still BUG if the destination is multicast/broadcast.  I'm also
+unsure whether ipt_REJECT isn't susceptible to the same problem.
+Luckily ipt_MIRROR is no more :)
 
-Does this patch fix your problem?
+What are the issues with getting rid of the ip_route_input path
+altogether?
 
+The only thing we gain over calling ip_route_output is the ability
+to set the input device.  But even that is just a fake derived from
+the source address in a deterministic way.  Therefore any effects
+achievable through using ip_route_input can also be done by simply
+reconfiguring the policy routing table to look at the local source
+addresses instead of (or in conjunction with) the input device.
 
---------------070005040209090404020705
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-[NETFILTER]: Don't use ip_route_input() for local addresses
-
-Local input routes have ->output set to ip_rt_bug().
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit bef30866b7440f4c8aff99dc025ea99b8d396390
-tree a469360c577fdf6919b9a771521eca120103db45
-parent a5c2178d8f07f6180a2daf8df4524cf3b45e62ed
-author Patrick McHardy <kaber@trash.net> 1114419959 +0200
-committer Patrick McHardy <kaber@trash.net> 1114419959 +0200
-
-Index: net/core/netfilter.c
-===================================================================
---- 70652aa8f30bea3ea83594cc4a47a11f7a8db89d/net/core/netfilter.c  (mode:100644 sha1:e51cfa46950cf8f1f4dea42be94e71d76d8c3c5b)
-+++ a469360c577fdf6919b9a771521eca120103db45/net/core/netfilter.c  (mode:100644 sha1:85936a0b23d9ea42e2cd9d45e8254c2f780eb786)
-@@ -611,7 +611,8 @@
- 	/* some non-standard hacks like ipt_REJECT.c:send_reset() can cause
- 	 * packets with foreign saddr to appear on the NF_IP_LOCAL_OUT hook.
- 	 */
--	if (inet_addr_type(iph->saddr) == RTN_LOCAL) {
-+	if (inet_addr_type(iph->saddr) == RTN_LOCAL ||
-+	    inet_addr_type(iph->daddr) == RTN_LOCAL) {
- 		fl.nl_u.ip4_u.daddr = iph->daddr;
- 		fl.nl_u.ip4_u.saddr = iph->saddr;
- 		fl.nl_u.ip4_u.tos = RT_TOS(iph->tos);
-
---------------070005040209090404020705--
+Cheers,
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
