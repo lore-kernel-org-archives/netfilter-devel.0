@@ -1,20 +1,15 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: problem with active ftp masqarading in kernel newer than
- 2.6.10-rc1
-Date: Sun, 24 Apr 2005 20:57:36 -0700
-Message-ID: <20050424205736.5b15f089.davem@davemloft.net>
-References: <20050421222803Z136196-2326+375@kps1.test.onet.pl>
-	<4268BA1C.1080902@trash.net>
-	<20050424195714.61edbfc3.davem@davemloft.net>
-	<426C6748.2080907@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Re-routing packets via netfilter (ip_rt_bug)
+Date: Mon, 25 Apr 2005 11:07:14 +0200
+Message-ID: <426CB342.2010504@trash.net>
+References: <4151C0F9B9C25C47B3328922A6297A3286CF98@post.arx.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: mateusz@republika.pl, linux-net@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------070005040209090404020705"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <426C6748.2080907@trash.net>
+To: Yair Itzhaki <Yair@arx.com>
+In-Reply-To: <4151C0F9B9C25C47B3328922A6297A3286CF98@post.arx.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,19 +21,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 25 Apr 2005 05:43:04 +0200
-Patrick McHardy <kaber@trash.net> wrote:
+This is a multi-part message in MIME format.
+--------------070005040209090404020705
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> David S. Miller wrote:
-> > Patrick, as you've seen I've applied this sequence number fixing patch
-> > and the conntrack one to handle SYN+ACK+PSH correctly.
-> > 
-> > But I seem to remember there was some third pending netfilter fix you
-> > want me to put into 2.6.12, but I can't find it anywhere.  Am I right?
-> > If so, please point me at it.
-> 
-> There were two more fixes for 2.6.12, I've attached them to this mail
-> and cut-n-pasted the descriptions below.
+Yair Itzhaki wrote:
+> While traversing packets through Netfilter, changing dest address from a foreign to a local address causes the packet to drop (and show up at ip_rt_bug(), along a syslog entry).
 
-Thanks, I'll try to get those to Linus by tomorrow night, as I've
-already sent a batch to him this evening.
+Does this patch fix your problem?
+
+
+--------------070005040209090404020705
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+[NETFILTER]: Don't use ip_route_input() for local addresses
+
+Local input routes have ->output set to ip_rt_bug().
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit bef30866b7440f4c8aff99dc025ea99b8d396390
+tree a469360c577fdf6919b9a771521eca120103db45
+parent a5c2178d8f07f6180a2daf8df4524cf3b45e62ed
+author Patrick McHardy <kaber@trash.net> 1114419959 +0200
+committer Patrick McHardy <kaber@trash.net> 1114419959 +0200
+
+Index: net/core/netfilter.c
+===================================================================
+--- 70652aa8f30bea3ea83594cc4a47a11f7a8db89d/net/core/netfilter.c  (mode:100644 sha1:e51cfa46950cf8f1f4dea42be94e71d76d8c3c5b)
++++ a469360c577fdf6919b9a771521eca120103db45/net/core/netfilter.c  (mode:100644 sha1:85936a0b23d9ea42e2cd9d45e8254c2f780eb786)
+@@ -611,7 +611,8 @@
+ 	/* some non-standard hacks like ipt_REJECT.c:send_reset() can cause
+ 	 * packets with foreign saddr to appear on the NF_IP_LOCAL_OUT hook.
+ 	 */
+-	if (inet_addr_type(iph->saddr) == RTN_LOCAL) {
++	if (inet_addr_type(iph->saddr) == RTN_LOCAL ||
++	    inet_addr_type(iph->daddr) == RTN_LOCAL) {
+ 		fl.nl_u.ip4_u.daddr = iph->daddr;
+ 		fl.nl_u.ip4_u.saddr = iph->saddr;
+ 		fl.nl_u.ip4_u.tos = RT_TOS(iph->tos);
+
+--------------070005040209090404020705--
