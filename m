@@ -1,12 +1,20 @@
-From: Jonathan Wood <jonwood@speakeasy.net>
-Subject: Re: netfilter6: ICMPv6 type 143 doesn't match
-Date: Mon, 25 Apr 2005 11:09:17 -0700
-Message-ID: <9b4f396a9c1c459fc8cbe349671c827e@speakeasy.net>
-Mime-Version: 1.0 (Apple Message framework v622)
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Re-routing packets via netfilter (ip_rt_bug)
+Date: Tue, 26 Apr 2005 15:17:27 +0200
+Message-ID: <426E3F67.8090006@trash.net>
+References: <E1DQ1Ct-00055s-00@gondolin.me.apana.org.au>
+	<426D0CB9.4060500@trash.net>
+	<20050425213400.GB29288@gondor.apana.org.au>
+	<426D8672.1030001@trash.net>
+	<20050426003925.GA13650@gondor.apana.org.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org, Yair@arx.com,
+	linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Herbert Xu <herbert@gondor.apana.org.au>
+In-Reply-To: <20050426003925.GA13650@gondor.apana.org.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,23 +26,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Has there been any progress on this issue? I am seeing it in 2.6.11.7,
-and making the change suggested below fixes it for me.
+Herbert Xu wrote:
+> Makes sense.  But what about the case where saddr is foreign but
+> daddr is broadcast/multicast?
 
-Thanks
+Looks like we have no choice but to also use saddr=0 and
+ip_route_output() in this case.
 
-> On Sat, Jan 08, 2005 at 12:45:14PM +0100, Peter Bieringer wrote:
-> > -               ptr = IPV6_HDR_LEN;
-> > +               ptr = ((u8*)skb->nh.raw - skb->data) + IPV6_HDR_LEN;
-> [...]
-> > But it won't help :-((
->
-> The following works for me on 2.6.8:
->
->                 ptr = ((char *) ipv6 - (char *) skb->data) + 
-> IPV6_HDR_LEN;
->
-> Older 2.6 kernels also do not call ipv6_skip_exthdr() in icmp6_match();
-> more recent kernels fix this.
->
-> Olaf
+Regards
+Patrick
