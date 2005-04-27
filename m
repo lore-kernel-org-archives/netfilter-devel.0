@@ -1,14 +1,16 @@
-From: "Allain Yoann" <Yoann.Allain@thomson.net>
-Subject: IPSec decrypted transport packets don't go through hooks
-Date: Wed, 27 Apr 2005 17:47:27 +0200
-Message-ID: <9C1918067C3BC14C9C351C206D8A8437377857@rennsmail03.eu.thmulti.com>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: Status of owner-socketlookup
+Date: Wed, 27 Apr 2005 11:47:22 -0700
+Message-ID: <20050427114722.14ddce33.davem@davemloft.net>
+References: <Xine.LNX.4.44.0504270958400.17685-100000@thoron.boston.redhat.com>
+	<426F9C00.9000804@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <426F9C00.9000804@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,37 +22,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,=20
+On Wed, 27 Apr 2005 16:04:48 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
-=20
+> James Morris wrote:
+> > Also, I wonder, if we're doing the socket lookup early (in Netfilter), 
+> > perhaps there's some way of caching this so we don't have to do it again 
+> > later.
+> 
+> With NF_SK_HOOK(), filtering would happen in socket context, so
+> there is no need to cache it. Otherwise it makes sense I guess.
 
-I'm new to this list.
+The TCP socket can be reset between when netfilter looks up
+the socket on input and when TCP input processing does the
+same.
 
-I'm actually studying the IPSec / Netfilter interaction in the 2.6.11
-kernel and there's something I don't catch:
+You aren't locking the socket in this new netfilter input
+socket code, so nothing prevents incoming packets from
+being delivered to that socket on another cpu and thus
+causing the aforementioned resets.
 
-=20
-
-The IPSec processing is done after the hooks PRE-ROUTING and INPUT.
-
-In Tunnel mode, packets are re-injected in the stack via the netif_rx
-function (this is needed for this mode).
-
-But in Transport mode, the packets are not re-injected. Why?
-
-=20
-
-This could be useful, if we want to filter decrypted packets that
-arrived in transport mode.
-
-Is there a way to do this filtering?
-
-=20
-
-Thanks in advance for your advices/explanations...
-
-=20
-
-Yoann
-
-=20
+This is why such caching would be illegal.
