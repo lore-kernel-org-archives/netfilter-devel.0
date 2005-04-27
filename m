@@ -1,16 +1,17 @@
 From: "David S. Miller" <davem@davemloft.net>
 Subject: Re: Status of owner-socketlookup
-Date: Wed, 27 Apr 2005 11:47:22 -0700
-Message-ID: <20050427114722.14ddce33.davem@davemloft.net>
-References: <Xine.LNX.4.44.0504270958400.17685-100000@thoron.boston.redhat.com>
-	<426F9C00.9000804@trash.net>
+Date: Wed, 27 Apr 2005 11:49:26 -0700
+Message-ID: <20050427114926.45a91b5e.davem@davemloft.net>
+References: <Xine.LNX.4.44.0504270037490.16008-100000@thoron.boston.redhat.com>
+	<426F64C8.1070601@trash.net> <426FA44A.2010008@evtek.fi>
+	<426FA73E.3090605@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: juha.heljoranta@evtek.fi, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <426F9C00.9000804@trash.net>
+In-Reply-To: <426FA73E.3090605@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,24 +23,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 27 Apr 2005 16:04:48 +0200
+On Wed, 27 Apr 2005 16:52:46 +0200
 Patrick McHardy <kaber@trash.net> wrote:
 
-> James Morris wrote:
-> > Also, I wonder, if we're doing the socket lookup early (in Netfilter), 
-> > perhaps there's some way of caching this so we don't have to do it again 
-> > later.
-> 
-> With NF_SK_HOOK(), filtering would happen in socket context, so
-> there is no need to cache it. Otherwise it makes sense I guess.
+> for incoming packets we really don't know which process is going to
+> receive a packet until it calls recvmsg().
 
-The TCP socket can be reset between when netfilter looks up
-the socket on input and when TCP input processing does the
-same.
-
-You aren't locking the socket in this new netfilter input
-socket code, so nothing prevents incoming packets from
-being delivered to that socket on another cpu and thus
-causing the aforementioned resets.
-
-This is why such caching would be illegal.
+Good point.  It does mean that the best thing you can do is
+block reception at recvmsg() time, nothing more.  You can't
+drop the packet at recvmsg() time because TCP has ACK'd
+the thing already etc.
