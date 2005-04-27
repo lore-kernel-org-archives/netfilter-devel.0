@@ -1,26 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Re-routing packets via netfilter (ip_rt_bug)
-Date: Wed, 27 Apr 2005 14:05:06 +0200
-Message-ID: <426F7FF2.4070506@trash.net>
-References: <426D8672.1030001@trash.net>
-	<20050426003925.GA13650@gondor.apana.org.au>
-	<426E3F67.8090006@trash.net>
-	<20050426232857.GA18358@gondor.apana.org.au>
-	<426EE350.1070902@trash.net>
-	<20050427010730.GA18919@gondor.apana.org.au>
-	<426F68C5.4010109@trash.net>
-	<20050427103056.GB22099@gondor.apana.org.au>
-	<Pine.LNX.4.58.0504271237350.4795@blackhole.kfki.hu>
-	<20050427113542.GB22433@gondor.apana.org.au>
-	<20050427115414.GA22562@gondor.apana.org.au>
+From: Ludwig Nussel <ludwig.nussel@suse.de>
+Subject: Re: iptables-batch 2nd try
+Date: Wed, 27 Apr 2005 14:58:08 +0200
+Message-ID: <20050427125808.GA16169@suse.de>
+References: <20050421122008.GA22032@suse.de> <426BC783.3030603@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org, Yair@arx.com,
-	linux-kernel@vger.kernel.org, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Herbert Xu <herbert@gondor.apana.org.au>
-In-Reply-To: <20050427115414.GA22562@gondor.apana.org.au>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <426BC783.3030603@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -32,20 +20,506 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Herbert Xu wrote:
-> Here is another reason why these packets should go through FORWARD.
-> They were generated in response to packets in INPUT/FORWARD/OUTPUT.
-> The original packet has not undergone SNAT in any of these cases.
+Patrick McHardy wrote:
+> Ludwig Nussel wrote:
+> [...]
+> >+	num_tables = 3;
+> >+	alloc_tables();
+> >+	tables[0].name = strdup("filter");
+> >+	tables[0].handle = NULL;
+> >+	tables[1].name = strdup("mangle");
+> >+	tables[1].handle = NULL;
+> >+	tables[2].name = strdup("nat");
+> >+	tables[2].handle = NULL;
+> >+	current_table = &tables[0];
 > 
-> However, if we feed the response packet through LOCAL_OUT it will
-> be subject to DNAT.  This creates a NAT asymmetry and we may end
-> up with the wrong destination address.
-> 
-> By pushing it through FORWARD it will only undergo SNAT which is
-> correct since the original packet would have undergone DNAT.
+> The raw table is missing.
 
-This is only a problem since the recent NAT changes, but I agree
-that we should fix it by moving these packets to FORWARD.
+Entries for missing tables are allocated when need. Doesn't hurt to
+have it though. Here is an updated patch. I also removed the strdup.
+It's not needed, the memory is not freed manually anyways.
 
-Regards
-Patrick
+Index: iptables-1.3.1/iptables-batch.c
+===================================================================
+--- /dev/null
++++ iptables-1.3.1/iptables-batch.c
+@@ -0,0 +1,454 @@
++/*
++ * Author: Ludwig Nussel <ludwig.nussel@suse.de>
++ *
++ * Based on the ipchains code by Paul Russell and Michael Neuling
++ *
++ * (C) 2000-2002 by the netfilter coreteam <coreteam@netfilter.org>:
++ * 		    Paul 'Rusty' Russell <rusty@rustcorp.com.au>
++ * 		    Marc Boucher <marc+nf@mbsi.ca>
++ * 		    James Morris <jmorris@intercode.com.au>
++ * 		    Harald Welte <laforge@gnumonks.org>
++ * 		    Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
++ *
++ *	iptables -- IP firewall administration for kernels with
++ *	firewall table (aimed for the 2.3 kernels)
++ *
++ *	See the accompanying manual page iptables(8) for information
++ *	about proper usage of this program.
++ *
++ *	This program is free software; you can redistribute it and/or modify
++ *	it under the terms of the GNU General Public License as published by
++ *	the Free Software Foundation; either version 2 of the License, or
++ *	(at your option) any later version.
++ *
++ *	This program is distributed in the hope that it will be useful,
++ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *	GNU General Public License for more details.
++ *
++ *	You should have received a copy of the GNU General Public License
++ *	along with this program; if not, write to the Free Software
++ *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#define _GNU_SOURCE
++#include <stdio.h>
++#include <ctype.h>
++#include <stdlib.h>
++#include <errno.h>
++#include <string.h>
++
++#ifdef IP6T_LIB_DIR
++#include <ip6tables.h>
++#else
++#include <iptables.h>
++#endif
++
++static char* errstr = NULL;
++
++static unsigned current_line = 0;
++
++static char*
++skipspace(char* ptr)
++{
++	while(*ptr && isspace(*ptr))
++		++ptr;
++	return ptr;
++}
++
++static char*
++getliteral(char** ptr)
++{
++	char* start = *ptr;
++	char* p = start;
++
++	while(*p && !isspace(*p))
++		++p;
++
++	if(*p)
++	{
++		*p = '\0';
++		++p;
++	}
++
++	*ptr = p;
++	return start;
++}
++
++static char*
++getstring(char** ptr)
++{
++	char* start = *ptr+1; // skip leading "
++	char* p = start;
++	char* o = start;
++	int backslash = 0;
++	int done = 0;
++
++	while(*p && !done)
++	{
++		if(backslash)
++		{
++			backslash = 0;
++			// no escapes supported, just eat the backslash
++			*o++ = *p++;
++		}
++		else if(*p == '\\')
++		{
++			backslash = 1;
++			p++;
++		}
++		else if(*p == '"')
++		{
++			done = 1;
++		}
++		else
++		{
++			*o++ = *p++;
++		}
++	}
++
++	if(done)
++	{
++		*o = '\0';
++		*p = '\0';
++		++p;
++		*ptr = p;
++	}
++	else
++	{
++		errstr = "missing \" at end of string";
++		start = NULL;
++	}
++	return start;
++}
++
++static char*
++getword(char** ptr)
++{
++	*ptr = skipspace(*ptr);
++	if(**ptr == '"')
++		return getstring(ptr);
++	return getliteral(ptr);
++}
++
++// destructive
++static int
++tokenize(int* argc, char* argv[], size_t nargvsize, char* line)
++{
++	char* ptr = skipspace(line);
++	int ret = 0;
++	char* word;
++
++	while(ptr && *ptr)
++	{
++		if(*ptr == '#')
++			break;
++		if(*argc >= nargvsize)
++		{
++			errstr = "too many arguments";
++			ret = -1;
++			break;
++		}
++		word = getword(&ptr);
++		if(!word)
++		{
++			ret = -1;
++			break;
++		}
++		argv[(*argc)++] = word;
++		++ret;
++	}
++	return ret;
++}
++
++#ifdef DEBUG
++static void
++dumpargv(int argc, char* argv[])
++{
++	int i;
++	for(i=0; i < argc; ++i)
++	{
++		printf("%s\"%s\"",i?" ":"", argv[i]);
++	}
++	puts("");
++}
++#endif
++
++struct table_handle
++{
++	char* name;
++#ifdef IP6T_LIB_DIR
++	ip6tc_handle_t handle;
++#else
++	iptc_handle_t handle;
++#endif
++};
++
++static struct table_handle* tables = NULL;
++static unsigned num_tables;
++struct table_handle* current_table;
++
++static void
++alloc_tables()
++{
++	tables = realloc(tables, sizeof(struct table_handle) * num_tables);
++}
++
++static void
++set_current_table(const char* name)
++{
++	unsigned i;
++
++	if(!strcmp(name, current_table->name)) // same as last time?
++		return;
++
++	for(i = 0; i < num_tables; ++i) // find already known table
++	{
++		if(!strcmp(name, tables[i].name))
++		{
++			current_table = &tables[i];
++			return;
++		}
++	}
++
++	// table name not known, create new
++	i = num_tables++;
++	alloc_tables();
++	current_table = &tables[i];
++	current_table->name = strdup(name);
++	current_table->handle = NULL;
++}
++
++static int
++find_table(int argc, char* argv[])
++{
++	int i;
++	for(i = 0; i < argc; ++i)
++	{
++		if(!strcmp(argv[i], "-t") || !strcmp(argv[i], "--table"))
++		{
++			++i;
++			if(i >= argc)
++			{
++				fprintf(stderr, "line %d: missing table name after %s\n",
++						current_line, argv[i]);
++				return 0;
++			}
++			set_current_table(argv[i]);
++			return 1;
++		}
++	}
++
++	// no -t specified
++	set_current_table("filter");
++
++	return 1;
++}
++
++static int
++do_iptables(int argc, char* argv[])
++{
++	char *table = "filter";
++	int ret = 0;
++
++	if(!find_table(argc, argv))
++		return 0;
++
++#ifdef IP6T_LIB_DIR
++	ret = do_command6(argc, argv, &table, &current_table->handle);
++
++	if (!ret)
++	{
++		fprintf(stderr, "line %d: %s\n", current_line, ip6tc_strerror(errno));
++	}
++	else
++	{
++		if(!table || strcmp(table, current_table->name))
++		{
++			fprintf(stderr, "line %d: expected table %s, got %s\n",
++					current_line, current_table->name, table);
++			exit(1);
++		}
++	}
++#else
++	ret = do_command(argc, argv, &table, &current_table->handle);
++
++	if (!ret)
++	{
++		fprintf(stderr, "line %d: %s\n", current_line, iptc_strerror(errno));
++	}
++	else
++	{
++		if(!table || strcmp(table, current_table->name))
++		{
++			fprintf(stderr, "line %d: expected table %s, got %s\n",
++					current_line, current_table->name, table);
++			exit(1);
++		}
++	}
++#endif
++
++	return ret;
++}
++
++static int
++do_commit()
++{
++	unsigned i;
++	int ret = 1;
++
++	for(i = 0; i < num_tables; ++i)
++	{
++		if(tables[i].handle)
++		{
++#ifdef IP6T_LIB_DIR
++			if(!ip6tc_commit(&tables[i].handle))
++			{
++				fprintf(stderr, "commit failed on table %s: %s\n", tables[i].name, ip6tc_strerror(errno));
++				ret = 0;
++			}
++#else
++			if(!iptc_commit(&tables[i].handle))
++			{
++				fprintf(stderr, "commit failed on table %s: %s\n", tables[i].name, iptc_strerror(errno));
++				ret = 0;
++			}
++#endif
++		}
++	}
++
++	return ret;
++}
++
++static void
++help()
++{
++	fprintf(stderr, "Usage: %s [FILE]\n\n", program_name);
++	puts("Read iptables commands from FILE, commit them at EOF\n");
++	puts("In addition to normal iptables calls the commands");
++	puts("'commit' and 'exit' are understood.");
++	exit(0);
++}
++
++int
++main(int argc, char *argv[])
++{
++	int ret = 1;
++	int numtok;
++	size_t llen = 0;
++	char* line = NULL;
++	ssize_t r = -1;
++	int nargc = 0;
++	char* nargv[256];
++	FILE* fp = stdin;
++
++#ifdef IP6T_LIB_DIR
++	program_name = "ip6tables-batch";
++
++	lib_dir = getenv("IP6TABLES_LIB_DIR");
++	if (!lib_dir)
++		lib_dir = IP6T_LIB_DIR;
++#else
++	program_name = "iptables-batch";
++
++	lib_dir = getenv("IPTABLES_LIB_DIR");
++	if (!lib_dir)
++		lib_dir = IPT_LIB_DIR;
++#endif
++	program_version = IPTABLES_VERSION;
++
++#ifdef NO_SHARED_LIBS
++	init_extensions();
++#endif
++	if(argc > 1)
++	{
++		if(!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h"))
++		{
++			help();
++		}
++		else if(strcmp(argv[1], "-"))
++		{
++			fp = fopen(argv[1], "r");
++			if(!fp)
++			{
++				perror("fopen");
++				exit(1);
++			}
++		}
++	}
++
++	num_tables = 4;
++	alloc_tables();
++	tables[0].name = "filter";
++	tables[0].handle = NULL;
++	tables[1].name = "mangle";
++	tables[1].handle = NULL;
++	tables[2].name = "nat";
++	tables[2].handle = NULL;
++	tables[3].name = "raw";
++	tables[3].handle = NULL;
++	current_table = &tables[0];
++
++	while((r = getline(&line, &llen, fp)) != -1)
++	{
++		if(llen < 1 || !*line)
++			continue;
++		if(line[strlen(line)-1] == '\n')
++			line[strlen(line) -1 ] = '\0';
++
++		++current_line;
++		nargc = 0;
++		errstr = NULL;
++		numtok = tokenize(&nargc, nargv, (sizeof(nargv)/sizeof(nargv[0])), line);
++		if(numtok == -1)
++		{
++		}
++		else if (numtok == 0)
++		{
++			continue;
++		}
++		else if(nargc < 1)
++		{
++			errstr = "insufficient number of arguments";
++		}
++
++		if(errstr)
++		{
++			fprintf(stderr, "parse error in line %d: %s\n", current_line, errstr);
++			ret = 0;
++			break;
++		}
++
++#ifdef DEBUG
++		dumpargv(nargc, nargv);
++#endif
++
++#ifdef IP6T_LIB_DIR
++		if(!strcmp(nargv[0], "ip6tables"))
++#else
++		if(!strcmp(nargv[0], "iptables"))
++#endif
++		{
++			ret = do_iptables(nargc, nargv);
++			if(!ret) break;
++		}
++		else if(!strcmp(nargv[0], "exit"))
++		{
++			break;
++		}
++		else if(!strcmp(nargv[0], "commit"))
++		{
++			ret = do_commit();
++			if(!ret) break;
++		}
++		else
++		{
++			fprintf(stderr, "line %d: invalid command '%s'\n", current_line, nargv[0]);
++		}
++	}
++
++	if(ret)
++		ret = do_commit();
++
++	exit(!ret);
++}
+Index: iptables-1.3.1/Makefile
+===================================================================
+--- iptables-1.3.1.orig/Makefile
++++ iptables-1.3.1/Makefile
+@@ -130,6 +130,12 @@ iptables: iptables-standalone.c iptables
+ 	$(CC) $(CFLAGS) -DIPT_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
+ endif
+ 
++iptables-batch: iptables-batch.c iptables.o $(STATIC_LIBS) libiptc/libiptc.a
++	$(CC) $(CFLAGS) -DIPT_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
++
++ip6tables-batch: iptables-batch.c ip6tables.o $(STATIC6_LIBS) libiptc/libiptc.a
++	$(CC) $(CFLAGS) -DIP6T_LIB_DIR=\"$(IPT_LIBDIR)\" $(LDFLAGS) -o $@ $^ $(LDLIBS)
++
+ $(DESTDIR)$(BINDIR)/iptables: iptables
+ 	@[ -d $(DESTDIR)$(BINDIR) ] || mkdir -p $(DESTDIR)$(BINDIR)
+ 	cp $< $@
+
+cu
+Ludwig
+
+-- 
+ (o_   Ludwig Nussel
+ //\   SUSE LINUX Products GmbH, Development
+ V_/_  http://www.suse.de/
