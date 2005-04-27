@@ -1,23 +1,17 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: Re-routing packets via netfilter (ip_rt_bug)
-Date: Wed, 27 Apr 2005 11:07:30 +1000
-Message-ID: <20050427010730.GA18919@gondor.apana.org.au>
-References: <E1DQ1Ct-00055s-00@gondolin.me.apana.org.au>
-	<426D0CB9.4060500@trash.net>
-	<20050425213400.GB29288@gondor.apana.org.au>
-	<426D8672.1030001@trash.net>
-	<20050426003925.GA13650@gondor.apana.org.au>
-	<426E3F67.8090006@trash.net>
-	<20050426232857.GA18358@gondor.apana.org.au>
-	<426EE350.1070902@trash.net>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [PATCH] Fix NAT TCP sequence adjustment
+Date: Wed, 27 Apr 2005 10:44:00 +1000
+Message-ID: <1114562640.24187.9.camel@localhost.localdomain>
+References: <20050402202438.GA2968@linuxace.com>
+	<4250435E.1090309@trash.net> <20050403235320.GB28850@linuxace.com>
+	<20050404044033.GA1847@linuxace.com>  <4250FA72.3020502@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org, Yair@arx.com,
-	linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <426EE350.1070902@trash.net>
+In-Reply-To: <4250FA72.3020502@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,19 +23,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Apr 27, 2005 at 02:56:48AM +0200, Patrick McHardy wrote:
+On Mon, 2005-04-04 at 10:27 +0200, Patrick McHardy wrote:
+> Phil Oester wrote:
+> > If the retransmitted packet were the same packet as the last one which was
+> > mangled, the seq will be adjusted by offset_before, which at this point is
+> > the same adjustment as the first packet received via offset_after. So,
+> > seq == correction_pos for the retransmitted packet, and this is fairly trivial
+> > to handle.  This is the only case where I can see before() triggering a false
+> > positive.
 > 
-> The ipt_REJECT target can send TCP RSTs with foreign source which
-> go through LOCAL_OUT. Restricting it to this case and adding proper
+> What you are trying to do is to reconstruct the original sequence
+> number, so lets consider the possible cases:
 
-Couldn't we feed the TCP RST packets with foreign sources through
-the FORWARD table? We're lying to the routing system already by
-telling it that the packet is forwarded.  So I don't see anything
-wrong with lying to netfilter as well :)
+Please enhance nfsim-testsuite with these.  I dislike adding new hooks,
+but to be honest I haven't had time to follow this conversation.  At
+least a testcase will allow us to vet other solutions, and prevent us
+from breaking this again.
 
-Cheers,
+Rusty.
 -- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+A bad analogy is like a leaky screwdriver -- Richard Braakman
