@@ -1,13 +1,14 @@
-From: Alexander Samad <alex@samad.com.au>
-Subject: Problem compiling iptables 3887
-Date: Thu, 28 Apr 2005 11:44:28 +1000
-Message-ID: <20050428014428.GF11176@samad.com.au>
+From: James Morris <jmorris@redhat.com>
+Subject: Re: Status of owner-socketlookup
+Date: Wed, 27 Apr 2005 18:43:30 -0400 (EDT)
+Message-ID: <Xine.LNX.4.44.0504271838530.19809-100000@thoron.boston.redhat.com>
+References: <426FE9DD.80201@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oFbHfjnMgUMsrGjO"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: juha.heljoranta@evtek.fi, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <426FE9DD.80201@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,47 +20,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 27 Apr 2005, Patrick McHardy wrote:
 
---oFbHfjnMgUMsrGjO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> I think what it comes down to is that we can filter in socket
+> context, but the only useable attributes in both input- and
+> output-path for owner-matching are
+> sk->sk_socket->file->f_{uid,gid}. This should still be enough
+> for many usage cases (and for mine), so I'm going to finish the
+> patch.
+> 
+> @james: Out of interest, what are the requirements for selinux?
 
-Hi
+We only need to get at the inode associated with the receiving sk, which 
+has security info already attached.
 
-I currently build my own kernel and iptables patched with pom-ng - I get
-these via svn.  Iptables version 3887 , pom-ng  3887
+SELinux currently does this via an LSM hook in sk_filter() (see 
+selinux_socket_sock_rcv_skb()).
 
-Whilst attempting to do this recently (last week or so) I have come
-across this compilation problem
 
-cc -O2 -Wall -Wunused -I../../linux/include -Iinclude/
--DIPTABLES_VERSION=\"1.3.1\" -g -DDEBUG -pg  -DIPTC_DEBUG
--DNO_SHARED_LIBS=1   -c -o libiptc/libip6tc.o libiptc/libip6tc.c
-libiptc/libip6tc.c: In function `do_check':
-libiptc/libip6tc.c:281: warning: implicit declaration of function
-`get_chain_end'
-libiptc/libip6tc.c:282: warning: implicit declaration of function
-`get_entry'
-libiptc/libip6tc.c:282: error: invalid type argument of `->'
-l
-
-I was wondering if somebody can help me fix it or tell me who to talk to
-advise of the problem ?
-
-Thanks
-Alex
-
---oFbHfjnMgUMsrGjO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFCcD/8kZz88chpJ2MRAiUnAKDK8LhDc7n6It7LrvWFkdv0BiV82QCfUlj5
-DuMCmXQ2S+7V6dwVfx+C7sY=
-=UqZp
------END PGP SIGNATURE-----
-
---oFbHfjnMgUMsrGjO--
+- James
+-- 
+James Morris
+<jmorris@redhat.com>
