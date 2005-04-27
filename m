@@ -1,14 +1,15 @@
-From: James Morris <jmorris@redhat.com>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: Status of owner-socketlookup
-Date: Wed, 27 Apr 2005 09:59:51 -0400 (EDT)
-Message-ID: <Xine.LNX.4.44.0504270958400.17685-100000@thoron.boston.redhat.com>
-References: <426F64C8.1070601@trash.net>
+Date: Wed, 27 Apr 2005 16:04:48 +0200
+Message-ID: <426F9C00.9000804@trash.net>
+References: <Xine.LNX.4.44.0504270958400.17685-100000@thoron.boston.redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <426F64C8.1070601@trash.net>
+To: James Morris <jmorris@redhat.com>
+In-Reply-To: <Xine.LNX.4.44.0504270958400.17685-100000@thoron.boston.redhat.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,14 +21,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Also, I wonder, if we're doing the socket lookup early (in Netfilter), 
-perhaps there's some way of caching this so we don't have to do it again 
-later.
+James Morris wrote:
+> Also, I wonder, if we're doing the socket lookup early (in Netfilter), 
+> perhaps there's some way of caching this so we don't have to do it again 
+> later.
 
-If this is racy, then the initial lookup is also racy :-)
+With NF_SK_HOOK(), filtering would happen in socket context, so
+there is no need to cache it. Otherwise it makes sense I guess.
 
-
-- James
--- 
-James Morris
-<jmorris@redhat.com>
+Regards
+Patrick
