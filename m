@@ -1,14 +1,13 @@
-From: "Allain Yoann" <Yoann.Allain@thomson.net>
-Subject: RE: IPSec decrypted transport packets don't go through hooks
-Date: Thu, 28 Apr 2005 14:28:08 +0200
-Message-ID: <9C1918067C3BC14C9C351C206D8A8437377858@rennsmail03.eu.thmulti.com>
+From: Steven J Scott <sjscott@ra.rockwell.com>
+Subject: Re: iptables architect
+Date: Thu, 28 Apr 2005 10:29:28 -0500
+Message-ID: <OF59125E5C.0B444F6D-ON86256FF1.0054E84A-86256FF1.00550583@ra.rockwell.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org,
+	netfilter-devel-bounces@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,48 +19,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> -----Original Message-----
-> From: netfilter-devel-bounces@lists.netfilter.org
-[mailto:netfilter-devel-
-> bounces@lists.netfilter.org] On Behalf Of Allain Yoann
-> Sent: mercredi 27 avril 2005 17:47
-> To: netfilter-devel@lists.netfilter.org
-> Subject: IPSec decrypted transport packets don't go through hooks
->=20
-> Hi,
-> I'm new to this list.
->=20
-> I'm actually studying the IPSec / Netfilter interaction in the 2.6.11
-> kernel and there's something I don't catch:
->=20
-> The IPSec processing is done after the hooks PRE-ROUTING and INPUT.
->=20
-> In Tunnel mode, packets are re-injected in the stack via the netif_rx
-> function (this is needed for this mode).
-> But in Transport mode, the packets are not re-injected. Why?
->=20
-> This could be useful, if we want to filter decrypted packets that
-> arrived in transport mode.
->=20
-> Is there a way to do this filtering?
->=20
-> Thanks in advance for your advices/explanations...
->=20
-> Yoann
->=20
-
-Hello,
-
-I need some help. I don't understand why plain text packets are not sent
-back to ip_rcv, when they arrived in transport mode...
-
-It seems to me that in OpenBSD/pf, packet filtering can be done after
-decryption in both transport and tunnel mode... Why isn't it the same in
-Linux with netfilter ?
-
-Am I on the wrong list to ask such questions?
-Sorry for disturbing if so but perhaps someone could point me to the
-right one...
-
-TIA
-Yoann
+VHJ5IGNvbnRhY3RpbmcgdGhlIHBlb3BsZSBoZXJlOiANCmh0dHA6Ly93d3cubmV0ZmlsdGVyLm9y
+Zy9hYm91dC5odG1sI2NvcmV0ZWFtIC4gIEJ1dCBpbSBzdXJlIHRoZXJlIHF1aXRlIA0KYnVzeS4u
+Lg0KDQpTdGV2ZW4gU2NvdHQgLSBDSVNTUCwgQ0lTQSwgUkhDVCwgTENQLCBNQ1NFDQpSb2Nrd2Vs
+bCBBdXRvbWF0aW9uIC8gQWR2YW5jZWQgVGVjaG5vbG9neQ0Kc2pzY290dEByYS5yb2Nrd2VsbC5j
+b20NCjwtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+Pg0KKFRoaXMgZW1haWwgd2FzIHNlbnQgdmlhIE5vdGVzIHJ1bm5pbmcgb24gTGludXgpDQoNCg0K
+DQoNCiJDYW8gVmFuIEtoYW5oIiA8Y3ZraGFuaEBjbWMuY29tLnZuPg0KU2VudCBieTogbmV0Zmls
+dGVyLWRldmVsLWJvdW5jZXNAbGlzdHMubmV0ZmlsdGVyLm9yZw0KMDQvMjgvMjAwNSAwMTowNyBB
+TQ0KDQogDQogICAgICAgIFRvOiAgICAgPG5ldGZpbHRlci1kZXZlbEBsaXN0cy5uZXRmaWx0ZXIu
+b3JnPg0KICAgICAgICBjYzogDQogICAgICAgIFN1YmplY3Q6ICAgICAgICBpcHRhYmxlcyBhcmNo
+aXRlY3QNCg0KDQpJIHdvdWxkIGxpa2UgdG8ga25vdyBob3cgdGhlIElwdGFibGVzIHdvcmsgLCBi
+dXQgbG9va2luZyBhdCB0aGUgc291cmNlIA0KY29kZSBpcyBzZWVtIHRvIGJlIGRpZmZpY3VsdCBm
+b3IgbWUgLiBJIHdvdWxkIGxpa2UgdG8gc2VlIHRoZSBhcmNoaXRlY3Qgb2YgDQppdCBhbmQgc29t
+ZSBkZXNjcmlwdGlvbiBob3cgdG8gZGV2ZWxvcCBpdCAuIFNvIHBsZWFzZSAsIGlmIHNvbWVvbmUg
+aGFzIA0KdGhvc2UgaW5mb3JtYXRpb24gLCBnaXZlIG1lIHNvbWUgaGVscCANCg0KIA0KDQpUaGFu
+ayBmb3IgcmVhZGluZyANCg0KIA0KDQogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCg0K
+Q2FvIFbDom4gS2jDoW5oDQoNCk9TUyBlRE9DbWFuIOKAkyBDTUMgU29mdA0KDQptb2JpbGUgOiAw
+OTA0MzQ1MzMzDQoNCmVtYWlsIDogY3ZraGFuaEBjbWMuY29tLnZuIA0KDQpBZGRyZXNzIDogMjcy
+IEhvw6BuZyBIb2EgVGjDoW0gLSBIw6AgTuG7mWkNCg0KIA0KDQogDQoNCg0KDQoNCg==
