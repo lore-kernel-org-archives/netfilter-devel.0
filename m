@@ -1,16 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Status of owner-socketlookup
-Date: Wed, 27 Apr 2005 21:37:01 +0200
-Message-ID: <426FE9DD.80201@trash.net>
-References: <Xine.LNX.4.44.0504270037490.16008-100000@thoron.boston.redhat.com>	<426F64C8.1070601@trash.net>	<426FA44A.2010008@evtek.fi>	<426FA73E.3090605@trash.net>
-	<20050427114926.45a91b5e.davem@davemloft.net>
+From: Alexander Samad <alex@samad.com.au>
+Subject: Problem compiling iptables 3887
+Date: Thu, 28 Apr 2005 11:44:28 +1000
+Message-ID: <20050428014428.GF11176@samad.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: juha.heljoranta@evtek.fi, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="oFbHfjnMgUMsrGjO"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20050427114926.45a91b5e.davem@davemloft.net>
+To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,20 +19,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David S. Miller wrote:
-> Good point.  It does mean that the best thing you can do is
-> block reception at recvmsg() time, nothing more.  You can't
-> drop the packet at recvmsg() time because TCP has ACK'd
-> the thing already etc.
 
-I think what it comes down to is that we can filter in socket
-context, but the only useable attributes in both input- and
-output-path for owner-matching are
-sk->sk_socket->file->f_{uid,gid}. This should still be enough
-for many usage cases (and for mine), so I'm going to finish the
-patch.
+--oFbHfjnMgUMsrGjO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-@james: Out of interest, what are the requirements for selinux?
+Hi
 
-Regards
-Patrick
+I currently build my own kernel and iptables patched with pom-ng - I get
+these via svn.  Iptables version 3887 , pom-ng  3887
+
+Whilst attempting to do this recently (last week or so) I have come
+across this compilation problem
+
+cc -O2 -Wall -Wunused -I../../linux/include -Iinclude/
+-DIPTABLES_VERSION=\"1.3.1\" -g -DDEBUG -pg  -DIPTC_DEBUG
+-DNO_SHARED_LIBS=1   -c -o libiptc/libip6tc.o libiptc/libip6tc.c
+libiptc/libip6tc.c: In function `do_check':
+libiptc/libip6tc.c:281: warning: implicit declaration of function
+`get_chain_end'
+libiptc/libip6tc.c:282: warning: implicit declaration of function
+`get_entry'
+libiptc/libip6tc.c:282: error: invalid type argument of `->'
+l
+
+I was wondering if somebody can help me fix it or tell me who to talk to
+advise of the problem ?
+
+Thanks
+Alex
+
+--oFbHfjnMgUMsrGjO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFCcD/8kZz88chpJ2MRAiUnAKDK8LhDc7n6It7LrvWFkdv0BiV82QCfUlj5
+DuMCmXQ2S+7V6dwVfx+C7sY=
+=UqZp
+-----END PGP SIGNATURE-----
+
+--oFbHfjnMgUMsrGjO--
