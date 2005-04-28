@@ -1,15 +1,14 @@
-From: Alexander Samad <alex@samad.com.au>
-Subject: Re: Problem compiling iptables 3887
-Date: Thu, 28 Apr 2005 13:41:20 +1000
-Message-ID: <20050428034120.GJ11176@samad.com.au>
-References: <20050428014428.GF11176@samad.com.au>
+From: "Cao Van Khanh" <cvkhanh@cmc.com.vn>
+Subject: iptables architect
+Date: Thu, 28 Apr 2005 13:07:58 +0700
+Message-ID: <F9F75B46D346584690BA52E0285C69FF5BC3D5@mailserver.cmc.com.vn>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="va4/JQ6j8/8uipEp"
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20050428014428.GF11176@samad.com.au>
+content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,57 +20,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---va4/JQ6j8/8uipEp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi=20
-
-Found it I had DEBUG flag set !
-
-A
-
-On Thu, Apr 28, 2005 at 11:44:28AM +1000, Alexander Samad wrote:
-> Hi
->=20
-> I currently build my own kernel and iptables patched with pom-ng - I get
-> these via svn.  Iptables version 3887 , pom-ng  3887
->=20
-> Whilst attempting to do this recently (last week or so) I have come
-> across this compilation problem
->=20
-> cc -O2 -Wall -Wunused -I../../linux/include -Iinclude/
-> -DIPTABLES_VERSION=3D\"1.3.1\" -g -DDEBUG -pg  -DIPTC_DEBUG
-> -DNO_SHARED_LIBS=3D1   -c -o libiptc/libip6tc.o libiptc/libip6tc.c
-> libiptc/libip6tc.c: In function `do_check':
-> libiptc/libip6tc.c:281: warning: implicit declaration of function
-> `get_chain_end'
-> libiptc/libip6tc.c:282: warning: implicit declaration of function
-> `get_entry'
-> libiptc/libip6tc.c:282: error: invalid type argument of `->'
-> l
->=20
-> I was wondering if somebody can help me fix it or tell me who to talk to
-> advise of the problem ?
->=20
-> Thanks
-> Alex
-
-
-
---va4/JQ6j8/8uipEp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFCcFtgkZz88chpJ2MRAiO1AKCEysgTVxJeofhK544fZFok9XIpRQCgxiWL
-pUyZcSPuNC4YQgNYitqNEEQ=
-=oQP3
------END PGP SIGNATURE-----
-
---va4/JQ6j8/8uipEp--
+SSB3b3VsZCBsaWtlIHRvIGtub3cgaG93IHRoZSBJcHRhYmxlcyB3b3JrICwgYnV0IGxvb2tpbmcg
+YXQgdGhlIHNvdXJjZSBjb2RlIGlzIHNlZW0gdG8gYmUgZGlmZmljdWx0IGZvciBtZSAuIEkgd291
+bGQgbGlrZSB0byBzZWUgdGhlIGFyY2hpdGVjdCBvZiBpdCBhbmQgc29tZSBkZXNjcmlwdGlvbiBo
+b3cgdG8gZGV2ZWxvcCBpdCAuIFNvIHBsZWFzZSAsIGlmIHNvbWVvbmUgaGFzIHRob3NlIGluZm9y
+bWF0aW9uICwgZ2l2ZSBtZSBzb21lIGhlbHAgDQoNCiANCg0KVGhhbmsgZm9yIHJlYWRpbmcgDQoN
+CiANCg0KIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQoNCkNhbyBWw6JuIEtow6FuaA0K
+DQpPU1MgZURPQ21hbiDigJMgQ01DIFNvZnQNCg0KbW9iaWxlIDogMDkwNDM0NTMzMw0KDQplbWFp
+bCA6IGN2a2hhbmhAY21jLmNvbS52biAgICAgICAgICAgDQoNCkFkZHJlc3MgOiAyNzIgSG/DoG5n
+IEhvYSBUaMOhbSAtIEjDoCBO4buZaQ0KDQogDQoNCiANCg0K
