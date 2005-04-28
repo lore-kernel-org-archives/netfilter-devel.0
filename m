@@ -1,16 +1,14 @@
-From: Juha Heljoranta <juha.heljoranta@evtek.fi>
-Subject: Re: Status of owner-socketlookup
-Date: Wed, 27 Apr 2005 17:40:10 +0300
-Message-ID: <426FA44A.2010008@evtek.fi>
-References: <Xine.LNX.4.44.0504270037490.16008-100000@thoron.boston.redhat.com>
-	<426F64C8.1070601@trash.net>
+From: "Allain Yoann" <Yoann.Allain@thomson.net>
+Subject: RE: IPSec decrypted transport packets don't go through hooks
+Date: Thu, 28 Apr 2005 14:28:08 +0200
+Message-ID: <9C1918067C3BC14C9C351C206D8A8437377858@rennsmail03.eu.thmulti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <426F64C8.1070601@trash.net>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,33 +20,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> I still need to convert parts of iptables to handle the new argument,
-> I'll post a patch in a few days. Unfortunately, this doesn't solve
-> the other problems of the owner match, for properly working pid and
-> command matching we need at least the pid of the sending process to
-> look it up. Any ideas for solving this are welcome.
+> -----Original Message-----
+> From: netfilter-devel-bounces@lists.netfilter.org
+[mailto:netfilter-devel-
+> bounces@lists.netfilter.org] On Behalf Of Allain Yoann
+> Sent: mercredi 27 avril 2005 17:47
+> To: netfilter-devel@lists.netfilter.org
+> Subject: IPSec decrypted transport packets don't go through hooks
+>=20
+> Hi,
+> I'm new to this list.
+>=20
+> I'm actually studying the IPSec / Netfilter interaction in the 2.6.11
+> kernel and there's something I don't catch:
+>=20
+> The IPSec processing is done after the hooks PRE-ROUTING and INPUT.
+>=20
+> In Tunnel mode, packets are re-injected in the stack via the netif_rx
+> function (this is needed for this mode).
+> But in Transport mode, the packets are not re-injected. Why?
+>=20
+> This could be useful, if we want to filter decrypted packets that
+> arrived in transport mode.
+>=20
+> Is there a way to do this filtering?
+>=20
+> Thanks in advance for your advices/explanations...
+>=20
+> Yoann
+>=20
 
-I am working on the other issues you mentioned. Or at least doing some
-research.
+Hello,
 
-To authenticate _receiving_ process reliably I created a socket usage
-surveillance module. It keeps track of the processes that access PF_INET
-sockets. If the accessing process is not already in the surveillance
-list then the absolute path and stat(2) of the process image is stored.
-plus some other relevant information like pid.
+I need some help. I don't understand why plain text packets are not sent
+back to ip_rcv, when they arrived in transport mode...
 
-When a packet is received the socket is located by using
-tcp/udp_v4_lookup functions. After the socket is found the modified
-version of sock_def_readable is used to get information about the
-receiving tasks that are stored into surveillance module. After this I
-just compare data to e.g. ipt_owner_info. Works great!
+It seems to me that in OpenBSD/pf, packet filtering can be done after
+decryption in both transport and tunnel mode... Why isn't it the same in
+Linux with netfilter ?
 
-Ideas how to identify sending process are indeed needed. How about
-adding sender information (pid) into skb?
+Am I on the wrong list to ask such questions?
+Sorry for disturbing if so but perhaps someone could point me to the
+right one...
 
-I am working on thesis about process network access control in Linux. I
-will make announcement (hopefully) within a week.
-
-Regards,
-Juha Heljoranta
+TIA
+Yoann
