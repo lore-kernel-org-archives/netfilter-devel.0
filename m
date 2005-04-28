@@ -1,16 +1,11 @@
-From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
-	<yoshfuji@wide.ad.jp>
-Subject: Re: skb->mac.raw, when is does it point to ethhdr
-Date: Fri, 29 Apr 2005 02:24:01 +0900 (JST)
-Message-ID: <20050429.022401.71711919.yoshfuji@wide.ad.jp>
-References: <d4r2n4$o39$1@sea.gmane.org>
+From: "Russ Fink" <russfink@hotmail.com>
+Subject: Re: QUEUEing packets to userspace problem
+Date: Thu, 28 Apr 2005 14:46:52 -0400
+Message-ID: <BAY101-F16608A0B30EA0523698529C2230@phx.gbl>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: azez@ufomechanic.net
-In-Reply-To: <d4r2n4$o39$1@sea.gmane.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,18 +17,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In article <d4r2n4$o39$1@sea.gmane.org> (at Thu, 28 Apr 2005 17:29:35 +0100), Amin Azez <azez@ufomechanic.net> says:
+I'm replying to a very old libipq post dealing with 'Unknown error' because 
+I found one possible cause and wanted to post it.  Here's the initial query:
 
-> I've been treating skb->mac.raw as a pointer to ethhdr and stealing mac 
-> addresses when conntrack's are created.
-> 
-> So the question comes up, how do we tell when skb->mac.raw is pointing 
-> to an ethernet frame header and when it is pointing to something else?
+--- From: Maarten Wijnants  maarten.wijnants@pandora.be ---
+Hello all,
 
-Basically, the hardware header (ether frame) is resolved / appended
-in the ip_finish_output2() (for IPv4) or ip6_output_finish() (for IPv6),
-after POST_ROUTING.
-Thus, in the POST_ROUTING (or before the POST_ROUTING),
-hardware header (ether frame) is not available (in most cases).
+I'm very new at Linux and especially Linux programming. I apologize if =
+this turns out to be a stupid question :-)
 
---yoshfuji
+When I try the libipq example in the man page, I do not receive any =
+packets in my userspace application. I have loaded the iptable_filter =
+and ip_queue modules, and I added the following rule to iptables:
+
+iptables -A OUTPUT -p icmp -j QUEUE
+
+Then i hit the "Execute Program" button of my KDeveloper (see below for =
+the full code). This way, locally created ping packets should be =
+delivered to this application right? But immediately after running the =
+code, i get the following error message:=20
+
+Received error message 1
+Unknown error
+ERROR
+
+and packets do not start comming in in the application when I ping =
+another PC. Here's my code: <snip>
+
+---------
+
+My problem was I had a stalled instance of the process already running, and 
+was trying to kick off another copy of it.  Apparently, it returned "error 
+16 Unknown error" because of this stalled prior process.  When I killed the 
+stalled process and tried again, it worked perfectly.  (Next time, I'll use 
+-9 on the kill and check to make sure it's dead.)
+
+Russ
