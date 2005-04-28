@@ -1,13 +1,12 @@
-From: Steven J Scott <sjscott@ra.rockwell.com>
-Subject: Re: iptables architect
-Date: Thu, 28 Apr 2005 10:29:28 -0500
-Message-ID: <OF59125E5C.0B444F6D-ON86256FF1.0054E84A-86256FF1.00550583@ra.rockwell.com>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: skb->mac.raw, when is does it point to ethhdr
+Date: Thu, 28 Apr 2005 17:29:35 +0100
+Message-ID: <d4r2n4$o39$1@sea.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org,
-	netfilter-devel-bounces@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,22 +18,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-VHJ5IGNvbnRhY3RpbmcgdGhlIHBlb3BsZSBoZXJlOiANCmh0dHA6Ly93d3cubmV0ZmlsdGVyLm9y
-Zy9hYm91dC5odG1sI2NvcmV0ZWFtIC4gIEJ1dCBpbSBzdXJlIHRoZXJlIHF1aXRlIA0KYnVzeS4u
-Lg0KDQpTdGV2ZW4gU2NvdHQgLSBDSVNTUCwgQ0lTQSwgUkhDVCwgTENQLCBNQ1NFDQpSb2Nrd2Vs
-bCBBdXRvbWF0aW9uIC8gQWR2YW5jZWQgVGVjaG5vbG9neQ0Kc2pzY290dEByYS5yb2Nrd2VsbC5j
-b20NCjwtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-Pg0KKFRoaXMgZW1haWwgd2FzIHNlbnQgdmlhIE5vdGVzIHJ1bm5pbmcgb24gTGludXgpDQoNCg0K
-DQoNCiJDYW8gVmFuIEtoYW5oIiA8Y3ZraGFuaEBjbWMuY29tLnZuPg0KU2VudCBieTogbmV0Zmls
-dGVyLWRldmVsLWJvdW5jZXNAbGlzdHMubmV0ZmlsdGVyLm9yZw0KMDQvMjgvMjAwNSAwMTowNyBB
-TQ0KDQogDQogICAgICAgIFRvOiAgICAgPG5ldGZpbHRlci1kZXZlbEBsaXN0cy5uZXRmaWx0ZXIu
-b3JnPg0KICAgICAgICBjYzogDQogICAgICAgIFN1YmplY3Q6ICAgICAgICBpcHRhYmxlcyBhcmNo
-aXRlY3QNCg0KDQpJIHdvdWxkIGxpa2UgdG8ga25vdyBob3cgdGhlIElwdGFibGVzIHdvcmsgLCBi
-dXQgbG9va2luZyBhdCB0aGUgc291cmNlIA0KY29kZSBpcyBzZWVtIHRvIGJlIGRpZmZpY3VsdCBm
-b3IgbWUgLiBJIHdvdWxkIGxpa2UgdG8gc2VlIHRoZSBhcmNoaXRlY3Qgb2YgDQppdCBhbmQgc29t
-ZSBkZXNjcmlwdGlvbiBob3cgdG8gZGV2ZWxvcCBpdCAuIFNvIHBsZWFzZSAsIGlmIHNvbWVvbmUg
-aGFzIA0KdGhvc2UgaW5mb3JtYXRpb24gLCBnaXZlIG1lIHNvbWUgaGVscCANCg0KIA0KDQpUaGFu
-ayBmb3IgcmVhZGluZyANCg0KIA0KDQogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCg0K
-Q2FvIFbDom4gS2jDoW5oDQoNCk9TUyBlRE9DbWFuIOKAkyBDTUMgU29mdA0KDQptb2JpbGUgOiAw
-OTA0MzQ1MzMzDQoNCmVtYWlsIDogY3ZraGFuaEBjbWMuY29tLnZuIA0KDQpBZGRyZXNzIDogMjcy
-IEhvw6BuZyBIb2EgVGjDoW0gLSBIw6AgTuG7mWkNCg0KIA0KDQogDQoNCg0KDQoNCg==
+I've been treating skb->mac.raw as a pointer to ethhdr and stealing mac 
+addresses when conntrack's are created.
+
+So the question comes up, how do we tell when skb->mac.raw is pointing 
+to an ethernet frame header and when it is pointing to something else?
+
+I found a case even in ethernet only systems where if traffic is sent to 
+a non-existant host then some associated skb have skb->mac.raw not NULL 
+but also point to something else, or at least something quite bogus, for 
+my to copy mac address memcpy was tying to copy sizeof(ethhdr) from 
+fbdb1200, or sometimes from such addresses as 003ba300, which indictaes 
+sometimes it is not even a valid pointer to anywhere. I got:
+
+Unable to handle kernel paging request at virtual address fbdb1200
+
+So I need to find out how to tell when skb->mac.raw points to a valid 
+ethhdr struct.
+
+The clue must be in sk_buff somewhere.
+
+net_device, a likely candidate seems too opaque, with nothing to 
+indicate device type, or link layer header struct type.
+
+I guess I could look for skb->mac_len to be the same as ethernet maclen, 
+but thats a cheat.
+
+Thats about all I can find.
+
+Any ideas?
+
+Amin
