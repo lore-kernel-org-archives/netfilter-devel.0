@@ -1,18 +1,17 @@
-From: Song Du <freewizard@gmail.com>
-Subject: Re: how to implement "SYN Proxy firewall"with syn cookies for
-	"Preventing syn flood
-Date: Fri, 29 Apr 2005 14:58:38 +0800
-Message-ID: <49ba280805042823584309a537@mail.gmail.com>
-References: <1c65012a05042720021d9eb92e@mail.gmail.com>
-Reply-To: Song Du <freewizard@gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [RFC] [PATCH] ctnetlink updates
+Date: Fri, 29 Apr 2005 09:14:16 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>
+References: <424747E3.7000300@eurodev.net> <42502F8D.5030504@trash.net>
+	<4254258E.5000204@eurodev.net> <42627BC4.8070103@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: base64
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?GB2312?B?s8LWvrfl?= <aaafeng@gmail.com>
-In-Reply-To: <1c65012a05042720021d9eb92e@mail.gmail.com>
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42627BC4.8070103@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,14 +23,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-dHJ5IHNlYXJjaGluZyB0aGUgbWwuCmltaG8sIG5ldGZpbHRlciBpcyBub3Qgc3VjaCBhIGhlYWwt
-YWxsLCB0aGluZ3MgbGlrZSAic3luIHByb3h5IiBtYXliZQp0byBjb21wbGV4LCBqdXN0IHRyeSBz
-b21ldGhpbmcgc2ltcGxlIGxpa2UgbGltaXQuCgoyMDA1LzQvMjgsILPC1r635SA8YWFhZmVuZ0Bn
-bWFpbC5jb20+Ogo+IGkgYW0gYSBuZXdtYW4gZm9yIGxpbnV4Lgo+IAo+IHJlY2VudGx5IGkgd2Fu
-dCB0byBpbXBsZW1lbnQgIlNZTiBQcm94eSBmaXJld2FsbCJ3aXRoIHN5biBjb29raWVzIGZvcgo+
-ICJQcmV2ZW50aW5nCj4gCj4gU1lOIEZsb29kIi4KPiAKPiBidXQgaSBkbyBub3Qga25vdyBob3cg
-dG8gaW1wbGVtZW50IGl0Pwo+IAo+IFBsZWFzZSBoZWxwIG1lLiBUaGFuayB5b3UgZm9yIGFueSBh
-bnN3ZXIgYW5kIGFueSBxdWVzdGlvbi4KPiAKPiBjYW4geW91IGdpdmUgbWUgYSBwYXJ0aWN1bGFy
-IGFuc3dlciBhbmQgc29tZSBjb2RlPyBjYW4gaSBpbXBsZW1lbnQgaXQKPiBvbiBuZXRmaWx0ZXIt
-Cj4gCj4gaXB0YWJsZT8gaG93IGltcGxlbWVudD8KPiAKPiAKCgotLSAKZnJlZXdpemFyZCAoYXQp
-IGdtYWlsLmNvbSAKaHR0cDovL2Jsb2cudHNpbmcub3JnL2ZyZWV3aXphcmQvCg==
+On Sun, 17 Apr 2005, Patrick McHardy wrote:
+
+> Pablo Neira wrote:
+> > Now I've changed my mind :).
+> >
+> > I think that we can identify a connection with both the original and
+> > reply tuple. Since a connection is represented by means of a conntrack,
+> > if a user kills a conntrack via ctnetlink, he's willing to kill the
+> > connection that the conntrack represents, and not to such conntrack itself.
+>
+> It depends on by what criteria the user selects the conntrack. I might
+> choose to kill/remark/... every connection that has transfered more than
+> X bytes, in which case I don't want to touch a new connection with the
+> same tuples that has transfered less than X. How can we handle this
+> and similar cases without an identifier that is unique over time?
+
+That is independent from id/tuple, because the condition is formulated in
+the terms of transferred bytes.
+
+I don't like id either. Conntrack can uniquely identified by
+
+- src/dst tuples, globally, even in a cluster
+- the pointer of the conntrack entry, locally
+
+Why should we need another unique id?
+
+Looking at the last changes, I think it'd be much more better to port
+ip_queue to nfnetlink than to reserve another netlink ID: the hooks in
+nfnetlink are already there. I know that'd create backward compatibility
+issues at the existing queue applications, though... :-(
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
