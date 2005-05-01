@@ -1,13 +1,16 @@
-From: Roman Ammann <rammann@ita.hsr.ch>
-Subject: Connection ID in conntrack and libctnetlink / Max connections
-	showed by conntrack
-Date: Sun, 01 May 2005 13:08:40 +0200
-Message-ID: <1114945720.22582.26.camel@localhost.localdomain>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: CONFIG_NETFILTER_DEBUG spew
+Date: Sun, 1 May 2005 21:15:07 +1000
+Message-ID: <20050501111507.GA2133@gondor.apana.org.au>
+References: <20050501032809.3d0b4cda.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: Andrew Morton <akpm@osdl.org>, netdev@oss.sgi.com,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <20050501032809.3d0b4cda.akpm@osdl.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,50 +22,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello
+On Sun, May 01, 2005 at 10:28:09AM +0000, Andrew Morton wrote:
+> 
+> With the below .config, `telnet localhost' spews stuff like this:
+> 
+> [  179.995229] ip_local_deliver: bad loopback skb: PRE_ROUTING LOCAL_IN 
+> [  179.995274] skb: pf=2 (unowned) dev=lo len=54
+> [  179.995304] PROTO=6 127.0.0.1:23 127.0.0.1:2737 L=54 S=0x10 I=37030 F=0x4000 T=64
+> 
+> 2.6.12-rc3 doesn't do this - it's something to do with changes in Linus's
+> tree post-2.6.12-rc3.
 
-Background:
+Patrick, looks like we need to fix nf_debug_ip_local_deliver to
+reflect the newly added nf_reset on the ip_output path.
 
-(short version) I tried to use conntrack to delete connections in the
-conntrack table.
-
-(long version) I'm using iptables to give some customers access for some
-time (1 or 2h). I allow established connections to pass and also the
-customer's source IP. The problem is if I drop the rule which allows the
-customer's IP address to pass, it doesn't drops his connections, because
-they are handled in the state full part of iptables. So if he's using
-VPN for example the connection is never dropped :-(. I need to use
-state-full inspections because I have to NAT.
-
-What I've done until now:
-
-I've used patch-o-magic to patch my kernel with the nfnetlink, the
-conntrack-event-api and the ctnetlink patch. I also compiled and
-installed libnfnetlink, libctnetlink and conntrack (newest
-SVN-Versions). Everthing seems to work.
-
-Problems:
-
-a) I can't drop a connections because I have to pass the connections ID
-to the programm conntrack (conntrack -D conntrack -i <id>) and conntrack
-doesn't listen dem (conntrack -L conntrack).
-
-So i checked the source code and I found in the file
-conntrack/src/libct.c (line 194) and also in dhe Kernel-Sources
-(include/linux/netfilter_ipv4/ip_conntrack_netlink.h) that the ID part
-is commented out.
-
-Why? Is there a problem with the ID? I removed the comments and
-recompile it. Afterwards the ID was showed but some connections had the
-same ID. Is that correct?
-
-b) I used conntrack (conntrack -L conntrack) to list my current
-connections. But conntrack list just 16 connections. But if I
-use /proc/net/ip_conntrack is see 31 connections. 
-
-Is there a problem to get all connections over netlink? Is there a
-difference between fetch the connections with netlink or
-via /proc/net/ip_conntrack?
-
-Thanks for any input
- Roman
+BTW, should we do nf_reset in ip_dev_loopback_xmit as well?
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
