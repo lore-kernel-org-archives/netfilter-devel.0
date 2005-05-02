@@ -1,16 +1,21 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: LOG and DROP some specified packets in the same iptables rule
-Date: Mon, 2 May 2005 09:11:53 +0200
-Message-ID: <20050502071153.GG25226@oknodo.bof.de>
-References: <20050502060322.GF25226@oknodo.bof.de>
-	<000c01c54ee3$0dfb4180$aa0ba8c0@l7.com.tw>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [RFC] [PATCH] ctnetlink updates
+Date: Mon, 2 May 2005 12:47:39 +0200
+Message-ID: <20050502104739.GF9735@sunbeam.de.gnumonks.org>
+References: <424747E3.7000300@eurodev.net> <42502F8D.5030504@trash.net>
+	<4254258E.5000204@eurodev.net> <42627BC4.8070103@trash.net>
+	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>
+	<42756B12.4090705@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, 'Patrick Schaaf' <bof@bof.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="te9Bkl2b4W0C+FfQ"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Vincent <cs83152@csie.chu.edu.tw>
+To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
-In-Reply-To: <000c01c54ee3$0dfb4180$aa0ba8c0@l7.com.tw>
+In-Reply-To: <42756B12.4090705@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,41 +27,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> When I want to log and then drop the specified packets, I can write like
-> the following 
-> iptables rule to reduce the amounts of rule number for performance
-> improvement in the system.
-> Do you think so?
 
-If all you want to have is performance optimization in the number
-of rules, you can easily use the "traditional" approach of a user
-defined LOGDROP chain:
+--te9Bkl2b4W0C+FfQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-iptables -t mangle -N LOGDROP
-iptables -t mangle -A LOGDROP -j LOG --log-prefix "LOGDROP: "
-iptables -t mangle -A LOGDROP -j DROP
+On Mon, May 02, 2005 at 01:49:38AM +0200, Pablo Neira wrote:
+> In this specific case where we can break third party applications, to ens=
+ure=20
+> backward compatibility, I think that we can keep both ip_queue and
+> nf_queue in kernel tree for quite some time.
 
-> iptables -t mangle -A FORWARD -p udp --dport 1024: -j DLOG --log-prefix
-> "Drop this packet "
+yes. also, as long as the libipq api can be offered to applications, I
+don't see that much of an issue.
 
-then becomes
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-iptables -t mangle -A FORWARD -p udp --dport 1024: -j LOGDROP
+--te9Bkl2b4W0C+FfQ
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-as often as you need it.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
 
-Drawback: now the --log-prefix is the same for all callers of LOGDROP.
+iD8DBQFCdgVLXaXGVTD0i/8RAslMAKCU+pxBjgv1T+upzR1YrThoAAdB9gCgnaZc
+w312ZHrNvSX2ZnoGNLchMTs=
+=WCAv
+-----END PGP SIGNATURE-----
 
-I wouldn't go to the effort of locally making a copy of LOG, like the
-DLOG you propose. It would make more sense, if people agree that this
-is a generally useful approach, to make a (hopefully backwards
-compatible) new option to LOG, called --drop.
-
-Of course, the general solution, which has been talked about a lot,
-but never really reached the point of being incorporated, is to
-be able to have multiple targets in the same rule line.
-
-The last time we had this discussion, was about one or two weeks ago. :)
-
-best regards
-  Patrick
+--te9Bkl2b4W0C+FfQ--
