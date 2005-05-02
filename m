@@ -1,12 +1,14 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER]: Missing owner-field initialization in iptable_raw
-Date: Mon, 02 May 2005 22:24:03 +0200
-Message-ID: <42768C63.2060104@trash.net>
+Subject: Re: iptables command and target ULOG problem
+Date: Mon, 02 May 2005 22:31:08 +0200
+Message-ID: <42768E0C.2080406@trash.net>
+References: <79a98d9f05050112304848c6ce@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010802070306000503000107"
+Content-Type: multipart/mixed; boundary="------------020505090504020708030303"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: Andre Luiz da Silva <andrack@gmail.com>
+In-Reply-To: <79a98d9f05050112304848c6ce@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,54 +21,45 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010802070306000503000107
+--------------020505090504020708030303
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-table->owner must be initialized so module references can be taken
-by nf_queue().
+Andre Luiz da Silva wrote:
+> Hello friends...
+> 
+> I'm using the iptables version 1.2.11 and I have the follow problem with
+> ULOG iptables target:
+> 
+> For example....
+> 
+> When I insert the rule and the parameter '-j ULOG' are before icmp protocol
+> options, I received the error "Bad argument":
 
+Fixed in svn by this patch.
 
+Regards
+Patrick
 
---------------010802070306000503000107
+--------------020505090504020708030303
 Content-Type: text/plain;
  name="x"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
  filename="x"
 
-[NETFILTER]: Missing owner-field initialization in iptable_raw
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 480fc9b2802f2093e728567010506732e382b688
-tree 97b316503a4524074c05d5fb4cab63264690d0d6
-parent c4644e58c8b52dca9699e8ee0e975f5f13eb4d2c
-author Patrick McHardy <kaber@trash.net> 1115054535 +0200
-committer Patrick McHardy <kaber@trash.net> 1115054535 +0200
-
-Index: net/ipv4/netfilter/iptable_raw.c
+Index: extensions/libipt_ULOG.c
 ===================================================================
---- 35d8915a3fd6fa39a46d9b2e8e1fd272e82ea3af/net/ipv4/netfilter/iptable_raw.c  (mode:100644 sha1:01b4a3c814d398f21d29dec0f7d7bf1453b1ce7e)
-+++ 97b316503a4524074c05d5fb4cab63264690d0d6/net/ipv4/netfilter/iptable_raw.c  (mode:100644 sha1:47449ba83eb9410280a8463b477501d839ff32bb)
-@@ -103,13 +103,15 @@
- 	  .hook = ipt_hook, 
- 	  .pf = PF_INET, 
- 	  .hooknum = NF_IP_PRE_ROUTING, 
--	  .priority = NF_IP_PRI_RAW
-+	  .priority = NF_IP_PRI_RAW,
-+	  .owner = THIS_MODULE,
- 	},
- 	{
- 	  .hook = ipt_hook, 
- 	  .pf = PF_INET, 
- 	  .hooknum = NF_IP_LOCAL_OUT, 
--	  .priority = NF_IP_PRI_RAW
-+	  .priority = NF_IP_PRI_RAW,
-+	  .owner = THIS_MODULE,
- 	},
- };
- 
+--- extensions/libipt_ULOG.c	(Revision 3889)
++++ extensions/libipt_ULOG.c	(Arbeitskopie)
+@@ -144,6 +144,8 @@
+ #endif
+ 		*flags |= IPT_LOG_OPT_QTHRESHOLD;
+ 		break;
++	default:
++		return 0;
+ 	}
+ 	return 1;
+ }
 
---------------010802070306000503000107--
+--------------020505090504020708030303--
