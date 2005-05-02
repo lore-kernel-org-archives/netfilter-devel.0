@@ -1,70 +1,72 @@
-From: "Yair Itzhaki" <Yair@arx.com>
-Subject: RE: Re-routing packets via netfilter (ip_rt_bug)
-Date: Mon, 2 May 2005 19:17:16 +0200
-Message-ID: <4151C0F9B9C25C47B3328922A6297A3286CFB8@post.arx.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER]: Missing owner-field initialization in iptable_raw
+Date: Mon, 02 May 2005 22:24:03 +0200
+Message-ID: <42768C63.2060104@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Cc: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>, <netdev@oss.sgi.com>,
-        <netfilter-devel@lists.netfilter.org>, <linux-kernel@vger.kernel.org>
-Return-path: <netdev-bounce@oss.sgi.com>
-Content-class: urn:content-classes:message
-To: "Patrick McHardy" <kaber@trash.net>,
-        "Herbert Xu" <herbert@gondor.apana.org.au>
-Sender: netdev-bounce@oss.sgi.com
-Errors-to: netdev-bounce@oss.sgi.com
+Content-Type: multipart/mixed; boundary="------------010802070306000503000107"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: "David S. Miller" <davem@davemloft.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Can anyone propose a patch that I can start checking?
+This is a multi-part message in MIME format.
+--------------010802070306000503000107
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-I have come up with the following:
-
---- net/core/netfilter.c.orig   2005-04-18 21:55:30.000000000 +0300
-+++ net/core/netfilter.c        2005-05-02 17:35:20.000000000 +0300
-@@ -622,9 +622,10 @@
-        /* some non-standard hacks like ipt_REJECT.c:send_reset() can cause
-         * packets with foreign saddr to appear on the NF_IP_LOCAL_OUT hook.
-         */
--       if (inet_addr_type(iph->saddr) == RTN_LOCAL) {
-+       if ((inet_addr_type(iph->saddr) == RTN_LOCAL) ||
-+           (inet_addr_type(iph->daddr) == RTN_LOCAL)) {
-                fl.nl_u.ip4_u.daddr = iph->daddr;
--               fl.nl_u.ip4_u.saddr = iph->saddr;
-+               fl.nl_u.ip4_u.saddr = 0;
-                fl.nl_u.ip4_u.tos = RT_TOS(iph->tos);
-                fl.oif = (*pskb)->sk ? (*pskb)->sk->sk_bound_dev_if : 0;
- #ifdef CONFIG_IP_ROUTE_FWMARK
-
-Please advise,
-Yair
+table->owner must be initialized so module references can be taken
+by nf_queue().
 
 
-> -----Original Message-----
-> From: Patrick McHardy [mailto:kaber@trash.net]
-> Sent: Wednesday, April 27, 2005 14:05
-> To: Herbert Xu
-> Cc: Jozsef Kadlecsik; netdev@oss.sgi.com; 
-> netfilter-devel@lists.netfilter.org; Yair Itzhaki; 
-> linux-kernel@vger.kernel.org
-> Subject: Re: Re-routing packets via netfilter (ip_rt_bug)
-> 
-> 
-> Herbert Xu wrote:
-> > Here is another reason why these packets should go through FORWARD.
-> > They were generated in response to packets in INPUT/FORWARD/OUTPUT.
-> > The original packet has not undergone SNAT in any of these cases.
-> > 
-> > However, if we feed the response packet through LOCAL_OUT it will
-> > be subject to DNAT.  This creates a NAT asymmetry and we may end
-> > up with the wrong destination address.
-> > 
-> > By pushing it through FORWARD it will only undergo SNAT which is
-> > correct since the original packet would have undergone DNAT.
-> 
-> This is only a problem since the recent NAT changes, but I agree
-> that we should fix it by moving these packets to FORWARD.
-> 
-> Regards
-> Patrick
-> 
+
+--------------010802070306000503000107
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+[NETFILTER]: Missing owner-field initialization in iptable_raw
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 480fc9b2802f2093e728567010506732e382b688
+tree 97b316503a4524074c05d5fb4cab63264690d0d6
+parent c4644e58c8b52dca9699e8ee0e975f5f13eb4d2c
+author Patrick McHardy <kaber@trash.net> 1115054535 +0200
+committer Patrick McHardy <kaber@trash.net> 1115054535 +0200
+
+Index: net/ipv4/netfilter/iptable_raw.c
+===================================================================
+--- 35d8915a3fd6fa39a46d9b2e8e1fd272e82ea3af/net/ipv4/netfilter/iptable_raw.c  (mode:100644 sha1:01b4a3c814d398f21d29dec0f7d7bf1453b1ce7e)
++++ 97b316503a4524074c05d5fb4cab63264690d0d6/net/ipv4/netfilter/iptable_raw.c  (mode:100644 sha1:47449ba83eb9410280a8463b477501d839ff32bb)
+@@ -103,13 +103,15 @@
+ 	  .hook = ipt_hook, 
+ 	  .pf = PF_INET, 
+ 	  .hooknum = NF_IP_PRE_ROUTING, 
+-	  .priority = NF_IP_PRI_RAW
++	  .priority = NF_IP_PRI_RAW,
++	  .owner = THIS_MODULE,
+ 	},
+ 	{
+ 	  .hook = ipt_hook, 
+ 	  .pf = PF_INET, 
+ 	  .hooknum = NF_IP_LOCAL_OUT, 
+-	  .priority = NF_IP_PRI_RAW
++	  .priority = NF_IP_PRI_RAW,
++	  .owner = THIS_MODULE,
+ 	},
+ };
+ 
+
+--------------010802070306000503000107--
