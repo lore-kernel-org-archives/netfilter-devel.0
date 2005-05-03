@@ -1,20 +1,12 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: [RFC] alternative to conntrack ID
-Date: Wed, 4 May 2005 11:32:26 +0200
-Message-ID: <20050504093226.GG26982@oknodo.bof.de>
-References: <424747E3.7000300@eurodev.net> <42502F8D.5030504@trash.net>
-	<4254258E.5000204@eurodev.net> <42627BC4.8070103@trash.net>
-	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>
-	<20050429080242.GJ9735@sunbeam.de.gnumonks.org>
-	<42789366.20702@ufomechanic.net>
+From: BJ Premore <bj-netfilter@renesys.com>
+Subject: changing packet length?
+Date: Tue, 3 May 2005 17:34:06 -0400
+Message-ID: <20050503213406.GE13894@tigris.renesys.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, Pablo Neira <pablo@eurodev.net>,
-	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <42789366.20702@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,11 +18,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> perhaps a "created time-stamp" per conntrack
+Hi everyone.  I've been pulling my hair out lately, using
+netfilter/ipq to try to add options to the TCP header of an
+outgoing packet.  However, even just adding 4 bytes of no-op
+options results in subsequent incoming packets (via
+ipq_get_packet) looking mangled.  (After adding the options,
+all appropriate fields were updated--checksums, length
+fields, etc.  Also, I was extremely carefully to follow the
+specifications for adding the TCP options, proper padding,
+etc., etc.  I'm pretty sure my problems do not have to do
+with the formatting of the packet.)
 
-I like this idea. One could then also have a match expressing
-"conntrack has been live for at most / at least X seconds".
-Which would be a useful new feature.
+So my hopefully simple question is, can packet sizes be
+changed and then reinjected using ipq_set_verdict?  I found
+one reference that seemed to suggest that modified packets
+had to stay the same size.  I've tested modifying packets
+without changing their overall byte sizes, and that does in
+fact seem to work (Eg, I changed the TTL field.).
 
-best regards
-  Patrick
+If the answer to the above question is 'yes', then I'll
+provide more details in the follow-up, in hopes of getting
+to the bottom of my troubles.
+
+Thanks in advance,
+
+-bj
+
+BJ Premore
