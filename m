@@ -1,18 +1,16 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: CONFIG_NETFILTER_DEBUG spew
-Date: Tue, 3 May 2005 07:36:12 +1000
-Message-ID: <20050502213612.GD16177@gondor.apana.org.au>
-References: <20050501032809.3d0b4cda.akpm@osdl.org>
-	<20050501111507.GA2133@gondor.apana.org.au>
-	<4276517F.6030606@trash.net>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: Connection ID in conntrack and libctnetlink / Max connections
+ showed by conntrack
+Date: Tue, 03 May 2005 02:01:20 +0200
+Message-ID: <4276BF50.6020101@eurodev.net>
+References: <1114945720.22582.26.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Andrew Morton <akpm@osdl.org>, netdev@oss.sgi.com,
-	netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <4276517F.6030606@trash.net>
+To: Roman Ammann <rammann@ita.hsr.ch>
+In-Reply-To: <1114945720.22582.26.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,16 +22,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, May 02, 2005 at 06:12:47PM +0200, Patrick McHardy wrote:
-> Herbert Xu wrote:
-> > BTW, should we do nf_reset in ip_dev_loopback_xmit as well?
-> 
-> I think we should, tc actions could do something unexpected with
-> the packet.
+Hi,
 
-Looks good to me.  Thanks Patrick.
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Roman Ammann wrote:
+> Problems:
+> 
+> a) I can't drop a connections because I have to pass the connections ID
+> to the programm conntrack (conntrack -D conntrack -i <id>) and conntrack
+> doesn't listen dem (conntrack -L conntrack).
+> 
+> b) I used conntrack (conntrack -L conntrack) to list my current
+> connections. But conntrack list just 16 connections. But if I
+> use /proc/net/ip_conntrack is see 31 connections. 
+
+The problems that you've reported are fixed in SVN. Please upgrade.
+
+--
+Pablo
