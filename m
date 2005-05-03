@@ -1,16 +1,18 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [NETFILTER]: Don't checksum CHECKSUM_UNNECESSARY skbs in TCP
- connection tracking
-Date: Tue, 3 May 2005 14:23:03 -0700
-Message-ID: <20050503142303.2d8e4fd0.davem@davemloft.net>
-References: <4277AC7B.6020600@trash.net>
+Subject: Re: CONFIG_NETFILTER_DEBUG spew
+Date: Tue, 3 May 2005 16:20:07 -0700
+Message-ID: <20050503162007.70c57f37.davem@davemloft.net>
+References: <20050501032809.3d0b4cda.akpm@osdl.org>
+	<20050501111507.GA2133@gondor.apana.org.au>
+	<4274F2ED.9080404@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: akpm@osdl.org, netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
+	herbert@gondor.apana.org.au
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4277AC7B.6020600@trash.net>
+In-Reply-To: <4274F2ED.9080404@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,12 +24,5 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 03 May 2005 18:53:15 +0200
-Patrick McHardy <kaber@trash.net> wrote:
 
-> TCP connection tracking incorrectly tries to verify the checksum of
-> CHECKSUM_UNNECESSARY packets. This causes packets on loopback to
-> be tracked as INVALID since we now drop the conntrack reference on
-> output and don't skip connection tracking on input anymore.
-
-Applied, thanks.
+Patch applied, thanks.
