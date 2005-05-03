@@ -1,16 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] undefined "csum_ipv6_magic" in
-	net/ipv6/netfilter/nf_conntrack_ipv6.ko
-Date: Tue, 03 May 2005 20:05:20 +0200
-Message-ID: <4277BD60.1010906@trash.net>
-References: <200505030911.51011.pluto@pld-linux.org>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [NETFILTER]: Missing owner-field initialization in iptable_raw
+Date: Tue, 3 May 2005 14:22:31 -0700
+Message-ID: <20050503142231.05b20c35.davem@davemloft.net>
+References: <42768C63.2060104@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pawel Sikora <pluto@pld-linux.org>
-In-Reply-To: <200505030911.51011.pluto@pld-linux.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42768C63.2060104@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,10 +21,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pawel Sikora wrote:
-> Hi All,
-> 
-> The asm/arch-ppc/checksum.h doesn't provide an optimizied version
-> of `csum_ipv6_magic'. You shoud use a generic version.
+On Mon, 02 May 2005 22:24:03 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
-Applied, thanks.
+> table->owner must be initialized so module references can be taken
+> by nf_queue().
+
+Applied, thanks Patrick.
