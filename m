@@ -1,16 +1,14 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: Connection ID in conntrack and libctnetlink / Max connections
- showed by conntrack
-Date: Tue, 03 May 2005 02:01:20 +0200
-Message-ID: <4276BF50.6020101@eurodev.net>
-References: <1114945720.22582.26.camel@localhost.localdomain>
+From: Pawel Sikora <pluto@pld-linux.org>
+Subject: [PATCH] undefined "csum_ipv6_magic" in
+	net/ipv6/netfilter/nf_conntrack_ipv6.ko
+Date: Tue, 3 May 2005 09:11:50 +0200
+Message-ID: <200505030911.51011.pluto@pld-linux.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_2QydCMmFJeG9vWp"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Roman Ammann <rammann@ita.hsr.ch>
-In-Reply-To: <1114945720.22582.26.camel@localhost.localdomain>
+To: netfilter-devel@lists.netfilter.org,
+	Patrick McHardy <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,20 +20,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+--Boundary-00=_2QydCMmFJeG9vWp
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Roman Ammann wrote:
-> Problems:
-> 
-> a) I can't drop a connections because I have to pass the connections ID
-> to the programm conntrack (conntrack -D conntrack -i <id>) and conntrack
-> doesn't listen dem (conntrack -L conntrack).
-> 
-> b) I used conntrack (conntrack -L conntrack) to list my current
-> connections. But conntrack list just 16 connections. But if I
-> use /proc/net/ip_conntrack is see 31 connections. 
+Hi All,
 
-The problems that you've reported are fixed in SVN. Please upgrade.
+The asm/arch-ppc/checksum.h doesn't provide an optimizied version
+of `csum_ipv6_magic'. You shoud use a generic version.
 
---
-Pablo
+During build on PPC32 I get:
+
+  CC [M]  net/ipv6/netfilter/nf_conntrack_proto_icmpv6.o
+net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c: In function `icmpv6_error':
+net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c:239:
+  warning: implicit declaration of function csum_ipv6_magic'
+
+And finally get unusable module:
+* Warning: "csum_ipv6_magic" [net/ipv6/netfilter/nf_conntrack_ipv6.ko]
+  undefined!
+
+Problem was also reported in bug#307.
+
+Regards,
+Pawel.
+
+-- 
+The only thing necessary for the triumph of evil
+  is for good men to do nothing.
+                                           - Edmund Burke
+
+--Boundary-00=_2QydCMmFJeG9vWp
+Content-Type: text/x-diff; charset="utf-8";
+	name="nf_conntrack-undefined_checksum.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="nf_conntrack-undefined_checksum.patch"
+
+Index: nf_conntrack/linux-2.6/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+===================================================================
+--- nf_conntrack/linux-2.6/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c	(revision 3889)
++++ nf_conntrack/linux-2.6/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c	(working copy)
+@@ -25,6 +25,7 @@
+ #include <linux/icmpv6.h>
+ #include <linux/ipv6.h>
+ #include <net/ipv6.h>
++#include <net/ip6_checksum.h>
+ #include <linux/seq_file.h>
+ #include <linux/netfilter_ipv6.h>
+ #include <linux/netfilter/nf_conntrack_tuple.h>
+
+--Boundary-00=_2QydCMmFJeG9vWp--
