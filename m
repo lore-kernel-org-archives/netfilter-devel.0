@@ -1,11 +1,13 @@
-From: linux lover <linux_lover2004@yahoo.com>
-Subject: Help Urgent (getting Oops in kfree_skb)
-Date: Tue, 3 May 2005 08:07:56 -0700 (PDT)
-Message-ID: <20050503150756.78518.qmail@web52209.mail.yahoo.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER]: Don't checksum CHECKSUM_UNNECESSARY skbs in TCP
+ connection tracking
+Date: Tue, 03 May 2005 18:53:15 +0200
+Message-ID: <4277AC7B.6020600@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="------------010104010002030407020003"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "David S. Miller" <davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,30 +19,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,     
-      On 2 ethernet linux box. After it gets started i
-ifdown both eth's and do ping localhost.
- 2 packets goes and received on 127.0.0.1 but after
-that packet comes with source IP 0.0.0.0 and 
-in ip_rcv function 
-/* When the interface is in promisc. mode, drop all
-the crap
-	 * that it receives, do not try to analyse it.
-	 */
-	if (skb->pkt_type == PACKET_OTHERHOST)
-		goto drop;
-drop:
-        kfree_skb(skb);
-             I have also not started tcpdump or
-ethereal then why kfree_skb gives
-Oops that  Warning: kfree_skb passed an skb still on a
-list (from c020b804)
-    Please correct me if i am getting Oops problem in
-wrong way and help to solve it.
-regards,
-linux_lover.
+This is a multi-part message in MIME format.
+--------------010104010002030407020003
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+TCP connection tracking incorrectly tries to verify the checksum of
+CHECKSUM_UNNECESSARY packets. This causes packets on loopback to
+be tracked as INVALID since we now drop the conntrack reference on
+output and don't skip connection tracking on input anymore.
+
+
+--------------010104010002030407020003
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+[NETFILTER]: Don't checksum CHECKSUM_UNNECESSARY skbs in TCP connection tracking
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 28b4b5756c08e6c4f053e6298c6cc176dd51cc9c
+tree 37a577077717c6fc76b74317dd95502e3c0b0803
+parent 480fc9b2802f2093e728567010506732e382b688
+author Patrick McHardy <kaber@trash.net> 1115138945 +0200
+committer Patrick McHardy <kaber@trash.net> 1115138945 +0200
+
+Index: net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+===================================================================
+--- 97b316503a4524074c05d5fb4cab63264690d0d6/net/ipv4/netfilter/ip_conntrack_proto_tcp.c  (mode:100644 sha1:2b87c1974be605d5bdb1ee769188d7e03fb2ddc8)
++++ 37a577077717c6fc76b74317dd95502e3c0b0803/net/ipv4/netfilter/ip_conntrack_proto_tcp.c  (mode:100644 sha1:721ddbf522b422d554479a7ab15c0955798f16ee)
+@@ -819,6 +819,7 @@
+ 	 */
+ 	/* FIXME: Source route IP option packets --RR */
+ 	if (hooknum == NF_IP_PRE_ROUTING
++	    && skb->ip_summed != CHECKSUM_UNNECESSARY
+ 	    && csum_tcpudp_magic(iph->saddr, iph->daddr, tcplen, IPPROTO_TCP,
+ 			         skb->ip_summed == CHECKSUM_HW ? skb->csum
+ 			      	 : skb_checksum(skb, iph->ihl*4, tcplen, 0))) {
+
+--------------010104010002030407020003--
