@@ -1,7 +1,7 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: About matching (also was: Multiple Targets)
-Date: Wed, 04 May 2005 07:42:38 +0000
-Message-ID: <42787CEE.1090503@outerspace.dyndns.org>
+Date: Wed, 4 May 2005 10:09:37 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0505040947330.18836@blackhole.kfki.hu>
 References: <20050413152307.0312.LARK@linux.net.cn> <425CEFE3.2010200@rtij.nl>
 	<20050413182822.0317.LARK@linux.net.cn> <425CFFE0.1000803@rtij.nl>
 	<20050413112518.GB22865@oknodo.bof.de>
@@ -12,13 +12,13 @@ References: <20050413152307.0312.LARK@linux.net.cn> <425CEFE3.2010200@rtij.nl>
 	<425E6E4C.2010406@outerspace.dyndns.org>
 	<42780DE4.9060808@outerspace.dyndns.org>
 	<Pine.LNX.4.58.0505040909090.18836@blackhole.kfki.hu>
+	<42787CEE.1090503@outerspace.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0505040909090.18836@blackhole.kfki.hu>
+To: Jonas Berlin <xkr47@outerspace.dyndns.org>
+In-Reply-To: <42787CEE.1090503@outerspace.dyndns.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,24 +30,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Wed, 4 May 2005, Jonas Berlin wrote:
 
-Quoting Jozsef Kadlecsik on 2005-05-04 07:16 UTC:
-> What I can see as viable solution is a flag, which tells which targets may
-> be used in cascade and let make it possible to type
-> 
-> ... -j LOG -j DROP
+> Quoting Jozsef Kadlecsik on 2005-05-04 07:16 UTC:
+> > What I can see as viable solution is a flag, which tells which targets may
+> > be used in cascade and let make it possible to type
+> >
+> > ... -j LOG -j DROP
+>
+> And if that flag was set, netfilter would also assert that the return
+> value of the target in question is IPT_CONTINUE ?
 
-And if that flag was set, netfilter would also assert that the return
-value of the target in question is IPT_CONTINUE ?
+No, targets may return other values. Something like this
 
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+#define IPT_TARGET_ITERATE(e, fn, args...)      \
+({                                              \
+        unsigned int __i;                       \
+        int __ret = 0;                          \
+        struct ipt_entry_target *__target;      \
+                                                \
+        for (__i = sizeof(struct ipt_entry)     \
+                   + (e)->target_offset;        \
+             __i < (e)->next_offset;            \
+             __i += __target->u.target_size) {  \
+                __target = (void *)(e) + __i;   \
+                                                \
+                __ret = fn(__target , ## args); \
+                if (__ret != IPT_CONTINUE)      \
+                        break;                  \
+        }                                       \
+        __ret;                                  \
+})
 
-iD8DBQFCeHzsxyF48ZTvn+4RAvUTAJ4kmWF98U1lp2qjI9I6b7uRtcJ1LwCcD5MH
-QxHQeh3a8c5u+iCOHUVqfP0=
-=Faqq
------END PGP SIGNATURE-----
+would probably work.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
