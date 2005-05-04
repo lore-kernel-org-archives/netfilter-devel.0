@@ -1,12 +1,19 @@
-From: "Allain Yoann" <Yoann.Allain@thomson.net>
-Subject: [PATCH] IPSec decrypted transport mode packets goes through LOCAL_IN
-Date: Wed, 4 May 2005 11:07:02 +0200
-Message-ID: <9C1918067C3BC14C9C351C206D8A843737301D@rennsmail03.eu.thmulti.com>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: [RFC] alternative to conntrack ID
+Date: Wed, 04 May 2005 10:18:30 +0100
+Message-ID: <42789366.20702@ufomechanic.net>
+References: <424747E3.7000300@eurodev.net>
+	<42502F8D.5030504@trash.net>	<4254258E.5000204@eurodev.net>
+	<42627BC4.8070103@trash.net>	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>
+	<20050429080242.GJ9735@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C55088.A299A942"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050429080242.GJ9735@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,87 +25,63 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Harald Welte wrote:
+> On Fri, Apr 29, 2005 at 09:14:16AM +0200, Jozsef Kadlecsik wrote:
+> 
+>>I don't like id either. Conntrack can uniquely identified by
+>>
+>>- src/dst tuples, globally, even in a cluster
+>>- the pointer of the conntrack entry, locally
+> 
+> Yes, but not over time, i.e. if your cycle of reading the table and
+> issuing a 'delete' is long enough, then you could remove a connection
+> that was using the same tuple but was established meanwhile (after the
+> old died).  However looking at current timeouts, that would be more than
+> one or two minutes delat between read and delete.
+> 
+> My point of view is that we don't need the ID.  If there is too much
+> delay, well then the user has a certain risk.   If we would call it
+> 'deleting a flow' then we'd be safe, since a flow has no start and
+> beginning, and multiple successive connections can comprise one flow ;)
 
-------_=_NextPart_001_01C55088.A299A942
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+I hope I am bringing a new angle to this and not the same old stuff.
 
-Hi all,
+With Pablo's new conntrack(-tool) there is an increased risk of this 
+race condition. No longer will a userspace application read the table 
+and "issue a delete" but it receives events via the netlink socket.
 
-Since I didn't get any responses from last week messages, I've done a
-bit of hacking in the kernel in order to make transport mode decrypted
-packets go through the NF_IP_LOCAL_IN hook after decryption.
+Any userspace tool tracking connections based on contrack events will 
+receive an event some time after a conntrack is destroyed, but possibly 
+after taking action on a new conntrack with the same tuples.
 
-This permits to do some filtering upon plain text packets to prevent
-privileged users to extend their privileges to others services than
-those wanted by the server:
+Here is an ascii art timeline with one of the failure cases
 
+time+----+----+----+----+----+----+----+----+----+----+
+                   destRoyed     created again????
+contrack              *==*????????????????????????????????
+netlink create event   *
+user prog create event    *
+netlink destroy event      *
+user prog create action      * action may happen on new conntrack
+user prog destroy event        *
+user prog destroy action        * now we know we may have raced and lost
 
-+--------------+
-+-----------+
-|		   |						|
-|
-|    server	   |						|
-client	|
-|		   |	IPSec channel only for ftp	|
-|
-|   ftp    =
-<=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D> telnet	|
-|		 | |		transport mode		|
-|
-|   telnet <-+ |						|
-|
-+--------------+
-+-----------+
+It is entirely possible that a new conntrack with the same tuples is 
+created before the user program can be aware the old one has been destroyed.
 
+Defining multiple successive connections as "one flow" is convenient, 
+but as user space clients are notified of "interuptions and 
+restorations" to this "one flow", it would be also convenient if they 
+could safely take advantage of such notifications.
 
-In this example, a client can attack the telnet server (DOS type attack)
-by using the IPSec SA established for FTP.
+If an ID is not desirable as part of the tuple (and I can see that it is 
+not) perhaps a "created time-stamp" per conntrack would suffice as an 
+extra "guard" which MAY be provided to conntrack manipulation routines, 
+and if so provided MUST also be satisified for the operation to take place.
 
-With the patch, I've attached in this mail, the packets that got
-decrypted go through the INPUT hook again and, this way, can filtered in
-order to prevent this issue.
+That is my suggestion. It does not introduce an alternative ID, it does 
+avoid the problem of race conditions.
 
-The patch is very simple, and I'm actually testing it. But I think there
-are some issues with it since it seems no one proposed an equivalent
-before.=20
-Can anyone tell me the problem(s) it could generate...?=20
+Comments?
 
-Thanks in advance for your responseS ;)
-
-Yoann
-
-
-------_=_NextPart_001_01C55088.A299A942
-Content-Type: application/octet-stream;
-	name="patch-2.6.11.4-ipsec-transport-nf_hook-again"
-Content-Transfer-Encoding: base64
-Content-Description: patch-2.6.11.4-ipsec-transport-nf_hook-again
-Content-Disposition: attachment;
-	filename="patch-2.6.11.4-ipsec-transport-nf_hook-again"
-
-ZGlmZiAtdXJOIGxpbnV4LTIuNi4xMS40Lm9yaWcvbmV0L2lwdjQveGZybTRfaW5wdXQuYyBsaW51
-eC0yLjYuMTEuNC5uZXcvbmV0L2lwdjQveGZybTRfaW5wdXQuYwotLS0gbGludXgtMi42LjExLjQu
-b3JpZy9uZXQvaXB2NC94ZnJtNF9pbnB1dC5jCTIwMDUtMDMtMTUgMTk6MDk6MDAuMDAwMDAwMDAw
-IC0wNTAwCisrKyBsaW51eC0yLjYuMTEuNC5uZXcvbmV0L2lwdjQveGZybTRfaW5wdXQuYwkyMDA1
-LTA1LTAzIDA5OjA5OjI3LjE4MDAwMDAwMCAtMDQwMApAQCAtMTQsNiArMTQsNyBAQAogI2luY2x1
-ZGUgPG5ldC9pbmV0X2Vjbi5oPgogI2luY2x1ZGUgPG5ldC9pcC5oPgogI2luY2x1ZGUgPG5ldC94
-ZnJtLmg+CisjaW5jbHVkZSA8bGludXgvbmV0ZmlsdGVyX2lwdjQuaD4KIAogaW50IHhmcm00X3Jj
-dihzdHJ1Y3Qgc2tfYnVmZiAqc2tiKQogewpAQCAtNDUsNiArNDYsMTQgQEAKIAlyZXR1cm4geGZy
-bV9wYXJzZV9zcGkoc2tiLCBuZXh0aGRyLCBzcGksIHNlcSk7CiB9CiAKK3N0YXRpYyBpbmxpbmUg
-aW50ICB4ZnJtNF9yY3ZfZW5jYXBfZmluaXNoKHN0cnVjdCBza19idWZmICpza2IpeworICAgICAg
-ICBpbnQgaWhsID0gc2tiLT5uaC5pcGgtPmlobCo0OworICAKKwlfX3NrYl9wdWxsKHNrYiwgaWhs
-KTsgLyogcHVsbCBiYWNrICovCisJLyogcmV0dXJuIHRvIG5vcm1hbCBmbG93ICovCisJcmV0dXJu
-IC1za2ItPm5oLmlwaC0+cHJvdG9jb2w7Cit9CisKIGludCB4ZnJtNF9yY3ZfZW5jYXAoc3RydWN0
-IHNrX2J1ZmYgKnNrYiwgX191MTYgZW5jYXBfdHlwZSkKIHsKIAlpbnQgZXJyOwpAQCAtMTQ1LDcg
-KzE1NCwxMCBAQAogCQluZXRpZl9yeChza2IpOwogCQlyZXR1cm4gMDsKIAl9IGVsc2UgewotCQly
-ZXR1cm4gLXNrYi0+bmguaXBoLT5wcm90b2NvbDsKKwkgICAgICAgIC8qIGNhbGwgYmFjayB0aGUg
-aG9vayB0byBpbnNwZWN0IHRoZSBwYWNrZXQgYWdhaW4gKi8KKwkgICAgICAgIF9fc2tiX3B1c2go
-c2tiLCBpaGwpOyAvKiBwdXNoIGJhY2sgKi8KKwkJcmV0dXJuIE5GX0hPT0soUEZfSU5FVCwgTkZf
-SVBfTE9DQUxfSU4sIHNrYiwgc2tiLT5kZXYsIE5VTEwsCisJCQkgICAgICAgeGZybTRfcmN2X2Vu
-Y2FwX2ZpbmlzaCk7CiAJfQogCiBkcm9wX3VubG9jazoK
-
-------_=_NextPart_001_01C55088.A299A942--
+Amin
