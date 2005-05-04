@@ -1,16 +1,20 @@
-From: "Allain Yoann" <Yoann.Allain@thomson.net>
-Subject: RE: [PATCH] IPSec decrypted transport mode packets goes through
-	LOCAL_IN
-Date: Wed, 4 May 2005 11:19:28 +0200
-Message-ID: <9C1918067C3BC14C9C351C206D8A843737301F@rennsmail03.eu.thmulti.com>
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: [RFC] alternative to conntrack ID
+Date: Wed, 4 May 2005 11:32:26 +0200
+Message-ID: <20050504093226.GG26982@oknodo.bof.de>
+References: <424747E3.7000300@eurodev.net> <42502F8D.5030504@trash.net>
+	<4254258E.5000204@eurodev.net> <42627BC4.8070103@trash.net>
+	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>
+	<20050429080242.GJ9735@sunbeam.de.gnumonks.org>
+	<42789366.20702@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, Pablo Neira <pablo@eurodev.net>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: "Allain Yoann" <Yoann.Allain@thomson.net>,
-	<netfilter-devel@lists.netfilter.org>
+To: Amin Azez <azez@ufomechanic.net>
+Content-Disposition: inline
+In-Reply-To: <42789366.20702@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,21 +26,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+> perhaps a "created time-stamp" per conntrack
 
-I hope this ascii art will be better:
+I like this idea. One could then also have a match expressing
+"conntrack has been live for at most / at least X seconds".
+Which would be a useful new feature.
 
-+--------------+                            +-----------+
-|              |                            |           |
-|   SERVER     |                            |  CLIENT   |
-|              | IPSec channel only for ftp |           |
-|   ftp    =
-<=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D> telnet |
-|            | |      transport mode        |           |
-|   telnet <-+ |                            |           |
-+--------------+                            +-----------+
-
-...=20
-Sorry for not being a great ascii artist
-
-Yoann
+best regards
+  Patrick
