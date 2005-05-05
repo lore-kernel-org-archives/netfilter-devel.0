@@ -1,62 +1,72 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: About matching (also was: Multiple Targets)
-Date: Thu, 5 May 2005 08:36:08 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0505050833580.21246@blackhole.kfki.hu>
-References: <20050413152307.0312.LARK@linux.net.cn> <425CEFE3.2010200@rtij.nl>
-	<20050413182822.0317.LARK@linux.net.cn> <425CFFE0.1000803@rtij.nl>
-	<20050413112518.GB22865@oknodo.bof.de>
-	<Pine.LNX.4.61.0504140315010.16405@filer.marasystems.com>
-	<7174b1e40504140101b5138e0@mail.gmail.com>
-	<425E3032.2060409@outerspace.dyndns.org>
-	<Pine.LNX.4.61.0504141340130.28938@filer.marasystems.com>
-	<425E6E4C.2010406@outerspace.dyndns.org>
-	<42780DE4.9060808@outerspace.dyndns.org>
-	<Pine.LNX.4.58.0505040909090.18836@blackhole.kfki.hu>
-	<42787CEE.1090503@outerspace.dyndns.org>
-	<Pine.LNX.4.58.0505040947330.18836@blackhole.kfki.hu>
-	<4278D431.5000606@outerspace.dyndns.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: PPTP connection tracking and NAT helper
+Date: Thu, 5 May 2005 09:52:58 +0200
+Message-ID: <20050505075258.GM30482@sunbeam.de.gnumonks.org>
+References: <4279291E.2060103@nit.ca>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jonas Berlin <xkr47@outerspace.dyndns.org>
-In-Reply-To: <4278D431.5000606@outerspace.dyndns.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jHwcxWEthkc1rt9P"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: Lukasz Kosewski <lkosewsk@nit.ca>
+Content-Disposition: inline
+In-Reply-To: <4279291E.2060103@nit.ca>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 4 May 2005, Jonas Berlin wrote:
 
-> >>And if that flag was set, netfilter would also assert that the return
-> >>value of the target in question is IPT_CONTINUE ?
-> >
-> > No, targets may return other values. Something like this
->
-> I know. But my point was, _should_ these targets with the "cascade flag"
-> set be allowed to return anything else?
->
-> For example LOG, MARK, CONNMARK and CLASSIFY targets always return
-> IPT_CONTINUE. I could agree that NF_DROP could also be allowed if a bad
-> packet was recognized or some other problem. But should NF_STOLEN or
-> NF_REPEAT or others really be allowed from these targets with "cascade
-> flag" set? If there wasn't any restriction on the return value, I don't
-> know if there's much point of having a cascade flag either?
+--jHwcxWEthkc1rt9P
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-In my opinion cascade targets should return IPT_CONTINUE. They may
-return NF_DROP in error conditions, but other return values are not
-allowed.
+On Wed, May 04, 2005 at 03:57:18PM -0400, Lukasz Kosewski wrote:
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+> The problem I have is that in 2.6.11, there no longer exists a 'union=20
+> ip_conntrack_nat_help' in include/linux/netfilter_ipv4/ip_conntrack.h,
+> to which the PPTP/NAT patches make changes.  While I can simply change
+> the patches such that they ignore this, I am not certain whether or
+> not this is intended, or whether I will be losing some functionality.
+
+please read the netfilter-devel archive.  I get asked this question at
+least ten times a week:
+
+There is no pptp/gre conntrack and nat helper for 2.6.11+, since this
+kernel version contains a redesigned infrastructure for such helpers.
+
+At this time, I see very limited chance that this new infrastructure is
+sufficient enough to actually implement the same functionality.  A
+straight 1:1 port ist definitely not possible.
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--jHwcxWEthkc1rt9P
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+
+iD8DBQFCedDaXaXGVTD0i/8RAoKxAJ4hm9+/nJ/hzvuq1k+Brilsu5XRkwCglhdd
+KWmnZP5+Qn1AjY2/rc6ZpCk=
+=EuZY
+-----END PGP SIGNATURE-----
+
+--jHwcxWEthkc1rt9P--
