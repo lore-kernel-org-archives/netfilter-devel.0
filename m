@@ -1,43 +1,33 @@
-From: "David S. Miller" <davem@davemloft.net>
+From: David Stevens <dlstevens@us.ibm.com>
 Subject: Re: netfilter6: ICMPv6 type 143 doesn't match
-Date: Thu, 5 May 2005 14:34:12 -0700
-Message-ID: <20050505143412.0fe9ebca.davem@davemloft.net>
-References: <6050E336B1A0D7D8E70C66F3@t1mobil.muc.aerasec.de>
-	<200412270417.iBR4HZRG021429@toshiba.co.jp>
-	<427A79C0.4020103@trash.net>
-	<427A7FF5.4030900@trash.net>
+Date: Thu, 5 May 2005 15:26:27 -0700
+Message-ID: <OF647D617E.F01230B8-ON88256FF8.007AF1C9-88256FF8.007B457C@us.ibm.com>
+References: <427A79C0.4020103@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: yasuyuki.kozakai@toshiba.co.jp, usagi-users@linux-ipv6.org,
-        netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
-        laforge@gnumonks.org, pb@bieringer.de
-Return-path: <netdev-bounce@oss.sgi.com>
+Content-Type: text/plain; charset="US-ASCII"
+Cc: usagi-users@linux-ipv6.org, netdev@oss.sgi.com,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
+	netfilter-devel@lists.netfilter.org, laforge@gnumonks.org,
+	pb@bieringer.de, netdev-bounce@oss.sgi.com
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <427A79C0.4020103@trash.net>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <427A7FF5.4030900@trash.net>
-Sender: netdev-bounce@oss.sgi.com
-Errors-to: netdev-bounce@oss.sgi.com
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 05 May 2005 22:20:05 +0200
-Patrick McHardy <kaber@trash.net> wrote:
+I'll look at it in more detail and let you know if I see any problems,
+but I wouldn't call it "igmpv6", which doesn't exist. "MLD" is the
+equivalent in IPv6. There certainly are existing references to
+"igmp6" in the Linux code-- that just isn't the name of the protocol. :-)
 
-> Patrick McHardy wrote:
-> > Yasuyuki Kozakai wrote:
-> > 
-> >>Well, the Multicast Listener Report seems that skb->data != skb->nh.ipv6h
-> >>when interface is up. But IPv6 netfilter modules assumes that
-> >>skb->data == skb->nh.ipv6h like IPv4 netfilter modules.
-> >>
-> >>folks, is this wrong or bad asumption ? If so, I'll fix this problem in
-> >>many modules as follows.
-> > 
-> > 
-> > Sorry for getting back to this so late, I must have missed it at the
-> > time. Anyway, I think it would be safer to restore netfilters assumption
-> > by doing something like this patch. If everyone is fine with it I'm
-> > going to add it to my pending netfilter patches for 2.6.13.
-> 
-> The last patch left some unreachable code.
+suggest: change to mld_dev_queue_xmit().
 
-This looks OK with me, I hope it doesn't inadvertantly break anything.
+                                        +-DLS
