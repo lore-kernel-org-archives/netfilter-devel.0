@@ -1,11 +1,16 @@
-From: <iosif.peterfi@fortesys.ro>
-Subject: connlimit patch for 2.6.11
-Date: Thu, 5 May 2005 21:24:26 +0300
-Message-ID: <1352.57867300442$1115317040@news.gmane.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: netfilter6: ICMPv6 type 143 doesn't match
+Date: Thu, 05 May 2005 21:53:36 +0200
+Message-ID: <427A79C0.4020103@trash.net>
+References: <6050E336B1A0D7D8E70C66F3@t1mobil.muc.aerasec.de>
+	<200412270417.iBR4HZRG021429@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-bd-boundary-iQxG5y57UUwFV1Pg"
+Content-Type: multipart/mixed; boundary="------------070703010208060508000301"
+Cc: usagi-users@linux-ipv6.org, netdev@oss.sgi.com,
+	netfilter-devel@lists.netfilter.org, laforge@gnumonks.org, pb@bieringer.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200412270417.iBR4HZRG021429@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,136 +22,118 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multipart message in MIME format,
-containing the original message body
-and a footer added by BitDefender
-
---=-bd-boundary-iQxG5y57UUwFV1Pg
-Content-Type: text/plain;
-	charset="us-ascii"
+This is a multi-part message in MIME format.
+--------------070703010208060508000301
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-Hello,
+Yasuyuki Kozakai wrote:
 
+> Well, the Multicast Listener Report seems that skb->data != skb->nh.ipv6h
+> when interface is up. But IPv6 netfilter modules assumes that
+> skb->data == skb->nh.ipv6h like IPv4 netfilter modules.
+> 
+> folks, is this wrong or bad asumption ? If so, I'll fix this problem in
+> many modules as follows.
+
+Sorry for getting back to this so late, I must have missed it at the
+time. Anyway, I think it would be safer to restore netfilters assumption
+by doing something like this patch. If everyone is fine with it I'm
+going to add it to my pending netfilter patches for 2.6.13.
+
+Regards
+Patrick
+
+--------------070703010208060508000301
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+Index: net/ipv6/mcast.c
+===================================================================
+--- 2cfdb1827d9c176f4df42619c693e7b990a61963/net/ipv6/mcast.c  (mode:100644 sha1:393b6e6f50a9626e2894c9a5abd8dafd903e5eba)
++++ uncommitted/net/ipv6/mcast.c  (mode:100644)
+@@ -1280,15 +1280,6 @@
+ 		return NULL;
  
-
-            I have downloaded the latest snapshot pom-20050504.
-
-I have applied the kernel patch for connlimit and seems I'm going into a
-race conditin.
-
-I don't know how to capture the screen on kernel panic but here is some of
-the last messages:
-
-........
-
-irq_ext+0x3b/0x40
-
-do_IRQ+0x59/0x80
-
-common_interrupt+0x1a/0x20
-
-default_idle+0x23/0x30
-
-cpu_idle.......
-
-start_kernel.....
-
-unknown_bootoption..........
-
-.....
-
-Code: 43 17 89 d9 8d 04 ........
-
+ 	skb_reserve(skb, LL_RESERVED_SPACE(dev));
+-	if (dev->hard_header) {
+-		unsigned char ha[MAX_ADDR_LEN];
+-
+-		ndisc_mc_map(&mld2_all_mcr, ha, dev, 1);
+-		if (dev->hard_header(skb, dev, ETH_P_IPV6,ha,NULL,size) < 0) {
+-			kfree_skb(skb);
+-			return NULL;
+-		}
+-	}
  
-
-<0>Kernel panic - not syncing: Fatal exception in interrupt
-
+ 	if (ipv6_get_lladdr(dev, &addr_buf)) {
+ 		/* <draft-ietf-magma-mld-source-05.txt>:
+@@ -1312,6 +1303,24 @@
+ 	return skb;
+ }
  
-
-The kernel panic doesn't happen when probing the connlimit module, only
-after inserting the rules in the table ( with iptables ).
-
++static inline int igmp6_dev_queue_xmit(struct sk_buff *skb)
++{
++	struct net_device *dev = skb->dev;
++
++	if (dev->hard_header) {
++		unsigned char ha[MAX_ADDR_LEN];
++		int err;
++
++		ndisc_mc_map(&skb->nh.ipv6h->daddr, ha, dev, 1);
++		err = dev->hard_header(skb, dev, ETH_P_IPV6, ha, NULL, skb->len);
++		if (err < 0) {
++			kfree_skb(skb);
++			return err;
++		}
++	}
++	return dev_queue_xmit(skb);
++}
++
+ static void mld_sendpack(struct sk_buff *skb)
+ {
+ 	struct ipv6hdr *pip6 = skb->nh.ipv6h;
+@@ -1329,7 +1338,7 @@
+ 	pmr->csum = csum_ipv6_magic(&pip6->saddr, &pip6->daddr, mldlen,
+ 		IPPROTO_ICMPV6, csum_partial(skb->h.raw, mldlen, 0));
+ 	err = NF_HOOK(PF_INET6, NF_IP6_LOCAL_OUT, skb, NULL, skb->dev,
+-		dev_queue_xmit);
++		igmp6_dev_queue_xmit);
+ 	if (!err) {
+ 		ICMP6_INC_STATS(idev,ICMP6_MIB_OUTMSGS);
+ 		IP6_INC_STATS(IPSTATS_MIB_OUTMCASTPKTS);
+@@ -1635,12 +1644,6 @@
+ 	}
  
-
-Machine runs Kernel - 2.6.11-gentoo-r6 + various pom patches compiled as
-modules and Iptables v1.3.1  .
-
-            
-
-# cat /proc/modules (without connlimit)
-
-sch_sfq 6016 6 - Live 0xf88bf000
-
-ipt_tos 2432 1 - Live 0xf889d000
-
-ipt_helper 3200 3 - Live 0xf8898000
-
-ipt_connbytes 2432 18 - Live 0xf8896000
-
-ipt_CLASSIFY 2944 203 - Live 0xf88bb000
-
-ipt_length 2560 8 - Live 0xf88bd000
-
-sch_esfq 6784 6 - Live 0xf889a000
-
-sch_htb 17536 2 - Live 0xf88a6000
-
-ipt_REDIRECT 3072 3 - Live 0xf888d000
-
-iptable_mangle 3328 1 - Live 0xf881c000
-
-iptable_nat 23868 2 ipt_REDIRECT, Live 0xf889f000
-
-ipt_REJECT 6656 8 - Live 0xf8880000
-
-ipt_limit 3072 29 - Live 0xf888b000
-
-ipt_state 2560 4 - Live 0xf881e000
-
-ip_conntrack 50440 3 ipt_helper,iptable_nat,ipt_state, Live 0xf88ad000
-
-ipt_LOG 7680 15 - Live 0xf8893000
-
-ipt_ULOG 8196 12 - Live 0xf888f000
-
-iptable_filter 3328 1 - Live 0xf8879000
-
-ip_tables 25088 14
-ipt_tos,ipt_helper,ipt_connbytes,ipt_CLASSIFY,ipt_length,ipt_
-
-REDIRECT,iptable_mangle,iptable_nat,ipt_REJECT,ipt_limit,ipt_state,ipt_LOG,i
-pt_U
-
-LOG,iptable_filter, Live 0xf8883000
-
-ipv6 246304 14 - Live 0xf88c3000
-
-e100 34560 0 - Live 0xf886f000
-
-#
-
+ 	skb_reserve(skb, LL_RESERVED_SPACE(dev));
+-	if (dev->hard_header) {
+-		unsigned char ha[MAX_ADDR_LEN];
+-		ndisc_mc_map(snd_addr, ha, dev, 1);
+-		if (dev->hard_header(skb, dev, ETH_P_IPV6, ha, NULL, full_len) < 0)
+-			goto out;
+-	}
  
-
-If you can't figure out how to fix this, maybe I'll figure out how to take a
-console dump.
-
+ 	if (ipv6_get_lladdr(dev, &addr_buf)) {
+ 		/* <draft-ietf-magma-mld-source-05.txt>:
+@@ -1668,7 +1671,7 @@
+ 	idev = in6_dev_get(skb->dev);
  
-
-Best Regards,
-
+ 	err = NF_HOOK(PF_INET6, NF_IP6_LOCAL_OUT, skb, NULL, skb->dev,
+-		dev_queue_xmit);
++		igmp6_dev_queue_xmit);
+ 	if (!err) {
+ 		if (type == ICMPV6_MGM_REDUCTION)
+ 			ICMP6_INC_STATS(idev, ICMP6_MIB_OUTGROUPMEMBREDUCTIONS);
+@@ -1683,7 +1686,6 @@
+ 		in6_dev_put(idev);
+ 	return;
  
+-out:
+ 	IP6_INC_STATS(IPSTATS_MIB_OUTDISCARDS);
+ 	kfree_skb(skb);
+ }
 
-Iosif Peterfi.
-
-
---=-bd-boundary-iQxG5y57UUwFV1Pg
-Content-Type: text/plain; name="BitDefender.txt"
-Content-Disposition: inline; filename="BitDefender.txt"
-
-
--- 
-This message was scanned for spam and viruses by BitDefender.
-For more information please visit http://linux.bitdefender.com/
-
---=-bd-boundary-iQxG5y57UUwFV1Pg--
+--------------070703010208060508000301--
