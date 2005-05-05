@@ -1,72 +1,59 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: PPTP connection tracking and NAT helper
-Date: Thu, 5 May 2005 09:52:58 +0200
-Message-ID: <20050505075258.GM30482@sunbeam.de.gnumonks.org>
-References: <4279291E.2060103@nit.ca>
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re: [PATCH] Open Port match
+Date: Thu, 5 May 2005 10:47:45 +0200
+Message-ID: <1561393117.20050505104745@dns.toxicfilms.tv>
+References: <1115264925.2118.3.camel@localhost.localdomain>
+Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jHwcxWEthkc1rt9P"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Lukasz Kosewski <lkosewsk@nit.ca>
-Content-Disposition: inline
-In-Reply-To: <4279291E.2060103@nit.ca>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <1115264925.2118.3.camel@localhost.localdomain>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
---jHwcxWEthkc1rt9P
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This is starting to make me wonder.
+Why do we all duplicate similar checks for packet validity
+in netfilter matches?
 
-On Wed, May 04, 2005 at 03:57:18PM -0400, Lukasz Kosewski wrote:
+Should not we move this into functions like:
 
-> The problem I have is that in 2.6.11, there no longer exists a 'union=20
-> ip_conntrack_nat_help' in include/linux/netfilter_ipv4/ip_conntrack.h,
-> to which the PPTP/NAT patches make changes.  While I can simply change
-> the patches such that they ignore this, I am not certain whether or
-> not this is intended, or whether I will be losing some functionality.
+int skb_is_fine(struct sk_buff *sk,...)
+int th_is_fine(struct tcphdr, ...)
+int uh_is_fine(struct udphdr, ...)
+int ih_is_fine(struct icmphdr, ...)
 
-please read the netfilter-devel archive.  I get asked this question at
-least ten times a week:
+And use them consistenly throughout the matches?
 
-There is no pptp/gre conntrack and nat helper for 2.6.11+, since this
-kernel version contains a redesigned infrastructure for such helpers.
+        if (!th_is_fine(th))
+                goto dropit;
 
-At this time, I see very limited chance that this new infrastructure is
-sufficient enough to actually implement the same functionality.  A
-straight 1:1 port ist definitely not possible.
+I am refering to code like below:
++       /* If we don't have the whole header, drop packet. */
++       th = skb_header_pointer(skb, skb->nh.iph->ihl * 4,
++                               sizeof(_tcph), &_tcph);
++       if (th == NULL)
++               goto dropit;
++
++       /* Malformed. */
++       if (th->doff*4 < sizeof(*th))
++               goto dropit;
++
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+It would give less duplication, less occasions to make a mistake
+and more readable code, no need for lots of comments around.
 
---jHwcxWEthkc1rt9P
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQFCedDaXaXGVTD0i/8RAoKxAJ4hm9+/nJ/hzvuq1k+Brilsu5XRkwCglhdd
-KWmnZP5+Qn1AjY2/rc6ZpCk=
-=EuZY
------END PGP SIGNATURE-----
-
---jHwcxWEthkc1rt9P--
+--
+Regards,
+Maciej
