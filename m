@@ -1,16 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: CLUSTERIP failover daemon?
-Date: Fri, 6 May 2005 13:43:14 +0200
-Message-ID: <20050506114314.GK30482@sunbeam.de.gnumonks.org>
-References: <000001c54655$7799a690$aa28abc1@Vagabond>
+From: Duncan Godfrey <d.j.godfrey@reading.ac.uk>
+Subject: Just starting with libipq
+Date: Thu, 05 May 2005 15:11:44 +0100
+Message-ID: <427A29A0.8020502@reading.ac.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GAc89RRdceylj63L"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Alex <alex_oz@gmx.net>
-Content-Disposition: inline
-In-Reply-To: <000001c54655$7799a690$aa28abc1@Vagabond>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,44 +18,88 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
---GAc89RRdceylj63L
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I was wondering if someone would be able to help me, Im just starting 
+out with some libipq development and Im trying to compile some example 
+source code from a tutorial site (I have compiled the source on the man 
+page an it worked fine).
 
-On Thu, Apr 21, 2005 at 11:35:33AM +0200, Alex wrote:
-> Hi all,
->=20
-> =20
->=20
-> Is there any daemon which supports failover within CLUSTERIP-nodes?
+Everytime I compile it with gcc -o quick quick.c -libpq, I get the 
+following errors:
 
-not that I am aware of.  I never wanted to get involved with a cluster
-resource manager.  This subject is a whole field of science on it's own.
-All I'd like to provide from CLUSTERIP and things like ct_sync is a
-clean interface for cluster resource managers.
+quick.c:56: error: dereferencing pointer to incomplete type
+quick.c:58: error: dereferencing pointer to incomplete type
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Has anyone else had a similar experience? Thanks in advance for any help.
 
---GAc89RRdceylj63L
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Duncan
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
+The code is:
 
-iD8DBQFCe1hSXaXGVTD0i/8RAnlIAKCDflmAEe8hGiu1P2EhIrq2OZj1pQCdFuZe
-/s/HANcDHxZkrvNb45D2iQY=
-=foVl
------END PGP SIGNATURE-----
+#include <linux/netfilter.h>
+#include <libipq.h>
+#include <stdio.h>
 
---GAc89RRdceylj63L--
+#define BUFSIZE 2048
+
+static void die(struct ipq_handle *h)
+{
+  ipq_perror("passer");
+  ipq_destroy_handle(h);
+  exit(1);
+}
+
+int main(int argc, char **argv)
+{
+  int status;
+  unsigned char buf[BUFSIZE];
+
+  struct ipq_handle *h;
+       
+  h = ipq_create_handle(0, PF_INET);
+  if (!h)
+    die(h);
+       
+  status = ipq_set_mode(h, IPQ_COPY_PACKET, BUFSIZE);
+  if (status < 0)
+    die(h);
+               
+  do{
+
+    status = ipq_read(h, buf, BUFSIZE, 0);
+    if (status < 0)
+      die(h);
+                       
+    switch (ipq_message_type(buf)) {
+    case NLMSG_ERROR:
+      fprintf(stderr, "Received error message %d\n",
+          ipq_get_msgerr(buf));
+      break;
+        
+    case IPQM_PACKET: {
+      ipq_packet_msg_t *m = ipq_get_packet(buf);
+
+      struct iphdr *ip = (struct iphdr*) m->payload;
+
+      struct tcphdr *tcp = (struct tcphdr*) (m->payload + (4 * ip->ihl));
+                                 
+      int port = htons(tcp->dest);       
+                              
+      status = ipq_set_verdict(h, m->packet_id,
+                   NF_ACCEPT, 0, NULL);
+      if (status < 0)
+    die(h);
+      break;
+    }
+                       
+    default:
+      fprintf(stderr, "Unknown message type!\n");
+      break;
+    }
+  } while (1);
+       
+
+  ipq_destroy_handle(h);
+  return 0;
+}
