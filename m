@@ -1,17 +1,19 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter6: ICMPv6 type 143 doesn't match
-Date: Fri, 06 May 2005 00:32:31 +0200
-Message-ID: <427A9EFF.5030907@trash.net>
-References: <OF647D617E.F01230B8-ON88256FF8.007AF1C9-88256FF8.007B457C@us.ibm.com>
+Subject: Re: CONFIG_NETFILTER_DEBUG spew
+Date: Fri, 06 May 2005 00:36:35 +0200
+Message-ID: <427A9FF3.7060408@trash.net>
+References: <20050501032809.3d0b4cda.akpm@osdl.org>
+	<20050501111507.GA2133@gondor.apana.org.au>
+	<4274F2ED.9080404@trash.net>
+	<20050505111457.GS30482@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: usagi-users@linux-ipv6.org, netdev@oss.sgi.com,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
-	netfilter-devel@lists.netfilter.org, laforge@gnumonks.org, pb@bieringer.de
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
+	Herbert Xu <herbert@gondor.apana.org.au>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David Stevens <dlstevens@us.ibm.com>
-In-Reply-To: <OF647D617E.F01230B8-ON88256FF8.007AF1C9-88256FF8.007B457C@us.ibm.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050505111457.GS30482@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,19 +25,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David Stevens wrote:
-> I'll look at it in more detail and let you know if I see any problems,
-
-Thanks. Is there a reason why these packets never hit the POST_ROUTING
-hook?
-
-> but I wouldn't call it "igmpv6", which doesn't exist. "MLD" is the
-> equivalent in IPv6. There certainly are existing references to
-> "igmp6" in the Linux code-- that just isn't the name of the protocol. :-)
+Harald Welte wrote:
+> On Sun, May 01, 2005 at 05:17:01PM +0200, Patrick McHardy wrote:
 > 
-> suggest: change to mld_dev_queue_xmit().
+>>You're right. I'm tempted to remove the entire nf_debug stuff,
+>>as far as I know it has never found a real bug. But for now
+>>I've only fixed the warning.
+> 
+> 
+> yes, I second that change.  At the same time, we should get rid of all
+> the lockhelp.h stuff that makes the netfilter code use non-standard lock
+> primitives.
 
-Done.
+I've removed nf_debug. As for lockhelp.h, I'm still undecided whether
+I should try to make rwlock debugging a feature of standard rwlocks
+or else what to do with all the rwlock assertions.
 
 Regards
 Patrick
