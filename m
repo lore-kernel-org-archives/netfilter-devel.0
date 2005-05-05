@@ -1,16 +1,12 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: BUG/CONFLICT conntrack with preroute/postroute mangle table
-Date: Thu, 05 May 2005 18:05:43 +0200
-Message-ID: <427A4457.7010509@eurodev.net>
-References: <42677180.60003@ufomechanic.net>	<42677732.1000905@ufomechanic.net>	<20050421180723.03CF.LARK@linux.net.cn>	<426788B0.4090908@eurodev.net>	<426CF5FC.6090409@ufomechanic.net>	<426D1C69.2060107@ufomechanic.net>	<426D1E35.4030605@ufomechanic.net>	<426E4442.5070800@ufomechanic.net>
-	<d5cue9$3qf$1@sea.gmane.org>
+Subject: [PATCH] Delete nfcache use in ip_table
+Date: Thu, 05 May 2005 18:15:25 +0200
+Message-ID: <427A469D.8030305@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, 'Krisztian Kovacs' <hidden@sch.bme.hu>
+Content-Type: multipart/mixed; boundary="------------040809040706050506010409"
+Cc: Patrick McHardy <kaber@trash.net>, KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <d5cue9$3qf$1@sea.gmane.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,32 +18,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez wrote:
-> Further to the problem below, skb->nfcache is having the lower 2 bits 
-> clobbered by net/ipv4/netfilter/ip_tables.c around line 316 (2.6.11.7)
-> 
->         back = get_entry(table_base, table->private->underflow[hook]);
-> 
->         do {
->                 IP_NF_ASSERT(e);
->                 IP_NF_ASSERT(back);
-> 
-> //THIS IS THE CULPRIT!
->                 (*pskb)->nfcache |= e->nfcache;
-> 
-> 
-> e->nfcache has been observed at 0,1,2,0x4000
-> 1 and 2 are IPCT_NEW and IPCT_RELATED and these are causing the damage.
+This is a multi-part message in MIME format.
+--------------040809040706050506010409
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This bug can be reproduced if you use iptables < 1.3.1, since I 
-personally sent a patch to remove any nfcache references in iptables code.
+Hi Patrick,
 
-https://lists.netfilter.org/pipermail/netfilter-devel/2005-February/018463.html
+Since we've removed the use of nfcache in iptables, I think that it 
+should be remove in ip_tables.c as well because:
 
-Yes, It's a matter of removing that line. thanks for pointing out this.
+a) there's no utility on it
+b) it can be source of interferences for the conntrack-event-api, and 
+thus for conntrack_netlink and ct_sync.
 
-Krisztian, I think that this could be source of weird behaviours in 
-ct_sync if your users use old iptables versions.
+Please see the email labeled as:
+[Re: BUG/CONFLICT conntrack with preroute/postroute mangle table]
+
+I could keep this as a seperate patch in conntrack-event-api pom-ng, but 
+I prefer kill it now and forget about it. If you've got no reason to 
+object, please then pass it to davem.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
 
 --
 Pablo
+
+--------------040809040706050506010409
+Content-Type: text/plain;
+ name="y"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="y"
+
+Index: net/ipv4/netfilter/ip_tables.c
+===================================================================
+--- 6d7098bc350768f59a41090ca248ae430cd95b25/net/ipv4/netfilter/ip_tables.c  (mode:100644 sha1:8a54f92b8496a4218a243c35ab2b55ec659e7d18)
++++ uncommitted/net/ipv4/netfilter/ip_tables.c  (mode:100644)
+@@ -313,7 +313,6 @@
+ 	do {
+ 		IP_NF_ASSERT(e);
+ 		IP_NF_ASSERT(back);
+-		(*pskb)->nfcache |= e->nfcache;
+ 		if (ip_packet_match(ip, indev, outdev, &e->ip, offset)) {
+ 			struct ipt_entry_target *t;
+ 
+
+--------------040809040706050506010409--
