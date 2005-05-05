@@ -1,18 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: PPTP connection tracking and NAT helper
-Date: Thu, 5 May 2005 22:10:25 +0200
-Message-ID: <20050505201025.GA30482@sunbeam.de.gnumonks.org>
-References: <4279291E.2060103@nit.ca>
-	<20050505075258.GM30482@sunbeam.de.gnumonks.org>
-	<20050505170400.GA20178@linuxace.com>
+Subject: Re: [PATCH] resync ipt_cluster structure
+Date: Thu, 5 May 2005 22:12:34 +0200
+Message-ID: <20050505201234.GB30482@sunbeam.de.gnumonks.org>
+References: <427A47CF.8080904@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="l1Ga9FRlYJwFJxwF"
+	protocol="application/pgp-signature"; boundary="QYbTd+PSDu6P6/0L"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
+To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
-In-Reply-To: <20050505170400.GA20178@linuxace.com>
+In-Reply-To: <427A47CF.8080904@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,23 +23,22 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---l1Ga9FRlYJwFJxwF
+--QYbTd+PSDu6P6/0L
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, May 05, 2005 at 10:04:00AM -0700, Phil Oester wrote:
-> On Thu, May 05, 2005 at 09:52:58AM +0200, Harald Welte wrote:
-> > please read the netfilter-devel archive.  I get asked this question at
-> > least ten times a week:
-> >=20
-> > There is no pptp/gre conntrack and nat helper for 2.6.11+, since this
-> > kernel version contains a redesigned infrastructure for such helpers.
+On Thu, May 05, 2005 at 06:20:31PM +0200, Pablo Neira wrote:
+> Hi Harald,
 >=20
-> How bout we make it harder for people to try?  Attached patch adds
-> a 'Requires' to pptp in pom, and fixes up broken Requires handling.
+> Currently ipt_clusterip_tgt_info structure is out of sync with regards to=
+=20
+> iptables snapshot in SVN. This happened because the patch to fix deletion=
+ was=20
+> applied to iptables but not the kernel part, so it got lost somehow.
 
-oh, I wasn't aware of that.  I've committed your changes, thanks.
+thanks, I'll push it with my other change to davem.  Trying to set up a
+local git tree where he can pull from, before.
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -52,16 +49,16 @@ oh, I wasn't aware of that.  I've committed your changes, thanks.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---l1Ga9FRlYJwFJxwF
+--QYbTd+PSDu6P6/0L
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.0 (GNU/Linux)
 
-iD8DBQFCen2xXaXGVTD0i/8RAqa4AJ9EhrcapY9qf6hTINBK+1H5mor7XQCfa1LB
-2V0lfV5h/UL4qbU7P8SwIuc=
-=pVhG
+iD8DBQFCen4yXaXGVTD0i/8RAmjQAJ4qRgKSjdKSHtAtbYdSxPdU5ZAIdgCgm7H1
+d9xCeJVu5mg8UqhnloFSQwg=
+=Yie/
 -----END PGP SIGNATURE-----
 
---l1Ga9FRlYJwFJxwF--
+--QYbTd+PSDu6P6/0L--
