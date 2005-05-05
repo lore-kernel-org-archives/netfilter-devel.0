@@ -1,10 +1,10 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH] Delete nfcache use in ip_table
-Date: Thu, 05 May 2005 18:15:25 +0200
-Message-ID: <427A469D.8030305@eurodev.net>
+Subject: [PATCH] resync ipt_cluster structure
+Date: Thu, 05 May 2005 18:20:31 +0200
+Message-ID: <427A47CF.8080904@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040809040706050506010409"
-Cc: Patrick McHardy <kaber@trash.net>, KOVACS Krisztian <hidden@balabit.hu>
+Content-Type: multipart/mixed; boundary="------------030202030609080909030909"
+Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -19,49 +19,51 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040809040706050506010409
+--------------030202030609080909030909
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi Patrick,
+Hi Harald,
 
-Since we've removed the use of nfcache in iptables, I think that it 
-should be remove in ip_tables.c as well because:
+Currently ipt_clusterip_tgt_info structure is out of sync with regards 
+to iptables snapshot in SVN. This happened because the patch to fix 
+deletion was applied to iptables but not the kernel part, so it got lost 
+somehow.
 
-a) there's no utility on it
-b) it can be source of interferences for the conntrack-event-api, and 
-thus for conntrack_netlink and ct_sync.
-
-Please see the email labeled as:
-[Re: BUG/CONFLICT conntrack with preroute/postroute mangle table]
-
-I could keep this as a seperate patch in conntrack-event-api pom-ng, but 
-I prefer kill it now and forget about it. If you've got no reason to 
-object, please then pass it to davem.
+The patch attached fixes it, please apply.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
 
 --
 Pablo
 
---------------040809040706050506010409
+--------------030202030609080909030909
 Content-Type: text/plain;
- name="y"
+ name="x"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="y"
+ filename="x"
 
-Index: net/ipv4/netfilter/ip_tables.c
+Index: include/linux/netfilter_ipv4/ipt_CLUSTERIP.h
 ===================================================================
---- 6d7098bc350768f59a41090ca248ae430cd95b25/net/ipv4/netfilter/ip_tables.c  (mode:100644 sha1:8a54f92b8496a4218a243c35ab2b55ec659e7d18)
-+++ uncommitted/net/ipv4/netfilter/ip_tables.c  (mode:100644)
-@@ -313,7 +313,6 @@
- 	do {
- 		IP_NF_ASSERT(e);
- 		IP_NF_ASSERT(back);
--		(*pskb)->nfcache |= e->nfcache;
- 		if (ip_packet_match(ip, indev, outdev, &e->ip, offset)) {
- 			struct ipt_entry_target *t;
+--- 6d7098bc350768f59a41090ca248ae430cd95b25/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h  (mode:100644 sha1:baa83e757156c66d9e34015f554512eadb84f1f1)
++++ uncommitted/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h  (mode:100644)
+@@ -18,7 +18,6 @@
+ struct ipt_clusterip_tgt_info {
  
+ 	u_int32_t flags;
+-	struct clusterip_config *config;
+ 	
+ 	/* only relevant for new ones */
+ 	u_int8_t clustermac[6];
+@@ -27,6 +26,8 @@
+ 	u_int16_t local_nodes[CLUSTERIP_MAX_NODES];
+ 	enum clusterip_hashmode hash_mode;
+ 	u_int32_t hash_initval;
++
++	struct clusterip_config *config;
+ };
+ 
+ #endif /*_IPT_CLUSTERIP_H_target*/
 
---------------040809040706050506010409--
+--------------030202030609080909030909--
