@@ -1,13 +1,15 @@
-From: Christian Hentschel <chentschel@arnet.com.ar>
-Subject: ip_nat_mangle_udp_packet problems
-Date: Thu, 05 May 2005 13:32:51 -0300
-Message-ID: <1115310771.1852.11.camel@www.l-chr.com.ar>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: Just starting with libipq
+Date: Fri, 06 May 2005 12:50:17 +0000
+Message-ID: <427B6809.4060300@outerspace.dyndns.org>
+References: <427A29A0.8020502@reading.ac.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-6m1Ws1D0VefPE4hkUl+t"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Duncan Godfrey <d.j.godfrey@reading.ac.uk>
+In-Reply-To: <427A29A0.8020502@reading.ac.uk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,40 +21,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---=-6m1Ws1D0VefPE4hkUl+t
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Quoting Duncan Godfrey on 2005-05-05 14:11 UTC:
 
-Hi,=20
-	i hope someone could answer this problem i'm experimenting. I'm writing
-a SIP/RTP conntrack/NAT helper, and i need to mangle packets multiple
-times, since there are lots of fields to be mangled.
-	I'm using new conntrack/nat framework (>2.6.11) and the way i took to
-do it is causing me some problems.
-	Basically, i just look for string into the packet, mangle it and call
-ip_nat_mangle_udp_packet(). The problem is when i try to search the
-nexts strings, i get the wrong offsets.=20
-I saw ip_nat_mangle_udp_packet() does not do it manipulation
-immediatelly. Please could someone explain this ?.
-Is there a way to "sync" so have the skbuff mangled immediately?
-is multiple manips of the packets supported in new framework?.=20
+> I was wondering if someone would be able to help me, Im just starting
+> out with some libipq development and Im trying to compile some example
+> source code from a tutorial site (I have compiled the source on the man
+> page an it worked fine).
+> 
+> Everytime I compile it with gcc -o quick quick.c -libpq, I get the
+> following errors:
 
-Thanks in advance.=20
+- -lipq not -libipq :)
 
---=20
-Christian Hentschel <chentschel@arnet.com.ar>
+> quick.c:56: error: dereferencing pointer to incomplete type
+> quick.c:58: error: dereferencing pointer to incomplete type
 
---=-6m1Ws1D0VefPE4hkUl+t
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+>      struct iphdr *ip = (struct iphdr*) m->payload;
+>
+>      struct tcphdr *tcp = (struct tcphdr*) (m->payload + (4 * ip->ihl));
 
+The error message means gcc does not know of a struct/union that you are
+using. So it has to be either the "m" variable or then "ip" and "tcp"
+variables. In this case, it's the latter, you are missing these includes:
+
+#include <linux/ip.h>
+#include <linux/tcp.h>
+
+Add them and it should work. Good luck :)
+
+- --
+- - xkr47
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
+Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQBCekqz/jxG54BC3LgRAvcZAKCU9561mFEYxDvmQtu8ON4dwAEprACaAti1
-1RWEY7EELFD3LwGO4tCU4tU=
-=nAeE
+iD8DBQFCe2gHxyF48ZTvn+4RAjDdAJ0b2SMjV0xh/l84RBDdU4t+ClkjewCdFPhL
+9lrHlGEIm1MBp68PkOQYizI=
+=n7Wy
 -----END PGP SIGNATURE-----
-
---=-6m1Ws1D0VefPE4hkUl+t--
