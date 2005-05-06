@@ -1,15 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Help Urgent (getting Oops in kfree_skb)
-Date: Fri, 6 May 2005 13:16:17 +0200
-Message-ID: <20050506111617.GH30482@sunbeam.de.gnumonks.org>
-References: <20050503150756.78518.qmail@web52209.mail.yahoo.com>
+Subject: Re: [PATCH] nfsim at route del command.
+Date: Fri, 6 May 2005 13:25:29 +0200
+Message-ID: <20050506112529.GI30482@sunbeam.de.gnumonks.org>
+References: <1114739405.1940.6.camel@www.l-chr.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; x-action=pgp-signed
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6xO04bqTG+NC5D6o"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: linux lover <linux_lover2004@yahoo.com>
+To: Christian Hentschel <chentschel@arnet.com.ar>
 Content-Disposition: inline
-In-Reply-To: <20050503150756.78518.qmail@web52209.mail.yahoo.com>
+In-Reply-To: <1114739405.1940.6.camel@www.l-chr.com.ar>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,29 +22,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-On Tue, May 03, 2005 at 08:07:56AM -0700, linux lover wrote:
-> Hello,     
->       On 2 ethernet linux box. After it gets started i
-> ifdown both eth's and do ping localhost.
+--6xO04bqTG+NC5D6o
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-which kernel versions are you using?  which modules loaded? which
-configuration? please always provide as much detail as possible. 
+On Thu, Apr 28, 2005 at 10:50:05PM -0300, Christian Hentschel wrote:
+> This patch fixes segfault at route del command.
 
-also, consider using bugzilla.netfilter.org for bug reports.
+How is this patch supposed to fix the problem?  AFAICT you no longer
+delete the route from the list, but still free it's data.
 
-- -- 
-- - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-============================================================================
+Please explain.
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
   "Fragmentation is like classful addressing -- an interesting early
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
+
+--6xO04bqTG+NC5D6o
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.0 (GNU/Linux)
 
-iD8DBQFCe1IBXaXGVTD0i/8RApVSAJ4tjihdOdG5fn97ClOKGBvdbN9QBgCffVB8
-DzaLdjDk/RK56vtmJF3jhT8=
-=1CnC
+iD8DBQFCe1QpXaXGVTD0i/8RAgfgAKCeN2bkB+afts2hTPMfYivaNm23GQCfYu4P
+rIZ+ZNOJTF1esq8BO05tthU=
+=SwCc
 -----END PGP SIGNATURE-----
+
+--6xO04bqTG+NC5D6o--
