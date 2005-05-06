@@ -1,15 +1,16 @@
 From: Jonas Berlin <xkr47@outerspace.dyndns.org>
 Subject: Re: Just starting with libipq
-Date: Fri, 06 May 2005 12:50:17 +0000
-Message-ID: <427B6809.4060300@outerspace.dyndns.org>
+Date: Fri, 06 May 2005 12:54:28 +0000
+Message-ID: <427B6904.70300@outerspace.dyndns.org>
 References: <427A29A0.8020502@reading.ac.uk>
+	<427B6809.4060300@outerspace.dyndns.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Duncan Godfrey <d.j.godfrey@reading.ac.uk>
-In-Reply-To: <427A29A0.8020502@reading.ac.uk>
+In-Reply-To: <427B6809.4060300@outerspace.dyndns.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,40 +25,32 @@ List-Id: netfilter-devel.vger.kernel.org
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-Quoting Duncan Godfrey on 2005-05-05 14:11 UTC:
+Quoting Jonas Berlin on 2005-05-06 12:50 UTC:
 
-> I was wondering if someone would be able to help me, Im just starting
-> out with some libipq development and Im trying to compile some example
-> source code from a tutorial site (I have compiled the source on the man
-> page an it worked fine).
+>>>quick.c:56: error: dereferencing pointer to incomplete type
+>>>quick.c:58: error: dereferencing pointer to incomplete type
 > 
-> Everytime I compile it with gcc -o quick quick.c -libpq, I get the
-> following errors:
+> 
+>>>     struct iphdr *ip = (struct iphdr*) m->payload;
+>>>
+>>>     struct tcphdr *tcp = (struct tcphdr*) (m->payload + (4 * ip->ihl));
 
-- -lipq not -libipq :)
+Sorry for bad quote, the lines with errors were actually:
 
-> quick.c:56: error: dereferencing pointer to incomplete type
-> quick.c:58: error: dereferencing pointer to incomplete type
+      struct tcphdr *tcp = (struct tcphdr*) (m->payload + (4 * ip->ihl));
 
->      struct iphdr *ip = (struct iphdr*) m->payload;
->
->      struct tcphdr *tcp = (struct tcphdr*) (m->payload + (4 * ip->ihl));
+      int port = htons(tcp->dest);
 
-The error message means gcc does not know of a struct/union that you are
-using. So it has to be either the "m" variable or then "ip" and "tcp"
-variables. In this case, it's the latter, you are missing these includes:
-
-#include <linux/ip.h>
-#include <linux/tcp.h>
-
-Add them and it should work. Good luck :)
+.. since the error message occurs when using a structure/union, not when
+ declaring it. Nevertheless, it was just my quote bug, the solution
+stays the same :)
 
 - --
 - - xkr47
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFCe2gHxyF48ZTvn+4RAjDdAJ0b2SMjV0xh/l84RBDdU4t+ClkjewCdFPhL
-9lrHlGEIm1MBp68PkOQYizI=
-=n7Wy
+iD8DBQFCe2kCxyF48ZTvn+4RAqcLAKC1lDLBikCu4nnq+3xwtluH8L2v1wCfdhr/
+vc8bGniDkxJ8veM9StUFYhA=
+=PRXh
 -----END PGP SIGNATURE-----
