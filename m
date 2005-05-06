@@ -1,40 +1,36 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: netfilter6: ICMPv6 type 143 doesn't match
-Date: Fri, 06 May 2005 23:22:42 +1000
-Message-ID: <E1DU2mw-0000UK-00@gondolin.me.apana.org.au>
-References: <427AA319.1040906@trash.net>
-Cc: davem@davemloft.net, dlstevens@us.ibm.com, laforge@gnumonks.org,
-        netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
-        pb@bieringer.de, usagi-users@linux-ipv6.org,
-        yasuyuki.kozakai@toshiba.co.jp, yoshfuji@linux-ipv6.org
-Return-path: <netdev-bounce@oss.sgi.com>
-To: kaber@trash.net (Patrick McHardy)
-In-Reply-To: <427AA319.1040906@trash.net>
-Sender: netdev-bounce@oss.sgi.com
-Errors-to: netdev-bounce@oss.sgi.com
+From: =?iso-8859-1?b?Svhybg==?= Andre Nese Berntzen <jornandr@stud.ntnu.no>
+Subject: libipq, open sockets stalling the app
+Date: Fri,  6 May 2005 16:29:09 +0200
+Message-ID: <1115389749.427b7f3511965@webmail.ntnu.no>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy <kaber@trash.net> wrote:
-> 
-> +static inline int mld_dev_queue_xmit2(struct sk_buff *skb)
-> +{
-> +       struct net_device *dev = skb->dev;
-> +
-> +       if (dev->hard_header) {
-> +               unsigned char ha[MAX_ADDR_LEN];
-> +               int err;
-> +
-> +               ndisc_mc_map(&skb->nh.ipv6h->daddr, ha, dev, 1);
-> +               err = dev->hard_header(skb, dev, ETH_P_IPV6, ha, NULL, skb->len);
-> +               if (err < 0) {
-> +                       IP6_INC_STATS(IPSTATS_MIB_OUTDISCARDS);
+Hi!
 
-You're now incrementing this twice since the callers will also
-increment this.
+I'm using libipq and ip_queue with the QUEUE target to
+redirect packages. Basically I intercept the packages,
+rewrite the destination IP and ACCEPT the package.
 
-Cheers,
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+My question is, during the running of the app
+'lsof | grep root' show theres building up open sockets
+to the resource limit and then the app stops working.
+I havent been able to pinpoint the problem but it seems
+like its in libipq.
+
+Does anyone know what this is? Am I missing out on the code
+somewhere and have a loose end maybe?
+
+J=F8rn Andre
