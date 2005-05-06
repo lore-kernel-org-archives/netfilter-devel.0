@@ -1,56 +1,40 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: Just starting with libipq
-Date: Fri, 06 May 2005 12:54:28 +0000
-Message-ID: <427B6904.70300@outerspace.dyndns.org>
-References: <427A29A0.8020502@reading.ac.uk>
-	<427B6809.4060300@outerspace.dyndns.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Duncan Godfrey <d.j.godfrey@reading.ac.uk>
-In-Reply-To: <427B6809.4060300@outerspace.dyndns.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: netfilter6: ICMPv6 type 143 doesn't match
+Date: Fri, 06 May 2005 23:22:42 +1000
+Message-ID: <E1DU2mw-0000UK-00@gondolin.me.apana.org.au>
+References: <427AA319.1040906@trash.net>
+Cc: davem@davemloft.net, dlstevens@us.ibm.com, laforge@gnumonks.org,
+        netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
+        pb@bieringer.de, usagi-users@linux-ipv6.org,
+        yasuyuki.kozakai@toshiba.co.jp, yoshfuji@linux-ipv6.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: kaber@trash.net (Patrick McHardy)
+In-Reply-To: <427AA319.1040906@trash.net>
+Sender: netdev-bounce@oss.sgi.com
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-Quoting Jonas Berlin on 2005-05-06 12:50 UTC:
-
->>>quick.c:56: error: dereferencing pointer to incomplete type
->>>quick.c:58: error: dereferencing pointer to incomplete type
+Patrick McHardy <kaber@trash.net> wrote:
 > 
-> 
->>>     struct iphdr *ip = (struct iphdr*) m->payload;
->>>
->>>     struct tcphdr *tcp = (struct tcphdr*) (m->payload + (4 * ip->ihl));
+> +static inline int mld_dev_queue_xmit2(struct sk_buff *skb)
+> +{
+> +       struct net_device *dev = skb->dev;
+> +
+> +       if (dev->hard_header) {
+> +               unsigned char ha[MAX_ADDR_LEN];
+> +               int err;
+> +
+> +               ndisc_mc_map(&skb->nh.ipv6h->daddr, ha, dev, 1);
+> +               err = dev->hard_header(skb, dev, ETH_P_IPV6, ha, NULL, skb->len);
+> +               if (err < 0) {
+> +                       IP6_INC_STATS(IPSTATS_MIB_OUTDISCARDS);
 
-Sorry for bad quote, the lines with errors were actually:
+You're now incrementing this twice since the callers will also
+increment this.
 
-      struct tcphdr *tcp = (struct tcphdr*) (m->payload + (4 * ip->ihl));
-
-      int port = htons(tcp->dest);
-
-.. since the error message occurs when using a structure/union, not when
- declaring it. Nevertheless, it was just my quote bug, the solution
-stays the same :)
-
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCe2kCxyF48ZTvn+4RAqcLAKC1lDLBikCu4nnq+3xwtluH8L2v1wCfdhr/
-vc8bGniDkxJ8veM9StUFYhA=
-=PRXh
------END PGP SIGNATURE-----
+Cheers,
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
