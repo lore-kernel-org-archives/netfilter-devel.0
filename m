@@ -1,17 +1,17 @@
 From: Christian Hentschel <chentschel@arnet.com.ar>
-Subject: Re: [PATCH] nfsim at route del command.
-Date: Fri, 06 May 2005 12:34:58 -0300
-Message-ID: <1115393698.1847.4.camel@www.l-chr.com.ar>
-References: <1114739405.1940.6.camel@www.l-chr.com.ar>
-	<20050506112529.GI30482@sunbeam.de.gnumonks.org>
+Subject: Re: ip_nat_mangle_udp_packet problems
+Date: Fri, 06 May 2005 15:27:24 -0300
+Message-ID: <1115404044.1847.19.camel@www.l-chr.com.ar>
+References: <1115310771.1852.11.camel@www.l-chr.com.ar>
+	<427B9A38.2040602@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="=-S83he3kxP1Bz3qYNqNoN"
+	boundary="=-pbgsom+TtdFXPVNty6Wl"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050506112529.GI30482@sunbeam.de.gnumonks.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <427B9A38.2040602@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,77 +24,60 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-S83he3kxP1Bz3qYNqNoN
-Content-Type: multipart/mixed; boundary="=-gRjGxrzkmuYKVHbj3r9p"
-
-
---=-gRjGxrzkmuYKVHbj3r9p
+--=-pbgsom+TtdFXPVNty6Wl
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-Yes, sorry for that. I'm quite stupid some times.
-=20
-There is an extra call to list_del() in tool/route.c at line 186. when
-someone's trying to delete a route.=20
-ie. route del 192.168.0.0/24
+On Fri, 2005-05-06 at 18:24 +0200, Patrick McHardy wrote:
+> Christian Hentschel wrote:
+> > Hi,=20
+> > 	i hope someone could answer this problem i'm experimenting. I'm writin=
+g
+> > a SIP/RTP conntrack/NAT helper, and i need to mangle packets multiple
+> > times, since there are lots of fields to be mangled.
+> > 	I'm using new conntrack/nat framework (>2.6.11) and the way i took to
+> > do it is causing me some problems.
+> > 	Basically, i just look for string into the packet, mangle it and call
+> > ip_nat_mangle_udp_packet(). The problem is when i try to search the
+> > nexts strings, i get the wrong offsets.=20
+> > I saw ip_nat_mangle_udp_packet() does not do it manipulation
+> > immediatelly. Please could someone explain this ?.
+>=20
+> enlarge_skb() called from ip_nat_mangle_udp_packet() might replace the
+> packet if it doesn't fit. You need to reload all pointers to the skb
+> after calling ip_nat_mangle_udp_packet().
 
-The implementation leaves core/ipv4.c at line 38, the "destruction" of
-the route after calling talloc_free().=20
-here's that code:=20
+Hi, well first thanks for answering my problem.=20
+What i see in enlarge_skb() is that if packet is larger than 65536 it
+does as u said a copy. But i'm mangling <1024bytes packets, and after
+mangling searching from the start of the paiload. This is
+(*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr).
 
-static int destroy_route(void *r)
-{
-	struct ipv4_route *route =3D r;
-	list_del(&route->entry);
-	return 0;
-}
-So this extra call leaves wild pointers causing the second call to
-segfault.
-This patch fixes this segfault, leaving the destruction of the route at
-line 38 of core/ipv4.c
+I see that enlarge_skb() does the "reload" of the pointer to pskb,
+pointing it to the enlarged skbuff. This is what u meant?
 
-Regards
+        kfree_skb(*pskb);
+        *pskb =3D nskb;
+        return 1;
+
+what is happening is really obscure for me.
+
+Thanks in advance.=20
 Christian.
 
-
-On Fri, 2005-05-06 at 13:25 +0200, Harald Welte wrote:
-> On Thu, Apr 28, 2005 at 10:50:05PM -0300, Christian Hentschel wrote:
-> > This patch fixes segfault at route del command.
->=20
-> How is this patch supposed to fix the problem?  AFAICT you no longer
-> delete the route from the list, but still free it's data.
->=20
-> Please explain.
->=20
 --=20
 Christian Hentschel <chentschel@arnet.com.ar>
 
---=-gRjGxrzkmuYKVHbj3r9p
-Content-Disposition: attachment; filename=nfsim_route.patch
-Content-Type: text/x-patch; name=nfsim_route.patch; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: base64
-
-SW5kZXg6IHRvb2xzL3JvdXRlLmMNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCi0tLSB0b29scy9yb3V0ZS5jCShyZXZp
-c2lvbiAzODk2KQ0KKysrIHRvb2xzL3JvdXRlLmMJKHdvcmtpbmcgY29weSkNCkBAIC0xODMsNyAr
-MTgzLDYgQEANCiAJCQlpZiAocm91dGUtPm5ldHdvcmsgPT0gcjItPm5ldHdvcmsgJiYNCiAJCQkg
-ICAgcm91dGUtPm5ldG1hc2sgPT0gcjItPm5ldG1hc2spIHsNCiAJCQkJZm91bmQ9MTsNCi0JCQkJ
-bGlzdF9kZWwoJnIyLT5lbnRyeSk7DQogCQkJCXRhbGxvY19mcmVlKHIyKTsNCiAJCQkJbmZzaW1f
-bG9nKExPR19VSSwgInJvdXRlIHJlbW92ZWQiKTsNCiAJCQkJYnJlYWs7DQo=
-
-
---=-gRjGxrzkmuYKVHbj3r9p--
-
---=-S83he3kxP1Bz3qYNqNoN
+--=-pbgsom+TtdFXPVNty6Wl
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQBCe46i/jxG54BC3LgRAkG5AJ9zG1vAHR7yRqz+45MD/BA3eBiQWQCglS7z
-bp0iOrUWZOqUaaeRGIp0Iyo=
-=iEB9
+iD8DBQBCe7cM/jxG54BC3LgRAj9FAJ4qq1dTVFRSq6mni/kCdcGa+QG+tACgnWcG
+Odf5B6wwj7Hyzq461hZweCs=
+=Vtr6
 -----END PGP SIGNATURE-----
 
---=-S83he3kxP1Bz3qYNqNoN--
+--=-pbgsom+TtdFXPVNty6Wl--
