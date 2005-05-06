@@ -1,16 +1,18 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Open Port match
-Date: Fri, 06 May 2005 17:22:24 +0200
-Message-ID: <427B8BB0.3090109@trash.net>
-References: <1115264925.2118.3.camel@localhost.localdomain>
+Subject: Re: [PATCH] Delete nfcache use in ip_table
+Date: Fri, 06 May 2005 17:24:38 +0200
+Message-ID: <427B8C36.4060000@trash.net>
+References: <427A469D.8030305@eurodev.net> <427A49F6.2090607@trash.net>
+	<427AB976.8040402@eurodev.net>
+	<427B151F.4040101@outerspace.dyndns.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: works_five_times545.epsilon.ssokolow@spamgourmet.com,
-	Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>, KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-In-Reply-To: <1115264925.2118.3.camel@localhost.localdomain>
+To: Jonas Berlin <xkr47@outerspace.dyndns.org>
+In-Reply-To: <427B151F.4040101@outerspace.dyndns.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,14 +24,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Rusty Russell wrote:
-> Ssokolow asked for this.  Someone can enhance to cover UDP and put in
-> patch-o-matic if they're enthusiastic about it.
+Jonas Berlin wrote:
+> Would it be possible (and would it make sense) using #ifdefs to only
+> have those NFC_* visible to userspace? Or would that break something too?
 
-I think this feature should be added to the owner match. I have a couple
-of patches coming up that add hooks to the protocols, which get the
-socket as argument. This gets rid of exporting the lookup-functions.
-I'll post them within the next couple of days.
+Possible sure (#ifndef __KERNEL__), but what would the gain be?
 
 Regards
 Patrick
