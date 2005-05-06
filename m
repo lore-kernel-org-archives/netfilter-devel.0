@@ -1,17 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ip_nat_mangle_udp_packet problems
-Date: Fri, 06 May 2005 20:36:33 +0200
-Message-ID: <427BB931.60709@trash.net>
-References: <1115310771.1852.11.camel@www.l-chr.com.ar>	
-	<427B9A38.2040602@trash.net>
-	<1115404044.1847.19.camel@www.l-chr.com.ar>
+From: =?iso-8859-1?b?Svhybg==?= Andre Nese Berntzen <jornandr@stud.ntnu.no>
+Subject: Re: libipq, open sockets stalling the app
+Date: Fri,  6 May 2005 21:44:21 +0200
+Message-ID: <1115408660.427bc91502625@webmail.ntnu.no>
+References: <1115389749.427b7f3511965@webmail.ntnu.no>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Christian Hentschel <chentschel@arnet.com.ar>
-In-Reply-To: <1115404044.1847.19.camel@www.l-chr.com.ar>
+To: "netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <1115389749.427b7f3511965@webmail.ntnu.no>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,34 +20,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Christian Hentschel wrote:
-> What i see in enlarge_skb() is that if packet is larger than 65536 it
-> does as u said a copy.
+Hi!
 
-No, it drops it if it gets this large. skb_copy_expand(), as it name
-implies, copies the packet to a new one with more room.
+ Just wanted to apologize for this. It was my own bug
+ since I hadnt closed a socket when I used ioctl and
+ SIOCGIFNETMASK to get information from the ethernet card.
+ libipq works just splendid!
 
-> I see that enlarge_skb() does the "reload" of the pointer to pskb,
-> pointing it to the enlarged skbuff. This is what u meant?
-> 
->         kfree_skb(*pskb);
->         *pskb = nskb;
->         return 1;
+ I'm now using libipq to semi-tunnel tcp connections
+ using a host and a 'fake' gw which then routes the packets
+ independent of the 'route' gw (except for icmp and
+ udp traffic which goes by the gw in the route). The whole
+ thing is for the Olsr protocol since it changes gateway
+ after 'topology and its whereabouts' rather than using
+ static gw. This way a host can be told of (via broadcast)
+ any possible gateways and choose which one to use for its
+ tcp-connections, independently of the default gw. The nice
+ thing with this is the load balancing effect possible
+ between multiple gateways if this is wanted.
 
-Not really. What I meant is that if you have something like this before
-the call to ip_nat_mangle_udp_packet():
+ BTW, Netfilter is a beautiful piece of software!
 
-struct udphdr *uh = (void *)(*pskb)->nh.iph + (*pskb)->nh.iph->ihl*4;
+ J=F8rn Andre
 
-then you need to reload the pointer after the call like this:
 
-uh = (void *)(*pskb)->nh.iph + (*pskb)->nh.iph->ihl*4;
+Quoting J=F8rn Andre Nese Berntzen <jornandr@stud.ntnu.no>:
 
-otherwise it might point to the old and already freed skb.
+> Hi!
+>
+> I'm using libipq and ip_queue with the QUEUE target to
+> redirect packages. Basically I intercept the packages,
+> rewrite the destination IP and ACCEPT the package.
+>
+> My question is, during the running of the app
+> 'lsof | grep root' show theres building up open sockets
+> to the resource limit and then the app stops working.
+> I havent been able to pinpoint the problem but it seems
+> like its in libipq.
+>
+> Does anyone know what this is? Am I missing out on the code
+> somewhere and have a loose end maybe?
+>
+> J=F8rn Andre
+>
 
-> what is happening is really obscure for me.
 
-Just post your code if this doesn't help.
-
-Regards
-Patrick
+--
