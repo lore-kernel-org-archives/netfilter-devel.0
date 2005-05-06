@@ -1,17 +1,16 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: [PATCH] Delete nfcache use in ip_table
-Date: Fri, 06 May 2005 06:56:31 +0000
-Message-ID: <427B151F.4040101@outerspace.dyndns.org>
-References: <427A469D.8030305@eurodev.net> <427A49F6.2090607@trash.net>
-	<427AB976.8040402@eurodev.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: changing packet length?
+Date: Fri, 6 May 2005 13:14:10 +0200
+Message-ID: <20050506111410.GG30482@sunbeam.de.gnumonks.org>
+References: <20050503213406.GE13894@tigris.renesys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>, KOVACS Krisztian <hidden@balabit.hu>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="PNY+9Zst+/98ADCY"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <427AB976.8040402@eurodev.net>
+To: BJ Premore <bj-netfilter@renesys.com>
+Content-Disposition: inline
+In-Reply-To: <20050503213406.GE13894@tigris.renesys.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,25 +22,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-Quoting Pablo Neira on 2005-05-06 00:25 UTC:
+--PNY+9Zst+/98ADCY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> While I was at it, I thought about killing NFC_* stuff in
-> include/linux/netfilter[_ipv4].h, then I realized that old iptables
-> versions won't compile if I do so. Those will have to remain there to
-> ensure backward compatibility compilation.
+On Tue, May 03, 2005 at 05:34:06PM -0400, BJ Premore wrote:
+> So my hopefully simple question is, can packet sizes be
+> changed and then reinjected using ipq_set_verdict? =20
 
-Would it be possible (and would it make sense) using #ifdefs to only
-have those NFC_* visible to userspace? Or would that break something too?
+Of course. you just reinject the packet with a different data_len.
 
-- --
-- - xkr47
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--PNY+9Zst+/98ADCY
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+Version: GnuPG v1.4.0 (GNU/Linux)
 
-iD8DBQFCexUdxyF48ZTvn+4RAgSSAKCThQsBMaX+WSaqnA/l3Ljyok+QUwCgsrcn
-tXAeFh2XKpgg5BnPrgC7XEw=
-=ZmxL
+iD8DBQFCe1GCXaXGVTD0i/8RAhpOAJ49/5gw4BJtKMD+D+Qn3Rb8hW0N5QCfbFgk
+7zivVrCr1WurlozWby1rhio=
+=22Fz
 -----END PGP SIGNATURE-----
+
+--PNY+9Zst+/98ADCY--
