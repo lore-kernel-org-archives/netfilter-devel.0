@@ -1,13 +1,18 @@
-From: Alexander Samad <alex@samad.com.au>
-Subject: Q) netfilter IPv6 & NAt
-Date: Sat, 7 May 2005 13:08:24 +1000
-Message-ID: <20050507030824.GN12091@samad.com.au>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: [PATCH] Delete nfcache use in ip_table
+Date: Sat, 07 May 2005 04:44:58 +0000
+Message-ID: <427C47CA.1060307@outerspace.dyndns.org>
+References: <427A469D.8030305@eurodev.net> <427A49F6.2090607@trash.net>
+	<427AB976.8040402@eurodev.net>
+	<427B151F.4040101@outerspace.dyndns.org>
+	<427B8C36.4060000@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UExESr5xZTMxdOWv"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <427B8C36.4060000@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,34 +24,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---UExESr5xZTMxdOWv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Quoting Patrick McHardy on 2005-05-06 15:24 UTC:
+>>Would it be possible (and would it make sense) using #ifdefs to only
+>>have those NFC_* visible to userspace? Or would that break something too?
+> Possible sure (#ifndef __KERNEL__), but what would the gain be?
 
-Hi
+I assumed the point by the removal was to make sure nobody used them [in
+the kernel] anymore.. But maybe the point is just to phase it out
+completely.. :)
 
-I remember there was an discussion before about NAT in ip6tables and the
-last comment was along the lines that NAt will never be implemented in
-netfilter as there is no need for it.
-
-My question is how would you use a linux box as a load balancer for a
-cluster of app servers (say apache) if we were only using ipv6, is this
-where ROUTE target is used.
-
-Alex
-
---UExESr5xZTMxdOWv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
+- --
+- - xkr47
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
+Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFCfDEokZz88chpJ2MRAltZAJ9gZiYYt0QBD523m+RDF3JKbQtiLwCgjqYR
-anM4SqVCVZDoXpXtrXDbm0Y=
-=Uf0Y
+iD8DBQFCfEfIxyF48ZTvn+4RAoMUAKCdCS032rSUAM9AEcpdEfNkuxw22QCgiCrn
+bGScaDZ3IReiUdQHhakbVc0=
+=NAx/
 -----END PGP SIGNATURE-----
-
---UExESr5xZTMxdOWv--
