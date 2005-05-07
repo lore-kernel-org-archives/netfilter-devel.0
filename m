@@ -1,18 +1,12 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: [PATCH] Delete nfcache use in ip_table
-Date: Sat, 07 May 2005 04:44:58 +0000
-Message-ID: <427C47CA.1060307@outerspace.dyndns.org>
-References: <427A469D.8030305@eurodev.net> <427A49F6.2090607@trash.net>
-	<427AB976.8040402@eurodev.net>
-	<427B151F.4040101@outerspace.dyndns.org>
-	<427B8C36.4060000@trash.net>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: [IPTABLES PATCH] Fix leak in merge_opts
+Date: Sat, 07 May 2005 16:26:08 +0200
+Message-ID: <427CD000.40002@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------060203040707090208030402"
+Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <427B8C36.4060000@trash.net>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,24 +18,156 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+This is a multi-part message in MIME format.
+--------------060203040707090208030402
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Quoting Patrick McHardy on 2005-05-06 15:24 UTC:
->>Would it be possible (and would it make sense) using #ifdefs to only
->>have those NFC_* visible to userspace? Or would that break something too?
-> Possible sure (#ifndef __KERNEL__), but what would the gain be?
+Hi Harald,
 
-I assumed the point by the removal was to make sure nobody used them [in
-the kernel] anymore.. But maybe the point is just to phase it out
-completely.. :)
+The function merge_opts doesn't release previously merged options, this 
+results in a memory leak. This increases considerably memory comsumption 
+in iptables-restore.
 
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+This patch fixes a leak on error paths as well.
 
-iD8DBQFCfEfIxyF48ZTvn+4RAoMUAKCdCS032rSUAM9AEcpdEfNkuxw22QCgiCrn
-bGScaDZ3IReiUdQHhakbVc0=
-=NAx/
------END PGP SIGNATURE-----
+Results: With my testcase ruleset of ~10.000 rules and this patch, 
+iptables-restore reduces memory consumption by 66 percent. It's passed 
+from eating ~12 Mbytes to ~4 Mbytes. This can be interesting for 
+embedded devices running iptables.
+
+--
+Pablo
+
+--------------060203040707090208030402
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+Index: iptables.c
+===================================================================
+--- iptables.c	(revision 3889)
++++ iptables.c	(working copy)
+@@ -306,6 +306,16 @@
+ 	dst->s_addr = src->s_addr;
+ }
+ 
++static void free_opts(int reset_offset)
++{
++	if (opts != original_opts) {
++		free(opts);
++		opts = original_opts;
++		if (reset_offset)
++			global_option_offset = 0;
++	}
++}
++
+ void
+ exit_error(enum exittype status, char *msg, ...)
+ {
+@@ -321,6 +331,8 @@
+ 	if (status == VERSION_PROBLEM)
+ 		fprintf(stderr,
+ 			"Perhaps iptables or your kernel needs to be upgraded.\n");
++	/* On error paths, make sure that we don't leak memory */
++	free_opts(1);
+ 	exit(status);
+ }
+ 
+@@ -331,6 +343,7 @@
+ 		fprintf(stderr, "Error occurred at line: %d\n", line);
+ 	fprintf(stderr, "Try `%s -h' or '%s --help' for more information.\n",
+ 			program_name, program_name );
++	free_opts(1);
+ 	exit(status);
+ }
+ 
+@@ -1016,6 +1029,9 @@
+ 	unsigned int num_old, num_new, i;
+ 	struct option *merge;
+ 
++	/* Release previous options merged if any */
++	free_opts(0);
++	
+ 	for (num_old = 0; oldopts[num_old].name; num_old++);
+ 	for (num_new = 0; newopts[num_new].name; num_new++);
+ 
+@@ -2443,12 +2459,7 @@
+ 
+ 	free(saddrs);
+ 	free(daddrs);
++	free_opts(1);
+ 
+-	if (opts != original_opts) {
+-		free(opts);
+-		opts = original_opts;
+-		global_option_offset = 0;
+-	}
+-
+ 	return ret;
+ }
+Index: ip6tables.c
+===================================================================
+--- ip6tables.c	(revision 3889)
++++ ip6tables.c	(working copy)
+@@ -252,6 +252,16 @@
+ 	/* dst->s6_addr = src->s6_addr; */
+ }
+ 
++static void free_opts(int reset_offset)
++{
++	if (opts != original_opts) {
++		free(opts);
++		opts = original_opts;
++		if (reset_offset)
++			global_option_offset = 0;
++	}
++}
++
+ void
+ exit_error(enum exittype status, char *msg, ...)
+ {
+@@ -267,6 +277,8 @@
+ 	if (status == VERSION_PROBLEM)
+ 		fprintf(stderr,
+ 			"Perhaps ip6tables or your kernel needs to be upgraded.\n");
++	/* On error paths, make sure that we don't leak memory */
++	free_opts(1);
+ 	exit(status);
+ }
+ 
+@@ -277,6 +289,7 @@
+ 		fprintf(stderr, "Error occurred at line: %d\n", line);
+ 	fprintf(stderr, "Try `%s -h' or '%s --help' for more information.\n",
+ 			program_name, program_name );
++	free_opts(1);
+ 	exit(status);
+ }
+ 
+@@ -1016,6 +1029,9 @@
+ 	unsigned int num_old, num_new, i;
+ 	struct option *merge;
+ 
++	/* Release previous options merged if any */
++	free_opts(0);
++
+ 	for (num_old = 0; oldopts[num_old].name; num_old++);
+ 	for (num_new = 0; newopts[num_new].name; num_new++);
+ 
+@@ -2336,11 +2352,7 @@
+ 	for (c = 0; c < ndaddrs; c++)
+ 		free(&daddrs[c]);
+ 
+-	if (opts != original_opts) {
+-		free(opts);
+-		opts = original_opts;
+-		global_option_offset = 0;
+-	}
++	free_opts(1);
+ 
+ 	return ret;
+ }
+
+--------------060203040707090208030402--
