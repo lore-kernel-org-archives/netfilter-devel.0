@@ -1,12 +1,11 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: [IPTABLES PATCH] Fix leak in merge_opts
-Date: Sat, 07 May 2005 16:26:08 +0200
-Message-ID: <427CD000.40002@eurodev.net>
+From: cranium2003 <cranium2003@yahoo.com>
+Subject: how to determine next hop ip at Router?
+Date: Sat, 7 May 2005 07:27:43 -0700 (PDT)
+Message-ID: <20050507142744.68229.qmail@web41424.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060203040707090208030402"
-Cc: Harald Welte <laforge@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,156 +17,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060203040707090208030402
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+hello,
+I have setup a network with 4pcs as
+HostA
+eth0=> 192.168.1.100
 
-Hi Harald,
+Router1
+eth0=>10.1.1.1
+eth1=>192.168.1.1
 
-The function merge_opts doesn't release previously merged options, this 
-results in a memory leak. This increases considerably memory comsumption 
-in iptables-restore.
+Router2
+eth0=>10.1.1.100
+eth1=>172.16.1.1
 
-This patch fixes a leak on error paths as well.
+HostB
+eth0=>172.16.1.100
 
-Results: With my testcase ruleset of ~10.000 rules and this patch, 
-iptables-restore reduces memory consumption by 66 percent. It's passed 
-from eating ~12 Mbytes to ~4 Mbytes. This can be interesting for 
-embedded devices running iptables.
+And set Router1 and Router2 as packet
+forwarder(Router). Now what i 
+want is when i send a packet from HostA to HostB
+packet is still sent as src ip=192.168.1.100 and dest
+ip=172.16.1.100 its ok but how can i check at Router1
+that packet is Direct Delivery or Indirect Delivery?
+What i want that i should get information at Router1
+that whaterver HostA sends a packet with dest ip
+172.16.1.100 i should get that next ip to which packet
+is going to be forwarded. In here i want to get
+information that though dest ip is 172.16.1.100 the
+next ip is 10.1.1.100?
+         How to get that info???
+regards,
+cranium
 
---
-Pablo
 
---------------060203040707090208030402
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-Index: iptables.c
-===================================================================
---- iptables.c	(revision 3889)
-+++ iptables.c	(working copy)
-@@ -306,6 +306,16 @@
- 	dst->s_addr = src->s_addr;
- }
- 
-+static void free_opts(int reset_offset)
-+{
-+	if (opts != original_opts) {
-+		free(opts);
-+		opts = original_opts;
-+		if (reset_offset)
-+			global_option_offset = 0;
-+	}
-+}
-+
- void
- exit_error(enum exittype status, char *msg, ...)
- {
-@@ -321,6 +331,8 @@
- 	if (status == VERSION_PROBLEM)
- 		fprintf(stderr,
- 			"Perhaps iptables or your kernel needs to be upgraded.\n");
-+	/* On error paths, make sure that we don't leak memory */
-+	free_opts(1);
- 	exit(status);
- }
- 
-@@ -331,6 +343,7 @@
- 		fprintf(stderr, "Error occurred at line: %d\n", line);
- 	fprintf(stderr, "Try `%s -h' or '%s --help' for more information.\n",
- 			program_name, program_name );
-+	free_opts(1);
- 	exit(status);
- }
- 
-@@ -1016,6 +1029,9 @@
- 	unsigned int num_old, num_new, i;
- 	struct option *merge;
- 
-+	/* Release previous options merged if any */
-+	free_opts(0);
-+	
- 	for (num_old = 0; oldopts[num_old].name; num_old++);
- 	for (num_new = 0; newopts[num_new].name; num_new++);
- 
-@@ -2443,12 +2459,7 @@
- 
- 	free(saddrs);
- 	free(daddrs);
-+	free_opts(1);
- 
--	if (opts != original_opts) {
--		free(opts);
--		opts = original_opts;
--		global_option_offset = 0;
--	}
--
- 	return ret;
- }
-Index: ip6tables.c
-===================================================================
---- ip6tables.c	(revision 3889)
-+++ ip6tables.c	(working copy)
-@@ -252,6 +252,16 @@
- 	/* dst->s6_addr = src->s6_addr; */
- }
- 
-+static void free_opts(int reset_offset)
-+{
-+	if (opts != original_opts) {
-+		free(opts);
-+		opts = original_opts;
-+		if (reset_offset)
-+			global_option_offset = 0;
-+	}
-+}
-+
- void
- exit_error(enum exittype status, char *msg, ...)
- {
-@@ -267,6 +277,8 @@
- 	if (status == VERSION_PROBLEM)
- 		fprintf(stderr,
- 			"Perhaps ip6tables or your kernel needs to be upgraded.\n");
-+	/* On error paths, make sure that we don't leak memory */
-+	free_opts(1);
- 	exit(status);
- }
- 
-@@ -277,6 +289,7 @@
- 		fprintf(stderr, "Error occurred at line: %d\n", line);
- 	fprintf(stderr, "Try `%s -h' or '%s --help' for more information.\n",
- 			program_name, program_name );
-+	free_opts(1);
- 	exit(status);
- }
- 
-@@ -1016,6 +1029,9 @@
- 	unsigned int num_old, num_new, i;
- 	struct option *merge;
- 
-+	/* Release previous options merged if any */
-+	free_opts(0);
-+
- 	for (num_old = 0; oldopts[num_old].name; num_old++);
- 	for (num_new = 0; newopts[num_new].name; num_new++);
- 
-@@ -2336,11 +2352,7 @@
- 	for (c = 0; c < ndaddrs; c++)
- 		free(&daddrs[c]);
- 
--	if (opts != original_opts) {
--		free(opts);
--		opts = original_opts;
--		global_option_offset = 0;
--	}
-+	free_opts(1);
- 
- 	return ret;
- }
-
---------------060203040707090208030402--
+		
+Discover Yahoo! 
+Have fun online with music videos, cool games, IM and more. Check it out! 
+http://discover.yahoo.com/online.html
