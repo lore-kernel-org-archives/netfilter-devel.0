@@ -1,11 +1,19 @@
-From: cranium2003 <cranium2003@yahoo.com>
-Subject: how to determine next hop ip at Router?
-Date: Sat, 7 May 2005 07:27:43 -0700 (PDT)
-Message-ID: <20050507142744.68229.qmail@web41424.mail.yahoo.com>
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: Re: [RFC] alternative to conntrack ID
+Date: Sat, 07 May 2005 22:36:55 +0200
+Message-ID: <427D26E7.8060701@ingate.com>
+References: <424747E3.7000300@eurodev.net>	<42502F8D.5030504@trash.net>	<4254258E.5000204@eurodev.net>	<42627BC4.8070103@trash.net>	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>	<20050429080242.GJ9735@sunbeam.de.gnumonks.org>	<42789366.20702@ufomechanic.net>
+	<4278B23A.7050406@trash.net>	<4278B98E.7090707@ufomechanic.net>
+	<427B8A46.8090006@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>, Amin Azez <azez@ufomechanic.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <427B8A46.8090006@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,40 +25,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-hello,
-I have setup a network with 4pcs as
-HostA
-eth0=> 192.168.1.100
+Patrick McHardy wrote:
+> Amin Azez wrote:
+> 
+>>There isn't the problems of having to generate a unique id, or the worry
+>>of it finally wrapping every few years as we don't pretend it is unique.
+>>However, combined with either tuple it forms a unique id that wraps only
+>>when the calendar does.
+> 
+> Wrapping is not a problem with a 64bit id. One thing I'm worried about
+> with using a timestamp is that it might not be of high enough precision
+> with very fast CPU and network to uniquely identify each connection.
 
-Router1
-eth0=>10.1.1.1
-eth1=>192.168.1.1
+You don't even need fast CPUs or networks to risk precision problems
+- think multiple NICs and SMP.
 
-Router2
-eth0=>10.1.1.100
-eth1=>172.16.1.1
-
-HostB
-eth0=>172.16.1.100
-
-And set Router1 and Router2 as packet
-forwarder(Router). Now what i 
-want is when i send a packet from HostA to HostB
-packet is still sent as src ip=192.168.1.100 and dest
-ip=172.16.1.100 its ok but how can i check at Router1
-that packet is Direct Delivery or Indirect Delivery?
-What i want that i should get information at Router1
-that whaterver HostA sends a packet with dest ip
-172.16.1.100 i should get that next ip to which packet
-is going to be forwarded. In here i want to get
-information that though dest ip is 172.16.1.100 the
-next ip is 10.1.1.100?
-         How to get that info???
-regards,
-cranium
-
-
-		
-Discover Yahoo! 
-Have fun online with music videos, cool games, IM and more. Check it out! 
-http://discover.yahoo.com/online.html
+//Marcus
+-- 
+---------------------------------------+--------------------------
+  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+ Software Developer, Ingate Systems AB |  http://www.ingate.com/
