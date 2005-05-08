@@ -1,18 +1,15 @@
-From: Marcus Sundberg <marcus@ingate.com>
-Subject: Re: [RFC] alternative to conntrack ID
-Date: Sun, 08 May 2005 00:32:26 +0200
-Message-ID: <427D41FA.5080506@ingate.com>
-References: <424747E3.7000300@eurodev.net>	<42502F8D.5030504@trash.net>	<4254258E.5000204@eurodev.net>	<42627BC4.8070103@trash.net>	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>	<20050429080242.GJ9735@sunbeam.de.gnumonks.org>	<42789366.20702@ufomechanic.net>	<4278B23A.7050406@trash.net>	<4278B98E.7090707@ufomechanic.net>	<427B8A46.8090006@trash.net>
-	<427D26E7.8060701@ingate.com> <427D3EAF.3020200@trash.net>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: ctnetlink weird events on ipsec connections
+Date: Sun, 08 May 2005 13:49:14 +0200
+Message-ID: <427DFCBA.5090702@eurodev.net>
+References: <1115048084.12112.52.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>, Amin Azez <azez@ufomechanic.net>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <427D3EAF.3020200@trash.net>
+To: Thomas <toom@docisland.org>
+In-Reply-To: <1115048084.12112.52.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,23 +21,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Marcus Sundberg wrote:
-> 
->>You don't even need fast CPUs or networks to risk precision problems
->>- think multiple NICs and SMP.
-> 
-> SMP or multiple NIcs don't matter because at any point in time only
-> one instance of a connection can exist. The challenge is to have a
-> unique identifier over time.
+Hi,
 
-Yes, having a unique identifier over time was what was being discussed,
-and I was merely pointing out that with SMP you can get two conntracks
-with identical timestamps even if you have infinite precision, since
-two new conntracks can be timestamped simultaneously by different CPUs.
+Thomas wrote:
+> Hello,
+> 
+> I recently tried the new ip_conntrack_netlink feature and I got a weird
+> result with ipsec connections : 
+> # conntrack -E conntrack
+> [DESTROY] src=<VPNGW_1> dst=<VPNGW_2>
+>           src=<VPNGW_2> dst=<VPNGW_1> timeout:180
+>           orig_packets=8391 orig_bytes=1252012,
+>           reply_packets=19 reply_bytes=11424 
+> [DESTROY] src=<INTERNAL_IP1> dst=<INTERNAL_IP2>
+>           src=<INTERNAL_IP2> dst=<INTERNAL_IP1> timeout:432000
+>           orig_packets=7763 orig_bytes=572775,
+>           reply_packets=5219 reply_bytes=1209729 
+> [DESTROY] src=<VPNGW_1> dst=<VPNGW_2>
+>           src=<VPNGW_2> dst=<VPNGW_1> timeout:180
+>           orig_packets=8392 orig_bytes=1252140,
+>           reply_packets=19 reply_bytes=11424 
+> [
 
-//Marcus
--- 
----------------------------------------+--------------------------
-  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
- Software Developer, Ingate Systems AB |  http://www.ingate.com/
+DESTROY] src=<INTERNAL_IP1> dst=<INTERNAL_IP2>
+>           src=<INTERNAL_IP2> dst=<INTERNAL_IP1> timeout:432000
+>           orig_packets=7764 orig_bytes=572827,
+>           reply_packets=5221 reply_bytes=1210553 
+> and so on ...
+> 
+> both INTERNAL_IP2 and VPNGW_2 ip are in the same host where I run
+> conntrack tool.
+
+I recently posted a patch to delete the use of nfcache in ip_tables, 
+this causes some interferences to the conntrack-event-api. I think that 
+it could be related to your problem.
+
+https://lists.netfilter.org/pipermail/netfilter-devel/2005-May/019574.html
+
+Could you give it a try and let me know if it fixes your problem?
+
+--
+Pablo
