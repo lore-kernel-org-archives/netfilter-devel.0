@@ -1,44 +1,134 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: BUG/CONFLICT conntrack with preroute/postroute mangle table
-Date: Mon, 09 May 2005 14:48:35 +0100
-Message-ID: <427F6A33.8090807@ufomechanic.net>
-References: <42677180.60003@ufomechanic.net>	<42677732.1000905@ufomechanic.net>	<20050421180723.03CF.LARK@linux.net.cn>	<426788B0.4090908@eurodev.net>	<426CF5FC.6090409@ufomechanic.net>	<426D1C69.2060107@ufomechanic.net>	<426D1E35.4030605@ufomechanic.net>	<426E4442.5070800@ufomechanic.net>	<d5cue9$3qf$1@sea.gmane.org>
-	<427A4457.7010509@eurodev.net> <427F456F.50407@ufomechanic.net>
+From: Juergen Kreileder <jk@blackdown.de>
+Subject: [PATCH] ipt_recent fixes
+Date: Mon, 09 May 2005 15:50:09 +0200
+Message-ID: <87ll6o1pbi.fsf@blackdown.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, 'Krisztian Kovacs' <hidden@sch.bme.hu>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <427F456F.50407@ufomechanic.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Stephen Frost <sfrost@snowman.net>,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261371AbVEINun@vger.kernel.org>
+To: Andrew Morton <akpm@osdl.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
+
+I've had some ipt_recent rules acting strangely after an uptime of
+about 25 days.  The broken behavior is reproducible in the 5 minutes
+before the first jiffies roll-over right after booting too.
+
+The cause of the problem is the jiffies comparision which doesn't work
+like intended if one of the last hits was more than LONG_MAX seconds
+ago or if the table of last hits contains empty slots and jiffies
+is > LONG_MAX.
+
+This patch fixes the problem by using get_seconds() instead of
+jiffies.  It also fixes some 64-bit issues.
 
 
-Amin Azez wrote:
-> iptables refers to some kernel-side and some user-side code.
-> When you say "iptables<1.3.1" which are you talking about? User side? 
-> (I've inherited use of 1.2.11 for historical reasons though I'm hoping 
-> to change that)
-> Is it a requirement to update to iptables 1.3.1 user space applications 
-> to avoid other instances of this bug?
-> 
-> Does a patch for this "one liner" need submitting to the list as 
-> Subject: [PATCH], to get signed off by anyone at all?
-> What is the procedure to ensure that this fix reaches the kernel properly?
+        Juergen
 
-Ignore my senseless ramblings, I also see that you have submitted a 
-wider patch addressing this problem.
+Signed-off-by: Juergen Kreileder <jk@blackdown.de>
 
-Thanks
+diff --exclude=arch --exclude-from=Documentation/dontdiff -ur ../linux-2.6.12-rc3-mm3/include/linux/netfilter_ipv4/ipt_recent.h ./include/linux/netfilter_ipv4/ipt_recent.h
+--- ../linux-2.6.12-rc3-mm3/include/linux/netfilter_ipv4/ipt_recent.h	2005-03-02 08:38:10.000000000 +0100
++++ ./include/linux/netfilter_ipv4/ipt_recent.h	2005-05-09 14:50:40.000000000 +0200
+@@ -2,7 +2,7 @@
+ #define _IPT_RECENT_H
+ 
+ #define RECENT_NAME	"ipt_recent"
+-#define RECENT_VER	"v0.3.1"
++#define RECENT_VER	"v0.3.2"
+ 
+ #define IPT_RECENT_CHECK  1
+ #define IPT_RECENT_SET    2
+diff --exclude=arch --exclude-from=Documentation/dontdiff -ur ../linux-2.6.12-rc3-mm3/net/ipv4/netfilter/ipt_recent.c ./net/ipv4/netfilter/ipt_recent.c
+--- ../linux-2.6.12-rc3-mm3/net/ipv4/netfilter/ipt_recent.c	2005-03-02 08:37:48.000000000 +0100
++++ ./net/ipv4/netfilter/ipt_recent.c	2005-05-09 15:06:58.000000000 +0200
+@@ -15,6 +15,7 @@
+ #include <linux/ctype.h>
+ #include <linux/ip.h>
+ #include <linux/vmalloc.h>
++#include <linux/time.h>
+ #include <linux/moduleparam.h>
+ 
+ #include <linux/netfilter_ipv4/ip_tables.h>
+@@ -64,7 +65,7 @@
+ 
+ struct time_info_list {
+ 	u_int32_t position;
+-	u_int32_t time;
++	unsigned long time;
+ };
+ 
+ /* Structure of our linked list of tables of recent lists. */
+@@ -223,7 +224,7 @@
+ 			curr_table->table[count].last_seen = 0;
+ 			curr_table->table[count].addr = 0;
+ 			curr_table->table[count].ttl = 0;
+-			memset(curr_table->table[count].last_pkts,0,ip_pkt_list_tot*sizeof(u_int32_t));
++			memset(curr_table->table[count].last_pkts,0,ip_pkt_list_tot*sizeof(unsigned long));
+ 			curr_table->table[count].oldest_pkt = 0;
+ 			curr_table->table[count].time_pos = 0;
+ 			curr_table->time_info[count].position = count;
+@@ -418,8 +419,8 @@
+ 	if(debug) printk(KERN_INFO RECENT_NAME ": match(): checking table, addr: %u, ttl: %u, orig_ttl: %u\n",addr,ttl,skb->nh.iph->ttl);
+ #endif
+ 
+-	/* Get jiffies now in case they changed while we were waiting for a lock */
+-	now = jiffies;
++	/* Get time now in case it changed while we were waiting for a lock */
++	now = get_seconds();
+ 	hash_table = curr_table->hash_table;
+ 	time_info = curr_table->time_info;
+ 
+@@ -502,7 +503,7 @@
+ 		location = time_info[curr_table->time_pos].position;
+ 		hash_table[r_list[location].hash_entry] = -1;
+ 		hash_table[hash_result] = location;
+-		memset(r_list[location].last_pkts,0,ip_pkt_list_tot*sizeof(u_int32_t));
++		memset(r_list[location].last_pkts,0,ip_pkt_list_tot*sizeof(unsigned long));
+ 		r_list[location].time_pos = curr_table->time_pos;
+ 		r_list[location].addr = addr;
+ 		r_list[location].ttl = ttl;
+@@ -528,11 +529,11 @@
+ 		if(info->check_set & IPT_RECENT_CHECK || info->check_set & IPT_RECENT_UPDATE) {
+ 			if(!info->seconds && !info->hit_count) ans = !info->invert; else ans = info->invert;
+ 			if(info->seconds && !info->hit_count) {
+-				if(time_before_eq(now,r_list[location].last_seen+info->seconds*HZ)) ans = !info->invert; else ans = info->invert;
++				if(now <= r_list[location].last_seen+info->seconds) ans = !info->invert; else ans = info->invert;
+ 			}
+ 			if(info->seconds && info->hit_count) {
+ 				for(pkt_count = 0, hits_found = 0; pkt_count < ip_pkt_list_tot; pkt_count++) {
+-					if(time_before_eq(now,r_list[location].last_pkts[pkt_count]+info->seconds*HZ)) hits_found++;
++					if(now <= r_list[location].last_pkts[pkt_count]+info->seconds) hits_found++;
+ 				}
+ 				if(hits_found >= info->hit_count) ans = !info->invert; else ans = info->invert;
+ 			}
+@@ -631,7 +632,7 @@
+ 			r_list[location].last_seen = 0;
+ 			r_list[location].addr = 0;
+ 			r_list[location].ttl = 0;
+-			memset(r_list[location].last_pkts,0,ip_pkt_list_tot*sizeof(u_int32_t));
++			memset(r_list[location].last_pkts,0,ip_pkt_list_tot*sizeof(unsigned long));
+ 			r_list[location].oldest_pkt = 0;
+ 			ans = !info->invert;
+ 		}
+@@ -734,10 +735,10 @@
+ 	memset(curr_table->table,0,sizeof(struct recent_ip_list)*ip_list_tot);
+ #ifdef DEBUG
+ 	if(debug) printk(KERN_INFO RECENT_NAME ": checkentry: Allocating %d for pkt_list.\n",
+-			sizeof(u_int32_t)*ip_pkt_list_tot*ip_list_tot);
++			sizeof(unsigned long)*ip_pkt_list_tot*ip_list_tot);
+ #endif
+ 
+-	hold = vmalloc(sizeof(u_int32_t)*ip_pkt_list_tot*ip_list_tot);
++	hold = vmalloc(sizeof(unsigned long)*ip_pkt_list_tot*ip_list_tot);
+ #ifdef DEBUG
+ 	if(debug) printk(KERN_INFO RECENT_NAME ": checkentry: After pkt_list allocation.\n");
+ #endif
+=
 
-Amin
+-- 
+Juergen Kreileder, Blackdown Java-Linux Team
+http://blog.blackdown.de/
