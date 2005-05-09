@@ -1,19 +1,16 @@
-From: Ludwig Nussel <ludwig.nussel@suse.de>
-Subject: Re: iptables-batch 2nd try
-Date: Mon, 9 May 2005 11:45:39 +0200
-Message-ID: <20050509094539.GA12708@suse.de>
-References: <20050421122008.GA22032@suse.de> <426BC783.3030603@trash.net>
-	<20050427125808.GA16169@suse.de>
-	<20050506114151.GJ30482@sunbeam.de.gnumonks.org>
-	<20050509085603.GA12173@suse.de>
-	<20050509090244.GD30482@sunbeam.de.gnumonks.org>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: BUG/CONFLICT conntrack with preroute/postroute mangle table
+Date: Mon, 09 May 2005 12:11:43 +0100
+Message-ID: <427F456F.50407@ufomechanic.net>
+References: <42677180.60003@ufomechanic.net>	<42677732.1000905@ufomechanic.net>	<20050421180723.03CF.LARK@linux.net.cn>	<426788B0.4090908@eurodev.net>	<426CF5FC.6090409@ufomechanic.net>	<426D1C69.2060107@ufomechanic.net>	<426D1E35.4030605@ufomechanic.net>	<426E4442.5070800@ufomechanic.net>
+	<d5cue9$3qf$1@sea.gmane.org> <427A4457.7010509@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, 'Krisztian Kovacs' <hidden@sch.bme.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20050509090244.GD30482@sunbeam.de.gnumonks.org>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <427A4457.7010509@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,43 +22,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> On Mon, May 09, 2005 at 10:56:03AM +0200, Ludwig Nussel wrote:
-> > 
-> > > My main objective is that the functionality between iptables-restore and
-> > > iptables-batch is pretty much the same.  I think either a converter
-> > > before iptables-restore, or modifications to iptables-restore would be a
-> > > better way.
-> > 
-> > There isn't much code to share between iptables-restore and
-> > iptables-batch. Although the functionality is similar they work
-> > differently.
->  
-> The question would then rather be: why is there no code share since the
-> functionality is similar? ;)
+Pablo Neira wrote:
 
-Hmm. Both read a file line by line and split it into words.
+> This bug can be reproduced if you use iptables < 1.3.1, since I 
+> personally sent a patch to remove any nfcache references in iptables 
+> code.
+>
+> https://lists.netfilter.org/pipermail/netfilter-devel/2005-February/018463.html 
+>
+>
+> Yes, It's a matter of removing that line. thanks for pointing out this.
+>
+> Krisztian, I think that this could be source of weird behaviours in 
+> ct_sync if your users use old iptables versions.
 
-iptables-batch then searches for -t to select the correct handle
-that is passed to do_command(). Allocation of the handle is left to
-do_command(). At EOF (or when reading "commit") it calls
-iptc_commit() on each handle. That's it. If you want to flush tables
-you have to add "iptables -F" lines yourself.
+iptables refers to some kernel-side and some user-side code.
+When you say "iptables<1.3.1" which are you talking about? User side? 
+(I've inherited use of 1.2.11 for historical reasons though I'm hoping 
+to change that)
+Is it a requirement to update to iptables 1.3.1 user space applications 
+to avoid other instances of this bug?
 
-iptables-restore has a special syntax for manually creating a single
-handle, creating chains and set their policy and for setting
-counters. One needs to COMMIT before switching to another table. A
-global setting determines whether all tables are flushed when a
-handle for them is allocated.
+Does a patch for this "one liner" need submitting to the list as 
+Subject: [PATCH], to get signed off by anyone at all?
+What is the procedure to ensure that this fix reaches the kernel properly?
 
-So IMHO all that can be shared are some lines initialization
-(getenv(), init_extensions()) and maybe the tokenizer. All the other
-code would need to be inside a if(batch) {...} else if (restore){...}
-
-cu
-Ludwig
-
--- 
- (o_   Ludwig Nussel
- //\   SUSE LINUX Products GmbH, Development
- V_/_  http://www.suse.de/
+Amin
