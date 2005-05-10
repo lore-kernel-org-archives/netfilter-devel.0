@@ -1,7 +1,7 @@
 From: "Mateusz" <mateusz@republika.pl>
-Subject: (no subject)
-Date: Tue, 10 May 2005 09:00:56 +0200
-Message-ID: <20050510070010Z130976-3319+273@kps2.test.onet.pl>
+Subject: connlimit patch crashes 2.6.11 kernel
+Date: Tue, 10 May 2005 09:11:15 +0200
+Message-ID: <20050510071032Z2651506-22927+755@kps3.test.onet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
