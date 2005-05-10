@@ -1,16 +1,12 @@
 From: =?ISO-8859-1?Q?J=E9r=F4me_Poulin?= <jeromepoulin@gmail.com>
-Subject: Re: Patch won't apply
-Date: Mon, 9 May 2005 20:10:01 -0400
-Message-ID: <debc30fc05050917104a2930a5@mail.gmail.com>
-References: <debc30fc05050916341490ee44@mail.gmail.com>
+Subject: ipt_TARPIT.c - dst_ptmu
+Date: Mon, 9 May 2005 23:58:22 -0400
+Message-ID: <debc30fc05050920582d8bde35@mail.gmail.com>
 Reply-To: =?ISO-8859-1?Q?J=E9r=F4me_Poulin?= <jeromepoulin@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="----=_Part_304_1105951.1115697502231"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <debc30fc05050916341490ee44@mail.gmail.com>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,23 +18,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Just found out what caused the problem! It seems that patch in the SVN
-which was done 4 days ago broke the versionning completely, reverting
-it repaired the problem on my side.
+------=_Part_304_1105951.1115697502231
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/Netfilt=
-er_POM.pm?rev=3D3896&r1=3D3820&r2=3D3896
+I get errors about :
+*** Warning: "dst_pmtu" [net/ipv4/netfilter/ipt_TARPIT.ko] undefined!
+when compiling the TARPIT, I replaced the dst_pmtu with dst_mtu and it
+now works, just a little patch to do to ipt_TARPIT.c to make it work
+with the new kernel I think. Using 2.6.12-rc3-mm3.
 
-On 5/9/05, J=E9r=F4me Poulin <jeromepoulin@gmail.com> wrote:
-> I just downloaded the kernel-2.6.12-rc3-mm3, the latest snapshot from
-> iptables and pom-ng (2005-05-09) and I tried to apply ./runme extra,
-> only 4 patchs were suited for my kernel, others won't apply saying
-> they "does not match your source trees". The 4 to apply were "set",
-> "connrate" (with 3 rejects / 4 hunks), "goto" and "h323-conntrack".
->=20
-> I compared them and found out all the patchs not having a Requires:
-> line in their info file were not matching, so I added Requires:
-> linux-2.6 >=3D 2.6.10  to all the patch I know were working in my last
-> kernel and it worked, they applied. I think the runme script is broken
-> or something because it always worked perfectly before.
->
+------=_Part_304_1105951.1115697502231
+Content-Type: application/octet-stream; name="ipt_TARPIT.c.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="ipt_TARPIT.c.diff"
+
+LS0tIGlwdF9UQVJQSVQuYy5vbGQJMjAwNS0wNS0wOSAyMzo1NDo1MC4wMDAwMDAwMDAgLTA0MDAK
+KysrIGlwdF9UQVJQSVQuYwkyMDA1LTA1LTA5IDIzOjUxOjE0LjAwMDAwMDAwMCAtMDQwMApAQCAt
+MTk0LDcgKzE5NCw3IEBACiAJbnNrYi0+ZHN0ID0gJm5ydC0+dS5kc3Q7CiAKIAkvKiAiTmV2ZXIg
+aGFwcGVucyIgKi8KLQlpZiAobnNrYi0+bGVuID4gZHN0X3BtdHUobnNrYi0+ZHN0KSkKKwlpZiAo
+bnNrYi0+bGVuID4gZHN0X210dShuc2tiLT5kc3QpKQogCQlnb3RvIGZyZWVfbnNrYjsKIAogCWlw
+X2RpcmVjdF9zZW5kIChuc2tiKTsK
+------=_Part_304_1105951.1115697502231--
