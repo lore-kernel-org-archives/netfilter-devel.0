@@ -1,13 +1,15 @@
-From: Thomas <toom@docisland.org>
-Subject: ctnetlink weird events on ipsec connections
-Date: Tue, 10 May 2005 15:52:32 +0200
-Message-ID: <1115733152.10793.8.camel@localhost.localdomain>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: 3896 pom-ng broken
+Date: Tue, 10 May 2005 08:43:54 -0700
+Message-ID: <20050510154354.GB28833@linuxace.com>
+References: <d5q4mb$fmo$1@sea.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: 1115048084.12112.52.camel@localhost.localdomain
+To: Amin Azez <azez@ufomechanic.net>
+Content-Disposition: inline
+In-Reply-To: <d5q4mb$fmo$1@sea.gmane.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,17 +21,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-your patch solves my problem
-
-Thanks
-
-Thomas
-
-Pablo Neira wrote:
-> I recently posted a patch to delete the use of nfcache in ip_tables, 
-> this causes some interferences to the conntrack-event-api. I think that 
-> it could be related to your problem.
+On Tue, May 10, 2005 at 12:15:19PM +0100, Amin Azez wrote:
+> This change
 > 
-> https://lists.netfilter.org/pipermail/netfilter-devel/2005-May/019574.html
+> http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/Netfilter_POM.pm?rev=3896&r1=3820&r2=3896
 > 
-> Could you give it a try and let me know if it fixes your problem?
+> breaks pom-ng for me, such that it fails to apply most of the pom 
+> patches because 2.6.11 seems to be the wrong source version.
+
+Perhaps this was intentional...which specific patches don't work, and did you verify
+the 'Requires' statement in the info file fits your kernel?
+
+Phil
