@@ -1,12 +1,25 @@
-From: =?ISO-8859-1?Q?J=E9r=F4me_Poulin?= <jeromepoulin@gmail.com>
-Subject: ipt_TARPIT.c - dst_ptmu
-Date: Mon, 9 May 2005 23:58:22 -0400
-Message-ID: <debc30fc05050920582d8bde35@mail.gmail.com>
-Reply-To: =?ISO-8859-1?Q?J=E9r=F4me_Poulin?= <jeromepoulin@gmail.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [RFC] alternative to conntrack ID
+Date: Tue, 10 May 2005 08:49:36 +0200
+Message-ID: <20050510064936.GQ30482@sunbeam.de.gnumonks.org>
+References: <20050429080242.GJ9735@sunbeam.de.gnumonks.org>
+	<42789366.20702@ufomechanic.net> <4278B23A.7050406@trash.net>
+	<4278B98E.7090707@ufomechanic.net> <427B8A46.8090006@trash.net>
+	<427D26E7.8060701@ingate.com> <427D3EAF.3020200@trash.net>
+	<427D41FA.5080506@ingate.com>
+	<1115648236.25627.17.camel@nienna.balabit>
+	<427F7D01.1090206@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----=_Part_304_1105951.1115697502231"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SZWGMWEqiICyNBuC"
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>, Marcus Sundberg <marcus@ingate.com>,
+	KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Amin Azez <azez@ufomechanic.net>
+Content-Disposition: inline
+In-Reply-To: <427F7D01.1090206@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,26 +31,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-------=_Part_304_1105951.1115697502231
-Content-Type: text/plain; charset=ISO-8859-1
+
+--SZWGMWEqiICyNBuC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
+
+On Mon, May 09, 2005 at 04:08:49PM +0100, Amin Azez wrote:
+
+> The time struct used in skb's has time and microtime.
+
+If you're referring to the skb receive timestamp:  That doesn't exist
+for locally-generated packet, and on 'real' incoming pcakets from the
+network it doesn't exist by default unless some application (such as
+tcpdump) requests it.
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--SZWGMWEqiICyNBuC
+Content-Type: application/pgp-signature
 Content-Disposition: inline
 
-I get errors about :
-*** Warning: "dst_pmtu" [net/ipv4/netfilter/ipt_TARPIT.ko] undefined!
-when compiling the TARPIT, I replaced the dst_pmtu with dst_mtu and it
-now works, just a little patch to do to ipt_TARPIT.c to make it work
-with the new kernel I think. Using 2.6.12-rc3-mm3.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
 
-------=_Part_304_1105951.1115697502231
-Content-Type: application/octet-stream; name="ipt_TARPIT.c.diff"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="ipt_TARPIT.c.diff"
+iD8DBQFCgFmAXaXGVTD0i/8RAmrZAJ9lnfxXIoYyq3rA4OhKa4x9i/xJ9ACgsZDZ
+4KJIZYEU1/Ah3lAFq9sV3IA=
+=S/xm
+-----END PGP SIGNATURE-----
 
-LS0tIGlwdF9UQVJQSVQuYy5vbGQJMjAwNS0wNS0wOSAyMzo1NDo1MC4wMDAwMDAwMDAgLTA0MDAK
-KysrIGlwdF9UQVJQSVQuYwkyMDA1LTA1LTA5IDIzOjUxOjE0LjAwMDAwMDAwMCAtMDQwMApAQCAt
-MTk0LDcgKzE5NCw3IEBACiAJbnNrYi0+ZHN0ID0gJm5ydC0+dS5kc3Q7CiAKIAkvKiAiTmV2ZXIg
-aGFwcGVucyIgKi8KLQlpZiAobnNrYi0+bGVuID4gZHN0X3BtdHUobnNrYi0+ZHN0KSkKKwlpZiAo
-bnNrYi0+bGVuID4gZHN0X210dShuc2tiLT5kc3QpKQogCQlnb3RvIGZyZWVfbnNrYjsKIAogCWlw
-X2RpcmVjdF9zZW5kIChuc2tiKTsK
-------=_Part_304_1105951.1115697502231--
+--SZWGMWEqiICyNBuC--
