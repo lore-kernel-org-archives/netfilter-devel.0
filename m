@@ -1,14 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Answers to broadcast ICMP pings
-Date: Wed, 11 May 2005 09:35:54 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0505110933130.31440@blackhole.kfki.hu>
-References: <1115781511.6028.17.camel@anduril.intranet.cartel-securite.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH pom-ng 0/6] H.323: implement a "real" H.245 parser
+Date: Wed, 11 May 2005 10:01:47 +0200
+Message-ID: <20050511080147.GT30482@sunbeam.de.gnumonks.org>
+References: <20050510225019.GA5102@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: pascal.news@plouf.fr.eu.org, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ERTmRuwYb9f9/XmE"
+Cc: netfilter-devel@lists.netfilter.org,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Cedric Blancher <blancher@cartel-securite.fr>
-In-Reply-To: <1115781511.6028.17.camel@anduril.intranet.cartel-securite.net>
+To: Max Kellermann <max@duempel.org>
+Content-Disposition: inline
+In-Reply-To: <20050510225019.GA5102@roonstrasse.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,36 +23,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-On Wed, 11 May 2005, Cedric Blancher wrote:
+--ERTmRuwYb9f9/XmE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Is there a particular reason for which answers to broadcast ICMP pings
-> to local network are flaged as INVALID, as pointed out Pascal (Cced) ?
+On Wed, May 11, 2005 at 12:50:19AM +0200, Max Kellermann wrote:
+> Hi,
+>=20
+> the following patchset replaces Jozsef's "brute force" parser with a
+> real H.245 parser. It adds a very simple ASN.1/PER parsing library,
+> and parses very few H.245 structures (enough for all H.323 software I
+> tested).
 
-Yes.
+Thanks, this is great news.  Including the list of tested h.323 software
+somwhere in the 'info' or 'help' file would definitely be a good idea.
 
-> If I do :
->
-> 	ping 192.168.1.255
->
-> Where 192.168.1.0/24 is my local network, then answers sent by this
-> network to me are flaged INVALID, as they don't match according entry in
-> conntrack table :
->
-> 	icmp     1 29 src=192.168.1.2 dst=192.168.1.255 type=8 code=0
-> 	id=6448 packets=2 bytes=168 [UNREPLIED] src=192.168.1.255
-> 	dst=192.168.1.2 type=0 code=0 id=6448 packets=0 bytes=0 mark=0
-> 	use=1
+I'd happily apply your patches but leave it up to Jozsef, since he's
+more familiar with the protocol and the helper he wrote.
 
-Because the reply packets do not match the entry above while they do
-not come from src=192.168.1.255. Multicast/broadcast is not supported by
-conntrack.
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--ERTmRuwYb9f9/XmE
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+
+iD8DBQFCgbvrXaXGVTD0i/8RApgUAJ9mbq+0CfbK3jgWnECc0u2pNBBtjgCeJiBV
+GHCOKcpnD6hVQAE3BY4yWVQ=
+=RC2Z
+-----END PGP SIGNATURE-----
+
+--ERTmRuwYb9f9/XmE--
