@@ -1,17 +1,19 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH pom-ng 0/6] H.323: implement a "real" H.245 parser
-Date: Wed, 11 May 2005 10:01:47 +0200
-Message-ID: <20050511080147.GT30482@sunbeam.de.gnumonks.org>
-References: <20050510225019.GA5102@roonstrasse.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [RFC] alternative to conntrack ID
+Date: Wed, 11 May 2005 09:43:34 +0100
+Message-ID: <4281C5B6.8010500@ufomechanic.net>
+References: <424747E3.7000300@eurodev.net>	<42502F8D.5030504@trash.net>	<4254258E.5000204@eurodev.net>	<42627BC4.8070103@trash.net>	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>	<20050429080242.GJ9735@sunbeam.de.gnumonks.org>	<42789366.20702@ufomechanic.net>	<4278B23A.7050406@trash.net>	<4278B98E.7090707@ufomechanic.net>	<427B8A46.8090006@trash.net>
+	<427D26E7.8060701@ingate.com> <427D3EAF.3020200@trash.net>
+	<427D41FA.5080506@ingate.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ERTmRuwYb9f9/XmE"
-Cc: netfilter-devel@lists.netfilter.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Max Kellermann <max@duempel.org>
-Content-Disposition: inline
-In-Reply-To: <20050510225019.GA5102@roonstrasse.net>
+To: Marcus Sundberg <marcus@ingate.com>
+In-Reply-To: <427D41FA.5080506@ingate.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,46 +25,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+I re-propose the possibility of using a serial number for conntracks as 
+an "additional qualifer" (although also unique) to be used by user-space 
+applications.
+This way we keep the efficiency of using the tuple as a hash-key to 
+retreive the conntrack, but the serial number to guard retreival of the 
+right one.
 
---ERTmRuwYb9f9/XmE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I think that it is clear that although timestamp may sometimes be useful 
+in a conntrack, it is does not universally solve the problem identifying 
+a particular connection over short periods of time; and this because of 
+the claim that it may be possible on some platforms to create and 
+destroy and re-create a conntrack in the same tick.
 
-On Wed, May 11, 2005 at 12:50:19AM +0200, Max Kellermann wrote:
-> Hi,
->=20
-> the following patchset replaces Jozsef's "brute force" parser with a
-> real H.245 parser. It adds a very simple ASN.1/PER parsing library,
-> and parses very few H.245 structures (enough for all H.323 software I
-> tested).
+UDP conntracks cannot be recreated in the same tick because their 
+destruction is timer based, relating to a period of inactivity.
 
-Thanks, this is great news.  Including the list of tested h.323 software
-somwhere in the 'info' or 'help' file would definitely be a good idea.
+I think some cases where a TCP conntrack can be re-created in the same 
+tick are where
+1) SO_DONTLINGER/SO_REUSE_ADDR & friends are used on participating 
+originating machines
+2) Embedded and other weird network devices re-connect rapidly
+3) A different MAC address takes over an IP address
 
-I'd happily apply your patches but leave it up to Jozsef, since he's
-more familiar with the protocol and the helper he wrote.
+Hacks to overcome this unlikely situation render the whole solution less 
+attractive than a conntrack serial number.
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+User-space applications monitoring and manipulating conntracks do need a 
+more permanent reference to a conntrack that is likely to remain unique 
+over a timescale of at least a few minutes, so I re-propose a serial 
+number to this end.
 
---ERTmRuwYb9f9/XmE
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQFCgbvrXaXGVTD0i/8RApgUAJ9mbq+0CfbK3jgWnECc0u2pNBBtjgCeJiBV
-GHCOKcpnD6hVQAE3BY4yWVQ=
-=RC2Z
------END PGP SIGNATURE-----
-
---ERTmRuwYb9f9/XmE--
+Amin
