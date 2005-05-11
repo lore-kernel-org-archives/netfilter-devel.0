@@ -1,17 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH pom-ng 4/6] H.323: splitted ip_conntrack_h323.c into 3
- sources
-Date: Thu, 12 May 2005 01:40:46 +0200
-Message-ID: <428297FE.1040900@trash.net>
-References: <20050510225019.GA5102@roonstrasse.net>
-	<20050510225255.GD5720@roonstrasse.net>
+From: James Morris <jmorris@redhat.com>
+Subject: Re: Netfilter socket hooks (was: Re: Status of owner-socketlookup)
+Date: Wed, 11 May 2005 19:57:42 -0400 (EDT)
+Message-ID: <Xine.LNX.4.44.0505111955060.15673-100000@thoron.boston.redhat.com>
+References: <4280DA51.8090201@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, laforge@gnumonks.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: juha.heljoranta@evtek.fi, Rusty Russell <rusty@rustcorp.com.au>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Max Kellermann <max@duempel.org>
-In-Reply-To: <20050510225255.GD5720@roonstrasse.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4280DA51.8090201@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,16 +21,154 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Max Kellermann wrote:
-> h323-04-split_conntrack_into_3.patch
-> - splitted ip_conntrack_h323.c into 3 sources
-> 
-> diff -rN -u old-h323-4/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_core.c new-h323-4/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_core.c
-> --- old-h323-4/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_core.c	1970-01-01 01:00:00.000000000 +0100
-> +++ new-h323-4/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_core.c	2005-05-10 23:33:19.000000000 +0200
+What about adding an output hook to the table?  This would make it much 
+easier to manage rules.
 
-This file looks a bit unnecessary, I suggest to put register/unregister
-in ip_conntrack_h323_h225.c.
+Something like:
 
-Regards
-Patrick
+diff -purN -X dontdiff linux-2.6.12-rc4-sk.o/net/ipv4/netfilter/iptable_skfilter.c linux-2.6.12-rc4-sk.w/net/ipv4/netfilter/iptable_skfilter.c
+--- linux-2.6.12-rc4-sk.o/net/ipv4/netfilter/iptable_skfilter.c	2005-05-11 18:57:17.000000000 -0400
++++ linux-2.6.12-rc4-sk.w/net/ipv4/netfilter/iptable_skfilter.c	2005-05-11 19:30:44.000000000 -0400
+@@ -11,24 +11,26 @@
+ #include <linux/module.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ 
+-#define SKFILTER_VALID_HOOKS ((1 << NF_IP_LOCAL_IN))
++#define SKFILTER_VALID_HOOKS ((1 << NF_IP_LOCAL_IN) | (1 << NF_IP_LOCAL_OUT))
+ 
+ static struct
+ {
+ 	struct ipt_replace repl;
+-	struct ipt_standard entries[1];
++	struct ipt_standard entries[2];
+ 	struct ipt_error term;
+ } initial_table __initdata = {
+ 	.repl = {
+ 		.name = "skfilter", 
+ 		.valid_hooks = SKFILTER_VALID_HOOKS, 
+-		.num_entries = 2,
+-		.size = sizeof(struct ipt_standard) * 1 + sizeof(struct ipt_error),
++		.num_entries = 3,
++		.size = sizeof(struct ipt_standard) * 2 + sizeof(struct ipt_error),
+ 		.hook_entry = { 
+-			[NF_IP_LOCAL_IN] = 0,
++			[NF_IP_LOCAL_IN]	= 0,
++			[NF_IP_LOCAL_OUT]	= sizeof(struct ipt_standard),
+ 		},
+ 		.underflow = { 
+-			[NF_IP_LOCAL_IN] = 0,
++			[NF_IP_LOCAL_IN]	= 0,
++			[NF_IP_LOCAL_OUT]       = sizeof(struct ipt_standard),
+ 		},
+ 	},
+ 	.entries = {
+@@ -47,6 +49,21 @@ static struct
+ 			  .verdict = -NF_ACCEPT - 1,
+ 		     },
+ 	     },
++	     /* LOCAL_OUT */
++	     { 
++		     .entry = { 
++			     .target_offset = sizeof(struct ipt_entry),
++			     .next_offset = sizeof(struct ipt_standard),
++		     },
++		     .target = { 
++			  .target = { 
++				  .u = {
++					  .target_size = IPT_ALIGN(sizeof(struct ipt_standard_target)),
++				  },
++			  },
++			  .verdict = -NF_ACCEPT - 1,
++		     },
++	     },
+ 	},
+ 	/* ERROR */
+ 	.term = {
+@@ -77,12 +94,12 @@ static struct ipt_table skfilter = { 
+ 
+ /* The work comes in here from netfilter.c. */
+ static unsigned int
+-ipt_hook(unsigned int hook,
+-         struct sock *sk,
+-	 struct sk_buff **pskb,
+-	 const struct net_device *in,
+-	 const struct net_device *out,
+-	 int (*okfn)(struct sock *, struct sk_buff *))
++ipt_sk_hook(unsigned int hook,
++            struct sock *sk,
++            struct sk_buff **pskb,
++            const struct net_device *in,
++            const struct net_device *out,
++            int (*okfn)(struct sock *, struct sk_buff *))
+ {
+ 	unsigned int ret;
+ 	int pull = 0;
+@@ -97,9 +114,19 @@ ipt_hook(unsigned int hook,
+ 	return ret;
+ }
+ 
+-static struct nf_sk_hook_ops ipt_ops[] = {
++static unsigned int
++ipt_hook(unsigned int hook,
++         struct sk_buff **pskb,
++         const struct net_device *in,
++         const struct net_device *out,
++         int (*okfn)(struct sk_buff *))
++{
++	return ipt_do_table(NULL, pskb, hook, in, out, &skfilter, NULL);
++}
++
++static struct nf_sk_hook_ops ipt_sk_ops[] = {
+ 	{
+-		.hook		= ipt_hook,
++		.hook		= ipt_sk_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET, 
+ 		.hooknum	= NF_IP_LOCAL_IN,
+@@ -107,6 +134,16 @@ static struct nf_sk_hook_ops ipt_ops[] =
+ 	},
+ };
+ 
++static struct nf_hook_ops ipt_ops[] = {
++	{
++		.hook		= ipt_hook,
++		.owner		= THIS_MODULE,
++		.pf		= PF_INET, 
++		.hooknum	= NF_IP_LOCAL_OUT,
++		.priority	= NF_IP_PRI_FILTER,
++	},
++};
++
+ static int __init init(void)
+ {
+ 	int ret;
+@@ -117,12 +154,18 @@ static int __init init(void)
+ 		return ret;
+ 
+ 	/* Register hooks */
+-	ret = nf_register_sk_hook(&ipt_ops[0]);
++	ret = nf_register_sk_hook(&ipt_sk_ops[0]);
+ 	if (ret < 0)
+ 		goto cleanup_table;
+ 
++	ret = nf_register_hook(&ipt_ops[0]);
++	if (ret < 0)
++		goto cleanup_hook0;
++
+ 	return ret;
+ 
++ cleanup_hook0:
++	nf_unregister_sk_hook(&ipt_sk_ops[0]);
+  cleanup_table:
+ 	ipt_unregister_table(&skfilter);
+ 
+@@ -131,7 +174,8 @@ static int __init init(void)
+ 
+ static void __exit fini(void)
+ {
+-	nf_unregister_sk_hook(&ipt_ops[0]);
++	nf_unregister_hook(&ipt_ops[0]);
++	nf_unregister_sk_hook(&ipt_sk_ops[0]);
+ 	ipt_unregister_table(&skfilter);
+ }
+ 
