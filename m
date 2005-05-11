@@ -1,10 +1,9 @@
 From: Max Kellermann <max@duempel.org>
-Subject: [ANNOUNCEMENT] h323-conntrack-nat nfsim testsuite
-Date: Wed, 11 May 2005 21:06:14 +0200
-Message-ID: <20050511190614.GA13967@roonstrasse.net>
+Subject: nfsim for Linux 2.6.12-rc4?
+Date: Wed, 11 May 2005 21:56:52 +0200
+Message-ID: <20050511195652.GA14386@roonstrasse.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -21,21 +20,20 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-finally, I have released my test suite for the h323-conntrack-nat
-module. You can download it on my home page:
+is anyone already working on the Linux 2.6.12 port of nfsim?  If not,
+I'll do it.
 
- http://max.kellermann.name/projects/netfilter/h323.html
- http://max.kellermann.name/download/netfilter/h323/20050511/h323-conntrack-nat-testsuite-20050511.tar.bz2
+gcc -Wmissing-prototypes -Wstrict-prototypes -Wunused -Wall -g -Wa,-W
+-I. -I/tmp/nfsim-3/core -I/tmp/nfsim-3/kernelenv/include
+-I/tmp/nfsim-3/netfilter/include  -c  -DKBUILD_MODNAME=ip_nat_ftp -o
+ip_nat_ftp.o ip_nat_ftp.c
+ip_nat_ftp.c:174: warning: "struct kernel_param" declared inside
+parameter list
+ip_nat_ftp.c:174: warning: its scope is only this definition or
+declaration, which is probably not what you want
+ip_nat_ftp.c:180: error: parse error before '(' token
+ip_nat_ftp.c:175: warning: 'warn_set' defined but not used
+make[2]: *** [ip_nat_ftp.o] Error 1
 
-The test suite succeeds only when you have applied all
-h323-conntrack-nat patches which I have published since yesterday on
-this mailing list (a big patch containing them all is on the
-homepage). It also requires a patched nfsim, patches can be downloaded
-here:
-
- http://max.kellermann.name/projects/netfilter/nfsim.html
-
-I'd also like to discuss these nfsim patches again. I posted them
-several months ago, but nobody seemed to care.
 
 Max
