@@ -1,16 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [netfilter socket hooks 1/5]: Add socket hook infrastructure
-Date: Thu, 12 May 2005 01:27:31 +0200
-Message-ID: <428294E3.9020501@trash.net>
-References: <Xine.LNX.4.44.0505111921390.15568-100000@thoron.boston.redhat.com>
+Subject: Re: [PATCH pom-ng 4/6] H.323: splitted ip_conntrack_h323.c into 3
+ sources
+Date: Thu, 12 May 2005 01:40:46 +0200
+Message-ID: <428297FE.1040900@trash.net>
+References: <20050510225019.GA5102@roonstrasse.net>
+	<20050510225255.GD5720@roonstrasse.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: juha.heljoranta@evtek.fi, Rusty Russell <rusty@rustcorp.com.au>,
-	netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, laforge@gnumonks.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: James Morris <jmorris@redhat.com>
-In-Reply-To: <Xine.LNX.4.44.0505111921390.15568-100000@thoron.boston.redhat.com>
+To: Max Kellermann <max@duempel.org>
+In-Reply-To: <20050510225255.GD5720@roonstrasse.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,27 +23,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-James Morris wrote:
-> On Tue, 10 May 2005, Patrick McHardy wrote:
+Max Kellermann wrote:
+> h323-04-split_conntrack_into_3.patch
+> - splitted ip_conntrack_h323.c into 3 sources
 > 
-> 
->>+struct nf_sk_hook_ops
->>+{
->>+	struct list_head list;
->>+
->>+	/* User fills in from here down. */
->>+	nf_sk_hookfn *hook;
->>+	struct module *owner;
->>+	unsigned int pf;
->>+	unsigned int hooknum;
->>+	/* Hooks are ordered in ascending priority. */
->>+	int priority;
->>+};
-> 
-> 
-> Do you need to add this struct?  It's the same as nf_hook_ops.
+> diff -rN -u old-h323-4/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_core.c new-h323-4/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_core.c
+> --- old-h323-4/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_core.c	1970-01-01 01:00:00.000000000 +0100
+> +++ new-h323-4/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_core.c	2005-05-10 23:33:19.000000000 +0200
 
-Unfortunately yes, the hook functions have different prototypes.
+This file looks a bit unnecessary, I suggest to put register/unregister
+in ip_conntrack_h323_h225.c.
 
 Regards
 Patrick
