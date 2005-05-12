@@ -1,17 +1,17 @@
-From: Max Kellermann <max@duempel.org>
-Subject: Re: [PATCH pom-ng 2/3] h323-conntrack-nat updates: q931_find_u2u()
-	returns relative length
-Date: Thu, 12 May 2005 22:53:05 +0200
-Message-ID: <20050512205305.GE2175@roonstrasse.net>
-References: <20050512204956.GA2086@roonstrasse.net>
-	<20050512205206.GC2175@roonstrasse.net>
+From: =?ISO-8859-1?Q?J=E9r=F4me_Poulin?= <jeromepoulin@gmail.com>
+Subject: Re: [PATCH pom-ng] port TARPIT to linux 2.6.12
+Date: Thu, 12 May 2005 17:01:41 -0400
+Message-ID: <debc30fc050512140130aa399e@mail.gmail.com>
+References: <20050512182024.GA23331@roonstrasse.net>
+Reply-To: =?ISO-8859-1?Q?J=E9r=F4me_Poulin?= <jeromepoulin@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="H8ygTp4AXg6deix2"
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Max Kellermann <max@duempel.org>
+In-Reply-To: <20050512182024.GA23331@roonstrasse.net>
 Content-Disposition: inline
-In-Reply-To: <20050512205206.GC2175@roonstrasse.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,52 +23,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Heh, does anyone checked the message with subject ipt_TARPIT.c from
+me, submitted the same patch...
 
---H8ygTp4AXg6deix2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On 2005/05/12 22:52, Max Kellermann <max@duempel.org> wrote:
-> h323-02-u2u_length_is_relative.patch
-> - minor bugfix, never occurred in reality
-> - length returned by q931_find_u2u() is relative
-> 
-
-sorry, I'll never learn... ;)
-
-
---H8ygTp4AXg6deix2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment;
-	filename="h323-02-u2u_length_is_relative.patch"
-
-Thu May 12 22:21:24 CEST 2005  max@duempel.org
-  * length returned by q931_find_u2u() is relative
-diff -rN -u old-h323-0/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_h225.c new-h323-0/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_h225.c
---- old-h323-0/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_h225.c	2005-05-12 22:48:51.000000000 +0200
-+++ new-h323-0/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_h225.c	2005-05-12 22:48:51.000000000 +0200
-@@ -214,9 +214,7 @@
- {
- 	struct asn1_per_buffer bb;
- 
--	/* protocol(1) + header(3) + protocolIdentifier(6) +
--	   h245ipAddress(1) + h245ipv4(4) + h245ipv4port(2) */
--	if (length < 17)
-+	if (i + 8 > length)
- 		return NF_ACCEPT;
- 
- 	if (data[i++] != 0x05) /* X.208 / X.209 */
-@@ -297,6 +295,10 @@
- 		if (i == 0)
- 			return NF_ACCEPT;
- 
-+		/* the length returned by q931_find_u2u() is relative
-+		   to i */
-+		length += i;
-+
- 		return h225_parse_q931_connect(pskb, ct, ctinfo,
- 					       data, i, length);
- 	} else {
-
-
---H8ygTp4AXg6deix2--
+On 5/12/05, Max Kellermann <max@duempel.org> wrote:
+> Hi,
+>=20
+> the following two mini patches port the TARPIT target to linux
+> 2.6.12.
+>=20
+> tarpit-01-fix_indent.patch
+> - fix the indentation in the source file (tabs)
+>=20
+> tarpit-02-linux_2_6_12_api.patch
+> - call dst_mtu() instead of dst_pmtu() on 2.6.12 (conditional)
+>=20
+>=20
+> Max
+>=20
+>=20
+>
