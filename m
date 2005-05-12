@@ -1,12 +1,12 @@
-From: Max Kellermann <max@duempel.org>
-Subject: [PATCH pom-ng] port TARPIT to linux 2.6.12
-Date: Thu, 12 May 2005 20:20:24 +0200
-Message-ID: <20050512182024.GA23331@roonstrasse.net>
+From: "Ferry Huberts" <ferry@Hupie.com>
+Subject: [PATCH] Conntrack proc interface for tuple removal
+Date: Thu, 12 May 2005 20:47:19 +0200 (CEST)
+Message-ID: <11148.217.169.232.210.1115923639.squirrel@hupie.xs4all.nl>
+Reply-To: ferry@Hupie.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="opJtzjQTFsWo+cga"
+Content-Type: multipart/mixed;boundary="----=_20050512204719_76234"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,217 +18,186 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+------=_20050512204719_76234
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 
---opJtzjQTFsWo+cga
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hi list,
 
-Hi,
+I badly needed to be able to remove conntrack tuple because of some very
+dynamic application behaviour, so I wrote a patch.
+Hope it lives up to your standards, I find it quite usefull :-)
 
-the following two mini patches port the TARPIT target to linux
-2.6.12.
+The patch is based on work from Yutaka Kondo.
 
-tarpit-01-fix_indent.patch
-- fix the indentation in the source file (tabs)
+The patch is against 2.4.30 since that is the kernel I'm using, haven't
+looked into applying it against 2.6.x.y
 
-tarpit-02-linux_2_6_12_api.patch
-- call dst_mtu() instead of dst_pmtu() on 2.6.12 (conditional)
+Cheers!
 
+--
+Ferry Huberts
 
-Max
+------=_20050512204719_76234
+Content-Type: application/octet-stream; name="kernel_remove_conntrack.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="kernel_remove_conntrack.diff"
 
---opJtzjQTFsWo+cga
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="tarpit-01-fix_indent.patch"
-
-Thu May 12 20:17:45 CEST 2005  max@duempel.org
-  * fixed indent
-diff -rN -u old-tarpit-0/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c new-tarpit-0/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c
---- old-tarpit-0/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c	2005-05-12 20:19:09.000000000 +0200
-+++ new-tarpit-0/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c	2005-05-12 20:19:09.000000000 +0200
-@@ -1,12 +1,12 @@
--/* 
-- * Kernel module to capture and hold incoming TCP connections using 
-+/*
-+ * Kernel module to capture and hold incoming TCP connections using
-  * no local per-connection resources.
-- * 
-- * Based on ipt_REJECT.c and offering functionality similar to 
-+ *
-+ * Based on ipt_REJECT.c and offering functionality similar to
-  * LaBrea <http://www.hackbusters.net/LaBrea/>.
-- * 
-+ *
-  * Copyright (c) 2002 Aaron Hopkins <tools@die.net>
-- * 
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 2 of the License, or
-@@ -20,13 +20,13 @@
-  * You should have received a copy of the GNU General Public License
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-- * 
-+ *
-  * Goal:
-  * - Allow incoming TCP connections to be established.
-- * - Passing data should result in the connection being switched to the 
-- *   persist state (0 byte window), in which the remote side stops sending 
-+ * - Passing data should result in the connection being switched to the
-+ *   persist state (0 byte window), in which the remote side stops sending
-  *   data and asks to continue every 60 seconds.
-- * - Attempts to shut down the connection should be ignored completely, so 
-+ * - Attempts to shut down the connection should be ignored completely, so
-  *   the remote side ends up having to time it out.
-  *
-  * This means:
-@@ -62,19 +62,19 @@
- 	struct dst_entry *dst = skb->dst;
- 	struct hh_cache *hh = dst->hh;
- 
--	if (hh) {    
-+	if (hh) {
- 		read_lock_bh(&hh->hh_lock);
- 		memcpy(skb->data - 16, hh->hh_data, 16);
--                read_unlock_bh(&hh->hh_lock);
--                skb_push(skb, hh->hh_len);
--                return hh->hh_output(skb);
--        } else if (dst->neighbour)
--                return dst->neighbour->output(skb);
-+		read_unlock_bh(&hh->hh_lock);
-+		skb_push(skb, hh->hh_len);
-+		return hh->hh_output(skb);
-+	} else if (dst->neighbour)
-+		return dst->neighbour->output(skb);
- 
- 	if (net_ratelimit())
- 		printk(KERN_DEBUG "TARPIT ip_direct_send: no header cache and no neighbor!\n");
--        kfree_skb(skb);
--        return -EINVAL;
-+	kfree_skb(skb);
-+	return -EINVAL;
- }
- 
- 
-@@ -92,8 +92,8 @@
- 	if (oskb->len < (oskb->nh.iph->ihl*4) + sizeof(struct tcphdr))
- 		return;
- 
--	otcph = (struct tcphdr *)((u_int32_t*)oskb->nh.iph 
--                                  + oskb->nh.iph->ihl);
-+	otcph = (struct tcphdr *)((u_int32_t*)oskb->nh.iph
-+				  + oskb->nh.iph->ihl);
- 	otcplen = oskb->len - oskb->nh.iph->ihl*4;
- 
- 	/* No replies for RST or FIN */
-@@ -139,11 +139,11 @@
- 	ntcph->dest = tmp;
- 
- 	/* Use supplied sequence number or make a new one */
--	ntcph->seq = otcph->ack ? otcph->ack_seq 
--                     : htonl(secure_tcp_sequence_number(nskb->nh.iph->saddr, 
--						        nskb->nh.iph->daddr, 
--						        ntcph->source, 
--			     			        ntcph->dest));
-+	ntcph->seq = otcph->ack ? otcph->ack_seq
-+		: htonl(secure_tcp_sequence_number(nskb->nh.iph->saddr,
-+						   nskb->nh.iph->daddr,
-+						   ntcph->source,
-+						   ntcph->dest));
- 
- 	/* Our SYN-ACKs must have a >0 window */
- 	ntcph->window = (otcph->syn && !otcph->ack) ? htons(5) : 0;
-@@ -179,7 +179,7 @@
- 
- 	/* Adjust IP checksum */
- 	nskb->nh.iph->check = 0;
--	nskb->nh.iph->check = ip_fast_csum((unsigned char *)nskb->nh.iph, 
-+	nskb->nh.iph->check = ip_fast_csum((unsigned char *)nskb->nh.iph,
- 					   nskb->nh.iph->ihl);
- 
- 	fl.nl_u.ip4_u.daddr = nskb->nh.iph->daddr;
-@@ -220,22 +220,22 @@
- 	if (!rt)
- 		return NF_DROP;
- 
--        /* No replies to physical multicast/broadcast */
--        if (skb->pkt_type != PACKET_HOST && skb->pkt_type != PACKET_OTHERHOST)
--     		return NF_DROP;
-+	/* No replies to physical multicast/broadcast */
-+	if (skb->pkt_type != PACKET_HOST && skb->pkt_type != PACKET_OTHERHOST)
-+		return NF_DROP;
- 
--        /* Now check at the protocol level */
-+	/* Now check at the protocol level */
- 	if (rt->rt_flags&(RTCF_BROADCAST|RTCF_MULTICAST))
--                return NF_DROP;
-+		return NF_DROP;
- 
- 	/* Our naive response construction doesn't deal with IP
-            options, and probably shouldn't try. */
- 	if (skb->nh.iph->ihl*4 != sizeof(struct iphdr))
- 		return NF_DROP;
- 
--        /* We aren't interested in fragments */
-+	/* We aren't interested in fragments */
- 	if (skb->nh.iph->frag_off & htons(IP_OFFSET))
--                return NF_DROP;
-+		return NF_DROP;
- 
- 	tarpit_tcp(skb,rt,hooknum == NF_IP_LOCAL_IN);
- 
-@@ -254,8 +254,8 @@
- 		DEBUGP("TARPIT: bad table %s'.\n", tablename);
- 		return 0;
- 	}
--	if ((hook_mask & ~((1 << NF_IP_LOCAL_IN) 
--                           | (1 << NF_IP_FORWARD))) != 0) {
-+	if ((hook_mask & ~((1 << NF_IP_LOCAL_IN)
-+			   | (1 << NF_IP_FORWARD))) != 0) {
- 		DEBUGP("TARPIT: bad hook mask %X\n", hook_mask);
- 		return 0;
- 	}
-@@ -269,7 +269,7 @@
- 	return 1;
- }
- 
--static struct ipt_target ipt_tarpit_reg = { 
-+static struct ipt_target ipt_tarpit_reg = {
- 	.name = "TARPIT",
- 	.target = tarpit,
- 	.checkentry = check,
-
-
---opJtzjQTFsWo+cga
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="tarpit-02-linux_2_6_12_api.patch"
-
-Thu May 12 20:18:48 CEST 2005  max@duempel.org
-  * support linux 2.6.12
-diff -rN -u old-tarpit-0/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c new-tarpit-0/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c
---- old-tarpit-0/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c	2005-05-12 20:19:23.000000000 +0200
-+++ new-tarpit-0/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c	2005-05-12 20:18:23.000000000 +0200
-@@ -36,6 +36,7 @@
-  */
- 
- #include <linux/config.h>
-+#include <linux/version.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
- #include <linux/ip.h>
-@@ -194,7 +195,11 @@
- 	nskb->dst = &nrt->u.dst;
- 
- 	/* "Never happens" */
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,12)
-+	if (nskb->len > dst_mtu(nskb->dst))
-+#else
- 	if (nskb->len > dst_pmtu(nskb->dst))
-+#endif
- 		goto free_nskb;
- 
- 	ip_direct_send (nskb);
-
-
---opJtzjQTFsWo+cga--
+IyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT0KIyAkSWQ6IGtlcm5lbF9yZW1vdmVfY29ubnRyYWNrLmRp
+ZmYsdiAxLjEgMjAwNS8wNS8xMiAxODoyNjo1OSB0aXRhYW4gRXhwICQKIyAkTmFtZTogICQKIyA9
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT0KIyAKIyBDaGVjay1pbiBpbmZvcm1hdGlvbjogJEF1dGhvcjog
+dGl0YWFuICQKIyAgICAgICAgICAgICAgICAgICAgICAgJERhdGU6IDIwMDUvMDUvMTIgMTg6MjY6
+NTkgJAojICAgICAgICAgICAgICAgICAgICAgICAkUmV2aXNpb246IDEuMSAkCiMgCiMgTG9ja2lu
+ZyBpbmZvcm1hdGlvbiA6ICRMb2NrZXI6ICAkCiMgICAgICAgICAgICAgICAgICAgICAgICRTdGF0
+ZTogRXhwICQKIyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KIyBIaXN0b3J5IG9mIGNoZWNrLWluIGNv
+bW1lbnRzCiMgPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CiMgJExvZzoga2VybmVsX3JlbW92ZV9jb25u
+dHJhY2suZGlmZix2ICQKIyBSZXZpc2lvbiAxLjEgIDIwMDUvMDUvMTIgMTg6MjY6NTkgIHRpdGFh
+bgojIGFkZCBjb25udHJhY2sgcmVtb3ZhbCBrZXJuZWwgcGF0Y2gKIwojID09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PQoKCgoKVGhpcyBwYXRjaCBhbGxvdyBmb3IgcmVtb3ZhbCBvZiBzZWxlY3RlZCBjb25u
+dHJhY2sgcmVjb3JkczoKVXNhZ2U6CiAgZWNobyAic3JjPXgueC54LngiID4gL3Byb2MvbmV0L2lw
+X2Nvbm50cmFjawogIGVjaG8gImRzdD14LngueC54IiA+IC9wcm9jL25ldC9pcF9jb25udHJhY2sK
+ICBlY2hvICJhbGwiID4gL3Byb2MvbmV0L2lwX2Nvbm50cmFjawoKTW9kZXM6CiAgc3JjPXgueC54
+LnggOiBhbGwgcmVjb3JkcyB0aGF0IGhhdmUgeC54LngueCBhcyB0aGUgSVAgYWRkcmVzcyBpbiB0
+aGUgc3JjCiAgICAgICAgICAgICAgICBmaWVsZCBvZiB0aGUgJ09SSUdJTkFMJyBvciAnUkVQTFkn
+IHdpbGwgYmUgZGVsZXRlZCBmcm9tCiAgICAgICAgICAgICAgICB0aGUgY29ubmVjdGlvbiB0cmFj
+a2luZyB0YWJsZQoKICBkc3Q9eC54LngueCA6IGFsbCByZWNvcmRzIHRoYXQgaGF2ZSB4LngueC54
+IGFzIHRoZSBJUCBhZGRyZXNzIGluIHRoZSBkc3QKICAgICAgICAgICAgICAgIGZpZWxkIG9mIHRo
+ZSAnT1JJR0lOQUwnIG9yICdSRVBMWScgd2lsbCBiZSBkZWxldGVkIGZyb20KICAgICAgICAgICAg
+ICAgIHRoZSBjb25uZWN0aW9uIHRyYWNraW5nIHRhYmxlCgogIGFsbCAgICAgICAgIDogYWxsIHJl
+Y29yZHMgd2lsbCBiZSBkZWxldGVkIGZyb20gdGhlIGNvbm5lY3Rpb24gdHJhY2tpbmcgdGFibGUK
+CgoKCi0tLSBsaW51eC9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29ubnRyYWNrX3N0YW5kYWxvbmUu
+Yy5vcmcJMjAwNS0wNS0xMiAxNToyOToyNi4wMDAwMDAwMDAgKzAyMDAKKysrIGxpbnV4L25ldC9p
+cHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfc3RhbmRhbG9uZS5jCTIwMDUtMDUtMTIgMjA6MTc6
+NDcuMDAwMDAwMDAwICswMjAwCkBAIC02LDkgKzYsMTQgQEAKIAogLyogKGMpIDE5OTkgUGF1bCBg
+UnVzdHknIFJ1c3NlbGwuICBMaWNlbmNlZCB1bmRlciB0aGUgR05VIEdlbmVyYWwKICAgIFB1Ymxp
+YyBMaWNlbmNlLiAqLworICAgCisvKiAyMDA1LTA1LTEyIEZlcnJ5IEh1YmVydHMgOiBhZGRlZCBp
+cF9jb25udHJhY2tfdXNlcl9yZW1vdmUgY2FwYWJpbGl0eSwKKyAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIGJhc2VkIGhlYXZpbHkgb24gd29yayBmcm9tIFl1dGFrYSBLb25kbworICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgKGtvbmRvQHJkZC5zb2xpdG9uLmNvLmpwKSAqLwogCiAj
+aW5jbHVkZSA8bGludXgvY29uZmlnLmg+CiAjaW5jbHVkZSA8bGludXgvdHlwZXMuaD4KKyNpbmNs
+dWRlIDxhc20vYnl0ZW9yZGVyLmg+CiAjaW5jbHVkZSA8bGludXgvaXAuaD4KICNpbmNsdWRlIDxs
+aW51eC9uZXRmaWx0ZXIuaD4KICNpbmNsdWRlIDxsaW51eC9uZXRmaWx0ZXJfaXB2NC5oPgpAQCAt
+MzksNiArNDQsMjU3IEBACiAKIE1PRFVMRV9MSUNFTlNFKCJHUEwiKTsKIAorLyoKK1JldHVybnMg
+MSB3aGVuIHRoZSBjaGFyYWN0ZXIgaXMgYSBkaWdpdCwgMCBvdGhlcndpc2UKKyovCitzdGF0aWMg
+aW5saW5lIGludCBjb25udHJhY2tfaXNkaWdpdCh1bnNpZ25lZCBjaGFyIGNoKSB7CisgIGlmICgo
+Y2ggPj0gJzAnKSAmJiAoY2ggPD0gJzknKSkgeworICAgIHJldHVybiAxOworICB9CisgIGVsc2Ug
+eworICAgIHJldHVybiAwOworICB9Cit9CisKKy8qCitjb252ZXJ0IHN0cmluZyB0byAobmV0d29y
+ayBlbmRpYW5lc3MpIGludGVnZXIKK3NhZmVyIHZlcnNpb24gdGhhbiB0aGUgb25lIGluIHV0aWxz
+CithbHNvIG1vcmUgY29tcGxpYW50IHRvIGluZXRfYXRvbiBmdW5jdGlvbgorKi8KK3N0YXRpYyB1
+bnNpZ25lZCBpbnQgY29ubnRyYWNrX2F0b24oY29uc3QgY2hhciAqc3RyKSB7CisgIHVuc2lnbmVk
+IGxvbmcgaXB2YWx1ZTsKKyAgdW5zaWduZWQgaW50ICBieXRlY291bnQ7CisgIHVuc2lnbmVkIGlu
+dCAgYnl0ZXZhbHVlOworICBpbnQgICAgICAgICAgIGk7CisKKyAgaXB2YWx1ZSA9IDA7CisgIGJ5
+dGVjb3VudCA9IDA7CisgIGZvciAoaSA9IDA7IGkgPCA0OyBpKyspIHsKKyAgICBpcHZhbHVlIDw8
+PSA4OworICAgIGJ5dGV2YWx1ZSA9IDA7CisgICAgd2hpbGUgKCgqc3RyICE9ICdcMCcpICYmCisg
+ICAgICAgICAgICgqc3RyICE9ICdcbicpICYmCisgICAgICAgICAgIGNvbm50cmFja19pc2RpZ2l0
+KCh1bnNpZ25lZCBjaGFyKSpzdHIpKSB7CisgICAgICBieXRldmFsdWUgKj0gMTA7CisgICAgICBi
+eXRldmFsdWUgKz0gKCpzdHIgLSAnMCcpOworICAgICAgc3RyKys7CisgICAgfQorCisgICAgLyog
+Y2xpcCB0aGUgdmFsdWUgKi8KKyAgICBpZiAoYnl0ZXZhbHVlIDw9IDB4ZmYpIHsKKyAgICAgIGlw
+dmFsdWUgfD0gYnl0ZXZhbHVlOworICAgIH0KKyAgICBlbHNlIHsKKyAgICAgIGlwdmFsdWUgfD0g
+MHhmZjsKKyAgICB9CisKKyAgICAvKiB3ZSBoYXZlIHByb2Nlc3NlZCBhbm90aGVyIGJ5dGUgKi8K
+KyAgICBieXRlY291bnQrKzsKKworICAgIGlmICgoKnN0ciAhPSAnXDAnKSAmJiAoKnN0ciAhPSAn
+XG4nKSkgeworICAgICAgLyogbm90IGF0IHRoZSBlbmQgb2YgdGhlIHN0cmluZyAqLworCisgICAg
+ICBpZiAoKGJ5dGVjb3VudCA9PSA0KSB8fCAoKnN0ciAhPSAnLicpKSB7CisgICAgICAgIC8qIGFu
+ZCBub3QgYSBkb3Q6IGlsbGVnYWwgdmFsdWUgKi8KKyAgICAgICAgaXB2YWx1ZSA9IDA7CisgICAg
+ICAgIGJ5dGVjb3VudCA9IDQ7CisgICAgICAgIGJyZWFrOworICAgICAgfQorICAgICAgZWxzZSB7
+CisgICAgICAgIC8qIGFuZCBhIGRvdDogc2tpcCB0aGUgZG90ICovCisgICAgICAgIHN0cisrOwor
+ICAgICAgfQorICAgIH0KKyAgICBlbHNlIHsKKyAgICAgIGJyZWFrOworICAgIH0KKyAgfQorCisK
+KyAgdW5zaWduZWQgbG9uZyB0bXA7CisgIHN3aXRjaCAoYnl0ZWNvdW50KSB7CisgICAgY2FzZSAx
+OgorICAgICAgaXB2YWx1ZSA8PD0gMjQ7CisgICAgICBicmVhazsKKworICAgIGNhc2UgMjoKKyAg
+ICAgIHRtcCA9IChpcHZhbHVlICYgMHgwMDAwZmYwMCk7CisgICAgICBpcHZhbHVlICY9IDB4MDAw
+MDAwZmY7CisgICAgICBpcHZhbHVlIHw9ICh0bXAgPDwgMTYpOworICAgICAgYnJlYWs7CisKKyAg
+ICBjYXNlIDM6CisgICAgICB0bXAgPSAoaXB2YWx1ZSAmIDB4MDBmZjAwMDApOworICAgICAgaXB2
+YWx1ZSAmPSAweDAwMDBmZmZmOworICAgICAgaXB2YWx1ZSB8PSAodG1wIDw8IDgpOworICAgICAg
+YnJlYWs7CisKKyAgICBjYXNlIDQ6CisgICAgICBicmVhazsKKworICAgIGRlZmF1bHQ6CisgICAg
+ICBpcHZhbHVlID0gMDsKKyAgICAgIGJyZWFrOworICB9CisgIAorICByZXR1cm4gKGh0b25sKGlw
+dmFsdWUpKTsKK30KKworCisvKgorUmVtb3ZlIGNvbm50cmFjayBlbnRyeQorKi8KK3N0YXRpYyBp
+bmxpbmUgdm9pZCBtYXRjaF9yZW1vdmVfYWxsX2Nvbm50cmFjaygKKyAgICAgICAgICAgICAgICAg
+ICAgICBfX3UzMiBpbiwKKyAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgaXBfY29ubnRyYWNr
+ICpjb25udHJhY2spIHsKKy8qIGZyb20gdGhlIGZ1bmN0aW9uIGRlYXRoX2J5X3RpbWVvdXQKKyAg
+ZGVsX3RpbWVyKCZjb25udHJhY2stPnRpbWVvdXQpOworCWNsZWFuX2Zyb21fbGlzdHMoY29ubnRy
+YWNrKTsKKwlpcF9jb25udHJhY2tfcHV0KGNvbm50cmFjayk7CisqLworCisgIGRlbF90aW1lcigm
+Y29ubnRyYWNrLT50aW1lb3V0KTsKKyAgY29ubnRyYWNrLT50aW1lb3V0LmV4cGlyZXMgPSBqaWZm
+aWVzOworICBjb25udHJhY2stPnRpbWVvdXQuZnVuY3Rpb24oKHVuc2lnbmVkIGxvbmcpY29ubnRy
+YWNrKTsKK30KKworCisvKgorUmVtb3ZlIGNvbm50cmFjayBlbnRyeSwgaWYgc3JjIGlwIGFkZHJl
+c3MgbWF0Y2hlcyBpbgorKi8KK3N0YXRpYyBpbmxpbmUgdm9pZCBtYXRjaF9yZW1vdmVfc3JjaXBf
+Y29ubnRyYWNrKAorICAgICAgICAgICAgICAgICAgICAgIF9fdTMyIGluLAorICAgICAgICAgICAg
+ICAgICAgICAgIHN0cnVjdCBpcF9jb25udHJhY2sgKmNvbm50cmFjaykgeworICBpZiAoKGluID09
+IGNvbm50cmFjay0+dHVwbGVoYXNoW0lQX0NUX0RJUl9PUklHSU5BTF0udHVwbGUuc3JjLmlwKSB8
+fAorICAgICAgKGluID09IGNvbm50cmFjay0+dHVwbGVoYXNoW0lQX0NUX0RJUl9SRVBMWV0udHVw
+bGUuc3JjLmlwKSkgeworICAgIG1hdGNoX3JlbW92ZV9hbGxfY29ubnRyYWNrKGluLCBjb25udHJh
+Y2spOworICB9Cit9CisKKworLyoKK1JlbW92ZSBjb25udHJhY2sgZW50cnksIGlmIGRzdCBpcCBh
+ZGRyZXNzIG1hdGNoZXMgaW4KKyovCitzdGF0aWMgaW5saW5lIHZvaWQgbWF0Y2hfcmVtb3ZlX2Rz
+dGlwX2Nvbm50cmFjaygKKyAgICAgICAgICAgICAgICAgICAgICBfX3UzMiBpbiwKKyAgICAgICAg
+ICAgICAgICAgICAgICBzdHJ1Y3QgaXBfY29ubnRyYWNrICpjb25udHJhY2spIHsKKyAgaWYgKChp
+biA9PSBjb25udHJhY2stPnR1cGxlaGFzaFtJUF9DVF9ESVJfT1JJR0lOQUxdLnR1cGxlLmRzdC5p
+cCkgfHwKKyAgICAgIChpbiA9PSBjb25udHJhY2stPnR1cGxlaGFzaFtJUF9DVF9ESVJfUkVQTFld
+LnR1cGxlLmRzdC5pcCkpIHsKKyAgICBtYXRjaF9yZW1vdmVfYWxsX2Nvbm50cmFjayhpbiwgY29u
+bnRyYWNrKTsKKyAgfQorfQorCisKKy8qCitDYWxsZWQgdXBvbiB3cml0ZSB0byAvcHJvYy9uZXQv
+aXBfY29ubnRyYWNrCisKK1RyYXZlcnNlIGNvbm50cmFjayBsaXN0IGFuZCBmb3JjaWJseSByZW1v
+dmUgbWF0Y2hpbmcgZW50cmllcworKi8KK3N0YXRpYyBpbnQgaXBfY29ubnRyYWNrX3VzZXJfcmVt
+b3ZlKHN0cnVjdCBmaWxlICAgKiBmaWxlLAorICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgY29uc3QgY2hhciAgICAqIGJ1ZmZlciwKKyAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIHVuc2lnbmVkIGxvbmcgICBjb3VudCwKKyAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIHZvaWQgICAgICAgICAgKiBkYXRhKSB7CisgIHVuc2lnbmVkIGludCBpOwor
+IAorICBjb25zdCBjaGFyICogc3Jjc3RyICAgICAgID0gInNyYz0iOworICBjb25zdCBpbnQgICAg
+c3JjbGVuICAgICAgID0gNDsKKyAgaW50ICAgICAgICAgIGNoZWNrc3JjICAgICA9IDA7CisKKyAg
+Y29uc3QgY2hhciAqIGRzdHN0ciAgICAgICA9ICJkc3Q9IjsKKyAgY29uc3QgaW50ICAgIGRzdGxl
+biAgICAgICA9IDQ7CisgIGludCAgICAgICAgICBjaGVja2RzdCAgICAgPSAwOworIAorICBjb25z
+dCBjaGFyICogYWxsc3RyICAgICAgID0gImFsbCI7CisgIGNvbnN0IGludCAgICBhbGxsZW4gICAg
+ICAgPSAzOworICBpbnQgICAgICAgICAgY2hlY2thbGwgICAgID0gMDsKKyAKKyAgaW50ICAgICAg
+ICAgIHZhbGlkb3B0aW9uICA9IDA7CisgIF9fdTMyICAgICAgICBpcHZhbHVlICAgICAgPSAwOwor
+CisKKyAgLyogREVCVUcgKi8KKyAgcHJpbnRrKCJjb3VudCAgICAgID0gJWx1XG4iLCBjb3VudCk7
+CisgIAorICAvKiBjaGVjayBmb3IgdmFsaWQgc3JjIG9wdGlvbiAqLworICBpZiAoKGNvdW50ID49
+IHNyY2xlbikgJiYgKCEgbWVtY21wKGJ1ZmZlciwgc3Jjc3RyLCBzcmNsZW4pKSkgeworICAgIGNo
+ZWNrc3JjICAgID0gMTsKKyAgICB2YWxpZG9wdGlvbiA9IDE7CisgICAgaXB2YWx1ZSAgICAgPSBj
+b25udHJhY2tfYXRvbigoY29uc3QgY2hhciAqKSgmYnVmZmVyW3NyY2xlbl0pKTsKKyAgICAvKiBE
+RUJVRyAqLworICAgIHByaW50aygiU3JjIGFkZHJlc3MgPSAldS4ldS4ldS4ldSB3aWxsIGJlIHJl
+bW92ZWQgZnJvbSBjb25udHJhY2tcbiIsCisgICAgICAgICAgIE5JUFFVQUQoaXB2YWx1ZSkpOwor
+ICB9CisKKyAgLyogY2hlY2sgZm9yIHZhbGlkIGRzdCBvcHRpb24gKi8KKyAgZWxzZSBpZiAoKGNv
+dW50ID49IGRzdGxlbikgJiYgKCEgbWVtY21wKGJ1ZmZlciwgZHN0c3RyLCBkc3RsZW4pKSkgewor
+ICAgIGNoZWNrZHN0ICAgID0gMTsKKyAgICB2YWxpZG9wdGlvbiA9IDE7CisgICAgaXB2YWx1ZSAg
+ICAgPSBjb25udHJhY2tfYXRvbigoY29uc3QgY2hhciAqKSgmYnVmZmVyW2RzdGxlbl0pKTsKKyAg
+ICAvKiBERUJVRyAqLworICAgIHByaW50aygiRHN0IGFkZHJlc3MgPSAldS4ldS4ldS4ldSB3aWxs
+IGJlIHJlbW92ZWQgZnJvbSBjb25udHJhY2tcbiIsCisgICAgICAgICAgIE5JUFFVQUQoaXB2YWx1
+ZSkpOworICB9CisKKyAgLyogY2hlY2sgZm9yIHZhbGlkIGFsbCBvcHRpb24gKi8KKyAgZWxzZSBp
+ZiAoKGNvdW50ID49IGFsbGxlbikgJiYgKCEgbWVtY21wKGJ1ZmZlciwgYWxsc3RyLCBhbGxsZW4p
+KSkgeworICAgIGNoZWNrYWxsICAgID0gMTsKKyAgICB2YWxpZG9wdGlvbiA9IDE7CisgICAgLyog
+REVCVUcgKi8KKyAgICBwcmludGsoIkFsbCByZWNvcmRzIHdpbGwgYmUgcmVtb3ZlZCBmcm9tIGNv
+bm50cmFja1xuIik7CisgIH0KKworCisgIC8qIGNoZWNrIGlmIHdlIGZvdW5kIGEgdmFsaWQgb3B0
+aW9uLCBpZiBub3Q6IGV4aXQgKi8KKyAgaWYgKCEgdmFsaWRvcHRpb24pIHsKKyAgICBwcmludGso
+IkNvbm50cmFjayB1c2VyIHJlbW92ZTogbm8gdmFsaWQgb3B0aW9uIGRldGVjdGVkXG4iKTsKKyAg
+ICBnb3RvIGVuZG5vdW5sb2NrOworICB9CisKKyAgLyogY2hlY2sgaWYgd2UgZm91bmQgYSB2YWxp
+ZCBpcCBhZGRyZXNzIHdoZW4gd2UgbmVlZCBpdCwgaWYgbm90OiBleGl0ICovCisgIGlmICgoY2hl
+Y2tzcmMgfHwgY2hlY2tkc3QpICYmICghIGlwdmFsdWUpKSB7CisgICAgcHJpbnRrKCJDb25udHJh
+Y2sgdXNlciByZW1vdmU6IG5vIHZhbGlkIGlwIGRldGVjdGVkXG4iKTsKKyAgICBnb3RvIGVuZG5v
+dW5sb2NrOworICB9CisKKworICBSRUFEX0xPQ0soJmlwX2Nvbm50cmFja19sb2NrKTsKKworICAv
+KiBUcmF2ZXJzZSBjb25udHJhY2sgdGFibGUgKi8KKyAgZm9yIChpID0gMDsgaSA8IGlwX2Nvbm50
+cmFja19odGFibGVfc2l6ZTsgaSsrKSB7CisgICAgY29uc3Qgc3RydWN0IGxpc3RfaGVhZCAqIGhl
+YWQgPSAmaXBfY29ubnRyYWNrX2hhc2hbaV07CisgICAgZG8geworICAgICAgaGVhZCA9IGhlYWQt
+Pm5leHQ7CisgICAgICBpZiAoaGVhZCA9PSAmaXBfY29ubnRyYWNrX2hhc2hbaV0pIHsKKyAgICAg
+ICAgaGVhZCA9IE5VTEw7CisgICAgICAgIGJyZWFrOworICAgICAgfQorICAgICAgaWYgKGhlYWQg
+PT0gTlVMTCkgeworICAgICAgICBicmVhazsKKyAgICAgIH0KKyAgICAgIGlmIChjaGVja3NyYykg
+eworICAgICAgICBtYXRjaF9yZW1vdmVfc3JjaXBfY29ubnRyYWNrKAorICAgICAgICAgICAgICAg
+ICAgICAgaXB2YWx1ZSwKKyAgICAgICAgICAgICAgICAgICAgICgoc3RydWN0IGlwX2Nvbm50cmFj
+a190dXBsZV9oYXNoICopaGVhZCktPmN0cmFjayk7CisgICAgICB9CisgICAgICBlbHNlIGlmIChj
+aGVja2RzdCkgeworICAgICAgICBtYXRjaF9yZW1vdmVfZHN0aXBfY29ubnRyYWNrKAorICAgICAg
+ICAgICAgICAgICAgICAgaXB2YWx1ZSwKKyAgICAgICAgICAgICAgICAgICAgICgoc3RydWN0IGlw
+X2Nvbm50cmFja190dXBsZV9oYXNoICopaGVhZCktPmN0cmFjayk7CisgICAgICB9CisgICAgICBl
+bHNlIGlmIChjaGVja2FsbCkgeworICAgICAgICBtYXRjaF9yZW1vdmVfYWxsX2Nvbm50cmFjaygK
+KyAgICAgICAgICAgICAgICAgICAgIGlwdmFsdWUsCisgICAgICAgICAgICAgICAgICAgICAoKHN0
+cnVjdCBpcF9jb25udHJhY2tfdHVwbGVfaGFzaCAqKWhlYWQpLT5jdHJhY2spOworICAgICAgfQor
+ICAgIH0gd2hpbGUgKDEpOworICB9CisKKyAgUkVBRF9VTkxPQ0soJmlwX2Nvbm50cmFja19sb2Nr
+KTsKKworZW5kbm91bmxvY2s6CisgIHJldHVybiBjb3VudDsKK30KKwogc3RhdGljIGludCBraWxs
+X3Byb3RvKHN0cnVjdCBpcF9jb25udHJhY2sgKmksIHZvaWQgKmRhdGEpCiB7CiAJcmV0dXJuIChp
+LT50dXBsZWhhc2hbSVBfQ1RfRElSX09SSUdJTkFMXS50dXBsZS5kc3QucHJvdG9udW0gPT0gCkBA
+IC0zNTIsNiArNjA4LDcgQEAKIAlwcm9jID0gcHJvY19uZXRfY3JlYXRlKCJpcF9jb25udHJhY2si
+LCAwNDQwLCBsaXN0X2Nvbm50cmFja3MpOwogCWlmICghcHJvYykgZ290byBjbGVhbnVwX2luaXQ7
+CiAJcHJvYy0+b3duZXIgPSBUSElTX01PRFVMRTsKKyAgcHJvYy0+d3JpdGVfcHJvYyA9IGlwX2Nv
+bm50cmFja191c2VyX3JlbW92ZTsKIAogCXJldCA9IG5mX3JlZ2lzdGVyX2hvb2soJmlwX2Nvbm50
+cmFja19pbl9vcHMpOwogCWlmIChyZXQgPCAwKSB7Cg==
+------=_20050512204719_76234--
