@@ -1,13 +1,18 @@
-From: Anatoly Pugachev <mator@rootshell.ru>
-Subject: quake3 pom module minor warning
-Date: Wed, 11 May 2005 15:51:52 +0400
-Message-ID: <20050511115152.GA1942@helminth.linuxhacker.ru>
+From: Max Kellermann <max@duempel.org>
+Subject: Re: [PATCH pom-ng 4/6] H.323: splitted ip_conntrack_h323.c into 3
+	sources
+Date: Thu, 12 May 2005 07:26:04 +0200
+Message-ID: <20050512052604.GA18421@roonstrasse.net>
+References: <20050510225019.GA5102@roonstrasse.net>
+	<20050510225255.GD5720@roonstrasse.net>
+	<428297FE.1040900@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wRRV7LY7NUeQGEoC"
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, laforge@gnumonks.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
+In-Reply-To: <428297FE.1040900@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,40 +24,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On 2005/05/12 01:40, Patrick McHardy <kaber@trash.net> wrote:
+> Max Kellermann wrote:
+> > h323-04-split_conntrack_into_3.patch
+> > - splitted ip_conntrack_h323.c into 3 sources
+> > 
+> > diff -rN -u old-h323-4/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_core.c new-h323-4/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_core.c
+> > --- old-h323-4/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_core.c	1970-01-01 01:00:00.000000000 +0100
+> > +++ new-h323-4/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323_core.c	2005-05-10 23:33:19.000000000 +0200
+> 
+> This file looks a bit unnecessary, I suggest to put register/unregister
+> in ip_conntrack_h323_h225.c.
 
---wRRV7LY7NUeQGEoC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I splitted the file because it became very large (I dislike sources >
+500 lines). I decided to make a _core.c because this way, the _h225.c
+and _h245.c contain only protocol parser code, and nothing else -
+still having the option to add more "common" code to _core.c (whatever
+happens in further development).
 
-Hello.
+In the compiled binary, there is no advantage of merging _core and
+_h225.c.
 
-If you're selected to use "quake3 connection tracking and NAT helper" POM
-"extra repository" module with recent 2.6.x kernel, then in stage of compil=
-ing
-2.6.x kernel, you'll get following warning (i'm tryed with kernel version
-2.6.11.8) :
+A matter of personal taste. If you vote me down on this one, I'll
+change it.
 
-  CC      net/ipv4/syncookies.o
-scripts/Makefile.build:48: kbuild: net/ipv4/netfilter/Makefile - Usage of
-export-objs is obsolete in 2.6. Please fix!
-
-last time i was tryed to compile it with patch-o-matic-ng-20050414.
-anyone cares to fix this simple warning? :)
-
---=20
-Anatoly Pugachev
-
---wRRV7LY7NUeQGEoC
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQFCgfHVoubiDytudlARAufJAJ9pvmyP/c/kEoq8oQrlBPvA1O3wNgCdH36g
-X4h/LjHNa2d9bEZmh31zjRc=
-=u7sT
------END PGP SIGNATURE-----
-
---wRRV7LY7NUeQGEoC--
+Max
