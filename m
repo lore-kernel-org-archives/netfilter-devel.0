@@ -1,12 +1,21 @@
-From: Thomas Kling <thomasmkling@yahoo.de>
-Subject: tcp conntrack logging
-Date: Fri, 13 May 2005 15:04:25 +0200
-Message-ID: <1233091063.20050513150425@vuni.de>
+From: Max Kellermann <max@duempel.org>
+Subject: Re: [PATCH] SIP/SDP conntrack and NAT helper
+Date: Sat, 14 May 2005 10:41:48 +0200
+Message-ID: <20050514084148.GA16615@roonstrasse.net>
+References: <1115493770.1949.9.camel@www.l-chr.com.ar>
+	<20050508205821.GE393@oknodo.bof.de>
+	<1115588688.2031.11.camel@www.l-chr.com.ar>
+	<20050512080820.GA19043@roonstrasse.net>
+	<1115953825.2050.22.camel@www.l-chr.com.ar>
+	<20050513054309.GA5962@roonstrasse.net>
+	<1116027586.1954.18.camel@www.l-chr.com.ar>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Christian Hentschel <chentschel@arnet.com.ar>
+Content-Disposition: inline
+In-Reply-To: <1116027586.1954.18.camel@www.l-chr.com.ar>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,34 +27,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On 2005/05/14 01:39, Christian Hentschel <chentschel@arnet.com.ar> wrote:
+> > What if length_of(dptr) happens to be smaller than hnfo->lnlen?
+> > strncmp() will violate dptr's boundary => kernel crashing.
+> > 
+> 
+> Again, you are wrong. 
+> Look at the while() 2 lines before and you will see that there's where
+> the limit is.
+> A strncmp() here is the same as calling memcmp(), may be u got confused
+> because of this.
 
-I want to write an extended logging of TCP-Connections: iptables -A INPUT -j LOGTCP
+I see. The 'limit' variable guarantees that length_of(dptr) is always
+equal or bigger than hnfo->lnlen, although you do not explicitly check
+the same for hnfo->snlen. In ct_sip_hdrs, hnfo->lnlen>=nfo->snlen is
+always true, so this is not a real problem here.
 
-LOGTCP should just be a copy of ipt_LOG.c: 
+However, this is dangerous when someone changes ct_sip_hdrs later and
+does not notice that ct_sip_get_info() may produce a buffer overflow
+in this case (the assumption is not documented there). I'd rather
+produce code without this danger and lose some performance (which is
+so small you can't even measure it).
 
-/* --------copy------------
-static void dump_packet(const struct ipt_log_info *info, const struct sk_buff *skb, unsigned int iphoff)
-{
-...
-case IPPROTO_TCP: {
-struct tcphdr _tcph, *th;
- 
-/* Max length: 10 "PROTO=TCP " */
-printk("PROTO=TCP ");
-... 
-[*]
-...
-break;
---------copy------------ /*
+But I insist that ct_sip_get_info() is bugged - e.h. a "\r\nl:" at the
+end of the packet is never found - that would exceed 'limit', which is
+so small because "Content-Length:" is such a big string.
 
-And here [*] I want to call some functions from tcp_conntrack:
-printk("tcp_in_window, sender->td_end, sender->td_maxend, sender->maxwin, receiver->td_end, receiver->td_maxend, receiver->td_maxwin);
+btw. why don't you use memcmp() here? In strncmp(), the known size of
+one of the strings as parameter is redundant. You'd better pass
+limit-dptr (rest length of dptr) here, and set 'limit' to
+dptr+dlen. This would be safe and would parse correctly. In addition,
+you could remove hnfo->lnlen and hnfo->snlen (which looks ugly in the
+initializers anyway).
 
-The problem: I just don't know how to access these values from there.
-I looked through several other modules that use ip_conntrack, but
-didn't find the idea to get started.
-
-
-
-[sorry if this appears twice, the first text got somehow lost]
+Max
