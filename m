@@ -1,13 +1,16 @@
-From: Laurent Guyon <laurent.guyon@adelux.fr>
-Subject: QUEUE target and IPT_CONTINUE verdict ?
-Date: Fri, 13 May 2005 17:29:39 +0200
-Message-ID: <200505131729.39430.laurent.guyon@adelux.fr>
+From: Tobias DiPasquale <codeslinger@gmail.com>
+Subject: Re: QUEUE target and IPT_CONTINUE verdict ?
+Date: Sun, 15 May 2005 13:05:34 -0400
+Message-ID: <876ef97a05051510053c6827c2@mail.gmail.com>
+References: <200505131729.39430.laurent.guyon@adelux.fr>
+Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: nf-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Laurent Guyon <laurent.guyon@adelux.fr>
+In-Reply-To: <200505131729.39430.laurent.guyon@adelux.fr>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -20,27 +23,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+On 5/13/05, Laurent Guyon <laurent.guyon@adelux.fr> wrote:
+> Just wondering why we can't return an IPT_CONTINUE verdict at the end of =
+the
+> QUEUE target.
+>=20
+> I understand that the QUEUE target registers on a Netfilter queue_handler
+> (that is a special kind of hook), and then it must call nf_reinject in th=
+e
+> end.
+>=20
+> I understand too that the nf_reinject function accepts only NF_ACCEPT,
+> NF_DROP ... verdicts, but why ? Is it technically impossible to give
+> nf_reinject an IPT_CONTINUE verdict and implement the relevant code to
+> let packets continue their path in the rules ? or anyone hadn't ever thou=
+ght
+> about such a feature ?
 
-(sorry for my bad english, i'm french ;)
+I believe the reason for this is that, to do this, the kernel would
+have to remember where it was in the processing of the rules and thus
+save some state with every packet sent to userspace to be used in the
+case where the ip_queue handler returned IPT_CONTINUE.
 
-Just wondering why we can't return an IPT_CONTINUE verdict at the end of the 
-QUEUE target.
+I don't believe that such state is hard to add, it would just waste
+space. Feel free to code up a patch and submit it.
 
-I understand that the QUEUE target registers on a Netfilter queue_handler 
-(that is a special kind of hook), and then it must call nf_reinject in the 
-end.
-
-I understand too that the nf_reinject function accepts only NF_ACCEPT, 
-NF_DROP ... verdicts, but why ? Is it technically impossible to give 
-nf_reinject an IPT_CONTINUE verdict and implement the relevant code to 
-let packets continue their path in the rules ? or anyone hadn't ever thought 
-about such a feature ?
-
-In fact i need to put packets ine the QUEUE target to process them in 
-userspace, and then reinject them in Netfilter, but they must continue their 
-path in the rules.
-
-Thanks a lot,
-
-Laurent
+--=20
+[ Tobias DiPasquale ]
+0x636f6465736c696e67657240676d61696c2e636f6d
