@@ -1,21 +1,28 @@
-From: Max Kellermann <max@duempel.org>
-Subject: Re: [PATCH] SIP/SDP conntrack and NAT helper
-Date: Sat, 14 May 2005 10:41:48 +0200
-Message-ID: <20050514084148.GA16615@roonstrasse.net>
-References: <1115493770.1949.9.camel@www.l-chr.com.ar>
-	<20050508205821.GE393@oknodo.bof.de>
-	<1115588688.2031.11.camel@www.l-chr.com.ar>
-	<20050512080820.GA19043@roonstrasse.net>
-	<1115953825.2050.22.camel@www.l-chr.com.ar>
-	<20050513054309.GA5962@roonstrasse.net>
-	<1116027586.1954.18.camel@www.l-chr.com.ar>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: About matching (also was: Multiple Targets)
+Date: Sun, 15 May 2005 09:05:28 +0000
+Message-ID: <428710D8.6090801@outerspace.dyndns.org>
+References: <20050413152307.0312.LARK@linux.net.cn> <425CEFE3.2010200@rtij.nl>
+	<20050413182822.0317.LARK@linux.net.cn> <425CFFE0.1000803@rtij.nl>
+	<20050413112518.GB22865@oknodo.bof.de>
+	<Pine.LNX.4.61.0504140315010.16405@filer.marasystems.com>
+	<7174b1e40504140101b5138e0@mail.gmail.com>
+	<425E3032.2060409@outerspace.dyndns.org>
+	<Pine.LNX.4.61.0504141340130.28938@filer.marasystems.com>
+	<425E6E4C.2010406@outerspace.dyndns.org>
+	<42780DE4.9060808@outerspace.dyndns.org>
+	<Pine.LNX.4.58.0505040909090.18836@blackhole.kfki.hu>
+	<42787CEE.1090503@outerspace.dyndns.org>
+	<Pine.LNX.4.58.0505040947330.18836@blackhole.kfki.hu>
+	<4278D431.5000606@outerspace.dyndns.org>
+	<Pine.LNX.4.58.0505050833580.21246@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Christian Hentschel <chentschel@arnet.com.ar>
-Content-Disposition: inline
-In-Reply-To: <1116027586.1954.18.camel@www.l-chr.com.ar>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0505050833580.21246@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,37 +34,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2005/05/14 01:39, Christian Hentschel <chentschel@arnet.com.ar> wrote:
-> > What if length_of(dptr) happens to be smaller than hnfo->lnlen?
-> > strncmp() will violate dptr's boundary => kernel crashing.
-> > 
-> 
-> Again, you are wrong. 
-> Look at the while() 2 lines before and you will see that there's where
-> the limit is.
-> A strncmp() here is the same as calling memcmp(), may be u got confused
-> because of this.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I see. The 'limit' variable guarantees that length_of(dptr) is always
-equal or bigger than hnfo->lnlen, although you do not explicitly check
-the same for hnfo->snlen. In ct_sip_hdrs, hnfo->lnlen>=nfo->snlen is
-always true, so this is not a real problem here.
+Quoting Jozsef Kadlecsik on 2005-05-05 06:36 UTC:
+> In my opinion cascade targets should return IPT_CONTINUE. They may
+> return NF_DROP in error conditions, but other return values are not
+> allowed.
 
-However, this is dangerous when someone changes ct_sip_hdrs later and
-does not notice that ct_sip_get_info() may produce a buffer overflow
-in this case (the assumption is not documented there). I'd rather
-produce code without this danger and lose some performance (which is
-so small you can't even measure it).
+Right.
 
-But I insist that ct_sip_get_info() is bugged - e.h. a "\r\nl:" at the
-end of the packet is never found - that would exceed 'limit', which is
-so small because "Content-Length:" is such a big string.
+How about hotdrop? I guess it should be checked in the
+IPT_TARGET_ITERATE macro?
 
-btw. why don't you use memcmp() here? In strncmp(), the known size of
-one of the strings as parameter is redundant. You'd better pass
-limit-dptr (rest length of dptr) here, and set 'limit' to
-dptr+dlen. This would be safe and would parse correctly. In addition,
-you could remove hnfo->lnlen and hnfo->snlen (which looks ugly in the
-initializers anyway).
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
-Max
+iD8DBQFChxDXxyF48ZTvn+4RAnEQAKC6vOY1ucjHWxmUI7TJrFems2gtOACdFWsa
+ELwbGpmrNwdcBT1WACkVBKQ=
+=d18+
+-----END PGP SIGNATURE-----
