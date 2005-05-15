@@ -1,13 +1,19 @@
-From: Silimite <silimite@gmail.com>
-Subject: Handling large amounts of data
-Date: Sun, 15 May 2005 17:46:21 -0400
-Message-ID: <5ad977d10505151446348e932f@mail.gmail.com>
-Reply-To: Silimite <silimite@gmail.com>
+From: Tobias DiPasquale <codeslinger@gmail.com>
+Subject: Re: QUEUE target and IPT_CONTINUE verdict ?
+Date: Sun, 15 May 2005 18:12:13 -0400
+Message-ID: <876ef97a05051515127fbbf066@mail.gmail.com>
+References: <200505131729.39430.laurent.guyon@adelux.fr>
+	<876ef97a05051510053c6827c2@mail.gmail.com>
+	<Pine.LNX.4.61.0505152244290.28907@filer.marasystems.com>
+Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
+Cc: Laurent Guyon <laurent.guyon@adelux.fr>,
+	nf-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0505152244290.28907@filer.marasystems.com>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -20,19 +26,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I have written an iptables module called "multirange" that works like
-a combination of iprange and multiport.  That is, you can specify
-multiple ranges to be matched by one rule.
+On 5/15/05, Henrik Nordstrom <hno@marasystems.com> wrote:
+> -j QUEUE
+>=20
+> makes iptables return the IPT_QUEUE verdict to the netfilter kernel, whic=
+h
+> then sends this to the queue handler (normally ip_queue with it's netlink
+> socket). On reinject netfilter continues on the next hook handler of the
+> same hook, or returns the packet to the kernel if there is no more
+> handlers on this hook.
 
-I had to do this because I am loading some 100000 entries into this
-rule and I needed something efficient at handling this many ranges.
+Is this also the reason that there can be only one ip_queue handler at a ti=
+me?
 
-My question is, what is the best way to communicate all these ranges
-from user-space into the kernel module?   I am currently loading them
-via procfs.  Is this an acceptable method or should I be looking at
-something else?  It certainly works great but I would like it to be as
-"proper" as possible.
-
-Thanks!
-
-s
+--=20
+[ Tobias DiPasquale ]
+0x636f6465736c696e67657240676d61696c2e636f6d
