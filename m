@@ -1,14 +1,11 @@
-From: Silimite <silimite@gmail.com>
-Subject: ip_queue/libipq panics on SMP kernel
-Date: Mon, 16 May 2005 12:31:33 -0400
-Message-ID: <5ad977d105051609312d0aae18@mail.gmail.com>
-Reply-To: Silimite <silimite@gmail.com>
+From: Steven J Scott <sjscott@ra.rockwell.com>
+Subject: Re: Handling large amounts of data (SIDE QUESTION)
+Date: Mon, 16 May 2005 11:37:39 -0500
+Message-ID: <OF359FE022.8D754822-ON86257003.005B3FA2-86257003.005B33A3@ra.rockwell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,28 +17,83 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Is anyone successfully using the QUEUE (with libipq) stuff on SMP kernels?
+That's good to hear.  I wanted to insure that was the proper way of doing 
+range searches.
 
-I'm just curious because I've never been able to get it to run for
-more than a few hours before the kernel freezes/panics.   I've tried
-many different kernel versions from the 2.6 series and I have tried on
-several different machines running different Linux distros.  I have
-had other people report the same problem.
+Thanks for you input.
 
-Even a simple program that does nothing but set the verdict to
-NF_ACCEPT will eventually kill the whole system.  It appears that you
-need a rule loaded into iptables and a program listening and
-processing the queued packets.  The time it takes varies anywhere from
-a few minutes to several hours before the machine dies (race
-condition?).
 
-This has something to do with SMP because if I compile a non-SMP
-kernel everything works fine, then if I use the exact same kernel
-config except compiled with SMP turned on then ip_queue causes
-problems.  This is irregardless of whether or not I'm actually using
-multiple processors or even an SMP capable machine.
+Steven Scott - CISSP, CISA, RHCT, LCP, MCSE
+Rockwell Automation / Advanced Technology
+sjscott@ra.rockwell.com
+<---------------------------------------------------->
+(This email was sent via Notes running on Linux)
 
-I also noticed that the libipq header(s) are not C++ friendly.  The
-header does not do a "#ifdef __cplusplus" extern "C" check.
+
+
+
+Silimite <silimite@gmail.com>
+05/16/2005 10:49 AM
+Please respond to Silimite
+
+ 
+        To:     Steven J Scott <sjscott@ra.rockwell.com>
+        cc:     netfilter-devel <netfilter-devel@lists.netfilter.org>
+        Subject:        Re: Handling large amounts of data (SIDE QUESTION)
+
+
+As far as I know iprange does what you are talking about for single
+ranges.  So if you set a range like:
+
+iptables -A INPUT -m iprange --src-range 192.0.0.0-192.255.255.255 -j DROP
+
+It just does a less-than/greater-than to check IP's against the range.
+
+My multirange module is similar except it takes it to the next level. 
+Since it needs to match against many thousands of ranges it has a
+sorted table of all the ranges and then uses a binary search to find
+matches within the ranges.
 
 s
+
+
+On 5/16/05, Steven J Scott <sjscott@ra.rockwell.com> wrote:
+> When developing filters where rules can have IP ranges what is the most
+> efficient way of handling this?  Do you have a single rule that your 
+user
+> space program breaks down to multiple rules in your kernel module?
+> 
+> END USER PROGRAM: IP: 192.90.22.33->192.90.22.40, PORT: 90, BLOCK
+> 
+> KERNEL MODULE TABLE:
+> 
+> 192.90.22.33 BLOCK 90
+> 192.90.22.34 BLOCK 90
+> ....
+> ....
+> 192.90.22.40 BLOCK 90
+> 
+> Then the kernel module just steps through each of the tables entries
+> looking for a match.
+> 
+> Or is there a more effiect way of taging a rule as a range and then have 
+a
+> function do some type of greater then or less operation?
+> 
+> e.g.  compare the range of addresses in their native 32bit order to the
+> packet that was captured?
+> 
+> So if I have the range above I could use the following operation to do a
+> very effient check:
+> 
+> __u32 32bitLowIPRang = hton(192.90.22.33);
+> --u32 32bitHighIPRange = hton(192.90.22.40);
+> 
+> if ( captured_packets_ip_address >= 32bitLowIPRange &&
+> captured_packets_ip_address <= 32bitHighIPRange)
+>         printf("match!");
+> 
+> Now I know with masks it gets tricky, but I am wondering how people 
+handle
+> this specfic requiment.
+>
