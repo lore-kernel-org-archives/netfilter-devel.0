@@ -1,18 +1,12 @@
-From: Silimite <silimite@gmail.com>
-Subject: Re: Handling large amounts of data
-Date: Mon, 16 May 2005 10:39:07 -0400
-Message-ID: <5ad977d10505160739e482c66@mail.gmail.com>
-References: <5ad977d10505151446348e932f@mail.gmail.com>
-	<876ef97a05051515154bdb4157@mail.gmail.com>
-Reply-To: Silimite <silimite@gmail.com>
+From: Steven J Scott <sjscott@ra.rockwell.com>
+Subject: Re: Handling large amounts of data (SIDE QUESTION)
+Date: Mon, 16 May 2005 10:23:39 -0500
+Message-ID: <OF9338F2A4.2824107C-ON86257003.0051EBEE-86257003.00546CEB@ra.rockwell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tobias DiPasquale <codeslinger@gmail.com>
-In-Reply-To: <876ef97a05051515154bdb4157@mail.gmail.com>
-Content-Disposition: inline
+To: netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	netfilter-devel-bounces@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,6 +17,65 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
+
+When developing filters where rules can have IP ranges what is the most 
+efficient way of handling this?  Do you have a single rule that your user 
+space program breaks down to multiple rules in your kernel module?
+
+END USER PROGRAM: IP: 192.90.22.33->192.90.22.40, PORT: 90, BLOCK
+
+KERNEL MODULE TABLE:
+
+192.90.22.33 BLOCK 90
+192.90.22.34 BLOCK 90
+....
+....
+192.90.22.40 BLOCK 90
+
+Then the kernel module just steps through each of the tables entries 
+looking for a match.
+ 
+Or is there a more effiect way of taging a rule as a range and then have a 
+function do some type of greater then or less operation?
+
+e.g.  compare the range of addresses in their native 32bit order to the 
+packet that was captured?
+
+So if I have the range above I could use the following operation to do a 
+very effient check:
+
+
+__u32 32bitLowIPRang = hton(192.90.22.33);
+--u32 32bitHighIPRange = hton(192.90.22.40);
+
+if ( captured_packets_ip_address >= 32bitLowIPRange && 
+captured_packets_ip_address <= 32bitHighIPRange)
+        printf("match!");
+
+Now I know with masks it gets tricky, but I am wondering how people handle 
+this specfic requiment.
+
+Thanks,
+
+Steven Scott - CISSP, CISA, RHCT, LCP, MCSE
+Rockwell Automation / Advanced Technology
+sjscott@ra.rockwell.com
+<---------------------------------------------------->
+(This email was sent via Notes running on Linux)
+
+
+
+
+Silimite <silimite@gmail.com>
+Sent by: netfilter-devel-bounces@lists.netfilter.org
+05/16/2005 09:39 AM
+Please respond to Silimite
+
+ 
+        To:     Tobias DiPasquale <codeslinger@gmail.com>
+        cc:     netfilter-devel <netfilter-devel@lists.netfilter.org>
+        Subject:        Re: Handling large amounts of data
+
 
 Thanks!  I'll look into that more.  I had looked at the netlink
 sockets in the past but they seemed to require a more complex
@@ -40,7 +93,7 @@ On 5/15/05, Tobias DiPasquale <codeslinger@gmail.com> wrote:
 >  A unicast netlink socket would almost certainly be the best way to go
 > here. For examples on how to use unicast netlink sockets, look at
 > net/ipv4/netfilter/ip_queue.c or net/core/rtnetlink.c.
->=20
+> 
 > --
 > [ Tobias DiPasquale ]
 > 0x636f6465736c696e67657240676d61696c2e636f6d
