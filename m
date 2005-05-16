@@ -1,16 +1,13 @@
 From: Silimite <silimite@gmail.com>
-Subject: Re: Handling large amounts of data (SIDE QUESTION)
-Date: Mon, 16 May 2005 11:49:34 -0400
-Message-ID: <5ad977d105051608496896aa0a@mail.gmail.com>
-References: <OF9338F2A4.2824107C-ON86257003.0051EBEE-86257003.00546CEB@ra.rockwell.com>
+Subject: ip_queue/libipq panics on SMP kernel
+Date: Mon, 16 May 2005 12:31:33 -0400
+Message-ID: <5ad977d105051609312d0aae18@mail.gmail.com>
 Reply-To: Silimite <silimite@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Steven J Scott <sjscott@ra.rockwell.com>
-In-Reply-To: <OF9338F2A4.2824107C-ON86257003.0051EBEE-86257003.00546CEB@ra.rockwell.com>
+To: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -23,57 +20,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-As far as I know iprange does what you are talking about for single
-ranges.  So if you set a range like:
+Is anyone successfully using the QUEUE (with libipq) stuff on SMP kernels?
 
-iptables -A INPUT -m iprange --src-range 192.0.0.0-192.255.255.255 -j DROP
+I'm just curious because I've never been able to get it to run for
+more than a few hours before the kernel freezes/panics.   I've tried
+many different kernel versions from the 2.6 series and I have tried on
+several different machines running different Linux distros.  I have
+had other people report the same problem.
 
-It just does a less-than/greater-than to check IP's against the range.
+Even a simple program that does nothing but set the verdict to
+NF_ACCEPT will eventually kill the whole system.  It appears that you
+need a rule loaded into iptables and a program listening and
+processing the queued packets.  The time it takes varies anywhere from
+a few minutes to several hours before the machine dies (race
+condition?).
 
-My multirange module is similar except it takes it to the next level.=20
-Since it needs to match against many thousands of ranges it has a
-sorted table of all the ranges and then uses a binary search to find
-matches within the ranges.
+This has something to do with SMP because if I compile a non-SMP
+kernel everything works fine, then if I use the exact same kernel
+config except compiled with SMP turned on then ip_queue causes
+problems.  This is irregardless of whether or not I'm actually using
+multiple processors or even an SMP capable machine.
+
+I also noticed that the libipq header(s) are not C++ friendly.  The
+header does not do a "#ifdef __cplusplus" extern "C" check.
 
 s
-
-
-On 5/16/05, Steven J Scott <sjscott@ra.rockwell.com> wrote:
-> When developing filters where rules can have IP ranges what is the most
-> efficient way of handling this?  Do you have a single rule that your user
-> space program breaks down to multiple rules in your kernel module?
->=20
-> END USER PROGRAM: IP: 192.90.22.33->192.90.22.40, PORT: 90, BLOCK
->=20
-> KERNEL MODULE TABLE:
->=20
-> 192.90.22.33 BLOCK 90
-> 192.90.22.34 BLOCK 90
-> ....
-> ....
-> 192.90.22.40 BLOCK 90
->=20
-> Then the kernel module just steps through each of the tables entries
-> looking for a match.
->=20
-> Or is there a more effiect way of taging a rule as a range and then have =
-a
-> function do some type of greater then or less operation?
->=20
-> e.g.  compare the range of addresses in their native 32bit order to the
-> packet that was captured?
->=20
-> So if I have the range above I could use the following operation to do a
-> very effient check:
->=20
-> __u32 32bitLowIPRang =3D hton(192.90.22.33);
-> --u32 32bitHighIPRange =3D hton(192.90.22.40);
->=20
-> if ( captured_packets_ip_address >=3D 32bitLowIPRange &&
-> captured_packets_ip_address <=3D 32bitHighIPRange)
->         printf("match!");
->=20
-> Now I know with masks it gets tricky, but I am wondering how people handl=
-e
-> this specfic requiment.
->
