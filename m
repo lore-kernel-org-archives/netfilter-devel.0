@@ -1,17 +1,17 @@
 From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: QUEUE target and IPT_CONTINUE verdict ?
-Date: Mon, 16 May 2005 08:52:49 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0505160849470.14981@filer.marasystems.com>
+Date: Mon, 16 May 2005 12:02:31 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0505161156560.17404@filer.marasystems.com>
 References: <200505131729.39430.laurent.guyon@adelux.fr>
 	<876ef97a05051510053c6827c2@mail.gmail.com>
 	<Pine.LNX.4.61.0505152244290.28907@filer.marasystems.com>
-	<876ef97a05051515127fbbf066@mail.gmail.com>
+	<200505161201.02379.laurent.guyon@adelux.fr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: nf-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tobias DiPasquale <codeslinger@gmail.com>
-In-Reply-To: <876ef97a05051515127fbbf066@mail.gmail.com>
+To: Laurent Guyon <laurent.guyon@adelux.fr>
+In-Reply-To: <200505161201.02379.laurent.guyon@adelux.fr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,19 +23,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 15 May 2005, Tobias DiPasquale wrote:
+On Mon, 16 May 2005, Laurent Guyon wrote:
 
-> Is this also the reason that there can be only one ip_queue handler at a time?
+> Then, if I understand well, what I want to do isn't really possible this way.
 
-Yes, or no depending on how you want to use the ip_queue handlers..
+Not easily anyway.
 
-If you want different rules to reach different queue handlers then yes.
+> If I can't reinject my packets in Netfilter from the QUEUE target, maybe I
+> could systemacally return NF_DROP as verdict, and forge (from my userspace
+> tool) new packets, identical but marked, with libnet to re-emit them, so they
+> will pass again in Netfilter ?
 
-If you simply want the packet to call both handlers then no, but as this 
-generally can be implemented just fine in userspace it is not considered 
-important to implement.
+Does not sound very good, but it depends on what kind of modifications you 
+need to do to the packets and why you want them to be seen again by the 
+same hook. There is complications from connection tracking etc if this is 
+not done carefully.
 
-Why do you want more than one ip_queue handler, and how?
+So the key question is why do you need the packets to pass thru the same 
+hook again?
+
+Perhaps if you described what it is you are trying to accomplish at a 
+higher level we could give you an advice how to best do this. The Linux 
+kernel is quite multi-faceted in its networking capabilities and 
+interfaces and almost always there is more than one way to approach any 
+given problem.
 
 Regards
 Henrik
