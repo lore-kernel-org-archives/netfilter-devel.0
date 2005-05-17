@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ip_queue/libipq panics on SMP kernel
-Date: Tue, 17 May 2005 21:44:28 +0200
-Message-ID: <428A499C.7080409@trash.net>
-References: <5ad977d105051609312d0aae18@mail.gmail.com>
+Subject: Re: [patch] fix ipt_ACCOUNT for 32bit netmasks
+Date: Tue, 17 May 2005 21:48:21 +0200
+Message-ID: <428A4A85.3010605@trash.net>
+References: <200505131308.09535.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: netfilter <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Silimite <silimite@gmail.com>
-In-Reply-To: <5ad977d105051609312d0aae18@mail.gmail.com>
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+In-Reply-To: <200505131308.09535.thomas.jarosch@intra2net.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,32 +21,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Silimite wrote:
-> Is anyone successfully using the QUEUE (with libipq) stuff on SMP kernels?
-
-Probably, I haven't seen reports about problems yet.
-
-> I'm just curious because I've never been able to get it to run for
-> more than a few hours before the kernel freezes/panics.   I've tried
-> many different kernel versions from the 2.6 series and I have tried on
-> several different machines running different Linux distros.  I have
-> had other people report the same problem.
+Thomas Jarosch wrote:
+> Hi,
 > 
-> Even a simple program that does nothing but set the verdict to
-> NF_ACCEPT will eventually kill the whole system.  It appears that you
-> need a rule loaded into iptables and a program listening and
-> processing the queued packets.  The time it takes varies anywhere from
-> a few minutes to several hours before the machine dies (race
-> condition?).
+> attached is a patch to fix ipt_ACCOUNT for /32 netmasks.
+> While looking through the code I also found and fixed a locking bug.
 > 
-> This has something to do with SMP because if I compile a non-SMP
-> kernel everything works fine, then if I use the exact same kernel
-> config except compiled with SMP turned on then ip_queue causes
-> problems.  This is irregardless of whether or not I'm actually using
-> multiple processors or even an SMP capable machine.
+> Please apply the patch or let me know if there's trouble applying.
 
-Please capture the Oops using serial console or netconsole and send
-it to this list.
+Applied, but I suggest to replace that code by ffz(~netmask).
 
 Regards
 Patrick
