@@ -1,7 +1,7 @@
 From: Amin Azez <azez@ufomechanic.net>
 Subject: Re: [PATCH] Conntrack proc interface for tuple removal
-Date: Tue, 17 May 2005 17:00:43 +0100
-Message-ID: <428A152B.1060109@ufomechanic.net>
+Date: Tue, 17 May 2005 17:00:30 +0100
+Message-ID: <428A151E.9090107@ufomechanic.net>
 References: <11148.217.169.232.210.1115923639.squirrel@hupie.xs4all.nl>
 	<4284378B.8080401@eurodev.net>
 Mime-Version: 1.0
