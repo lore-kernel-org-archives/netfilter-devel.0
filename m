@@ -1,52 +1,61 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: Mangling IP Options fields
-Date: Mon, 16 May 2005 18:43:35 +0000
-Message-ID: <4288E9D7.10306@outerspace.dyndns.org>
-References: <42889454.6040300@hoole.biz>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Problem with two addrtype matches in one iptables rule.
+Date: Tue, 17 May 2005 03:35:23 +0200
+Message-ID: <42894A5B.5050000@trash.net>
+References: <42883902.7030909@riverviewtech.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Quinton Hoole <quinton@hoole.biz>
-In-Reply-To: <42889454.6040300@hoole.biz>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	netfilter@lists.netfilter.org
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: "Taylor, Grant" <gtaylor@riverviewtech.net>
+In-Reply-To: <42883902.7030909@riverviewtech.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-Quoting Quinton Hoole on 2005-05-16 12:38 UTC:
-> Is mangling of IP options fields supported by netfilter/iptables?
+Taylor, Grant wrote:
+> Hi, my name is Grant Taylor.  I'm playing with your addrtype match
+> extension to iptables.  I must say that I like it very much.  However I
+> have a slight problem with it.  Namely I am apparently only able to have
+> one addrtype match in any given rule.  I would like to use two addrtype
+> matches, one for the source address, and one for the destination address
+> in my iptables rules.  Do you know of any limitations to the addrtype
+> match extension that would be causing this?  Below is an example rule of
+> what I am currently using as well as what I would like to be able to do:
 > 
-> I've seen Fabrice's reply to a simimlar question some 3 years back:
+> # current rule:
+> iptables -t filter -A INPUT -i eth1 -m pkttype --pkt-type broadcast -m
+> addrtype --src-type broadcast -s 0.0.0.0 -d 255.255.255.255 -p udp
+> --sport 68 --dport 67 -j ACCEPT
 > 
-> https://lists.netfilter.org/pipermail/netfilter-devel/2002-March/006957.html
+> # desired rule:
+> iptables -t filter -A INPUT -i eth1 -m pkttype --pkt-type broadcast -m
+> addrtype --src-type broadcast -m addrtype --dst-type broadcast -s
+> 0.0.0.0 -d 255.255.255.255 -p udp --sport 68 --dport 67 -j ACCEPT
+> 
+> Any comments or suggestions would be greatly appreciated.
 
-I think nothing has changed. The IPV4OPTSSTRIP mentioned in the mail
-(which removes all options) is still available.
+This is a known limitation of iptables:
 
-You can download the latest pom-ng (through www.netfilter.org), which
-includes IPV4OPTSSTRIP. If you need more help regarding how to do stuff
-in the net/ipv4/netfilter/ipt_IPV4OPTSSTRIP.c file (which is the one you
-should modify), just ask :)
+/* FIXME: This scheme doesn't allow two of the same
+   matches --RR */
 
-Good luck!
+It looks like fixing it would break compatibility because currently
+arguments to matches can occur at any position:
 
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+iptables -A OUTPUT -m addrtype -p tcp --dst-type BROADCAST
 
-iD8DBQFCiOnVxyF48ZTvn+4RAj5zAJwKMG2mfElgS26RV2PRwwcIGuYBPwCfdJnv
-RtaGxlBLe/NpODfN5b7zob4=
-=9Bp4
------END PGP SIGNATURE-----
+I suggest you add the second match to a new chain and jump to it
+from the first match.
+
+Regards
+Patrick
