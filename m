@@ -1,14 +1,25 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipalter/ipset
-Date: Wed, 18 May 2005 09:05:08 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0505180901460.9582@blackhole.kfki.hu>
-References: <428824A7.3060506@elte.hu>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [RFC] alternative to conntrack ID
+Date: Wed, 18 May 2005 08:08:40 +0100
+Message-ID: <428AE9F8.6050906@ufomechanic.net>
+References: <424747E3.7000300@eurodev.net> <42502F8D.5030504@trash.net>
+	<4254258E.5000204@eurodev.net> <42627BC4.8070103@trash.net>
+	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>
+	<20050429080242.GJ9735@sunbeam.de.gnumonks.org>
+	<42789366.20702@ufomechanic.net> <4278B23A.7050406@trash.net>
+	<4278B98E.7090707@ufomechanic.net> <427B8A46.8090006@trash.net>
+	<427D26E7.8060701@ingate.com> <427D3EAF.3020200@trash.net>
+	<427D41FA.5080506@ingate.com>
+	<1115648236.25627.17.camel@nienna.balabit>
+	<428A1807.8070708@ufomechanic.net>
+	<Pine.LNX.4.58.0505180842420.9582@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Nagy Zoltan <kirk@elte.hu>
-In-Reply-To: <428824A7.3060506@elte.hu>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0505180842420.9582@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,33 +31,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Jozsef Kadlecsik wrote:
 
-On Mon, 16 May 2005, Nagy Zoltan wrote:
+>On Tue, 17 May 2005, Amin Azez wrote:
+>
+>  
+>
+>>KOVACS Krisztian wrote:
+>>    
+>>
+>>>  Probably Patrick was referring to a possible problem where the
+>>>following happens: a new connection is established and destroyed in a
+>>>very short time. If a new connection with the same tuple is created
+>>>before the timestamp increases (which is perfectly possible IMHO if you
+>>>have some slow embedded HW with no high precision timer available)
+>>>      
+>>>
+>>After further reading I think this scenario is highly unlikely.
+>>
+>>I don't mean improbable, I mean, is there any such hardware?
+>>If a socket is not to be reused until TCP_TIME_WAIT which is recommended
+>>to be in the region of 4 minutes, is there really any hardware that
+>>can't time to that resolution? Is there really any devices that will
+>>re-use a TCP socket in the same timer tick as they closed it?
+>>    
+>>
+>
+>We have to deal with other protocols as well, not just TCP. For example
+>using UDP one could fairly easily trigger the described situation.
+>
+>  
+>
 
-> i've made a small patch to the ipset/portmap match, it adds an alternate
-> "invert" which made me able to restrict all users to ssh/http/other
-> basic services, and open all ports when neccessary with an easy
-> step...maybe good for somebody too ;)
+I think this situation could not be triggered by UDP, as there are no 
+explicit close sequences for udp that conntrack recognizes, so the 
+conntrack would only be destroyed after a conntrack timer expires (which 
+must be larger than the minimum resolution of the timer), therefore it 
+becomes impossible to bring up two conntracks with the same tuples in 
+the same clock tick.
 
-What's wrong with the normal negation?
-
-> the IPALTER target it rewrites the source or dest address of an ip
-> package - i've searched a long time for an alternate solution...but i
-> didn't find anything.. i think it's only useful for extreme situtations
-> in my case: i've an arp proxy firewall, and it wants to notify the
-> clients that they need to change there MTU to 1440 because the other
-> side can't handle it...the clients doesn't accept the icmp
-> fragmentation-needed package, because 10.0.0.2 is not their router, so i
-> rewrite it to look like that ;)
-
-Heresy - but can work in extreme situations. :-) Actually, it's a
-stateless NAT as far as I see.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Amin
