@@ -1,15 +1,14 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] Conntrack proc interface for tuple removal
-Date: Wed, 18 May 2005 08:51:45 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0505180847060.9582@blackhole.kfki.hu>
-References: <11148.217.169.232.210.1115923639.squirrel@hupie.xs4all.nl>
-	<4284378B.8080401@eurodev.net> <428A151E.9090107@ufomechanic.net>
+Subject: Re: ipalter/ipset
+Date: Wed, 18 May 2005 09:05:08 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0505180901460.9582@blackhole.kfki.hu>
+References: <428824A7.3060506@elte.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <428A151E.9090107@ufomechanic.net>
+To: Nagy Zoltan <kirk@elte.hu>
+In-Reply-To: <428824A7.3060506@elte.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,21 +20,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 17 May 2005, Amin Azez wrote:
+Hi,
 
-> Pablo Neira wrote:
-> > - READ_LOCK'ing while trying to delete a conntrack is racy, you must use
-> > write_lock instead. Someone else could be reading the conntrack table
-> > while you try to delete a conntrack.
-> > - check the value returned by del_timer, currently racy as well.
-> > - Deadlock on SMP: calling conntrack->timeout.function
-> > (death_by_timeout) is illegal if you've got ip_conntrack_lock.
->
-> Where should one read to learn about the rules and intricacies of such
-> locking dependancies.
+On Mon, 16 May 2005, Nagy Zoltan wrote:
 
-Rusty's 'Unreliable Guide To Locking' is an excellent paper on the locking
-issues in the Linux kernel.
+> i've made a small patch to the ipset/portmap match, it adds an alternate
+> "invert" which made me able to restrict all users to ssh/http/other
+> basic services, and open all ports when neccessary with an easy
+> step...maybe good for somebody too ;)
+
+What's wrong with the normal negation?
+
+> the IPALTER target it rewrites the source or dest address of an ip
+> package - i've searched a long time for an alternate solution...but i
+> didn't find anything.. i think it's only useful for extreme situtations
+> in my case: i've an arp proxy firewall, and it wants to notify the
+> clients that they need to change there MTU to 1440 because the other
+> side can't handle it...the clients doesn't accept the icmp
+> fragmentation-needed package, because 10.0.0.2 is not their router, so i
+> rewrite it to look like that ;)
+
+Heresy - but can work in extreme situations. :-) Actually, it's a
+stateless NAT as far as I see.
 
 Best regards,
 Jozsef
