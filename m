@@ -1,16 +1,16 @@
 From: "Forte Systems - Iosif Peterfi" <iosif.peterfi@fortesys.ro>
-Subject: RE: FIX: connlimit NULL pointer kernel panic (was: connlimit patch
-	crashes 2.6.11 kernel)
-Date: Thu, 19 May 2005 10:58:02 +0300
-Message-ID: <46527.2523616024$1116489381@news.gmane.org>
-References: <428C03B4.7000900@eurodev.net>
+Subject: RE: FIX: connlimit NULL pointer kernel panic (was: connlimit
+	patchcrashes 2.6.11 kernel)
+Date: Thu, 19 May 2005 11:07:01 +0300
+Message-ID: <36279.3055516251$1116489506@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0008_01C55C61.A0A7ECF0"
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Cc: mateusz@republika.pl, netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "'Pablo Neira'" <pablo@eurodev.net>
-In-Reply-To: <428C03B4.7000900@eurodev.net>
+In-Reply-To: 
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,12 +22,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
 
-------=_NextPart_000_0008_01C55C61.A0A7ECF0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+I meant 2.6.11.
+
+-----Original Message-----
+From: netfilter-devel-bounces@lists.netfilter.org
+[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of Forte
+Systems - Iosif Peterfi
+Sent: Thursday, May 19, 2005 10:58 AM
+To: 'Pablo Neira'
+Cc: mateusz@republika.pl; netfilter-devel@lists.netfilter.org;
+kaber@trash.net
+Subject: RE: FIX: connlimit NULL pointer kernel panic (was: connlimit
+patchcrashes 2.6.11 kernel)
 
 Here is a diff -urN patch for what has been discussed except the conntrack
 event-api. Works fine on 2.6.1-gentoo-r8, patch-o-matic-ng-20050516. 
@@ -82,49 +89,8 @@ This message was scanned for spam and viruses by BitDefender.
 For more information please visit http://linux.bitdefender.com/
 
 
-------=_NextPart_000_0008_01C55C61.A0A7ECF0
-Content-Type: application/octet-stream;
-	name="ipt_connlimit.c.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="ipt_connlimit.c.patch"
-
---- ipt_connlimit.c.orig        2005-05-19 10:15:30.000000000 +0300
-+++ ipt_connlimit.c     2005-05-19 10:27:31.000000000 +0300
-@@ -55,7 +55,7 @@
-        struct ipt_connlimit_conn *conn;
-        struct list_head *hash,*lh;
-
--       spin_lock(&data->lock);
-+       spin_lock_bh(&data->lock);
-        tuple =3D ct->tuplehash[0].tuple;
-        hash =3D &data->iphash[ipt_iphash(addr & mask)];
-
-@@ -64,8 +64,8 @@
-                struct ip_conntrack *found_ct =3D NULL;
-                conn =3D list_entry(lh,struct ipt_connlimit_conn,list);
-                found =3D ip_conntrack_find_get(&conn->tuple,ct);
--               if (0 =3D=3D memcmp(&conn->tuple,&tuple,sizeof(tuple)) =
-&&
--                   found !=3D NULL && (found_ct =3D =
-tuplehash_to_ctrack(found)) !=3D NULL &&
-+               if (found !=3D NULL && (found_ct =3D =
-tuplehash_to_ctrack(found)) !=3D NULL &&
-+                   0 =3D=3D memcmp(&conn->tuple,&tuple,sizeof(tuple)) =
-&&
-                    found_ct->proto.tcp.state !=3D =
-TCP_CONNTRACK_TIME_WAIT) {
-                        /* Just to be sure we have it only once in the =
-list.
-                           We should'nt see tuples twice unless someone =
-hooks this
-------=_NextPart_000_0008_01C55C61.A0A7ECF0
-Content-Type: text/plain; name="BitDefender.txt"
-Content-Disposition: inline; filename="BitDefender.txt"
 
 
 -- 
 This message was scanned for spam and viruses by BitDefender.
 For more information please visit http://linux.bitdefender.com/
-
-------=_NextPart_000_0008_01C55C61.A0A7ECF0--
