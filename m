@@ -1,11 +1,15 @@
-From: cranium2003 <cranium2003@yahoo.com>
-Subject: who calls ipt_log_target?
-Date: Thu, 19 May 2005 05:19:02 -0700 (PDT)
-Message-ID: <20050519121902.93885.qmail@web33001.mail.mud.yahoo.com>
+From: Kirk <kirk@nuk.teteny.elte.hu>
+Subject: Re: ipalter/ipset
+Date: Thu, 19 May 2005 22:35:41 +0159
+Message-ID: <428CF8B3.5030408@nuk.teteny.elte.hu>
+References: <428824A7.3060506@elte.hu>
+	<Pine.LNX.4.58.0505180901460.9582@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.58.0505180901460.9582@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,32 +21,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-hello,
-       By adding iptable rule
-iptable -A OUTPUT -j LOG
- I am able to check log of each outgoing packets. But
-i want to know who is actually calling ipt_log_target
-function defined in ipt_LOG.c as
-static unsigned int
-ipt_log_target(struct sk_buff **pskb,
-               unsigned int hooknum,
-               const struct net_device *in,
-               const struct net_device *out,
-               const void *targinfo,
-               void *userinfo)
+> Hi,
+> 
+> What's wrong with the normal negation?
+example:
+ipset -N ports_level_0	--invert --from 1 --to 1
+ipset -N ports_level_1	--from 1 --to 1024
+ipset -N ports_level_X	--from 1 --to 1
+ipset -A ports_level_1	22
+ipset -A ports_level_1	80
+ipset -N in_map	ipmap	--netwrok 10.0.0.0/24
+ipset -A in_map 10.0.0.1
+ipset -A in_map 10.0.0.2
+[...]
+ipset -B in_map 10.0.0.1 ports_level_0
+ipset -B in_map 10.0.0.2 ports_level_1
+[...]
+ipset -B in_map :default: ports_level_X
 
-I want to know which file in source code has pointer
-to call ipt_log_target function? I want instance/copy
-of const struct net_device *out to my function in
-kernel to know that eth0 or eth1 is transmitting
-packet.
-Thanks in advance.
-regards,
-cranium
+iptables -P FORWARD DROP
+iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A FORWARD -i eth0 -s 10.0.0.0/24 -j ACCEPT
+iptables -A FORWARD -m set --set in_map dst,dst	-j ACCEPT
 
+and if requested i can change 10.0.0.2's visible ports to all,
+without having another ipmap to describe the set of those machines that are ok to run services on any port..
 
-		
-__________________________________ 
-Do you Yahoo!? 
-Yahoo! Mail - Find what you need with new enhanced search. 
-http://info.mail.yahoo.com/mail_250
+> Heresy - but can work in extreme situations. :-) Actually, it's a
+> stateless NAT as far as I see.
+yes, i know ;)
+but there is any alternative for this kind of problem?
+
+Best regards, kirk
