@@ -1,15 +1,14 @@
-From: Quinton Hoole <quinton@hoole.biz>
-Subject: Re: Mangling IP Options fields
-Date: Thu, 19 May 2005 14:58:14 +0200
-Message-ID: <428C8D66.3030908@hoole.biz>
-References: <42889454.6040300@hoole.biz> <4288E9D7.10306@outerspace.dyndns.org>
+From: Clifford Wolf <clifford@clifford.at>
+Subject: [PATCH] ipset type "expire"
+Date: Thu, 19 May 2005 15:24:15 +0200
+Message-ID: <20050519132414.GH6159@clifford.at>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature";
-	micalg=sha1; boundary="------------ms050005090708050806080304"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="V32M1hWVjliPHW+c"
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jonas Berlin <xkr47@outerspace.dyndns.org>
-In-Reply-To: <4288E9D7.10306@outerspace.dyndns.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,157 +20,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a cryptographically signed message in MIME format.
 
---------------ms050005090708050806080304
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+--V32M1hWVjliPHW+c
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi Jonas
+Hi,
 
-Thanks for your kind offer of help! I assume you meant it ;-)  If so, 
-here goes...
+I've already mailed with Jozsef Kadlecsik about this patch in March. It
+seamed to me as he liked it, but it did not show up in the netfilter
+subversion repository so far..
 
-I've been struggling to get a working development platform, and finally 
-have a Fedora Core 3 system, with kernel-2.6.11-1.14_FC3, which I've 
-built from source and tested.
+	http://www.clifford.at/priv/ipset_expire_v2.patch
 
-Now I try to use patch-o-matic to apply the IPV4OPTSSTRIP patch, but get 
-the following error:
-===================
-Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
-Testing patch base/IPV4OPTSSTRIP.patch...
-Warning - no help text file could be found in either
-/usr/src/linux/net/ipv4/netfilter/Config.help
-or /usr/src/linux/Documentation/Configure.help
-fgrep: /usr/src/linux/net/ipv4/netfilter/Config.in: No such file or 
-directory
-Could not find place to slot in Config.in line
-TEST FAILED: patch NOT applied.
-===================
+This patch adds an "expire" ipset type. The entries in such IP sets expire
+automatically after the specified timeout. This is useful e.g. for
+portknocking setups or blacklisting IPs for some time without any userland
+daemons running.
 
-I installed the kernel source RPM according to the instructions in the 
-FC3  (http://fedora.redhat.com/docs/release-notes/fc3/x86/), which 
-places  the kernel source in
+Please apply the patch in the subversion repository or comment on it if you
+think it should not be included..
 
-/usr/src/redhat/BUILD/kernel-2.6.11/linux-2.6.11
+yours,
+ - clifford
 
-For convenience I  created a symbolic link from /usr/src/linux to the above.
+--=20
+SSSS PPPP L     The SPL Programming Language
+S    P  P L     http://www.clifford.at/spl/
+SSSS PPPP L     ----------------------------------------------------
+   S P    L     An object oriented, stateful, simple, small, c-like,
+SSSS P    LLLL  embeddable, feature rich, dynamic scripting language
+=20
+Hardware /nm./: the part of the computer that you can kick.
+=20
 
-Then by executing the following I got the error above:
-[root@quinton-lap1 patch-o-matic]# KERNEL_DIR=/usr/src/linux ./runme base
+--V32M1hWVjliPHW+c
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-What am I doing wrong?  Should I be using a standard kernel from 
-kernel.org, rather than my FC3 kernel?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
 
-Q
- 
+iD8DBQFCjJN+PNIEsfpKDdERApwsAKCHNCVyREVZel+BKTWNKgBDcFo6bACfQ5jJ
+vNZlKr+Kk/zTDngqlVPq+9Q=
+=Vr4Z
+-----END PGP SIGNATURE-----
 
-Jonas Berlin wrote:
-
->-----BEGIN PGP SIGNED MESSAGE-----
->Hash: SHA1
->
->Quoting Quinton Hoole on 2005-05-16 12:38 UTC:
->  
->
->>Is mangling of IP options fields supported by netfilter/iptables?
->>
->>I've seen Fabrice's reply to a simimlar question some 3 years back:
->>
->>https://lists.netfilter.org/pipermail/netfilter-devel/2002-March/006957.html
->>    
->>
->
->I think nothing has changed. The IPV4OPTSSTRIP mentioned in the mail
->(which removes all options) is still available.
->
->You can download the latest pom-ng (through www.netfilter.org), which
->includes IPV4OPTSSTRIP. If you need more help regarding how to do stuff
->in the net/ipv4/netfilter/ipt_IPV4OPTSSTRIP.c file (which is the one you
->should modify), just ask :)
->
->Good luck!
->
->- --
->- - xkr47
->-----BEGIN PGP SIGNATURE-----
->Version: GnuPG v1.4.1 (GNU/Linux)
->
->iD8DBQFCiOnVxyF48ZTvn+4RAj5zAJwKMG2mfElgS26RV2PRwwcIGuYBPwCfdJnv
->RtaGxlBLe/NpODfN5b7zob4=
->=9Bp4
->-----END PGP SIGNATURE-----
->
->
->  
->
-
---------------ms050005090708050806080304
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJMzCC
-AvQwggJdoAMCAQICAw5bdTANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UE
-ChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNv
-bmFsIEZyZWVtYWlsIElzc3VpbmcgQ0EwHhcNMDUwMzI4MTIyNjMzWhcNMDYwMzI4MTIyNjMz
-WjBoMQ4wDAYDVQQEEwVIb29sZTEWMBQGA1UEKhMNUXVpbnRvbiBSb2JpbjEcMBoGA1UEAxMT
-UXVpbnRvbiBSb2JpbiBIb29sZTEgMB4GCSqGSIb3DQEJARYRcXVpbnRvbkBob29sZS5iaXow
-ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC2t2P0XVPSgHFYzIz5VYiJgV1Sl+Oa
-WGweARrZV3zD99eElbJ/+FjlNz5B1NEhuEpWCBFUWk6aOQX3fe5FEY4PGgqTjUh9nISs+WJ1
-/0XX+BPBEj81Jf39lKU01fKhT7nBbcJkH4xzSXUTzRwYVBRtd/rn03Ohx/RLvQJty30C4OJH
-TI9QMjsas1pYF9nxD9UfjDRiWVD/t7ul+ObBHF2dJs0Gzd9atLaqL0KTqPgiN9lvEmtv2nL5
-cFcAwSTVbyI3MY/rCVKH/SEYtTz9QlXSEDwcLkr3jrBHFLiTGteFStnbqThVXcnEagogLvpr
-rfZlyBiPXLJBYcmEJmtPNqAPAgMBAAGjLjAsMBwGA1UdEQQVMBOBEXF1aW50b25AaG9vbGUu
-Yml6MAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEEBQADgYEAvYtE54g0h4KpYONj2VgB3+vu
-Xtnj7YtUpUWW+cpgYIZ+YbGVhzV79zuBN36EaEFEJRs4SWtjPe39BbzXmnkc/pt25o8zan9c
-5L2jM7WN8lXKSBT8m7+VbDtOfxtlM/8WSJbiESPJIIRzOoXio3KSsVLbiY5vGh8jajUBqce/
-YaMwggL0MIICXaADAgECAgMOW3UwDQYJKoZIhvcNAQEEBQAwYjELMAkGA1UEBhMCWkExJTAj
-BgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQ
-ZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA1MDMyODEyMjYzM1oXDTA2MDMyODEy
-MjYzM1owaDEOMAwGA1UEBBMFSG9vbGUxFjAUBgNVBCoTDVF1aW50b24gUm9iaW4xHDAaBgNV
-BAMTE1F1aW50b24gUm9iaW4gSG9vbGUxIDAeBgkqhkiG9w0BCQEWEXF1aW50b25AaG9vbGUu
-Yml6MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtrdj9F1T0oBxWMyM+VWIiYFd
-UpfjmlhsHgEa2Vd8w/fXhJWyf/hY5Tc+QdTRIbhKVggRVFpOmjkF933uRRGODxoKk41IfZyE
-rPlidf9F1/gTwRI/NSX9/ZSlNNXyoU+5wW3CZB+Mc0l1E80cGFQUbXf659Nzocf0S70Cbct9
-AuDiR0yPUDI7GrNaWBfZ8Q/VH4w0YllQ/7e7pfjmwRxdnSbNBs3fWrS2qi9Ck6j4IjfZbxJr
-b9py+XBXAMEk1W8iNzGP6wlSh/0hGLU8/UJV0hA8HC5K946wRxS4kxrXhUrZ26k4VV3JxGoK
-IC76a632ZcgYj1yyQWHJhCZrTzagDwIDAQABoy4wLDAcBgNVHREEFTATgRFxdWludG9uQGhv
-b2xlLmJpejAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBAUAA4GBAL2LROeINIeCqWDjY9lY
-Ad/r7l7Z4+2LVKVFlvnKYGCGfmGxlYc1e/c7gTd+hGhBRCUbOElrYz3t/QW815p5HP6bduaP
-M2p/XOS9ozO1jfJVykgU/Ju/lWw7Tn8bZTP/FkiW4hEjySCEczqF4qNykrFS24mObxofI2o1
-AanHv2GjMIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUFADCB0TELMAkGA1UEBhMCWkEx
-FTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2FwZSBUb3duMRowGAYDVQQKExFU
-aGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNhdGlvbiBTZXJ2aWNlcyBEaXZp
-c2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIENBMSswKQYJKoZIhvcN
-AQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4XDTAzMDcxNzAwMDAwMFoXDTEz
-MDcxNjIzNTk1OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5n
-IChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5n
-IENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEpjxVc1X7TrnKmVoeaMB1BHCd3+n/
-ox7svc31W/Iadr1/DDph8r9RzgHU5VAKMNcCY1osiRVwjt3J8CuFWqo/cVbLrzwLB+fxH5E2
-JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTXp6a7n2XRxSpUhQ9IBH+nttE8YQRAHmQZcmC3+wID
-AQABo4GUMIGRMBIGA1UdEwEB/wQIMAYBAf8CAQAwQwYDVR0fBDwwOjA4oDagNIYyaHR0cDov
-L2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNvbmFsRnJlZW1haWxDQS5jcmwwCwYDVR0PBAQD
-AgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQcml2YXRlTGFiZWwyLTEzODANBgkqhkiG
-9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+whehQ5aUnX9MIbj4Nh+qLZ82L8D0HFAg
-k3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3dqZw5jowgT2Vfldr394fWxghO
-rvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCAzswggM3AgEBMGkwYjELMAkGA1UE
-BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
-I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBAgMOW3UwCQYFKw4DAhoFAKCC
-AacwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMDUwNTE5MTI1
-ODE0WjAjBgkqhkiG9w0BCQQxFgQUAWmUioM8pbf6/nUTPNfBTiKFkLcwUgYJKoZIhvcNAQkP
-MUUwQzAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4D
-AgcwDQYIKoZIhvcNAwICASgweAYJKwYBBAGCNxAEMWswaTBiMQswCQYDVQQGEwJaQTElMCMG
-A1UEChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBl
-cnNvbmFsIEZyZWVtYWlsIElzc3VpbmcgQ0ECAw5bdTB6BgsqhkiG9w0BCRACCzFroGkwYjEL
-MAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAq
-BgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBAgMOW3UwDQYJKoZI
-hvcNAQEBBQAEggEANxULCV+psI6waIbGHTihYWZZRC6fhBxPMhr2TL6Ugxd0yFCwP6umDwVt
-N/0MduQAEcdQLlJi/tr2ULD7KnPy4YlQoyrMUPhxj9TdMiUrFPtYEmgg2qddqnMzJwcIRG4o
-vP+f7HE5PltD4oQRVvUESQuIE8u26+hMPBENkZ70mw8NRzkB0Ykq1shWqzCTtLUzlhq/MiEa
-swXxRwBcC7V1o9fVXqItFeuZvUgqKSIXbhH8jgtRmrn47khlZBPmr+F947hWMliIYrRUNsdN
-MO4pJd8koZzOy7fLNpeYoooz38gmLKEzSRcKSLaWAlZ4br46PszI0nZEaJCSVB7ARtvZ2AAA
-AAAAAA==
---------------ms050005090708050806080304--
+--V32M1hWVjliPHW+c--
