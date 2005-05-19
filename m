@@ -1,14 +1,14 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] ipset type "expire"
-Date: Thu, 19 May 2005 16:06:17 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0505191553010.12421@blackhole.kfki.hu>
-References: <20050519132414.GH6159@clifford.at>
+From: Charlie Brady <charlieb-netfilter-devel@budge.apana.org.au>
+Subject: Re: [Patch] ip{,
+	6}tables-restore -n with existing user defined chain
+Date: Thu, 19 May 2005 10:14:05 -0400 (EDT)
+Message-ID: <Pine.LNX.4.61.0505191012260.15090@e-smith.charlieb.ott.istop.com>
+References: <Pine.LNX.4.61.0505181157190.3744@e-smith.charlieb.ott.istop.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Clifford Wolf <clifford@clifford.at>
-In-Reply-To: <20050519132414.GH6159@clifford.at>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.61.0505181157190.3744@e-smith.charlieb.ott.istop.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,41 +20,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Clifford,
 
-On Thu, 19 May 2005, Clifford Wolf wrote:
+On Wed, 18 May 2005, Charlie Brady wrote:
 
-> I've already mailed with Jozsef Kadlecsik about this patch in March. It
-> seamed to me as he liked it, but it did not show up in the netfilter
-> subversion repository so far..
+> I want to redefine an existing chain atomically. I can't do that with the 
+> iptables command, but can almost do it with iptables-restore -n. When I try, 
+> iptables barfs because the chain already exists. Duh! Yeah, I know it exists, 
+> but I want to redefine it.
 >
-> 	http://www.clifford.at/priv/ipset_expire_v2.patch
->
-> This patch adds an "expire" ipset type. The entries in such IP sets expire
-> automatically after the specified timeout. This is useful e.g. for
-> portknocking setups or blacklisting IPs for some time without any userland
-> daemons running.
->
-> Please apply the patch in the subversion repository or comment on it if you
-> think it should not be included..
+> I don't see the semantics of this case defined anywhere, and I can't find 
+> discussion of it in the archives. So I suggest that the semantics be 
+> redefined, so that iptables-restore -n can redefine an existing chain 
+> (iptables-restore without -n already does that). I really can't think why 
+> anyone would depend on the current semantics.
 
-After rewieving your patch I rejected to add it to ipset due to the linear
-storage of the addresses/timeouts. But therefore I wrote 'iptree' type,
-which implements the same functionality avoiding linear storarge and was
-released at 11 Apr 2005 in ipset 2.2.0:
+As Clifford Wolf said:
 
-| A new set type called 'iptree' (inspired and triggered by Clifford
-| Wolf) added, which makes possible to store IP addresses which
-| automatically time out. Please note, this is an initial new feature with
-| some hardcoded parameter (like the frequency of garbage collection) and
-| thus may change in the future.
+  Please apply the patch in the subversion repository or comment on it if you
+  think it should not be included..
 
-Sorry for not letting you directly about the decision.
+Thanks
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+---
+Charlie
