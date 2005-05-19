@@ -1,16 +1,16 @@
-From: Charlie Brady <charlieb-netfilter-devel@budge.apana.org.au>
-Subject: Re: [Patch] ip{,	6}tables-restore -n with existing user defined
- chain
-Date: Thu, 19 May 2005 12:46:17 -0400 (EDT)
-Message-ID: <Pine.LNX.4.61.0505191241070.15090@e-smith.charlieb.ott.istop.com>
-References: <Pine.LNX.4.61.0505181157190.3744@e-smith.charlieb.ott.istop.com>
-	<428CB43E.5060503@outerspace.dyndns.org> <428CC0C3.9000203@gmx.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] ipset type "expire"
+Date: Thu, 19 May 2005 21:09:33 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0505192036030.12768@blackhole.kfki.hu>
+References: <20050519132414.GH6159@clifford.at>
+	<Pine.LNX.4.58.0505191553010.12421@blackhole.kfki.hu>
+	<20050519150406.GH30011@ns.snowman.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
-In-Reply-To: <428CC0C3.9000203@gmx.net>
+To: Stephen Frost <sfrost@snowman.net>
+In-Reply-To: <20050519150406.GH30011@ns.snowman.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,27 +22,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, 19 May 2005, Stephen Frost wrote:
 
-On Thu, 19 May 2005, Carl-Daniel Hailfinger wrote:
-
-> Jonas Berlin schrieb:
->> Quoting Charlie Brady on 2005-05-18 16:07 UTC:
->>
->>>> I want to redefine an existing chain atomically. I can't do that with
->>>> the iptables command, but can almost do it with iptables-restore -n.
->>>> When I try, iptables barfs because the chain already exists. Duh! Yeah,
->>>> I know it exists, but I want to redefine it.
->>
->> One option is to make a new version with a new name and then atomically
->> replace jumps to the old version to use the new version:
+> * Jozsef Kadlecsik (kadlec@blackhole.kfki.hu) wrote:
+> > | A new set type called 'iptree' (inspired and triggered by Clifford
+> > | Wolf) added, which makes possible to store IP addresses which
+> > | automatically time out. Please note, this is an initial new feature with
+> > | some hardcoded parameter (like the frequency of garbage collection) and
+> > | thus may change in the future.
 >
-> What about atomic rename instead?
+> Stupid question, does this now do everything ipt_recent does but better?
 
-That should be a different topic of discussion. Does anyone have any 
-objection to the patch as posted? IOW, does anyone depend on the current 
-semantics that calling "iptables-restore -n" with a definition of a 
-user-defined chain which already exists should fail, rather than redefine 
-the chain as specified in the script?
+iptree type of ipset does not have anything equivalent with --seconds,
+--hitcount or -rttl of recent match. Also, if an address is in the set
+and there is an attemtp to add it again, it's equivalent with --update.
+Otherwise one can implement about the same kind of things using either of
+them.
 
----
-Charlie
+> I certainly don't mind my module being depreciated in favor of this
+> provided it's better/faster/etc.  ipt_recent didn't need to implement
+> garbage collection, but perhaps that means you're able to support a
+> larger number of IP addresses than ipt_recent could?  Is it hash-based?
+> Are the set/check/update rules able to do the same thing?
+
+iptree uses a natural tree to store the IP addresses: for example
+when 168.1.2.3 stored alone from 168.1.2.0/24, it looks like
+
+0. level [0,..,168,...255]
+1. level        |-> [0,1,....255]
+2. leve                |-> [0,1,2,...255]
+3. level                        |-> [0,0,0,timeout,0,...0]
+
+At checking the tree is walked and just the timeout value is compared.
+Therefore in order to get rid of "empty" levels or branches, garbage
+collection is initiated from time to time.
+
+I think they are like apple and pear :-)
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
