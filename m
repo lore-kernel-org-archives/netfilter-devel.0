@@ -1,12 +1,15 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] update multiport manpage
-Date: Wed, 18 May 2005 16:38:08 -0700
-Message-ID: <20050518233808.GA14638@linuxace.com>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: EXPORT_SYMBOL(hash_conntrack)
+Date: Thu, 19 May 2005 05:10:58 +0200
+Message-ID: <428C03C2.5000105@eurodev.net>
+References: <Pine.LNX.4.62.0505181743480.16841@dgray-test.acs.internap.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="6TrnltStXW4iwmi0"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Damon Gray <dgray@internap.com>
+In-Reply-To: <Pine.LNX.4.62.0505181743480.16841@dgray-test.acs.internap.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,77 +21,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Damon Gray wrote:
+> I have a need to be able to use hash_conntrack in a kernel module. Does 
+> anyone see a problem if hash_conntrack was exported? I'd prefer to use 
+> the function instead of duplicating it with jhash_3words just so I don't 
+> have to keep track of how hash_conntrack does the hashing.
 
---6TrnltStXW4iwmi0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Well, all the current exported symbols are used by other modules in 
+kernel mainline and pom-ng. So you'll have to justify such exportation 
+with some kind of candidate client (maybe your module) that could be 
+useful for everyone.
 
-Since 1.3.2 is hopefully around the corner (hint,hint) the multiport
-manpage should be updated to reflect reality.
-
-Phil
-
-
-
---6TrnltStXW4iwmi0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-multiportman
-
-diff -ru iptables-1.3.1/extensions/libip6t_multiport.man iptables-new/extensions/libip6t_multiport.man
---- iptables-1.3.1/extensions/libip6t_multiport.man	2004-10-10 02:56:24.000000000 -0700
-+++ iptables-new/extensions/libip6t_multiport.man	2005-05-18 16:36:27.000000000 -0700
-@@ -1,19 +1,20 @@
- This module matches a set of source or destination ports.  Up to 15
--ports can be specified.  It can only be used in conjunction with
-+ports can be specified.  A port range (port:port) counts as two
-+ports.  It can only be used in conjunction with
- .B "-p tcp"
- or
- .BR "-p udp" .
- .TP
--.BR "--source-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
-+.BR "--source-ports " "\fI[!] port\fP[,\fIport\fP[,\fIport:port\fP...]]"
- Match if the source port is one of the given ports.  The flag
- .B --sports
- is a convenient alias for this option.
- .TP
--.BR "--destination-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
-+.BR "--destination-ports " "\fI[!] port\fP[,\fIport\fP[,\fIport:port\fP...]]"
- Match if the destination port is one of the given ports.  The flag
- .B --dports
- is a convenient alias for this option.
- .TP
--.BR "--ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
-+.BR "--ports " "\fI[!] port\fP[,\fIport\fP[,\fIport:port\fP...]]"
- Match if the both the source and destination ports are equal to each
- other and to one of the given ports.
-diff -ru iptables-1.3.1/extensions/libipt_multiport.man iptables-new/extensions/libipt_multiport.man
---- iptables-1.3.1/extensions/libipt_multiport.man	2004-10-10 02:56:26.000000000 -0700
-+++ iptables-new/extensions/libipt_multiport.man	2005-05-18 16:36:19.000000000 -0700
-@@ -1,19 +1,20 @@
- This module matches a set of source or destination ports.  Up to 15
--ports can be specified.  It can only be used in conjunction with
-+ports can be specified.  A port range (port:port) counts as two
-+ports.  It can only be used in conjunction with
- .B "-p tcp"
- or
- .BR "-p udp" .
- .TP
--.BR "--source-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
-+.BR "--source-ports " "\fI[!] port\fP[,\fIport\fP[,\fIport:port\fP...]]"
- Match if the source port is one of the given ports.  The flag
- .B --sports
- is a convenient alias for this option.
- .TP
--.BR "--destination-ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
-+.BR "--destination-ports " "\fI[!] port\fP[,\fIport\fP[,\fIport:port\fP...]]"
- Match if the destination port is one of the given ports.  The flag
- .B --dports
- is a convenient alias for this option.
- .TP
--.BR "--ports " "\fIport\fP[,\fIport\fP[,\fIport\fP...]]"
-+.BR "--ports " "\fI[!] port\fP[,\fIport\fP[,\fIport:port\fP...]]"
- Match if the both the source and destination ports are equal to each
- other and to one of the given ports.
-
---6TrnltStXW4iwmi0--
+--
+Pablo
