@@ -1,12 +1,17 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] expectation timeouts are compulsory
-Date: Thu, 19 May 2005 07:23:50 -0700
-Message-ID: <20050519142350.GA17477@linuxace.com>
+From: Clifford Wolf <clifford@clifford.at>
+Subject: Re: [PATCH] ipset type "expire"
+Date: Thu, 19 May 2005 16:40:25 +0200
+Message-ID: <20050519144025.GJ6159@clifford.at>
+References: <20050519132414.GH6159@clifford.at>
+	<Pine.LNX.4.58.0505191553010.12421@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="W/nzBZO5zC0uMSeA"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="CNK/L7dwKXQ4Ub8J"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0505191553010.12421@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,49 +24,47 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---W/nzBZO5zC0uMSeA
+--CNK/L7dwKXQ4Ub8J
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Since expectation timeouts were made compulsory [1], there is no need to
-check for them in ip_conntrack_expect_insert.
+Hi,
 
-Phil
+On Thu, May 19, 2005 at 04:06:17PM +0200, Jozsef Kadlecsik wrote:
+> | A new set type called 'iptree' (inspired and triggered by Clifford
+> | Wolf) added, which makes possible to store IP addresses which
+> | automatically time out. Please note, this is an initial new feature with
+> | some hardcoded parameter (like the frequency of garbage collection) and
+> | thus may change in the future.
 
-[1] https://lists.netfilter.org/pipermail/netfilter-devel/2005-January/018143.html
+oh, great! so please forget about my prev mail then.. ;-)
 
+yours,
+ - clifford
 
-Signed-off-by: Phil Oester <kernel@linuxace.com>
+--
+ocaml graphics.cma <( echo 'open Graphics;;open_graph " 640x480"let
+complex_mul(a,b)(c,d)=3D(a*.c-.b*.d,a*.d+.b*.c)let complex_add(a,b)(c
+,d)=3D(a+.c,b+.d);;let rec mandel c n=3Dif n>0 then let z=3Dmandel c(n-1)
+in complex_add(complex_mul z z)c else (0.0,0.0);; for x=3D0 to 640 do
+for y=3D0 to 480 do let c=3D((float_of_int(x-450))/.200.0,(float_of_int
+(y-240))/.200.0) in let cabs2(a,b)=3D(a*.a)+.(b*.b)in if cabs2(mandel
+c 50)<4.0 then plot x y done done;;read_line()' )
+=20
+Press CTRL-ALT-DEL now for an IQ test.
+=20
 
+--CNK/L7dwKXQ4Ub8J
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
 
---W/nzBZO5zC0uMSeA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-exptimeout
+iD8DBQFCjKVZPNIEsfpKDdERAhaTAKDTKWDL7CtlkqMogi8OLIXCQsbyjwCfb9+M
+i0FCFIfKp+MeF9cuUTqFgdc=
+=2veb
+-----END PGP SIGNATURE-----
 
-diff -ruN linux-orig/net/ipv4/netfilter/ip_conntrack_core.c linux-new/net/ipv4/netfilter/ip_conntrack_core.c
---- linux-orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-03-02 02:37:30.000000000 -0500
-+++ linux-new/net/ipv4/netfilter/ip_conntrack_core.c	2005-05-19 10:18:04.041146160 -0400
-@@ -760,15 +760,11 @@
- 	exp->master->expecting++;
- 	list_add(&exp->list, &ip_conntrack_expect_list);
- 
--	if (exp->master->helper->timeout) {
--		init_timer(&exp->timeout);
--		exp->timeout.data = (unsigned long)exp;
--		exp->timeout.function = expectation_timed_out;
--		exp->timeout.expires
--			= jiffies + exp->master->helper->timeout * HZ;
--		add_timer(&exp->timeout);
--	} else
--		exp->timeout.function = NULL;
-+	init_timer(&exp->timeout);
-+	exp->timeout.data = (unsigned long)exp;
-+	exp->timeout.function = expectation_timed_out;
-+	exp->timeout.expires = jiffies + exp->master->helper->timeout * HZ;
-+	add_timer(&exp->timeout);
- 
- 	CONNTRACK_STAT_INC(expect_create);
- }
-
---W/nzBZO5zC0uMSeA--
+--CNK/L7dwKXQ4Ub8J--
