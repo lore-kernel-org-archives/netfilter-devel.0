@@ -1,14 +1,14 @@
-From: Clifford Wolf <clifford@clifford.at>
-Subject: [PATCH] ipset type "expire"
-Date: Thu, 19 May 2005 15:24:15 +0200
-Message-ID: <20050519132414.GH6159@clifford.at>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] ipset type "expire"
+Date: Thu, 19 May 2005 16:06:17 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0505191553010.12421@blackhole.kfki.hu>
+References: <20050519132414.GH6159@clifford.at>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="V32M1hWVjliPHW+c"
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Clifford Wolf <clifford@clifford.at>
+In-Reply-To: <20050519132414.GH6159@clifford.at>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,51 +20,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Clifford,
 
---V32M1hWVjliPHW+c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, 19 May 2005, Clifford Wolf wrote:
 
-Hi,
+> I've already mailed with Jozsef Kadlecsik about this patch in March. It
+> seamed to me as he liked it, but it did not show up in the netfilter
+> subversion repository so far..
+>
+> 	http://www.clifford.at/priv/ipset_expire_v2.patch
+>
+> This patch adds an "expire" ipset type. The entries in such IP sets expire
+> automatically after the specified timeout. This is useful e.g. for
+> portknocking setups or blacklisting IPs for some time without any userland
+> daemons running.
+>
+> Please apply the patch in the subversion repository or comment on it if you
+> think it should not be included..
 
-I've already mailed with Jozsef Kadlecsik about this patch in March. It
-seamed to me as he liked it, but it did not show up in the netfilter
-subversion repository so far..
+After rewieving your patch I rejected to add it to ipset due to the linear
+storage of the addresses/timeouts. But therefore I wrote 'iptree' type,
+which implements the same functionality avoiding linear storarge and was
+released at 11 Apr 2005 in ipset 2.2.0:
 
-	http://www.clifford.at/priv/ipset_expire_v2.patch
+| A new set type called 'iptree' (inspired and triggered by Clifford
+| Wolf) added, which makes possible to store IP addresses which
+| automatically time out. Please note, this is an initial new feature with
+| some hardcoded parameter (like the frequency of garbage collection) and
+| thus may change in the future.
 
-This patch adds an "expire" ipset type. The entries in such IP sets expire
-automatically after the specified timeout. This is useful e.g. for
-portknocking setups or blacklisting IPs for some time without any userland
-daemons running.
+Sorry for not letting you directly about the decision.
 
-Please apply the patch in the subversion repository or comment on it if you
-think it should not be included..
-
-yours,
- - clifford
-
---=20
-SSSS PPPP L     The SPL Programming Language
-S    P  P L     http://www.clifford.at/spl/
-SSSS PPPP L     ----------------------------------------------------
-   S P    L     An object oriented, stateful, simple, small, c-like,
-SSSS P    LLLL  embeddable, feature rich, dynamic scripting language
-=20
-Hardware /nm./: the part of the computer that you can kick.
-=20
-
---V32M1hWVjliPHW+c
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQFCjJN+PNIEsfpKDdERApwsAKCHNCVyREVZel+BKTWNKgBDcFo6bACfQ5jJ
-vNZlKr+Kk/zTDngqlVPq+9Q=
-=Vr4Z
------END PGP SIGNATURE-----
-
---V32M1hWVjliPHW+c--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
