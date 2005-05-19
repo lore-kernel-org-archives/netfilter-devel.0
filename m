@@ -1,14 +1,12 @@
-From: Charlie Brady <charlieb-netfilter-devel@budge.apana.org.au>
-Subject: Re: [Patch] ip{,
-	6}tables-restore -n with existing user defined chain
-Date: Thu, 19 May 2005 10:14:05 -0400 (EDT)
-Message-ID: <Pine.LNX.4.61.0505191012260.15090@e-smith.charlieb.ott.istop.com>
-References: <Pine.LNX.4.61.0505181157190.3744@e-smith.charlieb.ott.istop.com>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] expectation timeouts are compulsory
+Date: Thu, 19 May 2005 07:23:50 -0700
+Message-ID: <20050519142350.GA17477@linuxace.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: multipart/mixed; boundary="W/nzBZO5zC0uMSeA"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <Pine.LNX.4.61.0505181157190.3744@e-smith.charlieb.ott.istop.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,25 +19,49 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On Wed, 18 May 2005, Charlie Brady wrote:
+--W/nzBZO5zC0uMSeA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> I want to redefine an existing chain atomically. I can't do that with the 
-> iptables command, but can almost do it with iptables-restore -n. When I try, 
-> iptables barfs because the chain already exists. Duh! Yeah, I know it exists, 
-> but I want to redefine it.
->
-> I don't see the semantics of this case defined anywhere, and I can't find 
-> discussion of it in the archives. So I suggest that the semantics be 
-> redefined, so that iptables-restore -n can redefine an existing chain 
-> (iptables-restore without -n already does that). I really can't think why 
-> anyone would depend on the current semantics.
+Since expectation timeouts were made compulsory [1], there is no need to
+check for them in ip_conntrack_expect_insert.
 
-As Clifford Wolf said:
+Phil
 
-  Please apply the patch in the subversion repository or comment on it if you
-  think it should not be included..
+[1] https://lists.netfilter.org/pipermail/netfilter-devel/2005-January/018143.html
 
-Thanks
 
----
-Charlie
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+
+
+
+--W/nzBZO5zC0uMSeA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-exptimeout
+
+diff -ruN linux-orig/net/ipv4/netfilter/ip_conntrack_core.c linux-new/net/ipv4/netfilter/ip_conntrack_core.c
+--- linux-orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-03-02 02:37:30.000000000 -0500
++++ linux-new/net/ipv4/netfilter/ip_conntrack_core.c	2005-05-19 10:18:04.041146160 -0400
+@@ -760,15 +760,11 @@
+ 	exp->master->expecting++;
+ 	list_add(&exp->list, &ip_conntrack_expect_list);
+ 
+-	if (exp->master->helper->timeout) {
+-		init_timer(&exp->timeout);
+-		exp->timeout.data = (unsigned long)exp;
+-		exp->timeout.function = expectation_timed_out;
+-		exp->timeout.expires
+-			= jiffies + exp->master->helper->timeout * HZ;
+-		add_timer(&exp->timeout);
+-	} else
+-		exp->timeout.function = NULL;
++	init_timer(&exp->timeout);
++	exp->timeout.data = (unsigned long)exp;
++	exp->timeout.function = expectation_timed_out;
++	exp->timeout.expires = jiffies + exp->master->helper->timeout * HZ;
++	add_timer(&exp->timeout);
+ 
+ 	CONNTRACK_STAT_INC(expect_create);
+ }
+
+--W/nzBZO5zC0uMSeA--
