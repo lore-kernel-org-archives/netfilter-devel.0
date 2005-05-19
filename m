@@ -1,12 +1,12 @@
-From: Clifford Wolf <clifford@clifford.at>
+From: Stephen Frost <sfrost@snowman.net>
 Subject: Re: [PATCH] ipset type "expire"
-Date: Thu, 19 May 2005 16:40:25 +0200
-Message-ID: <20050519144025.GJ6159@clifford.at>
+Date: Thu, 19 May 2005 11:04:06 -0400
+Message-ID: <20050519150406.GH30011@ns.snowman.net>
 References: <20050519132414.GH6159@clifford.at>
 	<Pine.LNX.4.58.0505191553010.12421@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CNK/L7dwKXQ4Ub8J"
+	protocol="application/pgp-signature"; boundary="5Wo9T3dGHPT+4OQz"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
@@ -24,47 +24,42 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---CNK/L7dwKXQ4Ub8J
+--5Wo9T3dGHPT+4OQz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-On Thu, May 19, 2005 at 04:06:17PM +0200, Jozsef Kadlecsik wrote:
+* Jozsef Kadlecsik (kadlec@blackhole.kfki.hu) wrote:
 > | A new set type called 'iptree' (inspired and triggered by Clifford
 > | Wolf) added, which makes possible to store IP addresses which
 > | automatically time out. Please note, this is an initial new feature with
 > | some hardcoded parameter (like the frequency of garbage collection) and
 > | thus may change in the future.
+>=20
+> Sorry for not letting you directly about the decision.
 
-oh, great! so please forget about my prev mail then.. ;-)
+Stupid question, does this now do everything ipt_recent does but better?
+I certainly don't mind my module being depreciated in favor of this
+provided it's better/faster/etc.  ipt_recent didn't need to implement
+garbage collection, but perhaps that means you're able to support a
+larger number of IP addresses than ipt_recent could?  Is it hash-based?
+Are the set/check/update rules able to do the same thing?
 
-yours,
- - clifford
+	Thanks,
 
---
-ocaml graphics.cma <( echo 'open Graphics;;open_graph " 640x480"let
-complex_mul(a,b)(c,d)=3D(a*.c-.b*.d,a*.d+.b*.c)let complex_add(a,b)(c
-,d)=3D(a+.c,b+.d);;let rec mandel c n=3Dif n>0 then let z=3Dmandel c(n-1)
-in complex_add(complex_mul z z)c else (0.0,0.0);; for x=3D0 to 640 do
-for y=3D0 to 480 do let c=3D((float_of_int(x-450))/.200.0,(float_of_int
-(y-240))/.200.0) in let cabs2(a,b)=3D(a*.a)+.(b*.b)in if cabs2(mandel
-c 50)<4.0 then plot x y done done;;read_line()' )
-=20
-Press CTRL-ALT-DEL now for an IQ test.
-=20
+		Stephen
 
---CNK/L7dwKXQ4Ub8J
-Content-Type: application/pgp-signature
+--5Wo9T3dGHPT+4OQz
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+Version: GnuPG v1.2.5 (GNU/Linux)
 
-iD8DBQFCjKVZPNIEsfpKDdERAhaTAKDTKWDL7CtlkqMogi8OLIXCQsbyjwCfb9+M
-i0FCFIfKp+MeF9cuUTqFgdc=
-=2veb
+iD8DBQFCjKrmrzgMPqB3kigRAufcAKCTFgCOlwYNVGahCMN0/azEWawpFwCdEUJV
+ryJgeHKmBbDDrNiKOpRFfkY=
+=AQKb
 -----END PGP SIGNATURE-----
 
---CNK/L7dwKXQ4Ub8J--
+--5Wo9T3dGHPT+4OQz--
