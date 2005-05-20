@@ -1,49 +1,45 @@
-From: cranium2003 <cranium2003@yahoo.com>
-Subject: IP packet logging  function help
-Date: Thu, 19 May 2005 21:19:17 -0700 (PDT)
-Message-ID: <20050520041917.322.qmail@web33004.mail.mud.yahoo.com>
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: IP packet logging  function help
+Date: Fri, 20 May 2005 08:39:03 +0200
+Message-ID: <20050520063903.GA5261@oknodo.bof.de>
+References: <20050520041917.322.qmail@web33004.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: netfilter <netfilter-devel@lists.netfilter.org>,
+Cc: netfilter <netfilter-devel@lists.netfilter.org>,
 	netfilter <netfilter@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: cranium2003 <cranium2003@yahoo.com>
+Content-Disposition: inline
+In-Reply-To: <20050520041917.322.qmail@web33004.mail.mud.yahoo.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-hello,
-       By adding iptable rule
-iptable -A OUTPUT -j LOG
- I am able to check log of each outgoing packets. But
-i want to know who is actually calling ipt_log_target
-function defined in ipt_LOG.c as
-static unsigned int
-ipt_log_target(struct sk_buff **pskb,
-               unsigned int hooknum,
-               const struct net_device *in,
-               const struct net_device *out,
-               const void *targinfo,
-               void *userinfo)
+> I want to know which file in source code has pointer
+> to call ipt_log_target function?
 
-I want to know which file in source code has pointer
-to call ipt_log_target function? I want instance/copy
-of const struct net_device *out to my function in
-kernel to know that eth0 or eth1 is transmitting
-packet.
-Thanks in advance.
-regards,
-cranium
+Like any other target function, you'll find the call, as an indirect
+function call to ->target(), in net/ipv4/netfilter/ip_tables.c, function
+ipt_do_table.
 
+> I want instance/copy of const struct net_device *out to my function in
+> kernel to know that eth0 or eth1 is transmitting packet.
 
-		
-__________________________________ 
-Do you Yahoo!? 
-Make Yahoo! your home page 
-http://www.yahoo.com/r/hs
+The above information will not help you at all with this quest.
+The LOG target already shows input and output interface, IF THEY ARE
+KNOWN.
+
+So, in which iptables table do you intend to get at the output device?
+Because, in some table it is simply not yet determined, and you won't
+change anything about that by meddling with the generic target function
+call site.
+
+best regards
+  Patrick
