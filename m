@@ -1,15 +1,13 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH NF_CONNTRACK 8/9]: zero-clear union area in tuple for
- expectant
-Date: Mon, 23 May 2005 15:23:21 +0900 (JST)
-Message-ID: <200505230623.j4N6NMVu004917@toshiba.co.jp>
+Subject: [PATCH]: fix for conntrack match
+Date: Mon, 23 May 2005 18:17:41 +0900 (JST)
+Message-ID: <200505230917.j4N9HftW026181@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Mon_May_23_15:23:21_2005_365)--"
+	boundary="--Next_Part(Mon_May_23_18:17:41_2005_915)--"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,34 +19,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Mon_May_23_15:23:21_2005_365)--
+----Next_Part(Mon_May_23_18:17:41_2005_915)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-This patch clears union area in tuple for expectant.
+Hi,
+
+This patch fixes the bug that --ctstate NONE doesn't match conntrack which
+have no state.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+
+Regards,
 
 -----------------------------------------------------------------
 Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
-
-----Next_Part(Mon_May_23_15:23:21_2005_365)--
+----Next_Part(Mon_May_23_18:17:41_2005_915)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="08-expect.patch"
+Content-Disposition: inline; filename="fix-ipt_conntrack.patch"
 
-diff -Nur linux-2.6.12-rc4-nfct-7-nat-seq/net/netfilter/nf_conntrack_core.c linux-2.6.12-rc4-nfct-8-expect/net/netfilter/nf_conntrack_core.c
---- linux-2.6.12-rc4-nfct-7-nat-seq/net/netfilter/nf_conntrack_core.c	2005-05-20 03:18:29.000000000 +0900
-+++ linux-2.6.12-rc4-nfct-8-expect/net/netfilter/nf_conntrack_core.c	2005-05-20 03:16:23.000000000 +0900
-@@ -987,6 +987,8 @@
- 		DEBUGP("expect_related: OOM allocating expect\n");
- 		return NULL;
+Index: net/ipv4/netfilter/ipt_conntrack.c
+===================================================================
+--- ec1d95eb1e03e320fc5eb5cfb40379f2f4a7267d/net/ipv4/netfilter/ipt_conntrack.c  (mode:100644)
++++ uncommitted/net/ipv4/netfilter/ipt_conntrack.c  (mode:100644)
+@@ -83,7 +83,9 @@
  	}
-+	NF_CT_TUPLE_U_BLANK(&new->tuple);
-+	NF_CT_TUPLE_U_BLANK(&new->mask);
- 	new->master = NULL;
- 	return new;
- }
+ 
+ 	if(sinfo->flags & IPT_CONNTRACK_STATUS) {
+-		if (!ct || FWINV((ct->status & sinfo->statusmask) == 0, IPT_CONNTRACK_STATUS))
++		if (!ct || FWINV((ct->status & sinfo->statusmask) == 0 &&
++				 (ct->status | sinfo->statusmask) != 0,
++				 IPT_CONNTRACK_STATUS))
+ 			return 0;
+ 	}
+ 
 
-----Next_Part(Mon_May_23_15:23:21_2005_365)----
+----Next_Part(Mon_May_23_18:17:41_2005_915)----
