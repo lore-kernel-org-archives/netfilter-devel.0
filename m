@@ -1,13 +1,17 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH]: fix for conntrack match
-Date: Mon, 23 May 2005 18:17:41 +0900 (JST)
-Message-ID: <200505230917.j4N9HftW026181@toshiba.co.jp>
+From: Michal Rokos <michal@rokos.info>
+Subject: Re: [PATCH NF_CONNTRACK 1/9]: Fix multiple problems with TCP window
+	tracking
+Date: Mon, 23 May 2005 15:46:58 +0200
+Message-ID: <200505231546.58751.michal@rokos.info>
+References: <200505230617.j4N6HROa027617@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Mon_May_23_18:17:41_2005_915)--"
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <200505230617.j4N6HROa027617@toshiba.co.jp>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,41 +23,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Mon_May_23_18:17:41_2005_915)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Hello,
 
-Hi,
+>>>>> "YK" == Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp> writes:
+YK>
+YK> This patch follows the recent changes to ip_conntrack.
+YK>
 
-This patch fixes the bug that --ctstate NONE doesn't match conntrack which
-have no state.
+could I ask you against what is this patch?
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+I'm using 
+http://svn.netfilter.org/netfilter/trunk/patch-o-matic-ng/nf_conntrack and 
+I'm getting rejects when applying this patch...
 
-Regards,
+Namely:
+***************
+*** 515,521 ****
 
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+  static int tcp_in_window(struct ip_ct_tcp *state,
+                           enum ip_conntrack_dir dir,
+-                          unsigned int *index,
+                           const struct sk_buff *skb,
+                         unsigned int dataoff,
+                           struct tcphdr *tcph,
+--- 523,529 ----
 
-----Next_Part(Mon_May_23_18:17:41_2005_915)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="fix-ipt_conntrack.patch"
+  static int tcp_in_window(struct ip_ct_tcp *state,
+                           enum ip_conntrack_dir dir,
++                          unsigned int index,
+                           const struct sk_buff *skb,
+                         unsigned int dataoff,
+                           struct tcphdr *tcph,
+but I have there: static int tcp_in_window(struct nf_ct_tcp *state,
 
-Index: net/ipv4/netfilter/ipt_conntrack.c
-===================================================================
---- ec1d95eb1e03e320fc5eb5cfb40379f2f4a7267d/net/ipv4/netfilter/ipt_conntrack.c  (mode:100644)
-+++ uncommitted/net/ipv4/netfilter/ipt_conntrack.c  (mode:100644)
-@@ -83,7 +83,9 @@
- 	}
- 
- 	if(sinfo->flags & IPT_CONNTRACK_STATUS) {
--		if (!ct || FWINV((ct->status & sinfo->statusmask) == 0, IPT_CONNTRACK_STATUS))
-+		if (!ct || FWINV((ct->status & sinfo->statusmask) == 0 &&
-+				 (ct->status | sinfo->statusmask) != 0,
-+				 IPT_CONNTRACK_STATUS))
- 			return 0;
- 	}
- 
+When I tried to apply '[PATCH NF_CONNTRACK 1/9]: unify common symbols of 
+{ip,nf}_conntrack' you posted 2005-03-22, I'm getting rejects too...
 
-----Next_Part(Mon_May_23_18:17:41_2005_915)----
+So it seems I follow odd repository.
+
+Do you have any hint what repository should I track?
+
+Thank you.
+
+ Michal
