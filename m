@@ -1,18 +1,13 @@
 From: Michal Rokos <michal@rokos.info>
-Subject: Re: [PATCH NF_CONNTRACK 1/9]: Fix multiple problems with TCP window
-	tracking
-Date: Tue, 24 May 2005 13:23:19 +0200
-Message-ID: <200505241323.20267.michal@rokos.info>
-References: <200505230617.j4N6HROa027617@toshiba.co.jp>
-	<200505231546.58751.michal@rokos.info>
-	<200505240153.j4O1r35h028029@toshiba.co.jp>
+Subject: [nf_conntrack] fix gcc-4.0 compilation
+Date: Tue, 24 May 2005 13:25:59 +0200
+Message-ID: <200505241326.00593.michal@rokos.info>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200505240153.j4O1r35h028029@toshiba.co.jp>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -27,14 +22,20 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hello,
 
->>>>> "YK" == Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp> writes:
-YK> Patrick prepared bk tree for submission as follows and I have been
-YK> sending patches to him since then to avoid duplicated work and
-YK> inconsistency between svn and his tree.
+nf_ct_put() shouldn't be marked as inline since it's not inline.
 
-Thank you very much for this. It helped me a lot!
+Signed-off-by: Michal Rokos <michal@rokos.info>
 
-Patrick, do you have something else than BitKeeper repository? Most of the 
-people now are using either git, subversion, or CVS...
-
- Michal
+Index: include/linux/netfilter/nf_conntrack.h
+===================================================================
+--- 7e29b6c221553e370f4969432cd4034a0161f37c/include/linux/netfilter/nf_conntrack.h  (mode:100644)
++++ da99e40e104ed32e8cb4126726c524b53651b807/include/linux/netfilter/nf_conntrack.h  (mode:100644)
+@@ -218,7 +218,7 @@
+ }
+ 
+ /* decrement reference count on a conntrack */
+-extern inline void nf_ct_put(struct nf_conn *ct);
++extern void nf_ct_put(struct nf_conn *ct);
+ 
+ /* call to create an explicit dependency on nf_conntrack. */
+ extern void need_nf_conntrack(void);
