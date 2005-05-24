@@ -1,17 +1,19 @@
-From: Max Kellermann <max@duempel.org>
-Subject: Re: Writing new Netfilter Modules
-Date: Tue, 24 May 2005 13:06:32 +0200
-Message-ID: <20050524110632.GA4178@roonstrasse.net>
-References: <6B6D4D4E2ED1D6119DB80000D11D813EB4CA6F@blns203e.bln.icn.siemens.de>
+From: Michal Rokos <michal@rokos.info>
+Subject: Re: [PATCH NF_CONNTRACK 1/9]: Fix multiple problems with TCP window
+	tracking
+Date: Tue, 24 May 2005 13:23:19 +0200
+Message-ID: <200505241323.20267.michal@rokos.info>
+References: <200505230617.j4N6HROa027617@toshiba.co.jp>
+	<200505231546.58751.michal@rokos.info>
+	<200505240153.j4O1r35h028029@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: "'netfilter-devel@lists.netfilter.org'"
-	<netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Gingold Tomasz <tomasz.gingold@siemens.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <200505240153.j4O1r35h028029@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <6B6D4D4E2ED1D6119DB80000D11D813EB4CA6F@blns203e.bln.icn.siemens.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +25,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2005/05/24 12:58, Gingold Tomasz <tomasz.gingold@siemens.com> wrote:
-> Up to now i have found the "Linux netfilter Hacking HOWTO", especially
-> chapter 4 "Information for Programmers.
-> Is this the only help i can obtain?
+Hello,
 
-afaik, yes. Use the source, Luke ;) - reading the source of simple
-netfilter modules may give you an idea how to start.
+>>>>> "YK" == Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp> writes:
+YK> Patrick prepared bk tree for submission as follows and I have been
+YK> sending patches to him since then to avoid duplicated work and
+YK> inconsistency between svn and his tree.
 
-> Another question: I have found on www.netfilter.org
-> <www.netfilter.org> the following statement: "netfilter and iptables
-> are building blocks of a framework inside the Linux
-> <http://www.kernel.org/> 2.4.x and 2.6.x kernel" Does this mean,
-> that netfilter and iptables are part of the kernel and don´t have to
-> be installed?
+Thank you very much for this. It helped me a lot!
 
-iptables is the userspace frontend for netfilter (i.e. it's not part
-of the kernel), and needs to be installed. Netfilter itself is
-compiled into the kernel.
+Patrick, do you have something else than BitKeeper repository? Most of the 
+people now are using either git, subversion, or CVS...
 
-Max
+ Michal
