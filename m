@@ -1,14 +1,15 @@
-From: Michal Rokos <michal@rokos.info>
-Subject: [nf_conntrack] fix gcc-4.0 compilation
-Date: Tue, 24 May 2005 13:25:59 +0200
-Message-ID: <200505241326.00593.michal@rokos.info>
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: Re: [PATCH] bring ct_sync up-to-date with 2.4.30
+Date: Thu, 26 May 2005 14:18:03 +0200
+Message-ID: <1117109883.4551.4.camel@nienna.balabit>
+References: <1116877042.1848.9.camel@xbox>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+In-reply-to: <1116877042.1848.9.camel@xbox>
+To: Filip Sneppe <filip.sneppe@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,22 +21,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
 
-nf_ct_put() shouldn't be marked as inline since it's not inline.
+  Hi,
 
-Signed-off-by: Michal Rokos <michal@rokos.info>
+2005-05-23, h keltez=E9ssel 21.37-kor Filip Sneppe ezt =EDrta:
+> I played around with ct_sync this weekend, and got it to work with
+> a 2.4.30 kernel. I have created an update patch for the current svn
+> repository and would be happy if someone could review this and, if
+> the patch looks ok, apply it. Thanks!
 
-Index: include/linux/netfilter/nf_conntrack.h
-===================================================================
---- 7e29b6c221553e370f4969432cd4034a0161f37c/include/linux/netfilter/nf_conntrack.h  (mode:100644)
-+++ da99e40e104ed32e8cb4126726c524b53651b807/include/linux/netfilter/nf_conntrack.h  (mode:100644)
-@@ -218,7 +218,7 @@
- }
- 
- /* decrement reference count on a conntrack */
--extern inline void nf_ct_put(struct nf_conn *ct);
-+extern void nf_ct_put(struct nf_conn *ct);
- 
- /* call to create an explicit dependency on nf_conntrack. */
- extern void need_nf_conntrack(void);
+  Thanks a lot for the patch, I'll try to commit this to the Netfilte=
+r
+SVN tree. BTW, the Linux 2.4 version of ct_sync has been abandoned, a=
+nd
+currently we're working on the 2.6 version only. It's available from =
+the
+Netfilter SVN repository:
+
+http://svn.netfilter.org/netfilter/branches/netfilter-ha/linux-2.6
+
+  Snapshots in an easy-to-apply form are available here:
+
+http://people.netfilter.org/hidden/ct_sync/snapshots/
+
+  Thanks a lot for trying out ct_sync and providing an updated patch.
+
+--=20
+KOVACS Krisztian <hidden@sch.bme.hu>
