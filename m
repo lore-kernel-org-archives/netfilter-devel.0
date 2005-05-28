@@ -1,16 +1,14 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH 2.6] fix deadlock with ip_queue and tcp local input path
-Date: Mon, 30 May 2005 15:26:13 -0700 (PDT)
-Message-ID: <20050530.152613.78709308.davem@davemloft.net>
-References: <20050526142420.GD13114@sunbeam.de.gnumonks.org>
-	<20050530180654.GX22760@sunbeam.de.gnumonks.org>
+From: <Jason_Xie@asus.com.cn>
+Subject: Require Code Structure of Iptables
+Date: Sat, 28 May 2005 10:37:53 +0800
+Message-ID: <C1818250413A4B45BC2078EA425CC26203C023@acc-ex-01.maintek.corpnet.asus>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20050530180654.GX22760@sunbeam.de.gnumonks.org>
+content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,19 +20,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Mon, 30 May 2005 20:06:54 +0200
+Dear netfilter developers,
 
-> I've now tested the suggested solution by Patrick McHardy and Herbert Xu to
-> simply use local_bh_{en,dis}able().
-> 
-> Please apply the following patch to mainline.
+=20
 
-Will do.
+I am now planning to trace the code of iptables.
 
-> btw: How do we get this into 2.6.11.x ?
+And, as a target I want to develop a private-useful firewall tool.
 
-You submit your patch to stable@kernel.org.
+=20
 
-But I will take care of this for you Harald, don't
-worry about it.
+So, I need your help to let me study iptables quickly with your code =
+structure analysis.
+
+=20
+
+Thanks a lot.
+
+=20
+
+=20
+
+Best Regard,
+
+Jason Xie
