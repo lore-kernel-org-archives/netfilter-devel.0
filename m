@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH pom-ng] SIP conntrack-nat update.
-Date: Sun, 29 May 2005 20:37:16 +0200
-Message-ID: <20050529183716.GP13114@sunbeam.de.gnumonks.org>
-References: <1116464747.23418.9.camel@www.l-chr.com.ar>
+Subject: Re: [IPTABLES PATCH] Fix leak in merge_opts
+Date: Sun, 29 May 2005 20:55:17 +0200
+Message-ID: <20050529185517.GS13114@sunbeam.de.gnumonks.org>
+References: <427CD000.40002@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xvHfTupNqIESFprb"
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+	protocol="application/pgp-signature"; boundary="O0WzNXnlZrEJWrBT"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Christian Hentschel <chentschel@arnet.com.ar>
+To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
-In-Reply-To: <1116464747.23418.9.camel@www.l-chr.com.ar>
+In-Reply-To: <427CD000.40002@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,21 +23,23 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---xvHfTupNqIESFprb
+--O0WzNXnlZrEJWrBT
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, May 18, 2005 at 10:05:47PM -0300, Christian Hentschel wrote:
-> Hi,=20
-> 	This adds some minor stylistic changes to my conntrack-nat SIP module.=
-=20
-> Changed some return types and vars.
+On Sat, May 07, 2005 at 04:26:08PM +0200, Pablo Neira wrote:
+> Hi Harald,
+>=20
+> The function merge_opts doesn't release previously merged options, this r=
+esults=20
+> in a memory leak. This increases considerably memory comsumption in=20
+> iptables-restore.
+>=20
+> This patch fixes a leak on error paths as well.
 
-grat news.  I've now committed it to patch-o-matic-ng, although I didn't
-have that much time for review yet...
+thanks, Committed revision 3936.
 
-> Christian Hentschel <chentschel@arnet.com.ar>
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -48,16 +50,16 @@ have that much time for review yet...
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---xvHfTupNqIESFprb
+--O0WzNXnlZrEJWrBT
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFCmgvcXaXGVTD0i/8RAtBKAJ4t1h8WxYqriSJpdrtwkFoWDebp8ACfQVPO
-NM5ei1POCWyON82qF01ekCQ=
-=+JsQ
+iD8DBQFCmhAVXaXGVTD0i/8RAsLmAJ4uAzdFxq2XRmt9RDD+vKOH/SfPFQCglW9I
+rYrtH9criyL8rQli3lesXZk=
+=AtvV
 -----END PGP SIGNATURE-----
 
---xvHfTupNqIESFprb--
+--O0WzNXnlZrEJWrBT--
