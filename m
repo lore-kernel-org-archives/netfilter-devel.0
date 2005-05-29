@@ -1,13 +1,13 @@
 From: Harald Welte <laforge@netfilter.org>
 Subject: Re: changing packet length?
-Date: Sun, 29 May 2005 21:00:31 +0200
-Message-ID: <20050529190031.GU13114@sunbeam.de.gnumonks.org>
+Date: Sun, 29 May 2005 21:01:28 +0200
+Message-ID: <20050529190128.GV13114@sunbeam.de.gnumonks.org>
 References: <20050503213406.GE13894@tigris.renesys.com>
 	<20050506111410.GG30482@sunbeam.de.gnumonks.org>
 	<20050506141159.GA17261@tigris.renesys.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NEawsVssxcwwq7sD"
+	protocol="application/pgp-signature"; boundary="tx6GZeiIEnV4GwE1"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: BJ Premore <bj-netfilter@renesys.com>
@@ -25,7 +25,7 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---NEawsVssxcwwq7sD
+--tx6GZeiIEnV4GwE1
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
@@ -48,10 +48,8 @@ On Fri, May 06, 2005 at 10:11:59AM -0400, BJ Premore wrote:
 > case has any code that I've found actually changed the
 > length of the packets before reinjecting them.
 
-sorry for not getting back to you earlier.  Does the problem still
-persist? could you send me pcap files of the packets before and after
-the ip_queue issue?
-
+another thought:  could you double-check (using strace) that the packets
+you reinject are exactly like they are supposed to be?
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -62,16 +60,16 @@ the ip_queue issue?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---NEawsVssxcwwq7sD
+--tx6GZeiIEnV4GwE1
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFCmhFPXaXGVTD0i/8RAgbgAJ0WqUjC38Wn5IyrRz2oC0QfbPNsxQCfXNQQ
-le2vmSWFEAZaNhEg6g2eOsI=
-=XFXR
+iD8DBQFCmhGIXaXGVTD0i/8RAsXiAKCeKHJMOfaK8JLbVLwtbsUV0C1lDACeIUHY
+qaJXWTrIcOF/krWgtPxTAXc=
+=PGPu
 -----END PGP SIGNATURE-----
 
---NEawsVssxcwwq7sD--
+--tx6GZeiIEnV4GwE1--
