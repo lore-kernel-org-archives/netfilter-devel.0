@@ -1,7 +1,7 @@
 From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: [3/3] OSF: lib_ipt.c changes to support connector notifications.
-Date: Mon, 30 May 2005 00:23:13 +0400
-Message-ID: <20050530002313.1b88e3f5@zanzibar.2ka.mipt.ru>
+Subject: [2/3] OSF: Kernel connector support.
+Date: Mon, 30 May 2005 00:22:25 +0400
+Message-ID: <20050530002225.1c75a512@zanzibar.2ka.mipt.ru>
 Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -20,57 +20,148 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Kernel connector was commited into 2.6.12-rc4-mm tree.
+Use it's extended notification feature.
+
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
---- orig/iptables/extensions/libipt_osf.c
-+++ mod/iptables/extensions/libipt_osf.c
-@@ -35,14 +35,15 @@
- 
- static void help(void)
- {
--	printf("OS fingerprint match v%s options:\n"
-+	printf("OS fingerprint match options:\n"
- 		"--genre [!] string	Match a OS genre by passive fingerprinting.\n"
- 		"--smart		Use some smart extensions to determine OS (do not use TTL).\n"
- 		"--log level		Log all(or only first) determined genres even if "
- 					"they do not match desired one. "
- 					"Level may be 0(all) or 1(only first entry).\n"
- 		"--netlink		Log through netlink(NETLINK_NFLOG).\n",
--		IPTABLES_VERSION);
-+		"--connector		Log through kernel connector [in 2.6.12-mm+].\n"
-+		);
- }
- 
- 
-@@ -51,6 +52,7 @@
- 	{ .name = "smart",	.has_arg = 0, .flag = 0, .val = '2' },
- 	{ .name = "log",	.has_arg = 1, .flag = 0, .val = '3' },
- 	{ .name = "netlink",	.has_arg = 0, .flag = 0, .val = '4' },
-+	{ .name = "connector",	.has_arg = 0, .flag = 0, .val = '5' },
- 	{ .name = 0 }
+--- orig/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c
++++ mod/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c
+@@ -92,6 +92,45 @@
+ 	.me = THIS_MODULE 
  };
  
-@@ -104,10 +106,16 @@
- 			break;
- 		case '4': /* --netlink */
- 			if (*flags & IPT_OSF_NETLINK)
--				exit_error(PARAMETER_PROBLEM, "Can't specify multiple smart parameter");
-+				exit_error(PARAMETER_PROBLEM, "Can't specify multiple netlink parameter");
- 			*flags |= IPT_OSF_NETLINK;
- 			info->flags |= IPT_OSF_NETLINK;
- 			break;
-+		case '5': /* --connector */
-+			if (*flags & IPT_OSF_CONNECTOR)
-+				exit_error(PARAMETER_PROBLEM, "Can't specify multiple connector parameter");
-+			*flags |= IPT_OSF_CONNECTOR;
-+			info->flags |= IPT_OSF_CONNECTOR;
-+			break;
- 		default:
- 			return 0;
++
++#ifdef CONFIG_CONNECTOR
++#include <linux/connector.h>
++
++/*
++ * They should live in connector.h.
++ */
++#define CN_IDX_OSF		0x0001
++#define CN_VAL_OSF		0x0000
++
++static char osf_finger_buf[sizeof(struct ipt_osf_nlmsg) + sizeof(struct cn_msg)];
++static struct cb_id osf_id = {CN_IDX_OSF, CN_VAL_OSF};
++static u32 osf_seq;
++
++static void ipt_osf_send_connector(struct osf_finger *f, const struct sk_buff *sk)
++{
++	struct cn_msg *m;
++	struct ipt_osf_nlmsg *data;
++	
++	m = (struct cn_msg *)osf_finger_buf;
++	data = (struct ipt_osf_nlmsg *)(m+1);
++
++	memcpy(&m->id, &osf_id, sizeof(m->id));
++	m->seq = osf_seq++;
++	m->ack = 0;
++	m->len = sizeof(*f);
++	
++	memcpy(&data->f, f, sizeof(struct osf_finger));
++	memcpy(&data->ip, sk->nh.iph, sizeof(struct iphdr));
++	memcpy(&data->tcp, (struct tcphdr *)((u_int32_t *)sk->nh.iph + sk->nh.iph->ihl), sizeof(struct tcphdr));
++
++	cn_netlink_send(m, m->id.idx, GFP_ATOMIC);
++}
++#else
++static void ipt_osf_send_connector(struct osf_finger *f, const struct sk_buff *sk)
++{
++}
++#endif
++
+ static void ipt_osf_nlsend(struct osf_finger *f, const struct sk_buff *sk)
+ {
+ 	unsigned int size;
+@@ -99,6 +138,9 @@
+ 	struct ipt_osf_nlmsg *data;
+ 	struct nlmsghdr *nlh;
+ 
++	if (!nts)
++		return;
++
+ 	size = NLMSG_SPACE(sizeof(struct ipt_osf_nlmsg));
+ 
+ 	skb = alloc_skb(size, GFP_ATOMIC);
+@@ -346,13 +388,18 @@
+ 					ipt_osf_nlsend(f, skb);
+ 					spin_unlock_bh(&ipt_osf_netlink_lock);
+ 				}
++				if (info->flags & IPT_OSF_CONNECTOR) {
++					spin_lock_bh(&ipt_osf_netlink_lock);
++					ipt_osf_send_connector(f, skb);
++					spin_unlock_bh(&ipt_osf_netlink_lock);
++				}
+ 				if ((info->flags & IPT_OSF_LOG) && 
+ 					info->loglevel == IPT_OSF_LOGLEVEL_FIRST)
+ 					break;
+ 			}
+ 		}
  	}
+-	if (!fcount && (info->flags & (IPT_OSF_LOG | IPT_OSF_NETLINK))) {
++	if (!fcount && (info->flags & (IPT_OSF_LOG | IPT_OSF_NETLINK | IPT_OSF_CONNECTOR))) {
+ 		unsigned char opt[4 * 15 - sizeof(struct tcphdr)];
+ 		unsigned int i, optsize;
+ 		struct osf_finger fg;
+@@ -383,7 +430,7 @@
+ 				NIPQUAD(ip->saddr), ntohs(tcp->source),
+ 				NIPQUAD(ip->daddr), ntohs(tcp->dest));
+ 		
+-		if (info->flags & IPT_OSF_NETLINK) {
++		if (info->flags & (IPT_OSF_NETLINK | IPT_OSF_CONNECTOR)) {
+ 			fg.wss.val 	= window;
+ 			fg.ttl		= ip->ttl;
+ 			fg.df		= df;
+@@ -391,7 +438,10 @@
+ 			strncpy(fg.genre, "Unknown", MAXGENRELEN);
+ 
+ 			spin_lock_bh(&ipt_osf_netlink_lock);
+-			ipt_osf_nlsend(&fg, skb);
++			if (info->flags & IPT_OSF_NETLINK)
++				ipt_osf_nlsend(&fg, skb);
++			if (info->flags & IPT_OSF_CONNECTOR)
++				ipt_osf_send_connector(&fg, skb);
+ 			spin_unlock_bh(&ipt_osf_netlink_lock);
+ 		}
+ 	}
+@@ -750,7 +800,7 @@
+ 	return count;
+ }
+ 
+-static int __init osf_init(void)
++static int __devinit osf_init(void)
+ {
+ 	int err;
+ 	struct proc_dir_entry *p;
+@@ -777,15 +827,12 @@
+ 	nts = netlink_kernel_create(NETLINK_NFLOG, NULL);
+ 	if (!nts) {
+ 		log("netlink_kernel_create() failed\n");
+-		remove_proc_entry("sys/net/ipv4/osf", NULL);
+-		ipt_unregister_match(&osf_match);
+-		return -ENOMEM;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-static void __exit osf_fini(void)
++static void __devexit osf_fini(void)
+ {
+ 	struct osf_finger *f, *n;
+ 	
 
 
-
+--- orig/osf/linux-2.6/include/linux/netfilter_ipv4/ipt_osf.h
++++ mod/osf/linux-2.6/include/linux/netfilter_ipv4/ipt_osf.h
+@@ -29,6 +29,7 @@
+ #define	IPT_OSF_SMART		2
+ #define IPT_OSF_LOG		4
+ #define IPT_OSF_NETLINK		8
++#define IPT_OSF_CONNECTOR	16
+ 
+ #define IPT_OSF_LOGLEVEL_ALL	0
+ #define IPT_OSF_LOGLEVEL_FIRST	1
 
 
 
