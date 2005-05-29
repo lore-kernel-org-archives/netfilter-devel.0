@@ -1,16 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [IPTABLES PATCH] Fix leak in merge_opts
-Date: Sun, 29 May 2005 20:55:17 +0200
-Message-ID: <20050529185517.GS13114@sunbeam.de.gnumonks.org>
-References: <427CD000.40002@eurodev.net>
+Subject: Re: changing packet length?
+Date: Sun, 29 May 2005 21:00:31 +0200
+Message-ID: <20050529190031.GU13114@sunbeam.de.gnumonks.org>
+References: <20050503213406.GE13894@tigris.renesys.com>
+	<20050506111410.GG30482@sunbeam.de.gnumonks.org>
+	<20050506141159.GA17261@tigris.renesys.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="O0WzNXnlZrEJWrBT"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="NEawsVssxcwwq7sD"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
+To: BJ Premore <bj-netfilter@renesys.com>
 Content-Disposition: inline
-In-Reply-To: <427CD000.40002@eurodev.net>
+In-Reply-To: <20050506141159.GA17261@tigris.renesys.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,22 +25,32 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---O0WzNXnlZrEJWrBT
+--NEawsVssxcwwq7sD
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, May 07, 2005 at 04:26:08PM +0200, Pablo Neira wrote:
+On Fri, May 06, 2005 at 10:11:59AM -0400, BJ Premore wrote:
 > Hi Harald,
 >=20
-> The function merge_opts doesn't release previously merged options, this r=
-esults=20
-> in a memory leak. This increases considerably memory comsumption in=20
-> iptables-restore.
+> On Fri, May 06, 2005 at 01:14:10PM +0200, Harald Welte wrote:
+> > On Tue, May 03, 2005 at 05:34:06PM -0400, BJ Premore wrote:
+> > > So my hopefully simple question is, can packet sizes be
+> > > changed and then reinjected using ipq_set_verdict? =20
+> >=20
+> > Of course. you just reinject the packet with a different
+> > data_len.
 >=20
-> This patch fixes a leak on error paths as well.
+> That's what I thought too, but I get the problems described
+> in my original post (subsequent packets start looking
+> mangled, basically).  Have you, or has anyone, gotten this
+> to work?  I've been scouring the net for examples but in no
+> case has any code that I've found actually changed the
+> length of the packets before reinjecting them.
 
-thanks, Committed revision 3936.
+sorry for not getting back to you earlier.  Does the problem still
+persist? could you send me pcap files of the packets before and after
+the ip_queue issue?
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -50,16 +62,16 @@ thanks, Committed revision 3936.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---O0WzNXnlZrEJWrBT
+--NEawsVssxcwwq7sD
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFCmhAVXaXGVTD0i/8RAsLmAJ4uAzdFxq2XRmt9RDD+vKOH/SfPFQCglW9I
-rYrtH9criyL8rQli3lesXZk=
-=AtvV
+iD8DBQFCmhFPXaXGVTD0i/8RAgbgAJ0WqUjC38Wn5IyrRz2oC0QfbPNsxQCfXNQQ
+le2vmSWFEAZaNhEg6g2eOsI=
+=XFXR
 -----END PGP SIGNATURE-----
 
---O0WzNXnlZrEJWrBT--
+--NEawsVssxcwwq7sD--
