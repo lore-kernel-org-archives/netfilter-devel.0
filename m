@@ -1,19 +1,16 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: Re: list_for_each_entry usage and also ... (Re: [1/3] OSF: code
- beautification.)
-Date: Mon, 30 May 2005 23:36:16 +0400
-Message-ID: <20050530233616.6f901ffb@zanzibar.2ka.mipt.ru>
-References: <20050530002000.4c63b34b@zanzibar.2ka.mipt.ru>
-	<Pine.LNX.4.61.0505301528480.29095@e-smith.charlieb.ott.istop.com>
-Reply-To: johnpol@2ka.mipt.ru
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH 2.6] fix deadlock with ip_queue and tcp local input path
+Date: Mon, 30 May 2005 15:26:13 -0700 (PDT)
+Message-ID: <20050530.152613.78709308.davem@davemloft.net>
+References: <20050526142420.GD13114@sunbeam.de.gnumonks.org>
+	<20050530180654.GX22760@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>
+Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Charlie Brady <charlieb-netfilter-devel@budge.apana.org.au>
-In-Reply-To: <Pine.LNX.4.61.0505301528480.29095@e-smith.charlieb.ott.istop.com>
+To: laforge@netfilter.org
+In-Reply-To: <20050530180654.GX22760@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,21 +22,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 30 May 2005 15:30:20 -0400 (EDT)
-Charlie Brady <charlieb-netfilter-devel@budge.apana.org.au> wrote:
+From: Harald Welte <laforge@netfilter.org>
+Date: Mon, 30 May 2005 20:06:54 +0200
 
+> I've now tested the suggested solution by Patrick McHardy and Herbert Xu to
+> simply use local_bh_{en,dis}able().
 > 
-> On Mon, 30 May 2005, Evgeniy Polyakov wrote:
-> 
-> > { placement, copyright data change, list_for_each_entry usage.
-> 
-> Content changes should be kept separate from "code beautification" I 
-> think.
+> Please apply the following patch to mainline.
 
-Is it really necessary?
-This is definitely a cleanup - nothing was changed in functionality, 
-only couple of list_entry() removed...
+Will do.
 
-	Evgeniy Polyakov
+> btw: How do we get this into 2.6.11.x ?
 
-Only failure makes us experts. -- Theo de Raadt
+You submit your patch to stable@kernel.org.
+
+But I will take care of this for you Harald, don't
+worry about it.
