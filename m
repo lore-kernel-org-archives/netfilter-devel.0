@@ -1,15 +1,16 @@
-From: Damon Gray <dgray@internap.com>
-Subject: Re: module access to conntrack tcp timeouts
-Date: Mon, 30 May 2005 14:16:05 -0400 (EDT)
-Message-ID: <Pine.LNX.4.62.0505301410540.25941@dgray-test.acs.internap.com>
-References: <Pine.LNX.4.62.0505271238130.2297@dgray-test.acs.internap.com>
-	<20050530180012.GW22760@sunbeam.de.gnumonks.org>
+From: Charlie Brady <charlieb-netfilter-devel@budge.apana.org.au>
+Subject: list_for_each_entry usage and also ... (Re: [1/3] OSF: code
+ beautification.)
+Date: Mon, 30 May 2005 15:30:20 -0400 (EDT)
+Message-ID: <Pine.LNX.4.61.0505301528480.29095@e-smith.charlieb.ott.istop.com>
+References: <20050530002000.4c63b34b@zanzibar.2ka.mipt.ru>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050530180012.GW22760@sunbeam.de.gnumonks.org>
+To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+In-Reply-To: <20050530002000.4c63b34b@zanzibar.2ka.mipt.ru>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,40 +23,9 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-I'm writing an enhancement to the connlimit module that will allow for an 
-"over limit" timeout. This will allow you to have a very long tcp 
-established timeout until you go over the limit of number of connections, 
-it will then delete the conntrack entry if it has been idle for the 
-timeout you set in connlimit. To calculate how long it has been idle you 
-can do the calculation:
+On Mon, 30 May 2005, Evgeniy Polyakov wrote:
 
-idle=ip_ct_tcp_timeout_established-(found_ct->timeout.expires - jiffies)
+> { placement, copyright data change, list_for_each_entry usage.
 
-I'm open to other suggestions for calculating the idle time on a tcp 
-established conntrack entry.
-
-Thanks
-
--Damon-
-
-On Mon, 30 May 2005, Harald Welte wrote:
-
-> On Fri, May 27, 2005 at 12:43:12PM -0400, Damon Gray wrote:
->>
->> A module I'm working on needs to know what the current conntrack timeout for
->> tcp established is. The variable is ip_ct_tcp_timeout_established in
->> ip_conntrack_proto_tcp.c. What is the best way to go about getting access to
->> this information from another kernel module? Sysctl? Proc? Can you access
->> sysctl information from the kernel?
->
-> As usual, the first question would be: Why do you need that kind of
-> information in the first place?  Understanding this will help us to
-> recommend possible options.
->
-> -- 
-> - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-> ============================================================================
->  "Fragmentation is like classful addressing -- an interesting early
->   architectural error that shows how much experimentation was going
->   on while IP was being designed."                    -- Paul Vixie
->
+Content changes should be kept separate from "code beautification" I 
+think.
