@@ -1,16 +1,19 @@
-From: Charlie Brady <charlieb-netfilter-devel@budge.apana.org.au>
-Subject: list_for_each_entry usage and also ... (Re: [1/3] OSF: code
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Re: list_for_each_entry usage and also ... (Re: [1/3] OSF: code
  beautification.)
-Date: Mon, 30 May 2005 15:30:20 -0400 (EDT)
-Message-ID: <Pine.LNX.4.61.0505301528480.29095@e-smith.charlieb.ott.istop.com>
+Date: Mon, 30 May 2005 23:36:16 +0400
+Message-ID: <20050530233616.6f901ffb@zanzibar.2ka.mipt.ru>
 References: <20050530002000.4c63b34b@zanzibar.2ka.mipt.ru>
+	<Pine.LNX.4.61.0505301528480.29095@e-smith.charlieb.ott.istop.com>
+Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
 	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-In-Reply-To: <20050530002000.4c63b34b@zanzibar.2ka.mipt.ru>
+To: Charlie Brady <charlieb-netfilter-devel@budge.apana.org.au>
+In-Reply-To: <Pine.LNX.4.61.0505301528480.29095@e-smith.charlieb.ott.istop.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,10 +25,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 30 May 2005 15:30:20 -0400 (EDT)
+Charlie Brady <charlieb-netfilter-devel@budge.apana.org.au> wrote:
 
-On Mon, 30 May 2005, Evgeniy Polyakov wrote:
+> 
+> On Mon, 30 May 2005, Evgeniy Polyakov wrote:
+> 
+> > { placement, copyright data change, list_for_each_entry usage.
+> 
+> Content changes should be kept separate from "code beautification" I 
+> think.
 
-> { placement, copyright data change, list_for_each_entry usage.
+Is it really necessary?
+This is definitely a cleanup - nothing was changed in functionality, 
+only couple of list_entry() removed...
 
-Content changes should be kept separate from "code beautification" I 
-think.
+	Evgeniy Polyakov
+
+Only failure makes us experts. -- Theo de Raadt
