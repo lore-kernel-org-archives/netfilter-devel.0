@@ -1,16 +1,15 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: Re: [2/3] OSF: Kernel connector support.
-Date: Wed, 1 Jun 2005 02:41:23 +0400
-Message-ID: <20050601024123.6ac3d12d@zanzibar.2ka.mipt.ru>
-References: <cede307105053115304d4d31c5@mail.gmail.com>
-Reply-To: johnpol@2ka.mipt.ru
+From: "Pavel A. Nekrasov" <pnekras@gmail.com>
+Subject: Re: [1/3] OSF: code beautification.
+Date: Wed, 1 Jun 2005 00:37:05 +0200
+Message-ID: <cede307105053115377afb8aac@mail.gmail.com>
+Reply-To: "Pavel A. Nekrasov" <pnekras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org, kaber@trash.net
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Pavel A. Nekrasov" <pnekras@gmail.com>
-In-Reply-To: <cede307105053115304d4d31c5@mail.gmail.com>
+To: netfilter-devel@lists.netfilter.org, johnpol@2ka.mipt.ru,
+	laforge@netfilter.org, kaber@trash.net
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,25 +21,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 1 Jun 2005 00:30:04 +0200
-"Pavel A. Nekrasov" <pnekras@gmail.com> wrote:
+hello!
 
-> hello!
-> 
-> > Kernel connector was commited into 2.6.12-rc4-mm tree.
-> 
-> To be honest, this creates a dependency against an experimental tree.
-> Do you really  want to create such dependency?
+>@@ -186,12 +181,10 @@
+> =09df =3D ((ntohs(ip->frag_off) & IP_DF)?1:0);
+> =09window =3D ntohs(tcp->window);
+> =09
+>-=09if (tcp->doff*4 > sizeof(struct tcphdr))
+>-=09{
+>+=09if (tcp->doff*4 > sizeof(struct tcphdr)) {
+> =09=09optsize =3D tcp->doff*4 - sizeof(struct tcphdr);
 
-It is under CONFIG_CONNECTOR define so it is fine, 
-especially when connector will be slowly moved upstrem.
+This won't work with fragments, you consider here that the tcp header
+is linear and that isn't always true.
 
-ULOG socket number usage is not the best thing to have.
+BTW, fix a deadlock. match() can be called from both bh and process context=
+.
 
-> kind regards,
-> Pavel
-
-
-	Evgeniy Polyakov
-
-Only failure makes us experts. -- Theo de Raadt
+kind regards,
+Pavel
