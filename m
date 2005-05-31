@@ -1,18 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Fix NAT TCP sequence adjustment
-Date: Tue, 31 May 2005 16:35:21 +0200
-Message-ID: <429C7629.4010602@trash.net>
-References: <20050402202438.GA2968@linuxace.com>	
-	<1117531044.7878.18.camel@localhost.localdomain>	
-	<429C6077.3060503@trash.net>
-	<1117547304.7878.42.camel@localhost.localdomain>
+From: "Pavel A. Nekrasov" <pnekras@gmail.com>
+Subject: Re: [2/3] OSF: Kernel connector support.
+Date: Wed, 1 Jun 2005 00:30:04 +0200
+Message-ID: <cede307105053115304d4d31c5@mail.gmail.com>
+Reply-To: "Pavel A. Nekrasov" <pnekras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-In-Reply-To: <1117547304.7878.42.camel@localhost.localdomain>
+To: johnpol@2ka.mipt.ru, netfilter-devel@lists.netfilter.org,
+	laforge@netfilter.org, kaber@trash.net
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,37 +21,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Rusty Russell wrote:
-> On Tue, 2005-05-31 at 15:02 +0200, Patrick McHardy wrote:
-> 
->> Second of all, I spent like 10 hours to verify the
->>proposed fixes, and I am still convinced that it is correct.
-> 
-> Which shows exactly *why* we have a testsuite.  Dammit, I didn't spend
-> all those hours on it for fun.
-> 
-> You spent *10* hours, and the testsuite runs in 5 seconds (60 seconds
-> counting build time the first time).
+hello!
 
-I don't get your point - I know why we have a testsuite. You're
-complaining that I had more important things to do than add tests to a
-testsuite that didn't even run on my system until perhaps 4 hours ago,
-after spending considerable time fixing the fallout from your patches?
+> Kernel connector was commited into 2.6.12-rc4-mm tree.
 
-In any case, without identifying the problems, you can't test for them.
-It looks like your tests won't even trigger the original problem, let
-alone the problem case I identified in Phil's proposed patch. So if I
-had relied on it, we would now have an incorrect fix. And no, the 10
-hours won't be wasted, as I already said before, I'll add proper tests
-when nfsim runs on my system and I have time.
+To be honest, this creates a dependency against an experimental tree.
+Do you really  want to create such dependency?
 
-> <sigh>
-
-Sigh indeed.
-
-> I fixed the testsuite, so now when I get bored I can come up with a
-> patch which removes those horrible hooks you added (sure, I may have to
-> rewrite everything to do it).
-
-Feel free to do so. Its not hard to replace them, the alternative just
-felt a bit unsafe for -rc3.
+kind regards,
+Pavel
