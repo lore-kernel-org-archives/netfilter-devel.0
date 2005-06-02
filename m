@@ -1,21 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: people.netfilter.org / mail issues
-Date: Thu, 2 Jun 2005 15:11:36 +0200
-Message-ID: <20050602131136.GG29780@sunbeam.de.gnumonks.org>
-References: <20050326123341.GL18694@sunbeam.de.gnumonks.org>
-	<1116027934.1954.21.camel@www.l-chr.com.ar>
-	<20050529184955.GQ13114@sunbeam.de.gnumonks.org>
-	<1117415873.2182.6.camel@www.l-chr.com.ar>
-	<20050530142554.GI22760@sunbeam.de.gnumonks.org>
-	<1117593405.2342.5.camel@www.l-chr.com.ar>
+From: Hadrien HAMEL <hamel@enseirb.fr>
+Subject: Re: Writing new Netfilter Modules
+Date: Thu, 02 Jun 2005 19:17:31 +0200
+Message-ID: <429F3F2B.6090406@enseirb.fr>
+References: <6B6D4D4E2ED1D6119DB80000D11D813EB4CA6F@blns203e.bln.icn.siemens.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lpbaaqEfWJan1gxl"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Christian Hentschel <chentschel2@arnet.com.ar>
-Content-Disposition: inline
-In-Reply-To: <1117593405.2342.5.camel@www.l-chr.com.ar>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <6B6D4D4E2ED1D6119DB80000D11D813EB4CA6F@blns203e.bln.icn.siemens.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,57 +20,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Gingold Tomasz wrote:
 
---lpbaaqEfWJan1gxl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>Hello,
+>
+>i want to write my own netfilter module. Can anybody tell me how to star=
+t?
+>Are there any tutorials/documents which could help?
+>
+>Up to now i have found the "Linux netfilter Hacking HOWTO", especially
+>chapter 4 "Information for Programmers.
+>Is this the only help i can obtain?
+>
+>
+>Another question:=20
+>I have found on www.netfilter.org <www.netfilter.org>  the following sta=
+tement:=20
+>"netfilter and iptables are building blocks of a framework inside the Li=
+nux <http://www.kernel.org/>  2.4.x and 2.6.x kernel"
+>Does this mean, that netfilter and iptables are part of the kernel and d=
+on=B4t have to be installed?
+>
+>thanks for helping
+>gingold tomasz
+>berlin
+>
+>
+> =20
+>
 
-On Tue, May 31, 2005 at 11:36:45PM -0300, Christian Hentschel wrote:
-> Hi Harald,=20
-> 	Sorry to bother u with this thing again. I'm receiving bounces like
-> this when trying to send an email to @people.netfilter.org.
+Hi,
 
-I'm terribly sorry for this.
+There's a step-by-step description about writing a "match" extension here=
+:
 
-> >  chentschel@people.netfilter.org
-> >    Connection timed out:
-> >    retry timeout exceeded
->=20
-> I think other accounts are dealing with this too.=20
+http://www.linuxfocus.org/English/February2005/article367.shtml
 
-nobody has complained so far, which is strange.
 
-> Maybe some netfilter -j DROP rule in durga?.=20
+I'm planning on writing another tutorial to help people developping
+extensions for NetFilter :)
+If you have any suggestions, send them to me!
 
-not on durga, but on lakshmi (the firewall in front of our machines).  I
-seem to have lost some of the more recent configuration changes when
-rebooting it a week ago :(
-
-both ipv4 and ipv6 SMTP connections are allowed again.
-
-I'm really sorry for any inconvenience this has caused :(
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---lpbaaqEfWJan1gxl
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCnwWIXaXGVTD0i/8RAqspAJ9WAv+O5Gsl/T1uKgPIgz5rgLi7LwCdE2BZ
-Ei5qlZqEJjozsEhe+3In4yg=
-=7Pyt
------END PGP SIGNATURE-----
-
---lpbaaqEfWJan1gxl--
+--
+Hadrien Hamel
+French engineer
