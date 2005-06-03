@@ -1,12 +1,14 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: missing conntrack protocol on updates
-Date: Fri, 03 Jun 2005 11:41:45 +0100
-Message-ID: <42A033E9.3020907@ufomechanic.net>
+From: <Chandra.Vempali@infineon.com>
+Subject: Where to mark tc_index field in netfiler code
+Date: Fri, 3 Jun 2005 16:39:51 +0530
+Message-ID: <04EE7AD0450F7B498BA216312943A1A10276E65D@blrse201.ap.infineon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,66 +20,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I have the recent icmp extension to conntrack built and lsof shows that 
-the library is loaded
+Hi all,
 
-If I leave conntrack -E running on a test box with a LOT of traffic 
-going through it I get quite a few conntrack updates with missing 
-protocols, detected with this grep spell:
-# conntrack -E conntrack | egrep -v 'tcp|udp|icmp|DESTROY'
+I would like to mark tc_index field of sk_buff with my own value based
+on protocol type (tcp, udp, sip etc) and later I want to use it for
+specifiying QoS for that packet/connection belonging to specific
+protocol.
 
-They seem to come in groups, and doesn't seem to be related to anything 
-particular I can detect except that orig_packets and reply_packets seem 
-to be 1, so I wonder if they are icmp responses.
+I believe I can mark this field in Netfilter code in either Connection
+tacker code or in protocol specific code,
 
-Of course as I am using a custom conntrack kernel module which also 
-dumps out the mac addresses the fault could be here, I wondered if you 
-would leave that grep running for a while to see if the fault is a 
-general one?
+Can anybody shed some light on this ?
 
-I've not been able to get /proc/net/ip_conntrack to have a missing protocol
+Regards,
+Chandra
 
-Azez
-
-
-
-[UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2118 
-src=192.168.0.233 dst=192.168.0.252 sport=2118 dport=80 timeout=432000 
-orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
-src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
-[UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2126 
-src=192.168.0.233 dst=192.168.0.252 sport=2126 dport=80 timeout=432000 
-orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
-src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
-[UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2128 
-src=192.168.0.233 dst=192.168.0.252 sport=2128 dport=80 timeout=432000 
-orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
-src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
-[UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2133 
-src=192.168.0.233 dst=192.168.0.252 sport=2133 dport=80 timeout=432000 
-orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
-src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
-[UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2134 
-src=192.168.0.233 dst=192.168.0.252 sport=2134 dport=80 timeout=432000 
-orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
-src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
-[UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2135 
-src=192.168.0.233 dst=192.168.0.252 sport=2135 dport=80 timeout=432000 
-orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
-src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
-[UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2136 
-src=192.168.0.233 dst=192.168.0.252 sport=2136 dport=80 timeout=432000 
-orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
-src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
-[UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2138 
-src=192.168.0.233 dst=192.168.0.252 sport=2138 dport=80 timeout=432000 
-orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
-src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
-[UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2139 
-src=192.168.0.233 dst=192.168.0.252 sport=2139 dport=80 timeout=432000 
-orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
-src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
-[UPDATE] src=192.168.0.1 dst=192.168.0.255 sport=138 dport=138 
-src=192.168.0.255 dst=192.168.0.1 sport=138 dport=138 [UNREPLIED] 
-orig_packets=2 orig_bytes=491 reply_packets=0 reply_bytes=0 
-src_mac=00:40:63:d5:72:50 dst_mac=ff:ff:ff:ff:ff:ff
+*Disclaimer*
+"This e-mail and any attachments are confidential and may contain trade
+secrets or privileged or undisclosed information. They may also be
+subject to copyright protection. Please do not copy, distribute or
+forward this email to anyone unless authorised. If you are not a named
+addressee, you must not use, disclose, retain or reproduce all or any
+part of the information contained in this e-mail or any attachments. If
+you have received this email by mistake please notify the sender
+immediately by return email and destroy/delete all copies of the email."
