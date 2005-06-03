@@ -1,12 +1,17 @@
-From: knash@cs.tcd.ie
-Subject: promiscuous mode
-Date: Fri, 3 Jun 2005 10:09:38 +0100 (IST)
-Message-ID: <32849.62.231.54.154.1117789778.squirrel@webmail.cs.tcd.ie>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [IPTABLES PATCH] chain name should not start with '!'
+Date: Fri, 03 Jun 2005 18:24:24 +0900 (JST)
+Message-ID: <200506030924.j539OO3p007280@toshiba.co.jp>
+References: <200506030803.j5383iXf006561@toshiba.co.jp>
+	<42A015D0.8080300@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Multipart/Mixed;
+	boundary="--Next_Part(Fri_Jun__3_18:24:24_2005_234)--"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: pablo@eurodev.net
+In-Reply-To: <42A015D0.8080300@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,26 +23,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
-I set up my wireless card in promiscuous mode. I want to capture all
-unicast packets using the hook NF_IP_PRE_ROUTING but packets other then
-the ones destined for my machine are been dropped.
-I found this link, which talks about a NF_IP_PROMISC hook
-This seems to be exactly what I want
+----Next_Part(Fri_Jun__3_18:24:24_2005_234)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-https://lists.netfilter.org/pipermail/netfilter-devel/2001-November.txt
 
-The only think is it refers to modifying
-netfilter/userspace/libiptc/libip4tc.c which doesn't seem to exist on the
-version of linux I'm running.
+Good point. Here you are,
 
-I'm currently using
-Fedora Core 2 (2.6.5-1.358)
-and iptables v1.2.9
+-----------------------------------------------------------------
+Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
-I was wondering does the latest version of netfilter support promiscuous
-mode or is there a patch available out there somewhere ??
+From: Pablo Neira <pablo@eurodev.net>
+Date: Fri, 03 Jun 2005 10:33:20 +0200
 
-Thanks very much for your help,
+> Hi Yasuyuki,
+> 
+> Yasuyuki KOZAKAI wrote:
+> > This patch fixes the bug allows to create the chain with name "!".
+> > 
+> > Regards,
+> > 
+> > -----------------------------------------------------------------
+> > Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+> > 
+> > 
+> > ------------------------------------------------------------------------
+> > 
+> > Index: iptables.c
+> > ===================================================================
+> > --- iptables.c	(revision 3951)
+> > +++ iptables.c	(working copy)
+> 
+> please, could you send the same fix for ip6tables.c? it's got the same 
+> problem.
+> 
+> Thanks,
+> Pablo
 
-Kevin
+----Next_Part(Fri_Jun__3_18:24:24_2005_234)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="ip6tables.patch"
+
+Index: ip6tables.c
+===================================================================
+--- ip6tables.c	(revision 3951)
++++ ip6tables.c	(working copy)
+@@ -1822,10 +1822,10 @@
+ 			break;
+ 
+ 		case 'N':
+-			if (optarg && *optarg == '-')
++			if (optarg && (*optarg == '-' || *optarg == '!'))
+ 				exit_error(PARAMETER_PROBLEM,
+ 					   "chain name not allowed to start "
+-					   "with `-'\n");
++					   "with `%c'\n", *optarg);
+ 			if (find_target(optarg, TRY_LOAD))
+ 				exit_error(PARAMETER_PROBLEM,
+ 					   "chain name may not clash "
+
+----Next_Part(Fri_Jun__3_18:24:24_2005_234)----
