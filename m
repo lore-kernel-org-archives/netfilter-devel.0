@@ -1,13 +1,15 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [IPTABLES PATCH] chain name should not start with '!'
-Date: Fri, 03 Jun 2005 17:03:44 +0900 (JST)
-Message-ID: <200506030803.j5383iXf006561@toshiba.co.jp>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [IPTABLES PATCH] chain name should not start with '!'
+Date: Fri, 03 Jun 2005 10:33:20 +0200
+Message-ID: <42A015D0.8080300@eurodev.net>
+References: <200506030803.j5383iXf006561@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Fri_Jun__3_17:03:44_2005_682)--"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200506030803.j5383iXf006561@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,42 +21,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Fri_Jun__3_17:03:44_2005_682)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Hi Yasuyuki,
 
+Yasuyuki KOZAKAI wrote:
+> This patch fixes the bug allows to create the chain with name "!".
+> 
+> Regards,
+> 
+> -----------------------------------------------------------------
+> Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+> 
+> 
+> ------------------------------------------------------------------------
+> 
+> Index: iptables.c
+> ===================================================================
+> --- iptables.c	(revision 3951)
+> +++ iptables.c	(working copy)
 
-Hi,
+please, could you send the same fix for ip6tables.c? it's got the same 
+problem.
 
-This patch fixes the bug allows to create the chain with name "!".
-
-Regards,
-
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
-
-
-----Next_Part(Fri_Jun__3_17:03:44_2005_682)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="iptables.patch"
-
-Index: iptables.c
-===================================================================
---- iptables.c	(revision 3951)
-+++ iptables.c	(working copy)
-@@ -1925,10 +1925,10 @@
- 			break;
- 
- 		case 'N':
--			if (optarg && *optarg == '-')
-+			if (optarg && (*optarg == '-' || *optarg == '!'))
- 				exit_error(PARAMETER_PROBLEM,
- 					   "chain name not allowed to start "
--					   "with `-'\n");
-+					   "with `%c'\n", *optarg);
- 			if (find_target(optarg, TRY_LOAD))
- 				exit_error(PARAMETER_PROBLEM,
- 					   "chain name may not clash "
-
-----Next_Part(Fri_Jun__3_17:03:44_2005_682)----
+Thanks,
+Pablo
