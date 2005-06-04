@@ -1,11 +1,15 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: TCPLAG fix
-Date: Fri, 3 Jun 2005 21:50:44 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0506032150090.19992@yvahk01.tjqt.qr>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: promiscuous mode
+Date: Sat, 04 Jun 2005 08:49:08 +0000
+Message-ID: <42A16B04.5050807@outerspace.dyndns.org>
+References: <32849.62.231.54.154.1117789778.squirrel@webmail.cs.tcd.ie>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: knash@cs.tcd.ie
+In-Reply-To: <32849.62.231.54.154.1117789778.squirrel@webmail.cs.tcd.ie>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,28 +21,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello list,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
+Quoting knash@cs.tcd.ie on 2005-06-03 09:09 UTC:
+> Hello,
 
-here is a small fix for a line I stumbled upon when looking through POM for 
-fun. Patch is here.
+Hi :)
 
+> I set up my wireless card in promiscuous mode. I want to capture all
+> unicast packets using the hook NF_IP_PRE_ROUTING but packets other then
+> the ones destined for my machine are been dropped.
 
-diff -dpru patch-o-matic-ng-20050602~/TCPLAG/linux/net/ipv4/netfilter/ipt_TCPLAG.c patch-o-matic-ng-20050602/TCPLAG/linux/net/ipv4/netfilter/ipt_TCPLAG.c
---- patch-o-matic-ng-20050602~/TCPLAG/linux/net/ipv4/netfilter/ipt_TCPLAG.c	2003-12-18 19:47:52.000000000 +0100
-+++ patch-o-matic-ng-20050602/TCPLAG/linux/net/ipv4/netfilter/ipt_TCPLAG.c	2005-06-03 21:36:24.000000000 +0200
-@@ -99,7 +99,7 @@ static void divide_down( timeval_T *T, i
- 	T->tv_usec /= c;
- 	remainder = T->tv_sec % c; /* Only works properly with positive numbers */
- 	remainder *= 1000000;
--	T->tv_usec == remainder;
-+	T->tv_usec = remainder;
- 	T->tv_sec /= c;
- }
- 
+Could it be that you have rp_filter turned on?
 
+Try doing this:
 
-Jan Engelhardt                                                               
---                                                                            
-| Gesellschaft fuer Wissenschaftliche Datenverarbeitung Goettingen,
-| Am Fassberg, 37077 Goettingen, www.gwdg.de
+  echo 0 > /proc/sys/net/ipv4/conf/eth1/rp_filter
+
+(replace eth1 with whatever your wlan interface is)
+
+Here's some more info (chapter 13.1):
+
+  http://www.linuxguruz.com/iptables/howto/2.4routing-13.html
+
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCoWsCxyF48ZTvn+4RAui4AJ4422QWePo6mfZ1AixtXjDGKAdvSQCgx2jR
+gbBwczPHtnuIDrePPyaq/6k=
+=+Kry
+-----END PGP SIGNATURE-----
