@@ -1,15 +1,16 @@
 From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: Linux Routers working
-Date: Sat, 04 Jun 2005 09:08:44 +0000
-Message-ID: <42A16F9C.5070007@outerspace.dyndns.org>
-References: <20050513060939.18564.qmail@web41422.mail.yahoo.com>
+Subject: Re: Mangling IP Options fields
+Date: Sat, 04 Jun 2005 09:23:53 +0000
+Message-ID: <42A17329.3050501@outerspace.dyndns.org>
+References: <42889454.6040300@hoole.biz> <4288E9D7.10306@outerspace.dyndns.org>
+	<428C8D66.3030908@hoole.biz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: cranium2003 <cranium2003@yahoo.com>
-In-Reply-To: <20050513060939.18564.qmail@web41422.mail.yahoo.com>
+To: Quinton Hoole <quinton@hoole.biz>
+In-Reply-To: <428C8D66.3030908@hoole.biz>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,40 +25,67 @@ List-Id: netfilter-devel.vger.kernel.org
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-Quoting cranium2003 on 2005-05-13 06:09 UTC:
->> iptables -A FORWARD -i eth0 -o eth1 ...
-> 
-> Can i get that information thru' C program user/kernel mode netfilter
-> program? Because you have given the rule to forward packet but what
-> if Router have 3 or 4 NIC network interfaces? I want to print 
-> somrthing like LOG that prints that packet has srcip and dstip and is
-> going through eth0/eth1/eth2/eth3.
+Quoting Quinton Hoole on 2005-05-19 12:58 UTC:
 
-In the kernel it's surely available.. In userspace, ULOG might give the
-information, I'm not sure..
+> Hi Jonas
 
->>> Also before packet processed by IP layer can it be possible to
->>> know from which adjecent Router'IP packet came to that router?
->> 
->> No, but the MAC address is available. You just have to find out
->> what the mac address of the router in question and do:
->> 
->> iptables -A INPUT -m mac --mac-source 01:23:45:67:89:AB ...
-> 
-> No suppose i have no info about adjecent routers mac addresses and
-> when packet came at destination Router at Link layer/IP layer can i 
-> determine from which router the packet came to destination router?
+Hello!
 
-Well the mac address is the only way to tell which adjecent router the
-packet came from. You could use the arp table to determine the ip of
-that router.
+> Thanks for your kind offer of help! I assume you meant it ;-)  If so,
+> here goes...
+
+Sorry for late reply..
+
+> Now I try to use patch-o-matic to apply the IPV4OPTSSTRIP patch, but get
+
+Do you possibly mean patch-o-matic-ng (ng = next generation :) ?
+
+If not, you should fetch the latest snapshot from:
+
+http://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot/
+
+> the following error:
+> ===================
+> Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
+> Testing patch base/IPV4OPTSSTRIP.patch...
+> Warning - no help text file could be found in either
+> /usr/src/linux/net/ipv4/netfilter/Config.help
+> or /usr/src/linux/Documentation/Configure.help
+> fgrep: /usr/src/linux/net/ipv4/netfilter/Config.in: No such file or
+> directory
+> Could not find place to slot in Config.in line
+> TEST FAILED: patch NOT applied.
+> ===================
+
+At least it worked for me with vanilla 2.6.11.
+
+> I installed the kernel source RPM according to the instructions in the
+> FC3  (http://fedora.redhat.com/docs/release-notes/fc3/x86/), which
+> places  the kernel source in
+
+The error message makes me think you have the old patch-o-matic or an
+outdated patch-o-matic-ng..
+
+> Then by executing the following I got the error above:
+> [root@quinton-lap1 patch-o-matic]# KERNEL_DIR=/usr/src/linux ./runme base
+
+FYI: You can also use
+
+  ./runme IPV4OPTSSTRIP
+
+if you want just some specific patch.
+
+> What am I doing wrong?  Should I be using a standard kernel from
+> kernel.org, rather than my FC3 kernel?
+
+I think it should work fine on both.
 
 - --
 - - xkr47
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFCoW+axyF48ZTvn+4RAq5VAKCv+U09k0cWZ1zsnvqXsGKG/T46ewCgk5bf
-d7dlNXN7WYET32UTyH8VVVA=
-=G2Nt
+iD8DBQFCoXMoxyF48ZTvn+4RAnxqAJ9SHLZMzz6tB8NLiS0i10Fk28BLAACfdyHW
+3Vl5s1bLsWtkOAIAO89u0+w=
+=1cBw
 -----END PGP SIGNATURE-----
