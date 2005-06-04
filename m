@@ -1,7 +1,7 @@
 From: Jonas Berlin <xkr47@outerspace.dyndns.org>
 Subject: Re: The big Picture of all the tables ...
-Date: Sat, 04 Jun 2005 20:50:32 +0000
-Message-ID: <42A21418.7030008@outerspace.dyndns.org>
+Date: Sat, 04 Jun 2005 21:10:16 +0000
+Message-ID: <42A218B8.8060504@outerspace.dyndns.org>
 References: <3abe8064b60ddf1a@mayday.cix.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -26,39 +26,23 @@ Hash: SHA1
 
 Quoting Robert de Bath on 2005-06-04 18:10 UTC:
 
-> I _think_ the attached picture shows all the predefined chains in all
-> the tables that the kernel uses in the order that it uses them (except
-> for the raw table).
-> 
-> 1) Is anything wrong?
-> 2) Where does the raw table fit?
+Oops, forgot to answer a few questions :)
+
 > 3) What happens if you use NOTRACK.
+
+If you look at my pic, NOTRACK makes the packet skip all the green boxes.
+
 > 4) Is there anything else that can make a packet deviate (cf: DROP)
 
-You might be interested in a picture I drew, with some help of Steven
-Van Acker:
-
-http://xkr47.outerspace.dyndns.org/netfilter/packet_flow/packet_flow9.png
-
-> This seems the best place to get a real answer. There are lots of
-> answers on google, but they all seem to be partial or even
-> (occasionally) wrong. :-(
-
-Yeah, this is the place :)
-
-> Even the netfilter website doesn't seem to have a BIG picture ... does it?
-
-No.. but I usually paste my picture to people on #netfilter on freenode
-ircnet. :)
-
-I agree some picture should be on the netfilter page for reference..
+Well there is QUEUE but I guess it continues from where it left off..
+I'm not really sure.
 
 - --
 - - xkr47
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFCohQVxyF48ZTvn+4RAugeAJ9S2u5aNhglz0n1NzB0/mZSgJN8TgCfWVX7
-NlNHJGT07tv5Nf56swNHX9Q=
-=G7mB
+iD8DBQFCohi2xyF48ZTvn+4RAss4AJ0VTdRgawFQaxWfcGKU1fJ3ylhjsgCffOBr
+LQNhu3f7ZWgfRDlUHCWR470=
+=pn7z
 -----END PGP SIGNATURE-----
