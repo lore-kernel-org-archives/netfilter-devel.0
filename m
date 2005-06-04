@@ -1,15 +1,17 @@
-From: Robert de Bath <list-netfilter@debath.co.uk>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
 Subject: Re: The big Picture of all the tables ...
-Date: Sat, 4 Jun 2005 22:49:04 +0100 (BST)
-Message-ID: <5559d90e8cb32fad@mayday.cix.co.uk>
+Date: Sat, 04 Jun 2005 22:11:15 +0000
+Message-ID: <42A22703.5090000@outerspace.dyndns.org>
 References: <3abe8064b60ddf1a@mayday.cix.co.uk>
 	<42A218B8.8060504@outerspace.dyndns.org>
+	<5559d90e8cb32fad@mayday.cix.co.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jonas Berlin <xkr47@outerspace.dyndns.org>
-In-Reply-To: <42A218B8.8060504@outerspace.dyndns.org>
+To: Robert de Bath <list-netfilter@debath.co.uk>
+In-Reply-To: <5559d90e8cb32fad@mayday.cix.co.uk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,42 +23,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 4 Jun 2005, Jonas Berlin wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> Quoting Robert de Bath on 2005-06-04 18:10 UTC:
->
->> I _think_ the attached picture shows all the predefined chains in all
->> the tables that the kernel uses in the order that it uses them (except
->> for the raw table).
->
-> You might be interested in a picture I drew, with some help of Steven
-> Van Acker:
->
-> http://xkr47.outerspace.dyndns.org/netfilter/packet_flow/packet_flow9.png
-Yes, that's exactly it.
+Quoting Robert de Bath on 2005-06-04 21:49 UTC:
+>>> 3) What happens if you use NOTRACK.
+>>
+>> If you look at my pic, NOTRACK makes the packet skip all the green boxes.
+> 
+> But what about the pink boxes (NAT), they can't do anything without
+> connection tracking but do they try?
 
->> Even the netfilter website doesn't seem to have a BIG picture ... does it?
->
-> No.. but I usually paste my picture to people on #netfilter on freenode
-> ircnet. :)
->
-> I agree some picture should be on the netfilter page for reference..
+Yeah, I'm 99% sure nat isn't traversed either, nat afaik requires
+connection tracking..
 
-On Sat, 4 Jun 2005, Jonas Berlin wrote:
+>>> 4) Is there anything else that can make a packet deviate (cf: DROP)
+>>
+>> Well there is QUEUE but I guess it continues from where it left off..
+>> I'm not really sure.
+> 
+> Hmmm, QUEUE ... :-/
 
->> 3) What happens if you use NOTRACK.
->
-> If you look at my pic, NOTRACK makes the packet skip all the green boxes.
-But what about the pink boxes (NAT), they can't do anything without
-connection tracking but do they try?
+I mean
 
->> 4) Is there anything else that can make a packet deviate (cf: DROP)
->
-> Well there is QUEUE but I guess it continues from where it left off..
-> I'm not really sure.
+  iptables ... -j QUEUE
 
-Hmmm, QUEUE ... :-/
+I don't know where in the chain it should/can go..
 
--- 
-Rob.                          (Robert de Bath <robert$ @ debath.co.uk>)
-                                              <http://www.debath.co.uk/>
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCoicBxyF48ZTvn+4RAvE2AKDmyW8VVf1rwtgwAcP7lC2Z/9u9YQCfZJm7
+ySFngQVolJnutrFFFln4IzE=
+=q2uT
+-----END PGP SIGNATURE-----
