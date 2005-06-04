@@ -1,17 +1,15 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: The big Picture of all the tables ...
-Date: Sat, 04 Jun 2005 22:11:15 +0000
-Message-ID: <42A22703.5090000@outerspace.dyndns.org>
-References: <3abe8064b60ddf1a@mayday.cix.co.uk>
-	<42A218B8.8060504@outerspace.dyndns.org>
-	<5559d90e8cb32fad@mayday.cix.co.uk>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: missing conntrack protocol on updates
+Date: Sun, 05 Jun 2005 01:07:53 +0200
+Message-ID: <42A23449.5020708@eurodev.net>
+References: <42A033E9.3020907@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Robert de Bath <list-netfilter@debath.co.uk>
-In-Reply-To: <5559d90e8cb32fad@mayday.cix.co.uk>
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <42A033E9.3020907@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,39 +21,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi Amin,
 
-Quoting Robert de Bath on 2005-06-04 21:49 UTC:
->>> 3) What happens if you use NOTRACK.
->>
->> If you look at my pic, NOTRACK makes the packet skip all the green boxes.
-> 
-> But what about the pink boxes (NAT), they can't do anything without
-> connection tracking but do they try?
+Amin Azez wrote:
+> Of course as I am using a custom conntrack kernel module which also 
+> dumps out the mac addresses the fault could be here, I wondered if you 
+> would leave that grep running for a while to see if the fault is a 
+> general one?
+ >
+> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2118 
+> src=192.168.0.233 dst=192.168.0.252 sport=2118 dport=80 timeout=432000 
+> orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
+> src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
+> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2128 
+> src=192.168.0.233 dst=192.168.0.252 sport=2128 dport=80 timeout=432000 
+> orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
+> src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
+> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2133 
+> src=192.168.0.233 dst=192.168.0.252 sport=2133 dport=80 timeout=432000 
+> orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
+> src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
+> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2134 
+> src=192.168.0.233 dst=192.168.0.252 sport=2134 dport=80 timeout=432000 
+> orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
+> src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
 
-Yeah, I'm 99% sure nat isn't traversed either, nat afaik requires
-connection tracking..
+This seems related to you hack. All those update messages tell me that 
+you are sending a netlink event message for every IPCT_PROTINFO_VOLATILE 
+event, aren't you? Maybe you're doing something similar, I'd need to see 
+the code anyway.
 
->>> 4) Is there anything else that can make a packet deviate (cf: DROP)
->>
->> Well there is QUEUE but I guess it continues from where it left off..
->> I'm not really sure.
-> 
-> Hmmm, QUEUE ... :-/
+If my guess is correct, such loss of messages is related to the nature 
+of the netlink sockets. Netlink is a unreliable protocol. Under *heavy* 
+loads and if the messages are sent from interrupt context it will be 
+likely to drop messages for spamming events.
 
-I mean
-
-  iptables ... -j QUEUE
-
-I don't know where in the chain it should/can go..
-
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCoicBxyF48ZTvn+4RAvE2AKDmyW8VVf1rwtgwAcP7lC2Z/9u9YQCfZJm7
-ySFngQVolJnutrFFFln4IzE=
-=q2uT
------END PGP SIGNATURE-----
+--
+Pablo
