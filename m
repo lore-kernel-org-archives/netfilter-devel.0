@@ -1,16 +1,13 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: Mangling IP Options fields
-Date: Sat, 04 Jun 2005 09:23:53 +0000
-Message-ID: <42A17329.3050501@outerspace.dyndns.org>
-References: <42889454.6040300@hoole.biz> <4288E9D7.10306@outerspace.dyndns.org>
-	<428C8D66.3030908@hoole.biz>
+From: Robert de Bath <list-netfilter@debath.co.uk>
+Subject: The big Picture of all the tables ...
+Date: Sat, 4 Jun 2005 19:10:28 +0100 (BST)
+Message-ID: <3abe8064b60ddf1a@mayday.cix.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-1463809397-295684426-1117907885=:4170"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Quinton Hoole <quinton@hoole.biz>
-In-Reply-To: <428C8D66.3030908@hoole.biz>
+To: netfilter-devel@lists.netfilter.org
+Content-ID: <Pine.LNX.4.61.0506041907590.4170@mayday.local>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,70 +19,235 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Quoting Quinton Hoole on 2005-05-19 12:58 UTC:
+---1463809397-295684426-1117907885=:4170
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII; FORMAT=flowed
+Content-ID: <Pine.LNX.4.61.0506041907591.4170@mayday.local>
 
-> Hi Jonas
+Hi all,
 
-Hello!
+I _think_ the attached picture shows all the predefined chains in all
+the tables that the kernel uses in the order that it uses them (except
+for the raw table).
 
-> Thanks for your kind offer of help! I assume you meant it ;-)  If so,
-> here goes...
+1) Is anything wrong?
+2) Where does the raw table fit?
+3) What happens if you use NOTRACK.
+4) Is there anything else that can make a packet deviate (cf: DROP)
 
-Sorry for late reply..
+This seems the best place to get a real answer. There are lots of answers 
+on google, but they all seem to be partial or even (occasionally) wrong. :-(
 
-> Now I try to use patch-o-matic to apply the IPV4OPTSSTRIP patch, but get
+Even the netfilter website doesn't seem to have a BIG picture ... does it?
 
-Do you possibly mean patch-o-matic-ng (ng = next generation :) ?
+-- 
+Rob.                          (Robert de Bath <robert$ @ debath.co.uk>)
+                                              <http://www.debath.co.uk/>
+---1463809397-295684426-1117907885=:4170
+Content-Type: IMAGE/PNG; NAME="IPTables.png"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.61.0506041858050.4170@mayday.local>
+Content-Description: 
+Content-Disposition: ATTACHMENT; FILENAME="IPTables.png"
 
-If not, you should fetch the latest snapshot from:
+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
+R89OvMwL/3//7Z//LWP0HlpWV3tKy2oFSVJI5/6IZL037W6cVnStevxp39v8
+m+svnw4a43n20p4PnbXPXOdA8kHS7sZpxWRHp1O+E8oM/e/5p/mM7M7Wxhti
+GNgmbzpfVotF7RjI4smOXY3TguVHSKdxPjG7RrfpG/HkA77mHRlSdj90Vova
+KZDFyw/bGqcFGwI182bUVZAlGwK2NU6TIS0U1npROwSyOY3TbEg794U7DlKm
+TXM7j9R0HqRMh7FqHOhm1NWQ9jVOCyCrfa7q2q3pREjbGqcFkLadX9SJkFKd
+fGXXGX8dCSnT6ZB2nYPbmZAynaBs01nxHQop0yUD9lyn0qmQMl3EY8uVYx0L
+KdNldXuPqh3kGFvnQtrQOK2DLPmYHWjPooMhG2+cFkIWFfZgRe1kyIYbp5WQ
+jd6BpKMhZbo9S6P3BOpsSJlumNTgXbo6HFKmW5g1dt+8ToeU6aaCDd3JsuMh
+ZbrNZyOnaXc+ZPNv7QbIlkASIAEJSEACEpCABCQgAQlIQAISkIAEJCABCUhA
+AhKQgAQkIAEJSEACEpCABCQgAQlIQAISkIAEJCABCUhAAhKQgAQkIAEJSEAC
+EpCABCQgAQlIQAISkIAEJCABCUhAAlJuyNTFuYsXdUBKDxkXv5c2CEj5u9Yl
+xnrRtXYA5Dpjg4DsAMgYY25AdgBk/OBDJCDbavmxdOAhEpBtBTk9CMiOgJxy
+A1ISyBBrIDVQy+o/trFUIXsyLfcOTrvzrVx2C5AH+XQ5LbxP9Qxr3A/cxlKF
+Gsu02js47cq3dtnbFTJU4w79gJQDUihWvbU7IOWAZLVmW4CUAtIMxmqdKyBl
+gCwIVulcASkD5E4kVv5VqICUALKIjwFSXsjiDrVi5wrI9odkFaLTGmS4fzTm
+UpsOud0UyFQnQe6hY3VCeuYp5nqy6ZCjTYH8QwdB7u1MK6xBKpZqTuGQy5JG
+5GjnQO53Kz9MVipVivWMxiaYa2RImT2l2wc5urC1uaVu9rpObj6nbl73j2rs
+mo2QRq6932GBjoFklp6qUqos8TFyOX0lnJmetzEij7/wfWUynEm6jyufhDPn
+/KO39RnFPkgj16S7cyKy3NymbOdaGVJ5lEPGgqpjxs6u9STdFx2f5j9J3th8
+wv/ofYoGbYxI8orMOwayQjfqrAtSRKSHseFZOyG3ja+fL/i3yZvVI/7RBcZ8
+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
 
-http://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot/
-
-> the following error:
-> ===================
-> Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
-> Testing patch base/IPV4OPTSSTRIP.patch...
-> Warning - no help text file could be found in either
-> /usr/src/linux/net/ipv4/netfilter/Config.help
-> or /usr/src/linux/Documentation/Configure.help
-> fgrep: /usr/src/linux/net/ipv4/netfilter/Config.in: No such file or
-> directory
-> Could not find place to slot in Config.in line
-> TEST FAILED: patch NOT applied.
-> ===================
-
-At least it worked for me with vanilla 2.6.11.
-
-> I installed the kernel source RPM according to the instructions in the
-> FC3  (http://fedora.redhat.com/docs/release-notes/fc3/x86/), which
-> places  the kernel source in
-
-The error message makes me think you have the old patch-o-matic or an
-outdated patch-o-matic-ng..
-
-> Then by executing the following I got the error above:
-> [root@quinton-lap1 patch-o-matic]# KERNEL_DIR=/usr/src/linux ./runme base
-
-FYI: You can also use
-
-  ./runme IPV4OPTSSTRIP
-
-if you want just some specific patch.
-
-> What am I doing wrong?  Should I be using a standard kernel from
-> kernel.org, rather than my FC3 kernel?
-
-I think it should work fine on both.
-
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCoXMoxyF48ZTvn+4RAnxqAJ9SHLZMzz6tB8NLiS0i10Fk28BLAACfdyHW
-3Vl5s1bLsWtkOAIAO89u0+w=
-=1cBw
------END PGP SIGNATURE-----
+---1463809397-295684426-1117907885=:4170--
