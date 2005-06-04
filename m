@@ -1,15 +1,23 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: missing conntrack protocol on updates
-Date: Sun, 05 Jun 2005 01:07:53 +0200
-Message-ID: <42A23449.5020708@eurodev.net>
-References: <42A033E9.3020907@ufomechanic.net>
+Subject: Re: [RFC] alternative to conntrack ID
+Date: Sun, 05 Jun 2005 01:52:58 +0200
+Message-ID: <42A23EDA.2090307@eurodev.net>
+References: <424747E3.7000300@eurodev.net>
+	<42502F8D.5030504@trash.net>	<4254258E.5000204@eurodev.net>
+	<42627BC4.8070103@trash.net>	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>	<20050429080242.GJ9735@sunbeam.de.gnumonks.org>	<42789366.20702@ufomechanic.net>	<4278B23A.7050406@trash.net>
+	<4278B98E.7090707@ufomechanic.net>	<427B8A46.8090006@trash.net>
+	<427D26E7.8060701@ingate.com>	<427D3EAF.3020200@trash.net>
+	<427D41FA.5080506@ingate.com>	<1115648236.25627.17.camel@nienna.balabit>	<428A1807.8070708@ufomechanic.net>
+	<428A5141.20901@trash.net>
+	<Pine.LNX.4.58.0505180948180.9582@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <42A033E9.3020907@ufomechanic.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0505180948180.9582@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,40 +29,71 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Amin,
+Jozsef Kadlecsik wrote:
+> On Tue, 17 May 2005, Patrick McHardy wrote:
+>>Amin Azez wrote:
+>>
+>>>KOVACS Krisztian wrote:
+>>>
+>>>>  Probably Patrick was referring to a possible problem where the
+>>>>following happens: a new connection is established and destroyed in a
+>>>>very short time. If a new connection with the same tuple is created
+>>>>before the timestamp increases (which is perfectly possible IMHO if you
+>>>>have some slow embedded HW with no high precision timer available)
+>>
+>>Exactly.
+>>
+>>>After further reading I think this scenario is highly unlikely.
+>>
+>>Unlikely is still enough reason to handle it properly in an API.
+>>Otherwise anything you build on top of it has to take this into
+>>account for any guarantees it would like to give. And so far, I
+>>haven't even seen a suggestion how to notice it - which would
+>>also be fine with me.
+> 
+> I think we should not state any guarantee here. Conntrack entries are
+> uniquely identified by tuples, that's all we should say.
+> 
+> There *is* a certain ambiquity, when, during te kernel-userspace
+> communication, a conntrack entry is deleted and a new one with the same
+> tuples is created, but that can be documented clearly.
+> 
+> In order to create unique identification of conntrack entries, there were
+> a couple of clever suggestions, all of them burdened by something:
+> 
+> - timer based solutions may be not fine-grained enough
+> - pointer of conntrack is not unique as it can be reused
+> - id creates a new possible bottleneck
+> 
+> What wrong can happen, if a reborn conntrack entry is deleted instead of
+> the original one?
+> 
+> If the conntrack entry is to be dropped due to a change in policy, then
+> what we did is just fine! If there was a "stuck" conntrack entry and the
+> admin was going to delete it manually but it went away and he deleted the
+> new conntrack entry, that's an unfortunate event - but the user was in
+> trouble anyway.
+> 
+> So - do we really need such accuracy?
 
-Amin Azez wrote:
-> Of course as I am using a custom conntrack kernel module which also 
-> dumps out the mac addresses the fault could be here, I wondered if you 
-> would leave that grep running for a while to see if the fault is a 
-> general one?
- >
-> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2118 
-> src=192.168.0.233 dst=192.168.0.252 sport=2118 dport=80 timeout=432000 
-> orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
-> src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
-> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2128 
-> src=192.168.0.233 dst=192.168.0.252 sport=2128 dport=80 timeout=432000 
-> orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
-> src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
-> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2133 
-> src=192.168.0.233 dst=192.168.0.252 sport=2133 dport=80 timeout=432000 
-> orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
-> src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
-> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2134 
-> src=192.168.0.233 dst=192.168.0.252 sport=2134 dport=80 timeout=432000 
-> orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
-> src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
+I want give another spin to this issue. A small digest about this ID thing:
 
-This seems related to you hack. All those update messages tell me that 
-you are sending a netlink event message for every IPCT_PROTINFO_VOLATILE 
-event, aren't you? Maybe you're doing something similar, I'd need to see 
-the code anyway.
++ The unique ID eats 8 extra bytes, since it will be an __u64. On my 
+laptop (1787 buckets, 14296 max), that makes 114368 extra bytes (worst 
+case).
 
-If my guess is correct, such loss of messages is related to the nature 
-of the netlink sockets. Netlink is a unreliable protocol. Under *heavy* 
-loads and if the messages are sent from interrupt context it will be 
-likely to drop messages for spamming events.
++ "Slow" devices. As Krisztian and Patrick pointed out, a conntrack 
+could be destroyed while the user could be trying to kill it, then 
+another conntrack is created with the same tuples. Result: the user 
+kills a connection that he didn't mean to.
+
++ If we've got an ID, the user could decide it he wants such accuracy or 
+not to kill connections. If not, we would need to document this issue.
+
+I'd definitely like to have such accuracy, but I still see this incident 
+unlikely. I think that such TCP stack must be broken if it starts a 
+brand new connection using the same source/destination ports that it's 
+recently used.
 
 --
 Pablo
