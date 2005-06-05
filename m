@@ -1,18 +1,17 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [RFC] alternative to conntrack ID
-Date: Sun, 05 Jun 2005 03:02:51 +0200
-Message-ID: <42A24F3B.8050607@eurodev.net>
-References: <424747E3.7000300@eurodev.net>	<42502F8D.5030504@trash.net>	<4254258E.5000204@eurodev.net>	<42627BC4.8070103@trash.net>	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>	<20050429080242.GJ9735@sunbeam.de.gnumonks.org>	<42789366.20702@ufomechanic.net>	<4278B23A.7050406@trash.net>	<4278B98E.7090707@ufomechanic.net>	<427B8A46.8090006@trash.net>	<427D26E7.8060701@ingate.com>	<427D3EAF.3020200@trash.net>	<427D41FA.5080506@ingate.com>	<1115648236.25627.17.camel@nienna.balabit>	<428A1807.8070708@ufomechanic.net>	<428A5141.20901@trash.net>	<Pine.LNX.4.58.0505180948180.9582@blackhole.kfki.hu>
-	<42A23EDA.2090307@eurodev.net>
+From: =?ISO-8859-1?Q?J=F8rn_Andre?= <jornandr@stud.ntnu.no>
+Subject: Re: The big Picture of all the tables ...
+Date: Sun, 05 Jun 2005 12:08:16 +0200
+Message-ID: <42A2CF10.2020201@stud.ntnu.no>
+References: <3abe8064b60ddf1a@mayday.cix.co.uk>
+	<42A218B8.8060504@outerspace.dyndns.org>
+	<5559d90e8cb32fad@mayday.cix.co.uk>
+	<42A22703.5090000@outerspace.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <42A23EDA.2090307@eurodev.net>
+In-reply-to: <42A22703.5090000@outerspace.dyndns.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,20 +23,77 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> I'd definitely like to have such accuracy, but I still see this incident 
-> unlikely. I think that such TCP stack must be broken if it starts a 
-> brand new connection using the same source/destination ports that it's 
-> recently used.
 
-Forget this, this can happen in an attempt to reopen a closed 
-connection, and such case is likely. We need such ID in order to achieve 
-accuracy. I think that it must be the user who has to choose if he wants 
-accuracy or not, in such case we have to provide the corresponding 
-methods to achieve it. A user could kill a conntrack by means of:
 
-a) the tuples, if he doesn't want accuracy
-b) the tuples + the id, if he does.
+Jonas Berlin wrote:
 
---
-Pablo
+>-----BEGIN PGP SIGNED MESSAGE-----
+>Hash: SHA1
+>
+>Quoting Robert de Bath on 2005-06-04 21:49 UTC:
+>  
+>
+>>>>3) What happens if you use NOTRACK.
+>>>>        
+>>>>
+>>>If you look at my pic, NOTRACK makes the packet skip all the green boxes.
+>>>      
+>>>
+>>But what about the pink boxes (NAT), they can't do anything without
+>>connection tracking but do they try?
+>>    
+>>
+>
+>Yeah, I'm 99% sure nat isn't traversed either, nat afaik requires
+>connection tracking..
+>
+>  
+>
+>>>>4) Is there anything else that can make a packet deviate (cf: DROP)
+>>>>        
+>>>>
+>>>Well there is QUEUE but I guess it continues from where it left off..
+>>>I'm not really sure.
+>>>      
+>>>
+>>Hmmm, QUEUE ... :-/
+>>    
+>>
+>
+>I mean
+>
+>  iptables ... -j QUEUE
+>
+>I don't know where in the chain it should/can go..
+>  
+>
+I've made an app that uses -j QUEUE and inserted the rule into mangle 
+PREROUTING on one host and OUTPUT on another.
+This is to change destination on a packet to make sure all packets are 
+routed between them.
+The conntrack module is hooked into PREROUTING and OUTPUT also, but with a
+high priority (-200, see <linux/netfilter_ipv4.h>) such that every 
+user-inserted  rule with iptables get below it, i.e -j QUEUE -t mangle
+This means packet mangling (in case src/dst IP change) wont be noticed 
+by conntrack and will not work. I have made my own NAT'ing
+for now, but the best solution would be an integration to the existing 
+conntrack. If anyone has a suggestion....
+
+With QUEUE you can accept/drop/change packets. QUEUE is able to be 
+inserted into any chain it seems.
+
+Picture of the iptables flow? Take a look at  
+https://lists.netfilter.org/pipermail/netfilter/2004-March/051131.html
+[ googling: iptables flow chart]
+
+>- --
+>- - xkr47
+>-----BEGIN PGP SIGNATURE-----
+>Version: GnuPG v1.4.1 (GNU/Linux)
+>
+>iD8DBQFCoicBxyF48ZTvn+4RAvE2AKDmyW8VVf1rwtgwAcP7lC2Z/9u9YQCfZJm7
+>ySFngQVolJnutrFFFln4IzE=
+>=q2uT
+>-----END PGP SIGNATURE-----
+>  
+>
