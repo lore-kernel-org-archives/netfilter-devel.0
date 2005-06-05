@@ -1,12 +1,17 @@
-From: Juha Heljoranta <juha.heljoranta@evtek.fi>
-Subject: [announce] Thesis about the process network access control in Linux
-Date: Sat, 04 Jun 2005 20:39:25 +0300
-Message-ID: <42A1E74D.4020103@evtek.fi>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: The big Picture of all the tables ...
+Date: Sun, 5 Jun 2005 23:48:44 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0506052344250.11204@filer.marasystems.com>
+References: <3abe8064b60ddf1a@mayday.cix.co.uk>
+	<42A218B8.8060504@outerspace.dyndns.org>
+	<5559d90e8cb32fad@mayday.cix.co.uk>
+	<42A22703.5090000@outerspace.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Jonas Berlin <xkr47@outerspace.dyndns.org>
+In-Reply-To: <42A22703.5090000@outerspace.dyndns.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,20 +23,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-My final year project titled "Process network access control in Linux"
-is available at the http://www.fsfe.org/Members/juha/thesis/.
+On Sat, 4 Jun 2005, Jonas Berlin wrote:
 
-I hope that the thesis helps to understand some issues in process
-network access control.
+> I mean
+>
+>  iptables ... -j QUEUE
+>
+> I don't know where in the chain it should/can go..
 
-Thanks to: Harald Welte, Patrick McHardy, James Morris, Martin
-Josefsson, Henrik Nordstrom, Tobias DiPasquale and the netfilter-devel
-contributors.
+NF_QUEUE (aka -j QUEUE in iptables) can be returned by any netfilter 
+hook handler, and terminates that handler/table.
 
-Hopefully I will have some spare time to hack netfilter again. Currently
-I have other things to take care of..
+When the packet returns from the queue it continues at the next 
+handler/table in the same hook or leaves the hook as usual if there is no 
+more to process in this hook.
 
-Keep up the good work!
+Note: this is not limited to iptables. The above applies to any netfilter 
+modules as QUEUE is a core netfilter function, not an iptables function.
 
-Truly yours,
-Juha Heljoranta
+Regards
+Henrik
