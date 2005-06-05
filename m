@@ -1,17 +1,15 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: The big Picture of all the tables ...
-Date: Sun, 5 Jun 2005 23:48:44 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0506052344250.11204@filer.marasystems.com>
-References: <3abe8064b60ddf1a@mayday.cix.co.uk>
-	<42A218B8.8060504@outerspace.dyndns.org>
-	<5559d90e8cb32fad@mayday.cix.co.uk>
-	<42A22703.5090000@outerspace.dyndns.org>
+From: Damon Gray <dgray@internap.com>
+Subject: Re: Kernel panic still happens due to bug in connlimit on kernel
+ 2.6.11
+Date: Sun, 5 Jun 2005 19:03:09 -0400 (EDT)
+Message-ID: <Pine.LNX.4.62.0506051900210.23472@dgray-test.acs.internap.com>
+References: <1117972473.11871.17.camel@megaricomp>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jonas Berlin <xkr47@outerspace.dyndns.org>
-In-Reply-To: <42A22703.5090000@outerspace.dyndns.org>
+To: Ari Sundholm <megari@freedb.org>
+In-Reply-To: <1117972473.11871.17.camel@megaricomp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +21,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 4 Jun 2005, Jonas Berlin wrote:
 
-> I mean
+My patch is good, I've been running 2.6.11.7 with my changes for a while 
+now. Not sure why it hasn't been submitted into SVN yet as I don't have 
+submit privs.
+
+-Damon-
+
+On Sun, 5 Jun 2005, Ari Sundholm wrote:
+
+> Hello!
 >
->  iptables ... -j QUEUE
+> (Please CC me as I am not subscribed)
 >
-> I don't know where in the chain it should/can go..
-
-NF_QUEUE (aka -j QUEUE in iptables) can be returned by any netfilter 
-hook handler, and terminates that handler/table.
-
-When the packet returns from the queue it continues at the next 
-handler/table in the same hook or leaves the hook as usual if there is no 
-more to process in this hook.
-
-Note: this is not limited to iptables. The above applies to any netfilter 
-modules as QUEUE is a core netfilter function, not an iptables function.
-
-Regards
-Henrik
+> I recently ran into kernel panics with my shiny new 2.6.11 kernel. After
+> a lot of grief I found out that the connlimit module used to have a bug
+> which lead into an inevitable NULL pointer dereference and a panic.
+> After removing all iptables rules using connlimit and rebooting I got no
+> further panics during 48 hours - the kernel would panic in less than 10
+> hours when the rules were still there. This was highly suggestive that
+> there was still something wrong. And indeed, there was: the original
+> problem was never fixed!
+>
+> I found out that a patch had been discussed and apparently found good
+> (on May 19). Someone was supposed to commit the patch. However, it seems
+> the patch was never committed - I took a look at the SVN trunk for
+> pom-ng today.
+>
+> Please fix this at your earliest convenience.
+>
+> Best regards,
+>
+> Ari Sundholm
+> megari@freedb.org
+> Author of cddbcomp - THE Delphi component for freedb access
+> Moderator of freedb forums
+> freedb core team
+> Support languages: Finnish, English, German, Swedish
+> DISCLAIMER: Despite being part of the freedb team I only represent myself unless otherwise noted. Freedb is in no way responsible for my actions or opinions.
+>
+>
+>
+>
