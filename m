@@ -1,15 +1,15 @@
-From: Damon Gray <dgray@internap.com>
-Subject: Re: Kernel panic still happens due to bug in connlimit on kernel
- 2.6.11
-Date: Sun, 5 Jun 2005 19:03:09 -0400 (EDT)
-Message-ID: <Pine.LNX.4.62.0506051900210.23472@dgray-test.acs.internap.com>
-References: <1117972473.11871.17.camel@megaricomp>
+From: Cedric de Launois <delaunois@info.ucl.ac.be>
+Subject: Re: The big Picture of all the tables ...
+Date: Mon, 06 Jun 2005 10:00:27 +0200
+Message-ID: <1118044827.21909.11.camel@descartes.info.ucl.ac.be>
+References: <3abe8064b60ddf1a@mayday.cix.co.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Ari Sundholm <megari@freedb.org>
-In-Reply-To: <1117972473.11871.17.camel@megaricomp>
+To: Robert de Bath <list-netfilter@debath.co.uk>
+In-Reply-To: <3abe8064b60ddf1a@mayday.cix.co.uk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,45 +21,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Le samedi 04 juin 2005 =E0 19:10 +0100, Robert de Bath a =E9crit :
+> Hi all,
+>=20
+> I _think_ the attached picture shows all the predefined chains in all
+> the tables that the kernel uses in the order that it uses them (except
+> for the raw table).
 
-My patch is good, I've been running 2.6.11.7 with my changes for a while 
-now. Not sure why it hasn't been submitted into SVN yet as I don't have 
-submit privs.
+> 4) Is there anything else that can make a packet deviate (cf: DROP)
 
--Damon-
+The ROUTE target (in pom) was initially designed to directly send a
+packet on the wire, on a given interface. In such case, the target is
+put on the mangle PREROUTING chain, and the packet that matches the
+ROUTE target is re-injected _after_ the mangle POSTROUTING chain (so
+that conntrack is not confused by strangely routed packets).
 
-On Sun, 5 Jun 2005, Ari Sundholm wrote:
+If the --continue option of the ROUTE target is used, then the packet is
+routed by the target, and continues its journey through the rules. In
+your figure, it should now become obvious to beginners why the use of
+the --continue option is most useful in mangle POSTROUTING, and useless
+on the PREROUTING chain...
 
-> Hello!
->
-> (Please CC me as I am not subscribed)
->
-> I recently ran into kernel panics with my shiny new 2.6.11 kernel. After
-> a lot of grief I found out that the connlimit module used to have a bug
-> which lead into an inevitable NULL pointer dereference and a panic.
-> After removing all iptables rules using connlimit and rebooting I got no
-> further panics during 48 hours - the kernel would panic in less than 10
-> hours when the rules were still there. This was highly suggestive that
-> there was still something wrong. And indeed, there was: the original
-> problem was never fixed!
->
-> I found out that a patch had been discussed and apparently found good
-> (on May 19). Someone was supposed to commit the patch. However, it seems
-> the patch was never committed - I took a look at the SVN trunk for
-> pom-ng today.
->
-> Please fix this at your earliest convenience.
->
-> Best regards,
->
-> Ari Sundholm
-> megari@freedb.org
-> Author of cddbcomp - THE Delphi component for freedb access
-> Moderator of freedb forums
-> freedb core team
-> Support languages: Finnish, English, German, Swedish
-> DISCLAIMER: Despite being part of the freedb team I only represent myself unless otherwise noted. Freedb is in no way responsible for my actions or opinions.
->
->
->
->
+Cedric
