@@ -1,15 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
+From: chentschel2@arnet.com.ar
 Subject: Re: NAT reservations
-Date: Wed, 08 Jun 2005 21:02:55 +0200
-Message-ID: <42A740DF.20107@trash.net>
-References: <42A73CC2.4060608@trash.net> <1118256945.13271.6.camel@krak.odu>
+Date: Wed, 8 Jun 2005 16:43:37 -0300 (ART)
+Message-ID: <200506081943.j58JhbP14554@webserver5.arnet.com.ar>
+Reply-To: chentschel2@arnet.com.ar
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	hidden@balabit.hu
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-In-Reply-To: <1118256945.13271.6.camel@krak.odu>
+To: Patrick McHardy <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,23 +21,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-KOVACS Krisztian wrote:
->   Unfortunately I did not have time to port the patch for new NAT code
-> of 2.6.11, but a 2.6.10 version can be found in the latest tproxy
-> release tarball:
-> 
->   http://www.balabit.com/downloads/tproxy/linux-2.6/
-> 
->   That's the most up-to-date version available.
+Mensaje citado por: Patrick McHardy <kaber@trash.net>:
 
-Thanks.
+Hi Patrick!
 
->   Plus, I think the whole patch would require a thorough refresh, I
-> don't really like the idea of that extra hash table, etc. (And even that
-> hash table is poorly implemented, obsolete hash function, etc.)
+> I\'m currently working on the H.323 connection tracking helper and
+> need to NAT addresses that are later used in an expectation, but
+> I don\'t want to create the expectation immediately.
 
-I haven't looked closer at it yet, but I'll probably port it to
-2.6.12-rc in the next couple of days, perhaps a good idea will hit me :)
+This is just to fulfill my curiosity. Is there some special reason for this?. 
+I´m very interested in this, but I think i don´t really get your point :( 
 
-Regards
-Patrick
+Best regards,
+Christian. 
+__________________________________
+Registrate desde http://servicios.arnet.com.ar/registracion/registracion.asp?origenid=9 y participá de todos los beneficios del Portal Arnet.
