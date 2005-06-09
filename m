@@ -1,17 +1,25 @@
-From: Christian Hentschel <chentschel2@arnet.com.ar>
-Subject: Re: NAT reservations
-Date: Wed, 08 Jun 2005 20:37:35 -0300
-Message-ID: <1118273855.1948.15.camel@www.l-chr.com.ar>
-References: <200506081943.j58JhbP14554@webserver5.arnet.com.ar>
-	<Pine.LNX.4.62.0506082209470.6488@kaber.coreworks.de>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [RFC] alternative to conntrack ID
+Date: Thu, 09 Jun 2005 15:00:34 +0200
+Message-ID: <42A83D72.1000106@eurodev.net>
+References: <424747E3.7000300@eurodev.net>
+	<42502F8D.5030504@trash.net>	<4254258E.5000204@eurodev.net>
+	<42627BC4.8070103@trash.net>	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>	<20050429080242.GJ9735@sunbeam.de.gnumonks.org>	<42789366.20702@ufomechanic.net>
+	<4278B23A.7050406@trash.net>	<4278B98E.7090707@ufomechanic.net>
+	<427B8A46.8090006@trash.net>	<427D26E7.8060701@ingate.com>
+	<427D3EAF.3020200@trash.net>	<427D41FA.5080506@ingate.com>	<1115648236.25627.17.camel@nienna.balabit>	<428A1807.8070708@ufomechanic.net>
+	<428A5141.20901@trash.net>	<Pine.LNX.4.58.0505180948180.9582@blackhole.kfki.hu>	<42A23EDA.2090307@eurodev.net>
+	<42A24F3B.8050607@eurodev.net>	<Pine.LNX.4.58.0506061017330.16223@blackhole.kfki.hu>
+	<42A83B96.4050302@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	hidden@balabit.hu
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <Pine.LNX.4.62.0506082209470.6488@kaber.coreworks.de>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <42A83B96.4050302@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,33 +31,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> I want to create an expectation that expects incoming calls when the
-> Gatekeeper replies with an RCF (Registration Confirm), but if we do NAT,
-> the call signaling address in the RRQ needs to be NATed before the final
-> port is known. So the only solution is to create the expectation
-> immediately and cancel it after some timeout or when an Registration
-> Reject is seen.
+Pablo Neira wrote:
+> All the things I've though so far are burned by something. The cleanest 
+> way to do this looks the ID. Any other ideas?
 
-mm.. i see. But is it worth doing that?. I mean if u have a ptp call
-without RAS signalling u won't have this situation. Maybe registering
-the module to look for RAS and h225 signalling port would be ok. ie. udp
-171{8,9} and tcp 1720. 
-I think RAS signalling separated from h225/Q931 signalling, cisco, ie,
-have ras fixup and h255 fixup, but this may be is not a happy example
-anyways =P
+Hm, this idea just came to my head. We could use a unsigned 8 bit
+per-bucket-id that, together with the tuple, could uniquely identify a
+conntrack (and make Patrick sleep with both eyes closed), reduce memory
+comsumption (and make Jozsef happier) and fix my problem of the
+conntrack table dumping (let Pablo drinks beer calmly).
 
-> Same problem with Registration Confirm. It contains the call signaling
-> address of the Gatekeeper, but there is nothing to expect because every
-> signaling connection is preceeded by admissionRequest/admissionConfirm,
-> which contain the address again. But it should be NATed similar to the
-> ones in the admission messages, which can't be done reliably at all.
+Anything else?
 
-This would be the same i think. Letting through h225signalling port 1720
-should be ok, and h245 and RTP stuff will be the dynamic data to
-expect/mangle.
-
-I hope this helps and sorry for my english.. :)
-Regards,
-
--- 
-Christian Hentschel <chentschel2@arnet.com.ar>
+--
+Pablo
