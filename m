@@ -1,17 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH NF_CONNTRACK 1/9]: Fix multiple problems with TCP window
- tracking
-Date: Sat, 11 Jun 2005 17:49:19 +0200
-Message-ID: <42AB07FF.9020907@trash.net>
-References: <200505230617.j4N6HROa027617@toshiba.co.jp>	<200505231546.58751.michal@rokos.info>	<200505240153.j4O1r35h028029@toshiba.co.jp>
-	<200505241323.20267.michal@rokos.info>
+Subject: Re: ip_conntrack_standalone / sprintf to buffer
+Date: Sat, 11 Jun 2005 17:57:02 +0200
+Message-ID: <42AB09CE.6070103@trash.net>
+References: <87oeb1b29t.fsf@deprecated.intranet.astaro.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Michal Rokos <michal@rokos.info>
-In-Reply-To: <200505241323.20267.michal@rokos.info>
+To: Sven Schnelle <svens@gmx.de>
+In-Reply-To: <87oeb1b29t.fsf@deprecated.intranet.astaro.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,18 +21,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Michal Rokos wrote:
-> YK> Patrick prepared bk tree for submission as follows and I have been
-> YK> sending patches to him since then to avoid duplicated work and
-> YK> inconsistency between svn and his tree.
+Sven Schnelle wrote:
+> Hi,
 > 
-> Thank you very much for this. It helped me a lot!
+> found the following code snippet in ip_conntrack_standalone.c:145
+> in function conntrack_iterate():
+> -------------------000000------8<-----------------------------
+> 	newlen = print_conntrack(buffer + *len, hash->ctrack);
+> 	printk("len + newlen: %d maxlen: %d\n", *len + newlen, maxlen);
+> 	if (*len + newlen > maxlen)
+> 		return 1;
+> 	else *len += newlen;
+> -------------000000------------8<-----------------------------
 > 
-> Patrick, do you have something else than BitKeeper repository? Most of the 
-> people now are using either git, subversion, or CVS...
+> print_conntrack() uses sprintf without length checking. And now i'm
+> wondering what happens if for example, maxlen=3072 and
+> len=3071. print_conntrack uses sprintf, writes beyond the end the buffer, and
+> after this the check (*len + newlen > maxlen) is done. Looks to me like
+> a bug.
+> 
+> Did i missed something?
 
-I wanted to convert it to git for a long time, I'll probably
-do it tomorrow.
+Yes, /proc reserves some space (I think its 1k) for writing over
+the boundaries.
 
 Regards
 Patrick
