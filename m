@@ -1,17 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Kernel panic still happens due to bug in connlimit on kernel
- 2.6.11
-Date: Sat, 11 Jun 2005 17:03:40 +0200
-Message-ID: <42AAFD4C.7060100@trash.net>
-References: <1117972473.11871.17.camel@megaricomp>
-	<Pine.LNX.4.62.0506051900210.23472@dgray-test.acs.internap.com>
+Subject: Re: FIX: connlimit NULL pointer kernel panic
+Date: Sat, 11 Jun 2005 17:03:14 +0200
+Message-ID: <42AAFD32.1000608@trash.net>
+References: <20050519075405.7DF8640023@socios.momona.org>
+	<428C78CE.2040904@eurodev.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Ari Sundholm <megari@freedb.org>
+Cc: mateusz@republika.pl, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Damon Gray <dgray@internap.com>
-In-Reply-To: <Pine.LNX.4.62.0506051900210.23472@dgray-test.acs.internap.com>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <428C78CE.2040904@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,13 +22,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Damon Gray wrote:
+Pablo Neira wrote:
+> Forte Systems - Iosif Peterfi wrote:
 > 
-> My patch is good, I've been running 2.6.11.7 with my changes for a while
-> now. Not sure why it hasn't been submitted into SVN yet as I don't have
-> submit privs.
+>> Here is a diff -urN patch for what has been discussed except the
+>> conntrack
+>> event-api. Works fine on 2.6.1-gentoo-r8, patch-o-matic-ng-20050516. 
+> 
+> 
+> Hm, didn't I also tell you that you have to sed
+> 's/spin_unlock/spin_unlock_bh'?
+> 
+> well, it doesn't matter, attached the correct patch that applies cleanly
+> to pom-ng.
 
-I've committed it to svn now.
+Thanks Pablo, I've applied the patch. Can you send patches for the 2.4
+and the old 2.6 version too?
 
 Regards
 Patrick
