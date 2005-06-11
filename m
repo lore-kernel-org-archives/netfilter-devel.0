@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: l7-filter patch for p-o-m
-Date: Sat, 11 Jun 2005 17:19:23 +0200
-Message-ID: <42AB00FB.9030900@trash.net>
-References: <Pine.LNX.4.61.0505312259080.6304@localhost.localdomain>
+Subject: Re: [PATCH NF_CONNTRACK 6/9]: Drop conntrack reference when packet
+ leaves IPv6
+Date: Sat, 11 Jun 2005 17:33:38 +0200
+Message-ID: <42AB0452.3010703@trash.net>
+References: <200505230620.j4N6KAve018200@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Matthew Strait <quadong@users.sourceforge.net>
-In-Reply-To: <Pine.LNX.4.61.0505312259080.6304@localhost.localdomain>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200505230620.j4N6KAve018200@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,11 +22,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Matthew Strait wrote:
-> 8 months later, here's a l7-filter patch for patch-o-matic again.
+Yasuyuki KOZAKAI wrote:
+> This patch is for IPv6 and same change as follows.
 
-I have no general objections against including this, but IIRC you need
-some extra files for userspace. Would it make sense to add them as well?
+Why not simply drop the reference earlier in ip6_input_finish()
+before the packet is delivered to raw sockets?
 
 Regards
 Patrick
+
+> diff -Nur linux-2.6.12-rc4-nfct-5-drop-ref/net/ipv6/ip6_input.c linux-2.6.12-rc4-nfct-6-drop-ref6/net/ipv6/ip6_input.c
+> --- linux-2.6.12-rc4-nfct-5-drop-ref/net/ipv6/ip6_input.c	2005-05-20 03:29:38.000000000 +0900
+> +++ linux-2.6.12-rc4-nfct-6-drop-ref6/net/ipv6/ip6_input.c	2005-05-19 21:28:26.000000000 +0900
+> @@ -176,6 +176,11 @@
+>  		if (ipprot->flags & INET6_PROTO_FINAL) {
+>  			struct ipv6hdr *hdr;	
+>  
+> +			/* Free reference early: we don't need it any more,
+> +			   and it may hold ip_conntrack module loaded
+> +			   indefinitely. */
+> +			nf_reset(skb);
+> +
+>  			skb_postpull_rcsum(skb, skb->nh.raw,
+>  					   skb->h.raw - skb->nh.raw);
+>  			hdr = skb->nh.ipv6h;
+> diff -Nur linux-2.6.12-rc4-nfct-5-drop-ref/net/ipv6/raw.c linux-2.6.12-rc4-nfct-6-drop-ref6/net/ipv6/raw.c
+> --- linux-2.6.12-rc4-nfct-5-drop-ref/net/ipv6/raw.c	2005-05-20 03:29:46.000000000 +0900
+> +++ linux-2.6.12-rc4-nfct-6-drop-ref6/net/ipv6/raw.c	2005-05-19 21:51:35.000000000 +0900
+> @@ -167,8 +167,10 @@
+>  			struct sk_buff *clone = skb_clone(skb, GFP_ATOMIC);
+>  
+>  			/* Not releasing hash table! */
+> -			if (clone)
+> +			if (clone) {
+> +				nf_reset(clone);
+>  				rawv6_rcv(sk, clone);
+> +			}
+>  		}
+>  		sk = __raw_v6_lookup(sk_next(sk), nexthdr, daddr, saddr);
+>  	}
