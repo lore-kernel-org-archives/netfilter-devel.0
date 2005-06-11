@@ -1,15 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipt_TTL logic error
-Date: Sat, 11 Jun 2005 18:44:00 +0200
-Message-ID: <42AB14D0.8010409@trash.net>
-References: <Pine.LNX.4.61.0506111837310.19655@yvahk01.tjqt.qr>
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Re: [1/3] OSF: code beautification.
+Date: Sat, 11 Jun 2005 20:44:19 +0400
+Message-ID: <20050611204419.67e0ef47@zanzibar.2ka.mipt.ru>
+References: <20050530002000.4c63b34b@zanzibar.2ka.mipt.ru>
+	<42AB11B1.6010605@trash.net>
+Reply-To: johnpol@2ka.mipt.ru
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0506111837310.19655@yvahk01.tjqt.qr>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42AB11B1.6010605@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,13 +23,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Hello developers,
-> 
-> 
-> yet another bug in POM modules. Patch is:
+On Sat, 11 Jun 2005 18:30:41 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
-This is already fixed in svn.
+> Evgeniy Polyakov wrote:
+> > { placement, copyright data change, list_for_each_entry usage.
+> 
+> The patch fails to apply cleanly:
+> 
+> patching file linux-2.6/net/ipv4/netfilter/ipt_osf.c
 
-Regards
-Patrick
+...
+> 
+> It looks like the patch is against the 2.4 version. This is one
+> of the rejects:
+
+It should be on top of "[0/3] OSF: resurect skb fragmentation patch.".
+This patch was applied against 2.4 tree half of a year ago...
+
+...
+
+> Please fix this up and resend the entire patchset.
+
+please try apply "[0/3] OSF: resurect skb fragmentation patch." first,
+it must fix above[skipped] issue.
+ 
+> Regards
+> Patrick
+
+
+	Evgeniy Polyakov
+
+Only failure makes us experts. -- Theo de Raadt
