@@ -1,15 +1,15 @@
-From: Phil Oester <kernel@linuxace.com>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: Missed any patches? [PATCH] expectation timeouts
-Date: Sat, 11 Jun 2005 10:07:39 -0700
-Message-ID: <20050611170739.GA5018@linuxace.com>
-References: <42AB1577.5040006@trash.net>
+Date: Sat, 11 Jun 2005 19:10:29 +0200
+Message-ID: <42AB1B05.2060509@trash.net>
+References: <42AB1577.5040006@trash.net> <20050611170739.GA5018@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="W/nzBZO5zC0uMSeA"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <42AB1577.5040006@trash.net>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20050611170739.GA5018@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,56 +21,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Phil Oester wrote:
+> Since expectation timeouts were made compulsory [1], there is no need to
+> check for them in ip_conntrack_expect_insert.
 
---W/nzBZO5zC0uMSeA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Thanks, I just found it and am about to apply it to my 2.6.13 tree.
 
-On Sat, Jun 11, 2005 at 06:46:47PM +0200, Patrick McHardy wrote:
-> I've applied everything on the list I could find, if I missed
-> anything please resend now. Thanks.
-
-Here's one
-
-Since expectation timeouts were made compulsory [1], there is no need to
-check for them in ip_conntrack_expect_insert.
-
-Phil
-
-[1] https://lists.netfilter.org/pipermail/netfilter-devel/2005-January/018143.html
-
-
-Signed-off-by: Phil Oester <kernel@linuxace.com>
-
-
-
---W/nzBZO5zC0uMSeA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-exptimeout
-
-diff -ruN linux-orig/net/ipv4/netfilter/ip_conntrack_core.c linux-new/net/ipv4/netfilter/ip_conntrack_core.c
---- linux-orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-03-02 02:37:30.000000000 -0500
-+++ linux-new/net/ipv4/netfilter/ip_conntrack_core.c	2005-05-19 10:18:04.041146160 -0400
-@@ -760,15 +760,11 @@
- 	exp->master->expecting++;
- 	list_add(&exp->list, &ip_conntrack_expect_list);
- 
--	if (exp->master->helper->timeout) {
--		init_timer(&exp->timeout);
--		exp->timeout.data = (unsigned long)exp;
--		exp->timeout.function = expectation_timed_out;
--		exp->timeout.expires
--			= jiffies + exp->master->helper->timeout * HZ;
--		add_timer(&exp->timeout);
--	} else
--		exp->timeout.function = NULL;
-+	init_timer(&exp->timeout);
-+	exp->timeout.data = (unsigned long)exp;
-+	exp->timeout.function = expectation_timed_out;
-+	exp->timeout.expires = jiffies + exp->master->helper->timeout * HZ;
-+	add_timer(&exp->timeout);
- 
- 	CONNTRACK_STAT_INC(expect_create);
- }
-
---W/nzBZO5zC0uMSeA--
+Regards
+Patrick
