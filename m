@@ -1,15 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Missed any patches? [PATCH] expectation timeouts
-Date: Sat, 11 Jun 2005 19:10:29 +0200
-Message-ID: <42AB1B05.2060509@trash.net>
-References: <42AB1577.5040006@trash.net> <20050611170739.GA5018@linuxace.com>
+From: Toto <bakulaka@poczta.fm>
+Subject: connlimit patch - ipv6 idea.
+Date: 11 Jun 2005 19:13:27 +0200
+Message-ID: <20050611171327.171CF33E865@poczta.interia.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/plain; CHARSET=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20050611170739.GA5018@linuxace.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,11 +18,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
-> Since expectation timeouts were made compulsory [1], there is no need to
-> check for them in ip_conntrack_expect_insert.
 
-Thanks, I just found it and am about to apply it to my 2.6.13 tree.
+Hi,
+Im using your connlimit patch from netfilter to limite ipv4 connections.
+Have you any idea how to limit that same connections over ipv6 range?
 
-Regards
-Patrick
+I was searching but seems to that patch work only on ipv4 range. You know
+where i can find something or maybe how modify that patch to limitate ipv6
+connections too?
+
+Thanks for answer..
+
+Greets,
+
+
+----------------------------------------------------------------------
+Znajdz swoja milosc na wiosne... >>> http://link.interia.pl/f187a
