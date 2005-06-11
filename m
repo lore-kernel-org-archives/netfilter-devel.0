@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: TCPLAG fix
-Date: Sat, 11 Jun 2005 17:08:17 +0200
-Message-ID: <42AAFE61.8070403@trash.net>
-References: <Pine.LNX.4.61.0506032150090.19992@yvahk01.tjqt.qr>
+Subject: Re: [IPTABLES PATCH] chain name should not start with '!'
+Date: Sat, 11 Jun 2005 17:10:47 +0200
+Message-ID: <42AAFEF7.1030805@trash.net>
+References: <200506030803.j5383iXf006561@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0506032150090.19992@yvahk01.tjqt.qr>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200506030803.j5383iXf006561@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,14 +21,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Hello list,
-> 
-> 
-> here is a small fix for a line I stumbled upon when looking through POM for 
-> fun. Patch is here.
+Yasuyuki KOZAKAI wrote:
+> This patch fixes the bug allows to create the chain with name "!".
 
-Applied, thanks.
+Is there a technical reason for this or is it just "cleanup"?
 
 Regards
 Patrick
