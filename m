@@ -1,30 +1,103 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipt_recent fixes
-Date: Sun, 12 Jun 2005 16:47:46 +0200
-Message-ID: <42AC4B12.2080508@trash.net>
-References: <87ll6o1pbi.fsf@blackdown.de>
+From: Charlie Brady <charlieb-netfilter-devel@budge.apana.org.au>
+Subject: Re: [Patch] ip{,
+	6}tables-restore -n with existing user defined chain
+Date: Sun, 12 Jun 2005 11:20:40 -0400 (EDT)
+Message-ID: <Pine.LNX.4.61.0506121119510.15775@e-smith.charlieb.ott.istop.com>
+References: <Pine.LNX.4.61.0505181157190.3744@e-smith.charlieb.ott.istop.com>
+	<42AB0D81.2080804@trash.net>
+	<20050612095655.GB19830@obroa-skai.de.gnumonks.org>
+	<42AC3AC6.4080304@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@osdl.org>, Stephen Frost <sfrost@snowman.net>,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261886AbVFLOsJ@vger.kernel.org>
-To: Juergen Kreileder <jk@blackdown.de>
-In-Reply-To: <87ll6o1pbi.fsf@blackdown.de>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-1463811723-2029705228-1118589640=:15775"
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42AC3AC6.4080304@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Juergen Kreileder wrote:
-> I've had some ipt_recent rules acting strangely after an uptime of
-> about 25 days.  The broken behavior is reproducible in the 5 minutes
-> before the first jiffies roll-over right after booting too.
-> 
-> The cause of the problem is the jiffies comparision which doesn't work
-> like intended if one of the last hits was more than LONG_MAX seconds
-> ago or if the table of last hits contains empty slots and jiffies
-> is > LONG_MAX.
-> 
-> This patch fixes the problem by using get_seconds() instead of
-> jiffies.  It also fixes some 64-bit issues.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Thanks, I've added it to my 2.6.13 tree.
+---1463811723-2029705228-1118589640=:15775
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+
+
+On Sun, 12 Jun 2005, Patrick McHardy wrote:
+
+> Thanks for your feedback. Charlie, your patch doesn't apply, apparently
+> because of whitespace issues:
+...
+> Please resend as attachment.
+
+Attached.
+
+Thanks
+Charlie
+---1463811723-2029705228-1118589640=:15775
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="iptables.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.61.0506121120400.15775@e-smith.charlieb.ott.istop.com>
+Content-Description: 
+Content-Disposition: attachment; filename="iptables.patch"
+
+SW5kZXg6IGlwNnRhYmxlcy1yZXN0b3JlLmMNCj09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT0NCi0tLSBpcDZ0YWJsZXMtcmVzdG9yZS5jCShyZXZpc2lvbiAzOTc5
+KQ0KKysrIGlwNnRhYmxlcy1yZXN0b3JlLmMJKHdvcmtpbmcgY29weSkNCkBA
+IC0yMzMsMTIgKzIzMywyMSBAQA0KIAkJCX0NCiANCiAJCQlpZiAoaXA2dGNf
+YnVpbHRpbihjaGFpbiwgaGFuZGxlKSA8PSAwKSB7DQotCQkJCURFQlVHUCgi
+Q3JlYXRpbmcgbmV3IGNoYWluICclcydcbiIsIGNoYWluKTsNCi0JCQkJaWYg
+KCFpcDZ0Y19jcmVhdGVfY2hhaW4oY2hhaW4sICZoYW5kbGUpKQ0KLQkJCQkJ
+ZXhpdF9lcnJvcihQQVJBTUVURVJfUFJPQkxFTSwNCi0JCQkJCQkgICAiZXJy
+b3IgY3JlYXRpbmcgY2hhaW4gIg0KLQkJCQkJCSAgICInJXMnOiVzXG4iLCBj
+aGFpbiwNCi0JCQkJCQkgICBzdHJlcnJvcihlcnJubykpOw0KKwkJCQlpZiAo
+bm9mbHVzaCAmJiBpcDZ0Y19pc19jaGFpbihjaGFpbiwgaGFuZGxlKSkgew0K
+KwkJCQkJREVCVUdQKCJGbHVzaGluZyBleGlzdGluZyB1c2VyIGRlZmluZWQg
+Y2hhaW4gJyVzJ1xuIiwgY2hhaW4pOw0KKwkJCQkJaWYgKCFpcDZ0Y19mbHVz
+aF9lbnRyaWVzKGNoYWluLCAmaGFuZGxlKSkNCisJCQkJCQlleGl0X2Vycm9y
+KFBBUkFNRVRFUl9QUk9CTEVNLA0KKwkJCQkJCQkgICAiZXJyb3IgZmx1c2hp
+bmcgY2hhaW4gIg0KKwkJCQkJCQkgICAiJyVzJzolc1xuIiwgY2hhaW4sDQor
+CQkJCQkJCSAgIHN0cmVycm9yKGVycm5vKSk7DQorCQkJCX0gZWxzZSB7DQor
+CQkJCQlERUJVR1AoIkNyZWF0aW5nIG5ldyBjaGFpbiAnJXMnXG4iLCBjaGFp
+bik7DQorCQkJCQlpZiAoIWlwNnRjX2NyZWF0ZV9jaGFpbihjaGFpbiwgJmhh
+bmRsZSkpDQorCQkJCQkJZXhpdF9lcnJvcihQQVJBTUVURVJfUFJPQkxFTSwN
+CisJCQkJCQkJICAgImVycm9yIGNyZWF0aW5nIGNoYWluICINCisJCQkJCQkJ
+ICAgIiclcyc6JXNcbiIsIGNoYWluLA0KKwkJCQkJCQkgICBzdHJlcnJvcihl
+cnJubykpOw0KKwkJCQl9DQogCQkJfQ0KIA0KIAkJCXBvbGljeSA9IHN0cnRv
+ayhOVUxMLCAiIFx0XG4iKTsNCkluZGV4OiBpcHRhYmxlcy1yZXN0b3JlLmMN
+Cj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT0NCi0tLSBpcHRhYmxlcy1yZXN0b3Jl
+LmMJKHJldmlzaW9uIDM5NzkpDQorKysgaXB0YWJsZXMtcmVzdG9yZS5jCSh3
+b3JraW5nIGNvcHkpDQpAQCAtMjM2LDEyICsyMzYsMjEgQEANCiAJCQl9DQog
+DQogCQkJaWYgKGlwdGNfYnVpbHRpbihjaGFpbiwgaGFuZGxlKSA8PSAwKSB7
+DQotCQkJCURFQlVHUCgiQ3JlYXRpbmcgbmV3IGNoYWluICclcydcbiIsIGNo
+YWluKTsNCi0JCQkJaWYgKCFpcHRjX2NyZWF0ZV9jaGFpbihjaGFpbiwgJmhh
+bmRsZSkpIA0KLQkJCQkJZXhpdF9lcnJvcihQQVJBTUVURVJfUFJPQkxFTSwg
+DQotCQkJCQkJICAgImVycm9yIGNyZWF0aW5nIGNoYWluICINCi0JCQkJCQkg
+ICAiJyVzJzolc1xuIiwgY2hhaW4sIA0KLQkJCQkJCSAgIHN0cmVycm9yKGVy
+cm5vKSk7DQorCQkJCWlmIChub2ZsdXNoICYmIGlwdGNfaXNfY2hhaW4oY2hh
+aW4sIGhhbmRsZSkpIHsNCisJCQkJCURFQlVHUCgiRmx1c2hpbmcgZXhpc3Rp
+bmcgdXNlciBkZWZpbmVkIGNoYWluICclcydcbiIsIGNoYWluKTsNCisJCQkJ
+CWlmICghaXB0Y19mbHVzaF9lbnRyaWVzKGNoYWluLCAmaGFuZGxlKSkNCisJ
+CQkJCQlleGl0X2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLA0KKwkJCQkJCQkg
+ICAiZXJyb3IgZmx1c2hpbmcgY2hhaW4gIg0KKwkJCQkJCQkgICAiJyVzJzol
+c1xuIiwgY2hhaW4sDQorCQkJCQkJCSAgIHN0cmVycm9yKGVycm5vKSk7DQor
+CQkJCX0gZWxzZSB7DQorCQkJCQlERUJVR1AoIkNyZWF0aW5nIG5ldyBjaGFp
+biAnJXMnXG4iLCBjaGFpbik7DQorCQkJCQlpZiAoIWlwdGNfY3JlYXRlX2No
+YWluKGNoYWluLCAmaGFuZGxlKSkNCisJCQkJCQlleGl0X2Vycm9yKFBBUkFN
+RVRFUl9QUk9CTEVNLA0KKwkJCQkJCQkgICAiZXJyb3IgY3JlYXRpbmcgY2hh
+aW4gIg0KKwkJCQkJCQkgICAiJyVzJzolc1xuIiwgY2hhaW4sDQorCQkJCQkJ
+CSAgIHN0cmVycm9yKGVycm5vKSk7DQorCQkJCX0NCiAJCQl9DQogDQogCQkJ
+cG9saWN5ID0gc3RydG9rKE5VTEwsICIgXHRcbiIpOw0K
+
+---1463811723-2029705228-1118589640=:15775--
