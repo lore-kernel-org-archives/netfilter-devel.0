@@ -1,14 +1,16 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: [RFC][PATCH] ipt_expire - expiring iptables rules
-Date: Sun, 12 Jun 2005 17:48:06 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0506121745400.6693@yvahk01.tjqt.qr>
-References: <20050610145248.GA3201@rover.pcbi.upenn.edu>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [IPTABLES PATCH] chain name should not start with '!'
+Date: Mon, 13 Jun 2005 09:50:18 +0900 (JST)
+Message-ID: <200506130050.j5D0oJsU027172@toshiba.co.jp>
+References: <200506030803.j5383iXf006561@toshiba.co.jp>
+	<42AAFEF7.1030805@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Bryan Cardillo <dillo@seas.upenn.edu>
-In-Reply-To: <20050610145248.GA3201@rover.pcbi.upenn.edu>
+To: kaber@trash.net
+In-Reply-To: <42AAFEF7.1030805@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,17 +23,19 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
->        crude, so consider it a proof of concept.  I'm curious,
->        would others find this useful?  Has this been done?
+From: Patrick McHardy <kaber@trash.net>
+Date: Sat, 11 Jun 2005 17:10:47 +0200
 
-Hm this sounds like a reverse implementation of ipt_recent.
-I once wanted something like ipt_expire to add a DROP target on a specific IP 
-when that IP does something "bad", and let it go away someday. However, 
-ipt_recent would do almost the same afaics.
+> > This patch fixes the bug allows to create the chain with name "!".
+>
+> Is there a technical reason for this or is it just "cleanup"?
 
+-F, -X, -L, -Z cannot take chain names which have prefix "!".
 
+Of cause we can fix processing of their commands, but changing -N is
+the easiest way and I think it's better to avoid to use confusing chain name.
 
-Jan Engelhardt                                                               
---                                                                            
-| Gesellschaft fuer Wissenschaftliche Datenverarbeitung Goettingen,
-| Am Fassberg, 37077 Goettingen, www.gwdg.de
+Regards,
+
+-----------------------------------------------------------------
+Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
