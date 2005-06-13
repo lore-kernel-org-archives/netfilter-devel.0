@@ -1,17 +1,12 @@
-From: Bryan Cardillo <dillo@seas.upenn.edu>
-Subject: Re: [RFC][PATCH] ipt_expire - expiring iptables rules
-Date: Mon, 13 Jun 2005 13:36:56 -0400
-Message-ID: <20050613173656.GB19351@home.seas.upenn.edu>
-References: <20050610145248.GA3201@rover.pcbi.upenn.edu>
-	<Pine.LNX.4.61.0506121745400.6693@yvahk01.tjqt.qr>
-	<42AD1213.9050203@outerspace.dyndns.org>
+From: Martin Bangiev <martin.bangiev@borsabg.com>
+Subject: DNAT & SNAT delay
+Date: Mon, 13 Jun 2005 15:11:54 +0300
+Message-ID: <42AD780A.2030601@borsabg.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Content-Disposition: inline
-In-Reply-To: <42AD1213.9050203@outerspace.dyndns.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,39 +18,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jun 13, 2005, Jonas Berlin wrote:
+Hi guys,
+I have two applications based in different networks that has to 
+communicate with each other using many small UDP packets. Due to 
+security reasons I set the firewall for SNAT and DNAT dynamically. Here 
+is the exact situation.
 
-> Quoting Jan Engelhardt on 2005-06-12 15:48 UTC:
-> >>       crude, so consider it a proof of concept.  I'm curious,
-> >>       would others find this useful?  Has this been done?
-> > 
-> > Hm this sounds like a reverse implementation of ipt_recent.
-> > I once wanted something like ipt_expire to add a DROP target on a specific IP 
-> > when that IP does something "bad", and let it go away someday. However, 
-> > ipt_recent would do almost the same afaics.
-> 
-> I think the difference here is you can let any rule expire.. For example
-> one that matches tcp packets to port 22. It's more generic when it comes
-> to the kind of rules it can expire but otoh it doesn't provide any rule
-> creation mechanisms like ipt_recent does.
+Client1:
+IP - 10.0.0.2
+Client2:
+IP - 172.16.0.2
+Firewall:
+IP1 - 10.0.0.1
+IP2 - 172.16.0.1
 
-        exactly.
+Client1 sends it's datagrams to the Firewall:IP1
+Client2 sends it's datagrams to the Firewall:IP2
 
-> Bryan, this is a nice module, a friend of mine asked for this not too
-> long ago.. keep up the good work :)
-
-        great, glad to know it will be of use, I'll keep fixing it
-        up, and role it up for p-o-m soon.
-
-> > +/* This module matches until it expires, at which point the entire
-> > + * rule is deleted
-> 
-> I'm sure my friend is going to ask whether it would be possible for
-> these rules to clean up by themselves (i.e. schedule some kernel timer
-> at the time of expiry to remove the rule) instead of the next time they
-> are hit? Or is that already done?
-
-        this is exactly how it works now, basically a timer based,
-        in-kernel version of `iptables -D ...'.
-
-        --Bryan
+Just before the communication starts I add rules to DNAT udp packets 
+from Client1 to Client2, and to SNAT packets to Client2 to be from 
+Firewall:IP2. I do it for the Client2 respective (of course I set up the 
+ports too).
+The problem is that the NAT starts with about 30 seconds delay. tcpdump 
+shows the packets are coming from Client1 but they are not SNATed & 
+DNATed. The counters of the rules however counts the packets. Once the 
+packets begin to be NATed the counters stops.
+Can you please tell me where this delay can be coming from?
+Thanks in advance:)
