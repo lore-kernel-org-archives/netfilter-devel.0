@@ -1,18 +1,15 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
-Subject: Re: Missed any patches? [PATCH] expectation timeouts
-Date: Mon, 13 Jun 2005 14:05:28 +0200
-Message-ID: <42AD7688.7030605@gmx.net>
-References: <42AB1577.5040006@trash.net>
-	<20050611170739.GA5018@linuxace.com>	<42AB1B05.2060509@trash.net>	<Pine.LNX.4.61.0506111913540.22504@yvahk01.tjqt.qr>	<42AB1D48.3020505@trash.net>
-	<Pine.LNX.4.61.0506111922060.22504@yvahk01.tjqt.qr>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: missing conntrack protocol on updates
+Date: Mon, 13 Jun 2005 16:09:48 +0100
+Message-ID: <42ADA1BC.9080706@ufomechanic.net>
+References: <42A033E9.3020907@ufomechanic.net> <42A23449.5020708@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0506111922060.22504@yvahk01.tjqt.qr>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <42A23449.5020708@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,22 +21,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt schrieb:
->>>Is there any chance that all of POMng will get updated? Most of the patches 
->>>still address a 2.6.<10 kernel. I have not tested if they apply correctly (I 
->>>don't need them ... yet), but if they don't, rediff could be wise.
->>
->>Updated how? Which patches are you talking about?
+[sorry for the delay in responding I've been away]
+
+Pablo Neira wrote:
+> Hi Amin,
 > 
-> The ACCOUNT directory in today's (well, yesterday 20050610) POMng tree has a 
-> linux.patch with this header:
-> --- kernel-2.4.25/include/linux/netfilter_ipv4/ip_tables.h      Mon Apr 12 
-> Not exactly 2.6.x at all :)
+> Amin Azez wrote:
+> 
+>> Of course as I am using a custom conntrack kernel module which also 
+>> dumps out the mac addresses the fault could be here, I wondered if you 
+>> would leave that grep running for a while to see if the fault is a 
+>> general one?
+> 
+>> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2118 
+>> src=192.168.0.233 dst=192.168.0.252 sport=2118 dport=80 timeout=432000 
+>> orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
+>> src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
+>> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2128 
+>> src=192.168.0.233 dst=192.168.0.252 sport=2128 dport=80 timeout=432000 
+>> orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
+>> src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
+>> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2133 
+>> src=192.168.0.233 dst=192.168.0.252 sport=2133 dport=80 timeout=432000 
+>> orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
+>> src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
+>> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2134 
+>> src=192.168.0.233 dst=192.168.0.252 sport=2134 dport=80 timeout=432000 
+>> orig_packets=1 orig_bytes=52 reply_packets=1 reply_bytes=52 
+>> src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
+> 
+> 
+> This seems related to you hack. All those update messages tell me that 
+> you are sending a netlink event message for every IPCT_PROTINFO_VOLATILE 
+> event, aren't you? 
 
-I have a 2.6 version, but it has to be cleaned up a bit. Will send it
-upstream at the end of this week.
+As the dport addresses are all different I'm not sure how you conclude this.
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+> Maybe you're doing something similar, 
+
+I'm not deliberately sending a message for every 
+IPCT_PROTOINFO_VOLATILE, although - good guess - I will be wanting to 
+get more frequent updates for long lived connections.
+
+> I'd need to see the code anyway.
+
+I'll send patches to conntrack and to kernel 2.6.12 seperately.
+
+> If my guess is correct, such loss of messages is related to the nature 
+> of the netlink sockets. Netlink is a unreliable protocol. Under *heavy* 
+> loads and if the messages are sent from interrupt context it will be 
+> likely to drop messages for spamming events.
+
+Aye, I've been able to do this, but never drop only part of a message, 
+usually the entire netlink packet is dropped, so its interesting that 
+only the protocol part is missing.
+
+Amin
