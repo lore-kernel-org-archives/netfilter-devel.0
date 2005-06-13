@@ -1,20 +1,17 @@
-From: Charlie Brady <charlieb-netfilter-devel@budge.apana.org.au>
-Subject: Re: [Patch] ip{,
-	6}tables-restore -n with existing user defined chain
-Date: Sun, 12 Jun 2005 22:24:44 -0400 (EDT)
-Message-ID: <Pine.LNX.4.61.0506122217030.15775@e-smith.charlieb.ott.istop.com>
-References: <Pine.LNX.4.61.0505181157190.3744@e-smith.charlieb.ott.istop.com>
-	<42AB0D81.2080804@trash.net>
-	<20050612095655.GB19830@obroa-skai.de.gnumonks.org>
-	<42AC3AC6.4080304@trash.net>
-	<Pine.LNX.4.61.0506121119510.15775@e-smith.charlieb.ott.istop.com>
-	<42AC5839.9020608@trash.net>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: [RFC][PATCH] ipt_expire - expiring iptables rules
+Date: Mon, 13 Jun 2005 04:56:51 +0000
+Message-ID: <42AD1213.9050203@outerspace.dyndns.org>
+References: <20050610145248.GA3201@rover.pcbi.upenn.edu>
+	<Pine.LNX.4.61.0506121745400.6693@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <42AC5839.9020608@trash.net>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>,
+	Bryan Cardillo <dillo@seas.upenn.edu>
+In-Reply-To: <Pine.LNX.4.61.0506121745400.6693@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,23 +23,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On Sun, 12 Jun 2005, Patrick McHardy wrote:
+Quoting Jan Engelhardt on 2005-06-12 15:48 UTC:
+>>       crude, so consider it a proof of concept.  I'm curious,
+>>       would others find this useful?  Has this been done?
+> 
+> Hm this sounds like a reverse implementation of ipt_recent.
+> I once wanted something like ipt_expire to add a DROP target on a specific IP 
+> when that IP does something "bad", and let it go away someday. However, 
+> ipt_recent would do almost the same afaics.
 
-> Charlie Brady wrote:
->> Attached.
->
-> Applied, thanks. Could you send a patch that updates the
-> iptables-restore manpage to reflect this change?
+I think the difference here is you can let any rule expire.. For example
+one that matches tcp packets to port 22. It's more generic when it comes
+to the kind of rules it can expire but otoh it doesn't provide any rule
+creation mechanisms like ipt_recent does.
 
-I'd be happy to, but I'm not sure what it would be appropriate to say in 
-an altered manpage.
+Bryan, this is a nice module, a friend of mine asked for this not too
+long ago.. keep up the good work :)
 
-The current manpage still succinctly and accurately describes the function 
-and usage of iptables-restore. What it doesn't do is define behaviour in 
-every corner case or exception. The description IOW is incomplete. But 
-that is probably true of many/most man pages.
+> +/* This module matches until it expires, at which point the entire
+> + * rule is deleted
 
-IMO, my patch just fixes a bug.
+I'm sure my friend is going to ask whether it would be possible for
+these rules to clean up by themselves (i.e. schedule some kernel timer
+at the time of expiry to remove the rule) instead of the next time they
+are hit? Or is that already done?
 
-Charlie
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCrRIRxyF48ZTvn+4RAuGBAKC8Iud1z7wGIMbfeVcUmt+unjI5LACfSgKs
+wqs5Z+TKyea1Q7D0zMLileA=
+=eImN
+-----END PGP SIGNATURE-----
