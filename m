@@ -1,17 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH NF_CONNTRACK 6/9]: Drop conntrack reference when packet
- leaves IPv6
-Date: Tue, 14 Jun 2005 03:21:56 +0200
-Message-ID: <42AE3134.7030905@trash.net>
-References: <200505230620.j4N6KAve018200@toshiba.co.jp>	<42AB0452.3010703@trash.net>
-	<200506130058.j5D0wRPG007718@toshiba.co.jp>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [NETFILTER]: Advance seq-file position in exp_next_seq()
+Date: Mon, 13 Jun 2005 18:28:41 -0700 (PDT)
+Message-ID: <20050613.182841.78708332.davem@davemloft.net>
+References: <42AE2B45.7080106@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200506130058.j5D0wRPG007718@toshiba.co.jp>
+To: kaber@trash.net
+In-Reply-To: <42AE2B45.7080106@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,18 +21,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Sat, 11 Jun 2005 17:33:38 +0200
-> 
->>Why not simply drop the reference earlier in ip6_input_finish()
->>before the packet is delivered to raw sockets?
-> 
-> Because IPv6 packets with routing header are forward at ipv6_rthdr_rcv()
-> called in ip6_input_finish().
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue, 14 Jun 2005 02:56:37 +0200
 
-Thanks, I've applied that one too. I'll update the patch once I've
-moved the repository to git.
+> a small fix for 2.6.12 if still possible: exp_next_seq() (used for
+> /proc/net/ip_conntracK_expect) doesn't advance the seq-file position.
+> I haven't tracked exactly why, but this makes the seq-file API show
+> (n+1)*(n/2) entries, with the first one showed n times, the second
+> one n-1 times, and so on.
 
-Regards
-Patrick
+I put this into my tree and will try to get it to Linus tonight.
