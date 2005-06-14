@@ -1,31 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] alternative to conntrack ID
-Date: Tue, 14 Jun 2005 04:42:38 +0200 (CEST)
-Message-ID: <Pine.LNX.4.62.0506140433070.4718@kaber.coreworks.de>
-References: <424747E3.7000300@eurodev.net> <42502F8D.5030504@trash.net>
-	<4254258E.5000204@eurodev.net> <42627BC4.8070103@trash.net>
-	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>
-	<20050429080242.GJ9735@sunbeam.de.gnumonks.org>
-	<42789366.20702@ufomechanic.net>
-	<4278B23A.7050406@trash.net> <4278B98E.7090707@ufomechanic.net>
-	<427B8A46.8090006@trash.net> <427D26E7.8060701@ingate.com>
-	<427D3EAF.3020200@trash.net> <427D41FA.5080506@ingate.com>
-	<1115648236.25627.17.camel@nienna.balabit>
-	<428A1807.8070708@ufomechanic.net> <428A5141.20901@trash.net>
-	<Pine.LNX.4.58.0505180948180.9582@blackhole.kfki.hu>
-	<42A23EDA.2090307@eurodev.net> <42A24F3B.8050607@eurodev.net>
-	<Pine.LNX.4.58.0506061017330.16223@blackhole.kfki.hu>
-	<42A83B96.4050302@eurodev.net> <42A83D72.1000106@eurodev.net>
-	<Pine.LNX.4.58.0506091519580.7610@blackhole.kfki.hu>
-	<42A9698F.30909@eurodev.net>
-	<Pine.LNX.4.58.050
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: missing conntrack protocol on updates
+Date: Tue, 14 Jun 2005 10:37:35 +0100
+Message-ID: <42AEA55F.6040903@ufomechanic.net>
+References: <42A033E9.3020907@ufomechanic.net> <42A23449.5020708@eurodev.net>
+	<42ADA1BC.9080706@ufomechanic.net> <42AE4149.8090903@eurodev.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <42AE412E.8080407@eurodev.net>
+In-Reply-To: <42AE4149.8090903@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -37,26 +22,86 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 14 Jun 2005, Pablo Neira wrote:
->> At dumping we could use the flip-bit solution: entries which are already
->> dumped were marked with the next value of the bit. Of course user requests
->> for dumping must be serialized, but conntrack replication could benefit
->> from such schema, because new entries could be added to the conntrack
->> table and replicated during full conntrack table replication as well.
+Pablo Neira wrote:
+
+> Hi Amin,
 >
-> Could you elaborate this idea about the flip-bit solution, please? looks 
-> interesting.
+> Amin Azez wrote:
+>
+>>> This seems related to you hack. All those update messages tell me 
+>>> that you are sending a netlink event message for every 
+>>> IPCT_PROTINFO_VOLATILE event, aren't you? 
+>>
+>>
+>> As the dport addresses are all different I'm not sure how you 
+>> conclude this.
+>
+>
+> Could you assure you that you're losing messages under heavy loads 
+> (tons of updates) without your patch?
 
-You only allow one process to dump the table at a time, In each
-conntrack entry you flip a bit when dumping it. When continuing
-you continue with the next entry that has the bit unflipped.
-This way you don't need an ID at all. You need a timeout to make
-sure a hung process isn't blocking dumps forever. A malicious
-acting process could probably still block others for a long time,
-but dumping the conntrack table should only be possible with
-root priviliges anyway. When a dump is interrupted the state of
-the bits is inconsistent, in this case you need to reset all of
-them to a known state.
+I'm only losing messages when I re-invoke the enumeration of all 
+contracks over the event connection AND when I am slow at processing 
+these events through talking to other processes.
 
-Regards
-Patrick
+>
+>>> Maybe you're doing something similar, 
+>>
+>>
+>> I'm not deliberately sending a message for every 
+>> IPCT_PROTOINFO_VOLATILE, although - good guess - I will be wanting to 
+>> get more frequent updates for long lived connections.
+>
+>
+> OK, I've caught you, you're spamming ;). In case that we'd want more 
+> frequent updates I'll need to implement a solution based on a buffer 
+> as Harald currently does in ULOG and do some benchmarks.
+
+Aye, I did think of a variation of the enumeration where it only dumps 
+conntracks that have been in existance more than so-long since their 
+last dump or maybe to only dump conntracks that have been in existance 
+for more than so-long and clients just invoke this dump periodically.
+
+>
+>>> I'd need to see the code anyway.
+>>
+>>
+>> I'll send patches to conntrack and to kernel 2.6.12 seperately.
+>
+>
+> I've got a major re-sync against ctnetlink and friends (conntrack tool 
+> included) lying around here. I'll pass it to Harald as soon as I 
+> finish  the testing. This update implies tons of changes, so you'll 
+> have to rework your patch. I know that it's a pain in the neck but 
+> don't forget that this stuff is still under development. There's a 
+> snapshot at people.netfilter.org.
+>
+OK, I'll grab the snapshot thanks, and then send patches along with a 
+patch to libnfnetlink with non-blocking read loop on the netlink socket 
+and which permits the event handler to signify that the read-loop should 
+exit. This allows the application using libnfnetlink to exit the read 
+loop based on signals and such, and then re-enter the read loop later. 
+I'm also adding in/out device name to /proc/net/ip_conntrack and related 
+netlink events.
+
+>>> If my guess is correct, such loss of messages is related to the 
+>>> nature of the netlink sockets. Netlink is a unreliable protocol. 
+>>> Under *heavy* loads and if the messages are sent from interrupt 
+>>> context it will be likely to drop messages for spamming events.
+>>
+>>
+>>
+>> Aye, I've been able to do this, but never drop only part of a 
+>> message, usually the entire netlink packet is dropped, so its 
+>> interesting that only the protocol part is missing.
+>
+>
+> I see the protocol part here, I think that since IPCT_PROTOINFO is 
+> only set when the protocol state changes, so I bet that this is 
+> related to you hack.
+>
+I'll look for this now then.
+
+Thanks
+
+Amin
