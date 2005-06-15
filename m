@@ -1,43 +1,122 @@
-From: "SZALONTAI, Zoltan" <szazol@e98.hu>
-Subject: Re: [PATCH] ipt_recent fixes
-Date: Thu, 16 Jun 2005 13:01:55 +0200
-Message-ID: <20050616110155.GA9669@bonifac.e98.hu>
-References: <87ll6o1pbi.fsf@blackdown.de>
+From: Martin Bangiev <martin.bangiev@borsabg.com>
+Subject: Re: DNAT & SNAT delay
+Date: Wed, 15 Jun 2005 09:58:14 +0300
+Message-ID: <42AFD186.2070302@borsabg.com>
+References: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAMMn0WexgHkOTUvbQ/69qyoKAAAAQAAAAjlR56nNTu0GJg7EDUtBYpwEAAAAA@hupie.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Andrew Morton <akpm@osdl.org>, Stephen Frost <sfrost@snowman.net>,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261540AbVFPLB6@vger.kernel.org>
-To: Juergen Kreileder <jk@blackdown.de>
-Content-Disposition: inline
-In-Reply-To: <87ll6o1pbi.fsf@blackdown.de>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Ferry Huberts <ferry@Hupie.com>,  netfilter-devel@lists.netfilter.org
+In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAMMn0WexgHkOTUvbQ/69qyoKAAAAQAAAAjlR56nNTu0GJg7EDUtBYpwEAAAAA@hupie.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, May 09, 2005 at 03:50:09PM +0200, Juergen Kreileder wrote:
+Thanks guys
+I'm using 2.6 kernel and I did
+echo "0" > /proc/sys/net/ipv4/netfilter/ip_conntrack_udp_timeout
+everything works perfectly now:)
+
+Ferry Huberts wrote:
+
+>You can also use a hack I sometimes use:
+>- reconfigure rules
+>- set the connection tracking timeout for your connection type to zero in
+>/proc
+>- wait 1 second
+>- restore the connection tracking timeout for your connection type in /proc
+>
+>Or use connection tracking flushing; I had a short discussion with Pablo
+>Neira a while ago on this on the list but continued it privately because his
+>solution was for 2.6 only and I use 2.4
+>
+>I have a 2.4 kernel patch for connection tracking entry flushing and Pablo
+>can point you to a 2.6 solution (but first check the list for our
+>discussion...)
+>
+>Good luck!
+>
+>________________________________
+>
+>Ferry Huberts
+>
+> Linux Rocks!  
+>________________________________
+>
+>Brady's First Law of Problem Solving: 
+>
+>When confronted by a difficult problem, you can solve it more easily by
+>reducing it to the question: "How would the Lone Ranger have handled this?" 
+>
 > 
-> This patch fixes the problem by using get_seconds() instead of
-> jiffies.  It also fixes some 64-bit issues.
-
-I dont know this is correct, please review.
-
- Zoli
-
-
-time_temp is used to store and reassign time_info.time which is unsigned long.
-
-diff -u net/ipv4/netfilter/ipt_recent.c.orig net/ipv4/netfilter/ipt_recent.c
---- net/ipv4/netfilter/ipt_recent.c.orig	2005-06-12 22:18:41.000000000 +0200
-+++ net/ipv4/netfilter/ipt_recent.c	2005-06-16 10:08:25.000000000 +0200
-@@ -361,9 +361,9 @@
-       int *hotdrop)
- {
- 	int pkt_count, hits_found, ans;
--	unsigned long now;
-+	unsigned long now, time_temp;
- 	const struct ipt_recent_info *info = matchinfo;
--	u_int32_t addr = 0, time_temp;
-+	u_int32_t addr = 0;
- 	u_int8_t ttl = skb->nh.iph->ttl;
- 	int *hash_table;
- 	int orig_hash_result, hash_result, temp, location = 0, time_loc, end_collision_chain = -1;
+>
+>  
+>
+>>-----Original Message-----
+>>From: netfilter-devel-bounces@lists.netfilter.org 
+>>[mailto:netfilter-devel-bounces@lists.netfilter.org] On 
+>>Behalf Of Jan Engelhardt
+>>Sent: Tuesday, June 14, 2005 15:17
+>>To: Martin Bangiev
+>>Cc: netfilter-devel@lists.netfilter.org
+>>Subject: Re: DNAT & SNAT delay
+>>
+>>
+>>    
+>>
+>>>Just before the communication starts I add rules to DNAT 
+>>>      
+>>>
+>>udp packets 
+>>    
+>>
+>>>from
+>>>Client1 to Client2, and to SNAT packets to Client2 to be from 
+>>>Firewall:IP2. I do it for the Client2 respective (of course 
+>>>      
+>>>
+>>I set up the ports too).
+>>    
+>>
+>>>The problem is that the NAT starts with about 30 seconds delay. 
+>>>tcpdump shows
+>>>      
+>>>
+>>>Can you please tell me where this delay can be coming from?
+>>>Thanks in advance:)
+>>>      
+>>>
+>>Exactly 30? Then this:
+>>
+>>the default conntrack time-to-live for udp "connections" is 
+>>30 seconds so you need to wait 30 seconds until the 
+>>old-and-stale udp conn (the one "without" 
+>>DNAT/SNAT) expires.
+>>
+>>Well, that's a guess.
+>>
+>>
+>>
+>>Jan Engelhardt                                                
+>>               
+>>--                                                            
+>>                
+>>| Gesellschaft fuer Wissenschaftliche Datenverarbeitung 
+>>Goettingen, Am 
+>>| Fassberg, 37077 Goettingen, www.gwdg.de
+>>
+>>    
+>>
+>
+>
+>
+>  
+>
