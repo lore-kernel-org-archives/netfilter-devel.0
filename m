@@ -1,32 +1,18 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [RFC] alternative to conntrack ID
-Date: Wed, 15 Jun 2005 04:41:01 +0200
-Message-ID: <42AF953D.3030308@eurodev.net>
-References: <424747E3.7000300@eurodev.net> <4254258E.5000204@eurodev.net>
-	<42627BC4.8070103@trash.net>
-	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>
-	<20050429080242.GJ9735@sunbeam.de.gnumonks.org>
-	<42789366.20702@ufomechanic.net> <4278B23A.7050406@trash.net>
-	<4278B98E.7090707@ufomechanic.net> <427B8A46.8090006@trash.net>
-	<427D26E7.8060701@ingate.com> <427D3EAF.3020200@trash.net>
-	<427D41FA.5080506@ingate.com>
-	<1115648236.25627.17.camel@nienna.balabit>
-	<428A1807.8070708@ufomechanic.net> <428A5141.20901@trash.net>
-	<Pine.LNX.4.58.0505180948180.9582@blackhole.kfki.hu>
-	<42A23EDA.2090307@eurodev.net> <42A24F3B.8050607@eurodev.net>
-	<Pine.LNX.4.58.0506061017330.16223@blackhole.kfki.hu>
-	<42A83B96.4050302@eurodev.net> <42A83D72.1000106@eurodev.net>
-	<Pine.LNX.4.58.0506091519580.7610@blackhole.kfki.hu>
-	<42A9698F.30909@eurodev.net>
-	<Pine.LNX.4.58.0506130908500.20636@blackhole.kf
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH NF_CONNTRACK 8/9]: zero-clear union area in tuple for
+ expectant
+Date: Wed, 15 Jun 2005 13:05:31 +0900 (JST)
+Message-ID: <200506150405.j5F45VgR021658@toshiba.co.jp>
+References: <200505230623.j4N6NMVu004917@toshiba.co.jp>
+	<42AB050C.40105@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: Multipart/Mixed;
+	boundary="--Next_Part(Wed_Jun_15_13:05:31_2005_590)--"
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <Pine.LNX.4.62.0506140433070.4718@kaber.coreworks.de>
+To: kaber@trash.net
+In-Reply-To: <42AB050C.40105@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -38,36 +24,78 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> On Tue, 14 Jun 2005, Pablo Neira wrote:
-> 
->>> At dumping we could use the flip-bit solution: entries which are already
->>> dumped were marked with the next value of the bit. Of course user 
->>> requests
->>> for dumping must be serialized, but conntrack replication could benefit
->>> from such schema, because new entries could be added to the conntrack
->>> table and replicated during full conntrack table replication as well.
->>
->>
->> Could you elaborate this idea about the flip-bit solution, please? 
->> looks interesting.
-> 
-> 
-> You only allow one process to dump the table at a time, In each
-> conntrack entry you flip a bit when dumping it. When continuing
-> you continue with the next entry that has the bit unflipped.
-> This way you don't need an ID at all. You need a timeout to make
-> sure a hung process isn't blocking dumps forever. A malicious
-> acting process could probably still block others for a long time,
-> but dumping the conntrack table should only be possible with
-> root priviliges anyway. When a dump is interrupted the state of
-> the bits is inconsistent, in this case you need to reset all of
-> them to a known state.
+----Next_Part(Wed_Jun_15_13:05:31_2005_590)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-This would complicate the logic. Moreover, a top-like processing dumping 
-the conntrack table every x seconds could be such "evil" process. I'm 
-going to stuck on the idea of using a u64 id. It's the simpler solution 
-at the moment.
 
---
-Pablo
+From: Patrick McHardy <kaber@trash.net>
+Date: Sat, 11 Jun 2005 17:36:44 +0200
+
+> Yasuyuki KOZAKAI wrote:
+> > This patch clears union area in tuple for expectant.
+> 
+> Why is this necessary? The helpers should initialize tuple and mask.
+
+OK, please apply this patch instead of it.
+
+Regards,
+
+-----------------------------------------------------------------
+Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+
+
+----Next_Part(Wed_Jun_15_13:05:31_2005_590)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="exp-tuple-init.patch"
+
+Index: net/netfilter/nf_conntrack_ftp.c
+===================================================================
+--- 9f4386a4dd0fa00c434d7acc6b8bc3de43e60a3b/net/netfilter/nf_conntrack_ftp.c  (mode:100644)
++++ uncommitted/net/netfilter/nf_conntrack_ftp.c  (mode:100644)
+@@ -565,28 +565,29 @@
+ 		       sizeof(exp->tuple.dst.u3));
+ 	}
+ 
++	exp->tuple.src.u3 = ct->tuplehash[!dir].tuple.src.u3;
++	exp->tuple.src.l3num = cmd.l3num;
++	exp->tuple.src.u.tcp.port = 0;
++	exp->tuple.dst.u.tcp.port = cmd.u.tcp.port;
++	exp->tuple.dst.protonum = IPPROTO_TCP;
++
++	exp->mask = (struct nf_conntrack_tuple)
++		    { .src = { .l3num = 0xFFFF,
++			       .u = { .tcp = { 0 }},
++			     },
++		      .dst = { .protonum = 0xFF,
++			       .u = { .tcp = { 0xFFFF }},
++			     },
++		    };
+ 	if (cmd.l3num == PF_INET) {
+-		exp->tuple.src.u3.ip = ct->tuplehash[!dir].tuple.src.u3.ip;
+ 		exp->mask.src.u3.ip = 0xFFFFFFFF;
+ 		exp->mask.dst.u3.ip = 0xFFFFFFFF;
+ 	} else {
+-		memcpy(exp->tuple.src.u3.ip6,
+-		       ct->tuplehash[!dir].tuple.src.u3.ip6,
+-		       sizeof(exp->tuple.src.u3.ip6));
+ 		memset(exp->mask.src.u3.ip6, 0xFF,
+ 		       sizeof(exp->mask.src.u3.ip6));
+ 		memset(exp->mask.dst.u3.ip6, 0xFF,
+ 		       sizeof(exp->mask.src.u3.ip6));
+ 	}
+-	exp->tuple.src.l3num = cmd.l3num;
+-	exp->tuple.src.u.tcp.port = 0;
+-	exp->tuple.dst.u.tcp.port = cmd.u.tcp.port;
+-	exp->tuple.dst.protonum = IPPROTO_TCP;
+-
+-	exp->mask.src.l3num = 0xFFFF;
+-	exp->mask.src.u.tcp.port = 0;
+-	exp->mask.dst.u.tcp.port = 0xFFFF;
+-	exp->mask.dst.protonum = 0xFF;
+ 
+ 	exp->expectfn = NULL;
+ 	exp->master = ct;
+
+----Next_Part(Wed_Jun_15_13:05:31_2005_590)----
