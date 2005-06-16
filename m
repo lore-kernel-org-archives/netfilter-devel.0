@@ -1,16 +1,18 @@
-From: Pablo Neira <pablo@eurodev.net>
+From: Krzysztof Oledzki <olenf@ans.pl>
 Subject: Re: kernel panic with ctnetlink/nfnetlink
-Date: Thu, 16 Jun 2005 03:36:33 +0200
-Message-ID: <42B0D7A1.70508@eurodev.net>
-References: <20050615164034.GA15168@safetpin.homeunix.org>	<42B0BC21.3020004@eurodev.net>
+Date: Thu, 16 Jun 2005 08:43:09 +0200 (CEST)
+Message-ID: <Pine.LNX.4.62.0506160842020.29877@bizon.gios.gov.pl>
+References: <20050615164034.GA15168@safetpin.homeunix.org>
+	<42B0BC21.3020004@eurodev.net>
 	<20050616010225.GA18652@safetpin.homeunix.org>
+	<42B0D7A1.70508@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1870367515-1118904189=:29877"
+Cc: netfilter-devel@lists.netfilter.org, pud@subnet666.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: pud@subnet666.de
-In-Reply-To: <20050616010225.GA18652@safetpin.homeunix.org>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <42B0D7A1.70508@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,38 +24,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-pud wrote:
-> On Do, 16 Jun 2005, Pablo Neira wrote:
-> 
->>Please post the whole oops. Are you doing something with the conntrack
->>tool? Appreaciate a more detailled description, ruleset, etc...
-> 
-> sorry, i also forgot to mention that
-> a) i tried recent 2.6-kernels (2.6.11, 2.6.12-rc[56])
-> b) i wasn't using the conntrack tool, because it was my first try,
->     so a cronjob is still parsing /proc/net/ip_conntrack
-> c) as long as the machine lives, conntrack tool is working,
->     and not causing the panic while it runs
-> 
-> i tried some other new modules as well (h323, ipp2p and so on),
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-That "so on" is rather big.
+---187430788-1870367515-1118904189=:29877
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-> but i'm sure it only happens if the kernel is patched with ctnetlink/nfnetlink
 
-Why? Did you run your box *only* with ctnetlink patches applied? All 
-that stuff you've mentioned is under development as well. If you patch 
-your kernel with tons of experimental stuff is hard to know what's wrong.
 
-> the whole ruleset may be too big for a list, but i can send you pm
-> if you like
-> 
-> here the latest panic:
-> 
-> 
-> Unable to handle kernel NULL pointer dereference
+On Thu, 16 Jun 2005, Pablo Neira wrote:
+<CIACH>
+>> Unable to handle kernel NULL pointer dereference
+> Please, decode this with ksymoops.
+You don't need to use ksymoops for recent 2.6.x kernels.
 
-Please, decode this with ksymoops.
+Best regards,
 
---
-Pablo
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1870367515-1118904189=:29877--
