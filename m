@@ -1,14 +1,13 @@
-From: Charlie Brady <charlieb-netfilter-devel@budge.apana.org.au>
-Subject: Re: MAC Filtering
-Date: Thu, 16 Jun 2005 12:22:28 -0400 (EDT)
-Message-ID: <Pine.LNX.4.61.0506161218390.21723@e-smith.charlieb.ott.istop.com>
-References: <001601c57123$5ce2ab00$0a01a8c0@office>
+From: Mark Juaire <juaire@cray.com>
+Subject: IPV6 NAT for Linux
+Date: Thu, 16 Jun 2005 15:53:02 -0500
+Message-ID: <42B1E6AE.3080101@cray.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Mark Juaire <juaire@cray.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Claude Biron <claude.biron@shaw.ca>
-In-Reply-To: <001601c57123$5ce2ab00$0a01a8c0@office>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,27 +19,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Greetings,
 
-On Tue, 14 Jun 2005, Claude Biron wrote:
+     I would like to inquire about the state of IPV6 NAT.
+     And if possible to get a copy of the tar or rpm file
+     containing the source.  Or a pointer to where I can download.
+     This would be very much appreciated.
 
-> I hope you don't mind asking you a question re: ebtables.
+     I am currently working on a IPV6 TCP proxy server that
+     requires NAT.
 
-This is the wrong list for two reasons:
+---- From netfilter-devel mail list May 18 2004
 
-- this is netfilter, not ebtables
-- this list concerns ongoing development of netfilter, not usage.
+We have just completed testing on NAT for IPv6 for ICMP. We are finishing up on 
+TCP and UDP and should have these completed within the week. We used the IPv6 
+connection tracking from the Usagi 2.6.5 kernel as our foundation. Just wanted 
+to let everyone know, and those interested can inquire regarding the source. 
+Please reply to this email.
 
-Please see:
 
-http://ebtables.sourceforge.net/contact.html#lists
-
-> The following ebtables commands do not work.  Is there a simple solution?
-> Many thanks in advance!   Using the linkyss WRT54GS router with SVEASOFT.
-
-Since you've paid for that software you should ask for support from your 
-supplier. Your supplier, BTW, is using software freely shared with him by 
-others, but is actively suppressing any efforts for his "work" to be 
-shared around.
-
----
-Charlie
+Thank you,
+Mark Juaire
+Cray Inc.
+juaire@cray.com
