@@ -1,19 +1,16 @@
 From: Pablo Neira <pablo@eurodev.net>
 Subject: Re: kernel panic with ctnetlink/nfnetlink
-Date: Thu, 16 Jun 2005 11:30:52 +0200
-Message-ID: <42B146CC.9070700@eurodev.net>
-References: <20050615164034.GA15168@safetpin.homeunix.org>
-	<42B0BC21.3020004@eurodev.net>
-	<20050616010225.GA18652@safetpin.homeunix.org>
+Date: Thu, 16 Jun 2005 12:23:51 +0200
+Message-ID: <42B15337.5070903@eurodev.net>
+References: <20050615164034.GA15168@safetpin.homeunix.org>	<42B0BC21.3020004@eurodev.net>	<20050616010225.GA18652@safetpin.homeunix.org>
 	<42B0D7A1.70508@eurodev.net>
-	<Pine.LNX.4.62.0506160842020.29877@bizon.gios.gov.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org, pud@subnet666.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.62.0506160842020.29877@bizon.gios.gov.pl>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <42B0D7A1.70508@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,18 +22,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> On Thu, 16 Jun 2005, Pablo Neira wrote:
-> <CIACH>
-> 
->>> Unable to handle kernel NULL pointer dereference
+Pablo Neira wrote:
+>> here the latest panic:
 >>
->> Please, decode this with ksymoops.
+>>
+>> Unable to handle kernel NULL pointer dereference
 > 
-> You don't need to use ksymoops for recent 2.6.x kernels.
+> 
+> Please, decode this with ksymoops.
 
-You are right, I shouldn't write emails and sleep at the same time. It 
-doesn't work.
+Sorry I meant, make sure you've set CONFIG_KALLSYMS in your custom 
+kernel. This will help me and others to understand the matrix. Other 
+things like CONFIG_FRAME_POINTER would help as well.
 
 --
 Pablo
