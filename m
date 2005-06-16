@@ -1,17 +1,15 @@
-From: "Ferry Huberts" <ferry@Hupie.com>
-Subject: RE: DNAT & SNAT delay
-Date: Thu, 16 Jun 2005 15:52:04 +0200
-Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAfajkEhWYmEujHL9i1sFkoMKAAAAQAAAA/RNGidHce0OMX8z0INY9LgEAAAAA@hupie.com>
-References: <Pine.LNX.4.61.0506161548280.27104@yvahk01.tjqt.qr>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: script for stopping sshd attacks
+Date: Thu, 16 Jun 2005 15:51:22 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0506161549420.27104@yvahk01.tjqt.qr>
+References: <200506152338.j5FNcHZ04996@isis.cs3-inc.com>
+	<17073.28398.666579.141388@isis.cs3-inc.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "'Jan Engelhardt'" <jengelh@linux01.gwdg.de>,
-	"'Martin Bangiev'" <martin.bangiev@borsabg.com>
-In-Reply-To: <Pine.LNX.4.61.0506161548280.27104@yvahk01.tjqt.qr>
+To: Don Cohen <don-nfil1@isis.cs3-inc.com>
+In-Reply-To: <17073.28398.666579.141388@isis.cs3-inc.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,18 +21,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> > Thanks guys
-> > I'm using 2.6 kernel and I did
-> > echo "0" > /proc/sys/net/ipv4/netfilter/ip_conntrack_udp_timeout
-> > everything works perfectly now:)
-> 
-> Does not that turn off UDP connection tracking at all?
 
-Yes it does.
+>I've noticed that the ssh attacks in particular tend to stop 
+>after about 30 packets if you drop, whereas they sometimes go
+>on for thousands if you mirror.  While this may be viewed as
 
-That's why I said to restore the timeout value AND that it's a hack...
+How about using an expiring TARPIT? -j TARPIT -m expire
+Better yet would be (that's what I am using) a general limiter:
+ -m limit --limit-rate 2/minute -p tcp --dport 22 -j ACCEPT
+ -j TARPIT
 
-It's better to use the libctnetlink stuff and conntrack from Pablo (although
-they're in CVS only for now)
+>bad for the machine running the script (wasting its bandwidth)
 
-Ferry
+It's also bad for you, if you have a bandwidth quota.
+
+
+
+Jan Engelhardt                                                               
+--                                                                            
+| Gesellschaft fuer Wissenschaftliche Datenverarbeitung Goettingen,
+| Am Fassberg, 37077 Goettingen, www.gwdg.de
