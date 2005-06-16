@@ -1,39 +1,43 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: kernel panic with ctnetlink/nfnetlink
-Date: Thu, 16 Jun 2005 12:23:51 +0200
-Message-ID: <42B15337.5070903@eurodev.net>
-References: <20050615164034.GA15168@safetpin.homeunix.org>	<42B0BC21.3020004@eurodev.net>	<20050616010225.GA18652@safetpin.homeunix.org>
-	<42B0D7A1.70508@eurodev.net>
+From: "SZALONTAI, Zoltan" <szazol@e98.hu>
+Subject: Re: [PATCH] ipt_recent fixes
+Date: Thu, 16 Jun 2005 13:01:55 +0200
+Message-ID: <20050616110155.GA9669@bonifac.e98.hu>
+References: <87ll6o1pbi.fsf@blackdown.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, pud@subnet666.de
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <42B0D7A1.70508@eurodev.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Andrew Morton <akpm@osdl.org>, Stephen Frost <sfrost@snowman.net>,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261540AbVFPLB6@vger.kernel.org>
+To: Juergen Kreileder <jk@blackdown.de>
+Content-Disposition: inline
+In-Reply-To: <87ll6o1pbi.fsf@blackdown.de>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
->> here the latest panic:
->>
->>
->> Unable to handle kernel NULL pointer dereference
+On Mon, May 09, 2005 at 03:50:09PM +0200, Juergen Kreileder wrote:
 > 
-> 
-> Please, decode this with ksymoops.
+> This patch fixes the problem by using get_seconds() instead of
+> jiffies.  It also fixes some 64-bit issues.
 
-Sorry I meant, make sure you've set CONFIG_KALLSYMS in your custom 
-kernel. This will help me and others to understand the matrix. Other 
-things like CONFIG_FRAME_POINTER would help as well.
+I dont know this is correct, please review.
 
---
-Pablo
+ Zoli
+
+
+time_temp is used to store and reassign time_info.time which is unsigned long.
+
+diff -u net/ipv4/netfilter/ipt_recent.c.orig net/ipv4/netfilter/ipt_recent.c
+--- net/ipv4/netfilter/ipt_recent.c.orig	2005-06-12 22:18:41.000000000 +0200
++++ net/ipv4/netfilter/ipt_recent.c	2005-06-16 10:08:25.000000000 +0200
+@@ -361,9 +361,9 @@
+       int *hotdrop)
+ {
+ 	int pkt_count, hits_found, ans;
+-	unsigned long now;
++	unsigned long now, time_temp;
+ 	const struct ipt_recent_info *info = matchinfo;
+-	u_int32_t addr = 0, time_temp;
++	u_int32_t addr = 0;
+ 	u_int8_t ttl = skb->nh.iph->ttl;
+ 	int *hash_table;
+ 	int orig_hash_result, hash_result, temp, location = 0, time_loc, end_collision_chain = -1;
