@@ -1,15 +1,14 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: solved Re: missing conntrack protocol on updates
-Date: Thu, 16 Jun 2005 17:11:34 +0100
-Message-ID: <42B1A4B6.8090209@ufomechanic.net>
-References: <42A033E9.3020907@ufomechanic.net> <42A23449.5020708@eurodev.net>
+From: Charlie Brady <charlieb-netfilter-devel@budge.apana.org.au>
+Subject: Re: MAC Filtering
+Date: Thu, 16 Jun 2005 12:22:28 -0400 (EDT)
+Message-ID: <Pine.LNX.4.61.0506161218390.21723@e-smith.charlieb.ott.istop.com>
+References: <001601c57123$5ce2ab00$0a01a8c0@office>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <42A23449.5020708@eurodev.net>
+To: Claude Biron <claude.biron@shaw.ca>
+In-Reply-To: <001601c57123$5ce2ab00$0a01a8c0@office>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,50 +21,26 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-I had mistakenly thought that ctnetlink_fill_info was the only place 
-that constructed conntrack netlink packets but now I see that I had 
-missed out ctnetlink_conntrack_event which tries to optimize away the 
-protocol information if it has not changed but always outputs the tuple.
+On Tue, 14 Jun 2005, Claude Biron wrote:
 
-This seems a mistake because the tuple identifies the conntrack by IP 
-and port and protocol, and as there is no medium term conntrack ID 
-available the protocol will also be needed to trace the conntrack 
-updates as.
+> I hope you don't mind asking you a question re: ebtables.
 
-Sam
+This is the wrong list for two reasons:
 
-Pablo Neira wrote:
+- this is netfilter, not ebtables
+- this list concerns ongoing development of netfilter, not usage.
 
-> Hi Amin,
->
-> Amin Azez wrote:
->
->> Of course as I am using a custom conntrack kernel module which also 
->> dumps out the mac addresses the fault could be here, I wondered if 
->> you would leave that grep running for a while to see if the fault is 
->> a general one?
->
-> >
->
->> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2118 
->> src=192.168.0.233 dst=192.168.0.252 sport=2118 dport=80 
->> timeout=432000 orig_packets=1 orig_bytes=52 reply_packets=1 
->> reply_bytes=52 src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
->> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2128 
->> src=192.168.0.233 dst=192.168.0.252 sport=2128 dport=80 
->> timeout=432000 orig_packets=1 orig_bytes=52 reply_packets=1 
->> reply_bytes=52 src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
->> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2133 
->> src=192.168.0.233 dst=192.168.0.252 sport=2133 dport=80 
->> timeout=432000 orig_packets=1 orig_bytes=52 reply_packets=1 
->> reply_bytes=52 src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
->> [UPDATE] src=192.168.0.252 dst=192.168.0.233 sport=80 dport=2134 
->> src=192.168.0.233 dst=192.168.0.252 sport=2134 dport=80 
->> timeout=432000 orig_packets=1 orig_bytes=52 reply_packets=1 
->> reply_bytes=52 src_mac=00:09:5b:bb:d2:aa dst_mac=00:01:02:12:c6:3a
->
->
-> This seems related to you hack. All those update messages tell me that 
-> you are sending a netlink event message for every 
-> IPCT_PROTINFO_VOLATILE event, aren't you? Maybe you're doing something 
-> similar, I'd need to see the code anyway.
+Please see:
+
+http://ebtables.sourceforge.net/contact.html#lists
+
+> The following ebtables commands do not work.  Is there a simple solution?
+> Many thanks in advance!   Using the linkyss WRT54GS router with SVEASOFT.
+
+Since you've paid for that software you should ask for support from your 
+supplier. Your supplier, BTW, is using software freely shared with him by 
+others, but is actively suppressing any efforts for his "work" to be 
+shared around.
+
+---
+Charlie
