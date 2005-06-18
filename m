@@ -1,57 +1,35 @@
-From: Tobias DiPasquale <codeslinger@gmail.com>
+From: Chris Rankin <rankincj@yahoo.com>
 Subject: Re: 2.6.12: connection tracking broken?
-Date: Sat, 18 Jun 2005 11:14:45 -0400
-Message-ID: <876ef97a05061808141d503f58@mail.gmail.com>
-References: <20050618124359.39052.qmail@web52901.mail.yahoo.com>
-	<Pine.LNX.4.61.0506181656250.20828@yvahk01.tjqt.qr>
-Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
+Date: Sat, 18 Jun 2005 18:16:15 +0100 (BST)
+Message-ID: <20050618171615.66470.qmail@web52909.mail.yahoo.com>
+References: <876ef97a05061808141d503f58@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>, Chris Rankin <rankincj@yahoo.com>
-In-Reply-To: <Pine.LNX.4.61.0506181656250.20828@yvahk01.tjqt.qr>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262158AbVFRRQX@vger.kernel.org>
+To: Tobias DiPasquale <codeslinger@gmail.com>,
+	Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <876ef97a05061808141d503f58@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 6/18/05, Jan Engelhardt <jengelh@linux01.gwdg.de> wrote:
-> >I have just tried upgrading my firewall to 2.6.12, but neither of the fo=
-llowing rules in my
-> >FORWARD table was allowing return traffic:
->=20
-> You forget about INPUT and OUTPUT. If you drop everything in INPUT, there=
-'s
-> nothing to FORWARD.
+--- Tobias DiPasquale <codeslinger@gmail.com> wrote:
+> Did you have /proc/sys/net/ipv4/ip_forward turned on?
 
-No. INPUT/OUTPUT rules have nothing to do with FORWARDed traffic,
-since a packet is either locally destined (INPUT), locally originated
-(OUTPUT) or being forwarded (FORWARD).
+Yes, because otherwise it wouldn't work in 2.6.11.11 either. My userspace environment is identical
+between 2.6.12 an 2.6.11.11, but the RELATED and ESTABLISHED packets aren't forwarded across the
+bridge in 2.6.12.
 
-> > 1109  814K ACCEPT     all  --  ppp0   br0     anywhere             anyw=
-here         ctstate
-> >RELATED,ESTABLISHED
-> >  11M   13G ACCEPT     all  --  ppp0   br0     anywhere             anyw=
-here         state
-> >RELATED,ESTABLISHED
-> >
-> >I have currently returned to using 2.6.11.11, where the identical config=
-uration works fine. br0 is
-> >a bridge device containing two e100 devices, and ppp0 is my PPPoE DSL li=
-nk. I am using iptables
-> >1.3.1.
+And no, I haven't tried recompiling my userspace iptables tools. Why would this make any
+difference? "iptables -L -v" reports exactly what I expect to see.
 
-Did you have /proc/sys/net/ipv4/ip_forward turned on?
+Cheers,
+Chris
 
---=20
-[ Tobias DiPasquale ]
-0x636f6465736c696e67657240676d61696c2e636f6d
+
+
+		
+___________________________________________________________ 
+How much free photo storage do you get? Store your holiday 
+snaps for FREE with Yahoo! Photos http://uk.photos.yahoo.com
