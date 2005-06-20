@@ -1,22 +1,24 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
+From: Phil Oester <kernel@linuxace.com>
 Subject: Re: 2.6.12: connection tracking broken?
-Date: Mon, 20 Jun 2005 18:46:33 +0000
-Message-ID: <1119293193.3381.9.camel@localhost.localdomain>
+Date: Mon, 20 Jun 2005 11:57:36 -0700
+Message-ID: <20050620185736.GA4883@linuxace.com>
 References: <E1Dk9nK-0001ww-00@gondolin.me.apana.org.au>
 	<Pine.LNX.4.62.0506200432100.31737@kaber.coreworks.de>
 	<1119249575.3387.3.camel@localhost.localdomain>
 	<42B6B373.20507@trash.net>
+	<1119293193.3381.9.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="MGYHOYXEY6WxJCY8"
 Cc: Bart De Schuymer <bdschuym@telenet.be>,
 	Herbert Xu <herbert@gondor.apana.org.au>,
-	netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org, rankincj@yahoo.com,
-	ebtables-devel@lists.sourceforge.net, netfilter-devel@manty.net
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	ebtables-devel@lists.sourceforge.net,
+	Patrick McHardy <kaber@trash.net>, netfilter-devel@manty.net,
+	rankincj@yahoo.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <42B6B373.20507@trash.net>
+To: Bart De Schuymer <bdschuym@pandora.be>
+Content-Disposition: inline
+In-Reply-To: <1119293193.3381.9.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,35 +30,83 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Op ma, 20-06-2005 te 14:15 +0200, schreef Patrick McHardy:
-> Bart De Schuymer wrote:
-> > Op ma, 20-06-2005 te 04:45 +0200, schreef Patrick McHardy:
-> > 
-> >> Bart, can you explain why the hooks are defered please?
-> > 
-> > This is done so that iptables knows which bridge port the output device
-> > is, using the iptables physdev match.
-> 
-> In which cases is this necessary? AFAICT the output device is determined
-> in br_handle_frame_finish() for a normally bridged packet.
 
-When the _routing_ decision sends the packet to br0 (a bridge device),
-it is unknown which bridge port(s) the packet will be sent out. This is
-only known after the packet enters the bridge code. Therefore, for
-iptables to know the bridge port out device, the hooks must be postponed
-until in the bridge code.
+--MGYHOYXEY6WxJCY8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> > Can't you release the conntrack reference with a function registered on
-> > the POSTROUTING hook with a prio higher than nat POSTROUTING (or
-> > something like that)?
-> 
-> We would have to hold the reference while the packet is queued at the
-> device for the bridge case, which we want to avoid.
+The changes were originally made to fix conntrack unload problems with
+raw sockets.  My original patch performed the nf_reset in the socket
+code, but Patrick suggested moving it to ip_output.  The below patch
+reverts the ip_output changes, and implements the original suggested
+changes to raw socket handling.  
 
-Trust me, people will complain if they can no longer use the physdev
-match for routed packets.
-People using a bridging firewall will just have to live with the fact
-that the reference is held until in the bridge code.
+While this is unlikely to be the permanent solution, it will fix the
+current bridging problems while retaining the raw socket fixes.  I'd
+suggest that this could be included in -stable while researching
+other solutions.
 
-cheers,
-Bart
+Phil
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+
+
+
+--MGYHOYXEY6WxJCY8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-fixbridge
+
+diff -purN linux-orig/net/ipv4/ip_output.c linux-new/net/ipv4/ip_output.c
+--- linux-orig/net/ipv4/ip_output.c	2005-06-17 15:48:29.000000000 -0400
++++ linux-new/net/ipv4/ip_output.c	2005-06-20 14:47:58.000000000 -0400
+@@ -196,8 +196,6 @@ static inline int ip_finish_output2(stru
+ 	nf_debug_ip_finish_output2(skb);
+ #endif /*CONFIG_NETFILTER_DEBUG*/
+ 
+-	nf_reset(skb);
+-
+ 	if (hh) {
+ 		int hh_alen;
+ 
+diff -purN linux-orig/net/ipv4/netfilter/ip_conntrack_standalone.c linux-new/net/ipv4/netfilter/ip_conntrack_standalone.c
+--- linux-orig/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-06-17 15:48:29.000000000 -0400
++++ linux-new/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-06-20 14:47:58.000000000 -0400
+@@ -432,6 +432,13 @@ static unsigned int ip_conntrack_defrag(
+ 				        const struct net_device *out,
+ 				        int (*okfn)(struct sk_buff *))
+ {
++#if !defined(CONFIG_IP_NF_NAT) && !defined(CONFIG_IP_NF_NAT_MODULE)
++	/* Previously seen (loopback)?  Ignore.  Do this before
++           fragment check. */
++	if ((*pskb)->nfct)
++		return NF_ACCEPT;
++#endif
++
+ 	/* Gather fragments. */
+ 	if ((*pskb)->nh.iph->frag_off & htons(IP_MF|IP_OFFSET)) {
+ 		*pskb = ip_ct_gather_frags(*pskb,
+diff -purN linux-orig/net/packet/af_packet.c linux-new/net/packet/af_packet.c
+--- linux-orig/net/packet/af_packet.c	2005-06-17 15:48:29.000000000 -0400
++++ linux-new/net/packet/af_packet.c	2005-06-20 14:48:38.000000000 -0400
+@@ -274,6 +274,9 @@ static int packet_rcv_spkt(struct sk_buf
+ 	dst_release(skb->dst);
+ 	skb->dst = NULL;
+ 
++	/* drop conntrack reference */
++	nf_reset(skb);
++
+ 	spkt = (struct sockaddr_pkt*)skb->cb;
+ 
+ 	skb_push(skb, skb->data-skb->mac.raw);
+@@ -517,6 +520,9 @@ static int packet_rcv(struct sk_buff *sk
+ 	dst_release(skb->dst);
+ 	skb->dst = NULL;
+ 
++	/* drop conntrack reference */
++	nf_reset(skb);
++
+ 	spin_lock(&sk->sk_receive_queue.lock);
+ 	po->stats.tp_packets++;
+ 	__skb_queue_tail(&sk->sk_receive_queue, skb);
+
+--MGYHOYXEY6WxJCY8--
