@@ -1,20 +1,17 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCH] update raw patch in POM
-Date: Tue, 21 Jun 2005 13:18:58 +0200
-Message-ID: <20050621111858.GL8335@postel.suug.ch>
-References: <42A57FC4.7010508@tac.ch> <42A5B144.3090005@tac.ch>
-	<42A625DA.7090807@eurodev.net> <42A6AB19.2040106@tac.ch>
-	<42A6E685.3060408@eurodev.net> <42AEF774.8060300@tac.ch>
-	<42B67BEC.1090105@tac.ch> <20050621003441.GI8335@postel.suug.ch>
-	<20050621003930.GJ8335@postel.suug.ch> <42B7B7D8.1050204@tac.ch>
+From: Christian Hentschel <chentschel@arnet.com.ar>
+Subject: Re: [PATCH] SIP/SDP conntrack and NAT helper
+Date: Mon, 20 Jun 2005 14:54:16 -0300
+Message-ID: <1119290056.26216.18.camel@www.l-chr.com.ar>
+References: <1115493770.1949.9.camel@www.l-chr.com.ar>
+	<5caa9b87050620024652114b0a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-/kqXjPJAiEMpocFAQek3"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Roberto Nibali <ratz@tac.ch>
-Content-Disposition: inline
-In-Reply-To: <42B7B7D8.1050204@tac.ch>
+To: Steve Davies <davies147@gmail.com>
+In-Reply-To: <5caa9b87050620024652114b0a@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,17 +23,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Roberto Nibali <42B7B7D8.1050204@tac.ch> 2005-06-21 08:46
-> > Almost forgot: the nf_reset() patch should "fix" this bug. "Fix"
-> > because it doesn't really fix it but rather hides this issue
-> > for a later possible revival.
-> 
-> I thought so, however is there a clean fix which does not involve rewriting the
-> raw patch? I mean the unconditional nf_reset() is rather intrusive. What about
-> other netfilter extensions, they could have the same refcnt problem, couldn't they?
 
-I suggest to introduce a flag to mark undestroyable conntrack
-entries just like we declared qdisc->handle == 0 to be default
-qdiscs which may never be destroyed. A new status flag might
-do it but I'm simply not familiar enough with the netfilter
-code to propose any specific fixes.
+--=-/kqXjPJAiEMpocFAQek3
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+Hi,=20
+
+> In our network, we use SNOM 190 phones. When they register, they
+> negotiate to listen on a dynamic port number (NOT 5060) - The
+> conntrack code is only looking for packets with a SOURCE port of 5060,
+> so when the SNOM 190 initiates the INVITE, the destination port is
+> 5060, but the source port is not. Of course conntrack does not see
+> this, and the RTP packets  are not allowed.
+
+mmm.. it should be looking for dst 5060. Anyways, since i don't have
+those snom, can u send me some captures of this situation?. ethereal
+would be great.
+
+Please, use the lastest sip conntrack patch though, 2.6.10 was an early
+code.
+
+Best regards
+--=20
+"Debugging is twice as hard as writing the code in the first place.
+Therefore, if you write the code as cleverly as possible, you are,
+by definition, not smart enough to debug it." - Brian W. Kernighan
+
+--=-/kqXjPJAiEMpocFAQek3
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQBCtwLH/jxG54BC3LgRAj46AKCL/S3LgJpdsKe85TMAw0y9bCP6iQCdGIpk
+e76uf9mLRui53/Xt0r3w/sc=
+=FKwk
+-----END PGP SIGNATURE-----
+
+--=-/kqXjPJAiEMpocFAQek3--
