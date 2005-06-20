@@ -1,17 +1,12 @@
-From: Steve Davies <davies147@gmail.com>
-Subject: Re: [PATCH] SIP/SDP conntrack and NAT helper
-Date: Mon, 20 Jun 2005 10:46:05 +0100
-Message-ID: <5caa9b87050620024652114b0a@mail.gmail.com>
-References: <1115493770.1949.9.camel@www.l-chr.com.ar>
-Reply-To: Steve Davies <davies147@gmail.com>
+From: Sven Anders <anders@anduras.de>
+Subject: Status of 'pptp-conntrack-nat' ?!
+Date: Mon, 20 Jun 2005 12:10:36 +0200
+Message-ID: <42B6961C.7070604@anduras.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------080206080804040804000609"
+Cc: laforge@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Christian Hentschel <chentschel@arnet.com.ar>
-In-Reply-To: <1115493770.1949.9.camel@www.l-chr.com.ar>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,38 +18,65 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 5/7/05, Christian Hentschel <chentschel@arnet.com.ar> wrote:
-> Hi,
->         these patches adds conntrack and NAT support for SIP/SDP protocol=
-.
-> Currently it only support audio sessions, and it's status is "works for
-> me!"
->=20
-> There's some work to be done, but some help with testing, or some
-> feedback about this would be great meanwhile.
->=20
-> These patches are against lastest revision of pmo-ng, and only works in
-> new > 2.6.11 nat framework.
->=20
+This is a multi-part message in MIME format.
+--------------080206080804040804000609
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 
-If it is still of interest, I have found a couple of cases where the
-current sip_conntrack appears to fall short. I am still using the
-2.6.10 kernel, and the older sip_conntrack code, but I compared it to
-the latest version I could find of sip_copnntrack for 2.6.11, and the
-same should apply.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-In our network, we use SNOM 190 phones. When they register, they
-negotiate to listen on a dynamic port number (NOT 5060) - The
-conntrack code is only looking for packets with a SOURCE port of 5060,
-so when the SNOM 190 initiates the INVITE, the destination port is
-5060, but the source port is not. Of course conntrack does not see
-this, and the RTP packets  are not allowed.
+Hello!
 
-This currently only seems to happen with either an IAX forwarded call,
-or a transferred call. I am still experimenting.
+What is the status of the PPTP Connection-Tracking module?
 
-I am sure there is an "elegant" way to cater for this, but my kludged
-attempts were a bit of a failure :)
+Sorry if I ask this question again, but I the last state I found on this
+mailing list was:
 
-Kind regards,
-Steve
+| There is no pptp/gre conntrack and nat helper for 2.6.11+, since this
+| kernel version contains a redesigned infrastructure for such helpers.
+|
+| At this time, I see very limited chance that this new infrastructure is
+| sufficient enough to actually implement the same functionality.  A
+| straight 1:1 port ist definitely not possible.
+
+...but in the latest patch-o-matic I found an special sub-directory
+for linux 2.6.11.
+
+
+What makes me confused is that the 'help' files says:
+
+~ - does NOT work with kernels > 2.6.10
+
+and the 'info' file:
+
+~ Requires: linux < 2.6.11
+~ Requires: linux-2.6 < 2.6.11
+
+
+Is this a special development version which is worth testing or do I have
+to wait? Does it work with 2.6.12 too?
+
+Regards
+~ Sven
+
+- --
+~ Sven Anders <anders@anduras.de>                 () Ascii Ribbon Campaign
+~                                                 /\ Support plain text e-mail
+~ ANDURAS service solutions AG
+~ Innstraße 71 - 94036 Passau - Germany
+~ Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
+
+Rechtsform: Aktiengesellschaft - Sitz: Passau - Amtsgericht Passau HRB 6032
+Mitglieder des Vorstands: Sven Anders, Marcus Junker, Michael Schön
+Vorsitzender des Aufsichtsrats: Dipl. Kfm. Thomas Träger
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFCtpYb5lKZ7Feg4EcRArnJAJ9aLYYmqt0Jj1SoDPATPmhqTq0pFQCfdY3M
+DQGiGQQ4GaI7yTxOvjTGXlg=
+=6H4B
+-----END PGP SIGNATURE-----
+
+--------------080206080804040804000609--
