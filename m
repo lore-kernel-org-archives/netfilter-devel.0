@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 5/7]: Missing owner-field initialization in ip6table_raw
-Date: Tue, 21 Jun 2005 01:04:22 +0200
-Message-ID: <42B74B76.1070805@trash.net>
+Subject: [NETFILTER 4/7]: expectation timeouts are compulsory
+Date: Tue, 21 Jun 2005 01:04:19 +0200
+Message-ID: <42B74B73.1000802@trash.net>
 Mime-Version: 1.0
 Content-Type: text/x-patch;
- name="05.diff"
+ name="04.diff"
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
 Content-Disposition: inline;
- filename="05.diff"
+ filename="04.diff"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,40 +22,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Missing owner-field initialization in ip6table_raw
+[NETFILTER]: expectation timeouts are compulsory
 
-I missed this one when fixing up iptable_raw.
+Since expectation timeouts were made compulsory [1], there is no need to
+check for them in ip_conntrack_expect_insert.
 
+[1] https://lists.netfilter.org/pipermail/netfilter-devel/2005-January/018143.html
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 2976a51fd8ab66770b1b3083ffaa41bd05d70e1e
-tree 1aff9696e4fe8368fc9bf5ac4bcb8c89982e91ad
-parent 9b4be665b104791bd5605849391ed7123e14edd8
-author Patrick McHardy <kaber@trash.net> Mon, 20 Jun 2005 18:50:47
-committer Patrick McHardy <kaber@trash.net> Mon, 20 Jun 2005 18:50:47
+commit 9b4be665b104791bd5605849391ed7123e14edd8
+tree 61844cac98e0aedcc42238061e4f0e26a1c31102
+parent 6f3e8460b395913e1f156c6e66e818c83afc4d25
+author Phil Oester <kernel@linuxace.com> Mon, 20 Jun 2005 18:50:05
+committer Patrick McHardy <kaber@trash.net> Mon, 20 Jun 2005 18:50:05
 
- net/ipv6/netfilter/ip6table_raw.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_core.c |   14 +++++---------
+ 1 files changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
---- a/net/ipv6/netfilter/ip6table_raw.c
-+++ b/net/ipv6/netfilter/ip6table_raw.c
-@@ -129,13 +129,15 @@ static struct nf_hook_ops ip6t_ops[] = {
- 	  .hook = ip6t_hook, 
- 	  .pf = PF_INET6,
- 	  .hooknum = NF_IP6_PRE_ROUTING,
--	  .priority = NF_IP6_PRI_FIRST
-+	  .priority = NF_IP6_PRI_FIRST,
-+	  .owner = THIS_MODULE,
- 	},
- 	{
- 	  .hook = ip6t_hook, 
- 	  .pf = PF_INET6, 
- 	  .hooknum = NF_IP6_LOCAL_OUT,
--	  .priority = NF_IP6_PRI_FIRST
-+	  .priority = NF_IP6_PRI_FIRST,
-+	  .owner = THIS_MODULE,
- 	},
- };
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -760,15 +760,11 @@ static void ip_conntrack_expect_insert(s
+ 	exp->master->expecting++;
+ 	list_add(&exp->list, &ip_conntrack_expect_list);
  
+-	if (exp->master->helper->timeout) {
+-		init_timer(&exp->timeout);
+-		exp->timeout.data = (unsigned long)exp;
+-		exp->timeout.function = expectation_timed_out;
+-		exp->timeout.expires
+-			= jiffies + exp->master->helper->timeout * HZ;
+-		add_timer(&exp->timeout);
+-	} else
+-		exp->timeout.function = NULL;
++	init_timer(&exp->timeout);
++	exp->timeout.data = (unsigned long)exp;
++	exp->timeout.function = expectation_timed_out;
++	exp->timeout.expires = jiffies + exp->master->helper->timeout * HZ;
++	add_timer(&exp->timeout);
+ 
+ 	CONNTRACK_STAT_INC(expect_create);
+ }
