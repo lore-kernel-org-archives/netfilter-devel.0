@@ -1,12 +1,16 @@
-From: Sven Anders <anders@anduras.de>
-Subject: Status of 'pptp-conntrack-nat' ?!
-Date: Mon, 20 Jun 2005 12:10:36 +0200
-Message-ID: <42B6961C.7070604@anduras.de>
+From: Roberto Nibali <ratz@tac.ch>
+Subject: SOLVED (was: Re: [PATCH] update raw patch in POM)
+Date: Mon, 20 Jun 2005 12:41:44 +0200
+Message-ID: <42B69D68.3050507@tac.ch>
+References: <42A57FC4.7010508@tac.ch>	<42A5B144.3090005@tac.ch>	<42A625DA.7090807@eurodev.net>	<42A6AB19.2040106@tac.ch>	<42A6E685.3060408@eurodev.net>	<42AEF774.8060300@tac.ch>
+	<42B67BEC.1090105@tac.ch>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080206080804040804000609"
-Cc: laforge@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <42B67BEC.1090105@tac.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,65 +22,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080206080804040804000609
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Looks like we have a winner:
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+> Index: linux-2.4/net/ipv4/ip_output.c
+> ===================================================================
+> --- linux-2.4.orig/net/ipv4/ip_output.c	2005-06-08 00:16:54.000000000 +0200
+> +++ linux-2.4/net/ipv4/ip_output.c	2005-06-15 23:42:13.000000000 +0200
+> @@ -166,6 +166,8 @@
+>  	nf_debug_ip_finish_output2(skb);
+>  #endif /*CONFIG_NETFILTER_DEBUG*/
+> 
+> +	nf_reset(skb);
+> +
+>  	if (hh) {
+>  		int hh_alen;
 
-Hello!
+This patch kind of did it. I cannot trigger the oops anymore (with the method
+described earlier in this thread) with this patch. It could be related to a
+recent fix that went in for 2.6.x kernel, by Patrick:
 
-What is the status of the PPTP Connection-Tracking module?
+https://lists.netfilter.org/pipermail/netfilter-devel/2005-March/018857.html
 
-Sorry if I ask this question again, but I the last state I found on this
-mailing list was:
-
-| There is no pptp/gre conntrack and nat helper for 2.6.11+, since this
-| kernel version contains a redesigned infrastructure for such helpers.
-|
-| At this time, I see very limited chance that this new infrastructure is
-| sufficient enough to actually implement the same functionality.  A
-| straight 1:1 port ist definitely not possible.
-
-...but in the latest patch-o-matic I found an special sub-directory
-for linux 2.6.11.
-
-
-What makes me confused is that the 'help' files says:
-
-~ - does NOT work with kernels > 2.6.10
-
-and the 'info' file:
-
-~ Requires: linux < 2.6.11
-~ Requires: linux-2.6 < 2.6.11
-
-
-Is this a special development version which is worth testing or do I have
-to wait? Does it work with 2.6.12 too?
-
-Regards
-~ Sven
-
-- --
-~ Sven Anders <anders@anduras.de>                 () Ascii Ribbon Campaign
-~                                                 /\ Support plain text e-mail
-~ ANDURAS service solutions AG
-~ Innstraße 71 - 94036 Passau - Germany
-~ Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
-
-Rechtsform: Aktiengesellschaft - Sitz: Passau - Amtsgericht Passau HRB 6032
-Mitglieder des Vorstands: Sven Anders, Marcus Junker, Michael Schön
-Vorsitzender des Aufsichtsrats: Dipl. Kfm. Thomas Träger
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFCtpYb5lKZ7Feg4EcRArnJAJ9aLYYmqt0Jj1SoDPATPmhqTq0pFQCfdY3M
-DQGiGQQ4GaI7yTxOvjTGXlg=
-=6H4B
------END PGP SIGNATURE-----
-
---------------080206080804040804000609--
+I'll hit it a few more rounds and harder with a couple of thousand rules and a
+few hundred megs of data in the conntrack ;).
+-- 
+-------------------------------------------------------------
+addr://Rathausgasse 31, CH-5001 Aarau  tel://++41 62 823 9355
+http://www.terreactive.com             fax://++41 62 823 9356
+-------------------------------------------------------------
+terreActive AG                       Wir sichern Ihren Erfolg
+-------------------------------------------------------------
