@@ -1,23 +1,25 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: 2.6.12: connection tracking broken?
-Date: Tue, 21 Jun 2005 01:22:45 +0200
-Message-ID: <42B74FC5.3070404@trash.net>
-References: <E1Dk9nK-0001ww-00@gondolin.me.apana.org.au>	
-	<Pine.LNX.4.62.0506200432100.31737@kaber.coreworks.de>	
+Date: Tue, 21 Jun 2005 01:27:31 +0200
+Message-ID: <42B750E3.4070209@trash.net>
+References: <E1Dk9nK-0001ww-00@gondolin.me.apana.org.au>
+	<Pine.LNX.4.62.0506200432100.31737@kaber.coreworks.de>
 	<1119249575.3387.3.camel@localhost.localdomain>
 	<42B6B373.20507@trash.net>
 	<1119293193.3381.9.camel@localhost.localdomain>
+	<20050620185736.GA4883@linuxace.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: Bart De Schuymer <bdschuym@telenet.be>,
+	Bart De Schuymer <bdschuym@pandora.be>,
 	Herbert Xu <herbert@gondor.apana.org.au>,
-	netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org, rankincj@yahoo.com,
-	ebtables-devel@lists.sourceforge.net, netfilter-devel@manty.net
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	ebtables-devel@lists.sourceforge.net, netfilter-devel@manty.net,
+	rankincj@yahoo.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
-In-Reply-To: <1119293193.3381.9.camel@localhost.localdomain>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20050620185736.GA4883@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,25 +31,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Bart De Schuymer wrote:
-> When the _routing_ decision sends the packet to br0 (a bridge device),
-> it is unknown which bridge port(s) the packet will be sent out. This is
-> only known after the packet enters the bridge code. Therefore, for
-> iptables to know the bridge port out device, the hooks must be postponed
-> until in the bridge code.
+Phil Oester wrote:
+> The changes were originally made to fix conntrack unload problems with
+> raw sockets.  My original patch performed the nf_reset in the socket
+> code, but Patrick suggested moving it to ip_output.  The below patch
+> reverts the ip_output changes, and implements the original suggested
+> changes to raw socket handling.  
+> 
+> While this is unlikely to be the permanent solution, it will fix the
+> current bridging problems while retaining the raw socket fixes.  I'd
+> suggest that this could be included in -stable while researching
+> other solutions.
 
-This seems to be a really bad idea, for a single match that violates
-layering we need to deal with this inconsistency. It's not just the
-conntrack reference, with IPsec the packet passed to the defered hooks
-is totally different from when it was still inside IP, which for example
-breaks the policy match.
-
-> Trust me, people will complain if they can no longer use the physdev
-> match for routed packets.
-
-I'm sure they will, now that they got used to it. Why can't people
-match on the bridge port inside ebtables and only match on the device
-within iptables? Is there a case that can't be handled this way?
+I disagree. We will probably have a final solution within a few days,
+so I don't think we need to submit "temporary" fixes yet. Your patch
+actually causes a regression for people not using bringe-netfilter,
+unplugging a network cable can cause the conntrack module to become
+unloadable again.
 
 Regards
 Patrick
