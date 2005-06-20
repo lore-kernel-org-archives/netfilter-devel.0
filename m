@@ -1,20 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 2.6.12: connection tracking broken?
-Date: Mon, 20 Jun 2005 14:15:47 +0200
-Message-ID: <42B6B373.20507@trash.net>
-References: <E1Dk9nK-0001ww-00@gondolin.me.apana.org.au>	
-	<Pine.LNX.4.62.0506200432100.31737@kaber.coreworks.de>
-	<1119249575.3387.3.camel@localhost.localdomain>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Is there any document for "Packet Handling in Userspace"?
+Date: Mon, 20 Jun 2005 09:27:15 +0200
+Message-ID: <20050620072715.GN9491@obroa-skai.de.gnumonks.org>
+References: <1119247514.5499.1.camel@cocteau.hellwolf-misty.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: bdschuym@pandora.be, Herbert Xu <herbert@gondor.apana.org.au>,
-	netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org, rankincj@yahoo.com,
-	ebtables-devel@lists.sourceforge.net, netfilter-devel@manty.net
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TN8pJM9vJMHHFgJc"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Bart De Schuymer <bdschuym@telenet.be>
-In-Reply-To: <1119249575.3387.3.camel@localhost.localdomain>
+To: Hellwolf Misty <hellwolf@seu.edu.cn>
+Content-Disposition: inline
+In-Reply-To: <1119247514.5499.1.camel@cocteau.hellwolf-misty.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,23 +22,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Bart De Schuymer wrote:
-> Op ma, 20-06-2005 te 04:45 +0200, schreef Patrick McHardy:
-> 
->> Bart, can you explain why the hooks are defered please?
-> 
-> This is done so that iptables knows which bridge port the output device
-> is, using the iptables physdev match.
 
-In which cases is this necessary? AFAICT the output device is determined
-in br_handle_frame_finish() for a normally bridged packet.
+--TN8pJM9vJMHHFgJc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Can't you release the conntrack reference with a function registered on
-> the POSTROUTING hook with a prio higher than nat POSTROUTING (or
-> something like that)?
+On Mon, Jun 20, 2005 at 02:05:13PM +0800, Hellwolf Misty wrote:
+> netfilter-hacking-HOWTO only mentioned a little about this COOL future.
 
-We would have to hold the reference while the packet is queued at the
-device for the bridge case, which we want to avoid.
+'man libipq'
 
-Regards
-Patrick
+NAME
+       libipq - iptables userspace packet queuing library.
+
+SYNOPSIS
+	#include <linux/netfilter.h>
+	#include <libipq.h>
+
+DESCRIPTION
+        libipq  is a development library for iptables userspace packet queu=
+ing.
+
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--TN8pJM9vJMHHFgJc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFCtm/TXaXGVTD0i/8RAhjUAKCQQYZIYQ+MKDjwKiErzZ5EacyfyACeIj/P
+I3zWd204kOgVPoeDNaL27iY=
+=JDKN
+-----END PGP SIGNATURE-----
+
+--TN8pJM9vJMHHFgJc--
