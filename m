@@ -1,25 +1,22 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] alternative to conntrack ID
-Date: Mon, 20 Jun 2005 18:12:15 +0200
-Message-ID: <42B6EADF.9040002@trash.net>
-References: <424747E3.7000300@eurodev.net>
-	<42502F8D.5030504@trash.net>	<4254258E.5000204@eurodev.net>
-	<42627BC4.8070103@trash.net>	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>	<20050429080242.GJ9735@sunbeam.de.gnumonks.org>	<42789366.20702@ufomechanic.net>	<4278B23A.7050406@trash.net>
-	<4278B98E.7090707@ufomechanic.net>	<427B8A46.8090006@trash.net>
-	<427D26E7.8060701@ingate.com>	<427D3EAF.3020200@trash.net>
-	<427D41FA.5080506@ingate.com>	<1115648236.25627.17.camel@nienna.balabit>	<428A1807.8070708@ufomechanic.net>
-	<428A5141.20901@trash.net>	<Pine.LNX.4.58.0505180948180.9582@blackhole.kfki.hu>	<42A23EDA.2090307@eurodev.net>
-	<42A24F3B.8050607@eurodev.net>	<Pine.LNX.4.58.0506061017330.16223@blackhole.kfki.hu>	<42A83B96.4050302@eurodev.net>
-	<42A83D72.1000106@eurodev.net>	<Pine.LNX.4.58.0506091519580.7610@blackhole.kfki.hu>	<42A9698F.30909@eurodev.net>	<Pine.LNX.4.58.050
-	<Pine.
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: 2.6.12: connection tracking broken?
+Date: Mon, 20 Jun 2005 18:46:33 +0000
+Message-ID: <1119293193.3381.9.camel@localhost.localdomain>
+References: <E1Dk9nK-0001ww-00@gondolin.me.apana.org.au>
+	<Pine.LNX.4.62.0506200432100.31737@kaber.coreworks.de>
+	<1119249575.3387.3.camel@localhost.localdomain>
+	<42B6B373.20507@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Bart De Schuymer <bdschuym@telenet.be>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org, rankincj@yahoo.com,
+	ebtables-devel@lists.sourceforge.net, netfilter-devel@manty.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <42B6E918.5080603@ufomechanic.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42B6B373.20507@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -31,15 +28,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez wrote:
-> One of my uses for conntrack is for statistics and analysis and to
-> reduce race conditions in taking actions on a particular conntrack.
+Op ma, 20-06-2005 te 14:15 +0200, schreef Patrick McHardy:
+> Bart De Schuymer wrote:
+> > Op ma, 20-06-2005 te 04:45 +0200, schreef Patrick McHardy:
+> > 
+> >> Bart, can you explain why the hooks are defered please?
+> > 
+> > This is done so that iptables knows which bridge port the output device
+> > is, using the iptables physdev match.
 > 
-> I need some kind of conntrack ID that will be consistent in the medium
-> term accross different conntrack manipulations
+> In which cases is this necessary? AFAICT the output device is determined
+> in br_handle_frame_finish() for a normally bridged packet.
 
-That is why I've always argued in favour of the ID. Since its needed for
-other reasons too, I suggest to just keep it and get on.
+When the _routing_ decision sends the packet to br0 (a bridge device),
+it is unknown which bridge port(s) the packet will be sent out. This is
+only known after the packet enters the bridge code. Therefore, for
+iptables to know the bridge port out device, the hooks must be postponed
+until in the bridge code.
 
-Regards
-Patrick
+> > Can't you release the conntrack reference with a function registered on
+> > the POSTROUTING hook with a prio higher than nat POSTROUTING (or
+> > something like that)?
+> 
+> We would have to hold the reference while the packet is queued at the
+> device for the bridge case, which we want to avoid.
+
+Trust me, people will complain if they can no longer use the physdev
+match for routed packets.
+People using a bridging firewall will just have to live with the fact
+that the reference is held until in the bridge code.
+
+cheers,
+Bart
