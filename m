@@ -1,18 +1,13 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] update raw patch in POM [2.4.x]
-Date: Tue, 21 Jun 2005 17:32:35 +0200
-Message-ID: <42B83313.2030505@trash.net>
-References: <42A57FC4.7010508@tac.ch>	<42A5B144.3090005@tac.ch>	<42A625DA.7090807@eurodev.net>	<42A6AB19.2040106@tac.ch>	<42A6E685.3060408@eurodev.net>	<42AEF774.8060300@tac.ch>	<42B67BEC.1090105@tac.ch>	<20050621003441.GI8335@postel.suug.ch>	<42B76474.8080209@eurodev.net>	<20050621111328.GK8335@postel.suug.ch>
-	<42B81D75.8090205@trash.net> <42B82177.5010101@tac.ch>
-	<42B8288C.9030004@trash.net> <42B82F29.40307@tac.ch>
+Subject: [NETFILTER 8/7]: Drop conntrack reference in
+	ip_call_ra_chain()/ip_mr_input()
+Date: Tue, 21 Jun 2005 17:45:09 +0200
+Message-ID: <42B83605.5020902@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>
+Content-Type: multipart/mixed; boundary="------------080808060900080006010101"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Roberto Nibali <ratz@tac.ch>
-In-Reply-To: <42B82F29.40307@tac.ch>
+To: "David S. Miller" <davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,26 +19,61 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Roberto Nibali wrote:
->>>Do you want me to rerun the test for more precise statements?
->>
->>Yes, please make sure no packets are queued in qdiscs (best to use
->>pfifo) and no raw/packet sockets are open and ip_queue isn't used.
-> 
-> 
-> # tc qdisc show
-> qdisc pfifo_fast 0: dev eth0 [Unknown qdisc, optlen=20]
-> qdisc pfifo_fast 0: dev eth1 [Unknown qdisc, optlen=20]
-> 
-> # cat /proc/net/raw
->   sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt
-> uid  timeout inode
-> 
-> ip_queue is not used. Following modules are loaded when our small ruleset is set:
+This is a multi-part message in MIME format.
+--------------080808060900080006010101
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-What about packet sockets? raw sockets actually don't matter, the
-reference is dropped before it reaches them. Please send me the raw
-table patch you're using.
+Drop reference before handing packets to raw_rcv to avoid module
+unload problems.
 
-Regards
-Patrick
+
+
+--------------080808060900080006010101
+Content-Type: text/x-patch;
+ name="08.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="08.diff"
+
+[NETFILTER]: Drop conntrack reference in ip_call_ra_chain()/ip_mr_input()
+
+Drop reference before handing the packets to raw_rcv()
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 043f4df110b0be9f82a5ddaeede9be7f7ae4c894
+tree 52e36aa9adea79ec2201a881abc327aeb870f837
+parent d7edb3501fc521edf0d856d30fd6bad8019ed369
+author Patrick McHardy <kaber@trash.net> Tue, 21 Jun 2005 17:43:58
+committer Patrick McHardy <kaber@trash.net> Tue, 21 Jun 2005 17:43:58
+
+ net/ipv4/ip_input.c |    1 +
+ net/ipv4/ipmr.c     |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/net/ipv4/ip_input.c b/net/ipv4/ip_input.c
+--- a/net/ipv4/ip_input.c
++++ b/net/ipv4/ip_input.c
+@@ -184,6 +184,7 @@ int ip_call_ra_chain(struct sk_buff *skb
+ 					raw_rcv(last, skb2);
+ 			}
+ 			last = sk;
++			nf_reset(skb);
+ 		}
+ 	}
+ 
+diff --git a/net/ipv4/ipmr.c b/net/ipv4/ipmr.c
+--- a/net/ipv4/ipmr.c
++++ b/net/ipv4/ipmr.c
+@@ -1350,6 +1350,7 @@ int ip_mr_input(struct sk_buff *skb)
+ 			     */
+ 			    read_lock(&mrt_lock);
+ 			    if (mroute_socket) {
++				    nf_reset(skb);
+ 				    raw_rcv(mroute_socket, skb);
+ 				    read_unlock(&mrt_lock);
+ 				    return 0;
+
+--------------080808060900080006010101--
