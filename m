@@ -1,17 +1,12 @@
-From: Christian Hentschel <chentschel@arnet.com.ar>
-Subject: Re: [PATCH] SIP/SDP conntrack and NAT helper
-Date: Mon, 20 Jun 2005 14:54:16 -0300
-Message-ID: <1119290056.26216.18.camel@www.l-chr.com.ar>
-References: <1115493770.1949.9.camel@www.l-chr.com.ar>
-	<5caa9b87050620024652114b0a@mail.gmail.com>
+From: Corey Giovanella <coreygiovanella@challenge-engineering.com>
+Subject: New target to control a fake network interface
+Date: Tue, 21 Jun 2005 02:12:33 +0000
+Message-ID: <1119319953.4109.59.camel@envy>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-/kqXjPJAiEMpocFAQek3"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Steve Davies <davies147@gmail.com>
-In-Reply-To: <5caa9b87050620024652114b0a@mail.gmail.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,43 +18,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi all,
 
---=-/kqXjPJAiEMpocFAQek3
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I just finished some code I've been working on and I figured I'd post a
+message here incase anyone is interested in using it.
 
-Hi,=20
+What I have done is written two new kernel modules: a fake network
+interface module and a new iptables target that remote controls the
+packet counters on the fake interface.  The fake interface itself, does
+nothing.
 
-> In our network, we use SNOM 190 phones. When they register, they
-> negotiate to listen on a dynamic port number (NOT 5060) - The
-> conntrack code is only looking for packets with a SOURCE port of 5060,
-> so when the SNOM 190 initiates the INVITE, the destination port is
-> 5060, but the source port is not. Of course conntrack does not see
-> this, and the RTP packets  are not allowed.
+The idea just kinda of came to me when I was looking at network drivers
+for another idea I was thinking about.  Being able to represent packets
+matched using a network interface seemed to be something that could be
+useful.  I figure there are lots of programs that show graphs and things
+of nic's in your computer, this would plug into them nicely.
 
-mmm.. it should be looking for dst 5060. Anyways, since i don't have
-those snom, can u send me some captures of this situation?. ethereal
-would be great.
+For example I use this so I can view internet traffic separately from my
+local lan traffic in Gkrellm.  
 
-Please, use the lastest sip conntrack patch though, 2.6.10 was an early
-code.
+I've posted the source and perhaps a better description on my web site:
+http://challenge-engineering.com/~corey/projects/fake_if/
 
-Best regards
---=20
-"Debugging is twice as hard as writing the code in the first place.
-Therefore, if you write the code as cleverly as possible, you are,
-by definition, not smart enough to debug it." - Brian W. Kernighan
+any thoughts or feed back of any form would be appreciated.
 
---=-/kqXjPJAiEMpocFAQek3
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQBCtwLH/jxG54BC3LgRAj46AKCL/S3LgJpdsKe85TMAw0y9bCP6iQCdGIpk
-e76uf9mLRui53/Xt0r3w/sc=
-=FKwk
------END PGP SIGNATURE-----
-
---=-/kqXjPJAiEMpocFAQek3--
+-- 
+Corey Giovanella <coreygiovanella@challenge-engineering.com>
+www.challenge-engineering.com/~corey/
