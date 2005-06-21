@@ -1,59 +1,42 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCH] update raw patch in POM
-Date: Tue, 21 Jun 2005 23:50:27 +0200
-Message-ID: <20050621215027.GP8335@postel.suug.ch>
-References: <42A5B144.3090005@tac.ch> <42A625DA.7090807@eurodev.net>
-	<42A6AB19.2040106@tac.ch> <42A6E685.3060408@eurodev.net>
-	<42AEF774.8060300@tac.ch> <42B67BEC.1090105@tac.ch>
-	<20050621003441.GI8335@postel.suug.ch>
-	<42B76474.8080209@eurodev.net>
-	<20050621111328.GK8335@postel.suug.ch> <42B81D75.8090205@trash.net>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: 2.6.12: connection tracking broken?
+Date: Tue, 21 Jun 2005 15:32:15 -0700 (PDT)
+Message-ID: <20050621.153215.74747942.davem@davemloft.net>
+References: <42B82F35.3040909@trash.net>
+	<1119386772.3379.4.camel@localhost.localdomain>
+	<20050621212317.GB9153@shell0.pdx.osdl.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>, Roberto Nibali <ratz@tac.ch>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <42B81D75.8090205@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: bdschuym@pandora.be, kaber@trash.net, bdschuym@telenet.be,
+	herbert@gondor.apana.org.au, netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org, rankincj@yahoo.com,
+	ebtables-devel@lists.sourceforge.net, netfilter-devel@manty.net
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262404AbVFUWog@vger.kernel.org>
+To: chrisw@osdl.org
+In-Reply-To: <20050621212317.GB9153@shell0.pdx.osdl.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Patrick McHardy <42B81D75.8090205@trash.net> 2005-06-21 16:00
-> Thomas Graf wrote:
-> >>If the module gets unloaded, ip_conntrack_untracked refcount isn't 
-> >>decreased, it's still 1. So destroy() is never called. In that case it 
-> >>should be really easy to trigger on my slow laptop ;->.
+From: Chris Wright <chrisw@osdl.org>
+Subject: Re: 2.6.12: connection tracking broken?
+Date: Tue, 21 Jun 2005 14:23:17 -0700
+
+> * Bart De Schuymer (bdschuym@pandora.be) wrote:
+> > Op di, 21-06-2005 te 17:16 +0200, schreef Patrick McHardy:
+> > > I unfortunately don't see a way to remove it, but we should keep
+> > > thinking about it. Can you please check if the attached patch is
+> > > correct? It should exclude all packets handled by bridge-netfilter
+> > > from having their conntrack reference dropped. I didn't add nf_reset()'s
+> > > to the bridging code because with tc actions the packets can end up
+> > > anywhere else anyway, and this will hopefully get fixed right sometime.
 > > 
-> > How do you explain the BUG() being triggered then?
+> > Looks good.
 > 
-> Pablo mentioned to me in private mail that he believes the reason
-> is packets holding references to ip_conntrack_untracked on module
-> removal. I agree, and this patch should fix it. Roberto, could
-> you please try it and tell me if it helps?
->
-> +	/* wait until all references to ip_conntrack_untracked are dropped */
-> +	while (atomic_read(&ip_conntrack_untracked.ct_general.use) > 1)
-> +		schedule();
+> Is this one good for -stable?
 
-This patch seems fine but it cannot fix the bug. The fact that we
-trigger the BUG() implies a serious problem which is that we'd be
-calling destroy() on a conntrack entry which was never allocated.
-As far as I understood Roberto correctly it happens once he's
-unloading the conntrack modules which means that up to that point
-we still have > 1 references on that entry. So I think we have
-two problems:
+We will push it to stable@kernel.org if we deem it should.
 
- a) We might be calling destroy() on dummy conntrack entries
-    such as ip_conntrack_untracked which causes corruption.
- 
- b) There might be conntrack entries in caches while removing
-    modules.
+I do review the stream going into 2.6.x, and decide if it
+should be bound for -stable as well, so you never need to
+inquire about this specifically.
