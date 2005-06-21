@@ -1,17 +1,24 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] update raw patch in POM [2.4.x]
-Date: Tue, 21 Jun 2005 16:47:40 +0200
-Message-ID: <42B8288C.9030004@trash.net>
-References: <42A57FC4.7010508@tac.ch>	<42A5B144.3090005@tac.ch>	<42A625DA.7090807@eurodev.net>	<42A6AB19.2040106@tac.ch>	<42A6E685.3060408@eurodev.net>	<42AEF774.8060300@tac.ch>	<42B67BEC.1090105@tac.ch>	<20050621003441.GI8335@postel.suug.ch>	<42B76474.8080209@eurodev.net>	<20050621111328.GK8335@postel.suug.ch>
-	<42B81D75.8090205@trash.net> <42B82177.5010101@tac.ch>
+Subject: Re: 2.6.12: connection tracking broken?
+Date: Tue, 21 Jun 2005 17:16:05 +0200
+Message-ID: <42B82F35.3040909@trash.net>
+References: <E1Dk9nK-0001ww-00@gondolin.me.apana.org.au>	
+	<Pine.LNX.4.62.0506200432100.31737@kaber.coreworks.de>	
+	<1119249575.3387.3.camel@localhost.localdomain>
+	<42B6B373.20507@trash.net>	
+	<1119293193.3381.9.camel@localhost.localdomain>	
+	<42B74FC5.3070404@trash.net>
+	<1119338382.3390.24.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>
+Content-Type: multipart/mixed; boundary="------------000506000503090704000107"
+Cc: Bart De Schuymer <bdschuym@telenet.be>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org, rankincj@yahoo.com,
+	ebtables-devel@lists.sourceforge.net, netfilter-devel@manty.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Roberto Nibali <ratz@tac.ch>
-In-Reply-To: <42B82177.5010101@tac.ch>
+To: Bart De Schuymer <bdschuym@pandora.be>
+In-Reply-To: <1119338382.3390.24.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,50 +30,76 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Roberto Nibali wrote:
->>Pablo mentioned to me in private mail that he believes the reason
->>is packets holding references to ip_conntrack_untracked on module
->>removal. I agree, and this patch should fix it. Roberto, could
->>you please try it and tell me if it helps?
-> 
-> 
-> I already did. Here's an excerpt of an earlier email in this thread regarding
-> this patch:
+This is a multi-part message in MIME format.
+--------------000506000503090704000107
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Hmmm I should have read the whole thread :)
+Bart De Schuymer wrote:
+> Deferring the hooks makes the bridge-nf code alot more complicated, so I
+> would be glad to get rid of it if it is the right thing to do. But
+> backwards compatibility can't be maintained and I'd be surprised if
+> every ruleset that now works will still be possible using an
+> iptables/ebtables scheme.
 
->>--- linux-2.4.orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-06-15
->>
->>>23:16:43.000000000 +0200
->>>+++ linux-2.4/net/ipv4/netfilter/ip_conntrack_core.c	2005-06-17
->>>20:44:18.000000000 +0200
->>>@@ -1391,6 +1391,8 @@
->>> 		schedule();
->>> 		goto i_see_dead_people;
->>> 	}
->>>+	while (atomic_read(&ip_conntrack_untracked.ct_general.use) != 1)
->>>+		schedule();
->>>
->>> 	kmem_cache_destroy(ip_conntrack_cachep);
->>> 	vfree(ip_conntrack_hash);
-> 
-> 
-> 
-> This results in an endless loop when calling rmmod ip_conntrack. lsmod shows
-> (deleted) but the process is in D state. No oops of course and no hang.
-> 
-> But I cannot remove the ip_conntrack kernel module anymore. It's "stuck".
+I unfortunately don't see a way to remove it, but we should keep
+thinking about it. Can you please check if the attached patch is
+correct? It should exclude all packets handled by bridge-netfilter
+from having their conntrack reference dropped. I didn't add nf_reset()'s
+to the bridging code because with tc actions the packets can end up
+anywhere else anyway, and this will hopefully get fixed right sometime.
 
-This means we're either leaking conntrack entries or packets holding
-a reference are queued somewhere. What do you use NOTRACK for?
+BTW. this line from ip_sabotage_out() looks wrong, it will clear all
+flags instead of setting the BRNF_DONT_TAKE_PARENT flag (second
+patch):
 
-> Do you want me to rerun the test for more precise statements?
+                        nf_bridge->mask &= BRNF_DONT_TAKE_PARENT;
 
-Yes, please make sure no packets are queued in qdiscs (best to use
-pfifo) and no raw/packet sockets are open and ip_queue isn't used.
-You could also add a printk to the inner body of the
-while(atomic_read(...)) loop and print out the reference count, perhaps
-it will show something interesting.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Thanks
-Patrick
+--------------000506000503090704000107
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
+--- a/net/ipv4/ip_output.c
++++ b/net/ipv4/ip_output.c
+@@ -188,7 +188,12 @@ static inline int ip_finish_output2(stru
+ 		skb = skb2;
+ 	}
+ 
+-	nf_reset(skb);
++#ifdef CONFIG_BRIDGE_NETFILTER
++	/* bridge-netfilter defers calling some IP hooks to the bridge layer and
++	 * still needs the conntrack reference */
++	if (skb->nf_bridge == NULL)
++#endif
++		nf_reset(skb);
+ 
+ 	if (hh) {
+ 		int hh_alen;
+
+--------------000506000503090704000107
+Content-Type: text/x-patch;
+ name="10.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="10.diff"
+
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -882,7 +882,7 @@ static unsigned int ip_sabotage_out(unsi
+ 		 * doesn't use the bridge parent of the indev by using
+ 		 * the BRNF_DONT_TAKE_PARENT mask. */
+ 		if (hook == NF_IP_FORWARD && nf_bridge->physindev == NULL) {
+-			nf_bridge->mask &= BRNF_DONT_TAKE_PARENT;
++			nf_bridge->mask |= BRNF_DONT_TAKE_PARENT;
+ 			nf_bridge->physindev = (struct net_device *)in;
+ 		}
+ #if defined(CONFIG_VLAN_8021Q) || defined(CONFIG_VLAN_8021Q_MODULE)
+
+--------------000506000503090704000107--
