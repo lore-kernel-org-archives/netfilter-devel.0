@@ -1,95 +1,62 @@
-From: Stephen Jones <hivemynd@hivemynd.net>
-Subject: Re: iptables bug
-Date: Tue, 21 Jun 2005 14:21:48 -0500
-Message-ID: <42B868CC.1010008@hivemynd.net>
-References: <20050619233029.45dd66b8.akpm@osdl.org>	<1119305756l.1344l.0l@werewolf.able.es>	<20050620153445.5daaed4e.akpm@osdl.org>
-	<42B753A8.5050808@trash.net>
+From: Bart De Schuymer <bdschuym-LPO8gxj9N8aZIoH1IeqzKA@public.gmane.org>
+Subject: Re: 2.6.12: connection tracking broken?
+Date: Tue, 21 Jun 2005 20:46:12 +0000
+Message-ID: <1119386772.3379.4.camel@localhost.localdomain>
+References: <E1Dk9nK-0001ww-00@gondolin.me.apana.org.au>
+	 <Pine.LNX.4.62.0506200432100.31737@kaber.coreworks.de>
+	 <1119249575.3387.3.camel@localhost.localdomain> <42B6B373.20507@trash.net>
+	 <1119293193.3381.9.camel@localhost.localdomain>
+	 <42B74FC5.3070404@trash.net>
+	 <1119338382.3390.24.camel@localhost.localdomain>
+	 <42B82F35.3040909@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@osdl.org>, netdev@vger.kernel.org,
-	"J.A. Magallon" <jamagallon@able.es>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	linux-kernel@vger.kernel.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <42B753A8.5050808@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: Bart De Schuymer <bdschuym-CNXmb7IdZIWZIoH1IeqzKA@public.gmane.org>,
+	Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>,
+	netfilter-devel-wool9L35kiczKOhml7GhPkB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	rankincj-/E1597aS9LQAvxtiuMwx3w@public.gmane.org, ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
+	netfilter-devel-gaW6/AuhO2xeoWH0uzbU5w@public.gmane.org
+Return-path: <ebtables-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
+In-Reply-To: <42B82F35.3040909-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>
+Sender: ebtables-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: ebtables-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
+	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:ebtables-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ebtables-devel>,
+	<mailto:ebtables-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=ebtables-devel>
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Andrew Morton wrote:
+Op di, 21-06-2005 te 17:16 +0200, schreef Patrick McHardy:
+> I unfortunately don't see a way to remove it, but we should keep
+> thinking about it. Can you please check if the attached patch is
+> correct? It should exclude all packets handled by bridge-netfilter
+> from having their conntrack reference dropped. I didn't add nf_reset()'s
+> to the bridging code because with tc actions the packets can end up
+> anywhere else anyway, and this will hopefully get fixed right sometime.
+
+Looks good.
+Perhaps a compile time option to disable postponing the hooks would be
+nice...
+
+> BTW. this line from ip_sabotage_out() looks wrong, it will clear all
+> flags instead of setting the BRNF_DONT_TAKE_PARENT flag (second
+> patch):
 > 
->>"J.A. Magallon" <jamagallon@able.es> wrote:
->>
->>
->>>Are there any known problems with iptables ?
-> 
-> 
-> No known problems.
-> 
-> 
->>>I see strange things.
->>>When I use bittorrent (azureus or bittorrent-gui), at the same time as
->>>iptables (for nat and internet access for my ibook), when I stop a download
->>>or exit from one of this apps my external network goes down. 
->>>I have tried the same without iptables loaded and it works fine.
+>                         nf_bridge->mask &= BRNF_DONT_TAKE_PARENT;
 
-I have observed this behavior on multiple machines, but I don't think it 
-is specifically an iptables "bug" or kernel "bug".  Most of my 
-experience is with 2.4.x kernels, so I can't remark about the 2.6.x series.
+Thanks,
+Bart
 
-The original poster didn't give enough info for me to correlate anything 
-with conviction, but, consulting the tea leaves :D I would venture to 
-guess that the machine that has the network "go down" has less than 128 
-MB of RAM and is probably running lower end NICs (i.e. 8139too).
 
-There appears to be two or three issues interacting with one another in 
-these scenarios:
 
-a.) The various Bit Torrent clients and their ilk can generate a 
-staggering number of conncurrent connections.  This can quickly fill the 
-conntracks on machines with little RAM and cause problems.
 
-b.) The lower end nics (either the hardware itself, or the drivers, I 
-don't know enough about how to isolate the two) do not appear to be able 
-to handle the massive number of interrupts that are generated in this 
-scenario.
-
-c.) The problem is more likely to manifest on  "fat pipe" connections (6 
-MB +)
-
-I would also wager the problem goes away if the torrent clients are shut 
-down.
-
-I would look there, if I hade the skills requried to tease out anything 
-useful :D
-
-Various linux based firewall forums have posts describing the same 
-behavior as the OP of this thread.
-
-Here is one relatively recent example:
-
-http://community.smoothwall.org/forum/viewtopic.php?p=43812#43812
-
-I hope that helps in some way!
-
-> 
-> 
-> What exactly do you mean with "network goes down"? Can you find out
-> where the packets disappear? Do they silently disappear, or do you get
-> an error code from sendmsg? What about received packets?
-> 
-> Regards
-> Patrick
-> 
-> 
-> 
+-------------------------------------------------------
+SF.Net email is sponsored by: Discover Easy Linux Migration Strategies
+from IBM. Find simple to follow Roadmaps, straightforward articles,
+informative Webcasts and more! Get everything you need to get up to
+speed, fast. http://ads.osdn.com/?ad_id=7477&alloc_id=16492&op=click
