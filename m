@@ -1,18 +1,20 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: pptp conntrack stream timeout
-Date: Tue, 21 Jun 2005 11:18:17 +0200
-Message-ID: <200506211118.17112.thomas.jarosch@intra2net.com>
-References: <200506201545.14009.thomas.jarosch@intra2net.com>
-	<20050620222920.GB23109@obroa-skai.de.gnumonks.org>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: [PATCH] update raw patch in POM
+Date: Tue, 21 Jun 2005 13:13:28 +0200
+Message-ID: <20050621111328.GK8335@postel.suug.ch>
+References: <42A57FC4.7010508@tac.ch> <42A5B144.3090005@tac.ch>
+	<42A625DA.7090807@eurodev.net> <42A6AB19.2040106@tac.ch>
+	<42A6E685.3060408@eurodev.net> <42AEF774.8060300@tac.ch>
+	<42B67BEC.1090105@tac.ch> <20050621003441.GI8335@postel.suug.ch>
+	<42B76474.8080209@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
+	Roberto Nibali <ratz@tac.ch>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050620222920.GB23109@obroa-skai.de.gnumonks.org>
+To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
+In-Reply-To: <42B76474.8080209@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,23 +26,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 21 June 2005 00:29, Harald Welte wrote:
-> > while looking at the source of the PPTP conntrack helper,
-> > I noticed the "PPTP_GRE_STREAM_TIMEOUT" is set to 5 days.
-> >
-> > Is there a reason why this timeout is so high?
-> > 5 days is pretty long for a timeout.
->
-> It's set to the same timeout like the TCP ESTABLISHED timeout.
->
-> The main reason being that it is impossible to spoof a connection from
-> one side into that state without appropriate feedback traffic.  The
-> other reason being that nothing in the respective protocol
-> specifications prevent a tunnel (or a tcp session) from being completely
-> idle for an indefinite amount of time before continuing traffic.
->
-> 5 days is the compromise between now and eternity ;)
+Pablo,
 
-Thanks for enlightening me :)
+* Pablo Neira <42B76474.8080209@eurodev.net> 2005-06-21 02:51
+> >ip_conntrack_untracked is put into the conntrack with a refcnt of 2
+> >(+1 during init and +1 while assigning it to nfct). Once the packet
+> >leaves the ip stack we release the first use, when the modules
+> >get unloaded we release the entry again and call destroy() on it
+> >resulting in a overall corruption.
+> 
+> If the module gets unloaded, ip_conntrack_untracked refcount isn't 
+> decreased, it's still 1. So destroy() is never called. In that case it 
+> should be really easy to trigger on my slow laptop ;->.
 
-Thomas
+How do you explain the BUG() being triggered then?
