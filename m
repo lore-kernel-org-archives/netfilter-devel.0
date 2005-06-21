@@ -1,21 +1,18 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] update raw patch in POM
-Date: Tue, 21 Jun 2005 11:08:24 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0506211100290.3687@blackhole.kfki.hu>
-References: <42A57FC4.7010508@tac.ch> <42A5B144.3090005@tac.ch>
-	<42A625DA.7090807@eurodev.net> <42A6AB19.2040106@tac.ch>
-	<42A6E685.3060408@eurodev.net>
-	<42AEF774.8060300@tac.ch> <42B67BEC.1090105@tac.ch>
-	<20050621003441.GI8335@postel.suug.ch>
-	<20050621003930.GJ8335@postel.suug.ch> <42B7B7D8.1050204@tac.ch>
-	<42B7D6E9.5050703@eurodev.net>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: pptp conntrack stream timeout
+Date: Tue, 21 Jun 2005 11:18:17 +0200
+Message-ID: <200506211118.17112.thomas.jarosch@intra2net.com>
+References: <200506201545.14009.thomas.jarosch@intra2net.com>
+	<20050620222920.GB23109@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-	Roberto Nibali <ratz@tac.ch>
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <42B7D6E9.5050703@eurodev.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050620222920.GB23109@obroa-skai.de.gnumonks.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,27 +24,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 21 Jun 2005, Pablo Neira wrote:
-
-> Roberto Nibali wrote:
-> >>Almost forgot: the nf_reset() patch should "fix" this bug. "Fix"
-> >>because it doesn't really fix it but rather hides this issue
-> >>for a later possible revival.
+On Tuesday 21 June 2005 00:29, Harald Welte wrote:
+> > while looking at the source of the PPTP conntrack helper,
+> > I noticed the "PPTP_GRE_STREAM_TIMEOUT" is set to 5 days.
 > >
-> > I thought so, however is there a clean fix which does not involve rewriting the
-> > raw patch? I mean the unconditional nf_reset() is rather intrusive. What about
-> > other netfilter extensions, they could have the same refcnt problem, couldn't they?
+> > Is there a reason why this timeout is so high?
+> > 5 days is pretty long for a timeout.
 >
-> I've started thinking that a better way to fix this would require to
-> review current untracked logic.
+> It's set to the same timeout like the TCP ESTABLISHED timeout.
+>
+> The main reason being that it is impossible to spoof a connection from
+> one side into that state without appropriate feedback traffic.  The
+> other reason being that nothing in the respective protocol
+> specifications prevent a tunnel (or a tcp session) from being completely
+> idle for an indefinite amount of time before continuing traffic.
+>
+> 5 days is the compromise between now and eternity ;)
 
-At the very beginning NOTRACK worked by using a flag in nfcache. However
-that required ugly conditions both in the conntrack and nat core.
+Thanks for enlightening me :)
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Thomas
