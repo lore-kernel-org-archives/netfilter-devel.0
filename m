@@ -1,16 +1,20 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: pptp conntrack stream timeout
-Date: Tue, 21 Jun 2005 00:29:20 +0200
-Message-ID: <20050620222920.GB23109@obroa-skai.de.gnumonks.org>
-References: <200506201545.14009.thomas.jarosch@intra2net.com>
+From: Roberto Nibali <ratz@tac.ch>
+Subject: Re: [PATCH] update raw patch in POM
+Date: Tue, 21 Jun 2005 08:46:48 +0200
+Message-ID: <42B7B7D8.1050204@tac.ch>
+References: <42A57FC4.7010508@tac.ch> <42A5B144.3090005@tac.ch>
+	<42A625DA.7090807@eurodev.net> <42A6AB19.2040106@tac.ch>
+	<42A6E685.3060408@eurodev.net> <42AEF774.8060300@tac.ch>
+	<42B67BEC.1090105@tac.ch> <20050621003441.GI8335@postel.suug.ch>
+	<20050621003930.GJ8335@postel.suug.ch>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gatW/ieO32f1wygP"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Content-Disposition: inline
-In-Reply-To: <200506201545.14009.thomas.jarosch@intra2net.com>
+To: Thomas Graf <tgraf@suug.ch>
+In-Reply-To: <20050621003930.GJ8335@postel.suug.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,52 +26,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+> Almost forgot: the nf_reset() patch should "fix" this bug. "Fix"
+> because it doesn't really fix it but rather hides this issue
+> for a later possible revival.
 
---gatW/ieO32f1wygP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I thought so, however is there a clean fix which does not involve rewriting the
+raw patch? I mean the unconditional nf_reset() is rather intrusive. What about
+other netfilter extensions, they could have the same refcnt problem, couldn't they?
 
-On Mon, Jun 20, 2005 at 03:45:13PM +0200, Thomas Jarosch wrote:
-> Hello Harald,
->=20
-> while looking at the source of the PPTP conntrack helper,
-> I noticed the "PPTP_GRE_STREAM_TIMEOUT" is set to 5 days.
->=20
-> Is there a reason why this timeout is so high?
-> 5 days is pretty long for a timeout.
-
-It's set to the same timeout like the TCP ESTABLISHED timeout.
-
-The main reason being that it is impossible to spoof a connection from
-one side into that state without appropriate feedback traffic.  The
-other reason being that nothing in the respective protocol
-specifications prevent a tunnel (or a tcp session) from being completely
-idle for an indefinite amount of time before continuing traffic.
-
-5 days is the compromise between now and eternity ;)
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---gatW/ieO32f1wygP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFCt0NAXaXGVTD0i/8RArCyAJ9JRd8cbiXSDG5QK59RkPmm35j0nwCgrxSZ
-pNWIMw91up8u3LuX223KPto=
-=hegd
------END PGP SIGNATURE-----
-
---gatW/ieO32f1wygP--
+Cheers,
+Roberto Nibali, ratz
+-- 
+-------------------------------------------------------------
+addr://Rathausgasse 31, CH-5001 Aarau  tel://++41 62 823 9355
+http://www.terreactive.com             fax://++41 62 823 9356
+-------------------------------------------------------------
+terreActive AG                       Wir sichern Ihren Erfolg
+-------------------------------------------------------------
