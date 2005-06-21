@@ -1,16 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 9/7]: Fix ip6t_LOG sit tunnel logging
-Date: Tue, 21 Jun 2005 18:24:53 +0200
-Message-ID: <42B83F55.909@trash.net>
+From: Stephen Jones <hivemynd@hivemynd.net>
+Subject: Re: iptables bug
+Date: Tue, 21 Jun 2005 14:21:48 -0500
+Message-ID: <42B868CC.1010008@hivemynd.net>
+References: <20050619233029.45dd66b8.akpm@osdl.org>	<1119305756l.1344l.0l@werewolf.able.es>	<20050620153445.5daaed4e.akpm@osdl.org>
+	<42B753A8.5050808@trash.net>
 Mime-Version: 1.0
-Content-Type: text/x-patch;
- name="09.diff"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Andrew Morton <akpm@osdl.org>, netdev@vger.kernel.org,
+	"J.A. Magallon" <jamagallon@able.es>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-Content-Disposition: inline;
- filename="09.diff"
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42B753A8.5050808@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,95 +25,71 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Fix ip6t_LOG sit tunnel logging
+Patrick McHardy wrote:
+> Andrew Morton wrote:
+> 
+>>"J.A. Magallon" <jamagallon@able.es> wrote:
+>>
+>>
+>>>Are there any known problems with iptables ?
+> 
+> 
+> No known problems.
+> 
+> 
+>>>I see strange things.
+>>>When I use bittorrent (azureus or bittorrent-gui), at the same time as
+>>>iptables (for nat and internet access for my ibook), when I stop a download
+>>>or exit from one of this apps my external network goes down. 
+>>>I have tried the same without iptables loaded and it works fine.
 
-Sit tunnel logging is currently broken:
+I have observed this behavior on multiple machines, but I don't think it 
+is specifically an iptables "bug" or kernel "bug".  Most of my 
+experience is with 2.4.x kernels, so I can't remark about the 2.6.x series.
 
-MAC=01:23:45:67:89:ab->01:23:45:47:89:ac TUNNEL=123.123.  0.123-> 12.123.  6.123
+The original poster didn't give enough info for me to correlate anything 
+with conviction, but, consulting the tea leaves :D I would venture to 
+guess that the machine that has the network "go down" has less than 128 
+MB of RAM and is probably running lower end NICs (i.e. 8139too).
 
-Apart from the broken IP address, MAC addresses are printed differently
-for sit tunnels than for everything else.
+There appears to be two or three issues interacting with one another in 
+these scenarios:
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+a.) The various Bit Torrent clients and their ilk can generate a 
+staggering number of conncurrent connections.  This can quickly fill the 
+conntracks on machines with little RAM and cause problems.
 
----
-commit 98c724bae08162ce2254bc466c0dbddda2cc3591
-tree 69697640ed2db28c916a552aa303d5910f2b8163
-parent 043f4df110b0be9f82a5ddaeede9be7f7ae4c894
-author Patrick McHardy <kaber@trash.net> Tue, 21 Jun 2005 18:24:04
-committer Patrick McHardy <kaber@trash.net> Tue, 21 Jun 2005 18:24:04
+b.) The lower end nics (either the hardware itself, or the drivers, I 
+don't know enough about how to isolate the two) do not appear to be able 
+to handle the massive number of interrupts that are generated in this 
+scenario.
 
- net/ipv6/netfilter/ip6t_LOG.c |   54 ++++++++++++++---------------------------
- 1 files changed, 19 insertions(+), 35 deletions(-)
+c.) The problem is more likely to manifest on  "fat pipe" connections (6 
+MB +)
 
-diff --git a/net/ipv6/netfilter/ip6t_LOG.c b/net/ipv6/netfilter/ip6t_LOG.c
---- a/net/ipv6/netfilter/ip6t_LOG.c
-+++ b/net/ipv6/netfilter/ip6t_LOG.c
-@@ -366,8 +366,6 @@ ip6t_log_packet(unsigned int hooknum,
- 		const char *level_string,
- 		const char *prefix)
- {
--	struct ipv6hdr *ipv6h = skb->nh.ipv6h;
--
- 	spin_lock_bh(&log_lock);
- 	printk(level_string);
- 	printk("%sIN=%s OUT=%s ",
-@@ -377,39 +375,25 @@ ip6t_log_packet(unsigned int hooknum,
- 	if (in && !out) {
- 		/* MAC logging for input chain only. */
- 		printk("MAC=");
--		if (skb->dev && skb->dev->hard_header_len && skb->mac.raw != (void*)ipv6h) {
--			if (skb->dev->type != ARPHRD_SIT){
--			  int i;
--			  unsigned char *p = skb->mac.raw;
--			  for (i = 0; i < skb->dev->hard_header_len; i++,p++)
--				printk("%02x%c", *p,
--			       		i==skb->dev->hard_header_len - 1
--			       		? ' ':':');
--			} else {
--			  int i;
--			  unsigned char *p = skb->mac.raw;
--			  if ( p - (ETH_ALEN*2+2) > skb->head ){
--			    p -= (ETH_ALEN+2);
--			    for (i = 0; i < (ETH_ALEN); i++,p++)
--				printk("%02x%s", *p,
--					i == ETH_ALEN-1 ? "->" : ":");
--			    p -= (ETH_ALEN*2);
--			    for (i = 0; i < (ETH_ALEN); i++,p++)
--				printk("%02x%c", *p,
--					i == ETH_ALEN-1 ? ' ' : ':');
--			  }
--			  
--			  if ((skb->dev->addr_len == 4) &&
--			      skb->dev->hard_header_len > 20){
--			    printk("TUNNEL=");
--			    p = skb->mac.raw + 12;
--			    for (i = 0; i < 4; i++,p++)
--				printk("%3d%s", *p,
--					i == 3 ? "->" : ".");
--			    for (i = 0; i < 4; i++,p++)
--				printk("%3d%c", *p,
--					i == 3 ? ' ' : '.');
--			  }
-+		if (skb->dev && skb->dev->hard_header_len &&
-+		    skb->mac.raw != skb->nh.raw) {
-+			unsigned char *p = skb->mac.raw;
-+			int i;
-+
-+			if (skb->dev->type == ARPHRD_SIT &&
-+			    (p -= ETH_HLEN) < skb->head)
-+				p = NULL;
-+
-+			if (p != NULL)
-+				for (i = 0; i < skb->dev->hard_header_len; i++)
-+					printk("%02x", p[i]);
-+			printk(" ");
-+
-+			if (skb->dev->type == ARPHRD_SIT) {
-+				struct iphdr *iph = (struct iphdr *)skb->mac.raw;
-+				printk("TUNNEL=%u.%u.%u.%u->%u.%u.%u.%u ",
-+				       NIPQUAD(iph->saddr),
-+				       NIPQUAD(iph->daddr));
- 			}
- 		} else
- 			printk(" ");
+I would also wager the problem goes away if the torrent clients are shut 
+down.
+
+I would look there, if I hade the skills requried to tease out anything 
+useful :D
+
+Various linux based firewall forums have posts describing the same 
+behavior as the OP of this thread.
+
+Here is one relatively recent example:
+
+http://community.smoothwall.org/forum/viewtopic.php?p=43812#43812
+
+I hope that helps in some way!
+
+> 
+> 
+> What exactly do you mean with "network goes down"? Can you find out
+> where the packets disappear? Do they silently disappear, or do you get
+> an error code from sendmsg? What about received packets?
+> 
+> Regards
+> Patrick
+> 
+> 
+> 
