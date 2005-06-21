@@ -1,13 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 8/7]: Drop conntrack reference in
-	ip_call_ra_chain()/ip_mr_input()
-Date: Tue, 21 Jun 2005 17:45:09 +0200
-Message-ID: <42B83605.5020902@trash.net>
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: [PATCH] Fix kernel BUG() with iptree IP set on 2.4
+Date: Tue, 21 Jun 2005 18:04:40 +0200
+Message-ID: <42B83A98.4070909@ingate.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080808060900080006010101"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,61 +19,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080808060900080006010101
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Hi,
 
-Drop reference before handing packets to raw_rcv to avoid module
-unload problems.
+The slab cache in 2.4(.31) uses a fixed length array for slab cache
+names, causing a BUG() in mm/slab.c:kmem_cache_create() to be
+triggered when attempting to create a cache who's name is longer
+than 18 characters. The patch below makes iptree work on 2.4 kernels
+as well:
 
+//Marcus
 
-
---------------080808060900080006010101
-Content-Type: text/x-patch;
- name="08.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="08.diff"
-
-[NETFILTER]: Drop conntrack reference in ip_call_ra_chain()/ip_mr_input()
-
-Drop reference before handing the packets to raw_rcv()
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 043f4df110b0be9f82a5ddaeede9be7f7ae4c894
-tree 52e36aa9adea79ec2201a881abc327aeb870f837
-parent d7edb3501fc521edf0d856d30fd6bad8019ed369
-author Patrick McHardy <kaber@trash.net> Tue, 21 Jun 2005 17:43:58
-committer Patrick McHardy <kaber@trash.net> Tue, 21 Jun 2005 17:43:58
-
- net/ipv4/ip_input.c |    1 +
- net/ipv4/ipmr.c     |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/net/ipv4/ip_input.c b/net/ipv4/ip_input.c
---- a/net/ipv4/ip_input.c
-+++ b/net/ipv4/ip_input.c
-@@ -184,6 +184,7 @@ int ip_call_ra_chain(struct sk_buff *skb
- 					raw_rcv(last, skb2);
- 			}
- 			last = sk;
-+			nf_reset(skb);
- 		}
+--- net/ipv4/netfilter/ip_set_iptree.c	2005/06/21 15:06:15	1.1
++++ net/ipv4/netfilter/ip_set_iptree.c	2005/06/21 15:08:00
+@@ -472,19 +472,19 @@
+ {
+ 	int ret;
+ 	
+-	branch_cachep = kmem_cache_create("ip_set_iptree_branches",
++	branch_cachep = kmem_cache_create("iptree_branches",
+ 				sizeof(struct ip_set_iptreeb),
+ 				0, 0, NULL, NULL);
+ 	if (!branch_cachep) {
+-		printk(KERN_ERR "Unable to create ip_set_iptree_branches slab cache\n");
++		printk(KERN_ERR "Unable to create iptree_branches slab cache\n");
+ 		ret = -ENOMEM;
+ 		goto out;
  	}
- 
-diff --git a/net/ipv4/ipmr.c b/net/ipv4/ipmr.c
---- a/net/ipv4/ipmr.c
-+++ b/net/ipv4/ipmr.c
-@@ -1350,6 +1350,7 @@ int ip_mr_input(struct sk_buff *skb)
- 			     */
- 			    read_lock(&mrt_lock);
- 			    if (mroute_socket) {
-+				    nf_reset(skb);
- 				    raw_rcv(mroute_socket, skb);
- 				    read_unlock(&mrt_lock);
- 				    return 0;
+-	leaf_cachep = kmem_cache_create("ip_set_iptree_leaves",
++	leaf_cachep = kmem_cache_create("iptree_leaves",
+ 				sizeof(struct ip_set_iptreed),
+ 				0, 0, NULL, NULL);
+ 	if (!leaf_cachep) {
+-		printk(KERN_ERR "Unable to create ip_set_iptree_leaves slab cache\n");
++		printk(KERN_ERR "Unable to create iptree_leaves slab cache\n");
+ 		ret = -ENOMEM;
+ 		goto free_branch;
+ 	}
 
---------------080808060900080006010101--
+
+-- 
+---------------------------------------+--------------------------
+  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+ Software Developer, Ingate Systems AB |  http://www.ingate.com/
