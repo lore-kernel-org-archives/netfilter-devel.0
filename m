@@ -1,24 +1,19 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: 2.6.12: connection tracking broken?
-Date: Tue, 21 Jun 2005 07:19:42 +0000
-Message-ID: <1119338382.3390.24.camel@localhost.localdomain>
-References: <E1Dk9nK-0001ww-00@gondolin.me.apana.org.au>
-	<Pine.LNX.4.62.0506200432100.31737@kaber.coreworks.de>
-	<1119249575.3387.3.camel@localhost.localdomain>
-	<42B6B373.20507@trash.net>
-	<1119293193.3381.9.camel@localhost.localdomain>
-	<42B74FC5.3070404@trash.net>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [PATCH] update raw patch in POM
+Date: Tue, 21 Jun 2005 10:59:21 +0200
+Message-ID: <42B7D6E9.5050703@eurodev.net>
+References: <42A57FC4.7010508@tac.ch> <42A5B144.3090005@tac.ch>
+	<42A625DA.7090807@eurodev.net> <42A6AB19.2040106@tac.ch>
+	<42A6E685.3060408@eurodev.net> <42AEF774.8060300@tac.ch>
+	<42B67BEC.1090105@tac.ch> <20050621003441.GI8335@postel.suug.ch>
+	<20050621003930.GJ8335@postel.suug.ch> <42B7B7D8.1050204@tac.ch>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Bart De Schuymer <bdschuym@telenet.be>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org, rankincj@yahoo.com,
-	ebtables-devel@lists.sourceforge.net, netfilter-devel@manty.net
+Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <42B74FC5.3070404@trash.net>
+To: Roberto Nibali <ratz@tac.ch>
+In-Reply-To: <42B7B7D8.1050204@tac.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,37 +25,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Op di, 21-06-2005 te 01:22 +0200, schreef Patrick McHardy:
-> This seems to be a really bad idea, for a single match that violates
-> layering we need to deal with this inconsistency. It's not just the
-> conntrack reference, with IPsec the packet passed to the defered hooks
-> is totally different from when it was still inside IP, which for example
-> breaks the policy match.
-
-I agree it is annoying.
-
-> > Trust me, people will complain if they can no longer use the physdev
-> > match for routed packets.
+Roberto Nibali wrote:
+>>Almost forgot: the nf_reset() patch should "fix" this bug. "Fix"
+>>because it doesn't really fix it but rather hides this issue
+>>for a later possible revival.
 > 
-> I'm sure they will, now that they got used to it. Why can't people
-> match on the bridge port inside ebtables and only match on the device
-> within iptables? Is there a case that can't be handled this way?
+> I thought so, however is there a clean fix which does not involve rewriting the
+> raw patch? I mean the unconditional nf_reset() is rather intrusive. What about
+> other netfilter extensions, they could have the same refcnt problem, couldn't they?
 
-ebtables doesn't have all the targets/matches that iptables has.
-Perhaps a rule structure using marking can always be used so that the
-ACCEPT/DROP can be deferred until inside ebtables, I don't know if that
-will always be possible though.
+I've started thinking that a better way to fix this would require to 
+review current untracked logic.
 
-Deferring the hooks makes the bridge-nf code alot more complicated, so I
-would be glad to get rid of it if it is the right thing to do. But
-backwards compatibility can't be maintained and I'd be surprised if
-every ruleset that now works will still be possible using an
-iptables/ebtables scheme.
-It has worked fine in the past and I see no reason why to stop making it
-work now because of some recently found and unrelated referencing
-problem.
-Of course, if the netfilter people decide it should be removed, then so
-be it.
-
-cheers,
-Bart
+--
+Pablo
