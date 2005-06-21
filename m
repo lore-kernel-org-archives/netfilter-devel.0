@@ -1,19 +1,14 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] update raw patch in POM
-Date: Tue, 21 Jun 2005 02:51:00 +0200
-Message-ID: <42B76474.8080209@eurodev.net>
-References: <42A57FC4.7010508@tac.ch> <42A5B144.3090005@tac.ch>
-	<42A625DA.7090807@eurodev.net> <42A6AB19.2040106@tac.ch>
-	<42A6E685.3060408@eurodev.net> <42AEF774.8060300@tac.ch>
-	<42B67BEC.1090105@tac.ch> <20050621003441.GI8335@postel.suug.ch>
+From: Tobias DiPasquale <codeslinger@gmail.com>
+Subject: Linux 2.6.12/iptables 1.3.1+CLUSTERIP issues
+Date: Mon, 20 Jun 2005 22:04:15 -0400
+Message-ID: <876ef97a0506201904a05582a@mail.gmail.com>
+Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-	Roberto Nibali <ratz@tac.ch>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Graf <tgraf@suug.ch>
-In-Reply-To: <20050621003441.GI8335@postel.suug.ch>
+To: laforge@netfilter.org, nf-devel <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,28 +20,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Thomas,
+Harald et al,
 
-Thomas Graf wrote:
-> :1175 is the BUG above, right? If so it means that we're about to call
-> destroy() on a conntrack entry which is not allocated. I assume it is
-> ip_conntrack_untracked.
-> 
-> My theory is:
-> 
-> ip_conntrack_untracked is put into the conntrack with a refcnt of 2
-> (+1 during init and +1 while assigning it to nfct). Once the packet
-> leaves the ip stack we release the first use, when the modules
-> get unloaded we release the entry again and call destroy() on it
-> resulting in a overall corruption.
+Tonight I installed 2.6.12 and iptables 1.3.1 on my Gentoo box, both
+from pristine sources. Two problems:
 
-If the module gets unloaded, ip_conntrack_untracked refcount isn't 
-decreased, it's still 1. So destroy() is never called. In that case it 
-should be really easy to trigger on my slow laptop ;->.
+1. I had to copy in the ipt_CLUSTERIP.h kernel header from 2.6.12 into
+iptables-1.3.1/include/linux/netfilter_ipv4 for the
+libipt_CLUSTERIP.so library to have to same targinfosize as the kernel
+module. Before that, I was getting the following error:
 
-> The whole notrack thing seems to be a big hack. ;->
+CLUSTERIP: targinfosize 64 !=3D 72
 
-Indeed. A replacement for this is still in the queue of pending things.
+2. I installed this rule just to test things out:
 
---
-Pablo
+iptables -A INPUT -d 192.168.1.3 -i eth0 -p tcp --dport 3000 -j
+CLUSTERIP --new --hashmode sourceip-sourceport --clustermac
+01:23:45:67:89:AB --total-nodes 2 --local-node 1
+
+I then tried to remove it (I didn't update iptables rules again since
+then) by switching the -A to a -D and that failed. I tried all sorts
+of combinations of the arguments to -j CLUSTERIP but they all failed.
+Eventually, I was forced to remove the rule by using the iptables rule
+# (e.g. iptables -D INPUT 10). I feel that this is in error, but I've
+seen at least two patches to CLUSTERIP that claim to fix rule
+deletion. Am I doing something wrong?
+
+Anyway, I'm glad that you can now update the node lists dynamically
+now. This makes it usable. I'm planning on writing a userspace driver
+for this module to make at least the Win2K3 NLB functionality
+available to Linux users.
+
+--=20
+[ Tobias DiPasquale ]
+0x636f6465736c696e67657240676d61696c2e636f6d
