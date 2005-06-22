@@ -1,13 +1,14 @@
-From: Pawel Sikora <pluto@agmk.net>
-Subject: [PATCH] ip6t_REJECT.c vs 2.6.12.
-Date: Wed, 22 Jun 2005 14:06:01 +0200
-Message-ID: <200506221406.01960.pluto@agmk.net>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: New target to control a fake network interface
+Date: Wed, 22 Jun 2005 14:56:08 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0506221455460.25356@yvahk01.tjqt.qr>
+References: <1119319953.4109.59.camel@envy>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_pQVuC6U29lj6mdW"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org,
- Patrick McHardy <kaber@trash.net>
+To: Corey Giovanella <coreygiovanella@challenge-engineering.com>
+In-Reply-To: <1119319953.4109.59.camel@envy>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,50 +20,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_pQVuC6U29lj6mdW
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-Hi,
+>What I have done is written two new kernel modules: a fake network
+>interface module and a new iptables target that remote controls the
 
-In 2.6.12 the net/ipv6.h was changed.
+NTS, there is already a fake interface module: called dummy.ko
 
-(...)
-extern int ipv6_skip_exthdr(const struct sk_buff *, int start,
--                           u8 *nexthdrp, int len);
-+                           u8 *nexthdrp);
+>packet counters on the fake interface.  The fake interface itself, does
+>nothing.
 
-ip6t_REJECT.c needs minor fix.
 
--- 
-The only thing necessary for the triumph of evil
-  is for good men to do nothing.
-                                           - Edmund Burke
-
---Boundary-00=_pQVuC6U29lj6mdW
-Content-Type: text/x-diff;
-  charset="utf-8";
-  name="0.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="0.diff"
-
-Index: ip6t_REJECT.c
-===================================================================
---- ip6t_REJECT.c	(revision 3984)
-+++ ip6t_REJECT.c	(working copy)
-@@ -72,9 +72,7 @@
- 	}
- 
- 	proto = oip6h->nexthdr;
--	tcphoff = ipv6_skip_exthdr(oldskb, ((u8*)(oip6h+1) - oldskb->data),
--				   &proto, oldskb->len - ((u8*)(oip6h+1)
--							  - oldskb->data));
-+	tcphoff = ipv6_skip_exthdr(oldskb, (u8*)(oip6h+1) - oldskb->data, &proto);
- 
- 	if ((tcphoff < 0) || (tcphoff > oldskb->len)) {
- 		DEBUGP("ip6t_REJECT: Can't get TCP header.\n");
-
---Boundary-00=_pQVuC6U29lj6mdW--
+Jan Engelhardt                                                               
+--                                                                            
+| Gesellschaft fuer Wissenschaftliche Datenverarbeitung Goettingen,
+| Am Fassberg, 37077 Goettingen, www.gwdg.de
