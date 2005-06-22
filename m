@@ -1,27 +1,21 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 2.6.12: connection tracking broken?
-Date: Wed, 22 Jun 2005 02:45:49 +0200
-Message-ID: <42B8B4BD.107@trash.net>
-References: <E1Dk9nK-0001ww-00@gondolin.me.apana.org.au>	
-	<Pine.LNX.4.62.0506200432100.31737@kaber.coreworks.de>	
-	<1119249575.3387.3.camel@localhost.localdomain>
-	<42B6B373.20507@trash.net>	
-	<1119293193.3381.9.camel@localhost.localdomain>	
-	<42B74FC5.3070404@trash.net>	
-	<1119338382.3390.24.camel@localhost.localdomain>	
-	<42B82F35.3040909@trash.net>
-	<1119386772.3379.4.camel@localhost.localdomain>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: [PATCH] update raw patch in POM
+Date: Wed, 22 Jun 2005 02:52:43 +0200
+Message-ID: <20050622005243.GQ8335@postel.suug.ch>
+References: <42A6AB19.2040106@tac.ch> <42A6E685.3060408@eurodev.net>
+	<42AEF774.8060300@tac.ch> <42B67BEC.1090105@tac.ch>
+	<20050621003441.GI8335@postel.suug.ch>
+	<42B76474.8080209@eurodev.net>
+	<20050621111328.GK8335@postel.suug.ch> <42B81D75.8090205@trash.net>
+	<20050621215027.GP8335@postel.suug.ch> <42B8B181.4020607@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Bart De Schuymer <bdschuym@telenet.be>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	ebtables-devel@lists.sourceforge.net, netfilter-devel@manty.net,
-	rankincj@yahoo.com
+Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>, Roberto Nibali <ratz@tac.ch>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
-In-Reply-To: <1119386772.3379.4.camel@localhost.localdomain>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <42B8B181.4020607@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -33,25 +27,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Bart De Schuymer wrote:
-> Op di, 21-06-2005 te 17:16 +0200, schreef Patrick McHardy:
+* Patrick McHardy <42B8B181.4020607@trash.net> 2005-06-22 02:32
+> Thomas Graf wrote:'
+> > This patch seems fine but it cannot fix the bug. The fact that we
+> > trigger the BUG() implies a serious problem which is that we'd be
+> > calling destroy() on a conntrack entry which was never allocated.
 > 
->>I unfortunately don't see a way to remove it, but we should keep
->>thinking about it. Can you please check if the attached patch is
->>correct? It should exclude all packets handled by bridge-netfilter
->>from having their conntrack reference dropped. I didn't add nf_reset()'s
->>to the bridging code because with tc actions the packets can end up
->>anywhere else anyway, and this will hopefully get fixed right sometime.
-> 
-> Looks good.
+> Sorry, I didn't follow the entire thread and there seem to be a lot
+> of BUG()s :) Which one exactly are you refering to?
 
-Thanks.
+Roberto added the following to nf_conntrack_put():
 
-> Perhaps a compile time option to disable postponing the hooks would be
-> nice...
+if ((((long) nfct) & 0xf8000000) && atomic_read(&nfct->master->use) <= 1)
+        BUG();
 
-I think we want to reduce the number of possible paths to ideally one,
-not make them a compile-time option.
-
-Regards
-Patrick
+The 0xf8.. really is a hack but it works on x86.
