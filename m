@@ -1,16 +1,16 @@
-From: Unknown <netfilter-devel@demultiplexer.de>
-Subject: RE: auto ip configuration
-Date: Wed, 22 Jun 2005 23:02:36 +0200
-Message-ID: <1119474156.7825.29.camel@notbock>
-References: <57F9959B46E0FA4D8BA88AEDFBE582909EB2@pxtbenexd01.pxt.primeexalia.com>
-Reply-To: netfilter-devel@demultiplexer.de
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: Linux 2.6.12/iptables 1.3.1+CLUSTERIP issues
+Date: Wed, 22 Jun 2005 23:05:29 +0200
+Message-ID: <42B9D299.1080902@eurodev.net>
+References: <876ef97a0506201904a05582a@mail.gmail.com>
+	<20050622121509.GG4551@obroa-skai.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: nf-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------000302090108050508090106"
+Cc: Tobias DiPasquale <codeslinger@gmail.com>,
+	nf-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Gary W. Smith" <gary@primeexalia.com>
-In-Reply-To: <57F9959B46E0FA4D8BA88AEDFBE582909EB2@pxtbenexd01.pxt.primeexalia.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050622121509.GG4551@obroa-skai.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,65 +22,75 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-hi Gary,
+This is a multi-part message in MIME format.
+--------------000302090108050508090106
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-i heard about DHCP, but a lot of people out there does not.
-they haven't any idea of ip. They admins configured they computers
-not to use dhcp but STATIC ip configuration.
-In such a case it would be nice to have a feature like described below.
+Hi Harald,
 
-regards
-jaroslaw
+Harald Welte wrote:
+>>2. I installed this rule just to test things out:
+>>
+>>iptables -A INPUT -d 192.168.1.3 -i eth0 -p tcp --dport 3000 -j
+>>CLUSTERIP --new --hashmode sourceip-sourceport --clustermac
+>>01:23:45:67:89:AB --total-nodes 2 --local-node 1
+>>
+>>I then tried to remove it (I didn't update iptables rules again since
+>>then) by switching the -A to a -D and that failed. I tried all sorts
+>>of combinations of the arguments to -j CLUSTERIP but they all failed.
+>>Eventually, I was forced to remove the rule by using the iptables rule
+>># (e.g. iptables -D INPUT 10). I feel that this is in error, but I've
+>>seen at least two patches to CLUSTERIP that claim to fix rule
+>>deletion. Am I doing something wrong?
 
-Am Mittwoch, den 22.06.2005, 13:55 -0700 schrieb Gary W. Smith:
-> Longshot but I think that it's called DHCP.  Otherwise you would have to change something somewhere each time you plug up your laptop.
->  
-> Gary
-> 
-> ________________________________
-> 
-> From: netfilter-devel-bounces@lists.netfilter.org on behalf of Unknown
-> Sent: Wed 6/22/2005 1:53 PM
-> To: nf-devel
-> Subject: auto ip configuration
-> 
-> 
-> 
-> dear list,
-> 
-> you know about people, which have some static ip configuration on their
-> notebooks. they would like to connect to a smart gateway
-> without the need to change anything.
-> 
-> I would ask you whether this is possible to implement such a gateway
-> using netfilter.
-> 
-> I alredy build a working example with some tools and scripting
-> but it isn't really performant and it have a lot of "design errors".
-> Simple speaking it is a farpd running box, where all incoming requests
-> are logged through the bridging code. The Syslog output is piped
-> into a script and the requested ip is assigned to the lan interface.
-> Evil thing ;-)
-> 
-> I would preffer something like inverse SNAT/MASQUERADE.
-> The difference would be, that:
->         it applys to PREROUTING
->         it does mapping from a big subnet (maybe 0/0) to a singe address or a
-> range of addresses.
-> 
-> The farpd would point all clients to the gateway.
-> Having rp_filter disabled all misconfigured packets incoming on a lan
-> interface would be translated into a valid ip address.
-> Then the usual routing would take place.
-> The response packets would be back-natted into the clients idea of the
-> gateway address.
-> 
-> Would please someone give me a pointer.
-> Am I completly wrong with this?
-> 
-> regards
-> jaroslaw
-> 
-> 
-> 
-> 
+fix-del-with-userspacesize-target.patch:
+
+You still need to apply this patch to iptables, it got lost somehow 
+since I've posted it some time ago. It fixes ipt_CLUSTERIP deletion. To 
+be precise, it fixes rule deletion of targets whose userspace size part 
+differs from the kernel part.
+
+BTW, I forgot if you passed the patch here below (link) to davem? I 
+can't see it in the current git snapshot. got lost as well ?
+
+http://people.netfilter.org/pablo/patches/fixes/kernel/pending/fix-layout-CLUSTERIP.patch
+
+@Tobias: With both patches applied you'll fix your problems with 
+CLUSTERIP rule deletion.
+
+--
+Pablo
+
+--------------000302090108050508090106
+Content-Type: text/x-patch;
+ name="fix-del-with-userspacesize-target.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="fix-del-with-userspacesize-target.patch"
+
+Index: libiptc/libip4tc.c
+===================================================================
+--- libiptc/libip4tc.c	(revision 3742)
++++ libiptc/libip4tc.c	(working copy)
+@@ -210,6 +210,7 @@
+ 	mptr = matchmask + sizeof(STRUCT_ENTRY);
+ 	if (IPT_MATCH_ITERATE(a, match_different, a->elems, b->elems, &mptr))
+ 		return NULL;
++	mptr += IPT_ALIGN(sizeof(struct ipt_entry_target));
+ 
+ 	return mptr;
+ }
+Index: libiptc/libip6tc.c
+===================================================================
+--- libiptc/libip6tc.c	(revision 3742)
++++ libiptc/libip6tc.c	(working copy)
+@@ -242,6 +242,7 @@
+ 	mptr = matchmask + sizeof(STRUCT_ENTRY);
+ 	if (IP6T_MATCH_ITERATE(a, match_different, a->elems, b->elems, &mptr))
+ 		return NULL;
++	mptr += IP6T_ALIGN(sizeof(struct ip6t_entry_target));
+ 
+ 	return mptr;
+ }
+
+--------------000302090108050508090106--
