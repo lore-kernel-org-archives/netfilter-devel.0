@@ -1,16 +1,26 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: Linux 2.6.12/iptables 1.3.1+CLUSTERIP issues
-Date: Wed, 22 Jun 2005 23:05:29 +0200
-Message-ID: <42B9D299.1080902@eurodev.net>
-References: <876ef97a0506201904a05582a@mail.gmail.com>
-	<20050622121509.GG4551@obroa-skai.de.gnumonks.org>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: 2.6.12: connection tracking broken?
+Date: Thu, 23 Jun 2005 07:49:20 +1000
+Message-ID: <20050622214920.GA13519@gondor.apana.org.au>
+References: <E1Dk9nK-0001ww-00@gondolin.me.apana.org.au>
+	<Pine.LNX.4.62.0506200432100.31737@kaber.coreworks.de>
+	<1119249575.3387.3.camel@localhost.localdomain>
+	<42B6B373.20507@trash.net>
+	<1119293193.3381.9.camel@localhost.localdomain>
+	<42B74FC5.3070404@trash.net>
+	<1119338382.3390.24.camel@localhost.localdomain>
+	<42B82F35.3040909@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000302090108050508090106"
-Cc: Tobias DiPasquale <codeslinger@gmail.com>,
-	nf-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Bart De Schuymer <bdschuym@telenet.be>,
+	Bart De Schuymer <bdschuym@pandora.be>,
+	netfilter-devel@manty.net, netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org,
+	ebtables-devel@lists.sourceforge.net, rankincj@yahoo.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050622121509.GG4551@obroa-skai.de.gnumonks.org>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <42B82F35.3040909@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,75 +32,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000302090108050508090106
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+On Tue, Jun 21, 2005 at 05:16:05PM +0200, Patrick McHardy wrote:
+> Bart De Schuymer wrote:
+> > Deferring the hooks makes the bridge-nf code alot more complicated, so I
+> > would be glad to get rid of it if it is the right thing to do. But
+> > backwards compatibility can't be maintained and I'd be surprised if
+> > every ruleset that now works will still be possible using an
+> > iptables/ebtables scheme.
+> 
+> I unfortunately don't see a way to remove it, but we should keep
+> thinking about it. Can you please check if the attached patch is
+> correct? It should exclude all packets handled by bridge-netfilter
+> from having their conntrack reference dropped. I didn't add nf_reset()'s
+> to the bridging code because with tc actions the packets can end up
+> anywhere else anyway, and this will hopefully get fixed right sometime.
 
-Hi Harald,
+I think this patch will be fine for 2.6.12.*.
 
-Harald Welte wrote:
->>2. I installed this rule just to test things out:
->>
->>iptables -A INPUT -d 192.168.1.3 -i eth0 -p tcp --dport 3000 -j
->>CLUSTERIP --new --hashmode sourceip-sourceport --clustermac
->>01:23:45:67:89:AB --total-nodes 2 --local-node 1
->>
->>I then tried to remove it (I didn't update iptables rules again since
->>then) by switching the -A to a -D and that failed. I tried all sorts
->>of combinations of the arguments to -j CLUSTERIP but they all failed.
->>Eventually, I was forced to remove the rule by using the iptables rule
->># (e.g. iptables -D INPUT 10). I feel that this is in error, but I've
->>seen at least two patches to CLUSTERIP that claim to fix rule
->>deletion. Am I doing something wrong?
+Longer term though we should obsolete the ipt_physdev module.  The
+rationale there is that this creates a precedence that we can't
+possibly maintain in a consistent way.  For example, we don't have
+a target that matches by hardware MAC address.  If you wanted to
+do that, you'd hook into the arptables interface rather than deferring
+iptables after the creation of the hardware header.
 
-fix-del-with-userspacesize-target.patch:
+This can be done in two stages to minimise pain for people already
+using it:
 
-You still need to apply this patch to iptables, it got lost somehow 
-since I've posted it some time ago. It fixes ipt_CLUSTERIP deletion. To 
-be precise, it fixes rule deletion of targets whose userspace size part 
-differs from the kernel part.
+1) We rewrite ipt_physdev to do the lookups necessary to get the output
+physical devices through the bridge layer.  Of course this may not be
+the real output device due to changes in the environment.  So this should
+be accompanied with a warning that users should switch to ebt.
 
-BTW, I forgot if you passed the patch here below (link) to davem? I 
-can't see it in the current git snapshot. got lost as well ?
+2) We remove the iptables deferring since ipt_physdev will no longer need
+it.
 
-http://people.netfilter.org/pablo/patches/fixes/kernel/pending/fix-layout-CLUSTERIP.patch
+3) After a set period (say a year or so) we remove ipt_physdev altogether.
 
-@Tobias: With both patches applied you'll fix your problems with 
-CLUSTERIP rule deletion.
-
---
-Pablo
-
---------------000302090108050508090106
-Content-Type: text/x-patch;
- name="fix-del-with-userspacesize-target.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="fix-del-with-userspacesize-target.patch"
-
-Index: libiptc/libip4tc.c
-===================================================================
---- libiptc/libip4tc.c	(revision 3742)
-+++ libiptc/libip4tc.c	(working copy)
-@@ -210,6 +210,7 @@
- 	mptr = matchmask + sizeof(STRUCT_ENTRY);
- 	if (IPT_MATCH_ITERATE(a, match_different, a->elems, b->elems, &mptr))
- 		return NULL;
-+	mptr += IPT_ALIGN(sizeof(struct ipt_entry_target));
- 
- 	return mptr;
- }
-Index: libiptc/libip6tc.c
-===================================================================
---- libiptc/libip6tc.c	(revision 3742)
-+++ libiptc/libip6tc.c	(working copy)
-@@ -242,6 +242,7 @@
- 	mptr = matchmask + sizeof(STRUCT_ENTRY);
- 	if (IP6T_MATCH_ITERATE(a, match_different, a->elems, b->elems, &mptr))
- 		return NULL;
-+	mptr += IP6T_ALIGN(sizeof(struct ip6t_entry_target));
- 
- 	return mptr;
- }
-
---------------000302090108050508090106--
+Cheers,
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
