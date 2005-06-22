@@ -1,22 +1,24 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] update raw patch in POM [2.4.x]
-Date: Wed, 22 Jun 2005 09:04:33 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0506220859360.5627@blackhole.kfki.hu>
-References: <42A57FC4.7010508@tac.ch> <42A5B144.3090005@tac.ch>
-	<42A625DA.7090807@eurodev.net> <42A6AB19.2040106@tac.ch>
-	<42A6E685.3060408@eurodev.net>
-	<42AEF774.8060300@tac.ch> <42B67BEC.1090105@tac.ch>
-	<20050621003441.GI8335@postel.suug.ch>
-	<42B76474.8080209@eurodev.net> <20050621111328.GK8335@postel.suug.ch>
-	<42B81D75.8090205@trash.net> <42B82177.5010101@tac.ch>
-	<42B8288C.9030004@trash.net> <42B82F29.40307@tac.ch>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [RFC] alternative to conntrack ID
+Date: Wed, 22 Jun 2005 10:09:54 +0100
+Message-ID: <42B92AE2.3070004@ufomechanic.net>
+References: <424747E3.7000300@eurodev.net> <4254258E.5000204@eurodev.net>
+	<42627BC4.8070103@trash.net>	<Pine.LNX.4.58.0504290904450.8609@blackhole.kfki.hu>	<20050429080242.GJ9735@sunbeam.de.gnumonks.org>	<42789366.20702@ufomechanic.net>	<4278B23A.7050406@trash.net>
+	<4278B98E.7090707@ufomechanic.net>	<427B8A46.8090006@trash.net>
+	<427D26E7.8060701@ingate.com>	<427D3EAF.3020200@trash.net>
+	<427D41FA.5080506@ingate.com>	<1115648236.25627.17.camel@nienna.balabit>	<428A1807.8070708@ufomechanic.net>
+	<428A5141.20901@trash.net>	<Pine.LNX.4.58.0505180948180.9582@blackhole.kfki.hu>	<42A23EDA.2090307@eurodev.net>
+	<42A24F3B.8050607@eurodev.net>	<Pine.LNX.4.58.0506061017330.16223@blackhole.kfki.hu>	<42A83B96.4050302@eurodev.net>
+	<42A83D72.1000106@eurodev.net>	<Pine.LNX.4.58.0506091519580.7610@blackhole.kfki.hu>	<42A9698F.30909@eurodev.net>	<Pine.LNX.4.58.050
+	<Pine.LNX.4.62.0506140433070.4718@ka
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>, Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Roberto Nibali <ratz@tac.ch>
-In-Reply-To: <42B82F29.40307@tac.ch>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42B6EADF.9040002@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,28 +30,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Roberto,
+Patrick McHardy wrote:
 
-On Tue, 21 Jun 2005, Roberto Nibali wrote:
-
-> > This means we're either leaking conntrack entries or packets holding
-> > a reference are queued somewhere. What do you use NOTRACK for?
+>Amin Azez wrote:
+>  
 >
-> There's a lot of situations (broken customer applications, regarding TCP state
-> transition and timing handling mostly) where we run into major problems using
-> the connection tracking _with_ tcp window tracking (is a must) on top. The
-> ip_conntrack_tcp_be_liberal and ip_conntrack_tcp_loose sysctrl's don't help
-> in those cases. Sometimes we can circumvent window tracking problems using
-> high ip_conntrack_tcp_max_retrans values. Another reason is that we have no
+>>One of my uses for conntrack is for statistics and analysis and to
+>>reduce race conditions in taking actions on a particular conntrack.
+>>
+>>I need some kind of conntrack ID that will be consistent in the medium
+>>term accross different conntrack manipulations
+>>    
+>>
+>
+>That is why I've always argued in favour of the ID. Since its needed for
+>other reasons too, I suggest to just keep it and get on.
+>  
+>
+Err... the current problem is that the conntrack id _may_ be re-used 
+within milli-seconds?
+I was trying to find a safe conntrack id.
 
-Are you running a recent kernel from the 2.6 tree? A lot of improvements
-had been submitted in in spring and since then I have practically not
-received any reports on window tracking problems.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Amin
