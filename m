@@ -1,15 +1,13 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH 2.6] ipt_CLUSTERIP: fix ARP mangling
-Date: Wed, 22 Jun 2005 12:43:41 -0700 (PDT)
-Message-ID: <20050622.124341.95064256.davem@davemloft.net>
-References: <20050622122902.GI4551@obroa-skai.de.gnumonks.org>
+From: Unknown <netfilter-devel@demultiplexer.de>
+Subject: auto ip configuration
+Date: Wed, 22 Jun 2005 22:53:00 +0200
+Message-ID: <1119473580.7825.25.camel@notbock>
+Reply-To: netfilter-devel@demultiplexer.de
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20050622122902.GI4551@obroa-skai.de.gnumonks.org>
+To: nf-devel <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,26 +19,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Wed, 22 Jun 2005 14:29:02 +0200
+dear list,
 
-> Hi Dave, please apply!
-> 
-> The patch below adds mangling of ARP requests (in addition to replies),
-> since ARP caches are made from snooping both requests and replies.
-> 
-> Signed-off-by: Harald Welte <laforge@netfilter.org>
+you know about people, which have some static ip configuration on their
+notebooks. they would like to connect to a smart gateway
+without the need to change anything. 
 
-1) Please use my correct email address, davem@davemloft.net
+I would ask you whether this is possible to implement such a gateway
+using netfilter.
 
-2) Patch does not apply, because of the patches that went into
-   2.6.x yesterday from Patrick McHardy which removed all the
-   lockhelp stuff.
+I alredy build a working example with some tools and scripting
+but it isn't really performant and it have a lot of "design errors".
+Simple speaking it is a farpd running box, where all incoming requests
+are logged through the bridging code. The Syslog output is piped
+into a script and the requested ip is assigned to the lan interface.
+Evil thing ;-)
 
-Please prepare your patches against current upstream, use GIT if
-possible.  This is especially important during times like this where
-there are lots of networking patches going in every day to Linus's
-tree.  Every patch that doesn't apply cleanly makes lots of extra
-work for me.
+I would preffer something like inverse SNAT/MASQUERADE.
+The difference would be, that:
+	it applys to PREROUTING
+	it does mapping from a big subnet (maybe 0/0) to a singe address or a
+range of addresses.
 
-Thanks.
+The farpd would point all clients to the gateway.
+Having rp_filter disabled all misconfigured packets incoming on a lan
+interface would be translated into a valid ip address.
+Then the usual routing would take place.
+The response packets would be back-natted into the clients idea of the
+gateway address.
+
+Would please someone give me a pointer.
+Am I completly wrong with this?
+
+regards
+jaroslaw
