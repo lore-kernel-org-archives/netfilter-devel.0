@@ -1,14 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2.6] ipt_CLUSTERIP: fix ARP mangling
-Date: Wed, 22 Jun 2005 14:29:02 +0200
-Message-ID: <20050622122902.GI4551@obroa-skai.de.gnumonks.org>
+Subject: Re: Linux 2.6.12/iptables 1.3.1+CLUSTERIP issues
+Date: Wed, 22 Jun 2005 14:15:10 +0200
+Message-ID: <20050622121509.GG4551@obroa-skai.de.gnumonks.org>
+References: <876ef97a0506201904a05582a@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BEa57a89OpeoUzGD"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="82evfD9Ogz2JrdWZ"
+Cc: nf-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David Miller <davem@redhat.com>
+To: Tobias DiPasquale <codeslinger@gmail.com>
 Content-Disposition: inline
+In-Reply-To: <876ef97a0506201904a05582a@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,47 +23,54 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---BEa57a89OpeoUzGD
+--82evfD9Ogz2JrdWZ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Dave, please apply!
+On Mon, Jun 20, 2005 at 10:04:15PM -0400, Tobias DiPasquale wrote:
+> Harald et al,
+>=20
+> Tonight I installed 2.6.12 and iptables 1.3.1 on my Gentoo box, both
+> from pristine sources. Two problems:
+>=20
+> 1. I had to copy in the ipt_CLUSTERIP.h kernel header from 2.6.12 into
+> iptables-1.3.1/include/linux/netfilter_ipv4 for the
+> libipt_CLUSTERIP.so library to have to same targinfosize as the kernel
+> module. Before that, I was getting the following error:
 
-The patch below adds mangling of ARP requests (in addition to replies),
-since ARP caches are made from snooping both requests and replies.
+this should never happen.  iptables always prefers
+$KERNEL_DIR/include/linux/netfilter_ipv4 above its local copy.  Are you
+sure KERNEL_DIR was set correctly while compiling iptables?
 
-Signed-off-by: Harald Welte <laforge@netfilter.org>
 
-Index: linux-2.6.12-ctnl/net/ipv4/netfilter/ipt_CLUSTERIP.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux-2.6.12-ctnl.orig/net/ipv4/netfilter/ipt_CLUSTERIP.c	2005-03-02 08=
-:37:48.000000000 +0100
-+++ linux-2.6.12-ctnl/net/ipv4/netfilter/ipt_CLUSTERIP.c	2005-06-22 14:23:2=
-4.000000000 +0200
-@@ -31,7 +31,7 @@
- #include <linux/netfilter_ipv4/ip_conntrack.h>
- #include <linux/netfilter_ipv4/lockhelp.h>
-=20
--#define CLUSTERIP_VERSION "0.6"
-+#define CLUSTERIP_VERSION "0.7"
-=20
- #define DEBUG_CLUSTERIP
-=20
-@@ -523,8 +523,9 @@
- 	    || arp->ar_pln !=3D 4 || arp->ar_hln !=3D ETH_ALEN)
- 		return NF_ACCEPT;
-=20
--	/* we only want to mangle arp replies */
--	if (arp->ar_op !=3D htons(ARPOP_REPLY))
-+	/* we only want to mangle arp requests and replies */
-+	if (arp->ar_op !=3D htons(ARPOP_REPLY)
-+	    && arp->ar_op !=3D htons(ARPOP_REQUEST))
- 		return NF_ACCEPT;
-=20
- 	payload =3D (void *)(arp+1);
+> 2. I installed this rule just to test things out:
+>=20
+> iptables -A INPUT -d 192.168.1.3 -i eth0 -p tcp --dport 3000 -j
+> CLUSTERIP --new --hashmode sourceip-sourceport --clustermac
+> 01:23:45:67:89:AB --total-nodes 2 --local-node 1
+>=20
+> I then tried to remove it (I didn't update iptables rules again since
+> then) by switching the -A to a -D and that failed. I tried all sorts
+> of combinations of the arguments to -j CLUSTERIP but they all failed.
+> Eventually, I was forced to remove the rule by using the iptables rule
+> # (e.g. iptables -D INPUT 10). I feel that this is in error, but I've
+> seen at least two patches to CLUSTERIP that claim to fix rule
+> deletion. Am I doing something wrong?
+
+it is an error.  I will investigate any patches / fixes that have been
+sent to the list.
+
+> Anyway, I'm glad that you can now update the node lists dynamically
+> now. This makes it usable.=20
+
+At which point was this not possible?  Or am I missing something?
+
+> I'm planning on writing a userspace driver for this module to make at
+> least the Win2K3 NLB functionality available to Linux users.
+
+I am not familiar with that functionality, can you give me a pointer?
+
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -72,7 +81,7 @@ Index: linux-2.6.12-ctnl/net/ipv4/netfilter/ipt_CLUSTERIP.c
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---BEa57a89OpeoUzGD
+--82evfD9Ogz2JrdWZ
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -80,9 +89,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFCuVmOXaXGVTD0i/8RAg7rAJ9TLmosXoEJlBOGQdVm77hTK+7xcgCdHeLk
-R7N9Dyq79r5BF2IUpbpxugY=
-=vyJ2
+iD8DBQFCuVZNXaXGVTD0i/8RArvUAJ9ORLbPWWwm8yxuzL6bT2/64kIWXACgn1KG
+ZBQC3iKwMG5tG8aGWvjIWaY=
+=cWEC
 -----END PGP SIGNATURE-----
 
---BEa57a89OpeoUzGD--
+--82evfD9Ogz2JrdWZ--
