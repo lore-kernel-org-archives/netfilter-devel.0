@@ -1,21 +1,14 @@
-From: Roberto Nibali <ratz@tac.ch>
-Subject: Re: [PATCH] update raw patch in POM
-Date: Wed, 22 Jun 2005 07:48:31 +0200
-Message-ID: <42B8FBAF.1040108@tac.ch>
-References: <42A6AB19.2040106@tac.ch>
-	<42A6E685.3060408@eurodev.net>	<42AEF774.8060300@tac.ch>
-	<42B67BEC.1090105@tac.ch>	<20050621003441.GI8335@postel.suug.ch>	<42B76474.8080209@eurodev.net>	<20050621111328.GK8335@postel.suug.ch>
-	<42B81D75.8090205@trash.net>	<20050621215027.GP8335@postel.suug.ch>
-	<42B8B181.4020607@trash.net>	<20050622005243.GQ8335@postel.suug.ch>	<42B8DA09.9080406@eurodev.net>
-	<42B8E141.1080902@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Valid netmasks for nethash type IP sets?
+Date: Wed, 22 Jun 2005 08:40:22 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0506220832090.5627@blackhole.kfki.hu>
+References: <42B822D0.9040401@ingate.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <42B8E141.1080902@trash.net>
+To: Marcus Sundberg <marcus@ingate.com>
+In-Reply-To: <42B822D0.9040401@ingate.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,31 +20,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
->>>if ((((long) nfct) & 0xf8000000) && atomic_read(&nfct->master->use) <= 1)
->>>        BUG();
->>
->>
->>I don't consider reliable such BUG() triggered since I see this as a
->>tricky race condition. AFAICS, the skbuff still enqueued holds a pointer
->>to an invalid address that doesn't store ip_conntrack_untracked anymore,
->>instead it points to something different, say the .bss section of
->>another module reloaded which isn't the ip_conntrack module. Roberto's
->>recipe requires module removal and reload in a very short space of time
->>and I can't assure that those modules are installed and removed in the
->>same order.
-> 
-> 
-> I agree, let's track down the untracked-missing-references first, then
-> see if any problems remain.
+On Tue, 21 Jun 2005, Marcus Sundberg wrote:
 
-I'm on it, results should be available shortly.
+> is there any particular implementation detail behind the reason why
+> the nethash set rejects the special case of /32 and /0 ? I would find
+> it quite convenient if the nethash set was able to store "networks"
+> consisting of a single address as well as the "everything" network.
 
-Regards,
-Roberto Nibal, ratz
--- 
--------------------------------------------------------------
-addr://Rathausgasse 31, CH-5001 Aarau  tel://++41 62 823 9355
-http://www.terreactive.com             fax://++41 62 823 9356
--------------------------------------------------------------
-terreActive AG                       Wir sichern Ihren Erfolg
--------------------------------------------------------------
+/0 (or 0) cannot be stored in any ipset type because zero value means
+"element not set". /32 cannot be stored in nethash due to the packing
+algorithm: with the chosen method it was possible to store the network
+address and netmask value together just in 32 bits. And for single
+addresses you can use iphash anytime.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
