@@ -1,19 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Linux 2.6.12/iptables 1.3.1+CLUSTERIP issues
-Date: Thu, 23 Jun 2005 10:38:31 +0200
-Message-ID: <20050623083831.GV4551@obroa-skai.de.gnumonks.org>
-References: <876ef97a0506201904a05582a@mail.gmail.com>
-	<20050622121509.GG4551@obroa-skai.de.gnumonks.org>
-	<42B9D299.1080902@eurodev.net>
+Subject: Re: [PATCH 2.6] ipt_CLUSTERIP: fix ARP mangling
+Date: Thu, 23 Jun 2005 10:34:16 +0200
+Message-ID: <20050623083416.GU4551@obroa-skai.de.gnumonks.org>
+References: <20050622122902.GI4551@obroa-skai.de.gnumonks.org>
+	<20050622.124341.95064256.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BlkQeOBdElZ1aiuH"
-Cc: Tobias DiPasquale <codeslinger@gmail.com>,
-	nf-devel <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="0iexB5Bk8cF8G6DP"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
+To: "David S. Miller" <davem@davemloft.net>
 Content-Disposition: inline
-In-Reply-To: <42B9D299.1080902@eurodev.net>
+In-Reply-To: <20050622.124341.95064256.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,40 +24,31 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---BlkQeOBdElZ1aiuH
+--0iexB5Bk8cF8G6DP
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jun 22, 2005 at 11:05:29PM +0200, Pablo Neira wrote:
-> Hi Harald,
->=20
-> Harald Welte wrote:
-> >>2. I installed this rule just to test things out:
-> >>
-> >>iptables -A INPUT -d 192.168.1.3 -i eth0 -p tcp --dport 3000 -j
-> >>CLUSTERIP --new --hashmode sourceip-sourceport --clustermac
-> >>01:23:45:67:89:AB --total-nodes 2 --local-node 1
-> >>
-> >>I then tried to remove it (I didn't update iptables rules again since
-> >>then) by switching the -A to a -D and that failed. I tried all sorts
-> >>of combinations of the arguments to -j CLUSTERIP but they all failed.
-> >>Eventually, I was forced to remove the rule by using the iptables rule
-> >># (e.g. iptables -D INPUT 10). I feel that this is in error, but I've
-> >>seen at least two patches to CLUSTERIP that claim to fix rule
-> >>deletion. Am I doing something wrong?
->=20
-> fix-del-with-userspacesize-target.patch:
+On Wed, Jun 22, 2005 at 12:43:41PM -0700, David S. Miller wrote:
+> 1) Please use my correct email address, davem@davemloft.net
 
-thanks, Committed revision 3989.
+I'm currently travelling, an my notebook's 'aliases' file apparently
+still had the old alias.  fixed now.
 
+> 2) Patch does not apply, because of the patches that went into
+>    2.6.x yesterday from Patrick McHardy which removed all the
+>    lockhelp stuff.
 
-> http://people.netfilter.org/pablo/patches/fixes/kernel/pending/fix-layout=
--CLUSTERIP.patch
+Thanks, I only read about his patches after sending my fix.  Also due to
+travelling, I had very limited connectivity [1] and=20
 
-yes, I re-sent it yesterday.
+> tree.  Every patch that doesn't apply cleanly makes lots of extra
+> work for me.
 
+Sorry.  I'll re-send a fixed version soon.
 
+[1] http://gnumonks.org/~laforge/weblog/2005/06/22#20050622-network-at-linu=
+xtag
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -70,7 +59,7 @@ yes, I re-sent it yesterday.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---BlkQeOBdElZ1aiuH
+--0iexB5Bk8cF8G6DP
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -78,9 +67,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFCunUHXaXGVTD0i/8RAvbrAKCRt5PRJjDTUSw+fap4EJl0cR+otwCfeONQ
-MgSy44u2TkGjCddpXkCZ3tM=
-=5eUY
+iD8DBQFCunQHXaXGVTD0i/8RAgu9AJsEAE9WXWEXTK74WfzPNDJNNOzuNgCfXYlK
+XRspjZGztCX5MBhC1o3HFTE=
+=bh+X
 -----END PGP SIGNATURE-----
 
---BlkQeOBdElZ1aiuH--
+--0iexB5Bk8cF8G6DP--
