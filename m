@@ -1,14 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Linux 2.6.12 REDIRECT bug?
-Date: Thu, 23 Jun 2005 14:29:09 +0200 (CEST)
-Message-ID: <Pine.LNX.4.62.0506231428220.3964@kaber.coreworks.de>
-References: <42B956F7.8080704@freesurf.fr>
+From: Unknown <netfilter-devel@demultiplexer.de>
+Subject: Re: auto ip configuration
+Date: Thu, 23 Jun 2005 15:16:20 +0200
+Message-ID: <1119532580.6911.18.camel@notbock>
+References: <1119473580.7825.25.camel@notbock>
+Reply-To: netfilter-devel@demultiplexer.de
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="279739137-478399739-1119529749=:3964"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Bradley King <bking@freesurf.fr>
-In-Reply-To: <42B956F7.8080704@freesurf.fr>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <1119473580.7825.25.camel@notbock>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,49 +21,61 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+hello,
 
---279739137-478399739-1119529749=:3964
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+please could you developer have a look at the description below
+and tell whethet there is the way to make it?
 
-On Wed, 22 Jun 2005, Bradley King wrote:
+example scenario:
 
-> [1.] One line summary of the problem:
-> the iptables REDIRECT kernel module seems to fail with kernel 2.6.12
->
-> [2.] Full description of the problem/report:
-> Have been running previous 2.6.x versions w/o problems A command like:
-> iptables -t nat -A PREROUTING -i br0  -p tcp --dport 80 -j REDIRECT --to-port 
-> 8080
-> (used to redirect intranet traffic through a NAT/MASQUERADE firewall short 
-> circuits traffic (port 8080 see's no activity at all)
-> I tried DNAT with the same results
-> Note that the inferface is a bridge interface with an Ethernet and Wifi 
-> interface bridged togeter
+client host-------------------gateway--------------------internet
+10.0.0.1-----------192.168.0.1_______213.39.239.123-------------->>>
 
-Does this patch help?
+It would be nice to have a iptables Target acting like SNAT/MASQUERADE
+but in the PREROUTING table doing the inverse job.
+The goal shoud be to translate not valid ip-addresses into valid local
+address space, so user not being able to change their ip-setting could
+surf the net.
 
-Regards
-Patrick
+I am not experienced in kernel hacking so i would preffer to donate for
+your work if it is something no one would have but me.
 
---279739137-478399739-1119529749=:3964
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=diff
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.62.0506231429090.3964@kaber.coreworks.de>
-Content-Description: 
-Content-Disposition: attachment; filename=diff
+thanks in advance
+jaroslaw
 
-ZGlmZiAtLWdpdCBhL25ldC9pcHY0L2lwX291dHB1dC5jIGIvbmV0L2lwdjQv
-aXBfb3V0cHV0LmMNCi0tLSBhL25ldC9pcHY0L2lwX291dHB1dC5jDQorKysg
-Yi9uZXQvaXB2NC9pcF9vdXRwdXQuYw0KQEAgLTE4OCw3ICsxODgsMTIgQEAg
-c3RhdGljIGlubGluZSBpbnQgaXBfZmluaXNoX291dHB1dDIoc3RydQ0KIAkJ
-c2tiID0gc2tiMjsNCiAJfQ0KIA0KLQluZl9yZXNldChza2IpOw0KKyNpZmRl
-ZiBDT05GSUdfQlJJREdFX05FVEZJTFRFUg0KKwkvKiBicmlkZ2UtbmV0Zmls
-dGVyIGRlZmVycyBjYWxsaW5nIHNvbWUgSVAgaG9va3MgdG8gdGhlIGJyaWRn
-ZSBsYXllciBhbmQNCisJICogc3RpbGwgbmVlZHMgdGhlIGNvbm50cmFjayBy
-ZWZlcmVuY2UgKi8NCisJaWYgKHNrYi0+bmZfYnJpZGdlID09IE5VTEwpDQor
-I2VuZGlmDQorCQluZl9yZXNldChza2IpOw0KIA0KIAlpZiAoaGgpIHsNCiAJ
-CWludCBoaF9hbGVuOw0K
 
---279739137-478399739-1119529749=:3964--
+> dear list,
+> 
+> you know about people, which have some static ip configuration on their
+> notebooks. they would like to connect to a smart gateway
+> without the need to change anything. 
+> 
+> I would ask you whether this is possible to implement such a gateway
+> using netfilter.
+> 
+> I alredy build a working example with some tools and scripting
+> but it isn't really performant and it have a lot of "design errors".
+> Simple speaking it is a farpd running box, where all incoming requests
+> are logged through the bridging code. The Syslog output is piped
+> into a script and the requested ip is assigned to the lan interface.
+> Evil thing ;-)
+> 
+> I would preffer something like inverse SNAT/MASQUERADE.
+> The difference would be, that:
+> 	it applys to PREROUTING
+> 	it does mapping from a big subnet (maybe 0/0) to a singe address or a
+> range of addresses.
+> 
+> The farpd would point all clients to the gateway.
+> Having rp_filter disabled all misconfigured packets incoming on a lan
+> interface would be translated into a valid ip address.
+> Then the usual routing would take place.
+> The response packets would be back-natted into the clients idea of the
+> gateway address.
+> 
+> Would please someone give me a pointer.
+> Am I completly wrong with this?
+> 
+> regards
+> jaroslaw
+> 
