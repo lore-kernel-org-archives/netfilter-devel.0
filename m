@@ -1,20 +1,20 @@
-From: Tobias DiPasquale <codeslinger@gmail.com>
-Subject: Re: Linux 2.6.12/iptables 1.3.1+CLUSTERIP issues
-Date: Wed, 22 Jun 2005 19:27:18 -0400
-Message-ID: <876ef97a05062216273a613d8c@mail.gmail.com>
-References: <876ef97a0506201904a05582a@mail.gmail.com>
-	<20050622121509.GG4551@obroa-skai.de.gnumonks.org>
-	<42B9D299.1080902@eurodev.net>
-Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
+Subject: Re: 2.6.12: connection tracking broken?
+Date: Thu, 23 Jun 2005 02:02:33 +0200
+Message-ID: <42B9FC19.2000604@gmx.net>
+References: <E1Dk9nK-0001ww-00@gondolin.me.apana.org.au>	<Pine.LNX.4.62.0506200432100.31737@kaber.coreworks.de>	<1119249575.3387.3.camel@localhost.localdomain>	<42B6B373.20507@trash.net>	<1119293193.3381.9.camel@localhost.localdomain>	<42B74FC5.3070404@trash.net>	<1119338382.3390.24.camel@localhost.localdomain>	<42B82F35.3040909@trash.net>
+	<20050622214920.GA13519@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: Harald Welte <laforge@netfilter.org>,
-	nf-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Bart De Schuymer <bdschuym@telenet.be>,
+	Bart De Schuymer <bdschuym@pandora.be>,
+	netfilter-devel@manty.net, netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org, ebtables-devel@lists.sourceforge.net,
+	Patrick McHardy <kaber@trash.net>, rankincj@yahoo.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <42B9D299.1080902@eurodev.net>
-Content-Disposition: inline
+To: Herbert Xu <herbert@gondor.apana.org.au>
+In-Reply-To: <20050622214920.GA13519@gondor.apana.org.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,37 +26,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 6/22/05, Pablo Neira <pablo@eurodev.net> wrote:
-> >>iptables -A INPUT -d 192.168.1.3 -i eth0 -p tcp --dport 3000 -j
-> >>CLUSTERIP --new --hashmode sourceip-sourceport --clustermac
-> >>01:23:45:67:89:AB --total-nodes 2 --local-node 1
-> >>
-> >>I then tried to remove it (I didn't update iptables rules again since
-> >>then) by switching the -A to a -D and that failed. I tried all sorts
-> >>of combinations of the arguments to -j CLUSTERIP but they all failed.
-> >>Eventually, I was forced to remove the rule by using the iptables rule
-> >># (e.g. iptables -D INPUT 10). I feel that this is in error, but I've
-> >>seen at least two patches to CLUSTERIP that claim to fix rule
-> >>deletion. Am I doing something wrong?
->=20
-> fix-del-with-userspacesize-target.patch:
->=20
-> You still need to apply this patch to iptables, it got lost somehow
-> since I've posted it some time ago. It fixes ipt_CLUSTERIP deletion. To
-> be precise, it fixes rule deletion of targets whose userspace size part
-> differs from the kernel part.
->=20
-> BTW, I forgot if you passed the patch here below (link) to davem? I
-> can't see it in the current git snapshot. got lost as well ?
->=20
-> http://people.netfilter.org/pablo/patches/fixes/kernel/pending/fix-layout=
--CLUSTERIP.patch
->=20
-> @Tobias: With both patches applied you'll fix your problems with
-> CLUSTERIP rule deletion.
+Herbert Xu schrieb:
+> 
+> Longer term though we should obsolete the ipt_physdev module.  The
+> rationale there is that this creates a precedence that we can't
+> possibly maintain in a consistent way.  For example, we don't have
+> a target that matches by hardware MAC address.  If you wanted to
+> do that, you'd hook into the arptables interface rather than deferring
+> iptables after the creation of the hardware header.
+> 
+> This can be done in two stages to minimise pain for people already
+> using it:
+> 
+> 1) We rewrite ipt_physdev to do the lookups necessary to get the output
+> physical devices through the bridge layer.  Of course this may not be
+> the real output device due to changes in the environment.  So this should
+> be accompanied with a warning that users should switch to ebt.
+> 
+> 2) We remove the iptables deferring since ipt_physdev will no longer need
+> it.
+> 
+> 3) After a set period (say a year or so) we remove ipt_physdev altogether.
 
-This did indeed fix both issues that I was having. Thanks, Pablo!
+For my local setup it is already a minor PITA that there is no tool
+combining the functionality of arptables, ebtables and iptables, but
+I can cope with the help of marking and ipt_physdev. If that doesn't
+work reliably anymore, I'll be stuck.
 
---=20
-[ Tobias DiPasquale ]
-0x636f6465736c696e67657240676d61696c2e636f6d
+Wasn't someone working on a unified framework for *tables? IIRC that
+would have been pkttables, but Harald(?) said there was not much
+code there yet.
+
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
