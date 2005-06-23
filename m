@@ -1,29 +1,31 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: 2.6.12: connection tracking broken?
-Date: Thu, 23 Jun 2005 12:49:51 -0700 (PDT)
-Message-ID: <20050623.124951.130237121.davem@davemloft.net>
-References: <20050622225816.97752.qmail@web52903.mail.yahoo.com>
-	<42BAF48E.70309@trash.net>
+From: Tobias DiPasquale <codeslinger@gmail.com>
+Subject: CLUSTERIP and ProxyARP?
+Date: Thu, 23 Jun 2005 18:36:08 -0400
+Message-ID: <876ef97a0506231536656b269b@mail.gmail.com>
+Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: rankincj@yahoo.com, chrisw@osdl.org, bdschuym@pandora.be,
-	bdschuym@telenet.be, herbert@gondor.apana.org.au,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	ebtables-devel@lists.sourceforge.net, netfilter-devel@manty.net
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262917AbVFWUBM@vger.kernel.org>
-To: kaber@trash.net
-In-Reply-To: <42BAF48E.70309@trash.net>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: nf-devel <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 23 Jun 2005 19:42:38 +0200
+Hi all,
 
-> Thanks Chris. Dave, did you get the patches or do you want me to send
-> them again?
+Does anyone know if ipt_CLUSTERIP and ProxyARP will work correctly
+together on a current Linux kernel? Anything special to watch out for?
+TIA :)
 
-I have the patch, can you give me a nice changelog entry
-for it?
-
-Thanks.
+--=20
+[ Tobias DiPasquale ]
+0x636f6465736c696e67657240676d61696c2e636f6d
