@@ -1,16 +1,16 @@
 From: Corey Giovanella <coreygiovanella@challenge-engineering.com>
 Subject: Re: New target to control a fake network interface
-Date: Fri, 24 Jun 2005 04:12:11 +0000
-Message-ID: <1119586331.8210.81.camel@envy>
+Date: Fri, 24 Jun 2005 04:12:01 +0000
+Message-ID: <1119586321.8230.80.camel@envy>
 References: <1119319953.4109.59.camel@envy>
-	<20050622120031.GD4551@obroa-skai.de.gnumonks.org>
+	<8C06C084907746238C329ABC@[10.0.0.14]>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050622120031.GD4551@obroa-skai.de.gnumonks.org>
+To: Kenneth Porter <shiva@sewingwitch.com>
+In-Reply-To: <8C06C084907746238C329ABC@[10.0.0.14]>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,40 +22,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+> You're echoing iptables packet counts into a fake interface to make it 
+> available to an existing graphical monitor application. The app has a 
+> plugin system, so wouldn't it be better to write an iptables plugin for it? 
 
-> mh.  I'm not sure whether I like this idea (cool hack) or whether I'd
-> rather say: Fix the userspace programs.
-> 
-> I think I have a general tendency towards the 'cool hack' side ;)
-> 
+Yes, you are quite possibly right.  If my only concern was gkreallm a
+plugging would probably have been better.  One reason I did it this way
+was to do some kernel level programing, and to play around with
+iptables.  Also, this seems like a much more general solution that could
+be used for other things and in other apps if someone wanted to.  for
+example, it works with ifconfig.
 
-Yes, I would say it is a 'cool hack' rather then a good solution.  I
-would actually describe this as a hack solution to a personal minor
-annoyance.
+> What's the advantage of copying the counters to another kernel object?
 
-> well, I would rather say it's interesting for DROP'ed packets.  This way
-> you can see how much of your current inbound (or outbound) traffic gets
-> dropped..
+I'm not sure if you are asking why I wrote this as two modules or
+something else.  I'm pretty sure I could have made it all into one
+kernel module.  At the time I just thought that would have made life a
+bit more difficult and complicated to make it one module.
 
-yes, that would be neat.
+> The fake interface is an interesting object but maybe not the best solution 
+> for this particular problem.
 
-> I haven't yet looked at the code, since I'm currently travelling and
-> have only offline email access.  Consider this as a general call: "mail
-> all code in plain text to this list rather than sending URL's".
+I agree, it's probably not the best if the problem was just with
+gkrellm.  A gkrellm plugin would have been much better.  I went the way
+I did for the reasons mentioned above.
 
-I wasn't quite sure if I should include the code in my original message
-or not and couldn't find anything about how to go about making new
-announcements.  Most people seem to be sending in patches or single
-files from what I've seen (though I haven't been paying close
-attention).  I made the URL choice for a few reasons.  One of the main
-ones being I really don't think many people will be interested in this.
-I just didn't feel like sending all the people on this list code they
-most likely wouldn't be interested in.
+> Given a general iptables plugin, this would make a good replacement for 
+> ntop as a packet-counting protocol analyzer. I find ntop (which uses 
+> libpcap) a bit "heavyweight" for just counting packets, as it also does 
+> deep analysis of their content and hence uses a fair amount of memory and 
+> CPU. (ntop also exposes the data via web interface, which is nice for 
+> non-Linux clients.)
 
-If you like I could mail the tar.gz out to the list now.  Just let me
-know.
-
-Thanks for the feedback.
+Thank you for the feedback.
 -- 
 Corey Giovanella <coreygiovanella@challenge-engineering.com>
 www.challenge-engineering.com/~corey/
