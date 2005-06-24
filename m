@@ -1,31 +1,36 @@
-From: Tobias DiPasquale <codeslinger@gmail.com>
-Subject: CLUSTERIP and ProxyARP?
-Date: Thu, 23 Jun 2005 18:36:08 -0400
-Message-ID: <876ef97a0506231536656b269b@mail.gmail.com>
-Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: 2.6.12: connection tracking broken?
+Date: Fri, 24 Jun 2005 10:39:08 +0200
+Message-ID: <42BBC6AC.9010704@trash.net>
+References: <20050622225816.97752.qmail@web52903.mail.yahoo.com>	<42BAF48E.70309@trash.net> <20050623.124951.130237121.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: nf-devel <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: rankincj@yahoo.com, chrisw@osdl.org, bdschuym@pandora.be,
+	bdschuym@telenet.be, herbert@gondor.apana.org.au,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	ebtables-devel@lists.sourceforge.net, netfilter-devel@manty.net
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262606AbVFXIkr@vger.kernel.org>
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20050623.124951.130237121.davem@davemloft.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+David S. Miller wrote:
+> I have the patch, can you give me a nice changelog entry
+> for it?
 
-Does anyone know if ipt_CLUSTERIP and ProxyARP will work correctly
-together on a current Linux kernel? Anything special to watch out for?
-TIA :)
+Here you go:
 
---=20
-[ Tobias DiPasquale ]
-0x636f6465736c696e67657240676d61696c2e636f6d
+In 2.6.12 we started dropping the conntrack reference when a packet
+leaves the IP layer. This broke connection tracking on a bridge,
+because bridge-netfilter defers calling some NF_IP_* hooks to the bridge
+layer for locally generated packets going out a bridge, where the
+conntrack reference is no longer available. This patch keeps the
+reference in this case as a temporary solution, long term we will
+remove the defered hook calling. No attempt is made to drop the
+reference in the bridge-code when it is no longer needed, tc actions
+could already have sent the packet anywhere.
+
+Regards
+Patrick
