@@ -1,18 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC][PATCH] kill the fake conntrack
-Date: Sat, 25 Jun 2005 21:00:41 +0200
-Message-ID: <42BDA9D9.5030308@trash.net>
-References: <42BD513E.6090306@eurodev.net> <42BD52A7.2090107@trash.net>
-	<42BD5829.4030002@eurodev.net> <42BD5C41.2080505@trash.net>
-	<42BDA6D6.5070604@eurodev.net>
+From: John Que <qwejohn@gmail.com>
+Subject: Checksum of IP header
+Date: Sun, 26 Jun 2005 07:18:35 -0400
+Message-ID: <ada605fb050626041856c71794@mail.gmail.com>
+Reply-To: John Que <qwejohn@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-2022-JP
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <42BDA6D6.5070604@eurodev.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,17 +20,69 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
->> nf_reset is called independant of the contents of skb->nfct. nfctinfo
->> needs to be set to 0 so a packet isn't untracked afterwards anymore.
->> Think of tunnel devices.
-> 
-> OK. Hm, do you still consider that bad adding a line to nf_reset to
-> reset skb->nfctinfo? This is the only drawback I see at the moment.
+Hello, 
 
-Its not about the line, I'm not sure about changing the fact that
-nfctinfo is only valid if nfct != NULL. Its too hot to think right
-now, please give me until tommorrow :)
+I have the following problem
 
-Regards
-Patrick
+ I am developing a server with filtering capabilities.
+
+       I had written a driver an I am using the netfilter API,
+       using the nf_register_hook() and nf_unregister_hook() methods.
+
+       In certain occasions , when getting UDP packets on certain ports,
+       I change the IP address of the destination in the iphdr of the socket
+       buffer. (sk_buff)
+
+       Namely, what I change is :
+               skb->nh.iph->daddr = newIPAddress (in u32 ).
+
+       Everything works OK and the packets are sent to the new
+       destination as I can see with the sniffer; except foo the csum.
+
+       I see in the sniffer that the csum of the ip header is wrong.
+
+       I tried to look in the /net/core and /net/ipv4/netfilter
+folders  to see which
+ csum methods to use.
+       There are plenty of methods: just for example , in skbuff.c there is
+skb_checksum(),
+       skb_copy_and_csum_bits(),skb_copy_and_csum_dev(),
+ and more; in ip_nat_core there is
+ip_fast_csum(),csum_partial(),ip_compute_csum(),
+ and more. So I am quite confused.
+
+ I am not an expert on csum and nat , but this seems to me a task
+that had been
+ done somewhere in the nat code (because as I understand part of what nat
+ does is change the source ip addresses).
+
+ I made some tries but did not find a solution - all my tries ended in seeing a
+ wrong csum in the ip header with the sniffer.
+
+(I know that I can set the csum to 0 but I don't want to do it ).
+
+ Any ideas ?
+
+ Regards,
+ John
+
+  ReplyForward
+		
+		
+YOSHIFUJI Hideaki / 吉藤英明 	
+: > I see in the sniffer that the csum of the ip header is wrong. : > I made ...
+	 	  4:59 am (2 hours ago)
+		
+John Que 	
+to YOSHIFUJI Hide., netdev
+	 More options	  5:55 am (1 hour ago)
+Thnks;
+
+  As I said I am sure that in the code somewhere there is
+a method which does this but I cannot locate it because there
+are many csum methods.
+
+ If anybody knows a scenario like mine and can advice me
+as to which methods to use it will be helpful.
+
+John
