@@ -1,14 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: RE: RSH helper concurrent sessions fix
-Date: Mon, 27 Jun 2005 16:09:16 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0506271557380.11307@blackhole.kfki.hu>
-References: <JBEOIOMFMBOPMPLFDIALIEAACKAA.aberle@infotech.de>
+From: Herve Eychenne <rv@wallfire.org>
+Subject: Re: buckets-byte per conntrack
+Date: Mon, 27 Jun 2005 17:10:27 +0200
+Message-ID: <20050627151027.GI4225@eychenne.org>
+References: <29003954.1119882475361.JavaMail.ngmail@webmail-07.arcor-online.net>
+Reply-To: rv@eychenne.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sebastian Aberle <aberle@infotech.de>
-In-Reply-To: <JBEOIOMFMBOPMPLFDIALIEAACKAA.aberle@infotech.de>
+To: thomasmkling@arcor.de
+Content-Disposition: inline
+In-Reply-To: <29003954.1119882475361.JavaMail.ngmail@webmail-07.arcor-online.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,34 +23,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Mon, Jun 27, 2005 at 04:27:55PM +0200, thomasmkling@arcor.de wrote:
 
-On Mon, 27 Jun 2005, Sebastian Aberle wrote:
+> ip_conntrack version 2.1 (214 buckets, 1712 max) - 208 bytes per conntrack
 
-> I'll try to clarify my view of things:
->
-> The unpatched helper created an expectation with a dport mask of 0xfc00,
-> meaning any unprivileged port matches. In my case, I run an automated machine
-> status report generator that uses RSH to gather data from some machines,
-> like disk, memory and CPU usage etc. This script creates several parallel
-> RSH sessions at a quite fast interval, and that obviously confused the
-> connection tracker in a way that it "uses" the wrong expectation for some
-> incoming error channel connections, resulting in dropping these packets.
-> Creating one connection after another always worked flawlessly.
->
-> Now after my patch, the expectations are created for exactly the one port
-> that was chosen in the first connection (mask 0xffff). That seems to help
-> the connection tracker to find the right expectation for each RSH session.
+> I searched the archive and didn't find a detailed explanation for these values, can someone please help me?
 
-I see, sorry for my confusion. I applied your patch in svn with one slight
-addition: in linux-2.6.11/net/ipv4/netfilter/ip_conntrack_rsh.c
-exp->mask.dst.protonum was set in the original file to 0xff instead of
-0xffff.
+> 208 bytes per conntrack:
+> i guess that means that 208 bytes are used for managing ip, ports,state, connection-lifetime, tcp-option,seq-numbers,... (can I see how many bytes for which values used?)
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+> when are the 208 bytes consumed? I started 100 tcp-server-sockets and lost 100*330 bytes free_memory (vmstat). Then I build a new kernel without connection tracking and i got exactly the same memory-usage. why, I expected lower memory-usage without ip_conntrack?
+
+> 1712 max:
+> means that I can only track 1712 connections? what happens if i have more, are they denied, invalid, not logged?
+> if i match on ESTABLISHED and have more than 1712 connections, what then?
+> how can i have more max?
+
+> 214 buckets:
+> nothing found, what's that?
+
+I wrote a little document that might partially answer your questions:
+http://www.wallfire.org/misc/netfilter_conntrack_perf.txt
+
+ Herve
+
+-- 
+ _
+(°=  Hervé Eychenne
+//)
+v_/_ WallFire project:  http://www.wallfire.org/
