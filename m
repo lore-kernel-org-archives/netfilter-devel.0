@@ -1,16 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: CLUSTERIP and ProxyARP?
-Date: Mon, 27 Jun 2005 11:09:59 +0200
-Message-ID: <20050627090959.GE19928@sunbeam.de.gnumonks.org>
-References: <876ef97a0506231536656b269b@mail.gmail.com>
+Subject: Re: Iptables snapshot compile failure with 2.6.12 headers: - please
+	disregard
+Date: Mon, 27 Jun 2005 11:13:42 +0200
+Message-ID: <20050627091342.GF19928@sunbeam.de.gnumonks.org>
+References: <008901c57ab9$e6946330$5001010a@bluereef.local>
+	<07f301c57acb$19aaa250$5001010a@bluereef.local>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ATYltwmfWCpDp8Ax"
-Cc: nf-devel <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="wl4gXchqb9PBRcq/"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tobias DiPasquale <codeslinger@gmail.com>
+To: Andrew Hall <temp02@bluereef.com.au>
 Content-Disposition: inline
-In-Reply-To: <876ef97a0506231536656b269b@mail.gmail.com>
+In-Reply-To: <07f301c57acb$19aaa250$5001010a@bluereef.local>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,27 +25,21 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---ATYltwmfWCpDp8Ax
+--wl4gXchqb9PBRcq/
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jun 23, 2005 at 06:36:08PM -0400, Tobias DiPasquale wrote:
-> Hi all,
->=20
-> Does anyone know if ipt_CLUSTERIP and ProxyARP will work correctly
-> together on a current Linux kernel? Anything special to watch out for?
-> TIA :)
+On Mon, Jun 27, 2005 at 01:48:37PM +1000, Andrew Hall wrote:
 
-1. all current linux kernel up to (and including 2.6.12) has a CLUSTERIP bug
-   anyway
-2. I didn't think about interoperability with  proxyarp when
-   implementing CLUSTERIP.  In fact, CLUSTERIP is meant to run on
-   end-hosts (Such as webservers), not on gateways.
+> It's the ipsec patches that cause the failure, and Tom's patch fixes this=
+=20
+> so there's no longer a problem.
 
-CLUSTERIP mangles ARP requests (and replies) from/to the CLUSTER IP
-address.  So if you are proxy-ARP'ing for different IP addresses, it
-_should_ work.
+sorry, which particular "tom's patch" are your referring to?
+
+was that already included (to mainline kernel, p-o-m, iptables)?  Is
+ther anything we still need to do about this issue?
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -55,7 +51,7 @@ _should_ work.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---ATYltwmfWCpDp8Ax
+--wl4gXchqb9PBRcq/
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -63,9 +59,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFCv8JnXaXGVTD0i/8RApTxAJ9TkmXVNDV1Y1JK0ZvhcNQeCQDq9QCfRLEI
-1CTBojhKAdXW1b8RnJiDekI=
-=FJ6a
+iD8DBQFCv8NGXaXGVTD0i/8RAhwVAJ9wWsPT/9uHZZVqFGA1eRGaZVwJ4wCgsUlv
+Q1xrf//0lLNQks4dND1+iX4=
+=BEWp
 -----END PGP SIGNATURE-----
 
---ATYltwmfWCpDp8Ax--
+--wl4gXchqb9PBRcq/--
