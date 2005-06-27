@@ -1,18 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] update raw patch in POM
-Date: Mon, 27 Jun 2005 12:57:37 +0200
-Message-ID: <42BFDBA1.7060002@trash.net>
-References: <42A6AB19.2040106@tac.ch>	<42A6E685.3060408@eurodev.net>	<42AEF774.8060300@tac.ch>	<42B67BEC.1090105@tac.ch>	<20050621003441.GI8335@postel.suug.ch>	<42B76474.8080209@eurodev.net>	<20050621111328.GK8335@postel.suug.ch>	<42B81D75.8090205@trash.net>	<20050621215027.GP8335@postel.suug.ch>	<42B8B181.4020607@trash.net>	<20050622005243.GQ8335@postel.suug.ch>	<42B8DA09.9080406@eurodev.net>	<42B8E141.1080902@trash.net>
-	<42B94DFE.2070205@tac.ch> <42B9B00F.90601@trash.net>
-	<42BF9E5D.4000705@tac.ch>
+From: Tobias DiPasquale <codeslinger@gmail.com>
+Subject: Re: CLUSTERIP and ProxyARP?
+Date: Mon, 27 Jun 2005 07:11:24 -0400
+Message-ID: <876ef97a0506270411795a4c62@mail.gmail.com>
+References: <876ef97a0506231536656b269b@mail.gmail.com>
+	<20050627090959.GE19928@sunbeam.de.gnumonks.org>
+	<876ef97a050627035063f5d929@mail.gmail.com>
+Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Roberto Nibali <ratz@tac.ch>
-In-Reply-To: <42BF9E5D.4000705@tac.ch>
+To: Harald Welte <laforge@netfilter.org>,
+	nf-devel <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <876ef97a050627035063f5d929@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,49 +25,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Roberto Nibali wrote:
+On 6/27/05, Tobias DiPasquale <codeslinger@gmail.com> wrote:
+> On 6/27/05, Harald Welte <laforge@netfilter.org> wrote:
+> > 1. all current linux kernel up to (and including 2.6.12) has a CLUSTERI=
+P bug
+> >    anyway
+>=20
+> What bug? Was it mentioned on this list earlier? I don't remember seeing =
+it...
 
->>>Jun 22 15:12:48 s_int@sem-arbeit untracked_use_cnt: 2, conntrack_cnt: 0
->>>Jun 22 15:12:53 s_int@sem-arbeit ip_conntrack version 2.1 (8192
->>
->>buckets, 65536 max) - 324 bytes per conntrack
->>
->>This actually looks good, no leak, no crash. Not sure where the 30
->>second delay comes from, my guess is that packets are queued while
->>the neighbour is resolved, although its pretty long.
-> 
-> 
-> What neighbour needs to be resolved? The neighbour cache is full, only 4
-> addresses are involved, gc threshold is high, so no trashing. Or are we talking
-> different issues?
+Were you referring to the fact that, without a patch from earlier on
+this list (from Alex somebody?), CLUSTERIP won't mangle ARP requests?
+I can see that this patch didn't make it into 2.6.12.
 
-It was just a guess, I can't think of anywhere else where packets
-might have been queued for 30s, given that you have no packet
-sockets and probably don't have a long enough device queue that
-it would take 30s.
-
->>To confirm that
->>theory you could play with the values in
->>/proc/sys/net/ipv4/neigh/default and see if it changes anything.
-> 
-> 
-> I'll do that. How do you think I should instrument these values? And what does
-> the neighbour stuff have to do with conntrack timeouts?
-
-Try halving all values and see if it has any effects on the time
-it takes to unload the module.
-
->>How long did you wait that time?
-> 
-> 
-> Shoot, I really don't remember, sorry. I thought it was more than 30 seconds but
-> I really can't tell.
-> 
-> I'll run some more tests and see if this 30 seconds delay can be reduced.
-
-I'm pretty sure the nf_reset + the wait-for-untracked-refs patches
-should take care of the problem, but to be sure it would be good
-to know where the delay came from.
-
-Regards
-Patrick
+--=20
+[ Tobias DiPasquale ]
+0x636f6465736c696e67657240676d61696c2e636f6d
