@@ -1,15 +1,13 @@
-From: Marcus Sundberg <marcus@ingate.com>
-Subject: Re: Checksum of IP header
-Date: Sun, 26 Jun 2005 20:13:33 +0200
-Message-ID: <42BEF04D.8040708@ingate.com>
-References: <ada605fb050626041856c71794@mail.gmail.com>
+From: "Andrew Hall" <temp02@bluereef.com.au>
+Subject: Iptables snapshot compile failure with 2.6.12 headers
+Date: Mon, 27 Jun 2005 11:45:30 +1000
+Message-ID: <008901c57ab9$e6946330$5001010a@bluereef.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: John Que <qwejohn@gmail.com>
-In-Reply-To: <ada605fb050626041856c71794@mail.gmail.com>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +19,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-John Que wrote:
->        Namely, what I change is :
->                skb->nh.iph->daddr = newIPAddress (in u32 ).
-> 
->        Everything works OK and the packets are sent to the new
->        destination as I can see with the sniffer; except foo the csum.
+Presently it seems that the Iptables shapshot will fail to compile when 
+using 2.6.11+ headers.
 
-Have a look at the ip_nat_cheat_check() function in ip_nat_core.c -
-it does exactly what you want.
+A little while ago I remember someone saying that they needed to comment out 
+a couple of lines in a particular kernel header file to get iptables to 
+compile properly, does anyone have the file and the two lines that needed 
+commenting out?
 
-//Marcus
--- 
----------------------------------------+--------------------------
-  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
- Software Developer, Ingate Systems AB |  http://www.ingate.com/
+Thanks,
+
+Andrew. 
