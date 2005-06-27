@@ -1,18 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Iptables snapshot compile failure with 2.6.12 headers: - please
-	disregard
-Date: Mon, 27 Jun 2005 11:13:42 +0200
-Message-ID: <20050627091342.GF19928@sunbeam.de.gnumonks.org>
-References: <008901c57ab9$e6946330$5001010a@bluereef.local>
-	<07f301c57acb$19aaa250$5001010a@bluereef.local>
+From: Tobias DiPasquale <codeslinger@gmail.com>
+Subject: Re: CLUSTERIP and ProxyARP?
+Date: Mon, 27 Jun 2005 06:50:28 -0400
+Message-ID: <876ef97a050627035063f5d929@mail.gmail.com>
+References: <876ef97a0506231536656b269b@mail.gmail.com>
+	<20050627090959.GE19928@sunbeam.de.gnumonks.org>
+Reply-To: Tobias DiPasquale <codeslinger@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wl4gXchqb9PBRcq/"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Andrew Hall <temp02@bluereef.com.au>
+To: Harald Welte <laforge@netfilter.org>,
+	nf-devel <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20050627090959.GE19928@sunbeam.de.gnumonks.org>
 Content-Disposition: inline
-In-Reply-To: <07f301c57acb$19aaa250$5001010a@bluereef.local>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,44 +24,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On 6/27/05, Harald Welte <laforge@netfilter.org> wrote:
+> On Thu, Jun 23, 2005 at 06:36:08PM -0400, Tobias DiPasquale wrote:
+> > Hi all,
+> >
+> > Does anyone know if ipt_CLUSTERIP and ProxyARP will work correctly
+> > together on a current Linux kernel? Anything special to watch out for?
+> > TIA :)
+>=20
+> 1. all current linux kernel up to (and including 2.6.12) has a CLUSTERIP =
+bug
+>    anyway
 
---wl4gXchqb9PBRcq/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+What bug? Was it mentioned on this list earlier? I don't remember seeing it=
+...
 
-On Mon, Jun 27, 2005 at 01:48:37PM +1000, Andrew Hall wrote:
+> 2. I didn't think about interoperability with  proxyarp when
+>    implementing CLUSTERIP.  In fact, CLUSTERIP is meant to run on
+>    end-hosts (Such as webservers), not on gateways.
+>=20
+> CLUSTERIP mangles ARP requests (and replies) from/to the CLUSTER IP
+> address.  So if you are proxy-ARP'ing for different IP addresses, it
+> _should_ work.
 
-> It's the ipsec patches that cause the failure, and Tom's patch fixes this=
-=20
-> so there's no longer a problem.
-
-sorry, which particular "tom's patch" are your referring to?
-
-was that already included (to mainline kernel, p-o-m, iptables)?  Is
-ther anything we still need to do about this issue?
+I'm going to test it out today. I will let the list know the results. Thank=
+s.
 
 --=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---wl4gXchqb9PBRcq/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCv8NGXaXGVTD0i/8RAhwVAJ9wWsPT/9uHZZVqFGA1eRGaZVwJ4wCgsUlv
-Q1xrf//0lLNQks4dND1+iX4=
-=BEWp
------END PGP SIGNATURE-----
-
---wl4gXchqb9PBRcq/--
+[ Tobias DiPasquale ]
+0x636f6465736c696e67657240676d61696c2e636f6d
