@@ -1,17 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: RSH helper concurrent sessions fix
-Date: Mon, 27 Jun 2005 11:06:37 +0200
-Message-ID: <20050627090637.GD19928@sunbeam.de.gnumonks.org>
-References: <JBEOIOMFMBOPMPLFDIALKENHCJAA.aberle@infotech.de>
+Subject: Re: CLUSTERIP and ProxyARP?
+Date: Mon, 27 Jun 2005 11:09:59 +0200
+Message-ID: <20050627090959.GE19928@sunbeam.de.gnumonks.org>
+References: <876ef97a0506231536656b269b@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="72pTQ1Q5L511SwPT"
-Cc: netfilter-devel@lists.netfilter.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+	protocol="application/pgp-signature"; boundary="ATYltwmfWCpDp8Ax"
+Cc: nf-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sebastian Aberle <aberle@infotech.de>
+To: Tobias DiPasquale <codeslinger@gmail.com>
 Content-Disposition: inline
-In-Reply-To: <JBEOIOMFMBOPMPLFDIALKENHCJAA.aberle@infotech.de>
+In-Reply-To: <876ef97a0506231536656b269b@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,24 +23,27 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---72pTQ1Q5L511SwPT
+--ATYltwmfWCpDp8Ax
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jun 22, 2005 at 05:22:00PM +0200, Sebastian Aberle wrote:
-> Hi,
+On Thu, Jun 23, 2005 at 06:36:08PM -0400, Tobias DiPasquale wrote:
+> Hi all,
 >=20
-> here is a fix for a small error I discovered in the RSH conntrack
-> helper when trying to establish multiple concurrent sessions to a host
-> (working for me, at least).
+> Does anyone know if ipt_CLUSTERIP and ProxyARP will work correctly
+> together on a current Linux kernel? Anything special to watch out for?
+> TIA :)
 
-Thanks for your patch.
+1. all current linux kernel up to (and including 2.6.12) has a CLUSTERIP bug
+   anyway
+2. I didn't think about interoperability with  proxyarp when
+   implementing CLUSTERIP.  In fact, CLUSTERIP is meant to run on
+   end-hosts (Such as webservers), not on gateways.
 
-It's up to Jozsef (Cc) to comment (and ACK/NACK) on this, he's the author of
-the rsh helper.
-
-Jozsef?
+CLUSTERIP mangles ARP requests (and replies) from/to the CLUSTER IP
+address.  So if you are proxy-ARP'ing for different IP addresses, it
+_should_ work.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -53,7 +55,7 @@ Jozsef?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---72pTQ1Q5L511SwPT
+--ATYltwmfWCpDp8Ax
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -61,9 +63,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFCv8GdXaXGVTD0i/8RAo62AJ4sh7D736W3iKbDLtCRkTQRI7lLyQCfWEDO
-7TtgAtvOzLlhqRFkt4Df3eU=
-=H6IC
+iD8DBQFCv8JnXaXGVTD0i/8RApTxAJ9TkmXVNDV1Y1JK0ZvhcNQeCQDq9QCfRLEI
+1CTBojhKAdXW1b8RnJiDekI=
+=FJ6a
 -----END PGP SIGNATURE-----
 
---72pTQ1Q5L511SwPT--
+--ATYltwmfWCpDp8Ax--
