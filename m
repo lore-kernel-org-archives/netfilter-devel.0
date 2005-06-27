@@ -1,18 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] update raw patch in POM
-Date: Mon, 27 Jun 2005 14:55:12 +0200
-Message-ID: <42BFF730.2080300@trash.net>
-References: <42A6AB19.2040106@tac.ch>	<42A6E685.3060408@eurodev.net>	<42AEF774.8060300@tac.ch>	<42B67BEC.1090105@tac.ch>	<20050621003441.GI8335@postel.suug.ch>	<42B76474.8080209@eurodev.net>	<20050621111328.GK8335@postel.suug.ch>	<42B81D75.8090205@trash.net>	<20050621215027.GP8335@postel.suug.ch>	<42B8B181.4020607@trash.net>	<20050622005243.GQ8335@postel.suug.ch>	<42B8DA09.9080406@eurodev.net>	<42B8E141.1080902@trash.net>	<42B94DFE.2070205@tac.ch>
-	<42B9B00F.90601@trash.net>	<42BF9E5D.4000705@tac.ch>
-	<42BFDBA1.7060002@trash.net> <42BFEC10.20102@tac.ch>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: RSH helper concurrent sessions fix
+Date: Mon, 27 Jun 2005 15:10:11 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0506271350050.11307@blackhole.kfki.hu>
+References: <JBEOIOMFMBOPMPLFDIALKENHCJAA.aberle@infotech.de>
+	<20050627090637.GD19928@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Sebastian Aberle <aberle@infotech.de>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Roberto Nibali <ratz@tac.ch>
-In-Reply-To: <42BFEC10.20102@tac.ch>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050627090637.GD19928@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,36 +21,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Roberto Nibali wrote:
->>Try halving all values and see if it has any effects on the time
->>it takes to unload the module.
-> 
-> Nope, I'll upload the new results shortly but the time is unchanged.
-> 
+On Mon, 27 Jun 2005, Harald Welte wrote:
 
-Hmm I'm out of ideas.
+> On Wed, Jun 22, 2005 at 05:22:00PM +0200, Sebastian Aberle wrote:
+> > Hi,
+> >
+> > here is a fix for a small error I discovered in the RSH conntrack
+> > helper when trying to establish multiple concurrent sessions to a host
+> > (working for me, at least).
+>
+> Thanks for your patch.
+>
+> It's up to Jozsef (Cc) to comment (and ACK/NACK) on this, he's the author of
+> the rsh helper.
 
->>I'm pretty sure the nf_reset + the wait-for-untracked-refs patches
->>should take care of the problem, but to be sure it would be good
->>to know where the delay came from.
-> 
-> Currently I do not run it with nf_reset patched kernels which is another really
-> strange thing. Some other timeout which is 30s? But I only see
-> udp_timeout_stream and icmp_timeout ...
+I'm not the author of the rsh helper ;-), but anyway, here goes my
+opinion:
 
-If the nf_reset patch helps it must be somewhere after
-ip_finish_output2(). This could be an arp queue, a device queue
-or a packet socket queue. You could add an nf_reset to dev_queue_xmit
-and see if it changes anything.
+The protocol descriptions of rsh available for me are a little bit fuzzy:
 
-> Do you plan to submit the nf_reset and wait-for-untracked-refs patches for
-> mainline inclusion?
+- According to Chapman & Zwicky, both the source and destination ports of
+  the error channel are below 1024.
+- The source code of rshd from netkit-rsh indeed makes sure that both
+  ports of the error channel be reserved.
+- The manpage of rshd does not state that the destination port must be
+  below 1024.
+- The protocol description in ip_conntrack_rsh.c itself does not state
+  either, but the code checks and rejects requested destination ports
+  above 1023.
 
-There's no raw table in 2.4, so the wait-for-untracked-refs patch should
-go in the 2.4 raw table patch. For 2.6 I'm not sure yet, Pablo has a
-patch that changes how untracked works and makes this patch unnecessary.
-The nf_reset patch with go in my next 2.4 update, which should happen
-soon.
+So first, what kind of system and rsh version do you use on the client and
+the server side? Could you post a tcpdump recording of an rsh session
+where the ports of the error channel are above 1023? Second, I don't
+understand how could your patch relax the check on the destination port
+without other modifications.
 
-Regards
-Patrick
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
