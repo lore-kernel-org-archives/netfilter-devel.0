@@ -1,19 +1,30 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: CLUSTERIP and ProxyARP?
-Date: Mon, 27 Jun 2005 13:40:26 +0200
-Message-ID: <20050627114026.GJ19928@sunbeam.de.gnumonks.org>
-References: <876ef97a0506231536656b269b@mail.gmail.com>
-	<20050627090959.GE19928@sunbeam.de.gnumonks.org>
-	<876ef97a050627035063f5d929@mail.gmail.com>
-	<876ef97a0506270411795a4c62@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: 2.6.12: connection tracking broken?
+Date: Mon, 27 Jun 2005 13:46:46 +0200
+Message-ID: <42BFE726.20305@trash.net>
+References: <E1Dk9nK-0001ww-00@gondolin.me.apana.org.au>
+	<Pine.LNX.4.62.0506200432100.31737@kaber.coreworks.de>
+	<1119249575.3387.3.camel@localhost.localdomain>
+	<42B6B373.20507@trash.net>
+	<1119293193.3381.9.camel@localhost.localdomain>
+	<42B74FC5.3070404@trash.net>
+	<1119338382.3390.24.camel@localhost.localdomain>
+	<42B82F35.3040909@trash.net>
+	<20050622214920.GA13519@gondor.apana.org.au>
+	<1119507800.3387.18.camel@localhost.localdomain>
+	<20050627083219.GZ19928@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8sQsHfNlXZNubEnG"
-Cc: nf-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Bart De Schuymer <bdschuym@telenet.be>,
+	Bart De Schuymer <bdschuym@pandora.be>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org, rankincj@yahoo.com,
+	ebtables-devel@lists.sourceforge.net, netfilter-devel@manty.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tobias DiPasquale <codeslinger@gmail.com>
-Content-Disposition: inline
-In-Reply-To: <876ef97a0506270411795a4c62@mail.gmail.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050627083219.GZ19928@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,49 +36,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
+> I have to agree with Bart.  I don't know any bridging-packetfilter setup
+> that doesn't use ipt_physdev in FORWARD :(
 
---8sQsHfNlXZNubEnG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+It shouldn't be a problem to MARK in ebtables and use the marks instead.
+So far I think we can only remove the support for locally generated
+packets, but the way bridge-netfilter and ip-netfilter interact causes
+some more problems and inconsistencies which I would like to look into
+first. One thing I've noticed is that NF_IP_LOCAL_OUT, NF_IP_FORWARD and
+NF_IP_POST_ROUTING get called for every clone when packets are delivered
+to multiple ports, which causes unexpected results with REJECT (many
+packets sent in response to a single one) and probably others. This
+could be avoided by only passing packets to the NF_IP_* hooks once, but
+that would make the physdev match useless.
 
-On Mon, Jun 27, 2005 at 07:11:24AM -0400, Tobias DiPasquale wrote:
-> On 6/27/05, Tobias DiPasquale <codeslinger@gmail.com> wrote:
-> > On 6/27/05, Harald Welte <laforge@netfilter.org> wrote:
-> > > 1. all current linux kernel up to (and including 2.6.12) has a CLUSTE=
-RIP bug
-> > >    anyway
-> >=20
-> > What bug? Was it mentioned on this list earlier? I don't remember seein=
-g it...
->=20
-> Were you referring to the fact that, without a patch from earlier on
-> this list (from Alex somebody?), CLUSTERIP won't mangle ARP requests?
-> I can see that this patch didn't make it into 2.6.12.
+Another problem is defragmentation, we've added the user argument to
+ip_defrag to avoid packets from jumping through the stack between
+different callers. With bridge-netfilter defragmentation in
+NF_IP_PRE_ROUTING can be reached from both the IP layer and the bridge
+layer, so packets can still jump (see netfilter bugzilla #339).
 
-yes, that's the bug i'm referring to.
+I expect there are more problems, I hope I can find some time to look
+into it this week.
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---8sQsHfNlXZNubEnG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCv+WqXaXGVTD0i/8RAl7TAJ0eKwsL3McfEEe897fLPbxwOfDfCACfcgP7
-pgkQecdOy6bUyAmAukC4g94=
-=94Pv
------END PGP SIGNATURE-----
-
---8sQsHfNlXZNubEnG--
+Regards
+Patrick
