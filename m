@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] -verbose for 'runme'
-Date: Mon, 27 Jun 2005 11:03:18 +0200
-Message-ID: <20050627090318.GB19928@sunbeam.de.gnumonks.org>
-References: <42BA6E4B.6060203@anduras.de>
+Subject: Re: [PATCH] add expire to patch-o-matic
+Date: Mon, 27 Jun 2005 11:05:10 +0200
+Message-ID: <20050627090510.GC19928@sunbeam.de.gnumonks.org>
+References: <20050622170918.GB3196@rover.pcbi.upenn.edu>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4mUolEm2oNas7DxE"
+	protocol="application/pgp-signature"; boundary="7ohyzAr2DuZRs7WU"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sven Anders <anders@anduras.de>
+To: Bryan Cardillo <dillo@seas.upenn.edu>
 Content-Disposition: inline
-In-Reply-To: <42BA6E4B.6060203@anduras.de>
+In-Reply-To: <20050622170918.GB3196@rover.pcbi.upenn.edu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,20 +23,14 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---4mUolEm2oNas7DxE
+--7ohyzAr2DuZRs7WU
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jun 23, 2005 at 10:09:47AM +0200, Sven Anders wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->=20
-> Hello!
->=20
-> I added a verbose option to the 'runme' script.
-> It simply shows the output of the called 'patch' command, so you could
-> see *why* a try to patch failed.
+On Wed, Jun 22, 2005 at 01:09:18PM -0400, Bryan Cardillo wrote:
+>         Attached is a patch to add automatically expiring rules
+>         to patch-o-matic. =20
 
 thanks, applied.
 --=20
@@ -49,7 +43,7 @@ thanks, applied.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---4mUolEm2oNas7DxE
+--7ohyzAr2DuZRs7WU
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -57,9 +51,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFCv8DWXaXGVTD0i/8RAmRcAJ4j1B5sSM8DfcC7RLtpJgi88qP23gCggiqi
-zOApOQiIZFpBNl1z6aOXAeY=
-=BAR8
+iD8DBQFCv8FGXaXGVTD0i/8RAiH2AJ0Samq6iB2a5Je73NYV7OjCovBhAQCdFINu
+sefhwC1tenJZ9O8PkWXvUEA=
+=GiBp
 -----END PGP SIGNATURE-----
 
---4mUolEm2oNas7DxE--
+--7ohyzAr2DuZRs7WU--
