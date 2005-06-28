@@ -1,19 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [PATCH 1/2] updates for [nf|ct]netlink and event API
-Date: Tue, 28 Jun 2005 09:07:38 +0200
-Message-ID: <20050628070738.GD13239@sunbeam.de.gnumonks.org>
-References: <42C03F2E.30706@eurodev.net>
-	<20050627202621.GY19928@sunbeam.de.gnumonks.org>
-	<42C0AF26.1040705@eurodev.net> <42C0C9B2.20704@trash.net>
+Date: Tue, 28 Jun 2005 09:13:08 +0200
+Message-ID: <20050628071308.GE13239@sunbeam.de.gnumonks.org>
+References: <42C03F2E.30706@eurodev.net> <42C0806E.3010400@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Wb5NtZlyOqqy58h0"
+	protocol="application/pgp-signature"; boundary="WkfBGePaEyrk4zXB"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <42C0C9B2.20704@trash.net>
+In-Reply-To: <42C0806E.3010400@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,43 +24,52 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Wb5NtZlyOqqy58h0
+--WkfBGePaEyrk4zXB
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jun 28, 2005 at 05:53:22AM +0200, Patrick McHardy wrote:
-> Pablo Neira wrote:
-> > Harald Welte wrote:
-> >>> - Implement ip_conntrack_stats dumping and reset (accounting)
-> >>
-> >> you want to dump the statistics via netlink?  i'm not sure whether that
-> >> is required.  lnstat is the only program using those counters, and usi=
-ng
-> >> /proc seems fine for that.
-> >=20
-> > Could this be useful for accounting purposes? I mean, dump and reset as
-> > a single operation, something similar to conntrack -L -z, say conntrack
-> > -S -z.
+On Tue, Jun 28, 2005 at 12:40:46AM +0200, Patrick McHardy wrote:
+> +struct cta_proto {
+> +       unsigned char num_proto;        /* Protocol number IPPROTO_X */
+> +       union ip_conntrack_proto proto;
+> +};
 >=20
-> I think it is convenient for anyone wanting to access these statistics
-> without parsing /proc to have everything accessible through a single
-> interface.
+> These should be changed not to use internal conntrack structures, it
+> will hurt us when we want to change them. Instead it should replicate
+> the fields interesting for the user. Also please use fixed-size types
+> instead of unions etc. All structures including u64 types should be
+> padded to multiples of 8 so they are equally sized on 32-bit and 64-bit
+> systems.
 
-=2E.. and it is already implemented in current svn ;)
+agreed.  However, we still don't have some kind of versioning in the
+protocol, too.  I think we've learned by now that we need versioned
+structures ;)
 
-> destroy notifications are sent anyway, so we get the stats. What's the
-> difference to normal destruction?
-
-I agree.
-
-> > I could use multicast netlink subscrition, so the client can get
-> > subscribed to those events that the user considers interesting.
+> +/* ctnetlink multicast groups: reports any change of ctinfo,
+> + * ctstatus, or protocol state change.
+> + */
+> +#define NFGRP_IPV4_CT_TCP      0x01
+> +#define NFGRP_IPV4_CT_UDP      0x02
+> +#define NFGRP_IPV4_CT_ICMP     0x04
+> +#define NFGRP_IPV4_CT_OTHER    0x08
 >=20
-> That sounds like the right thing to do.
+> I'm not sure how useful these groups are. I think groups for different
+> event-types might be more useful to reduce the noise.
 
-well, but we still create a horrible amount of event messages, let's say
-in case of a syn flood...
+that was my idea in the beginning (since I didn't think of events at
+that point).
+
+Still, I think creating messages for any kind of event (even if noone
+listens) is too much overhead.  netlink needs to be extended to deal
+with that issue.
+
+Maybe the 'which socket is subscribed to which group' accounting should
+be done by the core netlink layer, which would then only export a
+merged bitmask of all netlink sockets.  This way ctnetlink can easily
+check whether it makes sense to create a certain event message or not.
+
+This should be useful for other netlink users, too.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -74,7 +81,7 @@ in case of a syn flood...
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Wb5NtZlyOqqy58h0
+--WkfBGePaEyrk4zXB
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -82,9 +89,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFCwPc6XaXGVTD0i/8RAuHMAJ0d4sNATk8NQezixdU7e+II645EHACfQjm0
-n7XPzzHSAgOq7dhEqp1CtRA=
-=RE+J
+iD8DBQFCwPiEXaXGVTD0i/8RAr2TAJ94ipHodK08FoloTKA8ycc+5cFquACgrwuV
+Mzc243+TXcWx/OibLsh2SkY=
+=GPsV
 -----END PGP SIGNATURE-----
 
---Wb5NtZlyOqqy58h0--
+--WkfBGePaEyrk4zXB--
