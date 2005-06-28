@@ -1,16 +1,18 @@
-From: Pablo Neira <pablo@eurodev.net>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 1/2] updates for [nf|ct]netlink and event API
-Date: Tue, 28 Jun 2005 04:16:16 +0200
-Message-ID: <42C0B2F0.4000104@eurodev.net>
-References: <42C03F2E.30706@eurodev.net> <42C0806E.3010400@trash.net>
+Date: Tue, 28 Jun 2005 05:53:22 +0200
+Message-ID: <42C0C9B2.20704@trash.net>
+References: <42C03F2E.30706@eurodev.net>
+	<20050627202621.GY19928@sunbeam.de.gnumonks.org>
+	<42C0AF26.1040705@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: Harald Welte <laforge@netfilter.org>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <42C0806E.3010400@trash.net>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <42C0AF26.1040705@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,125 +24,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira wrote:
+Pablo Neira wrote:
+> Harald Welte wrote:
+>>> - Implement ip_conntrack_stats dumping and reset (accounting)
+>>
+>> you want to dump the statistics via netlink?  i'm not sure whether that
+>> is required.  lnstat is the only program using those counters, and using
+>> /proc seems fine for that.
 > 
->>This patchset introduces tons of updates for the nfnetlink, ctnetlink
->>and the conntrack event API. I haven't attached the file since it's that
->>big, about 100K.
+> Could this be useful for accounting purposes? I mean, dump and reset as
+> a single operation, something similar to conntrack -L -z, say conntrack
+> -S -z.
+
+I think it is convenient for anyone wanting to access these statistics
+without parsing /proc to have everything accessible through a single
+interface.
+
+>>> - Implement get conntrack and destroy (accounting)
+>>
+>> sorry, what are you referring to?
 > 
+> An atomical operation to dump conntrack information and then destroy it.
+> For example, if someone does:
 > 
-> Looks good. A couple more comments on the patch, most are probably not
-> related to recent changes. I remember beeing responsible for at least
-> some of this :)
-
-Fine. BTW, thanks a lot for the feedback you both, appreciated :)
-
-> +struct cta_proto {
-> +       unsigned char num_proto;        /* Protocol number IPPROTO_X */
-> +       union ip_conntrack_proto proto;
-> +};
+> conntrack -D --orig-src 1.1.1.1 --orig-dst 2.2.2.2 -p tcp
+> --orig-src-port 10 --orig-dst-port 20
 > 
-> These should be changed not to use internal conntrack structures, it
-> will hurt us when we want to change them. Instead it should replicate
-> the fields interesting for the user. Also please use fixed-size types
-> instead of unions etc. All structures including u64 types should be
-> padded to multiples of 8 so they are equally sized on 32-bit and 64-bit
-> systems.
+> the it sends the conntrack info and destroy it. This could be worth it
+> for accounting.
 
-OK, I'll kill those in the next digest, added to my TODO.
+destroy notifications are sent anyway, so we get the stats. What's the
+difference to normal destruction?
 
-> +#define CTA_HELP_MAXNAMESZ     31
-> +
-> +struct cta_help {
-> +       char name[CTA_HELP_MAXNAMESZ];  /* name of conntrack helper */
-> +       union ip_conntrack_help help;
-> +};
-> 
-> I suggest to use 32, the length in the kernel is not fixed AFAICS and
-> it will be padded to 32 in netlink messages anyway.
+> I could use multicast netlink subscrition, so the client can get
+> subscribed to those events that the user considers interesting.
 
-OK added.
+That sounds like the right thing to do.
 
-> +/* ctnetlink multicast groups: reports any change of ctinfo,
-> + * ctstatus, or protocol state change.
-> + */
-> +#define NFGRP_IPV4_CT_TCP      0x01
-> +#define NFGRP_IPV4_CT_UDP      0x02
-> +#define NFGRP_IPV4_CT_ICMP     0x04
-> +#define NFGRP_IPV4_CT_OTHER    0x08
-> 
-> I'm not sure how useful these groups are. I think groups for different
-> event-types might be more useful to reduce the noise.
-
-Yes, this looks fine. So we could kill those and use an event subscription.
-
-> 
-> +       h->name[CTA_HELP_MAXNAMESZ - 1] = '\0';
-> +       if (strcmp(helper->name, h->name))
-> +               return -EINVAL;
-> 
-> We changed ipt_helper to accept a null-byte string as wildcard string,
-> probably a good idea to do the same here.
-> 
-> 
-> +       ct = ip_conntrack_alloc(otuple, rtuple);
-> +       if (ct == NULL || IS_ERR(ct))
-> +               return -ENOMEM;
-> 
-> ip_conntrack_alloc doesn't return ERR_PTR()
-
-It didn't use to, but now it does in the updated patch:
-
-http://people.netfilter.org/~pablo/ctnetlink-2.6.12/2.6.11-vs-2.6.12/02modifs.patch
-
-> +       exp = ip_conntrack_expect_find_get(tuple);
-> +       if (!exp)
-> +               return -ENOENT;
-> 
-> I couldn't find this function, but in 2.6.12 expectations aren't
-> refcounted anymore. If they are again by this patch, the refcnt would
-> be leaked in the following lines:
-> 
-> +       skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_KERNEL);
-> +       if (!skb2)
-> +               return -ENOMEM;
-
-Thanks for catching up this, I'll fix it. I recovered the refcounting 
-for expectations to avoid any possible race condition since I could be 
-working with an expectation whose timeout has expired.
-
-> ++
-> ++      /* Events were delivered: loopback mustn't notify events twice */
-> ++      IPCT_DELIVERED_BIT = 11,
-> ++      IPCT_DELIVERED = (1 << IPCT_DELIVERED_BIT),
-> 
-> I couldn't find any users, probably since this can't work with a
-> per-conntrack flag since events are generated by packets.
-
-This must dissapear, I introduced this to fix a loopback event 
-notification (was done twice). This is ugly, so I'll kill it and reset 
-nfcache once the events has been delivered to avoid such event duplication.
-
-> ++      IPEXP_TIMEOUT_BIT = 1,
-> ++      IPEXP_TIMEOUT = (1 << IPEXP_TIMEOUT_BIT),
-> ++};
-> ++
-> 
-> No user here either.
-
-Right, not yet. I have problems to complete the expectation part of the 
-conntrack event API since most events should be delivered holding 
-ip_conntrack_lock and that's really ugly.
-
-> It would be great if you could send a patch without renaming the file,
-> that makes reviewing the changes a lot easier. Renaming can then be done
-> in a seperate patch that doesn't change anything.
-
-Does this help? Hope so.
-http://people.netfilter.org/~pablo/ctnetlink-2.6.12/2.6.11-vs-2.6.12/04ctnetlink.patch
-
-I'll send another patch that includes all your suggestion. Thanks.
-
---
-Pablo
+Regards
+Patrick
