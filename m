@@ -1,17 +1,17 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH 2.6] ipt_CLUSTERIP: fix ARP mangling
-Date: Tue, 28 Jun 2005 12:46:40 -0700 (PDT)
-Message-ID: <20050628.124640.57169557.davem@davemloft.net>
-References: <20050622122902.GI4551@obroa-skai.de.gnumonks.org>
-	<20050622.124341.95064256.davem@davemloft.net>
-	<20050628114330.GA16681@sunbeam.de.gnumonks.org>
+From: thomasmkling@arcor.de
+Subject: Re: buckets-byte per conntrack
+Date: Tue, 28 Jun 2005 23:05:44 +0200 (CEST)
+Message-ID: <18528506.1119992744485.JavaMail.ngmail@webmail-02.arcor-online.net>
+References: <8799348.1119957113603.JavaMail.ngmail@webmail-07.arcor-online.net>
+	<20050627151027.GI4225@eychenne.org>
+	<29003954.1119882475361.JavaMail.ngmail@webmail-07.arcor-online.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20050628114330.GA16681@sunbeam.de.gnumonks.org>
+To: rv@eychenne.org
+In-Reply-To: <8799348.1119957113603.JavaMail.ngmail@webmail-07.arcor-online.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,32 +23,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Tue, 28 Jun 2005 13:43:31 +0200
+> But one last thing, I did not yet understand:
+=20
+> I get almost no difference. Why is there not HASHSIZE =3D CONNTRACK_MAX b=
+y
+> default?
+>=20
 
-> please aplly the following fix, now merged with current net-2.6:
+Forget  this silly question. It is now clear to me,  that it would occupy m=
+emory also when there is no connection.
 
-This one rejects too, and I'm going to fix up by hand for you,
-but just so you know why:
-
-> @@ -31,7 +31,7 @@
->  #include <linux/netfilter_ipv4/ip_conntrack.h>
->  #include <linux/netfilter_ipv4/lockhelp.h>
->  
-> -#define CLUSTERIP_VERSION "0.6"
-> +#define CLUSTERIP_VERSION "0.7"
->  
->  #define DEBUG_CLUSTERIP
->  
-
-As I stated last time, all the lockhelp stuff has been totally
-removed from the current 2.6.x tree by a set of patches
-Patrick McHardy sent me last week right after 2.6.12 was
-released.  Therefore, no netfilter files reference the
-lockhelp.h header any longer, yet it appears in your patch.
-
-Like I said, I'll fix this up by hand for you, but please try
-to avoid this in the future.  Thanks.
-
-While we're here, should this patch get submitted to stable@kernel.org
-for 2.6.12.x submission?  If so, I'll take care of that for you.
+Machen Sie aus 14 Cent spielend bis zu 100 Euro!
+Die neue Gaming-Area von Arcor - =FCber 50 Onlinespiele im Angebot.
+http://www.arcor.de/rd/emf-gaming-1
