@@ -1,15 +1,18 @@
 From: Pablo Neira <pablo@eurodev.net>
 Subject: Re: [PATCH 1/2] updates for [nf|ct]netlink and event API
-Date: Wed, 29 Jun 2005 21:14:07 +0200
-Message-ID: <42C2F2FF.1060408@eurodev.net>
-References: <42C03F2E.30706@eurodev.net> <20050628234425.GA23662@wsc.edu>
+Date: Wed, 29 Jun 2005 21:13:35 +0200
+Message-ID: <42C2F2DF.7070301@eurodev.net>
+References: <42C03F2E.30706@eurodev.net> <42C0806E.3010400@trash.net>
+	<20050628071308.GE13239@sunbeam.de.gnumonks.org>
+	<42C1747A.3010703@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Josh Samuelson <josamue1@wsc.edu>
-In-Reply-To: <20050628234425.GA23662@wsc.edu>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42C1747A.3010703@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,83 +24,92 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Josh,
+Patrick McHardy wrote:
+> Harald Welte wrote:
+> 
+>>On Tue, Jun 28, 2005 at 12:40:46AM +0200, Patrick McHardy wrote:
+>>
+>>
+>>>These should be changed not to use internal conntrack structures, it
+>>>will hurt us when we want to change them. Instead it should replicate
+>>>the fields interesting for the user. Also please use fixed-size types
+>>>instead of unions etc. All structures including u64 types should be
+>>>padded to multiples of 8 so they are equally sized on 32-bit and 64-bit
+>>>systems.
+>>
+>>agreed.  However, we still don't have some kind of versioning in the
+>>protocol, too.  I think we've learned by now that we need versioned
+>>structures ;)
+> 
+> Netlink is easy to extend by adding new fields at the end if users
+> only check for msgsize >= sizeof(struct). Do you think we should
+> have versioning anyway?
 
-Josh Samuelson wrote:
-> On Mon, Jun 27, 2005 at 08:02:22PM +0200, Pablo Neira wrote:
-> 
->>o conntrack event API
-> 
-> 
->>- IPCT_DELIVERED bit. Loopback reports event are reported twice, this 
->>bit is set once event are delivered. I just came up with a better idea, 
->>reset nfcache once the events have been delivered, but I'll apply this 
->>change in the next patchset.
-> 
-> I noticed this with my flow module, any interface connecting to itself
-> would create two IPCT_NEW events.  I had made my own patch to your
-> linux-2.6.11.conntrack-event-api.patch to call
-> ip_conntrack_event_cache_init() after the events were delivered.
+I think that we could split the structure into fine grain fields. For 
+example, CTA_TUPLE_ORIG would composed of:
 
-Indeed, this is what I planned to fix this problem ;). Just killed the 
-IPCT_DELIVERED bit, it will be included in next version of the 
-ctevent-api. I'll post it soon.
+CTA_ORIG_IPV4_SRC
+CTA_ORIG_IPV4_DST
+CTA_L4_PROTONUM
+CTA_PROTO_IPV4_SRC
+CTA_PROTO_IPV4_DST
+CTA_DIR
 
-> I was gonna send it your way but other things came up and there
-> were other problems that I was trying to figure out that were not
-> quite working the way I thought they should.  I investigated
-> further and think I've found the problem, but I'm not sure
-> how to move further on it, so now it's time to ask the list:
-> 
-> Can anyone explain why in ip_conntrack_proto_icmp.c
-> we delete the conntrack of an ICMP packet as soon as all replies
-> are seen instead of letting ip_conntrack_icmp_timeout take the
-> conntrack like other protocol types?  As far as I can see, this
-> breaks the conntrack event API because I get the following
-> sequence of notifications for an ICMP echo request to the host
-> (this is with the ip_conntrack_event_cache_init() patch after
-> notifications have been delivered so I don't get two IPCT_NEW events):
-> 
-> IPCT_NEW
-> IPCT_DESTROY
-> IPCT_STATUS
-> 
-> I think nfct->use is still held and the conntrack is never really
-> destroyed after death_by_timeout(), so later when the reply comes
-> the conntrack still exists in the hash and the conntrack API
-> fires a IPCT_STATUS event after the IPCT_DESTROY event was fired,
-> which I'm assuming is an invalid sequence of events. ;)
+So, instead of sending a packet that contains a reference to an 
+ip_conntrack_tuple (CTA_TUPLE_ORIG), we'll have a set of fields 
+(CTA_ORIG_IPV4_SRC + CTA_ORIG_IPV4_DST + ...) that compose such structure.
 
-OK, I moved the IPCT_DESTROY event to destroy_conntrack instead of 
-death_by_timeout, this must fix the problem of out of sequence events.
+But I'll need a function to glue all the fields to create a 
+ip_conntrack_tuple. Maybe too bloated?
 
-> So, what would be the harm in the following patch to
-> ip_conntrack_proto_icmp.c?
-> 
-> diff -u a/ip_conntrack_proto_icmp.c b/ip_conntrack_proto_icmp.c
-> --- a/ip_conntrack_proto_icmp.c 2005-06-28 16:52:18.000000000 -0500
-> +++ b/ip_conntrack_proto_icmp.c 2005-06-28 16:52:46.000000000 -0500
-> @@ -92,15 +92,7 @@
->                        const struct sk_buff *skb,
->                        enum ip_conntrack_info ctinfo)
->  {
-> -       /* Try to delete connection immediately after all replies:
-> -           won't actually vanish as we still have skb, and del_timer
-> -           means this will only run once even if count hits zero twice
-> -           (theoretically possible with SMP) */
-> -       if (CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY) {
-> -               if (atomic_dec_and_test(&ct->proto.icmp.count)
-> -                   && del_timer(&ct->timeout))
-> -                       ct->timeout.function((unsigned long)ct);
-> -       } else {
-> +       if (CTINFO2DIR(ctinfo) != IP_CT_DIR_REPLY) {
->                 atomic_inc(&ct->proto.icmp.count);
->                 ip_ct_refresh_acct(ct, ctinfo, skb, ip_ct_icmp_timeout);
->         }
+>>>+/* ctnetlink multicast groups: reports any change of ctinfo,
+>>>+ * ctstatus, or protocol state change.
+>>>+ */
+>>>+#define NFGRP_IPV4_CT_TCP      0x01
+>>>+#define NFGRP_IPV4_CT_UDP      0x02
+>>>+#define NFGRP_IPV4_CT_ICMP     0x04
+>>>+#define NFGRP_IPV4_CT_OTHER    0x08
+>>>
+>>>I'm not sure how useful these groups are. I think groups for different
+>>>event-types might be more useful to reduce the noise.
+>>
+>>
+>>that was my idea in the beginning (since I didn't think of events at
+>>that point).
+>>
+>>Still, I think creating messages for any kind of event (even if noone
+>>listens) is too much overhead.  netlink needs to be extended to deal
+>>with that issue.
+>>
+>>Maybe the 'which socket is subscribed to which group' accounting should
+>>be done by the core netlink layer, which would then only export a
+>>merged bitmask of all netlink sockets.  This way ctnetlink can easily
+>>check whether it makes sense to create a certain event message or not.
+>>
+>>This should be useful for other netlink users, too.
 
-I don't want to change the current icmp tracking logic, the connection 
-tracking table could get full sooner because of icmp entries that has 
-already seen their reply wanting to timeout.
+Isn't netlink broadcast subscription enough? netlink_broadcast doesn't 
+enqueue packets for a socket that isn't subscribed to a group, so the 
+process never gets useless packets.
+
+So I think that we can group event, say:
+
+level 1 (weak):
+	- IPCT_NEW
+	- IPCT_DESTROY
+
+level 2 (normal):
+	- IPCT_NEW
+	- IPCT_UPDATE
+	- IPCT_STATUS
+	- ...
+	- IPCT_DESTROY
+
+At reserve some groups to let the user define some level whenever he 
+wants. Although such level would be unique.
+
+OTOH, there are 10 events currently, why is that bad creating a group 
+per event?
 
 --
 Pablo
