@@ -1,36 +1,57 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: 2.6.12: connection tracking broken?
-Date: Tue, 28 Jun 2005 16:07:11 -0700 (PDT)
-Message-ID: <20050628.160711.91199588.davem@davemloft.net>
-References: <42BAF48E.70309@trash.net>
-	<20050623.124951.130237121.davem@davemloft.net>
-	<42BBC6AC.9010704@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] TCP window tracking patch backported from the 2.6 tree
+Date: Wed, 29 Jun 2005 09:39:12 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0506290926400.14936@blackhole.kfki.hu>
+References: <Pine.LNX.4.58.0506281201590.12765@blackhole.kfki.hu>
+	<42C17443.60909@drugphish.ch>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: rankincj@yahoo.com, chrisw@osdl.org, bdschuym@pandora.be,
-	bdschuym@telenet.be, herbert@gondor.apana.org.au,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	ebtables-devel@lists.sourceforge.net, netfilter-devel@manty.net
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262254AbVF1Xnh@vger.kernel.org>
-To: kaber@trash.net
-In-Reply-To: <42BBC6AC.9010704@trash.net>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Roberto Nibali <ratz@drugphish.ch>
+In-Reply-To: <42C17443.60909@drugphish.ch>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 24 Jun 2005 10:39:08 +0200
+Hi,
 
-> In 2.6.12 we started dropping the conntrack reference when a packet
-> leaves the IP layer. This broke connection tracking on a bridge,
-> because bridge-netfilter defers calling some NF_IP_* hooks to the bridge
-> layer for locally generated packets going out a bridge, where the
-> conntrack reference is no longer available. This patch keeps the
-> reference in this case as a temporary solution, long term we will
-> remove the defered hook calling. No attempt is made to drop the
-> reference in the bridge-code when it is no longer needed, tc actions
-> could already have sent the packet anywhere.
+On Tue, 28 Jun 2005, Roberto Nibali wrote:
 
-Patch applied and pushed to stable@kernel.org
+> Is the conntrack_error-api still needed and if so, where can I find it?
 
-Thanks a lot.
+Good catch: not required so I removed the dependency from the info
+file in svn.
+
+> > Please report me any success/failure reports wether it's an improvement
+> > compared to the previous version in your environment or not.
+>
+> Do you happen to have a changelog written down somewhere or shall I diff
+> the two linux-2.4 patches?
+
+The last update sent to 2.6 kernel inclusion created the major difference
+between the two flavours. Now they are in sync and the most important
+fixes are in no particular order
+
+- Article on which the code is based falsely
+  assumed that packets must fit completely into
+  the window: packets must at least overlap, logic fixed
+- Reopening connections now done properly
+- We handle ACK packets sent by server to late resent SYNs too
+- Arbitrary RST segments could cause connection
+  teardown, fixed.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
