@@ -1,7 +1,7 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: [PATCH] TCP window tracking patch backported from the 2.6 tree
-Date: Wed, 29 Jun 2005 12:07:08 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0506291158490.14974@blackhole.kfki.hu>
+Date: Wed, 29 Jun 2005 12:26:02 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0506291223440.14974@blackhole.kfki.hu>
 References: <Pine.LNX.4.58.0506281201590.12765@blackhole.kfki.hu>
 	<42C17443.60909@drugphish.ch>
 	<Pine.LNX.4.58.0506290926400.14936@blackhole.kfki.hu>
@@ -23,25 +23,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-
 On Wed, 29 Jun 2005, Roberto Nibali wrote:
 
-> Verified. Another thing is the link to Guido's paper. For me this is not working
-> anymore.
-
-Yes, it disappeared. We'll add the article to the netfilter homepage
-and refer to the new link in the sources - that's the best.
-
-> > The last update sent to 2.6 kernel inclusion created the major difference
-> > between the two flavours. Now they are in sync and the most important
-> > fixes are in no particular order
+> Daniel, I hope you don't mind that I've cc'd you out of the blue sky regarding
+> this issue. However, I'd like you, if possible, to comment on the possible
+> semantic differences between the window tracking implementation in OpenBSD pf
+> (also based on the Guido paper) and the current netfilter one. The relevant
+> patch on the netfilter part can be found at:
 >
-> Awesome, thanks. For the record, we're talking about the following changes:
+> http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/patchlets/tcp-window-tracking/linux-2.4.patch?rev=4073&view=markup
 >
-> http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/patchlets/tcp-window-tracking/linux-2.4.patch?rev=4073&r1=4018&r2=4073
+> It would be nice to have a second opinion regarding the tcp state transitions,
+> the SACK handling and the tcp_in_window() function, which is most critical.
+> We're probably talking about this gem, among others:
+>
+> http://www.openbsd.org/cgi-bin/cvsweb/~checkout~/src/sys/net/pf.c?rev=1.493&content-type=text/plain
 
-Yes, exactly.
+I'd be just happy to receive any opinion, critics on how the window
+tracking were implemented in netfilter.
 
 Best regards,
 Jozsef
