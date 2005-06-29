@@ -1,18 +1,20 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [PATCH 1/2] updates for [nf|ct]netlink and event API
-Date: Wed, 29 Jun 2005 21:52:52 +0200
-Message-ID: <42C2FC14.80609@trash.net>
+Date: Wed, 29 Jun 2005 22:16:25 +0200
+Message-ID: <20050629201625.GY25641@sunbeam.de.gnumonks.org>
 References: <42C03F2E.30706@eurodev.net> <42C0806E.3010400@trash.net>
 	<20050628071308.GE13239@sunbeam.de.gnumonks.org>
 	<42C1747A.3010703@trash.net> <42C2F2DF.7070301@eurodev.net>
+	<42C2FC14.80609@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="msgLTjjeumHWYklJ"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <42C2F2DF.7070301@eurodev.net>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <42C2FC14.80609@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,69 +26,65 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> I think that we could split the structure into fine grain fields. For
-> example, CTA_TUPLE_ORIG would composed of:
-> 
-> CTA_ORIG_IPV4_SRC
-> CTA_ORIG_IPV4_DST
-> CTA_L4_PROTONUM
-> CTA_PROTO_IPV4_SRC
-> CTA_PROTO_IPV4_DST
-> CTA_DIR
-> 
-> So, instead of sending a packet that contains a reference to an
-> ip_conntrack_tuple (CTA_TUPLE_ORIG), we'll have a set of fields
-> (CTA_ORIG_IPV4_SRC + CTA_ORIG_IPV4_DST + ...) that compose such structure.
-> 
-> But I'll need a function to glue all the fields to create a
-> ip_conntrack_tuple. Maybe too bloated?
 
-I think its fine, but CTA_PROTO_IPV4_{SRC,DST} should be
-CTA_PROTO_{SRC,DST}, there's nothing related to IPv4 in them.
-Please nest all attributes related to a tuple in CTA_TUPLE
-instead of adding them to the top-level.
+--msgLTjjeumHWYklJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->>> Still, I think creating messages for any kind of event (even if noone
->>> listens) is too much overhead.  netlink needs to be extended to deal
->>> with that issue.
->>>
->>> Maybe the 'which socket is subscribed to which group' accounting should
->>> be done by the core netlink layer, which would then only export a
->>> merged bitmask of all netlink sockets.  This way ctnetlink can easily
->>> check whether it makes sense to create a certain event message or not.
->>>
->>> This should be useful for other netlink users, too.
-> 
-> 
-> Isn't netlink broadcast subscription enough? netlink_broadcast doesn't
-> enqueue packets for a socket that isn't subscribed to a group, so the
-> process never gets useless packets.
+On Wed, Jun 29, 2005 at 09:52:52PM +0200, Patrick McHardy wrote:
+> > So I think that we can group event, say:
+> >=20
+> > level 1 (weak):
+> >     - IPCT_NEW
+> >     - IPCT_DESTROY
+> >=20
+> > level 2 (normal):
+> >     - IPCT_NEW
+> >     - IPCT_UPDATE
+> >     - IPCT_STATUS
+> >     - ...
+> >     - IPCT_DESTROY
+> >=20
+> > At reserve some groups to let the user define some level whenever he
+> > wants. Although such level would be unique.
+> >=20
+> > OTOH, there are 10 events currently, why is that bad creating a group
+> > per event?
+>=20
+> I don't think its bad, but I fear hitting the 32 group limit some day.
+> Probably that fear is unfounded and we're never going to reach 32
+> different types of events. Harald, what do you think?
 
-But we still spent time building them, just to have them thrown away.
+I think it's not all that much of a problem.  I doubt that conntrack
+will get 22 more events anytime soon.  The other problem is, don't we
+overlap with other nfnetlink-based groups?
 
-> So I think that we can group event, say:
-> 
-> level 1 (weak):
->     - IPCT_NEW
->     - IPCT_DESTROY
-> 
-> level 2 (normal):
->     - IPCT_NEW
->     - IPCT_UPDATE
->     - IPCT_STATUS
->     - ...
->     - IPCT_DESTROY
-> 
-> At reserve some groups to let the user define some level whenever he
-> wants. Although such level would be unique.
-> 
-> OTOH, there are 10 events currently, why is that bad creating a group
-> per event?
+nfnetlink acts as a a multiplex between netlink and the higher layers,
+so I guess we only have 32groups for nfnetlink as a whole... and there
+is other stuff like ip_queue and ULOG that is to be ported on top of
+nfnetlink...
 
-I don't think its bad, but I fear hitting the 32 group limit some day.
-Probably that fear is unfounded and we're never going to reach 32
-different types of events. Harald, what do you think?
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Regards
-Patrick
+--msgLTjjeumHWYklJ
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCwwGZXaXGVTD0i/8RAgGRAJwKbJ+huJ73AMl5RN6PIrBgdFWcswCffI+k
+Yq/sLddwjEMTRUnJa3sZXpw=
+=izyf
+-----END PGP SIGNATURE-----
+
+--msgLTjjeumHWYklJ--
