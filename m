@@ -1,19 +1,16 @@
-From: Daniel Hartmeier <daniel@benzedrine.cx>
-Subject: Re: [PATCH] TCP window tracking patch backported from the 2.6 tree
-Date: Wed, 29 Jun 2005 16:55:45 +0200
-Message-ID: <20050629145545.GO26761@insomnia.benzedrine.cx>
-References: <Pine.LNX.4.58.0506281201590.12765@blackhole.kfki.hu>
-	<42C17443.60909@drugphish.ch>
-	<Pine.LNX.4.58.0506290926400.14936@blackhole.kfki.hu>
-	<42C26765.2060304@tac.ch>
-	<Pine.LNX.4.58.0506291223440.14974@blackhole.kfki.hu>
+From: Josh Samuelson <josamue1@wsc.edu>
+Subject: Re: [PATCH 1/2] flow match
+Date: Wed, 29 Jun 2005 21:53:29 -0500
+Message-ID: <20050630025329.GA27106@wsc.edu>
+References: <20050628234912.GB23662@wsc.edu> <42C2F409.4040509@eurodev.net>
+	<42C34524.1010304@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, Roberto Nibali <ratz@tac.ch>
+Cc: netfilter-devel@lists.netfilter.org, Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0506291223440.14974@blackhole.kfki.hu>
+In-Reply-To: <42C34524.1010304@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,72 +22,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jun 29, 2005 at 12:26:02PM +0200, Jozsef Kadlecsik wrote:
-
-> > http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/patchlets/tcp-window-tracking/linux-2.4.patch?rev=4073&view=markup
-> >
-> > It would be nice to have a second opinion regarding the tcp state transitions,
-> > the SACK handling and the tcp_in_window() function, which is most critical.
-> > We're probably talking about this gem, among others:
-> >
-> > http://www.openbsd.org/cgi-bin/cvsweb/~checkout~/src/sys/net/pf.c?rev=1.493&content-type=text/plain
+On Thu, Jun 30, 2005 at 03:04:36AM +0200, Patrick McHardy wrote:
+> Pablo Neira wrote:
+> > This stuff clearly supersedes `connlimit' that is a bit raw and very
+> > "limited".
+> > 
+> > @Patrick: Do you agree to add this to pom-ng?
 > 
-> I'd be just happy to receive any opinion, critics on how the window
-> tracking were implemented in netfilter.
+> There's lots of weird stuff in there, so basically, I don't care much.
+> It looks nice and clean, but quite complex for something I don't even
+> know what it is useful for. Josh, do you have any practical examples
+> where it is useful?
+> 
+> Regards
+> Patrick
 
-The SACK handling looks curious to me. This is the TCP Selective
-Acknowledgements options, as in RFC 2018, right?
+Hi Patrick,
 
-OpenBSD pf doesn't read those at all, currently. Stateful filtering
-shouldn't have to know about SACK, as SACK-enabled hosts must still
-honour the general rules in Guido's paper, i.e. ignoring SACK holes
-doesn't break any valid SACK-enabled connection. This is unlike the
-window scaling options, which the filter has to understand.
+Yes, we have been using it as a metric for acceptable use on our
+dorm network.  When a machine exceeds some threshold for our rule
+base, we use my TIMER target to add the machine's MAC address to
+a table.  If a machine's MAC address is found in the TIMER table,
+it will be marked.  All established connections for the machine
+are unaffected.  However, the new connections coming from the
+machine are denied, unless they are destined for port 80, which
+we DNAT to an internal web server with instructions (acceptable use
+policy) and utilities for checking if the machine has a virus or
+spyware.  Once the timer runs out, things are back to normal for
+the machine.  If the machine continues to pound the network and therefore
+break our acceptable use policy, the TIMER just gets refreshed from
+the flow match.  So yes, by itself, it just gives you the ability to
+match against the number of new or established connections per source
+or destination IP address.  Oh yeah, also subnets, but I haven't
+tested that functionality much yet in a real world situation.
+We've had good results with this setup.
 
-But there's one desirable thing you can do if you know about SACK holes:
-you can prevent a peer from overwriting a TCP segment which has already
-been (selectively) acknowledged. That is, similar to how the IP-level
-reassembly in pf prevents attacks (for instance on IDSs) by weeding out
-overlapping IP fragments, a TCP-level normalization could ensure that a
-peer isn't allowed to overwrite TCP segments that have already been
-acknowledged by the recipient. For instance, an attacker's goal might be
-to take advantage of differences in how different readers will deal with
-overlaps (the IDS might keep the first version, which doesn't trigger an
-alarm, while the end-point host might keep the second version).
+Another use would be where you have a box that mainly does routing
+with another that mainly does firewalling.  As rogue scanning packets
+flow through the router, they will be dropped by the next hop firewall.
+With the flow module, these dropped packets will appear to be
+new connections to the router.  Once the new count goes beyond a
+reasonable level, the source IP address is added to a TIMER target.
+If the router matches source IP addresses against that TIMER target,
+drop them at the router.  This will allow for automated thwarting of service
+scanning, lasting however long the TIMER table is configured for.
+I haven't tried this yet but it seems plausible.
 
-We want to implement this kind of TCP normalization eventually in pf,
-and SACK makes this quite an interesting problem (i.e. should the
-stateful filter use up memory to cache all SACK holes, etc.?).
+I'm not trying to plug the TIMER target/match, it just makes
+the flow and other matches more useful in certain transient situations. :)
 
-Is this implemented in the netfilter patch above? Or what else do you
-read SACK options for?
+I would love to answer any questions you may have to the "weird stuff"
+I've got in there.  :)  Please be patient for responses though because
+tomorrow morning I'm off on a big hiking trip and will be well away
+from my email.
 
-I don't see it caching individual SACK boundaries, there seems to be a
-single 'highwater mark', as the comment explains
-
-+   The boundaries and the conditions are changed according to RFC793:
-+   the packet must intersect the window (i.e. segments may be
-+   after the right or before the left edge) and thus receivers may ACK
-+   segments after the right edge of the window.
-+
-+   	td_maxend = max(sack + max(win,1)) seen in reply packets
-+	td_maxwin = max(max(win, 1)) + (sack - ack) seen in sent packets
-+	td_maxwin += seq + len - sender.td_maxend
-+			if seq + len > sender.td_maxend
-+	td_end    = max(seq + len) seen in sent packets
-+   
-+   I.   Upper bound for valid data:	seq <= sender.td_maxend
-+   II.  Lower bound for valid data:	seq + len >= sender.td_end - receiver.td_maxwin
-+   III.	Upper bound for valid ack:      sack <= receiver.td_end
-+   IV.	Lower bound for valid ack:	ack >= receiver.td_end - MAXACKWINDOW
-+   	
-+   where sack is the highest right edge of sack block found in the packet.
-                      ^^^^^^^^^^^^^^^^^^
-
-If you're using only the highest right edge, I wonder why you have to
-read that at all (and don't just use normal ACKs that are sent when
-there are no holes or holes are filled). Could you explain what
-advantages this has? We see no problems with SACK-enabled connections in
-pf, and simply ignore selective ACK options.
-
-Daniel
+Cheers,
+Josh
