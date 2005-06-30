@@ -1,24 +1,12 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCH 1/2] updates for [nf|ct]netlink and event API
-Date: Thu, 30 Jun 2005 23:34:59 +0200
-Message-ID: <20050630213459.GO16076@postel.suug.ch>
-References: <42C2F2DF.7070301@eurodev.net> <42C2FC14.80609@trash.net>
-	<42C33E33.7090908@eurodev.net> <42C34445.9020709@trash.net>
-	<20050630014901.GH16076@postel.suug.ch>
-	<42C350A1.1030602@trash.net>
-	<20050630120302.GI16076@postel.suug.ch> <42C3F35B.50805@trash.net>
-	<20050630180238.GM16076@postel.suug.ch>
-	<42C46374.5000407@trash.net>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: [RFC][PATCH] nfnetlink parses attributes
+Date: Thu, 30 Jun 2005 20:05:43 +0200
+Message-ID: <42C43477.40307@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>, netdev@vger.kernel.org,
-	Jamal Hadi Salim <hadi@cyberus.ca>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>
+Content-Type: multipart/mixed; boundary="------------050403020506080607000401"
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <42C46374.5000407@trash.net>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,31 +18,118 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Patrick McHardy <42C46374.5000407@trash.net> 2005-06-30 23:26
-> Thomas Graf wrote:
-> > * Patrick McHardy <42C3F35B.50805@trash.net> 2005-06-30 15:27
-> >
-> >>I think for nested attributes error handling should happen on the
-> >>outer level. Just trimming on the inner level would leave a
-> >>half-finished nested attribute.
-> > 
-> > I can agree with this, the question that remains is: do we want
-> > to trim in functions where no nesting is done at all? i.e. things
-> > like the generic network statistics dumping interface.
-> 
-> Trimming isn't required in this case since the length is know and
-> checked in advance. An error should still be propagated back of
-> course so potential outer levels can do trimming.
+This is a multi-part message in MIME format.
+--------------050403020506080607000401
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This is only true if one attribute is added. What I really meant
-is something like em_text_dump() in em_text.c. Assuming we rework
-areas like this one in order to avoid structs on the stack, we'll
-have a lot of such cases where we might hit the limit while not
-really knowing about the start of the nested tlv.
+Hi,
 
-Anyways, I think this is a minor issue and we can safely ignore it
-and delegate the trimming responsibility to the underlying layer
-which "started" the nested tlv.
+Please do not apply this patch, just a RFC.
 
-The gnet_stats interface was a bad example since it doesn't have
-such a case.
+I think that we can could nfnetlink_check_attributes from nfnetlink 
+itself, so the subsystems receive the attributes already parsed. Almost 
+  all the operations in ip_conntrack_netlink always call 
+check_attributes first to parse attributes.
+
+--
+Pablo
+
+--------------050403020506080607000401
+Content-Type: text/x-patch;
+ name="attributes.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="attributes.patch"
+
+Index: davem-2.6/net/netfilter/nfnetlink.c
+===================================================================
+--- davem-2.6.orig/net/netfilter/nfnetlink.c	2005-06-30 19:31:47.000000000 +0200
++++ davem-2.6/net/netfilter/nfnetlink.c	2005-06-30 19:49:20.000000000 +0200
+@@ -103,19 +103,23 @@
+ 	return 0;
+ }
+ 
+-struct nfnl_callback *nfnetlink_find_client(u_int16_t nlmsg_type)
++static inline struct nfnetlink_subsystem *nfnetlink_get_subsys(u_int16_t type)
+ {
+-	struct nfnetlink_subsystem *ss;
+-	u_int8_t subsys_id = NFNL_SUBSYS_ID(nlmsg_type);
+-	u_int8_t type = NFNL_MSG_TYPE(nlmsg_type);
++	u_int8_t subsys_id = NFNL_SUBSYS_ID(type);
+ 
+ 	if (subsys_id >= NFNL_SUBSYS_COUNT
+ 	    || subsys_table[subsys_id] == NULL)
+ 		return NULL;
+ 
+-	ss = subsys_table[subsys_id];
++	return subsys_table[subsys_id];
++}
+ 
+-	if (type >= ss->cb_count) {
++static inline struct nfnl_callback *
++nfnetlink_find_client(u_int16_t type, struct nfnetlink_subsystem *ss)
++{
++	u_int8_t cb_id = NFNL_MSG_TYPE(type);
++	
++	if (cb_id >= ss->cb_count) {
+ 		DEBUGP("msgtype %u >= %u, returning\n", type, ss->cb_count);
+ 		return NULL;
+ 	}
+@@ -209,6 +213,7 @@
+ 				    struct nlmsghdr *nlh, int *errp)
+ {
+ 	struct nfnl_callback *nc;
++	struct nfnetlink_subsystem *ss;
+ 	int type, err = 0;
+ 
+ 	DEBUGP("entered; subsys=%u, msgtype=%u\n",
+@@ -228,7 +233,11 @@
+ 	}
+ 
+ 	type = nlh->nlmsg_type;
+-	nc = nfnetlink_find_client(type);
++	ss = nfnetlink_get_subsys(type);
++	if (!ss)
++		goto err_inval;
++
++	nc = nfnetlink_find_client(type, ss);
+ 	if (!nc) {
+ 		DEBUGP("unable to find client for type %d\n", type);
+ 		goto err_inval;
+@@ -241,9 +250,17 @@
+ 		return -1;
+ 	}
+ 
+-	err = nc->call(nfnl, skb, nlh, errp);
+-	*errp = err;
+-	return err;
++	{
++		struct nfattr *cda[ss->attr_count];
++		
++		err = nfnetlink_check_attributes(ss, nlh, cda);
++		if (err < 0)
++			goto err_inval;
++		
++		err = nc->call(nfnl, skb, nlh, cda, errp);
++		*errp = err;
++		return err;
++	}
+ 
+ err_inval:
+ 	*errp = -EINVAL;
+Index: davem-2.6/include/linux/netfilter/nfnetlink.h
+===================================================================
+--- davem-2.6.orig/include/linux/netfilter/nfnetlink.h	2005-06-30 19:50:06.000000000 +0200
++++ davem-2.6/include/linux/netfilter/nfnetlink.h	2005-06-30 19:50:40.000000000 +0200
+@@ -60,7 +60,7 @@
+ {
+ 	kernel_cap_t cap_required; /* capabilities required for this msg */
+ 	int (*call)(struct sock *nl, struct sk_buff *skb, 
+-		struct nlmsghdr *nlh, int *errp);
++		struct nlmsghdr *nlh, struct nfattr *cda[], int *errp);
+ };
+ 
+ struct nfnetlink_subsystem
+
+--------------050403020506080607000401--
