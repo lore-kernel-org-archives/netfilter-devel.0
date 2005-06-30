@@ -1,15 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] flow match
-Date: Thu, 30 Jun 2005 03:04:36 +0200
-Message-ID: <42C34524.1010304@trash.net>
-References: <20050628234912.GB23662@wsc.edu> <42C2F409.4040509@eurodev.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH: NF_CONNTRACK 0/6] synchroize with the latest ip_conntrack
+Date: Thu, 30 Jun 2005 10:29:03 +0900 (JST)
+Message-ID: <200506300129.j5U1T3Jx001201@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Josh Samuelson <josamue1@wsc.edu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <42C2F409.4040509@eurodev.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,16 +18,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> This stuff clearly supersedes `connlimit' that is a bit raw and very
-> "limited".
-> 
-> @Patrick: Do you agree to add this to pom-ng?
 
-There's lots of weird stuff in there, so basically, I don't care much.
-It looks nice and clean, but quite complex for something I don't even
-know what it is useful for. Josh, do you have any practical examples
-where it is useful?
+Hi, Patrick,
 
-Regards
-Patrick
+These patches synchronize nf_conntrack with the latest ip_conntrack.
+If you haven't synchronized in your tree yet, please apply.
+And please don't forget to apply
+
+https://lists.netfilter.org/pipermail/netfilter-devel/2005-June/019988.html
+
+before these patches.
+
+Regards,
+
+-----------------------------------------------------------------
+Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
