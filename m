@@ -1,12 +1,15 @@
-From: Venkata Narayana <mesg2nari@yahoo.com>
-Subject: REDIRECT changes DST address of the packet
-Date: Thu, 30 Jun 2005 00:27:56 -0700 (PDT)
-Message-ID: <20050630072756.89120.qmail@web60820.mail.yahoo.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] TCP window tracking patch backported from the 2.6 tree
+Date: Thu, 30 Jun 2005 09:51:11 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0506300948290.16566@blackhole.kfki.hu>
+References: <Pine.LNX.4.58.0506281201590.12765@blackhole.kfki.hu>
+	<42C2AE97.7020305@tac.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Roberto Nibali <ratz@tac.ch>
+In-Reply-To: <42C2AE97.7020305@tac.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,29 +21,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 29 Jun 2005, Roberto Nibali wrote:
 
-Hello,
- 
-My question is if I use REDIRECT action in
-NAT PREROUTING table  is it going to change the tcp
-packet DST address.
- 
-If I lose original DST address, how can I persist
-that value in that packet.
+> > found in the patch-o-matic-ng svn repository. The 2.4 version of the
+> > nf-log patch (which is required) has been updated as well.
+>
+> The updated nf-log patch seems to be missing the neccessary symbol exports.
+> Please consider adding this to your linux-2.4 patch:
 
-Can you give information how the packet is getting
-converted in this scenario.
+I mixed up something then, I have even committed the patch in svn by
+running the patched kernel. Sorry, expect fixed patch tomorrow.
 
-
-
-Thanks in advance.
- 
-Nari.
-
-
-
-		
-____________________________________________________ 
-Yahoo! Sports 
-Rekindle the Rivalries. Sign up for Fantasy Football 
-http://football.fantasysports.yahoo.com
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
