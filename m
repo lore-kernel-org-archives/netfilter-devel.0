@@ -1,17 +1,21 @@
-From: "Vladimir B. Savkin" <master@sectorb.msk.ru>
-Subject: Re: ULOG and bandwidth monitor
-Date: Thu, 30 Jun 2005 20:08:40 +0400
-Message-ID: <20050630160840.GA21269@tentacle.sectorb.msk.ru>
-References: <421134A9.8010204@utilitran.com>
-	<7174b1e405021416134d63fd4e@mail.gmail.com>
+From: Daniel Hartmeier <daniel@benzedrine.cx>
+Subject: Re: [PATCH] TCP window tracking patch backported from the 2.6 tree
+Date: Thu, 30 Jun 2005 13:13:44 +0200
+Message-ID: <20050630111344.GP26761@insomnia.benzedrine.cx>
+References: <Pine.LNX.4.58.0506281201590.12765@blackhole.kfki.hu>
+	<42C17443.60909@drugphish.ch>
+	<Pine.LNX.4.58.0506290926400.14936@blackhole.kfki.hu>
+	<42C26765.2060304@tac.ch>
+	<Pine.LNX.4.58.0506291223440.14974@blackhole.kfki.hu>
+	<20050629145545.GO26761@insomnia.benzedrine.cx>
+	<Pine.LNX.4.58.0506300903350.16566@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=koi8-r
-Cc: netfilter-devel@lists.netfilter.org,
-	Michael Gale <michael.gale@utilitran.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, Roberto Nibali <ratz@tac.ch>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Ben La Monica <ben.lamonica@gmail.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Content-Disposition: inline
-In-Reply-To: <7174b1e405021416134d63fd4e@mail.gmail.com>
+In-Reply-To: <Pine.LNX.4.58.0506300903350.16566@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,30 +27,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Feb 14, 2005 at 05:13:12PM -0700, Ben La Monica wrote:
-> Hello,
-> 
-> On Mon, 14 Feb 2005 16:30:49 -0700, Michael Gale
-> <michael.gale@utilitran.com> wrote:
-> > Hello,
-> > 
-> >         I have recently downloaded ulogd-1.02 and gone through the
-> > documentation. With the mysql plugin, it would seem very easy to create
-> > a web base front end to produce total stats.
-> 
-> ulog has problems when there is a lot of traffic flowing, and it drops
-> packets. This is because that it passes every packet into userspace
-> and it usually runs out of buffer space. I think there are plans to
-> actually integrate a conntrack-acct module into ulogd (I can't find
-> the post right now, so I can't provide a reference).
-> 
+On Thu, Jun 30, 2005 at 09:48:19AM +0200, Jozsef Kadlecsik wrote:
 
-With --ulog-cprange and --ulog-threshold it's not nearly that bad.
-I'm doing accounting with more than 50kpps peak rate, with no drops.
-It's not a hard limit, we just have that much of a traffic here,
-with artificial tests it can do more.
+> > advantages this has? We see no problems with SACK-enabled connections in
+> > pf, and simply ignore selective ACK options.
+> 
+> I suspect you haven't received reports on such problems because pf does
+> not log when it drops out of window segments. TCP is a robust protocol and
+> sometimes, by resending packets, it can overcome the situation and the
+> connection does not hang forever. However the window tracking patch for
+> netfilter lived very long time in patch-o-matic as an experimental
+> extension with logging out of window packets enabled. We received
+> complains and sometimes the reporters could supply both the logs and full
+> tcpdump recordings from the firewall which revealed the problem.
 
-~
-:wq
-                                        With best regards, 
-                                           Vladimir Savkin. 
+pf can log when it drops packets that mismatch the state entry's
+sequence number windows ('BAD state' log entries, generated when pfctl
+-xm, debug logging, is enabled, which is disabled by default).
+
+I've analyzed a fair number of problem reports with both tcpdumps of
+connections and such out-of-window logs, but I've never seen one where
+SACK holes were part of the puzzle. In some cases, one peer would simply
+violate the TCP RFC and send out-of-window segments. Maybe I just didn't
+make the connection between seemingly invalid behaviour and SACK holes,
+but out of at least two dozen analyzed incidents, none remained
+unexplained so far.
+
+I'd be interested in an example dump and log of a connection that
+demonstrates this issue, especially if it shows that the hosts
+didn't violate the RFCs. Comparing, in that example, the use of a
+right-most SACK hole as edge vs. a (later) plain ACK could help
+understand the implications.
+
+I'm not saying netfilter's use of the SACK holes is potentially
+incorrect, but it looks somewhat suspicious to me, and that's what I'd
+look at more closely. If you still have one of those examples around,
+I'd love to see it :)
+
+Daniel
