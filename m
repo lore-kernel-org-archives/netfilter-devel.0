@@ -1,25 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] updates for [nf|ct]netlink and event API
-Date: Thu, 30 Jun 2005 23:26:12 +0200
-Message-ID: <42C46374.5000407@trash.net>
-References: <20050628071308.GE13239@sunbeam.de.gnumonks.org>
-	<42C1747A.3010703@trash.net> <42C2F2DF.7070301@eurodev.net>
-	<42C2FC14.80609@trash.net> <42C33E33.7090908@eurodev.net>
-	<42C34445.9020709@trash.net>
-	<20050630014901.GH16076@postel.suug.ch>
-	<42C350A1.1030602@trash.net>
-	<20050630120302.GI16076@postel.suug.ch> <42C3F35B.50805@trash.net>
-	<20050630180238.GM16076@postel.suug.ch>
+From: Roberto Nibali <ratz@drugphish.ch>
+Subject: Re: possible issues with blowing up struct ipt_log_info
+Date: Fri, 01 Jul 2005 09:08:24 +0200
+Message-ID: <42C4EBE8.7050804@drugphish.ch>
+References: <42C2C053.3040707@tac.ch> <20050629154049.GA17717@oknodo.bof.de>
+	<20050629160923.GF3331@eychenne.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netdev@vger.kernel.org,
-	Jamal Hadi Salim <hadi@cyberus.ca>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>
+Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
+	Patrick Schaaf <bof@bof.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Graf <tgraf@suug.ch>
-In-Reply-To: <20050630180238.GM16076@postel.suug.ch>
+To: rv@eychenne.org
+In-Reply-To: <20050629160923.GF3331@eychenne.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -31,20 +23,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thomas Graf wrote:
-> * Patrick McHardy <42C3F35B.50805@trash.net> 2005-06-30 15:27
->
->>I think for nested attributes error handling should happen on the
->>outer level. Just trimming on the inner level would leave a
->>half-finished nested attribute.
-> 
-> I can agree with this, the question that remains is: do we want
-> to trim in functions where no nesting is done at all? i.e. things
-> like the generic network statistics dumping interface.
+> I remember saying here that it would be cool to have the log prefix length
+> tunable at kernel LOG module insertion, have it exported (read-only) to some
+> /proc entry, and have userspace (iptables, or any other upper-level
+> application) rely on the real-time extracted value.
+> What do you think?
 
-Trimming isn't required in this case since the length is know and
-checked in advance. An error should still be propagated back of
-course so potential outer levels can do trimming.
+Could work, although I'm not sure why you'd want to change the prefix 
+lenght that often, however flexibility is nice.
 
-Regards
-Patrick
+Another issue I see is that iptables, when sending the data from user to 
+kernel space, must be made aware of setting the correct target{info}size 
+in case the ipt_*LOG module is not loaded yet. Parsing proc-fs would be 
+useless. This opens a possible "DoS", which can be addressed by having a 
+max log prefix length accepted as being passed to the lkm.
+
+Was there any consensus regarding this feature among the core netfilter 
+developers or has anyone posted a POC patch? Granted, there are a 
+billion more important things to address, but still ... ;)
+
+Regards,
+Roberto Nibali, ratz
+-- 
+echo 
+'[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
