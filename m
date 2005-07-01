@@ -1,14 +1,12 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: REDIRECT changes DST address of the packet
-Date: Thu, 30 Jun 2005 13:09:30 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0506301308290.3095@yvahk01.tjqt.qr>
-References: <20050630072756.89120.qmail@web60820.mail.yahoo.com>
+From: Sven Schuster <schuster.sven@gmx.de>
+Subject: can't access svn repository
+Date: Fri, 1 Jul 2005 15:28:43 +0200
+Message-ID: <20050701132843.GA20157@zion.homelinux.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-1
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Venkata Narayana <mesg2nari@yahoo.com>
-In-Reply-To: <20050630072756.89120.qmail@web60820.mail.yahoo.com>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,22 +18,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
->Hello,
-> 
->My question is if I use REDIRECT action in
->NAT PREROUTING table  is it going to change the tcp
->packet DST address.
-> 
->If I lose original DST address, how can I persist
->that value in that packet.
 
-You can't really with PREROUTING (except of course, said getsockopt() call)
-If you want to transparently redirect packets, you might want to use ROUTE or 
-TPROXY, depending on what you really want.
+Hi everybody,
+
+does anybody else also have problems accessing the svn repository??
+
+When I run
+
+svn co https://svn.netfilter.org/netfilter/trunk/iptables
+
+to do a completely new checkout, I get these errors:
+
+svn: REPORT request failed on '/netfilter/!svn/vcc/default'
+svn:
+Can't find a temporary directory
+
+Is it once again my insufficient subversion knowledge or is there
+a problem on the server side??
 
 
+regards,
 
-Jan Engelhardt                                                               
---                                                                            
-| Gesellschaft fuer Wissenschaftliche Datenverarbeitung Goettingen,
-| Am Fassberg, 37077 Goettingen, www.gwdg.de
+Sven
+
+-- 
+Linux zion 2.6.12-mm2 #3 Thu Jun 30 21:35:27 CEST 2005 i686 athlon i386 GNU/Linux
+ 15:26:57 up 17:09,  1 user,  load average: 0.10, 0.24, 0.16
