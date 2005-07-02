@@ -1,14 +1,15 @@
-From: Venkata Narayana <mesg2nari@yahoo.com>
-Subject: Re: REDIRECT changes DST address of the packet
-Date: Fri, 1 Jul 2005 21:15:04 -0700 (PDT)
-Message-ID: <20050702041504.69557.qmail@web60814.mail.yahoo.com>
-References: <2005530121124577@mail.routehat.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [RFC][PATCH] nfnetlink parses attributes
+Date: Sat, 2 Jul 2005 10:33:17 +0200
+Message-ID: <20050702083317.GK3186@sunbeam.de.gnumonks.org>
+References: <42C43477.40307@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Tu8ztk+XgTAiG9Id"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Peter Surda <shurdeek@routehat.org>, netfilter-devel@lists.netfilter.org
-In-Reply-To: <2005530121124577@mail.routehat.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <42C43477.40307@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,43 +21,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks Peter, Krzysztof and All,
 
-I am able to get the original Destination address and
-able to solve the problem.
-Thanks once again.
-Nari.
+--Tu8ztk+XgTAiG9Id
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
---- Peter Surda <shurdeek@routehat.org> wrote:
+On Thu, Jun 30, 2005 at 08:05:43PM +0200, Pablo Neira wrote:
+> Hi,
+>=20
+> I think that we can could nfnetlink_check_attributes from nfnetlink
+> itself, so the subsystems receive the attributes already parsed.
+> Almost  all the operations in ip_conntrack_netlink always call
+> check_attributes first to parse attributes.
 
-> On Thu, 30 Jun 2005 10:08:55 +0200 (CEST) Krzysztof
-> Oledzki <olenf@ans.pl>
-> wrote:
-> 
-> >> If I lose original DST address, how can I persist
-> >> that value in that packet.
-> >Please use getsockopt() with SO_ORIGINAL_DST.
-> Hehe you were faster than me :-).
-> 
-> Nari, if you don't understand how to do this, check
-> out the source of some
-> transparent proxies (squid, p3scan) for examples (as
-> Krzysztof said, grep for
-> SO_ORIGINAL_DST). I think it's straightforward, I
-> even managed to reproduce this
-> in perl without using any C.
-> 
-> >Best regards,
-> > 				Krzysztof Olędzki
-> Yours sincerely,
-> Peter
-> 
-> 
+Sure, I think I wanted to change it like that at some point in the past.
 
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
+--Tu8ztk+XgTAiG9Id
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-		
-____________________________________________________ 
-Yahoo! Sports 
-Rekindle the Rivalries. Sign up for Fantasy Football 
-http://football.fantasysports.yahoo.com
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCxlFNXaXGVTD0i/8RAoYwAJwM4GkGlu27lCh/7FdJ3v7a7xUmWACffCjQ
+EIHqSlVg5Y3r1StO2ukVaO4=
+=Ivwg
+-----END PGP SIGNATURE-----
+
+--Tu8ztk+XgTAiG9Id--
