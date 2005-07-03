@@ -1,15 +1,16 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: Iptables and kernel modules
-Date: Sun, 03 Jul 2005 21:09:08 +0000
-Message-ID: <42C853F4.6010702@outerspace.dyndns.org>
-References: <20050701004115.34697.qmail@web26507.mail.ukl.yahoo.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: svn diff for Legato NetWorker RPC/RSH modules
+Date: Sun, 3 Jul 2005 16:02:50 +0200
+Message-ID: <20050703140250.GC3186@sunbeam.de.gnumonks.org>
+References: <42C7DEAD.4010209@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, laarouch@enseirb.fr
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="MXE3caftPhBF8dmD"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: LAAROUCHI Youssef <laarouchi_yous@yahoo.fr>
-In-Reply-To: <20050701004115.34697.qmail@web26507.mail.ukl.yahoo.com>
+To: David Stes <stes@pandora.be>
+Content-Disposition: inline
+In-Reply-To: <42C7DEAD.4010209@pandora.be>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,63 +22,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-Quoting LAAROUCHI Youssef on 2005-07-01 00:41 UTC:
-> Hi,
-> 
-> I've created a kernel module to modify the format of
-> exchanged IP packets... This module is correctly inserted
-> into the kernel. I then want to make this module receive
-> the packets by using the following command :
-> 
-> #iptables -t mangle -A INPUT -p icmp --icmp-type 38 -j 
-> puzClient
-> 
-> This command returns an error asking for .so file... The
-> problem is that I don't know the format of .so files.. I
-> have generated one .so file by adding -shared in the link
-> command, but it doesn't solve the problem. I have undefined
-> symbols error.
+--MXE3caftPhBF8dmD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-You need to create a userspace helper for your kernel module. If your
-kernel module is named ipt_puzClient.c, the userspace helper should be
-named libipt_puzClient.c and be placed in the iptables source tree in
-the extensions/ directory. There are also a few more files in the same
-directory that you need to create, see sections 9-12 in the
-README.newpatchs in patch-o-matic-ng e.g.
+On Sun, Jul 03, 2005 at 02:48:45PM +0200, David Stes wrote:
+>=20
+> Hello,
+>=20
+> Here is the result of a "svn diff" for some changes to the "patch-o-matic=
+-ng" .
+>=20
+> These changes are for using the RPC/RSH modules for Legato NetWorker traf=
+fic=20
+> over a netfilter firewall.
+>=20
+> Is it please possible to commit this diff ?
 
-http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/README.newpatches?rev=4018&view=auto
+yes, but it would be applied by one of the coreteam members (such as me)
 
-You can look at libipt_MARK.c for an example..
+> When I try to commit the changes myself, I get a "Forbidden" (permission=
+=20
+> denied).
 
-> So can you specify to me how the .so files are generated ?
+well, obviously we don't let everybody commit to our repositories ;)
+What would you think if everyone could change the code of your packet
+filter?
 
-After you get the files in place and your kernel has been configured to
-compile your module, compile iptables and it should detect that it needs
-to create libipt_puzClient.so and create it for you.
+> Here is the DIFF :
 
-> and what is the necessary format to generate a ipt_target
-> so file. And eventually, can we make iptables working
-> directly  with kernel modules without using .so files  ? ? 
+it's garbled, probably by your mailer.  please re-send as a MIME
+attachment.  thanks!
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Everything's possible, but that wouldn't be very nice. Creating the .so
-file shouldn't be too hard as soon as you understand how to do it. I
-think you can copy-paste a lot from libipt_MARK.c to get going..
+--MXE3caftPhBF8dmD
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-> Thanks,
-> 
-> Youssef
-
-Good luck! :)
-
-- --
-- - xkr47
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFCyFPyxyF48ZTvn+4RAtJiAJ98X0JbIrbm0sgpe2kSgv2uzq8xogCeMrJL
-BBwA6+jInSxYcFbAfpmgPpI=
-=7P8r
+iD8DBQFCx/AKXaXGVTD0i/8RAqxjAJ9/QbnYsSO4AwVcPgUxa307mh/DBwCghYsR
+jKZxrnBQZl660qgFPxrU7NA=
+=TYbV
 -----END PGP SIGNATURE-----
+
+--MXE3caftPhBF8dmD--
