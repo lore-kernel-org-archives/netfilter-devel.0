@@ -1,16 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: can't access svn repository
-Date: Sun, 3 Jul 2005 14:42:44 +0200
-Message-ID: <20050703124244.GZ3186@sunbeam.de.gnumonks.org>
-References: <20050701132843.GA20157@zion.homelinux.com>
+Subject: Re: [PATCH: NF_CONNTRACK 6/6] Avoid unncessary UDP checksum
+	validation
+Date: Sun, 3 Jul 2005 14:40:49 +0200
+Message-ID: <20050703124049.GY3186@sunbeam.de.gnumonks.org>
+References: <200506300131.j5U1Vj34029455@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XlarKorwDmMoGA5O"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="tvVWxv2WwUczo9bQ"
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sven Schuster <schuster.sven@gmx.de>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <20050701132843.GA20157@zion.homelinux.com>
+In-Reply-To: <200506300131.j5U1Vj34029455@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +24,16 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---XlarKorwDmMoGA5O
+--tvVWxv2WwUczo9bQ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 01, 2005 at 03:28:43PM +0200, Sven Schuster wrote:
->=20
-> Hi everybody,
->=20
-> does anybody else also have problems accessing the svn repository??
->=20
-> When I run
->=20
-> svn co https://svn.netfilter.org/netfilter/trunk/iptables
+On Thu, Jun 30, 2005 at 10:31:44AM +0900, Yasuyuki KOZAKAI wrote:
+> This patch follows the recent changes to ip_conntrack.
 
-mh, strange.  I just tried here (svn, version 1.2.0 (r14790) on the
-client) without any problems.
+Maybe a stupid question, but where can I access that latest 'official'
+nf_conntrack tree?
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -51,16 +45,16 @@ client) without any problems.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---XlarKorwDmMoGA5O
+--tvVWxv2WwUczo9bQ
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFCx91EXaXGVTD0i/8RAsuTAKCIVK0dk5WXU9+1p1yWOPwvesU+TACeMQFo
-nUxOOPjDQQX6ZGshWeUXw4M=
-=hbMm
+iD8DBQFCx9zRXaXGVTD0i/8RAmiIAJoDbyqd4DPxhmtj1YesnQkyyA1hzgCfbM37
+L0sPMo3xH8C71alpIMixgT4=
+=rGYK
 -----END PGP SIGNATURE-----
 
---XlarKorwDmMoGA5O--
+--tvVWxv2WwUczo9bQ--
