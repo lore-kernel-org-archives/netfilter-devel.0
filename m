@@ -1,54 +1,63 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [PATCH 1/2] updates for [nf|ct]netlink and event API
-Date: Mon, 04 Jul 2005 13:59:45 +0100
-Message-ID: <42C932C1.6090609@ufomechanic.net>
-References: <42C03F2E.30706@eurodev.net>	<20050627202621.GY19928@sunbeam.de.gnumonks.org>	<42C0AF26.1040705@eurodev.net>
-	<42C0C9B2.20704@trash.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [ADMIN] people.netfilter.org down
+Date: Mon, 4 Jul 2005 17:14:26 +0200
+Message-ID: <20050704151426.GA20465@sunbeam.de.gnumonks.org>
+References: <20050703071659.GK3186@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <42C0C9B2.20704@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <20050703071659.GK3186@sunbeam.de.gnumonks.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira wrote:
-> 
->>Harald Welte wrote:
->>
->>>>- Implement ip_conntrack_stats dumping and reset (accounting)
->>>
->>>you want to dump the statistics via netlink?  i'm not sure whether that
->>>is required.  lnstat is the only program using those counters, and using
->>>/proc seems fine for that.
->>
->>Could this be useful for accounting purposes? I mean, dump and reset as
->>a single operation, something similar to conntrack -L -z, say conntrack
->>-S -z.
 
-I use this, reading and zeroing conntracks at the same time.
+--tKW2IUtsqtDRztdT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> I think it is convenient for anyone wanting to access these statistics
-> without parsing /proc to have everything accessible through a single
-> interface.
+On Sun, Jul 03, 2005 at 09:16:59AM +0200, Harald Welte wrote:
+=20
+> Due to stupid experimentation with mmio_test [1], I've managed to crash
+> durga.netfilter.org (which runs people.netfilter.org) on a Sunday (where
+> no staff is present at the hosting ISP).   I expect it to be down until
+> some point on Monday (tomorrow).
 
-Yes; it also preserves synchronicity.
+machine is up and running again. if something isn't working as expected,
+please contact me.
 
-In other words it is nice to be sure if an event-update comes 
-chronologically before or after the stats for the same conntrack were read.
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Over netlink this is easy, over netlink AND /proc is impossible.
+--tKW2IUtsqtDRztdT
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Azez
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCyVJSXaXGVTD0i/8RApvmAJ0eWT8Eg/RCIOEqaPpoN1keffn66ACfe+s5
+2xp/uO8r+9k5WjsaYEjWwBo=
+=OCM2
+-----END PGP SIGNATURE-----
+
+--tKW2IUtsqtDRztdT--
