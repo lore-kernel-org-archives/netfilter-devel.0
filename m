@@ -1,25 +1,17 @@
-From: Herve Eychenne <rv@wallfire.org>
-Subject: Re: possible issues with blowing up struct ipt_log_info
-Date: Mon, 4 Jul 2005 13:21:05 +0200
-Message-ID: <20050704112105.GD3331@eychenne.org>
-References: <42C2C053.3040707@tac.ch> <20050629154049.GA17717@oknodo.bof.de>
-	<20050629160923.GF3331@eychenne.org>
-	<20050703123650.GW3186@sunbeam.de.gnumonks.org>
-	<20050703220525.GA3331@eychenne.org>
-	<20050704055541.GA29624@oknodo.bof.de>
-	<42C8F151.9080708@tac.ch> <20050704100859.GC3331@eychenne.org>
-	<42C91400.8000700@tac.ch>
-Reply-To: Herve Eychenne <rv@wallfire.org>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [PATCH 1/2] updates for [nf|ct]netlink and event API
+Date: Mon, 04 Jul 2005 13:59:45 +0100
+Message-ID: <42C932C1.6090609@ufomechanic.net>
+References: <42C03F2E.30706@eurodev.net>	<20050627202621.GY19928@sunbeam.de.gnumonks.org>	<42C0AF26.1040705@eurodev.net>
+	<42C0C9B2.20704@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-	Patrick Schaaf <bof@bof.de>
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Roberto Nibali <ratz@tac.ch>
-Content-Disposition: inline
-In-Reply-To: <42C91400.8000700@tac.ch>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42C0C9B2.20704@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -31,45 +23,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jul 04, 2005 at 12:48:32PM +0200, Roberto Nibali wrote:
+Patrick McHardy wrote:
+> Pablo Neira wrote:
+> 
+>>Harald Welte wrote:
+>>
+>>>>- Implement ip_conntrack_stats dumping and reset (accounting)
+>>>
+>>>you want to dump the statistics via netlink?  i'm not sure whether that
+>>>is required.  lnstat is the only program using those counters, and using
+>>>/proc seems fine for that.
+>>
+>>Could this be useful for accounting purposes? I mean, dump and reset as
+>>a single operation, something similar to conntrack -L -z, say conntrack
+>>-S -z.
 
-> Fiddle around with the preprocessor in ipt_LOG.c and have yourself the value
-> printed out using a new MODULE_PARM_DESC entry :)
+I use this, reading and zeroing conntracks at the same time.
 
-That was what we were talking about earlier in this thread. Ok, but this
-would then require some support/knowledge from userspace. I proposed /proc,
-but Harald didn't seem very prone to use it. My question about the
-reasons why is still unanswered.
+> I think it is convenient for anyone wanting to access these statistics
+> without parsing /proc to have everything accessible through a single
+> interface.
 
-> > Can you figure out that 90% of
-> > Linux users in the world are meant to set up a firewall without even
-> > knowing what a kernel is? ;-)
+Yes; it also preserves synchronicity.
 
-> Where do you have these numbers from? But this is besides the point. If so,
-> those users will certainly not use iptables by hand, but a preconfigued script
-> or even one of the nice GUIs for setting up the rules. The backend can handle
-> such failures easily, no need to know the size :). And how many of those 90% do
-> not use standard Linux distributions? Because I bet you 10 bucks that none of
-> the well-known Linux Distributions is changing the ipt_log_info struct compared
-> to plain vanilla sources.
+In other words it is nice to be sure if an event-update comes 
+chronologically before or after the stats for the same conntrack were read.
 
-Sorry, I thought the sententious tune and the smiley would have made this
-affirmation appear as an impish kind-of-joke, or anyway one who didn't deserve
-any rationnal answer (with which I can only agree though).
+Over netlink this is easy, over netlink AND /proc is impossible.
 
-> > More seriously, I am reguarly asked to install a netfilter-based firewall
-> > on machines I didn't install myself.
-
-> > And most people are not even
-> > aware there's a limit for LOG prefix length until they discover
-> > the "too long (must be under xx chars)" message, believe me.
-
-And it's the case for almost every static size...
-
- Herve
-
--- 
- _
-(°=  Hervé Eychenne
-//)
-v_/_ WallFire project:  http://www.wallfire.org/
+Azez
