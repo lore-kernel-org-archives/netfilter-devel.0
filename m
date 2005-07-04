@@ -1,13 +1,14 @@
-From: David Stes <stes@pandora.be>
-Subject: svn diff for Legato NetWorker RPC/RSH modules
-Date: Sun, 03 Jul 2005 14:48:45 +0200
-Message-ID: <42C7DEAD.4010209@pandora.be>
+From: "Andrew Hall" <temp02@bluereef.com.au>
+Subject: segmentation fault with proc cleanup + CLUSTERIP
+Date: Mon, 4 Jul 2005 12:59:19 +1000
+Message-ID: <088201c58044$5f81ca00$5001010a@bluereef.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
+To: "Harald Welte" <laforge@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,260 +20,87 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Harald,
 
-Hello,
+There seems to be a small issue with your clusterip code cleaning the proc 
+entries when removing the iptables rule. This happened when I did an 
+iptables remove:
 
-Here is the result of a "svn diff" for some changes to the 
-"patch-o-matic-ng" .
+iptables -D input -d 10.1.1.206 -j CLUSTERIP --hashmode ... etc.
 
-These changes are for using the RPC/RSH modules for Legato NetWorker 
-traffic over a netfilter firewall.
+I'm running 2.6.12 stable and the latest iptables snapshot.
 
-Is it please possible to commit this diff ?
-When I try to commit the changes myself, I get a "Forbidden" (permission 
-denied).
-Here is the DIFF :
+I have not been able to induce this condition more than once.
 
-Index: patchlets/rsh/linux/net/ipv4/netfilter/ip_conntrack_rsh.c
-===================================================================
---- patchlets/rsh/linux/net/ipv4/netfilter/ip_conntrack_rsh.c	(revision 4087)
-+++ patchlets/rsh/linux/net/ipv4/netfilter/ip_conntrack_rsh.c	(working copy)
-@@ -2,6 +2,9 @@
-  * (C) 2002 by Ian (Larry) Latter <Ian.Latter@mq.edu.au>
-  * based on HW's ip_conntrack_irc.c	
-  *
-+ * (C) 2004,2005 by David Stes <stes@pandora.be>
-+ * Modification for Legato NetWorker range [7937-9936] instead of [0:1023]
-+ *
-  * ip_conntrack_rsh.c,v 1.0 2002/07/17 14:49:26
-  *
-  *      This program is free software; you can redistribute it and/or
-@@ -10,10 +13,11 @@
-  *      2 of the License, or (at your option) any later version.
-  **
-  *	Module load syntax:
-- * 	insmod ip_conntrack_rsh.o ports=port1,port2,...port<MAX_PORTS>
-+ * 	insmod ip_conntrack_rsh.o range=1023,ports=port1,port2,...port<MAX_PORTS>
-  *	
-  * 	please give the ports of all RSH servers You wish to connect to.
-  *	If You don't specify ports, the default will be port 514
-+ *      If you don't specify any range, the default will be 1023
-  **
-  *      Note to all:
-  *        RSH blows ... you should use SSH (openssh.org) to replace it,
-@@ -109,6 +113,8 @@
- #include <linux/netfilter_ipv4/ip_conntrack_rsh.h>
- 
- #define MAX_PORTS 8
-+static int range; /* defaults to = 1023 */
-+static unsigned short rangemask; /* defaults to = 0xfc00 */
- static int ports[MAX_PORTS];
- static int ports_n_c = 0;
- 
-@@ -116,6 +122,8 @@
- MODULE_DESCRIPTION("RSH connection tracking module");
- MODULE_LICENSE("GPL");
- #ifdef MODULE_PARM
-+MODULE_PARM(range, "i");
-+MODULE_PARM_DESC(range, "max port of reserved range (default is 1023)");
- MODULE_PARM(ports, "1-" __MODULE_STRING(MAX_PORTS) "i");
- MODULE_PARM_DESC(ports, "port numbers of RSH servers");
- #endif
-@@ -198,8 +206,8 @@
- 
- 	/* dont relate sessions that try to expose the client */
- 	DEBUGP("found port %u\n", port);
--	if (port > 1023) {
--		DEBUGP("skipping, expected port size is greater than 1023!\n");
-+	if (port > range) {
-+		DEBUGP("skipping, expected port size is greater than range!\n");
- 		return NF_ACCEPT;
- 	}
- 
-@@ -229,8 +237,8 @@
- 	exp->mask.src.ip = 0xffffffff;
- 	exp->mask.dst.ip = 0xffffffff;
- 
--	exp->mask.src.u.tcp.port = htons(0xfc00);
--	exp->mask.dst.u.tcp.port = htons(0xffff);
-+	exp->mask.src.u.tcp.port = htons(rangemask);
-+	exp->mask.dst.u.tcp.port = htons(rangemask);
- 	exp->mask.dst.protonum = 0xffff;
- 
- 	exp->expectfn = NULL;
-@@ -267,6 +275,16 @@
- 	if (ports[0] == 0)
- 		ports[0] = RSH_PORT;
- 
-+	/* the check on reserved port <1023 doesn't work with Legato */
-+        /* for Legato NetWorker, the check should be that port <= 9936 */ 
-+
-+        if (range == 0) 
-+		range = 1023;
-+
-+	/* Legato uses range [ 7937 : 9936 ] -> 7937 by default */
-+
-+        rangemask = 0xffff ^ range; /* defaults to = 0xfc00 */
-+
- 	for (port = 0; (port < MAX_PORTS) && ports[port]; port++) {
- 		memset(&rsh_helpers[port], 0, sizeof(struct ip_conntrack_helper));
- 
-@@ -287,8 +305,8 @@
- 
- 		/* RSH must come from ports 0:1023 to ports[port] (514) */
- 		rsh_helpers[port].tuple.src.u.tcp.port = htons(ports[port]);
--		rsh_helpers[port].mask.src.u.tcp.port = htons(0xfc00);
--		rsh_helpers[port].mask.dst.u.tcp.port = htons(0xfc00);
-+		rsh_helpers[port].mask.src.u.tcp.port = htons(rangemask);
-+		rsh_helpers[port].mask.dst.u.tcp.port = htons(rangemask);
- 
- 		rsh_helpers[port].help = help;
- 
-Index: patchlets/rsh/linux/Documentation/Configure.help.ladd
-===================================================================
---- patchlets/rsh/linux/Documentation/Configure.help.ladd	(revision 4087)
-+++ patchlets/rsh/linux/Documentation/Configure.help.ladd	(working copy)
-@@ -16,6 +16,8 @@
-            practice" to use RSH, use SSH in all instances.
-            (see rfc1244, rfc1948, rfc2179, etc ad-nauseum)
- 
-+  The RSH connection module supports Legato NetWorker's nsrexec.
-+  For support of Legato NetWorker, you will need the RPC and the RSH modules.
- 
-   If you want to compile it as a module, say M here and read
-   <file:Documentation/modules.txt>.  If unsure, say `N'.
-Index: patchlets/rsh/help
-===================================================================
---- patchlets/rsh/help	(revision 4087)
-+++ patchlets/rsh/help	(working copy)
-@@ -38,8 +38,22 @@
-            --sport 0:1023 -d ${server} --dport 0:1023 ! --syn
-            --state ESTABLISHED -j ACCEPT
- 
-+The nsrexec option of the RSH/RPC module supports Legato NetWorker backup.
- 
-+For Legato NetWorker,
- 
-+add options ip_conntrack_rsh range=9936 ports=7937
-+add options ipt_rpc ports=7938
-+add options ip_conntrack_rpc_tcp nsrexec=7937 ports=7938
-+add options ip_conntrack_rpc_udp ports=7938
-+
-+iptables -A FORWARD -j ACCEPT -p tcp -m state --state NEW -m tcp --dport 7937
-+iptables -A FORWARD -j ACCEPT -p tcp -m state --state NEW -m tcp --dport 7938
-+iptables -A FORWARD -j ACCEPT -p udp -m state --state NEW -m udp --dport 7938
-+iptables -A FORWARD -m state --state ESTABLISHED -j ACCEPT
-+iptables -A FORWARD -m state --state RELATED -j ACCEPT
-+iptables -A FORWARD -m rpc --rpcs nsrd,nsrmmd,nsrindexd,nsrmmdbd,nsrstat,nsrjb,rap,rapserv -j ACCEPT
-+
- Warning:
- 
-   This module could be dangerous. It is not "best practice" to use
-Index: patchlets/rpc/linux/net/ipv4/netfilter/ip_conntrack_rpc_tcp.c
-===================================================================
---- patchlets/rpc/linux/net/ipv4/netfilter/ip_conntrack_rpc_tcp.c	(revision 4087)
-+++ patchlets/rpc/linux/net/ipv4/netfilter/ip_conntrack_rpc_tcp.c	(working copy)
-@@ -9,6 +9,9 @@
-  * (C) 2002,2003 by Ian (Larry) Latter <Ian.Latter@mq.edu.au>
-  *	- upgraded conntrack modules to newnat api - kernel 2.4.20+
-  *	- extended matching to support filtering on procedures
-+ * 
-+ * (c) 2004,2005 by David Stes <stes@pandora.be>
-+ *      - add nsrexec option for Legato NetWorker
-  *
-  * ip_conntrack_rpc_tpc.c,v 2.2 2003/01/12 18:30:00
-  *
-@@ -18,10 +21,15 @@
-  *	2 of the License, or (at your option) any later version.
-  **
-  *	Module load syntax:
-- *	insmod ip_conntrack_rpc_tcp.o ports=port1,port2,...port<MAX_PORTS>
-+ *	insmod ip_conntrack_rpc_tcp.o nsrexec=<n>,ports=port1,...port<MAX_PORTS>
-  *
-  *	Please give the ports of all RPC servers you wish to connect to.
-- *	If you don't specify ports, the default will be port 111.
-+ *      For example, ports=111,7938 for Legato NetWorker's portmapper on 7938.
-+ *	If you don't specify ports, the default will be port 111 (SUN portmap).
-+ *
-+ *      Please specify nsrexec, the TCP port of the rexec() service of
-+ *      Legato NetWorker.  For example, nsrexec=7937
-+ *
-  **
-  *	Note to all:
-  *
-@@ -62,8 +70,11 @@
- #define MAX_PORTS 8
- static int ports[MAX_PORTS];
- static int ports_n_c = 0;
-+static int nsrexec = 0;
- 
- #ifdef MODULE_PARM
-+MODULE_PARM(nsrexec, "i");
-+MODULE_PARM_DESC(nsrexec, "TCP port of Legato NetWorker's rexec service");
- MODULE_PARM(ports, "1-" __MODULE_STRING(MAX_PORTS) "i");
- MODULE_PARM_DESC(ports, "port numbers (TCP/UDP) of RPC portmapper servers");
- #endif
-@@ -280,7 +291,7 @@
- 		 * expectation ...  if port == 0, then this service is 
- 		 * not going to be registered.
- 		 */
--		if (port_buf) {
-+		if (port_buf && port_buf != nsrexec) {
- 			DEBUGP("port found: %u\n", port_buf);
- 
- 			memset(&expect, 0, sizeof(expect));
-Index: patchlets/rpc/linux/Documentation/Configure.help.ladd
-===================================================================
---- patchlets/rpc/linux/Documentation/Configure.help.ladd	(revision 4087)
-+++ patchlets/rpc/linux/Documentation/Configure.help.ladd	(working copy)
-@@ -25,6 +25,22 @@
-   procedures per iptables rule, may be specified by the user,
-   to enable effective RPC management.
- 
-+  The nsrexec option of the RSH/RPC module supports Legato NetWorker backup.
- 
-+For Legato NetWorker,
-+
-+add options ip_conntrack_rsh range=9936 ports=7937
-+add options ipt_rpc ports=7938
-+add options ip_conntrack_rpc_tcp nsrexec=7937 ports=7938
-+add options ip_conntrack_rpc_udp ports=7938
-+
-+iptables -A FORWARD -j ACCEPT -p tcp -m state --state NEW -m tcp --dport 7937
-+iptables -A FORWARD -j ACCEPT -p tcp -m state --state NEW -m tcp --dport 7938
-+iptables -A FORWARD -j ACCEPT -p udp -m state --state NEW -m udp --dport 7938
-+iptables -A FORWARD -m state --state ESTABLISHED -j ACCEPT
-+iptables -A FORWARD -m state --state RELATED -j ACCEPT
-+iptables -A FORWARD -m rpc --rpcs nsrd,nsrmmd,nsrindexd,nsrmmdbd,nsrstat,nsrjb,rap,rapserv -j ACCEPT
-+
-+
-   If you want to compile it as a module, say M here and read
-   <file:Documentation/modules.txt>.  If unsure, say `N'.
-Index: patchlets/rpc/help
-===================================================================
---- patchlets/rpc/help	(revision 4087)
-+++ patchlets/rpc/help	(working copy)
-@@ -56,6 +56,23 @@
-      user@client# rusers $server
- 
- 
-+The nsrexec option of the RSH/RPC module supports Legato NetWorker backup.
-+
-+For Legato NetWorker,
-+
-+add options ip_conntrack_rsh range=9936 ports=7937
-+add options ipt_rpc ports=7938
-+add options ip_conntrack_rpc_tcp nsrexec=7937 ports=7938
-+add options ip_conntrack_rpc_udp ports=7938
-+
-+iptables -A FORWARD -j ACCEPT -p tcp -m state --state NEW -m tcp --dport 7937
-+iptables -A FORWARD -j ACCEPT -p tcp -m state --state NEW -m tcp --dport 7938
-+iptables -A FORWARD -j ACCEPT -p udp -m state --state NEW -m udp --dport 7938
-+iptables -A FORWARD -m state --state ESTABLISHED -j ACCEPT
-+iptables -A FORWARD -m state --state RELATED -j ACCEPT
-+iptables -A FORWARD -m rpc --rpcs nsrd,nsrmmd,nsrindexd,nsrmmdbd,nsrstat,nsrjb,rap,rapserv -j ACCEPT
-+
-+
- Warning:
- 
-   RPCs should not be exposed to the internet - ask the Pentagon;
+Jul  4 12:23:55 localhost user.alert kernel: Unable to handle kernel paging 
+request at virtual address 00003d04
+Jul  4 12:23:55 localhost user.alert kernel:  printing eip:
+Jul  4 12:23:55 localhost user.warn kernel: c018ea2c
+Jul  4 12:23:55 localhost user.alert kernel: *pde = 00000000
+Jul  4 12:23:55 localhost user.alert kernel: Oops: 0000 [#1]
+Jul  4 12:23:55 localhost user.warn kernel: PREEMPT SMP
+Jul  4 12:23:55 localhost user.warn kernel: CPU:    0
+Jul  4 12:23:55 localhost user.warn kernel: EIP:    0060:[<c018ea2c>]    Not 
+tainted VLI
+Jul  4 12:23:55 localhost user.warn kernel: EFLAGS: 00010202   (2.6.12)
+Jul  4 12:23:55 localhost user.warn kernel: EIP is at 
+remove_proc_entry+0x2c/0x150
+Jul  4 12:23:55 localhost user.warn kernel: eax: 00000000   ebx: 00003cd0 
+ecx: 00000007   edx: 08048000
+Jul  4 12:23:55 localhost user.warn kernel: esi: 00000070   edi: 08048008 
+ebp: 0000062c   esp: e7169bb0
+Jul  4 12:23:55 localhost user.warn kernel: ds: 007b   es: 007b   ss: 0068
+Jul  4 12:23:55 localhost user.warn kernel: Process iptables (pid: 16878, 
+threadinfo=e7168000 task=f0d10a40)
+Jul  4 12:23:55 localhost user.warn kernel: Stack: 00000070 00000027 
+000001f0 00001444 08048000 f8dd56fc 00000070 f8dd566c
+Jul  4 12:23:55 localhost user.warn kernel:        c0531306 08048000 
+00003cd0 c06ae62f f8dd5000 f8dd52ac c05239b9 f8dd56fc
+Jul  4 12:23:55 localhost user.warn kernel:        0000003c f8dd2000 
+e7169c20 0000001f e7169c50 e7169c64 080d2644 e7169d78
+Jul  4 12:23:55 localhost user.warn kernel: Call Trace:
+Jul  4 12:23:55 localhost user.warn kernel:  [<c0531306>] destroy+0x26/0xb0
+Jul  4 12:23:55 localhost user.warn kernel:  [<c05239b9>] 
+do_replace+0x3e9/0x4a0
+Jul  4 12:23:55 localhost user.warn kernel:  [<c0523cc3>] 
+do_ipt_set_ctl+0x73/0x80
+Jul  4 12:23:55 localhost user.warn kernel:  [<c04cc7ef>] 
+nf_sockopt+0x12f/0x140
+Jul  4 12:23:55 localhost user.warn kernel:  [<c04cc837>] 
+nf_setsockopt+0x37/0x40
+Jul  4 12:23:55 localhost user.warn kernel:  [<c04e79f0>] 
+ip_setsockopt+0x520/0xc60
+Jul  4 12:23:55 localhost user.warn kernel:  [<c04cc779>] 
+nf_sockopt+0xb9/0x140
+Jul  4 12:23:55 localhost user.warn kernel:  [<c04ba5cb>] 
+release_sock+0x1b/0x80
+Jul  4 12:23:55 localhost user.warn kernel:  [<c04e8748>] 
+ip_getsockopt+0x618/0x680
+Jul  4 12:23:55 localhost user.warn kernel:  [<c0113f80>] 
+do_page_fault+0x380/0x5ac
+Jul  4 12:23:55 localhost user.warn kernel:  [<c013fccd>] 
+buffered_rmqueue+0x16d/0x210
+Jul  4 12:23:55 localhost user.warn kernel:  [<c0140112>] 
+__alloc_pages+0x2f2/0x420
+Jul  4 12:23:55 localhost user.warn kernel:  [<c014b9f6>] 
+do_anonymous_page+0x56/0x1c0
+Jul  4 12:23:55 localhost user.warn kernel:  [<c014bbc7>] 
+do_no_page+0x67/0x3c0
+Jul  4 12:23:55 localhost user.warn kernel:  [<c01499a8>] 
+pte_alloc_map+0x88/0xe0
+Jul  4 12:23:55 localhost user.warn kernel:  [<c014c15e>] 
+handle_mm_fault+0x10e/0x1b0
+Jul  4 12:23:55 localhost user.warn kernel:  [<c0113f80>] 
+do_page_fault+0x380/0x5ac
+Jul  4 12:23:55 localhost user.warn kernel:  [<c04ba7d6>] 
+sock_common_setsockopt+0x36/0x40
+Jul  4 12:23:55 localhost user.warn kernel:  [<c04b810c>] 
+sys_setsockopt+0x6c/0xc0
+Jul  4 12:23:55 localhost user.warn kernel:  [<c04b88c4>] 
+sys_socketcall+0x204/0x270
+Jul  4 12:23:55 localhost user.warn kernel:  [<c0113c00>] 
+do_page_fault+0x0/0x5ac
+Jul  4 12:23:55 localhost user.warn kernel:  [<c0102fb5>] 
+syscall_call+0x7/0xb
+Jul  4 12:23:55 localhost user.warn kernel: Code: 56 53 83 ec 14 8b 5c 24 28 
+8b 54 24 24 85 db 89 54 24 10 0f 84 03 01 00 00 8b 54 2 
