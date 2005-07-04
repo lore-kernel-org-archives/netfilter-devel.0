@@ -1,21 +1,23 @@
-From: Roberto Nibali <ratz@tac.ch>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: possible issues with blowing up struct ipt_log_info
-Date: Mon, 04 Jul 2005 11:26:50 +0200
-Message-ID: <42C900DA.5040906@tac.ch>
+Date: Mon, 4 Jul 2005 11:53:51 +0200
+Message-ID: <20050704095351.GZ3186@sunbeam.de.gnumonks.org>
 References: <42C2C053.3040707@tac.ch> <20050629154049.GA17717@oknodo.bof.de>
 	<20050629160923.GF3331@eychenne.org>
 	<20050703123650.GW3186@sunbeam.de.gnumonks.org>
 	<20050703220525.GA3331@eychenne.org>
 	<20050704055541.GA29624@oknodo.bof.de> <42C8F151.9080708@tac.ch>
 	<20050704085913.GX3186@sunbeam.de.gnumonks.org>
+	<42C900DA.5040906@tac.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KbRlJ7rsgYPVCYDX"
 Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
 	Patrick Schaaf <bof@bof.de>, Herve Eychenne <rv@wallfire.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050704085913.GX3186@sunbeam.de.gnumonks.org>
+To: Roberto Nibali <ratz@tac.ch>
+Content-Disposition: inline
+In-Reply-To: <42C900DA.5040906@tac.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,79 +29,62 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
->>This does not work in environments where you need high speed logging since
->>having a pointer, or hashmap value, would require an intermediate process to
->>translate it into parsable strings again. This is from an
->>architectural point of view and from a performance point of view not
->>possible, at least not in our environment.
-> 
-> If you care about performance, tou don't do hgh speed logging via
-> syslog.  I have some numbers comparing LOG with ULOG in multiple setup,
-> and it's in some cases a factor of 100 ...
 
-We are also using ULOG but not everywhere, because not all the meta rules have
-been converted to using it yet.
+--KbRlJ7rsgYPVCYDX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> OTOTH, ULOG also has a prefix, so the argument remains.  However, I'm
-> happy if somebody wanted to contribute an ulogd plugin to do that kind
-> of translation.
+On Mon, Jul 04, 2005 at 11:26:50AM +0200, Roberto Nibali wrote:
+> > And anyways, you can defer such processing until the logs are actually
+> > being analyzed.  It doesn't have to happen at the time where you have
+> > your load spike and just want to get the data to disk.
+>=20
+> True to a certain extent.
+>=20
+> The problem is that a lot of different software systems have to be integr=
+ated
+> and we cannot afford or don't have access to all code to change all backe=
+nd
+> logic to do this.=20
 
-Interesting idea, haven't thought that far (as always on mondays).
+Well, to be honest I'm happy that I can say - to a certain extend: I
+don't care abou your particular setup and it's political/organizational
+erstrictions ;)  [don't get me wrong, please].
 
-> And anyways, you can defer such processing until the logs are actually
-> being analyzed.  It doesn't have to happen at the time where you have
-> your load spike and just want to get the data to disk.
+As always, I think we should provide some infrastructure and let people
+use it how they want.  We can try to be flexible, but we cannot optimize
+ever possible setup.
 
-True to a certain extent.
+Your particular setup would need something like a proxy that does the
+interpretation before it ends up at the centralized logging server.
+Alternatively you could store the hostname of the firewall and make the
+interpretation of such a prefix local to that host.  Now you certainly
+can come up with a reason why you can't do that.  And I can frankly
+repeat: well, that's your problem ;)  Technically it is possible...
 
-The problem is that a lot of different software systems have to be integrated
-and we cannot afford or don't have access to all code to change all backend
-logic to do this. And then imagine having a central logging system doing the log
-evaluation for thousands of systems, among those, the packet filters running
-netfilter. Now let's say we have 10 packet filter in location A, 15 in location
-B. Location A has 3 sysadmins who work together and maintain a single mapping
-file for all log prefixes, Location B has 5 sysadmins but 2 groups of them which
-work completely orthogonal to each other when it comes to defining log prefixes.
-The central logging infrastructure is maintained by a third party company. Due
-to many facets of security and the complexity involved I'd say that it's close
-to impossible to defer the analysis. I hope I don't have to give you a more
-detailed example, because I'd be writing a whole paper to explain this situation
-(which is real, we're deploying such information systems and central logging
-infrastructures).
+Cheers,
+	Harald
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
->>It would be a lot more fun to get the connection tracking table filled
->>with thousands of entries in less than 2 Minutes, so the monitoring
->>system does not have so many spikes.  Customers often ask if the
->>system is malfunctioning or down every 5-15 Minutes :).
-> 
-> Sorry, I don't understand what you want to convey....
+--KbRlJ7rsgYPVCYDX
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-My bad, it was a rather unfortunate and even wrong description. What I wanted to
-do is to quote an internal bug report regarding the cat'ing of
-/proc/net/ip_conntrack while having a heavily populated with entries:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
-"Our team reported periodic (minutely) problems with connections through the
-firewall. During 2 to 3 seconds e.g. pings round trip times through the firewall
-went up from several ms to more than 1 second. During the time, also working on
-the packet filter was shortly interrupted. The error count on the respective
-interfaces (where the ping went through) increased by about 300 to 500,
-sometimes even more. If the ping was not running, the timeout were still there,
-but error number did not increase on the interface."
+iD8DBQFCyQcvXaXGVTD0i/8RAiWoAJ9S6bc25c2XeBMWk4paPtZ9ZAIFYQCfZGKb
+pnLi5xZVgz0l+p47+avqCi4=
+=ldKT
+-----END PGP SIGNATURE-----
 
-This observation is a result of snmp polling each minute the connection tracking
-table (as dumb as this may sound, but it was a requirement of a bank) and in
-2.4.x the only way to do it is to basically cat the proc-fs entry which is ...
-slow and error prone.
-
-That's all, nothing to worry about for the netfilter people. We have a lot of
-workarounds :).
-
-Best regards,
-Roberto Nibali, ratz
--- 
--------------------------------------------------------------
-addr://Rathausgasse 31, CH-5001 Aarau  tel://++41 62 823 9355
-http://www.terreactive.com             fax://++41 62 823 9356
--------------------------------------------------------------
-terreActive AG                       Wir sichern Ihren Erfolg
--------------------------------------------------------------
+--KbRlJ7rsgYPVCYDX--
