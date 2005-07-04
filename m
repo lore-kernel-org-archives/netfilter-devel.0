@@ -1,22 +1,21 @@
-From: Herve Eychenne <rv@wallfire.org>
+From: Roberto Nibali <ratz@tac.ch>
 Subject: Re: possible issues with blowing up struct ipt_log_info
-Date: Mon, 4 Jul 2005 11:23:59 +0200
-Message-ID: <20050704092359.GB3331@eychenne.org>
+Date: Mon, 04 Jul 2005 11:26:50 +0200
+Message-ID: <42C900DA.5040906@tac.ch>
 References: <42C2C053.3040707@tac.ch> <20050629154049.GA17717@oknodo.bof.de>
 	<20050629160923.GF3331@eychenne.org>
 	<20050703123650.GW3186@sunbeam.de.gnumonks.org>
 	<20050703220525.GA3331@eychenne.org>
-	<20050704055541.GA29624@oknodo.bof.de>
-Reply-To: rv@eychenne.org
+	<20050704055541.GA29624@oknodo.bof.de> <42C8F151.9080708@tac.ch>
+	<20050704085913.GX3186@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Developers <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>,
+	Patrick Schaaf <bof@bof.de>, Herve Eychenne <rv@wallfire.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick Schaaf <bof@bof.de>
-Content-Disposition: inline
-In-Reply-To: <20050704055541.GA29624@oknodo.bof.de>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050704085913.GX3186@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,108 +27,79 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jul 04, 2005 at 07:55:42AM +0200, Patrick Schaaf wrote:
+>>This does not work in environments where you need high speed logging since
+>>having a pointer, or hashmap value, would require an intermediate process to
+>>translate it into parsable strings again. This is from an
+>>architectural point of view and from a performance point of view not
+>>possible, at least not in our environment.
+> 
+> If you care about performance, tou don't do hgh speed logging via
+> syslog.  I have some numbers comparing LOG with ULOG in multiple setup,
+> and it's in some cases a factor of 100 ...
 
-> > Trying to insert potentially many LOG rules to empirically determine
-> > the maximum prefix length is far less complex, that's for sure. ;-)
+We are also using ULOG but not everywhere, because not all the meta rules have
+been converted to using it yet.
 
-> Do we already have indeterminate log prefix length? I thought we had
-> one, fixed size, no probing neccessary. Am I wrong?
+> OTOTH, ULOG also has a prefix, so the argument remains.  However, I'm
+> happy if somebody wanted to contribute an ulogd plugin to do that kind
+> of translation.
 
-The max LOG prefix length is determined by the static length of the
-kernel structure. So this size has to be changed in the kernel source
-before compilation. That's rare, obviously.
-However, I already saw a few setups where this value had been changed
-by hand.
-So we have two options:
-- consider that those who do that should deal themselves with the
-  consequences of their action
-- take as much cases as possible into account
+Interesting idea, haven't thought that far (as always on mondays).
 
-I guess many kernel guys here will vote for the first one.
-I'm more user-oriented ("should work in any case, if possible").
-So that LOG length thing is not so bad here, but the philosophy behind
-it bothers me.
+> And anyways, you can defer such processing until the logs are actually
+> being analyzed.  It doesn't have to happen at the time where you have
+> your load spike and just want to get the data to disk.
 
-Parallel:
-- static sizes are good
-- static sizes are to be avoided every time this is possible,
-  especially for "human" entered/oriented data
-This leads to some Unix hall-of-shame relics like static command line
-length and co.
+True to a certain extent.
 
-> > For now, that's the only way an upper-level tool will produce valid
-> > LOG rules in all cases.
+The problem is that a lot of different software systems have to be integrated
+and we cannot afford or don't have access to all code to change all backend
+logic to do this. And then imagine having a central logging system doing the log
+evaluation for thousands of systems, among those, the packet filters running
+netfilter. Now let's say we have 10 packet filter in location A, 15 in location
+B. Location A has 3 sysadmins who work together and maintain a single mapping
+file for all log prefixes, Location B has 5 sysadmins but 2 groups of them which
+work completely orthogonal to each other when it comes to defining log prefixes.
+The central logging infrastructure is maintained by a third party company. Due
+to many facets of security and the complexity involved I'd say that it's close
+to impossible to defer the analysis. I hope I don't have to give you a more
+detailed example, because I'd be writing a whole paper to explain this situation
+(which is real, we're deploying such information systems and central logging
+infrastructures).
 
-> The way to produce valid log rules in all cases, is to keep this
-> fancy long long stuff in user level, and set pointer / index values
-> or whatever small token can be used, for a log prefix in the kernel.
+>>It would be a lot more fun to get the connection tracking table filled
+>>with thousands of entries in less than 2 Minutes, so the monitoring
+>>system does not have so many spikes.  Customers often ask if the
+>>system is malfunctioning or down every 5-15 Minutes :).
+> 
+> Sorry, I don't understand what you want to convey....
 
-> Any scheme which probes the possible length, will also need some
-> fallback when kernel length is smaller than user desire. If your
-> goal is 'valid in all cases'. Right? Then you'll need such a
-> token/pointer approach anyway!
+My bad, it was a rather unfortunate and even wrong description. What I wanted to
+do is to quote an internal bug report regarding the cat'ing of
+/proc/net/ip_conntrack while having a heavily populated with entries:
 
-You're right, but the token has a drawback: it's not readable by a
-human being.  Ok, you'll say that the token has been generated by a
-higher-level application, so why not use another higher-level
-application to read the logs?  I'll answer: yes, but then writing logs
-to syslog (human oriented, right?) becomes all the more irrelevant, and
-sometimes it's good not to require a special tool for simple tasks.
-For the first argument you'll point me to ULOG, and the second is a
-matter of taste (KISS or not KISS, that's the question).
-End of the discussion? ;-)
+"Our team reported periodic (minutely) problems with connections through the
+firewall. During 2 to 3 seconds e.g. pings round trip times through the firewall
+went up from several ms to more than 1 second. During the time, also working on
+the packet filter was shortly interrupted. The error count on the respective
+interfaces (where the ping went through) increased by about 300 to 500,
+sometimes even more. If the ping was not running, the timeout were still there,
+but error number did not increase on the interface."
 
-The very same thing applies to chainname length.  Imagine you split
-your ruleset into several "zone1-zone2 traffic" (zone1 to zone2)
-chains, which is wise for complex setups.
-Imagine you let the user choose zone names (fair enough).
-This limits the name of a zone to 14 chars (2*14<30).
-So it becomes almost practically impossible to permit zone names like
-word1_word2.  You'll say: so don't do this.  I'll say: why
-couldn't I if I want to?
-But this won't lead us anywhere, I fear.
+This observation is a result of snmp polling each minute the connection tracking
+table (as dumb as this may sound, but it was a requirement of a bank) and in
+2.4.x the only way to do it is to basically cat the proc-fs entry which is ...
+slow and error prone.
 
-Maybe you'll even point me to the same token trick.  But the ruleset
-(dumped by iptables-save, for example) will become really obfuscated, and
-all the more hard to understand for a human being (bad, IMHO) and to
-debug.
+That's all, nothing to worry about for the netfilter people. We have a lot of
+workarounds :).
 
-> > Probably many of you won't care, but for this kind of upper-layers
-> > (which I'm particularly concerned with) netfilter/iptables sometimes
-> > makes it hard to turn "should work" into "will work".
-> > That LOG thing is only one example, though probably not the best.
-
-> Then maybe you could provide a better one?
-
-Are you ready to endure a really long discussion? ;-)
-There are plenty of them. That would require a whole separated thread
-and quite a lot of time (I somewhat lack it today).
-Probably I'll start several threads later about this.
-Be prepared... ;-)
-
-> > > I also don't really like using out-of-band interfaces such as /proc
-> > > to determine how to communicate rules via {get,set}sockopt()
-
-> > Maybe you don't like /proc, but the kernel still has to provide a way
-> > to inform userspace about the fixed size of some of its data (as
-> > kernelspace doesn't like dynamic things very much...). If you see a
-> > better way, that's ok, but the need is still there.
-
-> If getsockopt is good to communicate iptables rules and other stuff,
-> it must be good enough to also communicate 'length of X is Y'...
-
-So some values would be obtained via /proc, some via [sg]etsockopt.
-This lacks coherence... :-(
-I don't care that much about the way it can be obtained, except that
-with [sg]etsockopt, the user would need yet another tool to get the
-value...
-What's so wrong with /proc, BTW?
-
- Herve
-
+Best regards,
+Roberto Nibali, ratz
 -- 
- _
-(°=  Hervé Eychenne
-//)
-v_/_ WallFire project:  http://www.wallfire.org/
+-------------------------------------------------------------
+addr://Rathausgasse 31, CH-5001 Aarau  tel://++41 62 823 9355
+http://www.terreactive.com             fax://++41 62 823 9356
+-------------------------------------------------------------
+terreActive AG                       Wir sichern Ihren Erfolg
+-------------------------------------------------------------
