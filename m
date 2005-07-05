@@ -1,23 +1,12 @@
-From: hamid jafarian <hamid.jafarian@gmail.com>
-Subject: Re: Re[2]: a new version of iptabes
-Date: Tue, 5 Jul 2005 07:06:36 -0700
-Message-ID: <464293e605070507066ed3efb3@mail.gmail.com>
-References: <464293e605040500395fa1fe55@mail.gmail.com>
-	<464293e60504050045720b8e52@mail.gmail.com>
-	<464293e60504070104d1a3029@mail.gmail.com>
-	<4254F592.6030703@eurodev.net>
-	<464293e6050409005573f2c7fb@mail.gmail.com>
-	<939523513.20050409105616@dns.toxicfilms.tv>
-	<464293e6050413113723cfd4da@mail.gmail.com>
-Reply-To: hamid jafarian <hamid.jafarian@gmail.com>
+From: Nick Hay <nickjhay@hotmail.com>
+Subject: Extending LOG target to display pid
+Date: Wed, 06 Jul 2005 04:05:54 +1200
+Message-ID: <42CAAFE2.3050606@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>,
-	"netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <464293e6050413113723cfd4da@mail.gmail.com>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,46 +18,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 4/13/05, hamid jafarian <hamid.jafarian@gmail.com> wrote:=20
->=20
->=20
->=20
-> On 4/9/05, Maciej Soltysiak <solt@dns.toxicfilms.tv> wrote:=20
-> >=20
-> > Hello hamid,
-> >=20
-> > Saturday, April 9, 2005, 9:55:50 AM, you wrote:
-> >=20
-> > > On Apr 7, 2005 1:25 PM, Pablo Neira < pablo@eurodev.net> wrote:
-> > >> cool, where's your version ?
-> >=20
-> > > if you want .. i will give you the files and also installation help=
-=20
-> > .... but
-> > > to whom and also how=20
-> >=20
-> > make a website with the patch and installation
-> >=20
-> > --
-> > Regards,
-> > Maciej
->=20
->  hello ...
->=20
-> go here ..
-> http://www.geocities.com/hamidreza_jm/
->=20
-> --=20
-> H.T.=20
+What I hoped to be an easy hack quickly ran into problems.  I planned to 
+add an extra printk() in dump_packet() to output the pid, and perhaps 
+the program executable number.  Since the owner module had access to the 
+pid, I assumed there would be some way to get this information to the 
+LOG module.  After a frustrating search through source code and 
+documentation, I have the following questions:
 
+1. For the owner module, where/how is the struct ipt_owner_info filled 
+in for each packet?  In general, how is the ipt_entry_match/target data 
+field filled in?
 
+2. Any ideas on how I can get the pid of a local packet's creator in the 
+log module?  I couldn't find any structures connected to the sk_buff 
+that might contain it, and couldn't think of where the data would 
+originally come from.
 
-hello again ........ Sir Netfilter developers ...
- after two month .. if you could use from the new version ... reply to me=
-=20
-your ideas about it ..
- or not please delete it from you computer ..
- tanks ..=20
+Actually... would current->pid work?
 
---=20
-H.T.
+I'm still curious about question 1, though!
+
+-- Nick Hay
