@@ -1,63 +1,74 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [ADMIN] people.netfilter.org down
-Date: Mon, 4 Jul 2005 17:14:26 +0200
-Message-ID: <20050704151426.GA20465@sunbeam.de.gnumonks.org>
-References: <20050703071659.GK3186@sunbeam.de.gnumonks.org>
+From: hamid jafarian <hamid.jafarian@gmail.com>
+Subject: Re: Re[2]: a new version of iptabes
+Date: Tue, 5 Jul 2005 07:06:36 -0700
+Message-ID: <464293e605070507066ed3efb3@mail.gmail.com>
+References: <464293e605040500395fa1fe55@mail.gmail.com>
+	<464293e60504050045720b8e52@mail.gmail.com>
+	<464293e60504070104d1a3029@mail.gmail.com>
+	<4254F592.6030703@eurodev.net>
+	<464293e6050409005573f2c7fb@mail.gmail.com>
+	<939523513.20050409105616@dns.toxicfilms.tv>
+	<464293e6050413113723cfd4da@mail.gmail.com>
+Reply-To: hamid jafarian <hamid.jafarian@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Maciej Soltysiak <solt@dns.toxicfilms.tv>,
+	"netfilter-devel@lists.netfilter.org" <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <464293e6050413113723cfd4da@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <20050703071659.GK3186@sunbeam.de.gnumonks.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---tKW2IUtsqtDRztdT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, Jul 03, 2005 at 09:16:59AM +0200, Harald Welte wrote:
+On 4/13/05, hamid jafarian <hamid.jafarian@gmail.com> wrote:=20
+>=20
+>=20
+>=20
+> On 4/9/05, Maciej Soltysiak <solt@dns.toxicfilms.tv> wrote:=20
+> >=20
+> > Hello hamid,
+> >=20
+> > Saturday, April 9, 2005, 9:55:50 AM, you wrote:
+> >=20
+> > > On Apr 7, 2005 1:25 PM, Pablo Neira < pablo@eurodev.net> wrote:
+> > >> cool, where's your version ?
+> >=20
+> > > if you want .. i will give you the files and also installation help=
 =20
-> Due to stupid experimentation with mmio_test [1], I've managed to crash
-> durga.netfilter.org (which runs people.netfilter.org) on a Sunday (where
-> no staff is present at the hosting ISP).   I expect it to be down until
-> some point on Monday (tomorrow).
+> > .... but
+> > > to whom and also how=20
+> >=20
+> > make a website with the patch and installation
+> >=20
+> > --
+> > Regards,
+> > Maciej
+>=20
+>  hello ...
+>=20
+> go here ..
+> http://www.geocities.com/hamidreza_jm/
+>=20
+> --=20
+> H.T.=20
 
-machine is up and running again. if something isn't working as expected,
-please contact me.
+
+
+hello again ........ Sir Netfilter developers ...
+ after two month .. if you could use from the new version ... reply to me=
+=20
+your ideas about it ..
+ or not please delete it from you computer ..
+ tanks ..=20
 
 --=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---tKW2IUtsqtDRztdT
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCyVJSXaXGVTD0i/8RApvmAJ0eWT8Eg/RCIOEqaPpoN1keffn66ACfe+s5
-2xp/uO8r+9k5WjsaYEjWwBo=
-=OCM2
------END PGP SIGNATURE-----
-
---tKW2IUtsqtDRztdT--
+H.T.
