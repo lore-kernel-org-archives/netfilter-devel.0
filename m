@@ -1,12 +1,13 @@
-From: Nick Hay <nickjhay@hotmail.com>
-Subject: Re: Extending LOG target to display pid
-Date: Wed, 06 Jul 2005 11:56:33 +1200
-Message-ID: <42CB1E31.1000802@hotmail.com>
+From: "Vincent" <cs83152@csie.chu.edu.tw>
+Subject: Private data structure for each iptables rule using
+Date: Wed, 6 Jul 2005 14:13:10 +0800
+Message-ID: <005a01c581f1$cbbe1260$aa0ba8c0@l7.com.tw>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="big5"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,37 +19,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Tobias DiPasquale wrote:
-> On 7/5/05, Nick Hay <nickjhay@hotmail.com> wrote:
-> 
->>2. Any ideas on how I can get the pid of a local packet's creator in the
->>log module?  I couldn't find any structures connected to the sk_buff
->>that might contain it, and couldn't think of where the data would
->>originally come from.
-> 
-> 
-> A security framework, with the proper auditing and accounting
-> mechanisms in place in the network stack could make this possible (any
-> it may already be). But in general, it would be quite a lot of work to
-> add the necessary code to the stack to account for the
-> sending/receiving PID at the correct stage. Unless you're doing MAC,
-> its probably not worth it.
+Hello folks
 
-My original intention was to replicate some part of Windows' ZoneAlarm
-package: the ability to recognise which program was asking for access,
-and to filter based on that.  Noticing a strange packet that was blocked
-by my filter on outgoing ports, and not being able to find out where it
-came from was the immediate motivation :)
+I am writing a individual netfilter module currently currently. I am
+encountering a problem that is how can I keep a private data structure
+for each 
+iptables rule in each connection.
+For example
 
-Is it better to try this at the SELinux level,
-blocking/monitoring/adjusting access to socket creation/use?
+I have such kind rules in the iptables rule-set
 
->>Actually... would current->pid work?
-> 
-> No, because there's no guarantee that the same process is on the CPU
-> by the time the packet hits your rule.
->
-> Can't check on #1 right now, but I believe that its filled in by the
-> module itself in whatever way it chooses.
+iptables -A FORWARD -m mymodule --seq1 -j DROP
+iptables -A FORWARD -m mymodule --seq2 -j DROP
+Iptables -A FORWARD -m mymodule --seq3 -j DROP
 
--- Nick
+When packets traverses the first rule, I want to keep some private data
+in the connection tracking data structure. 
+But I think these private data are possible modified by the later
+"mymodule" rules. 
+So
+1. Can I have a private data structure for each iptables rule using ?
+2. Any suggestion to prevent different rule modify the same data
+structure of connection tracking? Thanks in advance..
+
+Vincent
