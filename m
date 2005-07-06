@@ -1,15 +1,12 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: Extending LOG target to display pid
-Date: Thu, 07 Jul 2005 06:32:19 +0000
-Message-ID: <42CCCC73.50902@outerspace.dyndns.org>
-References: <42CB1E31.1000802@hotmail.com>
+From: Bryan Cardillo <dillo@seas.upenn.edu>
+Subject: expire module issue
+Date: Wed, 6 Jul 2005 13:30:23 -0400
+Message-ID: <20050706173023.GA3586@rover.pcbi.upenn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Nick Hay <nickjhay@hotmail.com>
-In-Reply-To: <42CB1E31.1000802@hotmail.com>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,46 +18,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+        I'm having a problem with the expire module I submitted a
+        few days (weeks, maybe?) ago.  The observed behavior is that
+        expired rules cannot be deleted from built-in chains.  I
+        think the issue is related to deleting a rule (ipt_entry)
+        without fixing hook_entry / underflow to reflect the deleted
+        rule.
 
-Quoting Nick Hay on 2005-07-05 23:56 UTC:
-> My original intention was to replicate some part of Windows' ZoneAlarm
-> package: the ability to recognise which program was asking for access,
-> and to filter based on that.  Noticing a strange packet that was blocked
-> by my filter on outgoing ports, and not being able to find out where it
-> came from was the immediate motivation :)
+        My understanding of hook_entry / underflow is limited, so
+        maybe someone can enlighten me.  For those who haven't
+        studied the code, the basic idea is to approximate
+        `iptables -D' for the expired rule.  So, the pseudo-code
+        goes something like this:
 
-I made this kind of program some years ago ; it pops up a window if some
-yet-unknown program tries to access anything.. You then have the options
-to create a rule on-the-fly if you want or just accept/reject that
-specific packet. It uses the QUEUE target of iptables which sends the
-whole packet to userspace. I have tweaked the kernel code to send the
-PID as well. This whole thing has only been tested with outgoing
-connections, and it worked well.
+        nf_getsockopt(IPT_GET_INFO)
+        nf_getsockopt(IPT_GET_ENTRIES)
+        for each entry in (entries)
+            if (not(is_expired(entry)))
+                copy(replace->entries[i++], entry)
+        nf_setsockopt(IPT_REPLACE)
 
-It isn't user-friendly like ZoneAlarm, but it sure is hacker-friendly :)
+        now, this works fine for user-defined chains with no jumps,
+        but thats it.  I've tried adding code to subtract the size
+        of the expired entries from hook_entries which are past the
+        entry address.  this gets me past the hook_entry
+        check in do_replace, only to get flagged as a loop in
+        mark_source_chains.
+        
+        I've been using the iptables libiptc code as a guide for
+        implementing the rule deletion, but since this is strictly a
+        deletion, I'd rather not put the entire ruleset parsing and
+        compilation code in the kernel ;)  Any ideas how I can patch
+        up hook_entry / underflow appropriately?  Is this even the
+        problem?
 
-I have three clients implemented, one text-based (for desperate console
-hacking), one gtk-based written in C and one java-gnome-based (gtk
-wrapper lib for java) written in Java. The Java one has the most
-features. It would probably not be too hard to rewrite the java version
-for some other toolkit like Swing or SWT.
-
-Here's some screenshots, the first one from the java-gnome version and
-the second from the C-gtk version:
-
-  http://xkr47.outerspace.dyndns.org/tmp/firefly-java-1.png
-  http://xkr47.outerspace.dyndns.org/tmp/firewall-layout-5.png
-
-If you are interested I could pack it up for you..
-
-- --
-- - xkr47
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFCzMxxxyF48ZTvn+4RAo/VAJ9Rxw8mc483cOMz/zvvWlGikz7ycACeIuWN
-/yLfUiUvzg7pcKJHwDeb/gY=
-=UALz
------END PGP SIGNATURE-----
+        Cheers,
+        Bryan Cardillo
+        Penn Bioinformatics Core
+        University of Pennsylvania
+        dillo@seas.upenn.edu
