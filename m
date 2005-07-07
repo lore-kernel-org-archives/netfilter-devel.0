@@ -1,27 +1,15 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: [PATCH] TCP window tracking patch backported from the 2.6 tree
-Date: Wed, 06 Jul 2005 14:37:01 +0200
-Message-ID: <1120653421.5642.13.camel@nienna.balabit>
-References: <Pine.LNX.4.58.0506281201590.12765@blackhole.kfki.hu>
-	<42C17443.60909@drugphish.ch>
-	<Pine.LNX.4.58.0506290926400.14936@blackhole.kfki.hu>
-	<42C26765.2060304@tac.ch>
-	<Pine.LNX.4.58.0506291223440.14974@blackhole.kfki.hu>
-	<20050629145545.GO26761@insomnia.benzedrine.cx>
-	<Pine.LNX.4.58.0506300903350.16566@blackhole.kfki.hu>
-	<20050630111344.GP26761@insomnia.benzedrine.cx>
-	<Pine.LNX.4.58.0507011150500.19392@blackhole.kfki.hu>
-	<20050706111546.GI6024@insomnia.benzedrine.cx>
-	<Pine.LNX.4.58.0507061332170.3713@blackhole.kfki.hu>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: Extending LOG target to display pid
+Date: Thu, 07 Jul 2005 06:32:19 +0000
+Message-ID: <42CCCC73.50902@outerspace.dyndns.org>
+References: <42CB1E31.1000802@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: quoted-printable
-Cc: Daniel Hartmeier <daniel@benzedrine.cx>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Roberto Nibali <ratz@tac.ch>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0507061332170.3713@blackhole.kfki.hu>
+To: Nick Hay <nickjhay@hotmail.com>
+In-Reply-To: <42CB1E31.1000802@hotmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -33,37 +21,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-  Hi,
+Quoting Nick Hay on 2005-07-05 23:56 UTC:
+> My original intention was to replicate some part of Windows' ZoneAlarm
+> package: the ability to recognise which program was asking for access,
+> and to filter based on that.  Noticing a strange packet that was blocked
+> by my filter on outgoing ports, and not being able to find out where it
+> came from was the immediate motivation :)
 
-2005-07-06, sze keltez=E9ssel 13.40-kor Jozsef Kadlecsik ezt =EDrta:
-> > What stacks do generate (and accept) this? Do they do this on purpose=
-?
-> > If so, how well do they react if they get sent malicious SACK section=
-s,
-> > trying to use up as much buffer space as possible? Sounds like a DoS
-> > waiting to happen.
->=20
-> Krisztian, could you write the OS type/version on both the server and t=
-he
-> client?
+I made this kind of program some years ago ; it pops up a window if some
+yet-unknown program tries to access anything.. You then have the options
+to create a rule on-the-fly if you want or just accept/reject that
+specific packet. It uses the QUEUE target of iptables which sends the
+whole packet to userspace. I have tweaked the kernel code to send the
+PID as well. This whole thing has only been tested with outgoing
+connections, and it worked well.
 
-  The client was Linux 2.4.25 plus a couple of other patches, neither of
-which modified core TCP code. On top of that it had Jozsef's TCP window
-tracking patch applied (from POM at that time).
+It isn't user-friendly like ZoneAlarm, but it sure is hacker-friendly :)
 
-  Unfortunately the server was completely out of our control. As it was
-a public webserver, we tried Netcraft, and the results were the
-following:
+I have three clients implemented, one text-based (for desperate console
+hacking), one gtk-based written in C and one java-gnome-based (gtk
+wrapper lib for java) written in Java. The Java one has the most
+features. It would probably not be too hard to rewrite the java version
+for some other toolkit like Swing or SWT.
 
-OS             Server              Last changed  IP address     Netblock =
-Owner
-Windows 2000   Microsoft-IIS/5.0   18-Aug-2003   XXX.XX.XX.XXX  XXXXXXXX
+Here's some screenshots, the first one from the java-gnome version and
+the second from the C-gtk version:
 
-  So that's all I know about the server. I can provide the exact URL we
-tried if anyone's interested (in private mail only). I have absolutely
-no idea whether or not it is still reproducible.
+  http://xkr47.outerspace.dyndns.org/tmp/firefly-java-1.png
+  http://xkr47.outerspace.dyndns.org/tmp/firewall-layout-5.png
 
---=20
- Regards,
-  Krisztian Kovacs
+If you are interested I could pack it up for you..
+
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFCzMxxxyF48ZTvn+4RAo/VAJ9Rxw8mc483cOMz/zvvWlGikz7ycACeIuWN
+/yLfUiUvzg7pcKJHwDeb/gY=
+=UALz
+-----END PGP SIGNATURE-----
