@@ -1,15 +1,12 @@
-From: Dirk Morris <dmorris@metaloft.com>
-Subject: Re: REDIRECT differences in 2.6.12.2
-Date: Fri, 08 Jul 2005 11:50:35 -0700
-Message-ID: <42CECAFB.6070709@metaloft.com>
-References: <42CADB0F.5010804@metaloft.com> <42CDD0DA.20303@trash.net>
+From: Rafael Dreher <dreher@interage.com.br>
+Subject: Unable to add rule on Chain with 30 characters.
+Date: Fri, 08 Jul 2005 17:10:05 -0300
+Message-ID: <42CEDD9D.5020808@interage.com.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <42CDD0DA.20303@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,42 +18,68 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-eve: iptables -t nat -A PREROUTING -p tcp --destination-port 1234 -j 
-REDIRECT --to-port 1234
-eve: echo 255 > /proc/sys/net/ipv4/netfilter/ip_conntrack_log_invalid
-eve: nc -p -l 1234
+Hi,
 
-alice: telnet bob 1234
+I'm trying do add a rule on a user-defined chain, on the NAT table, with exactly 30 characters.
 
-messages on eve (192.168.2.2) shows:
+The chain have bee added without any problem, but when I add the rule, iptables says that it's unable do find the chain.
 
-Jul  8 11:47:34 cartman kernel: ip_ct_tcp: invalid packet ignored IN= 
-OUT= PHYSIN=eth0 SRC=192.168.2.1 DST=192.168.2.3 LEN=60 TOS=0x10 
-PREC=0x00 TTL=64 ID=18927 DF PROTO=TCP SPT=33080 DPT=1234 SEQ=1119072953 
-ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT 
-(020405B40402080A18B1070F0000000001030307)
+See bellow:
 
+-----------------------------------------------------------------------
+[root@ward] [16:55:58]
+[~]#iptables -t nat -N ecommerce-internet@POSTROUTING
 
-192.168.2.1 is alice, 192.168.2.3 is bob
+[root@ward] [16:56:01]
+[~]#iptables -t nat -A POSTROUTING -j ecommerce-internet@POSTROUTING
+iptables: No chain/target/match by that name
 
-Thanks,
--Dirk
+[root@ward] [16:56:19]
+[~]#iptables -t nat -N 123456789012345678901234567890
 
-Patrick McHardy wrote:
+[root@ward] [17:04:15]
+[~]#iptables -t nat -A POSTROUTING -j 123456789012345678901234567890
+iptables: No chain/target/match by that name
 
-> Dirk Morris wrote:
->
->> notice how the syn/ack comes from eve instead of bob, and it only 
->> matches 1 packet (the SYN I assume)
->> I suspect the syn/ack isnt matching in the conntrack table for some 
->> reason?
->> Could it be because the syn is marked, but the syn/ack isnt?
->
->
-> No, that doesn't affect association with a conntrack entry. Please retry
-> after doing "echo 255 > /proc/sys/net/ipv4/netfilter/ip_ct_log_invalid"
-> and "modprobe ipt_LOG".
->
-> Regards
-> Patrick
->
+[root@ward] [17:04:23]
+[~]#
+
+-------------------------------------------------------------------------
+
+If I reduce the chain to 28 characters, it works. I'm trying to migrate a set of rules form iptables-1.2.11 to 1.3.1,
+and I don't want to rewrite the rules.
+
+Someone can help me?
+
+My iptables version: 1.3.1
+My kernel version: 2.4.31
+
+POM-Patches:
+
+CLASSIFY
+SAME
+comment
+NETMAP
+iprange
+quota
+time
+IPMARK
+ROUTE
+account
+h323-conntrack-nat
+ipp2p
+l7-filter-pom-1.4
+mms-conntrack-nat
+msnp-conntrack-nat
+pptp-conntrack-nat
+quake3-conntrack-nat
+string
+mport
+
+Thanks in advance.
+-- 
+Rafael Dreher
+
+-:: Red Hat Certified Engineer ::-
+-:: Nr: 807303498507617 ::-
+http://www.redhat.com/training/certification/verify
