@@ -1,77 +1,46 @@
-From: Daniel Drake <dsd@gentoo.org>
-Subject: 2.6.12 netfilter: local packets marked as invalid
-Date: Fri, 08 Jul 2005 14:59:17 +0100
-Message-ID: <42CE86B5.2080705@gentoo.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: 2.6.12 netfilter: local packets marked as invalid
+Date: Fri, 08 Jul 2005 16:32:54 +0200
+Message-ID: <42CE8E96.1040905@trash.net>
+References: <42CE86B5.2080705@gentoo.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262668AbVGHOA1@vger.kernel.org>
-To: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Sender: linux-kernel-owner@vger.kernel.org
+Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Daniel Drake <dsd@gentoo.org>
+In-Reply-To: <42CE86B5.2080705@gentoo.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Daniel Drake wrote:
+> When retrying the telnet test, this appears in the logs:
+> 
+> Jul  8 14:53:04 dsd inv IN=lo OUT=
+> MAC=00:00:00:00:00:00:00:00:00:00:00:00:08:00 SRC=127.0.0.1 DST=127.0.0.1
+> LEN=40 TOS=0x10 PREC=0x00 TTL=64 ID=15 DF PROTO=TCP SPT=80 DPT=58950 WINDOW=0
+> RES=0x00 ACK RST URGP=0
+> 
+> Does this mean that the kernel thinks its own ACK RST packet is invalid?
 
-Some Gentoo users have reported very long application startup times in 2.6.12.
-This seems to be because the applications are attempting to connect to local
-ports such as sunrpc/portmap (where these services are not running), but some
-packets are being dropped, so the application load just pauses until the
-connection times out.
+I think I know what happens. In 2.6.12 we started dropping the conntrack
+reference when a packet leaves IP, so packets on loopback are tracked
+twice (LOCAL_OUT/PRE_ROUTING). TCP connection tracking destroys a
+conntrack entry when the only reply is an RST. So when the packet is
+tracked for the second time in PRE_ROUTING, the conntrack entry can't
+be found anymore and the packet is considered invalid.
 
-There was a similar problem reported recently ("2.6.12: connection tracking
-broken?"), regarding bridge devices. No bridge devices are involved here.
+You could confirm this theory by logging invalid packets in LOCAL_OUT
+and in PRE_ROUTING - only PRE_ROUTING should trigger. I'm going to
+think about a solution meanwhile.
 
-This is easy to reproduce, and the problem exists on both Linux 2.6.12 and
-2.6.13-rc2. This was not a problem on Linux 2.6.11.
-
-Taking a simple configuration:
-
-	# iptables -P INPUT ACCEPT
-	# iptables -P OUTPUT ACCEPT
-	# iptables -P FORWARD ACCEPT
-
-I don't have a webserver running. If I try and telnet to port 80, I
-immediately get connection refused, as expected:
-
-	# telnet 127.0.0.1 80
-	Trying 127.0.0.1...
-	telnet: connect to address 127.0.0.1: Connection refused
-
-I now add another rule, to drop invalid packets, and retry the telnet connection.
-
-	# iptables -A INPUT -m state --state INVALID -j DROP
-	# telnet 127.0.0.1 80
-	<very long pause>
-	telnet: connect to address 127.0.0.1: Connection timed out
-
-During the pause, netstat reports the connection state as SYN_SENT:
-
-Proto Recv-Q Send-Q Local Address           Foreign Address         State
-tcp        0      1 localhost:39066         localhost:http          SYN_SENT
-
-I now flush the filter table, and make the kernel log invalid packets:
-
-	# iptables -t filter -F
-	#iptables -A INPUT -m state --state INVALID -j LOG --log-prefix "inv "
-
-When retrying the telnet test, this appears in the logs:
-
-Jul  8 14:53:04 dsd inv IN=lo OUT=
-MAC=00:00:00:00:00:00:00:00:00:00:00:00:08:00 SRC=127.0.0.1 DST=127.0.0.1
-LEN=40 TOS=0x10 PREC=0x00 TTL=64 ID=15 DF PROTO=TCP SPT=80 DPT=58950 WINDOW=0
-RES=0x00 ACK RST URGP=0
-
-Does this mean that the kernel thinks its own ACK RST packet is invalid?
-
-There is a Gentoo bug on this here:
-http://bugs.gentoo.org/96948
-...but I think I got the imporant info into this message.
-
-Let me know if I can provide any more info. For those interested in a
-temporary workaround, you can explicitly allow all local traffic, i.e.
-
-	# iptables -A INPUT -i lo -j ACCEPT
-	# iptables -A INPUT -m state --state INVALID -j DROP
-
-Thanks.
-Daniel
+Regards
+Patrick
