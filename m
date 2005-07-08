@@ -1,15 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: REDIRECT differences in 2.6.12.2
-Date: Fri, 08 Jul 2005 03:03:22 +0200
-Message-ID: <42CDD0DA.20303@trash.net>
-References: <42CADB0F.5010804@metaloft.com>
+From: <peter_yen@trendmicro.com>
+Subject: SO_ORIGINAL_DST and getsockopt
+Date: Thu, 7 Jul 2005 18:05:40 -0700
+Message-ID: <01642EB7E3370B439D58C010BFB4324804ABF0C9@UDCEXMAIL01.us.trendnet.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Dirk Morris <dmorris@metaloft.com>
-In-Reply-To: <42CADB0F.5010804@metaloft.com>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,15 +20,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dirk Morris wrote:
-> notice how the syn/ack comes from eve instead of bob, and it only 
-> matches 1 packet (the SYN I assume)
-> I suspect the syn/ack isnt matching in the conntrack table for some reason?
-> Could it be because the syn is marked, but the syn/ack isnt?
 
-No, that doesn't affect association with a conntrack entry. Please retry
-after doing "echo 255 > /proc/sys/net/ipv4/netfilter/ip_ct_log_invalid"
-and "modprobe ipt_LOG".
+Hi All,
 
-Regards
-Patrick
+=0D
+
+I was running Kernel 2=2E6 with Netfilter and Netfilter-bridge kernel
+modules loaded=2E
+
+I saw some discussions regarding using getsockopt to retrieve the
+original destination=0D
+
+address after the packets have been redirected by iptables rules=2E
+However, I cannot=0D
+
+get the original destination address by calling getsockopt() from my
+user-space server,=0D
+
+the code would look like below=2E
+
+=0D
+
+if(getsockopt(connfd, SOL_IP, SO_ORIGINAL_DST, &oricliaddr, &oriclilen)
+!=3D 0)
+
+{
+
+printf("error\n");
+
+}
+
+=0D
+
+Did I miss out anything that prevents getsockopt() from getting the
+original destination address?
+
+Please enlighten me!!
+
+=0D
+
+Thanks a lot
+
+=0D
+
+Peter
+
+
+
+TREND MICRO EMAIL NOTICE
+The information contained in this email and any attachments is confidential=
+ and may be subject to copyright or other intellectual property protection=
+=2E If you are not the intended recipient, you are not authorized to use or=
+ disclose this information, and we request that you notify us by reply mail=
+ or telephone and delete the original message from your mail system=2E
