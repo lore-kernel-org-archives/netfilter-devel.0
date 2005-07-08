@@ -1,75 +1,77 @@
-From: <peter_yen@trendmicro.com>
-Subject: SO_ORIGINAL_DST and getsockopt
-Date: Thu, 7 Jul 2005 18:05:40 -0700
-Message-ID: <01642EB7E3370B439D58C010BFB4324804ABF0C9@UDCEXMAIL01.us.trendnet.org>
+From: Daniel Drake <dsd@gentoo.org>
+Subject: 2.6.12 netfilter: local packets marked as invalid
+Date: Fri, 08 Jul 2005 14:59:17 +0100
+Message-ID: <42CE86B5.2080705@gentoo.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262668AbVGHOA1@vger.kernel.org>
+To: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
-Hi All,
+Some Gentoo users have reported very long application startup times in 2.6.12.
+This seems to be because the applications are attempting to connect to local
+ports such as sunrpc/portmap (where these services are not running), but some
+packets are being dropped, so the application load just pauses until the
+connection times out.
 
-=0D
+There was a similar problem reported recently ("2.6.12: connection tracking
+broken?"), regarding bridge devices. No bridge devices are involved here.
 
-I was running Kernel 2=2E6 with Netfilter and Netfilter-bridge kernel
-modules loaded=2E
+This is easy to reproduce, and the problem exists on both Linux 2.6.12 and
+2.6.13-rc2. This was not a problem on Linux 2.6.11.
 
-I saw some discussions regarding using getsockopt to retrieve the
-original destination=0D
+Taking a simple configuration:
 
-address after the packets have been redirected by iptables rules=2E
-However, I cannot=0D
+	# iptables -P INPUT ACCEPT
+	# iptables -P OUTPUT ACCEPT
+	# iptables -P FORWARD ACCEPT
 
-get the original destination address by calling getsockopt() from my
-user-space server,=0D
+I don't have a webserver running. If I try and telnet to port 80, I
+immediately get connection refused, as expected:
 
-the code would look like below=2E
+	# telnet 127.0.0.1 80
+	Trying 127.0.0.1...
+	telnet: connect to address 127.0.0.1: Connection refused
 
-=0D
+I now add another rule, to drop invalid packets, and retry the telnet connection.
 
-if(getsockopt(connfd, SOL_IP, SO_ORIGINAL_DST, &oricliaddr, &oriclilen)
-!=3D 0)
+	# iptables -A INPUT -m state --state INVALID -j DROP
+	# telnet 127.0.0.1 80
+	<very long pause>
+	telnet: connect to address 127.0.0.1: Connection timed out
 
-{
+During the pause, netstat reports the connection state as SYN_SENT:
 
-printf("error\n");
+Proto Recv-Q Send-Q Local Address           Foreign Address         State
+tcp        0      1 localhost:39066         localhost:http          SYN_SENT
 
-}
+I now flush the filter table, and make the kernel log invalid packets:
 
-=0D
+	# iptables -t filter -F
+	#iptables -A INPUT -m state --state INVALID -j LOG --log-prefix "inv "
 
-Did I miss out anything that prevents getsockopt() from getting the
-original destination address?
+When retrying the telnet test, this appears in the logs:
 
-Please enlighten me!!
+Jul  8 14:53:04 dsd inv IN=lo OUT=
+MAC=00:00:00:00:00:00:00:00:00:00:00:00:08:00 SRC=127.0.0.1 DST=127.0.0.1
+LEN=40 TOS=0x10 PREC=0x00 TTL=64 ID=15 DF PROTO=TCP SPT=80 DPT=58950 WINDOW=0
+RES=0x00 ACK RST URGP=0
 
-=0D
+Does this mean that the kernel thinks its own ACK RST packet is invalid?
 
-Thanks a lot
+There is a Gentoo bug on this here:
+http://bugs.gentoo.org/96948
+...but I think I got the imporant info into this message.
 
-=0D
+Let me know if I can provide any more info. For those interested in a
+temporary workaround, you can explicitly allow all local traffic, i.e.
 
-Peter
+	# iptables -A INPUT -i lo -j ACCEPT
+	# iptables -A INPUT -m state --state INVALID -j DROP
 
-
-
-TREND MICRO EMAIL NOTICE
-The information contained in this email and any attachments is confidential=
- and may be subject to copyright or other intellectual property protection=
-=2E If you are not the intended recipient, you are not authorized to use or=
- disclose this information, and we request that you notify us by reply mail=
- or telephone and delete the original message from your mail system=2E
+Thanks.
+Daniel
