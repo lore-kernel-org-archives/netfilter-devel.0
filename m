@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Unable to add rule on Chain with 30 characters.
-Date: Sat, 09 Jul 2005 03:11:24 +0200
-Message-ID: <42CF243C.4010405@trash.net>
-References: <42CEDD9D.5020808@interage.com.br>
+Subject: Re: REDIRECT differences in 2.6.12.2
+Date: Sat, 09 Jul 2005 16:52:05 +0200
+Message-ID: <42CFE495.9000904@trash.net>
+References: <42CADB0F.5010804@metaloft.com> <42CDD0DA.20303@trash.net>
+	<42CECAFB.6070709@metaloft.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rafael Dreher <dreher@interage.com.br>
-In-Reply-To: <42CEDD9D.5020808@interage.com.br>
+To: Dirk Morris <dmorris@metaloft.com>
+In-Reply-To: <42CECAFB.6070709@metaloft.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,24 +22,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Rafael Dreher wrote:
-> Hi,
+Dirk Morris wrote:
+> eve: iptables -t nat -A PREROUTING -p tcp --destination-port 1234 -j 
+> REDIRECT --to-port 1234
+> eve: echo 255 > /proc/sys/net/ipv4/netfilter/ip_conntrack_log_invalid
+> eve: nc -p -l 1234
 > 
-> I'm trying do add a rule on a user-defined chain, on the NAT table, with 
-> exactly 30 characters.
+> alice: telnet bob 1234
 > 
-> The chain have bee added without any problem, but when I add the rule, 
-> iptables says that it's unable do find the chain.
+> messages on eve (192.168.2.2) shows:
 > 
-> If I reduce the chain to 28 characters, it works. I'm trying to migrate 
-> a set of rules form iptables-1.2.11 to 1.3.1,
-> and I don't want to rewrite the rules.
+> Jul  8 11:47:34 cartman kernel: ip_ct_tcp: invalid packet ignored IN= 
+> OUT= PHYSIN=eth0 SRC=192.168.2.1 DST=192.168.2.3 LEN=60 TOS=0x10 
+> PREC=0x00 TTL=64 ID=18927 DF PROTO=TCP SPT=33080 DPT=1234 SEQ=1119072953 
+> ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT 
+> (020405B40402080A18B1070F0000000001030307)
 
-The maximum name length for matches and targets (and user-defined
-chains) has been reduced by one to make room for a versioning byte.
-You seem to be the first unlucky person that uses all available
-bytes. The only possible solution is to reduce the length of your
-chain-names.
+You didn't mention anything about a bridge. Please describe your setup
+in full detail. And please use IPs instead of names.
 
 Regards
 Patrick
