@@ -1,16 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Fw: segmentation fault with proc cleanup + CLUSTERIP
-Date: Sun, 10 Jul 2005 16:14:43 +0200
-Message-ID: <20050710141443.GI20465@sunbeam.de.gnumonks.org>
-References: <0e9e01c5850a$1f7b5230$5001010a@bluereef.local>
+From: Jens Hoelldampf <jens@hoelldampf.net>
+Subject: SO_ORIGINAL_DST does not work in nat/OUTPUT anymore
+Date: Sun, 10 Jul 2005 16:18:16 +0200
+Message-ID: <42D12E28.7020707@hoelldampf.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gd+outVunBU67ahz"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Andrew Hall <temp02@bluereef.com.au>
-Content-Disposition: inline
-In-Reply-To: <0e9e01c5850a$1f7b5230$5001010a@bluereef.local>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,41 +18,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---gd+outVunBU67ahz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+the upstream patch from
 
-On Sun, Jul 10, 2005 at 02:44:57PM +1000, Andrew Hall wrote:
-> This is happening now quite a lot. It's a bit hit and miss but seems
-> to happen whenever the cluster entry is removed. My guess this that
-> the data the proc entry is referrencing is being read at the time that
-> it is being removed. Do we need a lock here?
+https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=91
 
-So what kind of userspace application are you using?  How frequently is
-that entry read?
+destroys the functionality of SO_ORIGINAL_DST for local generated
+packets. It returns the local address the connection is redirected to
+instead of the original destination address. As a result you cannot use
+local transparent proxies anymore.
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+The responsible change is
 
---gd+outVunBU67ahz
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+diff -ru linux-orig/net/ipv4/ip_output.c linux-new/net/ipv4/ip_output.c
+--- linux-orig/net/ipv4/ip_output.c	2005-03-25 14:48:13.543911760 -0500
++++ linux-new/net/ipv4/ip_output.c	2005-03-26 01:01:13.064616240 -0500
+@@ -195,6 +195,8 @@
+ 	nf_debug_ip_finish_output2(skb);
+ #endif /*CONFIG_NETFILTER_DEBUG*/
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
++	nf_reset(skb);
++
+ 	if (hh) {
+ 		int hh_alen;
 
-iD8DBQFC0S1TXaXGVTD0i/8RAkgrAKCo0Vm+pmNvJK9903WwSQMIolB+gQCfes/t
-vz20Gb+Kv8dTTG4Ykdob8+Y=
-=HThG
------END PGP SIGNATURE-----
+After removing the added line SO_ORIGINAL_DST returns the expected address.
 
---gd+outVunBU67ahz--
+Should I open a new bug or reopen the old one?
+
+Regards,
+ Jens
