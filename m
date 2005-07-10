@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: expire module issue
-Date: Sun, 10 Jul 2005 16:12:15 +0200
-Message-ID: <20050710141215.GG20465@sunbeam.de.gnumonks.org>
-References: <20050706173023.GA3586@rover.pcbi.upenn.edu>
+Subject: Re: SO_ORIGINAL_DST and getsockopt
+Date: Sun, 10 Jul 2005 16:13:23 +0200
+Message-ID: <20050710141323.GH20465@sunbeam.de.gnumonks.org>
+References: <01642EB7E3370B439D58C010BFB4324804ABF0C9@UDCEXMAIL01.us.trendnet.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GOnUD/NgUx2c77Ud"
+	protocol="application/pgp-signature"; boundary="wFcEkHhPyqONlKAq"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Bryan Cardillo <dillo@seas.upenn.edu>
+To: peter_yen@trendmicro.com
 Content-Disposition: inline
-In-Reply-To: <20050706173023.GA3586@rover.pcbi.upenn.edu>
+In-Reply-To: <01642EB7E3370B439D58C010BFB4324804ABF0C9@UDCEXMAIL01.us.trendnet.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,27 +23,25 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---GOnUD/NgUx2c77Ud
+--wFcEkHhPyqONlKAq
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 06, 2005 at 01:30:23PM -0400, Bryan Cardillo wrote:
+On Thu, Jul 07, 2005 at 06:05:40PM -0700, peter_yen@trendmicro.com wrote:
+=20
+> I saw some discussions regarding using getsockopt to retrieve the
+> original destination=0D
+>=20
+> address after the packets have been redirected by iptables rules.
+> However, I cannot=0D
 
->         I've been using the iptables libiptc code as a guide for
->         implementing the rule deletion, but since this is strictly a
->         deletion, I'd rather not put the entire ruleset parsing and
->         compilation code in the kernel ;)  Any ideas how I can patch
->         up hook_entry / underflow appropriately?  Is this even the
->         problem?
+What do you mean by "I cannot". What's the result of the oepration?
 
-It sounds like it could be the source of your problem, yes.  The reason
-why the linnux kernel has no support for parsing/compiling the ruleset
-was not an artificial one... so you're basically tryign what was
-intended not to work ;)
+> if(getsockopt(connfd, SOL_IP, SO_ORIGINAL_DST, &oricliaddr, &oriclilen)
 
-Unfortunately I don't have the time to analyze your code and/or the
-associated problem :(
+looks fine to me.
+
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -55,16 +53,16 @@ associated problem :(
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---GOnUD/NgUx2c77Ud
+--wFcEkHhPyqONlKAq
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFC0Sy/XaXGVTD0i/8RAt57AKCdUTBMdd1yaUHmCiftO7eInE8TmwCeICPp
-assuZSn5G3aDbpQRq3Yt7nE=
-=6pBE
+iD8DBQFC0S0DXaXGVTD0i/8RAvyAAJ91vgDmlxomrBnfxRqDxKqz2TDv7ACggMKC
+riS+TmlVTRGyzYZPaud3XxI=
+=hqc3
 -----END PGP SIGNATURE-----
 
---GOnUD/NgUx2c77Ud--
+--wFcEkHhPyqONlKAq--
