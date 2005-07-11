@@ -1,15 +1,14 @@
 From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: bandwidth saving idea
-Date: Mon, 11 Jul 2005 16:02:30 +0100
-Message-ID: <42D28A06.4040903@ufomechanic.net>
-References: <20050701004115.34697.qmail@web26507.mail.ukl.yahoo.com>	<42C853F4.6010702@outerspace.dyndns.org>	<1121087802.4967.35.camel@OSCARLAPLIN>	<1121088394.26639.8.camel@localhost.localdomain>	<1121092737.4967.62.camel@OSCARLAPLIN>
-	<1121093383.26639.29.camel@localhost.localdomain>
+Subject: Re: [PATCH 1/2] flow match
+Date: Mon, 11 Jul 2005 16:08:47 +0100
+Message-ID: <42D28B7F.7090103@ufomechanic.net>
+References: <20050628234912.GB23662@wsc.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <1121093383.26639.29.camel@localhost.localdomain>
+In-Reply-To: <20050628234912.GB23662@wsc.edu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,36 +20,76 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric Leblond wrote:
->>I do not understand "checksum functions are not injective" my intention
->>was to hold a name=value list where name is checksum and value is
->>payload (or reference to payload on disc/FC/RD). 
+Thanks Josh;
+
+Veridict:
+
+Useful=Yes
+
+The first patch applies OK. but the second (timer patch) gives compile
+errors thus:
+
+net/ipv4/netfilter/ipt_timer.c: In function `match':
+net/ipv4/netfilter/ipt_timer.c:34: structure has no member named
+`read_locked_map'
+net/ipv4/netfilter/ipt_timer.c:34: structure has no member named
+`write_locked_map'
+net/ipv4/netfilter/ipt_timer.c:34: structure has no member named `l'
+net/ipv4/netfilter/ipt_timer.c:34: structure has no member named
+`read_locked_map'
+net/ipv4/netfilter/ipt_timer.c:40: structure has no member named
+`read_locked_map'
+net/ipv4/netfilter/ipt_timer.c:40: structure has no member named
+`read_locked_map'
+net/ipv4/netfilter/ipt_timer.c:40: structure has no member named `l'
+net/ipv4/netfilter/ipt_timer.c: In function `checkentry':
+net/ipv4/netfilter/ipt_timer.c:59: structure has no member named
+`read_locked_map'
+net/ipv4/netfilter/ipt_timer.c:59: structure has no member named
+`write_locked_map'
+net/ipv4/netfilter/ipt_timer.c:59: structure has no member named `l'
+net/ipv4/netfilter/ipt_timer.c:59: structure has no member named
+`read_locked_map'
+net/ipv4/netfilter/ipt_timer.c:61: structure has no member named
+`read_locked_map'
+net/ipv4/netfilter/ipt_timer.c:61: structure has no member named
+`read_locked_map'
+net/ipv4/netfilter/ipt_timer.c:61: structure has no member named `l'
+make[3]: *** [net/ipv4/netfilter/ipt_timer.o] Error 1
+make[2]: *** [net/ipv4/netfilter] Error 2
+make[1]: *** [net/ipv4] Error 2
+make: *** [net] Error 2
+
+amin
+
+Josh Samuelson wrote:
+> Greetings all,
 > 
+> This patch requires Pablo Neira's conntrack event API patch.  It's been
+> many months since I've posted, but I've been tracking the changes that
+> have been made and making the necessary revisions to the code.
+> Thanks Pablo for the heads-up on my silly misuses of the locks,
+> hopefully I've got those cleared up. :)  I also added the ability to
+> track new and established flows to the module.  Also I used
+> Patrick McHardy's iterative state method of looping over the hashes
+> for the proc files.  I figured it was high time to submit it again.
 > 
-> A function f is injective if for all a and b f(a)=f(b) implies a=b.
+> Quoting the man page for the match:
 > 
-> Let f be your checksum function and a and b two packet payload then
-> f(a)=f(b) does not implied a=b. Thus, given a checksum c you can not
-> assert that there is only one a such as f(a)=c.
+>   This module allows you to match a packet when the specified number of
+>   known protocol connections is exceeded.  The matches can be made
+>   against generic IP, ICMP, TCP or UDP flow counters.  This match can be
+>   used in all tables but raw.
 > 
-> In fact, your start set is the set of number of size 1500bits (packet
-> length) and your result set is the set of number of size inferior or
-> egal to checksum length (32). As number of elements of start set is
-> larger than the number of elements of result set. Thus, there is no
-> injective function from set of packet to set of checksum.
-
-This is true; however if the system is bi-directional, both machines
-will keep a copy of the entire packet payload that was md5'd so that
-they can re-emit this payload when the receive the md5 code.
-
-The "compressing" machine after finding an md5 hit, will need to do a
-bit-comparison to see that it was the same payload that generated the
-md5 in the remote machine as has just generated that md5 locally.
-
-Thus, although md5 is non-injective, the actual system is proof against
-this deficiency.
-
-It remains to see how much packet storage is needed to effectively save
-bandwidth, but in specific installations this may not be too great.
-
-Amin
+>   Matches when >= n flows exist
+> 
+>   --DIR-PROTOCOL[-TYPE] [!] n
+>       where DIR is orig or repl for original and reply directions
+>       respectively.  PROTOCOL is ip, icmp, tcp or udp.  TYPE is n or
+>       e.  TYPE n is for new connections.  TYPE e is for established
+>       connections.  Specifying no TYPE results in the comparison being
+>       made for all PROTOCOL connections regardless of TYPE.
+> 
+> The patch should apply to 2.6.12 and iptables v1.3.1.  Though I'll
+> be away from my email for the next week, I would appreciate any
+> feedback.  Questions?  Comments?  Useful/Not?
