@@ -1,63 +1,77 @@
-From: Oscar Mechanic <oscar@ufomechanic.net>
-Subject: bandwidth saving idea
-Date: Mon, 11 Jul 2005 14:16:42 +0100
-Message-ID: <1121087802.4967.35.camel@OSCARLAPLIN>
-References: <20050701004115.34697.qmail@web26507.mail.ukl.yahoo.com>
-	<42C853F4.6010702@outerspace.dyndns.org>
-Reply-To: oscar@ufomechanic.net
+From: Rafael Dreher <dreher@interage.com.br>
+Subject: Re: Re: Unable to add rule on Chain with 28 characters.
+Date: Mon, 11 Jul 2005 10:22:34 -0300
+Message-ID: <42D2729A.2050509@interage.com.br>
+References: <42CECD47.5050003@interage.com.br>
+	<20050708195049.GA7221@bender.817west.com>
+	<42CEDB7F.3060609@interage.com.br>
+	<6.0.1.1.2.20050708131029.01f2b9a8@insight.ip3.com>
+	<42D2701A.4030205@interage.com.br>
+	<Pine.LNX.4.61.0507111514530.30100@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <42C853F4.6010702@outerspace.dyndns.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0507111514530.30100@yvahk01.tjqt.qr>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi
+No, that's not the case. I'm still thinking that's a bug.
 
-   You could suggest the mail should go to LARTC but as I intend to use
-netfilter codebase. You may consider this to be daft
+[root@ward] [10:18:30]
+[~]#iptables -t nat -N 123456789012345678901234567890
 
-Simple scenario
+[root@ward] [10:18:38]
+[~]#iptables -t nat -A POSTROUTING -j 1234567890123456789012345678
+iptables v1.3.2: Couldn't load target
+`1234567890123456789012345678':/usr/local/lib/iptables/libipt_1234567890123456789012345678.so: cannot open shared object
+file: No such file or directory
 
-I have machines one is alabama and the other in berkley called machine A
-and machine B they are both routers.
+Try `iptables -h' or 'iptables --help' for more information.
 
-machine A has a serial number A000 and machine B has a serial number
-B000.
+[root@ward] [10:18:41]
+[~]#
 
-machine A and machine B send packets to each other all the time as they
-belong to the same business. These may be citrix packets POP packets
-etc...
+Any idea?
 
-Machine A sends a packet to machine B. As the packet passes through
-machine A it records the MD5 checksum on the packet and holds it in
-memory. Machine B is doing the same (All packets sent from A the
-checksums are recorded) and it is holding the payload aswell. The key
-for finding the payload is the checksum. 
+Thank 's
 
-For simplicity lets say the max size of the (FIFO)list in memory is
-1000. 
+Jan Engelhardt wrote:
+>>So, that's a BUG.
+>>Why iptbles let me add a chain with 30 characters, if I can't use this chain?
+>>
+>>[root@ward] [10:07:54]
+>>[~]#iptables -t nat -N 123456789012345678901234567890
+>>
+>>[root@ward] [10:08:05]
+>>[~]#iptables -t nat -A POSTROUTING -j 123456789012345678901234567890
+>>iptables: No chain/target/match by that name
+> 
+> 
+> Try
+>   iptables -t nat                -N 123456789012345678901234567890
+>   iptables -t nat -A POSTROUTING -j 1234567890123456789012345678
+> 
+> (Maybe add a '9' to the last.) If that's the case, then this is not really a 
+> bug, but some code silently truncates the -N request.
+> 
+> 
+> 
+> Jan Engelhardt
 
-If the same packet is sent again through A it does not send the payload
-to Machine B but sends the checksum. B sees the checksum finds the
-payload and replaces the checksum with the payload.
+-- 
+Rafael Dreher
 
-(This should work! but it only becomes useful if you can do it with a
-list of checksums in the one packet)
-
-If I am not mistaken I can do this with QUEUE target and then turn it
-into a module.
-
-
-Opinions anyone ? 
-  
+-:: Red Hat Certified Engineer ::-
+-:: Nr: 807303498507617 ::-
+http://www.redhat.com/training/certification/verify
