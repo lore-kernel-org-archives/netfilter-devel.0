@@ -1,77 +1,46 @@
-From: Rafael Dreher <dreher@interage.com.br>
-Subject: Re: Re: Unable to add rule on Chain with 28 characters.
-Date: Mon, 11 Jul 2005 10:22:34 -0300
-Message-ID: <42D2729A.2050509@interage.com.br>
-References: <42CECD47.5050003@interage.com.br>
-	<20050708195049.GA7221@bender.817west.com>
-	<42CEDB7F.3060609@interage.com.br>
-	<6.0.1.1.2.20050708131029.01f2b9a8@insight.ip3.com>
-	<42D2701A.4030205@interage.com.br>
-	<Pine.LNX.4.61.0507111514530.30100@yvahk01.tjqt.qr>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: bandwidth saving idea
+Date: Mon, 11 Jul 2005 15:26:34 +0200
+Message-ID: <1121088394.26639.8.camel@localhost.localdomain>
+References: <20050701004115.34697.qmail@web26507.mail.ukl.yahoo.com>
+	<42C853F4.6010702@outerspace.dyndns.org>
+	<1121087802.4967.35.camel@OSCARLAPLIN>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0507111514530.30100@yvahk01.tjqt.qr>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: oscar@ufomechanic.net
+In-Reply-To: <1121087802.4967.35.camel@OSCARLAPLIN>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-No, that's not the case. I'm still thinking that's a bug.
+Le lundi 11 juillet 2005 =E0 14:16 +0100, Oscar Mechanic a =E9crit :
+> Machine A sends a packet to machine B. As the packet passes through
+> If the same packet is sent again through A it does not send the payload
+> to Machine B but sends the checksum. B sees the checksum finds the
+> payload and replaces the checksum with the payload.
 
-[root@ward] [10:18:30]
-[~]#iptables -t nat -N 123456789012345678901234567890
+Well, there's a problem with protocol like TCP, you've got SEQ number
+and other flags in TCP header that are changing even if the datas
+contained in the packet are the same. Thus your compression protocol is
+not efficient. Even a 1000 unit FIFO is useless. Furthermore, your
+protocol is theoritically wrong, as checksum functions are not
+injective.
 
-[root@ward] [10:18:38]
-[~]#iptables -t nat -A POSTROUTING -j 1234567890123456789012345678
-iptables v1.3.2: Couldn't load target
-`1234567890123456789012345678':/usr/local/lib/iptables/libipt_1234567890123456789012345678.so: cannot open shared object
-file: No such file or directory
+You better try to set up an ipsec tunnel with compression between the
+two machines. On protocol other than citrix, this can bring you a good
+compression level (30% or more if I recall correctly some tests I've
+made).
 
-Try `iptables -h' or 'iptables --help' for more information.
-
-[root@ward] [10:18:41]
-[~]#
-
-Any idea?
-
-Thank 's
-
-Jan Engelhardt wrote:
->>So, that's a BUG.
->>Why iptbles let me add a chain with 30 characters, if I can't use this chain?
->>
->>[root@ward] [10:07:54]
->>[~]#iptables -t nat -N 123456789012345678901234567890
->>
->>[root@ward] [10:08:05]
->>[~]#iptables -t nat -A POSTROUTING -j 123456789012345678901234567890
->>iptables: No chain/target/match by that name
-> 
-> 
-> Try
->   iptables -t nat                -N 123456789012345678901234567890
->   iptables -t nat -A POSTROUTING -j 1234567890123456789012345678
-> 
-> (Maybe add a '9' to the last.) If that's the case, then this is not really a 
-> bug, but some code silently truncates the -N request.
-> 
-> 
-> 
-> Jan Engelhardt
-
--- 
-Rafael Dreher
-
--:: Red Hat Certified Engineer ::-
--:: Nr: 807303498507617 ::-
-http://www.redhat.com/training/certification/verify
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
