@@ -1,9 +1,9 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH 2/*] conntrack event API updates
-Date: Tue, 12 Jul 2005 22:35:46 +0200
-Message-ID: <42D429A2.2060001@eurodev.net>
+Subject: [PATCH 5/*] libctnetlink updates
+Date: Tue, 12 Jul 2005 22:37:31 +0200
+Message-ID: <42D42A0B.1040609@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050800030807010103000208"
+Content-Type: multipart/mixed; boundary="------------060700020601020203040600"
 Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,574 +19,129 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------050800030807010103000208
+--------------060700020601020203040600
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-This includes three fixes:
+This patch reworks libctnetlink to support conntrack netlink attributes. 
+It's required to keep in sync changes with ip_conntrack_netlink.
 
-a) nfcache bits are reset once the events has been delivered. Loopback 
-connections events are notified twice.
+Several structures like: ctnl_tuple, ctnl_l4, ctnl_counters... has been 
+introduced, this are *not* sent to kernel space, they are used to build 
+the netlink message with nested attributes, so consider them just a 
+container of information required to build up the netlink messages with 
+nested attributes ;).
 
-b) Don't kill NFC_IP_*. Just more it into a #ifndef __KERNEL__ fence, 
-that way we don't break iptables backward compilation.
+--
+Pablo
 
-c) IPCT_DESTROY is delivered from destroy_conntrack. Some users has 
-reported out of logical order event notification. This fixes the problem.
-
---------------050800030807010103000208
-Content-Type: text/x-patch;
- name="02ct-event-api.patch"
-Content-Transfer-Encoding: 7bit
+--------------060700020601020203040600
+Content-Type: application/gzip;
+ name="05libctnetlink.patch.gz"
+Content-Transfer-Encoding: base64
 Content-Disposition: inline;
- filename="02ct-event-api.patch"
+ filename="05libctnetlink.patch.gz"
 
-conntrack event API
+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
 
-
-Index: davem-2.6/net/ipv4/netfilter/ip_conntrack_standalone.c
-===================================================================
---- davem-2.6.orig/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-06-30 19:14:02.000000000 +0200
-+++ davem-2.6/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-07-12 20:39:45.000000000 +0200
-@@ -963,6 +963,12 @@
- {
- }
- 
-+#ifdef CONFIG_IP_NF_CONNTRACK_EVENTS
-+EXPORT_SYMBOL(ip_conntrack_chain);
-+EXPORT_SYMBOL(ip_conntrack_expect_chain);
-+EXPORT_SYMBOL(ip_conntrack_register_notifier);
-+EXPORT_SYMBOL(ip_conntrack_unregister_notifier);
-+#endif
- EXPORT_SYMBOL(ip_conntrack_protocol_register);
- EXPORT_SYMBOL(ip_conntrack_protocol_unregister);
- EXPORT_SYMBOL(ip_ct_get_tuple);
-Index: davem-2.6/include/linux/netfilter_ipv4.h
-===================================================================
---- davem-2.6.orig/include/linux/netfilter_ipv4.h	2005-06-30 19:14:02.000000000 +0200
-+++ davem-2.6/include/linux/netfilter_ipv4.h	2005-06-30 19:14:03.000000000 +0200
-@@ -8,6 +8,8 @@
- #include <linux/config.h>
- #include <linux/netfilter.h>
- 
-+/* Old iptables versions need this: backward compatibility compilation */
-+#ifndef __KERNEL__
- /* IP Cache bits. */
- /* Src IP address. */
- #define NFC_IP_SRC		0x0001
-@@ -35,6 +37,7 @@
- #define NFC_IP_DST_PT		0x0400
- /* Something else about the proto */
- #define NFC_IP_PROTO_UNKNOWN	0x2000
-+#endif
- 
- /* IP Hooks */
- /* After promisc drops, checksum checks. */
-Index: davem-2.6/net/ipv4/netfilter/ip_conntrack_proto_udp.c
-===================================================================
---- davem-2.6.orig/net/ipv4/netfilter/ip_conntrack_proto_udp.c	2005-06-30 19:14:02.000000000 +0200
-+++ davem-2.6/net/ipv4/netfilter/ip_conntrack_proto_udp.c	2005-07-12 20:39:45.000000000 +0200
-@@ -64,7 +64,7 @@
- 
- /* Returns verdict for packet, and may modify conntracktype */
- static int udp_packet(struct ip_conntrack *conntrack,
--		      const struct sk_buff *skb,
-+		      struct sk_buff *skb,
- 		      enum ip_conntrack_info ctinfo)
- {
- 	/* If we've seen traffic both ways, this is some kind of UDP
-@@ -73,7 +73,8 @@
- 		ip_ct_refresh_acct(conntrack, ctinfo, skb, 
- 				   ip_ct_udp_timeout_stream);
- 		/* Also, more likely to be important, and not a probe */
--		set_bit(IPS_ASSURED_BIT, &conntrack->status);
-+		if (!test_and_set_bit(IPS_ASSURED_BIT, &conntrack->status))
-+			ip_conntrack_event_cache(IPCT_STATUS, skb);
- 	} else
- 		ip_ct_refresh_acct(conntrack, ctinfo, skb, ip_ct_udp_timeout);
- 
-Index: davem-2.6/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-===================================================================
---- davem-2.6.orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-06-30 19:14:02.000000000 +0200
-+++ davem-2.6/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-07-12 20:39:45.000000000 +0200
-@@ -843,7 +843,7 @@
- 
- /* Returns verdict for packet, or -1 for invalid. */
- static int tcp_packet(struct ip_conntrack *conntrack,
--		      const struct sk_buff *skb,
-+		      struct sk_buff *skb,
- 		      enum ip_conntrack_info ctinfo)
- {
- 	enum tcp_conntrack new_state, old_state;
-@@ -974,6 +974,10 @@
- 		  ? ip_ct_tcp_timeout_max_retrans : *tcp_timeouts[new_state];
- 	WRITE_UNLOCK(&tcp_lock);
- 
-+	ip_conntrack_event_cache(IPCT_PROTOINFO_VOLATILE, skb);
-+	if (new_state != old_state)
-+		ip_conntrack_event_cache(IPCT_PROTOINFO, skb);
-+
- 	if (!test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)) {
- 		/* If only reply is a RST, we can consider ourselves not to
- 		   have an established connection: this is a fairly common
-Index: davem-2.6/include/linux/netfilter_ipv4/ip_conntrack.h
-===================================================================
---- davem-2.6.orig/include/linux/netfilter_ipv4/ip_conntrack.h	2005-06-30 19:14:02.000000000 +0200
-+++ davem-2.6/include/linux/netfilter_ipv4/ip_conntrack.h	2005-07-12 20:39:45.000000000 +0200
-@@ -65,6 +65,10 @@
- 
- 	/* Both together */
- 	IPS_NAT_DONE_MASK = (IPS_DST_NAT_DONE | IPS_SRC_NAT_DONE),
-+
-+	/* Connection is destroyed (removed from lists), can not be unset. */
-+	IPS_DESTROYED_BIT = 9,
-+	IPS_DESTROYED = (1 << IPS_DESTROYED_BIT),
- };
- 
- #ifdef __KERNEL__
-@@ -247,7 +251,7 @@
- /* Refresh conntrack for this many jiffies */
- extern void ip_ct_refresh_acct(struct ip_conntrack *ct,
- 			       enum ip_conntrack_info ctinfo,
--			       const struct sk_buff *skb,
-+			       struct sk_buff *skb,
- 			       unsigned long extra_jiffies);
- 
- /* These are for NAT.  Icky. */
-@@ -277,6 +281,11 @@
- 	return test_bit(IPS_CONFIRMED_BIT, &ct->status);
- }
- 
-+static inline int is_destroyed(struct ip_conntrack *ct)
-+{
-+	return test_bit(IPS_DESTROYED_BIT, &ct->status);
-+}
-+
- extern unsigned int ip_conntrack_htable_size;
-  
- struct ip_conntrack_stat
-@@ -300,6 +309,8 @@
- 
- #define CONNTRACK_STAT_INC(count) (__get_cpu_var(ip_conntrack_stat).count++)
- 
-+#include <linux/netfilter_ipv4/ip_conntrack_events.h>
-+
- #ifdef CONFIG_IP_NF_NAT_NEEDED
- static inline int ip_nat_initialized(struct ip_conntrack *conntrack,
- 				     enum ip_nat_manip_type manip)
-Index: davem-2.6/include/linux/netfilter_ipv4/ip_conntrack_events.h
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ davem-2.6/include/linux/netfilter_ipv4/ip_conntrack_events.h	2005-06-30 19:14:03.000000000 +0200
-@@ -0,0 +1,138 @@
-+#ifndef _IP_CONNTRACK_EVENTS_H
-+#define _IP_CONNTRACK_EVENTS_H
-+
-+/* Connection tracking event bits */
-+enum ip_conntrack_events
-+{
-+	/* New conntrack */
-+	IPCT_NEW_BIT = 0,
-+	IPCT_NEW = (1 << IPCT_NEW_BIT),
-+
-+	/* Expected connection */
-+	IPCT_RELATED_BIT = 1,
-+	IPCT_RELATED = (1 << IPCT_RELATED_BIT),
-+
-+	/* Destroyed conntrack */
-+	IPCT_DESTROY_BIT = 2,
-+	IPCT_DESTROY = (1 << IPCT_DESTROY_BIT),
-+
-+	/* Timer has been refreshed */
-+	IPCT_REFRESH_BIT = 3,
-+	IPCT_REFRESH = (1 << IPCT_REFRESH_BIT),
-+
-+	/* Status has changed */
-+	IPCT_STATUS_BIT = 4,
-+	IPCT_STATUS = (1 << IPCT_STATUS_BIT),
-+
-+	/* Update of protocol info */
-+	IPCT_PROTOINFO_BIT = 5,
-+	IPCT_PROTOINFO = (1 << IPCT_PROTOINFO_BIT),
-+
-+	/* Volatile protocol info */
-+	IPCT_PROTOINFO_VOLATILE_BIT = 6,
-+	IPCT_PROTOINFO_VOLATILE = (1 << IPCT_PROTOINFO_VOLATILE_BIT),
-+
-+	/* New helper for conntrack */
-+	IPCT_HELPER_BIT = 7,
-+	IPCT_HELPER = (1 << IPCT_HELPER_BIT),
-+
-+	/* Update of helper info */
-+	IPCT_HELPINFO_BIT = 8,
-+	IPCT_HELPINFO = (1 << IPCT_HELPINFO_BIT),
-+
-+	/* Volatile helper info */
-+	IPCT_HELPINFO_VOLATILE_BIT = 9,
-+	IPCT_HELPINFO_VOLATILE = (1 << IPCT_HELPINFO_VOLATILE_BIT),
-+
-+	/* NAT info */
-+	IPCT_NATINFO_BIT = 10,
-+	IPCT_NATINFO = (1 << IPCT_NATINFO_BIT),
-+};
-+
-+enum ip_conntrack_expect_events {
-+	IPEXP_NEW_BIT = 0,
-+	IPEXP_NEW = (1 << IPEXP_NEW_BIT),
-+
-+	IPEXP_TIMEOUT_BIT = 1,
-+	IPEXP_TIMEOUT = (1 << IPEXP_TIMEOUT_BIT),
-+};
-+
-+#ifdef __KERNEL__
-+#ifdef CONFIG_IP_NF_CONNTRACK_EVENTS
-+#include <linux/notifier.h>
-+
-+extern struct notifier_block *ip_conntrack_chain;
-+extern struct notifier_block *ip_conntrack_expect_chain;
-+
-+static inline int ip_conntrack_register_notifier(struct notifier_block *nb)
-+{
-+	return notifier_chain_register(&ip_conntrack_chain, nb);
-+}
-+
-+static inline int ip_conntrack_unregister_notifier(struct notifier_block *nb)
-+{
-+	return notifier_chain_unregister(&ip_conntrack_chain, nb);
-+}
-+
-+static inline int 
-+ip_conntrack_expect_register_notifier(struct notifier_block *nb)
-+{
-+	return notifier_chain_register(&ip_conntrack_expect_chain, nb);
-+}
-+
-+static inline int
-+ip_conntrack_expect_unregister_notifier(struct notifier_block *nb)
-+{
-+	return notifier_chain_unregister(&ip_conntrack_expect_chain, nb);
-+}
-+
-+static inline void ip_conntrack_event_cache_init(struct sk_buff *skb)
-+{
-+	/* Set to zero first 14 bits, see netfilter.h */
-+	skb->nfcache &= 0xc000;
-+}
-+
-+static inline void 
-+ip_conntrack_event_cache(enum ip_conntrack_events event, struct sk_buff *skb)
-+{
-+	skb->nfcache |= event;
-+}
-+
-+static inline void 
-+ip_conntrack_deliver_cached_events(struct sk_buff *skb)
-+{
-+	struct ip_conntrack *ct = (struct ip_conntrack *) skb->nfct;
-+
-+	if (ct && is_confirmed(ct) && !is_destroyed(ct) && skb->nfcache) {
-+		notifier_call_chain(&ip_conntrack_chain, skb->nfcache, ct);
-+		/* Reset nfcache once events got delivered */
-+		ip_conntrack_event_cache_init(skb);
-+	}
-+}
-+
-+static inline void ip_conntrack_event(enum ip_conntrack_events event,
-+				      struct ip_conntrack *ct)
-+{
-+	if (is_confirmed(ct) && !is_destroyed(ct))
-+		notifier_call_chain(&ip_conntrack_chain, event, ct);
-+}
-+
-+static inline void 
-+ip_conntrack_expect_event(enum ip_conntrack_expect_events event,
-+			  struct ip_conntrack_expect *exp)
-+{
-+	notifier_call_chain(&ip_conntrack_expect_chain, event, exp);
-+}
-+#else /* CONFIG_IP_NF_CONNTRACK_EVENTS */
-+static inline void ip_conntrack_event_cache_init(struct sk_buff *skb) {}
-+static inline void ip_conntrack_event_cache(enum ip_conntrack_events event, 
-+					    struct sk_buff *skb) {}
-+static inline void ip_conntrack_event(enum ip_conntrack_events event, 
-+				      struct ip_conntrack *ct) {}
-+static inline void ip_conntrack_deliver_cached_events(struct sk_buff *skb) {}
-+static inline void 
-+ip_conntrack_expect_event(enum ip_conntrack_expect_events event, 
-+			  struct ip_conntrack_expect *exp) {}
-+#endif /* __KERNEL__ */
-+#endif /* CONFIG_IP_NF_CONNTRACK_EVENTS */
-+#endif /* _IP_CONNTRACK_EVENTS_H */
-Index: davem-2.6/net/ipv4/netfilter/ip_conntrack_ftp.c
-===================================================================
---- davem-2.6.orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-06-30 19:14:02.000000000 +0200
-+++ davem-2.6/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-07-12 20:39:45.000000000 +0200
-@@ -263,7 +263,8 @@
- }
- 
- /* We don't update if it's older than what we have. */
--static void update_nl_seq(u32 nl_seq, struct ip_ct_ftp_master *info, int dir)
-+static void update_nl_seq(u32 nl_seq, struct ip_ct_ftp_master *info, int dir,
-+			  struct sk_buff *skb)
- {
- 	unsigned int i, oldest = NUM_SEQ_TO_REMEMBER;
- 
-@@ -277,10 +278,13 @@
- 			oldest = i;
- 	}
- 
--	if (info->seq_aft_nl_num[dir] < NUM_SEQ_TO_REMEMBER)
-+	if (info->seq_aft_nl_num[dir] < NUM_SEQ_TO_REMEMBER) {
- 		info->seq_aft_nl[dir][info->seq_aft_nl_num[dir]++] = nl_seq;
--	else if (oldest != NUM_SEQ_TO_REMEMBER)
-+		ip_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, skb);
-+	} else if (oldest != NUM_SEQ_TO_REMEMBER) {
- 		info->seq_aft_nl[dir][oldest] = nl_seq;
-+		ip_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, skb);
-+	}
- }
- 
- static int help(struct sk_buff **pskb,
-@@ -440,7 +444,7 @@
- 	/* Now if this ends in \n, update ftp info.  Seq may have been
- 	 * adjusted by NAT code. */
- 	if (ends_in_nl)
--		update_nl_seq(seq, ct_ftp_info,dir);
-+		update_nl_seq(seq, ct_ftp_info,dir, *pskb);
-  out:
- 	UNLOCK_BH(&ip_ftp_lock);
- 	return ret;
-Index: davem-2.6/net/ipv4/netfilter/Kconfig
-===================================================================
---- davem-2.6.orig/net/ipv4/netfilter/Kconfig	2005-06-30 19:14:02.000000000 +0200
-+++ davem-2.6/net/ipv4/netfilter/Kconfig	2005-07-12 20:40:38.000000000 +0200
-@@ -692,5 +692,15 @@
- 	  Allows altering the ARP packet payload: source and destination
- 	  hardware and network addresses.
- 
-+config IP_NF_CONNTRACK_EVENTS
-+	bool "Connection tracking events"
-+	depends on IP_NF_CONNTRACK
-+	help
-+	  If this option is enabled, the connection tracking code will
-+	  provide a notifier chain that can be used by other kernel code
-+	  to get notified about changes in the connection tracking state.
-+	  
-+	  IF unsure, say `N'.
-+
- endmenu
- 
-Index: davem-2.6/include/linux/netfilter.h
-===================================================================
---- davem-2.6.orig/include/linux/netfilter.h	2005-06-30 19:14:02.000000000 +0200
-+++ davem-2.6/include/linux/netfilter.h	2005-06-30 19:14:03.000000000 +0200
-@@ -22,7 +22,7 @@
- #define NF_MAX_VERDICT NF_STOP
- 
- /* Generic cache responses from hook functions.
--   <= 0x2000 is used for protocol-flags. */
-+   <= 0x2000 is reserved for conntrack event cache. */
- #define NFC_UNKNOWN 0x4000
- #define NFC_ALTERED 0x8000
- 
-Index: davem-2.6/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
-===================================================================
---- davem-2.6.orig/net/ipv4/netfilter/ip_conntrack_proto_icmp.c	2005-06-30 19:14:02.000000000 +0200
-+++ davem-2.6/net/ipv4/netfilter/ip_conntrack_proto_icmp.c	2005-07-12 20:39:45.000000000 +0200
-@@ -89,7 +89,7 @@
- 
- /* Returns verdict for packet, or -1 for invalid. */
- static int icmp_packet(struct ip_conntrack *ct,
--		       const struct sk_buff *skb,
-+		       struct sk_buff *skb,
- 		       enum ip_conntrack_info ctinfo)
- {
- 	/* Try to delete connection immediately after all replies:
-@@ -102,6 +102,7 @@
- 			ct->timeout.function((unsigned long)ct);
- 	} else {
- 		atomic_inc(&ct->proto.icmp.count);
-+		ip_conntrack_event_cache(IPCT_PROTOINFO_VOLATILE, skb);
- 		ip_ct_refresh_acct(ct, ctinfo, skb, ip_ct_icmp_timeout);
- 	}
- 
-Index: davem-2.6/net/ipv4/netfilter/ip_conntrack_proto_generic.c
-===================================================================
---- davem-2.6.orig/net/ipv4/netfilter/ip_conntrack_proto_generic.c	2005-06-30 19:14:02.000000000 +0200
-+++ davem-2.6/net/ipv4/netfilter/ip_conntrack_proto_generic.c	2005-06-30 19:14:03.000000000 +0200
-@@ -49,7 +49,7 @@
- 
- /* Returns verdict for packet, or -1 for invalid. */
- static int packet(struct ip_conntrack *conntrack,
--		  const struct sk_buff *skb,
-+		  struct sk_buff *skb,
- 		  enum ip_conntrack_info ctinfo)
- {
- 	ip_ct_refresh_acct(conntrack, ctinfo, skb, ip_ct_generic_timeout);
-Index: davem-2.6/include/linux/netfilter_ipv4/ip_conntrack_protocol.h
-===================================================================
---- davem-2.6.orig/include/linux/netfilter_ipv4/ip_conntrack_protocol.h	2005-06-30 19:14:02.000000000 +0200
-+++ davem-2.6/include/linux/netfilter_ipv4/ip_conntrack_protocol.h	2005-07-12 20:39:45.000000000 +0200
-@@ -34,7 +34,7 @@
- 
- 	/* Returns verdict for packet, or -1 for invalid. */
- 	int (*packet)(struct ip_conntrack *conntrack,
--		      const struct sk_buff *skb,
-+		      struct sk_buff *skb,
- 		      enum ip_conntrack_info ctinfo);
- 
- 	/* Called when a new connection for this protocol found;
-Index: davem-2.6/net/ipv4/netfilter/ip_conntrack_proto_sctp.c
-===================================================================
---- davem-2.6.orig/net/ipv4/netfilter/ip_conntrack_proto_sctp.c	2005-06-30 19:14:02.000000000 +0200
-+++ davem-2.6/net/ipv4/netfilter/ip_conntrack_proto_sctp.c	2005-07-12 20:39:45.000000000 +0200
-@@ -310,7 +310,7 @@
- 
- /* Returns verdict for packet, or -1 for invalid. */
- static int sctp_packet(struct ip_conntrack *conntrack,
--		       const struct sk_buff *skb,
-+		       struct sk_buff *skb,
- 		       enum ip_conntrack_info ctinfo)
- {
- 	enum sctp_conntrack newconntrack, oldsctpstate;
-@@ -405,6 +405,8 @@
- 		}
- 
- 		conntrack->proto.sctp.state = newconntrack;
-+		if (oldsctpstate != newconntrack)
-+			ip_conntrack_event_cache(IPCT_PROTOINFO, skb);
- 		WRITE_UNLOCK(&sctp_lock);
- 	}
- 
-Index: davem-2.6/include/linux/netfilter_ipv4/ip_conntrack_core.h
-===================================================================
---- davem-2.6.orig/include/linux/netfilter_ipv4/ip_conntrack_core.h	2005-06-30 19:14:02.000000000 +0200
-+++ davem-2.6/include/linux/netfilter_ipv4/ip_conntrack_core.h	2005-06-30 19:14:03.000000000 +0200
-@@ -39,10 +39,14 @@
- /* Confirm a connection: returns NF_DROP if packet must be dropped. */
- static inline int ip_conntrack_confirm(struct sk_buff **pskb)
- {
-+	int ret = NF_ACCEPT;
-+
- 	if ((*pskb)->nfct
- 	    && !is_confirmed((struct ip_conntrack *)(*pskb)->nfct))
--		return __ip_conntrack_confirm(pskb);
--	return NF_ACCEPT;
-+		ret = __ip_conntrack_confirm(pskb);
-+	ip_conntrack_deliver_cached_events(*pskb);
-+
-+	return ret;
- }
- 
- extern struct list_head *ip_conntrack_hash;
-Index: davem-2.6/net/ipv4/netfilter/ip_conntrack_core.c
-===================================================================
---- davem-2.6.orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-06-30 19:14:02.000000000 +0200
-+++ davem-2.6/net/ipv4/netfilter/ip_conntrack_core.c	2005-07-12 20:39:45.000000000 +0200
-@@ -76,6 +76,11 @@
- static LIST_HEAD(unconfirmed);
- static int ip_conntrack_vmalloc;
- 
-+#ifdef CONFIG_IP_NF_CONNTRACK_EVENTS
-+struct notifier_block *ip_conntrack_chain;
-+struct notifier_block *ip_conntrack_expect_chain;
-+#endif /* CONFIG_IP_NF_CONNTRACK_EVENTS */
-+
- DEFINE_PER_CPU(struct ip_conntrack_stat, ip_conntrack_stat);
- 
- void 
-@@ -157,6 +162,7 @@
- {
- 	struct ip_conntrack_expect *exp = (void *)ul_expect;
- 
-+	ip_conntrack_expect_event(IPEXP_TIMEOUT, exp);
- 	WRITE_LOCK(&ip_conntrack_lock);
- 	unlink_expect(exp);
- 	WRITE_UNLOCK(&ip_conntrack_lock);
-@@ -230,6 +236,9 @@
- 	IP_NF_ASSERT(atomic_read(&nfct->use) == 0);
- 	IP_NF_ASSERT(!timer_pending(&ct->timeout));
- 
-+	ip_conntrack_event(IPCT_DESTROY, ct);
-+	set_bit(IPS_DESTROYED_BIT, &ct->status);
-+
- 	/* To make sure we don't get any weird locking issues here:
- 	 * destroy_conntrack() MUST NOT be called with a write lock
- 	 * to ip_conntrack_lock!!! -HW */
-@@ -381,6 +390,15 @@
- 		set_bit(IPS_CONFIRMED_BIT, &ct->status);
- 		CONNTRACK_STAT_INC(insert);
- 		WRITE_UNLOCK(&ip_conntrack_lock);
-+		if (ct->helper)
-+			ip_conntrack_event_cache(IPCT_HELPER, *pskb);
-+#ifdef CONFIG_IP_NF_NAT_NEEDED
-+		if (IPS_NAT_DONE_MASK & ct->status)
-+			ip_conntrack_event_cache(IPCT_NATINFO, *pskb);
-+#endif
-+		ip_conntrack_event_cache(master_ct(ct) ?
-+					 IPCT_RELATED : IPCT_NEW, *pskb);
-+
- 		return NF_ACCEPT;
- 	}
- 
-@@ -630,6 +648,8 @@
- 	/* FIXME: Do this right please. --RR */
- 	(*pskb)->nfcache |= NFC_UNKNOWN;
- 
-+	ip_conntrack_event_cache_init(*pskb);
-+
- /* Doesn't cover locally-generated broadcast, so not worth it. */
- #if 0
- 	/* Ignore broadcast: no `connection'. */
-@@ -681,8 +701,8 @@
- 		return -ret;
- 	}
- 
--	if (set_reply)
--		set_bit(IPS_SEEN_REPLY_BIT, &ct->status);
-+	if (set_reply && !test_and_set_bit(IPS_SEEN_REPLY_BIT, &ct->status))
-+		ip_conntrack_event_cache(IPCT_STATUS, *pskb);
- 
- 	return ret;
- }
-@@ -802,7 +822,7 @@
- int ip_conntrack_expect_related(struct ip_conntrack_expect *expect)
- {
- 	struct ip_conntrack_expect *i;
--	int ret;
-+	int ret, inserted = 0;
- 
- 	DEBUGP("ip_conntrack_expect_related %p\n", related_to);
- 	DEBUGP("tuple: "); DUMP_TUPLE(&expect->tuple);
-@@ -830,9 +850,12 @@
- 		evict_oldest_expect(expect->master);
- 
- 	ip_conntrack_expect_insert(expect);
-+	inserted = 1;
- 	ret = 0;
- out:
- 	WRITE_UNLOCK(&ip_conntrack_lock);
-+	if (inserted)
-+		ip_conntrack_expect_event(IPEXP_NEW, expect);
-  	return ret;
- }
- 
-@@ -915,7 +938,7 @@
- /* Refresh conntrack for this many jiffies and do accounting (if skb != NULL) */
- void ip_ct_refresh_acct(struct ip_conntrack *ct, 
- 		        enum ip_conntrack_info ctinfo,
--			const struct sk_buff *skb,
-+			struct sk_buff *skb,
- 			unsigned long extra_jiffies)
- {
- 	IP_NF_ASSERT(ct->timeout.data == (unsigned long)ct);
-@@ -930,6 +953,7 @@
- 		if (del_timer(&ct->timeout)) {
- 			ct->timeout.expires = jiffies + extra_jiffies;
- 			add_timer(&ct->timeout);
-+			ip_conntrack_event_cache(IPCT_REFRESH, skb);
- 		}
- 		ct_add_counters(ct, ctinfo, skb);
- 		WRITE_UNLOCK(&ip_conntrack_lock);
-
---------------050800030807010103000208--
+--------------060700020601020203040600--
