@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [OT] Re: rp_filtering
-Date: Tue, 12 Jul 2005 11:18:52 +0200
-Message-ID: <20050712091852.GZ16728@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.61.0507111946560.32325@yvahk01.tjqt.qr>
-	<1121105149.5236.5.camel@anduril.intranet.cartel-securite.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: 2.6.12 netfilter: local packets marked as invalid
+Date: Tue, 12 Jul 2005 13:58:27 +0200
+Message-ID: <42D3B063.3000207@trash.net>
+References: <42CE86B5.2080705@gentoo.org> <42CE8E96.1040905@trash.net>
+	<42CEA5E4.40009@gentoo.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1aa3fXZUP8Xb8QnO"
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------090905010801020102090306"
+Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Cedric Blancher <blancher@cartel-securite.fr>
-Content-Disposition: inline
-In-Reply-To: <1121105149.5236.5.camel@anduril.intranet.cartel-securite.net>
+To: Daniel Drake <dsd@gentoo.org>
+In-Reply-To: <42CEA5E4.40009@gentoo.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,49 +21,76 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------090905010801020102090306
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
---1aa3fXZUP8Xb8QnO
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Daniel Drake wrote:
+> You'll have to forgive my lack of netfilter knowledge, I set up my firewall
+> ages ago and haven't really touched it since :)
 
-On Mon, Jul 11, 2005 at 08:05:49PM +0200, Cedric Blancher wrote:
-> Le lundi 11 juillet 2005 =E0 19:50 +0200, Jan Engelhardt a =E9crit :
-> > rp_filter is said to be a route path verification (etc.)
-> >   ippp0  217.245.127.134
-> >   eth0   192.168.222.1
-> > However, I've just done a ping 217.245.127.134 from a windows client in=
-side=20
-> > the eth0 network, took a peek at iptraf and saw that echo requests and =
-replies=20
-> > were directly going from/to eth0/192.168.222.34(windows).
->=20
-> It's normal Linux behaviour. You can join any Linux box IP on any of its
-> interfaces.
+We decided to revert the responsible change because it caused problems
+in other areas as well. This patch should fix your problem.
 
-yes, but you can disable it via some sysctl's.  It's all documented in
-ip-sysctl.txt in Documentation/networking/
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+--------------090905010801020102090306
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="x"
 
---1aa3fXZUP8Xb8QnO
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC04r8XaXGVTD0i/8RAiqnAKCR/JC8fGEVoFq3ocWOD10EtLE9xwCgsj/A
-jDxcUdzQbta3d7PS5R0n18s=
-=fNQi
------END PGP SIGNATURE-----
-
---1aa3fXZUP8Xb8QnO--
+W05FVEZJTFRFUl06IFJldmVydCBuZl9yZXNldCBjaGFuZ2UKClJldmVydCB0aGUgbmZfcmVz
+ZXQgY2hhbmdlIHRoYXQgY2F1c2VkIHNvIG11Y2ggdHJvdWJsZSwgZHJvcCBjb25udHJhY2sK
+cmVmZXJlbmNlcyBtYW51YWxseSBiZWZvcmUgcGFja2V0cyBhcmUgcXVldWVkIHRvIHBhY2tl
+dCBzb2NrZXRzLgoKU2lnbmVkLW9mZi1ieTogUGhpbCBPZXN0ZXIgPGtlcm5lbEBsaW51eGFj
+ZS5jb20+ClNpZ25lZC1vZmYtYnk6IFBhdHJpY2sgTWNIYXJkeSA8a2FiZXJAdHJhc2gubmV0
+PgoKLS0tCmNvbW1pdCBjNjRlOWZhZmZmZDIwMzg4NmY2YzU3MTQ5ODAzZjE4MjRmZWJkOWJi
+CnRyZWUgNDBhOTBhYjE0MjdjMjVmN2EzNjEwOWVhYmQxYTUzYjBhOGYxNDRiZQpwYXJlbnQg
+OWZkNzNiZWQwNmViNWNmMzA5ZTBjYjVjZGYzMjQ5YTU0ZmQzZmYyMgphdXRob3IgUGhpbCBP
+ZXN0ZXIgPGtlcm5lbEBsaW51eGFjZS5jb20+IE1vbiwgMTEgSnVsIDIwMDUgMDI6MDQ6MDgK
+Y29tbWl0dGVyIFBhdHJpY2sgTWNIYXJkeSA8a2FiZXJAdHJhc2gubmV0PiBNb24sIDExIEp1
+bCAyMDA1IDAyOjA0OjA4CgogbmV0L2lwdjQvaXBfb3V0cHV0LmMgICAgICAgICAgICAgICAg
+ICAgICAgICAgfCAgICA5IC0tLS0tLS0tLQogbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50
+cmFja19zdGFuZGFsb25lLmMgfCAgICA3ICsrKysrKysKIG5ldC9wYWNrZXQvYWZfcGFja2V0
+LmMgICAgICAgICAgICAgICAgICAgICAgIHwgICAgNiArKysrKysKIDMgZmlsZXMgY2hhbmdl
+ZCwgMTMgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9uZXQv
+aXB2NC9pcF9vdXRwdXQuYyBiL25ldC9pcHY0L2lwX291dHB1dC5jCi0tLSBhL25ldC9pcHY0
+L2lwX291dHB1dC5jCisrKyBiL25ldC9pcHY0L2lwX291dHB1dC5jCkBAIC0xMDcsNyArMTA3
+LDYgQEAgc3RhdGljIGludCBpcF9kZXZfbG9vcGJhY2tfeG1pdChzdHJ1Y3QgcwogCW5ld3Nr
+Yi0+cGt0X3R5cGUgPSBQQUNLRVRfTE9PUEJBQ0s7CiAJbmV3c2tiLT5pcF9zdW1tZWQgPSBD
+SEVDS1NVTV9VTk5FQ0VTU0FSWTsKIAlCVUdfVFJBUChuZXdza2ItPmRzdCk7Ci0JbmZfcmVz
+ZXQobmV3c2tiKTsKIAluZXRpZl9yeChuZXdza2IpOwogCXJldHVybiAwOwogfQpAQCAtMTg4
+LDE0ICsxODcsNiBAQCBzdGF0aWMgaW5saW5lIGludCBpcF9maW5pc2hfb3V0cHV0MihzdHJ1
+CiAJCXNrYiA9IHNrYjI7CiAJfQogCi0jaWZkZWYgQ09ORklHX0JSSURHRV9ORVRGSUxURVIK
+LQkvKiBicmlkZ2UtbmV0ZmlsdGVyIGRlZmVycyBjYWxsaW5nIHNvbWUgSVAgaG9va3MgdG8g
+dGhlIGJyaWRnZSBsYXllcgotCSAqIGFuZCBzdGlsbCBuZWVkcyB0aGUgY29ubnRyYWNrIHJl
+ZmVyZW5jZS4KLQkgKi8KLQlpZiAoc2tiLT5uZl9icmlkZ2UgPT0gTlVMTCkKLSNlbmRpZgot
+CQluZl9yZXNldChza2IpOwotCiAJaWYgKGhoKSB7CiAJCWludCBoaF9hbGVuOwogCmRpZmYg
+LS1naXQgYS9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29ubnRyYWNrX3N0YW5kYWxvbmUuYyBi
+L25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfc3RhbmRhbG9uZS5jCi0tLSBhL25l
+dC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfc3RhbmRhbG9uZS5jCisrKyBiL25ldC9p
+cHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfc3RhbmRhbG9uZS5jCkBAIC00MzIsNiArNDMy
+LDEzIEBAIHN0YXRpYyB1bnNpZ25lZCBpbnQgaXBfY29ubnRyYWNrX2RlZnJhZygKIAkJCQkg
+ICAgICAgIGNvbnN0IHN0cnVjdCBuZXRfZGV2aWNlICpvdXQsCiAJCQkJICAgICAgICBpbnQg
+KCpva2ZuKShzdHJ1Y3Qgc2tfYnVmZiAqKSkKIHsKKyNpZiAhZGVmaW5lZChDT05GSUdfSVBf
+TkZfTkFUKSAmJiAhZGVmaW5lZChDT05GSUdfSVBfTkZfTkFUX01PRFVMRSkKKwkvKiBQcmV2
+aW91c2x5IHNlZW4gKGxvb3BiYWNrKT8gIElnbm9yZS4gIERvIHRoaXMgYmVmb3JlCisgICAg
+ICAgICAgIGZyYWdtZW50IGNoZWNrLiAqLworCWlmICgoKnBza2IpLT5uZmN0KQorCQlyZXR1
+cm4gTkZfQUNDRVBUOworI2VuZGlmCisKIAkvKiBHYXRoZXIgZnJhZ21lbnRzLiAqLwogCWlm
+ICgoKnBza2IpLT5uaC5pcGgtPmZyYWdfb2ZmICYgaHRvbnMoSVBfTUZ8SVBfT0ZGU0VUKSkg
+ewogCQkqcHNrYiA9IGlwX2N0X2dhdGhlcl9mcmFncygqcHNrYiwKZGlmZiAtLWdpdCBhL25l
+dC9wYWNrZXQvYWZfcGFja2V0LmMgYi9uZXQvcGFja2V0L2FmX3BhY2tldC5jCi0tLSBhL25l
+dC9wYWNrZXQvYWZfcGFja2V0LmMKKysrIGIvbmV0L3BhY2tldC9hZl9wYWNrZXQuYwpAQCAt
+Mjc0LDYgKzI3NCw5IEBAIHN0YXRpYyBpbnQgcGFja2V0X3Jjdl9zcGt0KHN0cnVjdCBza19i
+dWYKIAlkc3RfcmVsZWFzZShza2ItPmRzdCk7CiAJc2tiLT5kc3QgPSBOVUxMOwogCisJLyog
+ZHJvcCBjb25udHJhY2sgcmVmZXJlbmNlICovCisJbmZfcmVzZXQoc2tiKTsKKwogCXNwa3Qg
+PSAoc3RydWN0IHNvY2thZGRyX3BrdCopc2tiLT5jYjsKIAogCXNrYl9wdXNoKHNrYiwgc2ti
+LT5kYXRhLXNrYi0+bWFjLnJhdyk7CkBAIC01MTcsNiArNTIwLDkgQEAgc3RhdGljIGludCBw
+YWNrZXRfcmN2KHN0cnVjdCBza19idWZmICpzawogCWRzdF9yZWxlYXNlKHNrYi0+ZHN0KTsK
+IAlza2ItPmRzdCA9IE5VTEw7CiAKKwkvKiBkcm9wIGNvbm50cmFjayByZWZlcmVuY2UgKi8K
+KwluZl9yZXNldChza2IpOworCiAJc3Bpbl9sb2NrKCZzay0+c2tfcmVjZWl2ZV9xdWV1ZS5s
+b2NrKTsKIAlwby0+c3RhdHMudHBfcGFja2V0cysrOwogCV9fc2tiX3F1ZXVlX3RhaWwoJnNr
+LT5za19yZWNlaXZlX3F1ZXVlLCBza2IpOwo=
+--------------090905010801020102090306--
