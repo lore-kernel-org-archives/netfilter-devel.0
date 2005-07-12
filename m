@@ -1,14 +1,17 @@
-From: "Gary W. Smith" <gary@primeexalia.com>
-Subject: Proposed netmap patch
-Date: Tue, 12 Jul 2005 10:16:24 -0700
-Message-ID: <57F9959B46E0FA4D8BA88AEDFBE582909ED9@pxtbenexd01.pxt.primeexalia.com>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: 2.6.12 netfilter: local packets marked as invalid
+Date: Tue, 12 Jul 2005 11:58:35 -0700 (PDT)
+Message-ID: <20050712.115835.42775885.davem@davemloft.net>
+References: <42CE8E96.1040905@trash.net> <42CEA5E4.40009@gentoo.org>
+	<42D3B063.3000207@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: dsd@gentoo.org, netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: kaber@trash.net
+In-Reply-To: <42D3B063.3000207@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,44 +23,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-=20
-Hello,=20
-=20
-I'm not sure how to get this reviewed/applied so I'll just toss it to =
-the list.  I had a need to use NETMAP but found it lacking the OUTPUT =
-chain of the nat filter.  So I added it.  I have been running it for =
-some time and it seems to work great.  Anyways, here is the patch that I =
-used.  I found it useful.
-=20
-If you would like to review this and possibly commit it to CVS then by =
-all means...
-=20
-Gary
-=20
-=20
---- linux-2.6.9.orig/net/ipv4/netfilter/ipt_NETMAP.c    2004-10-18 =
-14:54:20.000000000 -0700
-+++ linux-2.6.9/net/ipv4/netfilter/ipt_NETMAP.c 2005-04-15 =
-10:31:44.719492104 -0700
-@@ -46,7 +46,7 @@
-                DEBUGP(MODULENAME":check: size %u.\n", targinfosize);
-                return 0;
-        }
--       if (hook_mask & ~((1 << NF_IP_PRE_ROUTING) | (1 << =
-NF_IP_POST_ROUTING))) {
-+       if (hook_mask & ~((1 << NF_IP_PRE_ROUTING) | (1 << =
-NF_IP_POST_ROUTING) | (1 << NF_IP_LOCAL_OUT))) {
-                DEBUGP(MODULENAME":check: bad hooks %x.\n", hook_mask);
-                return 0;
-        }
-@@ -81,7 +81,7 @@
-=20
-        netmask =3D ~(mr->range[0].min_ip ^ mr->range[0].max_ip);
-=20
--       if (hooknum =3D=3D NF_IP_PRE_ROUTING)
-+       if (hooknum =3D=3D NF_IP_PRE_ROUTING || hooknum =3D=3D =
-NF_IP_LOCAL_OUT)
-                new_ip =3D (*pskb)->nh.iph->daddr & ~netmask;
-        else
-                new_ip =3D (*pskb)->nh.iph->saddr & ~netmask;
-=20
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue, 12 Jul 2005 13:58:27 +0200
+
+> Daniel Drake wrote:
+> > You'll have to forgive my lack of netfilter knowledge, I set up my firewall
+> > ages ago and haven't really touched it since :)
+> 
+> We decided to revert the responsible change because it caused problems
+> in other areas as well. This patch should fix your problem.
+
+Applied.
+
+Now the question is what to do about the 2.6.12.x stable
+tree.  I think we put the offending change there, now we
+need to revert it there too.  Patrick, could you push this
+patch to stable@kernel.org so we can resolve that too?
+
+Thanks a lot.
