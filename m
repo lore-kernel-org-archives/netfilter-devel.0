@@ -1,14 +1,14 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [PATCH 1/2] flow match for 2.6.11
-Date: Tue, 12 Jul 2005 17:36:47 +0100
-Message-ID: <db0rj4$q4h$1@sea.gmane.org>
-References: <20050628234912.GB23662@wsc.edu> <42D3B9C7.1070507@ufomechanic.net>
+From: "Gary W. Smith" <gary@primeexalia.com>
+Subject: Proposed netmap patch
+Date: Tue, 12 Jul 2005 10:16:24 -0700
+Message-ID: <57F9959B46E0FA4D8BA88AEDFBE582909ED9@pxtbenexd01.pxt.primeexalia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <42D3B9C7.1070507@ufomechanic.net>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,28 +20,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I'm backporting this to 2.6.11 as I see the conntrack-event-api in
-pom-ng SVN for 2.6.11 is the same as for 2.6.12 apart from ftp sequence
-number adjusting takes a 32bit parameter in 2.6.12, and your patches
-apply cleanly.
-
-I'm just tracking down why function ipct_flow_inc gets called with quite
-different events parameter under 2.6.11 for a connection than under 2.6.12
-
-It gets called 4 times for a new connection, 2.6.11
-(EVENTS is hex)
-
-FLOW INC ipct_flow_inc 341 EVENTS=471[ new=1, related=2]
-FLOW INC ipct_flow_inc 341 EVENTS=78[ new=1, related=2]
-FLOW INC ipct_flow_inc 341 EVENTS=401[ new=1, related=2]
-FLOW INC ipct_flow_inc 341 EVENTS=18[ new=1, related=2]
-
-compared with 2.6.12
-FLOW INC ipct_flow_inc 341 EVENTS=471[ new=1, related=2]
-FLOW INC ipct_flow_inc 341 EVENTS=411[ new=1, related=2]
-
-
-
-Anyway, I mention it in case you have any hints.
-
-Amin
+=20
+Hello,=20
+=20
+I'm not sure how to get this reviewed/applied so I'll just toss it to =
+the list.  I had a need to use NETMAP but found it lacking the OUTPUT =
+chain of the nat filter.  So I added it.  I have been running it for =
+some time and it seems to work great.  Anyways, here is the patch that I =
+used.  I found it useful.
+=20
+If you would like to review this and possibly commit it to CVS then by =
+all means...
+=20
+Gary
+=20
+=20
+--- linux-2.6.9.orig/net/ipv4/netfilter/ipt_NETMAP.c    2004-10-18 =
+14:54:20.000000000 -0700
++++ linux-2.6.9/net/ipv4/netfilter/ipt_NETMAP.c 2005-04-15 =
+10:31:44.719492104 -0700
+@@ -46,7 +46,7 @@
+                DEBUGP(MODULENAME":check: size %u.\n", targinfosize);
+                return 0;
+        }
+-       if (hook_mask & ~((1 << NF_IP_PRE_ROUTING) | (1 << =
+NF_IP_POST_ROUTING))) {
++       if (hook_mask & ~((1 << NF_IP_PRE_ROUTING) | (1 << =
+NF_IP_POST_ROUTING) | (1 << NF_IP_LOCAL_OUT))) {
+                DEBUGP(MODULENAME":check: bad hooks %x.\n", hook_mask);
+                return 0;
+        }
+@@ -81,7 +81,7 @@
+=20
+        netmask =3D ~(mr->range[0].min_ip ^ mr->range[0].max_ip);
+=20
+-       if (hooknum =3D=3D NF_IP_PRE_ROUTING)
++       if (hooknum =3D=3D NF_IP_PRE_ROUTING || hooknum =3D=3D =
+NF_IP_LOCAL_OUT)
+                new_ip =3D (*pskb)->nh.iph->daddr & ~netmask;
+        else
+                new_ip =3D (*pskb)->nh.iph->saddr & ~netmask;
+=20
