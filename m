@@ -1,19 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Owner match misnaming
-Date: Tue, 12 Jul 2005 11:17:50 +0200
-Message-ID: <20050712091749.GY16728@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.61.0507111401170.14796@yvahk01.tjqt.qr>
-	<datno8$gft$1@sea.gmane.org>
-	<Pine.LNX.4.61.0507112044190.17095@yvahk01.tjqt.qr>
+Subject: Re: [OT] Re: rp_filtering
+Date: Tue, 12 Jul 2005 11:18:52 +0200
+Message-ID: <20050712091852.GZ16728@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.61.0507111946560.32325@yvahk01.tjqt.qr>
+	<1121105149.5236.5.camel@anduril.intranet.cartel-securite.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Y+BmdnREOSIoaDN4"
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Amin Azez <azez@ufomechanic.net>
+	protocol="application/pgp-signature"; boundary="1aa3fXZUP8Xb8QnO"
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+To: Cedric Blancher <blancher@cartel-securite.fr>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0507112044190.17095@yvahk01.tjqt.qr>
+In-Reply-To: <1121105149.5236.5.camel@anduril.intranet.cartel-securite.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,16 +24,27 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Y+BmdnREOSIoaDN4
-Content-Type: text/plain; charset=us-ascii
+--1aa3fXZUP8Xb8QnO
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jul 11, 2005 at 08:44:32PM +0200, Jan Engelhardt wrote:
-> Any way to fix it?
+On Mon, Jul 11, 2005 at 08:05:49PM +0200, Cedric Blancher wrote:
+> Le lundi 11 juillet 2005 =E0 19:50 +0200, Jan Engelhardt a =E9crit :
+> > rp_filter is said to be a route path verification (etc.)
+> >   ippp0  217.245.127.134
+> >   eth0   192.168.222.1
+> > However, I've just done a ping 217.245.127.134 from a windows client in=
+side=20
+> > the eth0 network, took a peek at iptraf and saw that echo requests and =
+replies=20
+> > were directly going from/to eth0/192.168.222.34(windows).
+>=20
+> It's normal Linux behaviour. You can join any Linux box IP on any of its
+> interfaces.
 
-no. The filesystem data structures are just not supposed to be called
-=66rom any in_interrupt() context.  We should make this an FAQ entry.
+yes, but you can disable it via some sysctl's.  It's all documented in
+ip-sysctl.txt in Documentation/networking/
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -47,16 +56,16 @@ no. The filesystem data structures are just not supposed to be called
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Y+BmdnREOSIoaDN4
+--1aa3fXZUP8Xb8QnO
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFC04q9XaXGVTD0i/8RAh1wAJ49U7ORPUjFejtx8zqP44YtRX7xAACfawW4
-FJlmzxMfNaZkh0kPOwWxSdY=
-=d8/T
+iD8DBQFC04r8XaXGVTD0i/8RAiqnAKCR/JC8fGEVoFq3ocWOD10EtLE9xwCgsj/A
+jDxcUdzQbta3d7PS5R0n18s=
+=fNQi
 -----END PGP SIGNATURE-----
 
---Y+BmdnREOSIoaDN4--
+--1aa3fXZUP8Xb8QnO--
