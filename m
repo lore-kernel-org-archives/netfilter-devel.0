@@ -1,66 +1,100 @@
-From: "Gary W. Smith" <gary@primeexalia.com>
-Subject: RE: Proposed netmap patch
-Date: Wed, 13 Jul 2005 07:08:00 -0700
-Message-ID: <57F9959B46E0FA4D8BA88AEDFBE582907431@pxtbenexd01.pxt.primeexalia.com>
+From: Greg KH <gregkh@suse.de>
+Subject: [02/11] [NETFILTER]: revert nf_reset change
+Date: Wed, 13 Jul 2005 11:42:04 -0700
+Message-ID: <20050713184204.GC9330@kroah.com>
+References: <20050713184130.GA9330@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: <rv@eychenne.org>,
-	"Jan Engelhardt" <jengelh@linux01.gwdg.de>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-kernel@vger.kernel.org, stable@kernel.org,
+	Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	"Theodore Ts'o" <tytso@mit.edu>,
+	"Randy.Dunlap" <rdunlap@xenotime.net>,
+	Chuck Wolber <chuckw@quantumlinux.com>, torvalds@osdl.org,
+	akpm@osdl.org, alan@lxorguk.ukuu.org.uk
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262463AbVGMVOD@vger.kernel.org>
+To: kaber@trash.net, dsd@gentoo.org, kernel@linuxace.com,
+	netfilter-devel@lists.netfilter.org, davem@davemloft.net
+Content-Disposition: inline
+In-Reply-To: <20050713184130.GA9330@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-It seems to work.  I have been using it with 2.6.9 for some time now (a =
-couple months anyway).
+-stable review patch.  If anyone has any objections, please let us know.
 
+------------------
 
+[NETFILTER]: Revert nf_reset change
 
-> -----Original Message-----
-> From: Herve Eychenne [mailto:rv@wallfire.org]
-> Sent: Wednesday, July 13, 2005 3:50 AM
-> To: Jan Engelhardt
-> Cc: Gary W. Smith; netfilter-devel@lists.netfilter.org
-> Subject: Re: Proposed netmap patch
->=20
-> On Wed, Jul 13, 2005 at 12:32:51PM +0200, Jan Engelhardt wrote:
->=20
-> > >I had a need to use NETMAP but found it lacking the OUTPUT chain of =
-the
-> nat
-> > >filter.  So I added it.  I have been running it for some time and =
-it
-> seems to
-> > >work great.  Anyways, here is the patch that I used.  I found it
-> useful.
->=20
-> > There must have been a reason why it was originally not allowed in =
-the
-> OUTPUT
-> > chain, but I am not sure.
->=20
-> This has been discussed before:
-> http://lists.netfilter.org/pipermail/netfilter-devel/2005-
-> April/019321.html
->=20
-> Conclusion: adding OUTPUT should be ok, but there seem to have been no
-> action so far.
->=20
->  Herve
->=20
-> --
->  _
-> (=B0=3D  Herv=E9 Eychenne
-> //)
-> v_/_ WallFire project:  http://www.wallfire.org/
+Revert the nf_reset change that caused so much trouble, drop conntrack
+references manually before packets are queued to packet sockets.
+
+Adapted for 2.6.12 by Daniel Drake <dsd@gentoo.org>
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Chris Wright <chrisw@osdl.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+---
+ net/ipv4/ip_output.c                         |    3 ---
+ net/ipv4/netfilter/ip_conntrack_standalone.c |    7 +++++++
+ net/packet/af_packet.c                       |    6 ++++++
+ 3 files changed, 13 insertions(+), 3 deletions(-)
+
+--- linux-2.6.12.2.orig/net/ipv4/ip_output.c	2005-06-17 12:48:29.000000000 -0700
++++ linux-2.6.12.2/net/ipv4/ip_output.c	2005-07-13 10:56:44.000000000 -0700
+@@ -111,7 +111,6 @@
+ #ifdef CONFIG_NETFILTER_DEBUG
+ 	nf_debug_ip_loopback_xmit(newskb);
+ #endif
+-	nf_reset(newskb);
+ 	netif_rx(newskb);
+ 	return 0;
+ }
+@@ -196,8 +195,6 @@
+ 	nf_debug_ip_finish_output2(skb);
+ #endif /*CONFIG_NETFILTER_DEBUG*/
+ 
+-	nf_reset(skb);
+-
+ 	if (hh) {
+ 		int hh_alen;
+ 
+--- linux-2.6.12.2.orig/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-06-17 12:48:29.000000000 -0700
++++ linux-2.6.12.2/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-07-13 10:56:44.000000000 -0700
+@@ -432,6 +432,13 @@
+ 				        const struct net_device *out,
+ 				        int (*okfn)(struct sk_buff *))
+ {
++#if !defined(CONFIG_IP_NF_NAT) && !defined(CONFIG_IP_NF_NAT_MODULE)
++	/* Previously seen (loopback)?  Ignore.  Do this before
++           fragment check. */
++	if ((*pskb)->nfct)
++		return NF_ACCEPT;
++#endif
++
+ 	/* Gather fragments. */
+ 	if ((*pskb)->nh.iph->frag_off & htons(IP_MF|IP_OFFSET)) {
+ 		*pskb = ip_ct_gather_frags(*pskb,
+--- linux-2.6.12.2.orig/net/packet/af_packet.c	2005-06-17 12:48:29.000000000 -0700
++++ linux-2.6.12.2/net/packet/af_packet.c	2005-07-13 10:56:44.000000000 -0700
+@@ -274,6 +274,9 @@
+ 	dst_release(skb->dst);
+ 	skb->dst = NULL;
+ 
++	/* drop conntrack reference */
++	nf_reset(skb);
++
+ 	spkt = (struct sockaddr_pkt*)skb->cb;
+ 
+ 	skb_push(skb, skb->data-skb->mac.raw);
+@@ -517,6 +520,9 @@
+ 	dst_release(skb->dst);
+ 	skb->dst = NULL;
+ 
++	/* drop conntrack reference */
++	nf_reset(skb);
++
+ 	spin_lock(&sk->sk_receive_queue.lock);
+ 	po->stats.tp_packets++;
+ 	__skb_queue_tail(&sk->sk_receive_queue, skb);
