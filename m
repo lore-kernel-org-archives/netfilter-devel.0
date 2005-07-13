@@ -1,15 +1,14 @@
 From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [PATCH 1/*] nfnetlink updates
-Date: Wed, 13 Jul 2005 09:04:14 +0100
-Message-ID: <42D4CAFE.90802@ufomechanic.net>
-References: <42D42975.8070303@eurodev.net>
+Subject: Re: [PATCH 4/*] libnfnetlink fixes
+Date: Wed, 13 Jul 2005 09:23:56 +0100
+Message-ID: <42D4CF9C.2000304@ufomechanic.net>
+References: <42D429F9.7000707@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="------------000507010206050905060106"
 Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <42D42975.8070303@eurodev.net>
+In-Reply-To: <42D429F9.7000707@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,31 +20,78 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> Hi,
-> 
-> This patch introduces the following changes to nfnetlink:
-> 
-> a) nfnetlink groups: Up to 32 maximum.
-> 
-> +#define NF_NETLINK_CONNTRACK_NEW       0x1
-> +#define NF_NETLINK_CONNTRACK_UPDATE    0x2
-> +#define NF_NETLINK_CONNTRACK_DESTROY   0x4
-> +#define NF_NETLINK_CONNTRACK_EXPECT    0x8
-> 
-> I think that those four groups are enough to group events.
+This is a multi-part message in MIME format.
+--------------000507010206050905060106
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Currently there are about 3 netlink packets sent when a connection comes
-up and three when it goes down.
+Here is a patch I propose for libnfnetlink.c
 
-I wonder if it is worth being able to filter on the ctstate as well,
-under heavy load it is quite a benefit to reduce the netlink throughput
-by 3 times. An application might be interested in ESTABLISHED and CLOSE
-or TIMEOUT states.
+It allows the application-supplied callback handler to signifiy in its
+return code whether or not the nfnl_listen read-loop should terminate.
 
-These are subsets of CONNTRACK_UPDATE
+If the handler returns a negative code, then nfnl_listen returns
+immediately with the same return code.
 
-I don't feel _very_ strongly about this, but I do think it is worth
-mentioning.
+If the handler returns a postitive code, then nfnl_listen returns at the
+next iteration of the while loop, which is when it finishes handing all
+netlink messages in the current packet.
 
-Amin
+This avois the need to duplicate most of nfnl_listen in a non-loop
+context where the application needs control over the read and packet
+decode process.
+
+I use it to break out of the loop when a signal handler sets a flag,
+once the loop has broken I then do some per-signal processing and
+re-enter the loop.
+
+Sam
+
+
+--------------000507010206050905060106
+Content-Type: text/x-patch;
+ name="libnfnetlink.c.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="libnfnetlink.c.diff"
+
+Index: /opt/KERNEL/SVN/libnfnetlink/libnfnetlink.c
+===================================================================
+--- /opt/KERNEL/SVN/libnfnetlink/libnfnetlink.c	(revision 3897)
++++ /opt/KERNEL/SVN/libnfnetlink/libnfnetlink.c	(working copy)
+@@ -184,6 +193,7 @@
+ 	int remain;
+ 	struct nlmsghdr *h;
+ 	struct nlmsgerr *msgerr;
++	int quit=0;
+ 
+ 	struct msghdr msg = {
+ 		(void *)&nladdr, sizeof(nladdr),
+@@ -197,7 +207,7 @@
+ 	iov.iov_base = buf;
+ 	iov.iov_len = sizeof(buf);
+ 
+-	while (1) {
++	while (! quit) {
+ 		remain = recvmsg(nfnlh->fd, &msg, 0);
+ 		if (remain < 0) {
+ 			if (errno == EINTR)
+@@ -243,6 +253,7 @@
+ 			err = handler(&nladdr, h, jarg);
+ 			if (err < 0)
+ 				return err;
++			quit |= err;
+ 		
+ 			/* FIXME: why not _NEXT macros, etc.? */
+ 			//h = NLMSG_NEXT(h, remain);
+@@ -259,7 +270,7 @@
+ 		}
+ 	}
+ 
+-	return 0;
++	return quit;
+ }
+ 
+ int nfnl_talk(struct nfnl_handle *nfnlh, struct nlmsghdr *n, pid_t peer,
+
+--------------000507010206050905060106--
