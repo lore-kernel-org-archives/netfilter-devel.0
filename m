@@ -1,100 +1,92 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [02/11] [NETFILTER]: revert nf_reset change
-Date: Wed, 13 Jul 2005 11:42:04 -0700
-Message-ID: <20050713184204.GC9330@kroah.com>
-References: <20050713184130.GA9330@kroah.com>
+From: Ric Wheeler <ric@emc.com>
+Subject: Re: Re-routing packets via netfilter (ip_rt_bug)
+Date: Thu, 14 Jul 2005 08:27:45 -0400
+Message-ID: <42D65A41.7070403@emc.com>
+References: <4151C0F9B9C25C47B3328922A6297A3286CFB8@post.arx.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, stable@kernel.org,
-	Justin Forbes <jmforbes@linuxtx.org>,
-	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	"Theodore Ts'o" <tytso@mit.edu>,
-	"Randy.Dunlap" <rdunlap@xenotime.net>,
-	Chuck Wolber <chuckw@quantumlinux.com>, torvalds@osdl.org,
-	akpm@osdl.org, alan@lxorguk.ukuu.org.uk
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262463AbVGMVOD@vger.kernel.org>
-To: kaber@trash.net, dsd@gentoo.org, kernel@linuxace.com,
-	netfilter-devel@lists.netfilter.org, davem@davemloft.net
-Content-Disposition: inline
-In-Reply-To: <20050713184130.GA9330@kroah.com>
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Yair Itzhaki <Yair@arx.com>, netdev@oss.sgi.com,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	"Chitrapu, Kishore" <Chitrapu_Kishore@emc.com>,
+	"Mellors, Andrew" <Mellors_Andrew@emc.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261286AbVGNM2h@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <4151C0F9B9C25C47B3328922A6297A3286CFB8@post.arx.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
--stable review patch.  If anyone has any objections, please let us know.
 
-------------------
+Patrick, Hebert,
 
-[NETFILTER]: Revert nf_reset change
+This issues stills seems to be in the latest trees - is this patch or a 
+variation on it still bumping around?
 
-Revert the nf_reset change that caused so much trouble, drop conntrack
-references manually before packets are queued to packet sockets.
+Thanks!
 
-Adapted for 2.6.12 by Daniel Drake <dsd@gentoo.org>
+Yair Itzhaki wrote:
 
-Signed-off-by: Phil Oester <kernel@linuxace.com>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Chris Wright <chrisw@osdl.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
----
- net/ipv4/ip_output.c                         |    3 ---
- net/ipv4/netfilter/ip_conntrack_standalone.c |    7 +++++++
- net/packet/af_packet.c                       |    6 ++++++
- 3 files changed, 13 insertions(+), 3 deletions(-)
-
---- linux-2.6.12.2.orig/net/ipv4/ip_output.c	2005-06-17 12:48:29.000000000 -0700
-+++ linux-2.6.12.2/net/ipv4/ip_output.c	2005-07-13 10:56:44.000000000 -0700
-@@ -111,7 +111,6 @@
- #ifdef CONFIG_NETFILTER_DEBUG
- 	nf_debug_ip_loopback_xmit(newskb);
- #endif
--	nf_reset(newskb);
- 	netif_rx(newskb);
- 	return 0;
- }
-@@ -196,8 +195,6 @@
- 	nf_debug_ip_finish_output2(skb);
- #endif /*CONFIG_NETFILTER_DEBUG*/
- 
--	nf_reset(skb);
--
- 	if (hh) {
- 		int hh_alen;
- 
---- linux-2.6.12.2.orig/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-06-17 12:48:29.000000000 -0700
-+++ linux-2.6.12.2/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-07-13 10:56:44.000000000 -0700
-@@ -432,6 +432,13 @@
- 				        const struct net_device *out,
- 				        int (*okfn)(struct sk_buff *))
- {
-+#if !defined(CONFIG_IP_NF_NAT) && !defined(CONFIG_IP_NF_NAT_MODULE)
-+	/* Previously seen (loopback)?  Ignore.  Do this before
-+           fragment check. */
-+	if ((*pskb)->nfct)
-+		return NF_ACCEPT;
-+#endif
-+
- 	/* Gather fragments. */
- 	if ((*pskb)->nh.iph->frag_off & htons(IP_MF|IP_OFFSET)) {
- 		*pskb = ip_ct_gather_frags(*pskb,
---- linux-2.6.12.2.orig/net/packet/af_packet.c	2005-06-17 12:48:29.000000000 -0700
-+++ linux-2.6.12.2/net/packet/af_packet.c	2005-07-13 10:56:44.000000000 -0700
-@@ -274,6 +274,9 @@
- 	dst_release(skb->dst);
- 	skb->dst = NULL;
- 
-+	/* drop conntrack reference */
-+	nf_reset(skb);
-+
- 	spkt = (struct sockaddr_pkt*)skb->cb;
- 
- 	skb_push(skb, skb->data-skb->mac.raw);
-@@ -517,6 +520,9 @@
- 	dst_release(skb->dst);
- 	skb->dst = NULL;
- 
-+	/* drop conntrack reference */
-+	nf_reset(skb);
-+
- 	spin_lock(&sk->sk_receive_queue.lock);
- 	po->stats.tp_packets++;
- 	__skb_queue_tail(&sk->sk_receive_queue, skb);
+>Can anyone propose a patch that I can start checking?
+>
+>I have come up with the following:
+>
+>--- net/core/netfilter.c.orig   2005-04-18 21:55:30.000000000 +0300
+>+++ net/core/netfilter.c        2005-05-02 17:35:20.000000000 +0300
+>@@ -622,9 +622,10 @@
+>        /* some non-standard hacks like ipt_REJECT.c:send_reset() can cause
+>         * packets with foreign saddr to appear on the NF_IP_LOCAL_OUT hook.
+>         */
+>-       if (inet_addr_type(iph->saddr) == RTN_LOCAL) {
+>+       if ((inet_addr_type(iph->saddr) == RTN_LOCAL) ||
+>+           (inet_addr_type(iph->daddr) == RTN_LOCAL)) {
+>                fl.nl_u.ip4_u.daddr = iph->daddr;
+>-               fl.nl_u.ip4_u.saddr = iph->saddr;
+>+               fl.nl_u.ip4_u.saddr = 0;
+>                fl.nl_u.ip4_u.tos = RT_TOS(iph->tos);
+>                fl.oif = (*pskb)->sk ? (*pskb)->sk->sk_bound_dev_if : 0;
+> #ifdef CONFIG_IP_ROUTE_FWMARK
+>
+>Please advise,
+>Yair
+>
+>
+>  
+>
+>>-----Original Message-----
+>>From: Patrick McHardy [mailto:kaber@trash.net]
+>>Sent: Wednesday, April 27, 2005 14:05
+>>To: Herbert Xu
+>>Cc: Jozsef Kadlecsik; netdev@oss.sgi.com; 
+>>netfilter-devel@lists.netfilter.org; Yair Itzhaki; 
+>>linux-kernel@vger.kernel.org
+>>Subject: Re: Re-routing packets via netfilter (ip_rt_bug)
+>>
+>>
+>>Herbert Xu wrote:
+>>    
+>>
+>>>Here is another reason why these packets should go through FORWARD.
+>>>They were generated in response to packets in INPUT/FORWARD/OUTPUT.
+>>>The original packet has not undergone SNAT in any of these cases.
+>>>
+>>>However, if we feed the response packet through LOCAL_OUT it will
+>>>be subject to DNAT.  This creates a NAT asymmetry and we may end
+>>>up with the wrong destination address.
+>>>
+>>>By pushing it through FORWARD it will only undergo SNAT which is
+>>>correct since the original packet would have undergone DNAT.
+>>>      
+>>>
+>>This is only a problem since the recent NAT changes, but I agree
+>>that we should fix it by moving these packets to FORWARD.
+>>
+>>Regards
+>>Patrick
+>>
+>>    
+>>
+>
+>  
+>
