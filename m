@@ -1,92 +1,67 @@
-From: Ric Wheeler <ric@emc.com>
-Subject: Re: Re-routing packets via netfilter (ip_rt_bug)
-Date: Thu, 14 Jul 2005 08:27:45 -0400
-Message-ID: <42D65A41.7070403@emc.com>
-References: <4151C0F9B9C25C47B3328922A6297A3286CFB8@post.arx.com>
+From: Francesco Ciocchetti <primero@fastwebnet.it>
+Subject: libiptc ... and matches , seg fault
+Date: Thu, 14 Jul 2005 20:21:32 +0200
+Message-ID: <42D6AD2C.5070304@fastwebnet.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Yair Itzhaki <Yair@arx.com>, netdev@oss.sgi.com,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	"Chitrapu, Kishore" <Chitrapu_Kishore@emc.com>,
-	"Mellors, Andrew" <Mellors_Andrew@emc.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261286AbVGNM2h@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <4151C0F9B9C25C47B3328922A6297A3286CFB8@post.arx.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi all ML.
 
-Patrick, Hebert,
+I'm tryng to develop a small apps with libiptc copyng as much as
+possible from iptables.c
 
-This issues stills seems to be in the latest trees - is this patch or a 
-variation on it still bumping around?
+i'm getting a segmentation fault when i call find_match with 'tcp' as
+argument.
 
-Thanks!
+searching with gdb i found that :
 
-Yair Itzhaki wrote:
+my segfault arrives when in register_match
 
->Can anyone propose a patch that I can start checking?
->
->I have come up with the following:
->
->--- net/core/netfilter.c.orig   2005-04-18 21:55:30.000000000 +0300
->+++ net/core/netfilter.c        2005-05-02 17:35:20.000000000 +0300
->@@ -622,9 +622,10 @@
->        /* some non-standard hacks like ipt_REJECT.c:send_reset() can cause
->         * packets with foreign saddr to appear on the NF_IP_LOCAL_OUT hook.
->         */
->-       if (inet_addr_type(iph->saddr) == RTN_LOCAL) {
->+       if ((inet_addr_type(iph->saddr) == RTN_LOCAL) ||
->+           (inet_addr_type(iph->daddr) == RTN_LOCAL)) {
->                fl.nl_u.ip4_u.daddr = iph->daddr;
->-               fl.nl_u.ip4_u.saddr = iph->saddr;
->+               fl.nl_u.ip4_u.saddr = 0;
->                fl.nl_u.ip4_u.tos = RT_TOS(iph->tos);
->                fl.oif = (*pskb)->sk ? (*pskb)->sk->sk_bound_dev_if : 0;
-> #ifdef CONFIG_IP_ROUTE_FWMARK
->
->Please advise,
->Yair
->
->
->  
->
->>-----Original Message-----
->>From: Patrick McHardy [mailto:kaber@trash.net]
->>Sent: Wednesday, April 27, 2005 14:05
->>To: Herbert Xu
->>Cc: Jozsef Kadlecsik; netdev@oss.sgi.com; 
->>netfilter-devel@lists.netfilter.org; Yair Itzhaki; 
->>linux-kernel@vger.kernel.org
->>Subject: Re: Re-routing packets via netfilter (ip_rt_bug)
->>
->>
->>Herbert Xu wrote:
->>    
->>
->>>Here is another reason why these packets should go through FORWARD.
->>>They were generated in response to packets in INPUT/FORWARD/OUTPUT.
->>>The original packet has not undergone SNAT in any of these cases.
->>>
->>>However, if we feed the response packet through LOCAL_OUT it will
->>>be subject to DNAT.  This creates a NAT asymmetry and we may end
->>>up with the wrong destination address.
->>>
->>>By pushing it through FORWARD it will only undergo SNAT which is
->>>correct since the original packet would have undergone DNAT.
->>>      
->>>
->>This is only a problem since the recent NAT changes, but I agree
->>that we should fix it by moving these packets to FORWARD.
->>
->>Regards
->>Patrick
->>
->>    
->>
->
->  
->
+if (strcmp(me->version, program_version) != 0) (line 1052 of iptables.c
+1.2.11)
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0ff0b824 in strcmp () from /lib/tls/libc.so.6
+(gdb) where
+#0  0x0ff0b824 in strcmp () from /lib/tls/libc.so.6
+#1  0x100083e8 in register_match ()
+#2  0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#3  0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#4  0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#5  0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#6  0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#7  0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#8  0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#9  0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#10 0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#11 0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#12 0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#13 0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#14 0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#15 0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#16 0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#17 0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#18 0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#19 0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+#20 0x0fe53584 in _init () from /lib/iptables/libipt_tcp.so
+Previous frame inner to this frame (corrupt stack?)
+
+If i missed some info don't esiatate to ask :)
+
+anyone has some hints?
+
+thx
+Francesco
