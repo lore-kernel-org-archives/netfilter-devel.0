@@ -1,17 +1,16 @@
-From: =?ISO-8859-2?Q?Tom=E1=B9_Macek?= <maca02@atlas.cz>
+From: Francesco Ciocchetti <primero@fastwebnet.it>
 Subject: Re: libiptc ... and matches , seg fault
-Date: Fri, 15 Jul 2005 11:46:32 +0200 (CEST)
-Message-ID: <Pine.LNX.4.63.0507151142180.29785@localhost.localdomain>
-References: <42D6AD2C.5070304@fastwebnet.it>
-	<Pine.LNX.4.63.0507142117170.29183@localhost.localdomain>
-	<42D76E84.7080906@fastwebnet.it>
-	<Pine.LNX.4.61.0507151008050.20435@yvahk01.tjqt.qr>
-	<42D77F23.80403@fastwebnet.it>
+Date: Fri, 15 Jul 2005 11:57:23 +0200
+Message-ID: <42D78883.9010008@fastwebnet.it>
+References: <42D6AD2C.5070304@fastwebnet.it>	<Pine.LNX.4.63.0507142117170.29183@localhost.localdomain>	<42D76E84.7080906@fastwebnet.it>	<Pine.LNX.4.61.0507151008050.20435@yvahk01.tjqt.qr>	<42D77F23.80403@fastwebnet.it>
+	<Pine.LNX.4.63.0507151142180.29785@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <42D77F23.80403@fastwebnet.it>
+To: =?windows-1252?Q?Tom=E1=B9_Macek?= <maca02@atlas.cz>
+In-Reply-To: <Pine.LNX.4.63.0507151142180.29785@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,65 +22,70 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The strcmp() function will try to compare/get the 0x0 memory pointed by the me->version pointer and this (in the strcmp() function) raises the sigseg error.
-You could try this:
+Tom=E1=9A Macek wrote:
 
-if (me->version != NULL && strcmp(me->version, program_version) != 0) {
-     ...
+> The strcmp() function will try to compare/get the 0x0 memory pointed
+> by the me->version pointer and this (in the strcmp() function) raises
+> the sigseg error.
+
+
+Yes :)
+
+> You could try this:
+>
+> if (me->version !=3D NULL && strcmp(me->version, program_version) !=3D =
+0) {
+> ...
+> }
+>
+> If the first condition "if (me->version !=3D NULL)" failes, the rest
+> will be not processed.
+>
+My problem is that the "register_match" function is not a function of my
+program, but a function from iptables.c that is called by init function
+in libipt_tcp.c ... what i'm wondering now is why my "me->version" could
+be or is NULL or maybe program_version could be NULL too.
+
+this is the extract from libipt_tcp.c
+
+static
+struct iptables_match tcp
+=3D { NULL,
+"tcp",
+IPTABLES_VERSION,
+IPT_ALIGN(sizeof(struct ipt_tcp)),
+IPT_ALIGN(sizeof(struct ipt_tcp)),
+&help,
+&init,
+&parse,
+&final_check,
+&print,
+&save,
+opts };
+
+void
+_init(void)
+{
+register_match(&tcp);
 }
 
-If the first condition "if (me->version != NULL)" failes, the rest will be not processed.
 
-On Fri, 15 Jul 2005, primero wrote:
 
-> Jan Engelhardt wrote:
->
->>> each libipt_MATCH has to call a register_match() in his init function 
->>> passing
->>> an "iptables_match" structure has argument that is referred as "me" inside 
->>> the
->>> register_match function.
->>> 
->>> in my particular case me->version is equal to IPTABLES_VERSION (check out 
->>> the
->>> libipt_tcp.c).
->>> 
->>
->> 
-> i think i should have specified that i'm not an expert coder ... maybe i'm 
-> not a coder at all ;)
->
->> me->version might just be null, surprise, surprise.
->> 
-> Ok, if it would be null this expression :
->
-> if (strcmp(me->version, program_version) != 0) {
->               fprintf(stderr, "%s: match `%s' v%s (I'm v%s).\n",
->                       program_name, me->name, me->version, program_version);
->               exit(1);
->       }
->
-> should return a < 0 value and print the error string ? ... i get a 
-> segmentation faul instead
->
->> I only see a 'me' member in the kernel interface, e.g. struct ipt_match, 
->> and 'me' is a struct module *. And the "version" member of struct module * 
->> is set by MODULE_VERSION() macro AFAICG.
->> 
->>
->> 
-> I'll look for this MACRO.
->
->
->> Jan Engelhardt
->> 
->
-> thanks
-> Francesco
->
->
->
->
->
->
->
+so it seems that the field version of tcp structure is filled, at
+compilation time, by IPTABLES_VERSION ...
+
+what i do in my program is just a call to
+
+find_match("tcp",TRY_LOAD,&matches)
+
+where matches is just :
+
+struct iptables_rule_match *matches =3D NULL;
+
+
+as is done in iptables.c ...
+
+
+
+bye
+Francesco
