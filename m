@@ -1,15 +1,15 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: TTL logic error
-Date: Fri, 15 Jul 2005 21:03:24 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0507152102350.12882@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0507142331490.2258@yvahk01.tjqt.qr>
-	<42D7D251.3030209@trash.net>
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: Re: [ANNOUNCE] Release of iptables-1.3.2
+Date: Sat, 16 Jul 2005 14:58:45 +0200
+Message-ID: <42D90485.5050603@ingate.com>
+References: <20050710150548.GK20465@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <42D7D251.3030209@trash.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050710150548.GK20465@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +21,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Netfilter Core Team wrote:
+> - Release previously merged options from merge_opts(), reduces memory-usage of
+>   ipt ables-restore dramatically 
 
->> http://lists.netfilter.org/pipermail/netfilter-devel/2005-June/019944.html
->> please push this to the mainline kernel if it is not automatically sourced
->> by Linus anytime soon; it's [still] not in 2.6.13-rc1.
->
-> ipt_TTL is not included in the mainline kernel. The patch has been
-> applied to svn a long time ago .. yet for some reason people keep
-> sending it again and again ..
+Hi,
 
-NOT in mainline? Oh, then it must be in SUSE KOTD only.
+the call to free_opts() in merge_options() is invalid C. The oldopts
+argument always refers to the memory pointed to by the opts global,
+which may be freed by the call to free_opts(), but oldopts is used
+after the free_opts() call. This patch makes sure we don't use freed
+memory.
+
+//Marcus
+
+--- iptables.c	2005/07/16 12:52:33
++++ iptables.c	2005/07/16 12:52:45
+@@ -1028,9 +1028,6 @@ merge_options(struct option *oldopts, co
+ 	unsigned int num_old, num_new, i;
+ 	struct option *merge;
+
+-	/* Release previous options merged if any */
+-	free_opts(0);
+-	
+ 	for (num_old = 0; oldopts[num_old].name; num_old++);
+ 	for (num_new = 0; newopts[num_new].name; num_new++);
+
+@@ -1039,6 +1036,7 @@ merge_options(struct option *oldopts, co
+
+ 	merge = malloc(sizeof(struct option) * (num_new + num_old + 1));
+ 	memcpy(merge, oldopts, num_old * sizeof(struct option));
++	free_opts(0); /* Release previous options merged if any */
+ 	for (i = 0; i < num_new; i++) {
+ 		merge[num_old + i] = newopts[i];
+ 		merge[num_old + i].val += *option_offset;
 
 
-
-Jan Engelhardt
 -- 
+---------------------------------------+--------------------------
+  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+ Software Developer, Ingate Systems AB |  http://www.ingate.com/
