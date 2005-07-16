@@ -1,15 +1,15 @@
-From: Marcus Sundberg <marcus@ingate.com>
-Subject: Re: [ANNOUNCE] Release of iptables-1.3.2
-Date: Sat, 16 Jul 2005 14:58:45 +0200
-Message-ID: <42D90485.5050603@ingate.com>
-References: <20050710150548.GK20465@sunbeam.de.gnumonks.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Proposed netmap patch
+Date: Sat, 16 Jul 2005 18:16:13 +0200
+Message-ID: <42D932CD.7000808@trash.net>
+References: <57F9959B46E0FA4D8BA88AEDFBE582909ED9@pxtbenexd01.pxt.primeexalia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050710150548.GK20465@sunbeam.de.gnumonks.org>
+To: "Gary W. Smith" <gary@primeexalia.com>
+In-Reply-To: <57F9959B46E0FA4D8BA88AEDFBE582909ED9@pxtbenexd01.pxt.primeexalia.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,43 +21,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Netfilter Core Team wrote:
-> - Release previously merged options from merge_opts(), reduces memory-usage of
->   ipt ables-restore dramatically 
+Gary W. Smith schrieb:
+> I'm not sure how to get this reviewed/applied so I'll just toss it to the list.  I had a need to use NETMAP but found it lacking the OUTPUT chain of the nat filter.  So I added it.  I have been running it for some time and it seems to work great.  Anyways, here is the patch that I used.  I found it useful.
+>  
+> If you would like to review this and possibly commit it to CVS then by all means...
 
-Hi,
+Thanks. If you give me a Signed-off-by: line I'll apply it.
 
-the call to free_opts() in merge_options() is invalid C. The oldopts
-argument always refers to the memory pointed to by the opts global,
-which may be freed by the call to free_opts(), but oldopts is used
-after the free_opts() call. This patch makes sure we don't use freed
-memory.
-
-//Marcus
-
---- iptables.c	2005/07/16 12:52:33
-+++ iptables.c	2005/07/16 12:52:45
-@@ -1028,9 +1028,6 @@ merge_options(struct option *oldopts, co
- 	unsigned int num_old, num_new, i;
- 	struct option *merge;
-
--	/* Release previous options merged if any */
--	free_opts(0);
--	
- 	for (num_old = 0; oldopts[num_old].name; num_old++);
- 	for (num_new = 0; newopts[num_new].name; num_new++);
-
-@@ -1039,6 +1036,7 @@ merge_options(struct option *oldopts, co
-
- 	merge = malloc(sizeof(struct option) * (num_new + num_old + 1));
- 	memcpy(merge, oldopts, num_old * sizeof(struct option));
-+	free_opts(0); /* Release previous options merged if any */
- 	for (i = 0; i < num_new; i++) {
- 		merge[num_old + i] = newopts[i];
- 		merge[num_old + i].val += *option_offset;
-
-
--- 
----------------------------------------+--------------------------
-  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
- Software Developer, Ingate Systems AB |  http://www.ingate.com/
+Regards
+Patrick
