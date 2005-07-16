@@ -1,15 +1,15 @@
-From: Marcus Sundberg <marcus@ingate.com>
-Subject: Re: LOG interruptie
-Date: Sat, 16 Jul 2005 19:13:06 +0200
-Message-ID: <42D94022.1040707@ingate.com>
-References: <Pine.LNX.4.61.0507161843180.3810@yvahk01.tjqt.qr>
+From: "Gary W. Smith" <gary@primeexalia.com>
+Subject: RE: Proposed netmap patch
+Date: Sat, 16 Jul 2005 11:06:29 -0700
+Message-ID: <57F9959B46E0FA4D8BA88AEDFBE582907446@pxtbenexd01.pxt.primeexalia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0507161843180.3810@yvahk01.tjqt.qr>
+Content-class: urn:content-classes:message
+To: "Patrick McHardy" <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,20 +21,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Hi,
-> 
-> if we're in a hard|soft interrupt when a network packet arrives and passes 
-> through netfilter, and printk() can't be called from interrupt context, how 
-> does the LOG target gets its duty done, then?
+Signed-off-by: Gary Wayne Smith <gary.w.smith@primeexalia.com>
 
-Hi,
-
-printk() CAN be called from interrupt context (unless you modified
-your kernel in some strange way).
-
-//Marcus
--- 
----------------------------------------+--------------------------
-  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
- Software Developer, Ingate Systems AB |  http://www.ingate.com/
+> -----Original Message-----
+> From: Patrick McHardy [mailto:kaber@trash.net]
+> Sent: Saturday, July 16, 2005 9:16 AM
+> To: Gary W. Smith
+> Cc: netfilter-devel@lists.netfilter.org
+> Subject: Re: Proposed netmap patch
+>=20
+> Gary W. Smith schrieb:
+> > I'm not sure how to get this reviewed/applied so I'll just toss it
+to
+> the list.  I had a need to use NETMAP but found it lacking the OUTPUT
+> chain of the nat filter.  So I added it.  I have been running it for
+some
+> time and it seems to work great.  Anyways, here is the patch that I
+used.
+> I found it useful.
+> >
+> > If you would like to review this and possibly commit it to CVS then
+by
+> all means...
+>=20
+> Thanks. If you give me a Signed-off-by: line I'll apply it.
+>=20
+> Regards
+> Patrick
+>=20
