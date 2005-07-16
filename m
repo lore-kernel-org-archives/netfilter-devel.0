@@ -1,20 +1,15 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: Owner match misnaming
-Date: Sat, 16 Jul 2005 18:45:40 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0507161844530.3810@yvahk01.tjqt.qr>
-References: <Pine.LNX.4.61.0507111401170.14796@yvahk01.tjqt.qr>
-	<datno8$gft$1@sea.gmane.org>
-	<Pine.LNX.4.61.0507112044190.17095@yvahk01.tjqt.qr>
-	<20050712091749.GY16728@sunbeam.de.gnumonks.org>
-	<42D935D4.9060907@trash.net>
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: Re: LOG interruptie
+Date: Sat, 16 Jul 2005 19:13:06 +0200
+Message-ID: <42D94022.1040707@ingate.com>
+References: <Pine.LNX.4.61.0507161843180.3810@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>,
-	Amin Azez <azez@ufomechanic.net>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <42D935D4.9060907@trash.net>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0507161843180.3810@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,19 +21,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
->> > Any way to fix it?
->> 
->> no. The filesystem data structures are just not supposed to be called
->> from any in_interrupt() context.  We should make this an FAQ entry.
->
-> Actually there are a couple of patches in -mm for lockless fd lookup.
-> Probably still doesn't work from softirq context, but I'm haveing a
-> look now.
+Jan Engelhardt wrote:
+> Hi,
+> 
+> if we're in a hard|soft interrupt when a network packet arrives and passes 
+> through netfilter, and printk() can't be called from interrupt context, how 
+> does the LOG target gets its duty done, then?
 
-What exactly needs to be locked? Right now, I only see the tasklist lock and 
-the file list lock being taken, but no lock on individual fds.
+Hi,
 
+printk() CAN be called from interrupt context (unless you modified
+your kernel in some strange way).
 
-
-Jan Engelhardt
+//Marcus
 -- 
+---------------------------------------+--------------------------
+  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+ Software Developer, Ingate Systems AB |  http://www.ingate.com/
