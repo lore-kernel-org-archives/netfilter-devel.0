@@ -1,18 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 1/*] nfnetlink updates
-Date: Sun, 17 Jul 2005 22:38:22 +0000 (UTC)
-Message-ID: <20050719094842.GA3768@rama>
-References: <42D42975.8070303@eurodev.net>
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: [PATCH] Avoid using freed memory in iptables.c
+Date: Mon, 18 Jul 2005 17:53:37 +0200
+Message-ID: <42DBD081.8080408@ingate.com>
+References: <20050710150548.GK20465@sunbeam.de.gnumonks.org>
+	<42D90485.5050603@ingate.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="AqsLC8rIMeq19msA"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Date: Tue, 19 Jul 2005 11:48:42 +0200
-To: Pablo Neira <pablo@eurodev.net>
-Content-Disposition: inline
-In-Reply-To: <42D42975.8070303@eurodev.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <42D90485.5050603@ingate.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,66 +21,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi, resend in slighty more conformant(?) format:
 
---AqsLC8rIMeq19msA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The call to free_opts() in merge_options() is invalid C. The oldopts
+argument always refers to the memory pointed to by the opts global,
+which may be freed by the call to free_opts(), but oldopts is used
+after the free_opts() call. This patch makes sure we don't use freed
+memory.
 
-Hi Pablo, thanks for your patches.
+Signed-off-by: Marcus Sundberg <marcus@ingate.com>
 
-On Tue, Jul 12, 2005 at 10:35:01PM +0200, Pablo Neira wrote:
 
-> a) nfnetlink groups: Up to 32 maximum.
->=20
-> +#define NF_NETLINK_CONNTRACK_NEW       0x1
-> +#define NF_NETLINK_CONNTRACK_UPDATE    0x2
-> +#define NF_NETLINK_CONNTRACK_DESTROY   0x4
-> +#define NF_NETLINK_CONNTRACK_EXPECT    0x8
->=20
-> I think that those four groups are enough to group events.
->
-> d) NFNL_SUBSYS_CTNETLINK_EXP has been killed. This is superseded by the g=
-roup=20
-> NF_NETLINK_CONNTRACK_EXPECT.
->=20
+--- a/iptables.c	2005/07/16 12:52:33
++++ b/iptables.c	2005/07/16 12:52:45
+@@ -1028,9 +1028,6 @@ merge_options(struct option *oldopts, co
+ 	unsigned int num_old, num_new, i;
+ 	struct option *merge;
 
-Patrick and me have just discussed this subject, and we thought it would
-be better to only have the first three groups and keep the expectations
-in their own subsys.  This seems more orthogonal, so the group tells you
-the kind of event (new/update/destroy), and the subsystem indicates
-conntrack/expect.
+-	/* Release previous options merged if any */
+-	free_opts(0);
+-	
+ 	for (num_old = 0; oldopts[num_old].name; num_old++);
+ 	for (num_new = 0; newopts[num_new].name; num_new++);
 
-> e) nfnetlink_subsystem internal list isn't used, the array is enough.
+@@ -1039,6 +1036,7 @@ merge_options(struct option *oldopts, co
 
-great.
+ 	merge = malloc(sizeof(struct option) * (num_new + num_old + 1));
+ 	memcpy(merge, oldopts, num_old * sizeof(struct option));
++	free_opts(0); /* Release previous options merged if any */
+ 	for (i = 0; i < num_new; i++) {
+ 		merge[num_old + i] = newopts[i];
+ 		merge[num_old + i].val += *option_offset;
 
-Ok, so with the minor change above, I think all of the changes are fine.
 
-I've just reworked the conntrack event cache to work without requiring
-skb->nfcache.  I'll try to merge all the code and produce some working
-version which I'll put in svn.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---AqsLC8rIMeq19msA
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC3Mx5XaXGVTD0i/8RArujAKCbs1Ng34VDKm1t5H60e9RUKWEnqgCfUZlK
-NmBeW1Tl2dBkq6qM1/Fkk08=
-=p02v
------END PGP SIGNATURE-----
-
---AqsLC8rIMeq19msA--
+-- 
+---------------------------------------+--------------------------
+  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+ Software Developer, Ingate Systems AB |  http://www.ingate.com/
