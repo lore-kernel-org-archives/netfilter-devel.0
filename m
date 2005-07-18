@@ -1,15 +1,13 @@
-From: Marcus Sundberg <marcus@ingate.com>
-Subject: [PATCH] Avoid using freed memory in iptables.c
-Date: Mon, 18 Jul 2005 17:53:37 +0200
-Message-ID: <42DBD081.8080408@ingate.com>
-References: <20050710150548.GK20465@sunbeam.de.gnumonks.org>
-	<42D90485.5050603@ingate.com>
+From: Sven Schuster <schuster.sven@gmx.de>
+Subject: Building conntrack
+Date: Mon, 18 Jul 2005 20:09:14 +0200
+Message-ID: <20050718180914.GA5666@zion.homelinux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bp/iNruPH9dso1Pn"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <42D90485.5050603@ingate.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,40 +19,78 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, resend in slighty more conformant(?) format:
 
-The call to free_opts() in merge_options() is invalid C. The oldopts
-argument always refers to the memory pointed to by the opts global,
-which may be freed by the call to free_opts(), but oldopts is used
-after the free_opts() call. This patch makes sure we don't use freed
-memory.
-
-Signed-off-by: Marcus Sundberg <marcus@ingate.com>
+--bp/iNruPH9dso1Pn
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 
---- a/iptables.c	2005/07/16 12:52:33
-+++ b/iptables.c	2005/07/16 12:52:45
-@@ -1028,9 +1028,6 @@ merge_options(struct option *oldopts, co
- 	unsigned int num_old, num_new, i;
- 	struct option *merge;
+Hi everybody,
 
--	/* Release previous options merged if any */
--	free_opts(0);
--	
- 	for (num_old = 0; oldopts[num_old].name; num_old++);
- 	for (num_new = 0; newopts[num_new].name; num_new++);
+I'm currently trying to build conntrack from todays' svn, and getting
+the following errors running autoconf:
 
-@@ -1039,6 +1036,7 @@ merge_options(struct option *oldopts, co
+# autoconf
+configure.in:5: error: possibly undefined macro: AM_INIT_AUTOMAKE
+      If this token and others are legitimate, please use m4_pattern_allow.
+      See the Autoconf documentation.
+configure.in:6: error: possibly undefined macro: AM_CONFIG_HEADER
+configure.in:9: error: possibly undefined macro: AM_PROG_LIBTOOL
 
- 	merge = malloc(sizeof(struct option) * (num_new + num_old + 1));
- 	memcpy(merge, oldopts, num_old * sizeof(struct option));
-+	free_opts(0); /* Release previous options merged if any */
- 	for (i = 0; i < num_new; i++) {
- 		merge[num_old + i] = newopts[i];
- 		merge[num_old + i].val += *option_offset;
+when I call autoconf a second time, it works without any error, but
+when I then run configure, I get this errors:
+
+# ./configure
+checking build system type... i686-pc-linux-gnu
+checking host system type... i686-pc-linux-gnu
+checking target system type... i686-pc-linux-gnu
+=2E/configure: line 1365: syntax error near unexpected token `conntrack,'
+=2E/configure: line 1365: `AM_INIT_AUTOMAKE(conntrack, 0.63)'
+
+Here's the version of autoconf I'm using:
+
+# autoconf --version
+autoconf (GNU Autoconf) 2.59
+Written by David J. MacKenzie and Akim Demaille.
+
+Copyright (C) 2003 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+I also tried using autoconf 2.13 on my machine, here I also get an
+error:
+
+# autoconf-2.13
+autoconf: Undefined macros:
+configure.in:73:               AC_HELP_STRING([--with-kernel=3DDIR],
+# autoconf-2.13 --version
+Autoconf version 2.13
+
+Any hints how to get it right?? Am I doing something wrong??
+
+Thanks in advance!
 
 
--- 
----------------------------------------+--------------------------
-  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
- Software Developer, Ingate Systems AB |  http://www.ingate.com/
+Regards,
+
+Sven
+
+--=20
+Linux zion 2.6.13-rc3-mm1 #6 PREEMPT Mon Jul 18 19:42:52 CEST 2005 i686 ath=
+lon i386 GNU/Linux
+ 20:03:42 up 16 min,  1 user,  load average: 0.02, 0.06, 0.08
+
+--bp/iNruPH9dso1Pn
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQFC2/BJo4FAdB2PneQRAs2DAJ9JSneHHKmamQntfePwUrU9UMMLcwCfe1hs
+3S2qFVOSfqZX6Bj7R/z0QoM=
+=QxJk
+-----END PGP SIGNATURE-----
+
+--bp/iNruPH9dso1Pn--
