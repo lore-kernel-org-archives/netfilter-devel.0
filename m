@@ -1,11 +1,17 @@
-From: "Suzana Lojic-Skoric" <s_lojic@hotmail.com>
-Subject: DNS ALG
-Date: Tue, 19 Jul 2005 10:39:17 -0700
-Message-ID: <BAY17-F16D68383EAC26284E4F71B80D40@phx.gbl>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [2.6 patch] BRIDGE_EBT_ARPREPLY must depend on INET
+Date: Tue, 19 Jul 2005 14:00:24 -0700 (PDT)
+Message-ID: <20050719.140024.131914996.davem@davemloft.net>
+References: <20050719135529.GH5031@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org, coreteam@netfilter.org,
+	bridge@osdl.org, shemminger@osdl.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: bunk@stusta.de
+In-Reply-To: <20050719135529.GH5031@stusta.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,18 +23,9 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+From: Adrian Bunk <bunk@stusta.de>
+Date: Tue, 19 Jul 2005 15:55:29 +0200
 
-I am also interested in answer to the question if DNS ALG has been supported 
-yet or not.
-If not, how much effort does it require to develope it?
+> BRIDGE_EBT_ARPREPLY=y and INET=n results in the following compile error:
 
-Thank you,
-Suzana
-
-_________________________________________________________________
-Take advantage of powerful junk e-mail filters built on patented Microsoft® 
-SmartScreen Technology. 
-http://join.msn.com/?pgmarket=en-ca&page=byoa/prem&xAPID=1994&DI=1034&SU=http://hotmail.com/enca&HL=Market_MSNIS_Taglines 
-  Start enjoying all the benefits of MSN® Premium right now and get the 
-first two months FREE*.
+Applied, thanks Adrian.
