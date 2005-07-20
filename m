@@ -1,15 +1,16 @@
-From: "David S. Miller" <davem@davemloft.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: SACK out of window segments?
-Date: Wed, 20 Jul 2005 12:26:52 -0700 (PDT)
-Message-ID: <20050720.122652.28782810.davem@davemloft.net>
+Date: Wed, 20 Jul 2005 22:24:53 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0507202219360.26391@blackhole.kfki.hu>
 References: <Pine.LNX.4.58.0507201213110.25054@blackhole.kfki.hu>
+	<20050720.122652.28782810.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kadlec@blackhole.kfki.hu
-In-Reply-To: <Pine.LNX.4.58.0507201213110.25054@blackhole.kfki.hu>
+To: "David S. Miller" <davem@davemloft.net>,
+	KOVACS Krisztian <hidden@balabit.hu>
+In-Reply-To: <20050720.122652.28782810.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,69 +22,61 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Date: Wed, 20 Jul 2005 12:34:02 +0200 (CEST)
+On Wed, 20 Jul 2005, David S. Miller wrote:
 
-> https://lists.netfilter.org/pipermail/netfilter-devel/2005-July/020292.html
- ...
-> It seems that at least Linux 2.4.25 accepts and (S)ACKs segments which
-> otherwise looks to be out of window ones. In order to cope with that I had
-> to add code to the TCP connection tracking part of netfilter.
-> 
-> The question is wether that was a SACK bug in 2.4.25? Or there's something
-> in the RFCs we overlook and what looks like a violation is actually an RFC
-> conformant feature?
+> From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Date: Wed, 20 Jul 2005 12:34:02 +0200 (CEST)
+>
+> > https://lists.netfilter.org/pipermail/netfilter-devel/2005-July/020292.html
+>  ...
+> > It seems that at least Linux 2.4.25 accepts and (S)ACKs segments which
+> > otherwise looks to be out of window ones. In order to cope with that I had
+> > to add code to the TCP connection tracking part of netfilter.
+> >
+> > The question is wether that was a SACK bug in 2.4.25? Or there's something
+> > in the RFCs we overlook and what looks like a violation is actually an RFC
+> > conformant feature?
+>
+> What is running on the sender in that trace in the quoted URL above?
+>
+> That last packet is definitely out of window, from the trace's point
+> of view, but I'm very suspicious that any stack would do that,
+> especially Linux.
 
-What is running on the sender in that trace in the quoted URL above?
+According to Krisztian's last mail in the thread:
 
-That last packet is definitely out of window, from the trace's point
-of view, but I'm very suspicious that any stack would do that,
-especially Linux.
+>>>>>>
 
-I'm even more suspicious that a zero window scale is being used in
-both directions, indicating that perhaps something in the middle might
-be zeroing out the window scale and re-adjusting the advertised
-windows on us.  I hope you can verify that, to the best of your
-knowledge, this is not occuring.
+> Krisztian, could you write the OS type/version on both the server and
+> the client?
 
-As a receiver, we never even get to the SACK code if the packet is
-truly out of window.  It is protected by this test in
-tcp_input.c:tcp_data_queue().
+  The client was Linux 2.4.25 plus a couple of other patches, neither of
+which modified core TCP code. On top of that it had Jozsef's TCP window
+tracking patch applied (from POM at that time).
 
-	/* Out of window. F.e. zero window probe. */
-	if (!before(TCP_SKB_CB(skb)->seq, tp->rcv_nxt + tcp_receive_window(tp)))
-		goto out_of_window;
+  Unfortunately the server was completely out of our control. As it was
+a public webserver, we tried Netcraft, and the results were the
+following:
 
-tcp_receive_window() expands to:
+OS             Server              Last changed  IP address     Netblock
+Owner
+Windows 2000   Microsoft-IIS/5.0   18-Aug-2003   XXX.XX.XX.XXX  XXXXXXXX
 
-static __inline__ u32 tcp_receive_window(const struct tcp_sock *tp)
-{
-	s32 win = tp->rcv_wup + tp->rcv_wnd - tp->rcv_nxt;
+  So that's all I know about the server. I can provide the exact URL we
+tried if anyone's interested (in private mail only). I have absolutely
+no idea whether or not it is still reproducible.
+<<<<<<<
 
-	if (win < 0)
-		win = 0;
-	return (u32) win;
-}
+So I believe the trace was produced on the client itself, running Linux
+2.4.25.
 
-So that last packet in the trace should have been caught by the
-tests above and thus ignored, and the receiver should have emitted
-an immediate ACK (in hopes to get the sender's idea of the window
-correct again).
+Krisztian, is that assumption correct? Or did you run tcpdump on the
+perimeter somewhere?
 
-I keep coming back to the idea that something is mucking with the
-packet contents, and thus the end system is seeing something
-different from the trace.
-
-The only reliable way to analyze these kinds of things is to get
-a trace on both sides of the connection, which I realize is often
-entirely infeasible.
-
-There are so many ugly black boxes out there messing with sequence
-numbers and window scaling options, such that a one-sided trace
-is truly meaningless for debugging these days.
-
-In fact, something changing the sequence numbers is also the only
-logical explanation for the connection "hanging" after dropping that
-packet.  The sender should retransmit and the connection should get
-going again perfectly fine after dropping that supposedly
-out-of-window frame.
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
