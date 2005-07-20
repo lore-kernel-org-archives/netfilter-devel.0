@@ -1,18 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] reduce netfilte sk_buff enlargement
-Date: Wed, 20 Jul 2005 09:23:05 -0400
-Message-ID: <20050720132305.GA4077@rama>
-References: <20050717220451.GB13434@rama.risq.ericsson.ca>
-	<20050718.203145.105430424.davem@davemloft.net>
+From: Roberto Nibali <ratz@tac.ch>
+Subject: Re: [PATCH] conntrack-event-api
+Date: Wed, 20 Jul 2005 10:45:30 +0200
+Message-ID: <42DE0F2A.5050609@tac.ch>
+References: <20050719201646.GH3768@rama>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="huq684BweRXVnRxX"
-Cc: netdev@vger.kernel.org, Marcel Holtmann <marcel@holtmann.org>,
-	netfilter-devel@lists.netfilter.org, wensong@linux-vs.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-Content-Disposition: inline
-In-Reply-To: <20050718.203145.105430424.davem@davemloft.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050719201646.GH3768@rama>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,61 +21,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+> Here's a revamped conntrack-event-api patch.  Instead of using
+> skb->nfcache, we now use a per-cpu data structure.  This saves 32bit in
+> sk_buff.
 
---huq684BweRXVnRxX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I see that netconf really gets the ball rolling ;).
 
-On Mon, Jul 18, 2005 at 08:31:45PM -0700, David S. Miller wrote:
-> From: Harald Welte <laforge@netfilter.org>
-> Date: Mon, 18 Jul 2005 00:04:51 +0200
->=20
-> > The only real in-tree user of nfcache was IPVS, who only needs a single
-> > bit.  Unfortunately I couldn't find some other free bit in sk_buff to
-> > stuff that bit into, so I introduced a separate field for them.  Maybe
-> > the IPVS guys can resolve that to further save space.
->=20
-> I think we must resolve this one before 2.6.14 goes out, which
-> gives us a lot of time, but for now I'll eat that one-bit member.
+> +static inline void 
+> +ip_conntrack_event_cache(enum ip_conntrack_events event,
+> +			 const struct sk_buff *skb)
+> +{
+> +	struct ip_conntrack_ecache *ecache = 
+> +					&__get_cpu_var(ip_conntrack_ecache);
+> +
+> +	if (unlikely((struct ip_conntrack *) skb->nfct != ecache->ct)) {
+> +		if (net_ratelimit()) {
+> +			printk(KERN_ERR "ctevent: skb->ct != ecache->ct !!!\n");
 
-Well, I hope IPVS people will take care of this.  I don't really know
-that code too well...
+Not important, but: s/skb->ct/skb->nfct/ and could you maybe drop the
+!!!'s? ;)
 
-> > Initially I wanted to shrink pkt_type to three bits (PACKET_HOST and
-> > alike are only 6 values defined), but unfortunately the bluetooth code
-> > overloads pkt_type :(
->=20
-> This also must be cured somehow, that really isn't a clean nor nice
-> usage of this field.
+> +			dump_stack();
 
-I just ran into Marcel Holtmann earlier today.  He thinks moving that
-data into the cb is fine, though he has to double-check that.
+Is this trace reliable regarding per-CPU structures?
 
-He also said that he really only needs 5 bits, so even if the current
-pkt_type overloading would persist, we could probably shrink it to make
-space for the IPVS bit.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---huq684BweRXVnRxX
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC3lA4XaXGVTD0i/8RAqy7AJwOmAJqhXJHhHlQTLXR/PD26KgGXgCgrFEf
-VqsKwPYpOc3qmlRXoHcV+bY=
-=x/rm
------END PGP SIGNATURE-----
-
---huq684BweRXVnRxX--
+Regards,
+Roberto Nibali, ratz
+-- 
+-------------------------------------------------------------
+addr://Rathausgasse 31, CH-5001 Aarau  tel://++41 62 823 9355
+http://www.terreactive.com             fax://++41 62 823 9356
+-------------------------------------------------------------
+terreActive AG                       Wir sichern Ihren Erfolg
+-------------------------------------------------------------
