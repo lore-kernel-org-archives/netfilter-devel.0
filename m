@@ -1,11 +1,12 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset 2.2.2 released
-Date: Wed, 20 Jul 2005 11:40:35 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0507201133540.25054@blackhole.kfki.hu>
+Subject: SACK out of window segments?
+Date: Wed, 20 Jul 2005 12:34:02 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0507201213110.25054@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+To: David Miller <davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,22 +18,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi Dave,
 
-I'm happy to announce the new version of ipset. The bugs fixed in this
-release are
+There had been a long thread on netfilter-devel recently with the subject
+[PATCH] TCP window tracking patch backported from the 2.6 tree:
 
-- Jiffies rollover bug in ip_set_iptree reported and fixed by Rob Nielsen
-- Compiler warning in the non-SMP case (Marcus Sundberg)
-- slab cache names shrunk in order to be compatible with 2.4.* (Marcus
-  Sundberg)
+https://lists.netfilter.org/pipermail/netfilter-devel/2005-June/020281.html
+https://lists.netfilter.org/pipermail/netfilter-devel/2005-June/020279.html
+https://lists.netfilter.org/pipermail/netfilter-devel/2005-June/020317.html
+https://lists.netfilter.org/pipermail/netfilter-devel/2005-July/020292.html
+https://lists.netfilter.org/pipermail/netfilter-devel/2005-July/020349.html
+https://lists.netfilter.org/pipermail/netfilter-devel/2005-July/020350.html
 
-New features such that negated set feature or new API elements for better
-external module support were postponed to the next release.
+It seems that at least Linux 2.4.25 accepts and (S)ACKs segments which
+otherwise looks to be out of window ones. In order to cope with that I had
+to add code to the TCP connection tracking part of netfilter.
 
-You can download the new version from http://ipset.netfilter.org/.
+The question is wether that was a SACK bug in 2.4.25? Or there's something
+in the RFCs we overlook and what looks like a violation is actually an RFC
+conformant feature?
 
-Best regards,
+Thank you your help,
 Jozsef
 -
 E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
