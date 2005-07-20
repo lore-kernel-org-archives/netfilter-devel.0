@@ -1,18 +1,15 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH] reduce netfilte sk_buff enlargement
-Date: Wed, 20 Jul 2005 11:43:58 -0700 (PDT)
-Message-ID: <20050720.114358.85414044.davem@davemloft.net>
-References: <20050717220451.GB13434@rama.risq.ericsson.ca>
-	<20050718.203145.105430424.davem@davemloft.net>
-	<20050720132305.GA4077@rama>
+Subject: Re: SACK out of window segments?
+Date: Wed, 20 Jul 2005 11:45:38 -0700 (PDT)
+Message-ID: <20050720.114538.95062292.davem@davemloft.net>
+References: <Pine.LNX.4.58.0507201213110.25054@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, marcel@holtmann.org,
-	netfilter-devel@lists.netfilter.org, wensong@linux-vs.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20050720132305.GA4077@rama>
+To: kadlec@blackhole.kfki.hu
+In-Reply-To: <Pine.LNX.4.58.0507201213110.25054@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,38 +21,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Wed, 20 Jul 2005 09:23:05 -0400
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Date: Wed, 20 Jul 2005 12:34:02 +0200 (CEST)
 
-> On Mon, Jul 18, 2005 at 08:31:45PM -0700, David S. Miller wrote:
-> > From: Harald Welte <laforge@netfilter.org>
-> > Date: Mon, 18 Jul 2005 00:04:51 +0200
-> > 
-> > > The only real in-tree user of nfcache was IPVS, who only needs a single
-> > > bit.  Unfortunately I couldn't find some other free bit in sk_buff to
-> > > stuff that bit into, so I introduced a separate field for them.  Maybe
-> > > the IPVS guys can resolve that to further save space.
-> > 
-> > I think we must resolve this one before 2.6.14 goes out, which
-> > gives us a lot of time, but for now I'll eat that one-bit member.
-> 
-> Well, I hope IPVS people will take care of this.  I don't really know
-> that code too well...
+> There had been a long thread on netfilter-devel recently with the subject
+> [PATCH] TCP window tracking patch backported from the 2.6 tree:
 
-Ok, I might take a look at this myself.
-
-> > > Initially I wanted to shrink pkt_type to three bits (PACKET_HOST and
-> > > alike are only 6 values defined), but unfortunately the bluetooth code
-> > > overloads pkt_type :(
-> > 
-> > This also must be cured somehow, that really isn't a clean nor nice
-> > usage of this field.
-> 
-> I just ran into Marcel Holtmann earlier today.  He thinks moving that
-> data into the cb is fine, though he has to double-check that.
-> 
-> He also said that he really only needs 5 bits, so even if the current
-> pkt_type overloading would persist, we could probably shrink it to make
-> space for the IPVS bit.
-
-Ok, sounds great.
+I'll take a look at this today.
