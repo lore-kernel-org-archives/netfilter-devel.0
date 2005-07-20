@@ -1,17 +1,16 @@
-From: Wensong Zhang <wensong@linux-vs.org>
-Subject: Re: [PATCH] reduce netfilte sk_buff enlargement
-Date: Wed, 20 Jul 2005 23:43:14 +0800 (CST)
-Message-ID: <Pine.LNX.4.63.0507202335530.1564@penguin.linux-vs.org>
-References: <20050717220451.GB13434@rama.risq.ericsson.ca>
-	<20050718.203145.105430424.davem@davemloft.net>
-	<20050720132305.GA4077@rama>
+From: Michael Schachtebeck <schachti@rbw.goe.net>
+Subject: Re: limit extension
+Date: Wed, 20 Jul 2005 16:55:02 +0200
+Message-ID: <42DE65C6.6030504@rbw.goe.net>
+References: <42DD417F.4090804@rbw.goe.net> <42DE5C90.70603@rbw.goe.net>
+	<20050720144531.GA14941@zion.homelinux.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netdev@vger.kernel.org, Marcel Holtmann <marcel@holtmann.org>,
-	netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050720132305.GA4077@rama>
+To: Sven Schuster <schuster.sven@gmx.de>
+In-Reply-To: <20050720144531.GA14941@zion.homelinux.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,51 +22,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Am 07/20/2005 04:45 PM schrieb Sven Schuster:
 
-Hi,
+> AFAIK, when you add, delete, replace a iptables rule, at first the
+> current rules are "downloaded" from kernel, the changes are made in
+> user space, then the ruleset is "uploaded" again to the kernel.
+> When uploading, I think that all the internal data structures for the
+> matches are deleted and then allocated freshly. That's why you see
+> this behaviour in your testing. When your cronjob runs (or you run
+> it manually) all the data structures get deleted and newly allocated,
+> thus the limit rule matches again.
 
-Sorry for the delay.
+But on the other hand, the counter correctly shows the number of packets
+that matched the rule; iptables -t nat -vnL PREROUTING says:
 
-On Wed, 20 Jul 2005, Harald Welte wrote:
+9 540 REDIRECT tcp -- eth1 * 10.10.10.69 0.0.0.0/0 tcp spts:1024:65535
+dpt:80 flags:0x16/0x02 limit: avg 1/day burst 1 redir ports 5000
 
-> On Mon, Jul 18, 2005 at 08:31:45PM -0700, David S. Miller wrote:
->> From: Harald Welte <laforge@netfilter.org>
->> Date: Mon, 18 Jul 2005 00:04:51 +0200
->>
->>> The only real in-tree user of nfcache was IPVS, who only needs a single
->>> bit.  Unfortunately I couldn't find some other free bit in sk_buff to
->>> stuff that bit into, so I introduced a separate field for them.  Maybe
->>> the IPVS guys can resolve that to further save space.
->>
->> I think we must resolve this one before 2.6.14 goes out, which
->> gives us a lot of time, but for now I'll eat that one-bit member.
->
-> Well, I hope IPVS people will take care of this.  I don't really know
-> that code too well...
->
+So it would be very strange if the rules were extracted to user space,
+rewritten/modified, "uploaded" to the kernel with the correct counters
+for the remaining rules, and then, the rules do not look to this
+counters. ;-)
 
-This bit is only to indicate that the sk_buff is already mangled by 
-IPVS/NAT, so that when both iptables/NAT and IPVS/NAT are enabled, 
-iptables/NAT will not mangle sk_buff again. I am not sure if there is more 
-elegant way to work around this issue, will investigate it.
+Why then save and restore the counters, if they are not used by the rules?
 
->>> Initially I wanted to shrink pkt_type to three bits (PACKET_HOST and
->>> alike are only 6 values defined), but unfortunately the bluetooth code
->>> overloads pkt_type :(
->>
->> This also must be cured somehow, that really isn't a clean nor nice
->> usage of this field.
->
-> I just ran into Marcel Holtmann earlier today.  He thinks moving that
-> data into the cb is fine, though he has to double-check that.
->
-> He also said that he really only needs 5 bits, so even if the current
-> pkt_type overloading would persist, we could probably shrink it to make
-> space for the IPVS bit.
->
-
-That's cool.
-
-Thanks,
-
-Wensong
+Michael.
+-- 
+PGP Public Key:  http://www.num.math.uni-goettingen.de/schachte/key.asc
+Key fingerprint: C474 8B85 17C0 0232 E439 0FBF 2451 E452 293C D798
