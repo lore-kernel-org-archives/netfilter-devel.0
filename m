@@ -1,12 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER]: Fix extern inline without function body
-Date: Thu, 21 Jul 2005 02:01:12 +0200
-Message-ID: <42DEE5C8.9010902@trash.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] conntrack-event-api
+Date: Wed, 20 Jul 2005 20:18:07 -0400
+Message-ID: <20050721001807.GB4384@rama.eicat.ca>
+References: <20050719201646.GH3768@rama> <42DE0F2A.5050609@tac.ch>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070407030709010605030606"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="oLBj+sq0vYjzfsbl"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: Roberto Nibali <ratz@tac.ch>
+Content-Disposition: inline
+In-Reply-To: <42DE0F2A.5050609@tac.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,46 +22,57 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070407030709010605030606
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Fixes a compilation error with gcc-4.0
+--oLBj+sq0vYjzfsbl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, Jul 20, 2005 at 10:45:30AM +0200, Roberto Nibali wrote:
+> > Here's a revamped conntrack-event-api patch.  Instead of using
+> > skb->nfcache, we now use a per-cpu data structure.  This saves 32bit in
+> > sk_buff.
+>=20
+> I see that netconf really gets the ball rolling ;).
 
---------------070407030709010605030606
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+yup.
 
-[NETFILTER]: Fix extern inline without function body
+> > +	if (unlikely((struct ip_conntrack *) skb->nfct !=3D ecache->ct)) {
+> > +		if (net_ratelimit()) {
+> > +			printk(KERN_ERR "ctevent: skb->ct !=3D ecache->ct !!!\n");
+>=20
+> Not important, but: s/skb->ct/skb->nfct/ and could you maybe drop the
+> !!!'s? ;)
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+ok, I'll make that cosmetic change once it shows up in dave's 2.6.14
+tree.
 
----
-commit aa4d64d057c37bc29954789fd24dcb7018ca6973
-tree 540da1b32872e758ad8806057412ee08759c746a
-parent 250a3087bb4488fc8f4407b3b7bbb2b44565b515
-author Patrick McHardy <kaber@trash.net> Thu, 21 Jul 2005 01:53:54 +0200
-committer Patrick McHardy <kaber@trash.net> Thu, 21 Jul 2005 01:53:54 +0200
+> > +			dump_stack();
+>=20
+> Is this trace reliable regarding per-CPU structures?
 
- include/linux/netfilter_ipv4/ip_conntrack.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+? Those structues are not in the stack. =20
 
-diff --git a/include/linux/netfilter_ipv4/ip_conntrack.h b/include/linux/netfilter_ipv4/ip_conntrack.h
---- a/include/linux/netfilter_ipv4/ip_conntrack.h
-+++ b/include/linux/netfilter_ipv4/ip_conntrack.h
-@@ -293,7 +293,7 @@ ip_conntrack_get(const struct sk_buff *s
- }
- 
- /* decrement reference count on a conntrack */
--extern inline void ip_conntrack_put(struct ip_conntrack *ct);
-+extern void ip_conntrack_put(struct ip_conntrack *ct);
- 
- /* call to create an explicit dependency on ip_conntrack. */
- extern void need_ip_conntrack(void);
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
---------------070407030709010605030606--
+--oLBj+sq0vYjzfsbl
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFC3um+XaXGVTD0i/8RAqMNAJ9NDAtRsGtub7tiKqpoNhJj+OMW1wCfc+Lt
+Oa+cHswlno6Uinds6DdhFrk=
+=/56U
+-----END PGP SIGNATURE-----
+
+--oLBj+sq0vYjzfsbl--
