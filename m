@@ -1,15 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: traffic shaping and fixed per-packet overhead
-Date: Thu, 21 Jul 2005 20:28:28 +0200
-Message-ID: <42DFE94C.4050307@trash.net>
-References: <pan.2005.07.21.07.17.08.357408@smurf.noris.de>
+From: "Duncan Godfrey" <d.j.godfrey@reading.ac.uk>
+Subject: libipq Packet queuing Question
+Date: Thu, 21 Jul 2005 19:49:47 +0100
+Message-ID: <E1Dvg7E-0000uW-00@vimh1.rdg.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Matthias Urlichs <smurf@smurf.noris.de>
-In-Reply-To: <pan.2005.07.21.07.17.08.357408@smurf.noris.de>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,27 +19,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Matthias Urlichs schrieb:
-> Hi,
-> 
-> I have an IPIP tunnel through a DSL line (PPPoE) which I need to
-> traffic-shape / flow control. Unfortunately, the tunnel has a fixed
-> per-packet overhead, which means that small packets overrun the
-> bandwidth allowed for the tunnel and get dropped, while (if I set the
-> allowed bandwidth to too-small values) the wire will be idle when
-> I send large packets.
-> 
-> (I'm using HTB.)
-> 
-> I can think of a couple of solutions ...
-> - Use bit-banging in the outer filter instead of nice rules on the tunnel.
->   (OK, that's a dumb idea from a useability POV.)
-> - Extend the HTB code to allow specifying a per-packet overhead.
-> - Hack the kernel to propagate a packet's netfilter MARK.
+Hello,
 
-Totally unrelated to netfilter-devel, but:
+ 
 
-# tc qdisc add htb help
-...
-  mpu      minimum packet size used in rate computations
-  overhead per-packet size overhead used in rate computations
+Would anyone be able to help me with my libipq development, I'm really
+stuck.
+
+ 
+
+I'm trying to create a QoS app for Linux and I'm using a number of simple
+FIFO queues (just using arrays) to queue the packets before they are
+dispatched in the required order.
+
+ 
+
+The problem I am having is, apart from my basic knowledge of c, is that you
+cant queue a pointer. So when you receive the pointer from the method
+ipq_packet_msg_t *m, this cant be queued (e.g. if you queue packets 1,2,3
+they will be dispatched 1,1,1).
+
+ 
+
+I have tried dereferencing the *m pointer but this doesn't give you a copy
+of the packet it actually seems to give you a blank packet.
+
+ 
+
+Has anyone designed any packet queuing applications or know of any examples
+which could point me in the right direction.
+
+ 
+
+Thank you in advance for your help,
+
+ 
+
+Duncan Godfrey
