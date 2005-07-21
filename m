@@ -1,17 +1,16 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: SACK out of window segments?
-Date: Thu, 21 Jul 2005 08:45:38 +0200
-Message-ID: <1121928338.15942.3.camel@nienna.balabit>
-References: <Pine.LNX.4.58.0507201213110.25054@blackhole.kfki.hu>
-	<20050720.122652.28782810.davem@davemloft.net>
-	<Pine.LNX.4.58.0507202219360.26391@blackhole.kfki.hu>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: ip_queue freeze with 2.6.9 RHEL4
+Date: Thu, 21 Jul 2005 09:39:43 +0200
+Message-ID: <1121931584.5535.3.camel@localhost.localdomain>
+References: <1121891748.16195.25.camel@localhost.localdomain>
+	<42DEC52F.2020500@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org, redhat-list@redhat.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0507202219360.26391@blackhole.kfki.hu>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42DEC52F.2020500@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,19 +22,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-  Hi,
-
-2005-07-20, sze keltez=E9ssel 22.24-kor Jozsef Kadlecsik ezt =EDrta:
-> So I believe the trace was produced on the client itself, running Linux
-> 2.4.25.
+Le mercredi 20 juillet 2005 =E0 23:42 +0200, Patrick McHardy a =E9crit :
+> Eric Leblond wrote:
+> > Is there known issues on some systems with 2.6.9 and ip_queue ? or is i=
+t
+> > a RedHat problem ?
 >=20
-> Krisztian, is that assumption correct? Or did you run tcpdump on the
-> perimeter somewhere?
+> In which hook are you queueing packets?=20
 
-  Actually the "client" in our case was a proxy firewall, and tcpdump
-was run on that box.
+I've got one rule only :
+	iptables -A INPUT -p tcp --dport 22 --syn -j ACCEPT
 
+Same "ruleset" works correctly with test done with RHEL3 the same day
+(almost same hardware)=20
+
+> Does it freeze immediately, or
+> do you need to reinject the packet first?
+
+It freezes just after I send the NF_ACCEPT decision.
+
+BR,
 --=20
- Regards,
-  Krisztian Kovacs
+Eric Leblond <eric@inl.fr>
