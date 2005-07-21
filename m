@@ -1,16 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] conntrack-event-api
-Date: Wed, 20 Jul 2005 20:15:15 -0400
-Message-ID: <20050721001515.GA4384@rama.eicat.ca>
-References: <20050719201646.GH3768@rama> <42DD039B.4090207@ufomechanic.net>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: SACK out of window segments?
+Date: Thu, 21 Jul 2005 08:45:38 +0200
+Message-ID: <1121928338.15942.3.camel@nienna.balabit>
+References: <Pine.LNX.4.58.0507201213110.25054@blackhole.kfki.hu>
+	<20050720.122652.28782810.davem@davemloft.net>
+	<Pine.LNX.4.58.0507202219360.26391@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yrj/dFKFPuw6o+aM"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-Content-Disposition: inline
-In-Reply-To: <42DD039B.4090207@ufomechanic.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0507202219360.26391@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,61 +24,18 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---yrj/dFKFPuw6o+aM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+  Hi,
 
-On Tue, Jul 19, 2005 at 02:43:55PM +0100, Amin Azez wrote:
+2005-07-20, sze keltez=E9ssel 22.24-kor Jozsef Kadlecsik ezt =EDrta:
+> So I believe the trace was produced on the client itself, running Linux
+> 2.4.25.
+>=20
+> Krisztian, is that assumption correct? Or did you run tcpdump on the
+> perimeter somewhere?
 
-> I'm just trying to understand the basis of this change.
-> Is it that:
-> 1) a CPU is only processing one SKB at a time
-
-yes.
-
-> 2) then it entirely finishes that SKB before it processes another
-
-no, we can have stuff like ip_queue in between prerouting and
-postrouting.   This is why the event cache keeps a pointer to the
-connection that it last worked on, and if we enter for a different
-connection, it sends out the cached events before dealing with the new.
-
-> 3) and that the event data does not need to persist for the life of the
-> conntrack, only the life of that skb
-
-yes, the idea is only to accumulate all the events happening for a
-single data packet, instead of sending N events down the notifiers for
-every packet.
-
-> Do we see this breaking anytime, perhaps through some extended kernel
-> pre-emption trick or something, or is the conntrack stuff here always
-> going to run as a bh?
-
-see above, we deal correctly with async handling.
-
-[please don't full-quote patches!]
+  Actually the "client" in our case was a proxy firewall, and tcpdump
+was run on that box.
 
 --=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---yrj/dFKFPuw6o+aM
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC3ukSXaXGVTD0i/8RAhkaAKCZz204qY0axtwr2CnArS7kW5QQXQCfYNJZ
-EnKqqJpYL84H+tYDvBDwbEg=
-=6LIc
------END PGP SIGNATURE-----
-
---yrj/dFKFPuw6o+aM--
+ Regards,
+  Krisztian Kovacs
