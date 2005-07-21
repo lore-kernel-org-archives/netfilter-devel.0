@@ -1,18 +1,13 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [PATCH] reduce netfilte sk_buff enlargement
-Date: Thu, 21 Jul 2005 20:20:35 +0200
-Message-ID: <1121970035.5904.6.camel@notepaq>
-References: <20050717220451.GB13434@rama.risq.ericsson.ca>
-	<20050718.203145.105430424.davem@davemloft.net>
-	<20050720132305.GA4077@rama>
+From: "Marek Sirdak" <marek@nevision.net>
+Subject: (Probably) it's a bug
+Date: Thu, 21 Jul 2005 21:49:22 +0200
+Message-ID: <20050721194841Z1186111-31917+1237@kps8.test.onet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	wensong@linux-vs.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050720132305.GA4077@rama>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,23 +19,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
+Dear Netfilter developers:
 
-> I just ran into Marcel Holtmann earlier today.  He thinks moving that
-> data into the cb is fine, though he has to double-check that.
-> 
-> He also said that he really only needs 5 bits, so even if the current
-> pkt_type overloading would persist, we could probably shrink it to make
-> space for the IPVS bit.
+ I'm using iptables to protect my company network. My Kernel version is
+2.6.12 and iptables 1.3.2. Today I noticed that iptables cannot control
+broadcast traffic. For example I'm using DHCPd (version 3.0.2). 
+ Every computer in my network has it own entry in dhcpd.conf. There are no
+IP range specified - for security reasons. If I set policy of chains INPUT,
+FORWARD and OUTPUT to DROP (table: filter) with no entries in them, traffic
+should be completly dropped. But I noticed that if computer from my network
+will send DHCP-REQUEST he will recive DHCP-REPLY with address and he receive
+his address despite iptables is set to DROP all of the traffic !!! I have
+read from DHCPd readme file that on some systems above behaviour is normal,
+but i think it isn't normal, because we say: "block all of the traffic" and
+all traffic should be dropped. We know that first packets of DHCP requests
+are broadcasts and renewal are unicast (unicast packets are dropped).
 
-please forget about the 5 bits thingy, I told you. Splitting it up into
-bitlevel will screw up the HCI filter completly. However after a look
-trough the Bluetooth core it should be quite easy too move the pkt_type
-into the control buffer. We already use it for a direction bit. The
-nasty thing is that I have to modify all the drivers. So when you
-finally decided to shrink the pkt_type, I think that I can come up with
-a patch for it quiet quickly.
+Please turn attention on it. I'm not an extra developer, but I think that
+somebody can write some broadcast request that could violate server
+security.
 
-Regards
-
-Marcel
+Greetings
+Marek Sirdak
