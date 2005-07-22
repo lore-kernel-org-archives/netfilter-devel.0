@@ -1,11 +1,18 @@
-From: Damon Gray <dgray@internap.com>
-Subject: when is checkentry/destroy called
-Date: Fri, 22 Jul 2005 17:39:28 -0400 (EDT)
-Message-ID: <Pine.LNX.4.62.0507221726470.26736@dgray-test.acs.internap.com>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH] reduce netfilte sk_buff enlargement
+Date: Fri, 22 Jul 2005 15:54:11 -0700 (PDT)
+Message-ID: <20050722.155411.32722751.davem@davemloft.net>
+References: <1121989791.5892.8.camel@notepaq>
+	<20050721.165207.35016196.davem@davemloft.net>
+	<1121991994.5892.15.camel@notepaq>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org, wensong@linux-vs.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: marcel@holtmann.org
+In-Reply-To: <1121991994.5892.15.camel@notepaq>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,30 +24,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Marcel Holtmann <marcel@holtmann.org>
+Date: Fri, 22 Jul 2005 02:26:34 +0200
 
-In the match module I'm developing I am seeing the checkentry and the 
-destroy "methods" being called for each entry every time a new iptables 
-rule is added or deleting in the chain. Is this correct?
+> I found the problem. The hci_usb is using the cb[] by itself and so
+> overwriting the pkt_type value. The attached patch works for me with the
+> hci_usb driver. However I haven't converted all other drivers and
+> checked them. This won't happen until I am back home, because I don't
+> have any of these devices with me around. However it looks like this
+> seems to work without any problems.
 
-To get a better idea of what is going on. I have a match module that 
-obviously has checkentry and destroy methods. For debugging, both output a 
-printk every time they are called.
+Great.  I'll wait until you get back and code up an updated
+patch that takes care of all of the drivers.
 
-  1. insert rule with a match using my module
-     see printk that checkentry was called
-
-  2. insert or delete another rule (without my module) in the same chain
-     see printk that checkentry was called again (given a different
-         matchinfo pointer)
-     see printk that destroy was called on the old rule
-
-This seems bad to me, especially since many match modules may allocate or 
-deallocate memory in the checkentry and destroy methods. It makes it seem 
-like every time *anything* is added or deleted in a chain the whole chain 
-gets all new entries. Maybe this is how it has always been and I just 
-didn't notice, but I hope not. :)
-
-iptables 1.3.2
-kernel 2.6.11.7
-
--Damon-
+Thanks.
