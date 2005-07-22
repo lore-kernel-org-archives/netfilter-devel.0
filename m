@@ -1,18 +1,14 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH] reduce netfilte sk_buff enlargement
-Date: Thu, 21 Jul 2005 16:52:07 -0700 (PDT)
-Message-ID: <20050721.165207.35016196.davem@davemloft.net>
-References: <1121982131.5886.2.camel@notepaq>
-	<20050721.152941.56567834.davem@davemloft.net>
-	<1121989791.5892.8.camel@notepaq>
+From: =?ISO-8859-1?Q?J=E9r=F4me_Poulin?= <jeromepoulin@gmail.com>
+Subject: lockhelp.h missing
+Date: Fri, 22 Jul 2005 01:34:39 -0400
+Message-ID: <debc30fc050721223469bd79d6@mail.gmail.com>
+Reply-To: =?ISO-8859-1?Q?J=E9r=F4me_Poulin?= <jeromepoulin@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org, wensong@linux-vs.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: marcel@holtmann.org
-In-Reply-To: <1121989791.5892.8.camel@notepaq>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,13 +20,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Marcel Holtmann <marcel@holtmann.org>
-Date: Fri, 22 Jul 2005 01:49:51 +0200
+I've got latest kernel 2.6.13-r1 with andrew morton patch mm1 and
+applied latest patch-o-matic-ng (2005-07-21 today) with ./runme extra
+which successfully applied.
 
-> The pkt_type zero is not a valid one. We only use 1-4 and 0xff. So this
-> can't be the problem. I assume that the cb is not copied from the driver
-> into the core at some point.
+When compiling the kernel I get some bad result (quoted some errors
+below) because of the lockhelp.h file missing in kernel builds greater
+or equal to 2.6.12.
 
-All clones and copies of SKBs copy of the ->cb[] for you.
-So perhaps something is spamming the ->cb[] between these
-two places.
+This error repeats for each file including ip_conntrack_mms.h after
+removing lockhelp.h from the #include
+---------------------
+In file included from include/linux/netfilter_ipv4/ip_conntrack.h:94,
+                 from net/ipv4/netfilter/ip_conntrack_h323_core.c:17:
+include/linux/netfilter_ipv4/ip_conntrack_mms.h:8: warning: type
+defaults to `int' in declaration of `DECLARE_LOCK_EXTERN'
+include/linux/netfilter_ipv4/ip_conntrack_mms.h:8: warning: parameter
+names (without types) in function declaration
+include/linux/netfilter_ipv4/ip_conntrack_mms.h:8: warning: data
+definition has no type or storage class
+------------
+
+Same for this one after touch-ing the file so it doesn't generate
+errors about the missing #include
+-----------
+net/ipv4/netfilter/ip_conntrack_h323_h225.c: In function `h225_help':
+net/ipv4/netfilter/ip_conntrack_h323_h225.c:382: warning: implicit
+declaration of function `LOCK_BH'
+net/ipv4/netfilter/ip_conntrack_h323_h225.c:382: error: `ip_h225_lock'
+undeclared (first use in this function)
+net/ipv4/netfilter/ip_conntrack_h323_h225.c:382: error: (Each
+undeclared identifier is reported only once
+net/ipv4/netfilter/ip_conntrack_h323_h225.c:382: error: for each
+function it appears in.)
+net/ipv4/netfilter/ip_conntrack_h323_h225.c:390: warning: implicit
+declaration of function `UNLOCK_BH'
+net/ipv4/netfilter/ip_conntrack_h323_h225.c: At top level:
+net/ipv4/netfilter/ip_conntrack_h323_h225.c:28: warning:
+'DECLARE_LOCK' declared `static' but never defined
+make[3]: *** [net/ipv4/netfilter/ip_conntrack_h323_h225.o] Error 1
+--------------
