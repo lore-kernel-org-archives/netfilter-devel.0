@@ -1,19 +1,13 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [PATCH] reduce netfilte sk_buff enlargement
-Date: Sat, 23 Jul 2005 03:36:20 +0200
-Message-ID: <1122082580.5878.3.camel@notepaq>
-References: <1121989791.5892.8.camel@notepaq>
-	<20050721.165207.35016196.davem@davemloft.net>
-	<1121991994.5892.15.camel@notepaq>
-	<20050722.155411.32722751.davem@davemloft.net>
+From: "Gilles Espinasse" <g.esp@free.fr>
+Subject: nf-log patch fail to apply on 2.4.31 : solution
+Date: Sat, 23 Jul 2005 12:10:28 +0200
+Message-ID: <024201c58f6e$c09ebc10$f9b5a8c0@PII350>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org, wensong@linux-vs.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20050722.155411.32722751.davem@davemloft.net>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,25 +19,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+I try with pach-o-matic-20050716 and the last one available 20050722 on a
+2.4.31 kernel without any other patches.
 
-> > I found the problem. The hci_usb is using the cb[] by itself and so
-> > overwriting the pkt_type value. The attached patch works for me with the
-> > hci_usb driver. However I haven't converted all other drivers and
-> > checked them. This won't happen until I am back home, because I don't
-> > have any of these devices with me around. However it looks like this
-> > seems to work without any problems.
-> 
-> Great.  I'll wait until you get back and code up an updated
-> patch that takes care of all of the drivers.
+When used with
+ ./runme --kernel-path=../linux-2.4.31 --iptables-path=../iptables-1.2.11/
+pending
+- everything until nf-log apply without problem
+- with nf-log, test work but patch fail related to netfilter_logging.h
 
-actually the patch is ready by now and hci_usb and hci_vhci are tested.
-The tests for the other drivers have to wait at least until first week
-of August. However since it seems to work even with 2.6.13-rc3, I don't
-see any reason to wait with the inclusion. If you are serious with the
-shrinking of the sk_buff, I can send you the final patch along with my
-pending patches for 2.6.13.
+> The functionality relies on the available "backend" logging
+> modules (ipt_LOG or ipt_ULOG). At least one of the logging
+> modules must be loaded in, otherwise no log will be generated.
+> If both modules are available in the kernel, then the firstly
+> registered (loaded) will handle the logging.
+> -----------------------------------------------------------------
+> Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] t
+> Patch nf-log applies cleanly
+> -----------------------------------------------------------------
+> Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
+> ERROR (1 rejects out of 23 hunks)
+>
+manually applying the patch inside linux directory work
+patch -Np1 < ../patch-o-matic-ng-20050716/patchlets/nf-log/linux-2.4.patch
 
-Regards
+Reason of failure is because netfilter_logging.h is present as a file under
+patchlets/nf-log/include/linux-2.4/netfilter_logging.h and inside
+linux-2.4.patch
+Remove one on the 2 occurences and it work.
+I remove patchlets/nf-log/linux-2.4/include/linux/netfilter_logging.h
+because it was the easiest for me.
 
-Marcel
+Next ownercmd (now include in pending but not in my old 20040621 version)
+fail to apply, I remove it too
+
+Gilles
