@@ -1,16 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [stable] [NETFILTER 1/5]: Fix deadlock in ip6_queue
-Date: Sat, 23 Jul 2005 06:29:21 +0200
-Message-ID: <42E1C7A1.8030405@trash.net>
-References: <42E0A1C6.3040300@trash.net> <20050722195252.GA19034@kroah.com>
+From: Venkata Narayana <mesg2nari@yahoo.com>
+Subject: Rate limit
+Date: Fri, 22 Jul 2005 21:55:49 -0700 (PDT)
+Message-ID: <20050723045549.64791.qmail@web60815.mail.yahoo.com>
+References: <20050630072756.89120.qmail@web60820.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	stable@kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Greg KH <greg@kroah.com>
-In-Reply-To: <20050722195252.GA19034@kroah.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20050630072756.89120.qmail@web60820.mail.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,24 +20,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Greg KH wrote:
-> On Fri, Jul 22, 2005 at 09:35:34AM +0200, Patrick McHardy wrote:
-> 
->>Hi Dave,
->>
->>following are a couple of patches for 2.6.13. I've CCed
->>stable@kernel.org on all patches that I think should also
->>go in -stable.
-> 
-> -stable only received 3 of these, is that correct?
+Hi All,
 
-Yes, the others fixed one unimportant bug and one bug introduced in
-2.6.13-rc.
+Can i get any  developer documentation on rate limit
+module.
+I would like to work on rate limit stuff.
 
-> I'll hold off on adding these to the queue until they go into mainline.
-> When that happens, could you please let us know?
+Please provide me the details releated to that.
 
-They just hit Linus's tree.
+Thanks,
+Venkat.
 
-Regards
-Patrick
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
