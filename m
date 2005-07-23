@@ -1,17 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] 1 Wire drivers illegally overload NETLINK_NFLOG
-Date: Sat, 23 Jul 2005 05:52:47 +0200
-Message-ID: <42E1BF0F.40303@trash.net>
-References: <20050723125427.GA11177@rama>
-	<20050722.230559.123762041.yoshfuji@linux-ipv6.org>
+Subject: Re: [stable] [NETFILTER 1/5]: Fix deadlock in ip6_queue
+Date: Sat, 23 Jul 2005 06:29:21 +0200
+Message-ID: <42E1C7A1.8030405@trash.net>
+References: <42E0A1C6.3040300@trash.net> <20050722195252.GA19034@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: johnpol@2ka.mipt.ru, laforge@netfilter.org,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	stable@kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: yoshfuji@linux-ipv6.org
-In-Reply-To: <20050722.230559.123762041.yoshfuji@linux-ipv6.org>
+To: Greg KH <greg@kroah.com>
+In-Reply-To: <20050722195252.GA19034@kroah.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,26 +22,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-YOSHIFUJI Hideaki / $B5HF#1QL@ wrote:
-> In article <20050723125427.GA11177@rama> (at Sat, 23 Jul 2005 08:54:27 -0400), Harald Welte <laforge@netfilter.org> says:
+Greg KH wrote:
+> On Fri, Jul 22, 2005 at 09:35:34AM +0200, Patrick McHardy wrote:
 > 
+>>Hi Dave,
+>>
+>>following are a couple of patches for 2.6.13. I've CCed
+>>stable@kernel.org on all patches that I think should also
+>>go in -stable.
 > 
->>--- a/include/linux/netlink.h
->>+++ b/include/linux/netlink.h
->>@@ -20,7 +20,7 @@
->> #define NETLINK_IP6_FW		13
->> #define NETLINK_DNRTMSG		14	/* DECnet routing messages */
->> #define NETLINK_KOBJECT_UEVENT	15	/* Kernel messages to userspace */
->>-#define NETLINK_TAPBASE		16	/* 16 to 31 are ethertap */
->>+#define NETLINK_W1		16	/* 16 to 31 are ethertap */
->> 
->> #define MAX_LINKS 32		
->> 
-> 
-> Comment says that 16-31 are used for ethertap.
-> So, probably assigh NETLINK_W1 at 32, and bump MAX_LINKS?
+> -stable only received 3 of these, is that correct?
 
-ethertap recently got removed, so reusing these values should be fine.
+Yes, the others fixed one unimportant bug and one bug introduced in
+2.6.13-rc.
+
+> I'll hold off on adding these to the queue until they go into mainline.
+> When that happens, could you please let us know?
+
+They just hit Linus's tree.
 
 Regards
 Patrick
