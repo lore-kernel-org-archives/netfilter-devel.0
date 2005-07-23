@@ -1,13 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER]: Kill ebt_ulog
-Date: Sat, 23 Jul 2005 04:38:42 +0200
-Message-ID: <42E1ADB2.1080109@trash.net>
+Subject: Re: [NETFILTER]: Kill ebt_ulog
+Date: Sat, 23 Jul 2005 04:40:51 +0200
+Message-ID: <42E1AE33.4000400@trash.net>
+References: <42E1ADB2.1080109@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090006020707030103060603"
+Content-Type: multipart/mixed; boundary="------------030803030109090104030604"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	bdschuym@pandora.be
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <42E1ADB2.1080109@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,13 +22,18 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090006020707030103060603
+--------------030803030109090104030604
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
+Patrick McHardy wrote:
+
+> [NETFILTER]: Kill ebt_ulog
+
+Oops, sorry, I forgot to remove the Makefile entry.
 
 
---------------090006020707030103060603
+--------------030803030109090104030604
 Content-Type: text/plain;
  name="x"
 Content-Transfer-Encoding: 7bit
@@ -43,15 +50,46 @@ of days, kill it.
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit a980554c9fbb31e7fe5bf3b4639b4d0d24a422fb
-tree c9eb95bbc8f410232ed9de56946db902c0bdb916
+commit e2200c9015e33a7619f856349dc883dbadae2ea6
+tree 1e91d9b3453addf227b9daf7f4f6496f8a5dd764
 parent 3aa13776ac25163f546d52cc990d194bbbb9120c
-author Patrick McHardy <kaber@trash.net> Sat, 23 Jul 2005 04:37:20 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 23 Jul 2005 04:37:20 +0200
+author Patrick McHardy <kaber@trash.net> Sat, 23 Jul 2005 04:39:57 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 23 Jul 2005 04:39:57 +0200
 
+ net/bridge/netfilter/Kconfig    |   13 --
+ net/bridge/netfilter/Makefile   |    1 
  net/bridge/netfilter/ebt_ulog.c |  295 ---------------------------------------
- 1 files changed, 0 insertions(+), 295 deletions(-)
+ 3 files changed, 0 insertions(+), 309 deletions(-)
 
+diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
+--- a/net/bridge/netfilter/Kconfig
++++ b/net/bridge/netfilter/Kconfig
+@@ -195,17 +195,4 @@ config BRIDGE_EBT_LOG
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config BRIDGE_EBT_ULOG
+-	tristate "ebt: ulog support"
+-	depends on BRIDGE_NF_EBTABLES
+-	help
+-	  This option adds the ulog watcher, that you can use in any rule
+-	  in any ebtables table. The packet is passed to a userspace
+-	  logging daemon using netlink multicast sockets. This differs
+-	  from the log watcher in the sense that the complete packet is
+-	  sent to userspace instead of a descriptive text and that
+-	  netlink multicast sockets are used instead of the syslog.
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ endmenu
+diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
+--- a/net/bridge/netfilter/Makefile
++++ b/net/bridge/netfilter/Makefile
+@@ -29,4 +29,3 @@ obj-$(CONFIG_BRIDGE_EBT_SNAT) += ebt_sna
+ 
+ # watchers
+ obj-$(CONFIG_BRIDGE_EBT_LOG) += ebt_log.o
+-obj-$(CONFIG_BRIDGE_EBT_LOG) += ebt_ulog.o
 diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
 deleted file mode 100644
 --- a/net/bridge/netfilter/ebt_ulog.c
@@ -353,4 +391,4 @@ deleted file mode 100644
 -MODULE_DESCRIPTION("ebtables userspace logging module for bridged Ethernet"
 -                   " frames");
 
---------------090006020707030103060603--
+--------------030803030109090104030604--
