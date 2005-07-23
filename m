@@ -1,18 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER]: Kill ebt_ulog
-Date: Sat, 23 Jul 2005 22:04:57 +0200
-Message-ID: <42E2A2E9.8050800@trash.net>
-References: <42E1ADB2.1080109@trash.net>	
-	<1122119412.4484.5.camel@localhost.localdomain>	
-	<42E267C8.9090005@trash.net>
-	<1122148193.3382.16.camel@localhost.localdomain>
+From: Sven Schuster <schuster.sven@gmx.de>
+Subject: Re: lockhelp.h missing
+Date: Sat, 23 Jul 2005 22:25:20 +0200
+Message-ID: <20050723202520.GA24962@zion.homelinux.com>
+References: <debc30fc050721223469bd79d6@mail.gmail.com>
+	<42E08A7A.6010204@trash.net>
+	<20050722125205.GA17750@zion.homelinux.com>
+	<debc30fc0507230238427b0290@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yrj/dFKFPuw6o+aM"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
-In-Reply-To: <1122148193.3382.16.camel@localhost.localdomain>
+To: =?iso-8859-1?B?Suly9G1l?= Poulin <jeromepoulin@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <debc30fc0507230238427b0290@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,43 +25,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Bart De Schuymer wrote:
-> Op za, 23-07-2005 te 17:52 +0200, schreef Patrick McHardy:
-> 
->>The upcoming code will be a generic replacement, so there's no need to
->>have ipt_ULOG/ebt_ulog except for backwards compatiblity reasons.
->>Is there actually a userspace daemon for ebt_ulog? In any case it makes
->>little sense to allocate a new netlink number for ebt_ulog since it
->>will break userspace compatiblity anyway.
-> 
-> I wrote an example (see the ebtables CVS) that receives the netlink
-> messages and prints out data for ping requests and replies.
-> Gustavo Carneiro released some Perl code that handles the netlink
-> messages (see http://ebtables.sourceforge.net/examples.html#easy). There
-> is no full-blown full-featured daemon, I don't think that's always what
-> people want anyway.
-> What mechanism will let the user decide which packets should be sent to
-> userspace? I think it would be a bad thing if {ip,eb}tables could no
-> longer be used for that (it's not just backwards compatibility).
 
-The QUEUE target will get a queue-number argument. Userspace can
-register for different queues using netlink messages. All this
-will be handled by the core to we don't need ipt_ULOG/ebt_ulog
-anymore.
+--yrj/dFKFPuw6o+aM
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> I think changing the netlink number is a lot less drastic w.r.t.
-> userspace compatibility than bluntly removing ebt_ulog. Perhaps it's my
-> awful memory, but I seem to remember that ipt_ULOG and ebt_ulog could be
-> used together. Anyway, it's sad that they can't share NETLINK_NFLOG,
-> differentiation between both message flows is easily accomplished by the
-> user with using a different netlink group number (but this issue should
-> be fixed by the generic implementation).
 
-The problem is that we can't create two kernel sockets for the same
-netlink family. Netlink families are a scarce resource, so I don't think
-it makes much sense to waste another one for a soon (couple of days)
-deprecated mechanism. I propose to continue this discussion once the
-new code is there, so we can see if it fits your needs.
+Hi J=E9r=F4me,
 
-Regards
-Patrick
+On Sat, Jul 23, 2005 at 05:38:23AM -0400, J=E9r=F4me Poulin told us:
+> Thanks, MMS compiled without any error or warning, h323 still misses
+> the file on its side.
+
+hmm...I can take a look at h323, I'll post a patch either later tonight
+or somewhen tomorrow. Have you already been able to verify that at least
+the updated mms-conntrack-nat works??
+
+
+Kind regards,
+
+Sven
+
+--=20
+Linux zion 2.6.13-rc3-mm1 #6 PREEMPT Mon Jul 18 19:42:52 CEST 2005 i686 ath=
+lon i386 GNU/Linux
+ 22:21:23 up 1 day,  5:31,  2 users,  load average: 0.02, 0.01, 0.00
+
+--yrj/dFKFPuw6o+aM
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQFC4qewo4FAdB2PneQRAtADAJ9ohEqllRuKJ7+1cGa/qVL56/XJRACeO5pL
+piDi6kRA1HfR6opuYPWPG54=
+=2SB7
+-----END PGP SIGNATURE-----
+
+--yrj/dFKFPuw6o+aM--
