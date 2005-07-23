@@ -1,15 +1,19 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: (was Re: [PATCH] 1 Wire drivers illegally overload NETLINK_NFLOG)
- Fw: Mail delivery failed: returning message to sender
-Date: Sun, 24 Jul 2005 19:21:59 -0700 (PDT)
-Message-ID: <20050724.192159.107919635.davem@davemloft.net>
+From: Marcel Holtmann <marcel@holtmann.org>
+Subject: Re: [PATCH] reduce netfilte sk_buff enlargement
+Date: Sat, 23 Jul 2005 03:36:20 +0200
+Message-ID: <1122082580.5878.3.camel@notepaq>
+References: <1121989791.5892.8.camel@notepaq>
+	<20050721.165207.35016196.davem@davemloft.net>
+	<1121991994.5892.15.camel@notepaq>
+	<20050722.155411.32722751.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Sun_Jul_24_19_21_59_2005_304)--"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: laforge@netfilter.org, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org, wensong@linux-vs.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: linux-kernel@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20050722.155411.32722751.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,82 +25,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Sun_Jul_24_19_21_59_2005_304)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Hi David,
 
+> > I found the problem. The hci_usb is using the cb[] by itself and so
+> > overwriting the pkt_type value. The attached patch works for me with the
+> > hci_usb driver. However I haven't converted all other drivers and
+> > checked them. This won't happen until I am back home, because I don't
+> > have any of these devices with me around. However it looks like this
+> > seems to work without any problems.
+> 
+> Great.  I'll wait until you get back and code up an updated
+> patch that takes care of all of the drivers.
 
-Well, this may be the reason why Evgeniy thinks nobody
-has any concrete objections to his connector layer :-(
+actually the patch is ready by now and hci_usb and hci_vhci are tested.
+The tests for the other drivers have to wait at least until first week
+of August. However since it seems to work even with 2.6.13-rc3, I don't
+see any reason to wait with the inclusion. If you are serious with the
+shrinking of the sk_buff, I can send you the final patch along with my
+pending patches for 2.6.13.
 
-----Next_Part(Sun_Jul_24_19_21_59_2005_304)--
-Content-Type: Message/Rfc822
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Regards
 
-Return-path: <>
-Envelope-to: davem@davemloft.net
-Delivery-date: Sun, 24 Jul 2005 19:18:01 -0700
-Received: from Debian-exim by sunset.davemloft.net with local (Exim 4.52)
-	id 1DwsXZ-0007ps-1u
-	for davem@davemloft.net; Sun, 24 Jul 2005 19:18:01 -0700
-X-Failed-Recipients: johnpol@2ka.mipt.ru
-Auto-Submitted: auto-generated
-From: Mail Delivery System <Mailer-Daemon@sunset.davemloft.net>
-To: davem@davemloft.net
-Subject: Mail delivery failed: returning message to sender
-Message-Id: <E1DwsXZ-0007ps-1u@sunset.davemloft.net>
-Date: Sun, 24 Jul 2005 19:18:01 -0700
-
-This message was created automatically by mail delivery software.
-
-A message that you sent could not be delivered to one or more of its
-recipients. This is a permanent error. The following address(es) failed:
-
-  johnpol@2ka.mipt.ru
-    SMTP error from remote mail server after initial connection:
-    host mailer.campus.mipt.ru [194.85.82.4]: 554 mailer.campus.mipt.ru ESMTP not accepting messages
-
------- This is a copy of the message, including all the headers. ------
-
-Return-path: <davem@davemloft.net>
-Received: from localhost ([127.0.0.1] ident=davem)
-	by sunset.davemloft.net with esmtp (Exim 4.52)
-	id 1DwsXV-0007pe-24; Sun, 24 Jul 2005 19:17:57 -0700
-Date: Sun, 24 Jul 2005 19:17:56 -0700 (PDT)
-Message-Id: <20050724.191756.105797967.davem@davemloft.net>
-To: johnpol@2ka.mipt.ru
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
- linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] 1 Wire drivers illegally overload NETLINK_NFLOG
-From: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20050723091455.GA12015@2ka.mipt.ru>
-References: <20050723125427.GA11177@rama>
-	<20050723091455.GA12015@2ka.mipt.ru>
-X-Mailer: Mew version 4.2 on Emacs 21.4 / Mule 5.0 (SAKAKI)
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Date: Sat, 23 Jul 2005 13:14:55 +0400
-
-> Andrew has no objection against connector and it lives in -mm
-
-A patch sitting in -mm has zero significance.  A lot of junk
-and useless things end up there as often Andrew incorporates
-just about every single patch he sees posted to linux-kernel
-unless he personally knows of some reason why the change might
-be wrong.
-
-So "it's in -mm" is not a metric to use.
-
-> All objections against it was only type of - "I do not like it"
-> Dmitry had some bugfixes which were added.
-
-People like James Morris had very specific objections about it.
-
-You are a control freak and in general very very difficult to work
-with, so nobody wants to help you fix things up.
-
-----Next_Part(Sun_Jul_24_19_21_59_2005_304)----
+Marcel
