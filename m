@@ -1,13 +1,15 @@
-From: "Gilles Espinasse" <g.esp@free.fr>
-Subject: nf-log patch fail to apply on 2.4.31 : solution
-Date: Sat, 23 Jul 2005 12:10:28 +0200
-Message-ID: <024201c58f6e$c09ebc10$f9b5a8c0@PII350>
+From: Venkata Narayana <mesg2nari@yahoo.com>
+Subject: Re: REDIRECT changes DST address of the packet
+Date: Sun, 24 Jul 2005 21:54:09 -0700 (PDT)
+Message-ID: <20050725045409.35744.qmail@web60823.mail.yahoo.com>
+References: <Pine.LNX.4.61.0506301308290.3095@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0506301308290.3095@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,38 +21,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I try with pach-o-matic-20050716 and the last one available 20050722 on a
-2.4.31 kernel without any other patches.
+Hi,
 
-When used with
- ./runme --kernel-path=../linux-2.4.31 --iptables-path=../iptables-1.2.11/
-pending
-- everything until nf-log apply without problem
-- with nf-log, test work but patch fail related to netfilter_logging.h
+Thanks,
+I am able to get the original dst address when I am
+using tcp connection.
+How can I get with UDP???
+I my case of UDP we bind to single
+fd and all packets irrespective of original
+destination get delivered to same fd.
 
-> The functionality relies on the available "backend" logging
-> modules (ipt_LOG or ipt_ULOG). At least one of the logging
-> modules must be loaded in, otherwise no log will be generated.
-> If both modules are available in the kernel, then the firstly
-> registered (loaded) will handle the logging.
-> -----------------------------------------------------------------
-> Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] t
-> Patch nf-log applies cleanly
-> -----------------------------------------------------------------
-> Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
-> ERROR (1 rejects out of 23 hunks)
->
-manually applying the patch inside linux directory work
-patch -Np1 < ../patch-o-matic-ng-20050716/patchlets/nf-log/linux-2.4.patch
+Thanks,
+Venkat.
 
-Reason of failure is because netfilter_logging.h is present as a file under
-patchlets/nf-log/include/linux-2.4/netfilter_logging.h and inside
-linux-2.4.patch
-Remove one on the 2 occurences and it work.
-I remove patchlets/nf-log/linux-2.4/include/linux/netfilter_logging.h
-because it was the easiest for me.
 
-Next ownercmd (now include in pending but not in my old 20040621 version)
-fail to apply, I remove it too
+--- Jan Engelhardt <jengelh@linux01.gwdg.de> wrote:
 
-Gilles
+> >Hello,
+> > 
+> >My question is if I use REDIRECT action in
+> >NAT PREROUTING table  is it going to change the tcp
+> >packet DST address.
+> > 
+> >If I lose original DST address, how can I persist
+> >that value in that packet.
+> 
+> You can't really with PREROUTING (except of course,
+> said getsockopt() call)
+> If you want to transparently redirect packets, you
+> might want to use ROUTE or 
+> TPROXY, depending on what you really want.
+> 
+> 
+> 
+> Jan Engelhardt                                      
+>                         
+> --                                                  
+>                          
+> | Gesellschaft fuer Wissenschaftliche
+> Datenverarbeitung Goettingen,
+> | Am Fassberg, 37077 Goettingen, www.gwdg.de
+> 
+
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
