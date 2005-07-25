@@ -1,16 +1,15 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [NETFILTER]: Fix unresolved symbol __nfa_fill when nfnetlink
- is not compiled in
-Date: Mon, 25 Jul 2005 16:40:26 -0700 (PDT)
-Message-ID: <20050725.164026.11077562.davem@davemloft.net>
-References: <42E1D9DF.7050908@trash.net>
+Subject: Re: [NETFILTER]: Clear padding area in __nfa_fill
+Date: Mon, 25 Jul 2005 16:40:49 -0700 (PDT)
+Message-ID: <20050725.164049.110141464.davem@davemloft.net>
+References: <42E1E143.9000902@trash.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: kaber@trash.net
-In-Reply-To: <42E1D9DF.7050908@trash.net>
+In-Reply-To: <42E1E143.9000902@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,9 +22,9 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
-Date: Sat, 23 Jul 2005 07:47:11 +0200
+Date: Sat, 23 Jul 2005 08:18:43 +0200
 
-> [NETFILTER]: Fix unresolved symbol __nfa_fill when nfnetlink is not compiled in
+> [NETFILTER]: Clear padding area in __nfa_fill
 > 
 > Signed-off-by: Patrick McHardy <kaber@trash.net>
 
