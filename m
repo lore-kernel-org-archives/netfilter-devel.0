@@ -1,19 +1,14 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: Re: Netlink connector
-Date: Mon, 25 Jul 2005 11:06:04 +0400
-Message-ID: <20050725070603.GA28023@2ka.mipt.ru>
-References: <20050723125427.GA11177@rama> <20050723091455.GA12015@2ka.mipt.ru>
-	<20050724.191756.105797967.davem@davemloft.net>
-	<Lynx.SEL.4.62.0507250154000.21934@thoron.boston.redhat.com>
+From: Robert de Bath <list-netfilter@debath.co.uk>
+Subject: Re: expire module issue
+Date: Mon, 25 Jul 2005 08:54:05 +0100 (BST)
+Message-ID: <6e64e704791f94fb@mayday.cix.co.uk>
+References: <20050706173023.GA3586@rover.pcbi.upenn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=koi8-r
-Cc: Andrew Morton <akpm@osdl.org>, Harald Welte <laforge@netfilter.org>,
-	netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org, netdev@redhat.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: James Morris <jmorris@redhat.com>
-Content-Disposition: inline
-In-Reply-To: <Lynx.SEL.4.62.0507250154000.21934@thoron.boston.redhat.com>
+To: Bryan Cardillo <dillo@seas.upenn.edu>
+In-Reply-To: <20050706173023.GA3586@rover.pcbi.upenn.edu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,35 +20,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jul 25, 2005 at 02:02:10AM -0400, James Morris (jmorris@redhat.com) wrote:
-> On Sun, 24 Jul 2005, David S. Miller wrote:
-> >From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-> >Date: Sat, 23 Jul 2005 13:14:55 +0400
-> >
-> >>Andrew has no objection against connector and it lives in -mm
-> >
-> >A patch sitting in -mm has zero significance.
+On Wed, 6 Jul 2005, Bryan Cardillo wrote:
 
-That is why I'm asking netdev@ people again...
+>        I'm having a problem with the expire module I submitted a
+>        few days (weeks, maybe?) ago.  The observed behavior is that
+>        expired rules cannot be deleted from built-in chains.  I
+>        think the issue is related to deleting a rule (ipt_entry)
+>        without fixing hook_entry / underflow to reflect the deleted
+>        rule.
+...
+>        I've been using the iptables libiptc code as a guide for
+>        implementing the rule deletion, but since this is strictly a
+>        deletion, I'd rather not put the entire ruleset parsing and
+>        compilation code in the kernel ;)  Any ideas how I can patch
+>        up hook_entry / underflow appropriately?  Is this even the
+>        problem?
 
-> The significance I think is that Andrew is trying to gently encourage some 
-> further progress in the area.
->
-> I recall some netconf discussion about TIPC over Netlink, or more likely a 
-> variation thereof, which may be a better way forward.
-> 
-> It's cool stuff http://tipc.sourceforge.net/
+Oh my, I've been just _looking_ at that library recently and I think this
+way of modifing the tables is a very bad idea. IMO it's very similar to 
+doing a binary patch on an executable, not something to be attempted in 
+kernel space.
 
-I read it quite long ago - I'm sure you do not want to use that monster
-for event bus.
-It was designed and implemented for heavy intermachine communications,
-and it is quite hard to setup for userspace <-> kernelspace message bus.
+I would suggest you don't even try. :-)
 
-> 
-> - James
-> -- 
-> James Morris
-> <jmorris@redhat.com>
+Instead, how about leaving the rule behind in the table but when it
+expires add an IPT_F_UNMATCHABLE flag to the rule (in ipt_entry.ip.flags)
+The next time iptables is used to modify the table have _it_ skip the 
+rule and delete it for you.
+
+That should be the only cost and as a normal 'use case' would have new
+rules being added steadly the undeleted expired rules would be purged
+pretty quickly.
+
+An advantage would be that until that next modify you could still see
+the counters on expired rules. (Plus no fixups of course :)
+
+PS: You won't lke this, but, it appears possible to have calls jumping
+     to the middle of a chain. I'd guess that's what the 'high performance'
+     rule generating programs do. This makes it _exactly_ like an
+     executable; you can strip symbols too!
 
 -- 
-	Evgeniy Polyakov
+Rob.                          (Robert de Bath <robert$ @ debath.co.uk>)
+                                              <http://www.debath.co.uk/>
