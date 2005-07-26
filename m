@@ -1,20 +1,16 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: Re: Netlink connector
-Date: Tue, 26 Jul 2005 13:01:14 +0400
-Message-ID: <20050726090114.GA870@2ka.mipt.ru>
-References: <20050723125427.GA11177@rama> <20050723091455.GA12015@2ka.mipt.ru>
-	<20050724.191756.105797967.davem@davemloft.net>
-	<Lynx.SEL.4.62.0507250154000.21934@thoron.boston.redhat.com>
-	<20050726084214.GG7925@rama>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: REDIRECT changes DST address of the packet
+Date: Tue, 26 Jul 2005 11:31:35 +0200
+Message-ID: <1122370295.24626.10.camel@nienna.balabit>
+References: <20050725045409.35744.qmail@web60823.mail.yahoo.com>
+	<42E57CE5.4070202@trash.net>  <42E581D4.10402@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=koi8-r
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>, James Morris <jmorris@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@osdl.org>, netdev@redhat.com
-Content-Disposition: inline
-In-Reply-To: <20050726084214.GG7925@rama>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42E581D4.10402@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,41 +22,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jul 26, 2005 at 04:42:14AM -0400, Harald Welte (laforge@netfilter.org) wrote:
-> On Mon, Jul 25, 2005 at 02:02:10AM -0400, James Morris wrote:
-> > On Sun, 24 Jul 2005, David S. Miller wrote:
-> > >From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-> > >Date: Sat, 23 Jul 2005 13:14:55 +0400
-> > >>Andrew has no objection against connector and it lives in -mm
-> > >A patch sitting in -mm has zero significance.
-> > 
-> > The significance I think is that Andrew is trying to gently encourage some 
-> > further progress in the area.
-> 
-> Patrick McHardy is currently working on some ideas on how to extend
-> netlink.
-> 
-> The fundamental problem that the connector is trying to solve:
-> 
-> 1) provide more 'groups' (to transport more different kinds of events)
-> 2) provide an abstract API for other kernel code, so it doesn't have to
->    know anything about skb's or networking.
-> 
-> IMHO issue number '1' should (and can) be adressed within netlink.  Wait
-> for Patrick's work on this to show up on netdev.  We can then think
-> whether the connctor API (or something similar) can be put on top of it.
 
-Fair enough.
-Let's do it this way.
+  Hi,
 
-> -- 
-> - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-> ============================================================================
->   "Fragmentation is like classful addressing -- an interesting early
->    architectural error that shows how much experimentation was going
->    on while IP was being designed."                    -- Paul Vixie
+2005-07-26, k keltez=E9ssel 02.20-kor Patrick McHardy ezt =EDrta:
+> >> I am able to get the original dst address when I am
+> >> using tcp connection.
+> >> How can I get with UDP???
+> >=20
+> > Does this patch help? It should make SO_ORIGINAL_DST usable
+> > with UDP as well.
+> >=20
+> > diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfil=
+ter/ip_conntrack_core.c
+> > --- a/net/ipv4/netfilter/ip_conntrack_core.c
+> > +++ b/net/ipv4/netfilter/ip_conntrack_core.c
+> > @@ -1310,9 +1310,8 @@ getorigdst(struct sock *sk, int optval,=20
+> >  	tuple.dst.u.tcp.port =3D inet->dport;
+> >  	tuple.dst.protonum =3D IPPROTO_TCP;
 
+  Patrick, I'm afraid this is not enough for a full-featured UDP
+solution. If you're using a single socket to receive UDP packets sent to
+multiple original addresses this approach simply fails. A better
+solution would require receiving the original destination address in a
+per-packet manner.
 
+  We're using something similar as part of the transparent proxying
+patchset, but unfortunately this requires enlarging the skb and is a
+little hackish. The patch introduces an IP_RECVORIGADDRS socket option.
+If you enable this sockopt on a UDP socket, then recvmsg() will return
+the original addresses as a control message.
 
--- 
-	Evgeniy Polyakov
+--=20
+ Regards,
+  Krisztian Kovacs
