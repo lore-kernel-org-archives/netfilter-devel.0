@@ -1,10 +1,10 @@
 From: Sven Schuster <schuster.sven@gmx.de>
-Subject: [PATCH 1/3] pom-ng: update mms-conntrack-nat for 2.6.12
-Date: Tue, 26 Jul 2005 21:04:14 +0200
-Message-ID: <20050726190414.GA2036@zion.homelinux.com>
+Subject: [PATCH 3/3] pom-ng: update sip-conntrack-nat for 2.6.12
+Date: Tue, 26 Jul 2005 21:05:19 +0200
+Message-ID: <20050726190519.GA2128@zion.homelinux.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ftEhullJWpWg/VHq"
+	protocol="application/pgp-signature"; boundary="wzJLGUyc3ArbnUjN"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -20,12 +20,12 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---ftEhullJWpWg/VHq
-Content-Type: multipart/mixed; boundary="KsGdsel6WgEHnImy"
+--wzJLGUyc3ArbnUjN
+Content-Type: multipart/mixed; boundary="6TrnltStXW4iwmi0"
 Content-Disposition: inline
 
 
---KsGdsel6WgEHnImy
+--6TrnltStXW4iwmi0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
@@ -33,11 +33,11 @@ Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-the attached patch updates the mms-conntrack-nat patchlet in pom-ng
+the attached patch updates the sip-conntrack-nat patchlet in pom-ng
 for 2.6.12.
 
-Compile-tested by J=E9r=F4me Poulin and me on 2.6.13-rc3-mm1, functionality
-tested by J=E9r=F4me, works.
+Compile-tested by me on 2.6.13-rc3-mm1, I haven't been able to verify
+the functionality, but at least the module loads :-)
 
 
 Regards,
@@ -48,116 +48,117 @@ Sven
 --=20
 Linux zion 2.6.13-rc3-mm1 #12 PREEMPT Sun Jul 24 02:04:45 CEST 2005 i686 at=
 hlon i386 GNU/Linux
- 21:03:54 up 1 day, 21:13,  1 user,  load average: 0.47, 0.70, 0.35
+ 21:05:06 up 1 day, 21:14,  1 user,  load average: 0.30, 0.58, 0.33
 
---KsGdsel6WgEHnImy
+--6TrnltStXW4iwmi0
 Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: attachment; filename="mms.patch"
+Content-Disposition: attachment; filename="sip.patch"
 Content-Transfer-Encoding: quoted-printable
 
-diff -Nrup --exclude=3D.svn pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.=
-6.12/include/linux/netfilter_ipv4/ip_conntrack.h.ladd pom-ng-edit/patchlets=
-/mms-conntrack-nat/linux-2.6.12/include/linux/netfilter_ipv4/ip_conntrack.h=
-=2Eladd
---- pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.6.12/include/linux/netfi=
-lter_ipv4/ip_conntrack.h.ladd	1970-01-01 01:00:00.000000000 +0100
-+++ pom-ng-edit/patchlets/mms-conntrack-nat/linux-2.6.12/include/linux/netf=
-ilter_ipv4/ip_conntrack.h.ladd	2005-07-03 22:40:06.000000000 +0200
-@@ -0,0 +1,2 @@
-+	/* insert conntrack helper private data (master) here */
-+	struct ip_ct_mms_master ct_mms_info;
-diff -Nrup --exclude=3D.svn pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.=
-6.12/include/linux/netfilter_ipv4/ip_conntrack.h.ladd_2 pom-ng-edit/patchle=
-ts/mms-conntrack-nat/linux-2.6.12/include/linux/netfilter_ipv4/ip_conntrack=
-=2Eh.ladd_2
---- pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.6.12/include/linux/netfi=
-lter_ipv4/ip_conntrack.h.ladd_2	1970-01-01 01:00:00.000000000 +0100
-+++ pom-ng-edit/patchlets/mms-conntrack-nat/linux-2.6.12/include/linux/netf=
-ilter_ipv4/ip_conntrack.h.ladd_2	2005-07-03 22:40:06.000000000 +0200
-@@ -0,0 +1,2 @@
-+/* Add protocol helper include file here */
-+#include <linux/netfilter_ipv4/ip_conntrack_mms.h>
-diff -Nrup --exclude=3D.svn pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.=
-6.12/include/linux/netfilter_ipv4/ip_conntrack_mms.h pom-ng-edit/patchlets/=
-mms-conntrack-nat/linux-2.6.12/include/linux/netfilter_ipv4/ip_conntrack_mm=
-s.h
---- pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.6.12/include/linux/netfi=
-lter_ipv4/ip_conntrack_mms.h	1970-01-01 01:00:00.000000000 +0100
-+++ pom-ng-edit/patchlets/mms-conntrack-nat/linux-2.6.12/include/linux/netf=
-ilter_ipv4/ip_conntrack_mms.h	2005-07-22 14:02:32.000000000 +0200
-@@ -0,0 +1,36 @@
-+#ifndef _IP_CONNTRACK_MMS_H
-+#define _IP_CONNTRACK_MMS_H
-+/* MMS tracking. */
+diff -Nrup --exclude=3D.svn pom-ng-svn/patchlets/sip-conntrack-nat/linux-2.=
+6.12/include/linux/netfilter_ipv4/ip_conntrack_sip.h pom-ng-sip/patchlets/s=
+ip-conntrack-nat/linux-2.6.12/include/linux/netfilter_ipv4/ip_conntrack_sip=
+=2Eh
+--- pom-ng-svn/patchlets/sip-conntrack-nat/linux-2.6.12/include/linux/netfi=
+lter_ipv4/ip_conntrack_sip.h	1970-01-01 01:00:00.000000000 +0100
++++ pom-ng-sip/patchlets/sip-conntrack-nat/linux-2.6.12/include/linux/netfi=
+lter_ipv4/ip_conntrack_sip.h	2005-07-03 22:40:24.000000000 +0200
+@@ -0,0 +1,78 @@
++#ifndef __IP_CONNTRACK_SIP_H__
++#define __IP_CONNTRACK_SIP_H__
++/* SIP tracking. */
 +
 +#ifdef __KERNEL__
 +
-+extern spinlock_t ip_mms_lock;
++#define SIP_PORT	5060
++#define SIP_TIMEOUT	3600
 +
-+#define MMS_PORT                         1755
-+#define MMS_SRV_MSG_ID                   196610
++#define POS_VIA		0
++#define POS_CONTACT	1
++#define POS_CONTENT	2
++#define POS_MEDIA	3
++#define POS_OWNER	4
++#define POS_CONECTION	5
++#define POS_REQ_HEADER	6
++#define POS_SDP_HEADER	7
 +
-+#define MMS_SRV_MSG_OFFSET               36
-+#define MMS_SRV_UNICODE_STRING_OFFSET    60
-+#define MMS_SRV_CHUNKLENLV_OFFSET        16
-+#define MMS_SRV_CHUNKLENLM_OFFSET        32
-+#define MMS_SRV_MESSAGELENGTH_OFFSET     8
++struct sip_header_nfo {
++	const char *lname;
++	size_t lnlen;
++	const char *sname;
++	size_t snlen;
++	const char *ln_str;
++	size_t ln_strlen;
++	int (*match_len)(const char *, const char *, int *);
 +
-+/* This structure is per expected connection */
-+struct ip_ct_mms_expect {
-+	u_int32_t offset;
-+	u_int32_t len;
-+	u_int32_t padding;
-+	u_int16_t port;
 +};
 +
-+/* This structure exists only once per master */
-+struct ip_ct_mms_master {
-+};
++extern unsigned int (*ip_nat_sip_hook)(struct sk_buff **pskb,=20
++				enum ip_conntrack_info ctinfo,
++				struct ip_conntrack *ct,
++				const char **dptr);
++			=09
++/* For NAT to hook in when on expect. */
++extern unsigned int (*ip_nat_sdp_hook)(struct sk_buff **pskb,=20
++				enum ip_conntrack_info ctinfo,
++				struct ip_conntrack_expect *exp,
++				const char *dptr);
 +
-+struct ip_conntrack_expect;
-+extern unsigned int (*ip_nat_mms_hook)(struct sk_buff **pskb,
-+				       enum ip_conntrack_info ctinfo,
-+				       const struct ip_ct_mms_expect *exp_mms_info,
-+				       struct ip_conntrack_expect *exp);
-+#endif
-+#endif /* _IP_CONNTRACK_MMS_H */
-diff -Nrup --exclude=3D.svn pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.=
-6.12/net/ipv4/netfilter/ip_conntrack_mms.c pom-ng-edit/patchlets/mms-conntr=
-ack-nat/linux-2.6.12/net/ipv4/netfilter/ip_conntrack_mms.c
---- pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.6.12/net/ipv4/netfilter/=
-ip_conntrack_mms.c	1970-01-01 01:00:00.000000000 +0100
-+++ pom-ng-edit/patchlets/mms-conntrack-nat/linux-2.6.12/net/ipv4/netfilter=
-/ip_conntrack_mms.c	2005-07-22 10:32:22.000000000 +0200
-@@ -0,0 +1,352 @@
-+/* MMS extension for IP connection tracking
-+ * (C) 2002 by Filip Sneppe <filip.sneppe@cronos.be>
-+ * based on ip_conntrack_ftp.c and ip_conntrack_irc.c
++extern int ct_sip_get_info(const char *dptr, size_t dlen,=20
++				unsigned int *matchoff,=20
++				unsigned int *matchlen,=20
++				struct sip_header_nfo *hnfo);
++
++/* get line lenght until first CR or LF seen. */
++static __inline__ int ct_sip_lnlen(const char *line, const char *limit)
++{
++        const char *k =3D line;
++
++        while ((line <=3D limit) && (*line =3D=3D '\r' || *line =3D=3D '\n=
+'))
++                line++;
++
++        while (line <=3D limit) {
++                if (*line =3D=3D '\r' || *line =3D=3D '\n')
++                        break;
++                line++;
++        }
++        return line - k;
++}
++
++/* Linear string search, case sensitive. */
++static __inline__=20
++const char *ct_sip_search(const char *needle, const char *haystack,=20
++			size_t needle_len, size_t haystack_len)=20
++{
++	const char *limit =3D haystack + (haystack_len - needle_len);
++
++	while (haystack <=3D limit) {
++		if (memcmp(haystack, needle, needle_len) =3D=3D 0)
++			return haystack;
++		haystack++;
++	}
++	return NULL;
++}
++#endif /* __KERNEL__ */
++
++#endif /* __IP_CONNTRACK_SIP_H__ */
+diff -Nrup --exclude=3D.svn pom-ng-svn/patchlets/sip-conntrack-nat/linux-2.=
+6.12/net/ipv4/netfilter/ip_conntrack_sip.c pom-ng-sip/patchlets/sip-conntra=
+ck-nat/linux-2.6.12/net/ipv4/netfilter/ip_conntrack_sip.c
+--- pom-ng-svn/patchlets/sip-conntrack-nat/linux-2.6.12/net/ipv4/netfilter/=
+ip_conntrack_sip.c	1970-01-01 01:00:00.000000000 +0100
++++ pom-ng-sip/patchlets/sip-conntrack-nat/linux-2.6.12/net/ipv4/netfilter/=
+ip_conntrack_sip.c	2005-07-24 01:33:51.000000000 +0200
+@@ -0,0 +1,407 @@
++/* SIP extension for IP connection tracking.
 + *
-+ * ip_conntrack_mms.c v0.3 2002-09-22
++ * (C) 2005 by Christian Hentschel <chentschel@arnet.com.ar>
++ * based on RR's ip_conntrack_ftp.c and other modules.
 + *
-+ *      This program is free software; you can redistribute it and/or
-+ *      modify it under the terms of the GNU General Public License
-+ *      as published by the Free Software Foundation; either version
-+ *      2 of the License, or (at your option) any later version.
-+ *
-+ *      Module load syntax:
-+ *      insmod ip_conntrack_mms.o ports=3Dport1,port2,...port<MAX_PORTS>
-+ *
-+ *      Please give the ports of all MMS servers You wish to connect to.
-+ *      If you don't specify ports, the default will be TCP port 1755.
-+ *
-+ *      More info on MMS protocol, firewalls and NAT:
-+ *      http://msdn.microsoft.com/library/default.asp?url=3D/library/en-us=
-/dnwmt/html/MMSFirewall.asp
-+ *      http://www.microsoft.com/windows/windowsmedia/serve/firewall.asp
-+ *
-+ *      The SDP project people are reverse-engineering MMS:
-+ *      http://get.to/sdp
-+ *
-+ *  2005-02-13: Harald Welte <laforge@netfilter.org>
-+ *  	- port to 2.6.x
-+ *  	- update to work with post 2.6.11 helper API changes
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
 +#include <linux/config.h>
@@ -166,287 +167,352 @@ ip_conntrack_mms.c	1970-01-01 01:00:00.000000000 +0100
 +#include <linux/ip.h>
 +#include <linux/ctype.h>
 +#include <net/checksum.h>
-+#include <net/tcp.h>
++#include <net/udp.h>
 +
 +#include <linux/netfilter_ipv4/ip_conntrack_helper.h>
-+#include <linux/netfilter_ipv4/ip_conntrack_mms.h>
++#include <linux/netfilter_ipv4/ip_conntrack_sip.h>
 +
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Christian Hentschel <chentschel@arnet.com.ar>");
++MODULE_DESCRIPTION("SIP connection tracking helper");
 +
-+#define MAX_PORTS 8
++static DEFINE_SPINLOCK(sipbf_lock);
++
++#define MAX_PORTS	8
 +static int ports[MAX_PORTS];
 +static int ports_c;
 +module_param_array(ports, int, &ports_c, 0400);
-+MODULE_PARM_DESC(ports, "port numbers of MMS");
++MODULE_PARM_DESC(ports, " port numbers of sip servers");
 +
-+static char mms_buffer[65536];
-+static DEFINE_SPINLOCK(mms_buffer_lock);
++static unsigned int sip_timeout =3D SIP_TIMEOUT;
 +
-+unsigned int (*ip_nat_mms_hook)(struct sk_buff **pskb,
++module_param(sip_timeout, int, 0600);
++MODULE_PARM_DESC(sip_timeout, "timeout for the master sip session");
++
++unsigned int (*ip_nat_sip_hook)(struct sk_buff **pskb,=20
 +				enum ip_conntrack_info ctinfo,
-+				const struct ip_ct_mms_expect *exp_mms_info,
-+				struct ip_conntrack_expect *exp);
-+EXPORT_SYMBOL(ip_nat_mms_hook);
++				struct ip_conntrack *ct,
++				const char **dptr);
++EXPORT_SYMBOL_GPL(ip_nat_sip_hook);
++			=09
++unsigned int (*ip_nat_sdp_hook)(struct sk_buff **pskb,=20
++				enum ip_conntrack_info ctinfo,
++				struct ip_conntrack_expect *exp,
++				const char *dptr);
++EXPORT_SYMBOL_GPL(ip_nat_sdp_hook);
 +
-+#if 0=20
++int ct_sip_get_info(const char *dptr, size_t dlen,=20
++				unsigned int *matchoff,=20
++				unsigned int *matchlen,=20
++				struct sip_header_nfo *hnfo);
++EXPORT_SYMBOL(ct_sip_get_info);
++
++#if 0
 +#define DEBUGP printk
 +#else
 +#define DEBUGP(format, args...)
 +#endif
 +
-+MODULE_AUTHOR("Filip Sneppe <filip.sneppe@cronos.be>");
-+MODULE_DESCRIPTION("Microsoft Windows Media Services (MMS) connection trac=
-king module");
-+MODULE_LICENSE("GPL");
++static int digits_len(const char *dptr, const char *limit, int *shift);
++static int epaddr_len(const char *dptr, const char *limit, int *shift);
++static int skp_digits_len(const char *dptr, const char *limit, int *shift);
++static int skp_epaddr_len(const char *dptr, const char *limit, int *shift);
 +
-+/* #define isdigit(c) (c >=3D '0' && c <=3D '9') */
-+
-+/* copied from drivers/usb/serial/io_edgeport.c - not perfect but will do =
-the trick */
-+static void unicode_to_ascii (char *string, short *unicode, int unicode_si=
-ze)
-+{
-+	int i;
-+	for (i =3D 0; i < unicode_size; ++i) {
-+		string[i] =3D (char)(unicode[i]);
++struct sip_header_nfo ct_sip_hdrs[] =3D {
++	{ 	/* Via header */
++		"Via:",		sizeof("Via:") - 1,
++		"\r\nv:",	sizeof("\r\nv:") - 1, /* rfc3261 "\r\n" */
++		"UDP ", 	sizeof("UDP ") - 1,
++		epaddr_len
++	},
++	{ 	/* Contact header */
++		"Contact:",	sizeof("Contact:") - 1,
++		"\r\nm:",	sizeof("\r\nm:") - 1,
++		"sip:",		sizeof("sip:") - 1,
++		skp_epaddr_len
++	},
++	{ 	/* Content length header */
++		"Content-Length:", sizeof("Content-Length:") - 1,
++		"\r\nl:",	sizeof("\r\nl:") - 1,
++		":",		sizeof(":") - 1,=20
++		skp_digits_len
++	},
++	{	/* SDP media info */
++		"\nm=3D",		sizeof("\nm=3D") - 1,=09
++		"\rm=3D",		sizeof("\rm=3D") - 1,
++		"audio ",	sizeof("audio ") - 1,
++		digits_len
++	},
++	{ 	/* SDP owner address*/=09
++		"\no=3D",		sizeof("\no=3D") - 1,=20
++		"\ro=3D",		sizeof("\ro=3D") - 1,
++		"IN IP4 ",	sizeof("IN IP4 ") - 1,
++		epaddr_len
++	},
++	{ 	/* SDP connection info */
++		"\nc=3D",		sizeof("\nc=3D") - 1,=20
++		"\rc=3D",		sizeof("\rc=3D") - 1,
++		"IN IP4 ",	sizeof("IN IP4 ") - 1,
++		epaddr_len
++	},
++	{ 	/* Requests headers */
++		"sip:",		sizeof("sip:") - 1,
++		"sip:",		sizeof("sip:") - 1, /* yes, i know.. ;) */
++		"@", 		sizeof("@") - 1,=20
++		epaddr_len
++	},
++	{ 	/* SDP version header */
++		"\nv=3D",		sizeof("\nv=3D") - 1,
++		"\rv=3D",		sizeof("\rv=3D") - 1,
++		"=3D", 		sizeof("=3D") - 1,=20
++		digits_len
 +	}
-+	string[unicode_size] =3D 0x00;
-+}
++};
++EXPORT_SYMBOL(ct_sip_hdrs);
 +
-+__inline static int atoi(char *s)=20
++
++static int digits_len(const char *dptr, const char *limit, int *shift)
 +{
-+	int i=3D0;
-+	while (isdigit(*s)) {
-+		i =3D i*10 + *(s++) - '0';
++	int len =3D 0;=09
++	while (dptr <=3D limit && isdigit(*dptr)) {
++		dptr++;
++		len++;
 +	}
-+	return i;
-+}
++	return len;
++}=20
 +
-+/* convert ip address string like "192.168.0.10" to unsigned int */
-+__inline static u_int32_t asciiiptoi(char *s)
++/* get digits lenght, skiping blank spaces. */
++static int skp_digits_len(const char *dptr, const char *limit, int *shift)
 +{
-+	unsigned int i, j, k;
-+
-+	for(i=3Dk=3D0; k<3; ++k, ++s, i<<=3D8) {
-+		i+=3Datoi(s);
-+		for(j=3D0; (*(++s) !=3D '.') && (j<3); ++j)
-+			;
-+	}
-+	i+=3Datoi(s);
-+	return ntohl(i);
-+}
-+
-+int parse_mms(const char *data,=20
-+	      const unsigned int datalen,
-+	      u_int32_t *mms_ip,
-+	      u_int16_t *mms_proto,
-+	      u_int16_t *mms_port,
-+	      char **mms_string_b,
-+	      char **mms_string_e,
-+	      char **mms_padding_e)
-+{
-+	int unicode_size, i;
-+	char tempstring[28];       /* "\\255.255.255.255\UDP\65535" */
-+	char getlengthstring[28];
-+=09
-+	for(unicode_size=3D0;=20
-+	    (char) *(data+(MMS_SRV_UNICODE_STRING_OFFSET+unicode_size*2)) !=3D (c=
-har)0;
-+	    unicode_size++)
-+		if ((unicode_size =3D=3D 28) || (MMS_SRV_UNICODE_STRING_OFFSET+unicode_s=
-ize*2 >=3D datalen))=20
-+			return -1; /* out of bounds - incomplete packet */
-+=09
-+	unicode_to_ascii(tempstring, (short *)(data+MMS_SRV_UNICODE_STRING_OFFSET=
-), unicode_size);
-+	DEBUGP("ip_conntrack_mms: offset 60: %s\n", (const char *)(tempstring));
-+=09
-+	/* IP address ? */
-+	*mms_ip =3D asciiiptoi(tempstring+2);
-+=09
-+	i=3Dsprintf(getlengthstring, "%u.%u.%u.%u", HIPQUAD(*mms_ip));
++	for (; dptr <=3D limit && *dptr =3D=3D ' '; dptr++)
++		(*shift)++;
 +	=09
-+	/* protocol ? */
-+	if(strncmp(tempstring+3+i, "TCP", 3)=3D=3D0)
-+		*mms_proto =3D IPPROTO_TCP;
-+	else if(strncmp(tempstring+3+i, "UDP", 3)=3D=3D0)
-+		*mms_proto =3D IPPROTO_UDP;
++	return digits_len(dptr, limit, shift);
++}
 +
-+	/* port ? */
-+	*mms_port =3D atoi(tempstring+7+i);
++/* Simple ipaddr parser.. */
++static int parse_ipaddr(const char *cp,	const char **endp,=20
++			uint32_t *ipaddr, const char *limit)
++{
++	unsigned long int val;
++	int i, digit =3D 0;
++=09
++	for (i =3D 0, *ipaddr =3D 0; cp <=3D limit && i < 4; i++) {
++		digit =3D 0;
++		if (!isdigit(*cp))
++			break;
++	=09
++		val =3D simple_strtoul(cp, (char **)&cp, 10);
++		if (val > 0xFF)
++			return -1;
++=09
++		((uint8_t *)ipaddr)[i] =3D val;=09
++		digit =3D 1;
++=09
++		if (*cp !=3D '.')
++			break;
++		cp++;
++	}
++	if (!digit)
++		return -1;
++=09
++	if (endp)
++		*endp =3D cp;
 +
-+	/* we store a pointer to the beginning of the "\\a.b.c.d\proto\port"=20
-+	   unicode string, one to the end of the string, and one to the end=20
-+	   of the packet, since we must keep track of the number of bytes=20
-+	   between end of the unicode string and the end of packet (padding) */
-+	*mms_string_b  =3D (char *)(data + MMS_SRV_UNICODE_STRING_OFFSET);
-+	*mms_string_e  =3D (char *)(data + MMS_SRV_UNICODE_STRING_OFFSET + unicod=
-e_size * 2);
-+	*mms_padding_e =3D (char *)(data + datalen); /* looks funny, doesn't it */
 +	return 0;
 +}
 +
++/* skip ip address. returns it lenght. */
++static int epaddr_len(const char *dptr, const char *limit, int *shift)
++{
++	const char *aux =3D dptr;
++	uint32_t ip;
++=09
++	if (parse_ipaddr(dptr, &dptr, &ip, limit) < 0) {
++		DEBUGP("ip: %s parse failed.!\n", dptr);
++		return 0;
++	}
 +
-+/* FIXME: This should be in userspace.  Later. */
-+static int help(struct sk_buff **pskb,
++	/* Port number */
++	if (*dptr =3D=3D ':') {
++		dptr++;
++		dptr +=3D digits_len(dptr, limit, shift);
++	}
++	return dptr - aux;
++}
++
++/* get address lenght, skiping user info. */
++static int skp_epaddr_len(const char *dptr, const char *limit, int *shift)
++{
++	for (; dptr <=3D limit && *dptr !=3D '@'; dptr++)
++		(*shift)++;=09
++=09
++	if (*dptr =3D=3D '@') {
++		dptr++;
++		(*shift)++;
++		return epaddr_len(dptr, limit, shift);
++	}=09
++	return  0;
++}
++
++/* Returns 0 if not found, -1 error parsing. */
++int ct_sip_get_info(const char *dptr, size_t dlen,=20
++		unsigned int *matchoff,=20
++		unsigned int *matchlen,
++		struct sip_header_nfo *hnfo)
++{
++	const char *limit, *aux, *k =3D dptr;
++	int shift =3D 0;
++=09
++	limit =3D dptr + (dlen - hnfo->lnlen);
++
++	while (dptr <=3D limit) {
++		if ((strncmp(dptr, hnfo->lname, hnfo->lnlen) !=3D 0) &&
++			(strncmp(dptr, hnfo->sname, hnfo->snlen) !=3D 0))
++		{
++			dptr++;
++			continue;
++		}
++		aux =3D ct_sip_search(hnfo->ln_str, dptr, hnfo->ln_strlen,=20
++						ct_sip_lnlen(dptr, limit));
++		if (!aux) {
++			DEBUGP("'%s' not found in '%s'.\n", hnfo->ln_str, hnfo->lname);
++			return -1;
++		}
++		aux +=3D hnfo->ln_strlen;
++	=09
++		*matchlen =3D hnfo->match_len(aux, limit, &shift);
++		if (!*matchlen)
++			return -1;
++
++		*matchoff =3D (aux - k) + shift;=20
++	=09
++		DEBUGP("%s match succeeded! - len: %u\n", hnfo->lname, *matchlen);
++		return 1;
++	}
++	DEBUGP("%s header not found.\n", hnfo->lname);
++	return 0;
++}
++
++static int set_expected_rtp(struct sk_buff **pskb,=20
++			struct ip_conntrack *ct,
++			enum ip_conntrack_info ctinfo,=20
++			uint32_t ipaddr, uint16_t port,
++			const char *dptr)
++{
++	struct ip_conntrack_expect *exp;
++=09
++	exp =3D ip_conntrack_expect_alloc();
++	if (exp =3D=3D NULL)
++		return NF_DROP;
++
++	exp->tuple =3D ((struct ip_conntrack_tuple)
++		{ { ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.ip, { 0 } },
++		  { ipaddr, { .udp =3D { htons(port) } }, IPPROTO_UDP }});
++		 =20
++	exp->mask =3D ((struct ip_conntrack_tuple)=20
++		{ { 0xFFFFFFFF, { 0 } },
++		  { 0xFFFFFFFF, { .udp =3D { 0xFFFF } }, 0xFF }});
++
++	exp->expectfn =3D NULL;
++	exp->master =3D ct;
++=09
++	if (ip_nat_sdp_hook)
++		return ip_nat_sdp_hook(pskb, ctinfo, exp, dptr);
++	else if (ip_conntrack_expect_related(exp) !=3D 0) {
++		ip_conntrack_expect_free(exp);
++		return NF_DROP;
++	}
++	return NF_ACCEPT;
++}
++
++static int sip_help(struct sk_buff **pskb,
 +		struct ip_conntrack *ct,
 +		enum ip_conntrack_info ctinfo)
 +{
-+	int ret =3D NF_DROP;
-+	struct tcphdr _tcph, *th;
-+	char *data, *mb_ptr;
-+	unsigned int datalen, dataoff;
-+
-+
-+	//struct tcphdr *tcph =3D (void *)iph + iph->ihl * 4;
-+	//unsigned int tcplen =3D len - iph->ihl * 4;
-+	//unsigned int datalen =3D tcplen - tcph->doff * 4;
-+	int dir =3D CTINFO2DIR(ctinfo);
-+	struct ip_conntrack_expect *exp;
-+	struct ip_ct_mms_expect _emmi, *exp_mms_info =3D &_emmi;
++	unsigned int dataoff, datalen;
++	const char *dptr;
++	int ret =3D NF_ACCEPT;
++	int matchoff, matchlen;
++	uint32_t ipaddr;
++	uint16_t port;
 +=09
-+	u_int32_t mms_ip;
-+	u_int16_t mms_proto;
-+	char mms_proto_string[8];
-+	u_int16_t mms_port;
-+	char *mms_string_b, *mms_string_e, *mms_padding_e;
-+	    =20
-+	/* Until there's been traffic both ways, don't look in packets. */
-+	if (ctinfo !=3D IP_CT_ESTABLISHED
-+	    && ctinfo !=3D IP_CT_ESTABLISHED+IP_CT_IS_REPLY) {
-+		DEBUGP("ip_conntrack_mms: Conntrackinfo =3D %u\n", ctinfo);
++	/* No Data ? */=20
++	dataoff =3D (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
++	if (dataoff >=3D (*pskb)->len) {
++		DEBUGP("skb->len =3D %u\n", (*pskb)->len);
 +		return NF_ACCEPT;
-+	}
-+
-+	/* Not whole TCP header? */
-+	th =3D skb_header_pointer(*pskb, (*pskb)->nh.iph->ihl*4,
-+				sizeof(_tcph), &_tcph);
-+	if (!th)
-+		return NF_ACCEPT;
-+
-+	/* No data ? */
-+	dataoff =3D (*pskb)->nh.iph->ihl*4 + th->doff*4;
-+	datalen =3D (*pskb)->len - dataoff;
-+	if (dataoff >=3D (*pskb)->len)
-+		return NF_ACCEPT;
-+
-+	spin_lock_bh(&mms_buffer_lock);
-+	mb_ptr =3D skb_header_pointer(*pskb, dataoff,
-+				    (*pskb)->len - dataoff, mms_buffer);
-+	BUG_ON(mb_ptr =3D=3D NULL);
-+
-+	data =3D mb_ptr;
-+
-+#if 0
-+	/* Checksum invalid?  Ignore. */
-+	/* FIXME: Source route IP option packets --RR */
-+	if (tcp_v4_check(tcph, tcplen, iph->saddr, iph->daddr,
-+	    csum_partial((char *)tcph, tcplen, 0))) {
-+		DEBUGP("mms_help: bad csum: %p %u %u.%u.%u.%u %u.%u.%u.%u\n",
-+		       tcph, tcplen, NIPQUAD(iph->saddr),
-+		       NIPQUAD(iph->daddr));
-+		return NF_ACCEPT;
-+	}
-+#endif
-+=09
-+	/* Only look at packets with 0x00030002/196610 on bytes 36->39 of TCP
-+	 * payload */
-+
-+	/* FIXME: There is an issue with only looking at this packet: before
-+	 * this packet, the client has already sent a packet to the server with
-+	 * the server's hostname according to the client (think of it as the
-+	 * "Host: " header in HTTP/1.1). The server will break the connection
-+	 * if this doesn't correspond to its own host header. The client can
-+	 * also connect to an IP address; if it's the server's IP address, it
-+	 * will not break the connection. When doing DNAT on a connection where
-+	 * the client uses a server's IP address, the nat module should detect
-+	 * this and change this string accordingly to the DNATed address. This
-+	 * should probably be done by checking for an IP address, then storing
-+	 * it as a member of struct ip_ct_mms_expect and checking for it in
-+	 * ip_nat_mms...
-+	 */
-+	if ((MMS_SRV_MSG_OFFSET < datalen) &&=20
-+	    ((*(u32 *)(data+MMS_SRV_MSG_OFFSET)) =3D=3D MMS_SRV_MSG_ID)) {
-+		DEBUGP("ip_conntrack_mms: offset 37: %u %u %u %u, datalen:%u\n",=20
-+		       (u8)*(data+36), (u8)*(data+37),=20
-+		       (u8)*(data+38), (u8)*(data+39),
-+		       datalen);
-+		if (parse_mms(data, datalen, &mms_ip, &mms_proto, &mms_port,
-+		             &mms_string_b, &mms_string_e, &mms_padding_e))
-+			if (net_ratelimit())
-+				/* FIXME: more verbose debugging ? */
-+				printk(KERN_WARNING
-+				       "ip_conntrack_mms: Unable to parse "
-+				       "data payload\n");
-+
-+		sprintf(mms_proto_string, "(%u)", mms_proto);
-+		DEBUGP("ip_conntrack_mms: adding %s expectation "
-+		       "%u.%u.%u.%u -> %u.%u.%u.%u:%u\n",
-+		       mms_proto =3D=3D IPPROTO_TCP ? "TCP"
-+		       : mms_proto =3D=3D IPPROTO_UDP ? "UDP":mms_proto_string,
-+		       NIPQUAD(ct->tuplehash[!dir].tuple.src.ip),
-+		       NIPQUAD(mms_ip),
-+		       mms_port);
++        }
++       =20
++	ip_ct_refresh_acct(ct, ctinfo, NULL, sip_timeout * HZ);
 +	=09
-+		/* it's possible that the client will just ask the server to
-+		 * tunnel the stream over the same TCP session (from port
-+		 * 1755): there's shouldn't be a need to add an expectation in
-+		 * that case, but it makes NAT packet mangling so much easier
-+		 * */
-+
-+		DEBUGP("ip_conntrack_mms: tcph->seq =3D %u\n", tcph->seq);
-+
-+		exp =3D ip_conntrack_expect_alloc();
-+		if (!exp) {
++	spin_lock_bh(&sipbf_lock);
++=09
++	if ((dataoff + (*pskb)->len - dataoff) <=3D skb_headlen(*pskb))
++		dptr =3D (*pskb)->data + dataoff;
++	else {
++		DEBUGP("Copy of skbuff not supported yet.\n");
++		goto out;
++	}
++=09
++	if (ip_nat_sip_hook) {
++		if (!ip_nat_sip_hook(pskb, ctinfo, ct, &dptr)) {
 +			ret =3D NF_DROP;
 +			goto out;
 +		}
-+	=09
-+		exp_mms_info->offset  =3D (mms_string_b - data);
-+		exp_mms_info->len     =3D (mms_string_e  - mms_string_b);
-+		exp_mms_info->padding =3D (mms_padding_e - mms_string_e);
-+		exp_mms_info->port    =3D mms_port;
-+	=09
-+		DEBUGP("ip_conntrack_mms: wrote info seq=3D%u (ofs=3D%u), "
-+		       "len=3D%d, padding=3D%u\n", exp->seq, (mms_string_e - data),
-+		       exp_mms_info->len, exp_mms_info->padding);
-+	=09
-+		exp->tuple =3D ((struct ip_conntrack_tuple)
-+		              { { ct->tuplehash[!dir].tuple.src.ip, { 0 } },
-+		              { mms_ip,
-+		                { .tcp =3D { (__u16) ntohs(mms_port) } },
-+		                mms_proto } }
-+		             );
-+		exp->mask  =3D ((struct ip_conntrack_tuple)
-+		             { { 0xFFFFFFFF, { 0 } },
-+		               { 0xFFFFFFFF, { .tcp =3D { 0xFFFF } }, 0xFF }});
-+		exp->expectfn =3D NULL;
-+		exp->master =3D ct;
++	}
++=09
++	if ((ctinfo) >=3D IP_CT_IS_REPLY)
++		goto out;
 +
-+		if (ip_nat_mms_hook)
-+			ret =3D ip_nat_mms_hook(pskb, ctinfo, exp_mms_info, exp);
-+		else if (ip_conntrack_expect_related(exp) !=3D 0) {
-+			ip_conntrack_expect_free(exp);
-+			ret =3D NF_DROP;
-+		}
++	/* After this point NAT, could have mangled skb, so=20
++	   we need to recalculate payload lenght. */
++	datalen =3D (*pskb)->len - dataoff;
++
++	if (datalen < (sizeof("SIP/2.0 200") - 1))
++		goto out;
++=09
++	/* RTP info only in some SDP pkts */
++	if (memcmp(dptr, "INVITE", sizeof("INVITE") - 1) !=3D 0 &&=20
++	    memcmp(dptr, "SIP/2.0 200", sizeof("SIP/2.0 200") - 1) !=3D 0) {
 +		goto out;
 +	}
-+out:
-+	spin_unlock_bh(&mms_buffer_lock);
++	/* Get ip and port address from SDP packet. */
++	if (ct_sip_get_info(dptr, datalen, &matchoff, &matchlen,=20
++	    &ct_sip_hdrs[POS_CONECTION]) > 0) {
++
++		/* We'll drop only if there are parse problems. */
++		if (parse_ipaddr(dptr + matchoff, NULL, &ipaddr,=20
++		    dptr + datalen) < 0) {
++			ret =3D NF_DROP;
++			goto out;
++		}
++		if (ct_sip_get_info(dptr, datalen, &matchoff, &matchlen,=20
++		    &ct_sip_hdrs[POS_MEDIA]) > 0) {
++
++			port =3D simple_strtoul(dptr + matchoff, NULL, 10);
++			if (port < 1024) {
++				ret =3D NF_DROP;
++				goto out;
++			}
++			ret =3D set_expected_rtp(pskb, ct, ctinfo,
++						ipaddr, port, dptr);
++		}
++	}
++out:	spin_unlock_bh(&sipbf_lock);
 +	return ret;
 +}
 +
-+static struct ip_conntrack_helper mms[MAX_PORTS];
-+static char mms_names[MAX_PORTS][10];
++static struct ip_conntrack_helper sip[MAX_PORTS];
++static char sip_names[MAX_PORTS][10];
 +
-+/* Not __exit: called from init() */
 +static void fini(void)
 +{
-+	int i;
-+	for (i =3D 0; (i < MAX_PORTS) && ports[i]; i++) {
-+		DEBUGP("ip_conntrack_mms: unregistering helper for port %d\n",
-+				ports[i]);
-+		ip_conntrack_helper_unregister(&mms[i]);
-+	}
++	int i =3D 0;
++	for (; i < ports_c; i++) {
++		DEBUGP("unregistering helper for port %d\n", ports[i]);
++		ip_conntrack_helper_unregister(&sip[i]);
++	}=20
 +}
 +
 +static int __init init(void)
@@ -454,312 +520,361 @@ e_size * 2);
 +	int i, ret;
 +	char *tmpname;
 +
-+	if (ports[0] =3D=3D 0)
-+		ports[0] =3D MMS_PORT;
++	if (ports_c =3D=3D 0)
++		ports[ports_c++] =3D SIP_PORT;
 +
-+	for (i =3D 0; (i < MAX_PORTS) && ports[i]; i++) {
-+		memset(&mms[i], 0, sizeof(struct ip_conntrack_helper));
-+		mms[i].tuple.src.u.tcp.port =3D htons(ports[i]);
-+		mms[i].tuple.dst.protonum =3D IPPROTO_TCP;
-+		mms[i].mask.src.u.tcp.port =3D 0xFFFF;
-+		mms[i].mask.dst.protonum =3D 0xFF;
-+		mms[i].max_expected =3D 1;
-+		mms[i].timeout =3D 120;
-+		mms[i].me =3D THIS_MODULE;
-+		mms[i].help =3D help;
++	for (i =3D 0; i < ports_c; i++) {
++		/* Create helper structure */
++		memset(&sip[i], 0, sizeof(struct ip_conntrack_helper));
 +
-+		tmpname =3D &mms_names[i][0];
-+		if (ports[i] =3D=3D MMS_PORT)
-+			sprintf(tmpname, "mms");
++		sip[i].tuple.dst.protonum =3D IPPROTO_UDP;
++		sip[i].tuple.src.u.udp.port =3D htons(ports[i]);
++		sip[i].mask.src.u.udp.port =3D 0xFFFF;
++		sip[i].mask.dst.protonum =3D 0xFF;
++		sip[i].max_expected =3D 1;
++		sip[i].timeout =3D 3 * 60; /* 3 minutes */
++		sip[i].me =3D THIS_MODULE;
++		sip[i].help =3D sip_help;
++
++		tmpname =3D &sip_names[i][0];
++		if (ports[i] =3D=3D SIP_PORT)
++			sprintf(tmpname, "sip");
 +		else
-+			sprintf(tmpname, "mms-%d", ports[i]);
-+		mms[i].name =3D tmpname;
++			sprintf(tmpname, "sip-%d", i);
++		sip[i].name =3D tmpname;
 +
-+		DEBUGP("ip_conntrack_mms: registering helper for port %d\n",=20
-+				ports[i]);
-+		ret =3D ip_conntrack_helper_register(&mms[i]);
++		DEBUGP("port #%d: %d\n", i, ports[i]);
 +
++		ret=3Dip_conntrack_helper_register(&sip[i]);
 +		if (ret) {
++			printk("ERROR registering helper for port %d\n",
++				ports[i]);
 +			fini();
-+			return ret;
++			return(ret);
 +		}
-+		ports_c++;
 +	}
-+	return 0;
++	return(0);
 +}
 +
 +module_init(init);
 +module_exit(fini);
-diff -Nrup --exclude=3D.svn pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.=
-6.12/net/ipv4/netfilter/ip_nat_mms.c pom-ng-edit/patchlets/mms-conntrack-na=
-t/linux-2.6.12/net/ipv4/netfilter/ip_nat_mms.c
---- pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.6.12/net/ipv4/netfilter/=
-ip_nat_mms.c	1970-01-01 01:00:00.000000000 +0100
-+++ pom-ng-edit/patchlets/mms-conntrack-nat/linux-2.6.12/net/ipv4/netfilter=
-/ip_nat_mms.c	2005-07-22 10:33:48.000000000 +0200
-@@ -0,0 +1,195 @@
-+/* MMS extension for TCP NAT alteration.
-+ * (C) 2002 by Filip Sneppe <filip.sneppe@cronos.be>
-+ * based on ip_nat_ftp.c and ip_nat_irc.c
+diff -Nrup --exclude=3D.svn pom-ng-svn/patchlets/sip-conntrack-nat/linux-2.=
+6.12/net/ipv4/netfilter/ip_nat_sip.c pom-ng-sip/patchlets/sip-conntrack-nat=
+/linux-2.6.12/net/ipv4/netfilter/ip_nat_sip.c
+--- pom-ng-svn/patchlets/sip-conntrack-nat/linux-2.6.12/net/ipv4/netfilter/=
+ip_nat_sip.c	1970-01-01 01:00:00.000000000 +0100
++++ pom-ng-sip/patchlets/sip-conntrack-nat/linux-2.6.12/net/ipv4/netfilter/=
+ip_nat_sip.c	2005-07-03 22:40:24.000000000 +0200
+@@ -0,0 +1,253 @@
++/* SIP extension for UDP NAT alteration.
 + *
-+ * ip_nat_mms.c v0.3 2002-09-22
++ * (C) 2005 by Christian Hentschel <chentschel@arnet.com.ar>
++ * based on RR's ip_nat_ftp.c and other modules.
 + *
-+ *      This program is free software; you can redistribute it and/or
-+ *      modify it under the terms of the GNU General Public License
-+ *      as published by the Free Software Foundation; either version
-+ *      2 of the License, or (at your option) any later version.
-+ *
-+ *      Module load syntax:
-+ *      insmod ip_nat_mms.o ports=3Dport1,port2,...port<MAX_PORTS>
-+ *
-+ *      Please give the ports of all MMS servers You wish to connect to.
-+ *      If you don't specify ports, the default will be TCP port 1755.
-+ *
-+ *      More info on MMS protocol, firewalls and NAT:
-+ *      http://msdn.microsoft.com/library/default.asp?url=3D/library/en-us=
-/dnwmt/html/MMSFirewall.asp
-+ *      http://www.microsoft.com/windows/windowsmedia/serve/firewall.asp
-+ *
-+ *      The SDP project people are reverse-engineering MMS:
-+ *      http://get.to/sdp
-+ *
-+ *  2005-02-13: Harald Welte <laforge@netfilter.org>
-+ *  	- port to 2.6.x
-+ *  	- update to work with post 2.6.11 helper API changes
-+
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
-+/* FIXME: issue with UDP & fragmentation with this URL:=20
-+   http://www.cnn.com/video/world/2002/01/21/jb.shoe.bomb.cafe.cnn.low.asx=
-=20
-+   may be related to out-of-order first packets:
-+   basically the expectation is set up correctly, then the server sends
-+   a first UDP packet which is fragmented plus arrives out-of-order.
-+   the MASQUERADING firewall with ip_nat_mms loaded responds with
-+   an ICMP unreachable back to the server */
-+
++#include <linux/ctype.h>
 +#include <linux/module.h>
 +#include <linux/netfilter_ipv4.h>
 +#include <linux/ip.h>
-+#include <linux/tcp.h>
-+#include <net/tcp.h>
++#include <linux/udp.h>
++#include <linux/moduleparam.h>
++#include <net/udp.h>
 +#include <linux/netfilter_ipv4/ip_nat.h>
 +#include <linux/netfilter_ipv4/ip_nat_helper.h>
 +#include <linux/netfilter_ipv4/ip_nat_rule.h>
-+#include <linux/netfilter_ipv4/ip_conntrack_mms.h>
 +#include <linux/netfilter_ipv4/ip_conntrack_helper.h>
++#include <linux/netfilter_ipv4/ip_conntrack_sip.h>
 +
-+#if 0=20
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Christian Hentschel <chentschel@arnet.com.ar>");
++MODULE_DESCRIPTION("SIP NAT helper");
++
++#if 0
 +#define DEBUGP printk
-+#define DUMP_BYTES(address, counter)                                \
-+({                                                                  \
-+	int temp_counter;                                           \
-+	for(temp_counter=3D0; temp_counter<counter; ++temp_counter) { \
-+		DEBUGP("%u ", (u8)*(address+temp_counter));         \
-+	};                                                          \
-+	DEBUGP("\n");                                               \
-+})
 +#else
 +#define DEBUGP(format, args...)
-+#define DUMP_BYTES(address, counter)
 +#endif
 +
-+MODULE_AUTHOR("Filip Sneppe <filip.sneppe@cronos.be>");
-+MODULE_DESCRIPTION("Microsoft Windows Media Services (MMS) NAT module");
-+MODULE_LICENSE("GPL");
++extern struct sip_header_nfo ct_sip_hdrs[];
 +
-+static unsigned int mms_data_fixup(struct sk_buff **pskb,
-+                          enum ip_conntrack_info ctinfo,
-+			  const struct ip_ct_mms_expect *ct_mms_info,
-+                          struct ip_conntrack_expect *expect)
++static unsigned int mangle_sip_packet(struct sk_buff **pskb,=20
++			enum ip_conntrack_info ctinfo,
++			struct ip_conntrack *ct,=20
++			const char **dptr, size_t dlen,
++			char *buffer, int bufflen,
++			struct sip_header_nfo *hnfo)
 +{
-+	u_int32_t newip;
-+	struct ip_conntrack *ct =3D expect->master;
-+	struct iphdr *iph =3D (*pskb)->nh.iph;
-+	struct tcphdr *tcph =3D (void *) iph + iph->ihl * 4;
-+	char *data =3D (char *)tcph + tcph->doff * 4;
-+	int i, j, k, port;
-+	u_int16_t mms_proto;
-+
-+	u_int32_t *mms_chunkLenLV    =3D (u_int32_t *)(data + MMS_SRV_CHUNKLENLV_=
-OFFSET);
-+	u_int32_t *mms_chunkLenLM    =3D (u_int32_t *)(data + MMS_SRV_CHUNKLENLM_=
-OFFSET);
-+	u_int32_t *mms_messageLength =3D (u_int32_t *)(data + MMS_SRV_MESSAGELENG=
-TH_OFFSET);
-+
-+	int zero_padding;
-+
-+	char buffer[28];         /* "\\255.255.255.255\UDP\65635" * 2=20
-+				    (for unicode) */
-+	char unicode_buffer[75]; /* 27*2 (unicode) + 20 + 1 */
-+	char proto_string[6];
-+
-+	/* what was the protocol again ? */
-+	mms_proto =3D expect->tuple.dst.protonum;
-+	sprintf(proto_string, "%u", mms_proto);
++	unsigned int matchlen, matchoff;
 +=09
-+	DEBUGP("ip_nat_mms: mms_data_fixup: info (seq %u + %u) "
-+	       "in %u, proto %s\n",
-+	       expect->seq, ct_mms_info->len, ntohl(tcph->seq),
-+	       mms_proto =3D=3D IPPROTO_UDP ? "UDP"
-+	       : mms_proto =3D=3D IPPROTO_TCP ? "TCP":proto_string);
-+=09
-+	newip =3D ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip;
-+	expect->saved_proto.tcp.port =3D expect->tuple.dst.u.tcp.port;
-+	expect->expectfn =3D ip_nat_follow_master;
++	if (ct_sip_get_info(*dptr, dlen, &matchoff, &matchlen, hnfo) <=3D 0)
++		return 0;
 +
-+	/* Alter conntrack's expectations. */
-+	for (port =3D ct_mms_info->port; port !=3D 0; port++) {
-+		expect->tuple.dst.u.tcp.port =3D htons(port);
-+		if (ip_conntrack_expect_related(expect) =3D=3D 0) {
-+			DEBUGP("ip_nat_mms: mms_data_fixup: using port %d\n",
-+				port);=20
-+			break;
++	if (!ip_nat_mangle_udp_packet(pskb, ct, ctinfo,=20
++	    matchoff, matchlen, buffer, bufflen)) {
++		return 0;
++	}
++	/* We need to reload this. Thanks Patrick. */
++	*dptr =3D (*pskb)->data + (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);=
+=20
++	return 1;
++}
++
++static unsigned int ip_nat_sip(struct sk_buff **pskb,=20
++			enum ip_conntrack_info ctinfo,
++			struct ip_conntrack *ct,
++			const char **dptr)
++{
++	char buffer[sizeof("nnn.nnn.nnn.nnn:nnnnn")];=09
++	unsigned int bufflen, dataoff;
++	uint32_t ip;
++	uint16_t port;
++=09
++	dataoff =3D (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
++=09
++	if ((ctinfo) >=3D IP_CT_IS_REPLY) {
++		ip =3D ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip;
++		port =3D ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u.udp.port;
++	} else {
++		ip =3D ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip;
++		port =3D ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u.udp.port;
++	}
++	bufflen =3D sprintf(buffer, "%u.%u.%u.%u:%u", NIPQUAD(ip), ntohs(port));
++=09
++	/* short packet ? */
++	if (((*pskb)->len - dataoff) < (sizeof("SIP/2.0") - 1))
++		return 0;
++=09
++	/* Basic rules: requests and responses. */
++	if (memcmp(*dptr, "SIP/2.0", sizeof("SIP/2.0") - 1) =3D=3D 0) {
++=09
++		if ((ctinfo) < IP_CT_IS_REPLY) {
++			mangle_sip_packet(pskb, ctinfo, ct, dptr,=20
++				(*pskb)->len - dataoff, buffer, bufflen,
++				&ct_sip_hdrs[POS_CONTACT]);
++			return 1;
 +		}
++
++		if (!mangle_sip_packet(pskb, ctinfo, ct, dptr, (*pskb)->len - dataoff,
++		    buffer, bufflen, &ct_sip_hdrs[POS_VIA])) {
++			return 0;
++		}
++	=09
++		/* This search should ignore case, but later.. */
++		const char *aux =3D ct_sip_search("CSeq:", *dptr, sizeof("CSeq:") - 1,=
+=20
++								(*pskb)->len - dataoff);
++		if (!aux)
++			return 0;
++	=09
++		if (!ct_sip_search("REGISTER", aux, sizeof("REGISTER"),=20
++		    ct_sip_lnlen(aux, *dptr + (*pskb)->len - dataoff))) {
++			return 1;
++		}
++		return mangle_sip_packet(pskb, ctinfo, ct, dptr, (*pskb)->len - dataoff,=
+=20
++						buffer, bufflen, &ct_sip_hdrs[POS_CONTACT]);
++	}
++	if ((ctinfo) < IP_CT_IS_REPLY) {
++		if (!mangle_sip_packet(pskb, ctinfo, ct, dptr, (*pskb)->len - dataoff,
++		    buffer, bufflen, &ct_sip_hdrs[POS_VIA])) {
++			return 0;
++		}
++	=09
++		/* Mangle Contact if exists only. - watch udp_nat_mangle()! */
++		mangle_sip_packet(pskb, ctinfo, ct, dptr, (*pskb)->len - dataoff,=20
++						buffer, bufflen, &ct_sip_hdrs[POS_CONTACT]);
++		return 1;
++	}
++	/* This mangle requests headers. */
++	return mangle_sip_packet(pskb, ctinfo, ct, dptr,=20
++			ct_sip_lnlen(*dptr, *dptr + (*pskb)->len - dataoff),
++			buffer, bufflen, &ct_sip_hdrs[POS_REQ_HEADER]);
++}
++
++static int mangle_content_len(struct sk_buff **pskb,=20
++			enum ip_conntrack_info ctinfo,
++			struct ip_conntrack *ct,
++			const char *dptr)
++{
++	unsigned int dataoff, matchoff, matchlen;
++	char buffer[sizeof("65536")];
++	int bufflen;
++=09
++	dataoff =3D (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
++=09
++	/* Get actual SDP lenght */
++	if (ct_sip_get_info(dptr, (*pskb)->len - dataoff, &matchoff,=20
++	    &matchlen, &ct_sip_hdrs[POS_SDP_HEADER]) > 0) {
++	=09
++		/* since ct_sip_get_info() give us a pointer passing 'v=3D'
++		   we need to add 2 bytes in this count. */
++		int c_len =3D (*pskb)->len - dataoff - matchoff + 2;
++	=09
++		/* Now, update SDP lenght */
++		if (ct_sip_get_info(dptr, (*pskb)->len - dataoff, &matchoff,=20
++		    &matchlen, &ct_sip_hdrs[POS_CONTENT]) > 0) {
++		   =20
++			bufflen =3D sprintf(buffer, "%u", c_len);
++		=09
++			return ip_nat_mangle_udp_packet(pskb, ct, ctinfo, matchoff,
++							matchlen, buffer, bufflen);
++		}
++	}
++	return 0;
++}
++
++static unsigned int mangle_sdp(struct sk_buff **pskb,=20
++			enum ip_conntrack_info ctinfo,
++			struct ip_conntrack *ct,
++			uint32_t newip, uint16_t port,
++			const char *dptr)
++{
++	char buffer[sizeof("nnn.nnn.nnn.nnn")];
++	unsigned int dataoff, bufflen;
++
++	dataoff =3D (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
++=09
++	/* Mangle owner and contact info. */
++	bufflen =3D sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(newip));
++	if (!mangle_sip_packet(pskb, ctinfo, ct, &dptr, (*pskb)->len - dataoff,
++	    buffer, bufflen, &ct_sip_hdrs[POS_OWNER])) {
++		return 0;=09
++	}
++=09
++	if (!mangle_sip_packet(pskb, ctinfo, ct, &dptr, (*pskb)->len - dataoff,
++	    buffer, bufflen, &ct_sip_hdrs[POS_CONECTION])) {
++		return 0;
++	}
++=09
++	/* Mangle media port. */
++	bufflen =3D sprintf(buffer, "%u", port);
++	if (!mangle_sip_packet(pskb, ctinfo, ct, &dptr, (*pskb)->len - dataoff,
++	    buffer, bufflen, &ct_sip_hdrs[POS_MEDIA])) {
++		return 0;
++	}
++=09
++	return mangle_content_len(pskb, ctinfo, ct, dptr);
++}
++
++/* So, this packet has hit the connection tracking matching code.
++   Mangle it, and change the expectation to match the new version. */
++static unsigned int ip_nat_sdp(struct sk_buff **pskb,=20
++			enum ip_conntrack_info ctinfo,
++			struct ip_conntrack_expect *exp,
++			const char *dptr)
++{
++	struct ip_conntrack *ct =3D exp->master;
++	uint32_t newip;
++	uint16_t port;
++=09
++	DEBUGP("ip_nat_sdp():\n");
++
++	/* Connection will come from reply */
++	newip =3D ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip;
++=09
++	exp->tuple.dst.ip =3D newip;
++	exp->saved_proto.udp.port =3D exp->tuple.dst.u.udp.port;
++	exp->dir =3D IP_CT_DIR_REPLY;
++
++	/* When you see the packet, we need to NAT it the same as the
++	   this one. */
++	exp->expectfn =3D ip_nat_follow_master;
++
++	/* Try to get same port: if not, try to change it. */
++	for (port =3D ntohs(exp->saved_proto.udp.port); port !=3D 0; port++) {
++		exp->tuple.dst.u.udp.port =3D htons(port);
++		if (ip_conntrack_expect_related(exp) =3D=3D 0)
++			break;
 +	}
 +=09
 +	if (port =3D=3D 0) {
-+		ip_conntrack_expect_free(expect);
++		ip_conntrack_expect_free(exp);
 +		return NF_DROP;
 +	}
-+
-+	sprintf(buffer, "\\\\%u.%u.%u.%u\\%s\\%u",
-+	        NIPQUAD(newip),
-+		expect->tuple.dst.protonum =3D=3D IPPROTO_UDP ? "UDP"
-+		: expect->tuple.dst.protonum =3D=3D IPPROTO_TCP ? "TCP":proto_string,
-+		port);
-+	DEBUGP("ip_nat_mms: new unicode string=3D%s\n", buffer);
 +=09
-+	memset(unicode_buffer, 0, sizeof(char)*75);
-+
-+	for (i=3D0; i<strlen(buffer); ++i)
-+		*(unicode_buffer+i*2)=3D*(buffer+i);
-+=09
-+	DEBUGP("ip_nat_mms: mms_data_fixup: padding: %u len: %u\n",=20
-+		ct_mms_info->padding, ct_mms_info->len);
-+	DEBUGP("ip_nat_mms: mms_data_fixup: offset: %u\n",=20
-+		MMS_SRV_UNICODE_STRING_OFFSET+ct_mms_info->len);
-+	DUMP_BYTES(data+MMS_SRV_UNICODE_STRING_OFFSET, 60);
-+=09
-+	/* add end of packet to it */
-+	for (j=3D0; j<ct_mms_info->padding; ++j) {
-+		DEBUGP("ip_nat_mms: mms_data_fixup: i=3D%u j=3D%u byte=3D%u\n",=20
-+		       i, j, (u8)*(data+MMS_SRV_UNICODE_STRING_OFFSET+ct_mms_info->len+j=
-));
-+		*(unicode_buffer+i*2+j) =3D *(data+MMS_SRV_UNICODE_STRING_OFFSET+ct_mms_=
-info->len+j);
++	if (!mangle_sdp(pskb, ctinfo, ct, newip, port, dptr)) {
++		ip_conntrack_unexpect_related(exp);
++		return NF_DROP;
 +	}
-+
-+	/* pad with zeroes at the end ? see explanation of weird math below */
-+	zero_padding =3D (8-(strlen(buffer)*2 + ct_mms_info->padding + 4)%8)%8;
-+	for (k=3D0; k<zero_padding; ++k)
-+		*(unicode_buffer+i*2+j+k)=3D (char)0;
-+=09
-+	DEBUGP("ip_nat_mms: mms_data_fixup: zero_padding =3D %u\n", zero_padding);
-+	DEBUGP("ip_nat_mms: original=3D> chunkLenLV=3D%u chunkLenLM=3D%u "
-+	       "messageLength=3D%u\n", *mms_chunkLenLV, *mms_chunkLenLM,
-+	       *mms_messageLength);
-+=09
-+	/* explanation, before I forget what I did:
-+	   strlen(buffer)*2 + ct_mms_info->padding + 4 must be divisable by 8;
-+	   divide by 8 and add 3 to compute the mms_chunkLenLM field,
-+	   but note that things may have to be padded with zeroes to align by 8=
-=20
-+	   bytes, hence we add 7 and divide by 8 to get the correct length */=20
-+	*mms_chunkLenLM    =3D (u_int32_t) (3+(strlen(buffer)*2+ct_mms_info->padd=
-ing+11)/8);
-+	*mms_chunkLenLV    =3D *mms_chunkLenLM+2;
-+	*mms_messageLength =3D *mms_chunkLenLV*8;
-+=09
-+	DEBUGP("ip_nat_mms: modified=3D> chunkLenLV=3D%u chunkLenLM=3D%u"
-+	       " messageLength=3D%u\n", *mms_chunkLenLV, *mms_chunkLenLM,
-+	       *mms_messageLength);
-+=09
-+	ip_nat_mangle_tcp_packet(pskb, ct, ctinfo,=20
-+	                         ct_mms_info->offset,
-+	                         ct_mms_info->len + ct_mms_info->padding,
-+				 unicode_buffer, strlen(buffer)*2 +
-+				 ct_mms_info->padding + zero_padding);
-+	DUMP_BYTES(unicode_buffer, 60);
-+=09
 +	return NF_ACCEPT;
 +}
 +
 +static void __exit fini(void)
 +{
-+	ip_nat_mms_hook =3D NULL;
++	ip_nat_sip_hook =3D NULL;
++	ip_nat_sdp_hook =3D NULL;
++	/* Make sure noone calls it, meanwhile. */
 +	synchronize_net();
 +}
 +
 +static int __init init(void)
 +{
-+	BUG_ON(ip_nat_mms_hook);
-+	ip_nat_mms_hook =3D &mms_data_fixup;
-+
++	BUG_ON(ip_nat_sip_hook);
++	BUG_ON(ip_nat_sdp_hook);
++	ip_nat_sip_hook =3D ip_nat_sip;
++	ip_nat_sdp_hook =3D ip_nat_sdp;
 +	return 0;
 +}
 +
 +module_init(init);
 +module_exit(fini);
-diff -Nrup --exclude=3D.svn pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.=
-6.12/net/ipv4/netfilter/Kconfig.ladd pom-ng-edit/patchlets/mms-conntrack-na=
-t/linux-2.6.12/net/ipv4/netfilter/Kconfig.ladd
---- pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.6.12/net/ipv4/netfilter/=
+diff -Nrup --exclude=3D.svn pom-ng-svn/patchlets/sip-conntrack-nat/linux-2.=
+6.12/net/ipv4/netfilter/Kconfig.ladd pom-ng-sip/patchlets/sip-conntrack-nat=
+/linux-2.6.12/net/ipv4/netfilter/Kconfig.ladd
+--- pom-ng-svn/patchlets/sip-conntrack-nat/linux-2.6.12/net/ipv4/netfilter/=
 Kconfig.ladd	1970-01-01 01:00:00.000000000 +0100
-+++ pom-ng-edit/patchlets/mms-conntrack-nat/linux-2.6.12/net/ipv4/netfilter=
-/Kconfig.ladd	2005-07-03 22:40:06.000000000 +0200
-@@ -0,0 +1,17 @@
-+config IP_NF_NAT_MMS
++++ pom-ng-sip/patchlets/sip-conntrack-nat/linux-2.6.12/net/ipv4/netfilter/=
+Kconfig.ladd	2005-07-03 22:40:24.000000000 +0200
+@@ -0,0 +1,18 @@
++config IP_NF_NAT_SIP
 +	tristate
 +	depends on IP_NF_CONNTRACK!=3Dn && IP_NF_NAT!=3Dn
-+	default IP_NF_NAT if IP_NF_MMS=3Dy
-+	default m if IP_NF_MMS=3Dm
++	default IP_NF_NAT if IP_NF_SIP=3Dy
++	default m if IP_NF_SIP=3Dm
 +
-+config IP_NF_MMS
-+	tristate  'MMS protocol support'
++config IP_NF_SIP
++	tristate  'SIP support'
 +	depends on IP_NF_CONNTRACK
 +	help
-+	  Tracking MMS (Microsoft Windows Media Services) connections
-+	  could be problematic if random ports are used to send the
-+	  streaming content. This option allows users to track streaming
-+	  connections over random UDP or TCP ports.
++	  SIP is an application-layer control protocol that can establish,
++   	  modify, and terminate multimedia sessions (conferences) such as
++   	  Internet telephony calls. With the ip_conntrack_sip and
++	  the ip_nat_sip modules you can support the protocol on a connection
++	  tracking/NATing firewall.
 +=09
-+	  If you want to compile it as a module, say M here and read
-+	  <file:Documentation/modules.txt>.  If unsure, say `Y'.
-diff -Nrup --exclude=3D.svn pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.=
-6.12/net/ipv4/netfilter/Makefile.ladd pom-ng-edit/patchlets/mms-conntrack-n=
-at/linux-2.6.12/net/ipv4/netfilter/Makefile.ladd
---- pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.6.12/net/ipv4/netfilter/=
++	  If you want to compile it as a module, say 'M' here and read
++	  Documentation/modules.txt.  If unsure, say 'N'.
+diff -Nrup --exclude=3D.svn pom-ng-svn/patchlets/sip-conntrack-nat/linux-2.=
+6.12/net/ipv4/netfilter/Makefile.ladd pom-ng-sip/patchlets/sip-conntrack-na=
+t/linux-2.6.12/net/ipv4/netfilter/Makefile.ladd
+--- pom-ng-svn/patchlets/sip-conntrack-nat/linux-2.6.12/net/ipv4/netfilter/=
 Makefile.ladd	1970-01-01 01:00:00.000000000 +0100
-+++ pom-ng-edit/patchlets/mms-conntrack-nat/linux-2.6.12/net/ipv4/netfilter=
-/Makefile.ladd	2005-07-03 22:40:06.000000000 +0200
-@@ -0,0 +1,2 @@
-+# NAT helpers=20
-+obj-$(CONFIG_IP_NF_NAT_MMS) +=3D ip_nat_mms.o
-diff -Nrup --exclude=3D.svn pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.=
-6.12/net/ipv4/netfilter/Makefile.ladd_2 pom-ng-edit/patchlets/mms-conntrack=
--nat/linux-2.6.12/net/ipv4/netfilter/Makefile.ladd_2
---- pom-ng-svn/patchlets/mms-conntrack-nat/linux-2.6.12/net/ipv4/netfilter/=
-Makefile.ladd_2	1970-01-01 01:00:00.000000000 +0100
-+++ pom-ng-edit/patchlets/mms-conntrack-nat/linux-2.6.12/net/ipv4/netfilter=
-/Makefile.ladd_2	2005-07-03 22:40:06.000000000 +0200
-@@ -0,0 +1,2 @@
-+# connection tracking helpers
-+obj-$(CONFIG_IP_NF_MMS) +=3D ip_conntrack_mms.o
++++ pom-ng-sip/patchlets/sip-conntrack-nat/linux-2.6.12/net/ipv4/netfilter/=
+Makefile.ladd	2005-07-03 22:40:24.000000000 +0200
+@@ -0,0 +1,6 @@
++obj-$(CONFIG_IP_NF_CONNTRACK) +=3D ip_conntrack.o
++=20
++# SIP support
++obj-$(CONFIG_IP_NF_SIP) +=3D ip_conntrack_sip.o
++obj-$(CONFIG_IP_NF_NAT_SIP) +=3D ip_nat_sip.o
++
 
---KsGdsel6WgEHnImy--
+--6TrnltStXW4iwmi0--
 
---ftEhullJWpWg/VHq
+--wzJLGUyc3ArbnUjN
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQFC5okuo4FAdB2PneQRAvFUAJ0VT5x5BnM1rPP8S3kbDBXPgOR6nwCbBGae
-6alr6JkMgLsBQQGyuc5TYLA=
-=KmM/
+iD8DBQFC5olvo4FAdB2PneQRAjS9AJ9tuGOQ+3OHQ6n4qX6y0qkA2nBzMgCffFxK
+1wSnYMGzXvbzl5jsbU5ieqk=
+=JOF0
 -----END PGP SIGNATURE-----
 
---ftEhullJWpWg/VHq--
+--wzJLGUyc3ArbnUjN--
