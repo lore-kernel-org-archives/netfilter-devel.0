@@ -1,14 +1,21 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: REDIRECT changes DST address of the packet
-Date: Tue, 26 Jul 2005 01:59:33 +0200
-Message-ID: <42E57CE5.4070202@trash.net>
-References: <20050725045409.35744.qmail@web60823.mail.yahoo.com>
+Subject: Re: Netlink connector
+Date: Tue, 26 Jul 2005 02:16:15 +0200
+Message-ID: <42E580CF.4010800@trash.net>
+References: <20050723125427.GA11177@rama>
+	<20050723091455.GA12015@2ka.mipt.ru>	<20050724.191756.105797967.davem@davemloft.net>	<Lynx.SEL.4.62.0507250154000.21934@thoron.boston.redhat.com>	<20050725070603.GA28023@2ka.mipt.ru>
+	<42E4F800.1010908@trash.net>	<20050725192853.GA30567@2ka.mipt.ru>
+	<42E579BC.8000701@trash.net>
+	<20050725235626.GX10481@postel.suug.ch>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090804040601010804020201"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>, Andrew Morton <akpm@osdl.org>,
+	Harald Welte <laforge@netfilter.org>, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Venkata Narayana <mesg2nari@yahoo.com>
-In-Reply-To: <20050725045409.35744.qmail@web60823.mail.yahoo.com>
+To: Thomas Graf <tgraf@suug.ch>
+In-Reply-To: <20050725235626.GX10481@postel.suug.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,57 +27,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090804040601010804020201
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Venkata Narayana wrote:
-> Hi,
+Thomas Graf wrote:
+> * Patrick McHardy <42E579BC.8000701@trash.net> 2005-07-26 01:46
+>
+>>You still have to take care of mixed 64/32 bit environments, u64 fields
+>>for example are differently alligned.
 > 
-> Thanks,
-> I am able to get the original dst address when I am
-> using tcp connection.
-> How can I get with UDP???
+> My solution to this (in the same patchset) is that we never
+> derference u64s but instead copy them.
 
-Does this patch help? It should make SO_ORIGINAL_DST usable
-with UDP as well.
+I don't understand. The problem is mainly u64 embedded in structures,
+the structs have different sizes if the u64 is not 8 byte aligned
+and the structure size padded to a multiple of 8.
 
---------------090804040601010804020201
-Content-Type: text/x-patch;
- name="SO_ORIGINAL_DST-udp.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="SO_ORIGINAL_DST-udp.diff"
+>>Then fix it so we can use more families and groups. I started some work
+>>on this, but I'm not sure if I have time to complete it.
+>  
+> Great, this is one of the remaining issues I haven't solved yet.
+> If you want me to take over just hand over your unfinished work
+> and I'll integrate it into my patchset.
 
-[NETFILTER]: Make SO_ORIGINAL_DST usable for UDP
+I started working on it after the OLS party, so no postable code yet :)
+The idea for more groups is basically to remove the fixed groups
+bitmask from struct sockaddr_nl and use setsockopt to add/remove
+multicast subscriptions. If we add the limitation that a packet
+can only be multicasted to a single group we can support an arbitary
+number of groups, otherwise we would still be limited by size of
+skb->cb. This limitation shouldn't be a problem, AFAIK nothing is
+multicasting to multiple groups at once right now and the increased
+number of groups will allow a better granularity anyway. The main
+problem is keeping it backwards-compatible for current netlink users.
+If this isn't possible we may need to call it netlink2.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit f65e246c7c05b208494de20f38973393d6b30155
-tree 6437e0491ba99ec326c59ca0ac65300c2f01a804
-parent eb82d02518ac3a400663163995097749d91c7c4c
-author Patrick McHardy <kaber@trash.net> Tue, 26 Jul 2005 01:58:27 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 26 Jul 2005 01:58:27 +0200
-
- net/ipv4/netfilter/ip_conntrack_core.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
---- a/net/ipv4/netfilter/ip_conntrack_core.c
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -1310,9 +1310,8 @@ getorigdst(struct sock *sk, int optval, 
- 	tuple.dst.u.tcp.port = inet->dport;
- 	tuple.dst.protonum = IPPROTO_TCP;
- 
--	/* We only do TCP at the moment: is there a better way? */
--	if (strcmp(sk->sk_prot->name, "TCP")) {
--		DEBUGP("SO_ORIGINAL_DST: Not a TCP socket\n");
-+	if (sk->sk_protocol != IPPROTO_TCP && sk->sk_protocol != IPPROTO_UDP) {
-+		DEBUGP("SO_ORIGINAL_DST: Not a TCP/UDP socket\n");
- 		return -ENOPROTOOPT;
- 	}
- 
-
---------------090804040601010804020201--
+Regards
+Patrick
