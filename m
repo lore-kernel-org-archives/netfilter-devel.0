@@ -1,23 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [NETFILTER]: Kill ebt_ulog
-Date: Sun, 24 Jul 2005 13:25:39 -0400
-Message-ID: <20050724172539.GB3873@rama>
-References: <42E1ADB2.1080109@trash.net>
-	<1122119412.4484.5.camel@localhost.localdomain>
-	<42E267C8.9090005@trash.net>
-	<1122148193.3382.16.camel@localhost.localdomain>
-	<42E2A2E9.8050800@trash.net> <42E2C2E8.8010900@gmx.net>
-	<42E2D0C9.7080808@trash.net>
-	<1122196971.3382.6.camel@localhost.localdomain>
+From: Venkata Narayana <mesg2nari@yahoo.com>
+Subject: Re: REDIRECT changes DST address of the packet
+Date: Tue, 26 Jul 2005 01:27:08 -0700 (PDT)
+Message-ID: <20050726082708.3234.qmail@web60817.mail.yahoo.com>
+References: <42E581D4.10402@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DBIVS5p969aUjpLe"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
-Content-Disposition: inline
-In-Reply-To: <1122196971.3382.6.camel@localhost.localdomain>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42E581D4.10402@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,67 +21,89 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Thank you Patrick. 
 
---DBIVS5p969aUjpLe
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Here I'm using single fd wor multiple addresses. so
+theoritically speaking it won't work with this... In
+udp recvmsg function if we can get the address then 
+it  sounds good.
 
-On Sun, Jul 24, 2005 at 09:22:51AM +0000, Bart De Schuymer wrote:
-> Op zo, 24-07-2005 te 01:20 +0200, schreef Patrick McHardy:
-> > > Please add ebt_ulog to Documentation/feature-removal-schedule.txt
-> > > and give people the usual 6 month grace period to transition to
-> > > the proposed feature-equivalent alternatives.
-> >=20
-> > It is _broken_ right now and conflicts with ipt_ULOG. There is no
-> > point in keeping it broken for 6 month.
->=20
-> Removing ebt_ulog would be stupid. So what if it conflicts with
-> ipt_ULOG, there is no kernel panic, they just can't be used together
-> currently.=20
+If I am wrong sorry for that.
 
-Yes, you 'just' don't get logs of your security policy violations
-anymore.  I think a lot of people would consider this a _serious_
-security issue, one that even rectifies a security advisory.
+Thanks,
+Venkat
 
-So the code isn't broken _if_ it was using a different netlink family
-number.  I'm not in a position to decide on whether to assign you one, I
-can just tell you that reusing the number used by ipt_ULOG is causing
-security problems and therefore is a bug. =20
 
-If no new number can be assigned, I recommend putting in some KConfig
-rule to prevent enabling both ebt_ulog and ipt_ULOG at the same time.
+--- Patrick McHardy <kaber@trash.net> wrote:
 
-> That problem should be solved by the generic replacement.=20
+> Patrick McHardy wrote:
+> > Venkata Narayana wrote:
+> > 
+> >> I am able to get the original dst address when I
+> am
+> >> using tcp connection.
+> >> How can I get with UDP???
+> > 
+> > Does this patch help? It should make
+> SO_ORIGINAL_DST usable
+> > with UDP as well.
+> > 
+> > diff --git
+> a/net/ipv4/netfilter/ip_conntrack_core.c
+> b/net/ipv4/netfilter/ip_conntrack_core.c
+> > --- a/net/ipv4/netfilter/ip_conntrack_core.c
+> > +++ b/net/ipv4/netfilter/ip_conntrack_core.c
+> > @@ -1310,9 +1310,8 @@ getorigdst(struct sock *sk,
+> int optval, 
+> >  	tuple.dst.u.tcp.port = inet->dport;
+> >  	tuple.dst.protonum = IPPROTO_TCP;
+> 
+> Please try this patch instead, I missed the above
+> line.
+> > [NETFILTER]: Make SO_ORIGINAL_DST usable for UDP
+> 
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
+> 
+> ---
+> commit 59740eead041f1e9c22555a5107bf9ca98a780da
+> tree a4d80f970e9fa526bff6c173cfe6d5a0610279a4
+> parent eb82d02518ac3a400663163995097749d91c7c4c
+> author Patrick McHardy <kaber@trash.net> Tue, 26 Jul
+> 2005 02:19:09 +0200
+> committer Patrick McHardy <kaber@trash.net> Tue, 26
+> Jul 2005 02:19:09 +0200
+> 
+>  net/ipv4/netfilter/ip_conntrack_core.c |    7
+> +++----
+>  1 files changed, 3 insertions(+), 4 deletions(-)
+> 
+> diff --git a/net/ipv4/netfilter/ip_conntrack_core.c
+> b/net/ipv4/netfilter/ip_conntrack_core.c
+> --- a/net/ipv4/netfilter/ip_conntrack_core.c
+> +++ b/net/ipv4/netfilter/ip_conntrack_core.c
+> @@ -1308,11 +1308,10 @@ getorigdst(struct sock *sk,
+> int optval, 
+>  	tuple.src.u.tcp.port = inet->sport;
+>  	tuple.dst.ip = inet->daddr;
+>  	tuple.dst.u.tcp.port = inet->dport;
+> -	tuple.dst.protonum = IPPROTO_TCP;
+> +	tuple.dst.protonum = sk->sk_protocol;
+>  
+> -	/* We only do TCP at the moment: is there a better
+> way? */
+> -	if (strcmp(sk->sk_prot->name, "TCP")) {
+> -		DEBUGP("SO_ORIGINAL_DST: Not a TCP socket\n");
+> +	if (sk->sk_protocol != IPPROTO_TCP &&
+> sk->sk_protocol != IPPROTO_UDP) {
+> +		DEBUGP("SO_ORIGINAL_DST: Not a TCP/UDP
+> socket\n");
+>  		return -ENOPROTOOPT;
+>  	}
+>  
+> 
 
-yes, it is solved by it.  Patch will be posted any day.
 
-> If the "generic" replacement is such that it can only be used by
-> iptables modules then it is not generic at all.
-
-The 'generic' replacement can be used by anyone in the kernel who wants
-to log an skb.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---DBIVS5p969aUjpLe
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC488SXaXGVTD0i/8RAuJ2AJ9bR2ZL8FOpDNetXx52SO6t4SKIFgCcC/+h
-lhnYFRObmNw/pyh9O4sVXIE=
-=sdUm
------END PGP SIGNATURE-----
-
---DBIVS5p969aUjpLe--
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
