@@ -1,20 +1,21 @@
-From: =?ISO-8859-1?Q?J=E9r=F4me_Poulin?= <jeromepoulin@gmail.com>
+From: Sven Schuster <schuster.sven@gmx.de>
 Subject: Re: lockhelp.h missing
-Date: Tue, 26 Jul 2005 14:25:04 -0400
-Message-ID: <debc30fc05072611255b18720f@mail.gmail.com>
+Date: Tue, 26 Jul 2005 20:47:02 +0200
+Message-ID: <20050726184702.GA1176@zion.homelinux.com>
 References: <debc30fc050721223469bd79d6@mail.gmail.com>
 	<42E08A7A.6010204@trash.net>
 	<20050722125205.GA17750@zion.homelinux.com>
 	<debc30fc0507230238427b0290@mail.gmail.com>
 	<20050723205206.GA29011@zion.homelinux.com>
-Reply-To: =?ISO-8859-1?Q?J=E9r=F4me_Poulin?= <jeromepoulin@gmail.com>
+	<debc30fc05072611231d179fae@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="45Z9DzgjV8m4Oswq"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20050723205206.GA29011@zion.homelinux.com>
+To: =?iso-8859-1?B?Suly9G1l?= Poulin <jeromepoulin@gmail.com>
 Content-Disposition: inline
+In-Reply-To: <debc30fc05072611231d179fae@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,30 +27,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Just finished testing and the 2 patches works perfectly on
-2.6.13-rc3-mm1 ! Apply with no warning and works, thanks :)
 
-On 7/23/05, Sven Schuster <schuster.sven@gmx.de> wrote:
->=20
-> Hi J=E9r=F4me,
->=20
-> On Sat, Jul 23, 2005 at 05:38:23AM -0400, J=E9r=F4me Poulin told us:
-> > Thanks, MMS compiled without any error or warning, h323 still misses
-> > the file on its side.
->=20
-> here is a patch against current pom-ng svn to update h323-conntrack-nat
-> for current kernels. Please apply to your pom-ng and test it. Compile-
-> tested with 2.6.13-rc3-mm1.
->=20
->=20
-> Kind regards,
->=20
-> Sven
->=20
-> --
-> Linux zion 2.6.13-rc3-mm1 #6 PREEMPT Mon Jul 18 19:42:52 CEST 2005 i686 a=
-thlon i386 GNU/Linux
->  22:50:36 up 1 day,  6:00,  2 users,  load average: 0.36, 0.48, 0.27
->=20
->=20
->
+--45Z9DzgjV8m4Oswq
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+
+Hi J=E9r=F4me,
+
+On Tue, Jul 26, 2005 at 02:23:57PM -0400, J=E9r=F4me Poulin told us:
+> Just finished testing and the 2 patches works perfectly on
+> 2.6.13-rc3-mm1 ! Apply with no warning and works, thanks :)
+
+nice to hear that it works. So I can now send the patches for
+applying to svn :-)
+
+
+Sven
+
+--=20
+Linux zion 2.6.13-rc3-mm1 #12 PREEMPT Sun Jul 24 02:04:45 CEST 2005 i686 at=
+hlon i386 GNU/Linux
+ 20:45:43 up 1 day, 20:55,  1 user,  load average: 0.00, 0.00, 0.00
+
+--45Z9DzgjV8m4Oswq
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQFC5oUmo4FAdB2PneQRAlKWAJ4rdoQFgEkf6YScq3Hof+oXf9LUzwCdGuaK
+TXdk8GZF7+VSGONbzxD76oI=
+=ecMo
+-----END PGP SIGNATURE-----
+
+--45Z9DzgjV8m4Oswq--
