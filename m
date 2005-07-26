@@ -1,24 +1,11 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: Netlink connector
-Date: Tue, 26 Jul 2005 02:30:06 +0200
-Message-ID: <20050726003006.GY10481@postel.suug.ch>
-References: <20050723125427.GA11177@rama> <20050723091455.GA12015@2ka.mipt.ru>
-	<20050724.191756.105797967.davem@davemloft.net>
-	<Lynx.SEL.4.62.0507250154000.21934@thoron.boston.redhat.com>
-	<20050725070603.GA28023@2ka.mipt.ru> <42E4F800.1010908@trash.net>
-	<20050725192853.GA30567@2ka.mipt.ru> <42E579BC.8000701@trash.net>
-	<20050725235626.GX10481@postel.suug.ch>
-	<42E580CF.4010800@trash.net>
+From: Philip Craig <philipc@snapgear.com>
+Subject: [PATCH] NAT PPTP Set-Link-Info
+Date: Tue, 26 Jul 2005 14:29:22 +1000
+Message-ID: <42E5BC22.2030303@snapgear.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>, Andrew Morton <akpm@osdl.org>,
-	Harald Welte <laforge@netfilter.org>, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org,
-	Jamal Hadi Salim <hadi@cyberus.ca>, linux-kernel@vger.kernel.org
+Content-Type: multipart/mixed; boundary="------------080203010509040905040103"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <42E580CF.4010800@trash.net>
+To: netfilter-devel <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,47 +17,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Patrick McHardy <42E580CF.4010800@trash.net> 2005-07-26 02:16
-> Thomas Graf wrote:
-> >* Patrick McHardy <42E579BC.8000701@trash.net> 2005-07-26 01:46
-> >
-> >>You still have to take care of mixed 64/32 bit environments, u64 fields
-> >>for example are differently alligned.
-> >
-> >My solution to this (in the same patchset) is that we never
-> >derference u64s but instead copy them.
-> 
-> I don't understand. The problem is mainly u64 embedded in structures,
-> the structs have different sizes if the u64 is not 8 byte aligned
-> and the structure size padded to a multiple of 8.
+This is a multi-part message in MIME format.
+--------------080203010509040905040103
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Like in gnet_stats, yes. I thought you meant usages like *(u64 *)
-which we shouldn't do either.
+NAT PPTP Set-Link-Info messages in the PAC->PNS direction.
+These are sent by Windows Server 2003.
 
-> I started working on it after the OLS party, so no postable code yet :)
-> The idea for more groups is basically to remove the fixed groups
-> bitmask from struct sockaddr_nl and use setsockopt to add/remove
-> multicast subscriptions. If we add the limitation that a packet
-> can only be multicasted to a single group we can support an arbitary
-> number of groups, otherwise we would still be limited by size of
-> skb->cb.
+Note that Set-Link-Info messages do not need to be NATed in the
+PNS->PAC direction, since we never NAT the PAC call id.
 
-I was thinking of subscription messages over netlink itself for
-the advantage that we could use it within the distributed netlink
-protocol that has to come up sometime soon. Well, both ways
-are ok I guess, the ease of distributive usage is my only argument.
+Tested for linux-2.4.29 only, but should also apply to both 2.6
+versions in patch-o-matic-ng.
 
-> This limitation shouldn't be a problem, AFAIK nothing is
-> multicasting to multiple groups at once right now and the increased
-> number of groups will allow a better granularity anyway.
+--------------080203010509040905040103
+Content-Type: text/plain;
+ name="pptp-set-link-info.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="pptp-set-link-info.patch"
 
-I'm not aware of any and I agree. We don't need n<->n subscriptions,
-1<->n is perfectly fine as I see it.
+Index: linux/net/ipv4/netfilter/ip_nat_pptp.c
+===================================================================
+--- linux/net/ipv4/netfilter/ip_nat_pptp.c	(revision 4151)
++++ linux/net/ipv4/netfilter/ip_nat_pptp.c	(working copy)
+@@ -324,6 +324,9 @@
+ 	case PPTP_CALL_DISCONNECT_NOTIFY:
+ 		pcid = &pptpReq.disc->callID;
+ 		break;
++	case PPTP_SET_LINK_INFO:
++		pcid = &pptpReq.setlink->peersCallID;
++		break;
+ 
+ 	default:
+ 		DEBUGP("unknown inbound packet %s\n",
 
-> The main
-> problem is keeping it backwards-compatible for current netlink users.
-> If this isn't possible we may need to call it netlink2.
-
-I think Jamal has a moral patent on the name netlink2 so be careful ;->
-It should be possible to remain compatible, I don't see any
-unresolveable issues right now.
+--------------080203010509040905040103--
