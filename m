@@ -1,17 +1,14 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH] move ip[6]_queue rerouting up to nf_queue
-Date: Tue, 26 Jul 2005 17:08:14 -0700 (PDT)
-Message-ID: <20050726.170814.28770798.davem@davemloft.net>
-References: <20050726164505.GD4279@rama.de.gnumonks.org>
-	<20050726.161300.12130036.davem@davemloft.net>
-	<20050726235223.GD4673@rama.de.gnumonks.org>
+From: Visham Ramsurrun <vishamr2000@gmail.com>
+Subject: HElp with script execution!!
+Date: Wed, 27 Jul 2005 15:11:07 +0400
+Message-ID: <9927912d05072704113d7e8707@mail.gmail.com>
+Reply-To: Visham Ramsurrun <vishamr2000@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20050726235223.GD4673@rama.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,9 +20,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Wed, 27 Jul 2005 01:52:23 +0200
+Hi to all,
 
-> See attached file "12-queue-reroute.patch.2".
+I wanted to ask if it is possible to get a signal (i don't know from
+where, maybe a function in the kernel or from the NIC) just before
+every packet is sent out the NIC. The signal then causes a script to
+execute. I basically want to execute a script on a per-packet basis.
+But I don't know how to go about it. I thought about the QUEUE target
+but i'm not sure. What things I should be looking at?
 
-All patches applied to net-2.6.14, thanks Harald.
+Thx in advance..
+
+Warm regards,
+Visham
