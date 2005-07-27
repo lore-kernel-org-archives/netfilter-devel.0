@@ -1,7 +1,7 @@
 From: "David S. Miller" <davem@davemloft.net>
 Subject: Re: [PATCH] move ip[6]_queue rerouting up to nf_queue
-Date: Tue, 26 Jul 2005 16:56:32 -0700 (PDT)
-Message-ID: <20050726.165632.20916615.davem@davemloft.net>
+Date: Tue, 26 Jul 2005 17:08:14 -0700 (PDT)
+Message-ID: <20050726.170814.28770798.davem@davemloft.net>
 References: <20050726164505.GD4279@rama.de.gnumonks.org>
 	<20050726.161300.12130036.davem@davemloft.net>
 	<20050726235223.GD4673@rama.de.gnumonks.org>
@@ -26,9 +26,6 @@ List-Id: netfilter-devel.vger.kernel.org
 From: Harald Welte <laforge@netfilter.org>
 Date: Wed, 27 Jul 2005 01:52:23 +0200
 
-> I'll also prepare a modified version of the nfnetlink module
-> refcounting patch, but I'm not submitting it until you've applied ll
-> of the other pending netfilter patches since they would conflict
-> (re-attached the other two pending patches from earlier today.
+> See attached file "12-queue-reroute.patch.2".
 
-No need, see my other email, I took care of this for you.
+All patches applied to net-2.6.14, thanks Harald.
