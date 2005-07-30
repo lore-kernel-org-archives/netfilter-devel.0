@@ -1,13 +1,17 @@
-From: "Osama Abu Elsorour" <osama@wayout.net>
-Subject: conntrack management
-Date: Sun, 31 Jul 2005 11:41:34 +0300
-Message-ID: <37668.8838158318$1122799339@news.gmane.org>
+From: Sven Schuster <schuster.sven@gmx.de>
+Subject: Re: [PATCH] add new nfnetlink_log subsystem
+Date: Sat, 30 Jul 2005 18:41:21 +0200
+Message-ID: <20050730164121.GA14794@zion.homelinux.com>
+References: <20050730103005.GB6620@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SLDf9lqlvOQaIe6s"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Harald Welte <laforge@gnumonks.org>, David Miller <davem@davemloft.net>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <20050730103005.GB6620@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,22 +23,89 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-All
 
-I always wondered why there isn't a more comprehensive way of managing
-current conntrack entries, perhaps some sort of a user-space program that
-can list conntracks in a more readable way using simple filters or matching
-criteria.
-This also leads to wondering why there isn't a way of forcefully destroying
-specific conntracks without the need of resetting the modules, etc. I find
-it very important specially when deleting a NAT rule while existing
-connections are established.
+--SLDf9lqlvOQaIe6s
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I was thinking of building a tool to do both. On the first front, it seems
-that it is quite doable (I am even thinking of making a kind of meta-tag
-scheme, like string name-value pairs that can be attached to conntracks to
-help ease up matching them for listing and/or deletion). The second front, I
-am sure there is a good reason why it has not been done so far, I am just
-not quite sure what it is.
 
-Thanks
+Hi Harald,
+
+On Sat, Jul 30, 2005 at 12:30:05PM +0200, Harald Welte told us:
+> diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+> new file mode 100644
+> --- /dev/null
+> +++ b/net/netfilter/nfnetlink_log.c
+> @@ -0,0 +1,992 @@
+=2E..
+> +static struct sk_buff *nfulnl_alloc_skb(unsigned int inst_size,=20
+> +					unsigned int pkt_size)
+> +{
+> +	struct sk_buff *skb;
+> +
+> +	UDEBUG("entered (%u, %u)\n", inst_size, pkt_size);
+> +
+> +	/* alloc skb whihc should be big enough for a whole multipart
+
+typo, which
+
+> +	 * message.  WARNING: has to be <=3D 128k due to slab restrictions */
+> +
+
+=2E..
+
+> +
+> +static int
+> +init_or_cleanup(int init)
+> +{
+
+=2E..
+
+> +#ifdef CONFIG_PROC_FS
+> +	proc_nful =3D create_proc_entry("nfnetlink_log", 0440,
+> +				      proc_net_netfilter);
+> +	if (!proc_nful)
+> +		goto cleanup_subsys;
+> +	proc_nful->proc_fops =3D &nful_file_ops;
+> +#endif
+> +
+> +	return status;
+> +
+> +cleanup:
+> +	nf_log_unregister_logger(&nfulnl_logger);
+> +#ifdef CONFIG_PROC_FS
+> +cleanup_subsys:
+
+no remove_proc_entry??
+
+> +#endif
+> +	nfnetlink_subsys_unregister(&nfulnl_subsys);
+> +cleanup_netlink_notifier:
+> +	netlink_unregister_notifier(&nfulnl_rtnl_notifier);
+> +	return status;
+> +}
+> +
+
+Kind regards,
+
+Sven
+
+--=20
+Linux zion 2.6.13-rc3-mm1 #17 PREEMPT Thu Jul 28 02:56:37 CEST 2005 i686 at=
+hlon i386 GNU/Linux
+ 18:34:22 up 19:35,  2 users,  load average: 0.28, 0.11, 0.03
+
+--SLDf9lqlvOQaIe6s
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQFC662xo4FAdB2PneQRAhSeAJ9AXhq/DxVoOM01A1MXBJ6zu5XJKACeKqvJ
+f5e4LMz3lLvlImKOrq1NtBE=
+=6deh
+-----END PGP SIGNATURE-----
+
+--SLDf9lqlvOQaIe6s--
