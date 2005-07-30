@@ -1,15 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] MASQUERADE: inherit masq_index to slave connections
-Date: Sat, 30 Jul 2005 15:55:12 +0200
-Message-ID: <20050730135511.GE6620@rama.de.gnumonks.org>
+From: Robert de Bath <list-netfilter@debath.co.uk>
+Subject: Re: Bug Report: IPtables 1.2.* segfaulted by iptables 1.3.* [PATCH]
+Date: Sat, 30 Jul 2005 08:12:31 +0100 (BST)
+Message-ID: <df9eaa1431a9e102@mayday.cix.co.uk>
+References: <9927912d05072704113d7e8707@mail.gmail.com>
+	<e756d62eb5442015@mayday.cix.co.uk>
+	<20050729105834.GD7063@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="sdEQJo40s7ofW8iR"
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-1463809397-1106440432-1122707551=:3746"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David Miller <davem@davemloft.net>
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050729105834.GD7063@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,88 +23,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---sdEQJo40s7ofW8iR
-Content-Type: multipart/mixed; boundary="8jNwmpfkpox/fiJK"
-Content-Disposition: inline
+---1463809397-1106440432-1122707551=:3746
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 
+On Fri, 29 Jul 2005, Harald Welte wrote:
 
---8jNwmpfkpox/fiJK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On Thu, Jul 28, 2005 at 11:53:49AM +0100, Robert de Bath wrote:
+>> Hi all,
+>> I've been mixing iptables 1.2.8/1.2.11 and 1.3.1/2 tools and unlike I would
 
-Hi Dave!
+> other issues with this as well (one has been added to INCOMPATIBILITIES
+> recently).
+Yup, spotted that but nfcache is per entry so it doesn't break _this_.
 
-This fixes a bug with MASQUERADE and nat helpers.  The fix applies to
-both net-2.6.14 and Linus' current git tree.
+> If the fix is non-intrusive and doesn't reaquire a lot of additional
+> computational complexity, I would accept such a patch.  Otherwise I
+> don't really think it's worth supporting such a setup.  Usually you have
+> one version of iptables installed, not multiple.
 
-I'll send a 2.4.31 version of the patch directly to Marcelo (will Cc
-you).
+<grin> The change was a _lot_ easier than I thought, looks like it's a
+real bug too. [attached]
 
-Please apply, thanks.
+-- 
+Rob.                          (Robert de Bath <robert$ @ debath.co.uk>)
+                                              <http://www.debath.co.uk/>
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+---1463809397-1106440432-1122707551=:3746
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=dif
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.61.0507300812310.3746@mayday.local>
+Content-Description: 
+Content-Disposition: attachment; filename=dif
 
---8jNwmpfkpox/fiJK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="19-masq_index-inheritance.patch"
+LS0tIGxpYmlwdGMvbGliaXB0Yy5jLm9yaWcJMjAwNS0wNy0xOSAyMzowMzo0
+OS4wMDAwMDAwMDAgKzAxMDANCisrKyBsaWJpcHRjL2xpYmlwdGMuYwkyMDA1
+LTA3LTMwIDA3OjU5OjA2LjMxMjIzODY0NCArMDEwMA0KQEAgLTM5OSw3ICsz
+OTksNyBAQA0KIAkvKiBzb3J0IG9ubHkgdXNlciBkZWZpbmVkIGNoYWlucyAq
+Lw0KIAlpZiAoIWMtPmhvb2tudW0pIHsNCiAJCWxpc3RfZm9yX2VhY2hfZW50
+cnkodG1wLCAmaC0+Y2hhaW5zLCBsaXN0KSB7DQotCQkJaWYgKHN0cmNtcChj
+LT5uYW1lLCB0bXAtPm5hbWUpIDw9IDApIHsNCisJCQlpZiAoIXRtcC0+aG9v
+a251bSAmJiBzdHJjbXAoYy0+bmFtZSwgdG1wLT5uYW1lKSA8PSAwKSB7DQog
+CQkJCWxpc3RfYWRkKCZjLT5saXN0LCB0bXAtPmxpc3QucHJldik7DQogCQkJ
+CXJldHVybjsNCiAJCQl9DQo=
 
-[NETFILTER] Inherit masq_index to slave connections
-
-masq_index is used for cleanup in case the interface address changes
-(such as a dialup ppp link with dynamic addreses).  Without this patch,
-slave connections are not evicted in such a case, since they don't inherit
-masq_index.
-
-Signed-off-by: Harald Welte <laforge@netfilter.org>
-
----
-commit bd4123d85f932f9bd60da9d2ed3523dc7b792075
-tree a0218fc4d42630d33d99b4167f6dccf209cfd091
-parent f00815c7d2b718eccbc3e7ec77592faff45e9ccc
-author laforge <laforge@netfilter.org> Sa, 30 Jul 2005 15:35:35 +0200
-committer laforge <laforge@netfilter.org> Sa, 30 Jul 2005 15:35:35 +0200
-
- net/ipv4/netfilter/ip_conntrack_core.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
---- a/net/ipv4/netfilter/ip_conntrack_core.c
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -726,6 +726,11 @@ init_conntrack(struct ip_conntrack_tuple
- #if CONFIG_IP_NF_CONNTRACK_MARK
- 		conntrack->mark = exp->master->mark;
- #endif
-+#if defined(CONFIG_IP_NF_TARGET_MASQUERADE) || \
-+    defined(CONFIG_IP_NF_TARGET_MASQUERADE_MODULE)
-+		/* this is ugly, but there is no other place where to put it */
-+		conntrack->nat.masq_index = exp->master->nat.masq_index;
-+#endif
- 		nf_conntrack_get(&conntrack->master->ct_general);
- 		CONNTRACK_STAT_INC(expect_new);
- 	} else {
-
---8jNwmpfkpox/fiJK--
-
---sdEQJo40s7ofW8iR
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC64a/XaXGVTD0i/8RAjdTAJsFJiUgcL12DrTQybeVvXSdGCK1ygCfd/nF
-YGMRWS6mh4GI1yJp+HkBw8I=
-=jlkg
------END PGP SIGNATURE-----
-
---sdEQJo40s7ofW8iR--
+---1463809397-1106440432-1122707551=:3746--
