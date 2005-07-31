@@ -1,38 +1,32 @@
-From: Denis Vlasenko <vda@ilport.com.ua>
-Subject: Re: iptables redirect is broken on bridged setup
-Date: Sat, 30 Jul 2005 17:40:13 +0300
-Message-ID: <200507301740.13239.vda@ilport.com.ua>
-References: <200507291209.37247.vda@ilport.com.ua> <20050729.123744.41648141.davem@davemloft.net>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH] add refcounting and /proc to nfnetlink_queue
+Date: Sat, 30 Jul 2005 21:00:07 -0700 (PDT)
+Message-ID: <20050730.210007.35443118.davem@davemloft.net>
+References: <20050730103226.GC6620@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="koi8-r"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	coreteam@netfilter.org, laforge@netfilter.org, jmorris@redhat.com
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262974AbVG3Oke@vger.kernel.org>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20050729.123744.41648141.davem@davemloft.net>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: laforge@gnumonks.org
+In-Reply-To: <20050730103226.GC6620@rama.de.gnumonks.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 29 July 2005 22:37, David S. Miller wrote:
-> From: Denis Vlasenko <vda@ilport.com.ua>
-> Date: Fri, 29 Jul 2005 12:11:52 +0300
-> 
-> > Linux 2.6.12
-> > 
-> > Was running for months with this simple iptables rule:
->  ...
-> > But now I need to bridge together two eth cards in this machine, and
-> > suddenly redirect is no longer works.
-> 
-> I think this is the regression we fixed up in 2.6.12.x, can
-> you try the latest 2.6.12.x stable release and see if it
-> clears up this behavioral change?
+From: Harald Welte <laforge@gnumonks.org>
+Date: Sat, 30 Jul 2005 12:32:26 +0200
 
-Just tested. 2.6.12.3 does not have this bug.
+> [NETFILTER] Add refcounting and /proc/net/netfilter interface to
+> 	    nfnetlink_queue
+> 
+> Signed-off-by: Harald Welte <laforge@netfilter.org>
 
-Thanks!
---
-vda
+Applied, thanks Harald.
