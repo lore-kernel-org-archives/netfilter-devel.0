@@ -1,16 +1,18 @@
-From: Sven Schuster <schuster.sven@gmx.de>
-Subject: Re: [PATCH 3/3] pom-ng: update sip-conntrack-nat for 2.6.12
-Date: Fri, 29 Jul 2005 18:46:41 +0200
-Message-ID: <20050729164641.GA4133@zion.homelinux.com>
-References: <20050726190519.GA2128@zion.homelinux.com>
-	<20050729105612.GC7063@rama.de.gnumonks.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: iptables redirect is broken on bridged setup
+Date: Sun, 31 Jul 2005 12:50:07 +0200
+Message-ID: <20050731105007.GH14874@rama.de.gnumonks.org>
+References: <200507291209.37247.vda@ilport.com.ua>
+	<Pine.LNX.4.61.0507291316140.10775@yvahk01.tjqt.qr>
+	<200507291511.35081.vda@ilport.com.ua>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Q68bSM7Ycu6FN28Q"
+	protocol="application/pgp-signature"; boundary="jaoouwwPWoQSJZYp"
+Cc: netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Denis Vlasenko <vda@ilport.com.ua>
 Content-Disposition: inline
-In-Reply-To: <20050729105612.GC7063@rama.de.gnumonks.org>
+In-Reply-To: <200507291511.35081.vda@ilport.com.ua>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,69 +25,51 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Q68bSM7Ycu6FN28Q
-Content-Type: text/plain; charset=iso-8859-1
+--jaoouwwPWoQSJZYp
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
+On Fri, Jul 29, 2005 at 03:11:35PM +0300, Denis Vlasenko wrote:
 
-Hi Harald,
+> Note that REDIRECT loads ip_conntrack, and this seem to
+> cause problems, see another bugzilla entry at
+> https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=3D339
 
-On Fri, Jul 29, 2005 at 12:56:12PM +0200, Harald Welte told us:
-> the changes are non-intrusive and only affect changing from lockhelp
-> macros to regular locking functions.  I don't see how those four changed
-> lines would create a bug.
+REDIRECT is a for of DNAT, like you correctly state. DNAT _needs_
+ip_conntrack, so that's not what is causing problems.
 
-of course, but who nows :-)
+Causing problems is probably the nf_reset() and other hacks that were
+put into the briding code to remove conntrack references once a packet
+enters the bridge (in order to make the 'fake iptables hooks' from
+the bridging code work). =20
 
->=20
-> btw: if you do any future merges (2.6.13 and beyond have yet another
-> change in the helper api...), please just send me an incremental diff to
-> the last version in patch-o-matic-ng (e.g. to 2.6.12 in the 2.6.13
-> case).
+There were recently a number of fixes for this issue, which each caused
+new bugs. =20
 
-alright, I'll do so!!
-
-
-Thanks,
-
-Sven
-
->=20
-> I will make a 'svn cp' of the 2.6.12 code and then apply your diff on
-> top of it.  Right now I have to do 'svn cp', apply your patch to some
-> other location, copy the files over, and then do 'svn diff' in order to
-> see what you actually changed.
->=20
-> thanks!
-> --=20
-> - Harald Welte <laforge@netfilter.org>                 http://netfilter.o=
-rg/
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
->   "Fragmentation is like classful addressing -- an interesting early
->    architectural error that shows how much experimentation was going
->    on while IP was being designed."                    -- Paul Vixie
-
-
+Could you please try with a current development kernel (linus' git tree,
+or davem's net-2.6.14 tree) and see if the problem persists?
 
 --=20
-Linux zion 2.6.13-rc3-mm1 #17 PREEMPT Thu Jul 28 02:56:37 CEST 2005 i686 at=
-hlon i386 GNU/Linux
- 18:44:59 up 1 day, 15:44,  3 users,  load average: 0.27, 0.09, 0.03
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
---Q68bSM7Ycu6FN28Q
+--jaoouwwPWoQSJZYp
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFC6l1xo4FAdB2PneQRAqMNAJ0TiNCQ61NGeAeudbCMEIxUAeJ0RwCfWWTP
-mgCbq4oYjc+lwYj6bR7gtCM=
-=siMK
+iD8DBQFC7KzfXaXGVTD0i/8RApbHAJ9dlwEUlPxuFwOolOBjIeOQ/KEwpgCfUHJu
+cz6dmoLw8svSZLBmSGB537I=
+=2wDI
 -----END PGP SIGNATURE-----
 
---Q68bSM7Ycu6FN28Q--
+--jaoouwwPWoQSJZYp--
