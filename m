@@ -1,14 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [ANNOUNCE] netfilter-2.6.14 git tree / TODO
-Date: Sun, 31 Jul 2005 10:01:43 +0200
-Message-ID: <20050731080143.GA10374@rama.de.gnumonks.org>
+From: "Osama Abu Elsorour" <osama@wayout.net>
+Subject: conntrack management
+Date: Sun, 31 Jul 2005 11:41:34 +0300
+Message-ID: <37668.8838158318$1122799339@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YZ5djTAD1cGYuMQK"
-Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,59 +19,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+All
 
---YZ5djTAD1cGYuMQK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I always wondered why there isn't a more comprehensive way of managing
+current conntrack entries, perhaps some sort of a user-space program that
+can list conntracks in a more readable way using simple filters or matching
+criteria.
+This also leads to wondering why there isn't a way of forcefully destroying
+specific conntracks without the need of resetting the modules, etc. I find
+it very important specially when deleting a NAT rule while existing
+connections are established.
 
-Hi!
+I was thinking of building a tool to do both. On the first front, it seems
+that it is quite doable (I am even thinking of making a kind of meta-tag
+scheme, like string name-value pairs that can be attached to conntracks to
+help ease up matching them for listing and/or deletion). The second front, I
+am sure there is a good reason why it has not been done so far, I am just
+not quite sure what it is.
 
-As you might have noticed, the pace of netfilter development has
-_slightly_ changed over the last two weeks.  For those of you who are
-intrested in joining the current development efforts (or even only
-testing, which is definitely required), I suggest pulling the git tree
-=66rom=20
-
-rsync://people.netfilter.org/users/laforge/scm/netfilter-2.6.14.git
-
-It is based on David Miller's net-2.6.14.git, and only contains those
-new features and fixes that I intend to push to him soon (or have
-already submitted but have not yet been included).
-
-The areas of most work are currently nfnetlink, nfnetlink_log,
-nfnetlink_queue and ip_conntrack_netlink (previously called ctnetlink).
-Work in the kernel should be mostly finished, but the respective
-userspace counterparts definitely need some work.
-
-I've put together a quick TODO list at=20
-	http://people.netfilter.org/laforge/TODO
-
-Your help is greatly appreciated. Please contact me if you want to work
-on any of these issues.
-
-Thanks,
-	Harald
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---YZ5djTAD1cGYuMQK
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC7IVnXaXGVTD0i/8RAjyRAKCqmyUC7iawcZckAfl92vTQpoCr9gCgrpSO
-3EZIRLL5KSzJEIn370duXWs=
-=V/F/
------END PGP SIGNATURE-----
-
---YZ5djTAD1cGYuMQK--
+Thanks
