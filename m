@@ -1,16 +1,14 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 3/3] pom-ng: update sip-conntrack-nat for 2.6.12
-Date: Fri, 29 Jul 2005 12:56:12 +0200
-Message-ID: <20050729105612.GC7063@rama.de.gnumonks.org>
-References: <20050726190519.GA2128@zion.homelinux.com>
+Subject: [ANNOUNCE] netfilter-2.6.14 git tree / TODO
+Date: Sun, 31 Jul 2005 10:01:43 +0200
+Message-ID: <20050731080143.GA10374@rama.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="R+My9LyyhiUvIEro"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="YZ5djTAD1cGYuMQK"
+Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sven Schuster <schuster.sven@gmx.de>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <20050726190519.GA2128@zion.homelinux.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,38 +21,38 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---R+My9LyyhiUvIEro
+--YZ5djTAD1cGYuMQK
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jul 26, 2005 at 09:05:19PM +0200, Sven Schuster wrote:
->=20
-> Hi,
->=20
-> the attached patch updates the sip-conntrack-nat patchlet in pom-ng
-> for 2.6.12.
+Hi!
 
-thanks, applied.
+As you might have noticed, the pace of netfilter development has
+_slightly_ changed over the last two weeks.  For those of you who are
+intrested in joining the current development efforts (or even only
+testing, which is definitely required), I suggest pulling the git tree
+=66rom=20
 
-> Compile-tested by me on 2.6.13-rc3-mm1, I haven't been able to verify
-> the functionality, but at least the module loads :-)
+rsync://people.netfilter.org/users/laforge/scm/netfilter-2.6.14.git
 
-the changes are non-intrusive and only affect changing from lockhelp
-macros to regular locking functions.  I don't see how those four changed
-lines would create a bug.
+It is based on David Miller's net-2.6.14.git, and only contains those
+new features and fixes that I intend to push to him soon (or have
+already submitted but have not yet been included).
 
-btw: if you do any future merges (2.6.13 and beyond have yet another
-change in the helper api...), please just send me an incremental diff to
-the last version in patch-o-matic-ng (e.g. to 2.6.12 in the 2.6.13
-case).
+The areas of most work are currently nfnetlink, nfnetlink_log,
+nfnetlink_queue and ip_conntrack_netlink (previously called ctnetlink).
+Work in the kernel should be mostly finished, but the respective
+userspace counterparts definitely need some work.
 
-I will make a 'svn cp' of the 2.6.12 code and then apply your diff on
-top of it.  Right now I have to do 'svn cp', apply your patch to some
-other location, copy the files over, and then do 'svn diff' in order to
-see what you actually changed.
+I've put together a quick TODO list at=20
+	http://people.netfilter.org/laforge/TODO
 
-thanks!
+Your help is greatly appreciated. Please contact me if you want to work
+on any of these issues.
+
+Thanks,
+	Harald
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -65,16 +63,16 @@ thanks!
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---R+My9LyyhiUvIEro
+--YZ5djTAD1cGYuMQK
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFC6gtMXaXGVTD0i/8RAtyBAJ4vNCn2MR9s61CFl8+3TBx7+o3jsQCff0ZJ
-EL/agbKobr+u0RAGb+VXiz0=
-=7t28
+iD8DBQFC7IVnXaXGVTD0i/8RAjyRAKCqmyUC7iawcZckAfl92vTQpoCr9gCgrpSO
+3EZIRLL5KSzJEIn370duXWs=
+=V/F/
 -----END PGP SIGNATURE-----
 
---R+My9LyyhiUvIEro--
+--YZ5djTAD1cGYuMQK--
