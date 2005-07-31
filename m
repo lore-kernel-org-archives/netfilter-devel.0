@@ -1,14 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: conntrack management
-Date: Sun, 31 Jul 2005 12:59:13 +0200
-Message-ID: <20050731105913.GJ14874@rama.de.gnumonks.org>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: [ANNOUNCE] netfilter-2.6.14 git tree / TODO
+Date: Sun, 31 Jul 2005 20:04:44 +0200
+Message-ID: <1122833084.4159.24.camel@porky>
+References: <20050731080143.GA10374@rama.de.gnumonks.org>
+	<1122802193.4159.12.camel@porky>
+	<20050731103812.GF14874@rama.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oplxJGu+Ee5xywIT"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature";
+	boundary="=-oTpP9w0T+OqCoB9nW/Co"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Osama Abu Elsorour <osama@wayout.net>
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050731103812.GF14874@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,68 +25,79 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---oplxJGu+Ee5xywIT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-oTpP9w0T+OqCoB9nW/Co
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Jul 31, 2005 at 11:41:34AM +0300, Osama Abu Elsorour wrote:
+On Sun, 2005-07-31 at 12:38 +0200, Harald Welte wrote:
+> On Sun, Jul 31, 2005 at 11:29:53AM +0200, Eric Leblond wrote:
+> > Hi,
+> >=20
+> > On Sun, 2005-07-31 at 10:01 +0200, Harald Welte wrote:
+> > > Hi!
 
-> I always wondered why there isn't a more comprehensive way of managing
-> current conntrack entries, perhaps some sort of a user-space program that
-> can list conntracks in a more readable way using simple filters or matchi=
-ng
-> criteria.
-> This also leads to wondering why there isn't a way of forcefully destroyi=
-ng
-> specific conntracks without the need of resetting the modules, etc.=20
+> > So, we are really interested in userspace counterparts. In particular,
+> > our center of interest is libnfnetlink_queue. I will do some test in
+> > the coming days to check if NuFW is working with NFQUEUE.
+>=20
+> great.  Please consider supporting nfnetlink_queue natively, rather than
+> using the (still incomplete) compat_libipq interface.  The latter has to
+> do one additional copy of every packet (to build the fake
+> ipq_packet_msg_t), which you definitely want to avoid.
 
-That's what ctnetlink (now called netlink_conntrack) is for.  It has
-existed for a long time out-of-tree (in patch-o-matic[-ng) and is now
-pending for inclusion into the 2.6.14 kernel series.
+Ok, I will work in that direction.
 
-> I find it very important specially when deleting a NAT rule while
-> existing connections are established.
 
-That's a problem that the CONFIRMED patch tries to solve
+> The problem are the optional attributes.  A packet from the kernel could
+> optionally contain
+> 	PAYLOAD
+> 	MARK
+> 	TIMESTAMP
+> 	IFINDEX_IN
+> 	IFINDEX_OUT
+> 	...
+> and this may change from packet to packet.  so we cannot just pass a
+> fixed structure to the application program like libipq did.  OTOTH, I
+> don't want the applications have to do their own netlink message parsing
+> (with NFA_... macros), since that would violate the layering. Any ideas?
 
-> I was thinking of building a tool to do both. On the first front, it seems
-> that it is quite doable=20
+It reminds me the problem we had when we had to define the NuFW
+protocols. We take the idea from radius protocol which can contains an
+arbitrary number of fields. This works as follow :=20
+start of the message contains the type of the message and its length
+(calculate from the content). Then we have fields all optional
+containing their type, option and length
 
-have you seeen the conntrack tool
-(http://svn.netfilter.org/netfilter/trunk/conntrack) ? It is a
-commandline application for the purpose you describe.
+Decomposition is the following :
+MSG type | option | length
+field type | option | length
+DATA of field
+field type | option | length
+DATA of field
+...
+field type | option | length
+DATA of field
 
->(I am even thinking of making a kind of meta-tag
-> scheme, like string name-value pairs that can be attached to conntracks to
-> help ease up matching them for listing and/or deletion). The second front=
-, I
-> am sure there is a good reason why it has not been done so far, I am just
-> not quite sure what it is.
+It can easily be extended for any new fields as long as there is room in
+the field type interval.
 
-as long as you keep your tags/strings to userspace, you can do whatever
-you want ;)
+Hope this can help.
 
+BR,
 --=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Eric Leblond <eric@inl.fr>
+INL
 
---oplxJGu+Ee5xywIT
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+--=-oTpP9w0T+OqCoB9nW/Co
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFC7K8BXaXGVTD0i/8RAqUDAKCpqj4cXLqPY8i5TlTU/Avz9hduQACfWGIG
-MSZOw8hb6DsbCYOFhgAZgNI=
-=a4re
+iD8DBQBC7RK7nxA7CdMWjzIRAmBPAJ4ti2vi8dob1G6wBXfw8i+dKAw70ACgiYni
+nuRSsRun9gXp+Ujy47WDtOU=
+=anct
 -----END PGP SIGNATURE-----
 
---oplxJGu+Ee5xywIT--
+--=-oTpP9w0T+OqCoB9nW/Co--
