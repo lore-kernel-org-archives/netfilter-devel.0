@@ -1,15 +1,16 @@
-From: Venkata Narayana <mesg2nari@yahoo.com>
-Subject: Re: REDIRECT changes DST address of the packet
-Date: Mon, 1 Aug 2005 07:24:31 -0700 (PDT)
-Message-ID: <20050801142431.9492.qmail@web60822.mail.yahoo.com>
-References: <42E60796.2060909@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: BUG: atomic counter underflow at
+ ip_conntrack_event_cache_init+0x91/0xb0 (with patch)
+Date: Mon, 01 Aug 2005 16:27:53 +0200
+Message-ID: <42EE3169.6070604@trash.net>
+References: <20050801141327.GA3909@inferi.kami.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------070607080204070300000801"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <42E60796.2060909@trash.net>
+To: Mattia Dongili <malattia@gmail.com>
+In-Reply-To: <20050801141327.GA3909@inferi.kami.home>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,63 +22,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------070607080204070300000801
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Hello Patric/Krisztian,
-
-As Mr Krisztian suggested I was able to patch the
-2.6.11 kernel with tproxy but trying to use
-IP_RECVORIGADDRS socket option on udp socket. If it is
-natted traffic I am unable to receive the message.
-Can you suggest the alternative mechanism to get the
-original DSt address in UDP transaction.
-
-Thanks,
-Venkat.
-
-
-
---- Patrick McHardy <kaber@trash.net> wrote:
-
-> KOVACS Krisztian wrote:
+Mattia Dongili wrote:
+> Hello,
 > 
-> >   Patrick, I'm afraid this is not enough for a
-> full-featured UDP
-> > solution. If you're using a single socket to
-> receive UDP packets sent to
-> > multiple original addresses this approach simply
-> fails. A better
-> > solution would require receiving the original
-> destination address in a
-> > per-packet manner.
+> got this one while trying out 2.6.13-rc4-mm1 (not there in -r2-mm1),
+> from a quick look it seems to me that ip_conntrack_{get,put} are not
+> simmetric in updating the use count, thus simply adding this line might
+> help (it does actually, but I'm not aware if there could be any drawback):
 > 
-> You're right, it doesn't work for unconnected
-> sockets. I'm looking into
-> other possibilities now. I'm thinking of something
-> similar to
-> SIOCGSTAMP - altough this would require increasing
-> the size of struct
-> sock.
-> 
-> >   We're using something similar as part of the
-> transparent proxying
-> > patchset, but unfortunately this requires
-> enlarging the skb and is a
-> > little hackish. The patch introduces an
-> IP_RECVORIGADDRS socket option.
-> > If you enable this sockopt on a UDP socket, then
-> recvmsg() will return
-> > the original addresses as a control message.
-> 
-> Why does the skb need to be enlarged?
-> 
-> Regards
-> Patrick
-> 
+> --- include/linux/netfilter_ipv4/ip_conntrack.h.clean	2005-08-01 15:09:49.000000000 +0200
+> +++ include/linux/netfilter_ipv4/ip_conntrack.h	2005-08-01 15:08:52.000000000 +0200
+> @@ -298,6 +298,7 @@ static inline struct ip_conntrack *
+>  ip_conntrack_get(const struct sk_buff *skb, enum ip_conntrack_info *ctinfo)
+>  {
+>  	*ctinfo = skb->nfctinfo;
+> +	nf_conntrack_get(skb->nfct);
+>  	return (struct ip_conntrack *)skb->nfct;
+>  }
+
+This creates lots of refcnt leaks, which is probably why it makes the
+underflow go away :) Please try this patch instead.
 
 
+--------------070607080204070300000801
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
-		
-____________________________________________________
-Start your day with Yahoo! - make it your home page 
-http://www.yahoo.com/r/hs 
+[NETFILTER]: Fix refcnt underflow in ip_conntrack_event_cache_init
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 5d55b8c6bfba6e6e2ffe26c2a2e2561e278428b7
+tree d43366a793d2fa3058c15a752010ef0fd22894cc
+parent df2e0392536ecdd6385f4319f746045fd6fae38f
+author Patrick McHardy <kaber@trash.net> Mon, 01 Aug 2005 16:25:53 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 01 Aug 2005 16:25:53 +0200
+
+ net/ipv4/netfilter/ip_conntrack_core.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -146,6 +146,7 @@ void ip_conntrack_event_cache_init(const
  
+ 		/* initialize for this conntrack/packet */
+ 		ecache->ct = ip_conntrack_get(skb, &ctinfo);
++		nf_conntrack_get(&ecache->ct->ct_general);
+ 		/* ecache->events cleared by __deliver_cached_devents() */
+ 	} else {
+ 		DEBUGP("ecache: re-entered for conntrack %p.\n", ct);
+
+--------------070607080204070300000801--
