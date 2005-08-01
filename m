@@ -1,15 +1,17 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [NETFILTER 2.4 0/6]: netfilter resync
-Date: Sun, 31 Jul 2005 20:28:12 -0700 (PDT)
-Message-ID: <20050731.202812.66178316.davem@davemloft.net>
-References: <42ED6FE5.3080809@trash.net>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: Bug Report: IPtables 1.2.* segfaulted by iptables 1.3.*
+Date: Mon, 1 Aug 2005 09:19:48 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0508010918570.7329@yvahk01.tjqt.qr>
+References: <9927912d05072704113d7e8707@mail.gmail.com>
+	<e756d62eb5442015@mayday.cix.co.uk>
+	<20050729105834.GD7063@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Robert de Bath <list-netfilter@debath.co.uk>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <42ED6FE5.3080809@trash.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050729105834.GD7063@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,17 +23,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 01 Aug 2005 02:42:13 +0200
 
-> the following patches contain a number of backported fixes for
-> 2.4 to resync it with 2.6.
-> 
-> [NETFILTER]: Ignore PSH on SYN/ACK in ipt_unclean
-> [NETFILTER]: Fix deadlock with ip_queue/ip6_queue
-> [NETFILTER]: Restore netfilter assumption in IPv6 multicast
-> [NETFILTER]: Fix ip6t_LOG sit tunnel logging
-> [NETFILTER]: Fix potential memory corruption in NAT code (aka memory NAT)
-> [NETFILTER]: Use correct byteorder in ICMP NAT
+>mh, mixing multiple versions of the tools is a bad idea anyway.  We have
 
-All applied, thanks Patrick.
+There are .version members in the info struct of both userspace and 
+kernelspace modules - if they are different, why did not iptables catch this?
+
+
+
+Jan Engelhardt
+-- 
