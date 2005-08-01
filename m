@@ -1,17 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 2.4 5/6]: Fix potential memory corruption in NAT code
- (aka memory NAT)
-Date: Mon, 01 Aug 2005 02:42:35 +0200
-Message-ID: <42ED6FFB.9050004@trash.net>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [NETFILTER 2.4 0/6]: netfilter resync
+Date: Sun, 31 Jul 2005 20:28:12 -0700 (PDT)
+Message-ID: <20050731.202812.66178316.davem@davemloft.net>
+References: <42ED6FE5.3080809@trash.net>
 Mime-Version: 1.0
-Content-Type: text/x-patch;
- name="5.diff"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-Content-Disposition: inline;
- filename="5.diff"
+To: kaber@trash.net
+In-Reply-To: <42ED6FE5.3080809@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,44 +21,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Fix potential memory corruption in NAT code (aka memory NAT)
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 01 Aug 2005 02:42:13 +0200
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+> the following patches contain a number of backported fixes for
+> 2.4 to resync it with 2.6.
+> 
+> [NETFILTER]: Ignore PSH on SYN/ACK in ipt_unclean
+> [NETFILTER]: Fix deadlock with ip_queue/ip6_queue
+> [NETFILTER]: Restore netfilter assumption in IPv6 multicast
+> [NETFILTER]: Fix ip6t_LOG sit tunnel logging
+> [NETFILTER]: Fix potential memory corruption in NAT code (aka memory NAT)
+> [NETFILTER]: Use correct byteorder in ICMP NAT
 
----
-commit b3db926712f01d98e672510bdb69b940e09880eb
-tree aa069a1d615f75a986c4b74975ffbf00d3927cf4
-parent 3828b256e2b5adae44649792fee705bc91b1c44a
-author Patrick McHardy <kaber@trash.net> Sun, 31 Jul 2005 20:26:49 +0200
-committer Patrick McHardy <kaber@trash.net> Sun, 31 Jul 2005 20:26:49 +0200
-
- net/ipv4/netfilter/ip_nat_proto_tcp.c |    3 ++-
- net/ipv4/netfilter/ip_nat_proto_udp.c |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_nat_proto_tcp.c b/net/ipv4/netfilter/ip_nat_proto_tcp.c
---- a/net/ipv4/netfilter/ip_nat_proto_tcp.c
-+++ b/net/ipv4/netfilter/ip_nat_proto_tcp.c
-@@ -31,7 +31,8 @@ tcp_unique_tuple(struct ip_conntrack_tup
- 		 enum ip_nat_manip_type maniptype,
- 		 const struct ip_conntrack *conntrack)
- {
--	static u_int16_t port = 0, *portptr;
-+	static u_int16_t port = 0;
-+	u_int16_t *portptr;
- 	unsigned int range_size, min, i;
- 
- 	if (maniptype == IP_NAT_MANIP_SRC)
-diff --git a/net/ipv4/netfilter/ip_nat_proto_udp.c b/net/ipv4/netfilter/ip_nat_proto_udp.c
---- a/net/ipv4/netfilter/ip_nat_proto_udp.c
-+++ b/net/ipv4/netfilter/ip_nat_proto_udp.c
-@@ -32,7 +32,8 @@ udp_unique_tuple(struct ip_conntrack_tup
- 		 enum ip_nat_manip_type maniptype,
- 		 const struct ip_conntrack *conntrack)
- {
--	static u_int16_t port = 0, *portptr;
-+	static u_int16_t port = 0;
-+	u_int16_t *portptr;
- 	unsigned int range_size, min, i;
- 
- 	if (maniptype == IP_NAT_MANIP_SRC)
+All applied, thanks Patrick.
