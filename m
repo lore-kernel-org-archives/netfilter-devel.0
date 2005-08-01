@@ -1,17 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/7] Fix expectation leak
-Date: Mon, 01 Aug 2005 21:52:50 +0200
-Message-ID: <42EE7D92.5020401@trash.net>
-References: <42EE5633.9030307@eurodev.net> <42EE57EF.4070807@trash.net>
-	<42EE5EC4.5090303@eurodev.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 2/7] Kill bogus memsets
+Date: Mon, 1 Aug 2005 22:20:22 +0200
+Message-ID: <20050801202022.GF4156@rama.de.gnumonks.org>
+References: <42EE5639.6070808@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-        Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Y/WcH0a6A93yCHGr"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <42EE5EC4.5090303@eurodev.net>
+Content-Disposition: inline
+In-Reply-To: <42EE5639.6070808@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,10 +22,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> Yes, but the refcount is incremented twice ;). Please apply.
 
-There is one reference for the list and one for the timer. Both are
-needed since the timer deletion can race with the timer. The one
-for the list is dropped in __ip_ct_expect_unlink_destroy, the one
-for the timer after it has been successfully removed.
+--Y/WcH0a6A93yCHGr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Aug 01, 2005 at 07:04:57PM +0200, Pablo Neira wrote:
+> nfattr_parse_attributes already set to zero the array of nfattr, so such=
+=20
+> initialization isn't required.
+
+I think you are referring to nfattr_parse[] ;)  And yes, you are
+correct, we can kill those memset's.  I'll apply your patch (and push it
+to davem).  Please include a "Signed-off-by:" Line with your future
+patches, thanks!
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--Y/WcH0a6A93yCHGr
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFC7oQGXaXGVTD0i/8RAhISAJ4hDRE8LIr5XE+PjQbV7dAyjsxGjgCfTyO6
+BLRIXMU59sqRr0Z3qzds7kI=
+=uyHG
+-----END PGP SIGNATURE-----
+
+--Y/WcH0a6A93yCHGr--
