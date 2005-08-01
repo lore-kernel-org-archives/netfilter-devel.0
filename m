@@ -1,9 +1,9 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH 5/7] Fix a deadlock in new_conntrack
-Date: Mon, 01 Aug 2005 19:05:18 +0200
-Message-ID: <42EE564E.1090308@eurodev.net>
+Subject: [PATCH 4/7] Add ctnetlink_change_protoinfo
+Date: Mon, 01 Aug 2005 19:05:12 +0200
+Message-ID: <42EE5648.6020402@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090702010909040503090308"
+Content-Type: multipart/mixed; boundary="------------050704010009080100090209"
 Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,42 +19,86 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090702010909040503090308
+--------------050704010009080100090209
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Fix a deadlock during conntrack creation. ip_conntrack_lock is unlocked 
-twice.
+Implement a function to change the private protocol information stored 
+in a conntrack.
 
---------------090702010909040503090308
+--------------050704010009080100090209
 Content-Type: text/x-patch;
- name="05fix-deadlock.patch"
+ name="04change-protoinfo.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="05fix-deadlock.patch"
+ filename="04change-protoinfo.patch"
 
 Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_netlink.c
 ===================================================================
---- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-08-01 18:21:13.000000000 +0200
-+++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-08-01 18:21:18.000000000 +0200
-@@ -1094,13 +1094,12 @@
- 		err = -ENOENT;
- 		if (nlh->nlmsg_flags & NLM_F_CREATE)
- 			err = ctnetlink_create_conntrack(cda, &otuple, &rtuple);
-+		return err;
+--- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-08-01 18:21:06.000000000 +0200
++++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-08-01 18:21:13.000000000 +0200
+@@ -948,6 +948,36 @@
+ 	return 0;
+ }
+ 
++static inline int
++ctnetlink_change_protoinfo(struct ip_conntrack *ct, struct nfattr *cda[])
++{
++	struct nfattr *tb[CTA_PROTOINFO_MAX], *attr = cda[CTA_PROTOINFO-1];
++	struct ip_conntrack_protocol *proto;
++	u_int16_t npt = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum;
++	int err;
++
++	if (nfattr_parse_nested(tb, CTA_PROTOINFO_MAX, attr) < 0)
++		goto nfattr_failure;
++
++	proto = ip_conntrack_proto_find_get(npt);
++	if (!proto)
++		return -EINVAL;
++
++	if (proto->from_nfattr) {
++		err = proto->from_nfattr(tb, ct);
++		if (err < 0) {
++			ip_conntrack_proto_put(proto);
++			return -EINVAL;
++		}
 +	}
-+	/* we only allow nat config for new conntracks */
-+	if (cda[CTA_NAT-1]) {
-+		err = -EINVAL;
- 		goto out_unlock;
--	} else {
--		/* we only allow nat config for new conntracks */
--		if (cda[CTA_NAT-1]) {
--			err = -EINVAL;
--			goto out_unlock;
--		}
++	ip_conntrack_proto_put(proto);
++
++	return 0;
++
++nfattr_failure:
++	return -1;
++}
++
+ static int
+ ctnetlink_change_conntrack(struct ip_conntrack *ct, struct nfattr *cda[])
+ {
+@@ -973,6 +1003,12 @@
+ 			return err;
  	}
  
- 	/* We manipulate the conntrack inside the global conntrack table lock,
++	if (cda[CTA_PROTOINFO-1]) {
++		err = ctnetlink_change_protoinfo(ct, cda);
++		if (err < 0)
++			return err;
++	}
++
+ 	DEBUGP("all done\n");
+ 	return 0;
+ }
+@@ -1002,6 +1038,12 @@
+ 	if (err < 0)
+ 		goto err;
+ 
++	if (cda[CTA_PROTOINFO-1]) {
++		err = ctnetlink_change_protoinfo(ct, cda);
++		if (err < 0)
++			return err;
++	}
++
+ 	ct->helper = ip_conntrack_helper_find_get(rtuple);
+ 
+ 	add_timer(&ct->timeout);
 
---------------090702010909040503090308--
+--------------050704010009080100090209--
