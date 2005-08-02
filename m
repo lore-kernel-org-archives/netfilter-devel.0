@@ -1,10 +1,10 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 3/6] Fix ctnetlink_create_expect() mask parsing
-Date: Tue, 2 Aug 2005 12:57:02 +0200
-Message-ID: <20050802105702.GJ4158@rama.de.gnumonks.org>
+Subject: [PATCH 0/6] nfnetlink / ctnetlink fixes + updates
+Date: Tue, 2 Aug 2005 12:54:27 +0200
+Message-ID: <20050802105427.GG4158@rama.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pMCBjikF2xGw87uL"
+	protocol="application/pgp-signature"; boundary="iAL9S67WQOXgEPD9"
 Cc: Linux Netdev List <netdev@vger.kernel.org>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -22,43 +22,25 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---pMCBjikF2xGw87uL
+--iAL9S67WQOXgEPD9
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-[NETFILTER] fix ctnetlink 'create_expect' parsing
+Hi Dave!
 
-There was a stupid copy+paste mistake where we parse the MASK nfattr into
-the "tuple" variable instead of the "mask" variable.  This patch fixes it.
-Thanks to Pablo Neira.
+I know you're travelling, but I already have this pile of patches/fixes
+for nfnetlink and ctnetlink.  I'm sorry to keep patch-bombing you, but
+I think it's better we find those issues right now (before it is in mainlin=
+e)
+rather than later, when it already is in the mainline tree.
 
-Signed-off-by: Harald Welte <laforge@netfilter.org>
+Please apply in sequential order (and also apply the nf_log patch you
+seem to have missed a short time ago).
 
----
-commit 5d03469be285d9bc2b82861d87c667cf5614132d
-tree f5551e270c07504ca3f7e234504a3fa2ea6f6728
-parent 1f7c0373f4ab32a46ffdee952238b2a596119cb0
-author Harald Welte <laforge@netfilter.org> Di, 02 Aug 2005 11:51:56 +0200
-committer Harald Welte <laforge@netfilter.org> Di, 02 Aug 2005 11:51:56 +02=
-00
+Have fun at UKUUG,
+	Harald
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter=
-/ip_conntrack_netlink.c
---- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -1388,7 +1388,7 @@ ctnetlink_create_expect(struct nfattr *c
- 	err =3D ctnetlink_parse_tuple(cda, &tuple, CTA_EXPECT_TUPLE);
- 	if (err < 0)
- 		return err;
--	err =3D ctnetlink_parse_tuple(cda, &tuple, CTA_EXPECT_MASK);
-+	err =3D ctnetlink_parse_tuple(cda, &mask, CTA_EXPECT_MASK);
- 	if (err < 0)
- 		return err;
-=20
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -69,16 +51,16 @@ diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter=
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---pMCBjikF2xGw87uL
+--iAL9S67WQOXgEPD9
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFC71F9XaXGVTD0i/8RAiy2AJ9byymA50FvP7YqN4YxtIL06GvArgCfanWw
-EwzklQuovGW24faAqwU0h3Q=
-=0eF4
+iD4DBQFC71DiXaXGVTD0i/8RAm0rAJ9FQaHKdv6Og7fqSYgkDC5IC3ic1gCY60S2
+hxyefF/Nhk8HH4FqbuV2+Q==
+=qL+J
 -----END PGP SIGNATURE-----
 
---pMCBjikF2xGw87uL--
+--iAL9S67WQOXgEPD9--
