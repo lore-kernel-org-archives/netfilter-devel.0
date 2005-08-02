@@ -1,21 +1,16 @@
-From: Mattia Dongili <malattia@gmail.com>
-Subject: Re: BUG: atomic counter underflow at
-	ip_conntrack_event_cache_init+0x91/0xb0 (with patch)
-Date: Tue, 2 Aug 2005 12:44:49 +0200
-Message-ID: <20050802104449.GA3702__11960.3169303902$1122994235$gmane$org@inferi.kami.home>
-References: <20050801141327.GA3909@inferi.kami.home>
-	<42EE3169.6070604@trash.net>
-	<20050801160537.GA3850@inferi.kami.home>
-	<42EE5721.1090509@trash.net> <42EEC2BB.3020105@trash.net>
+From: Samir Bellabes <sbellabes@mandriva.com>
+Subject: Re: [ANNOUNCE] netfilter-2.6.14 git tree / TODO
+Date: Tue, 02 Aug 2005 13:14:54 +0200
+Message-ID: <m21x5czj2p.fsf__8405.53990933604$1122994947$gmane$org@cerbere.dyndns.info>
+References: <20050731080143.GA10374@rama.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <42EEC2BB.3020105@trash.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050731080143.GA10374@rama.de.gnumonks.org> (Harald Welte's
+	message of "Sun, 31 Jul 2005 10:01:43 +0200")
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,37 +22,139 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Aug 02, 2005 at 02:47:55AM +0200, Patrick McHardy wrote:
-> Patrick McHardy wrote:
-> > Mattia Dongili wrote:
-[...]
-> >>this doesn't fix it actually, see dmesg below:
+Harald Welte <laforge@netfilter.org> writes:
 
-blame me... It seems I forgot a damn --dry-run while applying your
-first patch :P
-And in fact your first fix solves the BUG I was seeing.
+> I suggest pulling the git tree from 
+>
+> rsync://people.netfilter.org/users/laforge/scm/netfilter-2.6.14.git
+>
+> It is based on David Miller's net-2.6.14.git, and only contains those
+> new features and fixes that I intend to push to him soon (or have
+> already submitted but have not yet been included).
+>
 
-> > It looks like ip_ct_iterate_cleanup and ip_conntrack_event_cache_init
-> > race against each other with assigning pointers and grabbing/putting the
-> > refcounts if called from different contexts.
-> 
-> This should be a fist step towards fixing it. It's probably incomplete
-> (I'm too tired to check it now), but it should fix the problem you're
-> seeing. Could you give it a spin?
+I started a tree for extensions in the p-o-m.
+The git tree has already around 30 extensions, and is based on davem's
+net-2.6.git
 
-building right now
+you can dowload the tarball of this tree here:
+http://people.mandriva.com/~sbellabes/nf-2.6.git.tar.gz
+http://people.mandriva.com/~sbellabes/git/nf-2.6.git/
 
-> BTW, ip_ct_iterate_cleanup can only be called from ipt_MASQUERADE when
-> a device goes down. It seems a bit odd that this is happending on boot,
-> is there anything special about your setup?
+Yes, i know, a rsync should be better, but the only server i got which
+can host a rsync server, has a DSL link :/ 
+Harald, can you provide hosting ? 
 
-yes, ifplugd. This morning I noticed that booting without networking a
-nd without loading ip_conntrack (no iptables rules) everything proceeded
-smoothly. So rebooting normally I noticed that the BUG was triggered as
-soon as ifplugd configured eth0 (with ip_conntrack already loaded).
-I'll try to narrow the thing more and let you know.
+TODO:
+  - updating patch for being sync with svn, but for now, we got a
+structured tree.
+  - add more extensions (sip, ..)
+
+Here is the changelog against davem's tree for each branches
+(main updates are kill lockhelp.h and fix compile problems, the branches
+mdv is the merge branches of all extensions)
+
+new targets:
+  - ROUTE 
+    o [NETFILTER] IPv{4,6} ROUTE target from svn-netfilter rev 3983
+    o [NETFILTER] kill nf_debug for ROUTE
+    o [NETFILTER] fix prototype function match for ROUTE
+    o [NETFILTER] Need to export symbol nd_tbl for ROUTE IPv6
+
+  - HOPLIMIT
+    o [NETFILTER] IPv6 HOPLIMIT target from svn-netfilter rev 3983
+    o [NETFILTER] fix prototype function match for HOPLIMIT
+
+  - TARPIT
+    o [NETFILTER] IPv4 TARPIT target from svn-netfilter rev 3983
+    o [NETFILTER] kill nf_debug for TARPIT
+
+  - IPV4OPTSSTRIP
+    o [NETFILTER] IPv4 IPV4OPTSSTRIP target match from svn-netfilter rev 3983
+
+  - IPMARK
+    o [NETFILTER] IPv4 IPMARK target from svn-netfilter rev 3983
+
+  - XOR
+    o [NETFILTER] IPv4 XOR target from svn-netfilter rev 3983
+    o [NETFILTER] XOR Makefile + Kconfig (svn rev 3983)
+
+  - TTL
+    o [NETFILTER] IPv4 TTL target from svn-netfilter rev 3983
+
+matchs:
+  - connrate :
+    o [NETFILTER] IPv4 connrate match from svn-netfilter rev 3983
+    o [NETFILTER] Kill lockhelp.h for connrate
+    o [NETFILTER] Missing include for SMP (connrate)
+
+  - nf_conntrack
+    o [NETFILTER] IPv{4,6} nf_conntrack from svn-netfilter rev 3983
+    o [NETFILTER] kill lockhelp.h for nf_conntrack
+    o [NETFILTER] kill nf_debug for nf_conntrack
+    o [NETFILTER] Fix compiling error with inline function nf_ct_put
+    o [NETFILTER] dst_pmtu is no longer used for kernel >= 2.6.12
+    o [NETFILTER] fix typo and missing lock for nf_conntrack
+
+  - nth
+    o [NETFILTER] IPv{4,6} nth match from svn-netfilter rev 3983
+    o [NETFILTER] fix prototype function match for nth ipv6
+
+  - random
+    o [NETFILTER] IPv{4,6} random match from svn-netfilter rev 3983
+    o [NETFILTER] Fix struct ipt_match ipt_rand_reg
+    o [NETFILTER] fix prototype function match for random ipv4
+    o [NETFILTER] fix prototype function match for random ipv6
+
+  - pptp-conntrack-nat
+    o [NETFILTER] IPv4 pptp-conntrack-nat from svn-netfilter rev 4096
+    o [NETFILTER] Kill lockhelp.h for pptp-conntrack-nat
+    o [NETFILTER] Fix missing ip_nat_pptp.h
+    o [NETFILTER] kill lockhelp.h for pptp-conntrack-nat part 2
+    o [NETFILTER] kill lockhelp.h for proto_gre
+    o [NETFILTER] Define macros for pptp-conntrack-nat
+ 
+  - fuzzy
+    o [NETFILTER] IPv{4,6} fuzzy match from svn-netfilter rev 3983
+    o [NETFILTER] fix prototype function match for fuzzy
+
+  - condition
+    o [NETFILTER] IPv{4,6} condition match from svn-netfilter rev 3983
+    o [NETFILTER] Fix prototype function 'match'
+    o [NETFILTER] fix compiling warnings in ip6t_condition
+
+  - ipset
+    o [NETFILTER] IPv4 ipset match/TARGET from svn-netfilter rev 3983
+    o [NETFILTER] kill lockhelp.h for ipset
+
+  - rsh-conntrack
+    o [NETFILTER] IPv4 rsh-conntrack from svn-netfilter rev 4096
+    o [NETFILTER] Kill lockhelp.h for rsh-conntrack
+    o [NETFILTER] kill lockhelp.h for rsh part 2
+
+  - rtsp_conntrack
+    o [NETFILTER] IPv4 rtsp_conntrack from svn-netfilter rev 3983
+    o [NETFILTER] Kill lockhelp.h for rtsp_conntrack
+    o [NETFILTER] Introduce ip_ct_rtsp_master
+
+  - ipv4options
+    o [NETFILTER] IPv4 ipv4options match from svn-netfilter rev 3983
+
+  - string (not enabled in configs)
+    o [NETFILTER] IPv4 string match from svn-netfilter rev 3983
+
+  - quota : [NETFILTER] IPv4 quota match from svn-netfilter rev 3983
+  - mport : [NETFILTER] IPv4 mport match from svn-netfilter rev 3983
+  - connlimit : [NETFILTER] IPv4 connlimit match from svn-netfilter rev 3983
+  - time : [NETFILTER] IPv4 time match from svn-netfilter rev 3983
+  - psd : [NETFILTER] IPv4 psd match from svn-netfilter rev 3983
+  - osf : [NETFILTER] IPv4 osf match from svn-netfilter rev 3983
+  - ipp2p : [NETFILTER] IPv4 ipp2p match from svn-netfilter rev 3983
+
+others:
+  - ip_queue_vwmark : [NETFILTER] ip_queue_vwmark from svn-netfilter rev 3983
 
 
 -- 
-mattia
-:wq!
+Samir Bellabes
+Mandriva
