@@ -1,15 +1,21 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: CVS problems since July 29, 2005.
-Date: Tue, 02 Aug 2005 15:10:39 +0200
-Message-ID: <42EF70CF.7000904@eurodev.net>
-References: <1122911330.42ee4462a5b53@mail.jfarjona.com>
+From: Mattia Dongili <malattia@gmail.com>
+Subject: Re: BUG: atomic counter underflow at
+	ip_conntrack_event_cache_init+0x91/0xb0 (with patch)
+Date: Tue, 2 Aug 2005 12:44:49 +0200
+Message-ID: <20050802104449.GA3702__11960.3169303902$1122994235$gmane$org@inferi.kami.home>
+References: <20050801141327.GA3909@inferi.kami.home>
+	<42EE3169.6070604@trash.net>
+	<20050801160537.GA3850@inferi.kami.home>
+	<42EE5721.1090509@trash.net> <42EEC2BB.3020105@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Juan F. Arjona" <jfarjona@jfarjona.com>
-In-Reply-To: <1122911330.42ee4462a5b53@mail.jfarjona.com>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <42EEC2BB.3020105@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,23 +27,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Juan F. Arjona wrote:
-> Hello guys:
-> 
-> Sorry to use this list to report this issue, but the CVS server seems to be down
-> (or firewalled):
-> 
-> cvs -d :pserver:cvs@pserver.netfilter.org:/cvspublic login
-> Logging in to :pserver:cvs@pserver.netfilter.org:2401/cvspublic
-> CVS password:
-> cvs [login aborted]: connect to pserver.netfilter.org(213.95.27.115):2401
-> failed: Connection refused
-> 
-> Could you please let me know if I am accessing the wrong box?
+On Tue, Aug 02, 2005 at 02:47:55AM +0200, Patrick McHardy wrote:
+> Patrick McHardy wrote:
+> > Mattia Dongili wrote:
+[...]
+> >>this doesn't fix it actually, see dmesg below:
 
-netfilter doesn't use CVS anymore, please see:
+blame me... It seems I forgot a damn --dry-run while applying your
+first patch :P
+And in fact your first fix solves the BUG I was seeing.
 
-https://lists.netfilter.org/pipermail/netfilter-announce/2004/000063.html
+> > It looks like ip_ct_iterate_cleanup and ip_conntrack_event_cache_init
+> > race against each other with assigning pointers and grabbing/putting the
+> > refcounts if called from different contexts.
+> 
+> This should be a fist step towards fixing it. It's probably incomplete
+> (I'm too tired to check it now), but it should fix the problem you're
+> seeing. Could you give it a spin?
 
---
-Pablo
+building right now
+
+> BTW, ip_ct_iterate_cleanup can only be called from ipt_MASQUERADE when
+> a device goes down. It seems a bit odd that this is happending on boot,
+> is there anything special about your setup?
+
+yes, ifplugd. This morning I noticed that booting without networking a
+nd without loading ip_conntrack (no iptables rules) everything proceeded
+smoothly. So rebooting normally I noticed that the BUG was triggered as
+soon as ifplugd configured eth0 (with ip_conntrack already loaded).
+I'll try to narrow the thing more and let you know.
+
+
+-- 
+mattia
+:wq!
