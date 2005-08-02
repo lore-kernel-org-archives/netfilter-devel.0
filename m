@@ -1,10 +1,10 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2/6] Fix locking during ctnetlink_new_conntrack()
-Date: Tue, 2 Aug 2005 12:56:07 +0200
-Message-ID: <20050802105607.GI4158@rama.de.gnumonks.org>
+Subject: [PATCH 1/6] remove bogus memset() calls from ip_conntrack_netlink.c
+Date: Tue, 2 Aug 2005 12:55:29 +0200
+Message-ID: <20050802105529.GH4158@rama.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PWfwoUCx3AFJRUBq"
+	protocol="application/pgp-signature"; boundary="k+G3HLlWI7eRTl+h"
 Cc: Linux Netdev List <netdev@vger.kernel.org>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -22,54 +22,85 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---PWfwoUCx3AFJRUBq
+--k+G3HLlWI7eRTl+h
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-[NETFILTER] conntrack_netlink: Fix locking during conntrack_create
+[NETFILTER] remove bogus memset() calls from ip_conntrack_netlink.c
 
-The current codepath allowed for ip_conntrack_lock to be unlock'ed twice.
+nfattr_parse_nested() calls nfattr_parse() which in turn does a memset on
+the 'tb' array.  All callers therefore don't need to memset before calling
+it.
 
 Signed-off-by: Pablo Neira <pablo@eurodev.net>
 Signed-off-by: Harald Welte <laforge@netfilter.org>
 
 ---
-commit 0432a984f1e502d036115b1f25da8675ee9cebc4
-tree aeb9371bcc39ed9c0d005d7959680a7f92a8f8bd
-parent c4e2485887523a16e9c37a21a1d95ac10633ef0a
-author Harald Welte <laforge@netfilter.org> Di, 02 Aug 2005 09:38:31 +0200
-committer Harald Welte <laforge@netfilter.org> Di, 02 Aug 2005 09:38:31 +02=
+commit c4e2485887523a16e9c37a21a1d95ac10633ef0a
+tree a86946c1fa855ed8a76be2efe4fef3c8a5a1c7a6
+parent 883b2070f68548537042038d9868c829fc20d463
+author Harald Welte <laforge@netfilter.org> Mo, 01 Aug 2005 22:21:59 +0200
+committer Harald Welte <laforge@netfilter.org> Mo, 01 Aug 2005 22:21:59 +02=
 00
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    8 --------
+ 1 files changed, 0 insertions(+), 8 deletions(-)
 
 diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter=
 /ip_conntrack_netlink.c
 --- a/net/ipv4/netfilter/ip_conntrack_netlink.c
 +++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -1052,13 +1052,14 @@ ctnetlink_new_conntrack(struct sock *ctn
- 		err =3D -ENOENT;
- 		if (nlh->nlmsg_flags & NLM_F_CREATE)
- 			err =3D ctnetlink_create_conntrack(cda, &otuple, &rtuple);
-+		return err;
-+	}
-+	/* implicit 'else' */
-+
-+	/* we only allow nat config for new conntracks */
-+	if (cda[CTA_NAT-1]) {
-+		err =3D -EINVAL;
- 		goto out_unlock;
--	} else {
--		/* we only allow nat config for new conntracks */
--		if (cda[CTA_NAT-1]) {
--			err =3D -EINVAL;
--			goto out_unlock;
--		}
- 	}
+@@ -479,7 +479,6 @@ ctnetlink_parse_tuple_ip(struct nfattr *
 =20
- 	/* We manipulate the conntrack inside the global conntrack table lock,
+ 	DEBUGP("entered %s\n", __FUNCTION__);
+=20
+-	memset(tb, 0, CTA_IP_MAX * sizeof(tb));
+ =09
+ 	if (nfattr_parse_nested(tb, CTA_IP_MAX, attr) < 0)
+ 		goto nfattr_failure;
+@@ -522,8 +521,6 @@ ctnetlink_parse_tuple_proto(struct nfatt
+=20
+ 	DEBUGP("entered %s\n", __FUNCTION__);
+=20
+-	memset(tb, 0, CTA_PROTO_MAX * sizeof(tb));
+-=09
+ 	if (nfattr_parse_nested(tb, CTA_PROTO_MAX, attr) < 0)
+ 		goto nfattr_failure;
+=20
+@@ -556,7 +553,6 @@ ctnetlink_parse_tuple(struct nfattr *cda
+=20
+ 	DEBUGP("entered %s\n", __FUNCTION__);
+=20
+-	memset(tb, 0, CTA_TUPLE_MAX * sizeof(tb));
+ 	memset(tuple, 0, sizeof(*tuple));
+=20
+ 	if (nfattr_parse_nested(tb, CTA_TUPLE_MAX, cda[type-1]) < 0)
+@@ -607,8 +603,6 @@ static int ctnetlink_parse_nat_proto(str
+=20
+ 	DEBUGP("entered %s\n", __FUNCTION__);
+=20
+-	memset(tb, 0, CTA_PROTONAT_MAX * sizeof(tb));
+-
+ 	if (nfattr_parse_nested(tb, CTA_PROTONAT_MAX, attr) < 0)
+ 		goto nfattr_failure;
+=20
+@@ -646,7 +640,6 @@ ctnetlink_parse_nat(struct nfattr *cda[]
+=20
+ 	DEBUGP("entered %s\n", __FUNCTION__);
+=20
+-	memset(tb, 0, CTA_NAT_MAX * sizeof(tb));
+ 	memset(range, 0, sizeof(*range));
+ =09
+ 	if (nfattr_parse_nested(tb, CTA_NAT_MAX, cda[CTA_NAT-1]) < 0)
+@@ -684,7 +677,6 @@ ctnetlink_parse_help(struct nfattr *attr
+ 	struct nfattr *tb[CTA_HELP_MAX];
+=20
+ 	DEBUGP("entered %s\n", __FUNCTION__);
+-	memset(tb, 0, CTA_HELP_MAX * sizeof(tb));
+=20
+ 	if (nfattr_parse_nested(tb, CTA_HELP_MAX, attr) < 0)
+ 		goto nfattr_failure;
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -80,16 +111,16 @@ diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter=
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---PWfwoUCx3AFJRUBq
+--k+G3HLlWI7eRTl+h
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFC71FHXaXGVTD0i/8RAq76AJ9UDBzbQKI4eAoJu02uN+GpX0sPRwCglAb3
-DBYv1lUPWoG8Af+58vNm1/M=
-=Mju/
+iD8DBQFC71EfXaXGVTD0i/8RAvkyAJoDoYgliOek3da6zaOLwfjUrIpxTQCdHaMc
+muj28WhT8vIhsPRjUMdL2OQ=
+=Aj6C
 -----END PGP SIGNATURE-----
 
---PWfwoUCx3AFJRUBq--
+--k+G3HLlWI7eRTl+h--
