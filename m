@@ -1,13 +1,16 @@
-From: Daniel Drake <dsd@gentoo.org>
-Subject: "ip_local_deliver: bad skb" messages
-Date: Tue, 02 Aug 2005 17:18:20 +0100
-Message-ID: <42EF9CCC.5090609@gentoo.org>
+From: Samir Bellabes <sbellabes@mandriva.com>
+Subject: Re: [TRIVIAL PATCH] gcc4 / kill `extern inline` in nf_conntrack.h
+Date: Wed, 03 Aug 2005 15:00:48 +0200
+Message-ID: <m2k6j341kv.fsf@cerbere.dyndns.info>
+References: <200508011208.02830.pluto@agmk.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Ralf.Hildebrandt@charite.de
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Pawel Sikora <pluto@agmk.net>
+In-Reply-To: <200508011208.02830.pluto@agmk.net> (Pawel Sikora's message of
+	"Mon, 1 Aug 2005 12:08:02 +0200")
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,24 +22,52 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
+Pawel Sikora <pluto@agmk.net> writes:
 
-According to the user in http://lkml.org/lkml/2005/7/18/27 the patch that you 
-reverted in light of a bug we discussed previously seems to have resulted in 
-some odd messages appearing in the logs, e.g.:
+> Index: linux-2.6/include/linux/netfilter/nf_conntrack.h
+> ===================================================================
+> --- linux-2.6/include/linux/netfilter/nf_conntrack.h	(revision 4208)
+> +++ linux-2.6/include/linux/netfilter/nf_conntrack.h	(working copy)
+> @@ -218,7 +218,7 @@
+>  }
+>  
+>  /* decrement reference count on a conntrack */
+> -extern inline void nf_ct_put(struct nf_conn *ct);
+> +extern void nf_ct_put(struct nf_conn *ct);
+>  
+>  /* call to create an explicit dependency on nf_conntrack. */
+>  extern void need_nf_conntrack(void);
 
-Aug  1 07:05:57 moriah PROTO=17 127.0.0.1:34977 127.0.0.1:53 L=63 S=0x00 I=41527
-F=0x4000 T=64
-Aug  1 07:05:57 moriah ip_local_deliver: bad skb: PRE_ROUTING LOCAL_IN LOCAL_OUT
-POST_ROUTING
-Aug  1 07:05:57 moriah skb: pf=2 (unowned) dev=lo len=181
+Why not keeping inline attribut for nf_ct_put ?
 
-This was reported at Gentoo's bugzilla (http://bugs.gentoo.org/100944), and 
-the good news is that it appears to be fixed in 2.6.13-rc4.
-
-I was wondering if you might be able to point me at the patch which solved 
-this issue, so that we can fix Gentoo's 2.6.12 and maybe also consider for 
-inclusion in linux-stable?
-
-Thanks,
-Daniel
+diff --git a/include/linux/netfilter/nf_conntrack.h b/include/linux/netfilter/nf_conntrack.h
+--- a/include/linux/netfilter/nf_conntrack.h
++++ b/include/linux/netfilter/nf_conntrack.h
+@@ -218,7 +218,10 @@ nf_ct_get(struct sk_buff *skb, enum nf_c
+ }
+ 
+ /* decrement reference count on a conntrack */
+-extern inline void nf_ct_put(struct nf_conn *ct);
++extern inline void nf_ct_put(struct nf_conn *ct) {
++       NF_CT_ASSERT(ct);
++       nf_conntrack_put(&ct->ct_general);
++};
+ 
+ /* call to create an explicit dependency on nf_conntrack. */
+ extern void need_nf_conntrack(void);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -125,13 +125,6 @@ nf_ct_find_proto(u_int16_t l3proto, u_in
+        return nf_ct_protos[l3proto][protocol];
+ }
+ 
+-void 
+-nf_ct_put(struct nf_conn *ct)
+-{
+-       NF_CT_ASSERT(ct);
+-       nf_conntrack_put(&ct->ct_general);
+-}
+-
+ static int nf_conntrack_hash_rnd_initted;
+ static unsigned int nf_conntrack_hash_rnd;
