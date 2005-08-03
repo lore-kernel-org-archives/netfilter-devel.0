@@ -1,19 +1,13 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: latest nf_conntrack version
-Date: Thu, 04 Aug 2005 07:37:02 +0900 (JST)
-Message-ID: <200508032237.j73Mb3fA018966@toshiba.co.jp>
-References: <42EFEA57.5010406@trash.net>
-	<20050803142708.GA9456@rama.de.gnumonks.org>
-	<20050804.061445.46125299.kozakai@isl.rdc.toshiba.co.jp>
+From: Eric Leblond <eric@inl.fr>
+Subject: NFQUEUE man page and problem
+Date: Thu, 04 Aug 2005 00:52:48 +0200
+Message-ID: <1123109568.5961.4.camel@porky>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Thu_Aug__4_07_37_02_2005_248)--"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net,
-	yasuyuki.kozakai@toshiba.co.jp
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-j4R+gv4k8ursk7U6Y6yl"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20050804.061445.46125299.kozakai@isl.rdc.toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,87 +19,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Thu_Aug__4_07_37_02_2005_248)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+
+--=-j4R+gv4k8ursk7U6Y6yl
+Content-Type: multipart/mixed; boundary="=-LplId1HRhlhGYriJLB8a"
 
 
-Harald, sory, I was looking different file.
+--=-LplId1HRhlhGYriJLB8a
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Please forgot changes of masq/NAT in previous patch.
-What I have to do in that patch was adding menu.
-I attached new patch.
+Hi,
 
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+I'm currenty testing NFQUEUE. I've got problem with the option :
 
-From: Yasuyuki KOZAKAI <kozakai@isl.rdc.toshiba.co.jp>
-Date: Thu, 04 Aug 2005 06:14:45 +0900 (JST)
+/usr/local/sbin/iptables -A OUTPUT -p tcp --dport 23 --syn  -j NFQUEUE --qu=
+eue-num 42
+iptables v1.3.3: Unknown arg `42'
 
-> 
-> Hi, Harald,
-> 
-> From: Harald Welte <laforge@netfilter.org>
-> Date: Wed, 3 Aug 2005 16:27:08 +0200
-> 
-> > I've now also merged your nf_conntrack tree into my netfilter-2.6 tree
-> > as local "nf_conntrack" branch.
-> > 
-> > rsync://people.netfilter.org/users/laforge/scm/netfilter-2.6.14.git#nf_conntrack
-> > 
-> > should therefore be the full url to that branch.  I've done the nfcache
-> > removal and the nf_log_packet() api changes. it compiles and builds fine
-> > (no unresolved symbols), but I didn't have time to test it further.
-> 
-> The configuration menu for netlink and nf_conntrack in your branch are in
-> "Packet Generator" menu. And currently masq/NAT sentences should be removed,
-> I think.
-> 
-> I attached the patch for this. But if you have the better idea of
-> title/explanations, feel free to change them.
-> 
-> -----------------------------------------------------------------
-> Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+without the option --queue-num it's ok.
 
-----Next_Part(Thu_Aug__4_07_37_02_2005_248)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="kconfig.patch"
+I've modified the man page to add indication about the option (patch
+attached to the mail).
 
-diff --git a/net/Kconfig b/net/Kconfig
---- a/net/Kconfig
-+++ b/net/Kconfig
-@@ -140,6 +140,7 @@ config BRIDGE_NETFILTER
- 
- 	  If unsure, say N.
- 
-+source "net/netfilter/Kconfig"
- source "net/ipv4/netfilter/Kconfig"
- source "net/ipv6/netfilter/Kconfig"
- source "net/decnet/netfilter/Kconfig"
-@@ -205,8 +206,6 @@ config NET_PKTGEN
- 	  To compile this code as a module, choose M here: the
- 	  module will be called pktgen.
- 
--source "net/netfilter/Kconfig"
--
- endmenu
- 
- endmenu
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -1,3 +1,6 @@
-+menu "Generic Netfilter Configuration"
-+	depends on NET && NETFILTER
-+
- config NETFILTER_NETLINK
-        tristate "Netfilter netlink interface"
-        help
-@@ -82,3 +85,4 @@ config NF_CONNTRACK_FTP
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+endmenu
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+INL
 
-----Next_Part(Thu_Aug__4_07_37_02_2005_248)----
+--=-LplId1HRhlhGYriJLB8a
+Content-Disposition: attachment; filename=nfqueue.man.diff
+Content-Type: text/x-patch; name=nfqueue.man.diff; charset=ISO-8859-15
+Content-Transfer-Encoding: base64
+
+SW5kZXg6IGV4dGVuc2lvbnMvbGliaXB0X05GUVVFVUUubWFuDQo9PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQotLS0gZXh0
+ZW5zaW9ucy9saWJpcHRfTkZRVUVVRS5tYW4JKHLDqXZpc2lvbiA0MjEwKQ0KKysrIGV4dGVuc2lv
+bnMvbGliaXB0X05GUVVFVUUubWFuCShjb3BpZSBkZSB0cmF2YWlsKQ0KQEAgLTEsNyArMSwxMCBA
+QA0KIFRoaXMgdGFyZ2V0IGlzIGFuIGV4dGVuc2lvbiBvZiB0aGUgUVVFVUUgdGFyZ2V0LiBBcyBv
+cHBvc2VkIHRvIFFVRVVFLCBpdCBhbGxvd3MNCiB5b3UgdG8gcHV0IGEgcGFja2V0IGludG8gYW55
+IHNwZWNpZmljIHF1ZXVlLCBpZGVudGlmaWVkIGJ5IGl0cyAxNi1iaXQgcXVldWUNCi1udW1iZXIu
+ICANCitudW1iZXIuICBJdCB0YWtlcyBvbmUgb3B0aW9uOg0KIC5UUA0KKy5CUiAiLS1xdWV1ZS1u
+dW0gIiAiXGZJdmFsdWUiDQorVGhpcyBzcGVjaWZpZXMgdGhlIFFVRVVFIG51bWJlciB0byB1c2Uu
+IFZhbGlkIHF1ZXVlIG51bWJlcnMgYXJlIDAtNjU1MzUuIA0KKy5UUA0KIEl0IGNhbiBvbmx5IGJl
+IHVzZWQgd2l0aCBLZXJuZWwgdmVyc2lvbnMgMi42LjE0IG9yIGxhdGVyLCBzaW5jZSBpdCByZXF1
+aXJlcw0KIHRoZQ0KIC5CDQo=
+
+
+--=-LplId1HRhlhGYriJLB8a--
+
+--=-j4R+gv4k8ursk7U6Y6yl
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQBC8UrAnxA7CdMWjzIRArUgAJ9wJQtI2DqPOT3fRCzhFTSCPxujdQCfXihH
+rhgh+3r1SFqvZarZq4ceVxI=
+=uCQG
+-----END PGP SIGNATURE-----
+
+--=-j4R+gv4k8ursk7U6Y6yl--
