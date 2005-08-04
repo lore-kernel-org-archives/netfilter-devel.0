@@ -1,13 +1,16 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: NFQUEUE man page and problem
-Date: Thu, 04 Aug 2005 00:52:48 +0200
-Message-ID: <1123109568.5961.4.camel@porky>
+From: Visham Ramsurrun <vishamr2000@gmail.com>
+Subject: Function in iptables!!
+Date: Thu, 4 Aug 2005 10:06:12 +0400
+Message-ID: <9927912d0508032306437daba8@mail.gmail.com>
+References: <42f13ade.7e2015a7.4841.607fSMTPIN_ADDED@mx.gmail.com>
+Reply-To: Visham Ramsurrun <vishamr2000@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-j4R+gv4k8ursk7U6Y6yl"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <42f13ade.7e2015a7.4841.607fSMTPIN_ADDED@mx.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,64 +22,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi to all,
 
---=-j4R+gv4k8ursk7U6Y6yl
-Content-Type: multipart/mixed; boundary="=-LplId1HRhlhGYriJLB8a"
+I would like to know what is the first function in iptables
+(kernelspace code) does execution switch to after has been declared
+valid and accepted by the firewall script? Where does the execution go
+after the ACCEPT target is checked?
 
+Any input will be very much appreciated...
 
---=-LplId1HRhlhGYriJLB8a
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-I'm currenty testing NFQUEUE. I've got problem with the option :
-
-/usr/local/sbin/iptables -A OUTPUT -p tcp --dport 23 --syn  -j NFQUEUE --qu=
-eue-num 42
-iptables v1.3.3: Unknown arg `42'
-
-without the option --queue-num it's ok.
-
-I've modified the man page to add indication about the option (patch
-attached to the mail).
-
-BR,
---=20
-Eric Leblond <eric@inl.fr>
-INL
-
---=-LplId1HRhlhGYriJLB8a
-Content-Disposition: attachment; filename=nfqueue.man.diff
-Content-Type: text/x-patch; name=nfqueue.man.diff; charset=ISO-8859-15
-Content-Transfer-Encoding: base64
-
-SW5kZXg6IGV4dGVuc2lvbnMvbGliaXB0X05GUVVFVUUubWFuDQo9PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQotLS0gZXh0
-ZW5zaW9ucy9saWJpcHRfTkZRVUVVRS5tYW4JKHLDqXZpc2lvbiA0MjEwKQ0KKysrIGV4dGVuc2lv
-bnMvbGliaXB0X05GUVVFVUUubWFuCShjb3BpZSBkZSB0cmF2YWlsKQ0KQEAgLTEsNyArMSwxMCBA
-QA0KIFRoaXMgdGFyZ2V0IGlzIGFuIGV4dGVuc2lvbiBvZiB0aGUgUVVFVUUgdGFyZ2V0LiBBcyBv
-cHBvc2VkIHRvIFFVRVVFLCBpdCBhbGxvd3MNCiB5b3UgdG8gcHV0IGEgcGFja2V0IGludG8gYW55
-IHNwZWNpZmljIHF1ZXVlLCBpZGVudGlmaWVkIGJ5IGl0cyAxNi1iaXQgcXVldWUNCi1udW1iZXIu
-ICANCitudW1iZXIuICBJdCB0YWtlcyBvbmUgb3B0aW9uOg0KIC5UUA0KKy5CUiAiLS1xdWV1ZS1u
-dW0gIiAiXGZJdmFsdWUiDQorVGhpcyBzcGVjaWZpZXMgdGhlIFFVRVVFIG51bWJlciB0byB1c2Uu
-IFZhbGlkIHF1ZXVlIG51bWJlcnMgYXJlIDAtNjU1MzUuIA0KKy5UUA0KIEl0IGNhbiBvbmx5IGJl
-IHVzZWQgd2l0aCBLZXJuZWwgdmVyc2lvbnMgMi42LjE0IG9yIGxhdGVyLCBzaW5jZSBpdCByZXF1
-aXJlcw0KIHRoZQ0KIC5CDQo=
-
-
---=-LplId1HRhlhGYriJLB8a--
-
---=-j4R+gv4k8ursk7U6Y6yl
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBC8UrAnxA7CdMWjzIRArUgAJ9wJQtI2DqPOT3fRCzhFTSCPxujdQCfXihH
-rhgh+3r1SFqvZarZq4ceVxI=
-=uCQG
------END PGP SIGNATURE-----
-
---=-j4R+gv4k8ursk7U6Y6yl--
+Warm regards,
+Visham
