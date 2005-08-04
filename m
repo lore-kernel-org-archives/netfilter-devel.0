@@ -1,12 +1,14 @@
-From: joer@netcourrier.com
-Subject: HTTP info filter
-Date: Thu,  4 Aug 2005 18:30:55 +0200
-Message-ID: <mnet1.1123173055.14289.joer@netcourrier.com>
+From: Pawel Sikora <pluto@agmk.net>
+Subject: libipt_geoip.c doeasn't build with 2.6.12+conntrack-event-api.
+Date: Thu, 4 Aug 2005 21:42:27 +0200
+Message-ID: <200508042142.27778.pluto@agmk.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,21 +20,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+Hi,
 
-I want to filter an outgoing HTTP request using its info field.
-ex : HTTP =22GET /toto://hello/xxx=22
-For every HTTP request with toto in info field, I wan't to get the xxx fie=
-ld. This request can be dropped.
-Can I do this with iptables ?
-Is there another tool for this ?
+The conntrack-event-api patch removes from 2.6.12
+the NFC_* entries from linux/netfilter.h.
+finally geoip userspace module doesn't build.
 
-Thanks in advance for your help,
-Joe
+Could someone netfilter guru fix this?
 
--------------------------------------------------------------
-NetCourrier, votre bureau virtuel sur Internet : Mail, Agenda, Clubs, Tool=
-bar...
-Web/Wap : www.netcourrier.com
-T=E9l=E9phone/Fax : 08 92 69 00 21 (0,34 =80 TTC/min)
-Minitel: 3615 NETCOURRIER (0,16 =80 TTC/min)
+Regards,
+Pawel.
+
+-- 
+The only thing necessary for the triumph of evil
+  is for good men to do nothing.
+                                           - Edmund Burke
