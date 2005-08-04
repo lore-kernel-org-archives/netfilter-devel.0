@@ -1,7 +1,7 @@
 From: Bryan Cardillo <dillo+netfilter@seas.upenn.edu>
-Subject: Re: [PATCH] 2/3 pom expire
-Date: Thu, 4 Aug 2005 12:07:56 -0400
-Message-ID: <20050804160755.GC1975@home.seas.upenn.edu>
+Subject: Re: [PATCH] 1/3 pom expire
+Date: Thu, 4 Aug 2005 12:07:14 -0400
+Message-ID: <20050804160713.GB1975@home.seas.upenn.edu>
 References: <20050804155512.GA1975@home.seas.upenn.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
@@ -21,67 +21,60 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-        in case my initial warning about this being a work in
-        progress was not enough, there's an off-by-one bug in my
-        patch numbering scheme, sorry, just not my day... should
-        have been 1,2, and 3 of 3 (or 0, 1, and 2 of 2).
-
-        --Bryan
-
- linux-2.6.10/include/linux/netfilter_ipv6/ip6t_expire.h |    3=20
- linux-2.6.10/net/ipv6/netfilter/ip6t_expire.c           |  725 +++++++--=
+ linux-2.6.10/include/linux/netfilter_ipv4/ipt_expire.h |    3=20
+ linux-2.6.10/net/ipv4/netfilter/ipt_expire.c           |  705 ++++++++--=
 -------
- linux-2.6/include/linux/netfilter_ipv6/ip6t_expire.h    |    3=20
- linux-2.6/net/ipv6/netfilter/ip6t_expire.c              |  725 +++++++--=
+ linux-2.6/include/linux/netfilter_ipv4/ipt_expire.h    |    3=20
+ linux-2.6/net/ipv4/netfilter/ipt_expire.c              |  705 ++++++++--=
 -------
- 4 files changed, 694 insertions(+), 762 deletions(-)
+ 4 files changed, 678 insertions(+), 738 deletions(-)
 
-Index: patchlets/expire/linux-2.6.10/include/linux/netfilter_ipv6/ip6t_ex=
-pire.h
+Index: patchlets/expire/linux-2.6.10/include/linux/netfilter_ipv4/ipt_exp=
+ire.h
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- patchlets/expire/linux-2.6.10/include/linux/netfilter_ipv6/ip6t_expir=
-e.h	(revision 4210)
-+++ patchlets/expire/linux-2.6.10/include/linux/netfilter_ipv6/ip6t_expir=
-e.h	(working copy)
+--- patchlets/expire/linux-2.6.10/include/linux/netfilter_ipv4/ipt_expire=
+.h	(revision 4210)
++++ patchlets/expire/linux-2.6.10/include/linux/netfilter_ipv4/ipt_expire=
+.h	(working copy)
 @@ -26,7 +26,8 @@
  #include <linux/types.h>
 =20
- struct ip6t_exp_info {
+ struct ipt_exp_info {
 -	time_t expiration;
 +	time_t expires;
 +	time_t delay;
  };
 =20
  #endif
-Index: patchlets/expire/linux-2.6/include/linux/netfilter_ipv6/ip6t_expir=
-e.h
+Index: patchlets/expire/linux-2.6/include/linux/netfilter_ipv4/ipt_expire=
+.h
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- patchlets/expire/linux-2.6/include/linux/netfilter_ipv6/ip6t_expire.h=
-	(revision 4210)
-+++ patchlets/expire/linux-2.6/include/linux/netfilter_ipv6/ip6t_expire.h=
-	(working copy)
+--- patchlets/expire/linux-2.6/include/linux/netfilter_ipv4/ipt_expire.h	=
+(revision 4210)
++++ patchlets/expire/linux-2.6/include/linux/netfilter_ipv4/ipt_expire.h	=
+(working copy)
 @@ -26,7 +26,8 @@
  #include <linux/types.h>
 =20
- struct ip6t_exp_info {
+ struct ipt_exp_info {
 -	time_t expiration;
 +	time_t expires;
 +	time_t delay;
  };
 =20
  #endif
-Index: patchlets/expire/linux-2.6.10/net/ipv6/netfilter/ip6t_expire.c
+Index: patchlets/expire/linux-2.6.10/net/ipv4/netfilter/ipt_expire.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- patchlets/expire/linux-2.6.10/net/ipv6/netfilter/ip6t_expire.c	(revis=
-ion 4210)
-+++ patchlets/expire/linux-2.6.10/net/ipv6/netfilter/ip6t_expire.c	(worki=
-ng copy)
+--- patchlets/expire/linux-2.6.10/net/ipv4/netfilter/ipt_expire.c	(revisi=
+on 4210)
++++ patchlets/expire/linux-2.6.10/net/ipv4/netfilter/ipt_expire.c	(workin=
+g copy)
 @@ -17,7 +17,7 @@
   *      59 Temple Place, Suite 330
   *      Boston, MA  02111-1307  USA
@@ -91,50 +84,50 @@ ng copy)
   */
 =20
  #include <linux/config.h>
-@@ -39,311 +39,84 @@
+@@ -39,308 +39,84 @@
  MODULE_AUTHOR("Bryan Cardillo <dillo@seas.upenn.edu>");
- MODULE_DESCRIPTION("an ip6tables expiring match module");
+ MODULE_DESCRIPTION("an iptables expiring match module");
  MODULE_LICENSE("GPL");
 -MODULE_VERSION("1.1");
--static int __init ip6t_exp_init(void);
--static void __exit ip6t_exp_exit(void);
--module_init(ip6t_exp_init);
--module_exit(ip6t_exp_exit);
+-static int __init ipt_exp_init(void);
+-static void __exit ipt_exp_exit(void);
+-module_init(ipt_exp_init);
+-module_exit(ipt_exp_exit);
 +MODULE_VERSION("1.2");
 =20
--static int ip6t_exp_match(const struct sk_buff *,
+-static int ipt_exp_match(const struct sk_buff *,
 -		const struct net_device *, const struct net_device *,
--		const void *, int, unsigned int, int *);
--static int ip6t_exp_checkentry(const char *, const struct ip6t_ip6 *,
+-		const void *, int, int *);
+-static int ipt_exp_checkentry(const char *, const struct ipt_ip *,
 -		void *, unsigned int, unsigned int);
--static int ip6t_exp_add_table(const char *);
--static void ip6t_exp_remove_table(const char *);
--static void ip6t_exp_schedule_expiration(time_t);
--static void ip6t_exp_work_fn(void *);
--static int ip6t_exp_get_info(const char *, struct ip6t_getinfo *);
--static int ip6t_exp_get_entries(struct ip6t_getinfo *, struct ip6t_get_e=
-ntries *);
--static int ip6t_exp_get_active(struct ip6t_getinfo *,
--		struct ip6t_get_entries *, struct ip6t_replace *);
--static int ip6t_exp_copy_active(struct ip6t_entry *, struct ip6t_replace=
- *);
--static int ip6t_exp_is_expired(struct ip6t_entry_match *);
--static int ip6t_exp_replace_expired(struct ip6t_replace *);
--static int ip6t_exp_get_counters(struct ip6t_get_entries *,
--		struct ip6t_replace *, struct ip6t_counters_info *);
--static int ip6t_exp_copy_counter(struct ip6t_entry *, struct ip6t_replac=
-e *,
--		struct ip6t_counters_info *, int *);
--static int ip6t_exp_restore_counters(struct ip6t_counters_info *);
+-static int ipt_exp_add_table(const char *);
+-static void ipt_exp_remove_table(const char *);
+-static void ipt_exp_schedule_expiration(time_t);
+-static void ipt_exp_work_fn(void *);
+-static int ipt_exp_get_info(const char *, struct ipt_getinfo *);
+-static int ipt_exp_get_entries(struct ipt_getinfo *, struct ipt_get_entr=
+ies *);
+-static int ipt_exp_get_active(struct ipt_getinfo *,
+-		struct ipt_get_entries *, struct ipt_replace *);
+-static int ipt_exp_copy_active(struct ipt_entry *, struct ipt_replace *)=
+;
+-static int ipt_exp_is_expired(struct ipt_entry_match *);
+-static int ipt_exp_replace_expired(struct ipt_replace *);
+-static int ipt_exp_get_counters(struct ipt_get_entries *,
+-		struct ipt_replace *, struct ipt_counters_info *);
+-static int ipt_exp_copy_counter(struct ipt_entry *, struct ipt_replace *=
+,
+-		struct ipt_counters_info *, int *);
+-static int ipt_exp_restore_counters(struct ipt_counters_info *);
 -
 -/**
 - * struct for list of tables
 - */
- struct ip6t_exp_table {
+ struct ipt_exp_table {
 -	/**
 -	 * the table name
 -	 */
- 	char name[IP6T_TABLE_MAXNAMELEN];
+ 	char name[IPT_TABLE_MAXNAMELEN];
 -	/**
 -	 * a list_head structure enabling list inclusion
 -	 */
@@ -144,17 +137,17 @@ e *,
 -/**
 - * work_struct for scheduling the deletion of expired rules
 - */
--static DECLARE_WORK(ip6t_exp_work, &ip6t_exp_work_fn, NULL);
+-static DECLARE_WORK(ipt_exp_work, &ipt_exp_work_fn, NULL);
 -
 -/**
-- * ip6tables match
+- * iptables match
 - */
--static struct ip6t_match ip6t_expire_match =3D {
+-static struct ipt_match ipt_expire_match =3D {
 -	.name		=3D "expire",
--	.match		=3D &ip6t_exp_match,
--	.checkentry	=3D &ip6t_exp_checkentry,
+-	.match		=3D &ipt_exp_match,
+-	.checkentry	=3D &ipt_exp_checkentry,
 -	.me		=3D THIS_MODULE
-+struct ip6t_exp_entry {
++struct ipt_exp_entry {
 +	unsigned int offset;
 +	unsigned int size;
  };
@@ -162,51 +155,51 @@ e *,
 -/**
 - * the list of tables contained expiring entries
 - */
--static spinlock_t ip6t_exp_tables_lock =3D SPIN_LOCK_UNLOCKED;
--static LIST_HEAD(ip6t_exp_tables);
+-static spinlock_t ipt_exp_tables_lock =3D SPIN_LOCK_UNLOCKED;
+-static LIST_HEAD(ipt_exp_tables);
 +static spinlock_t tables_lock =3D SPIN_LOCK_UNLOCKED;
 +static LIST_HEAD(tables);
 =20
 -/**
-- * initialize module and register ip6tables match
+- * initialize module and register iptables match
 - * @see module_init()
-- * @see ip6t_register_match()
+- * @see ipt_register_match()
 - */
 -static int __init
--ip6t_exp_init(void)
-+static struct ip6t_exp_table *
+-ipt_exp_init(void)
++static struct ipt_exp_table *
 +find_table(const char *tablename)
  {
 -	dprintk("initializing");
--	ip6t_register_match(&ip6t_expire_match);
+-	ipt_register_match(&ipt_expire_match);
 -	return 0;
-+	struct ip6t_exp_table *t;
++	struct ipt_exp_table *t;
 +	list_for_each_entry(t, &tables, list)
-+		if (strncmp(t->name, tablename, IP6T_TABLE_MAXNAMELEN) =3D=3D 0)
++		if (strncmp(t->name, tablename, IPT_TABLE_MAXNAMELEN) =3D=3D 0)
 +			return t;
 +	return NULL;
  }
 =20
 -/**
-- * cleanup module and unregister ip6tables match
+- * cleanup module and unregister iptables match
 - * @see module_exit()
-- * @see ip6t_unregister_match()
+- * @see ipt_unregister_match()
 - */
 -static void __exit
--ip6t_exp_exit(void)
+-ipt_exp_exit(void)
 -{
 -	unsigned long flags;
--	struct ip6t_exp_table *t, *tmp;
+-	struct ipt_exp_table *t, *tmp;
 -
 -	dprintk("exiting");
 -
--	ip6t_unregister_match(&ip6t_expire_match);
--	cancel_delayed_work(&ip6t_exp_work);
+-	ipt_unregister_match(&ipt_expire_match);
+-	cancel_delayed_work(&ipt_exp_work);
 -=09
--	spin_lock_irqsave(&ip6t_exp_tables_lock, flags);
--	list_for_each_entry_safe(t, tmp, &ip6t_exp_tables, list)
+-	spin_lock_irqsave(&ipt_exp_tables_lock, flags);
+-	list_for_each_entry_safe(t, tmp, &ipt_exp_tables, list)
 -		kfree(t);
--	spin_unlock_irqrestore(&ip6t_exp_tables_lock, flags);
+-	spin_unlock_irqrestore(&ipt_exp_tables_lock, flags);
 -}
 -
 -/**
@@ -216,21 +209,18 @@ e *,
 - * @param out outbound network device
 - * @param matchinfo match specific data
 - * @param offset match offset (?)
-- * @param header (?)
-- * @param len (?)
 - * @param hotdrop set to 1 to drop packet immediately when returning fal=
 se
 - * @return non-zero for active rules, zero otherwise
-- * @see struct ip6t_match
+- * @see struct ipt_match
 - */
  static int
--ip6t_exp_match(const struct sk_buff *skb,
+-ipt_exp_match(const struct sk_buff *skb,
 -		const struct net_device *in, const struct net_device *out,
--		const void *matchinfo, int offset,
--		unsigned int protoff, int *hotdrop)
+-		const void *matchinfo, int offset, int *hotdrop)
 +add_table(const char *tablename)
  {
--	const struct ip6t_exp_info *info =3D matchinfo;
+-	const struct ipt_exp_info *info =3D matchinfo;
 -
 -	if (get_seconds() < info->expiration)
 -		return 1;
@@ -239,7 +229,7 @@ se
 -}
 -
 -/**
-- * check a new ip6tables entry
+- * check a new iptables entry
 - * @param tablename table name for new entry
 - * @param ip ip info for new entry
 - * @param matchinfo match specific data
@@ -248,21 +238,21 @@ se
 - * @return non-zero for valid entries, zero otherwise
 - */
 -static int
--ip6t_exp_checkentry(const char *tablename, const struct ip6t_ip6 *ip,
+-ipt_exp_checkentry(const char *tablename, const struct ipt_ip *ip,
 -		void *matchinfo, unsigned int matchsize, unsigned int hookmask)
 -{
--	struct ip6t_exp_info *info =3D matchinfo;
+-	struct ipt_exp_info *info =3D matchinfo;
 -
--	if (matchsize !=3D IP6T_ALIGN(sizeof(struct ip6t_exp_info)))
+-	if (matchsize !=3D IPT_ALIGN(sizeof(struct ipt_exp_info)))
 -		return 0;
 -
 -	if (info->expiration <=3D get_seconds())
 -		return 0;
 -
--	if (ip6t_exp_add_table(tablename))
+-	if (ipt_exp_add_table(tablename))
 -		return 0;
 -
--	ip6t_exp_schedule_expiration(info->expiration);
+-	ipt_exp_schedule_expiration(info->expiration);
 -
 -	return 1;
 -}
@@ -273,16 +263,16 @@ se
 - * @return zero on success, non-zero on failure
 - */
 -static int
--ip6t_exp_add_table(const char *tablename)
+-ipt_exp_add_table(const char *tablename)
 -{
  	unsigned long flags;
- 	struct ip6t_exp_table *t;
+ 	struct ipt_exp_table *t;
 =20
--	spin_lock_irqsave(&ip6t_exp_tables_lock, flags);
--	list_for_each_entry(t, &ip6t_exp_tables, list)
--		if (strncmp(t->name, tablename, IP6T_TABLE_MAXNAMELEN) =3D=3D 0)
+-	spin_lock_irqsave(&ipt_exp_tables_lock, flags);
+-	list_for_each_entry(t, &ipt_exp_tables, list)
+-		if (strncmp(t->name, tablename, IPT_TABLE_MAXNAMELEN) =3D=3D 0)
 -			break;
--	spin_unlock_irqrestore(&ip6t_exp_tables_lock, flags);
+-	spin_unlock_irqrestore(&ipt_exp_tables_lock, flags);
 +	/**
 +	 * FIXME need a better solution here, can't allocate
 +	 * memory while holding a lock, so we have to search
@@ -296,22 +286,22 @@ se
 +	}
 +	spin_unlock_irqrestore(&tables_lock, flags);
 =20
--	if (&t->list =3D=3D &ip6t_exp_tables) {
--		if (!(t =3D kmalloc(sizeof(struct ip6t_exp_table), GFP_KERNEL))) {
+-	if (&t->list =3D=3D &ipt_exp_tables) {
+-		if (!(t =3D kmalloc(sizeof(struct ipt_exp_table), GFP_KERNEL))) {
 -			dprintk("error allocating memory");
 -			return -ENOMEM;
 -		}
--		strlcpy(t->name, tablename, IP6T_TABLE_MAXNAMELEN);
--		spin_lock_irqsave(&ip6t_exp_tables_lock, flags);
--		list_add_tail(&t->list, &ip6t_exp_tables);
--		spin_unlock_irqrestore(&ip6t_exp_tables_lock, flags);
-+	if (!(t =3D kmalloc(sizeof(struct ip6t_exp_table), GFP_KERNEL))) {
+-		strlcpy(t->name, tablename, IPT_TABLE_MAXNAMELEN);
+-		spin_lock_irqsave(&ipt_exp_tables_lock, flags);
+-		list_add_tail(&t->list, &ipt_exp_tables);
+-		spin_unlock_irqrestore(&ipt_exp_tables_lock, flags);
++	if (!(t =3D kmalloc(sizeof(struct ipt_exp_table), GFP_KERNEL))) {
 +		dprintk("error allocating memory");
 +		return -ENOMEM;
  	}
 -	return 0;
 -}
-+	strlcpy(t->name, tablename, IP6T_TABLE_MAXNAMELEN);
++	strlcpy(t->name, tablename, IPT_TABLE_MAXNAMELEN);
 =20
 -/**
 - * remove a table from the set of tables to be searched for expired rule=
@@ -319,14 +309,14 @@ s
 - * @param tablename the name of the table to be removed
 - */
 -static void
--ip6t_exp_remove_table(const char *tablename)
+-ipt_exp_remove_table(const char *tablename)
 -{
 -	unsigned long flags;
--	struct ip6t_exp_table *t, *tmp;
+-	struct ipt_exp_table *t, *tmp;
 -
--	spin_lock_irqsave(&ip6t_exp_tables_lock, flags);
--	list_for_each_entry_safe(t, tmp, &ip6t_exp_tables, list) {
--		if (strncmp(t->name, tablename, IP6T_TABLE_MAXNAMELEN) =3D=3D 0) {
+-	spin_lock_irqsave(&ipt_exp_tables_lock, flags);
+-	list_for_each_entry_safe(t, tmp, &ipt_exp_tables, list) {
+-		if (strncmp(t->name, tablename, IPT_TABLE_MAXNAMELEN) =3D=3D 0) {
 -			list_del(&t->list);
 -			kfree(t);
 -		}
@@ -336,7 +326,7 @@ s
 +		kfree(t);
 +		return 0;
  	}
--	spin_unlock_irqrestore(&ip6t_exp_tables_lock, flags);
+-	spin_unlock_irqrestore(&ipt_exp_tables_lock, flags);
 -}
 =20
 -/**
@@ -344,64 +334,64 @@ s
 - * @param expiration the time to be scheduled
 - */
 -static void
--ip6t_exp_schedule_expiration(time_t expiration)
+-ipt_exp_schedule_expiration(time_t expiration)
 -{
 -	unsigned long delay =3D (expiration - get_seconds() < 1) ? HZ :
 -					(expiration - get_seconds()) * HZ;
 +	list_add_tail(&t->list, &tables);
 +	spin_unlock_irqrestore(&tables_lock, flags);
 =20
--	schedule_delayed_work(&ip6t_exp_work, delay);
+-	schedule_delayed_work(&ipt_exp_work, delay);
 +	return 0;
  }
 =20
 -/**
-- * delete expired ip6tables rules
+- * delete expired iptables rules
 - * @param __notused
 - * @see schedule_delayed_work()
 - */
  static void
--ip6t_exp_work_fn(void *__notused)
+-ipt_exp_work_fn(void *__notused)
 +remove_table(const char *tablename)
  {
 +	unsigned long flags;
- 	struct ip6t_exp_table *t;
+ 	struct ipt_exp_table *t;
 =20
 -	/*
 -	 * FIXME what about locking here?
 -	 */
--	list_for_each_entry(t, &ip6t_exp_tables, list) {
+-	list_for_each_entry(t, &ipt_exp_tables, list) {
 -		size_t sz;
--		struct ip6t_getinfo info;
--		struct ip6t_get_entries *entries =3D NULL;
--		struct ip6t_replace *replace =3D NULL;
--		struct ip6t_counters_info *counters =3D NULL;
+-		struct ipt_getinfo info;
+-		struct ipt_get_entries *entries =3D NULL;
+-		struct ipt_replace *replace =3D NULL;
+-		struct ipt_counters_info *counters =3D NULL;
 -
 -		dprintk("expiring %s entries", t->name);
 -
 -		/* get table info */
--		if (ip6t_exp_get_info(t->name, &info))
+-		if (ipt_exp_get_info(t->name, &info))
 -			continue;
 -
 -		/* allocate memory */
--		sz =3D sizeof(struct ip6t_get_entries) + info.size;
+-		sz =3D sizeof(struct ipt_get_entries) + info.size;
 -		if (!(entries =3D vmalloc(sz))) {
 -			dprintk("error allocating entry table");
 -			break;
 -		}
--		sz =3D sizeof(struct ip6t_replace) + info.size;
+-		sz =3D sizeof(struct ipt_replace) + info.size;
 -		if (!(replace =3D vmalloc(sz))) {
 -			dprintk("error allocating replacement table");
 -			goto out_free_entries;
 -		}
 -		memset(replace, 0, sz);
--		sz =3D sizeof(struct ip6t_counters) * info.num_entries;
+-		sz =3D sizeof(struct ipt_counters) * info.num_entries;
 -		if (!(replace->counters =3D vmalloc(sz))) {
 -			dprintk("error allocating counters");
 -			goto out_free_entries_replace;
 -		}
 -		memset(replace->counters, 0, sz);
--		sz +=3D sizeof(struct ip6t_counters_info);
+-		sz +=3D sizeof(struct ipt_counters_info);
 -		if (!(counters =3D vmalloc(sz))) {
 -			dprintk("error allocating new counters");
 -			goto out_free_entries_replace_counters;
@@ -409,18 +399,18 @@ s
 -		memset(counters, 0, sz);
 -
 -		/* get all entries, then copy active ones */
--		if (ip6t_exp_get_entries(&info, entries))
+-		if (ipt_exp_get_entries(&info, entries))
 -			goto out_free_entries_replace_counters_info;
--		if (ip6t_exp_get_active(&info, entries, replace))
+-		if (ipt_exp_get_active(&info, entries, replace))
 -			goto out_free_entries_replace_counters_info;
 -
 -		/* replace table */
 -		if (replace->size < info.size) {
--			if (ip6t_exp_get_counters(entries, replace, counters))
+-			if (ipt_exp_get_counters(entries, replace, counters))
 -				goto out_free_entries_replace_counters_info;
--			if (ip6t_exp_replace_expired(replace))
+-			if (ipt_exp_replace_expired(replace))
 -				goto out_free_entries_replace_counters_info;
--			if (ip6t_exp_restore_counters(counters))
+-			if (ipt_exp_restore_counters(counters))
 -				goto out_free_entries_replace_counters_info;
 -		}
 -
@@ -449,24 +439,21 @@ s
 - * @return zero on success, non-zero otherwise
 - */
  static int
--ip6t_exp_get_info(const char *name, struct ip6t_getinfo *info)
-+get_info(const char *name, struct ip6t_getinfo *info)
+-ipt_exp_get_info(const char *name, struct ipt_getinfo *info)
++get_info(const char *name, struct ipt_getinfo *info)
  {
  	int ret =3D 0;
- 	int sz =3D sizeof(struct ip6t_getinfo);
-@@ -357,25 +130,39 @@
+ 	int sz =3D sizeof(struct ipt_getinfo);
+@@ -354,7 +130,7 @@
  			break;
  		case -ENOENT:
  			/* table is gone */
--			ip6t_exp_remove_table(name);
+-			ipt_exp_remove_table(name);
 +			remove_table(name);
  			break;
  		default:
--			dprintk("error getting ip6tables info");
-+			dprintk("error getting iptables info");
- 			break;
- 	}
-=20
+ 			dprintk("error getting iptables info");
+@@ -364,15 +140,29 @@
  	return ret;
  }
 =20
@@ -478,12 +465,12 @@ es
 - * @return zero on success, non-zero otherwise
 - */
  static int
--ip6t_exp_get_entries(struct ip6t_getinfo *info, struct ip6t_get_entries =
-*entries)
-+is_expired(struct ip6t_entry_match *match, time_t now)
+-ipt_exp_get_entries(struct ipt_getinfo *info, struct ipt_get_entries *en=
+tries)
++is_expired(struct ipt_entry_match *match, time_t now)
  {
 +	if (strcmp(match->u.user.name, "expire") =3D=3D 0) {
-+		struct ip6t_exp_info *info =3D (struct ip6t_exp_info *)match->data;
++		struct ipt_exp_info *info =3D (struct ipt_exp_info *)match->data;
 +		if (info->expires <=3D now)
 +			return 1;
 +	}
@@ -491,31 +478,32 @@ es
 +}
 +
 +static int
-+count_entries(struct ip6t_entry *entry, time_t now, int *expired)
++count_expired(struct ipt_entry *entry, time_t now, int *expired)
 +{
-+	if (IP6T_MATCH_ITERATE(entry, is_expired, now))
++	if (IPT_MATCH_ITERATE(entry, is_expired, now))
 +		(*expired)++;
 +	return 0;
 +}
 +
 +static int
-+get_entries(struct ip6t_getinfo *info,
-+		struct ip6t_get_entries *entries, time_t now, int *expired)
++get_entries(struct ipt_getinfo *info,
++		struct ipt_get_entries *entries, time_t now, int *expired)
 +{
  	int ret =3D 0;
- 	int sz =3D sizeof(struct ip6t_get_entries) + info->size;
+ 	int sz =3D sizeof(struct ipt_get_entries) + info->size;
 =20
-@@ -385,24 +172,74 @@
+@@ -382,24 +172,76 @@
  	entries->size =3D info->size;
  	ret =3D nf_getsockopt(NULL, PF_INET,
- 			IP6T_SO_GET_ENTRIES, (char *)entries, &sz);
+ 			IPT_SO_GET_ENTRIES, (char *)entries, &sz);
 -	if (ret)
--		dprintk("error getting ip6tables entries");
 +	if (!ret) {
-+		IP6T_ENTRY_ITERATE(entries->entrytable, entries->size,
-+					count_entries, now, expired);
++		IPT_ENTRY_ITERATE(entries->entrytable, entries->size,
++					count_expired, now, expired);
++		if (!(*expired))
++			dprintk("no expired rules found");
 +	} else {
-+		dprintk("error getting iptables entries");
+ 		dprintk("error getting iptables entries");
 +	}
 =20
  	return ret;
@@ -531,12 +519,12 @@ ries
 - * @return zero on success, non-zero otherwise
 - */
  static int
--ip6t_exp_get_active(struct ip6t_getinfo *info,
--		struct ip6t_get_entries *entries, struct ip6t_replace *replace)
-+get_expired_entry(struct ip6t_entry *entry, struct ip6t_entry *base,
-+		struct ip6t_exp_entry *expired, time_t now, int *index)
+-ipt_exp_get_active(struct ipt_getinfo *info,
+-		struct ipt_get_entries *entries, struct ipt_replace *replace)
++get_expired_entry(struct ipt_entry *entry, struct ipt_entry *base,
++		struct ipt_exp_entry *expired, time_t now, int *index)
  {
-+	if (IP6T_MATCH_ITERATE(entry, is_expired, now)) {
++	if (IPT_MATCH_ITERATE(entry, is_expired, now)) {
 +		expired[(*index)].offset =3D (void *)entry - (void *)base;
 +		expired[(*index)].size =3D entry->next_offset;
 +		(*index)++;
@@ -545,23 +533,23 @@ ries
 +}
 +
 +static void
-+get_expired_info(struct ip6t_get_entries *entries,
-+		struct ip6t_exp_entry *expired, time_t now)
++get_expired_info(struct ipt_get_entries *entries,
++		struct ipt_exp_entry *expired, time_t now)
 +{
 +	int index =3D 0;
-+	IP6T_ENTRY_ITERATE(entries->entrytable, entries->size,
++	IPT_ENTRY_ITERATE(entries->entrytable, entries->size,
 +			get_expired_entry, entries->entrytable,
 +			expired, now, &index);
 +}
 +
 +static void
-+fix_target(struct ip6t_entry *dest, struct ip6t_entry *entry,
-+		struct ip6t_exp_entry *expired, size_t ecnt)
++fix_target(struct ipt_entry *dest, struct ipt_entry *entry,
++		struct ipt_exp_entry *expired, size_t ecnt)
 +{
-+	struct ip6t_standard_target *t =3D
++	struct ipt_standard_target *t =3D
 +		(void *)dest + dest->target_offset;
 +	char *name =3D t->target.u.user.name;
-+	if (!strcmp(name, IP6T_STANDARD_TARGET) && t->verdict > 0) {
++	if (!strcmp(name, IPT_STANDARD_TARGET) && t->verdict > 0) {
 +		int i;
 +		for (i =3D 0; i < ecnt; i++)
 +			if (expired[i].offset < t->verdict)
@@ -570,11 +558,11 @@ ries
 +}
 +
 +static int
-+copy_active(struct ip6t_entry *entry, struct ip6t_replace *replace,
-+		time_t now, struct ip6t_exp_entry *expired, size_t ecnt)
++copy_active(struct ipt_entry *entry, struct ipt_replace *replace,
++		time_t now, struct ipt_exp_entry *expired, size_t ecnt)
 +{
-+	if (!(IP6T_MATCH_ITERATE(entry, is_expired, now))) {
-+		struct ip6t_entry *dest =3D
++	if (!(IPT_MATCH_ITERATE(entry, is_expired, now))) {
++		struct ipt_entry *dest =3D
 +			(void *)replace->entries + replace->size;
 +		memcpy(dest, entry, entry->next_offset);
 +		fix_target(dest, entry, expired, ecnt);
@@ -586,20 +574,20 @@ ries
 +}
 +
 +static void
-+get_active(struct ip6t_getinfo *info, struct ip6t_get_entries *entries,
-+		struct ip6t_replace *replace, time_t now,
-+		struct ip6t_exp_entry *expired, size_t ecnt)
++get_active(struct ipt_getinfo *info, struct ipt_get_entries *entries,
++		struct ipt_replace *replace, time_t now,
++		struct ipt_exp_entry *expired, size_t ecnt)
 +{
  	dprintk("copying active entries");
 =20
  	/* copy stuff */
-@@ -416,58 +253,35 @@
+@@ -413,58 +255,35 @@
  	replace->size =3D 0;
  	replace->num_entries =3D 0;
 =20
--	return IP6T_ENTRY_ITERATE(entries->entrytable, entries->size,=20
--					ip6t_exp_copy_active, replace);
-+	IP6T_ENTRY_ITERATE(entries->entrytable, entries->size,=20
+-	return IPT_ENTRY_ITERATE(entries->entrytable, entries->size,=20
+-					ipt_exp_copy_active, replace);
++	IPT_ENTRY_ITERATE(entries->entrytable, entries->size,=20
 +				copy_active, replace, now, expired, ecnt);
  }
 =20
@@ -610,21 +598,21 @@ ries
 - * @return zero;
 - */
 -static int
--ip6t_exp_copy_active(struct ip6t_entry *entry, struct ip6t_replace *repl=
-ace)
+-ipt_exp_copy_active(struct ipt_entry *entry, struct ipt_replace *replace=
+)
 +static void
-+fix_hooks(struct ip6t_replace *replace,
-+		struct ip6t_exp_entry *expired, size_t ecnt)
++fix_hooks(struct ipt_replace *replace,
++		struct ipt_exp_entry *expired, size_t ecnt)
  {
--	if (!(IP6T_MATCH_ITERATE(entry, ip6t_exp_is_expired))) {
--		struct ip6t_entry *dest =3D
+-	if (!(IPT_MATCH_ITERATE(entry, ipt_exp_is_expired))) {
+-		struct ipt_entry *dest =3D
 -				(void *)replace->entries + replace->size;
 -		memcpy(dest, entry, entry->next_offset);
 -		replace->size +=3D entry->next_offset;
 -		replace->num_entries++;
 -	}
 +	int i, j;
-+	for (i =3D 0; i < NF_IP6_NUMHOOKS; i++) {
++	for (i =3D 0; i < NF_IP_NUMHOOKS; i++) {
 +		if (!(replace->valid_hooks & (1 << i)))
 +			continue;
 =20
@@ -637,10 +625,10 @@ ace)
 - * @return non-zero for expired entries, zero otherwise
 - */
 -static int
--ip6t_exp_is_expired(struct ip6t_entry_match *match)
+-ipt_exp_is_expired(struct ipt_entry_match *match)
 -{
 -	if (strcmp(match->u.user.name, "expire") =3D=3D 0) {
--		struct ip6t_exp_info *info =3D (struct ip6t_exp_info *)match->data;
+-		struct ipt_exp_info *info =3D (struct ipt_exp_info *)match->data;
 -		if (info->expiration <=3D get_seconds())
 -			return 1;
 +		for (j =3D 0; j < ecnt; j++) {
@@ -659,49 +647,18 @@ ace)
 - * @return zero on success, non-zero otherwise
 - */
  static int
--ip6t_exp_replace_expired(struct ip6t_replace *replace)
-+replace_entries(struct ip6t_replace *replace)
+-ipt_exp_replace_expired(struct ipt_replace *replace)
++replace_entries(struct ipt_replace *replace)
  {
  	int ret =3D 0;
- 	int sz =3D sizeof(struct ip6t_replace) + replace->size;
+ 	int sz =3D sizeof(struct ipt_replace) + replace->size;
 =20
 -	dprintk("replacing table %s", replace->name);
 +	dprintk("replacing table \"%s\"", replace->name);
 =20
  	ret =3D nf_setsockopt(NULL, PF_INET,
- 			IP6T_SO_SET_REPLACE, (char *)replace, sz);
-@@ -478,80 +292,59 @@
- 		case 0:
- 			break;
- 		case -EFAULT:
--			dprintk("EFAULT replacing ip6tables");
-+			dprintk("EFAULT replacing iptables");
- 			break;
- 		case -ENOPROTOOPT:
--			dprintk("ENOPROTOOPT replacing ip6tables");
-+			dprintk("ENOPROTOOPT replacing iptables");
- 			break;
- 		case -ENOMEM:
--			dprintk("ENOMEM replacing ip6tables");
-+			dprintk("ENOMEM replacing iptables");
- 			break;
- 		case -ENOENT:
--			dprintk("ENOENT replacing ip6tables");
-+			dprintk("ENOENT replacing iptables");
- 			break;
- 		case -ELOOP:
--			dprintk("ELOOP replacing ip6tables");
-+			dprintk("ELOOP replacing iptables");
- 			break;
- 		case -EINVAL:
--			dprintk("EINVAL replacing ip6tables");
-+			dprintk("EINVAL replacing iptables");
- 			break;
- 		default:
--			dprintk("unknown error (%d) replacing ip6tables", ret);
-+			dprintk("unknown error (%d) replacing iptables", ret);
- 			break;
- 	}
+ 			IPT_SO_SET_REPLACE, (char *)replace, sz);
+@@ -499,56 +318,35 @@
  	return ret;
  }
 =20
@@ -713,14 +670,14 @@ ace)
 - * @return zero on success, non-zero on failure
 - */
  static int
--ip6t_exp_get_counters(struct ip6t_get_entries *entries,
--		struct ip6t_replace *replace,
--		struct ip6t_counters_info *counters)
-+copy_counter(struct ip6t_entry *entry,
-+		struct ip6t_replace *replace, time_t now,
-+		struct ip6t_counters_info *counters, int *index)
+-ipt_exp_get_counters(struct ipt_get_entries *entries,
+-		struct ipt_replace *replace,
+-		struct ipt_counters_info *counters)
++copy_counter(struct ipt_entry *entry,
++		struct ipt_replace *replace, time_t now,
++		struct ipt_counters_info *counters, int *index)
  {
-+	if (!(IP6T_MATCH_ITERATE(entry, is_expired, now)))
++	if (!(IPT_MATCH_ITERATE(entry, is_expired, now)))
 +		counters->counters[counters->num_counters++] =3D
 +				replace->counters[*index];
 +	(*index)++;
@@ -728,20 +685,20 @@ ace)
 +}
 +
 +static void
-+get_counters(struct ip6t_get_entries *entries, struct ip6t_replace *repl=
-ace,
-+		time_t now, struct ip6t_counters_info *counters)
++get_counters(struct ipt_get_entries *entries, struct ipt_replace *replac=
+e,
++		time_t now, struct ipt_counters_info *counters)
 +{
  	int index =3D 0;
  	dprintk("copying active counters");
 =20
 -	/* init stuff */
- 	strlcpy(counters->name, replace->name, IP6T_TABLE_MAXNAMELEN);
+ 	strlcpy(counters->name, replace->name, IPT_TABLE_MAXNAMELEN);
  	counters->num_counters =3D 0;
 =20
--	return IP6T_ENTRY_ITERATE(entries->entrytable, entries->size,=20
--			ip6t_exp_copy_counter, replace, counters, &index);
-+	IP6T_ENTRY_ITERATE(entries->entrytable, entries->size,=20
+-	return IPT_ENTRY_ITERATE(entries->entrytable, entries->size,=20
+-			ipt_exp_copy_counter, replace, counters, &index);
++	IPT_ENTRY_ITERATE(entries->entrytable, entries->size,=20
 +				copy_counter, replace, now, counters, &index);
  }
 =20
@@ -754,12 +711,12 @@ ace,
 - * @return zero
 - */
  static int
--ip6t_exp_copy_counter(struct ip6t_entry *entry, struct ip6t_replace *rep=
-lace,
--		struct ip6t_counters_info *counters, int *index)
-+restore_counters(struct ip6t_counters_info *counters)
+-ipt_exp_copy_counter(struct ipt_entry *entry, struct ipt_replace *replac=
+e,
+-		struct ipt_counters_info *counters, int *index)
++restore_counters(struct ipt_counters_info *counters)
  {
--	if (!(IP6T_MATCH_ITERATE(entry, ip6t_exp_is_expired)))
+-	if (!(IPT_MATCH_ITERATE(entry, ipt_exp_is_expired)))
 -		counters->counters[counters->num_counters++] =3D
 -				replace->counters[*index];
 -	(*index)++;
@@ -772,12 +729,12 @@ lace,
 - * @return zero on success, non-zero otherwise
 - */
 -static int
--ip6t_exp_restore_counters(struct ip6t_counters_info *counters)
+-ipt_exp_restore_counters(struct ipt_counters_info *counters)
 -{
  	int ret =3D 0;
- 	int sz =3D sizeof(struct ip6t_counters_info) +
- 			sizeof(struct ip6t_counters) * counters->num_counters;
-@@ -564,3 +357,175 @@
+ 	int sz =3D sizeof(struct ipt_counters_info) +
+ 			sizeof(struct ipt_counters) * counters->num_counters;
+@@ -561,3 +359,174 @@
  		dprintk("error restoring counters (%d)", ret);
  	return ret;
  }
@@ -794,7 +751,7 @@ lace,
 +static void
 +delete_expired(void *__notused)
 +{
-+	struct ip6t_exp_table *t;
++	struct ipt_exp_table *t;
 +	time_t now =3D get_seconds();
 +
 +	/*
@@ -802,11 +759,11 @@ lace,
 +	 */
 +	list_for_each_entry(t, &tables, list) {
 +		size_t sz, ecnt =3D 0;
-+		struct ip6t_getinfo info;
-+		struct ip6t_get_entries *entries =3D NULL;
-+		struct ip6t_replace *replace =3D NULL;
-+		struct ip6t_exp_entry *expired =3D NULL;
-+		struct ip6t_counters_info *counters =3D NULL;
++		struct ipt_getinfo info;
++		struct ipt_get_entries *entries =3D NULL;
++		struct ipt_replace *replace =3D NULL;
++		struct ipt_exp_entry *expired =3D NULL;
++		struct ipt_counters_info *counters =3D NULL;
 +
 +		dprintk("expiring %s entries", t->name);
 +
@@ -814,7 +771,7 @@ lace,
 +		if (get_info(t->name, &info))
 +			continue;
 +
-+		sz =3D sizeof(struct ip6t_get_entries) + info.size;
++		sz =3D sizeof(struct ipt_get_entries) + info.size;
 +		if (!(entries =3D exp_vmalloc(sz)))
 +			break;
 +
@@ -824,23 +781,23 @@ lace,
 +		if (!ecnt)
 +			goto out_free_ents;
 +
-+		sz =3D sizeof(struct ip6t_exp_entry) * ecnt;
++		sz =3D sizeof(struct ipt_exp_entry) * ecnt;
 +		if (!(expired =3D exp_vmalloc(sz)))
 +			goto out_free_ents;
 +
 +		get_expired_info(entries, expired, now);
 +
-+		sz =3D sizeof(struct ip6t_replace) + info.size;
++		sz =3D sizeof(struct ipt_replace) + info.size;
 +		if (!(replace =3D exp_vmalloc(sz)))
 +			goto out_free_ents_exp;
 +		memset(replace, 0, sz);
 +
-+		sz =3D sizeof(struct ip6t_counters) * info.num_entries;
++		sz =3D sizeof(struct ipt_counters) * info.num_entries;
 +		if (!(replace->counters =3D exp_vmalloc(sz)))
 +			goto out_free_ents_exp_repl;
 +		memset(replace->counters, 0, sz);
 +
-+		sz +=3D sizeof(struct ip6t_counters_info);
++		sz +=3D sizeof(struct ipt_counters_info);
 +		if (!(counters =3D exp_vmalloc(sz)))
 +			goto out_free_ents_exp_repl_cnt;
 +		memset(counters, 0, sz);
@@ -872,7 +829,7 @@ lace,
 +static DECLARE_WORK(work, &delete_expired, NULL);
 +
 +static void
-+schedule_expiration(struct ip6t_exp_info *info)
++schedule_expiration(struct ipt_exp_info *info)
 +{
 +	unsigned long delay =3D (info->expires +
 +				info->delay - get_seconds()) * HZ;
@@ -882,10 +839,9 @@ lace,
 +static int
 +match(const struct sk_buff *skb,
 +		const struct net_device *in, const struct net_device *out,
-+		const void *matchinfo, int offset,
-+		unsigned int protoff, int *hotdrop)
++		const void *matchinfo, int offset, int *hotdrop)
 +{
-+	const struct ip6t_exp_info *info =3D matchinfo;
++	const struct ipt_exp_info *info =3D matchinfo;
 +
 +	if (get_seconds() < info->expires)
 +		return 1;
@@ -894,12 +850,12 @@ lace,
 +}
 +
 +static int
-+checkentry(const char *tablename, const struct ip6t_ip6 *ip,
++checkentry(const char *tablename, const struct ipt_ip *ip,
 +		void *matchinfo, unsigned int matchsize, unsigned int hookmask)
 +{
-+	struct ip6t_exp_info *info =3D matchinfo;
++	struct ipt_exp_info *info =3D matchinfo;
 +
-+	if (matchsize !=3D IP6T_ALIGN(sizeof(struct ip6t_exp_info)))
++	if (matchsize !=3D IPT_ALIGN(sizeof(struct ipt_exp_info)))
 +		return 0;
 +
 +	if (info->expires <=3D get_seconds())
@@ -913,7 +869,7 @@ lace,
 +	return 1;
 +}
 +
-+static struct ip6t_match ip6t_expire_match =3D {
++static struct ipt_match ipt_expire_match =3D {
 +	.name		=3D "expire",
 +	.match		=3D &match,
 +	.checkentry	=3D &checkentry,
@@ -921,24 +877,24 @@ lace,
 +};
 +
 +static int __init
-+ip6t_exp_init(void)
++ipt_exp_init(void)
 +{
 +	dprintk("initializing");
-+	ip6t_register_match(&ip6t_expire_match);
++	ipt_register_match(&ipt_expire_match);
 +	return 0;
 +}
 +
 +static void __exit
-+ip6t_exp_exit(void)
++ipt_exp_exit(void)
 +{
 +	LIST_HEAD(free_tables);
-+	struct ip6t_exp_table *t, *tmp;
++	struct ipt_exp_table *t, *tmp;
 +	unsigned long flags;
 +
 +	dprintk("exiting");
 +
-+	ip6t_unregister_match(&ip6t_expire_match);
 +	cancel_delayed_work(&work);
++	ipt_unregister_match(&ipt_expire_match);
 +=09
 +	spin_lock_irqsave(&tables_lock, flags);
 +	list_for_each_entry(t, &tables, list)
@@ -951,16 +907,16 @@ lace,
 +	}
 +}
 +
-+module_init(ip6t_exp_init);
-+module_exit(ip6t_exp_exit);
-Index: patchlets/expire/linux-2.6/net/ipv6/netfilter/ip6t_expire.c
++module_init(ipt_exp_init);
++module_exit(ipt_exp_exit);
+Index: patchlets/expire/linux-2.6/net/ipv4/netfilter/ipt_expire.c
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- patchlets/expire/linux-2.6/net/ipv6/netfilter/ip6t_expire.c	(revision=
- 4210)
-+++ patchlets/expire/linux-2.6/net/ipv6/netfilter/ip6t_expire.c	(working =
-copy)
+--- patchlets/expire/linux-2.6/net/ipv4/netfilter/ipt_expire.c	(revision =
+4210)
++++ patchlets/expire/linux-2.6/net/ipv4/netfilter/ipt_expire.c	(working c=
+opy)
 @@ -17,7 +17,7 @@
   *      59 Temple Place, Suite 330
   *      Boston, MA  02111-1307  USA
@@ -970,50 +926,50 @@ copy)
   */
 =20
  #include <linux/config.h>
-@@ -39,311 +39,84 @@
+@@ -39,308 +39,84 @@
  MODULE_AUTHOR("Bryan Cardillo <dillo@seas.upenn.edu>");
- MODULE_DESCRIPTION("an ip6tables expiring match module");
+ MODULE_DESCRIPTION("an iptables expiring match module");
  MODULE_LICENSE("GPL");
 -MODULE_VERSION("1.1");
--static int __init ip6t_exp_init(void);
--static void __exit ip6t_exp_exit(void);
--module_init(ip6t_exp_init);
--module_exit(ip6t_exp_exit);
+-static int __init ipt_exp_init(void);
+-static void __exit ipt_exp_exit(void);
+-module_init(ipt_exp_init);
+-module_exit(ipt_exp_exit);
 +MODULE_VERSION("1.2");
 =20
--static int ip6t_exp_match(const struct sk_buff *,
+-static int ipt_exp_match(const struct sk_buff *,
 -		const struct net_device *, const struct net_device *,
--		const void *, int, const void *, u_int16_t, int *);
--static int ip6t_exp_checkentry(const char *, const struct ip6t_ip6 *,
+-		const void *, int, int *);
+-static int ipt_exp_checkentry(const char *, const struct ipt_ip *,
 -		void *, unsigned int, unsigned int);
--static int ip6t_exp_add_table(const char *);
--static void ip6t_exp_remove_table(const char *);
--static void ip6t_exp_schedule_expiration(time_t);
--static void ip6t_exp_work_fn(void *);
--static int ip6t_exp_get_info(const char *, struct ip6t_getinfo *);
--static int ip6t_exp_get_entries(struct ip6t_getinfo *, struct ip6t_get_e=
-ntries *);
--static int ip6t_exp_get_active(struct ip6t_getinfo *,
--		struct ip6t_get_entries *, struct ip6t_replace *);
--static int ip6t_exp_copy_active(struct ip6t_entry *, struct ip6t_replace=
- *);
--static int ip6t_exp_is_expired(struct ip6t_entry_match *);
--static int ip6t_exp_replace_expired(struct ip6t_replace *);
--static int ip6t_exp_get_counters(struct ip6t_get_entries *,
--		struct ip6t_replace *, struct ip6t_counters_info *);
--static int ip6t_exp_copy_counter(struct ip6t_entry *, struct ip6t_replac=
-e *,
--		struct ip6t_counters_info *, int *);
--static int ip6t_exp_restore_counters(struct ip6t_counters_info *);
+-static int ipt_exp_add_table(const char *);
+-static void ipt_exp_remove_table(const char *);
+-static void ipt_exp_schedule_expiration(time_t);
+-static void ipt_exp_work_fn(void *);
+-static int ipt_exp_get_info(const char *, struct ipt_getinfo *);
+-static int ipt_exp_get_entries(struct ipt_getinfo *, struct ipt_get_entr=
+ies *);
+-static int ipt_exp_get_active(struct ipt_getinfo *,
+-		struct ipt_get_entries *, struct ipt_replace *);
+-static int ipt_exp_copy_active(struct ipt_entry *, struct ipt_replace *)=
+;
+-static int ipt_exp_is_expired(struct ipt_entry_match *);
+-static int ipt_exp_replace_expired(struct ipt_replace *);
+-static int ipt_exp_get_counters(struct ipt_get_entries *,
+-		struct ipt_replace *, struct ipt_counters_info *);
+-static int ipt_exp_copy_counter(struct ipt_entry *, struct ipt_replace *=
+,
+-		struct ipt_counters_info *, int *);
+-static int ipt_exp_restore_counters(struct ipt_counters_info *);
 -
 -/**
 - * struct for list of tables
 - */
- struct ip6t_exp_table {
+ struct ipt_exp_table {
 -	/**
 -	 * the table name
 -	 */
- 	char name[IP6T_TABLE_MAXNAMELEN];
+ 	char name[IPT_TABLE_MAXNAMELEN];
 -	/**
 -	 * a list_head structure enabling list inclusion
 -	 */
@@ -1023,17 +979,17 @@ e *,
 -/**
 - * work_struct for scheduling the deletion of expired rules
 - */
--static DECLARE_WORK(ip6t_exp_work, &ip6t_exp_work_fn, NULL);
+-static DECLARE_WORK(ipt_exp_work, &ipt_exp_work_fn, NULL);
 -
 -/**
-- * ip6tables match
+- * iptables match
 - */
--static struct ip6t_match ip6t_expire_match =3D {
+-static struct ipt_match ipt_expire_match =3D {
 -	.name		=3D "expire",
--	.match		=3D &ip6t_exp_match,
--	.checkentry	=3D &ip6t_exp_checkentry,
+-	.match		=3D &ipt_exp_match,
+-	.checkentry	=3D &ipt_exp_checkentry,
 -	.me		=3D THIS_MODULE
-+struct ip6t_exp_entry {
++struct ipt_exp_entry {
 +	unsigned int offset;
 +	unsigned int size;
  };
@@ -1041,51 +997,51 @@ e *,
 -/**
 - * the list of tables contained expiring entries
 - */
--static spinlock_t ip6t_exp_tables_lock =3D SPIN_LOCK_UNLOCKED;
--static LIST_HEAD(ip6t_exp_tables);
+-static spinlock_t ipt_exp_tables_lock =3D SPIN_LOCK_UNLOCKED;
+-static LIST_HEAD(ipt_exp_tables);
 +static spinlock_t tables_lock =3D SPIN_LOCK_UNLOCKED;
 +static LIST_HEAD(tables);
 =20
 -/**
-- * initialize module and register ip6tables match
+- * initialize module and register iptables match
 - * @see module_init()
-- * @see ip6t_register_match()
+- * @see ipt_register_match()
 - */
 -static int __init
--ip6t_exp_init(void)
-+static struct ip6t_exp_table *
+-ipt_exp_init(void)
++static struct ipt_exp_table *
 +find_table(const char *tablename)
  {
 -	dprintk("initializing");
--	ip6t_register_match(&ip6t_expire_match);
+-	ipt_register_match(&ipt_expire_match);
 -	return 0;
-+	struct ip6t_exp_table *t;
++	struct ipt_exp_table *t;
 +	list_for_each_entry(t, &tables, list)
-+		if (strncmp(t->name, tablename, IP6T_TABLE_MAXNAMELEN) =3D=3D 0)
++		if (strncmp(t->name, tablename, IPT_TABLE_MAXNAMELEN) =3D=3D 0)
 +			return t;
 +	return NULL;
  }
 =20
 -/**
-- * cleanup module and unregister ip6tables match
+- * cleanup module and unregister iptables match
 - * @see module_exit()
-- * @see ip6t_unregister_match()
+- * @see ipt_unregister_match()
 - */
 -static void __exit
--ip6t_exp_exit(void)
+-ipt_exp_exit(void)
 -{
 -	unsigned long flags;
--	struct ip6t_exp_table *t, *tmp;
+-	struct ipt_exp_table *t, *tmp;
 -
 -	dprintk("exiting");
 -
--	ip6t_unregister_match(&ip6t_expire_match);
--	cancel_delayed_work(&ip6t_exp_work);
+-	ipt_unregister_match(&ipt_expire_match);
+-	cancel_delayed_work(&ipt_exp_work);
 -=09
--	spin_lock_irqsave(&ip6t_exp_tables_lock, flags);
--	list_for_each_entry_safe(t, tmp, &ip6t_exp_tables, list)
+-	spin_lock_irqsave(&ipt_exp_tables_lock, flags);
+-	list_for_each_entry_safe(t, tmp, &ipt_exp_tables, list)
 -		kfree(t);
--	spin_unlock_irqrestore(&ip6t_exp_tables_lock, flags);
+-	spin_unlock_irqrestore(&ipt_exp_tables_lock, flags);
 -}
 -
 -/**
@@ -1095,21 +1051,18 @@ e *,
 - * @param out outbound network device
 - * @param matchinfo match specific data
 - * @param offset match offset (?)
-- * @param header (?)
-- * @param len (?)
 - * @param hotdrop set to 1 to drop packet immediately when returning fal=
 se
 - * @return non-zero for active rules, zero otherwise
-- * @see struct ip6t_match
+- * @see struct ipt_match
 - */
  static int
--ip6t_exp_match(const struct sk_buff *skb,
+-ipt_exp_match(const struct sk_buff *skb,
 -		const struct net_device *in, const struct net_device *out,
--		const void *matchinfo, int offset,
--		const void *header, u_int16_t len, int *hotdrop)
+-		const void *matchinfo, int offset, int *hotdrop)
 +add_table(const char *tablename)
  {
--	const struct ip6t_exp_info *info =3D matchinfo;
+-	const struct ipt_exp_info *info =3D matchinfo;
 -
 -	if (get_seconds() < info->expiration)
 -		return 1;
@@ -1118,7 +1071,7 @@ se
 -}
 -
 -/**
-- * check a new ip6tables entry
+- * check a new iptables entry
 - * @param tablename table name for new entry
 - * @param ip ip info for new entry
 - * @param matchinfo match specific data
@@ -1127,21 +1080,21 @@ se
 - * @return non-zero for valid entries, zero otherwise
 - */
 -static int
--ip6t_exp_checkentry(const char *tablename, const struct ip6t_ip6 *ip,
+-ipt_exp_checkentry(const char *tablename, const struct ipt_ip *ip,
 -		void *matchinfo, unsigned int matchsize, unsigned int hookmask)
 -{
--	struct ip6t_exp_info *info =3D matchinfo;
+-	struct ipt_exp_info *info =3D matchinfo;
 -
--	if (matchsize !=3D IP6T_ALIGN(sizeof(struct ip6t_exp_info)))
+-	if (matchsize !=3D IPT_ALIGN(sizeof(struct ipt_exp_info)))
 -		return 0;
 -
 -	if (info->expiration <=3D get_seconds())
 -		return 0;
 -
--	if (ip6t_exp_add_table(tablename))
+-	if (ipt_exp_add_table(tablename))
 -		return 0;
 -
--	ip6t_exp_schedule_expiration(info->expiration);
+-	ipt_exp_schedule_expiration(info->expiration);
 -
 -	return 1;
 -}
@@ -1152,16 +1105,16 @@ se
 - * @return zero on success, non-zero on failure
 - */
 -static int
--ip6t_exp_add_table(const char *tablename)
+-ipt_exp_add_table(const char *tablename)
 -{
  	unsigned long flags;
- 	struct ip6t_exp_table *t;
+ 	struct ipt_exp_table *t;
 =20
--	spin_lock_irqsave(&ip6t_exp_tables_lock, flags);
--	list_for_each_entry(t, &ip6t_exp_tables, list)
--		if (strncmp(t->name, tablename, IP6T_TABLE_MAXNAMELEN) =3D=3D 0)
+-	spin_lock_irqsave(&ipt_exp_tables_lock, flags);
+-	list_for_each_entry(t, &ipt_exp_tables, list)
+-		if (strncmp(t->name, tablename, IPT_TABLE_MAXNAMELEN) =3D=3D 0)
 -			break;
--	spin_unlock_irqrestore(&ip6t_exp_tables_lock, flags);
+-	spin_unlock_irqrestore(&ipt_exp_tables_lock, flags);
 +	/**
 +	 * FIXME need a better solution here, can't allocate
 +	 * memory while holding a lock, so we have to search
@@ -1175,22 +1128,22 @@ se
 +	}
 +	spin_unlock_irqrestore(&tables_lock, flags);
 =20
--	if (&t->list =3D=3D &ip6t_exp_tables) {
--		if (!(t =3D kmalloc(sizeof(struct ip6t_exp_table), GFP_KERNEL))) {
+-	if (&t->list =3D=3D &ipt_exp_tables) {
+-		if (!(t =3D kmalloc(sizeof(struct ipt_exp_table), GFP_KERNEL))) {
 -			dprintk("error allocating memory");
 -			return -ENOMEM;
 -		}
--		strlcpy(t->name, tablename, IP6T_TABLE_MAXNAMELEN);
--		spin_lock_irqsave(&ip6t_exp_tables_lock, flags);
--		list_add_tail(&t->list, &ip6t_exp_tables);
--		spin_unlock_irqrestore(&ip6t_exp_tables_lock, flags);
-+	if (!(t =3D kmalloc(sizeof(struct ip6t_exp_table), GFP_KERNEL))) {
+-		strlcpy(t->name, tablename, IPT_TABLE_MAXNAMELEN);
+-		spin_lock_irqsave(&ipt_exp_tables_lock, flags);
+-		list_add_tail(&t->list, &ipt_exp_tables);
+-		spin_unlock_irqrestore(&ipt_exp_tables_lock, flags);
++	if (!(t =3D kmalloc(sizeof(struct ipt_exp_table), GFP_KERNEL))) {
 +		dprintk("error allocating memory");
 +		return -ENOMEM;
  	}
 -	return 0;
 -}
-+	strlcpy(t->name, tablename, IP6T_TABLE_MAXNAMELEN);
++	strlcpy(t->name, tablename, IPT_TABLE_MAXNAMELEN);
 =20
 -/**
 - * remove a table from the set of tables to be searched for expired rule=
@@ -1198,14 +1151,14 @@ s
 - * @param tablename the name of the table to be removed
 - */
 -static void
--ip6t_exp_remove_table(const char *tablename)
+-ipt_exp_remove_table(const char *tablename)
 -{
 -	unsigned long flags;
--	struct ip6t_exp_table *t, *tmp;
+-	struct ipt_exp_table *t, *tmp;
 -
--	spin_lock_irqsave(&ip6t_exp_tables_lock, flags);
--	list_for_each_entry_safe(t, tmp, &ip6t_exp_tables, list) {
--		if (strncmp(t->name, tablename, IP6T_TABLE_MAXNAMELEN) =3D=3D 0) {
+-	spin_lock_irqsave(&ipt_exp_tables_lock, flags);
+-	list_for_each_entry_safe(t, tmp, &ipt_exp_tables, list) {
+-		if (strncmp(t->name, tablename, IPT_TABLE_MAXNAMELEN) =3D=3D 0) {
 -			list_del(&t->list);
 -			kfree(t);
 -		}
@@ -1215,7 +1168,7 @@ s
 +		kfree(t);
 +		return 0;
  	}
--	spin_unlock_irqrestore(&ip6t_exp_tables_lock, flags);
+-	spin_unlock_irqrestore(&ipt_exp_tables_lock, flags);
 -}
 =20
 -/**
@@ -1223,64 +1176,64 @@ s
 - * @param expiration the time to be scheduled
 - */
 -static void
--ip6t_exp_schedule_expiration(time_t expiration)
+-ipt_exp_schedule_expiration(time_t expiration)
 -{
 -	unsigned long delay =3D (expiration - get_seconds() < 1) ? HZ :
 -					(expiration - get_seconds()) * HZ;
 +	list_add_tail(&t->list, &tables);
 +	spin_unlock_irqrestore(&tables_lock, flags);
 =20
--	schedule_delayed_work(&ip6t_exp_work, delay);
+-	schedule_delayed_work(&ipt_exp_work, delay);
 +	return 0;
  }
 =20
 -/**
-- * delete expired ip6tables rules
+- * delete expired iptables rules
 - * @param __notused
 - * @see schedule_delayed_work()
 - */
  static void
--ip6t_exp_work_fn(void *__notused)
+-ipt_exp_work_fn(void *__notused)
 +remove_table(const char *tablename)
  {
 +	unsigned long flags;
- 	struct ip6t_exp_table *t;
+ 	struct ipt_exp_table *t;
 =20
 -	/*
 -	 * FIXME what about locking here?
 -	 */
--	list_for_each_entry(t, &ip6t_exp_tables, list) {
+-	list_for_each_entry(t, &ipt_exp_tables, list) {
 -		size_t sz;
--		struct ip6t_getinfo info;
--		struct ip6t_get_entries *entries =3D NULL;
--		struct ip6t_replace *replace =3D NULL;
--		struct ip6t_counters_info *counters =3D NULL;
+-		struct ipt_getinfo info;
+-		struct ipt_get_entries *entries =3D NULL;
+-		struct ipt_replace *replace =3D NULL;
+-		struct ipt_counters_info *counters =3D NULL;
 -
 -		dprintk("expiring %s entries", t->name);
 -
 -		/* get table info */
--		if (ip6t_exp_get_info(t->name, &info))
+-		if (ipt_exp_get_info(t->name, &info))
 -			continue;
 -
 -		/* allocate memory */
--		sz =3D sizeof(struct ip6t_get_entries) + info.size;
+-		sz =3D sizeof(struct ipt_get_entries) + info.size;
 -		if (!(entries =3D vmalloc(sz))) {
 -			dprintk("error allocating entry table");
 -			break;
 -		}
--		sz =3D sizeof(struct ip6t_replace) + info.size;
+-		sz =3D sizeof(struct ipt_replace) + info.size;
 -		if (!(replace =3D vmalloc(sz))) {
 -			dprintk("error allocating replacement table");
 -			goto out_free_entries;
 -		}
 -		memset(replace, 0, sz);
--		sz =3D sizeof(struct ip6t_counters) * info.num_entries;
+-		sz =3D sizeof(struct ipt_counters) * info.num_entries;
 -		if (!(replace->counters =3D vmalloc(sz))) {
 -			dprintk("error allocating counters");
 -			goto out_free_entries_replace;
 -		}
 -		memset(replace->counters, 0, sz);
--		sz +=3D sizeof(struct ip6t_counters_info);
+-		sz +=3D sizeof(struct ipt_counters_info);
 -		if (!(counters =3D vmalloc(sz))) {
 -			dprintk("error allocating new counters");
 -			goto out_free_entries_replace_counters;
@@ -1288,18 +1241,18 @@ s
 -		memset(counters, 0, sz);
 -
 -		/* get all entries, then copy active ones */
--		if (ip6t_exp_get_entries(&info, entries))
+-		if (ipt_exp_get_entries(&info, entries))
 -			goto out_free_entries_replace_counters_info;
--		if (ip6t_exp_get_active(&info, entries, replace))
+-		if (ipt_exp_get_active(&info, entries, replace))
 -			goto out_free_entries_replace_counters_info;
 -
 -		/* replace table */
 -		if (replace->size < info.size) {
--			if (ip6t_exp_get_counters(entries, replace, counters))
+-			if (ipt_exp_get_counters(entries, replace, counters))
 -				goto out_free_entries_replace_counters_info;
--			if (ip6t_exp_replace_expired(replace))
+-			if (ipt_exp_replace_expired(replace))
 -				goto out_free_entries_replace_counters_info;
--			if (ip6t_exp_restore_counters(counters))
+-			if (ipt_exp_restore_counters(counters))
 -				goto out_free_entries_replace_counters_info;
 -		}
 -
@@ -1328,24 +1281,21 @@ s
 - * @return zero on success, non-zero otherwise
 - */
  static int
--ip6t_exp_get_info(const char *name, struct ip6t_getinfo *info)
-+get_info(const char *name, struct ip6t_getinfo *info)
+-ipt_exp_get_info(const char *name, struct ipt_getinfo *info)
++get_info(const char *name, struct ipt_getinfo *info)
  {
  	int ret =3D 0;
- 	int sz =3D sizeof(struct ip6t_getinfo);
-@@ -357,25 +130,39 @@
+ 	int sz =3D sizeof(struct ipt_getinfo);
+@@ -354,7 +130,7 @@
  			break;
  		case -ENOENT:
  			/* table is gone */
--			ip6t_exp_remove_table(name);
+-			ipt_exp_remove_table(name);
 +			remove_table(name);
  			break;
  		default:
--			dprintk("error getting ip6tables info");
-+			dprintk("error getting iptables info");
- 			break;
- 	}
-=20
+ 			dprintk("error getting iptables info");
+@@ -364,15 +140,29 @@
  	return ret;
  }
 =20
@@ -1357,12 +1307,12 @@ es
 - * @return zero on success, non-zero otherwise
 - */
  static int
--ip6t_exp_get_entries(struct ip6t_getinfo *info, struct ip6t_get_entries =
-*entries)
-+is_expired(struct ip6t_entry_match *match, time_t now)
+-ipt_exp_get_entries(struct ipt_getinfo *info, struct ipt_get_entries *en=
+tries)
++is_expired(struct ipt_entry_match *match, time_t now)
  {
 +	if (strcmp(match->u.user.name, "expire") =3D=3D 0) {
-+		struct ip6t_exp_info *info =3D (struct ip6t_exp_info *)match->data;
++		struct ipt_exp_info *info =3D (struct ipt_exp_info *)match->data;
 +		if (info->expires <=3D now)
 +			return 1;
 +	}
@@ -1370,31 +1320,32 @@ es
 +}
 +
 +static int
-+count_entries(struct ip6t_entry *entry, time_t now, int *expired)
++count_expired(struct ipt_entry *entry, time_t now, int *expired)
 +{
-+	if (IP6T_MATCH_ITERATE(entry, is_expired, now))
++	if (IPT_MATCH_ITERATE(entry, is_expired, now))
 +		(*expired)++;
 +	return 0;
 +}
 +
 +static int
-+get_entries(struct ip6t_getinfo *info,
-+		struct ip6t_get_entries *entries, time_t now, int *expired)
++get_entries(struct ipt_getinfo *info,
++		struct ipt_get_entries *entries, time_t now, int *expired)
 +{
  	int ret =3D 0;
- 	int sz =3D sizeof(struct ip6t_get_entries) + info->size;
+ 	int sz =3D sizeof(struct ipt_get_entries) + info->size;
 =20
-@@ -385,24 +172,74 @@
+@@ -382,24 +172,76 @@
  	entries->size =3D info->size;
  	ret =3D nf_getsockopt(NULL, PF_INET,
- 			IP6T_SO_GET_ENTRIES, (char *)entries, &sz);
+ 			IPT_SO_GET_ENTRIES, (char *)entries, &sz);
 -	if (ret)
--		dprintk("error getting ip6tables entries");
 +	if (!ret) {
-+		IP6T_ENTRY_ITERATE(entries->entrytable, entries->size,
-+					count_entries, now, expired);
++		IPT_ENTRY_ITERATE(entries->entrytable, entries->size,
++					count_expired, now, expired);
++		if (!(*expired))
++			dprintk("no expired rules found");
 +	} else {
-+		dprintk("error getting iptables entries");
+ 		dprintk("error getting iptables entries");
 +	}
 =20
  	return ret;
@@ -1410,12 +1361,12 @@ ries
 - * @return zero on success, non-zero otherwise
 - */
  static int
--ip6t_exp_get_active(struct ip6t_getinfo *info,
--		struct ip6t_get_entries *entries, struct ip6t_replace *replace)
-+get_expired_entry(struct ip6t_entry *entry, struct ip6t_entry *base,
-+		struct ip6t_exp_entry *expired, time_t now, int *index)
+-ipt_exp_get_active(struct ipt_getinfo *info,
+-		struct ipt_get_entries *entries, struct ipt_replace *replace)
++get_expired_entry(struct ipt_entry *entry, struct ipt_entry *base,
++		struct ipt_exp_entry *expired, time_t now, int *index)
  {
-+	if (IP6T_MATCH_ITERATE(entry, is_expired, now)) {
++	if (IPT_MATCH_ITERATE(entry, is_expired, now)) {
 +		expired[(*index)].offset =3D (void *)entry - (void *)base;
 +		expired[(*index)].size =3D entry->next_offset;
 +		(*index)++;
@@ -1424,23 +1375,23 @@ ries
 +}
 +
 +static void
-+get_expired_info(struct ip6t_get_entries *entries,
-+		struct ip6t_exp_entry *expired, time_t now)
++get_expired_info(struct ipt_get_entries *entries,
++		struct ipt_exp_entry *expired, time_t now)
 +{
 +	int index =3D 0;
-+	IP6T_ENTRY_ITERATE(entries->entrytable, entries->size,
++	IPT_ENTRY_ITERATE(entries->entrytable, entries->size,
 +			get_expired_entry, entries->entrytable,
 +			expired, now, &index);
 +}
 +
 +static void
-+fix_target(struct ip6t_entry *dest, struct ip6t_entry *entry,
-+		struct ip6t_exp_entry *expired, size_t ecnt)
++fix_target(struct ipt_entry *dest, struct ipt_entry *entry,
++		struct ipt_exp_entry *expired, size_t ecnt)
 +{
-+	struct ip6t_standard_target *t =3D
++	struct ipt_standard_target *t =3D
 +		(void *)dest + dest->target_offset;
 +	char *name =3D t->target.u.user.name;
-+	if (!strcmp(name, IP6T_STANDARD_TARGET) && t->verdict > 0) {
++	if (!strcmp(name, IPT_STANDARD_TARGET) && t->verdict > 0) {
 +		int i;
 +		for (i =3D 0; i < ecnt; i++)
 +			if (expired[i].offset < t->verdict)
@@ -1449,11 +1400,11 @@ ries
 +}
 +
 +static int
-+copy_active(struct ip6t_entry *entry, struct ip6t_replace *replace,
-+		time_t now, struct ip6t_exp_entry *expired, size_t ecnt)
++copy_active(struct ipt_entry *entry, struct ipt_replace *replace,
++		time_t now, struct ipt_exp_entry *expired, size_t ecnt)
 +{
-+	if (!(IP6T_MATCH_ITERATE(entry, is_expired, now))) {
-+		struct ip6t_entry *dest =3D
++	if (!(IPT_MATCH_ITERATE(entry, is_expired, now))) {
++		struct ipt_entry *dest =3D
 +			(void *)replace->entries + replace->size;
 +		memcpy(dest, entry, entry->next_offset);
 +		fix_target(dest, entry, expired, ecnt);
@@ -1465,20 +1416,20 @@ ries
 +}
 +
 +static void
-+get_active(struct ip6t_getinfo *info, struct ip6t_get_entries *entries,
-+		struct ip6t_replace *replace, time_t now,
-+		struct ip6t_exp_entry *expired, size_t ecnt)
++get_active(struct ipt_getinfo *info, struct ipt_get_entries *entries,
++		struct ipt_replace *replace, time_t now,
++		struct ipt_exp_entry *expired, size_t ecnt)
 +{
  	dprintk("copying active entries");
 =20
  	/* copy stuff */
-@@ -416,58 +253,35 @@
+@@ -413,58 +255,35 @@
  	replace->size =3D 0;
  	replace->num_entries =3D 0;
 =20
--	return IP6T_ENTRY_ITERATE(entries->entrytable, entries->size,=20
--					ip6t_exp_copy_active, replace);
-+	IP6T_ENTRY_ITERATE(entries->entrytable, entries->size,=20
+-	return IPT_ENTRY_ITERATE(entries->entrytable, entries->size,=20
+-					ipt_exp_copy_active, replace);
++	IPT_ENTRY_ITERATE(entries->entrytable, entries->size,=20
 +				copy_active, replace, now, expired, ecnt);
  }
 =20
@@ -1489,21 +1440,21 @@ ries
 - * @return zero;
 - */
 -static int
--ip6t_exp_copy_active(struct ip6t_entry *entry, struct ip6t_replace *repl=
-ace)
+-ipt_exp_copy_active(struct ipt_entry *entry, struct ipt_replace *replace=
+)
 +static void
-+fix_hooks(struct ip6t_replace *replace,
-+		struct ip6t_exp_entry *expired, size_t ecnt)
++fix_hooks(struct ipt_replace *replace,
++		struct ipt_exp_entry *expired, size_t ecnt)
  {
--	if (!(IP6T_MATCH_ITERATE(entry, ip6t_exp_is_expired))) {
--		struct ip6t_entry *dest =3D
+-	if (!(IPT_MATCH_ITERATE(entry, ipt_exp_is_expired))) {
+-		struct ipt_entry *dest =3D
 -				(void *)replace->entries + replace->size;
 -		memcpy(dest, entry, entry->next_offset);
 -		replace->size +=3D entry->next_offset;
 -		replace->num_entries++;
 -	}
 +	int i, j;
-+	for (i =3D 0; i < NF_IP6_NUMHOOKS; i++) {
++	for (i =3D 0; i < NF_IP_NUMHOOKS; i++) {
 +		if (!(replace->valid_hooks & (1 << i)))
 +			continue;
 =20
@@ -1516,10 +1467,10 @@ ace)
 - * @return non-zero for expired entries, zero otherwise
 - */
 -static int
--ip6t_exp_is_expired(struct ip6t_entry_match *match)
+-ipt_exp_is_expired(struct ipt_entry_match *match)
 -{
 -	if (strcmp(match->u.user.name, "expire") =3D=3D 0) {
--		struct ip6t_exp_info *info =3D (struct ip6t_exp_info *)match->data;
+-		struct ipt_exp_info *info =3D (struct ipt_exp_info *)match->data;
 -		if (info->expiration <=3D get_seconds())
 -			return 1;
 +		for (j =3D 0; j < ecnt; j++) {
@@ -1538,49 +1489,18 @@ ace)
 - * @return zero on success, non-zero otherwise
 - */
  static int
--ip6t_exp_replace_expired(struct ip6t_replace *replace)
-+replace_entries(struct ip6t_replace *replace)
+-ipt_exp_replace_expired(struct ipt_replace *replace)
++replace_entries(struct ipt_replace *replace)
  {
  	int ret =3D 0;
- 	int sz =3D sizeof(struct ip6t_replace) + replace->size;
+ 	int sz =3D sizeof(struct ipt_replace) + replace->size;
 =20
 -	dprintk("replacing table %s", replace->name);
 +	dprintk("replacing table \"%s\"", replace->name);
 =20
  	ret =3D nf_setsockopt(NULL, PF_INET,
- 			IP6T_SO_SET_REPLACE, (char *)replace, sz);
-@@ -478,80 +292,59 @@
- 		case 0:
- 			break;
- 		case -EFAULT:
--			dprintk("EFAULT replacing ip6tables");
-+			dprintk("EFAULT replacing iptables");
- 			break;
- 		case -ENOPROTOOPT:
--			dprintk("ENOPROTOOPT replacing ip6tables");
-+			dprintk("ENOPROTOOPT replacing iptables");
- 			break;
- 		case -ENOMEM:
--			dprintk("ENOMEM replacing ip6tables");
-+			dprintk("ENOMEM replacing iptables");
- 			break;
- 		case -ENOENT:
--			dprintk("ENOENT replacing ip6tables");
-+			dprintk("ENOENT replacing iptables");
- 			break;
- 		case -ELOOP:
--			dprintk("ELOOP replacing ip6tables");
-+			dprintk("ELOOP replacing iptables");
- 			break;
- 		case -EINVAL:
--			dprintk("EINVAL replacing ip6tables");
-+			dprintk("EINVAL replacing iptables");
- 			break;
- 		default:
--			dprintk("unknown error (%d) replacing ip6tables", ret);
-+			dprintk("unknown error (%d) replacing iptables", ret);
- 			break;
- 	}
+ 			IPT_SO_SET_REPLACE, (char *)replace, sz);
+@@ -499,56 +318,35 @@
  	return ret;
  }
 =20
@@ -1592,14 +1512,14 @@ ace)
 - * @return zero on success, non-zero on failure
 - */
  static int
--ip6t_exp_get_counters(struct ip6t_get_entries *entries,
--		struct ip6t_replace *replace,
--		struct ip6t_counters_info *counters)
-+copy_counter(struct ip6t_entry *entry,
-+		struct ip6t_replace *replace, time_t now,
-+		struct ip6t_counters_info *counters, int *index)
+-ipt_exp_get_counters(struct ipt_get_entries *entries,
+-		struct ipt_replace *replace,
+-		struct ipt_counters_info *counters)
++copy_counter(struct ipt_entry *entry,
++		struct ipt_replace *replace, time_t now,
++		struct ipt_counters_info *counters, int *index)
  {
-+	if (!(IP6T_MATCH_ITERATE(entry, is_expired, now)))
++	if (!(IPT_MATCH_ITERATE(entry, is_expired, now)))
 +		counters->counters[counters->num_counters++] =3D
 +				replace->counters[*index];
 +	(*index)++;
@@ -1607,20 +1527,20 @@ ace)
 +}
 +
 +static void
-+get_counters(struct ip6t_get_entries *entries, struct ip6t_replace *repl=
-ace,
-+		time_t now, struct ip6t_counters_info *counters)
++get_counters(struct ipt_get_entries *entries, struct ipt_replace *replac=
+e,
++		time_t now, struct ipt_counters_info *counters)
 +{
  	int index =3D 0;
  	dprintk("copying active counters");
 =20
 -	/* init stuff */
- 	strlcpy(counters->name, replace->name, IP6T_TABLE_MAXNAMELEN);
+ 	strlcpy(counters->name, replace->name, IPT_TABLE_MAXNAMELEN);
  	counters->num_counters =3D 0;
 =20
--	return IP6T_ENTRY_ITERATE(entries->entrytable, entries->size,=20
--			ip6t_exp_copy_counter, replace, counters, &index);
-+	IP6T_ENTRY_ITERATE(entries->entrytable, entries->size,=20
+-	return IPT_ENTRY_ITERATE(entries->entrytable, entries->size,=20
+-			ipt_exp_copy_counter, replace, counters, &index);
++	IPT_ENTRY_ITERATE(entries->entrytable, entries->size,=20
 +				copy_counter, replace, now, counters, &index);
  }
 =20
@@ -1633,12 +1553,12 @@ ace,
 - * @return zero
 - */
  static int
--ip6t_exp_copy_counter(struct ip6t_entry *entry, struct ip6t_replace *rep=
-lace,
--		struct ip6t_counters_info *counters, int *index)
-+restore_counters(struct ip6t_counters_info *counters)
+-ipt_exp_copy_counter(struct ipt_entry *entry, struct ipt_replace *replac=
+e,
+-		struct ipt_counters_info *counters, int *index)
++restore_counters(struct ipt_counters_info *counters)
  {
--	if (!(IP6T_MATCH_ITERATE(entry, ip6t_exp_is_expired)))
+-	if (!(IPT_MATCH_ITERATE(entry, ipt_exp_is_expired)))
 -		counters->counters[counters->num_counters++] =3D
 -				replace->counters[*index];
 -	(*index)++;
@@ -1651,12 +1571,12 @@ lace,
 - * @return zero on success, non-zero otherwise
 - */
 -static int
--ip6t_exp_restore_counters(struct ip6t_counters_info *counters)
+-ipt_exp_restore_counters(struct ipt_counters_info *counters)
 -{
  	int ret =3D 0;
- 	int sz =3D sizeof(struct ip6t_counters_info) +
- 			sizeof(struct ip6t_counters) * counters->num_counters;
-@@ -564,3 +357,175 @@
+ 	int sz =3D sizeof(struct ipt_counters_info) +
+ 			sizeof(struct ipt_counters) * counters->num_counters;
+@@ -561,3 +359,174 @@
  		dprintk("error restoring counters (%d)", ret);
  	return ret;
  }
@@ -1673,7 +1593,7 @@ lace,
 +static void
 +delete_expired(void *__notused)
 +{
-+	struct ip6t_exp_table *t;
++	struct ipt_exp_table *t;
 +	time_t now =3D get_seconds();
 +
 +	/*
@@ -1681,11 +1601,11 @@ lace,
 +	 */
 +	list_for_each_entry(t, &tables, list) {
 +		size_t sz, ecnt =3D 0;
-+		struct ip6t_getinfo info;
-+		struct ip6t_get_entries *entries =3D NULL;
-+		struct ip6t_replace *replace =3D NULL;
-+		struct ip6t_exp_entry *expired =3D NULL;
-+		struct ip6t_counters_info *counters =3D NULL;
++		struct ipt_getinfo info;
++		struct ipt_get_entries *entries =3D NULL;
++		struct ipt_replace *replace =3D NULL;
++		struct ipt_exp_entry *expired =3D NULL;
++		struct ipt_counters_info *counters =3D NULL;
 +
 +		dprintk("expiring %s entries", t->name);
 +
@@ -1693,7 +1613,7 @@ lace,
 +		if (get_info(t->name, &info))
 +			continue;
 +
-+		sz =3D sizeof(struct ip6t_get_entries) + info.size;
++		sz =3D sizeof(struct ipt_get_entries) + info.size;
 +		if (!(entries =3D exp_vmalloc(sz)))
 +			break;
 +
@@ -1703,23 +1623,23 @@ lace,
 +		if (!ecnt)
 +			goto out_free_ents;
 +
-+		sz =3D sizeof(struct ip6t_exp_entry) * ecnt;
++		sz =3D sizeof(struct ipt_exp_entry) * ecnt;
 +		if (!(expired =3D exp_vmalloc(sz)))
 +			goto out_free_ents;
 +
 +		get_expired_info(entries, expired, now);
 +
-+		sz =3D sizeof(struct ip6t_replace) + info.size;
++		sz =3D sizeof(struct ipt_replace) + info.size;
 +		if (!(replace =3D exp_vmalloc(sz)))
 +			goto out_free_ents_exp;
 +		memset(replace, 0, sz);
 +
-+		sz =3D sizeof(struct ip6t_counters) * info.num_entries;
++		sz =3D sizeof(struct ipt_counters) * info.num_entries;
 +		if (!(replace->counters =3D exp_vmalloc(sz)))
 +			goto out_free_ents_exp_repl;
 +		memset(replace->counters, 0, sz);
 +
-+		sz +=3D sizeof(struct ip6t_counters_info);
++		sz +=3D sizeof(struct ipt_counters_info);
 +		if (!(counters =3D exp_vmalloc(sz)))
 +			goto out_free_ents_exp_repl_cnt;
 +		memset(counters, 0, sz);
@@ -1751,7 +1671,7 @@ lace,
 +static DECLARE_WORK(work, &delete_expired, NULL);
 +
 +static void
-+schedule_expiration(struct ip6t_exp_info *info)
++schedule_expiration(struct ipt_exp_info *info)
 +{
 +	unsigned long delay =3D (info->expires +
 +				info->delay - get_seconds()) * HZ;
@@ -1761,10 +1681,9 @@ lace,
 +static int
 +match(const struct sk_buff *skb,
 +		const struct net_device *in, const struct net_device *out,
-+		const void *matchinfo, int offset, const void *header,
-+		u_int16_t len, int *hotdrop)
++		const void *matchinfo, int offset, int *hotdrop)
 +{
-+	const struct ip6t_exp_info *info =3D matchinfo;
++	const struct ipt_exp_info *info =3D matchinfo;
 +
 +	if (get_seconds() < info->expires)
 +		return 1;
@@ -1773,12 +1692,12 @@ lace,
 +}
 +
 +static int
-+checkentry(const char *tablename, const struct ip6t_ip6 *ip,
++checkentry(const char *tablename, const struct ipt_ip *ip,
 +		void *matchinfo, unsigned int matchsize, unsigned int hookmask)
 +{
-+	struct ip6t_exp_info *info =3D matchinfo;
++	struct ipt_exp_info *info =3D matchinfo;
 +
-+	if (matchsize !=3D IP6T_ALIGN(sizeof(struct ip6t_exp_info)))
++	if (matchsize !=3D IPT_ALIGN(sizeof(struct ipt_exp_info)))
 +		return 0;
 +
 +	if (info->expires <=3D get_seconds())
@@ -1792,7 +1711,7 @@ lace,
 +	return 1;
 +}
 +
-+static struct ip6t_match ip6t_expire_match =3D {
++static struct ipt_match ipt_expire_match =3D {
 +	.name		=3D "expire",
 +	.match		=3D &match,
 +	.checkentry	=3D &checkentry,
@@ -1800,24 +1719,24 @@ lace,
 +};
 +
 +static int __init
-+ip6t_exp_init(void)
++ipt_exp_init(void)
 +{
 +	dprintk("initializing");
-+	ip6t_register_match(&ip6t_expire_match);
++	ipt_register_match(&ipt_expire_match);
 +	return 0;
 +}
 +
 +static void __exit
-+ip6t_exp_exit(void)
++ipt_exp_exit(void)
 +{
 +	LIST_HEAD(free_tables);
-+	struct ip6t_exp_table *t, *tmp;
++	struct ipt_exp_table *t, *tmp;
 +	unsigned long flags;
 +
 +	dprintk("exiting");
 +
-+	ip6t_unregister_match(&ip6t_expire_match);
 +	cancel_delayed_work(&work);
++	ipt_unregister_match(&ipt_expire_match);
 +=09
 +	spin_lock_irqsave(&tables_lock, flags);
 +	list_for_each_entry(t, &tables, list)
@@ -1830,5 +1749,5 @@ lace,
 +	}
 +}
 +
-+module_init(ip6t_exp_init);
-+module_exit(ip6t_exp_exit);
++module_init(ipt_exp_init);
++module_exit(ipt_exp_exit);
