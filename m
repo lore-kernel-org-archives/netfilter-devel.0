@@ -1,13 +1,14 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH NF_CONNTRACK 0/2] fix gcc -Wunder error and revert nf_reset
-Date: Thu, 04 Aug 2005 17:29:38 +0900 (JST)
-Message-ID: <200508040829.j748Tdlt007162@toshiba.co.jp>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: HTTP info filter
+Date: Fri, 5 Aug 2005 08:32:17 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0508050829150.20623@yvahk01.tjqt.qr>
+References: <mnet1.1123173055.14289.joer@netcourrier.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
+To: joer@netcourrier.com
+In-Reply-To: <mnet1.1123173055.14289.joer@netcourrier.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,12 +20,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+>Hi all,
+>
+>I want to filter an outgoing HTTP request using its info field.
+>ex : HTTP "GET /toto://hello/xxx"
+>For every HTTP request with toto in info field, I wan't to get the xxx field. This request can be dropped.
+>Can I do this with iptables ?
+>Is there another tool for this ?
 
-Hi, Harald,
+-j DROP -m layer7 --l7proto mytoto
 
-These patches are from mainline. Please apply them to your tree.
+Have a  /etc/l7-protocols/mytoto:
+GET /toto://hello/xxx
 
-Regards,
+This will drop these packets, but I currently do not know of a way to capture 
+the xxx for further logging.
 
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+
+
+Jan Engelhardt
+-- 
