@@ -1,15 +1,16 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: HTTP info filter
-Date: Fri, 5 Aug 2005 11:31:22 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0508051130110.7310@filer.marasystems.com>
-References: <mnet1.1123173055.14289.joer@netcourrier.com>
-	<Pine.LNX.4.61.0508050829150.20623@yvahk01.tjqt.qr>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: iptables 1.3.1 crashes on iptables-restore
+Date: Fri, 05 Aug 2005 11:08:45 +0100
+Message-ID: <42F33AAD.8060201@ufomechanic.net>
+References: <20050330034616.GA8639@samad.com.au>	<424BB242.6070809@drugphish.ch>
+	<42F24151.1090702@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0508050829150.20623@yvahk01.tjqt.qr>
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <42F24151.1090702@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,15 +22,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 5 Aug 2005, Jan Engelhardt wrote:
+I'm now on iptables 1.3.3 because 1.3.1 with pablo's opt_merge patch
+results in access of unallocated memory, 1.3.3 does not.
 
-> This will drop these packets, but I currently do not know of a way to capture
-> the xxx for further logging.
+1.3.3 still hangs but does not segfault.
+1.3.3 with simple rule sets has a clean valgrind report but this sort of
+stuff for layer7
 
-One way is to use QUEUE instead of DROP and write a small QUEUE handler 
-application taking care of the logging.
+==30940== 8729 bytes in 115 blocks are definitely lost in loss record 6 of 7
+==30940==    at 0x1B903D1C: malloc (vg_replace_malloc.c:131)
+==30940==    by 0x1BC56C33: pre_process (libipt_layer7.c:142)
+==30940==    by 0x1BC5702F: parse_layer7_protocol (libipt_layer7.c:267)
+==30940==    by 0x1BC57142: parse (libipt_layer7.c:281)
+==30940==
+==30940==
+==30940== 58880 bytes in 115 blocks are definitely lost in loss record 7
+of 7
+==30940==    at 0x1B903D1C: malloc (vg_replace_malloc.c:131)
+==30940==    by 0x1BC56D8D: readl7dir (libipt_layer7.c:171)
+==30940==    by 0x1BC56F9A: parse_layer7_protocol (libipt_layer7.c:234)
+==30940==    by 0x1BC57142: parse (libipt_layer7.c:281)
 
-Another is to write your own netfilter target for the logging purpose.
 
-Regards
-Henrik
+So I will use that as my clues from now on, but it looks like iptables
+1.3.3 is "clean" and layer7 needs looking at.
+
+Sam
