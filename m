@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Iterate lists from the tail to the head
-Date: Fri, 5 Aug 2005 14:26:04 +0200
-Message-ID: <20050805122604.GE4245@rama.de.gnumonks.org>
-References: <42F2B4AA.6090905@eurodev.net>
+Subject: Re: [PATCH] updates for libnfnetlink_conntrack
+Date: Fri, 5 Aug 2005 14:50:32 +0200
+Message-ID: <20050805125032.GG4245@rama.de.gnumonks.org>
+References: <42F2B551.4070204@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HeFlAV5LIbMFYYuh"
+	protocol="application/pgp-signature"; boundary="L+ofChggJdETEG3Y"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
-In-Reply-To: <42F2B4AA.6090905@eurodev.net>
+In-Reply-To: <42F2B551.4070204@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,21 +24,22 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---HeFlAV5LIbMFYYuh
+--L+ofChggJdETEG3Y
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Aug 05, 2005 at 02:36:58AM +0200, Pablo Neira wrote:
-> Currently conntracks are inserted after the head. That means that conntra=
-cks=20
-> are sorted from the biggest to the smallest id. This happens because we u=
-se=20
-> list_prepend (list_add) instead list_add_tail. This can result in problem=
-s=20
-> during the list iteration.
+On Fri, Aug 05, 2005 at 02:39:45AM +0200, Pablo Neira wrote:
+> @Harald: BTW, I can reach SVN to commit changes to conntrack (timeout err=
+or).
 
-thanks, applied.
+you can or you cannot?=20
+
+> This patch includes the following updates for the userspace=20
+> libnfnetlink_conntrack library:
+
+ok, looks fine. I'll apply it right now.
+
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -49,16 +50,16 @@ thanks, applied.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---HeFlAV5LIbMFYYuh
+--L+ofChggJdETEG3Y
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFC81rcXaXGVTD0i/8RAplPAJ9XsCHyzgWGIlfT9otA/wWXHQKRHACfRE03
-UaiiTPGFnGCnkqvZe0kS5Wc=
-=0Or1
+iD8DBQFC82CXXaXGVTD0i/8RAggDAJ42M7UZawGuy/+LGMIH7eYOT6FEOgCdH+tF
+/DHx1X/PXuH2Kj7MTkojvao=
+=lHLX
 -----END PGP SIGNATURE-----
 
---HeFlAV5LIbMFYYuh--
+--L+ofChggJdETEG3Y--
