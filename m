@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] updates for libnfnetlink_conntrack
-Date: Fri, 5 Aug 2005 15:04:57 +0200
-Message-ID: <20050805130457.GH4245@rama.de.gnumonks.org>
-References: <42F2B551.4070204@eurodev.net>
+Subject: Re: [PATCH] Drop expectation refcount after unlinking expectation
+Date: Fri, 5 Aug 2005 15:08:03 +0200
+Message-ID: <20050805130803.GI4245@rama.de.gnumonks.org>
+References: <42F2B507.8070207@eurodev.net> <42F342B8.7010001@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tcC6YSqBgqqkz7Sb"
+	protocol="application/pgp-signature"; boundary="3U8TY7m7wOx7RL1F"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+	Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <42F2B551.4070204@eurodev.net>
+In-Reply-To: <42F342B8.7010001@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,17 +24,31 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---tcC6YSqBgqqkz7Sb
+--3U8TY7m7wOx7RL1F
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Aug 05, 2005 at 02:39:45AM +0200, Pablo Neira wrote:
-> @Harald: BTW, I can reach SVN to commit changes to conntrack (timeout err=
-or).
+On Fri, Aug 05, 2005 at 12:43:04PM +0200, Patrick McHardy wrote:
+> Pablo Neira wrote:
+> > This fixes the problem although I think that there's something wrong
+> > with current refcounting. Every time an expectation is created, the
+> > refcount of the master conntrack is incremented. Then, if the master
+> > conntrack is destroyed, say the timeout has expired,
+> > ip_ct_remove_expectation will be called. So firstly, all expectations
+> > linked to such conntrack are destroyed and then the conntrack itself.
+> > OK, my question is: why do we need to increase the master conntrack
+> > refcount for expectations, if they are always killed first? Actually I
+> > think that the master conntrack refcount should be increased once the
+> > expectation is confirmed but not in ip_conntrack_expect_alloc.
+>=20
+> Only outstanding expectations are removed by remove_expectations().
+> The fullfilled ones need the reference for stuff like
+> ip_nat_follow_master.
 
-the firewall (which was recently rebooted during an upgrade) was missing
-a required rule to allow svn commit access. It's fixed now.
+So Pablo's argument stil upholds... in theory it would be sufficient to
+increase the master refcount when expectation is fulfilled(confirmed)
+instead of allocation time.  Or am I missing something?
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -46,16 +60,16 @@ a required rule to allow svn commit access. It's fixed now.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---tcC6YSqBgqqkz7Sb
+--3U8TY7m7wOx7RL1F
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFC82P5XaXGVTD0i/8RArpgAJwP4Fo3ue+tqsaTG0VywWoFBDmGAwCfQVdG
-WkHszpy+ouC3TElgYC5zFsw=
-=VR7i
+iD8DBQFC82SzXaXGVTD0i/8RAspfAKCK8jUL+LUCtb1x057ZdUpmMa9GbgCeKPKW
+kqkqYa9BdGBdpKEXN/m/pvA=
+=LWXW
 -----END PGP SIGNATURE-----
 
---tcC6YSqBgqqkz7Sb--
+--3U8TY7m7wOx7RL1F--
