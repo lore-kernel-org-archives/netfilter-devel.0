@@ -1,9 +1,9 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH] Change protocol private information
-Date: Fri, 05 Aug 2005 02:38:46 +0200
-Message-ID: <42F2B516.5020307@eurodev.net>
+Subject: [PATCH] updates for libnfnetlink_conntrack
+Date: Fri, 05 Aug 2005 02:39:45 +0200
+Message-ID: <42F2B551.4070204@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000707090001080808040705"
+Content-Type: multipart/mixed; boundary="------------090406000706000600000308"
 Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,153 +19,224 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------000707090001080808040705
+--------------090406000706000600000308
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi Harald,
+@Harald: BTW, I can reach SVN to commit changes to conntrack (timeout 
+error).
 
-This is a resent. I'd like to discuss this a bit. Following the 
-discusion left at:
+This patch includes the following updates for the userspace 
+libnfnetlink_conntrack library:
 
-[PATCH 4/7] Add ctnetlink_change_protoinfo
+a) change ctnl_open prototype: Now the subsystem is passed as parameter 
+to select if we work working with given subsystem, say 
+NFNL_CTNETLINK_CONNTRACK[_EXP].
 
-I think that users must be able to set the TCP state of a conntrack, 
-otherwise if they create a conntrack via libnfnetlink_conntrack, the 
-state will be set to NONE. If users aren't able to set the state, I'd 
-consider that the library is kind of incomplete. I don't like the idea 
-of kidding with stuff that could be compromising either, but I don't 
-want to lose any features. So, I think that the solution is *remark* in 
-the documentation of libnfnetlink_conntrack and the conntrack manpage 
-that changing the protocol private information like the state could 
-result in problems, I promise to do such thing.
+b) added functions ctnl_[new|get|del]_expect
 
-Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
+c) minor change in ctnl_build_tuple that let us create tuples based on 
+CTA_* and CTA_EXPECT_* attributes.
 
---------------000707090001080808040705
-Content-Type: text/x-patch;
- name="05from-nfattr.patch"
+--------------090406000706000600000308
+Content-Type: text/plain;
+ name="x"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="05from-nfattr.patch"
+ filename="x"
 
-Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+Index: include/libnfnetlink_conntrack/libnfnetlink_conntrack.h
 ===================================================================
---- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-08-01 18:20:57.000000000 +0200
-+++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-08-01 18:21:26.000000000 +0200
-@@ -351,6 +351,17 @@
- nfattr_failure:
- 	return -1;
- }
-+
-+static int nfattr_to_tcp(struct nfattr *tb[], struct ip_conntrack *ct)
-+{
-+	if (!tb[CTA_PROTOINFO_TCP_STATE-1])
-+		return -EINVAL;
-+
-+	ct->proto.tcp.state = 
-+		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_STATE-1]);
-+
-+	return 0;
-+}
- #endif
+--- include/libnfnetlink_conntrack/libnfnetlink_conntrack.h	(revision 4208)
++++ include/libnfnetlink_conntrack/libnfnetlink_conntrack.h	(working copy)
+@@ -99,7 +99,7 @@
+ 	struct ctnl_msg_handler *handler[IPCTNL_MSG_MAX];
+ };
  
- static unsigned int get_conntrack_index(const struct tcphdr *tcph)
-@@ -1121,6 +1132,7 @@
- #if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
-     defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
- 	.to_nfattr		= tcp_to_nfattr,
-+	.from_nfattr		= nfattr_to_tcp,
- 	.tuple_to_nfattr	= ip_ct_port_tuple_to_nfattr,
- 	.nfattr_to_tuple	= ip_ct_port_nfattr_to_tuple,
- #endif
-Index: netfilter-2.6.14/include/linux/netfilter_ipv4/ip_conntrack_protocol.h
+-extern int ctnl_open(struct ctnl_handle *, unsigned);
++extern int ctnl_open(struct ctnl_handle *, u_int8_t, unsigned);
+ extern int ctnl_close(struct ctnl_handle *);
+ extern int ctnl_unregister_handler(struct ctnl_handle *, int);
+ extern int ctnl_register_handler(struct ctnl_handle *, 
+@@ -113,6 +113,11 @@
+ extern int ctnl_event_conntrack(struct ctnl_handle *, int);
+ extern int ctnl_flush_conntrack(struct ctnl_handle *);
+ 
++extern int ctnl_new_expect(struct ctnl_handle *, struct ctnl_tuple *, 
++			   struct ctnl_tuple *, struct ctnl_tuple *, 
++			   unsigned long);
++extern int ctnl_del_expect(struct ctnl_handle *,struct ctnl_tuple *);
++extern int ctnl_get_expect(struct ctnl_handle *, struct ctnl_tuple *);
+ extern int ctnl_list_expect(struct ctnl_handle *, int);
+ extern int ctnl_event_expect(struct ctnl_handle *, int);
+ extern int ctnl_flush_expect(struct ctnl_handle *);
+Index: src/libnfnetlink_conntrack.c
 ===================================================================
---- netfilter-2.6.14.orig/include/linux/netfilter_ipv4/ip_conntrack_protocol.h	2005-08-01 18:20:57.000000000 +0200
-+++ netfilter-2.6.14/include/linux/netfilter_ipv4/ip_conntrack_protocol.h	2005-08-01 18:21:26.000000000 +0200
-@@ -52,6 +52,8 @@
- 	int (*to_nfattr)(struct sk_buff *skb, struct nfattr *nfa,
- 			 const struct ip_conntrack *ct);
+--- src/libnfnetlink_conntrack.c	(revision 4208)
++++ src/libnfnetlink_conntrack.c	(working copy)
+@@ -60,7 +60,8 @@
+ 	struct ctnl_msg_handler *hdlr = cth->handler[type];
+ 	int ret;
  
-+	int (*from_nfattr)(struct nfattr *tb[], struct ip_conntrack *ct);
-+
- 	int (*tuple_to_nfattr)(struct sk_buff *skb,
- 			       const struct ip_conntrack_tuple *t);
- 	int (*nfattr_to_tuple)(struct nfattr *tb[],
-
---------------000707090001080808040705
-Content-Type: text/x-patch;
- name="06change-protoinfo.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="06change-protoinfo.patch"
-
-Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_netlink.c
-===================================================================
---- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-08-04 15:25:17.000000000 +0200
-+++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-08-04 16:05:45.000000000 +0200
-@@ -948,6 +948,36 @@
- 	return 0;
- }
- 
-+static inline int
-+ctnetlink_change_protoinfo(struct ip_conntrack *ct, struct nfattr *cda[])
-+{
-+	struct nfattr *tb[CTA_PROTOINFO_MAX], *attr = cda[CTA_PROTOINFO-1];
-+	struct ip_conntrack_protocol *proto;
-+	u_int16_t npt = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum;
-+	int err;
-+
-+	if (nfattr_parse_nested(tb, CTA_PROTOINFO_MAX, attr) < 0)
-+		goto nfattr_failure;
-+
-+	proto = ip_conntrack_proto_find_get(npt);
-+	if (!proto)
-+		return -EINVAL;
-+
-+	if (proto->from_nfattr) {
-+		err = proto->from_nfattr(tb, ct);
-+		if (err < 0) {
-+			ip_conntrack_proto_put(proto);
-+			return -EINVAL;
-+		}
-+	}
-+	ip_conntrack_proto_put(proto);
-+
-+	return 0;
-+
-+nfattr_failure:
-+	return -1;
-+}
-+
- static int
- ctnetlink_change_conntrack(struct ip_conntrack *ct, struct nfattr *cda[])
+-	if (NFNL_SUBSYS_ID(n->nlmsg_type) != NFNL_SUBSYS_CTNETLINK) {
++	if (NFNL_SUBSYS_ID(n->nlmsg_type) != NFNL_SUBSYS_CTNETLINK &&
++	    NFNL_SUBSYS_ID(n->nlmsg_type) != NFNL_SUBSYS_CTNETLINK_EXP) {
+ 		ctnl_error("received message for wrong subsys, skipping\n");
+ 		nfnl_dump_packet(n, n->nlmsg_len, "list_conntrack_handler");
+ 		return 0;
+@@ -91,13 +92,14 @@
+  * cth: pointer to already allocated library handle
+  * subscriptions: netlink groups we are interested in
+  */
+-int ctnl_open(struct ctnl_handle *cth, unsigned subscriptions)
++int ctnl_open(struct ctnl_handle *cth, u_int8_t subsys_id, 
++	      unsigned subscriptions)
  {
-@@ -973,6 +1003,12 @@
- 			return err;
+ 	int err;
+ 
+ 	memset(cth, 0, sizeof(*cth));
+ 
+-	err = nfnl_open(&cth->nfnlh, NFNL_SUBSYS_CTNETLINK, subscriptions);
++	err = nfnl_open(&cth->nfnlh, subsys_id, subscriptions);
+ 	if (err < 0) {
+ 		return err;
  	}
- 
-+	if (cda[CTA_PROTOINFO-1]) {
-+		err = ctnetlink_change_protoinfo(ct, cda);
-+		if (err < 0)
-+			return err;
-+	}
-+
- 	DEBUGP("all done\n");
- 	return 0;
+@@ -249,9 +251,8 @@
  }
-@@ -1002,6 +1038,12 @@
- 	if (err < 0)
- 		goto err;
  
-+	if (cda[CTA_PROTOINFO-1]) {
-+		err = ctnetlink_change_protoinfo(ct, cda);
-+		if (err < 0)
-+			return err;
+ static void ctnl_build_tuple(struct nfnlhdr *req, int size, 
+-			     struct ctnl_tuple *t, int dir)
++			     struct ctnl_tuple *t, int type)
+ {
+-	enum ctattr_type type = dir ? CTA_TUPLE_REPLY : CTA_TUPLE_ORIG;
+ 	struct nfattr *nest;
+ 
+ 	nest = nfnl_nest(&req->nlh, size, type);
+@@ -329,9 +330,9 @@
+ 				 struct ctnl_conntrack *ct)
+ {
+ 	ctnl_build_tuple(req, size, &ct->tuple[CTNL_DIR_ORIGINAL], 
+-			 CTNL_DIR_ORIGINAL);
++			 CTA_TUPLE_ORIG);
+ 	ctnl_build_tuple(req, size, &ct->tuple[CTNL_DIR_REPLY],
+-			 CTNL_DIR_REPLY);
++			 CTA_TUPLE_REPLY);
+ 	
+ 	nfnl_addattr_l(&req->nlh, size, CTA_STATUS, &ct->status, 
+ 		       sizeof(unsigned int));
+@@ -382,6 +383,7 @@
+ {
+ 	struct nfnlhdr *req;
+ 	char buf[CTNL_BUFFSIZE];
++	int type = dir ? CTA_TUPLE_REPLY : CTA_TUPLE_ORIG;
+ 
+ 	memset(&buf, 0, sizeof(buf));
+ 	req = (void *) &buf;
+@@ -390,7 +392,7 @@
+ 		      0, AF_INET, 0, IPCTNL_MSG_CT_DELETE,
+ 		      NLM_F_ROOT|NLM_F_MATCH|NLM_F_REQUEST|NLM_F_ACK);
+ 
+-	ctnl_build_tuple(req, sizeof(buf), tuple, dir); 
++	ctnl_build_tuple(req, sizeof(buf), tuple, type); 
+ 
+ 	if (nfnl_send(&cth->nfnlh, (struct nlmsghdr *)&buf) < 0)
+ 		return -1;
+@@ -470,3 +472,96 @@
+ 
+ 	return nfnl_listen(&cth->nfnlh, &list_conntrack_handler, cth);
+ }
++
++/**
++ * ctnl_new_expect - create a new expectation
++ *
++ * cth: libctnetlink handle
++ * master_tuple: tuple of the master original direction
++ * t: direction, original or reply.
++ * exp_tuple: tuple of to-be-created expectation
++ * mask: mask of to-be-created expectation
++ * timeout: timeout of new expectation
++ */
++int ctnl_new_expect(struct ctnl_handle *cth,
++		    struct ctnl_tuple *master,
++		    struct ctnl_tuple *tuple,
++		    struct ctnl_tuple *mask,
++		    unsigned long timeout)
++{
++	struct nfnlhdr *req;
++	char buf[CTNL_BUFFSIZE];
++
++	memset(&buf, 0, sizeof(buf));
++	req = (void *) &buf;
++
++	nfnl_fill_hdr(&cth->nfnlh, (struct nlmsghdr *) &buf,
++		      0, AF_INET, 0, IPCTNL_MSG_EXP_NEW,
++		      NLM_F_REQUEST|NLM_F_CREATE|NLM_F_ACK);
++
++	ctnl_build_tuple(req, sizeof(buf), master, CTA_EXPECT_MASTER);
++	ctnl_build_tuple(req, sizeof(buf), tuple, CTA_EXPECT_TUPLE);
++	ctnl_build_tuple(req, sizeof(buf), mask, CTA_EXPECT_MASK);
++	
++	if (nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_EXPECT_TIMEOUT, &timeout,
++			   sizeof(timeout)) < 0)
++		return -1;
++
++	if (nfnl_send(&cth->nfnlh, (struct nlmsghdr *)&buf) < 0 ) {
++		ctnl_error("error while nfnl_send\n");
++		return -1;
 +	}
 +
- 	ct->helper = ip_conntrack_helper_find_get(rtuple);
- 
- 	add_timer(&ct->timeout);
++	return nfnl_listen(&cth->nfnlh, &list_conntrack_handler, cth);
++}
++
++/**
++ * ctnl_del_expect - delete an expectation from conntrack subsystem
++ *
++ * cth: libctnetlink handle
++ * t: tuple of to-be-deleted expectation
++ */
++int ctnl_del_expect(struct ctnl_handle *cth, 
++		    struct ctnl_tuple *tuple)
++{
++	struct nfnlhdr *req;
++	char buf[CTNL_BUFFSIZE];
++
++	memset(&buf, 0, sizeof(buf));
++	req = (void *) &buf;
++
++	nfnl_fill_hdr(&cth->nfnlh, (struct nlmsghdr *) &buf,
++		      0, AF_INET, 0, IPCTNL_MSG_EXP_DELETE,
++		      NLM_F_ROOT|NLM_F_MATCH|NLM_F_REQUEST|NLM_F_ACK);
++
++	ctnl_build_tuple(req, sizeof(buf), tuple, CTA_EXPECT_MASTER);
++
++	if (nfnl_send(&cth->nfnlh, (struct nlmsghdr *)&buf) < 0)
++		return -1;
++
++	return nfnl_listen(&cth->nfnlh, &list_conntrack_handler, cth);
++}
++
++int ctnl_get_expect(struct ctnl_handle *cth, 
++		    struct ctnl_tuple *tuple)
++{
++	struct nfnlhdr *req;
++	char buf[CTNL_BUFFSIZE];
++
++	memset(&buf, 0, sizeof(buf));
++	req = (void *) &buf;
++
++	nfnl_fill_hdr(&cth->nfnlh, (struct nlmsghdr *) &buf,
++			0, AF_INET, 0, IPCTNL_MSG_EXP_GET,
++			NLM_F_REQUEST|NLM_F_ACK);
++
++	ctnl_build_tuple(req, sizeof(buf), tuple, CTA_EXPECT_MASTER);
++
++	if (nfnl_send(&cth->nfnlh, (struct nlmsghdr *)&buf) < 0 ) {
++		ctnl_error("error while nfnl_send\n");
++		return -1;
++	}
++
++	return nfnl_listen(&cth->nfnlh, &list_conntrack_handler, cth);
++}
++
 
---------------000707090001080808040705--
+--------------090406000706000600000308--
