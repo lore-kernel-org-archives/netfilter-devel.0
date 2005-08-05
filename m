@@ -1,14 +1,19 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH NF_CONNTRACK 1/2] Fix -Wunder error in ip_conntrack_core.c
-Date: Thu, 04 Aug 2005 17:36:29 +0900 (JST)
-Message-ID: <200508040836.j748aU6n020769@toshiba.co.jp>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: BUG: atomic counter underflow at
+ ip_conntrack_event_cache_init+0x91/0xb0 (with patch)
+Date: Fri, 05 Aug 2005 02:06:01 -0700 (PDT)
+Message-ID: <20050805.020601.74738947.davem@davemloft.net>
+References: <42EEC2BB.3020105@trash.net>
+	<20050802132922.GA3834@inferi.kami.home>
+	<42F10E51.9000605@trash.net>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Thu_Aug__4_17_36_29_2005_044)--"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+Cc: malattia@gmail.com, laforge@netfilter.org,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
+To: kaber@trash.net
+In-Reply-To: <42F10E51.9000605@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,32 +25,9 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Thu_Aug__4_17_36_29_2005_044)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Patrick McHardy <kaber@trash.net>
+Date: Wed, 03 Aug 2005 20:34:57 +0200
 
+> [NETFILTER]: Fix multiple problems with the conntrack event cache
 
-Signed-off-by: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
-
-----Next_Part(Thu_Aug__4_17_36_29_2005_044)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="01-ifdef.patch"
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -846,7 +846,7 @@ init_conntrack(const struct nf_conntrack
- 		/* Welcome, Mr. Bond.  We've been expecting you... */
- 		__set_bit(IPS_EXPECTED_BIT, &conntrack->status);
- 		conntrack->master = exp->master;
--#if CONFIG_NF_CONNTRACK_MARK
-+#ifdef CONFIG_NF_CONNTRACK_MARK
- 		conntrack->mark = exp->master->mark;
- #endif
- 		nf_conntrack_get(&conntrack->master->ct_general);
-
-----Next_Part(Thu_Aug__4_17_36_29_2005_044)----
+Applied to net-2.6.14, thanks Patrick.
