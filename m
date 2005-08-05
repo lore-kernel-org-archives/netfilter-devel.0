@@ -1,16 +1,15 @@
-From: Roberto Nibali <ratz@drugphish.ch>
-Subject: Re: Fixed Re: iptables 1.3.1 crashes on iptables-restore
-Date: Fri, 05 Aug 2005 15:22:07 +0200
-Message-ID: <42F367FF.7060605@drugphish.ch>
-References: <20050330034616.GA8639@samad.com.au>	<424BB242.6070809@drugphish.ch>	<42F24151.1090702@ufomechanic.net>	<42F33AAD.8060201@ufomechanic.net>
-	<dcvnn9$vpl$1@sea.gmane.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: [PATCH] ctnetlink: make sure event order is correct
+Date: Fri, 5 Aug 2005 18:27:38 +0200
+Message-ID: <20050805162738.GD4033@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="T7mxYSe680VjQnyC"
+Cc: Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <dcvnn9$vpl$1@sea.gmane.org>
+To: David Miller <davem@davemloft.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,32 +21,79 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez wrote:
-> The futex hanging was in glibc during fclose() (!!!)
 
-Strange. So you run a 2.6.x kernel.
+--T7mxYSe680VjQnyC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> The fix was as simple as:
-> 
-> LD_ASSUME_KERNEL=2.2.5
-> 
-> environment variable.
+Hi Dave, please apply.
 
-Which would disable TLS.
+[NETFILTER] ctnetlink: make sure event order is correct
 
-> I guess my kernel version is too high for my glibc version or something
-> like that!
+The following sequence is displayed during events dumping of an ICMP
+connection: [NEW] [DESTROY] [UPDATE]
 
-What's the output /lib/libc.so.6? Just out of curiosity. And maybe if 
-you set LD_DEBUG=all and run iptables? Also the ldd /sbin/iptables and 
-LD_TRACE_LOADED_OBJECTS=1 setting may give you more input.
+This happens because the event IPCT_DESTROY is delivered in
+death_by_timeout(), that is called from the icmp protocol helper
+(ct->timeout.function) once we see the reply.
 
-> This also stops various segfaults too.
+To fix this, we move this event to destroy_conntrack().
 
-Interesting.
+Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
+Signed-off-by: Harald Welte <laforge@netfilter.org>
 
-Cheers,
-Roberto Nibali, ratz
--- 
-echo 
-'[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
+---
+commit cb90ab7c56471a733f5a91a3ec2cfbd45093e8a0
+tree cf84842a1e41dcaefd9934f9752df2ca977831d7
+parent 570b2053cc2c68da90b71add2a4f4366673b48d8
+author Harald Welte <laforge@netfilter.org> Fr, 05 Aug 2005 14:28:31 +0200
+committer Harald Welte <laforge@netfilter.org> Fr, 05 Aug 2005 14:28:31 +02=
+00
+
+ net/ipv4/netfilter/ip_conntrack_core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip=
+_conntrack_core.c
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -327,6 +327,7 @@ destroy_conntrack(struct nf_conntrack *n
+ 	IP_NF_ASSERT(atomic_read(&nfct->use) =3D=3D 0);
+ 	IP_NF_ASSERT(!timer_pending(&ct->timeout));
+=20
++	ip_conntrack_event(IPCT_DESTROY, ct);
+ 	set_bit(IPS_DYING_BIT, &ct->status);
+=20
+ 	/* To make sure we don't get any weird locking issues here:
+@@ -366,7 +367,6 @@ static void death_by_timeout(unsigned lo
+ {
+ 	struct ip_conntrack *ct =3D (void *)ul_conntrack;
+=20
+-	ip_conntrack_event(IPCT_DESTROY, ct);
+ 	write_lock_bh(&ip_conntrack_lock);
+ 	/* Inside lock so preempt is disabled on module removal path.
+ 	 * Otherwise we can get spurious warnings. */
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--T7mxYSe680VjQnyC
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFC85N6XaXGVTD0i/8RArZAAJ0TrF0WD6M2PZiQ5HME9HV8Nht/RQCgtV/6
+cUtrn+ffkm+bLujs4cmqtZY=
+=E+Fm
+-----END PGP SIGNATURE-----
+
+--T7mxYSe680VjQnyC--
