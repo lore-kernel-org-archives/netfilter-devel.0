@@ -1,9 +1,9 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH] Remove ip_conntrack <-> nfnetlink dependency
-Date: Fri, 05 Aug 2005 02:38:57 +0200
-Message-ID: <42F2B521.2050408@eurodev.net>
+Subject: [PATCH] Change protocol private information
+Date: Fri, 05 Aug 2005 02:38:46 +0200
+Message-ID: <42F2B516.5020307@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040101060202040803090800"
+Content-Type: multipart/mixed; boundary="------------000707090001080808040705"
 Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,203 +19,153 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040101060202040803090800
+--------------000707090001080808040705
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-@Patrick: This patch is related to one of the patches that you submitted 
-some time ago.
+Hi Harald,
 
-Currently there's a dependency between nfnetlink and ip_conntrack. If 
-the second if loaded, the first will be too because needs ip_conntrack 
-needs the symbol __nfa_fill.
+This is a resent. I'd like to discuss this a bit. Following the 
+discusion left at:
 
-The following patch resolves such dependency by inlining __nfa_fill, I 
-don't know if this solution is the best though since this could increase 
-the size of the ip_conntrack_netlink binary. Anyway we could leave it 
-that way until the generic netlink layer comes (I mean RTA_* and NFA_* 
-unification).
+[PATCH 4/7] Add ctnetlink_change_protoinfo
 
-BTW, just an observation, maybe those CONFIG_IP_NF_CONNTRACK_NETLINK in 
-ip_conntrack_core.c should be CONFIG_NETFILTER_NETLINK instead since the 
-dependency is __nfa_fill.
+I think that users must be able to set the TCP state of a conntrack, 
+otherwise if they create a conntrack via libnfnetlink_conntrack, the 
+state will be set to NONE. If users aren't able to set the state, I'd 
+consider that the library is kind of incomplete. I don't like the idea 
+of kidding with stuff that could be compromising either, but I don't 
+want to lose any features. So, I think that the solution is *remark* in 
+the documentation of libnfnetlink_conntrack and the conntrack manpage 
+that changing the protocol private information like the state could 
+result in problems, I promise to do such thing.
 
---------------040101060202040803090800
+Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
+
+--------------000707090001080808040705
 Content-Type: text/x-patch;
- name="10patrick.patch"
+ name="05from-nfattr.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="10patrick.patch"
+ filename="05from-nfattr.patch"
 
-Index: netfilter-2.6.14/include/linux/netfilter/nfnetlink.h
-===================================================================
---- netfilter-2.6.14.orig/include/linux/netfilter/nfnetlink.h	2005-08-05 00:29:28.000000000 +0200
-+++ netfilter-2.6.14/include/linux/netfilter/nfnetlink.h	2005-08-05 00:29:39.000000000 +0200
-@@ -99,8 +99,19 @@
- 	struct nfnl_callback *cb; /* callback for individual types */
- };
- 
--extern void __nfa_fill(struct sk_buff *skb, int attrtype,
--        int attrlen, const void *data);
-+static inline void 
-+__nfa_fill(struct sk_buff *skb, int attrtype, int attrlen, const void *data)
-+{
-+	struct nfattr *nfa;
-+	int size = NFA_LENGTH(attrlen);
-+
-+	nfa = (struct nfattr *)skb_put(skb, NFA_ALIGN(size));
-+	nfa->nfa_type = attrtype;
-+	nfa->nfa_len  = size;
-+	memcpy(NFA_DATA(nfa), data, attrlen);
-+	memset(NFA_DATA(nfa) + attrlen, 0, NFA_ALIGN(size) - size);
-+}
-+
- #define NFA_PUT(skb, attrtype, attrlen, data) \
- ({ if (skb_tailroom(skb) < (int)NFA_SPACE(attrlen)) goto nfattr_failure; \
-    __nfa_fill(skb, attrtype, attrlen, data); })
-Index: netfilter-2.6.14/net/netfilter/nfnetlink.c
-===================================================================
---- netfilter-2.6.14.orig/net/netfilter/nfnetlink.c	2005-08-05 00:29:28.000000000 +0200
-+++ netfilter-2.6.14/net/netfilter/nfnetlink.c	2005-08-05 00:29:39.000000000 +0200
-@@ -115,19 +115,6 @@
- 	return &ss->cb[cb_id];
- }
- 
--void __nfa_fill(struct sk_buff *skb, int attrtype, int attrlen,
--		const void *data)
--{
--	struct nfattr *nfa;
--	int size = NFA_LENGTH(attrlen);
--
--	nfa = (struct nfattr *)skb_put(skb, NFA_ALIGN(size));
--	nfa->nfa_type = attrtype;
--	nfa->nfa_len  = size;
--	memcpy(NFA_DATA(nfa), data, attrlen);
--	memset(NFA_DATA(nfa) + attrlen, 0, NFA_ALIGN(size) - size);
--}
--
- int nfattr_parse(struct nfattr *tb[], int maxattr, struct nfattr *nfa, int len)
- {
- 	memset(tb, 0, sizeof(struct nfattr *) * maxattr);
-@@ -373,4 +360,3 @@
- EXPORT_SYMBOL_GPL(nfnetlink_send);
- EXPORT_SYMBOL_GPL(nfnetlink_unicast);
- EXPORT_SYMBOL_GPL(nfattr_parse);
--EXPORT_SYMBOL_GPL(__nfa_fill);
-Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_core.c
-===================================================================
---- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-08-05 00:29:28.000000000 +0200
-+++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_core.c	2005-08-05 00:29:39.000000000 +0200
-@@ -1164,8 +1164,6 @@
- 	}
- }
- 
--#if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
--    defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
- /* Generic function for tcp/udp/sctp/dccp and alike. This needs to be
-  * in ip_conntrack_core, since we don't want the protocols to autoload
-  * or depend on ctnetlink */
-@@ -1195,7 +1193,6 @@
- 
- 	return 0;
- }
--#endif
- 
- /* Returns new sk_buff, or NULL */
- struct sk_buff *
-Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_proto_udp.c
-===================================================================
---- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_proto_udp.c	2005-08-05 00:29:28.000000000 +0200
-+++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_proto_udp.c	2005-08-05 00:29:39.000000000 +0200
-@@ -145,9 +145,6 @@
- 	.packet			= udp_packet,
- 	.new			= udp_new,
- 	.error			= udp_error,
--#if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
--    defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
- 	.tuple_to_nfattr	= ip_ct_port_tuple_to_nfattr,
- 	.nfattr_to_tuple	= ip_ct_port_nfattr_to_tuple,
--#endif
- };
 Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
 ===================================================================
---- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-08-05 00:29:28.000000000 +0200
-+++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-08-05 00:29:39.000000000 +0200
-@@ -336,8 +336,6 @@
- 	return seq_printf(s, "%s ", tcp_conntrack_names[state]);
+--- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-08-01 18:20:57.000000000 +0200
++++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-08-01 18:21:26.000000000 +0200
+@@ -351,6 +351,17 @@
+ nfattr_failure:
+ 	return -1;
  }
- 
--#if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
--    defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
- static int tcp_to_nfattr(struct sk_buff *skb, struct nfattr *nfa,
- 			 const struct ip_conntrack *ct)
- {
-@@ -362,7 +360,6 @@
- 
- 	return 0;
- }
--#endif
++
++static int nfattr_to_tcp(struct nfattr *tb[], struct ip_conntrack *ct)
++{
++	if (!tb[CTA_PROTOINFO_TCP_STATE-1])
++		return -EINVAL;
++
++	ct->proto.tcp.state = 
++		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_STATE-1]);
++
++	return 0;
++}
+ #endif
  
  static unsigned int get_conntrack_index(const struct tcphdr *tcph)
- {
-@@ -1129,11 +1126,8 @@
- 	.packet 		= tcp_packet,
- 	.new 			= tcp_new,
- 	.error			= tcp_error,
--#if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
--    defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
+@@ -1121,6 +1132,7 @@
+ #if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
+     defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
  	.to_nfattr		= tcp_to_nfattr,
- 	.from_nfattr		= nfattr_to_tcp,
++	.from_nfattr		= nfattr_to_tcp,
  	.tuple_to_nfattr	= ip_ct_port_tuple_to_nfattr,
  	.nfattr_to_tuple	= ip_ct_port_nfattr_to_tuple,
--#endif
- };
-Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
+ #endif
+Index: netfilter-2.6.14/include/linux/netfilter_ipv4/ip_conntrack_protocol.h
 ===================================================================
---- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_proto_icmp.c	2005-08-05 00:29:28.000000000 +0200
-+++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_proto_icmp.c	2005-08-05 00:29:39.000000000 +0200
-@@ -270,8 +270,6 @@
- 	return icmp_error_message(skb, ctinfo, hooknum);
- }
+--- netfilter-2.6.14.orig/include/linux/netfilter_ipv4/ip_conntrack_protocol.h	2005-08-01 18:20:57.000000000 +0200
++++ netfilter-2.6.14/include/linux/netfilter_ipv4/ip_conntrack_protocol.h	2005-08-01 18:21:26.000000000 +0200
+@@ -52,6 +52,8 @@
+ 	int (*to_nfattr)(struct sk_buff *skb, struct nfattr *nfa,
+ 			 const struct ip_conntrack *ct);
  
--#if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
--    defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
- static int icmp_tuple_to_nfattr(struct sk_buff *skb,
- 				const struct ip_conntrack_tuple *t)
- {
-@@ -309,7 +307,6 @@
- 
++	int (*from_nfattr)(struct nfattr *tb[], struct ip_conntrack *ct);
++
+ 	int (*tuple_to_nfattr)(struct sk_buff *skb,
+ 			       const struct ip_conntrack_tuple *t);
+ 	int (*nfattr_to_tuple)(struct nfattr *tb[],
+
+--------------000707090001080808040705
+Content-Type: text/x-patch;
+ name="06change-protoinfo.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="06change-protoinfo.patch"
+
+Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_netlink.c
+===================================================================
+--- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-08-04 15:25:17.000000000 +0200
++++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-08-04 16:05:45.000000000 +0200
+@@ -948,6 +948,36 @@
  	return 0;
  }
--#endif
  
- struct ip_conntrack_protocol ip_conntrack_protocol_icmp =
++static inline int
++ctnetlink_change_protoinfo(struct ip_conntrack *ct, struct nfattr *cda[])
++{
++	struct nfattr *tb[CTA_PROTOINFO_MAX], *attr = cda[CTA_PROTOINFO-1];
++	struct ip_conntrack_protocol *proto;
++	u_int16_t npt = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum;
++	int err;
++
++	if (nfattr_parse_nested(tb, CTA_PROTOINFO_MAX, attr) < 0)
++		goto nfattr_failure;
++
++	proto = ip_conntrack_proto_find_get(npt);
++	if (!proto)
++		return -EINVAL;
++
++	if (proto->from_nfattr) {
++		err = proto->from_nfattr(tb, ct);
++		if (err < 0) {
++			ip_conntrack_proto_put(proto);
++			return -EINVAL;
++		}
++	}
++	ip_conntrack_proto_put(proto);
++
++	return 0;
++
++nfattr_failure:
++	return -1;
++}
++
+ static int
+ ctnetlink_change_conntrack(struct ip_conntrack *ct, struct nfattr *cda[])
  {
-@@ -322,9 +319,6 @@
- 	.packet			= icmp_packet,
- 	.new			= icmp_new,
- 	.error			= icmp_error,
--#if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
--    defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
- 	.tuple_to_nfattr	= icmp_tuple_to_nfattr,
- 	.nfattr_to_tuple	= icmp_nfattr_to_tuple,
--#endif
- };
-Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_proto_sctp.c
-===================================================================
---- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_proto_sctp.c	2005-08-05 00:29:28.000000000 +0200
-+++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_proto_sctp.c	2005-08-05 00:29:39.000000000 +0200
-@@ -506,11 +506,8 @@
- 	.new 		 = sctp_new, 
- 	.destroy 	 = NULL, 
- 	.me 		 = THIS_MODULE,
--#if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
--    defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
- 	.tuple_to_nfattr = ip_ct_port_tuple_to_nfattr,
- 	.nfattr_to_tuple = ip_ct_port_nfattr_to_tuple,
--#endif
- };
+@@ -973,6 +1003,12 @@
+ 			return err;
+ 	}
  
- #ifdef CONFIG_SYSCTL
++	if (cda[CTA_PROTOINFO-1]) {
++		err = ctnetlink_change_protoinfo(ct, cda);
++		if (err < 0)
++			return err;
++	}
++
+ 	DEBUGP("all done\n");
+ 	return 0;
+ }
+@@ -1002,6 +1038,12 @@
+ 	if (err < 0)
+ 		goto err;
+ 
++	if (cda[CTA_PROTOINFO-1]) {
++		err = ctnetlink_change_protoinfo(ct, cda);
++		if (err < 0)
++			return err;
++	}
++
+ 	ct->helper = ip_conntrack_helper_find_get(rtuple);
+ 
+ 	add_timer(&ct->timeout);
 
---------------040101060202040803090800--
+--------------000707090001080808040705--
