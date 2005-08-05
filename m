@@ -1,15 +1,15 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH 0/6] nfnetlink / ctnetlink fixes + updates
-Date: Fri, 05 Aug 2005 02:13:06 -0700 (PDT)
-Message-ID: <20050805.021306.41643339.davem@davemloft.net>
-References: <20050802105427.GG4158@rama.de.gnumonks.org>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: HTTP info filter
+Date: Fri, 5 Aug 2005 11:31:22 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0508051130110.7310@filer.marasystems.com>
+References: <mnet1.1123173055.14289.joer@netcourrier.com>
+	<Pine.LNX.4.61.0508050829150.20623@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20050802105427.GG4158@rama.de.gnumonks.org>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0508050829150.20623@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,15 +21,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Tue, 2 Aug 2005 12:54:27 +0200
+On Fri, 5 Aug 2005, Jan Engelhardt wrote:
 
-> I know you're travelling, but I already have this pile of patches/fixes
-> for nfnetlink and ctnetlink.  I'm sorry to keep patch-bombing you, but
-> I think it's better we find those issues right now (before it is in mainline)
-> rather than later, when it already is in the mainline tree.
-> 
-> Please apply in sequential order (and also apply the nf_log patch you
-> seem to have missed a short time ago).
+> This will drop these packets, but I currently do not know of a way to capture
+> the xxx for further logging.
 
-Applied to net-2.6.14, thanks.
+One way is to use QUEUE instead of DROP and write a small QUEUE handler 
+application taking care of the logging.
+
+Another is to write your own netfilter target for the logging purpose.
+
+Regards
+Henrik
