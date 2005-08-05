@@ -1,14 +1,18 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: HTTP info filter
-Date: Fri, 5 Aug 2005 08:32:17 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0508050829150.20623@yvahk01.tjqt.qr>
-References: <mnet1.1123173055.14289.joer@netcourrier.com>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH NF_CONNTRACK 0/2] fix gcc -Wunder error and revert
+ nf_reset
+Date: Fri, 05 Aug 2005 16:11:59 +0900 (JST)
+Message-ID: <200508050712.j757C0A7019342@toshiba.co.jp>
+References: <200508040829.j748Tdfg011976@toshiba.co.jp>
+	<20050804215655.GE4100@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net,
+	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: joer@netcourrier.com
-In-Reply-To: <mnet1.1123173055.14289.joer@netcourrier.com>
+To: laforge@netfilter.org
+In-Reply-To: <20050804215655.GE4100@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,23 +24,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
->Hi all,
->
->I want to filter an outgoing HTTP request using its info field.
->ex : HTTP "GET /toto://hello/xxx"
->For every HTTP request with toto in info field, I wan't to get the xxx field. This request can be dropped.
->Can I do this with iptables ?
->Is there another tool for this ?
 
--j DROP -m layer7 --l7proto mytoto
+From: Harald Welte <laforge@netfilter.org>
+Date: Thu, 4 Aug 2005 23:56:55 +0200
 
-Have a  /etc/l7-protocols/mytoto:
-GET /toto://hello/xxx
+> > These patches are from mainline. Please apply them to your tree.
+> 
+> Just out of curiosit: 'mainline' refers to what?  the USAGI mainline?
 
-This will drop these packets, but I currently do not know of a way to capture 
-the xxx for further logging.
+No. Linus tree.
 
-
-
-Jan Engelhardt
--- 
+-----------------------------------------------------------------
+Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
