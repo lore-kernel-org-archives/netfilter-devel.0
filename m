@@ -1,17 +1,15 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Drop expectation refcount after unlinking expectation
-Date: Fri, 5 Aug 2005 15:20:34 +0200
-Message-ID: <20050805132034.GK4245@rama.de.gnumonks.org>
-References: <42F2B507.8070207@eurodev.net>
+Subject: [PATCH] ctnetlink: fix typo in ctnl_exp_cb array
+Date: Fri, 5 Aug 2005 18:21:42 +0200
+Message-ID: <20050805162142.GA4033@rama.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BFVE2HhgxTpCzM8t"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+	protocol="application/pgp-signature"; boundary="mYCpIKhGyMATD0i+"
+Cc: Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
+To: David Miller <davem@davemloft.net>
 Content-Disposition: inline
-In-Reply-To: <42F2B507.8070207@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,22 +22,45 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---BFVE2HhgxTpCzM8t
+--mYCpIKhGyMATD0i+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Aug 05, 2005 at 02:38:31AM +0200, Pablo Neira wrote:
-> This patch comes from the following thread:
->=20
-> [PATCH 6/7] Fix expectation creation
->=20
-> In unlink_expect, the expectation is removed from the list so the
-> refcount must be dropped as well.
+Hi Dave, please apply.
 
-I'm applying this to netfilter-2.6.14 right now.
+[NETFILTER] Fix typo in ctnl_exp_cb array (no bug, just memory waste)
 
-Any cleanups (as Patrick suggested) can follow later.
+This fixes the size of the ctnl_exp_cb array that is IPCTNL_MSG_EXP_MAX
+instead of IPCTNL_MSG_MAX. Simple typo.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
+Signed-off-by: Harald Welte <laforge@netfilter.org>
+
+---
+commit 76596b57e2fe552da8beef4a59d5b559dfc3d0e5
+tree 84acf2c3953dd3b824cfdb0b501e1b778ac2de19
+parent cc45a2a7c15b72bf38d611e469fa30d62ade8f1f
+author Harald Welte <laforge@netfilter.org> Fr, 05 Aug 2005 14:23:56 +0200
+committer Harald Welte <laforge@netfilter.org> Fr, 05 Aug 2005 14:23:56 +02=
+00
+
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter=
+/ip_conntrack_netlink.c
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -1490,7 +1490,7 @@ static struct nfnl_callback ctnl_cb[IPCT
+ 					    .cap_required =3D CAP_NET_ADMIN },
+ };
+=20
+-static struct nfnl_callback ctnl_exp_cb[IPCTNL_MSG_MAX] =3D {
++static struct nfnl_callback ctnl_exp_cb[IPCTNL_MSG_EXP_MAX] =3D {
+ 	[IPCTNL_MSG_EXP_GET]		=3D { .call =3D ctnetlink_get_expect,
+ 					    .attr_count =3D CTA_EXPECT_MAX,
+ 					    .cap_required =3D CAP_NET_ADMIN },
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -50,16 +71,16 @@ Any cleanups (as Patrick suggested) can follow later.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---BFVE2HhgxTpCzM8t
+--mYCpIKhGyMATD0i+
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFC82eiXaXGVTD0i/8RAq5JAJ0eDRpg3Ga2ZoSmd/Uf4mtaOFvBsQCfc2r9
-uupZ2yXVQuHQuwWHluQwFvg=
-=D9fx
+iD8DBQFC85IVXaXGVTD0i/8RAo6bAJ4nyKzPawn9Z7wdQaakuoyLUTrtAACfQmqY
+nYOpPXLg8ItZ8PJzKgYAtdY=
+=pwIB
 -----END PGP SIGNATURE-----
 
---BFVE2HhgxTpCzM8t--
+--mYCpIKhGyMATD0i+--
