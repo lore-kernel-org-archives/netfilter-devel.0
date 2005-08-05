@@ -1,19 +1,15 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: BUG: atomic counter underflow at
- ip_conntrack_event_cache_init+0x91/0xb0 (with patch)
-Date: Fri, 05 Aug 2005 02:06:01 -0700 (PDT)
-Message-ID: <20050805.020601.74738947.davem@davemloft.net>
-References: <42EEC2BB.3020105@trash.net>
-	<20050802132922.GA3834@inferi.kami.home>
-	<42F10E51.9000605@trash.net>
+Subject: Re: [PATCH 0/6] nfnetlink / ctnetlink fixes + updates
+Date: Fri, 05 Aug 2005 02:13:06 -0700 (PDT)
+Message-ID: <20050805.021306.41643339.davem@davemloft.net>
+References: <20050802105427.GG4158@rama.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: malattia@gmail.com, laforge@netfilter.org,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <42F10E51.9000605@trash.net>
+To: laforge@netfilter.org
+In-Reply-To: <20050802105427.GG4158@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,9 +21,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Wed, 03 Aug 2005 20:34:57 +0200
+From: Harald Welte <laforge@netfilter.org>
+Date: Tue, 2 Aug 2005 12:54:27 +0200
 
-> [NETFILTER]: Fix multiple problems with the conntrack event cache
+> I know you're travelling, but I already have this pile of patches/fixes
+> for nfnetlink and ctnetlink.  I'm sorry to keep patch-bombing you, but
+> I think it's better we find those issues right now (before it is in mainline)
+> rather than later, when it already is in the mainline tree.
+> 
+> Please apply in sequential order (and also apply the nf_log patch you
+> seem to have missed a short time ago).
 
-Applied to net-2.6.14, thanks Patrick.
+Applied to net-2.6.14, thanks.
