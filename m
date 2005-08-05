@@ -1,15 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] ctnetlink: fix conntrack expect refcount leak
-Date: Fri, 5 Aug 2005 18:28:20 +0200
-Message-ID: <20050805162820.GE4033@rama.de.gnumonks.org>
+Subject: Re: [PATCH] Drop expectation refcount after unlinking expectation
+Date: Fri, 5 Aug 2005 15:20:34 +0200
+Message-ID: <20050805132034.GK4245@rama.de.gnumonks.org>
+References: <42F2B507.8070207@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CGDBiGfvSTbxKZlW"
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="BFVE2HhgxTpCzM8t"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David Miller <davem@davemloft.net>
+To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
+In-Reply-To: <42F2B507.8070207@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,44 +24,22 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---CGDBiGfvSTbxKZlW
+--BFVE2HhgxTpCzM8t
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Dave, please apply.
+On Fri, Aug 05, 2005 at 02:38:31AM +0200, Pablo Neira wrote:
+> This patch comes from the following thread:
+>=20
+> [PATCH 6/7] Fix expectation creation
+>=20
+> In unlink_expect, the expectation is removed from the list so the
+> refcount must be dropped as well.
 
-[NETFILTER] fix conntrack refcount leak in unlink_expect()
+I'm applying this to netfilter-2.6.14 right now.
 
-In unlink_expect(), the expectation is removed from the list so the
-refcount must be dropped as well.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
-Signed-off-by: Harald Welte <laforge@netfilter.org>
-
----
-commit ed8612c164a21e71cf6139c4e67a98b7a417b1cb
-tree 4d4493874742690f9d997c4846a7e4b6becf3da2
-parent 1d35273dd7935f4b6a64f3526d85c5df9ba254de
-author Harald Welte <laforge@netfilter.org> Fr, 05 Aug 2005 15:19:35 +0200
-committer Harald Welte <laforge@netfilter.org> Fr, 05 Aug 2005 15:19:35 +02=
-00
-
- net/ipv4/netfilter/ip_conntrack_core.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip=
-_conntrack_core.c
---- a/net/ipv4/netfilter/ip_conntrack_core.c
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -204,6 +204,7 @@ static void unlink_expect(struct ip_conn
- 	list_del(&exp->list);
- 	CONNTRACK_STAT_INC(expect_delete);
- 	exp->master->expecting--;
-+	ip_conntrack_expect_put(exp);
- }
-=20
- void __ip_ct_expect_unlink_destroy(struct ip_conntrack_expect *exp)
+Any cleanups (as Patrick suggested) can follow later.
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -70,16 +50,16 @@ _conntrack_core.c
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---CGDBiGfvSTbxKZlW
+--BFVE2HhgxTpCzM8t
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFC85OjXaXGVTD0i/8RAr3yAJ9uP+zUBRClqvuqlkWZo5sk57T2oQCfbdxl
-Dqbcoug13v3RvD+HV1traJc=
-=sC/u
+iD8DBQFC82eiXaXGVTD0i/8RAq5JAJ0eDRpg3Ga2ZoSmd/Uf4mtaOFvBsQCfc2r9
+uupZ2yXVQuHQuwWHluQwFvg=
+=D9fx
 -----END PGP SIGNATURE-----
 
---CGDBiGfvSTbxKZlW--
+--BFVE2HhgxTpCzM8t--
