@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Drop expectation refcount after unlinking expectation
-Date: Fri, 5 Aug 2005 15:17:21 +0200
-Message-ID: <20050805131721.GJ4245@rama.de.gnumonks.org>
-References: <42F2B507.8070207@eurodev.net> <42F33D8C.5070904@trash.net>
+From: Roberto Nibali <ratz@drugphish.ch>
+Subject: Re: Fixed Re: iptables 1.3.1 crashes on iptables-restore
+Date: Fri, 05 Aug 2005 15:22:07 +0200
+Message-ID: <42F367FF.7060605@drugphish.ch>
+References: <20050330034616.GA8639@samad.com.au>	<424BB242.6070809@drugphish.ch>	<42F24151.1090702@ufomechanic.net>	<42F33AAD.8060201@ufomechanic.net>
+	<dcvnn9$vpl$1@sea.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yr/DzoowOgTDcSCF"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <42F33D8C.5070904@trash.net>
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <dcvnn9$vpl$1@sea.gmane.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,63 +22,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Amin Azez wrote:
+> The futex hanging was in glibc during fclose() (!!!)
 
---yr/DzoowOgTDcSCF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Strange. So you run a 2.6.x kernel.
 
-On Fri, Aug 05, 2005 at 12:21:00PM +0200, Patrick McHardy wrote:
-> Pablo Neira wrote:
-> > This patch comes from the following thread:
-> >=20
-> > [PATCH 6/7] Fix expectation creation
-> >=20
-> > In unlink_expect, the expectation is removed from the list so the
-> > refcount must be dropped as well.
->=20
-> The patch is fine, but it leaves the somewhat broken function
-> __ip_ct_expect_unlink_destroy around. I'm not sure what the
-> intention of this function is, it looks like a lazy way of
-> killing conntracks without manually dropping the timer refcnt.
-> Anyway it invites people to use it in the wrong place and
-> should die IMO.
+> The fix was as simple as:
+> 
+> LD_ASSUME_KERNEL=2.2.5
+> 
+> environment variable.
 
-Ok, if it dies we'd have to export unlink_expect() for ctnetlink.
+Which would disable TLS.
 
-However, all places calling unlink_expect() also call expect_put()
-immediately after it - with one exception: find_expectation() :(
+> I guess my kernel version is too high for my glibc version or something
+> like that!
 
-Getting back to your comment: =20
-> it looks like a lazy way of killing conntracks without manually
-> dropping the timer refcnt.
+What's the output /lib/libc.so.6? Just out of curiosity. And maybe if 
+you set LD_DEBUG=all and run iptables? Also the ldd /sbin/iptables and 
+LD_TRACE_LOADED_OBJECTS=1 setting may give you more input.
 
-Sorry, I can't follow you: Did you mean something like 'lazy way of
-killing expects without manually expiring the timer' ? =20
+> This also stops various segfaults too.
 
-So your whole objection is to not have timer_del() inside
-__ip_ct_expect_unlink_destroy() ?   this can be changed easily.
+Interesting.
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---yr/DzoowOgTDcSCF
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC82bhXaXGVTD0i/8RAiqiAJ9+WfVPCLd7vTrZKbYIJyf0H6xmMQCfVher
-OwJ3SNQqB9mrRDLRI7LMOXs=
-=Sj4r
------END PGP SIGNATURE-----
-
---yr/DzoowOgTDcSCF--
+Cheers,
+Roberto Nibali, ratz
+-- 
+echo 
+'[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq' | dc
