@@ -1,17 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Change protocol private information
-Date: Fri, 5 Aug 2005 21:24:35 +0200
-Message-ID: <20050805192435.GI13345@rama.de.gnumonks.org>
-References: <42F2B516.5020307@eurodev.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Drop expectation refcount after unlinking expectation
+Date: Sat, 06 Aug 2005 16:24:32 +0200
+Message-ID: <42F4C820.7020209@trash.net>
+References: <42F2B507.8070207@eurodev.net> <42F342B8.7010001@trash.net>
+	<20050805130803.GI4245@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="AqCDj3hiknadvR6t"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+	Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-Content-Disposition: inline
-In-Reply-To: <42F2B516.5020307@eurodev.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050805130803.GI4245@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,47 +23,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
+> On Fri, Aug 05, 2005 at 12:43:04PM +0200, Patrick McHardy wrote:
+> 
+>>Pablo Neira wrote:
+>>
+>>>OK, my question is: why do we need to increase the master conntrack
+>>>refcount for expectations, if they are always killed first? Actually I
+>>>think that the master conntrack refcount should be increased once the
+>>>expectation is confirmed but not in ip_conntrack_expect_alloc.
+>>
+>>Only outstanding expectations are removed by remove_expectations().
+>>The fullfilled ones need the reference for stuff like
+>>ip_nat_follow_master.
+> 
+> So Pablo's argument stil upholds... in theory it would be sufficient to
+> increase the master refcount when expectation is fulfilled(confirmed)
+> instead of allocation time.  Or am I missing something?
 
---AqCDj3hiknadvR6t
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Aug 05, 2005 at 02:38:46AM +0200, Pablo Neira wrote:
-> Hi Harald,
->=20
-> This is a resent. I'd like to discuss this a bit. Following the
-> discusion left at:
-
-I know it's an awful amount of overhead, but if we do this, we have to
-nest the protoinfo into another attribute. =20
-
-layer4-specific attributes like CTA_PROTOINFO_TCP_STATE just don't
-belong in that list.  CTA_PROTOINFO is fine, and then inside protoinfo
-every l4 helper can nest its own (private) nfattr's into that.
-
-Please rework your patch and resubmit, thanks.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---AqCDj3hiknadvR6t
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC87zzXaXGVTD0i/8RAoZbAJ9fipNiRx1XFrl+mtskXuDfZDaC/QCeNFed
-+AxApGqznOYgIihekaaH6UU=
-=Q3bB
------END PGP SIGNATURE-----
-
---AqCDj3hiknadvR6t--
+No, it is possible, but we do take a reference in expect_alloc, and I
+don't see the point of obscuring the reference counting by increasing
+the count at a later point in time.
