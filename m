@@ -1,18 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] add new nfnetlink_log subsystem
-Date: Sun, 7 Aug 2005 17:03:58 +0200
-Message-ID: <20050807150358.GD4855@rama.de.gnumonks.org>
-References: <20050730103005.GB6620@rama.de.gnumonks.org>
-	<20050807112039.GF10481@postel.suug.ch>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: 2.6.13-rc4-mm1: iptables DROP crashes the computer
+Date: Sun, 7 Aug 2005 19:23:33 +0200
+Message-ID: <20050807172333.GF3513@stusta.de>
+References: <7aaed091050807100843454603@mail.gmail.com>
+	<7aaed09105080710121bba1b5b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="llIrKcgUOe3dCx0c"
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	linux <linux-kernel@vger.kernel.org>, discuss@x86-64.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Graf <tgraf@suug.ch>
+To: Espen =?iso-8859-1?Q?Fjellv=E6r?= Olsen <espenfjo@gmail.com>
 Content-Disposition: inline
-In-Reply-To: <20050807112039.GF10481@postel.suug.ch>
+In-Reply-To: <7aaed09105080710121bba1b5b@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,51 +24,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sun, Aug 07, 2005 at 07:12:00PM +0200, Espen Fjellvær Olsen wrote:
 
---llIrKcgUOe3dCx0c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> After execing "iptables -A INPUT -j DROP" my computer crashes hard. It
+> dosent hang immediately, but after a couple of seconds.
+> The machine is an amd64, running a clean x86_64 environment.
+> uname -a: Linux gentoo 2.6.13-rc4-mm1 #1 PREEMPT Thu Aug 4 01:01:44
+> CEST 2005 x86_64 AMD Athlon(tm) 64 Processor 3400+ AuthenticAMD
+>...
 
-On Sun, Aug 07, 2005 at 01:20:39PM +0200, Thomas Graf wrote:
-> * Harald Welte <20050730103005.GB6620@rama.de.gnumonks.org> 2005-07-30 12=
-:30
-> > This (long-awaited) patch adds the generic nfnetlink-based userspace
-> > logging.  nfnetlink_log can be used for any protocol family, and
-> > supports upt to 65535 logging groups (that could go to separate logging
-> > daemons, e.g.).
->=20
-> Same very minor issues as nfnetlink regarding some of the
-> new netlink message construction policies. I'll "fix" them
-> during the conversion to the generic netlink attributes.
+Is this reproducible or did it happen only once?
 
-is this supposed to happen soon?  I also need to update the userspace
-side in case you make any changes, so I'd appreciate any changes going
-in ASAP.  Alternatively just tell me what needs to change and I'll
-change it even before the generalization.
+Are there any messages that might give a hint where to search for the 
+problem?
 
-thanks
+You are reporting this against 2.6.13-rc4-mm1, but are attaching a 
+.config of 2.6.13-rc5-mm1. Which kernels are affected, and which are 
+not?
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Does it still happen if you compile your kernel with preemption 
+disabled?
 
---llIrKcgUOe3dCx0c
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Please send the output of ./scripts/ver_linux .
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+> Mvh / Best regards
+> Espen Fjellvær Olsen
 
-iD8DBQFC9iLeXaXGVTD0i/8RAhwpAKCLiKxxfNlyKw/sfSzQikQ+iWldYwCdEzyU
-j2owmMcsKcD7FSlj2CzV4Pg=
-=l5Bi
------END PGP SIGNATURE-----
+cu
+Adrian
 
---llIrKcgUOe3dCx0c--
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
