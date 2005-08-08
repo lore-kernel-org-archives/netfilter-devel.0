@@ -1,11 +1,10 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH NF_CONNTRACK] convert nfmark and conntrack mark to 32bit in
- nf_conntrack
-Date: Mon, 08 Aug 2005 17:40:46 +0900 (JST)
-Message-ID: <200508080840.j788ekQd011697@toshiba.co.jp>
+Subject: [PATCH 2.6.14] return ENOMEM if failed to allocate conntrack.
+Date: Mon, 08 Aug 2005 17:47:00 +0900 (JST)
+Message-ID: <200508080847.j788l1Yg004416@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Mon_Aug__8_17_40_46_2005_493)--"
+	boundary="--Next_Part(Mon_Aug__8_17_47_00_2005_240)--"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
@@ -20,69 +19,66 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Mon_Aug__8_17_40_46_2005_493)--
+----Next_Part(Mon_Aug__8_17_47_00_2005_240)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
 
-Hi, Harald,
+Hi,
 
-This patch follows ip_conntrack change that converts nfmark and conntrack-mark
-to be 32bits even on 64bit architectures, as discussed at netconf'05.
+This patch fixes the bug which doesn't return ERR_PTR(-ENOMEM) if it failed
+to allocate memory space from slab cache.
+
+Please consider applying this to netfilter-2.6.14 tree.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-
-Regards,
 
 -----------------------------------------------------------------
 Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
-----Next_Part(Mon_Aug__8_17_40_46_2005_493)--
+----Next_Part(Mon_Aug__8_17_47_00_2005_240)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="03-mark.patch"
+Content-Disposition: inline; filename="02-nomem.patch"
 
-[NETFILTER]: convert nfmark and conntrack mark to 32bit in nf_conntrack
+[NETFILTER] return ENOMEM if failed to allocate conntrack.
 
-This patch follows ip_conntrack change that converts nfmark and conntrack-mark
-to be 32bits even on 64bit architectures, as discussed at netconf'05.
-
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+This patch fixes the bug which doesn't return ERR_PTR(-ENOMEM) if it failed
+to allocate memory space from slab cache.
 
 ---
-commit e2549f67dccab385cec329cf16d4002773c3b88b
-tree d3a4c51110eb26abdd6f09375d97c5a8c16afc84
-parent 745bb895699402a7031588faa4f260afc656f4dd
-author <kozakai@alprut.(none)> Mon, 08 Aug 2005 11:20:07 +0900
-committer <kozakai@alprut.(none)> Mon, 08 Aug 2005 11:20:07 +0900
+commit b4cfffe82a33f72621196cdc7a79d6b0fb0085df
+tree 7401f6dfad283fac89e95397a3050ce7584664a7
+parent cb61a01e73b145368630f82298951e77a9ff8ee4
+author <kozakai@alprut.(none)> Mon, 08 Aug 2005 01:51:33 +0900
+committer <kozakai@alprut.(none)> Mon, 08 Aug 2005 01:51:33 +0900
 
- include/linux/netfilter/nf_conntrack.h  |    2 +-
- net/netfilter/nf_conntrack_standalone.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_core.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack.h b/include/linux/netfilter/nf_conntrack.h
---- a/include/linux/netfilter/nf_conntrack.h
-+++ b/include/linux/netfilter/nf_conntrack.h
-@@ -104,7 +104,7 @@ struct nf_conn
- 	union nf_conntrack_proto proto;
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -655,7 +655,7 @@ struct ip_conntrack *ip_conntrack_alloc(
+ 	conntrack = kmem_cache_alloc(ip_conntrack_cachep, GFP_ATOMIC);
+ 	if (!conntrack) {
+ 		DEBUGP("Can't allocate conntrack.\n");
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
+ 	}
  
- #if defined(CONFIG_NF_CONNTRACK_MARK)
--	unsigned long mark;
-+	u_int32_t mark;
- #endif
+ 	memset(conntrack, 0, sizeof(*conntrack));
+@@ -696,8 +696,9 @@ init_conntrack(struct ip_conntrack_tuple
+ 		return NULL;
+ 	}
  
- 	/* These members are dynamically allocated. */
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -209,7 +209,7 @@ static int ct_seq_show(struct seq_file *
- 			return -ENOSPC;
+-	if (!(conntrack = ip_conntrack_alloc(tuple, &repl_tuple)))
+-		return NULL;
++	conntrack = ip_conntrack_alloc(tuple, &repl_tuple);
++	if (conntrack == NULL || IS_ERR(conntrack))
++		return (struct ip_conntrack_tuple_hash *)conntrack;
  
- #if defined(CONFIG_NF_CONNTRACK_MARK)
--	if (seq_printf(s, "mark=%lu ", conntrack->mark))
-+	if (seq_printf(s, "mark=%u ", conntrack->mark))
- 		return -ENOSPC;
- #endif
- 
+ 	if (!protocol->new(conntrack, skb)) {
+ 		ip_conntrack_free(conntrack);
 
-----Next_Part(Mon_Aug__8_17_40_46_2005_493)----
+----Next_Part(Mon_Aug__8_17_47_00_2005_240)----
