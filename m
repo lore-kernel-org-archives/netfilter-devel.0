@@ -1,15 +1,13 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH] move conntrack helper buffers out of BSS
-Date: Mon, 08 Aug 2005 06:45:04 -0700 (PDT)
-Message-ID: <20050808.064504.130238813.davem@davemloft.net>
-References: <20050807223934.GA4066@rama.de.gnumonks.org>
+From: Aleksandar Milivojevic <alex@milivojevic.org>
+Subject: ipsec in transport mode is not handled correctly
+Date: Mon, 08 Aug 2005 10:34:59 -0500
+Message-ID: <20050808103459.e1sm3gpj4wgs4coc@www.milivojevic.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20050807223934.GA4066@rama.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
+Content-disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,9 +19,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Mon, 8 Aug 2005 00:39:34 +0200
+I've noticed that on kernel-2.6.9-11.EL IPSec packets go through INPUT chain of
+filter table only once if I use IPSec in transport mode.  They go there only
+encrypted (ESP packet), but there's no second pass with decrytped packet.
 
-> [NETFILTER] move conntrack helper buffers from BSS to kmalloc()ed memory
+If I change IPSec configuration to use tunnel mode, everything works as
+expected.
 
-Patch applied, thanks :-)
+I've made a much more detailed description at:
+
+https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=165359
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
