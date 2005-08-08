@@ -1,15 +1,18 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: [PATCH] add autoloading support to nfnetlink_log
-Date: Mon, 8 Aug 2005 00:15:35 +0200
-Message-ID: <20050807221535.GC4508@rama.de.gnumonks.org>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] Drop expectation refcount after unlinking expectation
+Date: Mon, 08 Aug 2005 09:59:23 +0900 (JST)
+Message-ID: <200508080059.j780xOAE028374@toshiba.co.jp>
+References: <42F342B8.7010001@trash.net>
+	<20050805130803.GI4245@rama.de.gnumonks.org>
+	<42F4C820.7020209@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VIOdPewhitSMo36n"
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
+	pablo@eurodev.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David Miller <davem@davemloft.net>
-Content-Disposition: inline
+To: kaber@trash.net
+In-Reply-To: <42F4C820.7020209@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,75 +24,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Patrick McHardy <kaber@trash.net>
+Date: Sat, 06 Aug 2005 16:24:32 +0200
 
---VIOdPewhitSMo36n
-Content-Type: multipart/mixed; boundary="7SrMUQONj8Rl9QNG"
-Content-Disposition: inline
+> Harald Welte wrote:
+> > On Fri, Aug 05, 2005 at 12:43:04PM +0200, Patrick McHardy wrote:
+> > 
+> >>Pablo Neira wrote:
+> >>
+> >>>OK, my question is: why do we need to increase the master conntrack
+> >>>refcount for expectations, if they are always killed first? Actually I
+> >>>think that the master conntrack refcount should be increased once the
+> >>>expectation is confirmed but not in ip_conntrack_expect_alloc.
+> >>
+> >>Only outstanding expectations are removed by remove_expectations().
+> >>The fullfilled ones need the reference for stuff like
+> >>ip_nat_follow_master.
+> > 
+> > So Pablo's argument stil upholds... in theory it would be sufficient to
+> > increase the master refcount when expectation is fulfilled(confirmed)
+> > instead of allocation time.  Or am I missing something?
+> 
+> No, it is possible, but we do take a reference in expect_alloc, and I
+> don't see the point of obscuring the reference counting by increasing
+> the count at a later point in time.
 
+This refcounts handling has other issue of deadlock.
+ip_conntrack_expect_put() is called while holding nf_conntrack_lock
+by ip_conntrack_expect_related() and ip_conntrack_helper_unregister().
+In logical, this may result in deadlock in destroy_conntrack() destroying
+master of expectation.
 
---7SrMUQONj8Rl9QNG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I cannot find the case that refcounts of conntrack become 0 by
+ip_conntrack_expect_put() because expectations seems to be destroyed
+earlier than conntrack. But Pablo and Harald idea will solve this issue if
+deadlock is really possible.
 
-Please apply, thanks
-
---=20
-- Harald Welte <laforge@gnumonks.org>          	        http://gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"Privacy in residential applications is a desirable marketing option."
-                                                  (ETSI EN 300 175-7 Ch. A6)
-
---7SrMUQONj8Rl9QNG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="33-nfnetlink_log-autoload.patch"
-Content-Transfer-Encoding: quoted-printable
-
-[NETFILTER] fix autoloading of nfnetlink_log
-
-This patch adds the MODULE_ALIAS required for netnlink autoloading of
-nfnetlink_log.
-
-Signed-off-by: Harald Welte <laforge@netfilter.org>
-
----
-commit 7e42bac6926c9ab54033ddc4695e9a3d30b6b453
-tree aae33467661ea95482d218e22ceadfa448cc8a0d
-parent c16fd4ffed6349d0888cd97a75d04394dac42021
-author Harald Welte <laforge@netfilter.org> So, 07 Aug 2005 19:24:43 +0200
-committer Harald Welte <laforge@netfilter.org> So, 07 Aug 2005 19:24:43 +02=
-00
-
- net/netfilter/nfnetlink_log.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -1013,6 +1013,7 @@ static void __exit fini(void)
- MODULE_DESCRIPTION("netfilter userspace logging");
- MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_ULOG);
-=20
- module_init(init);
- module_exit(fini);
-
---7SrMUQONj8Rl9QNG--
-
---VIOdPewhitSMo36n
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC9ogEXaXGVTD0i/8RAs2qAKCTTK3YsTlr49kfv+2c8lq2NuRD9gCgkil+
-b3iujk95ZC0BKC8soxSoSiE=
-=YhRg
------END PGP SIGNATURE-----
-
---VIOdPewhitSMo36n--
+-----------------------------------------------------------------
+Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
