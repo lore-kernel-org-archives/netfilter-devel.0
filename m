@@ -1,15 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] move conntrack helper buffers out of BSS
-Date: Mon, 8 Aug 2005 00:39:34 +0200
-Message-ID: <20050807223934.GA4066@rama.de.gnumonks.org>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH NF_CONNTRACK] use negative return values as error on
+ l3proto processing
+Date: Mon, 08 Aug 2005 17:36:05 +0900 (JST)
+Message-ID: <200508080836.j788a5TX019221@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="V88s5gaDVPzZ0KCq"
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: Multipart/Mixed;
+	boundary="--Next_Part(Mon_Aug__8_17_36_05_2005_689)--"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David Miller <davem@davemloft.net>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,179 +20,148 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+----Next_Part(Mon_Aug__8_17_36_05_2005_689)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
---V88s5gaDVPzZ0KCq
-Content-Type: multipart/mixed; boundary="98e8jtXdkpgskNou"
-Content-Disposition: inline
+
+Hi, Harald,
+
+This patch changes the return values of L3 protocol processing
+like L4 protocol processing.
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+
+Regards,
+
+-----------------------------------------------------------------
+Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
 
---98e8jtXdkpgskNou
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+----Next_Part(Mon_Aug__8_17_36_05_2005_689)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="01-l3proto_err.patch"
 
-Hi Dave,
-I guess you will enjoy the following patch ;)
-Please apply to net-2.6.14, thanks.
+[NETFILTER] use negative return values as error on l3proto processing.
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---98e8jtXdkpgskNou
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="36-conntrack_helper-nobss.patch"
-Content-Transfer-Encoding: quoted-printable
-
-[NETFILTER] move conntrack helper buffers from BSS to kmalloc()ed memory
-
-According to DaveM, it is preferrable to have large data structures be
-allocated dynamically from the module init() function rather than putting
-them as static global variables into BSS.
-
-This patch moves the conntrack helper packet buffers into dynamically
-allocated memory.
-
-Signed-off-by: Harald Welte <laforge@netfilter.org>
+This patch changes the return values of L3 protocol processing
+like L4 protocol processing.
 
 ---
-commit 6a85f7cafea91c2eea692828c7c1602d2da4f4c4
-tree 66716ca9e7565377dcd42552a69189c8300f8182
-parent 56ca768cb5d27e3b1929656cb186976c3b9af5ec
-author Harald Welte <laforge@netfilter.org> Mo, 08 Aug 2005 00:31:23 +0200
-committer Harald Welte <laforge@netfilter.org> Mo, 08 Aug 2005 00:31:23 +02=
-00
+commit 745bb895699402a7031588faa4f260afc656f4dd
+tree 5352f867ed4103931e5c47ff43ef105ccec10685
+parent b4cfffe82a33f72621196cdc7a79d6b0fb0085df
+author <kozakai@alprut.(none)> Mon, 08 Aug 2005 01:54:48 +0900
+committer <kozakai@alprut.(none)> Mon, 08 Aug 2005 01:54:48 +0900
 
- net/ipv4/netfilter/ip_conntrack_amanda.c |   18 ++++++++++++++++--
- net/ipv4/netfilter/ip_conntrack_ftp.c    |    9 +++++++--
- net/ipv4/netfilter/ip_conntrack_irc.c    |    7 ++++++-
- 3 files changed, 29 insertions(+), 5 deletions(-)
+ include/linux/netfilter/nf_conntrack_l3proto.h |    2 +-
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    7 +++----
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    7 +++----
+ net/netfilter/nf_conntrack_core.c              |    4 ++--
+ net/netfilter/nf_conntrack_l3proto_generic.c   |    5 ++---
+ 5 files changed, 11 insertions(+), 14 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_amanda.c b/net/ipv4/netfilter/=
-ip_conntrack_amanda.c
---- a/net/ipv4/netfilter/ip_conntrack_amanda.c
-+++ b/net/ipv4/netfilter/ip_conntrack_amanda.c
-@@ -40,7 +40,7 @@ MODULE_PARM_DESC(master_timeout, "timeou
- static char *conns[] =3D { "DATA ", "MESG ", "INDEX " };
-=20
- /* This is slow, but it's simple. --RR */
--static char amanda_buffer[65536];
-+static char *amanda_buffer;
- static DEFINE_SPINLOCK(amanda_buffer_lock);
-=20
- unsigned int (*ip_nat_amanda_hook)(struct sk_buff **pskb,
-@@ -153,11 +153,25 @@ static struct ip_conntrack_helper amanda
- static void __exit fini(void)
+diff --git a/include/linux/netfilter/nf_conntrack_l3proto.h b/include/linux/netfilter/nf_conntrack_l3proto.h
+--- a/include/linux/netfilter/nf_conntrack_l3proto.h
++++ b/include/linux/netfilter/nf_conntrack_l3proto.h
+@@ -66,7 +66,7 @@ struct nf_conntrack_l3proto
+ 	 *	*protonum: protocol number
+ 	 */
+ 	int (*prepare)(struct sk_buff **pskb, unsigned int hooknum,
+-		       unsigned int *dataoff, u_int8_t *protonum, int *ret);
++		       unsigned int *dataoff, u_int8_t *protonum);
+ 
+ 	u_int32_t (*get_features)(const struct nf_conntrack_tuple *tuple);
+ 
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -96,7 +96,7 @@ nf_ct_ipv4_gather_frags(struct sk_buff *
+ 
+ static int
+ ipv4_prepare(struct sk_buff **pskb, unsigned int hooknum, unsigned int *dataoff,
+-	     u_int8_t *protonum, int *ret)
++	     u_int8_t *protonum)
  {
- 	ip_conntrack_helper_unregister(&amanda_helper);
-+	kfree(amanda_buffer);
+ 	/* Never happen */
+ 	if ((*pskb)->nh.iph->frag_off & htons(IP_OFFSET)) {
+@@ -104,14 +104,13 @@ ipv4_prepare(struct sk_buff **pskb, unsi
+ 			printk(KERN_ERR "ipv4_prepare: Frag of proto %u (hook=%u)\n",
+ 			(*pskb)->nh.iph->protocol, hooknum);
+ 		}
+-		*ret = NF_DROP;
+-		return 0;
++		return -NF_DROP;
+ 	}
+ 
+ 	*dataoff = (*pskb)->nh.raw - (*pskb)->data + (*pskb)->nh.iph->ihl*4;
+ 	*protonum = (*pskb)->nh.iph->protocol;
+ 
+-	return 1;
++	return NF_ACCEPT;
  }
-=20
- static int __init init(void)
+ 
+ int nat_module_is_loaded = 0;
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -139,7 +139,7 @@ int nf_ct_ipv6_skip_exthdr(struct sk_buf
+ 
+ static int
+ ipv6_prepare(struct sk_buff **pskb, unsigned int hooknum, unsigned int *dataoff,
+-	     u_int8_t *protonum, int *ret)
++	     u_int8_t *protonum)
  {
--	return ip_conntrack_helper_register(&amanda_helper);
-+	int ret;
-+
-+	amanda_buffer =3D kmalloc(65536, GFP_KERNEL);
-+	if (!amanda_buffer)
-+		return -ENOMEM;
-+
-+	ret =3D ip_conntrack_helper_register(&amanda_helper);
-+	if (ret < 0) {
-+		kfree(amanda_buffer);
-+		return ret;
-+	}
-+	return 0;
-+
-+
- }
-=20
- module_init(init);
-diff --git a/net/ipv4/netfilter/ip_conntrack_ftp.c b/net/ipv4/netfilter/ip_=
-conntrack_ftp.c
---- a/net/ipv4/netfilter/ip_conntrack_ftp.c
-+++ b/net/ipv4/netfilter/ip_conntrack_ftp.c
-@@ -25,8 +25,7 @@ MODULE_AUTHOR("Rusty Russell <rusty@rust
- MODULE_DESCRIPTION("ftp connection tracking helper");
-=20
- /* This is slow, but it's simple. --RR */
--static char ftp_buffer[65536];
--
-+static char *ftp_buffer;
- static DEFINE_SPINLOCK(ip_ftp_lock);
-=20
- #define MAX_PORTS 8
-@@ -461,6 +460,8 @@ static void fini(void)
- 				ports[i]);
- 		ip_conntrack_helper_unregister(&ftp[i]);
+ 	unsigned int extoff;
+ 	unsigned char pnum;
+@@ -159,13 +159,12 @@ ipv6_prepare(struct sk_buff **pskb, unsi
+ 		DEBUGP("ip6_conntrack_core: can't find proto in pkt\n");
+ 		NF_CT_STAT_INC(error);
+ 		NF_CT_STAT_INC(invalid);
+-		*ret =  NF_ACCEPT;
+-		return 0;
++		return -NF_ACCEPT;
  	}
-+
-+	kfree(ftp_buffer);
+ 
+ 	*dataoff = protoff;
+ 	*protonum = pnum;
+-	return 1;
++	return NF_ACCEPT;
  }
-=20
- static int __init init(void)
-@@ -468,6 +469,10 @@ static int __init init(void)
- 	int i, ret;
- 	char *tmpname;
-=20
-+	ftp_buffer =3D kmalloc(65536, GFP_KERNEL);
-+	if (!ftp_buffer)
-+		return -ENOMEM;
-+
- 	if (ports_c =3D=3D 0)
- 		ports[ports_c++] =3D FTP_PORT;
-=20
-diff --git a/net/ipv4/netfilter/ip_conntrack_irc.c b/net/ipv4/netfilter/ip_=
-conntrack_irc.c
---- a/net/ipv4/netfilter/ip_conntrack_irc.c
-+++ b/net/ipv4/netfilter/ip_conntrack_irc.c
-@@ -39,7 +39,7 @@ static int ports_c;
- static int max_dcc_channels =3D 8;
- static unsigned int dcc_timeout =3D 300;
- /* This is slow, but it's simple. --RR */
--static char irc_buffer[65536];
-+static char *irc_buffer;
- static DEFINE_SPINLOCK(irc_buffer_lock);
-=20
- unsigned int (*ip_nat_irc_hook)(struct sk_buff **pskb,
-@@ -257,6 +257,10 @@ static int __init init(void)
- 		printk("ip_conntrack_irc: dcc_timeout must be a positive integer\n");
- 		return -EBUSY;
+ 
+ static u_int32_t ipv6_get_features(const struct nf_conntrack_tuple *tuple)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -938,9 +938,9 @@ nf_conntrack_in(int pf, unsigned int hoo
  	}
-+
-+	irc_buffer =3D kmalloc(65536, GFP_KERNEL);
-+	if (!irc_buffer)
-+		return -ENOMEM;
- =09
- 	/* If no port given, default to standard irc port */
- 	if (ports_c =3D=3D 0)
-@@ -304,6 +308,7 @@ static void fini(void)
- 		       ports[i]);
- 		ip_conntrack_helper_unregister(&irc_helpers[i]);
+ 
+ 	l3proto = nf_ct_find_l3proto((u_int16_t)pf);
+-	if (l3proto->prepare(pskb, hooknum, &dataoff, &protonum, &ret) == 0) {
++	if ((ret = l3proto->prepare(pskb, hooknum, &dataoff, &protonum)) <= 0) {
+ 		DEBUGP("not prepared to track yet or error occured\n");
+-		return ret;
++		return -ret;
  	}
-+	kfree(irc_buffer);
+ 
+ 	proto = nf_ct_find_proto((u_int16_t)pf, protonum);
+diff --git a/net/netfilter/nf_conntrack_l3proto_generic.c b/net/netfilter/nf_conntrack_l3proto_generic.c
+--- a/net/netfilter/nf_conntrack_l3proto_generic.c
++++ b/net/netfilter/nf_conntrack_l3proto_generic.c
+@@ -72,11 +72,10 @@ static int generic_print_conntrack(struc
+ 
+ static int
+ generic_prepare(struct sk_buff **pskb, unsigned int hooknum,
+-		unsigned int *dataoff, u_int8_t *protonum, int *ret)
++		unsigned int *dataoff, u_int8_t *protonum)
+ {
+ 	/* Never track !!! */
+-	*ret = NF_ACCEPT;
+-	return 0;
++	return -NF_ACCEPT;
  }
-=20
- module_init(init);
+ 
+ 
 
---98e8jtXdkpgskNou--
-
---V88s5gaDVPzZ0KCq
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC9o2lXaXGVTD0i/8RAjfcAJ9Z6UU4YeES79tTqKaw6pQrpveCfACgiYuj
-JdHYqE/PeTD+lT1IbjtZM5E=
-=N5yC
------END PGP SIGNATURE-----
-
---V88s5gaDVPzZ0KCq--
+----Next_Part(Mon_Aug__8_17_36_05_2005_689)----
