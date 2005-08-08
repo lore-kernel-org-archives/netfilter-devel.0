@@ -1,11 +1,11 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH NF_CONNTRACK] use negative return values as error on
- l3proto processing
-Date: Mon, 08 Aug 2005 17:36:05 +0900 (JST)
-Message-ID: <200508080836.j788a5TX019221@toshiba.co.jp>
+Subject: [PATCH NF_CONNTRACK] convert nfmark and conntrack mark to 32bit in
+ nf_conntrack
+Date: Mon, 08 Aug 2005 17:40:46 +0900 (JST)
+Message-ID: <200508080840.j788ekQd011697@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Mon_Aug__8_17_36_05_2005_689)--"
+	boundary="--Next_Part(Mon_Aug__8_17_40_46_2005_493)--"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
@@ -20,15 +20,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Mon_Aug__8_17_36_05_2005_689)--
+----Next_Part(Mon_Aug__8_17_40_46_2005_493)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
 
 Hi, Harald,
 
-This patch changes the return values of L3 protocol processing
-like L4 protocol processing.
+This patch follows ip_conntrack change that converts nfmark and conntrack-mark
+to be 32bits even on 64bit architectures, as discussed at netconf'05.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
@@ -37,131 +37,52 @@ Regards,
 -----------------------------------------------------------------
 Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
-
-----Next_Part(Mon_Aug__8_17_36_05_2005_689)--
+----Next_Part(Mon_Aug__8_17_40_46_2005_493)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="01-l3proto_err.patch"
+Content-Disposition: inline; filename="03-mark.patch"
 
-[NETFILTER] use negative return values as error on l3proto processing.
+[NETFILTER]: convert nfmark and conntrack mark to 32bit in nf_conntrack
 
-This patch changes the return values of L3 protocol processing
-like L4 protocol processing.
+This patch follows ip_conntrack change that converts nfmark and conntrack-mark
+to be 32bits even on 64bit architectures, as discussed at netconf'05.
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
 ---
-commit 745bb895699402a7031588faa4f260afc656f4dd
-tree 5352f867ed4103931e5c47ff43ef105ccec10685
-parent b4cfffe82a33f72621196cdc7a79d6b0fb0085df
-author <kozakai@alprut.(none)> Mon, 08 Aug 2005 01:54:48 +0900
-committer <kozakai@alprut.(none)> Mon, 08 Aug 2005 01:54:48 +0900
+commit e2549f67dccab385cec329cf16d4002773c3b88b
+tree d3a4c51110eb26abdd6f09375d97c5a8c16afc84
+parent 745bb895699402a7031588faa4f260afc656f4dd
+author <kozakai@alprut.(none)> Mon, 08 Aug 2005 11:20:07 +0900
+committer <kozakai@alprut.(none)> Mon, 08 Aug 2005 11:20:07 +0900
 
- include/linux/netfilter/nf_conntrack_l3proto.h |    2 +-
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    7 +++----
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    7 +++----
- net/netfilter/nf_conntrack_core.c              |    4 ++--
- net/netfilter/nf_conntrack_l3proto_generic.c   |    5 ++---
- 5 files changed, 11 insertions(+), 14 deletions(-)
+ include/linux/netfilter/nf_conntrack.h  |    2 +-
+ net/netfilter/nf_conntrack_standalone.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_l3proto.h b/include/linux/netfilter/nf_conntrack_l3proto.h
---- a/include/linux/netfilter/nf_conntrack_l3proto.h
-+++ b/include/linux/netfilter/nf_conntrack_l3proto.h
-@@ -66,7 +66,7 @@ struct nf_conntrack_l3proto
- 	 *	*protonum: protocol number
- 	 */
- 	int (*prepare)(struct sk_buff **pskb, unsigned int hooknum,
--		       unsigned int *dataoff, u_int8_t *protonum, int *ret);
-+		       unsigned int *dataoff, u_int8_t *protonum);
+diff --git a/include/linux/netfilter/nf_conntrack.h b/include/linux/netfilter/nf_conntrack.h
+--- a/include/linux/netfilter/nf_conntrack.h
++++ b/include/linux/netfilter/nf_conntrack.h
+@@ -104,7 +104,7 @@ struct nf_conn
+ 	union nf_conntrack_proto proto;
  
- 	u_int32_t (*get_features)(const struct nf_conntrack_tuple *tuple);
+ #if defined(CONFIG_NF_CONNTRACK_MARK)
+-	unsigned long mark;
++	u_int32_t mark;
+ #endif
  
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -96,7 +96,7 @@ nf_ct_ipv4_gather_frags(struct sk_buff *
+ 	/* These members are dynamically allocated. */
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -209,7 +209,7 @@ static int ct_seq_show(struct seq_file *
+ 			return -ENOSPC;
  
- static int
- ipv4_prepare(struct sk_buff **pskb, unsigned int hooknum, unsigned int *dataoff,
--	     u_int8_t *protonum, int *ret)
-+	     u_int8_t *protonum)
- {
- 	/* Never happen */
- 	if ((*pskb)->nh.iph->frag_off & htons(IP_OFFSET)) {
-@@ -104,14 +104,13 @@ ipv4_prepare(struct sk_buff **pskb, unsi
- 			printk(KERN_ERR "ipv4_prepare: Frag of proto %u (hook=%u)\n",
- 			(*pskb)->nh.iph->protocol, hooknum);
- 		}
--		*ret = NF_DROP;
--		return 0;
-+		return -NF_DROP;
- 	}
- 
- 	*dataoff = (*pskb)->nh.raw - (*pskb)->data + (*pskb)->nh.iph->ihl*4;
- 	*protonum = (*pskb)->nh.iph->protocol;
- 
--	return 1;
-+	return NF_ACCEPT;
- }
- 
- int nat_module_is_loaded = 0;
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -139,7 +139,7 @@ int nf_ct_ipv6_skip_exthdr(struct sk_buf
- 
- static int
- ipv6_prepare(struct sk_buff **pskb, unsigned int hooknum, unsigned int *dataoff,
--	     u_int8_t *protonum, int *ret)
-+	     u_int8_t *protonum)
- {
- 	unsigned int extoff;
- 	unsigned char pnum;
-@@ -159,13 +159,12 @@ ipv6_prepare(struct sk_buff **pskb, unsi
- 		DEBUGP("ip6_conntrack_core: can't find proto in pkt\n");
- 		NF_CT_STAT_INC(error);
- 		NF_CT_STAT_INC(invalid);
--		*ret =  NF_ACCEPT;
--		return 0;
-+		return -NF_ACCEPT;
- 	}
- 
- 	*dataoff = protoff;
- 	*protonum = pnum;
--	return 1;
-+	return NF_ACCEPT;
- }
- 
- static u_int32_t ipv6_get_features(const struct nf_conntrack_tuple *tuple)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -938,9 +938,9 @@ nf_conntrack_in(int pf, unsigned int hoo
- 	}
- 
- 	l3proto = nf_ct_find_l3proto((u_int16_t)pf);
--	if (l3proto->prepare(pskb, hooknum, &dataoff, &protonum, &ret) == 0) {
-+	if ((ret = l3proto->prepare(pskb, hooknum, &dataoff, &protonum)) <= 0) {
- 		DEBUGP("not prepared to track yet or error occured\n");
--		return ret;
-+		return -ret;
- 	}
- 
- 	proto = nf_ct_find_proto((u_int16_t)pf, protonum);
-diff --git a/net/netfilter/nf_conntrack_l3proto_generic.c b/net/netfilter/nf_conntrack_l3proto_generic.c
---- a/net/netfilter/nf_conntrack_l3proto_generic.c
-+++ b/net/netfilter/nf_conntrack_l3proto_generic.c
-@@ -72,11 +72,10 @@ static int generic_print_conntrack(struc
- 
- static int
- generic_prepare(struct sk_buff **pskb, unsigned int hooknum,
--		unsigned int *dataoff, u_int8_t *protonum, int *ret)
-+		unsigned int *dataoff, u_int8_t *protonum)
- {
- 	/* Never track !!! */
--	*ret = NF_ACCEPT;
--	return 0;
-+	return -NF_ACCEPT;
- }
- 
+ #if defined(CONFIG_NF_CONNTRACK_MARK)
+-	if (seq_printf(s, "mark=%lu ", conntrack->mark))
++	if (seq_printf(s, "mark=%u ", conntrack->mark))
+ 		return -ENOSPC;
+ #endif
  
 
-----Next_Part(Mon_Aug__8_17_36_05_2005_689)----
+----Next_Part(Mon_Aug__8_17_40_46_2005_493)----
