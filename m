@@ -1,17 +1,13 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: Fixed Re: iptables 1.3.1 crashes on iptables-restore
-Date: Mon, 08 Aug 2005 17:03:18 +0100
-Message-ID: <42F78246.3030302@ufomechanic.net>
-References: <20050330034616.GA8639@samad.com.au>	<424BB242.6070809@drugphish.ch>	<42F24151.1090702@ufomechanic.net>	<42F33AAD.8060201@ufomechanic.net>	<dcvnn9$vpl$1@sea.gmane.org>
-	<42F367FF.7060605@drugphish.ch>
-	<42F77E2E.2090307@ufomechanic.net> <42F780B3.3030102@tac.ch>
+From: Sven Schuster <schuster.sven@gmx.de>
+Subject: [resend] Building conntrack
+Date: Mon, 8 Aug 2005 13:10:06 +0200
+Message-ID: <20050808111006.GA24825@zion.homelinux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8t9RHnE3ZwKMSgU+"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Roberto Nibali <ratz@tac.ch>
-In-Reply-To: <42F780B3.3030102@tac.ch>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,37 +19,82 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Roberto Nibali wrote:
 
->>Yes, I need the latest and greatest conntrack stuff, naturally ;-)
->>    
->>
->
->So you run a 2.6.14 kernel :)
->  
->
-I'm waiting for all the fancy goods to get merged before I take that one.
+--8t9RHnE3ZwKMSgU+
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->
->Invoke /lib/libc.so.6 like a command. It won't destroy your system but
->it will display how your libc was crafted.
->  
->
-GNU C Library stable release version 2.3.2, by Roland McGrath et al.
+
+Hi everybody,
+
+I'm resending this message because I didn't get any response to my
+first try, and in the meantime I've managed to update my machine
+=66rom redhat 9 with many self-built RPMS to stay up to date to a
+freshly installed fedora core 4 machine. But I still get the same
+errors as described below, but now (because of the fresh install)
+I can at least be sure that it's not because of some broken
+autoconf- or whatever-packages:
+
+I'm currently trying to build conntrack from todays' svn, and getting
+the following errors running autoconf:
+
+# autoconf
+
+# autoconf
+configure.in:5: error: possibly undefined macro: AM_INIT_AUTOMAKE
+If this token and others are legitimate, please use m4_pattern_allow.
+See the Autoconf documentation.
+configure.in:6: error: possibly undefined macro: AM_CONFIG_HEADER
+configure.in:9: error: possibly undefined macro: AM_PROG_LIBTOOL
+
+when I call autoconf a second time, it works without any error, but
+when I then run configure, I get this errors:
+
+# ./configure
+checking build system type... i686-pc-linux-gnu
+checking host system type... i686-pc-linux-gnu
+checking target system type... i686-pc-linux-gnu
+=2E/configure: line 1365: syntax error near unexpected token `conntrack,'
+=2E/configure: line 1365: `AM_INIT_AUTOMAKE(conntrack, 0.63)'
+
+Here's the version of autoconf I'm using:
+
+# autoconf --version
+autoconf (GNU Autoconf) 2.59
+Written by David J. MacKenzie and Akim Demaille.
+
 Copyright (C) 2003 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.
-There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE.
-Compiled by GNU CC version 3.2.2 20030222 (Red Hat Linux 3.2.2-5).
-Compiled on a Linux 2.4.20 system on 2003-03-13.
-Available extensions:
-        GNU libio by Per Bothner
-        crypt add-on version 2.1 by Michael Glad and others
-        linuxthreads-0.10 by Xavier Leroy
-        BIND-8.2.3-T5B
-        libthread_db work sponsored by Alpha Processor Inc
-        NIS(YP)/NIS+ NSS modules 0.19 by Thorsten Kukuk
-Thread-local storage support included.
-Report bugs using the `glibcbug' script to <bugs@gnu.org>.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-Sam
+
+This is autoconf-2.59-5 from FC4.
+
+Any hints how to get it right?? Am I doing something wrong??
+
+Thanks in advance!
+
+
+Regards,
+
+Sven
+
+--=20
+Linux zion.homelinux.com 2.6.12-1.1398_FC4 #1 Fri Jul 15 00:52:32 EDT 2005 =
+i686 athlon i386 GNU/Linux
+ 13:04:29 up 14:12,  1 user,  load average: 0.03, 0.06, 0.01
+
+--8t9RHnE3ZwKMSgU+
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFC9z2Oo4FAdB2PneQRAsmvAJ95FnRFTcskMwLF+zFzAoqrUMIjkgCdGzpn
+KS2kbrxndZAEqyI8LGMJa1A=
+=Z+KL
+-----END PGP SIGNATURE-----
+
+--8t9RHnE3ZwKMSgU+--
