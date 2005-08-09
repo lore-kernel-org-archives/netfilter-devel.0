@@ -1,12 +1,17 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Question about reference count of expectations in 2.6.14 tree
-Date: Tue, 09 Aug 2005 19:45:59 +0900 (JST)
-Message-ID: <200508091046.j79Ak00k008851@toshiba.co.jp>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH] add bridging support to nfnetlink_{log,queue}
+Date: Mon, 08 Aug 2005 17:00:37 -0700 (PDT)
+Message-ID: <20050808.170037.85417509.davem@davemloft.net>
+References: <W911141491296841123491979@kostunerix.telenet-ops.be>
+	<20050808132413.GA25303@rama.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: bdschuym@telenet.be, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: laforge@netfilter.org
+In-Reply-To: <20050808132413.GA25303@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,12 +23,9 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Harald Welte <laforge@netfilter.org>
+Date: Mon, 8 Aug 2005 15:24:13 +0200
 
-Hi,
+> [NETFILTER] add correct bridging support to nfnetlink_{queue,log}
 
-In 2.6.14 tree, ip_conntrack_expect_insert() increments the reference
-count of expectations twice. I understand that once is for timer.
-What is next incrementing for ? expectation list ?
-
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+Applied.
