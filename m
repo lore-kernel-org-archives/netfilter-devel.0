@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH NF_CONNTRACK] convert nfmark and conntrack mark to 32bit
-	in nf_conntrack
-Date: Mon, 8 Aug 2005 22:03:21 +0200
-Message-ID: <20050808200321.GU25303@rama.de.gnumonks.org>
-References: <200508080840.j788ekQd011697@toshiba.co.jp>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH] nf_log: check function arguments
+Date: Mon, 08 Aug 2005 17:02:17 -0700 (PDT)
+Message-ID: <20050808.170217.45178822.davem@davemloft.net>
+References: <20050808170431.GK25303@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9aHjqRFB8NC1b71K"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Content-Disposition: inline
-In-Reply-To: <200508080840.j788ekQd011697@toshiba.co.jp>
+To: laforge@netfilter.org
+In-Reply-To: <20050808170431.GK25303@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,42 +21,9 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Harald Welte <laforge@netfilter.org>
+Date: Mon, 8 Aug 2005 19:04:31 +0200
 
---9aHjqRFB8NC1b71K
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> [NETFILTER] check nf_log function call arguments
 
-On Mon, Aug 08, 2005 at 05:40:46PM +0900, Yasuyuki KOZAKAI wrote:
->=20
-> Hi, Harald,
->=20
-> This patch follows ip_conntrack change that converts nfmark and conntrack=
--mark
-> to be 32bits even on 64bit architectures, as discussed at netconf'05.
-
-thanks, applied
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---9aHjqRFB8NC1b71K
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC97qJXaXGVTD0i/8RAm0TAJ4tUXdF9+1RIWF0SAXi2SH13iYyUACgg5bt
-vrAgEpcXs0ZGWzbN/BxGej8=
-=Eh/W
------END PGP SIGNATURE-----
-
---9aHjqRFB8NC1b71K--
+Applied.
