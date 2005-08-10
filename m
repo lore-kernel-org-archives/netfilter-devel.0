@@ -1,15 +1,13 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH] nf_{log,queue}: more verbose error reporting
-Date: Mon, 08 Aug 2005 17:01:33 -0700 (PDT)
-Message-ID: <20050808.170133.125897093.davem@davemloft.net>
-References: <20050808170304.GJ25303@rama.de.gnumonks.org>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Question about reference count of expectations in 2.6.14 tree
+Date: Wed, 10 Aug 2005 10:11:49 +0900 (JST)
+Message-ID: <200508100111.j7A1BoSx010077@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Cc: laforge@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20050808170304.GJ25303@rama.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,9 +19,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Mon, 8 Aug 2005 19:03:05 +0200
 
-> [NETFILTER] more verbose return codes from nf_{log,queue}
+# Well, the mail I sent yesterday seems not to reach list, so I resent it.
+# Sorry if you have already received same mail.
 
-Applied.
+Hi,
+
+In 2.6.14 tree, ip_conntrack_expect_insert() increments the reference
+count of expectations twice. I understand that once is for timer.
+What is next incrementing for ? expectation list ?
+
+-----------------------------------------------------------------
+Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
