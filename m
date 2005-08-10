@@ -1,10 +1,11 @@
-From: anjanish pandey <anjanish@yahoo.com>
-Subject: Info on ICMP checksum calculation
-Date: Thu, 11 Aug 2005 00:26:32 -0700 (PDT)
-Message-ID: <20050811072632.22248.qmail@web32512.mail.mud.yahoo.com>
+From: Eric Leblond <eric@inl.fr>
+Subject: NuFW port to libnfnetlink_queue
+Date: Wed, 10 Aug 2005 22:54:10 +0200
+Message-ID: <1123707250.4996.9.camel@porky>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-YreCIeMwgPOXLzhMOscv"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,35 +19,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+
+--=-YreCIeMwgPOXLzhMOscv
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
 Hi,
 
-I am new to this kernel code. 
+I've just finished to port NuFW to NFQUEUE.
 
-I want to know, how this skb checksum works. 
+For the moment, only svn is up-to-date but the daily export will soon
+contains this new feature.
+Svn access method is described at :
+	http://www.nufw.org/-Downloads-.html
 
-I have a driver, which appends the packet, with header
-of 24 bytes, when the packet goes out, and deletes 24
-bytes, header from the packet, when it comes in. 
+It seems to work fine and I will soon do some more extensive tests to
+see how it works under some load. I was able to use both nufw and the
+test program so it is now officially possible to have more than on
+programs using queueing to userspace at the same time.
 
-What I am interested to know is, do I need to
-re-calculate skb->csum, after the 24 bytes has been
-removed from the packet.
+Thanks everyone for the good work !
+--=20
+Eric Leblond <eric@regit.org>
+NuFW, Now User Filtering Works : http://www.nufw.org
 
-I have another query, why icmp.c doesn't have any
-direct check for ICMP checksum, though it does have
-skb checksum verification.
+--=-YreCIeMwgPOXLzhMOscv
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-One more query is, which part of the code, in linux,
-calculates the checksum for skb and update the
-skb->csum, when ethernet packet it recieved at the
-interface.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
-Thank in advance for your help.
+iD8DBQBC+mlynxA7CdMWjzIRAmmJAJ9pz4ORK6qSw4QiA/mQM2zlUyAYHQCgh+dt
+n3I860j+lD8yvy6yPD1lSoo=
+=1POX
+-----END PGP SIGNATURE-----
 
-Regards,
-Anjanish
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+--=-YreCIeMwgPOXLzhMOscv--
