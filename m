@@ -1,18 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Question about reference count of expectations in 2.6.14 tree
-Date: Thu, 11 Aug 2005 16:40:32 +0200
-Message-ID: <42FB6360.9010003@trash.net>
-References: <200508100111.j7A1Bok9010084@toshiba.co.jp>
-	<20050811133545.GI4130@rama.de.gnumonks.org>
-	<20050811135135.GJ4130@rama.de.gnumonks.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 2/2] fix NF_QUEUE_NR() macro
+Date: Thu, 11 Aug 2005 21:26:57 +0200
+Message-ID: <20050811192657.GJ5353@rama.de.gnumonks.org>
+References: <20050811071320.GB4137@rama.de.gnumonks.org>
+	<200508111631.24785.netdev@axxeo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, pablo@eurodev.net,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Q59ABw34pTSIagmi"
+Cc: Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050811135135.GJ4130@rama.de.gnumonks.org>
+To: Ingo Oeser <netdev@axxeo.de>
+Content-Disposition: inline
+In-Reply-To: <200508111631.24785.netdev@axxeo.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,28 +24,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> Looking at it again, and doing some tests: The current code works,
-> /proc/slabinfo shows me there is no expectation leak.
-> 
-> This is because the reference count is also put two times:  in
-> unlink_expect, and in expectation_timed_out().  Almost all over the
-> place, first unlink_expect() drops the first refcount, and
-> ip_conntrack_espect_put() is called explicitly to drop the second.
-> 
-> So yes, one count seems to be for the timer, the second one for
-> ip_conntrack_expect_list.  Two references.
 
-Correct.
+--Q59ABw34pTSIagmi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> I think it would be possible to remove the second atomic_inc() and all
-> the ip_conntrack_put() that immediately follow ulink_expect() - but
-> would it be worth the effort?  Isn't it an over-optimization that is
-> likely to cause bugs later on?
+On Thu, Aug 11, 2005 at 04:31:24PM +0200, Ingo Oeser wrote:
+> Harald Welte wrote:
+> > Hi Dave, please apply!
+>=20
+> What about using a brace more:
 
-There is one spot where it isn't possible, in find_expectation
-the timer reference isn't dropped but returned to the caller.
-Changing it would either require a special version of unlink_expect
-or an additional atomic_inc in this function. I don't think its
-worth the trouble, we do take two references so this seems the
-cleanest way to me.
+I wouldn't mind the extra brace, but I don't want to make this more
+difficult for Dave.  So it's his call whether he would manually edit the
+line before applying the patch ;)
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--Q59ABw34pTSIagmi
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFC+6aBXaXGVTD0i/8RAk6IAKCldCMTQd9ASocgm2L6vfTqe2rH+gCfSr24
+0YzuGHPrIr/ByC5sH2TyU1U=
+=mQ78
+-----END PGP SIGNATURE-----
+
+--Q59ABw34pTSIagmi--
