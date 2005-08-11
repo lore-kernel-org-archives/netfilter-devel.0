@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: libnfnetlink_queue API
-Date: Wed, 10 Aug 2005 17:55:47 +0200
-Message-ID: <20050810155546.GB4059@rama.de.gnumonks.org>
-References: <1123628597.3680.7.camel@localhost.localdomain>
+From: Harald Welte <laforge@gnumonks.org>
+Subject: [PATCH 2/2] fix NF_QUEUE_NR() macro
+Date: Thu, 11 Aug 2005 09:13:21 +0200
+Message-ID: <20050811071320.GB4137@rama.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="EuxKj2iCbKjpUGkD"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	vincent@inl.fr
+	protocol="application/pgp-signature"; boundary="jCrbxBqMcLqd4mOl"
+Cc: Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eleblond@inl.fr>
+To: David Miller <davem@davemloft.net>
 Content-Disposition: inline
-In-Reply-To: <1123628597.3680.7.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,55 +22,76 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---EuxKj2iCbKjpUGkD
+--jCrbxBqMcLqd4mOl
+Content-Type: multipart/mixed; boundary="kfjH4zxOES6UT95V"
+Content-Disposition: inline
+
+
+--kfjH4zxOES6UT95V
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Aug 10, 2005 at 01:03:17AM +0200, Eric Leblond wrote:
-> Hi,
->=20
-> I've begin the port of NuFW to libnfnetlink_queue. I thus have some
-> remarks on the current API. It lacks a way to cleanly "parse" the
-> message. I think you point it in a previous mail.=20
-
-yes, it's still incomplete.  Since I don't know the applications too
-well, I didn't add that part.
-
-> The idea of the callback is cool.
-
-thanks ;)
-
-> Vincent and I are really interested in defining and coding the API for
-> message parsing. I think NuFW has almost all the problematics required
-> to be a good benchmark on API definition.
-
-sure, go ahead.  Send patches (or written proposals).=20
-
-> Is there already somebody working on it ?=20
-
-No, not that I'm aware of.
+Hi Dave, please apply!
 
 --=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+- Harald Welte <laforge@gnumonks.org>          	        http://gnumonks.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+"Privacy in residential applications is a desirable marketing option."
+                                                  (ETSI EN 300 175-7 Ch. A6)
 
---EuxKj2iCbKjpUGkD
+--kfjH4zxOES6UT95V
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="44-nf_queue_nr.patch"
+Content-Transfer-Encoding: quoted-printable
+
+[NETFILTER] Fix NF_QUEUE_NR() macro
+
+I obviously wanted to use bitwise-or, not logical or.
+
+Signed-off-by: Harald Welte <laforge@netfilter.org>
+
+---
+commit 359a4ba102b661dbd8da28b9dcb3330656a7a963
+tree 3d1549cbff8af472bf761322b468ccd0d5be55c2
+parent 5d6a0527049e43780fdaef065d0240a3338f92fd
+author Harald Welte <laforge@netfilter.org> Di, 09 Aug 2005 09:32:02 +0200
+committer Harald Welte <laforge@netfilter.org> Di, 09 Aug 2005 09:32:02 +02=
+00
+
+ include/linux/netfilter.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -29,7 +29,7 @@
+ #define NF_VERDICT_QMASK 0xffff0000
+ #define NF_VERDICT_QBITS 16
+=20
+-#define NF_QUEUE_NR(x) ((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK || NF_Q=
+UEUE)
++#define NF_QUEUE_NR(x) ((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK | NF_QU=
+EUE)
+=20
+ /* only for userspace compatibility */
+ #ifndef __KERNEL__
+
+--kfjH4zxOES6UT95V--
+
+--jCrbxBqMcLqd4mOl
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFC+iOCXaXGVTD0i/8RAvCSAKCqe0oUvqHgl/E0nGM9T1FWF/Hw2QCeOISS
-NVUP+3nNWT3vV710dfxozTo=
-=lU61
+iD8DBQFC+vqQXaXGVTD0i/8RAm4qAJ4xfs+AKeEtw7WR5dmpbLg7o2V5aACdHBe7
+EIEXYzm6bs5g6lMT3r7j+gc=
+=KK96
 -----END PGP SIGNATURE-----
 
---EuxKj2iCbKjpUGkD--
+--jCrbxBqMcLqd4mOl--
