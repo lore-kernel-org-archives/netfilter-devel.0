@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] message parsing functions for nfqueue
-Date: Fri, 12 Aug 2005 00:48:13 +0200
-Message-ID: <20050811224813.GU5353@rama.de.gnumonks.org>
-References: <1123794106.4980.11.camel@porky>
+Subject: Re: [PATCH 2/2] fix NF_QUEUE_NR() macro
+Date: Fri, 12 Aug 2005 00:40:45 +0200
+Message-ID: <20050811224045.GT5353@rama.de.gnumonks.org>
+References: <200508111631.24785.netdev@axxeo.de>
+	<E1E3Kt5-0006jy-00@gondolin.me.apana.org.au>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="u+FGODhbLwgAeSOU"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Vincent Deffontaines <vincent@inl.fr>
+	protocol="application/pgp-signature"; boundary="2/Dpz40iF3jpiHxF"
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	Ingo Oeser <netdev@axxeo.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
+To: Herbert Xu <herbert@gondor.apana.org.au>
 Content-Disposition: inline
-In-Reply-To: <1123794106.4980.11.camel@porky>
+In-Reply-To: <E1E3Kt5-0006jy-00@gondolin.me.apana.org.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,36 +25,45 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---u+FGODhbLwgAeSOU
+--2/Dpz40iF3jpiHxF
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 11, 2005 at 11:01:46PM +0200, Eric Leblond wrote:
-> Hi,
+On Fri, Aug 12, 2005 at 07:46:55AM +1000, Herbert Xu wrote:
+> Ingo Oeser <netdev@axxeo.de> wrote:
+> >=20
+> > What about using a brace more:
+> >=20
+> >>diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+> >>--- a/include/linux/netfilter.h
+> >>+++ b/include/linux/netfilter.h
+> >>@@ -29,7 +29,7 @@
+> >> #define NF_VERDICT_QMASK 0xffff0000
+> >> #define NF_VERDICT_QBITS 16
+> >>=20
+> >>-#define NF_QUEUE_NR(x) ((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK || =
+NF_QUEUE)
+> >>+#define NF_QUEUE_NR(x) ((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK | N=
+F_QUEUE)
+> >=20
+> > #define NF_QUEUE_NR(x) ((x << NF_VERDICT_QBITS) & (NF_VERDICT_QMASK | N=
+F_QUEUE))
 >=20
-> This is a patch against libnfnetlink_queue.
+> Actually, these two versions are different.  & is higher than | so
+> Harald's version is actually=20
+>=20
+> #define NF_QUEUE_NR(x) (((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK) | NF=
+_QUEUE)
+>=20
+> Which is it?
 
-At the first sight, the patch looks fine to me.  I'll look at it in
-detail over the weekend.
+the latter.  So my original patch is right (and is also confirmed to
+work in tests by some users and myself), I 'just' didn't review Ingo's
+alternative line (embarrassing).
 
-Oh. One thing that comes to my mind is "get_{in,out}dev" don't return a
-device [name], but ifindex.  that should be reflected in the names.
-
-Also, I think we should implement some common ifindex<->devicename
-mapping/resolval code.  This could be part of libnfnetlink (but be put
-into a separate source code file).
-
-IMHO, all required information can be accessed via nfnetlink.  I've once
-written some code for caching the ifindex<->devicename in userspace (it
-receives rtnetlink events of ifup/ifdown messages and keeps the cache in
-sync).  I'll try to locate that code.
-
-If you (or anyone else) is interested in cleanly integrating it into
-libnfnetlink, please contact me and I'll give you that code.
-
-It has to be common, since other nfnetlink users also need the same
-information.  masq_index in the conntrack structure, e.g.=20
+We have that saying in german: "I didn't see the wood because of all the
+trees".  Somehow I feel like that now...
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -65,16 +75,16 @@ information.  masq_index in the conntrack structure, e.g.=20
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---u+FGODhbLwgAeSOU
+--2/Dpz40iF3jpiHxF
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFC+9WsXaXGVTD0i/8RAp9PAJ0R+tfss9zuiIskij2HMeUOHgU7YgCggYkR
-35kBdpVpP/jPkgHhSef+3RI=
-=21Hi
+iD8DBQFC+9PsXaXGVTD0i/8RApIbAJ47Wi3k7ntuLBWInGQ6RFS2nklyBQCdFWFi
+1PUuc1ywjIXKOKv6IQg0OlY=
+=r149
 -----END PGP SIGNATURE-----
 
---u+FGODhbLwgAeSOU--
+--2/Dpz40iF3jpiHxF--
