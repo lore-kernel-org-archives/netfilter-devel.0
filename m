@@ -1,15 +1,12 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: [PATCH 1/2] make nf_log compile with PROC_FS == n
-Date: Thu, 11 Aug 2005 09:12:43 +0200
-Message-ID: <20050811071243.GA4137@rama.de.gnumonks.org>
+From: varun <varun@rocsys.com>
+Subject: Doubt on packet generation in kernel space.
+Date: Thu, 11 Aug 2005 12:03:30 +0530
+Message-ID: <1123742009.14923.110.camel@varun>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MfFXiAuoTsnnDAfZ"
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David Miller <davem@davemloft.net>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,68 +18,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi all
 
---MfFXiAuoTsnnDAfZ
-Content-Type: multipart/mixed; boundary="W/nzBZO5zC0uMSeA"
-Content-Disposition: inline
+Iam a newbie and iam basically interested in generation my own
+icmp packet in the kernel space using skb. That is iam aware that this
+can be done using raw or packet socket from user space.         But to
+do it from kernel space is it possible if yes how to go
+about it. i believe that what raw socket call from User space does in
+kernel thats what iam supposed to do.(Correct me if iam wrong). I think
+i might have to build my own skb and put it in transmit queue. Is it
+possible? Iam also aware that there are some packet generation module
+that is inbuilt as per the Documentation in linux kernel states. But i
+dont want to use that instead i want to create my own module that will
+allow me generate the icmp packet. Please help!!
 
-
---W/nzBZO5zC0uMSeA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi Dave, please apply!
-
---=20
-- Harald Welte <laforge@gnumonks.org>          	        http://gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"Privacy in residential applications is a desirable marketing option."
-                                                  (ETSI EN 300 175-7 Ch. A6)
-
---W/nzBZO5zC0uMSeA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="42-nflog_no_procfs.patch"
-Content-Transfer-Encoding: quoted-printable
-
-[NETFILTER] Fix compilation when no PROC_FS enabled
-
-Signed-off-by: Harald Welte <laforge@netfilter.org>
-
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -166,12 +166,12 @@ int __init netfilter_log_init(void)
- {
- #ifdef CONFIG_PROC_FS
- 	struct proc_dir_entry *pde;
-+
- 	pde =3D create_proc_entry("nf_log", S_IRUGO, proc_net_netfilter);
--#endif
- 	if (!pde)
- 		return -1;
-=20
- 	pde->proc_fops =3D &nflog_file_ops;
--
-+#endif
- 	return 0;
- }
-
---W/nzBZO5zC0uMSeA--
-
---MfFXiAuoTsnnDAfZ
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC+vpqXaXGVTD0i/8RAllEAJ4/VX26AA9DpD6LLN/aEVPpeu9ArgCgqsn0
-OzC7jTN6fwmdDTQ8mryEaik=
-=HJHK
------END PGP SIGNATURE-----
-
---MfFXiAuoTsnnDAfZ--
+                                                            Varun
