@@ -1,12 +1,15 @@
-From: Derrick Sawyer <derrick@ip3.com>
-Subject: Error compile kernel 2.6.11.7 w/ pptp_conntrack_nat
-Date: Tue, 09 Aug 2005 01:34:10 -0700
-Message-ID: <42F86A82.6060500@ip3.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: tasklist_lock abuse in ipt{,6}owner
+Date: Thu, 11 Aug 2005 14:29:14 +0200
+Message-ID: <42FB449A.7030709@trash.net>
+References: <20050809211249.GA29430@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Christoph Hellwig <hch@lst.de>
+In-Reply-To: <20050809211249.GA29430@lst.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,19 +21,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+Christoph Hellwig wrote:
+> Folks, could you please take a look at getting rid of that match_pid
+> crap?  We need to get rid of the tasklist_lock export to change the
+> locking scheme in that area, and what netfilter does with it is not
+> pretty.  I'd actually prefer dropping those modules completely, this
+> kind of inverse lookup from file/socket to process shouldn't be done
+> anywhere in the kernel.
 
-I am getting this error when compiling kernel 2.6.11.7 with pptp 
-patch-o-matic patch:
-
-LD      .tmp_vmlinux1
-net/built-in.o(.text+0x68bce): In function `timeout_ct_or_exp':
-: undefined reference to `__ip_conntrack_expect_find'
-make: *** [.tmp_vmlinux1] Error 1
-
-I have the latest subversion of patch-o-matic-ng.
-
-Any suggestions will be greatly appreciated.
-
- Thanks,
-~Derrick
+I think its ok to rip out cmd/sid/pid matching, it is broken and can't
+be fixed anyway. Feel free to send a patch, otherwise I'll take care
+of it.
