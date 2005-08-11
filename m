@@ -1,12 +1,15 @@
 From: Jiri Slaby <jirislaby@gmail.com>
-Subject: ipv6 -- ipvs and conntrack, does anybody write it?
-Date: Thu, 11 Aug 2005 00:45:31 +0200
-Message-ID: <42FA838B.9000408@gmail.com>
+Subject: Re: Error compile kernel 2.6.11.7 w/ pptp_conntrack_nat
+Date: Thu, 11 Aug 2005 18:41:01 +0200
+Message-ID: <42FB7F9D.7080007@gmail.com>
+References: <42FA9451.90206@ip3.com> <42FB7449.2090007@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Jiri Slaby <jirislaby@gmail.com>
+In-Reply-To: <42FB7449.2090007@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,15 +21,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
-is anybody developing it? In usagi project, there is an implementation 
-of both, but i can't see anything in "normal" kernel tree. One of our 
-university masters give this as a one of possible bachelor thesis, so I 
-want to know, if it could be or not.
+Jiri Slaby napsal(a):
 
-Thanks for your replies.
+> In this kernel __ip_conntrack_expect_find isn't implemented, apply 
+> ctnetlink patch and compile again.
+> Despite, there is a bug, I think there should be
 
-regards,
+No, it isn't. It is adequate to depend on netfilter.
+
+> select IP_NF_CONNTRACK_NETLINK
+> in Kconfig if it uses it.
+>
+
 -- 
 Jiri Slaby         www.fi.muni.cz/~xslaby
 ~\-/~      jirislaby@gmail.com      ~\-/~
