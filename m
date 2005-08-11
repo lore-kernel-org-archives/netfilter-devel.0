@@ -1,13 +1,15 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 2/2] fix NF_QUEUE_NR() macro
-Date: Fri, 12 Aug 2005 07:46:55 +1000
-Message-ID: <E1E3Kt5-0006jy-00@gondolin.me.apana.org.au>
-References: <200508111631.24785.netdev@axxeo.de>
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	laforge@gnumonks.org
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH 1/2] make nf_log compile with PROC_FS == n
+Date: Thu, 11 Aug 2005 15:31:28 -0700 (PDT)
+Message-ID: <20050811.153128.75759681.davem@davemloft.net>
+References: <20050811071243.GA4137@rama.de.gnumonks.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netdev@axxeo.de (Ingo Oeser)
-In-Reply-To: <200508111631.24785.netdev@axxeo.de>
+To: laforge@gnumonks.org
+In-Reply-To: <20050811071243.GA4137@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,32 +21,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Ingo Oeser <netdev@axxeo.de> wrote:
+From: Harald Welte <laforge@gnumonks.org>
+Date: Thu, 11 Aug 2005 09:12:43 +0200
+
+> [NETFILTER] Fix compilation when no PROC_FS enabled
 > 
-> What about using a brace more:
-> 
->>diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
->>--- a/include/linux/netfilter.h
->>+++ b/include/linux/netfilter.h
->>@@ -29,7 +29,7 @@
->> #define NF_VERDICT_QMASK 0xffff0000
->> #define NF_VERDICT_QBITS 16
->> 
->>-#define NF_QUEUE_NR(x) ((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK || NF_QUEUE)
->>+#define NF_QUEUE_NR(x) ((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK | NF_QUEUE)
-> 
-> #define NF_QUEUE_NR(x) ((x << NF_VERDICT_QBITS) & (NF_VERDICT_QMASK | NF_QUEUE))
+> Signed-off-by: Harald Welte <laforge@netfilter.org>
 
-Actually, these two versions are different.  & is higher than | so
-Harald's version is actually 
-
-#define NF_QUEUE_NR(x) (((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK) | NF_QUEUE)
-
-Which is it?
-
-Cheers,
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Applied.
