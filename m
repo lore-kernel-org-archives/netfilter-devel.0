@@ -1,15 +1,18 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: Error compile kernel 2.6.11.7 w/ pptp_conntrack_nat
-Date: Fri, 12 Aug 2005 03:50:22 +0200
-Message-ID: <42FC005E.10104@gmail.com>
-References: <20050812020036.9B5D8A28028@insight.ip3.com>
+From: Ingo Oeser <netdev@axxeo.de>
+Subject: Re: [PATCH 2/2] fix NF_QUEUE_NR() macro
+Date: Thu, 11 Aug 2005 16:31:24 +0200
+Message-ID: <200508111631.24785.netdev@axxeo.de>
+References: <20050811071320.GB4137@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Derrick Sawyer <derrick@ip3.com>
-In-Reply-To: <20050812020036.9B5D8A28028@insight.ip3.com>
+To: Harald Welte <laforge@gnumonks.org>, David Miller <davem@davemloft.net>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20050811071320.GB4137@rama.de.gnumonks.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,31 +24,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Derrick Sawyer napsal(a):
-> I first applied the pptp_conntrack patch.
-> I tried to apply the ctnetlink patch and get "ERROR (5 rejects out of 48 
-> hunks)".  I went ahead and forced the patch and got this error when
-Hm, the best way is probably to download some latest kernel (i have 
-2.6.13-rc5 and there are the functions used by pptp) and apply pptp 
-patch there. It is probable, that if there are errors with hunks (pptp 
-and ctnetlink could overlap), it'll not work.
-One thing went on my mind, you could try combinediff tool, but i haven't 
-tried it, so I don't know if it really does, what I mean.
-> compiling the kernel:
-> CC      net/ipv4/netfilter/ip_conntrack_core.o
-> net/ipv4/netfilter/ip_conntrack_core.c: In function 
-> `__ip_conntrack_hash_insert':
-> net/ipv4/netfilter/ip_conntrack_core.c:355: error: 
-> `ip_conntrack_next_id' undeclared (first use in this function)
-> net/ipv4/netfilter/ip_conntrack_core.c:355: error: (Each undeclared 
-> identifier is reported only once
-> net/ipv4/netfilter/ip_conntrack_core.c:355: error: for each function it 
-> appears in.)
-> make[3]: *** [net/ipv4/netfilter/ip_conntrack_core.o] Error 1
-> make[2]: *** [net/ipv4/netfilter] Error 2
-> make[1]: *** [net/ipv4] Error 2
-> make: *** [net] Error 2
--- 
-Jiri Slaby         www.fi.muni.cz/~xslaby
-~\-/~      jirislaby@gmail.com      ~\-/~
-241B347EC88228DE51EE A49C4A73A25004CB2A10
+Harald Welte wrote:
+> Hi Dave, please apply!
+
+What about using a brace more:
+
+>diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+>--- a/include/linux/netfilter.h
+>+++ b/include/linux/netfilter.h
+>@@ -29,7 +29,7 @@
+> #define NF_VERDICT_QMASK 0xffff0000
+> #define NF_VERDICT_QBITS 16
+> 
+>-#define NF_QUEUE_NR(x) ((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK || NF_QUEUE)
+>+#define NF_QUEUE_NR(x) ((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK | NF_QUEUE)
+
+#define NF_QUEUE_NR(x) ((x << NF_VERDICT_QBITS) & (NF_VERDICT_QMASK | NF_QUEUE))
+
+I know we are cool and know operator precedence even after 10 beer, but some people
+consider it difficult to understand without :-)
+
+
+Regards
+
+Ingo Oeser
