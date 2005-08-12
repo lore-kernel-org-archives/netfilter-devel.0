@@ -1,16 +1,15 @@
-From: Pablo Neira <pablo@netfilter.org>
-Subject: Re: [PATCH] message parsing functions for nfqueue
-Date: Fri, 12 Aug 2005 03:30:21 +0200
-Message-ID: <42FBFBAD.8020807@netfilter.org>
-References: <1123794106.4980.11.camel@porky>
+From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Re: Error compile kernel 2.6.11.7 w/ pptp_conntrack_nat
+Date: Fri, 12 Aug 2005 03:50:22 +0200
+Message-ID: <42FC005E.10104@gmail.com>
+References: <20050812020036.9B5D8A28028@insight.ip3.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
-	Vincent Deffontaines <vincent@inl.fr>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
-In-Reply-To: <1123794106.4980.11.camel@porky>
+To: Derrick Sawyer <derrick@ip3.com>
+In-Reply-To: <20050812020036.9B5D8A28028@insight.ip3.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,51 +21,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric Leblond wrote:
-> This is a patch against libnfnetlink_queue.
-> 
-> It adds "high" level functions to access to the data contained in a
-> nfqueue message. These are mostly encapsulation of NFA macros.
-> 
-> -
-> -	if (tb[NFQA_PACKET_HDR-1]) {
-> -		struct nfqnl_msg_packet_hdr *ph = 
-> -					NFA_DATA(tb[NFQA_PACKET_HDR-1]);
-> +	struct nfqnl_msg_packet_hdr *ph;
-> +	u_int32_t mark,ifi; 
-> +	int ret;
-> +	unsigned int datalength;
-> +	char * data;
-> +	
-> +	ph = nfqnl_get_msg_packet_hdr(tb);
-> +	if (ph){
->  		id = ntohl(ph->packet_id);
->  		printf("hw_protocol=0x%04x hook=%u id=%u ",
->  			ntohs(ph->hw_protocol), ph->hook, id);
->  	}
-
-Instead of adding a function to access every attribute like above, why 
-don't we add something more generic in libnfnetlink? Like the following 
-macros:
-
-#define nfnl_get_data(tb, attr, type)			\
-({	type __ret = 0;					\
-  	if (tb[attr-1])					\
-  		__ret = *(type *)NFA_DATA(tb[attr-1]);	\
-	__ret;						\
-})
-
-#define nfnl_get_pointer_to_data(tb, attr, type)	\
-({	type *__ret = NULL;				\
-  	if (tb[attr-1])					\
-  		__ret = NFA_DATA(tb[attr-1]);		\
-  	__ret;						\
-})
-
-Maybe too generic ?
-
-OTOH, if we add such high level functions we'll have to do the same in 
-other libnfnetlink_* libraries to keep homogeneity of the API.
-
---
-Pablo
+Derrick Sawyer napsal(a):
+> I first applied the pptp_conntrack patch.
+> I tried to apply the ctnetlink patch and get "ERROR (5 rejects out of 48 
+> hunks)".  I went ahead and forced the patch and got this error when
+Hm, the best way is probably to download some latest kernel (i have 
+2.6.13-rc5 and there are the functions used by pptp) and apply pptp 
+patch there. It is probable, that if there are errors with hunks (pptp 
+and ctnetlink could overlap), it'll not work.
+One thing went on my mind, you could try combinediff tool, but i haven't 
+tried it, so I don't know if it really does, what I mean.
+> compiling the kernel:
+> CC      net/ipv4/netfilter/ip_conntrack_core.o
+> net/ipv4/netfilter/ip_conntrack_core.c: In function 
+> `__ip_conntrack_hash_insert':
+> net/ipv4/netfilter/ip_conntrack_core.c:355: error: 
+> `ip_conntrack_next_id' undeclared (first use in this function)
+> net/ipv4/netfilter/ip_conntrack_core.c:355: error: (Each undeclared 
+> identifier is reported only once
+> net/ipv4/netfilter/ip_conntrack_core.c:355: error: for each function it 
+> appears in.)
+> make[3]: *** [net/ipv4/netfilter/ip_conntrack_core.o] Error 1
+> make[2]: *** [net/ipv4/netfilter] Error 2
+> make[1]: *** [net/ipv4] Error 2
+> make: *** [net] Error 2
+-- 
+Jiri Slaby         www.fi.muni.cz/~xslaby
+~\-/~      jirislaby@gmail.com      ~\-/~
+241B347EC88228DE51EE A49C4A73A25004CB2A10
