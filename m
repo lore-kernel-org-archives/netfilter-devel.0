@@ -1,18 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 2/2] fix NF_QUEUE_NR() macro
-Date: Fri, 12 Aug 2005 00:40:45 +0200
-Message-ID: <20050811224045.GT5353@rama.de.gnumonks.org>
-References: <200508111631.24785.netdev@axxeo.de>
-	<E1E3Kt5-0006jy-00@gondolin.me.apana.org.au>
+From: Derrick Sawyer <derrick@ip3.com>
+Subject: Re: Error compile kernel 2.6.11.7 w/ pptp_conntrack_nat
+Date: Thu, 11 Aug 2005 19:00:36 -0700
+Message-ID: <20050812020036.9B5D8A28028@insight.ip3.com>
+Reply-To: Derrick Sawyer <derrick@ip3.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2/Dpz40iF3jpiHxF"
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	Ingo Oeser <netdev@axxeo.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Content-Disposition: inline
-In-Reply-To: <E1E3Kt5-0006jy-00@gondolin.me.apana.org.au>
+To: Jiri Slaby <jirislaby@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,67 +19,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Thanks Jiri for the help.
 
---2/Dpz40iF3jpiHxF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I first applied the pptp_conntrack patch.
+I tried to apply the ctnetlink patch and get "ERROR (5 rejects out of 48 hunks)".  I went ahead and forced the patch and got this error when
+compiling the kernel: 
 
-On Fri, Aug 12, 2005 at 07:46:55AM +1000, Herbert Xu wrote:
-> Ingo Oeser <netdev@axxeo.de> wrote:
-> >=20
-> > What about using a brace more:
-> >=20
-> >>diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-> >>--- a/include/linux/netfilter.h
-> >>+++ b/include/linux/netfilter.h
-> >>@@ -29,7 +29,7 @@
-> >> #define NF_VERDICT_QMASK 0xffff0000
-> >> #define NF_VERDICT_QBITS 16
-> >>=20
-> >>-#define NF_QUEUE_NR(x) ((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK || =
-NF_QUEUE)
-> >>+#define NF_QUEUE_NR(x) ((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK | N=
-F_QUEUE)
-> >=20
-> > #define NF_QUEUE_NR(x) ((x << NF_VERDICT_QBITS) & (NF_VERDICT_QMASK | N=
-F_QUEUE))
->=20
-> Actually, these two versions are different.  & is higher than | so
-> Harald's version is actually=20
->=20
-> #define NF_QUEUE_NR(x) (((x << NF_VERDICT_QBITS) & NF_VERDICT_QMASK) | NF=
-_QUEUE)
->=20
-> Which is it?
+CC      net/ipv4/netfilter/ip_conntrack_core.o
+net/ipv4/netfilter/ip_conntrack_core.c: In function `__ip_conntrack_hash_insert':
+net/ipv4/netfilter/ip_conntrack_core.c:355: error: `ip_conntrack_next_id' undeclared (first use in this function)
+net/ipv4/netfilter/ip_conntrack_core.c:355: error: (Each undeclared identifier is reported only once
+net/ipv4/netfilter/ip_conntrack_core.c:355: error: for each function it appears in.)
+make[3]: *** [net/ipv4/netfilter/ip_conntrack_core.o] Error 1
+make[2]: *** [net/ipv4/netfilter] Error 2
+make[1]: *** [net/ipv4] Error 2
+make: *** [net] Error 2
 
-the latter.  So my original patch is right (and is also confirmed to
-work in tests by some users and myself), I 'just' didn't review Ingo's
-alternative line (embarrassing).
 
-We have that saying in german: "I didn't see the wood because of all the
-trees".  Somehow I feel like that now...
+I am just at a lost.  Any help will be great.
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Thanks,
 
---2/Dpz40iF3jpiHxF
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+~Derrick
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFC+9PsXaXGVTD0i/8RApIbAJ47Wi3k7ntuLBWInGQ6RFS2nklyBQCdFWFi
-1PUuc1ywjIXKOKv6IQg0OlY=
-=r149
------END PGP SIGNATURE-----
+------ Original Message ------
+From: Jiri Slaby <jirislaby@gmail.com>
+Date: Thursday, August 11th, 2005 10:08 AM PDT
+To: Derrick Sawyer <derrick@ip3.com>
+Subject: Re: Error compile kernel 2.6.11.7 w/ pptp_conntrack_nat
 
---2/Dpz40iF3jpiHxF--
+Derrick Sawyer napsal(a):
+
+> Hi all,
+>
+> I am getting this error when compiling kernel 2.6.11.7 with pptp 
+> patch-o-matic patch:
+>
+> LD      .tmp_vmlinux1
+> net/built-in.o(.text+0x68bce): In function `timeout_ct_or_exp':
+> : undefined reference to `__ip_conntrack_expect_find'
+> make: *** [.tmp_vmlinux1] Error 1
+
+In this kernel __ip_conntrack_expect_find isn't implemented, apply 
+ctnetlink patch and compile again.
+Despite, there is a bug, I think there should be
+select IP_NF_CONNTRACK_NETLINK
+in Kconfig if it uses it.
