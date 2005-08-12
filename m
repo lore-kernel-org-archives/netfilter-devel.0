@@ -1,15 +1,16 @@
-From: Jiri Slaby <jirislaby@gmail.com>
-Subject: Re: Error compile kernel 2.6.11.7 w/ pptp_conntrack_nat
-Date: Thu, 11 Aug 2005 18:41:01 +0200
-Message-ID: <42FB7F9D.7080007@gmail.com>
-References: <42FA9451.90206@ip3.com> <42FB7449.2090007@gmail.com>
+From: Pablo Neira <pablo@netfilter.org>
+Subject: Re: [PATCH] message parsing functions for nfqueue
+Date: Fri, 12 Aug 2005 03:30:21 +0200
+Message-ID: <42FBFBAD.8020807@netfilter.org>
+References: <1123794106.4980.11.camel@porky>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
+	Vincent Deffontaines <vincent@inl.fr>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jiri Slaby <jirislaby@gmail.com>
-In-Reply-To: <42FB7449.2090007@gmail.com>
+To: Eric Leblond <eric@inl.fr>
+In-Reply-To: <1123794106.4980.11.camel@porky>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,19 +22,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jiri Slaby napsal(a):
+Eric Leblond wrote:
+> This is a patch against libnfnetlink_queue.
+> 
+> It adds "high" level functions to access to the data contained in a
+> nfqueue message. These are mostly encapsulation of NFA macros.
+> 
+> -
+> -	if (tb[NFQA_PACKET_HDR-1]) {
+> -		struct nfqnl_msg_packet_hdr *ph = 
+> -					NFA_DATA(tb[NFQA_PACKET_HDR-1]);
+> +	struct nfqnl_msg_packet_hdr *ph;
+> +	u_int32_t mark,ifi; 
+> +	int ret;
+> +	unsigned int datalength;
+> +	char * data;
+> +	
+> +	ph = nfqnl_get_msg_packet_hdr(tb);
+> +	if (ph){
+>  		id = ntohl(ph->packet_id);
+>  		printf("hw_protocol=0x%04x hook=%u id=%u ",
+>  			ntohs(ph->hw_protocol), ph->hook, id);
+>  	}
 
-> In this kernel __ip_conntrack_expect_find isn't implemented, apply 
-> ctnetlink patch and compile again.
-> Despite, there is a bug, I think there should be
+Instead of adding a function to access every attribute like above, why 
+don't we add something more generic in libnfnetlink? Like the following 
+macros:
 
-No, it isn't. It is adequate to depend on netfilter.
+#define nfnl_get_data(tb, attr, type)			\
+({	type __ret = 0;					\
+  	if (tb[attr-1])					\
+  		__ret = *(type *)NFA_DATA(tb[attr-1]);	\
+	__ret;						\
+})
 
-> select IP_NF_CONNTRACK_NETLINK
-> in Kconfig if it uses it.
->
+#define nfnl_get_pointer_to_data(tb, attr, type)	\
+({	type *__ret = NULL;				\
+  	if (tb[attr-1])					\
+  		__ret = NFA_DATA(tb[attr-1]);		\
+  	__ret;						\
+})
 
--- 
-Jiri Slaby         www.fi.muni.cz/~xslaby
-~\-/~      jirislaby@gmail.com      ~\-/~
-241B347EC88228DE51EE A49C4A73A25004CB2A10
+Maybe too generic ?
+
+OTOH, if we add such high level functions we'll have to do the same in 
+other libnfnetlink_* libraries to keep homogeneity of the API.
+
+--
+Pablo
