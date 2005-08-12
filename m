@@ -1,13 +1,20 @@
-From: Derrick Sawyer <derrick@ip3.com>
-Subject: Re: Error compile kernel 2.6.11.7 w/ pptp_conntrack_nat
-Date: Thu, 11 Aug 2005 19:00:36 -0700
-Message-ID: <20050812020036.9B5D8A28028@insight.ip3.com>
-Reply-To: Derrick Sawyer <derrick@ip3.com>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: Question about reference count of expectations in 2.6.14 tree
+Date: Fri, 12 Aug 2005 03:19:02 +0200
+Message-ID: <42FBF906.50906@eurodev.net>
+References: <200508100111.j7A1Bok9010084@toshiba.co.jp>
+	<20050811133545.GI4130@rama.de.gnumonks.org>
+	<20050811135135.GJ4130@rama.de.gnumonks.org>
+	<42FB6360.9010003@trash.net>
+	<20050811192050.GH5353@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jiri Slaby <jirislaby@gmail.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050811192050.GH5353@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,50 +26,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks Jiri for the help.
+Harald Welte wrote:
+> On Thu, Aug 11, 2005 at 04:40:32PM +0200, Patrick McHardy wrote:
+> 
+> 
+>>>I think it would be possible to remove the second atomic_inc() and all
+>>>the ip_conntrack_put() that immediately follow ulink_expect() - but
+>>>would it be worth the effort?  Isn't it an over-optimization that is
+>>>likely to cause bugs later on?
+>>
+>>There is one spot where it isn't possible, in find_expectation
+>>the timer reference isn't dropped but returned to the caller.
+>>Changing it would either require a special version of unlink_expect
+>>or an additional atomic_inc in this function. I don't think its
+>>worth the trouble, we do take two references so this seems the
+>>cleanest way to me.
+> 
+> I think I'll add some comment to the code explaining why we need to get
+> two references.  
 
-I first applied the pptp_conntrack patch.
-I tried to apply the ctnetlink patch and get "ERROR (5 rejects out of 48 hunks)".  I went ahead and forced the patch and got this error when
-compiling the kernel: 
+Sure, Yasuyuki and I have asked the same thing in a very short time. So 
+this probably will help others.
 
-CC      net/ipv4/netfilter/ip_conntrack_core.o
-net/ipv4/netfilter/ip_conntrack_core.c: In function `__ip_conntrack_hash_insert':
-net/ipv4/netfilter/ip_conntrack_core.c:355: error: `ip_conntrack_next_id' undeclared (first use in this function)
-net/ipv4/netfilter/ip_conntrack_core.c:355: error: (Each undeclared identifier is reported only once
-net/ipv4/netfilter/ip_conntrack_core.c:355: error: for each function it appears in.)
-make[3]: *** [net/ipv4/netfilter/ip_conntrack_core.o] Error 1
-make[2]: *** [net/ipv4/netfilter] Error 2
-make[1]: *** [net/ipv4] Error 2
-make: *** [net] Error 2
+BTW, I'm still willing to post two patches related with this stuff:
 
+a) kill __ip_ct_expect_unlink_destroy. As Patrick pointed out, it's kind 
+of confusing. Actually the only user is conntrack_netlink. So we can 
+just export unlink_expect and use it calling ip_conntrack_expect_put 
+(already exported).
 
-I am just at a lost.  Any help will be great.
+b) don't increase master conntrack refcount for non-confirmed 
+conntracks. It could deadlock. If expectations are killed before the 
+master conntrack, we call ip_conntrack_put holding ip_conntrack_lock as 
+Yasuyuki described. Actually such thing shouldn't ever happen because 
+non-fulfilled(confirmed) expectations are always killed first. Hm, but 
+it still looks to me a bit ugly. So I'm proposing to increase the master 
+conntrack refcount just once the expectation is fulfilled.
 
-Thanks,
-
-~Derrick
-
-
------- Original Message ------
-From: Jiri Slaby <jirislaby@gmail.com>
-Date: Thursday, August 11th, 2005 10:08 AM PDT
-To: Derrick Sawyer <derrick@ip3.com>
-Subject: Re: Error compile kernel 2.6.11.7 w/ pptp_conntrack_nat
-
-Derrick Sawyer napsal(a):
-
-> Hi all,
->
-> I am getting this error when compiling kernel 2.6.11.7 with pptp 
-> patch-o-matic patch:
->
-> LD      .tmp_vmlinux1
-> net/built-in.o(.text+0x68bce): In function `timeout_ct_or_exp':
-> : undefined reference to `__ip_conntrack_expect_find'
-> make: *** [.tmp_vmlinux1] Error 1
-
-In this kernel __ip_conntrack_expect_find isn't implemented, apply 
-ctnetlink patch and compile again.
-Despite, there is a bug, I think there should be
-select IP_NF_CONNTRACK_NETLINK
-in Kconfig if it uses it.
+--
+Pablo
