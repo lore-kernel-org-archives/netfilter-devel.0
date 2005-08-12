@@ -1,16 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] NAT PPTP Set-Link-Info
-Date: Fri, 12 Aug 2005 15:58:26 +0200
-Message-ID: <20050812135826.GA18580@rama.de.gnumonks.org>
-References: <42E5BC22.2030303@snapgear.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Proposed netmap patch
+Date: Fri, 12 Aug 2005 16:23:23 +0200
+Message-ID: <42FCB0DB.2020207@trash.net>
+References: <57F9959B46E0FA4D8BA88AEDFBE582907446@pxtbenexd01.pxt.primeexalia.com>	<42D94F88.7040502@trash.net>
+	<20050812141153.GB18580@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GvXjxJ+pjyke8COw"
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Philip Craig <philipc@snapgear.com>
-Content-Disposition: inline
-In-Reply-To: <42E5BC22.2030303@snapgear.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050812141153.GB18580@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,43 +22,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
+> Applied to where?  I couldn't find this patch in current net-2.6.14.
+> 
+> Was it rejectet or did it get lost?
 
---GvXjxJ+pjyke8COw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Jul 26, 2005 at 02:29:22PM +1000, Philip Craig wrote:
-> NAT PPTP Set-Link-Info messages in the PAC->PNS direction.
-> These are sent by Windows Server 2003.
->=20
-> Note that Set-Link-Info messages do not need to be NATed in the
-> PNS->PAC direction, since we never NAT the PAC call id.
-
-Thanks, applied to the 2.4.x branch and merged into 2.6, 2.6.11 and
-netfilter-2.6.14.git.
-
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---GvXjxJ+pjyke8COw
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFC/KsCXaXGVTD0i/8RApGqAJ0bsZPgvikQaUkNESEaVxvgeIZOzgCfdDyM
-slWG2+vQwwerEsuzBgevxQE=
-=8sZO
------END PGP SIGNATURE-----
-
---GvXjxJ+pjyke8COw--
+No, I have it in a local tree with a couple of other unimportant
+patches. I'll push it this weekend.
