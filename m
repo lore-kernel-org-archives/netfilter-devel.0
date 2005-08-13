@@ -1,10 +1,10 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH] introduce and use aligned_u64 in nfnetlink
-Date: Sat, 13 Aug 2005 13:56:41 -0700 (PDT)
-Message-ID: <20050813.135641.39176667.davem@davemloft.net>
+Subject: Re: [PATCH] add new iptables ipt_connbytes match
+Date: Sat, 13 Aug 2005 13:56:52 -0700 (PDT)
+Message-ID: <20050813.135652.59672654.davem@davemloft.net>
 References: <20050812190343.GW18580@rama.de.gnumonks.org>
 	<20050812.120904.88476024.davem@davemloft.net>
-	<20050813154534.GH4551@rama.de.gnumonks.org>
+	<20050813154619.GI4551@rama.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -12,7 +12,7 @@ Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
 	kaber@trash.net, ak@suse.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: laforge@netfilter.org
-In-Reply-To: <20050813154534.GH4551@rama.de.gnumonks.org>
+In-Reply-To: <20050813154619.GI4551@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,8 +25,8 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Harald Welte <laforge@netfilter.org>
-Date: Sat, 13 Aug 2005 17:45:34 +0200
+Date: Sat, 13 Aug 2005 17:46:19 +0200
 
-> [NETFILTER] introduce and use aligned_u64 data type
+> [NETFILTER] Add new iptables "connbytes" match
 
 Applied.
