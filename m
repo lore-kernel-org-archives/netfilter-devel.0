@@ -1,15 +1,16 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: inode recognition in ipt_owner module
-Date: Mon, 15 Aug 2005 08:27:30 +0200
-Message-ID: <20050815062730.GA5919@oknodo.bof.de>
-References: <fdbb9d90050813104632639c70@mail.gmail.com>
+From: David Stes <stes@pandora.be>
+Subject: port to Linux 2.6 of the RPC/ RSH modules
+Date: Sat, 13 Aug 2005 07:21:45 +0200
+Message-ID: <42FD8369.6010800@pandora.be>
+References: <42C7DEAD.4010209@pandora.be>
+	<20050703140250.GC3186@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: ori bar <tohava@gmail.com>
-Content-Disposition: inline
-In-Reply-To: <fdbb9d90050813104632639c70@mail.gmail.com>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050703140250.GC3186@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,31 +22,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello ori,
 
-> ipt_owner as it currently is very problematic in matching packets from
-> a specific app.
+Hello,
 
-This is correct. Soon it will be impossible. The feature is just being
-removed from ipt_owner. iptables operates on the IP router level.
+Harald Welte (laforge@netfilter.org) told me that he was leaving on holiday.
 
-> (for those of us who want to use it "a-la personal firewall").
+Who can - during the absence of  Harald Welte - make "subversion" svn 
+commit's to the
+patch-o-matic-ng source tree ?
 
-Personal firewalls are insecure by design. Bad applications can
-easily write their bad code to a different executable name,
-and start that.
+Or alternatively, temporarily create an account so I can 'svn commit' 
+some files.
 
-> Does anybody want me to try implementing it and send it somewhere
-> (notice: i never developed kernel modules, i only read them so far, so
-> i may need some help here)?
+I have some changes related :
 
-The people who constantly develop kernel modules, have the opinion
-that it cannot be done properly. So they are removing it altogether.
+    a) port of RPC (NFS, NetWorker) to 2.6.12-4
+    b) port and fixes for RSH (rexec, nsrexec) to 2.6.12-4
 
-Your chances to do it, never having developed kernel modules, are 0.
-
-And even if you were to succeed, you would now have to maintain and
-distribute the changes on your own.
-
-best regards
-  Patrick
+Thanks,
+David Stes
