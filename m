@@ -1,18 +1,18 @@
 From: "David S. Miller" <davem@davemloft.net>
 Subject: Re: [PATCH] add new iptables ipt_connbytes match
-Date: Sat, 13 Aug 2005 13:59:07 -0700 (PDT)
-Message-ID: <20050813.135907.48509432.davem@davemloft.net>
-References: <20050812115622.GD16325@rama.de.gnumonks.org>
-	<42FD4AC6.2020506@trash.net>
-	<20050813145157.GB4551@rama.de.gnumonks.org>
+Date: Sat, 13 Aug 2005 13:54:41 -0700 (PDT)
+Message-ID: <20050813.135441.85393705.davem@davemloft.net>
+References: <20050812190343.GW18580@rama.de.gnumonks.org>
+	<20050812.120904.88476024.davem@davemloft.net>
+	<20050813145023.GA4551@rama.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	kaber@trash.net
+	kaber@trash.net, ak@suse.de
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: laforge@netfilter.org
-In-Reply-To: <20050813145157.GB4551@rama.de.gnumonks.org>
+In-Reply-To: <20050813145023.GA4551@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,15 +25,10 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Harald Welte <laforge@netfilter.org>
-Date: Sat, 13 Aug 2005 16:51:57 +0200
+Date: Sat, 13 Aug 2005 16:50:23 +0200
 
-> Ok,  just in case Dave was waiting for my comments (which are usually
-> not required since Patricks patches tend to have a higher quality than
-> mine):
-> 
-> ACK-ed-by: Harald Welte <laforge@netfilter.org>
+> So for new development, I'm now more inclined to push things sooner to
+> you - even more for code that only adds new featurss. If you generally
+> dislike that, please let me know.
 
-I like to see ACKs, because it shows explicit agreement amongst
-the various developers involved.
-
-Thanks.
+I think this is the way to go.
