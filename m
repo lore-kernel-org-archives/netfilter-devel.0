@@ -1,15 +1,20 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: ipv6 -- ipvs and conntrack, does anybody write it?
-Date: Sat, 13 Aug 2005 17:15:59 +0900 (JST)
-Message-ID: <200508130816.j7D8G0si018048@toshiba.co.jp>
-References: <42FA838B.9000408@gmail.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] add new iptables ipt_connbytes match
+Date: Sat, 13 Aug 2005 16:51:57 +0200
+Message-ID: <20050813145157.GB4551@rama.de.gnumonks.org>
+References: <20050811200349.GN5353@rama.de.gnumonks.org>
+	<42FC0F01.5090802@trash.net>
+	<20050812115622.GD16325@rama.de.gnumonks.org>
+	<42FD4AC6.2020506@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="K8nIJk4ghYZn606h"
+Cc: Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: jirislaby@gmail.com
-In-Reply-To: <42FA838B.9000408@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <42FD4AC6.2020506@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,25 +27,43 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi, Jiri,
+--K8nIJk4ghYZn606h
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-From: Jiri Slaby <jirislaby@gmail.com>
-Date: Thu, 11 Aug 2005 00:45:31 +0200
+On Sat, Aug 13, 2005 at 03:20:06AM +0200, Patrick McHardy wrote:
+> Harald Welte wrote:
+> >Just send two incremental patches to Dave.
+>=20
+> Here they are. The first patch fixes the div64_64 function, the second
+> one renames some constants.
 
-> is anybody developing it? In usagi project, there is an implementation 
-> of both, but i can't see anything in "normal" kernel tree. One of our 
-> university masters give this as a one of possible bachelor thesis, so I 
-> want to know, if it could be or not.
+Ok,  just in case Dave was waiting for my comments (which are usually
+not required since Patricks patches tend to have a higher quality than
+mine):
 
-You can try nf_conntrack which generalizes the layer 3 part of ip_conntrack to
-support IPv6. If you have interest in it, you can pull git tree for it
-from
+ACK-ed-by: Harald Welte <laforge@netfilter.org>
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-rsync://people.netfilter.org/users/laforge/scm/netfilter-2.6.14.git#nf_conntrack
+--K8nIJk4ghYZn606h
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-And USAGI Project has never developed IPVS for IPv6.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
-Regards,
+iD8DBQFC/gkMXaXGVTD0i/8RAkCpAJ0TMh9TdGfyVHMcXzhupXVttcLPYwCgoJ1D
+xaKSDyrA+tIiSbll4DspiD4=
+=Yr6A
+-----END PGP SIGNATURE-----
 
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+--K8nIJk4ghYZn606h--
