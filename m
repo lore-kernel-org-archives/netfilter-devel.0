@@ -1,13 +1,18 @@
-From: ori bar <tohava@gmail.com>
-Subject: inode recognition in ipt_owner module
-Date: Sat, 13 Aug 2005 20:46:19 +0300
-Message-ID: <fdbb9d90050813104632639c70@mail.gmail.com>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH] add new iptables ipt_connbytes match
+Date: Sat, 13 Aug 2005 13:58:32 -0700 (PDT)
+Message-ID: <20050813.135832.115928361.davem@davemloft.net>
+References: <42FC0F01.5090802@trash.net>
+	<20050812115622.GD16325@rama.de.gnumonks.org>
+	<42FD4AC6.2020506@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: kaber@trash.net
+In-Reply-To: <42FD4AC6.2020506@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,26 +24,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-ipt_owner as it currently is very problematic in matching packets from
-a specific app.
-(for those of us who want to use it "a-la personal firewall").
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] add new iptables ipt_connbytes match
+Date: Sat, 13 Aug 2005 03:20:06 +0200
 
-the current cmd matching is noit smart because it's only based on the
-first 16 letters of a filename, and that can easily be spoofed.
+> Harald Welte wrote:
+> > Just send two incremental patches to Dave.
+> 
+> Here they are. The first patch fixes the div64_64 function, the second
+> one renames some constants.
 
-I was wondering, it may be possible to an inode based matching, from
-what i've read in the /proc/xxx/exe mechanism source code, all it
-takes, is using the pid to get access to a list of file mappings, from
-them, take the first executable mapping, from it, get the dentry, from
-dentry get inode, and from inode get i_ino which should be the inode
-number. This may allow us to better define "app-based rules".
-
-Is there already something like this somewhere in netfilter?
-Does anybody want me to try implementing it and send it somewhere
-(notice: i never developed kernel modules, i only read them so far, so
-i may need some help here)?
-
-Thanks in advance and have a nice day=20
-
---=20
-1110101111111110 - it's a way of life
+Both applied, thanks Patrick.
