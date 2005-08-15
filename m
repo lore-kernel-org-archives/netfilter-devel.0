@@ -1,17 +1,13 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [PATCH] add new iptables ipt_connbytes match
-Date: Tue, 16 Aug 2005 12:18:05 +0100
-Message-ID: <4301CB6D.80901@ufomechanic.net>
-References: <20050811200349.GN5353@rama.de.gnumonks.org>	<42FC0F01.5090802@trash.net>	<20050812115622.GD16325@rama.de.gnumonks.org>
-	<42FD4AC6.2020506@trash.net>
+From: Marcin Garski <mgarski@post.pl>
+Subject: Patch for TTL target
+Date: Mon, 15 Aug 2005 15:52:59 +0200
+Message-ID: <200508151552.59571.mgarski@post.pl>
+Reply-To: mgarski@post.pl
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_74JADJ6eK33nprg"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <42FD4AC6.2020506@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,49 +19,120 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Work well done, so oughtn't div64_64 to go in
-include/asm-generic/div64.h one day, to be available kernel wide, as
-do_div64_64
+--Boundary-00=_74JADJ6eK33nprg
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I see that net/core/pktgen.c is full of 64 bit division and maybe could
-benefit from this, and perhaps a version that does remainders too.
+[Please CC me on replies, I am not subscribed to the list, thanks]
 
-Amin
+Hello,
 
-Patrick McHardy wrote:
-> Harald Welte wrote:
-> 
->> Just send two incremental patches to Dave.
-> 
-> 
-> Here they are. The first patch fixes the div64_64 function, the second
-> one renames some constants.
-> 
-> 
-> ------------------------------------------------------------------------
-> 
-> [NETFILTER]: Fix div64_64 in ipt_connbytes
-> 
-> Signded-off-by: Patrick McHardy <kaber@trash.net>
-> 
-> ---
-> commit 62084bc1a04e2fbc492566fa30997bd0a7aa2d0a
-> tree 083c8042609e0da81f0be9e15583d5d31b54e685
-> parent 68e734a5864ba568058c3b8ea63fac3d7d567542
-> author Patrick McHardy <kaber@trash.net> Sat, 13 Aug 2005 03:16:32 +0200
-> committer Patrick McHardy <kaber@trash.net> Sat, 13 Aug 2005 03:16:32 +0200
-> 
->  net/ipv4/netfilter/ipt_connbytes.c |   22 +++++++++-------------
->  1 files changed, 9 insertions(+), 13 deletions(-)
-> 
-> diff --git a/net/ipv4/netfilter/ipt_connbytes.c b/net/ipv4/netfilter/ipt_connbytes.c
-> --- a/net/ipv4/netfilter/ipt_connbytes.c
-> +++ b/net/ipv4/netfilter/ipt_connbytes.c
-> @@ -22,23 +22,19 @@ MODULE_AUTHOR("Harald Welte <laforge@net
->  MODULE_DESCRIPTION("iptables match for matching number of pkts/bytes per connection");
->  
->  /* 64bit divisor, dividend and result. dynamic precision */
-> -static u_int64_t div64_64(u_int64_t divisor, u_int64_t dividend)
-> +static u_int64_t div64_64(u_int64_t dividend, u_int64_t divisor)
+Here is the patch that fix some C formatting issues (so source are more 
+readable).
 
-...
+-- 
+Best Regards
+Marcin Garski
+
+--Boundary-00=_74JADJ6eK33nprg
+Content-Type: text/x-diff;
+  charset="iso-8859-2";
+  name="TTL-format.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="TTL-format.patch"
+
+diff -ur patch-o-matic-ng-20050814-orig/patchlets/TTL/linux/net/ipv4/netfilter/ipt_TTL.c patch-o-matic-ng-20050814/patchlets/TTL/linux/net/ipv4/netfilter/ipt_TTL.c
+--- patch-o-matic-ng-20050814-orig/patchlets/TTL/linux/net/ipv4/netfilter/ipt_TTL.c	2004-07-27 21:24:31.000000000 +0200
++++ patch-o-matic-ng-20050814/patchlets/TTL/linux/net/ipv4/netfilter/ipt_TTL.c	2005-08-15 15:31:13.000000000 +0200
+@@ -26,7 +26,7 @@
+ 	const struct ipt_TTL_info *info = targinfo;
+ 	u_int16_t diffs[2];
+ 	int new_ttl;
+-			 
++
+ 	switch (info->mode) {
+ 		case IPT_TTL_SET:
+ 			new_ttl = info->ttl;
+@@ -51,9 +51,9 @@
+ 		iph->ttl = new_ttl;
+ 		diffs[1] = htons(((unsigned)iph->ttl) << 8);
+ 		iph->check = csum_fold(csum_partial((char *)diffs,
+-						    sizeof(diffs),
+-				 	            iph->check^0xFFFF));
+-									                	(*pskb)->nfcache |= NFC_ALTERED;
++						sizeof(diffs),
++						iph->check^0xFFFF));
++		(*pskb)->nfcache |= NFC_ALTERED;
+ 	}
+ 
+ 	return IPT_CONTINUE;
+@@ -71,8 +71,8 @@
+ 		printk(KERN_WARNING "TTL: targinfosize %u != %Zu\n",
+ 				targinfosize,
+ 				IPT_ALIGN(sizeof(struct ipt_TTL_info)));
+-		return 0;	
+-	}	
++		return 0;
++	}
+ 
+ 	if (strcmp(tablename, "mangle")) {
+ 		printk(KERN_WARNING "TTL: can only be called from \"mangle\" table, not \"%s\"\n", tablename);
+@@ -89,7 +89,7 @@
+ 		printk(KERN_WARNING "TTL: increment/decrement doesn't make sense with value 0\n");
+ 		return 0;
+ 	}
+-	
++
+ 	return 1;
+ }
+ 
+diff -ur patch-o-matic-ng-20050814-orig/patchlets/TTL/linux-2.6/net/ipv4/netfilter/ipt_TTL.c patch-o-matic-ng-20050814/patchlets/TTL/linux-2.6/net/ipv4/netfilter/ipt_TTL.c
+--- patch-o-matic-ng-20050814-orig/patchlets/TTL/linux-2.6/net/ipv4/netfilter/ipt_TTL.c	2004-07-27 21:24:31.000000000 +0200
++++ patch-o-matic-ng-20050814/patchlets/TTL/linux-2.6/net/ipv4/netfilter/ipt_TTL.c	2005-08-15 15:34:07.000000000 +0200
+@@ -32,7 +32,7 @@
+ 		return NF_DROP;
+ 
+ 	iph = (*pskb)->nh.iph;
+-			 
++
+ 	switch (info->mode) {
+ 		case IPT_TTL_SET:
+ 			new_ttl = info->ttl;
+@@ -57,9 +57,9 @@
+ 		iph->ttl = new_ttl;
+ 		diffs[1] = htons(((unsigned)iph->ttl) << 8);
+ 		iph->check = csum_fold(csum_partial((char *)diffs,
+-						    sizeof(diffs),
+-				 	            iph->check^0xFFFF));
+-									                	(*pskb)->nfcache |= NFC_ALTERED;
++						sizeof(diffs),
++						iph->check^0xFFFF));
++		(*pskb)->nfcache |= NFC_ALTERED;
+ 	}
+ 
+ 	return IPT_CONTINUE;
+@@ -77,8 +77,8 @@
+ 		printk(KERN_WARNING "TTL: targinfosize %u != %Zu\n",
+ 				targinfosize,
+ 				IPT_ALIGN(sizeof(struct ipt_TTL_info)));
+-		return 0;	
+-	}	
++		return 0;
++	}
+ 
+ 	if (strcmp(tablename, "mangle")) {
+ 		printk(KERN_WARNING "TTL: can only be called from \"mangle\" table, not \"%s\"\n", tablename);
+@@ -95,7 +95,7 @@
+ 		printk(KERN_WARNING "TTL: increment/decrement doesn't make sense with value 0\n");
+ 		return 0;
+ 	}
+-	
++
+ 	return 1;
+ }
+ 
+
+--Boundary-00=_74JADJ6eK33nprg--
