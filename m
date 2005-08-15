@@ -1,14 +1,13 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: Re: the connection is ESTABLISHED but UNREPLIED?What's up?
-Date: Wed, 17 Aug 2005 11:59:58 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0508171154110.23501@tux.rsn.bth.se>
-References: <1124269866.6032.1.camel@cocteau.hellwolf-misty.org>
+From: David Stes <stes@pandora.be>
+Subject: Re: port to Linux 2.6 of the RPC/RSH modules
+Date: Mon, 15 Aug 2005 10:29:20 +0200
+Message-ID: <43005260.809@pandora.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Hellwolf Misty <hellwolf@seu.edu.cn>
-In-Reply-To: <1124269866.6032.1.camel@cocteau.hellwolf-misty.org>
+To: jengelh@linux01.gwdg.de
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,29 +19,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 17 Aug 2005, Hellwolf Misty wrote:
 
-> I got this from /proc/net/ip_conntrack:
->
-> tcp      6 425241 ESTABLISHED src=218.93.152.132 dst=61.178.246.98
-> sport=58070 dport=80 packets=1 bytes=40 [UNREPLIED] src=61.178.246.98
-> dst=218.93.152.132 sport=80 dport=58070 packets=0 bytes=0 mark=0 use=1
->
-> But I don't understand why did it happen.
+ > What does this have to do with netfilter ?
 
-Most probably because of something called connection pickup where
-ip_conntrack picks up connections that were already established by the two
-peers. For example if you reboot the router, when it comes back up it sees
-packets from connections that were established before it was rebooted,
-then it adds them to conntrack with state ESTABLISHED, but if it only has
-seen packets in one direction it's UNREPLIED as well.
+RPC and RSH modules are connection tracking modules of netfilter.
+For Sun RPC and BSD rexec/rcmd.
+See patch-o-matic-ng extra
 
-It's not possible to turn this behaviour off in 2.4 without extra patches,
-in 2.6 it's possible to turn off by echoing 0 to
-/proc/sys/net/ipv4/netfilter/ip_conntrack_tcp_loose
+This is the excellent work of Marcelo Lima (RPC) and Ian Latter (RSH).
 
-What's left to do in 2.6 is to add them with lower timeout until they have
-been replied as well (more specifically, ip_conntrack_tcp_loose
-number of packets has been seen in both directions)
+These modules should in my opinion be part of the standard netfilter 
+modules (and not be in "patch-o-matig").  But netfilter is unfortunately 
+changed so the modules (of 2.4) do not work any more.
 
-/Martin
+For example, it appears that both modules do things like:
+
+    rpc_helpers[port].timeout  = 0;
+
+and the current (subversion latest source)  does
+
+    ip_conntrack_core.c : BUGON(me->timeout == 0)
+
+which means that as they are right now, both the RSH and the RPC modules 
+"bug on" their timeout values (of zero) and obviously do not work.
