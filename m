@@ -1,14 +1,17 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH NF_CONNTRACK 2/2] kill unnecessary ntohs to compare tuples
-Date: Tue, 16 Aug 2005 19:11:58 +0900 (JST)
-Message-ID: <200508161011.j7GABxcg028632@toshiba.co.jp>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [PATCH] add new iptables ipt_connbytes match
+Date: Tue, 16 Aug 2005 12:18:05 +0100
+Message-ID: <4301CB6D.80901@ufomechanic.net>
+References: <20050811200349.GN5353@rama.de.gnumonks.org>	<42FC0F01.5090802@trash.net>	<20050812115622.GD16325@rama.de.gnumonks.org>
+	<42FD4AC6.2020506@trash.net>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Tue_Aug_16_19_11_58_2005_561)--"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <42FD4AC6.2020506@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,53 +23,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Tue_Aug_16_19_11_58_2005_561)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Work well done, so oughtn't div64_64 to go in
+include/asm-generic/div64.h one day, to be available kernel wide, as
+do_div64_64
 
+I see that net/core/pktgen.c is full of 64 bit division and maybe could
+benefit from this, and perhaps a version that does remainders too.
 
-Hi, Harald,
+Amin
 
-This patch kills unnecessary ntohs() in nf_ct_tuple_mask_cmp(). If we need to
-take care about byte order here, should use ntohl(). This bug was introduced
-when I changed size of 'all' from 16bits to 32bits. But in the first place,
-it's not necessary to do that because the byte order of all arguments are
-same.
+Patrick McHardy wrote:
+> Harald Welte wrote:
+> 
+>> Just send two incremental patches to Dave.
+> 
+> 
+> Here they are. The first patch fixes the div64_64 function, the second
+> one renames some constants.
+> 
+> 
+> ------------------------------------------------------------------------
+> 
+> [NETFILTER]: Fix div64_64 in ipt_connbytes
+> 
+> Signded-off-by: Patrick McHardy <kaber@trash.net>
+> 
+> ---
+> commit 62084bc1a04e2fbc492566fa30997bd0a7aa2d0a
+> tree 083c8042609e0da81f0be9e15583d5d31b54e685
+> parent 68e734a5864ba568058c3b8ea63fac3d7d567542
+> author Patrick McHardy <kaber@trash.net> Sat, 13 Aug 2005 03:16:32 +0200
+> committer Patrick McHardy <kaber@trash.net> Sat, 13 Aug 2005 03:16:32 +0200
+> 
+>  net/ipv4/netfilter/ipt_connbytes.c |   22 +++++++++-------------
+>  1 files changed, 9 insertions(+), 13 deletions(-)
+> 
+> diff --git a/net/ipv4/netfilter/ipt_connbytes.c b/net/ipv4/netfilter/ipt_connbytes.c
+> --- a/net/ipv4/netfilter/ipt_connbytes.c
+> +++ b/net/ipv4/netfilter/ipt_connbytes.c
+> @@ -22,23 +22,19 @@ MODULE_AUTHOR("Harald Welte <laforge@net
+>  MODULE_DESCRIPTION("iptables match for matching number of pkts/bytes per connection");
+>  
+>  /* 64bit divisor, dividend and result. dynamic precision */
+> -static u_int64_t div64_64(u_int64_t divisor, u_int64_t dividend)
+> +static u_int64_t div64_64(u_int64_t dividend, u_int64_t divisor)
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
-
-
-----Next_Part(Tue_Aug_16_19_11_58_2005_561)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="kill-ntohs.patch"
-
-diff --git a/include/linux/netfilter/nf_conntrack_tuple.h b/include/linux/netfilter/nf_conntrack_tuple.h
---- a/include/linux/netfilter/nf_conntrack_tuple.h
-+++ b/include/linux/netfilter/nf_conntrack_tuple.h
-@@ -169,16 +169,14 @@ static inline int nf_ct_tuple_mask_cmp(c
- 	int count = 0;
- 
-         for (count = 0; count < NF_CT_TUPLE_L3SIZE; count++){
--                if ((ntohs(t->src.u3.all[count]) ^
--                     ntohs(tuple->src.u3.all[count])) &
--                     ntohs(mask->src.u3.all[count]))
-+                if ((t->src.u3.all[count] ^ tuple->src.u3.all[count]) &
-+                    mask->src.u3.all[count])
-                         return 0;
-         }
- 
-         for (count = 0; count < NF_CT_TUPLE_L3SIZE; count++){
--                if ((ntohs(t->dst.u3.all[count]) ^
--                     ntohs(tuple->dst.u3.all[count])) &
--                     ntohs(mask->dst.u3.all[count]))
-+                if ((t->dst.u3.all[count] ^ tuple->dst.u3.all[count]) &
-+                    mask->dst.u3.all[count])
-                         return 0;
-         }
- 
-
-----Next_Part(Tue_Aug_16_19_11_58_2005_561)----
+...
