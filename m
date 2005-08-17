@@ -1,17 +1,12 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: Segmenation fault in netfilter/iptables code in 2.4.18 upon
-	receiving a TFTP broadcast
-Date: Tue, 16 Aug 2005 17:18:08 -0700
-Message-ID: <20050817001808.GA5323@linuxace.com>
-References: <20050816234045.GA4611@linuxace.com>
-	<00ee01c5a2be$eb4c0180$352310ac@nj.us.utstar.com>
+From: Hellwolf Misty <hellwolf@seu.edu.cn>
+Subject: the connection is ESTABLISHED but UNREPLIED?What's up?
+Date: Wed, 17 Aug 2005 17:11:06 +0800
+Message-ID: <1124269866.6032.1.camel@cocteau.hellwolf-misty.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Bala Pitchandi <bs@utstar.com>
-Content-Disposition: inline
-In-Reply-To: <00ee01c5a2be$eb4c0180$352310ac@nj.us.utstar.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +18,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Aug 16, 2005 at 08:02:07PM -0400, Bala Pitchandi wrote:
-> Phil,
-> 
-> Thanks for your response. I kinda knew that this bug has been fixed in the
-> later version of the kernel.
+I got this from /proc/net/ip_conntrack:
 
-good
+tcp      6 425241 ESTABLISHED src=218.93.152.132 dst=61.178.246.98
+sport=58070 dport=80 packets=1 bytes=40 [UNREPLIED] src=61.178.246.98
+dst=218.93.152.132 sport=80 dport=58070 packets=0 bytes=0 mark=0 use=1
 
-> Since the kernel that I am using is a modified version of the 2.4.18 kernel,
-> it would be too much of an hassle for me to update the entire kernel. If you
-> could point me to the version of the kernel where this bug was fixed, I
-> could just port this fix onto my netfilter/iptables.
-
-a searchable archive of the netfilter-devel list is available here:
-
-http://marc.theaimsgroup.com/?l=netfilter-devel&r=1&w=2
-
-searching for 'tftp oops' will give you the answer on result 10 of 17.
-
-Phil
+But I don't understand why did it happen.
