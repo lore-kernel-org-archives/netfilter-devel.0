@@ -1,17 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] add new iptables ipt_connbytes match
-Date: Wed, 17 Aug 2005 12:29:18 +0200
-Message-ID: <4303117E.5000505@trash.net>
-References: <20050811200349.GN5353@rama.de.gnumonks.org>	<42FC0F01.5090802@trash.net>	<20050812115622.GD16325@rama.de.gnumonks.org>
-	<42FD4AC6.2020506@trash.net> <4301CB6D.80901@ufomechanic.net>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: the connection is ESTABLISHED but UNREPLIED?What's up?
+Date: Wed, 17 Aug 2005 11:59:58 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0508171154110.23501@tux.rsn.bth.se>
+References: <1124269866.6032.1.camel@cocteau.hellwolf-misty.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <4301CB6D.80901@ufomechanic.net>
+To: Hellwolf Misty <hellwolf@seu.edu.cn>
+In-Reply-To: <1124269866.6032.1.camel@cocteau.hellwolf-misty.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,14 +20,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez wrote:
-> Work well done, so oughtn't div64_64 to go in
-> include/asm-generic/div64.h one day, to be available kernel wide, as
-> do_div64_64
-> 
-> I see that net/core/pktgen.c is full of 64 bit division and maybe could
-> benefit from this, and perhaps a version that does remainders too.
+On Wed, 17 Aug 2005, Hellwolf Misty wrote:
 
-So far nothing besides ipt_connbytes and pktgen seems to need
-it, and they use different versions. I'd rather leave it where
-it is to not encourage more use of it.
+> I got this from /proc/net/ip_conntrack:
+>
+> tcp      6 425241 ESTABLISHED src=218.93.152.132 dst=61.178.246.98
+> sport=58070 dport=80 packets=1 bytes=40 [UNREPLIED] src=61.178.246.98
+> dst=218.93.152.132 sport=80 dport=58070 packets=0 bytes=0 mark=0 use=1
+>
+> But I don't understand why did it happen.
+
+Most probably because of something called connection pickup where
+ip_conntrack picks up connections that were already established by the two
+peers. For example if you reboot the router, when it comes back up it sees
+packets from connections that were established before it was rebooted,
+then it adds them to conntrack with state ESTABLISHED, but if it only has
+seen packets in one direction it's UNREPLIED as well.
+
+It's not possible to turn this behaviour off in 2.4 without extra patches,
+in 2.6 it's possible to turn off by echoing 0 to
+/proc/sys/net/ipv4/netfilter/ip_conntrack_tcp_loose
+
+What's left to do in 2.6 is to add them with lower timeout until they have
+been replied as well (more specifically, ip_conntrack_tcp_loose
+number of packets has been seen in both directions)
+
+/Martin
