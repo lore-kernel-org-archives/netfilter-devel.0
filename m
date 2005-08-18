@@ -1,14 +1,16 @@
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: string match for 2.6?
-Date: Thu, 18 Aug 2005 17:47:33 +0200 (MEST)
-Message-ID: <Pine.LNX.4.61.0508181745510.1090@yvahk01.tjqt.qr>
-References: <4303540E.30503@xs4all.nl>
+Subject: Re: when I DNAT to local address, the port num seems to be strange.
+Date: Thu, 18 Aug 2005 17:50:29 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0508181749390.1090@yvahk01.tjqt.qr>
+References: <1124328975.2701.7.camel@cocteau.hellwolf-misty.org>
+	<Pine.LNX.4.61.0508181040570.31007@yvahk01.tjqt.qr>
+	<1124356395.5124.3.camel@cocteau.hellwolf-misty.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Udo van den Heuvel <udovdh@xs4all.nl>
-In-Reply-To: <4303540E.30503@xs4all.nl>
+To: Hellwolf Misty <hellwolf@seu.edu.cn>
+In-Reply-To: <1124356395.5124.3.camel@cocteau.hellwolf-misty.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,21 +22,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
->Can anyone please tell about the plans for updating the string match to
->the 2.6 tree?
+>> If destination is 127.0.0.1, needs -j REDIRECT.
+>> You can also use -j DNAT 192.168.1.1 (i.e. the eth0 addr)
+>
+>I've tried as you told: REDIRECT --to-ports 8888, or -j DNAT --to
+>LOCALADDRESS, but it nothing changes. 
 
-(Don't know much about string's 2.6 fitness, so it's
-neither "plans" nor "no plans")
-
->If there are no plans: what could be my best alternatives?
-
-l7-filter.sf.net -- you can "abuse" it to have some string matching. It also 
-has regexes, so if you need that, you're in best hands ;)
-Note however that regexes may take slightly more CPU.
+Make sure 8888 itself is not DROPped? I am not sure what's in the FC kernel, 
+but should not be any different. Note that PREROUTING does NOT apply if
+src==127.0.0.1! Currently, you only told us dst=127.0.0.1...
 
 
 
 Jan Engelhardt
 -- 
+| Alphagate Systems, http://alphagate.hopto.org/
