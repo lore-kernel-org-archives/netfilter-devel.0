@@ -1,12 +1,14 @@
-From: Udo van den Heuvel <udovdh@xs4all.nl>
-Subject: string match for 2.6?
-Date: Wed, 17 Aug 2005 17:13:18 +0200
-Message-ID: <4303540E.30503@xs4all.nl>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: string match for 2.6?
+Date: Thu, 18 Aug 2005 17:47:33 +0200 (MEST)
+Message-ID: <Pine.LNX.4.61.0508181745510.1090@yvahk01.tjqt.qr>
+References: <4303540E.30503@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Udo van den Heuvel <udovdh@xs4all.nl>
+In-Reply-To: <4303540E.30503@xs4all.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,11 +20,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Hi,
 
-Can anyone please tell about the plans for updating the string match to
-the 2.6 tree?
-If there are no plans: what could be my best alternatives?
+>Can anyone please tell about the plans for updating the string match to
+>the 2.6 tree?
 
-Kind regards,
-Udo
+(Don't know much about string's 2.6 fitness, so it's
+neither "plans" nor "no plans")
+
+>If there are no plans: what could be my best alternatives?
+
+l7-filter.sf.net -- you can "abuse" it to have some string matching. It also 
+has regexes, so if you need that, you're in best hands ;)
+Note however that regexes may take slightly more CPU.
+
+
+
+Jan Engelhardt
+-- 
