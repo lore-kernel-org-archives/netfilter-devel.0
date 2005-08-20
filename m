@@ -1,9 +1,9 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH 1/2] string match for iptables
-Date: Sat, 20 Aug 2005 18:06:47 +0200
-Message-ID: <43075517.3070405@eurodev.net>
+Subject: [PATCH 2/2] string match userspace part
+Date: Sat, 20 Aug 2005 18:08:50 +0200
+Message-ID: <43075592.2080704@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000006010605070601040400"
+Content-Type: multipart/mixed; boundary="------------040604070304040703080904"
 Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,182 +19,295 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------000006010605070601040400
+--------------040604070304040703080904
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi,
+Here attached the iptables part. It's based on the previous 
+implementation with some modifications to:
 
-Here comes the iptables string match since the textsearch infrastructure 
-went into 2.6.13. This adds to iptables the ability of looking for given 
-patterns in packets. I'll be happy to see this stuff in Davem's 2.6.14 
-tree ;)
-
-Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
+- add functionality to match packets by using window offsets
+- add functionality to select the string matching algorithm
 
 --
 Pablo
 
---------------000006010605070601040400
+--------------040604070304040703080904
 Content-Type: text/x-patch;
- name="10ipt_string.patch"
+ name="string.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="10ipt_string.patch"
+ filename="string.patch"
 
-Index: netfilter-2.6.14/net/ipv4/netfilter/ipt_string.c
+Index: extensions/libipt_string.c
 ===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ netfilter-2.6.14/net/ipv4/netfilter/ipt_string.c	2005-08-20 17:10:03.000000000 +0200
-@@ -0,0 +1,91 @@
-+/* String matching match for iptables
-+ * 
-+ * (C) 2005 Pablo Neira Ayuso <pablo@eurodev.net>
+--- extensions/libipt_string.c	(revision 3906)
++++ extensions/libipt_string.c	(working copy)
+@@ -2,6 +2,11 @@
+  * 
+  * Copyright (C) 2000 Emmanuel Roger  <winfield@freegates.be>
+  *
++ * 2005-08-05 Pablo Neira Ayuso <pablo@eurodev.net>
++ * 	- reimplemented to use new string matching iptables match
++ * 	- add functionality to match packets by using window offsets
++ * 	- add functionality to select the string matching algorithm
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/skbuff.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv4/ipt_string.h>
-+#include <linux/textsearch.h>
-+
-+MODULE_AUTHOR("Pablo Neira Ayuso <pablo@eurodev.net>");
-+MODULE_DESCRIPTION("IP tables string match module");
-+MODULE_LICENSE("GPL");
-+
-+static int match(const struct sk_buff *skb,
-+		 const struct net_device *in,
-+		 const struct net_device *out,
-+		 const void *matchinfo,
-+		 int offset,
-+		 int *hotdrop)
-+{
-+	struct ts_state state;
-+	struct ipt_string_info *conf = (struct ipt_string_info *) matchinfo;
-+
-+	memset(&state, 0, sizeof(struct ts_state));
-+
-+	return (skb_find_text((struct sk_buff *)skb, conf->from_offset, 
-+			     conf->to_offset, conf->config, &state) 
-+			     != UINT_MAX) && !conf->invert;
-+}
-+
-+#define STRING_TEXT_PRIV(m) ((struct ipt_string_info *) m)
-+
-+static int checkentry(const char *tablename,
-+		      const struct ipt_ip *ip,
-+		      void *matchinfo,
-+		      unsigned int matchsize,
-+		      unsigned int hook_mask)
-+{
-+	struct ipt_string_info *conf = matchinfo;
-+	struct ts_config *ts_conf;
-+
-+	if (matchsize != IPT_ALIGN(sizeof(struct ipt_string_info)))
-+		return 0;
-+
-+	/* Damn, can't handle this case properly with iptables... */
-+	if (conf->from_offset > conf->to_offset)
-+		return 0;
-+
-+	ts_conf = textsearch_prepare(conf->algo, conf->pattern, conf->patlen,
-+				     GFP_KERNEL, TS_AUTOLOAD);
-+	if (IS_ERR(ts_conf))
-+		return 0;
-+
-+	conf->config = ts_conf;
-+
-+	return 1;
-+}
-+
-+static void destroy(void *matchinfo, unsigned int matchsize)
-+{
-+	textsearch_destroy(STRING_TEXT_PRIV(matchinfo)->config);
-+}
-+
-+static struct ipt_match string_match = {
-+	.name 		= "string",
-+	.match 		= match,
-+	.checkentry	= checkentry,
-+	.destroy 	= destroy,
-+	.me 		= THIS_MODULE
-+};
-+
-+static int __init init(void)
-+{
-+	return ipt_register_match(&string_match);
-+}
-+
-+static void __exit fini(void)
-+{
-+	ipt_unregister_match(&string_match);
-+}
-+
-+module_init(init);
-+module_exit(fini);
-Index: netfilter-2.6.14/net/ipv4/netfilter/Makefile
-===================================================================
---- netfilter-2.6.14.orig/net/ipv4/netfilter/Makefile	2005-08-20 15:49:31.000000000 +0200
-+++ netfilter-2.6.14/net/ipv4/netfilter/Makefile	2005-08-20 17:10:03.000000000 +0200
-@@ -65,6 +65,7 @@
- obj-$(CONFIG_IP_NF_MATCH_ADDRTYPE) += ipt_addrtype.o
- obj-$(CONFIG_IP_NF_MATCH_PHYSDEV) += ipt_physdev.o
- obj-$(CONFIG_IP_NF_MATCH_COMMENT) += ipt_comment.o
-+obj-$(CONFIG_IP_NF_MATCH_STRING) += ipt_string.o
+  * ChangeLog
+  *     29.12.2003: Michael Rash <mbr@cipherdyne.org>
+  *             Fixed iptables save/restore for ascii strings
+@@ -21,36 +26,62 @@
+ #include <stdlib.h>
+ #include <getopt.h>
+ #include <ctype.h>
+-
+ #include <iptables.h>
++#include <stddef.h>
+ #include <linux/netfilter_ipv4/ipt_string.h>
  
- # targets
- obj-$(CONFIG_IP_NF_TARGET_REJECT) += ipt_REJECT.o
-Index: netfilter-2.6.14/net/ipv4/netfilter/Kconfig
-===================================================================
---- netfilter-2.6.14.orig/net/ipv4/netfilter/Kconfig	2005-08-20 15:49:31.000000000 +0200
-+++ netfilter-2.6.14/net/ipv4/netfilter/Kconfig	2005-08-20 17:50:59.000000000 +0200
-@@ -410,6 +410,18 @@
- 	  destination IP' or `500pps from any given source IP'  with a single
- 	  IPtables rule.
+-
+ /* Function which prints out usage message. */
+ static void
+ help(void)
+ {
+ 	printf(
+ "STRING match v%s options:\n"
++"--from                       Offset to start searching from\n"
++"--to                         Offset to stop searching\n"
++"--algo	                      Algorithm\n"
+ "--string [!] string          Match a string in a packet\n"
+ "--hex-string [!] string      Match a hex string in a packet\n",
+ IPTABLES_VERSION);
+ }
  
-+config IP_NF_MATCH_STRING
-+	tristate  'string match support'
-+	depends on IP_NF_IPTABLES 
-+	select TEXTSEARCH
-+	select TEXTSEARCH_KMP
-+	select TEXTSEARCH_FSM
-+	help
-+	  This option adds a `string' match, which allows you to look for
-+	  pattern matchings in packets.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- # `filter', generic and specific targets
- config IP_NF_FILTER
- 	tristate "Packet filtering"
-Index: netfilter-2.6.14/include/linux/netfilter_ipv4/ipt_string.h
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ netfilter-2.6.14/include/linux/netfilter_ipv4/ipt_string.h	2005-08-20 17:10:03.000000000 +0200
-@@ -0,0 +1,18 @@
-+#ifndef _IPT_STRING_H
-+#define _IPT_STRING_H
-+
-+#define IPT_STRING_MAX_PATTERN_SIZE 128
-+#define IPT_STRING_MAX_ALGO_NAME_SIZE 16
-+
-+struct ipt_string_info
+-
+ static struct option opts[] = {
+-	{ .name = "string",     .has_arg = 1, .flag = 0, .val = '1' },
+-	{ .name = "hex-string", .has_arg = 1, .flag = 0, .val = '2' },
+-	{ .name = 0 }
++	{ "from", 1, 0, '1' },
++	{ "to", 1, 0, '2' },
++	{ "algo", 1, 0, '3' },
++	{ "string", 1, 0, '4' },
++	{ "hex-string", 1, 0, '5' },
++	{0}
+ };
+ 
+ static void
++init(struct ipt_entry_match *m, unsigned int *nfcache)
 +{
-+	u_int16_t		from_offset;
-+	u_int16_t		to_offset;
-+	char			algo[IPT_STRING_MAX_ALGO_NAME_SIZE];
-+	char			pattern[IPT_STRING_MAX_PATTERN_SIZE];
-+	u_int8_t		patlen;
-+	u_int8_t		invert;
-+	struct ts_config	*config;
-+};
++	struct ipt_string_info *i = (struct ipt_string_info *) m->data;
 +
-+#endif /*_IPT_STRING_H*/
++	if (i->to_offset == 0)
++		i->to_offset = (u_int16_t) ~0UL;
++}
++
++static void
+ parse_string(const unsigned char *s, struct ipt_string_info *info)
+ {	
+-	if (strlen(s) <= BM_MAX_NLEN) strcpy(info->string, s);
+-	else exit_error(PARAMETER_PROBLEM, "STRING too long `%s'", s);
++	if (strlen(s) <= IPT_STRING_MAX_PATTERN_SIZE) {
++		strncpy(info->pattern, s, IPT_STRING_MAX_PATTERN_SIZE);
++		info->patlen = strlen(s);
++		return;
++	}
++	exit_error(PARAMETER_PROBLEM, "STRING too long `%s'", s);
+ }
+ 
++static void
++parse_algo(const unsigned char *s, struct ipt_string_info *info)
++{
++	if (strlen(s) <= IPT_STRING_MAX_ALGO_NAME_SIZE) {
++		strncpy(info->algo, s, IPT_STRING_MAX_ALGO_NAME_SIZE);
++		return;
++	}
++	exit_error(PARAMETER_PROBLEM, "ALGO too long `%s'", s);
++}
+ 
+ static void
+ parse_hex_string(const unsigned char *s, struct ipt_string_info *info)
+@@ -92,7 +123,7 @@
+ 				exit_error(PARAMETER_PROBLEM,
+ 					"Bad literal placement at end of string");
+ 			}
+-			info->string[sindex] = s[i+1];
++			info->pattern[sindex] = s[i+1];
+ 			i += 2;  /* skip over literal char */
+ 			literal_f = 0;
+ 		} else if (hex_f) {
+@@ -114,22 +145,26 @@
+ 			if (! sscanf(hextmp, "%x", &schar))
+ 				exit_error(PARAMETER_PROBLEM,
+ 					"Invalid hex char `%c'", s[i]);
+-			info->string[sindex] = (char) schar;
++			info->pattern[sindex] = (char) schar;
+ 			if (s[i+2] == ' ')
+ 				i += 3;  /* spaces included in the hex block */
+ 			else
+ 				i += 2;
+ 		} else {  /* the char is not part of hex data, so just copy */
+-			info->string[sindex] = s[i];
++			info->pattern[sindex] = s[i];
+ 			i++;
+ 		}
+-		if (sindex > BM_MAX_NLEN)
++		if (sindex > IPT_STRING_MAX_PATTERN_SIZE)
+ 			exit_error(PARAMETER_PROBLEM, "STRING too long `%s'", s);
+ 		sindex++;
+ 	}
+-	info->len = sindex;
++	info->patlen = sindex;
+ }
+ 
++#define STRING 0x1
++#define ALGO   0x2
++#define FROM   0x4
++#define TO     0x8
+ 
+ /* Function which parses command options; returns true if it
+    ate an option */
+@@ -143,28 +178,48 @@
+ 
+ 	switch (c) {
+ 	case '1':
+-		if (*flags)
++		if (*flags & FROM)
+ 			exit_error(PARAMETER_PROBLEM,
+-				   "Can't specify multiple strings");
+-
++				   "Can't specify multiple --from");
++		stringinfo->from_offset = atoi(optarg);
++		*flags |= FROM;
++		break;
++	case '2':
++		if (*flags & TO)
++			exit_error(PARAMETER_PROBLEM,
++				   "Can't specify multiple --to");
++		stringinfo->to_offset = atoi(optarg);
++		*flags |= TO;
++		break;
++	case '3':
++		if (*flags & ALGO)
++			exit_error(PARAMETER_PROBLEM,
++				   "Can't specify multiple --algo");
++		parse_algo(optarg, stringinfo);
++		*flags |= ALGO;
++		break;
++	case '4':
++		if (*flags & STRING)
++			exit_error(PARAMETER_PROBLEM,
++				   "Can't specify multiple --string");
+ 		check_inverse(optarg, &invert, &optind, 0);
+ 		parse_string(argv[optind-1], stringinfo);
+ 		if (invert)
+ 			stringinfo->invert = 1;
+-		stringinfo->len=strlen((char *)&stringinfo->string);
+-		*flags = 1;
++		stringinfo->patlen=strlen((char *)&stringinfo->pattern);
++		*flags |= STRING;
+ 		break;
+ 
+-	case '2':
+-		if (*flags)
++	case '5':
++		if (*flags & STRING)
+ 			exit_error(PARAMETER_PROBLEM,
+-				   "Can't specify multiple strings");
++				   "Can't specify multiple --hex-string");
+ 
+ 		check_inverse(optarg, &invert, &optind, 0);
+ 		parse_hex_string(argv[optind-1], stringinfo);  /* sets length */
+ 		if (invert)
+ 			stringinfo->invert = 1;
+-		*flags = 1;
++		*flags |= STRING;
+ 		break;
+ 
+ 	default:
+@@ -178,9 +233,13 @@
+ static void
+ final_check(unsigned int flags)
+ {
+-	if (!flags)
++	if (!(flags & STRING))
+ 		exit_error(PARAMETER_PROBLEM,
+-			   "STRING match: You must specify `--string' or `--hex-string'");
++			   "STRING match: You must specify `--string' or "
++			   "`--hex-string'");
++	if (!(flags & ALGO))
++		exit_error(PARAMETER_PROBLEM,
++			   "STRING match: You must specify `--algo'");
+ }
+ 
+ /* Test to see if the string contains non-printable chars or quotes */
+@@ -237,13 +296,18 @@
+ 	const struct ipt_string_info *info =
+ 	    (const struct ipt_string_info*) match->data;
+ 
+-	if (is_hex_string(info->string, info->len)) {
++	if (is_hex_string(info->pattern, info->patlen)) {
+ 		printf("STRING match %s", (info->invert) ? "!" : "");
+-		print_hex_string(info->string, info->len);
++		print_hex_string(info->pattern, info->patlen);
+ 	} else {
+ 		printf("STRING match %s", (info->invert) ? "!" : "");
+-		print_string(info->string, info->len);
++		print_string(info->pattern, info->patlen);
+ 	}
++	printf("ALGO name %s ", info->algo);
++	if (info->from_offset != 0)
++		printf("FROM %u ", info->from_offset);
++	if (info->to_offset != 0)
++		printf("TO %u", info->to_offset);
+ }
+ 
+ 
+@@ -254,27 +318,33 @@
+ 	const struct ipt_string_info *info =
+ 	    (const struct ipt_string_info*) match->data;
+ 
+-	if (is_hex_string(info->string, info->len)) {
++	if (is_hex_string(info->pattern, info->patlen)) {
+ 		printf("--hex-string %s", (info->invert) ? "! ": "");
+-		print_hex_string(info->string, info->len);
++		print_hex_string(info->pattern, info->patlen);
+ 	} else {
+ 		printf("--string %s", (info->invert) ? "! ": "");
+-		print_string(info->string, info->len);
++		print_string(info->pattern, info->patlen);
+ 	}
++	printf("--algo %s ", info->algo);
++	if (info->from_offset != 0)
++		printf("--from-offset %u ", info->from_offset);
++	if (info->to_offset != 0)
++		printf("--to-offset %u ", info->to_offset);
+ }
+ 
+ 
+ static struct iptables_match string = {
+-    .name          = "string",
+-    .version       = IPTABLES_VERSION,
+-    .size          = IPT_ALIGN(sizeof(struct ipt_string_info)),
+-    .userspacesize = IPT_ALIGN(sizeof(struct ipt_string_info)),
+-    .help          = &help,
+-    .parse         = &parse,
+-    .final_check   = &final_check,
+-    .print         = &print,
+-    .save          = &save,
+-    .extra_opts    = opts
++    .name		= "string",
++    .version		= IPTABLES_VERSION,
++    .size		= IPT_ALIGN(sizeof(struct ipt_string_info)),
++    .userspacesize	= offsetof(struct ipt_string_info, config),
++    .help		= help,
++    .init		= init,
++    .parse		= parse,
++    .final_check	= final_check,
++    .print		= print,
++    .save		= save,
++    .extra_opts		= opts
+ };
+ 
+ 
 
---------------000006010605070601040400--
+--------------040604070304040703080904--
