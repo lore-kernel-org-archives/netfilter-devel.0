@@ -1,12 +1,14 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH] string match for iptables strike #2
-Date: Sat, 20 Aug 2005 19:51:49 +0200
-Message-ID: <43076DB5.3080301@eurodev.net>
+From: Pablo Neira <pablo@netfilter.org>
+Subject: Re: [PATCH] string match for iptables strike #2
+Date: Sat, 20 Aug 2005 19:53:14 +0200
+Message-ID: <43076E0A.4060103@netfilter.org>
+References: <43076DB5.3080301@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090904040302030202040505"
+Content-Type: multipart/mixed; boundary="------------070802080104000405030306"
 Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <43076DB5.3080301@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,23 +21,23 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090904040302030202040505
+--------------070802080104000405030306
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hi,
+Pablo Neira wrote:
+> Hi,
+> 
+> Attached the iptables string match since the textsearch infrastructure
+> went into 2.6.13. It fixes the minor problem that Patrick has spotted 
+> about the 64/32 bit environments.
 
-Attached the iptables string match since the textsearch infrastructure
-went into 2.6.13. It fixes the minor problem that Patrick has spotted 
-about the 64/32 bit environments.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
+Damn, bad patch, attached the correct one.
 
 --
 Pablo
 
-
---------------090904040302030202040505
+--------------070802080104000405030306
 Content-Type: text/x-patch;
  name="10ipt_string.patch"
 Content-Transfer-Encoding: 7bit
@@ -45,7 +47,7 @@ Content-Disposition: inline;
 Index: netfilter-2.6.14/net/ipv4/netfilter/ipt_string.c
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ netfilter-2.6.14/net/ipv4/netfilter/ipt_string.c	2005-08-20 17:10:03.000000000 +0200
++++ netfilter-2.6.14/net/ipv4/netfilter/ipt_string.c	2005-08-20 18:48:57.000000000 +0200
 @@ -0,0 +1,91 @@
 +/* String matching match for iptables
 + * 
@@ -140,8 +142,8 @@ Index: netfilter-2.6.14/net/ipv4/netfilter/ipt_string.c
 +module_exit(fini);
 Index: netfilter-2.6.14/net/ipv4/netfilter/Makefile
 ===================================================================
---- netfilter-2.6.14.orig/net/ipv4/netfilter/Makefile	2005-08-20 15:49:31.000000000 +0200
-+++ netfilter-2.6.14/net/ipv4/netfilter/Makefile	2005-08-20 17:10:03.000000000 +0200
+--- netfilter-2.6.14.orig/net/ipv4/netfilter/Makefile	2005-08-20 18:48:49.000000000 +0200
++++ netfilter-2.6.14/net/ipv4/netfilter/Makefile	2005-08-20 18:48:57.000000000 +0200
 @@ -65,6 +65,7 @@
  obj-$(CONFIG_IP_NF_MATCH_ADDRTYPE) += ipt_addrtype.o
  obj-$(CONFIG_IP_NF_MATCH_PHYSDEV) += ipt_physdev.o
@@ -152,8 +154,8 @@ Index: netfilter-2.6.14/net/ipv4/netfilter/Makefile
  obj-$(CONFIG_IP_NF_TARGET_REJECT) += ipt_REJECT.o
 Index: netfilter-2.6.14/net/ipv4/netfilter/Kconfig
 ===================================================================
---- netfilter-2.6.14.orig/net/ipv4/netfilter/Kconfig	2005-08-20 15:49:31.000000000 +0200
-+++ netfilter-2.6.14/net/ipv4/netfilter/Kconfig	2005-08-20 17:50:59.000000000 +0200
+--- netfilter-2.6.14.orig/net/ipv4/netfilter/Kconfig	2005-08-20 18:48:50.000000000 +0200
++++ netfilter-2.6.14/net/ipv4/netfilter/Kconfig	2005-08-20 18:48:57.000000000 +0200
 @@ -410,6 +410,18 @@
  	  destination IP' or `500pps from any given source IP'  with a single
  	  IPtables rule.
@@ -176,7 +178,7 @@ Index: netfilter-2.6.14/net/ipv4/netfilter/Kconfig
 Index: netfilter-2.6.14/include/linux/netfilter_ipv4/ipt_string.h
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ netfilter-2.6.14/include/linux/netfilter_ipv4/ipt_string.h	2005-08-20 17:10:03.000000000 +0200
++++ netfilter-2.6.14/include/linux/netfilter_ipv4/ipt_string.h	2005-08-20 18:50:14.000000000 +0200
 @@ -0,0 +1,18 @@
 +#ifndef _IPT_STRING_H
 +#define _IPT_STRING_H
@@ -186,16 +188,15 @@ Index: netfilter-2.6.14/include/linux/netfilter_ipv4/ipt_string.h
 +
 +struct ipt_string_info
 +{
-+	u_int16_t		from_offset;
-+	u_int16_t		to_offset;
-+	char			algo[IPT_STRING_MAX_ALGO_NAME_SIZE];
-+	char			pattern[IPT_STRING_MAX_PATTERN_SIZE];
-+	u_int8_t		patlen;
-+	u_int8_t		invert;
-+	struct ts_config	*config;
++	u_int16_t from_offset;
++	u_int16_t to_offset;
++	char	  algo[IPT_STRING_MAX_ALGO_NAME_SIZE];
++	char 	  pattern[IPT_STRING_MAX_PATTERN_SIZE];
++	u_int8_t  patlen;
++	u_int8_t  invert;
++	struct ts_config __attribute__((aligned(8))) *config;
 +};
 +
 +#endif /*_IPT_STRING_H*/
 
-
---------------090904040302030202040505--
+--------------070802080104000405030306--
