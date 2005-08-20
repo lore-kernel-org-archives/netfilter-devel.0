@@ -1,9 +1,9 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 2/3]: Fix HW checksum handling in ECN target
-Date: Sat, 20 Aug 2005 03:40:04 +0200
-Message-ID: <430689F4.6010004@trash.net>
+Subject: [NETFILTER 1/3]: Fix ECN target TCP marking
+Date: Sat, 20 Aug 2005 03:39:55 +0200
+Message-ID: <430689EB.10103@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020703070001080702010007"
+Content-Type: multipart/mixed; boundary="------------080105060807050704080206"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
@@ -19,111 +19,58 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------020703070001080702010007
+--------------080105060807050704080206
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
+Hi Dave,
 
---------------020703070001080702010007
+these patches fix HW checksum handling in the ECN and TCPMSS target.
+The second and third patch don't apply to both net-2.6 and net-2.6.14
+because of the nfcache removal and renaming of skb_ip_make_writable,
+I've attached one patch for each tree.
+
+
+--------------080105060807050704080206
 Content-Type: text/x-patch;
- name="02-2.6.13.diff"
+ name="01.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="02-2.6.13.diff"
+ filename="01.diff"
 
-[NETFILTER]: Fix HW checksum handling in ECN target
+[NETFILTER]: Fix ECN target TCP marking
+
+An incorrect check made it bail out before doing anything.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit b477e1c6defc1b0e1181350908714e11de5768dd
-tree c30a6471018a9d8c91cfdcfdf829021428de4842
-parent 0fdd261fea7da690726451e22e72845d2bcce50f
-author Patrick McHardy <kaber@trash.net> Sat, 20 Aug 2005 03:34:53 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 20 Aug 2005 03:34:53 +0200
+commit a811712706846bff6ad796394ce4aa3abcc657b0
+tree 58734ec94ba7a8d54accc29c5d986b242a2b5180
+parent 97023145be4225d4b39c73264da10377982205ab
+author Patrick McHardy <kaber@trash.net> Fri, 19 Aug 2005 08:51:18 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 19 Aug 2005 08:51:18 +0200
 
- net/ipv4/netfilter/ipt_ECN.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
---- a/net/ipv4/netfilter/ipt_ECN.c
-+++ b/net/ipv4/netfilter/ipt_ECN.c
-@@ -71,6 +71,10 @@ set_ect_tcp(struct sk_buff **pskb, const
- 		return 0;
- 	tcph = (void *)(*pskb)->nh.iph + (*pskb)->nh.iph->ihl*4;
- 
-+	if ((*pskb)->ip_summed == CHECKSUM_HW &&
-+	    skb_checksum_help(*pskb, inward))
-+		return 0;
-+
- 	diffs[0] = ((u_int16_t *)tcph)[6];
- 	if (einfo->operation & IPT_ECN_OP_SET_ECE)
- 		tcph->ece = einfo->proto.tcp.ece;
-@@ -79,13 +83,10 @@ set_ect_tcp(struct sk_buff **pskb, const
- 	diffs[1] = ((u_int16_t *)tcph)[6];
- 	diffs[0] = diffs[0] ^ 0xFFFF;
- 
--	if ((*pskb)->ip_summed != CHECKSUM_HW)
-+	if ((*pskb)->ip_summed != CHECKSUM_UNNECESSARY)
- 		tcph->check = csum_fold(csum_partial((char *)diffs,
- 						     sizeof(diffs),
- 						     tcph->check^0xFFFF));
--	else
--		if (skb_checksum_help(*pskb, inward))
--			return 0;
- 	(*pskb)->nfcache |= NFC_ALTERED;
- 	return 1;
- }
-
---------------020703070001080702010007
-Content-Type: text/x-patch;
- name="02-2.6.14.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="02-2.6.14.diff"
-
-[NETFILTER]: Fix HW checksum handling in ECN target
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit f1929b1a15a9a7d9761b344d3522698bd656154e
-tree d2da13822149bfa1c49a8ae82930d4795f08f69f
-parent a811712706846bff6ad796394ce4aa3abcc657b0
-author Patrick McHardy <kaber@trash.net> Sat, 20 Aug 2005 03:28:22 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 20 Aug 2005 03:28:22 +0200
-
- net/ipv4/netfilter/ipt_ECN.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ net/ipv4/netfilter/ipt_ECN.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
 --- a/net/ipv4/netfilter/ipt_ECN.c
 +++ b/net/ipv4/netfilter/ipt_ECN.c
-@@ -70,6 +70,10 @@ set_ect_tcp(struct sk_buff **pskb, const
+@@ -60,10 +60,10 @@ set_ect_tcp(struct sk_buff **pskb, const
+ 	if (!tcph)
  		return 0;
- 	tcph = (void *)(*pskb)->nh.iph + (*pskb)->nh.iph->ihl*4;
  
-+	if ((*pskb)->ip_summed == CHECKSUM_HW &&
-+	    skb_checksum_help(*pskb, inward))
-+		return 0;
-+
- 	diffs[0] = ((u_int16_t *)tcph)[6];
- 	if (einfo->operation & IPT_ECN_OP_SET_ECE)
- 		tcph->ece = einfo->proto.tcp.ece;
-@@ -78,13 +82,10 @@ set_ect_tcp(struct sk_buff **pskb, const
- 	diffs[1] = ((u_int16_t *)tcph)[6];
- 	diffs[0] = diffs[0] ^ 0xFFFF;
+-	if (!(einfo->operation & IPT_ECN_OP_SET_ECE
+-	      || tcph->ece == einfo->proto.tcp.ece)
+-	    && (!(einfo->operation & IPT_ECN_OP_SET_CWR
+-		  || tcph->cwr == einfo->proto.tcp.cwr)))
++	if ((!(einfo->operation & IPT_ECN_OP_SET_ECE) ||
++	     tcph->ece == einfo->proto.tcp.ece) &&
++	    ((!(einfo->operation & IPT_ECN_OP_SET_CWR) ||
++	     tcph->cwr == einfo->proto.tcp.cwr)))
+ 		return 1;
  
--	if ((*pskb)->ip_summed != CHECKSUM_HW)
-+	if ((*pskb)->ip_summed != CHECKSUM_UNNECESSARY)
- 		tcph->check = csum_fold(csum_partial((char *)diffs,
- 						     sizeof(diffs),
- 						     tcph->check^0xFFFF));
--	else
--		if (skb_checksum_help(*pskb, inward))
--			return 0;
- 	return 1;
- }
- 
+ 	if (!skb_make_writable(pskb, (*pskb)->nh.iph->ihl*4+sizeof(*tcph)))
 
---------------020703070001080702010007--
+--------------080105060807050704080206--
