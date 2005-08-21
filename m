@@ -1,15 +1,15 @@
-From: Peter Surda <surda@shurdix.com>
-Subject: Re: Question, my modifed -j LOG
-Date: Sun, 21 Aug 2005 04:41:28 +0200
-Message-ID: <20057214412813341@mail.routehat.org>
-References: <4307CA57.9090600@gmx.net>
+From: Michael <oni@atice.org>
+Subject: Re: patch-o-matic problem with ip_nat_pptp
+Date: Sun, 21 Aug 2005 13:07:29 +1000
+Message-ID: <4307EFF1.6050906@atice.org>
+References: <E1E4Csn-0005rz-B4@wombat.digitalis.net.au>
+	<42FF1CD7.9010209@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <4307CA57.9090600@gmx.net>
-Content-Disposition: inline
+In-Reply-To: <42FF1CD7.9010209@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,42 +21,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 21 Aug 2005 02:27:03 +0200 Carl-Daniel Hailfinger
-<c-d.hailfinger.devel.2005@gmx.net> wrote:
+Jiri Slaby wrote:
 
->Jan Engelhardt schrieb:
->> The question is: how different do all these 2000+ hosts need to be
->> classified?
->> I can't think of anything but to let everything through with possibly
->  ^^^^^^^^^^^^^^^^^^^^^^^^^
->> exceptions like SMTP and HTTP (going over proxies there).
->You haven't yet managed such a big student network, right?
-Well, he perhaps hadn't, but I did and still do, several of them.
+> If you want to use pptp with 2.6.11 tree, you have to add nfnetlink 
+> patch, because there aren't these functions. The problem is probably, 
+> that 2 patches overlap. The best way to use pptp from patch-o-magic is 
+> upgrade kernel to one of latest versions.
 
->being able to freely roam and still get access to their own services and
->having different rules, shaping based on traffic history, IP, port and
->building they're sitting in, DoS protection for the hosts behind, limits
->on filesharing, redirection of a few services, exceptions to all the
->rules above because of people being "important", load distribution etc.
-I thought this for several years too. Then I discovered WRR and was able =
-to
-achieve much better results (both subjective perception of users and
-measurements), not to mention that the required administration is much lo=
-wer.
 
->Please don't criticize other people before understanding their problems.
-You are of course right, original poster's situation seems very complex a=
-nd such
-a large amount of rules may be justified.
+I've tried updating my kernel version to 2.6.12.5 & grabbed the latest 
+patch-o-matic (20050819) When I try to apply the
+pptp-conntrack-nat patch, it is now telling me:
 
-Furthermore may I suggest that only development be discussed here and not=
- "how
-to use iptables properly"? LARTC might be a better place for that.
+newfile: 8 files in our way, unable to apply
 
->Regards,
->Carl-Daniel
-Yours sincerely,
-Peter
+any ideas?
 
---=20
-http://www.shurdix.org - Linux distribution for routers and firewalls
+--
+Michael
+oni@atice.org
