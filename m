@@ -1,10 +1,10 @@
-From: Hariramanathan Ramakrishnan <rhari74@yahoo.com>
-Subject: help me in getting the testsuite tool files
-Date: Fri, 19 Aug 2005 12:38:28 -0700 (PDT)
-Message-ID: <20050819193828.80086.qmail@web33309.mail.mud.yahoo.com>
+From: Munteanu Eduard Gabriel <maxdamage@aladin.ro>
+Subject: Multiple targets for REDIRECT & friends
+Date: Sun, 21 Aug 2005 13:40:22 +0000
+Message-ID: <43088446.6000303@aladin.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,12 +18,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
-          I am using the queue target in the iptable module. I would like to use the testsuite tool "redirect.c" for user space application.But i could not find the director of testsuite tools in CVS. where should i look??. I need gen_ip and rcv_ip tools also from cvs.   Thanks, ur help is highly appreciated. 
-r.hari
+I'm looking to contribute this to netfilter.
 
+Right now, ip_nat_multi_range is typedeffed (as a macro, though) to 
+ip_nat_multi_range_compat. I think it will be okay to make 
+ip_nat_multi_range be a linked list, but eliminate rangesize member. 
+Older targets will preserve ip_nat_multi_range_compat, while those which 
+support multiple targets will use this new structure.
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+However, there is a problem and I need your help. Linked lists need 
+linux/list.h, but that one checks for __KERNEL__ and backfires when you 
+need to compile iptables. As I see it, there are two solutions for that:
+1) Using a "ip_nat_multi_range *next" pointer instead of using kernel's 
+list_head. This fulfills all requirements for my patch, but I don't know 
+if it's okay for kernel devels to use nonstandard lists (though there is 
+no single-linked list implementation in kernel AFAIK).
+2) Providing different linux/list.h in iptables package. This will bring 
+up future API compatibility issues, so we need to maintain that header 
+and insert checks for kernel version.
+3) Modify linux/list.h so that it doesn't check anymore for __KERNEL__. 
+Kernel devels won't be happy about this AFAICS.
+
+If you have any other advice regarding my ideas on how to implement 
+this, feel free to ask. I already came up with a patch for iptables' 
+REDIRECT target, it just needs to have that linked list thingy filled up.
