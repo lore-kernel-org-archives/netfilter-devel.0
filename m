@@ -1,12 +1,16 @@
-From: Munteanu Eduard Gabriel <maxdamage@aladin.ro>
-Subject: Multiple targets for REDIRECT & friends
-Date: Sun, 21 Aug 2005 20:23:36 +0000
-Message-ID: <4308E2C8.7090303@aladin.ro>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
+Subject: Re: Question, my modifed -j LOG
+Date: Sun, 21 Aug 2005 20:30:26 +0200
+Message-ID: <4308C842.3040209@gmx.net>
+References: <20050820172824.GE5638@aaricia.csbnet.se>	<Pine.LNX.4.61.0508202154050.18226@yvahk01.tjqt.qr>	<20050820202552.GF5638@aaricia.csbnet.se>	<Pine.LNX.4.61.0508210021050.22186@yvahk01.tjqt.qr>
+	<20050821043728.GH5638@aaricia.csbnet.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Joakim Axelsson <gozem@gozem.se>
+In-Reply-To: <20050821043728.GH5638@aaricia.csbnet.se>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,27 +22,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I'm looking to contribute this to netfilter.
+Joakim Axelsson schrieb:
+> The router has never ever crashed in some 18 months now. Im not about to
+> trade that for a possible unstable kernel. Its not needed. Well, it is not
+> as the traffic amount pushes the CPU to 100%.
 
-Right now, ip_nat_multi_range is typedeffed (as a macro, though) to
-ip_nat_multi_range_compat. I think it will be okay to make
-ip_nat_multi_range be a linked list, but eliminate rangesize member.
-Older targets will preserve ip_nat_multi_range_compat, while those which
-support multiple targets will use this new structure.
+Since the student network I'm managing is comparable in size to yours
+and we're going to get 1000 MBit upstream soon, I'd be interested in
+your experiences regarding netfilter scalability. Did you profile that
+machine to see where it spends most of its time? How big is the latency
+introduced by the ruleset? And do you have data about CPU utilization
+vs. network load?
+Could submit your local patches to pom-ng or at least mail them to me?
+I'd like to have a look and find out what can help in my situation.
 
-However, there is a problem and I need your help. Linked lists need
-linux/list.h, but that one checks for __KERNEL__ and backfires when you
-need to compile iptables. As I see it, there are two solutions for that:
-1) Using a "ip_nat_multi_range *next" pointer instead of using kernel's
-list_head. This fulfills all requirements for my patch, but I don't know
-if it's okay for kernel devels to use nonstandard lists (though there is
-no single-linked list implementation in kernel AFAIK).
-2) Providing different linux/list.h in iptables package. This will bring
-up future API compatibility issues, so we need to maintain that header
-and insert checks for kernel version.
-3) Modify linux/list.h so that it doesn't check anymore for __KERNEL__.
-Kernel devels won't be happy about this AFAICS.
-
-If you have any other advice regarding my ideas on how to implement
-this, feel free to ask. I already came up with a patch for iptables'
-REDIRECT target, it just needs to have that linked list thingy filled up.
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
