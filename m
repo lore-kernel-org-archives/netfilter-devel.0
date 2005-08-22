@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 2/4]: Add string match
-Date: Mon, 22 Aug 2005 02:04:03 +0200
-Message-ID: <43091673.4020404@trash.net>
+Subject: [NETFILTER 3/4]: Add IPv6 REJECT target
+Date: Mon, 22 Aug 2005 02:04:07 +0200
+Message-ID: <43091677.3020506@trash.net>
 Mime-Version: 1.0
 Content-Type: text/x-patch;
- name="02.diff"
+ name="03.diff"
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
 Content-Disposition: inline;
- filename="02.diff"
+ filename="03.diff"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,172 +22,364 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Add string match
+[NETFILTER]: Add IPv6 REJECT target
 
-Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
+Originally written by Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
+taken from netfilter patch-o-matic and fixed up to work with current
+kernels.
+
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit d5329f7baf82fbc6339fa9c7a167bd5728be46ea
-tree d15ee1f092e13264baeb623a4303ac977df06f4b
-parent 8cf07748b0be017ee9776fa5cb25b7d07e771e37
-author Pablo Neira Ayuso <pablo@eurodev.net> Sun, 21 Aug 2005 21:55:43 +0200
-committer Patrick McHardy <kaber@trash.net> Sun, 21 Aug 2005 21:55:43 +0200
+commit a0a72e7c68dee59a8345cdffbe0da7085deec867
+tree 1ec3459fad9d07ebc718fb964b5008f3cc76e05d
+parent d5329f7baf82fbc6339fa9c7a167bd5728be46ea
+author Patrick McHardy <kaber@trash.net> Sun, 21 Aug 2005 21:56:31 +0200
+committer Patrick McHardy <kaber@trash.net> Sun, 21 Aug 2005 21:56:31 +0200
 
- include/linux/netfilter_ipv4/ipt_string.h |   18 ++++++
- net/ipv4/netfilter/Kconfig                |   12 ++++
- net/ipv4/netfilter/Makefile               |    1 
- net/ipv4/netfilter/ipt_string.c           |   91 +++++++++++++++++++++++++++++
- 4 files changed, 122 insertions(+), 0 deletions(-)
+ include/linux/netfilter_ipv6/ip6t_REJECT.h |   18 ++
+ net/ipv6/netfilter/Kconfig                 |   10 +
+ net/ipv6/netfilter/Makefile                |    1 
+ net/ipv6/netfilter/ip6t_REJECT.c           |  284 ++++++++++++++++++++++++++++
+ 4 files changed, 313 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ipt_string.h b/include/linux/netfilter_ipv4/ipt_string.h
+diff --git a/include/linux/netfilter_ipv6/ip6t_REJECT.h b/include/linux/netfilter_ipv6/ip6t_REJECT.h
 new file mode 100644
 --- /dev/null
-+++ b/include/linux/netfilter_ipv4/ipt_string.h
++++ b/include/linux/netfilter_ipv6/ip6t_REJECT.h
 @@ -0,0 +1,18 @@
-+#ifndef _IPT_STRING_H
-+#define _IPT_STRING_H
++#ifndef _IP6T_REJECT_H
++#define _IP6T_REJECT_H
 +
-+#define IPT_STRING_MAX_PATTERN_SIZE 128
-+#define IPT_STRING_MAX_ALGO_NAME_SIZE 16
-+
-+struct ipt_string_info
-+{
-+	u_int16_t from_offset;
-+	u_int16_t to_offset;
-+	char	  algo[IPT_STRING_MAX_ALGO_NAME_SIZE];
-+	char 	  pattern[IPT_STRING_MAX_PATTERN_SIZE];
-+	u_int8_t  patlen;
-+	u_int8_t  invert;
-+	struct ts_config __attribute__((aligned(8))) *config;
++enum ip6t_reject_with {
++	IP6T_ICMP6_NO_ROUTE,
++	IP6T_ICMP6_ADM_PROHIBITED,
++	IP6T_ICMP6_NOT_NEIGHBOUR,
++	IP6T_ICMP6_ADDR_UNREACH,
++	IP6T_ICMP6_PORT_UNREACH,
++	IP6T_ICMP6_ECHOREPLY,
++	IP6T_TCP_RESET
 +};
 +
-+#endif /*_IPT_STRING_H*/
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -410,6 +410,18 @@ config IP_NF_MATCH_HASHLIMIT
- 	  destination IP' or `500pps from any given source IP'  with a single
- 	  IPtables rule.
++struct ip6t_reject_info {
++	u_int32_t	with;	/* reject type */
++};
++
++#endif /*_IP6T_REJECT_H*/
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -199,6 +199,16 @@ config IP6_NF_TARGET_LOG
  
-+config IP_NF_MATCH_STRING
-+	tristate  'string match support'
-+	depends on IP_NF_IPTABLES 
-+	select TEXTSEARCH
-+	select TEXTSEARCH_KMP
-+	select TEXTSEARCH_FSM
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config IP6_NF_TARGET_REJECT
++	tristate "REJECT target support"
++	depends on IP6_NF_FILTER
 +	help
-+	  This option adds a `string' match, which allows you to look for
-+	  pattern matchings in packets.
++	  The REJECT target allows a filtering rule to specify that an ICMPv6
++	  error should be issued in response to an incoming packet, rather
++	  than silently being dropped.
 +
 +	  To compile it as a module, choose M here.  If unsure, say N.
 +
- # `filter', generic and specific targets
- config IP_NF_FILTER
- 	tristate "Packet filtering"
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -65,6 +65,7 @@ obj-$(CONFIG_IP_NF_MATCH_REALM) += ipt_r
- obj-$(CONFIG_IP_NF_MATCH_ADDRTYPE) += ipt_addrtype.o
- obj-$(CONFIG_IP_NF_MATCH_PHYSDEV) += ipt_physdev.o
- obj-$(CONFIG_IP_NF_MATCH_COMMENT) += ipt_comment.o
-+obj-$(CONFIG_IP_NF_MATCH_STRING) += ipt_string.o
- 
- # targets
- obj-$(CONFIG_IP_NF_TARGET_REJECT) += ipt_REJECT.o
-diff --git a/net/ipv4/netfilter/ipt_string.c b/net/ipv4/netfilter/ipt_string.c
+ #  if [ "$CONFIG_IP6_NF_FILTER" != "n" ]; then
+ #    dep_tristate '    REJECT target support' CONFIG_IP6_NF_TARGET_REJECT $CONFIG_IP6_NF_FILTER
+ #    if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
+diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+--- a/net/ipv6/netfilter/Makefile
++++ b/net/ipv6/netfilter/Makefile
+@@ -24,4 +24,5 @@ obj-$(CONFIG_IP6_NF_QUEUE) += ip6_queue.
+ obj-$(CONFIG_IP6_NF_TARGET_LOG) += ip6t_LOG.o
+ obj-$(CONFIG_IP6_NF_RAW) += ip6table_raw.o
+ obj-$(CONFIG_IP6_NF_MATCH_HL) += ip6t_hl.o
++obj-$(CONFIG_IP6_NF_TARGET_REJECT) += ip6t_REJECT.o
+ obj-$(CONFIG_NETFILTER_NETLINK_QUEUE) += ip6t_NFQUEUE.o
+diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
 new file mode 100644
 --- /dev/null
-+++ b/net/ipv4/netfilter/ipt_string.c
-@@ -0,0 +1,91 @@
-+/* String matching match for iptables
-+ * 
-+ * (C) 2005 Pablo Neira Ayuso <pablo@eurodev.net>
++++ b/net/ipv6/netfilter/ip6t_REJECT.c
+@@ -0,0 +1,284 @@
++/*
++ * IP6 tables REJECT target module
++ * Linux INET6 implementation
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * Copyright (C)2003 USAGI/WIDE Project
++ *
++ * Authors:
++ *	Yasuyuki Kozakai	<yasuyuki.kozakai@toshiba.co.jp>
++ *
++ * Based on net/ipv4/netfilter/ipt_REJECT.c
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version
++ * 2 of the License, or (at your option) any later version.
 + */
 +
-+#include <linux/init.h>
++#include <linux/config.h>
 +#include <linux/module.h>
-+#include <linux/kernel.h>
 +#include <linux/skbuff.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv4/ipt_string.h>
-+#include <linux/textsearch.h>
++#include <linux/icmpv6.h>
++#include <linux/netdevice.h>
++#include <net/ipv6.h>
++#include <net/tcp.h>
++#include <net/icmp.h>
++#include <net/ip6_checksum.h>
++#include <net/ip6_fib.h>
++#include <net/ip6_route.h>
++#include <net/flow.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
++#include <linux/netfilter_ipv6/ip6t_REJECT.h>
 +
-+MODULE_AUTHOR("Pablo Neira Ayuso <pablo@eurodev.net>");
-+MODULE_DESCRIPTION("IP tables string match module");
++MODULE_AUTHOR("Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>");
++MODULE_DESCRIPTION("IP6 tables REJECT target module");
 +MODULE_LICENSE("GPL");
 +
-+static int match(const struct sk_buff *skb,
-+		 const struct net_device *in,
-+		 const struct net_device *out,
-+		 const void *matchinfo,
-+		 int offset,
-+		 int *hotdrop)
++#if 0
++#define DEBUGP printk
++#else
++#define DEBUGP(format, args...)
++#endif
++
++/* Send RST reply */
++static void send_reset(struct sk_buff *oldskb)
 +{
-+	struct ts_state state;
-+	struct ipt_string_info *conf = (struct ipt_string_info *) matchinfo;
++	struct sk_buff *nskb;
++	struct tcphdr otcph, *tcph;
++	unsigned int otcplen, hh_len;
++	int tcphoff, needs_ack;
++	struct ipv6hdr *oip6h = oldskb->nh.ipv6h, *ip6h;
++	struct dst_entry *dst = NULL;
++	u8 proto;
++	struct flowi fl;
 +
-+	memset(&state, 0, sizeof(struct ts_state));
++	if ((!(ipv6_addr_type(&oip6h->saddr) & IPV6_ADDR_UNICAST)) ||
++	    (!(ipv6_addr_type(&oip6h->daddr) & IPV6_ADDR_UNICAST))) {
++		DEBUGP("ip6t_REJECT: addr is not unicast.\n");
++		return;
++	}
 +
-+	return (skb_find_text((struct sk_buff *)skb, conf->from_offset, 
-+			     conf->to_offset, conf->config, &state) 
-+			     != UINT_MAX) && !conf->invert;
++	proto = oip6h->nexthdr;
++	tcphoff = ipv6_skip_exthdr(oldskb, ((u8*)(oip6h+1) - oldskb->data), &proto);
++
++	if ((tcphoff < 0) || (tcphoff > oldskb->len)) {
++		DEBUGP("ip6t_REJECT: Can't get TCP header.\n");
++		return;
++	}
++
++	otcplen = oldskb->len - tcphoff;
++
++	/* IP header checks: fragment, too short. */
++	if ((proto != IPPROTO_TCP) || (otcplen < sizeof(struct tcphdr))) {
++		DEBUGP("ip6t_REJECT: proto(%d) != IPPROTO_TCP, or too short. otcplen = %d\n",
++			proto, otcplen);
++		return;
++	}
++
++	if (skb_copy_bits(oldskb, tcphoff, &otcph, sizeof(struct tcphdr)))
++		BUG();
++
++	/* No RST for RST. */
++	if (otcph.rst) {
++		DEBUGP("ip6t_REJECT: RST is set\n");
++		return;
++	}
++
++	/* Check checksum. */
++	if (csum_ipv6_magic(&oip6h->saddr, &oip6h->daddr, otcplen, IPPROTO_TCP,
++			    skb_checksum(oldskb, tcphoff, otcplen, 0))) {
++		DEBUGP("ip6t_REJECT: TCP checksum is invalid\n");
++		return;
++	}
++
++	memset(&fl, 0, sizeof(fl));
++	fl.proto = IPPROTO_TCP;
++	ipv6_addr_copy(&fl.fl6_src, &oip6h->daddr);
++	ipv6_addr_copy(&fl.fl6_dst, &oip6h->saddr);
++	fl.fl_ip_sport = otcph.dest;
++	fl.fl_ip_dport = otcph.source;
++	dst = ip6_route_output(NULL, &fl);
++	if (dst == NULL)
++		return;
++	if (dst->error ||
++	    xfrm_lookup(&dst, &fl, NULL, 0)) {
++		dst_release(dst);
++		return;
++	}
++
++	hh_len = (dst->dev->hard_header_len + 15)&~15;
++	nskb = alloc_skb(hh_len + 15 + dst->header_len + sizeof(struct ipv6hdr)
++			 + sizeof(struct tcphdr) + dst->trailer_len,
++			 GFP_ATOMIC);
++
++	if (!nskb) {
++		if (net_ratelimit())
++			printk("ip6t_REJECT: Can't alloc skb\n");
++		dst_release(dst);
++		return;
++	}
++
++	nskb->dst = dst;
++
++	skb_reserve(nskb, hh_len + dst->header_len);
++
++	ip6h = nskb->nh.ipv6h = (struct ipv6hdr *)
++					skb_put(nskb, sizeof(struct ipv6hdr));
++	ip6h->version = 6;
++	ip6h->hop_limit = dst_metric(dst, RTAX_HOPLIMIT);
++	ip6h->nexthdr = IPPROTO_TCP;
++	ip6h->payload_len = htons(sizeof(struct tcphdr));
++	ipv6_addr_copy(&ip6h->saddr, &oip6h->daddr);
++	ipv6_addr_copy(&ip6h->daddr, &oip6h->saddr);
++
++	tcph = (struct tcphdr *)skb_put(nskb, sizeof(struct tcphdr));
++	/* Truncate to length (no data) */
++	tcph->doff = sizeof(struct tcphdr)/4;
++	tcph->source = otcph.dest;
++	tcph->dest = otcph.source;
++
++	if (otcph.ack) {
++		needs_ack = 0;
++		tcph->seq = otcph.ack_seq;
++		tcph->ack_seq = 0;
++	} else {
++		needs_ack = 1;
++		tcph->ack_seq = htonl(ntohl(otcph.seq) + otcph.syn + otcph.fin
++				      + otcplen - (otcph.doff<<2));
++		tcph->seq = 0;
++	}
++
++	/* Reset flags */
++	((u_int8_t *)tcph)[13] = 0;
++	tcph->rst = 1;
++	tcph->ack = needs_ack;
++	tcph->window = 0;
++	tcph->urg_ptr = 0;
++	tcph->check = 0;
++
++	/* Adjust TCP checksum */
++	tcph->check = csum_ipv6_magic(&nskb->nh.ipv6h->saddr,
++				      &nskb->nh.ipv6h->daddr,
++				      sizeof(struct tcphdr), IPPROTO_TCP,
++				      csum_partial((char *)tcph,
++						   sizeof(struct tcphdr), 0));
++
++	NF_HOOK(PF_INET6, NF_IP6_LOCAL_OUT, nskb, NULL, nskb->dst->dev,
++		dst_output);
 +}
 +
-+#define STRING_TEXT_PRIV(m) ((struct ipt_string_info *) m)
-+
-+static int checkentry(const char *tablename,
-+		      const struct ipt_ip *ip,
-+		      void *matchinfo,
-+		      unsigned int matchsize,
-+		      unsigned int hook_mask)
++static inline void
++send_unreach(struct sk_buff *skb_in, unsigned char code, unsigned int hooknum)
 +{
-+	struct ipt_string_info *conf = matchinfo;
-+	struct ts_config *ts_conf;
++	if (hooknum == NF_IP6_LOCAL_OUT && skb_in->dev == NULL)
++		skb_in->dev = &loopback_dev;
 +
-+	if (matchsize != IPT_ALIGN(sizeof(struct ipt_string_info)))
++	icmpv6_send(skb_in, ICMPV6_DEST_UNREACH, code, 0, NULL);
++}
++
++static unsigned int reject6_target(struct sk_buff **pskb,
++			   const struct net_device *in,
++			   const struct net_device *out,
++			   unsigned int hooknum,
++			   const void *targinfo,
++			   void *userinfo)
++{
++	const struct ip6t_reject_info *reject = targinfo;
++
++	DEBUGP(KERN_DEBUG "%s: medium point\n", __FUNCTION__);
++	/* WARNING: This code causes reentry within ip6tables.
++	   This means that the ip6tables jump stack is now crap.  We
++	   must return an absolute verdict. --RR */
++    	switch (reject->with) {
++    	case IP6T_ICMP6_NO_ROUTE:
++    		send_unreach(*pskb, ICMPV6_NOROUTE, hooknum);
++    		break;
++    	case IP6T_ICMP6_ADM_PROHIBITED:
++    		send_unreach(*pskb, ICMPV6_ADM_PROHIBITED, hooknum);
++    		break;
++    	case IP6T_ICMP6_NOT_NEIGHBOUR:
++    		send_unreach(*pskb, ICMPV6_NOT_NEIGHBOUR, hooknum);
++    		break;
++    	case IP6T_ICMP6_ADDR_UNREACH:
++    		send_unreach(*pskb, ICMPV6_ADDR_UNREACH, hooknum);
++    		break;
++    	case IP6T_ICMP6_PORT_UNREACH:
++    		send_unreach(*pskb, ICMPV6_PORT_UNREACH, hooknum);
++    		break;
++    	case IP6T_ICMP6_ECHOREPLY:
++		/* Do nothing */
++		break;
++	case IP6T_TCP_RESET:
++		send_reset(*pskb);
++		break;
++	default:
++		if (net_ratelimit())
++			printk(KERN_WARNING "ip6t_REJECT: case %u not handled yet\n", reject->with);
++		break;
++	}
++
++	return NF_DROP;
++}
++
++static int check(const char *tablename,
++		 const struct ip6t_entry *e,
++		 void *targinfo,
++		 unsigned int targinfosize,
++		 unsigned int hook_mask)
++{
++ 	const struct ip6t_reject_info *rejinfo = targinfo;
++
++ 	if (targinfosize != IP6T_ALIGN(sizeof(struct ip6t_reject_info))) {
++  		DEBUGP("ip6t_REJECT: targinfosize %u != 0\n", targinfosize);
++  		return 0;
++  	}
++
++	/* Only allow these for packet filtering. */
++	if (strcmp(tablename, "filter") != 0) {
++		DEBUGP("ip6t_REJECT: bad table `%s'.\n", tablename);
 +		return 0;
++	}
 +
-+	/* Damn, can't handle this case properly with iptables... */
-+	if (conf->from_offset > conf->to_offset)
++	if ((hook_mask & ~((1 << NF_IP6_LOCAL_IN)
++			   | (1 << NF_IP6_FORWARD)
++			   | (1 << NF_IP6_LOCAL_OUT))) != 0) {
++		DEBUGP("ip6t_REJECT: bad hook mask %X\n", hook_mask);
 +		return 0;
++	}
 +
-+	ts_conf = textsearch_prepare(conf->algo, conf->pattern, conf->patlen,
-+				     GFP_KERNEL, TS_AUTOLOAD);
-+	if (IS_ERR(ts_conf))
++	if (rejinfo->with == IP6T_ICMP6_ECHOREPLY) {
++		printk("ip6t_REJECT: ECHOREPLY is not supported.\n");
 +		return 0;
-+
-+	conf->config = ts_conf;
++	} else if (rejinfo->with == IP6T_TCP_RESET) {
++		/* Must specify that it's a TCP packet */
++		if (e->ipv6.proto != IPPROTO_TCP
++		    || (e->ipv6.invflags & IP6T_INV_PROTO)) {
++			DEBUGP("ip6t_REJECT: TCP_RESET illegal for non-tcp\n");
++			return 0;
++		}
++	}
 +
 +	return 1;
 +}
 +
-+static void destroy(void *matchinfo, unsigned int matchsize)
-+{
-+	textsearch_destroy(STRING_TEXT_PRIV(matchinfo)->config);
-+}
-+
-+static struct ipt_match string_match = {
-+	.name 		= "string",
-+	.match 		= match,
-+	.checkentry	= checkentry,
-+	.destroy 	= destroy,
-+	.me 		= THIS_MODULE
++static struct ip6t_target ip6t_reject_reg = {
++	.name		= "REJECT",
++	.target		= reject6_target,
++	.checkentry	= check,
++	.me		= THIS_MODULE
 +};
 +
 +static int __init init(void)
 +{
-+	return ipt_register_match(&string_match);
++	if (ip6t_register_target(&ip6t_reject_reg))
++		return -EINVAL;
++	return 0;
 +}
 +
 +static void __exit fini(void)
 +{
-+	ipt_unregister_match(&string_match);
++	ip6t_unregister_target(&ip6t_reject_reg);
 +}
 +
 +module_init(init);
