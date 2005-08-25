@@ -1,9 +1,9 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH 2/3] change TCP state via nfnetlink
-Date: Thu, 25 Aug 2005 22:43:16 +0200
-Message-ID: <430E2D64.4000000@eurodev.net>
+Subject: [PATCH 3/3] Implement private protocol info changing
+Date: Thu, 25 Aug 2005 22:45:23 +0200
+Message-ID: <430E2DE3.3020700@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070302060901010203010700"
+Content-Type: multipart/mixed; boundary="------------090003030107060207080804"
 Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,78 +19,88 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070302060901010203010700
+--------------090003030107060207080804
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-This patch adds the ability of changing the state a TCP connection. I 
-know that this must be used with care but it's required to provide a 
-complete conntrack creation via conntrack_netlink. So I'll document this 
-aspect on the upcoming docs.
+This patch add support to change the state of the private protocol 
+information via conntrack_netlink.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
---------------070302060901010203010700
+--------------090003030107060207080804
 Content-Type: text/x-patch;
- name="04from-nfattr.patch"
+ name="05change.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="04from-nfattr.patch"
+ filename="05change.patch"
 
-Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_netlink.c
 ===================================================================
---- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-08-20 18:19:49.000000000 +0200
-+++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-08-20 18:19:54.000000000 +0200
-@@ -355,6 +355,28 @@
- nfattr_failure:
- 	return -1;
+--- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-08-13 10:45:09.000000000 +0200
++++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-08-13 10:51:34.000000000 +0200
+@@ -948,6 +948,36 @@
+ 	return 0;
  }
-+
-+static int nfattr_to_tcp(struct nfattr *cda[], struct ip_conntrack *ct)
+ 
++static inline int
++ctnetlink_change_protoinfo(struct ip_conntrack *ct, struct nfattr *cda[])
 +{
-+	struct nfattr *attr = cda[CTA_PROTOINFO_TCP-1];
-+	struct nfattr *tb[CTA_PROTOINFO_TCP_MAX];
++	struct nfattr *tb[CTA_PROTOINFO_MAX], *attr = cda[CTA_PROTOINFO-1];
++	struct ip_conntrack_protocol *proto;
++	u_int16_t npt = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum;
++	int err;
 +
-+        if (nfattr_parse_nested(tb, CTA_PROTOINFO_TCP_MAX, attr) < 0)
-+                goto nfattr_failure;
++	if (nfattr_parse_nested(tb, CTA_PROTOINFO_MAX, attr) < 0)
++		goto nfattr_failure;
 +
-+	if (!tb[CTA_PROTOINFO_TCP_STATE-1])
++	proto = ip_conntrack_proto_find_get(npt);
++	if (!proto)
 +		return -EINVAL;
 +
-+	write_lock_bh(&tcp_lock);
-+	ct->proto.tcp.state = 
-+		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_STATE-1]);
-+	write_unlock_bh(&tcp_lock);
++	if (proto->from_nfattr) {
++		err = proto->from_nfattr(tb, ct);
++		if (err < 0) {
++			ip_conntrack_proto_put(proto);
++			return -EINVAL;
++		}
++	}
++	ip_conntrack_proto_put(proto);
 +
 +	return 0;
 +
 +nfattr_failure:
 +	return -1;
 +}
- #endif
- 
- static unsigned int get_conntrack_index(const struct tcphdr *tcph)
-@@ -1125,6 +1147,7 @@
- #if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
-     defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
- 	.to_nfattr		= tcp_to_nfattr,
-+	.from_nfattr		= nfattr_to_tcp,
- 	.tuple_to_nfattr	= ip_ct_port_tuple_to_nfattr,
- 	.nfattr_to_tuple	= ip_ct_port_nfattr_to_tuple,
- #endif
-Index: netfilter-2.6.14/include/linux/netfilter_ipv4/ip_conntrack_protocol.h
-===================================================================
---- netfilter-2.6.14.orig/include/linux/netfilter_ipv4/ip_conntrack_protocol.h	2005-08-20 18:19:43.000000000 +0200
-+++ netfilter-2.6.14/include/linux/netfilter_ipv4/ip_conntrack_protocol.h	2005-08-20 18:19:54.000000000 +0200
-@@ -52,6 +52,9 @@
- 	int (*to_nfattr)(struct sk_buff *skb, struct nfattr *nfa,
- 			 const struct ip_conntrack *ct);
- 
-+	/* convert nfnetlink attributes to protoinfo */
-+	int (*from_nfattr)(struct nfattr *tb[], struct ip_conntrack *ct);
 +
- 	int (*tuple_to_nfattr)(struct sk_buff *skb,
- 			       const struct ip_conntrack_tuple *t);
- 	int (*nfattr_to_tuple)(struct nfattr *tb[],
+ static int
+ ctnetlink_change_conntrack(struct ip_conntrack *ct, struct nfattr *cda[])
+ {
+@@ -973,6 +1003,12 @@
+ 			return err;
+ 	}
+ 
++	if (cda[CTA_PROTOINFO-1]) {
++		err = ctnetlink_change_protoinfo(ct, cda);
++		if (err < 0)
++			return err;
++	}
++
+ 	DEBUGP("all done\n");
+ 	return 0;
+ }
+@@ -1002,6 +1038,12 @@
+ 	if (err < 0)
+ 		goto err;
+ 
++	if (cda[CTA_PROTOINFO-1]) {
++		err = ctnetlink_change_protoinfo(ct, cda);
++		if (err < 0)
++			return err;
++	}
++
+ 	ct->helper = ip_conntrack_helper_find_get(rtuple);
+ 
+ 	add_timer(&ct->timeout);
 
---------------070302060901010203010700--
+--------------090003030107060207080804--
