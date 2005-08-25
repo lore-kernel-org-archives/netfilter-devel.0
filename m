@@ -1,15 +1,15 @@
-From: Silimite <silimite@gmail.com>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
 Subject: Re: Checking add/remove rules
-Date: Wed, 24 Aug 2005 23:12:38 -0400
-Message-ID: <5ad977d1050824201244abc978@mail.gmail.com>
+Date: Thu, 25 Aug 2005 08:00:23 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0508250750040.23501@tux.rsn.bth.se>
 References: <5ad977d1050822070113bd1e6b@mail.gmail.com>
+	<5ad977d1050824201244abc978@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <5ad977d1050822070113bd1e6b@mail.gmail.com>
-Content-Disposition: inline
+To: Silimite <silimite@gmail.com>
+In-Reply-To: <5ad977d1050824201244abc978@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,23 +21,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Should I take this silence as meaning this is not possible?  Or maybe
-no one knows?
+On Wed, 24 Aug 2005, Silimite wrote:
 
-Even a "that's not possible" answer would be nice.
-
-Thanks
-
-S
-
-On 8/22/05, Silimite <silimite@gmail.com> wrote:
-> Is there any reliable way to tell when a rule is added or removed from
-> within an iptables module?
->=20
-> I know you can see when they are added and removed in the check() and
-> destroy() functions but it seems those are called multiple times and
-> there does not appear to be a way to determine exactly when a rule is
-> being added or removed.
->=20
-> Thanks for any information!
+> Should I take this silence as meaning this is not possible?  Or maybe
+> no one knows?
 >
+> Even a "that's not possible" answer would be nice.
+
+It is possible, it's ugly but possible.
+
+Look at the geoip match in patch-o-matic-ng, more exactly the refcounting
+in the checkentry()/destroy() functions in ipt_geoip.c And look at the
+posision of the refcount member of the ipt_geoip_info struct in the
+includefile. And look at the size and userspacesize members of struct
+iptables_match in libipt_geoip.c
+
+I hope that helps.
+
+/Martin
