@@ -1,13 +1,15 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: endian issue in conntrack_netlink
-Date: Thu, 25 Aug 2005 23:09:24 +0200
-Message-ID: <430E3384.6000305@eurodev.net>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH] Add support of Boyer-Moore to the string match
+Date: Thu, 25 Aug 2005 16:57:20 -0700 (PDT)
+Message-ID: <20050825.165720.78015413.davem@davemloft.net>
+References: <430E58F4.6090008@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: pablo@eurodev.net
+In-Reply-To: <430E58F4.6090008@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,13 +21,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
+From: Pablo Neira <pablo@eurodev.net>
+Date: Fri, 26 Aug 2005 01:49:08 +0200
 
-while working on the conntrack tool I've observed that conntrack_netlink 
-  uses cpu_to_be64, htonl... to flip bits depending on the architecture. 
-Is this some kind of portability issue?
+> Davem has recently applied my patch to add support for Boyer-Moore 
+> algorithm. So, the patch attached enables the use of it in the string 
+> match for iptables that I submitted[1] some days ago.
 
-BTW, what is the equivalence of be64_to_cpu in userspace? Thanks!
-
---
-Pablo
+I already made this change in my net-2.6.14 tree.
