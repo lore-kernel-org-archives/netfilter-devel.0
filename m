@@ -1,10 +1,11 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: [PATCH 3/3] Implement private protocol info changing
-Date: Thu, 25 Aug 2005 22:45:23 +0200
-Message-ID: <430E2DE3.3020700@eurodev.net>
+Subject: [PATCH] Don't increase master refcount on expectations
+Date: Thu, 25 Aug 2005 22:45:45 +0200
+Message-ID: <430E2DF9.8060802@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090003030107060207080804"
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed; boundary="------------080009010000040207090608"
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -19,88 +20,59 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090003030107060207080804
+--------------080009010000040207090608
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-This patch add support to change the state of the private protocol 
-information via conntrack_netlink.
+As it's been discussed [1][2]. We shouldn't increase the master 
+conntrack refcount for non-fulfilled conntracks. During the conntrack 
+destruction, the expectations are always killed before the conntrack 
+itself, this guarantees that there won't be any orphan expectation.
+
+[1]https://lists.netfilter.org/pipermail/netfilter-devel/2005-August/020783.html
+[2]https://lists.netfilter.org/pipermail/netfilter-devel/2005-August/020904.html
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
---------------090003030107060207080804
+--------------080009010000040207090608
 Content-Type: text/x-patch;
- name="05change.patch"
+ name="06expect-refcount.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="05change.patch"
+ filename="06expect-refcount.patch"
 
-Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_netlink.c
+Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_core.c
 ===================================================================
---- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-08-13 10:45:09.000000000 +0200
-+++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-08-13 10:51:34.000000000 +0200
-@@ -948,6 +948,36 @@
- 	return 0;
+--- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-08-20 18:19:44.000000000 +0200
++++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_core.c	2005-08-20 18:27:59.000000000 +0200
+@@ -934,6 +934,9 @@
+ 	write_unlock_bh(&ip_conntrack_lock);
  }
  
-+static inline int
-+ctnetlink_change_protoinfo(struct ip_conntrack *ct, struct nfattr *cda[])
-+{
-+	struct nfattr *tb[CTA_PROTOINFO_MAX], *attr = cda[CTA_PROTOINFO-1];
-+	struct ip_conntrack_protocol *proto;
-+	u_int16_t npt = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum;
-+	int err;
-+
-+	if (nfattr_parse_nested(tb, CTA_PROTOINFO_MAX, attr) < 0)
-+		goto nfattr_failure;
-+
-+	proto = ip_conntrack_proto_find_get(npt);
-+	if (!proto)
-+		return -EINVAL;
-+
-+	if (proto->from_nfattr) {
-+		err = proto->from_nfattr(tb, ct);
-+		if (err < 0) {
-+			ip_conntrack_proto_put(proto);
-+			return -EINVAL;
-+		}
-+	}
-+	ip_conntrack_proto_put(proto);
-+
-+	return 0;
-+
-+nfattr_failure:
-+	return -1;
-+}
-+
- static int
- ctnetlink_change_conntrack(struct ip_conntrack *ct, struct nfattr *cda[])
++/* We don't increase the master conntrack refcount for non-fulfilled
++ * conntracks. During the conntrack destruction, the expectations are 
++ * always killed before the conntrack itself */
+ struct ip_conntrack_expect *ip_conntrack_expect_alloc(struct ip_conntrack *me)
  {
-@@ -973,6 +1003,12 @@
- 			return err;
+ 	struct ip_conntrack_expect *new;
+@@ -944,17 +947,14 @@
+ 		return NULL;
  	}
- 
-+	if (cda[CTA_PROTOINFO-1]) {
-+		err = ctnetlink_change_protoinfo(ct, cda);
-+		if (err < 0)
-+			return err;
-+	}
-+
- 	DEBUGP("all done\n");
- 	return 0;
+ 	new->master = me;
+-	atomic_inc(&new->master->ct_general.use);
+ 	atomic_set(&new->use, 1);
+ 	return new;
  }
-@@ -1002,6 +1038,12 @@
- 	if (err < 0)
- 		goto err;
  
-+	if (cda[CTA_PROTOINFO-1]) {
-+		err = ctnetlink_change_protoinfo(ct, cda);
-+		if (err < 0)
-+			return err;
-+	}
-+
- 	ct->helper = ip_conntrack_helper_find_get(rtuple);
+ void ip_conntrack_expect_put(struct ip_conntrack_expect *exp)
+ {
+-	if (atomic_dec_and_test(&exp->use)) {
+-		ip_conntrack_put(exp->master);
++	if (atomic_dec_and_test(&exp->use))
+ 		kmem_cache_free(ip_conntrack_expect_cachep, exp);
+-	}
+ }
  
- 	add_timer(&ct->timeout);
+ static void ip_conntrack_expect_insert(struct ip_conntrack_expect *exp)
 
---------------090003030107060207080804--
+--------------080009010000040207090608--
