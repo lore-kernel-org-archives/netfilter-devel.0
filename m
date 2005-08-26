@@ -1,12 +1,19 @@
-From: knash@cs.tcd.ie
-Subject: Forwarding IP broadcasts
-Date: Fri, 26 Aug 2005 15:21:40 +0100 (IST)
-Message-ID: <2763.134.226.1.62.1125066100.squirrel@webmail.cs.tcd.ie>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: [RFC] TTL target goes mainline ?
+Date: Fri, 26 Aug 2005 08:16:55 -0700
+Message-ID: <20050826151655.GA5606@linuxace.com>
+References: <20050826111832.GT4226@rama.de.gnumonks.org>
+	<430F007B.20605@trash.net>
+	<20050826131901.GY4226@rama.de.gnumonks.org>
+	<430F1C07.5020305@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <430F1C07.5020305@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,23 +25,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
-  Does anyone know how I could forward IP broadcasts?
-That is when I receive a unicast/broadcast packet that
-is not addressed to the localhost I would like to
-change its address to 255.255.255.255 and forward it
-on.
-I know that the reason linux does not like this, if you
-were to ping 255.255.255.255 and nodes forwarded broadcasts
-you could be in trouble :-)
+On Fri, Aug 26, 2005 at 03:41:27PM +0200, Patrick McHardy wrote:
+> Sure :) I just think its nicer than to enable "sub-functionality" by
+> config options, so if its there, its usable. I also don't think there
+> are people who actually have CONFIG_EXPERIMENTAL disabled, so in
+> the end, we just save a few ifdefs in the code.
 
-Yet in a routing protocol I'm trying to implement, if I don't
-know the next hop for a packet I would like to use broadcasts
-in a controlled fashion,
+Agree that almost everyone enables CONFIG_EXPERIMENTAL.  How about 
+an IP_NF_TARGET_TTL_DEC which depends on IP_NF_TARGET_TTL, and which
+has a nice big warning about being dangerous?
 
-So I was wondering do any of you know where broadcasts are
-dropped on forwarding and if you know how I could patch the
-kernel (or otherwise ) to get around this,
-
-Thanks very much for your time,
-Kevin
+Phil
