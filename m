@@ -1,15 +1,17 @@
-From: "Bill Rugolsky Jr." <brugolsky@telemetry-investments.com>
-Subject: Re: [RFC] TTL target goes mainline ?
-Date: Fri, 26 Aug 2005 08:10:23 -0400
-Message-ID: <20050826121023.GB3067@ti64.telemetry-investments.com>
-References: <20050826111832.GT4226@rama.de.gnumonks.org>
+From: "JessePeng" <jesse@deansoft.com.tw>
+Subject: Re: [PATCH] Don't increase master refcount on expectations
+Date: Fri, 26 Aug 2005 20:33:27 +0800
+Message-ID: <000801c5aa3a$5bd49250$1501a8c0@test1>
+References: <430E2DF9.8060802@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <20050826111832.GT4226@rama.de.gnumonks.org>
+To: "Pablo Neira" <pablo@eurodev.net>, "Netfilter Development Mailinglist"
+	<netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,34 +23,98 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Aug 26, 2005 at 01:18:32PM +0200, Harald Welte wrote:
-> The TTL target allows setting, incrementing and decrementing of the TTL,
-> and is therefore extremely dangerous. OTOTH, there are ISP's that check
-> whether you use a router or not (and thus filter or not) by looking at
-> the TTL of every packet that comes in on your link - so there is a
-> practical use of this to a number of people.
- 
-Sharp tools are sometimes a necessity.  IMHO, it's better to give people
-a standard sharp tool and teach them to use it, than to have each invent
-their own.  Besides the ISP use, there are other applications where a
-bit of routing infrastructure sometimes needs to be transparent, e.g.,
-passing packets to virtual environments.
+Dear Pablo:
+According to issues concerning how to manage refcount which relate master
+and its children once expected,please refer to the following link,which
+suggesting patch remove_expectations(),and that's where the problem first
+was issued.
+[1]https://lists.netfilter.org/pipermail/netfilter-devel/2003-November/01310
+5.html
+The scenario is that then I had a custom solution which takes advantage on
+helper-expectation framewrok.According to this scenario,a master will expect
+many children simultaniously.And not only each child's first packet which
+fullfill the expect relies on its master for nat decision,but also the
+scenario relies on the master for decision made on itself while one of its
+children's replying packet reaches.And each children's replying packet will
+not only put itself but also remove its conntrack.So the scenarion raises 2
+problems:
+1.Then without responsing from netfilter,All I can do is but doing some
+custimized work to ip_conntrack_put the master to prevent the master from
+hanging forever.(After quite a period, they patched the context.)
+2.After All expects being fullfilled,it is still nacessary that the master
+be referenced.So it looks reserving a refcount on the master after the
+fullfillment doesn't push things too far.
 
-Since Quagga does not grok interface bundles, I use TTL
-and ROUTE to make hdlc[0123] packets appear to arrive on teql0:
+So,my opinion is if it is necessary to keep refcount after
+fullfillment?And,I suggest that my past suggestion be referrenced.
 
-$ sudo /sbin/iptables -t mangle -vL PREROUTING
-Chain PREROUTING (policy ACCEPT 1317K packets, 97M bytes)
- pkts bytes target     prot opt in     out     source               destination         
- 571K   19M TTL        all  --  hdlc+  any     anywhere             anywhere            TTL increment by 1 
- 571K   19M ROUTE      all  --  hdlc+  any     anywhere             anywhere            ROUTE iif:teql0 
+Your sincerely
+Jesse
 
-Two netfilter rules removed a rewrite of Quagga's interface handling from
-our critical path.
+----- Original Message -----
+From: "Pablo Neira" <pablo@eurodev.net>
+To: "Netfilter Development Mailinglist"
+<netfilter-devel@lists.netfilter.org>
+Cc: "Harald Welte" <laforge@netfilter.org>; "Patrick McHardy"
+<kaber@trash.net>; "Yasuyuki Kozakai" <yasuyuki.kozakai@toshiba.co.jp>
+Sent: Friday, August 26, 2005 4:45 AM
+Subject: [PATCH] Don't increase master refcount on expectations
 
-So please, submit TTL for mainline, guarded by however many config layers of
-"we're not kidding! last exit! turn back!" warnings are required. :-)
 
-Regards,
+> As it's been discussed [1][2]. We shouldn't increase the master
+> conntrack refcount for non-fulfilled conntracks. During the conntrack
+> destruction, the expectations are always killed before the conntrack
+> itself, this guarantees that there won't be any orphan expectation.
+>
+>
+[1]https://lists.netfilter.org/pipermail/netfilter-devel/2005-August/020783.
+html
+>
+[2]https://lists.netfilter.org/pipermail/netfilter-devel/2005-August/020904.
+html
+>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>
 
-	Bill Rugolsky
+
+----------------------------------------------------------------------------
+----
+
+
+> Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_core.c
+> ===================================================================
+> --- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_core.c
+2005-08-20 18:19:44.000000000 +0200
+> +++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_core.c 2005-08-20
+18:27:59.000000000 +0200
+> @@ -934,6 +934,9 @@
+>   write_unlock_bh(&ip_conntrack_lock);
+>  }
+>
+> +/* We don't increase the master conntrack refcount for non-fulfilled
+> + * conntracks. During the conntrack destruction, the expectations are
+> + * always killed before the conntrack itself */
+>  struct ip_conntrack_expect *ip_conntrack_expect_alloc(struct ip_conntrack
+*me)
+>  {
+>   struct ip_conntrack_expect *new;
+> @@ -944,17 +947,14 @@
+>   return NULL;
+>   }
+>   new->master = me;
+> - atomic_inc(&new->master->ct_general.use);
+>   atomic_set(&new->use, 1);
+>   return new;
+>  }
+>
+>  void ip_conntrack_expect_put(struct ip_conntrack_expect *exp)
+>  {
+> - if (atomic_dec_and_test(&exp->use)) {
+> - ip_conntrack_put(exp->master);
+> + if (atomic_dec_and_test(&exp->use))
+>   kmem_cache_free(ip_conntrack_expect_cachep, exp);
+> - }
+>  }
+>
+>  static void ip_conntrack_expect_insert(struct ip_conntrack_expect *exp)
+>
