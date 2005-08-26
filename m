@@ -1,19 +1,23 @@
 From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [RFC] TTL target goes mainline ?
-Date: Fri, 26 Aug 2005 08:16:55 -0700
-Message-ID: <20050826151655.GA5606@linuxace.com>
-References: <20050826111832.GT4226@rama.de.gnumonks.org>
-	<430F007B.20605@trash.net>
-	<20050826131901.GY4226@rama.de.gnumonks.org>
-	<430F1C07.5020305@trash.net>
+Subject: Re: DaveM get's removed from Cc (was Re: [PATCH 1/2] string match
+	for iptables)
+Date: Fri, 26 Aug 2005 08:21:21 -0700
+Message-ID: <20050826152121.GB5606@linuxace.com>
+References: <43075517.3070405@eurodev.net> <43075BEA.1030701@trash.net>
+	<20050820.131403.37427784.davem@davemloft.net>
+	<20050825104258.GU4442@rama.de.gnumonks.org>
+	<1124988859.28166.28.camel@localhost.localdomain>
+	<1124990355.28166.31.camel@localhost.localdomain>
+	<430F0442.5030909@trash.net>
+	<20050826132743.GZ4226@rama.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>,
+	Martin Josefsson <gandalf@wlug.westbo.se>,
+	netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <430F1C07.5020305@trash.net>
+In-Reply-To: <20050826132743.GZ4226@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,14 +29,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Aug 26, 2005 at 03:41:27PM +0200, Patrick McHardy wrote:
-> Sure :) I just think its nicer than to enable "sub-functionality" by
-> config options, so if its there, its usable. I also don't think there
-> are people who actually have CONFIG_EXPERIMENTAL disabled, so in
-> the end, we just save a few ifdefs in the code.
+On Fri, Aug 26, 2005 at 03:27:43PM +0200, Harald Welte wrote:
+> it's a per-user configuration setting of mailman called "nodupes".  
+> 
+> If X subscribes to a mailinglist L and sets "nodupes", and Z sends a
+> message to L with Cc: X, then X will be removed.
 
-Agree that almost everyone enables CONFIG_EXPERIMENTAL.  How about 
-an IP_NF_TARGET_TTL_DEC which depends on IP_NF_TARGET_TTL, and which
-has a nice big warning about being dangerous?
+FWIW, most other lists seem to default to 'dupes', but netfilter-devel
+defaults to nodupes.  Perhaps the default should be flipped?
 
 Phil
