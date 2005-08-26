@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH NF_CONNTRACK 1/2] cleanup of unregistering ftp helper in
-	init()
-Date: Fri, 26 Aug 2005 13:02:02 +0200
-Message-ID: <20050826110202.GQ4226@rama.de.gnumonks.org>
-References: <200508161011.j7GABcK2028434@toshiba.co.jp>
+Subject: Re: [PATCH NF_CONNTRACK 2/2] use kmalloc()ed buffer in
+	nf_conntrack_ftp.
+Date: Fri, 26 Aug 2005 12:48:08 +0200
+Message-ID: <20050826104808.GO4226@rama.de.gnumonks.org>
+References: <200508131733.j7DHX6bh000484@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="51uid+Ur/3ko9cBW"
+	protocol="application/pgp-signature"; boundary="z3ovhOgMYmj8MRdq"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <200508161011.j7GABcK2028434@toshiba.co.jp>
+In-Reply-To: <200508131733.j7DHX6bh000484@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,21 +24,18 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---51uid+Ur/3ko9cBW
+--z3ovhOgMYmj8MRdq
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 16, 2005 at 07:11:37PM +0900, Yasuyuki KOZAKAI wrote:
-> Hi, Harald,
+On Sun, Aug 14, 2005 at 02:33:05AM +0900, Yasuyuki KOZAKAI wrote:
 >=20
-> This patch is small cleanup to unregister ftp helper when error on
-> initialization.
+> This patch synchronizes nf_conntrack with ip_conntrack, and allocates buf=
+fer
+> at init() instead of using BSS area.
 
-Thanks, I've applied it to my tree.  You forgot to remove the "__exit"
-qualifier from the "fini()" function, it is now called from the __init
-marked init() function.  I've fixed this up, too.
-
+thanks, applied.
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -49,16 +46,16 @@ marked init() function.  I've fixed this up, too.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---51uid+Ur/3ko9cBW
+--z3ovhOgMYmj8MRdq
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDDvaqXaXGVTD0i/8RAqkeAJ9OWNxtmE5cMWR1eKoRRLs8VaxJvwCfc1ow
-m32Zyaxe/CiCcaNMbuWb23c=
-=eIRI
+iD8DBQFDDvNoXaXGVTD0i/8RAsm+AJ0d7IItq7lzqkpHaxTUWKgcrI0XRQCgsLsY
+YQ2VeKYGHwUiev+SQmeGrfg=
+=geaJ
 -----END PGP SIGNATURE-----
 
---51uid+Ur/3ko9cBW--
+--z3ovhOgMYmj8MRdq--
