@@ -1,15 +1,20 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] TTL target goes mainline ?
-Date: Fri, 26 Aug 2005 13:43:55 +0200
-Message-ID: <430F007B.20605@trash.net>
-References: <20050826111832.GT4226@rama.de.gnumonks.org>
+Subject: Re: [PATCH 1/2] string match for iptables
+Date: Fri, 26 Aug 2005 14:00:02 +0200
+Message-ID: <430F0442.5030909@trash.net>
+References: <43075517.3070405@eurodev.net> <43075BEA.1030701@trash.net>	
+	<20050820.131403.37427784.davem@davemloft.net>	
+	<20050825104258.GU4442@rama.de.gnumonks.org>	
+	<1124988859.28166.28.camel@localhost.localdomain>
+	<1124990355.28166.31.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	pablo@eurodev.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050826111832.GT4226@rama.de.gnumonks.org>
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <1124990355.28166.31.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,27 +26,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> Hi!
+Martin Josefsson wrote:
+> On Thu, 2005-08-25 at 18:54 +0200, Martin Josefsson wrote:
 > 
-> As we are in the process of pushing more 'new' code from
-> patch-o-matic-ng into the mainline kernel, I was thinking whether or not
-> we should also submit potentially-dangerous targets such as the TTL
-> target to the kernel.
-> 
-> The TTL target allows setting, incrementing and decrementing of the TTL,
-> and is therefore extremely dangerous. OTOTH, there are ISP's that check
-> whether you use a router or not (and thus filter or not) by looking at
-> the TTL of every packet that comes in on your link - so there is a
-> practical use of this to a number of people.
-> 
-> At some point the kernel had a CONFIG_DANGEROUS, but that had been
-> removed. I think CONFIG_DANGEROUS would be exactly the right thing for
-> TTL manipulations.
-> 
-> So my proposal is to only allow decrementing (or setting to a value
-> below the original one) the TTL unless CONFIG_EXPERIMENTAL is set. 
+> I wonder why davem got lost on the CC, he's there in my Sent folder but
+> not in the mail I got from netfilter-devel... I hope he makes it this
+> time.
 
-Why not, people can just as easy shoot themselves using bridging or
-tc actions. But I'm not sure about enabling only parts of functionality
-without CONFIG_EXPERIMENTAL, why not simply depend entirely on it?
+Yes, I noticed this multiple times, mails to the list seem to remove
+Dave automatically. Perhaps this has something to do with the
+"may sent to list even if not subscribed" setting that was made
+when he wasn't subscribed to the list.
