@@ -1,20 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: oops in 2.6.13-rc6-git12 in tcp/netfilter routines
-Date: Fri, 26 Aug 2005 10:35:27 +0200
-Message-ID: <20050826083527.GD4226@rama.de.gnumonks.org>
-References: <5a4c581d05082506395fa984ae@mail.gmail.com>
-	<20050825165550.GC4442@rama.de.gnumonks.org>
-	<20050825210200.GA10374@zion.homelinux.com>
+Subject: Re: endian issue in conntrack_netlink
+Date: Fri, 26 Aug 2005 10:39:16 +0200
+Message-ID: <20050826083916.GE4226@rama.de.gnumonks.org>
+References: <430E3384.6000305@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="W5WqUoFLvi1M7tJE"
-Cc: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Alessandro Suardi <alessandro.suardi@gmail.com>
+	protocol="application/pgp-signature"; boundary="lkTb+7nhmha7W+c3"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sven Schuster <schuster.sven@gmx.de>
+To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
-In-Reply-To: <20050825210200.GA10374@zion.homelinux.com>
+In-Reply-To: <430E3384.6000305@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,27 +23,36 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---W5WqUoFLvi1M7tJE
+--lkTb+7nhmha7W+c3
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 25, 2005 at 11:02:01PM +0200, Sven Schuster wrote:
->=20
+On Thu, Aug 25, 2005 at 11:09:24PM +0200, Pablo Neira wrote:
 > Hi Harald,
 >=20
-> On Thu, Aug 25, 2005 at 06:55:50PM +0200, Harald Welte told us:
-> > Is it true that PeerGuardian is a proprietary application?  I'm not
-> > going to debug this problem using a proprietary ip_queue program, sorry.
->=20
-> sorry to jump in here, but I took a quick look at PeerGuardian,
-> according to
-> http://methlabs.org/wiki/license_information
-> it's open source.  The source code is available at
-> http://methlabs.org/projects/peerguardian-linuxosx/
+> while working on the conntrack tool I've observed that conntrack_netlink =
+ uses cpu_to_be64,=20
+> htonl... to flip bits depending on the architecture. Is this some kind of=
+ portability issue?
 
-ok, thanks. Sorry for the confusion, but the 'official' website is just
-a blog that didn't really reveal all that much information.
+yes, it means that all the payload of any nfattr will always be in
+network byte order.  This would allow easy transport over a real network
+in the future (e.g. jamal's netlink2).
+
+The nlmsghdr and the nfattr headers (type and length) are still host
+byte order.  But some easy program (e.g. the deamon that receives from
+netlink and send sover real network) can just iterate over them and
+convert them to network byte order - without understanding anything
+about the payload.
+
+> BTW, what is the equivalence of be64_to_cpu in userspace? Thanks!
+
+Good question.  I don't think there's a standard way [yet?], so I'd
+suggest manually implementing it by "#if little endian" bitshift
+operations in C (at least for now).
+
+Cheers,
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -59,16 +64,16 @@ a blog that didn't really reveal all that much information.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---W5WqUoFLvi1M7tJE
+--lkTb+7nhmha7W+c3
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDDtROXaXGVTD0i/8RAry9AJ4gjMslIcm5T+nTvhKXHWHS5bdCVACgswYA
-EUq2k+lWbO+nrpQO8dzOleQ=
-=xE+q
+iD8DBQFDDtU0XaXGVTD0i/8RAhlQAKCpQ+aya/UV33pHB1KJiOJBoCKWwACgpVLc
+F/FHpxaG60Me2qMtXuFs+MU=
+=pC8d
 -----END PGP SIGNATURE-----
 
---W5WqUoFLvi1M7tJE--
+--lkTb+7nhmha7W+c3--
