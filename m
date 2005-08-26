@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: kernel option "Bridged IP/ARP packets filtering" degrades
-	bridging per
-Date: Fri, 26 Aug 2005 11:19:14 +0200
-Message-ID: <20050826091914.GK4226@rama.de.gnumonks.org>
-References: <20050826034724.88957.qmail@web70107.mail.krs.yahoo.com>
+Subject: Re: [PATCH NF_CONNTRACK 1/2] cleanup of unregistering ftp helper in
+	init()
+Date: Fri, 26 Aug 2005 13:02:02 +0200
+Message-ID: <20050826110202.GQ4226@rama.de.gnumonks.org>
+References: <200508161011.j7GABcK2028434@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="QxN5xOWGsmh5a4wb"
+	protocol="application/pgp-signature"; boundary="51uid+Ur/3ko9cBW"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?utf-8?B?7LSI7IicIOyehA==?= <csyimkor@yahoo.co.kr>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <20050826034724.88957.qmail@web70107.mail.krs.yahoo.com>
+In-Reply-To: <200508161011.j7GABcK2028434@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,52 +24,20 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---QxN5xOWGsmh5a4wb
-Content-Type: text/plain; charset=utf-8
+--51uid+Ur/3ko9cBW
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
-
-please note that netfilter bridging stuff is probably better discussed
-at some ebtables and/or bridging related mailinglist.
-
-On Fri, Aug 26, 2005 at 12:47:24PM +0900, =EC=B4=88=EC=88=9C =EC=9E=84 wrot=
-e:
-> I have tested the bridging performance of Linux.
-
-please don't try to do performance tests (and be disappointed) without
-first learning about all the important optimizations/toggles/switches,
-bells and whistles that you can use to tune the performance in cases
-like yours.
-=20
-> Linux machine;
+On Tue, Aug 16, 2005 at 07:11:37PM +0900, Yasuyuki KOZAKAI wrote:
+> Hi, Harald,
 >=20
-> Xeon 3.06GHz * 2 CPU
+> This patch is small cleanup to unregister ftp helper when error on
+> initialization.
 
-dual cpu doesn't really help in most packet forwarding cases with only
-two interfaces. try booting a UP kernel.
-
-> 1 G Memory
-
-which memory (speed)?  which chipset?=20
-> intel e1000 NIC 2 port LC type * 1 driver version
-
-which bus-width? which speed?  where are they in the bus hierarchy?
-
-> But when I enabled that option(I recompiled the
-> kernel), I got success rate 5%.
-> It was a half of prior result.=20
-> I did not add any filter rules. I just enabled that
-> option because I wanted to use bridge
-> firewalling.=20
-
-some degradation is not really surprising since you will add a number of ne=
-tfilter
-hooks to the network stack, each of which will be consulted for every
-packet.  Also, enabling bridging packet filter will enlarge "struct
-sk_buff", which might cause it to grow another cacheline and thus
-introduce more cache misses.
+Thanks, I've applied it to my tree.  You forgot to remove the "__exit"
+qualifier from the "fini()" function, it is now called from the __init
+marked init() function.  I've fixed this up, too.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -81,16 +49,16 @@ introduce more cache misses.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---QxN5xOWGsmh5a4wb
+--51uid+Ur/3ko9cBW
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDDt6SXaXGVTD0i/8RAvgPAKCfgxwcFZYoVFJe9D6+p9CIhO6ECgCfcB8j
-UG2AYb4JONe/ZGDRs/qpRX0=
-=u5mc
+iD8DBQFDDvaqXaXGVTD0i/8RAqkeAJ9OWNxtmE5cMWR1eKoRRLs8VaxJvwCfc1ow
+m32Zyaxe/CiCcaNMbuWb23c=
+=eIRI
 -----END PGP SIGNATURE-----
 
---QxN5xOWGsmh5a4wb--
+--51uid+Ur/3ko9cBW--
