@@ -1,17 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH NF_CONNTRACK 2/2] kill unnecessary ntohs to compare
-	tuples
-Date: Fri, 26 Aug 2005 13:07:32 +0200
-Message-ID: <20050826110732.GR4226@rama.de.gnumonks.org>
-References: <200508161011.j7GABxcg028632@toshiba.co.jp>
+Subject: Re: Patch for TTL target
+Date: Fri, 26 Aug 2005 12:59:21 +0200
+Message-ID: <20050826105921.GP4226@rama.de.gnumonks.org>
+References: <200508151552.59571.mgarski@post.pl>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0fZkDq/H4AmqaB8D"
+	protocol="application/pgp-signature"; boundary="bJ3jXuwtxrXxD2iT"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: Marcin Garski <mgarski@post.pl>
 Content-Disposition: inline
-In-Reply-To: <200508161011.j7GABxcg028632@toshiba.co.jp>
+In-Reply-To: <200508151552.59571.mgarski@post.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,40 +23,24 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---0fZkDq/H4AmqaB8D
+--bJ3jXuwtxrXxD2iT
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 16, 2005 at 07:11:58PM +0900, Yasuyuki KOZAKAI wrote:
+On Mon, Aug 15, 2005 at 03:52:59PM +0200, Marcin Garski wrote:
+> [Please CC me on replies, I am not subscribed to the list, thanks]
 >=20
-> Hi, Harald,
+> Hello,
 >=20
-> This patch kills unnecessary ntohs() in nf_ct_tuple_mask_cmp(). If we nee=
-d to
-> take care about byte order here, should use ntohl(). This bug was introdu=
-ced
-> when I changed size of 'all' from 16bits to 32bits. But in the first plac=
-e,
-> it's not necessary to do that because the byte order of all arguments are
-> same.
+> Here is the patch that fix some C formatting issues (so source are more=
+=20
+> readable).
 
-thanks, applied.
+I'm only applying this cosmetic whitespace-change patch because the code
+is only in svn and not in the mainline kernel.  I've also done some
+further cleanups, result is revision 4244.
 
-Two comments though:
-
-0) why was it made 32bit?
-1) I think some of the debug print macros in nf_conntrack_tuple.h still
-   have the '16bit assumption' and use ntohs.
-2) I think we could and probably should cleanup the include paths.  The
-   general policy seems to be that include/net/* is kernel-only, and
-   include/linux/* is stuff that needs to be exposed to userspace.
-   Since userspace has no reason to know about lots of the internals, we
-   could move files like nf_conntrack_tuple.h to a newly-created
-   include/net/netfilter/ directory.  I'm not yet sure whether that's a
-   good idea or not.  Anyway, a good intermediate step might be to add=20
-   "#ifdef __KERNEL__" sections to all those sections of nf_conntrack
-   header files that are never used from userspace.
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -68,16 +51,16 @@ Two comments though:
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---0fZkDq/H4AmqaB8D
+--bJ3jXuwtxrXxD2iT
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDDvf0XaXGVTD0i/8RAg82AKCEqvkdrXzOWUBZflICLAShcKiwbwCggO3A
-Zvu0WxF1UJNWWaHgNuz1ApA=
-=P0Eh
+iD8DBQFDDvYIXaXGVTD0i/8RAqfoAJ9mecGTKDZ5PVTVXXO0hZerCvoDzQCfUW+e
+8Ee0LWsPv2NC1IYnMYVsY+M=
+=Wkh+
 -----END PGP SIGNATURE-----
 
---0fZkDq/H4AmqaB8D--
+--bJ3jXuwtxrXxD2iT--
