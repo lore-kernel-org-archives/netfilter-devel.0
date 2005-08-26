@@ -1,17 +1,15 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [RFC] TTL target goes mainline ?
-Date: Fri, 26 Aug 2005 12:20:36 -0700 (PDT)
-Message-ID: <20050826.122036.09917208.davem@davemloft.net>
-References: <430F1C07.5020305@trash.net> <20050826151655.GA5606@linuxace.com>
-	<430F342C.7050007@trash.net>
+Subject: Re: [PATCH 1/2] New ipt_TTL target
+Date: Fri, 26 Aug 2005 12:30:18 -0700 (PDT)
+Message-ID: <20050826.123018.21840974.davem@davemloft.net>
+References: <20050826183151.GD4226@rama.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: kernel@linuxace.com, laforge@netfilter.org,
-	netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <430F342C.7050007@trash.net>
+To: laforge@netfilter.org
+In-Reply-To: <20050826183151.GD4226@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,11 +21,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 26 Aug 2005 17:24:28 +0200
+From: Harald Welte <laforge@netfilter.org>
+Date: Fri, 26 Aug 2005 20:31:51 +0200
 
-> I think documenting the issue is enough, users have plenty of ways of
-> shooting themselves.
+> +config IP_NF_TARGET_TTL_INC
+> +	bool  'TTL incrementing support (DANGEROUS)'
+> +	depends on IP_NF_TARGET_TTL
+> +	help
+> +	  This option enables functionality to increment and set the TTL
+> +	  value of the IP header to arbitrary values.  This is EXTREMELY
+> +	  DANGEROUS since you can easily create immortal packets that loop
+> +	  forever on the network.  Please only enable if you really know
+> +	  that you will need it.
+> +
 
-I agree, let's not burdon new code with "this feature is dangerous"
-ifdefs.
+I think it's best to kill this option.  Just put the "this is
+DANGEROUS" comment into the help text for IP_NF_TARGET_TTL, ok?
+
+Similarly for the ipv6 hoplimit target too.
+
+Thanks.
