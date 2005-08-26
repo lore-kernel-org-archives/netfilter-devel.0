@@ -1,26 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: DaveM get's removed from Cc (was Re: [PATCH 1/2] string match
-	for iptables)
-Date: Fri, 26 Aug 2005 20:33:44 +0200
-Message-ID: <20050826183344.GF4226@rama.de.gnumonks.org>
-References: <43075517.3070405@eurodev.net> <43075BEA.1030701@trash.net>
-	<20050820.131403.37427784.davem@davemloft.net>
-	<20050825104258.GU4442@rama.de.gnumonks.org>
-	<1124988859.28166.28.camel@localhost.localdomain>
-	<1124990355.28166.31.camel@localhost.localdomain>
-	<430F0442.5030909@trash.net>
-	<20050826132743.GZ4226@rama.de.gnumonks.org>
-	<20050826152121.GB5606@linuxace.com>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [RFC] TTL target goes mainline ?
+Date: Fri, 26 Aug 2005 12:20:36 -0700 (PDT)
+Message-ID: <20050826.122036.09917208.davem@davemloft.net>
+References: <430F1C07.5020305@trash.net> <20050826151655.GA5606@linuxace.com>
+	<430F342C.7050007@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="udOl8koJG4PSVcOF"
-Cc: netfilter-devel@lists.netfilter.org,
-	Martin Josefsson <gandalf@wlug.westbo.se>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: kernel@linuxace.com, laforge@netfilter.org,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-Content-Disposition: inline
-In-Reply-To: <20050826152121.GB5606@linuxace.com>
+To: kaber@trash.net
+In-Reply-To: <430F342C.7050007@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -32,44 +23,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri, 26 Aug 2005 17:24:28 +0200
 
---udOl8koJG4PSVcOF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> I think documenting the issue is enough, users have plenty of ways of
+> shooting themselves.
 
-On Fri, Aug 26, 2005 at 08:21:21AM -0700, Phil Oester wrote:
-> On Fri, Aug 26, 2005 at 03:27:43PM +0200, Harald Welte wrote:
-> > it's a per-user configuration setting of mailman called "nodupes". =20
-> >=20
-> > If X subscribes to a mailinglist L and sets "nodupes", and Z sends a
-> > message to L with Cc: X, then X will be removed.
->=20
-> FWIW, most other lists seem to default to 'dupes', but netfilter-devel
-> defaults to nodupes.  Perhaps the default should be flipped?
-
-Thanks, changed the default for new members accordingly.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---udOl8koJG4PSVcOF
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFDD2CIXaXGVTD0i/8RAttGAJ4lbbz6+Wh+sABda4VQSExbi2Ce0wCfS1Zf
-IXU5OhjjqEVVVvlqLn+ViMA=
-=g2Hr
------END PGP SIGNATURE-----
-
---udOl8koJG4PSVcOF--
+I agree, let's not burdon new code with "this feature is dangerous"
+ifdefs.
