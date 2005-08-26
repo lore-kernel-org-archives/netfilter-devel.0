@@ -1,44 +1,57 @@
-From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
-Subject: Re: [RFC] TTL target goes mainline ?
-Date: Fri, 26 Aug 2005 19:27:29 +0200
-Message-ID: <391310336.20050826192729@dns.toxicfilms.tv>
-References: <20050826111832.GT4226@rama.de.gnumonks.org>
-Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: oops in 2.6.13-rc6-git12 in tcp/netfilter routines
+Date: Fri, 26 Aug 2005 19:52:07 +0200
+Message-ID: <430F56C7.8070500@trash.net>
+References: <5a4c581d05082506395fa984ae@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20050826111832.GT4226@rama.de.gnumonks.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: netdev@oss.sgi.com,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965144AbVHZRwL@vger.kernel.org>
+To: Alessandro Suardi <alessandro.suardi@gmail.com>
+In-Reply-To: <5a4c581d05082506395fa984ae@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+Alessandro Suardi wrote:
+> Stack is hand-copied from the dead box's console. 
+> 
+> [<c0103714>] die+0xe4/0x170
+> [<c010381f>] do_trap+0x7f/0xc0
+> [<c0103b33>] do_invalid_op+0xa3/0xb0
+> [<c0102faf>] error_code+0x4f/0x54
+> [<c02eb05b>] kfree_skbmem+0xb/0x20
+> [<c02eb0cf>] __kfree_skb+0x5f/0xf0
+> [<c031304a>] tcp_clean_rtx_queue+0x16a/0x470
+> [<c0313746>] tcp_ack+0xf6/0x360
+> [<c0315d57>] tcp_rcv_established+0x277/0x7a0
+> [<c031eba0>] tcp_v4_do_rcv+0xf0/0x110
+> [<c031f2a0>] tcp_v4_rcv+0x6e0/0x820
+> [<c0305594>] ip_local_deliver_finish+0x84/0x160
+> [<c02fbe4a>] nf_reinject+0x13a/0x1c0
+> [<c033f0d8>] ipq_issue_verdict+0x28/0x40
+> [<c033f968>] ipq_set_verdict+0x48/0x70
+> [<c033fa79>] ipq_receive_peer+0x39/0x50
+> [<c033fc72>] ipq_receive_sk+0x172/0x190
+> [<c02fffa5>] netlink_data_ready+0x35/0x60
+> [<c02ff4a4>] netlink_sendskb+0x24/0x60
+> [<c02ff657>] netlink_unicast+0x127/0x160
+> [<c02ffcc4>] netlink_sendmsg+0x204/0x2b0
+> [<c02e6dc0>] sock_sendmsg+0xb0/0xe0
+> [<c02e83f4>] sys_sendmsg+0x134/0x240
+> [<c02e88e4>] sys_socketcall+0x224/0x230
+> [<c0102d3b>] sysenter_past_esp+0x54/0x75
+> Code: 8b 41 0c 85 c0 75 1b 8b 86 94 00 00 00 e8 9e 37 e5 ff 5b 5e c9
+> c3 89 d0 e8 43 46 e5 ff 8d 76 00 eb d2 89 f0 e8 f7 fe ff ff eb dc <0f>
+> 0b 54 01 16 d2 36 c0 eb b4 8d 74 26 00 8d bc 27 00 00 00 00
+> <0>Kernel panic - not syncing: Fatal exception in interrupt
+> 
+> If there's need for further info I'd be happy to provide it. For now
+>  the box is rebooted into the same kernel and running the same
+>  PG/eD2k programs, if the issue reproduces I'll follow up on my
+>  own message.
 
-> So my proposal is to only allow decrementing (or setting to a value
-> below the original one) the TTL unless CONFIG_EXPERIMENTAL is set. 
-
-> What do you think?
-Not that my vote counts or anything but as a user and an ocasional
-netfilter hacker I belive it is best to either:
-- submit the target with its current set of options (decreasing, increasing,
-  setting to a value) acompanied by EXPERIMENTAL flag and a warning in the
-  help screen, maybe even an additional text in the option line, like
-  "[m] TTL target (warning: see help!)"
-- *or* leave it in pom-ng, so only people who now what they are doing would
-  use it.
-
-nb. This means that IPv6 HOPLIMIT should go in too. I guess.
-
--- 
-Best regards,
-Maciej
+Any chance you can get the entire Oops including registers etc
+using netconsole or serial console?
