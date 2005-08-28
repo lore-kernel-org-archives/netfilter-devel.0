@@ -1,16 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 4/*] libnfnetlink fixes
-Date: Sun, 28 Aug 2005 13:50:13 +0200
-Message-ID: <20050828115013.GE4244@rama.de.gnumonks.org>
-References: <42D429F9.7000707@eurodev.net> <42D4CF9C.2000304@ufomechanic.net>
+Subject: Re: [PATCH 2/2] string match userspace part
+Date: Sun, 28 Aug 2005 10:07:43 +0200
+Message-ID: <20050828080743.GC4244@rama.de.gnumonks.org>
+References: <43075592.2080704@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="brEuL7wsLY8+TuWz"
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+	protocol="application/pgp-signature"; boundary="Md/poaVZ8hnGTzuv"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
+To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
-In-Reply-To: <42D4CF9C.2000304@ufomechanic.net>
+In-Reply-To: <43075592.2080704@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,32 +24,15 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---brEuL7wsLY8+TuWz
+--Md/poaVZ8hnGTzuv
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 13, 2005 at 09:23:56AM +0100, Amin Azez wrote:
+On Sat, Aug 20, 2005 at 06:08:50PM +0200, Pablo Neira wrote:
+> Index: extensions/libipt_string.c
 
-> It allows the application-supplied callback handler to signifiy in its
-> return code whether or not the nfnl_listen read-loop should terminate.
->=20
-> If the handler returns a negative code, then nfnl_listen returns
-> immediately with the same return code.
->=20
-> If the handler returns a postitive code, then nfnl_listen returns at the
-> next iteration of the while loop, which is when it finishes handing all
-> netlink messages in the current packet.
->=20
-> This avois the need to duplicate most of nfnl_listen in a non-loop
-> context where the application needs control over the read and packet
-> decode process.
-
-I think this change is fine.  Would you mind to re-submit the patch
-against current svn?  Please also document the meaning of the return
-values, probably with a comment in the code or the header file?
-
-Thanks!
+thanks, applied.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -60,16 +44,16 @@ Thanks!
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---brEuL7wsLY8+TuWz
+--Md/poaVZ8hnGTzuv
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDEaT1XaXGVTD0i/8RAijbAKCTPtYUjEvVQO1uyib6A0u2Pm6faQCgjgHB
-lHgCDGy0YD94bciSebqE/3A=
-=kODc
+iD8DBQFDEXDPXaXGVTD0i/8RAgK6AJ9QTEhLj/G3ElCjGQWARPVHFQjyfgCfSQDF
+Ny0HP+sZ0PUndJeIqV7ahy8=
+=F9yC
 -----END PGP SIGNATURE-----
 
---brEuL7wsLY8+TuWz--
+--Md/poaVZ8hnGTzuv--
