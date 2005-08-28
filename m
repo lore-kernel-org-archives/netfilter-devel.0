@@ -1,16 +1,16 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: NuFW port to libnfnetlink_queue
-Date: Sun, 28 Aug 2005 19:39:01 +0200
-Message-ID: <1125250741.5109.5.camel@localhost.localdomain>
-References: <1123707250.4996.9.camel@porky>
-	<20050828114657.GD4244@rama.de.gnumonks.org>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: Bug in ipset -R
+Date: Mon, 29 Aug 2005 00:50:20 +0200 (CEST)
+Message-ID: <Pine.LNX.4.62.0508290045010.28187@bizon.gios.gov.pl>
+References: <Pine.LNX.4.62.0508190246520.6407@bizon.gios.gov.pl>
+	<Pine.LNX.4.58.0508220940360.20621@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-885816717-1125269420=:28187"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050828114657.GD4244@rama.de.gnumonks.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0508220940360.20621@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,33 +22,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le dimanche 28 ao=FBt 2005 =E0 13:46 +0200, Harald Welte a =E9crit :
-> On Wed, Aug 10, 2005 at 10:54:10PM +0200, Eric Leblond wrote:
-> > Hi,
-> >=20
-> > I've just finished to port NuFW to NFQUEUE.
-> >=20
-> > For the moment, only svn is up-to-date but the daily export will soon
-> > contains this new feature.
-> > Svn access method is described at :
-> > 	http://www.nufw.org/-Downloads-.html
-> >=20
-> > It seems to work fine and I will soon do some more extensive tests to
-> > see how it works under some load.=20
->=20
-> Did you yet run those load tests?  Did everything work fine?
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-No, I've run out of time before my holiday this week. I will probably be
-able to to some tests next week or the following.=20
+---187430788-885816717-1125269420=:28187
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-> Also, if you have the time, I would be interested in performance
-> measurements, comparing ip_queue with nfnetlink_queue.
 
-I will provide result to the list as soon as I've some.
 
-By the way what's the status of the patch I sent which provides a set of
-higher level functions to libnfnetlink_queue ?
+On Mon, 22 Aug 2005, Jozsef Kadlecsik wrote:
+<CUT>
+> because the restore commands must follow each other in a rigid order (the
+> feature)
+Why? With "ipset -N ..."&"ipset -A ..." it is possible to use any=20
+order, I thought I can simply convert my scripts and use ipset -R feature.=
+=20
+:(
 
-BR,
---=20
-Eric Leblond <eric@inl.fr>
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-885816717-1125269420=:28187--
