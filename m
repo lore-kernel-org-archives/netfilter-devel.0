@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH NF_CONNTRACK] compatible ipt_conntrack
-Date: Sun, 28 Aug 2005 14:21:30 +0200
-Message-ID: <20050828122130.GH4244@rama.de.gnumonks.org>
-References: <200506200919.j5K9JIhl022823@toshiba.co.jp>
+Subject: Re: [PATCH 4/*] libnfnetlink fixes
+Date: Sun, 28 Aug 2005 13:50:13 +0200
+Message-ID: <20050828115013.GE4244@rama.de.gnumonks.org>
+References: <42D429F9.7000707@eurodev.net> <42D4CF9C.2000304@ufomechanic.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gKijDXBCEH69PxaN"
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org
+	protocol="application/pgp-signature"; boundary="brEuL7wsLY8+TuWz"
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: Amin Azez <azez@ufomechanic.net>
 Content-Disposition: inline
-In-Reply-To: <200506200919.j5K9JIhl022823@toshiba.co.jp>
+In-Reply-To: <42D4CF9C.2000304@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,58 +23,32 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---gKijDXBCEH69PxaN
+--brEuL7wsLY8+TuWz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Yasuyuki,
+On Wed, Jul 13, 2005 at 09:23:56AM +0100, Amin Azez wrote:
 
-I've found those old patches of yours that unfortunately never received
-any comment, AFAICT.
-
-Just to re-state some of the issues at stake:
-
-1) ip_conntrack and nf_conntrack can never be used both together in one
-   system.  However, you can compile both of them as modules, and then
-   decide to load one or the other.
-2) we have some matches (ipt_{state,conntrack,helper}) that refer to
-   certain data within the conntrack.  They now only know (and deal)
-   with ip_conntrack.
-3) we have a whole subsystem including its own targets (the nat code)
-   that only works on top of ip_conntrack
-
-On Mon, Jun 20, 2005 at 06:19:17PM +0900, Yasuyuki KOZAKAI wrote:
+> It allows the application-supplied callback handler to signifiy in its
+> return code whether or not the nfnl_listen read-loop should terminate.
 >=20
-> These make ipt_conntrack match compatible with ip_conntrack and nf_conntr=
-ack.
-> I wrote 2 patches with different approaches.
+> If the handler returns a negative code, then nfnl_listen returns
+> immediately with the same return code.
 >=20
-> 	1. [ipt_conntrack.patch]
-> 	   Introducing glue functions and grouping the common member in
-> 	   struct ip_conntrack/nf_conn. {ip,nf}_conntrack registers glue
-> 	   functions like ip_ct_attach() and matches/targets use them.
-> 	   This is the rough conclusion on discussion with Patrick on March.
-> 	   This approach hides dependencies well, but the glue functions will
-> 	   add some overheads.
+> If the handler returns a postitive code, then nfnl_listen returns at the
+> next iteration of the while loop, which is when it finishes handing all
+> netlink messages in the current packet.
+>=20
+> This avois the need to duplicate most of nfnl_listen in a non-loop
+> context where the application needs control over the read and packet
+> decode process.
 
-I think this code looks cleaner than the macro-based patch.
+I think this change is fine.  Would you mind to re-submit the patch
+against current svn?  Please also document the meaning of the return
+values, probably with a comment in the code or the header file?
 
-However, I think we make our lives much more easy when we make
-ip_conntrack / nf_conntrack a compile-time decision.  This way we avoid
-compromising any run-time efficiency at the cost of some configurations
-where the user doesn't know at compile time which of the two systems he
-should use.
-
-I also dislike the "CONNTRACK_IPV4_DEFAULT" config option that you use
-in your patches.  I think it was introduced because we cannot have two
-modules that supply the same symbol. =20
-
-I think we either make the ip_conntrack/nf_conntrack decision at
-compile-time (like stated above), _or_ we find a run-time solution that
-will work transparently with both ip_conntrack and nf_conntrack.
-Whatever we use for the actual implementation (macros, glue functions,
-=2E..) is a different question.
+Thanks!
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -86,16 +60,16 @@ Whatever we use for the actual implementation (macros, glue functions,
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---gKijDXBCEH69PxaN
+--brEuL7wsLY8+TuWz
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDEaxJXaXGVTD0i/8RAk+OAJ44+IMd4op3NPTc8oL3v1J4wCyULACdF9bq
-jAFMAt7mWHNFrvgJo8+nNlU=
-=mvfq
+iD8DBQFDEaT1XaXGVTD0i/8RAijbAKCTPtYUjEvVQO1uyib6A0u2Pm6faQCgjgHB
+lHgCDGy0YD94bciSebqE/3A=
+=kODc
 -----END PGP SIGNATURE-----
 
---gKijDXBCEH69PxaN--
+--brEuL7wsLY8+TuWz--
