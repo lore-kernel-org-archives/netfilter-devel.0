@@ -1,7 +1,7 @@
 From: Samir Bellabes <sbellabes@mandriva.com>
-Subject: [NETFILTER] Kill lockhelp.h for connrate
-Date: Mon, 29 Aug 2005 18:58:31 +0200
-Message-ID: <m24q98wuh4.fsf@cerbere.dyndns.info>
+Subject: [NETFILTER] Kill lockhelp.h for rsh
+Date: Mon, 29 Aug 2005 19:13:50 +0200
+Message-ID: <m2zmr0vf75.fsf@cerbere.dyndns.info>
 Mime-Version: 1.0
 Content-Type: multipart/mixed; boundary="=-=-="
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -20,7 +20,7 @@ List-Id: netfilter-devel.vger.kernel.org
 --=-=-=
 
 Hi,
-This patch fix the match 'connrate', after the kill_lockhelp.patch
+This patch fix the match rsh', after the kill_lockhelp.patch
 Please apply at top of the svn tree.
 
 regards,
@@ -29,77 +29,84 @@ Samir Bellabes
 
 --=-=-=
 Content-Type: text/x-patch; charset=iso-8859-15
-Content-Disposition: attachment; filename=connrate_kill_lockhelp.patch
+Content-Disposition: attachment; filename=rsh_kill_lockhelp.patch
 Content-Transfer-Encoding: quoted-printable
 
-[NETFILTER] Kill lockhelp.h for connrate
+
+[NETFILTER] Kill lockhelp.h for rsh
 
 ---------------------------------------------------------------------------=
 ---
 
- ip_conntrack_rate.c |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
+ include/linux/netfilter_ipv4/ip_conntrack_rsh.h |    3 +--
+ net/ipv4/netfilter/ip_conntrack_rsh.c           |    7 +++----
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
 ---------------------------------------------------------------------------=
 ---
 
-Index: patchlets/connrate/linux/net/ipv4/netfilter/ip_conntrack_rate.c
+Index: patchlets/rsh/linux-2.6.11/include/linux/netfilter_ipv4/ip_conntrack=
+_rsh.h
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- patchlets/connrate/linux/net/ipv4/netfilter/ip_conntrack_rate.c	(r=C3=
-=A9vision 4244)
-+++ patchlets/connrate/linux/net/ipv4/netfilter/ip_conntrack_rate.c	(copie =
-de travail)
-@@ -13,7 +13,6 @@
- #include <linux/skbuff.h>
- #include <linux/jiffies.h>
- #include <linux/netfilter_ipv4/ip_conntrack_rate.h>
+--- patchlets/rsh/linux-2.6.11/include/linux/netfilter_ipv4/ip_conntrack_rs=
+h.h	(r=C3=A9vision 4248)
++++ patchlets/rsh/linux-2.6.11/include/linux/netfilter_ipv4/ip_conntrack_rs=
+h.h	(copie de travail)
+@@ -13,9 +13,8 @@
+ #define _IP_CONNTRACK_RSH_H
+=20
+ #ifdef __KERNEL__
 -#include <linux/netfilter_ipv4/lockhelp.h>
 =20
- /*
-    I wanted to build a simpler and more robust rate estimator than the
-@@ -96,7 +95,7 @@
- #define MAX_TOKENS_IN_WINDOW (0xffffffff - MAX_PACKET_IN_TOKENS)
+-DECLARE_LOCK_EXTERN(ip_rsh_lock);
++extern spinlock_t ip_rsh_lock;
+ #endif
 =20
- /* Synchronizes all accesses to ip_conntrack_rate structures. */
--static DECLARE_RWLOCK(rate_lock);
-+static rwlock_t rate_lock =3D RW_LOCK_UNLOCKED;
 =20
- void
- ip_conntrack_rate_count(struct ip_conntrack_rate *ctr, unsigned int len)
-@@ -104,7 +103,7 @@
- 	u_int32_t new_bytes;
- 	unsigned long now =3D jiffies;
+Index: patchlets/rsh/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_rsh.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- patchlets/rsh/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_rsh.c	(r=C3=
+=A9vision 4248)
++++ patchlets/rsh/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_rsh.c	(copie=
+ de travail)
+@@ -103,7 +103,6 @@
+ #include <net/checksum.h>
+ #include <net/tcp.h>
 =20
--	WRITE_LOCK(&rate_lock);
-+	write_lock_bh(&rate_lock);
- 	new_bytes =3D (ctr->avgrate * IP_CONNTRACK_RATE_INTERVAL +
- 	             len * IP_CONNTRACK_RATE_SCALE);
- 	if(new_bytes > MAX_TOKENS_IN_WINDOW)
-@@ -113,7 +112,7 @@
- 		ctr->avgrate =3D new_bytes / (now - ctr->prev +
- 	                                    IP_CONNTRACK_RATE_INTERVAL);
- 	ctr->prev =3D now;
--	WRITE_UNLOCK(&rate_lock);
-+	write_unlock_bh(&rate_lock);
+-#include <linux/netfilter_ipv4/lockhelp.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv4/ip_conntrack_helper.h>
+ #include <linux/netfilter_ipv4/ip_conntrack_rsh.h>
+@@ -120,7 +119,7 @@
+ MODULE_PARM_DESC(ports, "port numbers of RSH servers");
+ #endif
+=20
+-static DECLARE_LOCK(rsh_buffer_lock);
++static spinlock_t rsh_buffer_lock =3D SPIN_LOCK_UNLOCKED;
+ static char rsh_buffer[65535];
+=20
+ unsigned int (*ip_nat_rsh_hook)(struct sk_buff **pskb,
+@@ -179,7 +178,7 @@
+ 	if (dataoff >=3D (*pskb)->len)
+ 		return NF_ACCEPT;
+=20
+-	LOCK_BH(&rsh_buffer_lock);
++	spin_lock_bh(&rsh_buffer_lock);
+ 	rb_ptr =3D skb_header_pointer(*pskb, dataoff,
+ 				    (*pskb)->len - dataoff, rsh_buffer);
+ 	BUG_ON(rb_ptr =3D=3D NULL);
+@@ -256,7 +255,7 @@
+ 		ntohs(exp->mask.dst.u.tcp.port));
+=20
+ out:
+-	UNLOCK_BH(&rsh_buffer_lock);
++	spin_unlock_bh(&rsh_buffer_lock);
+=20
+ 	return ret;
  }
-=20
- u_int32_t
-@@ -121,12 +120,12 @@
- {
- 	u_int32_t rate;
-=20
--	READ_LOCK(&rate_lock);
-+	read_lock_bh(&rate_lock);
- 	/* Rate can not overflow here if IP_CONNTRACK_RATE_INTERVAL is
- 	   atleast HZ. If it is not, we could change the order of
- 	   calculations at the possible cost of precision. */
- 	rate =3D ctr->avgrate * HZ / IP_CONNTRACK_RATE_SCALE;
--	READ_UNLOCK(&rate_lock);
-+	read_unlock_bh(&rate_lock);
- 	return rate;
- }
-=20
 
 --=-=-=--
