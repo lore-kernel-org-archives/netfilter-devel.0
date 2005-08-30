@@ -1,13 +1,17 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: (no subject)
-Date: Tue, 30 Aug 2005 22:21:31 +0900 (JST)
-Message-ID: <200508301321.j7UDLVGE024637@toshiba.co.jp>
+From: Pablo Neira <pablo@netfilter.org>
+Subject: Re: [PATCH 3/3] CLUSTERIP: use a bitmap to store node responsibility
+ data
+Date: Tue, 30 Aug 2005 15:29:31 +0200
+Message-ID: <43145F3B.4050706@netfilter.org>
+References: <20050830121535.985929000@nienna.balabit>
+	<20050830121550.543376000@nienna.balabit>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: pablo@netfilter.org, laforge@netfilter.org
+To: KOVACS Krisztian <hidden@balabit.hu>
+In-Reply-To: <20050830121550.543376000@nienna.balabit>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,34 +23,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Krisztian,
 
-Hi,
+KOVACS Krisztian wrote:
+> @@ -55,8 +56,7 @@
+>  	u_int8_t clustermac[ETH_ALEN];		/* the MAC address */
+>  	struct net_device *dev;			/* device */
+>  	u_int16_t num_total_nodes;		/* total number of nodes */
+> -	u_int16_t num_local_nodes;		/* number of local nodes */
+> -	u_int16_t local_nodes[CLUSTERIP_MAX_NODES];	/* node number array */
+> +	unsigned long local_nodes;		/* node number array */
 
-If CONFIG_NF_IP_CONNTRACK=y, CONFIG_NETFILTER_NETLINK=m, and
-CONFIG_NF_CONNTRACK_NETLINK=m, it's failed to build kernel
-of netfilter-2.6.14 git tree. Because __nfa_fill() in nfnetlink
-called from ip_conntrack isn't built into kernel image in this case.
-It's necessary to fix Kconfig or change source code to make dependencies
-more simple.
+I'm afraid that this breaks backward compatibility. Although CLUSTERIP 
+is marked as experimental.
 
-BTW, the current relation between ip_conntrack, nfnetlink, and nfctnetlink
-is complex. The following table is the patterns user can select.
+@Harald: Should we respect backward compatibility in this case?
 
-ip_conntrack   | n n n n n n n n n m m m m m m m m m y y y y y y y y y
-nfnetlink      | n n n m m m y y y n n n m m m y y y n n n m m m y y y
-nfctnetlink    | n m y n m y n m y n m y n m y n m y n m y n m y n m y
------------------------------------------------------------------------------
-               | o x x o x x o x x o x x o o x o o x o x x o * x o o o
-
-o: user can select and no error.
-x: user can select.
-*: user can select, but error.
-
-
-Sorry, it's too difficult for me to fix Kconfig without complexity.
-I think it's preferable that ip_conntrack doesn't depend on nfctnetlink.
-
-Regars,
-
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+--
+Pablo
