@@ -1,18 +1,19 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH NF_CONNTRACK] compatible ipt_conntrack
-Date: Tue, 30 Aug 2005 15:40:22 +0900 (JST)
-Message-ID: <200508300640.j7U6eMk3004340@toshiba.co.jp>
-References: <4312EE29.9040102@trash.net>
-	<200508291539.j7TFduLF019555@toshiba.co.jp>
-	<20050829154927.GU4292@rama.de.gnumonks.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [NETFILTER] Kill lockhelp.h for rtsp-conntrack
+Date: Tue, 30 Aug 2005 09:11:02 +0200
+Message-ID: <20050830071102.GD4202@rama.de.gnumonks.org>
+References: <m2u0h8vekb.fsf@cerbere.dyndns.info>
+	<m2k6i4veb1.fsf@cerbere.dyndns.info> <431375BA.7080900@trash.net>
+	<m2k6i48j5n.fsf@cerbere.dyndns.info> <4313939A.4030002@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
-	kaber@trash.net, yasuyuki.kozakai@toshiba.co.jp
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org,
+	Samir Bellabes <sbellabes@mandriva.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20050829154927.GU4292@rama.de.gnumonks.org>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <4313939A.4030002@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,30 +25,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, Aug 30, 2005 at 01:00:42AM +0200, Patrick McHardy wrote:
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Mon, 29 Aug 2005 17:49:27 +0200
+> > I mean that linux-2.6.11 don't need this patch at all.
+> > As far a you push 'kill lockhelp.h patch' in 2.6.13, people who use
+> > p-o-m with a kernel version < 2.6.13, should use lockhelp.h again.
+> > But now, this 3 patches will apply to all versions.
+>=20
+> I don't know what the general feeling about supporting old versions
+> in pom is, I would tend to ignore them if it means starting a third
+> linux subdirectory that should be maintained in some patchlets.
+> Harald, what is your opinion on this?
 
-> Yes. ipt_{conntrack,state,helper} should however still be modified to
-> use struct ip_conntrack or struct nf_conntrack depending on the
-> compile-time decision.  Please make up your mind on the best possible
-> implementation.  Probably a large "#ifdef CONFIG_NF_CONNTRACK #else
-> #endif" section for each of the matches.  It's not nice, but since it
-> only affects three matches (and we don't pay a performance penalty this
-> way) I think it's ok.
+I would rather start a new subdirectory than patching the old code.
+This way users of old kernels can have a working version, too (even if
+that old version doesn't have all the features or receives all the
+patches that newer versions do).  At least as long as we're using the
+current patch-o-matic-ng, I think that's the way to go.
 
-Well, I think the large block surrounded with #ifdef - #endif doesn't match
-the initial goal that avoids similar codes and its impact is same as
-similar files. So I was exploring the way to minimize the block in the matches
-by using glue functions/macros.
+When we decide do get rid of patch-o-matic-ng at some point, we
+obviously can also drop the 'old kernel' requirement.
 
-
-> Yes, I was already thinking about nf_conntrack based ipv4 nat and
-> playing with some extremely early code, but abandoned it since other
-> issues are higher priority.  I think I'll get back to it at end of
-> October / beginning of November.
-
-Great!
-
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
