@@ -1,12 +1,13 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: [PATCH 1/3] CLUSTERIP: fix memcpy() length typo
-Date: Tue, 30 Aug 2005 14:15:37 +0200
-Message-ID: <20050830121550.250421000@nienna.balabit>
-References: <20050830121535.985929000@nienna.balabit>
-Cc: Harald Welte <laforge@netfilter.org>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: (no subject)
+Date: Tue, 30 Aug 2005 22:21:31 +0900 (JST)
+Message-ID: <200508301321.j7UDLVGE024637@toshiba.co.jp>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline; filename=01-config_init_memcpy_typo.patch
+To: pablo@netfilter.org, laforge@netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,29 +19,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-CLUSTERIP: fix memcpy() length typo
 
-Fix a trivial typo in clusterip_config_init().
+Hi,
+
+If CONFIG_NF_IP_CONNTRACK=y, CONFIG_NETFILTER_NETLINK=m, and
+CONFIG_NF_CONNTRACK_NETLINK=m, it's failed to build kernel
+of netfilter-2.6.14 git tree. Because __nfa_fill() in nfnetlink
+called from ip_conntrack isn't built into kernel image in this case.
+It's necessary to fix Kconfig or change source code to make dependencies
+more simple.
+
+BTW, the current relation between ip_conntrack, nfnetlink, and nfctnetlink
+is complex. The following table is the patterns user can select.
+
+ip_conntrack   | n n n n n n n n n m m m m m m m m m y y y y y y y y y
+nfnetlink      | n n n m m m y y y n n n m m m y y y n n n m m m y y y
+nfctnetlink    | n m y n m y n m y n m y n m y n m y n m y n m y n m y
+-----------------------------------------------------------------------------
+               | o x x o x x o x x o x x o o x o o x o x x o * x o o o
+
+o: user can select and no error.
+x: user can select.
+*: user can select, but error.
 
 
-Signed-off-by: KOVACS Krisztian <hidden@balabit.hu>
+Sorry, it's too difficult for me to fix Kconfig without complexity.
+I think it's preferable that ip_conntrack doesn't depend on nfctnetlink.
 
+Regars,
 
-Index: linux-2.6.13/net/ipv4/netfilter/ipt_CLUSTERIP.c
-===================================================================
---- linux-2.6.13.orig/net/ipv4/netfilter/ipt_CLUSTERIP.c	2005-08-30 13:41:22.059915425 +0200
-+++ linux-2.6.13/net/ipv4/netfilter/ipt_CLUSTERIP.c	2005-08-30 14:12:40.317423733 +0200
-@@ -144,7 +144,7 @@
- 	memcpy(&c->clustermac, &i->clustermac, ETH_ALEN);
- 	c->num_total_nodes = i->num_total_nodes;
- 	c->num_local_nodes = i->num_local_nodes;
--	memcpy(&c->local_nodes, &i->local_nodes, sizeof(&c->local_nodes));
-+	memcpy(&c->local_nodes, &i->local_nodes, sizeof(c->local_nodes));
- 	c->hash_mode = i->hash_mode;
- 	c->hash_initval = i->hash_initval;
- 	atomic_set(&c->refcount, 1);
-
---
- Regards,
-  Krisztian Kovacs
- 
+-----------------------------------------------------------------
+Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
