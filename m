@@ -1,7 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH NF_CONNTRACK 0/2] minor fixes for nf_conntrack
-Date: Thu, 01 Sep 2005 13:00:18 +0900 (JST)
-Message-ID: <200509010400.j8140Jn6027940@toshiba.co.jp>
+Subject: [PATCH NF_CONNTRACK 2/2] missing header for nf_conntrack tcp/udp
+Date: Thu, 01 Sep 2005 13:00:55 +0900 (JST)
+Message-ID: <200509010400.j8140uSW028989@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -19,11 +19,9 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi,
+This patch fixes compling error where IPv6 stack isn't build.
+In this case, in6_addr is undefined.
 
-These patches are minor fixes for nf_conntrack, one is for recent skb timestamp
-change, other is for compiling error without IPv6 stack.
+Please apply to nf_conntrack tree.
 
-Regards,
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
