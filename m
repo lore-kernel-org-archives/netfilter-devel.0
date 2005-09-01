@@ -1,10 +1,10 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH NF_CONNTRACK 5/10] add nf_conntrack support to NOTRACK target
-Date: Thu, 01 Sep 2005 18:14:31 +0900 (JST)
-Message-ID: <200509010914.j819EWVd005839@toshiba.co.jp>
+Subject: [PATCH NF_CONNTRACK 1/10] exclusive option for {ip,nf}_conntrack
+Date: Thu, 01 Sep 2005 18:13:53 +0900 (JST)
+Message-ID: <200509010913.j819DsgS004695@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Thu_Sep__1_18_14_31_2005_819)--"
+	boundary="--Next_Part(Thu_Sep__1_18_13_53_2005_886)--"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
@@ -19,68 +19,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Thu_Sep__1_18_14_31_2005_819)--
+----Next_Part(Thu_Sep__1_18_13_53_2005_886)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
+
+As a result of discussion on netfilter mailing list, we decided to let user
+select to use whether ip_conntrack or nf_conntrack. This makes it easy for
+us to do work on compatibility issues between ip_conntrack and
+nf_conntrack.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
 -----------------------------------------------------------------
 Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
-----Next_Part(Thu_Sep__1_18_14_31_2005_819)--
+----Next_Part(Thu_Sep__1_18_13_53_2005_886)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="05-NOTRACK.patch"
+Content-Disposition: inline; filename="01-exclusive.patch"
 
-[NETFILTER] add nf_conntrack support to NOTRACK target
+[NETFILTER] exclusive option for {ip,nf}_conntrack
+
+As a result of discussion on netfilter mailing list, we decided to let user
+select to use whether ip_conntrack or nf_conntrack. This makes it easy for
+us to do work on compatibility issues between ip_conntrack and
+nf_conntrack.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
 ---
-commit 873123d0c0b5e410dcda66d477d4211e0c5c349c
-tree d0da27495b066282eeeafdf3e4c77ffdc5f86aa3
-parent 0bf0296d190d233c34ea5f9f587f2907fbde2786
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 01 Sep 2005 03:30:24 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 01 Sep 2005 03:30:24 +0900
+commit 17ddaa82dcf7dd18c35fc16b5ad12690cc2c5e36
+tree ca6efcb19eb4f022a239d8ab207135b7bf8ff5a8
+parent fd181f7707c662f9a8b0dd8a284040b8d3a286d7
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 01 Sep 2005 03:18:23 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 01 Sep 2005 03:18:23 +0900
 
- net/ipv4/netfilter/Kconfig       |    2 +-
- net/ipv4/netfilter/ipt_NOTRACK.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -717,7 +717,7 @@ config IP_NF_RAW
- config IP_NF_TARGET_NOTRACK
- 	tristate  'NOTRACK target support'
- 	depends on IP_NF_RAW
--	depends on IP_NF_CONNTRACK
-+	depends on IP_NF_CONNTRACK || NF_CONNTRACK_IPV4
- 	help
- 	  The NOTRACK target allows a select rule to specify
- 	  which packets *not* to enter the conntrack/NAT
-diff --git a/net/ipv4/netfilter/ipt_NOTRACK.c b/net/ipv4/netfilter/ipt_NOTRACK.c
---- a/net/ipv4/netfilter/ipt_NOTRACK.c
-+++ b/net/ipv4/netfilter/ipt_NOTRACK.c
-@@ -5,7 +5,7 @@
- #include <linux/skbuff.h>
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -27,7 +27,7 @@ config NETFILTER_NETLINK_LOG
  
- #include <linux/netfilter_ipv4/ip_tables.h>
--#include <linux/netfilter_ipv4/ip_conntrack.h>
-+#include <linux/netfilter/nf_conntrack_compat.h>
- 
- static unsigned int
- target(struct sk_buff **pskb,
-@@ -23,7 +23,7 @@ target(struct sk_buff **pskb,
- 	   If there is a real ct entry correspondig to this packet, 
- 	   it'll hang aroun till timing out. We don't deal with it
- 	   for performance reasons. JK */
--	(*pskb)->nfct = &ip_conntrack_untracked.ct_general;
-+	nf_ct_untrack(*pskb);
- 	(*pskb)->nfctinfo = IP_CT_NEW;
- 	nf_conntrack_get((*pskb)->nfct);
- 
+ config NF_CONNTRACK
+ 	tristate "Layer 3 Independent Connection tracking (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && NET
++	depends on EXPERIMENTAL && NET && IP_NF_CONNTRACK=n
+ 	default n
+ 	---help---
+ 	  Connection tracking keeps a record of what packets have passed
 
-----Next_Part(Thu_Sep__1_18_14_31_2005_819)----
+----Next_Part(Thu_Sep__1_18_13_53_2005_886)----
