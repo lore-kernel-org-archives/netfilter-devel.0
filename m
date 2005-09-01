@@ -1,10 +1,10 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH NF_CONNTRACK 7/10] add nf_conntrack support to connmark match
-Date: Thu, 01 Sep 2005 18:14:48 +0900 (JST)
-Message-ID: <200509010914.j819En6G006020@toshiba.co.jp>
+Subject: [PATCH NF_CONNTRACK 9/10] add nf_conntrack support to helper match
+Date: Thu, 01 Sep 2005 18:15:05 +0900 (JST)
+Message-ID: <200509010915.j819F5Ib006672@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Thu_Sep__1_18_14_48_2005_009)--"
+	boundary="--Next_Part(Thu_Sep__1_18_15_05_2005_543)--"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
@@ -19,7 +19,7 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Thu_Sep__1_18_14_48_2005_009)--
+----Next_Part(Thu_Sep__1_18_15_05_2005_543)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
@@ -29,67 +29,119 @@ Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 -----------------------------------------------------------------
 Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
-----Next_Part(Thu_Sep__1_18_14_48_2005_009)--
+----Next_Part(Thu_Sep__1_18_15_05_2005_543)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="07-connmark.patch"
+Content-Disposition: inline; filename="09-helper.patch"
 
-[NETFILTER] add nf_conntrack support to connmark match
+[NETFILTER] add nf_conntrack support to helper match
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
 ---
-commit e3e0b34c418c128d99367766950e1fb5f771ea33
-tree 5a4548cc415d256dac5fb7b7b2128c0d190a4410
-parent 3476e266ba733aa5214ac79977fc64596c80f4c6
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 01 Sep 2005 03:31:18 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 01 Sep 2005 03:31:18 +0900
+commit 753286b105158ef80e495f76201201834e62d843
+tree be1555daa0b35b9c25ff3203f2790b1faed32287
+parent 8d35d09bcdd82a8defa817d866f4f6c5096605b8
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 01 Sep 2005 04:01:11 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 01 Sep 2005 04:01:11 +0900
 
- net/ipv4/netfilter/Kconfig        |    3 ++-
- net/ipv4/netfilter/ipt_connmark.c |   10 +++++-----
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ net/ipv4/netfilter/Kconfig      |    3 +-
+ net/ipv4/netfilter/ipt_helper.c |   54 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 56 insertions(+), 1 deletions(-)
 
 diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
 --- a/net/ipv4/netfilter/Kconfig
 +++ b/net/ipv4/netfilter/Kconfig
-@@ -378,7 +378,8 @@ config IP_NF_MATCH_COMMENT
+@@ -273,7 +273,8 @@ config IP_NF_MATCH_TCPMSS
  
- config IP_NF_MATCH_CONNMARK
- 	tristate  'Connection mark match support'
--	depends on IP_NF_CONNTRACK_MARK && IP_NF_IPTABLES
+ config IP_NF_MATCH_HELPER
+ 	tristate "Helper match support"
+-	depends on IP_NF_CONNTRACK && IP_NF_IPTABLES
 +	depends on IP_NF_IPTABLES
-+	depends on IP_NF_CONNTRACK_MARK || (NF_CONNTRACK_MARK && NF_CONNTRACK_IPV4)
++	depends on IP_NF_CONNTRACK || NF_CONNTRACK_IPV4
  	help
- 	  This option adds a `connmark' match, which allows you to match the
- 	  connection mark value previously set for the session by `CONNMARK'. 
-diff --git a/net/ipv4/netfilter/ipt_connmark.c b/net/ipv4/netfilter/ipt_connmark.c
---- a/net/ipv4/netfilter/ipt_connmark.c
-+++ b/net/ipv4/netfilter/ipt_connmark.c
-@@ -28,7 +28,7 @@ MODULE_LICENSE("GPL");
- 
+ 	  Helper matching allows you to match packets in dynamic connections
+ 	  tracked by a conntrack-helper, ie. ip_conntrack_ftp
+diff --git a/net/ipv4/netfilter/ipt_helper.c b/net/ipv4/netfilter/ipt_helper.c
+--- a/net/ipv4/netfilter/ipt_helper.c
++++ b/net/ipv4/netfilter/ipt_helper.c
+@@ -13,9 +13,15 @@
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+ #include <linux/netfilter.h>
++#if defined(CONFIG_IP_NF_CONNTRACK) || defined(CONFIG_IP_NF_CONNTRACK_MODULE)
+ #include <linux/netfilter_ipv4/ip_conntrack.h>
+ #include <linux/netfilter_ipv4/ip_conntrack_core.h>
+ #include <linux/netfilter_ipv4/ip_conntrack_helper.h>
++#else
++#include <linux/netfilter/nf_conntrack.h>
++#include <linux/netfilter/nf_conntrack_core.h>
++#include <linux/netfilter/nf_conntrack_helper.h>
++#endif
  #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv4/ipt_connmark.h>
--#include <linux/netfilter_ipv4/ip_conntrack.h>
-+#include <linux/netfilter/nf_conntrack_compat.h>
+ #include <linux/netfilter_ipv4/ipt_helper.h>
  
+@@ -29,6 +35,7 @@ MODULE_DESCRIPTION("iptables helper matc
+ #define DEBUGP(format, args...)
+ #endif
+ 
++#if defined(CONFIG_IP_NF_CONNTRACK) || defined(CONFIG_IP_NF_CONNTRACK_MODULE)
  static int
  match(const struct sk_buff *skb,
-@@ -39,12 +39,12 @@ match(const struct sk_buff *skb,
-       int *hotdrop)
- {
- 	const struct ipt_connmark_info *info = matchinfo;
--	enum ip_conntrack_info ctinfo;
--	struct ip_conntrack *ct = ip_conntrack_get((struct sk_buff *)skb, &ctinfo);
--	if (!ct)
-+	u_int32_t ctinfo;
-+	const u_int32_t *ctmark = nf_ct_get_mark(skb, &ctinfo);
-+	if (!ctmark)
- 		return 0;
- 
--	return ((ct->mark & info->mask) == info->mark) ^ info->invert;
-+	return (((*ctmark) & info->mask) == info->mark) ^ info->invert;
+       const struct net_device *in,
+@@ -73,6 +80,53 @@ out_unlock:
+ 	return ret;
  }
  
- static int
++#else /* CONFIG_IP_NF_CONNTRACK */
++
++static int
++match(const struct sk_buff *skb,
++      const struct net_device *in,
++      const struct net_device *out,
++      const void *matchinfo,
++      int offset,
++      int *hotdrop)
++{
++	const struct ipt_helper_info *info = matchinfo;
++	struct nf_conn *ct;
++	enum ip_conntrack_info ctinfo;
++	int ret = info->invert;
++	
++	ct = nf_ct_get((struct sk_buff *)skb, &ctinfo);
++	if (!ct) {
++		DEBUGP("ipt_helper: Eek! invalid conntrack?\n");
++		return ret;
++	}
++
++	if (!ct->master) {
++		DEBUGP("ipt_helper: conntrack %p has no master\n", ct);
++		return ret;
++	}
++
++	read_lock_bh(&nf_conntrack_lock);
++	if (!ct->master->helper) {
++		DEBUGP("ipt_helper: master ct %p has no helper\n", 
++			exp->expectant);
++		goto out_unlock;
++	}
++
++	DEBUGP("master's name = %s , info->name = %s\n", 
++		ct->master->helper->name, info->name);
++
++	if (info->name[0] == '\0')
++		ret ^= 1;
++	else
++		ret ^= !strncmp(ct->master->helper->name, info->name, 
++		                strlen(ct->master->helper->name));
++out_unlock:
++	read_unlock_bh(&nf_conntrack_lock);
++	return ret;
++}
++#endif
++
+ static int check(const char *tablename,
+ 		 const struct ipt_ip *ip,
+ 		 void *matchinfo,
 
-----Next_Part(Thu_Sep__1_18_14_48_2005_009)----
+----Next_Part(Thu_Sep__1_18_15_05_2005_543)----
