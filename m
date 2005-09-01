@@ -1,16 +1,14 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH NF_CONNTRACK 2/2] missing header for nf_conntrack tcp/udp
-Date: Thu, 01 Sep 2005 13:11:09 +0900 (JST)
-Message-ID: <200509010411.j814BA5g014973@toshiba.co.jp>
-References: <200509010400.j8140uSW028989@toshiba.co.jp>
+Subject: [PATCH NF_CONNTRACK 2/10] symbol to load ip_conntrack or
+ nf_conntrack
+Date: Thu, 01 Sep 2005 18:14:07 +0900 (JST)
+Message-ID: <200509010914.j819E7qZ005294@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Thu_Sep__1_13_11_09_2005_286)--"
+	boundary="--Next_Part(Thu_Sep__1_18_14_07_2005_883)--"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: yasuyuki.kozakai@toshiba.co.jp
-In-Reply-To: <200509010400.j8140uSW028989@toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,72 +20,103 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Thu_Sep__1_13_11_09_2005_286)--
+----Next_Part(Thu_Sep__1_18_14_07_2005_883)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
 
-Sorry for missing patch. :(
+In the current, the symbol 'need_ip_conntrack' is used to autoload
+ip_conntrack required by matches/targets. This change makes them possible
+to autoload ip_conntrack or nf_conntrack according to compile-time choice.
 
-# mh, recently there are many misstakes... Clame down, me...
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Date: Thu, 01 Sep 2005 13:00:55 +0900 (JST)
+-----------------------------------------------------------------
+Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
-> 
-> This patch fixes compling error where IPv6 stack isn't build.
-> In this case, in6_addr is undefined.
-> 
-> Please apply to nf_conntrack tree.
-> 
-> Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-> 
-
-----Next_Part(Thu_Sep__1_13_11_09_2005_286)--
+----Next_Part(Thu_Sep__1_18_14_07_2005_883)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="03-ipv6tcpudp.patch"
+Content-Disposition: inline; filename="02-need_ct.patch"
 
-[NETFILTER] missing header for nf_conntrack tcp/udp
+[NETFILTER] symbol to load ip_conntrack or nf_conntrack
 
-This patch fixes compling error where IPv6 stack isn't build.
-In this case, in6_addr is undefined.
+In the current, the symbol 'need_ip_conntrack' is used to autoload
+ip_conntrack required by matches/targets. This change makes them possible
+to autoload ip_conntrack or nf_conntrack according to compile-time choice.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
 ---
-commit fd181f7707c662f9a8b0dd8a284040b8d3a286d7
-tree 886f7b87f30350c2a5980c70e56272dd2e766c14
-parent 88b8f555d0553ad2d4a3ab16fe2da38c555eb8c3
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 01 Sep 2005 03:16:48 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 01 Sep 2005 03:16:48 +0900
+commit 80387d5afee17b1f3119aa6d068f6351450bac0e
+tree eec2becd0ef69929bf936a1db46c30c579b08c1f
+parent 17ddaa82dcf7dd18c35fc16b5ad12690cc2c5e36
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 01 Sep 2005 03:26:03 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 01 Sep 2005 03:26:03 +0900
 
- net/netfilter/nf_conntrack_proto_tcp.c |    1 +
- net/netfilter/nf_conntrack_proto_udp.c |    2 ++
- 2 files changed, 3 insertions(+), 0 deletions(-)
+ include/linux/netfilter/ipv4/nf_conntrack_ipv4.h |    3 +++
+ include/linux/netfilter/nf_conntrack.h           |   10 ----------
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c   |    6 +++++-
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c   |    6 +++++-
+ 4 files changed, 13 insertions(+), 12 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -34,6 +34,7 @@
- #include <linux/tcp.h>
- #include <linux/spinlock.h>
- #include <linux/skbuff.h>
-+#include <linux/ipv6.h>
- #include <net/ip6_checksum.h>
+diff --git a/include/linux/netfilter/ipv4/nf_conntrack_ipv4.h b/include/linux/netfilter/ipv4/nf_conntrack_ipv4.h
+--- a/include/linux/netfilter/ipv4/nf_conntrack_ipv4.h
++++ b/include/linux/netfilter/ipv4/nf_conntrack_ipv4.h
+@@ -37,4 +37,7 @@ struct nf_conntrack_ipv4 {
+ struct sk_buff *
+ nf_ct_ipv4_ct_gather_frags(struct sk_buff *skb);
  
- #include <net/tcp.h>
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -18,6 +18,8 @@
- #include <linux/netfilter.h>
- #include <linux/udp.h>
- #include <linux/seq_file.h>
-+#include <linux/skbuff.h>
-+#include <linux/ipv6.h>
- #include <net/ip6_checksum.h>
- #include <net/checksum.h>
- #include <linux/netfilter.h>
++/* call to create an explicit dependency on nf_conntrack_l3proto_ipv4. */
++extern void need_ip_conntrack(void);
++
+ #endif /*_NF_CONNTRACK_IPV4_H*/
+diff --git a/include/linux/netfilter/nf_conntrack.h b/include/linux/netfilter/nf_conntrack.h
+--- a/include/linux/netfilter/nf_conntrack.h
++++ b/include/linux/netfilter/nf_conntrack.h
+@@ -309,16 +309,6 @@ nf_conntrack_expect_event(enum ip_conntr
+ 			  struct nf_conntrack_expect *exp) {}
+ #endif /* CONFIG_NF_CONNTRACK_EVENTS */
+ 
+-/* eg. PROVIDES_CONNTRACK(ftp); */
+-#define PROVIDES_CONNTRACK(name)                        \
+-        int needs_nf_conntrack_##name;                  \
+-        EXPORT_SYMBOL(needs_nf_conntrack_##name)
+-
+-/*. eg. NEEDS_CONNTRACK(ftp); */
+-#define NEEDS_CONNTRACK(name)                                           \
+-        extern int needs_nf_conntrack_##name;                           \
+-        static int *need_nf_conntrack_##name __attribute_used__ = &needs_nf_conntrack_##name
+-
+ /* no helper, no nat */
+ #define	NF_CT_F_BASIC	0
+ /* for helper */
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -563,5 +563,9 @@ static void __exit fini(void)
+ module_init(init);
+ module_exit(fini);
+ 
+-PROVIDES_CONNTRACK(ipv4);
++void need_ip_conntrack(void)
++{
++}
++
++EXPORT_SYMBOL(need_ip_conntrack);
+ EXPORT_SYMBOL(nf_ct_ipv4_gather_frags);
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -549,4 +549,8 @@ static void __exit fini(void)
+ module_init(init);
+ module_exit(fini);
+ 
+-PROVIDES_CONNTRACK(ipv6);
++void need_ip6_conntrack(void)
++{
++}
++
++EXPORT_SYMBOL(need_ip6_conntrack);
 
-----Next_Part(Thu_Sep__1_13_11_09_2005_286)----
+----Next_Part(Thu_Sep__1_18_14_07_2005_883)----
