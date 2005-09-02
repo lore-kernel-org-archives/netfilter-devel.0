@@ -1,12 +1,16 @@
-From: Udo van den Heuvel <udovdh@xs4all.nl>
-Subject: 2.6.13 (-git2) and h323-conntrack-nat -> error
-Date: Thu, 01 Sep 2005 16:21:40 +0200
-Message-ID: <43170E74.5040908@xs4all.nl>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [PATCH 4/*] libnfnetlink fixes
+Date: Fri, 02 Sep 2005 17:12:38 +0100
+Message-ID: <431879F6.5020505@ufomechanic.net>
+References: <42D429F9.7000707@eurodev.net> <42D4CF9C.2000304@ufomechanic.net>
+	<20050828115013.GE4244@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=EUC-KR
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050828115013.GE4244@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,24 +22,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Harald Welte wrote:
 
-Sinds 2.6.13 (git2 now) I get this problem wehn trying to build a kerlen
-with patch-o-matic h323-conntrack-nat applied:
+>On Wed, Jul 13, 2005 at 09:23:56AM +0100, Amin Azez wrote:
+>
+>  
+>
+>I think this change is fine.  Would you mind to re-submit the patch
+>against current svn?  Please also document the meaning of the return
+>values, probably with a comment in the code or the header file?
+>
+>  
+>
+Will do (Monday)
 
-net/ipv4/netfilter/ip_conntrack_h323_h225.c: In function
-=E2h225_parse_connect_uuie=E2:
-net/ipv4/netfilter/ip_conntrack_h323_h225.c:111: error: too few
-arguments to function =E2ip_conntrack_expect_alloc=E2
-net/ipv4/netfilter/ip_conntrack_h323_h225.c:135: warning: implicit
-declaration of function =E2ip_conntrack_expect_free=E2
-make[3]: *** [net/ipv4/netfilter/ip_conntrack_h323_h225.o] Error 1
-make[2]: *** [net/ipv4/netfilter] Error 2
-make[1]: *** [net/ipv4] Error 2
-make: *** [net] Error 2
+thanks for the feedback.
 
-Is this known?
-How could I fix this?
-
-Kind regards,
-Udo
+Azez
