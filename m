@@ -1,16 +1,13 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [PATCH 4/*] libnfnetlink fixes
-Date: Fri, 02 Sep 2005 17:12:38 +0100
-Message-ID: <431879F6.5020505@ufomechanic.net>
-References: <42D429F9.7000707@eurodev.net> <42D4CF9C.2000304@ufomechanic.net>
-	<20050828115013.GE4244@rama.de.gnumonks.org>
+From: "Giacomo" <delleceste@gmail.com>
+Subject: help about NAT and ISP - developing a kernel module
+Date: Fri, 2 Sep 2005 22:22:13 +0200
+Message-ID: <002501c5affc$035a8310$0300a8c0@giacomino>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=EUC-KR
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050828115013.GE4244@rama.de.gnumonks.org>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,20 +19,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
+Good morning, I'm Giacomo Strangolino from Italy.
 
->On Wed, Jul 13, 2005 at 09:23:56AM +0100, Amin Azez wrote:
->
->  
->
->I think this change is fine.  Would you mind to re-submit the patch
->against current svn?  Please also document the meaning of the return
->values, probably with a comment in the code or the header file?
->
->  
->
-Will do (Monday)
+I finished developing an ipv4 packet filter with NAT/MASQUERADING and have 
+been
+testing it
+for some time with success connecting from home to my ISP named "libero".
 
-thanks for the feedback.
+Then i changed ISP to another one, called "telecom" and with great surprise
+i discovered that
+images from sites and also sites failed to load.
 
-Azez
+So now, when i call an ISP all works fine, when i call the other, things go
+wrong.
+
+I NAT machines behind my firewall changing only ips and ports, and
+recalculating checksum (ip and tcp/udp)
+to adjust such changes.
+I do not touch any other field as window size or seq number or ack, since
+the only things i manipulate are
+addresses and ports.
+
+I was wondering what i could do to solve, since iptables and ipfw+natd on
+freeBSD or winXP sp2 work fine
+with this ISP...
+
+Tweaking with ethereal i found that probably sometimes a tcp segment gets
+lost.
+
+My firewall is a 2.6.12 kernel module which registers with netfilter hooks.
+A userspace program sends rules to
+kernel via netlink.
+
+I thank you if you could help me find the way to fix the problem or
+understand what could be wrong with an
+ISP network and anyway work fine with the other.
+
+Also any indication of where in iptables source is solved such problem
+would be appreciated.
+
+I have been consulting news for many days and until now i tried to resolve 
+the issue
+without success in the following ways:
+
+- reducing MTU on both gateway and internal hosts.
+- trying with the option --clamp-tcpmss-to-pmtu.
+
+Both failed and problem persisted.
+
+
+Thanks a lot in advance.
+
+Giacomo S. Udine, Italy
