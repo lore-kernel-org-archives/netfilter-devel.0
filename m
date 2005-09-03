@@ -1,73 +1,98 @@
-From: "Giacomo" <delleceste@gmail.com>
-Subject: help about NAT and ISP - developing a kernel module
-Date: Fri, 2 Sep 2005 22:22:13 +0200
-Message-ID: <002501c5affc$035a8310$0300a8c0@giacomino>
+From: Harald Welte <laforge@netfilter.org>
+Subject: [PATCH 1/2] nfnetlink: make needlessly global functions static
+Date: Sat, 3 Sep 2005 10:39:58 +0200
+Message-ID: <20050903083958.GC4415@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6WlEvdN9Dv0WHSBl"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	linux-kernel@vger.kernel.org, bunk@stusta.de
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161181AbVICIVY@vger.kernel.org>
+To: David Miller <davem@davemloft.net>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Good morning, I'm Giacomo Strangolino from Italy.
 
-I finished developing an ipv4 packet filter with NAT/MASQUERADING and have 
-been
-testing it
-for some time with success connecting from home to my ISP named "libero".
-
-Then i changed ISP to another one, called "telecom" and with great surprise
-i discovered that
-images from sites and also sites failed to load.
-
-So now, when i call an ISP all works fine, when i call the other, things go
-wrong.
-
-I NAT machines behind my firewall changing only ips and ports, and
-recalculating checksum (ip and tcp/udp)
-to adjust such changes.
-I do not touch any other field as window size or seq number or ack, since
-the only things i manipulate are
-addresses and ports.
-
-I was wondering what i could do to solve, since iptables and ipfw+natd on
-freeBSD or winXP sp2 work fine
-with this ISP...
-
-Tweaking with ethereal i found that probably sometimes a tcp segment gets
-lost.
-
-My firewall is a 2.6.12 kernel module which registers with netfilter hooks.
-A userspace program sends rules to
-kernel via netlink.
-
-I thank you if you could help me find the way to fix the problem or
-understand what could be wrong with an
-ISP network and anyway work fine with the other.
-
-Also any indication of where in iptables source is solved such problem
-would be appreciated.
-
-I have been consulting news for many days and until now i tried to resolve 
-the issue
-without success in the following ways:
-
-- reducing MTU on both gateway and internal hosts.
-- trying with the option --clamp-tcpmss-to-pmtu.
-
-Both failed and problem persisted.
+--6WlEvdN9Dv0WHSBl
+Content-Type: multipart/mixed; boundary="aT9PWwzfKXlsBJM1"
+Content-Disposition: inline
 
 
-Thanks a lot in advance.
+--aT9PWwzfKXlsBJM1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Giacomo S. Udine, Italy
+Hi Dave, please apply the appended patch.
+
+Thanks,
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--aT9PWwzfKXlsBJM1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="53-fnnetlink-static.patch"
+Content-Transfer-Encoding: quoted-printable
+
+[NETFILTER] make needlessly global functions static
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Harald Welte <laforge@netfilter.org>
+
+---
+commit a2c9c9a399f2069f31d608d142da8d5d82609b0d
+tree 63cce7c2cc4d738a2604c54d87961b4a32ab3aac
+parent 0905251a08bf51d5e2d1996c21fcdc5acfbbde13
+author Adrian Bunk <bunk@stusta.de> Sa, 03 Sep 2005 10:34:27 +0200
+committer Harald Welte <laforge@netfilter.org> Sa, 03 Sep 2005 10:34:27 +02=
+00
+
+ net/netfilter/nfnetlink.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -344,14 +344,14 @@ static void nfnetlink_rcv(struct sock *s
+ 	} while(nfnl && nfnl->sk_receive_queue.qlen);
+ }
+=20
+-void __exit nfnetlink_exit(void)
++static void __exit nfnetlink_exit(void)
+ {
+ 	printk("Removing netfilter NETLINK layer.\n");
+ 	sock_release(nfnl->sk_socket);
+ 	return;
+ }
+=20
+-int __init nfnetlink_init(void)
++static int __init nfnetlink_init(void)
+ {
+ 	printk("Netfilter messages via NETLINK v%s.\n", nfversion);
+=20
+
+--aT9PWwzfKXlsBJM1--
+
+--6WlEvdN9Dv0WHSBl
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDGWFeXaXGVTD0i/8RAkzhAKCxO8alliDnPIYxiPpwfdFJIrrNswCfVkeg
+5kiciSG2KPOBgPyto9+ZcXU=
+=6crz
+-----END PGP SIGNATURE-----
+
+--6WlEvdN9Dv0WHSBl--
