@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: connbytes: wrong depends on Kconfig
-Date: Sun, 04 Sep 2005 18:00:36 +0200
-Message-ID: <431B1A24.4000304@trash.net>
-References: <1125808606.32363.1.camel@ceci.ws.ar>
+Subject: Re: [PATCH 1/1] missing dependency definition for ip_conntrack mark
+Date: Sun, 04 Sep 2005 18:03:56 +0200
+Message-ID: <431B1AEC.5050207@trash.net>
+References: <200509010353.j813roX3020876@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Diego Woitasen <diegows@linux.org.ar>
-In-Reply-To: <1125808606.32363.1.camel@ceci.ws.ar>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200509010353.j813roX3020876@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +21,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Diego Woitasen wrote:
-> depends on IP_NF_CONNTRACK_ACCT && IP_NF_IPTABLES
+Yasuyuki KOZAKAI wrote:
+> [NETFILTER] missing dependency definition for ip_conntrack mark
 > 
-> sould be replaced by
-> 
-> depends on IP_NF_CT_ACCT && IP_NF_IPTABLES
-> 
-> The first is not working in new kernels.
+> Connection mark tracking support is one of the feature in connection tracking,
+> so IP_NF_CONNTRACK_MARK depends on IP_NF_CONNTRACK.
 
-The current tree already include the connbytes match and the
-correct dependency:
-
-config IP_NF_MATCH_CONNBYTES
-         tristate  'Connection byte/packet counter match support'
-         depends on IP_NF_CT_ACCT && IP_NF_IPTABLES
+Applied, thanks Yasuyuki.
