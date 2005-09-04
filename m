@@ -1,15 +1,16 @@
-From: Diego Woitasen <diegows@linux.org.ar>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: connbytes: wrong depends on Kconfig
-Date: Sun, 04 Sep 2005 19:18:45 -0300
-Message-ID: <1125872325.11932.8.camel@ceci.ws.ar>
+Date: Mon, 05 Sep 2005 00:31:04 +0200
+Message-ID: <431B75A8.5050300@trash.net>
 References: <1125808606.32363.1.camel@ceci.ws.ar> <431B1A24.4000304@trash.net>
+	<1125872325.11932.8.camel@ceci.ws.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <431B1A24.4000304@trash.net>
+To: Diego Woitasen <diegows@linux.org.ar>
+In-Reply-To: <1125872325.11932.8.camel@ceci.ws.ar>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,24 +22,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I used the yesterday svn snapshot of patch-o-matic and the error was
-there.
+Diego Woitasen wrote:
+> I used the yesterday svn snapshot of patch-o-matic and the error was
+> there.
+> 
+> what tree are you talking about?
 
-what tree are you talking about?
-
-El dom, 04-09-2005 a las 18:00 +0200, Patrick McHardy escribi=F3:
-> Diego Woitasen wrote:
-> > depends on IP_NF_CONNTRACK_ACCT && IP_NF_IPTABLES
-> >=20
-> > sould be replaced by
-> >=20
-> > depends on IP_NF_CT_ACCT && IP_NF_IPTABLES
-> >=20
-> > The first is not working in new kernels.
->=20
-> The current tree already include the connbytes match and the
-> correct dependency:
->=20
-> config IP_NF_MATCH_CONNBYTES
->          tristate  'Connection byte/packet counter match support'
->          depends on IP_NF_CT_ACCT && IP_NF_IPTABLES
+The current kernel tree. I've fixed it up in svn, but the connbytes
+match there is already out of sync with the kernel.
