@@ -1,16 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/3] Implement private protocol info changing
-Date: Sun, 04 Sep 2005 20:02:22 +0200
-Message-ID: <431B36AE.2080505@trash.net>
-References: <430E2DE3.3020700@eurodev.net>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] Refuse multiple --to args in [DS]NAT
+Date: Sun, 4 Sep 2005 12:40:42 -0700
+Message-ID: <20050904194042.GA11196@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="GvXjxJ+pjyke8COw"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <430E2DE3.3020700@eurodev.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,62 +18,131 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> This patch add support to change the state of the private protocol 
-> information via conntrack_netlink.
 
-The patches look fine to me, besides the two issues mentioned below.
-I have a couple of fixes which conflict with them though, please
-resend after they hit Linus's tree.
+--GvXjxJ+pjyke8COw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> ------------------------------------------------------------------------
-> 
-> Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_netlink.c
-> ===================================================================
-> --- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-08-13 10:45:09.000000000 +0200
-> +++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-08-13 10:51:34.000000000 +0200
-> @@ -948,6 +948,36 @@
->  	return 0;
->  }
->  
-> +static inline int
-> +ctnetlink_change_protoinfo(struct ip_conntrack *ct, struct nfattr *cda[])
-> +{
-> +	struct nfattr *tb[CTA_PROTOINFO_MAX], *attr = cda[CTA_PROTOINFO-1];
-> +	struct ip_conntrack_protocol *proto;
-> +	u_int16_t npt = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum;
-> +	int err;
-> +
-> +	if (nfattr_parse_nested(tb, CTA_PROTOINFO_MAX, attr) < 0)
-> +		goto nfattr_failure;
+Kernels higher than 2.6.10 don't support multiple --to arguments in
+DNAT and SNAT targets.  At present, the error is somewhat vague:
 
-nfattr_failure is usually used when there isn't enough space in
-the skb, not when parsing. So I would prefer to only use it in
-functions putting data in the skb to avoid confusion. Also
--1 (-EPERM) isn't a suitable error to return to userspace.
+# iptables -t nat -A foo -j SNAT --to 1.2.3.4 --to 2.3.4.5
+iptables: Invalid argument
 
-> +
-> +	proto = ip_conntrack_proto_find_get(npt);
-> +	if (!proto)
-> +		return -EINVAL;
-> +
-> +	if (proto->from_nfattr) {
-> +		err = proto->from_nfattr(tb, ct);
-> +		if (err < 0) {
-> +			ip_conntrack_proto_put(proto);
-> +			return -EINVAL;
-> +		}
-> +	}
-> +	ip_conntrack_proto_put(proto);
-> +
-> +	return 0;
+But if we want current iptables to work with kernels <= 2.6.10, we
+cannot simply disallow this in all cases.
 
-This would be simpler and would propagate the error properly if you
-would write it like this:
+So the below patch adds kernel version checking to iptables, and
+utilizes it in [DS]NAT.  Now, users will see a more informative error:
 
-...
-if (proto->from_nfattr)
-	err = proto->from_nfattr(tb, ct);
-ip_conntrack_proto_put(proto);
+# iptables -t nat -A foo -j SNAT --to 1.2.3.4 --to 2.3.4.5
+iptables v1.3.3: Multiple --to-source not supported
 
-return err;
+This generic infrastructure (shamelessly lifted from procps btw) may
+come in handy in the future for other changes.
+
+This fixes bugzilla #367.
+
+Phil
+
+
+
+--GvXjxJ+pjyke8COw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-multiple_to
+
+diff -ru ipt-orig/extensions/libipt_DNAT.c ipt-new/extensions/libipt_DNAT.c
+--- ipt-orig/extensions/libipt_DNAT.c	2005-07-22 05:13:50.000000000 -0700
++++ ipt-new/extensions/libipt_DNAT.c	2005-09-04 10:46:28.000000000 -0700
+@@ -155,6 +155,13 @@
+ 			exit_error(PARAMETER_PROBLEM,
+ 				   "Unexpected `!' after --to-destination");
+ 
++		if (*flags) {
++			if (!kernel_version)
++				get_kernel_version();
++			if (kernel_version > LINUX_VERSION(2, 6, 10))
++				exit_error(PARAMETER_PROBLEM,
++					   "Multiple --to-destination not supported");
++		}
+ 		*target = parse_to(optarg, portok, info);
+ 		*flags = 1;
+ 		return 1;
+diff -ru ipt-orig/extensions/libipt_SNAT.c ipt-new/extensions/libipt_SNAT.c
+--- ipt-orig/extensions/libipt_SNAT.c	2005-07-22 05:13:50.000000000 -0700
++++ ipt-new/extensions/libipt_SNAT.c	2005-09-04 12:28:07.000000000 -0700
+@@ -155,6 +155,13 @@
+ 			exit_error(PARAMETER_PROBLEM,
+ 				   "Unexpected `!' after --to-source");
+ 
++		if (*flags) {
++			if (!kernel_version)
++				get_kernel_version();
++			if (kernel_version > LINUX_VERSION(2, 6, 10))
++				exit_error(PARAMETER_PROBLEM,
++					   "Multiple --to-source not supported");
++		}
+ 		*target = parse_to(optarg, portok, info);
+ 		*flags = 1;
+ 		return 1;
+diff -ru ipt-orig/include/iptables.h ipt-new/include/iptables.h
+--- ipt-orig/include/iptables.h	2005-07-04 15:11:28.000000000 -0700
++++ ipt-new/include/iptables.h	2005-09-04 10:31:43.000000000 -0700
+@@ -175,4 +175,13 @@
+ 			iptc_handle_t *handle);
+ extern int for_each_chain(int (*fn)(const ipt_chainlabel, int, iptc_handle_t *),
+ 		int verbose, int builtinstoo, iptc_handle_t *handle);
++
++/* kernel revision handling */
++extern int kernel_version;
++extern void get_kernel_version(void);
++#define LINUX_VERSION(x,y,z)	(0x10000*(x) + 0x100*(y) + z)
++#define LINUX_VERSION_MAJOR(x)	(((x)>>16) & 0xFF)
++#define LINUX_VERSION_MINOR(x)	(((x)>> 8) & 0xFF)
++#define LINUX_VERSION_PATCH(x)	( (x)      & 0xFF)
++
+ #endif /*_IPTABLES_USER_H*/
+diff -ru ipt-orig/iptables.c ipt-new/iptables.c
+--- ipt-orig/iptables.c	2005-07-29 06:06:45.000000000 -0700
++++ ipt-new/iptables.c	2005-09-04 10:38:19.000000000 -0700
+@@ -39,6 +39,7 @@
+ #include <iptables.h>
+ #include <fcntl.h>
+ #include <sys/wait.h>
++#include <sys/utsname.h>
+ 
+ #ifndef TRUE
+ #define TRUE 1
+@@ -193,6 +194,8 @@
+ const char *program_name;
+ char *lib_dir;
+ 
++int kernel_version;
++
+ /* Keeping track of external matches and targets: linked lists.  */
+ struct iptables_match *iptables_matches = NULL;
+ struct iptables_target *iptables_targets = NULL;
+@@ -1804,6 +1807,21 @@
+ 	name[IPT_FUNCTION_MAXNAMELEN - 1] = revision;
+ }
+ 
++void
++get_kernel_version(void) {
++	static struct utsname uts;
++	int x = 0, y = 0, z = 0;
++
++	if (uname(&uts) == -1) {
++		fprintf(stderr, "Unable to retrieve kernel version.\n");
++		free_opts(1);
++		exit(1); 
++	}
++
++	sscanf(uts.release, "%d.%d.%d", &x, &y, &z);
++	kernel_version = LINUX_VERSION(x, y, z);
++}
++
+ int do_command(int argc, char *argv[], char **table, iptc_handle_t *handle)
+ {
+ 	struct ipt_entry fw, *e = NULL;
+
+--GvXjxJ+pjyke8COw--
