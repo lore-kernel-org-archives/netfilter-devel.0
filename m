@@ -1,16 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: connbytes: wrong depends on Kconfig
-Date: Mon, 05 Sep 2005 00:31:04 +0200
-Message-ID: <431B75A8.5050300@trash.net>
-References: <1125808606.32363.1.camel@ceci.ws.ar> <431B1A24.4000304@trash.net>
-	<1125872325.11932.8.camel@ceci.ws.ar>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 3/3] Implement private protocol info changing
+Date: Mon, 5 Sep 2005 12:04:12 +0200
+Message-ID: <20050905100412.GF20386@sunbeam.de.gnumonks.org>
+References: <430E2DE3.3020700@eurodev.net> <431B36AE.2080505@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tmoQ0UElFV5VgXgH"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Diego Woitasen <diegows@linux.org.ar>
-In-Reply-To: <1125872325.11932.8.camel@ceci.ws.ar>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <431B36AE.2080505@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,11 +23,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Diego Woitasen wrote:
-> I used the yesterday svn snapshot of patch-o-matic and the error was
-> there.
-> 
-> what tree are you talking about?
 
-The current kernel tree. I've fixed it up in svn, but the connbytes
-match there is already out of sync with the kernel.
+--tmoQ0UElFV5VgXgH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, Sep 04, 2005 at 08:02:22PM +0200, Patrick McHardy wrote:
+> Pablo Neira wrote:
+> >This patch add support to change the state of the private protocol=20
+> >information via conntrack_netlink.
+>=20
+> The patches look fine to me, besides the two issues mentioned below.
+> I have a couple of fixes which conflict with them though, please
+> resend after they hit Linus's tree.
+
+I also wasn't yet sure whether the current nesting is the best possible
+solution.  Sorry, was too busy with non-netfilter stuff recently so I
+couldn't comment on that.  I'll try to comment on it later today.
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--tmoQ0UElFV5VgXgH
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDHBgcXaXGVTD0i/8RAl6DAJ4wPhroXJmuPBYbNx+MmytPCWEVhQCggKTs
+23VvymhwrU24o3KsyF2as1E=
+=MgTW
+-----END PGP SIGNATURE-----
+
+--tmoQ0UElFV5VgXgH--
