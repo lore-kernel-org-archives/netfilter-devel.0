@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 3/3] Implement private protocol info changing
-Date: Mon, 5 Sep 2005 12:04:12 +0200
-Message-ID: <20050905100412.GF20386@sunbeam.de.gnumonks.org>
-References: <430E2DE3.3020700@eurodev.net> <431B36AE.2080505@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [PATCH 4/*] libnfnetlink fixes
+Date: Mon, 05 Sep 2005 17:31:11 +0100
+Message-ID: <431C72CF.4060406@ufomechanic.net>
+References: <42D429F9.7000707@eurodev.net> <42D4CF9C.2000304@ufomechanic.net>
+	<20050828115013.GE4244@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tmoQ0UElFV5VgXgH"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>
+Content-Type: multipart/mixed; boundary="------------070003070402000607060103"
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <431B36AE.2080505@trash.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050828115013.GE4244@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,44 +21,103 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------070003070402000607060103
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
---tmoQ0UElFV5VgXgH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Attached, with explanatory notes in the function comment.
 
-On Sun, Sep 04, 2005 at 08:02:22PM +0200, Patrick McHardy wrote:
-> Pablo Neira wrote:
-> >This patch add support to change the state of the private protocol=20
-> >information via conntrack_netlink.
->=20
-> The patches look fine to me, besides the two issues mentioned below.
-> I have a couple of fixes which conflict with them though, please
-> resend after they hit Linus's tree.
+Sam
 
-I also wasn't yet sure whether the current nesting is the best possible
-solution.  Sorry, was too busy with non-netfilter stuff recently so I
-couldn't comment on that.  I'll try to comment on it later today.
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Harald Welte wrote:
+> On Wed, Jul 13, 2005 at 09:23:56AM +0100, Amin Azez wrote:
+> 
+> 
+>>It allows the application-supplied callback handler to signifiy in its
+>>return code whether or not the nfnl_listen read-loop should terminate.
+>>
+>>If the handler returns a negative code, then nfnl_listen returns
+>>immediately with the same return code.
+>>
+>>If the handler returns a postitive code, then nfnl_listen returns at the
+>>next iteration of the while loop, which is when it finishes handing all
+>>netlink messages in the current packet.
+>>
+>>This avois the need to duplicate most of nfnl_listen in a non-loop
+>>context where the application needs control over the read and packet
+>>decode process.
+> 
+> 
+> I think this change is fine.  Would you mind to re-submit the patch
+> against current svn?  Please also document the meaning of the return
+> values, probably with a comment in the code or the header file?
+> 
+> Thanks!
+> 
 
---tmoQ0UElFV5VgXgH
-Content-Type: application/pgp-signature
-Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+--------------070003070402000607060103
+Content-Type: text/x-patch;
+ name="libnfnetlink.c.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="libnfnetlink.c.diff"
 
-iD8DBQFDHBgcXaXGVTD0i/8RAl6DAJ4wPhroXJmuPBYbNx+MmytPCWEVhQCggKTs
-23VvymhwrU24o3KsyF2as1E=
-=MgTW
------END PGP SIGNATURE-----
+Index: src/libnfnetlink.c
+===================================================================
+--- src/libnfnetlink.c	(revision 4254)
++++ src/libnfnetlink.c	(working copy)
+@@ -257,6 +257,16 @@
+  *
+  * nfnhl: libnfnetlink handle
+  * handler: callback function to be called for every netlink message
++ *          - the callback handler should normally return 0
++ *          - but may return a negative error code which will cause
++ *            nfnl_listen to return immediately with the same error code
++ *          - or return a postivie error code which will cause 
++ *            nfnl_listen to return after it has finished processing all
++ *            the netlink messages in the current packet
++ *          Thus a positive error code will terminate nfnl_listen "soon"
++ *          without any loss of data, a negative error code will terminate
++ *          nfnl_listen "very soon" and throw away data already read from
++ *          the netlink socket.
+  * jarg: opaque argument passed on to callback
+  *
+  */
+@@ -270,6 +280,7 @@
+ 	int remain;
+ 	struct nlmsghdr *h;
+ 	struct nlmsgerr *msgerr;
++	int quit=0;
+ 
+ 	struct msghdr msg = {
+ 		(void *)&nladdr, sizeof(nladdr),
+@@ -283,7 +294,7 @@
+ 	iov.iov_base = buf;
+ 	iov.iov_len = sizeof(buf);
+ 
+-	while (1) {
++	while (! quit) {
+ 		remain = recvmsg(nfnlh->fd, &msg, 0);
+ 		if (remain < 0) {
+ 			if (errno == EINTR)
+@@ -332,6 +343,7 @@
+ 			err = handler(&nladdr, h, jarg);
+ 			if (err < 0)
+ 				return err;
++			quit |= err;
+ 		
+ 			/* FIXME: why not _NEXT macros, etc.? */
+ 			//h = NLMSG_NEXT(h, remain);
+@@ -348,7 +360,7 @@
+ 		}
+ 	}
+ 
+-	return 0;
++	return quit;
+ }
+ 
+ int nfnl_talk(struct nfnl_handle *nfnlh, struct nlmsghdr *n, pid_t peer,
 
---tmoQ0UElFV5VgXgH--
+--------------070003070402000607060103--
