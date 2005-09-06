@@ -1,15 +1,16 @@
-From: "Gary W. Smith" <gary@primeexalia.com>
-Subject: RE: unable to apply PPTP patches
-Date: Tue, 6 Sep 2005 10:04:57 -0700
-Message-ID: <57F9959B46E0FA4D8BA88AEDFBE582907512@pxtbenexd01.pxt.primeexalia.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 4/8]: Handle NAT module load race
+Date: Tue, 06 Sep 2005 19:55:36 +0200
+Message-ID: <431DD818.9090404@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/x-patch;
+ name="04.diff"
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: "Oscar Mateo" <omateo@gmail.com>,
-	<netfilter-devel@lists.netfilter.org>
+To: "David S. Miller" <davem@davemloft.net>
+Content-Disposition: inline;
+ filename="04.diff"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,45 +22,92 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-April 4th or April 10th (not sure which one) copy worked fine with
-2.6.9. I've been using this on several servers for some time.
+[NETFILTER]: Handle NAT module load race
 
-Not sure about the newer versions.  There has been much talk in the
-netfilter users group regarding the newest version not compipling.
+When the NAT module is loaded when connections are already confirmed
+it must not change their tuples anymore. This is especially important
+with CONFIG_NETFILTER_DEBUG, the netfilter listhelp functions will
+refuse to remove an entry from a list when it can not be found on
+the list, so when a changed tuple hashes to a new bucket the entry
+is kept in the list until and after the conntrack is freed.
 
-Hope that helps.
+Allocate the exact conntrack tuple for NAT for already confirmed
+connections or drop them if that fails.
 
-Gary
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
------Original Message-----
-From: netfilter-devel-bounces@lists.netfilter.org
-[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of Oscar
-Mateo
-Sent: Tuesday, September 06, 2005 9:02 AM
-To: netfilter-devel@lists.netfilter.org
-Subject: unable to apply PPTP patches
+---
+commit 92d69138354a34bf06d5429ffa485e3b43282b3f
+tree 52ef057d54e84cb1c25ca6ffb0a5864a18196764
+parent a5abc2029ac642c6d4d13aedfcb75de752aa7f11
+author Patrick McHardy <kaber@trash.net> Sun, 04 Sep 2005 18:23:10 +0200
+committer Patrick McHardy <kaber@trash.net> Sun, 04 Sep 2005 18:23:10 +0200
 
-Hi all,
+ include/linux/netfilter_ipv4/ip_nat_rule.h |    5 +++++
+ net/ipv4/netfilter/ip_nat_rule.c           |   21 +++++++++++++++++++++
+ net/ipv4/netfilter/ip_nat_standalone.c     |    8 ++++++--
+ 3 files changed, 32 insertions(+), 2 deletions(-)
 
-As suggested somewhere in the netfilter list, I'm moving this
-"question/help request" from the netfilter to the netfilter-developer
-list:
-
-I have been trying to apply the pptp patches (pom-ng-20050905,
-iptables-1.3.3) to the kernel source (kernels 2.6.9.x, 2.6.11.x and
-2.6.12.x) and I have found the same error that populates the August
-2005 netfilter Archives:
-
-- If I only apply the pptp/gre patches I get
-`__ip_conntrack_expect_find' undefined (when compiling either in the
-kernel or as a module).
-- If I try to apply nfnetlink and ctnetlink patches, ctnetlink is
-rejected (6 rejects out of 48 hunks).
-- If I force the ctnetlink patch, I get `__ip_conntrack_hash_insert'
-undeclared.
-
-Did someone get the patch working with kernels >=3D 2.6?
-Does anyone have any ideas how to deal with this problem?
-
-Thanks in advance for your help ^_^
-Oscar
+diff --git a/include/linux/netfilter_ipv4/ip_nat_rule.h b/include/linux/netfilter_ipv4/ip_nat_rule.h
+--- a/include/linux/netfilter_ipv4/ip_nat_rule.h
++++ b/include/linux/netfilter_ipv4/ip_nat_rule.h
+@@ -19,5 +19,10 @@ extern unsigned int
+ alloc_null_binding(struct ip_conntrack *conntrack,
+ 		   struct ip_nat_info *info,
+ 		   unsigned int hooknum);
++
++extern unsigned int
++alloc_null_binding_confirmed(struct ip_conntrack *conntrack,
++			     struct ip_nat_info *info,
++			     unsigned int hooknum);
+ #endif
+ #endif /* _IP_NAT_RULE_H */
+diff --git a/net/ipv4/netfilter/ip_nat_rule.c b/net/ipv4/netfilter/ip_nat_rule.c
+--- a/net/ipv4/netfilter/ip_nat_rule.c
++++ b/net/ipv4/netfilter/ip_nat_rule.c
+@@ -255,6 +255,27 @@ alloc_null_binding(struct ip_conntrack *
+ 	return ip_nat_setup_info(conntrack, &range, hooknum);
+ }
+ 
++unsigned int
++alloc_null_binding_confirmed(struct ip_conntrack *conntrack,
++                             struct ip_nat_info *info,
++                             unsigned int hooknum)
++{
++	u_int32_t ip
++		= (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC
++		   ? conntrack->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip
++		   : conntrack->tuplehash[IP_CT_DIR_REPLY].tuple.src.ip);
++	u_int16_t all
++		= (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC
++		   ? conntrack->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u.all
++		   : conntrack->tuplehash[IP_CT_DIR_REPLY].tuple.src.u.all);
++	struct ip_nat_range range
++		= { IP_NAT_RANGE_MAP_IPS, ip, ip, { all }, { all } };
++
++	DEBUGP("Allocating NULL binding for confirmed %p (%u.%u.%u.%u)\n",
++	       conntrack, NIPQUAD(ip));
++	return ip_nat_setup_info(conntrack, &range, hooknum);
++}
++
+ int ip_nat_rule_find(struct sk_buff **pskb,
+ 		     unsigned int hooknum,
+ 		     const struct net_device *in,
+diff --git a/net/ipv4/netfilter/ip_nat_standalone.c b/net/ipv4/netfilter/ip_nat_standalone.c
+--- a/net/ipv4/netfilter/ip_nat_standalone.c
++++ b/net/ipv4/netfilter/ip_nat_standalone.c
+@@ -123,8 +123,12 @@ ip_nat_fn(unsigned int hooknum,
+ 		if (!ip_nat_initialized(ct, maniptype)) {
+ 			unsigned int ret;
+ 
+-			/* LOCAL_IN hook doesn't have a chain!  */
+-			if (hooknum == NF_IP_LOCAL_IN)
++			if (unlikely(is_confirmed(ct)))
++				/* NAT module was loaded late */
++				ret = alloc_null_binding_confirmed(ct, info,
++				                                   hooknum);
++			else if (hooknum == NF_IP_LOCAL_IN)
++				/* LOCAL_IN hook doesn't have a chain!  */
+ 				ret = alloc_null_binding(ct, info, hooknum);
+ 			else
+ 				ret = ip_nat_rule_find(pskb, hooknum,
