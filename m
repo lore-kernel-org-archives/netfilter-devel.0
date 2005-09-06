@@ -1,15 +1,15 @@
-From: Oscar Mateo <omateo@gmail.com>
-Subject: unable to apply PPTP patches
-Date: Tue, 6 Sep 2005 18:02:04 +0200
-Message-ID: <a8a372c050906090246fa43b1@mail.gmail.com>
-References: <365871C49598504A9481DDBEC3EB495512322D@MAIL.InfraSupportEtc.com>
+From: "Gary W. Smith" <gary@primeexalia.com>
+Subject: RE: unable to apply PPTP patches
+Date: Tue, 6 Sep 2005 10:04:57 -0700
+Message-ID: <57F9959B46E0FA4D8BA88AEDFBE582907512@pxtbenexd01.pxt.primeexalia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <365871C49598504A9481DDBEC3EB495512322D@MAIL.InfraSupportEtc.com>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
+To: "Oscar Mateo" <omateo@gmail.com>,
+	<netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,6 +20,24 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
+
+April 4th or April 10th (not sure which one) copy worked fine with
+2.6.9. I've been using this on several servers for some time.
+
+Not sure about the newer versions.  There has been much talk in the
+netfilter users group regarding the newest version not compipling.
+
+Hope that helps.
+
+Gary
+
+-----Original Message-----
+From: netfilter-devel-bounces@lists.netfilter.org
+[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of Oscar
+Mateo
+Sent: Tuesday, September 06, 2005 9:02 AM
+To: netfilter-devel@lists.netfilter.org
+Subject: unable to apply PPTP patches
 
 Hi all,
 
