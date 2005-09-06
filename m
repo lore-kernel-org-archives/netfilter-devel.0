@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 4/8]: Handle NAT module load race
-Date: Tue, 06 Sep 2005 19:55:36 +0200
-Message-ID: <431DD818.9090404@trash.net>
+Subject: [NETFILTER 5/8]: Fix HW checksum handling in nfnetlink_queue
+Date: Tue, 06 Sep 2005 19:55:42 +0200
+Message-ID: <431DD81E.4020505@trash.net>
 Mime-Version: 1.0
 Content-Type: text/x-patch;
- name="04.diff"
+ name="05.diff"
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
 Content-Disposition: inline;
- filename="04.diff"
+ filename="05.diff"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,92 +22,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Handle NAT module load race
-
-When the NAT module is loaded when connections are already confirmed
-it must not change their tuples anymore. This is especially important
-with CONFIG_NETFILTER_DEBUG, the netfilter listhelp functions will
-refuse to remove an entry from a list when it can not be found on
-the list, so when a changed tuple hashes to a new bucket the entry
-is kept in the list until and after the conntrack is freed.
-
-Allocate the exact conntrack tuple for NAT for already confirmed
-connections or drop them if that fails.
+[NETFILTER]: Fix HW checksum handling in nfnetlink_queue
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 92d69138354a34bf06d5429ffa485e3b43282b3f
-tree 52ef057d54e84cb1c25ca6ffb0a5864a18196764
-parent a5abc2029ac642c6d4d13aedfcb75de752aa7f11
-author Patrick McHardy <kaber@trash.net> Sun, 04 Sep 2005 18:23:10 +0200
-committer Patrick McHardy <kaber@trash.net> Sun, 04 Sep 2005 18:23:10 +0200
+commit 917240fdfb4a326d7488803be075e60e9fda6a3e
+tree a069ad28c8f81b1792041f27985e7f3e9ad0877b
+parent 92d69138354a34bf06d5429ffa485e3b43282b3f
+author Patrick McHardy <kaber@trash.net> Sun, 04 Sep 2005 18:25:32 +0200
+committer Patrick McHardy <kaber@trash.net> Sun, 04 Sep 2005 18:25:32 +0200
 
- include/linux/netfilter_ipv4/ip_nat_rule.h |    5 +++++
- net/ipv4/netfilter/ip_nat_rule.c           |   21 +++++++++++++++++++++
- net/ipv4/netfilter/ip_nat_standalone.c     |    8 ++++++--
- 3 files changed, 32 insertions(+), 2 deletions(-)
+ net/netfilter/nfnetlink_queue.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ip_nat_rule.h b/include/linux/netfilter_ipv4/ip_nat_rule.h
---- a/include/linux/netfilter_ipv4/ip_nat_rule.h
-+++ b/include/linux/netfilter_ipv4/ip_nat_rule.h
-@@ -19,5 +19,10 @@ extern unsigned int
- alloc_null_binding(struct ip_conntrack *conntrack,
- 		   struct ip_nat_info *info,
- 		   unsigned int hooknum);
-+
-+extern unsigned int
-+alloc_null_binding_confirmed(struct ip_conntrack *conntrack,
-+			     struct ip_nat_info *info,
-+			     unsigned int hooknum);
- #endif
- #endif /* _IP_NAT_RULE_H */
-diff --git a/net/ipv4/netfilter/ip_nat_rule.c b/net/ipv4/netfilter/ip_nat_rule.c
---- a/net/ipv4/netfilter/ip_nat_rule.c
-+++ b/net/ipv4/netfilter/ip_nat_rule.c
-@@ -255,6 +255,27 @@ alloc_null_binding(struct ip_conntrack *
- 	return ip_nat_setup_info(conntrack, &range, hooknum);
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -382,6 +382,12 @@ nfqnl_build_packet_message(struct nfqnl_
+ 		break;
+ 	
+ 	case NFQNL_COPY_PACKET:
++		if (entry->skb->ip_summed == CHECKSUM_HW &&
++		    (*errp = skb_checksum_help(entry->skb,
++		                               entry->info->outdev == NULL))) {
++			spin_unlock_bh(&queue->lock);
++			return NULL;
++		}
+ 		if (queue->copy_range == 0 
+ 		    || queue->copy_range > entry->skb->len)
+ 			data_len = entry->skb->len;
+@@ -647,7 +653,7 @@ nfqnl_mangle(void *data, int data_len, s
+ 	if (!skb_make_writable(&e->skb, data_len))
+ 		return -ENOMEM;
+ 	memcpy(e->skb->data, data, data_len);
+-
++	e->skb->ip_summed = CHECKSUM_NONE;
+ 	return 0;
  }
  
-+unsigned int
-+alloc_null_binding_confirmed(struct ip_conntrack *conntrack,
-+                             struct ip_nat_info *info,
-+                             unsigned int hooknum)
-+{
-+	u_int32_t ip
-+		= (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC
-+		   ? conntrack->tuplehash[IP_CT_DIR_REPLY].tuple.dst.ip
-+		   : conntrack->tuplehash[IP_CT_DIR_REPLY].tuple.src.ip);
-+	u_int16_t all
-+		= (HOOK2MANIP(hooknum) == IP_NAT_MANIP_SRC
-+		   ? conntrack->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u.all
-+		   : conntrack->tuplehash[IP_CT_DIR_REPLY].tuple.src.u.all);
-+	struct ip_nat_range range
-+		= { IP_NAT_RANGE_MAP_IPS, ip, ip, { all }, { all } };
-+
-+	DEBUGP("Allocating NULL binding for confirmed %p (%u.%u.%u.%u)\n",
-+	       conntrack, NIPQUAD(ip));
-+	return ip_nat_setup_info(conntrack, &range, hooknum);
-+}
-+
- int ip_nat_rule_find(struct sk_buff **pskb,
- 		     unsigned int hooknum,
- 		     const struct net_device *in,
-diff --git a/net/ipv4/netfilter/ip_nat_standalone.c b/net/ipv4/netfilter/ip_nat_standalone.c
---- a/net/ipv4/netfilter/ip_nat_standalone.c
-+++ b/net/ipv4/netfilter/ip_nat_standalone.c
-@@ -123,8 +123,12 @@ ip_nat_fn(unsigned int hooknum,
- 		if (!ip_nat_initialized(ct, maniptype)) {
- 			unsigned int ret;
- 
--			/* LOCAL_IN hook doesn't have a chain!  */
--			if (hooknum == NF_IP_LOCAL_IN)
-+			if (unlikely(is_confirmed(ct)))
-+				/* NAT module was loaded late */
-+				ret = alloc_null_binding_confirmed(ct, info,
-+				                                   hooknum);
-+			else if (hooknum == NF_IP_LOCAL_IN)
-+				/* LOCAL_IN hook doesn't have a chain!  */
- 				ret = alloc_null_binding(ct, info, hooknum);
- 			else
- 				ret = ip_nat_rule_find(pskb, hooknum,
