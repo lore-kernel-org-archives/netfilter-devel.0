@@ -1,15 +1,14 @@
 From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [PATCH 4/*] libnfnetlink fixes
-Date: Mon, 05 Sep 2005 17:31:11 +0100
-Message-ID: <431C72CF.4060406@ufomechanic.net>
-References: <42D429F9.7000707@eurodev.net> <42D4CF9C.2000304@ufomechanic.net>
-	<20050828115013.GE4244@rama.de.gnumonks.org>
+Subject: Re: Help NAT - ISP: news
+Date: Tue, 06 Sep 2005 16:31:58 +0100
+Message-ID: <431DB66E.2000203@ufomechanic.net>
+References: <001a01c5b16c$73fa8770$0300a8c0@giacomino>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070003070402000607060103"
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050828115013.GE4244@rama.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <001a01c5b16c$73fa8770$0300a8c0@giacomino>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,103 +20,107 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070003070402000607060103
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Have you tested the new ISP connection without your ip4 filter loaded?
 
-Attached, with explanatory notes in the function comment.
+I'm wondering if you need to update your /etc/resolv.conf file, default
+route, or other such things that maybe associated with a change of ISP.
+
+Any problem in the area you are looking at is likely to cause problems
+for a lot of customers so it seems unlikely to be a problem of the ISP
 
 Sam
 
-Harald Welte wrote:
-> On Wed, Jul 13, 2005 at 09:23:56AM +0100, Amin Azez wrote:
+Giacomo wrote:
+> Good Morning, i'm Giacomo S. the one who
+> posted some days ago a message titled:
+> "help about NAT and ISP - developing a kernel module"
+> 
+> If anyone can help, in addition to the questions in original post, i
+> discovered that
+> 
+> probably the problem is not related to fragmentation in network packets.
+> 
+> I setup the iptable rule
+> 
+> iptables -A FORWARD -f -j LOG --log-prefix="FWD_FRAGMENTED"
+> 
+> and no packet seems to arrive fragmented.
+> 
+> Don't know if this information is useful, but thank in advance anyone
+> who could
+> 
+> point out a reason for what's happening to me.
+> 
+> Could it be related to packets arriving in disorder?
+> 
+> Should i mangle something else in gateway traversing packets in addition
+> to ip, ports and checksum?
+> 
+> I underline that i do not change any other field, nor payload.
+> 
+> Thanks for help. I add below original message sent some days ago.
 > 
 > 
->>It allows the application-supplied callback handler to signifiy in its
->>return code whether or not the nfnl_listen read-loop should terminate.
->>
->>If the handler returns a negative code, then nfnl_listen returns
->>immediately with the same return code.
->>
->>If the handler returns a postitive code, then nfnl_listen returns at the
->>next iteration of the while loop, which is when it finishes handing all
->>netlink messages in the current packet.
->>
->>This avois the need to duplicate most of nfnl_listen in a non-loop
->>context where the application needs control over the read and packet
->>decode process.
+> 
+> Giacomo.
 > 
 > 
-> I think this change is fine.  Would you mind to re-submit the patch
-> against current svn?  Please also document the meaning of the return
-> values, probably with a comment in the code or the header file?
 > 
-> Thanks!
+> -----
+> ORIGINAL MESSAGE WITH PROBLEM EXPLAINED:
 > 
-
-
---------------070003070402000607060103
-Content-Type: text/x-patch;
- name="libnfnetlink.c.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="libnfnetlink.c.diff"
-
-Index: src/libnfnetlink.c
-===================================================================
---- src/libnfnetlink.c	(revision 4254)
-+++ src/libnfnetlink.c	(working copy)
-@@ -257,6 +257,16 @@
-  *
-  * nfnhl: libnfnetlink handle
-  * handler: callback function to be called for every netlink message
-+ *          - the callback handler should normally return 0
-+ *          - but may return a negative error code which will cause
-+ *            nfnl_listen to return immediately with the same error code
-+ *          - or return a postivie error code which will cause 
-+ *            nfnl_listen to return after it has finished processing all
-+ *            the netlink messages in the current packet
-+ *          Thus a positive error code will terminate nfnl_listen "soon"
-+ *          without any loss of data, a negative error code will terminate
-+ *          nfnl_listen "very soon" and throw away data already read from
-+ *          the netlink socket.
-  * jarg: opaque argument passed on to callback
-  *
-  */
-@@ -270,6 +280,7 @@
- 	int remain;
- 	struct nlmsghdr *h;
- 	struct nlmsgerr *msgerr;
-+	int quit=0;
- 
- 	struct msghdr msg = {
- 		(void *)&nladdr, sizeof(nladdr),
-@@ -283,7 +294,7 @@
- 	iov.iov_base = buf;
- 	iov.iov_len = sizeof(buf);
- 
--	while (1) {
-+	while (! quit) {
- 		remain = recvmsg(nfnlh->fd, &msg, 0);
- 		if (remain < 0) {
- 			if (errno == EINTR)
-@@ -332,6 +343,7 @@
- 			err = handler(&nladdr, h, jarg);
- 			if (err < 0)
- 				return err;
-+			quit |= err;
- 		
- 			/* FIXME: why not _NEXT macros, etc.? */
- 			//h = NLMSG_NEXT(h, remain);
-@@ -348,7 +360,7 @@
- 		}
- 	}
- 
--	return 0;
-+	return quit;
- }
- 
- int nfnl_talk(struct nfnl_handle *nfnlh, struct nlmsghdr *n, pid_t peer,
-
---------------070003070402000607060103--
+> Good morning, I'm Giacomo Strangolino from Italy.
+> 
+> I finished developing an ipv4 packet filter with NAT/MASQUERADING and have
+> been
+> testing it
+> for some time with success connecting from home to my ISP named "libero".
+> 
+> Then i changed ISP to another one, called "telecom" and with great surprise
+> i discovered that
+> images from sites and also sites failed to load.
+> 
+> So now, when i call an ISP all works fine, when i call the other, things go
+> wrong.
+> 
+> I NAT machines behind my firewall changing only ips and ports, and
+> recalculating checksum (ip and tcp/udp)
+> to adjust such changes.
+> I do not touch any other field as window size or seq number or ack, since
+> the only things i manipulate are
+> addresses and ports.
+> 
+> I was wondering what i could do to solve, since iptables and ipfw+natd on
+> freeBSD or winXP sp2 work fine
+> with this ISP...
+> 
+> Tweaking with ethereal i found that probably sometimes a tcp segment gets
+> lost.
+> 
+> My firewall is a 2.6.12 kernel module which registers with netfilter hooks.
+> A userspace program sends rules to
+> kernel via netlink.
+> 
+> I thank you if you could help me find the way to fix the problem or
+> understand what could be wrong with an
+> ISP network and anyway work fine with the other.
+> 
+> Also any indication of where in iptables source is solved such problem
+> would be appreciated.
+> 
+> I have been consulting news for many days and until now i tried to resolve
+> the issue
+> without success in the following ways:
+> 
+> - reducing MTU on both gateway and internal hosts.
+> - trying with the option --clamp-tcpmss-to-pmtu.
+> 
+> Both failed and problem persisted.
+> 
+> 
+> Thanks a lot in advance.
+> 
+> 
+> 
+> 
+> 
