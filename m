@@ -1,10 +1,9 @@
-From: Udo van den Heuvel <udovdh@xs4all.nl>
-Subject: 2.6.13-gitX and TARPIT
-Date: Tue, 06 Sep 2005 17:52:01 +0200
-Message-ID: <431DBB21.5060405@xs4all.nl>
+From: "Smith, Brian" <Brian.Smith@viasat.com>
+Subject: NAT on IPV6
+Date: Tue, 6 Sep 2005 12:14:15 -0700
+Message-ID: <821B2170E9E7F04FA38DF7EC21DE4871ADC8DB@VCAEXCH01.hq.corp.viasat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,11 +17,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+If anyone knows how I can get port forwarding to work on IPV6 2.6 kernel
+please let me know.  I'm willing to do coding; in fact I plan on it
+requiring netfilter coding changes...  I thought I saw a post somewhere that
+someone did this already.
 
-TARPIT stopped compiling when applied on kernels 2.6.13-git3 and up (if
-I recall), even when using the latest patch-o-matic.
-Who can fix this problem?
+ 
 
-Kind regards,
-Udo
+Please cc me with replies as I'm not on the list.
+
+ 
+
+Brian Smith
+
+brian.smith@viasat.com <mailto:brian.smith@viasat.com> 
+
+ 
