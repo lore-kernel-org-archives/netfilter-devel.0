@@ -1,16 +1,18 @@
-From: Oscar Mateo <omateo@gmail.com>
-Subject: Re: unable to apply PPTP patches
-Date: Wed, 7 Sep 2005 12:07:00 +0200
-Message-ID: <a8a372c050907030777d05bbe@mail.gmail.com>
-References: <57F9959B46E0FA4D8BA88AEDFBE582907512@pxtbenexd01.pxt.primeexalia.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [NETFILTER 2/8]: Add NetBIOS name service helper
+Date: Wed, 07 Sep 2005 12:13:10 +0200
+Message-ID: <431EBD36.1040503@trash.net>
+References: <431DD813.8010309@trash.net>
+	<431DDB7C.3010503@trash.net>	<m2slwh617b.fsf@cerbere.dyndns.info>	<20050906.195649.54560179.davem@davemloft.net>	<431E5800.9080406@trash.net>
+	<m28xy98akl.fsf@cerbere.dyndns.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org,
+	"David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Gary W. Smith" <gary@primeexalia.com>
-In-Reply-To: <57F9959B46E0FA4D8BA88AEDFBE582907512@pxtbenexd01.pxt.primeexalia.com>
-Content-Disposition: inline
+To: Samir Bellabes <sbellabes@mandriva.com>
+In-Reply-To: <m28xy98akl.fsf@cerbere.dyndns.info>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,53 +24,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Ouch!, that was goood news, but now I cannot find a pom-ng snapshot in
-the ftp server older than May 1st and the cvs server doesn=B4t allow me
-to login. Can you send me that working pom-ng?
-Thanks very much for your help!
+Samir Bellabes wrote:
+> Patrick McHardy <kaber@trash.net> writes:
+> 
+>>Actually it was deliberate, I don't see a reason why the packet
+>>should be dropped, its best effort.
+> 
+> All conntracks are dropping packets, in that way.
+> netbios_ns should do the same, or other conntracks should be patched.
 
-On 9/6/05, Gary W. Smith <gary@primeexalia.com> wrote:
-> April 4th or April 10th (not sure which one) copy worked fine with
-> 2.6.9. I've been using this on several servers for some time.
->=20
-> Not sure about the newer versions.  There has been much talk in the
-> netfilter users group regarding the newest version not compipling.
->=20
-> Hope that helps.
->=20
-> Gary
->=20
-> -----Original Message-----
-> From: netfilter-devel-bounces@lists.netfilter.org
-> [mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of Oscar
-> Mateo
-> Sent: Tuesday, September 06, 2005 9:02 AM
-> To: netfilter-devel@lists.netfilter.org
-> Subject: unable to apply PPTP patches
->=20
-> Hi all,
->=20
-> As suggested somewhere in the netfilter list, I'm moving this
-> "question/help request" from the netfilter to the netfilter-developer
-> list:
->=20
-> I have been trying to apply the pptp patches (pom-ng-20050905,
-> iptables-1.3.3) to the kernel source (kernels 2.6.9.x, 2.6.11.x and
-> 2.6.12.x) and I have found the same error that populates the August
-> 2005 netfilter Archives:
->=20
-> - If I only apply the pptp/gre patches I get
-> `__ip_conntrack_expect_find' undefined (when compiling either in the
-> kernel or as a module).
-> - If I try to apply nfnetlink and ctnetlink patches, ctnetlink is
-> rejected (6 rejects out of 48 hunks).
-> - If I force the ctnetlink patch, I get `__ip_conntrack_hash_insert'
-> undeclared.
->=20
-> Did someone get the patch working with kernels >=3D 2.6?
-> Does anyone have any ideas how to deal with this problem?
->=20
-> Thanks in advance for your help ^_^
-> Oscar
->=20
->
+Dropping when NAT fails makes sense because the reply packet
+must be handled and the state is required for this. Dropping
+when setting up an expectation fails doesn't make any sense to
+me, the reply could still make it because for example there
+are no rules or it is accepted by the rulesset.
+
+Connection tracking only does tracking, not filtering, and should
+only drop packets if necessary for accurate tracking.
+
+Look at the FTP helper for example. It also tracks passive mode
+connections, which are in many cases allowed by the ruleset
+anyway. By dropping the packet we break what might work otherwise.
+
+So I think changing the other helpers to only drop when really
+neccesary also makes sense.
