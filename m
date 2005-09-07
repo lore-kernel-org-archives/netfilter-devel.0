@@ -1,16 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Fw: masquerading failure for at least icmp and tcp+sack on amd64
-Date: Wed, 07 Sep 2005 14:39:20 +0200
-Message-ID: <431EDF78.8060505@trash.net>
-References: <20050907052057.09714a4c.akpm@osdl.org>
+From: "Gary W. Smith" <gary@primeexalia.com>
+Subject: RE: unable to apply PPTP patches
+Date: Wed, 7 Sep 2005 09:12:19 -0700
+Message-ID: <57F9959B46E0FA4D8BA88AEDFBE58290751F@pxtbenexd01.pxt.primeexalia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@osdl.org>, netdev@vger.kernel.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marc Lehmann <schmorp@schmorp.de>
-In-Reply-To: <20050907052057.09714a4c.akpm@osdl.org>
+Content-class: urn:content-classes:message
+To: "Oscar Mateo" <omateo@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,86 +21,67 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Andrew Morton wrote:
-> I recently upgraded a 32 bit machine to a new amd64 board+cpu. I took the
-> same kernel (2.6.13-rc7) and just recompiled it for 64 bit, plus upgraded
-> userspace to 64 bit.
-> 
-> Firewall config stayed the same.
-> 
-> Problem: neither ping nor tcp was being masqueraded properly. I created
-> the following test-set-up:
-> 
->    iptables -t mangle -F
->    iptables -t filter -F
->    iptables -t nat -F
->    iptables -t nat -A POSTROUTING -p all -s 10.0.0.0/8 -d \! 10.0.0.0/8 -j MASQUERADE
-> 
-> i..e the above masquerade rule should be the only firewall rule, and all
-> fules shoul[d have policy ACCEPT.
-> 
-> The effect was that tcp packets and icmp packets coming from 10.0.0.1 on
-> interface eth0 were properly masqueraded on the outgoing "inet" interface
-> (ppp0 renamed):
-> 
-> eth0:
->    19:17:24.364351 IP 10.0.0.1.44320 > 129.13.162.95.80: S 3745828676:3745828676(0) win 5840 <mss 1460,nop,nop,sackOK>
-> 
-> inet:
->    19:17:24.364505 IP 84.56.237.68.44320 > 129.13.162.95.80: S 3745828676:3745828676(0) win 5840 <mss 1452,nop,nop,sackOK>
->    19:17:24.378029 IP 129.13.162.95.80 > 84.56.237.68.44320: S 3777391404:3777391404(0) ack 3745828677 win 5840 <mss 1460,nop,nop,sackOK>
->    19:17:24.378103 IP 84.56.237.68.44320 > 129.13.162.95.80: R 3745828677:3745828677(0) win 0
-> 
-> However, the reverse packets were rejected. ip_conntrack showed this:
-> 
->    tcp      6 52 SYN_SENT src=10.0.0.1 dst=129.13.162.95 sport=44320 dport=80 [UNREPLIED] src=129.13.162.95 dst=84.56.237.68 sport=80 dport=44320 mark=0 use=1
+I don't have the original tarball for that day but I do have the =
+expanded files.  Maybe one of the good people of this group can do a CVS =
+extract for that day and email it to you/me
 
-It seems ip_conntrack did not like the SYN/ACK and marked it as invalid,
-NAT leaves the packet alone and the firewall resets the connection.
-Please try if loading the ipt_LOG module and executing
-"echo 255 > /proc/sys/net/ipv4/netfilter/ip_conntrack_log_invalid"
-gives more information
+Gary=20
 
-> Weird obervation 2:
-> 
-> Some sites could be connected to with TCP. It turned out that those
-> sites did not support TCP SACK. Indeed, turning off SACK either on the
-> remote side of a connection or on the origonator side resulted in workign
-> masquerading:
-> 
-> eth0:
->    19:23:29.928470 IP 10.0.0.1.45611 > 129.13.162.95.80: S 4113365634:4113365634(0) win 5840 <mss 1460>
->    19:23:29.942246 IP 129.13.162.95.80 > 10.0.0.1.45611: S 4161877683:4161877683(0) ack 4113365635 win 5840 <mss 1460>
->    19:23:29.942313 IP 10.0.0.1.45611 > 129.13.162.95.80: . ack 1 win 5840
-> 
-> inet:
->    19:23:29.928249 IP 84.56.237.68.45611 > 129.13.162.95.80: S 4113365634:4113365634(0) win 5840 <mss 1452>
->    19:23:29.942199 IP 129.13.162.95.80 > 84.56.237.68.45611: S 4161877683:4161877683(0) ack 4113365635 win 5840 <mss 1460>
->    19:23:29.942332 IP 84.56.237.68.45611 > 129.13.162.95.80: . ack 1 win 5840
-> 
-> However, ICMP still is not masqueraded.
+-----Original Message-----
+From: Oscar Mateo [mailto:omateo@gmail.com]=20
+Sent: Wednesday, September 07, 2005 3:07 AM
+To: Gary W. Smith
+Cc: netfilter-devel@lists.netfilter.org
+Subject: Re: unable to apply PPTP patches
 
-Please also try this again with logging enabled.
+Ouch!, that was goood news, but now I cannot find a pom-ng snapshot in
+the ftp server older than May 1st and the cvs server doesn=B4t allow me
+to login. Can you send me that working pom-ng?
+Thanks very much for your help!
 
-> Kernels that worked:
-> 
->    2.6.13-rc7, 2.6.12.5, 2.6.11 and lower, compiled for x86 with gcc-3.4
-> 
-> Kernels that don't work:
-> 
->    2.6.13-rc7 (compiled with gcc-3.4 and 4.0.2 debian), 2.6.13 (gcc-4.02)
-
-Can you retest with 2.6.12.5 on 64bit so we can see if it is a new
-problem?
-
-> Kernel configuration was exactly the same for the 2.6.13-rc7 kernels,
-> modulo the cpu and architectrue selections.
-> 
-> I have a somewhat nontrivial source routing set-up on that machine that I
-> could document more if that could be a possible reason for that problem. I
-> am confident that this is not a configuration error, as the configuraiton
-> worked basically unchanged since the 2.4 days, and I am confident it's not
-> a iptables setup problem either, as I can reproduce it with empty rules
-> except for the masquerading rule.
-
-So far I don't think its related to routed.
+On 9/6/05, Gary W. Smith <gary@primeexalia.com> wrote:
+> April 4th or April 10th (not sure which one) copy worked fine with
+> 2.6.9. I've been using this on several servers for some time.
+>=20
+> Not sure about the newer versions.  There has been much talk in the
+> netfilter users group regarding the newest version not compipling.
+>=20
+> Hope that helps.
+>=20
+> Gary
+>=20
+> -----Original Message-----
+> From: netfilter-devel-bounces@lists.netfilter.org
+> [mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of =
+Oscar
+> Mateo
+> Sent: Tuesday, September 06, 2005 9:02 AM
+> To: netfilter-devel@lists.netfilter.org
+> Subject: unable to apply PPTP patches
+>=20
+> Hi all,
+>=20
+> As suggested somewhere in the netfilter list, I'm moving this
+> "question/help request" from the netfilter to the netfilter-developer
+> list:
+>=20
+> I have been trying to apply the pptp patches (pom-ng-20050905,
+> iptables-1.3.3) to the kernel source (kernels 2.6.9.x, 2.6.11.x and
+> 2.6.12.x) and I have found the same error that populates the August
+> 2005 netfilter Archives:
+>=20
+> - If I only apply the pptp/gre patches I get
+> `__ip_conntrack_expect_find' undefined (when compiling either in the
+> kernel or as a module).
+> - If I try to apply nfnetlink and ctnetlink patches, ctnetlink is
+> rejected (6 rejects out of 48 hunks).
+> - If I force the ctnetlink patch, I get `__ip_conntrack_hash_insert'
+> undeclared.
+>=20
+> Did someone get the patch working with kernels >=3D 2.6?
+> Does anyone have any ideas how to deal with this problem?
+>=20
+> Thanks in advance for your help ^_^
+> Oscar
+>=20
+>
