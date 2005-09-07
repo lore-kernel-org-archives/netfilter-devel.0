@@ -1,14 +1,16 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH NF_CONNTRACK 2/3] don't increase master refcount on
- expectation
-Date: Wed, 07 Sep 2005 11:08:53 +0900 (JST)
-Message-ID: <200509070208.j8728shP020308@toshiba.co.jp>
+From: Samir Bellabes <sbellabes@mandriva.com>
+Subject: Re: [NETFILTER 2/8]: Add NetBIOS name service helper
+Date: Wed, 07 Sep 2005 04:50:16 +0200
+Message-ID: <m2slwh617b.fsf@cerbere.dyndns.info>
+References: <431DD813.8010309@trash.net> <431DDB7C.3010503@trash.net>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Wed_Sep__7_11_08_53_2005_516)--"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-=-="
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <431DDB7C.3010503@trash.net> (Patrick McHardy's message of "Tue,
+	06 Sep 2005 20:10:04 +0200")
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,73 +22,66 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Wed_Sep__7_11_08_53_2005_516)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+--=-=-=
+
+Patrick McHardy <kaber@trash.net> writes:
+
+> [NETFILTER]: Add NetBIOS name service helper
+>
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+Hi,
+this attached patch fix the return valued when creating expectation
+failed.
+Please apply.
+
+regards, 
+Samir Bellabes
 
 
-This patch follows recent change for ip_conntrack. Because expectations
-are always destroyed before its masters, it isn't necessary to increase
-the master refcount for non-fulfilled expectations,
+--=-=-=
+Content-Type: text/x-patch
+Content-Disposition: attachment; filename=ip_ct_netbios_drop.patch
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+tree b731304f287168ee36e45517dffdf27ea9dfe47c
+parent 48bc41a49c4f3aa760dff84e7f71437f5ed520fe
+author Samir Bellabes <sbellabes@mandriva.com> 1126061246 +0200
+committer Samir Bellabes <sbellabes@mandriva.com> 1126061246 +0200
 
-----Next_Part(Wed_Sep__7_11_08_53_2005_516)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="02-master-refcount.patch"
+[NETFILTER] Return NF_DROP if expectation failed for Netbios conntrack
 
-[NETFILTER] don't increase master refcount on expectations in nf_conntrack
+Fix the returned value when it's not possible to allocate expectation
+or if ip_conntrack_expect_related() failed.
 
-This patch follows recent change for ip_conntrack. Because expectations
-are always destroyed before its masters, it isn't necessary to increase
-the master refcount for non-fulfilled expectations,
+Signed-off-by: Samir Bellabes <sbellabes@mandriva.com>
+------------------------------------------------------------------------------
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+ ip_conntrack_netbios_ns.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
----
-commit 58d33a593b1a6baf0ae6ce34ec4ac8c6a867143d
-tree 25fcc7eec5a2e29eed1f23985b930412a1321f0a
-parent bb499fcb241df2c6dc2f0b6244ba664ed6b1bf87
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Wed, 07 Sep 2005 09:21:58 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Wed, 07 Sep 2005 09:21:58 +0900
+------------------------------------------------------------------------------
 
- net/netfilter/nf_conntrack_core.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1059,6 +1059,9 @@ void nf_conntrack_unexpect_related(struc
- 	write_unlock_bh(&nf_conntrack_lock);
- }
+diff --git a/net/ipv4/netfilter/ip_conntrack_netbios_ns.c b/net/ipv4/netfilter/ip_conntrack_netbios_ns.c
+--- a/net/ipv4/netfilter/ip_conntrack_netbios_ns.c
++++ b/net/ipv4/netfilter/ip_conntrack_netbios_ns.c
+@@ -77,7 +77,7 @@ static int help(struct sk_buff **pskb,
  
-+/* We don't increase the master conntrack refcount for non-fulfilled
-+ * conntracks. During the conntrack destruction, the expectations are
-+ * always killed before the conntrack itself */
- struct nf_conntrack_expect *nf_conntrack_expect_alloc(struct nf_conn *me)
- {
- 	struct nf_conntrack_expect *new;
-@@ -1069,17 +1072,14 @@ struct nf_conntrack_expect *nf_conntrack
- 		return NULL;
- 	}
- 	new->master = me;
--	atomic_inc(&new->master->ct_general.use);
- 	atomic_set(&new->use, 1);
- 	return new;
- }
+ 	exp = ip_conntrack_expect_alloc(ct);
+ 	if (exp == NULL)
+-		goto out;
++		return NF_DROP;
+ 	memset(&exp->tuple, 0, sizeof(exp->tuple));
+ 	exp->tuple.src.ip         = iph->daddr & mask;
+ 	exp->tuple.dst.ip         = iph->saddr;
+@@ -93,7 +93,8 @@ static int help(struct sk_buff **pskb,
+ 	exp->expectfn             = NULL;
+ 	exp->flags                = IP_CT_EXPECT_PERMANENT;
  
- void nf_conntrack_expect_put(struct nf_conntrack_expect *exp)
- {
--	if (atomic_dec_and_test(&exp->use)) {
--		nf_ct_put(exp->master);
-+	if (atomic_dec_and_test(&exp->use))
- 		kmem_cache_free(nf_conntrack_expect_cachep, exp);
--	}
- }
+-	ip_conntrack_expect_related(exp);
++	if (ip_conntrack_expect_related(exp) != 0)
++		return NF_DROP;
+ 	ip_conntrack_expect_put(exp);
  
- static void nf_conntrack_expect_insert(struct nf_conntrack_expect *exp)
+ 	ip_ct_refresh_acct(ct, ctinfo, NULL, timeout * HZ);
 
-----Next_Part(Wed_Sep__7_11_08_53_2005_516)----
+--=-=-=--
