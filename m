@@ -1,12 +1,17 @@
-From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
-Subject: New target: can't delete rule
-Date: Wed, 07 Sep 2005 18:09:55 +0000
-Message-ID: <1126116594.3690.35.camel@Pentium>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Fw: masquerading failure for at least icmp and tcp+sack on amd64
+Date: Wed, 07 Sep 2005 23:34:10 +0200
+Message-ID: <431F5CD2.8020905@trash.net>
+References: <20050907052057.09714a4c.akpm@osdl.org>
+	<431EDF78.8060505@trash.net> <20050907205923.GA6567@schmorp.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Andrew Morton <akpm@osdl.org>, netdev@vger.kernel.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Marc Lehmann <schmorp@schmorp.de>
+In-Reply-To: <20050907205923.GA6567@schmorp.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,31 +23,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all!!!!
+Marc Lehmann wrote:
+> I think I have the LOG target compiled into the kernel. After the echo, I got
+> this within a matter of seconds:
+> 
+>    printk: 614 messages suppressed.
+>    ip_ct_tcp: bad TCP checksum IN= OUT= SRC=xxxxxxxxxxxx DST=84.56.231.206 LEN=105 TOS=0x00 PREC=0x00 TTL=53 ID=33989 DF PROTO=TCP SPT=119 DPT=41349 SEQ=495763142 ACK=177548929 WINDOW=56677 RES=0x00 ACK PSH URGP=0 OPT (0101080A0986EF9D00E16123) 
 
-I'm from Argentina and I'm developing a new target for iptables with a
-college friend. This new target uses the Linux Cryptographic API.
+Interesting .. if this isn't real there is most likely some problem with
+HW checksumming in netfilter. What does ethtool -k <dev> show?
 
-We are debbuging the new extension and we noticed a rare behavior. 
-First we inserted the rule like this:
-#iptables -t mangle -A INPUT -s xxx.xxx.xxx.xxx -j NEW --param hello
-And we don't have problems. 
+> This is interesting, as the connection in question seems to work fine (at
+> least I can download news at 32kb/s, which is the rate limit on the other
+> side without much more than 32kb/s on my ppp link, so it is weird that
+> this many packets should have invalid tcp checksum. Maybe this is somehow
+> related?)
+> 
+> I then tried to create a masqueraded connection and got the expected
+> symptoms: correctly re-written packet leaves interface, return packet gets
+> RST.
+> 
+> During that time, I got more of the above messages, but none related to the
+> test connection.
 
-The problem appears when we tried to erase the rule:
-#iptables -t mangle -D INPUT -s xxx.xxx.xxx.xxx -j NEW --param hello
-It says: :-(
-iptables: No chain/target/match by that name
+Could be because of net_ratelimit() message surpressing.
 
-But, if we put this:
-#iptables -t mangle -D INPUT 1
-It erases correctly :-)
+> (As I wrote in another mail), I also found in the meantime that switching
+> off SACK only results in a correct handshake, further packets might and
+> usually will cause a RST.
 
-Why it works with a method and not with the another one?
-It can be because we allocating memory in checkentry function and
-freeing it  in destroy function?
-How can we correct this rare behavior?
+I'm not aware of any special handling for SACKs that would make it fail,
+especially considering that ICMP also fails, but I'm going to look into
+it.
 
-Thanks a lot.
+>>>Kernels that don't work:
+>>>
+>>>  2.6.13-rc7 (compiled with gcc-3.4 and 4.0.2 debian), 2.6.13 (gcc-4.02)
+>>
+>>Can you retest with 2.6.12.5 on 64bit so we can see if it is a new
+>>problem?
+> 
+> 
+> I hope that trying with 2.6.11, and getting the same problem (as I did in
+> the meantime), is even better than testing 2.6.12.5.
 
-Gervasio Bernal - Mendoza - Argentina
-Pedro Deis - Mendoza - Argentina
+Thanks, this is even more evidence for HW checksumming problems, these
+existed for a long time.
+
+>>So far I don't think its related to routed.
+> 
+> The weird thing is that it works on tap, but not on ethernet/ppp. Maybe
+> the kernel code gets some offset wrong?
+
+Another sign pointing to HW checksumming ..
