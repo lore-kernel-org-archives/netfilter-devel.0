@@ -1,13 +1,16 @@
 From: Samir Bellabes <sbellabes@mandriva.com>
-Subject: buffer overflow in ip_ct_{ftp,tftp,irc}
-Date: Thu, 08 Sep 2005 01:11:06 +0200
-Message-ID: <m2zmqoscc5.fsf@cerbere.dyndns.info>
+Subject: Re: buffer overflow in ip_ct_{ftp,tftp,irc}
+Date: Thu, 08 Sep 2005 01:15:34 +0200
+Message-ID: <m2slwgsc4p.fsf@cerbere.dyndns.info>
+References: <m2zmqoscc5.fsf@cerbere.dyndns.info>
 Mime-Version: 1.0
 Content-Type: multipart/mixed; boundary="=-=-="
-Cc: Harald Welte <laforge@netfilter.org>,
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
 	"David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Samir Bellabes <sbellabes@mandriva.com>
+In-Reply-To: <m2zmqoscc5.fsf@cerbere.dyndns.info> (Samir Bellabes's message of
+	"Thu, 08 Sep 2005 01:11:06 +0200")
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +24,16 @@ List-Id: netfilter-devel.vger.kernel.org
 
 --=-=-=
 
-Hi,
+Samir Bellabes <sbellabes@mandriva.com> writes:
 
-when loading ip_conntrack_{ftp,tftp,irc} with 'ports=1234567890'
-parameter option for example, a buffer overflow occur when :
-sprintf(tmpname, "ftp-%d", ports[i]);
-because of sizeof("ftp-1234567890") > 10
-10 is the size of each array *_names[port][10]
+> when loading ip_conntrack_{ftp,tftp,irc} with 'ports=1234567890'
+> parameter option for example, a buffer overflow occur when :
+> sprintf(tmpname, "ftp-%d", ports[i]);
+> because of sizeof("ftp-1234567890") > 10
+> 10 is the size of each array *_names[port][10]
 
-Please apply this patch.
-
-regards, 
-Samir Bellabes
+Resending patch with a better changelog.
+Sorry for the noise.
 
 
 --=-=-=
@@ -48,10 +49,11 @@ committer Samir Bellabes <sbellabes@mandriva.com> 1126118922 +0200
 
 A buffer overflow occur when parameter 'ports' value is > 65535 :
 if the number of digits of ports exceeds, for the ftp example:
-sizeof ftp_names[A_PORT][10] - strlen("ftp-") = 10-4 = 6 
+10 - strlen("ftp-")  = 6 
 then : sprintf(tmpname, "ftp-%d", ports[i]) produce the overflow.
+10 is the size of each char array *_names[A_PORT][10]
 
-This patch checks for 0 < port < 65356.
+This patch checks for 0 < port < 65536.
 
 Signed-off-by: Samir Bellabes <sbellabes@mandriva.com>
 ------------------------------------------------------------------------------
