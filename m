@@ -1,16 +1,15 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [NETFILTER 2/8]: Add NetBIOS name service helper
-Date: Tue, 06 Sep 2005 19:56:49 -0700 (PDT)
-Message-ID: <20050906.195649.54560179.davem@davemloft.net>
-References: <431DD813.8010309@trash.net> <431DDB7C.3010503@trash.net>
-	<m2slwh617b.fsf@cerbere.dyndns.info>
+Subject: Re: [NETFILTER 2.4 1/1]: Handle NAT module load race
+Date: Tue, 06 Sep 2005 20:01:27 -0700 (PDT)
+Message-ID: <20050906.200127.106024905.davem@davemloft.net>
+References: <431E3CFC.7060303@trash.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: sbellabes@mandriva.com
-In-Reply-To: <m2slwh617b.fsf@cerbere.dyndns.info>
+To: kaber@trash.net
+In-Reply-To: <431E3CFC.7060303@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,15 +21,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Samir Bellabes <sbellabes@mandriva.com>
-Subject: Re: [NETFILTER 2/8]: Add NetBIOS name service helper
-Date: Wed, 07 Sep 2005 04:50:16 +0200
+From: Patrick McHardy <kaber@trash.net>
+Date: Wed, 07 Sep 2005 03:06:04 +0200
 
-> [NETFILTER] Return NF_DROP if expectation failed for Netbios conntrack
-> 
-> Fix the returned value when it's not possible to allocate expectation
-> or if ip_conntrack_expect_related() failed.
-> 
-> Signed-off-by: Samir Bellabes <sbellabes@mandriva.com>
+> This is the backport of the NAT race fix which prevents
+> a crash with CONFIG_NETFILTER_DEBUG when conntracks
+> are established before the nat module is loaded.
 
-Patrick, I've applied this, I hope you don't mind :)
+Applied, thanks Patrick.
