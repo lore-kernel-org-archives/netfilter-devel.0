@@ -1,19 +1,16 @@
-From: Samir Bellabes <sbellabes@mandriva.com>
-Subject: Re: [NETFILTER 2/8]: Add NetBIOS name service helper
-Date: Wed, 07 Sep 2005 11:57:14 +0200
-Message-ID: <m28xy98akl.fsf@cerbere.dyndns.info>
-References: <431DD813.8010309@trash.net> <431DDB7C.3010503@trash.net>
-	<m2slwh617b.fsf@cerbere.dyndns.info>
-	<20050906.195649.54560179.davem@davemloft.net>
-	<431E5800.9080406@trash.net>
+From: Oscar Mateo <omateo@gmail.com>
+Subject: Re: unable to apply PPTP patches
+Date: Wed, 7 Sep 2005 12:07:00 +0200
+Message-ID: <a8a372c050907030777d05bbe@mail.gmail.com>
+References: <57F9959B46E0FA4D8BA88AEDFBE582907512@pxtbenexd01.pxt.primeexalia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-=-="
-Cc: netfilter-devel@lists.netfilter.org,
-	"David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <431E5800.9080406@trash.net> (Patrick McHardy's message of "Wed,
-	07 Sep 2005 05:01:20 +0200")
+To: "Gary W. Smith" <gary@primeexalia.com>
+In-Reply-To: <57F9959B46E0FA4D8BA88AEDFBE582907512@pxtbenexd01.pxt.primeexalia.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,91 +22,53 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---=-=-=
+Ouch!, that was goood news, but now I cannot find a pom-ng snapshot in
+the ftp server older than May 1st and the cvs server doesn=B4t allow me
+to login. Can you send me that working pom-ng?
+Thanks very much for your help!
 
-Patrick McHardy <kaber@trash.net> writes:
-
->>>[NETFILTER] Return NF_DROP if expectation failed for Netbios conntrack
->>>Fix the returned value when it's not possible to allocate expectation
->>>or if ip_conntrack_expect_related() failed.
->>>Signed-off-by: Samir Bellabes <sbellabes@mandriva.com>
->> Patrick, I've applied this, I hope you don't mind :)
+On 9/6/05, Gary W. Smith <gary@primeexalia.com> wrote:
+> April 4th or April 10th (not sure which one) copy worked fine with
+> 2.6.9. I've been using this on several servers for some time.
+>=20
+> Not sure about the newer versions.  There has been much talk in the
+> netfilter users group regarding the newest version not compipling.
+>=20
+> Hope that helps.
+>=20
+> Gary
+>=20
+> -----Original Message-----
+> From: netfilter-devel-bounces@lists.netfilter.org
+> [mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of Oscar
+> Mateo
+> Sent: Tuesday, September 06, 2005 9:02 AM
+> To: netfilter-devel@lists.netfilter.org
+> Subject: unable to apply PPTP patches
+>=20
+> Hi all,
+>=20
+> As suggested somewhere in the netfilter list, I'm moving this
+> "question/help request" from the netfilter to the netfilter-developer
+> list:
+>=20
+> I have been trying to apply the pptp patches (pom-ng-20050905,
+> iptables-1.3.3) to the kernel source (kernels 2.6.9.x, 2.6.11.x and
+> 2.6.12.x) and I have found the same error that populates the August
+> 2005 netfilter Archives:
+>=20
+> - If I only apply the pptp/gre patches I get
+> `__ip_conntrack_expect_find' undefined (when compiling either in the
+> kernel or as a module).
+> - If I try to apply nfnetlink and ctnetlink patches, ctnetlink is
+> rejected (6 rejects out of 48 hunks).
+> - If I force the ctnetlink patch, I get `__ip_conntrack_hash_insert'
+> undeclared.
+>=20
+> Did someone get the patch working with kernels >=3D 2.6?
+> Does anyone have any ideas how to deal with this problem?
+>=20
+> Thanks in advance for your help ^_^
+> Oscar
+>=20
 >
-> Actually it was deliberate, I don't see a reason why the packet
-> should be dropped, its best effort.
-All conntracks are dropping packets, in that way.
-netbios_ns should do the same, or other conntracks should be patched.
-
-> Besides that the patch
-> creates a reference leak, we always need to call
-> ip_conntrack_expect_put. Please revert the patch. Thanks.
-You are right, i'm proposing this patch, which don't introduce the
-reference leak.
-
-regards, 
-Samir Bellabes
-
-
---=-=-=
-Content-Type: text/x-patch
-Content-Disposition: attachment; filename=ip_ct_netbios_drop.patch
-
-tree 04acb82014fc0e82fa4c77dae5e2281e90b366c8
-parent 48bc41a49c4f3aa760dff84e7f71437f5ed520fe
-author Samir Bellabes <sbellabes@mandriva.com> 1126085733 +0200
-committer Samir Bellabes <sbellabes@mandriva.com> 1126085733 +0200
-
-[NETFILTER] Return NF_DROP if expectation failed for Netbios conntrack
-
-Fix the returned value when it's not possible to allocate expectation
-or if ip_conntrack_expect_related() failed.
-
-Signed-off-by: Samir Bellabes <sbellabes@mandriva.com>
-------------------------------------------------------------------------------
-
- ip_conntrack_netbios_ns.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
-
-------------------------------------------------------------------------------
-
-diff --git a/net/ipv4/netfilter/ip_conntrack_netbios_ns.c b/net/ipv4/netfilter/ip_conntrack_netbios_ns.c
---- a/net/ipv4/netfilter/ip_conntrack_netbios_ns.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netbios_ns.c
-@@ -48,6 +48,7 @@ static int help(struct sk_buff **pskb,
- 	struct rtable *rt = (struct rtable *)(*pskb)->dst;
- 	struct in_device *in_dev;
- 	u_int32_t mask = 0;
-+	int ret = NF_ACCEPT;
- 
- 	/* we're only interested in locally generated packets */
- 	if ((*pskb)->sk == NULL)
-@@ -76,8 +77,10 @@ static int help(struct sk_buff **pskb,
- 	BUG_ON(uh == NULL);
- 
- 	exp = ip_conntrack_expect_alloc(ct);
--	if (exp == NULL)
-+	if (exp == NULL) {
-+		ret = NF_DROP;
- 		goto out;
-+	}
- 	memset(&exp->tuple, 0, sizeof(exp->tuple));
- 	exp->tuple.src.ip         = iph->daddr & mask;
- 	exp->tuple.dst.ip         = iph->saddr;
-@@ -93,12 +96,13 @@ static int help(struct sk_buff **pskb,
- 	exp->expectfn             = NULL;
- 	exp->flags                = IP_CT_EXPECT_PERMANENT;
- 
--	ip_conntrack_expect_related(exp);
-+	if (ip_conntrack_expect_related(exp) !=0)
-+		ret = NF_DROP;
- 	ip_conntrack_expect_put(exp);
- 
- 	ip_ct_refresh_acct(ct, ctinfo, NULL, timeout * HZ);
- out:
--	return NF_ACCEPT;
-+	return ret;
- }
- 
- static struct ip_conntrack_helper helper = {
-
---=-=-=--
