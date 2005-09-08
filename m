@@ -1,15 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: H.225 RAS (gatekeepers) support
-Date: Thu, 08 Sep 2005 16:49:49 +0200
-Message-ID: <43204F8D.5020403@trash.net>
-References: <a8a372c050908074126ea930a@mail.gmail.com>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [PATCH 2.4] Introducing Bidirectional conntrack mark
+Date: Thu, 8 Sep 2005 18:10:10 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0509081801100.21201@filer.marasystems.com>
+References: <002601c5b390$1d641d10$fefefe0a@jesseh7ht76e8n>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Oscar Mateo <omateo@gmail.com>
-In-Reply-To: <a8a372c050908074126ea930a@mail.gmail.com>
+To: Jesse Peng <Jesse@deansoft.com.tw>
+In-Reply-To: <002601c5b390$1d641d10$fefefe0a@jesseh7ht76e8n>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,14 +20,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Oscar Mateo wrote:
-> Hi,
-> 
-> This question goes for H323 NAT/Conntrack modules users/developers:
-> Iis there any plan to support H.225 RAS signalling (gatekeepers)? If
-> so, when (approximately) will it be ready?
+On Wed, 7 Sep 2005, Jesse Peng wrote:
 
-I have a version of the H323 helper with GK support, but so far it only
-parses all messages, issuing expectations isn't done yet. There are
-a number of hard problems, I hope we can solve them at the netfilter
-workshop next month.
+> Greetings all,
+> This patch fully derive from Henrik Nordstrom's long known connmark patch but is extended to bidirectional solution.
+> The solution once discussed as the following link:
+> https://lists.netfilter.org/pipermail/netfilter-devel/2005-March/018784.html
+>
+>
+> Dear Henrik:
+> Feel free to give any advice for the work extending your existing famous connmark patch.
+>
+> Dear Jian:
+> I got approved for quite a period,but sorry for this late posting this patch after a busy season.Hope this help!
+
+
+Patch seems incomplete. Can not find definition of conntrack->dir_mark
+
+Also as before I still wonder if this relatively big amount of info in 
+each conntrack is really needed. CONNMARK already declares 32 bits per 
+conntrack entry free for any use. Perhaps better to extend CONNMARK with 
+shifting of the value allowing simple save/restore operations based on 
+direction (where directions is selected by the already existing conntrack 
+match).
+
+But I do fully agree with the principle of being able to intelligenly keep 
+conntrack state information/mark direction dependent and that having just 
+a simple masking of the value is perhaps not sufficient in all situations.
+
+Regards
+Henrik
