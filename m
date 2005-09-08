@@ -1,11 +1,13 @@
-From: "Smith, Brian" <Brian.Smith@viasat.com>
-Subject: NAT on IPV6
-Date: Tue, 6 Sep 2005 12:14:15 -0700
-Message-ID: <821B2170E9E7F04FA38DF7EC21DE4871ADC8DB@VCAEXCH01.hq.corp.viasat.com>
+From: Oscar Mateo <omateo@gmail.com>
+Subject: H.225 RAS (gatekeepers) support
+Date: Thu, 8 Sep 2005 16:41:27 +0200
+Message-ID: <a8a372c050908074126ea930a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,19 +19,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-If anyone knows how I can get port forwarding to work on IPV6 2.6 kernel
-please let me know.  I'm willing to do coding; in fact I plan on it
-requiring netfilter coding changes...  I thought I saw a post somewhere that
-someone did this already.
+Hi,
 
- 
+This question goes for H323 NAT/Conntrack modules users/developers:
+Iis there any plan to support H.225 RAS signalling (gatekeepers)? If
+so, when (approximately) will it be ready?
 
-Please cc me with replies as I'm not on the list.
+Thanks in advance for your help.
 
- 
-
-Brian Smith
-
-brian.smith@viasat.com <mailto:brian.smith@viasat.com> 
-
- 
+Regards,
+Oscar
