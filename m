@@ -1,15 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nf_conntrack/ip_conntrack disrepencies
-Date: Fri, 09 Sep 2005 17:08:53 +0200
-Message-ID: <4321A585.5050205@trash.net>
-References: <dfs7qs$o54$1@sea.gmane.org>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [PATCH] Fix wrong order in event notification
+Date: Fri, 09 Sep 2005 17:16:53 +0100
+Message-ID: <4321B575.4040009@ufomechanic.net>
+References: <42F2B4F4.2080604@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <dfs7qs$o54$1@sea.gmane.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <42F2B4F4.2080604@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,46 +20,76 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez wrote:
-> in nf_conntrack_tuple.h we have:
-> static inline int nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
->                                         const struct nf_conntrack_tuple *t2)
+I want to "backport" this patch to 2.6.11.7 (before IPS_DYING was
+invented to help shrink the conntrack struct)
+
+The obvious fixup is below, I just wanted to check that it was safe, and
+that sending the event earlier instead of during death by timeout wasn't
+also depending on side effects of IPS_DYING
+
+
+--- net/ipv4/netfilter/ip_conntrack_core.c.orig 2005-09-09
+16:57:44.000000000 +0100
++++ net/ipv4/netfilter/ip_conntrack_core.c      2005-09-09
+17:01:45.000000000 +0100
+@@ -257,6 +257,7 @@
+        IP_NF_ASSERT(atomic_read(&nfct->use) == 0);
+        IP_NF_ASSERT(!timer_pending(&ct->timeout));
+
++       ip_conntrack_event(IPCT_DESTROY, ct);
+        set_bit(IPS_DESTROYED_BIT, &ct->status);
+
+        /* To make sure we don't get any weird locking issues here:
+@@ -304,7 +305,6 @@
+ {
+        struct ip_conntrack *ct = (void *)ul_conntrack;
+
+-       ip_conntrack_event(IPCT_DESTROY, ct);
+        WRITE_LOCK(&ip_conntrack_lock);
+        /* Inside lock so preempt is disabled on module removal path.
+         * Otherwise we can get spurious warnings. */
+
+Sam
+
+
+Pablo Neira wrote:
+
+> The following sequence is displayed during events dumping of an ICMP
+> connection:
+>
+> [NEW]
+> [DESTROY]
+> [UPDATE]
+>
+> This happens because the event IPCT_DESTROY is delivered in
+> death_by_timeout, that is called from the icmp protocol helper
+> (ct->timeout.function) once we see the reply.
+>
+> To fix this, I propose to move this event to destroy_conntrack instead.
+>
+> Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
+>
+>------------------------------------------------------------------------
+>
+>Index: netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_core.c
+>===================================================================
+>--- netfilter-2.6.14.orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-08-03 16:30:26.000000000 +0200
+>+++ netfilter-2.6.14/net/ipv4/netfilter/ip_conntrack_core.c	2005-08-03 16:32:30.000000000 +0200
+>@@ -327,6 +327,7 @@
+> 	IP_NF_ASSERT(atomic_read(&nfct->use) == 0);
+> 	IP_NF_ASSERT(!timer_pending(&ct->timeout));
+> 
+>+	ip_conntrack_event(IPCT_DESTROY, ct);
+> 	set_bit(IPS_DYING_BIT, &ct->status);
+> 
+> 	/* To make sure we don't get any weird locking issues here:
+>@@ -366,7 +367,6 @@
 > {
->         return (t1->src.u3.all[0] == t2->src.u3.all[0] &&
->                 t1->src.u3.all[1] == t2->src.u3.all[1] &&
->                 t1->src.u3.all[2] == t2->src.u3.all[2] &&
->                 t1->src.u3.all[3] == t2->src.u3.all[3] &&
->                 t1->src.u.all == t2->src.u.all &&
->                 t1->src.l3num == t2->src.l3num &&
->                 t1->dst.protonum == t2->dst.protonum);
-> }
+> 	struct ip_conntrack *ct = (void *)ul_conntrack;
 > 
-> In ip_conntrack_tuple.h we have:
-> static inline int ip_ct_tuple_src_equal(const struct ip_conntrack_tuple *t1,
->                                         const struct ip_conntrack_tuple *t2)
-> {
->         return t1->src.ip == t2->src.ip
->                 && t1->src.u.all == t2->src.u.all;
-> }
-> 
-> 
-> nf_conntrack compares the dst.protonum (makes sense) but the
-> ip_conntrack doesn't. Is there the danger of ip_conntrack selecting
-> wrong matching tuples sometimes? Perhaps only in the rare case where the
-> hashes also match (unlikely) but I thought I would point this out.
-
-The only place where it is used in ip_conntrack is ip_ct_tuple_equal,
-which also compares the dst tuple. I guess its the same in nf_conntrack,
-so it could probably changed.
-
-> Does protonum really belong in the dst member? Correspondingly, for
-> nf_conntrack, does l3num really belong in src?
-
-Not really, but it saves room. The compiler pads src and dst to
-a multiple of 32 bit, so there are two bytes room.
-
-> The final thing that troubles me is that the dst member seems to have
-> things unrelated, like "dir" and "protonum", why are these part of
-> nf_conntrack_tuple.dst and not the top level nf_conntrack_tuple struct?
-
-See above.
+>-	ip_conntrack_event(IPCT_DESTROY, ct);
+> 	write_lock_bh(&ip_conntrack_lock);
+> 	/* Inside lock so preempt is disabled on module removal path.
+> 	 * Otherwise we can get spurious warnings. */
+>  
+>
