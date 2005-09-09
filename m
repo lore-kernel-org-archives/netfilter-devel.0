@@ -1,18 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Fw: masquerading failure for at least icmp and tcp+sack on amd64
-Date: Fri, 09 Sep 2005 13:41:34 +0200
-Message-ID: <432174EE.80306@trash.net>
-References: <20050907052057.09714a4c.akpm@osdl.org>
-	<431EDF78.8060505@trash.net> <20050907205923.GA6567@schmorp.de>
-	<431F5CD2.8020905@trash.net> <20050907215213.GB8222@schmorp.de>
+From: "Giacomo" <delleceste@gmail.com>
+Subject: -f option in iptables
+Date: Fri, 9 Sep 2005 13:56:19 +0200
+Message-ID: <004401c5b535$810b1b10$0300a8c0@giacomino>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@osdl.org>, netdev@vger.kernel.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marc Lehmann <schmorp@schmorp.de>
-In-Reply-To: <20050907215213.GB8222@schmorp.de>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,28 +19,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Marc Lehmann wrote:
-> It's also a 64-bit-only problem. To verify, I tried this:
-> 
-> ethtool -K eth1 rx off tx off sg off
-> 
-> Where eth1 is the interface where pppoe runs over.
-> 
-> ethtool -k eth1 then displayed:
-> 
->    rx-checksumming: off
->    tx-checksumming: off
->    scatter-gather: off
->    tcp segmentation offload: off
-> 
-> And ICMP, TCP etc. starts working again.
-> 
-> Thanks for the analysis and the hint, I guess that verifies that its hw
-> checksumming. (Weird that hw checksumming on the underlying device somehow
-> changes the ppp packets, but nevertheless).
+Good morning.
+does iptables' option  "-f" reveal ip fragments or also tcp fragments?
 
-I tried reproducing the problem without any luck. Its odd that its
-happening on both eth and ppp devices, if it was just ppp I would
-suspect some missing checksum update/invalidation in the ppp driver.
-What network driver are you using? Please also send a list of loaded
-modules and iptables rules. Thanks.
+My network does not work very well and i would like to discover if it is due 
+to
+fragmentation in tcp header.
+
+How can i detect tcp fragmented arriving packets to my machine?
+
+Thanks a lot!
+Giacomo 
