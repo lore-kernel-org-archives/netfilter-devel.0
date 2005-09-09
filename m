@@ -1,13 +1,12 @@
-From: "Giacomo" <delleceste@gmail.com>
-Subject: -f option in iptables
-Date: Fri, 9 Sep 2005 13:56:19 +0200
-Message-ID: <004401c5b535$810b1b10$0300a8c0@giacomino>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: nf_conntrack/ip_conntrack disrepencies
+Date: Fri, 09 Sep 2005 15:56:27 +0100
+Message-ID: <dfs7qs$o54$1@sea.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,14 +18,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Good morning.
-does iptables' option  "-f" reveal ip fragments or also tcp fragments?
+in nf_conntrack_tuple.h we have:
+static inline int nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
+                                        const struct nf_conntrack_tuple *t2)
+{
+        return (t1->src.u3.all[0] == t2->src.u3.all[0] &&
+                t1->src.u3.all[1] == t2->src.u3.all[1] &&
+                t1->src.u3.all[2] == t2->src.u3.all[2] &&
+                t1->src.u3.all[3] == t2->src.u3.all[3] &&
+                t1->src.u.all == t2->src.u.all &&
+                t1->src.l3num == t2->src.l3num &&
+                t1->dst.protonum == t2->dst.protonum);
+}
 
-My network does not work very well and i would like to discover if it is due 
-to
-fragmentation in tcp header.
+In ip_conntrack_tuple.h we have:
+static inline int ip_ct_tuple_src_equal(const struct ip_conntrack_tuple *t1,
+                                        const struct ip_conntrack_tuple *t2)
+{
+        return t1->src.ip == t2->src.ip
+                && t1->src.u.all == t2->src.u.all;
+}
 
-How can i detect tcp fragmented arriving packets to my machine?
 
-Thanks a lot!
-Giacomo 
+nf_conntrack compares the dst.protonum (makes sense) but the
+ip_conntrack doesn't. Is there the danger of ip_conntrack selecting
+wrong matching tuples sometimes? Perhaps only in the rare case where the
+hashes also match (unlikely) but I thought I would point this out.
+
+Does protonum really belong in the dst member? Correspondingly, for
+nf_conntrack, does l3num really belong in src?
+
+The final thing that troubles me is that the dst member seems to have
+things unrelated, like "dir" and "protonum", why are these part of
+nf_conntrack_tuple.dst and not the top level nf_conntrack_tuple struct?
+
+Sam
