@@ -1,16 +1,18 @@
-From: "Henning Peters" <hpeters@math.uni-goettingen.de>
-Subject: Re: ip(6)_tables.h: return type difference in ip(6)t_get_target
-Date: Fri, 9 Sep 2005 12:55:20 +0200 (CEST)
-Message-ID: <45913.192.35.17.24.1126263320.squirrel@mail.piranho.net>
-References: <20050909090358.GB24509@oknodo.bof.de><8277.192.35.17.24.1126260158.squirrel@mail.piranho.net>
-	<20050909101734.GC24509@oknodo.bof.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Fw: masquerading failure for at least icmp and tcp+sack on amd64
+Date: Fri, 09 Sep 2005 13:41:34 +0200
+Message-ID: <432174EE.80306@trash.net>
+References: <20050907052057.09714a4c.akpm@osdl.org>
+	<431EDF78.8060505@trash.net> <20050907205923.GA6567@schmorp.de>
+	<431F5CD2.8020905@trash.net> <20050907215213.GB8222@schmorp.de>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Andrew Morton <akpm@osdl.org>, netdev@vger.kernel.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20050909101734.GC24509@oknodo.bof.de>
-To: "Patrick Schaaf" <bof@bof.de>
+To: Marc Lehmann <schmorp@schmorp.de>
+In-Reply-To: <20050907215213.GB8222@schmorp.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,12 +24,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
->> return (struct ip6t_entry_target *) ((void *)e + e->target_offset);
->
-> I'd write this as
->
-> return (struct ip6t_entry_target *) (((char *)e) + e->target_offset);
+Marc Lehmann wrote:
+> It's also a 64-bit-only problem. To verify, I tried this:
+> 
+> ethtool -K eth1 rx off tx off sg off
+> 
+> Where eth1 is the interface where pppoe runs over.
+> 
+> ethtool -k eth1 then displayed:
+> 
+>    rx-checksumming: off
+>    tx-checksumming: off
+>    scatter-gather: off
+>    tcp segmentation offload: off
+> 
+> And ICMP, TCP etc. starts working again.
+> 
+> Thanks for the analysis and the hint, I guess that verifies that its hw
+> checksumming. (Weird that hw checksumming on the underlying device somehow
+> changes the ppp packets, but nevertheless).
 
-I agree.
-
-Henning
+I tried reproducing the problem without any luck. Its odd that its
+happening on both eth and ppp devices, if it was just ppp I would
+suspect some missing checksum update/invalidation in the ppp driver.
+What network driver are you using? Please also send a list of loaded
+modules and iptables rules. Thanks.
