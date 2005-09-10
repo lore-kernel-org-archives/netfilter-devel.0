@@ -1,13 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: MASQUERADE + DHCP problem
-Date: Sun, 11 Sep 2005 17:07:18 +0200
-Message-ID: <43244826.5020405@trash.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 4/*] libnfnetlink fixes
+Date: Sat, 10 Sep 2005 11:09:08 +0200
+Message-ID: <20050910090908.GD4314@rama.de.gnumonks.org>
+References: <42D429F9.7000707@eurodev.net> <42D4CF9C.2000304@ufomechanic.net>
+	<20050828115013.GE4244@rama.de.gnumonks.org>
+	<431879F6.5020505@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, Rusty Russell <rusty@rustcorp.com.au>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XaUbO9McV5wPQijU"
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Amin Azez <azez@ufomechanic.net>
+Content-Disposition: inline
+In-Reply-To: <431879F6.5020505@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,31 +24,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-in 2.6.13 I removed this part from MASQUERADE to get more consistency
-in source address selection:
+--XaUbO9McV5wPQijU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--	/* FIXME: For the moment, don't do local packets, breaks
--	   testsuite for 2.3.49 --RR */
--	if ((*pskb)->sk)
--		return NF_ACCEPT;
--
+On Fri, Sep 02, 2005 at 05:12:38PM +0100, Amin Azez wrote:
+> Harald Welte wrote:
+>=20
+> >On Wed, Jul 13, 2005 at 09:23:56AM +0100, Amin Azez wrote:
+> >
+> > =20
+> >
+> >I think this change is fine.  Would you mind to re-submit the patch
+> >against current svn?  Please also document the meaning of the return
+> >values, probably with a comment in the code or the header file?
+> >
+> > =20
+> >
+> Will do (Monday)
+>=20
+> thanks for the feedback.
 
-Unfortunately this broke pump, it uses a regular UDP socket for
-DHCP requests while no IP address is configured and fails in
-MASQUERADE because no IP can be found. I'm not much in favour
-of putting the check back in, so I want to discuss other
-possiblities to keep pump working.
+I haven't received an updated patch so far. Did I miss it somehow?
 
-So far what's come to my mind is:
-1) Tell users not to masquerade DHCP queries - makes most sense
-   in my opinion, but breaks existing setups
-2) Add a special hack to masquerade to handle DHCP while no
-   local address exists by looking at the port and src/dst
-   address. Incredibly ugly and wrong :)
-3) Combination of the above - add the hack and print a warning
-   to tell users to fix their ruleset, remove the hack after
-   6 month
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-None of them is perfect, any other suggestions are welcome.
+--XaUbO9McV5wPQijU
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDIqK0XaXGVTD0i/8RAkZAAJ96wBYxqaeJO/5rGXk+3UAjNfuYUwCgphQW
+KqBxa2+jmkdLWjwpxKgAxao=
+=oBF8
+-----END PGP SIGNATURE-----
+
+--XaUbO9McV5wPQijU--
