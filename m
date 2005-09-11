@@ -1,18 +1,17 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: MASQUERADE + DHCP problem
-Date: Sun, 11 Sep 2005 20:07:26 -0700 (PDT)
-Message-ID: <20050911.200726.41147288.davem@davemloft.net>
-References: <43244826.5020405@trash.net>
-	<1126481675.9832.3.camel@localhost.localdomain>
-	<4324C462.9040804@trash.net>
+From: "Jesse Peng" <Jesse@deansoft.com.tw>
+Subject: Re: [PATCH] Don't increase master refcount on expectations
+Date: Mon, 12 Sep 2005 06:38:05 +0800
+Message-ID: <001f01c5b721$7a0f1620$fefefe0a@jesseh7ht76e8n>
+References: <430E2DF9.8060802@eurodev.net><000801c5aa3a$5bd49250$1501a8c0@test1>
+	<200509070501.j87516JU006636@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, rusty@rustcorp.com.au,
-	netfilter-devel@lists.netfilter.org
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
+	pablo@eurodev.net, kaber@trash.net, yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <4324C462.9040804@trash.net>
+To: "Yasuyuki KOZAKAI" <yasuyuki.kozakai@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,22 +23,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 12 Sep 2005 01:57:22 +0200
+Dear Yasuyuki
 
-> Rusty Russell wrote:
-> > If IP src is 0.0.0.0, let it through untouched.  Those packets are
-> > presumably not supposed to be masqueraded, so it's the Right Think
-> > AFAICT.
-> > 
-> > Will that fix DHCP?
-> 
-> Absolutely. Since these packets never get routed, the only possibility
-> when they can occur is when a local raw socket with IP_HDRINCL chooses
-> a source address of 0. In that case it definitely seems right to leave
-> the packet alone.
+> Well, it's questionable that I correctly understand your scenario, but
+> I think there is no problem. 1. As Pablo said, expectations in list are
+> destroyed by its master before master is destroyed, so ip_conntrack_put()
+> doesn't cause problem. And because the refcount of master conntrack is
+> incremented when the expected packets arrived, master conntrack can be
+kept
+> after that. See init_conntrack() in detail.
 
-That's a really great idea Rusty.
+Anyway,thanks for your reply!
 
-Patrick, I think this needs to go into -stable as well,
-once you have a patch ready, right?
+Your sincerely
+Jesse
