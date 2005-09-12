@@ -1,16 +1,15 @@
-From: David Stes <stes@pandora.be>
-Subject: Re:
-Date: Mon, 12 Sep 2005 22:02:10 +0200
-Message-ID: <20050912220210.A7355@dD5E02985.access.telenet.be>
-References: <20050912163005.023FF14F583@ladon.telenet-ops.be>
+From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+Subject: Re: New target: can't delete rule
+Date: Mon, 12 Sep 2005 19:23:36 +0000
+Message-ID: <1126553016.15667.0.camel@Pentium>
+References: <1126116594.3690.35.camel@Pentium> <431F6A0E.1090707@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20050912163005.023FF14F583@ladon.telenet-ops.be>;
-	from netfilter-devel-request@lists.netfilter.org on Mon, Sep 12,
-	2005 at 06:30:05PM +0200
+In-reply-to: <431F6A0E.1090707@eurodev.net>
+To: Pablo Neira <pablo@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,29 +21,88 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Date: Mon, 12 Sep 2005 16:29:38 +0000
-> From: Cory Visi <merlin@gentoo.org>
-> Subject: patchlets patch submission
-> To: netfilter-devel@lists.netfilter.org
-> Message-ID: <20050912162938.GB15843@toucan.gentoo.org>
-> Content-Type: text/plain; charset="us-ascii"
-> 
-> I did some work on fixing the conntrack pom addons for the lockhelp.h 
-> patch (2.6.13 support essentially). I think I got everything setup except 
-> for 2 files.
-> 
-> Attached is all my work in patch form against a full kernel source. I have 
-> a feeling you'd prefer I sent this in some other format or in some other 
-> structure of a diff. This is my first time contributing so just let me 
-> know how you'd prefer this in the future.
-> 
-> What's left is:
-> - rtsp (part of rsh)
+El mi=C3=A9, 07-09-2005 a las 22:30, Pablo Neira escribi=C3=B3:
+> Gervasio Bernal wrote:
+> > I'm from Argentina and I'm developing a new target for iptables with a
+> > college friend. This new target uses the Linux Cryptographic API.
+> >=20
+> > We are debbuging the new extension and we noticed a rare behavior.=20
+> > First we inserted the rule like this:
+> > #iptables -t mangle -A INPUT -s xxx.xxx.xxx.xxx -j NEW --param hello
+> > And we don't have problems.=20
+> >=20
+> > The problem appears when we tried to erase the rule:
+> > #iptables -t mangle -D INPUT -s xxx.xxx.xxx.xxx -j NEW --param hello
+> > It says: :-(
+> > iptables: No chain/target/match by that name
+> >=20
+> > But, if we put this:
+> > #iptables -t mangle -D INPUT 1
+> > It erases correctly :-)
+> >=20
+> > Why it works with a method and not with the another one?
+> > It can be because we allocating memory in checkentry function and
+> > freeing it  in destroy function?
+> > How can we correct this rare behavior?
+>=20
+> I bet that you have a pointer in the private info section of the target.=20
+> See that iptables sets that pointer to NULL at rule creation.=20
+> Afterwards, once checkentry() is called, such pointer won't be NULL anymo=
+re.
+>=20
+> At removal, the rule built by iptables sets that pointer to NULL. Such=20
+> rule will be compared with the ruleset hold in kernel space but no=20
+> matches will be found since the pointers mismatch.
+>=20
+> This problem is well known and it's very easy to fix up (look for=20
+> userspacesize and offsetof in iptables/extensions). See ipt_limit,=20
+> ipt_CLUSTERIP...
+>=20
+> But it's *even* easier to figure out what's wrong with yout module if=20
+> you post it here, in the mailing list.
+>=20
+> --
+> Pablo
+>=20
 
-Did you also do the RPC modules ? (RPC for UDP/TCP)
+Pablo:=20
+    I did what you said, but I cannot make walk it.=20
 
-I wonder whether the author(s) of RSH/RPC modules are still reading this list.
+This is my libipt_CRYPT.c=20
 
-If they are, then maybe your 2.6.13 patch (and my older 2.6.12 patches)
-could be incorporated.  If they are not, then maybe it's time to see how
-future changes to these modules can be coordinated.
+static struct iptables_target CRYPT=20
+=3D {=20
+    .name            =3D "CRYPT",=20
+    .version         =3D IPTABLES_VERSION,=20
+    .size            =3D IPT_ALIGN(sizeof(struct ipt_CRYPT_info)),=20
+    .userspacesize   =3D offsetof(struct ipt_CRYPT_info,
+table_alloc_ptr),       =20
+    .help            =3D &help,=20
+    .init            =3D &init,=20
+    .parse           =3D &parse,=20
+    .final_check     =3D &final_check,=20
+    .print           =3D &print,=20
+    .save            =3D &save,=20
+    .extra_opts      =3D opts=20
+};=20
+
+
+This is my ipt_CRYPT.h=20
+
+struct ipt_CRYPT_info=20
+{=20
+        char key[MAX_KEY_SIZE];=20
+        unsigned int block_size;=20
+        unsigned int key_size;=20
+
+        struct tabla_alloc* table_alloc_ptr;=20
+};=20
+
+struct tabla_alloc=20
+{=20
+        struct crypto_tfm *tfm;=20
+        struct tabla_alloc* next;=20
+        struct tabla_alloc* ant;=20
+};=20
+
+Greetings=20
