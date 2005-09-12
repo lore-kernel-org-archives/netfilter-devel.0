@@ -1,17 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
+From: "David S. Miller" <davem@davemloft.net>
 Subject: Re: MASQUERADE + DHCP problem
-Date: Mon, 12 Sep 2005 01:57:22 +0200
-Message-ID: <4324C462.9040804@trash.net>
+Date: Sun, 11 Sep 2005 20:07:26 -0700 (PDT)
+Message-ID: <20050911.200726.41147288.davem@davemloft.net>
 References: <43244826.5020405@trash.net>
 	<1126481675.9832.3.camel@localhost.localdomain>
+	<4324C462.9040804@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: laforge@netfilter.org, rusty@rustcorp.com.au,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-In-Reply-To: <1126481675.9832.3.camel@localhost.localdomain>
+To: kaber@trash.net
+In-Reply-To: <4324C462.9040804@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,25 +24,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Rusty Russell wrote:
-> On Sun, 2005-09-11 at 17:07 +0200, Patrick McHardy wrote:
-> 
->>2) Add a special hack to masquerade to handle DHCP while no
->>   local address exists by looking at the port and src/dst
->>   address. Incredibly ugly and wrong :)
-> 
-> 
-> If IP src is 0.0.0.0, let it through untouched.  Those packets are
-> presumably not supposed to be masqueraded, so it's the Right Think
-> AFAICT.
-> 
-> Will that fix DHCP?
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 12 Sep 2005 01:57:22 +0200
 
-Absolutely. Since these packets never get routed, the only possibility
-when they can occur is when a local raw socket with IP_HDRINCL chooses
-a source address of 0. In that case it definitely seems right to leave
-the packet alone.
+> Rusty Russell wrote:
+> > If IP src is 0.0.0.0, let it through untouched.  Those packets are
+> > presumably not supposed to be masqueraded, so it's the Right Think
+> > AFAICT.
+> > 
+> > Will that fix DHCP?
+> 
+> Absolutely. Since these packets never get routed, the only possibility
+> when they can occur is when a local raw socket with IP_HDRINCL chooses
+> a source address of 0. In that case it definitely seems right to leave
+> the packet alone.
 
-Thanks!
+That's a really great idea Rusty.
 
-Patrick
+Patrick, I think this needs to go into -stable as well,
+once you have a patch ready, right?
