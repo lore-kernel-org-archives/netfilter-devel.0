@@ -1,17 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: MASQUERADE + DHCP problem
-Date: Mon, 12 Sep 2005 10:52:31 +0200
-Message-ID: <432541CF.2010601@trash.net>
-References: <43244826.5020405@trash.net>	<1126481675.9832.3.camel@localhost.localdomain>	<4324C462.9040804@trash.net>
-	<20050911.200726.41147288.davem@davemloft.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: more nf_conntrack/ip_conntrack questions
+Date: Mon, 12 Sep 2005 11:23:51 +0100
+Message-ID: <43255737.3040109@ufomechanic.net>
+References: <dfs7qs$o54$1@sea.gmane.org> <4321A585.5050205@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, rusty@rustcorp.com.au,
-	netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20050911.200726.41147288.davem@davemloft.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4321A585.5050205@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,9 +21,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David S. Miller wrote:
-> Patrick, I think this needs to go into -stable as well,
-> once you have a patch ready, right?
+2 questions, part style, relating to nf_conntrack and ip_conntrack
 
-Yes. I already have a patch queued, I'll send it together
-with some others tonight.
+In nf_conntrack_tuple.h in
+
+#define NF_CT_TUPLE_U_BLANK(tuple) \
+do { \
+(tuple)->src.u.all = 0; \
+(tuple)->dst.u.all = 0; \
+memset((tuple)->src.u3.all, 0, \
+sizeof(u_int32_t)*NF_CT_TUPLE_L3SIZE); \
+memset((tuple)->dst.u3.all, 0, \
+sizeof(u_int32_t)*NF_CT_TUPLE_L3SIZE); \
+} while (0)
+
+why do we have:
+sizeof(u_int32_t)*NF_CT_TUPLE_L3SIZE
+
+as the size, instead of just:
+sizeof((tuple)->dst.u3)
+
+it seems to presume that:
+1) .all will always be the biggest member
+2) .all is always an array of NF_CT_TUPLE_L3SIZE of u_int32_t
+
+I wonder why we need to duplicate this knowledge when a small definition
+appears to suffice.
+
+Also; and I asked about somehting similar before, why is
+ip_conntrack_tuple.src almost exactly the same as
+ip_conntrack_tuple.dst, but .src is defined in terms of pre-declared
+structs and unions but dst is declared in terms of (nearly) identical
+structs and unions. With nf_conntrack as far as I can tell they are the
+same. The inline explanation of "manipulatable" doesn't seem to cover it.
+
+Azez
