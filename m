@@ -1,16 +1,13 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: more nf_conntrack/ip_conntrack questions
-Date: Mon, 12 Sep 2005 20:41:16 +0900 (JST)
-Message-ID: <200509121141.j8CBfH34001519@toshiba.co.jp>
-References: <43255737.3040109@ufomechanic.net> <43255BAB.9040508@trash.net>
-	<200509121129.j8CBT83a022872@toshiba.co.jp>
+From: "Giacomo" <delleceste@gmail.com>
+Subject: help understanding a source comment (ip_conntrack)
+Date: Mon, 12 Sep 2005 13:40:43 +0200
+Message-ID: <00a001c5b78e$d1143a50$0300a8c0@giacomino>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net, azez@ufomechanic.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: yasuyuki.kozakai@toshiba.co.jp
-In-Reply-To: <200509121129.j8CBT83a022872@toshiba.co.jp>
+To: "netfilter devel" <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,20 +19,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Good morning, i did not understand what problems are concerned with
 
-Sorry,
+"The checked segment is in window, but our windows are *not*
+equivalent with the ones of the sender/receiver"
 
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Date: Mon, 12 Sep 2005 20:29:07 +0900 (JST)
+I have a problem programming a nat module for linux kernel and i would like 
+to understand
+the problem pointed out in this comment to see if it could be the cause of 
+malfunction.
 
->  then I
-> tried to generalize it like ip_ct_tuple_mask_cmp() like layer 4 protocol
-> part.
+When translating addresses and ports, is it necessary to deal with windows 
+or other parameters
+such as seq/ack numbers? (I don't touch payload, just ips and ports).
 
-What I want to say is ...
+Thanks in advance, Giacomo.
 
-I tried to generalize it like the handling of layer 4 protocol part
-in ip_ct_tuple_mask_cmp().
+The comment is extracted from ip_conntrack_proto_tcp.c
 
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+
+
+/*
+ * The TCP state transition table needs a few words...
+ *
+ * We are the man in the middle. All the packets go through us
+ * but might get lost in transit to the destination.
+ * It is assumed that the destinations can't receive segments
+ * we haven't seen.
+ *
+ * The checked segment is in window, but our windows are *not*
+ * equivalent with the ones of the sender/receiver. We always
+ * try to guess the state of the current sender.
+ *
+ * The meaning of the states are:
+ *
+ * NONE: initial state
+.... 
