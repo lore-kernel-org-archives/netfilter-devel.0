@@ -1,13 +1,16 @@
-From: "Giacomo" <delleceste@gmail.com>
-Subject: thanks a lot jozsef
-Date: Mon, 12 Sep 2005 20:15:48 +0200
-Message-ID: <006d01c5b7c6$0297d640$0300a8c0@giacomino>
+From: David Stes <stes@pandora.be>
+Subject: Re:
+Date: Mon, 12 Sep 2005 22:02:10 +0200
+Message-ID: <20050912220210.A7355@dD5E02985.access.telenet.be>
+References: <20050912163005.023FF14F583@ladon.telenet-ops.be>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "netfilter devel" <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <20050912163005.023FF14F583@ladon.telenet-ops.be>;
+	from netfilter-devel-request@lists.netfilter.org on Mon, Sep 12,
+	2005 at 06:30:05PM +0200
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,40 +22,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks a lot Jozsef  for your answer to the news about my question about a 
-conntrack
-comment on tcp window.
+> Date: Mon, 12 Sep 2005 16:29:38 +0000
+> From: Cory Visi <merlin@gentoo.org>
+> Subject: patchlets patch submission
+> To: netfilter-devel@lists.netfilter.org
+> Message-ID: <20050912162938.GB15843@toucan.gentoo.org>
+> Content-Type: text/plain; charset="us-ascii"
+> 
+> I did some work on fixing the conntrack pom addons for the lockhelp.h 
+> patch (2.6.13 support essentially). I think I got everything setup except 
+> for 2 files.
+> 
+> Attached is all my work in patch form against a full kernel source. I have 
+> a feeling you'd prefer I sent this in some other format or in some other 
+> structure of a diff. This is my first time contributing so just let me 
+> know how you'd prefer this in the future.
+> 
+> What's left is:
+> - rtsp (part of rsh)
 
-The precious hint you gave me is that i don't need to play with seq/ack!
+Did you also do the RPC modules ? (RPC for UDP/TCP)
 
-So, if i understood well, i don't need to worry about window sizes as well,
-to do simple nat...
+I wonder whether the author(s) of RSH/RPC modules are still reading this list.
 
-I was quite sure about those things, but the problem is that my nat works
-fine if i call an Internet Service Provider,
-but if I call another one, web sites and images are corrupted and things
-don't work well...
-
-i tried to lower mtu, and tried with the rule "clamp-tcpmss-to-pmtu", but
-did not solve.
-Then i tried to see if packets arrived fragmented and so lost in nat, but a
-printk put in netfilter code,
-wher defrag takes place, revealed that packets were not fragmented.
-
-Now i'm quite desperate, cause i don't know where to look for an answer!
-Could it be that i use bad functions to recalculate checksum? But why with
-an ISP that works
-while with the other not?
-I use ip_fast_csum() for ip, and
-
-tcp_v4_check(transport_header, skb->len-4*iph->ihl, saddr, daddr,
-csum_partial( transp_header, skb->len-4*iph->ihl, 0) )
-
-for tcp/udp chacksum.
-
-tcpdump always says it's correct.
-
-Thanks for your help and any other suggestions!
-best regards,
-
-Giacomo S, Italy
+If they are, then maybe your 2.6.13 patch (and my older 2.6.12 patches)
+could be incorporated.  If they are not, then maybe it's time to see how
+future changes to these modules can be coordinated.
