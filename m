@@ -1,13 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 4/4]: Fix DHCP + MASQUERADE problem
-Date: Tue, 13 Sep 2005 09:37:22 +0200
-Message-ID: <432681B2.8090908@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: fix: nf_conntrack on 2.6.11.7
+Date: Tue, 13 Sep 2005 10:37:34 +0100
+Message-ID: <43269DDE.5060901@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030301070206020906030603"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	stable@kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,62 +18,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030301070206020906030603
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+For operational reasons I am currently constrained to 2.6.11.7 and close
+derivatives.
 
-This is the fix for the DHCP+MASQUERADE regression.
+I am trying nf_conntrack from the latest pom-ng, and I had to insert
+this line:
 
-@the -stable people: please apply this patch to -stable.
-To avoid confusion, only this patch (4/4) is meant for
--stable, the first three patches were not CCed.
+#include <linux/ipv6.h>
 
---------------030301070206020906030603
-Content-Type: text/x-patch;
- name="04.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="04.diff"
 
-[NETFILTER]: Fix DHCP + MASQUERADE problem
+to:
+net/netfilter/nf_conntrack_proto_udp.c
 
-In 2.6.13-rcX the MASQUERADE target was changed not to exclude local
-packets for better source address consistency. This breaks DHCP clients
-using UDP sockets when the DHCP requests are caught by a MASQUERADE rule
-because the MASQUERADE target drops packets when no address is configured
-on the outgoing interface. This patch makes it ignore packets with a
-source address of 0.
+in order to get it to compile.
 
-Thanks to Rusty for this suggestion.
+Perhaps linux/ipv6 should have been included somewhere further up the
+include chain, but attempts to do so resulted in various problems
+related to includes BY ipv6.h
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Anyway, I'll see how well it works on 2.6.11.7 but thought I would log
+this change I had to make.
 
----
-commit 5048a58f5d9643ca88593cda13433006599b77d3
-tree fec8093ebdf5c8f44c87492fadcedbb7ad40f6ae
-parent 9af9e2ec732d00e62b458b46829bc696987d68af
-author Patrick McHardy <kaber@trash.net> Tue, 13 Sep 2005 09:32:06 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 13 Sep 2005 09:32:06 +0200
-
- net/ipv4/netfilter/ipt_MASQUERADE.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
---- a/net/ipv4/netfilter/ipt_MASQUERADE.c
-+++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
-@@ -90,6 +90,12 @@ masquerade_target(struct sk_buff **pskb,
- 	IP_NF_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED
- 	                    || ctinfo == IP_CT_RELATED + IP_CT_IS_REPLY));
- 
-+	/* Source address is 0.0.0.0 - locally generated packet that is
-+	 * probably not supposed to be masqueraded.
-+	 */
-+	if (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip == 0)
-+		return NF_ACCEPT;
-+
- 	mr = targinfo;
- 	rt = (struct rtable *)(*pskb)->dst;
- 	newsrc = inet_select_addr(out, rt->rt_gateway, RT_SCOPE_UNIVERSE);
-
---------------030301070206020906030603--
+Sam
