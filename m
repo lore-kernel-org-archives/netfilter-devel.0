@@ -1,16 +1,12 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 2/4]: Simplify netbios helper
-Date: Tue, 13 Sep 2005 09:37:16 +0200
-Message-ID: <432681AC.70904@trash.net>
+Subject: [NETFILTER 1/4]: Use correct types for "ports" module parameter
+Date: Tue, 13 Sep 2005 09:37:10 +0200
+Message-ID: <432681A6.5090305@trash.net>
 Mime-Version: 1.0
-Content-Type: text/x-patch;
- name="02.diff"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="------------080409080206030309020009"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
-Content-Disposition: inline;
- filename="02.diff"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,82 +18,120 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Simplify netbios helper
+This is a multi-part message in MIME format.
+--------------080409080206030309020009
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Don't parse the packet, the data is already available in the conntrack
-structure.
+Hi Dave,
+
+following are my queued netfilter patches including the
+DHCP/MASQUERADE fix. Please apply.
+
+
+--------------080409080206030309020009
+Content-Type: text/x-patch;
+ name="01.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="01.diff"
+
+[NETFILTER]: Use correct type for "ports" module parameter
+
+With large port numbers the helper_names buffer can overflow.
+Noticed by Samir Bellabes <sbellabes@mandriva.com>
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 32be69721bfef1f0ab1c271c60002b06f27bf589
-tree f47b2dd306d31343f19a0a63f73cf7e685ed9a4d
-parent d53f0d343998b81945723c43046c4f2ee301e45b
-author Patrick McHardy <kaber@trash.net> Sat, 10 Sep 2005 01:33:13 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 10 Sep 2005 01:33:13 +0200
+commit d53f0d343998b81945723c43046c4f2ee301e45b
+tree 2e8a7c30c3fb32cae0eacb4231ac3554e18f6a47
+parent 1d8674edb534a3c5cb549bfde5a39fa5598cb3bc
+author Patrick McHardy <kaber@trash.net> Sat, 10 Sep 2005 00:58:11 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 10 Sep 2005 00:58:11 +0200
 
- net/ipv4/netfilter/ip_conntrack_netbios_ns.c |   19 +++++++------------
- 1 files changed, 7 insertions(+), 12 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_ftp.c  |    6 +++---
+ net/ipv4/netfilter/ip_conntrack_irc.c  |    6 +++---
+ net/ipv4/netfilter/ip_conntrack_tftp.c |    6 +++---
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_netbios_ns.c b/net/ipv4/netfilter/ip_conntrack_netbios_ns.c
---- a/net/ipv4/netfilter/ip_conntrack_netbios_ns.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netbios_ns.c
-@@ -23,7 +23,6 @@
- #include <linux/inetdevice.h>
- #include <linux/in.h>
- #include <linux/ip.h>
--#include <linux/udp.h>
- #include <net/route.h>
+diff --git a/net/ipv4/netfilter/ip_conntrack_ftp.c b/net/ipv4/netfilter/ip_conntrack_ftp.c
+--- a/net/ipv4/netfilter/ip_conntrack_ftp.c
++++ b/net/ipv4/netfilter/ip_conntrack_ftp.c
+@@ -29,9 +29,9 @@ static char *ftp_buffer;
+ static DEFINE_SPINLOCK(ip_ftp_lock);
  
- #include <linux/netfilter.h>
-@@ -31,6 +30,8 @@
- #include <linux/netfilter_ipv4/ip_conntrack.h>
- #include <linux/netfilter_ipv4/ip_conntrack_helper.h>
+ #define MAX_PORTS 8
+-static int ports[MAX_PORTS];
++static short ports[MAX_PORTS];
+ static int ports_c;
+-module_param_array(ports, int, &ports_c, 0400);
++module_param_array(ports, short, &ports_c, 0400);
  
-+#define NMBD_PORT	137
-+
- MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
- MODULE_DESCRIPTION("NetBIOS name service broadcast connection tracking helper");
+ static int loose;
+ module_param(loose, int, 0600);
+@@ -450,7 +450,7 @@ out_update_nl:
+ }
+ 
+ static struct ip_conntrack_helper ftp[MAX_PORTS];
+-static char ftp_names[MAX_PORTS][10];
++static char ftp_names[MAX_PORTS][sizeof("ftp-65535")];
+ 
+ /* Not __exit: called from init() */
+ static void fini(void)
+diff --git a/net/ipv4/netfilter/ip_conntrack_irc.c b/net/ipv4/netfilter/ip_conntrack_irc.c
+--- a/net/ipv4/netfilter/ip_conntrack_irc.c
++++ b/net/ipv4/netfilter/ip_conntrack_irc.c
+@@ -34,7 +34,7 @@
+ #include <linux/moduleparam.h>
+ 
+ #define MAX_PORTS 8
+-static int ports[MAX_PORTS];
++static short ports[MAX_PORTS];
+ static int ports_c;
+ static int max_dcc_channels = 8;
+ static unsigned int dcc_timeout = 300;
+@@ -52,7 +52,7 @@ EXPORT_SYMBOL_GPL(ip_nat_irc_hook);
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+ MODULE_DESCRIPTION("IRC (DCC) connection tracking helper");
  MODULE_LICENSE("GPL");
-@@ -44,7 +45,6 @@ static int help(struct sk_buff **pskb,
+-module_param_array(ports, int, &ports_c, 0400);
++module_param_array(ports, short, &ports_c, 0400);
+ MODULE_PARM_DESC(ports, "port numbers of IRC servers");
+ module_param(max_dcc_channels, int, 0400);
+ MODULE_PARM_DESC(max_dcc_channels, "max number of expected DCC channels per IRC session");
+@@ -240,7 +240,7 @@ static int help(struct sk_buff **pskb,
+ }
+ 
+ static struct ip_conntrack_helper irc_helpers[MAX_PORTS];
+-static char irc_names[MAX_PORTS][10];
++static char irc_names[MAX_PORTS][sizeof("irc-65535")];
+ 
+ static void fini(void);
+ 
+diff --git a/net/ipv4/netfilter/ip_conntrack_tftp.c b/net/ipv4/netfilter/ip_conntrack_tftp.c
+--- a/net/ipv4/netfilter/ip_conntrack_tftp.c
++++ b/net/ipv4/netfilter/ip_conntrack_tftp.c
+@@ -26,9 +26,9 @@ MODULE_DESCRIPTION("tftp connection trac
+ MODULE_LICENSE("GPL");
+ 
+ #define MAX_PORTS 8
+-static int ports[MAX_PORTS];
++static short ports[MAX_PORTS];
+ static int ports_c;
+-module_param_array(ports, int, &ports_c, 0400);
++module_param_array(ports, short, &ports_c, 0400);
+ MODULE_PARM_DESC(ports, "port numbers of tftp servers");
+ 
+ #if 0
+@@ -100,7 +100,7 @@ static int tftp_help(struct sk_buff **ps
+ }
+ 
+ static struct ip_conntrack_helper tftp[MAX_PORTS];
+-static char tftp_names[MAX_PORTS][10];
++static char tftp_names[MAX_PORTS][sizeof("tftp-65535")];
+ 
+ static void fini(void)
  {
- 	struct ip_conntrack_expect *exp;
- 	struct iphdr *iph = (*pskb)->nh.iph;
--	struct udphdr _uh, *uh;
- 	struct rtable *rt = (struct rtable *)(*pskb)->dst;
- 	struct in_device *in_dev;
- 	u_int32_t mask = 0;
-@@ -72,20 +72,15 @@ static int help(struct sk_buff **pskb,
- 	if (mask == 0)
- 		goto out;
- 
--	uh = skb_header_pointer(*pskb, iph->ihl * 4, sizeof(_uh), &_uh);
--	BUG_ON(uh == NULL);
--
- 	exp = ip_conntrack_expect_alloc(ct);
- 	if (exp == NULL)
- 		goto out;
--	memset(&exp->tuple, 0, sizeof(exp->tuple));
--	exp->tuple.src.ip         = iph->daddr & mask;
--	exp->tuple.dst.ip         = iph->saddr;
--	exp->tuple.dst.u.udp.port = uh->source;
--	exp->tuple.dst.protonum   = IPPROTO_UDP;
- 
--	memset(&exp->mask, 0, sizeof(exp->mask));
-+	exp->tuple                = ct->tuplehash[IP_CT_DIR_REPLY].tuple;
-+	exp->tuple.src.u.udp.port = ntohs(NMBD_PORT);
-+
- 	exp->mask.src.ip          = mask;
-+	exp->mask.src.u.udp.port  = 0xFFFF;
- 	exp->mask.dst.ip          = 0xFFFFFFFF;
- 	exp->mask.dst.u.udp.port  = 0xFFFF;
- 	exp->mask.dst.protonum    = 0xFF;
-@@ -107,7 +102,7 @@ static struct ip_conntrack_helper helper
- 		.src = {
- 			.u = {
- 				.udp = {
--					.port	= __constant_htons(137),
-+					.port	= __constant_htons(NMBD_PORT),
- 				}
- 			}
- 		},
+
+--------------080409080206030309020009--
