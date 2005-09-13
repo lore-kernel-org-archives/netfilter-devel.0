@@ -1,15 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipq problem on PPC 64 bits arch
-Date: Tue, 13 Sep 2005 16:37:16 +0200
-Message-ID: <4326E41C.8010108@trash.net>
-References: <1126620638.20081.40.camel@localhost.localdomain>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: [PATCH 2/3] CLUSTERIP: introduce reference counting for entries
+Date: Tue, 13 Sep 2005 17:16:57 +0200
+Message-ID: <200509131716.57282@nienna>
+References: <20050830121535.985929000@nienna.balabit>
+	<200508301726.08506@nienna>
+	<20050913125405.GR29695@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
-In-Reply-To: <1126620638.20081.40.camel@localhost.localdomain>
+To: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+In-Reply-To: <20050913125405.GR29695@sunbeam.de.gnumonks.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,22 +24,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric Leblond wrote:
-> Hi,
-> 
-> We were not able to have libipq working on a PPC 64 (openpower from IBM)
-> running RHEL4 :
-> 	linux HOST 2.6.9-5.EL #1 SMP DATE ppc64 ppc64 ppc64
-> iptables has been compiled from latest source (1.3.3).
-> 
-> Application (nufw) is able to get the message (an IPV4 queued packet)
-> but when it try get the version contained in the payload if failed :
-> 	((struct iphdr*) msg->payload)->version
-> returns 0.
-> 
-> We try to set
-> 	CFLAGS+=-DIPT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32
-> which was not set by Makefile. But there were no result.
 
-Known problem, the struct is layouted in a way that makes it fail in
-mixed 32/64 bit environments. nfnetlink_queue doesn't have this problem.
+  Hi,
+
+On Tuesday 13 September 2005 14.54, Harald Welte wrote:
+> On Tue, Aug 30, 2005 at 05:26:07PM +0200, KOVACS Krisztian wrote:
+> > On Tuesday 30 August 2005 16.07, Harald Welte wrote:
+> > > Thanks for your patches 2 and 3.  I want to review them in more
+> > > detail and need to re-read the CLUSTERIP code first.  Expect some
+> > > feedback in the next two days.
+> >
+> >   OK, thanks. BTW, I've just found a serious bug in patch 2, I knew
+> > I was missing something... So please apply this on top of patch 2.
+>
+> as usual, the two days got a bit long.  But now I've reviewed the old
+> code and your changes.  I've applied them to my git tree with some
+> minor modifications/clarifications.
+
+  Thanks a lot. One more thing: what's up with the updated CLUSTERIP 
+userspace?
+ 
+http://lists.netfilter.org/pipermail/netfilter-devel/2005-August/021165.html
+
+-- 
+ Regards,
+  Krisztian Kovacs
