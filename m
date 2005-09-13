@@ -1,11 +1,12 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset 2.2.3 released
-Date: Wed, 14 Sep 2005 12:46:45 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0509141241230.23538@blackhole.kfki.hu>
+From: zerbat@gmx.net
+Subject: problems loading PPTP modules with 2.6.11 (gentoo)
+Date: Tue, 13 Sep 2005 18:50:24 +0200 (MEST)
+Message-ID: <17200.1126630224@www34.gmx.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,27 +18,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi all,
 
-I'm happy to announce ipset 2.2.3. The changes compared to the previous
-release are:
+I've taken several attempts to get the pptp modules running with kernel
+2.6.11 (gentoo hardened-sources, i.e. 2.6.11-hardened-r15). The modules do
+compile, but while loading I get the results others have reported before:
 
-- memory allocation bug in iphash and nethash in connection with the SET
-  target was fixed (bug reported by Nikolai Malykh)
-- lockhelp.h was removed from the 2.6.13 kernel tree, ip_set.c is
-  updated accordingly (Cardoso Didier, Samir Bellabes)
-- manpage is updated to clearly state the command order in restore mode
+ip_conntrack_pptp: Unknown symbol __ip_conntrack_expect_find
+ip_conntrack_pptp: Unknown symbol __ip_conntrack_expect_find
+ip_nat_pptp: Unknown symbol ip_nat_pptp_hook_inbound
+ip_nat_pptp: Unknown symbol ip_nat_pptp_hook_expectfn
+ip_nat_pptp: Unknown symbol ip_nat_pptp_hook_exp_gre
+ip_nat_pptp: Unknown symbol ip_nat_pptp_hook_outbound
 
-If you use or plan to use an iphash or nethash type of set with the SET
-target, I urge you to upgrade.
+Even with svn p-o-m-ng and iptables, this stays the same. I can patch the
+kernel with nfnetlink, but not with ctnetlink (4 rejects).
 
-The source code can be downloaded from the ipset homepage at
-http://ipset.netfilter.org/ or from the netfilter svn repository.
+Is there a way to get pptp modules working with gentoo hardened sources? Do
+they work with the regular sources? Do I have to wait for Harald to fix
+everything..;)...?
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Martin
+
+-- 
+5 GB Mailbox, 50 FreeSMS http://www.gmx.net/de/go/promail
++++ GMX - die erste Adresse für Mail, Message, More +++
