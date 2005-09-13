@@ -1,16 +1,16 @@
-From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
-Subject: Re: New target: can't delete rule
-Date: Mon, 12 Sep 2005 20:45:40 +0000
-Message-ID: <4325E8F4.4070905@speedy.com.ar>
-References: <1126116594.3690.35.camel@Pentium> <431F6A0E.1090707@eurodev.net>
-	<1126553016.15667.0.camel@Pentium> <43260E25.6020600@eurodev.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 3/4]: Fix rcu race in ipt_REDIRECT
+Date: Tue, 13 Sep 2005 09:37:20 +0200
+Message-ID: <432681B0.6000705@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7BIT
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/x-patch;
+ name="03.diff"
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-reply-to: <43260E25.6020600@eurodev.net>
-To: Pablo Neira <pablo@eurodev.net>
+To: "David S. Miller" <davem@davemloft.net>
+Content-Disposition: inline;
+ filename="03.diff"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,37 +22,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> Gervasio Bernal wrote:
-> 
->>     I did what you said, but I cannot make walk it.
->> This is my libipt_CRYPT.c
->> static struct iptables_target CRYPT = {     .name            =
->> "CRYPT",     .version         = IPTABLES_VERSION,     .size           
->> = IPT_ALIGN(sizeof(struct ipt_CRYPT_info)),     .userspacesize   =
->> offsetof(struct ipt_CRYPT_info,
->> table_alloc_ptr),            .help            = &help,    
->> .init            = &init,     .parse           = &parse,    
->> .final_check     = &final_check,     .print           = &print,    
->> .save            = &save,     .extra_opts      = opts };
->>
->> This is my ipt_CRYPT.h
->> struct ipt_CRYPT_info {         char key[MAX_KEY_SIZE];        
->> unsigned int block_size;         unsigned int key_size;
->>         struct tabla_alloc* table_alloc_ptr; };
->> struct tabla_alloc {         struct crypto_tfm *tfm;         struct
->> tabla_alloc* next;         struct tabla_alloc* ant; }; 
-> 
-> 
-> It looks fine. Which iptables version are you using? If my mind servers
-> well, I remember that there was a bug related with targets and the use
-> of userspacesize in old iptables versions (<= 1.3.1). If so, please try
-> with the lastest update.
-> 
-> -- 
-> Pablo
-> 
+[NETFILTER]: Fix rcu race in ipt_REDIRECT
 
-Yes, I have iptables version 1.3.1. I will try with one newer and I
-comment to you.
-Thanks again
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 9af9e2ec732d00e62b458b46829bc696987d68af
+tree 71ec0256101fad8d11b6aaec8330fc1845ba9a23
+parent 32be69721bfef1f0ab1c271c60002b06f27bf589
+author Patrick McHardy <kaber@trash.net> Sat, 10 Sep 2005 17:48:21 +0200
+committer Patrick McHardy <kaber@trash.net> Sat, 10 Sep 2005 17:48:21 +0200
+
+ net/ipv4/netfilter/ipt_REDIRECT.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ipt_REDIRECT.c b/net/ipv4/netfilter/ipt_REDIRECT.c
+--- a/net/ipv4/netfilter/ipt_REDIRECT.c
++++ b/net/ipv4/netfilter/ipt_REDIRECT.c
+@@ -88,14 +88,18 @@ redirect_target(struct sk_buff **pskb,
+ 		newdst = htonl(0x7F000001);
+ 	else {
+ 		struct in_device *indev;
++		struct in_ifaddr *ifa;
+ 
+-		/* Device might not have an associated in_device. */
+-		indev = (struct in_device *)(*pskb)->dev->ip_ptr;
+-		if (indev == NULL || indev->ifa_list == NULL)
+-			return NF_DROP;
++		newdst = 0;
++		
++		rcu_read_lock();
++		indev = __in_dev_get((*pskb)->dev);
++		if (indev && (ifa = indev->ifa_list))
++			newdst = ifa->ifa_local;
++		rcu_read_unlock();
+ 
+-		/* Grab first address on interface. */
+-		newdst = indev->ifa_list->ifa_local;
++		if (!newdst)
++			return NF_DROP;
+ 	}
+ 
+ 	/* Transfer from original range. */
