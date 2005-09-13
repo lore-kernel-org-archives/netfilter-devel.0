@@ -1,15 +1,19 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: ip_conntrack mixed with nf_conntrack and nf_conntrack_ipv6
-Date: Tue, 13 Sep 2005 21:54:16 +0900 (JST)
-Message-ID: <200509131254.j8DCsGPZ000626@toshiba.co.jp>
-References: <4326C11B.6060607@ufomechanic.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: more nf_conntrack/ip_conntrack questions
+Date: Tue, 13 Sep 2005 15:15:23 +0200
+Message-ID: <20050913131523.GU29695@sunbeam.de.gnumonks.org>
+References: <200509121129.j8CBT83a022872@toshiba.co.jp>
+	<200509121141.j8CBfHp1003079@toshiba.co.jp>
+	<43256ED8.2090500@ufomechanic.net>
+	<200509121256.j8CCuHwd028705@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="y5yQnZmVlpWlTeDv"
+Cc: netfilter-devel@lists.netfilter.org, azez@ufomechanic.net, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: azez@ufomechanic.net
-In-Reply-To: <4326C11B.6060607@ufomechanic.net>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
+In-Reply-To: <200509121256.j8CCuHwd028705@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,21 +26,44 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi,
+--y5yQnZmVlpWlTeDv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-From: Amin Azez <azez@ufomechanic.net>
-Date: Tue, 13 Sep 2005 13:07:55 +0100
+On Mon, Sep 12, 2005 at 09:56:16PM +0900, Yasuyuki KOZAKAI wrote:
+> From: Amin Azez <azez@ufomechanic.net>
+> Date: Mon, 12 Sep 2005 13:04:40 +0100
+>=20
+> > Sure, I don't have any fault with the structures, just the way the
+> > sizeof is measured for initial zero-ing.
+>=20
+> Oh, it's reasonable. Thank you for notice.
+>=20
+> Harald, please apply this patch.
 
-> I'm just checking, I believe it is safe to mix ip_conntrack with
-> nf_conntrack and nf_conntrack_ipv6 as long as I don't load
-> nf_conntrack_ipv4 at the same time as ip_conntrack?
+thanks, applied to netfilter-2.6.14#nf_conntrack
 
-Maybe it's safe, as a result of the patches I suggested to solve
-compatibility issue (at Sep 01).
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-But I don't assume this requirement as discussion on this issue.
-I'm not sure that we'll never add changes which make impossible to load 
-nf_conntrack and ip_conntrack.
+--y5yQnZmVlpWlTeDv
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDJtDrXaXGVTD0i/8RAhb9AJ0bA4TT0NYpNK1P4/YsghnS++d8RACeNLDx
+FkPcPRXfWadKIJYGU/yjWec=
+=ULhA
+-----END PGP SIGNATURE-----
+
+--y5yQnZmVlpWlTeDv--
