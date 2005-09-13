@@ -1,20 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 4/*] libnfnetlink fixes
-Date: Tue, 13 Sep 2005 15:17:30 +0200
-Message-ID: <20050913131730.GV29695@sunbeam.de.gnumonks.org>
-References: <42D429F9.7000707@eurodev.net> <42D4CF9C.2000304@ufomechanic.net>
-	<20050828115013.GE4244@rama.de.gnumonks.org>
-	<431879F6.5020505@ufomechanic.net>
-	<20050910090908.GD4314@rama.de.gnumonks.org>
-	<4325364D.8030406@ufomechanic.net>
+From: Eric Leblond <eric@inl.fr>
+Subject: ipq problem on PPC 64 bits arch
+Date: Tue, 13 Sep 2005 16:10:38 +0200
+Message-ID: <1126620638.20081.40.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DWqF7Vcvgq9cBwZ0"
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-Content-Disposition: inline
-In-Reply-To: <4325364D.8030406@ufomechanic.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,37 +18,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---DWqF7Vcvgq9cBwZ0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+We were not able to have libipq working on a PPC 64 (openpower from IBM)
+running RHEL4 :
+	linux HOST 2.6.9-5.EL #1 SMP DATE ppc64 ppc64 ppc64
+iptables has been compiled from latest source (1.3.3).
 
-On Mon, Sep 12, 2005 at 09:03:25AM +0100, Amin Azez wrote:
+Application (nufw) is able to get the message (an IPV4 queued packet)
+but when it try get the version contained in the payload if failed :
+	((struct iphdr*) msg->payload)->version
+returns 0.
 
-> err... you must have, I sent it on 5th Sept.
+We try to set
+	CFLAGS+=3D-DIPT_MIN_ALIGN=3D8 -DKERNEL_64_USERSPACE_32
+which was not set by Makefile. But there were no result.
 
-sorry.  I've applied it now (Committed revision 4258.)
+BR,
 --=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---DWqF7Vcvgq9cBwZ0
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFDJtFqXaXGVTD0i/8RAgrDAKCMUjRMrL+7vnDw84AR+DQ3vHAV9wCeIEGO
-FCh4EuMvUT0IcZt3Sz8lHUs=
-=776Q
------END PGP SIGNATURE-----
-
---DWqF7Vcvgq9cBwZ0--
+=C9ric Leblond, eleblond@inl.fr
+T=E9l=E9phone : 01 44 89 46 40, Fax : 01 44 89 45 01
+INL, http://www.inl.fr
