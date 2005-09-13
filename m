@@ -1,20 +1,21 @@
-From: Nuutti Kotivuori <naked@iki.fi>
-Subject: Re: netfilter QUEUE target and packet socket interactions buggy or
-	not
-Date: Tue, 13 Sep 2005 21:22:07 +0300
-Message-ID: <873bo8akvk.fsf@aka.i.naked.iki.fi>
-References: <87fysa9bqt.fsf@aka.i.naked.iki.fi>
-	<20050912.151120.104514011.davem@davemloft.net>
-	<87br2xap9o.fsf@aka.i.naked.iki.fi>
-	<877jdl9r1u.fsf@aka.i.naked.iki.fi> <4326FF69.9060004@trash.net>
+From: Stephen Hemminger <shemminger@osdl.org>
+Subject: Re: masquerading failure for at least icmp and tcp+sack on amd64
+Date: Tue, 13 Sep 2005 11:09:02 -0700
+Message-ID: <20050913110902.0ad58b90@localhost.localdomain>
+References: <20050907052057.09714a4c.akpm@osdl.org>
+	<431EDF78.8060505@trash.net> <20050907205923.GA6567@schmorp.de>
+	<431F5CD2.8020905@trash.net> <20050907215213.GB8222@schmorp.de>
+	<432174EE.80306@trash.net> <20050911131943.GC9865@schmorp.de>
+	<43243AB9.9000705@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Andrew Morton <akpm@osdl.org>, netdev@vger.kernel.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Marc Lehmann <schmorp@schmorp.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4326FF69.9060004@trash.net> (Patrick McHardy's message of "Tue,
-	13 Sep 2005 18:33:45 +0200")
+In-Reply-To: <43243AB9.9000705@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,42 +27,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Nuutti Kotivuori wrote:
->>
->> Appended here is a backtrace with the tg3 driver. Also, it seems that
->> the bug cannot be reproduced with uniprocessor, only SMP.
->>
->> Unable to handle kernel NULL pointer dereference at virtual address 00000018
->
-> This means inode->i_security was NULL. AFAICT it is only set to NULL in
-> inode_free_security() when the inode is freed. This shouldn't happen
-> while the packet is queued since the skb should hold a reference to
-> the socket on the output path. So it could be some protocol forgetting
-> to increase the refcnt when taking a reference.
+On Sun, 11 Sep 2005 16:10:01 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
-Right.
+> Marc Lehmann wrote:
+> > On Fri, Sep 09, 2005 at 01:41:34PM +0200, Patrick McHardy <kaber@trash.net> wrote:
+> > 
+> >>What network driver are you using?
+> > 
+> > Happens with both skge and sk98.
+> 
+> Are you sure the same checksum error happens? sk98_lin never sets
+> ip_summed to CHECKSUM_HW, it uses either CHECKSUM_UNNECESSARY for
+> HW checksummed packets, in which case the check is skipped in
+> ip_conntrack, or it uses CHECKSUM_NONE, in which case the checksum
+> in the packet must be invalid if the check fails and the packet
+> wouldn't be accepted by the final receipient anyway. skge uses 
+> CHECKSUM_HW for every packet, so they have nothing in common wrt.
+> HW checksumming. This would normally mean we can rule out HW
+> checksumming, but for some reason turning it off on skge seems
+> to help in your case. Stephen, you're more familiar with the
+> sk* drivers than me, anything I'm missing here?
+> 
 
-> What kind of packet is this? And what kernel version are you
-> running? Until recently ip_conntrack did some fiddling with skb->sk
-> which could lead to a packet on the output path with skb->sk set but
-> no reference taken.
+Some background, the semantic of ip_summed is different on the
+output than the input path. On input, it means a checksum is
+available in skb->csum; and on output it means the packet is
+destined for a device that can do hardware checksumming.
 
-This happens on Red Hat Enterprise Linux 4, with a 2.6.9 kernel (with
-a gazillion of Red Hat patches in it, latest ones being from 2.6.11)
-and the ip_queue patch that adds the bottom-half disabling. I will
-know for sure tomorrow, but it seems that it doesn't appear on vanilla
-2.6.13.1 or without SMP.
+I have gotten reports of receive checksum errors on
+some systems, it may be related to certain revisions of
+hardware. It would be useful to see the message printed out
+by the skge driver that shows chip and revision.
 
-It is very hard to know which packet specifically triggers this. The
-machine is under heavy load in general, a lot of packets are handled
-via a QUEUE target, and some packets are captured via packet socket.
-
-I will post more details tomorrow, but if you could point me towards
-the changes in ip_conntrack that affected this, it would be very
-helpful. I could check if they are in the Red Hat kernel and if not,
-patch them manually and see if it makes a difference. The problem is
-now reproduciable in a couple hours, so it shouldn't be too hard.
-
-Thanks,
--- Naked
+Also, on the input path for TCP and UDP, the code does not
+depend on the hardware being correct, and if the checksum
+is incorrect, it just prints a warning and does a software
+checksum before deciding to drop.
+Perhaps netfilter code needs to handle that case?
