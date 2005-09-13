@@ -1,19 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 2/3] CLUSTERIP: introduce reference counting for entries
-Date: Tue, 13 Sep 2005 14:54:05 +0200
-Message-ID: <20050913125405.GR29695@sunbeam.de.gnumonks.org>
-References: <20050830121535.985929000@nienna.balabit>
-	<20050830121550.397433000@nienna.balabit>
-	<20050830140740.GC4221@rama.de.gnumonks.org>
-	<200508301726.08506@nienna>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: ip_conntrack mixed with nf_conntrack and nf_conntrack_ipv6
+Date: Tue, 13 Sep 2005 21:54:16 +0900 (JST)
+Message-ID: <200509131254.j8DCsGPZ000626@toshiba.co.jp>
+References: <4326C11B.6060607@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eHrxbAcqt/LxKPZN"
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-Content-Disposition: inline
-In-Reply-To: <200508301726.08506@nienna>
+To: azez@ufomechanic.net
+In-Reply-To: <4326C11B.6060607@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,47 +22,21 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---eHrxbAcqt/LxKPZN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Tue, Aug 30, 2005 at 05:26:07PM +0200, KOVACS Krisztian wrote:
->=20
->   Hi,
->=20
-> On Tuesday 30 August 2005 16.07, Harald Welte wrote:
-> > Thanks for your patches 2 and 3.  I want to review them in more
-> > detail and need to re-read the CLUSTERIP code first.  Expect some
-> > feedback in the next two days.
->=20
->   OK, thanks. BTW, I've just found a serious bug in patch 2, I knew I
-> was missing something... So please apply this on top of patch 2.
-=20
-as usual, the two days got a bit long.  But now I've reviewed the old
-code and your changes.  I've applied them to my git tree with some minor
-modifications/clarifications.
+From: Amin Azez <azez@ufomechanic.net>
+Date: Tue, 13 Sep 2005 13:07:55 +0100
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+> I'm just checking, I believe it is safe to mix ip_conntrack with
+> nf_conntrack and nf_conntrack_ipv6 as long as I don't load
+> nf_conntrack_ipv4 at the same time as ip_conntrack?
 
---eHrxbAcqt/LxKPZN
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Maybe it's safe, as a result of the patches I suggested to solve
+compatibility issue (at Sep 01).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+But I don't assume this requirement as discussion on this issue.
+I'm not sure that we'll never add changes which make impossible to load 
+nf_conntrack and ip_conntrack.
 
-iD8DBQFDJsvtXaXGVTD0i/8RAsWDAJ44qbeJE2pm613sPX6iEhuWXzywMwCeLdCV
-WZeYav+ptF2tOzqT2TfoAZQ=
-=U15D
------END PGP SIGNATURE-----
-
---eHrxbAcqt/LxKPZN--
+-----------------------------------------------------------------
+Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
