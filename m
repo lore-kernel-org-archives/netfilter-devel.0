@@ -1,17 +1,15 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: masquerading failure for at least icmp and tcp+sack on amd64
-Date: Tue, 13 Sep 2005 13:59:54 -0700 (PDT)
-Message-ID: <20050913.135954.111731835.davem@davemloft.net>
-References: <20050911131943.GC9865@schmorp.de> <43243AB9.9000705@trash.net>
-	<20050913110902.0ad58b90@localhost.localdomain>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: Communication between kernel modules (what's the proper way?)
+Date: Wed, 14 Sep 2005 02:11:33 +0200
+Message-ID: <43276AB5.8040008@eurodev.net>
+References: <a60102c305091310302e9dc215@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: akpm@osdl.org, netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	kaber@trash.net, schmorp@schmorp.de
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: shemminger@osdl.org
-In-Reply-To: <20050913110902.0ad58b90@localhost.localdomain>
+To: bikkit@gmail.com
+In-Reply-To: <a60102c305091310302e9dc215@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,13 +21,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Stephen Hemminger <shemminger@osdl.org>
-Date: Tue, 13 Sep 2005 11:09:02 -0700
+JC wrote:
+> Somewhat out of topic for the mailing list, but I guess the developers
+> here could advise me on the matter:
+> 
+> I have developed two modules that use hooks to manipulate packets, and
+> I wish for them to communicate with each other. The proper way to
+> communicate with userspace is by using ioctls. But what is a proper
+> way to use to pass data between the two modules, bearing in mind these
+> are my modules and I cant apply for a system call...?
 
-> Also, on the input path for TCP and UDP, the code does not
-> depend on the hardware being correct, and if the checksum
-> is incorrect, it just prints a warning and does a software
-> checksum before deciding to drop.
-> Perhaps netfilter code needs to handle that case?
+This isn't netfilter related at all, but it's related with kernel
+programming.
 
-I personally think netfilter should do so.
+You could do it by means of kernel notifiers (linux/notifier.h). You can
+export a notifier_block that can be used to [un]register callbacks
+(notifier_chain_[un]register) by both modules.
+
+--
+Pablo
