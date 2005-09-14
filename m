@@ -1,13 +1,13 @@
-From: Max Kellermann <max@duempel.org>
-Subject: [POM] h323-conntrack-nat: please delete ip_conntrack_h323.c
-Date: Wed, 14 Sep 2005 20:29:03 +0200
-Message-ID: <20050914182903.GA3247@roonstrasse.net>
+From: "Giacomo" <delleceste@gmail.com>
+Subject: checksum tcp
+Date: Wed, 14 Sep 2005 20:26:15 +0200
+Message-ID: <001b01c5b959$ccef7440$0300a8c0@giacomino>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: "netfilter devel" <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,16 +19,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Good morning, i calculate tcp checksum after changing a destination port 
+(nat)
 
-while porting the h323-conntrack-nat module to Linux 2.6.13, I noticed
-that the old files ip_conntrack_h323.c were not deleted from the
-patch-o-matic subversion repository.  Please delete from trunk:
+For example: A (192.168.0.2) sends ssh to 192.168.0.1 : 222 (B) and packets 
+are redirected to 192.168.0.1 : 22
 
- patchlets/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323.c
- patchlets/h323-conntrack-nat/linux-2.6.11/net/ipv4/netfilter/ip_conntrack_h323.c
+After changing port, i recalculate checksum in prerouting on B.
 
-.. these files were split up into ip_conntrack_h323_core.c,
-ip_conntrack_h323_h225.c, ip_conntrack_h323_h245.c.
+B responds to A, sending response from port 22, so I change in postrouting 
+the source port to 222, the one
+A expects from.
 
-Max
+Then I recalculate checksum.
+In post routing I printk the checksum recalculated by B: it is correct, 
+according to the checksum expected
+by A (ethereal confirms that).
+
+The fact is that A receives back always the same checksum different from the 
+right one.
+
+Why do i read the correct checksum in B postrouting and then A receives a 
+bad value?
+Has it to do with HW_CHECKSUM?? (and what is that?)
+
+This happens to machine B (amd athlon, realtek 8139, via motherboard), 
+towards A
+(intel P4, natsemi net card, intel chipset).
+
+If I invert roles, it works!!
+(P4 machine responds ok to this kind of redirect).
+
+If  I insert module iptable_nat, it works!!
+
+Without, checksum seems to be set correctly in postrouting skb, but arrives 
+wrong and always the same (0x81a5).
+Someone changes checksum after postrouting netfilter hook??
+
+the packet flow is
+
+PREROUTING ->(redirect) -> INPUT ->SSH-> OUTPUT->POSTROUTING (de-dport 
+translation)
+
+If I redirect port  and IP all works fine (PRE->FWD->POST)
+
+Thanks for any idea of what's going wrong
+GIacomo- 
