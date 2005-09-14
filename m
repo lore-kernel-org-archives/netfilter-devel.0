@@ -1,18 +1,17 @@
-From: Nuutti Kotivuori <naked@iki.fi>
-Subject: Re: netfilter QUEUE target and packet socket interactions buggy or
-	not
-Date: Thu, 15 Sep 2005 11:50:19 +0300
-Message-ID: <8764t290l0.fsf@aka.i.naked.iki.fi>
-References: <87fysa9bqt.fsf@aka.i.naked.iki.fi>
-	<20050912.151120.104514011.davem@davemloft.net>
-	<87br2xap9o.fsf@aka.i.naked.iki.fi>
-	<877jdl9r1u.fsf@aka.i.naked.iki.fi> <4326FF69.9060004@trash.net>
-	<873bo8akvk.fsf@aka.i.naked.iki.fi>
-	<87irx396xk.fsf@aka.i.naked.iki.fi>
+From: Chris Larson <kergoth@gmail.com>
+Subject: Re: latest ctnetlink for Linux 2.4.XX?
+Date: Wed, 14 Sep 2005 10:23:28 -0500
+Message-ID: <b6ebd0a50509140823314e643b@mail.gmail.com>
+References: <200509131654.j8DGs07L008682@server.ezpacket.com>
+Reply-To: kergoth@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: CK Wang <ck@ezpacket.com>
+In-Reply-To: <200509131654.j8DGs07L008682@server.ezpacket.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,58 +23,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Nuutti Kotivuori wrote:
-> But also, if it is that particular spot that causes this exact crash -
-> the problem should go away if selinux is disabled, even though the bug
-> still exists (socket being freed before skb stops referencing it).
+On 9/13/05, CK Wang <ck@ezpacket.com> wrote:
+>=20
+> - I found nfnetlink-conntrack-0.13 is deprecated in pom-ng. But, it's a
+> starting point for me to work on my Linux 2.4.30 kernel.
+>=20
+> - However, after done with the patch intergration with Linux 2.4.30. I
+> couldn't find a compatible libnfnetlink and libctnetlink to work with
+> nfnetlink-conntrack-0.13. Current libnfnetlink and libctnetlink(or
+> libnfnetlink-conntrack) are rewritten for Linux 2.6.
 
-The setup crashes even with selinux disabled. The crash is different,
-and is preceded by kernel messages. Here it is:
 
-...
-ip_queue: full at 1024 entries, dropping packet(s).
-printk: 158 messages suppressed.
-ip_queue: full at 1024 entries, dropping packet(s).
-printk: 153 messages suppressed.
-ip_queue: full at 1024 entries, dropping packet(s).
-printk: 152 messages suppressed.
-<1>Unable to handle kernel NULL pointer dereference at virtual address 000000a4
- printing eip:
-f8890da9
-*pde = 2e4db001
-Oops: 0000 [#1]
-SMP
-Modules linked in: arpt_mangle arptable_filter arp_tables iptable_filter ip_tables ip_queue parport_pc lp parport netconsole netdump autofs4 i2c_dev i2c_core sunrpc dm_mod button poll_napi+0x64/0x84
- [<c027eb58>] netpoll_poll+0x30/0x35
- [<c027ecfb>] netpoll_send_skb+0x8f/0x98
- [<f88b5156>] write_msg+0x156/0x16d [netconsole]
- [<f88b5000>] write_msg+0x0/0x16d [netconsole]
- [<c01217c7>] __call_console_drivers+0x36/0x40
- [<c01218df>] call_console_drivers+0xb6/0xd8
- [<c0121bd3>] release_console_sem+0x43/0xa9
- [<c0121b1d>] vprintk+0x136/0x14a
- [<c01219e4>] printk+0xe/0x11
- [<f88f1413>] ipq_enqueue_packet+0xd1/0x143 [ip_queue]
- [<c027cd21>] nf_queue+0x148/0x201
- [<c028a676>] ip_local_deliver_finish+0x0/0x188
- [<c027ce46>] nf_hook_slow+0x6c/0xb4
- [<c028a676>] ip_local_deliver_finish+0x0/0x188
- [<c028a66f>] ip_local_deliver+0x1d9/0x1e0
- [<c028a676>] ip_local_deliver_finish+0x0/0x188
- [<c028ab5c>] ip_rcv+0x35e/0x3ff
- [<c0274569>] netif_receive_skb+0x1f1/0x21f
- [<f8890e27>] tg3_rx+0x2a3/0x3a0 [tg3]
- [<f8890fbd>] tg3_poll+0x99/0x11a [tg3]
- [<c02746f5>] net_rx_action+0x61/0xd8
- [<c0125a5c>] __do_softirq+0x4c/0xb1
- [<c010806d>] do_softirq+0x4f/0x56
- =======================
- [<c0107983>] do_IRQ+0x125/0x130
- [<c02c7d34>] common_interrupt+0x18/0x20
- [<c0104018>] default_idle+0x0/0x2c
- [<c0104041>] default_idle+0x29/0x2c
- [<c010409d>] cpu_idle+0x26/0x3b
- [<c0384784>] start_kernel+0x194/0x198
-Code: 01 6b 60 01 e8 3b 83 ac 00 00 00 89 83 a8 00 00 00 76 0e 89 ea 89 d8 b9 9a 0d 89 f8 e8
+I ran into this as well not long ago, so I looked into the svn repository,=
+=20
+and checked out the revision of the libnfnetlink library from back before=
+=20
+the rename / repository reorg (libctnetlink became libnfnetlink_conntrack).=
+=20
+That one appears to work fine. libctnetlink, however, does not seem to. I=
+=20
+dug up an old copy of the 'ct' test tool and enhanced it to meet my needs.
 
--- Naked
+--
+Chris Larson
+kergoth@handhelds.org
