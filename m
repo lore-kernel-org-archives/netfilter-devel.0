@@ -1,18 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 1/8]: pptp helper: propagate errors instead of using -EIO
- in init functions
-Date: Fri, 16 Sep 2005 00:44:36 +0200
-Message-ID: <4329F954.2090309@trash.net>
+Subject: [NETFILTER 3/8]: Rename misnamed function
+Date: Fri, 16 Sep 2005 00:44:44 +0200
+Message-ID: <4329F95C.1090601@trash.net>
 Mime-Version: 1.0
 Content-Type: text/x-patch;
- name="01.diff"
+ name="03.diff"
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	"David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
 Content-Disposition: inline;
- filename="01.diff"
+ filename="03.diff"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,66 +23,86 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: pptp helper: propagate errors instead of using -EIO in init functions
+[NETFILTER]: Rename misnamed function
+
+Both __ip_conntrack_expect_find and ip_conntrack_expect_find_get take
+a reference to the expectation, the difference is that callers of
+__ip_conntrack_expect_find must hold ip_conntrack_lock.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit b806b1f4d971bfb3bd348a7d8d9029b6b5c9c23b
-tree 66c4408681361eeefe21d43ccf27ec65a307753e
-parent fb3d5fc64859ad4ebe99cff3c318f53cdf72b0e8
-author Patrick McHardy <kaber@trash.net> Thu, 15 Sep 2005 22:26:07 +0200
-committer Patrick McHardy <kaber@trash.net> Thu, 15 Sep 2005 22:26:07 +0200
+commit 1305f20c8446e6e944924a93eaf90e1896abf788
+tree 174c9c8184ec0cdb3de92530ba3b1ae22d308191
+parent 66479fa28dab1e923dd946ae1eafe7cbf89fa9a1
+author Patrick McHardy <kaber@trash.net> Thu, 15 Sep 2005 22:40:37 +0200
+committer Patrick McHardy <kaber@trash.net> Thu, 15 Sep 2005 22:40:37 +0200
 
- net/ipv4/netfilter/ip_conntrack_helper_pptp.c |    2 +-
- net/ipv4/netfilter/ip_conntrack_proto_gre.c   |   10 +---------
- net/ipv4/netfilter/ip_nat_proto_gre.c         |    5 +----
- 3 files changed, 3 insertions(+), 14 deletions(-)
+ include/linux/netfilter_ipv4/ip_conntrack.h  |    2 +-
+ net/ipv4/netfilter/ip_conntrack_core.c       |    2 +-
+ net/ipv4/netfilter/ip_conntrack_netlink.c    |    4 ++--
+ net/ipv4/netfilter/ip_conntrack_standalone.c |    4 ++--
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
---- a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-+++ b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-@@ -777,7 +777,7 @@ static int __init init(void)
- 		printk(KERN_ERR "Unable to register conntrack application "
- 				"helper for pptp: %d\n", retcode);
- 		ip_ct_proto_gre_fini();
--		return -EIO;
-+		return retcode;
- 	}
+diff --git a/include/linux/netfilter_ipv4/ip_conntrack.h b/include/linux/netfilter_ipv4/ip_conntrack.h
+--- a/include/linux/netfilter_ipv4/ip_conntrack.h
++++ b/include/linux/netfilter_ipv4/ip_conntrack.h
+@@ -384,7 +384,7 @@ extern struct ip_conntrack_expect *
+ __ip_conntrack_expect_find(const struct ip_conntrack_tuple *tuple);
  
- 	printk("ip_conntrack_pptp version %s loaded\n", IP_CT_PPTP_VERSION);
-diff --git a/net/ipv4/netfilter/ip_conntrack_proto_gre.c b/net/ipv4/netfilter/ip_conntrack_proto_gre.c
---- a/net/ipv4/netfilter/ip_conntrack_proto_gre.c
-+++ b/net/ipv4/netfilter/ip_conntrack_proto_gre.c
-@@ -323,15 +323,7 @@ static struct ip_conntrack_protocol gre 
- /* ip_conntrack_proto_gre initialization */
- int __init ip_ct_proto_gre_init(void)
+ extern struct ip_conntrack_expect *
+-ip_conntrack_expect_find_get(const struct ip_conntrack_tuple *tuple);
++ip_conntrack_expect_find(const struct ip_conntrack_tuple *tuple);
+ 
+ extern struct ip_conntrack_tuple_hash *
+ __ip_conntrack_find(const struct ip_conntrack_tuple *tuple,
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -233,7 +233,7 @@ __ip_conntrack_expect_find(const struct 
+ 
+ /* Just find a expectation corresponding to a tuple. */
+ struct ip_conntrack_expect *
+-ip_conntrack_expect_find_get(const struct ip_conntrack_tuple *tuple)
++ip_conntrack_expect_find(const struct ip_conntrack_tuple *tuple)
  {
--	int retcode;
--
--	if ((retcode = ip_conntrack_protocol_register(&gre))) {
--		printk(KERN_ERR "Unable to register conntrack protocol "
--		       "helper for gre: %d\n", retcode);
--		return -EIO;
--	}
--
--	return 0;
-+	return ip_conntrack_protocol_register(&gre);
- }
+ 	struct ip_conntrack_expect *i;
+ 	
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -1270,7 +1270,7 @@ ctnetlink_get_expect(struct sock *ctnl, 
+ 	if (err < 0)
+ 		return err;
  
- void __exit ip_ct_proto_gre_fini(void)
-diff --git a/net/ipv4/netfilter/ip_nat_proto_gre.c b/net/ipv4/netfilter/ip_nat_proto_gre.c
---- a/net/ipv4/netfilter/ip_nat_proto_gre.c
-+++ b/net/ipv4/netfilter/ip_nat_proto_gre.c
-@@ -204,10 +204,7 @@ static struct ip_nat_protocol gre = { 
- 				  
- int __init ip_nat_proto_gre_init(void)
- {
--	if (ip_nat_protocol_register(&gre))
--		return -EIO;
--
--	return 0;
-+	return ip_nat_protocol_register(&gre);
- }
+-	exp = ip_conntrack_expect_find_get(&tuple);
++	exp = ip_conntrack_expect_find(&tuple);
+ 	if (!exp)
+ 		return -ENOENT;
  
- void __exit ip_nat_proto_gre_fini(void)
+@@ -1318,7 +1318,7 @@ ctnetlink_del_expect(struct sock *ctnl, 
+ 			return err;
+ 
+ 		/* bump usage count to 2 */
+-		exp = ip_conntrack_expect_find_get(&tuple);
++		exp = ip_conntrack_expect_find(&tuple);
+ 		if (!exp)
+ 			return -ENOENT;
+ 
+diff --git a/net/ipv4/netfilter/ip_conntrack_standalone.c b/net/ipv4/netfilter/ip_conntrack_standalone.c
+--- a/net/ipv4/netfilter/ip_conntrack_standalone.c
++++ b/net/ipv4/netfilter/ip_conntrack_standalone.c
+@@ -993,11 +993,11 @@ EXPORT_SYMBOL(ip_ct_refresh_acct);
+ 
+ EXPORT_SYMBOL(ip_conntrack_expect_alloc);
+ EXPORT_SYMBOL(ip_conntrack_expect_put);
+-EXPORT_SYMBOL_GPL(ip_conntrack_expect_find_get);
++EXPORT_SYMBOL_GPL(__ip_conntrack_expect_find);
++EXPORT_SYMBOL_GPL(ip_conntrack_expect_find);
+ EXPORT_SYMBOL(ip_conntrack_expect_related);
+ EXPORT_SYMBOL(ip_conntrack_unexpect_related);
+ EXPORT_SYMBOL_GPL(ip_conntrack_expect_list);
+-EXPORT_SYMBOL_GPL(__ip_conntrack_expect_find);
+ EXPORT_SYMBOL_GPL(ip_ct_unlink_expect);
+ 
+ EXPORT_SYMBOL(ip_conntrack_tuple_taken);
