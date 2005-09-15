@@ -1,17 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 4/3] NETFILTER: New PPTP helper
-Date: Thu, 15 Sep 2005 22:53:57 +0200
-Message-ID: <20050915205357.GI5034@sunbeam.de.gnumonks.org>
-References: <20050915145935.GD17121@rama.de.gnumonks.org>
-	<20050915.130901.06836477.davem@davemloft.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 1/8]: pptp helper: propagate errors instead of using -EIO
+ in init functions
+Date: Fri, 16 Sep 2005 00:44:36 +0200
+Message-ID: <4329F954.2090309@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Op27XXJsWz80g3oF"
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Content-Type: text/x-patch;
+ name="01.diff"
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-Content-Disposition: inline
-In-Reply-To: <20050915.130901.06836477.davem@davemloft.net>
+To: Harald Welte <laforge@netfilter.org>
+Content-Disposition: inline;
+ filename="01.diff"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,43 +24,66 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+[NETFILTER]: pptp helper: propagate errors instead of using -EIO in init functions
 
---Op27XXJsWz80g3oF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-On Thu, Sep 15, 2005 at 01:09:01PM -0700, David S. Miller wrote:
-> All 4 applied, thanks Harald. =20
+---
+commit b806b1f4d971bfb3bd348a7d8d9029b6b5c9c23b
+tree 66c4408681361eeefe21d43ccf27ec65a307753e
+parent fb3d5fc64859ad4ebe99cff3c318f53cdf72b0e8
+author Patrick McHardy <kaber@trash.net> Thu, 15 Sep 2005 22:26:07 +0200
+committer Patrick McHardy <kaber@trash.net> Thu, 15 Sep 2005 22:26:07 +0200
 
-Thanks!
+ net/ipv4/netfilter/ip_conntrack_helper_pptp.c |    2 +-
+ net/ipv4/netfilter/ip_conntrack_proto_gre.c   |   10 +---------
+ net/ipv4/netfilter/ip_nat_proto_gre.c         |    5 +----
+ 3 files changed, 3 insertions(+), 14 deletions(-)
 
-> The subject line for the 4th patch was wrong btw :-)
-
-*sigh* the usual problem.  But it seems like you're quicker in adopting
-to that mistake than I am fixing my own bugs ;)
-
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---Op27XXJsWz80g3oF
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFDKd9lXaXGVTD0i/8RAqo0AKCJu/h/jeEgpSyngOfSrnRHZvM6sACaA6aE
-gP1BZHcxi5YbKwHkabkBWlQ=
-=aaci
------END PGP SIGNATURE-----
-
---Op27XXJsWz80g3oF--
+diff --git a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
+--- a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
++++ b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
+@@ -777,7 +777,7 @@ static int __init init(void)
+ 		printk(KERN_ERR "Unable to register conntrack application "
+ 				"helper for pptp: %d\n", retcode);
+ 		ip_ct_proto_gre_fini();
+-		return -EIO;
++		return retcode;
+ 	}
+ 
+ 	printk("ip_conntrack_pptp version %s loaded\n", IP_CT_PPTP_VERSION);
+diff --git a/net/ipv4/netfilter/ip_conntrack_proto_gre.c b/net/ipv4/netfilter/ip_conntrack_proto_gre.c
+--- a/net/ipv4/netfilter/ip_conntrack_proto_gre.c
++++ b/net/ipv4/netfilter/ip_conntrack_proto_gre.c
+@@ -323,15 +323,7 @@ static struct ip_conntrack_protocol gre 
+ /* ip_conntrack_proto_gre initialization */
+ int __init ip_ct_proto_gre_init(void)
+ {
+-	int retcode;
+-
+-	if ((retcode = ip_conntrack_protocol_register(&gre))) {
+-		printk(KERN_ERR "Unable to register conntrack protocol "
+-		       "helper for gre: %d\n", retcode);
+-		return -EIO;
+-	}
+-
+-	return 0;
++	return ip_conntrack_protocol_register(&gre);
+ }
+ 
+ void __exit ip_ct_proto_gre_fini(void)
+diff --git a/net/ipv4/netfilter/ip_nat_proto_gre.c b/net/ipv4/netfilter/ip_nat_proto_gre.c
+--- a/net/ipv4/netfilter/ip_nat_proto_gre.c
++++ b/net/ipv4/netfilter/ip_nat_proto_gre.c
+@@ -204,10 +204,7 @@ static struct ip_nat_protocol gre = { 
+ 				  
+ int __init ip_nat_proto_gre_init(void)
+ {
+-	if (ip_nat_protocol_register(&gre))
+-		return -EIO;
+-
+-	return 0;
++	return ip_nat_protocol_register(&gre);
+ }
+ 
+ void __exit ip_nat_proto_gre_fini(void)
