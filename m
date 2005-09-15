@@ -1,59 +1,58 @@
-From: Chris Wright <chrisw@osdl.org>
-Subject: [PATCH 07/11] [NETFILTER]: Fix DHCP + MASQUERADE problem
-Date: Wed, 14 Sep 2005 18:03:50 -0700
-Message-ID: <20050915010407.117847000@localhost.localdomain>
-References: <20050915010343.577985000@localhost.localdomain>
-Cc: Justin Forbes <jmforbes@linuxtx.org>,
-	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	"Theodore Ts'o" <tytso@mit.edu>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Chuck Wolber <chuckw@quantumlinux.com>, torvalds@osdl.org,
-	akpm@osdl.org, alan@lxorguk.ukuu.org.uk,
-	Patrick McHardy <kaber@trash.net>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>,
-	Chris Wright <chrisw@osdl.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030309AbVIOBHX@vger.kernel.org>
-To: linux-kernel@vger.kernel.org, stable@kernel.org,
-	"David S. Miller" <davem@davemloft.net>
-Content-Disposition: inline; filename=netfilter-fix-dhcp-masquerade-problem.patch
-Sender: linux-kernel-owner@vger.kernel.org
+From: Cory Visi <merlin@gentoo.org>
+Subject: Re: [ANNOUNCE] ipset 2.2.3 released
+Date: Thu, 15 Sep 2005 03:58:20 +0000
+Message-ID: <20050915035820.GA19885@toucan.gentoo.org>
+References: <Pine.LNX.4.58.0509141241230.23538@blackhole.kfki.hu>
+	<200509141002.40185.teastep@shorewall.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <200509141002.40185.teastep@shorewall.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
--stable review patch.  If anyone has any objections, please let us know.
-------------------
+My patch (posted to this list with subject line: patchlets patch 
+submission) may be helpful here.
 
-In 2.6.13-rcX the MASQUERADE target was changed not to exclude local
-packets for better source address consistency. This breaks DHCP clients
-using UDP sockets when the DHCP requests are caught by a MASQUERADE rule
-because the MASQUERADE target drops packets when no address is configured
-on the outgoing interface. This patch makes it ignore packets with a
-source address of 0.
+-Cory
 
-Thanks to Rusty for this suggestion.
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Chris Wright <chrisw@osdl.org>
----
- net/ipv4/netfilter/ipt_MASQUERADE.c |    6 ++++++
- 1 files changed, 6 insertions(+)
-
-Index: linux-2.6.13.y/net/ipv4/netfilter/ipt_MASQUERADE.c
-===================================================================
---- linux-2.6.13.y.orig/net/ipv4/netfilter/ipt_MASQUERADE.c
-+++ linux-2.6.13.y/net/ipv4/netfilter/ipt_MASQUERADE.c
-@@ -95,6 +95,12 @@ masquerade_target(struct sk_buff **pskb,
- 	IP_NF_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED
- 	                    || ctinfo == IP_CT_RELATED + IP_CT_IS_REPLY));
- 
-+	/* Source address is 0.0.0.0 - locally generated packet that is
-+	 * probably not supposed to be masqueraded.
-+	 */
-+	if (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.ip == 0)
-+		return NF_ACCEPT;
-+
- 	mr = targinfo;
- 	rt = (struct rtable *)(*pskb)->dst;
- 	newsrc = inet_select_addr(out, rt->rt_gateway, RT_SCOPE_UNIVERSE);
-
---
+On Wed, Sep 14, 2005 at 10:02:30AM -0700, Tom Eastep wrote:
+> On Wednesday 14 September 2005 03:46, Jozsef Kadlecsik wrote:
+> > Hi,
+> >
+> > I'm happy to announce ipset 2.2.3. The changes compared to the previous
+> > release are:
+> 
+> ...
+> 
+> > - lockhelp.h was removed from the 2.6.13 kernel tree, ip_set.c is
+> >   updated accordingly (Cardoso Didier, Samir Bellabes)
+> 
+> This patch doesn't seem to be in svn or in the snapshot tarball linked from your site.
+> 
+> CC [M]  net/ipv4/netfilter/ip_set.o
+> net/ipv4/netfilter/ip_set.c:35: warning: type defaults to ???int??? in declaration of ???DECLARE_RWLOCK???
+> net/ipv4/netfilter/ip_set.c:35: warning: parameter names (without types) in function declaration
+> net/ipv4/netfilter/ip_set.c: In function ???ip_set_find_in_hash???:
+> net/ipv4/netfilter/ip_set.c:86: warning: implicit declaration of function ???MUST_BE_READ_LOCKED???
+> net/ipv4/netfilter/ip_set.c:86: error: ???ip_set_lock??? undeclared (first use in this function)
+> net/ipv4/netfilter/ip_set.c:86: error: (Each undeclared identifier is reported only once
+> net/ipv4/netfilter/ip_set.c:86: error: for each function it appears in.)
+> net/ipv4/netfilter/ip_set.c: In function ???__set_hash_del???:
+> net/ipv4/netfilter/ip_set.c:103: warning: implicit declaration of function ???MUST_BE_WRITE_LOCKED???
+> net/ipv4/netfilter/ip_set.c:103: error: ???ip_set_lock??? undeclared (first use in this function)
+> net/ipv4/netfilter/ip_set.c: In function ???ip_set_hash_del???:
+> net/ipv4/netfilter/ip_set.c:120: warning: implicit declaration of function ???WRITE_LOCK???
+> net/ipv4/netfilter/ip_set.c:120: error: ???ip_set_lock??? undeclared (first use in this function)
+> net/ipv4/netfilter/ip_set.c:129: warning: implicit declaration of function ???WRITE_UNLOCK???
+> net/ipv4/netfilter/ip_set.c: In function ???ip_set_hash_add???:
