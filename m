@@ -1,17 +1,14 @@
-From: Samir Bellabes <sbellabes@mandriva.com>
-Subject: Re: [2.6.13] u32 fix.
-Date: Fri, 16 Sep 2005 16:14:00 +0200
-Message-ID: <m2hdclcd7b.fsf@cerbere.dyndns.info>
-References: <200509161548.38464.pluto@agmk.net>
+From: scarab@echostar.pl
+Subject: NF_IP_PRE_ROUTING?
+Date: Fri, 16 Sep 2005 21:45:35 +0200
+Message-ID: <200509162145.35698.scarab@echostar.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?iso-8859-2?Q?Pawe=B3?= Sikora <pluto@agmk.net>
-In-Reply-To: <200509161548.38464.pluto@agmk.net> (=?iso-8859-2?Q?Pawe=B3?=
-	Sikora's message of "Fri, 16 Sep 2005 15:48:38 +0200")
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,17 +20,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pawe=B3 Sikora <pluto@agmk.net> writes:
+Hi
+I wrote simple linux firewall (nf_hook based). Below  is part of that code:
+------------
+static struct nf_hook_ops       lpf_nfh;
 
-> Hi,
->
-> Could someone check and commit this lockhelp-fix?
-Hi,
-it should be ok, as it's the same patch discussed here:
-http://lists.netfilter.org/pipermail/netfilter-devel/2005-August/021158.html
+lpf_nfh.hook = lpf_hook_fn; 
+lpf_nfh.hooknum = NF_IP_PRE_ROUTING; 
+lpf_nfh.pf = PF_INET;  
+lpf_nfh.priority = NF_IP_PRI_FIRST; 
 
-Yours is better as it's against the svn tree, the mine is against a
-kernel tree.
+nf_register_hook(&lpf_nfh); 
+--------------
+ 
+I have question. It should get only incoming packets so why it takes outgoing 
+to? If i will use  NF_IP_POST_ROUTING [4] then it should get outgoing packets 
+right? I found that diagram in "Linux netfilter hacking howto":
 
-regards,
-Samir Bellabes
+--->[1]--->[ROUTE]--->[3]--->[4]--->
+                          |                   ^
+                          |                    |
+                          |              [ROUTE]
+                          v                    |
+                         [2]                [5]
+                          |                   ^
+                          |                    |
+                          v                    |
+
+Can anyone tell me why it works that way?
+Thank you
+
+PS. Sorry for my poor english
