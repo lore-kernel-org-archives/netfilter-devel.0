@@ -1,19 +1,13 @@
-From: Nuutti Kotivuori <naked@iki.fi>
-Subject: Re: netfilter QUEUE target and packet socket interactions buggy or
-	not
-Date: Fri, 16 Sep 2005 16:38:16 +0300
-Message-ID: <871x3p875j.fsf@aka.i.naked.iki.fi>
-References: <87fysa9bqt.fsf@aka.i.naked.iki.fi>
-	<20050912.151120.104514011.davem@davemloft.net>
-	<87br2xap9o.fsf@aka.i.naked.iki.fi>
-	<877jdl9r1u.fsf@aka.i.naked.iki.fi> <4326FF69.9060004@trash.net>
+From: =?utf-8?q?Pawe=C5=82_Sikora?= <pluto@agmk.net>
+Subject: [2.6.13] u32 fix.
+Date: Fri, 16 Sep 2005 15:48:38 +0200
+Message-ID: <200509161548.38464.pluto@agmk.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_20sKDf1cDsjF86X"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4326FF69.9060004@trash.net> (Patrick McHardy's message of "Tue,
-	13 Sep 2005 18:33:45 +0200")
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,34 +19,86 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Just to reiterate, I still haven't been able to reproduce this on the
-mainline kernel, only with RHEL 4 kernels. So if you want to skip
-this, that's fine.
+--Boundary-00=_20sKDf1cDsjF86X
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Patrick McHardy wrote:
-> Nuutti Kotivuori wrote:
->>
->> Appended here is a backtrace with the tg3 driver. Also, it seems that
->> the bug cannot be reproduced with uniprocessor, only SMP.
->>
->> Unable to handle kernel NULL pointer dereference at virtual address 00000018
->
-> This means inode->i_security was NULL. AFAICT it is only set to NULL in
-> inode_free_security() when the inode is freed. This shouldn't happen
-> while the packet is queued since the skb should hold a reference to
-> the socket on the output path. So it could be some protocol forgetting
-> to increase the refcnt when taking a reference. What kind of packet
-> is this? And what kernel version are you running? Until recently
-> ip_conntrack did some fiddling with skb->sk which could lead to
-> a packet on the output path with skb->sk set but no reference taken.
+Hi,
 
-I finally managed to add enough debug dumps to find out what packet it
-is. It is a TCP FIN,ACK packet, going outwards, originating from the
-machine which crashes. It seems that the TCP FIN,ACK packet get sent
-outwards, is caught by the QUEUE target in netfilter, goes to
-userspace, comes back, continues onwards, gets rejected by the filter
-rule in packet socket and then hits the selinux outbound handler and
-at that point, the socket has been freed, so it crashes. Atleast this
-is my understanding at the moment. This all is very confusing, though.
+Could someone check and commit this lockhelp-fix?
 
--- Naked
+Regards,
+Pawe=C5=82.
+
+--=20
+The only thing necessary for the triumph of evil
+  is for good men to do nothing.
+                                           - Edmund Burke
+
+--Boundary-00=_20sKDf1cDsjF86X
+Content-Type: text/x-diff;
+  charset="utf-8";
+  name="u32-2.6.13.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename="u32-2.6.13.patch"
+
+Index: patchlets/u32/linux-2.6/net/ipv4/netfilter/ipt_u32.c
+===================================================================
+--- patchlets/u32/linux-2.6/net/ipv4/netfilter/ipt_u32.c	(revision 4262)
++++ patchlets/u32/linux-2.6/net/ipv4/netfilter/ipt_u32.c	(working copy)
+@@ -105,7 +105,6 @@
+ 
+ #include <linux/netfilter_ipv4/ipt_u32.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+-#include <linux/netfilter_ipv4/lockhelp.h>
+ 
+ /* #include <asm-i386/timex.h> for timing */
+ 
+@@ -115,7 +114,7 @@
+ 
+ /* This is slow, but it's simple. --RR */
+ static char u32_buffer[65536];
+-static DECLARE_LOCK(u32_lock);
++static DEFINE_SPINLOCK(u32_lock);
+ 
+ static int
+ match(const struct sk_buff *skb,
+@@ -136,7 +135,7 @@
+ 
+ 	u_int32_t AttPos;
+ 
+-	LOCK_BH(&u32_lock);
++	spin_lock_bh(&u32_lock);
+ 
+ 	head = skb_header_pointer(skb, 0, skb->len, u32_buffer);
+ 	BUG_ON(head == NULL);
+@@ -148,7 +147,7 @@
+ 	        AttPos = 0;
+ 		pos = data->tests[testind].location[0].number;
+ 		if (AttPos + pos + 3 > skb->len || AttPos + pos < 0){
+-			UNLOCK_BH(&u32_lock);
++			spin_unlock_bh(&u32_lock);
+ 			return 0;
+ 		}
+ 		val = (base[pos]<<24) + (base[pos+1]<<16) +
+@@ -190,13 +189,13 @@
+ 			/* cycles2 = get_cycles(); 
+ 			   printk("failed %d in %d cycles\n", testind, 
+ 				  cycles2-cycles1); */
+-			UNLOCK_BH(&u32_lock);
++			spin_unlock_bh(&u32_lock);
+ 			return 0;
+ 		}
+ 	}
+ 	/* cycles2 = get_cycles();
+ 	   printk("succeeded in %d cycles\n", cycles2-cycles1); */
+-	UNLOCK_BH(&u32_lock);
++	spin_unlock_bh(&u32_lock);
+ 	return 1;
+ }
+ 
+
+--Boundary-00=_20sKDf1cDsjF86X--
