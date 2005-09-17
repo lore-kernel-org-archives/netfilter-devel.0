@@ -1,44 +1,116 @@
-From: Bernardo Innocenti <bernie@develer.com>
-Subject: Intermittent NAT failure when multiple hosts send UDP packets
-Date: Sat, 17 Sep 2005 05:01:22 +0200
-Message-ID: <432B8702.3060801@develer.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: [HELP] netfilter Kconfig dependency nightmare
+Date: Sat, 17 Sep 2005 10:07:14 +0200
+Message-ID: <20050917080714.GV8413@sunbeam.de.gnumonks.org>
+References: <20050916021451.3012196c.akpm@osdl.org>
+	<20050916191959.GN8413@sunbeam.de.gnumonks.org>
+	<39e6f6c705091617514457eded@mail.gmail.com>
+	<20050917012315.GA29841@mandriva.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750836AbVIQDBb@vger.kernel.org>
-To: lkml <linux-kernel@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wnJX2LVqXtdJquW1"
+Cc: Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
+Content-Disposition: inline
+In-Reply-To: <20050917012315.GA29841@mandriva.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This smells like a bug in UDP ip_nat_proto_udp.c or nearby.
-I'm seeing this on 2.6.12-1.1447_FC4, but code in 2.6.13 is
-still the same.
 
-I've setup SNAT the usual way:
+--wnJX2LVqXtdJquW1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
- iptables -A POSTROUTING -t nat -o ppp0 -j SNAT --to-source 151.38.19.110
+On Fri, Sep 16, 2005 at 10:23:15PM -0300, Arnaldo Carvalho de Melo wrote:
+> After applying this patch I still get a loop:
+>=20
+> [acme@toy net-2.6]$ make O=3DOUTPUT/oops/ oldconfig | grep Warning
+> Warning! Found recursive dependency: IP_NF_CONNTRACK_NETLINK NETFILTER_NE=
+TLINK IP_NF_CONNTRACK_NETLINK
+> Warning! Found recursive dependency: NETFILTER_NETLINK IP_NF_CONNTRACK_NE=
+TLINK NETFILTER_NETLINK NETFILTER_NETLINK_QUEUE
+>=20
+> This is using latest Dave tree, the one just before master.kernel.org
+> was switched off for moving to Oregon, is there any other patch I should
+> apply?
 
-When multiple clients in the LAN send UDP packets to the same port of
-the same remote host, I see something like this in my /proc/net/ip_conntrack:
+This f!*#$%!#$%ing kconfig dependency is killing me.   We have this
+incredible inter-dependency between various options, and with every new
+feature it's getting more complex.  The main reason being to avoid some
+bits of dead code in case it's not really needed by some other module.
 
- udp      17 170 src=10.3.3.2 dst=194.185.88.60 sport=5060 dport=5060 src=194.185.88.60 dst=151.38.19.110 sport=5060 dport=5060 [ASSURED] use=1
- udp      17 29 src=10.3.3.2 dst=212.97.59.76 sport=5060 dport=5060 [UNREPLIED] src=212.97.59.76 dst=151.38.19.110 sport=5060 dport=5060 use=1
- udp      17 177 src=10.3.3.250 dst=194.185.88.60 sport=5060 dport=5060 src=194.185.88.60 dst=151.38.19.110 sport=5060 dport=1024 [ASSURED] use=1
+I'm starting to wonder whether it's really worth saving those few bytes
+in some configurations at the expense of this complexity.
 
-In the last line, the destination port has been properly remapped from
-5060 to 1024 to distingish between incoming packets.
+Maybe some Kconfig freak can help out. This is the intended dependency
+rules:
 
-However, I see packets going out over ppp0 without the source
-address properly rewritten to 151.38.19.110:
+ip_conntrack =3D=3D CONFIG_IP_NF_CONNTRACK
+nfnetlink =3D=3D CONFIG_NETFILTER_NETLINK
+ip_conntrack_netlink =3D=3D CONFIG_IP_NF_CONNTRACK_NETLINK
 
- 04:38:28.739514 IP 10.3.3.2.5060 > 194.185.88.60.5060: UDP, length 536
+If nfnetlink =3D=3D N, ip_conntrack can be N or M or Y
+If nfnetlink =3D=3D M, ip_conntrack can be N or M
+If nfnetlink =3D=3D Y, ip_conntrack can be Y or M
 
-This doesn't happen when there's just a single host sending to port 5060.
-Sometimes I must restart the interface to trigger this bug.  
+If ip_conntrack =3D=3D N && nfnetlink =3D=3D N, ip_conntrack_netlink must b=
+e N
+If ip_conntrack =3D=3D N && nfnetlink =3D=3D M, ip_conntrack_netlink must b=
+e N
+If ip_conntrack =3D=3D N && nfnetlink =3D=3D Y, ip_conntrack_netlink must b=
+e N
 
+If ip_conntrack =3D=3D M && nfnetlink =3D=3D N, ip_conntrack_netlink must b=
+e N=20
+If ip_conntrack =3D=3D M && nfnetlink =3D=3D M, ip_conntrack_netlink can N =
+or M
+If ip_conntrack =3D=3D M && nfnetlink =3D=3D Y, ip_conntrack_netlink can N =
+or M
 
+if ip_conntrack =3D=3D Y && nfnetlink =3D=3D N, ip_conntrack_netlink must b=
+e N
+if ip_conntrack =3D=3D Y && nfnetlink =3D=3D M, ip_conntrack_netlink can N =
+or M
+if ip_conntrack =3D=3D Y && nfnetlink =3D=3D Y, ip_conntrack_netlink can N,=
+ M or Y
 
--- 
-  // Bernardo Innocenti - Develer S.r.l., R&D dept.
-\X/  http://www.develer.com/
+NETfILTER_NETLINK_QUEUE and NETFILTER_NETLINK_LOG only depend on
+NETFILER_NETLINK and nothing else.
+
+Cheers,
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--wnJX2LVqXtdJquW1
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDK86yXaXGVTD0i/8RAsVxAJ4tQPUzHPaqYb96g59ZK7JfRj3cVACfeBMo
+GYJthiZqOiuSXbGs2ErQq6U=
+=FI3a
+-----END PGP SIGNATURE-----
+
+--wnJX2LVqXtdJquW1--
