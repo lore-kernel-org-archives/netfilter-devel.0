@@ -1,16 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] introduce ipv6_find_hdr to unify similar loops in IPv6
- matches
-Date: Sat, 17 Sep 2005 21:25:02 +0200
-Message-ID: <432C6D8E.9050408@trash.net>
-References: <200509141615.j8EGF9D2005786@toshiba.co.jp>
+Subject: Re: [kernel panic] iptables 1.2.7a + physdev patch
+Date: Sat, 17 Sep 2005 21:33:24 +0200
+Message-ID: <432C6F84.90600@trash.net>
+References: <000001c5baa6$f4bf1c70$aa0ba8c0@l7.com.tw>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=big5
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: 'Netfilter Development Mailinglist' <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200509141615.j8EGF9D2005786@toshiba.co.jp>
+To: Vincent <cs83152@csie.chu.edu.tw>
+In-Reply-To: <000001c5baa6$f4bf1c70$aa0ba8c0@l7.com.tw>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,12 +21,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> Some IPv6 matches have very similar loops to find IPv6 extension header
-> and we can unify them. This patch introduces ipv6_find_hdr() to do it.
-> I just checked that it can find the target headers in the packet which has
-> dst,hbh,rt,frag,ah,esp headers.
+Vincent wrote:
+> Hello folks,
+> 
+> I have experiencend a kernel panic with iptables. Does anyone point any
+> hints for me?
+> Thanks in advance.
+> 
+> My Enviroment:
+> Linux Kernel : 2.6.10
+> Iptables: 1.2.7a
+> 
+> PS. I port the physdev patch from 1.2.9 back to 1.2.7a. Will this action
+> cause kernel panic?
 
-This patch looks great, applied. It looks like we could also replace
-the code in ip6_packet_match, the special treatment of IPPROTO_ESP
-doesn't look right anyway.
+No, it shouldn't.
+
+> Oops: 0000 [#1]
+> SMP
+> CPU:    0
+> EIP:    0060:[<c025a966>]    Not tainted VLI
+> EFLAGS: 00010246   (2.6.10)
+> EIP is at target+0x24d/0x2ce
+
+Unfortunately half the iptables targets use this name, so its hard to
+tell which one it is. If this crash is reproducable you can find out
+which module the function belongs to by comparing EIP with the output
+of cat /proc/modules.
