@@ -1,12 +1,17 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] resend: Refuse multiple --to args in [DS]NAT
-Date: Sun, 18 Sep 2005 10:13:23 -0700
-Message-ID: <20050918171323.GB19936@linuxace.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [NETFILTER 8/8]: pptp helper: missing expectation flags
+	initialisation
+Date: Sat, 17 Sep 2005 12:56:16 +0200
+Message-ID: <20050917105616.GA16179@rama.de.gnumonks.org>
+References: <4329F96B.1010306@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="jho1yZJdad60DJr+"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="y0ulUmNC+osPPQO6"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
+In-Reply-To: <4329F96B.1010306@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,135 +24,38 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---jho1yZJdad60DJr+
+--y0ulUmNC+osPPQO6
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Didn't receive any feedback on the below.  If I don't hear anything,
-I'll assume no interest and drop it.
+On Fri, Sep 16, 2005 at 12:44:59AM +0200, Patrick McHardy wrote:
 
-***
+> [NETFILTER]: pptp helper: missing expectation flags initialisation
 
-Kernels higher than 2.6.10 don't support multiple --to arguments in
-DNAT and SNAT targets.  At present, the error is somewhat vague:
+thanks, all your patches applied to netfilte-2.6.14 git tree.  I'll do
+some testing this afternoon, and then hopefully submit to Davem
 
-# iptables -t nat -A foo -j SNAT --to 1.2.3.4 --to 2.3.4.5
-iptables: Invalid argument
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-But if we want current iptables to work with kernels <= 2.6.10, we
-cannot simply disallow this in all cases.
+--y0ulUmNC+osPPQO6
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-So the below patch adds kernel version checking to iptables, and
-utilizes it in [DS]NAT.  Now, users will see a more informative error:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
-# iptables -t nat -A foo -j SNAT --to 1.2.3.4 --to 2.3.4.5
-iptables v1.3.3: Multiple --to-source not supported
+iD8DBQFDK/ZQXaXGVTD0i/8RAo2VAJsHLcpAVlNA2gAUQMkdS8snnKlZhQCePgXT
+BWcXRSdGdRo6bgbXBtJEILA=
+=gKRv
+-----END PGP SIGNATURE-----
 
-This generic infrastructure (shamelessly lifted from procps btw) may
-come in handy in the future for other changes.
-
-This fixes bugzilla #367.
-
-Phil
-
-
-
---jho1yZJdad60DJr+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-multiple_to
-
-diff -ru ipt-orig/extensions/libipt_DNAT.c ipt-new/extensions/libipt_DNAT.c
---- ipt-orig/extensions/libipt_DNAT.c	2005-07-22 05:13:50.000000000 -0700
-+++ ipt-new/extensions/libipt_DNAT.c	2005-09-04 10:46:28.000000000 -0700
-@@ -155,6 +155,13 @@
- 			exit_error(PARAMETER_PROBLEM,
- 				   "Unexpected `!' after --to-destination");
- 
-+		if (*flags) {
-+			if (!kernel_version)
-+				get_kernel_version();
-+			if (kernel_version > LINUX_VERSION(2, 6, 10))
-+				exit_error(PARAMETER_PROBLEM,
-+					   "Multiple --to-destination not supported");
-+		}
- 		*target = parse_to(optarg, portok, info);
- 		*flags = 1;
- 		return 1;
-diff -ru ipt-orig/extensions/libipt_SNAT.c ipt-new/extensions/libipt_SNAT.c
---- ipt-orig/extensions/libipt_SNAT.c	2005-07-22 05:13:50.000000000 -0700
-+++ ipt-new/extensions/libipt_SNAT.c	2005-09-04 12:28:07.000000000 -0700
-@@ -155,6 +155,13 @@
- 			exit_error(PARAMETER_PROBLEM,
- 				   "Unexpected `!' after --to-source");
- 
-+		if (*flags) {
-+			if (!kernel_version)
-+				get_kernel_version();
-+			if (kernel_version > LINUX_VERSION(2, 6, 10))
-+				exit_error(PARAMETER_PROBLEM,
-+					   "Multiple --to-source not supported");
-+		}
- 		*target = parse_to(optarg, portok, info);
- 		*flags = 1;
- 		return 1;
-diff -ru ipt-orig/include/iptables.h ipt-new/include/iptables.h
---- ipt-orig/include/iptables.h	2005-07-04 15:11:28.000000000 -0700
-+++ ipt-new/include/iptables.h	2005-09-04 10:31:43.000000000 -0700
-@@ -175,4 +175,13 @@
- 			iptc_handle_t *handle);
- extern int for_each_chain(int (*fn)(const ipt_chainlabel, int, iptc_handle_t *),
- 		int verbose, int builtinstoo, iptc_handle_t *handle);
-+
-+/* kernel revision handling */
-+extern int kernel_version;
-+extern void get_kernel_version(void);
-+#define LINUX_VERSION(x,y,z)	(0x10000*(x) + 0x100*(y) + z)
-+#define LINUX_VERSION_MAJOR(x)	(((x)>>16) & 0xFF)
-+#define LINUX_VERSION_MINOR(x)	(((x)>> 8) & 0xFF)
-+#define LINUX_VERSION_PATCH(x)	( (x)      & 0xFF)
-+
- #endif /*_IPTABLES_USER_H*/
-diff -ru ipt-orig/iptables.c ipt-new/iptables.c
---- ipt-orig/iptables.c	2005-07-29 06:06:45.000000000 -0700
-+++ ipt-new/iptables.c	2005-09-04 10:38:19.000000000 -0700
-@@ -39,6 +39,7 @@
- #include <iptables.h>
- #include <fcntl.h>
- #include <sys/wait.h>
-+#include <sys/utsname.h>
- 
- #ifndef TRUE
- #define TRUE 1
-@@ -193,6 +194,8 @@
- const char *program_name;
- char *lib_dir;
- 
-+int kernel_version;
-+
- /* Keeping track of external matches and targets: linked lists.  */
- struct iptables_match *iptables_matches = NULL;
- struct iptables_target *iptables_targets = NULL;
-@@ -1804,6 +1807,21 @@
- 	name[IPT_FUNCTION_MAXNAMELEN - 1] = revision;
- }
- 
-+void
-+get_kernel_version(void) {
-+	static struct utsname uts;
-+	int x = 0, y = 0, z = 0;
-+
-+	if (uname(&uts) == -1) {
-+		fprintf(stderr, "Unable to retrieve kernel version.\n");
-+		free_opts(1);
-+		exit(1); 
-+	}
-+
-+	sscanf(uts.release, "%d.%d.%d", &x, &y, &z);
-+	kernel_version = LINUX_VERSION(x, y, z);
-+}
-+
- int do_command(int argc, char *argv[], char **table, iptc_handle_t *handle)
- {
- 	struct ipt_entry fw, *e = NULL;
-
---jho1yZJdad60DJr+--
+--y0ulUmNC+osPPQO6--
