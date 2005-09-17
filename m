@@ -1,18 +1,22 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter QUEUE target and packet socket interactions buggy or
- not
-Date: Sat, 17 Sep 2005 19:59:17 +0200
-Message-ID: <432C5975.6060009@trash.net>
-References: <87fysa9bqt.fsf@aka.i.naked.iki.fi>	<20050912.151120.104514011.davem@davemloft.net>	<87br2xap9o.fsf@aka.i.naked.iki.fi>	<877jdl9r1u.fsf@aka.i.naked.iki.fi>
-	<4326FF69.9060004@trash.net>	<873bo8akvk.fsf@aka.i.naked.iki.fi>
-	<87irx396xk.fsf@aka.i.naked.iki.fi>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 3/3] NETFILTER: New PPTP helper
+Date: Sat, 17 Sep 2005 20:33:21 +0200
+Message-ID: <20050917183321.GF8413@sunbeam.de.gnumonks.org>
+References: <20050915145406.GC17121@rama.de.gnumonks.org>
+	<4329F94E.4060107@trash.net>
+	<20050916091548.GO5034@sunbeam.de.gnumonks.org>
+	<20050916.154556.116608678.davem@davemloft.net>
+	<20050916225131.GS8413@sunbeam.de.gnumonks.org>
+	<432C443C.5010101@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NTDLp0XeCpa8ZytR"
+Cc: netfilter-devel@lists.netfilter.org,
+	"David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Nuutti Kotivuori <naked@iki.fi>
-In-Reply-To: <87irx396xk.fsf@aka.i.naked.iki.fi>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <432C443C.5010101@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,41 +28,52 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Nuutti Kotivuori wrote:
-> Nuutti Kotivuori wrote:
-> 
->>Patrick McHardy wrote:
->>
->>>This means inode->i_security was NULL. AFAICT it is only set to NULL in
->>>inode_free_security() when the inode is freed. This shouldn't happen
->>>while the packet is queued since the skb should hold a reference to
->>>the socket on the output path. So it could be some protocol forgetting
->>>to increase the refcnt when taking a reference.
->>
->>Right.
-> 
-> Okay, I said "right" because I did not have time to read the code and
-> really understand what's happening ;-)
-> 
-> Now I did - and I hope I got it right. So what you are saying is that
-> the skb is just fine, but the skb references a socket (skb->sk) and
-> that socket has been freed, even though the skb still lives? And
-> because of that, SOCK_INODE(skb->sk->sk_socket)->i_security is NULL,
-> so accessing sclass from there causes the kernel panic?
 
-Yes.
+--NTDLp0XeCpa8ZytR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> If that is correct, then I guess I could add a test to see if
-> i_security member is NULL - and if so, print out a hexdump of the
-> packet. Or even, as a really hackish workaround, just return NF_ACCEPT
-> if that's the case (selinux isn't really needed here, just enabled by
-> default).
-> 
-> But also, if it is that particular spot that causes this exact crash -
-> the problem should go away if selinux is disabled, even though the bug
-> still exists (socket being freed before skb stops referencing it).
-> 
-> Just brainstorming here, so people can point out flaws in my thinking
-> if they happen to stumble on such. I will investigate further.
+On Sat, Sep 17, 2005 at 06:28:44PM +0200, Patrick McHardy wrote:
+> So maybe a heads-up one or two days before submission would help.=20
 
-It will probably cause problems in other places as well.
+ok, I'll try that.
+
+> Anyway, I was just writing a mail including some more suggestions when
+> Dave applied the patch. I'll go over the patch again later and send
+> you my remaining suggestions.
+
+Ok, in case you're interested in the latest code (confirmed to work in
+my testcases) including all 8 of your patches, please check my
+netfilter-2.6.14 tree (loacal "pptp" branch) on people.netfilter.org.
+
+I'll wait for your remaining suggestions and only submit to davem after
+that.
+
+I've noticed that Dave's tree already contains my original pptp patch.
+Dave: Do you want me to submit one big incremental patch to your tree,
+or rather a patch against current torvalds/linux-2.6.git ?
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--NTDLp0XeCpa8ZytR
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDLGFxXaXGVTD0i/8RAnLWAJ9EJi9mtPKkhDcU5n5wx6gkyqQurACffd/V
+VLmmky1L4jLDUBm/vka/4r8=
+=cvG/
+-----END PGP SIGNATURE-----
+
+--NTDLp0XeCpa8ZytR--
