@@ -1,24 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [HELP] netfilter Kconfig dependency nightmare
-Date: Sat, 17 Sep 2005 13:29:49 +0200
-Message-ID: <20050917112949.GZ8413@sunbeam.de.gnumonks.org>
-References: <20050916021451.3012196c.akpm@osdl.org>
-	<20050916191959.GN8413@sunbeam.de.gnumonks.org>
-	<39e6f6c705091617514457eded@mail.gmail.com>
-	<20050917012315.GA29841@mandriva.com>
-	<20050917080714.GV8413@sunbeam.de.gnumonks.org>
-	<Pine.LNX.4.61.0509171306290.3743@scrub.home>
+From: =?utf-8?q?Pawe=C5=82_Sikora?= <pluto@agmk.net>
+Subject: ip{,6}t_random / fix build warnings.
+Date: Sat, 17 Sep 2005 13:30:59 +0200
+Message-ID: <200509171330.59410.pluto@agmk.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/0ZNML3L+nUf91nU"
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>,
-	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_z5/KDFZtUN33QOm"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Roman Zippel <zippel@linux-m68k.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0509171306290.3743@scrub.home>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,81 +18,80 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---/0ZNML3L+nUf91nU
-Content-Type: text/plain; charset=us-ascii
+--Boundary-00=_z5/KDFZtUN33QOm
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Sep 17, 2005 at 01:08:58PM +0200, Roman Zippel wrote:
-> Hi,
+Hi,
 
-Hi Roman, thanks for your reply.
+Attached patch fixes gcc warnings:
 
-> On Sat, 17 Sep 2005, Harald Welte wrote:
->=20
-> > ip_conntrack =3D=3D CONFIG_IP_NF_CONNTRACK
-> > nfnetlink =3D=3D CONFIG_NETFILTER_NETLINK
-> > ip_conntrack_netlink =3D=3D CONFIG_IP_NF_CONNTRACK_NETLINK
-> >=20
-> > If nfnetlink =3D=3D N, ip_conntrack can be N or M or Y
-> > If nfnetlink =3D=3D M, ip_conntrack can be N or M
-> > If nfnetlink =3D=3D Y, ip_conntrack can be Y or M
->=20
-> Where is the requirement for the last one coming from?
+(...)
+net/ipv4/netfilter/ipt_random.c: In function `ipt_rand_checkentry':
+net/ipv4/netfilter/ipt_random.c:55: warning: unsigned int format,
+                                    different type arg (arg 3)
 
-sorry.  The last one should be N,M or Y.
+net/ipv6/netfilter/ip6t_random.c: In function `ip6t_rand_checkentry':
+net/ipv6/netfilter/ip6t_random.c:58: warning: unsigned int format,
+                                     different type arg (arg 3)
 
-The fundamental underlying problem is:
+net/ipv6/netfilter/ip6t_random.c: At top level:
+net/ipv6/netfilter/ip6t_random.c:76: warning: initialization
+                                     from incompatible pointer type
 
-If CONFIG_IP_NF_CONNTRACK_NETLINK is selected (M or Y), then
-CONFIG_IP_NF_CONNTRACK conditionally adds some code that references
-symbols from nfnetlink.ko (CONFIG_NETFILTER_NETLINK)
-
-So basically, enabling CONFIG_IP_NF_CONNTRACK_NETLINK creates a dependency
-=66rom CONFIG_IP_NF_CONNTRACK to CONFIG_NETFILTER_NETLINK.  AFAIK, the synt=
-ax
-doesn't allow somthing like=20
-
-tristate IP_NF_CONNTRACK
-	depends on NETFILTER_NETLINK if IP_NF_CONNTRACK_NETLINK!=3Dn
-
-So, if ip_conntrack_netlink =3D=3D M (or Y), and ip_conntrack =3D=3D Y, then
-nfnetlink has to be set to Y (but cannot be a module).
-
-Is there something that resembles=20
-
-And no, I do not see any chance to solve the problem in the code,
-without either
-1) adding yet another new module that only contains some 1kB of code and
-   that requires additional EXPORT_SYMBOLS() on private data from
-   ip_conntrack
-or
-2) adding dead code to ip_conntrack.ko that isn't used in many common
-   configurations
-
-:(
+Regards,
+Pawe=C5=82.
 
 --=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+The only thing necessary for the triumph of evil
+  is for good men to do nothing.
+                                           - Edmund Burke
 
---/0ZNML3L+nUf91nU
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+--Boundary-00=_z5/KDFZtUN33QOm
+Content-Type: text/x-diff;
+  charset="utf-8";
+  name="random.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename="random.diff"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+Index: patchlets/random/linux-2.6/net/ipv4/netfilter/ipt_random.c
+===================================================================
+--- patchlets/random/linux-2.6/net/ipv4/netfilter/ipt_random.c	(revision 4262)
++++ patchlets/random/linux-2.6/net/ipv4/netfilter/ipt_random.c	(working copy)
+@@ -52,7 +52,7 @@
+ 
+ 	if (matchsize != IPT_ALIGN(sizeof(struct ipt_rand_info))) {
+ 		printk("ipt_random: matchsize %u != %u\n", matchsize,
+-		       IPT_ALIGN(sizeof(struct ipt_rand_info)));
++		       (unsigned)IPT_ALIGN(sizeof(struct ipt_rand_info)));
+ 		return 0;
+ 	}
+ 
+Index: patchlets/random/linux-2.6/net/ipv6/netfilter/ip6t_random.c
+===================================================================
+--- patchlets/random/linux-2.6/net/ipv6/netfilter/ip6t_random.c	(revision 4262)
++++ patchlets/random/linux-2.6/net/ipv6/netfilter/ip6t_random.c	(working copy)
+@@ -25,8 +25,7 @@
+ 	       const struct net_device *out,
+ 	       const void *matchinfo,
+ 	       int offset,
+-	       const void *hdr,
+-	       u_int16_t datalen,
++	       unsigned int protoff,
+ 	       int *hotdrop)
+ {
+ 	/* Parameters from userspace */
+@@ -55,7 +54,7 @@
+ 
+ 	if (matchsize != IP6T_ALIGN(sizeof(struct ip6t_rand_info))) {
+ 		printk("ip6t_random: matchsize %u != %u\n", matchsize,
+-		       IP6T_ALIGN(sizeof(struct ip6t_rand_info)));
++		       (unsigned)IP6T_ALIGN(sizeof(struct ip6t_rand_info)));
+ 		return 0;
+ 	}
+ 
 
-iD8DBQFDK/4tXaXGVTD0i/8RAlKwAJ0aIi1YXZxxiEmFNYT0A+iVoTuu7QCgsyKJ
-VgF9YhdXvqk+WH2ydr8qNIo=
-=x6fY
------END PGP SIGNATURE-----
-
---/0ZNML3L+nUf91nU--
+--Boundary-00=_z5/KDFZtUN33QOm--
