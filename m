@@ -1,16 +1,20 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 1/2] netfilter Kconfig dependency fix
-Date: Sat, 17 Sep 2005 18:16:40 +0200
-Message-ID: <20050917161639.GB8413@sunbeam.de.gnumonks.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 3/3] NETFILTER: New PPTP helper
+Date: Sat, 17 Sep 2005 18:28:44 +0200
+Message-ID: <432C443C.5010101@trash.net>
+References: <20050915145406.GC17121@rama.de.gnumonks.org>
+	<4329F94E.4060107@trash.net>
+	<20050916091548.GO5034@sunbeam.de.gnumonks.org>
+	<20050916.154556.116608678.davem@davemloft.net>
+	<20050916225131.GS8413@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zinZTyJ7Pquq9iCB"
-Cc: Arnaldo Carvalho de Melo <acme@conectiva.com.br>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org,
+	"David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David Miller <davem@davemloft.net>
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050916225131.GS8413@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,74 +26,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
+> On Fri, Sep 16, 2005 at 03:45:56PM -0700, David S. Miller wrote:
+> 
+>>Why don't you guys work together to integrate all of the fixes, and
+>>then resubmit PPTP as one changeset with all the bug fixes already
+>>applied?  I think that would work best and prevent changeset bloat.
+> 
+> yes, ideally that would be the way for it to happen.  Unfortuantely the
+> PPTP helper has been around for many years (patch-o-matic-ng, latest
+> version in my git tree, ...) and it apparently still didn't receive the
+> kind of review it required.
 
---zinZTyJ7Pquq9iCB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi Dave, please apply.
-
-
-[NETFILTER] Solve Kconfig dependency problem
-
-As suggested by Roman Zippel.
-
-Signed-off-by: Harald Welte <laforge@netfilter.org>
-
----
-commit 95ef9808bc0702757a40886aed48a6fc03aee47b
-tree 03b0cca73e6c7f686702c52291e9eb786bb8f02a
-parent 1d21ab174ffeba8e709966dc60e57524553adb84
-author Harald Welte <laforge@netfilter.org> Sa, 17 Sep 2005 17:22:53 +0200
-committer Harald Welte <laforge@netfilter.org> Sa, 17 Sep 2005 17:22:53 +02=
-00
-
- net/ipv4/netfilter/Kconfig |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
-
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -8,7 +8,6 @@ menu "IP: Netfilter Configuration"
- # connection tracking, helpers and protocols
- config IP_NF_CONNTRACK
- 	tristate "Connection tracking (required for masq/NAT)"
--	select NETFILTER_NETLINK if IP_NF_CONNTRACK_NETLINK!=3Dn
- 	---help---
- 	  Connection tracking keeps a record of what packets have passed
- 	  through your machine, in order to figure out how they are related
-@@ -55,8 +54,7 @@ config IP_NF_CONNTRACK_EVENTS
- config IP_NF_CONNTRACK_NETLINK
-         tristate 'Connection tracking netlink interface'
-         depends on IP_NF_CONNTRACK && NETFILTER_NETLINK
--	default IP_NF_CONNTRACK if NETFILTER_NETLINK=3Dy
--	default m if NETFILTER_NETLINK=3Dm
-+	depends on IP_NF_CONNTRACK!=3Dy || NETFILTER_NETLINK!=3Dm
-         help
-           This option enables support for a netlink-based userspace interf=
-ace
-=20
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---zinZTyJ7Pquq9iCB
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFDLEFnXaXGVTD0i/8RAtrRAKCalMomelUaFUukVqlcwU4JgCZHmwCfR231
-ltS/fAW/LSDPpR89yNqWlac=
-=XaIG
------END PGP SIGNATURE-----
-
---zinZTyJ7Pquq9iCB--
+The thing with patch-o-matic is that it includes tons of crap and you
+never know if it includes the latest version of something, so I focus
+on things submitted to the kernel. So maybe a heads-up one or two days
+before submission would help. Anyway, I was just writing a mail
+including some more suggestions when Dave applied the patch. I'll
+go over the patch again later and send you my remaining suggestions.
