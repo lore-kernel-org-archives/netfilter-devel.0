@@ -1,15 +1,17 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: ip{,6}t_random / fix build warnings.
-Date: Sat, 17 Sep 2005 23:15:27 -0700 (PDT)
-Message-ID: <20050917.231527.36915714.davem@davemloft.net>
-References: <200509171330.59410.pluto@agmk.net>
+Subject: Re: [PATCH 3/3] NETFILTER: New PPTP helper
+Date: Sat, 17 Sep 2005 23:46:59 -0700 (PDT)
+Message-ID: <20050917.234659.93303900.davem@davemloft.net>
+References: <20050916225131.GS8413@sunbeam.de.gnumonks.org>
+	<432C443C.5010101@trash.net>
+	<20050917183321.GF8413@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-2022-jp-2
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: pluto@agmk.net
-In-Reply-To: <200509171330.59410.pluto@agmk.net>
+To: laforge@netfilter.org
+In-Reply-To: <20050917183321.GF8413@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,12 +23,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pawe$,1 b(B Sikora <pluto@agmk.net>
-Date: Sat, 17 Sep 2005 13:30:59 +0200
+From: Harald Welte <laforge@netfilter.org>
+Date: Sat, 17 Sep 2005 20:33:21 +0200
 
-> Attached patch fixes gcc warnings:
-> 
+> I've noticed that Dave's tree already contains my original pptp patch.
+> Dave: Do you want me to submit one big incremental patch to your tree,
+> or rather a patch against current torvalds/linux-2.6.git ?
 
-Don't cast the value, use the correct "%Zu" and "%Zd"
-size_t printf format strings instead as that's what the
-compiler is warning about.
+Please recheck my tree, I rebased and didn't put it back in.
+So you should be able to just create a clean "add pptp" diff
+against that tree.
+
+Thanks a lot.
