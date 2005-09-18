@@ -1,20 +1,24 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: netfilter QUEUE target and packet socket interactions buggy or
-	not
-Date: Sun, 18 Sep 2005 09:41:35 +0200
-Message-ID: <1127029295.5493.32.camel@localhost.localdomain>
-References: <87fysa9bqt.fsf@aka.i.naked.iki.fi>
-	<20050912.151120.104514011.davem@davemloft.net>
-	<87br2xap9o.fsf@aka.i.naked.iki.fi> <877jdl9r1u.fsf@aka.i.naked.iki.fi>
-	<4326FF69.9060004@trash.net>  <871x3p875j.fsf@aka.i.naked.iki.fi>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 3/3] NETFILTER: New PPTP helper
+Date: Sun, 18 Sep 2005 11:14:22 +0200
+Message-ID: <20050918091422.GH8413@sunbeam.de.gnumonks.org>
+References: <20050915145406.GC17121@rama.de.gnumonks.org>
+	<4329F94E.4060107@trash.net>
+	<20050916091548.GO5034@sunbeam.de.gnumonks.org>
+	<20050916.154556.116608678.davem@davemloft.net>
+	<20050916225131.GS8413@sunbeam.de.gnumonks.org>
+	<432C443C.5010101@trash.net>
+	<20050917183321.GF8413@sunbeam.de.gnumonks.org>
+	<432C6910.80905@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ApAmD002LHtYGJ+H"
+Cc: netfilter-devel@lists.netfilter.org,
+	"David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Nuutti Kotivuori <naked@iki.fi>
-In-Reply-To: <871x3p875j.fsf@aka.i.naked.iki.fi>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <432C6910.80905@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,47 +30,117 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le vendredi 16 septembre 2005 =E0 16:38 +0300, Nuutti Kotivuori a =E9crit :
-> Just to reiterate, I still haven't been able to reproduce this on the
-> mainline kernel, only with RHEL 4 kernels. So if you want to skip
-> this, that's fine.
 
-It remembers me the problem I had with RHEL4 :
+--ApAmD002LHtYGJ+H
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-https://lists.netfilter.org/pipermail/netfilter-devel/2005-July/020505.html
-
-I did not have to study the problem in detail but it may be helpful for
-your current problem.
-
-BR,
-
+On Sat, Sep 17, 2005 at 09:05:52PM +0200, Patrick McHardy wrote:
+> Harald Welte wrote:
+> >On Sat, Sep 17, 2005 at 06:28:44PM +0200, Patrick McHardy wrote:
+> >>Anyway, I was just writing a mail including some more suggestions when
+> >>Dave applied the patch. I'll go over the patch again later and send
+> >>you my remaining suggestions.
+> >Ok, in case you're interested in the latest code (confirmed to work in
+> >my testcases) including all 8 of your patches, please check my
+> >netfilter-2.6.14 tree (loacal "pptp" branch) on people.netfilter.org.
 >=20
-> Patrick McHardy wrote:
-> > Nuutti Kotivuori wrote:
-> >>
-> >> Appended here is a backtrace with the tg3 driver. Also, it seems that
-> >> the bug cannot be reproduced with uniprocessor, only SMP.
-> >>
-> >> Unable to handle kernel NULL pointer dereference at virtual address 00=
-000018
-> >
-> > This means inode->i_security was NULL. AFAICT it is only set to NULL in
-> > inode_free_security() when the inode is freed. This shouldn't happen
-> > while the packet is queued since the skb should hold a reference to
-> > the socket on the output path. So it could be some protocol forgetting
-> > to increase the refcnt when taking a reference. What kind of packet
-> > is this? And what kernel version are you running? Until recently
-> > ip_conntrack did some fiddling with skb->sk which could lead to
-> > a packet on the output path with skb->sk set but no reference taken.
+> I tried cloning it using cogito, but get this error:
+
+Are you sure you're not running an outdated cogito version?  At least
+via rsync everything seems to work fine here:
+
+cg-clone rsync://people.netfilter.org/users/laforge/scm/netfilter-2.6.14.gi=
+t\#pptp
+defaulting to local storage area
+receiving file list ... done
+pptp
+
+sent 138 bytes  received 150 bytes  192.00 bytes/sec
+total size is 41  speedup is 0.14
+receiving file list ... done
+progress: 7898 objects, 26077547 bytes, 99% done
+progress: 7977 objects, 26276658 bytes, 100% done
+info/
+info/packs
+pack/pack-011d837bd60b7e2544fa0f095ae4ca0d61c3c1ea.idx
+pack/pack-011d837bd60b7e2544fa0f095ae4ca0d61c3c1ea.pack
+pack/pack-be6bf83523a3a82fdff5544390a2dae7788bd0c8.idx
+pack/pack-be6bf83523a3a82fdff5544390a2dae7788bd0c8.pack
+pack/pack-c24bb5025e835a3d8733931ce7cc440f7bfbaaed.idx
+pack/pack-c24bb5025e835a3d8733931ce7cc440f7bfbaaed.pack
+pack/pack-c60dc6f7486e34043bd6861d6b2c0d21756dde76.idx
+pack/pack-c60dc6f7486e34043bd6861d6b2c0d21756dde76.pack
+pack/pack-e3117bbaf6a59cb53c3f6f0d9b17b9433f0e4135.idx
+pack/pack-e3117bbaf6a59cb53c3f6f0d9b17b9433f0e4135.pack
+pack/pack-eceba3479417b338c2e156b1c6dfd69f3f0eaad1.idx
+pack/pack-eceba3479417b338c2e156b1c6dfd69f3f0eaad1.pack
+
+sent 175896 bytes  received 217784838 bytes  232491.45 bytes/sec
+total size is 216999773  speedup is 1.00
+receiving file list ... done
+v2.6.11
+v2.6.11-tree
+v2.6.12
+v2.6.12-rc2
+v2.6.12-rc3
+v2.6.12-rc4
+v2.6.12-rc5
+v2.6.12-rc6
+v2.6.13
+v2.6.13-rc1
+v2.6.13-rc2
+v2.6.13-rc3
+v2.6.13-rc4
+v2.6.13-rc5
+v2.6.13-rc6
+v2.6.13-rc7
+v2.6.14-rc1
+
+sent 486 bytes  received 1765 bytes  1500.67 bytes/sec
+total size is 697  speedup is 0.31
+New branch: 4b2f955c1b41198c0deee48924f3100fa6131b5f
+Cloned to netfilter-2.6.14.git#pptp/ (origin
+rsync://people.netfilter.org/users/laforge/scm/netfilter-2.6.14.git#pptp
+available as branch "origin")
+
+> >I'll wait for your remaining suggestions and only submit to davem after
+> >that.
 >=20
-> I finally managed to add enough debug dumps to find out what packet it
-> is. It is a TCP FIN,ACK packet, going outwards, originating from the
-> machine which crashes. It seems that the TCP FIN,ACK packet get sent
-> outwards, is caught by the QUEUE target in netfilter, goes to
-> userspace, comes back, continues onwards, gets rejected by the filter
-> rule in packet socket and then hits the selinux outbound handler and
-> at that point, the socket has been freed, so it crashes. Atleast this
-> is my understanding at the moment. This all is very confusing, though.
->=20
-> -- Naked
->=20
+> Please see my other mail. I hope I'm not too anoying, but I prefer
+> to do these minor changes before submission because its often not
+> worth the time for sending patches afterwards.
+
+No, you're not annoying at all.  We just need to find a workflow that
+creates as little overhead as possible.  (and yes, I wish I'd come up
+with your fixes/suggestions myself, but that's apparently not going to
+happen).
+
+What about me posting the patches to netfilter-devel first.  Then I'll
+wait for 3 days, and then I'll send them to Davem and cc netdev for
+final submission?
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--ApAmD002LHtYGJ+H
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDLS/uXaXGVTD0i/8RAlduAJ0UTKtRXXgr37juhxYlpNwHjwc77gCeOzAJ
+cjZP0lRh234uAGPFeCmewbQ=
+=Fl0r
+-----END PGP SIGNATURE-----
+
+--ApAmD002LHtYGJ+H--
