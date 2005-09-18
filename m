@@ -1,9 +1,9 @@
 From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] TARPIT cleanups
-Date: Sun, 18 Sep 2005 10:07:15 -0700
-Message-ID: <20050918170715.GA19936@linuxace.com>
+Subject: [PATCH] resend: Refuse multiple --to args in [DS]NAT
+Date: Sun, 18 Sep 2005 10:13:23 -0700
+Message-ID: <20050918171323.GB19936@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="OgqxwSJOaUobr8KG"
+Content-Type: multipart/mixed; boundary="jho1yZJdad60DJr+"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -19,44 +19,135 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---OgqxwSJOaUobr8KG
+--jho1yZJdad60DJr+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-TARPIT target doesn't compile with 2.6.14-rc due to nfcache references,
-and also doesn't compile if CONFIG_SYSCTL is not set.  Below patch
-fixes both, and closes bugzilla #387.
+Didn't receive any feedback on the below.  If I don't hear anything,
+I'll assume no interest and drop it.
+
+***
+
+Kernels higher than 2.6.10 don't support multiple --to arguments in
+DNAT and SNAT targets.  At present, the error is somewhat vague:
+
+# iptables -t nat -A foo -j SNAT --to 1.2.3.4 --to 2.3.4.5
+iptables: Invalid argument
+
+But if we want current iptables to work with kernels <= 2.6.10, we
+cannot simply disallow this in all cases.
+
+So the below patch adds kernel version checking to iptables, and
+utilizes it in [DS]NAT.  Now, users will see a more informative error:
+
+# iptables -t nat -A foo -j SNAT --to 1.2.3.4 --to 2.3.4.5
+iptables v1.3.3: Multiple --to-source not supported
+
+This generic infrastructure (shamelessly lifted from procps btw) may
+come in handy in the future for other changes.
+
+This fixes bugzilla #367.
 
 Phil
 
 
 
---OgqxwSJOaUobr8KG
+--jho1yZJdad60DJr+
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-tarpit
+Content-Disposition: attachment; filename=patch-multiple_to
 
-diff -ru pom-orig/patchlets/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c pom-new/patchlets/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c
---- pom-orig/patchlets/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c	2005-05-17 13:08:12.000000000 -0700
-+++ pom-new/patchlets/TARPIT/linux-2.6/net/ipv4/netfilter/ipt_TARPIT.c	2005-09-18 10:04:35.000000000 -0700
-@@ -121,7 +121,6 @@
- 	/* This packet will not be the same as the other: clear nf fields */
- 	nf_conntrack_put(nskb->nfct);
- 	nskb->nfct = NULL;
--	nskb->nfcache = 0;
- #ifdef CONFIG_NETFILTER_DEBUG
- 	nskb->nf_debug = 0;
- #endif
-@@ -172,7 +171,11 @@
- 						sizeof(struct tcphdr), 0));
+diff -ru ipt-orig/extensions/libipt_DNAT.c ipt-new/extensions/libipt_DNAT.c
+--- ipt-orig/extensions/libipt_DNAT.c	2005-07-22 05:13:50.000000000 -0700
++++ ipt-new/extensions/libipt_DNAT.c	2005-09-04 10:46:28.000000000 -0700
+@@ -155,6 +155,13 @@
+ 			exit_error(PARAMETER_PROBLEM,
+ 				   "Unexpected `!' after --to-destination");
  
- 	/* Adjust IP TTL */
-+#ifdef CONFIG_SYSCTL
- 	nskb->nh.iph->ttl = sysctl_ip_default_ttl;
-+#else
-+	nskb->nh.iph->ttl = IPDEFTTL;
-+#endif
++		if (*flags) {
++			if (!kernel_version)
++				get_kernel_version();
++			if (kernel_version > LINUX_VERSION(2, 6, 10))
++				exit_error(PARAMETER_PROBLEM,
++					   "Multiple --to-destination not supported");
++		}
+ 		*target = parse_to(optarg, portok, info);
+ 		*flags = 1;
+ 		return 1;
+diff -ru ipt-orig/extensions/libipt_SNAT.c ipt-new/extensions/libipt_SNAT.c
+--- ipt-orig/extensions/libipt_SNAT.c	2005-07-22 05:13:50.000000000 -0700
++++ ipt-new/extensions/libipt_SNAT.c	2005-09-04 12:28:07.000000000 -0700
+@@ -155,6 +155,13 @@
+ 			exit_error(PARAMETER_PROBLEM,
+ 				   "Unexpected `!' after --to-source");
  
- 	/* Set DF, id = 0 */
- 	nskb->nh.iph->frag_off = htons(IP_DF);
++		if (*flags) {
++			if (!kernel_version)
++				get_kernel_version();
++			if (kernel_version > LINUX_VERSION(2, 6, 10))
++				exit_error(PARAMETER_PROBLEM,
++					   "Multiple --to-source not supported");
++		}
+ 		*target = parse_to(optarg, portok, info);
+ 		*flags = 1;
+ 		return 1;
+diff -ru ipt-orig/include/iptables.h ipt-new/include/iptables.h
+--- ipt-orig/include/iptables.h	2005-07-04 15:11:28.000000000 -0700
++++ ipt-new/include/iptables.h	2005-09-04 10:31:43.000000000 -0700
+@@ -175,4 +175,13 @@
+ 			iptc_handle_t *handle);
+ extern int for_each_chain(int (*fn)(const ipt_chainlabel, int, iptc_handle_t *),
+ 		int verbose, int builtinstoo, iptc_handle_t *handle);
++
++/* kernel revision handling */
++extern int kernel_version;
++extern void get_kernel_version(void);
++#define LINUX_VERSION(x,y,z)	(0x10000*(x) + 0x100*(y) + z)
++#define LINUX_VERSION_MAJOR(x)	(((x)>>16) & 0xFF)
++#define LINUX_VERSION_MINOR(x)	(((x)>> 8) & 0xFF)
++#define LINUX_VERSION_PATCH(x)	( (x)      & 0xFF)
++
+ #endif /*_IPTABLES_USER_H*/
+diff -ru ipt-orig/iptables.c ipt-new/iptables.c
+--- ipt-orig/iptables.c	2005-07-29 06:06:45.000000000 -0700
++++ ipt-new/iptables.c	2005-09-04 10:38:19.000000000 -0700
+@@ -39,6 +39,7 @@
+ #include <iptables.h>
+ #include <fcntl.h>
+ #include <sys/wait.h>
++#include <sys/utsname.h>
+ 
+ #ifndef TRUE
+ #define TRUE 1
+@@ -193,6 +194,8 @@
+ const char *program_name;
+ char *lib_dir;
+ 
++int kernel_version;
++
+ /* Keeping track of external matches and targets: linked lists.  */
+ struct iptables_match *iptables_matches = NULL;
+ struct iptables_target *iptables_targets = NULL;
+@@ -1804,6 +1807,21 @@
+ 	name[IPT_FUNCTION_MAXNAMELEN - 1] = revision;
+ }
+ 
++void
++get_kernel_version(void) {
++	static struct utsname uts;
++	int x = 0, y = 0, z = 0;
++
++	if (uname(&uts) == -1) {
++		fprintf(stderr, "Unable to retrieve kernel version.\n");
++		free_opts(1);
++		exit(1); 
++	}
++
++	sscanf(uts.release, "%d.%d.%d", &x, &y, &z);
++	kernel_version = LINUX_VERSION(x, y, z);
++}
++
+ int do_command(int argc, char *argv[], char **table, iptc_handle_t *handle)
+ {
+ 	struct ipt_entry fw, *e = NULL;
 
---OgqxwSJOaUobr8KG--
+--jho1yZJdad60DJr+--
