@@ -1,16 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] CLUSTERIP: iptables extension update
-Date: Mon, 19 Sep 2005 16:45:12 +0200
-Message-ID: <20050919144512.GD4600@rama.de.gnumonks.org>
-References: <200508301742.08929@nienna>
+Subject: Re: [PATCH NF_CONNTRACK 0/10] compatibility between {ip,
+	nf}_conntrack
+Date: Mon, 19 Sep 2005 16:27:44 +0200
+Message-ID: <20050919142744.GC4600@rama.de.gnumonks.org>
+References: <200509010913.j819Dfcl004700@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4zI0WCX1RcnW9Hbu"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="5QAgd0e35j3NYeGe"
+Cc: netfilter-devel@lists.netfilter.org, pablo@eurodev.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <200508301742.08929@nienna>
+In-Reply-To: <200509010913.j819Dfcl004700@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,24 +24,29 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---4zI0WCX1RcnW9Hbu
+--5QAgd0e35j3NYeGe
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 30, 2005 at 05:42:08PM +0200, KOVACS Krisztian wrote:
+On Thu, Sep 01, 2005 at 06:13:40PM +0900, Yasuyuki KOZAKAI wrote:
 >=20
->   Hi,
->  =20
->   Some CLUSTERIP iptables extension updates:
+> Hi,
 >=20
->   * specifying random seed for the Jenkins hash works as documented
->   * iptables-save seems to work now
->  =20
->   Harald, could you please review this patch and commit it to SVN if
-> you have no objections?
+> I tried to solve compatibility issue, and these patches are my current
+> solutions. Concepts are:
 
-finally catching up, patch applied.
+thanks, I've applied your patches without modifications.
+
+I think due to the numerous changes in existing header files, we cannot
+safely submit it for 2.6.14 anymore.  However, I plan to submit
+nf_conntrack to the manline tree immediately after 2.6.14 has been
+released, to make sure it gets into 2.6.15-rc1.
+
+Pablo: Are you interested in porting ip_conntrack_netlink to
+nf_conntrack_netlink ?  It would be great if nf_conntrack would support
+it out of the box from the beginning...
+
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -51,16 +57,16 @@ finally catching up, patch applied.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---4zI0WCX1RcnW9Hbu
+--5QAgd0e35j3NYeGe
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDLs74XaXGVTD0i/8RAq7qAKCVe2NMB2Q3AqdgmtVeo4zn3iIMhACgrJ3l
-0R0DAXXsxzmR7LgLC7Y5Lb8=
-=+yKr
+iD8DBQFDLsrgXaXGVTD0i/8RAguxAKCQsYse3+OsGcC4nZZE78YDW15RCACgnJzO
+qQJnZXCFmBmAMTa+HU/UHY4=
+=H/Lz
 -----END PGP SIGNATURE-----
 
---4zI0WCX1RcnW9Hbu--
+--5QAgd0e35j3NYeGe--
