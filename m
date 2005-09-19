@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH NF_CONNTRACK 0/2] minor fixes for nf_conntrack
-Date: Mon, 19 Sep 2005 16:09:19 +0200
-Message-ID: <20050919140919.GA4600@rama.de.gnumonks.org>
-References: <200509010400.j8140Jn6027940@toshiba.co.jp>
+Subject: Re: [PATCH] CLUSTERIP: iptables extension update
+Date: Mon, 19 Sep 2005 16:45:12 +0200
+Message-ID: <20050919144512.GD4600@rama.de.gnumonks.org>
+References: <200508301742.08929@nienna>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rwEMma7ioTxnRzrJ"
+	protocol="application/pgp-signature"; boundary="4zI0WCX1RcnW9Hbu"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: KOVACS Krisztian <hidden@balabit.hu>
 Content-Disposition: inline
-In-Reply-To: <200509010400.j8140Jn6027940@toshiba.co.jp>
+In-Reply-To: <200508301742.08929@nienna>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,25 +23,24 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---rwEMma7ioTxnRzrJ
+--4zI0WCX1RcnW9Hbu
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 01, 2005 at 01:00:18PM +0900, Yasuyuki KOZAKAI wrote:
+On Tue, Aug 30, 2005 at 05:42:08PM +0200, KOVACS Krisztian wrote:
 >=20
-> Hi,
+>   Hi,
+>  =20
+>   Some CLUSTERIP iptables extension updates:
 >=20
-> These patches are minor fixes for nf_conntrack, one is for recent skb tim=
-estamp
-> change, other is for compiling error without IPv6 stack.
+>   * specifying random seed for the Jenkins hash works as documented
+>   * iptables-save seems to work now
+>  =20
+>   Harald, could you please review this patch and commit it to SVN if
+> you have no objections?
 
-thanks, applied your changes.
-
-Please Cc' me on future nf_conntrack fixes, I often don't read
-netfilter-devel very frequently and your patches thus get delayed :(
-
-Thanks!
+finally catching up, patch applied.
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -52,16 +51,16 @@ Thanks!
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---rwEMma7ioTxnRzrJ
+--4zI0WCX1RcnW9Hbu
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDLsaPXaXGVTD0i/8RAiQxAJ9PYWo3OKvppO6C9KtVslaDZwIiXgCeI5tH
-eNV6a8WWGLvP3ptA/1GzUKE=
-=S8D3
+iD8DBQFDLs74XaXGVTD0i/8RAq7qAKCVe2NMB2Q3AqdgmtVeo4zn3iIMhACgrJ3l
+0R0DAXXsxzmR7LgLC7Y5Lb8=
+=+yKr
 -----END PGP SIGNATURE-----
 
---rwEMma7ioTxnRzrJ--
+--4zI0WCX1RcnW9Hbu--
