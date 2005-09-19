@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: ip{,6}t_random / fix build warnings.
-Date: Mon, 19 Sep 2005 17:05:14 +0200
-Message-ID: <20050919150514.GD12075@rama.de.gnumonks.org>
-References: <200509171330.59410.pluto@agmk.net>
+Subject: Re: [PATCH] Another iptables-save buglet
+Date: Mon, 19 Sep 2005 17:09:08 +0200
+Message-ID: <20050919150908.GE12075@rama.de.gnumonks.org>
+References: <200509141509.47686.teastep@shorewall.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BRE3mIcgqKzpedwo"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="wchHw8dVAp53YPj8"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?utf-8?B?UGF3ZcWC?= Sikora <pluto@agmk.net>
+To: Tom Eastep <teastep@shorewall.net>
 Content-Disposition: inline
-In-Reply-To: <200509171330.59410.pluto@agmk.net>
+In-Reply-To: <200509141509.47686.teastep@shorewall.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,17 +23,15 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---BRE3mIcgqKzpedwo
-Content-Type: text/plain; charset=utf-8
+--wchHw8dVAp53YPj8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Sep 17, 2005 at 01:30:59PM +0200, Pawe=C5=82 Sikora wrote:
-> Hi,
->=20
-> Attached patch fixes gcc warnings:
+On Wed, Sep 14, 2005 at 03:09:40PM -0700, Tom Eastep wrote:
+> The conntrack match extension doesn't handle address inversion correctly.
 
-Applied with modifications (use %Zd).
+Thanks, applied.
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -44,16 +42,16 @@ Applied with modifications (use %Zd).
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---BRE3mIcgqKzpedwo
+--wchHw8dVAp53YPj8
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDLtOqXaXGVTD0i/8RAs8BAJ0fo2+O4tIVvyxftwwP4aF1cEPu+QCgnrwv
-3T7oSN62/aEvtbbBee6ewN0=
-=kNTj
+iD8DBQFDLtSUXaXGVTD0i/8RAvFyAJ4iSUmMaGWkWLhypBZqn1Bf6NpSJACeP62b
+E8e7UZW1W5mTMiPN95y/3S0=
+=JE00
 -----END PGP SIGNATURE-----
 
---BRE3mIcgqKzpedwo--
+--wchHw8dVAp53YPj8--
