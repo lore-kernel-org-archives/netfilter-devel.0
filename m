@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Another iptables-save buglet
-Date: Mon, 19 Sep 2005 17:09:08 +0200
-Message-ID: <20050919150908.GE12075@rama.de.gnumonks.org>
-References: <200509141509.47686.teastep@shorewall.net>
+Subject: Re: [PATCH NF_CONNTRACK 0/2] minor fixes for nf_conntrack
+Date: Mon, 19 Sep 2005 16:09:19 +0200
+Message-ID: <20050919140919.GA4600@rama.de.gnumonks.org>
+References: <200509010400.j8140Jn6027940@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wchHw8dVAp53YPj8"
+	protocol="application/pgp-signature"; boundary="rwEMma7ioTxnRzrJ"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tom Eastep <teastep@shorewall.net>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <200509141509.47686.teastep@shorewall.net>
+In-Reply-To: <200509010400.j8140Jn6027940@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,15 +23,25 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---wchHw8dVAp53YPj8
+--rwEMma7ioTxnRzrJ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 14, 2005 at 03:09:40PM -0700, Tom Eastep wrote:
-> The conntrack match extension doesn't handle address inversion correctly.
+On Thu, Sep 01, 2005 at 01:00:18PM +0900, Yasuyuki KOZAKAI wrote:
+>=20
+> Hi,
+>=20
+> These patches are minor fixes for nf_conntrack, one is for recent skb tim=
+estamp
+> change, other is for compiling error without IPv6 stack.
 
-Thanks, applied.
+thanks, applied your changes.
+
+Please Cc' me on future nf_conntrack fixes, I often don't read
+netfilter-devel very frequently and your patches thus get delayed :(
+
+Thanks!
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -42,16 +52,16 @@ Thanks, applied.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---wchHw8dVAp53YPj8
+--rwEMma7ioTxnRzrJ
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDLtSUXaXGVTD0i/8RAvFyAJ4iSUmMaGWkWLhypBZqn1Bf6NpSJACeP62b
-E8e7UZW1W5mTMiPN95y/3S0=
-=JE00
+iD8DBQFDLsaPXaXGVTD0i/8RAiQxAJ9PYWo3OKvppO6C9KtVslaDZwIiXgCeI5tH
+eNV6a8WWGLvP3ptA/1GzUKE=
+=S8D3
 -----END PGP SIGNATURE-----
 
---wchHw8dVAp53YPj8--
+--rwEMma7ioTxnRzrJ--
