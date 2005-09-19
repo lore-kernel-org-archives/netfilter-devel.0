@@ -1,17 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH NF_CONNTRACK 0/10] compatibility between {ip,
-	nf}_conntrack
-Date: Mon, 19 Sep 2005 16:27:44 +0200
-Message-ID: <20050919142744.GC4600@rama.de.gnumonks.org>
-References: <200509010913.j819Dfcl004700@toshiba.co.jp>
+Subject: Re: [PATCH] Refuse multiple --to args in [DS]NAT
+Date: Mon, 19 Sep 2005 16:55:40 +0200
+Message-ID: <20050919145539.GB12075@rama.de.gnumonks.org>
+References: <20050904194042.GA11196@linuxace.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5QAgd0e35j3NYeGe"
-Cc: netfilter-devel@lists.netfilter.org, pablo@eurodev.net
+	protocol="application/pgp-signature"; boundary="pvezYHf7grwyp3Bc"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: Phil Oester <kernel@linuxace.com>
 Content-Disposition: inline
-In-Reply-To: <200509010913.j819Dfcl004700@toshiba.co.jp>
+In-Reply-To: <20050904194042.GA11196@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,29 +23,33 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---5QAgd0e35j3NYeGe
+--pvezYHf7grwyp3Bc
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 01, 2005 at 06:13:40PM +0900, Yasuyuki KOZAKAI wrote:
+On Sun, Sep 04, 2005 at 12:40:42PM -0700, Phil Oester wrote:
+> Kernels higher than 2.6.10 don't support multiple --to arguments in
+> DNAT and SNAT targets.  At present, the error is somewhat vague:
 >=20
-> Hi,
+> # iptables -t nat -A foo -j SNAT --to 1.2.3.4 --to 2.3.4.5
+> iptables: Invalid argument
 >=20
-> I tried to solve compatibility issue, and these patches are my current
-> solutions. Concepts are:
+> But if we want current iptables to work with kernels <=3D 2.6.10, we
+> cannot simply disallow this in all cases.
+>=20
+> So the below patch adds kernel version checking to iptables, and
+> utilizes it in [DS]NAT.  Now, users will see a more informative error:
+>=20
+> # iptables -t nat -A foo -j SNAT --to 1.2.3.4 --to 2.3.4.5
+> iptables v1.3.3: Multiple --to-source not supported
+>=20
+> This generic infrastructure (shamelessly lifted from procps btw) may
+> come in handy in the future for other changes.
+>=20
+> This fixes bugzilla #367.
 
-thanks, I've applied your patches without modifications.
-
-I think due to the numerous changes in existing header files, we cannot
-safely submit it for 2.6.14 anymore.  However, I plan to submit
-nf_conntrack to the manline tree immediately after 2.6.14 has been
-released, to make sure it gets into 2.6.15-rc1.
-
-Pablo: Are you interested in porting ip_conntrack_netlink to
-nf_conntrack_netlink ?  It would be great if nf_conntrack would support
-it out of the box from the beginning...
-
+thanks, applied.  sorry for the delay.
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -57,16 +60,16 @@ it out of the box from the beginning...
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---5QAgd0e35j3NYeGe
+--pvezYHf7grwyp3Bc
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDLsrgXaXGVTD0i/8RAguxAKCQsYse3+OsGcC4nZZE78YDW15RCACgnJzO
-qQJnZXCFmBmAMTa+HU/UHY4=
-=H/Lz
+iD8DBQFDLtFrXaXGVTD0i/8RAkAUAJ9xwFmUihjfCDtF0yq9MUJNrVTj5wCgm8bo
+xEIpyQc8WPP/n74OW+gbD4Y=
+=TVB8
 -----END PGP SIGNATURE-----
 
---5QAgd0e35j3NYeGe--
+--pvezYHf7grwyp3Bc--
