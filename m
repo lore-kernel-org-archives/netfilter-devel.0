@@ -1,59 +1,62 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
-Subject: [PATCH] Adds sys_set_mempolicy() in include/linux/syscalls.h
-Date: Tue, 20 Sep 2005 23:46:12 +0200
-Message-ID: <43308324.70403@cosmosbay.com>
-References: <432EF0C5.5090908@cosmosbay.com> <200509191948.55333.ak@suse.de> <432FDAC5.3040801@cosmosbay.com> <200509201830.20689.ak@suse.de> <433082DE.3060308@cosmosbay.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: NetBIOS datagram nat helper proposal
+Date: Wed, 21 Sep 2005 00:51:35 +0200
+Message-ID: <43309277.2040900@trash.net>
+References: <1127164215.25000.44.camel@localhost>	 <432F58A7.4030907@trash.net>
+	<1127181124.29021.34.camel@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050908050002000101040806"
-Cc: Andi Kleen <ak@suse.de>, linux-kernel@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965164AbVITVqQ@vger.kernel.org>
-To: Eric Dumazet <dada1@cosmosbay.com>
-In-Reply-To: <433082DE.3060308@cosmosbay.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: "John A. Sullivan III" <jsullivan@opensourcedevel.com>
+In-Reply-To: <1127181124.29021.34.camel@localhost>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050908050002000101040806
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+John A. Sullivan III wrote:
+> On Tue, 2005-09-20 at 02:32 +0200, Patrick McHardy wrote:
+> 
+>>>We are seeing if we have the resources to finish and polish this patch
+>>>and submit it.  It seems that we then simply post it to this list to
+>>>submit it.  Is that the correct procedure?
+>>
+>>Yes, if the patch is OK conceptually. If you send me some pointers,
+>>I'll have a look.
+>>
+> 
+> I believe it is defined by RFC1002.  You can find it here:
+> http://ubiqx.org/cifs/rfc-draft/rfc1002.html#s4.4
+> I would think it is pretty straightforward but it is so easy to
+> dreadfully underestimate these things.  Thanks - John
 
-Andi Kleen a écrit :
+Thanks. Looking at the RFC, the patch is incomplete in at least two
+ways. First, the protocol includes broadcasts, these need to be tracked
+in a similar way to ip_conntrack_netbios_ns. Second, the helper only
+NATs the source IP but the packets also include the source port, it
+needs to be translated as well. I'm not sure how the reply packets
+look, I found some broadcast queries in my local network, but don't
+have access to any of the machines to sniff the unicast replies.
 
- > On Tuesday 20 September 2005 11:47, Eric Dumazet wrote:
- >
- >
- >
- > I would prefer if random code didn't mess with mempolicy internals
- > like this. Better just call sys_set_mempolicy()
- > -Andi
- >
- >
+# tcpdump -i eth0 -ntv port 138
+tcpdump: listening on eth0, link-type EN10MB (Ethernet), capture size 96
+bytes
+IP (tos 0x0, ttl 128, id 64557, offset 0, flags [none], proto: UDP (17),
+length: 229) 172.16.0.77.138 > 172.16.255.255.138: NBT UDP PACKET(138)
+IP (tos 0x0, ttl 128, id 52744, offset 0, flags [none], proto: UDP (17),
+length: 239) 172.16.1.56.138 > 172.16.255.255.138: NBT UDP PACKET(138)
+IP (tos 0x0, ttl 128, id 37133, offset 0, flags [none], proto: UDP (17),
+length: 229) 172.16.1.11.138 > 172.16.255.255.138: NBT UDP PACKET(138)
+IP (tos 0x0, ttl 128, id 53239, offset 0, flags [none], proto: UDP (17),
+length: 229) 172.16.1.56.138 > 172.16.255.255.138: NBT UDP PACKET(138)
 
-
-OK but this prior patch seems necessary :
-
-- Adds sys_set_mempolicy() in include/linux/syscalls.h
-
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-
-
-
-
---------------050908050002000101040806
-Content-Type: text/plain;
- name="patch_add_sys_set_mempolicy"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="patch_add_sys_set_mempolicy"
-
-LS0tIGxpbnV4LTIuNi9pbmNsdWRlL2xpbnV4L3N5c2NhbGxzLmgJMjAwNS0wOS0wNiAwMToy
-MDoyMS4wMDAwMDAwMDAgKzAyMDAKKysrIGxpbnV4LTIuNi1lZC9pbmNsdWRlL2xpbnV4L3N5
-c2NhbGxzLmgJMjAwNS0wOS0yMCAyMzo0MzowNy4wMDAwMDAwMDAgKzAyMDAKQEAgLTUwOCw1
-ICs1MDgsNyBAQAogCiBhc21saW5rYWdlIGxvbmcgc3lzX2lvcHJpb19zZXQoaW50IHdoaWNo
-LCBpbnQgd2hvLCBpbnQgaW9wcmlvKTsKIGFzbWxpbmthZ2UgbG9uZyBzeXNfaW9wcmlvX2dl
-dChpbnQgd2hpY2gsIGludCB3aG8pOworYXNtbGlua2FnZSBsb25nIHN5c19zZXRfbWVtcG9s
-aWN5KGludCBtb2RlLCB1bnNpZ25lZCBsb25nIF9fdXNlciAqbm1hc2ssCisJCQkJCXVuc2ln
-bmVkIGxvbmcgbWF4bm9kZSk7CiAKICNlbmRpZgo=
---------------050908050002000101040806--
+If you can provide me with some packet dumps of a machine sending and
+receiving these packets I'll give it a try, it shouldn't be much work.
