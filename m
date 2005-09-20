@@ -1,20 +1,20 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: buffer overflow in ip_ct_{ftp,tftp,irc}
-Date: Tue, 20 Sep 2005 21:48:21 +0900 (JST)
-Message-ID: <200509201248.j8KCmMjv009044@toshiba.co.jp>
+Date: Tue, 20 Sep 2005 16:15:20 +0200
+Message-ID: <20050920141520.GG31236@sunbeam.de.gnumonks.org>
 References: <432213E5.4000200@trash.net>
 	<200509200711.j8K7Bw3x002184@toshiba.co.jp>
 	<20050920093510.GB31236@sunbeam.de.gnumonks.org>
+	<200509201248.j8KCmNi9009046@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Tue_Sep_20_21_48_21_2005_343)--"
-Content-Transfer-Encoding: 7bit
-Cc: sbellabes@mandriva.com, yasuyuki.kozakai@toshiba.co.jp,
-	netfilter-devel@lists.netfilter.org, davem@davemloft.net,
-	kaber@trash.net, pablo@netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tVmo9FyGdCe4F4YN"
+Cc: netfilter-devel@lists.netfilter.org, sbellabes@mandriva.com,
+	kaber@trash.net, pablo@netfilter.org, davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20050920093510.GB31236@sunbeam.de.gnumonks.org>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
+In-Reply-To: <200509201248.j8KCmNi9009046@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,61 +26,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Tue_Sep_20_21_48_21_2005_343)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Tue, 20 Sep 2005 11:35:10 +0200
+--tVmo9FyGdCe4F4YN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> On Tue, Sep 20, 2005 at 04:11:57PM +0900, Yasuyuki KOZAKAI wrote:
-> > 
-> > From: Patrick McHardy <kaber@trash.net>
-> > Date: Sat, 10 Sep 2005 00:59:49 +0200
-> > 
-> > > > -static int ports[MAX_PORTS];
-> > > > +static short ports[MAX_PORTS];
-> > > > static int ports_c;
-> > > > -module_param_array(ports,int, &ports_c, 0400);
-> > > > +module_param_array(ports, short, &ports_c, 0400);
-> > > 
-> > > I agree, I've applied this patch instead. Thanks.
-> > 
-> > Why don't you use u_int16_t and ushort instead of short ?
-> 
-> I tried this first, but the module_parm_* macros only deal with short.
+On Tue, Sep 20, 2005 at 09:48:21PM +0900, Yasuyuki KOZAKAI wrote:
 
-Really ? At least, the current moduleparam.h in David's git tree includes
-declarations for param_*_ushort(). And I succeeded to compile and use ftp
-module with the attached patch.
+> Really ? At least, the current moduleparam.h in David's git tree includes
+> declarations for param_*_ushort(). And I succeeded to compile and use ftp
+> module with the attached patch.
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+ok "ushort" will work, but not "u_int16_t".  I'll prepare a patch for
+all helpers.
 
-Which kernel you tried ?
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
------------------------------------------------------------------
-Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
+--tVmo9FyGdCe4F4YN
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
-----Next_Part(Tue_Sep_20_21_48_21_2005_343)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="ushort-ftp-ports.patch"
+iD8DBQFDMBl4XaXGVTD0i/8RAl5yAJ9FCoroEv7SeOB7IYYiLbRePpJz2gCcD4BD
+Weze/5i++1QufbOZt3eY8UA=
+=zTHC
+-----END PGP SIGNATURE-----
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_ftp.c b/net/ipv4/netfilter/ip_conntrack_ftp.c
---- a/net/ipv4/netfilter/ip_conntrack_ftp.c
-+++ b/net/ipv4/netfilter/ip_conntrack_ftp.c
-@@ -29,9 +29,9 @@ static char *ftp_buffer;
- static DEFINE_SPINLOCK(ip_ftp_lock);
- 
- #define MAX_PORTS 8
--static short ports[MAX_PORTS];
-+static u_int16_t ports[MAX_PORTS];
- static int ports_c;
--module_param_array(ports, short, &ports_c, 0400);
-+module_param_array(ports, ushort, &ports_c, 0400);
- 
- static int loose;
- module_param(loose, int, 0600);
-
-----Next_Part(Tue_Sep_20_21_48_21_2005_343)----
+--tVmo9FyGdCe4F4YN--
