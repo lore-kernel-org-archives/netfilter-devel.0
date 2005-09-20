@@ -1,14 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Matthias Andree <matthias.andree@gmx.de>
 Subject: Re: ip_conntrack_tcp_be_liberal vs. large downloads?
-Date: Tue, 20 Sep 2005 11:38:48 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0509201127490.745@blackhole.kfki.hu>
+Date: Tue, 20 Sep 2005 11:46:41 +0200
+Message-ID: <20050920094641.GB18821@merlin.emma.line.org>
 References: <20050920080825.GA6536@merlin.emma.line.org>
+	<Pine.LNX.4.58.0509201127490.745@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Matthias Andree <matthias.andree@gmx.de>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Matthias Andree <matthias.andree@gmx.de>
-In-Reply-To: <20050920080825.GA6536@merlin.emma.line.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0509201127490.745@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,33 +23,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Matthias,
+On Tue, 20 Sep 2005, Jozsef Kadlecsik wrote:
 
-On Tue, 20 Sep 2005, Matthias Andree wrote:
+> > I can also test newer kernels if needed - only if there'd been some bug,
+> > I might have assumed that SUSE rolled a patch into one of their update
+> > kernels.
+> 
+> Please try newer kernels - I smell SACKing lost packets and ACKing out of
+> window segments here, which is fixed (i.e. supported) in recent kernels.
 
-> I'm using a netfilter configuration that makes extensive use of
-> connection tracking, on Linux 2.6.8 and Linux 2.6.11.4 (SUSE Linux 9.2
-> and 9.3 kernels). Part of this configuration is to allow
-> ESTABLISHED+RELATED, drop INVALID and so on - pretty standard stuff as
-> found on various sites (I can dump the configuration if really needed).
->
-> My observation is that larger downloads (30 MB to 150 MB) stall after
-> some point, which may be sooner or later. I seldom get the download
-> beyond 15 or 20 MB, at transfer rates between 80 and 300 kB/s.  tcpdump
-> shows that the server (HTTP) still sends a few packages which the kernel
-> doesn't ACK any more.
-[...]
-> I can also test newer kernels if needed - only if there'd been some bug,
-> I might have assumed that SUSE rolled a patch into one of their update
-> kernels.
+Maybe, although turning SACK of didn't help (of course if the other side
+is doing it, my turning it off cannot help :)
 
-Please try newer kernels - I smell SACKing lost packets and ACKing out of
-window segments here, which is fixed (i.e. supported) in recent kernels.
+OK, so we'll put this on hold and I'll try 2.6.13-ckN (whichever is
+current) or 2.6.14.rc2 first and report back. No-one waste time now
+until I've confirmed the problem fixed.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Thank you.
+
+-- 
+Matthias Andree
