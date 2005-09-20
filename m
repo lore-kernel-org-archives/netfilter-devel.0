@@ -1,19 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: buffer overflow in ip_ct_{ftp,tftp,irc}
-Date: Tue, 20 Sep 2005 11:35:10 +0200
-Message-ID: <20050920093510.GB31236@sunbeam.de.gnumonks.org>
-References: <431F7B26.4040302@netfilter.org> <431F7C38.50206@netfilter.org>
-	<432213E5.4000200@trash.net>
-	<200509200711.j8K7Bw3x002184@toshiba.co.jp>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ip_conntrack_tcp_be_liberal vs. large downloads?
+Date: Tue, 20 Sep 2005 11:38:48 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0509201127490.745@blackhole.kfki.hu>
+References: <20050920080825.GA6536@merlin.emma.line.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RnlQjJ0d97Da+TV1"
-Cc: netfilter-devel@lists.netfilter.org, sbellabes@mandriva.com,
-	kaber@trash.net, pablo@netfilter.org, davem@davemloft.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Content-Disposition: inline
-In-Reply-To: <200509200711.j8K7Bw3x002184@toshiba.co.jp>
+To: Matthias Andree <matthias.andree@gmx.de>
+In-Reply-To: <20050920080825.GA6536@merlin.emma.line.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,49 +20,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Matthias,
 
---RnlQjJ0d97Da+TV1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, 20 Sep 2005, Matthias Andree wrote:
 
-On Tue, Sep 20, 2005 at 04:11:57PM +0900, Yasuyuki KOZAKAI wrote:
->=20
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Sat, 10 Sep 2005 00:59:49 +0200
->=20
-> > > -static int ports[MAX_PORTS];
-> > > +static short ports[MAX_PORTS];
-> > > static int ports_c;
-> > > -module_param_array(ports,int, &ports_c, 0400);
-> > > +module_param_array(ports, short, &ports_c, 0400);
-> >=20
-> > I agree, I've applied this patch instead. Thanks.
->=20
-> Why don't you use u_int16_t and ushort instead of short ?
+> I'm using a netfilter configuration that makes extensive use of
+> connection tracking, on Linux 2.6.8 and Linux 2.6.11.4 (SUSE Linux 9.2
+> and 9.3 kernels). Part of this configuration is to allow
+> ESTABLISHED+RELATED, drop INVALID and so on - pretty standard stuff as
+> found on various sites (I can dump the configuration if really needed).
+>
+> My observation is that larger downloads (30 MB to 150 MB) stall after
+> some point, which may be sooner or later. I seldom get the download
+> beyond 15 or 20 MB, at transfer rates between 80 and 300 kB/s.  tcpdump
+> shows that the server (HTTP) still sends a few packages which the kernel
+> doesn't ACK any more.
+[...]
+> I can also test newer kernels if needed - only if there'd been some bug,
+> I might have assumed that SUSE rolled a patch into one of their update
+> kernels.
 
-I tried this first, but the module_parm_* macros only deal with short.
+Please try newer kernels - I smell SACKing lost packets and ACKing out of
+window segments here, which is fixed (i.e. supported) in recent kernels.
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---RnlQjJ0d97Da+TV1
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFDL9fOXaXGVTD0i/8RAigVAJ0aV7EnQ6VaUbo1dZLXJiMAoUPGzACgjPYf
-dOPoIwXEVjn1wGkixw/Juy0=
-=+T2/
------END PGP SIGNATURE-----
-
---RnlQjJ0d97Da+TV1--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
