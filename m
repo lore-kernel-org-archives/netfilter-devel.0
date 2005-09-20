@@ -1,15 +1,19 @@
-From: "Vincent" <cs83152@csie.chu.edu.tw>
-Subject: IPT_RETURN is not worked in the kernel 2.6.10
-Date: Tue, 20 Sep 2005 16:56:12 +0800
-Message-ID: <000501c5bdc1$2a432b30$aa0ba8c0@l7.com.tw>
-References: <1127181124.29021.34.camel@localhost>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: buffer overflow in ip_ct_{ftp,tftp,irc}
+Date: Tue, 20 Sep 2005 11:35:10 +0200
+Message-ID: <20050920093510.GB31236@sunbeam.de.gnumonks.org>
+References: <431F7B26.4040302@netfilter.org> <431F7C38.50206@netfilter.org>
+	<432213E5.4000200@trash.net>
+	<200509200711.j8K7Bw3x002184@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="big5"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RnlQjJ0d97Da+TV1"
+Cc: netfilter-devel@lists.netfilter.org, sbellabes@mandriva.com,
+	kaber@trash.net, pablo@netfilter.org, davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <1127181124.29021.34.camel@localhost>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
+In-Reply-To: <200509200711.j8K7Bw3x002184@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,36 +25,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello folks,
 
-I am currently writing a iptables target. And I want to use the
-IPT_RETURN as the return value from target.
-But I found that IPT_RETURN will result as NF_ACCEPT does. What I mean
-is, while I use IPT_RETURN in my target module.
-It will not go back to the upper directory. Does anyone ever experience
-the same problem?
+--RnlQjJ0d97Da+TV1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Enviroment:=20
-linux kernel 2.6.10
-Iptables 1.2.9
+On Tue, Sep 20, 2005 at 04:11:57PM +0900, Yasuyuki KOZAKAI wrote:
+>=20
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Sat, 10 Sep 2005 00:59:49 +0200
+>=20
+> > > -static int ports[MAX_PORTS];
+> > > +static short ports[MAX_PORTS];
+> > > static int ports_c;
+> > > -module_param_array(ports,int, &ports_c, 0400);
+> > > +module_param_array(ports, short, &ports_c, 0400);
+> >=20
+> > I agree, I've applied this patch instead. Thanks.
+>=20
+> Why don't you use u_int16_t and ushort instead of short ?
 
-Vincent
+I tried this first, but the module_parm_* macros only deal with short.
 
-The following code is part of the ipt_do_table in the ip_tables.c
-But I don=A1=A6t know how to modify it to fix the bug? :(
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-            if (!t->u.kernel.target->target) {
-                int v;
+--RnlQjJ0d97Da+TV1
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-                v =3D ((struct ipt_standard_target *)t)->verdict;
-                if (v < 0) {
-                    /* Pop from stack? */
-                    if (v !=3D IPT_RETURN) {
-                        verdict =3D (unsigned)(-v) - 1;
-                        break;
-                    }
-                    e =3D back;
-                    back =3D get_entry(table_base,
-                             back->comefrom);
-                    continue;
-                }
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDL9fOXaXGVTD0i/8RAigVAJ0aV7EnQ6VaUbo1dZLXJiMAoUPGzACgjPYf
+dOPoIwXEVjn1wGkixw/Juy0=
+=+T2/
+-----END PGP SIGNATURE-----
+
+--RnlQjJ0d97Da+TV1--
