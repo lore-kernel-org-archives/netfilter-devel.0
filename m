@@ -1,16 +1,15 @@
-From: "John A. Sullivan III" <jsullivan@opensourcedevel.com>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: NetBIOS datagram nat helper proposal
-Date: Mon, 19 Sep 2005 17:39:43 -0400
-Message-ID: <1127165983.25000.51.camel@localhost>
+Date: Tue, 20 Sep 2005 02:32:39 +0200
+Message-ID: <432F58A7.4030907@trash.net>
 References: <1127164215.25000.44.camel@localhost>
-	<20050919212756.GA26816@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20050919212756.GA26816@linuxace.com>
+To: "John A. Sullivan III" <jsullivan@opensourcedevel.com>
+In-Reply-To: <1127164215.25000.44.camel@localhost>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,29 +21,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2005-09-19 at 14:27 -0700, Phil Oester wrote:
-> On Mon, Sep 19, 2005 at 05:10:15PM -0400, John A. Sullivan III wrote:
-> > It appears that we may need a netbios datagram NAT helper.  Unless we
-> > can find a workaround, it we have encountered a couple of environments
-> > where we need to NAT netbios datagram packets.  Since they have embedded
-> > IP address information in the netbios header, this protocol breaks with
-> > NAT.  We see the packets enter the server with the NAT address but the
-> > replies are addressed to the original address as per the netbios header.
+John A. Sullivan III wrote:
+> It appears that we may need a netbios datagram NAT helper.  Unless we
+> can find a workaround, it we have encountered a couple of environments
+> where we need to NAT netbios datagram packets.  Since they have embedded
+> IP address information in the netbios header, this protocol breaks with
+> NAT.  We see the packets enter the server with the NAT address but the
+> replies are addressed to the original address as per the netbios header.
 > 
-> Like this one:
-> 
-> http://www.kernel.org/git/gitweb.cgi?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=a2978aea393b5e00b55b219786a5b8a47f838a7f
-> 
-> which was merged 12 days ago?
-> 
-> Phil
-> 
-Thanks but it looks like that's name service - John
--- 
-John A. Sullivan III
-Open Source Development Corporation
-+1 207-985-7880
-jsullivan@opensourcedevel.com
+> We have not seen such a helper within netfilter.  There appears to be a
+> simple helper for this at
+> http://suif.stanford.edu/~csapuntz/ip_nat_netbios.c
 
-Financially sustainable open source development
-http://www.opensourcedevel.com
+The helper does stateless NAT without issuing any expectations
+or even adjusting the conntrack entry. I'm not sure this is
+enough, but I'm not familiar with the netbios stuff. What is
+running on port 138? Do you have any pointers to a description
+of the protocol?
+
+> We are seeing if we have the resources to finish and polish this patch
+> and submit it.  It seems that we then simply post it to this list to
+> submit it.  Is that the correct procedure?
+
+Yes, if the patch is OK conceptually. If you send me some pointers,
+I'll have a look.
