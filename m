@@ -1,17 +1,15 @@
-From: Pablo Neira <pablo@netfilter.org>
-Subject: Re: buffer overflow in ip_ct_{ftp,tftp,irc}
-Date: Tue, 20 Sep 2005 10:10:59 +0200
-Message-ID: <432FC413.6020301@netfilter.org>
-References: <431F7B26.4040302@netfilter.org>	<431F7C38.50206@netfilter.org>	<432213E5.4000200@trash.net>
-	<200509200711.j8K7Bw3x002184@toshiba.co.jp>
+From: "Vincent" <cs83152@csie.chu.edu.tw>
+Subject: IPT_RETURN is not worked in the kernel 2.6.10
+Date: Tue, 20 Sep 2005 16:56:12 +0800
+Message-ID: <000501c5bdc1$2a432b30$aa0ba8c0@l7.com.tw>
+References: <1127181124.29021.34.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
-	sbellabes@mandriva.com, kaber@trash.net, davem@davemloft.net
+Content-Type: text/plain;
+	charset="big5"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200509200711.j8K7Bw3x002184@toshiba.co.jp>
+To: <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <1127181124.29021.34.camel@localhost>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,24 +21,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Sat, 10 Sep 2005 00:59:49 +0200
-> 
-> 
->>>-static int ports[MAX_PORTS];
->>>+static short ports[MAX_PORTS];
->>>static int ports_c;
->>>-module_param_array(ports,int, &ports_c, 0400);
->>>+module_param_array(ports, short, &ports_c, 0400);
->>
->>I agree, I've applied this patch instead. Thanks.
-> 
-> 
-> Why don't you use u_int16_t and ushort instead of short ?
+Hello folks,
 
-Short reply, because the u_int16_t type isn't defined in moduleparam.h. 
-See the param_set_* stuff.
+I am currently writing a iptables target. And I want to use the
+IPT_RETURN as the return value from target.
+But I found that IPT_RETURN will result as NF_ACCEPT does. What I mean
+is, while I use IPT_RETURN in my target module.
+It will not go back to the upper directory. Does anyone ever experience
+the same problem?
 
---
-Pablo
+Enviroment:=20
+linux kernel 2.6.10
+Iptables 1.2.9
+
+Vincent
+
+The following code is part of the ipt_do_table in the ip_tables.c
+But I don=A1=A6t know how to modify it to fix the bug? :(
+
+            if (!t->u.kernel.target->target) {
+                int v;
+
+                v =3D ((struct ipt_standard_target *)t)->verdict;
+                if (v < 0) {
+                    /* Pop from stack? */
+                    if (v !=3D IPT_RETURN) {
+                        verdict =3D (unsigned)(-v) - 1;
+                        break;
+                    }
+                    e =3D back;
+                    back =3D get_entry(table_base,
+                             back->comefrom);
+                    continue;
+                }
