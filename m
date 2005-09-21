@@ -1,14 +1,18 @@
-From: "Vincent" <cs83152@csie.chu.edu.tw>
-Subject: RE: IPT_RETURN is not worked in the kernel 2.6.10
-Date: Wed, 21 Sep 2005 13:56:20 +0800
-Message-ID: <003a01c5be71$33cc3510$aa0ba8c0@l7.com.tw>
+From: JC <bikkit@gmail.com>
+Subject: Re: netfilter hook function error...
+Date: Wed, 21 Sep 2005 07:09:38 +0100
+Message-ID: <a60102c30509202309628deea@mail.gmail.com>
+References: <a60102c3050920171352ae872c@mail.gmail.com>
+	<20050921055121.GA25193@oknodo.bof.de>
+Reply-To: JC <bikkit@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="big5"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-In-Reply-To: 
+To: Patrick Schaaf <bof@bof.de>
+In-Reply-To: <20050921055121.GA25193@oknodo.bof.de>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,56 +24,61 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sorry, after understanding the meaning of ipt_do_table function. I know
-currently the IPT_RETURN is only available in the standard target.=20
-But I wonder why don't we have the IPT_RETURN in the user defined
-target?=20
-Can we create a IPT_RETURN in the user defined target. So that we can
-use the IPT_RETURN in our target to return to the upper chain.
+Dear Patrick,
 
-What I mean is "can we port the IPT_RETURN to the user defined target in
-the ipt_do_table function?"
+thank you kindly for the "Introduction to C" session. Your pointers
+were of most use. However, I must note that failing to know the
+purpose of print_string() calls in my code, in both occasions that
+they appear in the code I posted, you failed slightly to understand
+the severity of the warnings that the compiler "screamed in terror"
+about. In both points, they are merely there for logging to the
+current tty, as an alternative to printk. As a concequence of that,
+they are being commented in and out of the running code, as debugging
+requires at that particular moment.
 
-Vincent
+The last point, and of interest to me at that moment, was solved by
+Wei and this code seems to work:
 
-> -----Original Message-----
-> From: Vincent [mailto:cs83152@csie.chu.edu.tw]
-> Sent: Tuesday, September 20, 2005 4:56 PM
-> To: 'netfilter-devel@lists.netfilter.org'
-> Subject: IPT_RETURN is not worked in the kernel 2.6.10
->=20
->=20
-> Hello folks,
->=20
-> I am currently writing a iptables target. And I want to use
-> the IPT_RETURN as the return value from target. But I found=20
-> that IPT_RETURN will result as NF_ACCEPT does. What I mean=20
-> is, while I use IPT_RETURN in my target module. It will not=20
-> go back to the upper directory. Does anyone ever experience=20
-> the same problem?
->=20
-> Enviroment:
-> linux kernel 2.6.10
-> Iptables 1.2.9
->=20
-> Vincent
->=20
-> The following code is part of the ipt_do_table in the
-> ip_tables.c But I don=A1=A6t know how to modify it to fix the bug? :(
->=20
->             if (!t->u.kernel.target->target) {
->                 int v;
->=20
->                 v =3D ((struct ipt_standard_target *)t)->verdict;
->                 if (v < 0) {
->                     /* Pop from stack? */
->                     if (v !=3D IPT_RETURN) {
->                         verdict =3D (unsigned)(-v) - 1;
->                         break;
->                     }
->                     e =3D back;
->                     back =3D get_entry(table_base,
->                              back->comefrom);
->                     continue;
->                 }
->=20
+my_ipheader =3D (struct iphdr *)((*skb)->nh.iph);
+
+as I was quick to post back in the thread, for the reference of others.
+
+Please feel free to correct my code in the other thread, with subject
+"How to change the source address of a tcp packet", with the same
+enthusiasm. I would be, again, most thankful.
+
+kind regards,
+JC
+
+- Hide quoted text -
+
+> > /home/jc/code/spider/spider.c:126: warning: ISO C90 forbids mixed
+> > declarations and code
+> >   print_string("Packet reached IN_HOOK.");
+> >   struct iphdr *my_ipheader;
+>
+> In traditional C, a variable declaration (like your my_ipheader)
+> MUST COME BEFORE ANY OTHER CODE IN A FUNCTION (like your print_string
+> call)
+>
+> > /home/jc/code/spider/spider.c:134: warning: passing argument 1 of
+> > 'print_string' discards qualifiers from pointer target type
+> >         print_string(out->name);
+>
+> Not that I really know, because you have not shown your print_string()
+> function prototype, but I bet that you made its first argument be
+> a 'const char *', and out->name is a 'char *' without the 'const'.
+>
+> > /home/jc/code/spider/spider.c:150: error: request for member 'nh' in
+> > something not a structure or union
+> >             my_ipheader =3D skb->nh->iph;
+>
+> The compiler complains that the skb thing is not pointer to a structure.
+> Which is correct. It is a pointer to a pointer to a structure. So you
+> need to dereference it once, like '(*skb)->nh->iph'. However, I'm
+> not sure that nh->iph is valid in all cases. Look at other hook
+> functions which need the IP header.
+>
+> best regards
+>  Patrick
+>
