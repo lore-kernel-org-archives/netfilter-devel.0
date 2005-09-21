@@ -1,42 +1,39 @@
-From: JC <bikkit@gmail.com>
-Subject: Re: netfilter hook function error...
-Date: Wed, 21 Sep 2005 02:49:18 +0100
-Message-ID: <a60102c3050920184959fa2b84@mail.gmail.com>
-References: <4330b900.50a87b17.7179.ffffad17SMTPIN_ADDED@mx.gmail.com>
-Reply-To: JC <bikkit@gmail.com>
+From: "wei shuxi" <shuxi_w@seu.edu.cn>
+Subject: tcp-window-tracking patch problem!
+Date: Wed, 21 Sep 2005 10:14:57 +0800
+Message-ID: <27807.0601322272$1127268825@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+      charset="GB2312"
 Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: wei shuxi <shuxi_w@seu.edu.cn>
-In-Reply-To: <4330b900.50a87b17.7179.ffffad17SMTPIN_ADDED@mx.gmail.com>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org <netfilter-devel@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 21/09/05, wei shuxi <shuxi_w@seu.edu.cn> wrote:
-> Hi,
->
-> try   my_ipheader =3D (struct iphdr *)((*skb)->nh->iph);
->
+Hi,
+ I failed to apply tcp-window-tracking patch as well as the=
+ nf-log patch.
+my kernel is 2.4.20-8 and the patch is 20050913.
 
-both
+I have read the nf-log patch file, it seems to be for kernel=
+ 2.4.31.
 
-   my_ipheader =3D (struct iphdr *)((*skb)->nh->iph);
+Any ideas?
 
-and
+Thanks!
 
-   my_ipheader =3D (struct iphdr *)((*skb).nh->iph);
+=09
+       sincerely,
 
-don't work either...
-
-J
+=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1wei shuxi
+=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1shuxi_w@seu.edu.cn
+=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A1=A12005-09-21
