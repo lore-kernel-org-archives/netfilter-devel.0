@@ -1,16 +1,20 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] ip_conntrack_pptp: fix endian sparse warnings
-Date: Thu, 22 Sep 2005 15:03:12 +0200
-Message-ID: <20050922130312.GL26520@sunbeam.de.gnumonks.org>
-References: <20050921170539.GA10537@mipter.zuzino.mipt.ru>
+From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: Re: [PATCH 2/3] netfilter : 3 patches to boost ip_tables performance
+Date: Thu, 22 Sep 2005 15:05:50 +0200
+Message-ID: <4332AC2E.8000607@cosmosbay.com>
+References: <432EF0C5.5090908@cosmosbay.com>
+	<200509191948.55333.ak@suse.de>	<432FDAC5.3040801@cosmosbay.com>
+	<200509201830.20689.ak@suse.de>	<433082DE.3060308@cosmosbay.com>
+	<43308324.70403@cosmosbay.com>	<4331D168.6090604@cosmosbay.com>
+	<20050922124803.GH26520@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="OX2aLCKeO1apYW07"
-Cc: netfilter-devel@lists.netfilter.org, Al Viro <viro@zeniv.linux.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org, Andi Kleen <ak@suse.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Alexey Dobriyan <adobriyan@gmail.com>
-Content-Disposition: inline
-In-Reply-To: <20050921170539.GA10537@mipter.zuzino.mipt.ru>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20050922124803.GH26520@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,52 +26,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---OX2aLCKeO1apYW07
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Sep 21, 2005 at 09:05:39PM +0400, Alexey Dobriyan wrote:
-> Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-
-Thanks.
-
-> net/ipv4/netfilter/ip_conntrack_helper_pptp.c:
+Harald Welte a =E9crit :
+> On Wed, Sep 21, 2005 at 11:32:24PM +0200, Eric Dumazet wrote:
 >=20
->    485		=3D=3D=3D>	cid =3D &info->pac_call_id;	<=3D=3D=3D
->    486=09
->    487			if (info->pns_call_id !=3D ntohs(*pcid)) {
->    488				DEBUGP("%s for unknown CallID %u\n",=20
->    489					pptp_msg_name[msg], ntohs(*cid));
-> 							    ^^^^^^^^^^^
-> However, comment at struct ip_ct_pptp_master::pac_call_id says "call id
-> of PAC, host byte order". Is this a bug?
+>>Patch 2/3 (please apply after Patch 1/3)
+>>
+>>2) Loop unrolling
+>=20
+>=20
+> First of all, thanks for your performance analysis and patches.  I'm
+> very inclined of merging them.
+>=20
+>=20
+>>It seems that with current compilers and CFLAGS, the code from
+>>ip_packet_match() is very bad, using lot of mispredicted conditional br=
+anches I made some patches=20
+>>and generated code on i386 and x86_64
+>>is much better.
+>=20
+>=20
+> This only describes your "compare_if_lstrings()" changes, and I'm happy
+> to merge them.
+>=20
+> However, you also removed the use of the FWINV macro and replaced it by
+> explicit code (including the bool1/bool2 variables, which are not reall=
+y
+> named intuitively).  Why was this neccessary?
+>=20
 
-the bug is the DEBUGP statement.  it should be "ntohs(*pcid)".   I'll
-fix it in my local tree.  I hope this addresses your concern.
+It was necessary to get the best code with gcc-3.4.4 on i386 and gcc-4.0.=
+1 on=20
+x86_64
 
-I'll merge your patch and submit it via Davem later today.
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+For example :
 
---OX2aLCKeO1apYW07
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+bool1 =3D FWINV(ret !=3D 0, IPT_INV_VIA_OUT);
+if (bool1) {
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+gives a better code than :
 
-iD8DBQFDMquQXaXGVTD0i/8RAob4AJ0el92C0caCkmuCRn+hAC1S9nzjAwCgsgbO
-EqVWpbN8tEJcnhRRVANqy60=
-=zfU8
------END PGP SIGNATURE-----
+if (FWINV(ret !=3D 0, IPT_INV_VIA_OUT)) {
 
---OX2aLCKeO1apYW07--
+(one less conditional branch)
+
+Dont ask me why, it is shocking but true :(
+
+Eric
