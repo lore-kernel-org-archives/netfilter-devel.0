@@ -1,13 +1,18 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: conntrack event cache deadlock
-Date: Wed, 21 Sep 2005 20:33:50 -0700 (PDT)
-Message-ID: <20050921.203350.72192577.davem@davemloft.net>
+From: James Morris <jmorris@namei.org>
+Subject: Re: [PATCH 0/3] netfilter : 3 patches to boost ip_tables performance
+Date: Thu, 22 Sep 2005 00:18:06 -0400 (EDT)
+Message-ID: <Pine.LNX.4.63.0509220017430.6397@excalibur.intercode>
+References: <432EF0C5.5090908@cosmosbay.com> <200509191948.55333.ak@suse.de>
+	<432FDAC5.3040801@cosmosbay.com> <200509201830.20689.ak@suse.de>
+	<433082DE.3060308@cosmosbay.com> <43308324.70403@cosmosbay.com>
+	<4331CFA7.50104@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, kaber@trash.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org, Andi Kleen <ak@suse.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Eric Dumazet <dada1@cosmosbay.com>
+In-Reply-To: <4331CFA7.50104@cosmosbay.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,66 +24,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 21 Sep 2005, Eric Dumazet wrote:
 
-We can try to take the ip_conntrack_lock as a writer twice, and thus
-deadlock, via this code path:
+> I have reworked net/ipv4/ip_tables.c to boost its performance, and post three
+> patches.
 
-ip_ct_refresh_acct()
-{
-...
-		write_lock_bh(&ip_conntrack_lock);
-		/* Need del_timer for race avoidance (may already be dying). */
-		if (del_timer(&ct->timeout)) {
-			ct->timeout.expires = jiffies + extra_jiffies;
-			add_timer(&ct->timeout);
-			/* FIXME: We loose some REFRESH events if this function
-			 * is called without an skb.  I'll fix this later -HW */
-			if (skb)
-				ip_conntrack_event_cache(IPCT_REFRESH, skb);
+Do you have any performance measurements?
 
-ip_conntrack_event_cache()
-{
-...
-		__ip_ct_event_cache_init(ct);
 
-__ip_ct_event_cache_init()
-{
-...
-		__ip_ct_deliver_cached_events(ecache);
-
-ip_ct_deliver_cached_events()
-{
-...
-		__ip_ct_deliver_cached_events(ecache);
-
-__ip_ct_deliver_cached_events()
-{
-...
-	ip_conntrack_put(ecache->ct);
-
-ip_conntrack_put()
-{
-...
-	nf_conntrack_put(&ct->ct_general);
-
-nf_conntrack_put()
-{
-...
-	if (nfct && atomic_dec_and_test(&nfct->use))
-		nfct->destroy(nfct);
-
-->destroy() is setup by:
-
-	conntrack->ct_general.destroy = destroy_conntrack;
-
-so we call:
-
-destroy_conntrack()
-{
-...
-	write_lock_bh(&ip_conntrack_lock);
-
-and this is where we deadlock.
-
-This was caught by Ingo's spinlock debugging code in
-lib/spinlock_debug.c BTW :-)
+- James
+-- 
+James Morris
+<jmorris@namei.org>
