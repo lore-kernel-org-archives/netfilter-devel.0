@@ -1,50 +1,69 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH 0/3] netfilter : 3 patches to boost ip_tables performance
-Date: Thu, 22 Sep 2005 13:58:49 +0100
-Message-ID: <20050922125849.GA27413@infradead.org>
-References: <43308324.70403@cosmosbay.com> <43329F6E.3030706@cosmosbay.com> <20050922124941.GA26936@infradead.org> <200509221454.22923.ak@suse.de>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: IPT_RETURN is not worked in the kernel 2.6.10
+Date: Thu, 22 Sep 2005 14:59:57 +0200
+Message-ID: <20050922125957.GK26520@sunbeam.de.gnumonks.org>
+References: <007001c5bf37$55629e00$aa0ba8c0@l7.com.tw>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Christoph Hellwig <hch@infradead.org>,
-	Eric Dumazet <dada1@cosmosbay.com>,
-	Christoph Lameter <clameter@engr.sgi.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	netdev@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030294AbVIVM64@vger.kernel.org>
-To: Andi Kleen <ak@suse.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ed/6oDxOLijJh8b0"
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Vincent <cs83152@csie.chu.edu.tw>
 Content-Disposition: inline
-In-Reply-To: <200509221454.22923.ak@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <007001c5bf37$55629e00$aa0ba8c0@l7.com.tw>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Sep 22, 2005 at 02:54:22PM +0200, Andi Kleen wrote:
-> > > +void *vmalloc_node(unsigned long size, int node)
-> > > +{
-> > > +	void *result;
-> > > +	struct mempolicy *oldpol = current->mempolicy;
-> > > +	mm_segment_t oldfs = get_fs();
-> > > +	DECLARE_BITMAP(prefnode, MAX_NUMNODES);
-> > > +
-> > > +	mpol_get(oldpol);
-> > > +	bitmap_zero(prefnode, MAX_NUMNODES);
-> > > +	set_bit(node, prefnode);
-> > > +
-> > > +	set_fs(KERNEL_DS);
-> > > +	sys_set_mempolicy(MPOL_PREFERRED, prefnode, MAX_NUMNODES);
-> > > +	set_fs(oldfs);
-> > > +
-> > > +	result = vmalloc(size);
-> > > +
-> > > +	mpol_free(current->mempolicy);
-> > > +	current->mempolicy = oldpol;
-> > > +	return result;
-> > > +}
-> >
-> > No way, sorry.  If you want a vmalloc node do it right.
-> 
-> The implementation looks fine to me, so I think it's already right.
 
-Umm, no - adding set_fs/get_fs mess for things like that is not right.
-If we want to go down the mempolicy-based route we need to add a proper
-kernel entry point for setting a mempolicy
+--ed/6oDxOLijJh8b0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Sep 22, 2005 at 01:34:37PM +0800, Vincent wrote:
+> Sorry, after understanding the meaning of ipt_do_table function. I know
+> currently the IPT_RETURN is only available in the standard target.=20
+> But I wonder why don't we have the IPT_RETURN in the user defined
+> target?=20
+
+> Can we create a IPT_RETURN in the user defined target. So that we can
+> use the IPT_RETURN in our target to return to the upper chain.
+
+I don't see that much of a problem with it.  It should work if you copy
+the "if (v !=3D IPT_RETURN)" block from the "if
+(!t->u.kernel.target->target)" block to the "else" section.
+
+Please test and submit a proposed patch. =20
+
+And please don't repost your messages thrice to this list, thanks.
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--ed/6oDxOLijJh8b0
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDMqrNXaXGVTD0i/8RArgOAKCPt0gc0dHLrBrxzI9YQgvxfvJNJACfRjeE
+wdOr5BlJ8DBy6SW2MZGCGzc=
+=QI4S
+-----END PGP SIGNATURE-----
+
+--ed/6oDxOLijJh8b0--
