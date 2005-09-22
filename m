@@ -1,16 +1,20 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Netfilter device
-Date: Thu, 22 Sep 2005 14:39:58 +0200
-Message-ID: <20050922123958.GG26520@sunbeam.de.gnumonks.org>
-References: <43323140.6000503@tma.com.vn>
+Subject: Re: [PATCH 2/3] netfilter : 3 patches to boost ip_tables performance
+Date: Thu, 22 Sep 2005 14:48:03 +0200
+Message-ID: <20050922124803.GH26520@sunbeam.de.gnumonks.org>
+References: <432EF0C5.5090908@cosmosbay.com> <200509191948.55333.ak@suse.de>
+	<432FDAC5.3040801@cosmosbay.com> <200509201830.20689.ak@suse.de>
+	<433082DE.3060308@cosmosbay.com> <43308324.70403@cosmosbay.com>
+	<4331D168.6090604@cosmosbay.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XIiC+We3v3zHqZ6Z"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="XRI2XbIfl/05pQwm"
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	linux-kernel@vger.kernel.org, Andi Kleen <ak@suse.de>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Nhan Thanh Le <ltnhan@tma.com.vn>
+To: Eric Dumazet <dada1@cosmosbay.com>
 Content-Disposition: inline
-In-Reply-To: <43323140.6000503@tma.com.vn>
+In-Reply-To: <4331D168.6090604@cosmosbay.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,33 +27,31 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---XIiC+We3v3zHqZ6Z
+--XRI2XbIfl/05pQwm
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 22, 2005 at 11:21:20AM +0700, Nhan Thanh Le wrote:
-> Dear All,
+On Wed, Sep 21, 2005 at 11:32:24PM +0200, Eric Dumazet wrote:
+> Patch 2/3 (please apply after Patch 1/3)
 >=20
->    I am new babie in netfilter linux, my project is caputre packet traffi=
-c through netfilter. I=20
-> read the link at
-> http://redvip.homelinux.net/varios/netfilter/netfilter-hacking-HOWTO-4.ht=
-ml.
-> And I would like to do my  practice but I could not do it, because I
-> could not find out where is the linux/include/linux/netfilter_dev.h or
-> netfilter_device.h. Could someone help me to have it. Thank you very
-> much and appreciate.
+> 2) Loop unrolling
 
-this has been replaced by the ip_queue mechanism (man 3 libipq).
+First of all, thanks for your performance analysis and patches.  I'm
+very inclined of merging them.
 
-If you're interested in just capturing (copies) of packets (not
-re-injecting and/or modifying them), then you could look into using
-the ipt_ULOG target (see the ulogd sourcecode for an example and a small
-library).
+> It seems that with current compilers and CFLAGS, the code from
+> ip_packet_match() is very bad, using lot of mispredicted conditional bran=
+ches I made some patches=20
+> and generated code on i386 and x86_64
+> is much better.
 
-Be aware that both ULOG and ip_qeuue are in the process of being
-obsoleted by nfnetlink_queue / nfnetlink_log.  No docs for them yet.
+This only describes your "compare_if_lstrings()" changes, and I'm happy
+to merge them.
+
+However, you also removed the use of the FWINV macro and replaced it by
+explicit code (including the bool1/bool2 variables, which are not really
+named intuitively).  Why was this neccessary?
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -61,16 +63,16 @@ obsoleted by nfnetlink_queue / nfnetlink_log.  No docs for them yet.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---XIiC+We3v3zHqZ6Z
+--XRI2XbIfl/05pQwm
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDMqYeXaXGVTD0i/8RAv1rAJ9kKOpXeZjcEBDjpz/cs8GgxwD4hgCfex+Q
-xyBdlwoYr4i8eNtAJc+W2aE=
-=b+ZY
+iD8DBQFDMqgDXaXGVTD0i/8RAmvEAKCh7h1gJQEEvLrGEh9tjU8XrdMRYACfWAzh
+yA3cqNf2lwj5yn0fPfF+rAo=
+=whE0
 -----END PGP SIGNATURE-----
 
---XIiC+We3v3zHqZ6Z--
+--XRI2XbIfl/05pQwm--
