@@ -1,7 +1,8 @@
 From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: Will the PPTP patch compile with kernel 2.6.14?
-Date: Thu, 22 Sep 2005 13:43:34 -0500
-Message-ID: <365871C49598504A9481DDBEC3EB49551232E2@MAIL.InfraSupportEtc.com>
+Subject: FW: ip_conntrack_pptp: error during exp_gre - what does this mean
+	and how do I fix it?
+Date: Thu, 22 Sep 2005 13:47:19 -0500
+Message-ID: <365871C49598504A9481DDBEC3EB49551232E3@MAIL.InfraSupportEtc.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -20,11 +21,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Curious minds want to know - with the recent problems compiling the PPTP
-patch with 2.6.11, 12, and .13 and the work documented in the Sept.
-archives in this list - will the PPTP patch work wth kernel 2.6.14 when
-the stable version hits the streets?  (According to kernel.org, 2.6.14
-is at RC2 right now.)
+Does anyone know what this error means?
+
+Sep 12 00:50:16 xxxxx-fw kernel: ip_conntrack_pptp: error during exp_gre
+
+These ocassionally show up in /var/log/messages on one of my firewalls.
+
+I am using kernel 2.4.27 from kernel.org, iptables 1.2.11, and
+patch-o-matic-20040621.
+
+I would love to use the latest and greatest PPTP patch with a new 2.6
+kernel, and I will as soon as I can get one to to compile.  Meanwhile, I
+have to stick with this older version until I can get the newer stuff to
+work. =20
 
 Thanks
 
