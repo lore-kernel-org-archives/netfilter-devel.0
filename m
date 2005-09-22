@@ -1,14 +1,13 @@
-From: "Vincent" <cs83152@csie.chu.edu.tw>
-Subject: RE: IPT_RETURN is not worked in the kernel 2.6.10
-Date: Thu, 22 Sep 2005 11:12:15 +0800
-Message-ID: <006901c5bf23$732ac2f0$aa0ba8c0@l7.com.tw>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: conntrack event cache deadlock
+Date: Wed, 21 Sep 2005 20:33:50 -0700 (PDT)
+Message-ID: <20050921.203350.72192577.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="big5"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
-In-Reply-To: 
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,56 +19,66 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sorry, after understanding the meaning of ipt_do_table function. I know
-currently the IPT_RETURN is only available in the standard target.=20
-But I wonder why don't we have the IPT_RETURN in the user defined
-target?=20
-Can we create a IPT_RETURN in the user defined target. So that we can
-use the IPT_RETURN in our target to return to the upper chain.
 
-What I mean is "can we port the IPT_RETURN to the user defined target in
-the ipt_do_table function?"
+We can try to take the ip_conntrack_lock as a writer twice, and thus
+deadlock, via this code path:
 
-Vincent
+ip_ct_refresh_acct()
+{
+...
+		write_lock_bh(&ip_conntrack_lock);
+		/* Need del_timer for race avoidance (may already be dying). */
+		if (del_timer(&ct->timeout)) {
+			ct->timeout.expires = jiffies + extra_jiffies;
+			add_timer(&ct->timeout);
+			/* FIXME: We loose some REFRESH events if this function
+			 * is called without an skb.  I'll fix this later -HW */
+			if (skb)
+				ip_conntrack_event_cache(IPCT_REFRESH, skb);
 
-> -----Original Message-----
-> From: Vincent [mailto:cs83152@csie.chu.edu.tw]
-> Sent: Tuesday, September 20, 2005 4:56 PM
-> To: 'netfilter-devel@lists.netfilter.org'
-> Subject: IPT_RETURN is not worked in the kernel 2.6.10
->=20
->=20
-> Hello folks,
->=20
-> I am currently writing a iptables target. And I want to use
-> the IPT_RETURN as the return value from target. But I found=20
-> that IPT_RETURN will result as NF_ACCEPT does. What I mean=20
-> is, while I use IPT_RETURN in my target module. It will not=20
-> go back to the upper directory. Does anyone ever experience=20
-> the same problem?
->=20
-> Enviroment:
-> linux kernel 2.6.10
-> Iptables 1.2.9
->=20
-> Vincent
->=20
-> The following code is part of the ipt_do_table in the
-> ip_tables.c But I don=A1=A6t know how to modify it to fix the bug? :(
->=20
->             if (!t->u.kernel.target->target) {
->                 int v;
->=20
->                 v =3D ((struct ipt_standard_target *)t)->verdict;
->                 if (v < 0) {
->                     /* Pop from stack? */
->                     if (v !=3D IPT_RETURN) {
->                         verdict =3D (unsigned)(-v) - 1;
->                         break;
->                     }
->                     e =3D back;
->                     back =3D get_entry(table_base,
->                              back->comefrom);
->                     continue;
->                 }
->=20
+ip_conntrack_event_cache()
+{
+...
+		__ip_ct_event_cache_init(ct);
+
+__ip_ct_event_cache_init()
+{
+...
+		__ip_ct_deliver_cached_events(ecache);
+
+ip_ct_deliver_cached_events()
+{
+...
+		__ip_ct_deliver_cached_events(ecache);
+
+__ip_ct_deliver_cached_events()
+{
+...
+	ip_conntrack_put(ecache->ct);
+
+ip_conntrack_put()
+{
+...
+	nf_conntrack_put(&ct->ct_general);
+
+nf_conntrack_put()
+{
+...
+	if (nfct && atomic_dec_and_test(&nfct->use))
+		nfct->destroy(nfct);
+
+->destroy() is setup by:
+
+	conntrack->ct_general.destroy = destroy_conntrack;
+
+so we call:
+
+destroy_conntrack()
+{
+...
+	write_lock_bh(&ip_conntrack_lock);
+
+and this is where we deadlock.
+
+This was caught by Ingo's spinlock debugging code in
+lib/spinlock_debug.c BTW :-)
