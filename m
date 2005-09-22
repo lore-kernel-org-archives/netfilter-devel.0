@@ -1,13 +1,14 @@
-From: Marcus Sundberg <marcus@ingate.com>
-Subject: [PATCH 2.4.32-pre3] Fix bogus inline in ip_conntrack.h
-Date: Thu, 22 Sep 2005 19:04:05 +0200
-Message-ID: <4332E405.80307@ingate.com>
+From: "Greg Scott" <GregScott@InfraSupportEtc.com>
+Subject: Will the PPTP patch compile with kernel 2.6.14?
+Date: Thu, 22 Sep 2005 13:43:34 -0500
+Message-ID: <365871C49598504A9481DDBEC3EB49551232E2@MAIL.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,28 +20,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Curious minds want to know - with the recent problems compiling the PPTP
+patch with 2.6.11, 12, and .13 and the work documented in the Sept.
+archives in this list - will the PPTP patch work wth kernel 2.6.14 when
+the stable version hits the streets?  (According to kernel.org, 2.6.14
+is at RC2 right now.)
 
-this patch fixes a compilation issue with gcc 3.4.3.
+Thanks
 
-//Marcus
-
---- linux-2.4.32-pre3/include/linux/netfilter_ipv4/ip_conntrack.h	12 May 2005 08:46:44 -0000
-+++ linux/include/linux/netfilter_ipv4/ip_conntrack.h	22 Sep 2005 16:53:37 -0000
-@@ -229,7 +229,7 @@ extern struct ip_conntrack *
-  ip_conntrack_get(struct sk_buff *skb, enum ip_conntrack_info *ctinfo);
-
-  /* decrement reference count on a conntrack */
--extern inline void ip_conntrack_put(struct ip_conntrack *ct);
-+extern void ip_conntrack_put(struct ip_conntrack *ct);
-
-  /* find unconfirmed expectation based on tuple */
-  struct ip_conntrack_expect *
-
-
-Signed-off-by: Marcus Sundberg <marcus@ingate.com>
-
--- 
----------------------------------------+--------------------------
-   Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
-  Software Developer, Ingate Systems AB |  http://www.ingate.com/
+- Greg Scott
