@@ -1,32 +1,46 @@
-From: Christoph Lameter <clameter@engr.sgi.com>
-Subject: Re: [PATCH 0/3] netfilter : 3 patches to boost ip_tables performance
-Date: Thu, 22 Sep 2005 08:55:05 -0700 (PDT)
-Message-ID: <Pine.LNX.4.62.0509220853070.16871@schroedinger.engr.sgi.com>
-References: <43308324.70403@cosmosbay.com> <200509221454.22923.ak@suse.de>
- <20050922125849.GA27413@infradead.org> <200509221505.05395.ak@suse.de>
- <Pine.LNX.4.62.0509220835310.16793@schroedinger.engr.sgi.com>
- <4332D2D9.7090802@cosmosbay.com>
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: [PATCH 2.4.32-pre3] Fix bogus inline in ip_conntrack.h
+Date: Thu, 22 Sep 2005 19:04:05 +0200
+Message-ID: <4332E405.80307@ingate.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Andi Kleen <ak@suse.de>, Christoph Hellwig <hch@infradead.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	netdev@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030423AbVIVPzd@vger.kernel.org>
-To: Eric Dumazet <dada1@cosmosbay.com>
-In-Reply-To: <4332D2D9.7090802@cosmosbay.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 22 Sep 2005, Eric Dumazet wrote:
+Hi,
 
-> vmalloc_node() should be seldom used, at driver init, or when a new ip_tables
-> is loaded. If it happens to be a performance problem, then we can optimize it.
+this patch fixes a compilation issue with gcc 3.4.3.
 
-Allright. However, there are a couple of uses of vmalloc_node that I can 
-see right now and they will likely increase in the future.
+//Marcus
 
-> Why should we spend days of work for a function that is yet to be used ?
+--- linux-2.4.32-pre3/include/linux/netfilter_ipv4/ip_conntrack.h	12 May 2005 08:46:44 -0000
++++ linux/include/linux/netfilter_ipv4/ip_conntrack.h	22 Sep 2005 16:53:37 -0000
+@@ -229,7 +229,7 @@ extern struct ip_conntrack *
+  ip_conntrack_get(struct sk_buff *skb, enum ip_conntrack_info *ctinfo);
 
-I already did a vmalloc_node patch. So no need for spending days of work. 
-The patch can wait until it becomes performance critical.
+  /* decrement reference count on a conntrack */
+-extern inline void ip_conntrack_put(struct ip_conntrack *ct);
++extern void ip_conntrack_put(struct ip_conntrack *ct);
+
+  /* find unconfirmed expectation based on tuple */
+  struct ip_conntrack_expect *
+
+
+Signed-off-by: Marcus Sundberg <marcus@ingate.com>
+
+-- 
+---------------------------------------+--------------------------
+   Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+  Software Developer, Ingate Systems AB |  http://www.ingate.com/
