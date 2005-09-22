@@ -1,9 +1,9 @@
 From: Max Kellermann <max@duempel.org>
-Subject: [PATCH nfsim] tcpsession: send ACK after second FIN/ACK
-Date: Thu, 22 Sep 2005 10:22:16 +0200
-Message-ID: <20050922082216.GB21617@roonstrasse.net>
+Subject: [PATCH nfsim] tcpsession: implement the RESET command
+Date: Thu, 22 Sep 2005 10:24:04 +0200
+Message-ID: <20050922082404.GC21617@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="PmA2V3Z32TCmWXqI"
+Content-Type: multipart/mixed; boundary="nmemrqcdn5VTmUEE"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -19,39 +19,64 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---PmA2V3Z32TCmWXqI
+--nmemrqcdn5VTmUEE
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 Hi,
 
-the "tcpsession CLOSE" command misses the final "ACK" packet, this
-patch implements it.  Without it, netfilter will not clean up its
-conntrack tables correctly after the TCP connection is closed.
+I implemented a RESET command for the tcpsession command.  It can be
+used to quickly purge TCP connections.
 
 Max
 
 
---PmA2V3Z32TCmWXqI
+--nmemrqcdn5VTmUEE
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="nfsim-send_ack_after_fin_ack.patch"
+Content-Disposition: attachment; filename="nfsim-tcpsession_reset.patch"
 
-Thu Sep 15 00:03:36 CEST 2005  max@duempel.org
-  * send ACK after second FIN/ACK
+Thu Sep 15 00:06:48 CEST 2005  max@duempel.org
+  * implemented tcpsession RESET
 diff -rN -u old-nfsim-0/tools/tcpsession.c new-nfsim-0/tools/tcpsession.c
---- old-nfsim-0/tools/tcpsession.c	2005-09-22 10:23:52.000000000 +0200
-+++ new-nfsim-0/tools/tcpsession.c	2005-09-22 10:23:52.000000000 +0200
-@@ -239,6 +239,10 @@
- 	out->ack++;
- 	if (!tcp_send(out, in, 0, "FIN/ACK", NULL, 0, NULL))
- 		return false;
-+	out->seq++;
-+	in->ack++;
-+	if (!tcp_send(in, out, 0, "ACK", NULL, 0, NULL))
-+		return false;
- 	talloc_free(curr);
- 	curr = NULL;
+--- old-nfsim-0/tools/tcpsession.c	2005-09-22 10:25:35.000000000 +0200
++++ new-nfsim-0/tools/tcpsession.c	2005-09-22 10:11:23.000000000 +0200
+@@ -248,6 +248,15 @@
  	return true;
+ }
+ 
++static bool reset_session(struct tcp_endpoint *in, struct tcp_endpoint *out)
++{
++	if (!tcp_send(in, out, 0, "RST", NULL, 0, NULL))
++		return false;
++	talloc_free(curr);
++	curr = NULL;
++	return true;
++}
++
+ static bool tcpsession(int argc, char *argv[])
+ {
+ 	if (argc < 2) {
+@@ -314,6 +323,20 @@
+ 		if (streq(argv[2], "reply"))
+ 			return close_session(&curr->reply, &curr->original);
+ 	}
++	if (streq(argv[1], "RESET")) {
++		if (!curr) {
++			nfsim_log(LOG_ALWAYS, "Session not open!");
++			return false;
++		}
++		if (argc != 3) {
++			tcpsession_help(argc, argv);
++			return false;
++		}
++		if (streq(argv[2], "original"))
++			return reset_session(&curr->original, &curr->reply);
++		if (streq(argv[2], "reply"))
++			return reset_session(&curr->reply, &curr->original);
++	}
+ 	if (streq(argv[1], "ABANDON")) {
+ 		if (!curr) {
+ 			nfsim_log(LOG_ALWAYS, "Session not open!");
 
 
---PmA2V3Z32TCmWXqI--
+--nmemrqcdn5VTmUEE--
