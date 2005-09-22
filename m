@@ -1,18 +1,12 @@
-From: James Morris <jmorris@namei.org>
-Subject: Re: [PATCH 0/3] netfilter : 3 patches to boost ip_tables performance
-Date: Thu, 22 Sep 2005 00:18:06 -0400 (EDT)
-Message-ID: <Pine.LNX.4.63.0509220017430.6397@excalibur.intercode>
-References: <432EF0C5.5090908@cosmosbay.com> <200509191948.55333.ak@suse.de>
-	<432FDAC5.3040801@cosmosbay.com> <200509201830.20689.ak@suse.de>
-	<433082DE.3060308@cosmosbay.com> <43308324.70403@cosmosbay.com>
-	<4331CFA7.50104@cosmosbay.com>
+From: Nhan Thanh Le <ltnhan@tma.com.vn>
+Subject: Netfilter device
+Date: Thu, 22 Sep 2005 11:21:20 +0700
+Message-ID: <43323140.6000503@tma.com.vn>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org, Andi Kleen <ak@suse.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Dumazet <dada1@cosmosbay.com>
-In-Reply-To: <4331CFA7.50104@cosmosbay.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,15 +18,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 21 Sep 2005, Eric Dumazet wrote:
+Dear All,
 
-> I have reworked net/ipv4/ip_tables.c to boost its performance, and post three
-> patches.
+   I am new babie in netfilter linux, my project is caputre packet 
+traffic through netfilter. I read the link at 
+http://redvip.homelinux.net/varios/netfilter/netfilter-hacking-HOWTO-4.html. 
+And I would like to do my  practice but I could not do it, because I 
+could not find out where is the linux/include/linux/netfilter_dev.h or 
+netfilter_device.h. Could someone help me to have it. Thank you very 
+much and appreciate.
 
-Do you have any performance measurements?
-
-
-- James
--- 
-James Morris
-<jmorris@namei.org>
+Nhanle
