@@ -1,16 +1,16 @@
-From: Sven Schuster <schuster.sven@gmx.de>
-Subject: Re: Will the PPTP patch compile with kernel 2.6.14?
-Date: Thu, 22 Sep 2005 23:38:04 +0200
-Message-ID: <20050922213803.GA6249@zion.homelinux.com>
-References: <365871C49598504A9481DDBEC3EB49551232E2@MAIL.InfraSupportEtc.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: hashlimit module parameters
+Date: Thu, 22 Sep 2005 23:51:04 +0200
+Message-ID: <20050922215104.GU26520@sunbeam.de.gnumonks.org>
+References: <43329209.8040607@astral.ro>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KsGdsel6WgEHnImy"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="h5TCuzcqTWZxfGfk"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Greg Scott <GregScott@InfraSupportEtc.com>
+To: Imre Gergely <imre.gergely@astral.ro>
 Content-Disposition: inline
-In-Reply-To: <365871C49598504A9481DDBEC3EB49551232E2@MAIL.InfraSupportEtc.com>
+In-Reply-To: <43329209.8040607@astral.ro>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,53 +23,53 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---KsGdsel6WgEHnImy
-Content-Type: text/plain; charset=iso-8859-1
+--h5TCuzcqTWZxfGfk
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-
-Hi Greg,
-
-On Thu, Sep 22, 2005 at 01:43:34PM -0500, Greg Scott told us:
-> Curious minds want to know - with the recent problems compiling the PPTP
-> patch with 2.6.11, 12, and .13 and the work documented in the Sept.
-> archives in this list - will the PPTP patch work wth kernel 2.6.14 when
-> the stable version hits the streets?  (According to kernel.org, 2.6.14
-> is at RC2 right now.)
-
-you mean the pptp conntrack + NAT helper??
-Harald has submitted it for inclusion into 2.6.14 a few days ago:
-http://www.kernel.org/git/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
-commit;h=3D926b50f92a30090da2c1a8675de954c2d9b09732
-
-
-have a nice day
-
-Sven
-
+On Thu, Sep 22, 2005 at 02:14:17PM +0300, Imre Gergely wrote:
 >=20
-> Thanks
+> hi
 >=20
-> - Greg Scott
+> i was wondering about something. i want to use this hashlimit module,
+> and the doc says the --hashlimit parameter is just like the one in the
+> limit match, but when i want to do
 >=20
+> /usr/local/iptables-1.3.3-20050921/sbin/iptables -A INPUT -s 1.1.1.1 -m
+> hashlimit --hashlimit ! 5/sec --hashlimit-mode srcip --hashlimit-name
+> test -j ACCEPT
 >=20
+> it gives me an error:
+>=20
+> iptables v1.3.3-20050921: hashlimit does not support invert
+> Try `iptables -h' or 'iptables --help' for more information.
+>=20
+> is there a way to specify an invert to this ?
+
+I don't think so, sorry :(  Seems like I forgot to take care of limit
+inversion.  Patches welcome.
 
 --=20
-Linux zion.homelinux.com 2.6.14-rc2-mm1_6 #6 Thu Sep 22 13:08:16 CEST 2005 =
-i686 athlon i386 GNU/Linux
- 23:32:29 up  1:04,  1 user,  load average: 0.43, 0.28, 0.11
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
---KsGdsel6WgEHnImy
+--h5TCuzcqTWZxfGfk
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDMyQ7o4FAdB2PneQRAjIyAJ4nHzfFIw2CdNdv89AcZO+a/Tb6KgCeOrbC
-TDJvRhcQROswNBfSRYdFTVs=
-=6f8z
+iD8DBQFDMydIXaXGVTD0i/8RAjqcAJ4l64FV4VHNU2KKrATDKV1oxwdzbgCeI2qK
+RnwRMKXCva+eLjUUk3UoQJY=
+=ulnQ
 -----END PGP SIGNATURE-----
 
---KsGdsel6WgEHnImy--
+--h5TCuzcqTWZxfGfk--
