@@ -1,46 +1,49 @@
-From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: [PATCH 2/3] netfilter : 3 patches to boost ip_tables performance
-Date: Fri, 23 Sep 2005 13:33:47 +0200
-Message-ID: <20050923113347.GA19516@alpha.home.local>
-References: <200509191948.55333.ak@suse.de> <432FDAC5.3040801@cosmosbay.com> <200509201830.20689.ak@suse.de> <433082DE.3060308@cosmosbay.com> <43308324.70403@cosmosbay.com> <4331D168.6090604@cosmosbay.com> <20050922124803.GH26520@sunbeam.de.gnumonks.org> <4332AC2E.8000607@cosmosbay.com> <20050923040234.GC595@alpha.home.local> <43338F30.6070601@cosmosbay.com>
+From: sathish sat <kadavul_23@yahoo.co.in>
+Subject: reg:ip_conntrack
+Date: Fri, 23 Sep 2005 12:20:22 +0100 (BST)
+Message-ID: <20050923112023.40616.qmail@web8504.mail.in.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Willy Tarreau <willy@w.ods.org>,
-	Harald Welte <laforge@netfilter.org>, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	Andi Kleen <ak@suse.de>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750851AbVIWLgM@vger.kernel.org>
-To: Eric Dumazet <dada1@cosmosbay.com>
-Content-Disposition: inline
-In-Reply-To: <43338F30.6070601@cosmosbay.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Sep 23, 2005 at 07:14:24AM +0200, Eric Dumazet wrote:
+sir,
+  i just maintain the server at networking premises and frequently i seen that the message which related to the ip_conntrack 
  
-> Even without CMOV support, the suggested patch helps :
-> 
-> Here is the code generated with gcc-3.4.4  on a pentium4 (i686) for :
-> 
-> /********************/
-> bool1 = ((ip->saddr&ipinfo->smsk.s_addr) != ipinfo->src.s_addr);
-> bool1 ^= !!(ipinfo->invflags & IPT_INV_SRCIP);
-> 
-> bool2 = ((ip->daddr&ipinfo->dmsk.s_addr) != ipinfo->dst.s_addr);
-> bool2 ^= !!(ipinfo->invflags & IPT_INV_DSTIP);
-> 
-> if ((bool1 | bool2) != 0) {
-> 
-> /********************/
+exact message is
+"ip_conntrack:maximum limit of xxx entries exceeded....followed by
+NET: 230 messages suppressed
+"ip_conntrack:maximum limit of xxx entries exceeded....followed by
+NET: 300 messages suppressed
+etc..
+ 
+its conntinuing and my question is hoe to calculate the "xxx" value that specfied above...and also what is the relationship between xxx value & system Memory
+also relationship of NAT.....with ip_conntrack
+pls explain me in detail abt ip_conntrack ,,,,,pls do the needful
+ 
+server is  abt RedHat 7.1....which used ipchains not iptables too pls help ....
+ 
+my mailid is 
+sathishv53@rediffmail.com
+ 
+regards
+sathishv
+india
 
-(...)
 
-I totally agree with your demonstration. It would be interesting to compare
-she same code on an architecture with more registers (eg: sparc). One of
-the reasons of bad optimization of such constructs on x86 seems to be the
-lack of registers for the number of variables and intermediate results.
-When you write the code like above, you show the workflow to the compiler
-(and I often use the same technique).
 
-Regards,
-Willy
+
+		
+---------------------------------
+ Yahoo! India Matrimony: Find your partner now.
