@@ -1,90 +1,66 @@
-From: Tim Mattox <tmattox@gmail.com>
-Subject: Re: [PATCH 2/3] netfilter : 3 patches to boost ip_tables performance
-Date: Fri, 23 Sep 2005 10:00:27 -0400
-Message-ID: <ea86ce2205092307003e8c2d8c@mail.gmail.com>
-References: <432EF0C5.5090908@cosmosbay.com> <200509191948.55333.ak@suse.de>
-	 <432FDAC5.3040801@cosmosbay.com> <200509201830.20689.ak@suse.de>
-	 <433082DE.3060308@cosmosbay.com> <43308324.70403@cosmosbay.com>
-	 <4331D168.6090604@cosmosbay.com>
-	 <20050922124803.GH26520@sunbeam.de.gnumonks.org>
-	 <4332AC2E.8000607@cosmosbay.com>
-	 <20050923040234.GC595@alpha.home.local>
-Reply-To: Tim Mattox <tmattox@gmail.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 2/3] CLUSTERIP: introduce reference counting for entries
+Date: Fri, 23 Sep 2005 16:00:38 +0200
+Message-ID: <20050923140038.GE731@sunbeam.de.gnumonks.org>
+References: <20050830121535.985929000@nienna.balabit>
+	<200508301726.08506@nienna>
+	<20050913125405.GR29695@sunbeam.de.gnumonks.org>
+	<200509131716.57282@nienna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Cc: Eric Dumazet <dada1@cosmosbay.com>,
-	Harald Welte <laforge@netfilter.org>, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	Andi Kleen <ak@suse.de>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750996AbVIWOAa@vger.kernel.org>
-To: Willy Tarreau <willy@w.ods.org>
-In-Reply-To: <20050923040234.GC595@alpha.home.local>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="1C2QhcYtVTlNtC1j"
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: KOVACS Krisztian <hidden@balabit.hu>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <200509131716.57282@nienna>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-AFAIK, the usual reason gcc can generate better code when you write
-   bool = complex conditional
-   if (bool) ...
-is because of C's short-circuit conditional evaluation rules for || and &&.  By
-moving the complex expression to an assignment statement, you are telling
-gcc that it is okay and safe to evaluate every part of the expression.
-If gcc was smart about being able to prove that all parts of the complex
-expression where safe (no possibly null pointer references) and had no
-side effects, then it could generate the same code with
-  if (complex conditional) ...
 
-However, there are many situations where even a magical compiler
-couldn't prove that there were no possible side effects, etc., and would
-have to generate multiple conditional branches to properly meet the
-short-circuit conditional evaluation rules for && and ||.
+--1C2QhcYtVTlNtC1j
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-However, in the specific cases in this thread using FWINV without
-|| and && operators, an optimizing compiler "should" be smart enough
-to generate more linear code for today's heavily pipelined CPUs.
-For now, I guess it's still the duty of the programmer to use coding
-style to force the compiler to generate more linear machine code.
+On Tue, Sep 13, 2005 at 05:16:57PM +0200, KOVACS Krisztian wrote:
+> > as usual, the two days got a bit long.  But now I've reviewed the old
+> > code and your changes.  I've applied them to my git tree with some
+> > minor modifications/clarifications.
+>=20
+>   Thanks a lot. One more thing: what's up with the updated CLUSTERIP=20
+> userspace?
 
-On 9/23/05, Willy Tarreau <willy@w.ods.org> wrote:
-> On Thu, Sep 22, 2005 at 03:05:50PM +0200, Eric Dumazet wrote:
-> (...)
-> > It was necessary to get the best code with gcc-3.4.4 on i386 and
-> > gcc-4.0.1 on x86_64
-> >
-> > For example :
-> >
-> > bool1 = FWINV(ret != 0, IPT_INV_VIA_OUT);
-> > if (bool1) {
-> >
-> > gives a better code than :
-> >
-> > if (FWINV(ret != 0, IPT_INV_VIA_OUT)) {
-> >
-> > (one less conditional branch)
-> >
-> > Dont ask me why, it is shocking but true :(
->
-> I also noticed many times that gcc's optimization of "if (complex condition)"
-> is rather poor and it's often better to put it in a variable before. I even
-> remember that if you use an intermediate variable, it can often generate a
-> CMOV instruction on processors which support it, while it produces cond tests
-> and jumps without the variable. Generally speaking, if you want fast code,
-> you have to write it as a long sequence of small instructions, just as if
-> you were writing assembly. As you said, shocking but true.
->
-> BTW, cheers for your optimizations !
->
-> Regards,
-> Willy
->
-> -
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+submitted meanwhile.
 
---
-Tim Mattox - tmattox@gmail.com
-  http://homepage.mac.com/tmattox/
-    I'm a bright... http://www.the-brights.net/
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--1C2QhcYtVTlNtC1j
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDNAqGXaXGVTD0i/8RAmLpAJ4ivJv0Zm3tGqlV6Sbw06PiyhLUJACeIitk
+JL3wF8uzER1Qm57P10zB2hY=
+=CAQu
+-----END PGP SIGNATURE-----
+
+--1C2QhcYtVTlNtC1j--
