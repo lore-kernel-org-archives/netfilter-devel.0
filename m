@@ -1,18 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [NETFILTER] fix conntrack event cache deadlock
-Date: Fri, 23 Sep 2005 11:25:52 +0200
-Message-ID: <20050923092552.GC731@sunbeam.de.gnumonks.org>
-References: <20050922143515.GD8917@rama.de.gnumonks.org>
-	<20050922.234724.110942393.davem@davemloft.net>
+From: Max Kellermann <max@duempel.org>
+Subject: Re: [PATCH nfsim] port nfsim to Linux 2.6.14-rc2
+Date: Fri, 23 Sep 2005 12:17:04 +0200
+Message-ID: <20050923101704.GA5090@roonstrasse.net>
+References: <20050922081813.GA21617@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fwqqG+mf3f7vyBCB"
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	kaber@trash.net
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20050922.234724.110942393.davem@davemloft.net>
+In-Reply-To: <20050922081813.GA21617@roonstrasse.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,46 +20,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On 2005/09/22 10:18, Max Kellermann <max@duempel.org> wrote:
+> this patch makes nfsim compile with Linux 2.6.14-rc2.  It uses #ifdefs
+> to keep it compatible with the older kernels.  The changes were mostly
+> copy+paste from the original kernel headers to core/core.h etc.
 
---fwqqG+mf3f7vyBCB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+By the way, my patch is not complete.  I just tried to run my test
+suite, and it failed whenever ip_nat_mangle_tcp_packet() was called.
+2.6.14 changes the way skb_ip_make_writable() / skb_make_writable()
+work.  I am already working on an additional patch which correctly
+implements skb_make_writable() in nfsim.
 
-On Thu, Sep 22, 2005 at 11:47:24PM -0700, David S. Miller wrote:
-> From: Harald Welte <laforge@netfilter.org>
-> Date: Thu, 22 Sep 2005 16:35:15 +0200
->=20
-> > [NETFILTER] Fix conntrack event cache deadlock/oops
->=20
-> Applied.  I hope that doing the event cache call outside
-> the lock is safe?  It was not depending upon that protection
-> in any way was it?
-
-no, not at all.  It was a mistake to call it within the locked section.
-The call was erroneously placed there, because it fitted there without
-reorganizing the code flow.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---fwqqG+mf3f7vyBCB
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFDM8ogXaXGVTD0i/8RAuIzAJ93dB0ZlcPJKKiekhEZvxg2SvHBHQCeLy1y
-o745AkimxZHchIdcDvDkGj0=
-=W81w
------END PGP SIGNATURE-----
-
---fwqqG+mf3f7vyBCB--
+Max
