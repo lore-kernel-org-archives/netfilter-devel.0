@@ -1,16 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: hashlimit module parameters
-Date: Thu, 22 Sep 2005 23:51:04 +0200
-Message-ID: <20050922215104.GU26520@sunbeam.de.gnumonks.org>
-References: <43329209.8040607@astral.ro>
+From: Nhan Thanh Le <ltnhan@tma.com.vn>
+Subject: Netfilter virtual driver
+Date: Fri, 23 Sep 2005 10:07:32 +0700
+Message-ID: <43337174.9000009@tma.com.vn>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="h5TCuzcqTWZxfGfk"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Imre Gergely <imre.gergely@astral.ro>
-Content-Disposition: inline
-In-Reply-To: <43329209.8040607@astral.ro>
+To: netfilter-devel <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,54 +18,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Dear All,
 
---h5TCuzcqTWZxfGfk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+   I want to build a application to monitor the network traffic in real 
+time and It is designed as shown bellow:
+        1. In kernel space, I build a virtual character driver  and hook 
+to Netfilter  to capture all packets traffic via my network.
+        2. On user space, my application handles all packet that was 
+captured by my driver.
+                    -----------------------------------------------
+                    |    User space - My Application        |
+                    -----------------------------------------------
+                               /\                           /\
+                               ||                            ||
+                               \/                           \/
+                    -----------------------------------------------
+                    |   Kernel space - My Virtual Driver  |
+                    -----------------------------------------------
 
-On Thu, Sep 22, 2005 at 02:14:17PM +0300, Imre Gergely wrote:
->=20
-> hi
->=20
-> i was wondering about something. i want to use this hashlimit module,
-> and the doc says the --hashlimit parameter is just like the one in the
-> limit match, but when i want to do
->=20
-> /usr/local/iptables-1.3.3-20050921/sbin/iptables -A INPUT -s 1.1.1.1 -m
-> hashlimit --hashlimit ! 5/sec --hashlimit-mode srcip --hashlimit-name
-> test -j ACCEPT
->=20
-> it gives me an error:
->=20
-> iptables v1.3.3-20050921: hashlimit does not support invert
-> Try `iptables -h' or 'iptables --help' for more information.
->=20
-> is there a way to specify an invert to this ?
+            and my question is:
 
-I don't think so, sorry :(  Seems like I forgot to take care of limit
-inversion.  Patches welcome.
+                a. How can I put all packets  is captured by my virtual  
+driver in kernel space to my application on user space?
+                b. Does my approach can solve by using ip_queue 
+mechanism?  So, if  I use ip_queue mechanism is base on iptables modules 
+and iptables is stopped, then we can not monitor packet. it is right?
+                c. Should I use libpcap to do it?
+                c. Does it exist any open source application base on 
+netfilter and do the same my thesis, could you show it for me reference?
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---h5TCuzcqTWZxfGfk
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFDMydIXaXGVTD0i/8RAjqcAJ4l64FV4VHNU2KKrATDKV1oxwdzbgCeI2qK
-RnwRMKXCva+eLjUUk3UoQJY=
-=ulnQ
------END PGP SIGNATURE-----
-
---h5TCuzcqTWZxfGfk--
+        Would you please help me understand it and tell me your 
+comments/suggestion. Thank you very much and appreciate it for help.
+               
+Best Regards,
+Nhanle
