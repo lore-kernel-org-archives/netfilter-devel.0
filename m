@@ -1,45 +1,51 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 2/3] CLUSTERIP: introduce reference counting for entries
-Date: Fri, 23 Sep 2005 16:00:38 +0200
-Message-ID: <20050923140038.GE731@sunbeam.de.gnumonks.org>
-References: <20050830121535.985929000@nienna.balabit>
-	<200508301726.08506@nienna>
-	<20050913125405.GR29695@sunbeam.de.gnumonks.org>
-	<200509131716.57282@nienna>
+Subject: Re: [PATCH 0/3] netfilter : 3 patches to boost ip_tables performance
+Date: Fri, 23 Sep 2005 19:09:11 +0200
+Message-ID: <20050923170911.GN731@sunbeam.de.gnumonks.org>
+References: <432EF0C5.5090908@cosmosbay.com> <43308324.70403@cosmosbay.com> <4331CFA7.50104@cosmosbay.com> <200509221503.21650.ak@suse.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1C2QhcYtVTlNtC1j"
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
+	protocol="application/pgp-signature"; boundary="i1d8offQF8oqidLm"
+Cc: Eric Dumazet <dada1@cosmosbay.com>, linux-kernel@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750810AbVIWRJP@vger.kernel.org>
+To: Andi Kleen <ak@suse.de>
 Content-Disposition: inline
-In-Reply-To: <200509131716.57282@nienna>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+In-Reply-To: <200509221503.21650.ak@suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---1C2QhcYtVTlNtC1j
+--i1d8offQF8oqidLm
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Sep 13, 2005 at 05:16:57PM +0200, KOVACS Krisztian wrote:
-> > as usual, the two days got a bit long.  But now I've reviewed the old
-> > code and your changes.  I've applied them to my git tree with some
-> > minor modifications/clarifications.
+On Thu, Sep 22, 2005 at 03:03:21PM +0200, Andi Kleen wrote:
 >=20
->   Thanks a lot. One more thing: what's up with the updated CLUSTERIP=20
-> userspace?
+> > 1) No more central rwlock protecting each table (filter, nat, mangle, r=
+aw),
+> >     but one lock per CPU. It avoids cache line ping pongs for each pack=
+et.
+>=20
+> Another useful change would be to not take the lock when there are no
+> rules. Currently just loading iptables has a large overhead.
 
-submitted meanwhile.
+This is partially due to the netfilter hooks that are registered (so we
+always take nf_hook_slow() in the NF_HOOK() macro).
+
+The default policies inside an iptables chain are internally implemented
+as a rule.  Thus, policies as built-in rules have packet/byte counters.
+
+Therefore, without making a semantic change, we cannot do any of the
+following optimizations:
+
+1) not take a lock when the chain is empty
+2) not register at the netfilter hook when the chain is empty.
+
+This is well-known, but I don't think we can change the semantics for
+the user during a stable kernel series.  That's one point where not
+having 2.7.x really hurts.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -51,16 +57,16 @@ submitted meanwhile.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---1C2QhcYtVTlNtC1j
+--i1d8offQF8oqidLm
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDNAqGXaXGVTD0i/8RAmLpAJ4ivJv0Zm3tGqlV6Sbw06PiyhLUJACeIitk
-JL3wF8uzER1Qm57P10zB2hY=
-=CAQu
+iD8DBQFDNDa3XaXGVTD0i/8RAhGYAJ9PMXbW3ukZmMQtTSr8Bszii7OGcQCgidIS
+/wV2ladFluSb6uUZ3B+qbHI=
+=PSsv
 -----END PGP SIGNATURE-----
 
---1C2QhcYtVTlNtC1j--
+--i1d8offQF8oqidLm--
