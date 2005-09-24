@@ -1,13 +1,15 @@
-From: "Giacomo" <delleceste@gmail.com>
-Subject: NAT/filtering simple examples
-Date: Sat, 24 Sep 2005 15:36:10 +0200
-Message-ID: <003501c5c10c$eeb84830$0300a8c0@giacomino>
+From: "Greg Scott" <GregScott@InfraSupportEtc.com>
+Subject: RE: Will the PPTP patch compile with kernel 2.6.14?
+Date: Sat, 24 Sep 2005 10:42:01 -0500
+Message-ID: <365871C49598504A9481DDBEC3EB49551232F8@MAIL.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "netfilter devel" <netfilter-devel@lists.netfilter.org>
+Content-class: urn:content-classes:message
+To: "Sven Schuster" <schuster.sven@gmx.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,39 +21,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Good morning.
-If anyone in the news was interested, i communicate that i have finished 
-developing
-a simple ipv4 packet filter with nat/masquerading functionality.
+=20
+Way cool....
 
-Kernel programming encompasses these topics:
+Just to be completely clear - this means starting with 2.6.14, Harald's
+PPTP conntrack + NAT helper is in the mainline kernel and there's no
+more need to get it from POM, right?
 
-- Netlink sockets for user/kernel communication;
-- Netfilter hook registration;
-- getsockopt() function registration;
-- Kernel module programming;
-- Network programming (socket buffers, network functions...)
-- /proc interface read/write example;
-- kernel linked lists and related timers;
-- ....
+Thanks
 
-Userspace programming:
+- Greg
 
-- Netlink communication (a simple netlink interface has been written);
-- Pipes/semaphores for communication between parent and son processes;
-- Networking functions;
-- signals;
-- unbuffered Input from terminal;
-- ...
 
-If anyone interested visit
+-----Original Message-----
+From: Sven Schuster [mailto:schuster.sven@gmx.de]=20
+Sent: Thursday, September 22, 2005 4:38 PM
+To: Greg Scott
+Cc: netfilter-devel@lists.netfilter.org
+Subject: Re: Will the PPTP patch compile with kernel 2.6.14?
 
-http://www.giacomos.it/ipfire/index.html
 
-and then if you find something interesting let me know!
+Hi Greg,
 
-delleceste@gmail.com
+On Thu, Sep 22, 2005 at 01:43:34PM -0500, Greg Scott told us:
+> Curious minds want to know - with the recent problems compiling the=20
+> PPTP patch with 2.6.11, 12, and .13 and the work documented in the
+Sept.
+> archives in this list - will the PPTP patch work wth kernel 2.6.14=20
+> when the stable version hits the streets?  (According to kernel.org,=20
+> 2.6.14 is at RC2 right now.)
 
-Thanks for those in the list who helped! :)
+you mean the pptp conntrack + NAT helper??
+Harald has submitted it for inclusion into 2.6.14 a few days ago:
+http://www.kernel.org/git/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
+c
+ommit;h=3D926b50f92a30090da2c1a8675de954c2d9b09732
 
-Giacomo S. 
+
+have a nice day
+
+Sven
+
+>=20
+> Thanks
+>=20
+> - Greg Scott
+>=20
+>=20
+
+--
+Linux zion.homelinux.com 2.6.14-rc2-mm1_6 #6 Thu Sep 22 13:08:16 CEST
+2005 i686 athlon i386 GNU/Linux
+ 23:32:29 up  1:04,  1 user,  load average: 0.43, 0.28, 0.11
