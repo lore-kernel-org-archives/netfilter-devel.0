@@ -1,16 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH NF_CONNTRACK 0/4] sync with ip_conntrack
-Date: Sat, 24 Sep 2005 14:40:39 +0200
-Message-ID: <20050924124039.GA731@sunbeam.de.gnumonks.org>
-References: <200509241002.j8OA2U0A003113@toshiba.co.jp>
+From: "Giacomo" <delleceste@gmail.com>
+Subject: NAT/filtering simple examples
+Date: Sat, 24 Sep 2005 15:36:10 +0200
+Message-ID: <003501c5c10c$eeb84830$0300a8c0@giacomino>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="uxwbQ5uNL5ssFhxJ"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Content-Disposition: inline
-In-Reply-To: <200509241002.j8OA2U0A003113@toshiba.co.jp>
+To: "netfilter devel" <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,41 +19,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Good morning.
+If anyone in the news was interested, i communicate that i have finished 
+developing
+a simple ipv4 packet filter with nat/masquerading functionality.
 
---uxwbQ5uNL5ssFhxJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Kernel programming encompasses these topics:
 
-On Sat, Sep 24, 2005 at 07:02:29PM +0900, Yasuyuki KOZAKAI wrote:
->=20
-> Hi, Harald,
->=20
-> These patches are for nf_conntrack and synchronize it with the recent
-> ip_conntrack.
+- Netlink sockets for user/kernel communication;
+- Netfilter hook registration;
+- getsockopt() function registration;
+- Kernel module programming;
+- Network programming (socket buffers, network functions...)
+- /proc interface read/write example;
+- kernel linked lists and related timers;
+- ....
 
-thanks, applied all four of your patches.
+Userspace programming:
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+- Netlink communication (a simple netlink interface has been written);
+- Pipes/semaphores for communication between parent and son processes;
+- Networking functions;
+- signals;
+- unbuffered Input from terminal;
+- ...
 
---uxwbQ5uNL5ssFhxJ
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+If anyone interested visit
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+http://www.giacomos.it/ipfire/index.html
 
-iD8DBQFDNUlHXaXGVTD0i/8RAgnrAJ4lbrn5s7vOlMxGZvWPj44dDISbpQCfV3pM
-iFw0gKDYOk018Tvvg41eL5Q=
-=PYSZ
------END PGP SIGNATURE-----
+and then if you find something interesting let me know!
 
---uxwbQ5uNL5ssFhxJ--
+delleceste@gmail.com
+
+Thanks for those in the list who helped! :)
+
+Giacomo S. 
