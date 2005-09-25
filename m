@@ -1,16 +1,19 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH] [NETFILTER] ip_conntrack: Update event cache when
- status changes
-Date: Sat, 24 Sep 2005 16:56:28 -0700 (PDT)
-Message-ID: <20050924.165628.86591859.davem@davemloft.net>
-References: <20050924185020.GC731@sunbeam.de.gnumonks.org>
+From: Jakub Wartak <vnulllists@pcnet.com.pl>
+Subject: Re: hashlimit module parameters
+Date: Sun, 25 Sep 2005 09:19:31 +0200
+Message-ID: <200509250919.32532.vnulllists@pcnet.com.pl>
+References: <43329209.8040607@astral.ro>
+	<20050922215104.GU26520@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20050924185020.GC731@sunbeam.de.gnumonks.org>
+To: Harald Welte <laforge@netfilter.org>,
+	Imre Gergely <imre.gergely@astral.ro>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20050922215104.GU26520@sunbeam.de.gnumonks.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,14 +25,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Sat, 24 Sep 2005 20:50:20 +0200
+Dnia czwartek, 22 wrze=B6nia 2005 23:51, Harald Welte napisa=B3:
+> On Thu, Sep 22, 2005 at 02:14:17PM +0300, Imre Gergely wrote:
+> > hi
+> >
+> > i was wondering about something. i want to use this hashlimit module,
+> > and the doc says the --hashlimit parameter is just like the one in the
+> > limit match, but when i want to do
+> >
+> > /usr/local/iptables-1.3.3-20050921/sbin/iptables -A INPUT -s 1.1.1.1 -m
+> > hashlimit --hashlimit ! 5/sec --hashlimit-mode srcip --hashlimit-name
+> > test -j ACCEPT
+> >
+> > it gives me an error:
+> >
+> > iptables v1.3.3-20050921: hashlimit does not support invert
+> > Try `iptables -h' or 'iptables --help' for more information.
+> >
+> > is there a way to specify an invert to this ?
+>
+> I don't think so, sorry :(  Seems like I forgot to take care of limit
+> inversion.  Patches welcome.
 
-> [NETFILTER] ip_conntrack: Update event cache when status changes
-> 
-> The GRE, SCTP and TCP protocol helpers did not call ip_conntrack_event_cache()
-> when updating ct->status.  This patch adds the respective calls.
-> 
-> Signed-off-by: Harald Welte <laforge@netfilter.org>
+I resolved it using RETURN target, examples here:
+http://vnull.pcnet.com.pl/nf/pomysly_netfilter3.pdf
 
-Applied, thanks Harald.
+It is written in polish, but I think that the examples are easy to=20
+understand :)
+
+=2D-=20
+Jakub Wartak
+=2Dvnull
+=46reeBSD/OpenBSD/Linux/Solaris/Network Administrator
+http://vnull.pcnet.com.pl/
