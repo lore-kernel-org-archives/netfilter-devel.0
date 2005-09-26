@@ -1,17 +1,19 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: snat to multiple source ip
-Date: Mon, 26 Sep 2005 10:47:28 -0700
-Message-ID: <20050926174728.GA17007@linuxace.com>
-References: <BAY103-DAV93096D8E2EFC3B50E721DB28B0@phx.gbl>
-	<20050926161049.GA16714@linuxace.com>
-	<BAY103-DAV122786F84D83782AC7249B28B0@phx.gbl>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH/RFC] [NETFILTER]: Fix invalid module autoloading by
+ splitting iptable_nat
+Date: Mon, 26 Sep 2005 15:25:30 -0700 (PDT)
+Message-ID: <20050926.152530.70557275.davem@davemloft.net>
+References: <20050925150755.GK731@sunbeam.de.gnumonks.org>
+	<4336CFB4.6060806@trash.net>
+	<20050925164423.GM731@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marco Berizzi <pupilla@hotmail.com>
-Content-Disposition: inline
-In-Reply-To: <BAY103-DAV122786F84D83782AC7249B28B0@phx.gbl>
+To: laforge@netfilter.org
+In-Reply-To: <20050925164423.GM731@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +25,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Sep 26, 2005 at 06:39:13PM +0200, Marco Berizzi wrote:
-> > On Mon, Sep 26, 2005 at 05:38:48PM +0200, Marco Berizzi wrote:
-> > > I would like to better understand the SNAT target when
-> > > multiple --to-source are specified.
-> >
-> > This capability has been removed from newer (2.6.11+) kernels,
-> > and was reported as being broken in kernels prior to that.
+From: Harald Welte <laforge@netfilter.org>
+Date: Sun, 25 Sep 2005 18:44:23 +0200
+
+> Dave, please apply 
 > 
-> Thanks for the reply. FYI tests were done with linux 2.4.31
-> Is there any other equivalent under 2.4 or 2.6?
+> (sorry for the missing Signed-off-by: Harald Welte <laforge@netfilter.org>)
 
-You could try the random match from pom, but to do this without
-patching the kernel, probably could use multiple -s rules:
-
--s 10.0.0.0/24 -j SNAT x.x.x.x
--s 10.1.0.0/24 -j SNAT y.y.y.y
-
-or somesuch.
-
-Phil
+Done, thanks a lot.
