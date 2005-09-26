@@ -1,9 +1,15 @@
-From: "Marco Berizzi" <pupilla@hotmail.com>
-Subject: snat to multiple source ip
-Date: Mon, 26 Sep 2005 17:38:48 +0200
-Message-ID: <BAY103-DAV93096D8E2EFC3B50E721DB28B0@phx.gbl>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: snat to multiple source ip
+Date: Mon, 26 Sep 2005 09:10:49 -0700
+Message-ID: <20050926161049.GA16714@linuxace.com>
+References: <BAY103-DAV93096D8E2EFC3B50E721DB28B0@phx.gbl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Marco Berizzi <pupilla@hotmail.com>
+Content-Disposition: inline
+In-Reply-To: <BAY103-DAV93096D8E2EFC3B50E721DB28B0@phx.gbl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -15,42 +21,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello everybody.
-I would like to better understand the SNAT target when
-multiple --to-source are specified.
+On Mon, Sep 26, 2005 at 05:38:48PM +0200, Marco Berizzi wrote:
+> I would like to better understand the SNAT target when
+> multiple --to-source are specified.
 
-Man states:
+This capability has been removed from newer (2.6.11+) kernels,
+and was reported as being broken in kernels prioer to that.
 
-"You can add several --to-source option. If you specify
-more than one source address, either via an address range
-or multiple --to-source options, a simple round-robin  (one
-after another in cycle) takes place between these addresses."
-
-iptables -t nat -I POSTROUTING -s ipX --protocol tcp
--j SNAT --to first_ip --to second_ip
-
-This round robin cycle is per socket. Correct?
-
-But, after a little test, I have concluded that SNAT
-choose the second IP when the system open a second
-socket to the same host.
-
-SNAT test results:
-
-1st socket opened to a.a.a.a  -->> SNAT with first_ip
-2nd socket opened to b.b.b.b  -->> SNAT with first_ip
-3rd socket opened to c.c.c.c  -->> SNAT with first_ip
-4th socket opened to b.b.b.b  -->> SNAT with second_ip
-5th socket opened to d.d.d.d  -->> SNAT with first_ip
-6th socket opened to a.a.a.a  -->> SNAT with second_ip
-
-I think it should work in this manner:
-
-1st socket opened to a.a.a.a  -->> SNAT with first_ip
-2nd socket opened to b.b.b.b  -->> SNAT with second_ip
-3rd socket opened to c.c.c.c  -->> SNAT with first_ip
-4th socket opened to b.b.b.b  -->> SNAT with second_ip
-5th socket opened to d.d.d.d  -->> SNAT with first_ip
-6th socket opened to a.a.a.a  -->> SNAT with second_ip
-
-May anyone confirm this? Wrong or correct?
+Phil
