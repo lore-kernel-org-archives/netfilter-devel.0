@@ -1,11 +1,14 @@
-From: "Marco Berizzi" <pupilla@hotmail.com>
-Subject: Re: snat to multiple source ip
-Date: Mon, 26 Sep 2005 18:39:13 +0200
-Message-ID: <BAY103-DAV122786F84D83782AC7249B28B0@phx.gbl>
-References: <BAY103-DAV93096D8E2EFC3B50E721DB28B0@phx.gbl>
-	<20050926161049.GA16714@linuxace.com>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: ip rule and ip route
+Date: Mon, 26 Sep 2005 18:49:30 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0509261848380.3546@filer.marasystems.com>
+References: <twig.1127735420.71041@cdac.in>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Abhishek Misra <abhishekm@cdac.in>
+In-Reply-To: <twig.1127735420.71041@cdac.in>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,13 +20,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, 26 Sep 2005, Abhishek Misra wrote:
 
-> On Mon, Sep 26, 2005 at 05:38:48PM +0200, Marco Berizzi wrote:
-> > I would like to better understand the SNAT target when
-> > multiple --to-source are specified.
->
-> This capability has been removed from newer (2.6.11+) kernels,
-> and was reported as being broken in kernels prioer to that.
+> Please let me know if there are ioctls for ip rule and ip route.
 
-Thanks for the reply. FYI tests were done with linux 2.4.31
-Is there any other equivalent under 2.4 or 2.6?
+Wrong mailinglist, but iproute uses netlink, not ioctl.
+
+Regards
+Henrik
