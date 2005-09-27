@@ -1,63 +1,89 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: 2.6.14-rc2-mm1 (Oops, possibly Netfilter related?)
-Date: Tue, 27 Sep 2005 00:44:10 -0700
-Message-ID: <20050927004410.29ab9c03.akpm@osdl.org>
-References: <20050921222839.76c53ba1.akpm@osdl.org>
-	<4338F136.1020404@reub.net>
+From: Pasi =?iso-8859-1?Q?K=E4rkk=E4inen?= <pasik@iki.fi>
+Subject: Re: [ANNOUNCE] Release of libnfnetlink,
+	libnfnetlink_conntrack and conntrack
+Date: Tue, 27 Sep 2005 15:23:11 +0300
+Message-ID: <20050927122310.GK10146@edu.joroinen.fi>
+References: <20050924215413.GD731@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	"Seth, Rohit" <rohit.seth@intel.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964851AbVI0HpP@vger.kernel.org>
-To: Reuben Farrelly <reuben-lkml@reub.net>
-In-Reply-To: <4338F136.1020404@reub.net>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: coreteam@netfilter.org,
+	Netfilter Announcement List <netfilter-announce@lists.netfilter.org>,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	lwn@lwn.net
+Content-Disposition: inline
+In-Reply-To: <20050924215413.GD731@sunbeam.de.gnumonks.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Reuben Farrelly <reuben-lkml@reub.net> wrote:
+On Sat, Sep 24, 2005 at 11:54:13PM +0200, Netfilter Core Team wrote:
+> Hi!
+>=20
+> The netfilter project proudly presents:
+>=20
+> 	libnfnetlink-0.0.10
+> 	libnfnetlink_conntrack-0.0.10
+> 	conntrack-0.81
+>=20
+> Each of those three releases is the first official release of the
+> respective project.  They're the counterparts to the first pieces of th=
+e
+> "next generation" netfilter subsystem that will be present in the 2.6.1=
+4
+> linux kernel release.
+>=20
+> libnfnetlink
+> 	is the low-level userspace library for nfnetlink based
+> 	communication between the kernel-side netfilter and the
+> 	userspace world.
+>=20
+> libnfnetlink_conntrack
+> 	is the librarry for userspace access to the in-kernel connection
+> 	tracking table.
+>=20
+> conntrack
+> 	is a commandline program for listing, querying, deleting,
+> 	updating entries in the connection tracking table.  It also
+> 	supports real-time tracing of connection tracking state changes
+> 	(conntrack events).
+>=20
+> You can download the three releases from=20
+> 	ftp://ftp.netfilter.org/pub/libnfnetlink/libnfnetlink-0.0.10.tar.bz2
+> 	ftp://ftp.netfilter.org/pub/libnfnetlink_conntrack/libnfnetlink_conntr=
+ack-0.0.10.tar.bz2
+> 	ftp://ftp.netfilter.org/pub/conntrack/conntrack-0.81.tar.bz2
+>=20
+> Happy firewalling,
+>=20
+> 	Harald Welte (for the Netfilter Core Team)
 >
->  On 22/09/2005 5:28 p.m., Andrew Morton wrote:
->  > ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.14-rc2/2.6.14-rc2-mm1/
->  > 
->  > - Added git tree `git-sas.patch': Luben Tuikov's SAS driver and its support.
->  > 
->  > - Various random other things - nothing major.
-> 
->  Just noticed this oops from about 4am this morning.  This would have been at 
->  about the time when the normal daily cronjobs are run, but shouldn't have been 
->  doing much else.
-> 
-> 
->  Sep 27 04:04:28 tornado kernel: smbd: page allocation failure. order:1, 
->  mode:0x80000020
->  Sep 27 04:04:28 tornado kernel:  [<c0103ad0>] dump_stack+0x17/0x19
->  Sep 27 04:04:28 tornado kernel:  [<c013f84a>] __alloc_pages+0x2d8/0x3ef
->  Sep 27 04:04:28 tornado kernel:  [<c0142b32>] kmem_getpages+0x2c/0x91
->  Sep 27 04:04:28 tornado kernel:  [<c0144136>] cache_grow+0xa2/0x1aa
->  Sep 27 04:04:28 tornado kernel:  [<c0144810>] cache_alloc_refill+0x279/0x2bb
->  Sep 27 04:04:28 tornado kernel:  [<c0144da9>] __kmalloc+0xc7/0xe7
->  Sep 27 04:04:28 tornado kernel:  [<c02ab386>] pskb_expand_head+0x4b/0x11a
->  Sep 27 04:04:28 tornado kernel:  [<c02afd34>] skb_checksum_help+0xcb/0xe5
->  Sep 27 04:04:28 tornado kernel:  [<c0302b0d>] ip_nat_fn+0x16d/0x1bf
->  Sep 27 04:04:28 tornado kernel:  [<c0302cdc>] ip_nat_local_fn+0x57/0x8d
->  Sep 27 04:04:28 tornado kernel:  [<c03068ef>] nf_iterate+0x59/0x7d
->  Sep 27 04:04:28 tornado kernel:  [<c030695d>] nf_hook_slow+0x4a/0x109
->  Sep 27 04:04:28 tornado kernel:  [<c02ca035>] ip_queue_xmit+0x23c/0x4f5
->  Sep 27 04:04:28 tornado kernel:  [<c02da477>] tcp_transmit_skb+0x3ce/0x713
->  Sep 27 04:04:29 tornado kernel:  [<c02db53b>] tcp_write_xmit+0x124/0x37b
->  Sep 27 04:04:29 tornado kernel:  [<c02db7b3>] __tcp_push_pending_frames+0x21/0x70
->  Sep 27 04:04:29 tornado kernel:  [<c02d0b45>] tcp_sendmsg+0x9cc/0xabc
->  Sep 27 04:04:29 tornado kernel:  [<c02ed3dd>] inet_sendmsg+0x2e/0x4c
->  Sep 27 04:04:29 tornado kernel:  [<c02a6691>] sock_sendmsg+0xbf/0xe3
->  Sep 27 04:04:29 tornado kernel:  [<c02a77be>] sys_sendto+0xa5/0xbe
 
-No, this is simply a warning - the kernel ran out of 1-order pages in the
-page allocator.  There have been several reports of this after
-mm-try-to-allocate-higher-order-pages-in-rmqueue_bulk.patch was merged,
-which was rather expected.
+Cool.=20
 
-I've dropped that patch.  Joel Schopp is working on Mel Gorman's patches
-which address fragmentation at this level.  If that code gets there then we
-can take another look at
-mm-try-to-allocate-higher-order-pages-in-rmqueue_bulk.patch.
+These will be used for the future netfilter-ha / conntrack sync stuff?
+
+- Pasi K=E4rkk=E4inen
+=20
+> p.s.: expect some more news on libnfnetlink_log and libnfnetlink_queue
+> in the next couple of days(!)
+>=20
+> --=20
+> - Harald Welte <laforge@netfilter.org>             http://www.netfilter=
+.org/
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
+>   "Fragmentation is like classful addressing -- an interesting early
+>    architectural error that shows how much experimentation was going
+>    on while IP was being designed."                    -- Paul Vixie
