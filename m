@@ -1,15 +1,12 @@
 From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [ANNOUNCE] Release of nf-HiPAC 0.9.0
-Date: Wed, 28 Sep 2005 15:05:02 +0100
-Message-ID: <433AA30E.7060709@ufomechanic.net>
-References: <200509260441.42483.mbellion@hipac.org>
+Subject: snat bridge routes reply packets
+Date: Wed, 28 Sep 2005 17:05:44 +0100
+Message-ID: <dhef0t$mj3$1@sea.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200509260441.42483.mbellion@hipac.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,22 +18,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This auto-factorization of rules seems cool.
+I have a bridge setup snat'ing some IP's that aren't actually on the
+bridge subnet.
 
-> Dynamic rule sets:
-> nf-HiPAC offers fast dynamic rules et updates without stalling packet
->classification in contrast to iptables which yields bad update performance
-> along with stalled packet processing during updates.
+That works fine except that the nat code doesn't know what to do with
+the de-snat'd packets and tries to send them to the default gateway.
 
-Does it also remove the "upload rules in bulk" issue of iptables and
-make use of links lists (or trees) to upload small changes singly? I
-recall someone released a re-write a while ago that took care of this,
-but this seems to do rule-factoring too to reduce the number of check
-operations.
+This makes sense, but it's routing, not bridging.
 
-Speaking under fear of blasphemy I'm wondering what stops this becoming
-iptables proper? (ipv4 anyway)?  OK, it would want linking to
-nf_conntrack instead of ip_conntrack and a v6 version doing type stuff,
-but it seems the biz.
+Bridging dnat would keep track of the physdev and src mac as well as the
+src ip and ignore arp altogether when re-issueing the de-snat'd
+responses; it would write the de-snat'd packet back out to the original
+interface and targeted to the original mac.
 
-Azez
+I think bridging snat can be detected when the target mac of the packet
+that causes the conntrack to be created does not match the mac of the
+physdev the packet comes in on (i.e. the snat'ing box is not being used
+as a gateway).
+
+In such cases the physdev and srcmac must be saved.
+
+(Co-incidentally I'm already doing this in my contrack mods which will
+no doubt get merged into nf_conntrack that does some layer 2 stuff)
+
+So my real questions are:
+1) Am I nuts?
+2) Any tips on skipping the arp cache stuff on the de-snat'd response,
+as I have a reference to the physdev and target mac already available?
+
+I also think there is some mileage in checking the src_mac when looking
+up conntracks in the orig direction, to avoid having to presume that the
+same ip address does not exist on different physdev of the same bridge -
+to thus allow them both to be snat'd independantly.
+
+Sam Azez
