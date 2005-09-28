@@ -1,84 +1,43 @@
-From: Bernardo Innocenti <bernie@develer.com>
-Subject: Re: Intermittent NAT failure when multiple hosts send UDP packets
-Date: Tue, 27 Sep 2005 23:00:35 +0200
-Message-ID: <4339B2F3.5040206@develer.com>
-References: <432B8702.3060801@develer.com> <432CD386.201@develer.com> <43306484.2060103@develer.com> <43307BDC.8060602@trash.net> <4330A51D.20009@develer.com>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [PATCH 0/3] netfilter : 3 patches to boost ip_tables performance
+Date: Wed, 28 Sep 2005 02:25:16 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0509280219110.25500@filer.marasystems.com>
+References: <432EF0C5.5090908@cosmosbay.com> <200509221503.21650.ak@suse.de>
+	<20050923170911.GN731@sunbeam.de.gnumonks.org>
+	<200509271823.19365.ak@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	lkml <linux-kernel@vger.kernel.org>,
-	netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965073AbVI0VA5@vger.kernel.org>
-To: Bernardo Innocenti <bernie@develer.com>
-In-Reply-To: <4330A51D.20009@develer.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Harald Welte <laforge@netfilter.org>, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Andi Kleen <ak@suse.de>
+In-Reply-To: <200509271823.19365.ak@suse.de>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Bernardo Innocenti wrote:
-> Patrick McHardy wrote:
->>Bernardo Innocenti wrote:
->>
->>>It's quite hard to trigger, but after it does, packets
->>>are consistently routed with the source IP untranslated.
->>
->>Please try "echo 255 >
->>/proc/sys/net/ipv4/netfilter/ip_conntrack_log_invalid"
->>and modprobe ipt_LOG to see if conntrack ignores them because
->>of invalid checksums or something.
-> 
-> It doesn't seem to be the case.  I only see a few occasional
-> errors, probably caused by miserable hosts crawling with worms:
+On Tue, 27 Sep 2005, Andi Kleen wrote:
 
+> That could be special cased and done lockless, with the counting
+> done per CPU.
 
-PROBLEM SOLVED!  I'm glad to say It's *almost* not a kernel bug,
-more like a missing feature.
+It's also not very hard for iptables when verifying the table to conclude 
+that there really isn't any "real" rules for a certain hook and then 
+delete that hook registration (only policy ACCEPT rule found). Allowing 
+you to have as many ip tables modules you like in the kernel, but only 
+using the hooks where you have rules.  Drawback is that you loose the 
+packet counters on the policy.
 
+Exception: iptable_nat. Needs the hooks for other purposes as well, not 
+just the iptable so here the hooks can not be deactivated when there is no 
+rules.
 
-In my ip-up.local script, I do:
-
-        echo "Loading NAT modules:"
-        /sbin/modprobe ip_conntrack
-        /sbin/modprobe ip_conntrack_ftp
-        /sbin/modprobe ip_conntrack_irc
-        /sbin/modprobe iptable_nat
-        /sbin/modprobe ip_nat_ftp
-        /sbin/modprobe ip_nat_irc
-
-	[...several filtering and QoS rules...]
-
-	$iptab -A POSTROUTING -t nat -o $IFNAME -j SNAT --to-source $IPLOCAL
-
-
-My ip-down.local attempts to do the opposite:
-
-        echo "Flushing all current rules:"
-        $iptab -F
-        $iptab -F -t nat
-        echo "Clearing all chains:"
-        $iptab -X
-        $iptab -Z
-        $iptab -X -t nat
-        $iptab -Z -t nat
-
-        echo "Removing NAT modules:"
-        /sbin/rmmod ip_nat_ftp ip_nat_irc iptable_nat ip_conntrack ip_conntrack_ftp ip_conntrack_irc
-
-
-Note the order of the modules in the last line: ip_conntrack cannot
-be unloaded because it's still being used by ip_conntrack_ftp and
-ip_conntrack_irc.
-
-So, whenever the PPP link goes down, ip_conntrack remains loaded with
-all connections still being tracked until the timer expires!
-
-If ppp0 goes up again soon enough, the script reloads the ip_nat modules,
-but the existing connections are no longer being translated.
-
-Would it be possible to do something at module initialization time
-to recover those connections?  Meanwhile, I've fixed my rmmod to make
-sure ip_conntrack really gets unloaded.
-
--- 
-  // Bernardo Innocenti - Develer S.r.l., R&D dept.
-\X/  http://www.develer.com/
+Regards
+Henrik
