@@ -1,20 +1,20 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Speeding up ipq_issue_verdict (snort_inline)
-Date: Wed, 28 Sep 2005 10:17:11 +0200
-Message-ID: <20050928081710.GN4168@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.63.0508291342200.21456@rem.homeip.net>
-	<20050831074100.GD4556@rama.de.gnumonks.org>
-	<Pine.LNX.4.63.0509010827450.15267@rem.homeip.net>
-	<20050901201835.GE4093@rama.de.gnumonks.org>
-	<Pine.LNX.4.61.0509261106140.16825@rem.homeip.net>
+Subject: Re: [PATCH 0/3] netfilter : 3 patches to boost ip_tables performance
+Date: Wed, 28 Sep 2005 10:32:40 +0200
+Message-ID: <20050928083240.GP4168@sunbeam.de.gnumonks.org>
+References: <432EF0C5.5090908@cosmosbay.com> <200509221503.21650.ak@suse.de>
+	<20050923170911.GN731@sunbeam.de.gnumonks.org>
+	<200509271823.19365.ak@suse.de>
+	<Pine.LNX.4.61.0509280219110.25500@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4wkndigzIeYF6Hbg"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="UeXZ3FjlYZvuln/G"
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	Andi Kleen <ak@suse.de>, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Dave Remien <dave@rem.homeip.net>
+To: Henrik Nordstrom <hno@marasystems.com>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0509261106140.16825@rem.homeip.net>
+In-Reply-To: <Pine.LNX.4.61.0509280219110.25500@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,59 +27,60 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---4wkndigzIeYF6Hbg
+--UeXZ3FjlYZvuln/G
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 26, 2005 at 11:26:29AM -0600, Dave Remien wrote:
+On Wed, Sep 28, 2005 at 02:25:16AM +0200, Henrik Nordstrom wrote:
 
-> Harald,
-
-Hi Dave!
-
-I've cc'ed netfilter-devel, to let others know about your proceedings.
-
-> OK, I've got snort_inline plumbed up with libnfnetlink_queue and=20
-> operational. This will allow us to run multiple copies of snort; a major=
-=20
-> win. The throughput (i.e., netfilter to snort and back) appears to be=20
-> exactly the same as ip_queue, so the desire to return multiple ACCEPTS is=
-=20
-> still there for the longer term.=20
-
-Ok, I'm quite happy to hear that even without optimizing the code (but
-adding some more abstraction, like TLV encoding and more levels of API)
-we didn't fuck up performance.  That's good to know.
-
-Multiple accept's should be quite feasible.  Please first try to send
-multiple verdict messages in one nfnetlink packet.  If you have problems
-implementing that, please let me know.
-
-Only if that turns out to give little/almost no benefit, I would
-implement a dedicated message type to experiment with.
-
-> I'll try some instrumenting/profiling to=20
-> see what the apparent bottle neck is now (the 2.6.14 kernel isn't that=20
-> stable yet, so this might take some time). One thing:
-
-great!
-
-> nfa[NFQA_TIMESTAMP-1], as in=20
+> >That could be special cased and done lockless, with the counting
+> >done per CPU.
 >=20
->    if (nfa[NFQA_TIMESTAMP-1]) {
->       struct nfqnl_msg_packet_timestamp *ts =3D
->         NFA_DATA(nfa[NFQA_TIMESTAMP-1]);
->=20
-> is never true. Apparently I'm not enough of a C programmer to know what=
-=20
-> I'm doing wrong.
+> It's also not very hard for iptables when verifying the table to
+> conclude that there really isn't any "real" rules for a certain hook
 
-Timestamping has to be explicitly turned on in the kernel.  So if you
-need an accurate receive timestamp (which adds more work to the network
-RX path), you need to enable it.  I don't know whether there's some
-magic sysctl, but if you open a AF_PACKET socket (like starting
-tcpdump), the timestamps should suddenly be there.
+The detection should be quite straight-forward, yes.
+
+> Allowing you to have as many ip tables modules you like in the kernel,
+> but only using the hooks where you have rules. =20
+
+I totally agree, that from a current perspective, I think the concept of
+just loading a module (that has usage count 0) having severe impact on
+system performance is just wrong.  But then, users are used to the
+current behaviour for almost five years now.  Every decent script and/or
+piece of documentation should by now refer to the fact that loading a
+module implicitly registers it at the hooks, and that you only load
+those modules that you really need.
+
+In an ideal world, you would load iptables, and userspace would
+configure a couple of chains, and then explicitly attach those chains to
+the netfilter hooks.=20
+
+Therefore: Let's do this right next time, but live with that fact for
+now.
+
+> Drawback is that you loose the packet counters on the policy.
+
+That's the big problem.  People rely on that fact, because they're used
+to it.  If we introduce some new tool, or something that somehow works
+differently, I don't have a change.  But silently changing the semantics
+with a kernel upgrade is not something that I'm willing to do on
+purpose.
+
+Just imagine all those poor sysadmins who know nothing about current
+kernel development, and who upgrade their kernel because their
+distributor provides a new one - suddenly their accounting (which might
+be relevant for their business) doesn't work anymore :(
+
+> Exception: iptable_nat. Needs the hooks for other purposes as well,
+> not just the iptable so here the hooks can not be deactivated when
+> there is no rules.
+
+yes, even though we could make the ip_nat / iptable_nat split (that is
+introduced in 2.6.14) in a way that would make ip_nat.ko register those
+hooks that are implicitly needed, and iptable_nat only the user-visible
+chain-related hooks.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -91,16 +92,16 @@ tcpdump), the timestamps should suddenly be there.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---4wkndigzIeYF6Hbg
+--UeXZ3FjlYZvuln/G
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFDOlGGXaXGVTD0i/8RAsJ1AKCJ2g0TjGISVo3ojSzM1G1w0nizowCfcjIJ
-NUbyasevXL/c+iEqf1hJXhs=
-=ukdM
+iD8DBQFDOlUoXaXGVTD0i/8RAuUdAJ458qwjm5c3R90Z3QAekVZisLYdsACghk2V
+ep/tZt+J2YKe05rYMMLGsc4=
+=k3Qm
 -----END PGP SIGNATURE-----
 
---4wkndigzIeYF6Hbg--
+--UeXZ3FjlYZvuln/G--
