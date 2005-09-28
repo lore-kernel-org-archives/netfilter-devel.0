@@ -1,15 +1,14 @@
 From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: [ANNOUNCE] Release of nf-HiPAC 0.9.0
-Date: Wed, 28 Sep 2005 21:46:47 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0509282125120.8767@filer.marasystems.com>
-References: <200509260441.42483.mbellion@hipac.org>
-	<433AA30E.7060709@ufomechanic.net>
+Subject: Re: snat bridge routes reply packets
+Date: Wed, 28 Sep 2005 21:56:35 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0509282147100.8767@filer.marasystems.com>
+References: <dhef0t$mj3$1@sea.gmane.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <433AA30E.7060709@ufomechanic.net>
+In-Reply-To: <dhef0t$mj3$1@sea.gmane.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,49 +22,34 @@ List-Id: netfilter-devel.vger.kernel.org
 
 On Wed, 28 Sep 2005, Amin Azez wrote:
 
-> Does it also remove the "upload rules in bulk" issue of iptables and
-> make use of links lists (or trees) to upload small changes singly?
+> I have a bridge setup snat'ing some IP's that aren't actually on the
+> bridge subnet.
+>
+> That works fine except that the nat code doesn't know what to do with
+> the de-snat'd packets and tries to send them to the default gateway.
+>
+> This makes sense, but it's routing, not bridging.
 
-Yes. nf-HiPAC uses netlink messages for rule updates, carrying just the 
-updates. It does not exchange complete rulesets on each update like 
-iptables does.
+As soon as you NAT a packet in bridge-netfilter it is intercepted and 
+given to routing, no longer bridged. This to allow REDIRECT and a number 
+of other highly interesting applications of NAT.
 
-> I recall someone released a re-write a while ago that took care of this, 
-> but this seems to do rule-factoring too to reduce the number of check 
-> operations.
+Yes, this causes a bit of headache if your bridge does not have correct 
+routing, but it's a fairly small price to pay for a wealth of interesting 
+functionality which would not be possible if the bridge did not reroute 
+packets after applying NAT.
 
-iptables per definition must always send a whole new iptable (compiled 
-ruleset) to the kernel as one big blob as it is the userspace who 
-constructs the iptable and the kernel has no knowledge (or capability) to 
-modify an iptable inplace, only replace it with another submitted by 
-userspace.
+At a first glance one could think that SNAT would not need to do this, but 
+then you realize that by SNAT:in you break the IP-MAC relation of the 
+traffic flow, especially in the return direction which is a DNAT 
+operation.  Doing DNAT without rerouting does not make much sense as the 
+packets would then still be delivered to the same destination MAC, and 
+things like REDIRECT would not be possible.
 
-As nf-HiPAC is using another internal representation of the rules it does 
-not need this, and the updates carry only the rules you are updating.
+> 1) Am I nuts?
 
-> Speaking under fear of blasphemy I'm wondering what stops this becoming
-> iptables proper?
-
-Not much. It is already very near a full replacement of iptables filter 
-table. It does not yet have support for the other table types but it's 
-trivial to add. The nat table has to wait for the completetion of the 
-restructuring of the nat code currently taking place however, but after 
-2.6.14 this should not be a problem to implement from what I have 
-understood. The problem currently is that the nat core nat is very tightly 
-coupled with iptable_nat, but this is being addressed already by the 
-Netfilter team.
-
-> OK, it would want linking to nf_conntrack instead of ip_conntrack
-
-This should be trivial. The optional conntrack dependency is already well 
-isolated in a separate very small module. Some of this isolated code 
-obviously needs to be changed when using nf_conntrack but not much.
-
-> and a v6 version doing type stuff, but it seems the biz.
-
-IPv6 requires a bit more work due to the larger key size in 
-source/destination addresses. HiPAC currently only implements up to 32-bit 
-lookup dimensions (source/destination/protocol/ports etc..).
+No. Just on a different angle than how the bridge-netfilter integration is 
+designed wrt NAT.
 
 Regards
 Henrik
