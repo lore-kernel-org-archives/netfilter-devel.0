@@ -1,12 +1,12 @@
-From: Christian Hentschel <chentschel@iplan.com.ar>
-Subject: [PATCH] conntrack tool.
-Date: Wed, 28 Sep 2005 09:49:17 -0300
-Message-ID: <1127911757.4947.12.camel@linbox>
+From: Catalin Muresan <catalin.muresan@astral.ro>
+Subject: CLUSTERIP problem
+Date: Wed, 28 Sep 2005 17:01:19 +0300
+Message-ID: <20050928140119.GA13135@astral.ro>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-mfcmPbqb4RDe4//lK8rW"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: pablo@netfilter.org
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,71 +19,36 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-mfcmPbqb4RDe4//lK8rW
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+	Hello,
 
-Hi pablo, 
-	This patch adds small fixes to the conntrack tool.
+	iptables 1.3.3 (compiled by me), kernel 2.6.12-1.1447_FC4smp (FC4) which is 2.6.12.5
+with patches I get this:
 
-Changes:
-	libct_proto_icmp.c args parsing. 
-	added autogen.sh file (stolen from libnfnetlink_conntrack) :)
+[root@uber1 ~]# iptables -A INPUT -d AAA.BBB.CCC.DDD -i eth0.68 -p icmp -j CLUSTERIP --new --hashmode sourceip --clustermac 01:23:45:67:89:AB --total-nodes 2 --local-node 1
+[root@uber1 ~]# iptables -vnL
+Chain INPUT (policy ACCEPT 32802 packets, 41M bytes)
+ pkts bytes target     prot opt in     out     source               destination
+    0     0 CLUSTERIP  icmp --  eth0.68 *       0.0.0.0/0            AAA.BBB.CCC.DDD      CLUSTERIP hashmode=sourceip clustermac=80:96:80:F7:89:AB total_nodes=2 local_node=1
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination
+
+Chain OUTPUT (policy ACCEPT 14057 packets, 1491K bytes)
+ pkts bytes target     prot opt in     out     source               destination
+[root@uber1 ~]# dmesg
+eth0.68: add 89:ab:02:00:01:00 mcast address to master interface
+[root@uber1 ~]#
+
+	"--clustermac 01:23:45:67:89:AB", iptables shows
+"clustermac=80:96:80:F7:89:AB" and kernel shows "89:ab:02:00:01:00 mcast
+address to master interface"
+
+	where is the problem? I'd like not to change the kernel, because i
+use GFS/cluster from it and it's a major pain to recompile _and_ make it
+work. TIA for any suggestions.
+	please CC me as I'm not on the list.
 
 
-Regards, 
 -- 
-Christian Hentschel <chentschel@arnet.com.ar>
-
---=-mfcmPbqb4RDe4//lK8rW
-Content-Disposition: attachment; filename=conntrack.patch
-Content-Type: text/x-patch; name=conntrack.patch; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 7bit
-
-Index: extensions/libct_proto_icmp.c
-===================================================================
---- extensions/libct_proto_icmp.c	(revision 4307)
-+++ extensions/libct_proto_icmp.c	(working copy)
-@@ -15,9 +15,9 @@
- #include "libct_proto.h"
- 
- static struct option opts[] = {
--	{"--icmp-type", 1, 0, '1'},
--	{"--icmp-code", 1, 0, '2'},
--	{"--icmp-id", 1, 0, '3'},
-+	{"icmp-type", 1, 0, '1'},
-+	{"icmp-code", 1, 0, '2'},
-+	{"icmp-id", 1, 0, '3'},
- 	{0, 0, 0, 0}
- };
- 
-Index: autogen.sh
-===================================================================
---- autogen.sh	(revision 0)
-+++ autogen.sh	(revision 0)
-@@ -0,0 +1,17 @@
-+#!/bin/sh
-+
-+run ()
-+{
-+    echo "running: $*"
-+    eval $*
-+
-+    if test $? != 0 ; then
-+	echo "error: while running '$*'"
-+	exit 1
-+    fi
-+}
-+
-+run aclocal-1.6
-+#run autoheader
-+run automake-1.6 -a
-+run autoconf
-
-Property changes on: autogen.sh
-___________________________________________________________________
-Name: svn:executable
-   + *
-
-
---=-mfcmPbqb4RDe4//lK8rW--
+ Catalin Muresan
+ gpg --keyserver pgp.mit.edu --recv-keys 0xFA75D55C
