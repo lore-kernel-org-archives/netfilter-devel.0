@@ -1,12 +1,15 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: snat bridge routes reply packets
-Date: Wed, 28 Sep 2005 17:05:44 +0100
-Message-ID: <dhef0t$mj3$1@sea.gmane.org>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: [ANNOUNCE] Release of nf-HiPAC 0.9.0
+Date: Wed, 28 Sep 2005 21:46:47 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0509282125120.8767@filer.marasystems.com>
+References: <200509260441.42483.mbellion@hipac.org>
+	<433AA30E.7060709@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <433AA30E.7060709@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,37 +21,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I have a bridge setup snat'ing some IP's that aren't actually on the
-bridge subnet.
+On Wed, 28 Sep 2005, Amin Azez wrote:
 
-That works fine except that the nat code doesn't know what to do with
-the de-snat'd packets and tries to send them to the default gateway.
+> Does it also remove the "upload rules in bulk" issue of iptables and
+> make use of links lists (or trees) to upload small changes singly?
 
-This makes sense, but it's routing, not bridging.
+Yes. nf-HiPAC uses netlink messages for rule updates, carrying just the 
+updates. It does not exchange complete rulesets on each update like 
+iptables does.
 
-Bridging dnat would keep track of the physdev and src mac as well as the
-src ip and ignore arp altogether when re-issueing the de-snat'd
-responses; it would write the de-snat'd packet back out to the original
-interface and targeted to the original mac.
+> I recall someone released a re-write a while ago that took care of this, 
+> but this seems to do rule-factoring too to reduce the number of check 
+> operations.
 
-I think bridging snat can be detected when the target mac of the packet
-that causes the conntrack to be created does not match the mac of the
-physdev the packet comes in on (i.e. the snat'ing box is not being used
-as a gateway).
+iptables per definition must always send a whole new iptable (compiled 
+ruleset) to the kernel as one big blob as it is the userspace who 
+constructs the iptable and the kernel has no knowledge (or capability) to 
+modify an iptable inplace, only replace it with another submitted by 
+userspace.
 
-In such cases the physdev and srcmac must be saved.
+As nf-HiPAC is using another internal representation of the rules it does 
+not need this, and the updates carry only the rules you are updating.
 
-(Co-incidentally I'm already doing this in my contrack mods which will
-no doubt get merged into nf_conntrack that does some layer 2 stuff)
+> Speaking under fear of blasphemy I'm wondering what stops this becoming
+> iptables proper?
 
-So my real questions are:
-1) Am I nuts?
-2) Any tips on skipping the arp cache stuff on the de-snat'd response,
-as I have a reference to the physdev and target mac already available?
+Not much. It is already very near a full replacement of iptables filter 
+table. It does not yet have support for the other table types but it's 
+trivial to add. The nat table has to wait for the completetion of the 
+restructuring of the nat code currently taking place however, but after 
+2.6.14 this should not be a problem to implement from what I have 
+understood. The problem currently is that the nat core nat is very tightly 
+coupled with iptable_nat, but this is being addressed already by the 
+Netfilter team.
 
-I also think there is some mileage in checking the src_mac when looking
-up conntracks in the orig direction, to avoid having to presume that the
-same ip address does not exist on different physdev of the same bridge -
-to thus allow them both to be snat'd independantly.
+> OK, it would want linking to nf_conntrack instead of ip_conntrack
 
-Sam Azez
+This should be trivial. The optional conntrack dependency is already well 
+isolated in a separate very small module. Some of this isolated code 
+obviously needs to be changed when using nf_conntrack but not much.
+
+> and a v6 version doing type stuff, but it seems the biz.
+
+IPv6 requires a bit more work due to the larger key size in 
+source/destination addresses. HiPAC currently only implements up to 32-bit 
+lookup dimensions (source/destination/protocol/ports etc..).
+
+Regards
+Henrik
