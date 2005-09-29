@@ -1,16 +1,16 @@
-From: Amin Azez <azez@ufomechanic.net>
+From: Henrik Nordstrom <hno@marasystems.com>
 Subject: Re: snat bridge routes reply packets
-Date: Thu, 29 Sep 2005 09:42:30 +0100
-Message-ID: <433BA8F6.7000606@ufomechanic.net>
+Date: Thu, 29 Sep 2005 12:11:36 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0509291155310.25933@filer.marasystems.com>
 References: <dhef0t$mj3$1@sea.gmane.org>
 	<Pine.LNX.4.61.0509282147100.8767@filer.marasystems.com>
+	<433BA8F6.7000606@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0509282147100.8767@filer.marasystems.com>
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <433BA8F6.7000606@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,68 +22,69 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks for your interesting response;
+On Thu, 29 Sep 2005, Amin Azez wrote:
 
-Henrik Nordstrom wrote:
-> On Wed, 28 Sep 2005, Amin Azez wrote:
-> 
->> I have a bridge setup snat'ing some IP's that aren't actually on the
->> bridge subnet.
->>
->> That works fine except that the nat code doesn't know what to do with
->> the de-snat'd packets and tries to send them to the default gateway.
->>
->> This makes sense, but it's routing, not bridging.
-> 
-> As soon as you NAT a packet in bridge-netfilter it is intercepted and
-> given to routing, no longer bridged. This to allow REDIRECT and a number
-> of other highly interesting applications of NAT.
-> 
-> Yes, this causes a bit of headache if your bridge does not have correct
-> routing, but it's a fairly small price to pay for a wealth of
-> interesting functionality which would not be possible if the bridge did
-> not reroute packets after applying NAT.
+> It is a change of the response dnat that I am suggesting. The DNAT
+> packets need delivering to the original MAC/IP/PHYSDEV in bridging mode,
+> and in routing mode the routing stack will probably find the same
+> MAC/IP/PHYSDEV using its routing tricks and ARP. In bridging mode the
+> routing code cannot find this.
 
-True enough, the outward bound snat'd packet is routed. The bridge does
-have correct routing for the snat'd items.
+More likely ARP is your problem.
 
-> At a first glance one could think that SNAT would not need to do this,
-> but then you realize that by SNAT:in you break the IP-MAC relation of
-> the traffic flow, especially in the return direction which is a DNAT
-> operation.  Doing DNAT without rerouting does not make much sense as the
-> packets would then still be delivered to the same destination MAC, and
-> things like REDIRECT would not be possible.
+When you SNAT to another address on the LAN you need to make sure there is 
+something answering to ARP on that address, if not the receiving station 
+won't be able to ARP for the MAC where to send return traffic.
 
-I am curious about this.
+> Heh.  I think I could permit the reverse snat'ing in bridge mode without
+> damaging the other behaviour.
 
-It is a change of the response dnat that I am suggesting. The DNAT
-packets need delivering to the original MAC/IP/PHYSDEV in bridging mode,
-and in routing mode the routing stack will probably find the same
-MAC/IP/PHYSDEV using its routing tricks and ARP. In bridging mode the
-routing code cannot find this.
+If the problem is what I suspect then "fixing" the NAT to not route the 
+traffic won't make much difference.
 
-This is, I admin, using iptables as a partial bridge/router when
-snat'ing; however the outward packets ARE handled fine, I want to fix up
-the return packets.
+> I was planning to use whether the target mac of the first packet matched
+> the mac of the incoming physdev as an indicator of bridging or routing,
 
->> 1) Am I nuts?
-> 
-> 
-> No. Just on a different angle than how the bridge-netfilter integration
-> is designed wrt NAT.
+this is not sufficient and would break REDIRECT.
 
-Heh.  I think I could permit the reverse snat'ing in bridge mode without
-damaging the other behaviour.
+> but then I wondered if the interface merely being in promiscuous mode
+> would cause trouble, but I don't think so; but maybe I should do IP
+> checks instead and bridging is where the dest IP address of the first
+> packet doesn't match the ip address of the devices (not physdev) it came
+> in on?
 
-I was planning to use whether the target mac of the first packet matched
-the mac of the incoming physdev as an indicator of bridging or routing,
-but then I wondered if the interface merely being in promiscuous mode
-would cause trouble, but I don't think so; but maybe I should do IP
-checks instead and bridging is where the dest IP address of the first
-packet doesn't match the ip address of the devices (not physdev) it came
-in on?
+this too would break REDIRECT.
 
-Anyway, although this is not how the bridge-netfilter integration was
-planned, do you think my proposal is sound?
+the thing with NAT:ing in the bridge is that you change the IP addressing 
+of the packet. As the IP addressing is changed there is a very high 
+probability it needs to be rerouted. Bridgeing and preserving the MAC is 
+in many cases not correct.
 
-Sam
+Yes, in MASQUERADE type flows where the firewall SNATs flows to it's own 
+address it might be possible in certain cases to 
+remember the original "client" MAC address, and avoid the ARP:ing on 
+return traffic. But this is on the assumption that the client network is 
+symmetric. It is possible the traffic was received via an assymetric route 
+where return traffic should go to another MAC address and ARP is required 
+to figure this out.
+
+> Anyway, although this is not how the bridge-netfilter integration was
+> planned, do you think my proposal is sound?
+
+I see only two approaches. Either the current behaviour relying on routing 
+being correctly configured, or an explicit flag in each NAT rule telling 
+if the packets in this session should be rerouted or not moving the burden 
+to the firewall administrator. Actually this flag might be good for 
+iptables in general to optimize NAT performance slightly and not only when 
+using bridge-netfilter. The constant rerouting of packets in a NAT session 
+is a significant overhead and often it can be priorly known (by the admin) 
+that this rerouting is not needed for the traffic flows in question.
+
+But I strongly suspect your problems is not at all related to routing. It 
+would only be routing related if your bridge does not have correct routing 
+info for either the source or destination. If you have routing for both 
+source and destination then your problem is almost certainly not routing 
+related but most likely ARP related.
+
+Regards
+Henrik
