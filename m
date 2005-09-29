@@ -1,15 +1,15 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: [ADMIN] patch-o-matic cleanup
-Date: Thu, 29 Sep 2005 15:09:51 +0200 (CEST)
-Message-ID: <Pine.LNX.4.62.0509291445460.20138@bizon.gios.gov.pl>
-References: <20050919151533.GF12075@rama.de.gnumonks.org>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: snat bridge routes reply packets
+Date: Thu, 29 Sep 2005 14:12:33 +0100
+Message-ID: <433BE841.2090203@ufomechanic.net>
+References: <dhef0t$mj3$1@sea.gmane.org>	<Pine.LNX.4.61.0509282147100.8767@filer.marasystems.com>	<433BA8F6.7000606@ufomechanic.net>	<Pine.LNX.4.61.0509291155310.25933@filer.marasystems.com>	<433BDBD7.6030609@ufomechanic.net>
+	<20214.217.166.60.19.1127998151.squirrel@ma.rtij.nl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-401102677-1127999391=:20138"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050919151533.GF12075@rama.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20214.217.166.60.19.1127998151.squirrel@ma.rtij.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,41 +21,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Martijn Lievaart wrote:
+> Amin Azez zei:
+> 
+>>Henrik Nordstrom wrote:
+>>
+>>>But I strongly suspect your problems is not at all related to routing.
+>>>It would only be routing related if your bridge does not have correct
+>>>routing info for either the source or destination.
+>>
+>>My bridge does may not have routing for the source in many instances.
+> 
+> 
+> Maybe a stupid remark, but if you create routes for the source to the
+> existing IP where you want the packet delivered? Does that solve your
+> problem?
 
----187430788-401102677-1127999391=:20138
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+My actual problem is that I need a bridging kernel that can be deployed
+in unknown network environments and nat to a known gateway that is the
+only machine guaranteed to be on the same subnet. It's not pretty.
 
+We have created broad network aliases for the bridge so that all IP
+addresses are local and roughly get the scenario you speak of, but then
+we need to add static arp entries to assign the default gateway's mac to
+specific known non-local ip, which is of course a worse hack than
+mending snat for source-bridge scenarios.
 
-
-On Mon, 19 Sep 2005, Harald Welte wrote:
-
-> Hi!
-Hi!
-
-> Following up to the bad experience over the last couple of months,
-> Patrick and me decided that we'd get rid of a lot of code in
-> patch-o-matic.
->
-> None of the developers seems to have any time left to put into backwards
-> compatibility, and the idea of explicit "patch o matic maintainers" that
-> we tried some two years ago also didn't work out.
->
-> Therefore, the current best practise seems to be:
->
-> 1) get rid of any code in patch-o-matic that has already included in
->   mainline (I've already remove tons of directories today)
-> 2) stop supporting anything than the most current version of a patchlet.
->
-> Sorry, but it really wasn't of any use to provide outdated unmaintained
-> and unfixed old versions of the code.
-
-What is the current status of nf_conntrack? It is not in mainline, it is=20
-no longer in pom-ng, either. Where to find it?
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-401102677-1127999391=:20138--
+Sam
