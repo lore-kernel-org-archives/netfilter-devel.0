@@ -1,42 +1,54 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCEMENT] ipset-2.2.4 released
-Date: Fri, 30 Sep 2005 18:57:16 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0509301853410.21327@blackhole.kfki.hu>
+From: Richard Liu <richardliu@ms1.techarea.org>
+Subject: Re: How to change source port in MASQUERADE mode?
+Date: Sat, 01 Oct 2005 01:13:35 +0800
+Message-ID: <433D723F.1060403@ms1.techarea.org>
+References: <433CC0E0.5060308@ms1.techarea.org>
+	<Pine.LNX.4.61.0509301356110.19019@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0509301356110.19019@filer.marasystems.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Henrik Nordstrom =E6=8F=90=E5=88=B0:
 
-I'm happy to announce the new version of ipset. The bugs fixed in this
-release and the new features are
+Thanks for your mail,
 
-- half-fixed memory allocation bug in iphash and nethash finally
-  completely fixed (bug reported by Nikolai Malykh)
-- restrictions to enter zero-valued entries into all non-hash type sets
-  were removed
-- too strict check on the set size of ipmap type was corrected
+But --to-port parameter cannot get tuple port result like "50000+1000"
 
-Now you are able to create ipmap type of sets which can contain
-all /16 network addresses :-).
+I found a way for this situation.
 
-You can download the new version from http://ipset.netfilter.org/.
+in file ip_MASQUERADE.c
+we can change
+mr->range[0].min,
+mr->range[0].max
+and set
+mr->range[0].flags =3D IP_NAT_RANGE_PROTO_SPECIFIED;
+for some special purposes.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+but I don't know does it have other effects to the netfilter?
+
+> On Fri, 30 Sep 2005, Richard Liu wrote:
+>
+>> I want change tuple source port in MASQUERADE module.
+>
+>
+> --to-ports option to MASQUERADE (or SNAT if not dynamic IP assignment).
+>
+>> But I want to the src port be changed in some conditions like this.
+>> src:GA:50000+1000 src:SA:1000
+>> dst:DA:23 dst:DA:23
+>
+>
