@@ -1,16 +1,15 @@
 From: Amin Azez <azez@ufomechanic.net>
 Subject: Re: snat bridge routes reply packets
-Date: Fri, 30 Sep 2005 10:28:02 +0100
-Message-ID: <433D0522.5050502@ufomechanic.net>
-References: <dhef0t$mj3$1@sea.gmane.org>	<Pine.LNX.4.61.0509282147100.8767@filer.marasystems.com>	<433BA8F6.7000606@ufomechanic.net>	<Pine.LNX.4.61.0509291155310.25933@filer.marasystems.com>	<433BDBD7.6030609@ufomechanic.net>	<20214.217.166.60.19.1127998151.squirrel@ma.rtij.nl>	<433BE841.2090203@ufomechanic.net>	<41060.217.166.60.19.1128007213.squirrel@ma.rtij.nl>
-	<Pine.LNX.4.61.0509291817370.4714@filer.marasystems.com>
+Date: Fri, 30 Sep 2005 10:56:40 +0100
+Message-ID: <433D0BD8.2060601@ufomechanic.net>
+References: <dhef0t$mj3$1@sea.gmane.org>	<Pine.LNX.4.61.0509282147100.8767@filer.marasystems.com>	<433BA8F6.7000606@ufomechanic.net>	<Pine.LNX.4.61.0509291155310.25933@filer.marasystems.com>	<433BDBD7.6030609@ufomechanic.net>
+	<Pine.LNX.4.61.0509291616520.2673@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0509291817370.4714@filer.marasystems.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.61.0509291616520.2673@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,26 +22,62 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Henrik Nordstrom wrote:
-> Quite likely the problem Amin Azez is trying to address can be solved
-> more cleanly by proxy-ARP + CONNMARK based policy routing than by bridge
-> firewalling, but without knowing/understanding the exact layout of his
-> network mess it's hard to say what it best. 
+> If you do not reroute DNAT:ed packets then the bridge would deliver the
+> packet to the original destination MAC, not to the local host.
+> 
+> Same applies if you DNAT within the local subnet.
 
-Good points; the only reason the network-mess gets to bridge to the
-router is that the bridge is arp-faking with ebtables to give out the
-router mac address as if it were whatever the network-mess was arping
-for. No doubt connmark routing would work too, I hadn't considered this;
-but marks are already well used for other things.
+I probably didn't make clear that I was looking at changing kernel
+behaviour, not looking for iptables rules.
 
-> But I know from experience
-> that bridge firewalling with NAT is very rarely the best approach in the
-> long run, only perhaps the quickest if you are in a pinch with very
-> limited time or prevented of doing it right.
+Oh; well that was the bit I was going to change. One of the bridgeing
+code output functions (whose name I forget for now) was the trick;
 
-Where the network mess cna be known in advance, I would agree, but in a
-case where it "just needs to work" extending snat to bridging makes sense.
+>>> Yes, in MASQUERADE type flows where the firewall SNATs flows to it's own
+>>> address it might be possible in certain cases to remember the original
+>>> "client" MAC address, and avoid the ARP:ing on return traffic. But this
+>>> is on the assumption that the client network is symmetric. It is
+>>> possible the traffic was received via an assymetric route where return
+>>> traffic should go to another MAC address and ARP is required to figure
+>>> this out.
+>>
+>>
+>> Yes, this is a strong assumption, we would only do this when snat-ing
+>> bridged traffic. There may be assymetric bridging which would break, but
+>> then snat is already broken for bridging.
+> 
+> 
+> I would not agree. Both SNAT and DNAT works just fine in bridgeing
+> assuming the IP level is properly set up to support the addresses used.
 
-Anyway, I am proceeding with this, and appreciate the feedback. I shall
-extend the snat iptables target to allow this as an optional extension.
+I agree, but pure bridging also works without this assumption and it
+could work with snat bridging.
 
-Amin
+> You can not SNAT to an otherwise non-existing IP as there then is no MAC
+> address for the receiving host to sent the replies to (no ARP answer
+> when the receiving host wants to send reply packets, so it can't).
+
+This is the problem I intend to solve
+
+>   - Don't reroute the packet at all. All MAC addressing is preserved
+> as-is on each packet. (relevant to both normal IP level iptables and
+> bridgeing)
+> 
+>   - Track the initiating source MAC address, and reroute at MAC level
+> all packets in the reply direction to this address. (only relevant to
+> bridgeing). But route packets in the forward direction. **
+
+I did say in my first post that my conntrack mods are already tracking
+the mac address and phsedv of the originating packet; this is what I was
+planning to do.
+
+> 
+>   - Reroute all NAT:ed packets. (the default, what we have today).
+> 
+> One drawback of the proposed solution is that conntrack needs to be
+> extended with MAC addressing in each direction.
+
+already got it, and afact nf_netfilter already does much in this
+direction anway.
+
+Sam
