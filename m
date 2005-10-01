@@ -1,53 +1,52 @@
-From: Russell King <rmk+lkml@arm.linux.org.uk>
+From: Radoslaw Szkodzinski <astralstorm@gorzow.mm.pl>
 Subject: Re: 2.6.13-rc2+ - problem with DHCP
-Date: Sat, 1 Oct 2005 19:05:31 +0100
-Message-ID: <20051001180530.GB11254@flint.arm.linux.org.uk>
+Date: Sat, 01 Oct 2005 23:39:52 +0200
+Message-ID: <433F0228.6000304@gorzow.mm.pl>
 References: <433EBBEC.4050203@gorzow.mm.pl> <433ECE42.2070400@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Radoslaw Szkodzinski <astralstorm@gorzow.mm.pl>,
-	linux-kernel@vger.kernel.org,
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org,
 	Netfilter Development Mailinglist
 	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750740AbVJASFs@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750867AbVJAVkF@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
 In-Reply-To: <433ECE42.2070400@trash.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Oct 01, 2005 at 07:58:26PM +0200, Patrick McHardy wrote:
-> Radoslaw Szkodzinski wrote:
-> >These kernels just do not get the IP from DHCP.
-> >I think the problem is caused by Mercurial tree changeset 8919 (more
-> >likely) or 8918.
-> >
-> >At least the last tested working one is:
-> >changeset:   8917:07c96175a75e
-> >user:        Patrick McHardy <kaber@trash.net>
-> >date:        Tue Sep 13 21:00:14 2005 +0011
-> >summary:     [NETFILTER]: Simplify netbios helper
-> >
-> >Probably the culprit is:
-> >changeset:   8919:61b9c3185973
-> >user:        Patrick McHardy <kaber@trash.net>
-> >date:        Tue Sep 13 21:00:55 2005 +0011
-> >summary:     [NETFILTER]: Fix DHCP + MASQUERADE problem
-> 
-> Are you sure? The patch was supposed to fix problems with DHCP clients
-> using regular UDP sockets for sending DHCP requests. Which client are
-> you using?
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I tried booting 2.6.14-rc2 on my firewall last Wednesday and it failed
-to get its IP address via bootp.  I did not see any packets being
-transmitted from the machine.
+Patrick McHardy wrote:
+|
+| Are you sure? The patch was supposed to fix problems with DHCP clients
+| using regular UDP sockets for sending DHCP requests. Which client are
+| you using?
+|
 
-I was going to do some investigation this weekend until I also found
-that it would mean that PCMCIA on the box would be busted, which,
-unfortunately, means it's useless to run a later kernel.  Hence the
-investigation is shelved until I've sorted out PCMCIA userland.
+udhcpcd, version 0.9.9-pre (Gentoo ebuild
+net-misc/udhcp-0.9.9_pre20041216-r1, no crazy optimisations, stock init
+script, IP release disabled)
 
--- 
-Russell King
- Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
- maintainer of:  2.6 Serial core
+2.6.13, 2.6.14-rc1 (up to the patch) both work fine.
+2.6.14-rc2 and 2.6.14-rc3 do not. (they can't discover IP address)
+The window is between that commit and rc2.
+(about 180 changesets)
+
+I only suspect that patch, it could be something else but I highly doubt
+it. I'll check the current kernel with the patch backed out when I have
+to restart.
+
+- --
+GPG Key id:  0xD1F10BA2
+Fingerprint: 96E2 304A B9C4 949A 10A0  9105 9543 0453 D1F1 0BA2
+
+AstralStorm
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDPwIolUMEU9HxC6IRAit8AJ0TXQv+BO3rn0L39JsCad7UqyUMRACeIf+U
+cvzDCU1x9oTP2V4AjELJUvY=
+=hp5I
+-----END PGP SIGNATURE-----
