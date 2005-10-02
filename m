@@ -1,17 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 2.6.13-rc2+ - problem with DHCP
-Date: Sun, 02 Oct 2005 07:28:19 +0200
-Message-ID: <433F6FF3.1040706@trash.net>
-References: <433EBBEC.4050203@gorzow.mm.pl> <433ECE42.2070400@trash.net>
-	<433F0228.6000304@gorzow.mm.pl>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [ANNOUNCE] Release of nf-HiPAC 0.9.0
+Date: Sun, 02 Oct 2005 11:20:40 +0000
+Message-ID: <1128252040.3388.15.camel@localhost.localdomain>
+References: <200509260441.42483.mbellion@hipac.org>
+	<433AA30E.7060709@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	linux-kernel@vger.kernel.org
+Cc: Michael Bellion <mbellion@hipac.org>, netfilter-devel@lists.netfilter.org,
+	netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Radoslaw Szkodzinski <astralstorm@gorzow.mm.pl>
-In-Reply-To: <433F0228.6000304@gorzow.mm.pl>
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <433AA30E.7060709@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,36 +23,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Radoslaw Szkodzinski wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+Op wo, 28-09-2005 te 15:05 +0100, schreef Amin Azez:
+> This auto-factorization of rules seems cool.
 > 
-> Patrick McHardy wrote:
-> |
-> | Are you sure? The patch was supposed to fix problems with DHCP clients
-> | using regular UDP sockets for sending DHCP requests. Which client are
-> | you using?
-> |
+> > Dynamic rule sets:
+> > nf-HiPAC offers fast dynamic rules et updates without stalling packet
+> >classification in contrast to iptables which yields bad update performance
+> > along with stalled packet processing during updates.
 > 
-> udhcpcd, version 0.9.9-pre (Gentoo ebuild
-> net-misc/udhcp-0.9.9_pre20041216-r1, no crazy optimisations, stock init
-> script, IP release disabled)
-
-I can't reproduce the problem, it reliably works for me using pump,
-dhclient or udhcpc. One thing I've noticed is that udhcpc 0.98
-doesn't set the interface up itself and fails if it is down. Please
-make sure that it is up in your tests.
-
-> 2.6.13, 2.6.14-rc1 (up to the patch) both work fine.
-> 2.6.14-rc2 and 2.6.14-rc3 do not. (they can't discover IP address)
-> The window is between that commit and rc2.
-> (about 180 changesets)
+> Does it also remove the "upload rules in bulk" issue of iptables and
+> make use of links lists (or trees) to upload small changes singly? I
+> recall someone released a re-write a while ago that took care of this,
+> but this seems to do rule-factoring too to reduce the number of check
+> operations.
 > 
-> I only suspect that patch, it could be something else but I highly doubt
-> it. I'll check the current kernel with the patch backed out when I have
-> to restart.
+> Speaking under fear of blasphemy I'm wondering what stops this becoming
+> iptables proper? (ipv4 anyway)?  OK, it would want linking to
+> nf_conntrack instead of ip_conntrack and a v6 version doing type stuff,
+> but it seems the biz.
 
-Thanks. You mentioned you're setting up your ruleset after DHCP, which
-means the patch can't be responsible because the codepath is never
-taken for DHCP queries, so you probably need to do a binary search
-over the remaining 180 changesets.
+http://www.hipac.org/documentation/user_guide.html states some
+incompatibilities with iptables.
+
+What's always resisted me from looking to it closely is that there is no
+documentation about the implementation. I'm especially interested in how
+the code deals with matches. The reason why counters aren't supported
+interests me too, I can't see why adding 1 to a 64-bit integer would
+result in a noticeable performance drop.
+Also, is it not possible to make a B+ tree with the standard iptables? I
+don't see why it shouldn't be possible. The jump to a new chain can be
+seen as going deeper into the B+ tree. So it should be possible to
+construct an iptables table structure that looks very similar to the B+
+tree of nf-hipac, for some given rule set. I guess this will be somewhat
+slower than nf-hipac, but I'd like to see the performance difference...
+
+cheers,
+Bart
