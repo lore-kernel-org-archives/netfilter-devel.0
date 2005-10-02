@@ -1,54 +1,35 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Aren't these connections ESTABILISHED? (2nd take)
-Date: Sun, 2 Oct 2005 16:44:41 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0510021622210.9126@filer.marasystems.com>
-References: <dhmn38$hsk$1@sea.gmane.org> <200510011907.27026.rob0@gmx.co.uk>
-	<Pine.LNX.4.61.0510020410200.21519@filer.marasystems.com>
-	<dhnoqq$bq8$1@sea.gmane.org>
-	<Pine.LNX.4.61.0510021142470.6283@filer.marasystems.com>
-	<Pine.LNX.4.58.0510021534200.25897@blackhole.kfki.hu>
+From: Paul Jackson <pj@sgi.com>
+Subject: Re: 2.6.14-rc2-mm1 (Oops, possibly Netfilter related?)
+Date: Sun, 2 Oct 2005 10:13:19 -0700
+Message-ID: <20051002101319.659afcde.pj@sgi.com>
+References: <20050921222839.76c53ba1.akpm@osdl.org>
+	<4338F136.1020404@reub.net>
+	<20050927004410.29ab9c03.akpm@osdl.org>
+	<925820000.1127847556@flay>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Robert Nichols <rnicholsNOSPAM@comcast.net>,
-	Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-	netfilter@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0510021534200.25897@blackhole.kfki.hu>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: akpm@osdl.org, reuben-lkml@reub.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org, rohit.seth@intel.com
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751130AbVJBRNj@vger.kernel.org>
+To: "Martin J. Bligh" <mbligh@mbligh.org>
+In-Reply-To: <925820000.1127847556@flay>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 2 Oct 2005, Jozsef Kadlecsik wrote:
+Martin, responding to Andrew:
+> > I've dropped that patch.  Joel Schopp is working on Mel Gorman's patches
+> > which address fragmentation at this level.  If that code gets there then we
+> > can take another look at
+> > mm-try-to-allocate-higher-order-pages-in-rmqueue_bulk.patch.
+> 
+> Me no understand. We're going to deliberately cause fragmentation in order
+> to defragment it again later ???
 
-> If a FIN receives which does not belong to any existing connection in
-> the conntrack table, which state should we assign to the "new" connection
-> "established" by the FIN? Was it the first FIN (half-closed session) or
-> the second FIN from the other direction?
+I thought that the patches of Mel Gorman and Joel Schopp were reducing
+fragmentation, not causing it.
 
-If you assume it's the second then it's a good approximation, and 
-sufficient to push the TCP on the receiving host into a state from which 
-there is a guaranteed timeout as it's then only waiting on itself to 
-finish what it is doing.
-
-If the FIN is dropped then communication may stall indefinitely unless the 
-protocol is using an application level timeout or TCP keepalive.
-
-> I dunno how a lone RST could signal to pick up a connection.
-
-It should be the same as a RST in an existing connection, no more, not 
-much less. It has some value to the receiving host telling it to shut down 
-a matching TCP. But this is considerably less important than the FIN as 
-the RST is very unreliable anyway and protocols using initiated RST (not 
-in direct response to a received packet) ashould have appropriate 
-application level timeouts on their connections.
-
-Regards
-Henrik
+-- 
+                  I won't rest till it's the best ...
+                  Programmer, Linux Scalability
+                  Paul Jackson <pj@sgi.com> 1.925.600.0401
