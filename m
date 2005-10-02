@@ -1,35 +1,79 @@
-From: Paul Jackson <pj@sgi.com>
-Subject: Re: 2.6.14-rc2-mm1 (Oops, possibly Netfilter related?)
-Date: Sun, 2 Oct 2005 10:13:19 -0700
-Message-ID: <20051002101319.659afcde.pj@sgi.com>
-References: <20050921222839.76c53ba1.akpm@osdl.org>
-	<4338F136.1020404@reub.net>
-	<20050927004410.29ab9c03.akpm@osdl.org>
-	<925820000.1127847556@flay>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Aren't these connections ESTABILISHED? (2nd take)
+Date: Sun, 2 Oct 2005 22:23:05 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0510022155370.26361@blackhole.kfki.hu>
+References: <dhmn38$hsk$1@sea.gmane.org> <200510011907.27026.rob0@gmx.co.uk>
+	<Pine.LNX.4.61.0510020410200.21519@filer.marasystems.com>
+	<dhnoqq$bq8$1@sea.gmane.org>
+	<Pine.LNX.4.61.0510021142470.6283@filer.marasystems.com>
+	<Pine.LNX.4.58.0510021534200.25897@blackhole.kfki.hu>
+	<Pine.LNX.4.61.0510021622210.9126@filer.marasystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: akpm@osdl.org, reuben-lkml@reub.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org, rohit.seth@intel.com
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751130AbVJBRNj@vger.kernel.org>
-To: "Martin J. Bligh" <mbligh@mbligh.org>
-In-Reply-To: <925820000.1127847556@flay>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Robert Nichols <rnicholsNOSPAM@comcast.net>,
+	Netfilter Developers <netfilter-devel@lists.netfilter.org>,
+	netfilter@lists.netfilter.org
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0510021622210.9126@filer.marasystems.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Martin, responding to Andrew:
-> > I've dropped that patch.  Joel Schopp is working on Mel Gorman's patches
-> > which address fragmentation at this level.  If that code gets there then we
-> > can take another look at
-> > mm-try-to-allocate-higher-order-pages-in-rmqueue_bulk.patch.
-> 
-> Me no understand. We're going to deliberately cause fragmentation in order
-> to defragment it again later ???
+On Sun, 2 Oct 2005, Henrik Nordstrom wrote:
 
-I thought that the patches of Mel Gorman and Joel Schopp were reducing
-fragmentation, not causing it.
+> On Sun, 2 Oct 2005, Jozsef Kadlecsik wrote:
+>
+> > If a FIN receives which does not belong to any existing connection in
+> > the conntrack table, which state should we assign to the "new" connection
+> > "established" by the FIN? Was it the first FIN (half-closed session) or
+> > the second FIN from the other direction?
+>
+> If you assume it's the second then it's a good approximation, and
+> sufficient to push the TCP on the receiving host into a state from which
+> there is a guaranteed timeout as it's then only waiting on itself to
+> finish what it is doing.
 
--- 
-                  I won't rest till it's the best ...
-                  Programmer, Linux Scalability
-                  Paul Jackson <pj@sgi.com> 1.925.600.0401
+But that relies on the assumption that the receiver side wants to close
+the session as well. If it enters the CLOSE_WAIT state instead, the
+connection will hang anyway in spite of letting through the FIN and
+assuming the LAST_ACK state.
+
+However how would conntrack loose an (established) connection? Or are we
+speaking of loading in conntrack "on the fly" when there are already
+established connections flowing through the firewall? That's doable
+but hairy and unreliable anyway due to the lost window scaling parameters.
+
+> If the FIN is dropped then communication may stall indefinitely unless the
+> protocol is using an application level timeout or TCP keepalive.
+>
+> > I dunno how a lone RST could signal to pick up a connection.
+>
+> It should be the same as a RST in an existing connection, no more, not
+> much less. It has some value to the receiving host telling it to shut down
+> a matching TCP. But this is considerably less important than the FIN as
+> the RST is very unreliable anyway and protocols using initiated RST (not
+> in direct response to a received packet) ashould have appropriate
+> application level timeouts on their connections.
+
+Somehow I have got bad feelings on passing random RST segments.
+
+It is assumed (I think) that the hung connection is in the established
+state. That does not hurt the host, does not pose as a possible DoS
+situation or bottleneck. It also does not prevent establishing a new
+connection over the hung one, we make special efforts for enabling that.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
