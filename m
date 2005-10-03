@@ -1,44 +1,37 @@
-From: Henrik Nordstrom <hno@marasystems.com>
-Subject: Re: Aren't these connections ESTABILISHED? (2nd take)
-Date: Mon, 3 Oct 2005 10:30:30 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0510031025270.22605@filer.marasystems.com>
-References: <dhmn38$hsk$1@sea.gmane.org> <200510011907.27026.rob0@gmx.co.uk>
-	<Pine.LNX.4.61.0510020410200.21519@filer.marasystems.com>
-	<dhnoqq$bq8$1@sea.gmane.org>
-	<Pine.LNX.4.61.0510021142470.6283@filer.marasystems.com>
-	<Pine.LNX.4.58.0510021534200.25897@blackhole.kfki.hu>
-	<Pine.LNX.4.61.0510021622210.9126@filer.marasystems.com>
-	<Pine.LNX.4.58.0510022155370.26361@blackhole.kfki.hu>
-	<Pine.LNX.4.58.0510022306040.26492@blackhole.kfki.hu>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: snat bridge routes reply packets
+Date: Mon, 03 Oct 2005 11:48:44 +0100
+Message-ID: <43410C8C.7080500@ufomechanic.net>
+References: <dhef0t$mj3$1@sea.gmane.org>	<Pine.LNX.4.61.0509282147100.8767@filer.marasystems.com>	<433BA8F6.7000606@ufomechanic.net>	<Pine.LNX.4.61.0509291155310.25933@filer.marasystems.com>	<433BDBD7.6030609@ufomechanic.net>	<20214.217.166.60.19.1127998151.squirrel@ma.rtij.nl>	<433BE841.2090203@ufomechanic.net>	<41060.217.166.60.19.1128007213.squirrel@ma.rtij.nl>
+	<Pine.LNX.4.61.0509291817370.4714@filer.marasystems.com>
+	<433CCCD2.9030504@rtij.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Robert Nichols <rnicholsNOSPAM@comcast.net>,
-	Netfilter Developers <netfilter-devel@lists.netfilter.org>,
-	netfilter@lists.netfilter.org
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0510022306040.26492@blackhole.kfki.hu>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Henrik Nordstrom <hno@marasystems.com>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Martijn Lievaart <m@rtij.nl>
+In-Reply-To: <433CCCD2.9030504@rtij.nl>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 2 Oct 2005, Jozsef Kadlecsik wrote:
+Martijn Lievaart wrote:
 
-> Hmmm, I must correct myself: the conntrack entry might get timed out, but
-> then seeing the pure ACKs it picks up the connection again. Still:
 >
->> However how would conntrack loose an (established) connection?
+> Ah, now I see. The unknown network mesh uses multiple routers which
+> are unknown to the bridge, so the bridge does not know where to route
+> the return packets, although it could know if it saved the mac the
+> original packet came from. Right?
 
-One case where the timeouts allows the above quite easily even if 
-conntrack is running all the time is a half-closed connection. Here 
-conntrack has entered FIN_WAIT with only a 2 minutes timeout.
+Yes. And having saved the mac address (and physdev) it will use the
+bridge output functions instead of the ip route functions.
 
-Regards
-Henrik
+Sam
