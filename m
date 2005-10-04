@@ -1,12 +1,12 @@
-From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
-Subject: skb_shared || skb_cloned
-Date: Tue, 04 Oct 2005 08:53:00 +0000
-Message-ID: <434242EC.2070107@speedy.com.ar>
+From: Jerry Alexander <jerrya@airmail.net>
+Subject: Iptalbes/Netfilter  ContextId
+Date: Mon, 03 Oct 2005 19:24:20 -0500
+Message-ID: <4341CBB4.3060909@airmail.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org,  jerrya@airmail.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,34 +18,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi everybody!
+Dear Netfilter-devel:
 
-I'm developing a new netfilter target that change some fields of the IP
-header and I'm having some problems when skb are shared.
+     Working on implementing packetswitching.
+     Of course  Iptables/Netfilter looks like the
+correct medium to do so.
+     Loaded things up and  iptables could
+Add(append), subtract(delete) and move(replace) UDP/IP
+connections.
+     Wrote a base module using nf_register_hook at PREROUTING
+to gather packet stats.
+     My problem is this.  My manager wants a "ContextId"
+generated during the a  add,subtract,move commands.  Of
+course this would have to be unique(using a hashing algorithm
+which uses the IP address and the Port Number).
+     Right now this looks like it would need to be generated in the
+kernel module.   But this would require all the Append/delete/Replace
+command functions moved to the kernel function also!!
+     Hoping someone can point me in the right direction on how
+this would be done using Iptables and Netfilter.
 
-This is part of my code that verify the skb. If it is shared or cloned
-with another application, it creates a new copy (skb_copy()) and frees
-the old skb (kfree())
-
-if (skb_shared(*pskb) || skb_cloned(*pskb))
-{
-	struct sk_buff *nskb;
-	printk(KERN_INFO MOD "skb_shared || skb_cloned!!\n");
-	nskb = skb_copy(*pskb, GFP_ATOMIC);
-		
-	if (!nskb)
-		return NF_DROP;
-		
-	if ((*pskb)->sk)
-		skb_set_owner_w(nskb, (*pskb)->sk);
-		
-	kfree_skb(*pskb);
-	*pskb = nskb;
-}
-
-My doubt is: the other applications, which skb use? The new one, or the
-copy?
-
-This is what I did: I ran my new netfilter target with and Ethereal (so
-that skb was share) but when I saw the output of Ethereal, it showed as
-if it had not copied it. Is this correct???
+                                  Thanks,
+                                         Jerry
