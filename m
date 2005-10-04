@@ -1,10 +1,10 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Netfilter Docs wiki
-Date: Tue, 04 Oct 2005 12:01:34 +0100
-Message-ID: <dhtner$le8$1@sea.gmane.org>
+From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+Subject: skb_shared || skb_cloned
+Date: Tue, 04 Oct 2005 08:53:00 +0000
+Message-ID: <434242EC.2070107@speedy.com.ar>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,15 +18,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In order to aid the collection of up-to-date netfilter and kernel
-networking documentation I've installed mediawiki (that runs wikipedia) on:
-  http://netfilter.atreeagain.org/
+Hi everybody!
 
-As folk feel inclined, or learn something new, or want to explain
-something to show they understand it, please consider adding to this
-documentation.  This collection is not something that is easy to put in
-the excellent new blogs Harald has set up.
+I'm developing a new netfilter target that change some fields of the IP
+header and I'm having some problems when skb are shared.
 
-Within 6 months I hope there will be a worthwhile collection.
+This is part of my code that verify the skb. If it is shared or cloned
+with another application, it creates a new copy (skb_copy()) and frees
+the old skb (kfree())
 
-Sam
+if (skb_shared(*pskb) || skb_cloned(*pskb))
+{
+	struct sk_buff *nskb;
+	printk(KERN_INFO MOD "skb_shared || skb_cloned!!\n");
+	nskb = skb_copy(*pskb, GFP_ATOMIC);
+		
+	if (!nskb)
+		return NF_DROP;
+		
+	if ((*pskb)->sk)
+		skb_set_owner_w(nskb, (*pskb)->sk);
+		
+	kfree_skb(*pskb);
+	*pskb = nskb;
+}
+
+My doubt is: the other applications, which skb use? The new one, or the
+copy?
+
+This is what I did: I ran my new netfilter target with and Ethereal (so
+that skb was share) but when I saw the output of Ethereal, it showed as
+if it had not copied it. Is this correct???
