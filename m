@@ -1,31 +1,37 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: [PATCH 0/3] netfilter : 3 patches to boost ip_tables performance
-Date: Wed, 5 Oct 2005 18:53:31 +0200
-Message-ID: <200510051853.32196.ak@suse.de>
-References: <432EF0C5.5090908@cosmosbay.com> <200509281037.03185.ak@suse.de> <4342B575.9090709@trash.net>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: BUG() in ip_ct_event_cache_flush()?
+Date: Wed, 05 Oct 2005 23:40:46 -0700 (PDT)
+Message-ID: <20051005.234046.88863607.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	Henrik Nordstrom <hno@marasystems.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030250AbVJEQ53@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4342B575.9090709@trash.net>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+Cc: laforge@netfilter.org, kaber@trash.net
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 04 October 2005 19:01, Patrick McHardy wrote:
-> Andi Kleen wrote:
-> > In a sense it's even getting worse: For example us losing the CONFIG
-> > option to disable local conntrack (Patrick has disabled it some time ago
-> > without even a comment why he did it) has a really bad impact in some
-> > cases.
->
-> It was necessary to correctly handle locally generated ICMP errors.
 
-Well you most likely wrecked local performance then when it's enabled.
+I've seen an OOPS backtrace with current 2.6.x kernels
+that seems to be in ip_ct_event_cache_flush().
 
--Andi
+This loop there is suspect:
+
+	for_each_cpu(cpu) {
+		ecache = &per_cpu(ip_conntrack_ecache, cpu);
+		if (ecache->ct)
+			ip_conntrack_put(ecache->ct);
+	}
+
+This should use "for_each_online_cpu()" I think.  Non-possible
+cpus end up with percpu pointers being NULL or undefined.
+
+Comments?
