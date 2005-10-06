@@ -1,15 +1,19 @@
-From: Stephen Hemminger <shemminger@osdl.org>
-Subject: Re: Netfilter Docs wiki
-Date: Thu, 6 Oct 2005 10:45:14 -0700
-Message-ID: <20051006104514.4ee8cda3@dxpl.pdx.osdl.net>
-References: <dhtner$le8$1@sea.gmane.org>
+From: Andi Kleen <ak@suse.de>
+Subject: Re: [PATCH 0/3] netfilter : 3 patches to boost ip_tables performance
+Date: Thu, 6 Oct 2005 19:59:56 +0200
+Message-ID: <20051006175956.GI6642@verdi.suse.de>
+References: <432EF0C5.5090908@cosmosbay.com> <200509281037.03185.ak@suse.de>
+	<4342B575.9090709@trash.net> <200510051853.32196.ak@suse.de>
+	<20051007023801.GA5953@rama>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <dhtner$le8$1@sea.gmane.org>
+To: Harald Welte <laforge@netfilter.org>, Andi Kleen <ak@suse.de>,
+	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	Henrik Nordstrom <hno@marasystems.com>
+Content-Disposition: inline
+In-Reply-To: <20051007023801.GA5953@rama>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,26 +25,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 04 Oct 2005 12:01:34 +0100
-Amin Azez <azez@ufomechanic.net> wrote:
+On Fri, Oct 07, 2005 at 04:38:02AM +0200, Harald Welte wrote:
+> On Wed, Oct 05, 2005 at 06:53:31PM +0200, Andi Kleen wrote:
+> > On Tuesday 04 October 2005 19:01, Patrick McHardy wrote:
+> > > Andi Kleen wrote:
+> > > > In a sense it's even getting worse: For example us losing the CONFIG
+> > > > option to disable local conntrack (Patrick has disabled it some time ago
+> > > > without even a comment why he did it) has a really bad impact in some
+> > > > cases.
+> > >
+> > > It was necessary to correctly handle locally generated ICMP errors.
+> > 
+> > Well you most likely wrecked local performance then when it's enabled.
+> 
+> so you would favour a system that incorrectly deals with ICMP errors but
+> has higher performance?
 
-> In order to aid the collection of up-to-date netfilter and kernel
-> networking documentation I've installed mediawiki (that runs wikipedia) on:
->   http://netfilter.atreeagain.org/
-> 
-> As folk feel inclined, or learn something new, or want to explain
-> something to show they understand it, please consider adding to this
-> documentation.  This collection is not something that is easy to put in
-> the excellent new blogs Harald has set up.
-> 
-> Within 6 months I hope there will be a worthwhile collection.
-> 
-> Sam
-> 
+I would favour a system where development doesn't lose sight of performance.
+Perhaps there would be other ways to fix this problem without impacting
+performance unduly? Can you describe it in detail? 
 
-If you want, you can move it to here (or setup a link)
-	http://linux-net.osd.org
-
--- 
-Stephen Hemminger <shemminger@osdl.org>
-OSDL http://developer.osdl.org/~shemminger
+-Andi
