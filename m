@@ -1,19 +1,14 @@
-From: Andi Kleen <ak@suse.de>
-Subject: Re: [PATCH 0/3] netfilter : 3 patches to boost ip_tables performance
-Date: Thu, 6 Oct 2005 19:59:56 +0200
-Message-ID: <20051006175956.GI6642@verdi.suse.de>
-References: <432EF0C5.5090908@cosmosbay.com> <200509281037.03185.ak@suse.de>
-	<4342B575.9090709@trash.net> <200510051853.32196.ak@suse.de>
-	<20051007023801.GA5953@rama>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH NF_CONNTRACK 2/2] update event cache for SCTP/TCP status
+Date: Fri, 07 Oct 2005 03:13:01 +0900 (JST)
+Message-ID: <200510061813.j96ID1JL003855@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Multipart/Mixed;
+	boundary="--Next_Part(Fri_Oct__7_03_13_01_2005_234)--"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>, Andi Kleen <ak@suse.de>,
-	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	Henrik Nordstrom <hno@marasystems.com>
-Content-Disposition: inline
-In-Reply-To: <20051007023801.GA5953@rama>
+To: laforge@netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,24 +20,60 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Oct 07, 2005 at 04:38:02AM +0200, Harald Welte wrote:
-> On Wed, Oct 05, 2005 at 06:53:31PM +0200, Andi Kleen wrote:
-> > On Tuesday 04 October 2005 19:01, Patrick McHardy wrote:
-> > > Andi Kleen wrote:
-> > > > In a sense it's even getting worse: For example us losing the CONFIG
-> > > > option to disable local conntrack (Patrick has disabled it some time ago
-> > > > without even a comment why he did it) has a really bad impact in some
-> > > > cases.
-> > >
-> > > It was necessary to correctly handle locally generated ICMP errors.
-> > 
-> > Well you most likely wrecked local performance then when it's enabled.
-> 
-> so you would favour a system that incorrectly deals with ICMP errors but
-> has higher performance?
+----Next_Part(Fri_Oct__7_03_13_01_2005_234)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-I would favour a system where development doesn't lose sight of performance.
-Perhaps there would be other ways to fix this problem without impacting
-performance unduly? Can you describe it in detail? 
+Hi, Harald,
 
--Andi
+This patch follows the recent fix that updates event cache when SCTP/TCP status
+are changed.
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+
+----Next_Part(Fri_Oct__7_03_13_01_2005_234)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="02-update-ecache.patch"
+
+[NETFILTER] missing updating event cache for SCTP/TCP status in nf_conntrack
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+
+---
+commit 67829f23567a0493ee18e7e8827890142be6a848
+tree 23aed1ac703d163be32f3f5c917518bef4288593
+parent d90304323a89c317ad5b7bd2d30b159cd4212406
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 06 Oct 2005 18:47:22 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 06 Oct 2005 18:47:22 +0900
+
+ net/netfilter/nf_conntrack_proto_sctp.c |    1 +
+ net/netfilter/nf_conntrack_proto_tcp.c  |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -424,6 +424,7 @@ static int sctp_packet(struct nf_conn *c
+ 		&& newconntrack == SCTP_CONNTRACK_ESTABLISHED) {
+ 		DEBUGP("Setting assured bit\n");
+ 		set_bit(IPS_ASSURED_BIT, &conntrack->status);
++		nf_conntrack_event_cache(IPCT_STATUS, skb);
+ 	}
+ 
+ 	return NF_ACCEPT;
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1036,7 +1036,8 @@ static int tcp_packet(struct nf_conn *co
+ 		/* Set ASSURED if we see see valid ack in ESTABLISHED 
+ 		   after SYN_RECV or a valid answer for a picked up 
+ 		   connection. */
+-			set_bit(IPS_ASSURED_BIT, &conntrack->status);
++		set_bit(IPS_ASSURED_BIT, &conntrack->status);
++		nf_conntrack_event_cache(IPCT_STATUS, skb);
+ 	}
+ 	nf_ct_refresh_acct(conntrack, ctinfo, skb, timeout);
+ 
+
+----Next_Part(Fri_Oct__7_03_13_01_2005_234)----
