@@ -1,42 +1,59 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 0/3] netfilter : 3 patches to boost ip_tables performance
-Date: Fri, 7 Oct 2005 04:38:02 +0200
-Message-ID: <20051007023801.GA5953@rama>
-References: <432EF0C5.5090908@cosmosbay.com> <200509281037.03185.ak@suse.de> <4342B575.9090709@trash.net> <200510051853.32196.ak@suse.de>
+Subject: Re: BUG() in ip_ct_event_cache_flush()?
+Date: Fri, 7 Oct 2005 06:09:06 +0200
+Message-ID: <20051007040906.GC5953@rama>
+References: <20051005.234046.88863607.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/04w6evG8XlLl3ft"
-Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	Henrik Nordstrom <hno@marasystems.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751253AbVJFRa4@vger.kernel.org>
-To: Andi Kleen <ak@suse.de>
+	protocol="application/pgp-signature"; boundary="NU0Ex4SbNnrxsi6C"
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: "David S. Miller" <davem@davemloft.net>
 Content-Disposition: inline
-In-Reply-To: <200510051853.32196.ak@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20051005.234046.88863607.davem@davemloft.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---/04w6evG8XlLl3ft
+--NU0Ex4SbNnrxsi6C
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 05, 2005 at 06:53:31PM +0200, Andi Kleen wrote:
-> On Tuesday 04 October 2005 19:01, Patrick McHardy wrote:
-> > Andi Kleen wrote:
-> > > In a sense it's even getting worse: For example us losing the CONFIG
-> > > option to disable local conntrack (Patrick has disabled it some time =
-ago
-> > > without even a comment why he did it) has a really bad impact in some
-> > > cases.
-> >
-> > It was necessary to correctly handle locally generated ICMP errors.
+On Wed, Oct 05, 2005 at 11:40:46PM -0700, David S. Miller wrote:
 >=20
-> Well you most likely wrecked local performance then when it's enabled.
+> I've seen an OOPS backtrace with current 2.6.x kernels
+> that seems to be in ip_ct_event_cache_flush().
 
-so you would favour a system that incorrectly deals with ICMP errors but
-has higher performance?
+:( do you have the oops/backtrace?
+
+> This loop there is suspect:
+>=20
+> 	for_each_cpu(cpu) {
+> 		ecache =3D &per_cpu(ip_conntrack_ecache, cpu);
+> 		if (ecache->ct)
+> 			ip_conntrack_put(ecache->ct);
+> 	}
+>=20
+> This should use "for_each_online_cpu()" I think.  Non-possible
+> cpus end up with percpu pointers being NULL or undefined.
+
+Mh, but what happens if we take offline a cpu?  Let's say the event
+cache is used on four cpus, but then one cpu goes offline.  Ideally, we
+would still flush the event cache for that cpu that now has become
+offline, since otherwise we loose the event.
+
+According to the documentation in include/cpumask.h, "for_each_cpu"
+actually iterates over 'num_possible_map'.  So how would we end up with
+a "non-possible" cpu, according to your comment?
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -48,16 +65,16 @@ has higher performance?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---/04w6evG8XlLl3ft
+--NU0Ex4SbNnrxsi6C
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDRd+JXaXGVTD0i/8RAv8nAJ0VJn1aig7l8IyTAjs4MT5AnphWxQCfUv5E
-k87CKliQJ2YXeGO2lH0cv48=
-=kdbd
+iD8DBQFDRfTiXaXGVTD0i/8RAgOvAJ4t/Ll6JJAM6N78J3DaXEm4M6ADtACfZGET
+I+dLL94w1QZRZpHW9hB8X2I=
+=s5jZ
 -----END PGP SIGNATURE-----
 
---/04w6evG8XlLl3ft--
+--NU0Ex4SbNnrxsi6C--
