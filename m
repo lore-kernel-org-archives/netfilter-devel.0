@@ -1,10 +1,10 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH 2/5] NETFILTER ctnetlink: ICMP ID is not mandatory
-Date: Sat, 8 Oct 2005 00:21:57 +0200
-Message-ID: <20051007222157.GM4450@rama.customers.eurospot.com>
+Subject: [PATCH 4/5] NETFILTER ctnetlink: allow userspace to change tcp state
+Date: Sat, 8 Oct 2005 00:26:25 +0200
+Message-ID: <20051007222625.GO4450@rama.customers.eurospot.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lCFQJunhLz1tFGpX"
+	protocol="application/pgp-signature"; boundary="/YnR2r17TIEndSCI"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: David Miller <davem@davemloft.net>
@@ -21,53 +21,95 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---lCFQJunhLz1tFGpX
+--/YnR2r17TIEndSCI
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Dave,
 
-I think this, too,  can still go into 2.6.14, since it is very obvious
-and actually fixes a bug that prevents us from creating ICMP conntracks
-=66rom userspace (probably pretty useless feature, but anyway). =20
+this is clearly a new feature, so it can wait for 2.6.15.
 
-Please apply, thanks.
+Please apply to your 2.6.15 queue, or tell me to resubmit later, thanks.
 
-[NETFILTER] ctnetlink: ICMP ID is not mandatory
+[NETFILTER] ctnetlink: allow userspace to change TCP state
 
-The ID is only required by ICMP type 8 (echo), so it's not
-mandatory for all sort of ICMP connections. This patch makes
-mandatory only the type and the code for ICMP netlink messages.
+This patch adds the ability of changing the state a TCP connection. I know
+that this must be used with care but it's required to provide a complete
+conntrack creation via conntrack_netlink. So I'll document this aspect on
+the upcoming docs.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Harald Welte <laforge@netfilter.org>
 
 ---
-commit cecb8a8d864562529a9798fd401411158ccadf4c
-tree b95a5ed7006982af722b0ff60e6b106a698cb536
-parent c12716a196b7d9fc9fc64a8c7982c2564c3c998f
-author Harald Welte <laforge@netfilter.org> Fri, 07 Oct 2005 23:36:19 +0200
-committer Harald Welte <laforge@netfilter.org> Fri, 07 Oct 2005 23:36:19 +0=
+commit ba8264034a65ccb9a84e3be2ab1fe5b2b20dc692
+tree b2b29df9a5f6a5e79e8e12838bea111723554306
+parent d02c08d8d64333867d569535ed02f9600bcfb91d
+author Harald Welte <laforge@netfilter.org> Fri, 07 Oct 2005 23:40:39 +0200
+committer Harald Welte <laforge@netfilter.org> Fri, 07 Oct 2005 23:40:39 +0=
 200
 
- net/ipv4/netfilter/ip_conntrack_proto_icmp.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ clude/linux/netfilter_ipv4/ip_conntrack_protocol.h |    3 +++
+ net/ipv4/netfilter/ip_conntrack_proto_tcp.c        |   23 ++++++++++++++++=
+++++
+ 2 files changed, 26 insertions(+), 0 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_proto_icmp.c b/net/ipv4/netfil=
-ter/ip_conntrack_proto_icmp.c
---- a/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
-@@ -296,8 +296,7 @@ static int icmp_nfattr_to_tuple(struct n
- 				struct ip_conntrack_tuple *tuple)
- {
- 	if (!tb[CTA_PROTO_ICMP_TYPE-1]
--	    || !tb[CTA_PROTO_ICMP_CODE-1]
--	    || !tb[CTA_PROTO_ICMP_ID-1])
-+	    || !tb[CTA_PROTO_ICMP_CODE-1])
- 		return -1;
+diff --git a/include/linux/netfilter_ipv4/ip_conntrack_protocol.h b/include=
+/linux/netfilter_ipv4/ip_conntrack_protocol.h
+--- a/include/linux/netfilter_ipv4/ip_conntrack_protocol.h
++++ b/include/linux/netfilter_ipv4/ip_conntrack_protocol.h
+@@ -52,6 +52,9 @@ struct ip_conntrack_protocol
+ 	int (*to_nfattr)(struct sk_buff *skb, struct nfattr *nfa,
+ 			 const struct ip_conntrack *ct);
 =20
- 	tuple->dst.u.icmp.type =3D=20
++	/* convert nfnetlink attributes to protoinfo */
++	int (*from_nfattr)(struct nfattr *tb[], struct ip_conntrack *ct);
++
+ 	int (*tuple_to_nfattr)(struct sk_buff *skb,
+ 			       const struct ip_conntrack_tuple *t);
+ 	int (*nfattr_to_tuple)(struct nfattr *tb[],
+diff --git a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c b/net/ipv4/netfilt=
+er/ip_conntrack_proto_tcp.c
+--- a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
++++ b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+@@ -356,6 +356,28 @@ nfattr_failure:
+ 	read_unlock_bh(&tcp_lock);
+ 	return -ENOMEM;
+ }
++
++static int nfattr_to_tcp(struct nfattr *cda[], struct ip_conntrack *ct)
++{
++	struct nfattr *attr =3D cda[CTA_PROTOINFO_TCP-1];
++	struct nfattr *tb[CTA_PROTOINFO_TCP_MAX];
++
++        if (nfattr_parse_nested(tb, CTA_PROTOINFO_TCP_MAX, attr) < 0)
++                goto nfattr_failure;
++
++	if (!tb[CTA_PROTOINFO_TCP_STATE-1])
++		return -EINVAL;
++
++	write_lock_bh(&tcp_lock);
++	ct->proto.tcp.state =3D=20
++		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_STATE-1]);
++	write_unlock_bh(&tcp_lock);
++
++	return 0;
++
++nfattr_failure:
++	return -ENOMEM;
++}
+ #endif
+=20
+ static unsigned int get_conntrack_index(const struct tcphdr *tcph)
+@@ -1127,6 +1149,7 @@ struct ip_conntrack_protocol ip_conntrac
+ #if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
+     defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
+ 	.to_nfattr		=3D tcp_to_nfattr,
++	.from_nfattr		=3D nfattr_to_tcp,
+ 	.tuple_to_nfattr	=3D ip_ct_port_tuple_to_nfattr,
+ 	.nfattr_to_tuple	=3D ip_ct_port_nfattr_to_tuple,
+ #endif
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -78,16 +120,16 @@ ter/ip_conntrack_proto_icmp.c
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---lCFQJunhLz1tFGpX
+--/YnR2r17TIEndSCI
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDRvUFXaXGVTD0i/8RAl3PAKCVpW5ko7iVpWShaRNTIHTK9rYoAACgnHxi
-q03q7yIBzJTkjedAeTK57Kg=
-=mgqt
+iD8DBQFDRvYRXaXGVTD0i/8RAtK0AKCEv33pjsrhKS9/o3LBQxsOshbQVQCghSmj
+jI2gKLMcdVITLhE7XH2v26Y=
+=YroZ
 -----END PGP SIGNATURE-----
 
---lCFQJunhLz1tFGpX--
+--/YnR2r17TIEndSCI--
