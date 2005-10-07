@@ -1,17 +1,15 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: BUG() in ip_ct_event_cache_flush()?
-Date: Fri, 07 Oct 2005 13:09:32 -0700 (PDT)
-Message-ID: <20051007.130932.17714748.davem@davemloft.net>
-References: <20051007040906.GC5953@rama>
-	<20051006.131408.24379607.davem@davemloft.net>
-	<20051007213523.GD4719@rama>
+Subject: Re: [PATCH] don't use __be16 in files used by userspace
+Date: Fri, 07 Oct 2005 13:24:56 -0700 (PDT)
+Message-ID: <20051007.132456.19624093.davem@davemloft.net>
+References: <20051007103105.GF4719@rama>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: laforge@netfilter.org
-In-Reply-To: <20051007213523.GD4719@rama>
+In-Reply-To: <20051007103105.GF4719@rama>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,47 +22,45 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Harald Welte <laforge@netfilter.org>
-Date: Fri, 7 Oct 2005 23:35:25 +0200
+Date: Fri, 7 Oct 2005 12:31:05 +0200
 
-> On Thu, Oct 06, 2005 at 01:14:08PM -0700, David S. Miller wrote:
-> > 
-> > > On Wed, Oct 05, 2005 at 11:40:46PM -0700, David S. Miller wrote:
-> > > > 
-> > > > I've seen an OOPS backtrace with current 2.6.x kernels
-> > > > that seems to be in ip_ct_event_cache_flush().
-> > > 
-> > > :( do you have the oops/backtrace?
-> > 
-> > It's in a Fedora bug report here:
-> > 
-> > http://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=169981
-> 
-> Oh, a fedora kernel.  I received some reports that fedora kernel
-> changelog claims to have the event cache fix, but in reality it is not
-> applied.  
-> People who switched from fedora to a current git kernel have reported
-> that the problem has gone away.
+> This (or a different solution such as 
+> "#ifndef __KERNEL__ #define __be16 #endif" needs to go in before 2.6.14
+> is released, since otherwise we'd break userspace compilation :(
 
-That was fixed.  A bug in the fedora .spec file caused the
-GIT patch to not get applied, Dave Jones fixed that.
+I'm not applying this.
 
-> Anyway, the bug report from the link above talks about 
-> 
-> Call Trace:<ffffffff88308c29>{:ip_conntrack:ip_conntrack_cleanup+20}
->        <ffffffff88306ab4>{:ip_conntrack:init_or_cleanup+676}
->        <ffffffff80157798>{sys_delete_module+490}
->        <ffffffff801118aa>{syscall_trace_enter+217>
->        <ffffffff8010eb6c>{tracesys+209}
-> 
-> which seesm to have no relation to the event cahce, but rather some
-> module unload problem. Are you sure that bug report is the right one?
+The reverting of endianness annotations would be a serious
+regression.  If we need userland compatible defines we can
+either:
 
-Harald, it can be related to the event cache, because ip_conntrack_cleanup()
-calls ip_ct_event_cache_flush() which gcc tends to inline.
+1) Do what iproute2 and friends do, which is ship sanitized
+   kernel headers in their userland source tree.
 
-> mh, I could try that since I'm having a Turion64 notebook... but
-> never had the idea to run an smp kernel on it.
+2) As you suggest have a suitable __be* et al. define when
+   __KERNEL__ is not set.
 
-Fedora doesn't even build uniprocessor amd64 kernels any longer,
-it stops to make any sense these days with so many dual-core et al.
-chips out there :-)
+Actually... What's the problem anyways?  #2 seems to already
+be done.
+
+In linux/types.h we have:
+
+#ifdef __CHECKER__
+#define __bitwise __attribute__((bitwise))
+#else
+#define __bitwise
+#endif
+
+typedef __u16 __bitwise __le16;
+typedef __u16 __bitwise __be16;
+typedef __u32 __bitwise __le32;
+typedef __u32 __bitwise __be32;
+#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+typedef __u64 __bitwise __le64;
+typedef __u64 __bitwise __be64;
+#endif
+
+And this should just work.
+
+That isn't even protected by __KERNEL__, it's fully visible to
+userspace when you include linux/types.h
