@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: BUG() in ip_ct_event_cache_flush()?
-Date: Fri, 7 Oct 2005 06:09:06 +0200
-Message-ID: <20051007040906.GC5953@rama>
-References: <20051005.234046.88863607.davem@davemloft.net>
+Subject: Re: [PATCH] Make hashsize ip_conntrack parameter writable
+Date: Fri, 7 Oct 2005 05:42:26 +0200
+Message-ID: <20051007034224.GB5953@rama>
+References: <1128536584.9868.1.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NU0Ex4SbNnrxsi6C"
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+	protocol="application/pgp-signature"; boundary="1UWUbFP1cBYEclgG"
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: Rusty Russell <rusty@rustcorp.com.au>
 Content-Disposition: inline
-In-Reply-To: <20051005.234046.88863607.davem@davemloft.net>
+In-Reply-To: <1128536584.9868.1.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,38 +23,108 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---NU0Ex4SbNnrxsi6C
+--1UWUbFP1cBYEclgG
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 05, 2005 at 11:40:46PM -0700, David S. Miller wrote:
->=20
-> I've seen an OOPS backtrace with current 2.6.x kernels
-> that seems to be in ip_ct_event_cache_flush().
+Thanks,
 
-:( do you have the oops/backtrace?
+On Thu, Oct 06, 2005 at 04:23:03AM +1000, Rusty Russell wrote:
+> Status: Tested on 2.6.14-rc3-git3
+> Signed-off-by: Rusty Russell <rusty@rustcorp.com.au> (authored)
 
-> This loop there is suspect:
->=20
-> 	for_each_cpu(cpu) {
-> 		ecache =3D &per_cpu(ip_conntrack_ecache, cpu);
-> 		if (ecache->ct)
-> 			ip_conntrack_put(ecache->ct);
-> 	}
->=20
-> This should use "for_each_online_cpu()" I think.  Non-possible
-> cpus end up with percpu pointers being NULL or undefined.
+JFYI, here's an incremental (yet untested) patch that adds support to
+reinitialize the random seed when reisizing
 
-Mh, but what happens if we take offline a cpu?  Let's say the event
-cache is used on four cpus, but then one cpu goes offline.  Ideally, we
-would still flush the event cache for that cpu that now has become
-offline, since otherwise we loose the event.
+[NETFILTER] Re-seed the random value when reallocating conntrack hash
 
-According to the documentation in include/cpumask.h, "for_each_cpu"
-actually iterates over 'num_possible_map'.  So how would we end up with
-a "non-possible" cpu, according to your comment?
+Signed-off-by: Harald Welte <laforge@netfilter.org>
 
+---
+commit 19426ea52220bc2ebb5500aab4bb2124d1c0b5be
+tree 8502b4a7038db9f8158c5ad9c895ff7203778146
+parent 46fa7468794cfeeb083ecbc4ad189e887bd55900
+author Harald Welte <laforge@netfilter.org> Fri, 07 Oct 2005 05:40:14 +0200
+committer Harald Welte <laforge@netfilter.org> Fri, 07 Oct 2005 05:40:14 +0=
+200
+
+ net/ipv4/netfilter/ip_conntrack_core.c |   19 +++++++++++++------
+ 1 files changed, 13 insertions(+), 6 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip=
+_conntrack_core.c
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -50,7 +50,7 @@
+ #include <linux/netfilter_ipv4/ip_conntrack_core.h>
+ #include <linux/netfilter_ipv4/listhelp.h>
+=20
+-#define IP_CONNTRACK_VERSION	"2.3"
++#define IP_CONNTRACK_VERSION	"2.4"
+=20
+ #if 0
+ #define DEBUGP printk
+@@ -148,19 +148,20 @@ DEFINE_PER_CPU(struct ip_conntrack_stat,
+ static int ip_conntrack_hash_rnd_initted;
+ static unsigned int ip_conntrack_hash_rnd;
+=20
+-static u32 __hash_conntrack(const struct ip_conntrack_tuple *tuple,
+-			    unsigned int size)
++static u_int32_t __hash_conntrack(const struct ip_conntrack_tuple *tuple,
++			    unsigned int size, unsigned int rnd)
+ {
+ 	return (jhash_3words(tuple->src.ip,
+ 	                     (tuple->dst.ip ^ tuple->dst.protonum),
+ 	                     (tuple->src.u.all | (tuple->dst.u.all << 16)),
+-	                     ip_conntrack_hash_rnd) % size);
++	                     rnd) % size);
+ }
+=20
+ static u_int32_t
+ hash_conntrack(const struct ip_conntrack_tuple *tuple)
+ {
+-	return __hash_conntrack(tuple, ip_conntrack_htable_size);
++	return __hash_conntrack(tuple, ip_conntrack_htable_size,
++				ip_conntrack_hash_rnd);
+ }
+=20
+ int
+@@ -1408,6 +1409,7 @@ int set_hashsize(const char *val, struct
+ {
+ 	int i, bucket, hashsize, vmalloced;
+ 	int old_vmalloced, old_size;
++	int rnd;
+ 	struct list_head *hash, *old_hash;
+ 	struct ip_conntrack_tuple_hash *h;
+=20
+@@ -1423,13 +1425,17 @@ int set_hashsize(const char *val, struct
+ 	if (!hash)
+ 		return -ENOMEM;
+=20
++	/* We have to rehash for the new table anyway, so we also can=20
++	 * use a new random seed */
++	get_random_bytes(&rnd, 4);
++
+ 	write_lock_bh(&ip_conntrack_lock);
+ 	for (i =3D 0; i < ip_conntrack_htable_size; i++) {
+ 		while (!list_empty(&ip_conntrack_hash[i])) {
+ 			h =3D list_entry(ip_conntrack_hash[i].next,
+ 				       struct ip_conntrack_tuple_hash, list);
+ 			list_del(&h->list);
+-			bucket =3D __hash_conntrack(&h->tuple, hashsize);
++			bucket =3D __hash_conntrack(&h->tuple, hashsize, rnd);
+ 			list_add_tail(&h->list, &hash[bucket]);
+ 		}
+ 	}
+@@ -1440,6 +1446,7 @@ int set_hashsize(const char *val, struct
+ 	ip_conntrack_htable_size =3D hashsize;
+ 	ip_conntrack_vmalloc =3D vmalloced;
+ 	ip_conntrack_hash =3D hash;
++	ip_conntrack_hash_rnd =3D rnd;
+ 	write_unlock_bh(&ip_conntrack_lock);
+=20
+ 	free_conntrack_hash(old_hash, old_vmalloced, old_size);
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -65,16 +135,16 @@ a "non-possible" cpu, according to your comment?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---NU0Ex4SbNnrxsi6C
+--1UWUbFP1cBYEclgG
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDRfTiXaXGVTD0i/8RAgOvAJ4t/Ll6JJAM6N78J3DaXEm4M6ADtACfZGET
-I+dLL94w1QZRZpHW9hB8X2I=
-=s5jZ
+iD8DBQFDRe6gXaXGVTD0i/8RAqW0AJ0WwuSyxwoI8uYVGxQklNKO1VRw+gCeIyBo
+RzVYds5bjW6QuKoFH7pu3Vs=
+=UGiB
 -----END PGP SIGNATURE-----
 
---NU0Ex4SbNnrxsi6C--
+--1UWUbFP1cBYEclgG--
