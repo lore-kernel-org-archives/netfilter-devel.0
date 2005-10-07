@@ -1,12 +1,19 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH] TCP conntrack connection pickup & window tracking
-Date: Fri, 7 Oct 2005 14:37:13 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0510071421470.6327@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 0/3] netfilter : 3 patches to boost ip_tables performance
+Date: Fri, 07 Oct 2005 19:08:36 +0200
+Message-ID: <4346AB94.4050006@trash.net>
+References: <432EF0C5.5090908@cosmosbay.com> <200509281037.03185.ak@suse.de>
+	<4342B575.9090709@trash.net> <200510051853.32196.ak@suse.de>
+	<20051007023801.GA5953@rama> <20051006175956.GI6642@verdi.suse.de>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-1747340125-1128688528=:6353"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	Henrik Nordstrom <hno@marasystems.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-ID: <Pine.LNX.4.58.0510071437001.6355@blackhole.kfki.hu>
+To: Andi Kleen <ak@suse.de>
+In-Reply-To: <20051006175956.GI6642@verdi.suse.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,101 +25,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
+Andi Kleen wrote:
+> On Fri, Oct 07, 2005 at 04:38:02AM +0200, Harald Welte wrote:
+> 
+>>On Wed, Oct 05, 2005 at 06:53:31PM +0200, Andi Kleen wrote:
+>>
+>>>Well you most likely wrecked local performance then when it's enabled.
 
---110391808-1747340125-1128688528=:6353
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
-Content-ID: <Pine.LNX.4.58.0510071437002.6355@blackhole.kfki.hu>
+There are lots of other hooks and conntrack/NAT already have a
+quite large negative influence on performance. Do you have numbers
+that show that enabling this actually causes more than a slight
+decrease in performance? Besides, most distributors enable all
+these options anyway, so it only makes a difference for a small
+group of users.
 
-Hi,
+>>so you would favour a system that incorrectly deals with ICMP errors but
+>>has higher performance?
+> 
+> I would favour a system where development doesn't lose sight of performance.
 
-The attached patch adds a new status bit to conntrack by which TCP streams
-can be marked as the ones with window tracking disabled. Also, it sets the
-initial timeout parameter of picked up connections to a more reasonable
-value (e.g. 5 mins instead of 5 days in the case of ACK packets).
+I don't think we do.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
---110391808-1747340125-1128688528=:6353
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII; NAME="tcp.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.58.0510071435280.6353@blackhole.kfki.hu>
-Content-Description: tcp-conntrack.patch
-Content-Disposition: ATTACHMENT; FILENAME="tcp.patch"
+> Perhaps there would be other ways to fix this problem without impacting
+> performance unduly? Can you describe it in detail? 
 
-W05FVEZJTFRFUl0JV2luZG93IHRyYWNraW5nIGRpc2FibGVkIGlzIG5vdyBz
-ZXNzaW9uIHNwZWNpZmljDQoJCWFuZCBwaWNrZWQgdXAgY29ubmVjdGlvbnMg
-Z2V0IG1vcmUgcmVhc29uYWJsZSB0aW1lb3V0DQoJCXZhbHVlLg0KDQpTaWdu
-ZWQtb2ZmLWJ5OiBKb3pzZWYgS2FkbGVjc2lrIDxrYWRsZWNAYmxhY2tob2xl
-Lmtma2kuaHU+DQoNCmRpZmYgLXVyTiAtLWV4Y2x1ZGUtZnJvbT0vdXNyL3Ny
-Yy9kaWZmLmV4Y2x1ZGUgbGludXgtMi42LjE0LXJjMy1vcmlnL2luY2x1ZGUv
-bGludXgvbmV0ZmlsdGVyX2lwdjQvaXBfY29ubnRyYWNrLmggbGludXgtMi42
-LjE0LXJjMy10Y3Atd2luL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQv
-aXBfY29ubnRyYWNrLmgNCi0tLSBsaW51eC0yLjYuMTQtcmMzLW9yaWcvaW5j
-bHVkZS9saW51eC9uZXRmaWx0ZXJfaXB2NC9pcF9jb25udHJhY2suaAkyMDA1
-LTA5LTMwIDIzOjE3OjM1LjAwMDAwMDAwMCArMDIwMA0KKysrIGxpbnV4LTIu
-Ni4xNC1yYzMtdGNwLXdpbi9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0
-L2lwX2Nvbm50cmFjay5oCTIwMDUtMTAtMDcgMTI6Mzk6MTkuMDAwMDAwMDAw
-ICswMjAwDQpAQCAtNjksNiArNjksMTAgQEANCiAJLyogQ29ubmVjdGlvbiBp
-cyBkeWluZyAocmVtb3ZlZCBmcm9tIGxpc3RzKSwgY2FuIG5vdCBiZSB1bnNl
-dC4gKi8NCiAJSVBTX0RZSU5HX0JJVCA9IDksDQogCUlQU19EWUlORyA9ICgx
-IDw8IElQU19EWUlOR19CSVQpLA0KKw0KKwkvKiBUQ1Agd2luZG93IHRyYWNr
-aW5nIGlzIGRpc2FibGVkICovDQorCUlQU19UQ1BfTk9fV0lORE9XX1RSQUNL
-SU5HX0JJVCA9IDEwLA0KKwlJUFNfVENQX05PX1dJTkRPV19UUkFDS0lORyA9
-ICgxIDw8IElQU19UQ1BfTk9fV0lORE9XX1RSQUNLSU5HX0JJVCksDQogfTsN
-CiANCiAvKiBDb25uZWN0aW9uIHRyYWNraW5nIGV2ZW50IGJpdHMgKi8NCmRp
-ZmYgLXVyTiAtLWV4Y2x1ZGUtZnJvbT0vdXNyL3NyYy9kaWZmLmV4Y2x1ZGUg
-bGludXgtMi42LjE0LXJjMy1vcmlnL25ldC9pcHY0L25ldGZpbHRlci9pcF9j
-b25udHJhY2tfcHJvdG9fdGNwLmMgbGludXgtMi42LjE0LXJjMy10Y3Atd2lu
-L25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfcHJvdG9fdGNwLmMN
-Ci0tLSBsaW51eC0yLjYuMTQtcmMzLW9yaWcvbmV0L2lwdjQvbmV0ZmlsdGVy
-L2lwX2Nvbm50cmFja19wcm90b190Y3AuYwkyMDA1LTA5LTMwIDIzOjE3OjM1
-LjAwMDAwMDAwMCArMDIwMA0KKysrIGxpbnV4LTIuNi4xNC1yYzMtdGNwLXdp
-bi9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29ubnRyYWNrX3Byb3RvX3RjcC5j
-CTIwMDUtMTAtMDcgMTQ6MTk6NTYuMDAwMDAwMDAwICswMjAwDQpAQCAtNzI4
-LDcgKzcyOCw3IEBADQogCQkJOiAiU0VRIGlzIHVuZGVyIHRoZSBsb3dlciBi
-b3VuZCAoYWxyZWFkeSBBQ0tlZCBkYXRhIHJldHJhbnNtaXR0ZWQpIg0KIAkJ
-CTogIlNFUSBpcyBvdmVyIHRoZSB1cHBlciBib3VuZCAob3ZlciB0aGUgd2lu
-ZG93IG9mIHRoZSByZWNlaXZlcikiKTsNCiANCi0JCXJlcyA9IGlwX2N0X3Rj
-cF9iZV9saWJlcmFsOw0KKwkJcmVzID0gMDsNCiAgIAl9DQogICANCiAJREVC
-VUdQKCJ0Y3BfaW5fd2luZG93OiByZXM9JWkgc2VuZGVyIGVuZD0ldSBtYXhl
-bmQ9JXUgbWF4d2luPSV1ICINCkBAIC05NjUsOCArOTY1LDkgQEANCiAJCWJy
-ZWFrOw0KIAl9DQogDQotCWlmICghdGNwX2luX3dpbmRvdygmY29ubnRyYWNr
-LT5wcm90by50Y3AsIGRpciwgaW5kZXgsIA0KLQkJCSAgIHNrYiwgaXBoLCB0
-aCkpIHsNCisJaWYgKCEodGVzdF9iaXQoSVBTX1RDUF9OT19XSU5ET1dfVFJB
-Q0tJTkdfQklULCAmY29ubnRyYWNrLT5zdGF0dXMpDQorCSAgICAgIHx8IHRj
-cF9pbl93aW5kb3coJmNvbm50cmFjay0+cHJvdG8udGNwLCANCisJCQkgICAg
-ICAgZGlyLCBpbmRleCwgc2tiLCBpcGgsIHRoKSkpIHsNCiAJCXdyaXRlX3Vu
-bG9ja19iaCgmdGNwX2xvY2spOw0KIAkJcmV0dXJuIC1ORl9BQ0NFUFQ7DQog
-CX0NCkBAIC05ODcsNyArOTg4LDkgQEANCiAJICAgICYmIChuZXdfc3RhdGUg
-PT0gVENQX0NPTk5UUkFDS19GSU5fV0FJVA0KIAkgICAgCXx8IG5ld19zdGF0
-ZSA9PSBUQ1BfQ09OTlRSQUNLX0NMT1NFKSkNCiAJCWNvbm50cmFjay0+cHJv
-dG8udGNwLnNlZW5bZGlyXS5mbGFncyB8PSBJUF9DVF9UQ1BfRkxBR19DTE9T
-RV9JTklUOw0KLQl0aW1lb3V0ID0gY29ubnRyYWNrLT5wcm90by50Y3AucmV0
-cmFucyA+PSBpcF9jdF90Y3BfbWF4X3JldHJhbnMNCisJdGltZW91dCA9IChj
-b25udHJhY2stPnByb3RvLnRjcC5yZXRyYW5zID49IGlwX2N0X3RjcF9tYXhf
-cmV0cmFucw0KKwkJICAgfHwgKG9sZF9zdGF0ZSA9PSBUQ1BfQ09OTlRSQUNL
-X05PTkUNCisJCSAgICAgICAmJiBuZXdfc3RhdGUgPiBUQ1BfQ09OTlRSQUNL
-X1NZTl9TRU5UKSkNCiAJCSAgJiYgKnRjcF90aW1lb3V0c1tuZXdfc3RhdGVd
-ID4gaXBfY3RfdGNwX3RpbWVvdXRfbWF4X3JldHJhbnMNCiAJCSAgPyBpcF9j
-dF90Y3BfdGltZW91dF9tYXhfcmV0cmFucyA6ICp0Y3BfdGltZW91dHNbbmV3
-X3N0YXRlXTsNCiAJd3JpdGVfdW5sb2NrX2JoKCZ0Y3BfbG9jayk7DQpAQCAt
-MTEwMCw2ICsxMTAzLDkgQEANCiAJY29ubnRyYWNrLT5wcm90by50Y3Auc3Rh
-dGUgPSBUQ1BfQ09OTlRSQUNLX05PTkU7DQogCWNvbm50cmFjay0+cHJvdG8u
-dGNwLmxhc3RfaW5kZXggPSBUQ1BfTk9ORV9TRVQ7DQogCSANCisJaWYgKGlw
-X2N0X3RjcF9iZV9saWJlcmFsKQ0KKwkJc2V0X2JpdChJUFNfVENQX05PX1dJ
-TkRPV19UUkFDS0lOR19CSVQsICZjb25udHJhY2stPnN0YXR1cyk7DQorDQog
-CURFQlVHUCgidGNwX25ldzogc2VuZGVyIGVuZD0ldSBtYXhlbmQ9JXUgbWF4
-d2luPSV1IHNjYWxlPSVpICINCiAJICAgICAgICJyZWNlaXZlciBlbmQ9JXUg
-bWF4ZW5kPSV1IG1heHdpbj0ldSBzY2FsZT0laVxuIiwNCiAJCXNlbmRlci0+
-dGRfZW5kLCBzZW5kZXItPnRkX21heGVuZCwgc2VuZGVyLT50ZF9tYXh3aW4s
-DQo=
-
---110391808-1747340125-1128688528=:6353--
+When an ICMP error is send by the firewall itself, the inner
+packet needs to be restored to its original state. That means
+both DNAT and SNAT which might have been applied need to be
+reversed. DNAT is reversed at places where we usually do
+SNAT (POST_ROUTING), SNAT is reversed where usually DNAT is
+done (PRE_ROUTING/LOCAL_OUT). Since locally generated packets
+never go through PRE_ROUTING, it is done in LOCAL_OUT, which
+required enabling NAT in LOCAL_OUT unconditionally. It might
+be possible to move this to some different hook, I didn't
+investigate it.
