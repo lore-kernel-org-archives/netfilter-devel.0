@@ -1,18 +1,14 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: BUG() in ip_ct_event_cache_flush()?
-Date: Fri, 7 Oct 2005 23:35:25 +0200
-Message-ID: <20051007213523.GD4719@rama>
-References: <20051005.234046.88863607.davem@davemloft.net>
-	<20051007040906.GC5953@rama>
-	<20051006.131408.24379607.davem@davemloft.net>
+Subject: [PATCH] don't use __be16 in files used by userspace
+Date: Fri, 7 Oct 2005 12:31:05 +0200
+Message-ID: <20051007103105.GF4719@rama>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cz6wLo+OExbGG7q/"
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+	protocol="application/pgp-signature"; boundary="e5bfZ/T2xnjpUIbw"
+Cc: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <20051006.131408.24379607.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,46 +21,72 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---cz6wLo+OExbGG7q/
+--e5bfZ/T2xnjpUIbw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 06, 2005 at 01:14:08PM -0700, David S. Miller wrote:
->=20
-> > On Wed, Oct 05, 2005 at 11:40:46PM -0700, David S. Miller wrote:
-> > >=20
-> > > I've seen an OOPS backtrace with current 2.6.x kernels
-> > > that seems to be in ip_ct_event_cache_flush().
-> >=20
-> > :( do you have the oops/backtrace?
->=20
-> It's in a Fedora bug report here:
->=20
-> http://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=3D169981
+Hi Dave!
 
-Oh, a fedora kernel.  I received some reports that fedora kernel
-changelog claims to have the event cache fix, but in reality it is not
-applied. =20
-People who switched from fedora to a current git kernel have reported
-that the problem has gone away.
+This (or a different solution such as=20
+"#ifndef __KERNEL__ #define __be16 #endif" needs to go in before 2.6.14
+is released, since otherwise we'd break userspace compilation :(
 
-Anyway, the bug report from the link above talks about=20
+Please apply, thanks.
 
-Call Trace:<ffffffff88308c29>{:ip_conntrack:ip_conntrack_cleanup+20}
-       <ffffffff88306ab4>{:ip_conntrack:init_or_cleanup+676}
-       <ffffffff80157798>{sys_delete_module+490}
-       <ffffffff801118aa>{syscall_trace_enter+217>
-       <ffffffff8010eb6c>{tracesys+209}
 
-which seesm to have no relation to the event cahce, but rather some
-module unload problem. Are you sure that bug report is the right one?
+[NETFILTER] do not use __be16 in headerfile that is used by userspace
 
-> The reporter is running an SMP AMD64 kernel on a laptop, FWIW.
+__be16 is not defined in userspace, and therefore iptables cannot be
+compiled with such types in ip_conntrack_tuple.h.  Yes, we can add a bogus
+#define to iptables userspace, but we can only do so for new releases, not
+for old ones.  Since we do not want to loose the ability to compile old
+iptables programs on new kernels, we revert the change.
 
-mh, I could try that since I'm having a Turion64 notebook... but never
-had the idea to run an smp kernel on it.
+Signed-off-by: Harald Welte <laforge@netfilter.org>
 
+---
+commit 4714eea267d67e65aabb6518cbfa81b8c45c2147
+tree caf15c3b67ea6595db868305e7042cbea3f01edf
+parent d5b3f0a9fdcf7881d3b6efedd862aef6d561db03
+author Harald Welte <laforge@netfilter.org> Fri, 07 Oct 2005 12:59:02 +0200
+committer Harald Welte <laforge@netfilter.org> Fri, 07 Oct 2005 12:59:02 +0=
+200
+
+ include/linux/netfilter_ipv4/ip_conntrack_tuple.h |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/include/linux/netfilter_ipv4/ip_conntrack_tuple.h b/include/li=
+nux/netfilter_ipv4/ip_conntrack_tuple.h
+--- a/include/linux/netfilter_ipv4/ip_conntrack_tuple.h
++++ b/include/linux/netfilter_ipv4/ip_conntrack_tuple.h
+@@ -17,7 +17,7 @@ union ip_conntrack_manip_proto
+ 	u_int16_t all;
+=20
+ 	struct {
+-		__be16 port;
++		u_int16_t port;
+ 	} tcp;
+ 	struct {
+ 		u_int16_t port;
+@@ -29,7 +29,7 @@ union ip_conntrack_manip_proto
+ 		u_int16_t port;
+ 	} sctp;
+ 	struct {
+-		__be16 key;	/* key is 32bit, pptp only uses 16 */
++		u_int16_t key;	/* key is 32bit, pptp only uses 16 */
+ 	} gre;
+ };
+=20
+@@ -65,7 +65,7 @@ struct ip_conntrack_tuple
+ 				u_int16_t port;
+ 			} sctp;
+ 			struct {
+-				__be16 key;	/* key is 32bit,=20
++				u_int16_t key;	/* key is 32bit,=20
+ 						 * pptp only uses 16 */
+ 			} gre;
+ 		} u;
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -75,16 +97,16 @@ had the idea to run an smp kernel on it.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---cz6wLo+OExbGG7q/
+--e5bfZ/T2xnjpUIbw
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDRuobXaXGVTD0i/8RAoEqAJ9UQ6PJS3MQg7jPJYJ1CcPLudSRqQCglc1J
-rT/qFHLMUKFiMSuWgd2KNbE=
-=d7sz
+iD8DBQFDRk5pXaXGVTD0i/8RAgaWAJ4l2HpjBzaido4zptzL1Zmar6I0fACeKMFs
+ZUao+RBPhMZJrYlbWCmW0Ts=
+=rflO
 -----END PGP SIGNATURE-----
 
---cz6wLo+OExbGG7q/--
+--e5bfZ/T2xnjpUIbw--
