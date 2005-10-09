@@ -1,13 +1,16 @@
-From: Ignatich <ignatich@gmail.com>
-Subject: owner based routing
-Date: Mon, 10 Oct 2005 00:50:11 +0400
-Message-ID: <226310304.20051010005011@gmail.com>
-Reply-To: Ignatich <ignatich@gmail.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH NF_CONNTRACK 1/4] enable to resize the hash size
+Date: Sun, 9 Oct 2005 19:46:28 +0200
+Message-ID: <20051009174628.GB665@rama.customers.eurospot.com>
+References: <200510081107.j98B7Neb022582@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FkmkrVfFsRoUs1wW"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
+In-Reply-To: <200510081107.j98B7Neb022582@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,26 +22,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello netfilter developers,
 
-I have a following problem. My linux server has two interfaces: the first
-connected to internet and the second connected to LAN. In LAN I have
-another hardware ADSL router connected to another (much slower) ISP.
+--FkmkrVfFsRoUs1wW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I want LAN users to use linux server as internet gateway and
-still be able to use ADSL link to download files via http/ftp/bt on
-my server in background.
+On Sat, Oct 08, 2005 at 08:07:22PM +0900, Yasuyuki KOZAKAI wrote:
+> [NETFILTER] enable to resize the hash size of nf_conntrack
 
-At first glance I thought that ipt_owner is all I need, but
-unfortunately it only works in OUTPUT chain (and in INPUT and
-POSTROUTING chain if I apply owner-socketlookup patch from
-patch-o-matic, but that doesn't help here).
+applied.
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Is it possible to configure owner-based routing via some other way? If
-not then how much work required to make ipt_owner work in PREROUTING
-table? Does netfilter team plan to add such functionality? I'm no
-linux kernel programmer but experienced with C so I might be able to
-help if that's not very complicated.
+--FkmkrVfFsRoUs1wW
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
--- 
- Ignatich                          mailto:ignatich@gmail.com
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDSVd0XaXGVTD0i/8RAlv3AJ9vEf9/nNb5t8ei97NAc3iOWFaEtwCeMkUI
+Cqs6E5W4eknarL5nyJRJ4Dg=
+=uEPe
+-----END PGP SIGNATURE-----
+
+--FkmkrVfFsRoUs1wW--
