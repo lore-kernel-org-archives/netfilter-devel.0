@@ -1,17 +1,13 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: Sparc64 U60: no iptables
-Date: Sun, 09 Oct 2005 20:26:46 -0700 (PDT)
-Message-ID: <20051009.202646.70198053.davem@davemloft.net>
-References: <4347A731.7010509@frankengul.org> <4348EFF4.3040305@frankengul.org>
-	<4349614F.1010408@frankengul.org>
+Subject: num_possible_cpus() usage in iptables
+Date: Sun, 09 Oct 2005 20:47:34 -0700 (PDT)
+Message-ID: <20051009.204734.30319051.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org, debian-sparc@lists.debian.org,
-	linux-kernel@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: seb@frankengul.org
-In-Reply-To: <4349614F.1010408@frankengul.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,13 +19,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: S=E9bastien Bernard <seb@frankengul.org>
-Date: Sun, 09 Oct 2005 20:28:31 +0200
 
-> Can one explain me why this patch works on other archs, and oops on t=
-he =
+Guys, you can't use this interface like that.
 
-> sparc64 smp ?
-> Can one explain why I'm the only one to have this problem ?
+It's a _COUNT_ of the number of possible processors, not the number of
+the higest PHYSICAL cpu index.
 
-On your Ultra60 the two physical cpus are numbered "0" and "2".
+So you can have cpu's numbered "0" and "2", but num_possible_cpus()
+will return 2.  This is not just theoretical, Ultra60 sparc64 systems
+have this exact physical cpu numbering.   And as a result, when the
+changes went into iptables to use num_possible_cpus() instead of NR_CPUS
+it broke iptables.  It OOPS's when you load the module, in fact.
+
+So, on such a system, this loop:
+
+	/* And one copy for every other CPU */
+	for (i = 1; i < num_possible_cpus(); i++) {
+		memcpy(newinfo->entries + SMP_ALIGN(newinfo->size)*i,
+		       newinfo->entries,
+		       SMP_ALIGN(newinfo->size));
+	}
+
+would initialize the wrong entries.
+
+We need to fix this.
