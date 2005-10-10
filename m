@@ -1,18 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 1/5] NETFILTER ctnetlink: use ENOMEM instead of -1
-Date: Mon, 10 Oct 2005 10:44:50 +0200
-Message-ID: <20051010084450.GD5091@rama.customers.eurospot.com>
-References: <20051007221948.GL4450@rama.customers.eurospot.com>
-	<4347E8F4.5010807@trash.net>
-	<20051009.215222.44964474.davem@davemloft.net>
+From: seb@frankengul.org
+Subject: Re: num_possible_cpus() usage in iptables
+Date: Mon, 10 Oct 2005 10:52:24 +0200
+Message-ID: <20051010085224.GC5157@frankengul.org>
+References: <20051009.204734.30319051.davem@davemloft.net>
+	<20051010081957.GA5091@rama.customers.eurospot.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mJm6k4Vb/yFcL9ZU"
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20051009.215222.44964474.davem@davemloft.net>
+In-Reply-To: <20051010081957.GA5091@rama.customers.eurospot.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,44 +21,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, Oct 10, 2005 at 10:19:57AM +0200, Harald Welte wrote:
+> On Sun, Oct 09, 2005 at 08:47:34PM -0700, David S. Miller wrote:
+> > 
+> > Guys, you can't use this interface like that.
+> > 
+> > It's a _COUNT_ of the number of possible processors, not the number of
+> > the higest PHYSICAL cpu index.
+> 
+> thanks, Dave.  It's very surprising that nobody apparently hit this
+> before.  
+> 
 
---mJm6k4Vb/yFcL9ZU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Well, I did and it's not so surprising.
+2 way Sparc used as firewall are quite uncommon.
+Moreover, the bug will bite only on special models that have this numbering.
+There shouldn't be too much people in this case.
+Please consider me as a worst case scenario :).
+(SMP + sparc64 + firewall + cpu 0 and 2).
 
-On Sun, Oct 09, 2005 at 09:52:22PM -0700, David S. Miller wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Sat, 08 Oct 2005 17:42:44 +0200
->=20
-> > Dave, please drop this patch.
->=20
-> I'll kill it from my tree, thanks.
-
-sorry for letting this through, I didn't really look at it in detail,
-as it was Pablo who submitted it, and allegedly by a suggestion from
-Patrick - and on a superficial level it seemed right :(
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---mJm6k4Vb/yFcL9ZU
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDSioCXaXGVTD0i/8RAl4uAJ9lQOnJ/IBGmjcoa2ZqzN2RssiA5gCeKF3t
-5T4j1TS/e2Lo8TFPeQUepfU=
-=6Zq1
------END PGP SIGNATURE-----
-
---mJm6k4Vb/yFcL9ZU--
+> I'll cook up a patch later today.
+> 
+> > will return 2.  This is not just theoretical, Ultra60 sparc64 systems
+> > have this exact physical cpu numbering.   
+> 
+> I see :(
