@@ -1,14 +1,15 @@
 From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: Netfilter ContextID
-Date: Mon, 10 Oct 2005 14:04:18 +0100
-Message-ID: <434A66D2.3040304@ufomechanic.net>
-References: <4342C967.2050308@airmail.net>
+Subject: Re: Netfilter Docs wiki
+Date: Mon, 10 Oct 2005 14:06:29 +0100
+Message-ID: <434A6755.2090902@ufomechanic.net>
+References: <dhtner$le8$1@sea.gmane.org>
+	<20051006104514.4ee8cda3@dxpl.pdx.osdl.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <4342C967.2050308@airmail.net>
+In-Reply-To: <20051006104514.4ee8cda3@dxpl.pdx.osdl.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,43 +21,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-What is the purpose of this contextid?
+Stephen Hemminger wrote:
+> On Tue, 04 Oct 2005 12:01:34 +0100
+> Amin Azez <azez@ufomechanic.net> wrote:
+> 
+> 
+>>In order to aid the collection of up-to-date netfilter and kernel
+>>networking documentation I've installed mediawiki (that runs wikipedia) on:
+>>  http://netfilter.atreeagain.org/
+>>
+>>As folk feel inclined, or learn something new, or want to explain
+>>something to show they understand it, please consider adding to this
+>>documentation.  This collection is not something that is easy to put in
+>>the excellent new blogs Harald has set up.
+>>
+>>Within 6 months I hope there will be a worthwhile collection.
+>>
+>>Sam
+>>
+> 
+> 
+> If you want, you can move it to here (or setup a link)
+> 	http://linux-net.osd.org
+> 
 
-If iptables itself is not going to make use of it, why not re-calculate
-it on demand when you read rules back using iptables -L?
+Thanks for the offer, the link you provide should be, I think
+linux-net.osdl.org
 
-Or if you need to be able to store abritrary cookie values, there is a
-comment module for iptables which allows you to store up to 255 bytes of
-text.
-
-How to do this really depends on the purpose of this context and what
-else is supposed to respond to it.
+Yes, I see this is the correct place for such information.
+If you can satisfy me regarding the copyright/licensing of that
+documantation collection, I will transfer the few pages that exist and
+prefer osdl instead.
 
 Sam
-
-Jerry Alexander wrote:
-> Dear Netfilter-devel:
-> 
->     Working on implementing packetswitching.
->     Of course  Iptables/Netfilter looks like the
-> correct medium to do so.
->     Loaded things up and  iptables could
-> Add(append), subtract(delete) and move(replace) UDP/IP
-> connections.
->     Wrote a base module using nf_register_hook at PREROUTING
-> to gather packet stats.
->     My problem is this.  My manager wants a "ContextId"
-> generated during the a  add,subtract,move commands.  Of
-> course this would have to be unique(using a hashing algorithm
-> which uses the IP address and the Port Number).
->     Right now this looks like it would need to be generated in the
-> kernel module.   But this would require all the Append/delete/Replace
-> command functions moved to the kernel function also!!
->     Hoping someone can point me in the right direction on how
-> this would be done using Iptables and Netfilter.
-> 
->                                  Thanks,
->                                         Jerry
-> 
-> 
-> 
