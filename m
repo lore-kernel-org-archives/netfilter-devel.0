@@ -1,17 +1,16 @@
 From: "David S. Miller" <davem@davemloft.net>
 Subject: Re: [PATCH] fix iptables on systems with discontiguous processor ids
-Date: Mon, 10 Oct 2005 15:04:31 -0700 (PDT)
-Message-ID: <20051010.150431.19652848.davem@davemloft.net>
-References: <20051010164141.GG5627@rama>
-	<20051010.141518.60492651.davem@davemloft.net>
-	<434AE017.2020905@trash.net>
+Date: Mon, 10 Oct 2005 15:06:23 -0700 (PDT)
+Message-ID: <20051010.150623.94217913.davem@davemloft.net>
+References: <20051010.141518.60492651.davem@davemloft.net>
+	<434AE017.2020905@trash.net> <434AE28B.2070607@trash.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: kaber@trash.net
-In-Reply-To: <434AE017.2020905@trash.net>
+In-Reply-To: <434AE28B.2070607@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,17 +23,23 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 10 Oct 2005 23:41:43 +0200
+Date: Mon, 10 Oct 2005 23:52:11 +0200
 
-> Even better would be a function returning the CPU ID as "physical"
-> ID, skipping holes in the space. This would allow to save the memory
-> for unused CPU IDs. Maybe a small table mapping "virtual" to "phyiscal"
-> IDs?
+> I don't know which other architectures are affected by this, but for
+> the case Dave mentioned some function
+> 
+> static inline int cpu_physical_id(void)
+> {
+> 	return smp_processor_id() >> 1;
+> }
+> 
+> should also solve the problem. Even if not as easily implementable
+> as this. it looks like a logical complement to num_possible_cpus().
 
-We used to have this and it was really ugly and error prone.
+Stop papering around this issue, please. :-)
 
-I like the discontiguous cpu ID space much better.
+The cpu ID space is discontiguous, period.
 
-I was so happy when I could blow away those virtual<-->physical cpu ID
-mappings.  People got it wrong all the time and it makes hotplug cpu
-support more difficult.
+If you need to allocate per-cpu data there are very straightforward
+ways to do this.  Many other subsystems do this in an error free
+manner and I think netfilter iptables can do it too. :)
