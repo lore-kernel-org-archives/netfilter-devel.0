@@ -1,19 +1,14 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH nfsim] tcpsession: implement the RESET command
-Date: Mon, 10 Oct 2005 23:03:30 +1000
-Message-ID: <1128949410.5611.105.camel@localhost.localdomain>
-References: <20050922082404.GC21617@roonstrasse.net>
-	<1128707631.5611.0.camel@localhost.localdomain>
-	<20051008090622.GA9337@roonstrasse.net>
-	<1128940663.5611.76.camel@localhost.localdomain>
-	<20051010115146.GB25457@roonstrasse.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: Netfilter ContextID
+Date: Mon, 10 Oct 2005 14:04:18 +0100
+Message-ID: <434A66D2.3040304@ufomechanic.net>
+References: <4342C967.2050308@airmail.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Max Kellermann <max@duempel.org>
-In-Reply-To: <20051010115146.GB25457@roonstrasse.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <4342C967.2050308@airmail.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,40 +20,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2005-10-10 at 13:51 +0200, Max Kellermann wrote:
-> On 2005/10/10 12:37, Rusty Russell <rusty@rustcorp.com.au> wrote:
-> > OK, I've merged them all, with a fair bit of rewriting to do with the
-> > backtick code (yeah, I gave in).  The main change (other than cleaning
-> > up the allocations using talloc and using popen) is that extensions must
-> > be in $NFSIM_EXTPATH.  This defaults to tools/extensions/ if we're in
-> > the build dir, or /usr/lib/nfsim/ otherwise.  Does this make sense to
-> > you?
+What is the purpose of this contextid?
+
+If iptables itself is not going to make use of it, why not re-calculate
+it on demand when you read rules back using iptables -L?
+
+Or if you need to be able to store abritrary cookie values, there is a
+comment module for iptables which allows you to store up to 255 bytes of
+text.
+
+How to do this really depends on the purpose of this context and what
+else is supposed to respond to it.
+
+Sam
+
+Jerry Alexander wrote:
+> Dear Netfilter-devel:
 > 
-> That assumes that nfsim provides the extensions, or that extensions
-> have to be installed in one of those paths.  IMHO, the extensions may
-> be shipped along with a test.  e.g. my h323 tests ship their own
-> tools.  To make testing easy, it should be possible to use extensions
-> without installing them (i.e. without root access?).
-
-I assumed you would want to merge your tests into nfsim-testsuite...
-
-> It also assumes that you _only_ use programs in /usr/lib/nfsim/ - what
-> if someone wants to call a program in /usr/bin/?  This lockout gives
-> us no advantage.
+>     Working on implementing packetswitching.
+>     Of course  Iptables/Netfilter looks like the
+> correct medium to do so.
+>     Loaded things up and  iptables could
+> Add(append), subtract(delete) and move(replace) UDP/IP
+> connections.
+>     Wrote a base module using nf_register_hook at PREROUTING
+> to gather packet stats.
+>     My problem is this.  My manager wants a "ContextId"
+> generated during the a  add,subtract,move commands.  Of
+> course this would have to be unique(using a hashing algorithm
+> which uses the IP address and the Port Number).
+>     Right now this looks like it would need to be generated in the
+> kernel module.   But this would require all the Append/delete/Replace
+> command functions moved to the kernel function also!!
+>     Hoping someone can point me in the right direction on how
+> this would be done using Iptables and Netfilter.
 > 
-> I'd prefer to just prepend ".:/usr/lib/nfsim:" to $PATH and let the shell
-> search, instead of manually prepending extension_path+"/" to the
-> command.
+>                                  Thanks,
+>                                         Jerry
 > 
-> I'd also rename the default path to /usr/lib/nfsim/extensions, to make
-> room for more nfsim related files in the future.
-
-OK, how about this:
-(1) Use $NFSIM_EXTPATH if set, else
-(1) Use ".:tools/extensions:$PATH" if we're in the nfsim dir, else
-(2) Use ".:/usr/lib/nfsim/extensions:$PATH" if we're not.
-
-I'll patch it now...
-Rusty.
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+> 
+> 
