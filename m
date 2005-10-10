@@ -1,18 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 4/5] NETFILTER ctnetlink: allow userspace to change tcp
-	state
-Date: Mon, 10 Oct 2005 10:33:21 +0200
-Message-ID: <20051010083320.GC5091@rama.customers.eurospot.com>
-References: <20051007222625.GO4450@rama.customers.eurospot.com>
-	<20051009.214922.109057183.davem@davemloft.net>
+Subject: Re: num_possible_cpus() usage in iptables
+Date: Mon, 10 Oct 2005 10:19:57 +0200
+Message-ID: <20051010081957.GA5091@rama.customers.eurospot.com>
+References: <20051009.204734.30319051.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="nmemrqcdn5VTmUEE"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="ZGiS0Q5IWpPtfppv"
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
 Content-Disposition: inline
-In-Reply-To: <20051009.214922.109057183.davem@davemloft.net>
+In-Reply-To: <20051009.204734.30319051.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,30 +23,27 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---nmemrqcdn5VTmUEE
+--ZGiS0Q5IWpPtfppv
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Oct 09, 2005 at 09:49:22PM -0700, David S. Miller wrote:
-> From: Harald Welte <laforge@netfilter.org>
-> Date: Sat, 8 Oct 2005 00:26:25 +0200
+On Sun, Oct 09, 2005 at 08:47:34PM -0700, David S. Miller wrote:
 >=20
-> > this is clearly a new feature, so it can wait for 2.6.15.
-> >=20
-> > Please apply to your 2.6.15 queue, or tell me to resubmit later, thanks.
+> Guys, you can't use this interface like that.
 >=20
-> It's be a shame for ctnetlink to be handicapped in it's
-> first release in 2.6.14, so I applied both patches 4 and 5 :)
+> It's a _COUNT_ of the number of possible processors, not the number of
+> the higest PHYSICAL cpu index.
 
-Thanks a lot for merging everything.  Let's hope we now finally have
-resolved all issues with netfilter netlink.
+thanks, Dave.  It's very surprising that nobody apparently hit this
+before. =20
 
-As indicated, I'll work on that iptables cpu-count issue asap.  I'm
-unable to test it on my notebook (still travelling), but since you're
-running various sparc beastst, maybe you can give it a test once I've
-worked it out.
+I'll cook up a patch later today.
 
+> will return 2.  This is not just theoretical, Ultra60 sparc64 systems
+> have this exact physical cpu numbering.  =20
+
+I see :(
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -59,16 +54,16 @@ worked it out.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---nmemrqcdn5VTmUEE
+--ZGiS0Q5IWpPtfppv
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDSidQXaXGVTD0i/8RAqPNAJsEA/IOIt/VzixvPpXzQLeFvR/AVwCfX0Mz
-+4eghzxoZTNerMns7PJembk=
-=pg3h
+iD8DBQFDSiQsXaXGVTD0i/8RAjnEAJ4k8if2c0JXjVxWK/3sWMOIJ+XPBQCfbQE8
+/2EQfIIQYMNEolWaoLr7cgE=
+=vbuC
 -----END PGP SIGNATURE-----
 
---nmemrqcdn5VTmUEE--
+--ZGiS0Q5IWpPtfppv--
