@@ -1,30 +1,44 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: Sparc64 U60: no iptables
-Date: Mon, 10 Oct 2005 11:16:11 -0700 (PDT)
-Message-ID: <20051010.111611.106200571.davem@davemloft.net>
-References: <4349614F.1010408@frankengul.org>
-	<20051009.202646.70198053.davem@davemloft.net>
-	<20051010082507.GA5157@frankengul.org>
+Subject: Re: [PATCH] fix iptables on systems with discontiguous processor ids
+Date: Mon, 10 Oct 2005 14:15:18 -0700 (PDT)
+Message-ID: <20051010.141518.60492651.davem@davemloft.net>
+References: <20051010164141.GG5627@rama>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: debian-sparc@lists.debian.org, netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751140AbVJJSQM@vger.kernel.org>
-To: seb@frankengul.org
-In-Reply-To: <20051010082507.GA5157@frankengul.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: laforge@netfilter.org
+In-Reply-To: <20051010164141.GG5627@rama>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: seb@frankengul.org
-Date: Mon, 10 Oct 2005 10:25:07 +0200
+From: Harald Welte <laforge@netfilter.org>
+Date: Mon, 10 Oct 2005 18:41:41 +0200
 
-> Indeed they are. Does the patch assume that cpus are numbered in a
-> row ?
+> This is my proposed patch for the problem you've described.  Please test
+> and submit.  If it works, I'll also prepare a patch for {arp,ip6}_tables.
 
-Yes, and that assumption is incorrect.
+Ebtables needs it too.  "git grep num_possible_cpus" shows all
+of the users in the whole tree, %80 of which are the netfilter
+cases we're fixing here :-)
 
-> Now, I reverted the patch for ip_tables.c, ip6_tables.c and ebtables.c.
-> Everything is working ok (11h uptime).
+Why don't any of the existing interfaces on cpumasks and numbers
+provide what you need here?  Perhaps this routine you are adding
+(highest_processor_id()) belongs in linux/cpumask.h?  Perhaps
+named something like "highest_possible_processor_id()" to be
+consistent with the "num_possible_cpus()" naming?
 
-Right.
+Otherwise the patch looks fine, thanks for following up on this
+Harald.  I'll push the rest of the netfilter fixes once you cook
+up the final patch for this, thanks.
+
+Thanks.
