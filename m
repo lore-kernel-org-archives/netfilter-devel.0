@@ -1,40 +1,74 @@
-From: seb@frankengul.org
-Subject: Re: Sparc64 U60: no iptables
-Date: Mon, 10 Oct 2005 10:25:07 +0200
-Message-ID: <20051010082507.GA5157@frankengul.org>
-References: <4347A731.7010509@frankengul.org> <4348EFF4.3040305@frankengul.org> <4349614F.1010408@frankengul.org> <20051009.202646.70198053.davem@davemloft.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 4/5] NETFILTER ctnetlink: allow userspace to change tcp
+	state
+Date: Mon, 10 Oct 2005 10:33:21 +0200
+Message-ID: <20051010083320.GC5091@rama.customers.eurospot.com>
+References: <20051007222625.GO4450@rama.customers.eurospot.com>
+	<20051009.214922.109057183.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: debian-sparc@lists.debian.org, netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750804AbVJJIZK@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="nmemrqcdn5VTmUEE"
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
 Content-Disposition: inline
-In-Reply-To: <20051009.202646.70198053.davem@davemloft.net>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20051009.214922.109057183.davem@davemloft.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Oct 09, 2005 at 08:26:46PM -0700, David S. Miller wrote:
-> From: S=E9bastien Bernard <seb@frankengul.org>
-> Date: Sun, 09 Oct 2005 20:28:31 +0200
+
+--nmemrqcdn5VTmUEE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, Oct 09, 2005 at 09:49:22PM -0700, David S. Miller wrote:
+> From: Harald Welte <laforge@netfilter.org>
+> Date: Sat, 8 Oct 2005 00:26:25 +0200
 >=20
-> > Can one explain me why this patch works on other archs, and oops on=
- the=20
-> > sparc64 smp ?
-> > Can one explain why I'm the only one to have this problem ?
+> > this is clearly a new feature, so it can wait for 2.6.15.
+> >=20
+> > Please apply to your 2.6.15 queue, or tell me to resubmit later, thanks.
 >=20
-> On your Ultra60 the two physical cpus are numbered "0" and "2".
->=20
+> It's be a shame for ctnetlink to be handicapped in it's
+> first release in 2.6.14, so I applied both patches 4 and 5 :)
 
-Thanks for the information.
+Thanks a lot for merging everything.  Let's hope we now finally have
+resolved all issues with netfilter netlink.
 
-Indeed they are. Does the patch assume that cpus are numbered in a
-row ?
-Now, I reverted the patch for ip_tables.c, ip6_tables.c and ebtables.c.
-Everything is working ok (11h uptime).
+As indicated, I'll work on that iptables cpu-count issue asap.  I'm
+unable to test it on my notebook (still travelling), but since you're
+running various sparc beastst, maybe you can give it a test once I've
+worked it out.
 
-Is this problem specific to the Ultra 60 or sparc arch ?
-Will a proper fix be issued for our machines ?
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-	Seb
+--nmemrqcdn5VTmUEE
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDSidQXaXGVTD0i/8RAqPNAJsEA/IOIt/VzixvPpXzQLeFvR/AVwCfX0Mz
++4eghzxoZTNerMns7PJembk=
+=pg3h
+-----END PGP SIGNATURE-----
+
+--nmemrqcdn5VTmUEE--
