@@ -1,15 +1,20 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: Netfilter Docs wiki
-Date: Mon, 10 Oct 2005 14:06:29 +0100
-Message-ID: <434A6755.2090902@ufomechanic.net>
-References: <dhtner$le8$1@sea.gmane.org>
-	<20051006104514.4ee8cda3@dxpl.pdx.osdl.net>
+From: Max Kellermann <max@duempel.org>
+Subject: Re: [PATCH nfsim] tcpsession: implement the RESET command
+Date: Mon, 10 Oct 2005 15:14:37 +0200
+Message-ID: <20051010131437.GA25965@roonstrasse.net>
+References: <20050922082404.GC21617@roonstrasse.net>
+	<1128707631.5611.0.camel@localhost.localdomain>
+	<20051008090622.GA9337@roonstrasse.net>
+	<1128940663.5611.76.camel@localhost.localdomain>
+	<20051010115146.GB25457@roonstrasse.net>
+	<1128949410.5611.105.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20051006104514.4ee8cda3@dxpl.pdx.osdl.net>
+To: Rusty Russell <rusty@rustcorp.com.au>
+Content-Disposition: inline
+In-Reply-To: <1128949410.5611.105.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,36 +26,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Stephen Hemminger wrote:
-> On Tue, 04 Oct 2005 12:01:34 +0100
-> Amin Azez <azez@ufomechanic.net> wrote:
+On 2005/10/10 15:03, Rusty Russell <rusty@rustcorp.com.au> wrote:
+> > That assumes that nfsim provides the extensions, or that extensions
+> > have to be installed in one of those paths.  IMHO, the extensions may
+> > be shipped along with a test.  e.g. my h323 tests ship their own
+> > tools.  To make testing easy, it should be possible to use extensions
+> > without installing them (i.e. without root access?).
 > 
-> 
->>In order to aid the collection of up-to-date netfilter and kernel
->>networking documentation I've installed mediawiki (that runs wikipedia) on:
->>  http://netfilter.atreeagain.org/
->>
->>As folk feel inclined, or learn something new, or want to explain
->>something to show they understand it, please consider adding to this
->>documentation.  This collection is not something that is easy to put in
->>the excellent new blogs Harald has set up.
->>
->>Within 6 months I hope there will be a worthwhile collection.
->>
->>Sam
->>
-> 
-> 
-> If you want, you can move it to here (or setup a link)
-> 	http://linux-net.osd.org
-> 
+> I assumed you would want to merge your tests into nfsim-testsuite...
 
-Thanks for the offer, the link you provide should be, I think
-linux-net.osdl.org
+I do want that.  But there is a reason nfsim-testsuite is separate
+from nfsim itself, and the extensions (like my generate-h225-packet
+tool) are co-developed with the tests using it, not with nfsim itself.
 
-Yes, I see this is the correct place for such information.
-If you can satisfy me regarding the copyright/licensing of that
-documantation collection, I will transfer the few pages that exist and
-prefer osdl instead.
+> OK, how about this:
+> (1) Use $NFSIM_EXTPATH if set, else
+> (1) Use ".:tools/extensions:$PATH" if we're in the nfsim dir, else
+> (2) Use ".:/usr/lib/nfsim/extensions:$PATH" if we're not.
 
-Sam
+Why don't you add all of them to $PATH (if set and present)?  I
+believe the following order would be best:
+
+ 1. "." (or better `dirname $testfile.sim`)
+ 2. $NFSIM_EXTPATH
+ 3. $srcdir/tools/extensions
+ 4. $pkglibdir
+
+It is perfectly possible for a test suite to use extensions included
+in nfsim _and_ extensions the test suite itself shipped.
+
+This also makes the code simpler.
+
+Max
