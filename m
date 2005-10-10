@@ -1,17 +1,15 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH] don't use __be16 in files used by userspace
-Date: Sun, 09 Oct 2005 21:47:11 -0700 (PDT)
-Message-ID: <20051009.214711.108291006.davem@davemloft.net>
-References: <20051007103105.GF4719@rama>
-	<20051007.132456.19624093.davem@davemloft.net>
-	<20051007221500.GK4450@rama.customers.eurospot.com>
+Subject: Re: [PATCH 3/5] NETFILTER ctnetlink: add one nesting level for TCP
+Date: Sun, 09 Oct 2005 21:47:56 -0700 (PDT)
+Message-ID: <20051009.214756.102990378.davem@davemloft.net>
+References: <20051007222456.GN4450@rama.customers.eurospot.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: laforge@netfilter.org
-In-Reply-To: <20051007221500.GK4450@rama.customers.eurospot.com>
+In-Reply-To: <20051007222456.GN4450@rama.customers.eurospot.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,15 +22,24 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Harald Welte <laforge@netfilter.org>
-Date: Sat, 8 Oct 2005 00:15:00 +0200
+Date: Sat, 8 Oct 2005 00:24:56 +0200
 
-> [NETFILTER] Add missing include to ip_conntrack_tuple.h
+> [NETFILTER] ctnetlink: add one nesting level for TCP state
 > 
-> Without this #include, __be16 is not defined and userspace programs
-> will break.
+> To keep consistency, the TCP private protocol information is nested
+> attributes under CTA_PROTOINFO_TCP. This way the sequence of attributes to
+> access the TCP state information looks like here below:
 > 
+> CTA_PROTOINFO
+> CTA_PROTOINFO_TCP
+> CTA_PROTOINFO_TCP_STATE
+> 
+> instead of:
+> 
+> CTA_PROTOINFO
+> CTA_PROTOINFO_TCP_STATE
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > Signed-off-by: Harald Welte <laforge@netfilter.org>
 
-Now that looks a lot better, applied.
-
-Thanks!
+Applied for 2.6.14, thanks.
