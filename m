@@ -1,16 +1,15 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH] fix iptables on systems with discontiguous processor ids
-Date: Mon, 10 Oct 2005 15:06:23 -0700 (PDT)
-Message-ID: <20051010.150623.94217913.davem@davemloft.net>
-References: <20051010.141518.60492651.davem@davemloft.net>
-	<434AE017.2020905@trash.net> <434AE28B.2070607@trash.net>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: x_tables vs. nf-hipac
+Date: Mon, 10 Oct 2005 22:31:37 +0000
+Message-ID: <1128983497.3377.4.camel@localhost.localdomain>
+References: <434A4B11.4030103@gmx.net>  <20051010163442.GC5627@rama>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <434AE28B.2070607@trash.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20051010163442.GC5627@rama>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,24 +21,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 10 Oct 2005 23:52:11 +0200
-
-> I don't know which other architectures are affected by this, but for
-> the case Dave mentioned some function
+Op ma, 10-10-2005 te 18:34 +0200, schreef Harald Welte:
+> On Mon, Oct 10, 2005 at 01:05:53PM +0200, Carl-Daniel Hailfinger wrote:
+> > Hi Harald,
+> > 
+> > you said that there is already some code for x_tables (is that
+> > pkttables, and if so, doesn't the new name collide with a spreadsheet
+> > layout program?). 
 > 
-> static inline int cpu_physical_id(void)
-> {
-> 	return smp_processor_id() >> 1;
-> }
-> 
-> should also solve the problem. Even if not as easily implementable
-> as this. it looks like a logical complement to num_possible_cpus().
+> No, x_tables is not pkttables.  However, x_tables matches/targets will
+> be incrementally changed in order to be used from
+> {arp,ip,ip6,pkt}_tables _and_ nf-hipac at the same time.
 
-Stop papering around this issue, please. :-)
+Nice to see this move forward. If you want to put the arptables
+userspace tool into the netfilter tree, then be my guest.
+I guess we'll have to consider talking about merging ebtables into this
+scheme some day...
 
-The cpu ID space is discontiguous, period.
-
-If you need to allocate per-cpu data there are very straightforward
-ways to do this.  Many other subsystems do this in an error free
-manner and I think netfilter iptables can do it too. :)
+cheers,
+Bart
