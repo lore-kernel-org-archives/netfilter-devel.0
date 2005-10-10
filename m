@@ -1,15 +1,18 @@
 From: Patrick Schaaf <bof@bof.de>
-Subject: Re: owner based routing
-Date: Mon, 10 Oct 2005 07:05:05 +0200
-Message-ID: <20051010050505.GD9644@oknodo.bof.de>
-References: <226310304.20051010005011@gmail.com>
+Subject: Re: [PATCH] use 32bit counters for connection-based accounting
+Date: Mon, 10 Oct 2005 07:16:33 +0200
+Message-ID: <20051010051633.GE9644@oknodo.bof.de>
+References: <20051007105451.GE4719@rama>
+	<20051007.132619.129111295.davem@davemloft.net>
+	<20051007220435.GJ4450@rama.customers.eurospot.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Ignatich <ignatich@gmail.com>
+To: Harald Welte <laforge@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>, kaber@trash.net,
+	netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <226310304.20051010005011@gmail.com>
+In-Reply-To: <20051007220435.GJ4450@rama.customers.eurospot.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,41 +24,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Is it possible to configure owner-based routing via some other way?
+> > > [NETFILTER] Use only 32bit counters for CONNTRACK_ACCT
+[...]
+Dave:
+> > I would like to actually suggest you keep the 64-bit counters.
 
-It is possible to solve what you described without any reference
-to who owns which processes on the router...
+For what it's worth, I second this suggestion. With 64-bit counters
+in kernel/conntrack proper, as-yet-uninvented new matches and targets
+can do fancy things to practically all real world data streams,
+whatever fancy things they want to invent - the base is there.
+When somebody gets an idea of a useful new match or target that
+would need 64-bit per-conntrack counters, and he sees that he'll
+have to implement kernel->user->kernel roundabout communication
+just to get at the full counters, the idea will DIE IMMEDIATELY.
 
-You want to learn about policy routing. Read all of www.lartc.org.
-When you still have problems, ask a _users_ mailing list or newsgroup.
-
-Roughly, you want to formulate a solution to your task which is based on
-looking at IP addresses, and network interface names, only.
-
-The best you can do with owner, and the overall concept of a
-process-identity-based firewall functionality, is to forget about it.
-
-> If  not then how much work required to make ipt_owner work in PREROUTING
-> table?
-
-Very much work. At PREROUTING, we don't even know whether the packet
-will be for the local machine or another one behind the router...
-
-> Does netfilter team plan to add such functionality?
-
-As far as I know, no. To the contrary: functionality is removed.
-
-> I'm no
-> linux kernel programmer but experienced with C so I might be able to
-> help if that's not very complicated.
-
-It is very complicated.
-
-When processing packets in the kernel, especially for receive, the concept
-of a user level process does not make much sense, if you look at it in
-detail. At the moment the packet is received (and netfiltered), there
-isn't even a guarantee that the process that will ultimately handle it,
-already exists!
+BTW, how wide are the regular iptables per-rule byte/packet counters?
+Do we still have the 64-byte-per-each-and-every-rule wasted (and
+always touched / brought in cache) for input/output network interface
+name/mask, even when no network interface matching is done at all?
 
 best regards
-  Patrick
+  Partick
