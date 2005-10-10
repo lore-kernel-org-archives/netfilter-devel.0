@@ -1,16 +1,16 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: num_possible_cpus() usage in iptables
-Date: Mon, 10 Oct 2005 17:27:28 -0700 (PDT)
-Message-ID: <20051010.172728.72244069.davem@davemloft.net>
-References: <20051009.204734.30319051.davem@davemloft.net>
-	<434A08DF.5090402@cosmosbay.com>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [PATCH] Make hashsize ip_conntrack parameter writable
+Date: Tue, 11 Oct 2005 07:22:48 +1000
+Message-ID: <1128979368.8218.8.camel@localhost.localdomain>
+References: <1128536584.9868.1.camel@localhost.localdomain>
+	<200510071227.j97CRrgx027931@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org, kaber@trash.net
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: dada1@cosmosbay.com
-In-Reply-To: <434A08DF.5090402@cosmosbay.com>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200510071227.j97CRrgx027931@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,23 +22,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Eric Dumazet <dada1@cosmosbay.com>
-Date: Mon, 10 Oct 2005 08:23:27 +0200
-
-> My previous patch ([PATCH 3/3] netfilter : 3 patches to boost ip_tables 
-> performance) addressed this problem.
+On Fri, 2005-10-07 at 21:27 +0900, Yasuyuki KOZAKAI wrote:
+> From: Rusty Russell <rusty@rustcorp.com.au>
+> Date: Thu, 06 Oct 2005 04:23:03 +1000
 > 
-> http://marc.theaimsgroup.com/?l=linux-netdev&m=112733887410796&w=2
+> > +static u_int32_t
+> > +hash_conntrack(const struct ip_conntrack_tuple *tuple)
+> > +{
+> > +	return __hash_conntrack(tuple, ip_conntrack_htable_size);
+> >  }
+> 
+> Why don't we use inline ?
 
-Long term this is the kind of thing we should be doing.
+Just checking you were reading.  Well done, Yasuyuki!
 
-But for 2.6.14, I would like to suggest that we revert back
-to using NR_CPUS as that is the simplest fix for this bug.
+We should use "u32", too, not those types I made the mistake of using
+when I was young and foolish.
 
-I even spent part of this afternoon investigating other kinds of
-fixes, and all of them have possible non-trivial regressions.
-
-Yes, using NR_CPUS wastes a lot of ram, but it fixes this
-bug in a straightforward and easy to verify fashion.
-
-Comments?
+Rusty.
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
