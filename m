@@ -1,20 +1,14 @@
-From: Max Kellermann <max@duempel.org>
-Subject: Re: [PATCH nfsim] tcpsession: implement the RESET command
-Date: Mon, 10 Oct 2005 15:14:37 +0200
-Message-ID: <20051010131437.GA25965@roonstrasse.net>
-References: <20050922082404.GC21617@roonstrasse.net>
-	<1128707631.5611.0.camel@localhost.localdomain>
-	<20051008090622.GA9337@roonstrasse.net>
-	<1128940663.5611.76.camel@localhost.localdomain>
-	<20051010115146.GB25457@roonstrasse.net>
-	<1128949410.5611.105.camel@localhost.localdomain>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: x_tables vs. nf-hipac
+Date: Mon, 10 Oct 2005 14:47:59 +0100
+Message-ID: <434A710F.2030303@ufomechanic.net>
+References: <434A4B11.4030103@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-Content-Disposition: inline
-In-Reply-To: <1128949410.5611.105.camel@localhost.localdomain>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <434A4B11.4030103@gmx.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,35 +20,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2005/10/10 15:03, Rusty Russell <rusty@rustcorp.com.au> wrote:
-> > That assumes that nfsim provides the extensions, or that extensions
-> > have to be installed in one of those paths.  IMHO, the extensions may
-> > be shipped along with a test.  e.g. my h323 tests ship their own
-> > tools.  To make testing easy, it should be possible to use extensions
-> > without installing them (i.e. without root access?).
+Carl-Daniel Hailfinger wrote:
+> Hi Harald,
 > 
-> I assumed you would want to merge your tests into nfsim-testsuite...
+> you said that there is already some code for x_tables (is that
+> pkttables, and if so, doesn't the new name collide with a spreadsheet
+> layout program?). How does that relate to nf-hipac? Are they orthogonal
+> to each other? Will both be merged into 2.6.$BIGNUM ? Which one is going
+> to get in earlier?
 
-I do want that.  But there is a reason nfsim-testsuite is separate
-from nfsim itself, and the extensions (like my generate-h225-packet
-tool) are co-developed with the tests using it, not with nfsim itself.
+I was also wondering this.
+The rule structure and rapid update capability of nf-hipac looks very
+attractive, it seems desirable to merge them in some way.
 
-> OK, how about this:
-> (1) Use $NFSIM_EXTPATH if set, else
-> (1) Use ".:tools/extensions:$PATH" if we're in the nfsim dir, else
-> (2) Use ".:/usr/lib/nfsim/extensions:$PATH" if we're not.
+I while back someone elses posted a linked-list version of iptables that
+also didn't require sending the whole rule structure to the kernel each
+time, but nf-hipac seems to have additional optimisation in reducing the
+number of repeated identical tests.
 
-Why don't you add all of them to $PATH (if set and present)?  I
-believe the following order would be best:
-
- 1. "." (or better `dirname $testfile.sim`)
- 2. $NFSIM_EXTPATH
- 3. $srcdir/tools/extensions
- 4. $pkglibdir
-
-It is perfectly possible for a test suite to use extensions included
-in nfsim _and_ extensions the test suite itself shipped.
-
-This also makes the code simpler.
-
-Max
+Sam
