@@ -1,17 +1,16 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: num_possible_cpus() usage in iptables
-Date: Tue, 11 Oct 2005 13:00:23 -0700 (PDT)
-Message-ID: <20051011.130023.81783359.davem@davemloft.net>
-References: <434A08DF.5090402@cosmosbay.com>
-	<20051010.172728.72244069.davem@davemloft.net>
-	<20051011143554.GD4756@rama.de.gnumonks.org>
+From: =?ISO-8859-1?Q?S=E9bastien_Bernard?= <seb@frankengul.org>
+Subject: Re: [PATCH] fix iptables on systems with discontiguous processor ids
+Date: Tue, 11 Oct 2005 22:59:20 +0200
+Message-ID: <434C27A8.5080403@frankengul.org>
+References: <20051010164141.GG5627@rama> <434AE1A0.5030400@frankengul.org>
+	<20051011142347.GB4756@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net, dada1@cosmosbay.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20051011143554.GD4756@rama.de.gnumonks.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20051011142347.GB4756@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,17 +22,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Tue, 11 Oct 2005 16:35:54 +0200
+Harald Welte a =E9crit :
 
-> Mh.  The problem is that I know a number of people who were running out
-> of RAM with moderate ruleset sizes (in the tens of thousands rules), and
-> the sole reason for switching from 2.4.x to 2.6.x  was the NR_CPU to cpu
-> number change.
+>On Mon, Oct 10, 2005 at 11:48:16PM +0200, S=E9bastien Bernard wrote:
+> =20
+>
+>>>[snip]
+>>>     =20
+>>>
+>>I tested this patch on my machine.
+>>It ooops instantly in get_counters() from ip_tables.c.
+>>   =20
+>>
+>
+>Mh, can you capture the oops and send it?  I'm travelling and don't have
+>access to any SMP box, so it's unlikely I will be able to resolve this
+>alone.
+> =20
+>
+What information do you need exactly ?
+The oops can be tiresome to write down.
+Is the stackdump enough or do you need register info ?
 
-I totally agree, using NR_CPUS has a lot of very bad side effects.
-Although the simplest, it is an undesirable version of the fix due
-to the bloat.
-
-I'm going to put some brain power into this today since it's the
-only big issue on my radar wrt. networking in 2.6.14
+    Seb
