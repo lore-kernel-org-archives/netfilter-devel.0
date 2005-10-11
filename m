@@ -1,16 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] fix iptables on systems with discontiguous processor ids
-Date: Tue, 11 Oct 2005 16:23:47 +0200
-Message-ID: <20051011142347.GB4756@rama.de.gnumonks.org>
-References: <20051010164141.GG5627@rama> <434AE1A0.5030400@frankengul.org>
+Subject: Re: [PATCH] Make hashsize ip_conntrack parameter writable
+Date: Tue, 11 Oct 2005 16:41:57 +0200
+Message-ID: <20051011144157.GF4756@rama.de.gnumonks.org>
+References: <1128536584.9868.1.camel@localhost.localdomain>
+	<20051007034224.GB5953@rama> <434B8202.9020703@ufomechanic.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qlTNgmc+xy1dBmNv"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="0rSojgWGcpz+ezC3"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?iso-8859-1?Q?S=E9bastien?= Bernard <seb@frankengul.org>
+To: Amin Azez <azez@ufomechanic.net>
 Content-Disposition: inline
-In-Reply-To: <434AE1A0.5030400@frankengul.org>
+In-Reply-To: <434B8202.9020703@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,29 +24,37 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---qlTNgmc+xy1dBmNv
-Content-Type: text/plain; charset=iso-8859-1
+--0rSojgWGcpz+ezC3
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 10, 2005 at 11:48:16PM +0200, S=E9bastien Bernard wrote:
-> >Signed-off-by: Harald Welte <laforge@netfilter.org>
-> >---
-> >commit e759eaa9e9e92330c5fcfd760d767d4f39375a03
-> >tree 63b96f7df57f51dc7e284969c3a08b9264cc2c5f
-> >parent 1ab8dccdbf16c09f8da124fc4c82024de24dfae2
-> >author Harald Welte <laforge@netfilter.org> Mon, 10 Oct 2005 18:29:24 +0=
-200
-> >committer Harald Welte <laforge@netfilter.org> Mon, 10 Oct 2005 18:29:24=
- +0200
-> >[snip]
-> >=20
-> I tested this patch on my machine.
-> It ooops instantly in get_counters() from ip_tables.c.
+On Tue, Oct 11, 2005 at 10:12:34AM +0100, Amin Azez wrote:
+> Harald Welte wrote:
+> > JFYI, here's an incremental (yet untested) patch that adds support to
+> > reinitialize the random seed when reisizing
+>=20
+> Just for my own education, why is the seed random?
 
-Mh, can you capture the oops and send it?  I'm travelling and don't have
-access to any SMP box, so it's unlikely I will be able to resolve this
-alone.
+to prevent any DoS attack on our hash function, by some attacker knowing
+how to make lots of connections hash to the same bucket.
+
+> Doe this mean that we randonly get a "bad" seed?
+
+no, just when we receive the first packet, there can be relatively
+little entropy in the random number generator.  So cryptographically
+speaking, it makes sense to use a new seed when the system is already
+running for some time.
+
+> and random things in the kernel smells like hard to reproduce errors.
+
+it's fairly common practise to use some random value in a hash
+function to not expose the hash table to an attack on it.  It's what all
+over the networking code is used for many hash tables.
+
+I don't see how this ever could produce an error.  The hash function is
+still deterministic, since the random value is static as long as the
+hash table exists.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -57,16 +66,16 @@ alone.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---qlTNgmc+xy1dBmNv
+--0rSojgWGcpz+ezC3
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDS8rzXaXGVTD0i/8RAiGwAJ9XHiXjHJDcxMbrfLHyzGEg4KtbgwCeOGZE
-d+owJ1bAGAX1Kk2Za6J5f1o=
-=s1+D
+iD8DBQFDS881XaXGVTD0i/8RAnAPAKCvrp5D+Gmv9YZivhZxIcU/2RZekgCfXyyX
+9tDaV+lDz8f8kMkYbW3ug20=
+=6cwG
 -----END PGP SIGNATURE-----
 
---qlTNgmc+xy1dBmNv--
+--0rSojgWGcpz+ezC3--
