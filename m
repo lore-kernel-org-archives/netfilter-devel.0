@@ -1,19 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Make hashsize ip_conntrack parameter writable
-Date: Tue, 11 Oct 2005 16:38:13 +0200
-Message-ID: <20051011143813.GE4756@rama.de.gnumonks.org>
-References: <1128536584.9868.1.camel@localhost.localdomain>
-	<200510071227.j97CRrgx027931@toshiba.co.jp>
-	<1128979368.8218.8.camel@localhost.localdomain>
+Subject: Re: x_tables vs. nf-hipac
+Date: Tue, 11 Oct 2005 16:33:14 +0200
+Message-ID: <20051011143314.GC4756@rama.de.gnumonks.org>
+References: <434A4B11.4030103@gmx.net> <20051010163442.GC5627@rama>
+	<1128983497.3377.4.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Qz2CZ664xQdCRdPu"
-Cc: netfilter-devel@lists.netfilter.org,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+	protocol="application/pgp-signature"; boundary="Clx92ZfkiYIKRjnr"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
+To: Bart De Schuymer <bdschuym@pandora.be>
 Content-Disposition: inline
-In-Reply-To: <1128979368.8218.8.camel@localhost.localdomain>
+In-Reply-To: <1128983497.3377.4.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,34 +24,65 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Qz2CZ664xQdCRdPu
+--Clx92ZfkiYIKRjnr
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 11, 2005 at 07:22:48AM +1000, Rusty Russell wrote:
-> On Fri, 2005-10-07 at 21:27 +0900, Yasuyuki KOZAKAI wrote:
-> > From: Rusty Russell <rusty@rustcorp.com.au>
-> > Date: Thu, 06 Oct 2005 04:23:03 +1000
+On Mon, Oct 10, 2005 at 10:31:37PM +0000, Bart De Schuymer wrote:
+> Op ma, 10-10-2005 te 18:34 +0200, schreef Harald Welte:
+> > On Mon, Oct 10, 2005 at 01:05:53PM +0200, Carl-Daniel Hailfinger wrote:
+> > > Hi Harald,
+> > >=20
+> > > you said that there is already some code for x_tables (is that
+> > > pkttables, and if so, doesn't the new name collide with a spreadsheet
+> > > layout program?).=20
 > >=20
-> > > +static u_int32_t
-> > > +hash_conntrack(const struct ip_conntrack_tuple *tuple)
-> > > +{
-> > > +	return __hash_conntrack(tuple, ip_conntrack_htable_size);
-> > >  }
-> >=20
-> > Why don't we use inline ?
+> > No, x_tables is not pkttables.  However, x_tables matches/targets will
+> > be incrementally changed in order to be used from
+> > {arp,ip,ip6,pkt}_tables _and_ nf-hipac at the same time.
 >=20
-> Just checking you were reading.  Well done, Yasuyuki!
+> Nice to see this move forward. If you want to put the arptables
+> userspace tool into the netfilter tree, then be my guest.
 
-I also noticed the missing inline when merging your patch, but I thought
-maybe gcc will do it automatically.
+At the moment, I'm still busy in consolidation of kernelspace.  I'm not
+sure how easy this will get for the userspace side.  Once I've done the
+userspace counterpart (consolidation of libipt_FOO / libipXt_FOO), I'll
+look at the arptables userspace code and see if we can integrate that
+somehow.
 
-> We should use "u32", too, not those types I made the mistake of using
-> when I was young and foolish.
+One rally sad thing is that arp_tables was deprived of matches, so we
+only have targets.  This means we cannot use any of the x_tables matches=20
+(such as limit, mark, ...).
 
-I'm still young and foolish, so all my code uses the u_intXX_t... and I
-ask myself why we shouldn't use the posix types?  I'm still puzzled...
+> I guess we'll have to consider talking about merging ebtables into this
+> scheme some day...
+
+ebtables and x_tables has quite some 'impedance mismatch', mainly
+because of lots of small subtle differences:
+
+- FUNCTION_NAME_LENGTH is 32, not 30 (thus ebt_match/ebt_target have a
+  different structure layout)
+- different count of arguments for match(), target() and checkfn().
+
+If you would be willing to harmonize here (I think this only affects
+kernel space data structures that are not shared with userspace, so no
+compatibility issues), then eb_tables could directly use x_tables
+matches - if that is desired.
+
+
+However, ebtables matches quite nicely with pkt_tables (some people have
+suggested renaming it into nf_tables).  This is mainly because of the
+"watchers".  A pkt_tables rule has=20
+- any number of matches
+- any number of targets (that have a "void" function and don't return
+  anything)
+- one user-specified verdict.
+
+so all watchers can be implemented as targets.  So it all boils down on
+how much time I can find to complete pkt_tables. Maybe at some point
+early 2006, after we've survived the nf_conntrack merge, and added
+proper support for userspace conntrack helpers.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -65,16 +94,16 @@ ask myself why we shouldn't use the posix types?  I'm still puzzled...
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Qz2CZ664xQdCRdPu
+--Clx92ZfkiYIKRjnr
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDS85VXaXGVTD0i/8RAlvzAJ0ZEK8T83jhuvQ9U+W6rpQGL00uOgCfbYN8
-vth/dROcR1X990876FZ1gKg=
-=An7Z
+iD8DBQFDS80qXaXGVTD0i/8RAn5OAKCThKfolvqkebMIfHHK/F34cAKLHQCeIBjV
+nJK3Sv27mo5/Zo6bYOB9hSY=
+=ZWMo
 -----END PGP SIGNATURE-----
 
---Qz2CZ664xQdCRdPu--
+--Clx92ZfkiYIKRjnr--
