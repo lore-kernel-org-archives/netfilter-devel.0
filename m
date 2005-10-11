@@ -1,18 +1,18 @@
 From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [PATCH] fix iptables on systems with discontiguous processor ids
-Date: Tue, 11 Oct 2005 17:15:01 +0000
-Message-ID: <1129050901.3378.17.camel@localhost.localdomain>
-References: <20051010164141.GG5627@rama>
-	<20051010.141518.60492651.davem@davemloft.net>
-	<20051011104446.GJ4290@rama>
+Subject: Re: x_tables vs. nf-hipac
+Date: Tue, 11 Oct 2005 17:18:49 +0000
+Message-ID: <1129051129.3378.22.camel@localhost.localdomain>
+References: <434A4B11.4030103@gmx.net>  <20051010163442.GC5627@rama>
+	<1128983497.3377.4.camel@localhost.localdomain>
+	<Pine.LNX.4.61.0510111426270.2051@filer.marasystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	"David S. Miller" <davem@davemloft.net>
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051011104446.GJ4290@rama>
+To: Henrik Nordstrom <hno@marasystems.com>
+In-Reply-To: <Pine.LNX.4.61.0510111426270.2051@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,27 +24,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Op di, 11-10-2005 te 12:44 +0200, schreef Harald Welte:
-> On Mon, Oct 10, 2005 at 02:15:18PM -0700, David S. Miller wrote:
-> > Ebtables needs it too.  "git grep num_possible_cpus" shows all
-> > of the users in the whole tree, %80 of which are the netfilter
-> > cases we're fixing here :-)
+Op di, 11-10-2005 te 14:27 +0200, schreef Henrik Nordstrom:
+> On Mon, 10 Oct 2005, Bart De Schuymer wrote:
 > 
-> mh. I'm not very familiar with the ebtables specific changes, and
-> apparently it differs quite a bit in counter handling.
-
-Counters are allocated separately from the rules so that rules don't
-need to be duplicated for each cpu. But the fix for ebtables should be
-very similar to the one for iptables.
-
-> Anyway, I've tried to come up with a patch that also includes ebtables.
+> > Nice to see this move forward. If you want to put the arptables
+> > userspace tool into the netfilter tree
 > 
-> Bart: Could you please comment on it? If you have missed the previous
-> thread: some systems have smp processor id's "0 2" but no "1", e.g.
-> num_possible_cpus() is 2 (and we allocate two rulesets), but then we try
-> to index it with '2', e.g. the non-existing 3rd copy.
+> How different is the arptables userspace tool from the iptables userspace 
+> tool?
 
-I will once I can see it :)
+It doesn't differ much, most code was copied without changes from
+iptables. This was done a lot of months ago, so all changes to iptables
+since then are not reflected in arptables. One thing though is that it
+needs to distinguish between 2.4 and 2.6 kernels (the latter having the
+arptables FORWARD chain).
 
 cheers,
 Bart
