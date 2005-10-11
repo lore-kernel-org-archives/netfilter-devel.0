@@ -1,15 +1,15 @@
 From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [PATCH] fix iptables on systems with discontiguous processor ids
-Date: Mon, 10 Oct 2005 23:46:19 +0200
-Message-ID: <20051010214619.GJ5627@rama>
+Date: Tue, 11 Oct 2005 12:44:47 +0200
+Message-ID: <20051011104446.GJ4290@rama>
 References: <20051010164141.GG5627@rama>
 	<20051010.141518.60492651.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XbHSybK3LHOYQtWI"
+	protocol="application/pgp-signature"; boundary="X+nYw8KZ/oNxZ8JS"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: "David S. Miller" <davem@davemloft.net>, bdschuym@pandora.be
 Content-Disposition: inline
 In-Reply-To: <20051010.141518.60492651.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -24,7 +24,7 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---XbHSybK3LHOYQtWI
+--X+nYw8KZ/oNxZ8JS
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
@@ -40,42 +40,25 @@ s.
 > Ebtables needs it too.  "git grep num_possible_cpus" shows all
 > of the users in the whole tree, %80 of which are the netfilter
 > cases we're fixing here :-)
->=20
-> Why don't any of the existing interfaces on cpumasks and numbers
-> provide what you need here? =20
 
-I don't know why they are incomplete ;)  My guess is that they're mostly
-targeted to per_cpu users.  Basically to solve the 'iptables' problem,
-there are two ways:
+mh. I'm not very familiar with the ebtables specific changes, and
+apparently it differs quite a bit in counter handling.
 
-1) allocate one copy of the ruleset per cpu that actually exists,
-   independent of their smp_processor_id().  This means that for every
-   packet traversing the ruleset, we need to resolve the logical "cpu
-   number" from the physical smp_processor_id().  Since there is no
-   apparent mapping between them, we'd need to iterate over the=20
-   cpu_possible bitmask and find "how many bits are set between 0 and
-   smp_processor_id()".  I'm not sure how expensive such calculations
-   are, but I'd rather not additional code to the per-packet path.
-   Advantage of this solution is that there is only one copy of the
-   ruleset per physical cpu.
+Anyway, I've tried to come up with a patch that also includes ebtables.
 
-2) allocate one copy of the ruleset for every "possible
-   smp_processor_id()", which is what the patch that I sent in my last
-   email implements.
+Bart: Could you please comment on it? If you have missed the previous
+thread: some systems have smp processor id's "0 2" but no "1", e.g.
+num_possible_cpus() is 2 (and we allocate two rulesets), but then we try
+to index it with '2', e.g. the non-existing 3rd copy.
 
-> Perhaps this routine you are adding (highest_processor_id()) belongs
-> in linux/cpumask.h?  Perhaps named something like
-> "highest_possible_processor_id()" to be consistent with the
-> "num_possible_cpus()" naming?
+Unfortunately I don't have a SMP box during travel, so I can't test
+whether it at least still works on 'normal' smp boxes.  So all I can say
+is that it looks right, and it compiles with CONFIG_SMP.
 
-I thought it was too specific for the generic code, but since we'll need
-it from all the foobar_tables, it's probably best in cpumask.h
+Please, could anybody test this on their SMP boxes ASAP?   I won't be
+having access to a SMP machine for testing until 2005-10-18, and
+presumably we don't want to delay this fix.
 
-> Otherwise the patch looks fine, thanks for following up on this
-> Harald.  I'll push the rest of the netfilter fixes once you cook
-> up the final patch for this, thanks.
-
-ok.
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -86,16 +69,16 @@ ok.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---XbHSybK3LHOYQtWI
+--X+nYw8KZ/oNxZ8JS
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDSuErXaXGVTD0i/8RAlgJAJ4oLwVRA7wd1wpS2InSMttkKfBPbwCbBiV0
-OsGuy/JJimV0bb7ys2hXc2A=
-=bjGY
+iD8DBQFDS5eeXaXGVTD0i/8RAmMWAJ9QRBXGIfWydb9CnANePDLT1Pq0TwCfS2Zh
+tsnb2jLaYaWKjmeL++zzm+4=
+=o14E
 -----END PGP SIGNATURE-----
 
---XbHSybK3LHOYQtWI--
+--X+nYw8KZ/oNxZ8JS--
