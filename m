@@ -1,17 +1,17 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [PATCH] Make hashsize ip_conntrack parameter writable
-Date: Tue, 11 Oct 2005 16:52:31 +0100
-Message-ID: <434BDFBF.4090802@ufomechanic.net>
-References: <1128536584.9868.1.camel@localhost.localdomain>
-	<20051007034224.GB5953@rama> <434B8202.9020703@ufomechanic.net>
-	<20051011144157.GF4756@rama.de.gnumonks.org>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: x_tables vs. nf-hipac
+Date: Tue, 11 Oct 2005 16:55:46 +0000
+Message-ID: <1129049746.3378.11.camel@localhost.localdomain>
+References: <434A4B11.4030103@gmx.net> <20051010163442.GC5627@rama>
+	<1128983497.3377.4.camel@localhost.localdomain>
+	<20051011143314.GC4756@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051011144157.GF4756@rama.de.gnumonks.org>
+In-Reply-To: <20051011143314.GC4756@rama.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,26 +23,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
+Op di, 11-10-2005 te 16:33 +0200, schreef Harald Welte:
+> At the moment, I'm still busy in consolidation of kernelspace.  I'm not
+> sure how easy this will get for the userspace side.  Once I've done the
+> userspace counterpart (consolidation of libipt_FOO / libipXt_FOO), I'll
+> look at the arptables userspace code and see if we can integrate that
+> somehow.
+> 
+> One rally sad thing is that arp_tables was deprived of matches, so we
+> only have targets.  This means we cannot use any of the x_tables matches 
+> (such as limit, mark, ...).
 
->
->it's fairly common practise to use some random value in a hash
->function to not expose the hash table to an attack on it.  It's what all
->over the networking code is used for many hash tables.
->
->I don't see how this ever could produce an error.  The hash function is
->still deterministic, since the random value is static as long as the
->hash table exists.
->
->  
->
-Yes you are right, this makes sense.
+Yeah, I know. But I don't see why it can't be added, this shouldn't
+break backwards compatibility. The struct arpt_entry has the members
+target_offset and next_offset...
 
-I recall some recent(ish) improvements to the perl hash code to avoid
-memory explosions on deviously crafted input, perhaps the solution was a
-random seed, or perhaps it was better re-hashing which is understandably
-less deterministic and not so suited for networking code.
+> If you would be willing to harmonize here (I think this only affects
+> kernel space data structures that are not shared with userspace, so no
+> compatibility issues), then eb_tables could directly use x_tables
+> matches - if that is desired.
 
-Thanks for the enlightenment
+It's probably not worth it...
 
-Sam
+> However, ebtables matches quite nicely with pkt_tables (some people have
+> suggested renaming it into nf_tables).  This is mainly because of the
+> "watchers".  A pkt_tables rule has 
+> - any number of matches
+> - any number of targets (that have a "void" function and don't return
+>   anything)
+> - one user-specified verdict.
+> 
+> so all watchers can be implemented as targets.  So it all boils down on
+> how much time I can find to complete pkt_tables. Maybe at some point
+> early 2006, after we've survived the nf_conntrack merge, and added
+> proper support for userspace conntrack helpers.
+
+I'll wait for that then. Hopefully it will allow the RETURN verdict for
+target modules. I'll concentrate on finalising the current ebtables
+version in cvs for now.
+
+cheers,
+Bart
