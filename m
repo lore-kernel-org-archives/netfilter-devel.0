@@ -1,17 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: x_tables vs. nf-hipac
-Date: Tue, 11 Oct 2005 16:33:14 +0200
-Message-ID: <20051011143314.GC4756@rama.de.gnumonks.org>
-References: <434A4B11.4030103@gmx.net> <20051010163442.GC5627@rama>
-	<1128983497.3377.4.camel@localhost.localdomain>
+Subject: Re: [PATCH] fix iptables on systems with discontiguous processor ids
+Date: Tue, 11 Oct 2005 16:23:04 +0200
+Message-ID: <20051011142304.GA4756@rama.de.gnumonks.org>
+References: <20051010.141518.60492651.davem@davemloft.net>
+	<434AE017.2020905@trash.net> <434AE28B.2070607@trash.net>
+	<20051010.150623.94217913.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Clx92ZfkiYIKRjnr"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="0F1p//8PRICkK4MW"
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
+To: "David S. Miller" <davem@davemloft.net>
 Content-Disposition: inline
-In-Reply-To: <1128983497.3377.4.camel@localhost.localdomain>
+In-Reply-To: <20051010.150623.94217913.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,65 +25,37 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Clx92ZfkiYIKRjnr
+--0F1p//8PRICkK4MW
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Disposition: attachment
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 10, 2005 at 10:31:37PM +0000, Bart De Schuymer wrote:
-> Op ma, 10-10-2005 te 18:34 +0200, schreef Harald Welte:
-> > On Mon, Oct 10, 2005 at 01:05:53PM +0200, Carl-Daniel Hailfinger wrote:
-> > > Hi Harald,
-> > >=20
-> > > you said that there is already some code for x_tables (is that
-> > > pkttables, and if so, doesn't the new name collide with a spreadsheet
-> > > layout program?).=20
-> >=20
-> > No, x_tables is not pkttables.  However, x_tables matches/targets will
-> > be incrementally changed in order to be used from
-> > {arp,ip,ip6,pkt}_tables _and_ nf-hipac at the same time.
->=20
-> Nice to see this move forward. If you want to put the arptables
-> userspace tool into the netfilter tree, then be my guest.
+On Mon, Oct 10, 2005 at 03:06:23PM -0700, David S. Miller wrote:
 
-At the moment, I'm still busy in consolidation of kernelspace.  I'm not
-sure how easy this will get for the userspace side.  Once I've done the
-userspace counterpart (consolidation of libipt_FOO / libipXt_FOO), I'll
-look at the arptables userspace code and see if we can integrate that
-somehow.
+> If you need to allocate per-cpu data there are very straightforward
+> ways to do this.  Many other subsystems do this in an error free
+> manner and I think netfilter iptables can do it too. :)
 
-One rally sad thing is that arp_tables was deprived of matches, so we
-only have targets.  This means we cannot use any of the x_tables matches=20
-(such as limit, mark, ...).
+Yes, it _could_ if the design was not originally making the assumption
+that the cpuid space is contiuous.  I think it could still be solved
+(without running into any userspace compatibility issues), although not
+in a very straightforward way :(  iptables very much predates any
+per_cpu code...
 
-> I guess we'll have to consider talking about merging ebtables into this
-> scheme some day...
+given that discontiguous processor id's seem to be very rare, I think
+it's fine to waste some memory on those few systems by ussing this
+"allocate array from 0 to max smp processor id" approach.
 
-ebtables and x_tables has quite some 'impedance mismatch', mainly
-because of lots of small subtle differences:
+Any kind of mapping, as David pointed out, is probably difficult and
+prone to cause races, etc.
 
-- FUNCTION_NAME_LENGTH is 32, not 30 (thus ebt_match/ebt_target have a
-  different structure layout)
-- different count of arguments for match(), target() and checkfn().
-
-If you would be willing to harmonize here (I think this only affects
-kernel space data structures that are not shared with userspace, so no
-compatibility issues), then eb_tables could directly use x_tables
-matches - if that is desired.
-
-
-However, ebtables matches quite nicely with pkt_tables (some people have
-suggested renaming it into nf_tables).  This is mainly because of the
-"watchers".  A pkt_tables rule has=20
-- any number of matches
-- any number of targets (that have a "void" function and don't return
-  anything)
-- one user-specified verdict.
-
-so all watchers can be implemented as targets.  So it all boils down on
-how much time I can find to complete pkt_tables. Maybe at some point
-early 2006, after we've survived the nf_conntrack merge, and added
-proper support for userspace conntrack helpers.
+For a better solution, I was thinking about having an array ouf pointers
+for entry points (e.g. instead of using TABLE_OFFSET() to calculate an
+offset, dereference the table address from that pointer array.  The
+array is indexed by smp_processor_id(), and at allocation time we only
+allocate memory (and fill in pointers) for those smp_processor_id()'s
+that actually exist.  This will require some more intrusive changes,
+which I'm not inclined to add for 2.6.14.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -94,16 +67,16 @@ proper support for userspace conntrack helpers.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Clx92ZfkiYIKRjnr
+--0F1p//8PRICkK4MW
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDS80qXaXGVTD0i/8RAn5OAKCThKfolvqkebMIfHHK/F34cAKLHQCeIBjV
-nJK3Sv27mo5/Zo6bYOB9hSY=
-=ZWMo
+iD8DBQFDS8rIXaXGVTD0i/8RAg25AKC0OCXzEChwVrtBoSNV4s3SFp+4SACdEwMv
+M8bRHvA1FvbrkOWa2JgrMrA=
+=KgVA
 -----END PGP SIGNATURE-----
 
---Clx92ZfkiYIKRjnr--
+--0F1p//8PRICkK4MW--
