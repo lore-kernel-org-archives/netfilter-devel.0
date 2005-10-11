@@ -1,18 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] fix iptables on systems with discontiguous processor ids
-Date: Tue, 11 Oct 2005 16:23:04 +0200
-Message-ID: <20051011142304.GA4756@rama.de.gnumonks.org>
-References: <20051010.141518.60492651.davem@davemloft.net>
-	<434AE017.2020905@trash.net> <434AE28B.2070607@trash.net>
-	<20051010.150623.94217913.davem@davemloft.net>
+Subject: Re: num_possible_cpus() usage in iptables
+Date: Tue, 11 Oct 2005 16:35:54 +0200
+Message-ID: <20051011143554.GD4756@rama.de.gnumonks.org>
+References: <20051009.204734.30319051.davem@davemloft.net>
+	<434A08DF.5090402@cosmosbay.com>
+	<20051010.172728.72244069.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0F1p//8PRICkK4MW"
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+	protocol="application/pgp-signature"; boundary="BI5RvnYi6R4T2M87"
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net, dada1@cosmosbay.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
 Content-Disposition: inline
-In-Reply-To: <20051010.150623.94217913.davem@davemloft.net>
+In-Reply-To: <20051010.172728.72244069.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,37 +25,44 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---0F1p//8PRICkK4MW
+--BI5RvnYi6R4T2M87
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 10, 2005 at 03:06:23PM -0700, David S. Miller wrote:
+On Mon, Oct 10, 2005 at 05:27:28PM -0700, David S. Miller wrote:
+> From: Eric Dumazet <dada1@cosmosbay.com>
+> Date: Mon, 10 Oct 2005 08:23:27 +0200
+>=20
+> > My previous patch ([PATCH 3/3] netfilter : 3 patches to boost ip_tables=
+=20
+> > performance) addressed this problem.
+> >=20
+> > http://marc.theaimsgroup.com/?l=3Dlinux-netdev&m=3D112733887410796&w=3D2
+>=20
+> Long term this is the kind of thing we should be doing.
+>=20
+> But for 2.6.14, I would like to suggest that we revert back
+> to using NR_CPUS as that is the simplest fix for this bug.
+>=20
+> I even spent part of this afternoon investigating other kinds of
+> fixes, and all of them have possible non-trivial regressions.
+>=20
+> Yes, using NR_CPUS wastes a lot of ram, but it fixes this
+> bug in a straightforward and easy to verify fashion.
 
-> If you need to allocate per-cpu data there are very straightforward
-> ways to do this.  Many other subsystems do this in an error free
-> manner and I think netfilter iptables can do it too. :)
+Mh.  The problem is that I know a number of people who were running out
+of RAM with moderate ruleset sizes (in the tens of thousands rules), and
+the sole reason for switching from 2.4.x to 2.6.x  was the NR_CPU to cpu
+number change.
 
-Yes, it _could_ if the design was not originally making the assumption
-that the cpuid space is contiuous.  I think it could still be solved
-(without running into any userspace compatibility issues), although not
-in a very straightforward way :(  iptables very much predates any
-per_cpu code...
+However, given that 2.6.14 seems close (and I cannot do testing on SMP
+while on the road), it might be an interim solution.
 
-given that discontiguous processor id's seem to be very rare, I think
-it's fine to waste some memory on those few systems by ussing this
-"allocate array from 0 to max smp processor id" approach.
-
-Any kind of mapping, as David pointed out, is probably difficult and
-prone to cause races, etc.
-
-For a better solution, I was thinking about having an array ouf pointers
-for entry points (e.g. instead of using TABLE_OFFSET() to calculate an
-offset, dereference the table address from that pointer array.  The
-array is indexed by smp_processor_id(), and at allocation time we only
-allocate memory (and fill in pointers) for those smp_processor_id()'s
-that actually exist.  This will require some more intrusive changes,
-which I'm not inclined to add for 2.6.14.
+OTOTH, how many users of systmes with discontiguous processor id space
+are there vs. users with large rulesets on 2cpu machines that now have a
+factor of 16 increased rule size (which can easily be a couple of 100mb
+non-swappable kernel memory).
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -67,16 +74,16 @@ which I'm not inclined to add for 2.6.14.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---0F1p//8PRICkK4MW
+--BI5RvnYi6R4T2M87
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDS8rIXaXGVTD0i/8RAg25AKC0OCXzEChwVrtBoSNV4s3SFp+4SACdEwMv
-M8bRHvA1FvbrkOWa2JgrMrA=
-=KgVA
+iD8DBQFDS83KXaXGVTD0i/8RAmTNAJ0VXzX9R0OvftRnV0i2yvZ2+9fiWgCfbtQ9
+uOYF1ubhTn4R2hkRfR/rtU4=
+=nfC5
 -----END PGP SIGNATURE-----
 
---0F1p//8PRICkK4MW--
+--BI5RvnYi6R4T2M87--
