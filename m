@@ -1,15 +1,21 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [PATCH] Make hashsize ip_conntrack parameter writable
-Date: Tue, 11 Oct 2005 10:12:34 +0100
-Message-ID: <434B8202.9020703@ufomechanic.net>
-References: <1128536584.9868.1.camel@localhost.localdomain>
-	<20051007034224.GB5953@rama>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: [PATCH nfsim] tcpsession: implement the RESET command
+Date: Tue, 11 Oct 2005 20:34:43 +1000
+Message-ID: <1129026884.8218.47.camel@localhost.localdomain>
+References: <20050922082404.GC21617@roonstrasse.net>
+	<1128707631.5611.0.camel@localhost.localdomain>
+	<20051008090622.GA9337@roonstrasse.net>
+	<1128940663.5611.76.camel@localhost.localdomain>
+	<20051010115146.GB25457@roonstrasse.net>
+	<1128949410.5611.105.camel@localhost.localdomain>
+	<20051010131437.GA25965@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+Cc: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20051007034224.GB5953@rama>
+To: Max Kellermann <max@duempel.org>
+In-Reply-To: <20051010131437.GA25965@roonstrasse.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +27,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> JFYI, here's an incremental (yet untested) patch that adds support to
-> reinitialize the random seed when reisizing
+On Mon, 2005-10-10 at 15:14 +0200, Max Kellermann wrote:
+> On 2005/10/10 15:03, Rusty Russell <rusty@rustcorp.com.au> wrote:
+> > > That assumes that nfsim provides the extensions, or that extensions
+> > > have to be installed in one of those paths.  IMHO, the extensions may
+> > > be shipped along with a test.  e.g. my h323 tests ship their own
+> > > tools.  To make testing easy, it should be possible to use extensions
+> > > without installing them (i.e. without root access?).
+> > 
+> > I assumed you would want to merge your tests into nfsim-testsuite...
+> 
+> I do want that.  But there is a reason nfsim-testsuite is separate
+> from nfsim itself, and the extensions (like my generate-h225-packet
+> tool) are co-developed with the tests using it, not with nfsim itself.
 
-Just for my own education, why is the seed random?
-Doe this mean that we randonly get a "bad" seed?
+Sure, but if they are generic enough they belong in nfsim, I think.
+nfsim is more than the basis for the testsuite: it also allows people to
+test their particular configurations.  So I would argue that your tools
+belong in nfsim.
 
-It just reminds me of the story at:
-http://www.karrels.org/Ed/ACM/ec97/prob_5.html
+> > OK, how about this:
+> > (1) Use $NFSIM_EXTPATH if set, else
+> > (1) Use ".:tools/extensions:$PATH" if we're in the nfsim dir, else
+> > (2) Use ".:/usr/lib/nfsim/extensions:$PATH" if we're not.
+> 
+> Why don't you add all of them to $PATH (if set and present)?  I
+> believe the following order would be best:
+> 
+>  1. "." (or better `dirname $testfile.sim`)
+>  2. $NFSIM_EXTPATH
+>  3. $srcdir/tools/extensions
+>  4. $pkglibdir
+> 
+> It is perfectly possible for a test suite to use extensions included
+> in nfsim _and_ extensions the test suite itself shipped.
 
-and random things in the kernel smells like hard to reproduce errors.
-Of course, possibly we don't actually mean "random" here, hence my
-desire for er... enlightenment.
+No.  NFSIM_EXTPATH should override: the user can create the above logic
+if they want.  I certainly don't want to run random programs which
+happen to be in the path.
 
-Sam
+Rusty.
+-- 
+A bad analogy is like a leaky screwdriver -- Richard Braakman
