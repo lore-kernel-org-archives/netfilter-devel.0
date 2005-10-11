@@ -1,17 +1,19 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
-Subject: Re: [PATCH] fix iptables on systems with discontiguous processor ids
-Date: Tue, 11 Oct 2005 16:13:03 +0200
-Message-ID: <434BC86F.3090506@cosmosbay.com>
-References: <20051010164141.GG5627@rama>	<20051010.141518.60492651.davem@davemloft.net>	<20051010214619.GJ5627@rama>
-	<Pine.LNX.4.61.0510111550170.2575@filer.marasystems.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] Make hashsize ip_conntrack parameter writable
+Date: Tue, 11 Oct 2005 16:38:13 +0200
+Message-ID: <20051011143813.GE4756@rama.de.gnumonks.org>
+References: <1128536584.9868.1.camel@localhost.localdomain>
+	<200510071227.j97CRrgx027931@toshiba.co.jp>
+	<1128979368.8218.8.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	"David S. Miller" <davem@davemloft.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Qz2CZ664xQdCRdPu"
+Cc: netfilter-devel@lists.netfilter.org,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0510111550170.2575@filer.marasystems.com>
+To: Rusty Russell <rusty@rustcorp.com.au>
+Content-Disposition: inline
+In-Reply-To: <1128979368.8218.8.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,40 +25,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom a =E9crit :
-> On Mon, 10 Oct 2005, Harald Welte wrote:
->=20
->> I don't know why they are incomplete ;)  My guess is that they're most=
-ly
->> targeted to per_cpu users.  Basically to solve the 'iptables' problem,
->> there are two ways:
->=20
->=20
-> Or three.
->=20
->   3) Keep an NUM_CPUS array of pointers to the per-cpu tables, allocate=
-d=20
-> separately per CPU instead of allocating a single large blob for all=20
-> CPUs. These pointers are updated using RCU, and indexed using the=20
-> physical CPU id.
->=20
 
-Yes, this is what I suggested some weeks ago with a patch.
+--Qz2CZ664xQdCRdPu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-As vmalloc_node() is not yet part of kernel, I even coded a substitute fo=
-r it.
-(per_cpu/kmalloc are not an option since the allocations done in iptables=
- can=20
-be very large)
-
-http://marc.theaimsgroup.com/?l=3Dlinux-netdev&m=3D112733887410796&w=3D2
-
-
-> Cost: One (most likely cached) indirect memory access on each packet,=20
-> and slightly more complex update procedure (num_possible_cpus=20
-> allocations and pointers to update instead of just one).
+On Tue, Oct 11, 2005 at 07:22:48AM +1000, Rusty Russell wrote:
+> On Fri, 2005-10-07 at 21:27 +0900, Yasuyuki KOZAKAI wrote:
+> > From: Rusty Russell <rusty@rustcorp.com.au>
+> > Date: Thu, 06 Oct 2005 04:23:03 +1000
+> >=20
+> > > +static u_int32_t
+> > > +hash_conntrack(const struct ip_conntrack_tuple *tuple)
+> > > +{
+> > > +	return __hash_conntrack(tuple, ip_conntrack_htable_size);
+> > >  }
+> >=20
+> > Why don't we use inline ?
 >=20
-> Regards
-> Henrik
->=20
->=20
+> Just checking you were reading.  Well done, Yasuyuki!
+
+I also noticed the missing inline when merging your patch, but I thought
+maybe gcc will do it automatically.
+
+> We should use "u32", too, not those types I made the mistake of using
+> when I was young and foolish.
+
+I'm still young and foolish, so all my code uses the u_intXX_t... and I
+ask myself why we shouldn't use the posix types?  I'm still puzzled...
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--Qz2CZ664xQdCRdPu
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDS85VXaXGVTD0i/8RAlvzAJ0ZEK8T83jhuvQ9U+W6rpQGL00uOgCfbYN8
+vth/dROcR1X990876FZ1gKg=
+=An7Z
+-----END PGP SIGNATURE-----
+
+--Qz2CZ664xQdCRdPu--
