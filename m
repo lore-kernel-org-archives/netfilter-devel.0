@@ -1,20 +1,21 @@
 From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [PATCH] fix iptables on systems with discontiguous processor ids
-Date: Wed, 12 Oct 2005 09:00:03 +0200
-Message-ID: <20051012070002.GG4237@rama.de.gnumonks.org>
-References: <Pine.LNX.4.61.0510111550170.2575@filer.marasystems.com>
-	<434BC86F.3090506@cosmosbay.com>
-	<20051011174556.GA13415@rama.de.gnumonks.org>
-	<20051011.155733.05623834.davem@davemloft.net>
+Date: Wed, 12 Oct 2005 08:43:46 +0200
+Message-ID: <20051012064345.GE4237@rama.de.gnumonks.org>
+References: <20051010164141.GG5627@rama>
+	<20051010.141518.60492651.davem@davemloft.net>
+	<20051011104446.GJ4290@rama>
+	<20051011175457.GC13415@rama.de.gnumonks.org>
+	<434C3485.2000700@frankengul.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="smOfPzt+Qjm5bNGJ"
-Cc: netfilter-devel@lists.netfilter.org, hno@marasystems.com,
-	dada1@cosmosbay.com
+	protocol="application/pgp-signature"; boundary="qftxBdZWiueWNAVY"
+Cc: netfilter-devel@lists.netfilter.org, bdschuym@pandora.be,
+	"David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: =?iso-8859-1?Q?S=E9bastien?= Bernard <seb@frankengul.org>
 Content-Disposition: inline
-In-Reply-To: <20051011.155733.05623834.davem@davemloft.net>
+In-Reply-To: <434C3485.2000700@frankengul.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,31 +28,17 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---smOfPzt+Qjm5bNGJ
-Content-Type: text/plain; charset=us-ascii
+--qftxBdZWiueWNAVY
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Oct 11, 2005 at 03:57:33PM -0700, David S. Miller wrote:
-> From: Harald Welte <laforge@netfilter.org>
-> Date: Tue, 11 Oct 2005 19:45:56 +0200
->=20
-> > Eric, I still have your patches on hold and hope that vmalloc_node will
-> > eventually appear.  I don't really like the idea of adding code to
-> > iptables that has to go knee-deep into the vm code....  So once
-> > vmalloc_node() is there, I'm open to merging your changes.
->=20
-> After thinking about this a bit, what I'm trying to do now is
-> champion getting the vmalloc_node() patch into 2.6.14 so we
-> can use Eric's approach to fix this bug cleanly.
+On Tue, Oct 11, 2005 at 11:54:13PM +0200, S=E9bastien Bernard wrote:
+> Harald Welte a =E9crit :
+> On sparc64, cpu_possible_map does not exist.
 
-Ok, seems fine withe me.
-
-> If this fails, I'm afraid we might need to go with the NR_CPUS
-> option for now as much as I'd really really hate to do that.
-
-Also fine with me, we should probably document it somewhere for 2.6.14
-and get it finally fixed in 2.6.15
+strange, I guess this should be fixed in the sparc code then.  Maybe I
+was just missing some includes...
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -63,16 +50,16 @@ and get it finally fixed in 2.6.15
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---smOfPzt+Qjm5bNGJ
+--qftxBdZWiueWNAVY
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD4DBQFDTLRyXaXGVTD0i/8RArLWAJwPOQKV+jL/yrT9KzZFV3HUtL+b9wCY9iK3
-/jKnophwvVLAzJzKIhjDYQ==
-=WGac
+iD8DBQFDTLChXaXGVTD0i/8RAgNrAJ9TiHF6ezwabpHQlNTqTdG051NfLwCdGP5U
+0e5EdW2cVQSnV9yHfz9lg7c=
+=wbhJ
 -----END PGP SIGNATURE-----
 
---smOfPzt+Qjm5bNGJ--
+--qftxBdZWiueWNAVY--
