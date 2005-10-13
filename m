@@ -1,14 +1,17 @@
-From: Michael Bellion <mbellion@hipac.org>
-Subject: request for link from netfilter.org to hipac.org
-Date: Thu, 13 Oct 2005 17:55:46 +0200
-Message-ID: <200510131755.47346.mbellion@hipac.org>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH] fix iptables on systems with discontiguous processor ids
+Date: Thu, 13 Oct 2005 12:11:25 -0700 (PDT)
+Message-ID: <20051013.121125.01272781.davem@davemloft.net>
+References: <20051011175457.GC13415@rama.de.gnumonks.org>
+	<20051012.155419.36023860.davem@davemloft.net>
+	<20051013071851.GA2526@frankengul.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, bdschuym@pandora.be
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, webmaster@netfilter.org
-Content-Disposition: inline
+To: seb@frankengul.org
+In-Reply-To: <20051013071851.GA2526@frankengul.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,15 +23,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi
+From: seb@frankengul.org
+Date: Thu, 13 Oct 2005 09:18:51 +0200
 
-You have links to the netfilter related topics like people, planet and also 
-ipset on netfilter.org.
+> Just one little point: Should the cpu_possible_map be an exported symbol
+> for all smp arch or not ?
 
-It would be nice to have a link from netfilter.org to www.hipac.org. 
-Preferably next to ipset and named "nf-hipac".
-
-Could someone please add this? 
-
-Thanks
-	Michael Bellion
+Several, like sparc64, definite it to something else.
+I audited the whole tree to make sure it would work
+on every SMP platform.
