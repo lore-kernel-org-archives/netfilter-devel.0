@@ -1,40 +1,64 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset-2.2.5 released
-Date: Thu, 13 Oct 2005 11:01:56 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0510131056530.5159@blackhole.kfki.hu>
+From: "Vincent" <cs83152@csie.chu.edu.tw>
+Subject: RE: Need a method to reset the ip_conntrack_count
+Date: Thu, 13 Oct 2005 19:59:02 +0800
+Message-ID: <009701c5cfed$80ad3180$aa0ba8c0@l7.com.tw>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain;
+	charset="big5"
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: <netfilter@lists.netfilter.org>, "'Netfilter Development Mailinglist'"
+	<netfilter-devel@lists.netfilter.org>
+In-Reply-To: 
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-ipset-2.2.5 is released:
+Can I use the conntrack tools written by Harald Welte/Pablo Neira Ayuso
+to flush the conntrack entries currently. 
+And then I can reset the ip_conntrack_count which described as the
+following problem.
 
-- garbage collector of iptree type of sets is fixed: flushing
-  sets/removing kernel module could corrupt the timer
-- new ipporthash type added. The new type makes possible to store
-  IP address & port pairs in a hash without using bindings.
-  See the updated manpage.
-- manpage fixes and corrections
+And do we have the individual patch based on kernel 2.6.10 for the teses
+contrack packages?
 
-The new version can be downloaded as usual from http://ipset.netfilter.org
-or from the netfilter svn repository.
+Thanks in advance
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Vincent
+
+> -----Original Message-----
+> From: Vincent [mailto:cs83152@csie.chu.edu.tw] 
+> Sent: Thursday, October 13, 2005 5:32 PM
+> To: 'netfilter@lists.netfilter.org'
+> Subject: Need a method to reset the ip_conntrack_count
+> 
+> 
+> Hello folks,
+> 
+> I have encountered one question. Does it have a way to flush 
+> the conntrack table beside reloading the ip_conntrack module  
+> (because I use the method of building into kernel.
+> 
+> As far as I know, the current conntrack number was recorded 
+> in the /proc/sys/net/ipv4/netfilter/ip_conntrack_count
+> So I want to know whether it exists a method or not to reset 
+> the current counter of conntrack.
+> 
+> My Enviroment:
+> Kenel: 2.6.10
+> Iptables: 1.2.9
+> 
+> Any hint are appreciated.
+> 
+> Vincent
+> 
+> 
