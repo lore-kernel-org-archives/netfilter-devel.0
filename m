@@ -1,17 +1,13 @@
-From: Antonio <anton.ananich@gmail.com>
-Subject: Re: pptp-conntrack-nat & kernel 2.6.11
-Date: Tue, 11 Oct 2005 21:41:41 +0300
-Message-ID: <5a335a3d0510111141hcfe79b2m23823f920eeb630a@mail.gmail.com>
-References: <5a335a3d0510021106l303a056bu@mail.gmail.com>
-	<20051003075148.GQ4168@sunbeam.de.gnumonks.org>
+From: Ilkka =?iso-8859-1?q?Pietik=E4inen?= <ilkka.pietikainen@emicnetworks.com>
+Subject: ip_queue: setting verdict blocks
+Date: Thu, 13 Oct 2005 12:30:19 +0300
+Message-ID: <200510131230.19776.ilkka.pietikainen@emicnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051003075148.GQ4168@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -24,11 +20,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-RGVhciBIYXJhbGQhCgpJJ20gbm90IHNodXJlIGJ1dCBpIHRoaW5rIHRoYXQgaSBmb3VudCBhIGJ1
-ZyBpbiBpcF9uYXRfcHB0cCBpbiBrZXJuZWwKMi42LjE0LXJjMy4KSSB1c2VkIGl0IG9uIHJvdXRl
-ciB3aXRoIE5BVC4gV2hlbiBJIGNvbmZpZ3VyZSB0aGlzIG1vZHVsZSB0byBiZQpidWlsdC1pbiBh
-bmQgcnVuIGRtZXNnIEkgc2VlIHRoYXQgbW9kdWxlIGlwX2Nvbm50cmFja19wcHRwIGlzIGxvYWRl
-ZApidXQgbm90aGluZyBhYm91dCBpcF9uYXRfcHB0cC4gVW5mb3VydGVudGx5IGNvbm5lY3Rpb24g
-d2FzIG5vdCBhYmxlIHRvCmJlIHN0YXJ0ZWQuCgpUaGVuIEkgdHJ5IHRvIGNvbXBpbGUgaXQgYXMg
-Y2VwYXJhdGUgbW9kdWxlcy4gSSBtb2Rwcm9iZWQgYm90aCBtb3VsZXMKYW5kIGhhcHBpbmVzcyBi
-ZWNhbWUgIHRvIG1lIDopCgotLQpCZXN0IFJlZ2FyZHMsCkFudG9uaW8K
+Hello,
+
+We have seen this in two different environments: RedHat ES3 and Debian Sarge 
+(with the default kernels).
+
+We have an application that handles IP packets from ip_queue module (and 
+basically DROP/ACCEPT each packet). Sometimer after the system has been up 
+and running for few hours the application can no longer set the verdict for 
+the packet (it seems that the sendmsg is blocking). Restarting of the 
+application does not help and only way to get system back working is to rmmod 
+all iptables related modules or reboot.
+
+Some questions:
+
+a) What could have caused sendmsg to block?
+b) Is there some way to debug this problem?
+
+Ilkka
