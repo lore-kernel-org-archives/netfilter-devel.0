@@ -1,14 +1,12 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: [ANNOUNCE] Release of libnfnetlink, libnfnetlink_conntrack and
- conntrack
-Date: Fri, 14 Oct 2005 12:23:23 +0200 (CEST)
-Message-ID: <Pine.LNX.4.62.0510141219460.3698@bizon.gios.gov.pl>
-References: <20050924215413.GD731@sunbeam.de.gnumonks.org>
+From: Olivier GRALL <olivier.grall@neotip.com>
+Subject: [IPTABLES] Symmetric NAT?
+Date: Fri, 14 Oct 2005 14:10:46 +0200
+Message-ID: <434FA046.8050708@neotip.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-582439218-1129285403=:3698"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20050924215413.GD731@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,33 +18,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi,
 
----187430788-582439218-1129285403=:3698
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+I was making some tests with STUN when I realize that my NAT box was a 
+simple Linux Box with an IPTABLES rule with a MASQ target. What seemed 
+strange to me was that the STUN result was "Port restricted cone ".
 
+I made a new with NATcheck.exe... same result.
+http://midcom-p2p.sourceforge.net/
 
+I was sure IPTABLES NAT was Symmetric and not Port restricted cone. What 
+about it ?
+In the "Procceding of NetFilter Developer WorkShop 2004",  Harald Welte 
+reported "
 
-On Sat, 24 Sep 2005, Netfilter Core Team wrote:
-
-> Hi!
->
-> The netfilter project proudly presents:
->
-> =09libnfnetlink-0.0.10
-> =09libnfnetlink_conntrack-0.0.10
-> =09conntrack-0.81
+netfilter however implements (SNAT and MASQ) as ssymmetric.
+"
 
 
-What such errors mean?
+For me, with MASQ it is Port restricted cone and with SNAT+DNAT it is 
+Symmetric. Is it true ?
 
-nfnl_parse_attr: deficit (4) len (43200).
+Thanx,
 
-nfnl_parse_attr: deficit (2) len (35072).
+-- 
 
-Best regards,
-
- =09=09=09Krzysztof Ol=EAdzki
----187430788-582439218-1129285403=:3698--
+	
+Olivier GRALL
+R&D Engineer 	*NeoTIP** S.A.*
+4, rue Louis de Broglie
+22300 Lannion
+France
+olivier.grall@neotip.com <mailto:olivier.grall@neotip.com> 	+33 (0)2 96 
+48 66 94
