@@ -1,18 +1,14 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH NF_CONNTRACK 2/4] change the random value on resizing
- hash
-Date: Sun, 16 Oct 2005 05:18:18 +0900 (JST)
-Message-ID: <200510152018.j9FKIItd021780@toshiba.co.jp>
-References: <200510081109.j98B9gCX014619@toshiba.co.jp>
-	<20051009174703.GC665@rama.customers.eurospot.com>
+Subject: [PATCH NF_CONNTRACK] fixes the path to nf_conntrack headers
+Date: Sun, 16 Oct 2005 05:26:26 +0900 (JST)
+Message-ID: <200510152026.j9FKQRrt024512@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Sun_Oct_16_05_18_18_2005_793)--"
+	boundary="--Next_Part(Sun_Oct_16_05_26_26_2005_234)--"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: laforge@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20051009174703.GC665@rama.customers.eurospot.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,58 +20,84 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Sun_Oct_16_05_18_18_2005_793)--
+----Next_Part(Sun_Oct_16_05_26_26_2005_234)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
+Hi,
 
-Hi, Harald,
-
-From: Harald Welte <laforge@netfilter.org>
-Date: Sun, 9 Oct 2005 19:47:04 +0200
-
-> > This synchronizes nf_conntrack with ip_conntrack and re-seeds the random
-> > value for hashing when the hash size of conntrack is changed.
-> 
-> oh, I just 'rewrote' that patch, so it's already applied.
-
-Please fix this typo.
+We have changed to move directory for headers used in only kernel to
+include/net/netfilter, and there are files that hasn't followed it yet.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
+Please apply this to nf_conntrack tree.
+Regards,
 -----------------------------------------------------------------
 Yasuyuki Kozakai @ USAGI Project <yasuyuki.kozakai@toshiba.co.jp>
 
-----Next_Part(Sun_Oct_16_05_18_18_2005_793)--
+----Next_Part(Sun_Oct_16_05_26_26_2005_234)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="01-typo.patch"
+Content-Disposition: inline; filename="02-headers.patch"
 
-[NETFILTER] fix typo in nf_conntrack
+[NETFILTER] fixes the path to nf_conntrack headers
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
 ---
-commit 90345e5013ffc3541f0d0382d8f2e9d12e702e38
-tree 42691c5345cae6249111e97c5ac1e7a61cbbc887
-parent ef2b2389ff4d3a2bc6bec94074a239bb8fbb6468
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 16 Oct 2005 04:39:25 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 16 Oct 2005 04:39:25 +0900
+commit 6e6fac3178d6a360d009271144c8738d41ae9ee2
+tree 33abd63ad4a7d4d486915c655b92207e5b2ee607
+parent 90345e5013ffc3541f0d0382d8f2e9d12e702e38
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 16 Oct 2005 04:42:36 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 16 Oct 2005 04:42:36 +0900
 
- net/netfilter/nf_conntrack_core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ include/net/netfilter/nf_conntrack_compat.h |    4 ++--
+ net/ipv4/netfilter/ipt_conntrack.c          |    2 +-
+ net/ipv4/netfilter/ipt_helper.c             |    6 +++---
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1467,7 +1467,7 @@ int set_hashsize(const char *val, struct
- 	nf_conntrack_htable_size = hashsize;
- 	nf_conntrack_vmalloc = vmalloced;
- 	nf_conntrack_hash = hash;
--	ip_conntrack_hash_rnd = rnd;
-+	nf_conntrack_hash_rnd = rnd;
- 	write_unlock_bh(&nf_conntrack_lock);
+diff --git a/include/net/netfilter/nf_conntrack_compat.h b/include/net/netfilter/nf_conntrack_compat.h
+--- a/include/net/netfilter/nf_conntrack_compat.h
++++ b/include/net/netfilter/nf_conntrack_compat.h
+@@ -53,8 +53,8 @@ static inline int nf_ct_get_ctinfo(const
  
- 	free_conntrack_hash(old_hash, old_vmalloced, old_size);
+ #else /* CONFIG_IP_NF_CONNTRACK */
+ 
+-#include <linux/netfilter/ipv4/nf_conntrack_ipv4.h>
+-#include <linux/netfilter/nf_conntrack.h>
++#include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
++#include <net/netfilter/nf_conntrack.h>
+ 
+ #ifdef CONFIG_NF_CONNTRACK_MARK
+ 
+diff --git a/net/ipv4/netfilter/ipt_conntrack.c b/net/ipv4/netfilter/ipt_conntrack.c
+--- a/net/ipv4/netfilter/ipt_conntrack.c
++++ b/net/ipv4/netfilter/ipt_conntrack.c
+@@ -15,7 +15,7 @@
+ #include <linux/netfilter_ipv4/ip_conntrack.h>
+ #include <linux/netfilter_ipv4/ip_conntrack_tuple.h>
+ #else
+-#include <linux/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack.h>
+ #endif
+ 
+ #include <linux/netfilter_ipv4/ip_tables.h>
+diff --git a/net/ipv4/netfilter/ipt_helper.c b/net/ipv4/netfilter/ipt_helper.c
+--- a/net/ipv4/netfilter/ipt_helper.c
++++ b/net/ipv4/netfilter/ipt_helper.c
+@@ -18,9 +18,9 @@
+ #include <linux/netfilter_ipv4/ip_conntrack_core.h>
+ #include <linux/netfilter_ipv4/ip_conntrack_helper.h>
+ #else
+-#include <linux/netfilter/nf_conntrack.h>
+-#include <linux/netfilter/nf_conntrack_core.h>
+-#include <linux/netfilter/nf_conntrack_helper.h>
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_core.h>
++#include <net/netfilter/nf_conntrack_helper.h>
+ #endif
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv4/ipt_helper.h>
 
-----Next_Part(Sun_Oct_16_05_18_18_2005_793)----
+----Next_Part(Sun_Oct_16_05_26_26_2005_234)----
