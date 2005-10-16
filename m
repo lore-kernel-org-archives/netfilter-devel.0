@@ -1,16 +1,16 @@
-From: Marco Innocenti <dot0037@iperbole.bologna.it>
-Subject: Re: [PATCH] NETFILTER: add support for invert condition (!) in
-	ipt_limit
-Date: Mon, 17 Oct 2005 16:10:17 +0200
-Message-ID: <20051017141017.GA15353@pc-innocenti.cineca.it>
-References: <20051017094417.GA26911@pc-innocenti.cineca.it>
-	<20051017.184547.117007327.yoshfuji@linux-ipv6.org>
+From: Antonio <anton.ananich@gmail.com>
+Subject: Re: pptp-conntrack-nat & kernel 2.6.11
+Date: Sun, 16 Oct 2005 11:15:18 +0300
+Message-ID: <5a335a3d0510160115m266070a6ud7dac58e5763e44e__30807.3136061013$1129721913$gmane$org@mail.gmail.com>
+References: <57F9959B46E0FA4D8BA88AEDFBE582900B586A@pxtbenexd01.pxt.primeexalia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "Gary W. Smith" <gary@primeexalia.com>
+In-Reply-To: <57F9959B46E0FA4D8BA88AEDFBE582900B586A@pxtbenexd01.pxt.primeexalia.com>
 Content-Disposition: inline
-In-Reply-To: <20051017.184547.117007327.yoshfuji@linux-ipv6.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,91 +22,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Oct 17, 2005 at 06:45:47PM +0900, YOSHIFUJI Hideaki / ?$B5HF#1QL@ wrote:
-> In article <20051017094417.GA26911@pc-innocenti.cineca.it> (at Mon, 17 Oct 2005 11:44:17 +0200), Marco Innocenti <m.innocenti@cineca.it> says:
-> > -		return 1;
-> > +		return 1 ^ r->invert;
-> !r->invert
-
-I've seen it in ipt_multiport.c and I copied it.
-Should ipt_multiport.c be corrected?
-
-
-
-Signed-off-by: Marco Innocenti <m.innocenti@cineca.it>
----
-diff -uprN linux-2.6.13.4/include/linux/netfilter_ipv4/ipt_limit.h linux-2.6.13.4.mio/include/linux/netfilter_ipv4/ipt_limit.h
---- linux-2.6.13.4/include/linux/netfilter_ipv4/ipt_limit.h	2005-10-10 20:54:29.000000000 +0200
-+++ linux-2.6.13.4.mio/include/linux/netfilter_ipv4/ipt_limit.h	2005-10-15 16:25:02.000000000 +0200
-@@ -9,6 +9,7 @@
- struct ipt_rateinfo {
- 	u_int32_t avg;    /* Average secs between packets * scale */
- 	u_int32_t burst;  /* Period multiplier for upper limit. */
-+	u_int8_t invert;
- 
- 	/* Used internally by the kernel */
- 	unsigned long prev;
-diff -uprN linux-2.6.13.4/net/ipv4/netfilter/ipt_limit.c linux-2.6.13.4.mio/net/ipv4/netfilter/ipt_limit.c
---- linux-2.6.13.4/net/ipv4/netfilter/ipt_limit.c	2005-10-10 20:54:29.000000000 +0200
-+++ linux-2.6.13.4.mio/net/ipv4/netfilter/ipt_limit.c	2005-10-15 16:30:23.000000000 +0200
-@@ -82,11 +82,11 @@ ipt_limit_match(const struct sk_buff *sk
- 		/* We're not limited. */
- 		r->credit -= r->cost;
- 		spin_unlock_bh(&limit_lock);
--		return 1;
-+		return !r->invert;
- 	}
- 
-        	spin_unlock_bh(&limit_lock);
--	return 0;
-+	return r->invert;
- }
- 
- /* Precision saver. */
-diff -upNr iptables-1.3.3/extensions/libipt_limit.c iptables-1.3.3.mio/extensions/libipt_limit.c
---- iptables-1.3.3/extensions/libipt_limit.c	2005-02-19 20:19:17.000000000 +0100
-+++ iptables-1.3.3.mio/extensions/libipt_limit.c	2005-10-16 21:44:24.000000000 +0200
-@@ -23,7 +23,7 @@ help(void)
- {
- 	printf(
- "limit v%s options:\n"
--"--limit avg			max average match rate: default "IPT_LIMIT_AVG"\n"
-+"[!] --limit avg			max average match rate: default "IPT_LIMIT_AVG"\n"
- "                                [Packets per second unless followed by \n"
- "                                /sec /minute /hour /day postfixes]\n"
- "--limit-burst number		number to match in a burst, default %u\n"
-@@ -121,8 +121,7 @@ parse(int c, char **argv, int invert, un
- 	}
- 
- 	if (invert)
--		exit_error(PARAMETER_PROBLEM,
--			   "limit does not support invert");
-+		r->invert = 1;
- 
- 	return 1;
- }
-@@ -161,6 +160,8 @@ print(const struct ipt_ip *ip,
-       int numeric)
- {
- 	struct ipt_rateinfo *r = (struct ipt_rateinfo *)match->data;
-+	if (r->invert)
-+		printf("! ");
- 	printf("limit: avg "); print_rate(r->avg);
- 	printf("burst %u ", r->burst);
- }
-diff -upNr iptables-1.3.3/include/linux/netfilter_ipv4/ipt_limit.h iptables-1.3.3.mio/include/linux/netfilter_ipv4/ipt_limit.h
---- iptables-1.3.3/include/linux/netfilter_ipv4/ipt_limit.h	2004-10-10 11:56:23.000000000 +0200
-+++ iptables-1.3.3.mio/include/linux/netfilter_ipv4/ipt_limit.h	2005-10-16 21:34:43.000000000 +0200
-@@ -9,6 +9,7 @@
- struct ipt_rateinfo {
- 	u_int32_t avg;    /* Average secs between packets * scale */
- 	u_int32_t burst;  /* Period multiplier for upper limit. */
-+	u_int8_t invert;
- 
- #ifdef KERNEL_64_USERSPACE_32
- 	u_int64_t prev;
-
-
--- 
-Ciao
-     Marco Innocenti
+RGVhciBHYXJ5IQoKT24gMTAvMTYvMDUsIEdhcnkgVy4gU21pdGggPGdhcnlAcHJpbWVleGFsaWEu
+Y29tPiB3cm90ZToKPiBZb3UgYXJlIG1pc3NpbmcgdGhlIGZsYWcgdG8gdHVybiBvbiBwcm90b19n
+cmUuIFRoYXQncyB3aHkgaXQncyBub3QKPiBhdmFpbGFibGUgdG8geW91LgoKVGhlIG9wdGlvbiBD
+T05GSUdfSVBfTkZfTkFUX1BST1RPX0dSRSB3YXMgbWlzc2luZyBpbiBteSBjb25maWcgaW5kZWVk
+LgpCdXQgd2hlbiBJIHJ1bgojIG1ha2UgbWVudWNvbmZpZwpJIGhhdmUgbm90IGZvdW5kIHBvc3Np
+YmlsaXR5IHRvIGVuYWJsZSBpdCA6KCBIZXJlIGlzIHNjcmVlbnNob3Q6CgrilIIg4pSM4pSA4pSA
+4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
+4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
+4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
+4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSQIOKUggog4pSCIOKUgiA8Kj4gQ29ubmVj
+dGlvbiB0cmFja2luZyAocmVxdWlyZWQgZm9yIG1hc3EvTkFUKSDilIIg4pSCCiDilIIg4pSCIFsg
+XSBDb25uZWN0aW9uIHRyYWNraW5nIGZsb3cgYWNjb3VudGluZyDilIIg4pSCCiDilIIg4pSCIFsg
+XSBDb25uZWN0aW9uIG1hcmsgdHJhY2tpbmcgc3VwcG9ydCDilIIg4pSCCiDilIIg4pSCIFsgXSBD
+b25uZWN0aW9uIHRyYWNraW5nIGV2ZW50cyDilIIg4pSCCiDilIIg4pSCIDwgPiBTQ1RQIHByb3Rv
+Y29sIGNvbm5lY3Rpb24gdHJhY2tpbmcgc3VwcG9ydCAoRVhQRVJJTUVOVEFMKSDilIIg4pSCCiDi
+lIIg4pSCIDxNPiBGVFAgcHJvdG9jb2wgc3VwcG9ydCDilIIg4pSCCiDilIIg4pSCIDxNPiBJUkMg
+cHJvdG9jb2wgc3VwcG9ydCDilIIg4pSCCiDilIIg4pSCIDwgPiBOZXRCSU9TIG5hbWUgc2Vydmlj
+ZSBwcm90b2NvbCBzdXBwb3J0IChFWFBFUklNRU5UQUwpIOKUgiDilIIKIOKUgiDilIIgPCA+IFRG
+VFAgcHJvdG9jb2wgc3VwcG9ydCDilIIg4pSCCiDilIIg4pSCIDwgPiBBbWFuZGEgYmFja3VwIHBy
+b3RvY29sIHN1cHBvcnQg4pSCIOKUggog4pSCIOKUgiA8TT4gUFBUUCBwcm90b2NvbCBzdXBwb3J0
+IOKUgiDilIIKIOKUgiDilIIgPCA+IElQIFVzZXJzcGFjZSBxdWV1ZWluZyB2aWEgTkVUTElOSyAo
+T0JTT0xFVEUpIOKUgiDilIIKIOKUgiDilIIgPCo+IElQIHRhYmxlcyBzdXBwb3J0IChyZXF1aXJl
+ZCBmb3IgZmlsdGVyaW5nL21hc3EvTkFUKSDilIIg4pSCCiDilIIg4pSCIDwgPiBsaW1pdCBtYXRj
+aCBzdXBwb3J0IOKUgiDilIIKIOKUgiDilIIgPCo+IElQIHJhbmdlIG1hdGNoIHN1cHBvcnQg4pSC
+IOKUggog4pSCIOKUlOKUgOKUgOKUtCgrKeKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKU
+gOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKU
+gOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKU
+gOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUmCDilIIKCgpJbiBw
+cmV2aW91cyB2ZXJzaW9ucyB0aGVyZSB3YXMgYm90aCBHUkUgYW5kIFBQVFAgb3B0aW9ucy4KCkkg
+ZXZlbiB0cnllZCB0byBhZGQgQ09ORklHX0lQX05GX05BVF9QUk9UT19HUkUgZGVmaW5pdGlvbiB0
+byAuY29uZmlnIGZpbGUKbWFudWFsbHkgYnV0IEkgZ290IG5vdGhpbmcgOigKCi0tCkJlc3QgUmVn
+YXJkcywKQW50b25pbwo=
