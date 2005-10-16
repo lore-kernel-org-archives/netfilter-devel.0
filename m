@@ -1,19 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH NF_CONNTRACK 2/4] change the random value on resizing
-	hash
-Date: Sun, 16 Oct 2005 13:29:57 +0200
-Message-ID: <20051016112956.GF4550@rama.0sec.lan>
-References: <200510081109.j98B9gCX014619@toshiba.co.jp>
-	<20051009174703.GC665@rama.customers.eurospot.com>
-	<200510152018.j9FKIJR2027689@toshiba.co.jp>
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: tcp match silently drops packets
+Date: Sun, 16 Oct 2005 19:35:32 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0510161931530.32106@filer.marasystems.com>
+References: <4349D97A.9070708@snapgear.com>
+	<200510160751.j9G7ph5t009316@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="N1GIdlSm9i+YlY4t"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Content-Disposition: inline
-In-Reply-To: <200510152018.j9FKIJR2027689@toshiba.co.jp>
+In-Reply-To: <200510160751.j9G7ph5t009316@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,37 +21,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sun, 16 Oct 2005, Yasuyuki KOZAKAI wrote:
 
---N1GIdlSm9i+YlY4t
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> I cannot reproduce this situation with linux-2.4.31 and recent iptables.
+> tcp_match() return 0 for such packet because it doesn't have tcp header and
+> datalen is 0.
+>
+> 	if (offset == 1) {
+> 		duprintf("Dropping evil TCP offset=1 frag.\n");
+> 		*hotdrop = 1;
+> 		return 0;
+> 	} else if (offset == 0 && datalen < sizeof(struct tcphdr)) {
+> 		/* We've been asked to examine this packet, and we
+> 		   can't.  Hence, no choice but to drop. */
+> 		duprintf("Dropping evil TCP offset=0 tinygram.\n");
+> 		*hotdrop = 1;
+> 		return 0;
+> 	}
+>
+> Could you tell me what you mean 'match and silently drop' in detail ?
 
-On Sun, Oct 16, 2005 at 05:18:18AM +0900, Yasuyuki KOZAKAI wrote:
+The above code forces such packets to be dropped with no visible traces to 
+why. (*hotdrop = 1, and also hinted by the debug message and comment)
 
-> Please fix this typo.
+What he ment was "the match will silently drop the packet", not that the 
+rule as such will match the packet..
 
-thanks, done.
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---N1GIdlSm9i+YlY4t
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDUjm0XaXGVTD0i/8RAiXaAJ4v6kRhyBSg9Nz4o72L46/QjDHTXgCcDfQL
-I5VYvZKAHwdzBcrobHSyKw0=
-=kt9D
------END PGP SIGNATURE-----
-
---N1GIdlSm9i+YlY4t--
+Regards
+Henrik
