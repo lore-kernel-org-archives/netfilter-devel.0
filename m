@@ -1,15 +1,15 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [ANNOUNCE] Release of nf-HiPAC 0.9.1
-Date: Sun, 16 Oct 2005 16:40:21 +0200
-Message-ID: <20051016144020.GE17257@rama.0sec>
-References: <200510121758.46328.mbellion@hipac.org>
+Subject: Re: Number of forwarding tables.
+Date: Sun, 16 Oct 2005 16:43:38 +0200
+Message-ID: <20051016144338.GF17257@rama.0sec>
+References: <ad2655cb0510100253s5da6654i@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Michael Bellion <mbellion@hipac.org>
+To: James Courtier-Dutton <james.dutton@gmail.com>
 Content-Disposition: inline
-In-Reply-To: <200510121758.46328.mbellion@hipac.org>
+In-Reply-To: <ad2655cb0510100253s5da6654i@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,16 +21,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Oct 12, 2005 at 05:58:39PM +0200, Michael Bellion wrote:
-> Hi
+On Mon, Oct 10, 2005 at 10:53:27AM +0100, James Courtier-Dutton wrote:
+> Hi,
 > 
-> I am happy to announce the release of nf-HiPAC version 0.9.1
-> 
-> Version 0.9.1 fixes all bugs that have been discovered since the release of 
-> v0.9.0.
+> The linux kernel seems to support 255 forwarding tables.
 
-would be nice if you were publishing incremental patches. This way it is
-easy to look at the changes and stay up-to-date.
+you are refering to routing tables?  Then please contact
+netdev@vger.kernel.org, since this is not related to netfilter
+development.
 
 -- 
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
