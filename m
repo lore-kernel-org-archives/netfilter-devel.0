@@ -1,16 +1,17 @@
-From: Pablo Neira <pablo@netfilter.org>
-Subject: Re: [PATCH] libnfnetlink updates
-Date: Mon, 17 Oct 2005 00:11:27 +0200
-Message-ID: <4352D00F.9080900@netfilter.org>
-References: <4352C36E.109@netfilter.org>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: [ANNOUNCE] Release of libnfnetlink, libnfnetlink_conntrack and
+ conntrack
+Date: Mon, 17 Oct 2005 01:20:08 +0200
+Message-ID: <4352E028.7020702@eurodev.net>
+References: <20050924215413.GD731@sunbeam.de.gnumonks.org>
+	<Pine.LNX.4.62.0510141219460.3698@bizon.gios.gov.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@netfilter.org>
-In-Reply-To: <4352C36E.109@netfilter.org>
+To: Krzysztof Oledzki <olenf@ans.pl>
+In-Reply-To: <Pine.LNX.4.62.0510141219460.3698@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,18 +23,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> @@ -110,10 +115,11 @@
->  extern int nfnl_nfa_addattr32(struct nfattr *, int, int, u_int32_t);
->  extern int nfnl_parse_attr(struct nfattr **, int, struct nfattr *, int);
->  #define nfnl_parse_nested(tb, max, nfa) \
-> -	nfnl_parse_attr((tb), (max), NFA_DATA((nfa)), NFA_PAYLOAD((nfa)))
-> +({	memset(tb, 0, max *sizeof(struct nfattr *));		\
-> +	nfnl_parse_attr((tb), (max), NFA_DATA((nfa)), NFA_PAYLOAD((nfa))); })
+Krzysztof Oledzki wrote:
+> What such errors mean?
+> 
+> nfnl_parse_attr: deficit (4) len (43200).
+> 
+> nfnl_parse_attr: deficit (2) len (35072).
 
-Hm, this is bogus. I just realized that the tb array is zeroed from 
-nfattr_parse_attr. Ignore this patch. I'll send you another patch 
-without this modification tomorrow.
+This is due to a wrong calculation of the minimum message size. It is
+fixed in SVN.
 
 --
 Pablo
