@@ -1,12 +1,16 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: tcp match silently drops packets
-Date: Mon, 17 Oct 2005 07:50:22 +1000
-Message-ID: <E1ERGOc-0008Hg-00@gondolin.me.apana.org.au>
-References: <Pine.LNX.4.61.0510162247010.802@filer.marasystems.com>
-Cc: netfilter-devel@lists.netfilter.org
+From: Pablo Neira <pablo@netfilter.org>
+Subject: Re: [PATCH] libnfnetlink updates
+Date: Mon, 17 Oct 2005 00:11:27 +0200
+Message-ID: <4352D00F.9080900@netfilter.org>
+References: <4352C36E.109@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: hno@marasystems.com (Henrik Nordstrom)
-In-Reply-To: <Pine.LNX.4.61.0510162247010.802@filer.marasystems.com>
+To: Pablo Neira <pablo@netfilter.org>
+In-Reply-To: <4352C36E.109@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,22 +22,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom <hno@marasystems.com> wrote:
-> 
-> The reason why this match hotdrops such packets is to deal with attacks 
-> using fragmented packets in a reasonably secure manner without having to 
-> rely on "UNCLEAN" or similar. A TCP packet so small that it does not even 
-> include the TCP header is below the minimum MTU allowed and you should not 
-> see any such fragments in normal traffic.
+Pablo Neira wrote:
+> @@ -110,10 +115,11 @@
+>  extern int nfnl_nfa_addattr32(struct nfattr *, int, int, u_int32_t);
+>  extern int nfnl_parse_attr(struct nfattr **, int, struct nfattr *, int);
+>  #define nfnl_parse_nested(tb, max, nfa) \
+> -	nfnl_parse_attr((tb), (max), NFA_DATA((nfa)), NFA_PAYLOAD((nfa)))
+> +({	memset(tb, 0, max *sizeof(struct nfattr *));		\
+> +	nfnl_parse_attr((tb), (max), NFA_DATA((nfa)), NFA_PAYLOAD((nfa))); })
 
-Not having any TCP header at all or not having the complete TCP header?
+Hm, this is bogus. I just realized that the tb array is zeroed from 
+nfattr_parse_attr. Ignore this patch. I'll send you another patch 
+without this modification tomorrow.
 
-The latter is possible because the minimum fragment payload length is
-8 bytes.
-
-Cheers,
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+--
+Pablo
