@@ -1,16 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: build error in your git tree
-Date: Sun, 16 Oct 2005 11:18:43 +0200
-Message-ID: <20051016091843.GD4550@rama.0sec.lan>
-References: <200510152054.j9FKsmpe010005@toshiba.co.jp>
+Subject: Re: [PATCH NF_CONNTRACK 2/4] change the random value on resizing
+	hash
+Date: Sun, 16 Oct 2005 13:29:57 +0200
+Message-ID: <20051016112956.GF4550@rama.0sec.lan>
+References: <200510081109.j98B9gCX014619@toshiba.co.jp>
+	<20051009174703.GC665@rama.customers.eurospot.com>
+	<200510152018.j9FKIJR2027689@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+nBD6E3TurpgldQp"
+	protocol="application/pgp-signature"; boundary="N1GIdlSm9i+YlY4t"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <200510152054.j9FKsmpe010005@toshiba.co.jp>
+In-Reply-To: <200510152018.j9FKIJR2027689@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,25 +26,16 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---+nBD6E3TurpgldQp
+--N1GIdlSm9i+YlY4t
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Oct 16, 2005 at 05:54:48AM +0900, Yasuyuki KOZAKAI wrote:
->=20
-> Hi, Harald,
->=20
-> I found that ip_conntrack in your git tree cannot be build because there =
-are
-> two nfattr_to_tcp() in it. Their difference is only return value on error.
-> Sorry I didn't make patch because I don't know exactly what was occurred
-> in your tree. It seems that, this change, merging with upstream, and not
-> reverted change for return value, are related.
+On Sun, Oct 16, 2005 at 05:18:18AM +0900, Yasuyuki KOZAKAI wrote:
 
-thanks for letting me know, I'll fix it.  It's a mistake of git's
-auto-merge features.
+> Please fix this typo.
 
+thanks, done.
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -52,16 +46,16 @@ auto-merge features.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---+nBD6E3TurpgldQp
+--N1GIdlSm9i+YlY4t
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDUhrzXaXGVTD0i/8RAsOLAKCv1bIFcmVwYiIu0XDKQb1AGz4tNgCcDAkL
-XXUvKLnmd/WhHQjS6kB4INo=
-=eswd
+iD8DBQFDUjm0XaXGVTD0i/8RAiXaAJ4v6kRhyBSg9Nz4o72L46/QjDHTXgCcDfQL
+I5VYvZKAHwdzBcrobHSyKw0=
+=kt9D
 -----END PGP SIGNATURE-----
 
---+nBD6E3TurpgldQp--
+--N1GIdlSm9i+YlY4t--
