@@ -1,38 +1,35 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH] fix iptables on systems with discontiguous processor ids
-Date: Sun, 16 Oct 2005 21:18:27 -0700 (PDT)
-Message-ID: <20051016.211827.11464881.davem@davemloft.net>
-References: <20051011174556.GA13415@rama.de.gnumonks.org>
-	<20051011.155733.05623834.davem@davemloft.net>
-	<434ED929.4030207@cosmosbay.com>
+From: compuomari <compuomari@gmail.com>
+Subject: NATTING_help
+Date: Mon, 17 Oct 2005 12:17:48 +0300
+Message-ID: <43536C3C.9050006@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
-	hno@marasystems.com
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: dada1@cosmosbay.com
-In-Reply-To: <434ED929.4030207@cosmosbay.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: netfilter@lists.netfilter.org,  netfilter-devel@lists.netfilter.org,
+	netfilter@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Eric Dumazet <dada1@cosmosbay.com>
-Date: Fri, 14 Oct 2005 00:01:13 +0200
+Dears,
+I have a scenario that is somehow making me have a hardtime , i have a
+wiless access point that get the internat access from my linux box, i
+want any user that uses my internet to get a lnading page for my self (
+some kind of advertisment ) and then go to the internet , i don't need
+authentication , but i dont want this landing page occuring many more
+than once for the user ... anyhow , how can i do it with iptables? i
+want to DNAT all users to an internal apache server , then SNAT them to
+the inernet , how is that possible? double natting? proxying ? i need
+your help ..
 
-> Hi David, sorry for being late, I was traveling these last two days.
+regards,
 
-No problem, I'm about to go traveling for 2 weeks :-)
-
-We put in a slightly different, arguably simpler/safer fix,
-in for 2.6.14, but I invite you to submit this patch of
-your's once the vmalloc_node() stuff goes into 2.6.15
-
-Thanks!
+oozie
