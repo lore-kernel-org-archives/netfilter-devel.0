@@ -1,20 +1,16 @@
-From: Cedric Blancher <blancher@cartel-securite.fr>
-Subject: Re: tcp match silently drops packets
-Date: Mon, 17 Oct 2005 16:01:26 +0200
-Message-ID: <1129557686.11439.46.camel@anduril.intranet.cartel-securite.net>
-References: <4349D97A.9070708@snapgear.com>
-	<200510160751.j9G7ph5t009316@toshiba.co.jp>
-	<Pine.LNX.4.61.0510161931530.32106@filer.marasystems.com>
-	<Pine.LNX.4.61.0510162247010.802@filer.marasystems.com>
-	<a60102c30510170647w24a8928o@mail.gmail.com>
-	<Pine.LNX.4.61.0510171549520.21372@filer.marasystems.com>
+From: Marco Innocenti <m.innocenti@cineca.it>
+Subject: Re: [PATCH] NETFILTER: add support for invert condition (!) in
+	ipt_limit
+Date: Mon, 17 Oct 2005 16:30:53 +0200
+Message-ID: <20051017143053.GA29010@pc-innocenti.cineca.it>
+References: <20051017094417.GA26911@pc-innocenti.cineca.it>
+	<20051017.184547.117007327.yoshfuji@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Henrik Nordstrom <hno@marasystems.com>
-In-Reply-To: <Pine.LNX.4.61.0510171549520.21372@filer.marasystems.com>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <20051017.184547.117007327.yoshfuji@linux-ipv6.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,25 +22,90 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le lundi 17 octobre 2005 =E0 15:52 +0200, Henrik Nordstrom a =E9crit :
-> An IP fragment with offset 1 can overwrite parts of the TCP header, and i=
-f=20
-> this check is not there an attacker could bypass port matches in iptables=
-=20
-> by sending the packet in two fragments where the first fragment (which is=
-=20
-> used by the tcp match) has ports which is allowed by the ruleset and late=
-r=20
-> the second fragment (which is ignored by the tcp match) overwrites the=20
-> port numbers with ports which would not be allowed by the ruleset.
+On Mon, Oct 17, 2005 at 06:45:47PM +0900, YOSHIFUJI Hideaki / ?$B5HF#1QL@ wrote:
+> > -		return 1;
+> > +		return 1 ^ r->invert;
+> !r->invert
 
-I always though conntrack was defragmenting datagrams before filtering.
-Thus, if we filter on defragmented datagrams, then we can't get foold by
-fragmentation overlapping based attacks. Am I wrong ?
+I've seen it in ipt_multiport.c and I copied it.
+Should ipt_multiport.c be corrected?
 
 
---=20
-http://sid.rstack.org/
-PGP KeyID: 157E98EE FingerPrint: FA62226DA9E72FA8AECAA240008B480E157E98EE
->> Hi! I'm your friendly neighbourhood signature virus.
->> Copy me to your signature file and help me spread!
+
+Signed-off-by: Marco Innocenti <m.innocenti@cineca.it>
+---
+diff -uprN linux-2.6.13.4/include/linux/netfilter_ipv4/ipt_limit.h linux-2.6.13.4.mio/include/linux/netfilter_ipv4/ipt_limit.h
+--- linux-2.6.13.4/include/linux/netfilter_ipv4/ipt_limit.h	2005-10-10 20:54:29.000000000 +0200
++++ linux-2.6.13.4.mio/include/linux/netfilter_ipv4/ipt_limit.h	2005-10-15 16:25:02.000000000 +0200
+@@ -9,6 +9,7 @@
+ struct ipt_rateinfo {
+ 	u_int32_t avg;    /* Average secs between packets * scale */
+ 	u_int32_t burst;  /* Period multiplier for upper limit. */
++	u_int8_t invert;
+ 
+ 	/* Used internally by the kernel */
+ 	unsigned long prev;
+diff -uprN linux-2.6.13.4/net/ipv4/netfilter/ipt_limit.c linux-2.6.13.4.mio/net/ipv4/netfilter/ipt_limit.c
+--- linux-2.6.13.4/net/ipv4/netfilter/ipt_limit.c	2005-10-10 20:54:29.000000000 +0200
++++ linux-2.6.13.4.mio/net/ipv4/netfilter/ipt_limit.c	2005-10-15 16:30:23.000000000 +0200
+@@ -82,11 +82,11 @@ ipt_limit_match(const struct sk_buff *sk
+ 		/* We're not limited. */
+ 		r->credit -= r->cost;
+ 		spin_unlock_bh(&limit_lock);
+-		return 1;
++		return !r->invert;
+ 	}
+ 
+        	spin_unlock_bh(&limit_lock);
+-	return 0;
++	return r->invert;
+ }
+ 
+ /* Precision saver. */
+diff -upNr iptables-1.3.3/extensions/libipt_limit.c iptables-1.3.3.mio/extensions/libipt_limit.c
+--- iptables-1.3.3/extensions/libipt_limit.c	2005-02-19 20:19:17.000000000 +0100
++++ iptables-1.3.3.mio/extensions/libipt_limit.c	2005-10-16 21:44:24.000000000 +0200
+@@ -23,7 +23,7 @@ help(void)
+ {
+ 	printf(
+ "limit v%s options:\n"
+-"--limit avg			max average match rate: default "IPT_LIMIT_AVG"\n"
++"[!] --limit avg			max average match rate: default "IPT_LIMIT_AVG"\n"
+ "                                [Packets per second unless followed by \n"
+ "                                /sec /minute /hour /day postfixes]\n"
+ "--limit-burst number		number to match in a burst, default %u\n"
+@@ -121,8 +121,7 @@ parse(int c, char **argv, int invert, un
+ 	}
+ 
+ 	if (invert)
+-		exit_error(PARAMETER_PROBLEM,
+-			   "limit does not support invert");
++		r->invert = 1;
+ 
+ 	return 1;
+ }
+@@ -161,6 +160,8 @@ print(const struct ipt_ip *ip,
+       int numeric)
+ {
+ 	struct ipt_rateinfo *r = (struct ipt_rateinfo *)match->data;
++	if (r->invert)
++		printf("! ");
+ 	printf("limit: avg "); print_rate(r->avg);
+ 	printf("burst %u ", r->burst);
+ }
+diff -upNr iptables-1.3.3/include/linux/netfilter_ipv4/ipt_limit.h iptables-1.3.3.mio/include/linux/netfilter_ipv4/ipt_limit.h
+--- iptables-1.3.3/include/linux/netfilter_ipv4/ipt_limit.h	2004-10-10 11:56:23.000000000 +0200
++++ iptables-1.3.3.mio/include/linux/netfilter_ipv4/ipt_limit.h	2005-10-16 21:34:43.000000000 +0200
+@@ -9,6 +9,7 @@
+ struct ipt_rateinfo {
+ 	u_int32_t avg;    /* Average secs between packets * scale */
+ 	u_int32_t burst;  /* Period multiplier for upper limit. */
++	u_int8_t invert;
+ 
+ #ifdef KERNEL_64_USERSPACE_32
+ 	u_int64_t prev;
+
+
+-- 
+Ciao
+     Marco Innocenti
