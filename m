@@ -1,17 +1,18 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [NF+IPsec 4/6]: Make IPsec input processing symetrical to output
-Date: Mon, 17 Oct 2005 11:46:29 +1000
-Message-ID: <20051017014629.GB32661@gondor.apana.org.au>
-References: <4352EEC8.9000602@trash.net>
-	<20051017.094919.56989341.yoshfuji@linux-ipv6.org>
-	<4352FD49.4090201@trash.net>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH] fix iptables on systems with discontiguous processor ids
+Date: Sun, 16 Oct 2005 21:18:27 -0700 (PDT)
+Message-ID: <20051016.211827.11464881.davem@davemloft.net>
+References: <20051011174556.GA13415@rama.de.gnumonks.org>
+	<20051011.155733.05623834.davem@davemloft.net>
+	<434ED929.4030207@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
+	hno@marasystems.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <4352FD49.4090201@trash.net>
+To: dada1@cosmosbay.com
+In-Reply-To: <434ED929.4030207@cosmosbay.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,28 +24,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Oct 17, 2005 at 03:24:25AM +0200, Patrick McHardy wrote:
->
-> For IPv6 this probably can be changed, I just kept the code in sync
-> for now. For IPv4 it is necessary to pass it through the entire stack
-> again to make netfilter fully usable without lots of code duplication
-> or unusual limitations, especially for NAT. So the question is whether
-> we want to keep the code and behaviour of IPv4 and IPv6 in sync or
-> not. I think we should.
+From: Eric Dumazet <dada1@cosmosbay.com>
+Date: Fri, 14 Oct 2005 00:01:13 +0200
 
-I can see the concern of processing pure transport mode packets in IPv6
-twice in the stack because IPsec in IPv6 is used for a totally different
-purpose compared to IPv4.
+> Hi David, sorry for being late, I was traveling these last two days.
 
-So how about this? We let the SA tell us whether they want to go through
-netfilter again.  So each SA will carry a flag which determines whether
-packets through it should go through netfilter.
+No problem, I'm about to go traveling for 2 weeks :-)
 
-This flag would only affect transport mode SAs of course.
+We put in a slightly different, arguably simpler/safer fix,
+in for 2.6.14, but I invite you to submit this patch of
+your's once the vmalloc_node() stuff goes into 2.6.15
 
-Cheers,
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Thanks!
