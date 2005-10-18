@@ -1,14 +1,14 @@
-From: "Pablo Sanchez" <pablo@blueoakdb.com>
-Subject: searching for the proper group re: compilation questions
-Date: Mon, 17 Oct 2005 22:14:33 -0400
-Message-ID: <NEBBLLCNFOFHMALJMDDEGEHDBBAB.pablo@blueoakdb.com>
-Reply-To: pablo@blueoakdb.com
+From: Henrik Nordstrom <hno@marasystems.com>
+Subject: Re: tcp match silently drops packets
+Date: Tue, 18 Oct 2005 10:31:04 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0510181029260.6259@filer.marasystems.com>
+References: <E1ERgwX-0002vy-00@gondolin.me.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Herbert Xu <herbert@gondor.apana.org.au>
+In-Reply-To: <E1ERgwX-0002vy-00@gondolin.me.apana.org.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,16 +20,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Tue, 18 Oct 2005, Herbert Xu wrote:
 
-Before I submit my question, I thought I'd ask if this is the proper =
-list to ask questions about compilation issues.
+> Henrik Nordstrom <hno@marasystems.com> wrote:
+>>
+>> An IP fragment with offset 1 can overwrite parts of the TCP header, and if
+>
+> IP fragment offset is measured in units of 8 bytes so this can't happen.
 
-If it's not, would it be the general 'netfilter user mailing list'?
+I know. I tried to correct myself in a later message. The port numbers can 
+not be overwritten by fragments, but the TCP flags such as SYN can. The 
+first 8 bytes only contains the ports and sequence number.
 
-Cheers,
----
-Pablo Sanchez - Blueoak Database Engineering, Inc
-Ph:    819.459.1926          Toll free:  888.459.1926
-Cell:  819.664.9118                Pgr:  pablo_p@blueoakdb.com
-Fax:   603.720.7723 (US)           Fax:  514.371.1255 (Canada)
+Regegards
+Henrik
