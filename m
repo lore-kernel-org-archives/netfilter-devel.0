@@ -1,15 +1,12 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: CONNMARK target without ip_conntrack
-Date: Wed, 19 Oct 2005 00:34:03 +0200
-Message-ID: <4355785B.5090802@eurodev.net>
-References: <20051018221702.GA22386@packetconsulting.pl>
+Subject: [PATCH] connmark requires ip_conntrack
+Date: Wed, 19 Oct 2005 00:57:53 +0200
+Message-ID: <43557DF1.60207@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------040405090805000407090909"
+Cc: Piotr Chytla <pch@packetconsulting.pl>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Piotr Chytla <pch@packetconsulting.pl>
-In-Reply-To: <20051018221702.GA22386@packetconsulting.pl>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +18,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Piotr Chytla wrote:
-> Mark set/restore/save is set when ip_conntrack structure exist , but
-> there is no warning message in logs about not loaded ip_conntrack or
-> something similar. Maybe it's wise to put some warning message :
-> 
-> if (ct) {
-> 	[..]
-> } else printk(KERN_ERR "CONNMARK: no conntrack!\n");
+This is a multi-part message in MIME format.
+--------------040405090805000407090909
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-No. Even with ip_conntrack loaded it could possible that a skb doesn't
-have any conntrack associated: in that case it means that the packet is
-considered invalid.
+Hi Patrick,
 
---
-Pablo
+The connmark match/target require ip_conntrack to work. This patch add 
+such dependency via need_ip_conntrack(). Thanks to Piotr Chytla for 
+spotting this problem.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@eurodev.net>
+
+--------------040405090805000407090909
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+diff --git a/net/ipv4/netfilter/ipt_CONNMARK.c b/net/ipv4/netfilter/ipt_CONNMARK.c
+index 1346380..05d66ab 100644
+--- a/net/ipv4/netfilter/ipt_CONNMARK.c
++++ b/net/ipv4/netfilter/ipt_CONNMARK.c
+@@ -109,6 +109,7 @@ static struct ipt_target ipt_connmark_re
+ 
+ static int __init init(void)
+ {
++	need_ip_conntrack();
+ 	return ipt_register_target(&ipt_connmark_reg);
+ }
+ 
+diff --git a/net/ipv4/netfilter/ipt_connmark.c b/net/ipv4/netfilter/ipt_connmark.c
+index bf8de47..d99cf71 100644
+--- a/net/ipv4/netfilter/ipt_connmark.c
++++ b/net/ipv4/netfilter/ipt_connmark.c
+@@ -76,6 +76,7 @@ static struct ipt_match connmark_match =
+ 
+ static int __init init(void)
+ {
++	need_ip_conntrack();
+ 	return ipt_register_match(&connmark_match);
+ }
+ 
+
+--------------040405090805000407090909--
