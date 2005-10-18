@@ -1,12 +1,14 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: tcp match silently drops packets
-Date: Tue, 18 Oct 2005 12:11:09 +1000
-Message-ID: <E1ERgwX-0002vy-00@gondolin.me.apana.org.au>
-References: <Pine.LNX.4.61.0510171549520.21372@filer.marasystems.com>
-Cc: netfilter-devel@lists.netfilter.org
+From: "Pablo Sanchez" <pablo@blueoakdb.com>
+Subject: searching for the proper group re: compilation questions
+Date: Mon, 17 Oct 2005 22:14:33 -0400
+Message-ID: <NEBBLLCNFOFHMALJMDDEGEHDBBAB.pablo@blueoakdb.com>
+Reply-To: pablo@blueoakdb.com
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: hno@marasystems.com (Henrik Nordstrom)
-In-Reply-To: <Pine.LNX.4.61.0510171549520.21372@filer.marasystems.com>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,15 +20,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Henrik Nordstrom <hno@marasystems.com> wrote:
-> 
-> An IP fragment with offset 1 can overwrite parts of the TCP header, and if 
+Hi,
 
-IP fragment offset is measured in units of 8 bytes so this can't happen.
+Before I submit my question, I thought I'd ask if this is the proper =
+list to ask questions about compilation issues.
+
+If it's not, would it be the general 'netfilter user mailing list'?
 
 Cheers,
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+---
+Pablo Sanchez - Blueoak Database Engineering, Inc
+Ph:    819.459.1926          Toll free:  888.459.1926
+Cell:  819.664.9118                Pgr:  pablo_p@blueoakdb.com
+Fax:   603.720.7723 (US)           Fax:  514.371.1255 (Canada)
