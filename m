@@ -1,16 +1,12 @@
-From: Henrik Nordstrom <hno@marasystems.com>
+From: Herbert Xu <herbert@gondor.apana.org.au>
 Subject: Re: tcp match silently drops packets
-Date: Mon, 17 Oct 2005 23:52:21 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0510172343270.23546@filer.marasystems.com>
-References: <E1ERGOc-0008Hg-00@gondolin.me.apana.org.au>
-	<Pine.LNX.4.61.0510172114290.23546@filer.marasystems.com>
-	<20051017212732.GA7010@gondor.apana.org.au>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Date: Tue, 18 Oct 2005 12:11:09 +1000
+Message-ID: <E1ERgwX-0002vy-00@gondolin.me.apana.org.au>
+References: <Pine.LNX.4.61.0510171549520.21372@filer.marasystems.com>
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Herbert Xu <herbert@gondor.apana.org.au>
-In-Reply-To: <20051017212732.GA7010@gondor.apana.org.au>
+To: hno@marasystems.com (Henrik Nordstrom)
+In-Reply-To: <Pine.LNX.4.61.0510171549520.21372@filer.marasystems.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,17 +18,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 18 Oct 2005, Herbert Xu wrote:
+Henrik Nordstrom <hno@marasystems.com> wrote:
+> 
+> An IP fragment with offset 1 can overwrite parts of the TCP header, and if 
 
-> This is not true if tunnels are involved.
+IP fragment offset is measured in units of 8 bytes so this can't happen.
 
-True, and perhaps the tcp match should be relaxed slightly to only hotdrop 
-packets if it's the first fragment and what is needed to evaluate the 
-match is not there..
-
-The port matches can evaluate just fine if the first fragment is minimal. 
-It's only the flags matches etc which would fail (and drop the packet 
-to be safe)..
-
-Regards
-Henrik
+Cheers,
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
