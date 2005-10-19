@@ -1,17 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: PATCH Re: ipt_ulog.h versus ebt_ulog.h
-Date: Wed, 19 Oct 2005 15:10:44 +0200
-Message-ID: <20051019131044.GG26672@sunbeam.de.gnumonks.org>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: PATCH Re: ipt_ulog.h versus ebt_ulog.h
+Date: Wed, 19 Oct 2005 14:05:27 +0100
+Message-ID: <43564497.20009@ufomechanic.net>
 References: <dj519g$ke6$1@sea.gmane.org> <435614E6.1080200@ufomechanic.net>
-	<43564497.20009@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jTMWTj4UTAEmbWeb"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------030409080804070805020602"
+Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-Content-Disposition: inline
-In-Reply-To: <43564497.20009@ufomechanic.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <435614E6.1080200@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,52 +20,68 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------030409080804070805020602
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
---jTMWTj4UTAEmbWeb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Do we need an equivalent patch for ulog2?
 
-On Wed, Oct 19, 2005 at 02:05:27PM +0100, Amin Azez wrote:
-> Do we need an equivalent patch for ulog2?
+ipt_ULOG was logging the bridge device instead of the physical devices
+(for bridged packets at least).
 
-there is no ulog2 inside the kernel.  nfnetlink_log is the system that
-obsoletes ULOG.  nfnetlink_log transports both, the indev/outdev _and_
-the phys{in,out}dev to userspace.
+This patch does it's best to cause logging of the physical devices
+involved. I realise the patch is not going to be handled as it addresses
+ulog1 but I should ask if the problem of not logging physical devices is
+also a problem with ulog2.
 
-> ipt_ULOG was logging the bridge device instead of the physical devices
-> (for bridged packets at least).
+Harald; also does it make sense with ulog2 to talk about merging
+ebt_ulog_packet_msg and ulog_packet_msg?
 
-yes, which is the correct behaviour from a technical point of view.
+Sam
 
-> Harald; also does it make sense with ulog2 to talk about merging
-> ebt_ulog_packet_msg and ulog_packet_msg?
 
-please look at nfnetlink_log.  It supersedes any of the old in-kernel
-ulog stuff, and is totally independent of any fixed messages.
 
-Since ipt_ULOG (and as far as my opinion goes, ebt_ulog as well) is
-scheduled for feature removal,  I will not apply your patch.
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+--------------030409080804070805020602
+Content-Type: text/x-patch;
+ name="ulog.physdev2.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ulog.physdev2.patch"
 
---jTMWTj4UTAEmbWeb
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+--- ./net/ipv4/netfilter/ipt_ULOG.c.prephysdev	2005-10-19 10:46:52.000000000 +0100
++++ ./net/ipv4/netfilter/ipt_ULOG.c	2005-10-19 11:55:49.000000000 +0100
+@@ -244,14 +244,26 @@
+ 	} else
+ 		pm->mac_len = 0;
+ 
+-	if (in)
+-		strncpy(pm->indev_name, in->name, sizeof(pm->indev_name));
+-	else
++	if (in) {
++#ifdef CONFIG_BRIDGE_NETFILTER
++		if (skb->nf_bridge) 
++			strncpy(pm->indev_name, &(skb->nf_bridge->physindev->name), sizeof(pm->indev_name));
++		else if (skb->input_dev) 
++			strncpy(pm->indev_name, &(skb->input_dev.name), sizeof(pm->indev_name));
++		else 
++#endif
++			strncpy(pm->indev_name, in->name, sizeof(pm->indev_name));
++	} else
+ 		pm->indev_name[0] = '\0';
+ 
+-	if (out)
++	if (out) {
++#ifdef CONFIG_BRIDGE_NETFILTER
++		if (skb->nf_bridge) 
++			strncpy(pm->outdev_name, &(skb->nf_bridge->physoutdev->name), sizeof(pm->outdev_name));
++		else 
++#endif
+ 		strncpy(pm->outdev_name, out->name, sizeof(pm->outdev_name));
+-	else
++	} else
+ 		pm->outdev_name[0] = '\0';
+ 
+ 	/* copy_len <= skb->len, so can't fail. */
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDVkXUXaXGVTD0i/8RAsAHAKCm3EHubpKqiQlF3aOVwipQCmP7rwCeKk9j
-Eyn6uBcBKTvLZnnF5u0MItk=
-=aBWF
------END PGP SIGNATURE-----
-
---jTMWTj4UTAEmbWeb--
+--------------030409080804070805020602--
