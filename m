@@ -1,33 +1,31 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: any Api to program with iptables without system(...)
-Date: Wed, 19 Oct 2005 19:30:42 +0200
-Message-ID: <435682C2.1000504@eurodev.net>
-References: <bc16c9260510171445u5584db7t@mail.gmail.com>
+From: Jorge Salamero Sanz <526715@celes.unizar.es>
+Subject: Re: [ANNOUNCE] Homepage reorganization
+Date: Wed, 19 Oct 2005 20:18:59 +0200
+Message-ID: <200510192019.00015.526715@celes.unizar.es>
+References: <20051019145838.GH26672@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: iAc <iacopo.masi@gmail.com>
-In-Reply-To: <bc16c9260510171445u5584db7t@mail.gmail.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>
+In-Reply-To: <20051019145838.GH26672@sunbeam.de.gnumonks.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-iAc wrote:
-> I have to develop a program that interface with Iptables but for security
-> reason I'm canno use system call System(iptables command).
-> I have try to find out a better way but I didn't find nothing.
-> Someone there can show me how can I interact with iptables withou system
-> call "System etc. etc." ??
+On Wednesday 19 October 2005 16:58, Harald Welte wrote:
+> As discussed at the annual developer workshop, =A0I've now restructured
+> the netfilter.org project homepage.
 
-No, the iptables API is not documented. This is one of the current flaws 
-that still persist in iptables. The safest way to work with iptables is 
-using system(...)
+are available the presentations from the workshop anywhre ?
