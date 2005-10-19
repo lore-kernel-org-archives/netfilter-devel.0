@@ -1,14 +1,14 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: PATCH Re: ipt_ulog.h versus ebt_ulog.h
-Date: Wed, 19 Oct 2005 14:05:27 +0100
-Message-ID: <43564497.20009@ufomechanic.net>
-References: <dj519g$ke6$1@sea.gmane.org> <435614E6.1080200@ufomechanic.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: [ANNOUNCE] Homepage reorganization
+Date: Wed, 19 Oct 2005 16:58:38 +0200
+Message-ID: <20051019145838.GH26672@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030409080804070805020602"
-Cc: Harald Welte <laforge@netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mrJd9p1Ce66CJMxE"
+Cc: Netfilter Mailinglist <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <435614E6.1080200@ufomechanic.net>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,68 +20,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030409080804070805020602
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 
-Do we need an equivalent patch for ulog2?
+--mrJd9p1Ce66CJMxE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-ipt_ULOG was logging the bridge device instead of the physical devices
-(for bridged packets at least).
+Hi!
 
-This patch does it's best to cause logging of the physical devices
-involved. I realise the patch is not going to be handled as it addresses
-ulog1 but I should ask if the problem of not logging physical devices is
-also a problem with ulog2.
+As discussed at the annual developer workshop,  I've now restructured
+the netfilter.org project homepage.
 
-Harald; also does it make sense with ulog2 to talk about merging
-ebt_ulog_packet_msg and ulog_packet_msg?
+The main purpose is to separate out all iptables specific things and
+move everything specific to individual (sub)projects into the
+	http://www.netfilter.org/projects/
+tree.
 
-Sam
+This also means that I have removed the headlinks to ipset and hipac,
+since they now both have their own project page.  The headlink bar now
+only lists "generic" infrastructure links, such as bugzilla,
+mailinglists, subversion, etc.
 
+I'd also like to again point out the new http://planet.netfilter.org/
+aggregator.  We're still lacking a number of developer blogs.  I know
+there were more volunteers at the workshop, but no one apart from Martin
+seems to have started their blog.  Be warned, in the next mail I'll
+mention specific names :)
 
+Cheers,
+	Harald
 
---------------030409080804070805020602
-Content-Type: text/x-patch;
- name="ulog.physdev2.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ulog.physdev2.patch"
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
---- ./net/ipv4/netfilter/ipt_ULOG.c.prephysdev	2005-10-19 10:46:52.000000000 +0100
-+++ ./net/ipv4/netfilter/ipt_ULOG.c	2005-10-19 11:55:49.000000000 +0100
-@@ -244,14 +244,26 @@
- 	} else
- 		pm->mac_len = 0;
- 
--	if (in)
--		strncpy(pm->indev_name, in->name, sizeof(pm->indev_name));
--	else
-+	if (in) {
-+#ifdef CONFIG_BRIDGE_NETFILTER
-+		if (skb->nf_bridge) 
-+			strncpy(pm->indev_name, &(skb->nf_bridge->physindev->name), sizeof(pm->indev_name));
-+		else if (skb->input_dev) 
-+			strncpy(pm->indev_name, &(skb->input_dev.name), sizeof(pm->indev_name));
-+		else 
-+#endif
-+			strncpy(pm->indev_name, in->name, sizeof(pm->indev_name));
-+	} else
- 		pm->indev_name[0] = '\0';
- 
--	if (out)
-+	if (out) {
-+#ifdef CONFIG_BRIDGE_NETFILTER
-+		if (skb->nf_bridge) 
-+			strncpy(pm->outdev_name, &(skb->nf_bridge->physoutdev->name), sizeof(pm->outdev_name));
-+		else 
-+#endif
- 		strncpy(pm->outdev_name, out->name, sizeof(pm->outdev_name));
--	else
-+	} else
- 		pm->outdev_name[0] = '\0';
- 
- 	/* copy_len <= skb->len, so can't fail. */
+--mrJd9p1Ce66CJMxE
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
---------------030409080804070805020602--
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDVl8eXaXGVTD0i/8RAhQVAKCFPN6ggnLdNmkM9WE034yluP6f5QCgm03j
+tVTBBVqoIxNyh9/kmxFE5xw=
+=v6UE
+-----END PGP SIGNATURE-----
+
+--mrJd9p1Ce66CJMxE--
