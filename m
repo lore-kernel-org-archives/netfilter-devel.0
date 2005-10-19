@@ -1,16 +1,16 @@
-From: Antonio <anton.ananich@gmail.com>
-Subject: Re: pptp-conntrack-nat & kernel 2.6.11
-Date: Sun, 16 Oct 2005 11:15:18 +0300
-Message-ID: <5a335a3d0510160115m266070a6ud7dac58e5763e44e__30807.3136061013$1129721913$gmane$org@mail.gmail.com>
-References: <57F9959B46E0FA4D8BA88AEDFBE582900B586A@pxtbenexd01.pxt.primeexalia.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] libnfnetlink updates, take 2
+Date: Wed, 19 Oct 2005 13:45:14 +0200
+Message-ID: <20051019114514.GC26672@sunbeam.de.gnumonks.org>
+References: <4353C9F5.6070603@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Cc: Harald Welte <laforge@netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UFHRwCdBEJvubb2X"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Gary W. Smith" <gary@primeexalia.com>
-In-Reply-To: <57F9959B46E0FA4D8BA88AEDFBE582900B586A@pxtbenexd01.pxt.primeexalia.com>
+To: Pablo Neira <pablo@netfilter.org>
 Content-Disposition: inline
+In-Reply-To: <4353C9F5.6070603@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,35 +22,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-RGVhciBHYXJ5IQoKT24gMTAvMTYvMDUsIEdhcnkgVy4gU21pdGggPGdhcnlAcHJpbWVleGFsaWEu
-Y29tPiB3cm90ZToKPiBZb3UgYXJlIG1pc3NpbmcgdGhlIGZsYWcgdG8gdHVybiBvbiBwcm90b19n
-cmUuIFRoYXQncyB3aHkgaXQncyBub3QKPiBhdmFpbGFibGUgdG8geW91LgoKVGhlIG9wdGlvbiBD
-T05GSUdfSVBfTkZfTkFUX1BST1RPX0dSRSB3YXMgbWlzc2luZyBpbiBteSBjb25maWcgaW5kZWVk
-LgpCdXQgd2hlbiBJIHJ1bgojIG1ha2UgbWVudWNvbmZpZwpJIGhhdmUgbm90IGZvdW5kIHBvc3Np
-YmlsaXR5IHRvIGVuYWJsZSBpdCA6KCBIZXJlIGlzIHNjcmVlbnNob3Q6CgrilIIg4pSM4pSA4pSA
-4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA
-4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSQIOKUggog4pSCIOKUgiA8Kj4gQ29ubmVj
-dGlvbiB0cmFja2luZyAocmVxdWlyZWQgZm9yIG1hc3EvTkFUKSDilIIg4pSCCiDilIIg4pSCIFsg
-XSBDb25uZWN0aW9uIHRyYWNraW5nIGZsb3cgYWNjb3VudGluZyDilIIg4pSCCiDilIIg4pSCIFsg
-XSBDb25uZWN0aW9uIG1hcmsgdHJhY2tpbmcgc3VwcG9ydCDilIIg4pSCCiDilIIg4pSCIFsgXSBD
-b25uZWN0aW9uIHRyYWNraW5nIGV2ZW50cyDilIIg4pSCCiDilIIg4pSCIDwgPiBTQ1RQIHByb3Rv
-Y29sIGNvbm5lY3Rpb24gdHJhY2tpbmcgc3VwcG9ydCAoRVhQRVJJTUVOVEFMKSDilIIg4pSCCiDi
-lIIg4pSCIDxNPiBGVFAgcHJvdG9jb2wgc3VwcG9ydCDilIIg4pSCCiDilIIg4pSCIDxNPiBJUkMg
-cHJvdG9jb2wgc3VwcG9ydCDilIIg4pSCCiDilIIg4pSCIDwgPiBOZXRCSU9TIG5hbWUgc2Vydmlj
-ZSBwcm90b2NvbCBzdXBwb3J0IChFWFBFUklNRU5UQUwpIOKUgiDilIIKIOKUgiDilIIgPCA+IFRG
-VFAgcHJvdG9jb2wgc3VwcG9ydCDilIIg4pSCCiDilIIg4pSCIDwgPiBBbWFuZGEgYmFja3VwIHBy
-b3RvY29sIHN1cHBvcnQg4pSCIOKUggog4pSCIOKUgiA8TT4gUFBUUCBwcm90b2NvbCBzdXBwb3J0
-IOKUgiDilIIKIOKUgiDilIIgPCA+IElQIFVzZXJzcGFjZSBxdWV1ZWluZyB2aWEgTkVUTElOSyAo
-T0JTT0xFVEUpIOKUgiDilIIKIOKUgiDilIIgPCo+IElQIHRhYmxlcyBzdXBwb3J0IChyZXF1aXJl
-ZCBmb3IgZmlsdGVyaW5nL21hc3EvTkFUKSDilIIg4pSCCiDilIIg4pSCIDwgPiBsaW1pdCBtYXRj
-aCBzdXBwb3J0IOKUgiDilIIKIOKUgiDilIIgPCo+IElQIHJhbmdlIG1hdGNoIHN1cHBvcnQg4pSC
-IOKUggog4pSCIOKUlOKUgOKUgOKUtCgrKeKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKU
-gOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKU
-gOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKU
-gOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUmCDilIIKCgpJbiBw
-cmV2aW91cyB2ZXJzaW9ucyB0aGVyZSB3YXMgYm90aCBHUkUgYW5kIFBQVFAgb3B0aW9ucy4KCkkg
-ZXZlbiB0cnllZCB0byBhZGQgQ09ORklHX0lQX05GX05BVF9QUk9UT19HUkUgZGVmaW5pdGlvbiB0
-byAuY29uZmlnIGZpbGUKbWFudWFsbHkgYnV0IEkgZ290IG5vdGhpbmcgOigKCi0tCkJlc3QgUmVn
-YXJkcywKQW50b25pbwo=
+
+--UFHRwCdBEJvubb2X
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Oct 17, 2005 at 05:57:41PM +0200, Pablo Neira wrote:
+> Hi Harald,
+>=20
+> This patch includes the following changes:
+
+Pablo, this patch didn't even apply to the latest libnfnetlink.  Please
+make sure that patches apply before submitting them.
+
+I've now manually merged your changes.
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--UFHRwCdBEJvubb2X
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDVjHKXaXGVTD0i/8RAru5AJ0UMrvU9ILF2L6wzG930FooV76YRgCdHpBl
+iEPqG+RrxBy/8+9zyLbLR8g=
+=FfUH
+-----END PGP SIGNATURE-----
+
+--UFHRwCdBEJvubb2X--
