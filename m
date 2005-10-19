@@ -1,12 +1,17 @@
-From: Marco Innocenti <dot0037@iperbole.bologna.it>
-Subject: [PATCH] NETFILTER: add support for invert condition (!) in ipt_limit
-Date: Mon, 17 Oct 2005 11:34:33 +0200
-Message-ID: <20051017093433.GA25948@pc-innocenti.cineca.it>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: PATCH Re: ipt_ulog.h versus ebt_ulog.h
+Date: Wed, 19 Oct 2005 15:10:44 +0200
+Message-ID: <20051019131044.GG26672@sunbeam.de.gnumonks.org>
+References: <dj519g$ke6$1@sea.gmane.org> <435614E6.1080200@ufomechanic.net>
+	<43564497.20009@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jTMWTj4UTAEmbWeb"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Amin Azez <azez@ufomechanic.net>
 Content-Disposition: inline
+In-Reply-To: <43564497.20009@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,87 +23,52 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Add support for invert condition (!) in ipt_limit.
 
-Signed-off-by: Marco Innocenti <m.innocenti@cineca.it>
+--jTMWTj4UTAEmbWeb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
----
-Hi, this is my first patch and I hope I followed the guideline.
-The patch change the kernel and iptables. Should I have sent two mail?
+On Wed, Oct 19, 2005 at 02:05:27PM +0100, Amin Azez wrote:
+> Do we need an equivalent patch for ulog2?
 
+there is no ulog2 inside the kernel.  nfnetlink_log is the system that
+obsoletes ULOG.  nfnetlink_log transports both, the indev/outdev _and_
+the phys{in,out}dev to userspace.
 
-diff -uprN linux-2.6.13.4/include/linux/netfilter_ipv4/ipt_limit.h linux-2.6.13.4.mio/include/linux/netfilter_ipv4/ipt_limit.h
---- linux-2.6.13.4/include/linux/netfilter_ipv4/ipt_limit.h	2005-10-10 20:54:29.000000000 +0200
-+++ linux-2.6.13.4.mio/include/linux/netfilter_ipv4/ipt_limit.h	2005-10-15 16:25:02.000000000 +0200
-@@ -9,6 +9,7 @@
- struct ipt_rateinfo {
- 	u_int32_t avg;    /* Average secs between packets * scale */
- 	u_int32_t burst;  /* Period multiplier for upper limit. */
-+	u_int8_t invert;
- 
- 	/* Used internally by the kernel */
- 	unsigned long prev;
-diff -uprN linux-2.6.13.4/net/ipv4/netfilter/ipt_limit.c linux-2.6.13.4.mio/net/ipv4/netfilter/ipt_limit.c
---- linux-2.6.13.4/net/ipv4/netfilter/ipt_limit.c	2005-10-10 20:54:29.000000000 +0200
-+++ linux-2.6.13.4.mio/net/ipv4/netfilter/ipt_limit.c	2005-10-15 16:30:23.000000000 +0200
-@@ -82,11 +82,11 @@ ipt_limit_match(const struct sk_buff *sk
- 		/* We're not limited. */
- 		r->credit -= r->cost;
- 		spin_unlock_bh(&limit_lock);
--		return 1;
-+		return 1 ^ r->invert;
- 	}
- 
-        	spin_unlock_bh(&limit_lock);
--	return 0;
-+	return 0 ^ r->invert;
- }
- 
- /* Precision saver. */
-+diff -upNr iptables-1.3.3/extensions/libipt_limit.c iptables-1.3.3.mio/extensions/libipt_limit.c
---- iptables-1.3.3/extensions/libipt_limit.c	2005-02-19 20:19:17.000000000 +0100
-+++ iptables-1.3.3.mio/extensions/libipt_limit.c	2005-10-16 21:44:24.000000000 +0200
-@@ -23,7 +23,7 @@ help(void)
- {
- 	printf(
- "limit v%s options:\n"
--"--limit avg			max average match rate: default "IPT_LIMIT_AVG"\n"
-+"[!] --limit avg			max average match rate: default "IPT_LIMIT_AVG"\n"
- "                                [Packets per second unless followed by \n"
- "                                /sec /minute /hour /day postfixes]\n"
- "--limit-burst number		number to match in a burst, default %u\n"
-@@ -121,8 +121,7 @@ parse(int c, char **argv, int invert, un
- 	}
- 
- 	if (invert)
--		exit_error(PARAMETER_PROBLEM,
--			   "limit does not support invert");
-+		r->invert = 1;
- 
- 	return 1;
- }
-@@ -161,6 +160,8 @@ print(const struct ipt_ip *ip,
-       int numeric)
- {
- 	struct ipt_rateinfo *r = (struct ipt_rateinfo *)match->data;
-+	if (r->invert)
-+		printf("! ");
- 	printf("limit: avg "); print_rate(r->avg);
- 	printf("burst %u ", r->burst);
- }
-diff -upNr iptables-1.3.3/include/linux/netfilter_ipv4/ipt_limit.h iptables-1.3.3.mio/include/linux/netfilter_ipv4/ipt_limit.h
---- iptables-1.3.3/include/linux/netfilter_ipv4/ipt_limit.h	2004-10-10 11:56:23.000000000 +0200
-+++ iptables-1.3.3.mio/include/linux/netfilter_ipv4/ipt_limit.h	2005-10-16 21:34:43.000000000 +0200
-@@ -9,6 +9,7 @@
- struct ipt_rateinfo {
- 	u_int32_t avg;    /* Average secs between packets * scale */
- 	u_int32_t burst;  /* Period multiplier for upper limit. */
-+	u_int8_t invert;
- 
- #ifdef KERNEL_64_USERSPACE_32
- 	u_int64_t prev;
+> ipt_ULOG was logging the bridge device instead of the physical devices
+> (for bridged packets at least).
 
+yes, which is the correct behaviour from a technical point of view.
 
--- 
-Ciao
-     Marco Innocenti
+> Harald; also does it make sense with ulog2 to talk about merging
+> ebt_ulog_packet_msg and ulog_packet_msg?
+
+please look at nfnetlink_log.  It supersedes any of the old in-kernel
+ulog stuff, and is totally independent of any fixed messages.
+
+Since ipt_ULOG (and as far as my opinion goes, ebt_ulog as well) is
+scheduled for feature removal,  I will not apply your patch.
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--jTMWTj4UTAEmbWeb
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDVkXUXaXGVTD0i/8RAsAHAKCm3EHubpKqiQlF3aOVwipQCmP7rwCeKk9j
+Eyn6uBcBKTvLZnnF5u0MItk=
+=aBWF
+-----END PGP SIGNATURE-----
+
+--jTMWTj4UTAEmbWeb--
