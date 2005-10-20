@@ -1,12 +1,17 @@
-From: Jerry Alexander <jerrya@airmail.net>
-Subject: IPTABLES FORWARDING won't work
-Date: Thu, 20 Oct 2005 16:09:52 -0500
-Message-ID: <435807A0.5090008@airmail.net>
+From: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Subject: Re: [PATCH] owner-socketlookup update for 2.6.10
+Date: Thu, 20 Oct 2005 22:29:53 +0000
+Message-ID: <43581A61.4020103@outerspace.dyndns.org>
+References: <4211F586.7020106@niksula.hut.fi>	
+	<20050216133807.GW3829@sunbeam.de.gnumonks.org>
+	<5b698f5a0510201037k3a246f09g4cb92eb83b1910ca@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Norman Rasmussen <norman@rasmussen.co.za>
+In-Reply-To: <5b698f5a0510201037k3a246f09g4cb92eb83b1910ca@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,43 +23,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear NF:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: RIPEMD160
 
-         Sent the earlier message and so far no help
-         Some additional info.   It is a linux 2.4.20-8.
-         iptables-save  shows ":FORWARD ACCEPT [0:0]"
-   which means no packets/bytes have been forwarded.
-         No error messages from /var/log/messages.
-         Other than loading the modules,  echo'ing a 1 into ip_forward,
-and putting in a FORWARD rule I don't think there is anything else to do.
-          I did  go into System Settings and set it to "no firewall".
-          Any help?!
+Quoting Norman Rasmussen on 2005-10-20 17:37 UTC:
+> The owner-socketlookup patch has once more broken between 2.6.10 and 2.6.12.
+> 
+> It seems that udp_v4_lookup is now static, so I've changed the header
+> in the patch and I'll see if it helps.
+> 
+> Otherwise, Jonas you did such a good job on the previous attempt, if I
+> can't get it to work, do you have time to have a look and see if you
+> can tweak the patch to make it work against 2.6.12?
 
-                                                                     Jerry
+If I find spare time, certainly :)
 
-example entries:
+- --
+- - xkr47
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
--A FORWARD -d  192.168.0.17 -p udp -m udp --dport 32779 -j ACCEPT
-
-....
-
-           
-Dear NF:
-
-          Had FORWARD"ing working a couple of weeks ago.
-          Other than loading the modules,  echo'ing "1" to ip_forward
-and entering a "iptables -A FORWARD ...."   it worked fine.
-          Ran "ping" and  "iperf" and captured the packets on ethereal and
-could see the additional packets.
-          Have tried  with a kernel with everything built in and a kernel
-where I loaded the modules.
-           It worked with no hassles when I tried it before and now
-for the life of me, can't figure out why it just doesn't work.
-          What is strange is that  setting "-t nat -A PREROUTING" and
-changing the destination address works fine!
-           Not sure what else to try since it doesn't take much to get
-it working(when it works!).
-          Appreciate the help.
-
-                                                    thanks,
-                                                           Jerry
+iD8DBQFDWBpdxyF48ZTvn+4RAxczAKCKeYqjvLtr9rGiLo/eCnWM5Jsa5wCfYxdR
+J3Xp3CAgF7bJfU1vQP1iGSQ=
+=TMrr
+-----END PGP SIGNATURE-----
