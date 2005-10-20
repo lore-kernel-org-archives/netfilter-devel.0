@@ -1,12 +1,11 @@
-From: Jerry Alexander <jerrya@airmail.net>
-Subject: FORWARD
-Date: Wed, 19 Oct 2005 19:08:04 -0500
-Message-ID: <4356DFE4.5000406@airmail.net>
+From: "Marco Berizzi" <pupilla@hotmail.com>
+Subject: mark value as routing key
+Date: Thu, 20 Oct 2005 10:14:56 +0200
+Message-ID: <BAY103-F12CBD5D305A6953CA1C2EEB2730@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, Jerry <jerry@mavenir.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,22 +17,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear NF:
+Hi.
 
-           Had FORWARD"ing working a couple of weeks ago.
-           Other than loading the modules,  echo'ing "1" to ip_forward
-and entering a "iptables -A FORWARD ...."   it worked fine.
-           Ran "ping" and  "iperf" and captured the packets on ethereal and
-could see the additional packets.
-           Have tried  with a kernel with everything built in and a kernel
-where I loaded the modules.
-            It worked with no hassles when I tried it before and now
-for the life of me, can't figure out why it just doesn't work.
-           What is strange is that  setting "-t nat -A PREROUTING" and
-changing the destination address works fine!
-            Not sure what else to try since it doesn't take much to get
-it working(when it works!).
-           Appreciate the help.
+I have a problem with iptables mark target.
+I'm using iptables to mark packet in this manner:
 
-                                                     thanks,
-                                                            Jerry
+iptables -t mangle -I OUTPUT --protocol tcp --dport 80 -j MARK --set-mark 1
+
+This linux box has two different ip addresses on
+two different subnet on the same ethernet NIC:
+
+eth0: 1.1.1.254/24
+eth0:adslA: 10.10.10.6/29
+
+This is my ip rule sh output:
+
+0: from all lookup local
+400: from all fwmark 0x1 lookup adsl
+450: from all lookup hdsl
+32766: from all lookup main
+32767: from all lookup default
+
+Here is ip route sh table adsl:
+default via 10.10.10.1 dev eth0 metric 1
+and this is ip route sh table hdsl:
+default via 1.1.1.1 dev eth0 metric 1
+
+main table doesn't have any default route.
+
+Locally generated packet with destination port 80
+are going through the adsl table but the packet
+source ip is 1.1.1.254. Why source ip packet is
+1.1.1.254? Should't it be 10.10.10.6?
+
+Kernel is vanilla 2.6.14-rc4
+
+TIA
