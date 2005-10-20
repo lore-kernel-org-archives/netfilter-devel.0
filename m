@@ -1,14 +1,14 @@
-From: "Martijn Lievaart" <m@rtij.nl>
+From: David Coulson <david@davidcoulson.net>
 Subject: Re: mark value as routing key
-Date: Thu, 20 Oct 2005 12:57:56 +0200 (CEST)
-Message-ID: <20545.217.166.60.19.1129805876.squirrel@ma.rtij.nl>
+Date: Thu, 20 Oct 2005 08:09:55 -0400
+Message-ID: <43578913.2090103@davidcoulson.net>
 References: <BAY103-F12CBD5D305A6953CA1C2EEB2730@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: pupilla@hotmail.com
+To: Marco Berizzi <pupilla@hotmail.com>
 In-Reply-To: <BAY103-F12CBD5D305A6953CA1C2EEB2730@phx.gbl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -21,25 +21,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Marco Berizzi zei:
 
-> Here is ip route sh table adsl:
-> default via 10.10.10.1 dev eth0 metric 1
-> and this is ip route sh table hdsl:
-> default via 1.1.1.1 dev eth0 metric 1
->
-> main table doesn't have any default route.
->
+
+Marco Berizzi wrote:
+
 > Locally generated packet with destination port 80
 > are going through the adsl table but the packet
 > source ip is 1.1.1.254. Why source ip packet is
 > 1.1.1.254? Should't it be 10.10.10.6?
 
-I think you are missing the 'src' option in your routes.
+No - You will have to create a NAT rule to NAT anything marked with 0x1
+onto 10.10.10.6.
 
-default via 10.10.10.1 dev eth0 metric 1 src 10.10.10.6
+David
 
-HTH,
-M4
-
-P.S. This is better suited for the user  list, not the developers list.
+-- 
+David J. Coulson
+email: david@davidcoulson.net
+web: http://www.davidcoulson.net/
