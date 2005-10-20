@@ -1,31 +1,39 @@
-From: Jorge Salamero Sanz <526715@celes.unizar.es>
-Subject: Re: [ANNOUNCE] Homepage reorganization
-Date: Wed, 19 Oct 2005 20:18:59 +0200
-Message-ID: <200510192019.00015.526715@celes.unizar.es>
-References: <20051019145838.GH26672@sunbeam.de.gnumonks.org>
+From: Jerry Alexander <jerrya@airmail.net>
+Subject: FORWARD
+Date: Wed, 19 Oct 2005 19:08:04 -0500
+Message-ID: <4356DFE4.5000406@airmail.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>
-In-Reply-To: <20051019145838.GH26672@sunbeam.de.gnumonks.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org, Jerry <jerry@mavenir.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wednesday 19 October 2005 16:58, Harald Welte wrote:
-> As discussed at the annual developer workshop, =A0I've now restructured
-> the netfilter.org project homepage.
+Dear NF:
 
-are available the presentations from the workshop anywhre ?
+           Had FORWARD"ing working a couple of weeks ago.
+           Other than loading the modules,  echo'ing "1" to ip_forward
+and entering a "iptables -A FORWARD ...."   it worked fine.
+           Ran "ping" and  "iperf" and captured the packets on ethereal and
+could see the additional packets.
+           Have tried  with a kernel with everything built in and a kernel
+where I loaded the modules.
+            It worked with no hassles when I tried it before and now
+for the life of me, can't figure out why it just doesn't work.
+           What is strange is that  setting "-t nat -A PREROUTING" and
+changing the destination address works fine!
+            Not sure what else to try since it doesn't take much to get
+it working(when it works!).
+           Appreciate the help.
+
+                                                     thanks,
+                                                            Jerry
