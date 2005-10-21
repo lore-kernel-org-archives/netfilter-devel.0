@@ -1,73 +1,90 @@
-From: Sven Schuster <schuster.sven@gmx.de>
-Subject: Re: pppoe with NAT not working
-Date: Fri, 21 Oct 2005 20:46:08 +0200
-Message-ID: <20051021184608.GA27002@zion.homelinux.com>
-References: <23027.::ffff:195.115.41.103.1129902602.squirrel@webmail.nerim.net>
-	<435921A7.6050703@nerim.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] x_tables, take 2
+Date: Sat, 22 Oct 2005 03:52:41 +0900 (JST)
+Message-ID: <200510211852.j9LIqgGq022755@toshiba.co.jp>
+References: <20051015193249.GA5545@rama.0sec>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="azLHFNyN32YCQGCU"
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: =?iso-8859-1?Q?S=E9bastien?= Bernard <sbernard@nerim.net>
-Content-Disposition: inline
-In-Reply-To: <435921A7.6050703@nerim.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: Multipart/Mixed;
+	boundary="--Next_Part(Sat_Oct_22_03_52_41_2005_377)--"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: laforge@netfilter.org
+In-Reply-To: <20051015193249.GA5545@rama.0sec>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---azLHFNyN32YCQGCU
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+----Next_Part(Sat_Oct_22_03_52_41_2005_377)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
 
-Hi S=E9bastien,
+Hi, Harald,
 
-On Fri, Oct 21, 2005 at 07:13:11PM +0200, S=E9bastien Bernard told us:
-> I figured out the problem.
->=20
-> NAT is not working with the rp-pppoe.so plugin.
-> I moved back to the
->=20
-> pty "/usr/sbin/pppoe -I eth0 -T 80 -m 1452"
->=20
-> Which worked now (go figure...).
-> And NAT is working again.
->=20
-> Any reason for this ?
+From: Harald Welte <laforge@netfilter.org>
+Date: Sat, 15 Oct 2005 21:32:49 +0200
 
-sorry, I don't know the reason, but the only thing I can say here is
-"works for me" and has been working for the last 2 1/2 years, at first
-on redhat 9, now I currently have fedora core 4 on my home internet
-machine with two other machines on my internal network...
+> I've actually managed to get some more unfication done. 
+> 
+> There is now no more need to export the xt_mutex[] and xt_tables[] array
+> symbols, one of the main problems that were present with the old 'take 1'.
+> 
+> Unification has now also been implemented for layer4 matches such as
+> tcp/udp/dccp/sctp.
 
+Great.
 
-Sven
+> This is in no way meant to be applied at this stage.  I just want to get
+> some feedback (and testing).
 
---=20
-Linux zion.homelinux.com 2.6.14-rc4-mm1_11 #11 Tue Oct 18 13:24:39 CEST 200=
-5 i686 athlon i386 GNU/Linux
- 20:43:32 up 2 days, 20:28,  1 user,  load average: 0.05, 0.03, 0.00
+Please apply attached patch to fix holding mutex when registering table.
 
---azLHFNyN32YCQGCU
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+And xt_CLASSIFY.c seems to be missing in your tree. I imagine that you wrote it
+but didn't add it.
 
-iD8DBQFDWTdwo4FAdB2PneQRAu8bAKCCMmB18+ffDhDBFfSBPzPH5AesfgCfenVn
-OgtSEKApR+g+rTXIEKIO+7k=
-=0Peq
------END PGP SIGNATURE-----
+Regards,
 
---azLHFNyN32YCQGCU--
+-- Yasuyuki Kozakai
+
+----Next_Part(Sat_Oct_22_03_52_41_2005_377)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="xtables-lock.patch"
+
+[NETFILTER] fix helding lock at registration of xtable.
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+
+---
+commit eb0ac789814dde986d88506dfce150186dc0c965
+tree 85bfba36322c59647b680248330e6182c7ce8ea4
+parent 27a542d5a0803a787d695acdb6c0a8b8101db071
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 21 Oct 2005 01:53:36 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 21 Oct 2005 01:53:36 +0900
+
+ net/netfilter/x_tables.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -317,7 +317,6 @@ int xt_register_table(struct xt_table *t
+ 	rwlock_init(&table->lock);
+ 	list_prepend(&xt_tables[table->af], table);
+ 
+-	return 0;
+  unlock:
+ 	up(&xt_mutex[table->af]);
+ 	return ret;
+
+----Next_Part(Sat_Oct_22_03_52_41_2005_377)----
