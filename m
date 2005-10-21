@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: vlan target for iptables
-Date: Fri, 21 Oct 2005 14:17:59 +0200
-Message-ID: <20051021121759.GQ27778@sunbeam.de.gnumonks.org>
-References: <dd80kc$n5o$1@sea.gmane.org>
+Subject: Re: ipt_ulog.h versus ebt_ulog.h
+Date: Fri, 21 Oct 2005 14:42:23 +0200
+Message-ID: <20051021124223.GR27778@sunbeam.de.gnumonks.org>
+References: <dj519g$ke6$1@sea.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GviraxgP0A7vmYdC"
+	protocol="application/pgp-signature"; boundary="ngshnjhd05HsCES+"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Amin Azez <azez@ufomechanic.net>
 Content-Disposition: inline
-In-Reply-To: <dd80kc$n5o$1@sea.gmane.org>
+In-Reply-To: <dj519g$ke6$1@sea.gmane.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,48 +23,24 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---GviraxgP0A7vmYdC
+--ngshnjhd05HsCES+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Aug 08, 2005 at 05:18:28PM +0100, Amin Azez wrote:
-> Please consider this for inclusion in iptables. Should this go in pom?
-
-I would merge it, once I'm sure that it is safe to use ;)
-
-> This adds --vlan target matching for iptables.
-> Useful when running as a bridge and perhaps in other cases.
+On Wed, Oct 19, 2005 at 09:49:01AM +0100, Amin Azez wrote:
+> Is there a strong reason why ebt_ulog.h log structure has
 >=20
-
-> I'm afraid I had to steal the vlan packet matching code IS_VLAN_* from
-> one of the  vlan modules as it was private to that module.  I hate
-> having to do that.
-
-Well, it actually makes sense since you cannot know whether the local
-network stack actually has vlan support (and therefore has those
-functions for vlan matching).
-
-> For user-space:
+>        char physindev[IFNAMSIZ];
+>        char physoutdev[IFNAMSIZ];
 >=20
-> Just add dump libipt_vlan.c extensions and add vlan to PF_EXT_SLIB
-> definition in extensions/Makefile
->=20
-> I'm not sending a patch for extensions/Makefile that because it's bound
-> to fail applying with all the PF_EXT_SLIB stuff all on one line.
+> and ipt_ulog.h structure does not support physdev?
 
-The question is:
+it's historical, and we can't change it without hurting compatibility.
 
-What happens with packets that don't have a vlan tag?
+Since with 2.6.14, both ebt_ulog and ipt_ULOG are deprecated by
+nfnetlink_log, I don't think it's worth fixing this up.
 
-In order to alway work, it has to be sure that
-
-1) you can match on all valid vlan tag numbers plus "NONE" for no tag
-2) the kernel code produces reasonable results, i.e. also cleanly
-   deals with (and matches) packets that don't have a vlan tag.
-
-Cheers,
-	Harald
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -75,16 +51,16 @@ Cheers,
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---GviraxgP0A7vmYdC
+--ngshnjhd05HsCES+
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDWNx3XaXGVTD0i/8RAjK2AKCMYRFbFNIjZCvaDwvGB4ZfBrbo1gCbBTk/
-5NNcAT/Ck1P5nVYYu5jwXK0=
-=vDv0
+iD8DBQFDWOIvXaXGVTD0i/8RAuQ1AJ4j9bqz6BXMhRq8rlLRSZL509f8sQCcDuQk
+LNiGsv/z7gqhNp4IoTHCLrQ=
+=2Mxd
 -----END PGP SIGNATURE-----
 
---GviraxgP0A7vmYdC--
+--ngshnjhd05HsCES+--
