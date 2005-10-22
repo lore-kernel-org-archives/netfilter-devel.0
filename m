@@ -1,16 +1,17 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [PATCH] x_tables, take 2
-Date: Sat, 22 Oct 2005 03:52:41 +0900 (JST)
-Message-ID: <200510211852.j9LIqgGq022755@toshiba.co.jp>
+Date: Sat, 22 Oct 2005 08:22:20 +0200
+Message-ID: <20051022062220.GK27778@sunbeam.de.gnumonks.org>
 References: <20051015193249.GA5545@rama.0sec>
+	<200510211852.j9LIqgn5012029@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Sat_Oct_22_03_52_41_2005_377)--"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DNkN4mkbZBLvViAv"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20051015193249.GA5545@rama.0sec>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
+In-Reply-To: <200510211852.j9LIqgn5012029@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,69 +23,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Sat_Oct_22_03_52_41_2005_377)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 
+--DNkN4mkbZBLvViAv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi, Harald,
+On Sat, Oct 22, 2005 at 03:52:41AM +0900, Yasuyuki KOZAKAI wrote:
+>=20
+> Hi, Harald,
+>=20
+> From: Harald Welte <laforge@netfilter.org>
+> Date: Sat, 15 Oct 2005 21:32:49 +0200
+>=20
+> > I've actually managed to get some more unfication done.=20
+> >=20
+> > There is now no more need to export the xt_mutex[] and xt_tables[] array
+> > symbols, one of the main problems that were present with the old 'take =
+1'.
+> >=20
+> > Unification has now also been implemented for layer4 matches such as
+> > tcp/udp/dccp/sctp.
+>=20
+> Great.
+>=20
+> > This is in no way meant to be applied at this stage.  I just want to get
+> > some feedback (and testing).
+>=20
+> Please apply attached patch to fix holding mutex when registering table.
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Sat, 15 Oct 2005 21:32:49 +0200
+thanks for sending this fix, but it's already in my tree (maybe I forgot
+to commit), I ran into that bug before.
 
-> I've actually managed to get some more unfication done. 
-> 
-> There is now no more need to export the xt_mutex[] and xt_tables[] array
-> symbols, one of the main problems that were present with the old 'take 1'.
-> 
-> Unification has now also been implemented for layer4 matches such as
-> tcp/udp/dccp/sctp.
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Great.
+--DNkN4mkbZBLvViAv
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-> This is in no way meant to be applied at this stage.  I just want to get
-> some feedback (and testing).
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-Please apply attached patch to fix holding mutex when registering table.
+iD8DBQFDWdqcXaXGVTD0i/8RAqNHAKCcJGT7wjaXtSzaq7xcVitk4E/wWgCeK9XM
+rnpmS2ZYJcxodtxsRvBWquU=
+=WjZr
+-----END PGP SIGNATURE-----
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-
-And xt_CLASSIFY.c seems to be missing in your tree. I imagine that you wrote it
-but didn't add it.
-
-Regards,
-
--- Yasuyuki Kozakai
-
-----Next_Part(Sat_Oct_22_03_52_41_2005_377)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="xtables-lock.patch"
-
-[NETFILTER] fix helding lock at registration of xtable.
-
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-
----
-commit eb0ac789814dde986d88506dfce150186dc0c965
-tree 85bfba36322c59647b680248330e6182c7ce8ea4
-parent 27a542d5a0803a787d695acdb6c0a8b8101db071
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 21 Oct 2005 01:53:36 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 21 Oct 2005 01:53:36 +0900
-
- net/netfilter/x_tables.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
-
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -317,7 +317,6 @@ int xt_register_table(struct xt_table *t
- 	rwlock_init(&table->lock);
- 	list_prepend(&xt_tables[table->af], table);
- 
--	return 0;
-  unlock:
- 	up(&xt_mutex[table->af]);
- 	return ret;
-
-----Next_Part(Sat_Oct_22_03_52_41_2005_377)----
+--DNkN4mkbZBLvViAv--
