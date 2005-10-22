@@ -1,17 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] x_tables, take 2
-Date: Sat, 22 Oct 2005 08:22:20 +0200
-Message-ID: <20051022062220.GK27778@sunbeam.de.gnumonks.org>
-References: <20051015193249.GA5545@rama.0sec>
-	<200510211852.j9LIqgn5012029@toshiba.co.jp>
+Subject: [ADMIN] new netfilter.org mail filtering in place
+Date: Sat, 22 Oct 2005 11:25:27 +0200
+Message-ID: <20051022092527.GM27778@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DNkN4mkbZBLvViAv"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="yO52jeZL+8sEiVPY"
+Cc: netfilter-workshop@lists.netfilter.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	netfilter-failover@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: Netfilter Mailinglist <netfilter@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <200510211852.j9LIqgn5012029@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,36 +23,36 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---DNkN4mkbZBLvViAv
+--yO52jeZL+8sEiVPY
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Oct 22, 2005 at 03:52:41AM +0900, Yasuyuki KOZAKAI wrote:
->=20
-> Hi, Harald,
->=20
-> From: Harald Welte <laforge@netfilter.org>
-> Date: Sat, 15 Oct 2005 21:32:49 +0200
->=20
-> > I've actually managed to get some more unfication done.=20
-> >=20
-> > There is now no more need to export the xt_mutex[] and xt_tables[] array
-> > symbols, one of the main problems that were present with the old 'take =
-1'.
-> >=20
-> > Unification has now also been implemented for layer4 matches such as
-> > tcp/udp/dccp/sctp.
->=20
-> Great.
->=20
-> > This is in no way meant to be applied at this stage.  I just want to get
-> > some feedback (and testing).
->=20
-> Please apply attached patch to fix holding mutex when registering table.
+Hi!
 
-thanks for sending this fix, but it's already in my tree (maybe I forgot
-to commit), I ran into that bug before.
+To reduce the amount of spam in @netfilter.org inboxes, as well as the
+amount of manual list moderation for our listmaster, I've implemented a
+couple of additional filters.
+
+The biggest part is charset-based filtering.  Since the mailinglists and
+all communication within the project is in english anyway, I see no
+point in allowing chinese/korean/japanese (sorry, Yasuyuki) mails to
+netfilter.org in the first place.
+
+This seems rude (and it is), and I would never recommend using such
+filters for a generic mail server.  But for a dedicated system like
+netfilter.org, I think it is fine.
+
+Doing some rough statistics, the charset-based filtering can save us
+more than 90% of the spam that currently passes spamassassin.
+
+In addition, we already did some heuristics-based HTML filtering, which
+does only work for quoted-printable/ascii encodings, but not for base64.
+We're now doing HTML filtering on the decoded mime content (as well as
+the mime type of the individual parts) and thus should catch almost all
+HTML junk.
+
+Please direct complaints to coreteam@netfilter.org
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -65,16 +64,16 @@ to commit), I ran into that bug before.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---DNkN4mkbZBLvViAv
+--yO52jeZL+8sEiVPY
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDWdqcXaXGVTD0i/8RAqNHAKCcJGT7wjaXtSzaq7xcVitk4E/wWgCeK9XM
-rnpmS2ZYJcxodtxsRvBWquU=
-=WjZr
+iD8DBQFDWgWHXaXGVTD0i/8RAp7QAJ9iHi/u3xPhLdd7xIEeG7hC9nwq9wCfR6mG
+QP6qjEbePJQTMQZIaISub4s=
+=FLXz
 -----END PGP SIGNATURE-----
 
---DNkN4mkbZBLvViAv--
+--yO52jeZL+8sEiVPY--
