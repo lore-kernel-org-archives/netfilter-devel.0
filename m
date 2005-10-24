@@ -1,10 +1,10 @@
-From: Deti Fliegl <deti@fliegl.de>
-Subject: iptables & new CONNMARK 32bit marks
-Date: Mon, 24 Oct 2005 17:57:10 +0200
-Message-ID: <435D0456.60405@fliegl.de>
+From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+Subject: How to avoid fragmentation
+Date: Mon, 24 Oct 2005 20:15:41 +0000
+Message-ID: <435D40ED.1080109@speedy.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7BIT
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,13 +18,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello *,
+Hi all!!
 
-when using kernel 2.6.14rc5 the mark values have become 32bit but latest 
-iptables code still uses 64bit values. This causes the kernel module to 
-say "CONNMARK: Only supports 32bit mark" - it seems that the iptables 
-svn repository needs to be updated.
-I've made some patch that works for me but if there's an official 
-version please let me know...
+I'm developing a new target extension and I need to add some extra data
+and headers in TCP/UDP packets. But I'm having a problem: fragmentation.
+In the header developed by me I add a new checksum field to verify the
+integrity of that header. This works fine while there is no
+fragmentation. If the packet is fragmented I can't recalculate that
+checksum.
 
-Deti
+Does someone know how to correct or avoid this? Or have experience with
+fragmentation?
+
+Thanks a lot!
