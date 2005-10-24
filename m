@@ -1,14 +1,12 @@
-From: Thomas Andrews <tandrews@grok.co.za>
-Subject: Re: netlink socket problem
-Date: Sat, 22 Oct 2005 22:16:09 +0200
-Message-ID: <20051022201609.GA20885@grok.co.za>
-References: <20051022192241.GZ20885@grok.co.za>
+From: Eric Leblond <eric@inl.fr>
+Subject: [PATCH] autogen.sh for conntrack
+Date: Mon, 24 Oct 2005 10:07:16 +0200
+Message-ID: <1130141237.11255.4.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="=-sWZ//uGvIw3VTIGVxLSt"
+Cc: gryzor@inl.fr, pablo@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-In-Reply-To: <20051022192241.GZ20885@grok.co.za>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,18 +18,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Oct 22, 2005 at 09:22:41PM +0200, Thomas Andrews wrote:
 
-> I hope this isn't considered off-topic. I'm trying to get some code to
-> talk to a netlink socket, but I keep getting this error:
-> 
->     RTNETLINK answers: Invalid argument
+--=-sWZ//uGvIw3VTIGVxLSt
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-To answer my own question - the destination IP *must* match
-req.r.rtm_dst_len (which must also be set up, or it will be 0). By that
-I mean the IP must have already been ANDed with the netmask in
-rtm_dst_len.
+Hi,
 
-Hopefully nobody else will waste a whole day figuring that out :p
+Here's just a simple autogen.sh for conntrack. I've suppressed explicit
+linking with 1.6 version as this is really boring.
 
-Thomas
+BR, 
+-- 
+Eric Leblond <eric@inl.fr>
+
+--=-sWZ//uGvIw3VTIGVxLSt
+Content-Disposition: attachment; filename=conntrack-autogen.diff
+Content-Type: text/x-patch; name=conntrack-autogen.diff; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+
+Index: autogen.sh
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- autogen.sh	(r=C3=A9vision 0)
++++ autogen.sh	(r=C3=A9vision 0)
+@@ -0,0 +1,18 @@
++#!/bin/sh
++
++run ()
++{
++    echo "running: $*"
++    eval $*
++
++    if test $? !=3D 0 ; then
++	echo "error: while running '$*'"
++	exit 1
++    fi
++}
++
++run aclocal
++run libtoolize -f
++run autoheader
++run automake -a
++run autoconf
+
+Modification de propri=E9t=E9s sur autogen.sh
+___________________________________________________________________
+Nom : svn:executable
+   + *
+
+
+--=-sWZ//uGvIw3VTIGVxLSt--
