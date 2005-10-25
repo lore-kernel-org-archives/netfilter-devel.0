@@ -1,20 +1,13 @@
-From: Christian Hentschel <chentschel@arnet.com.ar>
-Subject: Re: [PATCH] autogen.sh for libnetfilter_conntrack
-Date: Tue, 25 Oct 2005 23:10:50 -0300
-Message-ID: <1130292650.1269.8.camel@www.l-chr.com.ar>
-References: <1130141237.11255.4.camel@localhost.localdomain>
-	<1130141444.11255.10.camel@localhost.localdomain>
-	<435D7378.5090206@netfilter.org>
+From: "John HIll" <jhill@noach.com>
+Subject: PPTP patch
+Date: Tue, 25 Oct 2005 15:22:57 -0500
+Message-ID: <01f701c5d9a1$f0fe8020$220ca8c0@columbuscontainer.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-3GPqGeHAiIGKQYcSOUk3"
-Cc: Eric Leblond <eleblond@inl.fr>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	gryzor@inl.fr
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@netfilter.org>
-In-Reply-To: <435D7378.5090206@netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,31 +20,17 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-3GPqGeHAiIGKQYcSOUk3
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+When I compile any kernel 2.6.11.x-2.6.12.x I get an error:
+ip_conntrack_pptp.ko needs unknown symbol __ip_conntrack_expect_find .
 
-> AFAIK, autoreconf is supposed to supersede autogen.sh-like scripts. That=20
-> is what I've used so far. Is there any extra reason why someone could=20
-> need autogen.sh?
-No. I don't think so. But maybe adding a line about autoreconf to the INSTA=
-LL file would help.
+I searched all over Google and netfilter I found another person with the
+same problem but no replies.
 
-Cheers.
+Thanks
 
---=20
-Christian Hentschel <chentschel@arnet.com.ar>
+--john
 
---=-3GPqGeHAiIGKQYcSOUk3
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBDXuWp/jxG54BC3LgRAtVmAJ99JvK9HtztOcUHiwdgJi5A78NrrQCfZQgi
-8LytPj6vhHIYVNTU8nPKjx0=
-=uap6
------END PGP SIGNATURE-----
-
---=-3GPqGeHAiIGKQYcSOUk3--
+-- 
+This mail was scanned by AntiVir Milter.
+This product is licensed for non-commercial use.
+See www.antivir.de for details.
