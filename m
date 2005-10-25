@@ -1,17 +1,14 @@
-From: Pablo Neira <pablo@netfilter.org>
-Subject: Re: [PATCH] autogen.sh for libnetfilter_conntrack
-Date: Tue, 25 Oct 2005 01:51:20 +0200
-Message-ID: <435D7378.5090206@netfilter.org>
-References: <1130141237.11255.4.camel@localhost.localdomain>
-	<1130141444.11255.10.camel@localhost.localdomain>
+From: Nhan Thanh Le <ltnhan@tma.com.vn>
+Subject: What's happen if two module hook the same hook?
+Date: Tue, 25 Oct 2005 10:52:17 +0700
+Message-ID: <435DABF1.7000607@tma.com.vn>
+References: <200510220754.j9M7s1gx028191@mail.tma.com.vn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	gryzor@inl.fr
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eleblond@inl.fr>
-In-Reply-To: <1130141444.11255.10.camel@localhost.localdomain>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <200510220754.j9M7s1gx028191@mail.tma.com.vn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,18 +20,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-bonjour Eric,
+Dear All,
 
-Eric Leblond wrote:
-> I've just added a "libtoolize -f" call to autogen.sh. It was not
-> compiling cleanly from svn without that.
+   I am writing a kernel module to reading packet travel via my network 
+using Netfilter hook function. I wonder what's happen if in kernel space 
+already exist one module hook into netfilter with the same hook number 
+(NF_IP_PRE_ROUTING) with my module and that module try to drop all 
+packets while my module try to reading that packet.  Does it conflict 
+situation? Could you please help me to understand this case?  Do we  
+have any solution to solve for this case?
 
-AFAIK, autoreconf is supposed to supersede autogen.sh-like scripts. That 
-is what I've used so far. Is there any extra reason why someone could 
-need autogen.sh?
+    What's different between using socket raw and netfilter hook function?
 
-Anyway I'll apply your patches, my guess is that other users will be 
-complaining about the autogen.sh file missing sooner or later.
-
-cheers,
-Pablo
+Best Regards,
+Nhanle
