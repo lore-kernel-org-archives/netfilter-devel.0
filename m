@@ -1,14 +1,13 @@
-From: Nhan Thanh Le <ltnhan@tma.com.vn>
-Subject: What's happen if two module hook the same hook?
-Date: Tue, 25 Oct 2005 10:52:17 +0700
-Message-ID: <435DABF1.7000607@tma.com.vn>
-References: <200510220754.j9M7s1gx028191@mail.tma.com.vn>
+From: "SMohideen" <s.moindeen@gmail.com>
+Subject: TODO List
+Date: Tue, 25 Oct 2005 14:20:26 +0530
+Message-ID: <000001c5d941$294693c0$6a88cb0a@asia.ad.flextronics.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200510220754.j9M7s1gx028191@mail.tma.com.vn>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,17 +19,9 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear All,
+Hi,
+Where we can obtain the TODO list of NetFilter projects. I have seen in
+the archives, but none found in the latest release.
 
-   I am writing a kernel module to reading packet travel via my network 
-using Netfilter hook function. I wonder what's happen if in kernel space 
-already exist one module hook into netfilter with the same hook number 
-(NF_IP_PRE_ROUTING) with my module and that module try to drop all 
-packets while my module try to reading that packet.  Does it conflict 
-situation? Could you please help me to understand this case?  Do we  
-have any solution to solve for this case?
-
-    What's different between using socket raw and netfilter hook function?
-
-Best Regards,
-Nhanle
+Thanks
+Mohi
