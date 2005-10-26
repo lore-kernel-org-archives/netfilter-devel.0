@@ -1,20 +1,17 @@
-From: Ingo Oeser <netdev@axxeo.de>
-Subject: Re: [NF+IPsec 4/6]: Make IPsec input processing symetrical to output
-Date: Wed, 26 Oct 2005 09:37:33 +0200
-Message-ID: <200510260937.33725.netdev@axxeo.de>
-References: <4352EEC8.9000602@trash.net>
-	<20051025231049.GA13679@gondor.apana.org.au>
-	<435EBC57.7090000@trash.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] libnetfilter_queue naming problem
+Date: Wed, 26 Oct 2005 13:30:31 +0200
+Message-ID: <20051026113031.GK4479@sunbeam.de.gnumonks.org>
+References: <1130312714.4872.57.camel@localhost.localdomain>
+	<435F370A.6040703@eurodev.net>
+	<1130313725.14426.4.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	Herbert Xu <herbert@gondor.apana.org.au>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OfrWf2Fun5Ae4m0Y"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <435EBC57.7090000@trash.net>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
+In-Reply-To: <1130313725.14426.4.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,21 +23,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Herbert Xu wrote:
-> > Actually I was thinking of transport mode SAs with no accompanying
-> > tunnel mode SAs.  Did you have another way of dealing with them?
->
-> No. I thought of this as a special case of inner transport mode SAs
-> (without any further SAs) which would be unhandled. I've never used
-> pure transport mode SAs except for testing, and I've never seen any
-> other users of this. Do you think it is important to handle?
 
-These become important in untrusted LANs. These days, the LAN is often 
-not safe enough for confidental data, so you need end to end encryption,
-for which tunnel mode is a bitch to setup (due to the additional routing
-required ).
+--OfrWf2Fun5Ae4m0Y
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards
+I've renamed the files in svn now.
 
-Ingo Oeser
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--OfrWf2Fun5Ae4m0Y
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDX2jXXaXGVTD0i/8RAkaWAKCBjGTUHHjG0js2fTc+BjG1Z6fCmgCcDYwZ
+OlywTwa3KYepU6u0EoL96kQ=
+=RQ9q
+-----END PGP SIGNATURE-----
+
+--OfrWf2Fun5Ae4m0Y--
