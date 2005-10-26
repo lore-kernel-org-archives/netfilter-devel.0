@@ -1,20 +1,18 @@
-From: Eric Leblond <eleblond@inl.fr>
-Subject: Re: [PATCH] autogen.sh for libnetfilter_conntrack
-Date: Wed, 26 Oct 2005 09:21:07 +0200
-Message-ID: <1130311267.4872.52.camel@localhost.localdomain>
-References: <1130141237.11255.4.camel@localhost.localdomain>
-	<1130141444.11255.10.camel@localhost.localdomain>
-	<435D7378.5090206@netfilter.org>
-	<1130292650.1269.8.camel@www.l-chr.com.ar>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: problem with conntrack-0.81
+Date: Wed, 26 Oct 2005 13:26:45 +0200
+Message-ID: <20051026112645.GJ4479@sunbeam.de.gnumonks.org>
+References: <20051026030113.8DA3F42B2@daahman.cosmicfires.com>
+	<435F2D12.7050003@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-FFVymswdmLe7gvZzfryW"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	gryzor@inl.fr, Pablo Neira <pablo@netfilter.org>
+	protocol="application/pgp-signature"; boundary="Enx9fNJ0XV5HaWRu"
+Cc: David Walker <david@cosmicfires.com>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Christian Hentschel <chentschel@arnet.com.ar>
-In-Reply-To: <1130292650.1269.8.camel@www.l-chr.com.ar>
+To: Pablo Neira <pablo@eurodev.net>
+Content-Disposition: inline
+In-Reply-To: <435F2D12.7050003@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,42 +25,54 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-FFVymswdmLe7gvZzfryW
-Content-Type: text/plain; charset=iso-8859-15
+--Enx9fNJ0XV5HaWRu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi;
+On Wed, Oct 26, 2005 at 09:15:30AM +0200, Pablo Neira wrote:
 
-Le mardi 25 octobre 2005 =E0 23:10 -0300, Christian Hentschel a =E9crit :
-> > AFAIK, autoreconf is supposed to supersede autogen.sh-like scripts. Tha=
-t=20
-> > is what I've used so far. Is there any extra reason why someone could=20
-> > need autogen.sh?
-> No. I don't think so. But maybe adding a line about autoreconf to the INS=
-TALL file would help.
+> I still have some things that I want to do before the first 1.0
+> release, among them learning how to add new releases to the
+> netfilter.org webpage, Harald? any help?
 
-Yes good idea, but things should be the same in other component where
-there is a autogen.sh script.
-And send a bug report to autoreconf author because autoreconf do not use
-"libtoolize -f" and there is some problem with that...
+just check out the 'trunk/homepage' directory and try whether a 'make'
+does in fact generate a working copy of the homepage.   The build system
+works on Debian systems quite fine, you'll need xsltproc and
+docbook-website.
 
-BR,
+Once that works, I suggest looking at
+http://svn.netfilter.org/netfilter/trunk/homepage/xml/projects/conntrack/do=
+wnloads.xml
+and adding the release to the xml code.  then rebuild the page.  if
+everything works fine, send me a patch, I'll apply it, rebuild and
+upload the homepage.
+
+The more important issues is, how we're going to handle signing and
+uploading of the respective files to ftp and http server.  At the
+moment, only the core team can sign releases (and has the respective
+upload permissions).
+
 --=20
-=C9ric Leblond, eleblond@inl.fr
-T=E9l=E9phone : 01 44 89 46 40, Fax : 01 44 89 45 01
-INL, http://www.inl.fr
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
---=-FFVymswdmLe7gvZzfryW
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+--Enx9fNJ0XV5HaWRu
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQBDXy5inxA7CdMWjzIRAkv6AJ4zIo9Ae9eeJeI8DKHK48nkS/VNZACeIEDC
-G/gnu6KPE9AJQzg8zg9hi/M=
-=QcYu
+iD8DBQFDX2f1XaXGVTD0i/8RAiPRAJ92ldtEUIUrI28CfOdoSo9Tfj8JmwCgo3sZ
+lMjyWFPhXZSOd7H3yYmZU2c=
+=BsnJ
 -----END PGP SIGNATURE-----
 
---=-FFVymswdmLe7gvZzfryW--
+--Enx9fNJ0XV5HaWRu--
