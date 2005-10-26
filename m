@@ -1,20 +1,19 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
+From: James Morris <jmorris@namei.org>
 Subject: Re: [NF+IPsec 4/6]: Make IPsec input processing symetrical to output
-Date: Wed, 26 Oct 2005 10:39:54 +1000
-Message-ID: <20051026003954.GA14068@gondor.apana.org.au>
+Date: Wed, 26 Oct 2005 00:39:16 -0400 (EDT)
+Message-ID: <Pine.LNX.4.63.0510260038200.18717@excalibur.intercode>
 References: <4352EEC8.9000602@trash.net>
 	<20051017.094919.56989341.yoshfuji@linux-ipv6.org>
 	<4352FD49.4090201@trash.net>
 	<20051017014629.GB32661@gondor.apana.org.au>
-	<435EBB18.50701@trash.net>
-	<20051025231049.GA13679@gondor.apana.org.au>
+	<435EBB18.50701@trash.net> <20051025231049.GA13679@gondor.apana.org.au>
 	<435EBC57.7090000@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	Herbert Xu <herbert@gondor.apana.org.au>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
 In-Reply-To: <435EBC57.7090000@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -27,26 +26,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Oct 26, 2005 at 01:14:31AM +0200, Patrick McHardy wrote:
+On Wed, 26 Oct 2005, Patrick McHardy wrote:
+
 > No. I thought of this as a special case of inner transport mode SAs
 > (without any further SAs) which would be unhandled. I've never used
 > pure transport mode SAs except for testing, and I've never seen any
 > other users of this. Do you think it is important to handle?
 
-Well the scenario is IPv4 transport mode ESP applied outside normal
-IPIP tunnel devices.
+Pure transport mode SAs are likely to be common when using IPSec labeling 
+(the stuff Trent Jaeger has been working on).
 
-Actually, this could work if we make sure that the user-space KMs
-set the SA selectors properly in this case.
 
-I presume that you will be changing the output path so that LOCAL_OUT
-does not see the plain-text packet.  Otherwise it'll be asymmetric with
-repsect to the inbound side which does not see plain-text packets for
-transport mode SAs.
-
-Cheers,
+- James
 -- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+James Morris
+<jmorris@namei.org>
