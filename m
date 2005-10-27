@@ -1,16 +1,22 @@
-From: Roberto Nibali <ratz@tac.ch>
-Subject: Re: [PATCH 2.4] update raw patch in POM take 2
-Date: Thu, 27 Oct 2005 16:08:15 +0200
-Message-ID: <4360DF4F.9060601@tac.ch>
-References: <42C2B94D.4070401@tac.ch>
-	<20050828115653.GF4244@rama.de.gnumonks.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [NF+IPsec 4/6]: Make IPsec input processing symetrical to output
+Date: Thu, 27 Oct 2005 16:42:34 +0200
+Message-ID: <4360E75A.10405@trash.net>
+References: <4352EEC8.9000602@trash.net>
+	<20051017.094919.56989341.yoshfuji@linux-ipv6.org>
+	<4352FD49.4090201@trash.net>
+	<20051017014629.GB32661@gondor.apana.org.au>
+	<435EBB18.50701@trash.net>
+	<20051025231049.GA13679@gondor.apana.org.au>
+	<435EBC57.7090000@trash.net>
+	<20051026003954.GA14068@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers <netfilter-devel@lists.netfilter.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20050828115653.GF4244@rama.de.gnumonks.org>
+To: Herbert Xu <herbert@gondor.apana.org.au>
+In-Reply-To: <20051026003954.GA14068@gondor.apana.org.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,20 +28,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> patchwork.netfilter.org led me to this old unapplied patch. I've now
-> applied it as patchlets/raw/linux-2.4.31.patch.  Please let me know if
-> you need any further changes.
+Herbert Xu wrote:
+> On Wed, Oct 26, 2005 at 01:14:31AM +0200, Patrick McHardy wrote:
+> 
+>>No. I thought of this as a special case of inner transport mode SAs
+>>(without any further SAs) which would be unhandled. I've never used
+>>pure transport mode SAs except for testing, and I've never seen any
+>>other users of this. Do you think it is important to handle?
+> 
+> 
+> Well the scenario is IPv4 transport mode ESP applied outside normal
+> IPIP tunnel devices.
+> 
+> Actually, this could work if we make sure that the user-space KMs
+> set the SA selectors properly in this case.
+> 
+> I presume that you will be changing the output path so that LOCAL_OUT
+> does not see the plain-text packet.  Otherwise it'll be asymmetric with
+> repsect to the inbound side which does not see plain-text packets for
+> transport mode SAs.
 
-All is fine, it still applies to 2.4.32-rc1 + latest git. I have
-additionally added kdb to the source tree now to debug the oops when
-unloading the ip_conntrack module. I hope to be working on this again soon.
-
-Thanks,
-Roberto Nibali, ratz
--- 
--------------------------------------------------------------
-addr://Kasinostrasse 30, CH-5001 Aarau tel://++41 62 823 9355
-http://www.terreactive.com             fax://++41 62 823 9356
--------------------------------------------------------------
-terreActive AG                       Wir sichern Ihren Erfolg
--------------------------------------------------------------
+Yes, that was the idea. But since people seem to consider this an
+important case to handle I'm going to try the per-SA flag you
+proposed. I'll send new patches in the next days.
