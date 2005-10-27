@@ -1,13 +1,17 @@
-From: gan hawk <ganhawk@gmail.com>
-Subject: Connection tracking and invalid tcp headers
-Date: Wed, 26 Oct 2005 14:07:41 -0500
-Message-ID: <3305af120510261207t5411203bt86239ef351b844c5@mail.gmail.com>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [NF+IPsec 4/6]: Make IPsec input processing symetrical to output
+Date: Thu, 27 Oct 2005 22:15:45 +1000
+Message-ID: <20051027121545.GA5530@gondor.apana.org.au>
+References: <4352EEC8.9000602@trash.net>
+	<20051017.094919.56989341.yoshfuji@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "YOSHIFUJI Hideaki / ?$B5HF#1QL@" <yoshfuji@linux-ipv6.org>
 Content-Disposition: inline
+In-Reply-To: <20051017.094919.56989341.yoshfuji@linux-ipv6.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,26 +23,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Mon, Oct 17, 2005 at 09:49:19AM +0900, YOSHIFUJI Hideaki / ?$B5HF#1QL@ wrote:
+>
+> Stack should process the packet just once if it is of transport mode.
+> (It is okay to process one twice if it is of tunnel mode.)
 
- I would appreciate any responses for this question.
+Thinking about this again, I'm not sure that I agree.
 
-  I have a situation where the ack packet in the tcp handshake will
-have wrong seq number. A netfilter module rewrites the right sequence
-number for the packet. Hence this has to be before connection
-tracking. Is there anyway to detect what connection this packet will
-belong to before connection tracking module using some of the data
-structures maintained by connection tracking ?
-  (If there is no way, I guess I need to maintain a list of packets
-for which syn/ack was sent and detect them the acks back as only the
-handshake ack will have wrong seq number)
+OK, I don't actually care whether we process it once or twice for
+pure transport mode, but I think that it is absolutely essential
+that LOCAL_IN/LOCAL_OUT see the decapsulated packet instead of
+the encrypted version.
 
-  If the packet with the wrong seq num is passed through any firewall
-that forwards it, will it be dropped ?
+Whether it's IPv4 or IPv6, transport mode shouldn't make you lose the
+ability to use netfilter to filter out packets.
 
-  Also the first syn packet will not have the ack_seq =3D 0. But I
-assume that will not affect the connection tracking in any way. Is
-that true ?
+Now if we can achieve this by sending the packet through netfilter
+only once then I'm all for it.
 
-  thanks,
-  ganesh
+But if for whatever reason we can't do that, then I'd rather have it
+go through twice than not see the decapsulated packet at all which is
+the case at the moment.
+
+Cheers,
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
