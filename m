@@ -1,17 +1,16 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [NF+IPsec 4/6]: Make IPsec input processing symetrical to output
-Date: Thu, 27 Oct 2005 22:15:45 +1000
-Message-ID: <20051027121545.GA5530@gondor.apana.org.au>
-References: <4352EEC8.9000602@trash.net>
-	<20051017.094919.56989341.yoshfuji@linux-ipv6.org>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: How to avoid fragmentation
+Date: Thu, 27 Oct 2005 14:41:07 +0200
+Message-ID: <4360CAE3.6030600@eurodev.net>
+References: <435D40ED.1080109@speedy.com.ar> <435D701C.1080501@eurodev.net>
+	<435D6030.8000509@speedy.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	kaber@trash.net
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "YOSHIFUJI Hideaki / ?$B5HF#1QL@" <yoshfuji@linux-ipv6.org>
-Content-Disposition: inline
-In-Reply-To: <20051017.094919.56989341.yoshfuji@linux-ipv6.org>
+To: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+In-Reply-To: <435D6030.8000509@speedy.com.ar>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,31 +22,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Oct 17, 2005 at 09:49:19AM +0900, YOSHIFUJI Hideaki / ?$B5HF#1QL@ wrote:
->
-> Stack should process the packet just once if it is of transport mode.
-> (It is okay to process one twice if it is of tunnel mode.)
+Hi,
 
-Thinking about this again, I'm not sure that I agree.
+Gervasio Bernal wrote:
+> I will show you an example:
+> 
+> +---------------+	
+> |    IP		|	
+> |    header 	|	
+> |---------------|
+> |    TCP	|
+> |    header 	|
+> |---------------|
+> |  My header	|
+> |---------------|
+> |		|
+> |   USER DATA	|
+> |		|
+> +---------------+
+> 
+> I calculte the USER DATA checksum and put it in a field of My header.
+> If the packet is larger than MTU, it will be fragmented and the checksum
+> calculated in My header will be incorrect when I recieve it in the other
+> endpoint of the communication.
+> 
+> There is some form to avoid the fragmentation?
 
-OK, I don't actually care whether we process it once or twice for
-pure transport mode, but I think that it is absolutely essential
-that LOCAL_IN/LOCAL_OUT see the decapsulated packet instead of
-the encrypted version.
+In this case, have a look at skb_checksum()
 
-Whether it's IPv4 or IPv6, transport mode shouldn't make you lose the
-ability to use netfilter to filter out packets.
-
-Now if we can achieve this by sending the packet through netfilter
-only once then I'm all for it.
-
-But if for whatever reason we can't do that, then I'd rather have it
-go through twice than not see the decapsulated packet at all which is
-the case at the moment.
-
-Cheers,
 -- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Pablo
