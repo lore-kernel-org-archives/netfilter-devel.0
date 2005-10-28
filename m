@@ -1,16 +1,14 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: ip_queue: setting verdict blocks
-Date: Sun, 16 Oct 2005 16:37:07 +0200
-Message-ID: <20051016143707.GD17257@rama.0sec>
-References: <200510131230.19776.ilkka.pietikainen@emicnetworks.com>
+Subject: remaining libnetfilter_conntrack issues
+Date: Fri, 28 Oct 2005 22:59:55 +0200
+Message-ID: <20051028205955.GA10568@rama.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TB36FDmn/VVEgNH/"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Ilkka =?iso-8859-1?Q?Pietik=E4inen?= <ilkka.pietikainen@emicnetworks.com>
+To: pablo@eurodev.net
 Content-Disposition: inline
-In-Reply-To: <200510131230.19776.ilkka.pietikainen@emicnetworks.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,36 +20,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Oct 13, 2005 at 12:30:19PM +0300, Ilkka Pietik=E4inen wrote:
-> Hello,
->=20
-> We have seen this in two different environments: RedHat ES3 and Debian Sa=
-rge=20
-> (with the default kernels).
 
-strange, since there are many ip_queue users=20
+--TB36FDmn/VVEgNH/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> We have an application that handles IP packets from ip_queue module (and=
-=20
-> basically DROP/ACCEPT each packet). Sometimer after the system has been u=
-p=20
-> and running for few hours the application can no longer set the verdict f=
-or=20
-> the packet (it seems that the sendmsg is blocking). Restarting of the=20
-> application does not help and only way to get system back working is to r=
-mmod=20
-> all iptables related modules or reboot.
+Hi Pablo!
 
-the /proc/net/ip_queue output would be interesting.=20
+I've started to write a new ulogd2 plugin against the new
+libnetfilter_conntrack, and found a number of issues, mostly related to
+header files:
 
-are you running smp?
+1) why do we need 'asm/types.h'?  this is unacceptable
+2) why do we need 'linux/if.h'?
+3) libnetfilter_conntrack needs to be split into two parts:
+	a) what is visible to application programs
+	b) what is visible to extensions
+4) if we do '3', we can get rid of the ugly "linux_list.h" include
+5) we'd ideally get rid of the ip_conntrack.h include, too
+6) we should ship a copy of both nfnetlink.h and nfnetlink_conntrack.h with=
+ the library
+   this way userspace programs can be built without any
+   nfnetlink-enabled kernel headers installed.
 
-what is the cpu usage rate when such a 'blocking' occurs?
+I think everything but '5' should be fairly trivial to do.  Which
+definitions do we really need from ip_conntrack.h?  The status bits?
+Then we should also ship a copy of only those status bit definitions
+with the library. =20
 
-> a) What could have caused sendmsg to block?
+All copies should be performed during the 'distrib' stage, i.e. every
+time we make a release we tell the automake/autoconf system where to
+take a current copy of those headers from.  They would not be present in
+svn.
 
-normally only the processing of the verdict, i.e. passing the packet
-through the rest of the stack (in case of ACCEPT).
+Cheers,
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -62,3 +65,17 @@ through the rest of the stack (in case of ACCEPT).
   "Fragmentation is like classful addressing -- an interesting early
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
+
+--TB36FDmn/VVEgNH/
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDYpFKXaXGVTD0i/8RAk7OAJ97rHJk61nu+zkJofBjgZGVeXKCHACeOlQA
+wvsM0qw710SOnnBB71YYYko=
+=4lH2
+-----END PGP SIGNATURE-----
+
+--TB36FDmn/VVEgNH/--
