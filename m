@@ -1,9 +1,9 @@
-From: Carlo Comin <vl4d@spine-group.org>
-Subject: [IPSET] help on netlink connector
-Date: Sat, 29 Oct 2005 09:58:52 +0200
-Message-ID: <1130572732.11256.17.camel@debian>
+From: Henrik Ehlig Petersen <henrik.ehlig.petersen@ericsson.com>
+Subject: ipv4options patch
+Date: Fri, 28 Oct 2005 15:33:47 +0200
+Message-ID: <436228BB.3050406@ericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
@@ -18,14 +18,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-i'm trying to rewrite the userspace<--->kernel communication using the
-new netlink connector... but i need some hints...
+Hi,
 
-as far as i understood from the code you add a SO_IP_SET option to ip
-and manage the whole userspace->kernel process with a {get|set}sockopt:
-should i add a nc_add_callback at kernel level and send messages to it
-from ipset?
+I have applied the ipv4options patch to the iptables/netfilter
+function, and have some questions:
 
-please be patient :D
+How is the srr flag/register used in iptables? It is defined as a char,
+but how are the bits used? An example in the code makes a binary AND
+between the srr and a "boolean" (the is_strictroute). Is it because bit
+0 in the srr register contains the relevant info? Or how should I
+understand the example below:
 
-Regards
+else if ((info->options & IPT_IPV4OPTION_MATCH_LSRR) ==
+IPT_IPV4OPTION_MATCH_LSRR) {
+		if (!((opt->srr) & (!opt->is_strictroute)))
+			return 0;
+	}
+
+Hope you can help me, thanks!!
+
+-- 
+BR
+Henrik
