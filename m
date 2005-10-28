@@ -1,12 +1,15 @@
-From: <Jewgenij.Belopilski@alumni.TU-Berlin.DE>
-Subject: How to find the rule a packet has matched?
-Date: Fri, 28 Oct 2005 13:00:32 +0200 (CEST)
-Message-ID: <59565.80.171.134.116.1130497232.squirrel@mailbox.TU-Berlin.DE>
+From: Deti Fliegl <deti@fliegl.de>
+Subject: Re: problem with conntrack utility and kernel 2.6.14
+Date: Fri, 28 Oct 2005 15:39:49 +0200
+Message-ID: <43622A25.8060609@fliegl.de>
+References: <4361EAAB.1090206@fliegl.de> <4361F6DF.3050106@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <4361F6DF.3050106@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,37 +21,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear netfilter team,
+Hi Pablo,
 
-in my diploma thesis I face the following issue:
+the problem seems to occur in conjunction with high bandwidths 
+(>500Mbit/s) and not with the number of connections. I am testing on a 
+dual processor x86_64 system with hyperthreading enabled (4 CPUs 
+detected by the kernel). It seems that information from the connection 
+tracking table gets garbled when conntrack is being called.
 
-I have to find for each accepted TCP packet going through the netfilter
-the rule that this packet has matched. Or, more precisely, I'm interested
-in what port/port range matched the TCP packet. (For this purpose I
-extended the skbuff structure for the variable:
+Even kernel oopses  with complete lockups are happening:
 
-                  struct ipt_entry_match *my_ptr;
+<4>Badness in __kfree_skb at net/core/skbuff.c:330
+<4>
+<4>Call Trace:<ffffffff802a2f77>{__kfree_skb+167} 
+<ffffffff802bb597>{netlink_recvmsg+279}
+<4>       <ffffffff8029cb2b>{sock_recvmsg+315} 
+<ffffffff8025a4d8>{n_tty_receive_buf+4392}
+<4>       <ffffffff8025a4d8>{n_tty_receive_buf+4392} 
+<ffffffff8014b2f0>{autoremove_wake_function+0}
+<4>       <ffffffff8025bbd9>{pty_write+89} 
+<ffffffff8029e38b>{sys_recvmsg+395}
+<4>       <ffffffff80130f23>{__wake_up+67} <ffffffff80181208>{vfs_write+344}
+<4>       <ffffffff80181343>{sys_write+83} 
+<ffffffff8010dc4e>{system_call+126}
+<4>
+<3>scheduling while atomic: conntrack/0xffffff00/7454
+<4>
+<4>Call Trace:<ffffffff8031d67d>{schedule+125}
 
-and hope to gain information about port/port range from this structure.)
-
-I'm sure that the decision whether a certain port/port_range matches the
-packet takes place in the function
-
-       ip_tables.c:int do_match(.....)
-
-namely in the call
-
-       m->u.kernel.match->match(skb, in, out, ....);
-
-
-I want to look in the function refered by this pointer,
-but I cannot find it in source code! That is my problem.
-(Herefor I placed a printk() in tcp_match() function
-but I can see that tcp_match() is being called
-not for each TCP packet...)
+.... sorry trace ends here as I've got no console access.
 
 
-Grateful for every tip,
-Jewgenij Belopilski
+Hope you find the problem,
 
-jewgenij.belopilski@alumni.tu-berlin.de
+Deti
