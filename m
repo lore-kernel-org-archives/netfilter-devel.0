@@ -1,17 +1,14 @@
-From: Deti Fliegl <deti@fliegl.de>
-Subject: Re: problem with conntrack utility and kernel 2.6.14
-Date: Fri, 28 Oct 2005 21:53:31 +0200
-Message-ID: <436281BB.2010100@fliegl.de>
-References: <4361EAAB.1090206@fliegl.de>
-	<4361F6DF.3050106@eurodev.net>	<43621028.40705@fliegl.de>
-	<43627A8F.9060307@eurodev.net>
+From: Alexander Samad <alex@samad.com.au>
+Subject: IPMARK nfcache
+Date: Sat, 29 Oct 2005 08:17:28 +1000
+Message-ID: <20051028221728.GC10248@samad.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="QRj9sO5tAVLaXnSD"
+Cc: Grzegorz Janoszka <Grzegorz.Janoszka@pro.onet.pl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <43627A8F.9060307@eurodev.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,66 +20,90 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> Thanks for the very detailed report. The patch fixes some aligment 
-> issues that I didn't handle properly :(. Please, give a try to the patch 
-> attached and tell if it fixes your problem.
-Thanks for the patch (which seemed to be already checked into svn) - 
-conntrack now works properly - no seg faults occured :)
 
-The kernel oops still happens - but this time I had access to the 
-console (hope that helps):
+--QRj9sO5tAVLaXnSD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-<4>Badness in __kfree_skb at net/core/skbuff.c:330
-<4>
-<4>Call Trace:<ffffffff802a2f77>{__kfree_skb+167} 
-<ffffffff802bb597>{netlink_recvmsg+279}
-<4>       <ffffffff8029cb2b>{sock_recvmsg+315} 
-<ffffffff8025a4d8>{n_tty_receive_buf+4392}
-<4>       <ffffffff8025a4d8>{n_tty_receive_buf+4392} 
-<ffffffff8015d828>{filemap_nopage+424}
-<4>       <ffffffff8013003b>{try_to_wake_up+1083} 
-<ffffffff8014b2f0>{autoremove_wake_function+0}
-<4>       <ffffffff8025bbd9>{pty_write+89} 
-<ffffffff8029e38b>{sys_recvmsg+395}
-<4>       <ffffffff80130f23>{__wake_up+67} <ffffffff80181208>{vfs_write+344}
-<4>       <ffffffff80181343>{sys_write+83} 
-<ffffffff8010dc4e>{system_call+126}
-<4>
-<3>scheduling while atomic: conntrack/0xffffff00/7887
-<4>
-<4>Call Trace:<ffffffff8031d67d>{schedule+125} 
-<ffffffff80181208>{vfs_write+344}
-<4>       <ffffffff80181343>{sys_write+83} 
-<ffffffff8010dcb8>{sysret_careful+13}
-<4>
-<4>Badness in __kfree_skb at net/core/skbuff.c:330
-<4>
-<4>Call Trace:<ffffffff802a2f77>{__kfree_skb+167} 
-<ffffffff802bb597>{netlink_recvmsg+279}
-<4>       <ffffffff8029cb2b>{sock_recvmsg+315} 
-<ffffffff8025a4d8>{n_tty_receive_buf+4392}
-<4>       <ffffffff8025a4d8>{n_tty_receive_buf+4392} 
-<ffffffff8013578d>{printk+141}
-<4>       <ffffffff8014b2f0>{autoremove_wake_function+0} 
-<ffffffff8025bbd9>{pty_write+89}
-<4>       <ffffffff8029e38b>{sys_recvmsg+395} 
-<ffffffff8018e477>{pipe_writev+1319}
-<4>       <ffffffff80181208>{vfs_write+344} <ffffffff80181343>{sys_write+83}
-<4>       <ffffffff8010dc4e>{system_call+126}
-<4>Badness in __kfree_skb at net/core/skbuff.c:330
-<4>
-<4>Call Trace:<ffffffff802a2f77>{__kfree_skb+167} 
-<ffffffff802bb597>{netlink_recvmsg+279}
-<4>       <ffffffff8029cb2b>{sock_recvmsg+315} 
-<ffffffff8025a4d8>{n_tty_receive_buf+4392}
-<4>       <ffffffff8025a4d8>{n_tty_receive_buf+4392} 
-<ffffffff8013578d>{printk+141}
-<4>       <ffffffff8014b2f0>{autoremove_wake_function+0} 
-<ffffffff8025bbd9>{pty_write+89}
-<4>       <ffffffff8029e38b>{sys_recvmsg+395} 
-<ffffffff8018e477>{pipe_writev+1319}
-<4>       <ffffffff80181208>{vfs_write+344} <ffffffff80181343>{sys_write+83}
-<4>       <ffffffff8010dc4e>{system_call+126}
+Hi
 
-... etc...
+Recently went to path IPMARK (Patchlet from patch o matic) to a 2.6.14
+source tree and I have noticed this compilation error
+
+net/ipv4/netfilter/ipt_IPMARK.c: In function 'target':
+net/ipv4/netfilter/ipt_IPMARK.c:36: error: 'struct sk_buff' has no
+member named 'nfcache'
+net/ipv4/netfilter/ipt_IPMARK.c:36: error: 'NFC_ALTERED' undeclared
+(first use in this function)
+net/ipv4/netfilter/ipt_IPMARK.c:36: error: (Each undeclared identifier
+is reported only once
+net/ipv4/netfilter/ipt_IPMARK.c:36: error: for each function it appears
+in.)
+
+on investigation the nfcache field from sk_buff has been removed, having
+a look on the net as to why
+
+I was wondering what mechanism is need to replace the 'ncfcache |
+NFC_ALTERED' statement
+
+
+Seem like it has been killed - gives me the impression I can remove this
+line with no bad side effects ?
+
+commit 6869c4d8e066e21623c812c448a05f1ed931c9c6
+Author: Harald Welte <laforge@netfilter.org>
+Date:   Tue Aug 9 19:24:19 2005 -0700
+
+    [NETFILTER]: reduce netfilter sk_buff enlargement
+   =20
+    As discussed at netconf'05, we're trying to save every bit in
+sk_buff.
+    The patch below makes sk_buff 8 bytes smaller.  I did some basic
+    testing on my notebook and it seems to work.
+   =20
+    The only real in-tree user of nfcache was IPVS, who only needs a
+    single bit.  Unfortunately I couldn't find some other free bit in
+    sk_buff to stuff that bit into, so I introduced a separate field for
+    them.  Maybe the IPVS guys can resolve that to further save space.
+   =20
+    Initially I wanted to shrink pkt_type to three bits (PACKET_HOST and
+    alike are only 6 values defined), but unfortunately the bluetooth
+code
+    overloads pkt_type :(
+   =20
+    The conntrack-event-api (out-of-tree) uses nfcache, but Rusty just
+    came up with a way how to do it without any skb fields, so it's safe
+    to remove it.
+   =20
+    - remove all never-implemented 'nfcache' code
+    - don't have ipvs code abuse 'nfcache' field. currently get's their
+      own
+      compile-conditional skb->ipvs_property field.  IPVS maintainers
+can
+      decide to move this bit elswhere, but nfcache needs to die.
+    - remove skb->nfcache field to save 4 bytes
+    - move skb->nfctinfo into three unused bits to save further 4 bytes
+   =20
+    Signed-off-by: Harald Welte <laforge@netfilter.org>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+
+
+Thanks
+Alex
+
+--QRj9sO5tAVLaXnSD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDYqN4kZz88chpJ2MRAu5YAKCoV6So6G2UNd/i7tCwyhse8YhIJACfVmFX
+miP8fUiZt4s6P1Roz9bHDUM=
+=x3GB
+-----END PGP SIGNATURE-----
+
+--QRj9sO5tAVLaXnSD--
