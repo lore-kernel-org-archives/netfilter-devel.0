@@ -1,14 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [IPSET] help with netlink connector
-Date: Sat, 29 Oct 2005 19:42:53 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0510291934030.5550@blackhole.kfki.hu>
-References: <200510291616.55535.vl4d@spine-group.org>
+From: Giacomo <delleceste@gmail.com>
+Subject: help with linux kernel timers
+Date: Sat, 29 Oct 2005 20:12:17 +0200
+Message-ID: <885896af0510291112k23458e55y@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: vl4d@spine-group.org
-In-Reply-To: <200510291616.55535.vl4d@spine-group.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,26 +19,76 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 29 Oct 2005 vl4d@spine-group.org wrote:
+Good morning, in my kernel code, which handles timeouts for connection
+tables in a linked list, i do:
 
-> I'm trying to rewrite the ipset sockopt interface with netlink connector
-> introduced in 2.6.14... anyway i need some help and directions.
->
-> As far as i have understood ipset adds SO_ IP_SET option to IP and manage the
-> whole stuff through {set|get}sockopt. How can i access this option using
-> connector? do i have to register a connector callback at kernel level  using
-> a module and send messages from ipset ??
+inline void update_timer_of_state_entry(struct state_table *sttable)
+{
+ if (sttable->state.state =3D=3D ESTABLISHED)
+  mod_timer(&sttable->timer_statelist,
+     jiffies + HZ * state_lifetime);
+ else
+  mod_timer(&sttable->timer_statelist,
+     jiffies + HZ * setup_shutd_state_lifetime);
+}
 
-That'd mean a complete rewriting of the kernel-userspace communication in
-ipset. You would not want to access the (set|get)sockopt from netlink but
-replace it with a netlink communication channel. Instead of netlink, the
-netfilter specific nfnetlink is the proper tool for such a rewriting.
-(The subject is on the TODO list of ipset.)
+sttable is a structure which contains a struct timer_list.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+In:
+
+mod_timer(&sttable->timer_statelist,
+     jiffies + HZ * state_lifetime);
+
+i update the timeout for the structures, so that when timer expires,
+structure is removed from linked list.
+
+The problem is that when state lifetime is long, let's say 2592000 for
+instance, kernel goes in panic!
+
+If the value is low, say 300, or higher 259200000, ok!
+
+I suspect a problem of overflow .. is it possible?
+
+What can be wrong?
+
+Thanks a lot for any hint!
+
+OTHER THINGS:
+
+My data structures are accessed in atomic context, since they contain data
+regarding internet packets. When timer expires, the function handler simply
+removes the structure from the linked list, i suppose when out of the atomi=
+c
+context.
+
+This happens:
+
+1. a packet is received from the network;
+2. If packet is allowed to pass through the filter, a data structure is
+allocated
+and contains the data related to the socket.
+3. A timer is initialized, and updated every time a new packet matches the
+data stored in the structure.
+4. When no more packets of that kind are received, timer expires and table
+is deleted from linked list.
+
+But, in my scenario, 4 in theory does not happen since timeout is very long=
+,
+as i said in my first mail.
+
+Things worked ok for months, until i changed timeout to some million of
+seconds... (example 2592000)..
+but if i increase it again (25920000) things go well again.. this makes me
+think of some
+overflow...
+
+Structures affected are only accessed in kernel space in softirq context
+(network reception).
+
+Thanks a lot!
+
+Giacomo.
+
+
+
+Giacomo.
