@@ -1,15 +1,14 @@
 From: Grzegorz Janoszka <Grzegorz.Janoszka@pro.onet.pl>
 Subject: Re: IPMARK nfcache
-Date: Sat, 29 Oct 2005 19:12:44 +0200 (CEST)
-Message-ID: <Pine.GSO.4.63.0510291912370.28447@galaxy.agh.edu.pl>
+Date: Sat, 29 Oct 2005 18:53:11 +0200 (CEST)
+Message-ID: <Pine.GSO.4.63.0510291849040.28447@galaxy.agh.edu.pl>
 References: <20051028221728.GC10248@samad.com.au>
-	<Pine.GSO.4.63.0510291849040.28447@galaxy.agh.edu.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Alexander Samad <alex@samad.com.au>
-In-Reply-To: <Pine.GSO.4.63.0510291849040.28447@galaxy.agh.edu.pl>
+In-Reply-To: <20051028221728.GC10248@samad.com.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,20 +20,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 29 Oct 2005, Grzegorz Janoszka wrote:
+On Sat, 29 Oct 2005, Alexander Samad wrote:
 
-> My IPMARK was based on original MARK target. You can look what has changed in 
-> libipt_MARK.c and correct it.
+> Recently went to path IPMARK (Patchlet from patch o matic) to a 2.6.14
+> source tree and I have noticed this compilation error
+> net/ipv4/netfilter/ipt_IPMARK.c: In function 'target':
+> net/ipv4/netfilter/ipt_IPMARK.c:36: error: 'struct sk_buff' has no
+> member named 'nfcache'
+> net/ipv4/netfilter/ipt_IPMARK.c:36: error: 'NFC_ALTERED' undeclared
+> (first use in this function)
+> on investigation the nfcache field from sk_buff has been removed, having
+> a look on the net as to why
+> I was wondering what mechanism is need to replace the 'ncfcache |
+> NFC_ALTERED' statement
 
-http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=2689
+My IPMARK was based on original MARK target. You can look what has changed 
+in libipt_MARK.c and correct it.
 
-The patch dedicated to net/ipv4/netfilter/ipt_MARK.c should go to 
-ipt_IPMARK.c
-
-> I don't know if I have to submit a new patch or it will be corrected by 
-> netfilter developers?
-
-I suggest you make the changes, can you do it?
+I don't know if I have to submit a new patch or it will be corrected by 
+netfilter developers?
 
 -- 
 Grzegorz Janoszka
