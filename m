@@ -1,12 +1,15 @@
-From: Henrik Ehlig Petersen <henrik.ehlig.petersen@ericsson.com>
-Subject: ipv4options patch
-Date: Fri, 28 Oct 2005 15:33:47 +0200
-Message-ID: <436228BB.3050406@ericsson.com>
+From: Grzegorz Janoszka <Grzegorz.Janoszka@pro.onet.pl>
+Subject: Re: IPMARK nfcache
+Date: Sat, 29 Oct 2005 19:12:44 +0200 (CEST)
+Message-ID: <Pine.GSO.4.63.0510291912370.28447@galaxy.agh.edu.pl>
+References: <20051028221728.GC10248@samad.com.au>
+	<Pine.GSO.4.63.0510291849040.28447@galaxy.agh.edu.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Alexander Samad <alex@samad.com.au>
+In-Reply-To: <Pine.GSO.4.63.0510291849040.28447@galaxy.agh.edu.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,25 +21,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Sat, 29 Oct 2005, Grzegorz Janoszka wrote:
 
-I have applied the ipv4options patch to the iptables/netfilter
-function, and have some questions:
+> My IPMARK was based on original MARK target. You can look what has changed in 
+> libipt_MARK.c and correct it.
 
-How is the srr flag/register used in iptables? It is defined as a char,
-but how are the bits used? An example in the code makes a binary AND
-between the srr and a "boolean" (the is_strictroute). Is it because bit
-0 in the srr register contains the relevant info? Or how should I
-understand the example below:
+http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=2689
 
-else if ((info->options & IPT_IPV4OPTION_MATCH_LSRR) ==
-IPT_IPV4OPTION_MATCH_LSRR) {
-		if (!((opt->srr) & (!opt->is_strictroute)))
-			return 0;
-	}
+The patch dedicated to net/ipv4/netfilter/ipt_MARK.c should go to 
+ipt_IPMARK.c
 
-Hope you can help me, thanks!!
+> I don't know if I have to submit a new patch or it will be corrected by 
+> netfilter developers?
+
+I suggest you make the changes, can you do it?
 
 -- 
-BR
-Henrik
+Grzegorz Janoszka
