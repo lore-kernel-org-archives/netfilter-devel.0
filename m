@@ -1,18 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: remaining libnetfilter_conntrack issues
-Date: Sat, 29 Oct 2005 16:42:40 +0200
-Message-ID: <20051029144240.GX4479@sunbeam.de.gnumonks.org>
-References: <20051028205955.GA10568@rama.de.gnumonks.org>
-	<43636EE7.20601@eurodev.net>
-	<20051029140119.GR4479@sunbeam.de.gnumonks.org>
+From: Deti Fliegl <deti@fliegl.de>
+Subject: Re: problem with conntrack utility and kernel 2.6.14
+Date: Sat, 29 Oct 2005 17:34:28 +0200
+Message-ID: <43639684.5030502@fliegl.de>
+References: <4361EAAB.1090206@fliegl.de>	<4361F6DF.3050106@eurodev.net>	<43621028.40705@fliegl.de>	<43627A8F.9060307@eurodev.net>	<436281BB.2010100@fliegl.de>
+	<436373E8.7040606@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="t3wCcZxwnWQbJWrM"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <20051029140119.GR4479@sunbeam.de.gnumonks.org>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <436373E8.7040606@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,47 +22,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Pablo Neira wrote:
+> Could you give a try to the patch attached and tell me if it fixes the 
+> problem as well?
+Well - Houston, We Have a Problem :(
 
---t3wCcZxwnWQbJWrM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+nfnl_parse_attr: deficit (4) len (0).
 
-On Sat, Oct 29, 2005 at 04:01:19PM +0200, Harald Welte wrote:
 
-> > I think we can release the first 1.0 version of conntrack this week, to=
-gether with the first=20
-> > release of libnetfilter_conntrack.=20
->=20
-> Yes, although I think it's fine if we still do some more review.
-> There's no reason to hurry with a 1.0 release as long as 2.6.14 has not
-> been released yet.  So I would still be happy if the 1.0 release happens
-> on the day of the 2.6.14 release ;)
-
-Oh, I just noticed now that 2.6.14 has been released.  I've been
-incredibly busy with data protection, privacy and ePassport related
-issues (including tv interviews) for the last couple of days, sorry ;)
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---t3wCcZxwnWQbJWrM
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDY4pgXaXGVTD0i/8RAhmXAJ4q3fS+glVsffXK87CdJ1MqOZz1zgCfR9+k
-1L+xEl9YM9nRjIe017pPJfg=
-=EucT
------END PGP SIGNATURE-----
-
---t3wCcZxwnWQbJWrM--
+Program received signal SIGSEGV, Segmentation fault.
+0x00002aaaab0f6aa5 in parse_protoinfo () from 
+/usr/local/lib//libnetfilter_conntrack_tcp.so
+(gdb) bt
+#0  0x00002aaaab0f6aa5 in parse_protoinfo () from 
+/usr/local/lib//libnetfilter_conntrack_tcp.so
+#1  0x00002aaaaabc41dc in nfct_conntrack_netlink_handler (cth=0x586010, 
+nlh=0x7fffffc42d00, arg=<value optimized out>) at 
+libnetfilter_conntrack.c:384
+#2  0x00002aaaaabc37f0 in callback_handler (nladdr=<value optimized 
+out>, n=0x7fffffc42b98, arg=<value optimized out>) at 
+libnetfilter_conntrack.c:65
+#3  0x00002aaaaacc8702 in nfnl_listen (nfnlh=0x586010, 
+handler=0x2aaaaabc37c0 <callback_handler>, jarg=0x586010) at 
+libnfnetlink.c:349
+#4  0x00002aaaaabc4f8c in __nfct_dump_conntrack_table (cth=0x586010, 
+zero=<value optimized out>) at libnetfilter_conntrack.c:857
+#5  0x0000000000403242 in main (argc=2, argv=0x7fffffc45028) at 
+conntrack.c:913
