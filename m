@@ -1,16 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: pppoe with NAT not working
-Date: Sun, 30 Oct 2005 16:30:58 +0100
-Message-ID: <4364E732.30809@trash.net>
-References: <23027.::ffff:195.115.41.103.1129902602.squirrel@webmail.nerim.net>
-	<435921A7.6050703@nerim.net>
+Subject: Re: ip_conntrack_lock not readlocked
+Date: Sun, 30 Oct 2005 16:37:06 +0100
+Message-ID: <4364E8A2.60603@trash.net>
+References: <2497.194.242.39.2.1130240392.squirrel@webmail.piekna.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?ISO-8859-1?Q?S=E9bastien_Bernard?= <sbernard@nerim.net>
-In-Reply-To: <435921A7.6050703@nerim.net>
+To: Daniel Chojecki <boka@piekna.pl>
+In-Reply-To: <2497.194.242.39.2.1130240392.squirrel@webmail.piekna.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,26 +21,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sébastien Bernard wrote:
+Daniel Chojecki wrote:
+> Hi !
+> 
+> I have a firewall on Dell 1850 (3353540k of RAM) with:
+> 
+> - vanilla kernel: 2.4.31 with openwall patches - version 1 and pptp. -
+> iptables 1.3.3
+> - patch-o-matic-ng-20050904
+> 
+> Errors in /var/log/messages occurs when users (approx. 320) use internet
+> and dmz connection.
+> 
+> Oct 21 08:24:06 router kernel: ASSERT ip_conntrack_core.c:94
+> &ip_conntrack_lock readlocked
+> Oct 21 08:24:06 router kernel: ASSERT ip_conntrack_core.c:94
+> &ip_conntrack_lock readlocked
 
-> I figured out the problem.
-> 
-> NAT is not working with the rp-pppoe.so plugin.
-> I moved back to the
-> 
-> pty "/usr/sbin/pppoe -I eth0 -T 80 -m 1452"
-> 
-> Which worked now (go figure...).
-> And NAT is working again.
-> 
-> Any reason for this ?
-
-We had a report about NAT failing to work in a similar situation
-with HW checksums, but I couldn't find the reason. You could try:
-
-- check if you have HW checksums enabled on the eth-device using
-   ethtool
-- enable conntrack logging by loading ipt_LOG and executing
-   "echo 255 >/proc/sys/net/ipv4/netfilter/ip_conntrack_log_invalid".
-- if this shows something about invalid checksums, disable HW
-   checksumming on the eth-device and try again
+You could try to get a backtrace by replacing the printk
+in MUST_BE_READ_WRITE_UNLOCKED (include/linux/netfilter_ipv4/lockhelp.h)
+by a BUG().
