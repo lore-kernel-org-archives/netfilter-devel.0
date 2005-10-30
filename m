@@ -1,16 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 2.4] nf-log update against latest 2.4-git
-Date: Sun, 30 Oct 2005 10:49:16 +0100
-Message-ID: <20051030094916.GC4479@sunbeam.de.gnumonks.org>
-References: <4360F91B.1010509@tac.ch>
+From: Deti Fliegl <deti@fliegl.de>
+Subject: Re: iptables & new CONNMARK 32bit marks
+Date: Sun, 30 Oct 2005 11:27:07 +0100
+Message-ID: <43649FFB.6070200@fliegl.de>
+References: <435D0456.60405@fliegl.de>
+	<20051030094349.GZ4479@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="rurDnJN+lm4sj7QY"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Roberto Nibali <ratz@tac.ch>
-Content-Disposition: inline
-In-Reply-To: <4360F91B.1010509@tac.ch>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20051030094349.GZ4479@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,57 +22,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
+>>when using kernel 2.6.14rc5 the mark values have become 32bit but
+>>latest iptables code still uses 64bit values. 
+> 
+> 
+> It sends a 64bit value to the kernel, there's nothing wrong with that.
+> The kernel is able to parse that.
+> 
+> 
+>>This causes the kernel module to say "CONNMARK: Only supports 32bit
+>>mark" 
+> 
+> 
+> This should only happen if you actually specify a mark that is bigger
+> than 0xffffffff.  
+Yes you are right but if you are on a 64bit platform you might run into 
+trouble with these initializations in libipt_connmark.c:
 
---rurDnJN+lm4sj7QY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+markinfo->mask = ~0UL or if(mask != ~0UL)
 
-On Thu, Oct 27, 2005 at 05:58:19PM +0200, Roberto Nibali wrote:
-> Hello,
+This will evaluate to 0xffffffffffffffff on a long variable. You should 
+netter should use 0xffffffff than the hack above.
 
-Hi Roberto!
+Further a #ifdef KERNEL_64_USERSPACE_32 version of the code does not 
+make sense to me as 32bit will always be 32bit even on 64bit platforms :)
 
-> While updating my patchset I realised that the nf-log patch needed for
-> the tcp window tracking feature does not properly apply anymore as-is.
->=20
-> So here is an updated version against the latest 2.4-git which should
-> work also when 2.4.32 is released. It's compile tested.
+> Please post the specific rules in case of any doubt.
+iptables -t mangle -A PREROUTING --proto tcp -j CONNMARK --restore-mark
 
-eek, a 2.4.x user ;)
-
-> Please consider applying,
-
-mh, we've recently decided not to officially support any other kernels
-than the latest released stable kernel (which is 2.6.14 now).
-
-I know, we tried to be differernt for a long time, but most projects
-don't support 'new feature' patches for old kernel versions.
-
-Soon we will be able have 'remote references' from patch-o-matic, so
-people can run their own repositories (like they can do now with apt,
-for example).
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---rurDnJN+lm4sj7QY
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDZJccXaXGVTD0i/8RAvSEAJ0dNE5dynROU50pTLq3SQUt4zv/8QCdGrLI
-mFzYfxOH3ILr8UTE+aYba7o=
-=8zFv
------END PGP SIGNATURE-----
-
---rurDnJN+lm4sj7QY--
+Deti
