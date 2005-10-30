@@ -1,18 +1,16 @@
-From: Alexander Samad <alex@samad.com.au>
-Subject: Re: IPMARK nfcache
-Date: Sun, 30 Oct 2005 16:49:26 +1100
-Message-ID: <20051030054926.GD10248@samad.com.au>
-References: <20051028221728.GC10248@samad.com.au>
-	<Pine.GSO.4.63.0510291849040.28447@galaxy.agh.edu.pl>
-	<Pine.GSO.4.63.0510291912370.28447@galaxy.agh.edu.pl>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: iptables & new CONNMARK 32bit marks
+Date: Sun, 30 Oct 2005 10:43:49 +0100
+Message-ID: <20051030094349.GZ4479@sunbeam.de.gnumonks.org>
+References: <435D0456.60405@fliegl.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wULyF7TL5taEdwHz"
+	protocol="application/pgp-signature"; boundary="MoTbte+PTqanp4Nm"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Grzegorz Janoszka <Grzegorz.Janoszka@pro.onet.pl>
+To: Deti Fliegl <deti@fliegl.de>
 Content-Disposition: inline
-In-Reply-To: <Pine.GSO.4.63.0510291912370.28447@galaxy.agh.edu.pl>
+In-Reply-To: <435D0456.60405@fliegl.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,46 +23,48 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---wULyF7TL5taEdwHz
+--MoTbte+PTqanp4Nm
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Oct 29, 2005 at 07:12:44PM +0200, Grzegorz Janoszka wrote:
-> On Sat, 29 Oct 2005, Grzegorz Janoszka wrote:
+On Mon, Oct 24, 2005 at 05:57:10PM +0200, Deti Fliegl wrote:
+> Hello *,
 >=20
-> >My IPMARK was based on original MARK target. You can look what has chang=
-ed=20
-> >in libipt_MARK.c and correct it.
->=20
-> http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3D2689
->=20
-> The patch dedicated to net/ipv4/netfilter/ipt_MARK.c should go to=20
-> ipt_IPMARK.c
->=20
-> >I don't know if I have to submit a new patch or it will be corrected by=
-=20
-> >netfilter developers?
->=20
-> I suggest you make the changes, can you do it?
-Cool, will give it a go!
+> when using kernel 2.6.14rc5 the mark values have become 32bit but
+> latest iptables code still uses 64bit values.=20
 
->=20
-> --=20
-> Grzegorz Janoszka
->=20
+It sends a 64bit value to the kernel, there's nothing wrong with that.
+The kernel is able to parse that.
 
---wULyF7TL5taEdwHz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> This causes the kernel module to say "CONNMARK: Only supports 32bit
+> mark"=20
+
+This should only happen if you actually specify a mark that is bigger
+than 0xffffffff. =20
+
+Please post the specific rules in case of any doubt.
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--MoTbte+PTqanp4Nm
+Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDZF7mkZz88chpJ2MRArXWAJ4smrnyAW2loMcXA7V2R8DKVA5UMwCfQaIt
-inAvxjDppDeuXGV0k3OkBe8=
-=mQBs
+iD8DBQFDZJXVXaXGVTD0i/8RAsXLAJ41yWeQRvZoPZxD5FqdAHI6CsM3BACgqwDc
+cMMhtaf77KZD1isYJMj/sE4=
+=vp37
 -----END PGP SIGNATURE-----
 
---wULyF7TL5taEdwHz--
+--MoTbte+PTqanp4Nm--
