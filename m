@@ -1,16 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Fix definition of NFNL_HEADER_LEN
-Date: Mon, 31 Oct 2005 19:50:19 +0100
-Message-ID: <20051031185019.GH4479@sunbeam.de.gnumonks.org>
-References: <43637289.7020403@eurodev.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: Unknown Attribute 5/conntrack -L
+Date: Tue, 01 Nov 2005 04:02:07 +0900 (JST)
+Message-ID: <200510311902.j9VJ28fq026612@toshiba.co.jp>
+References: <Pine.LNX.4.62.0510310846320.8000@bizon.gios.gov.pl>
+	<43662D1E.4000308@eurodev.net>
+	<Pine.LNX.4.62.0510311544350.31123@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FKwKGrdyenXpCzpq"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: Multipart/Mixed;
+	boundary="--Next_Part(Tue_Nov__1_04_02_07_2005_460)--"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, pablo@eurodev.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-Content-Disposition: inline
-In-Reply-To: <43637289.7020403@eurodev.net>
+To: olenf@ans.pl
+In-Reply-To: <Pine.LNX.4.62.0510311544350.31123@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,49 +24,125 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+----Next_Part(Tue_Nov__1_04_02_07_2005_460)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
---FKwKGrdyenXpCzpq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Sat, Oct 29, 2005 at 03:00:57PM +0200, Pablo Neira wrote:
-> Hi Harald,
->=20
-> The current definition of NFNL_HEADER_LEN isn't OK. NLMSG_LENGTH already =
-includes the size of the=20
-> netlink header. We have to use NLMSG_ALIGN instead. NLMSG_LENGTH is a bit=
- misleading, I didn't=20
-> notice this at first sight either.
+Hi,
 
-thanks, applied.
+From: Krzysztof Oledzki <olenf@ans.pl>
+Date: Mon, 31 Oct 2005 15:46:10 +0100 (CET)
 
-> BTW, I think that we should add some kind of versioning of libnfnetlink a=
-s well, still missing.
+> On Mon, 31 Oct 2005, Pablo Neira wrote:
+> 
+> > Krzysztof Oledzki wrote:
+> >> On Mon, 31 Oct 2005, Pablo Neira wrote:
+> >> <CUT>
+> >> 
+> >>>> PS: Would you find some time to look at 
+> >>>> http://bugzilla.kernel.org/show_bug.cgi?id=5438
+> >>> 
+> >>> 
+> >>> Can you still trigger that oops with the current working copy from SVN?
+> >> 
+> >> IMHO this is a kernel bug. And to be clear: there is no problem with new 
+> >> version of userspace application/libraries.
+> >> 
+> >> The problem apperas only with _old_ library. There were a lot of API 
+> >> changes and probably kernel does not properly validate user data 
+> >> (boudaries?).
 
-yes, although I have to admit I don't [yet] know how symbol versioning
-actually works.
+I'm not sure it's the reason of oops, but at least attached patch fixes
+double free after netlink_unicast(). Krzysztof, could you try this ?
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
 
---FKwKGrdyenXpCzpq
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+> > Since the old libnfnetlink_conntrack release, some changes have been 
+> > introduced in kernel space. The corresponding changes to the userspace 
+> > libraries were applied to keep both in sync. To be frank, I'd worry about 
+> > fixing the current bugs, focus on the new libraries and do the first 1.0 
+> > official release asap.
+> 
+> OK, this can wait. I'll remind about this problem after the first 
+> 1.0 official release.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
+I don't think so. Deti reports similer oops on 2.6.14 which has been already
+out, so this should be fixed asap.
 
-iD8DBQFDZmdrXaXGVTD0i/8RApczAJoCWTEMimxWGthVw8/5h8AwcxtCmACeJDbV
-CW7KmwKzS83852E81hw6XtM=
-=SOmw
------END PGP SIGNATURE-----
+Regards,
 
---FKwKGrdyenXpCzpq--
+-- Yasuyuki Kozakai
+
+----Next_Part(Tue_Nov__1_04_02_07_2005_460)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="ct-netlink-double-free.patch"
+
+[NETFILTER] fix double free after netlink_unicast() in ctnetlink
+
+It's not necessary to free skb if netlink_unicast() failed.
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+
+---
+commit 1d9b24503bcaf3c5c809a05822bbbbaacc657781
+tree af11ba2c560f1f642cc7ac3c8c8c8b883ef24b1e
+parent 991ce06b3db463c6cdf8d5a0b0d70bf22c499fef
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Tue, 01 Nov 2005 03:37:24 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Tue, 01 Nov 2005 03:37:24 +0900
+
+ net/ipv4/netfilter/ip_conntrack_netlink.c |   19 +++++++------------
+ 1 files changed, 7 insertions(+), 12 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -815,7 +815,7 @@ ctnetlink_get_conntrack(struct sock *ctn
+ 				  IPCTNL_MSG_CT_NEW, 1, ct);
+ 	ip_conntrack_put(ct);
+ 	if (err <= 0)
+-		goto out;
++		goto free;
+ 
+ 	err = netlink_unicast(ctnl, skb2, NETLINK_CB(skb).pid, MSG_DONTWAIT);
+ 	if (err < 0)
+@@ -824,9 +824,9 @@ ctnetlink_get_conntrack(struct sock *ctn
+ 	DEBUGP("leaving\n");
+ 	return 0;
+ 
++free:
++	kfree_skb(skb2);
+ out:
+-	if (skb2)
+-		kfree_skb(skb2);
+ 	return -1;
+ }
+ 
+@@ -1322,21 +1322,16 @@ ctnetlink_get_expect(struct sock *ctnl, 
+ 				      nlh->nlmsg_seq, IPCTNL_MSG_EXP_NEW,
+ 				      1, exp);
+ 	if (err <= 0)
+-		goto out;
++		goto free;
+ 
+ 	ip_conntrack_expect_put(exp);
+ 
+-	err = netlink_unicast(ctnl, skb2, NETLINK_CB(skb).pid, MSG_DONTWAIT);
+-	if (err < 0)
+-		goto free;
+-
+-	return err;
++	return netlink_unicast(ctnl, skb2, NETLINK_CB(skb).pid, MSG_DONTWAIT);
+ 
++free:
++	kfree_skb(skb2);
+ out:
+ 	ip_conntrack_expect_put(exp);
+-free:
+-	if (skb2)
+-		kfree_skb(skb2);
+ 	return err;
+ }
+ 
+
+----Next_Part(Tue_Nov__1_04_02_07_2005_460)----
