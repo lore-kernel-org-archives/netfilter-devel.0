@@ -1,16 +1,13 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: problem with conntrack utility and kernel 2.6.14
-Date: Mon, 31 Oct 2005 05:41:59 +0100
-Message-ID: <4365A097.1080001@eurodev.net>
-References: <4361EAAB.1090206@fliegl.de>	<4361F6DF.3050106@eurodev.net>	<43621028.40705@fliegl.de>	<43627A8F.9060307@eurodev.net>	<436281BB.2010100@fliegl.de>	<436373E8.7040606@eurodev.net>
-	<436398C7.4070402@fliegl.de>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: [PATCH] Fix module refcount dropping too far in 2.6.14
+Date: Mon, 31 Oct 2005 18:07:22 +1100
+Message-ID: <1130742442.20697.3.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Deti Fliegl <deti@fliegl.de>
-In-Reply-To: <436398C7.4070402@fliegl.de>
+To: Netfilter development mailing list <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,36 +19,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+(Trivial, not compiled). The unknown protocol is used as a fallback when
+a protocol isn't known.  Hence we cannot handle it failing, so don't set
+".me".  It's OK, since we only grab a reference from within the same
+module (iptable_nat.ko), so we never take the module refcount from 0 to
+1.
 
-JFYI, I just commited the following changes to libconntrack_netfilter:
+Also, remove the "protocol is NULL" test: it's never NULL.
+Signed-off-by: Rusty Rusty <rusty@rustcorp.com.au>
 
-o Replace misleading flag NFCT_ANY_GROUP by NFCT_ALL_GROUPS
-o Update test file to use NFCT_ALL_GROUPS
-o Add missing check of CTA_PROTOINFO_TCP that resulted in a segfault in
-conjuction with events
-o Fix ICMP conntracks output
-o Add missing prototype definition of nfct_default_expect_display_id in
-libnetfilter_conntrack.h
-
-and the following to conntrack:
-
-o Replace misleading message "Not enough memory" by "Can't open handler"
-o New option -i for expectation dumping: conntrack -L expect [-i]
-o sed 's/VERSION/CONNTRACK_VERSION/g'
-o Fix nfct_open flags, now uses NFCT_ALL_GROUPS when needed
-o Bumped version to 0.94
-
-AFAIK these fix the problems concerned with the dumping. The problem 
-wasn't 64 bits arch specific at all, actually the matter was that I 
-required some fast hardware to reproduce them that I don't have. Thanks 
-to Deti Fiegl for providing me such fast hardware via SSH to reproduce 
-the bugs ;)
-
-I've been giving some testing to the conntrack tool and seems to work 
-fine under big stress situation. If you spot any other bug, please let 
-me know. I'm willing to do the first 1.0 official as soon as people 
-don't complain about bugs.
+diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal linux-2.6.14/net/ipv4/netfilter/ip_nat_core.c working-2.6.14-proto-unknown-fix/net/ipv4/netfilter/ip_nat_core.c
+--- linux-2.6.14/net/ipv4/netfilter/ip_nat_core.c	2005-10-31 12:21:25.000000000 +1100
++++ working-2.6.14-proto-unknown-fix/net/ipv4/netfilter/ip_nat_core.c	2005-10-31 17:59:39.000000000 +1100
+@@ -66,10 +66,8 @@ ip_nat_proto_find_get(u_int8_t protonum)
+ 	 * removed until we've grabbed the reference */
+ 	preempt_disable();
+ 	p = __ip_nat_proto_find(protonum);
+-	if (p) {
+-		if (!try_module_get(p->me))
+-			p = &ip_nat_unknown_protocol;
+-	}
++	if (!try_module_get(p->me))
++		p = &ip_nat_unknown_protocol;
+ 	preempt_enable();
+ 
+ 	return p;
+diff -urpN --exclude TAGS -X /home/rusty/devel/kernel/kernel-patches/current-dontdiff --minimal linux-2.6.14/net/ipv4/netfilter/ip_nat_proto_unknown.c working-2.6.14-proto-unknown-fix/net/ipv4/netfilter/ip_nat_proto_unknown.c
+--- linux-2.6.14/net/ipv4/netfilter/ip_nat_proto_unknown.c	2005-10-31 12:21:25.000000000 +1100
++++ working-2.6.14-proto-unknown-fix/net/ipv4/netfilter/ip_nat_proto_unknown.c	2005-10-31 18:01:12.000000000 +1100
+@@ -62,7 +62,7 @@ unknown_print_range(char *buffer, const 
+ 
+ struct ip_nat_protocol ip_nat_unknown_protocol = {
+ 	.name			= "unknown",
+-	.me			= THIS_MODULE,
++	/* .me isn't set: getting a ref to this cannot fail. */
+ 	.manip_pkt		= unknown_manip_pkt,
+ 	.in_range		= unknown_in_range,
+ 	.unique_tuple		= unknown_unique_tuple,
 
 -- 
-Pablo
+A bad analogy is like a leaky screwdriver -- Richard Braakman
