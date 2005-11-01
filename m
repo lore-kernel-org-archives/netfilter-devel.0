@@ -1,16 +1,19 @@
-From: Deti Fliegl <deti@fliegl.de>
-Subject: Re: Unknown Attribute 5/conntrack -L
-Date: Mon, 31 Oct 2005 21:36:38 +0100
-Message-ID: <43668056.8000400@fliegl.de>
-References: <Pine.LNX.4.62.0510310846320.8000@bizon.gios.gov.pl>	<43662D1E.4000308@eurodev.net>	<Pine.LNX.4.62.0510311544350.31123@bizon.gios.gov.pl>
-	<200510311902.j9VJ28fq026612@toshiba.co.jp>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: problem with conntrack utility and kernel 2.6.14
+Date: Tue, 01 Nov 2005 02:09:05 +0100
+Message-ID: <4366C031.6020504@eurodev.net>
+References: <4361EAAB.1090206@fliegl.de> <4361F6DF.3050106@eurodev.net>
+	<43621028.40705@fliegl.de> <43627A8F.9060307@eurodev.net>
+	<436281BB.2010100@fliegl.de> <436373E8.7040606@eurodev.net>
+	<436398C7.4070402@fliegl.de> <4365A097.1080001@eurodev.net>
+	<Pine.LNX.4.62.0510310911090.9468@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: pablo@eurodev.net, netfilter-devel@lists.netfilter.org
+Cc: Deti Fliegl <deti@fliegl.de>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200510311902.j9VJ28fq026612@toshiba.co.jp>
+To: Krzysztof Oledzki <olenf@ans.pl>
+In-Reply-To: <Pine.LNX.4.62.0510310911090.9468@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,75 +25,70 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Yasuyuki,
+Krzysztof Oledzki wrote:
+> 1. "Illegal option `-m'" with "conntrack -E -i"
+> # conntrack -E -i
+> conntrack v0.94: Illegal option `-m' with this command
 
-> I'm not sure it's the reason of oops, but at least attached patch fixes
-> double free after netlink_unicast(). Krzysztof, could you try this ?
-Tried it with 2.6.14 - after 20 minutes of calling conntrack -L in an 
-endless loop (with ~20000 entries and 800Mbit/s load) it happened again:
+Wrong error output: this should say `-i'. Fixed.
 
-<4>Badness in __kfree_skb at net/core/skbuff.c:330
-<4>
-<4>Call Trace:<ffffffff802a2f77>{__kfree_skb+167} 
-<ffffffff802bb597>{netlink_recvmsg+279}
-<4>       <ffffffff8029cb2b>{sock_recvmsg+315} 
-<ffffffff8019b457>{update_atime+151}
-<4>       <ffffffff8015ddfa>{do_generic_mapping_read+1098} 
-<ffffffff80161311>{buffered_rmqueue+529}
-<4>       <ffffffff8012fbe5>{activate_task+149} 
-<ffffffff8013003b>{try_to_wake_up+1083}
-<4>       <ffffffff8014b2f0>{autoremove_wake_function+0} 
-<ffffffff8029e38b>{sys_recvmsg+395}
-<4>       <ffffffff8018e477>{pipe_writev+1319} 
-<ffffffff80181208>{vfs_write+344}
-<4>       <ffffffff80181343>{sys_write+83} 
-<ffffffff8010dc4e>{system_call+126}
-<4>
-<4>Badness in __kfree_skb at net/core/skbuff.c:330
-<4>
-<4>Call Trace:<ffffffff802a2f77>{__kfree_skb+167} 
-<ffffffff802bb597>{netlink_recvmsg+279}
-<4>       <ffffffff8029cb2b>{sock_recvmsg+315} 
-<ffffffff8019b457>{update_atime+151}
-<4>       <ffffffff8015ddfa>{do_generic_mapping_read+1098} 
-<ffffffff80161311>{buffered_rmqueue+529}
-<4>       <ffffffff8012fbe5>{activate_task+149} 
-<ffffffff8013003b>{try_to_wake_up+1083}
-<4>       <ffffffff8014b2f0>{autoremove_wake_function+0} 
-<ffffffff8029e38b>{sys_recvmsg+395}
-<4>       <ffffffff8018e477>{pipe_writev+1319} 
-<ffffffff80181208>{vfs_write+344}
-<4>       <ffffffff80181343>{sys_write+83} 
-<ffffffff8010dc4e>{system_call+126}
-<4>
-<4>Badness in __kfree_skb at net/core/skbuff.c:330
-<4>
-<4>Call Trace:<ffffffff802a2f77>{__kfree_skb+167} 
-<ffffffff802bb597>{netlink_recvmsg+279}
-<4>       <ffffffff8029cb2b>{sock_recvmsg+315} 
-<ffffffff8019b457>{update_atime+151}
-<4>       <ffffffff8015ddfa>{do_generic_mapping_read+1098} 
-<ffffffff80161311>{buffered_rmqueue+529}
-<4>       <ffffffff8012fbe5>{activate_task+149} 
-<ffffffff8013003b>{try_to_wake_up+1083}
-<4>       <ffffffff8014b2f0>{autoremove_wake_function+0} 
-<ffffffff8029e38b>{sys_recvmsg+395}
-<4>       <ffffffff8018e477>{pipe_writev+1319} 
-<ffffffff80181208>{vfs_write+344}
-<4>       <ffffffff80181343>{sys_write+83} 
-<ffffffff8010dc4e>{system_call+126}
-<4>
-<3>scheduling while atomic: conntrack/0xffffff00/32033
-<4>
-<4>Call Trace:<ffffffff8031d67d>{schedule+125} 
-<ffffffff80181208>{vfs_write+344}
-<4>       <ffffffff80181343>{sys_write+83} 
-<ffffffff8010dcb8>{sysret_careful+13}
-<4>
+You can't use -E together with -i. But I think that adding the conntrack 
+ID to the event information that is dumped could be worth for accounting 
+purposes, so I'll add this to my pending patches for ctnetlink, ok?
 
+> 2. Unable to delete conntrack by id:
+> root@olemx:~# conntrack -L -i|grep id=101
+> tcp      6 431999 ESTABLISHED src=192.168.0.22 dst=192.168.0.33 
+> sport=1607 dport=22 packets=72520 bytes=4421477 src=192.168.0.33 
+> dst=192.168.0.22 sport=22 dport=1607 packets=101332 bytes=21675629 
+> [ASSURED] mark=0 use=1 id=101
+> root@olemx:~# conntrack -D -i 101
+> root@olemx:~# conntrack -L -i|grep id=101
 
-> I don't think so. Deti reports similer oops on 2.6.14 which has been already
-> out, so this should be fixed asap.
-good idea.
+You can't kill conntracks *just* by the ID. The connection tracking 
+table currently uses the tuple information (source, destination, 
+protocol information) to place the conntrack in hashes, same thing to 
+perform lookups. Implementing the ability of killing conntracks just by 
+its ID would be O(n), so we would need to walk through the buckets until 
+we find a matching, not so good. Just a wild thought, how bad would be 
+hashing the conntracks by its ID? In that case we could implement this 
+feature. So, currently you'll always need the information about the 
+source, destination and protocol specific stuff together with the ID.
 
-Deti
+> tcp      6 431999 ESTABLISHED src=192.168.0.22 dst=192.168.0.33 
+> sport=1607 dport=22 packets=72549 bytes=4423573 src=192.168.0.33 
+> dst=192.168.0.22 sport=22 dport=1607 packets=101352 bytes=21677725 
+> [ASSURED] mark=0 use=1 id=101
+> 
+> 3. "deficit (4) len (0)." in conntrack -E expect:
+> 
+> # conntrack -E expect
+> 0 proto=17 src=192.168.31.255 dst=192.168.1.29 sport=138 dport=138
+> nfnl_parse_attr: deficit (4) len (0).
+> 
+> 0 proto=17 src=192.168.31.255 dst=192.168.1.227 sport=138 dport=138
+> nfnl_parse_attr: deficit (4) len (0).
+
+Fixed in SVN.
+
+> 4. Wrong formating in conntrack -h (Get... & Update...)
+> 
+> Commands:
+> -L [table] [-z]         List conntrack or expectation table
+> -G [table] parameters  Get conntrack or expectation
+> -D [table] parameters   Delete conntrack or expectation
+> -I [table] parameters   Create a conntrack or expectation
+> -U [table] parameters  Update a conntrack
+> -E [table] [options]    Show events
+> -F [table]              Flush table
+> 
+> Patch attached & inlined (for easy review):
+
+Applied. Thanks.
+
+> 5. Missing information in help/man about possibility of using "-i".
+
+Added -i to the manpage. Thanks for the bug report.
+
+-- 
+Pablo
