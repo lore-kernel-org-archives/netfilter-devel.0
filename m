@@ -1,25 +1,25 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
+From: Pablo Neira <pablo@eurodev.net>
 Subject: Re: problem with conntrack utility and kernel 2.6.14
-Date: Tue, 1 Nov 2005 19:49:46 +0100 (CET)
-Message-ID: <Pine.LNX.4.63.0511011747370.15256@bizon.gios.gov.pl>
+Date: Tue, 01 Nov 2005 20:27:21 +0100
+Message-ID: <4367C199.9060003@eurodev.net>
 References: <4361EAAB.1090206@fliegl.de> <4361F6DF.3050106@eurodev.net>
 	<43621028.40705@fliegl.de> <43627A8F.9060307@eurodev.net>
-	<436281BB.2010100@fliegl.de>
-	<436373E8.7040606@eurodev.net> <436398C7.4070402@fliegl.de>
-	<4365A097.1080001@eurodev.net>
+	<436281BB.2010100@fliegl.de> <436373E8.7040606@eurodev.net>
+	<436398C7.4070402@fliegl.de> <4365A097.1080001@eurodev.net>
 	<Pine.LNX.4.62.0510310911090.9468@bizon.gios.gov.pl>
 	<4366C031.6020504@eurodev.net>
 	<Pine.LNX.4.63.0511011116550.3512@bizon.gios.gov.pl>
 	<436773EB.6000608@eurodev.net>
 	<Pine.LNX.4.63.0511011605010.12220@bizon.gios.gov.pl>
 	<43679A3B.6070009@eurodev.net>
+	<Pine.LNX.4.63.0511011747370.15256@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-359043383-1130870986=:15256"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Deti Fliegl <deti@fliegl.de>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <43679A3B.6070009@eurodev.net>
+To: Krzysztof Oledzki <olenf@ans.pl>
+In-Reply-To: <Pine.LNX.4.63.0511011747370.15256@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -31,85 +31,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Krzysztof Oledzki wrote:
+> # conntrack -V
+> conntrack v0.94
 
----187430788-359043383-1130870986=:15256
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Refresh your working copy, try lastest conntrack (v0.95) and tell if 
+everything goes fine.
 
-
-
-On Tue, 1 Nov 2005, Pablo Neira wrote:
-
-> Krzysztof Oledzki wrote:
->> On Tue, 1 Nov 2005, Pablo Neira wrote:
->>=20
->>> Krzysztof Oledzki wrote:
->>>=20
->>>>> You can't kill conntracks *just* by the ID. The connection tracking=
-=20
->>>>> table currently uses the tuple information (source, destination,=20
->>>>> protocol information) to place the conntrack in hashes, same thing to=
-=20
->>>>> perform lookups.
->>>>=20
->>>> So, why do we need this conntrack ID? Only for userspace applications?
->>>=20
->>> Because of two reasons:
->>>=20
->>> a) We have to provide a way to uniquely identify a conntrack. On slow=
-=20
->>> devices, it could happen that a connection with the same src/dst/proto=
-=20
->>> could be re-created in a very short period of time. So the user can be=
-=20
->>> sure that he's killing that conntrack, and not a similar that represent=
-s a=20
->>> re-opened connection.
->>=20
->> So one can pass this id as an additional information? OK. :)
->
-> That is :)
->
->> BTW: I think conntrack-tool should inform that conntrack killing fails=
-=20
->> because kernel isn't able to find a matching conntrack.
->
-> That is what it currently does, are you observing a different behaviour?
-Unfortunately :(
-
-> # conntrack -D --orig-src 1.1.1.1 --orig-dst 2.2.2.2 -p tcp --orig-port-s=
-rc=20
-> 2005 --orig-port-dst 21
-> NFNETLINK answers: No such file or directory
-> Operation failed: such conntrack doesn't exist
-
-# conntrack -L -i|grep 192.168.130.123
-udp      17 20 src=3D192.168.0.33 dst=3D192.168.130.123 sport=3D123 dport=
-=3D123 packets=3D1 bytes=3D76 src=3D192.168.130.123 dst=3D192.168.0.33 spor=
-t=3D123 dport=3D123 packets=3D1 bytes=3D76 mark=3D0 use=3D1 id=3D13157
-
-root@olemx:~# conntrack -D --orig-src 192.168.0.33 --orig-dst=20
-192.168.130.123 -p udp --orig-port-src 123 --orig-port-dst 123 -i 90909
-
-# conntrack -L -i|grep 192.168.130.123
-(empty)
-
-# conntrack -D --orig-src 192.168.0.33 --orig-dst 192.168.130.123 -p udp --=
-orig-port-src 123 --orig-port-dst 123 -i 90909
-NFNETLINK answers: No such file or directory
-Operation failed: sorry, you must be root or get CAP_NET_ADMIN capability t=
-o do this
-
-It kills wrong conntrack (id does not match) and display bogus information=
-=20
-about CAP_NET_ADMIN.
-
-# conntrack -V
-conntrack v0.94
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-359043383-1130870986=:15256--
+-- 
+Pablo
