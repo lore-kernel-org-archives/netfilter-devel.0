@@ -1,10 +1,10 @@
 From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: [PATCH] nfsim: documentation typo fix
-Date: Wed, 2 Nov 2005 15:19:11 +0100
-Message-ID: <200511021519.11265@nienna>
+Subject: [PATCH] nfsim: trivial format string typo fix
+Date: Wed, 2 Nov 2005 15:17:44 +0100
+Message-ID: <200511021517.45463@nienna>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_frMaDr6qzcCdFX2"
+  boundary="Boundary-00=_JqMaDjBQBHn3RTL"
 Cc: laforge@netfilter.org, rusty@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
@@ -19,7 +19,7 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_frMaDr6qzcCdFX2
+--Boundary-00=_JqMaDjBQBHn3RTL
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -28,30 +28,33 @@ Content-Disposition: inline
 
   Hi,
 
-  Another one-letter change, a typo in the documentation. :)
+  While playing with nfsim and nf_conntrack this weekend, I've found a 
+trivial typo in core/core.c. Please apply the attached patch. (Yes, 
+it's trivial but obviously it causes a segfault.)
 
 -- 
  Regards,
   Krisztian Kovacs
 
---Boundary-00=_frMaDr6qzcCdFX2
+--Boundary-00=_JqMaDjBQBHn3RTL
 Content-Type: text/x-diff; charset="us-ascii";
-	name="nfsim-documentation_typo_fix.patch"
+	name="nfsim-trivial_format_string_typo_fix.patch"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename="nfsim-documentation_typo_fix.patch"
+Content-Disposition: attachment;
+	filename="nfsim-trivial_format_string_typo_fix.patch"
 
-Index: nfsim/doc/simulator.xml
+Index: nfsim/core/core.c
 ===================================================================
---- nfsim/doc/simulator.xml	(revision 4423)
-+++ nfsim/doc/simulator.xml	(working copy)
-@@ -146,7 +146,7 @@
-   <para>During initialisation (or at any other time), calls to
-    <function>printk()</function> will be  shown, as would occur on boot or
-    kernel module loading.</para>
--  <para>By default, the simuluator is started with the three interfaces (eth0,
-+  <para>By default, the simulator is started with the three interfaces (eth0,
-   eth1 and lo)
-    
-    interface
+--- nfsim/core/core.c	(revision 4423)
++++ nfsim/core/core.c	(working copy)
+@@ -386,7 +386,7 @@
+ 	for (p = __start_module_init; p < __stop_module_init; p++) {
+ 		ret = (*p)();
+ 		if (ret)
+-			nfsim_log(LOG_UI, "Initcall %p failed: %s\n", p, ret);
++			nfsim_log(LOG_UI, "Initcall %p failed: %d\n", p, ret);
+ 	}
+ }
+ 
 
---Boundary-00=_frMaDr6qzcCdFX2--
+--Boundary-00=_JqMaDjBQBHn3RTL--
