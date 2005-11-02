@@ -1,27 +1,11 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: problem with conntrack utility and kernel 2.6.14
-Date: Tue, 1 Nov 2005 21:21:10 +0100 (CET)
-Message-ID: <Pine.LNX.4.63.0511012118270.21639@bizon.gios.gov.pl>
-References: <4361EAAB.1090206@fliegl.de> <4361F6DF.3050106@eurodev.net>
-	<43621028.40705@fliegl.de> <43627A8F.9060307@eurodev.net>
-	<436281BB.2010100@fliegl.de>
-	<436373E8.7040606@eurodev.net> <436398C7.4070402@fliegl.de>
-	<4365A097.1080001@eurodev.net>
-	<Pine.LNX.4.62.0510310911090.9468@bizon.gios.gov.pl>
-	<4366C031.6020504@eurodev.net>
-	<Pine.LNX.4.63.0511011116550.3512@bizon.gios.gov.pl>
-	<436773EB.6000608@eurodev.net>
-	<Pine.LNX.4.63.0511011605010.12220@bizon.gios.gov.pl>
-	<43679A3B.6070009@eurodev.net>
-	<Pine.LNX.4.63.0511011747370.15256@bizon.gios.gov.pl>
-	<4367CB1E.8080407@eurodev.net>
+From: Felipe Kellermann <stdfk@terra.com.br>
+Subject: [PATCH/iptables] Duplicated matches/targets
+Date: Wed, 2 Nov 2005 04:04:36 -0200 (BRST)
+Message-ID: <Pine.BSO.4.62.0511020401470.32113@bepuvq.alien.bet>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1097087602-1130876470=:21639"
-Cc: Deti Fliegl <deti@fliegl.de>, netfilter-devel@lists.netfilter.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="0-1033900039-1130911476=:32113"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <4367CB1E.8080407@eurodev.net>
+To: Netfilter - Devel <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -36,57 +20,62 @@ List-Id: netfilter-devel.vger.kernel.org
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-1097087602-1130876470=:21639
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+--0-1033900039-1130911476=:32113
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
+While doing little modifications in my extension list, I've accidently
+built a binary (NO_SHARED_LIBS) with a duplicated match. I immediately
+noticed this because with that duplicated match I couldn't "load" some
+other matches of my list of matches (e.g., state).
 
+% sort initext.c | uniq -d
+        ipt_comment_init();
+extern void ipt_comment_init(void);
+% iptables -m state
+iptables v1.3.4: Couldn't find match `state'
+Try `iptables -h' or 'iptables --help' for more information.
 
-On Tue, 1 Nov 2005, Pablo Neira wrote:
+With a trivial debugging I noticed that the iptables_match list was
+leaking. find_match() is always returning NULL when loaded == 0 and
+ipt_tryload == DONT_LOAD and NO_SHARED_LIBS is defined. Just setting
+loaded to 1 when it's successfully "loaded" solved the problem.
 
-> Krzysztof Oledzki wrote:
->>> That is what it currently does, are you observing a different behaviour=
-?
->>=20
->> Unfortunately :(
->>=20
->>> # conntrack -D --orig-src 1.1.1.1 --orig-dst 2.2.2.2 -p tcp=20
->>> --orig-port-src 2005 --orig-port-dst 21
->>> NFNETLINK answers: No such file or directory
->>> Operation failed: such conntrack doesn't exist
->>=20
->> # conntrack -L -i|grep 192.168.130.123
->> udp      17 20 src=3D192.168.0.33 dst=3D192.168.130.123 sport=3D123 dpor=
-t=3D123=20
->> packets=3D1 bytes=3D76 src=3D192.168.130.123 dst=3D192.168.0.33 sport=3D=
-123 dport=3D123=20
->> packets=3D1 bytes=3D76 mark=3D0 use=3D1 id=3D13157
->>=20
->> root@olemx:~# conntrack -D --orig-src 192.168.0.33 --orig-dst=20
->> 192.168.130.123 -p udp --orig-port-src 123 --orig-port-dst 123 -i 90909
->
-> Fixed in SVN.
->
->> # conntrack -L -i|grep 192.168.130.123
->> (empty)
->>=20
->> # conntrack -D --orig-src 192.168.0.33 --orig-dst 192.168.130.123 -p udp=
-=20
->> --orig-port-src 123 --orig-port-dst 123 -i 90909
->> NFNETLINK answers: No such file or directory
->> Operation failed: sorry, you must be root or get CAP_NET_ADMIN capabilit=
-y=20
->> to do this
->
-> This error message is related with libnfnetlink, give a try to the patch=
-=20
-> attached. It fixes it. I'll pass it to Harald.
+Additionally, IMHO we shouldn't exit() while registering matches or
+targets that are already registered. Doing that could prevent rules of
+getting commited just because there are duplicated matches or targets.
 
-Both problems are now fixed. Thank you.
+Any objections to just skipping when the revisions are the same? The
+current code already skips when the old revision is greater than "me".
 
-Best regards,
+% iptables -m state
+iptables: match `comment' already registered.
+iptables v1.3.4: You must specify `--state'
+Try `iptables -h' or 'iptables --help' for more information.
 
- =09=09=09=09Krzysztof Ol=EAdzki
+-- 
+Felipe Kellermann
+--0-1033900039-1130911476=:32113
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=iptables-dup-felipek.diff
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.BSO.4.62.0511020404360.32113@bepuvq.alien.bet>
+Content-Description: 
+Content-Disposition: attachment; filename=iptables-dup-felipek.diff
 
-PS: libnfnetlink still has aclocal-1.6 & automake-1.6 in autogen.sh.
----187430788-1097087602-1130876470=:21639--
+SW5kZXg6IGlwdGFibGVzLmMNCj09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCi0t
+LSBpcHRhYmxlcy5jCShyZXZpc2lvbiA0NDIwKQ0KKysrIGlwdGFibGVzLmMJ
+KHdvcmtpbmcgY29weSkNCkBAIC0xMTIwLDcgKzExMjAsNyBAQA0KIAkJCWZw
+cmludGYoc3RkZXJyLA0KIAkJCQkiJXM6IG1hdGNoIGAlcycgYWxyZWFkeSBy
+ZWdpc3RlcmVkLlxuIiwNCiAJCQkJcHJvZ3JhbV9uYW1lLCBtZS0+bmFtZSk7
+DQotCQkJZXhpdCgxKTsNCisJCQlyZXR1cm47DQogCQl9DQogDQogCQkvKiBO
+b3cgd2UgaGF2ZSB0d28gKG9yIG1vcmUpIG9wdGlvbnMsIGNoZWNrIGNvbXBh
+dGliaWxpdHkuICovDQpAQCAtMTE1MCw2ICsxMTUwLDcgQEANCiANCiAJbWUt
+Pm0gPSBOVUxMOw0KIAltZS0+bWZsYWdzID0gMDsNCisJbWUtPmxvYWRlZCA9
+IDE7DQogfQ0KIA0KIHZvaWQNCkBAIC0xMTc4LDcgKzExNzksNyBAQA0KIAkJ
+CWZwcmludGYoc3RkZXJyLA0KIAkJCQkiJXM6IHRhcmdldCBgJXMnIGFscmVh
+ZHkgcmVnaXN0ZXJlZC5cbiIsDQogCQkJCXByb2dyYW1fbmFtZSwgbWUtPm5h
+bWUpOw0KLQkJCWV4aXQoMSk7DQorCQkJcmV0dXJuOw0KIAkJfQ0KIA0KIAkJ
+LyogTm93IHdlIGhhdmUgdHdvIChvciBtb3JlKSBvcHRpb25zLCBjaGVjayBj
+b21wYXRpYmlsaXR5LiAqLw0K
+
+--0-1033900039-1130911476=:32113--
