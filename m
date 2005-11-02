@@ -1,11 +1,15 @@
-From: Felipe Kellermann <stdfk@terra.com.br>
-Subject: [PATCH/iptables] Duplicated matches/targets
-Date: Wed, 2 Nov 2005 04:04:36 -0200 (BRST)
-Message-ID: <Pine.BSO.4.62.0511020401470.32113@bepuvq.alien.bet>
+From: Deti Fliegl <deti@fliegl.de>
+Subject: Re: iptables & new CONNMARK 32bit marks
+Date: Wed, 02 Nov 2005 10:25:51 +0100
+Message-ID: <4368861F.6040008@fliegl.de>
+References: <435D0456.60405@fliegl.de>
+	<20051030094349.GZ4479@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="0-1033900039-1130911476=:32113"
+Content-Type: multipart/mixed; boundary="------------030001010106020406010106"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter - Devel <netfilter-devel@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20051030094349.GZ4479@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,65 +21,170 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+This is a multi-part message in MIME format.
+--------------030001010106020406010106
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
---0-1033900039-1130911476=:32113
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Hi,
 
-While doing little modifications in my extension list, I've accidently
-built a binary (NO_SHARED_LIBS) with a duplicated match. I immediately
-noticed this because with that duplicated match I couldn't "load" some
-other matches of my list of matches (e.g., state).
+the patch attached to this mail fixes the 32bit connmark issues on 64bit 
+systems. Please could anyone test if the code is still working on 32bit 
+systems?
 
-% sort initext.c | uniq -d
-        ipt_comment_init();
-extern void ipt_comment_init(void);
-% iptables -m state
-iptables v1.3.4: Couldn't find match `state'
-Try `iptables -h' or 'iptables --help' for more information.
+Changes:
 
-With a trivial debugging I noticed that the iptables_match list was
-leaking. find_match() is always returning NULL when loaded == 0 and
-ipt_tryload == DONT_LOAD and NO_SHARED_LIBS is defined. Just setting
-loaded to 1 when it's successfully "loaded" solved the problem.
+* replaced any occurences of ~0UL by 0xffffffff which is now platform 
+independently 32bit wide.
+* the ipt_connmark_target_info structure still uses long variables 
+(which 64bit on 64bit systems) for mask & mark - IMHO someone should 
+change this to u_int32_t if mark values are meant to be 32bit wide.
+* remove any code that has to be compiled #ifdef KERNEL_64_USERSPACE_32 
+as 32bit stay 32bit even on 64bit systems
 
-Additionally, IMHO we shouldn't exit() while registering matches or
-targets that are already registered. Doing that could prevent rules of
-getting commited just because there are duplicated matches or targets.
+Deti
 
-Any objections to just skipping when the revisions are the same? The
-current code already skips when the old revision is greater than "me".
+--------------030001010106020406010106
+Content-Type: text/x-patch;
+ name="iptables-connmark-32bit.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="iptables-connmark-32bit.patch"
 
-% iptables -m state
-iptables: match `comment' already registered.
-iptables v1.3.4: You must specify `--state'
-Try `iptables -h' or 'iptables --help' for more information.
+Index: extensions/libipt_CONNMARK.c
+===================================================================
+--- extensions/libipt_CONNMARK.c	(revision 4421)
++++ extensions/libipt_CONNMARK.c	(working copy)
+@@ -72,25 +72,17 @@
+ 	struct ipt_connmark_target_info *markinfo
+ 		= (struct ipt_connmark_target_info *)(*target)->data;
+ 
+-#ifdef KERNEL_64_USERSPACE_32
+-	markinfo->mask = ~0ULL;
+-#else
+-	markinfo->mask = ~0UL;
+-#endif
++	markinfo->mask = 0xffffffffUL;
+ 
+ 	switch (c) {
+ 		char *end;
+ 	case '1':
+ 		markinfo->mode = IPT_CONNMARK_SET;
+-#ifdef KERNEL_64_USERSPACE_32
+-		markinfo->mark = strtoull(optarg, &end, 0);
+-		if (*end == '/' && end[1] != '\0')
+-		    markinfo->mask = strtoull(end+1, &end, 0);
+-#else
++
+ 		markinfo->mark = strtoul(optarg, &end, 0);
+ 		if (*end == '/' && end[1] != '\0')
+ 		    markinfo->mask = strtoul(end+1, &end, 0);
+-#endif
++
+ 		if (*end != '\0' || end == optarg)
+ 			exit_error(PARAMETER_PROBLEM, "Bad MARK value `%s'", optarg);
+ 		if (*flags)
+@@ -116,11 +108,8 @@
+ 		if (!*flags)
+ 			exit_error(PARAMETER_PROBLEM,
+ 			           "CONNMARK target: Can't specify --mask without a operation");
+-#ifdef KERNEL_64_USERSPACE_32
+-		markinfo->mask = strtoull(optarg, &end, 0);
+-#else
+ 		markinfo->mask = strtoul(optarg, &end, 0);
+-#endif
++
+ 		if (*end != '\0' || end == optarg)
+ 			exit_error(PARAMETER_PROBLEM, "Bad MASK value `%s'", optarg);
+ 		break;
+@@ -139,23 +128,7 @@
+ 		           "CONNMARK target: No operation specified");
+ }
+ 
+-#ifdef KERNEL_64_USERSPACE_32
+ static void
+-print_mark(unsigned long long mark)
+-{
+-	printf("0x%llx", mark);
+-}
+-
+-static void
+-print_mask(const char *text, unsigned long long mask)
+-{
+-	if (mask != ~0ULL)
+-		printf("%s0x%llx", text, mask);
+-}
+-
+-#else
+-
+-static void
+ print_mark(unsigned long mark)
+ {
+ 	printf("0x%lx", mark);
+@@ -164,10 +137,9 @@
+ static void
+ print_mask(const char *text, unsigned long mask)
+ {
+-	if (mask != ~0UL)
++	if (mask != 0xffffffffUL)
+ 		printf("%s0x%lx", text, mask);
+ }
+-#endif
+ 
+ 
+ /* Prints out the target info. */
+Index: extensions/libipt_connmark.c
+===================================================================
+--- extensions/libipt_connmark.c	(revision 4421)
++++ extensions/libipt_connmark.c	(working copy)
+@@ -66,17 +66,13 @@
+ 		char *end;
+ 	case '1':
+ 		check_inverse(optarg, &invert, &optind, 0);
+-#ifdef KERNEL_64_USERSPACE_32
+-		markinfo->mark = strtoull(optarg, &end, 0);
+-		markinfo->mask = ~0ULL;
+-		if (*end == '/')
+-			markinfo->mask = strtoull(end+1, &end, 0);
+-#else
++
+ 		markinfo->mark = strtoul(optarg, &end, 0);
+-		markinfo->mask = ~0UL;
++		markinfo->mask = 0xffffffffUL;
++		
+ 		if (*end == '/')
+ 			markinfo->mask = strtoul(end+1, &end, 0);
+-#endif
++
+ 		if (*end != '\0' || end == optarg)
+ 			exit_error(PARAMETER_PROBLEM, "Bad MARK value `%s'", optarg);
+ 		if (invert)
+@@ -90,25 +86,14 @@
+ 	return 1;
+ }
+ 
+-#ifdef KERNEL_64_USERSPACE_32
+ static void
+-print_mark(unsigned long long mark, unsigned long long mask, int numeric)
+-{
+-	if(mask != ~0ULL)
+-		printf("0x%llx/0x%llx ", mark, mask);
+-	else
+-		printf("0x%llx ", mark);
+-}
+-#else
+-static void
+ print_mark(unsigned long mark, unsigned long mask, int numeric)
+ {
+-	if(mask != ~0UL)
++	if(mask != 0xffffffffUL)
+ 		printf("0x%lx/0x%lx ", mark, mask);
+ 	else
+ 		printf("0x%lx ", mark);
+ }
+-#endif
+ 
+ /* Final check; must have specified --mark. */
+ static void
 
--- 
-Felipe Kellermann
---0-1033900039-1130911476=:32113
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=iptables-dup-felipek.diff
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.BSO.4.62.0511020404360.32113@bepuvq.alien.bet>
-Content-Description: 
-Content-Disposition: attachment; filename=iptables-dup-felipek.diff
-
-SW5kZXg6IGlwdGFibGVzLmMNCj09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCi0t
-LSBpcHRhYmxlcy5jCShyZXZpc2lvbiA0NDIwKQ0KKysrIGlwdGFibGVzLmMJ
-KHdvcmtpbmcgY29weSkNCkBAIC0xMTIwLDcgKzExMjAsNyBAQA0KIAkJCWZw
-cmludGYoc3RkZXJyLA0KIAkJCQkiJXM6IG1hdGNoIGAlcycgYWxyZWFkeSBy
-ZWdpc3RlcmVkLlxuIiwNCiAJCQkJcHJvZ3JhbV9uYW1lLCBtZS0+bmFtZSk7
-DQotCQkJZXhpdCgxKTsNCisJCQlyZXR1cm47DQogCQl9DQogDQogCQkvKiBO
-b3cgd2UgaGF2ZSB0d28gKG9yIG1vcmUpIG9wdGlvbnMsIGNoZWNrIGNvbXBh
-dGliaWxpdHkuICovDQpAQCAtMTE1MCw2ICsxMTUwLDcgQEANCiANCiAJbWUt
-Pm0gPSBOVUxMOw0KIAltZS0+bWZsYWdzID0gMDsNCisJbWUtPmxvYWRlZCA9
-IDE7DQogfQ0KIA0KIHZvaWQNCkBAIC0xMTc4LDcgKzExNzksNyBAQA0KIAkJ
-CWZwcmludGYoc3RkZXJyLA0KIAkJCQkiJXM6IHRhcmdldCBgJXMnIGFscmVh
-ZHkgcmVnaXN0ZXJlZC5cbiIsDQogCQkJCXByb2dyYW1fbmFtZSwgbWUtPm5h
-bWUpOw0KLQkJCWV4aXQoMSk7DQorCQkJcmV0dXJuOw0KIAkJfQ0KIA0KIAkJ
-LyogTm93IHdlIGhhdmUgdHdvIChvciBtb3JlKSBvcHRpb25zLCBjaGVjayBj
-b21wYXRpYmlsaXR5LiAqLw0K
-
---0-1033900039-1130911476=:32113--
+--------------030001010106020406010106--
