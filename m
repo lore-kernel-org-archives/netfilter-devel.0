@@ -1,16 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] nfsim: trivial format string typo fix
-Date: Wed, 2 Nov 2005 18:37:34 +0100
-Message-ID: <20051102173734.GL4479@sunbeam.de.gnumonks.org>
-References: <200511021517.45463@nienna>
+From: Brian L <blbulk@yahoo.ie>
+Subject: Pointers for writing packet mangling modules
+Date: Wed, 2 Nov 2005 19:14:14 +0000 (GMT)
+Message-ID: <20051102191414.83661.qmail@web25610.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gblfvcnLkTb/NiHC"
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>, rusty@netfilter.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-Content-Disposition: inline
-In-Reply-To: <200511021517.45463@nienna>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,42 +18,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---gblfvcnLkTb/NiHC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I have been experimenting with a module for altering
+the destination IP address for all packets on a given
+port at the PRE_ROUTING stage (don’t worry - I know
+this is something easily done with IPTables). 
+Unfortunately, any examples/tutorials dealing with
+writing modules that use Netfilter always fall short
+of describing the necessary steps to take when
+altering the skbuff.
 
-On Wed, Nov 02, 2005 at 03:17:44PM +0100, KOVACS Krisztian wrote:
->=20
->   Hi,
->=20
->   While playing with nfsim and nf_conntrack this weekend, I've found a=20
-> trivial typo in core/core.c. Please apply the attached patch. (Yes,=20
-> it's trivial but obviously it causes a segfault.)
+Are the following steps necessary (judging from the
+NAT source code)?
 
-applied, thanks
+Calling skb_ip_make_writable
+Recalculating ip checksum
+Calling dst_release
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+What else am I missing?
 
---gblfvcnLkTb/NiHC
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Thanks,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
+Brian
 
-iD8DBQFDaPleXaXGVTD0i/8RAmA/AJ4+FXKLKcrZQ4ZmQdjThceAww7IMwCdH+6u
-p0lVALGyTCJU39ORCBU3e1g=
-=bN8l
------END PGP SIGNATURE-----
 
---gblfvcnLkTb/NiHC--
+		
+___________________________________________________________ 
+To help you stay safe and secure online, we've developed the all new Yahoo! Security Centre. http://uk.security.yahoo.com
