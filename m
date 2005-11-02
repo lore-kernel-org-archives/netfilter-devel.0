@@ -1,49 +1,103 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: UNREPLIED ICMP packets & conntrack-tool
-Date: Wed, 2 Nov 2005 11:04:24 +0100 (CET)
-Message-ID: <Pine.LNX.4.63.0511021057010.17619@bizon.gios.gov.pl>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [2.6.14-rt1] slowdown / oops.
+Date: Wed, 2 Nov 2005 14:55:16 +0100
+Message-ID: <20051102135516.GA16175@elte.hu>
+References: <200511021420.28104.pluto@agmk.net> <20051102134723.GB13468@elte.hu>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1847497533-1130925864=:17619"
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: linux kernel mailing list <linux-kernel@vger.kernel.org>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965045AbVKBNzA@vger.kernel.org>
+To: =?utf-8?B?UGF3ZcWC?= Sikora <pluto@agmk.net>
+Content-Disposition: inline
+In-Reply-To: <20051102134723.GB13468@elte.hu>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-1847497533-1130925864=:17619
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+* Ingo Molnar <mingo@elte.hu> wrote:
 
-Hello,
+>=20
+> * Pawe=C5=82 Sikora <pluto@agmk.net> wrote:
+>=20
+> > 2).
+> > During `scp bigfile to another machine` I get an oops:
+> > http://149.156.124.14/~pluto/tmp/2.6.14-rt2-oops.jpg [796 kB]
+>=20
+> is routing to that other box covered by any of the iptables NAT rules=
+? =20
+> Does the crash happen if you turn off all firewalling via "iptables=20
+> -F"?
 
-It seems that second id=3D7289 is missing:
+ah, managed to reproduce a crash in the NAT code with your .config (see=
+=20
+below). This indeed seems to be some sort of use-after-free bug:=20
+0x6b6b6b6b6b is SLAB_DEBUG's POISON_FREE - use-after-free poison byte. =
+=20
+This bug is either caused by and unique to -rt, or possibly present=20
+upstream too.
 
-conntrack -L:
-icmp     1 28 src=3D192.168.0.33 dst=3DXXX.XXX.XXX.XXX type=3D8 code=3D0 id=
-=3D7289 packets=3D4 bytes=3D336 [UNREPLIED] src=3DXXX.XXX.XXX.XXX dst=3D192=
-=2E168.0.33 type=3D0 code=3D0 packets=3D0 bytes=3D0 mark=3D0 use=3D1
+	Ingo
 
-/proc/net/ip_conntrack:
-icmp     1 28 src=3D192.168.0.33 dst=3DXXX.XXX.XXX.XXX type=3D8 code=3D0 id=
-=3D7289 packets=3D4 bytes=3D336 [UNREPLIED] src=3DXXX.XXX.XXX.XXX dst=3D192=
-=2E168.0.33 type=3D0 code=3D0 id=3D7289 packets=3D0 bytes=3D0 mark=3D0 use=
-=3D1
+BUG: Unable to handle kernel paging request at virtual address 6b6b6b6b
+ printing eip:
+c03a859f
+*pde =3D 00000000
+Oops: 0000 [#1]
+PREEMPT=20
+Modules linked in:
+CPU:    0
+EIP:    0060:[<c03a859f>]    Not tainted VLI
+EFLAGS: 00010246   (2.6.14-rt4)=20
+EIP is at __ip_conntrack_find+0x5f/0x110
+eax: 00000000   ebx: 6b6b6b6b   ecx: c013ae7f   edx: 00000001
+esi: c23d7e28   edi: 000018e0   ebp: c23d7df4   esp: c23d7de4
+ds: 007b   es: 007b   ss: 0068   preempt: 00000001
+Process softirq-net-rx/ (pid: 5, threadinfo=3Dc23d6000 task=3Dc23d47b0 =
+stack_left=3D7600 worst_left=3D-1)
+Stack: 00000000 00000000 c23d7e28 c23d7ecc c23d7e04 c03a8674 f490a57c c=
+03aae90=20
+       c23d7e48 c03a9204 c23d7e28 c0498020 f881d040 00000000 00000000 c=
+0498020=20
+       c23d7ecc 0101000a c0591600 0701000a 0006c9c2 00000000 c04975e8 c=
+23d7e8c=20
+Call Trace:
+ [<c0103cc7>] show_stack+0x97/0xd0 (32)
+ [<c0103eb2>] show_registers+0x192/0x250 (68)
+ [<c01040ef>] die+0xdf/0x190 (56)
+ [<c03f1ff6>] do_page_fault+0x176/0x57c (72)
+ [<c0103933>] error_code+0x4f/0x54 (76)
+ [<c03a8674>] ip_conntrack_find_get+0x24/0x60 (16)
+ [<c03a9204>] ip_conntrack_in+0xc4/0x370 (68)
+ [<c03c46f9>] nf_iterate+0x59/0x90 (36)
+ [<c03c4782>] nf_hook_slow+0x52/0x100 (48)
+ [<c0373f62>] ip_rcv+0x182/0x4f0 (64)
+ [<c035f71d>] netif_receive_skb+0x15d/0x1e0 (52)
+ [<c02f2b57>] rtl8139_rx+0x1b7/0x340 (80)
+ [<c02f2ec8>] rtl8139_poll+0x58/0x110 (40)
+ [<c035f8f2>] net_rx_action+0x72/0x140 (24)
+ [<c011ed19>] ksoftirqd+0xb9/0x140 (40)
+ [<c012d6e4>] kthread+0x94/0xa0 (28)
+ [<c01010d9>] kernel_thread_helper+0x5/0xc (1036156956)
+---------------------------
+| preempt count: 00000001 ]
+| 1-level deep critical section nesting:
+----------------------------------------
+=2E. [<c013ae7f>] .... add_preempt_count+0xf/0x20
+=2E....[<c0104048>] ..   ( <=3D die+0x38/0x190)
 
+------------------------------
+| showing all locks held by: |  (softirq-net-rx//5 [c23d47b0,  98]):
+------------------------------
 
-Best regards,
+#001:             [f7e2c664] {&tp->rx_lock}
+=2E.. acquired at:               rtl8139_poll+0x39/0x110
 
+#002:             [c0497bc0] {ip_conntrack_lock}
+=2E.. acquired at:               ip_conntrack_find_get+0x1b/0x60
 
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1847497533-1130925864=:17619--
+Code: 01 00 00 00 e8 f3 28 d9 ff ff 05 a0 2a 59 c0 b8 01 00 00 00 e8 83=
+ 29 d9 ff a1 08 42 3f c0 8b 40 08 a8 08 0f 85 a6 00 00 00 8b 1b <8b> 03=
+ 0f 18 00 90 89 f8 03 05 80 2a 59 c0 39 c3 0f 84 82 00 00=20
