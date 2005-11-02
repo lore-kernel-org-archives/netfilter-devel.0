@@ -1,35 +1,44 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: problem with conntrack utility and kernel 2.6.14
-Date: Wed, 02 Nov 2005 17:04:09 +0100
-Message-ID: <4368E379.4060703@eurodev.net>
-References: <4361EAAB.1090206@fliegl.de>
-	<4361F6DF.3050106@eurodev.net>	<43621028.40705@fliegl.de>
-	<43627A8F.9060307@eurodev.net>	<436281BB.2010100@fliegl.de>	<436373E8.7040606@eurodev.net>
-	<436398C7.4070402@fliegl.de>	<4365A097.1080001@eurodev.net>	<Pine.LNX.4.62.0510310911090.9468@bizon.gios.gov.pl>	<4366C031.6020504@eurodev.net>	<Pine.LNX.4.63.0511011116550.3512@bizon.gios.gov.pl>	<436773EB.6000608@eurodev.net>	<Pine.LNX.4.63.0511011605010.12220@bizon.gios.gov.pl>	<43679A3B.6070009@eurodev.net>	<Pine.LNX.4.63.0511011747370.15256@bizon.gios.gov.pl>	<4367CB1E.8080407@eurodev.net>
-	<Pine.LNX.4.63.0511012118270.21639@bizon.gios.gov.pl>
+From: =?utf-8?q?Pawe=C5=82_Sikora?= <pluto@agmk.net>
+Subject: [2.6.14] ipt_TARPIT vs sysctl_ip_default_ttl.
+Date: Wed, 2 Nov 2005 17:54:41 +0100
+Message-ID: <200511021754.41694.pluto@agmk.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: Deti Fliegl <deti@fliegl.de>, netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.63.0511012118270.21639@bizon.gios.gov.pl>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965134AbVKBQys@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> PS: libnfnetlink still has aclocal-1.6 & automake-1.6 in autogen.s
-> h.
+Hi,
 
-Just passed a patch to Harald to fix this. Thanks for the hint.
+The ipt_TARPIT module uses sysctl_ip_default_ttl
+variable but kernel doesn't export this symbol.
+
+ipt_TARPIT.c:
+(...)
+        /* Adjust IP TTL */
+#ifdef CONFIG_SYSCTL
+        nskb->nh.iph->ttl = sysctl_ip_default_ttl;
+#else
+        nskb->nh.iph->ttl = IPDEFTTL;
+#endif
+(...)
+
+Finally we get undefined symbol in TARPIT module.
+
+--- linux-2.6.14/net/ipv4/ip_output.c.orig
++++ linux-2.6.14/net/ipv4/ip_output.c
+@@ -1329,3 +1329,4 @@
+ EXPORT_SYMBOL(ip_generic_getfrag);
+ EXPORT_SYMBOL(ip_queue_xmit);
+ EXPORT_SYMBOL(ip_send_check);
++EXPORT_SYMBOL(sysctl_ip_default_ttl);
 
 -- 
-Pablo
+The only thing necessary for the triumph of evil
+  is for good men to do nothing.
+                                           - Edmund Burke
