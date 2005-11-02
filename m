@@ -1,15 +1,14 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: Change location of conntrack from bin to sbin
-Date: Thu, 03 Nov 2005 13:30:58 +0100
-Message-ID: <436A0302.3090808@eurodev.net>
-References: <Pine.LNX.4.63.0511030712270.7776@bizon.gios.gov.pl>
+From: "Brian Long" <brian.long3@mail.dcu.ie>
+Subject: Pointers for writing packet mangling modules
+Date: Wed, 2 Nov 2005 17:38:10 -0000
+Message-ID: <11246.2490018972$1131022503@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.63.0511030712270.7776@bizon.gios.gov.pl>
+To: <netfilter-devel@lists.netfilter.org>
+In-Reply-To: 
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,12 +20,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> Attached (and inlined) patch moves conntrack tool from bin to sbin
-> directory since this application is an administration utility and it
-> requires uid==0 or CAP_NET_ADMIN.
+Hi,
 
-Applied, Thanks.
+I have been experimenting with a module for altering the destination IP
+address for all packets on a given port at the PRE_ROUTING stage =
+(don=92t
+worry - I know this is something easily done with IPTables).=A0 =
+Unfortunately,
+any examples/tutorials dealing with writing modules that use Netfilter
+always fall short of describing the necessary steps to take when =
+altering
+the skbuff.
 
--- 
-Pablo
+Are the following steps necessary (judging from the NAT source code)?
+
+Calling skb_ip_make_writable
+Recalculating ip checksum
+Calling dst_release
+
+What else am I missing?
+
+Thanks,
+
+Brian
