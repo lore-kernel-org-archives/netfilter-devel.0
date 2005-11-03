@@ -1,19 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Unknown Attribute 5/conntrack -L
-Date: Thu, 3 Nov 2005 19:06:42 +0100
-Message-ID: <20051103180642.GF905@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.62.0510310846320.8000@bizon.gios.gov.pl>
-	<43662D1E.4000308@eurodev.net>
-	<Pine.LNX.4.62.0510311544350.31123@bizon.gios.gov.pl>
-	<200510311902.j9VJ28fq026612@toshiba.co.jp>
+Subject: Re: Fix warning in ipt_u32
+Date: Thu, 3 Nov 2005 19:07:09 +0100
+Message-ID: <20051103180709.GG905@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.62.0510311721380.2118@bizon.gios.gov.pl>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Rgf3q3z9SdmXC6oT"
-Cc: pablo@eurodev.net, netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="1Y7d0dPL928TPQbc"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: Krzysztof Oledzki <olenf@ans.pl>
 Content-Disposition: inline
-In-Reply-To: <200510311902.j9VJ28fq026612@toshiba.co.jp>
+In-Reply-To: <Pine.LNX.4.62.0510311721380.2118@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,19 +23,18 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Rgf3q3z9SdmXC6oT
+--1Y7d0dPL928TPQbc
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 01, 2005 at 04:02:07AM +0900, Yasuyuki KOZAKAI wrote:
+On Mon, Oct 31, 2005 at 05:23:20PM +0100, Krzysztof Oledzki wrote:
+> Hello,
+>=20
+> Attached (and inlined) patch fixes two warning in ipt_u32 about unused va=
+riables.
 
-> I'm not sure it's the reason of oops, but at least attached patch fixes
-> double free after netlink_unicast(). Krzysztof, could you try this ?
-
-thanks yasyuki.  I'll submit this to mainline, since it is a bugfix,
-even if it doesn't fix the problem that was reported originally.=20
-
+thanks, applied.
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -49,16 +45,16 @@ even if it doesn't fix the problem that was reported originally.=20
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Rgf3q3z9SdmXC6oT
+--1Y7d0dPL928TPQbc
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDalGyXaXGVTD0i/8RAlSSAJ9+S15YkIljTDy/3j4ODd/r1N9lDgCfYyac
-9SGedI1TkeVsQtDSNQ9IJHk=
-=LNox
+iD8DBQFDalHNXaXGVTD0i/8RAi/qAJ0XY25IPOzEihoe6vxqnL6IZDfiyACgjupF
+rXlRFkehppg3+dePr7tppaM=
+=E/yx
 -----END PGP SIGNATURE-----
 
---Rgf3q3z9SdmXC6oT--
+--1Y7d0dPL928TPQbc--
