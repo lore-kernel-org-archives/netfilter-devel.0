@@ -1,19 +1,13 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [2.6.14-rt1] slowdown / oops.
-Date: Thu, 03 Nov 2005 13:09:01 +1100
-Message-ID: <1130983742.8734.19.camel@localhost.localdomain>
-References: <200511021420.28104.pluto@agmk.net>
-	<20051102134723.GB13468@elte.hu> <20051102135516.GA16175@elte.hu>
-	<20051102140025.GA17385@elte.hu> <20051102142533.GA18453@elte.hu>
-	<20051102151242.GA23809@elte.hu>  <20051102153352.GA26115@elte.hu>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Change location of conntrack from bin to sbin
+Date: Thu, 3 Nov 2005 07:16:26 +0100 (CET)
+Message-ID: <Pine.LNX.4.63.0511030712270.7776@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	linux kernel mailing list <linux-kernel@vger.kernel.org>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1970215732-1130998586=:7776"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Ingo Molnar <mingo@elte.hu>
-In-Reply-To: <20051102153352.GA26115@elte.hu>
+To: Pablo Neira <pablo@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,33 +19,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 2005-11-02 at 16:33 +0100, Ingo Molnar wrote:
-> local_bh_disable()/enable() is a NOP under PREEMPT_RT, and the 
-> ip_ct_deliver_cached_events PER_CPU code relies on not being preempted 
-> by the net_rx_action softirq handler. So this is a bug in PREEMPT_RT and 
-> the upstream code should be fine.
-> 
-> 	Ingo
-> 
-> Index: linux/net/ipv4/netfilter/ip_conntrack_core.c
-> ===================================================================
-> --- linux.orig/net/ipv4/netfilter/ip_conntrack_core.c
-> +++ linux/net/ipv4/netfilter/ip_conntrack_core.c
-> @@ -105,11 +105,11 @@ void ip_ct_deliver_cached_events(const s
->  {
->  	struct ip_conntrack_ecache *ecache;
->  	
-> -	local_bh_disable();
-> +	read_lock_bh(&ip_conntrack_lock);
->  	ecache = &__get_cpu_var(ip_conntrack_ecache);
->  	if (ecache->ct == ct)
->  		__ip_ct_deliver_cached_events(ecache);
-> -	local_bh_enable();
-> +	read_unlock_bh(&ip_conntrack_lock);
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-This kind of change is troubling.  I suppose we could go to per-cpu
-locks, but it's still a loss.
+---187430788-1970215732-1130998586=:7776
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Rusty.
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+Hello
+
+Attached (and inlined) patch moves conntrack tool from bin to sbin=20
+directory since this application is an administration utility and=20
+it requires uid=3D=3D0 or CAP_NET_ADMIN.
+
+Index: src/Makefile.am
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- src/Makefile.am=09(revision 4432)
++++ src/Makefile.am=09(working copy)
+@@ -1,4 +1,4 @@
+-bin_PROGRAMS =3D conntrack
++sbin_PROGRAMS =3D conntrack
+  conntrack_SOURCES =3D conntrack.c
+
+  INCLUDES=3D $(all_includes) -I$(top_srcdir)/include -I${KERNELDIR}
+
+
+Best regards,
+
+ =09=09=09Krzysztof Ol=EAdzki
+---187430788-1970215732-1130998586=:7776
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=conntrack-bin-sbin.patch
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.63.0511030716260.7776@bizon.gios.gov.pl>
+Content-Description: 
+Content-Disposition: attachment; filename=conntrack-bin-sbin.patch
+
+SW5kZXg6IHNyYy9NYWtlZmlsZS5hbQ0KPT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PQ0KLS0tIHNyYy9NYWtlZmlsZS5hbQkocmV2aXNpb24gNDQzMikNCisrKyBz
+cmMvTWFrZWZpbGUuYW0JKHdvcmtpbmcgY29weSkNCkBAIC0xLDQgKzEsNCBA
+QA0KLWJpbl9QUk9HUkFNUyA9IGNvbm50cmFjaw0KK3NiaW5fUFJPR1JBTVMg
+PSBjb25udHJhY2sNCiBjb25udHJhY2tfU09VUkNFUyA9IGNvbm50cmFjay5j
+DQogDQogSU5DTFVERVM9ICQoYWxsX2luY2x1ZGVzKSAtSSQodG9wX3NyY2Rp
+cikvaW5jbHVkZSAtSSR7S0VSTkVMRElSfQ0K
+
+---187430788-1970215732-1130998586=:7776--
