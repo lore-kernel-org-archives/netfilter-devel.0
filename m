@@ -1,13 +1,17 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Change location of conntrack from bin to sbin
-Date: Thu, 3 Nov 2005 07:16:26 +0100 (CET)
-Message-ID: <Pine.LNX.4.63.0511030712270.7776@bizon.gios.gov.pl>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] fix ip_conntrack_helper_pptp build when
+	CONFIG_IP_NF_NAT_NEEDED=n
+Date: Thu, 3 Nov 2005 10:54:09 +0100
+Message-ID: <20051103095409.GY4479@sunbeam.de.gnumonks.org>
+References: <1130807635.6630.13.camel@localhost>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1970215732-1130998586=:7776"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="06N9xnU2hL237cv1"
+Cc: netfilter-devel@lists.netfilter.org, 336431@bugs.debian.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
+To: dann frazier <dannf@hp.com>
+Content-Disposition: inline
+In-Reply-To: <1130807635.6630.13.camel@localhost>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,50 +23,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-1970215732-1130998586=:7776
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+--06N9xnU2hL237cv1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hello
+On Mon, Oct 31, 2005 at 06:13:55PM -0700, dann frazier wrote:
+> As reported in http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=3D336431,
+> ip_conntrack_helper_pptp in 2.6.14 fails to build if
+> CONFIG_IP_NF_NAT_NEEDED isn't enabled.  This patch fixes this by
+> disabling manipulation of the dir field of ip_conntrack_expect
+> structures when full nat isn't configured.  Compile tested only.
 
-Attached (and inlined) patch moves conntrack tool from bin to sbin=20
-directory since this application is an administration utility and=20
-it requires uid=3D=3D0 or CAP_NET_ADMIN.
+Thanks for reporting this bug.   Yasuyuki Kozakai has submitted a
+slightly cleaner version, so I'm merging his patch.
 
-Index: src/Makefile.am
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- src/Makefile.am=09(revision 4432)
-+++ src/Makefile.am=09(working copy)
-@@ -1,4 +1,4 @@
--bin_PROGRAMS =3D conntrack
-+sbin_PROGRAMS =3D conntrack
-  conntrack_SOURCES =3D conntrack.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-  INCLUDES=3D $(all_includes) -I$(top_srcdir)/include -I${KERNELDIR}
+--06N9xnU2hL237cv1
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-Best regards,
+iD8DBQFDad5BXaXGVTD0i/8RAiu3AKCgOTOZO/2zUWwp949ZiYrX1aWM7QCggng3
+MuQqnSAL/2Ycm3fls+XxOBE=
+=D2hW
+-----END PGP SIGNATURE-----
 
- =09=09=09Krzysztof Ol=EAdzki
----187430788-1970215732-1130998586=:7776
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=conntrack-bin-sbin.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.63.0511030716260.7776@bizon.gios.gov.pl>
-Content-Description: 
-Content-Disposition: attachment; filename=conntrack-bin-sbin.patch
-
-SW5kZXg6IHNyYy9NYWtlZmlsZS5hbQ0KPT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PQ0KLS0tIHNyYy9NYWtlZmlsZS5hbQkocmV2aXNpb24gNDQzMikNCisrKyBz
-cmMvTWFrZWZpbGUuYW0JKHdvcmtpbmcgY29weSkNCkBAIC0xLDQgKzEsNCBA
-QA0KLWJpbl9QUk9HUkFNUyA9IGNvbm50cmFjaw0KK3NiaW5fUFJPR1JBTVMg
-PSBjb25udHJhY2sNCiBjb25udHJhY2tfU09VUkNFUyA9IGNvbm50cmFjay5j
-DQogDQogSU5DTFVERVM9ICQoYWxsX2luY2x1ZGVzKSAtSSQodG9wX3NyY2Rp
-cikvaW5jbHVkZSAtSSR7S0VSTkVMRElSfQ0K
-
----187430788-1970215732-1130998586=:7776--
+--06N9xnU2hL237cv1--
