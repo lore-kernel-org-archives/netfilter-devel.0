@@ -1,146 +1,120 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [2.6.14-rt1] slowdown / oops.
-Date: Thu, 3 Nov 2005 11:12:49 +0100
-Message-ID: <20051103101249.GB18467@elte.hu>
-References: <200511021420.28104.pluto@agmk.net> <20051102134723.GB13468@elte.hu> <20051102135516.GA16175@elte.hu> <20051102140025.GA17385@elte.hu> <20051102142533.GA18453@elte.hu> <20051102151242.GA23809@elte.hu> <20051102153352.GA26115@elte.hu> <1130983742.8734.19.camel@localhost.localdomain>
+From: Harald Welte <laforge@netfilter.org>
+Subject: [PATCH 1/2] [NETFILTER] PPTP helper: Fix compilation of conntrack
+	helper without NAT
+Date: Thu, 3 Nov 2005 13:04:04 +0100
+Message-ID: <20051103120404.GB4479@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: =?utf-8?B?UGF3ZcWC?= Sikora <pluto@agmk.net>,
-	linux kernel mailing list <linux-kernel@vger.kernel.org>,
-	netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964785AbVKCKMf@vger.kernel.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LjZ8ja9Qm/wlgUs7"
+Cc: Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
 Content-Disposition: inline
-In-Reply-To: <1130983742.8734.19.camel@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-* Rusty Russell <rusty@rustcorp.com.au> wrote:
+--LjZ8ja9Qm/wlgUs7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > -	local_bh_disable();
-> > +	read_lock_bh(&ip_conntrack_lock);
+Hi Acme!
 
-> This kind of change is troubling.  I suppose we could go to per-cpu 
-> locks, but it's still a loss.
+Please merge this to both 2.6.15 mainline and 2.6.14.x stable series,
+thanks.
 
-yeah, that's the right solution i think - with a small twist that should 
-address your remaining concern: in the -rt tree there is already an API 
-variant that gives us per-cpu locks on PREEMPT_RT but which maps to a 
-plain per-cpu data structure on non-PREEMPT_RT builds. The idea is to 
-pick a CPU once, and to stick to that choice during the critical 
-section. This gives us nice per-CPU scalability, keeps the locks 
-finegrained so that are no unnecessary interactions between critical 
-sections - and keeps things fully preemptible at a small cost.
 
-the patch below shows the API usage - it's pretty straightforward, and 
-this has solved the bug too. Conversion is easy: all places that needed 
-changing were triggered at build-time, and once converted the first 
-attempt booted and worked just fine.
+[NETFILTER] PPTP helper: Fix compilation of conntrack helper without NAT
 
-I dont yet want to submit this approach upstream because right now only 
-PREEMPT_RT needs it, but what do you think about the approach? It could 
-be used by the upstream kernel too, to enable the use of PER_CPU data 
-structures in cases where preemption can not always be avoided.
+This patch fixes compilation of the PPTP conntrack helper when NAT is
+configured off.
 
-	Ingo
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Signed-off-by: Harald Welte <laforge@netfilter.org>
 
-Index: linux/include/linux/netfilter_ipv4/ip_conntrack.h
-===================================================================
---- linux.orig/include/linux/netfilter_ipv4/ip_conntrack.h
-+++ linux/include/linux/netfilter_ipv4/ip_conntrack.h
-@@ -460,10 +460,8 @@ struct ip_conntrack_ecache {
- 	struct ip_conntrack *ct;
- 	unsigned int events;
- };
--DECLARE_PER_CPU(struct ip_conntrack_ecache, ip_conntrack_ecache);
-+DECLARE_PER_CPU_LOCKED(struct ip_conntrack_ecache, ip_conntrack_ecache);
- 
--#define CONNTRACK_ECACHE(x)	(__get_cpu_var(ip_conntrack_ecache).x)
-- 
- extern struct notifier_block *ip_conntrack_chain;
- extern struct notifier_block *ip_conntrack_expect_chain;
- 
-@@ -498,12 +496,14 @@ ip_conntrack_event_cache(enum ip_conntra
- {
- 	struct ip_conntrack *ct = (struct ip_conntrack *)skb->nfct;
- 	struct ip_conntrack_ecache *ecache;
--	
-+	int cpu;
-+
- 	local_bh_disable();
--	ecache = &__get_cpu_var(ip_conntrack_ecache);
-+	ecache = &get_cpu_var_locked(ip_conntrack_ecache, &cpu);
- 	if (ct != ecache->ct)
- 		__ip_ct_event_cache_init(ct);
- 	ecache->events |= event;
-+	put_cpu_var_locked(ip_conntrack_ecache, cpu);
- 	local_bh_enable();
- }
- 
-Index: linux/net/ipv4/netfilter/ip_conntrack_core.c
-===================================================================
---- linux.orig/net/ipv4/netfilter/ip_conntrack_core.c
-+++ linux/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -83,7 +83,7 @@ static unsigned int ip_conntrack_expect_
- struct notifier_block *ip_conntrack_chain;
- struct notifier_block *ip_conntrack_expect_chain;
- 
--DEFINE_PER_CPU(struct ip_conntrack_ecache, ip_conntrack_ecache);
-+DEFINE_PER_CPU_LOCKED(struct ip_conntrack_ecache, ip_conntrack_ecache);
- 
- /* deliver cached events and clear cache entry - must be called with locally
-  * disabled softirqs */
-@@ -104,20 +104,23 @@ __ip_ct_deliver_cached_events(struct ip_
- void ip_ct_deliver_cached_events(const struct ip_conntrack *ct)
- {
- 	struct ip_conntrack_ecache *ecache;
--	
-+	int cpu;
-+
- 	local_bh_disable();
--	ecache = &__get_cpu_var(ip_conntrack_ecache);
-+	ecache = &get_cpu_var_locked(ip_conntrack_ecache, &cpu);
- 	if (ecache->ct == ct)
- 		__ip_ct_deliver_cached_events(ecache);
-+	put_cpu_var_locked(ip_conntrack_ecache, cpu);
- 	local_bh_enable();
- }
- 
- void __ip_ct_event_cache_init(struct ip_conntrack *ct)
- {
- 	struct ip_conntrack_ecache *ecache;
-+	int cpu = raw_smp_processor_id();
- 
- 	/* take care of delivering potentially old events */
--	ecache = &__get_cpu_var(ip_conntrack_ecache);
-+	ecache = &__get_cpu_var_locked(ip_conntrack_ecache, cpu);
- 	BUG_ON(ecache->ct == ct);
- 	if (ecache->ct)
- 		__ip_ct_deliver_cached_events(ecache);
-@@ -133,8 +136,11 @@ static void ip_ct_event_cache_flush(void
- 	struct ip_conntrack_ecache *ecache;
- 	int cpu;
- 
-+	/*
-+	 * First get all locks, then do the flush and drop the locks.
-+	 */
- 	for_each_cpu(cpu) {
--		ecache = &per_cpu(ip_conntrack_ecache, cpu);
-+		ecache = &__get_cpu_var_locked(ip_conntrack_ecache, cpu);
- 		if (ecache->ct)
- 			ip_conntrack_put(ecache->ct);
- 	}
-Index: linux/net/ipv4/netfilter/ip_conntrack_standalone.c
-===================================================================
---- linux.orig/net/ipv4/netfilter/ip_conntrack_standalone.c
-+++ linux/net/ipv4/netfilter/ip_conntrack_standalone.c
-@@ -977,7 +977,7 @@ EXPORT_SYMBOL_GPL(ip_conntrack_expect_ch
- EXPORT_SYMBOL_GPL(ip_conntrack_register_notifier);
- EXPORT_SYMBOL_GPL(ip_conntrack_unregister_notifier);
- EXPORT_SYMBOL_GPL(__ip_ct_event_cache_init);
--EXPORT_PER_CPU_SYMBOL_GPL(ip_conntrack_ecache);
-+EXPORT_PER_CPU_LOCKED_SYMBOL_GPL(ip_conntrack_ecache);
- #endif
- EXPORT_SYMBOL(ip_conntrack_protocol_register);
- EXPORT_SYMBOL(ip_conntrack_protocol_unregister);
+---
+commit f6447dcd8a4f13b144c9f49df76682c31562a003
+tree e5f7c3a472ba896ee793727fbe4de02f42047d75
+parent 928f936ad8e099bd2a84d6e875e1a8c59f55bf7d
+author Harald Welte <laforge@hanuman.de.gnumonks.org> Thu, 03 Nov 2005 10:5=
+6:16 +0100
+committer Harald Welte <laforge@hanuman.de.gnumonks.org> Thu, 03 Nov 2005 1=
+0:56:16 +0100
+
+ net/ipv4/netfilter/ip_conntrack_helper_pptp.c |    4 ----
+ net/ipv4/netfilter/ip_nat_helper_pptp.c       |    2 ++
+ 2 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c b/net/ipv4/netfi=
+lter/ip_conntrack_helper_pptp.c
+--- a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
++++ b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
+@@ -270,14 +270,10 @@ exp_gre(struct ip_conntrack *master,
+ 	exp_orig->expectfn =3D pptp_expectfn;
+ 	exp_orig->flags =3D 0;
+=20
+-	exp_orig->dir =3D IP_CT_DIR_ORIGINAL;
+-
+ 	/* both expectations are identical apart from tuple */
+ 	memcpy(exp_reply, exp_orig, sizeof(*exp_reply));
+ 	memcpy(&exp_reply->tuple, &exp_tuples[1], sizeof(exp_reply->tuple));
+=20
+-	exp_reply->dir =3D !exp_orig->dir;
+-
+ 	if (ip_nat_pptp_hook_exp_gre)
+ 		ret =3D ip_nat_pptp_hook_exp_gre(exp_orig, exp_reply);
+ 	else {
+diff --git a/net/ipv4/netfilter/ip_nat_helper_pptp.c b/net/ipv4/netfilter/i=
+p_nat_helper_pptp.c
+--- a/net/ipv4/netfilter/ip_nat_helper_pptp.c
++++ b/net/ipv4/netfilter/ip_nat_helper_pptp.c
+@@ -216,6 +216,7 @@ pptp_exp_gre(struct ip_conntrack_expect=20
+ 	expect_orig->saved_proto.gre.key =3D htons(nat_pptp_info->pac_call_id);
+ 	expect_orig->tuple.src.u.gre.key =3D htons(nat_pptp_info->pns_call_id);
+ 	expect_orig->tuple.dst.u.gre.key =3D htons(ct_pptp_info->pac_call_id);
++	expect_orig->dir =3D IP_CT_DIR_ORIGINAL;
+ 	inv_t.src.ip =3D reply_t->src.ip;
+ 	inv_t.dst.ip =3D reply_t->dst.ip;
+ 	inv_t.src.u.gre.key =3D htons(nat_pptp_info->pac_call_id);
+@@ -233,6 +234,7 @@ pptp_exp_gre(struct ip_conntrack_expect=20
+ 	expect_reply->saved_proto.gre.key =3D htons(nat_pptp_info->pns_call_id);
+ 	expect_reply->tuple.src.u.gre.key =3D htons(nat_pptp_info->pac_call_id);
+ 	expect_reply->tuple.dst.u.gre.key =3D htons(ct_pptp_info->pns_call_id);
++	expect_reply->dir =3D !exp_orig->dir;
+ 	inv_t.src.ip =3D orig_t->src.ip;
+ 	inv_t.dst.ip =3D orig_t->dst.ip;
+ 	inv_t.src.u.gre.key =3D htons(nat_pptp_info->pns_call_id);
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--LjZ8ja9Qm/wlgUs7
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDafy0XaXGVTD0i/8RAlfNAKCuG5Zz5rQL/wMDz4b46MOukM5JsgCeOqnC
+Gx7sBL16ssvLfAu34CB29Fw=
+=6u13
+-----END PGP SIGNATURE-----
+
+--LjZ8ja9Qm/wlgUs7--
