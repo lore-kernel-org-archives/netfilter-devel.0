@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Fix compliation of ipt_ROUTE under 2.6.14
-Date: Thu, 3 Nov 2005 19:07:36 +0100
-Message-ID: <20051103180736.GH905@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.62.0510311729470.2437@bizon.gios.gov.pl>
+Subject: Re: Fix compliation of ipt_time under 2.6.14
+Date: Thu, 3 Nov 2005 19:08:49 +0100
+Message-ID: <20051103180849.GI905@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.62.0510311723350.2264@bizon.gios.gov.pl>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VACxsDaSTfeluoxK"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="3ecMC0kzqsE2ddMN"
+Cc: netfilter-devel@lists.netfilter.org, Fabrice MARIE <fabrice@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Krzysztof Oledzki <olenf@ans.pl>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.62.0510311729470.2437@bizon.gios.gov.pl>
+In-Reply-To: <Pine.LNX.4.62.0510311723350.2264@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,22 +23,23 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---VACxsDaSTfeluoxK
+--3ecMC0kzqsE2ddMN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 31, 2005 at 05:33:11PM +0100, Krzysztof Oledzki wrote:
+On Mon, Oct 31, 2005 at 05:29:44PM +0100, Krzysztof Oledzki wrote:
 > Hello,
 >=20
-> Attached (and inlined) patch fixes ipt_ROUTE compliation under 2.6.14.
-> There are two version of this patch - one that fixes patchlets/ROUTE/linux
-> and second that adds patchlets/ROUTE/linux-2.6.14.
+> Attached (and inlined) patch fixes ipt_time compliation under 2.6.14.
+> There are two version of this patch - one that fixes
+> patchlets/time/linux and second that adds patchlets/time/linux-2.6.14.
 
-thanks, applied.
+we only need the former, since we're dropping support for older kernels
+anywa.y
 
-Please use a correct "Signed-off-by" line for your future patches,
-thanks.
+I'll apply your first patch.
+
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -49,16 +50,16 @@ thanks.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---VACxsDaSTfeluoxK
+--3ecMC0kzqsE2ddMN
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDalHoXaXGVTD0i/8RAkjfAJ9IczajZJM18whpMOb1sMtx85Qa5gCgh9J5
-kf2eAKnxuCXbWnlle/zNnZA=
-=2F6T
+iD8DBQFDalIxXaXGVTD0i/8RAo+3AJ0XLe9tbOcd7Q8F1c8STJtXjrHXjwCeM/zX
+Oez6oyLaApembyZtDX35JVw=
+=VAET
 -----END PGP SIGNATURE-----
 
---VACxsDaSTfeluoxK--
+--3ecMC0kzqsE2ddMN--
