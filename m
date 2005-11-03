@@ -1,16 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Fix compliation of ipt_time under 2.6.14
-Date: Thu, 3 Nov 2005 19:08:49 +0100
-Message-ID: <20051103180849.GI905@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.62.0510311723350.2264@bizon.gios.gov.pl>
+Subject: Re: [TRIVIAL PATCH] gcc4 / kill `extern inline` in nf_conntrack.h
+Date: Thu, 3 Nov 2005 19:13:12 +0100
+Message-ID: <20051103181312.GJ905@sunbeam.de.gnumonks.org>
+References: <200508011208.02830.pluto@agmk.net>
+	<m2k6j341kv.fsf@cerbere.dyndns.info>
+	<200510310400.j9V40dw3023224@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3ecMC0kzqsE2ddMN"
-Cc: netfilter-devel@lists.netfilter.org, Fabrice MARIE <fabrice@netfilter.org>
+	protocol="application/pgp-signature"; boundary="BWWlCdgt6QLN7tv3"
+Cc: netfilter-devel@lists.netfilter.org, sbellabes@mandriva.com,
+	kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.62.0510311723350.2264@bizon.gios.gov.pl>
+In-Reply-To: <200510310400.j9V40dw3023224@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +26,17 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---3ecMC0kzqsE2ddMN
+--BWWlCdgt6QLN7tv3
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 31, 2005 at 05:29:44PM +0100, Krzysztof Oledzki wrote:
-> Hello,
+On Mon, Oct 31, 2005 at 01:00:38PM +0900, Yasuyuki KOZAKAI wrote:
 >=20
-> Attached (and inlined) patch fixes ipt_time compliation under 2.6.14.
-> There are two version of this patch - one that fixes
-> patchlets/time/linux and second that adds patchlets/time/linux-2.6.14.
+> Hi, Samir, sorry for huge latency of replying. I found this at
+> patchwork.netfilter.org now.
 
-we only need the former, since we're dropping support for older kernels
-anywa.y
-
-I'll apply your first patch.
-
+thanks, merging it to my tree right now
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -50,16 +47,16 @@ I'll apply your first patch.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---3ecMC0kzqsE2ddMN
+--BWWlCdgt6QLN7tv3
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDalIxXaXGVTD0i/8RAo+3AJ0XLe9tbOcd7Q8F1c8STJtXjrHXjwCeM/zX
-Oez6oyLaApembyZtDX35JVw=
-=VAET
+iD8DBQFDalM4XaXGVTD0i/8RAh+BAJwKc76orYqmFpOAKW5XlBCEYpGftQCfTyg/
+CH03rO40IeEuFXLWBj/GF+Q=
+=4KNE
 -----END PGP SIGNATURE-----
 
---3ecMC0kzqsE2ddMN--
+--BWWlCdgt6QLN7tv3--
