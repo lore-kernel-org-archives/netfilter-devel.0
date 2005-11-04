@@ -1,12 +1,13 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: autogen.sh cleaning anq question on libnetfilter_queue
-Date: Fri, 04 Nov 2005 01:26:50 +0100
-Message-ID: <1131064011.11853.11.camel@localhost.localdomain>
+From: Sadin Nurkic <sadin.nurkic@gmail.com>
+Subject: pptp conntrack fails on server call id != 0
+Date: Fri, 4 Nov 2005 19:32:21 +1100
+Message-ID: <b857c6de0511040032r75046c68s47a48b950f610191@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-G4FfilNOJRYmKn2eN0lK"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Laforge@netfilter.org
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,60 +19,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---=-G4FfilNOJRYmKn2eN0lK
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
 Hi,
 
-This is just a %s/-1\.6// on autogen.sh.
+I'm looking for pointers on how to exactly to debug this myself, so
+any help on this would be greatly appreciated.
 
-By the way, what is needed to be able to see the firt libnetfilter_queue
-release ?
+The setup is as follows: many PPTP clients behind a linux server doing
+NAT. This server is exclusively setup to only do NAT for PPTP
+connections, so majority of time there is only TCP 1723 and GRE
+flowing through the server.
 
-BR, 
--- 
-Eric Leblond <eric@inl.fr>
 
---=-G4FfilNOJRYmKn2eN0lK
-Content-Disposition: attachment; filename=netfilter_queue_autogen.patch
-Content-Type: text/x-patch; name=netfilter_queue_autogen.patch;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Basically, I'm seeing that some packets sent from the PPTP server are
+not appropriately NATed back to the original handset address. The TCP
+stream works fine, but the GRE packets don't get the NAT.
 
-==== Patch <netfilter_queue_autogen> level 1
-Source: [No source]
-Target: f6f8485a-58f1-0310-9e83-9cad51fe5e11:/netfilter/libnetfilter_queue:1217
-Log:
-suppress 1.6 explicit linking
-=== autogen.sh
-==================================================================
---- autogen.sh	(revision 1217)
-+++ autogen.sh	(patch netfilter_queue_autogen level 1)
-@@ -11,7 +11,8 @@
-     fi
- }
- 
--run aclocal-1.6
-+run aclocal
-+run libtoolize -f
- #run autoheader
--run automake-1.6 -a
-+run automake -a
- run autoconf
+The correlation that I can see in the traces is that if the PPTP
+server call-id is set to 0 by the server, then the call would work.
+However if for some unknown reason this call-id is not set to 0, then
+the call (NAT-ing) does not occur so the call fails. It seems random
+that the call-id gets set to 0 on the server side, but I do see in the
+TCP trace that there is a correct call-id exchange in the control
+connection.
 
-==== BEGIN SVK PATCH BLOCK ====
-Version: svk 1.04 (linux)
+Also occassionaly I get:
+kernel: ip_conntrack_pptp: error during exp_gre
 
-eJxdkcGO0zAQhntEvcETVMJ77DbjxE5SpKgXEBISQrBwjZx43FrrTYLjVLvIlz4Rr4idtAhxsTye
-fz7PP/PBPrw7gK+qxBNI/Lcfn/b7L8K1p7sQEe5RatdbwrzBMxqSetMfSeY78YQh64Q9oqsqCMXF
-Uvx+LrhBsshohOu7kZQzrHYWkYCnh9QfqA9nCCAk+wG72va9C3igkIdkHVtqTT9iHUujnEU5vcmV
-Nhg1YnL9Ebv78TTDroA0AtgVILXFNnT2EhULac6KYTAvtcNnJ9E4MdNT6jkrGgqQYJFyKgFayIWQ
-lJdtzlpsWsJ58Pt5tbp8vHx9tVtd3qx+v77kazt1G6Mb1/dG/8LNVq3fxqfY4AmFRLu+hU/iEQ/Z
-vx4XN8v/kucllwmWjKpwaRQ0TdbkUjEFhcR89klLP07DYHEcN3DPN/g8GN1qFzroHnV3JDT1HbrA
-dWjrnxNOWF9HVVXUE0qXnT3Ma9zvv3f6jHYU5o77MMRBuFPYuMVzCKZJy/jh7i9wF3z+R79OnqTc
-K66KrGBiywoF2ySFZFuGYW7LVkgGChkC/AHzFNG0
-==== END SVK PATCH BLOCK ====
+Please let me know what information you need or what debugging I can
+perform to see which part of the code fails here.
 
---=-G4FfilNOJRYmKn2eN0lK--
+Kernel is final 2.6.14, with iptables-1.3.3.
+
+Regards,
+Sadin Nurkic
