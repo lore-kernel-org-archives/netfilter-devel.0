@@ -1,7 +1,7 @@
 From: Sadin Nurkic <sadin.nurkic@gmail.com>
-Subject: pptp conntrack fails on server call id != 0
-Date: Fri, 4 Nov 2005 19:32:21 +1100
-Message-ID: <b857c6de0511040032r75046c68s47a48b950f610191@mail.gmail.com>
+Subject: [PATCH 2/2] [NETFILTER] PPTP helper: Fix endianness bug in GRE key
+Date: Fri, 4 Nov 2005 21:49:51 +1100
+Message-ID: <b857c6de0511040249h38a00abfg529a2a09ce48e7f5@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
@@ -21,34 +21,32 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-I'm looking for pointers on how to exactly to debug this myself, so
-any help on this would be greatly appreciated.
+This patch doesn't seem to fix the issue - the e-mail I sent earlier
+had erroneously call-id from server side being as non 0 and failing,
+but as you mention it is actually client side call-id that is in
+question. After applying this patch the issue still seems to be there.
 
-The setup is as follows: many PPTP clients behind a linux server doing
-NAT. This server is exclusively setup to only do NAT for PPTP
-connections, so majority of time there is only TCP 1723 and GRE
-flowing through the server.
-
-
-Basically, I'm seeing that some packets sent from the PPTP server are
-not appropriately NATed back to the original handset address. The TCP
-stream works fine, but the GRE packets don't get the NAT.
-
-The correlation that I can see in the traces is that if the PPTP
-server call-id is set to 0 by the server, then the call would work.
-However if for some unknown reason this call-id is not set to 0, then
-the call (NAT-ing) does not occur so the call fails. It seems random
-that the call-id gets set to 0 on the server side, but I do see in the
-TCP trace that there is a correct call-id exchange in the control
-connection.
-
-Also occassionaly I get:
-kernel: ip_conntrack_pptp: error during exp_gre
-
-Please let me know what information you need or what debugging I can
-perform to see which part of the code fails here.
-
-Kernel is final 2.6.14, with iptables-1.3.3.
+What can be done to track this one down further? I'm having a load of
+issues enabling printk's but hopefully once I get that working I'll
+provide some more info here as I'm really keen to get this one
+working.
 
 Regards,
 Sadin Nurkic
+
+
+
+_____________________________________
+Hi Acme!
+
+Please merge this to both 2.6.15 mainline and 2.6.14.x stable series,
+thanks.
+
+[NETFILTER] PPTP helper: Fix endianness bug in GRE key / CallID NAT
+
+This endianness bug slipped through while changing the 'gre.key' field in t=
+he
+conntrack tuple from 32bit to 16bit.
+
+None of my tests caught the problem, since the linux pptp client always has
+'0' as call id / gre key.  Only windows clients actually trigger the bug.
