@@ -1,16 +1,15 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: Bachelor Project
-Date: Fri, 4 Nov 2005 13:37:50 +0100
-Message-ID: <200511041337.50712@nienna>
-References: <436B4D2E.8080204@seznam.cz> <200511041334.20360@nienna>
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: pptp conntrack fails on server call id != 0
+Date: Fri, 4 Nov 2005 07:58:09 -0800
+Message-ID: <20051104155809.GA21377@linuxace.com>
+References: <b857c6de0511040032r75046c68s47a48b950f610191@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200511041334.20360@nienna>
+To: Sadin Nurkic <sadin.nurkic@gmail.com>
 Content-Disposition: inline
+In-Reply-To: <b857c6de0511040032r75046c68s47a48b950f610191@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,15 +21,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, Nov 04, 2005 at 07:32:21PM +1100, Sadin Nurkic wrote:
+> The correlation that I can see in the traces is that if the PPTP
+> server call-id is set to 0 by the server, then the call would work.
+> However if for some unknown reason this call-id is not set to 0, then
+> the call (NAT-ing) does not occur so the call fails. It seems random
+> that the call-id gets set to 0 on the server side, but I do see in the
+> TCP trace that there is a correct call-id exchange in the control
+> connection.
 
-  Hi,
+Did you check the mailing list archives?  I'll narrow it down: yesterday.
 
-On Friday 04 November 2005 13.34, KOVACS Krisztian wrote:
->   Contact addresses: {laforge,hidden} at netfilter.org or the
-> netfilter-ha mailing list on lists.netfilter.org.
-
-  Uhh, no, it's called netfilter-failover. :)
-
--- 
- Regards,
-  Krisztian Kovacs
+Phil
