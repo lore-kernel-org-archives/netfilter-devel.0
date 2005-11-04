@@ -1,12 +1,18 @@
-From: Pablo Neira <pablo@netfilter.org>
-Subject: [PATCH 2/7] check if CTA_PROTOINFO_TCP is present
-Date: Fri, 04 Nov 2005 19:00:21 +0100
-Message-ID: <436BA1B5.9090905@netfilter.org>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: Unable to handle kernel NULL pointer dereference at virtual
+ address 00000000 after conntrack -I
+Date: Fri, 04 Nov 2005 19:12:48 +0100
+Message-ID: <436BA4A0.5040204@eurodev.net>
+References: <Pine.LNX.4.63.0511031408370.32626@bizon.gios.gov.pl>
+	<436A6B39.3080508@eurodev.net>
+	<Pine.LNX.4.63.0511032122210.17993@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020509050608060407030000"
-Cc: Harald Welte <laforge@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Krzysztof Oledzki <olenf@ans.pl>
+In-Reply-To: <Pine.LNX.4.63.0511032122210.17993@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,47 +24,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020509050608060407030000
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Krzysztof Oledzki wrote:
+> On Thu, 3 Nov 2005, Pablo Neira wrote:
+> 
+>> Krzysztof Oledzki wrote:
+>>
+>>> # conntrack -I --orig-src 1.2.3.4 --orig-dst 1.2.3.5 --reply-src 2.3.4.5
+>>> --reply-dst 2.3.4.5 -p tcp --orig-port-src 1 --orig-port-dst 2
+>>> --reply-port-src 3 --reply-port-dst 4 -t 32323 -u ASSURED
+>>
+>>
+>> --state option is missing: Unfortunately conntrack forgot to check it
+>> that such parameter was missing and ctnetlink didn't do that check
+>> either. That's why it resulted in an oops :(
+>>
+>> I've just applied a patch for conntrack, refresh your working copy. So
+>> you won't be able to reproduce that oops anymore.
+>>
+>> Anyway I'll send a patch for ctnetlink, that checking must be done in
+>> kernel space as well.
+> 
+> Thank you. When are you going to release the 1.0 version? How much time
+> I have left for testing? ;)
 
-This fixes an oops triggered from userspace. If we don't pass
-information about the private protocol info, the reference to attr will
-be NULL. This is likely to happen in update messages.
+Good question. I wanted to do it before 2.6.14, but it seems that time
+run up. So my proposed alternative is doing it as soon as there are no
+known bugs in ctnetlink, I don't want people complaining about crashing
+kernels because of this stuff *sigh*. And of course, once there are no
+complains about conntrack/libnetfilter_conntrack for some days at the
+same time.
 
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
-
---------------020509050608060407030000
-Content-Type: text/plain;
- name="05-check-protoinfo.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="05-check-protoinfo.patch"
-
-This fixes an oops triggered from userspace. If we don't pass information 
-about the private protocol info, the reference to attr will be NULL. This is
-likely to happen in update messages.
-
-Signed-out-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Index: net-2.6.git/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-===================================================================
---- net-2.6.git.orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-11-04 17:44:54.000000000 +0100
-+++ net-2.6.git/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-11-04 17:45:24.000000000 +0100
-@@ -362,6 +362,11 @@ static int nfattr_to_tcp(struct nfattr *
- 	struct nfattr *attr = cda[CTA_PROTOINFO_TCP-1];
- 	struct nfattr *tb[CTA_PROTOINFO_TCP_MAX];
- 
-+	/* updates could not contain anything about the private 
-+	 * protocol info, in that case skip the parsing. */
-+	if (!attr)
-+		return 0;
-+
-         if (nfattr_parse_nested(tb, CTA_PROTOINFO_TCP_MAX, attr) < 0)
-                 goto nfattr_failure;
- 
-
---------------020509050608060407030000--
+Pablo
