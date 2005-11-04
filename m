@@ -1,9 +1,9 @@
 From: Pablo Neira <pablo@netfilter.org>
-Subject: [PATCH 4/7] add missing module_alias_subsys
-Date: Fri, 04 Nov 2005 19:00:33 +0100
-Message-ID: <436BA1C1.8070806@netfilter.org>
+Subject: [PATCH 6/7] add support for zeroing counters at getting
+Date: Fri, 04 Nov 2005 19:00:42 +0100
+Message-ID: <436BA1CA.4020601@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030806000802040607060608"
+Content-Type: multipart/mixed; boundary="------------070806050202010908090908"
 Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,41 +19,47 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------030806000802040607060608
+--------------070806050202010908090908
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-Add missing module alias. This is a must to load ctnetlink on demand.
-For example, the conntrack tool will fail if the module isn't loaded.
+Add support to zero counters conntrack at getting. Currently we can zero
+all the conntracks via zero and dump, but it could be useful more fine
+grain zeroing.
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------030806000802040607060608
+--------------070806050202010908090908
 Content-Type: text/plain;
- name="07-alias.patch"
+ name="09-get-zero.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="07-alias.patch"
+ filename="09-get-zero.patch"
 
-Add missing module alias. This is a must to load ctnetlink on demand. For 
-example, the conntrack tool will fail if the module isn't loaded.
+Add support to zero counters conntrack at getting. Currently we can zero all
+the conntracks via zero and dump, but it could be useful more fine grain 
+zeroing.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-by-off: Pablo Neira Ayuso <pablo@netfilter.org>
 
 Index: net-2.6.git/net/ipv4/netfilter/ip_conntrack_netlink.c
 ===================================================================
---- net-2.6.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-04 17:55:24.000000000 +0100
-+++ net-2.6.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-04 18:31:04.000000000 +0100
-@@ -1538,6 +1538,8 @@ static struct nfnetlink_subsystem ctnl_e
- 	.cb				= ctnl_exp_cb,
- };
+--- net-2.6.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-04 18:11:06.000000000 +0100
++++ net-2.6.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-04 18:30:59.000000000 +0100
+@@ -788,6 +788,12 @@ ctnetlink_get_conntrack(struct sock *ctn
  
-+MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_CTNETLINK);
+ 	err = ctnetlink_fill_info(skb2, NETLINK_CB(skb).pid, nlh->nlmsg_seq, 
+ 				  IPCTNL_MSG_CT_NEW, 1, ct);
 +
- static int __init ctnetlink_init(void)
- {
- 	int ret;
++#ifdef CONFIG_IP_NF_CT_ACCT
++	if (NFNL_MSG_TYPE(nlh->nlmsg_type) == IPCTNL_MSG_CT_GET_CTRZERO) 
++		memset(&ct->counters, 0, sizeof(ct->counters));
++#endif
++	
+ 	ip_conntrack_put(ct);
+ 	if (err <= 0)
+ 		goto free;
 
---------------030806000802040607060608--
+--------------070806050202010908090908--
