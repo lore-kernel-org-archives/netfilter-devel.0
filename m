@@ -1,9 +1,10 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 0/3] fixes for ctnetlink
-Date: Sat, 05 Nov 2005 01:11:29 +0900 (JST)
-Message-ID: <200511041611.jA4GBUo6003219@toshiba.co.jp>
+Subject: [PATCH 2/3] refcount leak of proto when ctnetlink dumping tuple
+Date: Sat, 05 Nov 2005 01:12:30 +0900 (JST)
+Message-ID: <200511041612.jA4GCVLl011680@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: Multipart/Mixed;
+	boundary="--Next_Part(Sat_Nov__5_01_12_30_2005_706)--"
 Content-Transfer-Encoding: 7bit
 Cc: laforge@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,12 +20,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+----Next_Part(Sat_Nov__5_01_12_30_2005_706)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Hi,
 
-These small patches fix the bugs in ip_conntrack_netlink I saw while finding
-oops bug.
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
-Regards,
 
--- Yasuyuki Kozakai
+----Next_Part(Sat_Nov__5_01_12_30_2005_706)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="02-ctnl-refcnt.patch"
+
+[NETFILTER] refcount leak of proto when ctnetlink dumping tuple
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+
+---
+commit 3a4486b6419a1f25324bb4280d51f5c77b1117f7
+tree 88b1831d06e21417baca01d1632131d96e3be611
+parent 61a002f080c6473da94f28314502ff0f15fe3625
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 04 Nov 2005 14:35:27 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 04 Nov 2005 14:35:27 +0900
+
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -58,14 +58,17 @@ ctnetlink_dump_tuples_proto(struct sk_bu
+ 			    const struct ip_conntrack_tuple *tuple)
+ {
+ 	struct ip_conntrack_protocol *proto;
++	int ret = 0;
+ 
+ 	NFA_PUT(skb, CTA_PROTO_NUM, sizeof(u_int8_t), &tuple->dst.protonum);
+ 
+ 	proto = ip_conntrack_proto_find_get(tuple->dst.protonum);
+-	if (proto && proto->tuple_to_nfattr)
+-		return proto->tuple_to_nfattr(skb, tuple);
++	if (likely(proto && proto->tuple_to_nfattr)) {
++		ret = proto->tuple_to_nfattr(skb, tuple);
++		ip_conntrack_proto_put(proto);
++	}
+ 
+-	return 0;
++	return ret;
+ 
+ nfattr_failure:
+ 	return -1;
+
+----Next_Part(Sat_Nov__5_01_12_30_2005_706)----
