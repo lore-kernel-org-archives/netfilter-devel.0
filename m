@@ -1,15 +1,13 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH 2/3] refcount leak of proto when ctnetlink dumping tuple
-Date: Fri, 04 Nov 2005 18:41:25 +0100
-Message-ID: <436B9D45.5070407@eurodev.net>
-References: <200511041612.jA4GCVLl011680@toshiba.co.jp>
+From: Pablo Neira <pablo@netfilter.org>
+Subject: [PATCH 0/7] more ctnetlink updates
+Date: Fri, 04 Nov 2005 19:00:06 +0100
+Message-ID: <436BA1A6.4050705@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200511041612.jA4GCVLl011680@toshiba.co.jp>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,22 +19,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-> 
-> 
-> ------------------------------------------------------------------------
-> 
-> [NETFILTER] refcount leak of proto when ctnetlink dumping tuple
-> 
-> Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Hi Harald!
 
-Thanks a lot for all the fixes. I've been busy fixing bugs in the
-userspace part :(. BTW, I think that this patch fixes the bug reported
-at dumping (Krzysztof).
+Here follows more ctnetlink updates. There are no critical bug here so
+these should go in 2.6.15, just some minor fixes and new features.
 
-As I told you during the workshop, I'll send a patch with the ctnetlink
-port for nfnetlink asap.
+BTW, these patches apply on top of latest Yasuyuki's.
 
 -- 
-Pablo
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
