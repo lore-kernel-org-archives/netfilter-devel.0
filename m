@@ -1,9 +1,9 @@
 From: Pablo Neira <pablo@netfilter.org>
-Subject: [PATCH 3/7] Add conntrack marking support from userspace
-Date: Fri, 04 Nov 2005 19:00:28 +0100
-Message-ID: <436BA1BC.8090100@netfilter.org>
+Subject: [PATCH 7/7] fix wrong allocation flag
+Date: Fri, 04 Nov 2005 19:00:47 +0100
+Message-ID: <436BA1CF.6020907@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040108090902040500050706"
+Content-Type: multipart/mixed; boundary="------------060706070701000404000805"
 Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,54 +19,41 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040108090902040500050706
+--------------060706070701000404000805
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-This patch adds support for conntrack marking from user space.
+ctnetlink_get_conntrack is always called from user context, so
+GFP_KERNEL is enough.
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------040108090902040500050706
+--------------060706070701000404000805
 Content-Type: text/plain;
- name="06-set-mark.patch"
+ name="10-allocation.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="06-set-mark.patch"
+ filename="10-allocation.patch"
 
-This patch adds support for conntrack marking from user space.
+ctnetlink_get_conntrack is always called from user context, so GFP_KERNEL
+is enough.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
 Index: net-2.6.git/net/ipv4/netfilter/ip_conntrack_netlink.c
 ===================================================================
---- net-2.6.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-04 17:45:21.000000000 +0100
-+++ net-2.6.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-04 18:31:06.000000000 +0100
-@@ -979,6 +979,11 @@ ctnetlink_change_conntrack(struct ip_con
- 			return err;
- 	}
+--- net-2.6.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-04 18:16:26.000000000 +0100
++++ net-2.6.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-04 18:17:39.000000000 +0100
+@@ -779,7 +779,7 @@ ctnetlink_get_conntrack(struct sock *ctn
+ 	ct = tuplehash_to_ctrack(h);
  
-+#if defined(CONFIG_IP_NF_CONNTRACK_MARK)
-+	if (cda[CTA_MARK-1])
-+		ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
-+#endif
-+
- 	DEBUGP("all done\n");
- 	return 0;
- }
-@@ -1022,6 +1027,11 @@ ctnetlink_create_conntrack(struct nfattr
- 	if (ct->helper)
- 		ip_conntrack_helper_put(ct->helper);
- 
-+#if defined(CONFIG_IP_NF_CONNTRACK_MARK)
-+	if (cda[CTA_MARK-1])
-+		ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
-+#endif
-+
- 	DEBUGP("conntrack with id %u inserted\n", ct->id);
- 	return 0;
- 
+ 	err = -ENOMEM;
+-	skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
++	skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_KERNEL);
+ 	if (!skb2) {
+ 		ip_conntrack_put(ct);
+ 		return -ENOMEM;
 
---------------040108090902040500050706--
+--------------060706070701000404000805--
