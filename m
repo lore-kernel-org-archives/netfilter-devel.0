@@ -1,9 +1,9 @@
 From: Pablo Neira <pablo@netfilter.org>
-Subject: [PATCH 6/7] add support for zeroing counters at getting
-Date: Fri, 04 Nov 2005 19:00:42 +0100
-Message-ID: <436BA1CA.4020601@netfilter.org>
+Subject: [PATCH 2/7] check if CTA_PROTOINFO_TCP is present
+Date: Fri, 04 Nov 2005 19:00:21 +0100
+Message-ID: <436BA1B5.9090905@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070806050202010908090908"
+Content-Type: multipart/mixed; boundary="------------020509050608060407030000"
 Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,47 +19,46 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070806050202010908090908
+--------------020509050608060407030000
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-Add support to zero counters conntrack at getting. Currently we can zero
-all the conntracks via zero and dump, but it could be useful more fine
-grain zeroing.
+This fixes an oops triggered from userspace. If we don't pass
+information about the private protocol info, the reference to attr will
+be NULL. This is likely to happen in update messages.
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------070806050202010908090908
+--------------020509050608060407030000
 Content-Type: text/plain;
- name="09-get-zero.patch"
+ name="05-check-protoinfo.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="09-get-zero.patch"
+ filename="05-check-protoinfo.patch"
 
-Add support to zero counters conntrack at getting. Currently we can zero all
-the conntracks via zero and dump, but it could be useful more fine grain 
-zeroing.
+This fixes an oops triggered from userspace. If we don't pass information 
+about the private protocol info, the reference to attr will be NULL. This is
+likely to happen in update messages.
 
-Signed-by-off: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-out-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Index: net-2.6.git/net/ipv4/netfilter/ip_conntrack_netlink.c
+Index: net-2.6.git/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
 ===================================================================
---- net-2.6.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-04 18:11:06.000000000 +0100
-+++ net-2.6.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-04 18:30:59.000000000 +0100
-@@ -788,6 +788,12 @@ ctnetlink_get_conntrack(struct sock *ctn
+--- net-2.6.git.orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-11-04 17:44:54.000000000 +0100
++++ net-2.6.git/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-11-04 17:45:24.000000000 +0100
+@@ -362,6 +362,11 @@ static int nfattr_to_tcp(struct nfattr *
+ 	struct nfattr *attr = cda[CTA_PROTOINFO_TCP-1];
+ 	struct nfattr *tb[CTA_PROTOINFO_TCP_MAX];
  
- 	err = ctnetlink_fill_info(skb2, NETLINK_CB(skb).pid, nlh->nlmsg_seq, 
- 				  IPCTNL_MSG_CT_NEW, 1, ct);
++	/* updates could not contain anything about the private 
++	 * protocol info, in that case skip the parsing. */
++	if (!attr)
++		return 0;
 +
-+#ifdef CONFIG_IP_NF_CT_ACCT
-+	if (NFNL_MSG_TYPE(nlh->nlmsg_type) == IPCTNL_MSG_CT_GET_CTRZERO) 
-+		memset(&ct->counters, 0, sizeof(ct->counters));
-+#endif
-+	
- 	ip_conntrack_put(ct);
- 	if (err <= 0)
- 		goto free;
+         if (nfattr_parse_nested(tb, CTA_PROTOINFO_TCP_MAX, attr) < 0)
+                 goto nfattr_failure;
+ 
 
---------------070806050202010908090908--
+--------------020509050608060407030000--
