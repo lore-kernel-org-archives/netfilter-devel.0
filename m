@@ -1,18 +1,17 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: Unable to handle kernel NULL pointer dereference at virtual
- address 00000000 after conntrack -I
-Date: Fri, 04 Nov 2005 19:12:48 +0100
-Message-ID: <436BA4A0.5040204@eurodev.net>
-References: <Pine.LNX.4.63.0511031408370.32626@bizon.gios.gov.pl>
-	<436A6B39.3080508@eurodev.net>
-	<Pine.LNX.4.63.0511032122210.17993@bizon.gios.gov.pl>
+Subject: Re: problem with conntrack-0.81
+Date: Fri, 04 Nov 2005 19:40:58 +0100
+Message-ID: <436BAB3A.2030703@eurodev.net>
+References: <20051026030113.8DA3F42B2@daahman.cosmicfires.com>	<435F2D12.7050003@eurodev.net>
+	<20051026112645.GJ4479@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: David Walker <david@cosmicfires.com>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.63.0511032122210.17993@bizon.gios.gov.pl>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20051026112645.GJ4479@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,35 +23,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> On Thu, 3 Nov 2005, Pablo Neira wrote:
+Harald Welte wrote:
+> On Wed, Oct 26, 2005 at 09:15:30AM +0200, Pablo Neira wrote:
+>>I still have some things that I want to do before the first 1.0
+>>release, among them learning how to add new releases to the
+>>netfilter.org webpage, Harald? any help?
 > 
->> Krzysztof Oledzki wrote:
->>
->>> # conntrack -I --orig-src 1.2.3.4 --orig-dst 1.2.3.5 --reply-src 2.3.4.5
->>> --reply-dst 2.3.4.5 -p tcp --orig-port-src 1 --orig-port-dst 2
->>> --reply-port-src 3 --reply-port-dst 4 -t 32323 -u ASSURED
->>
->>
->> --state option is missing: Unfortunately conntrack forgot to check it
->> that such parameter was missing and ctnetlink didn't do that check
->> either. That's why it resulted in an oops :(
->>
->> I've just applied a patch for conntrack, refresh your working copy. So
->> you won't be able to reproduce that oops anymore.
->>
->> Anyway I'll send a patch for ctnetlink, that checking must be done in
->> kernel space as well.
-> 
-> Thank you. When are you going to release the 1.0 version? How much time
-> I have left for testing? ;)
+> just check out the 'trunk/homepage' directory and try whether a 'make'
+> does in fact generate a working copy of the homepage.   The build system
+> works on Debian systems quite fine, you'll need xsltproc and
+> docbook-website.
 
-Good question. I wanted to do it before 2.6.14, but it seems that time
-run up. So my proposed alternative is doing it as soon as there are no
-known bugs in ctnetlink, I don't want people complaining about crashing
-kernels because of this stuff *sigh*. And of course, once there are no
-complains about conntrack/libnetfilter_conntrack for some days at the
-same time.
+Installed both packages on my laptop (debian). Besides I needed to
+install libxml-writer-perl (Write.pm required) and:
+
+pablo@legba:~/SVN-netfilter/trunk/homepage$ touch depends.tabular
+pablo@legba:~/SVN-netfilter/trunk/homepage/xml$ touch depends.tabular
+
+and then, type make.
+
+pablo@legba:~/SVN-netfilter/trunk/homepage$ make
+make -C xml
+make[1]: Entering directory `/usr/src/SVN/trunk/homepage/xml'
+perl -I../scripts -I../../patch-o-matic-ng ../scripts/pom2docbook.pl
+--xmldir ./patch-o-matic --repository pending
+../../patch-o-matic-ng/patchlets
+Your linux version  is unknown for patch-o-matic at
+../scripts/pom2docbook.pl line 119
+make[1]: *** [patch-o-matic/pom-pending.xml] Error 255
+make[1]: Leaving directory `/usr/src/SVN/trunk/homepage/xml'
+make: *** [all] Error 2
+
+any clue on what's wrong?
+
+> Once that works, I suggest looking at
+> http://svn.netfilter.org/netfilter/trunk/homepage/xml/projects/conntrack/downloads.xml
+> and adding the release to the xml code.  then rebuild the page.  if
+> everything works fine, send me a patch, I'll apply it, rebuild and
+> upload the homepage.
+
+OK.
+
+> The more important issues is, how we're going to handle signing and
+> uploading of the respective files to ftp and http server.  At the
+> moment, only the core team can sign releases (and has the respective
+> upload permissions).
+
+During the WS you told me that you needed someone that could do the
+releasing stuff. Well, I don't know if this could help but if you
+consider that I could that such work, what will it consist on?
 
 -- 
 Pablo
