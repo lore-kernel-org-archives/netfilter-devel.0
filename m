@@ -1,16 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 0/7] more ctnetlink updates
-Date: Fri, 4 Nov 2005 21:40:55 +0100
-Message-ID: <20051104204055.GL5594@sunbeam.de.gnumonks.org>
-References: <436BA1A6.4050705@netfilter.org>
+Subject: Re: [PATCH 2/3] refcount leak of proto when ctnetlink dumping tuple
+Date: Fri, 4 Nov 2005 21:42:13 +0100
+Message-ID: <20051104204213.GM5594@sunbeam.de.gnumonks.org>
+References: <200511041612.jA4GCVLl011680@toshiba.co.jp>
+	<436B9D45.5070407@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aqWxf8ydqYKP8htK"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="HLsZ5Z1opAQvdr2J"
+Cc: netfilter-devel@lists.netfilter.org,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@netfilter.org>
+To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
-In-Reply-To: <436BA1A6.4050705@netfilter.org>
+In-Reply-To: <436B9D45.5070407@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,19 +25,20 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---aqWxf8ydqYKP8htK
+--HLsZ5Z1opAQvdr2J
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Nov 04, 2005 at 07:00:06PM +0100, Pablo Neira wrote:
-> Hi Harald!
->=20
-> Here follows more ctnetlink updates. There are no critical bug here so
-> these should go in 2.6.15, just some minor fixes and new features.
+On Fri, Nov 04, 2005 at 06:41:25PM +0100, Pablo Neira wrote:
 
-ok, from a first quick read, they seem fine to me.  I'll try to review,
-apply and submit later today/tomorrow.
+> As I told you during the workshop, I'll send a patch with the ctnetlink
+> port for nfnetlink asap.
+
+I guess you meant nf_conntrack?  that's really great.  I fixed one
+additional bug in libnetfilter_conntrack with regard to ipv6 earlier, so
+there's hope we can keep the userspace library for both
+ip_conntrack/nf_conntrack without any changes.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -47,16 +50,16 @@ apply and submit later today/tomorrow.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---aqWxf8ydqYKP8htK
+--HLsZ5Z1opAQvdr2J
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDa8dXXaXGVTD0i/8RAqPMAJwKULNVpNro/i5FAwf4A9MPNnpYggCgnltf
-gW09uWZaunzR3lQHOoqrqaw=
-=hifu
+iD8DBQFDa8elXaXGVTD0i/8RAgJVAJ9lC5z0Z5KLw/Sd1nNVYvfWKBpk3gCfdgEh
+q1Bo4ZWXICPmr6Bvp4Ppwr4=
+=9b6o
 -----END PGP SIGNATURE-----
 
---aqWxf8ydqYKP8htK--
+--HLsZ5Z1opAQvdr2J--
