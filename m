@@ -1,13 +1,12 @@
-From: Sadin Nurkic <sadin.nurkic@gmail.com>
-Subject: [PATCH 2/2] [NETFILTER] PPTP helper: Fix endianness bug in GRE key
-Date: Fri, 4 Nov 2005 21:49:51 +1100
-Message-ID: <b857c6de0511040249h38a00abfg529a2a09ce48e7f5@mail.gmail.com>
+From: Jan Simbera <xcidar@seznam.cz>
+Subject: Bachelor Project
+Date: Fri, 04 Nov 2005 12:59:42 +0100
+Message-ID: <436B4D2E.8080204@seznam.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,34 +18,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+To anybody who can help me:
+Has anybody implemented the feature for the netfilter ( the
+nf_conntrack, the generic, not the IPV4 ) module which deals with
+reduplication of the connection status (e.g. when we have two redudant
+routers/firewalls)  or has anybody being working on
+it presently? I need this information because it is one of the topics of
+my new bachelor project. Does
+anybody know about any contacts or addresses, where i could get this
+information?
 
-This patch doesn't seem to fix the issue - the e-mail I sent earlier
-had erroneously call-id from server side being as non 0 and failing,
-but as you mention it is actually client side call-id that is in
-question. After applying this patch the issue still seems to be there.
+Thank you for your help.
 
-What can be done to track this one down further? I'm having a load of
-issues enabling printk's but hopefully once I get that working I'll
-provide some more info here as I'm really keen to get this one
-working.
+Jan Simbera
 
-Regards,
-Sadin Nurkic
-
-
-
-_____________________________________
-Hi Acme!
-
-Please merge this to both 2.6.15 mainline and 2.6.14.x stable series,
-thanks.
-
-[NETFILTER] PPTP helper: Fix endianness bug in GRE key / CallID NAT
-
-This endianness bug slipped through while changing the 'gre.key' field in t=
-he
-conntrack tuple from 32bit to 16bit.
-
-None of my tests caught the problem, since the linux pptp client always has
-'0' as call id / gre key.  Only windows clients actually trigger the bug.
+Faculty if Informatics
+www.fi.muni.cz
+xsimbera(at)mail(dot)muni(dot)cz
+ICQ 136154198
