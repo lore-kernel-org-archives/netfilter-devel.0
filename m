@@ -1,16 +1,14 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 0/7] more ctnetlink updates
-Date: Sat, 5 Nov 2005 12:18:28 +0100
-Message-ID: <20051105111828.GW5594@sunbeam.de.gnumonks.org>
-References: <436BA1A6.4050705@netfilter.org>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: [PATCH 1/3] nfsim-testsuite: don't depend on NAT for name lookup
+	checks
+Date: Sat, 5 Nov 2005 12:35:31 +0100
+Message-ID: <200511051235.31675@nienna>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KxKI/R+N9hudrWbn"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_DkJbD3akbez8vRD"
+Cc: Harald Welte <laforge@netfilter.org>, Rusty Russell <rusty@rustcorp.com.au>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <436BA1A6.4050705@netfilter.org>
+To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,41 +20,53 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---KxKI/R+N9hudrWbn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Nov 04, 2005 at 07:00:06PM +0100, Pablo Neira wrote:
-> Hi Harald!
->=20
-> Here follows more ctnetlink updates. There are no critical bug here so
-> these should go in 2.6.15, just some minor fixes and new features.
-
-applied 2-5 and 7 unmodified, backed out '6' and applied a modified
-version of '1' (see separate mails)
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---KxKI/R+N9hudrWbn
-Content-Type: application/pgp-signature
+--Boundary-00=_DkJbD3akbez8vRD
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDbJUEXaXGVTD0i/8RAoBLAJ93U3jQbSrJbphRgVDRLebGxN3BugCgjQER
-uajuDpveJv9jYMowseEdifc=
-=rlIy
------END PGP SIGNATURE-----
+  Hi,
 
---KxKI/R+N9hudrWbn--
+  The current test for iptables name lookups and the -n option depends 
+on NAT. This is bad, as nf_conntrack does not support NAT.
+
+-- 
+ Regards,
+  Krisztian Kovacs
+
+--Boundary-00=_DkJbD3akbez8vRD
+Content-Type: text/x-diff; charset="us-ascii";
+	name="01-nfsim-testsuite-no_nat_for_namelookup_test.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="01-nfsim-testsuite-no_nat_for_namelookup_test.patch"
+
+Don't depend on NAT to check whether NS lookup is working.
+
+Index: nfsim-testsuite/01iptables/15namelookup.sim
+===================================================================
+--- nfsim-testsuite/01iptables/15namelookup.sim	(revision 4444)
++++ nfsim-testsuite/01iptables/15namelookup.sim	(working copy)
+@@ -1,13 +1,13 @@
+ # Test that name lookup works.
+ 
+ # This succeeds.
+-iptables -t nat -A POSTROUTING -s localhost -d localhost -p tcp -j SNAT --to-source 192.168.1.1
+-iptables -t nat -D POSTROUTING -s 127.0.0.1 -d 127.0.0.1 -p tcp -j SNAT --to-source 192.168.1.1
++iptables -A INPUT -s localhost -d localhost -p tcp -j ACCEPT
++iptables -D INPUT -s 127.0.0.1 -d 127.0.0.1 -p tcp -j ACCEPT
+ 
+ # These will fail.
+ expect iptables iptables: command failed
+-iptables -t nat -A POSTROUTING -n -s localhost -d 127.0.0.1 -p 6 -j SNAT --to-source 192.168.1.1
++iptables -A INPUT -n -s localhost -d 127.0.0.1 -p 6 -j ACCEPT
+ expect iptables iptables: command failed
+-iptables -t nat -A POSTROUTING -n -s 127.0.0.1 -d localhost -p 6 -j SNAT --to-source 192.168.1.1
++iptables -A INPUT -n -s 127.0.0.1 -d localhost -p 6 -j ACCEPT
+ expect iptables iptables: command failed
+-iptables -t nat -A POSTROUTING -n -s 127.0.0.1 -d 127.0.0.1 -p tcp -j SNAT --to-source 192.168.1.1 
++iptables -A INPUT -n -s 127.0.0.1 -d 127.0.0.1 -p tcp -j ACCEPT
+
+--Boundary-00=_DkJbD3akbez8vRD--
