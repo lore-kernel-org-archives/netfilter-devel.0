@@ -1,17 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 0/3] nfsim-testsuite: trivial fixes
-Date: Sat, 5 Nov 2005 12:41:41 +0100
-Message-ID: <20051105114141.GA16000@sunbeam.de.gnumonks.org>
-References: <200511051235.22530@nienna>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: [PATCH 1/2] nf_conntrack: remove nf_conntrack stat proc file when
+	cleaning up
+Date: Sat, 5 Nov 2005 12:49:06 +0100
+Message-ID: <200511051249.06265@nienna>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="azLHFNyN32YCQGCU"
-Cc: Rusty Russell <rusty@rustcorp.com.au>,
-	netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_ywJbD1W+lTmYj5s"
+Cc: Harald Welte <laforge@netfilter.org>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-Content-Disposition: inline
-In-Reply-To: <200511051235.22530@nienna>
+To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,42 +21,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---azLHFNyN32YCQGCU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, Nov 05, 2005 at 12:35:22PM +0100, KOVACS Krisztian wrote:
->=20
->   Hi,
->=20
->   While trying to get nfsim working with nf_conntrack I've found a=20
-> couple of problems in the testsuite. These three patches fix the=20
-> problems I've found last night. :)
-
-all three applied, thanks.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---azLHFNyN32YCQGCU
-Content-Type: application/pgp-signature
+--Boundary-00=_ywJbD1W+lTmYj5s
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDbJp1XaXGVTD0i/8RAshwAJ9dC+AIVgUbmVmUs9zTSn+HxbB7NwCdFR9K
-DAC6EpYSDCAaH3kgOPgbzR4=
-=VLuT
------END PGP SIGNATURE-----
+  Hi,
 
---azLHFNyN32YCQGCU--
+  nf_conntrack does not properly remove /proc/net/stat/nf_conntrack when 
+cleaning up. The attached patch seems to solve (at least in nfsim).
+
+-- 
+ Regards,
+  Krisztian Kovacs
+
+--Boundary-00=_ywJbD1W+lTmYj5s
+Content-Type: text/x-diff; charset="us-ascii";
+	name="02-nf_conntrack-remove_stat_proc_file.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="02-nf_conntrack-remove_stat_proc_file.patch"
+
+[NETFILTER] Remove nf_conntrack stat proc file when cleaning up
+
+Fix nf_conntrack statistics proc file removal. Looks like the old bug
+was forward-ported from ip_conntrack. :-]
+
+Signed-off-by: KOVACS Krisztian <hidden@balabit.hu>
+
+---
+commit d9c38734c90540ea7c8fb5eb11ff77c05d6dbb40
+tree 17fd2f4b3de0ef4b9dc52dc8cbe35924c7482f25
+parent a3d662dd415a847d60097d17d6f634429b886b8f
+author KOVACS Krisztian <hidden@balabit.hu> Fri, 04 Nov 2005 11:35:48 +0100
+committer KOVACS Krisztian <hidden@balabit.hu> Fri, 04 Nov 2005 11:35:48 +0100
+
+ net/netfilter/nf_conntrack_standalone.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index d2ea098..3dd65fe 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -694,7 +694,7 @@ static int init_or_cleanup(int init)
+  cleanup_proc_stat:
+ #endif
+ #ifdef CONFIG_PROC_FS
+-	proc_net_remove("nf_conntrack_stat");
++	remove_proc_entry("nf_conntrack", proc_net_stat);
+  cleanup_proc_exp:
+ 	proc_net_remove("nf_conntrack_expect");
+  cleanup_proc:
+
+--Boundary-00=_ywJbD1W+lTmYj5s--
