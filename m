@@ -1,19 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 4/7] add missing module_alias_subsys
-Date: Sat, 5 Nov 2005 13:28:27 +0100
-Message-ID: <20051105122827.GC16000@sunbeam.de.gnumonks.org>
-References: <436BA1C1.8070806@netfilter.org> <436C5FBC.70804@trash.net>
-	<20051105115337.GB16000@sunbeam.de.gnumonks.org>
-	<436C9DD6.8090101@trash.net>
+Subject: Re: [PATCH 0/7] more ctnetlink updates
+Date: Sat, 5 Nov 2005 13:30:09 +0100
+Message-ID: <20051105123009.GD16000@sunbeam.de.gnumonks.org>
+References: <436BA1A6.4050705@netfilter.org>
+	<20051105111828.GW5594@sunbeam.de.gnumonks.org>
+	<436C997D.6010205@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oTHb8nViIGeoXxdp"
+	protocol="application/pgp-signature"; boundary="n2Pv11Ogg/Ox8ay5"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	Pablo Neira <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <436C9DD6.8090101@trash.net>
+In-Reply-To: <436C997D.6010205@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,29 +26,21 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---oTHb8nViIGeoXxdp
+--n2Pv11Ogg/Ox8ay5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Nov 05, 2005 at 12:56:06PM +0100, Patrick McHardy wrote:
-
-> > This unfortunately doesn't work with the current architecture, where
-> > every nfnetlink subsystem can specifiy the required capabilities per
-> > message.  That specification isn't available before loading the module,
-> > though.
+On Sat, Nov 05, 2005 at 12:37:33PM +0100, Patrick McHardy wrote:
+> Harald Welte wrote:
+>
+> > applied 2-5 and 7 unmodified, backed out '6' and applied a modified
+> > version of '1' (see separate mails)
 >=20
-> Didn't we decide to remove the per-subsys capabilities and make all
-> of them require CAP_NET_ADMIN?
+> What about my objections to 3 and 4? 3 at least should not go in.
 
-We did?  I knew we were talking about it, but I must have forgotten the
-result, sorry.
-
-> That also a possiblity, but I can't think of a case where we wouldn't
-> insist on CAP_NET_ADMIN, so just removing the whole per-subsys
-> capabilities seems easier to me.
-
-Mh, ok.  But you owe me a beer if we ever need to re-introduce it ;)
+the usual overlap.  When I read netfilter-devel, I don't look into my
+inbox at the same time, so I only read your mails afterwards.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -60,16 +52,16 @@ Mh, ok.  But you owe me a beer if we ever need to re-introduce it ;)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---oTHb8nViIGeoXxdp
+--n2Pv11Ogg/Ox8ay5
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDbKVrXaXGVTD0i/8RAnE2AJ9vwjrbWu7/kCqelqKCEa5idqoEFgCeKCfd
-wVbTG27/fu72vqTPCNnm9R4=
-=3z7Q
+iD8DBQFDbKXRXaXGVTD0i/8RAsgLAJwLOyrA4GY9uEZUKRi+aa27OPWBPgCdGkD7
+c5V+cj1U562N/nCHUH3CQko=
+=NWto
 -----END PGP SIGNATURE-----
 
---oTHb8nViIGeoXxdp--
+--n2Pv11Ogg/Ox8ay5--
