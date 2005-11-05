@@ -1,16 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 1/7] don't check nfattr_parse_nested return value
-Date: Sat, 5 Nov 2005 11:27:43 +0100
-Message-ID: <20051105102742.GT5594@sunbeam.de.gnumonks.org>
-References: <436BA1B0.9010702@netfilter.org>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [NF+IPsec 4/6]: Make IPsec input processing symetrical to output
+Date: Sat, 05 Nov 2005 19:32:46 +0900 (JST)
+Message-ID: <200511051032.jA5AWlqC005713@toshiba.co.jp>
+References: <436C7937.9070901@trash.net>
+	<20051105093821.GA30966@gondor.apana.org.au>
+	<436C81AD.7070308@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2/Dpz40iF3jpiHxF"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	herbert@gondor.apana.org.au
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <436BA1B0.9010702@netfilter.org>
+To: kaber@trash.net
+In-Reply-To: <436C81AD.7070308@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,44 +25,50 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---2/Dpz40iF3jpiHxF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi, Patrick,
 
-On Fri, Nov 04, 2005 at 07:00:16PM +0100, Pablo Neira wrote:
-> nfattr_parse_nested always returns success. So we don't need such
-> checking. It's unlikely that nfattr_parse would return something
-> different than 0 in the future, if that day comes for whatever reason we
-> could get the checking back.
+From: Patrick McHardy <kaber@trash.net>
+Date: Sat, 05 Nov 2005 10:55:57 +0100
 
-if this is the case, then nfattr_parse() should become a void function.
+> > Also, I thought Yoshifuji-san's objection is not just about
+> > transport mode packets passing through netif_rx twice, but
+> > passing through netfilter twice as well?
+> 
+> I think so, but he didn't mention a reason why he objects to it.
+> I also don't think it can be done otherwise while still keeping
+> netfilter "just working" for all cases, which IMO is highly
+> desirable.
 
-also, you missed one occurrence of nfattr_parse_nested() in ip_conntrack_tc=
-p.c
+I try to comment based on discussion with Yoshifuji-san and Miyazawa-san.
 
-I'm fixing this up and apply a modified version of this patch.
+We think it's confusing for user to mix decrypted packets and pre-decrypted
+ones to same hook. For example, if user want to accept packets encrypted by
+transport mode ESP and drop others, he will do "iptables -A INPUT -p esp -j
+ACCEPT" and "iptables -P INPUT DROP". But decrypted packets will be dropped
+because of the 2nd command. Of cause the match module 'policy' will be helpful
+in such case, but it's simple if he can different name of hook with INPUT.
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+And, in logical, the hook for decrypted packet and the one for pre-decrypted
+packet is different like the current LOCAL_IN and LOCAL_OUT. Their place and
+the packets they can see, are different.
 
---2/Dpz40iF3jpiHxF
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+This can be said about output path. The hook for encrypted packet and the one
+for pre-encrypted packet is different.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
+In the current, LOCAL_OUT see pre-encrypted packet. I've been assuming
+that LOCAL_OUT see the packets just before sending them from network device.
+This is the reason why I said "I support the way" - which means LOCAL_OUT
+doesn't see pre-encrypted packet.
 
-iD8DBQFDbIkeXaXGVTD0i/8RAt1qAKCAfqFDMv+Vhm8Y4viUmHNiPX12AwCgg4He
-82aOCLzYbHLV+Q46GWPTsLc=
-=hPKU
------END PGP SIGNATURE-----
+Meanwhile the hook to see pre-encrypted packet is necessary for NAT
+indeed as you pointed out. Then our suggestion is adding new hook
+with new name, and distinguishing cleary between the usage of new and
+current hook.
 
---2/Dpz40iF3jpiHxF--
+BTW, tunnel mode is special case. We can avoid confusing by operation
+and so on. For example, using different address for inner and outer header.
+We agree to call netif_rx() twice for tunneled packets, as ever.
+
+Regards,
+
+-- Yasuyuki Kozakai
