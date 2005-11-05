@@ -1,16 +1,24 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] libnetfilter_queue nfattr[] abstraction
-Date: Sat, 5 Nov 2005 10:18:54 +0100
-Message-ID: <20051105091854.GR5594@sunbeam.de.gnumonks.org>
-References: <1131063778.11853.6.camel@localhost.localdomain>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [NF+IPsec 4/6]: Make IPsec input processing symetrical to output
+Date: Sat, 5 Nov 2005 20:38:21 +1100
+Message-ID: <20051105093821.GA30966@gondor.apana.org.au>
+References: <4352EEC8.9000602@trash.net>
+	<20051017.094919.56989341.yoshfuji@linux-ipv6.org>
+	<20051027121545.GA5530@gondor.apana.org.au>
+	<20051027.235732.01166239.yoshfuji@linux-ipv6.org>
+	<20051105063030.GA32385@gondor.apana.org.au>
+	<436C6580.6030007@trash.net>
+	<20051105083955.GA30293@gondor.apana.org.au>
+	<436C7430.5030707@trash.net>
+	<20051105090904.GA30733@gondor.apana.org.au>
+	<436C7937.9070901@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="v+Mbu5iuT/5Blw/K"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <1131063778.11853.6.camel@localhost.localdomain>
+In-Reply-To: <436C7937.9070901@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,53 +30,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, Nov 05, 2005 at 10:19:51AM +0100, Patrick McHardy wrote:
+> 
+> What I propose is to keep tunnel mode handling as it is, so
+> for each tunnel mode SA we hit PRE_ROUTING and LOCAL_IN in
+> the normal packet path. If the final SA is a transport mode
+> SA, we don't call netif_rx as in my first patchset, but pass
+> the packet through a new PRE_ROUTING hook in xfrm{4,6}_input
+> and LOCAL_IN afterwards. The packet won't be processed a second
+> time by the stack, just the netfilter hooks will be called.
+> NAT be will be handled manually for IPv4 by doing a new route
+> lookup and calling dst_input if NAT took place.
 
---v+Mbu5iuT/5Blw/K
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In other words LOCAL_IN will still see the packet twice for
+pure transport mode packets? That's going to be a problem for
+me for the reasons that I outlined earlier:
 
-On Fri, Nov 04, 2005 at 01:22:58AM +0100, Eric Leblond wrote:
-> Hi,
->=20
-> This patch is a proposal to suppress the use of struct nfattr* nfa[]
-> like params in user level function.
+<20051011131838.GA4934@gondor.apana.org.au>
 
-looks fine to me.  I'll rename nfnl_q_datas into nfnl_q_data, though.
+Also, I thought Yoshifuji-san's objection is not just about
+transport mode packets passing through netif_rx twice, but
+passing through netfilter twice as well?
 
-> This just hide the low-level structure behind a dummy structure. But
-> from a user point of view, this structure should remain inchanged even
-> if the kernel internal are changing.
-
-ACK. this can easily be enforced if we put the structure definition into
-the C file, and just have a dummy 'struct nfnl_q_data' declaration in
-the header.
-
-> I've checked the provided test util and NuFW against the modified
-> library.
-
-Please re-check after my changes went in (maybe in 30mins).
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---v+Mbu5iuT/5Blw/K
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDbHj+XaXGVTD0i/8RAirzAJ4/jwNyumPZj8k9Iu5JgrGWetlXoQCfYe1I
-+2PLTo/9c9wDk+35hMEbTFI=
-=mHNT
------END PGP SIGNATURE-----
-
---v+Mbu5iuT/5Blw/K--
+Cheers,
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
