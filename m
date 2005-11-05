@@ -1,17 +1,15 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH 0/2] nf_conntrack: fixes for nfsim-found problems
-Date: Sun, 06 Nov 2005 02:00:46 +0900 (JST)
-Message-ID: <200511051700.jA5H0lo0006359@toshiba.co.jp>
-References: <200511051254.20432@nienna>
+From: Harald Welte <laforge@netfilter.org>
+Subject: [ANNOUNCE] ulogd-2.x reaches beta state
+Date: Sat, 5 Nov 2005 18:03:30 +0100
+Message-ID: <20051105170330.GF16000@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
-	yasuyuki.kozakai@toshiba.co.jp
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="aZoGpuMECXJckB41"
+Cc: ulogd@lists.gnumonks.org,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: hidden@balabit.hu
-In-Reply-To: <200511051254.20432@nienna>
-	<200511051255.08714@nienna>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +21,66 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: KOVACS Krisztian <hidden@balabit.hu>
-Date: Sat, 5 Nov 2005 12:54:20 +0100
 
->   These patches are fixes for nf_conntrack problems found by nfsim. 
-> Please review and apply them if you find them appropriate.
+--aZoGpuMECXJckB41
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks a lot! These look fine to me except following comment in 2nd patch.
+Hi!
 
-> +	/* free l3proto protocol tables */
-> +	for (i = 0; i < PF_MAX; i++)
-> +		if (nf_ct_protos[i]) {
-> +			kfree(nf_ct_protos[i]);
-> +			nf_ct_protos[i] = NULL;
-> +		}
+For those of you who are adventurous and willing to help:
 
-nf_ct_protos is the table for layer 4 protocol, not layer 3.
+ulogd-2.x (svn http://svn.gnumonks.org/branches/ulog/ulogd2/) has
+actually reached a state where it produces useful logs ;)
 
-Regards,
+If you want to tune in and help me with some contributions, don't
+hesitate, download and build the latest svn version...
 
--- Yasuyuki Kozakai
+Currently working:
+
+ULOG input plugin (like ulogd-1.x)
+NFLOG input plugin (for nfnetlink_log via libnetfilter_log)
+NFCT input plugin (for flow-based logging via libnetfilter_conntrack)
+
+BASE filter plugin (interpretation of packet headers, ...)
+PWSNIFF filter plugin (sniffing of POP3/FTP logins/passwords)
+IFINDEX filter (ifnidex -> devicename resolval)
+
+OPRINT output plugin (just prints all keys/values)
+LOGEMU output plugin (print syslog-like file)
+SYSLOG output plugin (really log via syslog(3))
+PCAP output plugin (saves packets in pcap format)
+
+TODO
+
+- Port all the SQL plugins (mysql, pgsql, sqlite3) from ulogd-1.x
+- Autoconf/automake detection of required libraries, only conditionally
+  build NFLOG, NFCT, PCAP and sql
+- Clean up dynamically allocated keys after plugin stack iteration
+- Documentation
+- Testing
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--aZoGpuMECXJckB41
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDbOXiXaXGVTD0i/8RAsI+AJ45CByx5j4iNg2HyUqAsrJlFJnAtACgqJHW
+SLwgTHilbSQYkOpRp/+bBEg=
+=P2aq
+-----END PGP SIGNATURE-----
+
+--aZoGpuMECXJckB41--
