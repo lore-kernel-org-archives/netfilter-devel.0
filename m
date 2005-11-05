@@ -1,17 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/7] more ctnetlink updates
-Date: Sat, 05 Nov 2005 12:37:33 +0100
-Message-ID: <436C997D.6010205@trash.net>
-References: <436BA1A6.4050705@netfilter.org>
-	<20051105111828.GW5594@sunbeam.de.gnumonks.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 0/3] nfsim-testsuite: trivial fixes
+Date: Sat, 5 Nov 2005 12:41:41 +0100
+Message-ID: <20051105114141.GA16000@sunbeam.de.gnumonks.org>
+References: <200511051235.22530@nienna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="azLHFNyN32YCQGCU"
+Cc: Rusty Russell <rusty@rustcorp.com.au>,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051105111828.GW5594@sunbeam.de.gnumonks.org>
+To: KOVACS Krisztian <hidden@balabit.hu>
+Content-Disposition: inline
+In-Reply-To: <200511051235.22530@nienna>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,16 +23,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> On Fri, Nov 04, 2005 at 07:00:06PM +0100, Pablo Neira wrote:
-> 
->>Hi Harald!
->>
->>Here follows more ctnetlink updates. There are no critical bug here so
->>these should go in 2.6.15, just some minor fixes and new features.
-> 
-> 
-> applied 2-5 and 7 unmodified, backed out '6' and applied a modified
-> version of '1' (see separate mails)
 
-What about my objections to 3 and 4? 3 at least should not go in.
+--azLHFNyN32YCQGCU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sat, Nov 05, 2005 at 12:35:22PM +0100, KOVACS Krisztian wrote:
+>=20
+>   Hi,
+>=20
+>   While trying to get nfsim working with nf_conntrack I've found a=20
+> couple of problems in the testsuite. These three patches fix the=20
+> problems I've found last night. :)
+
+all three applied, thanks.
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--azLHFNyN32YCQGCU
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDbJp1XaXGVTD0i/8RAshwAJ9dC+AIVgUbmVmUs9zTSn+HxbB7NwCdFR9K
+DAC6EpYSDCAaH3kgOPgbzR4=
+=VLuT
+-----END PGP SIGNATURE-----
+
+--azLHFNyN32YCQGCU--
