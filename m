@@ -1,20 +1,20 @@
-From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
-	<yoshfuji@linux-ipv6.org>
+From: Herbert Xu <herbert@gondor.apana.org.au>
 Subject: Re: [NF+IPsec 4/6]: Make IPsec input processing symetrical to output
-Date: Sat, 05 Nov 2005 17:23:00 +0900 (JST)
-Message-ID: <20051105.172300.76631287.yoshfuji@linux-ipv6.org>
-References: <20051027121545.GA5530@gondor.apana.org.au>
+Date: Sat, 5 Nov 2005 19:39:55 +1100
+Message-ID: <20051105083955.GA30293@gondor.apana.org.au>
+References: <4352EEC8.9000602@trash.net>
+	<20051017.094919.56989341.yoshfuji@linux-ipv6.org>
+	<20051027121545.GA5530@gondor.apana.org.au>
 	<20051027.235732.01166239.yoshfuji@linux-ipv6.org>
 	<20051105063030.GA32385@gondor.apana.org.au>
+	<436C6580.6030007@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	kaber@trash.net
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: herbert@gondor.apana.org.au, miyazawa@linux-ipv6.org,
-	kozakai@linux-ipv6.org
-In-Reply-To: <20051105063030.GA32385@gondor.apana.org.au>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <436C6580.6030007@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,23 +26,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In article <20051105063030.GA32385@gondor.apana.org.au> (at Sat, 5 Nov 2005 17:30:30 +1100), Herbert Xu <herbert@gondor.apana.org.au> says:
-
-> On Thu, Oct 27, 2005 at 11:57:32PM +0900, YOSHIFUJI Hideaki / ?$B5HF#1QL@ wrote:
-> > 
-> > Well, I really care.
-> > I strongly believe that we SHOULD NOT mix encrypted
-> > packets and plain text packets at the same hook.
-> > e.g. LOCAL_IN is NOT for decrypted plain text packets,
-> > but for the original encrypted ones.
+On Sat, Nov 05, 2005 at 08:55:44AM +0100, Patrick McHardy wrote:
+>
+> >OK.  Would it be workable for you if LOCAL_IN only saw the decrypted
+> >packets without ever seeing the encrypted ones?
 > 
-> OK.  Would it be workable for you if LOCAL_IN only saw the decrypted
-> packets without ever seeing the encrypted ones?
+> How exactly would that work? I guess we couldn't do NAT with
+> the encrypted packet anymore?
 
-Miyazawa-san, Kozakai-san and I have discussed on this issue.
-The answer is "maybe," but from the point of view of the original context,
-it'd be better to let it see encrypted packet.
-Miyazawa-san, Kozakai-san, please comment further details.
-(I'm about to fly...)
+I'm presuming that Yoshifuji-san has no objections to applying the
+NAT-related hooks twice on IPsec since IPv6 does/will not have NAT.
 
---yoshfuji @ NRT(->YVR)
+Given that assumption, we should be able to separate the existing
+LOCAL_IN into a read-only (filtering) part and a read-write part.
+The latter would be applied unconditionally while the former can
+be skipped.
+
+> I would prefer something similar to the second set of patches.
+> Instead of calling netif_rx we could use NF_HOOK and simulate
+> the relevant parts of the input path for IPv4 and NAT. This
+> would assure that statistics are still correct and tcpdump is
+> not affected, which were Yoshifuji's biggest concerns if I
+> understood correctly.
+
+I don't think netif_rx is the problem here.  The question is
+how and where do we place the netfilter hooks.  Even without
+netif_rx the same problem is going to be there.
+
+Cheers,
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
