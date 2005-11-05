@@ -1,11 +1,11 @@
 From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: [PATCH 3/3] nfsim-testsuite: don't fail if no loadable modules are
-	found
-Date: Sat, 5 Nov 2005 12:35:44 +0100
-Message-ID: <200511051235.44808@nienna>
+Subject: [PATCH 2/3] nfsim-testsuite: fix XFAIL for
+	01iptables/01tcp-syn-new.sim
+Date: Sat, 5 Nov 2005 12:35:39 +0100
+Message-ID: <200511051235.39483@nienna>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_QkJbDV1vs0kKorc"
+  boundary="Boundary-00=_LkJbDiYDPFonlMq"
 Cc: Harald Welte <laforge@netfilter.org>, Rusty Russell <rusty@rustcorp.com.au>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
@@ -20,7 +20,7 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_QkJbDV1vs0kKorc
+--Boundary-00=_LkJbDiYDPFonlMq
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -29,35 +29,34 @@ Content-Disposition: inline
 
   Hi,
 
-  The testsuite fails if no loadable modules are found (for example: 
-everything is compiled in statically). The attached patch tries to fix 
-the testsuite for fully static configurations.
+  01tcp-syn-new.sim contains an XFAIL line indicating that it requitres 
+at least iptables 1.3.1. Actually, the --syn tcp option related fix is 
+present only in 1.3.2 (and up).
 
 -- 
  Regards,
   Krisztian Kovacs
 
---Boundary-00=_QkJbDV1vs0kKorc
+--Boundary-00=_LkJbDiYDPFonlMq
 Content-Type: text/x-diff; charset="us-ascii";
-	name="03-nfsim-testsuite-dont_fail_if_no_modules_are_found.patch"
+	name="02-nfsim-testsuite-tcp_syn_new_xfail_fix.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
-	filename="03-nfsim-testsuite-dont_fail_if_no_modules_are_found.patch"
+	filename="02-nfsim-testsuite-tcp_syn_new_xfail_fix.patch"
 
-Don't fail if no loadable modules are found.
+Actually, it was 1.3.2 which included !FIN in the --syn option.
 
-Index: nfsim-testsuite/test-kernel-source
+Index: nfsim-testsuite/01iptables/01tcp-syn-new.sim
 ===================================================================
---- nfsim-testsuite/test-kernel-source	(revision 4444)
-+++ nfsim-testsuite/test-kernel-source	(working copy)
-@@ -16,7 +16,7 @@
-     mkdir $2
-     cp simulator $2
-     cp core/fakesockopt.so.1.0 $2
--    cp `find . -name *.so` $2
-+    cp `find . -name *.so` $2 || true
- }
+--- nfsim-testsuite/01iptables/01tcp-syn-new.sim	(revision 4444)
++++ nfsim-testsuite/01iptables/01tcp-syn-new.sim	(working copy)
+@@ -1,5 +1,5 @@
+-# Test --syn tcp option: iptables 1.3.1 changed this to include !FIN.
+-# XFAIL:iptables:<1.3.1
++# Test --syn tcp option: iptables 1.3.2 changed this to include !FIN.
++# XFAIL:iptables:<1.3.2
  
- # Simple check of cached nfsim: if any source file in nfsim newer, rebuild.
+ iptables -A FORWARD -p tcp --syn -j DROP
+ expect gen_ip send:eth1 {IPv4 192.168.0.3 192.168.1.2 0 6 2 1 SYN/FIN}
 
---Boundary-00=_QkJbDV1vs0kKorc--
+--Boundary-00=_LkJbDiYDPFonlMq--
