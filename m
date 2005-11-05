@@ -1,25 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NF+IPsec 4/6]: Make IPsec input processing symetrical to output
-Date: Sat, 05 Nov 2005 11:05:26 +0100
-Message-ID: <436C83E6.7040907@trash.net>
-References: <20051027121545.GA5530@gondor.apana.org.au>
-	<20051027.235732.01166239.yoshfuji@linux-ipv6.org>
-	<20051105063030.GA32385@gondor.apana.org.au>
-	<436C6580.6030007@trash.net>
-	<20051105083955.GA30293@gondor.apana.org.au>
-	<436C7430.5030707@trash.net>
-	<20051105090904.GA30733@gondor.apana.org.au>
-	<436C7937.9070901@trash.net>
-	<20051105093821.GA30966@gondor.apana.org.au>
-	<436C81AD.7070308@trash.net>
-	<20051105100137.GA31158@gondor.apana.org.au>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 0/3] fixes for ctnetlink
+Date: Sat, 5 Nov 2005 11:18:55 +0100
+Message-ID: <20051105101855.GS5594@sunbeam.de.gnumonks.org>
+References: <200511041611.jA4GBUo6003219@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OrT4iOlIQZp3kw4S"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Herbert Xu <herbert@gondor.apana.org.au>
-In-Reply-To: <20051105100137.GA31158@gondor.apana.org.au>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
+In-Reply-To: <200511041611.jA4GBUo6003219@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -31,25 +22,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Herbert Xu wrote:
-> On Sat, Nov 05, 2005 at 10:55:57AM +0100, Patrick McHardy wrote:
-> 
->>In my last patchset I did it by calling netif_rx at that point,
->>now I want to add new hooks.
-> 
-> The only problem I can see is that at some point we're probably
-> going to add an AF_PACKET hook there as well for the pure transport
-> mode packet so that people can diagnose their transport mode IPsec
-> problems.
 
-Yes, that would be useful.
+--OrT4iOlIQZp3kw4S
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> However, I reckon that's still miles ahead of passing the packet
-> back through netif_rx when we already know that it's still the
-> same address family as what we started out with.
+On Sat, Nov 05, 2005 at 01:11:29AM +0900, Yasuyuki KOZAKAI wrote:
+>=20
+> Hi,
+>=20
+> These small patches fix the bugs in ip_conntrack_netlink I saw while find=
+ing
+> oops bug.
 
-Great. I'm moving to a new appartment right now and will be offline
-until monday. I'll try to get some patches ready until then.
+all three applied, thanks!
 
-Regards
-Patrick
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--OrT4iOlIQZp3kw4S
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDbIcPXaXGVTD0i/8RAm95AJ9B81aLxdQ+2FVq3/6FRYGTN3efLgCfW1Em
+ozS1OVVK7peKtw/rEB52hC0=
+=cPkQ
+-----END PGP SIGNATURE-----
+
+--OrT4iOlIQZp3kw4S--
