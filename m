@@ -1,19 +1,16 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [NF+IPsec 4/6]: Make IPsec input processing symetrical to output
-Date: Sat, 5 Nov 2005 17:30:30 +1100
-Message-ID: <20051105063030.GA32385@gondor.apana.org.au>
-References: <4352EEC8.9000602@trash.net>
-	<20051017.094919.56989341.yoshfuji@linux-ipv6.org>
-	<20051027121545.GA5530@gondor.apana.org.au>
-	<20051027.235732.01166239.yoshfuji@linux-ipv6.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 4/7] add missing module_alias_subsys
+Date: Sat, 05 Nov 2005 08:31:08 +0100
+Message-ID: <436C5FBC.70804@trash.net>
+References: <436BA1C1.8070806@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	kaber@trash.net
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "YOSHIFUJI Hideaki / ?$B5HF#1QL@" <yoshfuji@linux-ipv6.org>
-Content-Disposition: inline
-In-Reply-To: <20051027.235732.01166239.yoshfuji@linux-ipv6.org>
+To: Pablo Neira <pablo@netfilter.org>
+In-Reply-To: <436BA1C1.8070806@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,23 +22,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Oct 27, 2005 at 11:57:32PM +0900, YOSHIFUJI Hideaki / ?$B5HF#1QL@ wrote:
-> 
-> Well, I really care.
-> I strongly believe that we SHOULD NOT mix encrypted
-> packets and plain text packets at the same hook.
-> e.g. LOCAL_IN is NOT for decrypted plain text packets,
-> but for the original encrypted ones.
+Pablo Neira wrote:
+> Add missing module alias. This is a must to load ctnetlink on demand.
+> For example, the conntrack tool will fail if the module isn't loaded.
 
-OK.  Would it be workable for you if LOCAL_IN only saw the decrypted
-packets without ever seeing the encrypted ones?
+I don't think this is a good idea currently. Capability checking is
+done after module autoloading, so any user can load ctnetlink,
+ip_conntrack and all related modules. Please make sure to move
+capability checking in nfnetlink before module loading first.
 
-I'd like to know where the boundaries are so we can find a compromise
-that works for everyone.
-
-Thanks,
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+BTW: The same applies to ip_tables and ipt_ULOG through netlink
+autoloading.
