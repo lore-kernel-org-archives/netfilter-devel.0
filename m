@@ -1,19 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/7] add missing module_alias_subsys
-Date: Sat, 05 Nov 2005 13:30:12 +0100
-Message-ID: <436CA5D4.1060501@trash.net>
-References: <436BA1C1.8070806@netfilter.org> <436C5FBC.70804@trash.net>
-	<20051105115337.GB16000@sunbeam.de.gnumonks.org>
-	<436C9DD6.8090101@trash.net>
-	<20051105122827.GC16000@sunbeam.de.gnumonks.org>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: [PATCH] libnetfilter_queue nfattr[] abstraction
+Date: Sat, 05 Nov 2005 13:51:23 +0100
+Message-ID: <1131195083.11473.10.camel@localhost.localdomain>
+References: <1131063778.11853.6.camel@localhost.localdomain>
+	<20051105091854.GR5594@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@netfilter.org>
+Content-Type: multipart/mixed; boundary="=-FnIX71bUErWCwslIJNfB"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051105122827.GC16000@sunbeam.de.gnumonks.org>
+In-Reply-To: <20051105091854.GR5594@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,28 +21,61 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> On Sat, Nov 05, 2005 at 12:56:06PM +0100, Patrick McHardy wrote:
-> 
-> 
->>>This unfortunately doesn't work with the current architecture, where
->>>every nfnetlink subsystem can specifiy the required capabilities per
->>>message.  That specification isn't available before loading the module,
->>>though.
->>
->>Didn't we decide to remove the per-subsys capabilities and make all
->>of them require CAP_NET_ADMIN?
-> 
-> 
-> We did?  I knew we were talking about it, but I must have forgotten the
-> result, sorry.
 
-I think we did in Montreal.
+--=-FnIX71bUErWCwslIJNfB
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
->>That also a possiblity, but I can't think of a case where we wouldn't
->>insist on CAP_NET_ADMIN, so just removing the whole per-subsys
->>capabilities seems easier to me.
-> 
-> Mh, ok.  But you owe me a beer if we ever need to re-introduce it ;)
+Le samedi 05 novembre 2005 =E0 10:18 +0100, Harald Welte a =E9crit :
+> On Fri, Nov 04, 2005 at 01:22:58AM +0100, Eric Leblond wrote:
+> > Hi,
+> > I've checked the provided test util and NuFW against the modified
+> > library.
+>=20
+> Please re-check after my changes went in (maybe in 30mins).
 
-Agreed :)
+Done. I've found a problem with timestamp related function. timestamp
+structure can not be renamed as it is defined in kernel.
+I attach a patch that correct this.
+
+For timestamp, we could use the glibc "struct timeval" but the user will
+have to free the structure after use as it is not a pointer to the
+message from kernel.
+
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+
+--=-FnIX71bUErWCwslIJNfB
+Content-Disposition: attachment; filename=libnetfilter_queue.diff
+Content-Type: text/x-patch; name=libnetfilter_queue.diff; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+=== include/libnetfilter_queue/libnetfilter_queue.h
+==================================================================
+--- include/libnetfilter_queue/libnetfilter_queue.h	(revision 1282)
++++ include/libnetfilter_queue/libnetfilter_queue.h	(local)
+@@ -68,7 +68,7 @@
+ 
+ extern u_int32_t nfq_get_nfmark(struct nfq_data *nfad);
+ 
+-extern struct nfq_msg_packet_timestamp *
++extern struct nfqnl_msg_packet_timestamp *
+ 				nfq_get_timestamp(struct nfq_data *nfad);
+ 
+ /* return 0 if not set */
+=== src/libnetfilter_queue.c
+==================================================================
+--- src/libnetfilter_queue.c	(revision 1282)
++++ src/libnetfilter_queue.c	(local)
+@@ -336,7 +335,7 @@
+ 	return ntohl(nfnl_get_data(nfad->data, NFQA_MARK, u_int32_t));
+ }
+ 
+-struct nfq_msg_packet_timestamp *nfq_get_timestamp(struct nfq_data *nfad)
++struct nfqnl_msg_packet_timestamp *nfq_get_timestamp(struct nfq_data *nfad)
+ {
+ 	return nfnl_get_pointer_to_data(nfad->data, NFQA_TIMESTAMP,
+ 					struct nfq_msg_packet_timestamp);
+
+--=-FnIX71bUErWCwslIJNfB--
