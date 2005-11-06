@@ -1,13 +1,15 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: [PATCH] Add parse_inetaddr and replace inet_addr by parse_inetaddr
-Date: Sun, 6 Nov 2005 21:39:06 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0511062049530.29353@bizon.gios.gov.pl>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: [PATCH] nf_conntrack: re-add missing bits to the TCP conntrack
+	module
+Date: Sun, 6 Nov 2005 22:16:50 +0100
+Message-ID: <200511062216.53619.hidden@balabit.hu>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1983473769-1131309546=:29353"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_FLnbDsfUsYEpuTA"
+Cc: Harald Welte <laforge@netfilter.org>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,88 +21,71 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+--Boundary-00=_FLnbDsfUsYEpuTA
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
----187430788-1983473769-1131309546=:29353
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Hello,
+  Hi,
 
-Attached patch adds parse_inetaddr() function and replaces calls to=20
-inet_addr() by parse_inetaddr(). It also fixes the nat_parse() function,=20
-where wrong condition was used for validating addresses.
+  I've spent some time playing with nfsim again. With some modifications 
+of the testsuite I've been finally able to run almost all of the 
+conntrack tests through nf_conntrack. (I've skipped the FTP tests 
+because that needs some more work to compile in nfsim.)
 
-Conntrack-tool should always notify user about invalid address and=20
-assuming INADDR_NONE, which usually is -1 (255.255.255.255) is not the=20
-right way of handling typos.
+  The results: with the attached patch applied all tests succeeded! :)
+Unfortunately I was unable to get coverage information due to gcov's 
+lack of support for .so files...
 
-Best regards,
+  Please review the attached patch and apply if you find it appropriate.
 
- =09=09=09=09Krzysztof Ol=EAdzki
+-- 
+ Regards,
+  Krisztian Kovacs
 
----187430788-1983473769-1131309546=:29353
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=replace-inet_addr.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0511062139060.29353@bizon.gios.gov.pl>
-Content-Description: 
-Content-Disposition: attachment; filename=replace-inet_addr.patch
+--Boundary-00=_FLnbDsfUsYEpuTA
+Content-Type: text/x-diff; charset="us-ascii";
+	name="04-nf_conntrack-add_missing_bits_to_tcp_module.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="04-nf_conntrack-add_missing_bits_to_tcp_module.patch"
 
-SW5kZXg6IHNyYy9jb25udHJhY2suYw0KPT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PQ0KLS0tIHNyYy9jb25udHJhY2suYwkocmV2aXNpb24gNDQ4OCkNCisrKyBz
-cmMvY29ubnRyYWNrLmMJKHdvcmtpbmcgY29weSkNCkBAIC00NzcsNiArNDc3
-LDE4IEBADQogCXJldHVybiAtMTsNCiB9DQogDQoraW5fYWRkcl90IHBhcnNl
-X2luZXRhZGRyKGNvbnN0IGNoYXIgKmNwKQ0KK3sNCisJc3RydWN0IGluX2Fk
-ZHIgYWRkcjsNCisNCisJaWYgKGluZXRfYXRvbihjcCwgJmFkZHIpKSB7DQor
-CQlyZXR1cm4gYWRkci5zX2FkZHI7DQorCX0NCisNCisJZXhpdF9lcnJvcihQ
-QVJBTUVURVJfUFJPQkxFTSwgIkludmFsaWQgSVAgYWRkcmVzcyBgJXMnLiIs
-IGNwKTsNCisNCit9DQorDQogLyogU2hhbWVsZXNzbHkgc3RvbGVuIGZyb20g
-bGliaXB0X0ROQVQgOykuIFJhbmdlcyBleHBlY3RlZCBpbiBuZXR3b3JrIG9y
-ZGVyLiAqLw0KIHN0YXRpYyB2b2lkDQogbmF0X3BhcnNlKGNoYXIgKmFyZywg
-aW50IHBvcnRvaywgc3RydWN0IG5mY3RfbmF0ICpyYW5nZSkNCkBAIC01MzYs
-MTYgKzU0OCwxMCBAQA0KIAlpZiAoZGFzaCkNCiAJCSpkYXNoID0gJ1wwJzsN
-CiANCi0JaXAgPSBpbmV0X2FkZHIoYXJnKTsNCi0JaWYgKCFpcCkNCi0JCWV4
-aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sICJCYWQgSVAgYWRkcmVzcyBg
-JXMnXG4iLA0KLQkJCSAgIGFyZyk7DQorCWlwID0gcGFyc2VfaW5ldGFkZHIo
-YXJnKTsNCiAJcmFuZ2UtPm1pbl9pcCA9IGlwOw0KIAlpZiAoZGFzaCkgew0K
-LQkJaXAgPSBpbmV0X2FkZHIoZGFzaCsxKTsNCi0JCWlmICghaXApDQotCQkJ
-ZXhpdF9lcnJvcihQQVJBTUVURVJfUFJPQkxFTSwgIkJhZCBJUCBhZGRyZXNz
-IGAlcydcbiIsDQotCQkJCSAgIGRhc2grMSk7DQorCQlpcCA9IHBhcnNlX2lu
-ZXRhZGRyKGRhc2grMSk7DQogCQlyYW5nZS0+bWF4X2lwID0gaXA7DQogCX0g
-ZWxzZQ0KIAkJcmFuZ2UtPm1heF9pcCA9IHJhbmdlLT5taW5faXA7DQpAQCAt
-Njk5LDIyICs3MDUsMjIgQEANCiAJCWNhc2UgJ3MnOg0KIAkJCW9wdGlvbnMg
-fD0gQ1RfT1BUX09SSUdfU1JDOw0KIAkJCWlmIChvcHRhcmcpDQotCQkJCW9y
-aWcuc3JjLnY0ID0gaW5ldF9hZGRyKG9wdGFyZyk7DQorCQkJCW9yaWcuc3Jj
-LnY0ID0gcGFyc2VfaW5ldGFkZHIob3B0YXJnKTsNCiAJCQlicmVhazsNCiAJ
-CWNhc2UgJ2QnOg0KIAkJCW9wdGlvbnMgfD0gQ1RfT1BUX09SSUdfRFNUOw0K
-IAkJCWlmIChvcHRhcmcpDQotCQkJCW9yaWcuZHN0LnY0ID0gaW5ldF9hZGRy
-KG9wdGFyZyk7DQorCQkJCW9yaWcuZHN0LnY0ID0gcGFyc2VfaW5ldGFkZHIo
-b3B0YXJnKTsNCiAJCQlicmVhazsNCiAJCWNhc2UgJ3InOg0KIAkJCW9wdGlv
-bnMgfD0gQ1RfT1BUX1JFUExfU1JDOw0KIAkJCWlmIChvcHRhcmcpDQotCQkJ
-CXJlcGx5LnNyYy52NCA9IGluZXRfYWRkcihvcHRhcmcpOw0KKwkJCQlyZXBs
-eS5zcmMudjQgPSBwYXJzZV9pbmV0YWRkcihvcHRhcmcpOw0KIAkJCWJyZWFr
-Ow0KIAkJY2FzZSAncSc6DQogCQkJb3B0aW9ucyB8PSBDVF9PUFRfUkVQTF9E
-U1Q7DQogCQkJaWYgKG9wdGFyZykNCi0JCQkJcmVwbHkuZHN0LnY0ID0gaW5l
-dF9hZGRyKG9wdGFyZyk7DQorCQkJCXJlcGx5LmRzdC52NCA9IHBhcnNlX2lu
-ZXRhZGRyKG9wdGFyZyk7DQogCQkJYnJlYWs7DQogCQljYXNlICdwJzoNCiAJ
-CQlvcHRpb25zIHw9IENUX09QVF9QUk9UTzsNCkBAIC03NTEsMjIgKzc1Nywy
-MiBAQA0KIAkJY2FzZSAneyc6DQogCQkJb3B0aW9ucyB8PSBDVF9PUFRfTUFT
-S19TUkM7DQogCQkJaWYgKG9wdGFyZykNCi0JCQkJbWFzay5zcmMudjQgPSBp
-bmV0X2FkZHIob3B0YXJnKTsNCisJCQkJbWFzay5zcmMudjQgPSBwYXJzZV9p
-bmV0YWRkcihvcHRhcmcpOw0KIAkJCWJyZWFrOw0KIAkJY2FzZSAnfSc6DQog
-CQkJb3B0aW9ucyB8PSBDVF9PUFRfTUFTS19EU1Q7DQogCQkJaWYgKG9wdGFy
-ZykNCi0JCQkJbWFzay5kc3QudjQgPSBpbmV0X2FkZHIob3B0YXJnKTsNCisJ
-CQkJbWFzay5kc3QudjQgPSBwYXJzZV9pbmV0YWRkcihvcHRhcmcpOw0KIAkJ
-CWJyZWFrOw0KIAkJY2FzZSAnWyc6DQogCQkJb3B0aW9ucyB8PSBDVF9PUFRf
-RVhQX1NSQzsNCiAJCQlpZiAob3B0YXJnKQ0KLQkJCQlleHB0dXBsZS5zcmMu
-djQgPSBpbmV0X2FkZHIob3B0YXJnKTsNCisJCQkJZXhwdHVwbGUuc3JjLnY0
-ID0gcGFyc2VfaW5ldGFkZHIob3B0YXJnKTsNCiAJCQlicmVhazsNCiAJCWNh
-c2UgJ10nOg0KIAkJCW9wdGlvbnMgfD0gQ1RfT1BUX0VYUF9EU1Q7DQogCQkJ
-aWYgKG9wdGFyZykNCi0JCQkJZXhwdHVwbGUuZHN0LnY0ID0gaW5ldF9hZGRy
-KG9wdGFyZyk7DQorCQkJCWV4cHR1cGxlLmRzdC52NCA9IHBhcnNlX2luZXRh
-ZGRyKG9wdGFyZyk7DQogCQkJYnJlYWs7DQogCQljYXNlICdhJzoNCiAJCQlv
-cHRpb25zIHw9IENUX09QVF9OQVRSQU5HRTsNCg==
+[NETFILTER] Add missing code to TCP conntrack module
 
----187430788-1983473769-1131309546=:29353--
+Looks like the nf_conntrack TCP code was slightly mismerged: it does
+not contain an else branch present in the IPv4 version. Let's add that
+code and make the testsuite happy.
+
+Signed-off-by: KOVACS Krisztian <hidden@balabit.hu>
+
+---
+commit a1499bbf50e4c2807f155a5caa4efd3dadce03a8
+tree 803a32e5a682fdaae7ace66685f995189f39d79e
+parent 2e4a1678c0318035c131ca36a701f0fd0c9d0cc9
+author KOVACS Krisztian <hidden@balabit.hu> Sun, 06 Nov 2005 21:06:47 +0100
+committer KOVACS Krisztian <hidden@balabit.hu> Sun, 06 Nov 2005 21:06:47 +0100
+
+ net/netfilter/nf_conntrack_proto_tcp.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index b5ba5d9..c440845 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -977,6 +977,12 @@ static int tcp_packet(struct nf_conn *co
+ 		    		conntrack->timeout.function((unsigned long)
+ 		    					    conntrack);
+ 		    	return -NF_REPEAT;
++		} else {
++			write_unlock_bh(&tcp_lock);
++			if (LOG_INVALID(IPPROTO_TCP))
++				nf_log_packet(pf, 0, skb, NULL, NULL,
++					      NULL, "nf_ct_tcp: invalid SYN");
++			return -NF_ACCEPT;
+ 		}
+ 	case TCP_CONNTRACK_CLOSE:
+ 		if (index == TCP_RST_SET
+
+--Boundary-00=_FLnbDsfUsYEpuTA--
