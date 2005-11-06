@@ -1,14 +1,19 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: [PATCH] Add htons for icmp.id in
-	conntrack/extensions/libct_proto_icmp.c
-Date: Sun, 6 Nov 2005 03:49:13 +0100 (CET)
-Message-ID: <Pine.LNX.4.63.0511060345410.29836@bizon.gios.gov.pl>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: Unable to handle kernel NULL pointer dereference at virtual
+ address 00000000 after conntrack -I
+Date: Sun, 06 Nov 2005 03:57:42 +0100
+Message-ID: <436D7126.9050900@eurodev.net>
+References: <Pine.LNX.4.63.0511031408370.32626@bizon.gios.gov.pl>
+	<436A6B39.3080508@eurodev.net>
+	<Pine.LNX.4.63.0511060103230.27498@bizon.gios.gov.pl>
+	<Pine.LNX.4.63.0511060256410.29836@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1399156593-1131245353=:29836"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
+To: Krzysztof Oledzki <olenf@ans.pl>
+In-Reply-To: <Pine.LNX.4.63.0511060256410.29836@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,54 +25,62 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Krzysztof Oledzki wrote:
+> [NETFILTER] Check for ICMP_ID in icmp_nfattr_to_tuple
+> 
+> This patch fixes an userspace triggered oops. If there is no ICMP_ID
+> info the reference to attr will be NULL.
+> 
+> Signed-out-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+> 
+> --- a/net/ipv4/netfilter/ip_conntrack_proto_icmp.c    2005-11-06
+> 02:17:29.000000000 +0100
+> +++ b/net/ipv4/netfilter/ip_conntrack_proto_icmp.c    2005-11-06
+> 02:18:45.000000000 +0100
+> @@ -296,7 +296,8 @@
+>                  struct ip_conntrack_tuple *tuple)
+>  {
+>      if (!tb[CTA_PROTO_ICMP_TYPE-1]
+> -        || !tb[CTA_PROTO_ICMP_CODE-1])
+> +        || !tb[CTA_PROTO_ICMP_CODE-1]
+> +        || !tb[CTA_PROTO_ICMP_ID-1])
+>          return -1;
+> 
+>      tuple->dst.u.icmp.type =
+> 
+> Anyway, libnetfilter_conntrack_icmp.c should also be fixed. Currently
+> ICMP_ID is not addedd if TYPE is not 8 (ICMP ECHO). I beleve we should
+> simply skip this check (libnetfilter_conntrack_icmp-icmpid.patch):
 
----187430788-1399156593-1131245353=:29836
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+The patch looks fine. I'll pass this patch to Harald, I don't want to
+get it lost.
 
-Hello,
+> Index: extensions/libnetfilter_conntrack_icmp.c
+> ===================================================================
+> --- extensions/libnetfilter_conntrack_icmp.c    (revision 4480)
+> +++ extensions/libnetfilter_conntrack_icmp.c    (working copy)
+> @@ -38,10 +38,12 @@
+>                 &t->l4dst.icmp.code, sizeof(u_int8_t));
+>      nfnl_addattr_l(&req->nlh, size, CTA_PROTO_ICMP_TYPE,
+>                 &t->l4dst.icmp.type, sizeof(u_int8_t));
+> -    /* This is an ICMP echo */
+> -    if (t->l4dst.icmp.type == 8)
+> -        nfnl_addattr_l(&req->nlh, size, CTA_PROTO_ICMP_ID,
+> -                   &t->l4src.icmp.id, sizeof(u_int16_t));
+> +
+> +    /* The ID only makes sense for type=8 (ECHO) but we always
+> +     * want to set it or else kernel will reject such messages.
+> +     */
 
-We need to add htons for icmp id.
+I removed this comment, I inserted by myself and it's bogus. The ID
+makes sense for *some* ICMP messages, not just for type=8.
 
-Index: conntrack/extensions/libct_proto_icmp.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- conntrack/extensions/libct_proto_icmp.c=09(revision 4480)
-+++ conntrack/extensions/libct_proto_icmp.c=09(working copy)
-@@ -77,7 +77,7 @@
-  =09=09=09break;
-  =09=09case '3':
-  =09=09=09if (optarg) {
--=09=09=09=09orig->l4src.icmp.id =3D atoi(optarg);
-+=09=09=09=09orig->l4src.icmp.id =3D htons(atoi(optarg));
-  =09=09=09=09reply->l4dst.icmp.id =3D 0;
-  =09=09=09=09*flags |=3D ICMP_ID;
-  =09=09=09}
+> +    nfnl_addattr_l(&req->nlh, size, CTA_PROTO_ICMP_ID,
+> +               &t->l4src.icmp.id, sizeof(u_int16_t));
+>  }
+> 
 
+I'm going to apply it now. Thanks.
 
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1399156593-1131245353=:29836
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=icmp_id_htons-patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.63.0511060349130.29836@bizon.gios.gov.pl>
-Content-Description: 
-Content-Disposition: attachment; filename=icmp_id_htons-patch
-
-SW5kZXg6IGNvbm50cmFjay9leHRlbnNpb25zL2xpYmN0X3Byb3RvX2ljbXAu
-Yw0KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0tIGNvbm50cmFjay9leHRl
-bnNpb25zL2xpYmN0X3Byb3RvX2ljbXAuYwkocmV2aXNpb24gNDQ4MCkNCisr
-KyBjb25udHJhY2svZXh0ZW5zaW9ucy9saWJjdF9wcm90b19pY21wLmMJKHdv
-cmtpbmcgY29weSkNCkBAIC03Nyw3ICs3Nyw3IEBADQogCQkJYnJlYWs7DQog
-CQljYXNlICczJzoNCiAJCQlpZiAob3B0YXJnKSB7DQotCQkJCW9yaWctPmw0
-c3JjLmljbXAuaWQgPSBhdG9pKG9wdGFyZyk7DQorCQkJCW9yaWctPmw0c3Jj
-LmljbXAuaWQgPSBodG9ucyhhdG9pKG9wdGFyZykpOw0KIAkJCQlyZXBseS0+
-bDRkc3QuaWNtcC5pZCA9IDA7DQogCQkJCSpmbGFncyB8PSBJQ01QX0lEOw0K
-IAkJCX0NCg==
-
----187430788-1399156593-1131245353=:29836--
+-- 
+Pablo
