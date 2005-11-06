@@ -1,13 +1,13 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: OSF: netlink related changes
-Date: Sun, 6 Nov 2005 21:18:59 +0100
-Message-ID: <20051106201859.GD26843@sunbeam.de.gnumonks.org>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: [PATCH] Add parse_inetaddr and replace inet_addr by parse_inetaddr
+Date: Sun, 6 Nov 2005 21:39:06 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0511062049530.29353@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="/3yNEOqWowh/8j+e"
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1983473769-1131309546=:29353"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: Pablo Neira <pablo@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,97 +19,88 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---/3yNEOqWowh/8j+e
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+---187430788-1983473769-1131309546=:29353
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Hi!
+Hello,
 
-It seems like filtering for KOI8-R actually _does_ cause some problems,
-since Evgeniy is now unable to send mails to our lists :(
+Attached patch adds parse_inetaddr() function and replaces calls to=20
+inet_addr() by parse_inetaddr(). It also fixes the nat_parse() function,=20
+where wrong condition was used for validating addresses.
 
+Conntrack-tool should always notify user about invalid address and=20
+assuming INADDR_NONE, which usually is -1 (255.255.255.255) is not the=20
+right way of handling typos.
 
-Date: Sun, 6 Nov 2005 22:14:44 +0300
-=46rom: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-To: netfilter-devel@lists.netfilter.org
-Cc: PatriK McHardy <kaber@trash.net>, Harald Welte <laforge@netfilter.org>
-Subject: [1/1] OSF: netlink related changes.
-Message-ID: <20051106191444.GA30006@2ka.mipt.ru>
+Best regards,
 
-Hello, developers.
-Due to new interface and changed API in netlink area
-several patch-o-matic modules can not be compiled.
-Passive OS fingerprinting OSF modules is one of them.=20
-Consider for inclusion.
-Thank you.
+ =09=09=09=09Krzysztof Ol=EAdzki
 
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+---187430788-1983473769-1131309546=:29353
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=replace-inet_addr.patch
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.64.0511062139060.29353@bizon.gios.gov.pl>
+Content-Description: 
+Content-Disposition: attachment; filename=replace-inet_addr.patch
 
---- trunk/patch-o-matic-ng/patchlets/osf/linux-2.6/net/ipv4/netfilter/ipt_o=
-sf.c      2005-11-05 12:35:02.000000000 -0500
-+++ trunk/patch-o-matic-ng/patchlets/osf/linux-2.6/net/ipv4/netfilter/ipt_o=
-sf.c       2005-11-05 12:43:54.000000000 -0500
-@@ -30,6 +30,7 @@
+SW5kZXg6IHNyYy9jb25udHJhY2suYw0KPT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PQ0KLS0tIHNyYy9jb25udHJhY2suYwkocmV2aXNpb24gNDQ4OCkNCisrKyBz
+cmMvY29ubnRyYWNrLmMJKHdvcmtpbmcgY29weSkNCkBAIC00NzcsNiArNDc3
+LDE4IEBADQogCXJldHVybiAtMTsNCiB9DQogDQoraW5fYWRkcl90IHBhcnNl
+X2luZXRhZGRyKGNvbnN0IGNoYXIgKmNwKQ0KK3sNCisJc3RydWN0IGluX2Fk
+ZHIgYWRkcjsNCisNCisJaWYgKGluZXRfYXRvbihjcCwgJmFkZHIpKSB7DQor
+CQlyZXR1cm4gYWRkci5zX2FkZHI7DQorCX0NCisNCisJZXhpdF9lcnJvcihQ
+QVJBTUVURVJfUFJPQkxFTSwgIkludmFsaWQgSVAgYWRkcmVzcyBgJXMnLiIs
+IGNwKTsNCisNCit9DQorDQogLyogU2hhbWVsZXNzbHkgc3RvbGVuIGZyb20g
+bGliaXB0X0ROQVQgOykuIFJhbmdlcyBleHBlY3RlZCBpbiBuZXR3b3JrIG9y
+ZGVyLiAqLw0KIHN0YXRpYyB2b2lkDQogbmF0X3BhcnNlKGNoYXIgKmFyZywg
+aW50IHBvcnRvaywgc3RydWN0IG5mY3RfbmF0ICpyYW5nZSkNCkBAIC01MzYs
+MTYgKzU0OCwxMCBAQA0KIAlpZiAoZGFzaCkNCiAJCSpkYXNoID0gJ1wwJzsN
+CiANCi0JaXAgPSBpbmV0X2FkZHIoYXJnKTsNCi0JaWYgKCFpcCkNCi0JCWV4
+aXRfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sICJCYWQgSVAgYWRkcmVzcyBg
+JXMnXG4iLA0KLQkJCSAgIGFyZyk7DQorCWlwID0gcGFyc2VfaW5ldGFkZHIo
+YXJnKTsNCiAJcmFuZ2UtPm1pbl9pcCA9IGlwOw0KIAlpZiAoZGFzaCkgew0K
+LQkJaXAgPSBpbmV0X2FkZHIoZGFzaCsxKTsNCi0JCWlmICghaXApDQotCQkJ
+ZXhpdF9lcnJvcihQQVJBTUVURVJfUFJPQkxFTSwgIkJhZCBJUCBhZGRyZXNz
+IGAlcydcbiIsDQotCQkJCSAgIGRhc2grMSk7DQorCQlpcCA9IHBhcnNlX2lu
+ZXRhZGRyKGRhc2grMSk7DQogCQlyYW5nZS0+bWF4X2lwID0gaXA7DQogCX0g
+ZWxzZQ0KIAkJcmFuZ2UtPm1heF9pcCA9IHJhbmdlLT5taW5faXA7DQpAQCAt
+Njk5LDIyICs3MDUsMjIgQEANCiAJCWNhc2UgJ3MnOg0KIAkJCW9wdGlvbnMg
+fD0gQ1RfT1BUX09SSUdfU1JDOw0KIAkJCWlmIChvcHRhcmcpDQotCQkJCW9y
+aWcuc3JjLnY0ID0gaW5ldF9hZGRyKG9wdGFyZyk7DQorCQkJCW9yaWcuc3Jj
+LnY0ID0gcGFyc2VfaW5ldGFkZHIob3B0YXJnKTsNCiAJCQlicmVhazsNCiAJ
+CWNhc2UgJ2QnOg0KIAkJCW9wdGlvbnMgfD0gQ1RfT1BUX09SSUdfRFNUOw0K
+IAkJCWlmIChvcHRhcmcpDQotCQkJCW9yaWcuZHN0LnY0ID0gaW5ldF9hZGRy
+KG9wdGFyZyk7DQorCQkJCW9yaWcuZHN0LnY0ID0gcGFyc2VfaW5ldGFkZHIo
+b3B0YXJnKTsNCiAJCQlicmVhazsNCiAJCWNhc2UgJ3InOg0KIAkJCW9wdGlv
+bnMgfD0gQ1RfT1BUX1JFUExfU1JDOw0KIAkJCWlmIChvcHRhcmcpDQotCQkJ
+CXJlcGx5LnNyYy52NCA9IGluZXRfYWRkcihvcHRhcmcpOw0KKwkJCQlyZXBs
+eS5zcmMudjQgPSBwYXJzZV9pbmV0YWRkcihvcHRhcmcpOw0KIAkJCWJyZWFr
+Ow0KIAkJY2FzZSAncSc6DQogCQkJb3B0aW9ucyB8PSBDVF9PUFRfUkVQTF9E
+U1Q7DQogCQkJaWYgKG9wdGFyZykNCi0JCQkJcmVwbHkuZHN0LnY0ID0gaW5l
+dF9hZGRyKG9wdGFyZyk7DQorCQkJCXJlcGx5LmRzdC52NCA9IHBhcnNlX2lu
+ZXRhZGRyKG9wdGFyZyk7DQogCQkJYnJlYWs7DQogCQljYXNlICdwJzoNCiAJ
+CQlvcHRpb25zIHw9IENUX09QVF9QUk9UTzsNCkBAIC03NTEsMjIgKzc1Nywy
+MiBAQA0KIAkJY2FzZSAneyc6DQogCQkJb3B0aW9ucyB8PSBDVF9PUFRfTUFT
+S19TUkM7DQogCQkJaWYgKG9wdGFyZykNCi0JCQkJbWFzay5zcmMudjQgPSBp
+bmV0X2FkZHIob3B0YXJnKTsNCisJCQkJbWFzay5zcmMudjQgPSBwYXJzZV9p
+bmV0YWRkcihvcHRhcmcpOw0KIAkJCWJyZWFrOw0KIAkJY2FzZSAnfSc6DQog
+CQkJb3B0aW9ucyB8PSBDVF9PUFRfTUFTS19EU1Q7DQogCQkJaWYgKG9wdGFy
+ZykNCi0JCQkJbWFzay5kc3QudjQgPSBpbmV0X2FkZHIob3B0YXJnKTsNCisJ
+CQkJbWFzay5kc3QudjQgPSBwYXJzZV9pbmV0YWRkcihvcHRhcmcpOw0KIAkJ
+CWJyZWFrOw0KIAkJY2FzZSAnWyc6DQogCQkJb3B0aW9ucyB8PSBDVF9PUFRf
+RVhQX1NSQzsNCiAJCQlpZiAob3B0YXJnKQ0KLQkJCQlleHB0dXBsZS5zcmMu
+djQgPSBpbmV0X2FkZHIob3B0YXJnKTsNCisJCQkJZXhwdHVwbGUuc3JjLnY0
+ID0gcGFyc2VfaW5ldGFkZHIob3B0YXJnKTsNCiAJCQlicmVhazsNCiAJCWNh
+c2UgJ10nOg0KIAkJCW9wdGlvbnMgfD0gQ1RfT1BUX0VYUF9EU1Q7DQogCQkJ
+aWYgKG9wdGFyZykNCi0JCQkJZXhwdHVwbGUuZHN0LnY0ID0gaW5ldF9hZGRy
+KG9wdGFyZyk7DQorCQkJCWV4cHR1cGxlLmRzdC52NCA9IHBhcnNlX2luZXRh
+ZGRyKG9wdGFyZyk7DQogCQkJYnJlYWs7DQogCQljYXNlICdhJzoNCiAJCQlv
+cHRpb25zIHw9IENUX09QVF9OQVRSQU5HRTsNCg==
 
- #include <linux/config.h>
- #include <linux/kernel.h>
-+#include <linux/version.h>
- #include <linux/types.h>
- #include <linux/string.h>
- #include <linux/smp.h>
-@@ -155,7 +156,11 @@
- 	memcpy(&data->ip, sk->nh.iph, sizeof(struct iphdr));
- 	memcpy(&data->tcp, (struct tcphdr *)((u_int32_t *)sk->nh.iph + sk->nh.iph=
-->ihl), sizeof(struct tcphdr));
-
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
- 	NETLINK_CB(skb).dst_groups =3D ipt_osf_groups;
-+#else
-+	NETLINK_CB(skb).dst_group =3D ipt_osf_groups;
-+#endif
- 	netlink_broadcast(nts, skb, 0, ipt_osf_groups, GFP_ATOMIC);
-
- nlmsg_failure:
-@@ -821,7 +826,11 @@
- 	p->write_proc->osf_proc_write;
- 	p->read_proc->osf_proc_read;
-
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
- 	nts->netlink_kernel_create(NETLINK_NFLOG, NULL);
-+#else
-+	nts->netlink_kernel_create(NETLINK_NFLOG, 1, NULL, THIS_MODULE);
-+#endif
- 	if (!nts) {
- 		log("netlink_kernel_create() failed\n");
- 	}
-
-
---=20
-	Evgeniy Polyakov
-
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---/3yNEOqWowh/8j+e
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDbmUzXaXGVTD0i/8RAunjAJ490I7x0HE3zR43qwl7HOYYz9UjqwCgkXBn
-y6HyfWkaLdgwSRm9JNk+XjU=
-=DRWp
------END PGP SIGNATURE-----
-
---/3yNEOqWowh/8j+e--
+---187430788-1983473769-1131309546=:29353--
