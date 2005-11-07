@@ -1,18 +1,16 @@
-From: Jonas Berlin <xkr47@outerspace.dyndns.org>
-Subject: Re: [PATCH] owner-socketlookup update for 2.6.10
-Date: Mon, 07 Nov 2005 12:03:37 +0200
-Message-ID: <436F2679.40008@outerspace.dyndns.org>
-References: <4211F586.7020106@niksula.hut.fi>	
-	<20050216133807.GW3829@sunbeam.de.gnumonks.org>	
-	<5b698f5a0510201037k3a246f09g4cb92eb83b1910ca@mail.gmail.com>	
-	<43581A61.4020103@outerspace.dyndns.org>
-	<5b698f5a0510221522s51c9d579q45c7afa3a92f8a31@mail.gmail.com>
+From: Michael Bellion <mbellion@hipac.org>
+Subject: Re: [PATCH] x_tables, take 4
+Date: Mon, 7 Nov 2005 17:10:56 +0100
+Message-ID: <200511071710.56991.mbellion@hipac.org>
+References: <20051103191110.GO905@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; boundary="nextPart6294281.3mSrDYULNN";
+	protocol="application/pgp-signature"; micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <5b698f5a0510221522s51c9d579q45c7afa3a92f8a31@mail.gmail.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20051103191110.GO905@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,37 +22,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Norman Rasmussen wrote:
-> I tried changing (in udp.h):
+--nextPart6294281.3mSrDYULNN
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+Hi
+
+> This is the fourth incarnation of the x_tables patch.  It is now
+> compiling clean, and at least those parts that I use in my systems seem
+> to work fine.
 >
-> extern struct sock *udp_v4_lookup
+> I want to run this trough nfsim before submitting it mainline.
 >
-> to
+> I dislike the 'void *' pointers we cast for match/targetinfo, but I
+> think the advantage of code unification is bigger than some typecasts.
 >
-> extern static struct sock *udp_v4_lookup
+> Also, we should think about putting all those match/checkentry/target
+> parameters into a structure (which could contain unions to avoid the
+> typeasting).  But I think this can happen in a next patch, x_tables
+> changes are already large enough.
 >
-> but now gcc tells me:
->
-> include/net/udp.h:77: error: multiple storage classes in declaration
-specifiers
->
-> :-(
->
-> any tips on getting an __inline__ function to be recognised
-> externally, or are they mutually exclusive?
+> Please review and comment,
 
-In udp.c you should change
+Nice work!
 
-static __inline__ struct ...
+But could you rename it to something without "tables"?
+It is not related to tables in any way. It is about function based matches =
+and=20
+targets, that's why the name "x_tables" is IMHO a bit irritating.
 
-to
+What about the name "x_functions" or something similar?
 
-extern __inline__ struct ...
+Best regards
+	Michael Bellion
 
-And in udp.h you should have
+--nextPart6294281.3mSrDYULNN
+Content-Type: application/pgp-signature
 
-extern struct ...
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
-I hope it works out. Sorry for the late reply :(
+iD8DBQBDb3yQqKCdDrsF/xIRAll8AJ9H/uPNt0CzPbAhqFoJ9Y0bkBtNWACeI3n2
+xUAPtoS8avJQMVK513Kgo60=
+=KbYQ
+-----END PGP SIGNATURE-----
 
-- xkr47
+--nextPart6294281.3mSrDYULNN--
