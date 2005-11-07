@@ -1,12 +1,19 @@
-From: Menno Smits <menno@netboxblue.com>
-Subject: Simulatenous use of LOG and ULOG on 2.6.14
-Date: Mon, 07 Nov 2005 16:25:18 +1000
-Message-ID: <436EF34E.2030806@netboxblue.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [netfilter-core] [PATCH] Null pointer access in nf_queue()
+Date: Mon, 7 Nov 2005 09:55:56 +0100
+Message-ID: <20051107085555.GF26843@sunbeam.de.gnumonks.org>
+References: <E1EYW7S-0000uH-00@master.debian.org>
+	<20051107083953.GA8420@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="xaMk4Io5JJdpkLEb"
+Cc: Patrick McHardy <kaber@coreworks.de>, netfilter-devel@lists.netfilter.org,
+	coreteam@netfilter.org, 337713@bugs.debian.org,
+	Torok Edwin <edwintorok@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel <netfilter-devel@lists.netfilter.org>
+To: Horms <horms@debian.org>
+Content-Disposition: inline
+In-Reply-To: <20051107083953.GA8420@verge.net.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,43 +25,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I'm trying to use the LOG and ULOG targets simultaenously on 2.6.14 but 
-am having problems. This used to work on previous kernel versions.
+--xaMk4Io5JJdpkLEb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The setup is this:
+On Mon, Nov 07, 2005 at 05:39:53PM +0900, Horms wrote:
 
-- kernel configured without the new netlink stuff:
-# CONFIG_NETFILTER_NETLINK is not set
-CONFIG_IP_NF_TARGET_LOG=m
-CONFIG_IP_NF_TARGET_ULOG=m
-CONFIG_IP_NF_QUEUE=m
-# CONFIG_IP_NF_TARGET_NFQUEUE is not set
+> I did some disasembling fun and games, and I'm pretty sure the patch
+> below will fix your problem. I'll fire of a build, I'd be greateful if
+> you could test it.
 
-- a daemon that uses the old ipulog library starts at boot time and is 
-fed by several ULOG rules
+Sorry, Horms, you must have missed my previos fix (that does exactly the
+same).  I've already posted it to netdev, and IIRC, Arnaldo has merged
+it for net-2.6.15.
 
-- if I try and insert a LOG rule the iptables command appears to work 
-but no logs go to syslog except the following message:
-    ipt_LOG: not logging via system console since somebody else already
-    registered for PF_INET
+Sorry for not Cc'ing you with the fix, it seems like I only reported
+back to bugzilla :(
 
-- if I stop the logging daemon, remove the ULOG rules and unload 
-ipt_ULOG I can happily insert functional LOG rules again. However I need 
-both LOG and ULOG simultaenously.
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-How do I make this work as before? I need to be able to use both ULOG 
-and LOG at the same time. Will it work if enable 
-CONFIG_NETFILTER_NETLINK and related options and port the daemon to the 
-new libnetfilter_log library? I'd really prefer to not have to touch the 
-daemon at this stage but will if that's the only answer.
+--xaMk4Io5JJdpkLEb
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Regards,
-Menno
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
+iD8DBQFDbxabXaXGVTD0i/8RAlvVAJ9DmIfnB1ILtzOdlJkRZoy2iyo53wCfaa9w
+DDAGT+Zhm6odRyBVKJWK3IQ=
+=eXOp
+-----END PGP SIGNATURE-----
 
-
-
-Scanned by the NetBox from NetBox Blue
-(http://netboxblue.com/)
+--xaMk4Io5JJdpkLEb--
