@@ -1,18 +1,16 @@
-From: Deti Fliegl <deti@fliegl.de>
-Subject: Re: Roadmap for IPv6 stateful filtering
-Date: Tue, 08 Nov 2005 15:23:36 +0100
-Message-ID: <4370B4E8.7070608@fliegl.de>
-References: <436FBCDF.4060900@net.in.tum.de>
-	<4370A4A3.20702@eurodev.net>	<200511081502.04272@nienna>
-	<20051108141914.GV26843@sunbeam.de.gnumonks.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 2/8] Propagate error to userspace at getting
+Date: Tue, 8 Nov 2005 15:53:40 +0100
+Message-ID: <20051108145340.GZ26843@sunbeam.de.gnumonks.org>
+References: <437002F6.9070809@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Gregor Maier <gregor@net.in.tum.de>, netfilter-devel@lists.netfilter.org,
-	Pablo Neira <pablo@eurodev.net>, KOVACS Krisztian <hidden@balabit.hu>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4QzzFpAwbwI4hdN6"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051108141914.GV26843@sunbeam.de.gnumonks.org>
+To: Pablo Neira <pablo@netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <437002F6.9070809@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,7 +22,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> Nobody has yet bothered to respond to me.  I have no news from neither
-> Linus, nor Acme, nor Davem.  
-Well - IMHO it's a bit more than a 'nice to have'... why does nobody bother?
+
+--4QzzFpAwbwI4hdN6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Nov 08, 2005 at 02:44:22AM +0100, Pablo Neira wrote:
+> Propagate the error to userspace instead of returning -EPERM if the get
+> conntrack operation fails.
+
+thanks, applied.
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--4QzzFpAwbwI4hdN6
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDcLv0XaXGVTD0i/8RAkxxAJoCSQFls1jzS2QagQpIaXpn0g5LyACfT73N
+jPtJuw58/kotElMVx3gqHdk=
+=aVv7
+-----END PGP SIGNATURE-----
+
+--4QzzFpAwbwI4hdN6--
