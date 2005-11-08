@@ -1,9 +1,16 @@
-From: "Marco Berizzi" <pupilla@hotmail.com>
-Subject: ipsec and nat history
-Date: Tue, 8 Nov 2005 18:35:20 +0100
-Message-ID: <BAY103-DAV1DBB3B5788F2F1F3852BDB2640@phx.gbl>
+From: Pablo Neira <pablo@netfilter.org>
+Subject: Re: [PATCH 8/8] Add missing sizecheckings
+Date: Tue, 08 Nov 2005 19:17:48 +0100
+Message-ID: <4370EBCC.9040308@netfilter.org>
+References: <43700324.5080505@netfilter.org> <4370B08B.30507@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4370B08B.30507@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -15,24 +22,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I was browsing netfilter-dev archive about the issues with NAT
-and IPsec. I was reading this message (27 Jan 2004) from Harald:
+Patrick McHardy wrote:
+> Pablo Neira wrote:
+> 
+>>Add missing sizecheckings. Thanks Patrick Mchardy for the hint. This
+>>patch requires the previous (7/8), otherwise it would break ctnetlink.
+> 
+> 
+> Both patches look good to me, although you probably should use
+> size_t or unsigned int for the cta_.*_min arrays, otherwise
+> I think gcc-4.x will complain.
 
-https://lists.netfilter.org/pipermail/netfilter-devel/2004-January/013903.html
+yes, agreed. I'll resend this patch using size_t late at night.
 
-"...We could even pass a dummy output device structure
-with an interface name "esp" so people can SNAT
-everything heading for esp encapsulation..."
-
-Lately Michael Richardson wrote:
-
-https://lists.netfilter.org/pipermail/netfilter-devel/2004-January/013956.html
-
-"...I would suggest that many administrators will want
-to have possibly a pseudo-interface per SA. These
-aren't necessarily real interfaces like ipsecX, but they
-do need to be named in some way..."
-
-Is this approach (virtual/pseudo/dummy device) abandoned?
-
-TIA
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
