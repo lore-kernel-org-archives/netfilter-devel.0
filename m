@@ -1,9 +1,9 @@
 From: Pablo Neira <pablo@netfilter.org>
-Subject: [PATCH 5/8] Check for ICMP_ID in icmp_nfattr_to_tuple
-Date: Tue, 08 Nov 2005 02:44:39 +0100
-Message-ID: <43700307.6090001@netfilter.org>
+Subject: [PATCH 6/8] Fix ICMP id type
+Date: Tue, 08 Nov 2005 02:44:53 +0100
+Message-ID: <43700315.5000607@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070405080405030008010809"
+Content-Type: multipart/mixed; boundary="------------080809010504080202050703"
 Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,12 +19,11 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070405080405030008010809
+--------------080809010504080202050703
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-This patch fixes an userspace triggered oops. If there is no ICMP_ID
-info the reference to attr will be NULL.
+ICMP_ID is u_int16_t not u_int8_t. Handle this properly.
 
 Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
@@ -33,30 +32,30 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------070405080405030008010809
+--------------080809010504080202050703
 Content-Type: text/plain;
- name="04-icmp-id.patch"
+ name="05-fix-type-icmp-id.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="04-icmp-id.patch"
+ filename="05-fix-type-icmp-id.patch"
 
-This patch fixes an userspace triggered oops. If there is no ICMP_ID
-info the reference to attr will be NULL.
+ICMP_ID is u_int16_t not u_int8_t. Handle this properly.
 
 Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
---- a/net/ipv4/netfilter/ip_conntrack_proto_icmp.c	2005-11-06 02:17:29.000000000 +0100
-+++ b/net/ipv4/netfilter/ip_conntrack_proto_icmp.c	2005-11-06 02:18:45.000000000 +0100
-@@ -296,7 +296,8 @@
- 				struct ip_conntrack_tuple *tuple)
- {
- 	if (!tb[CTA_PROTO_ICMP_TYPE-1]
--	    || !tb[CTA_PROTO_ICMP_CODE-1])
-+	    || !tb[CTA_PROTO_ICMP_CODE-1]
-+	    || !tb[CTA_PROTO_ICMP_ID-1])
- 		return -1;
+Index: netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
+===================================================================
+--- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_proto_icmp.c	2005-11-06 19:59:55.000000000 +0100
++++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_proto_icmp.c	2005-11-06 19:59:56.000000000 +0100
+@@ -305,7 +305,7 @@ static int icmp_nfattr_to_tuple(struct n
+ 	tuple->dst.u.icmp.code =
+ 			*(u_int8_t *)NFA_DATA(tb[CTA_PROTO_ICMP_CODE-1]);
+ 	tuple->src.u.icmp.id =
+-			*(u_int8_t *)NFA_DATA(tb[CTA_PROTO_ICMP_ID-1]);
++			*(u_int16_t *)NFA_DATA(tb[CTA_PROTO_ICMP_ID-1]);
  
- 	tuple->dst.u.icmp.type = 
+ 	return 0;
+ }
 
---------------070405080405030008010809--
+--------------080809010504080202050703--
