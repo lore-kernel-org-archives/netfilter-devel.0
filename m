@@ -1,16 +1,12 @@
-From: Michael Bellion <mbellion@hipac.org>
-Subject: Re: [PATCH] x_tables, take 4
-Date: Mon, 7 Nov 2005 17:10:56 +0100
-Message-ID: <200511071710.56991.mbellion@hipac.org>
-References: <20051103191110.GO905@sunbeam.de.gnumonks.org>
+From: Pablo Neira <pablo@netfilter.org>
+Subject: [PATCH 3/8] Identify expect by its ID
+Date: Tue, 08 Nov 2005 02:44:27 +0100
+Message-ID: <437002FB.4030407@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart6294281.3mSrDYULNN";
-	protocol="application/pgp-signature"; micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="------------040503070108080306010707"
 Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20051103191110.GO905@sunbeam.de.gnumonks.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,51 +18,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---nextPart6294281.3mSrDYULNN
+This is a multi-part message in MIME format.
+--------------040503070108080306010707
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+Add support to identify expectations by ID's at getting.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+
+--------------040503070108080306010707
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+ name="02-expect-id.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="02-expect-id.patch"
 
-Hi
+Add support to identify expectations by ID's at getting.
 
-> This is the fourth incarnation of the x_tables patch.  It is now
-> compiling clean, and at least those parts that I use in my systems seem
-> to work fine.
->
-> I want to run this trough nfsim before submitting it mainline.
->
-> I dislike the 'void *' pointers we cast for match/targetinfo, but I
-> think the advantage of code unification is bigger than some typecasts.
->
-> Also, we should think about putting all those match/checkentry/target
-> parameters into a structure (which could contain unions to avoid the
-> typeasting).  But I think this can happen in a next patch, x_tables
-> changes are already large enough.
->
-> Please review and comment,
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Nice work!
+Index: netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c
+===================================================================
+--- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-06 19:29:49.000000000 +0100
++++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-06 19:49:37.000000000 +0100
+@@ -1299,6 +1299,14 @@ ctnetlink_get_expect(struct sock *ctnl, 
+ 	if (!exp)
+ 		return -ENOENT;
+ 
++	if (cda[CTA_EXPECT_ID-1]) {
++		u_int32_t id = *(u_int32_t *)NFA_DATA(cda[CTA_EXPECT_ID-1]);
++		if (exp->id != ntohl(id)) {
++			ip_conntrack_expect_put(exp);
++			return -ENOENT;
++		}
++	}	
++
+ 	err = -ENOMEM;
+ 	skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_KERNEL);
+ 	if (!skb2)
 
-But could you rename it to something without "tables"?
-It is not related to tables in any way. It is about function based matches =
-and=20
-targets, that's why the name "x_tables" is IMHO a bit irritating.
-
-What about the name "x_functions" or something similar?
-
-Best regards
-	Michael Bellion
-
---nextPart6294281.3mSrDYULNN
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBDb3yQqKCdDrsF/xIRAll8AJ9H/uPNt0CzPbAhqFoJ9Y0bkBtNWACeI3n2
-xUAPtoS8avJQMVK513Kgo60=
-=KbYQ
------END PGP SIGNATURE-----
-
---nextPart6294281.3mSrDYULNN--
+--------------040503070108080306010707--
