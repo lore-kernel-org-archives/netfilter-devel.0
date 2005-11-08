@@ -1,16 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 6/8] Fix ICMP id type
-Date: Tue, 8 Nov 2005 16:00:13 +0100
-Message-ID: <20051108150013.GC26843@sunbeam.de.gnumonks.org>
-References: <43700315.5000607@netfilter.org>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: Roadmap for IPv6 stateful filtering
+Date: Tue, 08 Nov 2005 08:44:51 -0800 (PST)
+Message-ID: <20051108.084451.49049943.davem@davemloft.net>
+References: <4370A4A3.20702@eurodev.net> <200511081502.04272@nienna>
+	<20051108141914.GV26843@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="uk6W7isEeLAaRh3S"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: gregor@net.in.tum.de, netfilter-devel@lists.netfilter.org,
+	pablo@eurodev.net, hidden@balabit.hu
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <43700315.5000607@netfilter.org>
+To: laforge@netfilter.org
+In-Reply-To: <20051108141914.GV26843@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,37 +23,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Harald Welte <laforge@netfilter.org>
+Date: Tue, 8 Nov 2005 15:19:15 +0100
 
---uk6W7isEeLAaRh3S
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Nobody has yet bothered to respond to me.  I have no news from neither
+> Linus, nor Acme, nor Davem.  
 
-On Tue, Nov 08, 2005 at 02:44:53AM +0100, Pablo Neira wrote:
-> ICMP_ID is u_int16_t not u_int8_t. Handle this properly.
+You expect news from me when I know nothing of the discussions that
+occurred or the specifics of the objections raised by Linus.  That's a
+kind of unreasonable expectation.
 
-thanks, applied.
+You haven't personally contacted me _once_ about this matter.  How can
+you expect a response when I don't have anything to respond to? :-)
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---uk6W7isEeLAaRh3S
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDcL19XaXGVTD0i/8RAjKCAKCoEUE4zCrBzKvMEK9c+DMIzZY4MwCeKvvA
-DZLmmL8iYJ0MJr6jQ8/l0EE=
-=qSjR
------END PGP SIGNATURE-----
-
---uk6W7isEeLAaRh3S--
+Given what I actually do know about the situation I've told Arnaldo
+that we should probably just hold off on nf conntrack until 2.6.16,
+it's not the end of the world.
