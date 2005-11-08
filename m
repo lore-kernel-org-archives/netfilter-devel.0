@@ -1,16 +1,18 @@
-From: Pablo Neira <pablo@netfilter.org>
-Subject: Re: [PATCH 8/8] Add missing sizecheckings
-Date: Tue, 08 Nov 2005 19:17:48 +0100
-Message-ID: <4370EBCC.9040308@netfilter.org>
-References: <43700324.5080505@netfilter.org> <4370B08B.30507@trash.net>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: Roadmap for IPv6 stateful filtering
+Date: Tue, 8 Nov 2005 22:58:19 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0511082242080.19096@bizon.gios.gov.pl>
+References: <4370A4A3.20702@eurodev.net> <200511081502.04272@nienna>
+	<20051108141914.GV26843@sunbeam.de.gnumonks.org>
+	<20051108.084451.49049943.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-2122588642-1131487099=:19096"
+Cc: laforge@netfilter.org, pablo@eurodev.net, gregor@net.in.tum.de,
+	netfilter-devel@lists.netfilter.org, hidden@balabit.hu
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4370B08B.30507@trash.net>
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20051108.084451.49049943.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,19 +24,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira wrote:
-> 
->>Add missing sizecheckings. Thanks Patrick Mchardy for the hint. This
->>patch requires the previous (7/8), otherwise it would break ctnetlink.
-> 
-> 
-> Both patches look good to me, although you probably should use
-> size_t or unsigned int for the cta_.*_min arrays, otherwise
-> I think gcc-4.x will complain.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-yes, agreed. I'll resend this patch using size_t late at night.
+---187430788-2122588642-1131487099=:19096
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+
+
+On Tue, 8 Nov 2005, David S. Miller wrote:
+
+> Given what I actually do know about the situation I've told Arnaldo
+> that we should probably just hold off on nf conntrack until 2.6.16,
+> it's not the end of the world.
+
+For most of netfilter _users_ this means that nf_conntrack is going to be=
+=20
+accessible after 4-5 months (2.6.16.x) and usable after more than half a=20
+year (2.6.17.x), with no clear reason. :(
+
+Please note that currently nf_conntrack is one the most expected netfilter=
+=20
+feature.
+
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-2122588642-1131487099=:19096--
