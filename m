@@ -1,9 +1,9 @@
 From: Pablo Neira <pablo@netfilter.org>
-Subject: [PATCH 3/8] Identify expect by its ID
-Date: Tue, 08 Nov 2005 02:44:27 +0100
-Message-ID: <437002FB.4030407@netfilter.org>
+Subject: [PATCH 2/8] Propagate error to userspace at getting
+Date: Tue, 08 Nov 2005 02:44:22 +0100
+Message-ID: <437002F6.9070809@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040503070108080306010707"
+Content-Type: multipart/mixed; boundary="------------080105070506070003090009"
 Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,11 +19,12 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040503070108080306010707
+--------------080105070506070003090009
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-Add support to identify expectations by ID's at getting.
+Propagate the error to userspace instead of returning -EPERM if the get
+conntrack operation fails.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
@@ -31,35 +32,30 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------040503070108080306010707
+--------------080105070506070003090009
 Content-Type: text/plain;
- name="02-expect-id.patch"
+ name="01-return-val.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="02-expect-id.patch"
+ filename="01-return-val.patch"
 
-Add support to identify expectations by ID's at getting.
+Propagate the error to userspace instead of returning -EPERM if the get 
+conntrack operation fails.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
 Index: netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c
 ===================================================================
---- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-06 19:29:49.000000000 +0100
-+++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-06 19:49:37.000000000 +0100
-@@ -1299,6 +1299,14 @@ ctnetlink_get_expect(struct sock *ctnl, 
- 	if (!exp)
- 		return -ENOENT;
+--- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-06 19:03:46.000000000 +0100
++++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-06 19:03:48.000000000 +0100
+@@ -808,7 +808,7 @@ ctnetlink_get_conntrack(struct sock *ctn
+ free:
+ 	kfree_skb(skb2);
+ out:
+-	return -1;
++	return err;
+ }
  
-+	if (cda[CTA_EXPECT_ID-1]) {
-+		u_int32_t id = *(u_int32_t *)NFA_DATA(cda[CTA_EXPECT_ID-1]);
-+		if (exp->id != ntohl(id)) {
-+			ip_conntrack_expect_put(exp);
-+			return -ENOENT;
-+		}
-+	}	
-+
- 	err = -ENOMEM;
- 	skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_KERNEL);
- 	if (!skb2)
+ static inline int
 
---------------040503070108080306010707--
+--------------080105070506070003090009--
