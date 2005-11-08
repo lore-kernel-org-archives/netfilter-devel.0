@@ -1,10 +1,10 @@
 From: Pablo Neira <pablo@netfilter.org>
-Subject: [PATCH 8/8] Add missing sizecheckings
-Date: Tue, 08 Nov 2005 02:45:08 +0100
-Message-ID: <43700324.5080505@netfilter.org>
+Subject: [PATCH 5/8] Check for ICMP_ID in icmp_nfattr_to_tuple
+Date: Tue, 08 Nov 2005 02:44:39 +0100
+Message-ID: <43700307.6090001@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030708010407030604020102"
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed; boundary="------------070405080405030008010809"
+Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -19,167 +19,44 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------030708010407030604020102
+--------------070405080405030008010809
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-Add missing sizecheckings. Thanks Patrick Mchardy for the hint. This
-patch requires the previous (7/8), otherwise it would break ctnetlink.
+This patch fixes an userspace triggered oops. If there is no ICMP_ID
+info the reference to attr will be NULL.
 
+Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------030708010407030604020102
+--------------070405080405030008010809
 Content-Type: text/plain;
- name="07-sizechecking.patch"
+ name="04-icmp-id.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="07-sizechecking.patch"
+ filename="04-icmp-id.patch"
 
-Add missing sizecheckings. Thanks Patrick Mchardy for the hint.
+This patch fixes an userspace triggered oops. If there is no ICMP_ID
+info the reference to attr will be NULL.
 
+Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Index: netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c
-===================================================================
---- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-06 19:59:55.000000000 +0100
-+++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-06 20:00:32.000000000 +0100
-@@ -614,6 +614,11 @@ static int ctnetlink_parse_nat_proto(str
- 	return 0;
- }
- 
-+static const int cta_min_nat[CTA_NAT_MAX] = {
-+	[CTA_NAT_MINIP-1]       = sizeof(u_int32_t),
-+	[CTA_NAT_MAXIP-1]       = sizeof(u_int32_t),
-+};
-+
- static inline int
- ctnetlink_parse_nat(struct nfattr *cda[],
- 		    const struct ip_conntrack *ct, struct ip_nat_range *range)
-@@ -627,6 +632,9 @@ ctnetlink_parse_nat(struct nfattr *cda[]
- 	
- 	nfattr_parse_nested(tb, CTA_NAT_MAX, cda[CTA_NAT-1]);
- 
-+	if (nfattr_bad_size(tb, CTA_NAT_MAX, cta_min_nat))
-+		return -EINVAL;
-+
- 	if (tb[CTA_NAT_MINIP-1])
- 		range->min_ip = *(u_int32_t *)NFA_DATA(tb[CTA_NAT_MINIP-1]);
- 
-@@ -667,6 +675,14 @@ ctnetlink_parse_help(struct nfattr *attr
- 	return 0;
- }
- 
-+static const int cta_min[CTA_MAX] = {
-+	[CTA_STATUS-1] 		= sizeof(u_int32_t),
-+	[CTA_TIMEOUT-1] 	= sizeof(u_int32_t),
-+	[CTA_MARK-1]		= sizeof(u_int32_t),
-+	[CTA_USE-1]		= sizeof(u_int32_t),
-+	[CTA_ID-1]		= sizeof(u_int32_t)
-+};
-+
- static int
- ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb, 
- 			struct nlmsghdr *nlh, struct nfattr *cda[], int *errp)
-@@ -678,6 +694,9 @@ ctnetlink_del_conntrack(struct sock *ctn
- 
- 	DEBUGP("entered %s\n", __FUNCTION__);
- 
-+	if (nfattr_bad_size(cda, CTA_MAX, cta_min))
-+		return -EINVAL;
-+
- 	if (cda[CTA_TUPLE_ORIG-1])
- 		err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_ORIG);
- 	else if (cda[CTA_TUPLE_REPLY-1])
-@@ -760,6 +779,9 @@ ctnetlink_get_conntrack(struct sock *ctn
- 		return 0;
- 	}
- 
-+	if (nfattr_bad_size(cda, CTA_MAX, cta_min))
-+		return -EINVAL;
-+
- 	if (cda[CTA_TUPLE_ORIG-1])
- 		err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_ORIG);
- 	else if (cda[CTA_TUPLE_REPLY-1])
-@@ -1055,6 +1077,9 @@ ctnetlink_new_conntrack(struct sock *ctn
- 
- 	DEBUGP("entered %s\n", __FUNCTION__);
- 
-+	if (nfattr_bad_size(cda, CTA_MAX, cta_min))
-+		return -EINVAL;
-+
- 	if (cda[CTA_TUPLE_ORIG-1]) {
- 		err = ctnetlink_parse_tuple(cda, &otuple, CTA_TUPLE_ORIG);
- 		if (err < 0)
-@@ -1260,6 +1285,11 @@ out:	
- 	return skb->len;
- }
- 
-+static const int cta_min_exp[CTA_EXPECT_MAX] = {
-+	[CTA_EXPECT_TIMEOUT-1]          = sizeof(u_int32_t),
-+	[CTA_EXPECT_ID-1]               = sizeof(u_int32_t)
-+};
-+
- static int
- ctnetlink_get_expect(struct sock *ctnl, struct sk_buff *skb, 
- 		     struct nlmsghdr *nlh, struct nfattr *cda[], int *errp)
-@@ -1271,6 +1301,9 @@ ctnetlink_get_expect(struct sock *ctnl, 
- 
- 	DEBUGP("entered %s\n", __FUNCTION__);
- 
-+	if (nfattr_bad_size(cda, CTA_EXPECT_MAX, cta_min_exp))
-+		return -EINVAL;
-+
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
- 		struct nfgenmsg *msg = NLMSG_DATA(nlh);
- 		u32 rlen;
-@@ -1341,6 +1374,9 @@ ctnetlink_del_expect(struct sock *ctnl, 
- 	struct ip_conntrack_helper *h;
- 	int err;
- 
-+	if (nfattr_bad_size(cda, CTA_EXPECT_MAX, cta_min_exp))
-+		return -EINVAL;
-+
- 	if (cda[CTA_EXPECT_TUPLE-1]) {
- 		/* delete a single expect by tuple */
- 		err = ctnetlink_parse_tuple(cda, &tuple, CTA_EXPECT_TUPLE);
-@@ -1470,6 +1506,9 @@ ctnetlink_new_expect(struct sock *ctnl, 
- 
- 	DEBUGP("entered %s\n", __FUNCTION__);	
- 
-+	if (nfattr_bad_size(cda, CTA_EXPECT_MAX, cta_min_exp))
-+		return -EINVAL;
-+
- 	if (!cda[CTA_EXPECT_TUPLE-1]
- 	    || !cda[CTA_EXPECT_MASK-1]
- 	    || !cda[CTA_EXPECT_MASTER-1])
-Index: netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-===================================================================
---- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-11-06 19:56:42.000000000 +0100
-+++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-11-06 20:00:32.000000000 +0100
-@@ -357,6 +357,10 @@ nfattr_failure:
- 	return -1;
- }
- 
-+static const int cta_min_tcp[CTA_PROTOINFO_TCP_MAX] = {
-+	[CTA_PROTOINFO_TCP_STATE-1]	= sizeof(u_int8_t),
-+};
-+
- static int nfattr_to_tcp(struct nfattr *cda[], struct ip_conntrack *ct)
+--- a/net/ipv4/netfilter/ip_conntrack_proto_icmp.c	2005-11-06 02:17:29.000000000 +0100
++++ b/net/ipv4/netfilter/ip_conntrack_proto_icmp.c	2005-11-06 02:18:45.000000000 +0100
+@@ -296,7 +296,8 @@
+ 				struct ip_conntrack_tuple *tuple)
  {
- 	struct nfattr *attr = cda[CTA_PROTOINFO_TCP-1];
-@@ -369,6 +373,9 @@ static int nfattr_to_tcp(struct nfattr *
+ 	if (!tb[CTA_PROTO_ICMP_TYPE-1]
+-	    || !tb[CTA_PROTO_ICMP_CODE-1])
++	    || !tb[CTA_PROTO_ICMP_CODE-1]
++	    || !tb[CTA_PROTO_ICMP_ID-1])
+ 		return -1;
  
-         nfattr_parse_nested(tb, CTA_PROTOINFO_TCP_MAX, attr);
- 
-+	if (nfattr_bad_size(tb, CTA_PROTOINFO_TCP_MAX, cta_min_tcp))
-+		return -EINVAL;
-+
- 	if (!tb[CTA_PROTOINFO_TCP_STATE-1])
- 		return -EINVAL;
- 
+ 	tuple->dst.u.icmp.type = 
 
---------------030708010407030604020102--
+--------------070405080405030008010809--
