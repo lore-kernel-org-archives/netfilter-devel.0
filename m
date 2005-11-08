@@ -1,17 +1,9 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: Roadmap for IPv6 stateful filtering
-Date: Tue, 08 Nov 2005 08:44:51 -0800 (PST)
-Message-ID: <20051108.084451.49049943.davem@davemloft.net>
-References: <4370A4A3.20702@eurodev.net> <200511081502.04272@nienna>
-	<20051108141914.GV26843@sunbeam.de.gnumonks.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: gregor@net.in.tum.de, netfilter-devel@lists.netfilter.org,
-	pablo@eurodev.net, hidden@balabit.hu
+From: "Marco Berizzi" <pupilla@hotmail.com>
+Subject: ipsec and nat history
+Date: Tue, 8 Nov 2005 18:35:20 +0100
+Message-ID: <BAY103-DAV1DBB3B5788F2F1F3852BDB2640@phx.gbl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20051108141914.GV26843@sunbeam.de.gnumonks.org>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,19 +15,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Tue, 8 Nov 2005 15:19:15 +0100
+I was browsing netfilter-dev archive about the issues with NAT
+and IPsec. I was reading this message (27 Jan 2004) from Harald:
 
-> Nobody has yet bothered to respond to me.  I have no news from neither
-> Linus, nor Acme, nor Davem.  
+https://lists.netfilter.org/pipermail/netfilter-devel/2004-January/013903.html
 
-You expect news from me when I know nothing of the discussions that
-occurred or the specifics of the objections raised by Linus.  That's a
-kind of unreasonable expectation.
+"...We could even pass a dummy output device structure
+with an interface name "esp" so people can SNAT
+everything heading for esp encapsulation..."
 
-You haven't personally contacted me _once_ about this matter.  How can
-you expect a response when I don't have anything to respond to? :-)
+Lately Michael Richardson wrote:
 
-Given what I actually do know about the situation I've told Arnaldo
-that we should probably just hold off on nf conntrack until 2.6.16,
-it's not the end of the world.
+https://lists.netfilter.org/pipermail/netfilter-devel/2004-January/013956.html
+
+"...I would suggest that many administrators will want
+to have possibly a pseudo-interface per SA. These
+aren't necessarily real interfaces like ipsecX, but they
+do need to be named in some way..."
+
+Is this approach (virtual/pseudo/dummy device) abandoned?
+
+TIA
