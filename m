@@ -1,44 +1,56 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [ANNOUNCE] Release of nf-HiPAC 0.9.0
-Date: Wed, 09 Nov 2005 22:35:52 +0000
-Message-ID: <1131575752.3423.33.camel@localhost.localdomain>
-References: <200509260441.42483.mbellion@hipac.org>
-	<433AA30E.7060709@ufomechanic.net>
-	<1128252040.3388.15.camel@localhost.localdomain>
-	<200510021430.21697.mbellion@hipac.org>
+From: Daniel J Blueman <daniel.blueman@gmail.com>
+Subject: RED qdisc not working...
+Date: Wed, 9 Nov 2005 23:32:58 +0000
+Message-ID: <6278d2220511091532k7b732b9bv2957763ba6f4c10f@mail.gmail.com>
+References: <6278d2220511071626j3646afa7n5ac33228e8b3fc82@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org,
-	Amin Azez <azez@ufomechanic.net>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Michael Bellion <mbellion@hipac.org>
-In-Reply-To: <200510021430.21697.mbellion@hipac.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: davem@redhat.com, laforge@netfilter.org, coreteam@netfilter.org
+Return-path: <netdev-bounce@oss.sgi.com>
+To: netdev@oss.sgi.com, netfilter-devel@lists.netfilter.org,
+        netfilter@lists.netfilter.org, kaber@trash.net
+In-Reply-To: <6278d2220511071626j3646afa7n5ac33228e8b3fc82@mail.gmail.com>
+Content-Disposition: inline
+Sender: netdev-bounce@oss.sgi.com
+Errors-to: netdev-bounce@oss.sgi.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Op zo, 02-10-2005 te 14:30 +0200, schreef Michael Bellion:
-> > Also, is it not possible to make a B+ tree with the standard iptables? I
-> > don't see why it shouldn't be possible. The jump to a new chain can be
-> > seen as going deeper into the B+ tree. So it should be possible to
-> > construct an iptables table structure that looks very similar to the B+
-> > tree of nf-hipac, for some given rule set. I guess this will be somewhat
-> > slower than nf-hipac, but I'd like to see the performance difference...
-> 
-> Sorry, but you seem to confuse some things.
-> nf-HiPAC is not based on B+trees or any other kind of B-trees. 
+Has anyone been able to get the RED (random early detection) qdisc
+working lately?
 
-So the algorithm of nf-hipac was changed in view of the one you were
-using in 2003? I remembered from your talk then that you used B+trees
-and this is confirmed by the slides you've finally put online.
+I can't get anything going through it to be dropped or marked; the
+'marked', 'early', 'pdrop' and 'other' fields remain at 0 [1]. In my
+example script [2], I get the 3072Kbits/s transfer into eth0, which
+you'd only expect if the RED qdisc wasn't there.
 
-cheers,
-Bart
+I have tried with a recent 2.6.12 debian kernel and stock 2.6.14 on
+x86_64 debian. I rebuilt new iproute and iptables packages from latest
+clean upstream sources, but to no avail.
+
+Any ideas? Please CC me on replies, as I am not subscribed.
+
+Thanks,
+  Dan
+
+--- [1]
+
+# tc -s qdisc show dev eth0
+qdisc htb 1: r2q 10 default 10 direct_packets_stat 0
+ Sent 53985530 bytes 36757 pkts (dropped 0, overlimits 45125)
+qdisc red 10: parent 1:10 limit 512Kb min 64Kb max 128Kb
+ Sent 53985530 bytes 36757 pkts (dropped 0, overlimits 0)
+  marked 0 early 0 pdrop 0 other 0
+
+--- [2]
+
+tc qdisc del dev eth0 root
+
+tc qdisc add dev eth0 root handle 1: htb default 10
+tc class add dev eth0 parent 1: classid 1:1 htb rate 4096kbit ceil 4096kbit
+tc class add dev eth0 parent 1:1 classid 1:10 htb rate 3072kbit ceil 3072kbit
+tc qdisc add dev eth0 parent 1:10 handle 10: red \
+  limit 4096kbit min 512kbit max 1024kbit avpkt 1000 \
+  burst 100 probability 0.02 bandwidth 1024kbit
+___
+Daniel J Blueman
