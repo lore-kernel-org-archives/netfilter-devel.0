@@ -1,86 +1,108 @@
-From: Michael Bellion <mbellion@hipac.org>
-Subject: Re: [ANNOUNCE] Release of nf-HiPAC 0.9.0
-Date: Thu, 10 Nov 2005 02:07:24 +0100
-Message-ID: <200511100207.25108.mbellion@hipac.org>
-References: <200509260441.42483.mbellion@hipac.org>
-	<200510021430.21697.mbellion@hipac.org>
-	<1131575752.3423.33.camel@localhost.localdomain>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: web & releasing [was Re: problem with conntrack-0.81]
+Date: Thu, 10 Nov 2005 05:14:42 +0100
+Message-ID: <4372C932.8050006@eurodev.net>
+References: <20051026030113.8DA3F42B2@daahman.cosmicfires.com>	<435F2D12.7050003@eurodev.net>	<20051026112645.GJ4479@sunbeam.de.gnumonks.org>	<436BAB3A.2030703@eurodev.net>
+	<20051104203936.GK5594@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart4146011.P4spjQs24Z";
-	protocol="application/pgp-signature"; micalg=pgp-sha1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter@lists.netfilter.org, Bart De Schuymer <bdschuym@pandora.be>,
-	Amin Azez <azez@ufomechanic.net>
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <1131575752.3423.33.camel@localhost.localdomain>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Cc: David Walker <david@cosmicfires.com>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20051104203936.GK5594@sunbeam.de.gnumonks.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---nextPart4146011.P4spjQs24Z
-Content-Type: text/plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Hi Harald,
 
-Hi
+Harald Welte wrote:
+> On Fri, Nov 04, 2005 at 07:40:58PM +0100, Pablo Neira wrote:
+> 
+>>pablo@legba:~/SVN-netfilter/trunk/homepage$ make
+>>make -C xml
+>>make[1]: Entering directory `/usr/src/SVN/trunk/homepage/xml'
+>>perl -I../scripts -I../../patch-o-matic-ng ../scripts/pom2docbook.pl
+>>--xmldir ./patch-o-matic --repository pending
+>>../../patch-o-matic-ng/patchlets
+>>Your linux version  is unknown for patch-o-matic at
+>>../scripts/pom2docbook.pl line 119
+>>make[1]: *** [patch-o-matic/pom-pending.xml] Error 255
+>>make[1]: Leaving directory `/usr/src/SVN/trunk/homepage/xml'
+>>make: *** [all] Error 2
+>>
+>>any clue on what's wrong?
+> 
+> it tries to execute patch-o-matic-ng, but doesn't find a linux kernel in
+> the default location (don't know where the default is, you'd have to
+> check the sources).
+> 
+> this is for auto-creating the xml/html pages from the patch-o-matic
+> tree.
 
-> Op zo, 02-10-2005 te 14:30 +0200, schreef Michael Bellion:
-> > > Also, is it not possible to make a B+ tree with the standard iptables?
-> > > I don't see why it shouldn't be possible. The jump to a new chain can
-> > > be seen as going deeper into the B+ tree. So it should be possible to
-> > > construct an iptables table structure that looks very similar to the =
-B+
-> > > tree of nf-hipac, for some given rule set. I guess this will be
-> > > somewhat slower than nf-hipac, but I'd like to see the performance
-> > > difference...
-> >
-> > Sorry, but you seem to confuse some things.
-> > nf-HiPAC is not based on B+trees or any other kind of B-trees.
->
-> So the algorithm of nf-hipac was changed in view of the one you were
-> using in 2003? I remembered from your talk then that you used B+trees
-> and this is confirmed by the slides you've finally put online.
+The problem was that I forgot to set KERNEL_DIR and IPTABLES_DIR. OK,
+now the problem is something different. Once I type make:
 
-The reason why I said that b-trees are not used in hipac was that the b-tre=
-es=20
-are not the main data structure and are not the main solution of the proble=
-m.
+...
+projects/libnetfilter_conntrack/downloads.xml:
+projects/libnetfilter_conntrack/downloads.html
+projects/conntrack/index.xml: projects/conntrack/index.html
+projects/conntrack/downloads.xml: projects/conntrack/downloads.html
+projects/ipset/index.xml: projects/ipset/index.html
+projects/hipac/index.xml: projects/hipac/index.html
+patch-o-matic/index.xml: projects/patch-o-matic/index.html
+patch-o-matic/pom-submitted.xml: projects/patch-o-matic/pom-submitted.html
+warning: failed to load external entity "patch-o-matic/pom-pending.xml"
+patch-o-matic/pom-pending.xml: missing ID.
+make: *** [autolayout.xml] Error 10
 
-The problem is solved by a graph that consists of a lot of nodes.
+That file is missing. OK, to work around the problem I just remove the
+reference to pom-pending.xml in layout.xml. Now I typed "make" again,
+and the compilation loops forever.
 
-During a lookup this graph is traversed and each node that is visited=20
-internally uses again a certain data structure. In 2003 btrees were used=20
-internally at each node of the graph. In the current implementation simple=
-=20
-static binary search is used instead.
+make[1]: Entering directory `/usr/src/SVN/trunk/homepage/xml'
+...
+make[2]: Entering directory `/usr/src/SVN/trunk/homepage/xml'
 
-So basically you can forget about the btrees. They are not important for th=
-e=20
-solution of the problem. Have a closer look at the slides of the more recen=
-t=20
-presentations.
+and so on. Any clue?
 
-Best regards
-	Michael Bellion
+>>>The more important issues is, how we're going to handle signing and
+>>>uploading of the respective files to ftp and http server.  At the
+>>>moment, only the core team can sign releases (and has the respective
+>>>upload permissions).
+>>
+>>During the WS you told me that you needed someone that could do the
+>>releasing stuff. Well, I don't know if this could help but if you
+>>consider that I could that such work, what will it consist on?
+> 
+> well, basicaully it would mean that you'd be doing the 'make distrib',
+> uploading the files to the http/ftp server, updating the homepage xml,
+> rebuilding html from the xml, and (at least in the iptables case)
+> manually write the changelog based on the diff to the previous version
+> and the svn commit messages.
 
---nextPart4146011.P4spjQs24Z
-Content-Type: application/pgp-signature
+OK, that looks quite easy to automate. But, about iptables, maybe we
+could add a ChangeLog file? That would make my life easier.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+> PGP/GPG signign is an issue, and currently we only have one key for the
+> coreteam.  Maybe we should create a separate 'release signing key' that
+> would be kept with the releasemaster (e.g. you).
+> 
+> An alternative was to wait for somebody in the netfilter project to send
+> you the signed released file, and you would just do the
+> copying/updating/rebuilding/checking/...
 
-iD8DBQBDcp1NqKCdDrsF/xIRAr9CAJ0aU5Bcoj3sM1+6kmqfkxX8Ur+dsgCgiMK4
-V4NLYeuTWNpFjlANFxkGsTc=
-=g+TB
------END PGP SIGNATURE-----
+Whatever. If I get some autonomy I'll be able to do things more
+efficiently, so I prefer the first option. It's up to you.
 
---nextPart4146011.P4spjQs24Z--
+cheers,
+Pablo
