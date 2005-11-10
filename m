@@ -1,9 +1,9 @@
 From: Pablo Neira <pablo@netfilter.org>
-Subject: [PATCH  1/4] implement get and zero counters
-Date: Thu, 10 Nov 2005 02:04:04 +0100
-Message-ID: <43729C84.9010800@netfilter.org>
+Subject: [PATCH -1/4] kill the slipped through patch
+Date: Thu, 10 Nov 2005 02:04:00 +0100
+Message-ID: <43729C80.7090306@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010201050303070608060006"
+Content-Type: multipart/mixed; boundary="------------040806070602020707000109"
 Cc: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,70 +19,47 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010201050303070608060006
+--------------040806070602020707000109
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-Add support to zero counters conntrack at getting. Currently we can zero
-all the conntracks via "zero and dump", but it could be useful more fine
-grain zeroing.
+Kill 'slipped through' patch from Harald's git tree:
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+[PATCH 6/7] add support for zeroing counters at getting (04/11/2005)
+
+This is the same patch, but inverted.
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------010201050303070608060006
+--------------040806070602020707000109
 Content-Type: text/plain;
- name="03-zeroing.patch"
+ name="02slipped-through.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="03-zeroing.patch"
+ filename="02slipped-through.patch"
 
-Add support to zero counters conntrack at getting.
+Kill 'slipped through' patch from Harald's git tree ;)
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+[PATCH 6/7] add support for zeroing counters at getting (04/11/2005)
 
 Index: netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c
 ===================================================================
---- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-09 19:15:25.000000000 +0100
-+++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-09 19:28:00.000000000 +0100
-@@ -770,25 +770,31 @@ ctnetlink_get_conntrack(struct sock *ctn
- 	if (err < 0)
- 		return err;
- 
--	h = ip_conntrack_find_get(&tuple, NULL);
-+	write_lock_bh(&ip_conntrack_lock);
-+	h = __ip_conntrack_find(&tuple, NULL);
- 	if (!h) {
- 		DEBUGP("tuple not found in conntrack hash");
-+		write_unlock_bh(&ip_conntrack_lock);
- 		return -ENOENT;
- 	}
- 	DEBUGP("tuple found\n");
- 	ct = tuplehash_to_ctrack(h);
- 
- 	err = -ENOMEM;
--	skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_KERNEL);
-+	skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
- 	if (!skb2) {
--		ip_conntrack_put(ct);
-+		write_unlock_bh(&ip_conntrack_lock);
- 		return -ENOMEM;
- 	}
- 	NETLINK_CB(skb2).dst_pid = NETLINK_CB(skb).pid;
+--- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-09 19:13:35.000000000 +0100
++++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-09 19:15:25.000000000 +0100
+@@ -788,12 +788,6 @@ ctnetlink_get_conntrack(struct sock *ctn
  
  	err = ctnetlink_fill_info(skb2, NETLINK_CB(skb).pid, nlh->nlmsg_seq, 
  				  IPCTNL_MSG_CT_NEW, 1, ct);
--	ip_conntrack_put(ct);
-+#ifdef CONFIG_IP_NF_CT_ACCT
-+	if (NFNL_MSG_TYPE(nlh->nlmsg_type) == IPCTNL_MSG_CT_GET_CTRZERO) 
-+		memset(&ct->counters, 0, sizeof(ct->counters));
-+#endif
-+	write_unlock_bh(&ip_conntrack_lock);
+-
+-#ifdef CONFIG_IP_NF_CT_ACCT
+-	if (NFNL_MSG_TYPE(nlh->nlmsg_type) == IPCTNL_MSG_CT_GET_CTRZERO) 
+-		memset(&ct->counters, 0, sizeof(ct->counters));
+-#endif
+-	
+ 	ip_conntrack_put(ct);
  	if (err <= 0)
  		goto free;
- 
 
---------------010201050303070608060006--
+--------------040806070602020707000109--
