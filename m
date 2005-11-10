@@ -1,89 +1,37 @@
-From: Jamal Hadi Salim <hadi@cyberus.ca>
-Subject: Re: RED qdisc not working...
-Date: Wed, 09 Nov 2005 19:03:35 -0500
-Message-ID: <1131581016.6451.33.camel@localhost.localdomain>
-References: <6278d2220511071626j3646afa7n5ac33228e8b3fc82@mail.gmail.com>
-	<6278d2220511091532k7b732b9bv2957763ba6f4c10f@mail.gmail.com>
-Reply-To: hadi@cyberus.ca
+From: Pablo Neira <pablo@netfilter.org>
+Subject: [PATCH 0/4] ctnetlink updates take #3
+Date: Thu, 10 Nov 2005 02:03:56 +0100
+Message-ID: <43729C7C.9040109@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netdev@oss.sgi.com, laforge@netfilter.org,
-	netfilter-devel@lists.netfilter.org, coreteam@netfilter.org,
-	davem@redhat.com, netfilter@lists.netfilter.org, kaber@trash.net
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Daniel J Blueman <daniel.blueman@gmail.com>
-In-Reply-To: <6278d2220511091532k7b732b9bv2957763ba6f4c10f@mail.gmail.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-howdy,
-When you say it is "broken" - what is this relative to?
-Did you have another kernel where you precise config worked?
+Hi Harald!
 
-The only changes that have made it in for RED are in post 2.6.14; other
-than that all should work great as ever before.
+Here follows the remaining set of patches that were held back for some
+different reasons.
 
-suggestions:
+[PATCH -1/4] kill the slipped through patch
+[PATCH  1/4] implement get and zero counters
+[PATCH  2/4] attribute sizes are size_t instead of int
+[PATCH  3/4] skip sizechecking when not specified
+[PATCH  4/4] add missing sizecheckings
 
-could you try the latest iproute2 posted last few days by Stephen and
-see if your problem persists?
+cheers.
 
-Also try using something simpler than HTB like prio qdisc to help in
-debugging things for you?
-Can you look at examples directory and use some of the tricks used
-there?
-
-cheers,
-jamal
-
-On Wed, 2005-09-11 at 23:32 +0000, Daniel J Blueman wrote:
-> Has anyone been able to get the RED (random early detection) qdisc
-> working lately?
-> 
-> I can't get anything going through it to be dropped or marked; the
-> 'marked', 'early', 'pdrop' and 'other' fields remain at 0 [1]. In my
-> example script [2], I get the 3072Kbits/s transfer into eth0, which
-> you'd only expect if the RED qdisc wasn't there.
-> 
-> I have tried with a recent 2.6.12 debian kernel and stock 2.6.14 on
-> x86_64 debian. I rebuilt new iproute and iptables packages from latest
-> clean upstream sources, but to no avail.
-> 
-> Any ideas? Please CC me on replies, as I am not subscribed.
-> 
-> Thanks,
->   Dan
-> 
-> --- [1]
-> 
-> # tc -s qdisc show dev eth0
-> qdisc htb 1: r2q 10 default 10 direct_packets_stat 0
->  Sent 53985530 bytes 36757 pkts (dropped 0, overlimits 45125)
-> qdisc red 10: parent 1:10 limit 512Kb min 64Kb max 128Kb
->  Sent 53985530 bytes 36757 pkts (dropped 0, overlimits 0)
->   marked 0 early 0 pdrop 0 other 0
-> 
-> --- [2]
-> 
-> tc qdisc del dev eth0 root
-> 
-> tc qdisc add dev eth0 root handle 1: htb default 10
-> tc class add dev eth0 parent 1: classid 1:1 htb rate 4096kbit ceil 4096kbit
-> tc class add dev eth0 parent 1:1 classid 1:10 htb rate 3072kbit ceil 3072kbit
-> tc qdisc add dev eth0 parent 1:10 handle 10: red \
->   limit 4096kbit min 512kbit max 1024kbit avpkt 1000 \
->   burst 100 probability 0.02 bandwidth 1024kbit
-> ___
-> Daniel J Blueman
-> 
-> 
-> 
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
