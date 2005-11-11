@@ -1,16 +1,15 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [PATCH] ip_conntrack_proto_tcp
-Date: Fri, 11 Nov 2005 14:02:03 +0100
-Message-ID: <4374964B.3070409@eurodev.net>
-References: <1131637730.14044.12.camel@quant> <437495E7.5050500@eurodev.net>
+Subject: Re: ip_conntrack_netlink & nf_conntrack
+Date: Fri, 11 Nov 2005 14:33:02 +0100
+Message-ID: <43749D8E.8070501@eurodev.net>
+References: <Pine.LNX.4.64.0511111417130.7120@bizon.gios.gov.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: coreteam@netfilter.org, Vlad Drukker <vlad@storewiz.com>,
-	netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <437495E7.5050500@eurodev.net>
+To: Krzysztof Oledzki <olenf@ans.pl>
+In-Reply-To: <Pine.LNX.4.64.0511111417130.7120@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,18 +21,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira wrote:
-> Vlad Drukker wrote:
-> 
->>Attached patch for ip_conntrack to account TCP sessions started with SYN
->>+PUSH flags. Looks weird, but some HW vendors do TCP their own way. 
->>
->>Let's earn some points from RFC 1025.
-> 
-> 
-> I see this patch like a sort of workaround to make broken devices with
+Krzysztof Oledzki wrote:
+> Since we now have nf_conntrack included in 2.6.15 and
+> ip_conntrack_netlink is a part of ip_conntrack, I'm wonder if there are
+> any plans for porting ip_conntrack_netlink into nf_conntrack
+> (nf_conntrack_netlink)?
 
-Sorry, I meant: ... to get working broken devices with ...
+Yes. I'll post a patch of such porting soon.
 
 -- 
 Pablo
