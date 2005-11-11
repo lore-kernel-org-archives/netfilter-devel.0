@@ -1,11 +1,12 @@
 From: Damon Gray <dgray@speakeasy.org>
-Subject: [PoM PATCH 0/3] Connlimit rewrite
-Date: Thu, 10 Nov 2005 23:44:36 -0800 (PST)
-Message-ID: <Pine.LNX.4.58.0511102303061.13906@shell2.speakeasy.net>
+Subject: [PoM PATCH 3/3] small kernel change to export tcp_timeouts
+Date: Thu, 10 Nov 2005 23:45:11 -0800 (PST)
+Message-ID: <Pine.LNX.4.58.0511102339430.13906@shell2.speakeasy.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="289735540-483372831-1131695029=:13906"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-ID: <Pine.LNX.4.58.0511102345020.13906@shell2.speakeasy.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,35 +18,152 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-This new version of connlimit adds a new 2.6.14 specific directory.
-Connlimit can be used exactly as it always has however this new version
-has several new features:
+--289735540-483372831-1131695029=:13906
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
+Content-ID: <Pine.LNX.4.58.0511102345021.13906@shell2.speakeasy.net>
 
- o You can now set the size of the internal hash table. The hash table
-   size will automatically be 1 if connlimit-mask is 0.
 
- o connlimit now allows for two forms of timing out of idle sessions it
-   is tracking. It will only time out a connection if it goes over the
-   allowed number of sessions. The default timeout mode actually deletes
-   the conntrack entry for the session. The other form allows you to set
-   a CONNMARK on the conntrack entry if it has been idle over the
-   timeout. (calculating timeout is why tcp_timeouts[] in
-   ip_conntrack_proto_tcp.c needed to be changed and exported).
+[PoM PATCH 3/3] small kernel change to export tcp_timeouts
 
- o connlimit now has a shared session tracking system. The problem with
-   the way connlimit works is that when the iptables rule is deleted or
-   changed (which happens when any rule in the chain changes) then you
-   lose all the connections that it was tracking which is bad for long
-   lived connections. The new idea is to use a shared ID that you can
-   use so that multiple iptables rules can share the same set of
-   connections. This also means you can update the rule without losing
-   connections.
+Will most likely send this in as a separate patch for kernel 2.6.14.1.
 
- o connlimit no longer stores a copy of the tuple and uses that to
-   lookup the conntrack entry. It now keeps a pointer to the conntrack
-   entry (upping the use count of course). To facilitate this it uses
-   a "garbage collector" that runs every N seconds (settable via a
-   module param) which cleans out entries that the conntrack has gone
-   away, as to not waste memory. This change to using pointers increased
-   performance significantly when many connections are being tracked.
+patched patch-o-matic-ng-20051109
+
+Changes tcp_timeouts in ip_conntrack_proto_tcp.c to ip_ct_timeouts and
+exports this symbol then adds it the the header file.
+
+With these timeouts you can then calculate the idle time of a conntrack
+entry.
+
+Signed-off-by: Damon Gray <dgray@speakeasy.org>
+--289735540-483372831-1131695029=:13906
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII; NAME="ip_ct_timeouts.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.58.0511102343490.13906@shell2.speakeasy.net>
+Content-Description: 
+Content-Disposition: ATTACHMENT; FILENAME="ip_ct_timeouts.patch"
+
+ZGlmZiAtdXByTiBwYXRjaC1vLW1hdGljLW5nLTIwMDUxMTA5L3BhdGNobGV0
+
+cy9jb25ubGltaXQvbGludXgtMi42LjE0LnBhdGNoIHBhdGNoLW8tbWF0aWMt
+
+bmctY2hhbmdlZC9wYXRjaGxldHMvY29ubmxpbWl0L2xpbnV4LTIuNi4xNC5w
+
+YXRjaA0KLS0tIHBhdGNoLW8tbWF0aWMtbmctMjAwNTExMDkvcGF0Y2hsZXRz
+
+L2Nvbm5saW1pdC9saW51eC0yLjYuMTQucGF0Y2gJV2VkIERlYyAzMSAxOTow
+
+MDowMCAxOTY5DQorKysgcGF0Y2gtby1tYXRpYy1uZy1jaGFuZ2VkL3BhdGNo
+
+bGV0cy9jb25ubGltaXQvbGludXgtMi42LjE0LnBhdGNoCVRodSBOb3YgMTAg
+
+MDA6MzQ6NDYgMjAwNQ0KQEAgLTAsMCArMSw0NCBAQA0KK2RpZmYgLXVwck4g
+
+dmFuaWxsYS0yLjYuMTQvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXJfaXB2NC9p
+
+cF9jb25udHJhY2tfdGNwLmggMi42LjE0L2luY2x1ZGUvbGludXgvbmV0Zmls
+
+dGVyX2lwdjQvaXBfY29ubnRyYWNrX3RjcC5oDQorLS0tIHZhbmlsbGEtMi42
+
+LjE0L2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2lwdjQvaXBfY29ubnRyYWNr
+
+X3RjcC5oCVRodSBPY3QgMjcgMjA6MDI6MDggMjAwNQ0KKysrKyAyLjYuMTQv
+
+aW5jbHVkZS9saW51eC9uZXRmaWx0ZXJfaXB2NC9pcF9jb25udHJhY2tfdGNw
+
+LmgJVGh1IE5vdiAgMyAxMzo0NTo1OCAyMDA1DQorQEAgLTE3LDYgKzE3LDgg
+
+QEAgZW51bSB0Y3BfY29ubnRyYWNrIHsNCisgCVRDUF9DT05OVFJBQ0tfSUdO
+
+T1JFDQorIH07DQorIA0KKytleHRlcm4gdW5zaWduZWQgbG9uZyAqaXBfY3Rf
+
+dGNwX3RpbWVvdXRzW107DQorKw0KKyAvKiBXaW5kb3cgc2NhbGluZyBpcyBh
+
+ZHZlcnRpc2VkIGJ5IHRoZSBzZW5kZXIgKi8NCisgI2RlZmluZSBJUF9DVF9U
+
+Q1BfRkxBR19XSU5ET1dfU0NBTEUJCTB4MDENCisgDQorZGlmZiAtdXByTiB2
+
+YW5pbGxhLTIuNi4xNC9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29ubnRyYWNr
+
+X3Byb3RvX3RjcC5jIDIuNi4xNC9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29u
+
+bnRyYWNrX3Byb3RvX3RjcC5jDQorLS0tIHZhbmlsbGEtMi42LjE0L25ldC9p
+
+cHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfcHJvdG9fdGNwLmMJVGh1IE9j
+
+dCAyNyAyMDowMjowOCAyMDA1DQorKysrIDIuNi4xNC9uZXQvaXB2NC9uZXRm
+
+aWx0ZXIvaXBfY29ubnRyYWNrX3Byb3RvX3RjcC5jCVRodSBOb3YgIDMgMTM6
+
+NDU6NTggMjAwNQ0KK0BAIC05OSw3ICs5OSw3IEBAIHVuc2lnbmVkIGxvbmcg
+
+aXBfY3RfdGNwX3RpbWVvdXRfY2xvc2UgPSANCisgICAgdG8gfjEzLTMwbWlu
+
+IGRlcGVuZGluZyBvbiBSVE8uICovDQorIHVuc2lnbmVkIGxvbmcgaXBfY3Rf
+
+dGNwX3RpbWVvdXRfbWF4X3JldHJhbnMgPSAgICAgNSBNSU5TOw0KKyAgDQor
+
+LXN0YXRpYyB1bnNpZ25lZCBsb25nICogdGNwX3RpbWVvdXRzW10NCisrdW5z
+
+aWduZWQgbG9uZyAqIGlwX2N0X3RjcF90aW1lb3V0c1tdDQorID0geyBOVUxM
+
+LCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC8qICAgICAgVENQX0NP
+
+Tk5UUkFDS19OT05FICovDQorICAgICAmaXBfY3RfdGNwX3RpbWVvdXRfc3lu
+
+X3NlbnQsICAgICAgIC8qICAgICAgVENQX0NPTk5UUkFDS19TWU5fU0VOVCwg
+
+Ki8NCisgICAgICZpcF9jdF90Y3BfdGltZW91dF9zeW5fcmVjdiwgICAgICAg
+
+LyogICAgICBUQ1BfQ09OTlRSQUNLX1NZTl9SRUNWLCAqLw0KK0BAIC0xMTEs
+
+NiArMTExLDggQEAgc3RhdGljIHVuc2lnbmVkIGxvbmcgKiB0Y3BfdGltZW91
+
+dHNbXQ0KKyAgICAgJmlwX2N0X3RjcF90aW1lb3V0X2Nsb3NlLCAgICAgICAg
+
+ICAvKiAgICAgIFRDUF9DT05OVFJBQ0tfQ0xPU0UsICAgICovDQorICAgICBO
+
+VUxMLCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC8qICAgICAgVENQ
+
+X0NPTk5UUkFDS19MSVNURU4gKi8NCisgIH07DQorKw0KKytFWFBPUlRfU1lN
+
+Qk9MKGlwX2N0X3RjcF90aW1lb3V0cyk7DQorICANCisgI2RlZmluZSBzTk8g
+
+VENQX0NPTk5UUkFDS19OT05FDQorICNkZWZpbmUgc1NTIFRDUF9DT05OVFJB
+
+Q0tfU1lOX1NFTlQNCitAQCAtMTAxNCw4ICsxMDE2LDggQEAgc3RhdGljIGlu
+
+dCB0Y3BfcGFja2V0KHN0cnVjdCBpcF9jb25udHJhYw0KKyAJICAgIAl8fCBu
+
+ZXdfc3RhdGUgPT0gVENQX0NPTk5UUkFDS19DTE9TRSkpDQorIAkJY29ubnRy
+
+YWNrLT5wcm90by50Y3Auc2VlbltkaXJdLmZsYWdzIHw9IElQX0NUX1RDUF9G
+
+TEFHX0NMT1NFX0lOSVQ7DQorIAl0aW1lb3V0ID0gY29ubnRyYWNrLT5wcm90
+
+by50Y3AucmV0cmFucyA+PSBpcF9jdF90Y3BfbWF4X3JldHJhbnMNCistCQkg
+
+ICYmICp0Y3BfdGltZW91dHNbbmV3X3N0YXRlXSA+IGlwX2N0X3RjcF90aW1l
+
+b3V0X21heF9yZXRyYW5zDQorLQkJICA/IGlwX2N0X3RjcF90aW1lb3V0X21h
+
+eF9yZXRyYW5zIDogKnRjcF90aW1lb3V0c1tuZXdfc3RhdGVdOw0KKysJCSAg
+
+JiYgKmlwX2N0X3RjcF90aW1lb3V0c1tuZXdfc3RhdGVdID4gaXBfY3RfdGNw
+
+X3RpbWVvdXRfbWF4X3JldHJhbnMNCisrCQkgID8gaXBfY3RfdGNwX3RpbWVv
+
+dXRfbWF4X3JldHJhbnMgOiAqaXBfY3RfdGNwX3RpbWVvdXRzW25ld19zdGF0
+
+ZV07DQorIAl3cml0ZV91bmxvY2tfYmgoJnRjcF9sb2NrKTsNCisgDQorIAlp
+
+cF9jb25udHJhY2tfZXZlbnRfY2FjaGUoSVBDVF9QUk9UT0lORk9fVk9MQVRJ
+
+TEUsIHNrYik7DQo=
+
+
+--289735540-483372831-1131695029=:13906--
