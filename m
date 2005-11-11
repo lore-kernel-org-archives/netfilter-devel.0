@@ -1,14 +1,16 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: Compilation Issue on RG9
-Date: Fri, 11 Nov 2005 14:49:29 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0511111447490.8018@bizon.gios.gov.pl>
-References: <5efe1e0b0511110543v7d24c88bmc7c0dd761e502f01@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [netfilter-core] Re: [PATCH] ip_conntrack_proto_tcp
+Date: Fri, 11 Nov 2005 14:58:01 +0100
+Message-ID: <4374A369.6020308@trash.net>
+References: <1131637730.14044.12.camel@quant> <437495E7.5050500@eurodev.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-873572737-1131716969=:8018"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: coreteam@netfilter.org, Vlad Drukker <vlad@storewiz.com>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Hai Wang <pppoe.pppoa@gmail.com>
-In-Reply-To: <5efe1e0b0511110543v7d24c88bmc7c0dd761e502f01@mail.gmail.com>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <437495E7.5050500@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,31 +22,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Pablo Neira wrote:
+> Vlad Drukker wrote:
+> 
+>>Attached patch for ip_conntrack to account TCP sessions started with SYN
+>>+PUSH flags. Looks weird, but some HW vendors do TCP their own way. 
+>>
+>>Let's earn some points from RFC 1025.
+> 
+> I see this patch like a sort of workaround to make broken devices with
+> the TCP connection tracking, right? In that case, I don't think that
+> it's a good idea polluting our code with workarounds for every existing
+> broken device. The HW vendors must fix their devices.
 
----187430788-873572737-1131716969=:8018
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Fri, 11 Nov 2005, Hai Wang wrote:
-
-> Hello everyone
-Helllo,
-
-> I encountered a problem when I tried to compile iptables-1.3.4 on RH9 (
-> 2.4.25), I got the following errors, please shed some lights on it.
->
-> ensions/libipt_time_sh.o -c extensions/libipt_time.c
-> extensions/libipt_time.c: In function `init':
-> extensions/libipt_time.c:66: structure has no member named `date_start'
-> extensions/libipt_time.c:67: structure has no member named `date_stop'
-
-Whitch version of patch-o-magic did you use?
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-873572737-1131716969=:8018--
+Unfortunately this is unlikely to happen, and if Linux itself
+accepts SYN|PSH, I don't see a reason why ip_conntrack shouldn't
+as well.
