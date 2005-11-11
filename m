@@ -1,13 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 11/10]: [NETFILTER]: Export ip6_masked_addrcmp, don't pass
- IPv6 addresses on stack
-Date: Fri, 11 Nov 2005 06:25:38 +0100
-Message-ID: <43742B52.6060905@trash.net>
+From: Deti Fliegl <deti@fliegl.de>
+Subject: Re: again: conntrack & 2.6.14-git11
+Date: Fri, 11 Nov 2005 08:10:53 +0100
+Message-ID: <437443FD.1060604@fliegl.de>
+References: <4371D660.4060003@fliegl.de> <4371FBDD.4020302@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060803050306050803020902"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Kernel Netdev Mailing List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <4371FBDD.4020302@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,95 +21,52 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060803050306050803020902
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Pablo Neira wrote:
+> I don't see the patch that is supposed to fix the problem in that git
+> snapshot. Please, make sure that the patch attached is applied to your
+> kernel tree.
+Had a defective harddisk on my testsystem and was not able to test 
+yesterday. Now I tried git13 which incorporates this patch but still got 
+an oops. Not sure, if this is related to netlink/conntrack.
 
-For completeness, the next two patches contain the policy match.
+wget[4709]: segfault at 00002aab1313321d rip 00002aaaab21ba6f rsp 
+00007fffffb61510 error 4
+ACCEPT IN=mgmt OUT= MAC=00:04:23:b7:70:7c:00:d0:03:49:58:00:08:00 
+SRC=10.156.10.105 DST=XX LEN=84 TOS=0x00 PREC=0x00 TTL=63 ID=2630 
+PROTO=ICMP TYPE=0 CODE=0
+  ID=55676 SEQ=1
+Badness in __kfree_skb at net/core/skbuff.c:334
 
---------------060803050306050803020902
-Content-Type: text/x-patch;
- name="11.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="11.diff"
+Call Trace:<ffffffff80271ab7>{__kfree_skb+165} 
+<ffffffff80287fb5>{netlink_recvmsg+259}
+        <ffffffff8026c14d>{sock_recvmsg+284} 
+<ffffffff802e20eb>{thread_return+0}
+        <ffffffff80151ca7>{file_read_actor+0} 
+<ffffffff80143021>{autoremove_wake_function+0}
+        <ffffffff8026d648>{sys_recvmsg+357} 
+<ffffffff80143021>{autoremove_wake_function+0}
+        <ffffffff8017c6d6>{pipe_writev+1293} 
+<ffffffff80170cbe>{vfs_write+326}
+        <ffffffff80170db2>{sys_write+69} <ffffffff8010d94e>{system_call+126}
 
-[NETFILTER]: Export ip6_masked_addrcmp, don't pass IPv6 addresses on stack
+Badness in __kfree_skb at net/core/skbuff.c:334
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Call Trace:<ffffffff80271ab7>{__kfree_skb+165} 
+<ffffffff80287fb5>{netlink_recvmsg+259}
+        <ffffffff8026c14d>{sock_recvmsg+284} 
+<ffffffff802e20eb>{thread_return+0}
+        <ffffffff80151ca7>{file_read_actor+0} 
+<ffffffff80143021>{autoremove_wake_function+0}
+        <ffffffff8026d648>{sys_recvmsg+357} 
+<ffffffff8017c6d6>{pipe_writev+1293}
+        <ffffffff80170cbe>{vfs_write+326} <ffffffff80170db2>{sys_write+69}
+        <ffffffff8010d94e>{system_call+126}
+scheduling while atomic: conntrack/0xffffff00/15404
 
----
-commit f12c4452cdb1b7d0d33a00120145e301507458e4
-tree 4762d9addca1746390024fcf437c73759b90955c
-parent 5365555b302ffc8a31170833ca33636e9e66ff9a
-author Patrick McHardy <kaber@trash.net> Fri, 11 Nov 2005 06:14:09 +0100
-committer Patrick McHardy <kaber@trash.net> Fri, 11 Nov 2005 06:14:09 +0100
+Call Trace:<ffffffff802e12af>{schedule+126} 
+<ffffffff80170cbe>{vfs_write+326}
+        <ffffffff80170db2>{sys_write+69} 
+<ffffffff8010d9b8>{sysret_careful+13}
 
- include/linux/netfilter_ipv6/ip6_tables.h |    4 ++++
- net/ipv6/netfilter/ip6_tables.c           |   18 ++++++++++--------
- 2 files changed, 14 insertions(+), 8 deletions(-)
-
-diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
-index 2efc046..1e11010 100644
---- a/include/linux/netfilter_ipv6/ip6_tables.h
-+++ b/include/linux/netfilter_ipv6/ip6_tables.h
-@@ -476,6 +476,10 @@ extern int ip6t_ext_hdr(u8 nexthdr);
- extern int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
- 			 u8 target);
- 
-+extern int ip6_masked_addrcmp(const struct in6_addr *addr1,
-+			      const struct in6_addr *mask,
-+			      const struct in6_addr *addr2);
-+
- #define IP6T_ALIGN(s) (((s) + (__alignof__(struct ip6t_entry)-1)) & ~(__alignof__(struct ip6t_entry)-1))
- 
- #endif /*__KERNEL__*/
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 7d49222..71a80e0 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -128,13 +128,14 @@ static LIST_HEAD(ip6t_tables);
- #define up(x) do { printk("UP:%u:" #x "\n", __LINE__); up(x); } while(0)
- #endif
- 
--static int ip6_masked_addrcmp(struct in6_addr addr1, struct in6_addr mask,
--			      struct in6_addr addr2)
-+int
-+ip6_masked_addrcmp(const struct in6_addr *addr1, const struct in6_addr *mask,
-+                   const struct in6_addr *addr2)
- {
- 	int i;
- 	for( i = 0; i < 16; i++){
--		if((addr1.s6_addr[i] & mask.s6_addr[i]) != 
--		   (addr2.s6_addr[i] & mask.s6_addr[i]))
-+		if((addr1->s6_addr[i] & mask->s6_addr[i]) != 
-+		   (addr2->s6_addr[i] & mask->s6_addr[i]))
- 			return 1;
- 	}
- 	return 0;
-@@ -168,10 +169,10 @@ ip6_packet_match(const struct sk_buff *s
- 
- #define FWINV(bool,invflg) ((bool) ^ !!(ip6info->invflags & invflg))
- 
--	if (FWINV(ip6_masked_addrcmp(ipv6->saddr,ip6info->smsk,ip6info->src),
--		  IP6T_INV_SRCIP)
--	    || FWINV(ip6_masked_addrcmp(ipv6->daddr,ip6info->dmsk,ip6info->dst),
--		     IP6T_INV_DSTIP)) {
-+	if (FWINV(ip6_masked_addrcmp(&ipv6->saddr, &ip6info->smsk,
-+	                             &ip6info->src), IP6T_INV_SRCIP)
-+	    || FWINV(ip6_masked_addrcmp(&ipv6->daddr, &ip6info->dmsk,
-+	                                &ip6info->dst), IP6T_INV_DSTIP)) {
- 		dprintf("Source or dest mismatch.\n");
- /*
- 		dprintf("SRC: %u. Mask: %u. Target: %u.%s\n", ip->saddr,
-@@ -2094,6 +2095,7 @@ EXPORT_SYMBOL(ip6t_register_target);
- EXPORT_SYMBOL(ip6t_unregister_target);
- EXPORT_SYMBOL(ip6t_ext_hdr);
- EXPORT_SYMBOL(ipv6_find_hdr);
-+EXPORT_SYMBOL(ip6_masked_addrcmp);
- 
- module_init(init);
- module_exit(fini);
-
---------------060803050306050803020902--
+Further tried the refcount patch with 2.6.14 (no git version) without 
+success (oops).
