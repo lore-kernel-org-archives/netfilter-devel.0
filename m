@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH  1/4] implement get and zero counters
-Date: Sat, 12 Nov 2005 11:29:59 +0100
-Message-ID: <20051112102959.GF10584@sunbeam.de.gnumonks.org>
-References: <43729C84.9010800@netfilter.org>
+Subject: Re: [PATCH -1/4] kill the slipped through patch
+Date: Sat, 12 Nov 2005 11:29:11 +0100
+Message-ID: <20051112102911.GE10584@sunbeam.de.gnumonks.org>
+References: <43729C80.7090306@netfilter.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zinZTyJ7Pquq9iCB"
+	protocol="application/pgp-signature"; boundary="kxn/JluRpPoM1h3S"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira <pablo@netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <43729C84.9010800@netfilter.org>
+In-Reply-To: <43729C80.7090306@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,18 +23,15 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---zinZTyJ7Pquq9iCB
+--kxn/JluRpPoM1h3S
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 10, 2005 at 02:04:04AM +0100, Pablo Neira wrote:
-> Add support to zero counters conntrack at getting. Currently we can zero
-> all the conntracks via "zero and dump", but it could be useful more fine
-> grain zeroing.
+On Thu, Nov 10, 2005 at 02:04:00AM +0100, Pablo Neira wrote:
+> Kill 'slipped through' patch from Harald's git tree:
 
-but do we really want to add this feature at the expense of _always_
-grabbing a write lock on ip_conntrack_lock?  I don't think so.
+applied.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -46,16 +43,16 @@ grabbing a write lock on ip_conntrack_lock?  I don't think so.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---zinZTyJ7Pquq9iCB
+--kxn/JluRpPoM1h3S
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDdcQnXaXGVTD0i/8RAn8wAKCVJ7ZXnaC6oFstCK5zvOWtj2undQCfdS66
-mEdUCqfpihgVuWvVN2Bqbjc=
-=C/aH
+iD8DBQFDdcP3XaXGVTD0i/8RAlizAJ4vhZl4Q4pcmz56C+BEmR9aXfgzPACeOqAb
+d1N7zhZBxYO3J6t6KuEtVqY=
+=A9MK
 -----END PGP SIGNATURE-----
 
---zinZTyJ7Pquq9iCB--
+--kxn/JluRpPoM1h3S--
