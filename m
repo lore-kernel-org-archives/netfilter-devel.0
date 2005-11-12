@@ -1,17 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] x_tables, take 4
-Date: Sat, 12 Nov 2005 11:12:53 +0100
-Message-ID: <20051112101253.GB10584@sunbeam.de.gnumonks.org>
-References: <20051103191110.GO905@sunbeam.de.gnumonks.org>
-	<200511071710.56991.mbellion@hipac.org>
+Subject: Re: Simulatenous use of LOG and ULOG on 2.6.14
+Date: Sat, 12 Nov 2005 11:17:27 +0100
+Message-ID: <20051112101727.GC10584@sunbeam.de.gnumonks.org>
+References: <436EF34E.2030806@netboxblue.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="8jEihaNHb65WmIJG"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="eGwLO2yoW8Ya4hN1"
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Michael Bellion <mbellion@hipac.org>
+To: Menno Smits <menno@netboxblue.com>
 Content-Disposition: inline
-In-Reply-To: <200511071710.56991.mbellion@hipac.org>
+In-Reply-To: <436EF34E.2030806@netboxblue.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,72 +23,40 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---8jEihaNHb65WmIJG
+--eGwLO2yoW8Ya4hN1
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Nov 07, 2005 at 05:10:56PM +0100, Michael Bellion wrote:
-> Hi
+On Mon, Nov 07, 2005 at 04:25:18PM +1000, Menno Smits wrote:
+> Hi,
 >=20
-> > This is the fourth incarnation of the x_tables patch.  It is now
-> > compiling clean, and at least those parts that I use in my systems seem
-> > to work fine.
-> >
-> > I want to run this trough nfsim before submitting it mainline.
-> >
-> > I dislike the 'void *' pointers we cast for match/targetinfo, but I
-> > think the advantage of code unification is bigger than some typecasts.
-> >
-> > Also, we should think about putting all those match/checkentry/target
-> > parameters into a structure (which could contain unions to avoid the
-> > typeasting).  But I think this can happen in a next patch, x_tables
-> > changes are already large enough.
-> >
-> > Please review and comment,
->=20
-> Nice work!
+> I'm trying to use the LOG and ULOG targets simultaenously on 2.6.14
+> but am having problems.  This used to work on previous kernel
+> versions.
 
-Thanks ;)
+this is no longer possible, since both now use the nf_log API.
+Everything you log via LOG, ULOG or NFLOG will be sent to the nf_log
+core.  At any given time, there can only be one backend registered to
+nf_log.
 
-> But could you rename it to something without "tables"?
-> It is not related to tables in any way. It is about function based matche=
-s and=20
-> targets, that's why the name "x_tables" is IMHO a bit irritating.
+The idea is that in the long term there will only be one LOG target that
+everybody uses.
 
-Well, there are pieces of the patch that are related to 'tables' (like
-the xt_register_table(), etc. functions).
+One thing that I've been thinking about, though, was having priorities.
+So when you use ULOG/NFLOG and your daemon dies, it would fall back to
+the LOG/dmesg backend, if that is available.
 
-So as this first step, I really only wanted to unify
-{ip,ip6,arp}_tables.  This is not yet the generalized match/target
-support.
+> How do I make this work as before? I need to be able to use both ULOG and=
+ LOG at the same=20
+> time. Will it work if enable CONFIG_NETFILTER_NETLINK and related options=
+ and port the=20
+> daemon to the new libnetfilter_log library? I'd really prefer to not have=
+ to touch the=20
+> daemon at this stage but will if that's the only answer.
 
-As a second step, I want to cleanup the API for matches/targets, and
-also introduce the tlv-to-matchinfo and matchinfo-to-tlv members of
-xt_match / xt_target.  Also, the 'verdict' that is returned by targets
-needs to be removed [for multiple targets], but in a way they=20
+no, it wouldn't be any different.
 
-Maybe ew could just call them 'XTended match' and 'XTended target' at
-that point, this way we could keep with the xt_ prefix.  What do you
-think?
-
-> What about the name "x_functions" or something similar?
-
-Good question.  If we can come up with a good (intuitive) name over the
-next two weeks, I can still change it.=20
-
-To be honest, I don't think 'x_functions' is more intuitive.   Whatever
-name we  will find, it won't be ideal.  the 'x' was just to replace
-'ip/ip6/arp'. =20
-
-If we say 'nf match' and 'nf action', then we end up with nfm and nfa
-prefixes in structure and functio names, both of which are already used
-by nfnetlink (NFM_, NFA_), which could be confusing.
-
-packet matches and packet actions would be another option, but 'packet
-actions' are already used by TC/iproute, if i'm not mistaken.
-
-Comments/Suggestions?
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -100,16 +67,16 @@ Comments/Suggestions?
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---8jEihaNHb65WmIJG
+--eGwLO2yoW8Ya4hN1
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDdcAlXaXGVTD0i/8RAuwCAKCkEiwtVTtAyhR6CotoliWvRubn5wCgrQq9
-xpMZKAbhGiCvkCWHTGSS03s=
-=uJi+
+iD8DBQFDdcE3XaXGVTD0i/8RAi/8AJ45thBcc89cDztZqGTdk85+a5QbcACfV/TE
+LaG0HO8EIV/3/RdGnvxdDI8=
+=WlSE
 -----END PGP SIGNATURE-----
 
---8jEihaNHb65WmIJG--
+--eGwLO2yoW8Ya4hN1--
