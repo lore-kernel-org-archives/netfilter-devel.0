@@ -1,16 +1,17 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: [PATCH] x_tables, take 4
-Date: Sat, 12 Nov 2005 11:46:49 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0511121138300.9438@bizon.gios.gov.pl>
-References: <20051103191110.GO905@sunbeam.de.gnumonks.org>
-	<200511071710.56991.mbellion@hipac.org>
-	<20051112101253.GB10584@sunbeam.de.gnumonks.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH  2/4] attribute sizes are size_t instead of int
+Date: Sat, 12 Nov 2005 12:03:43 +0100
+Message-ID: <20051112110343.GI10584@sunbeam.de.gnumonks.org>
+References: <43729C87.8030902@netfilter.org>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-885297174-1131792409=:9438"
-Cc: Michael Bellion <mbellion@hipac.org>, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="E7UzyiO3cWVgLa0z"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051112101253.GB10584@sunbeam.de.gnumonks.org>
+To: Pablo Neira <pablo@netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <43729C87.8030902@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,27 +23,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-885297174-1131792409=:9438
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+--E7UzyiO3cWVgLa0z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Thu, Nov 10, 2005 at 02:04:07AM +0100, Pablo Neira wrote:
+> Make gcc-4.x happy. Use size_t instead of int. Thanks to Patrick Mchardy =
+for
+> the hint.
 
+thanks, applied.
 
-On Sat, 12 Nov 2005, Harald Welte wrote:
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-<CUT>
+--E7UzyiO3cWVgLa0z
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-> As a second step, I want to cleanup the API for matches/targets, and
-> also introduce the tlv-to-matchinfo and matchinfo-to-tlv members of
-> xt_match / xt_target.  Also, the 'verdict' that is returned by targets
-> needs to be removed [for multiple targets], but in a way they
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-Is it possible to add a match negation at the same time?
+iD8DBQFDdcwPXaXGVTD0i/8RAk+bAJ9pBvgISG+XSWxuFFHcaR8ETrs6kQCfcOq4
+P2hWJ6qCXwSTRnqWotWnsNo=
+=49qb
+-----END PGP SIGNATURE-----
 
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-885297174-1131792409=:9438--
+--E7UzyiO3cWVgLa0z--
