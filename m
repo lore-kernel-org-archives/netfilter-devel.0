@@ -1,16 +1,13 @@
-From: Pablo Neira <pablo@netfilter.org>
-Subject: Re: [PATCH  1/4] implement get and zero counters
-Date: Sat, 12 Nov 2005 14:10:41 +0100
-Message-ID: <4375E9D1.1050204@netfilter.org>
-References: <43729C84.9010800@netfilter.org>
-	<20051112102959.GF10584@sunbeam.de.gnumonks.org>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH] replace handmade list with hlist in IPv6 reassembly
+Date: Sat, 12 Nov 2005 23:40:09 +0900 (JST)
+Message-ID: <200511121440.jACEeA7b022665@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: laforge@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051112102959.GF10584@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,18 +19,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> On Thu, Nov 10, 2005 at 02:04:04AM +0100, Pablo Neira wrote:
-> 
->>Add support to zero counters conntrack at getting. Currently we can zero
->>all the conntracks via "zero and dump", but it could be useful more fine
->>grain zeroing.
-> 
-> but do we really want to add this feature at the expense of _always_
-> grabbing a write lock on ip_conntrack_lock?  I don't think so.
 
-OK, in that case I'll rework patch and send it to you soon.
+Hi,
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+There is no reason not to use hlist instead of handmade list processing
+in nf_conntrack_reasm.c. I'll also write patch for IPv{4,6} reassembly.
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+
+Regards,
