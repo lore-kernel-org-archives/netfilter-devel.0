@@ -1,10 +1,11 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 3/4] use auxiliary functions in nf_ct_reasm
-Date: Sun, 13 Nov 2005 17:51:04 +0900 (JST)
-Message-ID: <200511130851.jAD8p5Uw012057@toshiba.co.jp>
+Subject: [PATCH 4/4] fix possibility of infinite loop while evicting frag
+ queue
+Date: Sun, 13 Nov 2005 17:52:02 +0900 (JST)
+Message-ID: <200511130852.jAD8q31N026649@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Sun_Nov_13_17_51_04_2005_247)--"
+	boundary="--Next_Part(Sun_Nov_13_17_52_02_2005_958)--"
 Content-Transfer-Encoding: 7bit
 Cc: laforge@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -20,82 +21,171 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Sun_Nov_13_17_51_04_2005_247)--
+----Next_Part(Sun_Nov_13_17_52_02_2005_958)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
 
-This replaces old codes with spin_lock_init(), DEFINE_RWLOCK(), and
-ipv6_addr_equal().
+This synchronizes nf_ct_reasm with ipv6 reassembly, and fixes possibility of
+infinite loop if CPUs evict and create nf_ct_frag6_queue in parallel.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
 
-----Next_Part(Sun_Nov_13_17_51_04_2005_247)--
+----Next_Part(Sun_Nov_13_17_52_02_2005_958)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="05-nfct-reasm-sync.patch"
+Content-Disposition: inline; filename="06-nfct-reasm-evictor.patch"
 
-[NETFILTER] use auxiliary functions in nf_ct_reasm
+[NETFILTER] fix possibility of infinite loop while evicting nf_ct_frag6_queue
 
-This replaces old codes with spin_lock_init(), DEFINE_RWLOCK(), and
-ipv6_addr_equal().
+This synchronizes nf_ct_reasm with ipv6 reassembly, and fixes possibility of
+infinite loop if CPUs evict and create nf_ct_frag6_queue in parallel.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
 ---
-commit 9860fe99d5cc088973ef8108747cf46f583637be
-tree e4db8cf3b53a60bed66c8afcb2e49d37f1cb922d
-parent 7f3c8051c47ebe6260a6c6159bcb2feae10c9dcc
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 13 Nov 2005 16:18:51 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 13 Nov 2005 16:18:51 +0900
+commit f52909251ea9c78b0d35d9ae265023ef67559b6a
+tree 9498f0e638a14a678b326efb770b07cdb97467bb
+parent 9860fe99d5cc088973ef8108747cf46f583637be
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 13 Nov 2005 16:33:37 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 13 Nov 2005 16:33:37 +0900
 
- net/ipv6/netfilter/nf_conntrack_reasm.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ net/ipv6/netfilter/nf_conntrack_reasm.c |   42 +++++++++++++++++++------------
+ 1 files changed, 26 insertions(+), 16 deletions(-)
 
 diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 5556a19..99b0e13 100644
+index 99b0e13..fcc9391 100644
 --- a/net/ipv6/netfilter/nf_conntrack_reasm.c
 +++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -97,7 +97,7 @@ struct nf_ct_frag6_queue
- #define FRAG6Q_HASHSZ	64
+@@ -177,8 +177,10 @@ static void nf_ct_frag6_secret_rebuild(u
+ atomic_t nf_ct_frag6_mem = ATOMIC_INIT(0);
  
- static struct hlist_head nf_ct_frag6_hash[FRAG6Q_HASHSZ];
--static rwlock_t nf_ct_frag6_lock = RW_LOCK_UNLOCKED;
-+static DEFINE_RWLOCK(nf_ct_frag6_lock);
- static u32 nf_ct_frag6_hash_rnd;
- static LIST_HEAD(nf_ct_frag6_lru_list);
- int nf_ct_frag6_nqueues = 0;
-@@ -308,8 +308,8 @@ static struct nf_ct_frag6_queue *nf_ct_f
- #ifdef CONFIG_SMP
- 	hlist_for_each_entry(fq, n, &nf_ct_frag6_hash[hash], list) {
- 		if (fq->id == fq_in->id && 
--		    !ipv6_addr_cmp(&fq_in->saddr, &fq->saddr) &&
--		    !ipv6_addr_cmp(&fq_in->daddr, &fq->daddr)) {
-+		    ipv6_addr_equal(&fq_in->saddr, &fq->saddr) &&
-+		    ipv6_addr_equal(&fq_in->daddr, &fq->daddr)) {
+ /* Memory Tracking Functions. */
+-static inline void frag_kfree_skb(struct sk_buff *skb)
++static inline void frag_kfree_skb(struct sk_buff *skb, unsigned int *work)
+ {
++	if (work)
++		*work -= skb->truesize;
+ 	atomic_sub(skb->truesize, &nf_ct_frag6_mem);
+ 	if (NFCT_FRAG6_CB(skb)->orig)
+ 		kfree_skb(NFCT_FRAG6_CB(skb)->orig);
+@@ -186,8 +188,11 @@ static inline void frag_kfree_skb(struct
+ 	kfree_skb(skb);
+ }
+ 
+-static inline void frag_free_queue(struct nf_ct_frag6_queue *fq)
++static inline void frag_free_queue(struct nf_ct_frag6_queue *fq,
++				   unsigned int *work)
+ {
++	if (work)
++		*work -= sizeof(struct nf_ct_frag6_queue);
+ 	atomic_sub(sizeof(struct nf_ct_frag6_queue), &nf_ct_frag6_mem);
+ 	kfree(fq);
+ }
+@@ -205,7 +210,8 @@ static inline struct nf_ct_frag6_queue *
+ /* Destruction primitives. */
+ 
+ /* Complete destruction of fq. */
+-static void nf_ct_frag6_destroy(struct nf_ct_frag6_queue *fq)
++static void nf_ct_frag6_destroy(struct nf_ct_frag6_queue *fq,
++				unsigned int *work)
+ {
+ 	struct sk_buff *fp;
+ 
+@@ -217,17 +223,17 @@ static void nf_ct_frag6_destroy(struct n
+ 	while (fp) {
+ 		struct sk_buff *xp = fp->next;
+ 
+-		frag_kfree_skb(fp);
++		frag_kfree_skb(fp, work);
+ 		fp = xp;
+ 	}
+ 
+-	frag_free_queue(fq);
++	frag_free_queue(fq, work);
+ }
+ 
+-static __inline__ void fq_put(struct nf_ct_frag6_queue *fq)
++static __inline__ void fq_put(struct nf_ct_frag6_queue *fq, unsigned int *work)
+ {
+ 	if (atomic_dec_and_test(&fq->refcnt))
+-		nf_ct_frag6_destroy(fq);
++		nf_ct_frag6_destroy(fq, work);
+ }
+ 
+ /* Kill fq entry. It is not destroyed immediately,
+@@ -249,10 +255,14 @@ static void nf_ct_frag6_evictor(void)
+ {
+ 	struct nf_ct_frag6_queue *fq;
+ 	struct list_head *tmp;
++	unsigned int work;
+ 
+-	for (;;) {
+-		if (atomic_read(&nf_ct_frag6_mem) <= nf_ct_frag6_low_thresh)
+-			return;
++	work = atomic_read(&nf_ct_frag6_mem);
++	if (work <= nf_ct_frag6_low_thresh)
++		return;
++
++	work -= nf_ct_frag6_low_thresh;
++	while (work > 0) {
+ 		read_lock(&nf_ct_frag6_lock);
+ 		if (list_empty(&nf_ct_frag6_lru_list)) {
+ 			read_unlock(&nf_ct_frag6_lock);
+@@ -274,7 +284,7 @@ static void nf_ct_frag6_evictor(void)
+ 			fq_kill(fq);
+ 		spin_unlock(&fq->lock);
+ 
+-		fq_put(fq);
++		fq_put(fq, &work);
+ 	}
+ }
+ 
+@@ -291,7 +301,7 @@ static void nf_ct_frag6_expire(unsigned 
+ 
+ out:
+ 	spin_unlock(&fq->lock);
+-	fq_put(fq);
++	fq_put(fq, NULL);
+ }
+ 
+ /* Creation primitives. */
+@@ -313,7 +323,7 @@ static struct nf_ct_frag6_queue *nf_ct_f
  			atomic_inc(&fq->refcnt);
  			write_unlock(&nf_ct_frag6_lock);
  			fq_in->last_in |= COMPLETE;
-@@ -352,7 +352,7 @@ nf_ct_frag6_create(unsigned int hash, u3
- 	init_timer(&fq->timer);
- 	fq->timer.function = nf_ct_frag6_expire;
- 	fq->timer.data = (long) fq;
--	fq->lock = SPIN_LOCK_UNLOCKED;
-+	spin_lock_init(&fq->lock);
- 	atomic_set(&fq->refcnt, 1);
- 
- 	return nf_ct_frag6_intern(hash, fq);
-@@ -371,8 +371,8 @@ fq_find(u32 id, struct in6_addr *src, st
- 	read_lock(&nf_ct_frag6_lock);
- 	hlist_for_each_entry(fq, n, &nf_ct_frag6_hash[hash], list) {
- 		if (fq->id == id && 
--		    !ipv6_addr_cmp(src, &fq->saddr) &&
--		    !ipv6_addr_cmp(dst, &fq->daddr)) {
-+		    ipv6_addr_equal(src, &fq->saddr) &&
-+		    ipv6_addr_equal(dst, &fq->daddr)) {
- 			atomic_inc(&fq->refcnt);
- 			read_unlock(&nf_ct_frag6_lock);
+-			fq_put(fq_in);
++			fq_put(fq_in, NULL);
  			return fq;
+ 		}
+ 	}
+@@ -528,7 +538,7 @@ static int nf_ct_frag6_queue(struct nf_c
+ 				fq->fragments = next;
+ 
+ 			fq->meat -= free_it->len;
+-			frag_kfree_skb(free_it);
++			frag_kfree_skb(free_it, NULL);
+ 		}
+ 	}
+ 
+@@ -804,7 +814,7 @@ struct sk_buff *nf_ct_frag6_gather(struc
+ 	if (nf_ct_frag6_queue(fq, clone, fhdr, nhoff) < 0) {
+ 		spin_unlock(&fq->lock);
+ 		DEBUGP("Can't insert skb to queue\n");
+-		fq_put(fq);
++		fq_put(fq, NULL);
+ 		goto ret_orig;
+ 	}
+ 
+@@ -815,7 +825,7 @@ struct sk_buff *nf_ct_frag6_gather(struc
+ 	}
+ 	spin_unlock(&fq->lock);
+ 
+-	fq_put(fq);
++	fq_put(fq, NULL);
+ 	return ret_skb;
+ 
+ ret_orig:
 
-----Next_Part(Sun_Nov_13_17_51_04_2005_247)----
+----Next_Part(Sun_Nov_13_17_52_02_2005_958)----
