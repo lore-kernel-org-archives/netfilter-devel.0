@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 2/4] fix type of sysctl variables in nf_conntrack_ipv6
-Date: Sun, 13 Nov 2005 11:11:06 +0100
-Message-ID: <20051113101106.GH17476@sunbeam.de.gnumonks.org>
-References: <200511130850.jAD8ot1w026358@toshiba.co.jp>
+Subject: Re: [PATCH 3/4] use auxiliary functions in nf_ct_reasm
+Date: Sun, 13 Nov 2005 11:16:48 +0100
+Message-ID: <20051113101648.GI17476@sunbeam.de.gnumonks.org>
+References: <200511130851.jAD8p5Ee026391@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZYOWEO2dMm2Af3e3"
+	protocol="application/pgp-signature"; boundary="jQIvE3yXcK9X9HBh"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <200511130850.jAD8ot1w026358@toshiba.co.jp>
+In-Reply-To: <200511130851.jAD8p5Ee026391@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,18 +23,18 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---ZYOWEO2dMm2Af3e3
+--jQIvE3yXcK9X9HBh
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Nov 13, 2005 at 05:50:54PM +0900, Yasuyuki KOZAKAI wrote:
-> [NETFILTER] fix type of sysctl variables in nf_conntrack_ipv6
+On Sun, Nov 13, 2005 at 05:51:04PM +0900, Yasuyuki KOZAKAI wrote:
 >=20
-> These variables should be unsigned. And this fixes sysctl handler for
-> nf_ct_frag6_{low,high}_thresh.
+> This replaces old codes with spin_lock_init(), DEFINE_RWLOCK(), and
+> ipv6_addr_equal().
 
 thanks, applied.
+
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -45,16 +45,16 @@ thanks, applied.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---ZYOWEO2dMm2Af3e3
+--jQIvE3yXcK9X9HBh
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDdxE6XaXGVTD0i/8RAi8jAKCnGRPzw9Cht2yvgl39IrglOu3ZjwCeMa/f
-wCMGr1vVyFxQBLTaojqhXLo=
-=MFyd
+iD8DBQFDdxKQXaXGVTD0i/8RAhCBAJ4wXLelv0fFGRhhglOTkp/+XSpOEgCeNr7L
+CE9zfdWeduR36bqkDG+dgcU=
+=oD2u
 -----END PGP SIGNATURE-----
 
---ZYOWEO2dMm2Af3e3--
+--jQIvE3yXcK9X9HBh--
