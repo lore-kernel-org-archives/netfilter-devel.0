@@ -1,16 +1,18 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Subject: Re: [PATCH] Link netfilter before ipv4.
-Date: Sun, 13 Nov 2005 14:27:41 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0511131420010.20769@bizon.gios.gov.pl>
+Date: Sun, 13 Nov 2005 23:01:33 +0900 (JST)
+Message-ID: <200511131401.jADE1Xh4026402@toshiba.co.jp>
 References: <Pine.LNX.4.64.0511120202080.26844@bizon.gios.gov.pl>
 	<200511130810.jAD8AhXT003387@toshiba.co.jp>
+	<Pine.LNX.4.64.0511131420010.20769@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-181760367-1131888461=:20769"
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
+	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200511130810.jAD8AhXT003387@toshiba.co.jp>
+To: olenf@ans.pl
+In-Reply-To: <Pine.LNX.4.64.0511131420010.20769@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,26 +24,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-181760367-1131888461=:20769
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Krzysztof Oledzki <olenf@ans.pl>
+Date: Sun, 13 Nov 2005 14:27:41 +0100 (CET)
 
+> > Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+> Why did you remove my Signed-off-by line?
 
+Sorry, that's my fault. Harald has fixed that.
 
-On Sun, 13 Nov 2005, Yasuyuki KOZAKAI wrote:
-<CUT>
-> Good catch! But that patch seems not to able to apply current tree becaus=
-e of
-> Hunk. Harald, could you apply attached patch instead ?
-Just tested with 2.6.15-rc1. No problem with attached version.
+Regards,
 
-> Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Why did you remove my Signed-off-by line?
-
-Best regards,
-
- =09=09=09Krzysztof Ol=EAdzki
----187430788-181760367-1131888461=:20769--
+-- Yasuyuki Kozakai
