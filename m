@@ -1,12 +1,20 @@
-From: Pablo Neira <pablo@netfilter.org>
-Subject: [PATCH 2/2] update in-tree headers automatically
-Date: Sun, 13 Nov 2005 18:34:39 +0100
-Message-ID: <4377792F.1030804@netfilter.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 1/4] fix leak of fragment queue at unloading
+	nf_conntrack_ipv6
+Date: Sun, 13 Nov 2005 22:51:03 +0100
+Message-ID: <20051113215103.GU17476@sunbeam.de.gnumonks.org>
+References: <200511131238.jADCcbHR017662@toshiba.co.jp>
+	<20051113125627.GM17476@sunbeam.de.gnumonks.org>
+	<20051113130334.GN17476@sunbeam.de.gnumonks.org>
+	<200511131515.jADFF49r001590@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010809060205030400010004"
-Cc: Harald Welte <laforge@netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="xku3GkZTJumTa1rO"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
+In-Reply-To: <200511131515.jADFF49r001590@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,206 +26,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010809060205030400010004
+
+--xku3GkZTJumTa1rO
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This patch add the ability to copy and mangle the kernel headers
-required by libnfnetlink and libnetfilter_[queue|log|conntrack] at
-autogen.sh stage.
+On Mon, Nov 14, 2005 at 12:15:04AM +0900, Yasuyuki KOZAKAI wrote:
+> I totally agree. I attached new one.
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+applied, thanks.
 
---------------010809060205030400010004
-Content-Type: text/plain;
- name="autogen.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="autogen.patch"
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Index: libnfnetlink/autogen.sh
-===================================================================
---- libnfnetlink/autogen.sh	(revision 4511)
-+++ libnfnetlink/autogen.sh	(working copy)
-@@ -1,5 +1,24 @@
- #!/bin/sh
- 
-+include ()
-+{
-+    # If we keep a copy of the kernel header in the SVN tree, we'll have
-+    # to worry about synchronization issues forever. Instead, we just copy 
-+    # the headers that we need from the lastest kernel version at autogen
-+    # stage.
-+
-+    INCLUDEDIR=/lib/modules/`uname -r`/build/include/linux
-+    if [ -f $INCLUDEDIR/netfilter/nfnetlink.h ]
-+    then
-+    	TARGET=include/libnfnetlink/linux_nfnetlink.h
-+    	echo "Copying nfnetlink.h to linux_nfnetlink.h"
-+    	cp $INCLUDEDIR/netfilter/nfnetlink.h $TARGET
-+    else
-+    	echo "can't find nfnetlink.h kernel file"
-+    	exit 1
-+    fi
-+}
-+
- run ()
- {
-     echo "running: $*"
-@@ -11,6 +30,7 @@
-     fi
- }
- 
-+include
- run aclocal
- #run autoheader
- run libtoolize -f
-Index: libnetfilter_conntrack/autogen.sh
-===================================================================
---- libnetfilter_conntrack/autogen.sh	(revision 4511)
-+++ libnetfilter_conntrack/autogen.sh	(working copy)
-@@ -1,5 +1,27 @@
- #!/bin/sh
- 
-+include ()
-+{
-+    # If we keep a copy of the kernel header in the SVN tree, we'll have
-+    # to worry about synchronization issues forever. Instead, we just copy 
-+    # the headers that we need from the lastest kernel version at autogen
-+    # stage.
-+
-+    INCLUDEDIR=/lib/modules/`uname -r`/build/include/linux
-+    if [ -f $INCLUDEDIR/netfilter/nfnetlink_conntrack.h ]
-+    then
-+    	TARGET=include/libnetfilter_conntrack/linux_nfnetlink_conntrack.h
-+    	echo "Copying nfnetlink_conntrack.h to linux_nfnetlink_conntrack.h"
-+    	cp $INCLUDEDIR/netfilter/nfnetlink_conntrack.h $TARGET
-+	TEMP=`tempfile`
-+	sed 's/linux\/netfilter\/nfnetlink.h/libnfnetlink\/linux_nfnetlink.h/g' $TARGET > $TEMP
-+	mv $TEMP $TARGET
-+    else
-+    	echo "can't find nfnetlink_conntrack.h kernel file"
-+    	exit 1
-+    fi
-+}
-+
- run ()
- {
-     echo "running: $*"
-@@ -11,6 +33,7 @@
-     fi
- }
- 
-+include
- run aclocal
- run libtoolize -f
- #run autoheader
-Index: libnetfilter_queue/autogen.sh
-===================================================================
---- libnetfilter_queue/autogen.sh	(revision 4511)
-+++ libnetfilter_queue/autogen.sh	(working copy)
-@@ -1,5 +1,39 @@
- #!/bin/sh
- 
-+include ()
-+{
-+    # If we keep a copy of the kernel header in the SVN tree, we'll have
-+    # to worry about synchronization issues forever. Instead, we just copy 
-+    # the headers that we need from the lastest kernel version at autogen
-+    # stage.
-+
-+    INCLUDEDIR=/lib/modules/`uname -r`/build/include/linux
-+    if [ -f $INCLUDEDIR/netfilter/nfnetlink_queue.h ]
-+    then
-+    	TARGET=include/libnetfilter_queue/linux_nfnetlink_queue.h
-+    	echo "Copying nfnetlink_queue.h to linux_nfnetlink_queue.h"
-+    	cp $INCLUDEDIR/netfilter/nfnetlink_queue.h $TARGET
-+	TEMP=`tempfile`
-+	sed 's/linux\/netfilter\/nfnetlink.h/libnfnetlink\/linux_nfnetlink.h/g' $TARGET > $TEMP
-+	# Add aligned_u64 definition after #define _NFNETLINK_QUEUE_H
-+	awk '{
-+        if ( $0 == "#define _NFNETLINK_QUEUE_H" ) {
-+		print $0
-+		getline
-+		print $0
-+		print "#ifndef aligned_u64"
-+		print "#define aligned_u64 unsigned long long __attribute__((aligned(8)))"
-+		print "#endif"
-+	}
-+
-+	print $0
-+	}' $TEMP > $TARGET
-+    else
-+    	echo "can't find nfnetlink_queue.h kernel file"
-+    	exit 1
-+    fi
-+}
-+
- run ()
- {
-     echo "running: $*"
-@@ -11,6 +45,7 @@
-     fi
- }
- 
-+include
- run libtoolize
- run aclocal
- #run autoheader
-Index: libnetfilter_log/autogen.sh
-===================================================================
---- libnetfilter_log/autogen.sh	(revision 4511)
-+++ libnetfilter_log/autogen.sh	(working copy)
-@@ -1,5 +1,39 @@
- #!/bin/sh
- 
-+include ()
-+{
-+    # If we keep a copy of the kernel header in the SVN tree, we'll have
-+    # to worry about synchronization issues forever. Instead, we just copy 
-+    # the headers that we need from the lastest kernel version at autogen
-+    # stage.
-+
-+    INCLUDEDIR=/lib/modules/`uname -r`/build/include/linux
-+    if [ -f $INCLUDEDIR/netfilter/nfnetlink_log.h ]
-+    then
-+    	TARGET=include/libnetfilter_log/linux_nfnetlink_log.h
-+    	echo "Copying nfnetlink_log.h to linux_nfnetlink_log.h"
-+    	cp $INCLUDEDIR/netfilter/nfnetlink_log.h $TARGET
-+	TEMP=`tempfile`
-+	sed 's/linux\/netfilter\/nfnetlink.h/libnfnetlink\/linux_nfnetlink.h/g' $TARGET > $TEMP
-+	# Add aligned_u64 definition after #define _NFNETLINK_LOG_H
-+	awk '{
-+        if ( $0 == "#define _NFNETLINK_LOG_H" ) {
-+		print $0
-+		getline
-+		print $0
-+		print "#ifndef aligned_u64"
-+		print "#define aligned_u64 unsigned long long __attribute__((aligned(8)))"
-+		print "#endif"
-+	}
-+
-+	print $0
-+	}' $TEMP > $TARGET
-+    else
-+    	echo "can't find nfnetlink_log.h kernel file"
-+    	exit 1
-+    fi
-+}
-+
- run ()
- {
-     echo "running: $*"
-@@ -11,6 +45,7 @@
-     fi
- }
- 
-+include
- run aclocal
- #run autoheader
- run libtoolize -f
+--xku3GkZTJumTa1rO
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
---------------010809060205030400010004--
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDd7VHXaXGVTD0i/8RAjIeAJ9rGlIW54Bzjw+mWwCIsK6CXmTNyQCfdO8F
+EQRiU6q4S6dAmOvjlp2TV10=
+=MCme
+-----END PGP SIGNATURE-----
+
+--xku3GkZTJumTa1rO--
