@@ -1,17 +1,18 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [PATCH] Link netfilter before ipv4.
-Date: Sun, 13 Nov 2005 23:01:33 +0900 (JST)
-Message-ID: <200511131401.jADE1Xh4026402@toshiba.co.jp>
+Date: Sun, 13 Nov 2005 15:18:56 +0100
+Message-ID: <20051113141856.GS17476@sunbeam.de.gnumonks.org>
 References: <Pine.LNX.4.64.0511120202080.26844@bizon.gios.gov.pl>
 	<200511130810.jAD8AhXT003387@toshiba.co.jp>
 	<Pine.LNX.4.64.0511131420010.20769@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
-	yasuyuki.kozakai@toshiba.co.jp
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="JWOY2/vB4uO4FuME"
+Cc: netfilter-devel@lists.netfilter.org,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: olenf@ans.pl
+To: Krzysztof Oledzki <olenf@ans.pl>
+Content-Disposition: inline
 In-Reply-To: <Pine.LNX.4.64.0511131420010.20769@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -25,14 +26,51 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-From: Krzysztof Oledzki <olenf@ans.pl>
-Date: Sun, 13 Nov 2005 14:27:41 +0100 (CET)
+--JWOY2/vB4uO4FuME
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+On Sun, Nov 13, 2005 at 02:27:41PM +0100, Krzysztof Oledzki wrote:
+>=20
+>=20
+> On Sun, 13 Nov 2005, Yasuyuki KOZAKAI wrote:
+> <CUT>
+> >Good catch! But that patch seems not to able to apply current tree becau=
+se of
+> >Hunk. Harald, could you apply attached patch instead ?
+> Just tested with 2.6.15-rc1. No problem with attached version.
+>=20
+> >Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 > Why did you remove my Signed-off-by line?
 
-Sorry, that's my fault. Harald has fixed that.
+I already indicated to yasuyuki that he should take care of this in the
+future.
 
-Regards,
+The patch in my tree (which will be submitted later today) has you
+signed-off-line, don't worry :)
 
--- Yasuyuki Kozakai
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--JWOY2/vB4uO4FuME
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDd0tQXaXGVTD0i/8RAkJlAJ93DGedBmPL4if7zjA507EenuWwWACgmmER
++D1gpqrtA0ITbHmgxfw7NDw=
+=UTGj
+-----END PGP SIGNATURE-----
+
+--JWOY2/vB4uO4FuME--
