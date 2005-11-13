@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] Link netfilter before ipv4.
-Date: Sun, 13 Nov 2005 10:59:23 +0100
-Message-ID: <20051113095923.GF17476@sunbeam.de.gnumonks.org>
-References: <Pine.LNX.4.64.0511120202080.26844@bizon.gios.gov.pl>
-	<200511130810.jAD8AiE7003388@toshiba.co.jp>
+Subject: Re: [PATCH 1/4] fix leak of fragment queue at unloading
+	nf_conntrack_ipv6
+Date: Sun, 13 Nov 2005 11:08:37 +0100
+Message-ID: <20051113100837.GG17476@sunbeam.de.gnumonks.org>
+References: <200511130850.jAD8ohfY012005@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XStn23h1fwudRqtG"
+	protocol="application/pgp-signature"; boundary="3607uds81ZQvwCD0"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <200511130810.jAD8AiE7003388@toshiba.co.jp>
+In-Reply-To: <200511130850.jAD8ohfY012005@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,25 +24,34 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---XStn23h1fwudRqtG
+--3607uds81ZQvwCD0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Nov 13, 2005 at 05:10:43PM +0900, Yasuyuki KOZAKAI wrote:
+On Sun, Nov 13, 2005 at 05:50:42PM +0900, Yasuyuki KOZAKAI wrote:
+>=20
+> This makes nf_conntrack_ipv6 free all IPv6 fragment queues at unloading.
+> This also check inconsistency between memory tracking and actual usage
+> to avoid endless loop at eviction.
 
-> Good catch! But that patch seems not to able to apply current tree becaus=
-e of
-> Hunk. Harald, could you apply attached patch instead ?
+I'm fine with this, but:
 
-Yes.  Please include a proper Signed-off-by: line from the original
-author (if there was any), or at least mention him in the commit message
-as the bug reporter.
+>  		tmp =3D nf_ct_frag6_lru_list.next;
+> +		if (tmp =3D=3D NULL) {
+> +			if (net_ratelimit())
+> +				printk(KERN_ERR
+> +				       "nf_ct_reasm: no queue to be evicted");
+> +			return;
+> +		}
 
-I've fixed this up with this one, but please take care of this in future
-patches.
+Why is it an error if we don't have a defrag queue at unloading time?
+Isn't it possible that we never process any fragments (or finished
+processing of all fragments some time ago) and thus have an empty queue?
 
-Thanks!
+If I understand this correctly, it should be a DEBUG message, at most.
+
+Please comment.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -54,16 +63,16 @@ Thanks!
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---XStn23h1fwudRqtG
+--3607uds81ZQvwCD0
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDdw57XaXGVTD0i/8RAtMHAKCc+emxVgoEZDv7iWi8Wbm0gr0maACffYok
-3zrNcMt9HzCCF/+YSiS1xQ4=
-=bCQC
+iD8DBQFDdxClXaXGVTD0i/8RAuZIAJ9pfKU2ZNMMxWOkznxImiY18cHNCACggatr
+UF/icUKy+AS/3KCRi5QCg6I=
+=yv3n
 -----END PGP SIGNATURE-----
 
---XStn23h1fwudRqtG--
+--3607uds81ZQvwCD0--
