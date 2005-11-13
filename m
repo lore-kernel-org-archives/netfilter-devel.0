@@ -1,19 +1,19 @@
-From: Harald Welte <laforge@netfilter.org>
+From: Krzysztof Oledzki <olenf@ans.pl>
 Subject: Re: [PATCH] Link netfilter before ipv4.
-Date: Sun, 13 Nov 2005 15:18:56 +0100
-Message-ID: <20051113141856.GS17476@sunbeam.de.gnumonks.org>
+Date: Sun, 13 Nov 2005 15:25:04 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0511131524400.22548@bizon.gios.gov.pl>
 References: <Pine.LNX.4.64.0511120202080.26844@bizon.gios.gov.pl>
 	<200511130810.jAD8AhXT003387@toshiba.co.jp>
 	<Pine.LNX.4.64.0511131420010.20769@bizon.gios.gov.pl>
+	<20051113141856.GS17476@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JWOY2/vB4uO4FuME"
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-397536905-1131891904=:22548"
 Cc: netfilter-devel@lists.netfilter.org,
 	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0511131420010.20769@bizon.gios.gov.pl>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20051113141856.GS17476@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,52 +25,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---JWOY2/vB4uO4FuME
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, Nov 13, 2005 at 02:27:41PM +0100, Krzysztof Oledzki wrote:
->=20
->=20
-> On Sun, 13 Nov 2005, Yasuyuki KOZAKAI wrote:
-> <CUT>
-> >Good catch! But that patch seems not to able to apply current tree becau=
-se of
-> >Hunk. Harald, could you apply attached patch instead ?
-> Just tested with 2.6.15-rc1. No problem with attached version.
->=20
-> >Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-> Why did you remove my Signed-off-by line?
-
-I already indicated to yasuyuki that he should take care of this in the
-future.
-
-The patch in my tree (which will be submitted later today) has you
-signed-off-line, don't worry :)
+---187430788-397536905-1131891904=:22548
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
 
---JWOY2/vB4uO4FuME
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+On Sun, 13 Nov 2005, Harald Welte wrote:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
+> On Sun, Nov 13, 2005 at 02:27:41PM +0100, Krzysztof Oledzki wrote:
+>>
+>>
+>> On Sun, 13 Nov 2005, Yasuyuki KOZAKAI wrote:
+>> <CUT>
+>>> Good catch! But that patch seems not to able to apply current tree beca=
+use of
+>>> Hunk. Harald, could you apply attached patch instead ?
+>> Just tested with 2.6.15-rc1. No problem with attached version.
+>>
+>>> Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+>> Why did you remove my Signed-off-by line?
+>
+> I already indicated to yasuyuki that he should take care of this in the
+> future.
+>
+> The patch in my tree (which will be submitted later today) has you
+> signed-off-line, don't worry :)
 
-iD8DBQFDd0tQXaXGVTD0i/8RAkJlAJ93DGedBmPL4if7zjA507EenuWwWACgmmER
-+D1gpqrtA0ITbHmgxfw7NDw=
-=UTGj
------END PGP SIGNATURE-----
+OK, OK. Thank you.
 
---JWOY2/vB4uO4FuME--
+Best regards,
+
+ =09=09=09Krzysztof Ol=EAdzki
+---187430788-397536905-1131891904=:22548--
