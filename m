@@ -1,16 +1,16 @@
-From: Toby DiPasquale <codeslinger@gmail.com>
-Subject: Re: Need help combining packets in netfilter driver...
-Date: Mon, 14 Nov 2005 09:14:21 -0500
-Message-ID: <876ef97a0511140614s6bc3d689k2de207fd1b4f0605@mail.gmail.com>
-References: <4378323F.4010001@bangkok-peakoil.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 2/2] update in-tree headers automatically
+Date: Mon, 14 Nov 2005 15:38:38 +0100
+Message-ID: <20051114143838.GG4773@sunbeam.de.gnumonks.org>
+References: <4377792F.1030804@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="L2Brqb15TUChFOBK"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tom Dickerson <tomdi@bangkok-peakoil.com>
-In-Reply-To: <4378323F.4010001@bangkok-peakoil.com>
+To: Pablo Neira <pablo@netfilter.org>
 Content-Disposition: inline
+In-Reply-To: <4377792F.1030804@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,69 +22,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 11/14/05, Tom Dickerson <tomdi@bangkok-peakoil.com> wrote:
-> My first plan was to hook in at POSTROUTING after all routing had been
-> performed. In that hook I would simply compress and buffer the data in
-> private storage, returning DROP for all the packets until I got a
-> complete buffer. If the buffer was complete, I'd replace the skb with my
-> own skb consisting of the aggregate packets I had stored and return ACCEP=
-T.
 
-You may want to implement a custom queueing discipline to get this
-done. Qdiscs already are intimate with timers in the manner that you
-need and it would be simple to aggregate the packets as they arrive,
-simply updating header information as each new packet arrived. They
-could then be fired out when the qdisc calls for packets when the
-timer expires.
+--L2Brqb15TUChFOBK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-For information on qdisc programming, first read http://lartc.org to
-get an idea of how they are used. Then check out the source of
-net/sched/sch_tbf.c and net/sched/sch_sfq.c in you Linux kernel
-sources. If you need the qdisc to be classful (you'll know what that
-entails after reading LARTC above), you should look at
-net/sched/sch_htb.c.
+On Sun, Nov 13, 2005 at 06:34:39PM +0100, Pablo Neira wrote:
+> This patch add the ability to copy and mangle the kernel headers
+> required by libnfnetlink and libnetfilter_[queue|log|conntrack] at
+> autogen.sh stage.
 
-> Also, on the receiving side, I need to reconstruct the original packet
-> stream. I was thinking that in the PREROUTING hook I could simply
-> decompress the packet back into the original packet stream. But this
-> means I have to inject N-1 new packets directly into the netfilter
-> stream. Can this be done from the PREROUTING hook?
+thanks, applied.
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-This could be done with an ingress qdisc. Exploding packets in
-iptables has been, how shall we say... problematic, for me at least.
-You should have less of an issue with this by creating a custom
-ingress qdisc. Check out the code in net/sched/sch_ingress.c for an
-idea of how to implement an ingress qdisc. (currently in Linux, there
-is only one)
+--L2Brqb15TUChFOBK
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-> Note that the Linux box is simply acting as a router for these packets.
-> The packets are generated on remote servers and are destined for remote
-> servers. There are no userspace programs involved in the packet
-> transactions.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-Yeah, this really indicates a custom qdisc to me. That would seem to
-me to be the most workable and elegant solution to your problem.
-Alternatively, you could attempt to hack the wireless driver and
-aggregate+compress the packets at that point, but the qdisc is more
-elegant IMO.
+iD8DBQFDeKFuXaXGVTD0i/8RAtjcAJ97xN5Y+JPeZWGHkGS9wBEWwFXVLACfbfZM
+ZeeBykY8Io7/12WY77BYDqo=
+=q/nH
+-----END PGP SIGNATURE-----
 
-As far as resources on the Linux qdisc API, there aren't many. I
-couldn't find the one that I was thinking of, but here are some that
-have good information:
-
-http://qos.ittc.ku.edu/howto.pdf
-http://www.cs.odu.edu/%7Egmanepal/documents/qos.pdf
-
-The paper is quite old, but mostly still correct.
-
-As I was googling around to find that, however, I found this, which
-may be of some use to you, as well, as it speaks more directly to your
-problem area:
-
-http://www.cs.umu.se/education/examina/Rapporter/JohanCimen.pdf
-
-Good luck!
-
---
-Toby DiPasquale
-0x636f6465736c696e67657240676d61696c2e636f6d
+--L2Brqb15TUChFOBK--
