@@ -1,15 +1,12 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: kernel BUG at kernel/sched.c:2833!
-Date: Mon, 14 Nov 2005 13:27:42 +0100
-Message-ID: <437882BE.6080705@eurodev.net>
-References: <Pine.LNX.4.64.0511141033001.8729@bizon.gios.gov.pl>
+From: Tom Dickerson <tomdi@bangkok-peakoil.com>
+Subject: Need help combining packets in netfilter driver...
+Date: Mon, 14 Nov 2005 13:44:15 +0700
+Message-ID: <4378323F.4010001@bangkok-peakoil.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050709090304080402090907"
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0511141033001.8729@bizon.gios.gov.pl>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,70 +18,62 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050709090304080402090907
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Hi Everyone,
 
-Krzysztof Oledzki wrote:
-> EIP is at sub_preempt_count+0x35/0x40
-> 
-> AFAIK there were some small fixes that went into 2.6.15-rc1 which were
-> supposed to fix such problems with conntrack -L. Shuldn't we send them
-> to -stable to make 2.6.14.x also usable?
+I have a situation where we must send a large number of small packets 
+over a relatively slow wireless link. I have a quick custom compression 
+algortihm which can save alot of bandwidth for only a few machine 
+cycles, but the sheer number of packets will swamp the wireless link. 
+Due to handshaking on the wireless link, I must aggregate N small 
+packets into 1 large packet, where N is determined by the number of 
+compressed packets I can fit into a single 1500 byte packet. All traffic 
+I am concerned with is UDP, and originates from a set of well known 
+ports and machines, destined to a set of well known ports and machines.
 
-I think so, at the least Yasuyuki's:
-[NETFILTER] refcount leak of proto when ctnetlink dumping tuple
+I am trying to design something for in house use that is quick, dirty 
+and most importantly fast. I need something that will do 300k+ pps. That 
+is a challenge enough in itself, even without the compression filter. 
+The compression algorithm will only add a few hundred machine cycles per 
+packet...negligible in comparison to the netfilter infrastructure.
 
-That fixes the problem that you're reporting.
+This will be my first attempt at writing anything with netfilter. Can 
+someone suggest the quickest and most reliable way to aggregate a number 
+of individual UDP packets into a single 1500 byte packet? The data is 
+also a real time stream and latency is very important. I need to 
+guarantee a minimum of 5000 pps over the wireless link. Thus, if I don't 
+have a full 1500 bytes after 200 microseconds, I need to force the 
+aggregate packet to be sent anyway.
 
--- 
-Pablo
+My first plan was to hook in at POSTROUTING after all routing had been 
+performed. In that hook I would simply compress and buffer the data in 
+private storage, returning DROP for all the packets until I got a 
+complete buffer. If the buffer was complete, I'd replace the skb with my 
+own skb consisting of the aggregate packets I had stored and return ACCEPT.
 
---------------050709090304080402090907
-Content-Type: text/plain;
- name="02-ctnl-refcnt.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="02-ctnl-refcnt.patch"
+This seemed simple, but it is not clear how to get the 200 microsecond 
+timer behavior that I need in this case. Can I force my POSTROUTING hook 
+to be called every 200 microseconds even if there is no traffic?
 
-[NETFILTER] refcount leak of proto when ctnetlink dumping tuple
+Also, on the receiving side, I need to reconstruct the original packet 
+stream. I was thinking that in the PREROUTING hook I could simply 
+decompress the packet back into the original packet stream. But this 
+means I have to inject N-1 new packets directly into the netfilter 
+stream. Can this be done from the PREROUTING hook?
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Note that the Linux box is simply acting as a router for these packets. 
+The packets are generated on remote servers and are destined for remote 
+servers. There are no userspace programs involved in the packet 
+transactions.
 
----
-commit 3a4486b6419a1f25324bb4280d51f5c77b1117f7
-tree 88b1831d06e21417baca01d1632131d96e3be611
-parent 61a002f080c6473da94f28314502ff0f15fe3625
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 04 Nov 2005 14:35:27 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 04 Nov 2005 14:35:27 +0900
+Can someone who is experienced suggest the correct way to implement a 
+compression filter like this? Is there a way to make this very quick? 
+Since this is such a specialized case I could even accept bypassing the 
+routing tables and filtering altogether. The traffic will simply be 
+coming in one gigabit ethernet card and heading out the other.
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+Any and all advice is appreciated,
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
---- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -58,14 +58,17 @@ ctnetlink_dump_tuples_proto(struct sk_bu
- 			    const struct ip_conntrack_tuple *tuple)
- {
- 	struct ip_conntrack_protocol *proto;
-+	int ret = 0;
- 
- 	NFA_PUT(skb, CTA_PROTO_NUM, sizeof(u_int8_t), &tuple->dst.protonum);
- 
- 	proto = ip_conntrack_proto_find_get(tuple->dst.protonum);
--	if (proto && proto->tuple_to_nfattr)
--		return proto->tuple_to_nfattr(skb, tuple);
-+	if (likely(proto && proto->tuple_to_nfattr)) {
-+		ret = proto->tuple_to_nfattr(skb, tuple);
-+		ip_conntrack_proto_put(proto);
-+	}
- 
--	return 0;
-+	return ret;
- 
- nfattr_failure:
- 	return -1;
+Thank you in advance,
 
---------------050709090304080402090907--
+Tom Dickerson
+tomdi@bangkok-peakoil.com
