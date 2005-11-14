@@ -1,16 +1,17 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [RFC PATCH] ctnetlink port to nf_conntrack take #1
-Date: Tue, 15 Nov 2005 01:22:09 +0900 (JST)
-Message-ID: <200511141622.jAEGMA79023465@toshiba.co.jp>
+Date: Mon, 14 Nov 2005 18:10:15 +0100
+Message-ID: <20051114171015.GI4773@sunbeam.de.gnumonks.org>
 References: <4377E89A.5030205@eurodev.net>
+	<200511141622.jAEGMAXf015099@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
-	yasuyuki.kozakai@toshiba.co.jp
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="N8ia4yKhAKKETby7"
+Cc: netfilter-devel@lists.netfilter.org, pablo@eurodev.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: pablo@eurodev.net
-In-Reply-To: <4377E89A.5030205@eurodev.net>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
+In-Reply-To: <200511141622.jAEGMAXf015099@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,31 +24,51 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi, Pablo, that's great news.
+--N8ia4yKhAKKETby7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-From: Pablo Neira <pablo@eurodev.net>
-Date: Mon, 14 Nov 2005 02:30:02 +0100
+On Tue, Nov 15, 2005 at 01:22:09AM +0900, Yasuyuki KOZAKAI wrote:
 
-> This is a RFC. Attached two patches, the first contains the required
-> modifications for nf_conntrack in order to get nf_conntrack_netlink working.
+> I think we can generalize layer 3 protocol handling more, by introducing
+> nfattr_to_tuple/tuple_to_nfattr to l3proto modules like proto.
 
-I'll read this deeply on this weekend.
+I agree.
 
-> The second patch is an incremental diff against ip_conntrack_netlink.c,
-> my intention with this patch is making easy your review. It clearly
-> shows the slighty modifications introduced to carry out the porting.
-> 
-> On the other hand, the whole C file (nf_netlink_conntrack.c) is
-> available at http://people.netfilter.org/pablo/nf_conntrack_netlink.c
+> And it would be great if {ip,nf}_conntrack_netlink.c can be unified.
+> But currently I don't have good idea to do that in clear way, and without
+> extensibility limitation of nf_conntrack_netlink. I'll think about this m=
+ore.
+> How do you think ?
 
-I think we can generalize layer 3 protocol handling more, by introducing
-nfattr_to_tuple/tuple_to_nfattr to l3proto modules like proto.
+I don't think it's really worth the effort.  we already have two
+instances of connection tracking code. =20
 
-And it would be great if {ip,nf}_conntrack_netlink.c can be unified.
-But currently I don't have good idea to do that in clear way, and without
-extensibility limitation of nf_conntrack_netlink. I'll think about this more.
-How do you think ?
+ip_conntrack will go sooner or later, so we should rather spend time on
+important features such as userspace conntrack helpers and NAT for
+nf_conntrack
 
-Regards,
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
--- Yasuyuki Kozakai
+--N8ia4yKhAKKETby7
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDeMT3XaXGVTD0i/8RAo7VAJwI7thWozdxdmuve/x6rVkd3tRNeACdESG5
+2r2Cb16ac/zzqayRMxD47R4=
+=xOUo
+-----END PGP SIGNATURE-----
+
+--N8ia4yKhAKKETby7--
