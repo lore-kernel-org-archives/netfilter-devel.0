@@ -1,18 +1,14 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [RFC PATCH] ctnetlink port to nf_conntrack take #1
-Date: Mon, 14 Nov 2005 20:15:24 +0100
-Message-ID: <4378E24C.7060307@eurodev.net>
-References: <4377E89A.5030205@eurodev.net>
-	<200511141622.jAEGMAXf015099@toshiba.co.jp>
-	<20051114171015.GI4773@sunbeam.de.gnumonks.org>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: [PATCH] KERNEL_DIR support in autogen.sh for
+	libnfnetlink/libnetfilter_conntrack
+Date: Tue, 15 Nov 2005 00:48:13 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0511150044020.15324@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1507727684-1132012093=:15324"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051114171015.GI4773@sunbeam.de.gnumonks.org>
+To: Pablo Neira <pablo@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,30 +20,88 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> On Tue, Nov 15, 2005 at 01:22:09AM +0900, Yasuyuki KOZAKAI wrote:
-> 
-> 
->>I think we can generalize layer 3 protocol handling more, by introducing
->>nfattr_to_tuple/tuple_to_nfattr to l3proto modules like proto.
-> 
-> I agree.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Fine with it. I expect to send a new patch before the weekend.
+---187430788-1507727684-1132012093=:15324
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
->>And it would be great if {ip,nf}_conntrack_netlink.c can be unified.
->>But currently I don't have good idea to do that in clear way, and without
->>extensibility limitation of nf_conntrack_netlink. I'll think about this more.
->>How do you think ?
-> 
-> I don't think it's really worth the effort.  we already have two
-> instances of connection tracking code.  
-> 
-> ip_conntrack will go sooner or later, so we should rather spend time on
-> important features such as userspace conntrack helpers and NAT for
-> nf_conntrack
+Hello,
 
-Same feeling.
+Attached two patches for libnfnetlink and libnetfilter_conntrack allow=20
+user to specify custom KERNEL_DIR like in iptables build. If KERNEL_DIR is=
+=20
+empty default directory - "/lib/modules/`uname -r`/build" is used.
 
--- 
-Pablo
+Best regards,
+
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1507727684-1132012093=:15324
+Content-Type: TEXT/PLAIN; charset=US-ASCII;
+	name=autogen.sh-custkerneldir-libnfnetlink.patch
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.64.0511150048130.15324@bizon.gios.gov.pl>
+Content-Description: 
+Content-Disposition: attachment;
+	filename=autogen.sh-custkerneldir-libnfnetlink.patch
+
+DQpbbGlibmZuZXRsaW5rXSBBZGQgS0VSTkVMX0RJUiBzdXBwb3J0IHRvIGF1
+dG9nZW4uc2gNCg0KQWxsb3cgdXNlciB0byBzcGVjaWZ5IGN1c3RvbSBLRVJO
+RUxfRElSIHRvIHN1cHBvcnQgYnVpbGRpbmcgbGlicmFyeQ0KYWdhaW5zdCBz
+ZWxlY3RlZCBrZXJuZWwgdHJlZS4NCg0KU2lnbmVkLW9mZi1ieTogS3J6eXN6
+dG9mIFBpb3RyIE9sZWR6a2kgPG9sZUBhbnMucGw+DQoNCkluZGV4OiBhdXRv
+Z2VuLnNoDQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQotLS0gYXV0b2dlbi5z
+aAkocmV2aXNpb24gNDUzOCkNCisrKyBhdXRvZ2VuLnNoCSh3b3JraW5nIGNv
+cHkpDQpAQCAtNywxNCArNywxNSBAQA0KICAgICAjIHRoZSBoZWFkZXJzIHRo
+YXQgd2UgbmVlZCBmcm9tIHRoZSBsYXN0ZXN0IGtlcm5lbCB2ZXJzaW9uIGF0
+IGF1dG9nZW4NCiAgICAgIyBzdGFnZS4NCiANCi0gICAgSU5DTFVERURJUj0v
+bGliL21vZHVsZXMvYHVuYW1lIC1yYC9idWlsZC9pbmNsdWRlL2xpbnV4DQor
+ICAgIElOQ0xVREVESVI9JHtLRVJORUxfRElSOi0vbGliL21vZHVsZXMvYHVu
+YW1lIC1yYC9idWlsZH0vaW5jbHVkZS9saW51eA0KKw0KICAgICBpZiBbIC1m
+ICRJTkNMVURFRElSL25ldGZpbHRlci9uZm5ldGxpbmsuaCBdDQogICAgIHRo
+ZW4NCiAgICAgCVRBUkdFVD1pbmNsdWRlL2xpYm5mbmV0bGluay9saW51eF9u
+Zm5ldGxpbmsuaA0KICAgICAJZWNobyAiQ29weWluZyBuZm5ldGxpbmsuaCB0
+byBsaW51eF9uZm5ldGxpbmsuaCINCiAgICAgCWNwICRJTkNMVURFRElSL25l
+dGZpbHRlci9uZm5ldGxpbmsuaCAkVEFSR0VUDQogICAgIGVsc2UNCi0gICAg
+CWVjaG8gImNhbid0IGZpbmQgbmZuZXRsaW5rLmgga2VybmVsIGZpbGUiDQor
+ICAgIAllY2hvICJjYW4ndCBmaW5kIG5mbmV0bGluay5oIGtlcm5lbCBmaWxl
+IGluICRJTkNMVURFRElSIg0KICAgICAJZXhpdCAxDQogICAgIGZpDQogfQ0K
+
+---187430788-1507727684-1132012093=:15324
+Content-Type: TEXT/PLAIN; charset=US-ASCII;
+	name=autogen.sh-custkerneldir-libnetfilter_conntrack.patch
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.64.0511150048131.15324@bizon.gios.gov.pl>
+Content-Description: 
+Content-Disposition: attachment;
+	filename=autogen.sh-custkerneldir-libnetfilter_conntrack.patch
+
+DQpbbGlibmV0ZmlsdGVyX2Nvbm50cmFja10gQWRkIEtFUk5FTF9ESVIgc3Vw
+cG9ydCB0byBhdXRvZ2VuLnNoDQoNCkFsbG93IHVzZXIgdG8gc3BlY2lmeSBj
+dXN0b20gS0VSTkVMX0RJUiB0byBzdXBwb3J0IGJ1aWxkaW5nIGxpYnJhcnkN
+CmFnYWluc3Qgc2VsZWN0ZWQga2VybmVsIHRyZWUuDQoNClNpZ25lZC1vZmYt
+Ynk6IEtyenlzenRvZiBQaW90ciBPbGVkemtpIDxvbGVAYW5zLnBsPg0KDQpJ
+bmRleDogYXV0b2dlbi5zaA0KPT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0t
+IGF1dG9nZW4uc2gJKHJldmlzaW9uIDQ1MzgpDQorKysgYXV0b2dlbi5zaAko
+d29ya2luZyBjb3B5KQ0KQEAgLTcsNyArNyw3IEBADQogICAgICMgdGhlIGhl
+YWRlcnMgdGhhdCB3ZSBuZWVkIGZyb20gdGhlIGxhc3Rlc3Qga2VybmVsIHZl
+cnNpb24gYXQgYXV0b2dlbg0KICAgICAjIHN0YWdlLg0KIA0KLSAgICBJTkNM
+VURFRElSPS9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2J1aWxkL2luY2x1ZGUv
+bGludXgNCisgICAgSU5DTFVERURJUj0ke0tFUk5FTF9ESVI6LS9saWIvbW9k
+dWxlcy9gdW5hbWUgLXJgL2J1aWxkfS9pbmNsdWRlL2xpbnV4DQogICAgIGlm
+IFsgLWYgJElOQ0xVREVESVIvbmV0ZmlsdGVyL25mbmV0bGlua19jb25udHJh
+Y2suaCBdDQogICAgIHRoZW4NCiAgICAgCVRBUkdFVD1pbmNsdWRlL2xpYm5l
+dGZpbHRlcl9jb25udHJhY2svbGludXhfbmZuZXRsaW5rX2Nvbm50cmFjay5o
+DQpAQCAtMTcsNyArMTcsNyBAQA0KIAlzZWQgJ3MvbGludXhcL25ldGZpbHRl
+clwvbmZuZXRsaW5rLmgvbGlibmZuZXRsaW5rXC9saW51eF9uZm5ldGxpbmsu
+aC9nJyAkVEFSR0VUID4gJFRFTVANCiAJbXYgJFRFTVAgJFRBUkdFVA0KICAg
+ICBlbHNlDQotICAgIAllY2hvICJjYW4ndCBmaW5kIG5mbmV0bGlua19jb25u
+dHJhY2suaCBrZXJuZWwgZmlsZSINCisgICAgCWVjaG8gImNhbid0IGZpbmQg
+bmZuZXRsaW5rX2Nvbm50cmFjay5oIGtlcm5lbCBmaWxlIGluICRJTkNMVURF
+RElSIg0KICAgICAJZXhpdCAxDQogICAgIGZpDQogfQ0K
+
+---187430788-1507727684-1132012093=:15324--
