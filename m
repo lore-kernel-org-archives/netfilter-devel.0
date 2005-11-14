@@ -1,13 +1,15 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: kernel BUG at kernel/sched.c:2833!
-Date: Mon, 14 Nov 2005 10:50:23 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0511141033001.8729@bizon.gios.gov.pl>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: kernel BUG at kernel/sched.c:2833!
+Date: Mon, 14 Nov 2005 13:27:42 +0100
+Message-ID: <437882BE.6080705@eurodev.net>
+References: <Pine.LNX.4.64.0511141033001.8729@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1895894468-1131961823=:8729"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------050709090304080402090907"
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
+To: Krzysztof Oledzki <olenf@ans.pl>
+In-Reply-To: <Pine.LNX.4.64.0511141033001.8729@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,66 +21,70 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+This is a multi-part message in MIME format.
+--------------050709090304080402090907
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
----187430788-1895894468-1131961823=:8729
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Krzysztof Oledzki wrote:
+> EIP is at sub_preempt_count+0x35/0x40
+> 
+> AFAIK there were some small fixes that went into 2.6.15-rc1 which were
+> supposed to fix such problems with conntrack -L. Shuldn't we send them
+> to -stable to make 2.6.14.x also usable?
 
-Hello,
+I think so, at the least Yasuyuki's:
+[NETFILTER] refcount leak of proto when ctnetlink dumping tuple
 
-------------[ cut here ]------------
-kernel BUG at kernel/sched.c:2833!
-invalid operand: 0000 [#1]
-PREEMPT
-Modules linked in:
-CPU:    0
-EIP:    0060:[sub_preempt_count+53/64]    Not tainted VLI
-EFLAGS: 00010206   (2.6.14.2)
-EIP is at sub_preempt_count+0x35/0x40
-eax: dccff000   ebx: dcf502a4   ecx: 00000000   edx: 000000ff
-esi: dcf501e8   edi: 00000100   ebp: dccffc9c   esp: dccffc9c
-ds: 007b   es: 007b   ss: 0068
-Process conntrack (pid: 373, threadinfo=3Ddccff000 task=3Ddccaa5c0)
-Stack: dd284278 c011f1f9 dcf502a4 dcf501e8 00000100 dd284278 c03564f5 df2ef=
-b60
-        00000175 4378576a 00000000 00000001 dcf501e8 df2efb60 df2efb60 dd28=
-4260
-        dd56a600 c0311968 df2efb60 dd284260 00000000 000000d0 dd56a600 dccf=
-fd48
-Call Trace:
-  [local_bh_enable+25/144] local_bh_enable+0x19/0x90
-  [ctnetlink_dump_table+149/272] ctnetlink_dump_table+0x95/0x110
-  [netlink_dump+88/512] netlink_dump+0x58/0x200
-  [netlink_recvmsg+558/576] netlink_recvmsg+0x22e/0x240
-  [netlink_sendskb+50/96] netlink_sendskb+0x32/0x60
-  [sock_recvmsg+254/288] sock_recvmsg+0xfe/0x120
-  [update_atime+149/176] update_atime+0x95/0xb0
-  [sock_sendmsg+229/256] sock_sendmsg+0xe5/0x100
-  [autoremove_wake_function+0/96] autoremove_wake_function+0x0/0x60
-  [sys_recvmsg+323/512] sys_recvmsg+0x143/0x200
-  [lru_cache_add_active+57/112] lru_cache_add_active+0x39/0x70
-  [do_anonymous_page+250/352] do_anonymous_page+0xfa/0x160
-  [do_no_page+105/816] do_no_page+0x69/0x330
-  [copy_from_user+70/144] copy_from_user+0x46/0x90
-  [sys_socketcall+591/608] sys_socketcall+0x24f/0x260
-  [do_page_fault+0/1501] do_page_fault+0x0/0x5dd
-  [syscall_call+7/11] syscall_call+0x7/0xb
-Code: 89 e5 3b 50 14 7f 24 81 fa fe 00 00 00 76 0c b8 00 f0 ff ff 21 e0 29 =
-50 14 c9 c3 80 78 14 00 75 ee 0f 0b 15 0b 37 8e 3b c0 eb e4 <0f> 0b 11 0b 3=
-7 8e 3b c0 eb d2 90 55 89 e5 8b 45 08 8b 50 04 89
+That fixes the problem that you're reporting.
 
+-- 
+Pablo
 
-AFAIK there were some small fixes that went into 2.6.15-rc1 which were=20
-supposed to fix such problems with conntrack -L. Shuldn't we send them to=
-=20
--stable to make 2.6.14.x also usable?
+--------------050709090304080402090907
+Content-Type: text/plain;
+ name="02-ctnl-refcnt.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="02-ctnl-refcnt.patch"
 
+[NETFILTER] refcount leak of proto when ctnetlink dumping tuple
 
-Best regards,
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
+---
+commit 3a4486b6419a1f25324bb4280d51f5c77b1117f7
+tree 88b1831d06e21417baca01d1632131d96e3be611
+parent 61a002f080c6473da94f28314502ff0f15fe3625
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 04 Nov 2005 14:35:27 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 04 Nov 2005 14:35:27 +0900
 
- =09=09=09=09Krzysztof Ol=EAdzki
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
----187430788-1895894468-1131961823=:8729--
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -58,14 +58,17 @@ ctnetlink_dump_tuples_proto(struct sk_bu
+ 			    const struct ip_conntrack_tuple *tuple)
+ {
+ 	struct ip_conntrack_protocol *proto;
++	int ret = 0;
+ 
+ 	NFA_PUT(skb, CTA_PROTO_NUM, sizeof(u_int8_t), &tuple->dst.protonum);
+ 
+ 	proto = ip_conntrack_proto_find_get(tuple->dst.protonum);
+-	if (proto && proto->tuple_to_nfattr)
+-		return proto->tuple_to_nfattr(skb, tuple);
++	if (likely(proto && proto->tuple_to_nfattr)) {
++		ret = proto->tuple_to_nfattr(skb, tuple);
++		ip_conntrack_proto_put(proto);
++	}
+ 
+-	return 0;
++	return ret;
+ 
+ nfattr_failure:
+ 	return -1;
+
+--------------050709090304080402090907--
