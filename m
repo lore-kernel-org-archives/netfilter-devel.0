@@ -1,17 +1,14 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: [PATCH] KERNEL_DIR support in autogen.sh for
- libnfnetlink/libnetfilter_conntrack
-Date: Tue, 15 Nov 2005 14:15:48 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0511151413500.14940@bizon.gios.gov.pl>
-References: <Pine.LNX.4.64.0511150044020.15324@bizon.gios.gov.pl>
-	<43792AF2.9040700@eurodev.net>
+From: "Marco Berizzi" <pupilla@hotmail.com>
+Subject: Re: [PATCH 00/10]: Netfilter IPsec support
+Date: Tue, 15 Nov 2005 16:50:46 +0100
+Message-ID: <BAY103-F240FCD8D8AE36A95868233B25D0@phx.gbl>
+References: <Pine.LNX.4.62.0511111243310.32138@kaber.coreworks.de>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-540520674-1132060548=:14940"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; format=flowed
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <43792AF2.9040700@eurodev.net>
+In-Reply-To: <Pine.LNX.4.62.0511111243310.32138@kaber.coreworks.de>
+To: kaber@trash.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,160 +20,63 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+How are handled NAT-T packets (udp/4500) with these patches?
 
----187430788-540520674-1132060548=:14940
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Patrick McHardy wrote:
 
-
-
-On Tue, 15 Nov 2005, Pablo Neira wrote:
-
-> Krzysztof Oledzki wrote:
->> Attached two patches for libnfnetlink and libnetfilter_conntrack allow
->> user to specify custom KERNEL_DIR like in iptables build. If KERNEL_DIR
->> is empty default directory - "/lib/modules/`uname -r`/build" is used.
 >
-> The patches look fine. Could you resend the same patch including
-> libnetfilter_queue and libnetfilter_log as well? That way we'll keep all
-> the libnetfilter_* friends in sync. Thanks!
-
-Attached four patches for libnetfilter_log, libnetfilter_queue,=20
-libnetfilter_conntrack and finally libnfnetlink.
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-540520674-1132060548=:14940
-Content-Type: TEXT/PLAIN; charset=US-ASCII;
-	name=autogen.sh-custkerneldir-libnetfilter_log.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0511151415480.14940@bizon.gios.gov.pl>
-Content-Description: 
-Content-Disposition: attachment;
-	filename=autogen.sh-custkerneldir-libnetfilter_log.patch
-
-DQpbbGlibmV0ZmlsdGVyX2xvZ10gQWRkIEtFUk5FTF9ESVIgc3VwcG9ydCB0
-byBhdXRvZ2VuLnNoDQoNCkFsbG93IHVzZXIgdG8gc3BlY2lmeSBjdXN0b20g
-S0VSTkVMX0RJUiB0byBzdXBwb3J0IGJ1aWxkaW5nIGxpYnJhcnkNCmFnYWlu
-c3Qgc2VsZWN0ZWQga2VybmVsIHRyZWUuDQoNClNpZ25lZC1vZmYtYnk6IEty
-enlzenRvZiBQaW90ciBPbGVkemtpIDxvbGVAYW5zLnBsPg0KDQpJbmRleDog
-YXV0b2dlbi5zaA0KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0tIGF1dG9n
-ZW4uc2gJKHJldmlzaW9uIDQ1MzgpDQorKysgYXV0b2dlbi5zaAkod29ya2lu
-ZyBjb3B5KQ0KQEAgLTcsNyArNyw3IEBADQogICAgICMgdGhlIGhlYWRlcnMg
-dGhhdCB3ZSBuZWVkIGZyb20gdGhlIGxhc3Rlc3Qga2VybmVsIHZlcnNpb24g
-YXQgYXV0b2dlbg0KICAgICAjIHN0YWdlLg0KIA0KLSAgICBJTkNMVURFRElS
-PS9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2J1aWxkL2luY2x1ZGUvbGludXgN
-CisgICAgSU5DTFVERURJUj0ke0tFUk5FTF9ESVI6LS9saWIvbW9kdWxlcy9g
-dW5hbWUgLXJgL2J1aWxkfS9pbmNsdWRlL2xpbnV4DQogICAgIGlmIFsgLWYg
-JElOQ0xVREVESVIvbmV0ZmlsdGVyL25mbmV0bGlua19sb2cuaCBdDQogICAg
-IHRoZW4NCiAgICAgCVRBUkdFVD1pbmNsdWRlL2xpYm5ldGZpbHRlcl9sb2cv
-bGludXhfbmZuZXRsaW5rX2xvZy5oDQpAQCAtMjksNyArMjksNyBAQA0KIAlw
-cmludCAkMA0KIAl9JyAkVEVNUCA+ICRUQVJHRVQNCiAgICAgZWxzZQ0KLSAg
-ICAJZWNobyAiY2FuJ3QgZmluZCBuZm5ldGxpbmtfbG9nLmgga2VybmVsIGZp
-bGUiDQorICAgIAllY2hvICJjYW4ndCBmaW5kIG5mbmV0bGlua19sb2cuaCBr
-ZXJuZWwgZmlsZSBpbiAkSU5DTFVERURJUiINCiAgICAgCWV4aXQgMQ0KICAg
-ICBmaQ0KIH0NCg==
-
----187430788-540520674-1132060548=:14940
-Content-Type: TEXT/PLAIN; charset=US-ASCII;
-	name=autogen.sh-custkerneldir-libnetfilter_queue.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0511151415481.14940@bizon.gios.gov.pl>
-Content-Description: 
-Content-Disposition: attachment;
-	filename=autogen.sh-custkerneldir-libnetfilter_queue.patch
-
-DQpbbGlibmV0ZmlsdGVyX3F1ZXVlXSBBZGQgS0VSTkVMX0RJUiBzdXBwb3J0
-IHRvIGF1dG9nZW4uc2gNCg0KQWxsb3cgdXNlciB0byBzcGVjaWZ5IGN1c3Rv
-bSBLRVJORUxfRElSIHRvIHN1cHBvcnQgYnVpbGRpbmcgbGlicmFyeQ0KYWdh
-aW5zdCBzZWxlY3RlZCBrZXJuZWwgdHJlZS4NCg0KU2lnbmVkLW9mZi1ieTog
-S3J6eXN6dG9mIFBpb3RyIE9sZWR6a2kgPG9sZUBhbnMucGw+DQoNCkluZGV4
-OiBhdXRvZ2VuLnNoDQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQotLS0gYXV0
-b2dlbi5zaAkocmV2aXNpb24gNDUzOCkNCisrKyBhdXRvZ2VuLnNoCSh3b3Jr
-aW5nIGNvcHkpDQpAQCAtNyw3ICs3LDcgQEANCiAgICAgIyB0aGUgaGVhZGVy
-cyB0aGF0IHdlIG5lZWQgZnJvbSB0aGUgbGFzdGVzdCBrZXJuZWwgdmVyc2lv
-biBhdCBhdXRvZ2VuDQogICAgICMgc3RhZ2UuDQogDQotICAgIElOQ0xVREVE
-SVI9L2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAvYnVpbGQvaW5jbHVkZS9saW51
-eA0KKyAgICBJTkNMVURFRElSPSR7S0VSTkVMX0RJUjotL2xpYi9tb2R1bGVz
-L2B1bmFtZSAtcmAvYnVpbGR9L2luY2x1ZGUvbGludXgNCiAgICAgaWYgWyAt
-ZiAkSU5DTFVERURJUi9uZXRmaWx0ZXIvbmZuZXRsaW5rX3F1ZXVlLmggXQ0K
-ICAgICB0aGVuDQogICAgIAlUQVJHRVQ9aW5jbHVkZS9saWJuZXRmaWx0ZXJf
-cXVldWUvbGludXhfbmZuZXRsaW5rX3F1ZXVlLmgNCkBAIC0yOSw3ICsyOSw3
-IEBADQogCXByaW50ICQwDQogCX0nICRURU1QID4gJFRBUkdFVA0KICAgICBl
-bHNlDQotICAgIAllY2hvICJjYW4ndCBmaW5kIG5mbmV0bGlua19xdWV1ZS5o
-IGtlcm5lbCBmaWxlIg0KKyAgICAJZWNobyAiY2FuJ3QgZmluZCBuZm5ldGxp
-bmtfcXVldWUuaCBrZXJuZWwgZmlsZSBpbiAkSU5DTFVERURJUiINCiAgICAg
-CWV4aXQgMQ0KICAgICBmaQ0KIH0NCg==
-
----187430788-540520674-1132060548=:14940
-Content-Type: TEXT/PLAIN; charset=US-ASCII;
-	name=autogen.sh-custkerneldir-libnetfilter_conntrack.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0511151415482.14940@bizon.gios.gov.pl>
-Content-Description: 
-Content-Disposition: attachment;
-	filename=autogen.sh-custkerneldir-libnetfilter_conntrack.patch
-
-DQpbbGlibmV0ZmlsdGVyX2Nvbm50cmFja10gQWRkIEtFUk5FTF9ESVIgc3Vw
-cG9ydCB0byBhdXRvZ2VuLnNoDQoNCkFsbG93IHVzZXIgdG8gc3BlY2lmeSBj
-dXN0b20gS0VSTkVMX0RJUiB0byBzdXBwb3J0IGJ1aWxkaW5nIGxpYnJhcnkN
-CmFnYWluc3Qgc2VsZWN0ZWQga2VybmVsIHRyZWUuDQoNClNpZ25lZC1vZmYt
-Ynk6IEtyenlzenRvZiBQaW90ciBPbGVkemtpIDxvbGVAYW5zLnBsPg0KDQpJ
-bmRleDogYXV0b2dlbi5zaA0KPT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KLS0t
-IGF1dG9nZW4uc2gJKHJldmlzaW9uIDQ1MzgpDQorKysgYXV0b2dlbi5zaAko
-d29ya2luZyBjb3B5KQ0KQEAgLTcsNyArNyw3IEBADQogICAgICMgdGhlIGhl
-YWRlcnMgdGhhdCB3ZSBuZWVkIGZyb20gdGhlIGxhc3Rlc3Qga2VybmVsIHZl
-cnNpb24gYXQgYXV0b2dlbg0KICAgICAjIHN0YWdlLg0KIA0KLSAgICBJTkNM
-VURFRElSPS9saWIvbW9kdWxlcy9gdW5hbWUgLXJgL2J1aWxkL2luY2x1ZGUv
-bGludXgNCisgICAgSU5DTFVERURJUj0ke0tFUk5FTF9ESVI6LS9saWIvbW9k
-dWxlcy9gdW5hbWUgLXJgL2J1aWxkfS9pbmNsdWRlL2xpbnV4DQogICAgIGlm
-IFsgLWYgJElOQ0xVREVESVIvbmV0ZmlsdGVyL25mbmV0bGlua19jb25udHJh
-Y2suaCBdDQogICAgIHRoZW4NCiAgICAgCVRBUkdFVD1pbmNsdWRlL2xpYm5l
-dGZpbHRlcl9jb25udHJhY2svbGludXhfbmZuZXRsaW5rX2Nvbm50cmFjay5o
-DQpAQCAtMTcsNyArMTcsNyBAQA0KIAlzZWQgJ3MvbGludXhcL25ldGZpbHRl
-clwvbmZuZXRsaW5rLmgvbGlibmZuZXRsaW5rXC9saW51eF9uZm5ldGxpbmsu
-aC9nJyAkVEFSR0VUID4gJFRFTVANCiAJbXYgJFRFTVAgJFRBUkdFVA0KICAg
-ICBlbHNlDQotICAgIAllY2hvICJjYW4ndCBmaW5kIG5mbmV0bGlua19jb25u
-dHJhY2suaCBrZXJuZWwgZmlsZSINCisgICAgCWVjaG8gImNhbid0IGZpbmQg
-bmZuZXRsaW5rX2Nvbm50cmFjay5oIGtlcm5lbCBmaWxlIGluICRJTkNMVURF
-RElSIg0KICAgICAJZXhpdCAxDQogICAgIGZpDQogfQ0K
-
----187430788-540520674-1132060548=:14940
-Content-Type: TEXT/PLAIN; charset=US-ASCII;
-	name=autogen.sh-custkerneldir-libnfnetlink.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0511151415483.14940@bizon.gios.gov.pl>
-Content-Description: 
-Content-Disposition: attachment;
-	filename=autogen.sh-custkerneldir-libnfnetlink.patch
-
-DQpbbGlibmZuZXRsaW5rXSBBZGQgS0VSTkVMX0RJUiBzdXBwb3J0IHRvIGF1
-dG9nZW4uc2gNCg0KQWxsb3cgdXNlciB0byBzcGVjaWZ5IGN1c3RvbSBLRVJO
-RUxfRElSIHRvIHN1cHBvcnQgYnVpbGRpbmcgbGlicmFyeQ0KYWdhaW5zdCBz
-ZWxlY3RlZCBrZXJuZWwgdHJlZS4NCg0KU2lnbmVkLW9mZi1ieTogS3J6eXN6
-dG9mIFBpb3RyIE9sZWR6a2kgPG9sZUBhbnMucGw+DQoNCkluZGV4OiBhdXRv
-Z2VuLnNoDQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQotLS0gYXV0b2dlbi5z
-aAkocmV2aXNpb24gNDUzOCkNCisrKyBhdXRvZ2VuLnNoCSh3b3JraW5nIGNv
-cHkpDQpAQCAtNywxNCArNywxNSBAQA0KICAgICAjIHRoZSBoZWFkZXJzIHRo
-YXQgd2UgbmVlZCBmcm9tIHRoZSBsYXN0ZXN0IGtlcm5lbCB2ZXJzaW9uIGF0
-IGF1dG9nZW4NCiAgICAgIyBzdGFnZS4NCiANCi0gICAgSU5DTFVERURJUj0v
-bGliL21vZHVsZXMvYHVuYW1lIC1yYC9idWlsZC9pbmNsdWRlL2xpbnV4DQor
-ICAgIElOQ0xVREVESVI9JHtLRVJORUxfRElSOi0vbGliL21vZHVsZXMvYHVu
-YW1lIC1yYC9idWlsZH0vaW5jbHVkZS9saW51eA0KKw0KICAgICBpZiBbIC1m
-ICRJTkNMVURFRElSL25ldGZpbHRlci9uZm5ldGxpbmsuaCBdDQogICAgIHRo
-ZW4NCiAgICAgCVRBUkdFVD1pbmNsdWRlL2xpYm5mbmV0bGluay9saW51eF9u
-Zm5ldGxpbmsuaA0KICAgICAJZWNobyAiQ29weWluZyBuZm5ldGxpbmsuaCB0
-byBsaW51eF9uZm5ldGxpbmsuaCINCiAgICAgCWNwICRJTkNMVURFRElSL25l
-dGZpbHRlci9uZm5ldGxpbmsuaCAkVEFSR0VUDQogICAgIGVsc2UNCi0gICAg
-CWVjaG8gImNhbid0IGZpbmQgbmZuZXRsaW5rLmgga2VybmVsIGZpbGUiDQor
-ICAgIAllY2hvICJjYW4ndCBmaW5kIG5mbmV0bGluay5oIGtlcm5lbCBmaWxl
-IGluICRJTkNMVURFRElSIg0KICAgICAJZXhpdCAxDQogICAgIGZpDQogfQ0K
-
----187430788-540520674-1132060548=:14940--
+>On Fri, 11 Nov 2005, Gerd v. Egidy wrote:
+>
+>>Hi,
+>>
+>>>This is the latest set patches for netfilter IPsec support.
+>>>The use of netif_rx for the innermost SA if it used transport
+>>>mode has been replaced by explicit NF_HOOK calls in
+>>>xfrm{4,6}_input.c.
+>>
+>>Could you please describe the solution you implemented a bit more? There 
+>>was
+>>just so many back and forth that I'm confused now.
+>
+>OK, some explanation. In tunnel mode, packets go through the stack
+>again after decapsulation and hit the PRE_ROUTING and LOCAL_IN or FORWARD
+>hook, depending on if it is a local packet or is forwarded. For symetry,
+>there are now some additional hooks on the output path which pass the
+>packet through LOCAL_OUT and POST_ROUTING after tunnel mode transforms.
+>This part behaves just as any other tunnel. Transport mode is special,
+>we usually don't want to see packets before or after transport mode
+>transforms except if it was the plain text packet (the transport
+>mode SA is the innermost SA of the bundle). On the output path this
+>already works because packets always hit netfilter before reaching
+>the transforms, on the input path packets are manually passed through
+>PRE_ROUTING and INPUT in this case. For NAT we do two things:
+>when a packet is NATed after already beeing routed (including
+>the xfrm lookup), it is routed again. If an incoming packet is NATed
+>before the policy check, the policy check reconstructs how the packet
+>looked before NAT.
+>
+>>
+>>If I use it with iptables, do the transport mode packets go through INPUT 
+>>and
+>>OUTPUT twice, decrypted and encrypted?
+>
+>Yes, if the transport mode transform in the innermost transform
+>of the bundle (or the only one).
+>
+>>
+>>If I use it with iptables, do the tunnel mode packets go through FORWARD 
+>>or
+>>INPUT and OUTPUT twice, decrypted and encrypted?
+>
+>Yes.
+>
+>>Can I do NAT in tunnel and transport mode?
+>
+>Yes, even NATing forwarded packets and protecting them using a transport
+>mode SA works.
+>
+>>what about the policy match patches, why are they only posted "for
+>>completeness" and as 11/12 of 10? Aren't they ready yet?
+>
+>They should be fine.
+>
