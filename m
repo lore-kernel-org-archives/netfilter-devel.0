@@ -1,18 +1,17 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [RFC PATCH] ctnetlink port to nf_conntrack take #1
-Date: Tue, 15 Nov 2005 18:21:17 +0900 (JST)
-Message-ID: <200511150921.jAF9LIRE011590@toshiba.co.jp>
-References: <200511141622.jAEGMAXf015099@toshiba.co.jp>
-	<20051114171015.GI4773@sunbeam.de.gnumonks.org>
-	<4378E24C.7060307@eurodev.net>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH 02/10]: [NETFILTER]: Defer fragmentation in ip_output
+	when connection tracking is used
+Date: Tue, 15 Nov 2005 21:44:25 +1100
+Message-ID: <20051115104425.GA31719@gondor.apana.org.au>
+References: <43740DB5.9070206@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
-	yasuyuki.kozakai@toshiba.co.jp
+Content-Type: text/plain; charset=us-ascii
+Cc: Kernel Netdev Mailing List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: pablo@eurodev.net
-In-Reply-To: <4378E24C.7060307@eurodev.net>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <43740DB5.9070206@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,34 +23,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira <pablo@eurodev.net>
-Date: Mon, 14 Nov 2005 20:15:24 +0100
+On Fri, Nov 11, 2005 at 03:19:17AM +0000, Patrick McHardy wrote:
 
-> Harald Welte wrote:
-> > On Tue, Nov 15, 2005 at 01:22:09AM +0900, Yasuyuki KOZAKAI wrote:
-> > 
-> > 
-> >>I think we can generalize layer 3 protocol handling more, by introducing
-> >>nfattr_to_tuple/tuple_to_nfattr to l3proto modules like proto.
-> > 
-> > I agree.
+> [NETFILTER]: Defer fragmentation in ip_output when connection tracking is used
 > 
-> Fine with it. I expect to send a new patch before the weekend.
-> 
-> >>And it would be great if {ip,nf}_conntrack_netlink.c can be unified.
-> >>But currently I don't have good idea to do that in clear way, and without
-> >>extensibility limitation of nf_conntrack_netlink. I'll think about this more.
-> >>How do you think ?
-> > 
-> > I don't think it's really worth the effort.  we already have two
-> > instances of connection tracking code.  
-> > 
-> > ip_conntrack will go sooner or later, so we should rather spend time on
-> > important features such as userspace conntrack helpers and NAT for
-> > nf_conntrack
-> 
-> Same feeling.
+> This allows to get rid of the okfn use in ip_refrag and save the useless
+> fragmentation/defragmentation step when NAT is used.
 
-OK, let's go ahead.
+I'm slightly uneasy about this change because for POST_ROUTING, the
+defragmentation occurs in the middle of the hook, NF_IP_PRI_NAT_SRC.
 
--- Yasuyuki Kozakai
+This means that things like the mangle table currently sees the
+fragments as opposed to the whole packet.  This patch will change
+that.
+
+Now I'm not saying that this is necessarily a bad thing.  In fact,
+for all I know it might make more sense to do this.  But we should
+consider the possible implications before embarking on it.
+
+Cheers,
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
