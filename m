@@ -1,122 +1,54 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Bug#327007: BUG: iptables -j does not work for chains with a length >=28 (was moe infos...)
-Date: Tue, 15 Nov 2005 18:46:59 +0100
-Message-ID: <437A1F13.5080305@eurodev.net>
-References: <200511150139.51688.bernd@zeimetz.de> <200511151715.32138.bernd@zeimetz.de>
-Reply-To: Pablo Neira <pablo@eurodev.net>, 327007@bugs.debian.org
+From: manish popli <popli_manish77@yahoo.com>
+Subject: how to install time patch
+Date: Wed, 16 Nov 2005 01:24:37 -0800 (PST)
+Message-ID: <20051116092438.66356.qmail@web53610.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010003090000030909050904"
-Cc: netfilter-devel@lists.netfilter.org, 327007@bugs.debian.org
-Return-path: <bounce-debian-bugs-dist=glddb-debian-bugs-dist=m.gmane.org@lists.debian.org>
-Resent-Message-ID: <handler.327007.B327007.11320768653876@bugs.debian.org>
-To: Bernd Zeimetz <bernd@zeimetz.de>
-In-Reply-To: <200511151715.32138.bernd@zeimetz.de>
-List-Post: <mailto:debian-bugs-dist@lists.debian.org>
-List-Help: <mailto:debian-bugs-dist-request@lists.debian.org?subject=help>
-List-Subscribe: <mailto:debian-bugs-dist-request@lists.debian.org?subject=subscribe>
-List-Unsubscribe: <mailto:debian-bugs-dist-request@lists.debian.org?subject=unsubscribe>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010003090000030909050904
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+I am using the Linux version 2.4.21-4.ELsmp..I wand to
+install time patch for IPtables for that i have
+visited at 
 
-Bernd Zeimetz wrote:
-> Hi,
-> 
-> 
->>As you can see the bug does not happen for chains
->>- with a length <=28
->>- with a name containing only numbers
->>- with a name beginning with numbers and having less than ~11 letters at
->>the end.
-> 
-> 
-> this is - of course - not true. I didn't realize that
-> 
-> 
->>iptables -N 123456789012345678yzabcdefgh
->>and this works:
->>iptables -A FORWARD -j 123456789012345678yzabcdefghij
-> 
-> 
-> this happened pretty often while testing.
-> 
-> 
->>set_revision(target->t->u.user.name, target->revision); // iptables.c:2397
-> 
-> What does set_revision really do? Is it still needed?
-
-This was included to add support for match/target revisions without
-breaking backward compatibility.
-
-The patch attached fixes the problem that you're reporting here. I tried
-with the shell script attached and seems to work fine. I'll pass it to
-Harald.
-
--- 
-Pablo
-
---------------010003090000030909050904
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-Index: iptables.c
-===================================================================
---- iptables.c	(revision 4511)
-+++ iptables.c	(working copy)
-@@ -2394,7 +2396,9 @@
- 			target->t = fw_calloc(1, size);
- 			target->t->u.target_size = size;
- 			strcpy(target->t->u.user.name, jumpto);
--			set_revision(target->t->u.user.name, target->revision);
-+			if (!iptc_is_chain(jumpto, *handle))
-+				set_revision(target->t->u.user.name,
-+					     target->revision);
- 			if (target->init != NULL)
- 				target->init(target->t, &fw.nfcache);
- 		}
-
---------------010003090000030909050904
-Content-Type: text/x-sh;
- name="test.sh"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="test.sh"
-
- iptables -N 123456789012345678901234567
- iptables -A FORWARD -j 123456789012345678901234567
- iptables -N 1234567890123456789012345678
- iptables -A FORWARD -j 1234567890123456789012345678
- iptables -N 12345678901234567890123456789
- iptables -A FORWARD -j 12345678901234567890123456789
- iptables -N 12345678901234567890abcdefg
- iptables -A FORWARD -j 12345678901234567890abcdefg
- iptables -N 12345678901234567890abcdefgh
- iptables -A FORWARD -j 12345678901234567890abcdefgh
- iptables -N 12345678901234567890abcdefghi
- iptables -A FORWARD -j 12345678901234567890abcdefghi
- iptables -N 12345678901234567890abcdefghij
- iptables -A FORWARD -j 12345678901234567890abcdefghij
- iptables -N 1234567890123456789zabcdefghij
- iptables -A FORWARD -j 1234567890123456789zabcdefghij
- iptables -N abcde678901234567890abcdefghij
- iptables -A FORWARD -j abcde678901234567890abcdefghij
- iptables -N abcdesdasdasdfafasfaabcdefghij
- iptables -A FORWARD -j abcdesdasdasdfafasfaabcdefghij
- iptables -N 0bcdesdasdasdfafasfaabcdefghij
- iptables -A FORWARD -j 0bcdesdasdasdfafasfaabcdefghij
- iptables -N 0bcdesdasdasdfafasfaabcdefghi
- iptables -A FORWARD -j 0bcdesdasdasdfafasfaabcdefghi
- iptables -N 0bcdesdasdasdfafasfaabcdefgh
- iptables -A FORWARD -j 0bcdesdasdasdfafasfaabcdefgh
+http://www.netfilter.org/documentation/HOWTO//netfilter-extensions-HOWTO-2.html#ss2.2
 
 
+Folloed the instructions and run the command
 
+# cvs -d :pserver:cvs@pserver.netfilter.org:/cvspublic
+login
 
---------------010003090000030909050904--
+i m reciving the error ..
+
+[root@qalinux5 linux-2.4]#  cvs -d
+:pserver:cvs@pserver.netfilter.org:/cvspublic login
+Logging in to
+:pserver:cvs@pserver.netfilter.org:2401/cvspublic
+CVS password: 
+cvs [login aborted]: connect to
+pserver.netfilter.org(213.95.27.115):2401 failed:
+Connection refused
+
+Can you plz guid me how to install time patch step by
+step for my Linux version 2.4.21-4.ELsmp and iptable
+version is iptables-save v1.2.8..
+
+Thanks
+Manish Popli
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
