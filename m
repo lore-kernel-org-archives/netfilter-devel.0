@@ -1,17 +1,17 @@
-From: =?utf-8?q?Pawe=C5=82_Sikora?= <pluto@agmk.net>
-Subject: Re: problems with libnetfilter_conntrack / cntl_test
-Date: Wed, 16 Nov 2005 18:09:24 +0100
-Message-ID: <200511161809.25277.pluto@agmk.net>
-References: <200511161439.04498.pluto@agmk.net> <437B53E9.2080800@eurodev.net>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: kernel BUG at kernel/sched.c:2833!
+Date: Wed, 16 Nov 2005 22:16:58 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0511162216140.16387@bizon.gios.gov.pl>
+References: <Pine.LNX.4.64.0511141033001.8729@bizon.gios.gov.pl>
+	<437882BE.6080705@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1347514265-1132175818=:16387"
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <437B53E9.2080800@eurodev.net>
-Content-Disposition: inline
+In-Reply-To: <437882BE.6080705@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,133 +23,75 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dnia =C5=9Broda, 16 listopada 2005 16:44, napisa=C5=82e=C5=9B:
-> Pawel Sikora wrote:
-> > I have installed a 2.6.14.2 kernel + grsecurity-2.1.7-2.6.14.2-$lates=
-t,
-> > libnfnetlink-0.0.13 and libnetfilter_conntrack-0.0.28.
-> >
-> > ./ctnl_test fails:
-> >
-> > Test for libnetfilter_conntrack
-> >
-> > NFNETLINK answers: Invalid argument
-> > TEST 1: create conntrack (-22)
-> > TEST 2: dump conntrack table and reset (-22)
-> > TEST 3: dump conntrack table (-22)
-> > TEST 4: get conntrack (-22)
-> > TEST 5: update conntrack (-22)
-> > NFNETLINK answers: Invalid argument
-> > TEST 6: delete conntrack (-22)
-> > nfnl_open: bind(netlink): Operation not permitted
-> > Can't open handler
-> > Test failed with error -2. Errors=3D7
-> >
-> > Is this a grsec issue?
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---187430788-1347514265-1132175818=:16387
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+
+On Mon, 14 Nov 2005, Pablo Neira wrote:
+
+> Krzysztof Oledzki wrote:
+>> EIP is at sub_preempt_count+0x35/0x40
+>>
+>> AFAIK there were some small fixes that went into 2.6.15-rc1 which were
+>> supposed to fix such problems with conntrack -L. Shuldn't we send them
+>> to -stable to make 2.6.14.x also usable?
 >
-> Hard to say, my last contact with grsec was years ago. That output is
-> kind of weird. Could you try reverting the grsec patch?
+> I think so, at the least Yasuyuki's:
+> [NETFILTER] refcount leak of proto when ctnetlink dumping tuple
+>
+> That fixes the problem that you're reporting.
 
-currently I get the same error on 2.6.14.2 without grsec on root account.
-first failure occurs at first call of nfnl_talk().
+What about this one?
 
-Breakpoint 2, nfnl_talk (nfnlh=3D0x804b0b0, n=3D0xbfcb2680, peer=3D0, gro=
-ups=3D0,=20
-answer=3D0x0, junk=3D0, jarg=3D0x0)
-    at libnfnetlink.c:384
-384             struct iovec iov =3D {
-
-(gdb) bt
-#0  nfnl_talk (nfnlh=3D0x804b0b0, n=3D0xbfcb2680, peer=3D0, groups=3D0, a=
-nswer=3D0x0,
-              junk=3D0, jarg=3D0x0)
-    at libnfnetlink.c:384
-#1  0xb7f84072 in nfct_create_conntrack (cth=3D0x804b0b0, ct=3D0x804b008)
-    at libnetfilter_conntrack.c:800
-#2  0x08048b89 in main (argc=3D1, argv=3D0xbfcb3804)
-    at ctnl_test.c:85
-
-(gdb) p *nfnlh
-$1 =3D {fd =3D 6, local =3D {nl_family =3D 16, nl_pad =3D 0, nl_pid =3D 5=
-330, nl_groups =3D=20
-0}, peer =3D {nl_family =3D 16,
-    nl_pad =3D 0, nl_pid =3D 0, nl_groups =3D 0}, subsys_id =3D 1 '\001',=
- seq =3D=20
-1132160442, dump =3D 0,
-  last_nlhdr =3D 0x0, cb_count =3D 4 '\004', cb =3D 0x804b0f8}
-
-(gdb) p *n
-$2 =3D {nlmsg_len =3D 156, nlmsg_type =3D 256, nlmsg_flags =3D 1541, nlms=
-g_seq =3D=20
-1132160442, nlmsg_pid =3D 0}
-
-(gdb) s
-387             struct msghdr msg =3D {
-(gdb)
-394             memset(&nladdr, 0, sizeof(nladdr));
-(gdb)
-395             nladdr.nl_family =3D AF_NETLINK;
-(gdb)
-396             nladdr.nl_pid =3D peer;
-(gdb)
-397             nladdr.nl_groups =3D groups;
-(gdb)
-399             n->nlmsg_seq =3D seq =3D ++nfnlh->seq;
-(gdb)
-401             if (!answer)
-(gdb)
-402                     n->nlmsg_flags |=3D NLM_F_ACK;
-(gdb)
-404             status =3D sendmsg(nfnlh->fd, &msg, 0);
-(gdb) p msg
-$3 =3D {msg_name =3D 0xbfcb0630, msg_namelen =3D 12, msg_iov =3D 0xbfcb06=
-18,=20
-msg_iovlen =3D 1, msg_control =3D 0x0,
-  msg_controllen =3D 0, msg_flags =3D 0}
-(gdb) s
-405             if (status < 0) {
-(gdb)
-409             iov.iov_base =3D buf;
-(gdb)
-410             iov.iov_len =3D sizeof(buf);
-(gdb)
-413                     status =3D recvmsg(nfnlh->fd, &msg, 0);
-(gdb)
-414                     if (status < 0) {
-(gdb) p status
-$4 =3D 36
-(gdb) s
-420                     if (status =3D=3D 0) {
-(gdb)
-424                     if (msg.msg_namelen !=3D sizeof(nladdr)) {
-(gdb)
-430                     for (h =3D (struct nlmsghdr *)buf; status >=3D=20
-sizeof(*h); ) {
-(gdb)
-431                             int len =3D h->nlmsg_len;
-(gdb)
-432                             int l =3D len - sizeof(*h);
-(gdb)
-435                             if (l < 0 || len > status) {
-(gdb)
-444                             if (h->nlmsg_pid !=3D nfnlh->local.nl_pid=
- ||
-(gdb)
-454                             if (h->nlmsg_type =3D=3D NLMSG_ERROR) {
-(gdb)
-455                                     struct nlmsgerr *err =3D NLMSG_DA=
-TA(h);
-(gdb) p *h
-$5 =3D {nlmsg_len =3D 36, nlmsg_type =3D 2, nlmsg_flags =3D 0, nlmsg_seq =
-=3D 1132160443,=20
-nlmsg_pid =3D 5330}
+------------[ cut here ]------------
+kernel BUG at kernel/sched.c:2833!
+invalid operand: 0000 [#2]
+PREEMPT
+Modules linked in:
+CPU:    0
+EIP:    0060:[sub_preempt_count+53/64]    Not tainted VLI
+EFLAGS: 00010206   (2.6.14.2)
+EIP is at sub_preempt_count+0x35/0x40
+eax: daa35000   ebx: daecaec0   ecx: 00000000   edx: 000000ff
+esi: daecae04   edi: 00000e5d   ebp: daa35c9c   esp: daa35c9c
+ds: 007b   es: 007b   ss: 0068
+Process conntrack (pid: 1403, threadinfo=3Ddaa35000 task=3Ddc3ca0b0)
+Stack: ded31fb8 c011f1f9 daecaec0 daecae04 00000e5d ded31fb8 c0356565 da1cd=
+260
+        0000057b 43790384 00000000 00000001 daecae04 da1cd260 da1cd260 ded3=
+1fa0
+        dbc5dc00 c03119a8 da1cd260 ded31fa0 00000000 000000d0 dbc5dc00 daa3=
+5d48
+Call Trace:
+  [local_bh_enable+25/144] local_bh_enable+0x19/0x90
+  [ctnetlink_dump_table+149/272] ctnetlink_dump_table+0x95/0x110
+  [netlink_dump+88/512] netlink_dump+0x58/0x200
+  [netlink_recvmsg+558/576] netlink_recvmsg+0x22e/0x240
+  [sock_recvmsg+254/288] sock_recvmsg+0xfe/0x120
+  [update_atime+149/176] update_atime+0x95/0xb0
+  [do_generic_mapping_read+789/1520] do_generic_mapping_read+0x315/0x5f0
+  [autoremove_wake_function+0/96] autoremove_wake_function+0x0/0x60
+  [sys_recvmsg+323/512] sys_recvmsg+0x143/0x200
+  [current_fs_time+81/112] current_fs_time+0x51/0x70
+  [inode_update_time+82/224] inode_update_time+0x52/0xe0
+  [pipe_writev+742/1248] pipe_writev+0x2e6/0x4e0
+  [pipe_write+55/64] pipe_write+0x37/0x40
+  [copy_from_user+70/144] copy_from_user+0x46/0x90
+  [sys_socketcall+591/608] sys_socketcall+0x24f/0x260
+  [sys_write+81/128] sys_write+0x51/0x80
+  [syscall_call+7/11] syscall_call+0x7/0xb
+Code: 89 e5 3b 50 14 7f 24 81 fa fe 00 00 00 76 0c b8 00 f0 ff ff 21 e0 29 =
+50 14 c9 c3 80 78 14 0
+15 0b 17 8f 3b c0 eb e4 <0f> 0b 11 0b 17 8f 3b c0 eb d2 90 55 89 e5 8b 45 0=
+8 8b 50 04 89
 
 
-I can provide more info if you need.
+Best regards,
 
-BR,
-
---=20
-The only thing necessary for the triumph of evil
-  is for good men to do nothing.
-                                           - Edmund Burke
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1347514265-1132175818=:16387--
