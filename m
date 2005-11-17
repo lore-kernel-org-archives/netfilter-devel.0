@@ -1,17 +1,17 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
+From: Pablo Neira <pablo@eurodev.net>
 Subject: Re: kernel BUG at kernel/sched.c:2833!
-Date: Wed, 16 Nov 2005 22:16:58 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0511162216140.16387@bizon.gios.gov.pl>
+Date: Thu, 17 Nov 2005 01:36:35 +0100
+Message-ID: <437BD093.3010905@eurodev.net>
 References: <Pine.LNX.4.64.0511141033001.8729@bizon.gios.gov.pl>
 	<437882BE.6080705@eurodev.net>
+	<Pine.LNX.4.64.0511162216140.16387@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1347514265-1132175818=:16387"
+Content-Type: multipart/mixed; boundary="------------040101070601070808080106"
 Cc: Harald Welte <laforge@netfilter.org>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <437882BE.6080705@eurodev.net>
+To: Krzysztof Oledzki <olenf@ans.pl>
+In-Reply-To: <Pine.LNX.4.64.0511162216140.16387@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,75 +23,85 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+This is a multi-part message in MIME format.
+--------------040101070601070808080106
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
----187430788-1347514265-1132175818=:16387
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Mon, 14 Nov 2005, Pablo Neira wrote:
-
-> Krzysztof Oledzki wrote:
->> EIP is at sub_preempt_count+0x35/0x40
+Krzysztof Oledzki wrote:
+> On Mon, 14 Nov 2005, Pablo Neira wrote:
+> 
+>> Krzysztof Oledzki wrote:
 >>
->> AFAIK there were some small fixes that went into 2.6.15-rc1 which were
->> supposed to fix such problems with conntrack -L. Shuldn't we send them
->> to -stable to make 2.6.14.x also usable?
->
-> I think so, at the least Yasuyuki's:
-> [NETFILTER] refcount leak of proto when ctnetlink dumping tuple
->
-> That fixes the problem that you're reporting.
+>>> EIP is at sub_preempt_count+0x35/0x40
+>>>
+>>> AFAIK there were some small fixes that went into 2.6.15-rc1 which were
+>>> supposed to fix such problems with conntrack -L. Shuldn't we send them
+>>> to -stable to make 2.6.14.x also usable?
+>>
+>> I think so, at the least Yasuyuki's:
+>> [NETFILTER] refcount leak of proto when ctnetlink dumping tuple
+>>
+>> That fixes the problem that you're reporting.
+> 
+> What about this one?
 
-What about this one?
+I realised that Yasuyuki's patch is incomplete. Could you give a try to
+the patch attached. Thanks.
 
-------------[ cut here ]------------
-kernel BUG at kernel/sched.c:2833!
-invalid operand: 0000 [#2]
-PREEMPT
-Modules linked in:
-CPU:    0
-EIP:    0060:[sub_preempt_count+53/64]    Not tainted VLI
-EFLAGS: 00010206   (2.6.14.2)
-EIP is at sub_preempt_count+0x35/0x40
-eax: daa35000   ebx: daecaec0   ecx: 00000000   edx: 000000ff
-esi: daecae04   edi: 00000e5d   ebp: daa35c9c   esp: daa35c9c
-ds: 007b   es: 007b   ss: 0068
-Process conntrack (pid: 1403, threadinfo=3Ddaa35000 task=3Ddc3ca0b0)
-Stack: ded31fb8 c011f1f9 daecaec0 daecae04 00000e5d ded31fb8 c0356565 da1cd=
-260
-        0000057b 43790384 00000000 00000001 daecae04 da1cd260 da1cd260 ded3=
-1fa0
-        dbc5dc00 c03119a8 da1cd260 ded31fa0 00000000 000000d0 dbc5dc00 daa3=
-5d48
-Call Trace:
-  [local_bh_enable+25/144] local_bh_enable+0x19/0x90
-  [ctnetlink_dump_table+149/272] ctnetlink_dump_table+0x95/0x110
-  [netlink_dump+88/512] netlink_dump+0x58/0x200
-  [netlink_recvmsg+558/576] netlink_recvmsg+0x22e/0x240
-  [sock_recvmsg+254/288] sock_recvmsg+0xfe/0x120
-  [update_atime+149/176] update_atime+0x95/0xb0
-  [do_generic_mapping_read+789/1520] do_generic_mapping_read+0x315/0x5f0
-  [autoremove_wake_function+0/96] autoremove_wake_function+0x0/0x60
-  [sys_recvmsg+323/512] sys_recvmsg+0x143/0x200
-  [current_fs_time+81/112] current_fs_time+0x51/0x70
-  [inode_update_time+82/224] inode_update_time+0x52/0xe0
-  [pipe_writev+742/1248] pipe_writev+0x2e6/0x4e0
-  [pipe_write+55/64] pipe_write+0x37/0x40
-  [copy_from_user+70/144] copy_from_user+0x46/0x90
-  [sys_socketcall+591/608] sys_socketcall+0x24f/0x260
-  [sys_write+81/128] sys_write+0x51/0x80
-  [syscall_call+7/11] syscall_call+0x7/0xb
-Code: 89 e5 3b 50 14 7f 24 81 fa fe 00 00 00 76 0c b8 00 f0 ff ff 21 e0 29 =
-50 14 c9 c3 80 78 14 0
-15 0b 17 8f 3b c0 eb e4 <0f> 0b 11 0b 17 8f 3b c0 eb d2 90 55 89 e5 8b 45 0=
-8 8b 50 04 89
+-- 
+Pablo
 
+--------------040101070601070808080106
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
-Best regards,
+[NETFILTER] Fix ip_conntrack_proto_find_get badness
 
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1347514265-1132175818=:16387--
+The function ip_conntrack_proto_find_get always returns a valid pointer. The 
+generic protocol helper is returned when no specific protocol helper is found.
+This patch fixes as well a missing putting at dump_protoinfo, when no to_attr
+is found.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+index f5e5e31..b797ef9 100644
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -59,11 +59,13 @@ ctnetlink_dump_tuples_proto(struct sk_bu
+ 
+ 	NFA_PUT(skb, CTA_PROTO_NUM, sizeof(u_int8_t), &tuple->dst.protonum);
+ 
++	/* If no protocol helper is found, this function will return the
++	 * generic protocol helper, so proto won't *ever* be NULL */
+ 	proto = ip_conntrack_proto_find_get(tuple->dst.protonum);
+-	if (likely(proto && proto->tuple_to_nfattr)) {
++	if (likely(proto->tuple_to_nfattr))
+ 		ret = proto->tuple_to_nfattr(skb, tuple);
+-		ip_conntrack_proto_put(proto);
+-	}
++
++	ip_conntrack_proto_put(proto);
+ 
+ 	return ret;
+ 
+@@ -128,9 +130,11 @@ ctnetlink_dump_protoinfo(struct sk_buff 
+ 
+ 	struct nfattr *nest_proto;
+ 	int ret;
+-	
+-	if (!proto || !proto->to_nfattr)
++
++	if (!proto->to_nfattr) {
++		ip_conntrack_proto_put(proto);
+ 		return 0;
++	}
+ 	
+ 	nest_proto = NFA_NEST(skb, CTA_PROTOINFO);
+ 
+
+--------------040101070601070808080106--
