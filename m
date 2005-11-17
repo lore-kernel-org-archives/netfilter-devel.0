@@ -1,15 +1,17 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: Re[2]: how to install time patch
-Date: Thu, 17 Nov 2005 14:19:32 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0511171416150.20297@bizon.gios.gov.pl>
-References: <20051117110729.16390.qmail@web53604.mail.yahoo.com>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: Re: Symmetric NAT for udp
+Date: Thu, 17 Nov 2005 13:34:11 +0100
+Message-ID: <200511171334.12015@nienna>
+References: <437C70F5.2090401@ipcb.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1357899937-1132233572=:20297"
-Cc: netfilter-devel@lists.netfilter.org, Markus Stubbe <mail@epfi.net>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Dmitry <dg@ipcb.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: manish popli <popli_manish77@yahoo.com>
-In-Reply-To: <20051117110729.16390.qmail@web53604.mail.yahoo.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <437C70F5.2090401@ipcb.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,35 +23,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-1357899937-1132233572=:20297
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+  Hi,
 
+On Thursday 17 November 2005 13.00, Dmitry wrote:
+> Hi all - i have a trouble with making netfilter nat act like symmetric
+> for udp . Normally for udp  it acts like port restricted cone nat ( the
+> main feature is that it doesnt mangle src port if several udp packets
+> come from same src ip/port - to different dest. In case of tcp it acts
+> like symmetric nat - ie each syn packet even from same src ip/port cause
+> src port  mangling. What i need is to make it act like symmetric for udp
+> too. So i just looked throught udp/tcp specific files
+> (conntrack_proto_udp, nat_proto_udp and relative tcp ) and didnt find
+> anything that makes it work different for tcp and udp. Tests revealed
+> that at first time (and after timeout) each udp packets  (even from same
+> src port/ip but to diff dest ) cause  new conntrack creation. But when
+> it checkes before postrouting is tuple taken  - for same src/port
+> somehow it says that no - so mangling doesnt occur. Can somebody give me
+> a hint where to dig?
 
+  Dmitry, you don't even mention the exact version number of the kernel 
+you're testing. Could you tell us that precious information?
 
-On Thu, 17 Nov 2005, manish popli wrote:
+  By the way, it would help a _lot_ if you could write nfsim testcases 
+demonstrating the problem (the difference between TCP and UDP) you're 
+seeing. Would that be possible?
 
-> I am fail to install time patch for iptables..
-> i have visited at
-> http://www.lowth.com/howto/add-iptables-modules.php
->
-> but i m not able to doit successful..can any one guide
-> me how to install "libipt_time.so" under Enterprise
-> linux AS-3 (Linux version 2.4.21-4.ELsmp)..
-
-Hm... To use -m time you need to have ip_time enabled kernel. This=20
-2.4.21-4.ELsmp smeems to be very old, I don't remember if it has=20
-/proc/net/ip_tables_matches interface, is so please try:
-
-grep '^time$' /proc/net/ip_tables_matches|wc -l
-
-BTW, any chances for upgrading kernel?
-
-Best regards,
-
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1357899937-1132233572=:20297--
+-- 
+ Regards,
+  Krisztian Kovacs
