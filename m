@@ -1,17 +1,20 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: Re: Symmetric NAT for udp
-Date: Thu, 17 Nov 2005 13:34:11 +0100
-Message-ID: <200511171334.12015@nienna>
-References: <437C70F5.2090401@ipcb.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: BUG: iptables -j does not work for chains with a length >=28
+	(was moe infos...)
+Date: Thu, 17 Nov 2005 13:50:56 +0100
+Message-ID: <20051117125056.GB14201@sunbeam.de.gnumonks.org>
+References: <200511150139.51688.bernd@zeimetz.de>
+	<200511151715.32138.bernd@zeimetz.de>
+	<437A1F13.5080305@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Dmitry <dg@ipcb.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+pHx0qQiF2pBVqBT"
+Cc: Bernd Zeimetz <bernd@zeimetz.de>, 327007@bugs.debian.org,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <437C70F5.2090401@ipcb.net>
+To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
+In-Reply-To: <437A1F13.5080305@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,31 +27,39 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-  Hi,
+--+pHx0qQiF2pBVqBT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Thursday 17 November 2005 13.00, Dmitry wrote:
-> Hi all - i have a trouble with making netfilter nat act like symmetric
-> for udp . Normally for udp  it acts like port restricted cone nat ( the
-> main feature is that it doesnt mangle src port if several udp packets
-> come from same src ip/port - to different dest. In case of tcp it acts
-> like symmetric nat - ie each syn packet even from same src ip/port cause
-> src port  mangling. What i need is to make it act like symmetric for udp
-> too. So i just looked throught udp/tcp specific files
-> (conntrack_proto_udp, nat_proto_udp and relative tcp ) and didnt find
-> anything that makes it work different for tcp and udp. Tests revealed
-> that at first time (and after timeout) each udp packets  (even from same
-> src port/ip but to diff dest ) cause  new conntrack creation. But when
-> it checkes before postrouting is tuple taken  - for same src/port
-> somehow it says that no - so mangling doesnt occur. Can somebody give me
-> a hint where to dig?
+On Tue, Nov 15, 2005 at 06:46:59PM +0100, Pablo Neira wrote:
 
-  Dmitry, you don't even mention the exact version number of the kernel 
-you're testing. Could you tell us that precious information?
+> The patch attached fixes the problem that you're reporting here. I tried
+> with the shell script attached and seems to work fine. I'll pass it to
+> Harald.
 
-  By the way, it would help a _lot_ if you could write nfsim testcases 
-demonstrating the problem (the difference between TCP and UDP) you're 
-seeing. Would that be possible?
+already found it.  looks fine, I'll apply it to svn.
 
--- 
- Regards,
-  Krisztian Kovacs
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--+pHx0qQiF2pBVqBT
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDfHywXaXGVTD0i/8RAgSkAJ9vLUa9J8O4rYcmAeLTFN8dQiaqjQCfXTMm
+yG6Ra+h5gDwxKLQNZRnVVzY=
+=44AF
+-----END PGP SIGNATURE-----
+
+--+pHx0qQiF2pBVqBT--
