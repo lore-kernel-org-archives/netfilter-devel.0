@@ -1,15 +1,19 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: problems with libnetfilter_conntrack / cntl_test
-Date: Thu, 17 Nov 2005 02:38:35 +0100
-Message-ID: <437BDF1B.1050107@eurodev.net>
-References: <200511161439.04498.pluto@agmk.net> <437B53E9.2080800@eurodev.net>
-	<200511161809.25277.pluto@agmk.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 02/10]: [NETFILTER]: Defer fragmentation in ip_output
+ when connection tracking is used
+Date: Thu, 17 Nov 2005 03:28:24 +0100
+Message-ID: <437BEAC8.40904@trash.net>
+References: <43740DB5.9070206@trash.net>
+	<20051115104425.GA31719@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000205060506060401010707"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Kernel Netdev Mailing List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Harald Welte <laforge@gnumonks.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?UTF-8?B?UGF3ZcWCIFNpa29yYQ==?= <pluto@agmk.net>
-In-Reply-To: <200511161809.25277.pluto@agmk.net>
+To: Herbert Xu <herbert@gondor.apana.org.au>
+In-Reply-To: <20051115104425.GA31719@gondor.apana.org.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,77 +25,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000205060506060401010707
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-Paweł Sikora wrote:
-> Dnia środa, 16 listopada 2005 16:44, napisałeś:
+Herbert Xu wrote:
+> On Fri, Nov 11, 2005 at 03:19:17AM +0000, Patrick McHardy wrote:
 > 
->>Pawel Sikora wrote:
+>>[NETFILTER]: Defer fragmentation in ip_output when connection tracking is used
 >>
->>>I have installed a 2.6.14.2 kernel + grsecurity-2.1.7-2.6.14.2-$latest,
->>>libnfnetlink-0.0.13 and libnetfilter_conntrack-0.0.28.
->>>
->>>./ctnl_test fails:
->>>
->>>Test for libnetfilter_conntrack
->>>
->>>NFNETLINK answers: Invalid argument
->>>TEST 1: create conntrack (-22)
->>>TEST 2: dump conntrack table and reset (-22)
->>>TEST 3: dump conntrack table (-22)
->>>TEST 4: get conntrack (-22)
->>>TEST 5: update conntrack (-22)
->>>NFNETLINK answers: Invalid argument
->>>TEST 6: delete conntrack (-22)
->>>nfnl_open: bind(netlink): Operation not permitted
->>>Can't open handler
->>>Test failed with error -2. Errors=7
->>>
->>>Is this a grsec issue?
->>
->>Hard to say, my last contact with grsec was years ago. That output is
->>kind of weird. Could you try reverting the grsec patch?
+>>This allows to get rid of the okfn use in ip_refrag and save the useless
+>>fragmentation/defragmentation step when NAT is used.
 > 
+ >
+> I'm slightly uneasy about this change because for POST_ROUTING, the
+> defragmentation occurs in the middle of the hook, NF_IP_PRI_NAT_SRC.
 > 
-> currently I get the same error on 2.6.14.2 without grsec on root account.
-> first failure occurs at first call of nfnl_talk().
+> This means that things like the mangle table currently sees the
+> fragments as opposed to the whole packet.  This patch will change
+> that.
+> 
+> Now I'm not saying that this is necessarily a bad thing.  In fact,
+> for all I know it might make more sense to do this.  But we should
+> consider the possible implications before embarking on it.
 
-There's nothing wrong in nfnl_talk. It is the kernel that is returning
--EINVAL to userspace. Please apply the patch attached. It enables
-debugging. Send me the output since I'm not able to reproduce that
-problem that you're reporting. BTW, is that a x86 box?
+Good point. I would also prefer to have fragmentation occur after
+POST_ROUTING in all cases. Looking at the in-tree targets, it means
+loosing the ability to do a couple of things:
 
--- 
-Pablo
+- CLASSIFY fragments differently
+- MARK fragments differently
+- DSCP/ECN/TOS mark fragments differently
+- Change TTLs of fragments to differently values
 
---------------000205060506060401010707
-Content-Type: text/plain;
- name="debug.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="debug.patch"
+None of them seems very important. The DSCP and ECN targets were
+broken until not long ago without anyone noticing, the TTL target is
+relatively new. So it comes down to loosing the ability to classify
+fragments of one packet differently using iptables, which doesn't
+make much sense too me. In fact I think it would make classification
+easier if mangle would see the whole packet.
 
-SW5kZXg6IGxpbnV4LTIuNi4xNC4yL25ldC9uZXRmaWx0ZXIvbmZuZXRsaW5rLmMKPT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PQotLS0gbGludXgtMi42LjE0LjIub3JpZy9uZXQvbmV0ZmlsdGVyL25mbmV0bGlu
-ay5jCTIwMDUtMTEtMTEgMDY6MzM6MTIuMDAwMDAwMDAwICswMTAwCisrKyBsaW51eC0yLjYu
-MTQuMi9uZXQvbmV0ZmlsdGVyL25mbmV0bGluay5jCTIwMDUtMTEtMTcgMDI6MzU6MjEuMDAw
-MDAwMDAwICswMTAwCkBAIC00Myw3ICs0Myw3IEBAIE1PRFVMRV9BTElBU19ORVRfUEZfUFJP
-VE8oUEZfTkVUTElOSywgTkUKIAogc3RhdGljIGNoYXIgX19pbml0ZGF0YSBuZnZlcnNpb25b
-XSA9ICIwLjMwIjsKIAotI2lmIDAKKyNpZiAxCiAjZGVmaW5lIERFQlVHUChmb3JtYXQsIGFy
-Z3MuLi4pCVwKIAkJcHJpbnRrKEtFUk5fREVCVUcgIiVzKCVkKTolcygpOiAiIGZvcm1hdCwg
-X19GSUxFX18sIFwKIAkJCV9fTElORV9fLCBfX0ZVTkNUSU9OX18sICMjIGFyZ3MpCkluZGV4
-OiBsaW51eC0yLjYuMTQuMi9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29ubnRyYWNrX25ldGxp
-bmsuYwo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC0yLjYuMTQuMi5vcmlnL25ldC9pcHY0L25l
-dGZpbHRlci9pcF9jb25udHJhY2tfbmV0bGluay5jCTIwMDUtMTEtMTEgMDY6MzM6MTIuMDAw
-MDAwMDAwICswMTAwCisrKyBsaW51eC0yLjYuMTQuMi9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBf
-Y29ubnRyYWNrX25ldGxpbmsuYwkyMDA1LTExLTE3IDAyOjM1OjAyLjAwMDAwMDAwMCArMDEw
-MApAQCAtNDYsNyArNDYsNyBAQCBNT0RVTEVfTElDRU5TRSgiR1BMIik7CiAKIHN0YXRpYyBj
-aGFyIF9faW5pdGRhdGEgdmVyc2lvbltdID0gIjAuOTAiOwogCi0jaWYgMAorI2lmIDEKICNk
-ZWZpbmUgREVCVUdQIHByaW50awogI2Vsc2UKICNkZWZpbmUgREVCVUdQKGZvcm1hdCwgYXJn
-cy4uLikK
---------------000205060506060401010707--
+I've CCed Harald for his opinion in case I missed something.
+
+Regards
+Patrick
