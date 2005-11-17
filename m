@@ -1,17 +1,15 @@
 From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: kernel BUG at kernel/sched.c:2833!
-Date: Thu, 17 Nov 2005 01:36:35 +0100
-Message-ID: <437BD093.3010905@eurodev.net>
-References: <Pine.LNX.4.64.0511141033001.8729@bizon.gios.gov.pl>
-	<437882BE.6080705@eurodev.net>
-	<Pine.LNX.4.64.0511162216140.16387@bizon.gios.gov.pl>
+Subject: Re: problems with libnetfilter_conntrack / cntl_test
+Date: Thu, 17 Nov 2005 02:38:35 +0100
+Message-ID: <437BDF1B.1050107@eurodev.net>
+References: <200511161439.04498.pluto@agmk.net> <437B53E9.2080800@eurodev.net>
+	<200511161809.25277.pluto@agmk.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040101070601070808080106"
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------000205060506060401010707"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0511162216140.16387@bizon.gios.gov.pl>
+To: =?UTF-8?B?UGF3ZcWCIFNpa29yYQ==?= <pluto@agmk.net>
+In-Reply-To: <200511161809.25277.pluto@agmk.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,84 +22,76 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040101070601070808080106
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+--------------000205060506060401010707
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Krzysztof Oledzki wrote:
-> On Mon, 14 Nov 2005, Pablo Neira wrote:
+Paweł Sikora wrote:
+> Dnia środa, 16 listopada 2005 16:44, napisałeś:
 > 
->> Krzysztof Oledzki wrote:
+>>Pawel Sikora wrote:
 >>
->>> EIP is at sub_preempt_count+0x35/0x40
+>>>I have installed a 2.6.14.2 kernel + grsecurity-2.1.7-2.6.14.2-$latest,
+>>>libnfnetlink-0.0.13 and libnetfilter_conntrack-0.0.28.
 >>>
->>> AFAIK there were some small fixes that went into 2.6.15-rc1 which were
->>> supposed to fix such problems with conntrack -L. Shuldn't we send them
->>> to -stable to make 2.6.14.x also usable?
+>>>./ctnl_test fails:
+>>>
+>>>Test for libnetfilter_conntrack
+>>>
+>>>NFNETLINK answers: Invalid argument
+>>>TEST 1: create conntrack (-22)
+>>>TEST 2: dump conntrack table and reset (-22)
+>>>TEST 3: dump conntrack table (-22)
+>>>TEST 4: get conntrack (-22)
+>>>TEST 5: update conntrack (-22)
+>>>NFNETLINK answers: Invalid argument
+>>>TEST 6: delete conntrack (-22)
+>>>nfnl_open: bind(netlink): Operation not permitted
+>>>Can't open handler
+>>>Test failed with error -2. Errors=7
+>>>
+>>>Is this a grsec issue?
 >>
->> I think so, at the least Yasuyuki's:
->> [NETFILTER] refcount leak of proto when ctnetlink dumping tuple
->>
->> That fixes the problem that you're reporting.
+>>Hard to say, my last contact with grsec was years ago. That output is
+>>kind of weird. Could you try reverting the grsec patch?
 > 
-> What about this one?
+> 
+> currently I get the same error on 2.6.14.2 without grsec on root account.
+> first failure occurs at first call of nfnl_talk().
 
-I realised that Yasuyuki's patch is incomplete. Could you give a try to
-the patch attached. Thanks.
+There's nothing wrong in nfnl_talk. It is the kernel that is returning
+-EINVAL to userspace. Please apply the patch attached. It enables
+debugging. Send me the output since I'm not able to reproduce that
+problem that you're reporting. BTW, is that a x86 box?
 
 -- 
 Pablo
 
---------------040101070601070808080106
+--------------000205060506060401010707
 Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
+ name="debug.patch"
+Content-Transfer-Encoding: base64
 Content-Disposition: inline;
- filename="x"
+ filename="debug.patch"
 
-[NETFILTER] Fix ip_conntrack_proto_find_get badness
-
-The function ip_conntrack_proto_find_get always returns a valid pointer. The 
-generic protocol helper is returned when no specific protocol helper is found.
-This patch fixes as well a missing putting at dump_protoinfo, when no to_attr
-is found.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index f5e5e31..b797ef9 100644
---- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -59,11 +59,13 @@ ctnetlink_dump_tuples_proto(struct sk_bu
- 
- 	NFA_PUT(skb, CTA_PROTO_NUM, sizeof(u_int8_t), &tuple->dst.protonum);
- 
-+	/* If no protocol helper is found, this function will return the
-+	 * generic protocol helper, so proto won't *ever* be NULL */
- 	proto = ip_conntrack_proto_find_get(tuple->dst.protonum);
--	if (likely(proto && proto->tuple_to_nfattr)) {
-+	if (likely(proto->tuple_to_nfattr))
- 		ret = proto->tuple_to_nfattr(skb, tuple);
--		ip_conntrack_proto_put(proto);
--	}
-+
-+	ip_conntrack_proto_put(proto);
- 
- 	return ret;
- 
-@@ -128,9 +130,11 @@ ctnetlink_dump_protoinfo(struct sk_buff 
- 
- 	struct nfattr *nest_proto;
- 	int ret;
--	
--	if (!proto || !proto->to_nfattr)
-+
-+	if (!proto->to_nfattr) {
-+		ip_conntrack_proto_put(proto);
- 		return 0;
-+	}
- 	
- 	nest_proto = NFA_NEST(skb, CTA_PROTOINFO);
- 
-
---------------040101070601070808080106--
+SW5kZXg6IGxpbnV4LTIuNi4xNC4yL25ldC9uZXRmaWx0ZXIvbmZuZXRsaW5rLmMKPT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PQotLS0gbGludXgtMi42LjE0LjIub3JpZy9uZXQvbmV0ZmlsdGVyL25mbmV0bGlu
+ay5jCTIwMDUtMTEtMTEgMDY6MzM6MTIuMDAwMDAwMDAwICswMTAwCisrKyBsaW51eC0yLjYu
+MTQuMi9uZXQvbmV0ZmlsdGVyL25mbmV0bGluay5jCTIwMDUtMTEtMTcgMDI6MzU6MjEuMDAw
+MDAwMDAwICswMTAwCkBAIC00Myw3ICs0Myw3IEBAIE1PRFVMRV9BTElBU19ORVRfUEZfUFJP
+VE8oUEZfTkVUTElOSywgTkUKIAogc3RhdGljIGNoYXIgX19pbml0ZGF0YSBuZnZlcnNpb25b
+XSA9ICIwLjMwIjsKIAotI2lmIDAKKyNpZiAxCiAjZGVmaW5lIERFQlVHUChmb3JtYXQsIGFy
+Z3MuLi4pCVwKIAkJcHJpbnRrKEtFUk5fREVCVUcgIiVzKCVkKTolcygpOiAiIGZvcm1hdCwg
+X19GSUxFX18sIFwKIAkJCV9fTElORV9fLCBfX0ZVTkNUSU9OX18sICMjIGFyZ3MpCkluZGV4
+OiBsaW51eC0yLjYuMTQuMi9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29ubnRyYWNrX25ldGxp
+bmsuYwo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC0yLjYuMTQuMi5vcmlnL25ldC9pcHY0L25l
+dGZpbHRlci9pcF9jb25udHJhY2tfbmV0bGluay5jCTIwMDUtMTEtMTEgMDY6MzM6MTIuMDAw
+MDAwMDAwICswMTAwCisrKyBsaW51eC0yLjYuMTQuMi9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBf
+Y29ubnRyYWNrX25ldGxpbmsuYwkyMDA1LTExLTE3IDAyOjM1OjAyLjAwMDAwMDAwMCArMDEw
+MApAQCAtNDYsNyArNDYsNyBAQCBNT0RVTEVfTElDRU5TRSgiR1BMIik7CiAKIHN0YXRpYyBj
+aGFyIF9faW5pdGRhdGEgdmVyc2lvbltdID0gIjAuOTAiOwogCi0jaWYgMAorI2lmIDEKICNk
+ZWZpbmUgREVCVUdQIHByaW50awogI2Vsc2UKICNkZWZpbmUgREVCVUdQKGZvcm1hdCwgYXJn
+cy4uLikK
+--------------000205060506060401010707--
