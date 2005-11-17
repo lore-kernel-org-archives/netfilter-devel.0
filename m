@@ -1,18 +1,17 @@
-From: =?utf-8?q?Pawe=C5=82_Sikora?= <pluto@agmk.net>
-Subject: Re: problems with libnetfilter_conntrack / cntl_test
-Date: Thu, 17 Nov 2005 04:21:43 +0100
-Message-ID: <200511170421.43664.pluto@agmk.net>
-References: <200511161439.04498.pluto@agmk.net>
-	<200511161809.25277.pluto@agmk.net> <437BDF1B.1050107@eurodev.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER]: Fix nf_conntrack compilation with
+	CONFIG_NETFILTER_DEBUG
+Date: Thu, 17 Nov 2005 04:23:51 +0100
+Message-ID: <437BF7C7.4030900@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+ name="x"
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <437BDF1B.1050107@eurodev.net>
-Content-Disposition: inline
+To: "David S. Miller" <davem@davemloft.net>
+Content-Disposition: inline;
+ filename="x"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,46 +23,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dnia czwartek, 17 listopada 2005 02:38, Pablo Neira napisa=C5=82:
-> Pawe=C5=82 Sikora wrote:
-> > Dnia =C5=9Broda, 16 listopada 2005 16:44, napisa=C5=82e=C5=9B:
-> >>Pawel Sikora wrote:
-> >>>I have installed a 2.6.14.2 kernel + grsecurity-2.1.7-2.6.14.2-$late=
-st,
-> >>>libnfnetlink-0.0.13 and libnetfilter_conntrack-0.0.28.
-> >>>
-> >>>./ctnl_test fails:
-> >>>
-> >>>Test for libnetfilter_conntrack
-> >>>
-> >>>NFNETLINK answers: Invalid argument
-> >>>TEST 1: create conntrack (-22)
-> >>>TEST 2: dump conntrack table and reset (-22)
-> >>>TEST 3: dump conntrack table (-22)
-> >>>TEST 4: get conntrack (-22)
-> >>>TEST 5: update conntrack (-22)
-> >>>NFNETLINK answers: Invalid argument
-> >>>TEST 6: delete conntrack (-22)
-> >>>nfnl_open: bind(netlink): Operation not permitted
-> >>>Can't open handler
-> >>>Test failed with error -2. Errors=3D7
-> >>>
-> >>>Is this a grsec issue?
-> >>
-> >>Hard to say, my last contact with grsec was years ago. That output is
-> >>kind of weird. Could you try reverting the grsec patch?
-> >
-> > currently I get the same error on 2.6.14.2 without grsec on root acco=
-unt.
-> > first failure occurs at first call of nfnl_talk().
->
-> There's nothing wrong in nfnl_talk. It is the kernel that is returning
-> -EINVAL to userspace. (...)
+[NETFILTER]: Fix nf_conntrack compilation with CONFIG_NETFILTER_DEBUG
 
-sorry for the noise, /me is brainless :)
-`modprobe ip_conntrack_netlink` solved problem.
+CC [M]  net/netfilter/nf_conntrack_core.o
+net/netfilter/nf_conntrack_core.c: In function 'nf_ct_unlink_expect':
+net/netfilter/nf_conntrack_core.c:390: error: 'exp_timeout' undeclared (first use in this function)
+net/netfilter/nf_conntrack_core.c:390: error: (Each undeclared identifier is reported only once
+net/netfilter/nf_conntrack_core.c:390: error: for each function it appears in.)
 
---=20
-The only thing necessary for the triumph of evil
-  is for good men to do nothing.
-                                           - Edmund Burke
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 666e7efd137d0751f27e7305a719349b5324cc0e
+tree 675a8ce7c9c8fd0b9e5a9569122d4fd108da884e
+parent f6ff56cd56b83d8edf4b3cffc5c53c56b37a5081
+author Patrick McHardy <kaber@trash.net> Thu, 17 Nov 2005 04:22:48 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 17 Nov 2005 04:22:48 +0100
+
+ net/netfilter/nf_conntrack_core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index ea094b2..1da6783 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -387,7 +387,7 @@ nf_ct_invert_tuple(struct nf_conntrack_t
+ static void nf_ct_unlink_expect(struct nf_conntrack_expect *exp)
+ {
+ 	ASSERT_WRITE_LOCK(&nf_conntrack_lock);
+-	NF_CT_ASSERT(!timer_pending(&exp_timeout));
++	NF_CT_ASSERT(!timer_pending(&exp->timeout));
+ 	list_del(&exp->list);
+ 	NF_CT_STAT_INC(expect_delete);
+ 	exp->master->expecting--;
