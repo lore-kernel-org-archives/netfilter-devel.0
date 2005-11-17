@@ -1,15 +1,11 @@
-From: manish popli <popli_manish77@yahoo.com>
-Subject: Re: Re[2]: how to install time patch
-Date: Thu, 17 Nov 2005 03:07:29 -0800 (PST)
-Message-ID: <20051117110729.16390.qmail@web53604.mail.yahoo.com>
-References: <1973652483.20051117072416@epfi.net>
+From: James Morris <jmorris@redhat.com>
+Subject: Patch for perlipq (fwd)
+Date: Wed, 16 Nov 2005 23:44:47 -0500 (EST)
+Message-ID: <Lynx.SEL.4.62.0511162343370.20029@thoron.boston.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Markus Stubbe <mail@epfi.net>
-In-Reply-To: <1973652483.20051117072416@epfi.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,85 +17,52 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I am fail to install time patch for iptables..
-i have visited at 
-http://www.lowth.com/howto/add-iptables-modules.php
-
-but i m not able to doit successful..can any one guide
-me how to install "libipt_time.so" under Enterprise
-linux AS-3 (Linux version 2.4.21-4.ELsmp)..
-
-Thanks 
-Manish Popli
-
---- Markus Stubbe <mail@epfi.net> wrote:
-
-> Hi!
-> 
-> The cvs-server is down since Octobre 2004. You will
-> find the files you
-> need on the netfilter ftp-server: ftp.netfilter.org
-> To install the timepatches you'll need the
-> patch-o-matic-ng. After
-> umcompressing the archive you can follow the steps
-> in the
-> netfilter.org-HowTo.
-> 
-> greetings, Markus
-> 
-> 
-> > Hi Pablo,
-> 
-> > Can you tell me how can i update my iptables for
-> time
-> > patch..
-> > i have visited google even but i din't find the
-> > solution.I am not very much frendly with
-> linux..plz
-> > tell me how to update my iptables for time patch..
-> 
-> > Thanks 
-> > Manish Popli
-> 
-> > --- Pablo Neira <pablo@eurodev.net> wrote:
-> 
-> >> manish popli wrote:
-> >> > I am using the Linux version 2.4.21-4.ELsmp..I
-> >> wand to
-> >> > install time patch for IPtables for that i have
-> >> > visited at 
-> >> > 
-> >> >
-> >>
-> >
->
-http://www.netfilter.org/documentation/HOWTO//netfilter-extensions-HOWTO-2.html#ss2.2
-> >> > 
-> >> > Folloed the instructions and run the command
-> >> > 
-> >> > # cvs -d
-> >> :pserver:cvs@pserver.netfilter.org:/cvspublic
-> >> > login
-> >> 
-> >> The netfilter project switched from CVS to SVN
-> time
-> >> ago. That doc needs
-> >> to be updated :(
-> >> 
-> >> -- 
-> >> Pablo
-> >> 
-> 
-> 
-> 
-> 
-> 
-> 
+Here's a patch for perlipq and FC4 if anyone needs it.
 
 
+---------- Forwarded message ----------
+Date: Wed, 16 Nov 2005 20:55:14 -0500
+From: David Steele
+To: jmorris@redhat.com
+Subject: Patch for perlipq
 
-	
-		
-__________________________________ 
-Yahoo! Mail - PC Magazine Editors' Choice 2005 
-http://mail.yahoo.com
+Patch to make perlipq build cleanly for Fedora Core 4.
+
+----
+Thanks for making your software available.
+
+Dave Steele
+---
+diff -Naur perlipq-1.25/Makefile.PL devel/Makefile.PL
+--- perlipq-1.25/Makefile.PL    2000-12-01 10:02:15.000000000 -0500
++++ devel/Makefile.PL   2005-11-16 20:28:44.000000000 -0500
+@@ -7,7 +7,7 @@
+ #
+ # Defaults
+ #
+-my $IPTABLES_DIR = '/usr/local';
++my $IPTABLES_DIR = '/usr';
+
+ #
+ # Query user to override defaults.
+diff -Naur perlipq-1.25/t/simple.t devel/t/simple.t
+--- perlipq-1.25/t/simple.t     2001-10-22 09:47:16.000000000 -0400
++++ devel/t/simple.t    2005-11-16 20:30:06.000000000 -0500
+@@ -46,7 +46,7 @@
+        }
+
+        while (<PROC>) {
+-               if (/^Peer pid\s+:\s+(\d+)/) {
++               if (/^Peer PID\s+:\s+(\d+)/) {
+                        $procpid = $1;
+                        last;
+                }
+@@ -72,7 +72,7 @@
+        if (defined $packet) {
+                print "not ok 4\n";
+        } else {
+-               if (IPTables::IPv4::IPQueue->errstr eq 'Timeout') {
++               if (substr( IPTables::IPv4::IPQueue->errstr,0,7) eq 'Timeout') {
+                        print "ok 4\n";
+                } else {
+                        print "not ok 4\n";
