@@ -1,15 +1,15 @@
-From: manish popli <popli_manish77@yahoo.com>
-Subject: Re: Re[2]: how to install time patch
-Date: Thu, 17 Nov 2005 05:02:31 -0800 (PST)
-Message-ID: <20051117130231.81944.qmail@web53610.mail.yahoo.com>
-References: <Pine.LNX.4.64.0511171416150.20297@bizon.gios.gov.pl>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: how to install time patch
+Date: Thu, 17 Nov 2005 14:12:15 +0100
+Message-ID: <437C81AF.4080806@eurodev.net>
+References: <20051117130231.81944.qmail@web53610.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org, mail@epfi.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0511171416150.20297@bizon.gios.gov.pl>
+To: manish popli <popli_manish77@yahoo.com>
+In-Reply-To: <20051117130231.81944.qmail@web53610.mail.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,48 +21,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-No it hasn't /proc/net/ip_tables_matches interface
-but there is /proc/net/ip_mr_cache &
-/proc/net/ip_mr_vif
-can you tell me how to upgrade kernal ??
+manish popli wrote:
+> No it hasn't /proc/net/ip_tables_matches interface
+> but there is /proc/net/ip_mr_cache &
+> /proc/net/ip_mr_vif
+> can you tell me how to upgrade kernal ??
 
+1) Checkout a working copy of pom-ng:
+$ svn co https://svn.netfilter.org/netfilter/trunk/patch-o-matic-ng
 
---- Krzysztof Oledzki <olenf@ans.pl> wrote:
+2) cd trunk/patch-o-matic-ng and ./runme
+Then apply the time patch, you need the kernel and iptables sources
+(Yes, you have to recompile your kernel and iptables)
+You'll have to set IPTABLES_DIR and KERNEL_DIR vars to whatever your
+sources are located.
 
-> 
-> 
-> On Thu, 17 Nov 2005, manish popli wrote:
-> 
-> > I am fail to install time patch for iptables..
-> > i have visited at
-> >
-> http://www.lowth.com/howto/add-iptables-modules.php
-> >
-> > but i m not able to doit successful..can any one
-> guide
-> > me how to install "libipt_time.so" under
-> Enterprise
-> > linux AS-3 (Linux version 2.4.21-4.ELsmp)..
-> 
-> Hm... To use -m time you need to have ip_time
-> enabled kernel. This 
-> 2.4.21-4.ELsmp smeems to be very old, I don't
-> remember if it has 
-> /proc/net/ip_tables_matches interface, is so please
-> try:
-> 
-> grep '^time$' /proc/net/ip_tables_matches|wc -l
-> 
-> BTW, any chances for upgrading kernel?
-> 
-> Best regards,
-> 
-> 
->  				Krzysztof Olêdzki
+I suggest you to post this kind of questions to
+netfilter@lists.netfilter.org (users mailling list). Since this is no
+concerned with the netfilter development. Thanks!
 
-
-
-		
-__________________________________ 
-Start your day with Yahoo! - Make it your home page! 
-http://www.yahoo.com/r/hs
+-- 
+Pablo
