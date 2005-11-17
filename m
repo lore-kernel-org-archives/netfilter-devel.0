@@ -1,17 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] replace handmade list with hlist in IPv6 reassembly
-Date: Thu, 17 Nov 2005 16:08:57 +0100
-Message-ID: <20051117150857.GI14201@sunbeam.de.gnumonks.org>
-References: <200511121440.jACEeA7b022665@toshiba.co.jp>
-	<200511161514.jAGFENgK018773@toshiba.co.jp>
+Subject: Re: kernel BUG at kernel/sched.c:2833!
+Date: Thu, 17 Nov 2005 16:11:35 +0100
+Message-ID: <20051117151135.GJ14201@sunbeam.de.gnumonks.org>
+References: <Pine.LNX.4.64.0511141033001.8729@bizon.gios.gov.pl>
+	<437882BE.6080705@eurodev.net>
+	<Pine.LNX.4.64.0511162216140.16387@bizon.gios.gov.pl>
+	<437BD093.3010905@eurodev.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UthUFkbMtH2ceUK2"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="PEkEgRdBLZYkpbX2"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: Pablo Neira <pablo@eurodev.net>
 Content-Disposition: inline
-In-Reply-To: <200511161514.jAGFENgK018773@toshiba.co.jp>
+In-Reply-To: <437BD093.3010905@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,16 +26,16 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---UthUFkbMtH2ceUK2
+--PEkEgRdBLZYkpbX2
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 17, 2005 at 12:14:22AM +0900, Yasuyuki KOZAKAI wrote:
->=20
-> Sorry for missing patch.
+On Thu, Nov 17, 2005 at 01:36:35AM +0100, Pablo Neira wrote:
+> [NETFILTER] Fix ip_conntrack_proto_find_get badness
 
 thanks, applied.
+
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -44,16 +46,16 @@ thanks, applied.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---UthUFkbMtH2ceUK2
+--PEkEgRdBLZYkpbX2
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDfJ0JXaXGVTD0i/8RAvEtAJ427ibSk3SZOkmZcoxSrJ6On3lMKgCgnT02
-ojKOF41+eDEJkxMWhcwHbjk=
-=dnYL
+iD8DBQFDfJ2nXaXGVTD0i/8RAm7TAJ96K2/EQjObnYD6ft1MRKAXCrjenwCcDyWf
+WGS+0ZS0JXXUJfxl7NWQoGM=
+=fOqS
 -----END PGP SIGNATURE-----
 
---UthUFkbMtH2ceUK2--
+--PEkEgRdBLZYkpbX2--
