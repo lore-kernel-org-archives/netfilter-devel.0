@@ -1,20 +1,19 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: BUG: iptables -j does not work for chains with a length >=28
-	(was moe infos...)
-Date: Thu, 17 Nov 2005 13:50:56 +0100
-Message-ID: <20051117125056.GB14201@sunbeam.de.gnumonks.org>
-References: <200511150139.51688.bernd@zeimetz.de>
-	<200511151715.32138.bernd@zeimetz.de>
-	<437A1F13.5080305@eurodev.net>
+Subject: Re: problems with libnetfilter_conntrack / cntl_test
+Date: Thu, 17 Nov 2005 13:49:09 +0100
+Message-ID: <20051117124909.GA14201@sunbeam.de.gnumonks.org>
+References: <200511161439.04498.pluto@agmk.net>
+	<200511161809.25277.pluto@agmk.net> <437BDF1B.1050107@eurodev.net>
+	<200511170421.43664.pluto@agmk.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+pHx0qQiF2pBVqBT"
-Cc: Bernd Zeimetz <bernd@zeimetz.de>, 327007@bugs.debian.org,
-	netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="IJpNTDwzlM2Ie8A6"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
+To: =?utf-8?B?UGF3ZcWC?= Sikora <pluto@agmk.net>
 Content-Disposition: inline
-In-Reply-To: <437A1F13.5080305@eurodev.net>
+In-Reply-To: <200511170421.43664.pluto@agmk.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,18 +26,18 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---+pHx0qQiF2pBVqBT
-Content-Type: text/plain; charset=us-ascii
+--IJpNTDwzlM2Ie8A6
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 15, 2005 at 06:46:59PM +0100, Pablo Neira wrote:
+On Thu, Nov 17, 2005 at 04:21:43AM +0100, Pawe=C5=82 Sikora wrote:
 
-> The patch attached fixes the problem that you're reporting here. I tried
-> with the shell script attached and seems to work fine. I'll pass it to
-> Harald.
+> sorry for the noise, /me is brainless :)
+> `modprobe ip_conntrack_netlink` solved problem.
 
-already found it.  looks fine, I'll apply it to svn.
+the autoloading of ip_conntrack_netlink was only introduced in the
+2.6.15 series.  2.6.14[.y] doesn't have it, sorry.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -50,16 +49,16 @@ already found it.  looks fine, I'll apply it to svn.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---+pHx0qQiF2pBVqBT
+--IJpNTDwzlM2Ie8A6
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDfHywXaXGVTD0i/8RAgSkAJ9vLUa9J8O4rYcmAeLTFN8dQiaqjQCfXTMm
-yG6Ra+h5gDwxKLQNZRnVVzY=
-=44AF
+iD8DBQFDfHxFXaXGVTD0i/8RAoI/AJ9H9RTJyXkmInEXouPF9G++bhWcqwCgrMZg
+fTDq/qnyqXoJDTV1Zb9n4Fk=
+=mZ72
 -----END PGP SIGNATURE-----
 
---+pHx0qQiF2pBVqBT--
+--IJpNTDwzlM2Ie8A6--
