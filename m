@@ -1,16 +1,13 @@
-From: Menno Smits <menno@netboxblue.com>
-Subject: Re: Simulatenous use of LOG and ULOG on 2.6.14
-Date: Fri, 18 Nov 2005 08:23:53 +1000
-Message-ID: <437D02F9.9020107@netboxblue.com>
-References: <436EF34E.2030806@netboxblue.com>
-	<20051112101727.GC10584@sunbeam.de.gnumonks.org>
+From: Jones Desougi <jones@ingate.com>
+Subject: [PATCH]: ipset kernel memory allocations
+Date: Fri, 18 Nov 2005 01:53:39 +0100
+Message-ID: <200511180053.jAI0rd1S031000@usagi.ingate.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: kadlec@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051112101727.GC10584@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,37 +19,99 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald,
+Hi,
 
-> The idea is that in the long term there will only be one LOG target
-> that everybody uses.
+The kernel ipset code in patch-o-matic-ng has code
+like this in three places:
 
-Ok, thanks for confirming this.
+tmp = kmalloc(...);
+if (!map) { ... }
 
-> One thing that I've been thinking about, though, was having
-> priorities. So when you use ULOG/NFLOG and your daemon dies, it would
-> fall back to the LOG/dmesg backend, if that is available.
+i.e. checking the wrong variable. Map cannot be false
+here, it is used in the size calculation for kmalloc.
+Probably all of these originate from a single source.
+The patch below fixes them.
 
-Interesting idea but not too useful for us. We'd like to have syslogging
-and ULOG/NFLOG at the same time.
+   /Jones
 
-The problem has been worked around by assigning a specific ULOG netlink
-group for traffic to be "syslogged" and using a simple daemon to
-collect, parse and log these packets.
 
->> How do I make this work as before? I need to be able to use both
->> ULOG and LOG at the same time. Will it work if enable
->> CONFIG_NETFILTER_NETLINK and related options and port the daemon to
->> the new libnetfilter_log library? I'd really prefer to not have to
->> touch the daemon at this stage but will if that's the only answer.
-> 
-> 
-> no, it wouldn't be any different.
+Signed-off-by: Jones Desougi <jones@ingate.com>
 
-Great. I have since confirmed that this is true. Our existing logging
-daemon still works.
-
-Menno
-
-Scanned by the NetBox from NetBox Blue
-(http://netboxblue.com/)
+Index: patchlets/set/linux/net/ipv4/netfilter/ip_set_iphash.c
+===================================================================
+--- patchlets/set/linux/net/ipv4/netfilter/ip_set_iphash.c	(revision 4540)
++++ patchlets/set/linux/net/ipv4/netfilter/ip_set_iphash.c	(working copy)
+@@ -171,7 +171,7 @@
+ 
+ 	tmp = kmalloc(sizeof(struct ip_set_iphash) 
+ 		      + map->probes * sizeof(uint32_t), GFP_ATOMIC);
+-	if (!map) {
++	if (!tmp) {
+ 		DP("out of memory for %d bytes",
+ 		   sizeof(struct ip_set_iphash)
+ 		   + map->probes * sizeof(uint32_t));
+Index: patchlets/set/linux/net/ipv4/netfilter/ip_set_ipporthash.c
+===================================================================
+--- patchlets/set/linux/net/ipv4/netfilter/ip_set_ipporthash.c	(revision 4540)
++++ patchlets/set/linux/net/ipv4/netfilter/ip_set_ipporthash.c	(working copy)
+@@ -270,7 +270,7 @@
+ 
+ 	tmp = kmalloc(sizeof(struct ip_set_ipporthash) 
+ 		      + map->probes * sizeof(uint32_t), GFP_ATOMIC);
+-	if (!map) {
++	if (!tmp) {
+ 		DP("out of memory for %d bytes",
+ 		   sizeof(struct ip_set_ipporthash)
+ 		   + map->probes * sizeof(uint32_t));
+Index: patchlets/set/linux/net/ipv4/netfilter/ip_set_nethash.c
+===================================================================
+--- patchlets/set/linux/net/ipv4/netfilter/ip_set_nethash.c	(revision 4540)
++++ patchlets/set/linux/net/ipv4/netfilter/ip_set_nethash.c	(working copy)
+@@ -234,7 +234,7 @@
+ 
+ 	tmp = kmalloc(sizeof(struct ip_set_nethash) 
+ 		      + map->probes * sizeof(uint32_t), GFP_ATOMIC);
+-	if (!map) {
++	if (!tmp) {
+ 		DP("out of memory for %d bytes",
+ 		   sizeof(struct ip_set_nethash)
+ 		   + map->probes * sizeof(uint32_t));
+Index: patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_iphash.c
+===================================================================
+--- patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_iphash.c	(revision 4540)
++++ patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_iphash.c	(working copy)
+@@ -170,7 +170,7 @@
+ 
+ 	tmp = kmalloc(sizeof(struct ip_set_iphash) 
+ 		      + map->probes * sizeof(uint32_t), GFP_ATOMIC);
+-	if (!map) {
++	if (!tmp) {
+ 		DP("out of memory for %d bytes",
+ 		   sizeof(struct ip_set_iphash)
+ 		   + map->probes * sizeof(uint32_t));
+Index: patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_ipporthash.c
+===================================================================
+--- patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_ipporthash.c	(revision 4540)
++++ patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_ipporthash.c	(working copy)
+@@ -269,7 +269,7 @@
+ 
+ 	tmp = kmalloc(sizeof(struct ip_set_ipporthash) 
+ 		      + map->probes * sizeof(uint32_t), GFP_ATOMIC);
+-	if (!map) {
++	if (!tmp) {
+ 		DP("out of memory for %d bytes",
+ 		   sizeof(struct ip_set_ipporthash)
+ 		   + map->probes * sizeof(uint32_t));
+Index: patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_nethash.c
+===================================================================
+--- patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_nethash.c	(revision 4540)
++++ patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_nethash.c	(working copy)
+@@ -233,7 +233,7 @@
+ 
+ 	tmp = kmalloc(sizeof(struct ip_set_nethash) 
+ 		      + map->probes * sizeof(uint32_t), GFP_ATOMIC);
+-	if (!map) {
++	if (!tmp) {
+ 		DP("out of memory for %d bytes",
+ 		   sizeof(struct ip_set_nethash)
+ 		   + map->probes * sizeof(uint32_t));
