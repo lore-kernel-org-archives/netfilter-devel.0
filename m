@@ -1,13 +1,18 @@
-From: Jones Desougi <jones@ingate.com>
-Subject: [PATCH]: ipset kernel memory allocations
-Date: Fri, 18 Nov 2005 01:53:39 +0100
-Message-ID: <200511180053.jAI0rd1S031000@usagi.ingate.se>
+From: Pablo Neira <pablo@eurodev.net>
+Subject: Re: kernel BUG at kernel/sched.c:2833!
+Date: Fri, 18 Nov 2005 04:19:01 +0100
+Message-ID: <437D4825.1060801@eurodev.net>
+References: <Pine.LNX.4.64.0511141033001.8729@bizon.gios.gov.pl>
+	<437882BE.6080705@eurodev.net>
+	<Pine.LNX.4.64.0511162216140.16387@bizon.gios.gov.pl>
+	<437BD093.3010905@eurodev.net>
+	<20051117151135.GJ14201@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: kadlec@netfilter.org
+Content-Type: multipart/mixed; boundary="------------020302010100080402090208"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20051117151135.GJ14201@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,99 +24,104 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+This is a multi-part message in MIME format.
+--------------020302010100080402090208
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-The kernel ipset code in patch-o-matic-ng has code
-like this in three places:
+Harald Welte wrote:
+> On Thu, Nov 17, 2005 at 01:36:35AM +0100, Pablo Neira wrote:
+> 
+>>[NETFILTER] Fix ip_conntrack_proto_find_get badness
+> 
+> thanks, applied.
 
-tmp = kmalloc(...);
-if (!map) { ... }
+Sorry Harald, that patch is incomplete :(. Please, revert it. Attached
+the final version.
 
-i.e. checking the wrong variable. Map cannot be false
-here, it is used in the size calculation for kmalloc.
-Probably all of these originate from a single source.
-The patch below fixes them.
+BTW, you have two trees at people.netfilter.org, which one should I use?
 
-   /Jones
+-- 
+Pablo
 
+--------------020302010100080402090208
+Content-Type: text/plain;
+ name="proto_find.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="proto_find.patch"
 
-Signed-off-by: Jones Desougi <jones@ingate.com>
+Remove proto == NULL checking since ip_conntrack_[nat_]proto_find_get always
+returns a valid pointer. Fix missing ip_conntrack_proto_put in some paths.
 
-Index: patchlets/set/linux/net/ipv4/netfilter/ip_set_iphash.c
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+Index: netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c
 ===================================================================
---- patchlets/set/linux/net/ipv4/netfilter/ip_set_iphash.c	(revision 4540)
-+++ patchlets/set/linux/net/ipv4/netfilter/ip_set_iphash.c	(working copy)
-@@ -171,7 +171,7 @@
+--- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-18 04:10:01.000000000 +0100
++++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-11-18 04:12:09.000000000 +0100
+@@ -59,11 +59,13 @@ ctnetlink_dump_tuples_proto(struct sk_bu
  
- 	tmp = kmalloc(sizeof(struct ip_set_iphash) 
- 		      + map->probes * sizeof(uint32_t), GFP_ATOMIC);
--	if (!map) {
-+	if (!tmp) {
- 		DP("out of memory for %d bytes",
- 		   sizeof(struct ip_set_iphash)
- 		   + map->probes * sizeof(uint32_t));
-Index: patchlets/set/linux/net/ipv4/netfilter/ip_set_ipporthash.c
-===================================================================
---- patchlets/set/linux/net/ipv4/netfilter/ip_set_ipporthash.c	(revision 4540)
-+++ patchlets/set/linux/net/ipv4/netfilter/ip_set_ipporthash.c	(working copy)
-@@ -270,7 +270,7 @@
+ 	NFA_PUT(skb, CTA_PROTO_NUM, sizeof(u_int8_t), &tuple->dst.protonum);
  
- 	tmp = kmalloc(sizeof(struct ip_set_ipporthash) 
- 		      + map->probes * sizeof(uint32_t), GFP_ATOMIC);
--	if (!map) {
-+	if (!tmp) {
- 		DP("out of memory for %d bytes",
- 		   sizeof(struct ip_set_ipporthash)
- 		   + map->probes * sizeof(uint32_t));
-Index: patchlets/set/linux/net/ipv4/netfilter/ip_set_nethash.c
-===================================================================
---- patchlets/set/linux/net/ipv4/netfilter/ip_set_nethash.c	(revision 4540)
-+++ patchlets/set/linux/net/ipv4/netfilter/ip_set_nethash.c	(working copy)
-@@ -234,7 +234,7 @@
++	/* If no protocol helper is found, this function will return the
++	 * generic protocol helper, so proto won't *ever* be NULL */
+ 	proto = ip_conntrack_proto_find_get(tuple->dst.protonum);
+-	if (likely(proto && proto->tuple_to_nfattr)) {
++	if (likely(proto->tuple_to_nfattr))
+ 		ret = proto->tuple_to_nfattr(skb, tuple);
+-		ip_conntrack_proto_put(proto);
+-	}
++	
++	ip_conntrack_proto_put(proto);
  
- 	tmp = kmalloc(sizeof(struct ip_set_nethash) 
- 		      + map->probes * sizeof(uint32_t), GFP_ATOMIC);
--	if (!map) {
-+	if (!tmp) {
- 		DP("out of memory for %d bytes",
- 		   sizeof(struct ip_set_nethash)
- 		   + map->probes * sizeof(uint32_t));
-Index: patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_iphash.c
-===================================================================
---- patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_iphash.c	(revision 4540)
-+++ patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_iphash.c	(working copy)
-@@ -170,7 +170,7 @@
+ 	return ret;
  
- 	tmp = kmalloc(sizeof(struct ip_set_iphash) 
- 		      + map->probes * sizeof(uint32_t), GFP_ATOMIC);
--	if (!map) {
-+	if (!tmp) {
- 		DP("out of memory for %d bytes",
- 		   sizeof(struct ip_set_iphash)
- 		   + map->probes * sizeof(uint32_t));
-Index: patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_ipporthash.c
-===================================================================
---- patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_ipporthash.c	(revision 4540)
-+++ patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_ipporthash.c	(working copy)
-@@ -269,7 +269,7 @@
+@@ -128,9 +130,11 @@ ctnetlink_dump_protoinfo(struct sk_buff 
  
- 	tmp = kmalloc(sizeof(struct ip_set_ipporthash) 
- 		      + map->probes * sizeof(uint32_t), GFP_ATOMIC);
--	if (!map) {
-+	if (!tmp) {
- 		DP("out of memory for %d bytes",
- 		   sizeof(struct ip_set_ipporthash)
- 		   + map->probes * sizeof(uint32_t));
-Index: patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_nethash.c
-===================================================================
---- patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_nethash.c	(revision 4540)
-+++ patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_nethash.c	(working copy)
-@@ -233,7 +233,7 @@
+ 	struct nfattr *nest_proto;
+ 	int ret;
+-	
+-	if (!proto || !proto->to_nfattr)
++
++	if (!proto->to_nfattr) {
++		ip_conntrack_proto_put(proto);
+ 		return 0;
++	}
+ 	
+ 	nest_proto = NFA_NEST(skb, CTA_PROTOINFO);
  
- 	tmp = kmalloc(sizeof(struct ip_set_nethash) 
- 		      + map->probes * sizeof(uint32_t), GFP_ATOMIC);
--	if (!map) {
-+	if (!tmp) {
- 		DP("out of memory for %d bytes",
- 		   sizeof(struct ip_set_nethash)
- 		   + map->probes * sizeof(uint32_t));
+@@ -527,10 +531,10 @@ ctnetlink_parse_tuple_proto(struct nfatt
+ 
+ 	proto = ip_conntrack_proto_find_get(tuple->dst.protonum);
+ 
+-	if (likely(proto && proto->nfattr_to_tuple)) {
++	if (likely(proto && proto->nfattr_to_tuple))
+ 		ret = proto->nfattr_to_tuple(tb, tuple);
+-		ip_conntrack_proto_put(proto);
+-	}
++	
++	ip_conntrack_proto_put(proto);
+ 	
+ 	return ret;
+ }
+@@ -596,8 +600,6 @@ static int ctnetlink_parse_nat_proto(str
+ 		return -EINVAL;
+ 
+ 	npt = ip_nat_proto_find_get(ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum);
+-	if (!npt)
+-		return 0;
+ 
+ 	if (!npt->nfattr_to_range) {
+ 		ip_nat_proto_put(npt);
+@@ -957,8 +959,6 @@ ctnetlink_change_protoinfo(struct ip_con
+ 	nfattr_parse_nested(tb, CTA_PROTOINFO_MAX, attr);
+ 
+ 	proto = ip_conntrack_proto_find_get(npt);
+-	if (!proto)
+-		return -EINVAL;
+ 
+ 	if (proto->from_nfattr)
+ 		err = proto->from_nfattr(tb, ct);
+
+--------------020302010100080402090208--
