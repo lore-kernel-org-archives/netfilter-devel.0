@@ -1,19 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] NETFILTER arp_tables: Fix NUMA optimization
-Date: Sat, 19 Nov 2005 11:31:31 +0100
-Message-ID: <20051119103131.GE20775@sunbeam.de.gnumonks.org>
-References: <20051117144328.GG14201@sunbeam.de.gnumonks.org>
-	<437CA009.4020006@cosmosbay.com>
-	<20051118.160043.119281166.davem@davemloft.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: build bug: ipt_CONNMARK.c: undefined reference to
+ `need_ip_conntrack'
+Date: Sun, 20 Nov 2005 04:30:18 +0900 (JST)
+Message-ID: <200511191930.jAJJUJoE022266@toshiba.co.jp>
+References: <m364qolfuv.fsf@defiant.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tmoQ0UElFV5VgXgH"
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	dada1@cosmosbay.com
+Content-Type: Multipart/Mixed;
+	boundary="--Next_Part(Sun_Nov_20_04_30_18_2005_933)--"
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-Content-Disposition: inline
-In-Reply-To: <20051118.160043.119281166.davem@davemloft.net>
+To: khc@pm.waw.pl
+In-Reply-To: <m364qolfuv.fsf@defiant.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,73 +24,94 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+----Next_Part(Sun_Nov_20_04_30_18_2005_933)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
---tmoQ0UElFV5VgXgH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+From: Krzysztof Halasa <khc@pm.waw.pl>
+Date: Sat, 19 Nov 2005 18:14:32 +0100
 
-Hi Dave!
+>   LD      init/built-in.o
+>   LD      .tmp_vmlinux1
+> net/built-in.o(.init.text+0x1adb): In function `init':
+> ipt_CONNMARK.c: undefined reference to `need_ip_conntrack'
+> make[2]: *** [.tmp_vmlinux1] Error 1
+> 
+> Last merged Linus' git: b286e39207237e2f6929959372bf66d9a8d05a82
+> (i.e., current 2.6.15rc1+).
 
-On Fri, Nov 18, 2005 at 04:00:43PM -0800, David S. Miller wrote:
+Thanks for report. Could you check this patch ?
 
-> I've put the patch into the net-2.6.16 tree with the obvious
-> fix Eric points out.
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
-There's another one that I detected while merging those changes with
-x_tables (painful).  Please merge:
+-- Yasuyuki Kozakai
 
+----Next_Part(Sun_Nov_20_04_30_18_2005_933)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="kconfig.patch"
 
-[NETFILTER] arp_tables: Fix bug introduced with NUMA aware allocation
+[NETFILTER] fixed dependencies between modules related with ip_conntrack
 
-This fix shows how bad I am with copy & paste.
+- IP_NF_CONNTRACK_MARK is bool and depends on only IP_NF_CONNTRACK which is
+  tristate. If a variable depends on IP_NF_CONNTRACK_MARK and
+  doesn't care about IP_NF_CONNTRACK, it can be y. This must be avoided.
+- IP_NF_CT_ACCT has same problem.
+- IP_NF_TARGET_CLUSTERIP also depends on IP_NF_MANGLE.
 
-Signed-off-by: Harald Welte <laforge@netfilter.org>
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
 ---
-commit 4fa8b41b4adc117876114c149885fc8921fcabde
-tree 950bd802e3daf69ad55fc203765c31ebead4fe5d
-parent a7b935151849464c804437ee411dc64641c6f298
-author Harald Welte <laforge@netfilter.org> Sat, 19 Nov 2005 11:29:40 +0100
-committer Harald Welte <laforge@netfilter.org> Sat, 19 Nov 2005 11:29:40 +0=
-100
+commit 99b60eb9f5dab5bc6e008e1ea0434cbcacb479e7
+tree 14a745e19d569d6a122ba1464df55b03ba6b1f54
+parent 777c88274354f764f9f0c42b403a63b1a1707ced
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 20 Nov 2005 04:07:51 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 20 Nov 2005 04:07:51 +0900
 
- net/ipv4/netfilter/arp_tables.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/ipv4/netfilter/Kconfig |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_table=
-s.c
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -757,7 +757,7 @@ static int translate_table(const char *n
- 	/* And one copy for every other CPU */
- 	for_each_cpu(i) {
- 		if (newinfo->entries[i] && newinfo->entries[i] !=3D entry0)
--			memcpy(newinfo->entries[smp_processor_id()], entry0, newinfo->size);
-+			memcpy(newinfo->entries[i], entry0, newinfo->size);
- 	}
-=20
- 	return ret;
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 9d3c8b5..0bc0052 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -440,7 +440,7 @@ config IP_NF_MATCH_COMMENT
+ config IP_NF_MATCH_CONNMARK
+ 	tristate  'Connection mark match support'
+ 	depends on IP_NF_IPTABLES
+-	depends on IP_NF_CONNTRACK_MARK || (NF_CONNTRACK_MARK && NF_CONNTRACK_IPV4)
++	depends on (IP_NF_CONNTRACK && IP_NF_CONNTRACK_MARK) || (NF_CONNTRACK_MARK && NF_CONNTRACK_IPV4)
+ 	help
+ 	  This option adds a `connmark' match, which allows you to match the
+ 	  connection mark value previously set for the session by `CONNMARK'. 
+@@ -452,7 +452,7 @@ config IP_NF_MATCH_CONNMARK
+ config IP_NF_MATCH_CONNBYTES
+ 	tristate  'Connection byte/packet counter match support'
+ 	depends on IP_NF_IPTABLES
+-	depends on IP_NF_CT_ACCT || (NF_CT_ACCT && NF_CONNTRACK_IPV4)
++	depends on (IP_NF_CONNTRACK && IP_NF_CT_ACCT) || (NF_CT_ACCT && NF_CONNTRACK_IPV4)
+ 	help
+ 	  This option adds a `connbytes' match, which allows you to match the
+ 	  number of bytes and/or packets for each direction within a connection.
+@@ -767,7 +767,7 @@ config IP_NF_TARGET_TTL
+ config IP_NF_TARGET_CONNMARK
+ 	tristate  'CONNMARK target support'
+ 	depends on IP_NF_MANGLE
+-	depends on IP_NF_CONNTRACK_MARK || (NF_CONNTRACK_MARK && NF_CONNTRACK_IPV4)
++	depends on (IP_NF_CONNTRACK && IP_NF_CONNTRACK_MARK) || (NF_CONNTRACK_MARK && NF_CONNTRACK_IPV4)
+ 	help
+ 	  This option adds a `CONNMARK' target, which allows one to manipulate
+ 	  the connection mark value.  Similar to the MARK target, but
+@@ -779,8 +779,8 @@ config IP_NF_TARGET_CONNMARK
+ 
+ config IP_NF_TARGET_CLUSTERIP
+ 	tristate "CLUSTERIP target support (EXPERIMENTAL)"
+-	depends on IP_NF_IPTABLES && EXPERIMENTAL
+-	depends on IP_NF_CONNTRACK_MARK || (NF_CONNTRACK_MARK && NF_CONNTRACK_IPV4)
++	depends on IP_NF_MANGLE && EXPERIMENTAL
++	depends on (IP_NF_CONNTRACK && IP_NF_CONNTRACK_MARK) || (NF_CONNTRACK_MARK && NF_CONNTRACK_IPV4)
+ 	help
+ 	  The CLUSTERIP target allows you to build load-balancing clusters of
+ 	  network servers without having a dedicated load-balancing
 
---tmoQ0UElFV5VgXgH
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDfv8DXaXGVTD0i/8RAsDwAJ9CTytH6TONPd17hzLw8tvWnhXWlgCfS8jQ
-ICeoV0dPyhRJYQC+9BFwrcM=
-=g/h5
------END PGP SIGNATURE-----
-
---tmoQ0UElFV5VgXgH--
+----Next_Part(Sun_Nov_20_04_30_18_2005_933)----
