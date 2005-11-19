@@ -1,51 +1,32 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: build bug: ipt_CONNMARK.c: undefined reference to `need_ip_conntrack'
-Date: Sat, 19 Nov 2005 23:23:57 +0100
-Message-ID: <20051119222356.GI24948@sunbeam.de.gnumonks.org>
-References: <m364qolfuv.fsf@defiant.localdomain> <200511191930.jAJJUJ2n022269@toshiba.co.jp>
+From: sven@hin.de
+Subject: Writing Queue-Modul in Pascal
+Date: Sun, 20 Nov 2005 00:02:32 +0100
+Message-ID: <437FAF08.7050401@hin.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qp4W5+cUSnZs0RIF"
-Cc: khc@pm.waw.pl, netfilter-devel@lists.netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750942AbVKSWYI@vger.kernel.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Content-Disposition: inline
-In-Reply-To: <200511191930.jAJJUJ2n022269@toshiba.co.jp>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi!
+I am trying to write an application for the queue-target.
+Unfortunately all examples and source code itself are written in C++.
+http://www.die.net/doc/linux/man/man3/libipq.3.html
 
---qp4W5+cUSnZs0RIF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I like to use Pascal (freepascal or so...) but I need nessesary units 
+(called header files in C++?)
 
-On Sun, Nov 20, 2005 at 04:30:18AM +0900, Yasuyuki KOZAKAI wrote:
+Is there any change to use Pascal?
 
-> Thanks for report. Could you check this patch ?
 
-thanks, applied and forwarded.
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---qp4W5+cUSnZs0RIF
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDf6X8XaXGVTD0i/8RAmqUAJ0Ug4nxcHTk0eHIjUCYZG91NIs6/ACghFmn
-bcCj4vR6ZGhEJalfLQwuIgc=
-=b9Up
------END PGP SIGNATURE-----
-
---qp4W5+cUSnZs0RIF--
+Greetings Sven
