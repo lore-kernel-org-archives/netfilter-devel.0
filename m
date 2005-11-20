@@ -1,15 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: again oops: conntrack & 2.6.14-git14
-Date: Sun, 20 Nov 2005 18:43:13 +0100
-Message-ID: <4380B5B1.9040506@trash.net>
-References: <43760B97.9010603@fliegl.de>
+Subject: Re: [PATCH 00/13]: Netfilter IPsec support
+Date: Sun, 20 Nov 2005 19:07:30 +0100
+Message-ID: <4380BB62.8050404@trash.net>
+References: <20051120163128.16666.38111.sendpatchset@localhost.localdomain>
+	<200511201902.10179.lists@naasa.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Deti Fliegl <deti@fliegl.de>
-In-Reply-To: <43760B97.9010603@fliegl.de>
+To: jplatte@naasa.net
+In-Reply-To: <200511201902.10179.lists@naasa.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,10 +23,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Deti Fliegl wrote:
-> This time it seems that I cought the oops in the right place. It's still 
-> happening somewhere in the conntrack code:
+Joerg Platte wrote:
+> Am Sonntag, 20. November 2005 17:31 schrieb Patrick McHardy:
+> Hi!
+> 
+>>- policy lookups after NAT:
+>>
+>>When NAT changes a packet it already calls ip_route_me_harder, which
+>>reroutes the packet and does a new policy lookup. It only looks at
+>>the IP addresses however, changing the port numbers require a new
+>>policy lookup as well. It also doesn't reroute in POST_ROUTING, since
+>>the packet has already been routed. To behave more like a regular
+>>tunnel device a policy lookup is now also done after SNAT and the
+>>packet is passed to dst_output again if the lookup yielded a new
+>>policy.
+> 
+> I suppose, this is the reason, why masqueraded packages leave a recent kernel 
+> unencrypted, even if they would match the policy. It's still not implemented 
+> in mainline. Am I right? If yes, I hope your patches will be merged as soon 
+> as possible :-)
 
-I can't see how this can happen, but I'm looking at 2.6.15-rc2.
-Can you please test again with 2.6.15-rc2 and without ipt_ipp2p
-and other external patches?
+You're right, that's the reason. Since the patches touch quite a lot of
+code they won't make it in 2.6.15, though.
