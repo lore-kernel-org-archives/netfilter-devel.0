@@ -1,15 +1,21 @@
-From: "Yu Zhiguo" <yuzg@nanjing-fnst.com>
-Subject: Re: Netlink send from the interrupt context
-Date: Mon, 21 Nov 2005 16:54:45 +0800
-Message-ID: <00a901c5ee79$389e5040$6704a8c0@skqianyi>
-References: <7e63f56c0511210034h49917721k74ddb251b9bb1815@mail.gmail.com>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: kernel BUG at kernel/sched.c:2833!
+Date: Mon, 21 Nov 2005 10:48:07 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0511211042240.10417@bizon.gios.gov.pl>
+References: <Pine.LNX.4.64.0511141033001.8729@bizon.gios.gov.pl>
+	<437882BE.6080705@eurodev.net>
+	<Pine.LNX.4.64.0511162216140.16387@bizon.gios.gov.pl>
+	<437BD093.3010905@eurodev.net>
+	<20051117151135.GJ14201@sunbeam.de.gnumonks.org>
+	<437D4825.1060801@eurodev.net> <437D4992.3040501@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-1"
-Content-Transfer-Encoding: base64
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-624662319-1132566487=:10417"
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Robert Iakobashvili" <coroberti@gmail.com>,
-	<netfilter-devel@lists.netfilter.org>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <437D4992.3040501@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,15 +27,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-SGVsbG8sDQoNCkRvbid0IHdvcnJ5LCBuZXRsaW5rIHNvY2tldCBjYW4gYmUgdXNlZCBpbiBpbnRl
-cnJ1cHQgY29udGV4dCB2ZXJ5IHdlbGwuDQoNCnJlZ2FyZHMsDQotLS0tLSBPcmlnaW5hbCBNZXNz
-YWdlIC0tLS0tIA0KDQo+QSBiaXQgb2ZmbGluZSBxdWVzdGlvbi4NCj4gDQo+IEFyZSB0aGVyZSBu
-ZXRsaW5rIHNvY2tldCBuZXRsaW5rX3VuaWNhc3QgKCkgYW5kIG5ldGxpbmtfYnJvYWRjYXN0ICgp
-DQo+IGludGVycnVwdCBzYWZlPw0KPiANCj4gSWYgbm90LCB3aGVyZSBpcyB0aGUgcHJvYmxlbSBh
-bmQgdGhlIGRpcmVjdGlvbiB0byBtYWtlIHRoZW0gc2FmZT8NCj4gDQo+IElmIGl0IGlzIG5vdCBl
-YXN5LCB3aGF0IGNvdWxkIGJlIGEgd29ya2Fyb3VkPw0KPiANCj4gVGhhbmsgeW91IGluIGFkdmFu
-Y2UuDQo+IA0KPiANCj4gU2luY2VyZWx5LA0KPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+IFJvYmVydCBJYWtvYmFzaHZp
-bGkgIC0gTkFWSUdBUkUgTkVDRVNTRSBFU1QNCj4gY29yb2JlcnRpIGF0IGdtYWlsIGRvdCBjb20N
-Cj4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tDQo+
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---187430788-624662319-1132566487=:10417
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+
+On Fri, 18 Nov 2005, Pablo Neira wrote:
+
+> Pablo Neira wrote:
+>> @@ -527,10 +531,10 @@ ctnetlink_parse_tuple_proto(struct nfatt
+>>
+>>  =09proto =3D ip_conntrack_proto_find_get(tuple->dst.protonum);
+>>
+>> -=09if (likely(proto && proto->nfattr_to_tuple)) {
+>> +=09if (likely(proto && proto->nfattr_to_tuple))
+>>  =09=09ret =3D proto->nfattr_to_tuple(tb, tuple);
+>
+> Still not good. Forgot to remove that proto !=3D NULL checking. It's too
+> late. I'll resend a patch tomorrow in the morning.
+
+I'm still waiting... ;)
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-624662319-1132566487=:10417--
