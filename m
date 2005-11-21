@@ -1,13 +1,13 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 06/13]: [IPV4/6]: Netfilter IPsec input hooks
-Date: Mon, 21 Nov 2005 18:47:12 +1100
-Message-ID: <E1Ee6OO-0005YD-00@gondolin.me.apana.org.au>
-References: <20051120.230034.105307423.davem@davemloft.net>
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	kaber@trash.net, yasuyuki.kozakai@toshiba.co.jp
+From: "Ferry Huberts" <ferry@Hupie.com>
+Subject: tcpmss code in 2.4.32
+Date: Mon, 21 Nov 2005 09:27:06 +0100 (CET)
+Message-ID: <23952.217.169.232.210.1132561626.squirrel@hupie.xs4all.nl>
+Reply-To: ferry@Hupie.com
+Mime-Version: 1.0
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: davem@davemloft.net (David S. Miller)
-In-Reply-To: <20051120.230034.105307423.davem@davemloft.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,20 +19,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David S. Miller <davem@davemloft.net> wrote:
-> 
-> I've read over Patrick's two most recent postings of these patches
-> and I think they are generally sane and I cannot find any holes in
-> them.  Herbert brought up the legitimate concern about defragmentation,
-> but I think that's a detail and does not take away from the structural
-> soundness of Patrick's approach.
+Hi,
 
-Yes I agree completely.  The new IPsec stack has been around for three
-years and it's about time that we have proper netfilter support for it.
+I'm looking at the code of the tcpmss match module in 2.4.32
+It looks like the find_syn_match inline function is not used and is just a
+copy-n-paste from the tcpmss target. Should it be removed?
 
-Cheers,
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+
+--
+Ferry Huberts
