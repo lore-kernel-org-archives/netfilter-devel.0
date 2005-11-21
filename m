@@ -1,17 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 06/13]: [IPV4/6]: Netfilter IPsec input hooks
-Date: Mon, 21 Nov 2005 17:52:56 +0100
-Message-ID: <4381FB68.2090103@trash.net>
-References: <20051120163135.16666.76993.sendpatchset@localhost.localdomain>	<200511210442.jAL4gPoO001846@toshiba.co.jp>	<43816EB4.4080205@trash.net>
-	<20051120.230034.105307423.davem@davemloft.net>
+Subject: Re: CTA_PROTO_NUM u_int8_t or u_int16_t
+Date: Mon, 21 Nov 2005 18:03:52 +0100
+Message-ID: <4381FDF8.6030508@trash.net>
+References: <Pine.LNX.4.64.0511211534580.30476@bizon.gios.gov.pl>
+	<4381DF77.2030704@eurodev.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	yasuyuki.kozakai@toshiba.co.jp
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20051120.230034.105307423.davem@davemloft.net>
+To: Pablo Neira <pablo@eurodev.net>
+In-Reply-To: <4381DF77.2030704@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,14 +22,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David S. Miller wrote:
-> I've read over Patrick's two most recent postings of these patches
-> and I think they are generally sane and I cannot find any holes in
-> them.  Herbert brought up the legitimate concern about defragmentation,
-> but I think that's a detail and does not take away from the structural
-> soundness of Patrick's approach.
+Pablo Neira wrote:
+> Krzysztof Oledzki wrote:
+> 
+>>AFAIK ip proto is u8 but I found that it is represented as u16 and used
+>>both as u_int16_t and u_int8_t:
+>>
+>>include/linux/netfilter_ipv4/ipt_conntrack.h:           u16 protonum;
+>>
+>>net/ipv4/netfilter/ip_conntrack_netlink.c:      NFA_PUT(skb,
+>>CTA_PROTO_NUM, sizeof(u_int8_t), &tuple->dst.protonum);
+>>net/ipv4/netfilter/ip_conntrack_netlink.c:      [CTA_PROTO_NUM-1]      
+>>= sizeof(u_int16_t),
+>>net/ipv4/netfilter/ip_conntrack_netlink.c:      tuple->dst.protonum =
+>>*(u_int16_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
+>>
+>>Was this intentionally?
+> 
+> No :(, it has slipped through at some stage. I was aware of that, I
+> found it some days ago. The problem is that if we fix that we could
+> break backward compatibility for 2.6.14, so I'm still thinking about how
+> to fix it.
 
-I think we implicitly agreed on moving the POST_ROUTING hook before
-fragmentation and change the user-visible behaviour of the mangle
-POSTROUTING chain. At least neither Harald not Rusty objected to
-the patch :)
+If you have to break compatibility, please do it before 2.6.15 is
+released. But the easiest solution looks like keeping it a u_int16_t
+and adjusting the NFA_PUT.
