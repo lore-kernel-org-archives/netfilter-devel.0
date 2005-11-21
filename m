@@ -1,15 +1,17 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: CTA_PROTO_NUM u_int8_t or u_int16_t
-Date: Mon, 21 Nov 2005 15:53:43 +0100
-Message-ID: <4381DF77.2030704@eurodev.net>
-References: <Pine.LNX.4.64.0511211534580.30476@bizon.gios.gov.pl>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 06/13]: [IPV4/6]: Netfilter IPsec input hooks
+Date: Mon, 21 Nov 2005 17:29:31 +0100
+Message-ID: <4381F5EB.7050705@trash.net>
+References: <20051120163128.16666.38111.sendpatchset@localhost.localdomain>	<20051120163135.16666.76993.sendpatchset@localhost.localdomain>	<438185ED.3050005@miyazawa.org>
+	<20051121.175033.87771604.yoshfuji@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	kazunori@miyazawa.org, davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0511211534580.30476@bizon.gios.gov.pl>
+To: yoshfuji@linux-ipv6.org
+In-Reply-To: <20051121.175033.87771604.yoshfuji@linux-ipv6.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,25 +23,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> AFAIK ip proto is u8 but I found that it is represented as u16 and used
-> both as u_int16_t and u_int8_t:
+YOSHIFUJI Hideaki / $B5HF#1QL@ wrote:
+> Hello.
 > 
-> include/linux/netfilter_ipv4/ipt_conntrack.h:           u16 protonum;
+> In article <438185ED.3050005@miyazawa.org> (at Mon, 21 Nov 2005 17:31:41 +0900), Kazunori Miyazawa <kazunori@miyazawa.org> says:
 > 
-> net/ipv4/netfilter/ip_conntrack_netlink.c:      NFA_PUT(skb,
-> CTA_PROTO_NUM, sizeof(u_int8_t), &tuple->dst.protonum);
-> net/ipv4/netfilter/ip_conntrack_netlink.c:      [CTA_PROTO_NUM-1]      
-> = sizeof(u_int16_t),
-> net/ipv4/netfilter/ip_conntrack_netlink.c:      tuple->dst.protonum =
-> *(u_int16_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
 > 
-> Was this intentionally?
+>>Your ip_xfrm_transport_hook is a good idea, I think.
+>>
+>>We could call ip6_rcv_finish if the netfilter changed the addresses
+>>or otherwise we can continue the loop to avoid the cost in a similar
+>>way because we can know the change with checking skb->dst.
+> 
+> 
+> Well, I agree.
+> 
+> Probably, we can do similarly for ipv6; e.g.:
+> 
+> int ip6_xfrm_transport_hook(struct sk_buff *skb)
+> {
+> #if 0 /* We NEVER support NAT. :-) */
+>      if (likely(skb->dst == NULL)) {
+>             int err = ip6_route_input()
+>             if (unlikely(err))
+>                      goto drop;
+>      }
+> #endif
+>      __skb_pull(skb, skb->h.raw - skb->nh.raw);
+>      return NET_RX_SUCCESS;
+> drop:
+>      kfree_skb(skb);
+>      return NET_RX_DROP;
+> }
+> 
+> :
+> 
+>       } else {
+> #ifdef CONFIG_NETFILTER
+>              skb->nh.ipv6h->payload_len = htons(skb->len);
+> 	     skb->h.raw = skb->data;
+>              __skb_push(skb, skb->data - skb->nh.raw);
+> 
+>              if (NF_HOOK(PF_INET6, NF_IP6_PRE_ROUTING, skb, skb->dev, NULL,
+>                          ip6_xfrm_transport_hook) == NET_RX_DROP)
+>                  return -1;
+> #endif
+>              return 1;
+>       }
+> 
+> Then, we can continue parsing extension headers, I think.
 
-No :(, it has slipped through at some stage. I was aware of that, I
-found it some days ago. The problem is that if we fix that we could
-break backward compatibility for 2.6.14, so I'm still thinking about how
-to fix it.
-
--- 
-Pablo
+Is it the rerouting you're concerned about? It will usually not
+happen because skb->dst is not NULL. Its needed for NFQUEUE,
+packets can be changes in userspace and need rerouting afterwards.
+In any case there would still be one path on which extension
+headers would be parsed twice, so I'm going to look into different
+ways to fix that.
