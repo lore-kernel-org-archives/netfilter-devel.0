@@ -1,16 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: CTA_PROTO_NUM u_int8_t or u_int16_t
-Date: Mon, 21 Nov 2005 18:03:52 +0100
-Message-ID: <4381FDF8.6030508@trash.net>
-References: <Pine.LNX.4.64.0511211534580.30476@bizon.gios.gov.pl>
-	<4381DF77.2030704@eurodev.net>
+Subject: Re: kernel BUG at kernel/sched.c:2833!
+Date: Mon, 21 Nov 2005 18:05:19 +0100
+Message-ID: <4381FE4F.2000107@trash.net>
+References: <Pine.LNX.4.64.0511141033001.8729@bizon.gios.gov.pl>	<437882BE.6080705@eurodev.net>	<Pine.LNX.4.64.0511162216140.16387@bizon.gios.gov.pl>	<437BD093.3010905@eurodev.net>	<Pine.LNX.4.64.0511172250390.9911@bizon.gios.gov.pl>	<4381D8B3.1010100@eurodev.net>	<Pine.LNX.4.64.0511211541020.30476@bizon.gios.gov.pl>
+	<4381DDCF.7090609@eurodev.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <4381DF77.2030704@eurodev.net>
+In-Reply-To: <4381DDCF.7090609@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,25 +26,16 @@ List-Id: netfilter-devel.vger.kernel.org
 Pablo Neira wrote:
 > Krzysztof Oledzki wrote:
 > 
->>AFAIK ip proto is u8 but I found that it is represented as u16 and used
->>both as u_int16_t and u_int8_t:
+>>>I can't reproduce that problem that you're reporting. I don't see how
+>>>the ctnetlink code can trigger that at the moment :(
 >>
->>include/linux/netfilter_ipv4/ipt_conntrack.h:           u16 protonum;
->>
->>net/ipv4/netfilter/ip_conntrack_netlink.c:      NFA_PUT(skb,
->>CTA_PROTO_NUM, sizeof(u_int8_t), &tuple->dst.protonum);
->>net/ipv4/netfilter/ip_conntrack_netlink.c:      [CTA_PROTO_NUM-1]      
->>= sizeof(u_int16_t),
->>net/ipv4/netfilter/ip_conntrack_netlink.c:      tuple->dst.protonum =
->>*(u_int16_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
->>
->>Was this intentionally?
+>>What information should I provide to help tracking this bug?
 > 
-> No :(, it has slipped through at some stage. I was aware of that, I
-> found it some days ago. The problem is that if we fix that we could
-> break backward compatibility for 2.6.14, so I'm still thinking about how
-> to fix it.
+> Any extra patch applied to your vanilla kernel? architecture? whatever
+> that can give me a clue on what's wrong. Send me such info in private if
+> you want.
 
-If you have to break compatibility, please do it before 2.6.15 is
-released. But the easiest solution looks like keeping it a u_int16_t
-and adjusting the NFA_PUT.
+Please don't send information related to the bug in private if not
+necessary, the initial bug report is public so other people might
+be looking into it or notice that they are affected by the same
+problem.
