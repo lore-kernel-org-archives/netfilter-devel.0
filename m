@@ -1,9 +1,9 @@
 From: Roberto Nibali <ratz@tac.ch>
-Subject: {Spam?} [PATCH 2.4] TCP window tracking: core implementation
-Date: Mon, 21 Nov 2005 11:16:18 +0100
-Message-ID: <43819E72.5060704@tac.ch>
+Subject: [PATCH 2.4] raw table and NOTRACK support
+Date: Mon, 21 Nov 2005 11:26:11 +0100
+Message-ID: <4381A0C3.7020406@tac.ch>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090808060703040907060301"
+Content-Type: multipart/mixed; boundary="------------070405060905070404080001"
 Cc: Willy Tarreau <willy@w.ods.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
@@ -19,39 +19,37 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090808060703040907060301
+--------------070405060905070404080001
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
 Hello,
 
-This is the core tcp window tracking patch, updated for 2.4.32 and
-enhanced with some 2.6.x fixes in the tcp state verifier. Notably the
-following two flag combinations are allowed as well:
+This is a re-diffed patch to have raw table and NOTRACK support in 2.4.x
+kernel. I've kept the IPv6 part in this patch although it's untested and
+most probably it's never been used by anyone before.
 
-TCP_SYN|TCP_PSH
-TCP_SYN|TCP_ACK|TCP_PSH
+Caveats: Currently we get an oops on SMP iif:
 
-NOTE: This is the work of the excellent netfilter hacker Jozsef
-Kadlecsik, so all credit goes to him for the 2.4.x implementation. I
-just rediffed and backported some minor things from 2.6.x.
+ o NOTRACK rule loaded, active and used (refcnt>0)
+ o SMP kernel
+ o connection tracking is enabled
+ o a normal rule hitting the conntrack table during lookup
+ o iptables -X; iptables -F, rmmod <all netfilter related modules>
 
-A former version of this patch has been in production on a dozen nodes
-for about 8 months now, and besides unmotivated DROPs invoked by
-"non-RFC-comformant" applications, it works reasonably well. The added
-TCP flag combinations in this patch should resolve most of the observed
-issues we've gathered from various customers over the past half year.
+Earlier attempts to address this issue with Pablo Neira have resulted in
+a misplaced nf_reset(skb) patch, which I have removed again, because it
+broke masquerading (IIRC). I will enable KDB and report back once I get
+time some decent stack trace.
 
-We'd hoped to overcome remaining "broken" applications by using the
-NOTRACK flag to a filter rule. This would allow one to have a general
-stateful packet filter with a few stateless rules for "broken"
-applications; a feature most commercial firewall suites don't offer.
-Unfortunately there is still an issue with regard to SMP and rmmod'ing
-ip_conntrack while having NOTRACK rules loaded and network traffic
-hitting NOTRACK and conntrack. Otherwise it works flawlessly. Patch will
-follow shortly.
+On normal reconfiguration all works perfectly, but to be safe we need to
+flush the conntrack table or already established connection without a
+filter rule would continue to be passed through the firewall. This will
+go into production on our packet filters, however with the note to our
+support team, that reconfiguration including connection tracking table
+flushing is forbidden under death penalty :).
 
-Best regards,
+Cheers,
 Roberto Nibali, ratz
 -- 
 -------------------------------------------------------------
@@ -61,1428 +59,761 @@ http://www.terreactive.com             fax://++41 62 823 9356
 terreActive AG                       Wir sichern Ihren Erfolg
 -------------------------------------------------------------
 
---------------090808060703040907060301
+--------------070405060905070404080001
 Content-Type: text/plain;
- name="linux-2.4.32-tcp-window-tracking-3.diff"
+ name="linux-2.4.32-raw-table-NOTRACK-2.diff"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="linux-2.4.32-tcp-window-tracking-3.diff"
+Content-Disposition: inline; filename="linux-2.4.32-raw-table-NOTRACK-2.diff"
 
-diff -X dontdiff -Nur linux-2.4.32-orig/include/linux/netfilter_ipv4/ip_conntrack.h linux-2.4.32-pab2/include/linux/netfilter_ipv4/ip_conntrack.h
---- linux-2.4.32-orig/include/linux/netfilter_ipv4/ip_conntrack.h	2005-11-16 20:12:54 +0100
-+++ linux-2.4.32-pab2/include/linux/netfilter_ipv4/ip_conntrack.h	2005-11-21 10:41:19 +0100
-@@ -246,6 +246,11 @@
- 			  unsigned long extra_jiffies);
+diff -Nur linux-2.4.31-orig/Documentation/Configure.help linux-2.4.31-pab2/Documentation/Configure.help
+--- linux-2.4.31-orig/Documentation/Configure.help	2005-04-04 03:42:19 +0200
++++ linux-2.4.31-pab2/Documentation/Configure.help	2005-06-29 14:33:32 +0200
+@@ -3016,6 +3016,34 @@
+   If you want to compile it as a module, say M here and read
+   <file:Documentation/modules.txt>.  If unsure, say `N'.
  
- /* These are for NAT.  Icky. */
-+/* Update TCP window tracking data after NAT successfully mangled the packet */
-+extern int ip_conntrack_tcp_update(struct sk_buff *skb,
-+				   struct ip_conntrack *conntrack, 
-+				   int dir);
++raw table support (required for NOTRACK/TRACE)
++CONFIG_IP_NF_RAW
++  This option adds a `raw' table to iptables. This table is the very
++  first in the netfilter framework and hooks in at the PREROUTING
++  and OUTPUT chains.
 +
++  If you want to compile it as a module, say M here and read
++  <file:Documentation/modules.txt>.  If unsure, say `N'.
++
++NOTRACK target support
++CONFIG_IP_NF_TARGET_NOTRACK
++  The NOTRACK target allows a select rule to specify
++  which packets *not* to enter the conntrack/NAT
++  subsystem with all the consequences (no ICMP error tracking,
++  no protocol helpers for the selected packets).
++
++  If you want to compile it as a module, say M here and read
++  <file:Documentation/modules.txt>.  If unsure, say `N'.
++
++raw table support (required for TRACE)
++CONFIG_IP6_NF_RAW
++  This option adds a `raw' table to ip6tables. This table is the very
++  first in the netfilter framework and hooks in at the PREROUTING
++  and OUTPUT chains.
++
++  If you want to compile it as a module, say M here and read
++  <file:Documentation/modules.txt>.  If unsure, say `N'.
++
+ Packet filtering
+ CONFIG_IP_NF_FILTER
+   Packet filtering defines a table `filter', which has a series of
+diff -Nur linux-2.4.31-orig/include/linux/netfilter_ipv4/ip_conntrack.h linux-2.4.31-pab2/include/linux/netfilter_ipv4/ip_conntrack.h
+--- linux-2.4.31-orig/include/linux/netfilter_ipv4/ip_conntrack.h	2005-06-29 14:32:41 +0200
++++ linux-2.4.31-pab2/include/linux/netfilter_ipv4/ip_conntrack.h	2005-06-29 14:33:32 +0200
+@@ -254,6 +254,9 @@
  /* Call me when a conntrack is destroyed. */
  extern void (*ip_conntrack_destroyed)(struct ip_conntrack *conntrack);
  
-diff -X dontdiff -Nur linux-2.4.32-orig/include/linux/netfilter_ipv4/ip_conntrack_tcp.h linux-2.4.32-pab2/include/linux/netfilter_ipv4/ip_conntrack_tcp.h
---- linux-2.4.32-orig/include/linux/netfilter_ipv4/ip_conntrack_tcp.h	2002-11-29 00:53:15 +0100
-+++ linux-2.4.32-pab2/include/linux/netfilter_ipv4/ip_conntrack_tcp.h	2005-11-21 10:41:19 +0100
-@@ -4,25 +4,47 @@
++/* Fake conntrack entry for untracked connections */
++extern struct ip_conntrack ip_conntrack_untracked;
++
+ /* Returns new sk_buff, or NULL */
+ struct sk_buff *
+ ip_ct_gather_frags(struct sk_buff *skb, u_int32_t user);
+diff -Nur linux-2.4.31-orig/include/linux/netfilter_ipv4/ipt_conntrack.h linux-2.4.31-pab2/include/linux/netfilter_ipv4/ipt_conntrack.h
+--- linux-2.4.31-orig/include/linux/netfilter_ipv4/ipt_conntrack.h	2002-11-29 00:53:15 +0100
++++ linux-2.4.31-pab2/include/linux/netfilter_ipv4/ipt_conntrack.h	2005-06-29 14:33:32 +0200
+@@ -10,6 +10,7 @@
  
- enum tcp_conntrack {
- 	TCP_CONNTRACK_NONE,
--	TCP_CONNTRACK_ESTABLISHED,
- 	TCP_CONNTRACK_SYN_SENT,
- 	TCP_CONNTRACK_SYN_RECV,
-+	TCP_CONNTRACK_ESTABLISHED,
- 	TCP_CONNTRACK_FIN_WAIT,
--	TCP_CONNTRACK_TIME_WAIT,
--	TCP_CONNTRACK_CLOSE,
- 	TCP_CONNTRACK_CLOSE_WAIT,
- 	TCP_CONNTRACK_LAST_ACK,
-+	TCP_CONNTRACK_TIME_WAIT,
-+	TCP_CONNTRACK_CLOSE,
- 	TCP_CONNTRACK_LISTEN,
--	TCP_CONNTRACK_MAX
-+	TCP_CONNTRACK_MAX,
-+	TCP_CONNTRACK_IGNORE
-+};
-+
-+/* Window scaling is advertised by the sender */
-+#define IP_CT_TCP_FLAG_WINDOW_SCALE		0x01
-+
-+/* SACK is permitted by the sender */
-+#define IP_CT_TCP_FLAG_SACK_PERM		0x02
-+
-+/* This sender sent FIN first */
-+#define IP_CT_TCP_FLAG_CLOSE_INIT		0x03
-+
-+struct ip_ct_tcp_state {
-+	u_int32_t	td_end;		/* max of seq + len */
-+	u_int32_t	td_maxend;	/* max of ack + max(win, 1) */
-+	u_int32_t	td_maxwin;	/* max(win) */
-+	u_int8_t	td_scale;	/* window scale factor */
-+	u_int8_t	loose;		/* used when connection picked up from the middle */
-+	u_int8_t	flags;		/* per direction options */
- };
+ #define IPT_CONNTRACK_STATE_SNAT (1 << (IP_CT_NUMBER + 1))
+ #define IPT_CONNTRACK_STATE_DNAT (1 << (IP_CT_NUMBER + 2))
++#define IPT_CONNTRACK_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 3))
  
- struct ip_ct_tcp
+ /* flags, invflags: */
+ #define IPT_CONNTRACK_STATE	0x01
+diff -Nur linux-2.4.31-orig/include/linux/netfilter_ipv4/ipt_state.h linux-2.4.31-pab2/include/linux/netfilter_ipv4/ipt_state.h
+--- linux-2.4.31-orig/include/linux/netfilter_ipv4/ipt_state.h	2000-04-14 18:37:20 +0200
++++ linux-2.4.31-pab2/include/linux/netfilter_ipv4/ipt_state.h	2005-06-29 14:33:32 +0200
+@@ -3,6 +3,7 @@
+ 
+ #define IPT_STATE_BIT(ctinfo) (1 << ((ctinfo)%IP_CT_IS_REPLY+1))
+ #define IPT_STATE_INVALID (1 << 0)
++#define IPT_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 1))
+ 
+ struct ipt_state_info
  {
--	enum tcp_conntrack state;
--
--	/* Poor man's window tracking: sequence number of valid ACK
--           handshake completion packet */
--	u_int32_t handshake_ack;
-+	struct ip_ct_tcp_state seen[2];	/* connection parameters per direction */
-+	u_int8_t	state;		/* state of the connection (enum tcp_conntrack) */
-+	/* For detecting stale connections */
-+	u_int8_t	last_dir;	/* Direction of the last packet (enum ip_conntrack_dir) */
-+	u_int8_t	retrans;	/* Number of retransmitted packets */
-+	u_int8_t	last_index;	/* Index of the last packet */
-+	u_int32_t	last_seq;	/* Last sequence number seen in dir */
-+	u_int32_t	last_end;	/* Last seq + len */
- };
+diff -Nur linux-2.4.31-orig/include/linux/netfilter_ipv4.h linux-2.4.31-pab2/include/linux/netfilter_ipv4.h
+--- linux-2.4.31-orig/include/linux/netfilter_ipv4.h	2002-02-25 20:38:13 +0100
++++ linux-2.4.31-pab2/include/linux/netfilter_ipv4.h	2005-06-29 14:33:32 +0200
+@@ -51,6 +51,8 @@
  
- #endif /* _IP_CONNTRACK_TCP_H */
-diff -X dontdiff -Nur linux-2.4.32-orig/include/linux/sysctl.h linux-2.4.32-pab2/include/linux/sysctl.h
---- linux-2.4.32-orig/include/linux/sysctl.h	2005-04-04 03:42:20 +0200
-+++ linux-2.4.32-pab2/include/linux/sysctl.h	2005-11-21 10:41:19 +0100
-@@ -396,6 +396,11 @@
- 	NET_IPV4_NF_CONNTRACK_ICMP_TIMEOUT=12,
- 	NET_IPV4_NF_CONNTRACK_GENERIC_TIMEOUT=13,
- 	NET_IPV4_NF_CONNTRACK_BUCKETS=14,
-+	NET_IPV4_NF_CONNTRACK_TCP_TIMEOUT_MAX_RETRANS=15,
-+	NET_IPV4_NF_CONNTRACK_TCP_LOG_INVALID=16,
-+	NET_IPV4_NF_CONNTRACK_TCP_LOOSE=17,
-+	NET_IPV4_NF_CONNTRACK_TCP_BE_LIBERAL=18,
-+	NET_IPV4_NF_CONNTRACK_TCP_MAX_RETRANS=19,
- };
-  
- /* /proc/sys/net/ipv6 */
-diff -X dontdiff -Nur linux-2.4.32-orig/net/ipv4/netfilter/Makefile linux-2.4.32-pab2/net/ipv4/netfilter/Makefile
---- linux-2.4.32-orig/net/ipv4/netfilter/Makefile	2003-08-25 13:44:44 +0200
-+++ linux-2.4.32-pab2/net/ipv4/netfilter/Makefile	2005-11-21 10:41:19 +0100
-@@ -31,6 +31,10 @@
- # connection tracking
- obj-$(CONFIG_IP_NF_CONNTRACK) += ip_conntrack.o
+ enum nf_ip_hook_priorities {
+ 	NF_IP_PRI_FIRST = INT_MIN,
++	NF_IP_PRI_CONNTRACK_DEFRAG = -400,
++	NF_IP_PRI_RAW = -300,
+ 	NF_IP_PRI_CONNTRACK = -200,
+ 	NF_IP_PRI_MANGLE = -150,
+ 	NF_IP_PRI_NAT_DST = -100,
+diff -Nur linux-2.4.31-orig/net/ipv4/netfilter/Config.in linux-2.4.31-pab2/net/ipv4/netfilter/Config.in
+--- linux-2.4.31-orig/net/ipv4/netfilter/Config.in	2005-01-19 15:10:13 +0100
++++ linux-2.4.31-pab2/net/ipv4/netfilter/Config.in	2005-06-29 14:33:32 +0200
+@@ -107,6 +107,15 @@
+   dep_tristate '  LOG target support' CONFIG_IP_NF_TARGET_LOG $CONFIG_IP_NF_IPTABLES
+   dep_tristate '  ULOG target support' CONFIG_IP_NF_TARGET_ULOG $CONFIG_IP_NF_IPTABLES
+   dep_tristate '  TCPMSS target support' CONFIG_IP_NF_TARGET_TCPMSS $CONFIG_IP_NF_IPTABLES
++  if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
++    tristate '  raw table support (required for NOTRACK/TRACE)' CONFIG_IP_NF_RAW $CONFIG_IP_NF_IPTABLES
++  fi
++  if [ "$CONFIG_IP_NF_RAW" != "n" ]; then
++    if [ "$CONFIG_IP_NF_CONNTRACK" != "n" ]; then
++      dep_tristate '    NOTRACK target support' CONFIG_IP_NF_TARGET_NOTRACK $CONFIG_IP_NF_RAW
++    fi
++  # Marker for TRACE target
++  fi
+ fi
  
-+ifdef CONFIG_IP_NF_NAT_NEEDED
-+	export-objs += ip_conntrack_proto_tcp.o
-+endif
+ tristate 'ARP tables support' CONFIG_IP_NF_ARPTABLES
+diff -Nur linux-2.4.31-orig/net/ipv4/netfilter/Makefile linux-2.4.31-pab2/net/ipv4/netfilter/Makefile
+--- linux-2.4.31-orig/net/ipv4/netfilter/Makefile	2005-06-29 14:32:41 +0200
++++ linux-2.4.31-pab2/net/ipv4/netfilter/Makefile	2005-06-29 14:33:32 +0200
+@@ -65,6 +65,7 @@
+ obj-$(CONFIG_IP_NF_FILTER) += iptable_filter.o
+ obj-$(CONFIG_IP_NF_MANGLE) += iptable_mangle.o
+ obj-$(CONFIG_IP_NF_NAT) += iptable_nat.o
++obj-$(CONFIG_IP_NF_RAW) += iptable_raw.o
+ 
+ # matches
+ obj-$(CONFIG_IP_NF_MATCH_HELPER) += ipt_helper.o
+@@ -90,6 +91,7 @@
+ obj-$(CONFIG_IP_NF_MATCH_CONNTRACK) += ipt_conntrack.o
+ obj-$(CONFIG_IP_NF_MATCH_UNCLEAN) += ipt_unclean.o
+ obj-$(CONFIG_IP_NF_MATCH_TCPMSS) += ipt_tcpmss.o
++obj-$(CONFIG_IP_NF_TARGET_NOTRACK) += ipt_NOTRACK.o
+ 
+ # targets
+ obj-$(CONFIG_IP_NF_TARGET_REJECT) += ipt_REJECT.o
+diff -Nur linux-2.4.31-orig/net/ipv4/netfilter/ip_conntrack_core.c linux-2.4.31-pab2/net/ipv4/netfilter/ip_conntrack_core.c
+--- linux-2.4.31-orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-06-29 14:32:41 +0200
++++ linux-2.4.31-pab2/net/ipv4/netfilter/ip_conntrack_core.c	2005-06-29 14:33:32 +0200
+@@ -65,6 +65,7 @@
+ struct list_head *ip_conntrack_hash;
+ static kmem_cache_t *ip_conntrack_cachep;
+ static LIST_HEAD(unconfirmed);
++struct ip_conntrack ip_conntrack_untracked;
+ 
+ extern struct ip_conntrack_protocol ip_conntrack_generic_protocol;
+ 
+@@ -823,6 +824,19 @@
+ 	int set_reply;
+ 	int ret;
+ 
++	/* Previously seen (loopback or untracked)?  Ignore. */
++	if ((*pskb)->nfct)
++		return NF_ACCEPT;
 +
- # connection tracking helpers
- obj-$(CONFIG_IP_NF_AMANDA) += ip_conntrack_amanda.o
- ifdef CONFIG_IP_NF_AMANDA
-diff -X dontdiff -Nur linux-2.4.32-orig/net/ipv4/netfilter/ip_conntrack_core.c linux-2.4.32-pab2/net/ipv4/netfilter/ip_conntrack_core.c
---- linux-2.4.32-orig/net/ipv4/netfilter/ip_conntrack_core.c	2005-04-04 03:42:20 +0200
-+++ linux-2.4.32-pab2/net/ipv4/netfilter/ip_conntrack_core.c	2005-11-21 10:41:19 +0100
-@@ -874,11 +874,12 @@
- 	IP_NF_ASSERT((*pskb)->nfct);
- 
- 	ret = proto->packet(ct, (*pskb)->nh.iph, (*pskb)->len, ctinfo);
--	if (ret == -1) {
--		/* Invalid */
-+	if (ret < 0 ) {
-+		/* Invalid: inverse of the return code tells
-+		 * to the netfilter core what to do. */
- 		nf_conntrack_put((*pskb)->nfct);
- 		(*pskb)->nfct = NULL;
--		return NF_ACCEPT;
-+		return -ret;
- 	}
- 
- 	if (ret != NF_DROP && ct->helper) {
-diff -X dontdiff -Nur linux-2.4.32-orig/net/ipv4/netfilter/ip_conntrack_ftp.c linux-2.4.32-pab2/net/ipv4/netfilter/ip_conntrack_ftp.c
---- linux-2.4.32-orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2004-11-17 12:54:22 +0100
-+++ linux-2.4.32-pab2/net/ipv4/netfilter/ip_conntrack_ftp.c	2005-11-21 10:41:19 +0100
-@@ -4,7 +4,6 @@
- #include <linux/netfilter.h>
- #include <linux/ip.h>
- #include <linux/ctype.h>
--#include <net/checksum.h>
- #include <net/tcp.h>
- 
- #include <linux/netfilter_ipv4/lockhelp.h>
-@@ -233,11 +232,10 @@
- 		struct ip_conntrack *ct,
- 		enum ip_conntrack_info ctinfo)
- {
--	/* tcplen not negative guaranteed by ip_conntrack_tcp.c */
-+	/* datalen not negative guaranteed by ip_conntrack_proto_tcp.c */
- 	struct tcphdr *tcph = (void *)iph + iph->ihl * 4;
- 	const char *data = (const char *)tcph + tcph->doff * 4;
--	unsigned int tcplen = len - iph->ihl * 4;
--	unsigned int datalen = tcplen - tcph->doff * 4;
-+	unsigned int datalen = len - iph->ihl * 4 - tcph->doff * 4;
- 	u_int32_t old_seq_aft_nl;
- 	int old_seq_aft_nl_set;
- 	u_int32_t array[6] = { 0 };
-@@ -257,22 +255,6 @@
- 		return NF_ACCEPT;
- 	}
- 
--	/* Not whole TCP header? */
--	if (tcplen < sizeof(struct tcphdr) || tcplen < tcph->doff*4) {
--		DEBUGP("ftp: tcplen = %u\n", (unsigned)tcplen);
--		return NF_ACCEPT;
--	}
--
--	/* Checksum invalid?  Ignore. */
--	/* FIXME: Source route IP option packets --RR */
--	if (tcp_v4_check(tcph, tcplen, iph->saddr, iph->daddr,
--			 csum_partial((char *)tcph, tcplen, 0))) {
--		DEBUGP("ftp_help: bad csum: %p %u %u.%u.%u.%u %u.%u.%u.%u\n",
--		       tcph, tcplen, NIPQUAD(iph->saddr),
--		       NIPQUAD(iph->daddr));
--		return NF_ACCEPT;
--	}
--
- 	LOCK_BH(&ip_ftp_lock);
- 	old_seq_aft_nl_set = ct_ftp_info->seq_aft_nl_set[dir];
- 	old_seq_aft_nl = ct_ftp_info->seq_aft_nl[dir];
-diff -X dontdiff -Nur linux-2.4.32-orig/net/ipv4/netfilter/ip_conntrack_irc.c linux-2.4.32-pab2/net/ipv4/netfilter/ip_conntrack_irc.c
---- linux-2.4.32-orig/net/ipv4/netfilter/ip_conntrack_irc.c	2004-11-17 12:54:22 +0100
-+++ linux-2.4.32-pab2/net/ipv4/netfilter/ip_conntrack_irc.c	2005-11-21 10:41:19 +0100
-@@ -26,7 +26,6 @@
- #include <linux/module.h>
- #include <linux/netfilter.h>
- #include <linux/ip.h>
--#include <net/checksum.h>
- #include <net/tcp.h>
- 
- #include <linux/netfilter_ipv4/ip_conntrack_helper.h>
-@@ -107,13 +106,12 @@
- static int help(const struct iphdr *iph, size_t len,
- 		struct ip_conntrack *ct, enum ip_conntrack_info ctinfo)
- {
--	/* tcplen not negative guarenteed by ip_conntrack_tcp.c */
-+	/* datalen not negative guarenteed by ip_conntrack_proto_tcp.c */
- 	struct tcphdr *tcph = (void *) iph + iph->ihl * 4;
- 	const char *data = (const char *) tcph + tcph->doff * 4;
- 	const char *_data = data;
- 	char *data_limit;
--	u_int32_t tcplen = len - iph->ihl * 4;
--	u_int32_t datalen = tcplen - tcph->doff * 4;
-+	u_int32_t datalen = len - iph->ihl * 4 - tcph->doff * 4;
- 	int dir = CTINFO2DIR(ctinfo);
- 	struct ip_conntrack_expect expect, *exp = &expect;
- 	struct ip_ct_irc_expect *exp_irc_info = &exp->help.exp_irc_info;
-@@ -136,22 +134,6 @@
- 		return NF_ACCEPT;
- 	}
- 
--	/* Not whole TCP header? */
--	if (tcplen < sizeof(struct tcphdr) || tcplen < tcph->doff * 4) {
--		DEBUGP("tcplen = %u\n", (unsigned) tcplen);
--		return NF_ACCEPT;
--	}
--
--	/* Checksum invalid?  Ignore. */
--	/* FIXME: Source route IP option packets --RR */
--	if (tcp_v4_check(tcph, tcplen, iph->saddr, iph->daddr,
--			 csum_partial((char *) tcph, tcplen, 0))) {
--		DEBUGP("bad csum: %p %u %u.%u.%u.%u %u.%u.%u.%u\n",
--		     tcph, tcplen, NIPQUAD(iph->saddr),
--		     NIPQUAD(iph->daddr));
--		return NF_ACCEPT;
--	}
--
- 	data_limit = (char *) data + datalen;
- 
- 	/* strlen("\1DCC SEND t AAAAAAAA P\1\n")=24
-diff -X dontdiff -Nur linux-2.4.32-orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c linux-2.4.32-pab2/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
---- linux-2.4.32-orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2003-11-28 19:26:21 +0100
-+++ linux-2.4.32-pab2/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2005-11-21 10:49:06 +0100
-@@ -1,3 +1,25 @@
-+/* (C) 1999-2001 Paul `Rusty' Russell
-+ * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>:
-+ *	- Real stateful connection tracking
-+ *	- Modified state transitions table
-+ *	- Window scaling support added
-+ *	- SACK support added
-+ *
-+ * Willy Tarreau:
-+ *	- State table bugfixes
-+ *	- More robust state changes
-+ *	- Tuning timer parameters
-+ *
-+ * version 2.2
-+ */
++	/* Never happen */
++	if ((*pskb)->nh.iph->frag_off & htons(IP_OFFSET)) {
++		if (net_ratelimit()) {
++		printk(KERN_ERR "ip_conntrack_in: Frag of proto %u (hook=%u)\n",
++		       (*pskb)->nh.iph->protocol, hooknum);
++		}
++		return NF_DROP;
++	}
 +
-+#include <linux/config.h>
- #include <linux/types.h>
- #include <linux/sched.h>
- #include <linux/timer.h>
-@@ -6,45 +28,66 @@
- #include <linux/in.h>
- #include <linux/ip.h>
- #include <linux/tcp.h>
--#include <linux/string.h>
-+#include <linux/spinlock.h>
+ 	/* FIXME: Do this right please. --RR */
+ 	(*pskb)->nfcache |= NFC_UNKNOWN;
  
- #include <net/tcp.h>
- 
-+#include <linux/netfilter.h>
-+#include <linux/netfilter_logging.h>
-+#include <linux/netfilter_ipv4.h>
- #include <linux/netfilter_ipv4/ip_conntrack.h>
- #include <linux/netfilter_ipv4/ip_conntrack_protocol.h>
- #include <linux/netfilter_ipv4/lockhelp.h>
- 
- #if 0
- #define DEBUGP printk
-+#define DEBUGP_VARS
-+#define NET_RATELIMIT(foo)	(foo)
- #else
- #define DEBUGP(format, args...)
-+#define NET_RATELIMIT(foo)	((foo) && net_ratelimit())
+@@ -841,21 +855,6 @@
+ 	}
  #endif
  
- /* Protects conntrack->proto.tcp */
- static DECLARE_RWLOCK(tcp_lock);
- 
--/* FIXME: Examine ipfilter's timeouts and conntrack transitions more
--   closely.  They're more complex. --RR */
-+/* Log invalid/ignored packets */
-+int ip_ct_tcp_log_invalid = 0;
-+
-+/* "Be conservative in what you do, 
-+    be liberal in what you accept from others." 
-+    If it's non-zero, we mark only out of window RST segments as INVALID. */
-+int ip_ct_tcp_be_liberal = 0;
-+
-+/* When connection is picked up from the middle, how many packets are required
-+   to pass in each direction when we assume we are in sync - if any side uses
-+   window scaling, we lost the game. 
-+   If it is set to zero, we disable picking up already established 
-+   connections. */
-+int ip_ct_tcp_loose = 3;
-+
-+/* Max number of the retransmitted packets without receiving an (acceptable) 
-+   ACK from the destination. If this number is reached, a shorter timer 
-+   will be started. */
-+int ip_ct_tcp_max_retrans = 3;
- 
--/* Actually, I believe that neither ipmasq (where this code is stolen
--   from) nor ipfilter do it exactly right.  A new conntrack machine taking
--   into account packet loss (which creates uncertainty as to exactly
--   the conntrack of the connection) is required.  RSN.  --RR */
-+  /* FIXME: Examine ipfilter's timeouts and conntrack transitions more
-+     closely.  They're more complex. --RR */
- 
- static const char *tcp_conntrack_names[] = {
- 	"NONE",
--	"ESTABLISHED",
- 	"SYN_SENT",
- 	"SYN_RECV",
-+	"ESTABLISHED",
- 	"FIN_WAIT",
--	"TIME_WAIT",
--	"CLOSE",
- 	"CLOSE_WAIT",
- 	"LAST_ACK",
-+	"TIME_WAIT",
-+	"CLOSE",
- 	"LISTEN"
- };
+-	/* Previously seen (loopback)?  Ignore.  Do this before
+-           fragment check. */
+-	if ((*pskb)->nfct)
+-		return NF_ACCEPT;
 -
--#define SECS *HZ
-+  
-+#define SECS * HZ
- #define MINS * 60 SECS
- #define HOURS * 60 MINS
- #define DAYS * 24 HOURS
-@@ -58,50 +101,199 @@
- unsigned long ip_ct_tcp_timeout_time_wait =     2 MINS;
- unsigned long ip_ct_tcp_timeout_close =        10 SECS;
- 
-+/* RFC1122 says the R2 limit should be at least 100 seconds.
-+   Linux uses 15 packets as limit, which corresponds 
-+   to ~13-30min depending on RTO. */
-+unsigned long ip_ct_tcp_timeout_max_retrans =     5 MINS;
-+ 
- static unsigned long * tcp_timeouts[]
--= { 0,                                 /*      TCP_CONNTRACK_NONE */
--    &ip_ct_tcp_timeout_established,    /*      TCP_CONNTRACK_ESTABLISHED,      */
-+= { NULL,                              /*      TCP_CONNTRACK_NONE */
-     &ip_ct_tcp_timeout_syn_sent,       /*      TCP_CONNTRACK_SYN_SENT, */
-     &ip_ct_tcp_timeout_syn_recv,       /*      TCP_CONNTRACK_SYN_RECV, */
-+    &ip_ct_tcp_timeout_established,    /*      TCP_CONNTRACK_ESTABLISHED,      */
-     &ip_ct_tcp_timeout_fin_wait,       /*      TCP_CONNTRACK_FIN_WAIT, */
--    &ip_ct_tcp_timeout_time_wait,      /*      TCP_CONNTRACK_TIME_WAIT,        */
--    &ip_ct_tcp_timeout_close,          /*      TCP_CONNTRACK_CLOSE,    */
-     &ip_ct_tcp_timeout_close_wait,     /*      TCP_CONNTRACK_CLOSE_WAIT,       */
-     &ip_ct_tcp_timeout_last_ack,       /*      TCP_CONNTRACK_LAST_ACK, */
--    0,                                 /*      TCP_CONNTRACK_LISTEN */
-+    &ip_ct_tcp_timeout_time_wait,      /*      TCP_CONNTRACK_TIME_WAIT,        */
-+    &ip_ct_tcp_timeout_close,          /*      TCP_CONNTRACK_CLOSE,    */
-+    NULL,                              /*      TCP_CONNTRACK_LISTEN */
-  };
-  
- #define sNO TCP_CONNTRACK_NONE
--#define sES TCP_CONNTRACK_ESTABLISHED
- #define sSS TCP_CONNTRACK_SYN_SENT
- #define sSR TCP_CONNTRACK_SYN_RECV
-+#define sES TCP_CONNTRACK_ESTABLISHED
- #define sFW TCP_CONNTRACK_FIN_WAIT
--#define sTW TCP_CONNTRACK_TIME_WAIT
--#define sCL TCP_CONNTRACK_CLOSE
- #define sCW TCP_CONNTRACK_CLOSE_WAIT
- #define sLA TCP_CONNTRACK_LAST_ACK
-+#define sTW TCP_CONNTRACK_TIME_WAIT
-+#define sCL TCP_CONNTRACK_CLOSE
- #define sLI TCP_CONNTRACK_LISTEN
- #define sIV TCP_CONNTRACK_MAX
-+#define sIG TCP_CONNTRACK_IGNORE
- 
--static enum tcp_conntrack tcp_conntracks[2][5][TCP_CONNTRACK_MAX] = {
-+/* What TCP flags are set from RST/SYN/FIN/ACK. */
-+enum tcp_bit_set {
-+	TCP_SYN_SET,
-+	TCP_SYNACK_SET,
-+	TCP_FIN_SET,
-+	TCP_ACK_SET,
-+	TCP_RST_SET,
-+	TCP_NONE_SET,
-+};
-+  
-+/*
-+ * The TCP state transition table needs a few words...
-+ *
-+ * We are the man in the middle. All the packets go through us
-+ * but might get lost in transit to the destination.
-+ * It is assumed that the destinations can't receive segments 
-+ * we haven't seen.
-+ *
-+ * The checked segment is in window, but our windows are *not*
-+ * equivalent with the ones of the sender/receiver. We always
-+ * try to guess the state of the current sender.
-+ *
-+ * The meaning of the states are:
-+ *
-+ * NONE:	initial state
-+ * SYN_SENT:	SYN-only packet seen 
-+ * SYN_RECV:	SYN-ACK packet seen
-+ * ESTABLISHED:	ACK packet seen
-+ * FIN_WAIT:	FIN packet seen
-+ * CLOSE_WAIT:	ACK seen (after FIN) 
-+ * LAST_ACK:	FIN seen (after FIN)
-+ * TIME_WAIT:	last ACK seen
-+ * CLOSE:	closed connection
-+ *
-+ * LISTEN state is not used.
-+ *
-+ * Packets marked as IGNORED (sIG):
-+ *	if they may be either invalid or valid 
-+ *	and the receiver may send back a connection 
-+ *	closing RST or a SYN/ACK.
-+ *
-+ * Packets marked as INVALID (sIV):
-+ *	if they are invalid
-+ *	or we do not support the request (simultaneous open)
-+ */
-+static enum tcp_conntrack tcp_conntracks[2][6][TCP_CONNTRACK_MAX] = {
- 	{
--/*	ORIGINAL */
--/* 	  sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI 	*/
--/*syn*/	{sSS, sES, sSS, sSR, sSS, sSS, sSS, sSS, sSS, sLI },
--/*fin*/	{sTW, sFW, sSS, sTW, sFW, sTW, sCL, sTW, sLA, sLI },
--/*ack*/	{sES, sES, sSS, sES, sFW, sTW, sCL, sCW, sLA, sES },
--/*rst*/ {sCL, sCL, sSS, sCL, sCL, sTW, sCL, sCL, sCL, sCL },
--/*none*/{sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV }
-+/* ORIGINAL */
-+/* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sLI	*/
-+/*syn*/	   { sSS, sSS, sIG, sIG, sIG, sIG, sIG, sSS, sSS, sIV },
-+/*
-+ *	sNO -> sSS	Initialize a new connection
-+ *	sSS -> sSS	Retransmitted SYN
-+ *	sSR -> sIG	Late retransmitted SYN?
-+ *	sES -> sIG	Error: SYNs in window outside the SYN_SENT state
-+ *			are errors. Receiver will reply with RST 
-+ *			and close the connection.
-+ *			Or we are not in sync and hold a dead connection.
-+ *	sFW -> sIG
-+ *	sCW -> sIG
-+ *	sLA -> sIG
-+ *	sTW -> sSS	Reopened connection (RFC 1122).
-+ *	sCL -> sSS
-+ */
-+/* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sLI	*/
-+/*synack*/ { sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV },
-+/*
-+ * A SYN/ACK from the client is always invalid:
-+ *	- either it tries to set up a simultaneous open, which is 
-+ *	  not supported;
-+ *	- or the firewall has just been inserted between the two hosts
-+ *	  during the session set-up. The SYN will be retransmitted 
-+ *	  by the true client (or it'll time out).
-+ */
-+/* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sLI	*/
-+/*fin*/    { sIV, sIV, sFW, sFW, sLA, sLA, sLA, sTW, sCL, sIV },
-+/*
-+ *	sNO -> sIV	Too late and no reason to do anything...
-+ *	sSS -> sIV	Client migth not send FIN in this state:
-+ *			we enforce waiting for a SYN/ACK reply first.
-+ *	sSR -> sFW	Close started.
-+ *	sES -> sFW	
-+ *	sFW -> sLA	FIN seen in both directions, waiting for
-+ *			the last ACK. 
-+ *			Migth be a retransmitted FIN as well...
-+ *	sCW -> sLA
-+ *	sLA -> sLA	Retransmitted FIN. Remain in the same state.
-+ *	sTW -> sTW
-+ *	sCL -> sCL
-+ */
-+/* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sLI	*/
-+/*ack*/	   { sES, sIV, sES, sES, sCW, sCW, sTW, sTW, sCL, sIV },
-+/*
-+ *	sNO -> sES	Assumed.
-+ *	sSS -> sIV	ACK is invalid: we haven't seen a SYN/ACK yet.
-+ *	sSR -> sES	Established state is reached.
-+ *	sES -> sES	:-)
-+ *	sFW -> sCW	Normal close request answered by ACK.
-+ *	sCW -> sCW
-+ *	sLA -> sTW	Last ACK detected.
-+ *	sTW -> sTW	Retransmitted last ACK. Remain in the same state.
-+ *	sCL -> sCL
-+ */
-+/* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sLI	*/
-+/*rst*/    { sIV, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sIV },
-+/*none*/   { sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV }
- 	},
- 	{
--/*	REPLY */
--/* 	  sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI 	*/
--/*syn*/	{sSR, sES, sSR, sSR, sSR, sSR, sSR, sSR, sSR, sSR },
--/*fin*/	{sCL, sCW, sSS, sTW, sTW, sTW, sCL, sCW, sLA, sLI },
--/*ack*/	{sCL, sES, sSS, sSR, sFW, sTW, sCL, sCW, sCL, sLI },
--/*rst*/ {sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sLA, sLI },
--/*none*/{sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV }
+-	/* Gather fragments. */
+-	if ((*pskb)->nh.iph->frag_off & htons(IP_MF|IP_OFFSET)) {
+-		*pskb = ip_ct_gather_frags(*pskb,
+-		                           hooknum == NF_IP_PRE_ROUTING ?
+-		                           IP_DEFRAG_CONNTRACK_IN :
+-		                           IP_DEFRAG_CONNTRACK_OUT);
+-		if (!*pskb)
+-			return NF_STOLEN;
 -	}
-+/* REPLY */
-+/* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sLI	*/
-+/*syn*/	   { sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV },
-+/*
-+ *	sNO -> sIV	Never reached.
-+ *	sSS -> sIV	Simultaneous open, not supported
-+ *	sSR -> sIV	Simultaneous open, not supported.
-+ *	sES -> sIV	Server may not initiate a connection.
-+ *	sFW -> sIV
-+ *	sCW -> sIV
-+ *	sLA -> sIV
-+ *	sTW -> sIV	Reopened connection, but server may not do it.
-+ *	sCL -> sIV
-+ */
-+/* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sLI	*/
-+/*synack*/ { sIV, sSR, sSR, sIG, sIG, sIG, sIG, sIG, sIG, sIV },
-+/*
-+ *	sSS -> sSR	Standard open.
-+ *	sSR -> sSR	Retransmitted SYN/ACK.
-+ *	sES -> sIG	Late retransmitted SYN/ACK?
-+ *	sFW -> sIG	Might be SYN/ACK answering ignored SYN
-+ *	sCW -> sIG
-+ *	sLA -> sIG
-+ *	sTW -> sIG
-+ *	sCL -> sIG
-+ */
-+/* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sLI	*/
-+/*fin*/    { sIV, sIV, sFW, sFW, sLA, sLA, sLA, sTW, sCL, sIV },
-+/*
-+ *	sSS -> sIV	Server might not send FIN in this state.
-+ *	sSR -> sFW	Close started.
-+ *	sES -> sFW
-+ *	sFW -> sLA	FIN seen in both directions.
-+ *	sCW -> sLA
-+ *	sLA -> sLA	Retransmitted FIN.
-+ *	sTW -> sTW
-+ *	sCL -> sCL
-+ */
-+/* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sLI	*/
-+/*ack*/	   { sIV, sIV, sSR, sES, sCW, sCW, sTW, sTW, sCL, sIV },
-+/*
-+ *	sSS -> sIV	Might be a half-open connection.
-+ *	sSR -> sSR	Might answer late resent SYN.
-+ *	sES -> sES	:-)
-+ *	sFW -> sCW	Normal close request answered by ACK.
-+ *	sCW -> sCW
-+ *	sLA -> sTW	Last ACK detected.
-+ *	sTW -> sTW	Retransmitted last ACK.
-+ *	sCL -> sCL
-+ */
-+/* 	     sNO, sSS, sSR, sES, sFW, sCW, sLA, sTW, sCL, sLI	*/
-+/*rst*/    { sIV, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sIV },
-+/*none*/   { sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV, sIV }
-+  	}
- };
+-
+ 	proto = ip_ct_find_proto((*pskb)->nh.iph->protocol);
  
- static int tcp_pkt_to_tuple(const void *datah, size_t datalen,
-@@ -147,11 +339,486 @@
+ 	/* It may be an icmp error... */
+@@ -1393,6 +1392,8 @@
+ 		schedule();
+ 		goto i_see_dead_people;
+ 	}
++	while (atomic_read(&ip_conntrack_untracked.ct_general.use) > 1)
++		schedule();
  
- static unsigned int get_conntrack_index(const struct tcphdr *tcph)
- {
--	if (tcph->rst) return 3;
--	else if (tcph->syn) return 0;
--	else if (tcph->fin) return 1;
--	else if (tcph->ack) return 2;
--	else return 4;
-+	if (tcph->rst) return TCP_RST_SET;
-+	else if (tcph->syn) return (tcph->ack ? TCP_SYNACK_SET : TCP_SYN_SET);
-+	else if (tcph->fin) return TCP_FIN_SET;
-+	else if (tcph->ack) return TCP_ACK_SET;
-+	else return TCP_NONE_SET;
-+}
+ 	kmem_cache_destroy(ip_conntrack_cachep);
+ 	vfree(ip_conntrack_hash);
+@@ -1460,6 +1461,18 @@
+ 
+ 	/* For use by ipt_REJECT */
+ 	ip_ct_attach = ip_conntrack_attach;
 +
-+/* TCP connection tracking based on 'Real Stateful TCP Packet Filtering
-+   in IP Filter' by Guido van Rooij.
-+   
-+   http://www.nluug.nl/events/sane2000/papers.html
-+   http://www.iae.nl/users/guido/papers/tcp_filtering.ps.gz
-+   
-+   The boundaries and the conditions are changed according to RFC793:
-+   the packet must intersect the window (i.e. segments may be
-+   after the right or before the left edge) and thus receivers may ACK
-+   segments after the right edge of the window.
++	/* Set up fake conntrack:
++	 	- never to be deleted, not in any hashes */
++	atomic_set(&ip_conntrack_untracked.ct_general.use, 1);
++	/*	- and let it look as if it's a confirmed connection */
++	set_bit(IPS_CONFIRMED_BIT, &ip_conntrack_untracked.status);
++	/*	- and prepare the ctinfo field for REJECT/NAT. */
++	ip_conntrack_untracked.infos[IP_CT_NEW].master =
++	ip_conntrack_untracked.infos[IP_CT_RELATED].master =
++	ip_conntrack_untracked.infos[IP_CT_RELATED + IP_CT_IS_REPLY].master =
++		&ip_conntrack_untracked.ct_general;
 +
-+   	td_maxend = max(sack + max(win,1)) seen in reply packets
-+	td_maxwin = max(max(win, 1)) + (sack - ack) seen in sent packets
-+	td_maxwin += seq + len - sender.td_maxend
-+			if seq + len > sender.td_maxend
-+	td_end    = max(seq + len) seen in sent packets
-+   
-+   I.   Upper bound for valid data:	seq <= sender.td_maxend
-+   II.  Lower bound for valid data:	seq + len >= sender.td_end - receiver.td_maxwin
-+   III.	Upper bound for valid ack:      sack <= receiver.td_end
-+   IV.	Lower bound for valid ack:	ack >= receiver.td_end - MAXACKWINDOW
-+   	
-+   where sack is the highest right edge of sack block found in the packet.
-+   	
-+   The upper bound limit for a valid ack is not ignored - 
-+   we doesn't have to deal with fragments. 
-+*/
-+
-+static inline __u32 segment_seq_plus_len(__u32 seq,
-+					 size_t len,
-+					 struct iphdr *iph,
-+					 struct tcphdr *tcph)
+ 	return ret;
+ 
+ err_free_hash:
+diff -Nur linux-2.4.31-orig/net/ipv4/netfilter/ip_conntrack_standalone.c linux-2.4.31-pab2/net/ipv4/netfilter/ip_conntrack_standalone.c
+--- linux-2.4.31-orig/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-06-29 14:32:42 +0200
++++ linux-2.4.31-pab2/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-06-29 14:33:32 +0200
+@@ -189,6 +189,29 @@
+ 	return ip_conntrack_confirm(*pskb);
+ }
+ 
++static unsigned int ip_conntrack_defrag(unsigned int hooknum,
++					struct sk_buff **pskb,
++					const struct net_device *in,
++					const struct net_device *out,
++					int (*okfn)(struct sk_buff *))
 +{
-+	return (seq + len - (iph->ihl + tcph->doff)*4
-+		+ (tcph->syn ? 1 : 0) + (tcph->fin ? 1 : 0));
++	/* Previously seen (loopback)?  Ignore.  Do this before
++	 * fragment check. */
++	if ((*pskb)->nfct)
++		return NF_ACCEPT;
++
++        /* Gather fragments. */
++        if ((*pskb)->nh.iph->frag_off & htons(IP_MF|IP_OFFSET)) {
++                *pskb = ip_ct_gather_frags(*pskb,
++                                           hooknum == NF_IP_PRE_ROUTING ?
++                                           IP_DEFRAG_CONNTRACK_IN :
++                                           IP_DEFRAG_CONNTRACK_OUT);
++                if (!*pskb)
++                        return NF_STOLEN;
++        }
++	return NF_ACCEPT;
 +}
-+  
-+/* Fixme: what about big packets? */
-+#define MAXACKWINCONST			66000
-+#define MAXACKWINDOW(sender)						\
-+	((sender)->td_maxwin > MAXACKWINCONST ? (sender)->td_maxwin	\
-+					      : MAXACKWINCONST)
-+  
-+/*
-+ * Simplified tcp_parse_options routine from tcp_input.c
++
+ static unsigned int ip_refrag(unsigned int hooknum,
+ 			      struct sk_buff **pskb,
+ 			      const struct net_device *in,
+@@ -230,9 +253,15 @@
+ 
+ /* Connection tracking may drop packets, but never alters them, so
+    make it the first hook. */
++static struct nf_hook_ops ip_conntrack_defrag_ops
++= { { NULL, NULL }, ip_conntrack_defrag, PF_INET, NF_IP_PRE_ROUTING,
++	NF_IP_PRI_CONNTRACK_DEFRAG };
+ static struct nf_hook_ops ip_conntrack_in_ops
+ = { { NULL, NULL }, ip_conntrack_in, PF_INET, NF_IP_PRE_ROUTING,
+ 	NF_IP_PRI_CONNTRACK };
++static struct nf_hook_ops ip_conntrack_defrag_local_out_ops
++= { { NULL, NULL }, ip_conntrack_defrag, PF_INET, NF_IP_LOCAL_OUT,
++	NF_IP_PRI_CONNTRACK_DEFRAG };
+ static struct nf_hook_ops ip_conntrack_local_out_ops
+ = { { NULL, NULL }, ip_conntrack_local, PF_INET, NF_IP_LOCAL_OUT,
+ 	NF_IP_PRI_CONNTRACK };
+@@ -373,10 +402,21 @@
+ 	if (!proc) goto cleanup_init;
+ 	proc->owner = THIS_MODULE;
+ 
++	ret = nf_register_hook(&ip_conntrack_defrag_ops);
++	if (ret < 0) {
++		printk("ip_conntrack: can't register pre-routing defrag hook.\n");
++		goto cleanup_proc;
++	}
++	ret = nf_register_hook(&ip_conntrack_defrag_local_out_ops);
++	if (ret < 0) {
++		printk("ip_conntrack: can't register local_out defrag hook.\n");
++		goto cleanup_defragops;
++	}
++
+ 	ret = nf_register_hook(&ip_conntrack_in_ops);
+ 	if (ret < 0) {
+ 		printk("ip_conntrack: can't register pre-routing hook.\n");
+-		goto cleanup_proc;
++		goto cleanup_defraglocalops;
+ 	}
+ 	ret = nf_register_hook(&ip_conntrack_local_out_ops);
+ 	if (ret < 0) {
+@@ -414,6 +454,10 @@
+ 	nf_unregister_hook(&ip_conntrack_local_out_ops);
+  cleanup_inops:
+ 	nf_unregister_hook(&ip_conntrack_in_ops);
++ cleanup_defraglocalops:
++	nf_unregister_hook(&ip_conntrack_defrag_local_out_ops);
++ cleanup_defragops:
++	nf_unregister_hook(&ip_conntrack_defrag_ops);
+  cleanup_proc:
+ 	proc_net_remove("ip_conntrack");
+  cleanup_init:
+@@ -503,5 +547,6 @@
+ EXPORT_SYMBOL(ip_conntrack_expect_list);
+ EXPORT_SYMBOL(ip_conntrack_lock);
+ EXPORT_SYMBOL(ip_conntrack_hash);
++EXPORT_SYMBOL(ip_conntrack_untracked);
+ EXPORT_SYMBOL_GPL(ip_conntrack_find_get);
+ EXPORT_SYMBOL_GPL(ip_conntrack_put);
+diff -Nur linux-2.4.31-orig/net/ipv4/netfilter/ip_nat_core.c linux-2.4.31-pab2/net/ipv4/netfilter/ip_nat_core.c
+--- linux-2.4.31-orig/net/ipv4/netfilter/ip_nat_core.c	2005-04-04 03:42:20 +0200
++++ linux-2.4.31-pab2/net/ipv4/netfilter/ip_nat_core.c	2005-06-29 14:33:32 +0200
+@@ -1024,6 +1024,10 @@
+ 	IP_NF_ASSERT(ip_conntrack_destroyed == NULL);
+ 	ip_conntrack_destroyed = &ip_nat_cleanup_conntrack;
+ 
++	/* Initialize fake conntrack so that NAT will skip it */
++	ip_conntrack_untracked.nat.info.initialized |=
++		(1 << IP_NAT_MANIP_SRC) | (1 << IP_NAT_MANIP_DST);
++
+ 	return 0;
+ }
+ 
+diff -Nur linux-2.4.31-orig/net/ipv4/netfilter/ipt_NOTRACK.c linux-2.4.31-pab2/net/ipv4/netfilter/ipt_NOTRACK.c
+--- linux-2.4.31-orig/net/ipv4/netfilter/ipt_NOTRACK.c	1970-01-01 01:00:00 +0100
++++ linux-2.4.31-pab2/net/ipv4/netfilter/ipt_NOTRACK.c	2005-06-29 14:33:32 +0200
+@@ -0,0 +1,75 @@
++/* This is a module which is used for setting up fake conntracks
++ * on packets so that they are not seen by the conntrack/NAT code.
 + */
-+static void tcp_options(struct tcphdr *tcph, 
-+			struct ip_ct_tcp_state *state)
++#include <linux/module.h>
++#include <linux/skbuff.h>
++
++#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/netfilter_ipv4/ip_conntrack.h>
++
++static unsigned int
++target(struct sk_buff **pskb,
++       unsigned int hooknum,
++       const struct net_device *in,
++       const struct net_device *out,
++       const void *targinfo,
++       void *userinfo)
 +{
-+	unsigned char *ptr;
-+	int length = (tcph->doff*4) - sizeof(struct tcphdr);
-+	
-+	if (!length)
-+		return;
++	/* Previously seen (loopback)? Ignore. */
++	if ((*pskb)->nfct != NULL)
++		return IPT_CONTINUE;
 +
-+	ptr = (unsigned char *)(tcph + 1);
++	/* Attach fake conntrack entry. 
++	   If there is a real ct entry correspondig to this packet, 
++	   it'll hang aroun till timing out. We don't deal with it
++	   for performance reasons. JK */
++	(*pskb)->nfct = &ip_conntrack_untracked.infos[IP_CT_NEW];
++	nf_conntrack_get((*pskb)->nfct);
 +
-+	state->td_scale = 
-+	state->flags = 0;
-+	
-+	while (length > 0) {
-+		int opcode=*ptr++;
-+		int opsize;
-+		
-+		switch (opcode) {
-+		case TCPOPT_EOL:
-+			return;
-+		case TCPOPT_NOP:	/* Ref: RFC 793 section 3.1 */
-+			length--;
-+			continue;
-+		default:
-+			opsize=*ptr++;
-+			if (opsize < 2) /* "silly options" */
-+				return;
-+			if (opsize > length)
-+				break;	/* don't parse partial options */
-+
-+			if (opcode == TCPOPT_SACK_PERM 
-+			    && opsize == TCPOLEN_SACK_PERM)
-+				state->flags |= IP_CT_TCP_FLAG_SACK_PERM;
-+			else if (opcode == TCPOPT_WINDOW
-+				 && opsize == TCPOLEN_WINDOW) {
-+				state->td_scale = *(u_int8_t *)ptr;
-+				
-+				if (state->td_scale > 14) {
-+					/* See RFC1323 */
-+					state->td_scale = 14;
-+				}
-+				state->flags |=
-+					IP_CT_TCP_FLAG_WINDOW_SCALE;
-+			}
-+			ptr += opsize - 2;
-+			length -= opsize;
-+		}
-+	}
++	return IPT_CONTINUE;
 +}
 +
-+static void tcp_sack(struct tcphdr *tcph,
-+		     __u32 *sack)
++static int
++checkentry(const char *tablename,
++	   const struct ipt_entry *e,
++           void *targinfo,
++           unsigned int targinfosize,
++           unsigned int hook_mask)
 +{
-+	unsigned char *ptr;
-+	int length = (tcph->doff*4) - sizeof(struct tcphdr);
-+	__u32 tmp;
-+
-+	if (!length)
-+		return;
-+
-+	ptr = (unsigned char *)(tcph + 1);
-+	/* Fast path for timestamp-only option */
-+	if (length == TCPOLEN_TSTAMP_ALIGNED*4
-+	    && *(__u32 *)ptr ==
-+	        __constant_ntohl((TCPOPT_NOP << 24) 
-+	        		 | (TCPOPT_NOP << 16)
-+	        		 | (TCPOPT_TIMESTAMP << 8)
-+	        		 | TCPOLEN_TIMESTAMP))
-+		return;
-+		
-+	while (length > 0) {
-+		int opcode=*ptr++;
-+		int opsize, i;
-+		
-+		switch (opcode) {
-+		case TCPOPT_EOL:
-+			return;
-+		case TCPOPT_NOP:	/* Ref: RFC 793 section 3.1 */
-+			length--;
-+			continue;
-+		default:
-+			opsize=*ptr++;
-+			if (opsize < 2) /* "silly options" */
-+				return;
-+			if (opsize > length)
-+				break;	/* don't parse partial options */
-+
-+			if (opcode == TCPOPT_SACK 
-+			    && opsize >= (TCPOLEN_SACK_BASE 
-+			    		  + TCPOLEN_SACK_PERBLOCK)
-+			    && !((opsize - TCPOLEN_SACK_BASE) 
-+			    	 % TCPOLEN_SACK_PERBLOCK)) {
-+			    	for (i = 0;
-+			    	     i < (opsize - TCPOLEN_SACK_BASE);
-+			    	     i += TCPOLEN_SACK_PERBLOCK) {
-+					tmp = ntohl(*((u_int32_t *)(ptr+i)+1));
-+					
-+					if (after(tmp, *sack))
-+						*sack = tmp;
-+				}
-+				return;
-+			}
-+			ptr += opsize - 2;
-+			length -= opsize;
-+		}
-+	}
-+}
-+
-+static int tcp_in_window(struct ip_ct_tcp *state, 
-+                         enum ip_conntrack_dir dir,
-+                         unsigned int index,
-+                         struct iphdr *iph, size_t len,
-+                         struct tcphdr *tcph)
-+{
-+	struct ip_ct_tcp_state *sender = &state->seen[dir];
-+	struct ip_ct_tcp_state *receiver = &state->seen[!dir];
-+	__u32 seq, ack, sack, end, win, swin;
-+	int res;
-+	
-+	/*
-+	 * Get the required data from the packet.
-+	 */
-+	seq = ntohl(tcph->seq);
-+	ack = sack = ntohl(tcph->ack_seq);
-+	win = ntohs(tcph->window);
-+	end = segment_seq_plus_len(seq, len, iph, tcph);
-+	
-+	if (receiver->flags & IP_CT_TCP_FLAG_SACK_PERM)
-+		tcp_sack(tcph, &sack);
-+		
-+	DEBUGP("tcp_in_window: START\n");
-+	DEBUGP("tcp_in_window: src=%u.%u.%u.%u:%hu dst=%u.%u.%u.%u:%hu "
-+	       "seq=%u ack=%u sack=%u win=%u end=%u\n",
-+		NIPQUAD(iph->saddr), ntohs(tcph->source), 
-+		NIPQUAD(iph->daddr), ntohs(tcph->dest),
-+		seq, ack, sack, win, end);
-+	DEBUGP("tcp_in_window: sender end=%u maxend=%u maxwin=%u scale=%i "
-+	       "receiver end=%u maxend=%u maxwin=%u scale=%i\n",
-+		sender->td_end, sender->td_maxend, sender->td_maxwin,
-+		sender->td_scale, 
-+		receiver->td_end, receiver->td_maxend, receiver->td_maxwin, 
-+		receiver->td_scale);
-+		
-+	if (sender->td_end == 0) {
-+		/*
-+		 * Initialize sender data.
-+		 */
-+		if (tcph->syn && tcph->ack) {
-+			/*
-+			 * Outgoing SYN-ACK in reply to a SYN.
-+			 */
-+			sender->td_end = 
-+			sender->td_maxend = end;
-+			sender->td_maxwin = (win == 0 ? 1 : win);
-+
-+			tcp_options(tcph, sender);
-+			/* 
-+			 * RFC 1323:
-+			 * Both sides must send the Window Scale option
-+			 * to enable window scaling in either direction.
-+			 */
-+			if (!(sender->flags & IP_CT_TCP_FLAG_WINDOW_SCALE
-+			      && receiver->flags & IP_CT_TCP_FLAG_WINDOW_SCALE))
-+				sender->td_scale = 
-+				receiver->td_scale = 0;
-+		} else {
-+			/*
-+			 * We are in the middle of a connection,
-+			 * its history is lost for us.
-+			 * Let's try to use the data from the packet.
-+		 	 */
-+			sender->td_end = end;
-+			sender->td_maxwin = (win == 0 ? 1 : win);
-+			sender->td_maxend = end + sender->td_maxwin;
-+		}
-+	} else if (((state->state == TCP_CONNTRACK_SYN_SENT
-+		     && dir == IP_CT_DIR_ORIGINAL)
-+		    || (state->state == TCP_CONNTRACK_SYN_RECV
-+		        && dir == IP_CT_DIR_REPLY))
-+		    && after(end, sender->td_end)) {
-+		/*
-+		 * RFC 793: "if a TCP is reinitialized ... then it need
-+		 * not wait at all; it must only be sure to use sequence 
-+		 * numbers larger than those recently used."
-+		 */
-+		sender->td_end =
-+		sender->td_maxend = end;
-+		sender->td_maxwin = (win == 0 ? 1 : win);
-+
-+		tcp_options(tcph, sender);
-+	}
-+	
-+	if (!(tcph->ack)) {
-+		/*
-+		 * If there is no ACK, just pretend it was set and OK.
-+		 */
-+		ack = sack = receiver->td_end;
-+	} else if (((tcp_flag_word(tcph) & (TCP_FLAG_ACK|TCP_FLAG_RST)) == 
-+		    (TCP_FLAG_ACK|TCP_FLAG_RST)) 
-+		   && (ack == 0)) {
-+		/*
-+		 * Broken TCP stacks, that set ACK in RST packets as well
-+		 * with zero ack value.
-+		 */
-+		ack = sack = receiver->td_end;
++	if (targinfosize != 0) {
++		printk(KERN_WARNING "NOTRACK: targinfosize %u != 0\n",
++		       targinfosize);
++		return 0;
 +	}
 +
-+	if (seq == end
-+	    && (!tcph->rst 
-+	        || (seq == 0 && state->state == TCP_CONNTRACK_SYN_SENT)))
-+		/*
-+		 * Packets contains no data: we assume it is valid
-+		 * and check the ack value only.
-+		 * However RST segments are always validated by their
-+		 * SEQ number, except when seq == 0 (reset sent answering
-+		 * SYN.
-+		 */
-+		seq = end = sender->td_end;
-+		
-+	DEBUGP("tcp_in_window: src=%u.%u.%u.%u:%hu dst=%u.%u.%u.%u:%hu "
-+	       "seq=%u ack=%u sack =%u win=%u end=%u\n",
-+		NIPQUAD(iph->saddr), ntohs(tcph->source),
-+		NIPQUAD(iph->daddr), ntohs(tcph->dest),
-+		seq, ack, sack, win, end);
-+	DEBUGP("tcp_in_window: sender end=%u maxend=%u maxwin=%u scale=%i "
-+	       "receiver end=%u maxend=%u maxwin=%u scale=%i\n",
-+		sender->td_end, sender->td_maxend, sender->td_maxwin,
-+		sender->td_scale, 
-+		receiver->td_end, receiver->td_maxend, receiver->td_maxwin,
-+		receiver->td_scale);
-+	
-+	DEBUGP("tcp_in_window: I=%i II=%i III=%i IV=%i\n",
-+		before(seq, sender->td_maxend + 1),
-+	    	after(end, sender->td_end - receiver->td_maxwin - 1),
-+	    	before(sack, receiver->td_end + 1),
-+	    	after(ack, receiver->td_end - MAXACKWINDOW(sender)));
-+	
-+	if (sender->loose || receiver->loose ||
-+	    (before(seq, sender->td_maxend + 1) &&
-+	     after(end, sender->td_end - receiver->td_maxwin - 1) &&
-+	     before(sack, receiver->td_end + 1) &&
-+	     after(ack, receiver->td_end - MAXACKWINDOW(sender)))) {
-+	    	/*
-+		 * Take into account window scaling (RFC 1323).
-+		 */
-+		if (!tcph->syn)
-+			win <<= sender->td_scale;
-+		
-+		/*
-+		 * Update sender data.
-+		 */
-+		swin = win + (sack - ack);
-+		if (sender->td_maxwin < swin)
-+			sender->td_maxwin = swin;
-+		if (after(end, sender->td_end))
-+			sender->td_end = end;
-+		/*
-+		 * Update receiver data.
-+		 */
-+		if (after(end, sender->td_maxend))
-+			receiver->td_maxwin += end - sender->td_maxend;
-+		if (after(sack + win, receiver->td_maxend - 1)) {
-+			receiver->td_maxend = sack + win;
-+			if (win == 0)
-+				receiver->td_maxend++;
-+		}
++	if (strcmp(tablename, "raw") != 0) {
++		printk(KERN_WARNING "NOTRACK: can only be called from \"raw\" table, not \"%s\"\n", tablename);
++		return 0;
++	}
 +
-+		/* 
-+		 * Check retransmissions.
-+		 */
-+		if (index == TCP_ACK_SET) {
-+			if (state->last_dir == dir
-+			    && state->last_seq == seq
-+			    && state->last_end == end)
-+				state->retrans++;
-+			else {
-+				state->last_dir = dir;
-+				state->last_seq = seq;
-+				state->last_end = end;
-+				state->retrans = 0;
-+			}
-+		}
-+		/*
-+		 * Close the window of disabled window tracking :-)
-+		 */
-+		if (sender->loose)
-+			sender->loose--;
-+		
-+		res = 1;
-+	} else {
-+		if (NET_RATELIMIT(ip_ct_tcp_log_invalid))
-+			nf_log(PF_INET, (char *)iph, len,
-+			"ip_ct_tcp: %s ",
-+			before(seq, sender->td_maxend + 1) ?
-+			after(end, sender->td_end - receiver->td_maxwin - 1) ?
-+			before(sack, receiver->td_end + 1) ?
-+			after(ack, receiver->td_end - MAXACKWINDOW(sender)) ? "BUG"
-+			: "ACK is under the lower bound (possible overly delayed ACK)"
-+			: "ACK is over the upper bound (ACKed data not seen yet)"
-+			: "SEQ is under the lower bound (already ACKed data retransmitted)"
-+			: "SEQ is over the upper bound (over the window of the receiver)");
-+
-+		res = ip_ct_tcp_be_liberal;
-+  	}
-+  
-+	DEBUGP("tcp_in_window: res=%i sender end=%u maxend=%u maxwin=%u "
-+	       "receiver end=%u maxend=%u maxwin=%u\n",
-+		res, sender->td_end, sender->td_maxend, sender->td_maxwin, 
-+		receiver->td_end, receiver->td_maxend, receiver->td_maxwin);
-+
-+	return res;
-+}
-+
-+#ifdef CONFIG_IP_NF_NAT_NEEDED
-+/* Update sender->td_end after NAT successfully mangled the packet */
-+int ip_conntrack_tcp_update(struct sk_buff *skb,
-+			    struct ip_conntrack *conntrack, 
-+			    int dir)
-+{
-+	struct iphdr *iph = skb->nh.iph;
-+	struct tcphdr *tcph = (void *)skb->nh.iph + skb->nh.iph->ihl*4;
-+	__u32 end;
-+#ifdef DEBUGP_VARS
-+	struct ip_ct_tcp_state *sender = &conntrack->proto.tcp.seen[dir];
-+	struct ip_ct_tcp_state *receiver = &conntrack->proto.tcp.seen[!dir];
-+#endif
-+
-+	end = segment_seq_plus_len(ntohl(tcph->seq), skb->len, iph, tcph);
-+	
-+	WRITE_LOCK(&tcp_lock);
-+	/*
-+	 * We have to worry for the ack in the reply packet only...
-+	 */
-+	if (after(end, conntrack->proto.tcp.seen[dir].td_end))
-+		conntrack->proto.tcp.seen[dir].td_end = end;
-+	conntrack->proto.tcp.last_end = end;
-+	WRITE_UNLOCK(&tcp_lock);
-+	DEBUGP("tcp_update: sender end=%u maxend=%u maxwin=%u scale=%i "
-+	       "receiver end=%u maxend=%u maxwin=%u scale=%i\n",
-+		sender->td_end, sender->td_maxend, sender->td_maxwin,
-+		sender->td_scale, 
-+		receiver->td_end, receiver->td_maxend, receiver->td_maxwin,
-+		receiver->td_scale);
-+		
 +	return 1;
 +}
 +
-+EXPORT_SYMBOL(ip_conntrack_tcp_update);
-+#endif
-+
-+#define	TH_FIN	0x01
-+#define	TH_SYN	0x02
-+#define	TH_RST	0x04
-+#define	TH_PUSH	0x08
-+#define	TH_ACK	0x10
-+#define	TH_URG	0x20
-+#define	TH_ECE	0x40
-+#define	TH_CWR	0x80
-+
-+/* table of valid flag combinations - ECE and CWR are always valid */
-+static u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_PUSH|TH_ACK|TH_URG) + 1] =
-+{
-+	[TH_SYN]			= 1,
-+	[TH_SYN|TH_ACK]			= 1,
-+	[TH_SYN|TH_PUSH] 		= 1,
-+	[TH_SYN|TH_ACK|TH_PUSH] 	= 1,
-+	[TH_RST]			= 1,
-+	[TH_RST|TH_ACK]			= 1,
-+	[TH_RST|TH_ACK|TH_PUSH]		= 1,
-+	[TH_FIN|TH_ACK]			= 1,
-+	[TH_ACK]			= 1,
-+	[TH_ACK|TH_PUSH]		= 1,
-+	[TH_ACK|TH_URG]			= 1,
-+	[TH_ACK|TH_URG|TH_PUSH]		= 1,
-+	[TH_FIN|TH_ACK|TH_PUSH]		= 1,
-+	[TH_FIN|TH_ACK|TH_URG]		= 1,
-+	[TH_FIN|TH_ACK|TH_URG|TH_PUSH]	= 1,
++static struct ipt_target ipt_notrack_reg = { 
++	.name = "NOTRACK", 
++	.target = target, 
++	.checkentry = checkentry, 
++	.me = THIS_MODULE 
 +};
 +
-+/* Protect conntrack agaist broken packets. Code taken from ipt_unclean.c.  */
-+static int tcp_error(struct iphdr *iph, size_t len)
++static int __init init(void)
 +{
-+	struct tcphdr *tcph = (struct tcphdr *)((u_int32_t *)iph + iph->ihl);
-+	unsigned int tcplen = len - iph->ihl * 4;
-+	u_int8_t tcpflags;
++	if (ipt_register_target(&ipt_notrack_reg))
++		return -EINVAL;
 +
-+	/* Smaller that minimal TCP header? Should be always false. */
-+	if (len < iph->ihl * 4 + sizeof(struct tcphdr)) {
-+		if (NET_RATELIMIT(ip_ct_tcp_log_invalid))
-+			nf_log(PF_INET, (char *)iph, len, 
-+				"ip_ct_tcp: short packet ");
-+		return -NF_ACCEPT;
-+  	}
-+  
-+	/* Not whole TCP header or malformed packet */
-+	if (tcph->doff*4 < sizeof(struct tcphdr) || tcplen < tcph->doff*4) {
-+		if (NET_RATELIMIT(ip_ct_tcp_log_invalid))
-+			nf_log(PF_INET, (char *)iph, len, 
-+				"ip_ct_tcp: truncated/malformed packet ");
-+		return -NF_ACCEPT;
-+	}
-+  
-+	/* Checksum invalid? Ignore.
-+	 * We skip checking packets on the outgoing path
-+	 * because the semantic of CHECKSUM_HW is different there 
-+	 * and moreover root might send raw packets.
-+	 */
-+	/* FIXME: Source route IP option packets --RR */
-+	if (tcp_v4_check(tcph, tcplen, iph->saddr, iph->daddr,
-+			 csum_partial((char *)tcph, tcplen, 0))) {
-+		if (NET_RATELIMIT(ip_ct_tcp_log_invalid))
-+			nf_log(PF_INET, (char *)iph, len, 
-+				"ip_ct_tcp: bad TCP checksum ");
-+		return -NF_ACCEPT;
-+	}
++	return 0;
++}
 +
-+	/* Check TCP flags. */
-+	tcpflags = (((u_int8_t *)tcph)[13] & ~(TH_ECE|TH_CWR));
-+	if (!tcp_valid_flags[tcpflags]) {
-+		if (NET_RATELIMIT(ip_ct_tcp_log_invalid))
-+			nf_log(PF_INET, (char *)iph, len, 
-+				"ip_ct_tcp: invalid TCP flag combination ");
-+		return -NF_ACCEPT;
-+	}
-+
-+	return NF_ACCEPT;
- }
- 
- /* Returns verdict for packet, or -1 for invalid. */
-@@ -159,90 +826,248 @@
- 		      struct iphdr *iph, size_t len,
- 		      enum ip_conntrack_info ctinfo)
- {
--	enum tcp_conntrack newconntrack, oldtcpstate;
-+	enum tcp_conntrack new_state, old_state;
-+	enum ip_conntrack_dir dir;
- 	struct tcphdr *tcph = (struct tcphdr *)((u_int32_t *)iph + iph->ihl);
--
--	/* We're guaranteed to have the base header, but maybe not the
--           options. */
--	if (len < (iph->ihl + tcph->doff) * 4) {
--		DEBUGP("ip_conntrack_tcp: Truncated packet.\n");
--		return -1;
--	}
--
-+	unsigned long timeout;
-+	unsigned int index;
-+	
-+	/* Do not handle unclean packets, which could cause false alarms. */
-+	if (tcp_error(iph, len) != NF_ACCEPT)
-+		return -NF_ACCEPT;
-+	
- 	WRITE_LOCK(&tcp_lock);
--	oldtcpstate = conntrack->proto.tcp.state;
--	newconntrack
--		= tcp_conntracks
--		[CTINFO2DIR(ctinfo)]
--		[get_conntrack_index(tcph)][oldtcpstate];
--
--	/* Invalid */
--	if (newconntrack == TCP_CONNTRACK_MAX) {
--		DEBUGP("ip_conntrack_tcp: Invalid dir=%i index=%u conntrack=%u\n",
--		       CTINFO2DIR(ctinfo), get_conntrack_index(tcph),
--		       conntrack->proto.tcp.state);
-+	old_state = conntrack->proto.tcp.state;
-+	dir = CTINFO2DIR(ctinfo);
-+	index = get_conntrack_index(tcph);
-+	new_state = tcp_conntracks[dir][index][old_state];
-+
-+	switch (new_state) {
-+	case TCP_CONNTRACK_IGNORE:
-+		/* Either SYN in ORIGINAL
-+		 * or SYN/ACK in REPLY. */
-+		if (index == TCP_SYNACK_SET
-+		    && conntrack->proto.tcp.last_index == TCP_SYN_SET
-+		    && conntrack->proto.tcp.last_dir != dir
-+		    && ntohl(tcph->ack_seq) ==
-+		    	     conntrack->proto.tcp.last_end) {
-+			/* This SYN/ACK acknowledges a SYN that we earlier 
-+			 * ignored as invalid. This means that the client and
-+			 * the server are both in sync, while the firewall is
-+			 * not. We kill this session and block the SYN/ACK so
-+			 * that the client cannot but retransmit its SYN and 
-+			 * thus initiate a clean new session.
-+			 */
-+		    	WRITE_UNLOCK(&tcp_lock);
-+			if (NET_RATELIMIT(ip_ct_tcp_log_invalid))
-+				nf_log(PF_INET, (char *)iph, len, 
-+					"ip_ct_tcp: killing out of sync session ");
-+		    	if (del_timer(&conntrack->timeout))
-+		    		conntrack->timeout.function((unsigned long)
-+		    					    conntrack);
-+		    	return -NF_DROP;
-+		}
-+		conntrack->proto.tcp.last_index = index;
-+		conntrack->proto.tcp.last_dir = dir;
-+		conntrack->proto.tcp.last_seq = ntohl(tcph->seq);
-+		conntrack->proto.tcp.last_end = 
-+		    segment_seq_plus_len(ntohl(tcph->seq), len, iph, tcph);
-+		
-+		WRITE_UNLOCK(&tcp_lock);
-+		if (NET_RATELIMIT(ip_ct_tcp_log_invalid))
-+			nf_log(PF_INET, (char *)iph, len, 
-+				"ip_ct_tcp: invalid packet ignored ");
-+		return NF_ACCEPT;
-+	case TCP_CONNTRACK_MAX:
-+		/* Invalid packet */
-+		DEBUGP("ip_ct_tcp: Invalid dir=%i index=%u ostate=%u\n",
-+		       dir, get_conntrack_index(tcph),
-+		       old_state);
- 		WRITE_UNLOCK(&tcp_lock);
--		return -1;
-+		if (NET_RATELIMIT(ip_ct_tcp_log_invalid))
-+			nf_log(PF_INET, (char *)iph, len, 
-+				"ip_ct_tcp: invalid state ");
-+		return -NF_ACCEPT;
-+	case TCP_CONNTRACK_SYN_SENT:
-+		if (old_state < TCP_CONNTRACK_TIME_WAIT)
-+			break;
-+		if ((conntrack->proto.tcp.seen[dir].flags &
-+		         IP_CT_TCP_FLAG_CLOSE_INIT)
-+		    || after(ntohl(tcph->seq),
-+		    	     conntrack->proto.tcp.seen[dir].td_end)) {	
-+		    	/* Attempt to reopen a closed connection.
-+		    	* Delete this connection and look up again. */
-+		    	WRITE_UNLOCK(&tcp_lock);
-+		    	if (del_timer(&conntrack->timeout))
-+		    		conntrack->timeout.function((unsigned long)
-+		    					    conntrack);
-+		    	return -NF_REPEAT;
-+		} else {
-+			WRITE_UNLOCK(&tcp_lock);
-+			if (NET_RATELIMIT(ip_ct_tcp_log_invalid))
-+				nf_log(PF_INET, (char *)iph, len, 
-+					"ip_ct_tcp: invalid SYN ");
-+			return -NF_ACCEPT;
-+		}
-+	case TCP_CONNTRACK_CLOSE:
-+		if (index == TCP_RST_SET
-+		    && test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)
-+		    && conntrack->proto.tcp.last_index == TCP_SYN_SET
-+		    && ntohl(tcph->ack_seq) == conntrack->proto.tcp.last_end) {
-+			/* RST sent to invalid SYN we had let trough 
-+			 * SYN was in window then, tear down connection.
-+			 * We skip window checking, because packet might ACK
-+			 * segments we ignored in the SYN. */
-+			goto in_window;
-+		}
-+		/* Just fall trough */
-+	default:
-+		/* Keep compilers happy. */
-+		break;
- 	}
- 
--	conntrack->proto.tcp.state = newconntrack;
--
--	/* Poor man's window tracking: record SYN/ACK for handshake check */
--	if (oldtcpstate == TCP_CONNTRACK_SYN_SENT
--	    && CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY
--	    && tcph->syn && tcph->ack)
--		conntrack->proto.tcp.handshake_ack
--			= htonl(ntohl(tcph->seq) + 1);
--
--	/* If only reply is a RST, we can consider ourselves not to
--	   have an established connection: this is a fairly common
--	   problem case, so we can delete the conntrack
--	   immediately.  --RR */
--	if (!test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status) && tcph->rst) {
-+	if (!tcp_in_window(&conntrack->proto.tcp, dir, index, 
-+			   iph, len, tcph)) {
- 		WRITE_UNLOCK(&tcp_lock);
--		if (del_timer(&conntrack->timeout))
--			conntrack->timeout.function((unsigned long)conntrack);
--	} else {
--		/* Set ASSURED if we see see valid ack in ESTABLISHED after SYN_RECV */
--		if (oldtcpstate == TCP_CONNTRACK_SYN_RECV
--		    && CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL
--		    && tcph->ack && !tcph->syn
--		    && tcph->ack_seq == conntrack->proto.tcp.handshake_ack)
-+		return -NF_ACCEPT;
-+	}
-+    in_window:
-+	/* From now on we have got in-window packets */	
-+	conntrack->proto.tcp.last_index = index;
-+
-+	DEBUGP("tcp_conntracks: src=%u.%u.%u.%u:%hu dst=%u.%u.%u.%u:%hu "
-+	       "syn=%i ack=%i fin=%i rst=%i old=%i new=%i\n",
-+		NIPQUAD(iph->saddr), ntohs(tcph->source),
-+		NIPQUAD(iph->daddr), ntohs(tcph->dest),
-+		(tcph->syn ? 1 : 0), (tcph->ack ? 1 : 0),
-+		(tcph->fin ? 1 : 0), (tcph->rst ? 1 : 0),
-+		old_state, new_state);
-+
-+	conntrack->proto.tcp.state = new_state;
-+	if (old_state != new_state 
-+	    && (new_state == TCP_CONNTRACK_FIN_WAIT
-+	    	|| new_state == TCP_CONNTRACK_CLOSE))
-+		conntrack->proto.tcp.seen[dir].flags |= IP_CT_TCP_FLAG_CLOSE_INIT;
-+	timeout = conntrack->proto.tcp.retrans >= ip_ct_tcp_max_retrans
-+		  && *tcp_timeouts[new_state] > ip_ct_tcp_timeout_max_retrans
-+		  ? ip_ct_tcp_timeout_max_retrans : *tcp_timeouts[new_state];
-+	WRITE_UNLOCK(&tcp_lock);
-+
-+	if (!test_bit(IPS_SEEN_REPLY_BIT, &conntrack->status)) {
-+		/* If only reply is a RST, we can consider ourselves not to
-+		   have an established connection: this is a fairly common
-+		   problem case, so we can delete the conntrack
-+		   immediately.  --RR */
-+		if (tcph->rst) {
-+			if (del_timer(&conntrack->timeout))
-+				conntrack->timeout.function((unsigned long)
-+							    conntrack);
-+			return NF_ACCEPT;
-+		}
-+	} else if (!test_bit(IPS_ASSURED_BIT, &conntrack->status)
-+		   && (old_state == TCP_CONNTRACK_SYN_RECV
-+		       || old_state == TCP_CONNTRACK_ESTABLISHED)
-+		   && new_state == TCP_CONNTRACK_ESTABLISHED) {
-+		/* Set ASSURED if we see see valid ack in ESTABLISHED 
-+		   after SYN_RECV or a valid answer for a picked up 
-+		   connection. */
- 			set_bit(IPS_ASSURED_BIT, &conntrack->status);
--
--		WRITE_UNLOCK(&tcp_lock);
--		ip_ct_refresh(conntrack, *tcp_timeouts[newconntrack]);
- 	}
-+	ip_ct_refresh(conntrack, timeout);
- 
- 	return NF_ACCEPT;
- }
--
-+ 
- /* Called when a new connection for this protocol found. */
- static int tcp_new(struct ip_conntrack *conntrack,
- 		   struct iphdr *iph, size_t len)
- {
--	enum tcp_conntrack newconntrack;
-+	enum tcp_conntrack new_state;
- 	struct tcphdr *tcph = (struct tcphdr *)((u_int32_t *)iph + iph->ihl);
-+#ifdef DEBUGP_VARS
-+	struct ip_ct_tcp_state *sender = &conntrack->proto.tcp.seen[0];
-+	struct ip_ct_tcp_state *receiver = &conntrack->proto.tcp.seen[1];
-+#endif
- 
-+	/* Skip unclean packets */
-+	if (tcp_error(iph, len) != NF_ACCEPT)
-+		return 0;
-+	
- 	/* Don't need lock here: this conntrack not in circulation yet */
--	newconntrack
-+	new_state
- 		= tcp_conntracks[0][get_conntrack_index(tcph)]
- 		[TCP_CONNTRACK_NONE];
- 
- 	/* Invalid: delete conntrack */
--	if (newconntrack == TCP_CONNTRACK_MAX) {
--		DEBUGP("ip_conntrack_tcp: invalid new deleting.\n");
-+	if (new_state >= TCP_CONNTRACK_MAX) {
-+		DEBUGP("ip_ct_tcp: invalid new deleting.\n");
- 		return 0;
- 	}
- 
--	conntrack->proto.tcp.state = newconntrack;
-+	if (new_state == TCP_CONNTRACK_SYN_SENT) {
-+		/* SYN packet */
-+		conntrack->proto.tcp.seen[0].td_end =
-+			segment_seq_plus_len(ntohl(tcph->seq), len,
-+					     iph, tcph);
-+		conntrack->proto.tcp.seen[0].td_maxwin = ntohs(tcph->window);
-+		if (conntrack->proto.tcp.seen[0].td_maxwin == 0)
-+			conntrack->proto.tcp.seen[0].td_maxwin = 1;
-+		conntrack->proto.tcp.seen[0].td_maxend =
-+			conntrack->proto.tcp.seen[0].td_end;
-+
-+		tcp_options(tcph, &conntrack->proto.tcp.seen[0]);
-+		conntrack->proto.tcp.seen[1].flags = 0;
-+		conntrack->proto.tcp.seen[0].loose = 
-+		conntrack->proto.tcp.seen[1].loose = 0;
-+	} else if (ip_ct_tcp_loose == 0) {
-+		/* Don't try to pick up connections. */
-+		return 0;
-+	} else {
-+		/*
-+		 * We are in the middle of a connection,
-+		 * its history is lost for us.
-+		 * Let's try to use the data from the packet.
-+		 */
-+		conntrack->proto.tcp.seen[0].td_end =
-+			segment_seq_plus_len(ntohl(tcph->seq), len,
-+					     iph, tcph);
-+		conntrack->proto.tcp.seen[0].td_maxwin = ntohs(tcph->window);
-+		if (conntrack->proto.tcp.seen[0].td_maxwin == 0)
-+			conntrack->proto.tcp.seen[0].td_maxwin = 1;
-+		conntrack->proto.tcp.seen[0].td_maxend =
-+			conntrack->proto.tcp.seen[0].td_end + 
-+			conntrack->proto.tcp.seen[0].td_maxwin;
-+		conntrack->proto.tcp.seen[0].td_scale = 0;
-+
-+		/* We assume SACK. Should we assume window scaling too? */
-+		conntrack->proto.tcp.seen[0].flags =
-+		conntrack->proto.tcp.seen[1].flags = IP_CT_TCP_FLAG_SACK_PERM;
-+		conntrack->proto.tcp.seen[0].loose = 
-+		conntrack->proto.tcp.seen[1].loose = ip_ct_tcp_loose;
-+	}
-+    
-+	conntrack->proto.tcp.seen[1].td_end = 0;
-+	conntrack->proto.tcp.seen[1].td_maxend = 0;
-+	conntrack->proto.tcp.seen[1].td_maxwin = 1;
-+	conntrack->proto.tcp.seen[1].td_scale = 0;      
-+
-+	/* tcp_packet will set them */
-+	conntrack->proto.tcp.state = TCP_CONNTRACK_NONE;
-+	conntrack->proto.tcp.last_index = TCP_NONE_SET;
-+	 
-+	DEBUGP("tcp_new: sender end=%u maxend=%u maxwin=%u scale=%i "
-+	       "receiver end=%u maxend=%u maxwin=%u scale=%i\n",
-+		sender->td_end, sender->td_maxend, sender->td_maxwin,
-+		sender->td_scale, 
-+		receiver->td_end, receiver->td_maxend, receiver->td_maxwin,
-+		receiver->td_scale);
- 	return 1;
- }
--
-+  
- static int tcp_exp_matches_pkt(struct ip_conntrack_expect *exp,
- 			       struct sk_buff **pskb)
- {
--	struct iphdr *iph = (*pskb)->nh.iph;
-+	const struct iphdr *iph = (*pskb)->nh.iph;
- 	struct tcphdr *tcph = (struct tcphdr *)((u_int32_t *)iph + iph->ihl);
- 	unsigned int datalen;
- 
-@@ -251,7 +1076,15 @@
- 	return between(exp->seq, ntohl(tcph->seq), ntohl(tcph->seq) + datalen);
- }
- 
--struct ip_conntrack_protocol ip_conntrack_protocol_tcp
--= { { NULL, NULL }, IPPROTO_TCP, "tcp",
--    tcp_pkt_to_tuple, tcp_invert_tuple, tcp_print_tuple, tcp_print_conntrack,
--    tcp_packet, tcp_new, NULL, tcp_exp_matches_pkt, NULL };
-+struct ip_conntrack_protocol ip_conntrack_protocol_tcp =
++static void __exit fini(void)
 +{
-+	.proto 			= IPPROTO_TCP,
-+	.name 			= "tcp",
-+	.pkt_to_tuple 		= tcp_pkt_to_tuple,
-+	.invert_tuple 		= tcp_invert_tuple,
-+	.print_tuple 		= tcp_print_tuple,
-+	.print_conntrack 	= tcp_print_conntrack,
-+	.packet 		= tcp_packet,
-+	.new 			= tcp_new,
-+	.exp_matches_pkt	= tcp_exp_matches_pkt,
++	ipt_unregister_target(&ipt_notrack_reg);
++}
++
++module_init(init);
++module_exit(fini);
++MODULE_LICENSE("GPL");
+diff -Nur linux-2.4.31-orig/net/ipv4/netfilter/ipt_conntrack.c linux-2.4.31-pab2/net/ipv4/netfilter/ipt_conntrack.c
+--- linux-2.4.31-orig/net/ipv4/netfilter/ipt_conntrack.c	2004-02-18 14:36:32 +0100
++++ linux-2.4.31-pab2/net/ipv4/netfilter/ipt_conntrack.c	2005-06-29 14:33:32 +0200
+@@ -27,7 +27,9 @@
+ 
+ #define FWINV(bool,invflg) ((bool) ^ !!(sinfo->invflags & invflg))
+ 
+-	if (ct)
++	if (skb->nfct == &ip_conntrack_untracked.infos[IP_CT_NEW])
++		statebit = IPT_CONNTRACK_STATE_UNTRACKED;
++	else if (ct)
+ 		statebit = IPT_CONNTRACK_STATE_BIT(ctinfo);
+ 	else
+ 		statebit = IPT_CONNTRACK_STATE_INVALID;
+diff -Nur linux-2.4.31-orig/net/ipv4/netfilter/ipt_state.c linux-2.4.31-pab2/net/ipv4/netfilter/ipt_state.c
+--- linux-2.4.31-orig/net/ipv4/netfilter/ipt_state.c	2004-02-18 14:36:32 +0100
++++ linux-2.4.31-pab2/net/ipv4/netfilter/ipt_state.c	2005-06-29 14:33:32 +0200
+@@ -21,7 +21,9 @@
+ 	enum ip_conntrack_info ctinfo;
+ 	unsigned int statebit;
+ 
+-	if (!ip_conntrack_get((struct sk_buff *)skb, &ctinfo))
++	if (skb->nfct == &ip_conntrack_untracked.infos[IP_CT_NEW])
++		statebit = IPT_STATE_UNTRACKED;
++	else if (!ip_conntrack_get((struct sk_buff *)skb, &ctinfo))
+ 		statebit = IPT_STATE_INVALID;
+ 	else
+ 		statebit = IPT_STATE_BIT(ctinfo);
+diff -Nur linux-2.4.31-orig/net/ipv4/netfilter/iptable_raw.c linux-2.4.31-pab2/net/ipv4/netfilter/iptable_raw.c
+--- linux-2.4.31-orig/net/ipv4/netfilter/iptable_raw.c	1970-01-01 01:00:00 +0100
++++ linux-2.4.31-pab2/net/ipv4/netfilter/iptable_raw.c	2005-06-29 14:33:32 +0200
+@@ -0,0 +1,149 @@
++/* 
++ * 'raw' table, which is the very first hooked in at PRE_ROUTING and LOCAL_OUT .
++ *
++ * Copyright (C) 2003 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
++ */
++#include <linux/module.h>
++#include <linux/netfilter_ipv4/ip_tables.h>
++
++#define RAW_VALID_HOOKS ((1 << NF_IP_PRE_ROUTING) | (1 << NF_IP_LOCAL_OUT))
++
++/* Standard entry. */
++struct ipt_standard
++{
++	struct ipt_entry entry;
++	struct ipt_standard_target target;
 +};
-diff -X dontdiff -Nur linux-2.4.32-orig/net/ipv4/netfilter/ip_conntrack_standalone.c linux-2.4.32-pab2/net/ipv4/netfilter/ip_conntrack_standalone.c
---- linux-2.4.32-orig/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-04-04 03:42:20 +0200
-+++ linux-2.4.32-pab2/net/ipv4/netfilter/ip_conntrack_standalone.c	2005-11-21 10:41:19 +0100
-@@ -259,6 +259,11 @@
- extern unsigned long ip_ct_tcp_timeout_last_ack;
- extern unsigned long ip_ct_tcp_timeout_time_wait;
- extern unsigned long ip_ct_tcp_timeout_close;
-+extern unsigned long ip_ct_tcp_timeout_max_retrans;
-+extern int ip_ct_tcp_log_invalid;
-+extern int ip_ct_tcp_loose;
-+extern int ip_ct_tcp_be_liberal;
-+extern int ip_ct_tcp_max_retrans;
++
++struct ipt_error_target
++{
++	struct ipt_entry_target target;
++	char errorname[IPT_FUNCTION_MAXNAMELEN];
++};
++
++struct ipt_error
++{
++	struct ipt_entry entry;
++	struct ipt_error_target target;
++};
++
++static struct
++{
++	struct ipt_replace repl;
++	struct ipt_standard entries[2];
++	struct ipt_error term;
++} initial_table __initdata
++= { { "raw", RAW_VALID_HOOKS, 3,
++      sizeof(struct ipt_standard) * 2 + sizeof(struct ipt_error),
++      { [NF_IP_PRE_ROUTING] 0,
++	[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) },
++      { [NF_IP_PRE_ROUTING] 0,
++	[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) },
++      0, NULL, { } },
++    {
++	    /* PRE_ROUTING */
++	    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
++		0,
++		sizeof(struct ipt_entry),
++		sizeof(struct ipt_standard),
++		0, { 0, 0 }, { } },
++	      { { { { IPT_ALIGN(sizeof(struct ipt_standard_target)), "" } }, { } },
++		-NF_ACCEPT - 1 } },
++	    /* LOCAL_OUT */
++	    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
++		0,
++		sizeof(struct ipt_entry),
++		sizeof(struct ipt_standard),
++		0, { 0, 0 }, { } },
++	      { { { { IPT_ALIGN(sizeof(struct ipt_standard_target)), "" } }, { } },
++		-NF_ACCEPT - 1 } }
++    },
++    /* ERROR */
++    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
++	0,
++	sizeof(struct ipt_entry),
++	sizeof(struct ipt_error),
++	0, { 0, 0 }, { } },
++      { { { { IPT_ALIGN(sizeof(struct ipt_error_target)), IPT_ERROR_TARGET } },
++	  { } },
++	"ERROR"
++      }
++    }
++};
++
++static struct ipt_table packet_raw = { 
++	.name = "raw", 
++	.table = &initial_table.repl,
++	.valid_hooks =  RAW_VALID_HOOKS, 
++	.lock = RW_LOCK_UNLOCKED, 
++	.me = THIS_MODULE
++};
++
++/* The work comes in here from netfilter.c. */
++static unsigned int
++ipt_hook(unsigned int hook,
++	 struct sk_buff **pskb,
++	 const struct net_device *in,
++	 const struct net_device *out,
++	 int (*okfn)(struct sk_buff *))
++{
++	return ipt_do_table(pskb, hook, in, out, &packet_raw, NULL);
++}
++
++/* 'raw' is the very first table. */
++static struct nf_hook_ops ipt_ops[] = {
++	{
++	  .hook = ipt_hook, 
++	  .pf = PF_INET, 
++	  .hooknum = NF_IP_PRE_ROUTING, 
++	  .priority = NF_IP_PRI_RAW
++	},
++	{
++	  .hook = ipt_hook, 
++	  .pf = PF_INET, 
++	  .hooknum = NF_IP_LOCAL_OUT, 
++	  .priority = NF_IP_PRI_RAW
++	},
++};
++
++static int __init init(void)
++{
++	int ret;
++
++	/* Register table */
++	ret = ipt_register_table(&packet_raw);
++	if (ret < 0)
++		return ret;
++
++	/* Register hooks */
++	ret = nf_register_hook(&ipt_ops[0]);
++	if (ret < 0)
++		goto cleanup_table;
++
++	ret = nf_register_hook(&ipt_ops[1]);
++	if (ret < 0)
++		goto cleanup_hook0;
++
++	return ret;
++
++ cleanup_hook0:
++	nf_unregister_hook(&ipt_ops[0]);
++ cleanup_table:
++	ipt_unregister_table(&packet_raw);
++
++	return ret;
++}
++
++static void __exit fini(void)
++{
++	unsigned int i;
++
++	for (i = 0; i < sizeof(ipt_ops)/sizeof(struct nf_hook_ops); i++)
++		nf_unregister_hook(&ipt_ops[i]);
++
++	ipt_unregister_table(&packet_raw);
++}
++
++module_init(init);
++module_exit(fini);
++MODULE_LICENSE("GPL");
+diff -Nur linux-2.4.31-orig/net/ipv6/netfilter/Config.in linux-2.4.31-pab2/net/ipv6/netfilter/Config.in
+--- linux-2.4.31-orig/net/ipv6/netfilter/Config.in	2003-06-13 16:51:39 +0200
++++ linux-2.4.31-pab2/net/ipv6/netfilter/Config.in	2005-06-29 14:33:32 +0200
+@@ -75,4 +75,9 @@
+   #dep_tristate '  LOG target support' CONFIG_IP6_NF_TARGET_LOG $CONFIG_IP6_NF_IPTABLES
+ fi
  
- /* From ip_conntrack_proto_udp.c */
- extern unsigned long ip_ct_udp_timeout;
-@@ -315,6 +320,21 @@
- 	{NET_IPV4_NF_CONNTRACK_GENERIC_TIMEOUT, "ip_conntrack_generic_timeout",
- 	 &ip_ct_generic_timeout, sizeof(unsigned int), 0644, NULL,
- 	 &proc_dointvec_jiffies},
-+	{NET_IPV4_NF_CONNTRACK_TCP_TIMEOUT_MAX_RETRANS, "ip_conntrack_tcp_timeout_max_retrans",
-+	 &ip_ct_tcp_timeout_max_retrans, sizeof(unsigned int), 0644, NULL,
-+	 &proc_dointvec_jiffies},
-+	{NET_IPV4_NF_CONNTRACK_TCP_LOG_INVALID, "ip_conntrack_tcp_log_invalid",
-+	 &ip_ct_tcp_log_invalid, sizeof(unsigned int), 0644, NULL,
-+	 &proc_dointvec},
-+	{NET_IPV4_NF_CONNTRACK_TCP_LOOSE, "ip_conntrack_tcp_loose",
-+	 &ip_ct_tcp_loose, sizeof(unsigned int), 0644, NULL,
-+	 &proc_dointvec},
-+	{NET_IPV4_NF_CONNTRACK_TCP_BE_LIBERAL, "ip_conntrack_tcp_be_liberal",
-+	 &ip_ct_tcp_be_liberal, sizeof(unsigned int), 0644, NULL,
-+	 &proc_dointvec},
-+	{NET_IPV4_NF_CONNTRACK_TCP_MAX_RETRANS, "ip_conntrack_tcp_max_retrans",
-+	 &ip_ct_tcp_max_retrans, sizeof(unsigned int), 0644, NULL,
-+	 &proc_dointvec},
- 	{0}
- };
++  if [ "$CONFIG_EXPERIMENTAL" = "y" ]; then
++    tristate '  raw table support (required for TRACE)' CONFIG_IP6_NF_RAW $CONFIG_IP6_NF_IPTABLES
++  fi
++  # Marker for TRACE target
++
+ endmenu
+diff -Nur linux-2.4.31-orig/net/ipv6/netfilter/Makefile linux-2.4.31-pab2/net/ipv6/netfilter/Makefile
+--- linux-2.4.31-orig/net/ipv6/netfilter/Makefile	2003-06-13 16:51:39 +0200
++++ linux-2.4.31-pab2/net/ipv6/netfilter/Makefile	2005-06-29 14:33:32 +0200
+@@ -30,6 +30,7 @@
+ obj-$(CONFIG_IP6_NF_TARGET_MARK) += ip6t_MARK.o
+ obj-$(CONFIG_IP6_NF_QUEUE) += ip6_queue.o
+ obj-$(CONFIG_IP6_NF_TARGET_LOG) += ip6t_LOG.o
++obj-$(CONFIG_IP6_NF_RAW) += ip6table_raw.o
+ obj-$(CONFIG_IP6_NF_MATCH_HL) += ip6t_hl.o
  
-diff -X dontdiff -Nur linux-2.4.32-orig/net/ipv4/netfilter/ip_nat_helper.c linux-2.4.32-pab2/net/ipv4/netfilter/ip_nat_helper.c
---- linux-2.4.32-orig/net/ipv4/netfilter/ip_nat_helper.c	2005-04-04 03:42:20 +0200
-+++ linux-2.4.32-pab2/net/ipv4/netfilter/ip_nat_helper.c	2005-11-21 10:41:19 +0100
-@@ -451,6 +451,8 @@
- 	tcph->ack_seq = newack;
- 
- 	ip_nat_sack_adjust(skb, ct, ctinfo);
-+	
-+	ip_conntrack_tcp_update(skb, ct, dir);
- 
- 	return 0;
- }
+ include $(TOPDIR)/Rules.make
+diff -Nur linux-2.4.31-orig/net/ipv6/netfilter/ip6table_raw.c linux-2.4.31-pab2/net/ipv6/netfilter/ip6table_raw.c
+--- linux-2.4.31-orig/net/ipv6/netfilter/ip6table_raw.c	1970-01-01 01:00:00 +0100
++++ linux-2.4.31-pab2/net/ipv6/netfilter/ip6table_raw.c	2005-06-29 14:33:32 +0200
+@@ -0,0 +1,154 @@
++/*
++ * IPv6 raw table, a port of the IPv4 raw table to IPv6
++ *
++ * Copyright (C) 2003 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
++ */
++#include <linux/module.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
++
++#define RAW_VALID_HOOKS ((1 << NF_IP6_PRE_ROUTING) | (1 << NF_IP6_LOCAL_OUT))
++
++#if 0
++#define DEBUGP(x, args...)	printk(KERN_DEBUG x, ## args)
++#else
++#define DEBUGP(x, args...)
++#endif
++
++/* Standard entry. */
++struct ip6t_standard
++{
++	struct ip6t_entry entry;
++	struct ip6t_standard_target target;
++};
++
++struct ip6t_error_target
++{
++	struct ip6t_entry_target target;
++	char errorname[IP6T_FUNCTION_MAXNAMELEN];
++};
++
++struct ip6t_error
++{
++	struct ip6t_entry entry;
++	struct ip6t_error_target target;
++};
++
++static struct
++{
++	struct ip6t_replace repl;
++	struct ip6t_standard entries[2];
++	struct ip6t_error term;
++} initial_table __initdata 
++= { { "raw", RAW_VALID_HOOKS, 3,
++      sizeof(struct ip6t_standard) * 2 + sizeof(struct ip6t_error),
++      { [NF_IP6_PRE_ROUTING] 	0,
++	[NF_IP6_LOCAL_OUT]	sizeof(struct ip6t_standard) },
++      { [NF_IP6_PRE_ROUTING] 	0,
++	[NF_IP6_LOCAL_OUT]	sizeof(struct ip6t_standard) },
++      0, NULL, { } },
++    {
++	    /* PRE_ROUTING */
++            { { { { { { 0 } } }, { { { 0 } } }, { { { 0 } } }, { { { 0 } } }, "", "", { 0 }, { 0 }, 0, 0, 0 },
++		0,
++		sizeof(struct ip6t_entry),
++		sizeof(struct ip6t_standard),
++		0, { 0, 0 }, { } },
++	      { { { { IP6T_ALIGN(sizeof(struct ip6t_standard_target)), "" } }, { } },
++		-NF_ACCEPT - 1 } },
++	    /* LOCAL_OUT */
++            { { { { { { 0 } } }, { { { 0 } } }, { { { 0 } } }, { { { 0 } } }, "", "", { 0 }, { 0 }, 0, 0, 0 },
++		0,
++		sizeof(struct ip6t_entry),
++		sizeof(struct ip6t_standard),
++		0, { 0, 0 }, { } },
++	      { { { { IP6T_ALIGN(sizeof(struct ip6t_standard_target)), "" } }, { } },
++		-NF_ACCEPT - 1 } },
++    },
++    /* ERROR */
++    { { { { { { 0 } } }, { { { 0 } } }, { { { 0 } } }, { { { 0 } } }, "", "", { 0 }, { 0 }, 0, 0, 0 },
++	0,
++	sizeof(struct ip6t_entry),
++	sizeof(struct ip6t_error),
++	0, { 0, 0 }, { } },
++      { { { { IP6T_ALIGN(sizeof(struct ip6t_error_target)), IP6T_ERROR_TARGET } },
++	  { } },
++	"ERROR"
++      }
++    }
++};
++
++static struct ip6t_table packet_raw = { 
++	.name = "raw", 
++	.table = &initial_table.repl,
++	.valid_hooks = RAW_VALID_HOOKS, 
++	.lock = RW_LOCK_UNLOCKED, 
++	.me = THIS_MODULE
++};
++
++/* The work comes in here from netfilter.c. */
++static unsigned int
++ip6t_hook(unsigned int hook,
++	 struct sk_buff **pskb,
++	 const struct net_device *in,
++	 const struct net_device *out,
++	 int (*okfn)(struct sk_buff *))
++{
++	return ip6t_do_table(pskb, hook, in, out, &packet_raw, NULL);
++}
++
++static struct nf_hook_ops ip6t_ops[] = { 
++	{
++	  .hook = ip6t_hook, 
++	  .pf = PF_INET6,
++	  .hooknum = NF_IP6_PRE_ROUTING,
++	  .priority = NF_IP6_PRI_FIRST
++	},
++	{
++	  .hook = ip6t_hook, 
++	  .pf = PF_INET6, 
++	  .hooknum = NF_IP6_LOCAL_OUT,
++	  .priority = NF_IP6_PRI_FIRST
++	},
++};
++
++static int __init init(void)
++{
++	int ret;
++
++	/* Register table */
++	ret = ip6t_register_table(&packet_raw);
++	if (ret < 0)
++		return ret;
++
++	/* Register hooks */
++	ret = nf_register_hook(&ip6t_ops[0]);
++	if (ret < 0)
++		goto cleanup_table;
++
++	ret = nf_register_hook(&ip6t_ops[1]);
++	if (ret < 0)
++		goto cleanup_hook0;
++
++	return ret;
++
++ cleanup_hook0:
++	nf_unregister_hook(&ip6t_ops[0]);
++ cleanup_table:
++	ip6t_unregister_table(&packet_raw);
++
++	return ret;
++}
++
++static void __exit fini(void)
++{
++	unsigned int i;
++
++	for (i = 0; i < sizeof(ip6t_ops)/sizeof(struct nf_hook_ops); i++)
++		nf_unregister_hook(&ip6t_ops[i]);
++
++	ip6t_unregister_table(&packet_raw);
++}
++
++module_init(init);
++module_exit(fini);
++MODULE_LICENSE("GPL");
 
---------------090808060703040907060301--
+--------------070405060905070404080001--
