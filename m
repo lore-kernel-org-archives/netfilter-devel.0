@@ -1,20 +1,12 @@
-From: "m.innocenti@cineca.it" <m.innocenti@cineca.it>
-Subject: Re: [PATCH] NETFILTER: add support for invert condition (!) in
-	ipt_limit
-Date: Mon, 21 Nov 2005 15:27:17 +0100 (MET)
-Message-ID: <4381D94A.8080404@cineca.it>
-References: <20051017094417.GA26911@pc-innocenti.cineca.it>
-	<20051017.184547.117007327.yoshfuji@linux-ipv6.org>
-	<20051017143053.GA29010@pc-innocenti.cineca.it>
-	<4353BFFB.7070406@trash.net>
-	<20051020090100.GA23412@pc-innocenti.cineca.it>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: CTA_PROTO_NUM u_int8_t or u_int16_t
+Date: Mon, 21 Nov 2005 15:40:33 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0511211534580.30476@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1334557230-1132584033=:30476"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marco Innocenti <m.innocenti@cineca.it>
-In-Reply-To: <20051020090100.GA23412@pc-innocenti.cineca.it>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,14 +18,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-There is something else I have to do to make the patch to add support
-for invert in ipt_limit being applied?
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
+---187430788-1334557230-1132584033=:30476
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
--- 
-**********************************************************************
-Marco Innocenti              Gruppo Infrastruttura e Sicurezza
-CINECA                       phone:+39 0516171553 / fax:+39 0516132198
-Via Magnanelli 6/3           e-mail: innocenti@cineca.it
-40033 Casalecchio di Reno    Bologna (Italia)
-**********************************************************************
+Hello,
+
+AFAIK ip proto is u8 but I found that it is represented as u16 and used=20
+both as u_int16_t and u_int8_t:
+
+include/linux/netfilter_ipv4/ipt_conntrack.h:           u16 protonum;
+
+net/ipv4/netfilter/ip_conntrack_netlink.c:      NFA_PUT(skb, CTA_PROTO_NUM,=
+ sizeof(u_int8_t), &tuple->dst.protonum);
+net/ipv4/netfilter/ip_conntrack_netlink.c:      [CTA_PROTO_NUM-1]       =3D=
+ sizeof(u_int16_t),
+net/ipv4/netfilter/ip_conntrack_netlink.c:      tuple->dst.protonum =3D *(u=
+_int16_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
+
+Was this intentionally?
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1334557230-1132584033=:30476--
