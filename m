@@ -1,20 +1,16 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: [PATCH] CTA_PROTO_NUM is u_int8_t not u_int16_t (was Re:
- CTA_PROTO_NUM u_int8_t or u_int16_t)
-Date: Tue, 22 Nov 2005 21:29:51 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0511222103050.9114@bizon.gios.gov.pl>
-References: <Pine.LNX.4.64.0511211534580.30476@bizon.gios.gov.pl>
-	<4381DF77.2030704@eurodev.net> <4381FDF8.6030508@trash.net>
-	<43820874.2050708@eurodev.net> <4382A19D.9090201@trash.net>
-	<43836BAF.2050501@eurodev.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] relax ip_conntrack_[nat_]proto_find_get checkings
+Date: Tue, 22 Nov 2005 23:01:51 +0100
+Message-ID: <20051122220151.GB31478@sunbeam.de.gnumonks.org>
+References: <4381D553.5030906@netfilter.org>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-568877046-1132691391=:9114"
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NqE6tsP4GBwPxixq"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <43836BAF.2050501@eurodev.net>
+To: Pablo Neira <pablo@netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <4381D553.5030906@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,74 +22,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-568877046-1132691391=:9114
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+--NqE6tsP4GBwPxixq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Mon, Nov 21, 2005 at 03:10:27PM +0100, Pablo Neira wrote:
+> Remove proto =3D=3D NULL checking since ip_conntrack_[nat_]proto_find_get
+> always returns a valid pointer. Fix missing ip_conntrack_proto_put in
+> some paths as well.
 
+thanks, applied and submitted.
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-On Tue, 22 Nov 2005, Pablo Neira wrote:
+--NqE6tsP4GBwPxixq
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-> Patrick McHardy wrote:
->> Pablo Neira wrote:
->>
->>> Patrick McHardy wrote:
->>>
->>>> If you have to break compatibility, please do it before 2.6.15 is
->>>> released. But the easiest solution looks like keeping it a u_int16_t
->>>> and adjusting the NFA_PUT.
->>>
->>> I think that I can fix it in nf_conntrack_netlink. ip_conntrack_netlink
->>> will go sooner or later.
->>
->> I'm not sure that will be an avantage to breaking it immediately.
->> People should be able to use ctnetlink application with nfctnetlink,
->> so it will still break, but at that point the interface will already
->> be more established. We could just leave it a u_int16_t, but it won't
->> be in network byte order as the other attributes, which IMO needs to
->> be fixed if we ever want to use ctnetlink over the network without
->> adding lots of code in userspace just to fix up this single field.
->
-> Better to fix it, break backward compatibility now and forget about this
-> issue.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-Isn't it possible to add kernel version checking into=20
-libnetfilter_conntrack and send CTA_PROTO_NUM as u_int16_t under 2.6.14=20
-and as u_int8_t under 2.6.15+? The protonum is alredy defined as u_int8_t=
-=20
-in struct nfct_tuple (libnetfilter_conntrack.h).
+iD8DBQFDg5VPXaXGVTD0i/8RAiDjAJ9FMc0v2hcLCLXA4gkhii9cm7Y3NgCeKoy6
++zSvEQco8r/1NLMGVij+ekU=
+=jhm8
+-----END PGP SIGNATURE-----
 
-> Patch attached. Thanks for the feedback Patrick.
-
-What about ip_conntrack_old_tuple struct from=20
-include/linux/netfilter_ipv4/ipt_conntrack.h:
-
-/* This is exposed to userspace, so remains frozen in time. */
-struct ip_conntrack_old_tuple
-{
-         struct {
-                 __u32 ip;
-                 union {
-                         __u16 all;
-                 } u;
-         } src;
-
-         struct {
-                 __u32 ip;
-                 union {
-                         __u16 all;
-                 } u;
-
-                 /* The protocol. */
-                 u16 protonum;
-         } dst;
-};
-
-
-Best regards,
-
- =09=09=09Krzysztof Ol=EAdzki
----187430788-568877046-1132691391=:9114--
+--NqE6tsP4GBwPxixq--
