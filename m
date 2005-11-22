@@ -1,18 +1,17 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: CTA_PROTO_NUM u_int8_t or u_int16_t
-Date: Mon, 21 Nov 2005 22:26:43 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0511212224270.13610@bizon.gios.gov.pl>
-References: <Pine.LNX.4.64.0511211534580.30476@bizon.gios.gov.pl>
-	<4381DF77.2030704@eurodev.net> <4381FDF8.6030508@trash.net>
-	<43820874.2050708@eurodev.net>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH 05/13]: [IPV4/6]: Netfilter IPsec output hooks
+Date: Tue, 22 Nov 2005 15:40:46 +1100
+Message-ID: <20051122044046.GA29166@gondor.apana.org.au>
+References: <20051120163128.16666.38111.sendpatchset@localhost.localdomain>
+	<20051120163134.16666.9265.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1501828360-1132608403=:13610"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <43820874.2050708@eurodev.net>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <20051120163134.16666.9265.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,56 +23,172 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
----187430788-1501828360-1132608403=:13610
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Mon, 21 Nov 2005, Pablo Neira wrote:
-
-> Patrick McHardy wrote:
->> Pablo Neira wrote:
->>
->>> Krzysztof Oledzki wrote:
->>>
->>>> AFAIK ip proto is u8 but I found that it is represented as u16 and use=
-d
->>>> both as u_int16_t and u_int8_t:
->>>>
->>>> include/linux/netfilter_ipv4/ipt_conntrack.h:           u16 protonum;
->>>>
->>>> net/ipv4/netfilter/ip_conntrack_netlink.c:      NFA_PUT(skb,
->>>> CTA_PROTO_NUM, sizeof(u_int8_t), &tuple->dst.protonum);
->>>> net/ipv4/netfilter/ip_conntrack_netlink.c:
->>>> [CTA_PROTO_NUM-1]      =3D sizeof(u_int16_t),
->>>> net/ipv4/netfilter/ip_conntrack_netlink.c:      tuple->dst.protonum =
-=3D
->>>> *(u_int16_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
->>>>
->>>> Was this intentionally?
->>>
->>>
->>> No :(, it has slipped through at some stage. I was aware of that, I
->>> found it some days ago. The problem is that if we fix that we could
->>> break backward compatibility for 2.6.14, so I'm still thinking about ho=
-w
->>> to fix it.
->>
->> If you have to break compatibility, please do it before 2.6.15 is
->> released. But the easiest solution looks like keeping it a u_int16_t
->> and adjusting the NFA_PUT.
+On Sun, Nov 20, 2005 at 04:31:34PM +0000, Patrick McHardy wrote:
 >
-> I think that I can fix it in nf_conntrack_netlink. ip_conntrack_netlink
-> will go sooner or later.
+> diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+> index ae0779d..b93e7cd 100644
+> --- a/net/ipv4/netfilter.c
+> +++ b/net/ipv4/netfilter.c
+> @@ -78,6 +79,34 @@ int ip_route_me_harder(struct sk_buff **
+>  }
+>  EXPORT_SYMBOL(ip_route_me_harder);
+>  
+> +#ifdef CONFIG_XFRM
+> +static inline int __ip_dst_output(struct sk_buff *skb)
 
-Fair enough. But what if we find similar problem later, this time in=20
-nf_conntrack_netlink? ;)
+I'd like to suggest an alternative way of doing this that
 
-Best regards,
+1) Keeps this XFRM stuff in xfrm*.c.
+2) Removes the need for ip_dst_output.
 
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1501828360-1132608403=:13610--
+Please see the attached patch.
+
+> +	do {
+> +		err = skb->dst->output(skb);
+> +
+> +		if (likely(err == 0))
+> +			return err;
+> +		if (unlikely(err != NET_XMIT_BYPASS))
+> +			return err;
+> +	} while (skb->dst->xfrm && !skb->dst->xfrm->props.mode);
+> +
+> +	return NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, skb->dst->dev,
+> +	               ip_dst_output);
+
+The idea is simply to put this stuff in xfrm[46]_output directly.
+So for your patch you would simply need to add the two NF_HOOK
+calls at the beginning and end of xfrm[46]_output once they've
+been modified in the way I outline below.
+
+> diff --git a/net/ipv4/xfrm4_output.c b/net/ipv4/xfrm4_output.c
+> index 66620a9..c135746 100644
+> --- a/net/ipv4/xfrm4_output.c
+> +++ b/net/ipv4/xfrm4_output.c
+> @@ -133,6 +133,7 @@ int xfrm4_output(struct sk_buff *skb)
+>  		err = -EHOSTUNREACH;
+>  		goto error_nolock;
+>  	}
+> +	nf_reset(skb);
+>  	err = NET_XMIT_BYPASS;
+
+Shouldn't this sit after POST_ROUTING, i.e., once the connection
+has been confirmed?
+
+Cheers,
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+--
+diff --git a/include/net/ip.h b/include/net/ip.h
+diff --git a/net/ipv4/xfrm4_output.c b/net/ipv4/xfrm4_output.c
+--- a/net/ipv4/xfrm4_output.c
++++ b/net/ipv4/xfrm4_output.c
+@@ -113,26 +113,31 @@ int xfrm4_output(struct sk_buff *skb)
+ 			goto error_nolock;
+ 	}
+ 
+-	spin_lock_bh(&x->lock);
+-	err = xfrm_state_check(x, skb);
+-	if (err)
+-		goto error;
+-
+-	xfrm4_encap(skb);
+-
+-	err = x->type->output(x, skb);
+-	if (err)
+-		goto error;
++	do {
++		spin_lock_bh(&x->lock);
++		err = xfrm_state_check(x, skb);
++		if (err)
++			goto error;
++
++		xfrm4_encap(skb);
++
++		err = x->type->output(x, skb);
++		if (err)
++			goto error;
+ 
+-	x->curlft.bytes += skb->len;
+-	x->curlft.packets++;
++		x->curlft.bytes += skb->len;
++		x->curlft.packets++;
+ 
+-	spin_unlock_bh(&x->lock);
++		spin_unlock_bh(&x->lock);
+ 	
+-	if (!(skb->dst = dst_pop(dst))) {
+-		err = -EHOSTUNREACH;
+-		goto error_nolock;
+-	}
++		if (!(skb->dst = dst_pop(dst))) {
++			err = -EHOSTUNREACH;
++			goto error_nolock;
++		}
++		dst = skb->dst;
++		x = dst->xfrm;
++	} while (x && !x->props.mode);
++
+ 	err = NET_XMIT_BYPASS;
+ 
+ out_exit:
+diff --git a/net/ipv6/xfrm6_output.c b/net/ipv6/xfrm6_output.c
+--- a/net/ipv6/xfrm6_output.c
++++ b/net/ipv6/xfrm6_output.c
+@@ -110,28 +110,33 @@ int xfrm6_output(struct sk_buff *skb)
+ 			goto error_nolock;
+ 	}
+ 
+-	spin_lock_bh(&x->lock);
+-	err = xfrm_state_check(x, skb);
+-	if (err)
+-		goto error;
+-
+-	xfrm6_encap(skb);
+-
+-	err = x->type->output(x, skb);
+-	if (err)
+-		goto error;
+-
+-	x->curlft.bytes += skb->len;
+-	x->curlft.packets++;
+-
+-	spin_unlock_bh(&x->lock);
++	do {
++		spin_lock_bh(&x->lock);
++		err = xfrm_state_check(x, skb);
++		if (err)
++			goto error;
++
++		xfrm6_encap(skb);
++
++		err = x->type->output(x, skb);
++		if (err)
++			goto error;
++
++		x->curlft.bytes += skb->len;
++		x->curlft.packets++;
++
++		spin_unlock_bh(&x->lock);
++
++		skb->nh.raw = skb->data;
++		
++		if (!(skb->dst = dst_pop(dst))) {
++			err = -EHOSTUNREACH;
++			goto error_nolock;
++		}
++		dst = skb->dst;
++		x = dst->xfrm;
++	} while (x && !x->props.mode);
+ 
+-	skb->nh.raw = skb->data;
+-	
+-	if (!(skb->dst = dst_pop(dst))) {
+-		err = -EHOSTUNREACH;
+-		goto error_nolock;
+-	}
+ 	err = NET_XMIT_BYPASS;
+ 
+ out_exit:
