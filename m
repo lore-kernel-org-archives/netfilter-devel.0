@@ -1,15 +1,12 @@
-From: Pablo Neira <pablo@netfilter.org>
-Subject: Re: [PATCH] Kill 480 kB redundant data in conntrack application
-Date: Tue, 22 Nov 2005 18:29:03 +0100
-Message-ID: <4383555F.4040501@netfilter.org>
-References: <43834056.7050405@ingate.com>
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: ctnetlink and NAT
+Date: Tue, 22 Nov 2005 19:36:23 +0100
+Message-ID: <43836527.7010309@ingate.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marcus Sundberg <marcus@ingate.com>
-In-Reply-To: <43834056.7050405@ingate.com>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,12 +18,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Marcus Sundberg wrote:
-> the NUMBER_OF_OPT #define in the conntrack application is "a bit"
-> oversized. :-)
+Hi,
 
-Applied. Thanks.
+is there any particular reason why it's not possible to setup SRC
+and DST NAT with a single ctnetlink call?
 
+//Marcus
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+---------------------------------------+--------------------------
+   Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+  Software Developer, Ingate Systems AB |  http://www.ingate.com/
