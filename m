@@ -1,18 +1,14 @@
-From: Robert Iakobashvili <coroberti@gmail.com>
-Subject: Re: Netlink send from the interrupt context
-Date: Wed, 23 Nov 2005 10:04:06 +0200
-Message-ID: <7e63f56c0511230004j79c7f080j56e25251387ebe94@mail.gmail.com>
-References: <7e63f56c0511210034h49917721k74ddb251b9bb1815@mail.gmail.com>
-	<00a901c5ee79$389e5040$6704a8c0@skqianyi>
-	<7e63f56c0511222328w6368f7bcl7877fe3aa62c2807@mail.gmail.com>
-	<02e501c5f002$e5094d00$6704a8c0@skqianyi>
+From: Giacomo <delleceste@gmail.com>
+Subject: Fwd: locking while reading linked lists.
+Date: Wed, 23 Nov 2005 09:17:46 +0100
+Message-ID: <885896af0511230017n25e1dec8p@mail.gmail.com>
+References: <885896af0511230016r3eb7b0b7j@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yu Zhiguo <yuzg@nanjing-fnst.com>
-In-Reply-To: <02e501c5f002$e5094d00$6704a8c0@skqianyi>
+To: netfilter devel <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <885896af0511230016r3eb7b0b7j@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -25,62 +21,81 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks you for your response.
+---------- Forwarded message ----------
+From: Giacomo <delleceste@gmail.com>
+Date: 23-nov-2005 9.16
+Subject: locking while reading linked lists.
+To: netfilter devel <netfilter-devel@lists.netfilter.org>
 
-I am not so confident, that it will not go sleep on broadcast.
 
-Sincerely,
-Robert
+Good morning.
+In a packet filter which i wrote on my own, i have a linked list of structu=
+res
+which i read periodically by means of list_for_each_safe macro.
+These structures have a timer, when it expires, the entry is deleted.
+The timer can on the other way be updated by mod_timer.
 
-On 11/23/05, Yu Zhiguo <yuzg@nanjing-fnst.com> wrote:
-> hi,
->
-> I just called netlink_unicast() in bh, but I think it also can be used in=
- HW interrupt.
->
-> regards,
->
-> ----- Original Message -----
->
-> > Dear Yu Zhiguo,
-> >
-> > Have you called for send_broadcast from a driver HW interrupt?
-> >
-> > Sincerely,
-> > Robert
-> >
-> > On 11/21/05, Yu Zhiguo <yuzg@nanjing-fnst.com> wrote:
-> >> Hello,
-> >>
-> >> Don't worry, netlink socket can be used in interrupt context very well=
-.
-> >>
-> >> regards,
-> >> ----- Original Message -----
-> >>
-> >> >A bit offline question.
-> >> >
-> >> > Are there netlink socket netlink_unicast () and netlink_broadcast ()
-> >> > interrupt safe?
-> >> >
-> >> > If not, where is the problem and the direction to make them safe?
-> >> >
-> >> > If it is not easy, what could be a workaroud?
-> >> >
-> >> > Thank you in advance.
-> >> >
-> >> >
-> >> > Sincerely,
-> >> > ----------------------------------------------------------------
-> >> > Robert Iakobashvili  - NAVIGARE NECESSE EST
-> >> > coroberti at gmail dot com
-> >> > ---------------------------------------------------------------
-> >> >
-> >
-> >
-> > --
-> > Sincerely,
-> > ----------------------------------------------------------------
-> > Robert Iakobashvili  - NAVIGARE NECESSE EST
-> > coroberti at gmail dot com
-> > ---------------------------------------------------------------
+The context of execution is that of a software interrupt (i attach my code =
+at
+netfilter hooks), and some times (after tenths of millions of packets filte=
+red)
+the system goes into panic.
+
+I think i should put some locks when reading in list_for_each or when
+deleting an item, or when updating timers.
+
+I thought it was not necessary because of the atomic context.
+
+In fact, should i use read/write_lock? Or spinlocks?
+
+Should i put the locks when reading in list_for_each, when adding an entry
+with list_add, when deleting with list_del and also when mod_timer?
+
+I verified that when i put those locks, things go better, but do i need the=
+m
+so many in my code?
+
+Thanks in advance
+
+Giacomo.
+
+
+
+
+
+--
+
+Giacomo S.
+http://www.giacomos.it
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+Running `IPFIRE-wall` on debian GNU/Linux
+http://www.giacomos.it/ipfire
+http://www.debian.org
+
+mailto:
+delleceste@gmail.com
+giacomo.strangolino@elettra.trieste.it
+jacum@libero.it
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+
+--
+
+Giacomo S.
+http://www.giacomos.it
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+Running `IPFIRE-wall` on debian GNU/Linux
+http://www.giacomos.it/ipfire
+http://www.debian.org
+
+mailto:
+delleceste@gmail.com
+giacomo.strangolino@elettra.trieste.it
+jacum@libero.it
+
+- - - - - - - - - - - - - - - - - - - - - -
