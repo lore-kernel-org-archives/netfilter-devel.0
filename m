@@ -1,17 +1,12 @@
-From: Roberto Nibali <ratz@drugphish.ch>
-Subject: Re: [PATCH 2.4] TCP window tracking: core implementation
-Date: Wed, 23 Nov 2005 23:32:37 +0100
-Message-ID: <4384EE05.9070008@drugphish.ch>
-References: <43819E72.5060704@tac.ch>
-	<20051122165631.GA13716@alpha.home.local>	<438466C4.5040701@tac.ch>
-	<20051123215429.GA19518@alpha.home.local>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] iptables compilation on <=2.6.13
+Date: Wed, 23 Nov 2005 14:37:10 -0800
+Message-ID: <20051123223710.GA20202@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Roberto Nibali <ratz@tac.ch>
+Content-Type: multipart/mixed; boundary="sdtB3X0nJg68CQEu"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Willy Tarreau <willy@w.ods.org>
-In-Reply-To: <20051123215429.GA19518@alpha.home.local>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,58 +18,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Willy,
 
->> Could you batch my patchset for your next -hf series, please? I'll try
->> to get you a tcpdump with erroneous behaviour regarding window tracking,
->> so you can verify this as well.
-> 
-> No, and I'm sorry to insist in this direction : the -hf tree is only a
-> *selection* of patches from next mainline version(s). It's targetted at
+--sdtB3X0nJg68CQEu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Stupid me, I didn't mean -hf series, I meant the experimental 2.4.x 
-kernel series we're going to start.
+Iptables since at least 1.3.3 will not compile with kernels <= 2.6.13
+due to addition of the goto target.  Below patch corrects this, and
+closes bug #386.
 
-> the users who cannot risk an upgrade to the next -pre-something, but who
-> still need security or stability fixes. Under no circumstance should I
-> add new features to this tree.
+Phil
 
-Of course. Although tcp window tracking could be seen as a security fix.
 
-> I'm currently thinking about another tree (something like 2.4-enterprise)
-> which would host those patches absolutely needed for people with higher
-> expectations than "normal" users. Nflog, window-tracking, epoll, and
 
-I'm probably going to drop the nflog stuff, since it is not really used 
-in 2.4.x. Also the tcp window tracking can happily live without it.
+--sdtB3X0nJg68CQEu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-goto
 
-> jiffies64 immediately come to mind, but possibly a small bunch of others
-> too. And I hope to count you among the patch contributors ;-)
+diff -ru ipt-orig/iptables.c ipt-new/iptables.c
+--- ipt-orig/iptables.c	2005-11-17 05:04:49.000000000 -0800
++++ ipt-new/iptables.c	2005-11-23 14:03:21.000000000 -0800
+@@ -1415,8 +1415,10 @@
+ 	if (format & FMT_NOTABLE)
+ 		fputs("  ", stdout);
+ 
++#ifdef IPT_F_GOTO
+ 	if(fw->ip.flags & IPT_F_GOTO)
+ 		printf("[goto] ");
++#endif
+ 
+ 	IPT_MATCH_ITERATE(fw, print_match, &fw->ip, format & FMT_NUMERIC);
+ 
+diff -ru ipt-orig/iptables-save.c ipt-new/iptables-save.c
+--- ipt-orig/iptables-save.c	2005-11-05 01:26:40.000000000 -0800
++++ ipt-new/iptables-save.c	2005-11-23 14:27:12.000000000 -0800
+@@ -197,7 +197,11 @@
+ 	/* Print target name */	
+ 	target_name = iptc_get_target(e, h);
+ 	if (target_name && (*target_name != '\0'))
++#ifdef IPT_F_GOTO
+ 		printf("-%c %s ", e->ip.flags & IPT_F_GOTO ? 'g' : 'j', target_name);
++#else
++		printf("-j %s ", target_name);
++#endif
+ 
+ 	/* Print targinfo part */
+ 	t = ipt_get_target((struct ipt_entry *)e);
 
-Sure thing.
-
->> This is of course possible but could potentially lead to a lot of
->> exception code. I reckon that it's safe enough to fallback to classic
->> packet filtering when dealing with non-RFC conform TCP clients or
->> applications. Meanwhile I've found the problem with the NOTRACK hanging
->> and will propose a fix in another thread I've started.
-> 
-> OK, I don't have much idea about how to proceed with the NOTRACK yet
-> because in the past I could not get it to work along with window-tracking.
-> So of course I'm interested :-)
-
-It's not supposed to work with window tracking other than not 
-influencing it. I use the NOTRACK feature to simulate the old ipchains 
-or ipfwadm behaviour. So when using NOTRACK you need to map the TCP 
-states into to filter rules yourself. While window tracking (looking at 
-TCP) is an n-tuple (n>7) check on the skb, NOTRACK is a simple 5 to 
-7-tuple check with no memory constraints:
-
-<srcIP, srcPORT, destIP, destPORT, proto, (TCPflags, interface)>
-
-I'll send you the semantics off-list.
-
-Best regards,
-Roberto Nibali, ratz
--- 
-echo '[q]sa[ln0=aln256%Pln256/snlbx]sb3135071790101768542287578439snlbxq'|dc
+--sdtB3X0nJg68CQEu--
