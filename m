@@ -1,18 +1,16 @@
-From: Jan Kasprzak <kas@fi.muni.cz>
+From: Krzysztof Oledzki <olenf@ans.pl>
 Subject: Re: nf_conntrack & NAT
-Date: Wed, 23 Nov 2005 14:24:19 +0100
-Message-ID: <20051123132419.GJ24091@fi.muni.cz>
+Date: Wed, 23 Nov 2005 14:44:01 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0511231342490.16555@bizon.gios.gov.pl>
 References: <Pine.LNX.4.64.0511231214590.11295@bizon.gios.gov.pl>
-	<200511231225.jANCPmYd015427@toshiba.co.jp>
-	<20051123132044.GZ3249@eychenne.org>
+	<200511231225.jANCPmnh018866@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-227000739-1132753441=:16555"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Herve Eychenne <rv@wallfire.org>
-Content-Disposition: inline
-In-Reply-To: <20051123132044.GZ3249@eychenne.org>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200511231225.jANCPmnh018866@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,29 +22,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Herve Eychenne wrote:
-: On Wed, Nov 23, 2005 at 09:25:47PM +0900, Yasuyuki KOZAKAI wrote:
-: 
-:  Hi,
-: 
-: > >                                                      and adding NAT 
-: > > support for IPv6?
-: 
-: > Never ever. You can learn why people don't want to do it from many sources.
-: > For example, You can use many addresses in IPv6 world. And I don't want people
-: > get troubles due to NAT traversal issues in IPv6 world.
-: 
-: And what if you want your firewall to transparently redirect some traffic
-: to another host, for example?
-: 
-	... or IPVS-based clusters. NAT functionality is definitely
-wanted (even though full NAT in the IPv6 world is evil :-).
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
--Yenya
+---187430788-227000739-1132753441=:16555
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
--- 
-| Jan "Yenya" Kasprzak  <kas at {fi.muni.cz - work | yenya.net - private}> |
-| GPG: ID 1024/D3498839      Fingerprint 0D99A7FB206605D7 8B35FCDE05B18A5E |
-| http://www.fi.muni.cz/~kas/    Journal: http://www.fi.muni.cz/~kas/blog/ |
-> Specs are a basis for _talking_about_ things. But they are _not_ a basis <
-> for implementing software.                              --Linus Torvalds <
+
+
+On Wed, 23 Nov 2005, Yasuyuki KOZAKAI wrote:
+
+>
+> Hi,
+>
+> From: Krzysztof Oledzki <olenf@ans.pl>
+> Date: Wed, 23 Nov 2005 12:30:07 +0100 (CET)
+>
+>> Hello,
+>>
+>> As we have now working nfnetlink in nf_conntrack (thanks!) I'm wonder if
+>> there any plans for porting IPv4 NAT to nf_conntrack
+>
+> Of cause we have. But
+
+Where can I find it?
+
+>>                                                      and adding NAT
+>> support for IPv6?
+>
+> Never ever. You can learn why people don't want to do it from many source=
+s.
+> For example, You can use many addresses in IPv6 world. And I don't want p=
+eople
+> get troubles due to NAT traversal issues in IPv6 world.
+
+Oh. So how we are going to make transparent proxy, port redirects, etc=20
+possible?
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-227000739-1132753441=:16555--
