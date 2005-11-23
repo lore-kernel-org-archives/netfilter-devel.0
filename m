@@ -1,17 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Herbert Xu <herbert@gondor.apana.org.au>
 Subject: Re: [PATCH 00/13]: Netfilter IPsec support
-Date: Wed, 23 Nov 2005 02:20:03 +0100
-Message-ID: <4383C3C3.8040005@trash.net>
-References: <20051120163128.16666.38111.sendpatchset@localhost.localdomain>	<20051122.143438.84749134.davem@davemloft.net>
-	<20051123.073825.106706639.yoshfuji@linux-ipv6.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Wed, 23 Nov 2005 12:35:53 +1100
+Message-ID: <E1EejY9-0004fW-00@gondolin.me.apana.org.au>
+References: <4383C31A.40101@trash.net>
 Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	davem@davemloft.net, kaber@trash.net
+	davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: yoshfuji@linux-ipv6.org
-In-Reply-To: <20051123.073825.106706639.yoshfuji@linux-ipv6.org>
+To: kaber@trash.net (Patrick McHardy)
+In-Reply-To: <4383C31A.40101@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,19 +19,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-YOSHIFUJI Hideaki / $B5HF#1QL@ wrote:
-> I believe he can manage these patches in his tree,
-> but anyway...
+Patrick McHardy <kaber@trash.net> wrote:
+> 
+> I would appreciate that, but I want to have a look closer look
+> at Herbert's patches first. Unfortunately its late and I have
+> to get up early, so its going to take me a day.
 
-It is kind of annoying redoing 13 patches for every small change.
+How about merging the patches that everybody has agreed on first?
 
-> Well, it is very important to fix the packet processing
-> path issues (including the extension header issue)
-> before we merge it to the mainline. Definitely.
-> What I want to ensure is that they will not reach the mainline
-> tree without resolving those issues.
+So far, I haven't see any objections to patches 1 and 2 so they
+can go in straight away.  They don't even touch IPv6.
 
-How about we put the IPv4 patches in now and I continue working
-on the IPv6 side? The main approach is not going to change,
-and I think users would appreciate having them available in
-2.6.15.
+Patches 3-6 could become redundant if you go with my suggestion.
+
+The rest of them I haven't read yet so can't comment :)
+
+Cheers,
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
