@@ -1,19 +1,21 @@
-From: "Yu Zhiguo" <yuzg@nanjing-fnst.com>
+From: Robert Iakobashvili <coroberti@gmail.com>
 Subject: Re: Netlink send from the interrupt context
-Date: Wed, 23 Nov 2005 16:22:31 +0800
-Message-ID: <031201c5f007$0ce2e1c0$6704a8c0@skqianyi>
+Date: Wed, 23 Nov 2005 10:32:08 +0200
+Message-ID: <7e63f56c0511230032x5097569dr3ddac4b05bb6019c@mail.gmail.com>
 References: <7e63f56c0511210034h49917721k74ddb251b9bb1815@mail.gmail.com>
 	<00a901c5ee79$389e5040$6704a8c0@skqianyi>
 	<7e63f56c0511222328w6368f7bcl7877fe3aa62c2807@mail.gmail.com>
 	<02e501c5f002$e5094d00$6704a8c0@skqianyi>
 	<7e63f56c0511230004j79c7f080j56e25251387ebe94@mail.gmail.com>
+	<031201c5f007$0ce2e1c0$6704a8c0@skqianyi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-1"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Robert Iakobashvili" <coroberti@gmail.com>
+To: Yu Zhiguo <yuzg@nanjing-fnst.com>
+In-Reply-To: <031201c5f007$0ce2e1c0$6704a8c0@skqianyi>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,41 +27,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-UGxlYXNlIHJlZmVyIHRvIHRoZSBmdW5jdGlvbiBuZXRsaW5rX2Jyb2FkY2FzdCgpLA0KICAgIGlu
-dCBuZXRsaW5rX2Jyb2FkY2FzdChzdHJ1Y3Qgc29jayAqc3NrLCBzdHJ1Y3Qgc2tfYnVmZiAqc2ti
-LCB1MzIgcGlkLCB1MzIgZ3JvdXAsIGludCBhbGxvY2F0aW9uKQ0KSSB0aGluayBpZiBhbGxvY2F0
-aW9uPUdGUF9BVE9NSUMsIGl0IGNhbiBiZSB1c2VkIGluIGludGVycnVwdCBjb250ZXh0Lg0KV2hh
-dCdzIHlvdXIgb3Bpbmlvbj8NCg0KcmVnYXJkcywNCg0KLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAt
-LS0tLSANCkZyb206ICJSb2JlcnQgSWFrb2Jhc2h2aWxpIiA8Y29yb2JlcnRpQGdtYWlsLmNvbT4N
-ClRvOiAiWXUgWmhpZ3VvIiA8eXV6Z0BuYW5qaW5nLWZuc3QuY29tPg0KQ2M6IDxuZXRmaWx0ZXIt
-ZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9yZz4NClNlbnQ6IFdlZG5lc2RheSwgTm92ZW1iZXIgMjMs
-IDIwMDUgNDowNCBQTQ0KU3ViamVjdDogUmU6IE5ldGxpbmsgc2VuZCBmcm9tIHRoZSBpbnRlcnJ1
-cHQgY29udGV4dA0KDQoNCj4gVGhhbmtzIHlvdSBmb3IgeW91ciByZXNwb25zZS4NCj4gDQo+IEkg
-YW0gbm90IHNvIGNvbmZpZGVudCwgdGhhdCBpdCB3aWxsIG5vdCBnbyBzbGVlcCBvbiBicm9hZGNh
-c3QuDQo+IA0KPiBTaW5jZXJlbHksDQo+IFJvYmVydA0KPiANCj4gT24gMTEvMjMvMDUsIFl1IFpo
-aWd1byA8eXV6Z0BuYW5qaW5nLWZuc3QuY29tPiB3cm90ZToNCj4+IGhpLA0KPj4NCj4+IEkganVz
-dCBjYWxsZWQgbmV0bGlua191bmljYXN0KCkgaW4gYmgsIGJ1dCBJIHRoaW5rIGl0IGFsc28gY2Fu
-IGJlIHVzZWQgaW4gSFcgaW50ZXJydXB0Lg0KPj4NCj4+IHJlZ2FyZHMsDQo+Pg0KPj4gLS0tLS0g
-T3JpZ2luYWwgTWVzc2FnZSAtLS0tLQ0KPj4NCj4+ID4gRGVhciBZdSBaaGlndW8sDQo+PiA+DQo+
-PiA+IEhhdmUgeW91IGNhbGxlZCBmb3Igc2VuZF9icm9hZGNhc3QgZnJvbSBhIGRyaXZlciBIVyBp
-bnRlcnJ1cHQ/DQo+PiA+DQo+PiA+IFNpbmNlcmVseSwNCj4+ID4gUm9iZXJ0DQo+PiA+DQo+PiA+
-IE9uIDExLzIxLzA1LCBZdSBaaGlndW8gPHl1emdAbmFuamluZy1mbnN0LmNvbT4gd3JvdGU6DQo+
-PiA+PiBIZWxsbywNCj4+ID4+DQo+PiA+PiBEb24ndCB3b3JyeSwgbmV0bGluayBzb2NrZXQgY2Fu
-IGJlIHVzZWQgaW4gaW50ZXJydXB0IGNvbnRleHQgdmVyeSB3ZWxsLg0KPj4gPj4NCj4+ID4+IHJl
-Z2FyZHMsDQo+PiA+PiAtLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tDQo+PiA+Pg0KPj4gPj4g
-PkEgYml0IG9mZmxpbmUgcXVlc3Rpb24uDQo+PiA+PiA+DQo+PiA+PiA+IEFyZSB0aGVyZSBuZXRs
-aW5rIHNvY2tldCBuZXRsaW5rX3VuaWNhc3QgKCkgYW5kIG5ldGxpbmtfYnJvYWRjYXN0ICgpDQo+
-PiA+PiA+IGludGVycnVwdCBzYWZlPw0KPj4gPj4gPg0KPj4gPj4gPiBJZiBub3QsIHdoZXJlIGlz
-IHRoZSBwcm9ibGVtIGFuZCB0aGUgZGlyZWN0aW9uIHRvIG1ha2UgdGhlbSBzYWZlPw0KPj4gPj4g
-Pg0KPj4gPj4gPiBJZiBpdCBpcyBub3QgZWFzeSwgd2hhdCBjb3VsZCBiZSBhIHdvcmthcm91ZD8N
-Cj4+ID4+ID4NCj4+ID4+ID4gVGhhbmsgeW91IGluIGFkdmFuY2UuDQo+PiA+PiA+DQo+PiA+PiA+
-DQo+PiA+PiA+IFNpbmNlcmVseSwNCj4+ID4+ID4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPj4gPj4gPiBSb2JlcnQgSWFr
-b2Jhc2h2aWxpICAtIE5BVklHQVJFIE5FQ0VTU0UgRVNUDQo+PiA+PiA+IGNvcm9iZXJ0aSBhdCBn
-bWFpbCBkb3QgY29tDQo+PiA+PiA+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPj4gPj4gPg0KPj4gPg0KPj4gPg0KPj4gPiAt
-LQ0KPj4gPiBTaW5jZXJlbHksDQo+PiA+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4+ID4gUm9iZXJ0IElha29iYXNodmls
-aSAgLSBOQVZJR0FSRSBORUNFU1NFIEVTVA0KPj4gPiBjb3JvYmVydGkgYXQgZ21haWwgZG90IGNv
-bQ0KPj4gPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0=
+On 11/23/05, Yu Zhiguo <yuzg@nanjing-fnst.com> wrote:
+> Please refer to the function netlink_broadcast(),
+>    int netlink_broadcast(struct sock *ssk, struct sk_buff *skb, u32 pid, =
+u32 group, int allocation)
+> I think if allocation=3DGFP_ATOMIC, it can be used in interrupt context.
+> What's your opinion?
+
+Allocation is OK and it uses only spinlocks in all functions called,
+no semaphores.
+
+My concern actually rises from here:
+http://www.ussg.iu.edu/hypermail/linux/kernel/0407.3/0455.html
+
+Sincerely,
+----------------------------------------------------------------
+Robert Iakobashvili  - NAVIGARE NECESSE EST
+coroberti at gmail dot com
+---------------------------------------------------------------
