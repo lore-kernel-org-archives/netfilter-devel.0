@@ -1,13 +1,19 @@
-From: Giacomo <delleceste@gmail.com>
-Subject: locking while reading linked lists.
-Date: Wed, 23 Nov 2005 09:16:46 +0100
-Message-ID: <885896af0511230016r3eb7b0b7j@mail.gmail.com>
+From: "Yu Zhiguo" <yuzg@nanjing-fnst.com>
+Subject: Re: Netlink send from the interrupt context
+Date: Wed, 23 Nov 2005 16:22:31 +0800
+Message-ID: <031201c5f007$0ce2e1c0$6704a8c0@skqianyi>
+References: <7e63f56c0511210034h49917721k74ddb251b9bb1815@mail.gmail.com>
+	<00a901c5ee79$389e5040$6704a8c0@skqianyi>
+	<7e63f56c0511222328w6368f7bcl7877fe3aa62c2807@mail.gmail.com>
+	<02e501c5f002$e5094d00$6704a8c0@skqianyi>
+	<7e63f56c0511230004j79c7f080j56e25251387ebe94@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset="ISO-8859-1"
+Content-Transfer-Encoding: base64
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter devel <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: "Robert Iakobashvili" <coroberti@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,55 +25,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Good morning.
-In a packet filter which i wrote on my own, i have a linked list of structu=
-res
-which i read periodically by means of list_for_each_safe macro.
-These structures have a timer, when it expires, the entry is deleted.
-The timer can on the other way be updated by mod_timer.
-
-The context of execution is that of a software interrupt (i attach my code =
-at
-netfilter hooks), and some times (after tenths of millions of packets filte=
-red)
-the system goes into panic.
-
-I think i should put some locks when reading in list_for_each or when
-deleting an item, or when updating timers.
-
-I thought it was not necessary because of the atomic context.
-
-In fact, should i use read/write_lock? Or spinlocks?
-
-Should i put the locks when reading in list_for_each, when adding an entry
-with list_add, when deleting with list_del and also when mod_timer?
-
-I verified that when i put those locks, things go better, but do i need the=
-m
-so many in my code?
-
-Thanks in advance
-
-Giacomo.
-
-
-
-
-
---
-
-Giacomo S.
-http://www.giacomos.it
-
-- - - - - - - - - - - - - - - - - - - - - -
-
-Running `IPFIRE-wall` on debian GNU/Linux
-http://www.giacomos.it/ipfire
-http://www.debian.org
-
-mailto:
-delleceste@gmail.com
-giacomo.strangolino@elettra.trieste.it
-jacum@libero.it
-
-- - - - - - - - - - - - - - - - - - - - - -
+UGxlYXNlIHJlZmVyIHRvIHRoZSBmdW5jdGlvbiBuZXRsaW5rX2Jyb2FkY2FzdCgpLA0KICAgIGlu
+dCBuZXRsaW5rX2Jyb2FkY2FzdChzdHJ1Y3Qgc29jayAqc3NrLCBzdHJ1Y3Qgc2tfYnVmZiAqc2ti
+LCB1MzIgcGlkLCB1MzIgZ3JvdXAsIGludCBhbGxvY2F0aW9uKQ0KSSB0aGluayBpZiBhbGxvY2F0
+aW9uPUdGUF9BVE9NSUMsIGl0IGNhbiBiZSB1c2VkIGluIGludGVycnVwdCBjb250ZXh0Lg0KV2hh
+dCdzIHlvdXIgb3Bpbmlvbj8NCg0KcmVnYXJkcywNCg0KLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAt
+LS0tLSANCkZyb206ICJSb2JlcnQgSWFrb2Jhc2h2aWxpIiA8Y29yb2JlcnRpQGdtYWlsLmNvbT4N
+ClRvOiAiWXUgWmhpZ3VvIiA8eXV6Z0BuYW5qaW5nLWZuc3QuY29tPg0KQ2M6IDxuZXRmaWx0ZXIt
+ZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9yZz4NClNlbnQ6IFdlZG5lc2RheSwgTm92ZW1iZXIgMjMs
+IDIwMDUgNDowNCBQTQ0KU3ViamVjdDogUmU6IE5ldGxpbmsgc2VuZCBmcm9tIHRoZSBpbnRlcnJ1
+cHQgY29udGV4dA0KDQoNCj4gVGhhbmtzIHlvdSBmb3IgeW91ciByZXNwb25zZS4NCj4gDQo+IEkg
+YW0gbm90IHNvIGNvbmZpZGVudCwgdGhhdCBpdCB3aWxsIG5vdCBnbyBzbGVlcCBvbiBicm9hZGNh
+c3QuDQo+IA0KPiBTaW5jZXJlbHksDQo+IFJvYmVydA0KPiANCj4gT24gMTEvMjMvMDUsIFl1IFpo
+aWd1byA8eXV6Z0BuYW5qaW5nLWZuc3QuY29tPiB3cm90ZToNCj4+IGhpLA0KPj4NCj4+IEkganVz
+dCBjYWxsZWQgbmV0bGlua191bmljYXN0KCkgaW4gYmgsIGJ1dCBJIHRoaW5rIGl0IGFsc28gY2Fu
+IGJlIHVzZWQgaW4gSFcgaW50ZXJydXB0Lg0KPj4NCj4+IHJlZ2FyZHMsDQo+Pg0KPj4gLS0tLS0g
+T3JpZ2luYWwgTWVzc2FnZSAtLS0tLQ0KPj4NCj4+ID4gRGVhciBZdSBaaGlndW8sDQo+PiA+DQo+
+PiA+IEhhdmUgeW91IGNhbGxlZCBmb3Igc2VuZF9icm9hZGNhc3QgZnJvbSBhIGRyaXZlciBIVyBp
+bnRlcnJ1cHQ/DQo+PiA+DQo+PiA+IFNpbmNlcmVseSwNCj4+ID4gUm9iZXJ0DQo+PiA+DQo+PiA+
+IE9uIDExLzIxLzA1LCBZdSBaaGlndW8gPHl1emdAbmFuamluZy1mbnN0LmNvbT4gd3JvdGU6DQo+
+PiA+PiBIZWxsbywNCj4+ID4+DQo+PiA+PiBEb24ndCB3b3JyeSwgbmV0bGluayBzb2NrZXQgY2Fu
+IGJlIHVzZWQgaW4gaW50ZXJydXB0IGNvbnRleHQgdmVyeSB3ZWxsLg0KPj4gPj4NCj4+ID4+IHJl
+Z2FyZHMsDQo+PiA+PiAtLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tDQo+PiA+Pg0KPj4gPj4g
+PkEgYml0IG9mZmxpbmUgcXVlc3Rpb24uDQo+PiA+PiA+DQo+PiA+PiA+IEFyZSB0aGVyZSBuZXRs
+aW5rIHNvY2tldCBuZXRsaW5rX3VuaWNhc3QgKCkgYW5kIG5ldGxpbmtfYnJvYWRjYXN0ICgpDQo+
+PiA+PiA+IGludGVycnVwdCBzYWZlPw0KPj4gPj4gPg0KPj4gPj4gPiBJZiBub3QsIHdoZXJlIGlz
+IHRoZSBwcm9ibGVtIGFuZCB0aGUgZGlyZWN0aW9uIHRvIG1ha2UgdGhlbSBzYWZlPw0KPj4gPj4g
+Pg0KPj4gPj4gPiBJZiBpdCBpcyBub3QgZWFzeSwgd2hhdCBjb3VsZCBiZSBhIHdvcmthcm91ZD8N
+Cj4+ID4+ID4NCj4+ID4+ID4gVGhhbmsgeW91IGluIGFkdmFuY2UuDQo+PiA+PiA+DQo+PiA+PiA+
+DQo+PiA+PiA+IFNpbmNlcmVseSwNCj4+ID4+ID4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPj4gPj4gPiBSb2JlcnQgSWFr
+b2Jhc2h2aWxpICAtIE5BVklHQVJFIE5FQ0VTU0UgRVNUDQo+PiA+PiA+IGNvcm9iZXJ0aSBhdCBn
+bWFpbCBkb3QgY29tDQo+PiA+PiA+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPj4gPj4gPg0KPj4gPg0KPj4gPg0KPj4gPiAt
+LQ0KPj4gPiBTaW5jZXJlbHksDQo+PiA+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4+ID4gUm9iZXJ0IElha29iYXNodmls
+aSAgLSBOQVZJR0FSRSBORUNFU1NFIEVTVA0KPj4gPiBjb3JvYmVydGkgYXQgZ21haWwgZG90IGNv
+bQ0KPj4gPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0=
