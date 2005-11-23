@@ -1,12 +1,12 @@
-From: Giacomo Strangolino <delleceste@gmail.com>
-Subject: help linked lists and locks
-Date: Wed, 23 Nov 2005 12:10:39 +0100
-Message-ID: <43844E2F.5090809@gmail.com>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: nf_conntrack & NAT
+Date: Wed, 23 Nov 2005 12:30:07 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0511231214590.11295@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1029054742-1132745407=:11295"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,32 +18,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Good morning.
-In a packet filter which i wrote on my own, i have a linked list of 
-structures
-which i read periodically by means of list_for_each_safe macro.
-These structures have a timer, when it expires, the entry is deleted.
-The timer can on the other way be updated by mod_timer.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-The context of execution is that of a software interrupt (i attach my 
-code at
-netfilter hooks), and some times (after tenths of millions of packets 
-filtered)
-the system goes into panic.
+---187430788-1029054742-1132745407=:11295
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-I think i should put some locks when reading in list_for_each or when
-deleting an item, or when updating timers.
+Hello,
 
-I thought it was not necessary because of the atomic context.
+As we have now working nfnetlink in nf_conntrack (thanks!) I'm wonder if=20
+there any plans for porting IPv4 NAT to nf_conntrack and adding NAT=20
+support for IPv6?
 
-In fact, should i use read/write_lock? Or spinlocks?
+Best regards,
 
-Should i put the locks when reading in list_for_each, when adding an entry
-with list_add, when deleting with list_del and also when mod_timer?
 
-I verified that when i put those locks, things go better, but do i need them
-so many in my code?
-
-Thanks in advance
-
-Giacomo.
+ =09=09=09Krzysztof Ol=EAdzki
+---187430788-1029054742-1132745407=:11295--
