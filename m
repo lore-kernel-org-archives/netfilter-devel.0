@@ -1,14 +1,12 @@
 From: Giacomo <delleceste@gmail.com>
-Subject: Fwd: locking while reading linked lists.
-Date: Wed, 23 Nov 2005 09:17:46 +0100
-Message-ID: <885896af0511230017n25e1dec8p@mail.gmail.com>
-References: <885896af0511230016r3eb7b0b7j@mail.gmail.com>
+Subject: locking while reading linked lists.
+Date: Wed, 23 Nov 2005 09:16:46 +0100
+Message-ID: <885896af0511230016r3eb7b0b7j@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter devel <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <885896af0511230016r3eb7b0b7j@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -20,13 +18,6 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
-
----------- Forwarded message ----------
-From: Giacomo <delleceste@gmail.com>
-Date: 23-nov-2005 9.16
-Subject: locking while reading linked lists.
-To: netfilter devel <netfilter-devel@lists.netfilter.org>
-
 
 Good morning.
 In a packet filter which i wrote on my own, i have a linked list of structu=
@@ -61,25 +52,6 @@ Giacomo.
 
 
 
-
-
---
-
-Giacomo S.
-http://www.giacomos.it
-
-- - - - - - - - - - - - - - - - - - - - - -
-
-Running `IPFIRE-wall` on debian GNU/Linux
-http://www.giacomos.it/ipfire
-http://www.debian.org
-
-mailto:
-delleceste@gmail.com
-giacomo.strangolino@elettra.trieste.it
-jacum@libero.it
-
-- - - - - - - - - - - - - - - - - - - - - -
 
 
 --
