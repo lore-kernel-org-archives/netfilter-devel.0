@@ -1,15 +1,17 @@
 From: Roberto Nibali <ratz@tac.ch>
-Subject: Re: [PATCH 2.4] TCP window tracking: core implementation
-Date: Wed, 23 Nov 2005 13:55:32 +0100
-Message-ID: <438466C4.5040701@tac.ch>
-References: <43819E72.5060704@tac.ch> <20051122165631.GA13716@alpha.home.local>
+Subject: Re: [PATCH 2.4] raw table and NOTRACK support
+Date: Wed, 23 Nov 2005 14:04:40 +0100
+Message-ID: <438468E8.4090309@tac.ch>
+References: <4381A0C3.7020406@tac.ch>
+	<438327D2.5090506@tac.ch>	<43833BE3.8060909@tac.ch>
+	<43833F1D.3060309@tac.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Patrick McHardy <kaber@trash.net>, Willy Tarreau <willy@w.ods.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Willy Tarreau <willy@w.ods.org>
-In-Reply-To: <20051122165631.GA13716@alpha.home.local>
+To: Netfilter Developers <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <43833F1D.3060309@tac.ch>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,40 +23,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Salut Willy,
+> Damn! I wish I understood that conntrack stuff better ...
 
->>A former version of this patch has been in production on a dozen nodes
->>for about 8 months now, and besides unmotivated DROPs invoked by
->>"non-RFC-comformant" applications, it works reasonably well.
->  
-> Seconded !
-> I've had it in production for 18 months now, handling between 1.2 and 1.8
-> billions of sessions a month, and it still works like a charm.
+Ok, so NOTRACK registers itself into the conntrack table upon target
+entry using nf_conntrack_get((*pskb)->nfct). And each skb updates the
+nfct counter, but when deregistering the conntrack we still have
+references of the fake connection tracking entry of the NOTRACK hook.
+This was discussed already and a Patrick submitted a patchset:
 
-Could you batch my patchset for your next -hf series, please? I'll try
-to get you a tcpdump with erroneous behaviour regarding window tracking,
-so you can verify this as well.
+http://www.kernel.org/git/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=b31e5b1bb53b99dfd5e890aa07e943aff114ae1c
 
->>We'd hoped to overcome remaining "broken" applications by using the
->>NOTRACK flag to a filter rule. This would allow one to have a general
->>stateful packet filter with a few stateless rules for "broken"
->>applications; a feature most commercial firewall suites don't offer.
->>Unfortunately there is still an issue with regard to SMP and rmmod'ing
->>ip_conntrack while having NOTRACK rules loaded and network traffic
->>hitting NOTRACK and conntrack. Otherwise it works flawlessly. Patch will
->>follow shortly.
-> 
-> another possibility would be to add something like a "reason" code to the
-> INVALID state, so that we could tell which types of invalids we still want
-> to let go and which ones we definitely want to block.
+Patrick, in the thread leading to this patch we concluded that you would
+forward the nf_reset patch to Marcelo for 2.4.x inclusion. I only
+realised now that this did not happen and thus the following patch is
+needed for 2.4.x to have rmmod ip_conntrack working correctly when
+having either bridging or NOTRACK (both not in vanilla) loaded and used
+in the kernel:
 
-This is of course possible but could potentially lead to a lot of
-exception code. I reckon that it's safe enough to fallback to classic
-packet filtering when dealing with non-RFC conform TCP clients or
-applications. Meanwhile I've found the problem with the NOTRACK hanging
-and will propose a fix in another thread I've started.
+--- linux-2.4.32-orig/net/ipv4/ip_output.c      2005-11-21 11:29:41 +0100
++++ linux-2.4.32-pab2/net/ipv4/ip_output.c      2005-11-23 11:42:13 +0100
+@@ -167,6 +167,9 @@
+        nf_debug_ip_finish_output2(skb);
+ #endif /*CONFIG_NETFILTER_DEBUG*/
 
-Best regards,
++       /* Drop conntrack reference when packet leaves IP */
++       nf_reset(skb);
++
+        if (hh) {
+                int hh_alen;
+
+Is there a reason not to include this patch in 2.4.x?
+
+Thanks and regards,
 Roberto Nibali, ratz
 -- 
 -------------------------------------------------------------
