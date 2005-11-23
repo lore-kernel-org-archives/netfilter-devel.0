@@ -1,17 +1,17 @@
-From: Pablo Neira <pablo@eurodev.net>
-Subject: Re: [RFC] [PATCH] nf_conntrack_netlink port take#2
-Date: Wed, 23 Nov 2005 02:21:10 +0100
-Message-ID: <4383C406.7010400@eurodev.net>
-References: <43836FFE.3020504@eurodev.net>
-	<20051122220851.GD31478@sunbeam.de.gnumonks.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 00/13]: Netfilter IPsec support
+Date: Wed, 23 Nov 2005 02:20:03 +0100
+Message-ID: <4383C3C3.8040005@trash.net>
+References: <20051120163128.16666.38111.sendpatchset@localhost.localdomain>	<20051122.143438.84749134.davem@davemloft.net>
+	<20051123.073825.106706639.yoshfuji@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	davem@davemloft.net, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051122220851.GD31478@sunbeam.de.gnumonks.org>
+To: yoshfuji@linux-ipv6.org
+In-Reply-To: <20051123.073825.106706639.yoshfuji@linux-ipv6.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,22 +23,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> On Tue, Nov 22, 2005 at 08:22:38PM +0100, Pablo Neira wrote:
->>
->>Sorry for the bad timing. Here attached the take#2 of the
->>nf_conntrack_netlink port. It includes a layer-3 abstraction as
->>suggested. Attached two patches:
-> 
-> ok, I didn't have the time for a detailed review (and chances are
-> undlikely that I will have anytime soon).  However, if noone opposes, I
-> would like to submit this for 2.6.16 quite soon.  But not too soon (dave
-> has a open net-2.6.16 tree, but we don't want to flood him with
-> incremental fixes, at least not intentionally).  So I'd say Pablo keeps
-> the patch update out-of-tree until 2.6.15 is released, and at that time
-> we push it to mainline immediately.
+YOSHIFUJI Hideaki / $B5HF#1QL@ wrote:
+> I believe he can manage these patches in his tree,
+> but anyway...
 
-Fine with it. I'll keep such patch updated at my people.netfilter.org place.
+It is kind of annoying redoing 13 patches for every small change.
 
--- 
-Pablo
+> Well, it is very important to fix the packet processing
+> path issues (including the extension header issue)
+> before we merge it to the mainline. Definitely.
+> What I want to ensure is that they will not reach the mainline
+> tree without resolving those issues.
+
+How about we put the IPv4 patches in now and I continue working
+on the IPv6 side? The main approach is not going to change,
+and I think users would appreciate having them available in
+2.6.15.
