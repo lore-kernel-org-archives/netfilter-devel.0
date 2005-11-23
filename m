@@ -1,15 +1,18 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 2.4] TCP window tracking: core implementation
-Date: Wed, 23 Nov 2005 14:14:54 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0511231410270.18349@blackhole.kfki.hu>
-References: <43819E72.5060704@tac.ch> <20051122165631.GA13716@alpha.home.local>
-	<438466C4.5040701@tac.ch>
+From: Herve Eychenne <rv@wallfire.org>
+Subject: Re: nf_conntrack & NAT
+Date: Wed, 23 Nov 2005 14:20:45 +0100
+Message-ID: <20051123132044.GZ3249@eychenne.org>
+References: <Pine.LNX.4.64.0511231214590.11295@bizon.gios.gov.pl>
+	<200511231225.jANCPmYd015427@toshiba.co.jp>
+Reply-To: rv@wallfire.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Roberto Nibali <ratz@tac.ch>
-In-Reply-To: <438466C4.5040701@tac.ch>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
+In-Reply-To: <200511231225.jANCPmYd015427@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,20 +24,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Wed, Nov 23, 2005 at 09:25:47PM +0900, Yasuyuki KOZAKAI wrote:
 
-On Wed, 23 Nov 2005, Roberto Nibali wrote:
+ Hi,
 
-> Could you batch my patchset for your next -hf series, please? I'll try
-> to get you a tcpdump with erroneous behaviour regarding window tracking,
-> so you can verify this as well.
+> >                                                      and adding NAT 
+> > support for IPv6?
 
-I'd be interested in the recording as well!
+> Never ever. You can learn why people don't want to do it from many sources.
+> For example, You can use many addresses in IPv6 world. And I don't want people
+> get troubles due to NAT traversal issues in IPv6 world.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+And what if you want your firewall to transparently redirect some traffic
+to another host, for example?
+
+ Herve
+
+-- 
+ _
+(°=  Hervé Eychenne
+//)
+v_/_ WallFire project:  http://www.wallfire.org/
