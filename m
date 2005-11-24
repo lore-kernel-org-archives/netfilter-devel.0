@@ -1,14 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [ANNOUNCE] ulogd svn repository moved to svn.netfilter.org
-Date: Thu, 24 Nov 2005 22:30:33 +0100
-Message-ID: <20051124213033.GE31478@sunbeam.de.gnumonks.org>
+From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: Re: Fw: 2.6.15-rc2-mm1 problems (get_cpu / NUMA optimizations)
+Date: Thu, 24 Nov 2005 23:11:31 +0100
+Message-ID: <43863A93.2010406@cosmosbay.com>
+References: <20051123.155603.64967447.davem@davemloft.net>
+	<20051124205828.GD31478@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gTPGI8j2I/F2UU/+"
-Cc: ulogd@lists.gnumonks.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20051124205828.GD31478@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,47 +23,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte a =E9crit :
+> On Wed, Nov 23, 2005 at 03:56:03PM -0800, David S. Miller wrote:
+>=20
+>>I've seen this reported multiple times.
+>>
+>>It seems that module load is attempted by IP-tables while
+>>some locks are held, or similar.
+>=20
+>=20
+> yes, this was introduced by the recent NUMA patches that introduced
+> get_cpu() / put_cpu() all over the place. =20
+>=20
+>
 
---gTPGI8j2I/F2UU/+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hum... I was not aware that disabling preemption (in get_cpu()) had this=20
+effect (ie not allowing to sleep). I was using get_cpu() to bind the thre=
+ad to=20
+the current cpu, maybe there is something better ?
 
-Hi!
+If not, we can zap get_cpu()/pu_cpu() and use raw_smp_processor_id() as a=
+ hint=20
+only, (and dont care of preemption/cpu migration), as the value is only u=
+sed=20
+as a hint to speedup operations in do_replace(), do_add_counters(),=20
+ipt_unregister_table(), translate_table()...
 
-I started ulogd at a time almost six years ago, where I wasn't even a
-full-fledged member of the netfilter development team.  This explains
-why ulogd still used to be hosted at svn.gnumonks.org, not
-svn.netfilter.org.
-
-I've now implemented the long overdue change and moved the ulogd svn
-repository from svn.gnumonks.org to its new location at
-
-https://svn.netfilter.org/netfilter/branches/ulog/ulogd2 [ulogd-2.x]
-https://svn.netfilter.org/netfilter/trunk/ulog/ulogd [ulogd-1.x]
-
-Please update your checkouts accordingly.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---gTPGI8j2I/F2UU/+
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDhjD5XaXGVTD0i/8RAo0UAJ0atiO8LAaIU5TdHcVZWw+feziZsQCgrI/c
-OPeGwxGonQZ2jagofzCzVA8=
-=25yG
------END PGP SIGNATURE-----
-
---gTPGI8j2I/F2UU/+--
+Eric
