@@ -1,17 +1,14 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Fw: 2.6.15-rc2-mm1 problems (get_cpu / NUMA optimizations)
-Date: Thu, 24 Nov 2005 21:58:28 +0100
-Message-ID: <20051124205828.GD31478@sunbeam.de.gnumonks.org>
-References: <20051123.155603.64967447.davem@davemloft.net>
+Subject: [ANNOUNCE] ulogd svn repository moved to svn.netfilter.org
+Date: Thu, 24 Nov 2005 22:30:33 +0100
+Message-ID: <20051124213033.GE31478@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="txpH036gwkJjxLXT"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	kaber@trash.net, Eric Dumazet <dada1@cosmosbay.com>
+	protocol="application/pgp-signature"; boundary="gTPGI8j2I/F2UU/+"
+Cc: ulogd@lists.gnumonks.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <20051123.155603.64967447.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,34 +21,25 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---txpH036gwkJjxLXT
+--gTPGI8j2I/F2UU/+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Nov 23, 2005 at 03:56:03PM -0800, David S. Miller wrote:
->=20
-> I've seen this reported multiple times.
->=20
-> It seems that module load is attempted by IP-tables while
-> some locks are held, or similar.
+Hi!
 
-yes, this was introduced by the recent NUMA patches that introduced
-get_cpu() / put_cpu() all over the place. =20
+I started ulogd at a time almost six years ago, where I wasn't even a
+full-fledged member of the netfilter development team.  This explains
+why ulogd still used to be hosted at svn.gnumonks.org, not
+svn.netfilter.org.
 
-Seems like I only now realize the implications that this has all over
-the code, and to be honest, I'm not confident that there is a short-term
-fix since a lot of code needs to be audited. =20
+I've now implemented the long overdue change and moved the ulogd svn
+repository from svn.gnumonks.org to its new location at
 
-Also, apart from just the iptables core,  we actually call the
-checkentry() and destroy() functions of the match/target extensions
-under get_cpu() now.  Plugin authors always assumed that they'd be able
-to do stuff like kmalloc(GFP_KERNEL) since they are guaranteed to always
-only be called from userspace context under the ipt_mutex.
+https://svn.netfilter.org/netfilter/branches/ulog/ulogd2 [ulogd-2.x]
+https://svn.netfilter.org/netfilter/trunk/ulog/ulogd [ulogd-1.x]
 
-I'm further analyzing our options, but we might have to pull out that
-NUMA change, especially since I'm heading for FOSS.in/linux-bangalore in
-a couple of days.
+Please update your checkouts accordingly.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -63,16 +51,16 @@ a couple of days.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---txpH036gwkJjxLXT
+--gTPGI8j2I/F2UU/+
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDhil0XaXGVTD0i/8RAt7rAJ9RjP2DN+Mh7oXzhq1g3HiAtupCXwCdFdY0
-4srDtYJkkWoqPqIl5cxhOeE=
-=rhZR
+iD8DBQFDhjD5XaXGVTD0i/8RAo0UAJ0atiO8LAaIU5TdHcVZWw+feziZsQCgrI/c
+OPeGwxGonQZ2jagofzCzVA8=
+=25yG
 -----END PGP SIGNATURE-----
 
---txpH036gwkJjxLXT--
+--gTPGI8j2I/F2UU/+--
