@@ -1,8 +1,8 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Krzysztof Oledzki <olenf@ans.pl>
 Subject: Re: [PATCH] CTA_PROTO_NUM is u_int8_t not u_int16_t (was Re:
  CTA_PROTO_NUM u_int8_t or u_int16_t)
-Date: Fri, 25 Nov 2005 00:33:27 +0100
-Message-ID: <43864DC7.6060109@trash.net>
+Date: Fri, 25 Nov 2005 00:54:56 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0511250040030.14092@bizon.gios.gov.pl>
 References: <4381FDF8.6030508@trash.net> <43820874.2050708@eurodev.net>
 	<4382A19D.9090201@trash.net> <43836BAF.2050501@eurodev.net>
 	<Pine.LNX.4.64.0511222103050.9114@bizon.gios.gov.pl>
@@ -11,14 +11,16 @@ References: <4381FDF8.6030508@trash.net> <43820874.2050708@eurodev.net>
 	<Pine.LNX.4.64.0511231128510.9162@bizon.gios.gov.pl>
 	<20051124200736.GW31478@sunbeam.de.gnumonks.org>
 	<20051124202125.GX31478@sunbeam.de.gnumonks.org>
+	<43864DC7.6060109@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira <pablo@eurodev.net>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1133068489-1132876496=:14092"
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051124202125.GX31478@sunbeam.de.gnumonks.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <43864DC7.6060109@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,76 +32,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> Sorry, forget that other patch.
-> 
-> The only way how we can thoroughly solve (and avoid) this problem, also
-> for future cases, is to behave like 'real' TLV parsers (e.g. ASN1).
-> 
-> That is, for any kind of numeric values, we don't make an assumption
-> that the attribute has a certain fixed size.  Instead, we derive the
-> (u8/u16/u32/u64) size from the length of the attribute, i.e.
-> NFA_PAYLOAD() is 1/2/4/8 bytes long.
-> 
-> This is a quick and dirty patch to demonstrate what I mean:
-> 
-> =====
-> 
-> diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-> --- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-> +++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-> @@ -502,12 +502,13 @@ ctnetlink_parse_tuple_ip(struct nfattr *
->  }
->  
->  static const size_t cta_min_proto[CTA_PROTO_MAX] = {
-> -	[CTA_PROTO_NUM-1]	= sizeof(u_int16_t),
-> +	[CTA_PROTO_NUM-1]	= sizeof(u_int8_t),
->  	[CTA_PROTO_SRC_PORT-1]	= sizeof(u_int16_t),
->  	[CTA_PROTO_DST_PORT-1]	= sizeof(u_int16_t),
->  	[CTA_PROTO_ICMP_TYPE-1]	= sizeof(u_int8_t),
->  	[CTA_PROTO_ICMP_CODE-1]	= sizeof(u_int8_t),
->  	[CTA_PROTO_ICMP_ID-1]	= sizeof(u_int16_t),
-> +	[CTA_PROTO-1]		= sizeof(u_int8_t),
->  };
->  
->  static inline int
-> @@ -527,7 +528,18 @@ ctnetlink_parse_tuple_proto(struct nfatt
->  
->  	if (!tb[CTA_PROTO_NUM-1])
->  		return -EINVAL;
-> -	tuple->dst.protonum = *(u_int16_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
-> +
-> +	switch (NFA_PAYLOAD(tb[CTA_PROTO_NUM-1]))
-> +	case sizeof(u_int8_t):
-> +		tuple->dst.protonum = 
-> +				*(u_int8_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
-> +		break;
-> +	case sizeof(u_int16_t):
-> +		tuple->dst.protonum = 
-> +				*(u_int16_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
-> +	default:
-> +		return -EINVAL;
-> +	}
->  
->  	proto = ip_conntrack_proto_find_get(tuple->dst.protonum);
-> 
-> =====
-> 
-> Obviously, this needs to be moved into a nfnetlink core funciton,
-> something like a function nfattr_parse_number() that would then be
-> called from all places that parse a number.
-> 
-> Userspace parsers (libnetfilter_conntrack) would have to introduce the
-> same semantics.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-That won't work for this case since usually u_int16_t's are encoded
-in network byte order but in this case its always host byte order.
+---187430788-1133068489-1132876496=:14092
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-> It might be a bit too much overhead, I'm not really decided yet.  But in
-> the end, if everybody plays according to that rule, we don't have any
-> such issues in the future.
-> 
-> Comments?
 
-I think just the first patch is fine. I really hope we don't find
-more of these.
+
+On Fri, 25 Nov 2005, Patrick McHardy wrote:
+<CUT>
+> I think just the first patch is fine. I really hope we don't find
+> more of these.
+
+It is not. It breaks old binaries:
+
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter=
+/ip_conntrack_netlink.c
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -57,7 +57,7 @@ ctnetlink_dump_tuples_proto(struct sk_bu
+         struct ip_conntrack_protocol *proto;
+         int ret =3D 0;
+
+-       NFA_PUT(skb, CTA_PROTO_NUM, sizeof(u_int8_t), &tuple->dst.protonum)=
+;
++       NFA_PUT(skb, CTA_PROTO, sizeof(u_int8_t), &tuple->dst.protonum);
+
+         /* If no protocol helper is found, this function will return the
+          * generic protocol helper, so proto won't *ever* be NULL */
+
+Old binaries are not able to deal with CTA_PROTO and will not be able to=20
+parse this attribute received from kernel. We should keep CTA_PROTO_NUM=20
+here, but this leads to u_int8_t/u_int16_t mismatch in the code.
+
+Anyway, new userspace applications will only need to send both=20
+CTA_PROTO_NUM and CTA_PROTO to work with both new and old kernel. No=20
+kernel version checking. Great.
+
+Best regards,
+
+ =09=09=09Krzysztof Ol=EAdzki
+---187430788-1133068489-1132876496=:14092--
