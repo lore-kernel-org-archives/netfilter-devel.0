@@ -1,8 +1,8 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] CTA_PROTO_NUM is u_int8_t not u_int16_t (was Re:
  CTA_PROTO_NUM u_int8_t or u_int16_t)
-Date: Fri, 25 Nov 2005 00:24:07 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0511242307080.10778@bizon.gios.gov.pl>
+Date: Fri, 25 Nov 2005 00:33:27 +0100
+Message-ID: <43864DC7.6060109@trash.net>
 References: <4381FDF8.6030508@trash.net> <43820874.2050708@eurodev.net>
 	<4382A19D.9090201@trash.net> <43836BAF.2050501@eurodev.net>
 	<Pine.LNX.4.64.0511222103050.9114@bizon.gios.gov.pl>
@@ -12,10 +12,10 @@ References: <4381FDF8.6030508@trash.net> <43820874.2050708@eurodev.net>
 	<20051124200736.GW31478@sunbeam.de.gnumonks.org>
 	<20051124202125.GX31478@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-304972283-1132874647=:10778"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>, Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira <pablo@eurodev.net>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
 In-Reply-To: <20051124202125.GX31478@sunbeam.de.gnumonks.org>
@@ -30,87 +30,76 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
----187430788-304972283-1132874647=:10778
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Thu, 24 Nov 2005, Harald Welte wrote:
-
+Harald Welte wrote:
 > Sorry, forget that other patch.
->
+> 
 > The only way how we can thoroughly solve (and avoid) this problem, also
 > for future cases, is to behave like 'real' TLV parsers (e.g. ASN1).
->
+> 
 > That is, for any kind of numeric values, we don't make an assumption
 > that the attribute has a certain fixed size.  Instead, we derive the
 > (u8/u16/u32/u64) size from the length of the attribute, i.e.
 > NFA_PAYLOAD() is 1/2/4/8 bytes long.
->
+> 
 > This is a quick and dirty patch to demonstrate what I mean:
->
-> =3D=3D=3D=3D=3D
->
-> diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilt=
-er/ip_conntrack_netlink.c
+> 
+> =====
+> 
+> diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
 > --- a/net/ipv4/netfilter/ip_conntrack_netlink.c
 > +++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
 > @@ -502,12 +502,13 @@ ctnetlink_parse_tuple_ip(struct nfattr *
-> }
->
-> static const size_t cta_min_proto[CTA_PROTO_MAX] =3D {
-> -=09[CTA_PROTO_NUM-1]=09=3D sizeof(u_int16_t),
-> +=09[CTA_PROTO_NUM-1]=09=3D sizeof(u_int8_t),
-> =09[CTA_PROTO_SRC_PORT-1]=09=3D sizeof(u_int16_t),
-> =09[CTA_PROTO_DST_PORT-1]=09=3D sizeof(u_int16_t),
-> =09[CTA_PROTO_ICMP_TYPE-1]=09=3D sizeof(u_int8_t),
-> =09[CTA_PROTO_ICMP_CODE-1]=09=3D sizeof(u_int8_t),
-> =09[CTA_PROTO_ICMP_ID-1]=09=3D sizeof(u_int16_t),
-> +=09[CTA_PROTO-1]=09=09=3D sizeof(u_int8_t),
-> };
-
-Why we need to add CTA_PROTO here?
-
-> static inline int
+>  }
+>  
+>  static const size_t cta_min_proto[CTA_PROTO_MAX] = {
+> -	[CTA_PROTO_NUM-1]	= sizeof(u_int16_t),
+> +	[CTA_PROTO_NUM-1]	= sizeof(u_int8_t),
+>  	[CTA_PROTO_SRC_PORT-1]	= sizeof(u_int16_t),
+>  	[CTA_PROTO_DST_PORT-1]	= sizeof(u_int16_t),
+>  	[CTA_PROTO_ICMP_TYPE-1]	= sizeof(u_int8_t),
+>  	[CTA_PROTO_ICMP_CODE-1]	= sizeof(u_int8_t),
+>  	[CTA_PROTO_ICMP_ID-1]	= sizeof(u_int16_t),
+> +	[CTA_PROTO-1]		= sizeof(u_int8_t),
+>  };
+>  
+>  static inline int
 > @@ -527,7 +528,18 @@ ctnetlink_parse_tuple_proto(struct nfatt
->
-> =09if (!tb[CTA_PROTO_NUM-1])
-> =09=09return -EINVAL;
-> -=09tuple->dst.protonum =3D *(u_int16_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
+>  
+>  	if (!tb[CTA_PROTO_NUM-1])
+>  		return -EINVAL;
+> -	tuple->dst.protonum = *(u_int16_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
 > +
-> +=09switch (NFA_PAYLOAD(tb[CTA_PROTO_NUM-1]))
-> +=09case sizeof(u_int8_t):
-> +=09=09tuple->dst.protonum =3D
-> +=09=09=09=09*(u_int8_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
-> +=09=09break;
-> +=09case sizeof(u_int16_t):
-> +=09=09tuple->dst.protonum =3D
-> +=09=09=09=09*(u_int16_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
-> +=09default:
-> +=09=09return -EINVAL;
-> +=09}
-
-Nice, nice... ;)
-
+> +	switch (NFA_PAYLOAD(tb[CTA_PROTO_NUM-1]))
+> +	case sizeof(u_int8_t):
+> +		tuple->dst.protonum = 
+> +				*(u_int8_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
+> +		break;
+> +	case sizeof(u_int16_t):
+> +		tuple->dst.protonum = 
+> +				*(u_int16_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
+> +	default:
+> +		return -EINVAL;
+> +	}
+>  
+>  	proto = ip_conntrack_proto_find_get(tuple->dst.protonum);
+> 
+> =====
+> 
 > Obviously, this needs to be moved into a nfnetlink core funciton,
 > something like a function nfattr_parse_number() that would then be
 > called from all places that parse a number.
->
+> 
 > Userspace parsers (libnetfilter_conntrack) would have to introduce the
 > same semantics.
 
-Old userspace applications always send u_int16_t. New applications still=20
-need to send CTA_PROTO_NUM as u_int16_t for 2.6.14 but u_int8_t for=20
-2.6.15+ kernels. I'm not sure if we can provide that without checking=20
-current kernel version. Hopefully, when reading messages from kernel,=20
-userspace expects CTA_PROTO_NUM to be u_int8_t and this is what kernel=20
-sends currently.
+That won't work for this case since usually u_int16_t's are encoded
+in network byte order but in this case its always host byte order.
 
-Best regards,
+> It might be a bit too much overhead, I'm not really decided yet.  But in
+> the end, if everybody plays according to that rule, we don't have any
+> such issues in the future.
+> 
+> Comments?
 
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-304972283-1132874647=:10778--
+I think just the first patch is fine. I really hope we don't find
+more of these.
