@@ -1,15 +1,24 @@
 From: Pablo Neira Ayuso <pablo@eurodev.net>
-Subject: Re: Netfilter blog
-Date: Fri, 25 Nov 2005 03:23:27 +0100
-Message-ID: <4386759F.2010009@eurodev.net>
-References: <4386701A.30107@trash.net>
+Subject: Re: kernel BUG at kernel/sched.c:2833!
+Date: Fri, 25 Nov 2005 03:52:44 +0100
+Message-ID: <43867C7C.8070002@eurodev.net>
+References: <Pine.LNX.4.64.0511141033001.8729@bizon.gios.gov.pl>
+	<437882BE.6080705@eurodev.net>
+	<Pine.LNX.4.64.0511162216140.16387@bizon.gios.gov.pl>
+	<437BD093.3010905@eurodev.net>
+	<Pine.LNX.4.64.0511172250390.9911@bizon.gios.gov.pl>
+	<4381D8B3.1010100@eurodev.net>
+	<Pine.LNX.4.64.0511211541020.30476@bizon.gios.gov.pl>
+	<4381DDCF.7090609@eurodev.net>
+	<Pine.LNX.4.64.0511212208550.13610@bizon.gios.gov.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4386701A.30107@trash.net>
+To: Krzysztof Oledzki <olenf@ans.pl>
+In-Reply-To: <Pine.LNX.4.64.0511212208550.13610@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +30,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Harald convinced me to run a blog on netfilter development,
-> so here it is:
-> 
-> http://people.netfilter.org/kaber/weblog/
-> 
-> Pretty boring so far, lets hope it gets better :)
+Hi,
 
-Cool, I sometimes have a look at Harald's blog to know what he's
-currently doing. So I'll add this one to my list now as well ;)
+Krzysztof Oledzki wrote:
+> On Mon, 21 Nov 2005, Pablo Neira wrote:
+> 
+>> Krzysztof Oledzki wrote:
+>>
+>>>> I can't reproduce that problem that you're reporting. I don't see how
+>>>> the ctnetlink code can trigger that at the moment :(
+>>>
+>>> What information should I provide to help tracking this bug?
+>>
+>> Any extra patch applied to your vanilla kernel?
+> 
+> From pom-ng:
+>  ROUTE TARPIT TTL iprange ipv4options policy comment time set u32 random
+> unclean
 
-Cheers.
+A lot of patches from pom-ng. I tried with a vanilla 2.6.14.2 and I'm
+not able to reproduce the problem, always with preemption and SMP
+enabled but nothing.
+
+Could you try to reproduce it without the extra patches? That will help
+to know if any of those are spotting that error.
+
+BTW, iprange is already in mainline.
 
 -- 
 Pablo
