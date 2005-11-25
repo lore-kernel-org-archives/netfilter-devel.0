@@ -1,13 +1,24 @@
 From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: [PATCH] Spelling fix (Badd) in libnfnetlink
-Date: Fri, 25 Nov 2005 12:41:06 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0511251237070.11184@bizon.gios.gov.pl>
+Subject: Re: kernel BUG at kernel/sched.c:2833!
+Date: Fri, 25 Nov 2005 12:43:51 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0511251241180.11184@bizon.gios.gov.pl>
+References: <Pine.LNX.4.64.0511141033001.8729@bizon.gios.gov.pl>
+	<437882BE.6080705@eurodev.net>
+	<Pine.LNX.4.64.0511162216140.16387@bizon.gios.gov.pl>
+	<437BD093.3010905@eurodev.net>
+	<Pine.LNX.4.64.0511172250390.9911@bizon.gios.gov.pl>
+	<4381D8B3.1010100@eurodev.net>
+	<Pine.LNX.4.64.0511211541020.30476@bizon.gios.gov.pl>
+	<4381DDCF.7090609@eurodev.net>
+	<Pine.LNX.4.64.0511212208550.13610@bizon.gios.gov.pl>
+	<43867C7C.8070002@eurodev.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-392309121-1132918866=:11184"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-98812975-1132919031=:11184"
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira Ayuso <pablo@eurodev.net>
+In-Reply-To: <43867C7C.8070002@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,59 +33,46 @@ List-Id: netfilter-devel.vger.kernel.org
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-392309121-1132918866=:11184
+---187430788-98812975-1132919031=:11184
 Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Hello,
 
-Attached (and inlined) patch fix spelling in libnfnetlink.
 
-[LIBNFNETLINK] Spelling fix (Badd)
+On Fri, 25 Nov 2005, Pablo Neira Ayuso wrote:
 
-Spelling fix: s/Badd/Bad/
+> Hi,
+>
+> Krzysztof Oledzki wrote:
+>> On Mon, 21 Nov 2005, Pablo Neira wrote:
+>>
+>>> Krzysztof Oledzki wrote:
+>>>
+>>>>> I can't reproduce that problem that you're reporting. I don't see how
+>>>>> the ctnetlink code can trigger that at the moment :(
+>>>>
+>>>> What information should I provide to help tracking this bug?
+>>>
+>>> Any extra patch applied to your vanilla kernel?
+>>
+>> From pom-ng:
+>>  ROUTE TARPIT TTL iprange ipv4options policy comment time set u32 random
+>> unclean
+>
+> A lot of patches from pom-ng. I tried with a vanilla 2.6.14.2 and I'm
+> not able to reproduce the problem, always with preemption and SMP
+> enabled but nothing.
+OK.
 
-Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+> Could you try to reproduce it without the extra patches? That will help
+> to know if any of those are spotting that error.
+This will take some time because I really need most of them. Will do my=20
+best. ;)
 
-Index: src/libnfnetlink.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- src/libnfnetlink.c=09(revision 6281)
-+++ src/libnfnetlink.c=09(working copy)
-@@ -113,7 +113,7 @@
-  =09=09return -1;
-  =09}
-  =09if (nfnlh->local.nl_family !=3D AF_NETLINK) {
--=09=09nfnl_error("Badd address family %d", nfnlh->local.nl_family);
-+=09=09nfnl_error("Bad address family %d", nfnlh->local.nl_family);
-  =09=09return -1;
-  =09}
-  =09nfnlh->seq =3D time(NULL);
+> BTW, iprange is already in mainline.
+OK. Thank you ;)
 
 Best regards,
 
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-392309121-1132918866=:11184
-Content-Type: TEXT/PLAIN; charset=US-ASCII;
-	name=spelling-fix-libnfnetlink.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0511251241060.11184@bizon.gios.gov.pl>
-Content-Description: 
-Content-Disposition: attachment; filename=spelling-fix-libnfnetlink.patch
-
-DQpbTElCTkZORVRMSU5LXSBTcGVsbGluZyBmaXggKEJhZGQpDQoNClNwZWxs
-aW5nIGZpeDogcy9CYWRkL0JhZC8NCg0KU2lnbmVkLW9mZi1ieTogS3J6eXN6
-dG9mIFBpb3RyIE9sZWR6a2kgPG9sZUBhbnMucGw+DQoNCkluZGV4OiBzcmMv
-bGlibmZuZXRsaW5rLmMNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCi0tLSBz
-cmMvbGlibmZuZXRsaW5rLmMJKHJldmlzaW9uIDYyODEpDQorKysgc3JjL2xp
-Ym5mbmV0bGluay5jCSh3b3JraW5nIGNvcHkpDQpAQCAtMTEzLDcgKzExMyw3
-IEBADQogCQlyZXR1cm4gLTE7DQogCX0NCiAJaWYgKG5mbmxoLT5sb2NhbC5u
-bF9mYW1pbHkgIT0gQUZfTkVUTElOSykgew0KLQkJbmZubF9lcnJvcigiQmFk
-ZCBhZGRyZXNzIGZhbWlseSAlZCIsIG5mbmxoLT5sb2NhbC5ubF9mYW1pbHkp
-Ow0KKwkJbmZubF9lcnJvcigiQmFkIGFkZHJlc3MgZmFtaWx5ICVkIiwgbmZu
-bGgtPmxvY2FsLm5sX2ZhbWlseSk7DQogCQlyZXR1cm4gLTE7DQogCX0NCiAJ
-bmZubGgtPnNlcSA9IHRpbWUoTlVMTCk7DQo=
-
----187430788-392309121-1132918866=:11184--
+ =09=09=09Krzysztof Ol=EAdzki
+---187430788-98812975-1132919031=:11184--
