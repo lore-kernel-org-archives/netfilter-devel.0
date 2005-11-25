@@ -1,26 +1,13 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: [PATCH] CTA_PROTO_NUM is u_int8_t not u_int16_t (was Re:
- CTA_PROTO_NUM u_int8_t or u_int16_t)
-Date: Fri, 25 Nov 2005 10:23:54 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0511251019330.32144@bizon.gios.gov.pl>
-References: <43836BAF.2050501@eurodev.net>
-	<Pine.LNX.4.64.0511222103050.9114@bizon.gios.gov.pl>
-	<20051122220606.GC31478@sunbeam.de.gnumonks.org>
-	<4383C2C9.8050109@eurodev.net> <43843ACE.4050808@trash.net>
-	<Pine.LNX.4.64.0511231128510.9162@bizon.gios.gov.pl>
-	<20051124200736.GW31478@sunbeam.de.gnumonks.org>
-	<20051124202125.GX31478@sunbeam.de.gnumonks.org>
-	<43864DC7.6060109@trash.net>
-	<Pine.LNX.4.64.0511250040030.14092@bizon.gios.gov.pl>
-	<20051125084427.GL31478@sunbeam.de.gnumonks.org>
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: [RESEND] [1/1] OSF: netlink related changes.
+Date: Fri, 25 Nov 2005 12:55:26 +0300
+Message-ID: <20051125095526.GA26050@2ka.mipt.ru>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-278779993-1132910634=:32144"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>, Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: Harald Welte <laforge@netfilter.org>, PatriK McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051125084427.GL31478@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -32,34 +19,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hello, developers.
+Due to new interface and changed API in netlink area
+several patch-o-matic modules can not be compiled.
+Passive OS fingerprinting OSF modules is one of them. 
+Consider for inclusion.
+Thank you.
 
----187430788-278779993-1132910634=:32144
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+
+--- trunk/patch-o-matic-ng/patchlets/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c      2005-11-05 12:35:02.000000000 -0500
++++ trunk/patch-o-matic-ng/patchlets/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c       2005-11-05 12:43:54.000000000 -0500
+@@ -30,6 +30,7 @@
+
+ #include <linux/config.h>
+ #include <linux/kernel.h>
++#include <linux/version.h>
+ #include <linux/types.h>
+ #include <linux/string.h>
+ #include <linux/smp.h>
+@@ -155,7 +156,11 @@
+ 	memcpy(&data->ip, sk->nh.iph, sizeof(struct iphdr));
+ 	memcpy(&data->tcp, (struct tcphdr *)((u_int32_t *)sk->nh.iph + sk->nh.iph->ihl), sizeof(struct tcphdr));
+
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
+ 	NETLINK_CB(skb).dst_groups = ipt_osf_groups;
++#else
++	NETLINK_CB(skb).dst_group = ipt_osf_groups;
++#endif
+ 	netlink_broadcast(nts, skb, 0, ipt_osf_groups, GFP_ATOMIC);
+
+ nlmsg_failure:
+@@ -821,7 +826,11 @@
+ 	p->write_proc->osf_proc_write;
+ 	p->read_proc->osf_proc_read;
+
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
+ 	nts->netlink_kernel_create(NETLINK_NFLOG, NULL);
++#else
++	nts->netlink_kernel_create(NETLINK_NFLOG, 1, NULL, THIS_MODULE);
++#endif
+ 	if (!nts) {
+ 		log("netlink_kernel_create() failed\n");
+ 	}
 
 
-
-On Fri, 25 Nov 2005, Harald Welte wrote:
-
-> On Fri, Nov 25, 2005 at 12:54:56AM +0100, Krzysztof Oledzki wrote:
->>
->>
->> On Fri, 25 Nov 2005, Patrick McHardy wrote:
->> <CUT>
->>> I think just the first patch is fine. I really hope we don't find
->>> more of these.
->>
->> It is not. It breaks old binaries:
->
-> yes.  old libnetfilter_conntrack is broken, because it makes wrong size
-> assumptions.  But if we'd start introdcucing the "new scheme" I
-> proposed, we can guarantee not to run into any of these.
-Only if new libnetfilter_conntrack will send different messages to=20
-differnet kernels (u_int16_t for 2.6.14 and u_int8_t for 2.6.15+).
-
-Best regards,
-
- =09=09=09Krzysztof Ol=EAdzki
----187430788-278779993-1132910634=:32144--
+-- 
+	Evgeniy Polyakov
