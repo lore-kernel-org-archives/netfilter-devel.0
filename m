@@ -1,8 +1,8 @@
 From: Krzysztof Oledzki <olenf@ans.pl>
 Subject: Re: [PATCH] CTA_PROTO_NUM is u_int8_t not u_int16_t (was Re:
  CTA_PROTO_NUM u_int8_t or u_int16_t)
-Date: Fri, 25 Nov 2005 01:26:20 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0511250124280.15306@bizon.gios.gov.pl>
+Date: Fri, 25 Nov 2005 01:28:36 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0511250126250.15306@bizon.gios.gov.pl>
 References: <4381FDF8.6030508@trash.net> <43820874.2050708@eurodev.net>
 	<4382A19D.9090201@trash.net> <43836BAF.2050501@eurodev.net>
 	<Pine.LNX.4.64.0511222103050.9114@bizon.gios.gov.pl>
@@ -13,16 +13,16 @@ References: <4381FDF8.6030508@trash.net> <43820874.2050708@eurodev.net>
 	<20051124202125.GX31478@sunbeam.de.gnumonks.org>
 	<43864DC7.6060109@trash.net>
 	<Pine.LNX.4.64.0511250040030.14092@bizon.gios.gov.pl>
-	<438656AE.9020307@trash.net> <4386592B.1000905@eurodev.net>
+	<438656AE.9020307@trash.net>
 Mime-Version: 1.0
 Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-224275491-1132878380=:15306"
+	BOUNDARY="-187430788-749071533-1132878516=:15306"
 Cc: Harald Welte <laforge@netfilter.org>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+	Pablo Neira <pablo@eurodev.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
-In-Reply-To: <4386592B.1000905@eurodev.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <438656AE.9020307@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -37,35 +37,26 @@ List-Id: netfilter-devel.vger.kernel.org
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-224275491-1132878380=:15306
+---187430788-749071533-1132878516=:15306
 Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 
 
 
-On Fri, 25 Nov 2005, Pablo Neira wrote:
+On Fri, 25 Nov 2005, Patrick McHardy wrote:
 
-> Patrick McHardy wrote:
->> Krzysztof Oledzki wrote:
->>
->>> Old binaries are not able to deal with CTA_PROTO and will not be able
->>> to parse this attribute received from kernel. We should keep
->>> CTA_PROTO_NUM here, but this leads to u_int8_t/u_int16_t mismatch in
->>> the code.
->>
->> I didn't notice that, we of course need to dump both attributes. But I
->> still think Pablo's suggestion is fine too and avoids all these hacks.
->> The only people affected will be the ones not using the stable series.
+> Krzysztof Oledzki wrote:
+>> Old binaries are not able to deal with CTA_PROTO and will not be able to=
+=20
+>> parse this attribute received from kernel. We should keep CTA_PROTO_NUM=
+=20
+>> here, but this leads to u_int8_t/u_int16_t mismatch in the code.
 >
-> Same feeling. I don't like the idea of breaking backward compatibility,
-> but in this case the hacks don't look really nice either :(. Since this
-> stuff was just pushed forward to 2.6.14, I still think that we should
-> send a patch to fix it in -stable.
-
-But 2.6.14.3 just went out and I'm not sure if there will be another=20
-2.6.14.x relase.
+> I didn't notice that, we of course need to dump both attributes.
+Both? We already send CTA_PROTO_NUM as u_int8_t to userspace and=20
+libnfnetlink has no problem with that.
 
 Best regards,
 
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-224275491-1132878380=:15306--
+ =09=09=09Krzysztof Ol=EAdzki
+---187430788-749071533-1132878516=:15306--
