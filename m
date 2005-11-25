@@ -1,13 +1,26 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: [RESEND] [1/1] OSF: netlink related changes.
-Date: Fri, 25 Nov 2005 12:55:26 +0300
-Message-ID: <20051125095526.GA26050@2ka.mipt.ru>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] CTA_PROTO_NUM is u_int8_t not u_int16_t (was Re:
+	CTA_PROTO_NUM u_int8_t or u_int16_t)
+Date: Fri, 25 Nov 2005 12:09:18 +0100
+Message-ID: <20051125110917.GM31478@sunbeam.de.gnumonks.org>
+References: <20051122220606.GC31478@sunbeam.de.gnumonks.org>
+	<4383C2C9.8050109@eurodev.net> <43843ACE.4050808@trash.net>
+	<Pine.LNX.4.64.0511231128510.9162@bizon.gios.gov.pl>
+	<20051124200736.GW31478@sunbeam.de.gnumonks.org>
+	<20051124202125.GX31478@sunbeam.de.gnumonks.org>
+	<43864DC7.6060109@trash.net>
+	<Pine.LNX.4.64.0511250040030.14092@bizon.gios.gov.pl>
+	<20051125084427.GL31478@sunbeam.de.gnumonks.org>
+	<Pine.LNX.4.64.0511251019330.32144@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>, PatriK McHardy <kaber@trash.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="b+hWpUHvng4oOSdx"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Krzysztof Oledzki <olenf@ans.pl>
 Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0511251019330.32144@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,50 +32,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello, developers.
-Due to new interface and changed API in netlink area
-several patch-o-matic modules can not be compiled.
-Passive OS fingerprinting OSF modules is one of them. 
-Consider for inclusion.
-Thank you.
 
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+--b+hWpUHvng4oOSdx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
---- trunk/patch-o-matic-ng/patchlets/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c      2005-11-05 12:35:02.000000000 -0500
-+++ trunk/patch-o-matic-ng/patchlets/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c       2005-11-05 12:43:54.000000000 -0500
-@@ -30,6 +30,7 @@
+On Fri, Nov 25, 2005 at 10:23:54AM +0100, Krzysztof Oledzki wrote:
+>=20
+>=20
+> On Fri, 25 Nov 2005, Harald Welte wrote:
+>=20
+> >On Fri, Nov 25, 2005 at 12:54:56AM +0100, Krzysztof Oledzki wrote:
+> >>On Fri, 25 Nov 2005, Patrick McHardy wrote:
+> >><CUT>
+> >>>I think just the first patch is fine. I really hope we don't find
+> >>>more of these.
+> >>It is not. It breaks old binaries:
+> >yes.  old libnetfilter_conntrack is broken, because it makes wrong size
+> >assumptions.  But if we'd start introdcucing the "new scheme" I
+> >proposed, we can guarantee not to run into any of these.
+> Only if new libnetfilter_conntrack will send different messages to
+> differnet kernels (u_int16_t for 2.6.14 and u_int8_t for 2.6.15+).
 
- #include <linux/config.h>
- #include <linux/kernel.h>
-+#include <linux/version.h>
- #include <linux/types.h>
- #include <linux/string.h>
- #include <linux/smp.h>
-@@ -155,7 +156,11 @@
- 	memcpy(&data->ip, sk->nh.iph, sizeof(struct iphdr));
- 	memcpy(&data->tcp, (struct tcphdr *)((u_int32_t *)sk->nh.iph + sk->nh.iph->ihl), sizeof(struct tcphdr));
+That's what I meant with 'old lib is broken' (old kernels, too).
 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
- 	NETLINK_CB(skb).dst_groups = ipt_osf_groups;
-+#else
-+	NETLINK_CB(skb).dst_group = ipt_osf_groups;
-+#endif
- 	netlink_broadcast(nts, skb, 0, ipt_osf_groups, GFP_ATOMIC);
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
- nlmsg_failure:
-@@ -821,7 +826,11 @@
- 	p->write_proc->osf_proc_write;
- 	p->read_proc->osf_proc_read;
+--b+hWpUHvng4oOSdx
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
- 	nts->netlink_kernel_create(NETLINK_NFLOG, NULL);
-+#else
-+	nts->netlink_kernel_create(NETLINK_NFLOG, 1, NULL, THIS_MODULE);
-+#endif
- 	if (!nts) {
- 		log("netlink_kernel_create() failed\n");
- 	}
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
+iD8DBQFDhvDdXaXGVTD0i/8RAlPIAKC1jl+Zd/JkZNvpqjN0txHaN3V54QCgmddS
+zXAgwu9EyTCHpuWGBtGiIAI=
+=WRlq
+-----END PGP SIGNATURE-----
 
--- 
-	Evgeniy Polyakov
+--b+hWpUHvng4oOSdx--
