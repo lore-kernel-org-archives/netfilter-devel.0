@@ -1,15 +1,13 @@
-From: Christian Hentschel <chentschel2@arnet.com.ar>
-Subject: Re: Netfilter blog
-Date: Fri, 25 Nov 2005 22:44:00 -0300
-Message-ID: <1132969440.1276.1.camel@www.l-chr.com.ar>
-References: <4386701A.30107@trash.net>
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: [1/1] OSF: fix 2.4 compilation.
+Date: Sat, 26 Nov 2005 15:33:34 +0300
+Message-ID: <20051126123334.GA31037@2ka.mipt.ru>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Harald Welte <laforge@netfilter.org>, PatriK McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4386701A.30107@trash.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,13 +19,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Great desition Patrick!.  I'm looking forward to see the news!! =)
+Bug found by Aleksey Barabanov <alekseybb mail.ru>.
+Thank you.
 
-On Fri, 2005-11-25 at 02:59 +0100, Patrick McHardy wrote:
-> Harald convinced me to run a blog on netfilter development,
-> so here it is:
-> 
-> http://people.netfilter.org/kaber/weblog/
-> 
-> Pretty boring so far, lets hope it gets better :)
-> 
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+
+--- net/ipv4/netfilter/ipt_osf.c.orig	2005-11-26 15:29:33.000000000 +0300
++++ net/ipv4/netfilter/tmp/ipt_osf.c	2005-11-26 15:29:05.000000000 +0300
+@@ -183,11 +183,11 @@
+ 		_optp = optp = (char *)(tcp+1);
+ 		optsize = tcp->doff*4 - sizeof(struct tcphdr);
+ 
+-		if (optsize > sizeof(opts))
++		if (optsize > MAX_IPOPTLEN)
+ 		{
+-			log("%s: BUG: too big options size: optsize=%lu, max=%zu.\n",
+-					__func__, optsize, sizeof(opts));
+-			optsize = sizeof(opts);
++			log("%s: BUG: too big options size: optsize=%lu, max=%u.\n",
++					__func__, optsize, MAX_IPOPTLEN);
++			optsize = MAX_IPOPTLEN;
+ 		}
+ 	}
+ 
+
+-- 
+	Evgeniy Polyakov
