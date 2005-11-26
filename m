@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RESEND] [1/1] OSF: netlink related changes.
-Date: Sun, 27 Nov 2005 00:49:30 +0100
-Message-ID: <4388F48A.40708@trash.net>
-References: <20051125095526.GA26050@2ka.mipt.ru>
+Subject: Re: nf_conntrack & NAT
+Date: Sun, 27 Nov 2005 00:52:15 +0100
+Message-ID: <4388F52F.8050902@trash.net>
+References: <Pine.LNX.4.64.0511231214590.11295@bizon.gios.gov.pl>	<200511231225.jANCPmnh018866@toshiba.co.jp>	<Pine.LNX.4.64.0511231342490.16555@bizon.gios.gov.pl>
+	<200511250454.jAP4sJeD003744@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-In-Reply-To: <20051125095526.GA26050@2ka.mipt.ru>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200511250454.jAP4sJeD003744@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,21 +22,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Evgeniy Polyakov wrote:
-> Hello, developers.
-> Due to new interface and changed API in netlink area
-> several patch-o-matic modules can not be compiled.
-> Passive OS fingerprinting OSF modules is one of them. 
-
-> @@ -821,7 +826,11 @@
->  	p->write_proc->osf_proc_write;
->  	p->read_proc->osf_proc_read;
+Yasuyuki KOZAKAI wrote:
+> From: Krzysztof Oledzki <olenf@ans.pl>
+> Date: Wed, 23 Nov 2005 14:44:01 +0100 (CET)
 > 
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
->  	nts->netlink_kernel_create(NETLINK_NFLOG, NULL);
-> +#else
-> +	nts->netlink_kernel_create(NETLINK_NFLOG, 1, NULL, THIS_MODULE);
-> +#endif
+>>Oh. So how we are going to make transparent proxy, port redirects, etc 
+>>possible?
+> 
+> 
+> At first, I will not implement IPv6 NAT at least, but I don't know
+> what other people think.
+> 
+> And about transparent proxy, port redirects, load balancer, and so on,
+> indeed currently we seems that we don't have smarter and de facto standard
+> solutions.
+> 
+> I wonder why they haven't come up yet, but anyway, I believe people can
+> develop smarter solutions than copied and pasted IPv4 NAT (It's possible that
+> just I don't know them and someone might have already developed them).
+> I think it's still early to give up on.
 
-This doesn't exist in svn and also doesn't seem to make much
-sense. Why use function pointers for netlink_kernel_create?
+Transparent proxying can be done with tproxy without NAT (I'm not
+sure how far along their new patches are), the idea is to exchange
+the dst_entry of the skb instead of rewriting packets.
