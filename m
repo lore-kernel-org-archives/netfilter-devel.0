@@ -1,22 +1,28 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH (resent with the attachment !)] netfilter : zap
- get_cpu()/put_cpu() calls from ip_tables
-Date: Fri, 25 Nov 2005 19:20:42 +0100
-Message-ID: <438755FA.90704@trash.net>
-References: <432EF0C5.5090908@cosmosbay.com> <200509191948.55333.ak@suse.de>
-	<432FDAC5.3040801@cosmosbay.com> <200509201830.20689.ak@suse.de>
-	<433082DE.3060308@cosmosbay.com> <43308324.70403@cosmosbay.com>
-	<4331CFA7.50104@cosmosbay.com> <4386F440.5020505@cosmosbay.com>
-	<4386F56F.7020205@cosmosbay.com>
+From: Pablo Neira Ayuso <pablo@eurodev.net>
+Subject: Re: [PATCH] CTA_PROTO_NUM is u_int8_t not u_int16_t (was Re:
+ CTA_PROTO_NUM u_int8_t or u_int16_t)
+Date: Sat, 26 Nov 2005 01:16:06 +0100
+Message-ID: <4387A946.3000005@eurodev.net>
+References: <43836BAF.2050501@eurodev.net>
+	<Pine.LNX.4.64.0511222103050.9114@bizon.gios.gov.pl>
+	<20051122220606.GC31478@sunbeam.de.gnumonks.org>
+	<4383C2C9.8050109@eurodev.net> <43843ACE.4050808@trash.net>
+	<Pine.LNX.4.64.0511231128510.9162@bizon.gios.gov.pl>
+	<20051124200736.GW31478@sunbeam.de.gnumonks.org>
+	<20051124202125.GX31478@sunbeam.de.gnumonks.org>
+	<43864DC7.6060109@trash.net>
+	<Pine.LNX.4.64.0511250040030.14092@bizon.gios.gov.pl>
+	<20051125084427.GL31478@sunbeam.de.gnumonks.org>
+	<Pine.LNX.4.64.0511251019330.32144@bizon.gios.gov.pl>
+	<438710E1.2000202@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, Andrew Morton <akpm@osdl.org>,
-	netfilter-devel@lists.netfilter.org,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Dumazet <dada1@cosmosbay.com>
-In-Reply-To: <4386F56F.7020205@cosmosbay.com>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <438710E1.2000202@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,22 +34,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric Dumazet wrote:
-> The 'ip_tables: NUMA-aware allocation' patch 
-> (http://www.kernel.org/git/?p=linux/kernel/git/davem/net-2.6.16.git;a=commit;h=6d1273850cac8db77c462caaa145b813d93adc55) 
+Patrick McHardy wrote:
+> Krzysztof Oledzki wrote:
+>>
+>> On Fri, 25 Nov 2005, Harald Welte wrote:
+>>
+>>> yes.  old libnetfilter_conntrack is broken, because it makes wrong size
+>>> assumptions.  But if we'd start introdcucing the "new scheme" I
+>>> proposed, we can guarantee not to run into any of these.
+>>
+>>
+>> Only if new libnetfilter_conntrack will send different messages to
+>> differnet kernels (u_int16_t for 2.6.14 and u_int8_t for 2.6.15+).
 > 
-> introduced a problem with get_cpu()/put_cpu()
-> 
-> The problem is that get_cpu() disables preemption and the thread is not 
-> allowed to sleep.
-> 
-> As the intent was only to give a hint, relax the enforcement and switch 
-> to a hint : If the current thread is preempted and migrated to another 
-> cpu, this is not a problem. Most of the time, thread wont be migrated 
-> anyway.
-> 
-> This patch removes get_cpu()/put_cpu() pairs and uses 
-> raw_smp_processor_id() were appropriate.
+> I also thinks its a large overkill to introduce this scheme just to
+> handle brokeness, lets just try not to make this kind of mistake again.
+> Also it doesn't handle the byteorder-problem of this particular case,
+> so I don't think we should go this way.
 
-Looks good, thanks. I'm going to test it and pass it on to Dave if it
-works.
+I agree. Sorry, I'm not willing to be repetitive but I still see a
+possible workaround as something ugly that we'll have to live with
+forever because of an early mistake in the development. If there will be
+more 2.6.14.x release, fixing it there can be a choice. In spite of
+everything, I understand that breaking backward compatibility isn't nice
+but in this case ctnetlink just got pushed forward and it's barely one
+month old.
+
+-- 
+Pablo
