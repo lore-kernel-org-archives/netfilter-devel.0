@@ -1,24 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 05/13]: [IPV4/6]: Netfilter IPsec output hooks
-Date: Mon, 28 Nov 2005 13:25:48 +0100
-Message-ID: <438AF74C.6000608@trash.net>
-References: <20051120163128.16666.38111.sendpatchset@localhost.localdomain>
-	<20051120163134.16666.9265.sendpatchset@localhost.localdomain>
-	<20051122044046.GA29166@gondor.apana.org.au>
-	<4382A44F.9000105@trash.net>
-	<20051122103038.GA31532@gondor.apana.org.au>
-	<20051122103139.GA4632@gondor.apana.org.au>
-	<20051122121358.GA9057@gondor.apana.org.au>
-	<438A5837.5040706@trash.net>
-	<20051128045611.GA9571@gondor.apana.org.au>
+From: Maciej Soltysiak <solt@dns.toxicfilms.tv>
+Subject: Re: pb fingerprint icmp on netfilter/linux
+Date: Mon, 28 Nov 2005 15:08:02 +0100
+Message-ID: <131467063.20051128150802@dns.toxicfilms.tv>
+References: <Pine.LNX.4.64.0511281009250.1323@npre.npre.pbz>
+Reply-To: Maciej Soltysiak <solt@dns.toxicfilms.tv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	davem@davemloft.net
+Cc: rmkml <rmkml@free.fr>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Herbert Xu <herbert@gondor.apana.org.au>
-In-Reply-To: <20051128045611.GA9571@gondor.apana.org.au>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.64.0511281009250.1323@npre.npre.pbz>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,26 +22,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Herbert Xu wrote:
-> On Mon, Nov 28, 2005 at 02:07:03AM +0100, Patrick McHardy wrote:
-> 
->>Thanks, this looks great. I've changed it to only call the hooks
-> 
-> 
-> Glad you liked it :)
-> 
-> 
->>before tunnel mode transforms and added a missing dst_output call
->>for the final packet.
-> 
-> 
-> This shouldn't be necessary if you apply it on top of my previous
-> patch which made xfrm[46]_output process the first SA and all subsequent
-> transport mode SAs.  I've included that patch here again.
-> 
-> I think it still makes sense to do that because this corresponds
-> with the usual representation of an IPsec connection and it
-> simplifies the handling of netfilter hooks.
+Hi,
 
-I agree, I missed that your patch based on that one. Let me have
-another look :)
+> I have a little pb, Im received icmp ping echo request,
+> normaly echo request are type 8 and code 0,
+> but this echo request are type 8 and code 19 !
+> my iptables rules is :
+>   iptables -A INPUT -j ACCEPT -p icmp --icmp-type echo-request
+use:
+icmp-type 8/19 to match type 8/code 19
+
+`iptables -p icmp --help` says about that.
+
+--
+regards,
+Maciej
