@@ -1,15 +1,15 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [NETFILTER]: Fix table iteration breakage in {ip6,arp}_tables
-Date: Sun, 27 Nov 2005 20:45:10 -0800 (PST)
-Message-ID: <20051127.204510.51121870.davem@davemloft.net>
-References: <43893996.9050609@trash.net>
+Subject: Re: [NETFILTER]: zap get_cpu()/put_cpu() calls from ip_tables
+Date: Sun, 27 Nov 2005 20:44:25 -0800 (PST)
+Message-ID: <20051127.204425.74332165.davem@davemloft.net>
+References: <4388FAA2.5010708@trash.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: kaber@trash.net
-In-Reply-To: <43893996.9050609@trash.net>
+In-Reply-To: <4388FAA2.5010708@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,8 +22,9 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
-Date: Sun, 27 Nov 2005 05:44:06 +0100
+Date: Sun, 27 Nov 2005 01:15:30 +0100
 
-> Another fix for the iptables NUMA optimization.
+> This patch fixes the problems with the iptables NUMA optimization.
+> It applies to the net-2.6.16 tree.
 
-Also applied, thanks Patrick.
+Applied, thanks everyone.
