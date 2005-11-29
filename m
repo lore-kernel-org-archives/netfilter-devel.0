@@ -1,22 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Fw: [Fwd: [Bug 5644] New: NFS v3 TCP 3-way handshake incorrect,
- iptables blocks access]
-Date: Tue, 29 Nov 2005 23:32:45 +0100
-Message-ID: <438CD70D.3030305@trash.net>
-References: <20051123.144419.16922351.davem@davemloft.net>
-	<20051124140827.GH31478@sunbeam.de.gnumonks.org>
-	<20051124144940.GV25399@suse.de>
-	<Pine.LNX.4.58.0511250937560.22835@blackhole.kfki.hu>
-	<Pine.LNX.4.58.0511291135430.31216@blackhole.kfki.hu>
+Subject: Re: [RESEND][PATCH] Recent match jiffies wrap mismatches
+Date: Wed, 30 Nov 2005 00:03:42 +0100
+Message-ID: <438CDE4E.8070006@trash.net>
+References: <20051129050813.GA30630@linuxace.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Olaf Kirch <okir@suse.de>, Harald Welte <laforge@netfilter.org>,
-	netfilter-devel@lists.netfilter.org,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0511291135430.31216@blackhole.kfki.hu>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20051129050813.GA30630@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,21 +21,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef Kadlecsik wrote:
-> Mounting NFS file systems after a (warm) reboot could take a long time if
-> firewalling and connection tracking was enabled.
+Phil Oester wrote:
+> Around jiffies wrap time (i.e. within first 5 mins after boot), recent match
+> rules which contain both --seconds and --hitcount arguments experience
+> false matches.
 > 
-> The reason is that the NFS clients tends to use the same ports (800 and
-> counting down). Now on reboot, the server would still have a TCB for an
-> existing TCP connection client:800 -> server:2049. The client sends a
-> SYN from port 800 to server:2049, which elicits an ACK from the server.
-> The firewall on the client drops the ACK because (from its point of
-> view) the connection is still in half-open state, and it expects to see
-> a SYNACK.
+> This is because the last_pkts array is filled with zeros on creation, and
+> when comparing 'now' to 0 (+ --seconds argument), time_before_eq thinks it
+> has found a hit.
 > 
-> The client will eventually time out after several minutes.
-> 
-> The following patch corrects this, by accepting ACKs on half open connections
-> as well.
+> Below patch adds a break if the packet value is zero.  This has the unfortunate
+> side effect of causing mismatches if a packet was received when jiffies really
+> was equal to zero.  The odds of that happening are slim compared to the
+> problems caused by not adding the break however.  Plus, the author used
+> this same method just below, so it is "good enough".
 
-Thanks Jozsef, I'll pass it on to Dave tommorrow.
+Applied, thanks. The lines just above that have the same problem, don't
+they?
+
+[slightly reformated for better readability]
+
+if(info->seconds && !info->hit_count) {
+     if(time_before_eq(now,r_list[location].last_seen+info->seconds*HZ))
+         ans = !info->invert;
+     else
+         ans = info->invert;
+}
