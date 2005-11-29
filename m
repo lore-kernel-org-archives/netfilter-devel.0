@@ -1,20 +1,19 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
+From: "David S. Miller" <davem@davemloft.net>
 Subject: Re: [PATCH 07/13]: [NETFILTER]: Fix xfrm lookup in
-	ip_route_me_harder/ip6_route_me_harder
-Date: Tue, 29 Nov 2005 18:34:41 +1100
-Message-ID: <20051129073441.GA18387@gondor.apana.org.au>
-References: <20051120163128.16666.38111.sendpatchset@localhost.localdomain>
-	<20051120163137.16666.924.sendpatchset@localhost.localdomain>
-	<20051128210628.GA15057@gondor.apana.org.au>
+ ip_route_me_harder/ip6_route_me_harder
+Date: Mon, 28 Nov 2005 23:49:47 -0800 (PST)
+Message-ID: <20051128.234947.117781000.davem@davemloft.net>
+References: <20051128210628.GA15057@gondor.apana.org.au>
 	<438BFD0A.5040105@trash.net>
+	<20051129073441.GA18387@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	davem@davemloft.net
+	kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <438BFD0A.5040105@trash.net>
+To: herbert@gondor.apana.org.au
+In-Reply-To: <20051129073441.GA18387@gondor.apana.org.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,32 +25,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Nov 29, 2005 at 08:02:34AM +0100, Patrick McHardy wrote:
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Date: Tue, 29 Nov 2005 18:34:41 +1100
+
+> On Tue, Nov 29, 2005 at 08:02:34AM +0100, Patrick McHardy wrote:
+> > It seems in most places where only IPCB(skb)->opt is cleared
+> > the entire CB should be cleared. A couple of spots also look
+> > completely unnecessary, for example all places clearing the CB
+> > before passing the packet to netif_rx. I would expect the next
+> > user beeing responsible for clearing the space he needs if
+> > neccessary.
 > 
-> - IPSKB_MASQUERADED is unused
-> - IPSKB_TRANSLATED is unused
-> - IPSKB_FORWARDED is used by ipmr in a way that looks broken,
->   it expects the flags on the input path to be the same it set
->   on the output path.
-> - IPSKB_XFRM_TUNNEL_SIZE should be cleared when a packet enters
->   the IP stack
+> Agreed.  However, it seems that ip_rcv() only clears the CB options
+> if ihl is greater than 5.  So until that's changed the people feeding
+> netif_rx will have to clear the CB.
 
-Yes that looks correct.
+I wonder if that stuff can be simplified somehow.
 
-> It seems in most places where only IPCB(skb)->opt is cleared
-> the entire CB should be cleared. A couple of spots also look
-> completely unnecessary, for example all places clearing the CB
-> before passing the packet to netif_rx. I would expect the next
-> user beeing responsible for clearing the space he needs if
-> neccessary.
+We only use those options in two ways:
 
-Agreed.  However, it seems that ip_rcv() only clears the CB options
-if ihl is greater than 5.  So until that's changed the people feeding
-netif_rx will have to clear the CB.
+1) To process early in input via ip_options_compile()
+   and the source route check in ip_rcv_finish()
 
-Cheers,
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+2) To do forwarding processing on options in ip_forward_finish()
+   and the multicast equivalent in ipmr.c
+
+3) For locally destined packets, when the options are to be
+   passed to the user via a recvmsg() CMSG.
+
+Well, there is a 4th, which is what we're talking about here,
+which is all of the zero'ing out of the thing during encapsulation
+which is mostly a waste.
+
+I think #1 and #2 can be handled by an on-stack copy of "struct
+ip_options" high enough in the call chain, but #3 is a bit less
+trivial to cope with like that.
+
+It would be nice to kill the IPCB() copy, and give us 12 bytes back in
+skb->cb[] :-)
