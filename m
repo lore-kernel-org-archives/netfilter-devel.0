@@ -1,20 +1,22 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 07/13]: [NETFILTER]: Fix xfrm lookup in
-	ip_route_me_harder/ip6_route_me_harder
-Date: Tue, 29 Nov 2005 22:31:10 +1100
-Message-ID: <20051129113110.GA20522@gondor.apana.org.au>
-References: <20051128210628.GA15057@gondor.apana.org.au>
-	<438BFD0A.5040105@trash.net>
-	<20051129073441.GA18387@gondor.apana.org.au>
-	<20051128.234947.117781000.davem@davemloft.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Fw: [Fwd: [Bug 5644] New: NFS v3 TCP 3-way handshake incorrect,
+ iptables blocks access]
+Date: Tue, 29 Nov 2005 23:32:45 +0100
+Message-ID: <438CD70D.3030305@trash.net>
+References: <20051123.144419.16922351.davem@davemloft.net>
+	<20051124140827.GH31478@sunbeam.de.gnumonks.org>
+	<20051124144940.GV25399@suse.de>
+	<Pine.LNX.4.58.0511250937560.22835@blackhole.kfki.hu>
+	<Pine.LNX.4.58.0511291135430.31216@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	kaber@trash.net
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Olaf Kirch <okir@suse.de>, Harald Welte <laforge@netfilter.org>,
+	netfilter-devel@lists.netfilter.org,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-Content-Disposition: inline
-In-Reply-To: <20051128.234947.117781000.davem@davemloft.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0511291135430.31216@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,19 +28,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Nov 28, 2005 at 11:49:47PM -0800, David S. Miller wrote:
+Jozsef Kadlecsik wrote:
+> Mounting NFS file systems after a (warm) reboot could take a long time if
+> firewalling and connection tracking was enabled.
 > 
-> I think #1 and #2 can be handled by an on-stack copy of "struct
-> ip_options" high enough in the call chain, but #3 is a bit less
-> trivial to cope with like that.
+> The reason is that the NFS clients tends to use the same ports (800 and
+> counting down). Now on reboot, the server would still have a TCB for an
+> existing TCP connection client:800 -> server:2049. The client sends a
+> SYN from port 800 to server:2049, which elicits an ACK from the server.
+> The firewall on the client drops the ACK because (from its point of
+> view) the connection is still in half-open state, and it expects to see
+> a SYNACK.
 > 
-> It would be nice to kill the IPCB() copy, and give us 12 bytes back in
-> skb->cb[] :-)
+> The client will eventually time out after several minutes.
+> 
+> The following patch corrects this, by accepting ACKs on half open connections
+> as well.
 
-That would be great.  I'm glad that Patrick's patch set is bringing
-out potential ways of shrinking sk_buff.
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Thanks Jozsef, I'll pass it on to Dave tommorrow.
