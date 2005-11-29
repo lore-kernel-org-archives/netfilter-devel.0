@@ -1,26 +1,21 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] CTA_PROTO_NUM is u_int8_t not u_int16_t (was Re:
-	CTA_PROTO_NUM u_int8_t or u_int16_t)
-Date: Tue, 29 Nov 2005 05:09:25 +0100
-Message-ID: <20051129040925.GC3544@rama.towersoft.de>
-References: <Pine.LNX.4.64.0511231128510.9162@bizon.gios.gov.pl>
-	<20051124200736.GW31478@sunbeam.de.gnumonks.org>
-	<20051124202125.GX31478@sunbeam.de.gnumonks.org>
-	<43864DC7.6060109@trash.net>
-	<Pine.LNX.4.64.0511250040030.14092@bizon.gios.gov.pl>
-	<20051125084427.GL31478@sunbeam.de.gnumonks.org>
-	<Pine.LNX.4.64.0511251019330.32144@bizon.gios.gov.pl>
-	<438710E1.2000202@trash.net> <4387A946.3000005@eurodev.net>
-	<Pine.LNX.4.64.0511272313570.28434@bizon.gios.gov.pl>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Fw: [Fwd: [Bug 5644] New: NFS v3 TCP 3-way handshake incorrect,
+ iptables blocks access]
+Date: Tue, 29 Nov 2005 11:43:56 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0511291135430.31216@blackhole.kfki.hu>
+References: <20051123.144419.16922351.davem@davemloft.net>
+	<20051124140827.GH31478@sunbeam.de.gnumonks.org>
+	<20051124144940.GV25399@suse.de>
+	<Pine.LNX.4.58.0511250937560.22835@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JgQwtEuHJzHdouWu"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira Ayuso <pablo@eurodev.net>, Patrick McHardy <kaber@trash.net>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="110391808-1295814130-1133261036=:31216"
+Cc: Harald Welte <laforge@netfilter.org>, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org,
+	"David S. Miller" <davem@davemloft.net>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0511272313570.28434@bizon.gios.gov.pl>
+To: Olaf Kirch <okir@suse.de>
+In-Reply-To: <Pine.LNX.4.58.0511250937560.22835@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -32,67 +27,173 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
---JgQwtEuHJzHdouWu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+--110391808-1295814130-1133261036=:31216
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-On Sun, Nov 27, 2005 at 11:28:47PM +0100, Krzysztof Oledzki wrote:
->=20
->=20
-> On Sat, 26 Nov 2005, Pablo Neira Ayuso wrote:
->=20
-> >Patrick McHardy wrote:
-> >>Krzysztof Oledzki wrote:
-> >>>On Fri, 25 Nov 2005, Harald Welte wrote:
-> >>>>yes.  old libnetfilter_conntrack is broken, because it makes wrong si=
-ze
-> >>>>assumptions.  But if we'd start introdcucing the "new scheme" I
-> >>>>proposed, we can guarantee not to run into any of these.
-> >>>Only if new libnetfilter_conntrack will send different messages to
-> >>>differnet kernels (u_int16_t for 2.6.14 and u_int8_t for 2.6.15+).
-> >>I also thinks its a large overkill to introduce this scheme just to
-> >>handle brokeness, lets just try not to make this kind of mistake again.
-> >>Also it doesn't handle the byteorder-problem of this particular case,
-> >>so I don't think we should go this way.
-> >I agree. Sorry, I'm not willing to be repetitive but I still see a
-> >possible workaround as something ugly that we'll have to live with
-> >forever because of an early mistake in the development. If there will be
-> >more 2.6.14.x release, fixing it there can be a choice. In spite of
-> >everything, I understand that breaking backward compatibility isn't nice
-> >but in this case ctnetlink just got pushed forward and it's barely one
-> >month old.
->=20
-> So, I think what we can do is to fix it in 2.6.15, leave it unchanged
-> in 2.6.14 and add kernel version checking to the
-> libnetfilter_conntrack to send u_int16_t for 2.6.14 and u_int8_t for
-> 2.6.15+ (one if/else). I don't know if (and when) there will be
-> another 2.6.14-stable release.
+Hi,
 
-No, I oppose any kind of kernel version number checking.  I'd rather
-break 2.6.14 with new versions of the userspace.
+On Fri, 25 Nov 2005, Jozsef Kadlecsik wrote:
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+> On Thu, 24 Nov 2005, Olaf Kirch wrote:
+>
+> > On Thu, Nov 24, 2005 at 03:08:27PM +0100, Harald Welte wrote:
+> > > Jozsef Kadlecsik doesn't recall those patches/changes (even though he's
+> > > our "Mr. TCP state tracking" and is indicated as the author of one of
+> > > the two patches.
+> > >
+> > > I also don't recall having seen any of those patches before.  But that
+> > > doesn't mean all too much, my brain is like a sieve some times.
+> >
+> > Those patches came out of a discussion on netfilter-devel.  Sorry,
+> > I don't know exactly when but looking at our CVS log it was Dec 2004.
+>
+> Yes, it was about a year ago - finally I could dig out the patches from my
+> mail archives. I'll prepare an updated version on the weekend and send it
+> out to netfilter-devel for reviewing.
 
---JgQwtEuHJzHdouWu
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Attached is the updated patch. Unfortunately nfsim currently is broken so
+I could not test it against the testsuite, but actually it's identical
+with the original, not applied patches. The patch takes care both
+ip_conntrack and nf_conntrack.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
+--110391808-1295814130-1133261036=:31216
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="tcp-win-half-close.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.58.0511291143560.31216@blackhole.kfki.hu>
+Content-Description: tcp-win-half-close.patch
+Content-Disposition: attachment; filename="tcp-win-half-close.patch"
 
-iD8DBQFDi9R1XaXGVTD0i/8RArHyAJ0Zrp7ZRqVeWB1OmZPGWCq5IWCqDQCgjfUd
-fUTf+a7C1gy9RfDsjaqB13E=
-=vTaA
------END PGP SIGNATURE-----
+TW91bnRpbmcgTkZTIGZpbGUgc3lzdGVtcyBhZnRlciBhICh3YXJtKSByZWJv
+b3QgY291bGQgdGFrZSBhIGxvbmcgdGltZSBpZg0KZmlyZXdhbGxpbmcgYW5k
+IGNvbm5lY3Rpb24gdHJhY2tpbmcgd2FzIGVuYWJsZWQuDQoNClRoZSByZWFz
+b24gaXMgdGhhdCB0aGUgTkZTIGNsaWVudHMgdGVuZHMgdG8gdXNlIHRoZSBz
+YW1lIHBvcnRzICg4MDAgYW5kDQpjb3VudGluZyBkb3duKS4gTm93IG9uIHJl
+Ym9vdCwgdGhlIHNlcnZlciB3b3VsZCBzdGlsbCBoYXZlIGEgVENCIGZvciBh
+bg0KZXhpc3RpbmcgVENQIGNvbm5lY3Rpb24gY2xpZW50OjgwMCAtPiBzZXJ2
+ZXI6MjA0OS4gVGhlIGNsaWVudCBzZW5kcyBhDQpTWU4gZnJvbSBwb3J0IDgw
+MCB0byBzZXJ2ZXI6MjA0OSwgd2hpY2ggZWxpY2l0cyBhbiBBQ0sgZnJvbSB0
+aGUgc2VydmVyLg0KVGhlIGZpcmV3YWxsIG9uIHRoZSBjbGllbnQgZHJvcHMg
+dGhlIEFDSyBiZWNhdXNlIChmcm9tIGl0cyBwb2ludCBvZg0KdmlldykgdGhl
+IGNvbm5lY3Rpb24gaXMgc3RpbGwgaW4gaGFsZi1vcGVuIHN0YXRlLCBhbmQg
+aXQgZXhwZWN0cyB0byBzZWUNCmEgU1lOQUNLLg0KDQpUaGUgY2xpZW50IHdp
+bGwgZXZlbnR1YWxseSB0aW1lIG91dCBhZnRlciBzZXZlcmFsIG1pbnV0ZXMu
+DQoNClRoZSBmb2xsb3dpbmcgcGF0Y2ggY29ycmVjdHMgdGhpcywgYnkgYWNj
+ZXB0aW5nIEFDS3Mgb24gaGFsZiBvcGVuIGNvbm5lY3Rpb25zDQphcyB3ZWxs
+Lg0KDQpTaWduZWQtb2ZmLWJ5OiBKb3pzZWYgS2FkbGVjc2lrIDxrYWRsZWNA
+YmxhY2tob2xlLmtma2kuaHU+DQoNCmRpZmYgLXVyTiAtLWV4Y2x1ZGUtZnJv
+bT0vdXNyL3NyYy9kaWZmLmV4Y2x1ZGUgbGludXgtMi42LjE1LXJjMi1vcmln
+L25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfcHJvdG9fdGNwLmMg
+bGludXgtMi42LjE1LXJjMi10Y3Atd2luL25ldC9pcHY0L25ldGZpbHRlci9p
+cF9jb25udHJhY2tfcHJvdG9fdGNwLmMNCi0tLSBsaW51eC0yLjYuMTUtcmMy
+LW9yaWcvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19wcm90b190
+Y3AuYwkyMDA1LTExLTIwIDA0OjI1OjAzLjAwMDAwMDAwMCArMDEwMA0KKysr
+IGxpbnV4LTIuNi4xNS1yYzItdGNwLXdpbi9uZXQvaXB2NC9uZXRmaWx0ZXIv
+aXBfY29ubnRyYWNrX3Byb3RvX3RjcC5jCTIwMDUtMTEtMjkgMTE6MDE6MjUu
+MDAwMDAwMDAwICswMTAwDQpAQCAtMjcyLDkgKzI3Miw5IEBADQogICoJc0NM
+IC0+IHNDTA0KICAqLw0KIC8qIAkgICAgIHNOTywgc1NTLCBzU1IsIHNFUywg
+c0ZXLCBzQ1csIHNMQSwgc1RXLCBzQ0wsIHNMSQkqLw0KLS8qYWNrKi8JICAg
+eyBzSVYsIHNJViwgc1NSLCBzRVMsIHNDVywgc0NXLCBzVFcsIHNUVywgc0NM
+LCBzSVYgfSwNCisvKmFjayovCSAgIHsgc0lWLCBzSUcsIHNTUiwgc0VTLCBz
+Q1csIHNDVywgc1RXLCBzVFcsIHNDTCwgc0lWIH0sDQogLyoNCi0gKglzU1Mg
+LT4gc0lWCU1pZ2h0IGJlIGEgaGFsZi1vcGVuIGNvbm5lY3Rpb24uDQorICoJ
+c1NTIC0+IHNJRwlNaWdodCBiZSBhIGhhbGYtb3BlbiBjb25uZWN0aW9uLg0K
+ICAqCXNTUiAtPiBzU1IJTWlnaHQgYW5zd2VyIGxhdGUgcmVzZW50IFNZTi4N
+CiAgKglzRVMgLT4gc0VTCTotKQ0KICAqCXNGVyAtPiBzQ1cJTm9ybWFsIGNs
+b3NlIHJlcXVlc3QgYW5zd2VyZWQgYnkgQUNLLg0KQEAgLTkxNyw4ICs5MTcs
+MTIgQEANCiANCiAJc3dpdGNoIChuZXdfc3RhdGUpIHsNCiAJY2FzZSBUQ1Bf
+Q09OTlRSQUNLX0lHTk9SRToNCi0JCS8qIEVpdGhlciBTWU4gaW4gT1JJR0lO
+QUwNCi0JCSAqIG9yIFNZTi9BQ0sgaW4gUkVQTFkuICovDQorCQkvKiBJZ25v
+cmVkIHBhY2tldHM6DQorCQkgKiANCisJCSAqIGEpIFNZTiBpbiBPUklHSU5B
+TA0KKwkJICogYikgU1lOL0FDSyBpbiBSRVBMWQ0KKwkJICogYykgQUNLIGlu
+IHJlcGx5IGRpcmVjdGlvbiBhZnRlciBpbml0aWFsIFNZTiBpbiBvcmlnaW5h
+bC4NCisJCSAqLw0KIAkJaWYgKGluZGV4ID09IFRDUF9TWU5BQ0tfU0VUDQog
+CQkgICAgJiYgY29ubnRyYWNrLT5wcm90by50Y3AubGFzdF9pbmRleCA9PSBU
+Q1BfU1lOX1NFVA0KIAkJICAgICYmIGNvbm50cmFjay0+cHJvdG8udGNwLmxh
+c3RfZGlyICE9IGRpcg0KQEAgLTk4NSwxMyArOTg5LDIwIEBADQogCQl9DQog
+CWNhc2UgVENQX0NPTk5UUkFDS19DTE9TRToNCiAJCWlmIChpbmRleCA9PSBU
+Q1BfUlNUX1NFVA0KLQkJICAgICYmIHRlc3RfYml0KElQU19TRUVOX1JFUExZ
+X0JJVCwgJmNvbm50cmFjay0+c3RhdHVzKQ0KLQkJICAgICYmIGNvbm50cmFj
+ay0+cHJvdG8udGNwLmxhc3RfaW5kZXggPT0gVENQX1NZTl9TRVQNCisJCSAg
+ICAmJiAoKHRlc3RfYml0KElQU19TRUVOX1JFUExZX0JJVCwgJmNvbm50cmFj
+ay0+c3RhdHVzKQ0KKwkJICAgICAgICAgJiYgY29ubnRyYWNrLT5wcm90by50
+Y3AubGFzdF9pbmRleCA9PSBUQ1BfU1lOX1NFVCkNCisJCSAgICAgICAgfHwg
+KCF0ZXN0X2JpdChJUFNfQVNTVVJFRF9CSVQsICZjb25udHJhY2stPnN0YXR1
+cykNCisJCSAgICAgICAgICAgICYmIGNvbm50cmFjay0+cHJvdG8udGNwLmxh
+c3RfaW5kZXggPT0gVENQX0FDS19TRVQpKQ0KIAkJICAgICYmIG50b2hsKHRo
+LT5hY2tfc2VxKSA9PSBjb25udHJhY2stPnByb3RvLnRjcC5sYXN0X2VuZCkg
+ew0KLQkJCS8qIFJTVCBzZW50IHRvIGludmFsaWQgU1lOIHdlIGhhZCBsZXQg
+dHJvdWdoDQotCQkJICogU1lOIHdhcyBpbiB3aW5kb3cgdGhlbiwgdGVhciBk
+b3duIGNvbm5lY3Rpb24uDQorCQkJLyogUlNUIHNlbnQgdG8gaW52YWxpZCBT
+WU4gb3IgQUNLIHdlIGhhZCBsZXQgdHJvdWdoDQorCQkJICogYXQgYSkgYW5k
+IGMpIGFib3ZlOg0KKwkJCSAqDQorCQkJICogYSkgU1lOIHdhcyBpbiB3aW5k
+b3cgdGhlbg0KKwkJCSAqIGMpIHdlIGhvbGQgYSBoYWxmLW9wZW4gY29ubmVj
+dGlvbi4NCisJCQkgKg0KKwkJCSAqIERlbGV0ZSBvdXIgY29ubmVjdGlvbiBl
+bnRyeS4NCiAJCQkgKiBXZSBza2lwIHdpbmRvdyBjaGVja2luZywgYmVjYXVz
+ZSBwYWNrZXQgbWlnaHQgQUNLDQotCQkJICogc2VnbWVudHMgd2UgaWdub3Jl
+ZCBpbiB0aGUgU1lOLiAqLw0KKwkJCSAqIHNlZ21lbnRzIHdlIGlnbm9yZWQu
+ICovDQogCQkJZ290byBpbl93aW5kb3c7DQogCQl9DQogCQkvKiBKdXN0IGZh
+bGwgdHJvdWdoICovDQpkaWZmIC11ck4gLS1leGNsdWRlLWZyb209L3Vzci9z
+cmMvZGlmZi5leGNsdWRlIGxpbnV4LTIuNi4xNS1yYzItb3JpZy9uZXQvbmV0
+ZmlsdGVyL25mX2Nvbm50cmFja19wcm90b190Y3AuYyBsaW51eC0yLjYuMTUt
+cmMyLXRjcC13aW4vbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfcHJvdG9f
+dGNwLmMNCi0tLSBsaW51eC0yLjYuMTUtcmMyLW9yaWcvbmV0L25ldGZpbHRl
+ci9uZl9jb25udHJhY2tfcHJvdG9fdGNwLmMJMjAwNS0xMS0yMCAwNDoyNTow
+My4wMDAwMDAwMDAgKzAxMDANCisrKyBsaW51eC0yLjYuMTUtcmMyLXRjcC13
+aW4vbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfcHJvdG9fdGNwLmMJMjAw
+NS0xMS0yOSAxMToxOTowMC4wMDAwMDAwMDAgKzAxMDANCkBAIC0yODAsOSAr
+MjgwLDkgQEANCiAgKglzQ0wgLT4gc0NMDQogICovDQogLyogCSAgICAgc05P
+LCBzU1MsIHNTUiwgc0VTLCBzRlcsIHNDVywgc0xBLCBzVFcsIHNDTCwgc0xJ
+CSovDQotLyphY2sqLwkgICB7IHNJViwgc0lWLCBzU1IsIHNFUywgc0NXLCBz
+Q1csIHNUVywgc1RXLCBzQ0wsIHNJViB9LA0KKy8qYWNrKi8JICAgeyBzSVYs
+IHNJRywgc1NSLCBzRVMsIHNDVywgc0NXLCBzVFcsIHNUVywgc0NMLCBzSVYg
+fSwNCiAvKg0KLSAqCXNTUyAtPiBzSVYJTWlnaHQgYmUgYSBoYWxmLW9wZW4g
+Y29ubmVjdGlvbi4NCisgKglzU1MgLT4gc0lHCU1pZ2h0IGJlIGEgaGFsZi1v
+cGVuIGNvbm5lY3Rpb24uDQogICoJc1NSIC0+IHNTUglNaWdodCBhbnN3ZXIg
+bGF0ZSByZXNlbnQgU1lOLg0KICAqCXNFUyAtPiBzRVMJOi0pDQogICoJc0ZX
+IC0+IHNDVwlOb3JtYWwgY2xvc2UgcmVxdWVzdCBhbnN3ZXJlZCBieSBBQ0su
+DQpAQCAtOTEyLDggKzkxMiwxMiBAQA0KIA0KIAlzd2l0Y2ggKG5ld19zdGF0
+ZSkgew0KIAljYXNlIFRDUF9DT05OVFJBQ0tfSUdOT1JFOg0KLQkJLyogRWl0
+aGVyIFNZTiBpbiBPUklHSU5BTA0KLQkJICogb3IgU1lOL0FDSyBpbiBSRVBM
+WS4gKi8NCisJCS8qIElnbm9yZWQgcGFja2V0czoNCisJCSAqDQorCQkgKiBh
+KSBTWU4gaW4gT1JJR0lOQUwNCisJCSAqIGIpIFNZTi9BQ0sgaW4gUkVQTFkN
+CisJCSAqIGMpIEFDSyBpbiByZXBseSBkaXJlY3Rpb24gYWZ0ZXIgaW5pdGlh
+bCBTWU4gaW4gb3JpZ2luYWwuIA0KKwkJICovDQogCQlpZiAoaW5kZXggPT0g
+VENQX1NZTkFDS19TRVQNCiAJCSAgICAmJiBjb25udHJhY2stPnByb3RvLnRj
+cC5sYXN0X2luZGV4ID09IFRDUF9TWU5fU0VUDQogCQkgICAgJiYgY29ubnRy
+YWNrLT5wcm90by50Y3AubGFzdF9kaXIgIT0gZGlyDQpAQCAtOTc5LDEzICs5
+ODMsMjAgQEANCiAJCX0NCiAJY2FzZSBUQ1BfQ09OTlRSQUNLX0NMT1NFOg0K
+IAkJaWYgKGluZGV4ID09IFRDUF9SU1RfU0VUDQotCQkgICAgJiYgdGVzdF9i
+aXQoSVBTX1NFRU5fUkVQTFlfQklULCAmY29ubnRyYWNrLT5zdGF0dXMpDQot
+CQkgICAgJiYgY29ubnRyYWNrLT5wcm90by50Y3AubGFzdF9pbmRleCA9PSBU
+Q1BfU1lOX1NFVA0KKwkJICAgICYmICgodGVzdF9iaXQoSVBTX1NFRU5fUkVQ
+TFlfQklULCAmY29ubnRyYWNrLT5zdGF0dXMpDQorCQkgICAgICAgICAmJiBj
+b25udHJhY2stPnByb3RvLnRjcC5sYXN0X2luZGV4ID09IFRDUF9TWU5fU0VU
+KQ0KKwkJICAgICAgICB8fCAoIXRlc3RfYml0KElQU19BU1NVUkVEX0JJVCwg
+JmNvbm50cmFjay0+c3RhdHVzKQ0KKwkJICAgICAgICAgICAgJiYgY29ubnRy
+YWNrLT5wcm90by50Y3AubGFzdF9pbmRleCA9PSBUQ1BfQUNLX1NFVCkpDQog
+CQkgICAgJiYgbnRvaGwodGgtPmFja19zZXEpID09IGNvbm50cmFjay0+cHJv
+dG8udGNwLmxhc3RfZW5kKSB7DQotCQkJLyogUlNUIHNlbnQgdG8gaW52YWxp
+ZCBTWU4gd2UgaGFkIGxldCB0cm91Z2gNCi0JCQkgKiBTWU4gd2FzIGluIHdp
+bmRvdyB0aGVuLCB0ZWFyIGRvd24gY29ubmVjdGlvbi4NCisJCQkvKiBSU1Qg
+c2VudCB0byBpbnZhbGlkIFNZTiBvciBBQ0sgd2UgaGFkIGxldCB0cm91Z2gN
+CisJCQkgKiBhdCBhKSBhbmQgYykgYWJvdmU6DQorCQkJICoNCisJCQkgKiBh
+KSBTWU4gd2FzIGluIHdpbmRvdyB0aGVuDQorCQkJICogYykgd2UgaG9sZCBh
+IGhhbGYtb3BlbiBjb25uZWN0aW9uLg0KKwkJCSAqDQorCQkJICogRGVsZXRl
+IG91ciBjb25uZWN0aW9uIGVudHJ5Lg0KIAkJCSAqIFdlIHNraXAgd2luZG93
+IGNoZWNraW5nLCBiZWNhdXNlIHBhY2tldCBtaWdodCBBQ0sNCi0JCQkgKiBz
+ZWdtZW50cyB3ZSBpZ25vcmVkIGluIHRoZSBTWU4uICovDQorCQkJICogc2Vn
+bWVudHMgd2UgaWdub3JlZC4gKi8NCiAJCQlnb3RvIGluX3dpbmRvdzsNCiAJ
+CX0NCiAJCS8qIEp1c3QgZmFsbCB0cm91Z2ggKi8NCg==
 
---JgQwtEuHJzHdouWu--
+--110391808-1295814130-1133261036=:31216--
