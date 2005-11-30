@@ -1,36 +1,26 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [RESEND][PATCH] Recent match jiffies wrap mismatches
-Date: Tue, 29 Nov 2005 15:51:59 -0800
-Message-ID: <20051129235159.GA3680@linuxace.com>
-References: <20051129050813.GA30630@linuxace.com> <438CDE4E.8070006@trash.net>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [2.6 patch] net/ipv4/netfilter/: small cleanups
+Date: Tue, 29 Nov 2005 16:28:30 -0800 (PST)
+Message-ID: <20051129.162830.76763512.davem@davemloft.net>
+References: <20051123004108.GE3963@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <438CDE4E.8070006@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: coreteam@netfilter.org, netfilter-devel@lists.netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750723AbVK3A3D@vger.kernel.org>
+To: bunk@stusta.de
+In-Reply-To: <20051123004108.GE3963@stusta.de>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Nov 30, 2005 at 12:03:42AM +0100, Patrick McHardy wrote:
-> Applied, thanks. The lines just above that have the same problem, don't
-> they?
+From: Adrian Bunk <bunk@stusta.de>
+Date: Wed, 23 Nov 2005 01:41:08 +0100
 
-No, since we aren't comparing to values which have been memset to zero.
-We are comparing against last_seen + seconds, which will be a legitimate
-value. 
+> This patch contains the following cleanups:
+> - make needlessly global code static
+> - ip_conntrack_core.c: ip_conntrack_flush() -> ip_conntrack_flush(void)
+> 
+> Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-> [slightly reformated for better readability]
-
-(this file could seriously use a pass through Lindent)
-
-Phil
+Applied, thanks Adrian.
