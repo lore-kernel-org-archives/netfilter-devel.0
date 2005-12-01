@@ -1,12 +1,15 @@
-From: Marcus Sundberg <marcus@ingate.com>
-Subject: [PATCH] ctnetlink: Fix NAT info setting.
-Date: Thu, 01 Dec 2005 13:39:42 +0100
-Message-ID: <438EEF0E.60206@ingate.com>
+From: Pablo Neira Ayuso <pablo@eurodev.net>
+Subject: Re: [PATCH] ctnetlink: Fix NAT info setting.
+Date: Thu, 01 Dec 2005 14:22:45 +0100
+Message-ID: <438EF925.4050802@eurodev.net>
+References: <438EEF0E.60206@ingate.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090601000107030402000203"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------080502010708010205000308"
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
+To: Marcus Sundberg <marcus@ingate.com>
+In-Reply-To: <438EEF0E.60206@ingate.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,72 +22,49 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090601000107030402000203
+--------------080502010708010205000308
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-Hi,
+Marcus Sundberg wrote:
+> [NETFILTER] ctnetlink: Fix NAT info setting.
+> 
+> ip_nat_initialized() takes enum ip_nat_manip_type as it's second
+> argument, not a hook number. The current code was not only ugly,
+> but also broken as IP_NAT_MANIP_SRC != NF_IP_POST_ROUTING.
 
-this patch fixes a latent bug with the NAT info setting in ctnetlink.
-(Currently I believe it's never triggered, as NAT info can not be
- changed on existing conntracks)
+Thanks for the bugfix but I don't like it, it's a bit bloated. Harald,
+please submit the patch attached. It uses HOOK2MANIP macro instead.
 
-//Marcus
 -- 
----------------------------------------+--------------------------
-  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
- Software Developer, Ingate Systems AB |  http://www.ingate.com/
+Pablo
 
---------------090601000107030402000203
-Content-Type: text/x-patch;
- name="ctnetlink-nat.diff"
+--------------080502010708010205000308
+Content-Type: text/plain;
+ name="x.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="ctnetlink-nat.diff"
+ filename="x.patch"
 
-[NETFILTER] ctnetlink: Fix NAT info setting.
+[NETFILTER] ip_nat_initialized takes wrong parameter
 
 ip_nat_initialized() takes enum ip_nat_manip_type as it's second
-argument, not a hook number. The current code was not only ugly,
-but also broken as IP_NAT_MANIP_SRC != NF_IP_POST_ROUTING.
+argument, not a hook number.
 
-Signed-off-by: Marcus Sundberg <marcus@ingate.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
---- linux-2.6.15-rc4/net/ipv4/netfilter/ip_conntrack_netlink.c	2005/12/01 12:25:50	1.1
-+++ linux/net/ipv4/netfilter/ip_conntrack_netlink.c	2005/12/01 12:25:54
-@@ -855,6 +855,7 @@ ctnetlink_change_status(struct ip_conntr
- 		return -EINVAL;
- #else
- 		unsigned int hooknum;
-+		enum ip_nat_manip_type manip;
- 		struct ip_nat_range range;
- 
- 		if (ctnetlink_parse_nat(cda, ct, &range) < 0)
-@@ -867,17 +868,19 @@ ctnetlink_change_status(struct ip_conntr
- 		/* This is tricky but it works. ip_nat_setup_info needs the
- 		 * hook number as parameter, so let's do the correct 
- 		 * conversion and run away */
--		if (status & IPS_SRC_NAT_DONE)
--			hooknum = NF_IP_POST_ROUTING; /* IP_NAT_MANIP_SRC */
--		else if (status & IPS_DST_NAT_DONE)
--			hooknum = NF_IP_PRE_ROUTING;  /* IP_NAT_MANIP_DST */
--		else 
-+		if (status & IPS_SRC_NAT_DONE) {
-+			hooknum = NF_IP_POST_ROUTING;
-+			manip = IP_NAT_MANIP_SRC;
-+		} else if (status & IPS_DST_NAT_DONE) {
-+			hooknum = NF_IP_PRE_ROUTING;
-+			manip = IP_NAT_MANIP_DST;
-+		} else 
- 			return -EINVAL; /* Missing NAT flags */
- 
+Index: netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c
+===================================================================
+--- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-12-01 14:15:09.000000000 +0100
++++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-12-01 14:16:44.000000000 +0100
+@@ -876,7 +876,7 @@ ctnetlink_change_status(struct ip_conntr
  		DEBUGP("NAT status: %lu\n", 
  		       status & (IPS_NAT_MASK | IPS_NAT_DONE_MASK));
  		
 -		if (ip_nat_initialized(ct, hooknum))
-+		if (ip_nat_initialized(ct, manip))
++		if (ip_nat_initialized(ct, HOOK2MANIP(hooknum)))
  			return -EEXIST;
  		ip_nat_setup_info(ct, &range, hooknum);
  
 
---------------090601000107030402000203--
+--------------080502010708010205000308--
