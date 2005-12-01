@@ -1,17 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: again oops: conntrack & 2.6.14-git14
-Date: Thu, 01 Dec 2005 12:09:00 +0100
-Message-ID: <438ED9CC.8030908@trash.net>
-References: <43760B97.9010603@fliegl.de>	<4380B5B1.9040506@trash.net>	<4384A904.4080700@fliegl.de>	<4388730A.2060003@trash.net>	<438877CE.2050305@fliegl.de>	<4388F1F7.5060402@trash.net>
-	<438ED11C.4090508@fliegl.de> <438ED327.8030509@trash.net>
-	<438ED4B8.90506@fliegl.de>
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: [PATCH] ctnetlink: Fix NAT info setting.
+Date: Thu, 01 Dec 2005 13:39:42 +0100
+Message-ID: <438EEF0E.60206@ingate.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------090601000107030402000203"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Deti Fliegl <deti@fliegl.de>
-In-Reply-To: <438ED4B8.90506@fliegl.de>
+To: Harald Welte <laforge@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,17 +18,73 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Deti Fliegl wrote:
-> Patrick McHardy wrote:
-> 
->> See above. It seems to trigger the softlockup watchdog for some reason,
->> which calls show_trace, which is where the crash happens.
-> 
-> Yes you are right - but if this kernel debugging feature is disabled, 
-> then I get some "aieee killing in interrupt handler" without any call 
-> trace. This is somehow really weird...
+This is a multi-part message in MIME format.
+--------------090601000107030402000203
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Yes, thats weird. Its also strange that it triggers the softlockup
-watchdog at all, there shouldn't be delays long enough. Looking
-at your other mails, you had at least one crash that looks totally
-different. Are you sure your memory and other hardware is fine?
+Hi,
+
+this patch fixes a latent bug with the NAT info setting in ctnetlink.
+(Currently I believe it's never triggered, as NAT info can not be
+ changed on existing conntracks)
+
+//Marcus
+-- 
+---------------------------------------+--------------------------
+  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+ Software Developer, Ingate Systems AB |  http://www.ingate.com/
+
+--------------090601000107030402000203
+Content-Type: text/x-patch;
+ name="ctnetlink-nat.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ctnetlink-nat.diff"
+
+[NETFILTER] ctnetlink: Fix NAT info setting.
+
+ip_nat_initialized() takes enum ip_nat_manip_type as it's second
+argument, not a hook number. The current code was not only ugly,
+but also broken as IP_NAT_MANIP_SRC != NF_IP_POST_ROUTING.
+
+Signed-off-by: Marcus Sundberg <marcus@ingate.com>
+
+--- linux-2.6.15-rc4/net/ipv4/netfilter/ip_conntrack_netlink.c	2005/12/01 12:25:50	1.1
++++ linux/net/ipv4/netfilter/ip_conntrack_netlink.c	2005/12/01 12:25:54
+@@ -855,6 +855,7 @@ ctnetlink_change_status(struct ip_conntr
+ 		return -EINVAL;
+ #else
+ 		unsigned int hooknum;
++		enum ip_nat_manip_type manip;
+ 		struct ip_nat_range range;
+ 
+ 		if (ctnetlink_parse_nat(cda, ct, &range) < 0)
+@@ -867,17 +868,19 @@ ctnetlink_change_status(struct ip_conntr
+ 		/* This is tricky but it works. ip_nat_setup_info needs the
+ 		 * hook number as parameter, so let's do the correct 
+ 		 * conversion and run away */
+-		if (status & IPS_SRC_NAT_DONE)
+-			hooknum = NF_IP_POST_ROUTING; /* IP_NAT_MANIP_SRC */
+-		else if (status & IPS_DST_NAT_DONE)
+-			hooknum = NF_IP_PRE_ROUTING;  /* IP_NAT_MANIP_DST */
+-		else 
++		if (status & IPS_SRC_NAT_DONE) {
++			hooknum = NF_IP_POST_ROUTING;
++			manip = IP_NAT_MANIP_SRC;
++		} else if (status & IPS_DST_NAT_DONE) {
++			hooknum = NF_IP_PRE_ROUTING;
++			manip = IP_NAT_MANIP_DST;
++		} else 
+ 			return -EINVAL; /* Missing NAT flags */
+ 
+ 		DEBUGP("NAT status: %lu\n", 
+ 		       status & (IPS_NAT_MASK | IPS_NAT_DONE_MASK));
+ 		
+-		if (ip_nat_initialized(ct, hooknum))
++		if (ip_nat_initialized(ct, manip))
+ 			return -EEXIST;
+ 		ip_nat_setup_info(ct, &range, hooknum);
+ 
+
+--------------090601000107030402000203--
