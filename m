@@ -1,16 +1,17 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [NETFILTER 2/2]: Fix recent match jiffies wrap mismatches
-Date: Thu, 01 Dec 2005 14:29:33 -0800 (PST)
-Message-ID: <20051201.142933.84580470.davem@davemloft.net>
-References: <20051201110617.8700.16237.sendpatchset@localhost.localdomain>
-	<20051201110618.8700.1299.sendpatchset@localhost.localdomain>
+From: Max Kellermann <max@duempel.org>
+Subject: Re: [ANNOUNCE] Debian packages for libnfnetlink, libnetfilter-{queue,
+	log, conntrack}, conntrack
+Date: Fri, 2 Dec 2005 11:23:45 +0100
+Message-ID: <20051202102345.GA29691@roonstrasse.net>
+References: <20051127173411.GA2031@roonstrasse.net>
+	<438A02D3.3030203@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <20051201110618.8700.1299.sendpatchset@localhost.localdomain>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <438A02D3.3030203@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,5 +23,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On 2005/11/27 20:02, Patrick McHardy <kaber@trash.net> wrote:
+> Very nice, but please wait with trying to get them into
+> sid until we have resolved the CTA_PROTO_NUM issue.
 
-Both patches applied, thanks everyone.
+ok, please notify me when the new release is out.
+
+Max
