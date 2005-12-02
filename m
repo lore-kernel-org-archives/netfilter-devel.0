@@ -1,12 +1,14 @@
-From: Geffrey Velasquez <gvelasquez@minag.gob.pe>
-Subject: cntl_test fail
-Date: Fri, 02 Dec 2005 09:44:16 -0500
-Message-ID: <43905DC0.9020805@minag.gob.pe>
+From: Aleksandar Milivojevic <alex@milivojevic.org>
+Subject: Netfilter connection tracking and GRE/IPSec
+Date: Fri, 02 Dec 2005 10:40:46 -0600
+Message-ID: <20051202104046.v6z10kbwn40k4440@www.milivojevic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: netfilter@lists.netfilter.org
+Content-disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,27 +20,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi pals, I'm trying to understand the code of libnetfilter_conntrack 
-(starting with the example from utils) but the cntl_test fail with this 
-errors:
+I've just submitted bug report on Red Hat's bugzilla, and felt like discussing
+on Netfilter list too.
 
-Test for libnetfilter_conntrack
+What happens is, for connections that go through GRE tunnel (wich is in turn
+encapsulated into IPSec tunnel), ip_conntrack is loosing connection tracking
+information.  The connection is sucessfully established, works for some period
+of time (random, I observed anywhere from several minutes to up to one hour). 
+I can see entry for it in /proc/net/ip_conntrack.  Then all the sudden
+Netfilter starts dropping packets belonging to this TCP connection.  When I
+check /proc/net/ip_conntrack on remote side (always happens on remote side of
+the tunnel, although both sides are the same), the entry for this TCP
+connection is no longer there.
 
-NFNETLINK answers: Invalid argument
-TEST 1: create conntrack (-22)
-TEST 2: dump conntrack table and reset (-22)
-TEST 3: dump conntrack table (-22)
-TEST 4: get conntrack (-22)
-TEST 5: update conntrack (-22)
-NFNETLINK answers: Invalid argument
-TEST 6: delete conntrack (-22)
-nfnl_open: bind(netlink): Operation not permitted
-Can't open handler
+The packets are being dropped because my rules look something like this (very
+simplified, just to show where the problem is):
+
+iptables -A -m state --state ESTABLISHED -j ACCEPT
+iptables -A -p icmp -m state --state RELATED -j ACCEPT
+iptables -A -p tcp --syn -s xxx -d yyy --dport 22 -m state --state NEW -j ACCEPT
+
+Once the connection is removed from ip_conntrack table, it can't get back into
+it because of the "--syn" flag on the third line.  Possible workaround might be
+removing the "--syn" flag (security vs. usability).  However, the connection
+entry should have not been removed from the ip_conntrack in the first place. 
+Looks like it may be bug somewhere in Netfilter code.
+
+Red Hat packaged/patched 2.6.9-22.EL kernel.
+
+There's a bit more details on:
+https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=174827
 
 
-I'm running the kernel 2.6.14.3 (from kernel.org) on Centos-4.
-
-Any ideas?
-
-Regards,
-Geffrey
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
