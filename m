@@ -1,7 +1,7 @@
-From: Mark Huang <mlhuang@CS.Princeton.EDU>
-Subject: Resolving inner ICMP connections
-Date: Thu, 01 Dec 2005 14:33:46 -0500
-Message-ID: <438F501A.5060804@cs.princeton.edu>
+From: Geffrey Velasquez <gvelasquez@minag.gob.pe>
+Subject: cntl_test fail
+Date: Fri, 02 Dec 2005 09:44:16 -0500
+Message-ID: <43905DC0.9020805@minag.gob.pe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -18,40 +18,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+Hi pals, I'm trying to understand the code of libnetfilter_conntrack 
+(starting with the example from utils) but the cntl_test fail with this 
+errors:
 
-Is it a bug that 
-net/ipv4/netfilter/ip_conntrack_proto_icmp.c:icmp_error_message()
-associates ICMP error message packets with the connection specified in 
-the inner IP packet, even if the direction of that connection makes no 
-sense?
+Test for libnetfilter_conntrack
 
-I found a router in France that accidentally swaps the direction of the 
-inner IP packet, instead of preserving it verbatim inside the ICMP error 
-message. So, for instance, if you (A) traceroute it (B):
+NFNETLINK answers: Invalid argument
+TEST 1: create conntrack (-22)
+TEST 2: dump conntrack table and reset (-22)
+TEST 3: dump conntrack table (-22)
+TEST 4: get conntrack (-22)
+TEST 5: update conntrack (-22)
+NFNETLINK answers: Invalid argument
+TEST 6: delete conntrack (-22)
+nfnl_open: bind(netlink): Operation not permitted
+Can't open handler
 
-IP: A -> B
-   UDP: a -> b
 
-You get back an ICMP destination unreachable message that looks like:
+I'm running the kernel 2.6.14.3 (from kernel.org) on Centos-4.
 
-IP: B -> A
-   ICMP: type 3, code 3
-     IP: B -> A
-     UDP: b -> a
+Any ideas?
 
-Instead of:
-
-IP: B -> A
-   ICMP: type 3, code 3
-     IP: A -> B
-     UDP: a -> b
-
-Obviously there's something seriously wrong with this router. What 
-happens is that the ICMP error message gets associated with the original 
-side of the connection (as in IP_CT_DIR_ORIGINAL), not the reply side, 
-messing up a few assumptions I was making in my NF_IP_LOCAL_IN hook.
-
-Thanks,
-
---Mark
+Regards,
+Geffrey
