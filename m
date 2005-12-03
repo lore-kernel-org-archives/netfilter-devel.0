@@ -1,46 +1,36 @@
-From: Pablo Neira Ayuso <pablo@eurodev.net>
-Subject: Re: cntl_test fail
-Date: Sat, 03 Dec 2005 12:55:12 +0100
-Message-ID: <439187A0.3010604@eurodev.net>
-References: <43905DC0.9020805@minag.gob.pe>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] ipset-2.2.8
+Date: Sat, 3 Dec 2005 16:21:02 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0512031617190.11022@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Geffrey Velasquez <gvelasquez@minag.gob.pe>
-In-Reply-To: <43905DC0.9020805@minag.gob.pe>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Geffrey Velasquez wrote:
-> Hi pals, I'm trying to understand the code of libnetfilter_conntrack
-> (starting with the example from utils) but the cntl_test fail with this
-> errors:
-> 
-> Test for libnetfilter_conntrack
-> 
-> NFNETLINK answers: Invalid argument
-> TEST 1: create conntrack (-22)
-> TEST 2: dump conntrack table and reset (-22)
-> TEST 3: dump conntrack table (-22)
-> TEST 4: get conntrack (-22)
-> TEST 5: update conntrack (-22)
-> NFNETLINK answers: Invalid argument
-> TEST 6: delete conntrack (-22)
-> nfnl_open: bind(netlink): Operation not permitted
-> Can't open handler
+Hi,
 
-modprobe ip_conntrack_netlink, the load on demand of
-ip_conntrack_netlink was inserted in 2.6.15 :(
+This is a bugfix-only release: a nasty off-by-one bug in iptree type of
+sets was reported by Pablo Sole. If you use iptree type of sets, please
+upgrade the kernel part. There is no need to refresh ipset: the version
+was bumped just to note the kernel fix.
 
--- 
-Pablo
+The new version is available from http://ipset.netfilter.org or from the
+netfilter svn tree, as usual.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
