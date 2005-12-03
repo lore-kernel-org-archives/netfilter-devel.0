@@ -1,16 +1,15 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
+From: Pablo Neira Ayuso <pablo@eurodev.net>
 Subject: Re: cntl_test fail
-Date: Fri, 2 Dec 2005 22:48:50 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0512022247420.6181@bizon.gios.gov.pl>
+Date: Sat, 03 Dec 2005 12:55:12 +0100
+Message-ID: <439187A0.3010604@eurodev.net>
 References: <43905DC0.9020805@minag.gob.pe>
-	<Pine.LNX.4.64.0512022113160.4068@bizon.gios.gov.pl>
-	<4390AF17.4030103@minag.gob.pe>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-995259433-1133560130=:6181"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Geffrey Velasquez <gvelasquez@minag.gob.pe>
-In-Reply-To: <4390AF17.4030103@minag.gob.pe>
+In-Reply-To: <43905DC0.9020805@minag.gob.pe>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,31 +21,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Geffrey Velasquez wrote:
+> Hi pals, I'm trying to understand the code of libnetfilter_conntrack
+> (starting with the example from utils) but the cntl_test fail with this
+> errors:
+> 
+> Test for libnetfilter_conntrack
+> 
+> NFNETLINK answers: Invalid argument
+> TEST 1: create conntrack (-22)
+> TEST 2: dump conntrack table and reset (-22)
+> TEST 3: dump conntrack table (-22)
+> TEST 4: get conntrack (-22)
+> TEST 5: update conntrack (-22)
+> NFNETLINK answers: Invalid argument
+> TEST 6: delete conntrack (-22)
+> nfnl_open: bind(netlink): Operation not permitted
+> Can't open handler
 
----187430788-995259433-1133560130=:6181
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+modprobe ip_conntrack_netlink, the load on demand of
+ip_conntrack_netlink was inserted in 2.6.15 :(
 
-
-
-On Fri, 2 Dec 2005, Geffrey Velasquez wrote:
-
-> It also fails (for me) with the latest svn version.
->
-> the .config (2.6.14.3)
->
->
-> CONFIG_NETFILTER_NETLINK=3Dm
-y?
-
-> CONFIG_IP_NF_CONNTRACK_NETLINK=3Dm
-y?
-
-Or use insmod/modprobe.
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-995259433-1133560130=:6181--
+-- 
+Pablo
