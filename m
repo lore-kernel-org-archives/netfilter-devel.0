@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 1/9]: nf_conntrack: Fix missing check for ICMPv6 type
-Date: Sun, 04 Dec 2005 22:01:17 +0100
-Message-ID: <20051204210117.24032.63147.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 2/9]: nfnetlink: Fix calculation of minimum message
+	length
+Date: Sun, 04 Dec 2005 22:01:19 +0100
+Message-ID: <20051204210118.24032.220.sendpatchset@localhost.localdomain>
 References: <20051204210116.24032.9802.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,53 +19,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: Fix missing check for ICMPv6 type
+[NETFILTER]: nfnetlink: Fix calculation of minimum message length
 
-This makes nf_conntrack_icmpv6 check that ICMPv6 type isn't < 128
-to avoid accessing out of array valid_new[] and invmap[].
+At least, valid nfnetlink message should have nlmsghdr and nfgenmsg.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit e512e47b2238a9e367f05a36b4ac2ba53f5ad12e
-tree faa3dc22ceff3549bc211cc48da4d1d63a9fab35
-parent 436b0f76f2cee6617f27a649637766628909dd5d
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 04 Dec 2005 16:01:47 +0100
-committer Patrick McHardy <kaber@trash.net> Sun, 04 Dec 2005 16:01:47 +0100
+commit 1ec1f9de65434db4bac6141e25c5b8a6b5110e4f
+tree 0eaed90532d67c3ba3281628bfbd256f5cc1163d
+parent e512e47b2238a9e367f05a36b4ac2ba53f5ad12e
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 04 Dec 2005 16:26:36 +0100
+committer Patrick McHardy <kaber@trash.net> Sun, 04 Dec 2005 16:26:36 +0100
 
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ net/netfilter/nfnetlink.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index c0f1da5..a7e03cf 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -68,8 +68,8 @@ static int icmpv6_invert_tuple(struct nf
- 		[ICMPV6_NI_REPLY - 128]		= ICMPV6_NI_REPLY +1
- 	};
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index a60c59b..95fdf04 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -162,7 +162,7 @@ nfnetlink_check_attributes(struct nfnetl
+ 		return -EINVAL;
+ 	}
  
--	__u8 type = orig->dst.u.icmp.type - 128;
--	if (type >= sizeof(invmap) || !invmap[type])
-+	int type = orig->dst.u.icmp.type - 128;
-+	if (type < 0 || type >= sizeof(invmap) || !invmap[type])
- 		return 0;
+-	min_len = NLMSG_ALIGN(sizeof(struct nfgenmsg));
++	min_len = NLMSG_SPACE(sizeof(struct nfgenmsg));
+ 	if (unlikely(nlh->nlmsg_len < min_len))
+ 		return -EINVAL;
  
- 	tuple->src.u.icmp.id   = orig->src.u.icmp.id;
-@@ -129,12 +129,12 @@ static int icmpv6_new(struct nf_conn *co
- 		[ICMPV6_ECHO_REQUEST - 128] = 1,
- 		[ICMPV6_NI_QUERY - 128] = 1
- 	};
-+	int type = conntrack->tuplehash[0].tuple.dst.u.icmp.type - 128;
+@@ -236,8 +236,7 @@ static inline int nfnetlink_rcv_msg(stru
+ 	}
  
--	if (conntrack->tuplehash[0].tuple.dst.u.icmp.type - 128 >= sizeof(valid_new)
--	    || !valid_new[conntrack->tuplehash[0].tuple.dst.u.icmp.type - 128]) {
-+	if (type < 0 || type >= sizeof(valid_new) || !valid_new[type]) {
- 		/* Can't create a new ICMPv6 `conn' with this. */
--		DEBUGP("icmp: can't create new conn with type %u\n",
--		       conntrack->tuplehash[0].tuple.dst.u.icmp.type);
-+		DEBUGP("icmpv6: can't create new conn with type %u\n",
-+		       type + 128);
- 		NF_CT_DUMP_TUPLE(&conntrack->tuplehash[0].tuple);
+ 	/* All the messages must at least contain nfgenmsg */
+-	if (nlh->nlmsg_len < 
+-			NLMSG_LENGTH(NLMSG_ALIGN(sizeof(struct nfgenmsg)))) {
++	if (nlh->nlmsg_len < NLMSG_SPACE(sizeof(struct nfgenmsg))) {
+ 		DEBUGP("received message was too short\n");
  		return 0;
  	}
