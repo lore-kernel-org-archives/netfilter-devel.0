@@ -1,18 +1,16 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH] CTA_PROTO_NUM is u_int8_t not u_int16_t
-Date: Sun, 04 Dec 2005 12:20:53 -0800 (PST)
-Message-ID: <20051204.122053.117831054.davem@davemloft.net>
-References: <439313B2.50601@trash.net>
-	<20051204.114813.59310147.davem@davemloft.net>
-	<43934B40.60309@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Resolving inner ICMP connections
+Date: Sun, 04 Dec 2005 21:24:23 +0100
+Message-ID: <43935077.3030903@trash.net>
+References: <438F501A.5060804@cs.princeton.edu> <439316EB.2030401@trash.net>
+	<43933E81.3080702@cs.princeton.edu>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
-	pablo@eurodev.net
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <43934B40.60309@trash.net>
+To: Mark Huang <mlhuang@CS.Princeton.EDU>
+In-Reply-To: <43933E81.3080702@cs.princeton.edu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,11 +22,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Sun, 04 Dec 2005 21:02:08 +0100
+Mark Huang wrote:
+> Patrick McHardy wrote:
+> 
+>> That depends. What do you mean with "makes no sense"?
+> 
+> 
+> Well, in the case of the French router, plain wrong.
 
-> Some ugly workarounds might be possible, but considering that
-> ctnetlink is new and how much problems it still has, it shouldn't be
-> a big problem to do this right and break compatibility.
+The question is, how can conntrack know its "wrong"? There is
+no relationship between the inner and the outer addresses that
+we could rely on.
 
-Yes, this is how I see it too.
+> But I can imagine a 
+> few other scenarios as well. The inner IP packet could be completely 
+> unrelated to any current connection, or it could be a cracker trying to 
+> break some current connection on the machine by spoofing inner ICMP 
+> packets. I'm just speculating and don't have any tests to back this 
+> claim up, but I might try it just to see what happens.
+
+It its completely unrelated it will be tracked as state INVALID.
+Spoofed ICMP packets don't affect conntrack directly, ICMP replies
+are only tracked to make filtering easier and to correctly reverse
+NAT the inner packet. It doesn't affect the connection state.
+
+>> Maybe an old version of linux? :) NAT used to do stange things to
+>> locally generated ICMP packets until about a year ago.
+> 
+> 
+> Do you mean on the French router or on my box? I don't know what's 
+> running on the French router, but I'm running a 2.6.12ish kernel.
+
+The router.
+
+>> What are these assumptions?
+> 
+> Well, the worst assumption was that
+> 
+> conntrack->tuplehash[dir].tuple.dst.ip == skb->nh.iph->ipaddr
+> 
+> I.e., the conntrack associated with the packet I received on the local 
+> IN hook, has the same destination IP address as the packet itself, which 
+> in retrospect is probably a bad assumption. When the French router 
+> returned the inverted ICMP error message, the conntract dst.ip was that 
+> of the French router, not my IP address!
+
+OK, thats weird. I don't think this can be used to confuse conntrack
+itself, but I'm going to check.
