@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 2/9]: nfnetlink: Fix calculation of minimum message
-	length
-Date: Sun, 04 Dec 2005 22:01:19 +0100
-Message-ID: <20051204210118.24032.220.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 3/9]: Fix incorrect argument to ip_nat_initialized() in
+	ctnetlink
+Date: Sun, 04 Dec 2005 22:01:20 +0100
+Message-ID: <20051204210120.24032.24517.sendpatchset@localhost.localdomain>
 References: <20051204210116.24032.9802.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,43 +19,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink: Fix calculation of minimum message length
+[NETFILTER]: Fix incorrect argument to ip_nat_initialized() in ctnetlink
 
-At least, valid nfnetlink message should have nlmsghdr and nfgenmsg.
+ip_nat_initialized() takes enum ip_nat_manip_type as it's second argument,
+not a hook number.
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Noticed and initial patch by Marcus Sundberg <marcus@ingate.com>.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 1ec1f9de65434db4bac6141e25c5b8a6b5110e4f
-tree 0eaed90532d67c3ba3281628bfbd256f5cc1163d
-parent e512e47b2238a9e367f05a36b4ac2ba53f5ad12e
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 04 Dec 2005 16:26:36 +0100
-committer Patrick McHardy <kaber@trash.net> Sun, 04 Dec 2005 16:26:36 +0100
+commit 5b33d73e5d4153241c8e2378332f9810f4eca160
+tree 4a1ec661e39d1adf96e8621b36236882295b03ff
+parent 1ec1f9de65434db4bac6141e25c5b8a6b5110e4f
+author Pablo Neira Ayuso <pablo@netfilter.org> Sun, 04 Dec 2005 16:35:54 +0100
+committer Patrick McHardy <kaber@trash.net> Sun, 04 Dec 2005 16:35:54 +0100
 
- net/netfilter/nfnetlink.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index a60c59b..95fdf04 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -162,7 +162,7 @@ nfnetlink_check_attributes(struct nfnetl
- 		return -EINVAL;
- 	}
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+index 3fce91b..70402e0 100644
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -877,7 +877,7 @@ ctnetlink_change_status(struct ip_conntr
+ 		DEBUGP("NAT status: %lu\n", 
+ 		       status & (IPS_NAT_MASK | IPS_NAT_DONE_MASK));
+ 		
+-		if (ip_nat_initialized(ct, hooknum))
++		if (ip_nat_initialized(ct, HOOK2MANIP(hooknum)))
+ 			return -EEXIST;
+ 		ip_nat_setup_info(ct, &range, hooknum);
  
--	min_len = NLMSG_ALIGN(sizeof(struct nfgenmsg));
-+	min_len = NLMSG_SPACE(sizeof(struct nfgenmsg));
- 	if (unlikely(nlh->nlmsg_len < min_len))
- 		return -EINVAL;
- 
-@@ -236,8 +236,7 @@ static inline int nfnetlink_rcv_msg(stru
- 	}
- 
- 	/* All the messages must at least contain nfgenmsg */
--	if (nlh->nlmsg_len < 
--			NLMSG_LENGTH(NLMSG_ALIGN(sizeof(struct nfgenmsg)))) {
-+	if (nlh->nlmsg_len < NLMSG_SPACE(sizeof(struct nfgenmsg))) {
- 		DEBUGP("received message was too short\n");
- 		return 0;
- 	}
