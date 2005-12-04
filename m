@@ -1,18 +1,17 @@
-From: Deti Fliegl <deti@fliegl.de>
-Subject: Re: Major problem with conntrack utility and kernel 2.6.14.3
-Date: Mon, 05 Dec 2005 00:08:58 +0100
-Message-ID: <4393770A.7090204@fliegl.de>
-References: <4361EAAB.1090206@fliegl.de>
-	<436281BB.2010100@fliegl.de>	<4392510A.3030400@eurodev.net>	<200512041004.37192.romary@nikoon.com>
-	<43934BC3.3090107@trash.net>
+From: Herve Eychenne <rv@wallfire.org>
+Subject: Re: SNAT from multiple interfaces with the same IP?
+Date: Mon, 5 Dec 2005 00:35:57 +0100
+Message-ID: <20051204233557.GB5617@eychenne.org>
+References: <4392E148.7010102@gmx.net> <43930BEF.9000602@trash.net>
+	<20051204153729.GA5617@eychenne.org> <43931301.1040109@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Pablo Neira Ayuso <pablo@eurodev.net>,
-	Romary Sonrier <romary@nikoon.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <43934BC3.3090107@trash.net>
+Content-Disposition: inline
+In-Reply-To: <43931301.1040109@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,11 +23,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Please try this patch, I hope it will fix the problems you're seeing.
-Good news: 3h uptime with stresstest active. Looks very promising. Will 
-continue test until 12h uptime.
+On Sun, Dec 04, 2005 at 05:02:09PM +0100, Patrick McHardy wrote:
 
-Very good work, thanks a lot!
+> Herve Eychenne wrote:
+> >On Sun, Dec 04, 2005 at 04:31:59PM +0100, Patrick McHardy wrote:
+> >
+> >
+> >>I don't see why it wouldn't work, but you can't use -i in POSTROUTING
+> >>directly,
+> >
+> >
+> >BTW, I've always wondered why exactly...
 
-Deti
+> Two reasons:
+
+> - The incoming interface is not known anymore in POST_ROUTING
+
+Sorry, but... why? (that was my question indeed)
+
+> - Locally generated packets don't even have an incoming interface
+
+So what?
+If you could use -i, then locally generated packets wouldn't match
+(that's not a problem because you would do it on purpose).
+If you don't, it would work as it used to till now.
+
+ Herve
+
+--=20
+ _
+(=B0=3D  Herv=E9 Eychenne
+//)
+v_/_ WallFire project:  http://www.wallfire.org/
