@@ -1,10 +1,12 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 0/9]: Netfilter fixes
-Date: Sun, 04 Dec 2005 22:01:16 +0100
-Message-ID: <20051204210116.24032.9802.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 5/9]: Fix CTA_PROTO_NUM attribute size in ctnetlink
+Date: Sun, 04 Dec 2005 22:01:22 +0100
+Message-ID: <20051204210122.24032.67408.sendpatchset@localhost.localdomain>
+References: <20051204210116.24032.9802.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: David S. Miller <davem@davemloft.net>
+In-Reply-To: <20051204210116.24032.9802.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -16,19 +18,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Dave,
-
-following are a unfortunately quite large number of netfilter fixes for
-2.6.15. They're all pretty simple, I hope its still possible to get them
-in ..
-
-
-[NETFILTER]: nf_conntrack: Fix missing check for ICMPv6 type
-[NETFILTER]: nfnetlink: Fix calculation of minimum message length
-[NETFILTER]: Fix incorrect argument to ip_nat_initialized() in ctnetlink
-[NETFILTER]: Fix ip_conntrack_flush abuse in ctnetlink
 [NETFILTER]: Fix CTA_PROTO_NUM attribute size in ctnetlink
-[NETFILTER]: Mark ctnetlink as EXPERIMENTAL
-[NETFILTER]: Wait for untracked references in nf_conntrack module unload
-[NETFILTER]: Fix unbalanced read_unlock_bh in ctnetlink
-[NETFILTER]: Don't use conntrack entry after dropping the reference
+
+CTA_PROTO_NUM is a u_int8_t.
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 0fa82f8caa129bb2377e1b593bf2986fc13c5391
+tree 0a7479acf48c9de99cb6f9fd1fac3a01dec2e220
+parent 01563e56ad1c48c85e1258e2eaabcc270385e1a5
+author Patrick McHardy <kaber@trash.net> Sun, 04 Dec 2005 17:00:48 +0100
+committer Patrick McHardy <kaber@trash.net> Sun, 04 Dec 2005 17:00:48 +0100
+
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+index 70402e0..d058ac4 100644
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -503,7 +503,7 @@ ctnetlink_parse_tuple_ip(struct nfattr *
+ }
+ 
+ static const size_t cta_min_proto[CTA_PROTO_MAX] = {
+-	[CTA_PROTO_NUM-1]	= sizeof(u_int16_t),
++	[CTA_PROTO_NUM-1]	= sizeof(u_int8_t),
+ 	[CTA_PROTO_SRC_PORT-1]	= sizeof(u_int16_t),
+ 	[CTA_PROTO_DST_PORT-1]	= sizeof(u_int16_t),
+ 	[CTA_PROTO_ICMP_TYPE-1]	= sizeof(u_int8_t),
+@@ -528,7 +528,7 @@ ctnetlink_parse_tuple_proto(struct nfatt
+ 
+ 	if (!tb[CTA_PROTO_NUM-1])
+ 		return -EINVAL;
+-	tuple->dst.protonum = *(u_int16_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
++	tuple->dst.protonum = *(u_int8_t *)NFA_DATA(tb[CTA_PROTO_NUM-1]);
+ 
+ 	proto = ip_conntrack_proto_find_get(tuple->dst.protonum);
+ 
