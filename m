@@ -1,13 +1,18 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 9/9]: Don't use conntrack entry after dropping the
-	reference
-Date: Sun, 04 Dec 2005 22:01:26 +0100
-Message-ID: <20051204210126.24032.44556.sendpatchset@localhost.localdomain>
-References: <20051204210116.24032.9802.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 06/13]: [IPV4/6]: Netfilter IPsec input hooks
+Date: Sun, 04 Dec 2005 23:06:02 +0100
+Message-ID: <4393684A.8030208@trash.net>
+References: <20051120163128.16666.38111.sendpatchset@localhost.localdomain>
+	<20051120163135.16666.76993.sendpatchset@localhost.localdomain>
+	<20051201012711.GA2527@gondor.apana.org.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David S. Miller <davem@davemloft.net>
-In-Reply-To: <20051204210116.24032.9802.sendpatchset@localhost.localdomain>
+To: Herbert Xu <herbert@gondor.apana.org.au>
+In-Reply-To: <20051201012711.GA2527@gondor.apana.org.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,35 +24,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Don't use conntrack entry after dropping the reference
+Herbert Xu wrote:
+> On Sun, Nov 20, 2005 at 04:31:36PM +0000, Patrick McHardy wrote:
+> 
+>>@@ -145,7 +149,17 @@ int xfrm4_rcv_encap(struct sk_buff *skb,
+>> 		netif_rx(skb);
+>> 		return 0;
+>> 	} else {
+>>+#ifdef CONFIG_NETFILTER
+>>+		__skb_push(skb, skb->data - skb->nh.raw);
+>>+		skb->nh.iph->tot_len = htons(skb->len);
+>>+		ip_send_check(skb->nh.iph);
+>>+
+>>+		NF_HOOK(PF_INET, NF_IP_PRE_ROUTING, skb, skb->dev, NULL,
+>>+		        ip_xfrm_transport_hook);
+>>+		return 0;
+>>+#else
+>> 		return -skb->nh.iph->protocol;
+>>+#endif
+> 
+> 
+> I'm worried about this bit.  This looks like it'll go back to the top
+> of the IP stack with the existing call chain.  So could grow as the
+> number of transforms increase.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Its not so bad. It adds ip_xfrm_transport_hook and
+ip_local_deliver_finish to the call stack, but since two subsequent
+transport mode SAs are always processed at once it can't take this
+path again without calling netif_rx in between.
 
----
-commit 016ada126fa7f3f46ffeefa14d59edd8464317bf
-tree c2586a37bc0af665b9932badc9b2b22dd427a078
-parent cd85228eea7c7ab9d701090e3dc9643397cf271d
-author Patrick McHardy <kaber@trash.net> Sun, 04 Dec 2005 21:30:33 +0100
-committer Patrick McHardy <kaber@trash.net> Sun, 04 Dec 2005 21:30:33 +0100
+> Perhaps we need to play a dst_input/netif_rx trick here.
+> 
+> Actually, was there a problem with your original netif_rx approach
+> apart from the issue with double counting?
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index d058ac4..91fe8f2 100644
---- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -728,11 +728,9 @@ ctnetlink_del_conntrack(struct sock *ctn
- 			return -ENOENT;
- 		}
- 	}	
--	if (del_timer(&ct->timeout)) {
--		ip_conntrack_put(ct);
-+	if (del_timer(&ct->timeout))
- 		ct->timeout.function((unsigned long)ct);
--		return 0;
--	}
-+
- 	ip_conntrack_put(ct);
- 	DEBUGP("leaving\n");
- 
+Besides the double counting, packets also appear on the packet sockets
+after transport mode decapsulation with the original approach. For
+IPv6 there's also the double-parsing of extension header issue.
