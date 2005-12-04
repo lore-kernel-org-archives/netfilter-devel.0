@@ -1,15 +1,12 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: P2P implementation for netfilter NAT
-Date: Sun, 04 Dec 2005 21:26:49 +1100
-Message-ID: <1133692009.30188.27.camel@localhost.localdomain>
-References: <001801c5f6b3$539b1b20$3478fea9@acer21ce70712f>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
+Subject: SNAT from multiple interfaces with the same IP?
+Date: Sun, 04 Dec 2005 13:30:00 +0100
+Message-ID: <4392E148.7010102@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jesse Peng <tzuhsi.peng@msa.hinet.net>
-In-Reply-To: <001801c5f6b3$539b1b20$3478fea9@acer21ce70712f>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,36 +18,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2005-12-02 at 04:10 +0800, Jesse Peng wrote:
-> Dear All
-> Here is the patch for p2p implementation.Please reference the links
-> below:
-> 1.Logic to implement.
-> https://lists.netfilter.org/pipermail/netfilter-devel/2004-November/017479.html 
-> 2.The Last draft by Dan Kegel.
-> http://www.brynosaurus.com/pub/net/p2pnat.pdf
-> 
-> Hello Rusty
-> Like what we discussed as following 2 points
-> 1.hash_by_modified_source need be checked and added by conntracks
-> being SNATP2Ped.As the checking code is hacked in
-> ip_nat_used_tuple,and adding code in ip_nat_setup_info.All incoming
-> hairpin or holepunch try be checked and added in the ip_nat_rule_find
-> hacking.
+Hi,
 
-> 2.delay tcp timeout for immediate reset by counterparts in case they
-> are old version and fail to take hairpin or holepunch reaction.(Maybe
-> We don't need do this any more,because that will only terminate our
-> initiation,but while they initiate,we are happy to handle the
-> holepunch and the hairpin! :) ) .
+some time ago, I read that netfilter is unable to perform SNAT
+for identical ranges on different interfaces.
 
-Hi Jesse,
+Scenario:
 
-	Your patch seems incomplete, and anyway it's been mangled by your
-mailer.  Sorry I've been slow to respond, but a on a quick read I think
-you're going in the right direction.  Perhaps try an attachment?
+eth0: 192.168.0.1/16
+eth1: 192.168.0.1/16
+eth2: 10.2.0.1/8
 
-Thanks!
-Rusty.
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+iptables -t nat -A POSTROUTING -i eth0 -s 192.168.0.0/16 -j SNAT --to-source 10.0.0.0-10.0.255.255
+iptables -t nat -A POSTROUTING -i eth1 -s 192.168.0.0/16 -j SNAT --to-source 10.1.0.0-10.1.255.255
+
+Will that work or is connection tracking unable to differentiate
+between the 192.168/16 subnets on eth0 and eth1? My problem is
+that although the ranges on eth0 and eth1 are sparsely populated,
+some IPs exist in both networks. Communication between the networks
+on eth0 and eth1 is not necessary, I just want them to be able to
+communicate with the outside (on eth2).
+
+If this is not possible, is there a patch in POM or something else
+with which I can achieve my goal with only one machine.
+
+
+Regards,
+Carl-Daniel
