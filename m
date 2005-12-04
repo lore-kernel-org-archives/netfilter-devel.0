@@ -1,12 +1,11 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH] nfnetlink: Fix calculation of minimum message length
-Date: Sun, 04 Dec 2005 01:52:42 +0900 (JST)
-Message-ID: <200512031652.jB3GqhpX021980@toshiba.co.jp>
+From: Eric Leblond <eric@inl.fr>
+Subject: libconntrack usage
+Date: Sun, 04 Dec 2005 01:39:42 +0100
+Message-ID: <1133656782.17460.11.camel@porky>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Sun_Dec__4_01_52_42_2005_026)--"
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, kaber@trash.net
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-9pxk0Mck/nzJQUboo8z5"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -20,49 +19,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Sun_Dec__4_01_52_42_2005_026)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+
+--=-9pxk0Mck/nzJQUboo8z5
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-At least, valid nfnetlink message should have nlmsghdr and nfgenmsg.
+INL has develop a daemon (nutrackd) which use the libconntrack. It opens
+event handler for DESTROY event and to register the callback it uses :
+	nfct_register_callback(cth, update_handler, NULL);
+and this work well, our handler is called.
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+But is still display [DESTROY] on stdout after each message.
 
-----Next_Part(Sun_Dec__4_01_52_42_2005_026)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="02-nfnetlink.patch"
+By doing :
+    nfct_unregister_callback(cth);
+    nfct_register_callback(cth, update_handler, NULL);
+we manage to suppress the useless message.
 
-[NETFILTER] nfnetlink: Fix calculation of minimum message length
+Is this a bug or a feature ?
 
-At least, valid nfnetlink message should have nlmsghdr and nfgenmsg.
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+INL
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+--=-9pxk0Mck/nzJQUboo8z5
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
----
-commit 83535e538f30e66a20c040ff2c20170c0df23b0e
-tree 90af221810d8ed68de2fa38d13a34088d35d1fa6
-parent b80e4873d096c32b1c941b66cbfdaf1cf9bf8d8d
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 27 Nov 2005 02:49:03 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 27 Nov 2005 02:49:03 +0900
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
- net/netfilter/nfnetlink.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+iD8DBQBDkjrOnxA7CdMWjzIRAgz8AKCEYj1Ho1z5i4ozdP5MJmViodBr/gCfSVs4
+gLF1KtMkCEulRw4zpUWaoTU=
+=I8Le
+-----END PGP SIGNATURE-----
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index a60c59b..9805514 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -162,7 +162,7 @@ nfnetlink_check_attributes(struct nfnetl
- 		return -EINVAL;
- 	}
- 
--	min_len = NLMSG_ALIGN(sizeof(struct nfgenmsg));
-+	min_len = NLMSG_SPACE(sizeof(struct nfgenmsg));
- 	if (unlikely(nlh->nlmsg_len < min_len))
- 		return -EINVAL;
- 
-
-----Next_Part(Sun_Dec__4_01_52_42_2005_026)----
+--=-9pxk0Mck/nzJQUboo8z5--
