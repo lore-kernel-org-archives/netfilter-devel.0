@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 3/9]: Fix incorrect argument to ip_nat_initialized() in
-	ctnetlink
-Date: Sun, 04 Dec 2005 22:01:20 +0100
-Message-ID: <20051204210120.24032.24517.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 6/9]: Mark ctnetlink as EXPERIMENTAL
+Date: Sun, 04 Dec 2005 22:01:23 +0100
+Message-ID: <20051204210123.24032.2569.sendpatchset@localhost.localdomain>
 References: <20051204210116.24032.9802.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,36 +18,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Fix incorrect argument to ip_nat_initialized() in ctnetlink
+[NETFILTER]: Mark ctnetlink as EXPERIMENTAL
 
-ip_nat_initialized() takes enum ip_nat_manip_type as it's second argument,
-not a hook number.
+Should have been marked EXPERIMENTAL from the beginning, as the current
+bunch of fixes show.
 
-Noticed and initial patch by Marcus Sundberg <marcus@ingate.com>.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 5b33d73e5d4153241c8e2378332f9810f4eca160
-tree 4a1ec661e39d1adf96e8621b36236882295b03ff
-parent 1ec1f9de65434db4bac6141e25c5b8a6b5110e4f
-author Pablo Neira Ayuso <pablo@netfilter.org> Sun, 04 Dec 2005 16:35:54 +0100
-committer Patrick McHardy <kaber@trash.net> Sun, 04 Dec 2005 16:35:54 +0100
+commit aea6c7fa24378c7f38026177c0b524719789b4be
+tree e656f511d3fbfaf666828a8fc6803d7579db6dc9
+parent 0fa82f8caa129bb2377e1b593bf2986fc13c5391
+author Patrick McHardy <kaber@trash.net> Sun, 04 Dec 2005 17:11:34 +0100
+committer Patrick McHardy <kaber@trash.net> Sun, 04 Dec 2005 17:11:34 +0100
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/ipv4/netfilter/Kconfig |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index 3fce91b..70402e0 100644
---- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -877,7 +877,7 @@ ctnetlink_change_status(struct ip_conntr
- 		DEBUGP("NAT status: %lu\n", 
- 		       status & (IPS_NAT_MASK | IPS_NAT_DONE_MASK));
- 		
--		if (ip_nat_initialized(ct, hooknum))
-+		if (ip_nat_initialized(ct, HOOK2MANIP(hooknum)))
- 			return -EEXIST;
- 		ip_nat_setup_info(ct, &range, hooknum);
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 0bc0052..88a6065 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -56,8 +56,8 @@ config IP_NF_CONNTRACK_MARK
+ 	  instead of the individual packets.
+ 	
+ config IP_NF_CONNTRACK_EVENTS
+-	bool "Connection tracking events"
+-	depends on IP_NF_CONNTRACK
++	bool "Connection tracking events (EXPERIMENTAL)"
++	depends on EXPERIMENTAL && IP_NF_CONNTRACK
+ 	help
+ 	  If this option is enabled, the connection tracking code will
+ 	  provide a notifier chain that can be used by other kernel code
+@@ -66,8 +66,8 @@ config IP_NF_CONNTRACK_EVENTS
+ 	  IF unsure, say `N'.
  
+ config IP_NF_CONNTRACK_NETLINK
+-	tristate 'Connection tracking netlink interface'
+-	depends on IP_NF_CONNTRACK && NETFILTER_NETLINK
++	tristate 'Connection tracking netlink interface (EXPERIMENTAL)'
++	depends on EXPERIMENTAL && IP_NF_CONNTRACK && NETFILTER_NETLINK
+ 	depends on IP_NF_CONNTRACK!=y || NETFILTER_NETLINK!=m
+ 	help
+ 	  This option enables support for a netlink-based userspace interface
