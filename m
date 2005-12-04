@@ -1,16 +1,12 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Resolving inner ICMP connections
-Date: Sun, 04 Dec 2005 21:24:23 +0100
-Message-ID: <43935077.3030903@trash.net>
-References: <438F501A.5060804@cs.princeton.edu> <439316EB.2030401@trash.net>
-	<43933E81.3080702@cs.princeton.edu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Subject: [NETFILTER 8/9]: Fix unbalanced read_unlock_bh in ctnetlink
+Date: Sun, 04 Dec 2005 22:01:25 +0100
+Message-ID: <20051204210125.24032.41541.sendpatchset@localhost.localdomain>
+References: <20051204210116.24032.9802.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Mark Huang <mlhuang@CS.Princeton.EDU>
-In-Reply-To: <43933E81.3080702@cs.princeton.edu>
+To: David S. Miller <davem@davemloft.net>
+In-Reply-To: <20051204210116.24032.9802.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,50 +18,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Mark Huang wrote:
-> Patrick McHardy wrote:
-> 
->> That depends. What do you mean with "makes no sense"?
-> 
-> 
-> Well, in the case of the French router, plain wrong.
+[NETFILTER]: Fix unbalanced read_unlock_bh in ctnetlink
 
-The question is, how can conntrack know its "wrong"? There is
-no relationship between the inner and the outer addresses that
-we could rely on.
+NFA_NEST calls NFA_PUT which jumps to nfattr_failure if the skb has no
+room left. We call read_unlock_bh at nfattr_failure for the NFA_PUT inside
+the locked section, so move NFA_NEST inside the locked section too.
 
-> But I can imagine a 
-> few other scenarios as well. The inner IP packet could be completely 
-> unrelated to any current connection, or it could be a cracker trying to 
-> break some current connection on the machine by spoofing inner ICMP 
-> packets. I'm just speculating and don't have any tests to back this 
-> claim up, but I might try it just to see what happens.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-It its completely unrelated it will be tracked as state INVALID.
-Spoofed ICMP packets don't affect conntrack directly, ICMP replies
-are only tracked to make filtering easier and to correctly reverse
-NAT the inner packet. It doesn't affect the connection state.
+---
+commit cd85228eea7c7ab9d701090e3dc9643397cf271d
+tree e3fa7a6a24c5b199d311a9f74c312fee3b18eae7
+parent 96c75906027f008ed3a4058a606938901e9c6d99
+author Patrick McHardy <kaber@trash.net> Sun, 04 Dec 2005 20:56:05 +0100
+committer Patrick McHardy <kaber@trash.net> Sun, 04 Dec 2005 20:56:05 +0100
 
->> Maybe an old version of linux? :) NAT used to do stange things to
->> locally generated ICMP packets until about a year ago.
-> 
-> 
-> Do you mean on the French router or on my box? I don't know what's 
-> running on the French router, but I'm running a 2.6.12ish kernel.
+ net/ipv4/netfilter/ip_conntrack_proto_tcp.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-The router.
-
->> What are these assumptions?
-> 
-> Well, the worst assumption was that
-> 
-> conntrack->tuplehash[dir].tuple.dst.ip == skb->nh.iph->ipaddr
-> 
-> I.e., the conntrack associated with the packet I received on the local 
-> IN hook, has the same destination IP address as the packet itself, which 
-> in retrospect is probably a bad assumption. When the French router 
-> returned the inverted ICMP error message, the conntract dst.ip was that 
-> of the French router, not my IP address!
-
-OK, thats weird. I don't think this can be used to confuse conntrack
-itself, but I'm going to check.
+diff --git a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+index aeb7353..e7fa29e 100644
+--- a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
++++ b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+@@ -341,9 +341,10 @@ static int tcp_print_conntrack(struct se
+ static int tcp_to_nfattr(struct sk_buff *skb, struct nfattr *nfa,
+ 			 const struct ip_conntrack *ct)
+ {
+-	struct nfattr *nest_parms = NFA_NEST(skb, CTA_PROTOINFO_TCP);
++	struct nfattr *nest_parms;
+ 	
+ 	read_lock_bh(&tcp_lock);
++	nest_parms = NFA_NEST(skb, CTA_PROTOINFO_TCP);
+ 	NFA_PUT(skb, CTA_PROTOINFO_TCP_STATE, sizeof(u_int8_t),
+ 		&ct->proto.tcp.state);
+ 	read_unlock_bh(&tcp_lock);
