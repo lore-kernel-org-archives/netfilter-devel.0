@@ -1,16 +1,17 @@
-From: Herve Eychenne <rv@wallfire.org>
-Subject: Re: SNAT from multiple interfaces with the same IP?
-Date: Sun, 4 Dec 2005 16:37:29 +0100
-Message-ID: <20051204153729.GA5617@eychenne.org>
-References: <4392E148.7010102@gmx.net> <43930BEF.9000602@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] ctnetlink: Fix NAT info setting.
+Date: Sun, 04 Dec 2005 16:36:31 +0100
+Message-ID: <43930CFF.5030301@trash.net>
+References: <438EEF0E.60206@ingate.com> <438EF925.4050802@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Marcus Sundberg <marcus@ingate.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
-In-Reply-To: <43930BEF.9000602@trash.net>
+To: Pablo Neira Ayuso <pablo@eurodev.net>
+In-Reply-To: <438EF925.4050802@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,19 +23,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Dec 04, 2005 at 04:31:59PM +0100, Patrick McHardy wrote:
+Pablo Neira Ayuso wrote:
+> [NETFILTER] ip_nat_initialized takes wrong parameter
+> 
+> ip_nat_initialized() takes enum ip_nat_manip_type as it's second
+> argument, not a hook number.
 
-> I don't see why it wouldn't work, but you can't use -i in POSTROUTING
-> directly,
-
-BTW, I've always wondered why exactly...
-
-> you need to mark the packets or just SNAT unconditionally.
-
- Herve
-
---=20
- _
-(=B0=3D  Herv=E9 Eychenne
-//)
-v_/_ WallFire project:  http://www.wallfire.org/
+Applied, thanks Pablo and Marcus.
