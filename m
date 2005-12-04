@@ -1,18 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] CTA_PROTO_NUM is u_int8_t not u_int16_t (was Re:
- CTA_PROTO_NUM u_int8_t or u_int16_t)
-Date: Sun, 04 Dec 2005 17:35:03 +0100
-Message-ID: <43931AB7.8060400@trash.net>
-References: <Pine.LNX.4.64.0511231128510.9162@bizon.gios.gov.pl>	<20051124200736.GW31478@sunbeam.de.gnumonks.org>	<20051124202125.GX31478@sunbeam.de.gnumonks.org>	<43864DC7.6060109@trash.net>	<Pine.LNX.4.64.0511250040030.14092@bizon.gios.gov.pl>	<20051125084427.GL31478@sunbeam.de.gnumonks.org>	<Pine.LNX.4.64.0511251019330.32144@bizon.gios.gov.pl>	<438710E1.2000202@trash.net>	<4387A946.3000005@eurodev.net>	<Pine.LNX.4.64.0511272313570.28434@bizon.gios.gov.pl>	<20051129040925.GC3544@rama.towersoft.de>	<438CDF45.9040308@trash.net>
-	<4392630F.4040008@eurodev.net> <439313B2.50601@trash.net>
+From: Deti Fliegl <deti@fliegl.de>
+Subject: Re: problem with conntrack utility and kernel 2.6.14
+Date: Sun, 04 Dec 2005 17:53:21 +0100
+Message-ID: <43931F01.1040204@fliegl.de>
+References: <4361EAAB.1090206@fliegl.de>
+	<4361F6DF.3050106@eurodev.net>	<43621028.40705@fliegl.de>
+	<43627A8F.9060307@eurodev.net> <436281BB.2010100@fliegl.de>
+	<4392510A.3030400@eurodev.net> <4393149F.8080302@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org, Pablo Neira Ayuso <pablo@eurodev.net>,
+	romary@nikoon.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@eurodev.net>
-In-Reply-To: <439313B2.50601@trash.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4393149F.8080302@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,15 +26,9 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
-> 
->> Any update on this?
-> 
-> 
-> I've added this patch to my queue. It doesn't even affect compatiblity,
-> userspace can send both u_int8_t or u_int16_t, the binary representation
-> will look the same.
+> Interesting. I guess that rules out bad hardware in Deti's case. I still
+> can't see how this can happen, but I'm going to have another look.
+Well, I was testing on a system bought in june. Tomorrow I will setup a 
+brand new box (but same platform) and repeat my stresstests.
 
-After wakeing up entirely, I noticed this is nonsense, it depends on the
-byte-order of course. Anyway, I'm going to push this patch forward
-tonight, it seems libconntrack currently has a number of issues anyway.
+Deti
