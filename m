@@ -1,9 +1,9 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/8] ctnetlink_event cleanup
-Date: Mon, 05 Dec 2005 12:21:08 +0100
-Message-ID: <439422A4.8010305@netfilter.org>
+Subject: [PATCH 6/8] fix racy conntrack mark
+Date: Mon, 05 Dec 2005 12:21:10 +0100
+Message-ID: <439422A6.3040604@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020205050500080102080502"
+Content-Type: multipart/mixed; boundary="------------090000030207010501040009"
 Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,7 +19,7 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------020205050500080102080502
+--------------090000030207010501040009
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
@@ -28,54 +28,44 @@ Content-Transfer-Encoding: 7bit
 The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------020205050500080102080502
+--------------090000030207010501040009
 Content-Type: text/plain;
- name="14.patch"
+ name="15.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="14.patch"
+ filename="15.patch"
 
-Cleanup: Use 'else if' instead of a ugly 'goto' statement.
+Set conntrack mark before it is in hashes.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
 Index: netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c
 ===================================================================
---- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-12-05 11:43:34.000000000 +0100
-+++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-12-05 11:44:55.000000000 +0100
-@@ -311,29 +311,22 @@ static int ctnetlink_conntrack_event(str
- 	if (events & IPCT_DESTROY) {
- 		type = IPCTNL_MSG_CT_DELETE;
- 		group = NFNLGRP_CONNTRACK_DESTROY;
--		goto alloc_skb;
--	}
--	if (events & (IPCT_NEW | IPCT_RELATED)) {
-+	} else  if (events & (IPCT_NEW | IPCT_RELATED)) {
- 		type = IPCTNL_MSG_CT_NEW;
- 		flags = NLM_F_CREATE|NLM_F_EXCL;
- 		/* dump everything */
- 		events = ~0UL;
- 		group = NFNLGRP_CONNTRACK_NEW;
--		goto alloc_skb;
--	}
--	if (events & (IPCT_STATUS |
-+	} else if (events & (IPCT_STATUS |
- 		      IPCT_PROTOINFO |
- 		      IPCT_HELPER |
- 		      IPCT_HELPINFO |
- 		      IPCT_NATINFO)) {
- 		type = IPCTNL_MSG_CT_NEW;
- 		group = NFNLGRP_CONNTRACK_UPDATE;
--		goto alloc_skb;
--	} 
-+	} else 
-+		return NOTIFY_DONE;
- 	
--	return NOTIFY_DONE;
+--- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-12-05 11:44:55.000000000 +0100
++++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-12-05 11:45:12.000000000 +0100
+@@ -1032,6 +1032,11 @@ ctnetlink_create_conntrack(struct nfattr
+ 			return err;
+ 	}
+ 
++#if defined(CONFIG_IP_NF_CONNTRACK_MARK)
++	if (cda[CTA_MARK-1])
++	ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
++#endif
++
+ 	ct->helper = ip_conntrack_helper_find_get(rtuple);
+ 
+ 	add_timer(&ct->timeout);
+@@ -1040,11 +1045,6 @@ ctnetlink_create_conntrack(struct nfattr
+ 	if (ct->helper)
+ 		ip_conntrack_helper_put(ct->helper);
+ 
+-#if defined(CONFIG_IP_NF_CONNTRACK_MARK)
+-	if (cda[CTA_MARK-1])
+-		ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
+-#endif
 -
--alloc_skb:
-   /* FIXME: Check if there are any listeners before, don't hurt performance */
- 	
- 	skb = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
+ 	DEBUGP("conntrack with id %u inserted\n", ct->id);
+ 	return 0;
+ 
 
---------------020205050500080102080502--
+--------------090000030207010501040009--
