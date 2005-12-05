@@ -1,15 +1,16 @@
 From: Pablo Neira Ayuso <pablo@eurodev.net>
-Subject: Re: Waiting for user space response in Kernel Mode
-Date: Mon, 05 Dec 2005 10:52:26 +0100
-Message-ID: <43940DDA.3050908@eurodev.net>
-References: <20051205094858.34850.qmail@web36409.mail.mud.yahoo.com>
+Subject: Re: [NETFILTER 6/9]: Mark ctnetlink as EXPERIMENTAL
+Date: Mon, 05 Dec 2005 11:06:45 +0100
+Message-ID: <43941135.2060300@eurodev.net>
+References: <20051204210116.24032.9802.sendpatchset@localhost.localdomain>
+	<20051204210123.24032.2569.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, "David S.Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Guru Prasad <guru_netfilter@yahoo.com>
-In-Reply-To: <20051205094858.34850.qmail@web36409.mail.mud.yahoo.com>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <20051204210123.24032.2569.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,33 +22,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Guru Prasad wrote:
-> I am a newbie to Kernel and Netfilter development.
->   
-> When a new connection with specific parameters (for
-> example a certain destination IP address) is created,
-> I would like to indicate this event to a daemon
-> process in user space which takes some decision before
-> proceeding. I detect this event from 
-> ip_conntrack_netlink.c in the following function.
->   
->   int ctnetlink_conntrack_event(struct notifier_block 
-> *this,                                     
-> unsigned long events, void *ptr) -->    "if (events & 
-> (IPCT_NEW | 
-> IPCT_RELATED)) {"
->   
-> When I detect a new connection,I tried to use
-> Wait_queues and call schedule() so that I could wait
-> on this process before receiving response from user
-> space, but using this mechanism leads to crashes. It
-> seems that one can only use this mechanism (wait
-> queues and schedule)  when a process is executing in
-> the context of a user space application.  
+Hi Patrick,
 
-Yes, ctnetlink_conntrack_event is always called from interrupt context.
-Don't do that in kernelspace. Use libnetfilter_conntrack and work in
-userspace please.
+Patrick McHardy wrote:
+> [NETFILTER]: Mark ctnetlink as EXPERIMENTAL
+> 
+> Should have been marked EXPERIMENTAL from the beginning, as the current
+> bunch of fixes show.
+> 
+> diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+> index 0bc0052..88a6065 100644
+> --- a/net/ipv4/netfilter/Kconfig
+> +++ b/net/ipv4/netfilter/Kconfig
+> @@ -56,8 +56,8 @@ config IP_NF_CONNTRACK_MARK
+>  	  instead of the individual packets.
+>  	
+>  config IP_NF_CONNTRACK_EVENTS
+> -	bool "Connection tracking events"
+> -	depends on IP_NF_CONNTRACK
+> +	bool "Connection tracking events (EXPERIMENTAL)"
+> +	depends on EXPERIMENTAL && IP_NF_CONNTRACK
+
+The patch is imcomplete, NF_CONNTRACK_EVENTS must be set as EXPERIMENTAL
+as well (see net/netfilter/Kconfig).
 
 -- 
 Pablo
