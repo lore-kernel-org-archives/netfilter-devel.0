@@ -1,9 +1,9 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/8] Add sanity checkings for ICMP
-Date: Mon, 05 Dec 2005 12:20:59 +0100
-Message-ID: <4394229B.5030506@netfilter.org>
+Subject: [PATCH 3/8] Check ctnetlink_dump_tuples_proto return value
+Date: Mon, 05 Dec 2005 12:21:02 +0100
+Message-ID: <4394229E.6000100@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020302020409040204020504"
+Content-Type: multipart/mixed; boundary="------------000708070301030106020002"
 Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,7 +19,7 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------020302020409040204020504
+--------------000708070301030106020002
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
@@ -28,37 +28,41 @@ Content-Transfer-Encoding: 7bit
 The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------020302020409040204020504
+--------------000708070301030106020002
 Content-Type: text/plain;
- name="11.patch"
+ name="12.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="11.patch"
+ filename="12.patch"
 
-Add proper checkings to avoid possible malformed ICMP conntracks. And return 
-to userspace -EINVAL in case of error.
+Check ctnetlink_dump_tuples_proto return value.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Index: netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
+Index: netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c
 ===================================================================
---- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_proto_icmp.c	2005-12-04 03:35:50.000000000 +0100
-+++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_proto_icmp.c	2005-12-04 03:37:24.000000000 +0100
-@@ -288,10 +288,14 @@ nfattr_failure:
- static int icmp_nfattr_to_tuple(struct nfattr *tb[],
- 				struct ip_conntrack_tuple *tuple)
+--- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-12-04 03:39:49.000000000 +0100
++++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-12-04 03:40:35.000000000 +0100
+@@ -78,6 +78,7 @@ ctnetlink_dump_tuples(struct sk_buff *sk
+ 		      const struct ip_conntrack_tuple *tuple)
  {
-+	if (tuple->dst.u.icmp.type >= sizeof(valid_new)
-+	    || !valid_new[tuple->dst.u.icmp.type])
-+		return -EINVAL;
-+
- 	if (!tb[CTA_PROTO_ICMP_TYPE-1]
- 	    || !tb[CTA_PROTO_ICMP_CODE-1]
- 	    || !tb[CTA_PROTO_ICMP_ID-1])
--		return -1;
-+		return -EINVAL;
+ 	struct nfattr *nest_parms;
++	int ret;
+ 	
+ 	nest_parms = NFA_NEST(skb, CTA_TUPLE_IP);
+ 	NFA_PUT(skb, CTA_IP_V4_SRC, sizeof(u_int32_t), &tuple->src.ip);
+@@ -85,10 +86,10 @@ ctnetlink_dump_tuples(struct sk_buff *sk
+ 	NFA_NEST_END(skb, nest_parms);
  
- 	tuple->dst.u.icmp.type = 
- 			*(u_int8_t *)NFA_DATA(tb[CTA_PROTO_ICMP_TYPE-1]);
+ 	nest_parms = NFA_NEST(skb, CTA_TUPLE_PROTO);
+-	ctnetlink_dump_tuples_proto(skb, tuple);
++	ret = ctnetlink_dump_tuples_proto(skb, tuple);
+ 	NFA_NEST_END(skb, nest_parms);
+ 
+-	return 0;
++	return ret;
+ 
+ nfattr_failure:
+ 	return -1;
 
---------------020302020409040204020504--
+--------------000708070301030106020002--
