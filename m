@@ -1,14 +1,17 @@
-From: "swcims" <swcims@163.com>
-Subject: Help:I want to set the same src and dest ports when doing SNAT
-Date: Mon, 5 Dec 2005 11:04:35 +0800
-Message-ID: <80.6491393179343$1133752049@news.gmane.org>
-Reply-To: swcims@163.com
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: problem with conntrack utility and kernel 2.6.14
+Date: Mon, 05 Dec 2005 14:51:48 +0900 (JST)
+Message-ID: <200512050551.jB55pnS6006429@toshiba.co.jp>
+References: <200512041710.jB4HA40F021665@toshiba.co.jp>
+	<4393390C.4080301@fliegl.de> <439349DE.3060706@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: deti@fliegl.de, netfilter-devel@lists.netfilter.org, pablo@eurodev.net,
+	romary@nikoon.com, yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "netfilter-devel" <netfilter-devel@lists.netfilter.org>
+To: kaber@trash.net
+In-Reply-To: <439349DE.3060706@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,23 +23,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi All,
- 
-   I am working in netfilter on Linux2.4.17.Here is the top:
- 
-   PC1-------------------Linux NAT Router----------------------PC3
-                          |    (192.168.1.1  200.0.0.1)                  (200.0.0.2)
-   PC2-------------
- 
-   For example,PC1 and PC2 are in the LAN side(192.168.1.0/24),and they will be handle by SNAT of Linux router(192.168.1.1 and 200.0.0.1),PC3 is in the WAN side(200.0.0.2). 
-   Now I  set PC1 and PC2 to setup IPSec tunnel to PC3.Yes,it is for multiple VPN passthru to the same VPN device in WAN side.You know,the src:dest port would be 500:500.But  unfortunetly,src:port of one the tunnel would be set to be 1:500 by Netfilter NAT feature.I know it is correct for NAT to do this modification.But some VPN device would only accept the packet of 500:500!
- So I want to make NAT to not change the src ports(500) of PC1 and PC2.Would anyone kindly provide information and advice?
- By the way, I can't use NAT-T to handle multiple VPN passthru. I know there would not be pefect to add conntrack helper and nat helper for isakmp and esp,but I have no choice.
- Any advice will be highly appreciated!
- 
- Thanks a lot!
- 
-  Best Regards
- 
-        swcims
-        2005-12-05
+From: Patrick McHardy <kaber@trash.net>
+Date: Sun, 04 Dec 2005 20:56:14 +0100
+
+> Deti Fliegl wrote:
+> > Latest test was done with linux-2.6.15-rc5 which already contains this 
+> > patch.
+> > 
+> > And here comes your oops...
+
+Thanks a lot, Deti! This BUG_ON() is what I expected.
+
+> Found it (I hope) :)
+
+Great! I'll be able to sleep well tonight.
+
+-- Yasuyuki Kozakai
