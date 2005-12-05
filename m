@@ -1,12 +1,19 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 6/8] fix racy conntrack mark
-Date: Mon, 05 Dec 2005 12:21:10 +0100
-Message-ID: <439422A6.3040604@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Major problem with conntrack utility and kernel 2.6.14.3
+Date: Mon, 05 Dec 2005 16:17:33 +0100
+Message-ID: <43945A0D.8020500@trash.net>
+References: <4361EAAB.1090206@fliegl.de> <436281BB.2010100@fliegl.de>
+	<4392510A.3030400@eurodev.net>
+	<200512041004.37192.romary@nikoon.com> <43934BC3.3090107@trash.net>
+	<Pine.LNX.4.64.0512051115450.16776@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090000030207010501040009"
-Cc: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Deti Fliegl <deti@fliegl.de>, netfilter-devel@lists.netfilter.org,
+	Pablo Neira Ayuso <pablo@eurodev.net>, Romary Sonrier <romary@nikoon.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Krzysztof Oledzki <olenf@ans.pl>
+In-Reply-To: <Pine.LNX.4.64.0512051115450.16776@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,54 +25,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090000030207010501040009
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Krzysztof Oledzki wrote:
+> On Sun, 4 Dec 2005, Patrick McHardy wrote:
+> 
+>> Please try this patch, I hope it will fix the problems you're seeing.
+>>
+> 
+> This patch also fixed my problem (kernel BUG at kernel/sched.c:2833).
+> Thank you.
+> 
+> Is it possible that this patch and "Fix refcount leak
+> ip_conntrack/nat_proto"
+> (http://www.kernel.org/git/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=00cb277a4a1fb76aafb2fb28aa99f30546e619c5)
+> will go to next 2.6.14-stable kernel?
 
-
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
-
---------------090000030207010501040009
-Content-Type: text/plain;
- name="15.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="15.patch"
-
-Set conntrack mark before it is in hashes.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Index: netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c
-===================================================================
---- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-12-05 11:44:55.000000000 +0100
-+++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-12-05 11:45:12.000000000 +0100
-@@ -1032,6 +1032,11 @@ ctnetlink_create_conntrack(struct nfattr
- 			return err;
- 	}
- 
-+#if defined(CONFIG_IP_NF_CONNTRACK_MARK)
-+	if (cda[CTA_MARK-1])
-+	ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
-+#endif
-+
- 	ct->helper = ip_conntrack_helper_find_get(rtuple);
- 
- 	add_timer(&ct->timeout);
-@@ -1040,11 +1045,6 @@ ctnetlink_create_conntrack(struct nfattr
- 	if (ct->helper)
- 		ip_conntrack_helper_put(ct->helper);
- 
--#if defined(CONFIG_IP_NF_CONNTRACK_MARK)
--	if (cda[CTA_MARK-1])
--		ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
--#endif
--
- 	DEBUGP("conntrack with id %u inserted\n", ct->id);
- 	return 0;
- 
-
---------------090000030207010501040009--
+I'll submit them to -stable tonight.
