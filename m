@@ -1,9 +1,9 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 7/8] Remove unused var proto
-Date: Mon, 05 Dec 2005 12:21:12 +0100
-Message-ID: <439422A8.3070309@netfilter.org>
+Subject: [PATCH 4/8] use is u_int32_t not unsigned int
+Date: Mon, 05 Dec 2005 12:21:05 +0100
+Message-ID: <439422A1.2090307@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050408000408030909080103"
+Content-Type: multipart/mixed; boundary="------------090306050200070802020205"
 Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,7 +19,7 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------050408000408030909080103
+--------------090306050200070802020205
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
@@ -28,36 +28,29 @@ Content-Transfer-Encoding: 7bit
 The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------050408000408030909080103
+--------------090306050200070802020205
 Content-Type: text/plain;
- name="16.patch"
+ name="13.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="16.patch"
+ filename="13.patch"
 
-Remove useless proto.
+Use u_int32_t instead of unsigned int.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
 Index: netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c
 ===================================================================
---- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-12-05 11:45:12.000000000 +0100
-+++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-12-05 11:45:20.000000000 +0100
-@@ -1204,7 +1204,6 @@ static int ctnetlink_expect_event(struct
- 	unsigned int type;
- 	unsigned char *b;
- 	int flags = 0;
--	u16 proto;
- 
- 	if (events & IPEXP_NEW) {
- 		type = IPCTNL_MSG_EXP_NEW;
-@@ -1231,7 +1230,6 @@ static int ctnetlink_expect_event(struct
- 		goto nfattr_failure;
- 
- 	nlh->nlmsg_len = skb->tail - b;
--	proto = exp->tuple.dst.protonum;
- 	nfnetlink_send(skb, 0, NFNLGRP_CONNTRACK_EXP_NEW, 0);
- 	return NOTIFY_DONE;
- 
+--- netfilter-2.6.14.git.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-12-04 03:44:27.000000000 +0100
++++ netfilter-2.6.14.git/net/ipv4/netfilter/ip_conntrack_netlink.c	2005-12-04 03:51:56.000000000 +0100
+@@ -229,7 +229,7 @@ nfattr_failure:
+ static inline int
+ ctnetlink_dump_use(struct sk_buff *skb, const struct ip_conntrack *ct)
+ {
+-	unsigned int use = htonl(atomic_read(&ct->ct_general.use));
++	u_int32_t use = htonl(atomic_read(&ct->ct_general.use));
+ 	
+ 	NFA_PUT(skb, CTA_USE, sizeof(u_int32_t), &use);
+ 	return 0;
 
---------------050408000408030909080103--
+--------------090306050200070802020205--
