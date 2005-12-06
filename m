@@ -1,16 +1,15 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Netfilter blog
-Date: Tue, 6 Dec 2005 20:29:45 +0530
-Message-ID: <20051206145945.GH4038@rama.exocore.com>
-References: <4386701A.30107@trash.net>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: Proper detection of FTP-DATA
+Date: Tue, 6 Dec 2005 16:09:00 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0512061604120.1560@bizon.gios.gov.pl>
+References: <C3FA62B1A90D7440B9B6C7C31895994F016C6D7A@zadbn02100.vodacom.corp>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="u/L2/WlOHZg+YGU4"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1186367373-1133881740=:1560"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <4386701A.30107@trash.net>
+To: Pieter De Wit <pieter@vodacom.co.za>
+In-Reply-To: <C3FA62B1A90D7440B9B6C7C31895994F016C6D7A@zadbn02100.vodacom.corp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,51 +21,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---u/L2/WlOHZg+YGU4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+---187430788-1186367373-1133881740=:1560
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-On Fri, Nov 25, 2005 at 02:59:54AM +0100, Patrick McHardy wrote:
-> Harald convinced me to run a blog on netfilter development,
-> so here it is:
->=20
-> http://people.netfilter.org/kaber/weblog/
 
-congratulations!  I've added it to http://planet.netfilter.org/
 
-> Pretty boring so far, lets hope it gets better :)
+On Tue, 6 Dec 2005, Pieter De Wit wrote:
 
-I sincerely hope so, since it is a very easy way for interested people
-to stay updated about current development issues / progress.
+> Hello Guys,
+>
+> How would you properly match FTP-DATA connections? I have tried the
+> following and after checking the man pages, this should work ?!?
+>
+> iptables -A INPUT -p tcp -m tcp --dport=3D21 # For FTP-CTRL
+> iptables -A INPUT -m state --state ESTABLISHED -j ACCEPT
+> iptables -A INPUT -m state --state RELATED -j ACCEPT
+>
+> Let's just say outbound is ACCEPT *
+>
+> For passive FTP that should work, since the firewall (which is on the
+> FTP Server) can match that ? Or can it ?
 
-Cheers from Bangalore,
-	Harald
+All you need is:
+iptables -A INPUT -p tcp --dport 21 -j ACCEPT
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED -j ACCEPT
+iptables -A INPUT -m conntrack -m helper --state RELATED --helper ftp -j AC=
+CEPT
 
-btw: Did you already do some work on 'patch-o-matic-ng apt like
-functionality' ?
+and:
+modprobe ip_conntrack_ftp
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+You can also use less restricted version:
+iptables -A INPUT -p tcp --dport 21 -j ACCEPT
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
---u/L2/WlOHZg+YGU4
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Best regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDladhXaXGVTD0i/8RAkIHAJ9jHv3K1zTmARS7pDBzTDlWLpefaQCglG2I
-f1ZDfD2R6B7e64g5sV4zRpY=
-=Lfft
------END PGP SIGNATURE-----
-
---u/L2/WlOHZg+YGU4--
+ =09=09=09Krzysztof Ol=EAdzki
+---187430788-1186367373-1133881740=:1560--
