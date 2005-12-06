@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Another target to log packet
-Date: Tue, 6 Dec 2005 20:43:12 +0530
-Message-ID: <20051206151311.GI4038@rama.exocore.com>
-References: <1133450457.438f14d924ba8@imp1-g19.free.fr>
+Subject: Re: Netfilter blog
+Date: Tue, 6 Dec 2005 20:29:45 +0530
+Message-ID: <20051206145945.GH4038@rama.exocore.com>
+References: <4386701A.30107@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pWOmaDnDlrCGjNh4"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="u/L2/WlOHZg+YGU4"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: ced.clerget@free.fr
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
-In-Reply-To: <1133450457.438f14d924ba8@imp1-g19.free.fr>
+In-Reply-To: <4386701A.30107@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,33 +23,29 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---pWOmaDnDlrCGjNh4
+--u/L2/WlOHZg+YGU4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Dec 01, 2005 at 04:20:57PM +0100, ced.clerget@free.fr wrote:
-> An another target is available on https://sourceforge.net/projects/nflog =
-to log
-> packet via a virtual device (take the idea of pflog under OpenBSD).
+On Fri, Nov 25, 2005 at 02:59:54AM +0100, Patrick McHardy wrote:
+> Harald convinced me to run a blog on netfilter development,
+> so here it is:
+>=20
+> http://people.netfilter.org/kaber/weblog/
 
-Thanks for letting us know.=20
+congratulations!  I've added it to http://planet.netfilter.org/
 
-Unfortunately the names "nf_log" and "NFLOG" are already used in 2.6.15+
-kernels, so we have a name overlap here. I strognly recommend that you
-rename your code, since both kernel and iptables userspace side use
-exactly that name for something different :(
+> Pretty boring so far, lets hope it gets better :)
 
-Also, it is not the right way to implement this as an iptables target.
-Instead, I suggest reimplementing it as a nf_log backend (i.e. something
-that registers as nf_logger at  'nf_log_register().
+I sincerely hope so, since it is a very easy way for interested people
+to stay updated about current development issues / progress.
 
-This way all you need is the virtual interface code - and it is not
-related to iptables at all.  In fact, even ipv6/bridge/arptables/...
-logged packets can end up at that interface.
+Cheers from Bangalore,
+	Harald
 
-btw: we give out people.netfilter.org accounts, just in case you're
-interested (I'm a sourceforge-hater, but that's just a personal thing).
+btw: Did you already do some work on 'patch-o-matic-ng apt like
+functionality' ?
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -61,16 +57,16 @@ interested (I'm a sourceforge-hater, but that's just a personal thing).
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---pWOmaDnDlrCGjNh4
+--u/L2/WlOHZg+YGU4
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDlaqHXaXGVTD0i/8RAthXAJ9JJ38ug04bvoz2K7f4NmFCe7APOwCeMS57
-hzkhZby2DXiTUigIjdGoE8o=
-=eKZJ
+iD8DBQFDladhXaXGVTD0i/8RAkIHAJ9jHv3K1zTmARS7pDBzTDlWLpefaQCglG2I
+f1ZDfD2R6B7e64g5sV4zRpY=
+=Lfft
 -----END PGP SIGNATURE-----
 
---pWOmaDnDlrCGjNh4--
+--u/L2/WlOHZg+YGU4--
