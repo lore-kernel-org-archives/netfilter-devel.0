@@ -1,7 +1,7 @@
 From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: [RESEND 2] [1/2] OSF: fix 2.4 compilation.
-Date: Tue, 6 Dec 2005 16:51:58 +0300
-Message-ID: <20051206135158.GA27686@2ka.mipt.ru>
+Subject: [RESEND 2] [2/2] OSF: netlink related changes.
+Date: Tue, 6 Dec 2005 16:52:10 +0300
+Message-ID: <20051206135209.GB27686@2ka.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Harald Welte <laforge@netfilter.org>, PatriK McHardy <kaber@trash.net>
@@ -19,29 +19,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Bug found by Aleksey Barabanov <alekseybb mail.ru>.
+Hello, developers.
+Due to new interface and changed API in netlink area
+several patch-o-matic modules can not be compiled.
+Passive OS fingerprinting OSF modules is one of them. 
+Consider for inclusion.
 Thank you.
 
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
---- net/ipv4/netfilter/ipt_osf.c.orig	2005-11-26 15:29:33.000000000 +0300
-+++ net/ipv4/netfilter/tmp/ipt_osf.c	2005-11-26 15:29:05.000000000 +0300
-@@ -183,11 +183,11 @@
- 		_optp = optp = (char *)(tcp+1);
- 		optsize = tcp->doff*4 - sizeof(struct tcphdr);
- 
--		if (optsize > sizeof(opts))
-+		if (optsize > MAX_IPOPTLEN)
- 		{
--			log("%s: BUG: too big options size: optsize=%lu, max=%zu.\n",
--					__func__, optsize, sizeof(opts));
--			optsize = sizeof(opts);
-+			log("%s: BUG: too big options size: optsize=%lu, max=%u.\n",
-+					__func__, optsize, MAX_IPOPTLEN);
-+			optsize = MAX_IPOPTLEN;
- 		}
+--- trunk/patch-o-matic-ng/patchlets/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c      2005-11-05 12:35:02.000000000 -0500
++++ trunk/patch-o-matic-ng/patchlets/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c       2005-11-05 12:43:54.000000000 -0500
+@@ -30,6 +30,7 @@
+
+ #include <linux/config.h>
+ #include <linux/kernel.h>
++#include <linux/version.h>
+ #include <linux/types.h>
+ #include <linux/string.h>
+ #include <linux/smp.h>
+@@ -155,7 +156,11 @@
+ 	memcpy(&data->ip, sk->nh.iph, sizeof(struct iphdr));
+ 	memcpy(&data->tcp, (struct tcphdr *)((u_int32_t *)sk->nh.iph + sk->nh.iph->ihl), sizeof(struct tcphdr));
+
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
+ 	NETLINK_CB(skb).dst_groups = ipt_osf_groups;
++#else
++	NETLINK_CB(skb).dst_group = ipt_osf_groups;
++#endif
+ 	netlink_broadcast(nts, skb, 0, ipt_osf_groups, GFP_ATOMIC);
+
+ nlmsg_failure:
+@@ -821,7 +826,11 @@
+ 	p->write_proc->osf_proc_write;
+ 	p->read_proc->osf_proc_read;
+
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
+ 	nts->netlink_kernel_create(NETLINK_NFLOG, NULL);
++#else
++	nts->netlink_kernel_create(NETLINK_NFLOG, 1, NULL, THIS_MODULE);
++#endif
+ 	if (!nts) {
+ 		log("netlink_kernel_create() failed\n");
  	}
- 
+
 
 -- 
 	Evgeniy Polyakov
