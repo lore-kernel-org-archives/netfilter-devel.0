@@ -1,16 +1,21 @@
-From: "chang" <future_hacker@yeah.net>
-Subject: Re: Re: time match module make error
-Date: Wed, 7 Dec 2005 18:39:05 +0800
-Message-ID: <002501c5fb1a$7308b880$3406000a@cetchg9lggkx6o>
-References: <000701c5fae6$b3129a10$3406000a@cetchg9lggkx6o>
-	<Pine.LNX.4.64.0512071018470.6814@bizon.gios.gov.pl>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: nf_conntrack & NAT
+Date: Wed, 7 Dec 2005 12:22:22 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0512071201460.17863@blackhole.kfki.hu>
+References: <Pine.LNX.4.64.0511231214590.11295@bizon.gios.gov.pl>
+	<200511231225.jANCPmYd015427@toshiba.co.jp>
+	<20051123132044.GZ3249@eychenne.org>
+	<20051123132419.GJ24091@fi.muni.cz>
+	<20051206154320.GG4038@rama.exocore.com>
+	<20051206173135.GQ5617@eychenne.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	Jan Kasprzak <kas@fi.muni.cz>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Krzysztof Oledzki" <olenf@ans.pl>
+To: Herve Eychenne <rv@wallfire.org>
+In-Reply-To: <20051206173135.GQ5617@eychenne.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,42 +27,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, 6 Dec 2005, Herve Eychenne wrote:
 
-VGhhbmsgeW91IGZvciB5b3VyIGhlbHAsSSBoYXZlIGFscmVhZHkgZG93bmxvYWQgdGhlIGxpbnV4
-LTIuNi4xNC4zLnRhci5iejIsdGhlcmUgaXMgdGhlIG1lbWJlciAidHN0YW1wIiBpbiB0aGUgc3Ry
-dWN0ICJza19idWZmIiwgSSB0aGluayBpdCB3aWxsIGJlIGNvbXBpbGVkIHN1Y2Nlc3NmdWxseS4g
-VGhlIHVwZGF0ZSBvZiAgInRpbWUgbWF0Y2ggbW9kdWxlIiBpcyBzbyBxdWljaywgdGhhbmtzIHRo
-ZSBhdXRob3IuDQoNCkJlc3QgcmVnYXJkcw0KDQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0t
-IA0KRnJvbTogIktyenlzenRvZiBPbGVkemtpIiA8b2xlbmZAYW5zLnBsPg0KVG86ICJjaGFuZyIg
-PGZ1dHVyZV9oYWNrZXJAeWVhaC5uZXQ+DQpDYzogPG5ldGZpbHRlci1kZXZlbEBsaXN0cy5uZXRm
-aWx0ZXIub3JnPg0KU2VudDogV2VkbmVzZGF5LCBEZWNlbWJlciAwNywgMjAwNSA1OjMzIFBNDQpT
-dWJqZWN0OiBSZTogdGltZSBtYXRjaCBtb2R1bGUgbWFrZSBlcnJvcg0KDQoNCg0KDQpPbiBXZWQs
-IDcgRGVjIDIwMDUsIGNoYW5nIHdyb3RlOg0KDQo+IGhpLGFsbCxJIGRvd25sb2FkIHBhdGNoLW8t
-bWF0aWMtbmctMjAwNTEyMDUudGFyLmJ6MiBhbmQgDQo+IGlwdGFibGVzLTEuMy40LnRhci5iejIg
-ZnJvbSBmdHAubmV0ZmlsdGVyLm9yZyxhbmQgbGludXgtMi42LjEzLjQudGFyLmJ6MiANCj4gZnJv
-bSB3d3cua2VybmVsLm9yZy5idXQgdGhlcmUgaXMgc29tZSBlcnJvciB3aGVuIGkgY29tcGlsZSB0
-aGVtOg0KPg0KPiAtLS0tLS0tZXJyb3IgbWVzc2FnZXMtLS0tLS0tLS0tLS0NCj4NCj4gIENDICAg
-ICAgbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF90aW1lLm8NCj4gbmV0L2lwdjQvbmV0ZmlsdGVyL2lw
-dF90aW1lLmM6IEluIGZ1bmN0aW9uIGBtYXRjaCc6DQo+IG5ldC9pcHY0L25ldGZpbHRlci9pcHRf
-dGltZS5jOjU5OiBlcnJvcjogc3RydWN0dXJlIGhhcyBubyBtZW1iZXIgbmFtZWQgYHRzdGFtcCcN
-Cj4gbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF90aW1lLmM6NjA6IHdhcm5pbmc6IGltcGxpY2l0IGRl
-Y2xhcmF0aW9uIG9mIGZ1bmN0aW9uIGBfX25ldF90aW1lc3RhbXAnDQo+IG5ldC9pcHY0L25ldGZp
-bHRlci9pcHRfdGltZS5jOjYzOiBlcnJvcjogc3RydWN0dXJlIGhhcyBubyBtZW1iZXIgbmFtZWQg
-YHRzdGFtcCcNCj4gbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF90aW1lLmM6NjM6IGVycm9yOiBzdHJ1
-Y3R1cmUgaGFzIG5vIG1lbWJlciBuYW1lZCBgdHN0YW1wJw0KPiBuZXQvaXB2NC9uZXRmaWx0ZXIv
-aXB0X3RpbWUuYzo2NzogZXJyb3I6IHN0cnVjdHVyZSBoYXMgbm8gbWVtYmVyIG5hbWVkIGB0c3Rh
-bXAnDQo+IG1ha2VbM106ICoqKiBbbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF90aW1lLm9dIEVycm9y
-IDENCj4gbWFrZVsyXTogKioqIFtuZXQvaXB2NC9uZXRmaWx0ZXJdIEVycm9yIDINCj4gbWFrZVsx
-XTogKioqIFtuZXQvaXB2NF0gRXJyb3IgMg0KPiBtYWtlOiAqKiogW25ldF0gRXJyb3IgMg0KPiAt
-LS0tLS0tLS0tLS0tLS0tLS0tLS1jdXQgaGVyZS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+DQo+IHNv
-IGkgcmVhZCB0aGUgZmlsZSAiaXB0X3RpbWUuYyIgYW5kIGZpbmQgdGhlIGVycm9yIGlzIG1heWJl
-IGF0ICJza2ItPnRzdGFtcCINCj4gLS0tLS0tLWlwdF90aW1lLmMtLS0tLS0tLS0tLS0tLS0tLS0N
-CjxDVVQ+DQo+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLWN1dCBoZXJlLS0tLS0tLS0tLS0tLS0tLS0t
-LS0NCj4NCj4gdGhlbiBpIHJlYWQgdGhlIGZpbGUgImluY2x1ZGUvbGludXgvc2tidWZmLmgiLGkg
-ZmluZCB0aGVyZSBpcyBubyB0aGUgbWVtYmVyICJ0c3RhbXAiIGluIHRoZSBzdHJ1Y3QgInNrX2J1
-ZmYiDQo+DQo+IC0tLS0tLS0tLS0tLS0tLS0tLS0tc2tidWZmLmgtLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tDQo8Q1VUPg0KPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS1jdXQgaGVyZS0tLS0tLS0tLS0tLS0t
-LS0tLS0tDQo+DQo+IHdoYXQgc2hvdWxkIGkgZG8sd2hvIGNhbiBoZWxwIG1lLnRoYW5rcy4NCg0K
-WW91IHNpbXBseSBuZWVkIG1vcmUgcmVjZW50IGtlcm5lbCAoMi42LjE0LngpIG9yIG9sZGVyIHBh
-dGNoLW8tbWF0aWMtbmcuDQoNCkJlc3QgcmVnYXJkcywNCg0KDQogIEtyenlzenRvZiBPbMSZZHpr
-aQ==
+> On Tue, Dec 06, 2005 at 09:13:21PM +0530, Harald Welte wrote:
+>
+> > for stuff like redirecting traffic, all you really need is stateless
+> > rewriting of the destination address.  If people want that, the entire
+> > implementation fits in a single ip6tables target.  no relation to
+> > nf_conntrack at all.
+>
+> Stateless?  And what if you want the response (of the packets which have
+> been redirected) to come back with their initial address, as if they
+> had not been redirected? (if the client shouldn't know that, if this
+> should be transparent to him)
+> This is also known as DNAT, for which the state has be stored, right?
+>
+> So, in one word: if we definitely need DNAT with IPv4 today, why
+> wouldn't we need DNAT with IPv6?
+
+IPv6 is not just IPv4 with a larger address space. Definitely there is no
+need for DNAT in order to make a server with private address available.
+But I can imagine for example to replace the "need" for DNAT with anycast
+in IPv6 for load balancing.
+
+Old hacks and workarounds should not be reimplemented blindly.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
