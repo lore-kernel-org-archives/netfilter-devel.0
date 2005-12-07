@@ -1,13 +1,22 @@
-From: "chang" <future_hacker@yeah.net>
-Subject: time match module make error
-Date: Wed, 7 Dec 2005 12:27:30 +0800
-Message-ID: <000701c5fae6$b3129a10$3406000a@cetchg9lggkx6o>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: nf_conntrack & NAT
+Date: Wed, 7 Dec 2005 12:35:17 +0530
+Message-ID: <20051207070517.GA4361@rama.exocore.com>
+References: <Pine.LNX.4.64.0511231214590.11295@bizon.gios.gov.pl>
+	<200511231225.jANCPmYd015427@toshiba.co.jp>
+	<20051123132044.GZ3249@eychenne.org>
+	<20051123132419.GJ24091@fi.muni.cz>
+	<20051206154320.GG4038@rama.exocore.com>
+	<20051206173135.GQ5617@eychenne.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wac7ysb48OaltWcw"
+Cc: netfilter-devel@lists.netfilter.org, Jan Kasprzak <kas@fi.muni.cz>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Herve Eychenne <rv@wallfire.org>
+Content-Disposition: inline
+In-Reply-To: <20051206173135.GQ5617@eychenne.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,110 +29,71 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-aGksYWxsLEkgZG93bmxvYWQgcGF0Y2gtby1tYXRpYy1uZy0yMDA1MTIwNS50YXIuYnoyIGFuZCBp
-cHRhYmxlcy0xLjMuNC50YXIuYnoyIGZyb20gZnRwLm5ldGZpbHRlci5vcmcsYW5kIGxpbnV4LTIu
-Ni4xMy40LnRhci5iejIgZnJvbSB3d3cua2VybmVsLm9yZy5idXQgdGhlcmUgaXMgc29tZSBlcnJv
-ciB3aGVuIGkgY29tcGlsZSB0aGVtOg0KDQotLS0tLS0tZXJyb3IgbWVzc2FnZXMtLS0tLS0tLS0t
-LS0NCg0KICBDQyAgICAgIG5ldC9pcHY0L25ldGZpbHRlci9pcHRfdGltZS5vDQpuZXQvaXB2NC9u
-ZXRmaWx0ZXIvaXB0X3RpbWUuYzogSW4gZnVuY3Rpb24gYG1hdGNoJzoNCm5ldC9pcHY0L25ldGZp
-bHRlci9pcHRfdGltZS5jOjU5OiBlcnJvcjogc3RydWN0dXJlIGhhcyBubyBtZW1iZXIgbmFtZWQg
-YHRzdGFtcCcNCm5ldC9pcHY0L25ldGZpbHRlci9pcHRfdGltZS5jOjYwOiB3YXJuaW5nOiBpbXBs
-aWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiBgX19uZXRfdGltZXN0YW1wJw0KbmV0L2lwdjQv
-bmV0ZmlsdGVyL2lwdF90aW1lLmM6NjM6IGVycm9yOiBzdHJ1Y3R1cmUgaGFzIG5vIG1lbWJlciBu
-YW1lZCBgdHN0YW1wJw0KbmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF90aW1lLmM6NjM6IGVycm9yOiBz
-dHJ1Y3R1cmUgaGFzIG5vIG1lbWJlciBuYW1lZCBgdHN0YW1wJw0KbmV0L2lwdjQvbmV0ZmlsdGVy
-L2lwdF90aW1lLmM6Njc6IGVycm9yOiBzdHJ1Y3R1cmUgaGFzIG5vIG1lbWJlciBuYW1lZCBgdHN0
-YW1wJw0KbWFrZVszXTogKioqIFtuZXQvaXB2NC9uZXRmaWx0ZXIvaXB0X3RpbWUub10gRXJyb3Ig
-MQ0KbWFrZVsyXTogKioqIFtuZXQvaXB2NC9uZXRmaWx0ZXJdIEVycm9yIDINCm1ha2VbMV06ICoq
-KiBbbmV0L2lwdjRdIEVycm9yIDINCm1ha2U6ICoqKiBbbmV0XSBFcnJvciAyDQotLS0tLS0tLS0t
-LS0tLS0tLS0tLS1jdXQgaGVyZS0tLS0tLS0tLS0tLS0tLS0tLS0tDQoNCnNvIGkgcmVhZCB0aGUg
-ZmlsZSAiaXB0X3RpbWUuYyIgYW5kIGZpbmQgdGhlIGVycm9yIGlzIG1heWJlIGF0ICJza2ItPnRz
-dGFtcCINCg0KLS0tLS0tLWlwdF90aW1lLmMtLS0tLS0tLS0tLS0tLS0tLS0NCnN0YXRpYyBpbnQN
-Cm1hdGNoKGNvbnN0IHN0cnVjdCBza19idWZmICpza2IsDQogICAgICBjb25zdCBzdHJ1Y3QgbmV0
-X2RldmljZSAqaW4sDQogICAgICBjb25zdCBzdHJ1Y3QgbmV0X2RldmljZSAqb3V0LA0KICAgICAg
-Y29uc3Qgdm9pZCAqbWF0Y2hpbmZvLA0KICAgICAgaW50IG9mZnNldCwNCiAgICAgIGludCAqaG90
-ZHJvcCkNCnsNCiAgICAgICAgY29uc3Qgc3RydWN0IGlwdF90aW1lX2luZm8gKmluZm8gPSBtYXRj
-aGluZm87ICAgLyogbWF0Y2ggaW5mbyBmb3IgcnVsZSAqLw0KICAgICAgICBzdHJ1Y3QgdG0gY3Vy
-cmVudHRpbWU7ICAgICAgICAgICAgICAgICAgICAgICAgICAvKiB0aW1lIGh1bWFuIHJlYWRhYmxl
-ICovDQogICAgICAgIHVfaW50OF90IGRheXNfb2Zfd2Vla1s3XSA9IHs2NCwgMzIsIDE2LCA4LCA0
-LCAyLCAxfTsNCiAgICAgICAgdV9pbnQxNl90IHBhY2tldF90aW1lOw0KDQogICAgICAgIC8qIFdl
-IG1pZ2h0IG5vdCBoYXZlIGEgdGltZXN0YW1wLCBnZXQgb25lICovDQogICAgICAgIGlmIChza2It
-PnRzdGFtcC5vZmZfc2VjID09IDApDQogICAgICAgICAgICAgICAgX19uZXRfdGltZXN0YW1wKChz
-dHJ1Y3Qgc2tfYnVmZiAqKXNrYik7DQoNCiAgICAgICAgLyogRmlyc3Qgd2UgbWFrZSBzdXJlIHdl
-IGFyZSBpbiB0aGUgZGF0ZSBzdGFydC1zdG9wIGJvdW5kYXJpZXMgKi8NCiAgICAgICAgaWYgKChz
-a2ItPnRzdGFtcC5vZmZfc2VjIDwgaW5mby0+ZGF0ZV9zdGFydCkgfHwgKHNrYi0+dHN0YW1wLm9m
-Zl9zZWMgPiBpbmZvLT5kYXRlX3N0b3ApKQ0KICAgICAgICAgICAgICAgIHJldHVybiAwOyAvKiBX
-ZSBhcmUgb3V0c2lkZSB0aGUgZGF0ZSBib3VuZGFyaWVzICovDQoNCiAgICAgICAgLyogVHJhbnNm
-b3JtIHRoZSB0aW1lc3RhbXAgb2YgdGhlIHBhY2tldCwgaW4gYSBodW1hbiByZWFkYWJsZSBmb3Jt
-ICovDQogICAgICAgIGxvY2FsdGltZShza2ItPnRzdGFtcC5vZmZfc2VjLCAmY3VycmVudHRpbWUp
-Ow0KDQogICAgICAgIC8qIGNoZWNrIGlmIHdlIG1hdGNoIHRoaXMgdGltZXN0YW1wLCB3ZSBzdGFy
-dCBieSB0aGUgZGF5cy4uLiAqLw0KICAgICAgICBpZiAoKGRheXNfb2Zfd2Vla1tjdXJyZW50dGlt
-ZS50bV93ZGF5XSAmIGluZm8tPmRheXNfbWF0Y2gpICE9IGRheXNfb2Zfd2Vla1tjdXJyZW50dGlt
-ZS50bV93ZGF5XSkNCiAgICAgICAgICAgICAgICByZXR1cm4gMDsgLyogdGhlIGRheSBkb2Vzbid0
-IG1hdGNoICovDQoNCiAgICAgICAgLyogLi4uIGNoZWNrIHRoZSB0aW1lIG5vdyAqLw0KICAgICAg
-ICBwYWNrZXRfdGltZSA9IChjdXJyZW50dGltZS50bV9ob3VyICogNjApICsgY3VycmVudHRpbWUu
-dG1fbWluOw0KICAgICAgICBpZiAoKHBhY2tldF90aW1lIDwgaW5mby0+dGltZV9zdGFydCkgfHwg
-KHBhY2tldF90aW1lID4gaW5mby0+dGltZV9zdG9wKSkNCiAgICAgICAgICAgICAgICByZXR1cm4g
-MDsNCg0KICAgICAgICAvKiBoZXJlIHdlIG1hdGNoICEgKi8NCiAgICAgICAgcmV0dXJuIDE7DQp9
-DQotLS0tLS0tLS0tLS0tLS0tLS0tLS1jdXQgaGVyZS0tLS0tLS0tLS0tLS0tLS0tLS0tDQoNCnRo
-ZW4gaSByZWFkIHRoZSBmaWxlICJpbmNsdWRlL2xpbnV4L3NrYnVmZi5oIixpIGZpbmQgdGhlcmUg
-aXMgbm8gdGhlIG1lbWJlciAidHN0YW1wIiBpbiB0aGUgc3RydWN0ICJza19idWZmIg0KDQotLS0t
-LS0tLS0tLS0tLS0tLS0tLXNrYnVmZi5oLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0Kc3RydWN0IHNr
-X2J1ZmYgew0KICAgICAgICAvKiBUaGVzZSB0d28gbWVtYmVycyBtdXN0IGJlIGZpcnN0LiAqLw0K
-ICAgICAgICBzdHJ1Y3Qgc2tfYnVmZiAgICAgICAgICAqbmV4dDsNCiAgICAgICAgc3RydWN0IHNr
-X2J1ZmYgICAgICAgICAgKnByZXY7DQoNCiAgICAgICAgc3RydWN0IHNrX2J1ZmZfaGVhZCAgICAg
-Kmxpc3Q7DQogICAgICAgIHN0cnVjdCBzb2NrICAgICAgICAgICAgICpzazsNCiAgICAgICAgc3Ry
-dWN0IHRpbWV2YWwgICAgICAgICAgc3RhbXA7DQogICAgICAgIHN0cnVjdCBuZXRfZGV2aWNlICAg
-ICAgICpkZXY7DQogICAgICAgIHN0cnVjdCBuZXRfZGV2aWNlICAgICAgICppbnB1dF9kZXY7DQog
-ICAgICAgIHN0cnVjdCBuZXRfZGV2aWNlICAgICAgICpyZWFsX2RldjsNCg0KICAgICAgICB1bmlv
-biB7DQogICAgICAgICAgICAgICAgc3RydWN0IHRjcGhkciAgICp0aDsNCiAgICAgICAgICAgICAg
-ICBzdHJ1Y3QgdWRwaGRyICAgKnVoOw0KICAgICAgICAgICAgICAgIHN0cnVjdCBpY21waGRyICAq
-aWNtcGg7DQogICAgICAgICAgICAgICAgc3RydWN0IGlnbXBoZHIgICppZ21waDsNCiAgICAgICAg
-ICAgICAgICBzdHJ1Y3QgaXBoZHIgICAgKmlwaXBoOw0KICAgICAgICAgICAgICAgIHN0cnVjdCBp
-cHY2aGRyICAqaXB2Nmg7DQogICAgICAgICAgICAgICAgdW5zaWduZWQgY2hhciAgICpyYXc7DQog
-ICAgICAgIH0gaDsNCg0KICAgICAgICB1bmlvbiB7DQogICAgICAgICAgICAgICAgc3RydWN0IGlw
-aGRyICAgICppcGg7DQogICAgICAgICAgICAgICAgc3RydWN0IGlwdjZoZHIgICppcHY2aDsNCiAg
-ICAgICAgICAgICAgICBzdHJ1Y3QgYXJwaGRyICAgKmFycGg7DQogICAgICAgICAgICAgICAgdW5z
-aWduZWQgY2hhciAgICpyYXc7DQogICAgICAgIH0gbmg7DQoNCiAgICAgICAgdW5pb24gew0KICAg
-ICAgICAgICAgICAgIHVuc2lnbmVkIGNoYXIgICAqcmF3Ow0KICAgICAgICB9IG1hYzsNCg0KICAg
-ICAgICBzdHJ1Y3QgIGRzdF9lbnRyeSAgICAgICAqZHN0Ow0KICAgICAgICBzdHJ1Y3QgIHNlY19w
-YXRoICAgICAgICAqc3A7DQoNCiAgICAgICAgLyoNCiAgICAgICAgICogVGhpcyBpcyB0aGUgY29u
-dHJvbCBidWZmZXIuIEl0IGlzIGZyZWUgdG8gdXNlIGZvciBldmVyeQ0KICAgICAgICAgKiBsYXll
-ci4gUGxlYXNlIHB1dCB5b3VyIHByaXZhdGUgdmFyaWFibGVzIHRoZXJlLiBJZiB5b3UNCiAgICAg
-ICAgICogd2FudCB0byBrZWVwIHRoZW0gYWNyb3NzIGxheWVycyB5b3UgaGF2ZSB0byBkbyBhIHNr
-Yl9jbG9uZSgpDQogICAgICAgICAqIGZpcnN0LiBUaGlzIGlzIG93bmVkIGJ5IHdob2V2ZXIgaGFz
-IHRoZSBza2IgcXVldWVkIEFUTS4NCiAgICAgICAgICovDQogICAgICAgIGNoYXIgICAgICAgICAg
-ICAgICAgICAgIGNiWzQwXTsNCg0KICAgICAgICB1bnNpZ25lZCBpbnQgICAgICAgICAgICBsZW4s
-DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGRhdGFfbGVuLA0KICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICBtYWNfbGVuLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBjc3VtOw0KICAgICAgICBfX3UzMiAgICAgICAgICAgICAgICAgICBwcmlvcml0eTsNCiAg
-ICAgICAgX191OCAgICAgICAgICAgICAgICAgICAgbG9jYWxfZGY6MSwNCiAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgY2xvbmVkOjEsDQogICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIGlwX3N1bW1lZDoyLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBub2hkcjox
-Ow0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvKiAzIGJpdHMgc3BhcmUgKi8NCiAg
-ICAgICAgX191OCAgICAgICAgICAgICAgICAgICAgcGt0X3R5cGU7DQogICAgICAgIF9fYmUxNiAg
-ICAgICAgICAgICAgICAgIHByb3RvY29sOw0KDQogICAgICAgIHZvaWQgICAgICAgICAgICAgICAg
-ICAgICgqZGVzdHJ1Y3Rvcikoc3RydWN0IHNrX2J1ZmYgKnNrYik7DQojaWZkZWYgQ09ORklHX05F
-VEZJTFRFUg0KICAgICAgICB1bnNpZ25lZCBsb25nICAgICAgICAgICBuZm1hcms7DQogICAgICAg
-IF9fdTMyICAgICAgICAgICAgICAgICAgIG5mY2FjaGU7DQogICAgICAgIF9fdTMyICAgICAgICAg
-ICAgICAgICAgIG5mY3RpbmZvOw0KICAgICAgICBzdHJ1Y3QgbmZfY29ubnRyYWNrICAgICAqbmZj
-dDsNCg0KI2lmIGRlZmluZWQoQ09ORklHX0lNUSkgfHwgZGVmaW5lZChDT05GSUdfSU1RX01PRFVM
-RSkNCiAgICAgICAgdW5zaWduZWQgY2hhciAgICAgICAgICAgaW1xX2ZsYWdzOw0KICAgICAgICBz
-dHJ1Y3QgbmZfaW5mbyAgICAgICAgICAqbmZfaW5mbzsNCiNlbmRpZg0KDQojaWZkZWYgQ09ORklH
-X0JSSURHRV9ORVRGSUxURVINCiAgICAgICAgc3RydWN0IG5mX2JyaWRnZV9pbmZvICAgKm5mX2Jy
-aWRnZTsNCiNlbmRpZg0KI2VuZGlmIC8qIENPTkZJR19ORVRGSUxURVIgKi8NCiNpZiBkZWZpbmVk
-KENPTkZJR19ISVBQSSkNCiAgICAgICAgdW5pb24gew0KICAgICAgICAgICAgICAgIF9fdTMyICAg
-ICAgICAgICBpZmllbGQ7DQogICAgICAgIH0gcHJpdmF0ZTsNCiNlbmRpZg0KI2lmZGVmIENPTkZJ
-R19ORVRfU0NIRUQNCiAgICAgICBfX3UzMiAgICAgICAgICAgICAgICAgICAgdGNfaW5kZXg7ICAg
-ICAgICAvKiB0cmFmZmljIGNvbnRyb2wgaW5kZXggKi8NCiNpZmRlZiBDT05GSUdfTkVUX0NMU19B
-Q1QNCiAgICAgICAgX191MzIgICAgICAgICAgIHRjX3ZlcmQ7ICAgICAgICAgICAgICAgLyogdHJh
-ZmZpYyBjb250cm9sIHZlcmRpY3QgKi8NCiAgICAgICAgX191MzIgICAgICAgICAgIHRjX2NsYXNz
-aWQ7ICAgICAgICAgICAgLyogdHJhZmZpYyBjb250cm9sIGNsYXNzaWQgKi8NCiNlbmRpZg0KDQoj
-ZW5kaWYNCg0KDQogICAgICAgIC8qIFRoZXNlIGVsZW1lbnRzIG11c3QgYmUgYXQgdGhlIGVuZCwg
-c2VlIGFsbG9jX3NrYigpIGZvciBkZXRhaWxzLiAgKi8NCiAgICAgICAgdW5zaWduZWQgaW50ICAg
-ICAgICAgICAgdHJ1ZXNpemU7DQogICAgICAgIGF0b21pY190ICAgICAgICAgICAgICAgIHVzZXJz
-Ow0KICAgICAgICB1bnNpZ25lZCBjaGFyICAgICAgICAgICAqaGVhZCwNCiAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgKmRhdGEsDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICp0YWlsLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAqZW5kOw0KfTsNCi0tLS0t
-LS0tLS0tLS0tLS0tLS0tLWN1dCBoZXJlLS0tLS0tLS0tLS0tLS0tLS0tLS0NCg0Kd2hhdCBzaG91
-bGQgaSBkbyx3aG8gY2FuIGhlbHAgbWUudGhhbmtzLg==
+--wac7ysb48OaltWcw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Dec 06, 2005 at 06:31:35PM +0100, Herve Eychenne wrote:
+> > for stuff like redirecting traffic, all you really need is stateless
+> > rewriting of the destination address.  If people want that, the entire
+> > implementation fits in a single ip6tables target.  no relation to
+> > nf_conntrack at all.
+>=20
+> Stateless?  And what if you want the response (of the packets which have
+> been redirected) to come back with their initial address, as if they
+> had not been redirected? (if the client shouldn't know that, if this
+> should be transparent to him)
+
+then you need a static snat target that does this for all reply packets.
+
+> This is also known as DNAT, for which the state has be stored, right?
+
+you don't really need state unless you want to do stuff like dynamically
+changing port numbers, etc.
+
+> So, in one word: if we definitely need DNAT with IPv4 today, why
+> wouldn't we need DNAT with IPv6?
+
+stateful IPv6 NAT only over my dead body.  Do you know that NAT is the
+single most destructive way that ever happened to todays internet?  That
+it is the number one reason why VoIP doesn't really take off as much as
+it could?  The number one reason for various non-deterministic breakage
+all over the place?=20
+
+I've participated in the IETF BEHAVE group discussions, and there was
+concensus that any BEHAVE compliant NAT must not do NAT for ipv6.
+=20
+> > also, IPVS doesn't need any ip_conntrack/iptable_nat today,
+>=20
+> I don't know IPVS implementation, but maybe the IPVS-NAT method could
+> theorically share some code with the current NAT code... (they both
+> seem to handle the same kind of state table, even if at least the hashing
+> algorithm could probably be different, I guess)
+
+*sigh*.  IPVS doesn't use ip_conntrack, so they won't be using
+nf_conntrack.  Also, it's their project and their decision.
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--wac7ysb48OaltWcw
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDlomsXaXGVTD0i/8RAn8kAKCVjmcCSvt8YMCxIbWdzAcyXYB73ACfd6kN
+4soXeWLMUU8MjldR+QTAi18=
+=qqeZ
+-----END PGP SIGNATURE-----
+
+--wac7ysb48OaltWcw--
