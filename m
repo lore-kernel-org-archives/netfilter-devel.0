@@ -1,7 +1,7 @@
-From: Herve Eychenne <rv@wallfire.org>
+From: Patrick Schaaf <bof@bof.de>
 Subject: Re: (D)NAT with IPv6 (was "nf_conntrack & NAT")
-Date: Thu, 8 Dec 2005 12:41:20 +0100
-Message-ID: <20051208114120.GF5617@eychenne.org>
+Date: Thu, 8 Dec 2005 12:56:32 +0100
+Message-ID: <20051208115632.GB13067@oknodo.bof.de>
 References: <Pine.LNX.4.64.0511231214590.11295@bizon.gios.gov.pl>
 	<200511231225.jANCPmYd015427@toshiba.co.jp>
 	<20051123132044.GZ3249@eychenne.org>
@@ -11,15 +11,15 @@ References: <Pine.LNX.4.64.0511231214590.11295@bizon.gios.gov.pl>
 	<Pine.LNX.4.58.0512071201460.17863@blackhole.kfki.hu>
 	<20051207145438.GA5617@eychenne.org>
 	<Pine.LNX.4.58.0512071603190.17863@blackhole.kfki.hu>
-Reply-To: rv@wallfire.org
+	<20051208114120.GF5617@eychenne.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Herve Eychenne <rv@wallfire.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0512071603190.17863@blackhole.kfki.hu>
+In-Reply-To: <20051208114120.GF5617@eychenne.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -31,55 +31,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Dec 07, 2005 at 04:09:25PM +0100, Jozsef Kadlecsik wrote:
+> So each time you add a service on a host, you should assign a new IP to it
+> (and create the respective DNS name for this IP/service couple!), just in
+> case you may have to redirect its traffic one day? (even if temporary)
 
-> On Wed, 7 Dec 2005, Herve Eychenne wrote:
+This has proven to be a very valuable strategy, at work, even for normal
+IPv4 operation. Saves headaches every time we want to migrate something.
+I can warmly recommend this practise.
 
-> > I don't want to use DNAT for load balancing.  I want to use DNAT (and
-> > I'm using it just now with IPv4) to redirect traffic destined to a
-> > certain IP/port to another IP (private or not) in the most transparent
-> > way. There are plenty of scenari where I'm willing to do that.
-> >
-> > For those who need practical examples (others can stop here) that I'm
-> > regularly facing myself, here it is.
-> >
-> > Then MX of domain points on host A, and I want to redirect SMTP traffic
-> > to host B (also in my network) in the most atomic way.
-> > DNS propagation can be slow (caching), and user proxying is too slow
-> > (and not transparent).
-> > If there are miraculous mecanisms in IPv6 which enable to achieve that
-> > redirection as atomically and quickly that DNAT, please let me know.
-
-> Yes, use as many IP addresses as you want :-):
-
-> Host A:
-> addressA0: maintenance
-> addressA1: az advertised SMTP server
-> addressA2: az advertised HTTP server
-> ...
-> Host B:
-> addressB0: maintenance
-> addressB1: az advertised SMTP server
-> addressB2: az advertised HTTP server
-> ...
-
-> If you want to "replace" A as SMTP server by server B, just assign
-> addressA1 to server B. That's it. No NAT required at all and it
-> is practically atomic.
-
-> (Assumed the same network as you wrote.)
-
-So each time you add a service on a host, you should assign a new IP to it
-(and create the respective DNS name for this IP/service couple!), just in
-case you may have to redirect its traffic one day? (even if temporary)
-
-Oh my... If IPv6 (without DNAT) really implies that, I can still live with
-IPv4 for a (very) long time!
-
- Herve
-
--- 
- _
-(°=  Hervé Eychenne
-//)
-v_/_ WallFire project:  http://www.wallfire.org/
+best regards
+  Patrick
