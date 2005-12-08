@@ -1,21 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: (D)NAT with IPv6 (was "nf_conntrack & NAT")
-Date: Wed, 7 Dec 2005 16:09:25 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0512071603190.17863@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0511231214590.11295@bizon.gios.gov.pl>
-	<200511231225.jANCPmYd015427@toshiba.co.jp>
-	<20051123132044.GZ3249@eychenne.org>
-	<20051123132419.GJ24091@fi.muni.cz>
-	<20051206154320.GG4038@rama.exocore.com>
-	<20051206173135.GQ5617@eychenne.org>
-	<Pine.LNX.4.58.0512071201460.17863@blackhole.kfki.hu>
-	<20051207145438.GA5617@eychenne.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [netfilter-core] How many packets can be held by queue target?
+Date: Thu, 8 Dec 2005 16:16:41 +0530
+Message-ID: <20051208104641.GC19616@rama.exocore.com>
+References: <4397FB0B.4070608@measurelabs.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3siQDZowHQqNOShm"
+Cc: coreteam@netfilter.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Herve Eychenne <rv@wallfire.org>
-In-Reply-To: <20051207145438.GA5617@eychenne.org>
+To: Xiaohu Dong <dongxiaohu@measurelabs.com>
+Content-Disposition: inline
+In-Reply-To: <4397FB0B.4070608@measurelabs.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,46 +23,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 7 Dec 2005, Herve Eychenne wrote:
 
-> I don't want to use DNAT for load balancing.  I want to use DNAT (and
-> I'm using it just now with IPv4) to redirect traffic destined to a
-> certain IP/port to another IP (private or not) in the most transparent
-> way. There are plenty of scenari where I'm willing to do that.
->
-> For those who need practical examples (others can stop here) that I'm
-> regularly facing myself, here it is.
->
-> Then MX of domain points on host A, and I want to redirect SMTP traffic
-> to host B (also in my network) in the most atomic way.
-> DNS propagation can be slow (caching), and user proxying is too slow
-> (and not transparent).
-> If there are miraculous mecanisms in IPv6 which enable to achieve that
-> redirection as atomically and quickly that DNAT, please let me know.
+--3siQDZowHQqNOShm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Yes, use as many IP addresses as you want :-):
+On Thu, Dec 08, 2005 at 05:21:15PM +0800, Xiaohu Dong wrote:
+> Hi,
+>     I am using libipq to fetch pkt in my current project. I am curious
+>  if I don't retrieve pkt from the queue in time, how many pkt can
+>  the queue hold before dropping?
 
-Host A:
-	addressA0: maintenance
-	addressA1: az advertised SMTP server
-	addressA2: az advertised HTTP server
-	...
-Host B:
-	addressB0: maintenance
-	addressB1: az advertised SMTP server
-	addressB2: az advertised HTTP server
-	...
+that depends on how much you have configured ;)  I think the limit would
+be 2^32 packets if you have that amount of RAM.  default is 1024.
 
-If you want to "replace" A as SMTP server by server B, just assign
-addressA1 to server B. That's it. No NAT required at all and it
-is practically atomic.
+use the source, luke.
 
-(Assumed the same network as you wrote.)
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--3siQDZowHQqNOShm
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDmA8RXaXGVTD0i/8RApauAJ9hS64ky2St4P1UQRhHYDV0RC2uPQCgjH8Q
+5G2ZxN0f9t48V5yafYCGWfE=
+=HRgO
+-----END PGP SIGNATURE-----
+
+--3siQDZowHQqNOShm--
