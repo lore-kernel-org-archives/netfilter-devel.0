@@ -1,17 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [netfilter-core] How many packets can be held by queue target?
-Date: Thu, 8 Dec 2005 16:16:41 +0530
-Message-ID: <20051208104641.GC19616@rama.exocore.com>
-References: <4397FB0B.4070608@measurelabs.com>
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: [PATCH] ip_nat_tftp: Fix expectation NAT.
+Date: Thu, 08 Dec 2005 11:49:14 +0100
+Message-ID: <43980FAA.6060608@ingate.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3siQDZowHQqNOShm"
-Cc: coreteam@netfilter.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------030506020106000109050608"
+Cc: laforge@netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Xiaohu Dong <dongxiaohu@measurelabs.com>
-Content-Disposition: inline
-In-Reply-To: <4397FB0B.4070608@measurelabs.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,43 +18,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---3siQDZowHQqNOShm
+This is a multi-part message in MIME format.
+--------------030506020106000109050608
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 
-On Thu, Dec 08, 2005 at 05:21:15PM +0800, Xiaohu Dong wrote:
-> Hi,
->     I am using libipq to fetch pkt in my current project. I am curious
->  if I don't retrieve pkt from the queue in time, how many pkt can
->  the queue hold before dropping?
+Hi,
 
-that depends on how much you have configured ;)  I think the limit would
-be 2^32 packets if you have that amount of RAM.  default is 1024.
+this patch fixes the case where the port in an initial TFTP packet
+is SNATed. Previously the port was never DNATed back for the expected
+connection.
 
-use the source, luke.
+//Marcus
+-- 
+---------------------------------------+--------------------------
+  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+ Software Developer, Ingate Systems AB |  http://www.ingate.com/
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+--------------030506020106000109050608
+Content-Type: text/x-patch;
+ name="tftp-nat-fix.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="tftp-nat-fix.diff"
 
---3siQDZowHQqNOShm
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+[NETFILTER] ip_nat_tftp: Fix expectation NAT.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
+When a TFTP client is SNATed so that the port is also changed, the
+port is never changed back for the expected connection.
 
-iD8DBQFDmA8RXaXGVTD0i/8RApauAJ9hS64ky2St4P1UQRhHYDV0RC2uPQCgjH8Q
-5G2ZxN0f9t48V5yafYCGWfE=
-=HRgO
------END PGP SIGNATURE-----
+Signed-off-by: Marcus Sundberg <marcus@ingate.com>
 
---3siQDZowHQqNOShm--
+--- linux.current/net/ipv4/netfilter/ip_nat_tftp.c	2005/12/05 18:58:22	1.1
++++ linux.current/net/ipv4/netfilter/ip_nat_tftp.c	2005/12/05 19:01:05
+@@ -42,7 +42,10 @@ static unsigned int help(struct sk_buff 
+ 			 enum ip_conntrack_info ctinfo,
+ 			 struct ip_conntrack_expect *exp)
+ {
+-	exp->saved_proto.udp.port = exp->tuple.dst.u.tcp.port;
++	struct ip_conntrack *ct = exp->master;
++
++	exp->saved_proto.udp.port
++		= ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u.udp.port;
+ 	exp->dir = IP_CT_DIR_REPLY;
+ 	exp->expectfn = ip_nat_follow_master;
+ 	if (ip_conntrack_expect_related(exp) != 0)
+
+--------------030506020106000109050608--
