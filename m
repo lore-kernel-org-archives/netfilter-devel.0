@@ -1,12 +1,25 @@
-From: Marcus Sundberg <marcus@ingate.com>
-Subject: [PATCH] ip_nat_tftp: Fix expectation NAT.
-Date: Thu, 08 Dec 2005 11:49:14 +0100
-Message-ID: <43980FAA.6060608@ingate.com>
+From: Herve Eychenne <rv@wallfire.org>
+Subject: Re: (D)NAT with IPv6 (was "nf_conntrack & NAT")
+Date: Thu, 8 Dec 2005 12:41:20 +0100
+Message-ID: <20051208114120.GF5617@eychenne.org>
+References: <Pine.LNX.4.64.0511231214590.11295@bizon.gios.gov.pl>
+	<200511231225.jANCPmYd015427@toshiba.co.jp>
+	<20051123132044.GZ3249@eychenne.org>
+	<20051123132419.GJ24091@fi.muni.cz>
+	<20051206154320.GG4038@rama.exocore.com>
+	<20051206173135.GQ5617@eychenne.org>
+	<Pine.LNX.4.58.0512071201460.17863@blackhole.kfki.hu>
+	<20051207145438.GA5617@eychenne.org>
+	<Pine.LNX.4.58.0512071603190.17863@blackhole.kfki.hu>
+Reply-To: rv@wallfire.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030506020106000109050608"
-Cc: laforge@netfilter.org, kaber@trash.net
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0512071603190.17863@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,50 +31,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030506020106000109050608
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+On Wed, Dec 07, 2005 at 04:09:25PM +0100, Jozsef Kadlecsik wrote:
 
-Hi,
+> On Wed, 7 Dec 2005, Herve Eychenne wrote:
 
-this patch fixes the case where the port in an initial TFTP packet
-is SNATed. Previously the port was never DNATed back for the expected
-connection.
+> > I don't want to use DNAT for load balancing.  I want to use DNAT (and
+> > I'm using it just now with IPv4) to redirect traffic destined to a
+> > certain IP/port to another IP (private or not) in the most transparent
+> > way. There are plenty of scenari where I'm willing to do that.
+> >
+> > For those who need practical examples (others can stop here) that I'm
+> > regularly facing myself, here it is.
+> >
+> > Then MX of domain points on host A, and I want to redirect SMTP traffic
+> > to host B (also in my network) in the most atomic way.
+> > DNS propagation can be slow (caching), and user proxying is too slow
+> > (and not transparent).
+> > If there are miraculous mecanisms in IPv6 which enable to achieve that
+> > redirection as atomically and quickly that DNAT, please let me know.
 
-//Marcus
+> Yes, use as many IP addresses as you want :-):
+
+> Host A:
+> addressA0: maintenance
+> addressA1: az advertised SMTP server
+> addressA2: az advertised HTTP server
+> ...
+> Host B:
+> addressB0: maintenance
+> addressB1: az advertised SMTP server
+> addressB2: az advertised HTTP server
+> ...
+
+> If you want to "replace" A as SMTP server by server B, just assign
+> addressA1 to server B. That's it. No NAT required at all and it
+> is practically atomic.
+
+> (Assumed the same network as you wrote.)
+
+So each time you add a service on a host, you should assign a new IP to it
+(and create the respective DNS name for this IP/service couple!), just in
+case you may have to redirect its traffic one day? (even if temporary)
+
+Oh my... If IPv6 (without DNAT) really implies that, I can still live with
+IPv4 for a (very) long time!
+
+ Herve
+
 -- 
----------------------------------------+--------------------------
-  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
- Software Developer, Ingate Systems AB |  http://www.ingate.com/
-
---------------030506020106000109050608
-Content-Type: text/x-patch;
- name="tftp-nat-fix.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="tftp-nat-fix.diff"
-
-[NETFILTER] ip_nat_tftp: Fix expectation NAT.
-
-When a TFTP client is SNATed so that the port is also changed, the
-port is never changed back for the expected connection.
-
-Signed-off-by: Marcus Sundberg <marcus@ingate.com>
-
---- linux.current/net/ipv4/netfilter/ip_nat_tftp.c	2005/12/05 18:58:22	1.1
-+++ linux.current/net/ipv4/netfilter/ip_nat_tftp.c	2005/12/05 19:01:05
-@@ -42,7 +42,10 @@ static unsigned int help(struct sk_buff 
- 			 enum ip_conntrack_info ctinfo,
- 			 struct ip_conntrack_expect *exp)
- {
--	exp->saved_proto.udp.port = exp->tuple.dst.u.tcp.port;
-+	struct ip_conntrack *ct = exp->master;
-+
-+	exp->saved_proto.udp.port
-+		= ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u.udp.port;
- 	exp->dir = IP_CT_DIR_REPLY;
- 	exp->expectfn = ip_nat_follow_master;
- 	if (ip_conntrack_expect_related(exp) != 0)
-
---------------030506020106000109050608--
+ _
+(°=  Hervé Eychenne
+//)
+v_/_ WallFire project:  http://www.wallfire.org/
