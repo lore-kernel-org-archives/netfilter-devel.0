@@ -1,25 +1,12 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: (D)NAT with IPv6 (was "nf_conntrack & NAT")
-Date: Thu, 8 Dec 2005 12:56:32 +0100
-Message-ID: <20051208115632.GB13067@oknodo.bof.de>
-References: <Pine.LNX.4.64.0511231214590.11295@bizon.gios.gov.pl>
-	<200511231225.jANCPmYd015427@toshiba.co.jp>
-	<20051123132044.GZ3249@eychenne.org>
-	<20051123132419.GJ24091@fi.muni.cz>
-	<20051206154320.GG4038@rama.exocore.com>
-	<20051206173135.GQ5617@eychenne.org>
-	<Pine.LNX.4.58.0512071201460.17863@blackhole.kfki.hu>
-	<20051207145438.GA5617@eychenne.org>
-	<Pine.LNX.4.58.0512071603190.17863@blackhole.kfki.hu>
-	<20051208114120.GF5617@eychenne.org>
+From: Olivier GRALL <olivier.grall@neotip.com>
+Subject: SNAT/Masquerade binding ports generate conflicts
+Date: Thu, 08 Dec 2005 15:50:20 +0100
+Message-ID: <4398482C.3040102@neotip.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Herve Eychenne <rv@wallfire.org>
-Content-Disposition: inline
-In-Reply-To: <20051208114120.GF5617@eychenne.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -31,13 +18,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> So each time you add a service on a host, you should assign a new IP to it
-> (and create the respective DNS name for this IP/service couple!), just in
-> case you may have to redirect its traffic one day? (even if temporary)
+Hi,
 
-This has proven to be a very valuable strategy, at work, even for normal
-IPv4 operation. Saves headaches every time we want to migrate something.
-I can warmly recommend this practise.
+I have a problem using iptables as a NAT box. I'm testing a p2p VoIP 
+system trying to establish UDP channels using something like STUN.
 
-best regards
-  Patrick
+
+-------      snat              ------------               -----
+|  A  |-----| X |-----<-->-----| Server S |---<----->-----| B | 
+
+-------(p1)       \(P1)        ------------         /(P2) -----
+                    \                               /
+                     \-----<----->-----<---->------/
+
+X is iptables with a MASQUERADE (or SNAT) rule
+
+1- A sends a packet to S from port p1
+2- X opens port P1 (should be equal to p1)
+3- S answers to A with a message containing UDP port of B
+4- B knows port P1 of X thanks to S too
+=> Sometimes A sends the first packets of the communication to B through 
+X, then B can send packets to A too. Otherwise B sends the first packets 
+and X seems to drop them (we can see icmp). Then A sends UDP packets to 
+B and at this time iptables opens a new port 1024 for instance different 
+from P1.
+      It is like the uplet 
+[(src=(@A,p1),dst=(@B,P2)),(src=(@X,P1),dst=(@B,P2))] wasn't  available 
+anymore and so iptables changes P1 to P1'. Doing this, only one part of 
+the uplet changes. I thought that conntrack forces the fact that for 
+(@A,p1),(@B,P2) there is only a unique couple on the other side (= at 
+the end of iptables treatments).
+
+I used iptables 1.2.7a for that test. Anyone can tell me if  a recent 
+version can solve this problem ?
+
+Otherwise, is it possible to update the first conntrack record instead 
+of creating a new one (with port P1') ?
+
+Thanks.
+
+Olivier GRALL.
