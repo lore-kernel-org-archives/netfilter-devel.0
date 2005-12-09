@@ -1,13 +1,26 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: ipt_recent needs a maintainer!
-Date: Fri, 9 Dec 2005 10:42:54 +0530
-Message-ID: <20051209051254.GH4244@rama.exocore.com>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: (D)NAT with IPv6 (was "nf_conntrack & NAT")
+Date: Fri, 9 Dec 2005 09:56:06 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0512090950520.26169@bizon.gios.gov.pl>
+References: <200511231225.jANCPmYd015427@toshiba.co.jp>
+	<20051123132044.GZ3249@eychenne.org>
+	<20051123132419.GJ24091@fi.muni.cz>
+	<20051206154320.GG4038@rama.exocore.com>
+	<20051206173135.GQ5617@eychenne.org>
+	<Pine.LNX.4.58.0512071201460.17863@blackhole.kfki.hu>
+	<20051207145438.GA5617@eychenne.org>
+	<Pine.LNX.4.58.0512071603190.17863@blackhole.kfki.hu>
+	<20051208114120.GF5617@eychenne.org>
+	<20051208115632.GB13067@oknodo.bof.de>
+	<20051209045631.GC4244@rama.exocore.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="smOfPzt+Qjm5bNGJ"
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-255680564-1134118566=:26169"
+Cc: Herve Eychenne <rv@wallfire.org>, netfilter-devel@lists.netfilter.org,
+	Patrick Schaaf <bof@bof.de>, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20051209045631.GC4244@rama.exocore.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,64 +32,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---smOfPzt+Qjm5bNGJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+---187430788-255680564-1134118566=:26169
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Hi!
 
-ipt_recent was merged into the mainline kernel quite some time ago, but
-unfortunately the original author doesn't seem to be compelled to
-maintain it.  There's nothing wrong with that, after all we do this
-voluntarily!  But we have to deal with the consequences.
 
-Some people from the netfilter community have indicated that it's coding
-style rectifies a re-write, but that's something I don't want to address
-now.
+On Fri, 9 Dec 2005, Harald Welte wrote:
 
-What we need as a short-term solution is somebody maintaining this
-beast, somebody looking into bug reports, etc.
+> On Thu, Dec 08, 2005 at 12:56:32PM +0100, Patrick Schaaf wrote:
+>>> So each time you add a service on a host, you should assign a new IP to=
+ it
+>>> (and create the respective DNS name for this IP/service couple!), just =
+in
+>>> case you may have to redirect its traffic one day? (even if temporary)
+>>
+>> This has proven to be a very valuable strategy, at work, even for normal
+>> IPv4 operation. Saves headaches every time we want to migrate something.
+>> I can warmly recommend this practise.
+>
+> I totally agree.  Esp. with IPv6 there is no reason to do otherwise...
+> A /64 for every physical network segment, guess people still need to get
+> used to it.
 
-There are a number of bug reports coming in, and nobody really takes
-care of them.  The latest one seems to be
-https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=3D415
-but there are more, like
-https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=3D369
-and I also think there have been reports to bugme.osdl.org as well.
+But if you need to move IP betwen machines then you need one ip for each=20
+service, probably with /32 mask for IPv4 and /64 for IPv6. There is no=20
+problem when using private addresses and IPv4, should be no problem for=20
+IPv6 but there is no way to do it that way with public IPv4 addressess.
 
-Unless somebody volunteers to maintain that module within a short time,
-I suggest that we mark it as "EXPERIMENTAL" and/or "BROKEN" in Kconfig
-of 2.6.16.
+Best regards,
 
-Comments welcome.
-
-[p.s: you might argue that it's the coreteam's job to do this. This is
-true, but I for myself haven't even used the module once and I doubt
-it's usefulness.  I'm not familiar with the code, and the past months
-have shown that I'm not likely to find the time to deal with it.]
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---smOfPzt+Qjm5bNGJ
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDmRJWXaXGVTD0i/8RAjJNAKCJLJuTSIO6ULAsE1gtDfU040IEggCgrE42
-MSLYeevuIEgD2Mh2Z98B6es=
-=XXEp
------END PGP SIGNATURE-----
-
---smOfPzt+Qjm5bNGJ--
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-255680564-1134118566=:26169--
