@@ -1,14 +1,16 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 1/3] nfctnetlink: fixes and adding support ICMPv6
-Date: Fri, 09 Dec 2005 11:42:40 +0900 (JST)
-Message-ID: <200512090242.jB92gfMp028039@toshiba.co.jp>
+Subject: Re: [RFC][PATCH] ctnetlink port to nf_conntrack take #3
+Date: Fri, 09 Dec 2005 11:41:32 +0900 (JST)
+Message-ID: <200512090241.jB92fXut018767@toshiba.co.jp>
+References: <439419A7.7040100@eurodev.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net,
+	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: pablo@eurodev.net
-Content-Disposition: inline; filename="01-nfctnetlink-warning.patch"
+In-Reply-To: <439419A7.7040100@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,32 +22,63 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER] nf_conntrack: fixed compiler warning due to missing symbols.
+Hi, Pablo,
 
-These functions are used only if nfctnetlink are built.
+From: Pablo Neira Ayuso <pablo@eurodev.net>
+Date: Mon, 05 Dec 2005 11:42:47 +0100
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+> Attached the 3rd incarnation of the ctnetlink port to nf_conntrack, it
+> includes all recent Patrick's bugfixes and Yasuyuki's comments.
+> 
+> nf_conntrack_netlink.c is available at:
+> http://people.netfilter.org/pablo/nf_conntrack_netlink.c
 
----
-commit 27993a8d4f8b6b6fef00dd745762ce17452f2025
-tree 0db6efb40fee5d91564be9b779447a181ff2359f
-parent c03d140a1f9b287beecea06dc125b10b8c2af657
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 09 Dec 2005 00:13:14 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 09 Dec 2005 00:13:14 +0900
+Great work.
 
- net/netfilter/nf_conntrack_standalone.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+I have 2 more comments as follows. I'll send patches for them and
+adding support for ICMPv6 in other mails.
 
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 4c82f37..d17e42b 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -884,5 +884,8 @@ EXPORT_SYMBOL(nf_conntrack_hash_insert);
- EXPORT_SYMBOL(__nf_conntrack_expect_find);
- EXPORT_SYMBOL(nf_conntrack_expect_find);
- EXPORT_SYMBOL(nf_conntrack_expect_list);
-+#if defined(CONFIG_NF_CT_NETLINK) || \
-+    defined(CONFIG_NF_CT_NETLINK_MODULE)
- EXPORT_SYMBOL(nf_ct_port_tuple_to_nfattr);
- EXPORT_SYMBOL(nf_ct_port_nfattr_to_tuple);
-+#endif
+> +static int icmp_nfattr_to_tuple(struct nfattr *tb[],
+> +				struct nf_conntrack_tuple *tuple)
+> +{
+> +	if (!tb[CTA_PROTO_ICMP_TYPE-1]
+> +	    || !tb[CTA_PROTO_ICMP_CODE-1]
+> +	    || !tb[CTA_PROTO_ICMP_ID-1])
+> +		return -EINVAL;
+> +
+> +	if (nfattr_bad_size(tb, CTA_PROTO_MAX, cta_min_proto))
+> +		return -EINVAL;
+> +
+> +	tuple->dst.u.icmp.type = 
+> +			*(u_int8_t *)NFA_DATA(tb[CTA_PROTO_ICMP_TYPE-1]);
+> +	tuple->dst.u.icmp.code =
+> +			*(u_int8_t *)NFA_DATA(tb[CTA_PROTO_ICMP_CODE-1]);
+> +	tuple->src.u.icmp.id =
+> +			*(u_int16_t *)NFA_DATA(tb[CTA_PROTO_ICMP_ID-1]);
+> +
+> +	if (tuple->dst.u.icmp.type >= sizeof(valid_new)
+> +	    || !valid_new[tuple->dst.u.icmp.type])
+> +		return -EINVAL;
+> +
+> +	return 0;
+> +}
+
+This rejects tuples for replying like Echo reply. How about invmap instead of
+valid_new ?
+
+This can be said about the resent patch for "ip_conntrack"_netlink
+from you. I'll also send patch for it.
+
+> +EXPORT_SYMBOL(nf_conntrack_hash_insert);
+> +EXPORT_SYMBOL(__nf_conntrack_expect_find);
+> +EXPORT_SYMBOL(nf_conntrack_expect_find);
+> +EXPORT_SYMBOL(nf_conntrack_expect_list);
+> +EXPORT_SYMBOL(nf_ct_port_tuple_to_nfattr);
+> +EXPORT_SYMBOL(nf_ct_port_nfattr_to_tuple);
+
+nf_ct_port_{tuple_to_nfattr,nfattr_to_tuple} should be surrouned with
+CONFIG_NF_CT_NETLINK.
+
+Regards,
+
+-- Yasuyuki Kozakai
