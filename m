@@ -1,10 +1,11 @@
 From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: SVN web problems?
-Date: Sat, 10 Dec 2005 00:13:31 +0300
-Message-ID: <20051209211331.GA2897@2ka.mipt.ru>
+Subject: [1/1] OSF: real close for 399 bug.
+Date: Sat, 10 Dec 2005 00:31:57 +0300
+Message-ID: <20051209213157.GA14708@2ka.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>, PatriK McHardy <kaber@trash.net>
+Cc: Harald Welte <laforge@netfilter.org>, alex@nrbspb.ru,
+	PatriK McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -19,33 +20,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I've just read bugzilla about OSF module and found, that it's 2.4
-version does not support connector option, so I decided to download
-header file [URL:
-http://cvs.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/osf/linux/include/linux/netfilter_ipv4/ipt_osf.h?view=markup], 
-but failed with the following error:
+Hello, developers.
+I've just read bugzilla and found bug 399:
+2.4 does not support connector, but I place define for that bit into
+header file to shut compiler up.
+It does not introduce any kind of regression, since 2.4 OSF version just
+do not use that bit.
 
-An Exception Has Occurred
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
-trunk/patch-o-matic-ng/osf/linux/include/linux/netfilter_ipv4/ipt_osf.h:
-unknown location
-
-HTTP Response Status
-
-404 Not Found
-
-Python Traceback
-
-Traceback (most recent call last):
-  File "/var/www/localhost/viewcvs/lib/viewcvs.py", line 3283, in main
-      request.run_viewcvs()
-        File "/var/www/localhost/viewcvs/lib/viewcvs.py", line 297, in
-	run_viewcvs
-	    % self.where, '404 Not Found')
-	    ViewCVSException: 404 Not Found:
-	    trunk/patch-o-matic-ng/osf/linux/include/linux/netfilter_ipv4/ipt_osf.h:
-	    unknown location
-
+Index: patch-o-matic-ng/patchlets/osf/linux/include/linux/netfilter_ipv4/ipt_osf.h
+===================================================================
+--- patch-o-matic-ng/patchlets/osf/linux/include/linux/netfilter_ipv4/ipt_osf.h	(revision 6310)
++++ patch-o-matic-ng/patchlets/osf/linux/include/linux/netfilter_ipv4/ipt_osf.h	(working copy)
+@@ -29,6 +29,7 @@
+ #define	IPT_OSF_SMART		2
+ #define IPT_OSF_LOG		4
+ #define IPT_OSF_NETLINK		8
++#define IPT_OSF_CONNECTOR	16
+ 
+ #define IPT_OSF_LOGLEVEL_ALL	0
+ #define IPT_OSF_LOGLEVEL_FIRST	1
 
 
 -- 
