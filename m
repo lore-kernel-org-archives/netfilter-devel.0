@@ -1,16 +1,13 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] ip_nat_tftp: Fix expectation NAT.
-Date: Fri, 9 Dec 2005 10:25:20 +0530
-Message-ID: <20051209045520.GB4244@rama.exocore.com>
-References: <43980FAA.6060608@ingate.com>
+Subject: ipt_recent needs a maintainer!
+Date: Fri, 9 Dec 2005 10:42:54 +0530
+Message-ID: <20051209051254.GH4244@rama.exocore.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gatW/ieO32f1wygP"
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+	protocol="application/pgp-signature"; boundary="smOfPzt+Qjm5bNGJ"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marcus Sundberg <marcus@ingate.com>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <43980FAA.6060608@ingate.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,30 +20,42 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---gatW/ieO32f1wygP
+--smOfPzt+Qjm5bNGJ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Dec 08, 2005 at 11:49:14AM +0100, Marcus Sundberg wrote:
-> Hi,
->=20
-> this patch fixes the case where the port in an initial TFTP packet
-> is SNATed. Previously the port was never DNATed back for the expected
-> connection.
+Hi!
 
-Thanks!
+ipt_recent was merged into the mainline kernel quite some time ago, but
+unfortunately the original author doesn't seem to be compelled to
+maintain it.  There's nothing wrong with that, after all we do this
+voluntarily!  But we have to deal with the consequences.
 
-This is one of the cases where I'd really appreciate having a nfsim
-test for the testsuite to=20
-1) help understanding the problem
-2) prevent further regressions
+Some people from the netfilter community have indicated that it's coding
+style rectifies a re-write, but that's something I don't want to address
+now.
 
-Would you be willing to provide us with a testcase for nfsim-testsuite?
-Unfortunately we cannot offer anything but bonus points ;)
+What we need as a short-term solution is somebody maintaining this
+beast, somebody looking into bug reports, etc.
 
-Patrick: I'm still not back from Bangalore, so I'm still relying on you
-picking up all the patches ;)
+There are a number of bug reports coming in, and nobody really takes
+care of them.  The latest one seems to be
+https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=3D415
+but there are more, like
+https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=3D369
+and I also think there have been reports to bugme.osdl.org as well.
+
+Unless somebody volunteers to maintain that module within a short time,
+I suggest that we mark it as "EXPERIMENTAL" and/or "BROKEN" in Kconfig
+of 2.6.16.
+
+Comments welcome.
+
+[p.s: you might argue that it's the coreteam's job to do this. This is
+true, but I for myself haven't even used the module once and I doubt
+it's usefulness.  I'm not familiar with the code, and the past months
+have shown that I'm not likely to find the time to deal with it.]
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -58,16 +67,16 @@ picking up all the patches ;)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---gatW/ieO32f1wygP
+--smOfPzt+Qjm5bNGJ
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDmQ44XaXGVTD0i/8RAjMKAKCgDyc41jguoZV1Aq88i2KuOM9PiQCfY46v
-ktsYA/UnE23TDEQI+5SWd74=
-=HAd1
+iD8DBQFDmRJWXaXGVTD0i/8RAjJNAKCJLJuTSIO6ULAsE1gtDfU040IEggCgrE42
+MSLYeevuIEgD2Mh2Z98B6es=
+=XXEp
 -----END PGP SIGNATURE-----
 
---gatW/ieO32f1wygP--
+--smOfPzt+Qjm5bNGJ--
