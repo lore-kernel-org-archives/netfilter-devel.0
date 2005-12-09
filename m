@@ -1,16 +1,13 @@
-From: Marcus Sundberg <marcus@ingate.com>
-Subject: Re: [PATCH] ip_nat_tftp: Fix expectation NAT.
-Date: Fri, 09 Dec 2005 17:23:37 +0100
-Message-ID: <4399AF89.9030603@ingate.com>
-References: <43980FAA.6060608@ingate.com>
-	<20051209045520.GB4244@rama.exocore.com>
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: [1/1] OSF: netlink related changes.
+Date: Sat, 10 Dec 2005 00:02:20 +0300
+Message-ID: <20051209210220.GA28195@2ka.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+Cc: Harald Welte <laforge@netfilter.org>, PatriK McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051209045520.GB4244@rama.exocore.com>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,73 +19,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> This is one of the cases where I'd really appreciate having a nfsim
-> test for the testsuite to 
-> 1) help understanding the problem
-> 2) prevent further regressions
-> 
-> Would you be willing to provide us with a testcase for nfsim-testsuite?
-> Unfortunately we cannot offer anything but bonus points ;)
+Hello, developers.
+Due to new interface and changed API in netlink area
+several patch-o-matic modules can not be compiled.
+Passive OS fingerprinting OSF modules is one of them. 
+Consider for inclusion.
 
-Hi,
+This patch has been done against just downloaded ipt_osf.c file from
+cvs.netfilter.org.
+I only read list archive and did not receive your feedback, sorry for
+not answering.
 
-How about the following simple test?
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 
-//Marcus
+--- trunk/patch-o-matic-ng/patchlets/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c      2005-11-05 12:35:02.000000000 -0500
++++ trunk/patch-o-matic-ng/patchlets/osf/linux-2.6/net/ipv4/netfilter/ipt_osf.c       2005-11-05 12:43:54.000000000 -0500
+@@ -30,6 +30,7 @@
 
---- /dev/null	2004-02-23 22:02:56.000000000 +0100
-+++ nfsim-testsuite/03NAT/67tftp.sim	2005-12-09 17:21:25.817527981 +0100
-@@ -0,0 +1,46 @@
-+# Setup SNAT with port NAT.
-+iptables -t nat -A POSTROUTING -p udp -s 192.168.0.0/24 -d 192.168.1.0/24 -j SNAT --to-source 192.168.1.1:30000-40000
-+
-+# Issue TFTP read request.
-+expect gen_ip send:eth1 {IPv4 192.168.1.1 192.168.1.2 21 17 30000 69 DATA \0\x01/nicefile\0netascii\0}
-+gen_ip IF=eth0 192.168.0.2 192.168.1.2 21 17 1051 69 DATA \0\x01/nicefile\0netascii\0
-+
-+# Show expectation.
-+proc cat /proc/net/ip_conntrack_expect
-+
-+# First data packet.
-+expect gen_ip send:eth0 {IPv4 192.168.1.2 192.168.0.2 524 17 4711 1051}
-+gen_ip IF=eth1 192.168.1.2 192.168.1.1 524 17 4711 30000
-+# First ACK.
-+expect gen_ip send:eth1 {IPv4 192.168.1.1 192.168.1.2 12 17 30000 4711}
-+gen_ip IF=eth0 192.168.0.2 192.168.1.2 12 17 1051 4711
-+# Second data packet.
-+expect gen_ip send:eth0 {IPv4 192.168.1.2 192.168.0.2 87 17 4711 1051}
-+gen_ip IF=eth1 192.168.1.2 192.168.1.1 87 17 4711 30000
-+# Second ACK.
-+expect gen_ip send:eth1 {IPv4 192.168.1.1 192.168.1.2 12 17 30000 4711}
-+gen_ip IF=eth0 192.168.0.2 192.168.1.2 12 17 1051 4711
-+
-+# Issue TFTP read request again from a new port.
-+expect gen_ip send:eth1 {IPv4 192.168.1.1 192.168.1.2 28 17 30001 69 DATA \0\x01/anothernicefile\0netascii\0}
-+gen_ip IF=eth0 192.168.0.2 192.168.1.2 28 17 1052 69 DATA \0\x01/anothernicefile\0netascii\0
-+
-+# Show expectation.
-+proc cat /proc/net/ip_conntrack_expect
-+
-+# First data packet.
-+expect gen_ip send:eth0 {IPv4 192.168.1.2 192.168.0.2 524 17 4711 1052}
-+gen_ip IF=eth1 192.168.1.2 192.168.1.1 524 17 4711 30001
-+# First ACK.
-+expect gen_ip send:eth1 {IPv4 192.168.1.1 192.168.1.2 12 17 30001 4711}
-+gen_ip IF=eth0 192.168.0.2 192.168.1.2 12 17 1052 4711
-+# Second data packet.
-+expect gen_ip send:eth0 {IPv4 192.168.1.2 192.168.0.2 233 17 4711 1052}
-+gen_ip IF=eth1 192.168.1.2 192.168.1.1 233 17 4711 30001
-+# Second ACK.
-+expect gen_ip send:eth1 {IPv4 192.168.1.1 192.168.1.2 12 17 30001 4711}
-+gen_ip IF=eth0 192.168.0.2 192.168.1.2 12 17 1052 4711
-+
-+# Show conntracks and expectations.
-+proc cat /proc/net/ip_conntrack
-+proc cat /proc/net/ip_conntrack_expect
+ #include <linux/config.h>
+ #include <linux/kernel.h>
++#include <linux/version.h>
+ #include <linux/types.h>
+ #include <linux/string.h>
+ #include <linux/smp.h>
+@@ -155,7 +156,11 @@
+ 	memcpy(&data->ip, sk->nh.iph, sizeof(struct iphdr));
+ 	memcpy(&data->tcp, (struct tcphdr *)((u_int32_t *)sk->nh.iph + sk->nh.iph->ihl), sizeof(struct tcphdr));
+
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
+ 	NETLINK_CB(skb).dst_groups = ipt_osf_groups;
++#else
++	NETLINK_CB(skb).dst_group = ipt_osf_groups;
++#endif
+ 	netlink_broadcast(nts, skb, 0, ipt_osf_groups, GFP_ATOMIC);
+
+ nlmsg_failure:
+@@ -821,7 +826,11 @@
+ 	p->write_proc->osf_proc_write;
+ 	p->read_proc->osf_proc_read;
+
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
+ 	nts->netlink_kernel_create(NETLINK_NFLOG, NULL);
++#else
++	nts->netlink_kernel_create(NETLINK_NFLOG, 1, NULL, THIS_MODULE);
++#endif
+ 	if (!nts) {
+ 		log("netlink_kernel_create() failed\n");
+ 	}
 
 
 -- 
----------------------------------------+--------------------------
-  Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
- Software Developer, Ingate Systems AB |  http://www.ingate.com/
+	Evgeniy Polyakov
