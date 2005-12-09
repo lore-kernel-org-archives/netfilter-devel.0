@@ -1,7 +1,7 @@
 From: Harald Welte <laforge@netfilter.org>
 Subject: Re: (D)NAT with IPv6 (was "nf_conntrack & NAT")
-Date: Fri, 9 Dec 2005 10:26:31 +0530
-Message-ID: <20051209045631.GC4244@rama.exocore.com>
+Date: Fri, 9 Dec 2005 10:27:59 +0530
+Message-ID: <20051209045759.GD4244@rama.exocore.com>
 References: <200511231225.jANCPmYd015427@toshiba.co.jp>
 	<20051123132044.GZ3249@eychenne.org>
 	<20051123132419.GJ24091@fi.muni.cz>
@@ -14,7 +14,7 @@ References: <200511231225.jANCPmYd015427@toshiba.co.jp>
 	<20051208115632.GB13067@oknodo.bof.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Y5rl02BVI9TCfPar"
+	protocol="application/pgp-signature"; boundary="48TaNjbzBVislYPb"
 Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	netfilter-devel@lists.netfilter.org, Herve Eychenne <rv@wallfire.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -33,7 +33,7 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Y5rl02BVI9TCfPar
+--48TaNjbzBVislYPb
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
@@ -49,9 +49,12 @@ in
 > IPv4 operation. Saves headaches every time we want to migrate something.
 > I can warmly recommend this practise.
 
-I totally agree.  Esp. with IPv6 there is no reason to do otherwise...
-A /64 for every physical network segment, guess people still need to get
-used to it.
+oh btw, this also solves the usual ssl certificate problem, where you
+for example tell people to use smtp/tls or imap/tls or whatever to
+"smtp.foo.org" which might be a cname, and thus the certificate name
+doesn't always match the 'dn' of the cert.
+
+A very clean solution, indeed.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -63,16 +66,16 @@ used to it.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Y5rl02BVI9TCfPar
+--48TaNjbzBVislYPb
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDmQ5/XaXGVTD0i/8RAi6aAJ4paR3EsmF5xDDE8Zwks5y39jcQ9gCgs+Hj
-+47oTiwLZVyGyOnF21x0Rbs=
-=yPbX
+iD8DBQFDmQ7XXaXGVTD0i/8RAhmBAKCo3pM0WHyILv1qZRawjPnwo+B5iACfQbvL
+KumuwDMe419CWwmpiAGldGw=
+=nehd
 -----END PGP SIGNATURE-----
 
---Y5rl02BVI9TCfPar--
+--48TaNjbzBVislYPb--
