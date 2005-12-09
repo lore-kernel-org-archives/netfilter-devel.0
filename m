@@ -1,16 +1,14 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [RFC][PATCH] ctnetlink port to nf_conntrack take #3
-Date: Fri, 09 Dec 2005 11:41:32 +0900 (JST)
-Message-ID: <200512090241.jB92fXut018767@toshiba.co.jp>
-References: <439419A7.7040100@eurodev.net>
+Subject: [PATCH 3/3] nfctnetlink: use invmap to check trackable ICMP type
+Date: Fri, 09 Dec 2005 11:47:01 +0900 (JST)
+Message-ID: <200512090247.jB92l11X002522@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net,
-	yasuyuki.kozakai@toshiba.co.jp
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: pablo@eurodev.net
-In-Reply-To: <439419A7.7040100@eurodev.net>
+Content-Disposition: inline; filename="03-nfctnetlink-check-icmp.patch"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,63 +20,89 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, Pablo,
+[NETFILTER] nfctnetlink: use invmap to check trackable ICMP type
 
-From: Pablo Neira Ayuso <pablo@eurodev.net>
-Date: Mon, 05 Dec 2005 11:42:47 +0100
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
-> Attached the 3rd incarnation of the ctnetlink port to nf_conntrack, it
-> includes all recent Patrick's bugfixes and Yasuyuki's comments.
-> 
-> nf_conntrack_netlink.c is available at:
-> http://people.netfilter.org/pablo/nf_conntrack_netlink.c
+---
+commit cc3ae3971b05f0f92ce1b199f49c859dad992696
+tree 8f89c57a1e918be793880d31f3786cd68854f0c6
+parent f8292e30683470bda8611925ee256ddc3262dae2
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 09 Dec 2005 11:05:11 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 09 Dec 2005 11:05:11 +0900
 
-Great work.
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c |   40 ++++++++++++++------------
+ 1 files changed, 21 insertions(+), 19 deletions(-)
 
-I have 2 more comments as follows. I'll send patches for them and
-adding support for ICMPv6 in other mails.
-
-> +static int icmp_nfattr_to_tuple(struct nfattr *tb[],
-> +				struct nf_conntrack_tuple *tuple)
-> +{
-> +	if (!tb[CTA_PROTO_ICMP_TYPE-1]
-> +	    || !tb[CTA_PROTO_ICMP_CODE-1]
-> +	    || !tb[CTA_PROTO_ICMP_ID-1])
-> +		return -EINVAL;
-> +
-> +	if (nfattr_bad_size(tb, CTA_PROTO_MAX, cta_min_proto))
-> +		return -EINVAL;
-> +
-> +	tuple->dst.u.icmp.type = 
-> +			*(u_int8_t *)NFA_DATA(tb[CTA_PROTO_ICMP_TYPE-1]);
-> +	tuple->dst.u.icmp.code =
-> +			*(u_int8_t *)NFA_DATA(tb[CTA_PROTO_ICMP_CODE-1]);
-> +	tuple->src.u.icmp.id =
-> +			*(u_int16_t *)NFA_DATA(tb[CTA_PROTO_ICMP_ID-1]);
-> +
-> +	if (tuple->dst.u.icmp.type >= sizeof(valid_new)
-> +	    || !valid_new[tuple->dst.u.icmp.type])
-> +		return -EINVAL;
-> +
-> +	return 0;
-> +}
-
-This rejects tuples for replying like Echo reply. How about invmap instead of
-valid_new ?
-
-This can be said about the resent patch for "ip_conntrack"_netlink
-from you. I'll also send patch for it.
-
-> +EXPORT_SYMBOL(nf_conntrack_hash_insert);
-> +EXPORT_SYMBOL(__nf_conntrack_expect_find);
-> +EXPORT_SYMBOL(nf_conntrack_expect_find);
-> +EXPORT_SYMBOL(nf_conntrack_expect_list);
-> +EXPORT_SYMBOL(nf_ct_port_tuple_to_nfattr);
-> +EXPORT_SYMBOL(nf_ct_port_nfattr_to_tuple);
-
-nf_ct_port_{tuple_to_nfattr,nfattr_to_tuple} should be surrouned with
-CONFIG_NF_CT_NETLINK.
-
-Regards,
-
--- Yasuyuki Kozakai
+diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+index 973e653..52dc175 100644
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -50,20 +50,21 @@ static int icmp_pkt_to_tuple(const struc
+ 	return 1;
+ }
+ 
++/* Add 1; spaces filled with 0. */
++static const u_int8_t invmap[] = {
++	[ICMP_ECHO] = ICMP_ECHOREPLY + 1,
++	[ICMP_ECHOREPLY] = ICMP_ECHO + 1,
++	[ICMP_TIMESTAMP] = ICMP_TIMESTAMPREPLY + 1,
++	[ICMP_TIMESTAMPREPLY] = ICMP_TIMESTAMP + 1,
++	[ICMP_INFO_REQUEST] = ICMP_INFO_REPLY + 1,
++	[ICMP_INFO_REPLY] = ICMP_INFO_REQUEST + 1,
++	[ICMP_ADDRESS] = ICMP_ADDRESSREPLY + 1,
++	[ICMP_ADDRESSREPLY] = ICMP_ADDRESS + 1
++};
++
+ static int icmp_invert_tuple(struct nf_conntrack_tuple *tuple,
+ 			     const struct nf_conntrack_tuple *orig)
+ {
+-	/* Add 1; spaces filled with 0. */
+-	static u_int8_t invmap[]
+-		= { [ICMP_ECHO] = ICMP_ECHOREPLY + 1,
+-		    [ICMP_ECHOREPLY] = ICMP_ECHO + 1,
+-		    [ICMP_TIMESTAMP] = ICMP_TIMESTAMPREPLY + 1,
+-		    [ICMP_TIMESTAMPREPLY] = ICMP_TIMESTAMP + 1,
+-		    [ICMP_INFO_REQUEST] = ICMP_INFO_REPLY + 1,
+-		    [ICMP_INFO_REPLY] = ICMP_INFO_REQUEST + 1,
+-		    [ICMP_ADDRESS] = ICMP_ADDRESSREPLY + 1,
+-		    [ICMP_ADDRESSREPLY] = ICMP_ADDRESS + 1};
+-
+ 	if (orig->dst.u.icmp.type >= sizeof(invmap)
+ 	    || !invmap[orig->dst.u.icmp.type])
+ 		return 0;
+@@ -116,16 +117,17 @@ static int icmp_packet(struct nf_conn *c
+ 	return NF_ACCEPT;
+ }
+ 
+-static u_int8_t valid_new[]
+-	= { [ICMP_ECHO] = 1,
+-	    [ICMP_TIMESTAMP] = 1,
+-	    [ICMP_INFO_REQUEST] = 1,
+-	    [ICMP_ADDRESS] = 1 };
+-
+ /* Called when a new connection for this protocol found. */
+ static int icmp_new(struct nf_conn *conntrack,
+ 		    const struct sk_buff *skb, unsigned int dataoff)
+ {
++	static const u_int8_t valid_new[] = {
++		[ICMP_ECHO] = 1,
++		[ICMP_TIMESTAMP] = 1,
++		[ICMP_INFO_REQUEST] = 1,
++		[ICMP_ADDRESS] = 1
++	};
++
+ 	if (conntrack->tuplehash[0].tuple.dst.u.icmp.type >= sizeof(valid_new)
+ 	    || !valid_new[conntrack->tuplehash[0].tuple.dst.u.icmp.type]) {
+ 		/* Can't create a new ICMP `conn' with this. */
+@@ -327,8 +329,8 @@ static int icmp_nfattr_to_tuple(struct n
+ 	tuple->src.u.icmp.id =
+ 			*(u_int16_t *)NFA_DATA(tb[CTA_PROTO_ICMP_ID-1]);
+ 
+-	if (tuple->dst.u.icmp.type >= sizeof(valid_new)
+-	    || !valid_new[tuple->dst.u.icmp.type])
++	if (tuple->dst.u.icmp.type >= sizeof(invmap)
++	    || !invmap[tuple->dst.u.icmp.type])
+ 		return -EINVAL;
+ 
+ 	return 0;
