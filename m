@@ -1,13 +1,13 @@
-From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Subject: [1/1] OSF: small documentation update.
-Date: Sat, 10 Dec 2005 00:43:14 +0300
-Message-ID: <20051209214314.GA21647@2ka.mipt.ru>
+From: Nhan Thanh Le <ltnhan@tma.com.vn>
+Subject: How to get Ethernet data from Socket buffer.
+Date: 10 Dec 2005 15:56:39 -0500
+Message-ID: <1134248199.6530.21.camel@nhanle.tma.com.vn>
+Reply-To: ltnhan@tma.com.vn
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>, PatriK McHardy <kaber@trash.net>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Netfilter Devel <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,27 +19,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Hi All,
 
-Index: patch-o-matic-ng/patchlets/osf/help
-===================================================================
---- patch-o-matic-ng/patchlets/osf/help	(revision 6310)
-+++ patch-o-matic-ng/patchlets/osf/help	(working copy)
-@@ -30,8 +30,13 @@
- 	OSF will use initial TTL only if source of connection is in our local network.
-   
-   --netlink
--	If present, OSF will log all events also through netlink NETLINK_NFLOG groupt 1.
-+	If present, OSF will log all events also through netlink NETLINK_NFLOG group 1.
- 
-+  --connector
-+	2.6.14+ only.
-+	If present, OSF will log all events also through netlink connector(1.0 id).
-+	More about connector can be found in Documentation/connector in kernel source tree.
-+
- Fingerprints can be loaded and read through /proc/sys/net/ipv4/osf file.
- One can flush all fingerprints with following command:
- echo -en FLUSH > /proc/sys/net/ipv4/osf
+  My kernel module get data socket buffer from Netfilter, When I try to
+copy data from socket buffer filed skb->mac.raw or skb->mac.ethernet to
+my ethernet data then my computer will be hang on. Would you please show
+me how to fix this? Or please help me to how fill my ethernet header
+when I get data from socket buffer. Thank you very much and appreciate
+for help.
 
--- 
-	Evgeniy Polyakov
+Both function bellow is not work properly.
+
+inline static int build_ethernet(const struct sk_buff *skb, struct
+ethhdr vs_hdr)
+{
+  struct ethhdr *eth_header;
+  eth_header=(struct ethhdr *)skb->mac.raw;  
+  if (eth_header == NULL)
+    return -1;
+  memcpy(&vs_hdr,skb->mac.raw,sizeof(struct ethhdr));
+
+  return 0;
+}
+
+inline static int build_ethernet(const struct sk_buff *skb,  struct
+ethhdr vs_hdr)
+{
+  struct ethhdr *eth_header;
+  eth_header=skb->mac.ethernet;  
+  if (eth_header == NULL)
+    return -1;
+  memcpy(&vs_hdr,skb->mac.ethernet,sizeof(struct ethhdr));
+
+  return 0;
+}
+
+Nhanle
