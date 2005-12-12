@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ip_nat_tftp: Fix expectation NAT.
-Date: Mon, 12 Dec 2005 08:11:31 +0100
-Message-ID: <439D22A3.4090900@trash.net>
-References: <43980FAA.6060608@ingate.com>
+Subject: Re: [1/1] OSF: netlink related changes.
+Date: Mon, 12 Dec 2005 08:20:22 +0100
+Message-ID: <439D24B6.6080504@trash.net>
+References: <20051209210220.GA28195@2ka.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marcus Sundberg <marcus@ingate.com>
-In-Reply-To: <43980FAA.6060608@ingate.com>
+To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+In-Reply-To: <20051209210220.GA28195@2ka.mipt.ru>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,10 +21,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Marcus Sundberg wrote:
-> this patch fixes the case where the port in an initial TFTP packet
-> is SNATed. Previously the port was never DNATed back for the expected
-> connection.
+Evgeniy Polyakov wrote:
+> This patch has been done against just downloaded ipt_osf.c file from
+> cvs.netfilter.org.
+> I only read list archive and did not receive your feedback, sorry for
+> not answering.
 
-Took me some time to understand why this works for other helpers and
-not this one, but finally applied :) Thanks.
+Well it still didn't apply. I finally fixed it up manually, but the
+reason is that there is no such line "nts->netlink_kernel_create"
+in SVN, and I don't see how this ever could have compiled, since
+nts is a struct sock, which doesn't have a netlink_kernel_create
+member. I also noticed that you're reusing NETLINK_NFLOG. You can't
+do that. We can reserve a nfnetlink group if you need.
+
+> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
+>  	nts->netlink_kernel_create(NETLINK_NFLOG, NULL);
+> +#else
+> +	nts->netlink_kernel_create(NETLINK_NFLOG, 1, NULL, THIS_MODULE);
+> +#endif
+>  	if (!nts) {
+>  		log("netlink_kernel_create() failed\n");
+>  	}
+> 
+> 
