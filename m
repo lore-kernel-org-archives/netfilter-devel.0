@@ -1,15 +1,15 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [NETFILTER]: ip_nat_tftp: Fix expectation NAT
-Date: Sun, 11 Dec 2005 23:35:28 -0800 (PST)
-Message-ID: <20051211.233528.54273510.davem@davemloft.net>
-References: <439D278F.9010802@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: ipt_recent needs a maintainer!
+Date: Mon, 12 Dec 2005 08:42:01 +0100
+Message-ID: <439D29C9.6040005@trash.net>
+References: <20051209051254.GH4244@rama.exocore.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <439D278F.9010802@trash.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20051209051254.GH4244@rama.exocore.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,13 +21,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 12 Dec 2005 08:32:31 +0100
+Harald Welte wrote:
+> Some people from the netfilter community have indicated that it's coding
+> style rectifies a re-write, but that's something I don't want to address
+> now.
+> 
+> What we need as a short-term solution is somebody maintaining this
+> beast, somebody looking into bug reports, etc.
 
-> a small patch to fix TFTP SNAT. Please apply to your 2.6.15 tree
-> unless it's already out :)
+I think even the short term solution might be a rewrite :)
 
-I'll push this off to Linus tomorrow, I already did two
-pushes of net stuff to him today :)
-
-Thanks.
+My guess is that rewriting this thing cleanly without the bugs
+wouldn't take more time than fixing the bugs in the mess it is.
