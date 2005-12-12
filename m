@@ -1,15 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipt_recent needs a maintainer!
-Date: Mon, 12 Dec 2005 08:42:01 +0100
-Message-ID: <439D29C9.6040005@trash.net>
-References: <20051209051254.GH4244@rama.exocore.com>
+From: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Subject: Re: [1/1] OSF: netlink related changes.
+Date: Mon, 12 Dec 2005 15:06:37 +0300
+Message-ID: <20051212120637.GA16906@2ka.mipt.ru>
+References: <20051209210220.GA28195@2ka.mipt.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Harald Welte <laforge@netfilter.org>, PatriK McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051209051254.GH4244@rama.exocore.com>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <20051209210220.GA28195@2ka.mipt.ru>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,15 +21,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> Some people from the netfilter community have indicated that it's coding
-> style rectifies a re-write, but that's something I don't want to address
-> now.
-> 
-> What we need as a short-term solution is somebody maintaining this
-> beast, somebody looking into bug reports, etc.
+> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,14)
+>  	nts->netlink_kernel_create(NETLINK_NFLOG, NULL);
+> +#else
+> +	nts->netlink_kernel_create(NETLINK_NFLOG, 1, NULL, THIS_MODULE);
+> +#endif
 
-I think even the short term solution might be a rewrite :)
+Crap.
+It's totally my fault: MIME type was decoded incorrectly - "=" replaced
+with "->" when I downloaded this file.
 
-My guess is that rewriting this thing cleanly without the bugs
-wouldn't take more time than fixing the bugs in the mess it is.
+Thanks, Patrik, for resolving this.
+
+-- 
+	Evgeniy Polyakov
