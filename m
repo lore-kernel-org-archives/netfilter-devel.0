@@ -1,12 +1,25 @@
-From: Juergen Kreileder <jk@blackdown.de>
-Subject: Re: ipt_recent needs a maintainer!
-Date: Mon, 12 Dec 2005 19:21:27 +0100
-Message-ID: <439DBFA7.7000506@blackdown.de>
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: Re: (D)NAT with IPv6 (was "nf_conntrack & NAT")
+Date: Mon, 12 Dec 2005 21:42:33 +0100
+Message-ID: <1134420153.4093.12.camel@bzorp.balabit>
+References: <200511231225.jANCPmYd015427@toshiba.co.jp>
+	<20051123132044.GZ3249@eychenne.org>
+	<20051123132419.GJ24091@fi.muni.cz>
+	<20051206154320.GG4038@rama.exocore.com>
+	<20051206173135.GQ5617@eychenne.org>
+	<Pine.LNX.4.58.0512071201460.17863@blackhole.kfki.hu>
+	<20051207145438.GA5617@eychenne.org>
+	<Pine.LNX.4.58.0512071603190.17863@blackhole.kfki.hu>
+	<20051208114120.GF5617@eychenne.org>
+	<20051208115632.GB13067@oknodo.bof.de>
+	<20051209045759.GD4244@rama.exocore.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20051209045759.GD4244@rama.exocore.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,41 +31,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+[ trimmed Cc line ]
 
-> ipt_recent was merged into the mainline kernel quite some time ago, but
-> unfortunately the original author doesn't seem to be compelled to
-> maintain it.  There's nothing wrong with that, after all we do this
-> voluntarily!  But we have to deal with the consequences.
+On Fri, 2005-12-09 at 10:27 +0530, Harald Welte wrote:
+> On Thu, Dec 08, 2005 at 12:56:32PM +0100, Patrick Schaaf wrote:
+> > > So each time you add a service on a host, you should assign a new IP to it
+> > > (and create the respective DNS name for this IP/service couple!), just in
+> > > case you may have to redirect its traffic one day? (even if temporary)
+> > 
+> > This has proven to be a very valuable strategy, at work, even for normal
+> > IPv4 operation. Saves headaches every time we want to migrate something.
+> > I can warmly recommend this practise.
 > 
-> Some people from the netfilter community have indicated that it's coding
-> style rectifies a re-write, but that's something I don't want to address
-> now.
-> 
-> What we need as a short-term solution is somebody maintaining this
-> beast, somebody looking into bug reports, etc.
+> oh btw, this also solves the usual ssl certificate problem, where you
+> for example tell people to use smtp/tls or imap/tls or whatever to
+> "smtp.foo.org" which might be a cname, and thus the certificate name
+> doesn't always match the 'dn' of the cert.
 
-I'm using ipt_recent, so I'm interested in keeping it in shape.
-I'm familiar with the code and its current issues (see
-http://blog.blackdown.de/2005/05/09/fixing-the-ipt_recent-netfilter-module/)
-
-So I'd like to volunteer for maintaining it.
-
-> There are a number of bug reports coming in, and nobody really takes
-> care of them.  The latest one seems to be
-> https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=415
-
-This is exactly the bug described on my site.
-
-> but there are more, like
-> https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=369
-
-That bug is fixed since 2.6.12. The code in earlier kernels wasn't
-64-bit safe.
-
-
-	Juergen
+Even though this is usually a question of paying for several
+certificates and not being unable to put different certificates to
+different ports.
 
 -- 
-Juergen Kreileder, Blackdown Java-Linux Team
-http://blog.blackdown.de/
+Bazsi
