@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: execution context in netfilter hooks.
-Date: Mon, 12 Dec 2005 21:43:37 +0100
-Message-ID: <20051212204337.GE3420@sunbeam.de.gnumonks.org>
-References: <439C8E74.9070206@libero.it>
+Subject: Re: SVN web problems?
+Date: Mon, 12 Dec 2005 21:45:54 +0100
+Message-ID: <20051212204554.GF3420@sunbeam.de.gnumonks.org>
+References: <20051209211331.GA2897@2ka.mipt.ru>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="O5XBE6gyVG5Rl6Rj"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="m51xatjYGsM+13rf"
+Cc: netfilter-devel@lists.netfilter.org, PatriK McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Giacomo <jacum@libero.it>
+To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Content-Disposition: inline
-In-Reply-To: <439C8E74.9070206@libero.it>
+In-Reply-To: <20051209211331.GA2897@2ka.mipt.ru>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,54 +23,23 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---O5XBE6gyVG5Rl6Rj
+--m51xatjYGsM+13rf
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Dec 11, 2005 at 09:39:16PM +0100, Giacomo wrote:
-> Good morning, i would like to know exactly the context of execution
-> of code registered with netfilter hooks.
+On Sat, Dec 10, 2005 at 12:13:31AM +0300, Evgeniy Polyakov wrote:
+> I've just read bugzilla about OSF module and found, that it's 2.4
+> version does not support connector option, so I decided to download
+> header file [URL:
+> http://cvs.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/osf/l=
+inux/include/linux/netfilter_ipv4/ipt_osf.h?view=3Dmarkup],=20
 
->  As far as  I understood, the context is that of a softirq, inside a
-> bottom half. Correct me if i'm wrong..
+try with
+http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/patchle=
+ts/osf/linux/include/linux/netfilter_ipv4/ipt_osf.h?view=3Dmarkup
 
-'bottom half' context doesn't really exist anymore in 2.6.x, so it's
-softirq.  But that's only true for forwarded packets.  locally-generated
-packets at LOCAL_OUT are in 'kernel on behalf of process' context.
-
-> But is it concerned with tasklets?
-
-what do you mean by "is it concerned" ?
-
-> Is execution serialized? In other words, if packet A fr instance is
-> received from the net, and then packet B immediately, is packet A
-> processed entirely before packet B? Or code can be executed in
-> parallel for packet A and B?
-
-on multiple cpu's it's fully parallel, so yes, packet A will execute the
-same netfilter hook (plus attached code) on CPU1 where packet B will run
-on CPU2.=20
-
-On a single CPU, Packet B will be put onto a queue (by the hardirq
-handler of the network driver) until packet A's softirq processing has
-finished.  Then packet B will enter softirq context and pulled from that
-queue.
-
-> Moreover: interrupts are enabled in such context, aren't they? And that
-> means that also a software timer can interrupt a routine being
-> executed in bottom half.
-
-software timers dont interrupt softirq context. (neither did the
-interrupt bottom half context, when it still existed). you seem to be
-confused about the kernel contexts and their interaction.
-
-> But software timers run with sw interrupts disabled, so a timeout
-> handler for instance cannot be interrupted by a routine managing
-> reception of a packet arrived on the wire.
-
-I think you should read some general information on how softirq and
-hardirq processing work.  This is not really netfilter related.
+where did you get that old URL from?
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -82,16 +51,16 @@ hardirq processing work.  This is not really netfilter related.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---O5XBE6gyVG5Rl6Rj
+--m51xatjYGsM+13rf
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDneD5XaXGVTD0i/8RAvcQAJwMbiQgaxNDxzplpsKlVphBunhtWACfXugp
-kBtybUioy2U3e+sJ90S3YnM=
-=8Kwl
+iD8DBQFDneGCXaXGVTD0i/8RAvJnAJ9pGvuUpvQ9USAokpY9yWfI7CkNDgCgkwG7
+pkm9I6fnd5poGS7kVCgt5HI=
+=uxFl
 -----END PGP SIGNATURE-----
 
---O5XBE6gyVG5Rl6Rj--
+--m51xatjYGsM+13rf--
