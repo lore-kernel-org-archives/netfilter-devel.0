@@ -1,60 +1,64 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: MARK: targinfosize 8 != 4
-Date: Tue, 13 Dec 2005 13:01:42 +0100
-Message-ID: <439EB826.3070002@trash.net>
-References: <00fe01c5ffb5$f0a7cf20$455f030a@askeyrd3>
-	<20051213091820.GA1021@DervishD>
+From: <Juergen.Kreileder@empolis.com>
+Subject: Re: ipt_recent needs a maintainer!
+Date: Mon, 12 Dec 2005 14:51:48 +0100
+Message-ID: <69D276452CD2904980D5B6AC33C9BE170451439C@gtlbmlexs0006.bagmail.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: lartc@mailman.ds9a.nl,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <lartc-bounces@mailman.ds9a.nl>
-To: DervishD <lartc@dervishd.net>
-In-Reply-To: <20051213091820.GA1021@DervishD>
-List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
-List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
-List-Post: <mailto:lartc@mailman.ds9a.nl>
-List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
-List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
-Sender: lartc-bounces@mailman.ds9a.nl
-Errors-To: lartc-bounces@mailman.ds9a.nl
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-DervishD wrote:
->     Hi Salim :)
-> 
->  * Salim <salim.si@askey.com.tw> dixit:
-> 
->>   I got this problem while trying to shape traffic with iptables MARK and
->>HTB.
->>
->>MARK: targinfosize 8 != 4
->>
->>--set-mark gives "invalid argument" error message.
->>
->>Kernel version is 2.4.29 (some patches from patch o matic applied)
->>Iptables version 1.3.4
->>
->>Intel x86 architecture.
->>
->>I saw this problem discussed in a few places, but the discussions didn't
->>come to a conclusion or solution.
-> 
-> 
->     You've hit a bug in iptables :( I've notified in the bugzilla but
-> I have had no answers. You're building iptables with no shared
-> libraries (NO_SHARED_LIBS=1). This means that the code in iptables,
-> when loading the "modules" for the matches and targets is taking a
-> slightly different code path. The problem is that the MARK target
-> has two versions, 0 and 1, and kernel 2.4.x (at least until 31)
-> supports only version 0. If you don't use share libraries in
-> iptables, both versions are loaded and v1 is used instead of v2.
-> Unfortunately, v1 has a bigger data structure than v0 and your kernel
-> complaints.
+Hi,
 
-That can't be the reason, all revisions of a single match/target are
-in the same object file and the supported revision is (supposed to be)
-probed. Salim, can you send a strace of the failing iptables command?
+> ipt_recent was merged into the mainline kernel quite some time ago, =
+but
+> unfortunately the original author doesn't seem to be compelled to
+> maintain it.  There's nothing wrong with that, after all we do this
+> voluntarily!  But we have to deal with the consequences.
+>
+> Some people from the netfilter community have indicated that it's =
+coding
+> style rectifies a re-write, but that's something I don't want to =
+address
+> now.
+>
+> What we need as a short-term solution is somebody maintaining this
+> beast, somebody looking into bug reports, etc.
+
+I'm using ipt_recent, so I'm interested in keeping it in shape.
+I'm familiar with the code and its current issues (see =
+http://blog.blackdown.de/2005/05/09/fixing-the-ipt_recent-netfilter-modul=
+e/)
+
+So I'd like to volunteer for maintaining it.
+
+> There are a number of bug reports coming in, and nobody really takes
+> care of them.  The latest one seems to be
+> https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=3D415
+
+This is exactly the bug described on my site.
+
+> but there are more, like
+> https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=3D369
+
+That bug is fixed since 2.6.12. The code in earlier kernels wasn't =
+64-bit safe.
+
+
+    Juergen
+
+--=20
+Juergen Kreileder, Blackdown Java-Linux Team
+http://blog.blackdown.de/
