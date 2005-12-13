@@ -1,28 +1,14 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] CTA_PROTO_NUM is u_int8_t not u_int16_t (was Re:
- CTA_PROTO_NUM u_int8_t or u_int16_t)
-Date: Tue, 13 Dec 2005 12:22:03 +0100
-Message-ID: <439EAEDB.8080207@trash.net>
-References: <Pine.LNX.4.64.0511231128510.9162@bizon.gios.gov.pl>
-	<20051124200736.GW31478@sunbeam.de.gnumonks.org>
-	<20051124202125.GX31478@sunbeam.de.gnumonks.org>
-	<43864DC7.6060109@trash.net>
-	<Pine.LNX.4.64.0511250040030.14092@bizon.gios.gov.pl>
-	<20051125084427.GL31478@sunbeam.de.gnumonks.org>
-	<Pine.LNX.4.64.0511251019330.32144@bizon.gios.gov.pl>
-	<438710E1.2000202@trash.net> <4387A946.3000005@eurodev.net>
-	<Pine.LNX.4.64.0511272313570.28434@bizon.gios.gov.pl>
-	<20051129040925.GC3544@rama.towersoft.de>
-	<438CDF45.9040308@trash.net>
-	<Pine.LNX.4.64.0512131041090.928@bizon.gios.gov.pl>
+ CTA_PROTO_NUM u_int8_t or u_int16_t)]
+Date: Tue, 13 Dec 2005 12:26:07 +0100
+Message-ID: <439EAFCF.1040409@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000806050706000308090605"
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira Ayuso <pablo@eurodev.net>
+Content-Type: multipart/mixed; boundary="------------070309010109030207010903"
+Cc: Harald Welte <laforge@netfilter.org>, Pablo Neira <pablo@eurodev.net>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>,  stable@kernel.org
-In-Reply-To: <Pine.LNX.4.64.0512131041090.928@bizon.gios.gov.pl>
+To: stable@kernel.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -35,9 +21,11 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------000806050706000308090605
+--------------070309010109030207010903
 Content-Type: text/plain; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: 7bit
+
+[Resend, my last mail was rejected by the kernel.org mailserver]
 
 Krzysztof Oledzki wrote:
 > The review cycle for the 2.6.14.4 was started. I can't find this fix in 
@@ -68,7 +56,8 @@ SVN. We would prefer to have no incompatiblities between at least
 for -stable? If yes I'll send a patch that applies cleanly to
 2.6.14.3.
 
---------------000806050706000308090605
+
+--------------070309010109030207010903
 Content-Type: text/x-patch;
  name="ctnl-01.diff"
 Content-Transfer-Encoding: 7bit
@@ -111,4 +100,5 @@ index aeb7353..e7fa29e 100644
  		&ct->proto.tcp.state);
  	read_unlock_bh(&tcp_lock);
 
---------------000806050706000308090605--
+
+--------------070309010109030207010903--
