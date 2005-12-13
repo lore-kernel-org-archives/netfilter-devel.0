@@ -1,46 +1,60 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: [PATCH] CTA_PROTO_NUM is u_int8_t not u_int16_t (was Re:
- CTA_PROTO_NUM u_int8_t or u_int16_t)]
-Date: Tue, 13 Dec 2005 12:51:32 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0512131249430.7968@bizon.gios.gov.pl>
-References: <439EAFCF.1040409@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: MARK: targinfosize 8 != 4
+Date: Tue, 13 Dec 2005 13:01:42 +0100
+Message-ID: <439EB826.3070002@trash.net>
+References: <00fe01c5ffb5$f0a7cf20$455f030a@askeyrd3>
+	<20051213091820.GA1021@DervishD>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-665118740-1134474692=:7968"
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira <pablo@eurodev.net>, stable@kernel.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <439EAFCF.1040409@trash.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: lartc@mailman.ds9a.nl,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <lartc-bounces@mailman.ds9a.nl>
+To: DervishD <lartc@dervishd.net>
+In-Reply-To: <20051213091820.GA1021@DervishD>
+List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
+	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
+List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
+List-Post: <mailto:lartc@mailman.ds9a.nl>
+List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
+List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
+	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
+Sender: lartc-bounces@mailman.ds9a.nl
+Errors-To: lartc-bounces@mailman.ds9a.nl
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+DervishD wrote:
+>     Hi Salim :)
+> 
+>  * Salim <salim.si@askey.com.tw> dixit:
+> 
+>>   I got this problem while trying to shape traffic with iptables MARK and
+>>HTB.
+>>
+>>MARK: targinfosize 8 != 4
+>>
+>>--set-mark gives "invalid argument" error message.
+>>
+>>Kernel version is 2.4.29 (some patches from patch o matic applied)
+>>Iptables version 1.3.4
+>>
+>>Intel x86 architecture.
+>>
+>>I saw this problem discussed in a few places, but the discussions didn't
+>>come to a conclusion or solution.
+> 
+> 
+>     You've hit a bug in iptables :( I've notified in the bugzilla but
+> I have had no answers. You're building iptables with no shared
+> libraries (NO_SHARED_LIBS=1). This means that the code in iptables,
+> when loading the "modules" for the matches and targets is taking a
+> slightly different code path. The problem is that the MARK target
+> has two versions, 0 and 1, and kernel 2.4.x (at least until 31)
+> supports only version 0. If you don't use share libraries in
+> iptables, both versions are loaded and v1 is used instead of v2.
+> Unfortunately, v1 has a bigger data structure than v0 and your kernel
+> complaints.
 
----187430788-665118740-1134474692=:7968
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Tue, 13 Dec 2005, Patrick McHardy wrote:
-
-> The patch Krzysztof attached went into 2.6.15-rc and fixes an
-> attribute sizes that was used inconsistently.
-One correction - I attached corrected patch, ready for 2.6.14.x. 2.6.15-rc=
-=20
-has different patch.
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-665118740-1134474692=:7968--
+That can't be the reason, all revisions of a single match/target are
+in the same object file and the supported revision is (supposed to be)
+probed. Salim, can you send a strace of the failing iptables command?
