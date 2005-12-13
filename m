@@ -1,16 +1,13 @@
 From: Giacomo <delleceste@gmail.com>
 Subject: Re: execution context in netfilter hooks.
-Date: Tue, 13 Dec 2005 09:04:24 +0100
-Message-ID: <885896af0512130004n1fa1fdt@mail.gmail.com>
-References: <439C8E74.9070206@libero.it>
-	<20051212204337.GE3420@sunbeam.de.gnumonks.org>
+Date: Tue, 13 Dec 2005 09:06:26 +0100
+Message-ID: <885896af0512130006q23359049o@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>, Giacomo <jacum@libero.it>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <20051212204337.GE3420@sunbeam.de.gnumonks.org>
+To: Harald Welte <laforge@gnumonks.org>,
+	netfilter devel <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -23,82 +20,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-A last question:
+Thank you very much for the answer.
+The thing that confused me was that i had some
+functions that registered with netfilter hooks.
+I thought that processing was serialized, as you said
+'in a queue'...
+One of those functions was consulting a linked list, each
+entry in such list had a timer attached. When timer expired, the entry
+was freed.
+After millions of packets processed by my function, a
+crash happened. I solved the problem putting
+'read_lock/unlock_bh' around linked list search and around timer
+expiry handler function.
+I thought it was not possible that my function was interrupted, while
+instead things revealed that probably
+i was unsafely freeing an entry in list which still had been
+used by another function.
 
- you said LOCAL_OUT is on behalf of process, so it is in process
-context -> can be interrupted by timer -> the reason why code crashed!
-If so, the question would be finally clear!
+read_locks during list_for_each while consulting list, together with
+write_locks around timeout handlers and
+list_add solved.
 
-LOCAL_INPUT instead should be softirq, shouldn't it? Just like
-FORWARD... so timers don't cause interruption..
+So i'm trying to understand the reason why this happened, and if i am
+right to use read/write locks (_bh)
+or if i would better use spin_locks (_bh) or spin locks together with
+_rcu version of lists.
 
-Thanks a lot very much!
+When i said 'is it concerned with tasklets' i meant: after
+hardirq when receiving a packet, is the packet processing (and
+netfilter hook functions) registered as a tasklet to run later?
 
-Giacomo.
+As to software timers, i thought  they were interrupting the other
+routine scanning the linked list, as it resulted in the crash. But
+probably this was due to 'kernel on behalf of process' context in
+local output packets, as you said. (->does this mean no softirq
+context -> routine interruptible?)
 
+I read a lot of documents, but they talk a lot about
+bottom halves, softirqs and tasklets, but perhaps some
+things have changed in 2.6.x, and then i thought that new kernel
+preemption would have made processing resemble SMP processing also un
+UP systems.
 
+Excuse my many questions, but i would like to clarify those important issue=
+s...
 
-2005/12/12, Harald Welte <laforge@netfilter.org>:
-> On Sun, Dec 11, 2005 at 09:39:16PM +0100, Giacomo wrote:
-> > Good morning, i would like to know exactly the context of execution
-> > of code registered with netfilter hooks.
->
-> >  As far as  I understood, the context is that of a softirq, inside a
-> > bottom half. Correct me if i'm wrong..
->
-> 'bottom half' context doesn't really exist anymore in 2.6.x, so it's
-> softirq.  But that's only true for forwarded packets.  locally-generated
-> packets at LOCAL_OUT are in 'kernel on behalf of process' context.
->
-> > But is it concerned with tasklets?
->
-> what do you mean by "is it concerned" ?
->
-> > Is execution serialized? In other words, if packet A fr instance is
-> > received from the net, and then packet B immediately, is packet A
-> > processed entirely before packet B? Or code can be executed in
-> > parallel for packet A and B?
->
-> on multiple cpu's it's fully parallel, so yes, packet A will execute the
-> same netfilter hook (plus attached code) on CPU1 where packet B will run
-> on CPU2.
->
-> On a single CPU, Packet B will be put onto a queue (by the hardirq
-> handler of the network driver) until packet A's softirq processing has
-> finished.  Then packet B will enter softirq context and pulled from that
-> queue.
->
-> > Moreover: interrupts are enabled in such context, aren't they? And that
-> > means that also a software timer can interrupt a routine being
-> > executed in bottom half.
->
-> software timers dont interrupt softirq context. (neither did the
-> interrupt bottom half context, when it still existed). you seem to be
-> confused about the kernel contexts and their interaction.
->
-> > But software timers run with sw interrupts disabled, so a timeout
-> > handler for instance cannot be interrupted by a routine managing
-> > reception of a packet arrived on the wire.
->
-> I think you should read some general information on how softirq and
-> hardirq processing work.  This is not really netfilter related.
->
-> --
-> - Harald Welte <laforge@netfilter.org>                 http://netfilter.o=
-rg/
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
->   "Fragmentation is like classful addressing -- an interesting early
->    architectural error that shows how much experimentation was going
->    on while IP was being designed."                    -- Paul Vixie
->
->
->
+Thanks a lot!
 
-
-
+Giacomo
 --
 
 Giacomo S.
