@@ -1,14 +1,18 @@
-From: Giacomo <delleceste@gmail.com>
-Subject: Re: execution context in netfilter hooks.
-Date: Tue, 13 Dec 2005 09:06:26 +0100
-Message-ID: <885896af0512130006q23359049o@mail.gmail.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: SVN web problems?
+Date: Tue, 13 Dec 2005 09:13:34 +0100
+Message-ID: <20051213081334.GI3420@sunbeam.de.gnumonks.org>
+References: <20051209211331.GA2897@2ka.mipt.ru>
+	<20051212204554.GF3420@sunbeam.de.gnumonks.org>
+	<20051212211524.GA25477@2ka.mipt.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Y/WcH0a6A93yCHGr"
+Cc: netfilter-devel@lists.netfilter.org, PatriK McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@gnumonks.org>,
-	netfilter devel <netfilter-devel@lists.netfilter.org>
+To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Content-Disposition: inline
+In-Reply-To: <20051212211524.GA25477@2ka.mipt.ru>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,68 +24,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thank you very much for the answer.
-The thing that confused me was that i had some
-functions that registered with netfilter hooks.
-I thought that processing was serialized, as you said
-'in a queue'...
-One of those functions was consulting a linked list, each
-entry in such list had a timer attached. When timer expired, the entry
-was freed.
-After millions of packets processed by my function, a
-crash happened. I solved the problem putting
-'read_lock/unlock_bh' around linked list search and around timer
-expiry handler function.
-I thought it was not possible that my function was interrupted, while
-instead things revealed that probably
-i was unsafely freeing an entry in list which still had been
-used by another function.
 
-read_locks during list_for_each while consulting list, together with
-write_locks around timeout handlers and
-list_add solved.
+--Y/WcH0a6A93yCHGr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-So i'm trying to understand the reason why this happened, and if i am
-right to use read/write locks (_bh)
-or if i would better use spin_locks (_bh) or spin locks together with
-_rcu version of lists.
+On Tue, Dec 13, 2005 at 12:15:25AM +0300, Evgeniy Polyakov wrote:
+> On Mon, Dec 12, 2005 at 09:45:54PM +0100, Harald Welte (laforge@netfilter=
+=2Eorg) wrote:
+> > On Sat, Dec 10, 2005 at 12:13:31AM +0300, Evgeniy Polyakov wrote:
+> > > I've just read bugzilla about OSF module and found, that it's 2.4
+> > > version does not support connector option, so I decided to download
+> > > header file [URL:
+> > > http://cvs.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/o=
+sf/linux/include/linux/netfilter_ipv4/ipt_osf.h?view=3Dmarkup],=20
+> >=20
+> > try with
+> > http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/pat=
+chlets/osf/linux/include/linux/netfilter_ipv4/ipt_osf.h?view=3Dmarkup
+> >=20
+> > where did you get that old URL from?
+>=20
+> From
+>=20
+> http://cvs.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/osf/l=
+inux-2.6/include/linux/netfilter_ipv4/ipt_osf.h?rev=3D3079&view=3Dlog
 
-When i said 'is it concerned with tasklets' i meant: after
-hardirq when receiving a packet, is the packet processing (and
-netfilter hook functions) registered as a tasklet to run later?
+really strange.  I'm removing the old 'cvs' hostname, since we don't
+have CVS for ages.
 
-As to software timers, i thought  they were interrupting the other
-routine scanning the linked list, as it resulted in the crash. But
-probably this was due to 'kernel on behalf of process' context in
-local output packets, as you said. (->does this mean no softirq
-context -> routine interruptible?)
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-I read a lot of documents, but they talk a lot about
-bottom halves, softirqs and tasklets, but perhaps some
-things have changed in 2.6.x, and then i thought that new kernel
-preemption would have made processing resemble SMP processing also un
-UP systems.
+--Y/WcH0a6A93yCHGr
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Excuse my many questions, but i would like to clarify those important issue=
-s...
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-Thanks a lot!
+iD8DBQFDnoKuXaXGVTD0i/8RApoUAJ4ipKR2N44i0YMMCwIHRsxWmrrvVwCeOJGH
+4oeirdr7fNFxMYm0XOx3Q/w=
+=71pt
+-----END PGP SIGNATURE-----
 
-Giacomo
---
-
-Giacomo S.
-http://www.giacomos.it
-
-- - - - - - - - - - - - - - - - - - - - - -
-
-Running `IPFIRE-wall` on debian GNU/Linux
-http://www.giacomos.it/ipfire
-http://www.debian.org
-
-mailto:
-delleceste@gmail.com
-giacomo.strangolino@elettra.trieste.it
-jacum@libero.it
-
-- - - - - - - - - - - - - - - - - - - - - -
+--Y/WcH0a6A93yCHGr--
