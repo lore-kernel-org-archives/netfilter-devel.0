@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipt_recent needs a maintainer!
-Date: Thu, 15 Dec 2005 02:07:20 +0100
-Message-ID: <43A0C1C8.6050100@trash.net>
-References: <439DBFA7.7000506@blackdown.de>
+Subject: Re: [PATCH] nfsim: Support more netfilter modules
+Date: Thu, 15 Dec 2005 02:15:16 +0100
+Message-ID: <43A0C3A4.1060703@trash.net>
+References: <439ED1C5.7070103@ingate.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Juergen Kreileder <jk@blackdown.de>
-In-Reply-To: <439DBFA7.7000506@blackdown.de>
+To: Marcus Sundberg <marcus@ingate.com>
+In-Reply-To: <439ED1C5.7070103@ingate.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,14 +21,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Juergen Kreileder wrote:
->> What we need as a short-term solution is somebody maintaining this
->> beast, somebody looking into bug reports, etc.
+Marcus Sundberg wrote:
+> Hi,
 > 
-> I'm using ipt_recent, so I'm interested in keeping it in shape.
-> I'm familiar with the code and its current issues (see
-> http://blog.blackdown.de/2005/05/09/fixing-the-ipt_recent-netfilter-module/) 
-> 
-> So I'd like to volunteer for maintaining it.
+> this patch adds nfsim support for building most of the netfilter stuff
+> in 2.6.15. The things still not compiling are CONFIG_IP_NF_CONNTRACK_NETLINK
+> and CONFIG_IP_NF_MATCH_STRING
 
-Sounds good to me. I'd say bring on the patches :)
+Looks good. Harald is currently working on nfsim so I'll leave
+it to him to apply your patch.
+
+> +/* div64.h */
+> +
+> +#if BITS_PER_LONG == 64
+> +# define do_div(n,base) ({					\
+> +	uint32_t __base = (base);				\
+> +	uint32_t __rem;						\
+> +	__rem = ((uint64_t)(n)) % __base;			\
+> +	(n) = ((uint64_t)(n)) / __base;				\
+> +	__rem;							\
+> + })
+> +#elif BITS_PER_LONG == 32
+
+Just using the 64 bit version unconditionally is fine in userspace
+and avoids the need for __div64_32.
