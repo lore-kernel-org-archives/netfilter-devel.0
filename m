@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 8/8] dump ID and mark in conntrack events
-Date: Thu, 15 Dec 2005 01:49:57 +0100
-Message-ID: <43A0BDB5.8090101@trash.net>
-References: <439422AC.5080704@netfilter.org>
+Subject: Re: [PATCH 2/8] Add sanity checkings for ICMP
+Date: Thu, 15 Dec 2005 01:49:01 +0100
+Message-ID: <43A0BD7D.20806@trash.net>
+References: <4394229B.5030506@netfilter.org>
+	<200512090240.jB92egAp002675@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org, pablo@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <439422AC.5080704@netfilter.org>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200512090240.jB92egAp002675@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,13 +22,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
+Yasuyuki KOZAKAI wrote:
+> This checks ICMP type in tuple before putting it.
+> And it's better to use invmap instead of valid_new to allow Echo reply and
+> so on.
 > 
-> ------------------------------------------------------------------------
+> How about attached patch instead ?
 > 
-> Dump the ID and the mark in events. This info is useful for the userspace 
-> clients.
+> [NETFILTER] ipctnetlink: Add sanity checkings for ICMP
 
-I agree on dumping the mark, but do we really want to dump the ID?
-That prevents us from getting rid of it even if figgure out a nicer
-way to do the dumping.
+Applied to my 2.6.16 queue, thanks.
