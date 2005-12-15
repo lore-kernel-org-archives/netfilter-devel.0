@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] nfsim: Support more netfilter modules
-Date: Thu, 15 Dec 2005 02:15:16 +0100
-Message-ID: <43A0C3A4.1060703@trash.net>
-References: <439ED1C5.7070103@ingate.com>
+Subject: Re: [RFC][PATCH] ctnetlink port to nf_conntrack take #3
+Date: Thu, 15 Dec 2005 02:30:49 +0100
+Message-ID: <43A0C749.2050901@trash.net>
+References: <439419A7.7040100@eurodev.net>
+	<200512090241.jB92fXDR003303@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, pablo@eurodev.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marcus Sundberg <marcus@ingate.com>
-In-Reply-To: <439ED1C5.7070103@ingate.com>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200512090241.jB92fXDR003303@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,27 +22,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Marcus Sundberg wrote:
-> Hi,
+Yasuyuki KOZAKAI wrote:
+>>Attached the 3rd incarnation of the ctnetlink port to nf_conntrack, it
+>>includes all recent Patrick's bugfixes and Yasuyuki's comments.
+>>
+>>nf_conntrack_netlink.c is available at:
+>>http://people.netfilter.org/pablo/nf_conntrack_netlink.c
 > 
-> this patch adds nfsim support for building most of the netfilter stuff
-> in 2.6.15. The things still not compiling are CONFIG_IP_NF_CONNTRACK_NETLINK
-> and CONFIG_IP_NF_MATCH_STRING
+> Great work.
+> 
+> I have 2 more comments as follows. I'll send patches for them and
+> adding support for ICMPv6 in other mails.
 
-Looks good. Harald is currently working on nfsim so I'll leave
-it to him to apply your patch.
-
-> +/* div64.h */
-> +
-> +#if BITS_PER_LONG == 64
-> +# define do_div(n,base) ({					\
-> +	uint32_t __base = (base);				\
-> +	uint32_t __rem;						\
-> +	__rem = ((uint64_t)(n)) % __base;			\
-> +	(n) = ((uint64_t)(n)) / __base;				\
-> +	__rem;							\
-> + })
-> +#elif BITS_PER_LONG == 32
-
-Just using the 64 bit version unconditionally is fine in userspace
-and avoids the need for __div64_32.
+Apart from these minor issues, I'm fine with the patch too.
+I'll apply it tommorrow if noone objects.
