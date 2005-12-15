@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] nfsim: Support more netfilter modules
-Date: Thu, 15 Dec 2005 03:21:14 +0100
-Message-ID: <43A0D31A.3020705@trash.net>
-References: <439ED1C5.7070103@ingate.com> <439F1733.7010201@ingate.com>
+Subject: Re: POMNG patch: "rope" - scriptable match module
+Date: Thu, 15 Dec 2005 03:22:49 +0100
+Message-ID: <43A0D379.3000707@trash.net>
+References: <439E0CB3.1020202@lowth.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marcus Sundberg <marcus@ingate.com>
-In-Reply-To: <439F1733.7010201@ingate.com>
+To: Chris Lowth <chris@lowth.com>
+In-Reply-To: <439E0CB3.1020202@lowth.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,28 +21,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Marcus Sundberg wrote:
-> Marcus Sundberg wrote:
-> 
->>--- nfsim/kernelenv/include/kernelenv.h	(revision 6316)
->>+++ nfsim/kernelenv/include/kernelenv.h	(working copy)
->>@@ -1166,6 +1177,10 @@
->> 
->> static inline void smp_read_barrier_depends(void) {;}
->> 
->>+/* delay.h */
->>+
->>+#define msleep(x)	do{unsigned int y = (x)*1000; usleep(y);}while(0)
->>+
->> /* timer.h */
->> 
->> /* not used at the moment */
-> 
-> 
-> Hmm, actually I guess something like:
-> 
-> #define msleep(x)	increment_time((x)*HZ/1000)
-> 
-> would make more sense. Comments (on this or the original patch)?
+Chris Lowth wrote:
+> I'd like to submit the "rope" match module to the team for consideration 
+> for inclusion in patch-o-matic-ng.
 
-Definitely :) We don't really want to sleep.
+There's a pending pomng redesign which will introduce an apt-like
+sources.list for fetching patches from external locations, to
+ease maintenance for both the netfilter team and the authors of
+the patches, so at this point we're not adding new patches.
