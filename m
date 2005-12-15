@@ -1,16 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC][PATCH] ctnetlink port to nf_conntrack take #3
-Date: Thu, 15 Dec 2005 02:30:49 +0100
-Message-ID: <43A0C749.2050901@trash.net>
-References: <439419A7.7040100@eurodev.net>
-	<200512090241.jB92fXDR003303@toshiba.co.jp>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] connbytes match connbytes-direction argument
+Date: Wed, 14 Dec 2005 17:57:48 -0800
+Message-ID: <20051215015748.GA6699@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, pablo@eurodev.net
+Content-Type: multipart/mixed; boundary="tKW2IUtsqtDRztdT"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200512090241.jB92fXDR003303@toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,17 +18,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
->>Attached the 3rd incarnation of the ctnetlink port to nf_conntrack, it
->>includes all recent Patrick's bugfixes and Yasuyuki's comments.
->>
->>nf_conntrack_netlink.c is available at:
->>http://people.netfilter.org/pablo/nf_conntrack_netlink.c
-> 
-> Great work.
-> 
-> I have 2 more comments as follows. I'll send patches for them and
-> adding support for ICMPv6 in other mails.
 
-Apart from these minor issues, I'm fine with the patch too.
-I'll apply it tommorrow if noone objects.
+--tKW2IUtsqtDRztdT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Connbytes match should accept the full connbytes-direction argument
+as the help notes.  At present, it only accepts 'connbytes-dir'.
+This closes bugzilla #410.
+
+Phil
+
+
+
+--tKW2IUtsqtDRztdT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-connbytes
+
+--- ipt-orig/extensions/libipt_connbytes.c	2005-12-05 04:08:03.000000000 -0800
++++ ipt-new/extensions/libipt_connbytes.c	2005-12-14 17:44:38.000000000 -0800
+@@ -22,7 +22,7 @@
+ 
+ static struct option opts[] = {
+ 	{ "connbytes", 1, 0, '1' },
+-	{ "connbytes-dir", 1, 0, '2' },
++	{ "connbytes-direction", 1, 0, '2' },
+ 	{ "connbytes-mode", 1, 0, '3' },
+ 	{0}
+ };
+
+--tKW2IUtsqtDRztdT--
