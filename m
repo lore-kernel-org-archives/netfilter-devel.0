@@ -1,19 +1,18 @@
-From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
-	<yoshfuji@linux-ipv6.org>
-Subject: Re: [PATCH 06/13]: [IPV4/6]: Netfilter IPsec input hooks
-Date: Mon, 19 Dec 2005 00:15:04 +0900 (JST)
-Message-ID: <20051219.001504.32143116.yoshfuji@linux-ipv6.org>
-References: <438270F2.3000603@trash.net>
-	<20051123.193824.38162996.yoshfuji@linux-ipv6.org>
-	<43A571B5.205@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [ANNOUNCE] Debian packages for libnfnetlink, libnetfilter-{queue,
+ log, conntrack}, conntrack
+Date: Sun, 18 Dec 2005 18:20:31 +0100
+Message-ID: <43A59A5F.1010006@trash.net>
+References: <20051127173411.GA2031@roonstrasse.net>
+	<438A02D3.3030203@trash.net>
+	<20051202102345.GA29691@roonstrasse.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: kozakai@linux-ipv6.org, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org, kazunori@miyazawa.org
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net, davem@davemloft.net
-In-Reply-To: <43A571B5.205@trash.net>
+To: Max Kellermann <max@duempel.org>
+In-Reply-To: <20051202102345.GA29691@roonstrasse.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,27 +24,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In article <43A571B5.205@trash.net> (at Sun, 18 Dec 2005 15:27:01 +0100), Patrick McHardy <kaber@trash.net> says:
-
-> YOSHIFUJI Hideaki wrote:
-> > In article <438270F2.3000603@trash.net> (at Tue, 22 Nov 2005 02:14:26 +0100), Patrick McHardy <kaber@trash.net> says:
-> > 
-> > 
-> >>The easiest way would be to store nhoff somewhere in the skb and
-> >>use it to continue at the next header. But I still hope there is
-> >>a way without keeping data in the skb.
-> > 
-> > 
-> > We've coded up this.
+Max Kellermann wrote:
+> On 2005/11/27 20:02, Patrick McHardy <kaber@trash.net> wrote:
 > 
-> How about this patch instead? It eliminates the nhoffp argument
-> to IPv6 protocol handlers by storing it in the IP6CB, which allows
-> to call ip6_input_finish a second time and have it skip already
-> parsed headers and also gets rid of the manual hopopts skipping.
+>>Very nice, but please wait with trying to get them into
+>>sid until we have resolved the CTA_PROTO_NUM issue.
+> 
+> 
+> ok, please notify me when the new release is out.
 
-The idea to store IP6CB itself seems sane to me.
-
-BTW, we're now using full of skb->cb
-(and we are even exceeding it w/ mobile-ipv6 extensions)...
-
---yoshfuji
+I've changed libnetlink_conntrack to use the correct type, I guess
+we should release this soon. Harald, I'm not familiar with the
+process, can you please take care of this?
