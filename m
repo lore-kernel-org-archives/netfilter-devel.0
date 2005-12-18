@@ -1,19 +1,12 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: [ANNOUNCE] Debian packages for libnfnetlink, libnetfilter-{queue,
- log, conntrack}, conntrack
-Date: Sun, 18 Dec 2005 19:20:04 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0512181918310.24288@bizon.gios.gov.pl>
-References: <20051127173411.GA2031@roonstrasse.net>
-	<438A02D3.3030203@trash.net>
-	<20051202102345.GA29691@roonstrasse.net> <43A59A5F.1010006@trash.net>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] pptp conntrack broken when non-modular
+Date: Sun, 18 Dec 2005 11:48:48 -0800
+Message-ID: <20051218194848.GA1038@linuxace.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-2119315527-1134930004=:24288"
-Cc: laforge@netfilter.org, Max Kellermann <max@duempel.org>,
-	netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="ikeVEW9yuYc//A+q"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <43A59A5F.1010006@trash.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,34 +18,120 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-2119315527-1134930004=:24288
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+--ikeVEW9yuYc//A+q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+The GRE protocol helper of PPTP does not get properly registered
+when it is built in, because ip_nat_proto_gre_init runs prior to
+ip_nat_init, so ip_nat_protos is unitialized when ip_nat_proto_gre_init
+tries to register protocol 47.
+
+Changing ip_nat_protocol_register to unconditionally register solves
+half the problem.  But then when ip_nat_init does run, it overwrites
+the registration with ip_nat_unknown_protocol.  So the second
+part of the fix is to change ip_nat_init not to overwrite previously
+registered protos.
+
+This fixes netfilter bugzilla #397, and IMHO should go to mainline
+ASAP to hopefully make 2.6.15.
+
+Phil
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
 
 
 
-On Sun, 18 Dec 2005, Patrick McHardy wrote:
+--ikeVEW9yuYc//A+q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-pptp
 
-> Max Kellermann wrote:
->> On 2005/11/27 20:02, Patrick McHardy <kaber@trash.net> wrote:
->>=20
->>> Very nice, but please wait with trying to get them into
->>> sid until we have resolved the CTA_PROTO_NUM issue.
->>=20
->>=20
->> ok, please notify me when the new release is out.
->
-> I've changed libnetlink_conntrack to use the correct type, I guess
-> we should release this soon. Harald, I'm not familiar with the
-> process, can you please take care of this?
+diff -ru linux-orig/include/linux/netfilter_ipv4/ip_nat_protocol.h linux-po/include/linux/netfilter_ipv4/ip_nat_protocol.h
+--- linux-orig/include/linux/netfilter_ipv4/ip_nat_protocol.h	2005-10-27 20:02:08.000000000 -0400
++++ linux-po/include/linux/netfilter_ipv4/ip_nat_protocol.h	2005-12-18 14:06:48.000000000 -0500
+@@ -57,7 +57,7 @@
+ };
+ 
+ /* Protocol registration. */
+-extern int ip_nat_protocol_register(struct ip_nat_protocol *proto);
++extern void ip_nat_protocol_register(struct ip_nat_protocol *proto);
+ extern void ip_nat_protocol_unregister(struct ip_nat_protocol *proto);
+ 
+ extern struct ip_nat_protocol *ip_nat_proto_find_get(u_int8_t protocol);
+diff -ru linux-orig/net/ipv4/netfilter/ip_nat_core.c linux-po/net/ipv4/netfilter/ip_nat_core.c
+--- linux-orig/net/ipv4/netfilter/ip_nat_core.c	2005-12-18 14:15:42.000000000 -0500
++++ linux-po/net/ipv4/netfilter/ip_nat_core.c	2005-12-18 14:44:31.000000000 -0500
+@@ -516,19 +516,11 @@
+ EXPORT_SYMBOL_GPL(ip_nat_icmp_reply_translation);
+ 
+ /* Protocol registration. */
+-int ip_nat_protocol_register(struct ip_nat_protocol *proto)
++void ip_nat_protocol_register(struct ip_nat_protocol *proto)
+ {
+-	int ret = 0;
+-
+ 	write_lock_bh(&ip_nat_lock);
+-	if (ip_nat_protos[proto->protonum] != &ip_nat_unknown_protocol) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
+ 	ip_nat_protos[proto->protonum] = proto;
+- out:
+ 	write_unlock_bh(&ip_nat_lock);
+-	return ret;
+ }
+ EXPORT_SYMBOL(ip_nat_protocol_register);
+ 
+@@ -604,7 +596,9 @@
+ 	/* Sew in builtin protocols. */
+ 	write_lock_bh(&ip_nat_lock);
+ 	for (i = 0; i < MAX_IP_NAT_PROTO; i++)
+-		ip_nat_protos[i] = &ip_nat_unknown_protocol;
++		/* Don't overwrite protos already registered */
++		if (!ip_nat_protos[i])
++			ip_nat_protos[i] = &ip_nat_unknown_protocol;
+ 	ip_nat_protos[IPPROTO_TCP] = &ip_nat_protocol_tcp;
+ 	ip_nat_protos[IPPROTO_UDP] = &ip_nat_protocol_udp;
+ 	ip_nat_protos[IPPROTO_ICMP] = &ip_nat_protocol_icmp;
+diff -ru linux-orig/net/ipv4/netfilter/ip_nat_helper_pptp.c linux-po/net/ipv4/netfilter/ip_nat_helper_pptp.c
+--- linux-orig/net/ipv4/netfilter/ip_nat_helper_pptp.c	2005-12-18 14:15:42.000000000 -0500
++++ linux-po/net/ipv4/netfilter/ip_nat_helper_pptp.c	2005-12-18 14:19:52.000000000 -0500
+@@ -378,18 +378,14 @@
+ }
+ 
+ 
+-extern int __init ip_nat_proto_gre_init(void);
++extern void __init ip_nat_proto_gre_init(void);
+ extern void __exit ip_nat_proto_gre_fini(void);
+ 
+ static int __init init(void)
+ {
+-	int ret;
+-
+ 	DEBUGP("%s: registering NAT helper\n", __FILE__);
+ 
+-	ret = ip_nat_proto_gre_init();
+-	if (ret < 0)
+-		return ret;
++	ip_nat_proto_gre_init();
+ 
+ 	BUG_ON(ip_nat_pptp_hook_outbound);
+ 	ip_nat_pptp_hook_outbound = &pptp_outbound_pkt;
+diff -ru linux-orig/net/ipv4/netfilter/ip_nat_proto_gre.c linux-po/net/ipv4/netfilter/ip_nat_proto_gre.c
+--- linux-orig/net/ipv4/netfilter/ip_nat_proto_gre.c	2005-12-18 14:15:42.000000000 -0500
++++ linux-po/net/ipv4/netfilter/ip_nat_proto_gre.c	2005-12-18 14:21:18.000000000 -0500
+@@ -203,9 +203,9 @@
+ #endif
+ };
+ 				  
+-int __init ip_nat_proto_gre_init(void)
++void __init ip_nat_proto_gre_init(void)
+ {
+-	return ip_nat_protocol_register(&gre);
++	ip_nat_protocol_register(&gre);
+ }
+ 
+ void __exit ip_nat_proto_gre_fini(void)
 
-I think we should add some comment about required kernel and wait for=20
-2.6.14.5 and 2.6.15 to come out.
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-2119315527-1134930004=:24288--
+--ikeVEW9yuYc//A+q--
