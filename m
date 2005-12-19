@@ -1,21 +1,22 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@eurodev.net>
 Subject: Re: [ANNOUNCE] Debian packages for libnfnetlink, libnetfilter-{queue,
  log, conntrack}, conntrack
-Date: Mon, 19 Dec 2005 12:22:57 +0100
-Message-ID: <43A69811.8000609@trash.net>
+Date: Mon, 19 Dec 2005 18:03:49 +0100
+Message-ID: <43A6E7F5.2000004@eurodev.net>
 References: <20051127173411.GA2031@roonstrasse.net>
 	<438A02D3.3030203@trash.net>
 	<20051202102345.GA29691@roonstrasse.net>
 	<43A59A5F.1010006@trash.net>
 	<20051219104728.GZ7006@sunbeam.de.gnumonks.org>
+	<43A69811.8000609@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira <pablo@eurodev.net>, Max Kellermann <max@duempel.org>,
+Cc: Harald Welte <laforge@netfilter.org>, Max Kellermann <max@duempel.org>,
 	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20051219104728.GZ7006@sunbeam.de.gnumonks.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <43A69811.8000609@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,18 +28,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> On Sun, Dec 18, 2005 at 06:20:31PM +0100, Patrick McHardy wrote:
-> 
->>I've changed libnetlink_conntrack to use the correct type, I guess
->>we should release this soon. Harald, I'm not familiar with the
->>process, can you please take care of this?
-> 
-> 
-> yes, I'll do a new release.  Do we only need libnetfilter_conntrack, or
-> also other packages (libnfnetlink / conntrack)?
+Hi!
 
-Thanks. The CTA_PROTO_NUM issue only requires a new
-libnetfilter_conntrack release, but there might be other reasons
-for releasing the other libraries as well. Pablo probably knows
-better than me.
+Patrick McHardy wrote:
+> Harald Welte wrote:
+> 
+>> On Sun, Dec 18, 2005 at 06:20:31PM +0100, Patrick McHardy wrote:
+>>
+>>> I've changed libnetlink_conntrack to use the correct type, I guess
+>>> we should release this soon. Harald, I'm not familiar with the
+>>> process, can you please take care of this?
+>>
+>> yes, I'll do a new release.  Do we only need libnetfilter_conntrack, or
+>> also other packages (libnfnetlink / conntrack)?
+> 
+> Thanks. The CTA_PROTO_NUM issue only requires a new
+> libnetfilter_conntrack release, but there might be other reasons
+> for releasing the other libraries as well. Pablo probably knows
+> better than me.
+
+A new release of conntrack could be fine. From ChangeLog:
+
+2005-13-03
+<pablo@netfilter.org>
+        o Add support to filter events. ie: -p tcp --orig-port-dst 80 in
+        conjuction with -E to get all the requests to HTTP servers
+        o Update manpage
+        o Missing static function declaration in the protocol handlers
+        o Use protocol flags defined in libnetfilter_conntrack
+        o Bumped version to 0.991
+
+2005-11-22
+<marcus@ingate.com>
+        o Fix oversized number of options
+
+IMHO, it's worth a new release.
+
+Something different but related, about the first 1.0 release of
+conntrack: I think that it should be done once I finish with the ipv6
+(nf_conntrack) support that I'm currently working on.
+
+-- 
+Pablo
