@@ -1,13 +1,13 @@
 From: Pablo Neira Ayuso <pablo@eurodev.net>
-Subject: l3num is u_int16_t
-Date: Mon, 19 Dec 2005 19:13:29 +0100
-Message-ID: <43A6F849.6070602@eurodev.net>
+Subject: [PATCH] ipv6 support for libnetfilter_conntrack
+Date: Mon, 19 Dec 2005 21:58:05 +0100
+Message-ID: <43A71EDD.3000805@eurodev.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,24 +21,11 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi Yasuyuki,
 
-/* The manipulable part of the tuple. */
-struct nf_conntrack_man
-{
-        union nf_conntrack_man_l3proto u3;
-        union nf_conntrack_man_proto u;
-        /* Layer 3 protocol */
-        u_int16_t l3num;
-};
+JFYI: I just added support for ipv6 to libnetfilter. I'll commit the
+changes by myself once the new version of libnetfilter_conntrack is
+released.
 
-struct nfgenmsg {
-        u_int8_t  nfgen_family;         /* AF_xxx */
-        u_int8_t  version;              /* nfnetlink version */
-        u_int16_t res_id;               /* resource id */
-} __attribute__ ((packed));
-
-There's some inconsistency here: why l3num is u_int16_t but nfgen_family
-in u_int8_t? AFAIK, both designates the same thing, the layer 3 protocol
-number.
+http://people.netfilter.org/pablo/libnetfilter-conntrack-ipv6.patch
 
 -- 
 Pablo
