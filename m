@@ -1,8 +1,8 @@
 From: Pablo Neira Ayuso <pablo@eurodev.net>
 Subject: Re: [ANNOUNCE] Debian packages for libnfnetlink, libnetfilter-{queue,
  log, conntrack}, conntrack
-Date: Mon, 19 Dec 2005 18:03:49 +0100
-Message-ID: <43A6E7F5.2000004@eurodev.net>
+Date: Mon, 19 Dec 2005 18:08:52 +0100
+Message-ID: <43A6E924.8000505@eurodev.net>
 References: <20051127173411.GA2031@roonstrasse.net>
 	<438A02D3.3030203@trash.net>
 	<20051202102345.GA29691@roonstrasse.net>
@@ -28,8 +28,6 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
-
 Patrick McHardy wrote:
 > Harald Welte wrote:
 > 
@@ -39,34 +37,20 @@ Patrick McHardy wrote:
 >>> we should release this soon. Harald, I'm not familiar with the
 >>> process, can you please take care of this?
 >>
+>>
+>>
 >> yes, I'll do a new release.  Do we only need libnetfilter_conntrack, or
 >> also other packages (libnfnetlink / conntrack)?
+> 
 > 
 > Thanks. The CTA_PROTO_NUM issue only requires a new
 > libnetfilter_conntrack release, but there might be other reasons
 > for releasing the other libraries as well. Pablo probably knows
 > better than me.
 
-A new release of conntrack could be fine. From ChangeLog:
-
-2005-13-03
-<pablo@netfilter.org>
-        o Add support to filter events. ie: -p tcp --orig-port-dst 80 in
-        conjuction with -E to get all the requests to HTTP servers
-        o Update manpage
-        o Missing static function declaration in the protocol handlers
-        o Use protocol flags defined in libnetfilter_conntrack
-        o Bumped version to 0.991
-
-2005-11-22
-<marcus@ingate.com>
-        o Fix oversized number of options
-
-IMHO, it's worth a new release.
-
-Something different but related, about the first 1.0 release of
-conntrack: I think that it should be done once I finish with the ipv6
-(nf_conntrack) support that I'm currently working on.
+I forgot to talk about libnfnetlink: I don't think that we need a new
+release. The last version 0.0.13 happened on 2005-Nov-14. The only
+commit after that day is Krzysztof Oledzki's spelling fix. So it can wait.
 
 -- 
 Pablo
