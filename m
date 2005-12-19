@@ -1,39 +1,44 @@
 From: Pablo Neira Ayuso <pablo@eurodev.net>
-Subject: Re: Conntrack + Connection owner
-Date: Mon, 19 Dec 2005 18:21:35 +0100
-Message-ID: <43A6EC1F.7030600@eurodev.net>
-References: <1b8130000512182054y7208121dtb6b20814540bbb3b@mail.gmail.com>
-	<43A6EA58.9090201@eurodev.net>
+Subject: l3num is u_int16_t
+Date: Mon, 19 Dec 2005 19:13:29 +0100
+Message-ID: <43A6F849.6070602@eurodev.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Mikado 4VN <mikado4vn@gmail.com>
-In-Reply-To: <43A6EA58.9090201@eurodev.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Mikado 4VN wrote:
-> 
->>Is it possible for conntrack to dump process ID that created the
->>connection to userpsace (via libnetfilter_conntrack or etc...)? If
->>there is one, please tell me how!
-> 
-> There's something incomplete here: Do you mean to include the ID in the
-> event information or in the conntrack table dumping?
+Hi Yasuyuki,
 
-Oh, now I understand. You mean the process ID that owns the connection,
-don't you? In that case the answer is no.
+/* The manipulable part of the tuple. */
+struct nf_conntrack_man
+{
+        union nf_conntrack_man_l3proto u3;
+        union nf_conntrack_man_proto u;
+        /* Layer 3 protocol */
+        u_int16_t l3num;
+};
+
+struct nfgenmsg {
+        u_int8_t  nfgen_family;         /* AF_xxx */
+        u_int8_t  version;              /* nfnetlink version */
+        u_int16_t res_id;               /* resource id */
+} __attribute__ ((packed));
+
+There's some inconsistency here: why l3num is u_int16_t but nfgen_family
+in u_int8_t? AFAIK, both designates the same thing, the layer 3 protocol
+number.
 
 -- 
 Pablo
