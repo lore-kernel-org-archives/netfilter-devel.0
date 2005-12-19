@@ -1,17 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
+From: YOSHIFUJI Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?=
+	<yoshfuji@linux-ipv6.org>
 Subject: Re: [PATCH 06/13]: [IPV4/6]: Netfilter IPsec input hooks
-Date: Sun, 18 Dec 2005 23:59:35 +0100
-Message-ID: <43A5E9D7.8050705@trash.net>
-References: <438270F2.3000603@trash.net>	<20051123.193824.38162996.yoshfuji@linux-ipv6.org>	<43A571B5.205@trash.net>
+Date: Mon, 19 Dec 2005 12:46:22 +0900 (JST)
+Message-ID: <20051219.124622.101716348.yoshfuji@linux-ipv6.org>
+References: <43A571B5.205@trash.net>
 	<20051219.001504.32143116.yoshfuji@linux-ipv6.org>
+	<43A5E9D7.8050705@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
 	kazunori@miyazawa.org, kozakai@linux-ipv6.org, davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "YOSHIFUJI Hideaki / ?$B5HF#1QL@" <yoshfuji@linux-ipv6.org>
-In-Reply-To: <20051219.001504.32143116.yoshfuji@linux-ipv6.org>
+To: kaber@trash.net
+In-Reply-To: <43A5E9D7.8050705@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +25,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-YOSHIFUJI Hideaki / $B5HF#1QL@ wrote:
-> In article <43A571B5.205@trash.net> (at Sun, 18 Dec 2005 15:27:01 +0100), Patrick McHardy <kaber@trash.net> says:
-> 
->>How about this patch instead? It eliminates the nhoffp argument
->>to IPv6 protocol handlers by storing it in the IP6CB, which allows
->>to call ip6_input_finish a second time and have it skip already
->>parsed headers and also gets rid of the manual hopopts skipping.
-> 
-> 
-> The idea to store IP6CB itself seems sane to me.
-> 
-> BTW, we're now using full of skb->cb
-> (and we are even exceeding it w/ mobile-ipv6 extensions)...
+In article <43A5E9D7.8050705@trash.net> (at Sun, 18 Dec 2005 23:59:35 +0100), Patrick McHardy <kaber@trash.net> says:
 
-Not in mainline so far, so maybe we can fit your extensions
-and my patches without the mobile extensions, that apparently
-exceed the CB anyway, in there for now. Can I look at those
-patches somewhere? BTW, other fields in the IP6CB seem to
-store offsets in u16 fields, is this OK for nhoff too? I
-thought with jumbo options I need to use a u32 field.
+> YOSHIFUJI Hideaki wrote:
+:
+> >  BTW, we're now using full of skb->cb
+> > (and we are even exceeding it w/ mobile-ipv6 extensions)...
+> 
+> Not in mainline so far, so maybe we can fit your extensions
+> and my patches without the mobile extensions, that apparently
+> exceed the CB anyway, in there for now. Can I look at those
+> patches somewhere? BTW, other fields in the IP6CB seem to
+> store offsets in u16 fields, is this OK for nhoff too? I
+> thought with jumbo options I need to use a u32 field.
+
+Well, don't mind too much.
+I just wanted to note that we're about to exceed skb->cb.
+I will probably enlarge skb->cb if needed.
+
+And, yes, good point.
+I think nhoff should be u32 because it is critical.
+In theory, u32 is definitely needed for others as well...
+
+--yoshfuji
