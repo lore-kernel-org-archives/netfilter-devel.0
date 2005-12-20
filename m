@@ -1,15 +1,15 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [NETFILTER 1/2]: Fix NAT init order
-Date: Mon, 19 Dec 2005 13:53:37 -0800 (PST)
-Message-ID: <20051219.135337.67168703.davem@davemloft.net>
-References: <43A689BC.8080408@trash.net>
+From: Pablo Neira Ayuso <pablo@eurodev.net>
+Subject: Re: [PATCH] ipv6 support for libnetfilter_conntrack
+Date: Tue, 20 Dec 2005 01:25:41 +0100
+Message-ID: <43A74F85.1010203@eurodev.net>
+References: <43A71EDD.3000805@eurodev.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <43A689BC.8080408@trash.net>
+To: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <43A71EDD.3000805@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,10 +21,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 19 Dec 2005 11:21:48 +0100
+Pablo Neira Ayuso wrote:
+> Hi Yasuyuki,
+> 
+> JFYI: I just added support for ipv6 to libnetfilter. I'll commit the
+> changes by myself once the new version of libnetfilter_conntrack is
+> released.
+> 
+> http://people.netfilter.org/pablo/libnetfilter-conntrack-ipv6.patch
 
-> following are two simple bugfixes which should go in 2.6.15
-> if possible.
+And the conntrack-tool patch, still untested:
 
-Both applied, thanks a lot.
+http://people.netfilter.org/pablo/conntrack-ipv6.patch
+
+-- 
+Pablo
