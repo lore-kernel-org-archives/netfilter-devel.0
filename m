@@ -1,15 +1,12 @@
-From: Pablo Neira Ayuso <pablo@eurodev.net>
-Subject: Re: ongoing textsearch/string match - 3 patches
-Date: Thu, 22 Dec 2005 23:22:49 +0100
-Message-ID: <43AB2739.6080608@eurodev.net>
-References: <18730dc50512220611nfea98e2l88da4f25c97f341d@mail.gmail.com>
+From: Vinay K Nallamothu <vinay.nallamothu@gsecone.com>
+Subject: [H.323] Compilation fixes for 2.6.14
+Date: Fri, 23 Dec 2005 14:38:08 +0530
+Message-ID: <1135328888.3327.118.camel@vinay.gsecone.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amir Goldstein <amir73il@gmail.com>
-In-Reply-To: <18730dc50512220611nfea98e2l88da4f25c97f341d@mail.gmail.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,83 +18,80 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Amir,
+Hi,
 
-Amir Goldstein wrote:
-> I apologize that I am sending these patches directly to you,
-> but I was not sure what is the policy of netfiler-devel list regarding
-> sending patches.
-> 
-> I was hoping that you could help me with contributing these patches
-> or with instructing me about the HOWTO of sending patches.
+ip_conntrack_expect_alloc expects an argument in 2.6.14 (didn't check
+2.6.13).
 
-No need to worry. Basically, the policy is: send well-formed patches
-together with a description of what you want to do and why you want to
-do that. I've cc'ed the reply to netfilter-devel so everyone could
-follow the discussion.
+I got the following compilation errors while trying to compile H.323
+module using patch-o-matic-ng-20051219.tar.bz2 against linux-2.6.14
 
-> I made these 3 patches to enable the string match netfilter
-> to find a string that crosses the single packet boundaries.
-> most of the work was to add ongoing textsearch support to Thomas's
-> infrastructure.
-> 
-> Thanks for your time,
-> Amir.
-> 
-> patches:
-> ------------
-> linux-2.6.14_ongoing-textsearch.patch:
-> - add ongoing textsearch API to infrastructure (new/init/final/delete)
-> - implement ongoing support for KMP textsearch algo
-> - add /proc/textsearch entry to proc fs (lists loaded algos)
-    ^^^
-this can be useful.
+net/ipv4/netfilter/ip_conntrack_h323_h225.c: In function `h225_parse_connect_uuie':
+net/ipv4/netfilter/ip_conntrack_h323_h225.c:111: error: too few arguments to function `ip_conntrack_expect_alloc'
 
-> netfilter-2.6.14_ongoing-string-match.patch:
-> - add ongoing support to string match info struct
-> - use ongoing textsearch API when configured to do so
-> 
-> iptables-1.3.4_ongoing-string-match.patch:
-> - add --ongoing option to string match iptables extension
-> - use new string match info struct to pass args to kernel
-> 
-> test:
-> ------
-> I have tested ongoing string match using netcat UDP connection
-> and it successfully matched the string:
-> s
-> tr
-> ing
+Patch below:
+ ip_conntrack_h323_h225.c |    2 +-
+ ip_conntrack_h323_h245.c |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-So, in this example, my understanding is that you want to find matchings
- splitted in several packets.
 
-> which was sent in different 3 packets.
-> the netcat test required using --from 28 to skip the udp header and
-> some test code to ignore the new line characters.
+diff -urN a/net/ipv4/netfilter/ip_conntrack_h323_h225.c b/net/ipv4/netfilter/ip_conntrack_h323_h225.c
+--- a/net/ipv4/netfilter/ip_conntrack_h323_h225.c	2005-12-23 14:32:53.000000000 +0530
++++ b/net/ipv4/netfilter/ip_conntrack_h323_h225.c	2005-12-23 14:32:29.000000000 +0530
+@@ -108,7 +108,7 @@
+ 		}
+ 		if (ret && ip == ct->tuplehash[dir].tuple.src.ip) {
+ 			/* match found: create an expectation */
+-			exp = ip_conntrack_expect_alloc();
++			exp = ip_conntrack_expect_alloc(ct);
+ 			if (exp == NULL)
+ 				return NF_ACCEPT;
 
-I'm curious: We implement matching through fragments with KMP (not for
-BM yet). So, what kind of application would require such pattern
-matching policy?
+diff -urN a/net/ipv4/netfilter/ip_conntrack_h323_h245.c b/net/ipv4/netfilter/ip_conntrack_h323_h245.c
+--- a/net/ipv4/netfilter/ip_conntrack_h323_h245.c	2005-12-23 14:32:53.000000000 +0530
++++ b/net/ipv4/netfilter/ip_conntrack_h323_h245.c	2005-12-23 14:32:29.000000000 +0530
+@@ -296,7 +296,7 @@
+ 			       NIPQUAD(ip), ntohs(port));
+ 		if (ret && ip == ct->tuplehash[dir].tuple.src.ip) {
+ 			/* match found: create an expectation */
+-			exp = ip_conntrack_expect_alloc();
++			exp = ip_conntrack_expect_alloc(ct);
+ 			if (exp == NULL)
+ 				return NF_ACCEPT;
 
-> Index: linux-2.6.14/include/linux/netfilter_ipv4/ipt_string.h
-> ===================================================================
-> --- linux-2.6.14.orig/include/linux/netfilter_ipv4/ipt_string.h	2005-11-23 19:13:42.000000000 +0200
-> +++ linux-2.6.14/include/linux/netfilter_ipv4/ipt_string.h	2005-11-23 19:16:38.000000000 +0200
-> @@ -11,8 +11,10 @@
-> 	char	  algo[IPT_STRING_MAX_ALGO_NAME_SIZE];
-> 	char 	  pattern[IPT_STRING_MAX_PATTERN_SIZE];
-> 	u_int8_t  patlen;
-> +	u_int8_t  ongoing;
-> 	u_int8_t  invert;
-> 	struct ts_config __attribute__((aligned(8))) *config;
-> +	struct ts_state __attribute__((aligned(8))) *state;
->  };
+@@ -348,7 +348,7 @@
+ 			       NIPQUAD(ip), ntohs(port));
+ 		if (ret && ip == ct->tuplehash[dir].tuple.src.ip) {
+ 			/* match found: create an expectation */
+-			exp = ip_conntrack_expect_alloc();
++			exp = ip_conntrack_expect_alloc(ct);
+ 			if (exp == NULL)
+ 				return NF_ACCEPT;
 
-Unfortunately, you can't do this. This would break backward
-compatibility for previous versions of iptables. The correct way to do
-this is using the matches/targets versioning (see ipt_MARK for an
-example). We can revisit this later.
+@@ -616,7 +616,7 @@
+ 		       ret, i, ip, port);
+ 		if (ret && ip == ct->tuplehash[dir].tuple.src.ip) {
+ 			/* match found: create an expectation */
+-			exp = ip_conntrack_expect_alloc();
++			exp = ip_conntrack_expect_alloc(ct);
+ 			if (exp == NULL)
+ 				return NF_ACCEPT;
+
+@@ -663,7 +663,7 @@
+ 		       ret, i, ip, port);
+ 		if (ret && ip == ct->tuplehash[dir].tuple.src.ip) {
+ 			/* match found: create an expectation */
+-			exp = ip_conntrack_expect_alloc();
++			exp = ip_conntrack_expect_alloc(ct);
+ 			if (exp == NULL)
+ 				return NF_ACCEPT;
+
+
+
+
 
 -- 
-Pablo
+Views expressed in this mail are those of the individual sender and 
+do not bind Gsec1 Limited. or its subsidiary, unless the sender has done
+so expressly with due authority of Gsec1.
+_________________________________________________________________________
