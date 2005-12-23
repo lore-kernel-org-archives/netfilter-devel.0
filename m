@@ -1,51 +1,62 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: ipt_limit patch for iptables-1.3.1 and linux-2.4.22
-Date: Fri, 23 Dec 2005 12:57:11 -0800
-Message-ID: <20051223205711.GA28855@linuxace.com>
-References: <5210898791.20051223141249@uu3.net> <43ABFE4B.6040102@cineca.it>
-	<3519928555.20051223164319@uu3.net>
-	<43AC4F57.8090702@trash.net> <036110574.20051223211301@uu3.net>
-	<20051223201951.GA28723@linuxace.com>
-	<16937451772.20051223213523@uu3.net>
+From: Greg Kroah-Hartman <gregkh@suse.de>
+Subject: [patch 04/19] [NETFILTER]: Fix unbalanced read_unlock_bh in ctnetlink
+Date: Fri, 23 Dec 2005 14:47:50 -0800
+Message-ID: <20051223224750.GD19057@kroah.com>
+References: <20051223221200.342826000@press.kroah.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: borg@uu3.net
-Content-Disposition: inline
-In-Reply-To: <16937451772.20051223213523@uu3.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	"Theodore Ts'o" <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>, torvalds@osdl.org,
+	akpm@osdl.org, alan@lxorguk.ukuu.org.uk,
+	Harald Welte <laforge@netfilter.org>,
+	Pablo Neira <pablo@eurodev.net>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>,
+	Krzysztof Oledzki <olenf@ans.pl>, kaber@trash.net,
+	davem@davemloft.net
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161118AbVLWWtw@vger.kernel.org>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
+Content-Disposition: inline; filename="fix-unbalanced-read_unlock_bh-in-ctnetlink.patch"
+In-Reply-To: <20051223224712.GA18975@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Dec 23, 2005 at 09:35:23PM +0100, borg@uu3.net wrote:
-> Okey.. So you saying that my system is broken?
-> I have patched kernel + iptables.. installed new
-> kernel + iptables.. but userland is not updated..
-> It it bad?
-> I know it is when there are major changes in kernel
-> so userspace cannot see them. But in that case I think
-> its not a big problem since this is only used in iptables?
+-stable review patch.  If anyone has any objections, please let us know.
 
-iptables == userspace.
+------------------
+From: Patrick McHardy <kaber@trash.net>
 
-If 2.4.33 were to suddenly have a new version of the limit match,
-then anyone using an older iptables would be broken if they 
-upgraded to it.
+NFA_NEST calls NFA_PUT which jumps to nfattr_failure if the skb has no
+room left. We call read_unlock_bh at nfattr_failure for the NFA_PUT
+inside the locked section, so move NFA_NEST inside the locked section
+too.
 
-So while _you_ may have updated your kernel and iptables,
-the rest of the world has not.  Backwards compatibility is
-important.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-If you need limit inversion, please update to 2.6.x kernels
-where this feature exists.  If you still do not understand,
-please search the archives for additional information.
+---
+ net/ipv4/netfilter/ip_conntrack_proto_tcp.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Phil
+--- linux-2.6.14.4.orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
++++ linux-2.6.14.4/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+@@ -341,9 +341,10 @@ static int tcp_print_conntrack(struct se
+ static int tcp_to_nfattr(struct sk_buff *skb, struct nfattr *nfa,
+ 			 const struct ip_conntrack *ct)
+ {
+-	struct nfattr *nest_parms = NFA_NEST(skb, CTA_PROTOINFO_TCP);
++	struct nfattr *nest_parms;
+ 	
+ 	read_lock_bh(&tcp_lock);
++	nest_parms = NFA_NEST(skb, CTA_PROTOINFO_TCP);
+ 	NFA_PUT(skb, CTA_PROTOINFO_TCP_STATE, sizeof(u_int8_t),
+ 		&ct->proto.tcp.state);
+ 	read_unlock_bh(&tcp_lock);
+
+--
