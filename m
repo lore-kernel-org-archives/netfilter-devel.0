@@ -1,19 +1,18 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: ipt_limit patch for iptables-1.3.1 and linux-2.4.22
-Date: Sat, 24 Dec 2005 07:27:17 +0100
-Message-ID: <20051224062717.GA11503@oknodo.bof.de>
-References: <5210898791.20051223141249@uu3.net> <43ABFE4B.6040102@cineca.it>
-	<3519928555.20051223164319@uu3.net>
-	<43AC4F57.8090702@trash.net> <036110574.20051223211301@uu3.net>
-	<20051223201951.GA28723@linuxace.com>
-	<16937451772.20051223213523@uu3.net>
+From: Pablo Neira Ayuso <pablo@eurodev.net>
+Subject: Re: How to obtain process ID that created connection or owns one
+ packet
+Date: Sat, 24 Dec 2005 15:20:36 +0100
+Message-ID: <43AD5934.3050700@eurodev.net>
+References: <1b8130000512182054y7208121dtb6b20814540bbb3b@mail.gmail.com>	<43A6EA58.9090201@eurodev.net>
+	<43A6EC1F.7030600@eurodev.net>	<43ABED47.8070100@gmail.com>
+	<43AC263E.7080508@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: borg@uu3.net
-Content-Disposition: inline
-In-Reply-To: <16937451772.20051223213523@uu3.net>
+To: mikado4vn@gmail.com
+In-Reply-To: <43AC263E.7080508@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,17 +24,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Okey.. So you saying that my system is broken?
+Mikado wrote:
+> Thanks all! Finally I found the answer in 'struct sk_buff':
+> 
+> struct sk_buff ( #include <linux/skbuff.h> )
+> |_struct sock ( #include <net/sock.h> )
+>   |_struct socket ( #include <linux/net.h> )
+>     |_struct file ( #include <linux/fs.h> )
+>       |_struct fown_struct ( #include <linux/fs.h> )
+>         |_int pid
 
-No.
+Yes, but AFAIK you can only use that in the OUTPUT hook, not in the
+INPUT path. If my mind serves well, I remember that Patrick McHardy
+posted some patches to add support for socket filtering some time ago. I
+don't know what is the status of such work.
 
-The patch would break other people's systems who DONT consistently
-patch kernel and userspace. Iptables developers have for years now
-resisted to accept patches that behave that way, because they don't want
-the "support hell" it creates. That's what people are telling you.
-That's why your patch is considered "broken". In this case, "broken"
-is a synonym for "not acceptable to our established way of changing
-things".
-
-best regards
-  Patrick
+-- 
+Pablo
