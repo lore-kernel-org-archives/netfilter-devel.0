@@ -1,52 +1,53 @@
-From: Pablo Neira Ayuso <pablo@eurodev.net>
-Subject: Re: How to obtain process ID that created connection or owns one
- packet
-Date: Tue, 27 Dec 2005 20:28:06 +0100
-Message-ID: <43B195C6.8020704@eurodev.net>
-References: <1b8130000512182054y7208121dtb6b20814540bbb3b@mail.gmail.com>	<43A6EA58.9090201@eurodev.net>	<43A6EC1F.7030600@eurodev.net>	<43ABED47.8070100@gmail.com>	<43AC263E.7080508@gmail.com>
-	<43AD5934.3050700@eurodev.net> <43B180CA.7060808@ingate.com>
+From: chip@innovates.com
+Subject: conntrack NAT problem w/ UDP
+Date: Tue, 27 Dec 2005 13:53:17 -0600
+Message-ID: <47103.2108333476$1135713229@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Marcus Sundberg <marcus@ingate.com>
-In-Reply-To: <43B180CA.7060808@ingate.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline; filename="BDY.TXT"
+	;Creation-Date="Tue, 27 Dec 2005 13:53:16 -0600"
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Marcus Sundberg wrote:
-> Pablo Neira Ayuso wrote:
-> 
->> Mikado wrote:
->>
->>> Thanks all! Finally I found the answer in 'struct sk_buff':
->>>
->>> struct sk_buff ( #include <linux/skbuff.h> )
->>> |_struct sock ( #include <net/sock.h> )
->>>  |_struct socket ( #include <linux/net.h> )
->>>    |_struct file ( #include <linux/fs.h> )
->>>      |_struct fown_struct ( #include <linux/fs.h> )
->>>        |_int pid
->>
->>
->>
->> Yes, but AFAIK you can only use that in the OUTPUT hook, not in the
->> INPUT path.
-> 
-> ...and if using SMP you can't use it at all in netfilter context.
+There seems to be an intermittent problem w/ NAT when the source port 
+and destination port are the same on UDP traffic.
 
-And there's still some work in progress about this:
+I've found this on two routers, one with OpenWRT whiterussian RC3 
+(kernel 2.4.30) and on SuSE 10 (kernel 2.6.13-15).  At random times NAT 
+fails to operate on the UDP traffic for IAX2 from Asterisk.  IAX2 is UDP 
+port 4569 to port 4569.  The kernel will stop rewriting the source port 
+when using either SNAT or MASQUERADE.  
 
-http://lwn.net/Articles/157137/
+Rebooting the kernel is the only solution I have found to fixing the 
+problem.  I have found numerous reports of this problem.  It's usually 
+reported as Asterisk failing to register.  
 
--- 
-Pablo
+I diagnosed the problem by sniffing the traffic between the router and 
+internet device (DSL or cable modem).  This revealed the source address 
+is not being rewritten.  
+
+Any suggestions on how to further trace where the problem in netfilter 
+is occurring would be of great benefit.  Unfortunately, I only see this 
+problem once every couple months.  So I need to know where to look for 
+more information on the problem.  
+
+I've posted this bug in bugzilla ID #421.  
+
+
+Chip Schweiss
+
+Innovates, Inc.
+4038 Avery Ln.
+Bridgeton, MO 63044
+(314) 298-3708 - (618) 207-3442 - (877) 444-2003
