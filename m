@@ -1,16 +1,15 @@
-From: Pablo Neira Ayuso <pablo@eurodev.net>
-Subject: Re: [PATCH] ctnetlink: Fix dumping of helper name.
-Date: Tue, 27 Dec 2005 14:46:21 +0100
-Message-ID: <43B145AD.4040108@eurodev.net>
-References: <43B1434C.8000005@ingate.com>
+From: Clifford Wolf <clifford@clifford.at>
+Subject: Re: iptables -m mac, --mac-dst support.
+Date: Tue, 27 Dec 2005 16:41:05 +0100
+Message-ID: <20051227154105.GA18029@clifford.at>
+References: <1924670592.20051225023536@vkt.lt>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marcus Sundberg <marcus@ingate.com>
-In-Reply-To: <43B1434C.8000005@ingate.com>
+To: Jarek <hugle@vkt.lt>
+Content-Disposition: inline
+In-Reply-To: <1924670592.20051225023536@vkt.lt>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,13 +21,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Marcus Sundberg wrote:
-> this patch fixes ctnetlink dumping of the helper name.
+On Sun, Dec 25, 2005 at 02:35:36AM +0200, Jarek wrote:
+> I was wondering if there is somewhere around a patch to support MAC
+> based not on source but on destination. ? Cause I'd like to check if
+> dst ID and dst MAC are x.x.x.x and zx:as:qw:zx:as:qw
+> 
+> If yes maybe you could share it, and if no.. any ideas if it's going to
+> show up or maybe not at all?
 
-It looks fine. Thanks Marcus.
-
-@Patrick: JFYI, this bug doesn't affect nf_conntrack_netlink, so we
-don't need a patch for it.
+Use 'ebtables -d'. Note that the destination MAC is only available in the
+POSTROUTING chain.
 
 -- 
-Pablo
+ _  _       _      Nerds on Air - Radio for Geeks      _  __     ___
+| \| |___  /_\   On 1st and 3rd Friday of the month   / |/ /__  / _ |
+| .` / _ \/ _ \    21:00-22:00 CET on Radio Orange   /    / _ \/ __ |
+|_|\_\___/_/ \_\     http://www.clifford.at/noa/    /_/|_/\___/_/ |_|
+ 
+"Paranoia is faith in a hidden order behind the visible."
+-- pi, the movie
+ 
