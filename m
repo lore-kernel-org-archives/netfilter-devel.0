@@ -1,43 +1,48 @@
-From: Clifford Wolf <clifford@clifford.at>
-Subject: Re: iptables -m mac, --mac-dst support.
-Date: Tue, 27 Dec 2005 16:41:05 +0100
-Message-ID: <20051227154105.GA18029@clifford.at>
-References: <1924670592.20051225023536@vkt.lt>
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: Re: How to obtain process ID that created connection or owns one
+ packet
+Date: Tue, 27 Dec 2005 18:58:34 +0100
+Message-ID: <43B180CA.7060808@ingate.com>
+References: <1b8130000512182054y7208121dtb6b20814540bbb3b@mail.gmail.com>	<43A6EA58.9090201@eurodev.net>	<43A6EC1F.7030600@eurodev.net>	<43ABED47.8070100@gmail.com>	<43AC263E.7080508@gmail.com>
+	<43AD5934.3050700@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jarek <hugle@vkt.lt>
-Content-Disposition: inline
-In-Reply-To: <1924670592.20051225023536@vkt.lt>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: Pablo Neira Ayuso <pablo@eurodev.net>
+In-Reply-To: <43AD5934.3050700@eurodev.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Dec 25, 2005 at 02:35:36AM +0200, Jarek wrote:
-> I was wondering if there is somewhere around a patch to support MAC
-> based not on source but on destination. ? Cause I'd like to check if
-> dst ID and dst MAC are x.x.x.x and zx:as:qw:zx:as:qw
+Pablo Neira Ayuso wrote:
+> Mikado wrote:
 > 
-> If yes maybe you could share it, and if no.. any ideas if it's going to
-> show up or maybe not at all?
+>>Thanks all! Finally I found the answer in 'struct sk_buff':
+>>
+>>struct sk_buff ( #include <linux/skbuff.h> )
+>>|_struct sock ( #include <net/sock.h> )
+>>  |_struct socket ( #include <linux/net.h> )
+>>    |_struct file ( #include <linux/fs.h> )
+>>      |_struct fown_struct ( #include <linux/fs.h> )
+>>        |_int pid
+> 
+> 
+> Yes, but AFAIK you can only use that in the OUTPUT hook, not in the
+> INPUT path.
 
-Use 'ebtables -d'. Note that the destination MAC is only available in the
-POSTROUTING chain.
+...and if using SMP you can't use it at all in netfilter context.
 
+//Marcus
 -- 
- _  _       _      Nerds on Air - Radio for Geeks      _  __     ___
-| \| |___  /_\   On 1st and 3rd Friday of the month   / |/ /__  / _ |
-| .` / _ \/ _ \    21:00-22:00 CET on Radio Orange   /    / _ \/ __ |
-|_|\_\___/_/ \_\     http://www.clifford.at/noa/    /_/|_/\___/_/ |_|
- 
-"Paranoia is faith in a hidden order behind the visible."
--- pi, the movie
- 
+---------------------------------------+--------------------------
+   Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+  Software Developer, Ingate Systems AB |  http://www.ingate.com/
