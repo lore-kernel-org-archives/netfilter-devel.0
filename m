@@ -1,22 +1,22 @@
 From: Grant Coady <grant_lkml@dodo.com.au>
-Subject: Re: [stable] Re: Linux 2.6.14.5
-Date: Tue, 27 Dec 2005 16:28:02 +1100
-Message-ID: <qri1r190991kj6a3pr5itv7n7a24a11nh4@4ax.com>
-References: <20051227005327.GA21786@kroah.com> <32b1r156pu7much2m94ajva2bmcs4mpcag@4ax.com> <20051227034622.GA23521@kroah.com>
+Subject: Re: Linux 2.6.14.5
+Date: Tue, 27 Dec 2005 16:42:00 +1100
+Message-ID: <3ok1r15khvs8gka6qhhvt3u302mafkkr2r@4ax.com>
+References: <20051227005327.GA21786@kroah.com> <32b1r156pu7much2m94ajva2bmcs4mpcag@4ax.com> <20051227051729.GR15993@alpha.home.local>
 Reply-To: gcoady@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: gcoady@gmail.com, Greg KH <gregkh@suse.de>, torvalds@osdl.org,
-	linux-kernel@vger.kernel.org, stable@kernel.org,
+Cc: gcoady@gmail.com, Greg KH <gregkh@suse.de>,
+	linux-kernel@vger.kernel.org, stable@kernel.org, torvalds@osdl.org,
 	netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932236AbVL0F1y@vger.kernel.org>
-To: Greg KH <greg@kroah.com>
-In-Reply-To: <20051227034622.GA23521@kroah.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932232AbVL0Flp@vger.kernel.org>
+To: Willy Tarreau <willy@w.ods.org>
+In-Reply-To: <20051227051729.GR15993@alpha.home.local>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 26 Dec 2005 19:46:23 -0800, Greg KH <greg@kroah.com> wrote:
+On Tue, 27 Dec 2005 06:17:29 +0100, Willy Tarreau <willy@w.ods.org> wrote:
 
 >On Tue, Dec 27, 2005 at 02:06:03PM +1100, Grant Coady wrote:
 >> On Mon, 26 Dec 2005 16:53:27 -0800, Greg KH <gregkh@suse.de> wrote:
@@ -30,20 +30,36 @@ On Mon, 26 Dec 2005 19:46:23 -0800, Greg KH <greg@kroah.com> wrote:
 >> 
 >> netfilter is broken compared to 2.6.15-rc7 (first 2.6 kernel tested 
 >> on this box) or 2.4.32 :(  Same ruleset as used for months.
+>> 
+>> Fails to recognise named chains with a useless error message:
+>> 
+>> "iptables: No chain/target/match by that name"
 >
->Is it broken compared to 2.6.14.4 and/or 2.6.14?  Care to figure out
->which release broke it?
+>Grant, please put a "set -x" at the top of your script so that you
+>can tell what rule causes this error.
 
-2.6.14.4 -> 2.6.14.5 broke it, 2.6.14 also runs okay, some more info 
-on http://bugsplatter.mine.nu/test/boxen/deltree/ -- dmesg, `grep = 
-.config`.
++ iptables -A INPUT -p all --match state --state ESTABLISHED,RELATED -j ACCEPT
+iptables: No chain/target/match by that name
++ iptables -A INPUT -p tcp --match state --state NEW --dport ftp --match limit --limit 3/min -j ACCEPT
+iptables: No chain/target/match by that name
++ iptables -A INPUT -p tcp --match state --state NEW --dport ftp -j DROP
+iptables: No chain/target/match by that name
++ iptables -A INPUT -p tcp --match state --state NEW --dport http --match limit --limit 12/min -j ACCEPT
+iptables: No chain/target/match by that name
++ iptables -A INPUT -p tcp --match state --state NEW --dport http -j DROP
+iptables: No chain/target/match by that name
+  FORWARD + iptables -A FORWARD -p all --match state --state ESTABLISHED,RELATED -j ACCEPT
+iptables: No chain/target/match by that name
++ iptables -A egress -p tcp --match state --state NEW --match multiport --dports ftp,http,pop3,nntp,pop3s -j ACCEPT
+iptables: No chain/target/match by that name
++ iptables -A egress -p tcp --match state --state NEW --match multiport --dports https,rsync -j ACCEPT
+iptables: No chain/target/match by that name
++ iptables -A egress -p all --match state --state NEW --match limit --limit 12/min -j ACCEPT
+iptables: No chain/target/match by that name
 
-This box is the bugsplatter web server, currently running 2.6.14.4.
-
-iptables/netfilter is rejecting constructs containing "state NEW", see:
-http://bugsplatter.mine.nu/test/boxen/deltree/iptables-vnL-2.6.14.4-dt
-vs
-http://bugsplatter.mine.nu/test/boxen/deltree/iptables-vnL-2.6.14.5-dt
-some numbers masked with 'zxcv' to protect the guilty :)
-
-Grant.
+>
+>> Grant.
+>
+>Thanks,
+>Willy
+>
