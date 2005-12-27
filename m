@@ -1,45 +1,41 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: Linux 2.6.14.5
-Date: Tue, 27 Dec 2005 16:12:56 +0900 (JST)
-Message-ID: <200512270712.jBR7Cvq0016461@toshiba.co.jp>
-References: <20051227060714.GA1053@linuxace.com>
-	<200512270641.jBR6f6vt024777@toshiba.co.jp>
-	<20051227065844.GA14828@alpha.home.local>
+From: "m.innocenti@cineca.it" <m.innocenti@cineca.it>
+Subject: Re: ipt_limit patch for iptables-1.3.1 and linux-2.4.22
+Date: Tue, 27 Dec 2005 10:21:49 +0100 (MET)
+Message-ID: <43B107AE.7020401@cineca.it>
+References: <5210898791.20051223141249@uu3.net>
+	<43ABFE4B.6040102@cineca.it>	<3519928555.20051223164319@uu3.net>	<43AC4F57.8090702@trash.net>
+	<036110574.20051223211301@uu3.net>	<20051223201951.GA28723@linuxace.com>	<16937451772.20051223213523@uu3.net>
+	<20051223205711.GA28855@linuxace.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: yasuyuki.kozakai@toshiba.co.jp, kernel@linuxace.com,
-	gregkh@suse.de, gcoady@gmail.com,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	torvalds@osdl.org, stable@kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932248AbVL0HNI@vger.kernel.org>
-To: willy@w.ods.org
-In-Reply-To: <20051227065844.GA14828@alpha.home.local>
-Sender: linux-kernel-owner@vger.kernel.org
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20051223205711.GA28855@linuxace.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Phil Oester ha scritto:
+> If you need limit inversion, please update to 2.6.x kernels
+> where this feature exists.
 
-From: Willy Tarreau <willy@w.ods.org>
+No, it doesn't (yet).
 
-> On Tue, Dec 27, 2005 at 03:41:05PM +0900, Yasuyuki KOZAKAI wrote:
-> > From: Phil Oester <kernel@linuxace.com>
-> > Date: Mon, 26 Dec 2005 22:07:14 -0800
-> > 
-> > > On Tue, Dec 27, 2005 at 06:45:19AM +0100, Willy Tarreau wrote:
-> > > > On Tue, Dec 27, 2005 at 04:42:00PM +1100, Grant Coady wrote:
-> > > > > + iptables -A INPUT -p all --match state --state ESTABLISHED,RELATED -j ACCEPT
-> > > > > iptables: No chain/target/match by that name
-> > > > 
-> > > > So it's not only the NEW state, it's every "--match state".
-> > > 
-> > > Odd...works fine here
-> > 
-> > Willy, which version of iptables is ?
-> > And kernel config around netfilter would be helpful.
-> 
-> Hey, it's Grant who has the problem, not me. Anyway, he fixed it,
-> it seems it was related to an invalid .config.
 
-Sorry about this, and thanks for report.
 
--- Yasuyuki Kozakai
+
+-- 
+**********************************************************************
+Marco Innocenti              Gruppo Infrastruttura e Sicurezza
+CINECA                       phone:+39 0516171553 / fax:+39 0516132198
+Via Magnanelli 6/3           e-mail: innocenti@cineca.it
+40033 Casalecchio di Reno    Bologna (Italia)
+**********************************************************************
