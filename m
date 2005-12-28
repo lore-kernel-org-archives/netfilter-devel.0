@@ -1,14 +1,15 @@
-From: chip@innovates.com
-Subject: conntrack NAT problem w/ UDP
-Date: Tue, 27 Dec 2005 13:53:17 -0600
-Message-ID: <47103.2108333476$1135713229@news.gmane.org>
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: conntrack NAT problem w/ UDP
+Date: Wed, 28 Dec 2005 08:15:47 +0100
+Message-ID: <20051228071547.GC11503@oknodo.bof.de>
+References: <H000006700179012.1135713196.@MHS>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline; filename="BDY.TXT"
-	;Creation-Date="Tue, 27 Dec 2005 13:53:16 -0600"
+To: chip@innovates.com
+Content-Disposition: inline
+In-Reply-To: <H000006700179012.1135713196.@MHS>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,34 +21,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-There seems to be an intermittent problem w/ NAT when the source port 
-and destination port are the same on UDP traffic.
+> There seems to be an intermittent problem w/ NAT when the source port 
+> and destination port are the same on UDP traffic.
+[...]
+> I diagnosed the problem by sniffing the traffic between the router and 
+> internet device (DSL or cable modem).
 
-I've found this on two routers, one with OpenWRT whiterussian RC3 
-(kernel 2.4.30) and on SuSE 10 (kernel 2.6.13-15).  At random times NAT 
-fails to operate on the UDP traffic for IAX2 from Asterisk.  IAX2 is UDP 
-port 4569 to port 4569.  The kernel will stop rewriting the source port 
-when using either SNAT or MASQUERADE.  
+How much time was there between the last correctly rewritten packet,
+and the first bad packet?
 
-Rebooting the kernel is the only solution I have found to fixing the 
-problem.  I have found numerous reports of this problem.  It's usually 
-reported as Asterisk failing to register.  
+I bet it was more than 120 seconds.
 
-I diagnosed the problem by sniffing the traffic between the router and 
-internet device (DSL or cable modem).  This revealed the source address 
-is not being rewritten.  
+UDP is connectionless. Thus, conntracking must use some form of
+idle (no packets flowing) timeout for its NAT entries. The timeout
+is 120 seconds for replied (packets seen in both directions)
+UDP connections.
 
-Any suggestions on how to further trace where the problem in netfilter 
-is occurring would be of great benefit.  Unfortunately, I only see this 
-problem once every couple months.  So I need to know where to look for 
-more information on the problem.  
+With the setup you described, having fixed "real" ports, maybe
+you can just set up static nat (use the SNAT or DNAT target after
+matching client IP address), instead of dynamic (random mangled port)
+NAT like MASQUERADE, and your problem will go away - because the decision
+will be the same each time a new conntrack is created after a pause.
 
-I've posted this bug in bugzilla ID #421.  
+You could also try to work around the problem by making the application
+send data in the correct direction more often than each 120 seconds.
 
+Or you could manipulate the UDP timeout on the NAT box. Look/change
+/proc/sys/net/ipv4/netfilter/ip_conntrack_udp_stream. However, this
+will affect all UDP traffic (traceroute, DNS lookups).
 
-Chip Schweiss
-
-Innovates, Inc.
-4038 Avery Ln.
-Bridgeton, MO 63044
-(314) 298-3708 - (618) 207-3442 - (877) 444-2003
+best regards
+  Patrick
