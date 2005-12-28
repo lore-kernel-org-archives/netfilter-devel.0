@@ -1,15 +1,15 @@
-From: chip@innovates.com
-Subject: RE: conntrack NAT problem w/ UDP
-Date: Wed, 28 Dec 2005 09:12:48 -0600
-Message-ID: <38081.8443409682$1135782822@news.gmane.org>
+From: "Greg Scott" <GregScott@InfraSupportEtc.com>
+Subject: RE: [H.323] Compilation fixes for 2.6.14
+Date: Wed, 28 Dec 2005 13:32:48 -0600
+Message-ID: <925A849792280C4E80C5461017A4B8A26D37@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
+Cc: kadlec@blackhole.kfki.hu, max@duempel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: bof@bof.de
-Content-Disposition: inline; filename="BDY.TXT"
-	;Creation-Date="Wed, 28 Dec 2005 09:12:47 -0600"
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,69 +21,90 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The packet rewriting is not happening for the outgoing packets, 
-therefore the other end can never reply because it has a private IP 
-address being sent as the source address.  
+I am running into the same problem with 2.6.14.5 and POM-20051227.
+Vinay, thank you for the patch and apologies in advance for not knowing
+how to apply it.  Would you be able to point me to some instructions on
+how to apply your patch to the copy of the source tree I have here? =20
 
-The timeout issue has been thoroughly debunked by numerous people.  
-Asterisk sends a packet every 30 seconds to keep NAT connections alive.  
+thanks
+
+- Greg Scott
+
+******************************************************
+(Original message follows)
+
+Hi,
+
+ip_conntrack_expect_alloc expects an argument in 2.6.14 (didn't check
+2.6.13).
+
+I got the following compilation errors while trying to compile H.323
+module using patch-o-matic-ng-20051219.tar.bz2 against linux-2.6.14
+
+net/ipv4/netfilter/ip_conntrack_h323_h225.c: In function
+`h225_parse_connect_uuie':
+net/ipv4/netfilter/ip_conntrack_h323_h225.c:111: error: too few
+arguments to function `ip_conntrack_expect_alloc'
+
+Patch below:
+ ip_conntrack_h323_h225.c |    2 +-
+ ip_conntrack_h323_h245.c |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
 
-The problem is definitely something getting lost in netfilter.  When the 
-problem occurs, DNS and other UDP traffic with different source ports 
-than destination ports are still correctly rewritten.  The last time the 
-problem occurred for me, I completely reload the all the tables and 
-tried using SNAT vs. MASQUERADE.  Nothing made any packets get rewritten 
-for Asterisk connections except rebooting the router.  Next time, I will 
-try unloading all the netfilter modules and reloading them before 
-rebooting.  
+diff -urN a/net/ipv4/netfilter/ip_conntrack_h323_h225.c
+b/net/ipv4/netfilter/ip_conntrack_h323_h225.c
+--- a/net/ipv4/netfilter/ip_conntrack_h323_h225.c	2005-12-23
+14:32:53.000000000 +0530
++++ b/net/ipv4/netfilter/ip_conntrack_h323_h225.c	2005-12-23
+14:32:29.000000000 +0530
+@@ -108,7 +108,7 @@
+ 		}
+ 		if (ret && ip =3D=3D ct->tuplehash[dir].tuple.src.ip) {
+ 			/* match found: create an expectation */
+-			exp =3D ip_conntrack_expect_alloc();
++			exp =3D ip_conntrack_expect_alloc(ct);
+ 			if (exp =3D=3D NULL)
+ 				return NF_ACCEPT;
 
-When this happens I don't have much time for debugging, because of the 
-urgency to get a production phone system back in service.  That is why 
-I'm asking what should I examine to find out where netfilter is missing 
-this connection?
+diff -urN a/net/ipv4/netfilter/ip_conntrack_h323_h245.c
+b/net/ipv4/netfilter/ip_conntrack_h323_h245.c
+--- a/net/ipv4/netfilter/ip_conntrack_h323_h245.c	2005-12-23
+14:32:53.000000000 +0530
++++ b/net/ipv4/netfilter/ip_conntrack_h323_h245.c	2005-12-23
+14:32:29.000000000 +0530
+@@ -296,7 +296,7 @@
+ 			       NIPQUAD(ip), ntohs(port));
+ 		if (ret && ip =3D=3D ct->tuplehash[dir].tuple.src.ip) {
+ 			/* match found: create an expectation */
+-			exp =3D ip_conntrack_expect_alloc();
++			exp =3D ip_conntrack_expect_alloc(ct);
+ 			if (exp =3D=3D NULL)
+ 				return NF_ACCEPT;
 
-Chip Schweiss
+@@ -348,7 +348,7 @@
+ 			       NIPQUAD(ip), ntohs(port));
+ 		if (ret && ip =3D=3D ct->tuplehash[dir].tuple.src.ip) {
+ 			/* match found: create an expectation */
+-			exp =3D ip_conntrack_expect_alloc();
++			exp =3D ip_conntrack_expect_alloc(ct);
+ 			if (exp =3D=3D NULL)
+ 				return NF_ACCEPT;
 
+@@ -616,7 +616,7 @@
+ 		       ret, i, ip, port);
+ 		if (ret && ip =3D=3D ct->tuplehash[dir].tuple.src.ip) {
+ 			/* match found: create an expectation */
+-			exp =3D ip_conntrack_expect_alloc();
++			exp =3D ip_conntrack_expect_alloc(ct);
+ 			if (exp =3D=3D NULL)
+ 				return NF_ACCEPT;
 
-
------Original Message-----
-From: bof [mailto:bof@bof.de] 
-Sent: Wednesday, December 28, 2005 1:16 AM
-To: Chip Schweiss
-Cc: netfilter-devel
-Subject: Re: conntrack NAT problem w/ UDP
-
-> There seems to be an intermittent problem w/ NAT when the source port 
-> and destination port are the same on UDP traffic.
-[...]
-> I diagnosed the problem by sniffing the traffic between the router and 
-
-> internet device (DSL or cable modem).
-
-How much time was there between the last correctly rewritten packet,
-and the first bad packet?
-
-I bet it was more than 120 seconds.
-
-UDP is connectionless. Thus, conntracking must use some form of
-idle (no packets flowing) timeout for its NAT entries. The timeout
-is 120 seconds for replied (packets seen in both directions)
-UDP connections.
-
-With the setup you described, having fixed "real" ports, maybe
-you can just set up static nat (use the SNAT or DNAT target after
-matching client IP address), instead of dynamic (random mangled port)
-NAT like MASQUERADE, and your problem will go away - because the 
-decision
-will be the same each time a new conntrack is created after a pause.
-
-You could also try to work around the problem by making the application
-send data in the correct direction more often than each 120 seconds.
-
-Or you could manipulate the UDP timeout on the NAT box. Look/change
-/proc/sys/net/ipv4/netfilter/ip_conntrack_udp_stream. However, this
-will affect all UDP traffic (traceroute, DNS lookups).
-
-best regards
-  Patrick
+@@ -663,7 +663,7 @@
+ 		       ret, i, ip, port);
+ 		if (ret && ip =3D=3D ct->tuplehash[dir].tuple.src.ip) {
+ 			/* match found: create an expectation */
+-			exp =3D ip_conntrack_expect_alloc();
++			exp =3D ip_conntrack_expect_alloc(ct);
+ 			if (exp =3D=3D NULL)
+ 				return NF_ACCEPT;
