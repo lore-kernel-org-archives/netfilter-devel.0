@@ -1,96 +1,57 @@
-From: Noman Liaquat <khankhn1@yahoo.com>
-Subject: who will solve my problem
-Date: Wed, 28 Dec 2005 00:43:49 -0800 (PST)
-Message-ID: <20051228084349.43827.qmail@web35911.mail.mud.yahoo.com>
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: Re: How to download POM-ng these days?
+Date: Wed, 28 Dec 2005 11:13:19 +0100
+Message-ID: <200512281113.19261@nienna>
+References: <925A849792280C4E80C5461017A4B8A26D2F@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-1481857782-1135759429=:36587"
-Content-Transfer-Encoding: 8bit
-Cc: khankhn1@yahoo.com, netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: netfilter@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Greg Scott <GregScott@infrasupportetc.com>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <925A849792280C4E80C5461017A4B8A26D2F@mail733.InfraSupportEtc.com>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---0-1481857782-1135759429=:36587
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Content-Id: 
-Content-Disposition: inline
 
+  Hi,
 
-string replace problem --replace-string [who will
-solve it]
+On Wednesday 28 December 2005 08.25, Greg Scott wrote:
+> I am trying to incorporate several POM patches, including some of the
+> contrack-nat helpers, ipsec, and some others.  None of the techniques
+> documented in the main netfilter website work anymore.  I scoured the
+> netfilter-devel list archives and found a reference to this website:
+>
+> https://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/
+>
+> I am looking at it now and I see references to all the POM modules of
+> interest, along with a bunch of LDAP stuff about each module and
+> references to thousands of build versions.  But I am hopelessly confused
+> as to how to download the most up to date builds of everything and get
+> them into a form that the runme script can use.  Or is the runme script
+> also now obsolete and if so, what is the best way to download and apply
+> the POM patches of interest?  If anyone would be willing to hold my hand
+> a little bit, I will document how it's done currently and post it to the
+> list.
 
+  You have basically two possibilities:
 
-Note: forwarded message attached.
+  * either you "check out" the current version using Subversion
+    (<http://subversion.tigris.org>)
+    (<http://www.netfilter.org/downloads.html#svn>)
 
+  * or you download the latest daily snapshot from the Netfilter FTP server
+    (<ftp://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot>)
 
-
-	
-		
-__________________________________ 
-Yahoo! for Good - Make a difference this year. 
-http://brand.yahoo.com/cybergivingweek2005/
---0-1481857782-1135759429=:36587
-Content-Type: message/rfc822
-Content-Transfer-Encoding: 8bit
-
-X-Apparently-To: khankhn1@yahoo.com via 66.163.179.190;
-	Tue, 27 Dec 2005 10:20:21 -0800
-X-Originating-IP: [66.163.179.195]
-Authentication-Results: mta119.mail.mud.yahoo.com
-	from=yahoo.com; domainkeys=pass (ok)
-Received: from 66.163.179.195 (HELO web35911.mail.mud.yahoo.com)
-	(66.163.179.195)
-	by mta119.mail.mud.yahoo.com with SMTP; Tue, 27 Dec 2005 10:20:21 -0800
-Received: (qmail 96143 invoked by uid 60001); 27 Dec 2005 18:20:04 -0000
-DomainKey-Signature: a=rsa-sha1; q=dns; c=nofws; s=s1024; d=yahoo.com;
-	h=Message-ID:Received:Date:From:Subject:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding;
-	b=23XsSHRJahvQAAmKiso3Ws96Ao0KIsLT5QnjmPcswfhje//qE5soN4F9KkSOy0oLAqhEOcCO7XgeETTmm2CEupkHIKCNLVRX60YqL7tL47pneVg6m/ch/UoTPINgbOjYNrU7WHNwXrgd8h38CqNkMzPaNN6bXjCnlOzPAH1ABBI=
-	;
-Received: from [202.163.103.160] by web35911.mail.mud.yahoo.com via HTTP;
-	Tue, 27 Dec 2005 10:20:04 PST
-Date: Tue, 27 Dec 2005 10:20:04 -0800 (PST)
-From: Noman Liaquat <khankhn1@yahoo.com>
-Subject: STring Question
-To: rob@sterenborg.info
-Cc: netfilter@lists.netfilter.org, khankhn1@yahoo.com, webmaster@cipherdyne.org
-MIME-Version: 1.0
-Content-Type: multipart/alternative; boundary="0-1374925594-1135707604=:94051"
-Content-Transfer-Encoding: 8bit
-Content-Length: 648
-
---0-1374925594-1135707604=:94051
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-
- hello rob,
- 
- yes you are right i am using the same version which you are talking about i had downloaded that version from svn repository of netfilter website.
- 
- heay what is that 
- http://www.cipherdyne.org/fwsnort/
- 
- in that website options are not working with patch-o-matic-ng , pactching of those kernel and iptables are not wroking whole source code is different. i don't know how persons are replacing string .
- 
- I am waiting for quick reponse.
- 
- Regards
- Noman
- 
-
-		
----------------------------------
-Yahoo! Photos
- Ring in the New Year with Photo Calendars. Add photos, events, holidays, whatever.
---0-1374925594-1135707604=:94051--
-
---0-1481857782-1135759429=:36587--
+-- 
+KOVACS Krisztian
