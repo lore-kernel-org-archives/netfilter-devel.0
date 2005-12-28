@@ -1,7 +1,7 @@
 From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: RE: [H.323] Compilation fixes for 2.6.14
-Date: Wed, 28 Dec 2005 13:32:48 -0600
-Message-ID: <925A849792280C4E80C5461017A4B8A26D37@mail733.InfraSupportEtc.com>
+Subject: RE:  [H.323] Compilation fixes for 2.6.14
+Date: Wed, 28 Dec 2005 16:31:27 -0600
+Message-ID: <925A849792280C4E80C5461017A4B8A26D3C@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="US-ASCII"
@@ -20,6 +20,77 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
+
+I may have answered my own question.  I have a new kernel build running
+right now and I will know 1.5 hours from now if it worked.  For others
+who are syntacticly challenged like me, here is how to do it.  Btw, the
+Linux patch utility is an amazing tool!
+
+Step 1 - Goto the list archives here:
+https://lists.netfilter.org/pipermail/netfilter-devel/2005-December/thre
+ad.html=20
+
+Step 2 - Search for "h.323" and find the original post with Vinay's
+patch.  Copy the whole thing and save it as a text file.  Save the text,
+patch, and all, it doesn't matter.  The patch utility is smart enough to
+figure out what it needs and throw away the rest.  In my case, I called
+the saved file, "/home/gregs/h323.patch"
+
+Step 3 - Do this (assuming the kernel sources are in the expected
+location)
+  cd /usr/src/linux/net/ipv4/netfilter
+
+Step 4 - Make backup copies of the files to be patched, like this:
+  cp ip_conntrack_h323_h225.c ip_conntrack_h323_h225.c-original
+  cp ip_conntrack_h323_h245.c ip_conntrack_h323_h245.c-original
+
+Step 5 - apply the patches like this:
+  cat /home/gregs/h323.patch | patch -d ./
+
+That's it! It really seems that simple - but it took me all afternoon to
+figure it out and work up the courage to try it. =20
+
+Here is the record below.  I first applied the patches and then tried it
+again to see if the patch utility would know there were now added. =20
+
+[root@dsi-fw netfilter]#=20
+[root@dsi-fw netfilter]#=20
+[root@dsi-fw netfilter]# cat /home/gregs/h323.patch | patch -d ./
+patching file ip_conntrack_h323_h225.c
+patching file ip_conntrack_h323_h245.c
+[root@dsi-fw netfilter]#=20
+[root@dsi-fw netfilter]#=20
+[root@dsi-fw netfilter]#=20
+[root@dsi-fw netfilter]# cat /home/gregs/h323.patch | patch -d ./
+patching file ip_conntrack_h323_h225.c
+Reversed (or previously applied) patch detected!  Assume -R? [n] n
+Apply anyway? [n] n
+Skipping patch.
+1 out of 1 hunk ignored -- saving rejects to file
+ip_conntrack_h323_h225.c.rej
+patching file ip_conntrack_h323_h245.c
+Reversed (or previously applied) patch detected!  Assume -R? [n] n
+Apply anyway? [n]=20
+Skipping patch.
+4 out of 4 hunks ignored -- saving rejects to file
+ip_conntrack_h323_h245.c.rej
+[root@dsi-fw netfilter]# pwd
+/usr/src/linux/net/ipv4/netfilter
+[root@dsi-fw netfilter]#=20
+
+- Greg Scott
+
+
+
+
+-----Original Message-----
+From: Greg Scott=20
+Sent: Wednesday, December 28, 2005 1:33 PM
+To: 'netfilter-devel@lists.netfilter.org'
+Cc: 'vinay.nallamothu@gsecone.com'; 'kadlec@blackhole.kfki.hu';
+'max@duempel.org'
+Subject: RE: [H.323] Compilation fixes for 2.6.14
+
 
 I am running into the same problem with 2.6.14.5 and POM-20051227.
 Vinay, thank you for the patch and apologies in advance for not knowing
