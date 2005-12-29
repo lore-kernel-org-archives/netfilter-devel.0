@@ -1,54 +1,69 @@
-From: Pablo Neira Ayuso <pablo@eurodev.net>
-Subject: Re: STring Replacement Patch [Quick Response]
-Date: Thu, 29 Dec 2005 12:43:34 +0100
-Message-ID: <43B3CBE6.1090908@eurodev.net>
-References: <20051229104208.27463.qmail@web35912.mail.mud.yahoo.com>
+From: "Greg Scott" <GregScott@InfraSupportEtc.com>
+Subject: RE: Kernel build suspicious warnings 2.6.14-5, iptables 1.3.4,
+	POM-20051227
+Date: Thu, 29 Dec 2005 07:48:11 -0600
+Message-ID: <925A849792280C4E80C5461017A4B8A26D43@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, rob@sterenborg.info,
-	george.john@ch.easynet.net, mbr@cipherdyne.org,
-	ishwar@pali.cps.cmich.edu, netfilter@lists.netfilter.org
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: Noman Liaquat <khankhn1@yahoo.com>
-In-Reply-To: <20051229104208.27463.qmail@web35912.mail.mud.yahoo.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-class: urn:content-classes:message
+To: "David S. Miller" <davem@davemloft.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Noman Liaquat wrote:
-> I  have downloaded the version of patch-o-matic-ng
-> from netfilter websites and now my patch of string
-> controlling is working, below command is the proof of
-> that
+Sorry...I should have checked the archives for references to the tarpit
+module.  But that doesn't explain these warnings:
 
-the string match is available since kernel 2.6.14, so you don't need
-pom-ng in any way.
+*** Warning: "ip_conntrack_expect_free"
+[net/ipv4/netfilter/ip_nat_h323.ko] undefined!
+*** Warning: "ip_conntrack_expect_free"
+[net/ipv4/netfilter/ip_conntrack_h323.ko] undefined!
 
-> #iptables -A FORWARD -m string --algo bm --string
-> "hello" -j DROP
-> 
-> ok that is fine. is there any way to alter that
-> packet. to replace--string
-> is there any patch available, if yes so how i can
-> implement that patch. 
+The h323 modules were broken before with a missing argument.  I wonder
+if they are still broken even after applying Vinay's patch?
 
-No, this functionality isn't implemented yet: The only sane way to do
-this that I see at the moment is implementing a target called `STRING'.
-Matches don't allow packet modifications. See the API requirements:
+I am trying again without the tarpit module. =20
 
-static int match(const struct sk_buff *skb, ...)
-                  ^^^
+- Greg
+=20
 
-So, such target must implement the same features than the current
-`string' match does plus the --replace-string thing.
+-----Original Message-----
+From: David S. Miller [mailto:davem@davemloft.net]=20
+Sent: Thursday, December 29, 2005 4:30 AM
+To: Greg Scott
+Cc: netfilter-devel@lists.netfilter.org
+Subject: Re: Kernel build suspicious warnings 2.6.14-5, iptables 1.3.4,
+POM-20051227
 
--- 
-Pablo
+
+From: "Greg Scott" <GregScott@InfraSupportEtc.com>
+Date: Thu, 29 Dec 2005 00:44:02 -0600
+
+> These are only warnings but they make me suspicious.  Should I be=20
+> worried?  Could the warnings below be because something in the kernel=20
+> calls the modules in question but the modules haven't been built yet?=20
+> But why would anything in the inline kernel call an optional module=20
+> loaded from POM?  I've run into several errors getting this far.  I'll
+
+> try a "make mrproper" and then "make all" to build it all from scratch
+
+> now and see what happens.
+
+That tarpit module, as mentioned here by myself in a posting from last
+week, is broken and is depending on a symbol that is not exported for a
+reason.
+
+To reiterate: It is trying to get the ttl to use in outgoing ipv4 frames
+from the sysctl, but that should instead be obtained from the routing
+metrics.
