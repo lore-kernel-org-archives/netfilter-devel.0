@@ -1,14 +1,12 @@
-From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: RE: Kernel build suspicious warnings 2.6.14-5, iptables 1.3.4,
-	POM-20051227
-Date: Thu, 29 Dec 2005 10:04:04 -0600
-Message-ID: <925A849792280C4E80C5461017A4B8A26D46@mail733.InfraSupportEtc.com>
+From: "Richard Pickett" <Richard.Pickett@CSRTechnologies.com>
+Subject: Strange FORWARD problem
+Date: Thu, 29 Dec 2005 11:08:05 -0600
+Message-ID: <010601c60c9a$71356760$1101a8c0@quebec>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
 To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -21,86 +19,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yup, the h323 modules are broken.  The h323 modules reference a function
-named ip_conntrack_expect_free.  But searching through the entire kernel
-and POM source trees, I find no reference to any files named similarly.
-And searching through the netfilter-devel archives from Dec. 2005
-through June 2005, I find no mention of this string.  Have I hit a brick
-wall or can I remove the references to this function in the effected
-h323 modules?  If yes, I will even try my hand at making a patch.
+I tried posting this in the std netfilter list, but no response. I'm
+hoping you guys can give me some good debugging instructions.
 
-Thanks
+Stock RH FC4 kernel, 2.6.11 - no modification or patches.
 
-- Greg Scott
+I have a script that generates the correct iptables settings from a
+configuration file. Basic NAT, Routing, and IN/OUT capability.
+
+Everything that comes into INPUT, OUTPUT, and FORWARD goes through the
+following logic:
+
+1. We check the state to see if it is RELATED,ESTABLISHED, if yes, jump
+ACCEPT
+2. Log, we log the inbound packet, indicating which chain it is coming
+on (INPUT, OUTPUT, FORWARD).
+3. check against a "DROP" list of addresses we reject all traffic
+to/from.
+4. check against "allow" rules and ACCEPT if allowed
+5. log and default DROP the packet.
+
+Well, we've run into an intermittent problem. What we are seeing is
+after different amounts of time (sometimes a few hours, sometimes
+several weeks) suddenly forwarding breaks. It just doesn't forward
+anything that is D or S NATed.
+
+We iptables-save > file and check it all over, and the logic is all in
+place just like I list above. At a minimum things hitting the forward
+chain should at least get logged, that's the first action after the
+RELATED/ESTABLISHED check, but they don't, the only logging is INPUT and
+OUTPUT.
+
+We can turn right around and `cat iptables-save.file | iptables-restore`
+and "magically" it all starts working again. So it doesn't appear to be
+a problem with the rules at all.
+
+It's like it just needs to be bumped every once in a while to make it
+keep running.
+
+Any ideas? Are there some kernel logging things we can try or other
+things we need to be looking at to determine this problem?
+
+We don't touch anything except the iptables-restore to make it work
+again, so things like /proc/sys/net/ipv4/ip_forward aren't touched at
+all after it breaks to make it work.
+
+Thanks for any ideas and all help!
 
 
-An extract of the relevant output follows:
 
-[root@dsi-fw linux]# make all
-.
-.
-.
-  CC [M]  net/ipv4/netfilter/ip_conntrack_h323_core.o
-  CC [M]  net/ipv4/netfilter/ip_conntrack_h323_h225.o
-net/ipv4/netfilter/ip_conntrack_h323_h225.c: In function
-'h225_parse_connect_uuie':
-net/ipv4/netfilter/ip_conntrack_h323_h225.c:135: warning: implicit
-declaration of function 'ip_conntrack_expect_free'
-  CC [M]  net/ipv4/netfilter/ip_conntrack_h323_h245.o
-net/ipv4/netfilter/ip_conntrack_h323_h245.c: In function
-'h245_parse_h2250_lchannel_params':
-net/ipv4/netfilter/ip_conntrack_h323_h245.c:322: warning: implicit
-declaration of function 'ip_conntrack_expect_free'
-  CC [M]  net/ipv4/netfilter/asn1_per.o
-  CC [M]  net/ipv4/netfilter/ip_conntrack_helper_pptp.o
-.
-.
-.
-  LD [M]  net/ipv4/netfilter/ip_conntrack_h323.o
-  CC [M]  net/ipv4/netfilter/ip_nat_h323.o
-net/ipv4/netfilter/ip_nat_h323.c: In function 'ip_nat_h225':
-net/ipv4/netfilter/ip_nat_h323.c:111: warning: implicit declaration of
-function 'ip_conntrack_expect_free'
-  CC [M]  net/ipv4/netfilter/ip_conntrack_sip.o
-  CC [M]  net/ipv4/netfilter/ip_nat_sip.o
-net/ipv4/netfilter/ip_nat_sip.c: In function 'ip_nat_sip':
-net/ipv4/netfilter/ip_nat_sip.c:97: warning: ISO C90 forbids mixed
-declarations and code
-  LD [M]  net/ipv4/netfilter/ip_nat.o
-  CC [M]  net/ipv4/netfilter/ip_conntrack_netlink.o
-.
-.
-.
-  OBJCOPY arch/i386/boot/vmlinux.bin
-  HOSTCC  arch/i386/boot/tools/build
-  BUILD   arch/i386/boot/bzImage
-Root device is (3, 3)
-Boot sector 512 bytes.
-Setup is 7272 bytes.
-System is 1605 kB
-Kernel: arch/i386/boot/bzImage is ready  (#2)
-  Building modules, stage 2.
-  MODPOST
-*** Warning: "ip_conntrack_expect_free"
-[net/ipv4/netfilter/ip_nat_h323.ko] undefined!
-*** Warning: "ip_conntrack_expect_free"
-[net/ipv4/netfilter/ip_conntrack_h323.ko] undefined!
-  CC      arch/i386/crypto/aes-i586.mod.o
-  LD [M]  arch/i386/crypto/aes-i586.ko
-.
-.
-.
-[root@dsi-fw linux]# make modules_install
-.
-.
-.
-  INSTALL sound/usb/snd-usb-lib.ko
-  INSTALL sound/usb/usx2y/snd-usb-usx2y.ko
-if [ -r System.map -a -x /sbin/depmod ]; then /sbin/depmod -ae -F
-System.map  2.6.14.5fw20; fi
-/bin/sh: line 1:  4266 Killed                  /sbin/depmod -ae -F
-System.map 2.6.14.5fw20
-make: *** [_modinst_post] Error 137
-[root@dsi-fw linux]# date
-Thu Dec 29 09:38:37 CST 2005
-[root@dsi-fw linux]#
+Richard W. Pickett, Jr.
+President, CSR Technologies .com, Inc.
+Richard.Pickett@CSRTechnologies.com
+www.CSRTechnologies.com
+Office - (270) 746-0324
+Cell    - (270) 303-9154
