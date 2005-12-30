@@ -1,8 +1,7 @@
-From: Moises Silva <moises.silva@gmail.com>
-Subject: Patch for H323 connection tracking for kernel 2.6.14 and Panic with
-	SIP tracking
-Date: Sat, 31 Dec 2005 16:47:16 -0600
-Message-ID: <c4d05cbe0512311447v33a9cb13w4e6201c5d6ccbd00@mail.gmail.com>
+From: Sven Wandersleb <nibbler@saeuferleber.de>
+Subject: bidirectional ip_conntrack_irc
+Date: Fri, 30 Dec 2005 18:11:40 +0100
+Message-ID: <4dc54d760512300911o5c386f4n76c07d078d5142f8@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
@@ -20,34 +19,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I was patching my 2.6.14 kernel for SIP and H323 connection tracking
-support, and got some errors of patch-o-matic h323 patches (i guess is
-normal since the version supported is 2.6.12 ), i would like some one
-with enough experience check the patch i made and tell me if it ok,
-since is compiling just fine, and it makes sense to me, but i could be
-wrong.
+Hi List,
 
-Patch to be applied in the kernel directory directly, something like
-patch -p1 < blah...
+is there any Plans to get ip_conntrack_irc working in both directions?
+Its sad to have connections called NEW, if in fact they are RELATED.
 
-http://galileo.ivsol.net/h323-conntrack-nat-kernel-2.6.14.patch
+I need it, as i want to catch DCC downloads to mark/route them to a
+broader link than the default one.
 
-and a patch for patch-o-matic sources
-
-http://galileo.ivsol.net/patch-o-matic-ng-20051230-h323.patch
-
-
-Additionally im having kernel panics with SIP conntrack extension. I
-have it as kernel module (ko). I still does not copy the core dump,
-but says something about "interrupt error, not syncing" or something
-like that. I will try to compile it inside the kernel to see if it
-still panics ( please some one could tell me if this makes any
-relevant difference?? )
-
-
-Thanks in advance
-
-- Moises Silva < moy at ivsol dot net >
---
-"Su nombre es GNU/Linux, no solamente Linux, mas info en http://www.gnu.org=
-"
+Greetings
+Sven Wandersleb
