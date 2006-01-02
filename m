@@ -1,12 +1,14 @@
-From: "Gilles Espinasse" <g.esp@free.fr>
-Subject: [Patch] set Requires: iptables > 1.2.11
-Date: Fri, 30 Dec 2005 18:29:30 +0100
-Message-ID: <06fa01c60d66$97bf74d0$f9b5a8c0@pii350>
+From: Pablo Neira Ayuso <pablo@eurodev.net>
+Subject: Re: iptables 1.3.4 kernel 2.4.31 string match
+Date: Mon, 02 Jan 2006 15:12:57 +0100
+Message-ID: <43B934E9.2000601@eurodev.net>
+References: <007a01c60f31$8f1eeaa0$102a2a0a@rjk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_06F7_01C60D6E.F929AEE0"
+Content-Type: multipart/mixed; boundary="------------090407000200020909020502"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: "K. Jay Rogozinsky" <et.jayr@shaw.ca>
+In-Reply-To: <007a01c60f31$8f1eeaa0$102a2a0a@rjk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,36 +21,70 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
-
-------=_NextPart_000_06F7_01C60D6E.F929AEE0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+--------------090407000200020909020502
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-Due to the fact that extensions/libipt_set.h is missing in iptables-1.2.11,
-I would suggest to add this  in pom for set extension
-Requires: iptables > 1.2.11
+Hi,
 
-Signed-off-by: Gilles Espinasse <g.esp@free.fr>
+K. Jay Rogozinsky wrote:
+> I am hoping contacting you directly is not inappropriate.
 
-------=_NextPart_000_06F7_01C60D6E.F929AEE0
-Content-Type: application/octet-stream;
-	name="set_info.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="set_info.patch"
+No problem. I've cc'ed the reply to netfilter-devel for the record. It
+could be useful for others.
 
-Index: patch-o-matic-ng/patchlets/set/info=0A=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=0A=
---- patch-o-matic-ng/patchlets/set/info	(revision 6340)=0A=
-+++ patch-o-matic-ng/patchlets/set/info	(working copy)=0A=
-@@ -2,4 +2,5 @@=0A=
- Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>=0A=
- Status: Beta=0A=
- Repository: base=0A=
-+Requires: iptables > 1.2.11=0A=
- Recompile: kernel, netfilter, iptables=0A=
+> As I understand, iptables 1.3.4 *can* use the kernel string matching
+> available starting in kernel 2.6.14.
+> 
+> However, we are using kernel 2.4.31 (which iptables 1.3.4 doc says is OK).
 
-------=_NextPart_000_06F7_01C60D6E.F929AEE0--
+So, I updated the manpage. Attached a patch that applies to netfilter SVN.
+
+> However, according to our "compile guy" (Thomas):
+> 
+> "iptables 1.3.4 does not compile when I have strings matching.  That is, the
+> string match patch does something that makes iptables 1.3.4 not compile."
+
+iptables doesn't compile the string match if it's not present in the
+current kernel, eg. if you compile iptables against a linux kernel <=
+2.6.14, the string match won't be compiled.
+
+> So, given that we continue to use kernel 2.4.31, is their any applicable
+> patch or approach;  We would like to use our kernel (2.4.31) with iptables
+> 1.3.4 and still have string matching.
+
+There's no backport available. The only existing way to add support for
+string matching is upgrading your kernel at the moment.
+
+-- 
+Pablo
+
+--------------090407000200020909020502
+Content-Type: text/plain;
+ name="man.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="man.patch"
+
+Index: trunk/iptables/extensions/libipt_string.man
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ trunk/iptables/extensions/libipt_string.man	2006-01-02 13:35:56.000000000 +0100
+@@ -0,0 +1,15 @@
++This modules matches a given string by using some pattern matching strategy. It requires a linux kernel >= 2.6.14.
++.TP
++.BI "--algo  " "bm|kmp"
++Select the pattern matching strategy. (bm = Boyer-Moore, kmp = Knuth-Pratt-Morris)
++.TP
++.BI "--from " "offset"
++Set the offset from which it starts looking for any matching. If not passed, default is 0.
++.TP
++.BI "--to " "offset"
++Set the offset from which it starts looking for any matching. If not passed, default is the packet size.
++.TP
++.BI "--string " "pattern"
++Matches the given pattern.
++.BI "--hex-string " "pattern"
++Matches the given pattern in hex notation.
+
+--------------090407000200020909020502--
