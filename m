@@ -1,17 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: please fix TARPIT
-Date: Tue, 03 Jan 2006 12:22:36 +0100
-Message-ID: <43BA5E7C.1090008@trash.net>
-References: <20051221.221552.70499588.davem@davemloft.net>
-	<Pine.LNX.4.61.0601030833560.23554@yvahk01.tjqt.qr>
+Subject: Re: Patch for H323 connection tracking for kernel 2.6.14 and Panic
+ with SIP tracking
+Date: Tue, 03 Jan 2006 12:30:38 +0100
+Message-ID: <43BA605E.3020801@trash.net>
+References: <c4d05cbe0512311447v33a9cb13w4e6201c5d6ccbd00@mail.gmail.com>
+	<c4d05cbe0601021028x4dad0a18n2b3c1b8e10506f11@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	"David S. Miller" <davem@davemloft.net>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0601030833560.23554@yvahk01.tjqt.qr>
+To: Moises Silva <moises.silva@gmail.com>
+In-Reply-To: <c4d05cbe0601021028x4dad0a18n2b3c1b8e10506f11@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,13 +23,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
->>Recently it was reported that the TARPIT target depends upon the
->>sysctl_ip_default_ttl symbol which is not exported any longer.
-> 
-> 
-> How about just adding the EXPORT_SYMBOL back. And that all wrapped up in a 
-> nice POM patch. Problem gone. (For the short term.)
+Moises Silva wrote:
+> still getting kernel panic, copy the whole thing is a time consuming
+> task, for now doing nothing, but i have downgraded the kernel to
+> 2.6.13 and at least it does not kernel panics. Some one has a patch
+> for sip connection tracking for kernel-2.6.14??
 
-The fix is trivial, so I fixed it the right way (well, without
-testing).
+Most likely you need to change
+
+         ip_ct_refresh_acct(ct, ctinfo, NULL, sip_timeout * HZ);
+
+to
+
+         ip_ct_refresh(ct, *pskb, sip_timeout * HZ);
+
+in net/ipv4/netfilter/ip_conntrack_sip.c. If that doesn't help
+please post the entire oops.
