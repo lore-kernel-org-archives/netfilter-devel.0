@@ -1,15 +1,14 @@
 From: Jan Engelhardt <jengelh@linux01.gwdg.de>
-Subject: Re: Proper detection of FTP-DATA
-Date: Tue, 3 Jan 2006 08:08:38 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0601030808130.23554@yvahk01.tjqt.qr>
-References: <C3FA62B1A90D7440B9B6C7C31895994F016C6D7A@zadbn02100.vodacom.corp>
-	<Pine.LNX.4.64.0512061604120.1560@bizon.gios.gov.pl>
+Subject: Re: please fix TARPIT
+Date: Tue, 3 Jan 2006 08:34:47 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0601030833560.23554@yvahk01.tjqt.qr>
+References: <20051221.221552.70499588.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pieter De Wit <pieter@vodacom.co.za>, netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0512061604120.1560@bizon.gios.gov.pl>
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20051221.221552.70499588.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,15 +21,12 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
->> How would you properly match FTP-DATA connections? I have tried the
->> following and after checking the man pages, this should work ?!?
->> 
->> iptables -A INPUT -p tcp -m tcp --dport=21 # For FTP-CTRL
->> iptables -A INPUT -m state --state ESTABLISHED -j ACCEPT
->> iptables -A INPUT -m state --state RELATED -j ACCEPT
+>Recently it was reported that the TARPIT target depends upon the
+>sysctl_ip_default_ttl symbol which is not exported any longer.
 
-You could also use -m layer7 ;-)
-http://l7-filter.sf.net/
+How about just adding the EXPORT_SYMBOL back. And that all wrapped up in a 
+nice POM patch. Problem gone. (For the short term.)
+
 
 
 Jan Engelhardt
