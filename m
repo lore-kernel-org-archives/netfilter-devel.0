@@ -1,18 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: TCPMSS is not restricted to mangle table
-Date: Tue, 03 Jan 2006 12:14:01 +0100
-Message-ID: <43BA5C79.9060304@trash.net>
-References: <4393895D.1020106@trash.net> <20051205004548.GC5617@eychenne.org>
-	<439393C9.5020001@trash.net> <439513E1.3060407@milivojevic.org>
-	<43951DBF.8050001@trash.net>
-	<Pine.LNX.4.61.0601030804260.23554@yvahk01.tjqt.qr>
+From: Chris Lowth <chris@lowth.com>
+Subject: Linux 2.6 support for "rope" match module
+Date: Tue, 03 Jan 2006 11:15:23 +0000
+Message-ID: <43BA5CCB.6050207@lowth.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
-In-Reply-To: <Pine.LNX.4.61.0601030804260.23554@yvahk01.tjqt.qr>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,17 +18,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Since the Linux kernel does not follow the old stable<->devel 
-> (2.even<->2.uneven) model, every new version is allowed to
-> break an older one.
+Following on from my message to this list of a month or so ago.. "rope" 
+now works on linux 2.6 as well as 2.4. As yet SMP is not supported, but 
+that is the next thing on my "to do" list, and should surface within a 
+couple of months (time permitting).
 
-Thats complete nonsense.
+Please feel free to download, play, comment / critique.
 
-> On the way to restrict TCPMSS to -t mangle, the -m state
-> could also be obsoleted in favor of -m conntrack.
+"rope" provides a kernel-level interpreter for a simple scripting 
+language which can be used to develop netfilter match modules. The 
+language is pre-compiled using a perl script, to produce a binary file 
+that is loaded into the kernel using the "iptables" command. The 
+language has access to many IP, TCP and UDP packet headers and the data 
+payload. It was originally developed for use as a P2P protocol 
+identification mechanism, but has wound up being general enough for 
+wider use.
 
-I'm not going to restrict TCPMSS to mangle - but I'm
-considering adding a warning. I also don't see a reason
-to deprecate the state match, its totally trivial code
-and needs a lot less memory than the conntrack match.
+It's too large to supply here as a patch, but it can be downloaded from 
+http://www.lowth.com/rope/Download. The "Makefile" that comes with the 
+software allows rope to patched into POMNG, or directly into the kernel 
+and iptables.
+
+As before .. the website www.lowth.com/rope includes a number of sample 
+scripts, language documentation and tutorials - etc.
