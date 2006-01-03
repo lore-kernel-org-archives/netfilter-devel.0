@@ -1,16 +1,16 @@
-From: Moises Silva <moises.silva@gmail.com>
-Subject: Re: Patch for H323 connection tracking for kernel 2.6.14 and Panic
-	with SIP tracking
-Date: Mon, 2 Jan 2006 12:28:36 -0600
-Message-ID: <c4d05cbe0601021028x4dad0a18n2b3c1b8e10506f11@mail.gmail.com>
-References: <c4d05cbe0512311447v33a9cb13w4e6201c5d6ccbd00@mail.gmail.com>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: TCPMSS is not restricted to mangle table
+Date: Tue, 3 Jan 2006 08:05:54 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0601030804260.23554@yvahk01.tjqt.qr>
+References: <4393895D.1020106@trash.net> <20051205004548.GC5617@eychenne.org>
+	<439393C9.5020001@trash.net> <439513E1.3060407@milivojevic.org>
+	<43951DBF.8050001@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <c4d05cbe0512311447v33a9cb13w4e6201c5d6ccbd00@mail.gmail.com>
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <43951DBF.8050001@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,46 +22,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-still getting kernel panic, copy the whole thing is a time consuming
-task, for now doing nothing, but i have downgraded the kernel to
-2.6.13 and at least it does not kernel panics. Some one has a patch
-for sip connection tracking for kernel-2.6.14??
+>> From consumer (of your code) point of view, I do care.  The current
+>> documentation was clearly encouraging (by example) use of TCPMSS from
+>> filter table.  My guess is that majority of production systems using
+>> TCPMSS target are using it from filter table.  If the only reason is
+>> consistency (nothing is going to be fixed by the change, and nothing is
+>> going to be broken by leaving it as is), a warning now (in manual page,
+>> right next to the example) and change on next major kernel release (2.7)
+>> might be the best approach.  I'd leave things as is for 2.6 series of
+>> kernels.
+>
+> I agree. Just to make it clear, I do not intend to break it for no
+> good reason. I was just surprised that when trying to unload it
+> after flushing the mangle table there was still one reference left
+> (from the debian ppp ip-up script). There is one potential reason
+> to change it, packet classification algorithms like nf-hipac have
+> an easier job if they can rely on certain conditions, like no
+> changing of the packet in the filter table. But for now I've only
+> updated the man-page.
 
-On 12/31/05, Moises Silva <moises.silva@gmail.com> wrote:
-> I was patching my 2.6.14 kernel for SIP and H323 connection tracking
-> support, and got some errors of patch-o-matic h323 patches (i guess is
-> normal since the version supported is 2.6.12 ), i would like some one
-> with enough experience check the patch i made and tell me if it ok,
-> since is compiling just fine, and it makes sense to me, but i could be
-> wrong.
->
-> Patch to be applied in the kernel directory directly, something like
-> patch -p1 < blah...
->
-> http://galileo.ivsol.net/h323-conntrack-nat-kernel-2.6.14.patch
->
-> and a patch for patch-o-matic sources
->
-> http://galileo.ivsol.net/patch-o-matic-ng-20051230-h323.patch
->
->
-> Additionally im having kernel panics with SIP conntrack extension. I
-> have it as kernel module (ko). I still does not copy the core dump,
-> but says something about "interrupt error, not syncing" or something
-> like that. I will try to compile it inside the kernel to see if it
-> still panics ( please some one could tell me if this makes any
-> relevant difference?? )
->
->
-> Thanks in advance
->
-> - Moises Silva < moy at ivsol dot net >
-> --
-> "Su nombre es GNU/Linux, no solamente Linux, mas info en http://www.gnu.o=
-rg"
->
+Since the Linux kernel does not follow the old stable<->devel 
+(2.even<->2.uneven) model, every new version is allowed to
+break an older one.
+
+On the way to restrict TCPMSS to -t mangle, the -m state
+could also be obsoleted in favor of -m conntrack.
 
 
---
-"Su nombre es GNU/Linux, no solamente Linux, mas info en http://www.gnu.org=
-"
+
+
+Jan Engelhardt
+-- 
