@@ -1,19 +1,13 @@
-From: Brad Fisher <brad@info-link.net>
-Subject: Re: Patch for ipt_time (to enable start > stop / crossing midnight)
-Date: Wed, 04 Jan 2006 11:18:41 -0600
-Message-ID: <43BC0371.3050500@info-link.net>
-References: <20060104142750.GF15217@schlittermann.de>
-	<Pine.LNX.4.64.0601041639400.19966@bizon.gios.gov.pl>
-	<43BBF971.50307@info-link.net>
-	<Pine.LNX.4.64.0601041758580.22709@bizon.gios.gov.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org,
-	Heiko Schlittermann <hs@schlittermann.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 02/18]: Decrease number of pointer derefs in
+	nf_conntrack_core.c
+Date: Thu,  5 Jan 2006 05:06:32 +0100 (MET)
+Message-ID: <20060105040556.23512.44215.sendpatchset@localhost.localdomain>
+References: <20060105040554.23512.27346.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0601041758580.22709@bizon.gios.gov.pl>
+To: David S. Miller <davem@davemloft.net>
+In-Reply-To: <20060105040554.23512.27346.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,36 +19,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
+[NETFILTER]: Decrease number of pointer derefs in nf_conntrack_core.c
 
->
->
-> On Wed, 4 Jan 2006, Brad Fisher wrote:
->
->> I've also sent a couple of patches to add this functionality to=20
->> Fabrice and the dev list.  I'd like to see it implemented at some=20
->> point, regardless of the patch used :)  Another thing I know was an=20
->> issue in the past for me was a restriction on which hooks the time=20
->> match was allowed in.  I believe my most recent patch (send on=20
->> 12/3/2003 i think) removed those restrictions and allowed it in all=20
->> hooks as well as allowing the time range to cross the midnight=20
->> boundary.  Perhaps that issue has been resolved in the meantime=20
->> though, I haven't checked the code recently.  I see there have also=20
->> been a few others who have sent patches to  the mailing list to=20
->> address this issue as well.
->
->
-> Currently, according to the code, ipt_time is allowed in PREROUTING,=20
-> INPUT, FORWARD and OUTPUT. I believe the restriction can be relaxed in=20
-> 2.6.x version now since it always gets timestamp only if packets does=20
-> not contain one. We can fix 2.4.x version in the same way. Which other=20
-> hooks are also useful? There is only one left - POSTROUTING. ;)
->
-> Best regards,
->
->                 Krzysztof Ol=EAdzki
+Benefits of the patch:
+ - Fewer pointer dereferences should make the code slightly faster.
+ - Size of generated code is smaller
+ - improved readability
 
-I recall having problems in the mangle table, so it was probably with=20
-the POSTROUTING chain.  My rules depended on the dst IP after NAT was=20
-performed.
--Brad
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 2cc96aa2efb6f3950c9a506eed4c7cab5d8de076
+tree 6c418e18f4d385a8340381cd67cf82c62961fd24
+parent d0fc264ffbc6c3886020dc2ef60d4aa1cecec51c
+author Jesper Juhl <jesper.juhl@gmail.com> Thu, 05 Jan 2006 02:51:54 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 02:51:54 +0100
+
+ net/netfilter/nf_conntrack_core.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index a7c7b49..0c5b01d 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1129,6 +1129,7 @@ static inline int refresh_timer(struct n
+ int nf_conntrack_expect_related(struct nf_conntrack_expect *expect)
+ {
+ 	struct nf_conntrack_expect *i;
++	struct nf_conn *master = expect->master;
+ 	int ret;
+ 
+ 	DEBUGP("nf_conntrack_expect_related %p\n", related_to);
+@@ -1149,9 +1150,9 @@ int nf_conntrack_expect_related(struct n
+ 		}
+ 	}
+ 	/* Will be over limit? */
+-	if (expect->master->helper->max_expected && 
+-	    expect->master->expecting >= expect->master->helper->max_expected)
+-		evict_oldest_expect(expect->master);
++	if (master->helper->max_expected && 
++	    master->expecting >= master->helper->max_expected)
++		evict_oldest_expect(master);
+ 
+ 	nf_conntrack_expect_insert(expect);
+ 	nf_conntrack_expect_event(IPEXP_NEW, expect);
