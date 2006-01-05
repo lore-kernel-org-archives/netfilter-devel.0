@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 09/18]: ctnetlink: remove unused variable
-Date: Thu,  5 Jan 2006 05:06:41 +0100 (MET)
-Message-ID: <20060105040606.23512.77770.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 13/18]: ctnetlink: Fix dumping of helper name
+Date: Thu,  5 Jan 2006 05:06:47 +0100 (MET)
+Message-ID: <20060105040612.23512.59260.sendpatchset@localhost.localdomain>
 References: <20060105040554.23512.27346.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,38 +18,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ctnetlink: remove unused variable
+[NETFILTER]: ctnetlink: Fix dumping of helper name
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Properly dump the helper name instead of internal kernel data.
+Based on patch by Marcus Sundberg <marcus@ingate.com>.
+
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 1227b054c63788ad08053b0af4435df9fb65a6bb
-tree eade765b1c62946537e89d9030cb93b0d515ee2f
-parent d83898b5b202d40e7ab16170143661d99b7f5a0e
-author Pablo Neira Ayuso <pablo@netfilter.org> Thu, 05 Jan 2006 02:55:55 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 02:55:55 +0100
+commit 10ee519ab7a421aa8a6fc62af197e7bdbd547b3e
+tree 7e2970bdeaee1e44e72ee27f1e90cace28522319
+parent f771b92e29f4a46b7e5cd506f2584bfae187ba6a
+author Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 02:58:46 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 02:58:46 +0100
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ include/linux/netfilter/nfnetlink_conntrack.h |    2 --
+ net/ipv4/netfilter/ip_conntrack_netlink.c     |    2 +-
+ 2 files changed, 1 insertions(+), 3 deletions(-)
 
+diff --git a/include/linux/netfilter/nfnetlink_conntrack.h b/include/linux/netfilter/nfnetlink_conntrack.h
+index b8e9a5b..668ec94 100644
+--- a/include/linux/netfilter/nfnetlink_conntrack.h
++++ b/include/linux/netfilter/nfnetlink_conntrack.h
+@@ -131,6 +131,4 @@ enum ctattr_help {
+ };
+ #define CTA_HELP_MAX (__CTA_HELP_MAX - 1)
+ 
+-#define CTA_HELP_MAXNAMESIZE	32
+-
+ #endif /* _IPCONNTRACK_NETLINK_H */
 diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index 589e9e7..1763764 100644
+index 1763764..a572b16 100644
 --- a/net/ipv4/netfilter/ip_conntrack_netlink.c
 +++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -1203,7 +1203,6 @@ static int ctnetlink_expect_event(struct
- 	unsigned int type;
- 	unsigned char *b;
- 	int flags = 0;
--	u16 proto;
+@@ -161,7 +161,7 @@ ctnetlink_dump_helpinfo(struct sk_buff *
+ 		return 0;
+ 		
+ 	nest_helper = NFA_NEST(skb, CTA_HELP);
+-	NFA_PUT(skb, CTA_HELP_NAME, CTA_HELP_MAXNAMESIZE, &ct->helper->name);
++	NFA_PUT(skb, CTA_HELP_NAME, strlen(ct->helper->name), ct->helper->name);
  
- 	if (events & IPEXP_NEW) {
- 		type = IPCTNL_MSG_EXP_NEW;
-@@ -1230,7 +1229,6 @@ static int ctnetlink_expect_event(struct
- 		goto nfattr_failure;
- 
- 	nlh->nlmsg_len = skb->tail - b;
--	proto = exp->tuple.dst.protonum;
- 	nfnetlink_send(skb, 0, NFNLGRP_CONNTRACK_EXP_NEW, 0);
- 	return NOTIFY_DONE;
- 
+ 	if (ct->helper->to_nfattr)
+ 		ct->helper->to_nfattr(skb, ct);
