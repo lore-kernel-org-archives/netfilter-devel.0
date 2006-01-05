@@ -1,14 +1,16 @@
-From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+From: Chris Lowth <chris@lowth.com>
 Subject: Re: Linux 2.6 support for "rope" match module
-Date: Thu, 5 Jan 2006 11:18:40 +0100 (MET)
-Message-ID: <Pine.LNX.4.61.0601051117590.21555@yvahk01.tjqt.qr>
+Date: Thu, 05 Jan 2006 11:07:53 +0000
+Message-ID: <43BCFE09.9070303@lowth.com>
 References: <43BA5CCB.6050207@lowth.com>
+	<Pine.LNX.4.61.0601051117590.21555@yvahk01.tjqt.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Chris Lowth <chris@lowth.com>
-In-Reply-To: <43BA5CCB.6050207@lowth.com>
+To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+In-Reply-To: <Pine.LNX.4.61.0601051117590.21555@yvahk01.tjqt.qr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,21 +22,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Please feel free to download, play, comment / critique.
+Jan Engelhardt wrote
+
 >
-> "rope" provides a kernel-level interpreter for a simple scripting language
-> which can be used to develop netfilter match modules. The language is
-> pre-compiled using a perl script, to produce a binary file that is loaded into
-> the kernel using the "iptables" command. The language has access to many IP,
-> TCP and UDP packet headers and the data payload. It was originally developed
-> for use as a P2P protocol identification mechanism, but has wound up being
-> general enough for wider use.
-
-That almost feels like doing floating-point in kernelspace.
-
-
-
-Jan Engelhardt
--- 
-| Alphagate Systems, http://alphagate.hopto.org/
-| jengelh's site, http://jengelh.hopto.org/
+>That almost feels like doing floating-point in kernelspace.
+>
+>  
+>
+In what sense?
