@@ -1,20 +1,18 @@
-From: Moises Silva <moises.silva@gmail.com>
-Subject: Re: Patch for H323 connection tracking for kernel 2.6.14 and Panic
-	with SIP tracking
-Date: Thu, 5 Jan 2006 15:32:19 -0600
-Message-ID: <c4d05cbe0601051332w1f6554dblb256513e6bc30dea@mail.gmail.com>
-References: <c4d05cbe0512311447v33a9cb13w4e6201c5d6ccbd00@mail.gmail.com>
-	<c4d05cbe0601021028x4dad0a18n2b3c1b8e10506f11@mail.gmail.com>
-	<43BA605E.3020801@trash.net> <43BD7AF4.2040506@nk.nl>
-	<c4d05cbe0601051220v54ab169cled8109df66cd12db@mail.gmail.com>
-	<43BD80C6.10603@nk.nl>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: fixes for ipv6 supported conntrack and libnetfilter_conntrack
+Date: Fri, 6 Jan 2006 00:16:25 +0100
+Message-ID: <20060105231625.GV4898@sunbeam.de.gnumonks.org>
+References: <200512250736.jBP7aL0B014707@toshiba.co.jp>
+	<43AF62FE.4050407@eurodev.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="1rohIOZGhsaeEmnk"
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <43BD80C6.10603@nk.nl>
+To: Pablo Neira Ayuso <pablo@eurodev.net>
 Content-Disposition: inline
+In-Reply-To: <43AF62FE.4050407@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,30 +24,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-hum, i guess mine is a different problem. The thing that seems to be
-causing panic is the coexistence of ppp_asyc nad ip_nat_sip (or the
-consequent ip_conntrack_sip). Im preparing an explanation of the tests
-i made, i will post it here in a while. Hopefully some developer will
-be able to know whats the problem.
 
-Regards
+--1rohIOZGhsaeEmnk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 1/5/06, Victor Julien <victor@nk.nl> wrote:
-> Moises Silva wrote:
-> > Victor: Did you were getting kernel panics as well?
-> >
->
-> Yes, as soon as i loaded the ip_nat_sip module (which in also loaded the
-> ip_conntrack_sip module) it caused a kernel panic when there was SIP
-> traffic. Now it seems to work fine. I had a few conversations, no panics
-> yet :-)
->
-> Regards,
-> Victor
->
->
+On Mon, Dec 26, 2005 at 04:26:54AM +0100, Pablo Neira Ayuso wrote:
 
+> I just committed the IPv6 support to SVN. Therefore, IMO we are ready
+> for the 1.0rc1 of the conntrack-tool, together with the new version
+> (0.0.30) of libnetfilter_conntrack. This could speed up the testing
+> process. At this point, the tool contains the features that I had in
+> mind for the 1.0 release. Harald?
 
---
-"Su nombre es GNU/Linux, no solamente Linux, mas info en http://www.gnu.org=
-"
+ok, if you don't mind I'll do te libnetfilter_conntrack and conntrack
+releases tomorrow.
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--1rohIOZGhsaeEmnk
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDvajJXaXGVTD0i/8RAtXdAJwMUc2UoxpJ/6ce1cwSycUPFoJzngCaA5nW
+bVEN3lyYOUvM90pMszvNFOY=
+=fNSL
+-----END PGP SIGNATURE-----
+
+--1rohIOZGhsaeEmnk--
