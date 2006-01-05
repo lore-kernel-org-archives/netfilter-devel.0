@@ -1,16 +1,17 @@
-From: Victor Julien <victor@nk.nl>
-Subject: Re: Patch for H323 connection tracking for kernel 2.6.14 and Panic
- with SIP tracking
-Date: Thu, 05 Jan 2006 21:00:52 +0100
-Message-ID: <43BD7AF4.2040506@nk.nl>
-References: <c4d05cbe0512311447v33a9cb13w4e6201c5d6ccbd00@mail.gmail.com>	<c4d05cbe0601021028x4dad0a18n2b3c1b8e10506f11@mail.gmail.com>
-	<43BA605E.3020801@trash.net>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH] use HOPLIMIT metric as TTL of TCP reset sent by REJECT
+Date: Thu, 05 Jan 2006 13:16:58 -0800 (PST)
+Message-ID: <20060105.131658.48040141.davem@davemloft.net>
+References: <43BA5E7C.1090008@trash.net>
+	<200601050808.k0588nH1012513@toshiba.co.jp>
+	<43BCD6F8.8020706@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <43BA605E.3020801@trash.net>
+To: kaber@trash.net
+In-Reply-To: <43BCD6F8.8020706@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,28 +23,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Moises Silva wrote:
-> 
->> still getting kernel panic, copy the whole thing is a time consuming
->> task, for now doing nothing, but i have downgraded the kernel to
->> 2.6.13 and at least it does not kernel panics. Some one has a patch
->> for sip connection tracking for kernel-2.6.14??
-> 
-> 
-> Most likely you need to change
-> 
->         ip_ct_refresh_acct(ct, ctinfo, NULL, sip_timeout * HZ);
-> 
-> to
-> 
->         ip_ct_refresh(ct, *pskb, sip_timeout * HZ);
-> 
-> in net/ipv4/netfilter/ip_conntrack_sip.c. If that doesn't help
-> please post the entire oops.
-> 
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 05 Jan 2006 09:21:12 +0100
 
-This fix works for me!
+> Yasuyuki KOZAKAI wrote:
+> > Should ipt_REJECT use metric, too ? ip6_REJECT has already use it.
+> 
+> Looks good. Dave, please apply on top of my patches.
 
-Regards,
-Victor
+All 18 patches, and this one, applied and pushed to Linus.
+Thanks.
