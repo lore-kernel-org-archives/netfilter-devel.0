@@ -1,17 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] use HOPLIMIT metric as TTL of TCP reset sent by REJECT
- [was: Re: please fix TARPIT]
-Date: Thu, 05 Jan 2006 09:21:12 +0100
-Message-ID: <43BCD6F8.8020706@trash.net>
-References: <20051221.221552.70499588.davem@davemloft.net>	<Pine.LNX.4.61.0601030833560.23554@yvahk01.tjqt.qr>	<43BA5E7C.1090008@trash.net>
-	<200601050808.k0588nH1012513@toshiba.co.jp>
+From: Heiko Schlittermann <hs@schlittermann.de>
+Subject: Re: Patch for ipt_time (to enable start > stop / crossing midnight)
+Date: Thu, 5 Jan 2006 10:41:36 +0100
+Message-ID: <20060105094136.GX15217@schlittermann.de>
+References: <20060104142750.GF15217@schlittermann.de>
+	<Pine.LNX.4.64.0601041639400.19966@bizon.gios.gov.pl>
+	<20060104164455.GH15217@schlittermann.de>
+	<Pine.LNX.4.64.0601041750390.22709@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cqPFywB/e6uXot/h"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200601050808.k0588nH1012513@toshiba.co.jp>
+To: Krzysztof Oledzki <olenf@ans.pl>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0601041750390.22709@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,15 +25,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> Should ipt_REJECT use metric, too ? ip6_REJECT has already use it.
 
-Looks good. Dave, please apply on top of my patches.
+--cqPFywB/e6uXot/h
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> BTW, I'm not familiar with TARPIT, but ipt_REJECT seems to have the codes
-> to fix the other issues David pointed out.
+Hello Krzysztof,
 
-Yes, looks like we could use some of the ipt_REJECT code.
-But we decided to move TARPIT out of pom after moving to
-something apt-get like anyway, so I'd rather spend time
-on that.
+> It would also allow to extend ipt_time checks in the future.
+
+Hm .... but then it be rewritten anyway, can't it?
+
+> >To match --timestart 12:07 --timestop 13:10 really from 12:07:00 to=20
+> >13:09:59.
+>=20
+> So please use --timestart 12:07 --timestop 13:09. We need ">" not ">=3D" =
+to=20
+> match a single minute, eg. --timestart 12:07 --timestop 12:07.
+
+But isn't it a bit counter-intuitive?
+
+If something happens from 7 to 10 I'd understand, that it starts at 7:00
+and ends at 9:59.  Same with minutes, if some event should happen from
+12:07 to 13:10 I'd understand that it happens first at 12:07:00 and last
+at 13:09:59....
+
+Or?
+
+
+
+    Best regards from Dresden
+    Viele Gr=C3=BC=C3=9Fe aus Dresden
+    Heiko Schlittermann
+--=20
+ SCHLITTERMANN.de ---------------------------- internet & unix support -
+ Heiko Schlittermann HS12-RIPE -----------------------------------------
+ gnupg encrypted messages are welcome - key ID: 48D0359B ---------------
+ gnupg fingerprint: 3061 CFBF 2D88 F034 E8D2  7E92 EE4E AC98 48D0 359B -
+
+--cqPFywB/e6uXot/h
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDvOnQ7k6smEjQNZsRAhtyAJ4xqdD7LqCTQp6wP8DT5OgX2if4XQCgvj6g
+FsQuW0J/WrY/m9oRqec9kd4=
+=ycqU
+-----END PGP SIGNATURE-----
+
+--cqPFywB/e6uXot/h--
