@@ -1,16 +1,16 @@
-From: "Jesse Peng" <tzuhsi.peng@msa.hinet.net>
-Subject: Re: P2P implementation for netfilter NAT
-Date: Thu, 5 Jan 2006 23:52:33 +0800
-Message-ID: <001601c61210$0c50b3b0$3478fea9@acer21ce70712f>
-References: <001801c5f6b3$539b1b20$3478fea9@acer21ce70712f><1133692009.30188.27.camel@localhost.localdomain>
-	<002f01c5f972$5da353a0$6602a8c0@acer21ce70712f>
+From: Victor Julien <victor@nk.nl>
+Subject: Re: Patch for H323 connection tracking for kernel 2.6.14 and Panic
+ with SIP tracking
+Date: Thu, 05 Jan 2006 21:00:52 +0100
+Message-ID: <43BD7AF4.2040506@nk.nl>
+References: <c4d05cbe0512311447v33a9cb13w4e6201c5d6ccbd00@mail.gmail.com>	<c4d05cbe0601021028x4dad0a18n2b3c1b8e10506f11@mail.gmail.com>
+	<43BA605E.3020801@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="big5"; reply-type=response
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Jesse Peng" <tzuhsi.peng@msa.hinet.net>,
-	"Rusty Russell" <rusty@rustcorp.com.au>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <43BA605E.3020801@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,40 +22,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Patrick McHardy wrote:
+> Moises Silva wrote:
+> 
+>> still getting kernel panic, copy the whole thing is a time consuming
+>> task, for now doing nothing, but i have downgraded the kernel to
+>> 2.6.13 and at least it does not kernel panics. Some one has a patch
+>> for sip connection tracking for kernel-2.6.14??
+> 
+> 
+> Most likely you need to change
+> 
+>         ip_ct_refresh_acct(ct, ctinfo, NULL, sip_timeout * HZ);
+> 
+> to
+> 
+>         ip_ct_refresh(ct, *pskb, sip_timeout * HZ);
+> 
+> in net/ipv4/netfilter/ip_conntrack_sip.c. If that doesn't help
+> please post the entire oops.
+> 
 
------ Original Message ----- 
-From: "Jesse Peng" <tzuhsi.peng@msa.hinet.net>
-To: "Rusty Russell" <rusty@rustcorp.com.au>
-Cc: "Harald Welte" <laforge@netfilter.org>; 
-<netfilter-devel@lists.netfilter.org>
-Sent: Monday, December 05, 2005 4:03 PM
-Subject: Re: P2P implementation for netfilter NAT
+This fix works for me!
 
-
->
-> ----- Original Message ----- 
-> From: "Rusty Russell" <rusty@rustcorp.com.au>
-> To: "Jesse Peng" <tzuhsi.peng@msa.hinet.net>
-> Cc: "Harald Welte" <laforge@netfilter.org>; 
-> <netfilter-devel@lists.netfilter.org>
-> Sent: Sunday, December 04, 2005 6:26 PM
-> Subject: Re: P2P implementation for netfilter NAT
->
->
->> Hi Jesse,
->>
->> Your patch seems incomplete, and anyway it's been mangled by your
->> mailer.  Sorry I've been slow to respond, but a on a quick read I think
->> you're going in the right direction.  Perhaps try an attachment?
->>
-> Thanks,Rusty,I'll resend it again!Please check
->
-> Regards
-> Jesse
-Hello Rusty
-I resent the patch 1 month ago,but still failed to see it showing on mailing 
-list.Sorry,just to make sure if you successfully received the patch,or I 
-resend the patch again?
-
-Thanks
-Jesse 
+Regards,
+Victor
