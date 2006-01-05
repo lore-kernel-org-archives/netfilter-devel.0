@@ -1,17 +1,20 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH] use HOPLIMIT metric as TTL of TCP reset sent by REJECT
-Date: Thu, 05 Jan 2006 13:16:58 -0800 (PST)
-Message-ID: <20060105.131658.48040141.davem@davemloft.net>
-References: <43BA5E7C.1090008@trash.net>
-	<200601050808.k0588nH1012513@toshiba.co.jp>
-	<43BCD6F8.8020706@trash.net>
+From: Moises Silva <moises.silva@gmail.com>
+Subject: Re: Patch for H323 connection tracking for kernel 2.6.14 and Panic
+	with SIP tracking
+Date: Thu, 5 Jan 2006 15:32:19 -0600
+Message-ID: <c4d05cbe0601051332w1f6554dblb256513e6bc30dea@mail.gmail.com>
+References: <c4d05cbe0512311447v33a9cb13w4e6201c5d6ccbd00@mail.gmail.com>
+	<c4d05cbe0601021028x4dad0a18n2b3c1b8e10506f11@mail.gmail.com>
+	<43BA605E.3020801@trash.net> <43BD7AF4.2040506@nk.nl>
+	<c4d05cbe0601051220v54ab169cled8109df66cd12db@mail.gmail.com>
+	<43BD80C6.10603@nk.nl>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <43BCD6F8.8020706@trash.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <43BD80C6.10603@nk.nl>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,13 +26,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 05 Jan 2006 09:21:12 +0100
+hum, i guess mine is a different problem. The thing that seems to be
+causing panic is the coexistence of ppp_asyc nad ip_nat_sip (or the
+consequent ip_conntrack_sip). Im preparing an explanation of the tests
+i made, i will post it here in a while. Hopefully some developer will
+be able to know whats the problem.
 
-> Yasuyuki KOZAKAI wrote:
-> > Should ipt_REJECT use metric, too ? ip6_REJECT has already use it.
-> 
-> Looks good. Dave, please apply on top of my patches.
+Regards
 
-All 18 patches, and this one, applied and pushed to Linus.
-Thanks.
+On 1/5/06, Victor Julien <victor@nk.nl> wrote:
+> Moises Silva wrote:
+> > Victor: Did you were getting kernel panics as well?
+> >
+>
+> Yes, as soon as i loaded the ip_nat_sip module (which in also loaded the
+> ip_conntrack_sip module) it caused a kernel panic when there was SIP
+> traffic. Now it seems to work fine. I had a few conversations, no panics
+> yet :-)
+>
+> Regards,
+> Victor
+>
+>
+
+
+--
+"Su nombre es GNU/Linux, no solamente Linux, mas info en http://www.gnu.org=
+"
