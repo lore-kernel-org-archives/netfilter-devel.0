@@ -1,19 +1,14 @@
-From: Heiko Schlittermann <hs@schlittermann.de>
-Subject: Re: Patch for ipt_time (to enable start > stop / crossing midnight)
-Date: Thu, 5 Jan 2006 10:41:36 +0100
-Message-ID: <20060105094136.GX15217@schlittermann.de>
-References: <20060104142750.GF15217@schlittermann.de>
-	<Pine.LNX.4.64.0601041639400.19966@bizon.gios.gov.pl>
-	<20060104164455.GH15217@schlittermann.de>
-	<Pine.LNX.4.64.0601041750390.22709@bizon.gios.gov.pl>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
+Subject: Re: Linux 2.6 support for "rope" match module
+Date: Thu, 5 Jan 2006 11:18:40 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0601051117590.21555@yvahk01.tjqt.qr>
+References: <43BA5CCB.6050207@lowth.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cqPFywB/e6uXot/h"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0601041750390.22709@bizon.gios.gov.pl>
+To: Chris Lowth <chris@lowth.com>
+In-Reply-To: <43BA5CCB.6050207@lowth.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,56 +20,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+> Please feel free to download, play, comment / critique.
+>
+> "rope" provides a kernel-level interpreter for a simple scripting language
+> which can be used to develop netfilter match modules. The language is
+> pre-compiled using a perl script, to produce a binary file that is loaded into
+> the kernel using the "iptables" command. The language has access to many IP,
+> TCP and UDP packet headers and the data payload. It was originally developed
+> for use as a P2P protocol identification mechanism, but has wound up being
+> general enough for wider use.
 
---cqPFywB/e6uXot/h
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hello Krzysztof,
-
-> It would also allow to extend ipt_time checks in the future.
-
-Hm .... but then it be rewritten anyway, can't it?
-
-> >To match --timestart 12:07 --timestop 13:10 really from 12:07:00 to=20
-> >13:09:59.
->=20
-> So please use --timestart 12:07 --timestop 13:09. We need ">" not ">=3D" =
-to=20
-> match a single minute, eg. --timestart 12:07 --timestop 12:07.
-
-But isn't it a bit counter-intuitive?
-
-If something happens from 7 to 10 I'd understand, that it starts at 7:00
-and ends at 9:59.  Same with minutes, if some event should happen from
-12:07 to 13:10 I'd understand that it happens first at 12:07:00 and last
-at 13:09:59....
-
-Or?
+That almost feels like doing floating-point in kernelspace.
 
 
 
-    Best regards from Dresden
-    Viele Gr=C3=BC=C3=9Fe aus Dresden
-    Heiko Schlittermann
---=20
- SCHLITTERMANN.de ---------------------------- internet & unix support -
- Heiko Schlittermann HS12-RIPE -----------------------------------------
- gnupg encrypted messages are welcome - key ID: 48D0359B ---------------
- gnupg fingerprint: 3061 CFBF 2D88 F034 E8D2  7E92 EE4E AC98 48D0 359B -
-
---cqPFywB/e6uXot/h
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFDvOnQ7k6smEjQNZsRAhtyAJ4xqdD7LqCTQp6wP8DT5OgX2if4XQCgvj6g
-FsQuW0J/WrY/m9oRqec9kd4=
-=ycqU
------END PGP SIGNATURE-----
-
---cqPFywB/e6uXot/h--
+Jan Engelhardt
+-- 
+| Alphagate Systems, http://alphagate.hopto.org/
+| jengelh's site, http://jengelh.hopto.org/
