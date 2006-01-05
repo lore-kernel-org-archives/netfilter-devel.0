@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 15/18]: Call POST_ROUTING hook before fragmentation
-Date: Thu,  5 Jan 2006 05:06:50 +0100 (MET)
-Message-ID: <20060105040614.23512.36341.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 16/18]: make ipv6_find_hdr() find transport protocol
+	header
+Date: Thu,  5 Jan 2006 05:06:51 +0100 (MET)
+Message-ID: <20060105040616.23512.35272.sendpatchset@localhost.localdomain>
 References: <20060105040554.23512.27346.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,212 +19,283 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Call POST_ROUTING hook before fragmentation
+[NETFILTER]: make ipv6_find_hdr() find transport protocol header
 
-Call POST_ROUTING hook before fragmentation to get rid of the okfn use
-in ip_refrag and save the useless fragmentation/defragmentation step
-when NAT is used.
-
-The patch introduces one user-visible change, the POSTROUTING chain
-in the mangle table gets entire packets, not fragments, which should
-simplify use of the MARK and CLASSIFY targets for queueing as a nice
-side-effect.
+The original ipv6_find_hdr() finds the specified header in IPv6 packets.
+This makes it possible to get transport header so that we can kill similar
+loop in ip6_match_packet().
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 08d7c2719c70f5819768203f17db35934236469b
-tree ba94685ebe63dd495ab0cb1cff120d1b3763b938
-parent 512a75394473e444f2276a3f7fd2c131df5d67d2
-author Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 03:16:21 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 03:16:21 +0100
+commit 5ce8af1e153cd5a08089d6cb00a79f39773d67a4
+tree 1b79f16aadc82f49f147cc88a48b036be5286828
+parent 08d7c2719c70f5819768203f17db35934236469b
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 05 Jan 2006 03:30:49 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 03:30:49 +0100
 
- include/net/ip.h                               |    1 -
- net/ipv4/ip_output.c                           |   30 +++++++++++-------------
- net/ipv4/netfilter/ip_conntrack_standalone.c   |   26 +--------------------
- net/ipv4/netfilter/ip_nat_standalone.c         |   17 --------------
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |   26 +--------------------
- 5 files changed, 16 insertions(+), 84 deletions(-)
+ include/linux/netfilter_ipv6/ip6_tables.h |    2 -
+ net/ipv6/netfilter/ip6_tables.c           |  106 +++++++++++------------------
+ net/ipv6/netfilter/ip6t_ah.c              |    2 -
+ net/ipv6/netfilter/ip6t_dst.c             |    4 +
+ net/ipv6/netfilter/ip6t_esp.c             |    2 -
+ net/ipv6/netfilter/ip6t_frag.c            |    2 -
+ net/ipv6/netfilter/ip6t_hbh.c             |    4 +
+ net/ipv6/netfilter/ip6t_rt.c              |    2 -
+ 8 files changed, 49 insertions(+), 75 deletions(-)
 
-diff --git a/include/net/ip.h b/include/net/ip.h
-index f7e7fd7..7bb5804 100644
---- a/include/net/ip.h
-+++ b/include/net/ip.h
-@@ -317,7 +317,6 @@ enum ip_defrag_users
- 	IP_DEFRAG_CALL_RA_CHAIN,
- 	IP_DEFRAG_CONNTRACK_IN,
- 	IP_DEFRAG_CONNTRACK_OUT,
--	IP_DEFRAG_NAT_OUT,
- 	IP_DEFRAG_VS_IN,
- 	IP_DEFRAG_VS_OUT,
- 	IP_DEFRAG_VS_FWD
-diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-index 2a830de..71da318 100644
---- a/net/ipv4/ip_output.c
-+++ b/net/ipv4/ip_output.c
-@@ -202,13 +202,11 @@ static inline int ip_finish_output2(stru
+diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
+index 2efc046..a291cb7 100644
+--- a/include/linux/netfilter_ipv6/ip6_tables.h
++++ b/include/linux/netfilter_ipv6/ip6_tables.h
+@@ -474,7 +474,7 @@ extern unsigned int ip6t_do_table(struct
+ extern int ip6t_ext_hdr(u8 nexthdr);
+ /* find specified header and get offset to it */
+ extern int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
+-			 u8 target);
++			 int target, unsigned short *fragoff);
  
- static inline int ip_finish_output(struct sk_buff *skb)
- {
--	struct net_device *dev = skb->dst->dev;
+ #define IP6T_ALIGN(s) (((s) + (__alignof__(struct ip6t_entry)-1)) & ~(__alignof__(struct ip6t_entry)-1))
+ 
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index ea43ef1..13b1a52 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -205,69 +205,21 @@ ip6_packet_match(const struct sk_buff *s
+ 
+ 	/* look for the desired protocol header */
+ 	if((ip6info->flags & IP6T_F_PROTO)) {
+-		u_int8_t currenthdr = ipv6->nexthdr;
+-		struct ipv6_opt_hdr _hdr, *hp;
+-		u_int16_t ptr;		/* Header offset in skb */
+-		u_int16_t hdrlen;	/* Header */
+-		u_int16_t _fragoff = 0, *fp = NULL;
 -
--	skb->dev = dev;
--	skb->protocol = htons(ETH_P_IP);
+-		ptr = IPV6_HDR_LEN;
 -
--	return NF_HOOK(PF_INET, NF_IP_POST_ROUTING, skb, NULL, dev,
--		       ip_finish_output2);
-+	if (skb->len > dst_mtu(skb->dst) &&
-+	    !(skb_shinfo(skb)->ufo_size || skb_shinfo(skb)->tso_size))
-+		return ip_fragment(skb, ip_finish_output2);
-+	else
-+		return ip_finish_output2(skb);
+-		while (ip6t_ext_hdr(currenthdr)) {
+-	                /* Is there enough space for the next ext header? */
+-	                if (skb->len - ptr < IPV6_OPTHDR_LEN)
+-	                        return 0;
+-
+-			/* NONE or ESP: there isn't protocol part */
+-			/* If we want to count these packets in '-p all',
+-			 * we will change the return 0 to 1*/
+-			if ((currenthdr == IPPROTO_NONE) || 
+-				(currenthdr == IPPROTO_ESP))
+-				break;
+-
+-			hp = skb_header_pointer(skb, ptr, sizeof(_hdr), &_hdr);
+-			BUG_ON(hp == NULL);
++		int protohdr;
++		unsigned short _frag_off;
+ 
+-			/* Size calculation */
+-	                if (currenthdr == IPPROTO_FRAGMENT) {
+-				fp = skb_header_pointer(skb,
+-						   ptr+offsetof(struct frag_hdr,
+-								frag_off),
+-						   sizeof(_fragoff),
+-						   &_fragoff);
+-				if (fp == NULL)
+-					return 0;
+-
+-				_fragoff = ntohs(*fp) & ~0x7;
+-	                        hdrlen = 8;
+-	                } else if (currenthdr == IPPROTO_AH)
+-	                        hdrlen = (hp->hdrlen+2)<<2;
+-	                else
+-	                        hdrlen = ipv6_optlen(hp);
+-
+-			currenthdr = hp->nexthdr;
+-	                ptr += hdrlen;
+-			/* ptr is too large */
+-	                if ( ptr > skb->len ) 
+-				return 0;
+-			if (_fragoff) {
+-				if (ip6t_ext_hdr(currenthdr))
+-					return 0;
+-				break;
+-			}
+-		}
+-
+-		*protoff = ptr;
+-		*fragoff = _fragoff;
++		protohdr = ipv6_find_hdr(skb, protoff, -1, &_frag_off);
++		if (protohdr < 0)
++			return 0;
+ 
+-		/* currenthdr contains the protocol header */
++		*fragoff = _frag_off;
+ 
+ 		dprintf("Packet protocol %hi ?= %s%hi.\n",
+-				currenthdr, 
++				protohdr, 
+ 				ip6info->invflags & IP6T_INV_PROTO ? "!":"",
+ 				ip6info->proto);
+ 
+-		if (ip6info->proto == currenthdr) {
++		if (ip6info->proto == protohdr) {
+ 			if(ip6info->invflags & IP6T_INV_PROTO) {
+ 				return 0;
+ 			}
+@@ -2098,26 +2050,39 @@ static void __exit fini(void)
  }
  
- int ip_mc_output(struct sk_buff *skb)
-@@ -265,21 +263,21 @@ int ip_mc_output(struct sk_buff *skb)
- 				newskb->dev, ip_dev_loopback_xmit);
+ /*
+- * find specified header up to transport protocol header.
+- * If found target header, the offset to the header is set to *offset
+- * and return 0. otherwise, return -1.
++ * find the offset to specified header or the protocol number of last header
++ * if target < 0. "last header" is transport protocol header, ESP, or
++ * "No next header".
++ *
++ * If target header is found, its offset is set in *offset and return protocol
++ * number. Otherwise, return -1.
++ *
++ * Note that non-1st fragment is special case that "the protocol number
++ * of last header" is "next header" field in Fragment header. In this case,
++ * *offset is meaningless and fragment offset is stored in *fragoff if fragoff
++ * isn't NULL.
+  *
+- * Notes: - non-1st Fragment Header isn't skipped.
+- *	  - ESP header isn't skipped.
+- *	  - The target header may be trancated.
+  */
+-int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset, u8 target)
++int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
++		  int target, unsigned short *fragoff)
+ {
+ 	unsigned int start = (u8*)(skb->nh.ipv6h + 1) - skb->data;
+ 	u8 nexthdr = skb->nh.ipv6h->nexthdr;
+ 	unsigned int len = skb->len - start;
+ 
++	if (fragoff)
++		*fragoff = 0;
++
+ 	while (nexthdr != target) {
+ 		struct ipv6_opt_hdr _hdr, *hp;
+ 		unsigned int hdrlen;
+ 
+-		if ((!ipv6_ext_hdr(nexthdr)) || nexthdr == NEXTHDR_NONE)
++		if ((!ipv6_ext_hdr(nexthdr)) || nexthdr == NEXTHDR_NONE) {
++			if (target < 0)
++				break;
+ 			return -1;
++		}
++
+ 		hp = skb_header_pointer(skb, start, sizeof(_hdr), &_hdr);
+ 		if (hp == NULL)
+ 			return -1;
+@@ -2131,8 +2096,17 @@ int ipv6_find_hdr(const struct sk_buff *
+ 			if (fp == NULL)
+ 				return -1;
+ 
+-			if (ntohs(*fp) & ~0x7)
++			_frag_off = ntohs(*fp) & ~0x7;
++			if (_frag_off) {
++				if (target < 0 &&
++				    ((!ipv6_ext_hdr(hp->nexthdr)) ||
++				     nexthdr == NEXTHDR_NONE)) {
++					if (fragoff)
++						*fragoff = _frag_off;
++					return hp->nexthdr;
++				}
+ 				return -1;
++			}
+ 			hdrlen = 8;
+ 		} else if (nexthdr == NEXTHDR_AUTH)
+ 			hdrlen = (hp->hdrlen + 2) << 2; 
+@@ -2145,7 +2119,7 @@ int ipv6_find_hdr(const struct sk_buff *
  	}
  
--	if (skb->len > dst_mtu(&rt->u.dst))
--		return ip_fragment(skb, ip_finish_output);
--	else
--		return ip_finish_output(skb);
-+	return NF_HOOK(PF_INET, NF_IP_POST_ROUTING, skb, NULL, skb->dev,
-+		       ip_finish_output);
+ 	*offset = start;
+-	return 0;
++	return nexthdr;
  }
  
- int ip_output(struct sk_buff *skb)
- {
-+	struct net_device *dev = skb->dst->dev;
-+
- 	IP_INC_STATS(IPSTATS_MIB_OUTREQUESTS);
+ EXPORT_SYMBOL(ip6t_register_table);
+diff --git a/net/ipv6/netfilter/ip6t_ah.c b/net/ipv6/netfilter/ip6t_ah.c
+index 268918d..f5c1a7f 100644
+--- a/net/ipv6/netfilter/ip6t_ah.c
++++ b/net/ipv6/netfilter/ip6t_ah.c
+@@ -54,7 +54,7 @@ match(const struct sk_buff *skb,
+ 	unsigned int ptr;
+ 	unsigned int hdrlen = 0;
  
--	if (skb->len > dst_mtu(skb->dst) &&
--		!(skb_shinfo(skb)->ufo_size || skb_shinfo(skb)->tso_size))
--		return ip_fragment(skb, ip_finish_output);
--	else
--		return ip_finish_output(skb);
-+	skb->dev = dev;
-+	skb->protocol = htons(ETH_P_IP);
-+
-+	return NF_HOOK(PF_INET, NF_IP_POST_ROUTING, skb, NULL, dev,
-+		       ip_finish_output);
- }
+-	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_AUTH) < 0)
++	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_AUTH, NULL) < 0)
+ 		return 0;
  
- int ip_queue_xmit(struct sk_buff *skb, int ipfragok)
-diff --git a/net/ipv4/netfilter/ip_conntrack_standalone.c b/net/ipv4/netfilter/ip_conntrack_standalone.c
-index a88bcc5..7ba9778 100644
---- a/net/ipv4/netfilter/ip_conntrack_standalone.c
-+++ b/net/ipv4/netfilter/ip_conntrack_standalone.c
-@@ -451,30 +451,6 @@ static unsigned int ip_conntrack_defrag(
- 	return NF_ACCEPT;
- }
+ 	ah = skb_header_pointer(skb, ptr, sizeof(_ah), &_ah);
+diff --git a/net/ipv6/netfilter/ip6t_dst.c b/net/ipv6/netfilter/ip6t_dst.c
+index c450a63..48cf5f9 100644
+--- a/net/ipv6/netfilter/ip6t_dst.c
++++ b/net/ipv6/netfilter/ip6t_dst.c
+@@ -71,9 +71,9 @@ match(const struct sk_buff *skb,
+        unsigned int optlen;
+        
+ #if HOPBYHOP
+-	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_HOP) < 0)
++	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_HOP, NULL) < 0)
+ #else
+-	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_DEST) < 0)
++	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_DEST, NULL) < 0)
+ #endif
+ 		return 0;
  
--static unsigned int ip_refrag(unsigned int hooknum,
--			      struct sk_buff **pskb,
--			      const struct net_device *in,
--			      const struct net_device *out,
--			      int (*okfn)(struct sk_buff *))
--{
--	struct rtable *rt = (struct rtable *)(*pskb)->dst;
--
--	/* We've seen it coming out the other side: confirm */
--	if (ip_confirm(hooknum, pskb, in, out, okfn) != NF_ACCEPT)
--		return NF_DROP;
--
--	/* Local packets are never produced too large for their
--	   interface.  We degfragment them at LOCAL_OUT, however,
--	   so we have to refragment them here. */
--	if ((*pskb)->len > dst_mtu(&rt->u.dst) &&
--	    !skb_shinfo(*pskb)->tso_size) {
--		/* No hook can be after us, so this should be OK. */
--		ip_fragment(*pskb, okfn);
--		return NF_STOLEN;
--	}
--	return NF_ACCEPT;
--}
--
- static unsigned int ip_conntrack_local(unsigned int hooknum,
- 				       struct sk_buff **pskb,
- 				       const struct net_device *in,
-@@ -544,7 +520,7 @@ static struct nf_hook_ops ip_conntrack_h
+diff --git a/net/ipv6/netfilter/ip6t_esp.c b/net/ipv6/netfilter/ip6t_esp.c
+index 65937de..e1828f6 100644
+--- a/net/ipv6/netfilter/ip6t_esp.c
++++ b/net/ipv6/netfilter/ip6t_esp.c
+@@ -56,7 +56,7 @@ match(const struct sk_buff *skb,
+ 	/* Make sure this isn't an evil packet */
+ 	/*DEBUGP("ipv6_esp entered \n");*/
  
- /* Refragmenter; last chance. */
- static struct nf_hook_ops ip_conntrack_out_ops = {
--	.hook		= ip_refrag,
-+	.hook		= ip_confirm,
- 	.owner		= THIS_MODULE,
- 	.pf		= PF_INET,
- 	.hooknum	= NF_IP_POST_ROUTING,
-diff --git a/net/ipv4/netfilter/ip_nat_standalone.c b/net/ipv4/netfilter/ip_nat_standalone.c
-index 30cd4e1..f04111f 100644
---- a/net/ipv4/netfilter/ip_nat_standalone.c
-+++ b/net/ipv4/netfilter/ip_nat_standalone.c
-@@ -190,23 +190,6 @@ ip_nat_out(unsigned int hooknum,
- 	    || (*pskb)->nh.iph->ihl * 4 < sizeof(struct iphdr))
- 		return NF_ACCEPT;
+-	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_ESP) < 0)
++	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_ESP, NULL) < 0)
+ 		return 0;
  
--	/* We can hit fragment here; forwarded packets get
--	   defragmented by connection tracking coming in, then
--	   fragmented (grr) by the forward code.
--
--	   In future: If we have nfct != NULL, AND we have NAT
--	   initialized, AND there is no helper, then we can do full
--	   NAPT on the head, and IP-address-only NAT on the rest.
--
--	   I'm starting to have nightmares about fragments.  */
--
--	if ((*pskb)->nh.iph->frag_off & htons(IP_MF|IP_OFFSET)) {
--		*pskb = ip_ct_gather_frags(*pskb, IP_DEFRAG_NAT_OUT);
--
--		if (!*pskb)
--			return NF_STOLEN;
--	}
--
- 	return ip_nat_fn(hooknum, pskb, in, out, okfn);
- }
+ 	eh = skb_header_pointer(skb, ptr, sizeof(_esp), &_esp);
+diff --git a/net/ipv6/netfilter/ip6t_frag.c b/net/ipv6/netfilter/ip6t_frag.c
+index 085d5f8..d1549b2 100644
+--- a/net/ipv6/netfilter/ip6t_frag.c
++++ b/net/ipv6/netfilter/ip6t_frag.c
+@@ -52,7 +52,7 @@ match(const struct sk_buff *skb,
+        const struct ip6t_frag *fraginfo = matchinfo;
+        unsigned int ptr;
  
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 80d30d7..9bdbb77 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -181,30 +181,6 @@ static unsigned int ipv4_conntrack_defra
- 	return NF_ACCEPT;
- }
+-	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_FRAGMENT) < 0)
++	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_FRAGMENT, NULL) < 0)
+ 		return 0;
  
--static unsigned int ipv4_refrag(unsigned int hooknum,
--				struct sk_buff **pskb,
--				const struct net_device *in,
--				const struct net_device *out,
--				int (*okfn)(struct sk_buff *))
--{
--	struct rtable *rt = (struct rtable *)(*pskb)->dst;
--
--	/* We've seen it coming out the other side: confirm */
--	if (ipv4_confirm(hooknum, pskb, in, out, okfn) != NF_ACCEPT)
--		return NF_DROP;
--
--	/* Local packets are never produced too large for their
--	   interface.  We degfragment them at LOCAL_OUT, however,
--	   so we have to refragment them here. */
--	if ((*pskb)->len > dst_mtu(&rt->u.dst) &&
--	    !skb_shinfo(*pskb)->tso_size) {
--		/* No hook can be after us, so this should be OK. */
--		ip_fragment(*pskb, okfn);
--		return NF_STOLEN;
--	}
--	return NF_ACCEPT;
--}
--
- static unsigned int ipv4_conntrack_in(unsigned int hooknum,
- 				      struct sk_buff **pskb,
- 				      const struct net_device *in,
-@@ -284,7 +260,7 @@ static struct nf_hook_ops ipv4_conntrack
+ 	fh = skb_header_pointer(skb, ptr, sizeof(_frag), &_frag);
+diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+index 1d09485..e3bc8e2 100644
+--- a/net/ipv6/netfilter/ip6t_hbh.c
++++ b/net/ipv6/netfilter/ip6t_hbh.c
+@@ -71,9 +71,9 @@ match(const struct sk_buff *skb,
+        unsigned int optlen;
+        
+ #if HOPBYHOP
+-	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_HOP) < 0)
++	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_HOP, NULL) < 0)
+ #else
+-	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_DEST) < 0)
++	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_DEST, NULL) < 0)
+ #endif
+ 		return 0;
  
- /* Refragmenter; last chance. */
- static struct nf_hook_ops ipv4_conntrack_out_ops = {
--	.hook		= ipv4_refrag,
-+	.hook		= ipv4_confirm,
- 	.owner		= THIS_MODULE,
- 	.pf		= PF_INET,
- 	.hooknum	= NF_IP_POST_ROUTING,
+diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
+index beb2fd5..c1e770e 100644
+--- a/net/ipv6/netfilter/ip6t_rt.c
++++ b/net/ipv6/netfilter/ip6t_rt.c
+@@ -58,7 +58,7 @@ match(const struct sk_buff *skb,
+        unsigned int ret = 0;
+        struct in6_addr *ap, _addr;
+ 
+-	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_ROUTING) < 0)
++	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_ROUTING, NULL) < 0)
+ 		return 0;
+ 
+        rh = skb_header_pointer(skb, ptr, sizeof(_route), &_route);
