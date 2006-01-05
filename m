@@ -1,12 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 18/18]: nf_conntrack_l3proto_ipv4.c needs net/route.h
-Date: Thu,  5 Jan 2006 05:06:55 +0100 (MET)
-Message-ID: <20060105040619.23512.39043.sendpatchset@localhost.localdomain>
-References: <20060105040554.23512.27346.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH 1/2] nf_conntrack: use ipv6_addr_equal in nf_ct_reasm
+Date: Thu, 05 Jan 2006 16:40:15 +0900 (JST)
+Message-ID: <200601050740.k057eG3Y017877@toshiba.co.jp>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David S. Miller <davem@davemloft.net>
-In-Reply-To: <20060105040554.23512.27346.sendpatchset@localhost.localdomain>
+To: laforge@netfilter.org
+Content-Disposition: inline; filename="02-nfct-reasm-cleanup.patch"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,34 +20,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack_l3proto_ipv4.c needs net/route.h
+[NETFILTER] nf_conntrack: use ipv6_addr_equal in nf_ct_reasm
 
-CC [M]  net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.o
-net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c: In function 'ipv4_refrag':
-net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c:198: error: dereferencing pointer to incomplete type
-make[3]: *** [net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.o] Error 1
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
 ---
-commit b3a15f5d0c42e1e8d62af29befbec373fbc225a9
-tree b20ed9974bcffd63b84beb40b275910b3ca449b4
-parent 727822f9fd9970d84b78d6016677ea1d348f5cfd
-author Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 01:42:19 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 01:42:19 +0100
+commit 629a7391cc095248a79153f37977ce9f1071c14d
+tree 752505fb5c8b30901c248ce0a651fc92b51da48b
+parent 74cb8798222bb7d1aecb0acb91e6eeedf5feb948
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 25 Dec 2005 19:54:14 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 05 Jan 2006 15:25:29 +0900
 
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ net/ipv6/netfilter/nf_conntrack_reasm.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 8202c1c..e5cea90 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -22,6 +22,7 @@
- #include <linux/skbuff.h>
- #include <linux/icmp.h>
- #include <linux/sysctl.h>
-+#include <net/route.h>
- #include <net/ip.h>
- 
- #include <linux/netfilter_ipv4.h>
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index f3e5ffb..ab3387d 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -324,8 +324,8 @@ static struct nf_ct_frag6_queue *nf_ct_f
+ #ifdef CONFIG_SMP
+ 	for (fq = nf_ct_frag6_hash[hash]; fq; fq = fq->next) {
+ 		if (fq->id == fq_in->id && 
+-		    !ipv6_addr_cmp(&fq_in->saddr, &fq->saddr) &&
+-		    !ipv6_addr_cmp(&fq_in->daddr, &fq->daddr)) {
++		    ipv6_addr_equal(&fq_in->saddr, &fq->saddr) &&
++		    ipv6_addr_equal(&fq_in->daddr, &fq->daddr)) {
+ 			atomic_inc(&fq->refcnt);
+ 			write_unlock(&nf_ct_frag6_lock);
+ 			fq_in->last_in |= COMPLETE;
+@@ -389,8 +389,8 @@ fq_find(u32 id, struct in6_addr *src, st
+ 	read_lock(&nf_ct_frag6_lock);
+ 	for (fq = nf_ct_frag6_hash[hash]; fq; fq = fq->next) {
+ 		if (fq->id == id && 
+-		    !ipv6_addr_cmp(src, &fq->saddr) &&
+-		    !ipv6_addr_cmp(dst, &fq->daddr)) {
++		    ipv6_addr_equal(src, &fq->saddr) &&
++		    ipv6_addr_equal(dst, &fq->daddr)) {
+ 			atomic_inc(&fq->refcnt);
+ 			read_unlock(&nf_ct_frag6_lock);
+ 			return fq;
