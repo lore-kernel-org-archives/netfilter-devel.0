@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 06/18]: ctnetlink: use u_int32_t instead of unsigned int
-Date: Thu,  5 Jan 2006 05:06:37 +0100 (MET)
-Message-ID: <20060105040602.23512.77706.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 07/18]: ctnetlink: ctnetlink_event cleanup
+Date: Thu,  5 Jan 2006 05:06:39 +0100 (MET)
+Message-ID: <20060105040603.23512.45375.sendpatchset@localhost.localdomain>
 References: <20060105040554.23512.27346.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,31 +18,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ctnetlink: use u_int32_t instead of unsigned int
+[NETFILTER]: ctnetlink: ctnetlink_event cleanup
+
+Cleanup: Use 'else if' instead of a ugly 'goto' statement.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 4cf0ebc33ac486730b4af5657f683673c25ee599
-tree 084b7be976ae7aba4ce2707a66f76c01dff13431
-parent c1dbf7cb5f9690b9bb12dc0707278376760e4839
-author Pablo Neira Ayuso <pablo@netfilter.org> Thu, 05 Jan 2006 02:54:58 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 02:54:58 +0100
+commit d1e28c10106f0f49384d3f4e4303a2944d977e86
+tree a89a207ba2caa1d4cebda6e086c4d5c089cb9036
+parent 4cf0ebc33ac486730b4af5657f683673c25ee599
+author Pablo Neira Ayuso <pablo@netfilter.org> Thu, 05 Jan 2006 02:55:15 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 02:55:15 +0100
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_netlink.c |   15 ++++-----------
+ 1 files changed, 4 insertions(+), 11 deletions(-)
 
 diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index 5e9affd..faa027b 100644
+index faa027b..04137d0 100644
 --- a/net/ipv4/netfilter/ip_conntrack_netlink.c
 +++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -230,7 +230,7 @@ nfattr_failure:
- static inline int
- ctnetlink_dump_use(struct sk_buff *skb, const struct ip_conntrack *ct)
- {
--	unsigned int use = htonl(atomic_read(&ct->ct_general.use));
-+	u_int32_t use = htonl(atomic_read(&ct->ct_general.use));
+@@ -312,29 +312,22 @@ static int ctnetlink_conntrack_event(str
+ 	if (events & IPCT_DESTROY) {
+ 		type = IPCTNL_MSG_CT_DELETE;
+ 		group = NFNLGRP_CONNTRACK_DESTROY;
+-		goto alloc_skb;
+-	}
+-	if (events & (IPCT_NEW | IPCT_RELATED)) {
++	} else if (events & (IPCT_NEW | IPCT_RELATED)) {
+ 		type = IPCTNL_MSG_CT_NEW;
+ 		flags = NLM_F_CREATE|NLM_F_EXCL;
+ 		/* dump everything */
+ 		events = ~0UL;
+ 		group = NFNLGRP_CONNTRACK_NEW;
+-		goto alloc_skb;
+-	}
+-	if (events & (IPCT_STATUS |
++	} else if (events & (IPCT_STATUS |
+ 		      IPCT_PROTOINFO |
+ 		      IPCT_HELPER |
+ 		      IPCT_HELPINFO |
+ 		      IPCT_NATINFO)) {
+ 		type = IPCTNL_MSG_CT_NEW;
+ 		group = NFNLGRP_CONNTRACK_UPDATE;
+-		goto alloc_skb;
+-	} 
++	} else 
++		return NOTIFY_DONE;
  	
- 	NFA_PUT(skb, CTA_USE, sizeof(u_int32_t), &use);
- 	return 0;
+-	return NOTIFY_DONE;
+-
+-alloc_skb:
+   /* FIXME: Check if there are any listeners before, don't hurt performance */
+ 	
+ 	skb = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
