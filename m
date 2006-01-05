@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 17/18]: Export ip6_masked_addrcmp,
-	don't pass IPv6 addresses on stack
-Date: Thu,  5 Jan 2006 05:06:53 +0100 (MET)
-Message-ID: <20060105040618.23512.52037.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 18/18]: nf_conntrack_l3proto_ipv4.c needs net/route.h
+Date: Thu,  5 Jan 2006 05:06:55 +0100 (MET)
+Message-ID: <20060105040619.23512.39043.sendpatchset@localhost.localdomain>
 References: <20060105040554.23512.27346.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,79 +18,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Export ip6_masked_addrcmp, don't pass IPv6 addresses on stack
+[NETFILTER]: nf_conntrack_l3proto_ipv4.c needs net/route.h
+
+CC [M]  net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.o
+net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c: In function 'ipv4_refrag':
+net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c:198: error: dereferencing pointer to incomplete type
+make[3]: *** [net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.o] Error 1
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 24cd0baad0ca24fbc94f1af8e731c17afdfcfd71
-tree f2fa0bd1455fa4550d7eb917d48ee3c268acf175
-parent 5ce8af1e153cd5a08089d6cb00a79f39773d67a4
-author Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 03:32:01 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 03:32:01 +0100
+commit b3a15f5d0c42e1e8d62af29befbec373fbc225a9
+tree b20ed9974bcffd63b84beb40b275910b3ca449b4
+parent 727822f9fd9970d84b78d6016677ea1d348f5cfd
+author Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 01:42:19 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 01:42:19 +0100
 
- include/linux/netfilter_ipv6/ip6_tables.h |    4 ++++
- net/ipv6/netfilter/ip6_tables.c           |   18 ++++++++++--------
- 2 files changed, 14 insertions(+), 8 deletions(-)
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
-index a291cb7..c163ba3 100644
---- a/include/linux/netfilter_ipv6/ip6_tables.h
-+++ b/include/linux/netfilter_ipv6/ip6_tables.h
-@@ -476,6 +476,10 @@ extern int ip6t_ext_hdr(u8 nexthdr);
- extern int ipv6_find_hdr(const struct sk_buff *skb, unsigned int *offset,
- 			 int target, unsigned short *fragoff);
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 8202c1c..e5cea90 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -22,6 +22,7 @@
+ #include <linux/skbuff.h>
+ #include <linux/icmp.h>
+ #include <linux/sysctl.h>
++#include <net/route.h>
+ #include <net/ip.h>
  
-+extern int ip6_masked_addrcmp(const struct in6_addr *addr1,
-+			      const struct in6_addr *mask,
-+			      const struct in6_addr *addr2);
-+
- #define IP6T_ALIGN(s) (((s) + (__alignof__(struct ip6t_entry)-1)) & ~(__alignof__(struct ip6t_entry)-1))
- 
- #endif /*__KERNEL__*/
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 13b1a52..925b42d 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -119,13 +119,14 @@ static LIST_HEAD(ip6t_tables);
- #define up(x) do { printk("UP:%u:" #x "\n", __LINE__); up(x); } while(0)
- #endif
- 
--static int ip6_masked_addrcmp(struct in6_addr addr1, struct in6_addr mask,
--			      struct in6_addr addr2)
-+int
-+ip6_masked_addrcmp(const struct in6_addr *addr1, const struct in6_addr *mask,
-+                   const struct in6_addr *addr2)
- {
- 	int i;
- 	for( i = 0; i < 16; i++){
--		if((addr1.s6_addr[i] & mask.s6_addr[i]) != 
--		   (addr2.s6_addr[i] & mask.s6_addr[i]))
-+		if((addr1->s6_addr[i] & mask->s6_addr[i]) != 
-+		   (addr2->s6_addr[i] & mask->s6_addr[i]))
- 			return 1;
- 	}
- 	return 0;
-@@ -159,10 +160,10 @@ ip6_packet_match(const struct sk_buff *s
- 
- #define FWINV(bool,invflg) ((bool) ^ !!(ip6info->invflags & invflg))
- 
--	if (FWINV(ip6_masked_addrcmp(ipv6->saddr,ip6info->smsk,ip6info->src),
--		  IP6T_INV_SRCIP)
--	    || FWINV(ip6_masked_addrcmp(ipv6->daddr,ip6info->dmsk,ip6info->dst),
--		     IP6T_INV_DSTIP)) {
-+	if (FWINV(ip6_masked_addrcmp(&ipv6->saddr, &ip6info->smsk,
-+	                             &ip6info->src), IP6T_INV_SRCIP)
-+	    || FWINV(ip6_masked_addrcmp(&ipv6->daddr, &ip6info->dmsk,
-+	                                &ip6info->dst), IP6T_INV_DSTIP)) {
- 		dprintf("Source or dest mismatch.\n");
- /*
- 		dprintf("SRC: %u. Mask: %u. Target: %u.%s\n", ip->saddr,
-@@ -2131,6 +2132,7 @@ EXPORT_SYMBOL(ip6t_register_target);
- EXPORT_SYMBOL(ip6t_unregister_target);
- EXPORT_SYMBOL(ip6t_ext_hdr);
- EXPORT_SYMBOL(ipv6_find_hdr);
-+EXPORT_SYMBOL(ip6_masked_addrcmp);
- 
- module_init(init);
- module_exit(fini);
+ #include <linux/netfilter_ipv4.h>
