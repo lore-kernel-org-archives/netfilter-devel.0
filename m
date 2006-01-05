@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 08/18]: ctnetlink: fix conntrack mark race
-Date: Thu,  5 Jan 2006 05:06:40 +0100 (MET)
-Message-ID: <20060105040605.23512.51271.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 09/18]: ctnetlink: remove unused variable
+Date: Thu,  5 Jan 2006 05:06:41 +0100 (MET)
+Message-ID: <20060105040606.23512.77770.sendpatchset@localhost.localdomain>
 References: <20060105040554.23512.27346.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,48 +18,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ctnetlink: fix conntrack mark race
-
-Set conntrack mark before it is in hashes.
+[NETFILTER]: ctnetlink: remove unused variable
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit d83898b5b202d40e7ab16170143661d99b7f5a0e
-tree ab89cb82ff71fdb801788aa5387f167c44b27c0f
-parent d1e28c10106f0f49384d3f4e4303a2944d977e86
-author Pablo Neira Ayuso <pablo@netfilter.org> Thu, 05 Jan 2006 02:55:36 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 02:55:36 +0100
+commit 1227b054c63788ad08053b0af4435df9fb65a6bb
+tree eade765b1c62946537e89d9030cb93b0d515ee2f
+parent d83898b5b202d40e7ab16170143661d99b7f5a0e
+author Pablo Neira Ayuso <pablo@netfilter.org> Thu, 05 Jan 2006 02:55:55 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 05 Jan 2006 02:55:55 +0100
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
 diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index 04137d0..589e9e7 100644
+index 589e9e7..1763764 100644
 --- a/net/ipv4/netfilter/ip_conntrack_netlink.c
 +++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -1031,6 +1031,11 @@ ctnetlink_create_conntrack(struct nfattr
- 			return err;
- 	}
+@@ -1203,7 +1203,6 @@ static int ctnetlink_expect_event(struct
+ 	unsigned int type;
+ 	unsigned char *b;
+ 	int flags = 0;
+-	u16 proto;
  
-+#if defined(CONFIG_IP_NF_CONNTRACK_MARK)
-+	if (cda[CTA_MARK-1])
-+		ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
-+#endif
-+
- 	ct->helper = ip_conntrack_helper_find_get(rtuple);
+ 	if (events & IPEXP_NEW) {
+ 		type = IPCTNL_MSG_EXP_NEW;
+@@ -1230,7 +1229,6 @@ static int ctnetlink_expect_event(struct
+ 		goto nfattr_failure;
  
- 	add_timer(&ct->timeout);
-@@ -1039,11 +1044,6 @@ ctnetlink_create_conntrack(struct nfattr
- 	if (ct->helper)
- 		ip_conntrack_helper_put(ct->helper);
- 
--#if defined(CONFIG_IP_NF_CONNTRACK_MARK)
--	if (cda[CTA_MARK-1])
--		ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
--#endif
--
- 	DEBUGP("conntrack with id %u inserted\n", ct->id);
- 	return 0;
+ 	nlh->nlmsg_len = skb->tail - b;
+-	proto = exp->tuple.dst.protonum;
+ 	nfnetlink_send(skb, 0, NFNLGRP_CONNTRACK_EXP_NEW, 0);
+ 	return NOTIFY_DONE;
  
