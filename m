@@ -1,15 +1,19 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 2/2] nf_conntrack: replace handmade list with hlist in IPv6
- reassembly
-Date: Thu, 05 Jan 2006 16:40:28 +0900 (JST)
-Message-ID: <200601050740.k057eTU2022650@toshiba.co.jp>
+Subject: [PATCH] use HOPLIMIT metric as TTL of TCP reset sent by REJECT
+ [was: Re: please fix TARPIT]
+Date: Thu, 05 Jan 2006 17:08:48 +0900 (JST)
+Message-ID: <200601050808.k0588nH1012513@toshiba.co.jp>
+References: <20051221.221552.70499588.davem@davemloft.net>
+	<Pine.LNX.4.61.0601030833560.23554@yvahk01.tjqt.qr>
+	<43BA5E7C.1090008@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: Multipart/Mixed;
+	boundary="--Next_Part(Thu_Jan__5_17_08_48_2006_401)--"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-Content-Disposition: inline; filename="03-nfct-reasm-hlist.patch"
+To: kaber@trash.net
+In-Reply-To: <43BA5E7C.1090008@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,138 +25,70 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER] nf_conntrack: replace handmade list with hlist in IPv6 reassembly
+----Next_Part(Thu_Jan__5_17_08_48_2006_401)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+
+Hi,
+
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue, 03 Jan 2006 12:22:36 +0100
+
+> Jan Engelhardt wrote:
+> >>Recently it was reported that the TARPIT target depends upon the
+> >>sysctl_ip_default_ttl symbol which is not exported any longer.
+> > 
+> > 
+> > How about just adding the EXPORT_SYMBOL back. And that all wrapped up in a 
+> > nice POM patch. Problem gone. (For the short term.)
+> 
+> The fix is trivial, so I fixed it the right way (well, without
+> testing).
+
+Should ipt_REJECT use metric, too ? ip6_REJECT has already use it.
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+
+BTW, I'm not familiar with TARPIT, but ipt_REJECT seems to have the codes
+to fix the other issues David pointed out.
+
+-- Yasuyuki Kozakai
+
+----Next_Part(Thu_Jan__5_17_08_48_2006_401)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="01-reject-ttl.patch"
+
+[NETFILTER] use HOPLIMIT metric as TTL of TCP reset sent by REJECT
+
+HOPLIMIT metric is appropriate to TCP reset sent by REJECT target
+than hard-coded max TTL. Thanks to David S. Miller for hint.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
 ---
-commit 6bf90f969545fbd9467d42b0bd823bef4059506a
-tree bdcd48f9387eeefca62bf3b5f304a2d6228c6638
-parent 629a7391cc095248a79153f37977ce9f1071c14d
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 25 Dec 2005 19:56:20 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 05 Jan 2006 15:25:33 +0900
+commit e290cc6158560638d4bd446075322b999485d064
+tree 200689991a2cc57710642400db47c649be20c00f
+parent 67dbb4ea33731415fe09c62149a34f472719ac1d
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 29 Dec 2005 00:41:51 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 29 Dec 2005 00:41:51 +0900
 
- net/ipv6/netfilter/nf_conntrack_reasm.c |   45 +++++++++++--------------------
- 1 files changed, 16 insertions(+), 29 deletions(-)
+ net/ipv4/netfilter/ipt_REJECT.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index ab3387d..3e31903 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -70,8 +70,8 @@ struct nf_ct_frag6_skb_cb
+diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+index f057025..6693526 100644
+--- a/net/ipv4/netfilter/ipt_REJECT.c
++++ b/net/ipv4/netfilter/ipt_REJECT.c
+@@ -203,7 +203,7 @@ static void send_reset(struct sk_buff *o
+ 						sizeof(struct tcphdr), 0));
  
- struct nf_ct_frag6_queue
- {
--	struct nf_ct_frag6_queue	*next;
--	struct list_head lru_list;		/* lru list member	*/
-+	struct hlist_node	list;
-+	struct list_head	lru_list;	/* lru list member	*/
- 
- 	__u32			id;		/* fragment id		*/
- 	struct in6_addr		saddr;
-@@ -90,14 +90,13 @@ struct nf_ct_frag6_queue
- #define FIRST_IN		2
- #define LAST_IN			1
- 	__u16			nhoffset;
--	struct nf_ct_frag6_queue	**pprev;
- };
- 
- /* Hash table. */
- 
- #define FRAG6Q_HASHSZ	64
- 
--static struct nf_ct_frag6_queue *nf_ct_frag6_hash[FRAG6Q_HASHSZ];
-+static struct hlist_head nf_ct_frag6_hash[FRAG6Q_HASHSZ];
- static DEFINE_RWLOCK(nf_ct_frag6_lock);
- static u32 nf_ct_frag6_hash_rnd;
- static LIST_HEAD(nf_ct_frag6_lru_list);
-@@ -105,9 +104,7 @@ int nf_ct_frag6_nqueues = 0;
- 
- static __inline__ void __fq_unlink(struct nf_ct_frag6_queue *fq)
- {
--	if (fq->next)
--		fq->next->pprev = fq->pprev;
--	*fq->pprev = fq->next;
-+	hlist_del(&fq->list);
- 	list_del(&fq->lru_list);
- 	nf_ct_frag6_nqueues--;
- }
-@@ -158,28 +155,18 @@ static void nf_ct_frag6_secret_rebuild(u
- 	get_random_bytes(&nf_ct_frag6_hash_rnd, sizeof(u32));
- 	for (i = 0; i < FRAG6Q_HASHSZ; i++) {
- 		struct nf_ct_frag6_queue *q;
-+		struct hlist_node *p, *n;
- 
--		q = nf_ct_frag6_hash[i];
--		while (q) {
--			struct nf_ct_frag6_queue *next = q->next;
-+		hlist_for_each_entry_safe(q, p, n, &nf_ct_frag6_hash[i], list) {
- 			unsigned int hval = ip6qhashfn(q->id,
- 						       &q->saddr,
- 						       &q->daddr);
--
- 			if (hval != i) {
--				/* Unlink. */
--				if (q->next)
--					q->next->pprev = q->pprev;
--				*q->pprev = q->next;
--
-+				hlist_del(&q->list);
- 				/* Relink to new hash chain. */
--				if ((q->next = nf_ct_frag6_hash[hval]) != NULL)
--					q->next->pprev = &q->next;
--				nf_ct_frag6_hash[hval] = q;
--				q->pprev = &nf_ct_frag6_hash[hval];
-+				hlist_add_head(&q->list,
-+					       &nf_ct_frag6_hash[hval]);
- 			}
--
--			q = next;
- 		}
- 	}
- 	write_unlock(&nf_ct_frag6_lock);
-@@ -314,15 +301,17 @@ out:
- 
- /* Creation primitives. */
- 
--
- static struct nf_ct_frag6_queue *nf_ct_frag6_intern(unsigned int hash,
- 					  struct nf_ct_frag6_queue *fq_in)
- {
- 	struct nf_ct_frag6_queue *fq;
-+#ifdef CONFIG_SMP
-+	struct hlist_node *n;
-+#endif
- 
- 	write_lock(&nf_ct_frag6_lock);
- #ifdef CONFIG_SMP
--	for (fq = nf_ct_frag6_hash[hash]; fq; fq = fq->next) {
-+	hlist_for_each_entry(fq, n, &nf_ct_frag6_hash[hash], list) {
- 		if (fq->id == fq_in->id && 
- 		    ipv6_addr_equal(&fq_in->saddr, &fq->saddr) &&
- 		    ipv6_addr_equal(&fq_in->daddr, &fq->daddr)) {
-@@ -340,10 +329,7 @@ static struct nf_ct_frag6_queue *nf_ct_f
- 		atomic_inc(&fq->refcnt);
- 
- 	atomic_inc(&fq->refcnt);
--	if ((fq->next = nf_ct_frag6_hash[hash]) != NULL)
--		fq->next->pprev = &fq->next;
--	nf_ct_frag6_hash[hash] = fq;
--	fq->pprev = &nf_ct_frag6_hash[hash];
-+	hlist_add_head(&fq->list, &nf_ct_frag6_hash[hash]);
- 	INIT_LIST_HEAD(&fq->lru_list);
- 	list_add_tail(&fq->lru_list, &nf_ct_frag6_lru_list);
- 	nf_ct_frag6_nqueues++;
-@@ -384,10 +370,11 @@ static __inline__ struct nf_ct_frag6_que
- fq_find(u32 id, struct in6_addr *src, struct in6_addr *dst)
- {
- 	struct nf_ct_frag6_queue *fq;
-+	struct hlist_node *n;
- 	unsigned int hash = ip6qhashfn(id, src, dst);
- 
- 	read_lock(&nf_ct_frag6_lock);
--	for (fq = nf_ct_frag6_hash[hash]; fq; fq = fq->next) {
-+	hlist_for_each_entry(fq, n, &nf_ct_frag6_hash[hash], list) {
- 		if (fq->id == id && 
- 		    ipv6_addr_equal(src, &fq->saddr) &&
- 		    ipv6_addr_equal(dst, &fq->daddr)) {
+ 	/* Adjust IP TTL, DF */
+-	nskb->nh.iph->ttl = MAXTTL;
++	nskb->nh.iph->ttl = dst_metric(nskb->dst, RTAX_HOPLIMIT);
+ 	/* Set DF, id = 0 */
+ 	nskb->nh.iph->frag_off = htons(IP_DF);
+ 	nskb->nh.iph->id = 0;
+
+----Next_Part(Thu_Jan__5_17_08_48_2006_401)----
