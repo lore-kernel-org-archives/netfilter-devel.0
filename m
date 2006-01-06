@@ -1,22 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: TCPMSS is not restricted to mangle table
-Date: Fri, 6 Jan 2006 15:32:20 +0100
-Message-ID: <20060106143220.GB4898@sunbeam.de.gnumonks.org>
-References: <4393895D.1020106@trash.net> <20051205004548.GC5617@eychenne.org>
-	<439393C9.5020001@trash.net> <439513E1.3060407@milivojevic.org>
-	<43951DBF.8050001@trash.net>
-	<Pine.LNX.4.61.0601030804260.23554@yvahk01.tjqt.qr>
-	<43BA5C79.9060304@trash.net>
-	<Pine.LNX.4.61.0601031238420.28743@yvahk01.tjqt.qr>
+Subject: Re: [RFC][PATCH] ctnetlink port to nf_conntrack take #3
+Date: Fri, 6 Jan 2006 15:36:08 +0100
+Message-ID: <20060106143608.GC4898@sunbeam.de.gnumonks.org>
+References: <200512150224.jBF2O4Qf011205@toshiba.co.jp>
+	<43A0D5C2.40000@trash.net> <43A1C126.9020606@eurodev.net>
+	<200512181133.jBIBXYPo012043@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="t1V/6vyDgJ44qiBN"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+	protocol="application/pgp-signature"; boundary="+sXEj1HC0AeGgRD2"
+Cc: netfilter-devel@lists.netfilter.org, pablo@eurodev.net, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jan Engelhardt <jengelh@linux01.gwdg.de>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0601031238420.28743@yvahk01.tjqt.qr>
+In-Reply-To: <200512181133.jBIBXYPo012043@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,32 +25,29 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---t1V/6vyDgJ44qiBN
+--+sXEj1HC0AeGgRD2
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 03, 2006 at 12:38:54PM +0100, Jan Engelhardt wrote:
+Sorry everyone, slowly catching up with my mail backlog
+
+On Sun, Dec 18, 2005 at 08:33:33PM +0900, Yasuyuki KOZAKAI wrote:
+
+> > What about the patch attached? It applies on top of my previous global
+> > ctnetlink port to nf_conntrack take#4 patch.
 >=20
-> >> On the way to restrict TCPMSS to -t mangle, the -m state
-> >> could also be obsoleted in favor of -m conntrack.
-> >
-> > I'm not going to restrict TCPMSS to mangle - but I'm
-> > considering adding a warning. I also don't see a reason
-> > to deprecate the state match, its totally trivial code
-> > and needs a lot less memory than the conntrack match.
-> >
-> But it's duplicate code, in terms of functionality.
+> looks fine to me. And that's good idea to dump informations of all connec=
+tions
+> if AF_UNSPEC is set in nfgenmsg. But I don't know that such way to handle
+> AF_UNSPEC can be generic policy of nfnetlink.
 
-if you're really so worried about the duplicate code, you could create a
-single module (with a MODULE_ALIAS) that registers two matches, one
-called "state", the other called "conntrack".
+It is a nice use, but it would clash with our current definition of
+NF_ARP - in case we ever implement something via nfnetlink for the ARP
+protocol.
 
-That sounds like the cleanest possible solution without breaking anything.
-
-btw: if you seriously consider implementing my suggestion, please use
-the "x_tables" local branch of my git tree - othrewise your patch will
-clash with x_tables that is to be submitted any day now.
+NF_ARP is defined to 0 in netfilter_arp.h, as a kludge around the
+problem of ARP not having an AF_ARP constant.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -66,16 +59,16 @@ clash with x_tables that is to be submitted any day now.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---t1V/6vyDgJ44qiBN
+--+sXEj1HC0AeGgRD2
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDvn90XaXGVTD0i/8RAkaZAJ9upSXIVPnvsnKnj4MN1bDf3huzzACgkxkD
-Z9NWBX15l+NT4w7XaPx6dOE=
-=rcyK
+iD8DBQFDvoBYXaXGVTD0i/8RApCSAJ9Qq5fQBg8vfMhcwT1HaPRS2KHHVwCgmmcm
+spisR2HfcHsdxCTkAL+nRTM=
+=6UBO
 -----END PGP SIGNATURE-----
 
---t1V/6vyDgJ44qiBN--
+--+sXEj1HC0AeGgRD2--
