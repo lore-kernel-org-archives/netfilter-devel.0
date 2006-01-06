@@ -1,18 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: fixes for ipv6 supported conntrack and libnetfilter_conntrack
-Date: Fri, 6 Jan 2006 00:16:25 +0100
-Message-ID: <20060105231625.GV4898@sunbeam.de.gnumonks.org>
-References: <200512250736.jBP7aL0B014707@toshiba.co.jp>
-	<43AF62FE.4050407@eurodev.net>
+From: Victor Julien <victor@nk.nl>
+Subject: Re: Patch for H323 connection tracking for kernel 2.6.14 and Panic
+ with SIP tracking
+Date: Fri, 06 Jan 2006 10:34:42 +0100
+Message-ID: <43BE39B2.5020605@nk.nl>
+References: <c4d05cbe0512311447v33a9cb13w4e6201c5d6ccbd00@mail.gmail.com>	<c4d05cbe0601021028x4dad0a18n2b3c1b8e10506f11@mail.gmail.com>	<43BA605E.3020801@trash.net>
+	<43BD7AF4.2040506@nk.nl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1rohIOZGhsaeEmnk"
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@eurodev.net>
-Content-Disposition: inline
-In-Reply-To: <43AF62FE.4050407@eurodev.net>
+To: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <43BD7AF4.2040506@nk.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,43 +22,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Victor Julien wrote:
+> Patrick McHardy wrote:
+> 
+>> Moises Silva wrote:
+>>
+>>> still getting kernel panic, copy the whole thing is a time consuming
+>>> task, for now doing nothing, but i have downgraded the kernel to
+>>> 2.6.13 and at least it does not kernel panics. Some one has a patch
+>>> for sip connection tracking for kernel-2.6.14??
+>>
+>>
+>>
+>> Most likely you need to change
+>>
+>>         ip_ct_refresh_acct(ct, ctinfo, NULL, sip_timeout * HZ);
+>>
+>> to
+>>
+>>         ip_ct_refresh(ct, *pskb, sip_timeout * HZ);
+>>
+>> in net/ipv4/netfilter/ip_conntrack_sip.c. If that doesn't help
+>> please post the entire oops.
+>>
+> 
+> This fix works for me!
+> 
+> Regards,
+> Victor
+> 
+> 
 
---1rohIOZGhsaeEmnk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hmmm, while it still hasn't crashed on me, i can't get it to operate
+either. I am using 2.6.15 + pom 20060101 + the above fix. I am trying to 
+get the following setup working:
 
-On Mon, Dec 26, 2005 at 04:26:54AM +0100, Pablo Neira Ayuso wrote:
+softphone (lan) --- sip proxy on gateway --- sip server (@isp)
 
-> I just committed the IPv6 support to SVN. Therefore, IMO we are ready
-> for the 1.0rc1 of the conntrack-tool, together with the new version
-> (0.0.30) of libnetfilter_conntrack. This could speed up the testing
-> process. At this point, the tool contains the features that I had in
-> mind for the 1.0 release. Harald?
+I have rules to allow port 5060/udp. I expected that by loading
+ip_conntrack_sip this rule, together with accepting
+all RELATED traffic, sip conversations would work.
 
-ok, if you don't mind I'll do te libnetfilter_conntrack and conntrack
-releases tomorrow.
+If i call a number, i see the following entry appear in
+/proc/net/ip_conntrack_expect:
+176 proto=17 src=217.66.118.164 dst=80.126.xx.xx sport=0 dport=7071
+176 proto=17 src=192.168.1.1 dst=192.168.1.2 sport=0 dport=8000
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+(lan client 192.168.1.2, firewall has 192.168.1.1 and 80.126.xx.xx, sip 
+server is 217.66.118.164).
 
---1rohIOZGhsaeEmnk
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+But the connection does not work. I have added the following rule to all 
+chains in all tables (mangle, nat, filter):
+iptables -t <table> -I <chain> 1 -m helper --helper sip
+to see if the sip match ever gets reached, but all counters remain on 0 
+all the time.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
+If i do the same for ftp, i can see the counters increase.
 
-iD8DBQFDvajJXaXGVTD0i/8RAtXdAJwMUc2UoxpJ/6ce1cwSycUPFoJzngCaA5nW
-bVEN3lyYOUvM90pMszvNFOY=
-=fNSL
------END PGP SIGNATURE-----
+Does anyone have an idea what is going wrong?
 
---1rohIOZGhsaeEmnk--
+Regards,
+Victor
