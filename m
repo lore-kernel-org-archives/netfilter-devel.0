@@ -1,11 +1,10 @@
-From: Pablo Neira Ayuso <pablo@eurodev.net>
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Subject: Re: back on track
-Date: Fri, 06 Jan 2006 18:59:44 +0100
-Message-ID: <43BEB010.9060204@eurodev.net>
+Date: Fri, 6 Jan 2006 19:57:10 +0100 (MET)
+Message-ID: <Pine.LNX.4.61.0601061903360.28630@yvahk01.tjqt.qr>
 References: <20060106171738.GI4898@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	coreteam@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -22,18 +21,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Harald!
+>Hi!
+>
+>Following my trip to India in Early December, and the preparations as
+>well as 'production' of 22C3, I'm no finally back on track.  I've read
+>my mail backlog, and I've read through the netfilter-devel mails since.
+>
+>Also, my git tree is up and working again, I've just merged x_tables
+>into current Linus' head earlier today.
+>
+I doubt that includes pkttables? :)
 
-Harald Welte wrote:
-> As for a new conntrack and libnetfilter_conntrack release: I'm just
-> waiting for Pablo's final 'go'.
 
-Please, go ahead ;). My proposition is the following release:
 
-a) libnetfilter_conntrack 0.0.30: it includes ipv6 support.
-b) conntrack 1.0.0: ipv6 support implemented.
-
-I'll be off this weekend. See you soon!
-
+Jan Engelhardt
 -- 
-Pablo
+| Alphagate Systems, http://alphagate.hopto.org/
+| jengelh's site, http://jengelh.hopto.org/
