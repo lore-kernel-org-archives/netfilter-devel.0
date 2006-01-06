@@ -1,18 +1,14 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Linux 2.6 support for "rope" match module
-Date: Fri, 6 Jan 2006 15:49:21 +0100
-Message-ID: <20060106144921.GG4898@sunbeam.de.gnumonks.org>
-References: <43BA5CCB.6050207@lowth.com>
-	<Pine.LNX.4.61.0601051117590.21555@yvahk01.tjqt.qr>
-	<43BCFE09.9070303@lowth.com>
+Subject: back on track
+Date: Fri, 6 Jan 2006 18:17:38 +0100
+Message-ID: <20060106171738.GI4898@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mESvsTwIEF2q5u1f"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="6fxres9eYHxJ4LJN"
+Cc: coreteam@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Chris Lowth <chris@lowth.com>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <43BCFE09.9070303@lowth.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,31 +21,28 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---mESvsTwIEF2q5u1f
+--6fxres9eYHxJ4LJN
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 05, 2006 at 11:07:53AM +0000, Chris Lowth wrote:
-> Jan Engelhardt wrote
->=20
-> >That almost feels like doing floating-point in kernelspace.
-> >=20
-> In what sense?
+Hi!
 
-Chris, see, you might be new to this, so I give you some hints:
+Following my trip to India in Early December, and the preparations as
+well as 'production' of 22C3, I'm no finally back on track.  I've read
+my mail backlog, and I've read through the netfilter-devel mails since.
 
-A number of people (in)frequently attempt to do a couple of things that
-just ring all the alarm bells of kernel hackers.  Some of those are:
+Also, my git tree is up and working again, I've just merged x_tables
+into current Linus' head earlier today.
 
-1) c++ in the kernel
-2) bytecode interpreters (e.g. forth) in the kernel
-3) floating point in the kernel
+If you feel like I've overlooked something on the mailinglist or in my
+inbox, this would be the time to re-transmit ;)
 
-So while your rope module might solve your problems, you will have a
-hard time finding anyone who thinks it is the right solution, and that
-is independent of whatever the problem might be.
+As for a new conntrack and libnetfilter_conntrack release: I'm just
+waiting for Pablo's final 'go'.
 
+Cheers,
+	Harald
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -60,16 +53,16 @@ is independent of whatever the problem might be.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---mESvsTwIEF2q5u1f
+--6fxres9eYHxJ4LJN
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDvoNxXaXGVTD0i/8RAliHAJ9fryTO4LrljI0V1bq2GCKJA3KJKACaAkmq
-NLR60eXPb2Nxi9/cSl9ZUFU=
-=t09o
+iD8DBQFDvqYyXaXGVTD0i/8RAozSAJ4t9SgGgv+E6xzLg7dmpY6h9hL4LgCeMDPL
+4wN6MmoHlH6uqrPStZl0rbk=
+=3VNk
 -----END PGP SIGNATURE-----
 
---mESvsTwIEF2q5u1f--
+--6fxres9eYHxJ4LJN--
