@@ -1,17 +1,18 @@
-From: Victor Julien <victor@nk.nl>
-Subject: Re: Patch for H323 connection tracking for kernel 2.6.14 and Panic
- with SIP tracking
-Date: Sat, 07 Jan 2006 10:34:22 +0100
-Message-ID: <43BF8B1E.5050500@nk.nl>
-References: <c4d05cbe0512311447v33a9cb13w4e6201c5d6ccbd00@mail.gmail.com>	<c4d05cbe0601021028x4dad0a18n2b3c1b8e10506f11@mail.gmail.com>	<43BA605E.3020801@trash.net>	<43BD7AF4.2040506@nk.nl>	<43BE39B2.5020605@nk.nl>	<43BE5B0F.8010406@trash.net>
-	<43BE6019.2020804@nk.nl> <43BF1E65.60805@trash.net>
+From: Chris Lowth <chris@lowth.com>
+Subject: Re: Linux 2.6 support for "rope" match module
+Date: Sat, 07 Jan 2006 13:37:55 +0000
+Message-ID: <43BFC433.3040102@lowth.com>
+References: <43BA5CCB.6050207@lowth.com>
+	<Pine.LNX.4.61.0601051117590.21555@yvahk01.tjqt.qr>
+	<43BCFE09.9070303@lowth.com>
+	<20060106144921.GG4898@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developers List <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <43BF1E65.60805@trash.net>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20060106144921.GG4898@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,42 +24,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Victor Julien wrote:
-> 
->>> Try to find out if the expectations ports are correct by logging
->>> the incoming traffic or using tcpdump.
->>>
->>
->> When making a call:
->>
->> # cat /proc/net/ip_conntrack_expect
->> 174 proto=17 src=217.66.118.164 dst=80.126.43.45 sport=0 dport=7071
->> 174 proto=17 src=192.168.1.1 dst=192.168.1.2 sport=0 dport=8000
->>
->> tcpdump:
->> 13:05:46.220869 IP 192.168.1.2.8000 > 192.168.1.1.7072: UDP, length: 172
->>
->> syslog:
->> Jan  6 13:05:46 sanctorium kernel: vrmr: REJECT reject-in IN=eth0 OUT= 
->> MAC=aa:00:04:00:0a:04:00:90:27:57:31:29:08:00 SRC=192.168.1.2 
->> DST=192.168.1.1 LEN=200 TOS=0x00 PREC=0x00 TTL=64 ID=401 DF PROTO=UDP 
->> SPT=8000 DPT=7072 LEN=180
->>
->> REJECT is the default policy for lan to firewall traffic.
->>
->> Can it be that the expectation direction is wrong?
->> dropped traffic is src 192.168.1.2:8000 to dst 192.168.1.1:7072
->> expect is src 192.168.1.1 to dst 192.168.1.2:8000
-> 
-> 
-> Possible. In which direction (relative to registration) does
-> the call go?
-> 
+Harald Welte wrote:
 
- From 192.168.1.2 to 217.66.118.164 via proxy 192.168.1.1. The 
-registration is in the same direction. The expectation seems to be in 
-the opposite direction.
+>Chris, see, you might be new to this, so I give you some hints:
+>
+>A number of people (in)frequently attempt to do a couple of things that
+>just ring all the alarm bells of kernel hackers.  Some of those are:
+>
+>1) c++ in the kernel
+>2) bytecode interpreters (e.g. forth) in the kernel
+>3) floating point in the kernel
+>
+>  
+>
+Harald, thanks for taking the time comment.
 
-Regards,
-Victor
+Just to say: I have endeavoured to avoid the pitfalls associated with a 
+general-purpose byte-code interpreter for the kernel. I rather see it as 
+another point at which the kernel can be instructed to take actions 
+through a user-process supplied structure - rather like routing tables, 
+and netfilter itself - it's not really the equivalent of embedding a 
+"forth" or "perl" interpreter into the kernel.
+
+I have kept the rope module language very restricted in order to make it 
+"kernel friendly". Hence...
+
+1) it has no access to any system features or data except for the packet 
+being matched and it's netfilter-related structures.
+2) it has very limited string handling capability (no buffer copying is 
+required by the vast majority of scripts) - so: no need for garbage 
+collection etc. In fact I intended to strip out string buffer copying 
+out entirely in a couple of releases time.
+3) very limited script size - scripts are typically only a few lines in 
+length.
+4) tight restrictions on the number of times a loop can "spin" - so 
+"while" loops etc cant cause blockages
+5) enforced restrictions on the number of "actions" (instructions) a 
+single script can perform.
+6) no I/O is possible
+7) no dynamic memory allocation required or allowed at run time.
+8) my target is that a rope script exeucting 5 or more steps that are 
+already available in other netfilter modules should be at least as fast 
+as a netfilter chain containing those steps. The more "steps" used in 
+the comparison - the better it gets. [though there is still scope for 
+improvement in this arena].
+
+Does this (in part, at least) address your concerns?
+
+Chris
