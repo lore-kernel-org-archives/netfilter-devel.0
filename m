@@ -1,18 +1,14 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH] x_tables, take 5 (Final Review)
-Date: Tue, 10 Jan 2006 13:18:59 +0900 (JST)
-Message-ID: <200601100418.k0A4Ixdj020936@toshiba.co.jp>
-References: <20060108212619.GE24266@sunbeam.de.gnumonks.org>
-	<200601090852.k098qjeO004027@toshiba.co.jp>
-	<20060109103504.GK24266@sunbeam.de.gnumonks.org>
+From: Tomasz =?utf-8?q?Pr=C3=B3chniak?= <develop@tstd.pl>
+Subject: libnetfilter_conntrack and port of router
+Date: Mon, 9 Jan 2006 12:30:55 +0100
+Message-ID: <200601091230.55167.develop@tstd.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net,
-	yasuyuki.kozakai@toshiba.co.jp
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20060109103504.GK24266@sunbeam.de.gnumonks.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,36 +20,62 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Mon, 9 Jan 2006 11:35:04 +0100
+Hi
 
-> > I have one more comment about need_conntrack(). The kernel with x_tables patch
-> > doesn't load nf_connrack_ipv4 when user types "iptables -A INPUT -m state...".
-> > Then no packets might be untracked after that. One solution is to try load
-> > nf_conntrack_{ipv4,ipv6} and to ignore error on load, but I'm not sure that
-> > this is the best way.
-> 
-> Mh.  Can we put this into checkentry()?  Probably there are some issues
-> with regard to locking, but it would be the logical place to do it.  We
-> [can] know whether it's an iptables or an ip6tables rule, and therefore
-> we know which tracking we want to request.
-> 
-> we should have something like a
-> "need_conntrack(int pf)" function provided by the conntrack core.  Then
-> anyone in the kernel can request something like
-> "need_conntrack(AF_INET)".
+=46irst sorry about my English.
 
-sounds good idea.
+I have a important (to me) question.
 
-> Also, my Kconfig magic (originally suggested by Rusty) doesn't seem to
-> work.  It does not automatically select the XT matches/targets based on
-> the previous IPT selections :(
+I have 2.6.14-5 kernel and libnetfilter_conntrack-0.0.28/ and=20
+libnfnetlink-0.0.13/
 
-How about this ?
-	- make {IP,IP6,ARP}_NF_IPTABLES select NETFILTER_XTABLES
-	- make IP_NF_{MATCH,TARGET}_* select NETFILTER_XT_{MATCH,TARGET}_*
-	- hide the menus for NETFILTER_XTABLES and
-	  NETFILTER_XT_{MATCH,TARGET}_*
-	- show the menus for {IP,IP6,ARP}_NF_{MATCH,TARGET}_*
+i do not know how to get info about nat (port and ip, witch it will be seen=
+ in=20
+net)
 
--- Yasuyuki Kozakai
+example: =20
+10.0.0.10:8888 ---------->10.0.0.1||88.88.88.88:3333--------->1111:22.22.22=
+=2E22
+my comp after nat            my router                         comp in net =
+ =20
+
+
+im intrasted about 88.88.88.88 and port 3333
+
+i have struct=20
+struct nfct_conntrack {
+        struct nfct_tuple tuple[NFCT_DIR_MAX];
+
+        u_int32_t       timeout;
+        u_int32_t       mark;
+        u_int32_t       status;
+        u_int32_t       use;
+        u_int32_t       id;
+
+        union nfct_protoinfo protoinfo;
+        struct nfct_counters counters[NFCT_DIR_MAX];
+        struct nfct_nat nat;       //does this info should be in this struc=
+t??
+};
+
+but this struct=20
+struct nfct_nat {
+        u_int32_t min_ip, max_ip;
+        union nfct_l4 l4min, l4max;
+};
+
+if filled with 0 :(
+
+pleas help me=20
+
+thanks Kornik
+
+
+
+
+=2D-=20
+Myli=C4=87 si=C4=99 jest rzecz=C4=85 ludzk=C4=85,
+ale =C5=BCeby naprawd=C4=99 co=C5=9B spapra=C4=87
+=C2=A0potrzeba komputera.
+
+Edward Morgan Forster
