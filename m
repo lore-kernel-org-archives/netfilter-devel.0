@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] x_tables, take 5 (Final Review)
-Date: Mon, 09 Jan 2006 00:01:24 +0100
-Message-ID: <43C199C4.2080902@trash.net>
+Date: Mon, 09 Jan 2006 07:46:44 +0100
+Message-ID: <43C206D4.6070207@trash.net>
 References: <20060108212619.GE24266@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
@@ -22,37 +22,20 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Harald Welte wrote:
-> I'm planning to submit x_tables eatly next week, so this is assumed to
-> be the final review phase.
-> 
-> So if you have any issues, please comment now before it's too late :)
+> diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
+> new file mode 100644
+> index 0000000..9a19da2
+> --- /dev/null
+> +++ b/net/netfilter/xt_helper.c
+> +static int __init init(void)
+> +{
+> +	int ret;
+> +	need_conntrack();
+> +
+> +	ret = xt_register_match(AF_INET, &helper_match);
+> +	ret = xt_register_match(AF_INET6, &helper6_match);
+> +}
+> +
 
-OK, here are a couple of more comments.
-
-- xt_owner:
-
-Unfortunately I think the owner match can't be converted to x_tables
-without breaking compatiblity with ip6_tables. The ip6_tables version
-never supported command and sid matching, so the structures differ in
-size and layout.
-
-- xt_realm:
-
-IPv6 doesn't use tclassid, so its currently useless for ip6_tables.
-Maybe keep it as an x_tables match and just don't register for
-ip6_tables.
-
-- xt_conntrack:
-
-The existing match is unfixable IPv4 specific because of address sizes,
-NAT support, ..., so it also shouldn't register for IPv6. An
-IPv6-capable version probably needs to duplicate most of the code,
-but I'd keep it as x_tables match anyway.
-
-- assertion while adding rules
-
-I get this assertion while adding rules:
-ASSERT: CPU #0, filter comefrom(ecbaf05c) = 2
-
-I assume its known because the place responsible for setting comefrom
-is surrounded by CONFIG_FIXME :) I'm going to look into fixing it.
+This function is missing a return. I also just noticed its not
+in the Makefile and has a typo: MODULE_ALIASS("ipt_helper");
