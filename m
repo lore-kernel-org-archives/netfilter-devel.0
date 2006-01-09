@@ -1,17 +1,17 @@
 From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [PATCH] x_tables, take 5 (Final Review)
-Date: Mon, 9 Jan 2006 10:19:46 +0100
-Message-ID: <20060109091946.GH24266@sunbeam.de.gnumonks.org>
+Date: Mon, 9 Jan 2006 11:35:04 +0100
+Message-ID: <20060109103504.GK24266@sunbeam.de.gnumonks.org>
 References: <20060108212619.GE24266@sunbeam.de.gnumonks.org>
-	<43C199C4.2080902@trash.net>
+	<200601090852.k098qjeO004027@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="W2ydbIOJmkm74tJ2"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="yklP1rR72f9kjNtc"
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Content-Disposition: inline
-In-Reply-To: <43C199C4.2080902@trash.net>
+In-Reply-To: <200601090852.k098qjeO004027@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,57 +24,45 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---W2ydbIOJmkm74tJ2
+--yklP1rR72f9kjNtc
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jan 09, 2006 at 12:01:24AM +0100, Patrick McHardy wrote:
-> OK, here are a couple of more comments.
+On Mon, Jan 09, 2006 at 05:52:44PM +0900, Yasuyuki KOZAKAI wrote:
+> OK, I'll test it after sending this mail. Before that I have some comments
+> about minor issues.
 
 thanks a lot.
 
-> - xt_owner:
->=20
-> Unfortunately I think the owner match can't be converted to x_tables
-> without breaking compatiblity with ip6_tables. The ip6_tables version
-> never supported command and sid matching, so the structures differ in
-> size and layout.
+> The dependency on NETFILTER_XTABLES is missing at config of
+> CLASSIFY and NOTRACK. And according to your Kconfig style, the menu item
+> for CLASSIFY should not be shown. Please apply attached patches.
 
-yes. The xt_owner file is not active and I should have deleted it from
-the tree.  As you might have noticed, ip[6]t_owner.c are still present
-and active.  I arrived at the same conclusion as you, but just never
-removed the files.  done now.
+thanks, I'll update.
 
-> - xt_realm:
->=20
-> IPv6 doesn't use tclassid, so its currently useless for ip6_tables.
-> Maybe keep it as an x_tables match and just don't register for
-> ip6_tables.
+> I have one more comment about need_conntrack(). The kernel with x_tables =
+patch
+> doesn't load nf_connrack_ipv4 when user types "iptables -A INPUT -m state=
+=2E..".
+> Then no packets might be untracked after that. One solution is to try load
+> nf_conntrack_{ipv4,ipv6} and to ignore error on load, but I'm not sure th=
+at
+> this is the best way.
 
-This is actually what it does.  only registers for AF_INET.
+Mh.  Can we put this into checkentry()?  Probably there are some issues
+with regard to locking, but it would be the logical place to do it.  We
+[can] know whether it's an iptables or an ip6tables rule, and therefore
+we know which tracking we want to request.
 
-> - xt_conntrack:
->=20
-> The existing match is unfixable IPv4 specific because of address sizes,
-> NAT support, ..., so it also shouldn't register for IPv6. An
-> IPv6-capable version probably needs to duplicate most of the code,
-> but I'd keep it as x_tables match anyway.
+we should have something like a
+"need_conntrack(int pf)" function provided by the conntrack core.  Then
+anyone in the kernel can request something like
+"need_conntrack(AF_INET)".
 
-mh, ok, removed AF_INET registration from my tree.
-
-> - assertion while adding rules
-
-oops, somebody is actually still using CONFIG_NETFILTER_DEBUG...
-
-> I get this assertion while adding rules:
-> ASSERT: CPU #0, filter comefrom(ecbaf05c) =3D 2
->=20
-> I assume its known because the place responsible for setting comefrom
-> is surrounded by CONFIG_FIXME :) I'm going to look into fixing it.
-
-Well, if you look into that, I'll rather work on something else now.
-Just send me a patch :)
+Also, my Kconfig magic (originally suggested by Rusty) doesn't seem to
+work.  It does not automatically select the XT matches/targets based on
+the previous IPT selections :(
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -86,7 +74,7 @@ Just send me a patch :)
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---W2ydbIOJmkm74tJ2
+--yklP1rR72f9kjNtc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -94,9 +82,9 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFDwiqyXaXGVTD0i/8RAh9EAJ4xi98000GBjTWXvyaUETSdFXKQuwCfQz/0
-gXsxtQW7Z4yEvp5b4by0/I8=
-=EHJw
+iD8DBQFDwjxYXaXGVTD0i/8RAqMeAKCVnsemiwOU1rN4oxvzUmjpYAxaZgCeN3xk
+AlIETc6rY8kMIb3exdj2rR8=
+=hg3U
 -----END PGP SIGNATURE-----
 
---W2ydbIOJmkm74tJ2--
+--yklP1rR72f9kjNtc--
