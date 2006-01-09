@@ -1,16 +1,18 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [PATCH] x_tables, take 5 (Final Review)
-Date: Mon, 09 Jan 2006 12:23:59 +0100
-Message-ID: <43C247CF.2000608@cosmosbay.com>
+Date: Mon, 9 Jan 2006 14:15:07 +0100
+Message-ID: <20060109131507.GN24266@sunbeam.de.gnumonks.org>
 References: <20060108212619.GE24266@sunbeam.de.gnumonks.org>
+	<43C247CF.2000608@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wg9FEZT+WCTrEXgJ"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	Patrick McHardy <kaber@trash.net>
-In-Reply-To: <20060108212619.GE24266@sunbeam.de.gnumonks.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Eric Dumazet <dada1@cosmosbay.com>
+Content-Disposition: inline
+In-Reply-To: <43C247CF.2000608@cosmosbay.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,57 +24,70 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte a =E9crit :
-> Hi!
+
+--wg9FEZT+WCTrEXgJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Jan 09, 2006 at 12:23:59PM +0100, Eric Dumazet wrote:
+> Hi Harald
 >=20
-> It's been some time since I last released a version of the x_tables
-> patch.  This is mainly due to the reason that 2.6.15 has only been
-> released recently, and x_tables was clearly 2.6.16 work.
+> Is there any chance we can get rid of the rwlock_t lock in 'struct=20
+> xt_table' ?
+> (Replacing it by an array of spinlocks)
 >=20
-> I've modified nfsim and the nfsim-testsuite to work with an x_tables
-> kernel, and all tests now pass without any problem (using an old
-> iptables binary that was compiled against a non-xtables kernel). This,
-> in addition to my manual tests, give me enough confidence that I didn't
-> break something significant.
->=20
-> I'm planning to submit x_tables eatly next week, so this is assumed to
-> be the final review phase.
->=20
-> So if you have any issues, please comment now before it's too late :)
->=20
-Hi Harald
+>     /* Lock for the curtain */
+> -   rwlock_t lock;
+> +   spinlock_t *lockp;
 
-Is there any chance we can get rid of the rwlock_t lock in 'struct xt_tab=
-le' ?
-(Replacing it by an array of spinlocks)
+should work.  But I don't want this to hold back x_tables, which
+otherwise seems functional.  Also, it uses the same mechanism as
+ip_tables, so there shouldn't be any performance impact.
 
-     /* Lock for the curtain */
--   rwlock_t lock;
-+   spinlock_t *lockp;
+We can always improve performance with incremental patches later on.
 
-
-
-Pros :
-
-   1) No more cache line ping pongs between cpus. A read_lock_bh(&table->=
-lock)=20
-is still expensive because of that.
-
-   2) spinlocks are less expensive (spin_unlock is not an atomic op like=20
-read_unlock_bh()
-
-On a dual processor machine, its quite common that all incoming frames ar=
+> On a dual processor machine, its quite common that all incoming frames ar=
 e=20
-handled by CPU 0, while CPU 1 is doing the User level stuff and sends net=
-work=20
-trafic...
+> handled by CPU 0, while CPU 1 is doing the User level stuff and sends=20
+> network trafic...
 
-Thank you
+depends on how many NIC's you have and how your irq routing is
+configured.
 
-( I had a patch sent in September which was doing quite the same thing on=
+> ( I had a patch sent in September which was doing quite the same thing on=
 =20
-ipt_tables, but keeping the rwlock_t : Correct me but I think we can just=
- use=20
-spinlocks)
+> ipt_tables, but keeping the rwlock_t : Correct me but I think we can just=
+=20
+> use spinlocks)
 
-Eric
+If you want to cook up an x_tables based patch, I'd be happy to give it
+some testing.=20
+
+Thanks,
+	Harald
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--wg9FEZT+WCTrEXgJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFDwmHbXaXGVTD0i/8RAjrsAJ9pk0KB9Kvt2pD7BLbNc+S3RyGwBwCfdPvp
+2B3nWzcf7XvgNqAJmsklLX8=
+=drJR
+-----END PGP SIGNATURE-----
+
+--wg9FEZT+WCTrEXgJ--
