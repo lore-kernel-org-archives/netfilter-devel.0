@@ -1,17 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
+From: Eric Dumazet <dada1@cosmosbay.com>
 Subject: Re: [PATCH] x_tables, take 5 (Final Review)
-Date: Mon, 9 Jan 2006 11:35:04 +0100
-Message-ID: <20060109103504.GK24266@sunbeam.de.gnumonks.org>
+Date: Mon, 09 Jan 2006 12:23:59 +0100
+Message-ID: <43C247CF.2000608@cosmosbay.com>
 References: <20060108212619.GE24266@sunbeam.de.gnumonks.org>
-	<200601090852.k098qjeO004027@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="yklP1rR72f9kjNtc"
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Content-Disposition: inline
-In-Reply-To: <200601090852.k098qjeO004027@toshiba.co.jp>
+To: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+In-Reply-To: <20060108212619.GE24266@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,68 +22,57 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte a =E9crit :
+> Hi!
+>=20
+> It's been some time since I last released a version of the x_tables
+> patch.  This is mainly due to the reason that 2.6.15 has only been
+> released recently, and x_tables was clearly 2.6.16 work.
+>=20
+> I've modified nfsim and the nfsim-testsuite to work with an x_tables
+> kernel, and all tests now pass without any problem (using an old
+> iptables binary that was compiled against a non-xtables kernel). This,
+> in addition to my manual tests, give me enough confidence that I didn't
+> break something significant.
+>=20
+> I'm planning to submit x_tables eatly next week, so this is assumed to
+> be the final review phase.
+>=20
+> So if you have any issues, please comment now before it's too late :)
+>=20
+Hi Harald
 
---yklP1rR72f9kjNtc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Is there any chance we can get rid of the rwlock_t lock in 'struct xt_tab=
+le' ?
+(Replacing it by an array of spinlocks)
 
-On Mon, Jan 09, 2006 at 05:52:44PM +0900, Yasuyuki KOZAKAI wrote:
-> OK, I'll test it after sending this mail. Before that I have some comments
-> about minor issues.
+     /* Lock for the curtain */
+-   rwlock_t lock;
++   spinlock_t *lockp;
 
-thanks a lot.
 
-> The dependency on NETFILTER_XTABLES is missing at config of
-> CLASSIFY and NOTRACK. And according to your Kconfig style, the menu item
-> for CLASSIFY should not be shown. Please apply attached patches.
 
-thanks, I'll update.
+Pros :
 
-> I have one more comment about need_conntrack(). The kernel with x_tables =
-patch
-> doesn't load nf_connrack_ipv4 when user types "iptables -A INPUT -m state=
-=2E..".
-> Then no packets might be untracked after that. One solution is to try load
-> nf_conntrack_{ipv4,ipv6} and to ignore error on load, but I'm not sure th=
-at
-> this is the best way.
+   1) No more cache line ping pongs between cpus. A read_lock_bh(&table->=
+lock)=20
+is still expensive because of that.
 
-Mh.  Can we put this into checkentry()?  Probably there are some issues
-with regard to locking, but it would be the logical place to do it.  We
-[can] know whether it's an iptables or an ip6tables rule, and therefore
-we know which tracking we want to request.
+   2) spinlocks are less expensive (spin_unlock is not an atomic op like=20
+read_unlock_bh()
 
-we should have something like a
-"need_conntrack(int pf)" function provided by the conntrack core.  Then
-anyone in the kernel can request something like
-"need_conntrack(AF_INET)".
+On a dual processor machine, its quite common that all incoming frames ar=
+e=20
+handled by CPU 0, while CPU 1 is doing the User level stuff and sends net=
+work=20
+trafic...
 
-Also, my Kconfig magic (originally suggested by Rusty) doesn't seem to
-work.  It does not automatically select the XT matches/targets based on
-the previous IPT selections :(
+Thank you
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+( I had a patch sent in September which was doing quite the same thing on=
+=20
+ipt_tables, but keeping the rwlock_t : Correct me but I think we can just=
+ use=20
+spinlocks)
 
---yklP1rR72f9kjNtc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDwjxYXaXGVTD0i/8RAqMeAKCVnsemiwOU1rN4oxvzUmjpYAxaZgCeN3xk
-AlIETc6rY8kMIb3exdj2rR8=
-=hg3U
------END PGP SIGNATURE-----
-
---yklP1rR72f9kjNtc--
+Eric
