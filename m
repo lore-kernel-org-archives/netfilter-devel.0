@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/05]: Fix another crash in ip_nat_pptp
-Date: Tue, 10 Jan 2006 01:38:40 +0100
-Message-ID: <20060110003840.9105.74545.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 05/05]: Remove unused function from NAT protocol helpers
+Date: Tue, 10 Jan 2006 01:38:43 +0100
+Message-ID: <20060110003843.9105.17212.sendpatchset@localhost.localdomain>
 References: <20060110003838.9105.8158.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,157 +18,289 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Fix another crash in ip_nat_pptp
+[NETFILTER]: Remove unused function from NAT protocol helpers
 
-The PPTP NAT helper calculates the offset at which the packet needs
-to be mangled as difference between two pointers to the header. With
-non-linear skbs however the pointers may point to two seperate buffers
-on the stack and the calculation results in a wrong offset beeing
-used.
+->print and ->print_range are not used (and apparently never were).
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit dd180da32f914c0a56e3d75f84b898db7e2910c3
-tree dc2a60841e76a0843b17782ac355f54b5fa80c96
-parent 6c97b3d460f11d5223f16d02d5369f278a621866
-author Patrick McHardy <kaber@trash.net> Sat, 07 Jan 2006 21:00:03 +0100
-committer Patrick McHardy <kaber@trash.net> Sat, 07 Jan 2006 21:00:03 +0100
+commit 2d7be102c6e62236562415d7beacd790cc6504f4
+tree e77e60cd6294f94e1ad3bd7f99aafcee18b28750
+parent 80996cd784ba8851c0cf72ace29f410446d079e0
+author Patrick McHardy <kaber@trash.net> Sun, 08 Jan 2006 06:42:07 +0100
+committer Patrick McHardy <kaber@trash.net> Sun, 08 Jan 2006 06:42:07 +0100
 
- net/ipv4/netfilter/ip_nat_helper_pptp.c |   57 +++++++++++++++----------------
- 1 files changed, 27 insertions(+), 30 deletions(-)
+ include/linux/netfilter_ipv4/ip_nat_protocol.h |    7 ----
+ net/ipv4/netfilter/ip_nat_proto_gre.c          |   38 ------------------------
+ net/ipv4/netfilter/ip_nat_proto_icmp.c         |   34 ---------------------
+ net/ipv4/netfilter/ip_nat_proto_tcp.c          |   36 -----------------------
+ net/ipv4/netfilter/ip_nat_proto_udp.c          |   36 -----------------------
+ net/ipv4/netfilter/ip_nat_proto_unknown.c      |   16 ----------
+ 6 files changed, 0 insertions(+), 167 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_nat_helper_pptp.c b/net/ipv4/netfilter/ip_nat_helper_pptp.c
-index 8ad7b36..50960cb 100644
---- a/net/ipv4/netfilter/ip_nat_helper_pptp.c
-+++ b/net/ipv4/netfilter/ip_nat_helper_pptp.c
-@@ -148,14 +148,14 @@ pptp_outbound_pkt(struct sk_buff **pskb,
- {
- 	struct ip_ct_pptp_master *ct_pptp_info = &ct->help.ct_pptp_info;
- 	struct ip_nat_pptp *nat_pptp_info = &ct->nat.help.nat_pptp_info;
+diff --git a/include/linux/netfilter_ipv4/ip_nat_protocol.h b/include/linux/netfilter_ipv4/ip_nat_protocol.h
+index ef63aa9..612a436 100644
+--- a/include/linux/netfilter_ipv4/ip_nat_protocol.h
++++ b/include/linux/netfilter_ipv4/ip_nat_protocol.h
+@@ -42,13 +42,6 @@ struct ip_nat_protocol
+ 			    enum ip_nat_manip_type maniptype,
+ 			    const struct ip_conntrack *conntrack);
+ 
+-	unsigned int (*print)(char *buffer,
+-			      const struct ip_conntrack_tuple *match,
+-			      const struct ip_conntrack_tuple *mask);
 -
--	u_int16_t msg, *cid = NULL, new_callid;
-+	u_int16_t msg, new_callid;
-+	unsigned int cid_off;
- 
- 	new_callid = htons(ct_pptp_info->pns_call_id);
- 	
- 	switch (msg = ntohs(ctlh->messageType)) {
- 		case PPTP_OUT_CALL_REQUEST:
--			cid = &pptpReq->ocreq.callID;
-+			cid_off = offsetof(union pptp_ctrl_union, ocreq.callID);
- 			/* FIXME: ideally we would want to reserve a call ID
- 			 * here.  current netfilter NAT core is not able to do
- 			 * this :( For now we use TCP source port. This breaks
-@@ -172,10 +172,10 @@ pptp_outbound_pkt(struct sk_buff **pskb,
- 			ct_pptp_info->pns_call_id = ntohs(new_callid);
- 			break;
- 		case PPTP_IN_CALL_REPLY:
--			cid = &pptpReq->icreq.callID;
-+			cid_off = offsetof(union pptp_ctrl_union, icreq.callID);
- 			break;
- 		case PPTP_CALL_CLEAR_REQUEST:
--			cid = &pptpReq->clrreq.callID;
-+			cid_off = offsetof(union pptp_ctrl_union, clrreq.callID);
- 			break;
- 		default:
- 			DEBUGP("unknown outbound packet 0x%04x:%s\n", msg,
-@@ -197,18 +197,15 @@ pptp_outbound_pkt(struct sk_buff **pskb,
- 
- 	/* only OUT_CALL_REQUEST, IN_CALL_REPLY, CALL_CLEAR_REQUEST pass
- 	 * down to here */
+-	unsigned int (*print_range)(char *buffer,
+-				    const struct ip_nat_range *range);
 -
--	IP_NF_ASSERT(cid);
+ 	int (*range_to_nfattr)(struct sk_buff *skb,
+ 			       const struct ip_nat_range *range);
+ 
+diff --git a/net/ipv4/netfilter/ip_nat_proto_gre.c b/net/ipv4/netfilter/ip_nat_proto_gre.c
+index f7cad7c..6c4899d 100644
+--- a/net/ipv4/netfilter/ip_nat_proto_gre.c
++++ b/net/ipv4/netfilter/ip_nat_proto_gre.c
+@@ -151,42 +151,6 @@ gre_manip_pkt(struct sk_buff **pskb,
+ 	return 1;
+ }
+ 
+-/* print out a nat tuple */
+-static unsigned int 
+-gre_print(char *buffer, 
+-	  const struct ip_conntrack_tuple *match,
+-	  const struct ip_conntrack_tuple *mask)
+-{
+-	unsigned int len = 0;
 -
- 	DEBUGP("altering call id from 0x%04x to 0x%04x\n",
--		ntohs(*cid), ntohs(new_callid));
-+		ntohs(*(u_int16_t *)pptpReq + cid_off), ntohs(new_callid));
+-	if (mask->src.u.gre.key)
+-		len += sprintf(buffer + len, "srckey=0x%x ", 
+-				ntohl(match->src.u.gre.key));
+-
+-	if (mask->dst.u.gre.key)
+-		len += sprintf(buffer + len, "dstkey=0x%x ",
+-				ntohl(match->src.u.gre.key));
+-
+-	return len;
+-}
+-
+-/* print a range of keys */
+-static unsigned int 
+-gre_print_range(char *buffer, const struct ip_nat_range *range)
+-{
+-	if (range->min.gre.key != 0 
+-	    || range->max.gre.key != 0xFFFF) {
+-		if (range->min.gre.key == range->max.gre.key)
+-			return sprintf(buffer, "key 0x%x ",
+-					ntohl(range->min.gre.key));
+-		else
+-			return sprintf(buffer, "keys 0x%u-0x%u ",
+-					ntohl(range->min.gre.key),
+-					ntohl(range->max.gre.key));
+-	} else
+-		return 0;
+-}
+-
+ /* nat helper struct */
+ static struct ip_nat_protocol gre = { 
+ 	.name		= "GRE", 
+@@ -194,8 +158,6 @@ static struct ip_nat_protocol gre = { 
+ 	.manip_pkt	= gre_manip_pkt,
+ 	.in_range	= gre_in_range,
+ 	.unique_tuple	= gre_unique_tuple,
+-	.print		= gre_print,
+-	.print_range	= gre_print_range,
+ #if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
+     defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
+ 	.range_to_nfattr	= ip_nat_port_range_to_nfattr,
+diff --git a/net/ipv4/netfilter/ip_nat_proto_icmp.c b/net/ipv4/netfilter/ip_nat_proto_icmp.c
+index 9387190..31a3f4c 100644
+--- a/net/ipv4/netfilter/ip_nat_proto_icmp.c
++++ b/net/ipv4/netfilter/ip_nat_proto_icmp.c
+@@ -74,38 +74,6 @@ icmp_manip_pkt(struct sk_buff **pskb,
+ 	return 1;
+ }
  
- 	/* mangle packet */
- 	if (ip_nat_mangle_tcp_packet(pskb, ct, ctinfo,
--		(void *)cid - ((void *)ctlh - sizeof(struct pptp_pkt_hdr)),
--				 	sizeof(new_callid), 
--					(char *)&new_callid,
--				 	sizeof(new_callid)) == 0)
-+	                             cid_off + sizeof(struct pptp_pkt_hdr) +
-+	                             sizeof(struct PptpControlHeader),
-+	                             sizeof(new_callid), (char *)&new_callid,
-+	                             sizeof(new_callid)) == 0)
- 		return NF_DROP;
+-static unsigned int
+-icmp_print(char *buffer,
+-	   const struct ip_conntrack_tuple *match,
+-	   const struct ip_conntrack_tuple *mask)
+-{
+-	unsigned int len = 0;
+-
+-	if (mask->src.u.icmp.id)
+-		len += sprintf(buffer + len, "id=%u ",
+-			       ntohs(match->src.u.icmp.id));
+-
+-	if (mask->dst.u.icmp.type)
+-		len += sprintf(buffer + len, "type=%u ",
+-			       ntohs(match->dst.u.icmp.type));
+-
+-	if (mask->dst.u.icmp.code)
+-		len += sprintf(buffer + len, "code=%u ",
+-			       ntohs(match->dst.u.icmp.code));
+-
+-	return len;
+-}
+-
+-static unsigned int
+-icmp_print_range(char *buffer, const struct ip_nat_range *range)
+-{
+-	if (range->min.icmp.id != 0 || range->max.icmp.id != 0xFFFF)
+-		return sprintf(buffer, "id %u-%u ",
+-			       ntohs(range->min.icmp.id),
+-			       ntohs(range->max.icmp.id));
+-	else return 0;
+-}
+-
+ struct ip_nat_protocol ip_nat_protocol_icmp = {
+ 	.name			= "ICMP",
+ 	.protonum		= IPPROTO_ICMP,
+@@ -113,8 +81,6 @@ struct ip_nat_protocol ip_nat_protocol_i
+ 	.manip_pkt		= icmp_manip_pkt,
+ 	.in_range		= icmp_in_range,
+ 	.unique_tuple		= icmp_unique_tuple,
+-	.print			= icmp_print,
+-	.print_range		= icmp_print_range,
+ #if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
+     defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
+ 	.range_to_nfattr	= ip_nat_port_range_to_nfattr,
+diff --git a/net/ipv4/netfilter/ip_nat_proto_tcp.c b/net/ipv4/netfilter/ip_nat_proto_tcp.c
+index 1d381bf..a3d1407 100644
+--- a/net/ipv4/netfilter/ip_nat_proto_tcp.c
++++ b/net/ipv4/netfilter/ip_nat_proto_tcp.c
+@@ -136,40 +136,6 @@ tcp_manip_pkt(struct sk_buff **pskb,
+ 	return 1;
+ }
  
- 	return NF_ACCEPT;
-@@ -299,7 +296,8 @@ pptp_inbound_pkt(struct sk_buff **pskb,
- 		 union pptp_ctrl_union *pptpReq)
- {
- 	struct ip_nat_pptp *nat_pptp_info = &ct->nat.help.nat_pptp_info;
--	u_int16_t msg, new_cid = 0, new_pcid, *pcid = NULL, *cid = NULL;
-+	u_int16_t msg, new_cid = 0, new_pcid;
-+	unsigned int pcid_off, cid_off = 0;
+-static unsigned int
+-tcp_print(char *buffer,
+-	  const struct ip_conntrack_tuple *match,
+-	  const struct ip_conntrack_tuple *mask)
+-{
+-	unsigned int len = 0;
+-
+-	if (mask->src.u.tcp.port)
+-		len += sprintf(buffer + len, "srcpt=%u ",
+-			       ntohs(match->src.u.tcp.port));
+-
+-
+-	if (mask->dst.u.tcp.port)
+-		len += sprintf(buffer + len, "dstpt=%u ",
+-			       ntohs(match->dst.u.tcp.port));
+-
+-	return len;
+-}
+-
+-static unsigned int
+-tcp_print_range(char *buffer, const struct ip_nat_range *range)
+-{
+-	if (range->min.tcp.port != 0 || range->max.tcp.port != 0xFFFF) {
+-		if (range->min.tcp.port == range->max.tcp.port)
+-			return sprintf(buffer, "port %u ",
+-				       ntohs(range->min.tcp.port));
+-		else
+-			return sprintf(buffer, "ports %u-%u ",
+-				       ntohs(range->min.tcp.port),
+-				       ntohs(range->max.tcp.port));
+-	}
+-	else return 0;
+-}
+-
+ struct ip_nat_protocol ip_nat_protocol_tcp = {
+ 	.name			= "TCP",
+ 	.protonum		= IPPROTO_TCP,
+@@ -177,8 +143,6 @@ struct ip_nat_protocol ip_nat_protocol_t
+ 	.manip_pkt		= tcp_manip_pkt,
+ 	.in_range		= tcp_in_range,
+ 	.unique_tuple		= tcp_unique_tuple,
+-	.print			= tcp_print,
+-	.print_range		= tcp_print_range,
+ #if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
+     defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
+ 	.range_to_nfattr	= ip_nat_port_range_to_nfattr,
+diff --git a/net/ipv4/netfilter/ip_nat_proto_udp.c b/net/ipv4/netfilter/ip_nat_proto_udp.c
+index c4906e1..ec6053f 100644
+--- a/net/ipv4/netfilter/ip_nat_proto_udp.c
++++ b/net/ipv4/netfilter/ip_nat_proto_udp.c
+@@ -122,40 +122,6 @@ udp_manip_pkt(struct sk_buff **pskb,
+ 	return 1;
+ }
  
- 	int ret = NF_ACCEPT, rv;
+-static unsigned int
+-udp_print(char *buffer,
+-	  const struct ip_conntrack_tuple *match,
+-	  const struct ip_conntrack_tuple *mask)
+-{
+-	unsigned int len = 0;
+-
+-	if (mask->src.u.udp.port)
+-		len += sprintf(buffer + len, "srcpt=%u ",
+-			       ntohs(match->src.u.udp.port));
+-
+-
+-	if (mask->dst.u.udp.port)
+-		len += sprintf(buffer + len, "dstpt=%u ",
+-			       ntohs(match->dst.u.udp.port));
+-
+-	return len;
+-}
+-
+-static unsigned int
+-udp_print_range(char *buffer, const struct ip_nat_range *range)
+-{
+-	if (range->min.udp.port != 0 || range->max.udp.port != 0xFFFF) {
+-		if (range->min.udp.port == range->max.udp.port)
+-			return sprintf(buffer, "port %u ",
+-				       ntohs(range->min.udp.port));
+-		else
+-			return sprintf(buffer, "ports %u-%u ",
+-				       ntohs(range->min.udp.port),
+-				       ntohs(range->max.udp.port));
+-	}
+-	else return 0;
+-}
+-
+ struct ip_nat_protocol ip_nat_protocol_udp = {
+ 	.name			= "UDP",
+ 	.protonum		= IPPROTO_UDP,
+@@ -163,8 +129,6 @@ struct ip_nat_protocol ip_nat_protocol_u
+ 	.manip_pkt		= udp_manip_pkt,
+ 	.in_range		= udp_in_range,
+ 	.unique_tuple		= udp_unique_tuple,
+-	.print			= udp_print,
+-	.print_range		= udp_print_range,
+ #if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
+     defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
+ 	.range_to_nfattr	= ip_nat_port_range_to_nfattr,
+diff --git a/net/ipv4/netfilter/ip_nat_proto_unknown.c b/net/ipv4/netfilter/ip_nat_proto_unknown.c
+index f0099a6..3bf0495 100644
+--- a/net/ipv4/netfilter/ip_nat_proto_unknown.c
++++ b/net/ipv4/netfilter/ip_nat_proto_unknown.c
+@@ -46,26 +46,10 @@ unknown_manip_pkt(struct sk_buff **pskb,
+ 	return 1;
+ }
  
-@@ -307,23 +305,23 @@ pptp_inbound_pkt(struct sk_buff **pskb,
- 
- 	switch (msg = ntohs(ctlh->messageType)) {
- 	case PPTP_OUT_CALL_REPLY:
--		pcid = &pptpReq->ocack.peersCallID;	
--		cid = &pptpReq->ocack.callID;
-+		pcid_off = offsetof(union pptp_ctrl_union, ocack.peersCallID);
-+		cid_off = offsetof(union pptp_ctrl_union, ocack.callID);
- 		break;
- 	case PPTP_IN_CALL_CONNECT:
--		pcid = &pptpReq->iccon.peersCallID;
-+		pcid_off = offsetof(union pptp_ctrl_union, iccon.peersCallID);
- 		break;
- 	case PPTP_IN_CALL_REQUEST:
- 		/* only need to nat in case PAC is behind NAT box */
- 		return NF_ACCEPT;
- 	case PPTP_WAN_ERROR_NOTIFY:
--		pcid = &pptpReq->wanerr.peersCallID;
-+		pcid_off = offsetof(union pptp_ctrl_union, wanerr.peersCallID);
- 		break;
- 	case PPTP_CALL_DISCONNECT_NOTIFY:
--		pcid = &pptpReq->disc.callID;
-+		pcid_off = offsetof(union pptp_ctrl_union, disc.callID);
- 		break;
- 	case PPTP_SET_LINK_INFO:
--		pcid = &pptpReq->setlink.peersCallID;
-+		pcid_off = offsetof(union pptp_ctrl_union, setlink.peersCallID);
- 		break;
- 
- 	default:
-@@ -345,25 +343,24 @@ pptp_inbound_pkt(struct sk_buff **pskb,
- 	 * WAN_ERROR_NOTIFY, CALL_DISCONNECT_NOTIFY pass down here */
- 
- 	/* mangle packet */
--	IP_NF_ASSERT(pcid);
- 	DEBUGP("altering peer call id from 0x%04x to 0x%04x\n",
--		ntohs(*pcid), ntohs(new_pcid));
-+		ntohs(*(u_int16_t *)pptpReq + pcid_off), ntohs(new_pcid));
- 	
--	rv = ip_nat_mangle_tcp_packet(pskb, ct, ctinfo, 
--				      (void *)pcid - ((void *)ctlh - sizeof(struct pptp_pkt_hdr)),
-+	rv = ip_nat_mangle_tcp_packet(pskb, ct, ctinfo,
-+	                              pcid_off + sizeof(struct pptp_pkt_hdr) +
-+				      sizeof(struct PptpControlHeader),
- 				      sizeof(new_pcid), (char *)&new_pcid, 
- 				      sizeof(new_pcid));
- 	if (rv != NF_ACCEPT) 
- 		return rv;
- 
- 	if (new_cid) {
--		IP_NF_ASSERT(cid);
- 		DEBUGP("altering call id from 0x%04x to 0x%04x\n",
--			ntohs(*cid), ntohs(new_cid));
--		rv = ip_nat_mangle_tcp_packet(pskb, ct, ctinfo, 
--					      (void *)cid - ((void *)ctlh - sizeof(struct pptp_pkt_hdr)), 
--					      sizeof(new_cid),
--					      (char *)&new_cid, 
-+			ntohs(*(u_int16_t *)pptpReq + cid_off), ntohs(new_cid));
-+		rv = ip_nat_mangle_tcp_packet(pskb, ct, ctinfo,
-+		                              cid_off + sizeof(struct pptp_pkt_hdr) +
-+					      sizeof(struct PptpControlHeader),
-+					      sizeof(new_cid), (char *)&new_cid, 
- 					      sizeof(new_cid));
- 		if (rv != NF_ACCEPT)
- 			return rv;
+-static unsigned int
+-unknown_print(char *buffer,
+-	      const struct ip_conntrack_tuple *match,
+-	      const struct ip_conntrack_tuple *mask)
+-{
+-	return 0;
+-}
+-
+-static unsigned int
+-unknown_print_range(char *buffer, const struct ip_nat_range *range)
+-{
+-	return 0;
+-}
+-
+ struct ip_nat_protocol ip_nat_unknown_protocol = {
+ 	.name			= "unknown",
+ 	/* .me isn't set: getting a ref to this cannot fail. */
+ 	.manip_pkt		= unknown_manip_pkt,
+ 	.in_range		= unknown_in_range,
+ 	.unique_tuple		= unknown_unique_tuple,
+-	.print			= unknown_print,
+-	.print_range		= unknown_print_range
+ };
