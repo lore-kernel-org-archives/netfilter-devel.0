@@ -1,17 +1,12 @@
-From: Sven Wandersleb <sven.wandersleb@gmail.com>
-Subject: Re: bidirectional ip_conntrack_irc
-Date: Wed, 11 Jan 2006 02:07:23 +0100
-Message-ID: <4dc54d760601101707k1971896dx600e15af5b209a1e@mail.gmail.com>
-References: <4dc54d760512300911o5c386f4n76c07d078d5142f8@mail.gmail.com>
-	<43BA675A.70101@trash.net>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
+Subject: [PATCH] fix undefined symbols
+Date: Wed, 11 Jan 2006 16:36:30 +0100
+Message-ID: <43C525FE.8080607@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <43BA675A.70101@trash.net>
-Content-Disposition: inline
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,29 +18,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> > is there any Plans to get ip_conntrack_irc working in both directions?
-> > Its sad to have connections called NEW, if in fact they are RELATED.
->
-> What do you mean by "both directions"?
+Hi,
 
-ip_conntrack_irc only tracks my DCC connections when i send files to
-others on  irc. This is necessary because there needs to be a port on
-my NAT forwarded to my computer so that the otherone can connect.
+with 2.5.15-git7 I get the following warning:
 
-If i receive a file from another user its not necesarry to open any
-ports, so this is ignored by ip_conntrack_irc. Yet the connection is
-(or imho should be considered) related to the main irc connection.
+*** Warning: "compare_ether_addr" [net/ipv6/netfilter/ip6t_mac.ko] undefined!
+*** Warning: "compare_ether_addr" [net/bridge/netfilter/ebt_stp.ko] undefined!
 
-> - mark master conntrack, related connections will inheirit the mark
-> iptables -t mangle -A POSTROUTING -p tcp --dport 6667 -j CONNMARK
-> --set-mark 0x1
+The following patch fixes it.
 
-This marks all my normal irc-traffic, but not my incoming DCC transfers
+Regards,
+Carl-Daniel
 
-> - mark related connections registered by the irc helper
-> iptables -t mangle -A PREROUTING -m state --state RELATED -m helper
-> --helper "irc" -j CONNMARK --set-mark 0x1
 
-This worked well for sending files via DCC, but not for receiving.
+Signed-off-by: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
 
-Its really hard to catch those DCC connections, as they use random ports.
+--- linux-2.6.15/net/ipv6/netfilter/ip6t_mac.c~	2006-01-11 13:12:16.000000000 +0100
++++ linux-2.6.15/net/ipv6/netfilter/ip6t_mac.c	2006-01-11 14:54:01.000000000 +0100
+@@ -11,6 +11,7 @@
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+ #include <linux/if_ether.h>
++#include <linux/etherdevice.h>
+ 
+ #include <linux/netfilter_ipv6/ip6t_mac.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+--- linux-2.6.15/net/bridge/netfilter/ebt_stp.c~	2006-01-11 13:12:14.000000000 +0100
++++ linux-2.6.15/net/bridge/netfilter/ebt_stp.c	2006-01-11 14:53:33.000000000 +0100
+@@ -11,6 +11,7 @@
+ #include <linux/netfilter_bridge/ebtables.h>
+ #include <linux/netfilter_bridge/ebt_stp.h>
+ #include <linux/module.h>
++#include <linux/etherdevice.h>
+ 
+ #define BPDU_TYPE_CONFIG 0
+ #define BPDU_TYPE_TCN 0x80
