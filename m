@@ -1,10 +1,10 @@
-From: Stephen Hemminger <shemminger@osdl.org>
-Subject: Recent changes break build if IPV6 is modular?
-Date: Tue, 10 Jan 2006 15:41:46 -0800
-Message-ID: <20060110154146.609408b0@dxpl.pdx.osdl.net>
+From: "Marco Berizzi" <pupilla@hotmail.com>
+Subject: "local_bh_disable" [net/ipv4/netfilter/ip_conntrack_pptp.ko]
+	undefined!
+Date: Wed, 11 Jan 2006 10:49:12 +0100
+Message-ID: <BAY103-F14AC8393B0461DA69156BCB2240@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,15 +18,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In my config ipv6 is a module, but the netfilter code is not.
-Therefore the reference to ip6_output in ipv6/netfilter.c 
-doesn't work.
+I'm compiling pptp conntrack/nat as module and I getting this warning:
 
-net/built-in.o(.text+0x5d81b): In function `ip6_route_me_harder':
-net/ipv6/netfilter.c:23: undefined reference to `ip6_route_output'
-net/built-in.o(.text+0x5d888):net/ipv6/netfilter.c:33: undefined reference to `ipv6_statistics'
+make modules output:
 
+  CC [M]  net/ipv4/netfilter/ip_conntrack_helper_pptp.o
+  CC [M]  net/ipv4/netfilter/ip_conntrack_proto_gre.o
+net/ipv4/netfilter/ip_conntrack_proto_gre.c: In function 
+`gre_keymap_lookup':
+net/ipv4/netfilter/ip_conntrack_proto_gre.c:84: warning: implicit 
+declaration of function `local_bh_disable'
+net/ipv4/netfilter/ip_conntrack_proto_gre.c:89: warning: implicit 
+declaration of function `local_bh_enable'
+  CC [M]  net/ipv4/netfilter/ip_nat_helper_pptp.o
+  CC [M]  net/ipv4/netfilter/ip_nat_proto_gre.o
+  LD [M]  net/ipv4/netfilter/ip_conntrack_pptp.o
+  CC [M]  net/ipv4/netfilter/ip_conntrack_tftp.o
+  CC [M]  net/ipv4/netfilter/ip_conntrack_ftp.o
+  LD [M]  net/ipv4/netfilter/ip_nat_pptp.o
+  CC [M]  net/ipv4/netfilter/ip_nat_tftp.o
+  CC [M]  net/ipv4/netfilter/ip_nat_ftp.o
+[...]
+  CC [M]  lib/libcrc32c.o
+  Building modules, stage 2.
+  MODPOST
+*** Warning: "local_bh_disable" [net/ipv4/netfilter/ip_conntrack_pptp.ko] 
+undefined!
+  CC      drivers/block/floppy.mod.o
 
--- 
-Stephen Hemminger <shemminger@osdl.org>
-OSDL http://developer.osdl.org/~shemminger
+Linux is 2.6.15-git7 compiled on Slackware 10.2 (gcc 3.3.6 glibc 2.3.5)
