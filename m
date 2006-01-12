@@ -1,15 +1,14 @@
-From: "Marco Berizzi" <pupilla@hotmail.com>
-Subject: Re: "local_bh_disable" [net/ipv4/netfilter/ip_conntrack_pptp.ko]
-	undefined!
-Date: Thu, 12 Jan 2006 10:10:41 +0100
-Message-ID: <BAY103-F32DBAD0DD8DF026ECDDEE0B2270@phx.gbl>
-References: <20060111.160353.29305641.davem@davemloft.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: new iptables policy match
+Date: Thu, 12 Jan 2006 10:41:05 +0100
+Message-ID: <43C62431.1030800@trash.net>
+References: <BAY103-F18706C52D2ACDEFC5D91E6B2240@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: multipart/mixed; boundary="------------050101030006060001000507"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <20060111.160353.29305641.davem@davemloft.net>
-To: davem@davemloft.net
+To: Marco Berizzi <pupilla@hotmail.com>
+In-Reply-To: <BAY103-F18706C52D2ACDEFC5D91E6B2240@phx.gbl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,95 +20,74 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------050101030006060001000507
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-David S. Miller wrote:
+Marco Berizzi wrote:
+> Chain FORWARD (policy DROP 0 packets, 0 bytes)
+> pkts bytes target     prot opt in     out     source               
+> destination
+>   19  1140 ACCEPT     all  --  any    any     anywhere             
+> anywhere            policy match dir out pol ipsec strict [0] [1] [2] 
+> [3] mode tunnel tunnel-dst 10.1.1.0/24 tunnel-src 10.1.2.0/24
+>    0     0 DROP       all  --  any    any     anywhere             
+> anywhere            policy match dir in pol ipsec strict [0] [1] [2] [3] 
+> mode tunnel tunnel-dst 10.1.2.0/24 tunnel-src 10.1.1.0/24
 
->From: "Marco Berizzi" <pupilla@hotmail.com>
->Date: Wed, 11 Jan 2006 10:49:12 +0100
->
-> > I'm compiling pptp conntrack/nat as module and I getting this warning:
->
->This should fix it:
->
->diff --git a/include/linux/spinlock.h b/include/linux/spinlock.h
->index 799be67..7db4df8 100644
->--- a/include/linux/spinlock.h
->+++ b/include/linux/spinlock.h
->@@ -53,6 +53,7 @@
->  #include <linux/thread_info.h>
->  #include <linux/kernel.h>
->  #include <linux/stringify.h>
->+#include <linux/interrupt.h>
->
->  #include <asm/system.h>
+There was actually a real problem, the first rule should never have
+matched because its length doesn't match the number of used transforms.
+I've fixed it with this patch (and added the additional checks to
+the userspace part).
 
-Sorry David for wasting your time, but I applied your patch to 2.6.15-git8
-and...
+--------------050101030006060001000507
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
-root@Calimero:/usr/src/linux# make bzImage
-  Building kernel 2.6.15-git8
-  CHK     include/linux/version.h
-  UPD     include/linux/version.h
-  SYMLINK include/asm -> include/asm-i386
-  SPLIT   include/linux/autoconf.h -> include/config/*
-  CC      arch/i386/kernel/asm-offsets.s
-In file included from include/linux/hardirq.h:6,
-                 from include/linux/interrupt.h:11,
-                 from include/linux/spinlock.h:56,
-                 from include/linux/capability.h:45,
-                 from include/linux/sched.h:7,
-                 from arch/i386/kernel/asm-offsets.c:7:
-include/linux/smp_lock.h:11: error: syntax error before 
-"__reacquire_kernel_lock"
-include/linux/smp_lock.h:11: warning: type defaults to `int' in declaration 
-of `__reacquire_kernel_lock'
-include/linux/smp_lock.h:11: warning: data definition has no type or storage 
-class
-include/linux/smp_lock.h:12: error: syntax error before 
-"__release_kernel_lock"
-include/linux/smp_lock.h:12: warning: type defaults to `int' in declaration 
-of `__release_kernel_lock'
-include/linux/smp_lock.h:12: warning: data definition has no type or storage 
-class
-include/linux/smp_lock.h: In function `reacquire_kernel_lock':
-include/linux/smp_lock.h:36: error: dereferencing pointer to incomplete type
-include/linux/smp_lock.h: At top level:
-include/linux/smp_lock.h:41: error: syntax error before "lock_kernel"
-include/linux/smp_lock.h:41: warning: type defaults to `int' in declaration 
-of `lock_kernel'
-include/linux/smp_lock.h:41: warning: data definition has no type or storage 
-class
-include/linux/smp_lock.h:42: error: syntax error before "unlock_kernel"
-include/linux/smp_lock.h:42: warning: type defaults to `int' in declaration 
-of `unlock_kernel'
-include/linux/smp_lock.h:42: warning: data definition has no type or storage 
-class
-In file included from include/asm/hardirq.h:6,
-                 from include/linux/hardirq.h:7,
-                 from include/linux/interrupt.h:11,
-                 from include/linux/spinlock.h:56,
-                 from include/linux/capability.h:45,
-                 from include/linux/sched.h:7,
-                 from arch/i386/kernel/asm-offsets.c:7:
-include/linux/irq.h:79: error: syntax error before "spinlock_t"
-include/linux/irq.h:79: warning: no semicolon at end of struct or union
-include/linux/irq.h:83: warning: type defaults to `int' in declaration of 
-`irq_desc_t'
-include/linux/irq.h:85: error: syntax error before "irq_desc"
-include/linux/irq.h:85: warning: type defaults to `int' in declaration of 
-`irq_desc'
-include/linux/irq.h:85: warning: data definition has no type or storage 
-class
-include/linux/irq.h:88: error: syntax error before '*' token
-include/linux/irq.h:90: warning: return type defaults to `int'
-In file included from include/asm/hardirq.h:6,
-                 from include/linux/hardirq.h:7,
-                 from include/linux/interrupt.h:11,
-                 from include/linux/spinlock.h:56,
-                 from include/linux/capability.h:45,
-                 from include/linux/sched.h:7,
-                 from arch/i386/kernel/asm-offsets.c:7:
-include/linux/irq.h:219: error: syntax error before "irq_desc_t"
-include/linux/irq.h:220: warning: function declaration isn't a prototype
-make[1]: *** [arch/i386/kernel/asm-offsets.s] Error 1
-make: *** [prepare0] Error 2
+[NETFILTER]: Check policy length in policy match strict mode
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit d98b092ef1a291d2fd31cbf1152bd16cca2e925d
+tree bceb1f3d982e680b9ab3eb02e04e07a401bcd5db
+parent a4fc7ab1d065a9dd89ed0e74439ef87d4a16e980
+author Patrick McHardy <kaber@trash.net> Thu, 12 Jan 2006 10:38:26 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 12 Jan 2006 10:38:26 +0100
+
+ net/ipv4/netfilter/ipt_policy.c  |    2 +-
+ net/ipv6/netfilter/ip6t_policy.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ipt_policy.c b/net/ipv4/netfilter/ipt_policy.c
+index 709debc..8d1111e 100644
+--- a/net/ipv4/netfilter/ipt_policy.c
++++ b/net/ipv4/netfilter/ipt_policy.c
+@@ -89,7 +89,7 @@ match_policy_out(const struct sk_buff *s
+ 			return 0;
+ 	}
+ 
+-	return strict ? 1 : 0;
++	return strict ? i == info->len : 0;
+ }
+ 
+ static int match(const struct sk_buff *skb,
+diff --git a/net/ipv6/netfilter/ip6t_policy.c b/net/ipv6/netfilter/ip6t_policy.c
+index 13fedad..33bd60e 100644
+--- a/net/ipv6/netfilter/ip6t_policy.c
++++ b/net/ipv6/netfilter/ip6t_policy.c
+@@ -91,7 +91,7 @@ match_policy_out(const struct sk_buff *s
+ 			return 0;
+ 	}
+ 
+-	return strict ? 1 : 0;
++	return strict ? i == info->len : 0;
+ }
+ 
+ static int match(const struct sk_buff *skb,
+
+--------------050101030006060001000507--
