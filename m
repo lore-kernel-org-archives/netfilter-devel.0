@@ -1,15 +1,14 @@
-From: Marcus Sundberg <marcus@ingate.com>
-Subject: Re: [PATCH] nfsim: Support more netfilter modules
-Date: Thu, 12 Jan 2006 11:25:43 +0100
-Message-ID: <43C62EA7.5020001@ingate.com>
-References: <439ED1C5.7070103@ingate.com>
-	<20060106144048.GE4898@sunbeam.de.gnumonks.org>
+From: "Marco Berizzi" <pupilla@hotmail.com>
+Subject: Re: new iptables policy match
+Date: Thu, 12 Jan 2006 11:38:42 +0100
+Message-ID: <BAY103-F16E9571FF1B70C7DBB70A1B2270@phx.gbl>
+References: <43C616B1.6060101@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060802010905010704090909"
+Content-Type: text/plain; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20060106144048.GE4898@sunbeam.de.gnumonks.org>
+In-Reply-To: <43C616B1.6060101@trash.net>
+To: kaber@trash.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,56 +20,93 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060802010905010704090909
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Harald Welte wrote:
-> On Tue, Dec 13, 2005 at 02:51:01PM +0100, Marcus Sundberg wrote:
-> 
->>this patch adds nfsim support for building most of the netfilter stuff
->>in 2.6.15. The things still not compiling are CONFIG_IP_NF_CONNTRACK_NETLINK
->>and CONFIG_IP_NF_MATCH_STRING
-> 
-> thanks, applied.
+Patrick McHardy wrote:
 
-Hi,
+>Marco Berizzi wrote:
+>>
+>>Patrick McHardy wrote:
+>>
+>>>>Chain FORWARD (policy DROP 0 packets, 0 bytes)
+>>>>pkts bytes target     prot opt in     out     source               
+>>>>destination
+>>>>   19  1140 ACCEPT     all  --  any    any     anywhere             
+>>>>anywhere            policy match dir out pol ipsec strict [0] [1] [2] 
+>>>>[3] mode tunnel tunnel-dst 10.1.1.0/24 tunnel-src 10.1.2.0/24
+>>>>    0     0 DROP       all  --  any    any     anywhere             
+>>>>anywhere            policy match dir in pol ipsec strict [0] [1] [2] [3] 
+>>>>mode tunnel tunnel-dst 10.1.2.0/24 tunnel-src 10.1.1.0/24
+>>>
+>>>
+>>>How did you add these rules? It looks like you used "--next" multiple
+>>>times without specifying a policy element ..
+>>
+>>
+>>This is the command:
+>>
+>>iptables -P FORWARD DROP
+>>iptables -A FORWARD -m policy --next --dir out --next --pol ipsec --next 
+>>--mode tunnel
+>>--tunnel-src 10.1.2.0/24 --tunnel-dst 10.1.1.0/24 --strict -j ACCEPT
+>>iptables -A FORWARD -m policy --next --dir in --next --pol ipsec --next 
+>>--mode tunnel
+>>--tunnel-dst 10.1.2.0/24 --tunnel-src 10.1.1.0/24 --strict -j DROP
+>>
+>>Are they wrong?
+>
+>Yes, --next is needed only if your policy has multiple elements, like
+>"--mode tunnel --tunnel-src 1.2.3.4/32 --next --mode transform". I'll
+>fix up the userspace part to reject this incorrect use.
 
-the patch contained a bogus msleep() implementation, please accept
-the following correction.
+Ok, my fault sorry. Here is my corrected (I hope) iptables rules:
 
-//Marcus
--- 
----------------------------------------+--------------------------
-   Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
-  Software Developer, Ingate Systems AB |  http://www.ingate.com/
+iptables -P FORWARD DROP
+iptables -F
 
---------------060802010905010704090909
-Content-Type: text/x-patch;
- name="nfsim-2.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="nfsim-2.diff"
+iptables -A FORWARD -m policy --dir out --pol ipsec --mode tunnel 
+--tunnel-src 10.1.2.0/24 --tunnel-dst 10.1.1.0/24 -j DROP
+iptables -A FORWARD -m policy --dir in  --pol ipsec  --mode tunnel 
+--tunnel-dst 10.1.2.0/24 --tunnel-src 10.1.1.0/24 -j DROP
 
-[NFSIM] Implement msleep() better
-
-There's no point in actually sleeping in the nfsim framework,
-just increment time properly.
-
-Signed-off-by: Marcus Sundberg <marcus@ingate.com>
+iptables -A FORWARD -m policy --dir in --pol ipsec --mode tunnel 
+--tunnel-src 10.1.2.0/24 --tunnel-dst 10.1.1.0/24 -j DROP
+iptables -A FORWARD -m policy --dir out  --pol ipsec  --mode tunnel 
+--tunnel-dst 10.1.2.0/24 --tunnel-src 10.1.1.0/24 -j DROP
 
 
---- nfsim/kernelenv/include/kernelenv.h	(revision 6395)
-+++ nfsim/kernelenv/include/kernelenv.h	(working copy)
-@@ -1231,7 +1231,7 @@
- 
- /* delay.h */
- 
--#define msleep(x)	do{unsigned int y = (x)*1000; usleep(y);}while(0)
-+#define msleep(x)	increment_time((x)*HZ/1000)
- 
- /* timer.h */
- 
+iptables -A FORWARD -s 10.1.2.0/24 -d 10.1.1.10/24 -j ACCEPT
+iptables -A FORWARD -d 10.1.2.0/24 -s 10.1.1.10/24 -j ACCEPT
 
---------------060802010905010704090909--
+iptables -L -v output:
+
+root@Calimero:/tmp/RACOON# iptables -L -v
+Chain INPUT (policy ACCEPT 11574 packets, 2434K bytes)
+pkts bytes target     prot opt in     out     source               
+destination
+
+Chain FORWARD (policy DROP 0 packets, 0 bytes)
+pkts bytes target     prot opt in     out     source               
+destination
+    0     0 DROP       all  --  any    any     anywhere             anywhere 
+            policy match dir out pol ipsec mode tunnel tunnel-dst 
+10.1.1.0/24 tunnel-src 10.1.2.0/24
+    0     0 DROP       all  --  any    any     anywhere             anywhere 
+            policy match dir in pol ipsec mode tunnel tunnel-dst 10.1.2.0/24 
+tunnel-src 10.1.1.0/24
+    0     0 DROP       all  --  any    any     anywhere             anywhere 
+            policy match dir in pol ipsec mode tunnel tunnel-dst 10.1.1.0/24 
+tunnel-src 10.1.2.0/24
+    0     0 DROP       all  --  any    any     anywhere             anywhere 
+            policy match dir out pol ipsec mode tunnel tunnel-dst 
+10.1.2.0/24 tunnel-src 10.1.1.0/24
+1074 64440 ACCEPT     all  --  any    any     10.1.2.0/24          
+10.1.1.0/24
+1074 64440 ACCEPT     all  --  any    any     10.1.1.0/24          
+10.1.2.0/24
+
+Chain OUTPUT (policy ACCEPT 5983 packets, 933K bytes)
+pkts bytes target     prot opt in     out     source               
+destination
+
+Ipsec policy match are never matched: I can ping-pong from-to both sites.
+I'm not understand what is wrong.
