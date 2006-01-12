@@ -1,14 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: new iptables policy match
-Date: Thu, 12 Jan 2006 10:41:05 +0100
-Message-ID: <43C62431.1030800@trash.net>
-References: <BAY103-F18706C52D2ACDEFC5D91E6B2240@phx.gbl>
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: libnetfilter_queue vs libipq
+Date: Thu, 12 Jan 2006 10:54:53 +0100
+Message-ID: <20060112095453.GO4430@sunbeam.de.gnumonks.org>
+References: <000001c61722$2038fb50$ddb50280@scs.ad.cs.cmu.edu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050101030006060001000507"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NzNDI+ywLU1Yk1Ay"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Marco Berizzi <pupilla@hotmail.com>
-In-Reply-To: <BAY103-F18706C52D2ACDEFC5D91E6B2240@phx.gbl>
+To: Hong Yan <yh@cs.cmu.edu>
+Content-Disposition: inline
+In-Reply-To: <000001c61722$2038fb50$ddb50280@scs.ad.cs.cmu.edu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,74 +22,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050101030006060001000507
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Marco Berizzi wrote:
-> Chain FORWARD (policy DROP 0 packets, 0 bytes)
-> pkts bytes target     prot opt in     out     source               
-> destination
->   19  1140 ACCEPT     all  --  any    any     anywhere             
-> anywhere            policy match dir out pol ipsec strict [0] [1] [2] 
-> [3] mode tunnel tunnel-dst 10.1.1.0/24 tunnel-src 10.1.2.0/24
->    0     0 DROP       all  --  any    any     anywhere             
-> anywhere            policy match dir in pol ipsec strict [0] [1] [2] [3] 
-> mode tunnel tunnel-dst 10.1.2.0/24 tunnel-src 10.1.1.0/24
+--NzNDI+ywLU1Yk1Ay
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-There was actually a real problem, the first rule should never have
-matched because its length doesn't match the number of used transforms.
-I've fixed it with this patch (and added the additional checks to
-the userspace part).
+On Wed, Jan 11, 2006 at 09:44:33PM -0500, Hong Yan wrote:
+=20
+> I'm a graduate student at Carnegie Mellon University. We built a firewall
+> using libipq and later switched to libnetfilter_queue because we found th=
+at
+> libnetfilter_queue significantly outperforms libipq. A simple testing
+> program using libnetfilter_queue to intercept and then accept all packets
+> has 94.2 M bps TCP throughput but with libipq it can only achieve 2M bps.
 
---------------050101030006060001000507
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+I'm very surprised by your results.  Maybe you can describe the
+application in more detail (as in how the queue mechanism is used,
+whether you reinject or only send a verdict, if you process one packet
+at a time, how long your queue lengths get, what kind of hardware, is
+the app multithreaded, etc.)
 
-[NETFILTER]: Check policy length in policy match strict mode
+> We wonder what is causing the big difference in performance. Could you sh=
+ed
+> us some light on this?
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Other real-world application users of libipq / libnetfilter_queue have
+show an almost equal performance for both systems.
 
----
-commit d98b092ef1a291d2fd31cbf1152bd16cca2e925d
-tree bceb1f3d982e680b9ab3eb02e04e07a401bcd5db
-parent a4fc7ab1d065a9dd89ed0e74439ef87d4a16e980
-author Patrick McHardy <kaber@trash.net> Thu, 12 Jan 2006 10:38:26 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 12 Jan 2006 10:38:26 +0100
+In theory, libnetfilter_queue should even have a little bit more
+overhead then libipq (at the gain of more flexibility). =20
 
- net/ipv4/netfilter/ipt_policy.c  |    2 +-
- net/ipv6/netfilter/ip6t_policy.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Therefore, I think it is important for us to learn, what exactly causes
+this performance difference in your case.
 
-diff --git a/net/ipv4/netfilter/ipt_policy.c b/net/ipv4/netfilter/ipt_policy.c
-index 709debc..8d1111e 100644
---- a/net/ipv4/netfilter/ipt_policy.c
-+++ b/net/ipv4/netfilter/ipt_policy.c
-@@ -89,7 +89,7 @@ match_policy_out(const struct sk_buff *s
- 			return 0;
- 	}
- 
--	return strict ? 1 : 0;
-+	return strict ? i == info->len : 0;
- }
- 
- static int match(const struct sk_buff *skb,
-diff --git a/net/ipv6/netfilter/ip6t_policy.c b/net/ipv6/netfilter/ip6t_policy.c
-index 13fedad..33bd60e 100644
---- a/net/ipv6/netfilter/ip6t_policy.c
-+++ b/net/ipv6/netfilter/ip6t_policy.c
-@@ -91,7 +91,7 @@ match_policy_out(const struct sk_buff *s
- 			return 0;
- 	}
- 
--	return strict ? 1 : 0;
-+	return strict ? i == info->len : 0;
- }
- 
- static int match(const struct sk_buff *skb,
+Please follow-up to netfilter-devel@lists.netfilter.org, since there
+certainly are other developers who would like to learn about this issue.
 
---------------050101030006060001000507--
+Thanks!
+
+--=20
+- Harald Welte <laforge@gnumonks.org>          	        http://gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"Privacy in residential applications is a desirable marketing option."
+                                                  (ETSI EN 300 175-7 Ch. A6)
+
+--NzNDI+ywLU1Yk1Ay
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD4DBQFDxidtXaXGVTD0i/8RAiMXAJ4k6S2bNR8rsQKElHmA6+8yn9yv+gCY/qg8
+XM5tAVowyF4gkxpOUnTT4g==
+=2OxC
+-----END PGP SIGNATURE-----
+
+--NzNDI+ywLU1Yk1Ay--
