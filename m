@@ -1,14 +1,17 @@
-From: "Marco Berizzi" <pupilla@hotmail.com>
-Subject: Re: new iptables policy match
-Date: Thu, 12 Jan 2006 12:23:50 +0100
-Message-ID: <BAY103-F101B38B8CF2C670CC1A915B2270@phx.gbl>
-References: <43C6350E.4020809@trash.net>
+From: Pablo Neira Ayuso <pablo@eurodev.net>
+Subject: Re: iptables 1.3.4 kernel 2.4.31 string match
+Date: Thu, 12 Jan 2006 12:29:37 +0100
+Message-ID: <43C63DA1.8040601@eurodev.net>
+References: <1136294032.43ba78906f44c@imp4-g19.free.fr>
+	<43BBFBC8.7010604@eurodev.net>
+	<0ba501c61620$d8c547d0$f9b5a8c0@pii350>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <43C6350E.4020809@trash.net>
-To: kaber@trash.net
+To: Gilles Espinasse <g.esp@free.fr>
+In-Reply-To: <0ba501c61620$d8c547d0$f9b5a8c0@pii350>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,44 +23,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Gilles Espinasse wrote:
+> I don't attempt to use the new 'string' code on kernel-2.4.
+> I just find better to use the previous 'string' version than not be able to
+> use iptables-1.3.4 with 2.4 kernel
 
-Patrick McHardy wrote:
+OK, but the previous code computes the Boyer-Moore shift arrays
+everytime a packet is processed. So I doubt about the benefits of such
+approach. I warned you.
 
->Marco Berizzi wrote:
->>
->>Patrick McHardy wrote:
->>
->>>Marco Berizzi wrote:
->>>
->>>>Ok, my fault sorry. Here is my corrected (I hope) iptables rules:
->>>>
->>>>iptables -P FORWARD DROP
->>>>iptables -F
->>>>
->>>>iptables -A FORWARD -m policy --dir out --pol ipsec --mode tunnel 
->>>>--tunnel-src 10.1.2.0/24 --tunnel-dst 10.1.1.0/24 -j DROP
->>>>iptables -A FORWARD -m policy --dir in  --pol ipsec  --mode tunnel 
->>>>--tunnel-dst 10.1.2.0/24 --tunnel-src 10.1.1.0/24 -j DROP
->>>>
->>>>iptables -A FORWARD -m policy --dir in --pol ipsec --mode tunnel 
->>>>--tunnel-src 10.1.2.0/24 --tunnel-dst 10.1.1.0/24 -j DROP
->>>>iptables -A FORWARD -m policy --dir out  --pol ipsec  --mode tunnel 
->>>>--tunnel-dst 10.1.2.0/24 --tunnel-src 10.1.1.0/24 -j DROP
->>>>
->>root@Calimero:/usr/src/linux-2.6.15/net/ipv4/netfilter# ip xfrm policy
->>src 10.1.1.0/24 dst 10.1.2.0/24
->>        dir in priority 2344
->>        tmpl src 172.16.1.226 dst 172.16.1.247
->
->These are the addresses you need to use for --tunnel-src/dst, not the
->outer addresses. Those can be match with -s and -d are usual.
+Amicalement,
 
-Aha! ;-)) It's working. Thanks a lot. Perhaps _IMHO_ this should be
-clarified in iptables man page. After all --tunnel-src/dst are the two
-IPsec endpoint addresses. Right?
-
-Thanks again and sorry for wasting your time.
-Ciao.
-
-PS: I'm compiling right now 2.6.15-git8 with your latest patch: Check
-policy length in policy match strict mode.
+-- 
+Pablo
