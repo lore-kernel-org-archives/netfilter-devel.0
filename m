@@ -1,15 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] fix undefined symbols
-Date: Thu, 12 Jan 2006 06:58:46 +0100
-Message-ID: <43C5F016.4070505@trash.net>
-References: <43C525FE.8080607@gmx.net>
+From: "temp02" <temp02@bluereef.com.au>
+Subject: Conntrack_sip compilation broken with 2.6.15-git7
+Date: Thu, 12 Jan 2006 17:26:34 +1100
+Message-ID: <016a01c61741$22a8aab0$5001010a@bluereef.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
-In-Reply-To: <43C525FE.8080607@gmx.net>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,12 +19,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Carl-Daniel Hailfinger wrote:
-> with 2.5.15-git7 I get the following warning:
-> 
-> *** Warning: "compare_ether_addr" [net/ipv6/netfilter/ip6t_mac.ko] undefined!
-> *** Warning: "compare_ether_addr" [net/bridge/netfilter/ebt_stp.ko] undefined!
-> 
-> The following patch fixes it.
+In compiling 2.6.15-git7 with sip conntrack support compiled in, the
+following errors occur:
 
-Dave Miller already got patches for this queued.
+net/ipv4/netfilter/ip_conntrack_sip.c: In function `set_expected_rtp':
+net/ipv4/netfilter/ip_conntrack_sip.c:260: `IPPROTO_UDP' undeclared (first
+use in this function)
+net/ipv4/netfilter/ip_conntrack_sip.c:260: (Each undeclared identifier is
+reported only once
+net/ipv4/netfilter/ip_conntrack_sip.c:260: for each function it appears in.)
+net/ipv4/netfilter/ip_conntrack_sip.c: In function `sip_help':
+net/ipv4/netfilter/ip_conntrack_sip.c:293: sizeof applied to an incomplete
+type
+net/ipv4/netfilter/ip_conntrack_sip.c: In function `init':
+net/ipv4/netfilter/ip_conntrack_sip.c:384: `IPPROTO_UDP' undeclared (first
+use in this function)
+make[3]: *** [net/ipv4/netfilter/ip_conntrack_sip.o] Error 1
+make[2]: *** [net/ipv4/netfilter] Error 2
+make[1]: *** [net/ipv4] Error 2
+
+Added include for in.h to ip_conntrack_sip.c which seem to make it happy..
+
+and then failed again..
+
+  CC      net/ipv4/netfilter/ip_conntrack_sip.o
+net/ipv4/netfilter/ip_conntrack_sip.c: In function `sip_help':
+net/ipv4/netfilter/ip_conntrack_sip.c:294: sizeof applied to an incomplete
+type
+make[3]: *** [net/ipv4/netfilter/ip_conntrack_sip.o] Error 1
+make[2]: *** [net/ipv4/netfilter] Error 2
+
+thanks,
