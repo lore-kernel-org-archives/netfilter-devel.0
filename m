@@ -1,16 +1,15 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: "local_bh_disable" [net/ipv4/netfilter/ip_conntrack_pptp.ko]
- undefined!
-Date: Wed, 11 Jan 2006 16:03:53 -0800 (PST)
-Message-ID: <20060111.160353.29305641.davem@davemloft.net>
-References: <BAY103-F14AC8393B0461DA69156BCB2240@phx.gbl>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: new iptables policy match
+Date: Thu, 12 Jan 2006 05:07:28 +0100
+Message-ID: <43C5D600.2020507@trash.net>
+References: <BAY103-F18706C52D2ACDEFC5D91E6B2240@phx.gbl>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: pupilla@hotmail.com
-In-Reply-To: <BAY103-F14AC8393B0461DA69156BCB2240@phx.gbl>
+To: Marco Berizzi <pupilla@hotmail.com>
+In-Reply-To: <BAY103-F18706C52D2ACDEFC5D91E6B2240@phx.gbl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,22 +21,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: "Marco Berizzi" <pupilla@hotmail.com>
-Date: Wed, 11 Jan 2006 10:49:12 +0100
+Marco Berizzi wrote:
+> Hello.
+> I'm testing the new iptables policy match on a snapshot kernel 
+> (2.6.15-git7).
+> This is my simple network diagram:
+> 
+> eth1                  eth0                                     
+> eth0                    eth1
+> 10.1.2.0/24===172.16.1.247..[ipsec tunnel]..172.16.1.226===10.1.1.0/24
+> -----2.6.15-git7 linux box-----                         
+> --------2.4/KLIPS box----------
+> 
+> I have setup a simple ipsec tunnel between the two linux boxes. So far, 
+> so good.
+> I'm pinging from 10.1.2.1 (a system connected to the 10.1.2.0/24 net) to 
+> 10.1.1.1
+> (a system connected to the 10.1.1.0/24 net). This is iptables -L -v output:
+> 
+> root@Calimero:/tmp/RACOON# iptables -L -v
+> Chain INPUT (policy ACCEPT 70672 packets, 15M bytes)
+> pkts bytes target     prot opt in     out     source               
+> destination
+> 
+> Chain FORWARD (policy DROP 0 packets, 0 bytes)
+> pkts bytes target     prot opt in     out     source               
+> destination
+>   19  1140 ACCEPT     all  --  any    any     anywhere             
+> anywhere            policy match dir out pol ipsec strict [0] [1] [2] 
+> [3] mode tunnel tunnel-dst 10.1.1.0/24 tunnel-src 10.1.2.0/24
+>    0     0 DROP       all  --  any    any     anywhere             
+> anywhere            policy match dir in pol ipsec strict [0] [1] [2] [3] 
+> mode tunnel tunnel-dst 10.1.2.0/24 tunnel-src 10.1.1.0/24
 
-> I'm compiling pptp conntrack/nat as module and I getting this warning:
-
-This should fix it:
-
-diff --git a/include/linux/spinlock.h b/include/linux/spinlock.h
-index 799be67..7db4df8 100644
---- a/include/linux/spinlock.h
-+++ b/include/linux/spinlock.h
-@@ -53,6 +53,7 @@
- #include <linux/thread_info.h>
- #include <linux/kernel.h>
- #include <linux/stringify.h>
-+#include <linux/interrupt.h>
- 
- #include <asm/system.h>
- 
+How did you add these rules? It looks like you used "--next" multiple
+times without specifying a policy element ..
