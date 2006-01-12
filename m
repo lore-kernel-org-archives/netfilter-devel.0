@@ -1,16 +1,15 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: Re: libnetfilter_queue vs libipq
-Date: Thu, 12 Jan 2006 10:54:53 +0100
-Message-ID: <20060112095453.GO4430@sunbeam.de.gnumonks.org>
-References: <000001c61722$2038fb50$ddb50280@scs.ad.cs.cmu.edu>
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: Re: [PATCH] nfsim: Support more netfilter modules
+Date: Thu, 12 Jan 2006 11:25:43 +0100
+Message-ID: <43C62EA7.5020001@ingate.com>
+References: <439ED1C5.7070103@ingate.com>
+	<20060106144048.GE4898@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NzNDI+ywLU1Yk1Ay"
+Content-Type: multipart/mixed; boundary="------------060802010905010704090909"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Hong Yan <yh@cs.cmu.edu>
-Content-Disposition: inline
-In-Reply-To: <000001c61722$2038fb50$ddb50280@scs.ad.cs.cmu.edu>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20060106144048.GE4898@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,64 +21,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------060802010905010704090909
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
---NzNDI+ywLU1Yk1Ay
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Harald Welte wrote:
+> On Tue, Dec 13, 2005 at 02:51:01PM +0100, Marcus Sundberg wrote:
+> 
+>>this patch adds nfsim support for building most of the netfilter stuff
+>>in 2.6.15. The things still not compiling are CONFIG_IP_NF_CONNTRACK_NETLINK
+>>and CONFIG_IP_NF_MATCH_STRING
+> 
+> thanks, applied.
 
-On Wed, Jan 11, 2006 at 09:44:33PM -0500, Hong Yan wrote:
-=20
-> I'm a graduate student at Carnegie Mellon University. We built a firewall
-> using libipq and later switched to libnetfilter_queue because we found th=
-at
-> libnetfilter_queue significantly outperforms libipq. A simple testing
-> program using libnetfilter_queue to intercept and then accept all packets
-> has 94.2 M bps TCP throughput but with libipq it can only achieve 2M bps.
+Hi,
 
-I'm very surprised by your results.  Maybe you can describe the
-application in more detail (as in how the queue mechanism is used,
-whether you reinject or only send a verdict, if you process one packet
-at a time, how long your queue lengths get, what kind of hardware, is
-the app multithreaded, etc.)
+the patch contained a bogus msleep() implementation, please accept
+the following correction.
 
-> We wonder what is causing the big difference in performance. Could you sh=
-ed
-> us some light on this?
+//Marcus
+-- 
+---------------------------------------+--------------------------
+   Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+  Software Developer, Ingate Systems AB |  http://www.ingate.com/
 
-Other real-world application users of libipq / libnetfilter_queue have
-show an almost equal performance for both systems.
+--------------060802010905010704090909
+Content-Type: text/x-patch;
+ name="nfsim-2.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="nfsim-2.diff"
 
-In theory, libnetfilter_queue should even have a little bit more
-overhead then libipq (at the gain of more flexibility). =20
+[NFSIM] Implement msleep() better
 
-Therefore, I think it is important for us to learn, what exactly causes
-this performance difference in your case.
+There's no point in actually sleeping in the nfsim framework,
+just increment time properly.
 
-Please follow-up to netfilter-devel@lists.netfilter.org, since there
-certainly are other developers who would like to learn about this issue.
+Signed-off-by: Marcus Sundberg <marcus@ingate.com>
 
-Thanks!
 
---=20
-- Harald Welte <laforge@gnumonks.org>          	        http://gnumonks.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-"Privacy in residential applications is a desirable marketing option."
-                                                  (ETSI EN 300 175-7 Ch. A6)
+--- nfsim/kernelenv/include/kernelenv.h	(revision 6395)
++++ nfsim/kernelenv/include/kernelenv.h	(working copy)
+@@ -1231,7 +1231,7 @@
+ 
+ /* delay.h */
+ 
+-#define msleep(x)	do{unsigned int y = (x)*1000; usleep(y);}while(0)
++#define msleep(x)	increment_time((x)*HZ/1000)
+ 
+ /* timer.h */
+ 
 
---NzNDI+ywLU1Yk1Ay
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD4DBQFDxidtXaXGVTD0i/8RAiMXAJ4k6S2bNR8rsQKElHmA6+8yn9yv+gCY/qg8
-XM5tAVowyF4gkxpOUnTT4g==
-=2OxC
------END PGP SIGNATURE-----
-
---NzNDI+ywLU1Yk1Ay--
+--------------060802010905010704090909--
