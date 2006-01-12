@@ -1,17 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH pom, re-post] h323-conntrack-nat: port to Linux 2.6.13+
-Date: Thu, 12 Jan 2006 07:27:59 +0100
-Message-ID: <43C5F6EF.5010601@trash.net>
-References: <20060110194754.GA29354@roonstrasse.net>
+From: "Marco Berizzi" <pupilla@hotmail.com>
+Subject: Re: new iptables policy match
+Date: Thu, 12 Jan 2006 09:30:34 +0100
+Message-ID: <BAY103-F3EE617C3194F61E05CC5CB2270@phx.gbl>
+References: <43C5D600.2020507@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: GregScott@InfraSupportEtc.com, netfilter-devel@lists.netfilter.org,
-	jcoco@meccorp.mec.edu, totya@ajkanet.hu,
-	kadlec@blackhole.kfki.hu, ichimg@mail.dntis.ro
+Content-Type: text/plain; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Max Kellermann <max@duempel.org>
-In-Reply-To: <20060110194754.GA29354@roonstrasse.net>
+In-Reply-To: <43C5D600.2020507@trash.net>
+To: kaber@trash.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,18 +20,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Max Kellermann wrote:
-> h323-port_to_linux_2.6.13.patch
-> - port to the new API in Linux 2.6.13 and 2.6.14
-> - prerequisite:
->   svn copy patchlets/h323-conntrack-nat/linux-2.6.12 \
->     patchlets/h323-conntrack-nat/linux-2.6.13
-> 
-> h323-update_descriptions.patch
-> - update descriptions, mention "Voice over IP" and "gnomemeeting"
->   rather than only "netmeeting"
-> 
-> 
-> Please commit these to patch-o-matic-ng svn.
 
-Directory copied and both patches applied, thanks.
+Patrick McHardy wrote:
+
+>Marco Berizzi wrote:
+>>Hello.
+>>I'm testing the new iptables policy match on a snapshot kernel 
+>>(2.6.15-git7).
+>>This is my simple network diagram:
+>>
+>>eth1                  eth0                                     eth0        
+>>             eth1
+>>10.1.2.0/24===172.16.1.247..[ipsec tunnel]..172.16.1.226===10.1.1.0/24
+>>-----2.6.15-git7 linux box-----                         --------2.4/KLIPS 
+>>box----------
+>>
+>>I have setup a simple ipsec tunnel between the two linux boxes. So far, so 
+>>good.
+>>I'm pinging from 10.1.2.1 (a system connected to the 10.1.2.0/24 net) to 
+>>10.1.1.1
+>>(a system connected to the 10.1.1.0/24 net). This is iptables -L -v 
+>>output:
+>>
+>>root@Calimero:/tmp/RACOON# iptables -L -v
+>>Chain INPUT (policy ACCEPT 70672 packets, 15M bytes)
+>>pkts bytes target     prot opt in     out     source               
+>>destination
+>>
+>>Chain FORWARD (policy DROP 0 packets, 0 bytes)
+>>pkts bytes target     prot opt in     out     source               
+>>destination
+>>   19  1140 ACCEPT     all  --  any    any     anywhere             
+>>anywhere            policy match dir out pol ipsec strict [0] [1] [2] [3] 
+>>mode tunnel tunnel-dst 10.1.1.0/24 tunnel-src 10.1.2.0/24
+>>    0     0 DROP       all  --  any    any     anywhere             
+>>anywhere            policy match dir in pol ipsec strict [0] [1] [2] [3] 
+>>mode tunnel tunnel-dst 10.1.2.0/24 tunnel-src 10.1.1.0/24
+>
+>How did you add these rules? It looks like you used "--next" multiple
+>times without specifying a policy element ..
+
+This is the command:
+
+iptables -P FORWARD DROP
+iptables -A FORWARD -m policy --next --dir out --next --pol ipsec --next 
+--mode tunnel
+--tunnel-src 10.1.2.0/24 --tunnel-dst 10.1.1.0/24 --strict -j ACCEPT
+iptables -A FORWARD -m policy --next --dir in --next --pol ipsec --next 
+--mode tunnel
+--tunnel-dst 10.1.2.0/24 --tunnel-src 10.1.1.0/24 --strict -j DROP
+
+Are they wrong?
