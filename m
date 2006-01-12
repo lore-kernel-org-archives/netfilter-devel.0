@@ -1,15 +1,12 @@
-From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: RE: new iptables policy match
-Date: Thu, 12 Jan 2006 11:59:29 -0600
-Message-ID: <925A849792280C4E80C5461017A4B8A26DAE@mail733.InfraSupportEtc.com>
+From: Marcus Sundberg <marcus@ingate.com>
+Subject: [PATCH] ctnetlink: Make expect events work
+Date: Thu, 12 Jan 2006 20:08:54 +0100
+Message-ID: <43C6A946.5070009@ingate.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------030206000408060504010305"
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: "Patrick McHardy" <kaber@trash.net>, "Marco Berizzi" <pupilla@hotmail.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,46 +18,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Just to be completely anal because I'm just a skinny=20
-bald guy from Minnesota - is this ASCII art right?
-If this is right, maybe this would make the man page
-even clearer.  Of course, if it's wrong, that means
-I still don't get it.
+This is a multi-part message in MIME format.
+--------------030206000408060504010305
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
+Hi,
 
-LAN    FW   Internet   FW    LAN
-<----+----+----------+----+----->
-     |    |          |    |
-Private  Public   Public  Private
-    IP    IP        IP     IP
+expectation events are improperly tagged in the current ctnetlink
+code, this patch makes them work.
 
- Tunnel   SA        SA   Tunnel
- endpoint                endpoint
+//Marcus
+-- 
+---------------------------------------+--------------------------
+   Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
+  Software Developer, Ingate Systems AB |  http://www.ingate.com/
 
+--------------030206000408060504010305
+Content-Type: text/x-patch;
+ name="ctnetlink-expect-event.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ctnetlink-expect-event.diff"
 
-- Greg Scott
+[NETFILTER] ctnetlink: Make expect events work
 
+The ctnetlink expectation events should use the NFNL_SUBSYS_CTNETLINK_EXP
+subsystem, not NFNL_SUBSYS_CTNETLINK.
 
------Original Message-----
-From: netfilter-devel-bounces@lists.netfilter.org
-[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of
-Patrick McHardy
-Sent: Thursday, January 12, 2006 10:31 AM
-To: Marco Berizzi
-Cc: netfilter-devel@lists.netfilter.org
-Subject: Re: new iptables policy match
+Signed-off-by: Marcus Sundberg <marcus@ingate.com>
 
+--- linux-2.6.15/net/ipv4/netfilter/ip_conntrack_netlink.c	2006/01/12 18:59:57	1.1
++++ linux-2.6.15/net/ipv4/netfilter/ip_conntrack_netlink.c	2006/01/12 19:00:03
+@@ -1223,7 +1223,7 @@ static int ctnetlink_expect_event(struct
+ 
+ 	b = skb->tail;
+ 
+-	type |= NFNL_SUBSYS_CTNETLINK << 8;
++	type |= NFNL_SUBSYS_CTNETLINK_EXP << 8;
+ 	nlh   = NLMSG_PUT(skb, 0, 0, type, sizeof(struct nfgenmsg));
+ 	nfmsg = NLMSG_DATA(nlh);
+ 
 
-Marco Berizzi wrote:
-> Ok. Here is my suggestion:
->=20
-> --tunnel-src addr[/mask]
-> matches the source end-point address of the SA. Only valid with --mode
-
-> tunnel
->=20
-> --tunnel-dst addr[/mask]
-> matches the destination end-point address of the SA. Only valid with=20
-> --mode tunnel
-
-Thanks, I've updated the man-page.
+--------------030206000408060504010305--
