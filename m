@@ -1,16 +1,17 @@
-From: Marcus Sundberg <marcus@ingate.com>
-Subject: Re: [PATCH] ctnetlink: Make expect events work
-Date: Fri, 13 Jan 2006 11:54:58 +0100
-Message-ID: <43C78702.1020807@ingate.com>
-References: <43C6A946.5070009@ingate.com> <43C6F256.7040306@eurodev.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] fix nf_conntrack_netlink expectation dumping/event
+	notification
+Date: Fri, 13 Jan 2006 12:17:16 +0100
+Message-ID: <43C78C3C.6080707@netfilter.org>
+References: <43C76BA7.9080204@trash.net>	<200601130902.k0D92fVM026246@toshiba.co.jp>	<43C76D22.8050805@trash.net>
+	<200601130938.k0D9c6ud007984@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@eurodev.net>
-In-Reply-To: <43C6F256.7040306@eurodev.net>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200601130938.k0D9c6ud007984@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,37 +23,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Marcus Sundberg wrote:
-> 
->>expectation events are improperly tagged in the current ctnetlink
->>code, this patch makes them work.
-> 
-> Please, be more accurate with your descriptions. The expectation events
-> are working just fine since NFNL_SUBSYS_CTNETLINK and
-> NFNL_SUBSYS_CTNETLINK_EXP messages are handled similarly by
-> libnetfilter_conntrack.
-> 
-> I agree that it's improperly tagged, so I like the change, but it's not
-> a fix and it shouldn't go to -stable, it's a cleanup. Thanks!
+Yasuyuki KOZAKAI wrote:
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index 62bb509..9a147dd 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -188,7 +188,7 @@ extern struct nf_conntrack_protocol nf_c
+>  struct nf_conntrack_protocol *
+>  __nf_ct_proto_find(u_int16_t l3proto, u_int8_t protocol)
+>  {
+> -	if (unlikely(nf_ct_protos[l3proto] == NULL))
+> +	if (unlikely(l3proto > AF_MAX || nf_ct_protos[l3proto] == NULL))
 
-Hi,
+Could the unlikely statement be bad at expectation dumping?
 
-I disagree with that. libnetfilter_conntrack happens to work because
-it uses a different handler callback depending on what kind of data
-it *expects* to receive, and lacks a check for what kind of data it
-actually *is* receiving.
+cheers,
+Pablo
 
-Without properly checking the subsystem there is no way of *knowing*
-whether type 0 and attribute 1 in a netlink reply means IPCTNL_MSG_CT_NEW
-and CTA_TUPLE_ORIG or if they mean IPCTNL_MSG_EXP_NEW and CTA_EXPECT_MASTER.
-You can only guess based on what netlink requests you have previously
-sent to the kernel and your knowledge about current kernel internals.
-
-It may work, but it's not the way to make robust APIs.
-
-//Marcus
 -- 
----------------------------------------+--------------------------
-   Marcus Sundberg <marcus@ingate.com>  | Firewalls with SIP & NAT
-  Software Developer, Ingate Systems AB |  http://www.ingate.com/
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
