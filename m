@@ -1,14 +1,15 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] fix nf_conntrack_netlink expectation dumping/event
-	notification
-Date: Fri, 13 Jan 2006 02:41:10 +0100
-Message-ID: <43C70536.7000608@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: new iptables policy match
+Date: Fri, 13 Jan 2006 08:01:53 +0100
+Message-ID: <43C75061.4080508@trash.net>
+References: <925A849792280C4E80C5461017A4B8A26DAE@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060400070302030400020604"
-Cc: Patrick McHardy <kaber@trash.net>,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Marco Berizzi <pupilla@hotmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Greg Scott <GregScott@InfraSupportEtc.com>
+In-Reply-To: <925A849792280C4E80C5461017A4B8A26DAE@mail733.InfraSupportEtc.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,55 +21,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------060400070302030400020604
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Greg Scott wrote:
+> Just to be completely anal because I'm just a skinny 
+> bald guy from Minnesota - is this ASCII art right?
+> If this is right, maybe this would make the man page
+> even clearer.  Of course, if it's wrong, that means
+> I still don't get it.
+> 
+> 
+> LAN    FW   Internet   FW    LAN
+> <----+----+----------+----+----->
+>      |    |          |    |
+> Private  Public   Public  Private
+>     IP    IP        IP     IP
+> 
+>  Tunnel   SA        SA   Tunnel
+>  endpoint                endpoint
 
-Hi Yasuyuki,
-
-Currently we get an oops with nf_conntrack_netlink + nf_conntrack_ftp
-because l3num is set to 0xFFFF for the expectation mask. At first sight,
-this is correct because l3num is u_int16_t, but the size of the layer-3
-array of protocol handlers is AF_MAX (32).
-
-I could add some checking to verify that l3num is less than 32 in
-nf_conntrack_find_l3proto, but such checking is only required for
-nf_conntrack_ftp and further application helpers. AFAICS, this is the
-cleanest way to fix this problem. Any other suggestion?
-
-Cheers,
-Pablo
-
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
-
---------------060400070302030400020604
-Content-Type: text/plain;
- name="x1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x1"
-
-Set l3num to 0x1F (32) in expectation masks since the size of the layer 3 
-procotol handler array is AF_MAX. This fixes a panic at expectation dumping
-and event notification.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Index: netfilter-2.6.14.git/net/netfilter/nf_conntrack_ftp.c
-===================================================================
---- netfilter-2.6.14.git.orig/net/netfilter/nf_conntrack_ftp.c	2006-01-08 21:24:44.000000000 +0100
-+++ netfilter-2.6.14.git/net/netfilter/nf_conntrack_ftp.c	2006-01-08 21:33:52.000000000 +0100
-@@ -574,7 +574,7 @@ static int help(struct sk_buff **pskb,
- 	exp->tuple.dst.protonum = IPPROTO_TCP;
- 
- 	exp->mask = (struct nf_conntrack_tuple)
--		    { .src = { .l3num = 0xFFFF,
-+		    { .src = { .l3num = 0x001F,
- 			       .u = { .tcp = { 0 }},
- 			     },
- 		      .dst = { .protonum = 0xFF,
-
---------------060400070302030400020604--
+No, the tunnel endpoints are the hosts using the tunnel-mode SA,
+so in this case both firewalls.
