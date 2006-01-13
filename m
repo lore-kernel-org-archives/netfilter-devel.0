@@ -1,15 +1,15 @@
-From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: RE: new iptables policy match
-Date: Fri, 13 Jan 2006 15:18:06 -0600
-Message-ID: <925A849792280C4E80C5461017A4B8A26DBB@mail733.InfraSupportEtc.com>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH] [NETFILTER] x_tables
+Date: Fri, 13 Jan 2006 14:33:56 -0800 (PST)
+Message-ID: <20060113.143356.40119616.davem@davemloft.net>
+References: <20060112204734.GQ4430@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org, Marco Berizzi <pupilla@hotmail.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: "Patrick McHardy" <kaber@trash.net>
+To: laforge@netfilter.org
+In-Reply-To: <20060112204734.GQ4430@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,54 +21,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> No, the tunnel endpoints are the hosts using the=20
-> tunnel-mode SA, so in this case both firewalls.
+From: Harald Welte <laforge@netfilter.org>
+Date: Thu, 12 Jan 2006 21:47:34 +0100
 
-OK, so now I'm confused.  And admittedly, IPSEC has made
-me crazy for several years.  Which NICs on the firewalls
-are the endpoints?  Is this picture better and more accurate?
+> Finally, I included all the suggestions/comments for x_tables "take 5",
+> ran the nfsim testsuite and feel confident that this is ready for prime
+> time.
+> 
+> Please apply this huge one for 2.6.16,
 
+It's been in my tree since last night, I'll try to see if
+I can get Linus to eat this along with TIPC which are the
+last two major things I plan to try and merge.
 
-  LAN             Internet             LAN
- <----+--FW---+-------------+--FW---+----->
-      |       |             |       |
-NIC with  NIC with      NIC with  NIC with
-private    public        public   private
-  IP        IP <---------> IP       IP
-                   SA
-          Tunnel          Tunnel
-         endpoint        endpoint
-
-So the public NICs are the tunnel endpoints?
-
-- Greg
-
-
-
------Original Message-----
-From: Patrick McHardy [mailto:kaber@trash.net]=20
-Sent: Friday, January 13, 2006 1:02 AM
-To: Greg Scott
-Cc: Marco Berizzi; netfilter-devel@lists.netfilter.org
-Subject: Re: new iptables policy match
-
-
-Greg Scott wrote:
-> Just to be completely anal because I'm just a skinny
-> bald guy from Minnesota - is this ASCII art right?
-> If this is right, maybe this would make the man page
-> even clearer.  Of course, if it's wrong, that means
-> I still don't get it.
->=20
->=20
-> LAN    FW   Internet   FW    LAN
-> <----+----+----------+----+----->
->      |    |          |    |
-> Private  Public   Public  Private
->     IP    IP        IP     IP
->=20
->  Tunnel   SA        SA   Tunnel
->  endpoint                endpoint
-
-No, the tunnel endpoints are the hosts using the tunnel-mode SA, so in
-this case both firewalls.
+Let's get into bug fix mode people...
