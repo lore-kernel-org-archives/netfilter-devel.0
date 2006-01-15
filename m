@@ -1,19 +1,15 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH] fix nf_conntrack_netlink expectation dumping/event
- notification
-Date: Sun, 15 Jan 2006 22:07:39 +0900 (JST)
-Message-ID: <200601151307.k0FD7evx014168@toshiba.co.jp>
-References: <43C76D22.8050805@trash.net>
-	<200601130938.k0D9c6ud007984@toshiba.co.jp>
-	<43C78C3C.6080707@netfilter.org>
+From: Pablo Neira Ayuso <pablo@eurodev.net>
+Subject: Re: [PATCH] [LIBNFNETLINK] fixes
+Date: Sun, 15 Jan 2006 15:35:41 +0100
+Message-ID: <43CA5DBD.1010507@eurodev.net>
+References: <43C9B94E.9040409@netfilter.org>
+	<20060115094521.GG6740@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net,
-	yasuyuki.kozakai@toshiba.co.jp
+Content-Type: multipart/mixed; boundary="------------070802070006030702060304"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: pablo@netfilter.org
-In-Reply-To: <43C78C3C.6080707@netfilter.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20060115094521.GG6740@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,37 +21,78 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------070802070006030702060304
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Hi, Pablo,
-
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri, 13 Jan 2006 12:17:16 +0100
-
-> Yasuyuki KOZAKAI wrote:
-> > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> > index 62bb509..9a147dd 100644
-> > --- a/net/netfilter/nf_conntrack_core.c
-> > +++ b/net/netfilter/nf_conntrack_core.c
-> > @@ -188,7 +188,7 @@ extern struct nf_conntrack_protocol nf_c
-> >  struct nf_conntrack_protocol *
-> >  __nf_ct_proto_find(u_int16_t l3proto, u_int8_t protocol)
-> >  {
-> > -	if (unlikely(nf_ct_protos[l3proto] == NULL))
-> > +	if (unlikely(l3proto > AF_MAX || nf_ct_protos[l3proto] == NULL))
+Harald Welte wrote:
+>>The patch attached fixes two issues in libnfnetlink:
+>>
+>>- subsys_id was not set in nfnl_subsys_open
+>>- set nfnlh->local.nl_pid in nfnl_open since nfnl_talk checks that:
+>>h->nlmsg_pid != nfnlh->local.nl_pid
 > 
-> Could the unlikely statement be bad at expectation dumping?
+> unfortunately no patch attached...
 
-Indeed. But please let me think about this some more.
-I feel strange to find l3proto with 0xffff as address family or to find proto
-with 0xff as protocol number.
+:( sorry about that, patch attached.
 
-After all, ctnetlink_dump_tuples() gets nf_conntrack_l3proto_generic /
-nf_conntrack_proto_generic and they doesn't fill any contents, right ?
+>>Now the libnetfilter_conntrack test says OK again ;)
+> 
+> great. sorry for the breakage, but I hope you can appreciate the beauty
+> of this new concept.  Being able to talk to all nfnetlink subsystems at
+> the same time through one socket...
 
-If so, I think that it's better to make ctnetlink_exp_dump_expect() use
-l3proto/proto for &exp->tuple to dump &exp->mask, and then
-we would not need to remove above unlikely().
+Sure, it's a nice rework. And it's really promising that now we can have
+helpers in userspace, as Rusty dreamed in early stages :).
 
-Regards,
+BTW, are we going to distribute the further application helpers
+(implemented in userspace) separately or living somewhere in
+libnetfilter_cthelper?
 
--- Yasuyuki Kozaki
+-- 
+Pablo
+
+--------------070802070006030702060304
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+Index: src/libnfnetlink.c
+===================================================================
+--- src/libnfnetlink.c	(revision 6411)
++++ src/libnfnetlink.c	(working copy)
+@@ -16,6 +16,10 @@
+  *
+  * 2006-01-14 Harald Welte <laforge@netfilter.org>:
+  * 	introduce nfnl_subsys_handle
++ *
++ * 2006-01-15 Pablo Neira Ayuso <pablo@netfilter.org>:
++ * 	set missing subsys_id in nfnl_subsys_open
++ * 	set missing nfnlh->local.nl_pid in nfnl_open
+  */
+ 
+ #include <stdlib.h>
+@@ -152,6 +156,10 @@
+ 		goto err_close;
+ 	}
+ 	nfnlh->seq = time(NULL);
++	/*
++	 * nfnl_talk checks: h->nlmsg_pid != nfnlh->local.nl_pid
++	 */
++	nfnlh->local.nl_pid = getpid();
+ 
+ 	return nfnlh;
+ 
+@@ -196,6 +204,7 @@
+ 	ssh->nfnlh = nfnlh;
+ 	ssh->cb_count = cb_count;
+ 	ssh->subscriptions = subscriptions;
++	ssh->subsys_id = subsys_id;
+ 
+ 	if (recalc_rebind_subscriptions(nfnlh) < 0) {
+ 		free(ssh->cb);
+
+--------------070802070006030702060304--
