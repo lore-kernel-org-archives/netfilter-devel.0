@@ -1,7 +1,7 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 1/3]ip{6}tables: get rid of obsoleted matches from Makefile
-Date: Mon, 16 Jan 2006 18:37:03 +0900 (JST)
-Message-ID: <200601160937.k0G9b4Za007258@toshiba.co.jp>
+Subject: [PATCH 2/3] ip6tables: remove unused definitions in IPv6 matches
+Date: Mon, 16 Jan 2006 18:38:49 +0900 (JST)
+Message-ID: <200601160938.k0G9cnNB027835@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -20,42 +20,114 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-These are replaced with x_tables matches and no longer exist.
+These definitions ware used for only internal use in kernel <= 2.6.13,
+which had not introduced the unified parser of IPv6 extension header yet.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
 ---
-commit 1433482f7d367166757dececf529743cde01dacc
-tree eb1f7f3c481d9ae9d399b3146f020dd7729d7398
-parent 37d8dc82e0cd93eec77c5bcebd725c4ba661351a
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sat, 14 Jan 2006 17:32:59 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sun, 15 Jan 2006 04:00:24 +0900
+commit 6a17d7592477ee9246ed39147980ae5012bb0c28
+tree 59d34642d9128fdf034cbb9bc612589adf571ae1
+parent 2e4e6a17af35be359cc8f1c924f8f198fbd478cc
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sat, 14 Jan 2006 03:56:59 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Sat, 14 Jan 2006 03:56:59 +0900
 
- net/ipv4/netfilter/Makefile |    1 -
- net/ipv6/netfilter/Makefile |    1 -
- 2 files changed, 0 insertions(+), 2 deletions(-)
+ include/linux/netfilter_ipv6/ip6t_ah.h   |    9 ---------
+ include/linux/netfilter_ipv6/ip6t_esp.h  |    9 ---------
+ include/linux/netfilter_ipv6/ip6t_frag.h |    9 ---------
+ include/linux/netfilter_ipv6/ip6t_opts.h |    9 ---------
+ include/linux/netfilter_ipv6/ip6t_rt.h   |    9 ---------
+ 5 files changed, 0 insertions(+), 45 deletions(-)
 
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index bcefe64..e5c5b32 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -46,7 +46,6 @@ obj-$(CONFIG_IP_NF_NAT) += iptable_nat.o
- obj-$(CONFIG_IP_NF_RAW) += iptable_raw.o
+diff --git a/include/linux/netfilter_ipv6/ip6t_ah.h b/include/linux/netfilter_ipv6/ip6t_ah.h
+index c4f0793..8531879 100644
+--- a/include/linux/netfilter_ipv6/ip6t_ah.h
++++ b/include/linux/netfilter_ipv6/ip6t_ah.h
+@@ -18,13 +18,4 @@ struct ip6t_ah
+ #define IP6T_AH_INV_LEN		0x02	/* Invert the sense of length. */
+ #define IP6T_AH_INV_MASK	0x03	/* All possible flags. */
  
- # matches
--obj-$(CONFIG_IP_NF_MATCH_HELPER) += ipt_helper.o
- obj-$(CONFIG_IP_NF_MATCH_HASHLIMIT) += ipt_hashlimit.o
- obj-$(CONFIG_IP_NF_MATCH_IPRANGE) += ipt_iprange.o
- obj-$(CONFIG_IP_NF_MATCH_MULTIPORT) += ipt_multiport.o
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index 663b474..db6073c 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -4,7 +4,6 @@
+-#define MASK_HOPOPTS    128
+-#define MASK_DSTOPTS    64
+-#define MASK_ROUTING    32
+-#define MASK_FRAGMENT   16
+-#define MASK_AH         8
+-#define MASK_ESP        4
+-#define MASK_NONE       2
+-#define MASK_PROTO      1
+-
+ #endif /*_IP6T_AH_H*/
+diff --git a/include/linux/netfilter_ipv6/ip6t_esp.h b/include/linux/netfilter_ipv6/ip6t_esp.h
+index 01142b9..a91b6ab 100644
+--- a/include/linux/netfilter_ipv6/ip6t_esp.h
++++ b/include/linux/netfilter_ipv6/ip6t_esp.h
+@@ -7,15 +7,6 @@ struct ip6t_esp
+ 	u_int8_t  invflags;			/* Inverse flags */
+ };
  
- # Link order matters here.
- obj-$(CONFIG_IP6_NF_IPTABLES) += ip6_tables.o
--obj-$(CONFIG_IP6_NF_MATCH_LENGTH) += ip6t_length.o
- obj-$(CONFIG_IP6_NF_MATCH_RT) += ip6t_rt.o
- obj-$(CONFIG_IP6_NF_MATCH_OPTS) += ip6t_hbh.o ip6t_dst.o
- obj-$(CONFIG_IP6_NF_MATCH_IPV6HEADER) += ip6t_ipv6header.o
+-#define MASK_HOPOPTS    128
+-#define MASK_DSTOPTS    64
+-#define MASK_ROUTING    32
+-#define MASK_FRAGMENT   16
+-#define MASK_AH         8
+-#define MASK_ESP        4
+-#define MASK_NONE       2
+-#define MASK_PROTO      1
+-
+ /* Values for "invflags" field in struct ip6t_esp. */
+ #define IP6T_ESP_INV_SPI		0x01	/* Invert the sense of spi. */
+ #define IP6T_ESP_INV_MASK	0x01	/* All possible flags. */
+diff --git a/include/linux/netfilter_ipv6/ip6t_frag.h b/include/linux/netfilter_ipv6/ip6t_frag.h
+index 449a57e..66070a0 100644
+--- a/include/linux/netfilter_ipv6/ip6t_frag.h
++++ b/include/linux/netfilter_ipv6/ip6t_frag.h
+@@ -21,13 +21,4 @@ struct ip6t_frag
+ #define IP6T_FRAG_INV_LEN	0x02	/* Invert the sense of length. */
+ #define IP6T_FRAG_INV_MASK	0x03	/* All possible flags. */
+ 
+-#define MASK_HOPOPTS    128
+-#define MASK_DSTOPTS    64
+-#define MASK_ROUTING    32
+-#define MASK_FRAGMENT   16
+-#define MASK_AH         8
+-#define MASK_ESP        4
+-#define MASK_NONE       2
+-#define MASK_PROTO      1
+-
+ #endif /*_IP6T_FRAG_H*/
+diff --git a/include/linux/netfilter_ipv6/ip6t_opts.h b/include/linux/netfilter_ipv6/ip6t_opts.h
+index e259b62..a07e363 100644
+--- a/include/linux/netfilter_ipv6/ip6t_opts.h
++++ b/include/linux/netfilter_ipv6/ip6t_opts.h
+@@ -20,13 +20,4 @@ struct ip6t_opts
+ #define IP6T_OPTS_INV_LEN	0x01	/* Invert the sense of length. */
+ #define IP6T_OPTS_INV_MASK	0x01	/* All possible flags. */
+ 
+-#define MASK_HOPOPTS    128
+-#define MASK_DSTOPTS    64
+-#define MASK_ROUTING    32
+-#define MASK_FRAGMENT   16
+-#define MASK_AH         8
+-#define MASK_ESP        4
+-#define MASK_NONE       2
+-#define MASK_PROTO      1
+-
+ #endif /*_IP6T_OPTS_H*/
+diff --git a/include/linux/netfilter_ipv6/ip6t_rt.h b/include/linux/netfilter_ipv6/ip6t_rt.h
+index f1070fb..5215602 100644
+--- a/include/linux/netfilter_ipv6/ip6t_rt.h
++++ b/include/linux/netfilter_ipv6/ip6t_rt.h
+@@ -30,13 +30,4 @@ struct ip6t_rt
+ #define IP6T_RT_INV_LEN		0x04	/* Invert the sense of length. */
+ #define IP6T_RT_INV_MASK	0x07	/* All possible flags. */
+ 
+-#define MASK_HOPOPTS    128
+-#define MASK_DSTOPTS    64
+-#define MASK_ROUTING    32
+-#define MASK_FRAGMENT   16
+-#define MASK_AH         8
+-#define MASK_ESP        4
+-#define MASK_NONE       2
+-#define MASK_PROTO      1
+-
+ #endif /*_IP6T_RT_H*/
