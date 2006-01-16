@@ -1,16 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 0/3] cleanups for matches
-Date: Mon, 16 Jan 2006 17:48:38 +0100
-Message-ID: <20060116164838.GD21710@sunbeam.de.gnumonks.org>
-References: <200601160936.k0G9aXGO001417@toshiba.co.jp>
+From: Michal Rokos <michal.rokos@gmail.com>
+Subject: Re: x_tables userspace
+Date: Mon, 16 Jan 2006 21:01:18 +0100
+Message-ID: <333e1ca10601161201y238a82e5oec6e67c361792f61@mail.gmail.com>
+References: <333e1ca10601160212g4a9f21e8p78c26fd113197a60@mail.gmail.com>
+	<43CB93C4.4060500@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jKBxcB1XkHIR0Eqt"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <43CB93C4.4060500@eurodev.net>
 Content-Disposition: inline
-In-Reply-To: <200601160936.k0G9aXGO001417@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,44 +22,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---jKBxcB1XkHIR0Eqt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Jan 16, 2006 at 06:36:33PM +0900, Yasuyuki KOZAKAI wrote:
-=20
-> These patches are just for cleanup.=20
-
-ok, I'll push them to davem
-
-> I didn't cleanup ip6t_esp.c because I have a patch for xt_esp.c. It
-> looks unnecessary to skip IPv6 extension headers before ESP in match()
-> if ip6_packet_match() does it.  After some tests, I'll send it.
-
-great.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---jKBxcB1XkHIR0Eqt
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFDy85mXaXGVTD0i/8RAllAAJ9swNayaRFqOxE1nFoUxbf2M31R8QCfeMIT
-qluS9P/6I/hefhYVoHA5AY8=
-=xycA
------END PGP SIGNATURE-----
-
---jKBxcB1XkHIR0Eqt--
+SGVsbG8sCgpPbiAxLzE2LzA2LCBQYWJsbyBOZWlyYSBBeXVzbyA8cGFibG9AZXVyb2Rldi5uZXQ+
+IHdyb3RlOgo+IE1pY2hhbCBSb2tvcyB3cm90ZToKPiA+IG5vdyB3aGVuIHhfdGFibGVzIGFyZSBt
+ZXJnZWQgb25lIHF1ZXN0aW9uIGhhcyB0byBjb21lOgo+ID4KPiA+IElzIHRoZXJlIGFueSB1c2Vy
+c3BhY2UgcHJvZyB0aGF0IGNhbiBtYW5hZ2UgeF90YWJsZXM/IFNvbWV0aGluZyBsaWtlIGlwNDZ0
+YWJsZXM/Cj4gTm8sIHRoaXMgZG9lcyBub3Qgc3VwcG9zZSBhbnkgY2hhbmdlIGZyb20gdXNlcnNw
+YWNlIHNpZGUuIEl0J3MganVzdCBwYXJ0Cj4gIG9mIHRoZSBpcHY0LWlwdjYgY29kZSByZXVuaWZp
+Y2F0aW9uLgoKV2VsbCAtIHRoZXJlIHNob3VsZCBiZSBhbnkgdXNlcnNwYWNlIHRoYXQgZG9lcyB0
+aGUgc2FtZSBhcyBpcHRfbWF0Y2gKb3IgaXB0X2Nvbm50cmFjay4KCj4gPiAoQWxsIEkgcmVhbGx5
+IHdhbnQgaXMgdG8gZmluYWxseSB1c2UgaXB2NiBzdGF0ZWZ1bCBuZXRmaWx0ZXIuIEFuZCB3aGVu
+Cj4gPiBpcHRhYmxlcyBhbmQgaXA2dGFibGVzIGFyZSBhbHJlYWR5IG1lcmdlZCBzb21ld2hlcmUg
+aXQgd291bGQgYmUKPiA+IGdyZWF0ISkKPgo+IFN0YXRlZnVsIGlwdjYgd2VudCBpbnRvIDIuNi4x
+NSwgc28geW91IGNhbiBnaXZlIGl0IGEgdHJ5IGluIHRoaXMgLXJjMS4KPiBKdXN0IGNoZWNrIHRo
+ZSBmb2xsb3dpbmcgYm94ZXM6CltzbmlwXQoKU3VyZSBJIGhhdmUgZnJvbSB0aGUgdmVyeSBiZWdp
+bm5pbmcuLi4uIEkgZXZlbiBhbHRlcmVkIGlwdF9tYXRjaCB0byBkbwp0aGUgc2FtZSBmb3IgaXA2
+dCAoaXQncyBqdXN0IGEgcy9pcC9pcDYvKSwgYnV0IEkgaGF0ZSBpdC4gSSdtIGxvb2tpbmcKZm9y
+IHNvbWV0aGluZyB0aGF0IGNhbiBoYW5kbGUgaXA0IGFuZCBpcDYgd2l0aG91dCBoYXZpbmcgMiBi
+aW5hcmllcwp3aXRoIHZlcnkgY29tbW9uIGNvZGViYXNlLi4uCgpNLgo=
