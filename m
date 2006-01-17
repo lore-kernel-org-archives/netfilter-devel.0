@@ -1,15 +1,15 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: conntrack for multiple interfaces
-Date: Tue, 17 Jan 2006 09:55:28 +0100
-Message-ID: <1137488128.5084.5.camel@bzorp.balabit>
-References: <200601161355.22867.kgy@deverto.com>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH] fix ip[6]t_policy compiler warnings after x_tables merge
+Date: Tue, 17 Jan 2006 02:26:53 -0800 (PST)
+Message-ID: <20060117.022653.31779881.davem@davemloft.net>
+References: <20060114204052.GF6740@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Kovesdi Gyorgy <kgy@deverto.com>
-In-Reply-To: <200601161355.22867.kgy@deverto.com>
+To: laforge@netfilter.org
+In-Reply-To: <20060114204052.GF6740@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,21 +21,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2006-01-16 at 13:55 +0100, Kovesdi Gyorgy wrote:
-> Hi,
+From: Harald Welte <laforge@netfilter.org>
+Date: Sat, 14 Jan 2006 21:40:53 +0100
+
+> [NETFILTER] ip[6]t_policy: Fix compilation warnings
 > 
-> Is there any special mailing list for libnetfiler_conntrack?
-
-I don't know of any, I think you can post here.
-
+> ip[6]t_policy argument conversion slipped when merging with x_tables
 > 
-> My machine has assigned the same IP range for multiple interfaces. Is the 
-> conntrack able to handle this?
+> Signed-off-by: Benoit Boissinot <benoit.boissinot@ens-lyon.org>
+> Signed-off-by: Harald Welte <laforge@netfilter.org>
 
-Conntrack is interface independent, however it does not handle when
-tuples collide, it assumes they are part of the same connection. (ie. it
-does not work, unless your IP space is actually divided between
-interfaces and connections never collide)
-
--- 
-Bazsi
+Applied, thanks.
