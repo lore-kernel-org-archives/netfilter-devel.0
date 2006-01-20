@@ -1,17 +1,19 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [PATCH 0/3] cleanups for matches
-Date: Fri, 20 Jan 2006 20:50:19 +0900 (JST)
-Message-ID: <200601201150.k0KBoKuH016706@toshiba.co.jp>
+Date: Fri, 20 Jan 2006 14:07:44 +0100
+Message-ID: <20060120130744.GH4603@sunbeam.de.gnumonks.org>
 References: <20060120081151.GV4603@sunbeam.de.gnumonks.org>
 	<200601200955.k0K9tSnM001413@toshiba.co.jp>
 	<20060120112126.GB4603@sunbeam.de.gnumonks.org>
+	<200601201150.k0KBoKM4002074@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="z0JXx0QNa4/JeB8y"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20060120112126.GB4603@sunbeam.de.gnumonks.org>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
+In-Reply-To: <200601201150.k0KBoKM4002074@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,27 +26,42 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Fri, 20 Jan 2006 12:21:26 +0100
+--z0JXx0QNa4/JeB8y
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Anyway, I still think that we can ignore that issue.  Please patch the
-> manpage with a corresponding notice, one that explicitly states which
-> kernel version behaves how.
+On Fri, Jan 20, 2006 at 08:50:19PM +0900, Yasuyuki KOZAKAI wrote:
 
-OK,
+> Well, I don't want to do it. Only ESP header is special because it cannot=
+ be
+> skipped. On the other hand, AH is normal IPv6 extension header and can be
+> skipped like others. Then 'ip6tables -p tcp -m ah ...' makes sense,
+> for example.
 
-> I wish we had started a list of 'netfilter/iptables semantic changes' in
-> 2000 which we would always keep up to date.  Now there are a number of
-> subtle differences (like this) which almost nobody recalls :(
+ok, so the only thing 'missing' is the spi matching - a feature that
+sounds cool but I doubt anyone is using anyway.
 
-Ah, I forgot that. I can check IPv6 related words this weekend, but please
-don't expect good English. ;)
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-> btw: is it feasible to do the same kind of merge for AH ?
+--z0JXx0QNa4/JeB8y
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-Well, I don't want to do it. Only ESP header is special because it cannot be
-skipped. On the other hand, AH is normal IPv6 extension header and can be
-skipped like others. Then 'ip6tables -p tcp -m ah ...' makes sense,
-for example.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
--- Yasuyuki Kozakai
+iD8DBQFD0OCgXaXGVTD0i/8RAsxcAJ4jgOocx/rPF7af+7YG1eFLjl5AEwCfT4mX
+74lkK4neEy+lHGZd/9EjyH4=
+=n4+4
+-----END PGP SIGNATURE-----
+
+--z0JXx0QNa4/JeB8y--
