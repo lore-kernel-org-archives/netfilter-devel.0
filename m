@@ -1,18 +1,17 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: expectation mask handling in nfctnetlink (Was Re: [PATCH] fix
- nf_conntrack_netlink expectation dumping/event notification)
-Date: Fri, 20 Jan 2006 13:57:56 +0900 (JST)
-Message-ID: <200601200457.k0K4vvAI001787@toshiba.co.jp>
-References: <200601130938.k0D9c6ud007984@toshiba.co.jp>
-	<43C78C3C.6080707@netfilter.org>
-	<200601151307.k0FD7evx014168@toshiba.co.jp>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 0/3] cleanups for matches
+Date: Fri, 20 Jan 2006 09:11:51 +0100
+Message-ID: <20060120081151.GV4603@sunbeam.de.gnumonks.org>
+References: <200601160936.k0G9aXWH026971@toshiba.co.jp>
+	<200601200225.k0K2PAn2005682@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zOr5JpMIiGv/Oaxu"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: pablo@netfilter.org
-In-Reply-To: <200601151307.k0FD7evx014168@toshiba.co.jp>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
+In-Reply-To: <200601200225.k0K2PAn2005682@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,33 +24,61 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi, Pablo,
+--zOr5JpMIiGv/Oaxu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Date: Sun, 15 Jan 2006 22:07:39 +0900 (JST)
+On Fri, Jan 20, 2006 at 11:25:09AM +0900, Yasuyuki KOZAKAI wrote:
+>=20
+> From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+> Date: Mon, 16 Jan 2006 18:36:33 +0900 (JST)
+>=20
+> > These patches are just for cleanup. I didn't cleanup ip6t_esp.c because
+> > I have a patch for xt_esp.c. It looks unnecessary to skip IPv6 extension
+> > headers before ESP in match() if ip6_packet_match() does it.
+> > After some tests, I'll send it.
+>=20
+> Hmm.. we cannot do that without breaking compatibility of ip6t_esp.
+> Because this forces us to add '-p esp' to ip6tables command. The current
+> ip6t_esp doesn't require it.
 
-> I feel strange to find l3proto with 0xffff as address family or to find proto
-> with 0xff as protocol number.
-> 
-> After all, ctnetlink_dump_tuples() gets nf_conntrack_l3proto_generic /
-> nf_conntrack_proto_generic and they doesn't fill any contents, right ?
-> 
-> If so, I think that it's better to make ctnetlink_exp_dump_expect() use
-> l3proto/proto for &exp->tuple to dump &exp->mask, and then
-> we would not need to remove above unlikely().
+We shouldn't require ourselves to be compatible to bugs.  There is no
+point in matching ESP SPI when the protocol !=3D esp.  So any ruleset that
+would no longer work with the new xt_esp was most likely invalid anyway.
 
-I've re-visited this. For now, I'm not sure this is the best solution
-because I don't see how format and contents of expectation mask
-is required by libnetfilter_conntrack. It doesn't use dumped expectation
-mask at all.
+> JFYI, I attached a patch for xt_esp I wrote at first time. It's sad to dr=
+op it,
+> but let's keep the current code...
 
-Then the other idea can be considerd, too. For example, dumping union of
-l3part(mask->u3.all) and union of proto part(mask->u.all) without assumption
-of specific address family/protocol. Do you have any idea on this ?
+I would want to push this forward (for post-2.6.16).  Patrick has some
+infrastructural changes for the checkfn, which we want to push into
+net-2.6.17 once it opens.  I would like to ask you to re-submit your
+xt_esp after that time.
 
-BTW, Harald, I have not read your userspace conntrack helper yet, but I think
-that this issue might relate to it, too.
+btw: Your patch doesn't seem to modify the existing ip[6]t_esp.h header
+files.
 
-Regards,
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
--- Yasuyuki Kozakai
+--zOr5JpMIiGv/Oaxu
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFD0JtHXaXGVTD0i/8RAkvgAKCJ6lcnN584+Zn6UlX5vgJ4XvH3XQCfU7Gu
+F8otUJnKpWrzrhNJqYR3Xgw=
+=SNrp
+-----END PGP SIGNATURE-----
+
+--zOr5JpMIiGv/Oaxu--
