@@ -1,21 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] x_tables: fix alignment on [at least] ppc32
-Date: Fri, 20 Jan 2006 18:28:11 +0100
-Message-ID: <20060120172811.GO4603@sunbeam.de.gnumonks.org>
-References: <17358.19458.555996.684819@alkaid.it.uu.se>
-	<20060118150158.GL4603@sunbeam.de.gnumonks.org>
-	<20060120004512.GT4603@sunbeam.de.gnumonks.org>
-	<20060119.165635.104653932.davem@davemloft.net>
+Subject: Re: libnetfilter_conntrack and port of router
+Date: Sat, 21 Jan 2006 15:39:14 +0100
+Message-ID: <20060121143914.GW4603@sunbeam.de.gnumonks.org>
+References: <200601091230.55167.develop@tstd.pl>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KOBxLkMFRQI9H+bc"
-Cc: linuxppc-dev@ozlabs.org, netfilter-devel@lists.netfilter.org,
-	Jiri Slaby <xslaby@fi.muni.cz>, linux-kernel@vger.kernel.org,
-	mikpe@user.it.uu.se
+	protocol="application/pgp-signature"; boundary="3lEnBJ3eT4fJ0mBo"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: Tomasz =?iso-8859-1?Q?Pr=F3chniak?= <develop@tstd.pl>
 Content-Disposition: inline
-In-Reply-To: <20060119.165635.104653932.davem@davemloft.net>
+In-Reply-To: <200601091230.55167.develop@tstd.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,63 +23,31 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---KOBxLkMFRQI9H+bc
-Content-Type: text/plain; charset=us-ascii
+--3lEnBJ3eT4fJ0mBo
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 19, 2006 at 04:56:35PM -0800, David S. Miller wrote:
-> > [NETFILTER] x_tables: Fix XT_ALIGN() macro on [at least] ppc32
-> > [...]
-> > The fix is an ugly kludge, but it has been tested to solve the problem.=
- Yet
-> > another reason to move away from the current {ip,ip6,arp,eb}tables like
-> > data structures.
-> >=20
-> > Signed-off-by: Harald Welte <laforge@netfilter.org>
+On Mon, Jan 09, 2006 at 12:30:55PM +0100, Tomasz Pr=F3chniak wrote:
+> Hi
 >=20
-> Harald, I'm going to modify this to just use u_int64_t as that
-> should be totally sufficient.
->
-> It is the largest type, and will produce the desired results without
-> the silly structure.
+> First sorry about my English.
+>=20
+> I have a important (to me) question.
+>=20
+> I have 2.6.14-5 kernel and libnetfilter_conntrack-0.0.28/ and=20
+> libnfnetlink-0.0.13/
+>=20
+> i do not know how to get info about nat (port and ip, witch it will be se=
+en in=20
+> net)
 
-Sorry dave, as I just learned, it isn't.   As reported by Jiri Slaby
-<xslaby@fi.muni.cz>, Linus' tree now breaks on i386 :(
+you have to look at the original and the reply tupl.
 
-Interestingly, on i386:
+> struct nfct_conntrack {
+>         struct nfct_tuple tuple[NFCT_DIR_MAX];
 
-__alignof__(struct _xt_align)	4
-__alignof__(u_int64_t)		8
-__alignof__(void *)		4
-
-whereas on ppc:
-
-__alignof__(struct _xt_align)	8
-__alignof__(u_int64_t)		8
-__alignof__(void *)		4
-
-So your assumption that __alignof__(u_int64_t) =3D=3D __alignof__(struct xt=
-_align)
-doesn't hold true for all archs.
-
-I would therefore recommend applying my unmodified patch, and hope that
-it then works on all archs simultaneously.
-
-> Some malloc() implementations use "long double" to figure out the
-> largest type size and alignment requirements any C type might have
-> on the machine.  But there is no reason to use that here.
-
-Our main problem is that we have to stay compatible with old userspace
-programs that had a different definition for what has now become
-XT_ALIGN().  So independent what might be the best solution from an
-alignment point of view, we must match what old userspace thinks.
-
-Yes, this all sucks.  And yes, we will see a new interface this year.
-Promised.
-
-Cheers,
-	Harald.
+everything is in those two struct nfct_tuple.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -96,16 +59,16 @@ Cheers,
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---KOBxLkMFRQI9H+bc
+--3lEnBJ3eT4fJ0mBo
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFD0R2rXaXGVTD0i/8RAmlFAKCvc74CiV6R/7Dz4X+Ak3/eLE0zbQCghxGa
-jefK0vhDAk9RS0WIS9dxw8o=
-=wKFS
+iD8DBQFD0keSXaXGVTD0i/8RAksrAJkBs2OcxfgSMiL7/eg7VGgDQdEqJgCfXLf9
+jVWgewuW5FIQ6Y4dGyDv+Dw=
+=nIyV
 -----END PGP SIGNATURE-----
 
---KOBxLkMFRQI9H+bc--
+--3lEnBJ3eT4fJ0mBo--
