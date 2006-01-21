@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: libnetfilter_conntrack and port of router
-Date: Sat, 21 Jan 2006 15:39:14 +0100
-Message-ID: <20060121143914.GW4603@sunbeam.de.gnumonks.org>
-References: <200601091230.55167.develop@tstd.pl>
+Subject: Re: Simple coding question...
+Date: Sat, 21 Jan 2006 15:45:23 +0100
+Message-ID: <20060121144523.GY4603@sunbeam.de.gnumonks.org>
+References: <1137328306.23199.4.camel@scaramouche.combox.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3lEnBJ3eT4fJ0mBo"
+	protocol="application/pgp-signature"; boundary="J9FDM06y/La6Wdcu"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tomasz =?iso-8859-1?Q?Pr=F3chniak?= <develop@tstd.pl>
+To: Torsten Luettgert <t.luettgert@pressestimmen.de>
 Content-Disposition: inline
-In-Reply-To: <200601091230.55167.develop@tstd.pl>
+In-Reply-To: <1137328306.23199.4.camel@scaramouche.combox.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,31 +23,31 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---3lEnBJ3eT4fJ0mBo
-Content-Type: text/plain; charset=iso-8859-1
+--J9FDM06y/La6Wdcu
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jan 09, 2006 at 12:30:55PM +0100, Tomasz Pr=F3chniak wrote:
-> Hi
+On Sun, Jan 15, 2006 at 01:31:46PM +0100, Torsten Luettgert wrote:
+> Hello,
 >=20
-> First sorry about my English.
+> recently I studied the MARK and CLASSIFY targets and found these
+> lines doing the actual changes:
 >=20
-> I have a important (to me) question.
+>    if((*pskb)->nfmark !=3D markinfo->mark)
+>       (*pskb)->nfmark =3D markinfo->mark;
 >=20
-> I have 2.6.14-5 kernel and libnetfilter_conntrack-0.0.28/ and=20
-> libnfnetlink-0.0.13/
+>    if((*pskb)->priority !=3D clinfo->priority)
+>       (*pskb)->priority =3D clinfo->priority;
 >=20
-> i do not know how to get info about nat (port and ip, witch it will be se=
-en in=20
-> net)
+> Is there a reason the value is always checked first?
 
-you have to look at the original and the reply tupl.
+I cannot really comment, but I guess that it is done because reding data
+is cheaper than writing.  When you write, you invalidate that cahce line
+on all other cpus. =20
 
-> struct nfct_conntrack {
->         struct nfct_tuple tuple[NFCT_DIR_MAX];
-
-everything is in those two struct nfct_tuple.
+However, since it's unlikely that processing of the same s kb moves from
+one cpu to the other, I think that reason is void, too.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -59,16 +59,16 @@ everything is in those two struct nfct_tuple.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---3lEnBJ3eT4fJ0mBo
+--J9FDM06y/La6Wdcu
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFD0keSXaXGVTD0i/8RAksrAJkBs2OcxfgSMiL7/eg7VGgDQdEqJgCfXLf9
-jVWgewuW5FIQ6Y4dGyDv+Dw=
-=nIyV
+iD8DBQFD0kkDXaXGVTD0i/8RAmrGAJ9S1pYC6dYGhy9MRbRoYkPa1/5qZgCdERv2
+bwtWATPx5divMioMhIeCw6g=
+=yhl4
 -----END PGP SIGNATURE-----
 
---3lEnBJ3eT4fJ0mBo--
+--J9FDM06y/La6Wdcu--
