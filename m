@@ -1,19 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] IPMARK - version without nfcache
-Date: Sat, 21 Jan 2006 16:06:31 +0100
-Message-ID: <20060121150631.GB4603@sunbeam.de.gnumonks.org>
-References: <Pine.GSO.4.53.0305291747380.588@galaxy.uci.agh.edu.pl>
-	<Pine.LNX.4.51.0305292005190.32183@dns.toxicfilms.tv>
-	<Pine.GSO.4.53.0305301148180.21914@galaxy.uci.agh.edu.pl>
-	<Pine.GSO.4.63.0601151736580.11613@galaxy.agh.edu.pl>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 0/3] cleanups for matches
+Date: Sun, 22 Jan 2006 05:01:07 +0900 (JST)
+Message-ID: <200601212001.k0LK18V1009570@toshiba.co.jp>
+References: <20060120112126.GB4603@sunbeam.de.gnumonks.org>
+	<200601201150.k0KBoKM4002074@toshiba.co.jp>
+	<20060120130744.GH4603@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="H/HqDnEH3ZcfIhoq"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Grzegorz Janoszka <Grzegorz@Janoszka.pl>
-Content-Disposition: inline
-In-Reply-To: <Pine.GSO.4.63.0601151736580.11613@galaxy.agh.edu.pl>
+To: laforge@netfilter.org
+In-Reply-To: <20060120130744.GH4603@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,37 +23,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Harald Welte <laforge@netfilter.org>
+Date: Fri, 20 Jan 2006 14:07:44 +0100
 
---H/HqDnEH3ZcfIhoq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On Fri, Jan 20, 2006 at 08:50:19PM +0900, Yasuyuki KOZAKAI wrote:
+> 
+> > Well, I don't want to do it. Only ESP header is special because it cannot be
+> > skipped. On the other hand, AH is normal IPv6 extension header and can be
+> > skipped like others. Then 'ip6tables -p tcp -m ah ...' makes sense,
+> > for example.
+> 
+> ok, so the only thing 'missing' is the spi matching - a feature that
+> sounds cool but I doubt anyone is using anyway.
 
-On Mon, Jan 16, 2006 at 09:21:56PM +0100, Grzegorz Janoszka wrote:
+Other example is MIPv6 packet. It may include Destination Options header
+and  Routing header. I cannot see future. Then I want to take some time
+on this to avoid ping-pong change.
 
-> Please put the updated version in patch-o-matic-ng (simple using patch)
+BTW, if we are allowed to do that, we can change ip6_packet_match() so that
+"ip6tables -p 'ext'" matches IPv6 extension header - 'ext'. This will make it
+possible to unify ip{6}t_ah. And we can also remove the code to skip headers
+from hbh, dst, and so on.
 
-thanks, applied.
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---H/HqDnEH3ZcfIhoq
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFD0k33XaXGVTD0i/8RAm7IAKCLmP0juRnK/sPb71O6/58WQFFRlQCfbuzd
-3voRZun2q3rmVmLHw/vmB1o=
-=XCxp
------END PGP SIGNATURE-----
-
---H/HqDnEH3ZcfIhoq--
+-- Yasuyuki Kozakai
