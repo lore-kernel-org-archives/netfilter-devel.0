@@ -1,17 +1,19 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: new iptables policy match
-Date: Sun, 22 Jan 2006 14:38:44 +0100
-Message-ID: <43D38AE4.9020701@trash.net>
-References: <BAY103-F3EE617C3194F61E05CC5CB2270@phx.gbl>
-	<43C616B1.6060101@trash.net>
-	<200601200754.40865.teastep@shorewall.net>
+Subject: Re: ip_finish_output2: No header cache and no neighbour! in
+	2.6.15-git7
+Date: Sun, 22 Jan 2006 15:07:01 +0100
+Message-ID: <43D39185.4070808@trash.net>
+References: <20060116071515.GA1773@gondor.apana.org.au>	<43CCBC0E.4070701@trash.net>	<200601200815.40210.ak@suse.de>
+	<20060119.235114.41595062.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netdev@vger.kernel.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	ak@suse.de, herbert@gondor.apana.org.au
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tom Eastep <teastep@shorewall.net>
-In-Reply-To: <200601200754.40865.teastep@shorewall.net>
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20060119.235114.41595062.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,28 +25,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Tom Eastep wrote:
-> On Thursday 12 January 2006 00:43, Patrick McHardy wrote:
+David S. Miller wrote:
+> From: Andi Kleen <ak@suse.de>
+> Date: Fri, 20 Jan 2006 08:15:39 +0100
+> 
+>>Sorry for the delay in testing. Looks good so far. I'm running with SNAT
+>>and the patch and the messages haven't appeared. Will keep it running
+>>for longer, but previously they would have started already, so it's probably
+>>ok now.
 > 
 > 
->>Yes, --next is needed only if your policy has multiple elements, like
->>"--mode tunnel --tunnel-src 1.2.3.4/32 --next --mode transform". I'll
->>fix up the userspace part to reject this incorrect use.
+> Thanks for testing Andi.
 > 
-> 
-> The second of those patches (Revision 6395 -- Move empty policy element check 
-> to also catch last element) has broken compatibility with previous versions 
-> of policy match.
-> 
-> Previously, the following command succeeded and matched any traffic that is to 
-> be subsequently transformed:
-> 
-> gw:~ # iptables -A foo -m policy --pol ipsec --dir out -j ACCEPT
-> iptables v1.3.4: policy match: empty policy element
-> Try `iptables -h' or 'iptables --help' for more information.
-> gw:~ #
-> 
-> Is this incompatibility intentional? If so, I need to change Shorewall 
-> accordingly. 
+> Patrick, please send me the final version of the fix you want me to
+> put in when you get a chance.
 
-Its a bug, thanks for catching this. I've fixed it up in SVN.
+I need to rethink this, my patch breaks SNAT to non-local IPs because
+the NAT code will throw the packet away if ip_route_me_harder fails.
