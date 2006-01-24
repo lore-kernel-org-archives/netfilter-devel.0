@@ -1,16 +1,15 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [feature request] Fixed timeout for conntrack entry
-Date: Tue, 24 Jan 2006 17:11:33 +0000
-Message-ID: <43D65FC5.4080205@ufomechanic.net>
-References: <1138008265.11978.29.camel@localhost.localdomain>
-	<43D57525.7080907@eurodev.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] [NETFILTER] Fix CID offset bug in PPTP NAT helper
+Date: Tue, 24 Jan 2006 18:59:44 +0100
+Message-ID: <43D66B10.6040803@trash.net>
+References: <11381105772146-git-send-email-heitzenberger@astaro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: nufw-core-team@nufw.org, netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@eurodev.net>
-In-Reply-To: <43D57525.7080907@eurodev.net>
+To: Holger Eitzenberger <heitzenberger@astaro.com>
+In-Reply-To: <11381105772146-git-send-email-heitzenberger@astaro.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,19 +21,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> I think that we could add support for permanent conntracks, eg.
-> conntracks that never expire. So the userspace program could have their
-> own timers and kill it whenever it wants to. The problem is that the
-> userspace program must behave correctly, otherwise we could get tons of
-> zombie conntracks that never expire.
+Holger Eitzenberger wrote:
+> The recent (kernel 2.6.15.1) fix for PPTP NAT helper introduced a
+> bug - which only appears if DEBUGP is enabled though.
+> 
+> The calculation of the CID offset into a PPTP request struct is
+> not correct, so that at least not the correct CID is displayed
+> if DEBUGP is enabled.
+> 
+> This patch corrects CID offset calculation and introduces a #define
+> for that.
 
-Maybe it could be the user process that resets the timeout so that it 
-never expires. If the user process fails to do this, then it is an 
-un-cared for zombie and so the kernel should kill it rather than fill 
-the conntrack hash full of zombies.
-
-Naturally the user process can kill the contrack when the user process 
-thinks it should have expired.
-
-Sam
+That was my bad. Patch applied, thanks.
