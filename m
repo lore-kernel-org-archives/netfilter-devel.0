@@ -1,17 +1,14 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: ipsec01-02-03-04 installation problem
-Date: Tue, 24 Jan 2006 10:29:29 +0900 (JST)
-Message-ID: <200601240129.k0O1TU1x016818@toshiba.co.jp>
-References: <BAY103-F166820039D0DD7F961ADB2B21C0@phx.gbl>
-	<00f401c61f53$6e586030$0201a8c0@gorionstable>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org,
-	pupilla@hotmail.com
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: Fw: [Bugme-new] [Bug 5936] New: Openswan tunnels + netfilter
+	problem
+Date: Tue, 24 Jan 2006 18:25:43 +1100
+Message-ID: <E1F1IYh-0001I3-00@gondolin.me.apana.org.au>
+References: <43D3F186.6030206@trash.net>
+Cc: akpm@osdl.org, netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	webmaster@elnportal.it
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: webmaster@elnportal.it
-In-Reply-To: <00f401c61f53$6e586030$0201a8c0@gorionstable>
+To: kaber@trash.net (Patrick McHardy)
+In-Reply-To: <43D3F186.6030206@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,50 +20,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-Hi,
-
-You may already resolve this, but anyway,
-
-From: "webmaster @ elnportal.it" <webmaster@elnportal.it>
-Date: Sun, 22 Jan 2006 13:57:29 +0100
-
-> Here the passages followed for installing iptables with SNAT support through 
-> ipsec tunnel:
+Patrick McHardy <kaber@trash.net> wrote:
+> Andrew Morton wrote:
+>> 
+>> http://bugzilla.kernel.org/show_bug.cgi?id=5936
 > 
-> 1_ Downloaded from kernel.org 2.6.16-rc1.tar.bz2 kernel
-> 2_ untarred it to /usr/src
-> 3_ make mrproper
-> 4_ copy an old .config file from 2.6.14 sources (Fedora Core 4)
-> 5_ ln -s linux-2.6.16-rc1/ linux
-> 6_ make oldconfig (hitting enter on all query)
-> 7_ make menuconfig
-> 8_ XFRM [IPSec] Networking Security Hooks
+> Please post your iptables rules and the full list of loaded modules.
 
-I think you need to re-configure netfilter related items. 
+The problem is caused by SNAT on a dst that already has an xfrm set.
+When ip_route_me_harder processes the dst it will cause the dst to
+lose its xfrm since it has IPSKB_XFRM_TRANSFORMED set.
 
-Please go to the menu "Network packet filtering (replaces ipchains)",
-enable "Netfilter Xtables support (required for ip_tables)",
-and enable matches/targets you want use. You may also need to re-configure
-"IP: Netfilter Configuration" and "IPv6: Netfilter Configuration"
-if you want to use them.
+Since xfrm4_output_finish does not expect dst's to lose their xfrm's
+after POST_ROUTING, it crashes.
 
-> 9_ Exit and save kernel configuration
-> 10_ make all
-> 11_ make modules_install
-> 12_ make install
-> 13_ reboot
-> 
-> 14_ rpm -e --nodep iptables
-> 15_ untar tarball (snapshot of iptables)
-> 16_ make (under src directory of iptables)
-> 17_ make install
-> 18_ iptables -L
-> 
-> iptables v1.3.4-20060121: can't initialize iptables table `filter': iptables 
-> who? (do you need to insmod?)
-> Perhaps iptables or your kernel needs to be upgraded.
+Obviously we could add a check in xfrm4_output_finish to prevent this
+crash, however, I think we need to consider this a bit more since it
+breaks a fairly common setup where people just stick a rule into the
+NAT table that says
 
-Regards,
+iptables -t nat -I POSTROUTING -i eth1 -j MASQUERADE
 
--- Yasuyuki Kozakai
+where eth1 is the outbound interface.  If this rule catches any IPsec
+VPN traffic then it'll SNAT them even though the intention is obviously
+to let them through without SNAT.
+
+Perhaps it's best to have SNAT not touch packets with dst->xfrm set.
+Unfortunately that leads to problems as well (albeit rarer) since you
+may have catch-all IPsec policies that every packet matches, but you
+want certain packets to be SNATed so that they match more specific
+policies.
+
+Cheers,
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
