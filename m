@@ -1,13 +1,13 @@
 From: Sven Schuster <schuster.sven@gmx.de>
 Subject: Re: iptables not working on 2.6.16-rc1-mm2
-Date: Wed, 25 Jan 2006 21:55:33 +0100
-Message-ID: <20060125205533.GA4658@zion.homelinux.com>
+Date: Thu, 26 Jan 2006 00:10:19 +0100
+Message-ID: <20060125231019.GA3996@zion.homelinux.com>
 References: <20060125193627.GA6967@zion.homelinux.com>
 	<20060125195127.01C3B22AF07@anxur.fi.muni.cz>
 	<20060125204900.6D0BF22AEFB@anxur.fi.muni.cz>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4Ckj6UjgE2iN1+kY"
+	protocol="application/pgp-signature"; boundary="bp/iNruPH9dso1Pn"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Jiri Slaby <xslaby@fi.muni.cz>
@@ -25,7 +25,7 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---4Ckj6UjgE2iN1+kY
+--bp/iNruPH9dso1Pn
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
@@ -44,15 +44,13 @@ On Wed, Jan 25, 2006 at 09:49:02PM +0100, Jiri Slaby told us:
 > >2.6.16-rc1-mm2...
 > That's it, try to revert it -- it is in -mm since .16-rc1-mm2.
 
-aaah :-) will do so, I'm currently recompiling the kernel and report
-back later!
-
-thanks
+just to confirm, reverting that patch makes the problems running
+iptables on 2.6.16-rc1-mm2 go away!!
+Thanks for your help!!
 
 
 Sven
 
->=20
 > regards,
 > --=20
 > Jiri Slaby         www.fi.muni.cz/~xslaby
@@ -62,20 +60,20 @@ Sven
 >=20
 
 --=20
-Linux zion.homelinux.com 2.6.15-mm2_23 #23 Sun Jan 8 19:59:38 CET 2006 i686=
- athlon i386 GNU/Linux
- 21:54:33 up 57 min,  2 users,  load average: 0.03, 0.04, 0.01
+Linux zion.homelinux.com 2.6.16-rc1-mm2_25 #25 Wed Jan 25 23:33:49 CET 2006=
+ i686 athlon i386 GNU/Linux
+ 00:09:11 up 5 min,  1 user,  load average: 1.02, 1.02, 0.50
 
---4Ckj6UjgE2iN1+kY
+--bp/iNruPH9dso1Pn
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFD1+XFo4FAdB2PneQRAkFfAJ9FyJFdaZ04Sk+8FI85TeUoHCtu9ACfQiYy
-szLjWOutj/rXt5EsmISw5FY=
-=2Y3k
+iD8DBQFD2AVbo4FAdB2PneQRAnxoAKCD34RVii7nt0QFCSz91QSm4YCZPQCcCGUo
+YqdqeCMXMPA9rkFphbl7sgo=
+=M2ml
 -----END PGP SIGNATURE-----
 
---4Ckj6UjgE2iN1+kY--
+--bp/iNruPH9dso1Pn--
