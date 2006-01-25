@@ -1,14 +1,18 @@
 From: "KdF" <dkiba@yandex.ru>
-Subject: NFQUEUE: packet accumulation in queue, queue overflows
-Date: Wed, 25 Jan 2006 13:27:41 +0300 (MSK)
-Message-ID: <43D7529D.000004.17272@ariel.yandex.ru>
+Subject: Re: REDIRECT in kernel >= 2.6.15 broken???
+Date: Wed, 25 Jan 2006 14:04:42 +0300 (MSK)
+Message-ID: <43D75B4A.000005.27248@mfront8.yandex.ru>
+References: <43D74B7D.000002.25194@pantene.yandex.ru>
+	<43D74D68.5090808@trash.net>
 Reply-To: dkiba@yandex.ru
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
+Cc: dkiba@yandex.ru, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: kaber@trash.net
+In-Reply-To: <43D74D68.5090808@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,20 +24,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all
+>> Packets get forwarded as usual without any attempt to be redirected.
 
-After switching to NFQUEUE from ip_queue mechanism in our billing system we've got strange trouble: all works fine, but some packets seem not to leave queue, and after some time queue overflows, and packets get dropped. I increased maximum queue length in kernel during setup, and built new kernel, but even with 16384 entries instead 1024 it doesn't flush, but grows with time.
+>Works fine for me. Please post some details about your setup, the
+>exact rules you're using and what (if any) patches you've applied.
 
-cat /proc/net/netfilter/nfnetlink_queue
+My setup is following:
+Station with two interfaces, external interface is looking to the router, internal interface attached to LAN.
 
-3   1296  1697 2    64     0     0   123739  1
+Internal interface running pppoe-server, and pppoe-clients connect to it, spawning pppd processes and ppp interfaces.
+Internal ip-address is for example 192.168.0.19. 
 
-I have an idea that only packets for which verdict NF_DROP is set in our program don't leave queue? Or it is a userspace program perfomance issue? But on tests with simultaneous `ping -f` from four stations all worked fine, and only 64 bytes is copied to userspace to get ip headers.
+To completely hide it from general ip-network, /proc/*/eth0/arp_ignore is set to 8. We tried to completely disable ARP on this interface, but REDIRECT doesn't work, because it tries to send packets on primary address of this interface, and there is no possibility to change it in our case.
 
-NETFILTER and all extensions are built as a part of kernel, not as a module, maybe I should build it as a module? But it seems not to be documented anywhere.
+192.168.0.19 is an address set on interface running pppoe, 10.1.1.1 is an server peer address for ppp clients spawned by pppoe-server, there is a www server, squid, frox and mail proxy accessible on it, and it is set on the same physical interface.
 
-Interfaces from which packets are queued are PPP interfaces, with PPPOE clients attached, is there any issues with it?
+Here is a part of firewall rules:
 
-We tried kernels from 2.6.14.0 to 2.6.16-rc1, in 2.6.15 - 2.6.16-rc1 packet loss is less, but still persists, and REDIRECT target doesn't work (??????) (see my another post).
+$ipt -t nat -A PREROUTING -i ppp+ -d      10.1.1.1 -p tcp --dport   80 -j ACCEPT
+$ipt -t nat -A PREROUTING -i ppp+ -d ! 10.1.1.1 -p tcp --dport 21 -j REDIRECT --to-port 2121
+$ipt -t nat -A PREROUTING -i ppp+ -d ! 10.1.1.1 -p tcp --dport 25 -j REDIRECT --to-port 25
 
-If problem in userspace application perfomance, does NETFILTER have a mechanism to flush old packets from queue, if they were not processed by userspace application?
+#$ipt -t nat -A PREROUTING -i ppp+ -d ! 10.1.1.1 -p tcp --dport 25 -j DNAT --to-destination 10.1.1.1:25
+
+$ipt -t nat -A PREROUTING -i ppp+ -p tcp -m multiport --dport 80,81,82,83,88,8000,8001,8002,8080,8081 -j REDIRECT --to-port 111 
+$ipt -t nat -A PREROUTING -i ppp+ -p tcp -m multiport --dport 8082,8083,8091,8100,8101,8102,8103,8888,3128,777 -j REDIRECT --to-port 111 
+
+With specified kernels, REDIRECT and DNAT don't work for me :(
+I see on router behind this machine that packets are trying to go out with original sources and destinations, and they should be redirected.
+
+Even if problem in ARP, why they aren't simply dropped? :(
+
+Maybe trouble is in arp_ignore? Or something changed in processing redirected packets in newer kernels?
