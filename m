@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH]iptables: fix typos in ipt_connbytes.h
-Date: Wed, 25 Jan 2006 10:47:32 +0100
-Message-ID: <43D74934.8090006@trash.net>
-References: <200601230153.k0N1rj8V023685@toshiba.co.jp>
+Subject: Re: [PATCH 1/2] nf_conntrack: use ipv6_addr_equal in nf_ct_reasm
+Date: Wed, 25 Jan 2006 10:55:34 +0100
+Message-ID: <43D74B16.3020107@trash.net>
+References: <200601050740.k057eGSV018151@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200601230153.k0N1rj8V023685@toshiba.co.jp>
+In-Reply-To: <200601050740.k057eGSV018151@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,10 +22,7 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Yasuyuki KOZAKAI wrote:
-> Hi,
-> 
-> userspace connbytes fails to be build because of that.
-> Please apply attached patch to kernel tree.
+> [NETFILTER] nf_conntrack: use ipv6_addr_equal in nf_ct_reasm
 
-Applied, thanks. I'll push it to Dave with the other queued
-patches this weekend.
+It seems this one got lost (2/2 is already in Linus' tree). I've
+added it to my tree now, thanks.
