@@ -1,18 +1,15 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: Fw: [Bugme-new] [Bug 5936] New: Openswan tunnels + netfilter
-	problem
-Date: Wed, 25 Jan 2006 20:57:46 +1100
-Message-ID: <20060125095746.GA14753@gondor.apana.org.au>
-References: <E1F1IYh-0001I3-00@gondolin.me.apana.org.au>
-	<43D74407.5040705@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: REDIRECT in kernel >= 2.6.15 broken???
+Date: Wed, 25 Jan 2006 11:05:28 +0100
+Message-ID: <43D74D68.5090808@trash.net>
+References: <43D74B7D.000002.25194@pantene.yandex.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: akpm@osdl.org, netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	webmaster@elnportal.it
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <43D74407.5040705@trash.net>
+To: dkiba@yandex.ru
+In-Reply-To: <43D74B7D.000002.25194@pantene.yandex.ru>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,31 +21,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jan 25, 2006 at 10:25:27AM +0100, Patrick McHardy wrote:
+KdF wrote:
+> Is there a problem with REDIRECT in kernels >= 2.6.15?
 > 
-> I don't like adding this special behaviour for NAT, people need
-> to adjust their rulesets for filtering etc. anyway. We could stop
-> rerouting packets in between transforms (when both dst->xfrm and
-> IPSKB_XFRM_TRANSFORMED are set), but this is inconsistent with what
-> happens on input, when a packet is DNATed in PRE_ROUTING it does
+> We are using 2.6.14 on a router and billing stations, and users with exceeded quotas are redirected to local server, but after test upgrade to 2.6.15, 15.1 and 16-rc1 REDIRECT seems not to work :(
+> 
+> Packets get forwarded as usual without any attempt to be redirected.
+> Netfilter is built as a part of whole kernel, not a module.
+> DNAT does not work too in this case, but 2.6.14.6 works fine on same ruleset and kernel config.
 
-Actually we can never achieve perfect symmetry because the two cases
-are fundamentally different.  On outbound we start with a template
-which guides us all the way to the end.  On inbound we (currently)
-don't determine the policy until the very end.
-
-> affect the SA lookup. So I think I'd prefer handling this case in
-> xfrm[46]_output_finish, but I need to think about it a bit more.
-
-Having said that I'm certainly not averse to such a solution.  The
-only thing I would like to see is for it to be flexible enough so
-that you always get at least one chance to SNAT before the xfrm_policy
-is completely pinned down.  This should leave the user with enough
-flexibility to do whatever they wish.
-
-Cheers,
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Works fine for me. Please post some details about your setup, the
+exact rules you're using and what (if any) patches you've applied.
