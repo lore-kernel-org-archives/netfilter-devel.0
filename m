@@ -1,17 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER] nf_conntrack: fix memset() size.
-Date: Wed, 25 Jan 2006 09:43:23 +0100
-Message-ID: <43D73A2B.6030402@trash.net>
-References: <m2hd7tass3.fsf@cerbere.dyndns.info>	<200601250405.k0P45IjD000878@toshiba.co.jp>	<m2acdkc3xl.fsf@cerbere.dyndns.info>
-	<200601250541.k0P5fnG7019802@toshiba.co.jp>
+Subject: Re: Fw: [Bugme-new] [Bug 5936] New: Openswan tunnels + netfilter
+ problem
+Date: Wed, 25 Jan 2006 10:25:27 +0100
+Message-ID: <43D74407.5040705@trash.net>
+References: <E1F1IYh-0001I3-00@gondolin.me.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
-	sbellabes@mandriva.com, davem@davemloft.net
+Cc: akpm@osdl.org, netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	webmaster@elnportal.it
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200601250541.k0P5fnG7019802@toshiba.co.jp>
+To: Herbert Xu <herbert@gondor.apana.org.au>
+In-Reply-To: <E1F1IYh-0001I3-00@gondolin.me.apana.org.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +23,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> From: Samir Bellabes <sbellabes@mandriva.com>
-> Date: Wed, 25 Jan 2006 05:44:06 +0100
+Herbert Xu wrote:
+> Patrick McHardy <kaber@trash.net> wrote:
 > 
-> 
->>[PATCH] [NETFILTER] nf_conntrack_ftp : delete bogus memset()
+>>Andrew Morton wrote:
 >>
->>This memset() is executing with a bad size.
->>According to Yasuyuki Kozakai, this memset() can be deleted, as 'ftp'
->>is declared in global area.
+>>>http://bugzilla.kernel.org/show_bug.cgi?id=5936
 >>
->>Signed-off-by: Samir Bellabes <sbellabes@mandriva.com>
+>>Please post your iptables rules and the full list of loaded modules.
 > 
 > 
-> Well, your mailer or something seems to replace tab with white spaces.
-> OK, I've fixed up this to save more mails. Anyway, thanks a lot !
+> The problem is caused by SNAT on a dst that already has an xfrm set.
+> When ip_route_me_harder processes the dst it will cause the dst to
+> lose its xfrm since it has IPSKB_XFRM_TRANSFORMED set.
 > 
-> Harald, or Patrick, please apply this.
+> Since xfrm4_output_finish does not expect dst's to lose their xfrm's
+> after POST_ROUTING, it crashes.
+> 
+> Obviously we could add a check in xfrm4_output_finish to prevent this
+> crash, however, I think we need to consider this a bit more since it
+> breaks a fairly common setup where people just stick a rule into the
+> NAT table that says
+> 
+> iptables -t nat -I POSTROUTING -i eth1 -j MASQUERADE
+> 
+> where eth1 is the outbound interface.  If this rule catches any IPsec
+> VPN traffic then it'll SNAT them even though the intention is obviously
+> to let them through without SNAT.
+> 
+> Perhaps it's best to have SNAT not touch packets with dst->xfrm set.
+> Unfortunately that leads to problems as well (albeit rarer) since you
+> may have catch-all IPsec policies that every packet matches, but you
+> want certain packets to be SNATed so that they match more specific
+> policies.
 
-Done, thanks.
+I don't like adding this special behaviour for NAT, people need
+to adjust their rulesets for filtering etc. anyway. We could stop
+rerouting packets in between transforms (when both dst->xfrm and
+IPSKB_XFRM_TRANSFORMED are set), but this is inconsistent with what
+happens on input, when a packet is DNATed in PRE_ROUTING it does
+affect the SA lookup. So I think I'd prefer handling this case in
+xfrm[46]_output_finish, but I need to think about it a bit more.
