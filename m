@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: x86_64 kernel & 32 bit iptables
-Date: Wed, 25 Jan 2006 10:45:11 +0100
-Message-ID: <43D748A7.6050800@trash.net>
-References: <Pine.LNX.4.64.0601222336400.17848@bizon.gios.gov.pl>
+Subject: Re: [PATCH]iptables: fix typos in ipt_connbytes.h
+Date: Wed, 25 Jan 2006 10:47:32 +0100
+Message-ID: <43D74934.8090006@trash.net>
+References: <200601230153.k0N1rj8V023685@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0601222336400.17848@bizon.gios.gov.pl>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200601230153.k0N1rj8V023685@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,10 +21,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> I known that this is an old, known problem but are there any plans for
-> the nearest future to add support for running 32 bit iptables on 64 bit
-> kernel (x86_64/EM64T)?
+Yasuyuki KOZAKAI wrote:
+> Hi,
+> 
+> userspace connbytes fails to be build because of that.
+> Please apply attached patch to kernel tree.
 
-A patch for this has been posted one or two weeks ago, but I haven't
-had a chance to look at it yet.
+Applied, thanks. I'll push it to Dave with the other queued
+patches this weekend.
