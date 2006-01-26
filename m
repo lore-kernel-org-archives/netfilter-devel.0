@@ -1,19 +1,19 @@
-From: <amir73il@gmail.com>
+From: Pablo Neira Ayuso <pablo@eurodev.net>
 Subject: Re: ongoing textsearch/string match - 3 patches
-Date: Thu, 26 Jan 2006 13:51:57 +0200
-Message-ID: <18730dc50601260351s7dab9451x420f3eb88bc90162@mail.gmail.com>
-References: <18730dc50512220611nfea98e2l88da4f25c97f341d@mail.gmail.com>
-	<43AB2739.6080608@eurodev.net>
-	<18730dc50512250828i2f214c8di49c348f03c84593f@mail.gmail.com>
+Date: Thu, 26 Jan 2006 14:35:16 +0100
+Message-ID: <43D8D014.8030108@eurodev.net>
+References: <18730dc50512220611nfea98e2l88da4f25c97f341d@mail.gmail.com>	
+	<43AB2739.6080608@eurodev.net>	
+	<18730dc50512250828i2f214c8di49c348f03c84593f@mail.gmail.com>	
 	<43AF689F.2070106@eurodev.net>
+	<18730dc50601260351s7dab9451x420f3eb88bc90162@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@eurodev.net>
-In-Reply-To: <43AF689F.2070106@eurodev.net>
-Content-Disposition: inline
+To: amir73il@gmail.com
+In-Reply-To: <18730dc50601260351s7dab9451x420f3eb88bc90162@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,60 +25,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 12/26/05, Pablo Neira Ayuso <pablo@eurodev.net> wrote:
-> Amir Goldstein wrote:
-> > On 12/23/05, Pablo Neira Ayuso <pablo@eurodev.net> wrote:
-> >
-> >>>test:
-> >>>------
-> >>>I have tested ongoing string match using netcat UDP connection
-> >>>and it successfully matched the string:
-> >>>s
-> >>>tr
-> >>>ing
-> >>
-> >>So, in this example, my understanding is that you want to find matching=
-s
-> >> splitted in several packets.
-> >>
-> >>>which was sent in different 3 packets.
-> >>>the netcat test required using --from 28 to skip the udp header and
-> >>>some test code to ignore the new line characters.
-> >>
-> >>I'm curious: We implement matching through fragments with KMP (not for
-> >>BM yet). So, what kind of application would require such pattern
-> >>matching policy?
-> >>
-> >
-> > it's the basics for content filtering in netfilter.
-> > of course, more work needs to be done:
-> > - connect this code with connection tracking
-> > - handle out of order tcp packets
->
-> OK. But I'm still in doubt about the usefulness of matching a pattern
-> between packets. What kind of application splits a request, represented
-> in the form of a pattern, between packets? Going back to your example:
->
-> 1st packet) s
-> 2nd packet) tr
-> 3rd packet) ing
->
-> Could you comment any realistic scenario?
->
+Hi Amir,
 
-Hi Pablo,
+amir73il@gmail.com wrote:
+>>Could you comment any realistic scenario?
+>>
+> the usefulness of matching a pattern between packets is for network virus scan.
+> it took me some time to finalize my kclamav module, but here it is:
+> http://sourceforge.net/projects/kclamav/
+> 
+> I patched the string match netfilter because it was the closest filter
+> to what I needed, but as I said, there is still work to be done to
+> make this a useful virus scan filter.
+> perhaps a more generic "content filter" is more appropriate here.
+> 
+> I hope you will find this contribution useful and help me get my
+> patches into the kernel.
 
-the usefulness of matching a pattern between packets is for network virus s=
-can.
-it took me some time to finalize my kclamav module, but here it is:
-http://sourceforge.net/projects/kclamav/
+Sorry for not replying. I haven't forgotten this. I think I can improve
+that patch. I'll give it a spin this weekend and I'll get back to you.
 
-I patched the string match netfilter because it was the closest filter
-to what I needed, but as I said, there is still work to be done to
-make this a useful virus scan filter.
-perhaps a more generic "content filter" is more appropriate here.
-
-I hope you will find this contribution useful and help me get my
-patches into the kernel.
-
-Amir.
+-- 
+Pablo
