@@ -1,83 +1,59 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [BUG] sky2 broken for Yukon PCI-E Gigabit Ethernet Controller
- 11ab:4362 (rev 19)
-Date: Fri, 27 Jan 2006 16:28:25 +0100
-Message-ID: <43DA3C19.2040002@trash.net>
-References: <E1F1UqC-0002XE-00@gondolin.me.apana.org.au> <43D9B8A6.5020200@t-online.de> <20060127122242.GA32128@gondor.apana.org.au>
+From: Stephen Hemminger <shemminger@osdl.org>
+Subject: Re: [PATCH] x_tables : Use SMP friendly (percpu) rwlock_t to
+ protect x_tables
+Date: Fri, 27 Jan 2006 07:37:21 -0800
+Message-ID: <20060127073721.1888808f@localhost.localdomain>
+References: <20060108212619.GE24266@sunbeam.de.gnumonks.org>
+	<43C247CF.2000608@cosmosbay.com> <43DA393F.6010801@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040801050207010802010808"
-Cc: Knut Petersen <Knut_Petersen@t-online.de>, shemminger@osdl.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751205AbWA0P23@vger.kernel.org>
-To: Herbert Xu <herbert@gondor.apana.org.au>, KdF <dkiba@yandex.ru>
-In-Reply-To: <20060127122242.GA32128@gondor.apana.org.au>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Eric Dumazet <dada1@cosmosbay.com>
+In-Reply-To: <43DA393F.6010801@cosmosbay.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040801050207010802010808
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On Fri, 27 Jan 2006 16:16:15 +0100
+Eric Dumazet <dada1@cosmosbay.com> wrote:
 
-Herbert Xu wrote:
-> On Fri, Jan 27, 2006 at 07:07:34AM +0100, Knut Petersen wrote:
+> This patch helps scalability of x_tables on SMP, especially NUMA machines.
 > 
->>Well, there are no problems if SuSEfirewall2 is disabled. But have a look
->>at the loaded modules:
->>
->>ipt_MASQUERADE          3968  1
->>pppoe                  15360  2
->>pppox                   4616  1 pppoe
+> Instead of using a single rwlock_t to protect x_tables, use an array of 
+> rwlock_t, one for each possible cpu in the machine.
+> 
+> 1) No more cache line ping pongs between cpus. read_lock_bh(&table->lock) / 
+> read_unlock_bh(&table->lock) were still expensive because of the very hot 
+> central rwlock.
+> 
+> 2) get_counters() is more latency friendly than before (we lock each sub table 
+> one at a time instead of the full x_tables)
+> 
+> 3) When a replace of table must be done, the 'writer' have to write_lock_bh() 
+> all the locks of the array. This is 'expensive' but seldom done (underlying 
+> vmalloc/copy_from_user costs are more expensive anyway)
+> 
+> This patch was tested on a 4 way Opteron machine, two gigabit links, with 
+> rather complex iptables rules (around 200 rules) and gives excellent results 
+> so far.
 > 
 > 
-> OK, although we can't rule out sky2/netfilter from the enquiry, I've
-> identified two bugs in ppp/pppoe that may be responsible for what you
-> are seeing.  So please try the following patch and let us know if the
-> problem still exists (or deteriorates/improves).
+> Thank you
+> Eric Dumazet
 > 
-> [PPP]: Fixed hardware RX checksum handling
+> Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
 > 
-> When we pull the PPP protocol off the skb, we forgot to update the
-> hardware RX checksum.  This may lead to messages such as
-> 
-> 	dsl0: hw csum failure.
-> 
-> Similarly, we need to clear the hardware checksum flag when we use
-> the existing packet to store the decompressed result.
 
-We had a couple of reports of incorrect hardware checksums with
-PPPoE. KdF, can you test Herbert's patch (attached again to this
-mail) please?
-
---------------040801050207010802010808
-Content-Type: text/plain;
- name="ppp-rxcsum"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ppp-rxcsum"
-
-diff --git a/drivers/net/ppp_generic.c b/drivers/net/ppp_generic.c
---- a/drivers/net/ppp_generic.c
-+++ b/drivers/net/ppp_generic.c
-@@ -1610,6 +1610,8 @@ ppp_receive_nonmp_frame(struct ppp *ppp,
- 		}
- 		else if (!pskb_may_pull(skb, skb->len))
- 			goto err;
-+		else
-+			skb->ip_summed = CHECKSUM_NONE;
- 
- 		len = slhc_uncompress(ppp->vj, skb->data + 2, skb->len - 2);
- 		if (len <= 0) {
-@@ -1690,6 +1692,7 @@ ppp_receive_nonmp_frame(struct ppp *ppp,
- 			kfree_skb(skb);
- 		} else {
- 			skb_pull(skb, 2);	/* chop off protocol */
-+			skb_postpull_rcsum(skb, skb->data - 2, 2);
- 			skb->dev = ppp->dev;
- 			skb->protocol = htons(npindex_to_ethertype[npi]);
- 			skb->mac.raw = skb->data;
-
---------------040801050207010802010808--
+You just reinvented brlock.  Figure out how to use atomic operations and/or RCU
+and you will do even better.
