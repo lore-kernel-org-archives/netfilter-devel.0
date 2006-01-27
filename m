@@ -1,15 +1,15 @@
-From: Patrick Schaaf <bof@bof.de>
+From: "Ethy H. Brito" <ethy.brito@inexo.com.br>
 Subject: Re: netfilter observation
-Date: Fri, 27 Jan 2006 07:14:33 +0100
-Message-ID: <20060127061433.GA31447@oknodo.bof.de>
+Date: Fri, 27 Jan 2006 08:49:37 -0200
+Message-ID: <20060127084937.432199b1@pulsar.inexo.com.br>
 References: <20060126171057.7fb9632d.ethy.brito@inexo.com.br>
+	<20060127061433.GA31447@oknodo.bof.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Ethy H. Brito" <ethy.brito@inexo.com.br>
-Content-Disposition: inline
-In-Reply-To: <20060126171057.7fb9632d.ethy.brito@inexo.com.br>
+In-Reply-To: <20060127061433.GA31447@oknodo.bof.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,38 +21,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello Ethy,
+On Fri, 27 Jan 2006 07:14:33 +0100
+Patrick Schaaf <bof@bof.de> wrote:
 
-to make a short answer to a long (and well-formulated) question:
+> Hello Ethy,
+> 
+> to make a short answer to a long (and well-formulated) question:
+> 
+> > Is this the expect behavior?
+> 
+> Yes. Not only expected, but desired, and relied upon in many many
+> real world setups. 
 
-> Is this the expect behavior?
+I've already suspected that. This could not have passed hidden that long.
 
-Yes. Not only expected, but desired, and relied upon in many many
-real world setups. conntracking/NAT and table processing are as
-independant as can be. conntracking establishes the concept of
-a L4 connection, NAT manipulates its addresses, and table processing
-(filter table) is the point where you permit or deny things.
+> conntracking/NAT and table processing are as
+> independant as can be. 
 
-In the filter table, matches like '-m conntrack' can be used to
-refer to the NAT state of the packet under inspection.
+And this must be this way, I think. I will use some external tool to make things happen.
+Someone told me about Cutter (a TCP FIN-ACK-RST tool).
 
-It's up to you to use this system to implement your policies.
+> In the filter table, matches like '-m conntrack' can be used to
+> refer to the NAT state of the packet under inspection.
 
-> How to "kill" the old data flow?
+I can't see how this could help me. The old data stream has already its state set
+to ESTABLISHED.
 
-per-flow: simulate a suitable TCP RST, or use one of the new style
-userlevel conntrack manipulation tools (work in progress, as far
-as I know)
+> > How to "kill" the old data flow?
+> 
+> per-flow: simulate a suitable TCP RST, or use one of the new style
+> userlevel conntrack manipulation tools (work in progress, as far
+> as I know)
 
-per policy and separate implementation: if you have clients changing
-IP addresses, implement a system (yourself) which learns when that
-happens, and changes rules - independant of conntrack, in the
-filter table - which do the right thing for what you want.
-To help with such things, is why I invented the ippool match,
-which became ipset, which you can find in patch-o-matic. This
-is only one example helper. There are lots of other ways.
-And the problem for you: how to get at the IP assignment
-change "messages", near real time.
+Could you gimme some pointer about these tools? They are not in trunk/conntrack
+tree and google was not of much help (too much garbage to dig into).
 
-best regards
-  Patrick
+> best regards
+>   Patrick
+
+Best Regards
+
+Ethy
