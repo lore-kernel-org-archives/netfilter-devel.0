@@ -1,12 +1,18 @@
-From: Michael Rash <mbr@cipherdyne.org>
-Subject: [PATCH] fix save() output in libipt_string.c
-Date: Sun, 29 Jan 2006 16:08:29 -0500
-Message-ID: <20060129210829.GA10213@minastirith.cipherdyne.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: 2.6.16-rc1-mm3 XFRM+NAT issue
+Date: Sun, 29 Jan 2006 23:14:21 +0100
+Message-ID: <43DD3E3D.5070201@trash.net>
+References: <1138563710.26998.22.camel@leto.intern.saout.de>	
+	<43DD1E3E.70503@trash.net>
+	<1138568354.21229.1.camel@leto.intern.saout.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org,
+	Herbert Xu <herbert@gondor.apana.org.au>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Christophe Saout <christophe@saout.de>
+In-Reply-To: <1138568354.21229.1.camel@leto.intern.saout.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,27 +24,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This patch fixes bug #436 where save() in libipt_string.c outputs
-"--to-offset" and "--from-offset" instead of "--to" and "--from"
-respectively (breaks iptables-restore whenever string matching rules are
-included).  Tested against iptables-1.3.4 and kernel 2.6.15.1.
+Christophe Saout wrote:
+> Patrick McHardy wrote:
+>
+>>It should work just fine. Please add logging rules for both encrypted
+>>and decrypted packets to all chains in the mangle table and enable
+>>logging of invalid packets in connection tracking
+>>(echo 255 > /proc/sys/net/ipv4/netfilter/ip_conntrack_log_invalid)
+>>and post the results.
+> 
+> 
+> I did, but it doesn't seem conclusive.
+> 
+> Trying to open a tcp connection: (note that there are no entries with
+> IN=eth0 ???)
+> 
+> Jan 29 21:51:23 server IN= OUT=ppp0 SRC=<gateway pub ip> DST=<inet host> LEN=100 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=41 
+> Jan 29 21:51:23 server IN= OUT=ppp0 SRC=<gateway pub ip> DST=<inet host> LEN=100 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=41 
 
---- iptables-1.3.4/extensions/libipt_string.c.orig      2006-01-29 15:49:56.000000000 -0500
-+++ iptables-1.3.4/extensions/libipt_string.c   2006-01-29 15:51:16.000000000 -0500
-@@ -327,9 +327,9 @@ save(const struct ipt_ip *ip, const stru
-        }
-        printf("--algo %s ", info->algo);
-        if (info->from_offset != 0)
--               printf("--from-offset %u ", info->from_offset);
-+               printf("--from %u ", info->from_offset);
-        if (info->to_offset != 0)
--               printf("--to-offset %u ", info->to_offset);
-+               printf("--to %u ", info->to_offset);
- }
-
-
-
---
-Michael Rash
-http://www.cipherdyne.org/
-Key fingerprint = 53EA 13EA 472E 3771 894F  AC69 95D8 5D6B A742 839F
+41 is IPPROTO_IPV6, you seem to be talking to the remote side using IPv6
+over sit, which is why NAT on the TCP packet doesn't work.
