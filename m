@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: NFQUEUE: packet accumulation in queue, queue overflows
-Date: Mon, 30 Jan 2006 09:50:35 +0100
-Message-ID: <20060130085035.GS4603@sunbeam.de.gnumonks.org>
-References: <43D7529D.000004.17272@ariel.yandex.ru>
+Subject: Re: [PATCH] fix save() output in libipt_string.c
+Date: Mon, 30 Jan 2006 09:54:23 +0100
+Message-ID: <20060130085423.GT4603@sunbeam.de.gnumonks.org>
+References: <20060129210829.GA10213@minastirith.cipherdyne.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Av0MaMCQQeg4b3so"
+	protocol="application/pgp-signature"; boundary="Tl2A+1bu5ZCdBkzL"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KdF <dkiba@yandex.ru>
+To: Michael Rash <mbr@cipherdyne.org>
 Content-Disposition: inline
-In-Reply-To: <43D7529D.000004.17272@ariel.yandex.ru>
+In-Reply-To: <20060129210829.GA10213@minastirith.cipherdyne.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,57 +23,18 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---Av0MaMCQQeg4b3so
+--Tl2A+1bu5ZCdBkzL
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jan 25, 2006 at 01:27:41PM +0300, KdF wrote:
-> Hi all
->=20
-> After switching to NFQUEUE from ip_queue mechanism in our billing
-> system=20
+On Sun, Jan 29, 2006 at 04:08:29PM -0500, Michael Rash wrote:
+> This patch fixes bug #436 where save() in libipt_string.c outputs
+> "--to-offset" and "--from-offset" instead of "--to" and "--from"
+> respectively (breaks iptables-restore whenever string matching rules are
+> included).  Tested against iptables-1.3.4 and kernel 2.6.15.1.
 
-A billing system should probably better use nfnetlink_log (or ULOG)
-rather than nfnetlink_queue (or ip_queue).
-
-> we've got strange trouble: all works fine, but some packets
-> seem not to leave queue, and after some time queue overflows, and
-> packets get dropped. I increased maximum queue length in kernel during
-> setup, and built new kernel, but even with 16384 entries instead 1024
-> it doesn't flush, but grows with time.
-
-Others have also reported _single_ stuck packets in a queue, but not the
-queue itself filling up.
-
-> cat /proc/net/netfilter/nfnetlink_queue
->=20
-> 3   1296  1697 2    64     0     0   123739  1
->=20
-> I have an idea that only packets for which verdict NF_DROP is set in
-> our program don't leave queue? Or it is a userspace program perfomance
-> issue? But on tests with simultaneous `ping -f` from four stations all
-> worked fine, and only 64 bytes is copied to userspace to get ip
-> headers.
-
-I would recommend writing a small 'short-circuit' program for
-libnetfilter_queue, which just receives packets and issues verdicts (and
-also counts how many packets have been processed).  Then send a defined
-amount of packets, and see what happens.
-
-Also, make sure you properly check errors with all libnetfilter_queue
-functions that get called.
-
-By using this short-circuit program, you can be sure that userspace
-always issues a verdict for every packet it receives.
-
-> If problem in userspace application perfomance, does NETFILTER have a
-> mechanism to flush old packets from queue, if they were not processed
-> by userspace application?
-
-no. you have to return a verdict for every packet you receive in
-userspace. flushing the queue (by dropping all packets) can only be
-achieved by closing the queue and re-opening it.
+thanks, applied.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -85,16 +46,16 @@ achieved by closing the queue and re-opening it.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---Av0MaMCQQeg4b3so
+--Tl2A+1bu5ZCdBkzL
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFD3dNbXaXGVTD0i/8RAskhAJ0REK9bq9+6cUXUiNnz4qLI2LQ/6QCfdwWx
-n5VAdEHrBDbV4ezblhM+ouc=
-=AQ1u
+iD8DBQFD3dQ/XaXGVTD0i/8RApp8AKCwdGB2+K7mVwr1hwTejzUqS2zafgCfTPIZ
+sstyMpQfJU88/8PdlI0rIWs=
+=FJ6E
 -----END PGP SIGNATURE-----
 
---Av0MaMCQQeg4b3so--
+--Tl2A+1bu5ZCdBkzL--
