@@ -1,13 +1,14 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: ctnetlink expect dumping bug
-Date: Sun, 29 Jan 2006 19:07:01 +0100
-Message-ID: <20060129180700.GA5490@rama.intranet.astaro.de>
+Subject: [NETFILTER] NAT sequence adjustment: Save eight bytes per conntrack
+Date: Tue, 31 Jan 2006 00:22:09 +0100
+Message-ID: <20060130232209.GG4603@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9amGYk9869ThD9tj"
-Cc: netfilter-devel@lists.netfilter.org
+	protocol="application/pgp-signature"; boundary="ynxsfku+JT9DNNkq"
+Cc: Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira <pablo@eurodev.net>
+To: David Miller <davem@davemloft.net>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -21,40 +22,50 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---9amGYk9869ThD9tj
+--ynxsfku+JT9DNNkq
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi!
+Hi Dave!
 
-While doing some nf_conntrack development, I hit a bug that I originally
-thought to be in my modifications.
+Please apply this humble little step towards ip_conntrack shrinking,
+thanks!
 
-However, after reverting all my patches, the bug persists.
+[NETFILTER] NAT sequence adjustment: Save eight bytes per conntrack
 
-The issue is that for dumping the expect mask, we use regular tuple
-dumping functions.  Those regular dumping functions call proto_find_get
-and l3proto_find_get with protocol value 0xffff, which leads to an array
-overflow in those NPROTO sized arrays.
+This patch reduces the size of 'struct ip_conntrack' on systems with NAT
+by eight bytes.  The sequence number delta values can be int16_t, since
+we only support one sequence number modification per window anyway, and
+one such modification is not going to exceed 32kB ;)
 
-Rather than using the mask value, we'd need to pass the respective value
-=66rom the expect tuple for dumping the expect mask.
+Signed-off-by: Harald Welte <laforge@netfilter.org>
 
-=46rom looking at the code, it seems the bug also exists in
-ip_conntrack_netlink, but I didn't really test it.
+---
+commit 94d3d40c84672b74e59ea5252f61602610e1513e
+tree 63e5ae5174af9f982be6d8d1bbe11e750e4ace32
+parent e3c7a1f99300fbd6de35a40fcd9c4dc1b0fbfee2
+author Harald Welte <laforge@netfilter.org> Fri, 27 Jan 2006 16:03:45 +0100
+committer Harald Welte <laforge@netfilter.org> Fri, 27 Jan 2006 16:03:45 +0=
+100
 
-Pablo, would you please prepare a fix for this, and confirm it by having
-helpers create expectations inside the kernel while running 'conntrack
--E' ?
+ include/linux/netfilter_ipv4/ip_nat.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Thanks.
-
-p.s.: Patrick and me agreed last week to re-work the structure of an
-expectation (and its handling).  Despite any of those (probably 2.6.17)
-changes, we need to fix this bug in the current upstream stable releases
-now.
-
+diff --git a/include/linux/netfilter_ipv4/ip_nat.h b/include/linux/netfilte=
+r_ipv4/ip_nat.h
+index 41a107d..e9f5ed1 100644
+--- a/include/linux/netfilter_ipv4/ip_nat.h
++++ b/include/linux/netfilter_ipv4/ip_nat.h
+@@ -23,7 +23,7 @@ struct ip_nat_seq {
+ 	 * modification (if any) */
+ 	u_int32_t correction_pos;
+ 	/* sequence number offset before and after last modification */
+-	int32_t offset_before, offset_after;
++	int16_t offset_before, offset_after;
+ };
+=20
+ /* Single range specification. */
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -65,16 +76,16 @@ now.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---9amGYk9869ThD9tj
+--ynxsfku+JT9DNNkq
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFD3QREXaXGVTD0i/8RAmnVAJ9Rwi4stmAKhjXsbrVs1YlVRqtgtwCgnJdO
-xQEyMk7GjXN97kx3sdeGGcg=
-=iQzg
+iD8DBQFD3p+hXaXGVTD0i/8RAmwtAJ4sUoPe2JOUfgYYmiG5tu330TQ7YwCeNPZm
+2ir3C9KohqSxJFPpMHpW2o0=
+=sFtV
 -----END PGP SIGNATURE-----
 
---9amGYk9869ThD9tj--
+--ynxsfku+JT9DNNkq--
