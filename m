@@ -1,18 +1,15 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: expectation mask handling in nfctnetlink (Was Re: [PATCH] fix
- nf_conntrack_netlink expectation dumping/event notification)
-Date: Wed, 01 Feb 2006 03:09:21 +0100
-Message-ID: <43E01851.4040306@netfilter.org>
-References: <200601130938.k0D9c6ud007984@toshiba.co.jp>	<43C78C3C.6080707@netfilter.org>	<200601151307.k0FD7evx014168@toshiba.co.jp>
-	<200601200457.k0K4vvAI001787@toshiba.co.jp>
+From: Pablo Neira Ayuso <pablo@eurodev.net>
+Subject: Re: ctnetlink expect dumping bug
+Date: Wed, 01 Feb 2006 03:14:24 +0100
+Message-ID: <43E01980.6090506@eurodev.net>
+References: <20060129180700.GA5490@rama.intranet.astaro.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
-	Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200601200457.k0K4vvAI001787@toshiba.co.jp>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20060129180700.GA5490@rama.intranet.astaro.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,48 +21,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Yasuyuki,
+Hi!
 
-I'd like to recover this thread.
-
-Yasuyuki KOZAKAI wrote:
->>I feel strange to find l3proto with 0xffff as address family or to find proto
->>with 0xff as protocol number.
->>
->>After all, ctnetlink_dump_tuples() gets nf_conntrack_l3proto_generic /
->>nf_conntrack_proto_generic and they doesn't fill any contents, right ?
->>
->>If so, I think that it's better to make ctnetlink_exp_dump_expect() use
->>l3proto/proto for &exp->tuple to dump &exp->mask, and then
->>we would not need to remove above unlikely().
+Harald Welte wrote:
+> The issue is that for dumping the expect mask, we use regular tuple
+> dumping functions.  Those regular dumping functions call proto_find_get
+> and l3proto_find_get with protocol value 0xffff, which leads to an array
+> overflow in those NPROTO sized arrays.
 > 
-> I've re-visited this. For now, I'm not sure this is the best solution
-> because I don't see how format and contents of expectation mask
-> is required by libnetfilter_conntrack. It doesn't use dumped expectation
-> mask at all.
+> Rather than using the mask value, we'd need to pass the respective value
+> from the expect tuple for dumping the expect mask.
+> 
+> From looking at the code, it seems the bug also exists in
+> ip_conntrack_netlink, but I didn't really test it.
 
-Maybe userspace helpers could need that information some day. I don't
-want to add limitations to libnetfilter_conntrack just because we have
-some assumptions.
+No problem, ip_conntrack doesn't have the l3num field.
 
-> Then the other idea can be considerd, too. For example, dumping union of
-> l3part(mask->u3.all) and union of proto part(mask->u.all) without assumption
-> of specific address family/protocol. Do you have any idea on this ?
+> Pablo, would you please prepare a fix for this, and confirm it by having
+> helpers create expectations inside the kernel while running 'conntrack
+> -E' ?
 
-We shouldn't send the whole union via netlink. If the union is modified
-further, it will break backward compatibility for userspace applications
-since the size could change.
+I did, we're still discussing :). Anyway Patrick have workaround for
+this but it still remains a bit tricky. Please have a look at:
 
-So, the possibilities I see up to now are:
+expectation mask handling in nfctnetlink (Was Re: [PATCH] fix
+nf_conntrack_netlink expectation dumping/event notification)
 
-a) just remove the unlikely() statement.
-Drawback: Not so efficient, since that checking isn't always required.
-
-b) back to my idea: set l3num to the maximum known value (0x1F), and add
-a bug trap in nf_ct_expect_related to check that nobody uses a value >=
-AF_MAX.
-Drawback: People surely will hit bug while writing their own helpers.
+cheers,
 
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+Pablo
