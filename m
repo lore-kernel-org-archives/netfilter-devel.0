@@ -1,18 +1,16 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [RFC] [PATCH] Fix expectation mask dumping
-Date: Thu, 02 Feb 2006 19:30:02 +0900 (JST)
-Message-ID: <200602021030.k12AU31P010526@toshiba.co.jp>
-References: <43E095A2.1040908@trash.net>
-	<200602011335.k11DZHwj018072@toshiba.co.jp>
-	<43E15615.2070508@netfilter.org>
+From: Holger Eitzenberger <heitzenberger@astaro.com>
+Subject: [PATCH] [NETFILTER] Remove BUG_ON() in destroy_conntrack()
+Date: Thu, 2 Feb 2006 12:38:26 +0100
+Message-ID: <11388803061179-git-send-email-heitzenberger@astaro.com>
+References: <11388803061231-git-send-email-heitzenberger@astaro.com>
+Reply-To: Holger Eitzenberger <heitzenberger@astaro.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org, kaber@trash.net,
-	yasuyuki.kozakai@toshiba.co.jp
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: pablo@netfilter.org
-In-Reply-To: <43E15615.2070508@netfilter.org>
+In-Reply-To: <11388803061231-git-send-email-heitzenberger@astaro.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,57 +22,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Remove BUG_ON(list_empty(...)) check in destroy_conntrack because
+it is perfectly valid for conntracks to be in no list at all, e. g.
+if ct_sync is used.
 
-Hi, Pablo,
+Signed-off-by: Harald Welte <laforge@netfilter.org>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Holger Eitzenberger <heitzenberger@astaro.com>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu, 02 Feb 2006 01:45:09 +0100
+---
 
-> Hi,
-> 
-> This patch introduces the function ctnetlink_exp_dump_mask, that
-> correctly dumps the expectation mask. Such function uses the l3num value
-> from the expectation tuple that is a valid layer 3 protocol number.
-> 
-> Besides, this modification introduces the attribute CTA_IP_L3NUM.
-> Although the layer 3 protocol information is sent in the nfnetlink
-> header, if the message contains information about an expectation, it
-> will contain information about the master conntrack (just one of the
-> tuples), the expectation tuple and the expectation mask. In this case,
-> the value of l3num in the expectation mask is not the same that is set
-> in the nfnetlink message. That is why we need another field that contain
-> the value of l3num.
-> 
-> Now libnetfilter_conntrack can use the CTA_IP_L3NUM attribute, but if
-> this attribute is not present in the message, it can use the information
-> available in the nfnetlink header message.
-> 
-> comments?
+ net/ipv4/netfilter/ip_conntrack_core.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-sounds good idea.
-
->  static inline int
-> -ctnetlink_dump_tuples(struct sk_buff *skb, 
-> -		      const struct nf_conntrack_tuple *tuple)
-> +ctnetlink_dump_tuples_ip(struct sk_buff *skb,
-> +			 const struct nf_conntrack_tuple *tuple,
-> +			 struct nf_conntrack_l3proto *l3proto)
->  {
-> -	struct nfattr *nest_parms;
-> -	struct nf_conntrack_l3proto *l3proto;
->  	int ret = 0;
-> -	
-> -	l3proto = nf_ct_l3proto_find_get(tuple->src.l3num);
-> -	
-> -	nest_parms = NFA_NEST(skb, CTA_TUPLE_IP);
-> +	struct nfattr *nest_parms = NFA_NEST(skb, CTA_TUPLE_IP);
-> +
-> +	NFA_PUT(skb, CTA_IP_L3NUM, sizeof(u_int16_t), &tuple->src.l3num);
-
-Well, I think that 8bits are enough. It seems that it's time to change
-'l3num' field in tuple to 8bits to avoid confusing.
-
-If everyone has no objection, please just change this to 8bits, then I'll
-write a patch to do that on top of your patch.
-
--- Yasuyuki Kozakai
+8f62bac9822927ea1306d4752ca48cb1d9f73ff0
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+index 14660db..6bec236 100644
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -339,10 +339,8 @@ destroy_conntrack(struct nf_conntrack *n
+ 	ip_ct_remove_expectations(ct);
+ 
+ 	/* We overload first tuple to link into unconfirmed list. */
+-	if (!is_confirmed(ct)) {
+-		BUG_ON(list_empty(&ct->tuplehash[IP_CT_DIR_ORIGINAL].list));
++	if (!is_confirmed(ct))
+ 		list_del(&ct->tuplehash[IP_CT_DIR_ORIGINAL].list);
+-	}
+ 
+ 	CONNTRACK_STAT_INC(delete);
+ 	write_unlock_bh(&ip_conntrack_lock);
+-- 
+-dirty
