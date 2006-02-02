@@ -1,15 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] [NETFILTER] Remove BUG_ON() in destroy_conntrack()
-Date: Thu, 02 Feb 2006 15:47:35 +0100
-Message-ID: <43E21B87.6020509@trash.net>
-References: <11388803061179-git-send-email-heitzenberger@astaro.com>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: view nat mappings
+Date: Thu, 2 Feb 2006 21:34:53 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0602022133160.26901@bizon.gios.gov.pl>
+References: <43E21484.3060400@earthlink.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-2020069243-1138912493=:26901"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Holger Eitzenberger <heitzenberger@astaro.com>
-In-Reply-To: <11388803061179-git-send-email-heitzenberger@astaro.com>
+To: sclark46@earthlink.net
+In-Reply-To: <43E21484.3060400@earthlink.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,9 +21,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Holger Eitzenberger wrote:
-> Remove BUG_ON(list_empty(...)) check in destroy_conntrack because
-> it is perfectly valid for conntracks to be in no list at all, e. g.
-> if ct_sync is used.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-This should stay in the ct_sync patchset until it is merged.
+---187430788-2020069243-1138912493=:26901
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+
+On Thu, 2 Feb 2006, Stephen Clark wrote:
+
+> Hello List,
+Hello,
+
+> Does iptables have the capability to list out the actual nat=20
+> mappings/translations,
+> not just the rules that are currently active -
+Please use "conntrack -L" or "cat /proc/net/ip_conntrack" for older=20
+kernels than 2.6.14.
+
+Best regards,
+
+ =09=09=09Krzysztof Ol=EAdzki
+
+PS: This is a devel ml.
+---187430788-2020069243-1138912493=:26901--
