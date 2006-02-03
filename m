@@ -1,15 +1,17 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: view nat mappings
-Date: Thu, 2 Feb 2006 21:34:53 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0602022133160.26901@bizon.gios.gov.pl>
-References: <43E21484.3060400@earthlink.net>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: 2.6.16-rc1-mm3 XFRM+NAT issue
+Date: Thu, 02 Feb 2006 17:16:37 -0800 (PST)
+Message-ID: <20060202.171637.09393987.davem@davemloft.net>
+References: <43DD3E3D.5070201@trash.net>
+	<1138573848.28464.1.camel@leto.intern.saout.de>
+	<43DD48CC.9070709@trash.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-2020069243-1138912493=:26901"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, herbert@gondor.apana.org.au
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: sclark46@earthlink.net
-In-Reply-To: <43E21484.3060400@earthlink.net>
+To: kaber@trash.net
+In-Reply-To: <43DD48CC.9070709@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,29 +23,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Patrick McHardy <kaber@trash.net>
+Date: Sun, 29 Jan 2006 23:59:24 +0100
 
----187430788-2020069243-1138912493=:26901
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+> Found it, the packet doesn't have its dst_entry released after DNAT in
+> PRE_ROUTING because of an incorrect check and is delivered locally.
+> This patch should fix it.
 
+Patrick, want me to apply this?
 
+I need a changelog and signed-off-by line if so.
 
-On Thu, 2 Feb 2006, Stephen Clark wrote:
-
-> Hello List,
-Hello,
-
-> Does iptables have the capability to list out the actual nat=20
-> mappings/translations,
-> not just the rules that are currently active -
-Please use "conntrack -L" or "cat /proc/net/ip_conntrack" for older=20
-kernels than 2.6.14.
-
-Best regards,
-
- =09=09=09Krzysztof Ol=EAdzki
-
-PS: This is a devel ml.
----187430788-2020069243-1138912493=:26901--
+Thanks.
