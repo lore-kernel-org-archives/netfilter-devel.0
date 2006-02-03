@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 07/14]: Fix missing src port initialization in tftp
-	expectation mask
-Date: Fri,  3 Feb 2006 14:44:09 +0100 (MET)
-Message-ID: <20060203134409.2141.21676.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 08/14]: iptables: fix typos in ipt_connbytes.h
+Date: Fri,  3 Feb 2006 14:44:10 +0100 (MET)
+Message-ID: <20060203134410.2141.36095.sendpatchset@localhost.localdomain>
 References: <20060203134358.2141.63426.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,31 +18,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Fix missing src port initialization in tftp expectation mask
+[NETFILTER]: iptables: fix typos in ipt_connbytes.h
 
-Reported by David Ahern <dahern@avaya.com>, netfilter bugzilla #426.
+Fix some typos that make iptables userspace compilation fail.
 
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit c84c986a5028347c036a1915a3320c51dd3be4a6
-tree 702216309d0c48492f77f47ce2717671143eb876
-parent 27a0e70cdd3fdf3988c94739ad75f6fc5d89c326
-author Patrick McHardy <kaber@trash.net> Fri, 03 Feb 2006 12:39:41 +0100
-committer Patrick McHardy <kaber@trash.net> Fri, 03 Feb 2006 12:39:41 +0100
+commit 94b31e7f3e367691f07b3497b64562d31a0b2e29
+tree f773e9c3fd28a51a12fdf649f9f0e3e2d8d3133d
+parent c84c986a5028347c036a1915a3320c51dd3be4a6
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 03 Feb 2006 12:40:46 +0100
+committer Patrick McHardy <kaber@trash.net> Fri, 03 Feb 2006 12:40:46 +0100
 
- net/ipv4/netfilter/ip_conntrack_tftp.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ include/linux/netfilter_ipv4/ipt_connbytes.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_tftp.c b/net/ipv4/netfilter/ip_conntrack_tftp.c
-index d3c5a37..4ba4463 100644
---- a/net/ipv4/netfilter/ip_conntrack_tftp.c
-+++ b/net/ipv4/netfilter/ip_conntrack_tftp.c
-@@ -71,6 +71,7 @@ static int tftp_help(struct sk_buff **ps
+diff --git a/include/linux/netfilter_ipv4/ipt_connbytes.h b/include/linux/netfilter_ipv4/ipt_connbytes.h
+index b04dfa3..f63e6ee 100644
+--- a/include/linux/netfilter_ipv4/ipt_connbytes.h
++++ b/include/linux/netfilter_ipv4/ipt_connbytes.h
+@@ -1,10 +1,10 @@
+ #ifndef _IPT_CONNBYTES_H
+ #define _IPT_CONNBYTES_H
  
- 		exp->tuple = ct->tuplehash[IP_CT_DIR_REPLY].tuple;
- 		exp->mask.src.ip = 0xffffffff;
-+		exp->mask.src.u.udp.port = 0;
- 		exp->mask.dst.ip = 0xffffffff;
- 		exp->mask.dst.u.udp.port = 0xffff;
- 		exp->mask.dst.protonum = 0xff;
+-#include <net/netfilter/xt_connbytes.h>
++#include <linux/netfilter/xt_connbytes.h>
+ #define ipt_connbytes_what xt_connbytes_what
+ 
+-#define IPT_CONNBYTES_PKTS	XT_CONNBYTES_PACKETS
++#define IPT_CONNBYTES_PKTS	XT_CONNBYTES_PKTS
+ #define IPT_CONNBYTES_BYTES	XT_CONNBYTES_BYTES
+ #define IPT_CONNBYTES_AVGPKT	XT_CONNBYTES_AVGPKT
+ 
