@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/14]: nf_conntrack: check address family when finding
-	protocol module
-Date: Fri,  3 Feb 2006 14:44:03 +0100 (MET)
-Message-ID: <20060203134403.2141.95037.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 04/14]: ULOG/nfnetlink_log: Use better default value for
+	'nlbufsiz'
+Date: Fri,  3 Feb 2006 14:44:04 +0100 (MET)
+Message-ID: <20060203134404.2141.13996.sendpatchset@localhost.localdomain>
 References: <20060203134358.2141.63426.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,69 +19,80 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: check address family when finding protocol module
+[NETFILTER]: ULOG/nfnetlink_log: Use better default value for 'nlbufsiz'
 
-__nf_conntrack_{l3}proto_find() doesn't check the passed protocol family,
-then it's possible to touch out of the array which has only AF_MAX items.
+Performance tests showed that ULOG may fail on heavy loaded systems
+because of failed order-N allocations (N >= 1).
 
-Spotted by Pablo Neira Ayuso.
+The default value of 4096 is not optimal in the sense that it actually
+allocates _two_ contigous physical pages.  Reasoning: ULOG uses
+alloc_skb(), which adds another ~300 bytes for skb_shared_info.
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+This patch sets the default value to NLMSG_GOODSIZE and adds some
+documentation at the top.
+
+Signed-off-by: Holger Eitzenberger <heitzenberger@astaro.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit edf3735e79f637f92f34d0848bfb6c0ea45a9349
-tree bb8c411bf1f695008b7bc22f7d05d58ac5dea997
-parent 04e7be099c349b1c9646ad3cc2c409775c846334
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 03 Feb 2006 12:27:36 +0100
-committer Patrick McHardy <kaber@trash.net> Fri, 03 Feb 2006 12:27:36 +0100
+commit 5974aa1e67cc9139557471d57aa6b54c7fb6aed5
+tree 4f3f1e9d8d38ab0f88549bdfd44cd51f72eb8104
+parent edf3735e79f637f92f34d0848bfb6c0ea45a9349
+author Holger Eitzenberger <heitzenberger@astaro.com> Fri, 03 Feb 2006 12:36:48 +0100
+committer Patrick McHardy <kaber@trash.net> Fri, 03 Feb 2006 12:36:48 +0100
 
- include/net/netfilter/nf_conntrack_l3proto.h |   15 +++++++++------
- net/netfilter/nf_conntrack_core.c            |    2 +-
- 2 files changed, 10 insertions(+), 7 deletions(-)
+ net/bridge/netfilter/ebt_ulog.c |    2 +-
+ net/ipv4/netfilter/ipt_ULOG.c   |    6 +++++-
+ net/netfilter/nfnetlink_log.c   |    2 +-
+ 3 files changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
-index 67856eb..dac43b1 100644
---- a/include/net/netfilter/nf_conntrack_l3proto.h
-+++ b/include/net/netfilter/nf_conntrack_l3proto.h
-@@ -88,12 +88,6 @@ extern struct nf_conntrack_l3proto *nf_c
- extern int nf_conntrack_l3proto_register(struct nf_conntrack_l3proto *proto);
- extern void nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto);
+diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
+index ce617b3..dbbf9f6 100644
+--- a/net/bridge/netfilter/ebt_ulog.c
++++ b/net/bridge/netfilter/ebt_ulog.c
+@@ -46,7 +46,7 @@
+ #define PRINTR(format, args...) do { if (net_ratelimit()) \
+                                 printk(format , ## args); } while (0)
  
--static inline struct nf_conntrack_l3proto *
--__nf_ct_l3proto_find(u_int16_t l3proto)
--{
--	return nf_ct_l3protos[l3proto];
--}
--
- extern struct nf_conntrack_l3proto *
- nf_ct_l3proto_find_get(u_int16_t l3proto);
+-static unsigned int nlbufsiz = 4096;
++static unsigned int nlbufsiz = NLMSG_GOODSIZE;
+ module_param(nlbufsiz, uint, 0600);
+ MODULE_PARM_DESC(nlbufsiz, "netlink buffer size (number of bytes) "
+                            "(defaults to 4096)");
+diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+index 641dbc4..2fe6413 100644
+--- a/net/ipv4/netfilter/ipt_ULOG.c
++++ b/net/ipv4/netfilter/ipt_ULOG.c
+@@ -35,6 +35,10 @@
+  * each nlgroup you are using, so the total kernel memory usage increases
+  * by that factor.
+  *
++ * Actually you should use nlbufsiz a bit smaller than PAGE_SIZE, since
++ * nlbufsiz is used with alloc_skb, which adds another
++ * sizeof(struct skb_shared_info).  Use NLMSG_GOODSIZE instead.
++ *
+  * flushtimeout:
+  *   Specify, after how many hundredths of a second the queue should be
+  *   flushed even if it is not full yet.
+@@ -76,7 +80,7 @@ MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NE
  
-@@ -103,4 +97,13 @@ extern void nf_ct_l3proto_put(struct nf_
- extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4;
- extern struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6;
- extern struct nf_conntrack_l3proto nf_conntrack_generic_l3proto;
-+
-+static inline struct nf_conntrack_l3proto *
-+__nf_ct_l3proto_find(u_int16_t l3proto)
-+{
-+	if (unlikely(l3proto >= AF_MAX))
-+		return &nf_conntrack_generic_l3proto;
-+	return nf_ct_l3protos[l3proto];
-+}
-+
- #endif /*_NF_CONNTRACK_L3PROTO_H*/
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 62bb509..0ce337a 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -188,7 +188,7 @@ extern struct nf_conntrack_protocol nf_c
- struct nf_conntrack_protocol *
- __nf_ct_proto_find(u_int16_t l3proto, u_int8_t protocol)
- {
--	if (unlikely(nf_ct_protos[l3proto] == NULL))
-+	if (unlikely(l3proto >= AF_MAX || nf_ct_protos[l3proto] == NULL))
- 		return &nf_conntrack_generic_protocol;
+ #define PRINTR(format, args...) do { if (net_ratelimit()) printk(format , ## args); } while (0)
  
- 	return nf_ct_protos[l3proto][protocol];
+-static unsigned int nlbufsiz = 4096;
++static unsigned int nlbufsiz = NLMSG_GOODSIZE;
+ module_param(nlbufsiz, uint, 0400);
+ MODULE_PARM_DESC(nlbufsiz, "netlink buffer size");
+ 
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index e10512e..50787af 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -37,7 +37,7 @@
+ #include "../bridge/br_private.h"
+ #endif
+ 
+-#define NFULNL_NLBUFSIZ_DEFAULT	4096
++#define NFULNL_NLBUFSIZ_DEFAULT	NLMSG_GOODSIZE
+ #define NFULNL_TIMEOUT_DEFAULT 	100	/* every second */
+ #define NFULNL_QTHRESH_DEFAULT 	100	/* 100 packets */
+ 
