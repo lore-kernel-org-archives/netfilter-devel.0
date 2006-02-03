@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/14]: ULOG/nfnetlink_log: Use better default value for
-	'nlbufsiz'
-Date: Fri,  3 Feb 2006 14:44:04 +0100 (MET)
-Message-ID: <20060203134404.2141.13996.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 05/14]: Fix undersized skb allocation in
+	ipt_ULOG/ebt_ulog/nfnetlink_log
+Date: Fri,  3 Feb 2006 14:44:06 +0100 (MET)
+Message-ID: <20060203134406.2141.10703.sendpatchset@localhost.localdomain>
 References: <20060203134358.2141.63426.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,80 +19,125 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ULOG/nfnetlink_log: Use better default value for 'nlbufsiz'
+[NETFILTER]: Fix undersized skb allocation in ipt_ULOG/ebt_ulog/nfnetlink_log
 
-Performance tests showed that ULOG may fail on heavy loaded systems
-because of failed order-N allocations (N >= 1).
+The skb allocated is always of size nlbufsize, even if that is smaller than
+the size needed for the current packet.
 
-The default value of 4096 is not optimal in the sense that it actually
-allocates _two_ contigous physical pages.  Reasoning: ULOG uses
-alloc_skb(), which adds another ~300 bytes for skb_shared_info.
-
-This patch sets the default value to NLMSG_GOODSIZE and adds some
-documentation at the top.
-
-Signed-off-by: Holger Eitzenberger <heitzenberger@astaro.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 5974aa1e67cc9139557471d57aa6b54c7fb6aed5
-tree 4f3f1e9d8d38ab0f88549bdfd44cd51f72eb8104
-parent edf3735e79f637f92f34d0848bfb6c0ea45a9349
-author Holger Eitzenberger <heitzenberger@astaro.com> Fri, 03 Feb 2006 12:36:48 +0100
-committer Patrick McHardy <kaber@trash.net> Fri, 03 Feb 2006 12:36:48 +0100
+commit c99461f9ce0d7050da0af3d9975769d65431e440
+tree 5a04b78b7d8afad833e60f3884d2711b9cd76692
+parent 5974aa1e67cc9139557471d57aa6b54c7fb6aed5
+author Patrick McHardy <kaber@trash.net> Fri, 03 Feb 2006 12:37:55 +0100
+committer Patrick McHardy <kaber@trash.net> Fri, 03 Feb 2006 12:37:55 +0100
 
- net/bridge/netfilter/ebt_ulog.c |    2 +-
- net/ipv4/netfilter/ipt_ULOG.c   |    6 +++++-
- net/netfilter/nfnetlink_log.c   |    2 +-
- 3 files changed, 7 insertions(+), 3 deletions(-)
+ net/bridge/netfilter/ebt_ulog.c |    8 +++++---
+ net/ipv4/netfilter/ipt_ULOG.c   |   22 +++++++++++++---------
+ net/netfilter/nfnetlink_log.c   |   20 ++++++++++++--------
+ 3 files changed, 30 insertions(+), 20 deletions(-)
 
 diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
-index ce617b3..dbbf9f6 100644
+index dbbf9f6..802baf7 100644
 --- a/net/bridge/netfilter/ebt_ulog.c
 +++ b/net/bridge/netfilter/ebt_ulog.c
-@@ -46,7 +46,7 @@
- #define PRINTR(format, args...) do { if (net_ratelimit()) \
-                                 printk(format , ## args); } while (0)
+@@ -98,12 +98,14 @@ static void ulog_timer(unsigned long dat
+ static struct sk_buff *ulog_alloc_skb(unsigned int size)
+ {
+ 	struct sk_buff *skb;
++	unsigned int n;
  
--static unsigned int nlbufsiz = 4096;
-+static unsigned int nlbufsiz = NLMSG_GOODSIZE;
- module_param(nlbufsiz, uint, 0600);
- MODULE_PARM_DESC(nlbufsiz, "netlink buffer size (number of bytes) "
-                            "(defaults to 4096)");
+-	skb = alloc_skb(nlbufsiz, GFP_ATOMIC);
++	n = max(size, nlbufsiz);
++	skb = alloc_skb(n, GFP_ATOMIC);
+ 	if (!skb) {
+ 		PRINTR(KERN_ERR "ebt_ulog: can't alloc whole buffer "
+-		       "of size %ub!\n", nlbufsiz);
+-		if (size < nlbufsiz) {
++		       "of size %ub!\n", n);
++		if (n > size) {
+ 			/* try to allocate only as much as we need for
+ 			 * current packet */
+ 			skb = alloc_skb(size, GFP_ATOMIC);
 diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
-index 641dbc4..2fe6413 100644
+index 2fe6413..180a9ea 100644
 --- a/net/ipv4/netfilter/ipt_ULOG.c
 +++ b/net/ipv4/netfilter/ipt_ULOG.c
-@@ -35,6 +35,10 @@
-  * each nlgroup you are using, so the total kernel memory usage increases
-  * by that factor.
-  *
-+ * Actually you should use nlbufsiz a bit smaller than PAGE_SIZE, since
-+ * nlbufsiz is used with alloc_skb, which adds another
-+ * sizeof(struct skb_shared_info).  Use NLMSG_GOODSIZE instead.
-+ *
-  * flushtimeout:
-  *   Specify, after how many hundredths of a second the queue should be
-  *   flushed even if it is not full yet.
-@@ -76,7 +80,7 @@ MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NE
+@@ -147,22 +147,26 @@ static void ulog_timer(unsigned long dat
+ static struct sk_buff *ulog_alloc_skb(unsigned int size)
+ {
+ 	struct sk_buff *skb;
++	unsigned int n;
  
- #define PRINTR(format, args...) do { if (net_ratelimit()) printk(format , ## args); } while (0)
+ 	/* alloc skb which should be big enough for a whole
+ 	 * multipart message. WARNING: has to be <= 131000
+ 	 * due to slab allocator restrictions */
  
--static unsigned int nlbufsiz = 4096;
-+static unsigned int nlbufsiz = NLMSG_GOODSIZE;
- module_param(nlbufsiz, uint, 0400);
- MODULE_PARM_DESC(nlbufsiz, "netlink buffer size");
+-	skb = alloc_skb(nlbufsiz, GFP_ATOMIC);
++	n = max(size, nlbufsiz);
++	skb = alloc_skb(n, GFP_ATOMIC);
+ 	if (!skb) {
+-		PRINTR("ipt_ULOG: can't alloc whole buffer %ub!\n",
+-			nlbufsiz);
++		PRINTR("ipt_ULOG: can't alloc whole buffer %ub!\n", n);
  
+-		/* try to allocate only as much as we need for 
+-		 * current packet */
+-
+-		skb = alloc_skb(size, GFP_ATOMIC);
+-		if (!skb)
+-			PRINTR("ipt_ULOG: can't even allocate %ub\n", size);
++		if (n > size) {
++			/* try to allocate only as much as we need for 
++			 * current packet */
++
++			skb = alloc_skb(size, GFP_ATOMIC);
++			if (!skb)
++				PRINTR("ipt_ULOG: can't even allocate %ub\n",
++				       size);
++		}
+ 	}
+ 
+ 	return skb;
 diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index e10512e..50787af 100644
+index 50787af..3b3c781 100644
 --- a/net/netfilter/nfnetlink_log.c
 +++ b/net/netfilter/nfnetlink_log.c
-@@ -37,7 +37,7 @@
- #include "../bridge/br_private.h"
- #endif
+@@ -314,24 +314,28 @@ static struct sk_buff *nfulnl_alloc_skb(
+ 					unsigned int pkt_size)
+ {
+ 	struct sk_buff *skb;
++	unsigned int n;
  
--#define NFULNL_NLBUFSIZ_DEFAULT	4096
-+#define NFULNL_NLBUFSIZ_DEFAULT	NLMSG_GOODSIZE
- #define NFULNL_TIMEOUT_DEFAULT 	100	/* every second */
- #define NFULNL_QTHRESH_DEFAULT 	100	/* 100 packets */
+ 	UDEBUG("entered (%u, %u)\n", inst_size, pkt_size);
  
+ 	/* alloc skb which should be big enough for a whole multipart
+ 	 * message.  WARNING: has to be <= 128k due to slab restrictions */
+ 
+-	skb = alloc_skb(inst_size, GFP_ATOMIC);
++	n = max(inst_size, pkt_size);
++	skb = alloc_skb(n, GFP_ATOMIC);
+ 	if (!skb) {
+ 		PRINTR("nfnetlink_log: can't alloc whole buffer (%u bytes)\n",
+ 			inst_size);
+ 
+-		/* try to allocate only as much as we need for current
+-		 * packet */
+-
+-		skb = alloc_skb(pkt_size, GFP_ATOMIC);
+-		if (!skb)
+-			PRINTR("nfnetlink_log: can't even alloc %u bytes\n",
+-				pkt_size);
++		if (n > pkt_size) {
++			/* try to allocate only as much as we need for current
++			 * packet */
++
++			skb = alloc_skb(pkt_size, GFP_ATOMIC);
++			if (!skb)
++				PRINTR("nfnetlink_log: can't even alloc %u "
++				       "bytes\n", pkt_size);
++		}
+ 	}
+ 
+ 	return skb;
