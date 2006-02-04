@@ -1,17 +1,15 @@
-From: "Vasantha Kumar Puttappa" <vasanthakumar@iitb.ac.in>
-Subject: Re: ip_local_deliver related query
-Date: Sat, 4 Feb 2006 11:51:31 +0530 (IST)
-Message-ID: <4503.10.12.25.5.1139034091.squirrel@gpo.iitb.ac.in>
-References: <60828.10.107.26.27.1138947199.squirrel@gpo.iitb.ac.in>
-	<43E36101.8020708@trash.net>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [00/14]: Netfilter fixes for 2.6.16
+Date: Sat, 04 Feb 2006 02:21:50 -0800 (PST)
+Message-ID: <20060204.022150.115231220.davem@davemloft.net>
+References: <20060203134358.2141.63426.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Vasantha Kumar Puttappa <vasanthakumar@iitb.ac.in>,
-	netfilter-devel@lists.netfilter.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <43E36101.8020708@trash.net>
-To: "Patrick McHardy" <kaber@trash.net>
+To: kaber@trash.net
+In-Reply-To: <20060203134358.2141.63426.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,67 +21,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
- Thanks for your valueable feedback. I have one more thing to clarify.
- ( Sorry in the previous I made a great mistake, I wanted to change
-destination IP address of the packet and not the source IP address).
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri,  3 Feb 2006 14:43:58 +0100 (MET)
 
- ( I am referring to first figure in the following link
-http://www.linuxsecurity.com/resource_files/firewalls/IPTables-Tutorial/iptables-tutorial.html)
+> following are my pending netfilter bugfixes for 2.6.16, unfortunately
+> its quite a lot, but mostly trivial patches. There are still two open
+> bugs from the netfilter IPsec patches, the "ip_finish_output2: No header
+> cache and no neighbour!" bug reported by Andi Kleen and a crash in
+> xfrm4_output_finish. I'll probably have the fixes ready sometime this
+> weekend.
 
- If I am not wrong, NAT is being in done in PREROUTING AND POST-ROUTING
-stage. But what I want to do is to take packets in FILTER INPUT stage and
-change the destination IP address ( I don't want to create any SNAT
-corresponding to that) and give it to local process.
-(Assume that a socket waiting with that new destination address)
+All merged, thanks a lot.
 
- So, will there be any problem ?
+Patrick, I must say you do an excellent job submitting patches.  They
+are always logically split up, have reasonable change log entries (not
+too long, not too terse), and there is never any tab or newline
+mangling.
 
-
-Also, Let me tell you what I am planning to do..
-
-1. Create a TCP socket(connection) with machine ip address X
-2. Now I am changing machine IP address to Y
-3. Now capture the incoming packets coming to the machine  corresponding
-to this TCP connection and replace new IP address Y with X.
-  ( Assume that somehow we know which packet belongs to which session)
-
- So, will socket works fine after doing Destination IP address translation
-or will there be any problem as soon as IP address changes ?
-
-Please give me valueable feedback
-
---------
-Vasanth
-IIT Bombau
-
-
-
-
-
-> Vasantha Kumar Puttappa wrote:
->> Hi,
->>
->> ( I am assuming packet arrival to the local host)
->>
->>   As far as I know Netfilter hook  for "INPUT" chain is called just
->> before
->> the ip_local_deliver() function is called. If I am not wrong,
->> ip_local_deliver function will remove the IP header and gives the packet
->> to appropriate function in transport layer ( TCP or UDP or ICMP
->> Process).
->>
->>
->>  What I am want to do is to change the source IP address of the IP
->> packet
->> just before calling the ip_local_deliver() using IPtables.
->>
->> So I want know, will this go smoothly assuming there is a socket waiting
->> for this kind of packet(packet with new source IP address) or will
->> something go wrong ?
->
-> This is exactly what NAT does. If you use DNAT in LOCAL_OUT, a SNAT
-> mapping is also set up for LOCAL_IN. The socket lookup is performed
-> later in the individual protocols, so it will use the rewritten
-> source address.
->
+Thanks again.
