@@ -1,18 +1,13 @@
-From: "Vasantha Kumar Puttappa" <vasanthakumar@iitb.ac.in>
-Subject: Re: ip_local_deliver related query
-Date: Tue, 7 Feb 2006 11:58:05 +0530 (IST)
-Message-ID: <37547.10.107.26.27.1139293685.squirrel@gpo.iitb.ac.in>
-References: <60828.10.107.26.27.1138947199.squirrel@gpo.iitb.ac.in>   
-	<43E36101.8020708@trash.net>
-	<4503.10.12.25.5.1139034091.squirrel@gpo.iitb.ac.in>
+From: Gregor Maier <gregor@net.in.tum.de>
+Subject: IPv6 stateful macht support for 2.6.15.2
+Date: Mon, 06 Feb 2006 20:45:22 +0100
+Message-ID: <43E7A752.3070101@net.in.tum.de>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Vasantha Kumar Puttappa <vasanthakumar@iitb.ac.in>,
-	netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigF3180AB257BF65EEF49E20BE"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4503.10.12.25.5.1139034091.squirrel@gpo.iitb.ac.in>
-To: "Vasantha Kumar Puttappa" <vasanthakumar@iitb.ac.in>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,78 +19,182 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
-  Thanks for your response. I have one more thing to clarify.
-  ( Sorry in the previous I made a great mistake, I wanted to change
-  destination IP address of the packet and not the source IP address).
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigF3180AB257BF65EEF49E20BE
+Content-Type: multipart/mixed; boundary="------------020000020106000005000404"
 
-  ( I am referring to first figure in the following link
- http://www.linuxsecurity.com/resource_files/firewalls/IPTables-Tutorial/iptables-tutorial.html)
+This is a multi-part message in MIME format.
+--------------020000020106000005000404
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-  If I am not wrong, NAT is being in done in PREROUTING AND POST-ROUTING
- stage. But what I want to do is to take packets in FILTER INPUT stage and
- change the destination IP address ( I don't want to create any SNAT
- corresponding to that) and give it to local process.
- (Assume that a socket waiting with that new destination address)
+Hi,
 
-  So, will there be any problem ?
+since I haven't found state match support for IPv6 in the kernel
+(although it's supported by iptables 1.3.5) if ported the ipt_state.c
+code to v6 (ip6t_state.c).
 
+So here's a patch that adds IPv6 state match support to the kernel.
 
- Also, Let me tell you what I am planning to do..
+cu
+Gregor
 
- 1. Create a TCP socket(connection) with machine ip address X
- 2. Now I am changing machine IP address to Y
- 3. Now capture the incoming packets coming to the machine  corresponding
- to this TCP connection with new IP addres as destination address
-   ( assume that all problems related to TCP binding have been taken care
-     and packets are able to reach the machine with new IP address although
-     application TCP is still binded to old IP address x)
-and replace new IP address Y with old IP address X(in FILTER INPUT stage).
+-- 
+Gregor Maier                                      Lehrstuhl Informatik 8
+gregor@net.in.tum.de                              Tel: +49 89  289-18010
+http://www.net.in.tum.de                                     TU Muenchen
 
+--------------020000020106000005000404
+Content-Type: text/plain; x-mac-type="0"; x-mac-creator="0";
+	name="ip6t_state-2.6.15.2.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ip6t_state-2.6.15.2.patch"
 
-  So, will socket works fine after doing Destination IP address translation
- in FILTER INPUT stage or will there be any problem as soon as IP address
-changes ?
+diff -Naur linux-2.6.15.2.orig/include/linux/netfilter_ipv6/ip6t_state.h linux-2.6.15.2/include/linux/netfilter_ipv6/ip6t_state.h
+--- linux-2.6.15.2.orig/include/linux/netfilter_ipv6/ip6t_state.h	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.6.15.2/include/linux/netfilter_ipv6/ip6t_state.h	2006-02-06 19:44:43.000000000 +0100
+@@ -0,0 +1,13 @@
++#ifndef _IP6T_STATE_H
++#define _IP6T_STATE_H
++
++#define IP6T_STATE_BIT(ctinfo) (1 << ((ctinfo)%IP_CT_IS_REPLY+1))
++#define IP6T_STATE_INVALID (1 << 0)
++
++#define IP6T_STATE_UNTRACKED (1 << (IP_CT_NUMBER + 1))
++
++struct ip6t_state_info
++{
++	unsigned int statemask;
++};
++#endif /*_IP6T_STATE_H*/
+diff -Naur linux-2.6.15.2.orig/net/ipv6/netfilter/ip6t_state.c linux-2.6.15.2/net/ipv6/netfilter/ip6t_state.c
+--- linux-2.6.15.2.orig/net/ipv6/netfilter/ip6t_state.c	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.6.15.2/net/ipv6/netfilter/ip6t_state.c	2006-02-06 19:49:02.000000000 +0100
+@@ -0,0 +1,77 @@
++/* Kernel module to match connection tracking information. */
++
++/* (C) 1999-2001 Paul `Rusty' Russell
++ * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <net/netfilter/nf_conntrack_compat.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
++#include <linux/netfilter_ipv6/ip6t_state.h>
++
++extern void need_ip6_conntrack(void);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Rusty Russell <rusty@rustcorp.com.au>");
++MODULE_DESCRIPTION("ip6tables connection tracking state match module");
++
++static int
++match(const struct sk_buff *skb,
++      const struct net_device *in,
++      const struct net_device *out,
++      const void *matchinfo,
++      int offset,
++		unsigned int protoff,
++      int *hotdrop)
++{
++	const struct ip6t_state_info *sinfo = matchinfo;
++	enum ip_conntrack_info ctinfo;
++	unsigned int statebit;
++
++	if (nf_ct_is_untracked(skb))
++		statebit = IP6T_STATE_UNTRACKED;
++	else if (!nf_ct_get_ctinfo(skb, &ctinfo))
++		statebit = IP6T_STATE_INVALID;
++	else
++		statebit = IP6T_STATE_BIT(ctinfo);
++
++	return (sinfo->statemask & statebit);
++}
++
++static int check(const char *tablename,
++		 const struct ip6t_ip6 *ip,
++		 void *matchinfo,
++		 unsigned int matchsize,
++		 unsigned int hook_mask)
++{
++	if (matchsize != IP6T_ALIGN(sizeof(struct ip6t_state_info)))
++		return 0;
++
++	return 1;
++}
++
++static struct ip6t_match state_match = {
++	.name		= "state",
++	.match		= &match,
++	.checkentry	= &check,
++	.me		= THIS_MODULE,
++};
++
++static int __init init(void)
++{
++	need_ip6_conntrack();
++	return ip6t_register_match(&state_match);
++}
++
++static void __exit fini(void)
++{
++	ip6t_unregister_match(&state_match);
++}
++
++module_init(init);
++module_exit(fini);
+diff -Naur linux-2.6.15.2.orig/net/ipv6/netfilter/Kconfig linux-2.6.15.2/net/ipv6/netfilter/Kconfig
+--- linux-2.6.15.2.orig/net/ipv6/netfilter/Kconfig	2006-01-31 07:25:07.000000000 +0100
++++ linux-2.6.15.2/net/ipv6/netfilter/Kconfig	2006-02-06 19:55:49.000000000 +0100
+@@ -115,6 +115,17 @@
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config IP6_NF_MATCH_STATE
++	tristate "Connection state match support"
++	depends on IP6_NF_IPTABLES
++	depends on NF_CONNTRACK_IPV6
++	help
++	  Connection state matching allows you to match packets based on their
++	  relationship to a tracked connection (ie. previous packets).  This
++	  is a powerful tool for packet classification.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config IP6_NF_MATCH_OWNER
+ 	tristate "Owner match support"
+ 	depends on IP6_NF_IPTABLES
+diff -Naur linux-2.6.15.2.orig/net/ipv6/netfilter/Makefile linux-2.6.15.2/net/ipv6/netfilter/Makefile
+--- linux-2.6.15.2.orig/net/ipv6/netfilter/Makefile	2006-01-31 07:25:07.000000000 +0100
++++ linux-2.6.15.2/net/ipv6/netfilter/Makefile	2006-02-06 19:52:12.000000000 +0100
+@@ -33,3 +33,6 @@
+ 
+ # l3 independent conntrack
+ obj-$(CONFIG_NF_CONNTRACK_IPV6) += nf_conntrack_ipv6.o
++
++obj-$(CONFIG_IP6_NF_MATCH_STATE) += ip6t_state.o
++
 
- Please give me your valueable feedback
+--------------020000020106000005000404--
 
+--------------enigF3180AB257BF65EEF49E20BE
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
- --------
- Vasanth
- IIT Bombau
->
->
->
->
->
->> Vasantha Kumar Puttappa wrote:
->>> Hi,
->>>
->>> ( I am assuming packet arrival to the local host)
->>>
->>>   As far as I know Netfilter hook  for "INPUT" chain is called just
->>> before
->>> the ip_local_deliver() function is called. If I am not wrong,
->>> ip_local_deliver function will remove the IP header and gives the
->>> packet
->>> to appropriate function in transport layer ( TCP or UDP or ICMP
->>> Process).
->>>
->>>
->>>  What I am want to do is to change the source IP address of the IP
->>> packet
->>> just before calling the ip_local_deliver() using IPtables.
->>>
->>> So I want know, will this go smoothly assuming there is a socket
->>> waiting
->>> for this kind of packet(packet with new source IP address) or will
->>> something go wrong ?
->>
->> This is exactly what NAT does. If you use DNAT in LOCAL_OUT, a SNAT
->> mapping is also set up for LOCAL_IN. The socket lookup is performed
->> later in the individual protocols, so it will use the rewritten
->> source address.
->>
->
->
->
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (Darwin)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFD56dWdGiwgbikMYMRAox8AKCYOd9GvCS0m3Bpfa8j/57hA5hmPQCeJvor
+uDIVQ5a6U0GVaUnpDnRhJuE=
+=PvkE
+-----END PGP SIGNATURE-----
+
+--------------enigF3180AB257BF65EEF49E20BE--
