@@ -1,17 +1,12 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH] Fix expectation mask dumping, take #2
-Date: Mon, 06 Feb 2006 11:15:18 +0900 (JST)
-Message-ID: <200602060215.k162FJth023563@toshiba.co.jp>
-References: <200602011335.k11DZHwj018072@toshiba.co.jp>
-	<43E15615.2070508@netfilter.org> <43E6904E.9020306@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org, kaber@trash.net,
-	yasuyuki.kozakai@toshiba.co.jp
+From: Stephen Hemminger <shemminger@osdl.org>
+Subject: [PATCH 2/3] bridge: netfilter handle RCU during removal
+Date: Mon, 06 Feb 2006 14:27:34 -0800
+Message-ID: <20060206222853.844546000@dxpl.pdx.osdl.net>
+References: <20060206222732.661214000@dxpl.pdx.osdl.net>
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: pablo@netfilter.org
-In-Reply-To: <43E6904E.9020306@netfilter.org>
+To: David Miller <davem@davemloft.net>
+Content-Disposition: inline; filename=br-netfilter-ref.patch
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,27 +18,160 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Bridge netfilter code needs to handle the case where device is
+removed from bridge while packet in process. In these cases the
+bridge_parent can be come null while processing.
 
-Hi, Pablo,
+This should fix: http://bugzilla.kernel.org/show_bug.cgi?id=5803
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 06 Feb 2006 00:54:54 +0100
+Signed-off-by: Stephen Hemminger <shemminger@osdl.org>
 
-> Hi,
-> 
-> @Patrick: this patch fixes the problem that `[NETFILTER 03/14]:
-> nf_conntrack: check address family when finding protocol module` works
-> around. So I think that such patch needs to be reverted :(
+--- br-2.6.orig/net/bridge/br_netfilter.c
++++ br-2.6/net/bridge/br_netfilter.c
+@@ -51,9 +51,6 @@
+ #define store_orig_dstaddr(skb)	 (skb_origaddr(skb) = (skb)->nh.iph->daddr)
+ #define dnat_took_place(skb)	 (skb_origaddr(skb) != (skb)->nh.iph->daddr)
+ 
+-#define has_bridge_parent(device)	((device)->br_port != NULL)
+-#define bridge_parent(device)		((device)->br_port->br->dev)
+-
+ #ifdef CONFIG_SYSCTL
+ static struct ctl_table_header *brnf_sysctl_header;
+ static int brnf_call_iptables = 1;
+@@ -98,6 +95,12 @@ static struct rtable __fake_rtable = {
+ 	.rt_flags	= 0,
+ };
+ 
++static inline struct net_device *bridge_parent(const struct net_device *dev)
++{
++	struct net_bridge_port *port = rcu_dereference(dev->br_port);
++
++	return port ? port->br->dev : NULL;
++}
+ 
+ /* PF_BRIDGE/PRE_ROUTING *********************************************/
+ /* Undo the changes made for ip6tables PREROUTING and continue the
+@@ -189,11 +192,15 @@ static int br_nf_pre_routing_finish_brid
+ 	skb->nf_bridge->mask ^= BRNF_NF_BRIDGE_PREROUTING;
+ 
+ 	skb->dev = bridge_parent(skb->dev);
+-	if (skb->protocol == __constant_htons(ETH_P_8021Q)) {
+-		skb_pull(skb, VLAN_HLEN);
+-		skb->nh.raw += VLAN_HLEN;
++	if (!skb->dev)
++		kfree_skb(skb);
++	else {
++		if (skb->protocol == __constant_htons(ETH_P_8021Q)) {
++			skb_pull(skb, VLAN_HLEN);
++			skb->nh.raw += VLAN_HLEN;
++		}
++		skb->dst->output(skb);
+ 	}
+-	skb->dst->output(skb);
+ 	return 0;
+ }
+ 
+@@ -270,7 +277,7 @@ bridged_dnat:
+ }
+ 
+ /* Some common code for IPv4/IPv6 */
+-static void setup_pre_routing(struct sk_buff *skb)
++static struct net_device *setup_pre_routing(struct sk_buff *skb)
+ {
+ 	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
+ 
+@@ -282,6 +289,8 @@ static void setup_pre_routing(struct sk_
+ 	nf_bridge->mask |= BRNF_NF_BRIDGE_PREROUTING;
+ 	nf_bridge->physindev = skb->dev;
+ 	skb->dev = bridge_parent(skb->dev);
++
++	return skb->dev;
+ }
+ 
+ /* We only check the length. A bridge shouldn't do any hop-by-hop stuff anyway */
+@@ -376,7 +385,8 @@ static unsigned int br_nf_pre_routing_ip
+  	nf_bridge_put(skb->nf_bridge);
+ 	if ((nf_bridge = nf_bridge_alloc(skb)) == NULL)
+ 		return NF_DROP;
+-	setup_pre_routing(skb);
++	if (!setup_pre_routing(skb))
++		return NF_DROP;
+ 
+ 	NF_HOOK(PF_INET6, NF_IP6_PRE_ROUTING, skb, skb->dev, NULL,
+ 		br_nf_pre_routing_finish_ipv6);
+@@ -465,7 +475,8 @@ static unsigned int br_nf_pre_routing(un
+  	nf_bridge_put(skb->nf_bridge);
+ 	if ((nf_bridge = nf_bridge_alloc(skb)) == NULL)
+ 		return NF_DROP;
+-	setup_pre_routing(skb);
++	if (!setup_pre_routing(skb))
++		return NF_DROP;
+ 	store_orig_dstaddr(skb);
+ 
+ 	NF_HOOK(PF_INET, NF_IP_PRE_ROUTING, skb, skb->dev, NULL,
+@@ -539,11 +550,16 @@ static unsigned int br_nf_forward_ip(uns
+ 	struct sk_buff *skb = *pskb;
+ 	struct nf_bridge_info *nf_bridge;
+ 	struct vlan_ethhdr *hdr = vlan_eth_hdr(skb);
++	struct net_device *parent;
+ 	int pf;
+ 
+ 	if (!skb->nf_bridge)
+ 		return NF_ACCEPT;
+ 
++	parent = bridge_parent(out);
++	if (!parent)
++		return NF_DROP;
++
+ 	if (skb->protocol == __constant_htons(ETH_P_IP) || IS_VLAN_IP)
+ 		pf = PF_INET;
+ 	else
+@@ -564,8 +580,8 @@ static unsigned int br_nf_forward_ip(uns
+ 	nf_bridge->mask |= BRNF_BRIDGED;
+ 	nf_bridge->physoutdev = skb->dev;
+ 
+-	NF_HOOK(pf, NF_IP_FORWARD, skb, bridge_parent(in),
+-		bridge_parent(out), br_nf_forward_finish);
++	NF_HOOK(pf, NF_IP_FORWARD, skb, bridge_parent(in), parent,
++		br_nf_forward_finish);
+ 
+ 	return NF_STOLEN;
+ }
+@@ -688,6 +704,8 @@ static unsigned int br_nf_local_out(unsi
+ 		goto out;
+ 	}
+ 	realoutdev = bridge_parent(skb->dev);
++	if (!realoutdev)
++		return NF_DROP;
+ 
+ #if defined(CONFIG_VLAN_8021Q) || defined(CONFIG_VLAN_8021Q_MODULE)
+ 	/* iptables should match -o br0.x */
+@@ -701,9 +719,11 @@ static unsigned int br_nf_local_out(unsi
+ 	/* IP forwarded traffic has a physindev, locally
+ 	 * generated traffic hasn't. */
+ 	if (realindev != NULL) {
+-		if (!(nf_bridge->mask & BRNF_DONT_TAKE_PARENT) &&
+-		    has_bridge_parent(realindev))
+-			realindev = bridge_parent(realindev);
++		if (!(nf_bridge->mask & BRNF_DONT_TAKE_PARENT) ) {
++			struct net_device *parent = bridge_parent(realindev);
++			if (parent)
++				realindev = parent;
++		}
+ 
+ 		NF_HOOK_THRESH(pf, NF_IP_FORWARD, skb, realindev,
+ 			       realoutdev, br_nf_local_out_finish,
+@@ -743,6 +763,9 @@ static unsigned int br_nf_post_routing(u
+ 	if (!nf_bridge)
+ 		return NF_ACCEPT;
+ 
++	if (!realoutdev)
++		return NF_DROP;
++
+ 	if (skb->protocol == __constant_htons(ETH_P_IP) || IS_VLAN_IP)
+ 		pf = PF_INET;
+ 	else
 
-Please don't revert that. I've been thinking that both your and
-his patch are necessary. Even if your patch fixes oops triggered by
-nfctnetlink, other module might have same problem future.
-
-I think he aim of 2 patches is different. His patch fixes the root
-of oops. Your patch fixes dumping expectation mask.
-
-BTW, ah, his patch includes unlikely(). But fortunately,
-your patch looks that it makes unnecessary to remove it and
-I expect that it will be applied to net-2.6 tree. Great!
-
--- Yasuyuki Kozakai
+--
+Stephen Hemminger <shemminger@osdl.org>
+OSDL http://developer.osdl.org/~shemminger
