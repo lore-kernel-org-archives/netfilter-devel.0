@@ -1,12 +1,19 @@
-From: Pablo Neira Ayuso <pablo@eurodev.net>
-Subject: [LIBNFNETLINK] Introduce nfnl_listen_for_msecs
-Date: Tue, 07 Feb 2006 02:47:38 +0100
-Message-ID: <43E7FC3A.4050209@eurodev.net>
+From: Horms <horms@verge.net.au>
+Subject: Re: [SECURITY] DNAT'd host disclosure
+Date: Mon, 6 Feb 2006 10:16:54 +0900
+Message-ID: <20060206011654.GD19457@verge.net.au>
+References: <20060202113824.GA4399@verge.net.au> <43E36AAD.7050808@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000807050408050704090703"
-Cc: Harald Welte <laforge@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Wensong Zhang <wensong@linux-vs.org>, netfilter-devel@lists.netfilter.org,
+	Roberto Nibali <ratz@drugphish.ch>, Moritz Muehlenhoff <jmm@inutil.org>,
+	Micah Anderson <micah@riseup.net>, Julian Anastasov <ja@ssi.bg>,
+	dann frazier <dannf@dannf.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Resent-Message-ID: <20060207031633.GA6586@verge.net.au>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <43E36AAD.7050808@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,161 +25,108 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000807050408050704090703
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+On Fri, Feb 03, 2006 at 03:37:33PM +0100, Patrick McHardy wrote:
+> Horms wrote:
+> > I have been researching the vulnerability of various kernel versions to
+> > CVE-2002-0704, which is explained from various angles at:
+> > 
+> >   http://www.netfilter.org/security/2002-04-02-icmp-dnat.html
+> >   http://rhn.redhat.com/errata/RHSA-2002-086.html
+> >   http://www.securityfocus.com/bid/4699/discuss
+> > 
+> > In a nutshell, you can discover the internal IP address of a DNAT'd
+> > host by manipulating the TTL of packets sent, such that the expire
+> > between the DNATing and DNAT'd hosts.
+> > 
+> >   By DNATing host, I mean the machine that has the iptables DNAT rule
+> >   By DNAT'd, I mean the host that the connection is directed to, which
+> >   actually terminates the connection. So the packet path is:
+> > 
+> >   [end-user]----[some net]---[DNATing host]---[some more net]---[DNAT'd host]
+> > 
+> >   Sorry if this is confusing, I'm not sure what terms are usually used
+> > 
+> > I believe that this was resolved in 2.6.11 with the following patch
+> > http://www.kernel.org/git/?p=linux/kernel/git/tglx/history.git;a=commitdiff;h=1e69ba3fa29b13fe5229d6e325aee91ae5abe298
+> 
+> Yes, this one and the one to manually attach conntrack references to
+> locally generated ICMP errors.
 
-Hi Harald,
+Thanks for confirmint that.
 
-The patch attached introduces a new function called
-nfnl_listen_for_msecs. This is useful for polling netlink events.
+> > At the very least, 2.6.16-rc2 does not seem to exhibit this problem,
+> > while I have been able to reproduce it using 2.4.18, 2.4.27, 2.4.33-pre1
+> > and 2.6.8. (I can reverify individual versions if need be).
+> > 
+> > In the course of playing with this for far to long I believe that I have
+> > discovered two related vulnerabilities. 
+> > 
+> > I. Disclosure of intermediate hop addresses
+> > 
+> > I believe that the following patch, also included in 2.6.11 causes the
+> > IP address of intermediate hops between the DNATing and DNAT'd hosts to
+> > be trivially disclosed, as illustrated by the following tcptraceroute.
+> > 
+> > http://www.kernel.org/git/?p=linux/kernel/git/tglx/history.git;a=commit;h=8d5f3377d48c74df38990688f09e773887ba4eb5
+> > 
+> > # tcptraceroute 10.0.1.7 80
+> > Selected device ppp7, address 10.0.1.4, port 1942 for outgoing packets
+> > Tracing the path to 10.0.1.7 on TCP port 80 (www), 30 hops max
+> >  1  10.0.1.7  26.517 ms  25.262 ms  74.672 ms
+> >  2  192.168.1.254  76.070 ms  75.554 ms  75.988 ms
+> >  3  10.0.1.7 [open]  69.503 ms  114.771 ms  105.756 ms
+> > 
+> > The client now knows not only that 10.0.1.7 80 is DNAT'd but that
+> > there is an intermediate hop with the address 192.168.1.254. Which
+> > is similar to the disclosure made by CVE-2002-0704, where the IP
+> > address of hop 3 can be revealed using hbping (but not tcptraceroute).
+> > The intermediate hop information can also be revealed using hbping,
+> > and likely a variety of other tools.
+> > 
+> > I have a rather hackish patch, against today's Linus tree (~2.6.16-rc2)
+> > at the bottom of this message, which conceals the address, leading to
+> > the following output.
+> 
+> I'm surprised, IIRC I've tested that it still behaves fine with Rusty's
+> NAT changes. I'm going to try to reproduce this.
 
-I have enqueued a patch for libnetfilter_conntrack that implements
-nfct_event_conntrack_for_msecs. I apply it by myself once this gets
-applied ;)
+Let me know if you need me to run more tests. I'm pretty sure that
+what I describe above is reproducable.
 
-cheers,
+> > # tcptraceroute 10.0.1.7 80
+> > Selected device ppp7, address 10.0.1.4, port 1952 for outgoing packets
+> > Tracing the path to 10.0.1.7 on TCP port 80 (www), 30 hops max
+> >  1  10.0.1.7  27.198 ms  72.374 ms  66.602 ms
+> >  2  10.0.1.7  68.898 ms  76.121 ms  66.639 ms
+> >  3  10.0.1.7 [open]  66.052 ms  107.855 ms  107.375 ms
+> > 
+> > 
+> > II. DNAT use exposure
+> > 
+> > I believe that all versions of the DNAT code back to at least the
+> > versions covered by CVE-2002-0704, and up to date allow TTL to be used
+> > to ascertain if a port is DNAT'd. Looking at the original description of
+> > CVE-2002-0704, and the two tcptracroutes above, it is easy to see that
+> > the port has been DNAT'd. While the last trace does not disclose much
+> > information, other than that DNAT is in use, and there are 2 hops after
+> > the DNATing host, it is still unwanted disclosure. Imagine a user
+> > whose ISP forbids the connection of networks, who is using DNAT (against
+> > the ISP's policy), and the ISP runs a check like this.
+> > 
+> > I do not have a proposal to fix this problem. I'm actually not sure if
+> > it is fixable. I would be interested to see what other DNAT
+> > implementations do. And at the very least, I would like this message to
+> > serve as documentation (or the start of documentation) of this problem.
+> 
+> Well, I'm not sure I agree that its a problem at all. NAT is not
+> meant for anonymizing traffic. There are other ways of determining
+> that NAT is used (timestamps, IP IDs, sequence numbers, ...).
+> Anyway, changing this behaviour would require not decrementing the
+> TTL for DNATed and forwarded packets, which means that you could
+> create loops in which the packets TTL never expires. I don't think
+> that this is a good idea.
+
+Yes, I agree entirely.
 
 -- 
-Pablo
-
---------------000807050408050704090703
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-Index: include/libnfnetlink/libnfnetlink.h
-===================================================================
---- include/libnfnetlink/libnfnetlink.h	(revision 6450)
-+++ include/libnfnetlink/libnfnetlink.h	(working copy)
-@@ -76,6 +76,11 @@
- extern int nfnl_listen(struct nfnl_handle *,
-                       int (*)(struct sockaddr_nl *, struct nlmsghdr *, void *),
-                       void *);
-+/* simple challenge/response with timeout (polling) */
-+extern int nfnl_listen_for_msecs(struct nfnl_handle *,
-+				 int (*)(struct sockaddr_nl *, 
-+					 struct nlmsghdr *, void *),
-+				 void *, int timeout);
- 
- /* receiving */
- extern ssize_t nfnl_recv(const struct nfnl_handle *h, unsigned char *buf, size_t len);
-Index: src/libnfnetlink.c
-===================================================================
---- src/libnfnetlink.c	(revision 6450)
-+++ src/libnfnetlink.c	(working copy)
-@@ -24,6 +24,9 @@
-  * 2006-01-26 Harald Welte <laforge@netfilter.org>:
-  * 	remove bogus nfnlh->local.nl_pid from nfnl_open ;)
-  * 	add 16bit attribute functions
-+ *
-+ * 2006-02-07 Pablo Neira Ayuso <pablo@netfilter.org>:
-+ * 	introduce nfnl_listen_for_msecs
-  */
- 
- #include <stdlib.h>
-@@ -36,6 +39,7 @@
- 
- #include <sys/types.h>
- #include <sys/socket.h>
-+#include <poll.h>
- 
- #include <linux/netlink.h>
- 
-@@ -397,27 +401,11 @@
- 
- 	return status;
- }
--/**
-- * nfnl_listen: listen for one or more netlink messages
-- *
-- * nfnhl: libnfnetlink handle
-- * handler: callback function to be called for every netlink message
-- *          - the callback handler should normally return 0
-- *          - but may return a negative error code which will cause
-- *            nfnl_listen to return immediately with the same error code
-- *          - or return a postivie error code which will cause 
-- *            nfnl_listen to return after it has finished processing all
-- *            the netlink messages in the current packet
-- *          Thus a positive error code will terminate nfnl_listen "soon"
-- *          without any loss of data, a negative error code will terminate
-- *          nfnl_listen "very soon" and throw away data already read from
-- *          the netlink socket.
-- * jarg: opaque argument passed on to callback
-- *
-- */
--int nfnl_listen(struct nfnl_handle *nfnlh,
--		int (*handler)(struct sockaddr_nl *, struct nlmsghdr *n,
--			       void *), void *jarg)
-+
-+int nfnl_listen_for_msecs(struct nfnl_handle *nfnlh,
-+			  int (*handler)(struct sockaddr_nl *, 
-+				  	 struct nlmsghdr *n, void *), 
-+			  void *jarg, int timeout)
- {
- 	struct sockaddr_nl nladdr;
- 	char buf[NFNL_BUFFSIZE];
-@@ -434,12 +422,26 @@
- 		0
- 	};
- 
-+	struct pollfd ufds = {
-+		.fd = nfnlh->fd,
-+		.events = POLLIN | POLLPRI | POLLERR,
-+		.revents = 0
-+	};
-+
- 	memset(&nladdr, 0, sizeof(nladdr));
- 	nladdr.nl_family = AF_NETLINK;
- 	iov.iov_base = buf;
- 	iov.iov_len = sizeof(buf);
- 
- 	while (! quit) {
-+		if (poll(&ufds, 1, timeout) == -1) {
-+			perror("poll error");
-+			return -errno;
-+		}
-+		if (ufds.revents & POLLERR)
-+			break;
-+		if (!(ufds.revents & (POLLIN | POLLPRI)))
-+			break;
- 		remain = recvmsg(nfnlh->fd, &msg, 0);
- 		if (remain < 0) {
- 			if (errno == EINTR)
-@@ -510,6 +512,31 @@
- 	return quit;
- }
- 
-+/**
-+ * nfnl_listen: listen for one or more netlink messages
-+ *
-+ * nfnhl: libnfnetlink handle
-+ * handler: callback function to be called for every netlink message
-+ *          - the callback handler should normally return 0
-+ *          - but may return a negative error code which will cause
-+ *            nfnl_listen to return immediately with the same error code
-+ *          - or return a postivie error code which will cause 
-+ *            nfnl_listen to return after it has finished processing all
-+ *            the netlink messages in the current packet
-+ *          Thus a positive error code will terminate nfnl_listen "soon"
-+ *          without any loss of data, a negative error code will terminate
-+ *          nfnl_listen "very soon" and throw away data already read from
-+ *          the netlink socket.
-+ * jarg: opaque argument passed on to callback
-+ *
-+ */
-+int nfnl_listen(struct nfnl_handle *nfnlh,
-+		int (*handler)(struct sockaddr_nl *, struct nlmsghdr *n,
-+			       void *), void *jarg)
-+{
-+	return nfnl_listen_for_msecs(nfnlh, handler, jarg, -1);
-+}
-+
- int nfnl_talk(struct nfnl_handle *nfnlh, struct nlmsghdr *n, pid_t peer,
- 	      unsigned groups, struct nlmsghdr *answer,
- 	      int (*junk)(struct sockaddr_nl *, struct nlmsghdr *n, void *),
-
---------------000807050408050704090703--
+Horms
