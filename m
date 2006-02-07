@@ -1,19 +1,18 @@
-From: Horms <horms@verge.net.au>
-Subject: Re: [SECURITY] DNAT'd host disclosure
-Date: Mon, 6 Feb 2006 10:16:54 +0900
-Message-ID: <20060206011654.GD19457@verge.net.au>
-References: <20060202113824.GA4399@verge.net.au> <43E36AAD.7050808@trash.net>
+From: "Vasantha Kumar Puttappa" <vasanthakumar@iitb.ac.in>
+Subject: Re: ip_local_deliver related query
+Date: Tue, 7 Feb 2006 11:58:05 +0530 (IST)
+Message-ID: <37547.10.107.26.27.1139293685.squirrel@gpo.iitb.ac.in>
+References: <60828.10.107.26.27.1138947199.squirrel@gpo.iitb.ac.in>   
+	<43E36101.8020708@trash.net>
+	<4503.10.12.25.5.1139034091.squirrel@gpo.iitb.ac.in>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Wensong Zhang <wensong@linux-vs.org>, netfilter-devel@lists.netfilter.org,
-	Roberto Nibali <ratz@drugphish.ch>, Moritz Muehlenhoff <jmm@inutil.org>,
-	Micah Anderson <micah@riseup.net>, Julian Anastasov <ja@ssi.bg>,
-	dann frazier <dannf@dannf.org>
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: Vasantha Kumar Puttappa <vasanthakumar@iitb.ac.in>,
+	netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Resent-Message-ID: <20060207031633.GA6586@verge.net.au>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <43E36AAD.7050808@trash.net>
+In-Reply-To: <4503.10.12.25.5.1139034091.squirrel@gpo.iitb.ac.in>
+To: "Vasantha Kumar Puttappa" <vasanthakumar@iitb.ac.in>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,108 +24,78 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Feb 03, 2006 at 03:37:33PM +0100, Patrick McHardy wrote:
-> Horms wrote:
-> > I have been researching the vulnerability of various kernel versions to
-> > CVE-2002-0704, which is explained from various angles at:
-> > 
-> >   http://www.netfilter.org/security/2002-04-02-icmp-dnat.html
-> >   http://rhn.redhat.com/errata/RHSA-2002-086.html
-> >   http://www.securityfocus.com/bid/4699/discuss
-> > 
-> > In a nutshell, you can discover the internal IP address of a DNAT'd
-> > host by manipulating the TTL of packets sent, such that the expire
-> > between the DNATing and DNAT'd hosts.
-> > 
-> >   By DNATing host, I mean the machine that has the iptables DNAT rule
-> >   By DNAT'd, I mean the host that the connection is directed to, which
-> >   actually terminates the connection. So the packet path is:
-> > 
-> >   [end-user]----[some net]---[DNATing host]---[some more net]---[DNAT'd host]
-> > 
-> >   Sorry if this is confusing, I'm not sure what terms are usually used
-> > 
-> > I believe that this was resolved in 2.6.11 with the following patch
-> > http://www.kernel.org/git/?p=linux/kernel/git/tglx/history.git;a=commitdiff;h=1e69ba3fa29b13fe5229d6e325aee91ae5abe298
-> 
-> Yes, this one and the one to manually attach conntrack references to
-> locally generated ICMP errors.
+Hi Patrick,
+  Thanks for your response. I have one more thing to clarify.
+  ( Sorry in the previous I made a great mistake, I wanted to change
+  destination IP address of the packet and not the source IP address).
 
-Thanks for confirmint that.
+  ( I am referring to first figure in the following link
+ http://www.linuxsecurity.com/resource_files/firewalls/IPTables-Tutorial/iptables-tutorial.html)
 
-> > At the very least, 2.6.16-rc2 does not seem to exhibit this problem,
-> > while I have been able to reproduce it using 2.4.18, 2.4.27, 2.4.33-pre1
-> > and 2.6.8. (I can reverify individual versions if need be).
-> > 
-> > In the course of playing with this for far to long I believe that I have
-> > discovered two related vulnerabilities. 
-> > 
-> > I. Disclosure of intermediate hop addresses
-> > 
-> > I believe that the following patch, also included in 2.6.11 causes the
-> > IP address of intermediate hops between the DNATing and DNAT'd hosts to
-> > be trivially disclosed, as illustrated by the following tcptraceroute.
-> > 
-> > http://www.kernel.org/git/?p=linux/kernel/git/tglx/history.git;a=commit;h=8d5f3377d48c74df38990688f09e773887ba4eb5
-> > 
-> > # tcptraceroute 10.0.1.7 80
-> > Selected device ppp7, address 10.0.1.4, port 1942 for outgoing packets
-> > Tracing the path to 10.0.1.7 on TCP port 80 (www), 30 hops max
-> >  1  10.0.1.7  26.517 ms  25.262 ms  74.672 ms
-> >  2  192.168.1.254  76.070 ms  75.554 ms  75.988 ms
-> >  3  10.0.1.7 [open]  69.503 ms  114.771 ms  105.756 ms
-> > 
-> > The client now knows not only that 10.0.1.7 80 is DNAT'd but that
-> > there is an intermediate hop with the address 192.168.1.254. Which
-> > is similar to the disclosure made by CVE-2002-0704, where the IP
-> > address of hop 3 can be revealed using hbping (but not tcptraceroute).
-> > The intermediate hop information can also be revealed using hbping,
-> > and likely a variety of other tools.
-> > 
-> > I have a rather hackish patch, against today's Linus tree (~2.6.16-rc2)
-> > at the bottom of this message, which conceals the address, leading to
-> > the following output.
-> 
-> I'm surprised, IIRC I've tested that it still behaves fine with Rusty's
-> NAT changes. I'm going to try to reproduce this.
+  If I am not wrong, NAT is being in done in PREROUTING AND POST-ROUTING
+ stage. But what I want to do is to take packets in FILTER INPUT stage and
+ change the destination IP address ( I don't want to create any SNAT
+ corresponding to that) and give it to local process.
+ (Assume that a socket waiting with that new destination address)
 
-Let me know if you need me to run more tests. I'm pretty sure that
-what I describe above is reproducable.
+  So, will there be any problem ?
 
-> > # tcptraceroute 10.0.1.7 80
-> > Selected device ppp7, address 10.0.1.4, port 1952 for outgoing packets
-> > Tracing the path to 10.0.1.7 on TCP port 80 (www), 30 hops max
-> >  1  10.0.1.7  27.198 ms  72.374 ms  66.602 ms
-> >  2  10.0.1.7  68.898 ms  76.121 ms  66.639 ms
-> >  3  10.0.1.7 [open]  66.052 ms  107.855 ms  107.375 ms
-> > 
-> > 
-> > II. DNAT use exposure
-> > 
-> > I believe that all versions of the DNAT code back to at least the
-> > versions covered by CVE-2002-0704, and up to date allow TTL to be used
-> > to ascertain if a port is DNAT'd. Looking at the original description of
-> > CVE-2002-0704, and the two tcptracroutes above, it is easy to see that
-> > the port has been DNAT'd. While the last trace does not disclose much
-> > information, other than that DNAT is in use, and there are 2 hops after
-> > the DNATing host, it is still unwanted disclosure. Imagine a user
-> > whose ISP forbids the connection of networks, who is using DNAT (against
-> > the ISP's policy), and the ISP runs a check like this.
-> > 
-> > I do not have a proposal to fix this problem. I'm actually not sure if
-> > it is fixable. I would be interested to see what other DNAT
-> > implementations do. And at the very least, I would like this message to
-> > serve as documentation (or the start of documentation) of this problem.
-> 
-> Well, I'm not sure I agree that its a problem at all. NAT is not
-> meant for anonymizing traffic. There are other ways of determining
-> that NAT is used (timestamps, IP IDs, sequence numbers, ...).
-> Anyway, changing this behaviour would require not decrementing the
-> TTL for DNATed and forwarded packets, which means that you could
-> create loops in which the packets TTL never expires. I don't think
-> that this is a good idea.
 
-Yes, I agree entirely.
+ Also, Let me tell you what I am planning to do..
 
--- 
-Horms
+ 1. Create a TCP socket(connection) with machine ip address X
+ 2. Now I am changing machine IP address to Y
+ 3. Now capture the incoming packets coming to the machine  corresponding
+ to this TCP connection with new IP addres as destination address
+   ( assume that all problems related to TCP binding have been taken care
+     and packets are able to reach the machine with new IP address although
+     application TCP is still binded to old IP address x)
+and replace new IP address Y with old IP address X(in FILTER INPUT stage).
+
+
+  So, will socket works fine after doing Destination IP address translation
+ in FILTER INPUT stage or will there be any problem as soon as IP address
+changes ?
+
+ Please give me your valueable feedback
+
+
+ --------
+ Vasanth
+ IIT Bombau
+>
+>
+>
+>
+>
+>> Vasantha Kumar Puttappa wrote:
+>>> Hi,
+>>>
+>>> ( I am assuming packet arrival to the local host)
+>>>
+>>>   As far as I know Netfilter hook  for "INPUT" chain is called just
+>>> before
+>>> the ip_local_deliver() function is called. If I am not wrong,
+>>> ip_local_deliver function will remove the IP header and gives the
+>>> packet
+>>> to appropriate function in transport layer ( TCP or UDP or ICMP
+>>> Process).
+>>>
+>>>
+>>>  What I am want to do is to change the source IP address of the IP
+>>> packet
+>>> just before calling the ip_local_deliver() using IPtables.
+>>>
+>>> So I want know, will this go smoothly assuming there is a socket
+>>> waiting
+>>> for this kind of packet(packet with new source IP address) or will
+>>> something go wrong ?
+>>
+>> This is exactly what NAT does. If you use DNAT in LOCAL_OUT, a SNAT
+>> mapping is also set up for LOCAL_IN. The socket lookup is performed
+>> later in the individual protocols, so it will use the rewritten
+>> source address.
+>>
+>
+>
+>
