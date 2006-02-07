@@ -1,18 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [LIBNFNETLINK] Introduce nfnl_listen_for_msecs
-Date: Tue, 07 Feb 2006 20:55:45 +0100
-Message-ID: <43E8FB41.2000905@trash.net>
-References: <43E7FC3A.4050209@eurodev.net> <43E8A810.6010108@trash.net>
-	<43E8AFCF.5040604@eurodev.net> <43E8B107.8040301@trash.net>
-	<43E8CCBD.6050807@eurodev.net>
+From: aton <aton@packetdropped.org>
+Subject: bug in libnetfilter_log
+Date: Tue, 7 Feb 2006 23:09:39 +0100
+Message-ID: <20060207230939.08f0f908.aton@packetdropped.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+	micalg="PGP-SHA1";
+	boundary="Signature=_Tue__7_Feb_2006_23_09_39_+0100_fxncDPiUMSdOKW7E"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@eurodev.net>
-In-Reply-To: <43E8CCBD.6050807@eurodev.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,26 +19,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
-> 
->>I got that :) What I actually wanted to know is what kind of program
->>would need this, and if its not likely that most programs need their
->>own select-loop for dealing with other fds anyway. Or in other words,
->>I'm not convinced this feature belongs inside libnfnetlink.
-> 
-> 
-> But if I want to poll events, I'll have to work with the netfilter
-> netlink socket from, say libnetfilter_conntrack or a normal program. So
-> it will have to know about the netlink details.
+--Signature=_Tue__7_Feb_2006_23_09_39_+0100_fxncDPiUMSdOKW7E
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Not the details, just the fd.
+hi!
 
-> AFAICS that would be a layer violation since libnfnetlink contains all
-> the low level communication system with the netlink socket.
+i installed:
 
->From a poll/select perspective, the fd itself has nothing to do with
-nfnetlink, its just a fd. I don't think this belongs inside
-libnfnetlink, it has no direct relationship to nfnetlink. Even
-nfnl_listen is questionable, the only reason it exists is probably
-that it got copied from iproute's libnetlink.
+- libnfnetlink-0.0.14
+- libnetfilter_log-0.0.12=20
+
+
+the file libnetfilter_log-0.0.12/utils/nfulnl_test.c uses nflog_get_payload=
+();
+
+if i just compile it and run it, it will segfault, while returning from cb(=
+).
+if i comment out the call to nflog_get_payload(), it wont segfault.
+
+so i guess this function call somehow overwrites the return address of the =
+cb() function on the stack.=20
+
+
+i dont understand the nflog_get_payload() code by looking at it, and dont h=
+ave time to read into it,=20
+so i just wanted to inform the one who wrote it.
+please have a look at it, i think this perhaps even could be a security ris=
+k?
+
+
+greetings, aton
+
+--Signature=_Tue__7_Feb_2006_23_09_39_+0100_fxncDPiUMSdOKW7E
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFD6Rqy3tb8MHRI6dcRAs4eAJ4przUDPtNOaXGKLb5msTO/omQ4sQCeIdk1
+uuPhZIt1r3aYpeo2oOUix7Y=
+=dT+N
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__7_Feb_2006_23_09_39_+0100_fxncDPiUMSdOKW7E--
