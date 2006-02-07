@@ -1,12 +1,18 @@
-From: Chinh Nguyen <cnguyen@certicom.com>
-Subject: Understanding Netfilter and IPSec Transport Mode over NAT
-Date: Tue, 07 Feb 2006 14:40:39 -0500
-Message-ID: <43E8F7B7.6020106@certicom.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [LIBNFNETLINK] Introduce nfnl_listen_for_msecs
+Date: Tue, 07 Feb 2006 20:55:45 +0100
+Message-ID: <43E8FB41.2000905@trash.net>
+References: <43E7FC3A.4050209@eurodev.net> <43E8A810.6010108@trash.net>
+	<43E8AFCF.5040604@eurodev.net> <43E8B107.8040301@trash.net>
+	<43E8CCBD.6050807@eurodev.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Pablo Neira Ayuso <pablo@eurodev.net>
+In-Reply-To: <43E8CCBD.6050807@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,56 +24,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+> 
+>>I got that :) What I actually wanted to know is what kind of program
+>>would need this, and if its not likely that most programs need their
+>>own select-loop for dealing with other fds anyway. Or in other words,
+>>I'm not convinced this feature belongs inside libnfnetlink.
+> 
+> 
+> But if I want to poll events, I'll have to work with the netfilter
+> netlink socket from, say libnetfilter_conntrack or a normal program. So
+> it will have to know about the netlink details.
 
-I realize that this is a devel mailing-list. My apologies.
+Not the details, just the fd.
 
-I am having problem with Racoon and Transport Mode over NAT (for TCP traffic)
-for kernel 2.6.16-rc1. I'm trying to understand how Netfilter works and I'm stumped.
+> AFAICS that would be a layer violation since libnfnetlink contains all
+> the low level communication system with the netlink socket.
 
-I've embedded some printk statements but I'll probably have to do some live
-debugging unless someone can point out what's going on.
-
-When I modify Racoon to NOT push an sadb_x_policy (in/out bypass) for the
-IKE/IKE-NAT ports via setsockopt, UDP-encap ESP carrying UDP data is rejected in
-__xfrm_policy_check.
-
-The standard Racoon which pushes an in/out bypass per-socket policy accepts
-encrypted UDP traffic. After decap, the associated skb has a security path. As
-such, the post_input function (ie, esp4_post_input) sets the skb->ipsummed to
-ignore checksum. The result is that UDP traffic is accepted as shown below:
-
-Feb  7 13:29:30 localhost kernel: [17179776.692000] esp_input begin
-Feb  7 13:29:30 localhost kernel: [17179776.692000] esp_input encap block
-Feb  7 13:29:30 localhost kernel: [17179776.692000] esp_input decap_type block
-Feb  7 13:29:30 localhost kernel: [17179776.692000] esp_input end
-Feb  7 13:29:30 localhost kernel: [17179776.692000] xfrm4_rcv_encap: skb->sp !=
-NULL = 1
-Feb  7 13:29:30 localhost kernel: [17179776.692000] xfrm_pol_check: skb->sp !=
-NULL? = 1
-Feb  7 13:29:30 localhost kernel: [17179776.692000] esp_post_input begin
-Feb  7 13:29:30 localhost kernel: [17179776.692000] props.mode = 0, ip_summed =
-2 (CHECKSUM_UNNECESSARY)
-Feb  7 13:29:30 localhost kernel: [17179776.692000] xfrm_pol_check: pol != NULL? = 1
-Feb  7 13:29:30 localhost kernel: [17179776.692000] xfrm_pol_check: accept
-
-The first question is more academic. How does a per-socket bypass policy equals
-"accept transport mode ESP"?
-
-The second question is more pragmatic. Why doesn't this work for TCP? With
-encrypted TCP traffic, the skb->sp is NULL, therefore esp_post_input is not
-called. Why? However, the decrypted TCP packet itself seems to be sent up the
-stack since netstat reveals that bad TCP segments are being received.
-
-Feb  7 13:37:08 localhost kernel: [17180234.228000] esp_input begin
-Feb  7 13:37:08 localhost kernel: [17180234.228000] esp_input encap block
-Feb  7 13:37:08 localhost kernel: [17180234.228000] esp_input decap_type block
-Feb  7 13:37:08 localhost kernel: [17180234.228000] esp_input end
-Feb  7 13:37:11 localhost kernel: [17180234.228000] xfrm4_rcv_encap: skb->sp !=
-NULL = 1
-Feb  7 13:37:11 localhost kernel: [17180234.228000] xfrm_pol_check: skb->sp !=
-NULL? = 0
-Feb  7 13:37:11 localhost kernel: [17180237.256000] xfrm_pol_check: pol != NULL? = 1
-Feb  7 13:37:11 localhost kernel: [17180237.256000] xfrm_pol_check: accept
-
-Chinh
+>From a poll/select perspective, the fd itself has nothing to do with
+nfnetlink, its just a fd. I don't think this belongs inside
+libnfnetlink, it has no direct relationship to nfnetlink. Even
+nfnl_listen is questionable, the only reason it exists is probably
+that it got copied from iproute's libnetlink.
