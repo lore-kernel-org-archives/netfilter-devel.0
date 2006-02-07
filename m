@@ -1,16 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [LIBNFNETLINK] Introduce nfnl_listen_for_msecs
-Date: Tue, 07 Feb 2006 15:00:48 +0100
-Message-ID: <43E8A810.6010108@trash.net>
-References: <43E7FC3A.4050209@eurodev.net>
+Subject: Re: IPv6 stateful macht support for 2.6.15.2
+Date: Tue, 07 Feb 2006 15:05:56 +0100
+Message-ID: <43E8A944.4030806@trash.net>
+References: <43E7A752.3070101@net.in.tum.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@eurodev.net>
-In-Reply-To: <43E7FC3A.4050209@eurodev.net>
+To: Gregor Maier <gregor@net.in.tum.de>
+In-Reply-To: <43E7A752.3070101@net.in.tum.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,11 +21,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Hi Harald,
+Gregor Maier wrote:
+> Hi,
 > 
-> The patch attached introduces a new function called
-> nfnl_listen_for_msecs. This is useful for polling netlink events.
+> since I haven't found state match support for IPv6 in the kernel
+> (although it's supported by iptables 1.3.5) if ported the ipt_state.c
+> code to v6 (ip6t_state.c).
+> 
+> So here's a patch that adds IPv6 state match support to the kernel.
 
-Can you give an example how this is going to be used?
-Thanks.
+2.6.16-rc2 includes an IPv6 state match.
