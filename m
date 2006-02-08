@@ -1,16 +1,16 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Fix expectation mask dumping, take #2
-Date: Wed, 08 Feb 2006 13:25:02 +0100
-Message-ID: <43E9E31E.3060207@netfilter.org>
-References: <200602011335.k11DZHwj018072@toshiba.co.jp>	<43E15615.2070508@netfilter.org>	<43E6904E.9020306@netfilter.org>
-	<200602081126.k18BQWLj029476@toshiba.co.jp>
+From: Harald Welte <laforge@gnumonks.org>
+Subject: Re: libnetfilter_queue man page
+Date: Wed, 8 Feb 2006 15:19:27 +0100
+Message-ID: <20060208141927.GX31060@sunbeam.de.gnumonks.org>
+References: <1139235549.30902.3.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org, kaber@trash.net
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="E75mJrUy8lRi9cGN"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200602081126.k18BQWLj029476@toshiba.co.jp>
+To: Kevin Spiteri <kspiteri@hobsoft.com.mt>
+Content-Disposition: inline
+In-Reply-To: <1139235549.30902.3.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,32 +22,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> Thanks for changing size of CTA_IP_L3NUM field. But it seems to have endian
-> problem. This patch can save your time ?
-> 
-> ------------------------------------------------------------------------
-> 
-> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-> index ee814e1..150174f 100644
-> --- a/net/netfilter/nf_conntrack_netlink.c
-> +++ b/net/netfilter/nf_conntrack_netlink.c
-> @@ -81,8 +81,9 @@ ctnetlink_dump_tuples_ip(struct sk_buff 
->  {
->  	int ret = 0;
->  	struct nfattr *nest_parms = NFA_NEST(skb, CTA_TUPLE_IP);
-> +	u_int8_t l3num = (u_int8_t)tuple->src.l3num;
->  
-> -	NFA_PUT(skb, CTA_IP_L3NUM, sizeof(u_int8_t), &tuple->src.l3num);
-> +	NFA_PUT(skb, CTA_IP_L3NUM, sizeof(u_int8_t), &l3num);
->  
->  	if (likely(l3proto->tuple_to_nfattr))
->  		ret = l3proto->tuple_to_nfattr(skb, tuple);
 
-Oops, I understood in your previous email that you were going to send a
-patch that changes the type of l3num from u_int16_t to u_int8_t. In that
-case I'll resend a patch with this change. Thanks
+--E75mJrUy8lRi9cGN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+On Mon, Feb 06, 2006 at 03:19:09PM +0100, Kevin Spiteri wrote:
+> Hi Harald
+>=20
+> I read on the netfilter page that libnetfilter_queue deprecates libipq.
+> However, I only managed to find man pages for libipq. Could you please
+> point me to a man page (or any documentation) for using
+> libnetfilter_queue?
+
+there is no manpage, but we're always open for contributions.
+
+--=20
+- Harald Welte <laforge@gnumonks.org>          	        http://gnumonks.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+"Privacy in residential applications is a desirable marketing option."
+                                                  (ETSI EN 300 175-7 Ch. A6)
+
+--E75mJrUy8lRi9cGN
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFD6f3uXaXGVTD0i/8RAtPSAJ9bcqhgxsykmvwgJenE46UVU3jWcACgpvOm
+NtjUCITpt51oojOngK28T48=
+=SVUL
+-----END PGP SIGNATURE-----
+
+--E75mJrUy8lRi9cGN--
