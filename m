@@ -1,13 +1,17 @@
-From: aton <aton@packetdropped.org>
-Subject: bug in libnetfilter_log
-Date: Tue, 7 Feb 2006 23:09:39 +0100
-Message-ID: <20060207230939.08f0f908.aton@packetdropped.org>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [RFC][PATCH] nf_conntrack_ipv[4|6] load on demand for x_tables
+ matches/targets
+Date: Wed, 08 Feb 2006 17:21:29 +0900 (JST)
+Message-ID: <200602080821.k188LUtR005369@toshiba.co.jp>
+References: <43E69541.1040206@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
-	micalg="PGP-SHA1";
-	boundary="Signature=_Tue__7_Feb_2006_23_09_39_+0100_fxncDPiUMSdOKW7E"
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
+	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: pablo@netfilter.org, kaber@trash.net
+In-Reply-To: <43E69541.1040206@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,48 +23,61 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Signature=_Tue__7_Feb_2006_23_09_39_+0100_fxncDPiUMSdOKW7E
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-hi!
+Hi, Pablo,
 
-i installed:
+At first, I've heard that Patrick has patches which change checkentry()
+for net-2.6.17 tree. Patrick, how patch that is ?
 
-- libnfnetlink-0.0.14
-- libnetfilter_log-0.0.12=20
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 06 Feb 2006 01:16:01 +0100
 
-
-the file libnetfilter_log-0.0.12/utils/nfulnl_test.c uses nflog_get_payload=
-();
-
-if i just compile it and run it, it will segfault, while returning from cb(=
-).
-if i comment out the call to nflog_get_payload(), it wont segfault.
-
-so i guess this function call somehow overwrites the return address of the =
-cb() function on the stack.=20
+> Since x_tables was merged I have to load nf_conntrack_ipv4 by hand. I
+> think that it's good if the kernel can load on demand whatever it needs.
+>  This patch proposes a way to solve this open issue.
+> 
+> Comments welcome.
 
 
-i dont understand the nflog_get_payload() code by looking at it, and dont h=
-ave time to read into it,=20
-so i just wanted to inform the one who wrote it.
-please have a look at it, i think this perhaps even could be a security ris=
-k?
+looks fine expect nf_ct_l3proto_try_module_get().
 
+> +int
+> +nf_ct_l3proto_try_module_get(u_int16_t l3proto)
+> +{
+> +	int ret = 0;
+> +	struct nf_conntrack_l3proto *p;
+> +
+> +retry:	preempt_disable();
+> +	p = __nf_ct_l3proto_find(l3proto);
+> +	if (p == &nf_conntrack_generic_l3proto) {
+> +		preempt_enable();
+> +		ret = request_module("nf_conntrack-%d", l3proto);
+> +		if (!ret)
+> +			goto retry;
+> +
+> +		return ret;
+> +	}
+> +	if (!try_module_get(p->me))
+> +		ret = -1;
+> +	preempt_enable();
+> +
+> +	return ret;
+> +}
 
-greetings, aton
+We cannot assume that 0 as the return value of request_module() means
+success. And it may return positive value (as far as I did
+"rm nf_conntrack_ipv6.ko; ip6tables -A INPUT -m state ...").
 
---Signature=_Tue__7_Feb_2006_23_09_39_+0100_fxncDPiUMSdOKW7E
-Content-Type: application/pgp-signature
+How about using try_then_request_module() like this ?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
+	ret = try_then_request_module(nf_ct_l3proto_find_get(l3proto)
+						!= &nf_ct_l3proto_generic,
+				      "nf_conntrack-%d", l3proto);
+	if (ret)
+		return -EPROTOTYPE;
 
-iD8DBQFD6Rqy3tb8MHRI6dcRAs4eAJ4przUDPtNOaXGKLb5msTO/omQ4sQCeIdk1
-uuPhZIt1r3aYpeo2oOUix7Y=
-=dT+N
------END PGP SIGNATURE-----
+You might worry about refcount leak of nf_ct_l3proto_generic.
+But don't worry, nf_ct_l3proto_find_get() should not get refcount of it.
+It has bug in the current. I'll send a patch to fix that later.
 
---Signature=_Tue__7_Feb_2006_23_09_39_+0100_fxncDPiUMSdOKW7E--
+-- Yasuyuki Kozakai
