@@ -1,60 +1,59 @@
-From: Jesper Juhl <jesper.juhl@gmail.com>
-Subject: [PATCH] netfilter: fix build error due to missing has_bridge_parent macro
-Date: Sun, 12 Feb 2006 03:20:36 +0100
-Message-ID: <200602120320.37042.jesper.juhl@gmail.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] netfilter: fix build error due to missing has_bridge_parent macro
+Date: Sun, 12 Feb 2006 12:22:34 +0100
+Message-ID: <20060212112234.GC5336@sunbeam.de.gnumonks.org>
+References: <200602120320.37042.jesper.juhl@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Rusty Russell <rusty@rustcorp.com.au>, Marc Boucher <marc@mbsi.ca>,
-	James Morris <jmorris@namei.org>,
-	Harald Welte <laforge@netfilter.org>,
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Pd0ReVV5GZGQvF3a"
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Marc Boucher <marc@mbsi.ca>, James Morris <jmorris@namei.org>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Jesper Juhl <jesper.juhl@gmail.com>, coreteam@netfilter.org,
-	netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750939AbWBLCUe@vger.kernel.org>
-To: LKML <linux-kernel@vger.kernel.org>
+	coreteam@netfilter.org, netfilter@lists.netfilter.org,
+	netfilter-devel@lists.netfilter.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750906AbWBLLWv@vger.kernel.org>
+To: Jesper Juhl <jesper.juhl@gmail.com>
 Content-Disposition: inline
+In-Reply-To: <200602120320.37042.jesper.juhl@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I just did an allyesconfig test build of 2.6.16-rc2-git10 and found a build
-problem.
+--Pd0ReVV5GZGQvF3a
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-commit 5dce971acf2ae20c80d5e9d1f6bbf17376870911 removed the 
-"has_bridge_parent" macro from net/bridge/br_netfilter.c, resulting in the 
-following warning at compile time:
+On Sun, Feb 12, 2006 at 03:20:36AM +0100, Jesper Juhl wrote:
+> Hi,
+>=20
+> I just did an allyesconfig test build of 2.6.16-rc2-git10 and found a bui=
+ld
+> problem.
 
- net/bridge/br_netfilter.c: In function `br_nf_post_routing':
- net/bridge/br_netfilter.c:808: warning: implicit declaration of function `has_bridge_parent'
+thanks, I'll push this via davem and to stable ASAP.
 
-and this error at link time:
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
- net/built-in.o(.text+0xeae28): In function `br_nf_post_routing':
- net/bridge/br_netfilter.c:808: undefined reference to `has_bridge_parent'
- make: *** [.tmp_vmlinux1] Error 1
+--Pd0ReVV5GZGQvF3a
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-The patch below fixes the problem.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
+iD8DBQFD7xp6XaXGVTD0i/8RAnGDAJ4rmmx9/1mKnvq8R2Qte7jA0vi3zwCggbfi
+wadcN0BjfD3zF2loDA0nXDw=
+=6Ix+
+-----END PGP SIGNATURE-----
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
----
-
- Patch is compile tested only but should be obviously correct.
-
- net/bridge/br_netfilter.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
-
---- linux-2.6.16-rc2-git10/net/bridge/br_netfilter.c~	2006-02-12 03:03:29.000000000 +0100
-+++ linux-2.6.16-rc2-git10/net/bridge/br_netfilter.c	2006-02-12 03:03:29.000000000 +0100
-@@ -805,7 +805,7 @@ static unsigned int br_nf_post_routing(u
- print_error:
- 	if (skb->dev != NULL) {
- 		printk("[%s]", skb->dev->name);
--		if (has_bridge_parent(skb->dev))
-+		if (bridge_parent(skb->dev))
- 			printk("[%s]", bridge_parent(skb->dev)->name);
- 	}
- 	printk(" head:%p, raw:%p, data:%p\n", skb->head, skb->mac.raw,
+--Pd0ReVV5GZGQvF3a--
