@@ -1,9 +1,9 @@
 From: Pablo Neira Ayuso <pablo@eurodev.net>
-Subject: [LIBNFNETLINK 1/3] Add NLMSG_OK checking to nfnl_get_msg_next
-Date: Sun, 12 Feb 2006 22:39:21 +0100
-Message-ID: <43EFAB09.4020007@eurodev.net>
+Subject: [LIBNFNETLINK 2/3] Fix wrong nfnetlink header size
+Date: Sun, 12 Feb 2006 22:39:39 +0100
+Message-ID: <43EFAB1B.3040309@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000805050803040101060408"
+Content-Type: multipart/mixed; boundary="------------050700090601010409040808"
 Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,43 +19,40 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------000805050803040101060408
+--------------050700090601010409040808
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-nfnl_get_msg_next must check is the message is OK after NLMSG_NEXT is
-called.
+Fix wrong size of the netfilter netlink header. This implicitely fixes
+an alignment issue when nfnl_handle_packet is called as well.
 
 -- 
 Pablo
 
---------------000805050803040101060408
+--------------050700090601010409040808
 Content-Type: text/plain;
- name="01.patch"
+ name="02.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="01.patch"
+ filename="02.patch"
 
-[LIBNFNETLINK] Add NLMSG_OK checking to nfnl_get_msg_next
+[LIBNFNETLINK] Fix wrong nfnetlink header size
 
-nfnl_get_msg_next must check is the message is OK after NLMSG_NEXT
-is called.
+Fix wrong size of the netfilter netlink header. This implicitely fixes an
+alignment issue when nfnl_handle_packet is called as well.
 
 Index: libnfnetlink/src/libnfnetlink.c
 ===================================================================
---- libnfnetlink.orig/src/libnfnetlink.c	2006-02-12 19:24:26.000000000 +0100
-+++ libnfnetlink/src/libnfnetlink.c	2006-02-12 19:28:19.000000000 +0100
-@@ -861,6 +861,11 @@ struct nlmsghdr *nfnl_get_msg_next(struc
- 	remain_len = (len - ((unsigned char *)h->last_nlhdr - buf));
- 	nlh = NLMSG_NEXT(h->last_nlhdr, remain_len);
+--- libnfnetlink.orig/src/libnfnetlink.c	2006-02-12 19:28:19.000000000 +0100
++++ libnfnetlink/src/libnfnetlink.c	2006-02-12 19:30:00.000000000 +0100
+@@ -914,7 +914,7 @@ int nfnl_check_attributes(const struct n
+ 	if (type >= ssh->cb_count)
+ 		return -EINVAL;
  
-+	if (!NLMSG_OK(nlh, remain_len)) {
-+		h->last_nlhdr = NULL;
-+		return NULL;
-+	}
-+
- 	h->last_nlhdr = nlh;
- 
- 	return nlh;
+-	min_len = NLMSG_ALIGN(sizeof(struct nfgenmsg));
++	min_len = NLMSG_SPACE(sizeof(struct nfgenmsg));
+ 	if (nlh->nlmsg_len < min_len)
+ 		return -EINVAL;
+ #endif
 
---------------000805050803040101060408--
+--------------050700090601010409040808--
