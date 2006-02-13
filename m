@@ -1,16 +1,19 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/3] nf_conntrack: fixes for nf_ct_attach in IPv6 stack
-Date: Mon, 13 Feb 2006 17:44:30 +0100
-Message-ID: <43F0B76E.7050007@trash.net>
-References: <200602131628.k1DGSpc3019846@toshiba.co.jp>
+Subject: Re: [PATCH 2/4] nf_conntrack_ipv[4|6] load on demand for x_tables
+ matches/targets, take #2
+Date: Mon, 13 Feb 2006 17:49:32 +0100
+Message-ID: <43F0B89C.4030301@trash.net>
+References: <43EFF1E0.8090102@netfilter.org>
+	<20060213111513.GS4601@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
-	laforge@gnumonks.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200602131628.k1DGSpc3019846@toshiba.co.jp>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20060213111513.GS4601@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,17 +25,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> Hi,
+Harald Welte wrote:
+> On Mon, Feb 13, 2006 at 03:41:36AM +0100, Pablo Neira Ayuso wrote:
 > 
-> These patches make nf_ct_attach work fine in IPv6 stack.
+>>Thanks to Yasuyuki Kozakai for all the feedback.
+>>
+>>[NF_CONNTRACK] nf_conntrack_ipv[4|6] load on demand for x_tables
+>>matches/targets, take #2
 > 
-> The locally generated reply packets in IPv6 stack, such as ICMPv6 error
-> and TCP RST by REJECT target, need to be associated with the connection
-> of original packet.
+> 
+> this also looks fine to me, but might clash with some (unpublished?)
+> work of Patrick McHardy on putting mist of the checkfn/... stuff into
+> data structures.  
+> 
+> Patrick? What about pushing your changes to net-2.6.17?
 
-The reason why we manually attach these references (at least for ICMP)
-is because the packet might be in the middle of two NAT manips and
-unrecognizable for conntrack. For IPv6 this should be irrelevant. I'm
-not sure why it is done for TCP RSTs, they should always be properly
-tracked anyway.
+I'm currently totally backlogged, please hold off these patches for
+a couple of days, I'll try to prepare my changes for net-2.6.17 in
+the next days and will comment then.
