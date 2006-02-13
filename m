@@ -1,19 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH] [NETFILTER] nf_conntrack: clean up to reduce size of
-	'struct nf_conn'
-Date: Mon, 13 Feb 2006 09:17:58 +0100
-Message-ID: <20060213081758.GL4601@sunbeam.de.gnumonks.org>
-References: <20060212175622.GG4601@sunbeam.de.gnumonks.org>
-	<200602130132.k1D1WoYA003717@toshiba.co.jp>
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: Re: [RFC] [NETFILTER] nf_conntrack: more efficient helper lookup
+Date: Mon, 13 Feb 2006 10:59:46 +0100
+Message-ID: <1139824786.5141.17.camel@bzorp.balabit>
+References: <20060212181648.GH4601@sunbeam.de.gnumonks.org>
+	<43EFA7E6.7040909@eurodev.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KjSGHOmKKB2VUiQn"
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	davem@davemloft.net
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Content-Disposition: inline
-In-Reply-To: <200602130132.k1D1WoYA003717@toshiba.co.jp>
+To: Pablo Neira Ayuso <pablo@eurodev.net>
+In-Reply-To: <43EFA7E6.7040909@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,65 +22,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Sun, 2006-02-12 at 22:25 +0100, Pablo Neira Ayuso wrote:
 
---KjSGHOmKKB2VUiQn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Since the number of helpers is really small, I'm not sure about the
+> benefits of this patch. The hash calculation adds a constant to the
+> algorithm complexity that could result in a similar execution time for
+> this and the current approach. A benchmark could throw some light on this.
+> 
+> What about just killing the tuple and mask fields and keep the current
+> approach of the helper list?
 
-On Mon, Feb 13, 2006 at 10:32:49AM +0900, Yasuyuki KOZAKAI wrote:
->=20
-> Hi, Harald,
->=20
-> From: Harald Welte <laforge@gnumonks.org>
-> Date: Sun, 12 Feb 2006 18:56:22 +0100
->=20
-> > [NETFILTER] nf_conntrack: clean up to reduce size of 'struct nf_conn'
-> >=20
-> > This patch moves all helper related data fields of 'struct nf_conn' int=
-o a
-> > separate structure 'struct nf_conn_help'.  This new structure is only
-> > present in conntrack entries for which we actually have a helper loaded.
-> >=20
-> > Also, this patch cleans up the nf_conntrack 'features' mechanism to
-> > resemble what the original idea was:  Just glue the feature-specific
-> > data structures at the end of 'struct nf_conn', and explicitly re-calcu=
-late
-> > the pointer to it when needed rather than keeping pointers around.
-> >=20
-> > Saves 20 bytes per conntrack on my x86_64 box. A non-helped conntrack is
-> > 276 bytes. We still need to save another 20 bytes in order to fit into =
-to
-> > target of 256bytes.
-> >=20
-> > Signed-off-by: Harald Welte <laforge@netfilter.org>
->=20
-> This patch seems not to include fixes I pointed out and you said "fixed".
-> Please confirm if you really sent the intended one.
+Maybe a simple dynamically sized array of helper structures would be
+more cache friendly instead of the linked list. IIRC hipac used arrays
+instead of lists/hashtables for the very same reason.
 
-oops, thanks for checking.  Dave: Please hold, I sent an old version.
-You'll get a new one ASAP.
+A single helper would be no more than 8 bytes (l3proto, l4proto
+dstproto, pointer to helper structure), maybe we can also skip the
+dynamically allocated part. Statically allocated 256 bytes (a single
+cacheline!) would be enough for 32 helpers which is plenty.
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---KjSGHOmKKB2VUiQn
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFD8EC2XaXGVTD0i/8RAqnkAJ9m/Nob52YxxPWcqbn4SRJjjAw4NQCeIoEG
-JCvGD3O+Q/PGDs7zbBarlQY=
-=cc51
------END PGP SIGNATURE-----
-
---KjSGHOmKKB2VUiQn--
+-- 
+Bazsi
