@@ -1,10 +1,11 @@
-From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
-Subject: New target
-Date: Mon, 13 Feb 2006 13:16:56 -0300
-Message-ID: <43F0B0F8.6060909@speedy.com.ar>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH 0/3] nf_conntrack: fixes for nf_ct_attach in IPv6 stack
+Date: Tue, 14 Feb 2006 01:28:51 +0900 (JST)
+Message-ID: <200602131628.k1DGSpA3026414@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7BIT
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: usagi-core@linux-ipv6.org, kaber@trash.net, laforge@gnumonks.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,10 +19,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all!!!
 
-I have developed a new target for iptables that encrypts a
-communication. I would like to send it so that you can see it and prove
-it. And the possibility that in a future adding it to iptables.
-Which are the steps to follow?
-Thanks a lot!
+Hi,
+
+These patches make nf_ct_attach work fine in IPv6 stack.
+
+The locally generated reply packets in IPv6 stack, such as ICMPv6 error
+and TCP RST by REJECT target, need to be associated with the connection
+of original packet.
+
+Please review and apply.
+
+-- Yasuyuki Kozakai
