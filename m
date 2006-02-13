@@ -1,13 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [RFC,NETFILTER]: Fix xfrm lookup after SNAT
-Date: Mon, 13 Feb 2006 18:25:01 +0100
-Message-ID: <43F0C0ED.8000303@trash.net>
+From: Pablo Neira Ayuso <pablo@eurodev.net>
+Subject: Re: [RFC][LIBNFNETLINK 3/3] API changes
+Date: Mon, 13 Feb 2006 22:10:03 +0100
+Message-ID: <43F0F5AB.2050607@eurodev.net>
+References: <43EFAB2A.4030204@eurodev.net>
+	<20060213114452.GY4601@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010609080701070402030304"
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------000108010101010301050707"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Herbert Xu <herbert@gondor.apana.org.au>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20060213114452.GY4601@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,146 +23,237 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010609080701070402030304
-Content-Type: text/plain; charset=ISO-8859-15
+--------------000108010101010301050707
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-I finally got around to fixing the "ip_finish_output2: No header cache
-and no neighbour!" problem reported by Andi Kleen. Instead of rerouting
-the packet in POST_ROUTING, we reuse the original route for the
-xfrm_lookup. This introduces a small restriction (see changelog entry),
-but I think it should work.
+Harald Welte wrote:
+> So how do we proceed?
+> 
+> I think at the moment, a new release of [most of] the libraries is
+> needed due to accumulated bugfixes anyway.  So I'd rather make a
+> maintainance release with what we've got now than to introduce API
+> changes.  Addidional API (nfnl_communicate, nfnl_handle_msg) is not a
+> problem at all.
+> 
+> As for the only API change (nfnl_handle_packet), I would like to know if
+> there is an urgent need for the 'done' flag in any of the users.
+> 
+> Ideally, I think we would
+> 
+> 1) add new API
+> 2) release new libnfnetlink and libnetfilter_* (where needed)
+> 3) convert libnetfilter_* to use new API where reasonable
+> 4) introduce API change to libnetfilter
+> 5) adapt remaining handle_packet useres in libnetfilter* to changed api
+> 6) release all of them together, incompatible with old versions.
+> 
+> Whcih is still messy.  I would actually prefer if we'd not change
+> existing API but rather only add new API's.  Another alternative might
+> be symbol versioning, though I've never used that before.
 
-Herbert, do you see any problems with this patch?
+I think that we can:
 
---------------010609080701070402030304
+1) do the maintenance release without the new libnfnetlink API.
+2) commit the patch attached that:
+a) introduces nfnl_process_packet, that is similar to nfnl_handle_packet
+but it adds the done flag.
+b) deprecates nfnl_handle_packet, marks this function as deprecated but
+keep it there to ensure backward compatibility. Maybe a message via
+stderr could tell the user that it must update, but I think that it is
+too much.
+
+nfnl_listen and nfnl_talk should also go deprecated as soon as we move
+the existing libraries to the new API.
+
+-- 
+Pablo
+
+--------------000108010101010301050707
 Content-Type: text/plain;
- name="x"
+ name="03.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="x"
+ filename="03.patch"
 
-[NETFILTER]: Fix xfrm lookup after SNAT
+This patch introduces the following changes:
 
-To find out if a packet needs to be handled by IPsec after SNAT, packets
-are currently rerouted in POST_ROUTING and a new xfrm lookup is done. This
-breaks SNAT of non-unicast packets to non-local addresses because the
-packet is routed as incoming packet and no neighbour entry is bound to the
-dst_entry. In general, it seems to be a bad idea to replace the dst_entry
-after the packet was already sent to the output routine because its state
-might not match what's expected.
+a) nfnl_handle_msg: this function completes the message iterator API.
 
-This patch changes the xfrm lookup in POST_ROUTING to re-use the original
-dst_entry without routing the packet again. This means no policy routing
-can be used for transport mode transforms (which keep the original route)
-when packets are SNATed to match the policy, but it looks like the best
-we can do for now.
+nlh = nfnl_get_first_msg(h, ...);
+while (nlh) {
+	int done;
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+	...
 
----
-commit 0ebf0a6fc360cf177712ed0f21f160e0ffea9f99
-tree 5bef78d70573091e5055bf4e236d7d8a443d20df
-parent b6d521bde1a8bcf7e3fcad139319a427c18d8012
-author Patrick McHardy <kaber@trash.net> Mon, 13 Feb 2006 18:20:04 +0100
-committer Patrick McHardy <kaber@trash.net> Mon, 13 Feb 2006 18:20:04 +0100
+	ret = nfnl_handle_msg(h, &done);
+	if (ret < 0 || done)
+		return ret;
 
- include/linux/netfilter_ipv4.h         |    2 +-
- net/ipv4/netfilter.c                   |   41 ++++++++++++++++++++++++++++++++
- net/ipv4/netfilter/ip_nat_standalone.c |    6 ++---
- 3 files changed, 45 insertions(+), 4 deletions(-)
+	nlh = nfnl_get_next_msg(h, ...);
+}
 
-diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
-index fdc4a95..43c09d7 100644
---- a/include/linux/netfilter_ipv4.h
-+++ b/include/linux/netfilter_ipv4.h
-@@ -79,7 +79,7 @@ enum nf_ip_hook_priorities {
- 
- #ifdef __KERNEL__
- extern int ip_route_me_harder(struct sk_buff **pskb);
--
-+extern int ip_xfrm_me_harder(struct sk_buff **pskb);
- #endif /*__KERNEL__*/
- 
- #endif /*__LINUX_IP_NETFILTER_H*/
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index 52a3d7c..ed42cdc 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -78,6 +78,47 @@ int ip_route_me_harder(struct sk_buff **
+Like this, we can iterate over the netlink messages that compose a packet.
+The message is processed by nfnl_handle_msg that calls the handler that 
+was registered via nfnl_callback_register.
+
+The done flag is set to one if the message is:
+	- an ACK/ERROR message
+	- a DONE message that notifies the end of a MULTI message.
+
+b) nfnl_process_packet: This function is simpler interface to handle a 
+netfilter netlink message. It loops over every message contained in a 
+packet but, in this case, the programmer has no control on the looping
+process. Moreover, this function now has a done flag that is set under
+the same circunstances exposed above.
+
+c) nfnl_communicate: This function supersedes nfnl_listen and nfnl_talk.
+It provides an interface to communicate with the nfnetlink subsystem.
+
+	- If the netlink header passed is null and a handler is registered
+	via nfnl_callback_register, then it behaves like nfnl_listen.
+	- If the netlink header passed is non-null and no handler was 
+	registered via nfnl_callback_register, then it behaves like nfnl_talk.
+
+d) it deprecates nfnl_handle_packet: nfnl_process_packet supersedes it.
+
+Index: libnfnetlink/src/libnfnetlink.c
+===================================================================
+--- libnfnetlink.orig/src/libnfnetlink.c	2006-02-12 19:38:20.000000000 +0100
++++ libnfnetlink/src/libnfnetlink.c	2006-02-13 21:51:00.000000000 +0100
+@@ -969,17 +969,28 @@ static int __nfnl_handle_msg(struct nfnl
+ 	return 0;
  }
- EXPORT_SYMBOL(ip_route_me_harder);
  
-+#ifdef CONFIG_XFRM
-+int ip_xfrm_me_harder(struct sk_buff **pskb)
-+{
-+	struct flowi fl;
-+	unsigned int hh_len;
-+	struct dst_entry *dst;
-+
-+	if (IPCB(*pskb)->flags & IPSKB_XFRM_TRANSFORMED)
-+		return 0;
-+	if (xfrm_decode_session(*pskb, &fl, AF_INET) < 0)
-+		return -1;
-+
-+	dst = (*pskb)->dst;
-+	if (dst->xfrm)
-+		dst = ((struct xfrm_dst *)dst)->route;
-+	dst_hold(dst);
-+
-+	if (xfrm_lookup(&dst, &fl, (*pskb)->sk, 0) < 0)
-+		return -1;
-+
-+	dst_release((*pskb)->dst);
-+	(*pskb)->dst = dst;
-+
-+	/* Change in oif may mean change in hh_len. */
-+	hh_len = (*pskb)->dst->dev->hard_header_len;
-+	if (skb_headroom(*pskb) < hh_len) {
-+		struct sk_buff *nskb;
-+
-+		nskb = skb_realloc_headroom(*pskb, hh_len);
-+		if (!nskb)
-+			return -1;
-+		if ((*pskb)->sk)
-+			skb_set_owner_w(nskb, (*pskb)->sk);
-+		kfree_skb(*pskb);
-+		*pskb = nskb;
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL(ip_xfrm_me_harder);
-+#endif
-+
- void (*ip_nat_decode_session)(struct sk_buff *, struct flowi *);
- EXPORT_SYMBOL(ip_nat_decode_session);
+-int nfnl_handle_packet(struct nfnl_handle *h, char *buf, int len)
++int nfnl_process_packet(struct nfnl_handle *h, char *buf, int len, int *done)
+ {
++	struct nlmsghdr *nlh = (struct nlmsghdr *)buf;
  
-diff --git a/net/ipv4/netfilter/ip_nat_standalone.c b/net/ipv4/netfilter/ip_nat_standalone.c
-index 92c5499..7c3f7d3 100644
---- a/net/ipv4/netfilter/ip_nat_standalone.c
-+++ b/net/ipv4/netfilter/ip_nat_standalone.c
-@@ -235,19 +235,19 @@ ip_nat_out(unsigned int hooknum,
- 		return NF_ACCEPT;
+-	while (len >= NLMSG_SPACE(0)) {
++	while (NLMSG_OK(nlh, len)) {
+ 		u_int32_t rlen;
+-		struct nlmsghdr *nlh = (struct nlmsghdr *)buf;
  
- 	ret = ip_nat_fn(hooknum, pskb, in, out, okfn);
-+#ifdef CONFIG_XFRM
- 	if (ret != NF_DROP && ret != NF_STOLEN
- 	    && (ct = ip_conntrack_get(*pskb, &ctinfo)) != NULL) {
- 		enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
+ 		if (nlh->nlmsg_len < sizeof(struct nlmsghdr)
+ 		    || len < nlh->nlmsg_len)
+ 			return -1;
  
- 		if (ct->tuplehash[dir].tuple.src.ip !=
- 		    ct->tuplehash[!dir].tuple.dst.ip
--#ifdef CONFIG_XFRM
- 		    || ct->tuplehash[dir].tuple.src.u.all !=
- 		       ct->tuplehash[!dir].tuple.dst.u.all
--#endif
- 		    )
--			return ip_route_me_harder(pskb) == 0 ? ret : NF_DROP;
-+			return ip_xfrm_me_harder(pskb) == 0 ? ret : NF_DROP;
++		/* This message is an ACK or a DONE */
++		if (done && 
++		    (nlh->nlmsg_type == NLMSG_ERROR ||
++		    (nlh->nlmsg_type == NLMSG_DONE &&
++		     nlh->nlmsg_flags & NLM_F_MULTI))) {
++			int err;
++			*done = 1;
++			memcpy(&err, NLMSG_DATA(nlh), sizeof(int));
++			return err;
++		}
++
+ 		rlen = NLMSG_ALIGN(nlh->nlmsg_len);
+ 		if (rlen > len)
+ 			rlen = len;
+@@ -987,7 +998,62 @@ int nfnl_handle_packet(struct nfnl_handl
+ 		if (__nfnl_handle_msg(h, nlh, rlen) < 0)
+ 			return -1;
+ 
+-		len -= rlen;
++		nlh = NLMSG_NEXT(nlh, len);
  	}
-+#endif
- 	return ret;
+ 	return 0;
  }
++
++int nfnl_handle_msg(struct nfnl_handle *h, int *done)
++{
++	int err = 0;
++
++	if (h->last_nlhdr->nlmsg_len >= NLMSG_SPACE(0)) {
++		int len = NLMSG_ALIGN(h->last_nlhdr->nlmsg_len);
++
++		if (h->last_nlhdr->nlmsg_len < sizeof(struct nlmsghdr)
++		    || len < h->last_nlhdr->nlmsg_len)
++			return -1;
++
++		/* This message is an ACK or a DONE */
++		if (done && (h->last_nlhdr->nlmsg_type == NLMSG_ERROR ||
++		    (h->last_nlhdr->nlmsg_type == NLMSG_DONE &&
++		     h->last_nlhdr->nlmsg_flags & NLM_F_MULTI))) {
++			*done = 1;
++			memcpy(&err, NLMSG_DATA(h->last_nlhdr), sizeof(int));
++			return err;
++		}
++
++		err = __nfnl_handle_msg(h, h->last_nlhdr, len);
++	}
++	return err;
++}
++
++int nfnl_communicate(struct nfnl_handle *h, struct nlmsghdr *nlh)
++{
++	int ret, numbytes, done = 0;
++	char buf[NFNL_BUFFSIZE];
++
++	if (nlh) {
++		ret = nfnl_send(h, nlh);
++		if (ret < 0)
++			return ret;
++	}
++
++	while (1) {
++		numbytes = nfnl_recv(h, buf, sizeof(buf));
++		if (numbytes <= 0)
++			return numbytes;
++
++		ret = nfnl_process_packet(h, buf, numbytes, &done);
++		if (ret < 0 || done)
++			return ret;
++	}
++	return ret;
++}
++
++/* Deprecated API */
++
++int __deprecated nfnl_handle_packet(struct nfnl_handle *h, char *buf, int len)
++{
++	return nfnl_process_packet(h, buf, len, NULL);
++}
+Index: libnfnetlink/include/libnfnetlink/libnfnetlink.h
+===================================================================
+--- libnfnetlink.orig/include/libnfnetlink/libnfnetlink.h	2006-02-12 19:38:20.000000000 +0100
++++ libnfnetlink/include/libnfnetlink/libnfnetlink.h	2006-02-13 21:59:51.000000000 +0100
+@@ -71,6 +71,7 @@ extern int nfnl_talk(struct nfnl_handle 
+                      unsigned, struct nlmsghdr *,
+                      int (*)(struct sockaddr_nl *, struct nlmsghdr *, void *),
+                      void *);
++extern int nfnl_communicate(struct nfnl_handle *h, struct nlmsghdr *nlh);
  
+ /* simple challenge/response */
+ extern int nfnl_listen(struct nfnl_handle *,
+@@ -82,7 +83,8 @@ extern ssize_t nfnl_recv(const struct nf
+ extern int nfnl_callback_register(struct nfnl_subsys_handle *,
+ 				  u_int8_t type, struct nfnl_callback *cb);
+ extern int nfnl_callback_unregister(struct nfnl_subsys_handle *, u_int8_t type);
+-extern int nfnl_handle_packet(struct nfnl_handle *, char *buf, int len);
++extern int nfnl_process_packet(struct nfnl_handle *, char *buf, int len, int *);
++extern int nfnl_handle_msg(struct nfnl_handle *h, int *done);
+ 
+ /* parsing */
+ extern struct nfattr *nfnl_parse_hdr(const struct nfnl_handle *nfnlh, 
+@@ -164,4 +166,15 @@ extern void nfnl_dump_packet(struct nlms
+ # endif
+ #endif
+ 
++/* Deprecated API, keep it to ensure backward compatibility */
++
++#if __GNUC_MINOR__ > 0
++# ifndef __deprecated
++# define __deprecated   __attribute__((deprecated))
++# endif
++#endif
++
++extern int __deprecated nfnl_handle_packet(struct nfnl_handle *, char *buf, 
++					   int len);
++
+ #endif /* __LIBNFNETLINK_H */
 
---------------010609080701070402030304--
+--------------000108010101010301050707--
