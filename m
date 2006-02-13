@@ -1,13 +1,19 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/4] first conntrack ID must be 1 not 2
-Date: Mon, 13 Feb 2006 03:41:52 +0100
-Message-ID: <43EFF1F0.1090701@netfilter.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH] [NETFILTER] nf_conntrack: clean up to reduce size of
+	'struct nf_conn'
+Date: Mon, 13 Feb 2006 09:17:58 +0100
+Message-ID: <20060213081758.GL4601@sunbeam.de.gnumonks.org>
+References: <20060212175622.GG4601@sunbeam.de.gnumonks.org>
+	<200602130132.k1D1WoYA003717@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090002090508010600040003"
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KjSGHOmKKB2VUiQn"
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Disposition: inline
+In-Reply-To: <200602130132.k1D1WoYA003717@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,82 +25,65 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090002090508010600040003
+
+--KjSGHOmKKB2VUiQn
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-[NF_CONNTRACK] first conntrack ID must be 1 not 2
+On Mon, Feb 13, 2006 at 10:32:49AM +0900, Yasuyuki KOZAKAI wrote:
+>=20
+> Hi, Harald,
+>=20
+> From: Harald Welte <laforge@gnumonks.org>
+> Date: Sun, 12 Feb 2006 18:56:22 +0100
+>=20
+> > [NETFILTER] nf_conntrack: clean up to reduce size of 'struct nf_conn'
+> >=20
+> > This patch moves all helper related data fields of 'struct nf_conn' int=
+o a
+> > separate structure 'struct nf_conn_help'.  This new structure is only
+> > present in conntrack entries for which we actually have a helper loaded.
+> >=20
+> > Also, this patch cleans up the nf_conntrack 'features' mechanism to
+> > resemble what the original idea was:  Just glue the feature-specific
+> > data structures at the end of 'struct nf_conn', and explicitly re-calcu=
+late
+> > the pointer to it when needed rather than keeping pointers around.
+> >=20
+> > Saves 20 bytes per conntrack on my x86_64 box. A non-helped conntrack is
+> > 276 bytes. We still need to save another 20 bytes in order to fit into =
+to
+> > target of 256bytes.
+> >=20
+> > Signed-off-by: Harald Welte <laforge@netfilter.org>
+>=20
+> This patch seems not to include fixes I pointed out and you said "fixed".
+> Please confirm if you really sent the intended one.
 
-The first conntrack ID must be 1. If a new conntrack is created, the
-general ID counter must be post-incremented instead pre-incremented
-since [ip|nf]_conntrack_next_id is initialized to 1. Same applies for
-expectations.
+oops, thanks for checking.  Dave: Please hold, I sent an old version.
+You'll get a new one ASAP.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+--KjSGHOmKKB2VUiQn
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
---------------090002090508010600040003
-Content-Type: text/plain;
- name="id.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="id.patch"
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-[NETFILTER] first conntrack ID must be 1 not 2
+iD8DBQFD8EC2XaXGVTD0i/8RAqnkAJ9m/Nob52YxxPWcqbn4SRJjjAw4NQCeIoEG
+JCvGD3O+Q/PGDs7zbBarlQY=
+=cc51
+-----END PGP SIGNATURE-----
 
-The first conntrack ID must be 1. If a new conntrack is created, the
-general ID counter must be post-incremented instead pre-incremented since
-[ip|nf]_conntrack_next_id is initialized to 1. Same applies for expectations.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Index: net-2.6.git/net/netfilter/nf_conntrack_core.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/nf_conntrack_core.c	2006-02-13 01:05:04.000000000 +0100
-+++ net-2.6.git/net/netfilter/nf_conntrack_core.c	2006-02-13 01:47:04.000000000 +0100
-@@ -682,7 +682,7 @@ static void __nf_conntrack_hash_insert(s
- 				       unsigned int hash,
- 				       unsigned int repl_hash) 
- {
--	ct->id = ++nf_conntrack_next_id;
-+	ct->id = nf_conntrack_next_id++;
- 	list_prepend(&nf_conntrack_hash[hash],
- 		     &ct->tuplehash[IP_CT_DIR_ORIGINAL].list);
- 	list_prepend(&nf_conntrack_hash[repl_hash],
-@@ -1247,7 +1247,7 @@ static void nf_conntrack_expect_insert(s
- 	exp->timeout.expires = jiffies + exp->master->helper->timeout * HZ;
- 	add_timer(&exp->timeout);
- 
--	exp->id = ++nf_conntrack_expect_next_id;
-+	exp->id = nf_conntrack_expect_next_id++;
- 	atomic_inc(&exp->use);
- 	NF_CT_STAT_INC(expect_create);
- }
-Index: net-2.6.git/net/ipv4/netfilter/ip_conntrack_core.c
-===================================================================
---- net-2.6.git.orig/net/ipv4/netfilter/ip_conntrack_core.c	2006-02-04 14:34:40.000000000 +0100
-+++ net-2.6.git/net/ipv4/netfilter/ip_conntrack_core.c	2006-02-13 01:46:42.000000000 +0100
-@@ -417,7 +417,7 @@ static void __ip_conntrack_hash_insert(s
- 					unsigned int hash,
- 					unsigned int repl_hash) 
- {
--	ct->id = ++ip_conntrack_next_id;
-+	ct->id = ip_conntrack_next_id++;
- 	list_prepend(&ip_conntrack_hash[hash],
- 		     &ct->tuplehash[IP_CT_DIR_ORIGINAL].list);
- 	list_prepend(&ip_conntrack_hash[repl_hash],
-@@ -971,7 +971,7 @@ static void ip_conntrack_expect_insert(s
- 	exp->timeout.expires = jiffies + exp->master->helper->timeout * HZ;
- 	add_timer(&exp->timeout);
- 
--	exp->id = ++ip_conntrack_expect_next_id;
-+	exp->id = ip_conntrack_expect_next_id++;
- 	atomic_inc(&exp->use);
- 	CONNTRACK_STAT_INC(expect_create);
- }
-
---------------090002090508010600040003--
+--KjSGHOmKKB2VUiQn--
