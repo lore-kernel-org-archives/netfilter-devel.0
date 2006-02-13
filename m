@@ -1,15 +1,18 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] 2.6.16: [NETFILTER] Fix Kconfig menu level for x_tables
-Date: Mon, 13 Feb 2006 12:06:00 +0100
-Message-ID: <20060213110600.GQ4601@sunbeam.de.gnumonks.org>
+Subject: Re: [PATCH 1/4] Fix expectaction mask dumping, take #3
+Date: Mon, 13 Feb 2006 12:13:34 +0100
+Message-ID: <20060213111334.GR4601@sunbeam.de.gnumonks.org>
+References: <43EFF176.3070505@netfilter.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FilwpOHBrTVNlmJ3"
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+	protocol="application/pgp-signature"; boundary="Eu9PQ+LfZADlAtIa"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David Miller <davem@davemloft.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Content-Disposition: inline
+In-Reply-To: <43EFF176.3070505@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,52 +25,26 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---FilwpOHBrTVNlmJ3
+--Eu9PQ+LfZADlAtIa
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Dave, please apply this to the 2.6.16 tree and push it to Linus.
+On Mon, Feb 13, 2006 at 03:39:50AM +0100, Pablo Neira Ayuso wrote:
+> [CTNETLINK] Fix expectaction mask dumping
+
+Thanks, Pablo.  This patch looks fine to me.  One cosmetic comment
+though:
+
+> Besides, this modification introduces the attribute CTA_IP_L3NUM.
+
+Please call it CTA_L3NUM or something like that.  Nobody says that we
+will always and only deal with protocols that are called IP[vX].
+
+If nobody else has any other comments, I suggest you resubmit with this
+requested change, and I'll apply and push to davem for net-2.6.17
 
 Thanks!
-
-[NETFILTER] Fix Kconfig menu level for x_tables
-
-The new x_tables related Kconfig options appear at the wrong menu level
-without this patch.
-
-Signed-off-by: Harald Welte <laforge@netfilter.org>
-
----
-commit 2d3e1788278398e3d9f33409066f3232730336a6
-tree d23977bfeafb91fdbc5e5400d516ef623cde5a1d
-parent 0b2d6ca5297c6343d9ae4c2259f85046e487ed01
-author Harald Welte <laforge@netfilter.org> Mon, 13 Feb 2006 12:04:25 +0100
-committer Harald Welte <laforge@netfilter.org> Mon, 13 Feb 2006 12:04:25 +0=
-100
-
- net/netfilter/Kconfig |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 99c0a0f..0e55012 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -102,8 +102,6 @@ config NF_CT_NETLINK
- 	help
- 	  This option enables support for a netlink-based userspace interface
-=20
--endmenu
--
- config NETFILTER_XTABLES
- 	tristate "Netfilter Xtables support (required for ip_tables)"
- 	help
-@@ -361,3 +359,5 @@ config NETFILTER_XT_MATCH_TCPMSS
-=20
- 	  To compile it as a module, choose M here.  If unsure, say N.
-=20
-+endmenu
-+
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -78,16 +55,16 @@ index 99c0a0f..0e55012 100644
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---FilwpOHBrTVNlmJ3
+--Eu9PQ+LfZADlAtIa
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFD8GgYXaXGVTD0i/8RAmJoAJoC8de1g5p+MkVprIK46nLJlWL15ACfUwYd
-spU1w4hFjPBwOmn9JmgQ/r0=
-=BTmV
+iD8DBQFD8GneXaXGVTD0i/8RAqooAJsEOTOENTpFMiwvkTOIKZbw9XmWxACfVycS
+k4bjCP/7NoKvbaOBG3Sh2Ys=
+=tYPp
 -----END PGP SIGNATURE-----
 
---FilwpOHBrTVNlmJ3--
+--Eu9PQ+LfZADlAtIa--
