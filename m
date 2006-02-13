@@ -1,15 +1,16 @@
-From: Rennie deGraaf <degraaf@cpsc.ucalgary.ca>
-Subject: Re: New target
-Date: Mon, 13 Feb 2006 09:36:38 -0700
-Message-ID: <43F0B596.2010808@cpsc.ucalgary.ca>
-References: <43F0B0F8.6060909@speedy.com.ar>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 0/3] nf_conntrack: fixes for nf_ct_attach in IPv6 stack
+Date: Mon, 13 Feb 2006 17:44:30 +0100
+Message-ID: <43F0B76E.7050007@trash.net>
+References: <200602131628.k1DGSpc3019846@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
+	laforge@gnumonks.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Gervasio Bernal <gervasiobernal@speedy.com.ar>
-In-Reply-To: <43F0B0F8.6060909@speedy.com.ar>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200602131628.k1DGSpc3019846@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,25 +22,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-Gervasio Bernal wrote:
-> Hi all!!!
+Yasuyuki KOZAKAI wrote:
+> Hi,
 > 
-> I have developed a new target for iptables that encrypts a
-> communication. I would like to send it so that you can see it and prove
-> it. And the possibility that in a future adding it to iptables.
-> Which are the steps to follow?
-> Thanks a lot!
+> These patches make nf_ct_attach work fine in IPv6 stack.
+> 
+> The locally generated reply packets in IPv6 stack, such as ICMPv6 error
+> and TCP RST by REJECT target, need to be associated with the connection
+> of original packet.
 
-Our of curiosity, what advantages does your method have over IPSec?
-
-Rennie
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFD8LWWIvU5mZP08HERAhCmAJ4nHIwCus/bVLBFPpDyiDnQecm3SACaAhyq
-SEWkeJUjGl1DCtGDOzd4i1M=
-=k8wy
------END PGP SIGNATURE-----
+The reason why we manually attach these references (at least for ICMP)
+is because the packet might be in the middle of two NAT manips and
+unrecognizable for conntrack. For IPv6 this should be irrelevant. I'm
+not sure why it is done for TCP RSTs, they should always be properly
+tracked anyway.
