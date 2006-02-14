@@ -1,18 +1,18 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: IPv6 state match - possible bug.
-Date: Tue, 14 Feb 2006 15:47:40 +0900 (JST)
-Message-ID: <200602140647.k1E6le20024437@toshiba.co.jp>
-References: <200602140403.k1E43GCu003190@toshiba.co.jp>
-	<200602140416.k1E4GXbM015693@toshiba.co.jp>
-	<1139891071.26079.11.camel@araqiel.keine.ath.cx>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [RFC][LIBNFNETLINK 3/3] API changes
+Date: Tue, 14 Feb 2006 09:18:14 +0000
+Message-ID: <43F1A056.8010600@ufomechanic.net>
+References: <43EFAB2A.4030204@eurodev.net>	<20060213114452.GY4601@sunbeam.de.gnumonks.org>	<43F0A945.4010902@ufomechanic.net>
+	<43F0F65C.7030604@eurodev.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: darktama@iinet.net.au
-In-Reply-To: <1139891071.26079.11.camel@araqiel.keine.ath.cx>
-	<1139896381.27048.1.camel@araqiel.keine.ath.cx>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <43F0F65C.7030604@eurodev.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,52 +24,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Ben Skeggs <darktama@iinet.net.au>
-Date: Tue, 14 Feb 2006 15:24:31 +1100
-
-> On Tue, 2006-02-14 at 13:16 +0900, Yasuyuki KOZAKAI wrote:
-> > From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-> > Date: Tue, 14 Feb 2006 13:03:15 +0900 (JST)
-> > 
-> > > looks fine to me. I tested with recent kernel, same kernrel config,
-> > > and same rules, but couldn't reproduce above log.
-> > > 
-> > > Which version of kernel(or git commit id) and ip6tables ?
-> > > And could you do
-> > > 	echo 255 > /proc/sys/net/ipv4/netfilter/ip_conntrack_log_invalid
-> > 
-> > Sorry, right sysctl is
-> > 
-> >   	echo 255 > /proc/sys/net/netfilter/nf_conntrack_log_invalid
-> Okay, seems there is an issue somewhere..  I'm using 2.6.16-rc3, and
-> also had the same issue with -rc2.  iptables is version 1.3.5.
+Pablo Neira Ayuso wrote:
+> Amin Azez wrote:
 > 
-> nf_ct_tcp: bad TCP checksum IN= OUT=
-> SRC=2001:0200:0000:8002:0203:47ff:fea5:3085
-> DST=2001:0388:c17d:0000:020f:eaff:fe70:ebf9 LEN=80 TC=0 HOPLIMIT=56
-> FLOWLBL=525788 PROTO=TCP SPT=80 DPT=52498 SEQ=1589838125 ACK=2289866071
-> WINDOW=57344 RES=0x00 ACK SYN URGP=0 OPT
-> (020405A0010303000101080A2DA73166049359BE)
-
-checksumming with your eth0 driver might be broken.
-I'm not sure why, but I saw some reports about checksum for a few weeks.
-
-> IP6-IN: IN=eth0 OUT= MAC=00:0f:ea:70:eb:f9:00:50:8d:e3:b5:89:86:dd
-> SRC=2001:0200:0000:8002:0203:47ff:fea5:3085
-> DST=2001:0388:c17d:0000:020f:eaff:fe70:ebf9 LEN=80 TC=0 HOPLIMIT=56
-> FLOWLBL=525788 PROTO=TCP SPT=80 DPT=52498 WINDOW=57344 RES=0x00 ACK SYN
-> URGP=0
+>>AFAIR, done is not required unless we are trying to copy someone else
+>>api type.
+>>
+>>3 types of return values were permitted, <0, 0 and >0, by the function
+>>which now has "done" added. 0 meant continue, either <0 or >0 meant
+>>"stop now" and the other meant "stop after all messages in the currently
+>>read packet", it's hard to see how this doesn't provide what done
+>>provided; even with 2 values.
 > 
-> Which is odd, without any ip6tables rules everything seems to work well.
-
-From: Ben Skeggs <darktama@iinet.net.au>
-Date: Tue, 14 Feb 2006 16:53:01 +1100
-
-> Just another followup with some more info.. I built 2.6.16-rc3 on my
-> other machine (x86) and it does indeed appear to work correctly there.
 > 
-> I'm wondering if there is some amd64-specific bug?
+> Two kind of messages that mean "stop now" can make nfnl_handle_packet
+> return 0.
+> 
+> a) ACK messages: When the client request some information with the
+> NLM_F_ACK flag set.
+> b) DONE messages: At dumping, the last message received has the
+> NLM_F_MULTI flag set (NLMSG_DONE) to notify that the dumping has finished.
+> 
 
-Or they have different ether card, maybe. I'm using e100 and it works fine.
+I was talking about values returned by the user callback handler that 
+can stop the read loop before all messages are exhausted.
 
--- Yasuyuki Kozakai
+Sam
