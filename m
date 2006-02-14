@@ -1,19 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 0/3] nf_conntrack: fixes for nf_ct_attach in IPv6 stack
-Date: Tue, 14 Feb 2006 21:41:59 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0602142138090.23784@blackhole.kfki.hu>
-References: <43F0B76E.7050007@trash.net>
-	<200602140348.k1E3msEc020481@toshiba.co.jp>
-	<43F204B8.5060700@trash.net>
-	<200602141759.k1EHxfk0009760@toshiba.co.jp>
-	<43F21DBC.70506@trash.net>
+From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+Subject: Re: New target
+Date: Tue, 14 Feb 2006 19:36:53 -0300
+Message-ID: <43F25B85.80906@speedy.com.ar>
+References: <43F0B0F8.6060909@speedy.com.ar>
+	<43F0B596.2010808@cpsc.ucalgary.ca> <43F0CE59.5040201@speedy.com.ar>
+	<43F128FB.6040009@cpsc.ucalgary.ca>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
-	laforge@gnumonks.org, Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7BIT
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <43F21DBC.70506@trash.net>
+In-reply-to: <43F128FB.6040009@cpsc.ucalgary.ca>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,29 +22,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 14 Feb 2006, Patrick McHardy wrote:
+Rennie deGraaf wrote:
+> Gervasio Bernal wrote:
+> 
+>>>Rennie deGraaf wrote:
+>>>
+>>>
+>>>>Gervasio Bernal wrote:
+>>>>
+>>>>
+>>>>
+>>>>>>Hi all!!!
+>>>>>>
+>>>>>>I have developed a new target for iptables that encrypts a
+>>>>>>communication. I would like to send it so that you can see it and prove
+>>>>>>it. And the possibility that in a future adding it to iptables.
+>>>>>>Which are the steps to follow?
+>>>>>>Thanks a lot!
+>>>>
+>>>>
+>>>>Our of curiosity, what advantages does your method have over IPSec?
+>>>>
+>>>>Rennie
+>>>
+>>>
+>>>The great advantage is the ease of use. You only need to put 2 iptables
+>>>rules in each endpoint of communication. One rule for encryption and the
+>>>other for decryption. IPSec is a little more complicated to configure.
+> 
+> 
+> Well, I'd be interested in taking a look at your design.  How about
+> posting your design and source somewhere so that we can take a look at it?
+> 
+> Rennie
 
-> Yasuyuki KOZAKAI wrote:
-> > IIRC, __{ip,nf}_conntrack_confirm is called at POSTROUTING and INPUT,
-> > after all processing of packet filter. If I do
-> >
-> > 	ip6tables -A FORWARD -p tcp --dport 22 -j REJECT
-> >
-> > on my router, the conntrack of TCP SYN packet of ssh will never confirmed
-> > and then nf_conntrack will create new conntrack for TCP RST at OUTPUT.
->
-> RSTs and ICMP errors without existing connections should be ignored
-> by conntrack (and marked as INVALID). Are you sure the RSTs create
-> new conntracks?
-
-Marking packets created by the REJECT target as INVALID would break
-the functionality of the target itself. Even if there is no real
-"master" connection, RELATED was more appropriate.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Yes, of course. I have no problem. Let me fix some bugs and I post the
+sources.
