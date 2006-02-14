@@ -1,15 +1,17 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH] 2.6.16: [NETFILTER] Fix Kconfig menu level for x_tables
-Date: Mon, 13 Feb 2006 15:42:59 -0800 (PST)
-Message-ID: <20060213.154259.21716277.davem@davemloft.net>
-References: <20060213110600.GQ4601@sunbeam.de.gnumonks.org>
+From: Rennie deGraaf <degraaf@cpsc.ucalgary.ca>
+Subject: Re: New target
+Date: Mon, 13 Feb 2006 17:48:59 -0700
+Message-ID: <43F128FB.6040009@cpsc.ucalgary.ca>
+References: <43F0B0F8.6060909@speedy.com.ar>
+	<43F0B596.2010808@cpsc.ucalgary.ca>
+	<43F0CE59.5040201@speedy.com.ar>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: laforge@netfilter.org
-In-Reply-To: <20060213110600.GQ4601@sunbeam.de.gnumonks.org>
+To: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+In-Reply-To: <43F0CE59.5040201@speedy.com.ar>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,14 +23,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Harald Welte <laforge@netfilter.org>
-Date: Mon, 13 Feb 2006 12:06:00 +0100
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> [NETFILTER] Fix Kconfig menu level for x_tables
+Gervasio Bernal wrote:
+> Rennie deGraaf wrote:
 > 
-> The new x_tables related Kconfig options appear at the wrong menu level
-> without this patch.
+>>Gervasio Bernal wrote:
+>>
+>>
+>>>>Hi all!!!
+>>>>
+>>>>I have developed a new target for iptables that encrypts a
+>>>>communication. I would like to send it so that you can see it and prove
+>>>>it. And the possibility that in a future adding it to iptables.
+>>>>Which are the steps to follow?
+>>>>Thanks a lot!
+>>
+>>
+>>Our of curiosity, what advantages does your method have over IPSec?
+>>
+>>Rennie
 > 
-> Signed-off-by: Harald Welte <laforge@netfilter.org>
+> 
+> The great advantage is the ease of use. You only need to put 2 iptables
+> rules in each endpoint of communication. One rule for encryption and the
+> other for decryption. IPSec is a little more complicated to configure.
 
-Applied, thanks Harald.
+Well, I'd be interested in taking a look at your design.  How about
+posting your design and source somewhere so that we can take a look at it?
+
+Rennie
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFD8Sj7IvU5mZP08HERApcYAJ4pOmVyYQJRdI7fuj2PSgjUjF4C2wCeNwie
+kOW7cV2dIM3st6SQnsM09G8=
+=6K7k
+-----END PGP SIGNATURE-----
