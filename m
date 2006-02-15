@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/05]: nf_conntrack: move registration of __nf_ct_attach
-Date: Thu, 16 Feb 2006 00:00:29 +0100 (MET)
-Message-ID: <20060215230029.25078.58330.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 04/05]: nf_conntrack: attach conntrack to locally
+	generated ICMPv6 error
+Date: Thu, 16 Feb 2006 00:00:32 +0100 (MET)
+Message-ID: <20060215230032.25078.64555.sendpatchset@localhost.localdomain>
 References: <20060215230026.25078.33875.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,65 +19,67 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: move registration of __nf_ct_attach
+[NETFILTER]: nf_conntrack: attach conntrack to locally generated ICMPv6 error
 
-Move registration of __nf_ct_attach to nf_conntrack_core to make it usable
-for IPv6 connection tracking as well.
+Locally generated ICMPv6 errors should be associated with the conntrack
+of the original packet. Since the conntrack entry may not be in the hash
+tables (for the first packet), it must be manually attached.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit cb4fe8d7dc75acc6aa0f3ac21b286a3e2f8bc492
-tree 1e24f1628e341fa43c4972f347ab54aee1196aa1
-parent 1a99739a0044eae74cc17a6ae168bb30b49932d8
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Wed, 15 Feb 2006 11:01:49 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 15 Feb 2006 11:01:49 +0100
+commit a01ef7ba3866e0c920f804f153166f162bcb2a1f
+tree 8a164639758c51e7f41453ed1736a49e0456becc
+parent 257b70114334c5cee6f8b1f4789f49cc570fac45
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Wed, 15 Feb 2006 11:08:54 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 15 Feb 2006 11:08:54 +0100
 
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    5 -----
- net/netfilter/nf_conntrack_core.c              |    5 +++++
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ net/ipv6/icmp.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 167619f..6c8624a 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -529,15 +529,10 @@ static int init_or_cleanup(int init)
- 		goto cleanup_localinops;
- 	}
- #endif
--
--	/* For use by REJECT target */
--	ip_ct_attach = __nf_conntrack_attach;
--
- 	return ret;
+diff --git a/net/ipv6/icmp.c b/net/ipv6/icmp.c
+index fcf8831..21eb725 100644
+--- a/net/ipv6/icmp.c
++++ b/net/ipv6/icmp.c
+@@ -42,6 +42,7 @@
+ #include <linux/net.h>
+ #include <linux/skbuff.h>
+ #include <linux/init.h>
++#include <linux/netfilter.h>
  
-  cleanup:
- 	synchronize_net();
--	ip_ct_attach = NULL;
  #ifdef CONFIG_SYSCTL
-  	unregister_sysctl_table(nf_ct_ipv4_sysctl_header);
-  cleanup_localinops:
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 0ce337a..d622ddf 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1556,6 +1556,8 @@ void nf_conntrack_cleanup(void)
- {
- 	int i;
+ #include <linux/sysctl.h>
+@@ -255,6 +256,7 @@ out:
+ struct icmpv6_msg {
+ 	struct sk_buff	*skb;
+ 	int		offset;
++	uint8_t		type;
+ };
  
-+	ip_ct_attach = NULL;
-+
- 	/* This makes sure all current packets have passed through
- 	   netfilter framework.  Roll on, two-stage module
- 	   delete... */
-@@ -1715,6 +1717,9 @@ int __init nf_conntrack_init(void)
- 		nf_ct_l3protos[i] = &nf_conntrack_generic_l3proto;
-         write_unlock_bh(&nf_conntrack_lock);
+ static int icmpv6_getfrag(void *from, char *to, int offset, int len, int odd, struct sk_buff *skb)
+@@ -266,6 +268,8 @@ static int icmpv6_getfrag(void *from, ch
+ 	csum = skb_copy_and_csum_bits(org_skb, msg->offset + offset,
+ 				      to, len, csum);
+ 	skb->csum = csum_block_add(skb->csum, csum, odd);
++	if (!(msg->type & ICMPV6_INFOMSG_MASK))
++		nf_ct_attach(skb, org_skb);
+ 	return 0;
+ }
  
-+	/* For use by REJECT target */
-+	ip_ct_attach = __nf_conntrack_attach;
-+
- 	/* Set up fake conntrack:
- 	    - to never be deleted, not in any hashes */
- 	atomic_set(&nf_conntrack_untracked.ct_general.use, 1);
+@@ -403,6 +407,7 @@ void icmpv6_send(struct sk_buff *skb, in
+ 
+ 	msg.skb = skb;
+ 	msg.offset = skb->nh.raw - skb->data;
++	msg.type = type;
+ 
+ 	len = skb->len - msg.offset;
+ 	len = min_t(unsigned int, len, IPV6_MIN_MTU - sizeof(struct ipv6hdr) -sizeof(struct icmp6hdr));
+@@ -500,6 +505,7 @@ static void icmpv6_echo_reply(struct sk_
+ 
+ 	msg.skb = skb;
+ 	msg.offset = 0;
++	msg.type = ICMPV6_ECHO_REPLY;
+ 
+ 	err = ip6_append_data(sk, icmpv6_getfrag, &msg, skb->len + sizeof(struct icmp6hdr),
+ 				sizeof(struct icmp6hdr), hlimit, tclass, NULL, &fl,
