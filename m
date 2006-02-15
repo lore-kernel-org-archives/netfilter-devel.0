@@ -1,17 +1,17 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [NETFILTER 04/05]: nf_conntrack: attach conntrack to locally
- generated ICMPv6 error
-Date: Wed, 15 Feb 2006 15:24:27 -0800 (PST)
-Message-ID: <20060215.152427.133308755.davem@davemloft.net>
+Subject: Re: [NETFILTER 05/05]: nf_conntrack: Fix TCP/UDP HW checksum
+ handling for IPv6 packet
+Date: Wed, 15 Feb 2006 15:25:35 -0800 (PST)
+Message-ID: <20060215.152535.27079613.davem@davemloft.net>
 References: <20060215230026.25078.33875.sendpatchset@localhost.localdomain>
-	<20060215230032.25078.64555.sendpatchset@localhost.localdomain>
+	<20060215230033.25078.39539.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: kaber@trash.net
-In-Reply-To: <20060215230032.25078.64555.sendpatchset@localhost.localdomain>
+In-Reply-To: <20060215230033.25078.39539.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,15 +24,18 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 16 Feb 2006 00:00:32 +0100 (MET)
+Date: Thu, 16 Feb 2006 00:00:33 +0100 (MET)
 
-> [NETFILTER]: nf_conntrack: attach conntrack to locally generated ICMPv6 error
+> [NETFILTER]: nf_conntrack: Fix TCP/UDP HW checksum handling for IPv6 packet
 > 
-> Locally generated ICMPv6 errors should be associated with the conntrack
-> of the original packet. Since the conntrack entry may not be in the hash
-> tables (for the first packet), it must be manually attached.
+> If skb->ip_summed is CHECKSUM_HW here, skb->csum includes checksum
+> of actual IPv6 header and extension headers. Then such excess
+> checksum must be subtruct when nf_conntrack calculates TCP/UDP checksum
+> with pseudo IPv6 header. Spotted by Ben Skeggs.
 > 
-> Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
+> Signeded-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+> Signeded-off-by: Patrick McHardy <kaber@trash.net>
+
+Goot catch.
 
 Applied, thanks.
