@@ -1,23 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/3] nf_conntrack: fixes for nf_ct_attach in IPv6 stack
-Date: Wed, 15 Feb 2006 10:01:44 +0100
-Message-ID: <43F2EDF8.5030404@trash.net>
-References: <43F0B76E.7050007@trash.net>
-	<200602140348.k1E3msEc020481@toshiba.co.jp>
-	<43F204B8.5060700@trash.net>
-	<200602141759.k1EHxfk0009760@toshiba.co.jp>
-	<43F21DBC.70506@trash.net>
-	<Pine.LNX.4.58.0602142138090.23784@blackhole.kfki.hu>
-	<20060215074740.GE15587@sunbeam.de.gnumonks.org>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [RFC,NETFILTER]: Fix xfrm lookup after SNAT
+Date: Wed, 15 Feb 2006 01:34:39 -0800 (PST)
+Message-ID: <20060215.013439.120363074.davem@davemloft.net>
+References: <43F0C0ED.8000303@trash.net>
+	<20060214014924.GA954@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20060215074740.GE15587@sunbeam.de.gnumonks.org>
+To: herbert@gondor.apana.org.au
+In-Reply-To: <20060214014924.GA954@gondor.apana.org.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,23 +23,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> On Tue, Feb 14, 2006 at 09:41:59PM +0100, Jozsef Kadlecsik wrote:
-> 
->>>RSTs and ICMP errors without existing connections should be ignored
->>>by conntrack (and marked as INVALID). Are you sure the RSTs create
->>>new conntracks?
->>
->>Marking packets created by the REJECT target as INVALID would break
->>the functionality of the target itself. Even if there is no real
->>"master" connection, RELATED was more appropriate.
-> 
-> 
-> I totally agree.  Also, we have to keep 100% semantic compatibility with
-> the existing ip_conntrack setups, otherwise we'd confuse users and
-> create lots of broken packet filters.
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Date: Tue, 14 Feb 2006 12:49:24 +1100
 
-Now I get it :) I assumed conntrack should recognize the ICMP or RST
-as belonging to the original connection just as for forwarded packets,
-but since it is not confirmed yet, this doesn't happen. So the patches
-make perfect sense and I'm going to apply them now.
+> On Mon, Feb 13, 2006 at 06:25:01PM +0100, Patrick McHardy wrote:
+> > I finally got around to fixing the "ip_finish_output2: No header cache
+> > and no neighbour!" problem reported by Andi Kleen. Instead of rerouting
+> > the packet in POST_ROUTING, we reuse the original route for the
+> > xfrm_lookup. This introduces a small restriction (see changelog entry),
+> > but I think it should work.
+> > 
+> > Herbert, do you see any problems with this patch?
+> 
+> Looks perfect to me.  I think the restriction makes sense since SNAT
+> is done in post-routing so it's counter-intuitive to repeat the lookup
+> anyway.
+>  
+> > Signed-off-by: Patrick McHardy <kaber@trash.net>
+> 
+> Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+
+Looks good to me too, applied to net-2.6
+
+Thanks a lot.
