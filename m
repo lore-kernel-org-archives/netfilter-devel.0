@@ -1,19 +1,23 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: IPv6 state match - possible bug.
-Date: Wed, 15 Feb 2006 13:32:26 +0900 (JST)
-Message-ID: <200602150432.k1F4WRJE027201@toshiba.co.jp>
-References: <1139965907.8973.1.camel@araqiel.keine.ath.cx>
-	<200602141843.k1EIhnqD012520@toshiba.co.jp>
-	<1139973329.9018.2.camel@araqiel.keine.ath.cx>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [PATCH 0/3] nf_conntrack: fixes for nf_ct_attach in IPv6 stack
+Date: Wed, 15 Feb 2006 08:47:40 +0100
+Message-ID: <20060215074740.GE15587@sunbeam.de.gnumonks.org>
+References: <43F0B76E.7050007@trash.net>
+	<200602140348.k1E3msEc020481@toshiba.co.jp>
+	<43F204B8.5060700@trash.net>
+	<200602141759.k1EHxfk0009760@toshiba.co.jp>
+	<43F21DBC.70506@trash.net>
+	<Pine.LNX.4.58.0602142138090.23784@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Wed_Feb_15_13_32_26_2006_682)--"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org,
-	yasuyuki.kozakai@toshiba.co.jp
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="wTWi5aaYRw9ix9vO"
+Cc: netfilter-devel@lists.netfilter.org, usagi-core@linux-ipv6.org,
+	Patrick McHardy <kaber@trash.net>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: darktama@iinet.net.au, kaber@trash.net, laforge@gnumonks.org
-In-Reply-To: <1139973329.9018.2.camel@araqiel.keine.ath.cx>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0602142138090.23784@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,83 +29,57 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Wed_Feb_15_13_32_26_2006_682)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 
-From: Ben Skeggs <darktama@iinet.net.au>
-Date: Wed, 15 Feb 2006 14:15:29 +1100
+--wTWi5aaYRw9ix9vO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > > > checksumming with your eth0 driver might be broken.
-> > > > I'm not sure why, but I saw some reports about checksum for a few weeks.
-> > > Thank you!  This was indeed the problem.
-> > 
-> > Finally I got time to check codes for this and found bug.
-> > If you have some time, could you try attached patch ?
-> > I tested with sky2, but it's great if I can confirm that it works fine
-> > with other device.
-> I applied your patch to 2.6.16-rc3, and swapped back to the skge chip, I
-> seem to have working IPv6 state matching now.  I set
-> nf_conntrack_log_invalid again, and have not seen any invalid packet
-> messages on dmesg at all.
+On Tue, Feb 14, 2006 at 09:41:59PM +0100, Jozsef Kadlecsik wrote:
+> On Tue, 14 Feb 2006, Patrick McHardy wrote:
+>=20
+> > Yasuyuki KOZAKAI wrote:
+> > > IIRC, __{ip,nf}_conntrack_confirm is called at POSTROUTING and INPUT,
+> > > after all processing of packet filter. If I do
+> > >
+> > > 	ip6tables -A FORWARD -p tcp --dport 22 -j REJECT
+> > >
+> > > on my router, the conntrack of TCP SYN packet of ssh will never confi=
+rmed
+> > > and then nf_conntrack will create new conntrack for TCP RST at OUTPUT.
+> >
+> > RSTs and ICMP errors without existing connections should be ignored
+> > by conntrack (and marked as INVALID). Are you sure the RSTs create
+> > new conntracks?
+>=20
+> Marking packets created by the REJECT target as INVALID would break
+> the functionality of the target itself. Even if there is no real
+> "master" connection, RELATED was more appropriate.
 
-Thanks for test. Harald or Patrick, please apply attached patch.
-# I've added "Spotted by Ben Skeggs" to previous one.
+I totally agree.  Also, we have to keep 100% semantic compatibility with
+the existing ip_conntrack setups, otherwise we'd confuse users and
+create lots of broken packet filters.
 
--- Yasuyuki Kozakai
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
 
-----Next_Part(Wed_Feb_15_13_32_26_2006_682)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="nfct_checksum.patch"
+--wTWi5aaYRw9ix9vO
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-[NETFILTER] nf_conntrack: Fix TCP/UDP checksum handling for IPv6 packet
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-If skb->ip_summed is CHECKSUM_HW here, skb->csum includes checksum
-of actual IPv6 header and extension headers. Then such excess
-checksum must be subtruct when nf_conntrack calculates TCP/UDP checksum
-with psuedo IPv6 header. Spotted by Ben Skeggs.
+iD8DBQFD8tycXaXGVTD0i/8RAkhwAJ9t8OwHHQ9LlgSeDNGAP/HMurZzAQCgkCPi
+O3kEHfYsJWBaxcEhvRXmajU=
+=PJ3s
+-----END PGP SIGNATURE-----
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-
----
-commit 7f5523d7f49865e62b683b0519408cf15a5b5624
-tree e79868f93168aadd3e07e96605c351009019197f
-parent 5552c28f6937d2a2b873d06c6d09b96204722dd0
-author <kozakai@camellia.isl.rdc.toshiba.co.jp> Wed, 15 Feb 2006 03:16:28 +0900
-committer <kozakai@camellia.isl.rdc.toshiba.co.jp> Wed, 15 Feb 2006 03:16:28 +0900
-
- net/netfilter/nf_conntrack_proto_tcp.c |    4 +++-
- net/netfilter/nf_conntrack_proto_udp.c |    4 +++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -864,7 +864,9 @@ static int csum6(const struct sk_buff *s
- {
- 	return csum_ipv6_magic(&skb->nh.ipv6h->saddr, &skb->nh.ipv6h->daddr,
- 			       skb->len - dataoff, IPPROTO_TCP,
--			       skb->ip_summed == CHECKSUM_HW ? skb->csum
-+			       skb->ip_summed == CHECKSUM_HW
-+			       ? csum_sub(skb->csum,
-+					  skb_checksum(skb, 0, dataoff, 0))
- 			       : skb_checksum(skb, dataoff, skb->len - dataoff,
- 					      0));
- }
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -161,7 +161,9 @@ static int csum6(const struct sk_buff *s
- {
- 	return csum_ipv6_magic(&skb->nh.ipv6h->saddr, &skb->nh.ipv6h->daddr,
- 			       skb->len - dataoff, IPPROTO_UDP,
--			       skb->ip_summed == CHECKSUM_HW ? skb->csum
-+			       skb->ip_summed == CHECKSUM_HW
-+			       ? csum_sub(skb->csum,
-+					  skb_checksum(skb, 0, dataoff, 0))
- 			       : skb_checksum(skb, dataoff, skb->len - dataoff,
- 					      0));
- }
-
-----Next_Part(Wed_Feb_15_13_32_26_2006_682)----
+--wTWi5aaYRw9ix9vO--
