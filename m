@@ -1,15 +1,12 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER]: Don't invoke okfn in CONFIG_NETFILTER=n variant of
-	nf_hook()
-Date: Wed, 15 Feb 2006 18:25:44 +0100
-Message-ID: <43F36418.1050107@trash.net>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070304080500010107020206"
-Cc: Kernel Netdev Mailing List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Herbert Xu <herbert@gondor.apana.org.au>
+Subject: [NETFILTER 02/05]: nf_conntrack: move registration of __nf_ct_attach
+Date: Thu, 16 Feb 2006 00:00:29 +0100 (MET)
+Message-ID: <20060215230029.25078.58330.sendpatchset@localhost.localdomain>
+References: <20060215230026.25078.33875.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: davem@davemloft.net
+In-Reply-To: <20060215230026.25078.33875.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,51 +18,65 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070304080500010107020206
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+[NETFILTER]: nf_conntrack: move registration of __nf_ct_attach
 
-Another fix related to the netfilter IPsec patches.
+Move registration of __nf_ct_attach to nf_conntrack_core to make it usable
+for IPv6 connection tracking as well.
 
-
---------------070304080500010107020206
-Content-Type: text/x-patch;
- name="02.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="02.diff"
-
-[NETFILTER]: Don't invoke okfn in CONFIG_NETFILTER=n variant of nf_hook()
-
-nf_hook() is supposed to call the netfilter hook and return control of the
-packet back to the caller in case it may pass, the okfn is only used for
-queueing.
-
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 4611d14cc145cb244634920a7c4b0082f3c08eda
-tree 84c175affb78b77e78d908ea8baef43d9dba698a
-parent a31ab06c99e45232b742803677e88363cda2fb85
-author Patrick McHardy <kaber@trash.net> Wed, 15 Feb 2006 17:39:55 +0100
-committer Patrick McHardy <kaber@trash.net> Wed, 15 Feb 2006 17:39:55 +0100
+commit cb4fe8d7dc75acc6aa0f3ac21b286a3e2f8bc492
+tree 1e24f1628e341fa43c4972f347ab54aee1196aa1
+parent 1a99739a0044eae74cc17a6ae168bb30b49932d8
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Wed, 15 Feb 2006 11:01:49 +0100
+committer Patrick McHardy <kaber@trash.net> Wed, 15 Feb 2006 11:01:49 +0100
 
- include/linux/netfilter.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    5 -----
+ net/netfilter/nf_conntrack_core.c              |    5 +++++
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 5deacda..aa7bb93 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -318,7 +318,7 @@ static inline int nf_hook(int pf, unsign
- 			  struct net_device *indev, struct net_device *outdev,
- 			  int (*okfn)(struct sk_buff *))
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 167619f..6c8624a 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -529,15 +529,10 @@ static int init_or_cleanup(int init)
+ 		goto cleanup_localinops;
+ 	}
+ #endif
+-
+-	/* For use by REJECT target */
+-	ip_ct_attach = __nf_conntrack_attach;
+-
+ 	return ret;
+ 
+  cleanup:
+ 	synchronize_net();
+-	ip_ct_attach = NULL;
+ #ifdef CONFIG_SYSCTL
+  	unregister_sysctl_table(nf_ct_ipv4_sysctl_header);
+  cleanup_localinops:
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 0ce337a..d622ddf 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1556,6 +1556,8 @@ void nf_conntrack_cleanup(void)
  {
--	return okfn(*pskb);
-+	return 1;
- }
- static inline void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb) {}
- struct flowi;
-
---------------070304080500010107020206--
+ 	int i;
+ 
++	ip_ct_attach = NULL;
++
+ 	/* This makes sure all current packets have passed through
+ 	   netfilter framework.  Roll on, two-stage module
+ 	   delete... */
+@@ -1715,6 +1717,9 @@ int __init nf_conntrack_init(void)
+ 		nf_ct_l3protos[i] = &nf_conntrack_generic_l3proto;
+         write_unlock_bh(&nf_conntrack_lock);
+ 
++	/* For use by REJECT target */
++	ip_ct_attach = __nf_conntrack_attach;
++
+ 	/* Set up fake conntrack:
+ 	    - to never be deleted, not in any hashes */
+ 	atomic_set(&nf_conntrack_untracked.ct_general.use, 1);
