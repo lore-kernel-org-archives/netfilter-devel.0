@@ -1,23 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 4/4] first conntrack ID must be 1 not 2
-Date: Thu, 16 Feb 2006 10:36:47 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0602161017590.26770@blackhole.kfki.hu>
-References: <43EFF1F0.1090701@netfilter.org>
-	<20060213112028.GU4601@sunbeam.de.gnumonks.org>
-	<43F438F5.8070607@trash.net>
-	<Pine.LNX.4.58.0602160943060.26770@blackhole.kfki.hu>
-	<43F43FA9.4000906@trash.net>
-	<Pine.LNX.4.58.0602161005450.26770@blackhole.kfki.hu>
-	<43F4426D.9060807@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/4] Fix expectaction mask dumping, take #3
+Date: Thu, 16 Feb 2006 10:36:20 +0100
+Message-ID: <43F44794.1080203@trash.net>
+References: <43EFF176.3070505@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: Harald Welte <laforge@netfilter.org>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <43F4426D.9060807@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <43EFF176.3070505@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,42 +23,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 16 Feb 2006, Patrick McHardy wrote:
+Pablo Neira Ayuso wrote:
+> [CTNETLINK] Fix expectaction mask dumping
+> 
+> The expectation mask has some particularities that make handle in a
+> different way. The protocol number fields can be set to non-valid
+> protocols, ie. l3num is set to 0xFFFF. Since that protocol does not
+> exist, the mask tuple will not be dumped. Moreover, this results in a
+> kernel panic when nf_conntrack accesses the array of protocol handlers,
+> that is PF_MAX (0x1F) long.
+> 
+> This patch introduces the function ctnetlink_exp_dump_mask, that
+> correctly dumps the expectation mask. Such function uses the l3num value
+> from the expectation tuple that is a valid layer 3 protocol number.
 
-> Jozsef Kadlecsik wrote:
-> > On Thu, 16 Feb 2006, Patrick McHardy wrote:
-> >
-> >>Jozsef Kadlecsik wrote:
-> >>
-> >>>Couldn't the id be simply equal to the jiffies when creating the conntrack
-> >>>entry? (And adding time_after/before when comparing ids, of course.)
-> >>
-> >>We can create more than one entry per jiffy, so that wouldn't be unique
-> >>anymore.
-> >
-> > (jiffies, tuples) would be unique even in that case.
->
-> Thats true. But what is the advantage over using the counter?
+This part looks fine to me, apart from one minor nitpick :)
 
-Currently nothing :-).
+> Besides, this modification introduces the attribute CTA_IP_L3NUM.
+> Although the layer 3 protocol information is sent in the nfnetlink
+> header, if the message contains information about an expectation, it
+> will contain information about the master conntrack (just one of the
+> tuples), the expectation tuple and the expectation mask. In this case,
+> the value of l3num in the expectation mask is not the same that is set
+> in the nfnetlink message. That is why we need another field that contain
+> the value of l3num.
 
-However, the counter poses an internal bottleneck in the overall system
-when one attempts to replace the hashtable by hashtrie. (What I really
-like about hashtrie is that it naturally implements the 'region locking'
-suggested by Patrick Schaaf, compared to the 'brute force' per bucket
-locking.)
+I'm not sure I understand. The new attribute still contains the same
+value as the netlink header, doesn't it? So userspace should currently
+have at least two possibilities to get the correct value:
 
-As I see, we have got three bottlenecks in conntrack in SMP systems:
-the hashtable approach, the id and the expectation list. The first two
-could be eliminated by hashtrie and jiffies as ids.
+- use the value from the netlink header
+- use the value from the tuple that comes with the mask, as the first
+  part of your patch does. This seems most logically to me since the
+  mask and the tuple belong together.
 
-Some clever solution should only be found to spread the expectations
-over multiple, separatedly locked buckets...
+> @@ -77,33 +75,47 @@ nfattr_failure:
+>  }
+>  
+>  static inline int
+> -ctnetlink_dump_tuples(struct sk_buff *skb, 
+> -		      const struct nf_conntrack_tuple *tuple)
+> +ctnetlink_dump_tuples_ip(struct sk_buff *skb,
+> +			 const struct nf_conntrack_tuple *tuple,
+> +			 struct nf_conntrack_l3proto *l3proto)
+>  {
+> -	struct nfattr *nest_parms;
+> -	struct nf_conntrack_l3proto *l3proto;
+>  	int ret = 0;
+> -	
+> -	l3proto = nf_ct_l3proto_find_get(tuple->src.l3num);
+> -	
+> -	nest_parms = NFA_NEST(skb, CTA_TUPLE_IP);
+> +	struct nfattr *nest_parms = NFA_NEST(skb, CTA_TUPLE_IP);
+> +	u_int8_t l3num = (u_int8_t)tuple->src.l3num;
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+The cast is unnecessary.
