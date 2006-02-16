@@ -1,11 +1,25 @@
-From: "Marco Berizzi" <pupilla@hotmail.com>
-Subject: ipsec with 2.6.16-rc3-git6
-Date: Thu, 16 Feb 2006 16:28:35 +0100
-Message-ID: <BAY103-F938A1F933DD48F94C262EB2FB0@phx.gbl>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 4/4] first conntrack ID must be 1 not 2
+Date: Thu, 16 Feb 2006 21:09:03 +0100
+Message-ID: <43F4DBDF.9010008@trash.net>
+References: <43EFF1F0.1090701@netfilter.org>
+	<20060213112028.GU4601@sunbeam.de.gnumonks.org>
+	<43F438F5.8070607@trash.net>
+	<Pine.LNX.4.58.0602160943060.26770@blackhole.kfki.hu>
+	<43F43FA9.4000906@trash.net>
+	<Pine.LNX.4.58.0602161005450.26770@blackhole.kfki.hu>
+	<43F4426D.9060807@trash.net>
+	<Pine.LNX.4.58.0602161017590.26770@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0602161017590.26770@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,61 +31,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I'm running openswan 2.4.5 with 2.6.16-rc3-git6 on
-slackware 10.2 and I have a very strange problem.
-I don't know if this is the desired behaviour or a
-bug. I'm using iptables 1.3.5
-With the following rules I was running ipsec
-successfully with linux 2.6.15.1 to all our ipsec
-gateway. After I have upgraded to 2.6.16-rc3-git6
-I'm able to run ipsec only to venice_gateway.
+Jozsef Kadlecsik wrote:
+> On Thu, 16 Feb 2006, Patrick McHardy wrote:
+> 
+>>>(jiffies, tuples) would be unique even in that case.
+>>
+>>Thats true. But what is the advantage over using the counter?
 
-Chain INPUT (policy ACCEPT)
-target     prot opt source               destination
-ACCEPT     all  --  venice_gateway       0.0.0.0/0
-ACCEPT     all  --  127.0.0.1            127.0.0.1
-ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0           state 
-RELATED,ESTABLISHED
-red-me     all  --  0.0.0.0/0            0.0.0.0/0
+Actually it would still not be unique if connections live
+shorter than a jiffy and are resurrected.
 
-Chain red-me (1 references)
-pkts bytes target     prot opt in     out     source               
-destination
-    0     0 ACCEPT     icmp --  *      *       0.0.0.0/0            
-0.0.0.0/0           icmp type 3
-    0     0 ACCEPT     esp  --  *      *       0.0.0.0/0            
-0.0.0.0/0
-    0     0 ACCEPT     udp  --  *      *       0.0.0.0/0            
-0.0.0.0/0           multiport dports 500,4500
+> Currently nothing :-).
+> 
+> However, the counter poses an internal bottleneck in the overall system
+> when one attempts to replace the hashtable by hashtrie. (What I really
+> like about hashtrie is that it naturally implements the 'region locking'
+> suggested by Patrick Schaaf, compared to the 'brute force' per bucket
+> locking.)
+> 
+> As I see, we have got three bottlenecks in conntrack in SMP systems:
+> the hashtable approach, the id and the expectation list. The first two
+> could be eliminated by hashtrie and jiffies as ids.
+> 
+> Some clever solution should only be found to spread the expectations
+> over multiple, separatedly locked buckets...
 
-For now, I have workarounded the problem adding a rule for every ipsec 
-gateway,
-but this is a problem for mobile users.
-
-Chain INPUT (policy DROP 133 packets, 11320 bytes)
-pkts bytes target     prot opt in     out     source               
-destination
-  557 93608 ACCEPT     all  --  *      *       milano_gateay        
-0.0.0.0/0
-  313 31275 ACCEPT     all  --  *      *       venice_gateway       
-0.0.0.0/0
-    0     0 ACCEPT     all  --  *      *       127.0.0.1            
-127.0.0.1
-    2   232 ACCEPT     all  --  *      *       0.0.0.0/0            
-0.0.0.0/0           state RELATED,ESTABLISHED
-    2   160 red-me     all  --  eth0   *       0.0.0.0/0            
-0.0.0.0/0
-
-
-Chain red-me (1 references)
-pkts bytes target     prot opt in     out     source               
-destination
-    0     0 ACCEPT     icmp --  *      *       0.0.0.0/0            
-0.0.0.0/0           icmp type 3
-    0     0 ACCEPT     esp  --  *      *       0.0.0.0/0            
-0.0.0.0/0
-    0     0 ACCEPT     udp  --  *      *       0.0.0.0/0            
-0.0.0.0/0           multiport dports 500,4500
-
-Is this the correct behaviour?
-FYI: tunnels are ESP+IPCOMP
+I've talked to Harald about this and as a start we can start by
+allowing masks only for the source part of the tuple. That
+means we can hash by destinations.
