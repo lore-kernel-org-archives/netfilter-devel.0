@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/13]: Fix CID offset bug in PPTP NAT helper debug
-	message
-Date: Thu, 16 Feb 2006 22:32:08 +0100 (MET)
-Message-ID: <20060216213208.6933.29247.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/13]: nf_conntrack: use ipv6_addr_equal in nf_ct_reasm
+Date: Thu, 16 Feb 2006 22:32:10 +0100 (MET)
+Message-ID: <20060216213210.6933.41446.sendpatchset@localhost.localdomain>
 References: <20060216213207.6933.99672.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,68 +18,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Fix CID offset bug in PPTP NAT helper debug message
+[NETFILTER]: nf_conntrack: use ipv6_addr_equal in nf_ct_reasm
 
-The recent (kernel 2.6.15.1) fix for PPTP NAT helper introduced a
-bug - which only appears if DEBUGP is enabled though.
-
-The calculation of the CID offset into a PPTP request struct is
-not correct, so that at least not the correct CID is displayed
-if DEBUGP is enabled.
-
-This patch corrects CID offset calculation and introduces a #define
-for that.
-
-Signed-off-by: Holger Eitzenberger <heitzenberger@astaro.com>
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit d4f037506a5832b329930b927309e911fd42ee4d
-tree c36fe915a018b64aa9db28c72a50ff53fa408e91
-parent 43fa6235163124c797a94a4fc1703d38335309a7
-author Holger Eitzenberger <heitzenberger@astaro.com> Thu, 16 Feb 2006 14:16:59 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 16 Feb 2006 14:16:59 +0100
+commit a99f01294a6531c0511ff84bc735e92e12e88c99
+tree e0f40422971b69fa0780368c27934f557d12d820
+parent d4f037506a5832b329930b927309e911fd42ee4d
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 16 Feb 2006 14:17:00 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 16 Feb 2006 14:17:00 +0100
 
- net/ipv4/netfilter/ip_nat_helper_pptp.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+ net/ipv6/netfilter/nf_conntrack_reasm.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_nat_helper_pptp.c b/net/ipv4/netfilter/ip_nat_helper_pptp.c
-index ac00489..b9c016c 100644
---- a/net/ipv4/netfilter/ip_nat_helper_pptp.c
-+++ b/net/ipv4/netfilter/ip_nat_helper_pptp.c
-@@ -52,6 +52,8 @@
- 
- #define IP_NAT_PPTP_VERSION "3.0"
- 
-+#define REQ_CID(req, off)		(*(u_int16_t *)((char *)(req) + (off)))
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Harald Welte <laforge@gnumonks.org>");
- MODULE_DESCRIPTION("Netfilter NAT helper module for PPTP");
-@@ -198,7 +200,7 @@ pptp_outbound_pkt(struct sk_buff **pskb,
- 	/* only OUT_CALL_REQUEST, IN_CALL_REPLY, CALL_CLEAR_REQUEST pass
- 	 * down to here */
- 	DEBUGP("altering call id from 0x%04x to 0x%04x\n",
--		ntohs(*(u_int16_t *)pptpReq + cid_off), ntohs(new_callid));
-+		ntohs(REQ_CID(pptpReq, cid_off)), ntohs(new_callid));
- 
- 	/* mangle packet */
- 	if (ip_nat_mangle_tcp_packet(pskb, ct, ctinfo,
-@@ -342,7 +344,7 @@ pptp_inbound_pkt(struct sk_buff **pskb,
- 
- 	/* mangle packet */
- 	DEBUGP("altering peer call id from 0x%04x to 0x%04x\n",
--		ntohs(*(u_int16_t *)pptpReq + pcid_off), ntohs(new_pcid));
-+		ntohs(REQ_CID(pptpReq, pcid_off)), ntohs(new_pcid));
- 
- 	if (ip_nat_mangle_tcp_packet(pskb, ct, ctinfo,
- 	                             pcid_off + sizeof(struct pptp_pkt_hdr) +
-@@ -353,7 +355,7 @@ pptp_inbound_pkt(struct sk_buff **pskb,
- 
- 	if (new_cid) {
- 		DEBUGP("altering call id from 0x%04x to 0x%04x\n",
--			ntohs(*(u_int16_t *)pptpReq + cid_off), ntohs(new_cid));
-+			ntohs(REQ_CID(pptpReq, cid_off)), ntohs(new_cid));
- 		if (ip_nat_mangle_tcp_packet(pskb, ct, ctinfo,
- 		                             cid_off + sizeof(struct pptp_pkt_hdr) +
- 					     sizeof(struct PptpControlHeader),
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 84ef9a1..3e31903 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -313,8 +313,8 @@ static struct nf_ct_frag6_queue *nf_ct_f
+ #ifdef CONFIG_SMP
+ 	hlist_for_each_entry(fq, n, &nf_ct_frag6_hash[hash], list) {
+ 		if (fq->id == fq_in->id && 
+-		    !ipv6_addr_cmp(&fq_in->saddr, &fq->saddr) &&
+-		    !ipv6_addr_cmp(&fq_in->daddr, &fq->daddr)) {
++		    ipv6_addr_equal(&fq_in->saddr, &fq->saddr) &&
++		    ipv6_addr_equal(&fq_in->daddr, &fq->daddr)) {
+ 			atomic_inc(&fq->refcnt);
+ 			write_unlock(&nf_ct_frag6_lock);
+ 			fq_in->last_in |= COMPLETE;
+@@ -376,8 +376,8 @@ fq_find(u32 id, struct in6_addr *src, st
+ 	read_lock(&nf_ct_frag6_lock);
+ 	hlist_for_each_entry(fq, n, &nf_ct_frag6_hash[hash], list) {
+ 		if (fq->id == id && 
+-		    !ipv6_addr_cmp(src, &fq->saddr) &&
+-		    !ipv6_addr_cmp(dst, &fq->daddr)) {
++		    ipv6_addr_equal(src, &fq->saddr) &&
++		    ipv6_addr_equal(dst, &fq->daddr)) {
+ 			atomic_inc(&fq->refcnt);
+ 			read_unlock(&nf_ct_frag6_lock);
+ 			return fq;
