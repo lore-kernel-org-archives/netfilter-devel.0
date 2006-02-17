@@ -1,7 +1,7 @@
 From: "Marco Berizzi" <pupilla@hotmail.com>
 Subject: Re: ipsec with 2.6.16-rc3-git6
-Date: Fri, 17 Feb 2006 11:07:05 +0100
-Message-ID: <BAY103-F22116E308462DEE5D4448B2F80@phx.gbl>
+Date: Fri, 17 Feb 2006 11:11:26 +0100
+Message-ID: <BAY103-F81B8A00B6663452743916B2F80@phx.gbl>
 References: <43F5978E.8010203@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; format=flowed
@@ -51,8 +51,10 @@ Patrick McHardy wrote:
 >they must be dropped by another rule. Please post your full ruleset with
 >iptables -vxnL.
 
-Patrick,
+Me again. Aha! Found!!! ;-))
 
-Also adding this rule is not sufficient:
+iptables -I INPUT -s venice-gateway --protocol 4 -j ACCEPT
 
-iptables -I INPUT -s venezia-gateway --protocol esp -j ACCEPT
+did the trick.
+
+Patrick, thanks a lot for the feedback.
