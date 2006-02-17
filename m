@@ -1,11 +1,28 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: ipt_recent fix
-Date: Fri, 17 Feb 2006 17:37:53 +0000
-Message-ID: <dt51lh$b63$1@sea.gmane.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 4/4] first conntrack ID must be 1 not 2
+Date: Fri, 17 Feb 2006 19:41:13 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0602171921540.31400@blackhole.kfki.hu>
+References: <43EFF1F0.1090701@netfilter.org>
+	<20060213112028.GU4601@sunbeam.de.gnumonks.org>
+	<43F438F5.8070607@trash.net>
+	<Pine.LNX.4.58.0602160943060.26770@blackhole.kfki.hu>
+	<43F43FA9.4000906@trash.net>
+	<Pine.LNX.4.58.0602161005450.26770@blackhole.kfki.hu>
+	<43F4426D.9060807@trash.net>
+	<Pine.LNX.4.58.0602161017590.26770@blackhole.kfki.hu>
+	<43F4DBDF.9010008@trash.net>
+	<Pine.LNX.4.58.0602170907001.29301@blackhole.kfki.hu>
+	<Pine.LNX.4.58.0602170936160.1339@tux.rsn.bth.se>
+	<Pine.LNX.4.58.0602170951070.29301@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040003050006030608070305"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <Pine.LNX.4.58.0602170951070.29301@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,127 +34,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040003050006030608070305
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Martin,
 
-Here is a fix for ipt_recent.
+On Fri, 17 Feb 2006, Jozsef Kadlecsik wrote:
 
-The problem is that curr_table[x].hash_entry=0 (for all x)
+> I'm collecting the ideas, so can't submit patches yet ;-).
 
-So all pristine (never used) curr_table entries claim to have hash pos 0.
+Two more things:
 
-So when we add new items to the hash and do:
-  hash_table[r_list[location].hash_entry] = -1;
-to use the oldest (used or unused) location - if it is unused we trash 
-anything that really has hash pos 0 already allocated.
+- the Jenkins hash internally produces 96 bits, which we could
+  use in the hashtrie
+- there should be some (whatever artifical) tests to study the
+  dynamical behaviour of the hashtrie: say all the entries are
+  added, then half of them deleted and added back again, but
+  in reverse order. Will the maxdepth grow?
 
-This can be reproduced with this:
-
-# iptables -A FORWARD -d 1.1.1.1 -m recent --name TEST1 --set
-# G=1 ; while test $G -lt 17 ; do echo $G ; echo 1.1.1.$G> \
-  /proc/net/ipt_recent/TEST1 ; G=$(($G+1)) ; dmesg -c ; cat \
-  /proc/net/ipt_recent/TEST1  | head ; done > x
-
-the 13th item has hash of 0 and gets trashed when the 14th item is added 
-without this patch.
-
-We should only trash it then if we _know_ it has been used before and 
-therefore is REALLY at the position it claims...
-
-This patch makes sure that items claiming to have a hash entry really do 
-have that hash entry before destroying that hash entry.
-
-This patch also adds counting of the number of hash entries in 
-preparation for conditions based on the number of entries in the recent 
-table rule; patch for that to follow next week.
-
-Any comments on this?
-
-Sam
-
---------------040003050006030608070305
-Content-Type: text/x-patch;
- name="ipt_recent.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ipt_recent.patch"
-
---- ./net/ipv4/netfilter/ipt_recent.c.nolimit	2006-02-15 16:34:20.000000000 +0000
-+++ ./net/ipv4/netfilter/ipt_recent.c	2006-02-17 17:23:00.000000000 +0000
-@@ -70,7 +70,11 @@
- /* Structure of our linked list of tables of recent lists. */
- struct recent_ip_tables {
- 	char name[IPT_RECENT_NAME_LEN];
-+	/* number of entries in list *table */
-+	int entry_count;
-+	/* number of reference to this structure from iptables rules */
- 	int count;
-+	/* an index increased with each operation which maps time_info[x].position to a position in table */
- 	int time_pos;
- 	struct recent_ip_list *table;
- 	struct recent_ip_tables *next;
-@@ -139,6 +143,7 @@
- 	curr_table = (struct recent_ip_tables*) data;
- 
- 	spin_lock_bh(&curr_table->list_lock);
-+	len += sprintf(buffer+len,"count=%d\n",curr_table->entry_count);
- 	for(count = 0; count < ip_list_tot; count++) {
- 		if(!curr_table->table[count].addr) continue;
- 		last_len = len;
-@@ -216,6 +221,7 @@
- 		used += 5;
- 		spin_lock_bh(&curr_table->list_lock);
- 		curr_table->time_pos = 0;
-+		curr_table->entry_count = 0;
- 		for(count = 0; count < ip_list_hash_size; count++) {
- 			curr_table->hash_table[count] = -1;
- 		}
-@@ -500,7 +506,27 @@
- 
- 		/* New item found and IPT_RECENT_SET, so we need to add it */
- 		location = time_info[curr_table->time_pos].position;
--		hash_table[r_list[location].hash_entry] = -1;
-+		/* 
-+		   location is the next slot in r_list that we will use. 
-+		   Maybe it is already used and we need to remove it fromthe hash.
-+		   If it is used then: 
-+		   1) hash_table[r_list[location].hash_entry]=location
-+		   Which is to say that anything claiming to have a hash entry
-+		   should also be pointed to BY that hash entry.
-+		     This only comes up becase by default r_list[x].hash_entry=0
-+		   i.e. all items claim to have hash entry 0, so if a real
-+		   item has hash slot 0 it gets trashed because of lies.
-+		   SO: If r_list[location].hash_entry]==0 we are in warning condition
-+		   and need to double check that hash_table reciprocates before we
-+		   set the hash_table entry to -1 (it may not really belong)
-+		   This would work; 
-+		     if (r_list[location].hash_entry!=0 || hash_table[0]==location) hash_table[r_list[location].hash_entry] = -1; 
-+		   but we want to combine with a counter for new entries
-+		*/
-+		/* increase counter if this is a new item */
-+		if (hash_table[r_list[location].hash_entry]!=location) curr_table->entry_count++;
-+		else hash_table[r_list[location].hash_entry] = -1;
-+
- 		hash_table[hash_result] = location;
- 		memset(r_list[location].last_pkts,0,ip_pkt_list_tot*sizeof(u_int32_t));
- 		r_list[location].time_pos = curr_table->time_pos;
-@@ -633,6 +659,7 @@
- 			r_list[location].ttl = 0;
- 			memset(r_list[location].last_pkts,0,ip_pkt_list_tot*sizeof(u_int32_t));
- 			r_list[location].oldest_pkt = 0;
-+			curr_table->entry_count--;
- 			ans = !info->invert;
- 		}
- 		spin_unlock_bh(&curr_table->list_lock);
-@@ -719,6 +746,7 @@
- 	curr_table->next = NULL;
- 	curr_table->count = 1;
- 	curr_table->time_pos = 0;
-+	curr_table->entry_count = 0;
- 	strncpy(curr_table->name,info->name,IPT_RECENT_NAME_LEN);
- 	curr_table->name[IPT_RECENT_NAME_LEN-1] = '\0';
- 
-
---------------040003050006030608070305--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
