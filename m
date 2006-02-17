@@ -1,12 +1,11 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 2.6.16]: Fix outgoing redirects to loopback
-Date: Fri, 17 Feb 2006 18:25:59 +0100
-Message-ID: <43F60727.9030407@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: ipt_recent fix
+Date: Fri, 17 Feb 2006 17:37:53 +0000
+Message-ID: <dt51lh$b63$1@sea.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040903080305070204020400"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------040003050006030608070305"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,81 +18,126 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040903080305070204020400
-Content-Type: text/plain; charset=ISO-8859-15
+--------------040003050006030608070305
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Fix another regression from the IPsec patches.
+Here is a fix for ipt_recent.
 
+The problem is that curr_table[x].hash_entry=0 (for all x)
 
+So all pristine (never used) curr_table entries claim to have hash pos 0.
 
---------------040903080305070204020400
-Content-Type: text/plain;
- name="x"
+So when we add new items to the hash and do:
+  hash_table[r_list[location].hash_entry] = -1;
+to use the oldest (used or unused) location - if it is unused we trash 
+anything that really has hash pos 0 already allocated.
+
+This can be reproduced with this:
+
+# iptables -A FORWARD -d 1.1.1.1 -m recent --name TEST1 --set
+# G=1 ; while test $G -lt 17 ; do echo $G ; echo 1.1.1.$G> \
+  /proc/net/ipt_recent/TEST1 ; G=$(($G+1)) ; dmesg -c ; cat \
+  /proc/net/ipt_recent/TEST1  | head ; done > x
+
+the 13th item has hash of 0 and gets trashed when the 14th item is added 
+without this patch.
+
+We should only trash it then if we _know_ it has been used before and 
+therefore is REALLY at the position it claims...
+
+This patch makes sure that items claiming to have a hash entry really do 
+have that hash entry before destroying that hash entry.
+
+This patch also adds counting of the number of hash entries in 
+preparation for conditions based on the number of entries in the recent 
+table rule; patch for that to follow next week.
+
+Any comments on this?
+
+Sam
+
+--------------040003050006030608070305
+Content-Type: text/x-patch;
+ name="ipt_recent.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="x"
+ filename="ipt_recent.patch"
 
-[NETFILTER]: Fix outgoing redirects to loopback
-
-When redirecting an outgoing packet to loopback, it keeps the original
-conntrack reference and information from the outgoing path, which
-falsely triggers the check for DNAT on input and the dst_entry is
-released to trigger rerouting. ip_route_input refuses to route the
-packet because it has a local source address and it is dropped.
-
-Look at the packet itself to dermine if it was NATed. Also fix a
-missing inversion that causes unneccesary xfrm lookups.
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 32043a0e681a5d3289a3a189af5c52a3d9973867
-tree 21f19259c32d1ae8f1581501cb42a264e0f02242
-parent 7bf85ddc80546f9398599e80bf42e7419ef76513
-author Patrick McHardy <kaber@trash.net> Fri, 17 Feb 2006 15:36:40 +0100
-committer Patrick McHardy <kaber@trash.net> Fri, 17 Feb 2006 15:36:40 +0100
-
- net/ipv4/netfilter/ip_nat_standalone.c |   16 +++++-----------
- 1 files changed, 5 insertions(+), 11 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_nat_standalone.c b/net/ipv4/netfilter/ip_nat_standalone.c
-index 7c3f7d3..ab1f88f 100644
---- a/net/ipv4/netfilter/ip_nat_standalone.c
-+++ b/net/ipv4/netfilter/ip_nat_standalone.c
-@@ -200,20 +200,14 @@ ip_nat_in(unsigned int hooknum,
-           const struct net_device *out,
-           int (*okfn)(struct sk_buff *))
- {
--	struct ip_conntrack *ct;
--	enum ip_conntrack_info ctinfo;
- 	unsigned int ret;
-+	u_int32_t daddr = (*pskb)->nh.iph->daddr;
+--- ./net/ipv4/netfilter/ipt_recent.c.nolimit	2006-02-15 16:34:20.000000000 +0000
++++ ./net/ipv4/netfilter/ipt_recent.c	2006-02-17 17:23:00.000000000 +0000
+@@ -70,7 +70,11 @@
+ /* Structure of our linked list of tables of recent lists. */
+ struct recent_ip_tables {
+ 	char name[IPT_RECENT_NAME_LEN];
++	/* number of entries in list *table */
++	int entry_count;
++	/* number of reference to this structure from iptables rules */
+ 	int count;
++	/* an index increased with each operation which maps time_info[x].position to a position in table */
+ 	int time_pos;
+ 	struct recent_ip_list *table;
+ 	struct recent_ip_tables *next;
+@@ -139,6 +143,7 @@
+ 	curr_table = (struct recent_ip_tables*) data;
  
- 	ret = ip_nat_fn(hooknum, pskb, in, out, okfn);
- 	if (ret != NF_DROP && ret != NF_STOLEN
--	    && (ct = ip_conntrack_get(*pskb, &ctinfo)) != NULL) {
--		enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
--
--		if (ct->tuplehash[dir].tuple.dst.ip !=
--		    ct->tuplehash[!dir].tuple.src.ip) {
--			dst_release((*pskb)->dst);
--			(*pskb)->dst = NULL;
--		}
-+	    && daddr != (*pskb)->nh.iph->daddr) {
-+		dst_release((*pskb)->dst);
-+		(*pskb)->dst = NULL;
- 	}
- 	return ret;
- }
-@@ -276,7 +270,7 @@ ip_nat_local_fn(unsigned int hooknum,
- 		    ct->tuplehash[!dir].tuple.src.ip
- #ifdef CONFIG_XFRM
- 		    || ct->tuplehash[dir].tuple.dst.u.all !=
--		       ct->tuplehash[dir].tuple.src.u.all
-+		       ct->tuplehash[!dir].tuple.src.u.all
- #endif
- 		    )
- 			return ip_route_me_harder(pskb) == 0 ? ret : NF_DROP;
+ 	spin_lock_bh(&curr_table->list_lock);
++	len += sprintf(buffer+len,"count=%d\n",curr_table->entry_count);
+ 	for(count = 0; count < ip_list_tot; count++) {
+ 		if(!curr_table->table[count].addr) continue;
+ 		last_len = len;
+@@ -216,6 +221,7 @@
+ 		used += 5;
+ 		spin_lock_bh(&curr_table->list_lock);
+ 		curr_table->time_pos = 0;
++		curr_table->entry_count = 0;
+ 		for(count = 0; count < ip_list_hash_size; count++) {
+ 			curr_table->hash_table[count] = -1;
+ 		}
+@@ -500,7 +506,27 @@
+ 
+ 		/* New item found and IPT_RECENT_SET, so we need to add it */
+ 		location = time_info[curr_table->time_pos].position;
+-		hash_table[r_list[location].hash_entry] = -1;
++		/* 
++		   location is the next slot in r_list that we will use. 
++		   Maybe it is already used and we need to remove it fromthe hash.
++		   If it is used then: 
++		   1) hash_table[r_list[location].hash_entry]=location
++		   Which is to say that anything claiming to have a hash entry
++		   should also be pointed to BY that hash entry.
++		     This only comes up becase by default r_list[x].hash_entry=0
++		   i.e. all items claim to have hash entry 0, so if a real
++		   item has hash slot 0 it gets trashed because of lies.
++		   SO: If r_list[location].hash_entry]==0 we are in warning condition
++		   and need to double check that hash_table reciprocates before we
++		   set the hash_table entry to -1 (it may not really belong)
++		   This would work; 
++		     if (r_list[location].hash_entry!=0 || hash_table[0]==location) hash_table[r_list[location].hash_entry] = -1; 
++		   but we want to combine with a counter for new entries
++		*/
++		/* increase counter if this is a new item */
++		if (hash_table[r_list[location].hash_entry]!=location) curr_table->entry_count++;
++		else hash_table[r_list[location].hash_entry] = -1;
++
+ 		hash_table[hash_result] = location;
+ 		memset(r_list[location].last_pkts,0,ip_pkt_list_tot*sizeof(u_int32_t));
+ 		r_list[location].time_pos = curr_table->time_pos;
+@@ -633,6 +659,7 @@
+ 			r_list[location].ttl = 0;
+ 			memset(r_list[location].last_pkts,0,ip_pkt_list_tot*sizeof(u_int32_t));
+ 			r_list[location].oldest_pkt = 0;
++			curr_table->entry_count--;
+ 			ans = !info->invert;
+ 		}
+ 		spin_unlock_bh(&curr_table->list_lock);
+@@ -719,6 +746,7 @@
+ 	curr_table->next = NULL;
+ 	curr_table->count = 1;
+ 	curr_table->time_pos = 0;
++	curr_table->entry_count = 0;
+ 	strncpy(curr_table->name,info->name,IPT_RECENT_NAME_LEN);
+ 	curr_table->name[IPT_RECENT_NAME_LEN-1] = '\0';
+ 
 
---------------040903080305070204020400--
+--------------040003050006030608070305--
