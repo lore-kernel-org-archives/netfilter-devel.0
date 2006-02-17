@@ -1,14 +1,26 @@
-From: "Marco Berizzi" <pupilla@hotmail.com>
-Subject: Re: ipsec with 2.6.16-rc3-git6
-Date: Fri, 17 Feb 2006 09:33:46 +0100
-Message-ID: <BAY103-F4055BADFA80BE01E71246CB2F80@phx.gbl>
-References: <43F4E0AB.5080806@trash.net>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH 4/4] first conntrack ID must be 1 not 2
+Date: Fri, 17 Feb 2006 09:45:16 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0602170936160.1339@tux.rsn.bth.se>
+References: <43EFF1F0.1090701@netfilter.org>
+	<20060213112028.GU4601@sunbeam.de.gnumonks.org>
+	<43F438F5.8070607@trash.net>
+	<Pine.LNX.4.58.0602160943060.26770@blackhole.kfki.hu>
+	<43F43FA9.4000906@trash.net>
+	<Pine.LNX.4.58.0602161005450.26770@blackhole.kfki.hu>
+	<43F4426D.9060807@trash.net>
+	<Pine.LNX.4.58.0602161017590.26770@blackhole.kfki.hu>
+	<43F4DBDF.9010008@trash.net>
+	<Pine.LNX.4.58.0602170907001.29301@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <43F4E0AB.5080806@trash.net>
-To: kaber@trash.net
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0602170907001.29301@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,52 +32,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, 17 Feb 2006, Jozsef Kadlecsik wrote:
 
-Patrick McHardy wrote:
+> > > Some clever solution should only be found to spread the expectations
+> > > over multiple, separatedly locked buckets...
+> >
+> > I've talked to Harald about this and as a start we can start by
+> > allowing masks only for the source part of the tuple. That
+> > means we can hash by destinations.
+>
+> That's actually fine! Now I should complete that hashtrie/hashtable
+> testing I have been planning...
 
->2.6.16-rc includes patches for proper netfilter IPsec handling.
->Packets will now go through the chains once in plain text and
->once encrypted, so you need to adapt your ruleset. There is a
->new "policy" match, which allows to match on packets from/to
->IPsec tunnels, with that it should be relatively easy to create
->rules for your roadwarriors.
+Great that you are testing hashtrie, it works fine in all my simple tests
+but there might still be a lot of bugs in it, especially in the forced
+eviction, it might not be optimal, me and rusty tried to come up with a
+way to make it fair wrt the depth in the tree we are evicting at.
 
-I didn't explain myself. Here is my network schema:
+If you have any suggestions and/or patches, please let me know :)
 
-172.23.0.0/23===firenze-gateway..[ipsec 
-tunnel]..venezia-gateway===172.16.0.0/23
+Are you using the 060104 version, that's the latest version I have of the
+userspace code.
+I have an old untested patch against nf_conntrack as well but it needs
+some rewriting of the conntrack locking in order to avoid an SMP deadlock.
 
-firenze-gateway is running 2.6.16-rc3-git6, and here is my rules:
-
-Chain INPUT (policy DROP)
-target     prot opt source               destination
-ACCEPT     all  --  venezia-gateway       0.0.0.0/0
-ACCEPT     all  --  127.0.0.1            127.0.0.1
-ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0           state 
-RELATED,ESTABLISHED
-green-me   all  --  172.23.0.0/23        0.0.0.0/0
-dmz-me     all  --  85.38.120.0/27       0.0.0.0/0
-red-me     all  --  0.0.0.0/0            0.0.0.0/0
-
-Chain red-me (1 references)
-target     prot opt source               destination
-ACCEPT     icmp --  0.0.0.0/0            0.0.0.0/0           icmp type 3
-ACCEPT     esp  --  0.0.0.0/0            0.0.0.0/0
-ACCEPT     udp  --  0.0.0.0/0            0.0.0.0/0           multiport 
-dports 500,4500
-
-Chain FORWARD (policy DROP)
-target     prot opt source               destination
-ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0           state 
-RELATED,ESTABLISHED
-ACCEPT     all  --  172.23.0.0/23        172.16.0.0/23
-ACCEPT     all  --  172.16.0.0/23        172.23.0.0/23
-
-With these rules I'm able to send/receive packets from the two
-private networks each other (172.16.0.0/23<->172.23.0.0/23).
-If I delete the first rule in the INPUT table (on firenze-gateway)
-
-ACCEPT     all  --  venezia-gateway       0.0.0.0/0
-
-there is no packet flow inside the tunnel. I don't understand,
-as I accept esp packets in the red-me chain.
+/Martin
