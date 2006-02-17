@@ -1,14 +1,27 @@
-From: "Marco Berizzi" <pupilla@hotmail.com>
-Subject: Re: ipsec with 2.6.16-rc3-git6
-Date: Fri, 17 Feb 2006 10:26:36 +0100
-Message-ID: <BAY103-F317BB3E7D40C47ECB8126EB2F80@phx.gbl>
-References: <43F592DB.9090701@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 4/4] first conntrack ID must be 1 not 2
+Date: Fri, 17 Feb 2006 10:30:23 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0602170951070.29301@blackhole.kfki.hu>
+References: <43EFF1F0.1090701@netfilter.org>
+	<20060213112028.GU4601@sunbeam.de.gnumonks.org>
+	<43F438F5.8070607@trash.net>
+	<Pine.LNX.4.58.0602160943060.26770@blackhole.kfki.hu>
+	<43F43FA9.4000906@trash.net>
+	<Pine.LNX.4.58.0602161005450.26770@blackhole.kfki.hu>
+	<43F4426D.9060807@trash.net>
+	<Pine.LNX.4.58.0602161017590.26770@blackhole.kfki.hu>
+	<43F4DBDF.9010008@trash.net>
+	<Pine.LNX.4.58.0602170907001.29301@blackhole.kfki.hu>
+	<Pine.LNX.4.58.0602170936160.1339@tux.rsn.bth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <43F592DB.9090701@trash.net>
-To: kaber@trash.net
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <Pine.LNX.4.58.0602170936160.1339@tux.rsn.bth.se>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,107 +33,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, 17 Feb 2006, Martin Josefsson wrote:
 
-Patrick McHardy wrote:
-
->Marco Berizzi wrote:
-> >
-> > Patrick McHardy wrote:
-> >
-> >> Marco Berizzi wrote:
-> >> > With these rules I'm able to send/receive packets from the two
-> >> > private networks each other (172.16.0.0/23<->172.23.0.0/23).
-> >> > If I delete the first rule in the INPUT table (on firenze-gateway)
-> >> >
-> >> > ACCEPT     all  --  venezia-gateway       0.0.0.0/0
-> >> >
-> >> > there is no packet flow inside the tunnel. I don't understand,
-> >> > as I accept esp packets in the red-me chain.
-> >>
-> >> What does your policy look like?
-> >
-> >
-> > root@Halley:~# ip xfrm policy
-> > src 172.16.0.0/23 dst 172.23.0.0/23
-> >        dir in priority 2377
-> >        tmpl src venezia-gateway dst firenze-gateway
-> >                proto comp reqid 16406 mode tunnel
-> >                level use
-> >        tmpl src 0.0.0.0 dst 0.0.0.0
-> >                proto esp reqid 16405 mode transport
-> > src 172.23.0.0/23 dst 172.16.0.0/23
-> >        dir out priority 2377
-> >        tmpl src firenze-gateway dst venezia-gateway
-> >                proto comp reqid 16406 mode tunnel
-> >        tmpl src 0.0.0.0 dst 0.0.0.0
-> >                proto esp reqid 16405 mode transport
-> > src 172.16.0.0/23 dst 172.23.0.0/23
-> >        dir fwd priority 2377
-> >        tmpl src venezia-gateway dst firenze-gateway
-> >                proto comp reqid 16406 mode tunnel
-> >                level use
-> >        tmpl src 0.0.0.0 dst 0.0.0.0
-> >                proto esp reqid 16405 mode transport
+> > That's actually fine! Now I should complete that hashtrie/hashtable
+> > testing I have been planning...
 >
->I can't see a mistake. Can you please add a logging rule to log
->the packets that get dropped without the ACCEPT rule?
+> Great that you are testing hashtrie, it works fine in all my simple tests
+> but there might still be a lot of bugs in it, especially in the forced
+> eviction, it might not be optimal, me and rusty tried to come up with a
+> way to make it fair wrt the depth in the tree we are evicting at.
+>
+> If you have any suggestions and/or patches, please let me know :)
 
-Sure! Here is:
+Here are the tests I'd like to see against hashtrie:
 
-root@Halley:/tmp# iptables -D INPUT -s venezia-gateway -j ACCEPT
+- larger hashentry, i.e. when HASHSIFT is equal to 6, 7 or 8
+- other HASHALIGN, hashbit_t values: (32, u8), (64, u16) and (64, u32).
+  The current (32, u8) doesn't look optimal on 64bit CPUs, (64, u16) seems
+  to be the best, but without testing it's hard to choose.
+- DoS against hashtrie by non-random tuples: single fixed destination IP,
+  port and successive source IP, port numbers. (I don't think the current
+  max 7 levels (childs) can survive such an attack.)
 
-[started ping from a venezia private host ----> to firenze private host]
+Somehow I don't really like the eviction algorithm. What about some lazy
+auto-eviction instead: say, if there are more than 90% of the max
+elements, then drop a (any) unassured connection which can be found on the
+path when inserting a new one. Thus the current fixed stack could be
+eliminated and there were no builtin limit in the depth.
 
-root@Halley:/tmp# iptables -I INPUT -s venezia-gateway -j LOG --log-level 
-debug --log-ip-options
+I'm collecting the ideas, so can't submit patches yet ;-).
 
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=112 TOS=0x00 PREC=0x00 TTL=53 
-ID=45921 PROTO=ESP SPI=0x583f3ff9
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=80 TOS=0x00 PREC=0x00 TTL=53 
-ID=45921 PROTO=4
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=112 TOS=0x00 PREC=0x00 TTL=53 
-ID=45922 PROTO=ESP SPI=0x583f3ff9
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=80 TOS=0x00 PREC=0x00 TTL=53 
-ID=45922 PROTO=4
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=112 TOS=0x00 PREC=0x00 TTL=53 
-ID=45923 PROTO=ESP SPI=0x583f3ff9
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=80 TOS=0x00 PREC=0x00 TTL=53 
-ID=45923 PROTO=4
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=112 TOS=0x00 PREC=0x00 TTL=53 
-ID=45924 PROTO=ESP SPI=0x583f3ff9
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=80 TOS=0x00 PREC=0x00 TTL=53 
-ID=45924 PROTO=4
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=112 TOS=0x00 PREC=0x00 TTL=53 
-ID=45925 PROTO=ESP SPI=0x583f3ff9
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=80 TOS=0x00 PREC=0x00 TTL=53 
-ID=45925 PROTO=4
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=112 TOS=0x00 PREC=0x00 TTL=53 
-ID=45926 PROTO=ESP SPI=0x583f3ff9
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=80 TOS=0x00 PREC=0x00 TTL=53 
-ID=45926 PROTO=4
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=112 TOS=0x00 PREC=0x00 TTL=53 
-ID=45927 PROTO=ESP SPI=0x583f3ff9
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=80 TOS=0x00 PREC=0x00 TTL=53 
-ID=45927 PROTO=4
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=112 TOS=0x00 PREC=0x00 TTL=53 
-ID=45928 PROTO=ESP SPI=0x583f3ff9
-IN=eth0 OUT= MAC=00:90:27:74:66:4c:00:0c:ce:93:65:ce:08:00 
-SRC=venezia-gateway DST=firenze-gateway LEN=80 TOS=0x00 PREC=0x00 TTL=53 
-ID=45928 PROTO=4
-root@Halley:/tmp# iptables -D INPUT -s venezia-gateway -j LOG --log-level 
-debug --log-ip-options
+> I have an old untested patch against nf_conntrack as well but it needs
+> some rewriting of the conntrack locking in order to avoid an SMP deadlock.
+
+Rusty's lock-ordering is a sure solution, but penalizes the process.
+I have been thinking on wether we could use simply, separated, unordered
+locking:
+
+1. lock bucket according to tuple1
+	add element
+   unlock bucket
+2. lock bucket according to tuple2,
+	add element
+   unlock bucket
+   if (add element failed)
+	undo 1.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
