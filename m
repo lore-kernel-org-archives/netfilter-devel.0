@@ -1,60 +1,36 @@
-From: =?iso-8859-2?q?T=F6r=F6k_Edwin?= <edwin@gurde.com>
-Subject: Re: [PATCH 2.6.15.4 1/1][RFC] ipt_owner: inode match supporting both incoming and outgoing packets
-Date: Sat, 18 Feb 2006 16:15:30 +0200
-Message-ID: <200602181615.31004.edwin@gurde.com>
-References: <200602181410.59757.edwin.torok@level7.ro> <200602181447.31592.edwin@gurde.com> <1140268203.4698.7.camel@laptopd505.fenrus.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2.6.15.4 1/1][RFC] ipt_owner: inode match supporting both
+ incoming and outgoing packets
+Date: Sat, 18 Feb 2006 20:28:49 +0100
+Message-ID: <43F77571.7020100@trash.net>
+References: <200602181420.02791.edwin@gurde.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
-Cc: Christoph Hellwig <hch@infradead.org>,
-	netfilter-devel@lists.netfilter.org,
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@lists.netfilter.org,
 	fireflier-devel@lists.sourceforge.net,
 	linux-kernel@vger.kernel.org, martinmaurer@gmx.at
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751255AbWBROQN@vger.kernel.org>
-To: Arjan van de Ven <arjan@infradead.org>
-In-Reply-To: <1140268203.4698.7.camel@laptopd505.fenrus.org>
-Content-Disposition: inline
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932125AbWBRTaW@vger.kernel.org>
+To: =?ISO-8859-1?Q?T=F6r=F6k_Edwin?= <edwin@gurde.com>
+In-Reply-To: <200602181420.02791.edwin@gurde.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Saturday 18 February 2006 15:10, Arjan van de Ven wrote:
-> >  As a last resort, I'll try to maintain this as separate patch to be
-> > applied to the kernel, but that is something I'd really try to avoid,
-> > because:
->
-> the problem is this: The export is going away for a reason and not "just
-> because". 
-I understand that, I didn't say there wasn't a reason for it going away.
-> And that reason is that the implementation is going to be 
-> radically redone such that this isn't possible anymore. At all.
-Could you tell me on which thread is this reimplementation being discussed? 
-I'd like to get a more clear picture of what exports I can use, and which 
-ones I can't.
+T=F6r=F6k Edwin wrote:
+> First of all this is what I'd like to achieve:
+> - filter packets by the program who sent the packet
+> - filter packets by the program who is going to receive the packet
+> - when multiple programs share a socket (i.e. they listen on the same=
+ socket),=20
+> allow the packet only if all programs are allowed to receive the pack=
+et
 
-Is the sk_sleep field of struct socket going to remain? If yes what am I 
-allowed to do with it inside ipt_owner.c?
+Besides the tasklist_lock issues, there is no 1:1 relationship between
+sockets and processes, which is why this can never work. You don't know
+which process is going to receive a packet until it calls recvmsg().
 
-Can you provide a function (in the new implementation) that at least gives me 
-a list of pids that are going to be woken up by data being received on a 
-socket? (for the moment it doesn't matter if that function will take some 
-time to complete its job, it's still going to be faster, than doing all this 
-from userspace). Then I could do the rest of the checking in userspace.
-
-Or if that is not possible, could you tell me what kind of information am I 
-going to be able to obtain from the wait_queue_t of the socket?
-
-> No amount of patching can fix that ;)
-That is why I started this thread in the first place. I want to implement the 
-inode match in such a way that it will use only functions/structures it is 
-supposed to, (and not some functions/structures that are going away).
-
-Could you please help me, and tell me _how_  I can implement this, _without_ 
-doing something that won't be possible in the (near) future. 
-
-P.S.: This is my first attempt at modifying the kernel. If I ask something 
-that is obvious, just point me where the documentation for that is, or to the 
-thread where that has been already discussed.
-
-Thanks,
-Edwin
+There is some work in progress to solve this problem in a different way=
+,
+by adding new hooks to the protocols that get the socket as context,
+and using SElinux labels instead of process names/inodes/whatever for
+matching.
