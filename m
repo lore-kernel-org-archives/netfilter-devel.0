@@ -1,13 +1,13 @@
-From: =?iso-8859-1?q?T=F6r=F6k_Edwin?= <edwin.torok@level7.ro>
+From: =?iso-8859-1?q?T=F6r=F6k_Edwin?= <edwin@gurde.com>
 Subject: [PATCH 2.6.15.4 1/1][RFC] ipt_owner: inode match supporting both incoming and outgoing packets
-Date: Sat, 18 Feb 2006 14:10:59 +0200
-Message-ID: <200602181410.59757.edwin.torok@level7.ro>
+Date: Sat, 18 Feb 2006 14:20:02 +0200
+Message-ID: <200602181420.02791.edwin@gurde.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Cc: linux-kernel@vger.kernel.org, martinmaurer@gmx.at
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751151AbWBRMLd@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751166AbWBRMVF@vger.kernel.org>
 To: netfilter-devel@lists.netfilter.org,
 	fireflier-devel@lists.sourceforge.net
 Content-Disposition: inline
