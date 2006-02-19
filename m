@@ -1,15 +1,15 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/13]: Netfilter patches for 2.6.17
-Date: Sun, 19 Feb 2006 00:31:41 -0800 (PST)
-Message-ID: <20060219.003141.61587782.davem@davemloft.net>
-References: <20060216213207.6933.99672.sendpatchset@localhost.localdomain>
+Subject: Re: [NETFILTER 14/13]: Fix NAT PMTUD problems
+Date: Sun, 19 Feb 2006 00:44:45 -0800 (PST)
+Message-ID: <20060219.004445.68815246.davem@davemloft.net>
+References: <43F77A08.4030308@trash.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: kaber@trash.net
-In-Reply-To: <20060216213207.6933.99672.sendpatchset@localhost.localdomain>
+In-Reply-To: <43F77A08.4030308@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,11 +21,6 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 16 Feb 2006 22:32:07 +0100 (MET)
 
-> these are my netfilter patches for 2.6.17. The last patch (ctnetlink:
-> avoid unneccessary event message generation) depends on the netlink
-> patch I sent yesterday. Please apply on top of that patch.
-
-All applied, thanks Patrick.
+I think this belongs in net-2.6, is that where you want me to
+put it?
