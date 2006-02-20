@@ -1,53 +1,133 @@
-From: James Morris <jmorris@namei.org>
-Subject: Re: [PATCH 2.6.15.4 1/1][RFC] ipt_owner: inode match supporting both
- incoming and outgoing packets
-Date: Mon, 20 Feb 2006 11:26:56 -0500 (EST)
-Message-ID: <Pine.LNX.4.64.0602201122330.21034@excalibur.intercode>
-References: <200602181410.59757.edwin.torok@level7.ro>
+From: Michael Richardson <mcr@xelerance.com>
+Subject: [PATCH 02/02] add mask options to fwmark masking code
+Date: Mon, 20 Feb 2006 11:26:53 -0500
+Message-ID: <23140.1140452813@sandelman.ottawa.on.ca>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="537529445-1169445822-1140452646=:21034"
-Cc: netfilter-devel@lists.netfilter.org,
-	fireflier-devel@lists.sourceforge.net,
-	linux-kernel@vger.kernel.org, martinmaurer@gmx.at,
-	Patrick McHardy <kaber@trash.net>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161004AbWBTQ1B@vger.kernel.org>
-To: =?iso-8859-1?q?T=F6r=F6k_Edwin?= <edwin.torok@level7.ro>
-In-Reply-To: <200602181410.59757.edwin.torok@level7.ro>
-Content-ID: <Pine.LNX.4.64.0602201125220.21034@excalibur.intercode>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Cc: netdev@vger.kernel.org,
+	netfilter-devel <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Jamal Hadi Salim <hadi@cyberus.ca>, kuznet@ms2.inr.ac.ru
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---537529445-1169445822-1140452646=:21034
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Content-ID: <Pine.LNX.4.64.0602201125221.21034@excalibur.intercode>
-
-On Sat, 18 Feb 2006, Török Edwin wrote:
-
-> This is a patch based on Luke Kenneth Casson Leighton's patch [1] 
-> One problem with that patch was that it couldn't be used for filtering 
-> incoming packets, due to the fact that more than one process can listen on 
-> the same socket ([2],[3]).
-
-Have a look at my skfilter patches:
-http://people.redhat.com/jmorris/selinux/skfilter/kernel/
-
-These implement a scheme for matching incoming packets against sockets by 
-adding a new hook in the socket layer.
-
-For upstream merge, the issues are:
-- should the new socket hook be used for all incoming packets?
-- ensure IP queuing still works
-
-Patrick: any other issues?
+--=-=-=
 
 
+[PATCH] This patch introduces a mask to the fwmark test cases in the advanced
+routing. This let's one test individual bits of the fwmark to determine
+how things should be routed (pick a routing table). This patch retains
+compatibility with tests that do not set the mask by assuming a mask
+of 0 is equivalent to a mask of 0xffffffff.
 
-- James
+Sign-off-by: Michael Richardson <mcr@xelerance.com>
+
+
+---
+
+ include/linux/rtnetlink.h |    1 +
+ net/ipv4/fib_rules.c      |   19 +++++++++++++++++--
+ 2 files changed, 18 insertions(+), 2 deletions(-)
+
+bcdda64a16d4dfda6d95452bbf8541999121831a
+diff --git a/include/linux/rtnetlink.h b/include/linux/rtnetlink.h
+index 27fd17e..a5b55c2 100644
+--- a/include/linux/rtnetlink.h
++++ b/include/linux/rtnetlink.h
+@@ -266,6 +266,7 @@ enum rtattr_type_t
+ };
+ 
+ #define RTA_FWMARK      RTA_PROTOINFO
++#define RTA_FWMARK_MASK RTA_CACHEINFO
+ 
+ #define RTA_MAX (__RTA_MAX - 1)
+ 
+diff --git a/net/ipv4/fib_rules.c b/net/ipv4/fib_rules.c
+index de327b3..69eed89 100644
+--- a/net/ipv4/fib_rules.c
++++ b/net/ipv4/fib_rules.c
+@@ -68,6 +68,7 @@ struct fib_rule
+ 	u8		r_tos;
+ #ifdef CONFIG_IP_ROUTE_FWMARK
+ 	u32		r_fwmark;
++        u32             r_fwmark_mask;
+ #endif
+ 	int		r_ifindex;
+ #ifdef CONFIG_NET_CLS_ROUTE
+@@ -117,6 +118,7 @@ int inet_rtm_delrule(struct sk_buff *skb
+ 		    rtm->rtm_tos == r->r_tos &&
+ #ifdef CONFIG_IP_ROUTE_FWMARK
+ 		    (!rta[RTA_FWMARK-1] || memcmp(RTA_DATA(rta[RTA_FWMARK-1]), &r->r_fwmark, 4) == 0) &&
++		    (!rta[RTA_FWMARK_MASK-1] || memcmp(RTA_DATA(rta[RTA_FWMARK_MASK-1]), &r->r_fwmark_mask, 4) == 0) &&
+ #endif
+ 		    (!rtm->rtm_type || rtm->rtm_type == r->r_action) &&
+ 		    (!rta[RTA_PRIORITY-1] || memcmp(RTA_DATA(rta[RTA_PRIORITY-1]), &r->r_preference, 4) == 0) &&
+@@ -202,6 +204,17 @@ int inet_rtm_newrule(struct sk_buff *skb
+ #ifdef CONFIG_IP_ROUTE_FWMARK
+ 	if (rta[RTA_FWMARK-1]) 
+ 		memcpy(&new_r->r_fwmark,      RTA_DATA(rta[RTA_FWMARK-1]), 4);
++	if (rta[RTA_FWMARK_MASK-1]) 
++		memcpy(&new_r->r_fwmark_mask, RTA_DATA(rta[RTA_FWMARK_MASK-1]), 4);
++	/*
++	 * if the user doesn't set a mask, then set it to care about
++	 * all bits. This retains compatibility. Note it is impossible
++	 * to match SOMETHING & 0xMASK == 0, because fwmark==0 means
++	 * do not match fwmark at all.
++	 */
++	if(new_r->r_fwmark_mask == 0) {
++		new_r->r_fwmark_mask = 0xffffffff;
++	}
+ #endif
+ 	new_r->r_action = rtm->rtm_type;
+ 	new_r->r_flags = rtm->rtm_flags;
+@@ -298,7 +311,7 @@ FRprintk("Lookup: %u.%u.%u.%u <- %u.%u.%
+ 		    ((daddr^r->r_dst) & r->r_dstmask) ||
+ 		    (r->r_tos && r->r_tos != flp->fl4_tos) ||
+ #ifdef CONFIG_IP_ROUTE_FWMARK
+-		    (r->r_fwmark && r->r_fwmark != flp->fl4_fwmark) ||
++		    (r->r_fwmark && r->r_fwmark != (flp->fl4_fwmark & r->r_fwmark_mask)) ||
+ #endif
+ 		    (r->r_ifindex && r->r_ifindex != flp->iif))
+ 			continue;
+@@ -382,8 +395,10 @@ static __inline__ int inet_fill_rule(str
+ 	rtm->rtm_src_len = r->r_src_len;
+ 	rtm->rtm_tos = r->r_tos;
+ #ifdef CONFIG_IP_ROUTE_FWMARK
+-	if (r->r_fwmark) 
++	if (r->r_fwmark) {
+ 		RTA_PUT(skb, RTA_FWMARK, 4, &r->r_fwmark);
++		RTA_PUT(skb, RTA_FWMARK_MASK, 4, &r->r_fwmark_mask);
++	}
+ #endif
+ 	rtm->rtm_table = r->r_table;
+ 	rtm->rtm_protocol = 0;
 -- 
-James Morris
-<jmorris@namei.org>
---537529445-1169445822-1140452646=:21034--
+
+
+
+
+
+--=-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iQEVAwUAQ/ntzYCLcPvd0N1lAQLqbAf/d0ZoX70OFZNAqK3fukKOZbuZ7f3Skni2
+FFSsn4FYbHuyjZqIbR1ZNaPh+Wi1Z6ATZV5fYe8NWYFLsMk9xrEuWfMzade7pK7U
+CFszPqiYdlAsehfa55WPWQ7GV9FEEeQHsOZy3i+os1m4dUFcHS3dTim1CPzzLo6X
+0sgHz+G0aocSUr2KgwSpAQJtyHmrsC7k/1NB69rbKThJhccYw8ec3cjP1+7sD+hX
++3NIKkALYxiKEjYR9pH0bXFJVqxUrRqPSNv7rdVr5zcP5b4egS6mNXGQkIddRqLv
+YF3dGmwIg8KgObX8hay++8wOO2f4t2ql+vrCH41fypw82apnuF9fng==
+=1XFm
+-----END PGP SIGNATURE-----
+--=-=-=--
