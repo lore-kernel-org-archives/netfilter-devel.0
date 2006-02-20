@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 02/02] add mask options to fwmark masking code
-Date: Mon, 20 Feb 2006 17:57:11 +0100
-Message-ID: <43F9F4E7.5000708@trash.net>
-References: <23140.1140452813@sandelman.ottawa.on.ca>
+Subject: Re: [PATCH] iproute2 -- add fwmarkmask
+Date: Mon, 20 Feb 2006 18:03:04 +0100
+Message-ID: <43F9F648.1060803@trash.net>
+References: <23395.1140452828@sandelman.ottawa.on.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: kuznet@ms2.inr.ac.ru, netfilter-devel <netfilter-devel@lists.netfilter.org>,
-	Jamal Hadi Salim <hadi@cyberus.ca>, netdev@vger.kernel.org
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	shemminger@osdl.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Michael Richardson <mcr@xelerance.com>
-In-Reply-To: <23140.1140452813@sandelman.ottawa.on.ca>
+To: Michael Richardson <mcr@sandelman.ottawa.on.ca>
+In-Reply-To: <23395.1140452828@sandelman.ottawa.on.ca>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,38 +23,25 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Michael Richardson wrote:
-> [PATCH] This patch introduces a mask to the fwmark test cases in the advanced
-> routing. This let's one test individual bits of the fwmark to determine
-> how things should be routed (pick a routing table). This patch retains
-> compatibility with tests that do not set the mask by assuming a mask
-> of 0 is equivalent to a mask of 0xffffffff.
+> -	if (tb[RTA_PROTOINFO]) {
+> -		fprintf(fp, "fwmark %#x ", *(__u32*)RTA_DATA(tb[RTA_PROTOINFO]));
+> +	if (tb[RTA_FWMARK]) {
+> +		__u32 value = *(__u32*)RTA_DATA(tb[RTA_PROTOINFO]);
+> +		if (tb[RTA_FWMARK_MASK]) {
+> +			__u32 mask;
+> +			mask=*(__u32*)RTA_DATA(tb[RTA_FWMARK_MASK]);
+> +			fprintf(fp, "fwmark %#x&%#x ", value, mask);
 
+The normal way to display masks is with a "/". Also I think it shouldn't
+display the default mask to avoid breaking scripts that parse the
+output.
+> +		} else if (strcmp(*argv, "fwmarkmask") == 0) {
+> +			__u32 fwmarkmask;
+> +			NEXT_ARG();
+> +			if (get_u32(&fwmarkmask, *argv, 0))
+> +				invarg("fwmarkmask value is invalid\n", *argv);
+> +			addattr32(&req.n, sizeof(req), RTA_FWMARK_MASK, fwmarkmask);
 
-> bcdda64a16d4dfda6d95452bbf8541999121831a
-> diff --git a/include/linux/rtnetlink.h b/include/linux/rtnetlink.h
-> index 27fd17e..a5b55c2 100644
-> --- a/include/linux/rtnetlink.h
-> +++ b/include/linux/rtnetlink.h
-> @@ -266,6 +266,7 @@ enum rtattr_type_t
->  };
->  
->  #define RTA_FWMARK      RTA_PROTOINFO
-> +#define RTA_FWMARK_MASK RTA_CACHEINFO
-
-Please introduce a new attribute for this instead of overloading
-RTA_CACHEINFO.
-
-> diff --git a/net/ipv4/fib_rules.c b/net/ipv4/fib_rules.c
-> index de327b3..69eed89 100644
-> --- a/net/ipv4/fib_rules.c
-> +++ b/net/ipv4/fib_rules.c
-> @@ -68,6 +68,7 @@ struct fib_rule
->  	u8		r_tos;
->  #ifdef CONFIG_IP_ROUTE_FWMARK
->  	u32		r_fwmark;
-> +        u32             r_fwmark_mask;
-
-Both patches have whitespace issues. You should also change decnet,
-which also supports routing by fwmark. Other than that the patch
-looks fine, in fact its nearly identical to a patch I wanted to
-send soon which does the same :)
+ip should be able to parse its own output, and it would also look nicer
+if I could just say "fwmark 0x1/32". fwmarkmask is really an incredible
+ugly expression :)
