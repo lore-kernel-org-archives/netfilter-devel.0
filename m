@@ -1,34 +1,33 @@
-From: Dmitry Mishin <dim@openvz.org>
-Subject: [NET][IA64] Unaligned access in sk_run_filter
-Date: Mon, 20 Feb 2006 18:28:28 +0300
-Message-ID: <200602201828.29098.dim@openvz.org>
+From: Jes Sorensen <jes@sgi.com>
+Subject: Re: [NET][IA64] Unaligned access in sk_run_filter
+Date: 20 Feb 2006 10:43:16 -0500
+Message-ID: <yq0u0auqbmz.fsf@jaguar.mkp.net>
+References: <200602201828.29098.dim@openvz.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+Content-Type: text/plain; charset=us-ascii
+Cc: "David S. Miller" <davem@davemloft.net>,
+	linux-kernel@vger.kernel.org, netfilter-devel@lists.netfilter.org,
 	rusty@rustcorp.com.au, devel@openvz.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030241AbWBTP2s@vger.kernel.org>
-To: "David S. Miller" <davem@davemloft.net>
-Content-Disposition: inline
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1030289AbWBTPnU@vger.kernel.org>
+To: Dmitry Mishin <dim@openvz.org>
+In-Reply-To: <200602201828.29098.dim@openvz.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+>>>>> "Dmitry" == Dmitry Mishin <dim@openvz.org> writes:
 
-We have an issue on ia64 box. It is easy triggerable 'kernel unaligned access' 
-in sk_run_filter:
-         ptr = load_pointer(skb, k, 4, &tmp);
-         if (ptr != NULL) {
-                  A = ntohl(*(u32 *)ptr); << here
-                  continue;
-         }
+Dmitry> Hello, We have an issue on ia64 box. It is easy triggerable
+Dmitry> 'kernel unaligned access' in sk_run_filter:
 
-due to 'k' is coming from userspace it can be easy triggered, e.g.:
-[root@node1 ~]# tcpdump -i eth0 'ip[1:2]=0'
+Dmitry>         ptr = load_pointer(skb, k, 4, &tmp);
+Dmitry>         if (ptr != NULL) {
+Dmitry>                  A = ntohl(*(u32 *)ptr); << here
 
-Could you advise how to fix this?
+Change the above line to something like this:
 
--- 
-Thanks,
-Dmitry.
+                        A = ntohl(get_unaligned((u32*)ptr));
+
+And add an #include <asm/unaligned.h>
+
+Cheers,
+Jes
