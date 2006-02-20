@@ -1,71 +1,87 @@
-From: Nils Ohlmeier <lists@ohlmeier.org>
-Subject: Re: SIP helper review
-Date: Mon, 20 Feb 2006 21:45:20 +0100
-Message-ID: <200602202145.20377.lists@ohlmeier.org>
-References: <200602192312.05240.lists@ohlmeier.org> <43F9FDC3.50102@trash.net>
+From: "Arnaldo Carvalho de Melo" <acme@ghostprotocols.net>
+Subject: Re: 2.6.16-rc4-mm1
+Date: Mon, 20 Feb 2006 17:56:47 -0300
+Message-ID: <39e6f6c70602201256s14df3079j676a88e28934d8ef@mail.gmail.com>
+References: <20060220042615.5af1bddc.akpm@osdl.org> <43F9BDDA.1060508@reub.net>
+	 <43F9CE18.10709@trash.net> <43FA20C4.9090709@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Christian Hentschel <chentschel@arnet.com.ar>,
-	Harald Welte <laforge@gnumonks.org>, Harry Behrens <harry@behrens.com>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <43F9FDC3.50102@trash.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Cc: "Patrick McHardy" <kaber@trash.net>,
+	"Reuben Farrelly" <reuben-lkml@reub.net>,
+	"Andrew Morton" <akpm@osdl.org>,
+	"Netfilter Development Mailinglist"
+	<netfilter-devel@lists.netfilter.org>,
+	linux-kernel@vger.kernel.org, dccp@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161177AbWBTU4s@vger.kernel.org>
+To: "Carl-Daniel Hailfinger" <c-d.hailfinger.devel.2006@gmx.net>
+In-Reply-To: <43FA20C4.9090709@gmx.net>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Monday 20 February 2006 18:34, Patrick McHardy wrote:
-> Nils Ohlmeier wrote:
-> > 1) As far as I got it the skp_epaddr_len function in ip_conntrack_sip.c
-> > expects to find a username in the SIP URI in the Contact header. As
-> > usernames are generally optional in SIP URIs there are several User
-> > Agents (UA), especially the cheaper hardware UA's which support only one
-> > SIP account, which do not put a username into their Contact's. Thus I
-> > would propose that the searching for the username in the Contact header
-> > should be optional as well.
+On 2/20/06, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net> wrote:
+> Patrick McHardy schrieb:
+> > Reuben Farrelly wrote:
+> >
+> >>Minor dependency issue:
+> >>
+> >>My compile failed with this..
+> >>
+> >>  CC [M]  net/netfilter/xt_dccp.o
+> >>In file included from net/netfilter/xt_dccp.c:15:
+> >>include/linux/dccp.h:341:2: error: #error "At least one CCID must be
+> >>built as the default"
+> >>make[2]: *** [net/netfilter/xt_dccp.o] Error 1
+> >>make[1]: *** [net/netfilter] Error 2
+> >>make: *** [net] Error 2
+> >>[root@tornado linux-2.6-mm]#
+> >>
+> >>[I have no idea what a CCID is]
+> >>
+> >>But it was caused by this:
+> >>
+> >>CONFIG_NETFILTER_XT_MATCH_DCCP=m
+> >>
+> >>and maybe this below had an impact:
+> >>
+> >>#
+> >># DCCP Configuration (EXPERIMENTAL)
+> >>#
+> >># CONFIG_IP_DCCP is not set
+> >>
+> >>After unsetting the option to build the DCCP Netfilter module, I was
+> >>able to compile through to completion.
+> >
+> >
+> > Ideally this dependency should be enforced by Kconfig. I'm not sure
+> > if it is possible to express something like "IP_DCCP_CCID2 and
+> > IP_DCCP_CCID3 depend on DCCP, DCCP requires at least one of both
+> > to be enabled". Can someone more familiar with Kconfig than me
+> > comment on this? Otherwise the #error should be moved to
+> > net/dccp/options.c to keep dccp.h usable without dccp enabled.
 >
-> I think this is what made the helper fail with my crappy chinese SIP
-> ATA. Without the username, is there still an '@'-character (in which
-> case it should work as it is) or does the string start directly with
-> the address?
-
-The two valid alternatives are (omitting secure SIP, because it couldn't be 
-patched anyway):
- - sip:user@host
- - sip:host
-The first alternative is used by the majority of the devices. But if you have 
-a simple hardware with only one account there is no plus in adding a username 
-to the URI. Their are some devices which use the later. So some more devices 
-could be supported by netfilter if the username would not be mandatory.
-
-> > 2) As far as I got it the epaddr_len function looks for 'UDP' in Via
-> > headers. Is it by intention that the IP address replacement would only
-> > work for the UDP transport but not for TCP? Allthough TCP is not very
-> > widely used yet I think it should be easy to do the replacement for TCP
-> > as well, or?
+> Suggestion (not tested):
 >
-> It should be easy to change. Is TCP used for SIP itself? In that case
-> it would also have to register for TCP in addition to UDP.
+> config IP_DCCP_CCID2
+>         tristate "blah"
+>         select DCCP
+>         help
+>           Foo
+> config IP_DCCP_CCID3
+>         tristate "blah"
+>         select DCCP
+>         help
+>           Foo
+> config DCCP
+>         bool "blah"
+>         depends on IP_DCCP_CCID2 || IP_DCCP_CCID3
+>         help
+>           Foo
 
-Yes. In fact TCP should have precedence if it is supported by both sides. But 
-currently most of the providers do not offer/support it (on their server 
-side). So currently the add-on value by supporting TCP as well would be 
-small. But I think it will become more important in the future.
-Allthough I understand that the payload fragmentation with TCP would be a 
-problem for the netfilter module, I would assume that the Via header should 
-always appear early in a message. So it might be worth thinking about it for 
-the future.
+NAK, its more clear to be exposed to DCCP specific stuff such as CCIDs only
+if the user selected DCCP.
 
-Greetings
-  Nils
+So perhaps something like what is done for the io schedulers, will study this...
+
+- Arnaldo
