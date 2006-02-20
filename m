@@ -1,63 +1,53 @@
-From: Mickael Marchand <mikmak@freenux.org>
-Subject: trying to revive rtsp
-Date: Mon, 20 Feb 2006 08:56:49 +0100
-Message-ID: <43F97641.1030105@freenux.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: 2.6.16-rc4-mm1
+Date: Mon, 20 Feb 2006 15:11:36 +0100
+Message-ID: <43F9CE18.10709@trash.net>
+References: <20060220042615.5af1bddc.akpm@osdl.org> <43F9BDDA.1060508@reub.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>, dccp@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964930AbWBTOLj@vger.kernel.org>
+To: Reuben Farrelly <reuben-lkml@reub.net>
+In-Reply-To: <43F9BDDA.1060508@reub.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Reuben Farrelly wrote:
+> Minor dependency issue:
+> 
+> My compile failed with this..
+> 
+>   CC [M]  net/netfilter/xt_dccp.o
+> In file included from net/netfilter/xt_dccp.c:15:
+> include/linux/dccp.h:341:2: error: #error "At least one CCID must be
+> built as the default"
+> make[2]: *** [net/netfilter/xt_dccp.o] Error 1
+> make[1]: *** [net/netfilter] Error 2
+> make: *** [net] Error 2
+> [root@tornado linux-2.6-mm]#
+> 
+> [I have no idea what a CCID is]
+> 
+> But it was caused by this:
+> 
+> CONFIG_NETFILTER_XT_MATCH_DCCP=m
+> 
+> and maybe this below had an impact:
+> 
+> #
+> # DCCP Configuration (EXPERIMENTAL)
+> #
+> # CONFIG_IP_DCCP is not set
+> 
+> After unsetting the option to build the DCCP Netfilter module, I was
+> able to compile through to completion.
 
-I am really a newbie to the netfilter coding world, so please forgive
-any stupid questions :)
-
-I have mostly ported the old rtsp conntrack+nat code to recent 2.6
-kernels, compiles and loads fine into the kernel,
-but I have some problems to make it work now :)
-
-the initial TCP connexion to the RTSP server:554 is correctly detected
-and the expectation packet seems to be properly setup :
-cat /proc/net/ip_conntrack_expect
-255 proto=17 src=212.27.38.253 dst=10.0.0.2 sport=0 dport=33302
-
-212.27.38.253 is the RTSP server, 10.0.0.2 is the client, 10.0.0.1 is
-the netfilter box.
-
-so once the TCP connexion has been established, we expect a UDP stream
-from the server going to the client port 33302.
-
-my problem is that the expected packet does not get through the
-netfilter box, I can see the UDP stream coming from the RTSP server and
-going to my netfilter box,
-the expectation packet seems to get removed of
-/proc/net/ip_conntrack_expect as well (so basically it looks all good)
-but the netfilter box does not forward packets to 10.0.0.2.
-so it looks like a NAT problem to me, maybe the UDP packets are not
-getting NAT-ed back to the client.
-
-my first question would be :
-is it expected to see 10.0.0.2 in the expected paquet ?
-should not it be my external IP instead ?
-
-any tips in what direction I could look ? :)
-
-thanks for any help
-
-Cheers,
-Mik
-(Please CC-me in answers :)
-
-(posted a second time since the first one did not reach the lists
-apparently, sorry if you receive it twice ...)
+Ideally this dependency should be enforced by Kconfig. I'm not sure
+if it is possible to express something like "IP_DCCP_CCID2 and
+IP_DCCP_CCID3 depend on DCCP, DCCP requires at least one of both
+to be enabled". Can someone more familiar with Kconfig than me
+comment on this? Otherwise the #error should be moved to
+net/dccp/options.c to keep dccp.h usable without dccp enabled.
