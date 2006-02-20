@@ -1,12 +1,17 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] disallow multiple matches of same type
-Date: Sun, 19 Feb 2006 21:54:21 -0800
-Message-ID: <20060220055421.GA10552@linuxace.com>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [NETFILTER 14/13]: Fix NAT PMTUD problems
+Date: Sun, 19 Feb 2006 22:27:19 -0800 (PST)
+Message-ID: <20060219.222719.126324788.davem@davemloft.net>
+References: <43F77A08.4030308@trash.net>
+	<20060219.004445.68815246.davem@davemloft.net>
+	<43F830CC.4080502@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="tKW2IUtsqtDRztdT"
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: kaber@trash.net
+In-Reply-To: <43F830CC.4080502@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,45 +23,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Patrick McHardy <kaber@trash.net>
+Date: Sun, 19 Feb 2006 09:48:12 +0100
 
---tKW2IUtsqtDRztdT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> David S. Miller wrote:
+> > I think this belongs in net-2.6, is that where you want me to
+> > put it?
+> 
+> OK. There were enough netfilter patches touching critical spots
+> in the last -rc to make me feel a bit uncomfortable, which is
+> why I'm trying to keep it to a minimum.
 
-In latest iptables SVN, the command:
+I've applied it.  This is just too serious a regression to
+let slip into 2.6.16-final, I think.
 
-iptables -A foo -p tcp -m multiport --dport 45,47 -m multiport --sport 45:48
-
-ends up with mangled results of:
-
-... multiport sports  multiport sports  tcp spts:45:48
-
-Since at present, iptables can only handle one match of a given type
-per rule.  The below patch makes sure we disallow more than one.
-
-This closes bugzilla #447
-
-Phil
-
-
-
---tKW2IUtsqtDRztdT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-nomultimatch
-
---- ipt-orig/iptables.c	2006-02-11 01:50:11.000000000 -0800
-+++ ipt-new/iptables.c	2006-02-19 21:46:03.000000000 -0800
-@@ -2125,6 +2125,11 @@
- 				exit_error(PARAMETER_PROBLEM,
- 					   "unexpected ! flag before --match");
- 
-+			for (matchp = matches; matchp; matchp = matchp->next) {
-+				if (strcmp(optarg, matchp->match->name) == 0)
-+					exit_error(PARAMETER_PROBLEM,
-+						   "multiple matches of same type not supported");
-+			}
- 			m = find_match(optarg, LOAD_MUST_SUCCEED, &matches);
- 			size = IPT_ALIGN(sizeof(struct ipt_entry_match))
- 					 + m->size;
-
---tKW2IUtsqtDRztdT--
+Thanks.
