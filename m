@@ -1,7 +1,7 @@
-From: Mickael Marchand <marchand@kde.org>
+From: Mickael Marchand <mikmak@freenux.org>
 Subject: trying to revive rtsp
-Date: Sun, 19 Feb 2006 15:13:53 +0100
-Message-ID: <43F87D21.7090305@kde.org>
+Date: Mon, 20 Feb 2006 08:56:49 +0100
+Message-ID: <43F97641.1030105@freenux.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -58,3 +58,6 @@ thanks for any help
 Cheers,
 Mik
 (Please CC-me in answers :)
+
+(posted a second time since the first one did not reach the lists
+apparently, sorry if you receive it twice ...)
