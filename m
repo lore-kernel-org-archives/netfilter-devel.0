@@ -1,87 +1,47 @@
-From: "Arnaldo Carvalho de Melo" <acme@ghostprotocols.net>
+From: Adrian Bunk <bunk@stusta.de>
 Subject: Re: 2.6.16-rc4-mm1
-Date: Mon, 20 Feb 2006 17:56:47 -0300
-Message-ID: <39e6f6c70602201256s14df3079j676a88e28934d8ef@mail.gmail.com>
-References: <20060220042615.5af1bddc.akpm@osdl.org> <43F9BDDA.1060508@reub.net>
-	 <43F9CE18.10709@trash.net> <43FA20C4.9090709@gmx.net>
+Date: Mon, 20 Feb 2006 22:09:57 +0100
+Message-ID: <20060220210957.GH4661@stusta.de>
+References: <20060220042615.5af1bddc.akpm@osdl.org>
+	<43F9BDDA.1060508@reub.net> <43F9CE18.10709@trash.net>
+	<43FA20C4.9090709@gmx.net>
+	<39e6f6c70602201256s14df3079j676a88e28934d8ef@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Cc: "Patrick McHardy" <kaber@trash.net>,
-	"Reuben Farrelly" <reuben-lkml@reub.net>,
-	"Andrew Morton" <akpm@osdl.org>,
-	"Netfilter Development Mailinglist"
-	<netfilter-devel@lists.netfilter.org>,
-	linux-kernel@vger.kernel.org, dccp@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161177AbWBTU4s@vger.kernel.org>
-To: "Carl-Daniel Hailfinger" <c-d.hailfinger.devel.2006@gmx.net>
-In-Reply-To: <43FA20C4.9090709@gmx.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: Andrew Morton <akpm@osdl.org>, dccp@vger.kernel.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>,
+	linux-kernel@vger.kernel.org, Reuben Farrelly <reuben-lkml@reub.net>,
+	Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <39e6f6c70602201256s14df3079j676a88e28934d8ef@mail.gmail.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2/20/06, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net> wrote:
-> Patrick McHardy schrieb:
-> > Reuben Farrelly wrote:
-> >
-> >>Minor dependency issue:
-> >>
-> >>My compile failed with this..
-> >>
-> >>  CC [M]  net/netfilter/xt_dccp.o
-> >>In file included from net/netfilter/xt_dccp.c:15:
-> >>include/linux/dccp.h:341:2: error: #error "At least one CCID must be
-> >>built as the default"
-> >>make[2]: *** [net/netfilter/xt_dccp.o] Error 1
-> >>make[1]: *** [net/netfilter] Error 2
-> >>make: *** [net] Error 2
-> >>[root@tornado linux-2.6-mm]#
-> >>
-> >>[I have no idea what a CCID is]
-> >>
-> >>But it was caused by this:
-> >>
-> >>CONFIG_NETFILTER_XT_MATCH_DCCP=m
-> >>
-> >>and maybe this below had an impact:
-> >>
-> >>#
-> >># DCCP Configuration (EXPERIMENTAL)
-> >>#
-> >># CONFIG_IP_DCCP is not set
-> >>
-> >>After unsetting the option to build the DCCP Netfilter module, I was
-> >>able to compile through to completion.
-> >
-> >
-> > Ideally this dependency should be enforced by Kconfig. I'm not sure
-> > if it is possible to express something like "IP_DCCP_CCID2 and
-> > IP_DCCP_CCID3 depend on DCCP, DCCP requires at least one of both
-> > to be enabled". Can someone more familiar with Kconfig than me
-> > comment on this? Otherwise the #error should be moved to
-> > net/dccp/options.c to keep dccp.h usable without dccp enabled.
->
-> Suggestion (not tested):
->
-> config IP_DCCP_CCID2
->         tristate "blah"
->         select DCCP
->         help
->           Foo
-> config IP_DCCP_CCID3
->         tristate "blah"
->         select DCCP
->         help
->           Foo
-> config DCCP
->         bool "blah"
->         depends on IP_DCCP_CCID2 || IP_DCCP_CCID3
->         help
->           Foo
+On Mon, Feb 20, 2006 at 05:56:47PM -0300, Arnaldo Carvalho de Melo wrote:
+>...
+> So perhaps something like what is done for the io schedulers, will study this...
 
-NAK, its more clear to be exposed to DCCP specific stuff such as CCIDs only
-if the user selected DCCP.
+The io schedulers solve this through "always build the noop scheduler"...
 
-So perhaps something like what is done for the io schedulers, will study this...
+> - Arnaldo
 
-- Arnaldo
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
