@@ -1,18 +1,17 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH 1/4] Fix expectaction mask dumping, take #3
-Date: Tue, 21 Feb 2006 21:16:00 +0900 (JST)
-Message-ID: <200602211216.k1LCG0Fj018850@toshiba.co.jp>
-References: <43F44794.1080203@trash.net>
-	<20060216100504.GI15587@sunbeam.de.gnumonks.org>
-	<43F4DC55.8030405@trash.net>
+Date: Tue, 21 Feb 2006 14:03:54 +0100
+Message-ID: <43FB0FBA.4060609@netfilter.org>
+References: <43EFF176.3070505@netfilter.org> <43F44794.1080203@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
-	pablo@netfilter.org, yasuyuki.kozakai@toshiba.co.jp
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <43F4DC55.8030405@trash.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <43F44794.1080203@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,36 +23,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi Patrick,
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 16 Feb 2006 21:11:01 +0100
+Patrick McHardy wrote:
+>>Besides, this modification introduces the attribute CTA_IP_L3NUM.
+>>Although the layer 3 protocol information is sent in the nfnetlink
+>>header, if the message contains information about an expectation, it
+>>will contain information about the master conntrack (just one of the
+>>tuples), the expectation tuple and the expectation mask. In this case,
+>>the value of l3num in the expectation mask is not the same that is set
+>>in the nfnetlink message. That is why we need another field that contain
+>>the value of l3num.
+> 
+> I'm not sure I understand. The new attribute still contains the same
+> value as the netlink header, doesn't it? So userspace should currently
+> have at least two possibilities to get the correct value:
+> 
+> - use the value from the netlink header
+> - use the value from the tuple that comes with the mask, as the first
+>   part of your patch does. This seems most logically to me since the
+>   mask and the tuple belong together.
 
-> Harald Welte wrote:
-> > On Thu, Feb 16, 2006 at 10:36:20AM +0100, Patrick McHardy wrote:
-> > 
-> > 
-> >>I'm not sure I understand. The new attribute still contains the same
-> >>value as the netlink header, doesn't it? So userspace should currently
-> >>have at least two possibilities to get the correct value:
-> >>
-> >>- use the value from the netlink header
-> >>- use the value from the tuple that comes with the mask, as the first
-> >>  part of your patch does. This seems most logically to me since the
-> >>  mask and the tuple belong together.
-> > 
-> > 
-> > I still dream about a connection with one end in ipv4 space and the
-> > other in ipv6.  If we ever want to cover such a model, then the tuple
-> > needs to include l3num.
->
-> Yes, but until then it looks totally redundant. Since the bandwidth
-> of netlink is limited, I think we shouldn't add new attributes without
-> really needing them.
+The problem is that currently the expectation mask is not dumped.
+find_l3proto returns the generic protocol handler for 0xFF, and that
+doesn't dump any layer 3 information. Moreover, the expectation mask has
+l3num value that is different from the l3num in the nfnetlink header,
+that's why I introduced this field.
 
-'l3num' field in expectation mask may be 0xff. Then the new field is
-necessary so that kernel can pass the "exact value" in it to userspace.
+I can send a patch to remove the expectation mask dumping but I'm not
+sure if this information could be useful for userspace helpers. Harald?
 
-But, I don't know whether userspace really wants to know the exact value
-in it or not. I assumed, yes, but if it is not ture, I'll agree to Patrick.
-
--- Yasuyuki Kozakai
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
