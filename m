@@ -1,17 +1,14 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/4] Fix expectaction mask dumping, take #3
-Date: Tue, 21 Feb 2006 14:03:54 +0100
-Message-ID: <43FB0FBA.4060609@netfilter.org>
-References: <43EFF176.3070505@netfilter.org> <43F44794.1080203@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: BUG: More ipt_recent queries
+Date: Tue, 21 Feb 2006 16:28:17 +0000
+Message-ID: <43FB3FA1.7020808@ufomechanic.net>
+References: <dt51lh$b63$1@sea.gmane.org> <43FAF692.8030804@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <43F44794.1080203@trash.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <43FAF692.8030804@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,36 +20,78 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
-
-Patrick McHardy wrote:
->>Besides, this modification introduces the attribute CTA_IP_L3NUM.
->>Although the layer 3 protocol information is sent in the nfnetlink
->>header, if the message contains information about an expectation, it
->>will contain information about the master conntrack (just one of the
->>tuples), the expectation tuple and the expectation mask. In this case,
->>the value of l3num in the expectation mask is not the same that is set
->>in the nfnetlink message. That is why we need another field that contain
->>the value of l3num.
+Amin Azez wrote:
+> I'm concerned about ipt_recent where it removes entries from the list.
 > 
-> I'm not sure I understand. The new attribute still contains the same
-> value as the netlink header, doesn't it? So userspace should currently
-> have at least two possibilities to get the correct value:
+> Surly the move-up-and-close-the-gap while loop will never enter because 
+> time_info[time_loc].time has just been set to 0 so that this clause of 
+> the while loop:
 > 
-> - use the value from the netlink header
-> - use the value from the tuple that comes with the mask, as the first
->   part of your patch does. This seems most logically to me since the
->   mask and the tuple belong together.
+>   time_info[(time_loc+1) % ip_list_tot].time < time_info[time_loc].time)
+> 
+> will always be false.
+> 
+> Fuller code segment:
+> 
+> location = hash_table[hash_result];
+> hash_table[r_list[location].hash_entry] = -1;
+> time_loc = r_list[location].time_pos;
+> time_info[time_loc].time = 0;
+> time_info[time_loc].position = location;
+> 
+> while((time_info[(time_loc+1) % ip_list_tot].time <
+> time_info[time_loc].time) && ((time_loc+1) % ip_list_tot) !=
+> curr_table->time_pos) {
+>   time_temp = time_info[time_loc].time;
+>   time_info[time_loc].time = time_info[(time_loc+1)%ip_list_tot].time;
+>   time_info[(time_loc+1)%ip_list_tot].time = time_temp;
+>   time_temp = time_info[time_loc].position;
+>   time_info[time_loc].position =
+>              time_info[(time_loc+1)%ip_list_tot].position;
+>   time_info[(time_loc+1)%ip_list_tot].position = time_temp;
+>   r_list[time_info[time_loc].position].time_pos = time_loc;
+>   r_list[time_info[(time_loc+1)%ip_list_tot].position].time_pos =
+>              (time_loc+1)%ip_list_tot;
+>   time_loc = (time_loc+1) % ip_list_tot;
+> }
+> 
+> 
+> I think we should set time_info[time_loc].time = 0; at the end of the 
+> while loop?
 
-The problem is that currently the expectation mask is not dumped.
-find_l3proto returns the generic protocol handler for 0xFF, and that
-doesn't dump any layer 3 information. Moreover, the expectation mask has
-l3num value that is different from the l3num in the nfnetlink header,
-that's why I introduced this field.
+This is actually solvable by changeing the while loop condition:
+while(((time_loc+1) % ip_list_tot) != curr_table->time_pos) {
+...
 
-I can send a patch to remove the expectation mask dumping but I'm not
-sure if this information could be useful for userspace helpers. Harald?
+But appears also to have another problem which is that 
+curr_table->time_pos should be decreased (mod ip_list_tot of course) to 
+take into account that the last item in the newly shuffled time_info is 
+now vacant; otherwise this test:
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+for I in `seq 1 100` ; \
+do echo ${S}1.1.1.$I  > /proc/net/ipt_recent/LIMIT5 ; \
+done ; \
+echo -1.1.1.5 > /proc/net/ipt_recent/LIMIT5 ; \
+echo 1.1.1.200 > /proc/net/ipt_recent/LIMIT5
+
+Leaves 99 values instead of 100 because the slot from 1.1.1.5 was not 
+re-used.
+
+Inserting this line after the end of the while loop:
+ 
+curr_table->time_pos=(curr_table->time_pos+ip_list_tot-1)%ip_list_tot;
+
+
+solves the problem and causes shuffled-to-the-end spare slots in 
+time_info to be re-used first. A side effect is that output of 
+/proc/net/ipt_recent/* doesn't come out in time order any more; if there 
+have been mid-list deletes and then further adds.
+
+We could fix this by having ip_recent_get_info iterate indirectly using 
+curr_table->time_info instead of curr_table->table.
+
+Comments?
+
+I guess I'll send one big patch when I get it all closed off.
+
+Sam
