@@ -1,18 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Adrian Bunk <bunk@stusta.de>
 Subject: Re: 2.6.16-rc4-mm1
-Date: Tue, 21 Feb 2006 02:17:32 +0100
-Message-ID: <43FA6A2C.8000905@trash.net>
+Date: Tue, 21 Feb 2006 03:00:12 +0100
+Message-ID: <20060221020012.GU4661@stusta.de>
 References: <20060220042615.5af1bddc.akpm@osdl.org>
 	<43F9BDDA.1060508@reub.net> <43F9CE18.10709@trash.net>
-	<20060220204456.GG4661@stusta.de>
+	<20060220204456.GG4661@stusta.de> <43FA6A2C.8000905@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Adrian Bunk <bunk@stusta.de>
-In-Reply-To: <20060220204456.GG4661@stusta.de>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <43FA6A2C.8000905@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,38 +24,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Adrian Bunk wrote:
-> On Mon, Feb 20, 2006 at 03:11:36PM +0100, Patrick McHardy wrote:
+On Tue, Feb 21, 2006 at 02:17:32AM +0100, Patrick McHardy wrote:
 > 
->>Ideally this dependency should be enforced by Kconfig. I'm not sure
->>if it is possible to express something like "IP_DCCP_CCID2 and
->>IP_DCCP_CCID3 depend on DCCP, DCCP requires at least one of both
->>to be enabled". Can someone more familiar with Kconfig than me
->>comment on this? Otherwise the #error should be moved to
->>net/dccp/options.c to keep dccp.h usable without dccp enabled.
+> Arnaldo apparently wants to fix it differently, but maybe you could help
+> us with conntrack :) CONFIG_IP_NF_CONNTRACK and CONFIG_NF_CONNTRACK
+> should be mutually exclusive. Specifying
 > 
+> CONFIG_IP_NF_CONNTRACK
+> 	depends on CONFIG_NF_CONNTRACK=n
 > 
-> I can try to do it, but I need the exact semantics.
+> CONFIG_NF_CONNTRACK
+> 	depends on CONFIG_IP_NF_CONNTRACK=n
 > 
-> Should all of the following stay allowed configurations?
-> 
-> CONFIG_IP_DCCP=y
-> CONFIG_IP_DCCP_CCID2=m
-> CONFIG_IP_DCCP_CCID3=n
-> 
-> CONFIG_IP_DCCP=y
-> CONFIG_IP_DCCP_CCID2=y
-> CONFIG_IP_DCCP_CCID3=m
+> will avoid asking for NF_CONNTRACK when IP_NF_CONNTRACK is set, but not
+> the other way around.
 
-Arnaldo apparently wants to fix it differently, but maybe you could help
-us with conntrack :) CONFIG_IP_NF_CONNTRACK and CONFIG_NF_CONNTRACK
-should be mutually exclusive. Specifying
+
+Even worse, kconfig will complain about a circular dependency.
+
 
 CONFIG_IP_NF_CONNTRACK
-	depends on CONFIG_NF_CONNTRACK=n
 
 CONFIG_NF_CONNTRACK
 	depends on CONFIG_IP_NF_CONNTRACK=n
 
-will avoid asking for NF_CONNTRACK when IP_NF_CONNTRACK is set, but not
-the other way around.
+
+CONFIG_IP_NF_CONNTRACK will be visible if CONFIG_NF_CONNTRACK is set, 
+but as soon as CONFIG_IP_NF_CONNTRACK is set, CONFIG_NF_CONNTRACK is 
+automatically set to n.
+
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
