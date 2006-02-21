@@ -1,55 +1,61 @@
-From: Ernst Herzberg <earny@net4u.de>
-Subject: Re: 2.6.16-rc4 bridge/iptables Oops
-Date: Tue, 21 Feb 2006 02:11:21 +0100
-Message-ID: <200602210211.22364.earny@net4u.de>
-References: <200602201651.50217.list-lkml@net4u.de> <43FA0C02.8000909@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: 2.6.16-rc4-mm1
+Date: Tue, 21 Feb 2006 02:17:32 +0100
+Message-ID: <43FA6A2C.8000905@trash.net>
+References: <20060220042615.5af1bddc.akpm@osdl.org>
+	<43F9BDDA.1060508@reub.net> <43F9CE18.10709@trash.net>
+	<20060220204456.GG4661@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kernel Netdev Mailing List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932700AbWBUBL1@vger.kernel.org>
-To: linux-kernel@vger.kernel.org
-In-Reply-To: <43FA0C02.8000909@trash.net>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	linux-kernel@vger.kernel.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Adrian Bunk <bunk@stusta.de>
+In-Reply-To: <20060220204456.GG4661@stusta.de>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Monday 20 February 2006 19:35, Patrick McHardy wrote:
-> Ernst Herzberg wrote:
-> > This machine oopses one to three (or more?) times a day. Occurs since
-> > upgrading from -rc3 to -rc4 (and adding/reconfiguring raid).
-> >
-> > It is reproducable, i have only to wait 10min to a couple of hours:-)
-> >
-> > Opps copy/pasted from a serial console, long lines maybe truncated.
-> > dmesg is from the _previous_ boot/oops....
-> >
-> > -------------------------------------------
-> > Oops: 0000 [#1]
-> > PREEMPT
-> > Modules linked in: ebt_log ebt_ip ebtable_filter ebtables nfsd exportfs
-> > lockd sunrpc w83627hf hwmon_vid i2c_isa xt_tcpudp xt_state ipt_MASQUERADE
-> > iptable_e CPU:    0
-> > EIP:    0060:[<b033fbf3>]    Not tainted VLI
-> > EFLAGS: 00010282   (2.6.16-rc4 #3)
-> > EIP is at xfrm_lookup+0x1f/0x47d
+Adrian Bunk wrote:
+> On Mon, Feb 20, 2006 at 03:11:36PM +0100, Patrick McHardy wrote:
+> 
+>>Ideally this dependency should be enforced by Kconfig. I'm not sure
+>>if it is possible to express something like "IP_DCCP_CCID2 and
+>>IP_DCCP_CCID3 depend on DCCP, DCCP requires at least one of both
+>>to be enabled". Can someone more familiar with Kconfig than me
+>>comment on this? Otherwise the #error should be moved to
+>>net/dccp/options.c to keep dccp.h usable without dccp enabled.
+> 
+> 
+> I can try to do it, but I need the exact semantics.
+> 
+> Should all of the following stay allowed configurations?
+> 
+> CONFIG_IP_DCCP=y
+> CONFIG_IP_DCCP_CCID2=m
+> CONFIG_IP_DCCP_CCID3=n
+> 
+> CONFIG_IP_DCCP=y
+> CONFIG_IP_DCCP_CCID2=y
+> CONFIG_IP_DCCP_CCID3=m
 
+Arnaldo apparently wants to fix it differently, but maybe you could help
+us with conntrack :) CONFIG_IP_NF_CONNTRACK and CONFIG_NF_CONNTRACK
+should be mutually exclusive. Specifying
 
-> This patch should fix it. Please test it and report if it helps.
+CONFIG_IP_NF_CONNTRACK
+	depends on CONFIG_NF_CONNTRACK=n
 
-oernie:~ # uname -a ; uptime
-Linux oernie 2.6.16-rc4 #1 PREEMPT Mon Feb 20 22:07:34 CET 2006 i686 Intel(R) 
-Pentium(R) 4 CPU 2.80GHz GenuineIntel GNU/Linux
- 02:06:00 up  3:53,  4 users,  load average: 0.08, 0.15, 0.10
+CONFIG_NF_CONNTRACK
+	depends on CONFIG_IP_NF_CONNTRACK=n
 
-No oops so far. Serial console still connected, will report if this or a 
-similar problem occurs again.
-
-Thanks!
-
-<earn/>
+will avoid asking for NF_CONNTRACK when IP_NF_CONNTRACK is set, but not
+the other way around.
