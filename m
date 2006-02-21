@@ -1,14 +1,16 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: BUG: More ipt_recent queries
-Date: Tue, 21 Feb 2006 16:28:17 +0000
-Message-ID: <43FB3FA1.7020808@ufomechanic.net>
-References: <dt51lh$b63$1@sea.gmane.org> <43FAF692.8030804@ufomechanic.net>
+From: Gregor Maier <gregor@net.in.tum.de>
+Subject: Re: libnetfilter_queue man page
+Date: Tue, 21 Feb 2006 18:03:10 +0100
+Message-ID: <43FB47CE.8030003@net.in.tum.de>
+References: <1139235549.30902.3.camel@localhost.localdomain>	<20060208141927.GX31060@sunbeam.de.gnumonks.org>
+	<43EA2683.3030606@info-link.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <43FAF692.8030804@ufomechanic.net>
+To: Brad Fisher <brad@info-link.net>
+In-Reply-To: <43EA2683.3030606@info-link.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,78 +22,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez wrote:
-> I'm concerned about ipt_recent where it removes entries from the list.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+
+> -----------------
+> nfq_set_verdict()
+> -----------------
 > 
-> Surly the move-up-and-close-the-gap while loop will never enter because 
-> time_info[time_loc].time has just been set to 0 so that this clause of 
-> the while loop:
+> Prototype:
+> 	int nfq_set_verdict(struct nfq_q_handle *qh, u_int32_t id, u_int32_t verdict, u_int32_t data_len, unsigned char *buf)
 > 
->   time_info[(time_loc+1) % ip_list_tot].time < time_info[time_loc].time)
-> 
-> will always be false.
-> 
-> Fuller code segment:
-> 
-> location = hash_table[hash_result];
-> hash_table[r_list[location].hash_entry] = -1;
-> time_loc = r_list[location].time_pos;
-> time_info[time_loc].time = 0;
-> time_info[time_loc].position = location;
-> 
-> while((time_info[(time_loc+1) % ip_list_tot].time <
-> time_info[time_loc].time) && ((time_loc+1) % ip_list_tot) !=
-> curr_table->time_pos) {
->   time_temp = time_info[time_loc].time;
->   time_info[time_loc].time = time_info[(time_loc+1)%ip_list_tot].time;
->   time_info[(time_loc+1)%ip_list_tot].time = time_temp;
->   time_temp = time_info[time_loc].position;
->   time_info[time_loc].position =
->              time_info[(time_loc+1)%ip_list_tot].position;
->   time_info[(time_loc+1)%ip_list_tot].position = time_temp;
->   r_list[time_info[time_loc].position].time_pos = time_loc;
->   r_list[time_info[(time_loc+1)%ip_list_tot].position].time_pos =
->              (time_loc+1)%ip_list_tot;
->   time_loc = (time_loc+1) % ip_list_tot;
-> }
-> 
-> 
-> I think we should set time_info[time_loc].time = 0; at the end of the 
-> while loop?
+> Parameters:
+> 	qh			Netfilter queue handle obtained by call to nfq_create_queue().
+> 	id			ID assigned to packet by netfilter.  Can be obtained by: 
+> 					int id;
+> 					struct nfqnl_msg_packet_hdr *ph = nfq_get_msg_packet_hdr(tb);
+> 					if (ph) id = ntohl(ph->packet_id);
+> 	verdict		Verdict to return to netfilter
+> 					NF_ACCEPT	- Accept the packet
+> 					NF_DROP		- Drop the packet
+> 					???			- anything else possible? (ie. continue?,
+> 									jump? goto? log?)
+After digging through kernel source I'm pretty sure, that the only
+possible verdicts are
+NF_DROP, NF_ACCEPT
+NF_REPEAT  (queue the packet to userspace again) --> may lead to loops
+NF_QUEUE   same as NF_REPEAT. There's a differnce between the handling
+of NF_QUEUE and NF_REPEAT, but I don't know what this difference leads to.
 
-This is actually solvable by changeing the while loop condition:
-while(((time_loc+1) % ip_list_tot) != curr_table->time_pos) {
-...
+Why? When a packet is queued to userspace it "leaves" the current hook
+(e.g. the filter table) for good therefore it's not possible to continue
+with the next rule in the current chain or to jump to another chain.
 
-But appears also to have another problem which is that 
-curr_table->time_pos should be decreased (mod ip_list_tot of course) to 
-take into account that the last item in the newly shuffled time_info is 
-now vacant; otherwise this test:
+Maybe you also want to take a look at the Netfilter Hacking Howto, esp.
+section 3 (netfilter architecture)
 
-for I in `seq 1 100` ; \
-do echo ${S}1.1.1.$I  > /proc/net/ipt_recent/LIMIT5 ; \
-done ; \
-echo -1.1.1.5 > /proc/net/ipt_recent/LIMIT5 ; \
-echo 1.1.1.200 > /proc/net/ipt_recent/LIMIT5
+btw: thank's for the manpage
 
-Leaves 99 values instead of 100 because the slot from 1.1.1.5 was not 
-re-used.
+cu
+gregor
+- --
+Gregor Maier                                      Lehrstuhl Informatik 8
+gregor@net.in.tum.de                              Tel: +49 89  289-18010
+http://www.net.in.tum.de                                     TU Muenchen
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (Darwin)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-Inserting this line after the end of the while loop:
- 
-curr_table->time_pos=(curr_table->time_pos+ip_list_tot-1)%ip_list_tot;
-
-
-solves the problem and causes shuffled-to-the-end spare slots in 
-time_info to be re-used first. A side effect is that output of 
-/proc/net/ipt_recent/* doesn't come out in time order any more; if there 
-have been mid-list deletes and then further adds.
-
-We could fix this by having ip_recent_get_info iterate indirectly using 
-curr_table->time_info instead of curr_table->table.
-
-Comments?
-
-I guess I'll send one big patch when I get it all closed off.
-
-Sam
+iD8DBQFD+0fOdGiwgbikMYMRAqCxAJ4vBk3pXKiIe5p564wYkHgXtXU7yACdHTSt
+1rg3M/wEsrggvlMrOC+KMTI=
+=GYqs
+-----END PGP SIGNATURE-----
