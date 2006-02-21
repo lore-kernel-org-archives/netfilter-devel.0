@@ -1,18 +1,16 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: 2.6.16-rc4-mm1
-Date: Tue, 21 Feb 2006 03:00:12 +0100
-Message-ID: <20060221020012.GU4661@stusta.de>
-References: <20060220042615.5af1bddc.akpm@osdl.org>
-	<43F9BDDA.1060508@reub.net> <43F9CE18.10709@trash.net>
-	<20060220204456.GG4661@stusta.de> <43FA6A2C.8000905@trash.net>
+From: Punky <punkytse@gmail.com>
+Subject: Re: trying to revive rtsp
+Date: Tue, 21 Feb 2006 10:02:16 +0800
+Message-ID: <1a49df600602201802pa26daa1jfce4301f52d07b6a@mail.gmail.com>
+References: <43F87D21.7090305@kde.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Mickael Marchand <marchand@kde.org>
+In-Reply-To: <43F87D21.7090305@kde.org>
 Content-Disposition: inline
-In-Reply-To: <43FA6A2C.8000905@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,42 +22,70 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Feb 21, 2006 at 02:17:32AM +0100, Patrick McHardy wrote:
-> 
-> Arnaldo apparently wants to fix it differently, but maybe you could help
-> us with conntrack :) CONFIG_IP_NF_CONNTRACK and CONFIG_NF_CONNTRACK
-> should be mutually exclusive. Specifying
-> 
-> CONFIG_IP_NF_CONNTRACK
-> 	depends on CONFIG_NF_CONNTRACK=n
-> 
-> CONFIG_NF_CONNTRACK
-> 	depends on CONFIG_IP_NF_CONNTRACK=n
-> 
-> will avoid asking for NF_CONNTRACK when IP_NF_CONNTRACK is set, but not
-> the other way around.
+Hi Mickael,
+
+I am doing the same thing - try to port rtsp to 2.6.15.  And I
+encountered problem in porting rtsp nat code.  You can refer to mms
+and talk conntrack/nat code to see how API are changed.  Moreover, I
+used svn to check how codes are change in each revision as well.
+
+Moreover, if you have any news on the porting, please let me know.
+
+Regards,
+Punky
+
+On 2/19/06, Mickael Marchand <marchand@kde.org> wrote:
+> Hi,
+>
+> I am really a newbie to the netfilter coding world, so please forgive
+> any stupid questions :)
+>
+> I have mostly ported the old rtsp conntrack+nat code to recent 2.6
+> kernels, compiles and loads fine into the kernel,
+> but I have some problems to make it work now :)
+>
+> the initial TCP connexion to the RTSP server:554 is correctly detected
+> and the expectation packet seems to be properly setup :
+> cat /proc/net/ip_conntrack_expect
+> 255 proto=3D17 src=3D212.27.38.253 dst=3D10.0.0.2 sport=3D0 dport=3D33302
+>
+> 212.27.38.253 is the RTSP server, 10.0.0.2 is the client, 10.0.0.1 is
+> the netfilter box.
+>
+> so once the TCP connexion has been established, we expect a UDP stream
+> from the server going to the client port 33302.
+>
+> my problem is that the expected packet does not get through the
+> netfilter box, I can see the UDP stream coming from the RTSP server and
+> going to my netfilter box,
+> the expectation packet seems to get removed of
+> /proc/net/ip_conntrack_expect as well (so basically it looks all good)
+> but the netfilter box does not forward packets to 10.0.0.2.
+> so it looks like a NAT problem to me, maybe the UDP packets are not
+> getting NAT-ed back to the client.
+>
+> my first question would be :
+> is it expected to see 10.0.0.2 in the expected paquet ?
+> should not it be my external IP instead ?
+>
+> any tips in what direction I could look ? :)
+>
+> thanks for any help
+>
+> Cheers,
+> Mik
+> (Please CC-me in answers :)
+>
+>
 
 
-Even worse, kconfig will complain about a circular dependency.
+--
+--
+Regards,
+Punky
+P U N K N ! X  . c o m
+Technology + Lifestyle
+(http://www.punknix.com)
 
-
-CONFIG_IP_NF_CONNTRACK
-
-CONFIG_NF_CONNTRACK
-	depends on CONFIG_IP_NF_CONNTRACK=n
-
-
-CONFIG_IP_NF_CONNTRACK will be visible if CONFIG_NF_CONNTRACK is set, 
-but as soon as CONFIG_IP_NF_CONNTRACK is set, CONFIG_NF_CONNTRACK is 
-automatically set to n.
-
-
-cu
-Adrian
-
--- 
-
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+Voyage Linux
+(http://www.voyage.hk/software/voyage.html)
