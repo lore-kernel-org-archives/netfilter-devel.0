@@ -1,16 +1,18 @@
-From: Brad Fisher <brad@info-link.net>
-Subject: Re: libnetfilter_queue man page
-Date: Tue, 21 Feb 2006 12:10:00 -0600
-Message-ID: <43FB5778.2050301@info-link.net>
-References: <1139235549.30902.3.camel@localhost.localdomain>	<20060208141927.GX31060@sunbeam.de.gnumonks.org>
-	<43EA2683.3030606@info-link.net> <43FB47CE.8030003@net.in.tum.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/4] Fix expectaction mask dumping, take #3
+Date: Wed, 22 Feb 2006 04:20:39 +0100
+Message-ID: <43FBD887.9040409@netfilter.org>
+References: <43EFF176.3070505@netfilter.org> <43F44794.1080203@trash.net>
+	<43FB0FBA.4060609@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Gregor Maier <gregor@net.in.tum.de>
-In-Reply-To: <43FB47CE.8030003@net.in.tum.de>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <43FB0FBA.4060609@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,81 +24,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Gregor Maier wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->
->
->   
->> -----------------
->> nfq_set_verdict()
->> -----------------
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+> 
+>>>Besides, this modification introduces the attribute CTA_IP_L3NUM.
+>>>Although the layer 3 protocol information is sent in the nfnetlink
+>>>header, if the message contains information about an expectation, it
+>>>will contain information about the master conntrack (just one of the
+>>>tuples), the expectation tuple and the expectation mask. In this case,
+>>>the value of l3num in the expectation mask is not the same that is set
+>>>in the nfnetlink message. That is why we need another field that contain
+>>>the value of l3num.
 >>
->> Prototype:
->> 	int nfq_set_verdict(struct nfq_q_handle *qh, u_int32_t id, u_int32_t verdict, u_int32_t data_len, unsigned char *buf)
+>>I'm not sure I understand. The new attribute still contains the same
+>>value as the netlink header, doesn't it? So userspace should currently
+>>have at least two possibilities to get the correct value:
 >>
->> Parameters:
->> 	qh			Netfilter queue handle obtained by call to nfq_create_queue().
->> 	id			ID assigned to packet by netfilter.  Can be obtained by: 
->> 					int id;
->> 					struct nfqnl_msg_packet_hdr *ph = nfq_get_msg_packet_hdr(tb);
->> 					if (ph) id = ntohl(ph->packet_id);
->> 	verdict		Verdict to return to netfilter
->> 					NF_ACCEPT	- Accept the packet
->> 					NF_DROP		- Drop the packet
->> 					???			- anything else possible? (ie. continue?,
->> 									jump? goto? log?)
->>     
-> After digging through kernel source I'm pretty sure, that the only
-> possible verdicts are
-> NF_DROP, NF_ACCEPT
-> NF_REPEAT  (queue the packet to userspace again) --> may lead to loops
-> NF_QUEUE   same as NF_REPEAT. There's a differnce between the handling
-> of NF_QUEUE and NF_REPEAT, but I don't know what this difference leads to.
->
-> Why? When a packet is queued to userspace it "leaves" the current hook
-> (e.g. the filter table) for good therefore it's not possible to continue
-> with the next rule in the current chain or to jump to another chain.
->
-> Maybe you also want to take a look at the Netfilter Hacking Howto, esp.
-> section 3 (netfilter architecture)
->
-> btw: thank's for the manpage
->
->   
-Glad to hear someone has found it useful :)
-You are correct, I also came to the conclusion that those are the only 
-verdicts available.  The NF_REPEAT verdict seems to send the packet back 
-through the entire chain/hook.  It doesn't start it at the next rule 
-following the queue rule (which I'd like to have, but perhaps it's not 
-possible).
+>>- use the value from the netlink header
+>>- use the value from the tuple that comes with the mask, as the first
+>>  part of your patch does. This seems most logically to me since the
+>>  mask and the tuple belong together.
+> 
+> The problem is that currently the expectation mask is not dumped.
+> find_l3proto returns the generic protocol handler for 0xFF, and that
+> doesn't dump any layer 3 information. Moreover, the expectation mask has
+> l3num value that is different from the l3num in the nfnetlink header,
+> that's why I introduced this field.
+> 
+> I can send a patch to remove the expectation mask dumping but I'm not
+> sure if this information could be useful for userspace helpers. Harald?
 
-BTW: I have had a chance to actually work with the library a bit, so I 
-have updated my notes since I sent the previous message.  I didn't add 
-much, just updated some of the questionable info.  If anyone is 
-interested, I'll be glad to send them a copy.  So far the biggest issues 
-I've run into are that marking doesn't work in 2.6.15 (I think it should 
-in 2.6.16), and I can't seem to ever read the timestamp for a packet, no 
-matter what hook it comes in on.  I've just been using gettimeofday for 
-that for now.
+I think I can answer myself after some thinking: in order to create an
+expectation from userspace we will need to set the value of l3num of the
+expectation mask. Such value will be different from the value in the
+nfnetlink header, so I still think that we need that new CTA_L3NUM
+attribute.
 
--Brad
-> cu
-> gregor
-> - --
-> Gregor Maier                                      Lehrstuhl Informatik 8
-> gregor@net.in.tum.de                              Tel: +49 89  289-18010
-> http://www.net.in.tum.de                                     TU Muenchen
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.2.4 (Darwin)
-> Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
->
-> iD8DBQFD+0fOdGiwgbikMYMRAqCxAJ4vBk3pXKiIe5p564wYkHgXtXU7yACdHTSt
-> 1rg3M/wEsrggvlMrOC+KMTI=
-> =GYqs
-> -----END PGP SIGNATURE-----
->
->
-> !DSPAM:3824,43fb47d3148949031012739!
->
->   
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
