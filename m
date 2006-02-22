@@ -1,18 +1,13 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/4] Fix expectaction mask dumping, take #3
-Date: Wed, 22 Feb 2006 04:20:39 +0100
-Message-ID: <43FBD887.9040409@netfilter.org>
-References: <43EFF176.3070505@netfilter.org> <43F44794.1080203@trash.net>
-	<43FB0FBA.4060609@netfilter.org>
+From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
+Subject: New H.323 conntrack & NAT helper module
+Date: Wed, 22 Feb 2006 00:56:45 -0500
+Message-ID: <BAY109-DAV3F52AAA9FA589FA356BFAB3FD0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <43FB0FBA.4060609@netfilter.org>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,42 +19,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
-> 
->>>Besides, this modification introduces the attribute CTA_IP_L3NUM.
->>>Although the layer 3 protocol information is sent in the nfnetlink
->>>header, if the message contains information about an expectation, it
->>>will contain information about the master conntrack (just one of the
->>>tuples), the expectation tuple and the expectation mask. In this case,
->>>the value of l3num in the expectation mask is not the same that is set
->>>in the nfnetlink message. That is why we need another field that contain
->>>the value of l3num.
->>
->>I'm not sure I understand. The new attribute still contains the same
->>value as the netlink header, doesn't it? So userspace should currently
->>have at least two possibilities to get the correct value:
->>
->>- use the value from the netlink header
->>- use the value from the tuple that comes with the mask, as the first
->>  part of your patch does. This seems most logically to me since the
->>  mask and the tuple belong together.
-> 
-> The problem is that currently the expectation mask is not dumped.
-> find_l3proto returns the generic protocol handler for 0xFF, and that
-> doesn't dump any layer 3 information. Moreover, the expectation mask has
-> l3num value that is different from the l3num in the nfnetlink header,
-> that's why I introduced this field.
-> 
-> I can send a patch to remove the expectation mask dumping but I'm not
-> sure if this information could be useful for userspace helpers. Harald?
+Hi, all,
 
-I think I can answer myself after some thinking: in order to create an
-expectation from userspace we will need to set the value of l3num of the
-expectation mask. Such value will be different from the value in the
-nfnetlink header, so I still think that we need that new CTA_L3NUM
-attribute.
+I've written a new H.323 conntrack & NAT helper module for Netfilter.
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+I have five years experience in H.323 development and many years in Linux
+development, so I know many people out there need Linux firewall to support
+H.323 as IP phones are becoming more and more popular. I also know Jozsef
+Kadlecsik and Max Kellermann have written such Netfilter modules, but they
+don't support RAS, Fast-Start and H.245 tunnelling. However, these features
+are essential for most modern H.323 devices. Many carriers even don't
+support slow-start at all.
+
+This is a almost full featured H.323 module. Since it is based on H.225
+version 4, H.235 version 2 and H.245 version 7, it should support most of
+the H.323 products in the market. I've spent a lot of time on this module
+and my friends helped me test it a lot too. Now I believe it is ready to go
+into kernel tree. I'm wondering if anybody can tell me what I should do to
+adding it to Netfilter.
+
+Anybody interested in this can download the patch for kernel 2.6.15 in
+http://sourceforge.net/project/showfiles.php?group_id=158936. The document
+is at http://nath323.sourceforge.net.
+
+Thanks a lot!
+
+Jing Min Zhao
