@@ -1,15 +1,12 @@
-From: Michael Richardson <mcr@sandelman.ottawa.on.ca>
-Subject: Re: [PATCH] iproute2 -- add fwmarkmask
-Date: Thu, 23 Feb 2006 14:39:32 -0500
-Message-ID: <18992.1140723572@sandelman.ottawa.on.ca>
-References: <23395.1140452828@sandelman.ottawa.on.ca>
-	<43F9F648.1060803@trash.net>
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	shemminger@osdl.org
+From: Gregor Maier <gregor@net.in.tum.de>
+Subject: libnetfilter_queue large packets problem
+Date: Thu, 23 Feb 2006 23:44:24 +0100
+Message-ID: <43FE3AC8.7000809@net.in.tum.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: Message from Patrick McHardy <kaber@trash.net>
-	of "Mon, 20 Feb 2006 18:03:04 +0100." <43F9F648.1060803@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,40 +21,53 @@ List-Id: netfilter-devel.vger.kernel.org
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
+Hi,
 
->>>>> "Patrick" == Patrick McHardy <kaber@trash.net> writes:
-    Patrick> The normal way to display masks is with a "/". Also I think
-    Patrick> it shouldn't display the default mask to avoid breaking
-    Patrick> scripts that parse the output.
+I think I encountered a problem when using libnetfilter_queue with
+packets larger than the recv buffer specified when recv()-ing from the
+socket of the queue.
 
-  I generally dislike the /VALUE, since I expect /PREFIX-LEN.
-  I agree that it shouldn't show if it is default.
+The kernel truncates(*) the packet delivered to userspace an thus
+nfnl_handle_packet() returns -1 (**), since there's a mismatch between
+the length of the buffer and the recorded length in struct nlmsghdr.
+This means that the callback function is never called an therefore we
+are never able to issue a verdict for the packet and the packet is stuck
+forever.
 
-    Patrick> ip should be able to parse its own output, and it would
-    Patrick> also look nicer if I could just say "fwmark
-    Patrick> 0x1/32". fwmarkmask is really an incredible ugly expression
-    Patrick> :)
+I think the best solution would be, if the callback would be called and
+informed about the truncation, so that the callback can deside about the
+fate of the packet.
 
-  Sure. Is that a 32-bit long mask (0xfffffff), or is it a 0x00000020?
-  fwmark is not an address.
 
-  Or would you like /32 to be a prefix-based mask, and &value and/or
-fwmarkmask to be a value? 
+A workaround is to make the buffer large enough for any possible packet
+(i.e. 65535 + x for IP, with x being the number of bytes occupied by the
+ netlink data structures)
 
-- -- 
-]       ON HUMILITY: to err is human. To moo, bovine.           |  firewalls  [
-]   Michael Richardson,    Xelerance Corporation, Ottawa, ON    |net architect[
-] mcr@xelerance.com      http://www.sandelman.ottawa.on.ca/mcr/ |device driver[
-] panic("Just another Debian GNU/Linux using, kernel hacking, security guy"); [
+
+This is almost certainly the cause of bug
+https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=404
+
+
+(*) when I use recvmsg then the MSG_TRUNC flag is set for such packets
+and peek in the netlink code asserted this.
+
+
+(**)if (nlh->nlmsg_len < sizeof(struct nlmsghdr)
+                    || len < nlh->nlmsg_len)
+                        return -1;
+
+
+cu
+Gregor
+- --
+Gregor Maier                                      Lehrstuhl Informatik 8
+gregor@net.in.tum.de                              Tel: +49 89  289-18010
+http://www.net.in.tum.de                                     TU Muenchen
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-Comment: Finger me for keys
+Version: GnuPG v1.2.4 (Darwin)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-iQEUAwUBQ/4PcoCLcPvd0N1lAQIHhQf3XzPLA91QEx2+XpmYIm8RyB1oKmUUXDP+
-s2UrhOKbQwipcq8/hk1t4FKx8J5j/dFHzVXbgPK+ZUwX4+IjHmM3r0sCIcK08xwU
-/ZZjf0wqwUI+RcPRFw3zC0+hnwRUIAUxhl3p7h3PigDpPu7AY5tQ1dXc6WNwRjTi
-fS7Yozbo225dzvVLKHhSIqOQ4eJFJcPPQdTKQLxnc3gtVoSe41DKMM+x6uix6fG8
-se9dngJRbhye1Xgws9AGnBQT9f7JVmCSv7V4SHnNynmnRw3cra8++QEnLZ/vhm5C
-JdeVSeDGxAPuKEj6HA2RZu/UOG6RkYNZGPovGKzuPn403x0HNBuf
-=BzfV
+iD8DBQFD/jrIdGiwgbikMYMRAobwAJ43bEBBs2FOEeFCjPRILln1XChZNgCbBysE
+FKmJXJQGe2A6jaTnC8xGlEM=
+=YQIG
 -----END PGP SIGNATURE-----
