@@ -1,15 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: libnetfilter_queue: get link layer header
-Date: Thu, 23 Feb 2006 11:03:51 +0100
-Message-ID: <43FD8887.2050902@trash.net>
-References: <43FB4989.7070901@net.in.tum.de>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 1/4] Fix expectaction mask dumping, take #3
+Date: Thu, 23 Feb 2006 19:10:29 +0900 (JST)
+Message-ID: <200602231010.k1NAAUe3022987@toshiba.co.jp>
+References: <43F4DC55.8030405@trash.net>
+	<200602211216.k1LCG18I024522@toshiba.co.jp>
+	<43FD83C4.6030106@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org,
+	pablo@netfilter.org, yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Gregor Maier <gregor@net.in.tum.de>
-In-Reply-To: <43FB4989.7070901@net.in.tum.de>
+To: kaber@trash.net
+In-Reply-To: <43FD83C4.6030106@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +24,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Gregor Maier wrote:
-> I was wondering if it's somehow possible to aquire the complete link
-> level header in libnetfilter_queue. I can get the HW Protocol
-> (Ethertype) and the SRC MAC but it is also possible to get the DST MAC.
-> 
-> I know that for outgoing packets the information is only available after
-> the arp lookup (so in/after POSTROUTING) but for INPUT / FORWARD packets
-> the DST Mac is always available. Maybe it would be a solution to set the
-> DST MAC to all zeros if it's not yet known and then add a mechanism to
-> pass the DST Mac to the userspace app listeing on the queue.
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 23 Feb 2006 10:43:32 +0100
 
-I agree that the current implementation isn't perfect since it always
-asks the driver to fill in its own address, even if the received packet
-was a broadcast packet, instead of using the data from the packet.
-I've added it to my TODO list to look into this.
+> Yasuyuki KOZAKAI wrote:
+> > From: Patrick McHardy <kaber@trash.net>
+> > Date: Thu, 16 Feb 2006 21:11:01 +0100
+> > 
+> >>Yes, but until then it looks totally redundant. Since the bandwidth
+> >>of netlink is limited, I think we shouldn't add new attributes without
+> >>really needing them.
+> > 
+> > 
+> > 'l3num' field in expectation mask may be 0xff. Then the new field is
+> > necessary so that kernel can pass the "exact value" in it to userspace.
+> > 
+> > But, I don't know whether userspace really wants to know the exact value
+> > in it or not. I assumed, yes, but if it is not ture, I'll agree to Patrick.
+> 
+> My point was that a mask is pretty meaningless without the thing it
+> masks, which is the tuple (except maybe a mask of all-zeros). The tuple
+> itself already contains the correct protocol number.
+
+What I want to say in the just previous mail I sent is same. :)
+I just wanted Pablo to confirm that.
+
+-- Yasuyuki Kozakai
