@@ -1,12 +1,18 @@
-From: Carlos Munoz <carlos@kenati.com>
-Subject: Connection tracking has the same source on original and reply
-Date: Thu, 23 Feb 2006 17:08:27 -0800
-Message-ID: <43FE5C8B.60402@kenati.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 02/02] add mask options to fwmark masking code
+Date: Fri, 24 Feb 2006 05:58:42 +0100
+Message-ID: <43FE9282.7010002@trash.net>
+References: <23140.1140452813@sandelman.ottawa.on.ca>
+	<43F9F4E7.5000708@trash.net>
+	<16464.1140723418@sandelman.ottawa.on.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Cc: kuznet@ms2.inr.ac.ru, netfilter-devel <netfilter-devel@lists.netfilter.org>,
+	Jamal Hadi Salim <hadi@cyberus.ca>, netdev@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Michael Richardson <mcr@sandelman.ottawa.on.ca>
+In-Reply-To: <16464.1140723418@sandelman.ottawa.on.ca>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,23 +24,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+Michael Richardson wrote:
+> 
+> 
+>>>>>>>"Patrick" == Patrick McHardy <kaber@trash.net> writes:
+> 
+>     >> #define RTA_FWMARK RTA_PROTOINFO +#define RTA_FWMARK_MASK
+>     >> RTA_CACHEINFO
+> 
+>     Patrick> Please introduce a new attribute for this instead of
+>     Patrick> overloading RTA_CACHEINFO.
+> 
+>   I would be happy to do that.
+>   Should I also un-overload FWMARK, with backwards compatibility?
 
-I'm debugging a SIP ALG I wrote and find that occasionally connection 
-tracking has the same ip address in the original direction as in the 
-reply direction. I can only assume this is caused by setting the 
-expected related connection wrong. However, I've verified that the right 
-tuples are set up in the expected related connection request. 
-Interesting enough is that this only happens when registering the 
-expected related connection when receiving a reply.
-
-udp      17 14 src=192.168.16.200 dst=192.168.16.100 sport=10010 
-dport=41000 [UNREPLIED] src=192.168.16.200 dst=192.168.16.100 
-sport=41000 dport=10010 use=1
-
-Has anyone seen this before ?
-
-Thanks,
-
-
-Carlos Munoz
+No, that one is fine since it doesn't already have a different meaning.
