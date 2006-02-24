@@ -1,18 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] iproute2 -- add fwmarkmask
-Date: Fri, 24 Feb 2006 05:59:33 +0100
-Message-ID: <43FE92B5.4000606@trash.net>
-References: <23395.1140452828@sandelman.ottawa.on.ca>
-	<43F9F648.1060803@trash.net>
-	<18992.1140723572@sandelman.ottawa.on.ca>
+Subject: Re: libnetfilter_queue large packets problem
+Date: Fri, 24 Feb 2006 06:16:19 +0100
+Message-ID: <43FE96A3.5090004@trash.net>
+References: <43FE3AC8.7000809@net.in.tum.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	shemminger@osdl.org
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Michael Richardson <mcr@sandelman.ottawa.on.ca>
-In-Reply-To: <18992.1140723572@sandelman.ottawa.on.ca>
+To: Gregor Maier <gregor@net.in.tum.de>
+In-Reply-To: <43FE3AC8.7000809@net.in.tum.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,27 +21,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Michael Richardson wrote:
+Gregor Maier wrote:
+> Hi,
 > 
+> I think I encountered a problem when using libnetfilter_queue with
+> packets larger than the recv buffer specified when recv()-ing from the
+> socket of the queue.
 > 
->>>>>>>"Patrick" == Patrick McHardy <kaber@trash.net> writes:
-> 
->     Patrick> The normal way to display masks is with a "/". Also I think
->     Patrick> it shouldn't display the default mask to avoid breaking
->     Patrick> scripts that parse the output.
-> 
->   I generally dislike the /VALUE, since I expect /PREFIX-LEN.
->   I agree that it shouldn't show if it is default.
-> 
->     Patrick> ip should be able to parse its own output, and it would
->     Patrick> also look nicer if I could just say "fwmark
->     Patrick> 0x1/32". fwmarkmask is really an incredible ugly expression
->     Patrick> :)
-> 
->   Sure. Is that a 32-bit long mask (0xfffffff), or is it a 0x00000020?
->   fwmark is not an address.
-> 
->   Or would you like /32 to be a prefix-based mask, and &value and/or
-> fwmarkmask to be a value? 
+> The kernel truncates(*) the packet delivered to userspace an thus
+> nfnl_handle_packet() returns -1 (**), since there's a mismatch between
+> the length of the buffer and the recorded length in struct nlmsghdr.
+> This means that the callback function is never called an therefore we
+> are never able to issue a verdict for the packet and the packet is stuck
+> forever.
 
-That was not the greatest example :) I think it should be a bitmask.
+It seems libnetfilter_queue somehow must deal with errors reported to
+the socket. I'm thinking of something like adding sequence numbers to
+the queued packets and flushing all queued packets with sequence
+numbers above the last successfully received one when an error is
+reported. Alternatively we could use NLM_F_ACK and expect userspace
+to acknowledge successfully received packets.
