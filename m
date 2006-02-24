@@ -1,16 +1,12 @@
-From: Piotr Chytla <pch@packetconsulting.pl>
-Subject: Re: problem with ipset and 2.4.31, again...
-Date: Fri, 24 Feb 2006 15:32:51 +0100
-Message-ID: <20060224143251.GA27210@packetconsulting.pl>
-References: <20060224111012.GA26233@packetconsulting.pl>
-	<Pine.LNX.4.58.0602241409590.10263@blackhole.kfki.hu>
+From: Gregor Maier <gregor@net.in.tum.de>
+Subject: libnetfilter_log and libnetfilter_queue bind_pf() issue
+Date: Fri, 24 Feb 2006 23:13:16 +0100
+Message-ID: <43FF84FC.1070405@net.in.tum.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0602241409590.10263@blackhole.kfki.hu>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,57 +18,73 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Feb 24, 2006 at 02:15:37PM +0100, Jozsef Kadlecsik wrote:
-> > ipset from patch-o-matic-ng(r6345) fails to compile on 2.4.31/32, Problem and
-> > solution is the same as this :
-> 
-> We are at rev 6470 in p-o-m-ng, I think you are using a too old release.
->
-Sorry my mistake, It wasn't rev 6345, I'm using ftp snapshot
-patch-o-matic-ng-20060222. 
- 
-> lockhelp.h dependecy was completely removed from ipset so
-> CONFIG_NETFILTER_DEBUG does not affect it at all.
->
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-ip_set.c from patch-o-matic-ng-20060222/patchlets/set/linux/net/ipv4/netfilter/ip_set.c
-
-MD5(./ip_set.c)= 4f7670b61c1c19ef53efa9f8b3967ae5
-
-I'm geting this while compiling 2.4.31 with ipset:
-
-gcc -D__KERNEL__ -I/storage/src/linux-2.4.31-ipset/include -Wall
--Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common
--fomit-frame-pointer -pipe -mpreferred-stack-boundary=2 -march=i686
--DMODULE -DMODVERSIONS -include /storage/src/linux-2.4.31-ipset/include/linux/modversions.h  -nostdinc -iwithprefix include -DKBUILD_BASENAME=ip_set  -DEXPORT_SYMTAB -c ip_set.c
-ip_set.c: In function `ip_set_hash_del':
-ip_set.c:133: warning: passing arg 1 of `write_lock' from incompatible pointer type
-ip_set.c:142: error: structure has no member named `lock'
-ip_set.c: In function `ip_set_hash_add':
-ip_set.c:158: warning: passing arg 1 of `write_lock' from incompatible pointer type
-ip_set.c:180: error: structure has no member named `lock'
-ip_set.c: In function `ip_set_testip_kernel_Rsmp_4db03336':
-ip_set.c:224: warning: passing arg 1 of `read_lock' from incompatible pointer type
-ip_set.c:236: error: structure has no member named `lock'
-ip_set.c: In function `ip_set_addip_kernel_Rsmp_9c8f3e11':
-ip_set.c:253: warning: passing arg 1 of `read_lock' from incompatible pointer type
-ip_set.c:265: error: structure has no member named `lock'
-ip_set.c: In function `ip_set_delip_kernel_Rsmp_e054472f':
-ip_set.c:284: warning: passing arg 1 of `read_lock' from incompatible pointer type
-ip_set.c:296: error: structure has no member named `lock'
-ip_set.c: In function `ip_set_register_set_type_Rsmp_313ca42e':
-ip_set.c:329: warning: passing arg 1 of `write_lock' from incompatible pointer type
-ip_set.c:341: error: structure has no member named `lock'
-ip_set.c: In function `ip_set_unregister_set_type_Rsmp_8e327a2d':
-ip_set.c:348: warning: passing arg 1 of `write_lock' from incompatible pointer type
-ip_set.c:358: error: structure has no member named `lock'
-ip_set.c: In function `ip_set_bindip':
-ip_set.c:570: warning: passing arg 1 of `write_lock' from incompatible pointer type
-ip_set.c:576: error: structure has no member named `lock'
+Hi,
 
 
-/pch
- 
--- 
-Dyslexia bug unpatched since 1977 ...
-exploit has been leaked to the underground.
+I was wondering if nfq_bind_pf() and nflog_bind_pf() should really
+return an errno of EEXISTS if the handlers from libnetfilter_queue.ko
+and libnetfilter_log.ko have already been registered. From the viewpoint
+of the userspace app only errors of EBUSY are of interest, since it
+means that another handler is registered.
+
+I would suggest to change libnetfilter_queue and libnetfilter_log
+modules to only return an error if EBUSY was encountered.
+
+Furthermore I think that a userspace app should never use
+nfq_unbind_pf() followed by nfq_bind_pf() to initialize itself. If
+packets arrive between the two calls, they will be overseen, since no
+handler is present (think of process being scheduled between the two
+calls and another app waiting for packets).
+
+I also don't think that any module should unregister the handler from
+another module. Esp. not with a function available from userspace...
+
+
+Maybe a nice solution would be:
+
+- - The modules (libnetfilter_log and libnetfilter_queue) keep track of
+how many userspace apps are using a particular PF.
+- - The modules register their handlers when a userspace app wants to use
+a PF. Return -EBUSY when another handler is already registered.
+- - When the last userspace app using a particular PF exits, that the
+module may unregister its handlers
+- - nfqnl_enqueue_packet (and nf_log_packet) must check if the app
+asociated with the destination queue has requested this PF if not it
+must not queue/log the packet. (*)
+
+
+A more radical approarch would be to make the modules register themselve
+s when they are loaded. But hen we must somehow tell the modules for
+which PF they should register themselves. Or should they register
+themselves for all PFs??
+
+
+Comments?
+
+cu
+Gregor
+
+(*) This is necessary to avoid that apps get packets from PFs that they
+don't want. Image on app registering for PF_INET and one for PF_INET6.
+When both apps are running both will see PF_INET and PF_INET6 packets.
+When one of the apps exits, the "foreign" packets are no longer
+delivered. This ambuguity should be avoided.
+
+
+
+
+- --
+Gregor Maier                                      Lehrstuhl Informatik 8
+gregor@net.in.tum.de                              Tel: +49 89  289-18010
+http://www.net.in.tum.de                                     TU Muenchen
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (Darwin)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFD/4T8dGiwgbikMYMRAqZgAJ9vo+DJLjq2NOsmogSLkaSF8wMCmgCePPCS
+g41l+yC0bz7kkWCxIoonN1E=
+=qfU/
+-----END PGP SIGNATURE-----
