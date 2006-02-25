@@ -1,12 +1,12 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
-Subject: IPSET patches from pom-ng don't apply to 2.6.16-rc5
-Date: Tue, 28 Feb 2006 13:17:13 +0100
-Message-ID: <44043F49.7050304@gmx.net>
+From: Saku Ytti <saku@ytti.fi>
+Subject: ipv6 conntrack status?
+Date: Sat, 25 Feb 2006 13:13:16 +0200
+Message-ID: <20060225111316.GA13280@mx.ytti.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,30 +18,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hey,
 
-applying the ipset patch from patch-o-matic-ng doesn't work anymore:
+I'm running 2.6.16-rc4, I've rolled and installed:
+conntrack_1.00beta1_amd64.deb
+libconntrack-extensions_1.00beta1_amd64.deb
+libnetfilter-conntrack1_0.0.30_amd64.deb
+libnetfilter-conntrack-dev_0.0.30_amd64.deb
+libnfnetlink0_0.0.14_amd64.deb
+libnfnetlink-dev_0.0.14_amd64.deb
 
-Welcome to Patch-o-matic ($Revision: 4088 $)!
+I checked SVN for iptables 1.4 branch, but couldn't see ip6 conntrack.
 
-Kernel:   2.6.16, /storage/linux-2.6.16-rc5
-Iptables: 1.3.5, /storage/iptables-1.3.5
-Each patch is a new feature: many have minimal impact, some do not.
-Almost every one has bugs, so don't apply what you don't need!
--------------------------------------------------------
-Already applied:
+[root@ip.fi ~]# conntrack -L -f ipv6
+Operation failed: Unknown error 18446744073709551519
 
-Testing set... not applied
-The set patch:
-   Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-   Status: Beta
-[...]
------------------------------------------------------------------
-Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] t
-unable to find ladd slot in src /tmp/pom-26985/net/ipv4/netfilter/Makefile (./patchlets/set/linux-2.6/./net/ipv4/netfilter/Makefile.ladd)
+ipv4 works perfectly. What am I missing? I couldn't really find any
+documentation how the new architecture should be configured, if there
+is such, please point me to it.
 
+I've previously used ipv6 conntrack from usagi patched without problems.
 
-Regards,
-Carl-Daniel
+Thanks,
+
 -- 
-http://www.hailfinger.org/
+  ++ytti
