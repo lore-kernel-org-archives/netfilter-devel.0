@@ -1,15 +1,16 @@
-From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
-Subject: Re: New H.323 conntrack & NAT helper module
-Date: Sat, 25 Feb 2006 01:00:00 -0500
-Message-ID: <BAY109-DAV1E3EEAC01132FB3EE2E2EB3F00@phx.gbl>
-References: <925A849792280C4E80C5461017A4B8A2032119@mail733.InfraSupportEtc.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: problem with ipset and 2.4.31, again...
+Date: Sat, 25 Feb 2006 09:36:35 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0602250924060.13768@blackhole.kfki.hu>
+References: <20060224111012.GA26233@packetconsulting.pl>
+	<Pine.LNX.4.58.0602241409590.10263@blackhole.kfki.hu>
+	<20060224143251.GA27210@packetconsulting.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-633974216-1140856595=:13768"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Greg Scott" <GregScott@InfraSupportEtc.com>,
-	<netfilter-devel@lists.netfilter.org>
+To: Piotr Chytla <pch@packetconsulting.pl>
+In-Reply-To: <20060224143251.GA27210@packetconsulting.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,66 +22,61 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Friday February 24, 2006 11:00 PM,  Greg Scott wrote:
->
-> Holey moley - this is GREAT news!!
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-Thanks!
+--110391808-633974216-1140856595=:13768
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-> A couple questions.  Will this module work with 2.6.16 and upcoming
-> newer kernels?
+Hi,
 
-Yes. I'll keep tracking the kernel development. Once a big version comes 
-out,
-I'll update this patch. I think maybe Patrick McHardy is inspecting my code, 
-if
-I'm lucky, it may go into the kernel tree, and you won't need a separate 
-patch
-any more. I really hope so.
+On Fri, 24 Feb 2006, Piotr Chytla wrote:
 
->  And - this is a biggie - the documentation says all I
-> need to do is SNAT TCP 1720 for outbound calls and DNAT TCP 1720 for
-> inbound calls.  No more tinkering by hand with zillions of TCP/UDP ports
-> - no more trying to figure out if Polycom or Tandberg or whatever is on
-> which end.  Is this really true???
+> On Fri, Feb 24, 2006 at 02:15:37PM +0100, Jozsef Kadlecsik wrote:
+> > > ipset from patch-o-matic-ng(r6345) fails to compile on 2.4.31/32, Problem and
+> > > solution is the same as this :
+> >
+> > We are at rev 6470 in p-o-m-ng, I think you are using a too old release.
+> >
+> Sorry my mistake, It wasn't rev 6345, I'm using ftp snapshot
+> patch-o-matic-ng-20060222.
 
-Yes, and it's more than that. Actually, you don't need to specify the port 
-1720 -
-the module knows it, unless you want NAT only H.323 traffic. For inbound 
-calls,
-if you use a gatekeeper, you don't need the DNAT rule.
+You are right, the lock definition relied on lockhelp.h. Instead of
+putting back the lockhelp.h dependency, the attached patch removes it
+completely from the 2.4.* branch of the patch. It has been commited
+in svn as well. Thank you for letting me about the problem.
 
->  Will this patch really figure out
-> and track the dynamic ports these devices use by default?
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
+--110391808-633974216-1140856595=:13768
+Content-Type: TEXT/PLAIN; charset=US-ASCII;
+	name="ipset-2.4-debug-lockhelp.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.58.0602250936350.13768@blackhole.kfki.hu>
+Content-Description: ipset-2.4-debug-lockhelp.patch
+Content-Disposition: attachment; filename="ipset-2.4-debug-lockhelp.patch"
 
-Yes.
+LS0tIGxpbnV4LWxvY2toZWxwL25ldC9pcHY0L25ldGZpbHRlci9pcF9zZXQu
+YwkyMDA1LTEwLTI4IDE3OjM5OjMzLjAwMDAwMDAwMCArMDIwMA0KKysrIGxp
+bnV4L25ldC9pcHY0L25ldGZpbHRlci9pcF9zZXQuYwkyMDA2LTAyLTI1IDA4
+OjU0OjM5LjAwMDAwMDAwMCArMDEwMA0KQEAgLTMyLDcgKzMyLDcgQEANCiAN
+CiBzdGF0aWMgc3RydWN0IGxpc3RfaGVhZCBzZXRfdHlwZV9saXN0OwkJLyog
+YWxsIHJlZ2lzdGVyZWQgc2V0cyAqLw0KIHN0YXRpYyBzdHJ1Y3QgaXBfc2V0
+ICoqaXBfc2V0X2xpc3Q7CQkvKiBhbGwgaW5kaXZpZHVhbCBzZXRzICovDQot
+c3RhdGljIERFQ0xBUkVfUldMT0NLKGlwX3NldF9sb2NrKTsJCS8qIHByb3Rl
+Y3RzIHRoZSBsaXN0cyBhbmQgdGhlIGhhc2ggKi8NCitzdGF0aWMgcndsb2Nr
+X3QgaXBfc2V0X2xvY2sgPSBSV19MT0NLX1VOTE9DS0VEOwkvKiBwcm90ZWN0
+cyB0aGUgbGlzdHMgYW5kIHRoZSBoYXNoICovDQogc3RhdGljIERFQ0xBUkVf
+TVVURVgoaXBfc2V0X2FwcF9tdXRleCk7CQkvKiBzZXJpYWxpemVzIHVzZXIg
+YWNjZXNzICovDQogc3RhdGljIGlwX3NldF9pZF90IGlwX3NldF9tYXggPSBD
+T05GSUdfSVBfTkZfU0VUX01BWDsNCiBzdGF0aWMgaXBfc2V0X2lkX3QgaXBf
+c2V0X2JpbmRpbmdzX2hhc2hfc2l6ZSA9ICBDT05GSUdfSVBfTkZfU0VUX0hB
+U0hTSVpFOw0K
 
-> If so, then
-> HOT DOGGIES!!!!
-
-:)
-
-> Also - will it work with proxy ARP?
-
-This does nothing to do with the module. Sorry I'm not sure.
-
-> Let's say I proxy ARP an H.323
-> device behind the firewall.  Will this patch still handle connection
-> tracking, even though there is no NAT?
-
-Yes, it support this mode. Just don't load ip_nat_h323, load only
-ip_conntrack_h323.
-
-> The idea is, I would put a rule
-> in the FORWARD table for TCP 1720 and the patch would "know" it's an
-> H.323 device and also track and forward the appropriate TCP and UDP
-> ports.  But it would be to a public IP Address proxy ARP'd behind the
-> firewall instead of a NAT'd device.
->
-> thanks
->
-> - Greg Scott
-
-Thanks
-
-Jing Min Zhao
+--110391808-633974216-1140856595=:13768--
