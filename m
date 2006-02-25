@@ -1,12 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 06/6]: Restore {ipt,ip6t,ebt}_LOG compatibility
-Date: Sat, 25 Feb 2006 14:18:48 +0100 (MET)
-Message-ID: <20060225131707.7400.26631.sendpatchset@localhost.localdomain>
+From: Gregor Maier <gregor@net.in.tum.de>
+Subject: Re: [NETFILTER 06/6]: Restore {ipt,ip6t,ebt}_LOG compatibility
+Date: Sat, 25 Feb 2006 15:13:17 +0100
+Message-ID: <440065FD.5020206@net.in.tum.de>
 References: <20060225131547.7400.12127.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+	<20060225131707.7400.26631.sendpatchset@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: davem@davemloft.net
-In-Reply-To: <20060225131547.7400.12127.sendpatchset@localhost.localdomain>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <20060225131707.7400.26631.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,124 +22,60 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Restore {ipt,ip6t,ebt}_LOG compatibility
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-The nfnetlink_log infrastructure changes broke compatiblity of the LOG
-targets. They currently use whatever log backend was registered first,
-which means that if ipt_ULOG was loaded first, no messages will be printed
-to the ring buffer anymore.
+Patrick McHardy wrote:
+> [NETFILTER]: Restore {ipt,ip6t,ebt}_LOG compatibility
 
-Restore compatiblity by using the old log functions by default and only use
-the nf_log backend if the user explicitly said so.
+> Restore compatiblity by using the old log functions by default and only use
+> the nf_log backend if the user explicitly said so.
+> 
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+ipt_LOG still registers itfself as nf_log logger in init(). Good, so
+since conntrack can now log.
 
----
-commit c3fbb1dc63d9433a59fcbcbc446564e6619da165
-tree c45a4915e64289b3fc656c834456e2d956328605
-parent 37fcebcd2adf3cd2124437ff1fb7836be0a9c207
-author Patrick McHardy <kaber@trash.net> Sat, 25 Feb 2006 13:56:37 +0100
-committer Patrick McHardy <kaber@trash.net> Sat, 25 Feb 2006 13:56:37 +0100
+Problem: no anthoer loggers can register for PF_INET right away. They
+must unregister the ipt_LOG logger first. Then they can register
+themselves. I don't like the idea of modules and esp. userspace apps
+unregistering handlers from other modules. First Come First Serve.
 
- include/linux/netfilter_bridge/ebt_log.h |    1 +
- include/linux/netfilter_ipv4/ipt_LOG.h   |    3 ++-
- include/linux/netfilter_ipv6/ip6t_LOG.h  |    3 ++-
- net/bridge/netfilter/ebt_log.c           |    7 ++++++-
- net/ipv4/netfilter/ipt_LOG.c             |    7 ++++++-
- net/ipv6/netfilter/ip6t_LOG.c            |    7 ++++++-
- 6 files changed, 23 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/netfilter_bridge/ebt_log.h b/include/linux/netfilter_bridge/ebt_log.h
-index 358fbc8..96e231a 100644
---- a/include/linux/netfilter_bridge/ebt_log.h
-+++ b/include/linux/netfilter_bridge/ebt_log.h
-@@ -3,6 +3,7 @@
- 
- #define EBT_LOG_IP 0x01 /* if the frame is made by ip, log the ip information */
- #define EBT_LOG_ARP 0x02
-+#define EBT_LOG_NFLOG 0x04
- #define EBT_LOG_MASK (EBT_LOG_IP | EBT_LOG_ARP)
- #define EBT_LOG_PREFIX_SIZE 30
- #define EBT_LOG_WATCHER "log"
-diff --git a/include/linux/netfilter_ipv4/ipt_LOG.h b/include/linux/netfilter_ipv4/ipt_LOG.h
-index 22d1617..892f9a3 100644
---- a/include/linux/netfilter_ipv4/ipt_LOG.h
-+++ b/include/linux/netfilter_ipv4/ipt_LOG.h
-@@ -6,7 +6,8 @@
- #define IPT_LOG_TCPOPT		0x02	/* Log TCP options */
- #define IPT_LOG_IPOPT		0x04	/* Log IP options */
- #define IPT_LOG_UID		0x08	/* Log UID owning local socket */
--#define IPT_LOG_MASK		0x0f
-+#define IPT_LOG_NFLOG		0x10	/* Log using nf_log backend */
-+#define IPT_LOG_MASK		0x1f
- 
- struct ipt_log_info {
- 	unsigned char level;
-diff --git a/include/linux/netfilter_ipv6/ip6t_LOG.h b/include/linux/netfilter_ipv6/ip6t_LOG.h
-index 9008ff5..060c1a1 100644
---- a/include/linux/netfilter_ipv6/ip6t_LOG.h
-+++ b/include/linux/netfilter_ipv6/ip6t_LOG.h
-@@ -6,7 +6,8 @@
- #define IP6T_LOG_TCPOPT		0x02	/* Log TCP options */
- #define IP6T_LOG_IPOPT		0x04	/* Log IP options */
- #define IP6T_LOG_UID		0x08	/* Log UID owning local socket */
--#define IP6T_LOG_MASK		0x0f
-+#define IP6T_LOG_NFLOG		0x10	/* Log using nf_log backend */
-+#define IP6T_LOG_MASK		0x1f
- 
- struct ip6t_log_info {
- 	unsigned char level;
-diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-index 0128fbb..288ff1d 100644
---- a/net/bridge/netfilter/ebt_log.c
-+++ b/net/bridge/netfilter/ebt_log.c
-@@ -166,7 +166,12 @@ static void ebt_log(const struct sk_buff
- 	li.u.log.level = info->loglevel;
- 	li.u.log.logflags = info->bitmask;
- 
--	nf_log_packet(PF_BRIDGE, hooknr, skb, in, out, &li, info->prefix);
-+	if (info->bitmask & EBT_LOG_NFLOG)
-+		nf_log_packet(PF_BRIDGE, hooknr, skb, in, out, &li,
-+		              info->prefix);
-+	else
-+		ebt_log_packet(PF_BRIDGE, hooknr, skb, in, out, &li,
-+		               info->prefix);
- }
- 
- static struct ebt_watcher log =
-diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
-index 6606ddb..cc27545 100644
---- a/net/ipv4/netfilter/ipt_LOG.c
-+++ b/net/ipv4/netfilter/ipt_LOG.c
-@@ -425,7 +425,12 @@ ipt_log_target(struct sk_buff **pskb,
- 	li.u.log.level = loginfo->level;
- 	li.u.log.logflags = loginfo->logflags;
- 
--	nf_log_packet(PF_INET, hooknum, *pskb, in, out, &li, loginfo->prefix);
-+	if (loginfo->logflags & IPT_LOG_NFLOG)
-+		nf_log_packet(PF_INET, hooknum, *pskb, in, out, &li,
-+		              loginfo->prefix);
-+	else
-+		ipt_log_packet(PF_INET, hooknum, *pskb, in, out, &li,
-+		               loginfo->prefix);
- 
- 	return IPT_CONTINUE;
- }
-diff --git a/net/ipv6/netfilter/ip6t_LOG.c b/net/ipv6/netfilter/ip6t_LOG.c
-index 77c7258..6b930ef 100644
---- a/net/ipv6/netfilter/ip6t_LOG.c
-+++ b/net/ipv6/netfilter/ip6t_LOG.c
-@@ -436,7 +436,12 @@ ip6t_log_target(struct sk_buff **pskb,
- 	li.u.log.level = loginfo->level;
- 	li.u.log.logflags = loginfo->logflags;
- 
--	nf_log_packet(PF_INET6, hooknum, *pskb, in, out, &li, loginfo->prefix);
-+	if (loginfo->logflags & IP6T_LOG_NFLOG)
-+		nf_log_packet(PF_INET6, hooknum, *pskb, in, out, &li,
-+		              loginfo->prefix);
-+	else
-+		ip6t_log_packet(PF_INET6, hooknum, *pskb, in, out, &li,
-+		                loginfo->prefix);
- 
- 	return IP6T_CONTINUE;
- }
+When ipt_LOG doesn't register a nf_log logger, then the problem would
+not arise, although the conntrack code could not log anything until some
+other logger has been registered (since conntrack uses nf_log_packet).
+
+
+
+Maybe nf_log should have two handlers for each PF:
+- - One handler for loginfo.type == NF_LOG_TYPE_LOG. Which can be provided
+by ipt_LOG.
+- - One handler for loginfo.type == NF_LOG_TYPE_ULOG, for which
+nfnetlink_log strongly qualifies.
+
+
+So, as long as ipt_LOG is loaded, conntrack et.al. can log to syslog as is.
+
+If netlink_log is used additionally, (as handler for TYPE_ULOG),
+conntrack et.al. won't notice it.
+
+If _everything_ should be logged to userspace, then netlink_log could
+also unregister the TYPE_LOG handler and register itself as handler for it.
+
+
+cu
+Gregor
+
+PS: Hope you don't mind that I make so much noise here on the list.
+- --
+Gregor Maier                                      Lehrstuhl Informatik 8
+gregor@net.in.tum.de                              Tel: +49 89  289-18010
+http://www.net.in.tum.de                                     TU Muenchen
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (Darwin)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFEAGX9dGiwgbikMYMRAp7jAJ9ZZVVe2UWAybxqOA97GPHwy5/8TwCfR5nG
+kUDhWbnPadrpi9x2nTyNo2M=
+=LS7O
+-----END PGP SIGNATURE-----
