@@ -1,14 +1,14 @@
-From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: RE: New H.323 conntrack & NAT helper module
-Date: Fri, 24 Feb 2006 22:00:04 -0600
-Message-ID: <925A849792280C4E80C5461017A4B8A2032119@mail733.InfraSupportEtc.com>
+From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
+Subject: Re: New H.323 conntrack & NAT helper module
+Date: Sat, 25 Feb 2006 01:00:00 -0500
+Message-ID: <BAY109-DAV1E3EEAC01132FB3EE2E2EB3F00@phx.gbl>
+References: <925A849792280C4E80C5461017A4B8A2032119@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: "Jing Min Zhao" <zhaojingmin@hotmail.com>,
+To: "Greg Scott" <GregScott@InfraSupportEtc.com>,
 	<netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -21,62 +21,66 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Holey moley - this is GREAT news!!
+On Friday February 24, 2006 11:00 PM,  Greg Scott wrote:
+>
+> Holey moley - this is GREAT news!!
 
-A couple questions.  Will this module work with 2.6.16 and upcoming
-newer kernels?  And - this is a biggie - the documentation says all I
-need to do is SNAT TCP 1720 for outbound calls and DNAT TCP 1720 for
-inbound calls.  No more tinkering by hand with zillions of TCP/UDP ports
-- no more trying to figure out if Polycom or Tandberg or whatever is on
-which end.  Is this really true???  Will this patch really figure out
-and track the dynamic ports these devices use by default?  If so, then
-HOT DOGGIES!!!! =20
+Thanks!
 
-Also - will it work with proxy ARP?  Let's say I proxy ARP an H.323
-device behind the firewall.  Will this patch still handle connection
-tracking, even though there is no NAT?  The idea is, I would put a rule
-in the FORWARD table for TCP 1720 and the patch would "know" it's an
-H.323 device and also track and forward the appropriate TCP and UDP
-ports.  But it would be to a public IP Address proxy ARP'd behind the
-firewall instead of a NAT'd device. =20
+> A couple questions.  Will this module work with 2.6.16 and upcoming
+> newer kernels?
 
-thanks
+Yes. I'll keep tracking the kernel development. Once a big version comes 
+out,
+I'll update this patch. I think maybe Patrick McHardy is inspecting my code, 
+if
+I'm lucky, it may go into the kernel tree, and you won't need a separate 
+patch
+any more. I really hope so.
 
-- Greg Scott
+>  And - this is a biggie - the documentation says all I
+> need to do is SNAT TCP 1720 for outbound calls and DNAT TCP 1720 for
+> inbound calls.  No more tinkering by hand with zillions of TCP/UDP ports
+> - no more trying to figure out if Polycom or Tandberg or whatever is on
+> which end.  Is this really true???
 
+Yes, and it's more than that. Actually, you don't need to specify the port 
+1720 -
+the module knows it, unless you want NAT only H.323 traffic. For inbound 
+calls,
+if you use a gatekeeper, you don't need the DNAT rule.
 
------Original Message-----
-From: netfilter-devel-bounces@lists.netfilter.org
-[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf Of Jing
-Min Zhao
-Sent: Tuesday, February 21, 2006 11:57 PM
-To: netfilter-devel@lists.netfilter.org
-Subject: New H.323 conntrack & NAT helper module
+>  Will this patch really figure out
+> and track the dynamic ports these devices use by default?
 
+Yes.
 
-Hi, all,
+> If so, then
+> HOT DOGGIES!!!!
 
-I've written a new H.323 conntrack & NAT helper module for Netfilter.
+:)
 
-I have five years experience in H.323 development and many years in
-Linux development, so I know many people out there need Linux firewall
-to support H.323 as IP phones are becoming more and more popular. I also
-know Jozsef Kadlecsik and Max Kellermann have written such Netfilter
-modules, but they don't support RAS, Fast-Start and H.245 tunnelling.
-However, these features are essential for most modern H.323 devices.
-Many carriers even don't support slow-start at all.
+> Also - will it work with proxy ARP?
 
-This is a almost full featured H.323 module. Since it is based on H.225
-version 4, H.235 version 2 and H.245 version 7, it should support most
-of the H.323 products in the market. I've spent a lot of time on this
-module and my friends helped me test it a lot too. Now I believe it is
-ready to go into kernel tree. I'm wondering if anybody can tell me what
-I should do to adding it to Netfilter.
+This does nothing to do with the module. Sorry I'm not sure.
 
-Anybody interested in this can download the patch for kernel 2.6.15 in
-http://sourceforge.net/project/showfiles.php?group_id=3D158936. The
-document is at http://nath323.sourceforge.net.
+> Let's say I proxy ARP an H.323
+> device behind the firewall.  Will this patch still handle connection
+> tracking, even though there is no NAT?
 
-Thanks a lot!
+Yes, it support this mode. Just don't load ip_nat_h323, load only
+ip_conntrack_h323.
+
+> The idea is, I would put a rule
+> in the FORWARD table for TCP 1720 and the patch would "know" it's an
+> H.323 device and also track and forward the appropriate TCP and UDP
+> ports.  But it would be to a public IP Address proxy ARP'd behind the
+> firewall instead of a NAT'd device.
+>
+> thanks
+>
+> - Greg Scott
+
+Thanks
 
 Jing Min Zhao
