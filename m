@@ -1,12 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER]: H.323 helper: avoid long expectation chains
-Date: Sat, 25 Feb 2006 10:08:16 +0100
-Message-ID: <44001E80.8080208@trash.net>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090701030303040904010308"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Subject: [00/06]: Netfilter fixes for 2.6.16
+Date: Sat, 25 Feb 2006 14:17:30 +0100 (MET)
+Message-ID: <20060225131547.7400.12127.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jing Min Zhao <zhaojingmin@hotmail.com>
+To: davem@davemloft.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,56 +16,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090701030303040904010308
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hi Dave,
 
-This is the last patch for now, the others still need a bit more work.
+following are a couple fixes for 2.6.16. mostly concerning nf_queue.
+Please apply.
 
---------------090701030303040904010308
-Content-Type: text/x-patch;
- name="06.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="06.diff"
 
-[NETFILTER]: H.323 helper: avoid long expectation chains
+ include/linux/netfilter_bridge/ebt_log.h |    1 
+ include/linux/netfilter_ipv4/ipt_LOG.h   |    3 +
+ include/linux/netfilter_ipv6/ip6t_LOG.h  |    3 +
+ net/bridge/netfilter/ebt_log.c           |    7 +++
+ net/ipv4/netfilter/ipt_LOG.c             |    7 +++
+ net/ipv6/netfilter/ip6t_LOG.c            |    7 +++
+ net/netfilter/nf_queue.c                 |   58 ++++++++++++++-----------------
+ 7 files changed, 51 insertions(+), 35 deletions(-)
 
-The RAS helper can exect new RAS connections when Gatekeeper discovery
-is performed. This could lead to a situation where there is a long
-chain of master conntracks which is recursively freed by destroy_conntrack
-or which consumes lots of memory with only a single hashed conntrack,
-decreasing chances of beeing evicted under memory pressure.
-
-Avoid creating RAS expectations for already expected connections.
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 74dc9a728dc33fab70b73ee30aca44bd2a0259ec
-tree 6d3d7b250377b8587c9e32236ac22d91f4fb3300
-parent 134aa8950c66de37bd644e7826c4d5cb1f1535ab
-author Patrick McHardy <kaber@trash.net> Thu, 23 Feb 2006 20:22:10 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 23 Feb 2006 20:22:10 +0100
-
- net/ipv4/netfilter/ip_conntrack_helper_h323.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_conntrack_helper_h323.c b/net/ipv4/netfilter/ip_conntrack_helper_h323.c
-index 5692b2f..fa6e73f 100644
---- a/net/ipv4/netfilter/ip_conntrack_helper_h323.c
-+++ b/net/ipv4/netfilter/ip_conntrack_helper_h323.c
-@@ -1091,6 +1091,10 @@ static int process_gcf(struct sk_buff **
- 	    port == ntohs(ct->tuplehash[dir].tuple.src.u.udp.port))
- 		return 0;
- 
-+	/* Avoid RAS expectation loops. A GCF is never expected. */
-+	if (test_bit(IPS_EXPECTED_BIT, &ct->status))
-+		return 0;
-+
- 	/* Need new expect */
- 	if ((exp = ip_conntrack_expect_alloc(ct)) == NULL)
- 		return -1;
-
---------------090701030303040904010308--
+Patrick McHardy:
+      [NETFILTER]: nf_queue: don't copy registered rerouter data
+      [NETFILTER]: nf_queue: check if rerouter is present before using it
+      [NETFILTER]: nf_queue: fix rerouting after packet mangling
+      [NETFILTER]: nf_queue: remove unnecessary check for outfn
+      [NETFILTER]: nf_queue: fix end-of-list check
+      [NETFILTER]: Restore {ipt,ip6t,ebt}_LOG compatibility
