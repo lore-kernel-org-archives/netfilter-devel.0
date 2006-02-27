@@ -1,11 +1,11 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/5] [XT_TABLES] Set the protocol family in x_tables
-	targets/matches
-Date: Mon, 27 Feb 2006 03:10:44 +0100
-Message-ID: <44025FA4.4030506@netfilter.org>
+Subject: [PATCH 5/5] [NF_CONNTRACK] load on demand layer 3 protocol handlers
+Date: Mon, 27 Feb 2006 03:10:54 +0100
+Message-ID: <44025FAE.1000400@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090705000301090100010805"
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed; boundary="------------000100080005030807070905"
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -20,1461 +20,320 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090705000301090100010805
+--------------000100080005030807070905
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
-Set the family field in the xt_[matches|targets] registered
+x_tables matches and targets that require nf_conntrack_ipv[4|6] to work
+don't have enough information to load on demand these modules. This
+patch introduces the following changes to solve this issue:
+
+o nf_ct_l3proto_try_module_get: try to load the layer 3 connection
+tracker module and increases the refcount.
+o nf_ct_l3proto_module put: drop the refcount of the module.
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------090705000301090100010805
+--------------000100080005030807070905
 Content-Type: text/plain;
- name="family.patch"
+ name="autoload.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="family.patch"
+ filename="autoload.patch"
 
-[XT_TABLES] Set the protocol family value in xt_[matches|targets]
+[NF_CONNTRACK] Support for layer 3 protocol load on demand
 
-Set the family field in xt_[matches|targets] registered
+x_tables matches and targets that require nf_conntrack_ipv[4|6] to work
+don't have enough information to load on demand these modules. This
+patch introduces the following changes to solve this issue:
+
+o nf_ct_l3proto_try_module_get: try to load the layer 3 connection
+tracker module and increases the refcount.
+o nf_ct_l3proto_module put: drop the refcount of the module.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Index: net-2.6.git/net/netfilter/xt_conntrack.c
+Index: net-2.6.git/net/netfilter/nf_conntrack_core.c
 ===================================================================
---- net-2.6.git.orig/net/netfilter/xt_conntrack.c	2006-02-27 01:29:35.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_conntrack.c	2006-02-27 01:44:14.000000000 +0100
-@@ -207,6 +207,7 @@ static struct xt_match conntrack_match =
- 	.name		= "conntrack",
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_conntrack_info),
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -214,14 +215,14 @@ static int __init init(void)
- {
- 	int ret;
- 	need_conntrack();
--	ret = xt_register_match(AF_INET, &conntrack_match);
-+	ret = xt_register_match(&conntrack_match);
- 
- 	return ret;
+--- net-2.6.git.orig/net/netfilter/nf_conntrack_core.c	2006-02-27 02:25:20.000000000 +0100
++++ net-2.6.git/net/netfilter/nf_conntrack_core.c	2006-02-27 02:25:22.000000000 +0100
+@@ -23,6 +23,8 @@
+  * 26 Jan 2006: Harald Welte <laforge@netfilter.org>
+  * 	- restructure nf_conn (introduce nf_conn_help)
+  * 	- redesign 'features' how they were originally intended
++ * 26 Feb 2006: Pablo Neira Ayuso <pablo@eurodev.net>
++ * 	- add support for L3 protocol module load on demand.
+  *
+  * Derived from net/ipv4/netfilter/ip_conntrack_core.c
+  */
+@@ -241,6 +243,35 @@ void nf_ct_l3proto_put(struct nf_conntra
+ 	module_put(p->me);
  }
  
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET, &conntrack_match);
-+	xt_unregister_match(&conntrack_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_physdev.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_physdev.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_physdev.c	2006-02-27 01:29:58.000000000 +0100
-@@ -121,6 +121,7 @@ static struct xt_match physdev_match = {
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_physdev_info),
- 	.checkentry	= checkentry,
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -129,6 +130,7 @@ static struct xt_match physdev6_match = 
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_physdev_info),
- 	.checkentry	= checkentry,
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -136,21 +138,21 @@ static int __init init(void)
- {
- 	int ret;
- 
--	ret = xt_register_match(AF_INET, &physdev_match);
-+	ret = xt_register_match(&physdev_match);
- 	if (ret < 0)
- 		return ret;
- 
--	ret = xt_register_match(AF_INET6, &physdev6_match);
-+	ret = xt_register_match(&physdev6_match);
- 	if (ret < 0)
--		xt_unregister_match(AF_INET, &physdev_match);
-+		xt_unregister_match(&physdev_match);
- 
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET, &physdev_match);
--	xt_unregister_match(AF_INET6, &physdev6_match);
-+	xt_unregister_match(&physdev_match);
-+	xt_unregister_match(&physdev6_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_connbytes.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_connbytes.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_connbytes.c	2006-02-27 01:29:58.000000000 +0100
-@@ -148,6 +148,7 @@ static struct xt_match connbytes_match =
- 	.match		= match,
- 	.checkentry	= check,
- 	.matchsize	= sizeof(struct xt_connbytes_info),
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE
- };
- static struct xt_match connbytes6_match = {
-@@ -155,26 +156,27 @@ static struct xt_match connbytes6_match 
- 	.match		= match,
- 	.checkentry	= check,
- 	.matchsize	= sizeof(struct xt_connbytes_info),
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE
- };
- 
- static int __init init(void)
- {
- 	int ret;
--	ret = xt_register_match(AF_INET, &connbytes_match);
-+	ret = xt_register_match(&connbytes_match);
- 	if (ret)
- 		return ret;
- 
--	ret = xt_register_match(AF_INET6, &connbytes6_match);
-+	ret = xt_register_match(&connbytes6_match);
- 	if (ret)
--		xt_unregister_match(AF_INET, &connbytes_match);
-+		xt_unregister_match(&connbytes_match);
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET, &connbytes_match);
--	xt_unregister_match(AF_INET6, &connbytes6_match);
-+	xt_unregister_match(&connbytes_match);
-+	xt_unregister_match(&connbytes6_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_pkttype.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_pkttype.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_pkttype.c	2006-02-27 01:29:58.000000000 +0100
-@@ -37,6 +37,7 @@ static struct xt_match pkttype_match = {
- 	.name		= "pkttype",
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_pkttype_info),
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -44,27 +45,28 @@ static struct xt_match pkttype6_match = 
- 	.name		= "pkttype",
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_pkttype_info),
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE,
- };
- 
- static int __init init(void)
- {
- 	int ret;
--	ret = xt_register_match(AF_INET, &pkttype_match);
-+	ret = xt_register_match(&pkttype_match);
- 	if (ret)
- 		return ret;
- 
--	ret = xt_register_match(AF_INET6, &pkttype6_match);
-+	ret = xt_register_match(&pkttype6_match);
- 	if (ret)
--		xt_unregister_match(AF_INET, &pkttype_match);
-+		xt_unregister_match(&pkttype_match);
- 
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET, &pkttype_match);
--	xt_unregister_match(AF_INET6, &pkttype6_match);
-+	xt_unregister_match(&pkttype_match);
-+	xt_unregister_match(&pkttype6_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_comment.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_comment.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_comment.c	2006-02-27 01:29:58.000000000 +0100
-@@ -33,6 +33,7 @@ static struct xt_match comment_match = {
- 	.name		= "comment",
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_comment_info),
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE
- };
- 
-@@ -40,6 +41,7 @@ static struct xt_match comment6_match = 
- 	.name		= "comment",
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_comment_info),
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE
- };
- 
-@@ -47,21 +49,21 @@ static int __init init(void)
- {
- 	int ret;
- 
--	ret = xt_register_match(AF_INET, &comment_match);
-+	ret = xt_register_match(&comment_match);
- 	if (ret)
- 		return ret;
- 
--	ret = xt_register_match(AF_INET6, &comment6_match);
-+	ret = xt_register_match(&comment6_match);
- 	if (ret)
--		xt_unregister_match(AF_INET, &comment_match);
-+		xt_unregister_match(&comment_match);
- 
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET, &comment_match);
--	xt_unregister_match(AF_INET6, &comment6_match);
-+	xt_unregister_match(&comment_match);
-+	xt_unregister_match(&comment6_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_CLASSIFY.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_CLASSIFY.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_CLASSIFY.c	2006-02-27 01:29:58.000000000 +0100
-@@ -47,6 +47,7 @@ static struct xt_target classify_reg = {
- 	.table		= "mangle",
- 	.hooks		= (1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_FORWARD) |
- 		          (1 << NF_IP_POST_ROUTING),
-+	.family		= AF_INET,
- 	.me 		= THIS_MODULE,
- };
- static struct xt_target classify6_reg = { 
-@@ -56,6 +57,7 @@ static struct xt_target classify6_reg = 
- 	.table		= "mangle",
- 	.hooks		= (1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_FORWARD) |
- 		          (1 << NF_IP_POST_ROUTING),
-+	.family		= AF_INET6,
- 	.me 		= THIS_MODULE,
- };
- 
-@@ -64,21 +66,21 @@ static int __init init(void)
- {
- 	int ret;
- 
--	ret = xt_register_target(AF_INET, &classify_reg);
-+	ret = xt_register_target(&classify_reg);
- 	if (ret)
- 		return ret;
- 
--	ret = xt_register_target(AF_INET6, &classify6_reg);
-+	ret = xt_register_target(&classify6_reg);
- 	if (ret)
--		xt_unregister_target(AF_INET, &classify_reg);
-+		xt_unregister_target(&classify_reg);
- 
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_target(AF_INET, &classify_reg);
--	xt_unregister_target(AF_INET6, &classify6_reg);
-+	xt_unregister_target(&classify_reg);
-+	xt_unregister_target(&classify6_reg);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_mac.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_mac.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_mac.c	2006-02-27 01:29:58.000000000 +0100
-@@ -49,6 +49,7 @@ static struct xt_match mac_match = {
- 	.matchsize	= sizeof(struct xt_mac_info),
- 	.hooks		= (1 << NF_IP_PRE_ROUTING) | (1 << NF_IP_LOCAL_IN) |
- 			  (1 << NF_IP_FORWARD),
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE,
- };
- static struct xt_match mac6_match = {
-@@ -57,27 +58,28 @@ static struct xt_match mac6_match = {
- 	.matchsize	= sizeof(struct xt_mac_info),
- 	.hooks		= (1 << NF_IP_PRE_ROUTING) | (1 << NF_IP_LOCAL_IN) |
- 			  (1 << NF_IP_FORWARD),
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE,
- };
- 
- static int __init init(void)
- {
- 	int ret;
--	ret = xt_register_match(AF_INET, &mac_match);
-+	ret = xt_register_match(&mac_match);
- 	if (ret)
- 		return ret;
- 
--	ret = xt_register_match(AF_INET6, &mac6_match);
-+	ret = xt_register_match(&mac6_match);
- 	if (ret)
--		xt_unregister_match(AF_INET, &mac_match);
-+		xt_unregister_match(&mac_match);
- 
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET, &mac_match);
--	xt_unregister_match(AF_INET6, &mac6_match);
-+	xt_unregister_match(&mac_match);
-+	xt_unregister_match(&mac6_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/include/linux/netfilter/x_tables.h
-===================================================================
---- net-2.6.git.orig/include/linux/netfilter/x_tables.h	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/include/linux/netfilter/x_tables.h	2006-02-27 01:29:58.000000000 +0100
-@@ -220,10 +220,10 @@ struct xt_table_info
- 	char *entries[NR_CPUS];
- };
- 
--extern int xt_register_target(int af, struct xt_target *target);
--extern void xt_unregister_target(int af, struct xt_target *target);
--extern int xt_register_match(int af, struct xt_match *target);
--extern void xt_unregister_match(int af, struct xt_match *target);
-+extern int xt_register_target(struct xt_target *target);
-+extern void xt_unregister_target(struct xt_target *target);
-+extern int xt_register_match(struct xt_match *target);
-+extern void xt_unregister_match(struct xt_match *target);
- 
- extern int xt_check_match(const struct xt_match *match, unsigned short family,
- 			  unsigned int size, const char *table, unsigned int hook,
-Index: net-2.6.git/net/netfilter/xt_length.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_length.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_length.c	2006-02-27 01:29:58.000000000 +0100
-@@ -56,6 +56,7 @@ static struct xt_match length_match = {
- 	.name		= "length",
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_length_info),
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -63,26 +64,27 @@ static struct xt_match length6_match = {
- 	.name		= "length",
- 	.match		= match6,
- 	.matchsize	= sizeof(struct xt_length_info),
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE,
- };
- 
- static int __init init(void)
- {
- 	int ret;
--	ret = xt_register_match(AF_INET, &length_match);
-+	ret = xt_register_match(&length_match);
- 	if (ret)
- 		return ret;
--	ret = xt_register_match(AF_INET6, &length6_match);
-+	ret = xt_register_match(&length6_match);
- 	if (ret)
--		xt_unregister_match(AF_INET, &length_match);
-+		xt_unregister_match(&length_match);
- 
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET, &length_match);
--	xt_unregister_match(AF_INET6, &length6_match);
-+	xt_unregister_match(&length_match);
-+	xt_unregister_match(&length6_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_CONNMARK.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_CONNMARK.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_CONNMARK.c	2006-02-27 01:29:58.000000000 +0100
-@@ -102,6 +102,7 @@ static struct xt_target connmark_reg = {
- 	.target		= target,
- 	.targetsize	= sizeof(struct xt_connmark_target_info),
- 	.checkentry	= checkentry,
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE
- };
- 
-@@ -110,6 +111,7 @@ static struct xt_target connmark6_reg = 
- 	.target		= target,
- 	.targetsize	= sizeof(struct xt_connmark_target_info),
- 	.checkentry	= checkentry,
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE
- };
- 
-@@ -119,21 +121,21 @@ static int __init init(void)
- 
- 	need_conntrack();
- 
--	ret = xt_register_target(AF_INET, &connmark_reg);
-+	ret = xt_register_target(&connmark_reg);
- 	if (ret)
- 		return ret;
- 
--	ret = xt_register_target(AF_INET6, &connmark6_reg);
-+	ret = xt_register_target(&connmark6_reg);
- 	if (ret)
--		xt_unregister_target(AF_INET, &connmark_reg);
-+		xt_unregister_target(&connmark_reg);
- 
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_target(AF_INET, &connmark_reg);
--	xt_unregister_target(AF_INET6, &connmark6_reg);
-+	xt_unregister_target(&connmark_reg);
-+	xt_unregister_target(&connmark6_reg);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_limit.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_limit.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_limit.c	2006-02-27 01:29:58.000000000 +0100
-@@ -141,6 +141,7 @@ static struct xt_match ipt_limit_reg = {
- 	.match		= ipt_limit_match,
- 	.matchsize	= sizeof(struct xt_rateinfo),
- 	.checkentry	= ipt_limit_checkentry,
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE,
- };
- static struct xt_match limit6_reg = {
-@@ -148,6 +149,7 @@ static struct xt_match limit6_reg = {
- 	.match		= ipt_limit_match,
- 	.matchsize	= sizeof(struct xt_rateinfo),
- 	.checkentry	= ipt_limit_checkentry,
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -155,21 +157,21 @@ static int __init init(void)
- {
- 	int ret;
- 	
--	ret = xt_register_match(AF_INET, &ipt_limit_reg);
-+	ret = xt_register_match(&ipt_limit_reg);
- 	if (ret)
- 		return ret;
- 	
--	ret = xt_register_match(AF_INET6, &limit6_reg);
-+	ret = xt_register_match(&limit6_reg);
- 	if (ret)
--		xt_unregister_match(AF_INET, &ipt_limit_reg);
-+		xt_unregister_match(&ipt_limit_reg);
- 
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET, &ipt_limit_reg);
--	xt_unregister_match(AF_INET6, &limit6_reg);
-+	xt_unregister_match(&ipt_limit_reg);
-+	xt_unregister_match(&limit6_reg);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_mark.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_mark.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_mark.c	2006-02-27 01:29:58.000000000 +0100
-@@ -56,6 +56,7 @@ static struct xt_match mark_match = {
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_mark_info),
- 	.checkentry	= checkentry,
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -64,27 +65,28 @@ static struct xt_match mark6_match = {
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_mark_info),
- 	.checkentry	= checkentry,
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE,
- };
- 
- static int __init init(void)
- {
- 	int ret;
--	ret = xt_register_match(AF_INET, &mark_match);
-+	ret = xt_register_match(&mark_match);
- 	if (ret)
- 		return ret;
- 
--	ret = xt_register_match(AF_INET6, &mark6_match);
-+	ret = xt_register_match(&mark6_match);
- 	if (ret)
--		xt_unregister_match(AF_INET, &mark_match);
-+		xt_unregister_match(&mark_match);
- 
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET, &mark_match);
--	xt_unregister_match(AF_INET6, &mark6_match);
-+	xt_unregister_match(&mark_match);
-+	xt_unregister_match(&mark6_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_dccp.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_dccp.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_dccp.c	2006-02-27 01:29:58.000000000 +0100
-@@ -149,6 +149,7 @@ static struct xt_match dccp_match = 
- 	.matchsize	= sizeof(struct xt_dccp_info),
- 	.proto		= IPPROTO_DCCP,
- 	.checkentry	= checkentry,
-+	.family		= AF_INET,
- 	.me 		= THIS_MODULE,
- };
- static struct xt_match dccp6_match = 
-@@ -158,6 +159,7 @@ static struct xt_match dccp6_match = 
- 	.matchsize	= sizeof(struct xt_dccp_info),
- 	.proto		= IPPROTO_DCCP,
- 	.checkentry	= checkentry,
-+	.family		= AF_INET6,
- 	.me 		= THIS_MODULE,
- };
- 
-@@ -172,17 +174,17 @@ static int __init init(void)
- 	dccp_optbuf = kmalloc(256 * 4, GFP_KERNEL);
- 	if (!dccp_optbuf)
- 		return -ENOMEM;
--	ret = xt_register_match(AF_INET, &dccp_match);
-+	ret = xt_register_match(&dccp_match);
- 	if (ret)
- 		goto out_kfree;
--	ret = xt_register_match(AF_INET6, &dccp6_match);
-+	ret = xt_register_match(&dccp6_match);
- 	if (ret)
- 		goto out_unreg;
- 
- 	return ret;
- 
- out_unreg:
--	xt_unregister_match(AF_INET, &dccp_match);
-+	xt_unregister_match(&dccp_match);
- out_kfree:
- 	kfree(dccp_optbuf);
- 
-@@ -191,8 +193,8 @@ out_kfree:
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET6, &dccp6_match);
--	xt_unregister_match(AF_INET, &dccp_match);
-+	xt_unregister_match(&dccp6_match);
-+	xt_unregister_match(&dccp_match);
- 	kfree(dccp_optbuf);
- }
- 
-Index: net-2.6.git/net/netfilter/xt_helper.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_helper.c	2006-02-27 01:29:35.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_helper.c	2006-02-27 01:44:14.000000000 +0100
-@@ -153,6 +153,7 @@ static struct xt_match helper_match = {
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_helper_info),
- 	.checkentry	= check,
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE,
- };
- static struct xt_match helper6_match = {
-@@ -160,6 +161,7 @@ static struct xt_match helper6_match = {
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_helper_info),
- 	.checkentry	= check,
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -168,21 +170,21 @@ static int __init init(void)
- 	int ret;
- 	need_conntrack();
- 
--	ret = xt_register_match(AF_INET, &helper_match);
-+	ret = xt_register_match(&helper_match);
- 	if (ret < 0)
- 		return ret;
- 
--	ret = xt_register_match(AF_INET6, &helper6_match);
-+	ret = xt_register_match(&helper6_match);
- 	if (ret < 0)
--		xt_unregister_match(AF_INET, &helper_match);
-+		xt_unregister_match(&helper_match);
- 
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET, &helper_match);
--	xt_unregister_match(AF_INET6, &helper6_match);
-+	xt_unregister_match(&helper_match);
-+	xt_unregister_match(&helper6_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/x_tables.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/x_tables.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/x_tables.c	2006-02-27 01:44:28.000000000 +0100
-@@ -60,9 +60,9 @@ static const char *xt_prefix[NPROTO] = {
- 
- /* Registration hooks for targets. */
- int
--xt_register_target(int af, struct xt_target *target)
-+xt_register_target(struct xt_target *target)
- {
--	int ret;
-+	int ret, af = target->family;
- 
- 	ret = down_interruptible(&xt[af].mutex);
- 	if (ret != 0)
-@@ -74,8 +74,10 @@ xt_register_target(int af, struct xt_tar
- EXPORT_SYMBOL(xt_register_target);
- 
- void
--xt_unregister_target(int af, struct xt_target *target)
-+xt_unregister_target(struct xt_target *target)
- {
-+	int af = target->family;
++int
++nf_ct_l3proto_try_module_get(unsigned short l3proto)
++{
++	int ret;
++	struct nf_conntrack_l3proto *p;
 +
- 	down(&xt[af].mutex);
- 	LIST_DELETE(&xt[af].target, target);
- 	up(&xt[af].mutex);
-@@ -83,9 +85,9 @@ xt_unregister_target(int af, struct xt_t
- EXPORT_SYMBOL(xt_unregister_target);
- 
- int
--xt_register_match(int af, struct xt_match *match)
-+xt_register_match(struct xt_match *match)
- {
--	int ret;
-+	int ret, af = match->family;
- 
- 	ret = down_interruptible(&xt[af].mutex);
- 	if (ret != 0)
-@@ -99,8 +101,10 @@ xt_register_match(int af, struct xt_matc
- EXPORT_SYMBOL(xt_register_match);
- 
- void
--xt_unregister_match(int af, struct xt_match *match)
-+xt_unregister_match(struct xt_match *match)
- {
-+	int af =  match->family;
++retry:	p = nf_ct_l3proto_find_get(l3proto);
++	if (p == &nf_conntrack_generic_l3proto) {
++		ret = request_module("nf_conntrack-%d", l3proto);
++		if (!ret)
++			goto retry;
 +
- 	down(&xt[af].mutex);
- 	LIST_DELETE(&xt[af].match, match);
- 	up(&xt[af].mutex);
-Index: net-2.6.git/net/netfilter/xt_NOTRACK.c
++		return -EPROTOTYPE;
++	}
++
++	return 0;
++}
++
++void nf_ct_l3proto_module_put(unsigned short l3proto)
++{
++	struct nf_conntrack_l3proto *p;
++
++	preempt_disable();
++	p = __nf_ct_l3proto_find(l3proto);
++	preempt_enable();
++
++	module_put(p->me);
++}
++
+ static int nf_conntrack_hash_rnd_initted;
+ static unsigned int nf_conntrack_hash_rnd;
+ 
+Index: net-2.6.git/include/net/netfilter/nf_conntrack.h
 ===================================================================
---- net-2.6.git.orig/net/netfilter/xt_NOTRACK.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_NOTRACK.c	2006-02-27 01:29:58.000000000 +0100
-@@ -39,6 +39,7 @@ static struct xt_target notrack_reg = {
- 	.target		= target,
- 	.targetsize	= 0,
- 	.table		= "raw",
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -47,6 +48,7 @@ static struct xt_target notrack6_reg = {
- 	.target		= target,
- 	.targetsize	= 0,
- 	.table		= "raw",
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -54,21 +56,21 @@ static int __init init(void)
- {
- 	int ret;
- 
--	ret = xt_register_target(AF_INET, &notrack_reg);
-+	ret = xt_register_target(&notrack_reg);
- 	if (ret)
- 		return ret;
- 
--	ret = xt_register_target(AF_INET6, &notrack6_reg);
-+	ret = xt_register_target(&notrack6_reg);
- 	if (ret)
--		xt_unregister_target(AF_INET, &notrack_reg);
-+		xt_unregister_target(&notrack_reg);
- 
- 	return ret;
+--- net-2.6.git.orig/include/net/netfilter/nf_conntrack.h	2006-02-27 01:44:14.000000000 +0100
++++ net-2.6.git/include/net/netfilter/nf_conntrack.h	2006-02-27 02:25:22.000000000 +0100
+@@ -195,6 +195,10 @@ static inline void nf_ct_put(struct nf_c
+ 	nf_conntrack_put(&ct->ct_general);
  }
  
- static void __exit fini(void)
- {
--	xt_unregister_target(AF_INET6, &notrack6_reg);
--	xt_unregister_target(AF_INET, &notrack_reg);
-+	xt_unregister_target(&notrack6_reg);
-+	xt_unregister_target(&notrack_reg);
- }
- 
- module_init(init);
++/* Protocol module loading */
++extern int nf_ct_l3proto_try_module_get(unsigned short l3proto);
++extern void nf_ct_l3proto_module_put(unsigned short l3proto);
++
+ extern struct nf_conntrack_tuple_hash *
+ __nf_conntrack_find(const struct nf_conntrack_tuple *tuple,
+ 		    const struct nf_conn *ignored_conntrack);
+Index: net-2.6.git/net/netfilter/nf_conntrack_standalone.c
+===================================================================
+--- net-2.6.git.orig/net/netfilter/nf_conntrack_standalone.c	2006-02-27 01:44:14.000000000 +0100
++++ net-2.6.git/net/netfilter/nf_conntrack_standalone.c	2006-02-27 02:25:22.000000000 +0100
+@@ -834,6 +834,8 @@ EXPORT_SYMBOL_GPL(__nf_ct_event_cache_in
+ EXPORT_PER_CPU_SYMBOL_GPL(nf_conntrack_ecache);
+ EXPORT_SYMBOL_GPL(nf_ct_deliver_cached_events);
+ #endif
++EXPORT_SYMBOL(nf_ct_l3proto_try_module_get);
++EXPORT_SYMBOL(nf_ct_l3proto_module_put);
+ EXPORT_SYMBOL(nf_conntrack_l3proto_register);
+ EXPORT_SYMBOL(nf_conntrack_l3proto_unregister);
+ EXPORT_SYMBOL(nf_conntrack_protocol_register);
 Index: net-2.6.git/net/netfilter/xt_connmark.c
 ===================================================================
---- net-2.6.git.orig/net/netfilter/xt_connmark.c	2006-02-27 01:29:35.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_connmark.c	2006-02-27 01:44:14.000000000 +0100
-@@ -72,6 +72,7 @@ static struct xt_match connmark_match = 
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_connmark_info),
- 	.checkentry	= checkentry,
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE
- };
- 
-@@ -80,6 +81,7 @@ static struct xt_match connmark6_match =
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_connmark_info),
- 	.checkentry	= checkentry,
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE
- };
- 
-@@ -89,20 +91,20 @@ static int __init init(void)
- 
- 	need_conntrack();
- 
--	ret = xt_register_match(AF_INET, &connmark_match);
-+	ret = xt_register_match(&connmark_match);
- 	if (ret)
- 		return ret;
- 
--	ret = xt_register_match(AF_INET6, &connmark6_match);
-+	ret = xt_register_match(&connmark6_match);
- 	if (ret)
--		xt_unregister_match(AF_INET, &connmark_match);
-+		xt_unregister_match(&connmark_match);
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET6, &connmark6_match);
--	xt_unregister_match(AF_INET, &connmark_match);
-+	xt_unregister_match(&connmark6_match);
-+	xt_unregister_match(&connmark_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_MARK.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_MARK.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_MARK.c	2006-02-27 01:29:58.000000000 +0100
-@@ -119,6 +119,7 @@ static struct xt_target ipt_mark_reg_v0 
- 	.table		= "mangle",
- 	.checkentry	= checkentry_v0,
- 	.me		= THIS_MODULE,
-+	.family		= AF_INET,
- 	.revision	= 0,
- };
- 
-@@ -129,6 +130,7 @@ static struct xt_target ipt_mark_reg_v1 
- 	.table		= "mangle",
- 	.checkentry	= checkentry_v1,
- 	.me		= THIS_MODULE,
-+	.family		= AF_INET,
- 	.revision	= 1,
- };
- 
-@@ -139,6 +141,7 @@ static struct xt_target ip6t_mark_reg_v0
- 	.table		= "mangle",
- 	.checkentry	= checkentry_v0,
- 	.me		= THIS_MODULE,
-+	.family		= AF_INET6,
- 	.revision	= 0,
- };
- 
-@@ -146,18 +149,18 @@ static int __init init(void)
- {
- 	int err;
- 
--	err = xt_register_target(AF_INET, &ipt_mark_reg_v0);
-+	err = xt_register_target(&ipt_mark_reg_v0);
- 	if (err)
- 		return err;
- 
--	err = xt_register_target(AF_INET, &ipt_mark_reg_v1);
-+	err = xt_register_target(&ipt_mark_reg_v1);
- 	if (err)
--		xt_unregister_target(AF_INET, &ipt_mark_reg_v0);
-+		xt_unregister_target(&ipt_mark_reg_v0);
- 
--	err = xt_register_target(AF_INET6, &ip6t_mark_reg_v0);
-+	err = xt_register_target(&ip6t_mark_reg_v0);
- 	if (err) {
--		xt_unregister_target(AF_INET, &ipt_mark_reg_v0);
--		xt_unregister_target(AF_INET, &ipt_mark_reg_v1);
-+		xt_unregister_target(&ipt_mark_reg_v0);
-+		xt_unregister_target(&ipt_mark_reg_v1);
+--- net-2.6.git.orig/net/netfilter/xt_connmark.c	2006-02-27 02:25:21.000000000 +0100
++++ net-2.6.git/net/netfilter/xt_connmark.c	2006-02-27 02:25:22.000000000 +0100
+@@ -64,14 +64,30 @@ checkentry(const char *tablename,
+ 		printk(KERN_WARNING "connmark: only support 32bit mark\n");
+ 		return 0;
  	}
- 
- 	return err;
-@@ -165,9 +168,9 @@ static int __init init(void)
- 
- static void __exit fini(void)
- {
--	xt_unregister_target(AF_INET, &ipt_mark_reg_v0);
--	xt_unregister_target(AF_INET, &ipt_mark_reg_v1);
--	xt_unregister_target(AF_INET6, &ip6t_mark_reg_v0);
-+	xt_unregister_target(&ipt_mark_reg_v0);
-+	xt_unregister_target(&ipt_mark_reg_v1);
-+	xt_unregister_target(&ip6t_mark_reg_v0);
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
++		printk(KERN_WARNING "can't load nf_conntrack support for "
++				    "proto=%d\n", match->family);
++		return 0;
++	}
++#endif
+ 	return 1;
  }
  
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_NFQUEUE.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_NFQUEUE.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_NFQUEUE.c	2006-02-27 01:29:58.000000000 +0100
-@@ -41,6 +41,7 @@ static struct xt_target ipt_NFQ_reg = {
- 	.name		= "NFQUEUE",
- 	.target		= target,
- 	.targetsize	= sizeof(struct xt_NFQ_info),
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -48,6 +49,7 @@ static struct xt_target ip6t_NFQ_reg = {
- 	.name		= "NFQUEUE",
- 	.target		= target,
- 	.targetsize	= sizeof(struct xt_NFQ_info),
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -55,36 +57,37 @@ static struct xt_target arpt_NFQ_reg = {
- 	.name		= "NFQUEUE",
- 	.target		= target,
- 	.targetsize	= sizeof(struct xt_NFQ_info),
-+	.family		= NF_ARP,
- 	.me		= THIS_MODULE,
- };
- 
- static int __init init(void)
- {
- 	int ret;
--	ret = xt_register_target(AF_INET, &ipt_NFQ_reg);
-+	ret = xt_register_target(&ipt_NFQ_reg);
- 	if (ret)
- 		return ret;
--	ret = xt_register_target(AF_INET6, &ip6t_NFQ_reg);
-+	ret = xt_register_target(&ip6t_NFQ_reg);
- 	if (ret)
- 		goto out_ip;
--	ret = xt_register_target(NF_ARP, &arpt_NFQ_reg);
-+	ret = xt_register_target(&arpt_NFQ_reg);
- 	if (ret)
- 		goto out_ip6;
- 
- 	return ret;
- out_ip6:
--	xt_unregister_target(AF_INET6, &ip6t_NFQ_reg);
-+	xt_unregister_target(&ip6t_NFQ_reg);
- out_ip:
--	xt_unregister_target(AF_INET, &ipt_NFQ_reg);
-+	xt_unregister_target(&ipt_NFQ_reg);
- 
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_target(NF_ARP, &arpt_NFQ_reg);
--	xt_unregister_target(AF_INET6, &ip6t_NFQ_reg);
--	xt_unregister_target(AF_INET, &ipt_NFQ_reg);
-+	xt_unregister_target(&arpt_NFQ_reg);
-+	xt_unregister_target(&ip6t_NFQ_reg);
-+	xt_unregister_target(&ipt_NFQ_reg);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_string.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_string.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_string.c	2006-02-27 01:29:58.000000000 +0100
-@@ -78,6 +78,7 @@ static struct xt_match string_match = {
- 	.matchsize	= sizeof(struct xt_string_info),
++static void
++destroy(const struct xt_match *match, void *matchinfo, unsigned int matchsize)
++{
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++	nf_ct_l3proto_module_put(match->family);
++#endif
++}
++
+ static struct xt_match connmark_match = {
+ 	.name		= "connmark",
+ 	.match		= match,
+ 	.matchsize	= sizeof(struct xt_connmark_info),
  	.checkentry	= checkentry,
- 	.destroy 	= destroy,
-+	.family		= AF_INET,
- 	.me 		= THIS_MODULE
- };
- static struct xt_match string6_match = {
-@@ -86,6 +87,7 @@ static struct xt_match string6_match = {
- 	.matchsize	= sizeof(struct xt_string_info),
- 	.checkentry	= checkentry,
- 	.destroy 	= destroy,
-+	.family		= AF_INET6,
- 	.me 		= THIS_MODULE
- };
- 
-@@ -93,20 +95,20 @@ static int __init init(void)
- {
- 	int ret;
- 
--	ret = xt_register_match(AF_INET, &string_match);
-+	ret = xt_register_match(&string_match);
- 	if (ret)
- 		return ret;
--	ret = xt_register_match(AF_INET6, &string6_match);
-+	ret = xt_register_match(&string6_match);
- 	if (ret)
--		xt_unregister_match(AF_INET, &string_match);
-+		xt_unregister_match(&string_match);
- 
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET, &string_match);
--	xt_unregister_match(AF_INET6, &string6_match);
-+	xt_unregister_match(&string_match);
-+	xt_unregister_match(&string6_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_sctp.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_sctp.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_sctp.c	2006-02-27 01:29:58.000000000 +0100
-@@ -186,6 +186,7 @@ static struct xt_match sctp_match = {
- 	.matchsize	= sizeof(struct xt_sctp_info),
- 	.proto		= IPPROTO_SCTP,
- 	.checkentry	= checkentry,
-+	.family		= AF_INET,
++	.destroy	= destroy,
+ 	.family		= AF_INET,
  	.me		= THIS_MODULE
  };
- 
-@@ -195,27 +196,28 @@ static struct xt_match sctp6_match = {
- 	.matchsize	= sizeof(struct xt_sctp_info),
- 	.proto		= IPPROTO_SCTP,
+@@ -81,6 +97,7 @@ static struct xt_match connmark6_match =
+ 	.match		= match,
+ 	.matchsize	= sizeof(struct xt_connmark_info),
  	.checkentry	= checkentry,
-+	.family		= AF_INET6,
++	.destroy	= destroy,
+ 	.family		= AF_INET6,
  	.me		= THIS_MODULE
  };
- 
- static int __init init(void)
- {
- 	int ret;
--	ret = xt_register_match(AF_INET, &sctp_match);
-+	ret = xt_register_match(&sctp_match);
- 	if (ret)
- 		return ret;
- 
--	ret = xt_register_match(AF_INET6, &sctp6_match);
-+	ret = xt_register_match(&sctp6_match);
- 	if (ret)
--		xt_unregister_match(AF_INET, &sctp_match);
-+		xt_unregister_match(&sctp_match);
- 
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET6, &sctp6_match);
--	xt_unregister_match(AF_INET, &sctp_match);
-+	xt_unregister_match(&sctp6_match);
-+	xt_unregister_match(&sctp_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_policy.c
+Index: net-2.6.git/net/netfilter/xt_conntrack.c
 ===================================================================
---- net-2.6.git.orig/net/netfilter/xt_policy.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_policy.c	2006-02-27 01:29:58.000000000 +0100
-@@ -172,6 +172,7 @@ static struct xt_match policy_match = {
+--- net-2.6.git.orig/net/netfilter/xt_conntrack.c	2006-02-27 02:25:21.000000000 +0100
++++ net-2.6.git/net/netfilter/xt_conntrack.c	2006-02-27 02:25:22.000000000 +0100
+@@ -203,9 +203,37 @@ match(const struct sk_buff *skb,
+ 
+ #endif /* CONFIG_NF_IP_CONNTRACK */
+ 
++static int
++checkentry(const char *tablename,
++	   const void *ip,
++	   const struct xt_match *match,
++	   void *matchinfo,
++	   unsigned int matchsize,
++	   unsigned int hook_mask)
++{
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
++		printk(KERN_WARNING "can't load nf_conntrack support for "
++				    "proto=%d\n", match->family);
++		return 0;
++	}
++#endif
++	return 1;
++}
++
++static void 
++destroy(const struct xt_match *match, void *matchinfo, unsigned int matchsize)
++{
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++	nf_ct_l3proto_module_put(match->family);
++#endif
++}
++
+ static struct xt_match conntrack_match = {
+ 	.name		= "conntrack",
  	.match		= match,
- 	.matchsize	= sizeof(struct xt_policy_info),
- 	.checkentry 	= checkentry,
-+	.family		= AF_INET,
++	.checkentry	= checkentry,
++	.destroy	= destroy,
+ 	.matchsize	= sizeof(struct xt_conntrack_info),
+ 	.family		= AF_INET,
  	.me		= THIS_MODULE,
- };
- 
-@@ -181,6 +182,7 @@ static struct xt_match policy6_match = {
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_policy_info),
- 	.checkentry	= checkentry,
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -188,19 +190,19 @@ static int __init init(void)
- {
- 	int ret;
- 
--	ret = xt_register_match(AF_INET, &policy_match);
-+	ret = xt_register_match(&policy_match);
- 	if (ret)
- 		return ret;
--	ret = xt_register_match(AF_INET6, &policy6_match);
-+	ret = xt_register_match(&policy6_match);
- 	if (ret)
--		xt_unregister_match(AF_INET, &policy_match);
-+		xt_unregister_match(&policy_match);
- 	return ret;
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET6, &policy6_match);
--	xt_unregister_match(AF_INET, &policy_match);
-+	xt_unregister_match(&policy6_match);
-+	xt_unregister_match(&policy_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_tcpmss.c
+Index: net-2.6.git/net/netfilter/xt_helper.c
 ===================================================================
---- net-2.6.git.orig/net/netfilter/xt_tcpmss.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_tcpmss.c	2006-02-27 01:29:58.000000000 +0100
-@@ -98,6 +98,7 @@ static struct xt_match tcpmss_match = {
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_tcpmss_match_info),
- 	.proto		= IPPROTO_TCP,
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -106,6 +107,7 @@ static struct xt_match tcpmss6_match = {
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_tcpmss_match_info),
- 	.proto		= IPPROTO_TCP,
-+	.family		= AF_INET6,
- 	.me		= THIS_MODULE,
- };
- 
-@@ -113,21 +115,21 @@ static struct xt_match tcpmss6_match = {
- static int __init init(void)
+--- net-2.6.git.orig/net/netfilter/xt_helper.c	2006-02-27 02:25:21.000000000 +0100
++++ net-2.6.git/net/netfilter/xt_helper.c	2006-02-27 02:25:22.000000000 +0100
+@@ -144,15 +144,31 @@ static int check(const char *tablename,
  {
- 	int ret;
--	ret = xt_register_match(AF_INET, &tcpmss_match);
-+	ret = xt_register_match(&tcpmss_match);
- 	if (ret)
- 		return ret;
+ 	struct xt_helper_info *info = matchinfo;
  
--	ret = xt_register_match(AF_INET6, &tcpmss6_match);
-+	ret = xt_register_match(&tcpmss6_match);
- 	if (ret)
--		xt_unregister_match(AF_INET, &tcpmss_match);
-+		xt_unregister_match(&tcpmss_match);
- 
- 	return ret;
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
++		printk(KERN_WARNING "can't load nf_conntrack support for "
++				    "proto=%d\n", match->family);
++		return 0;
++	}
++#endif
+ 	info->name[29] = '\0';
+ 	return 1;
  }
  
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET6, &tcpmss6_match);
--	xt_unregister_match(AF_INET, &tcpmss_match);
-+	xt_unregister_match(&tcpmss6_match);
-+	xt_unregister_match(&tcpmss_match);
- }
- 
- module_init(init);
++static void
++destroy(const struct xt_match *match, void *matchinfo, unsigned int matchsize)
++{
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++	nf_ct_l3proto_module_put(match->family);
++#endif
++}
++
+ static struct xt_match helper_match = {
+ 	.name		= "helper",
+ 	.match		= match,
+ 	.matchsize	= sizeof(struct xt_helper_info),
+ 	.checkentry	= check,
++	.destroy	= destroy,
+ 	.family		= AF_INET,
+ 	.me		= THIS_MODULE,
+ };
+@@ -161,6 +177,7 @@ static struct xt_match helper6_match = {
+ 	.match		= match,
+ 	.matchsize	= sizeof(struct xt_helper_info),
+ 	.checkentry	= check,
++	.destroy	= destroy,
+ 	.family		= AF_INET6,
+ 	.me		= THIS_MODULE,
+ };
 Index: net-2.6.git/net/netfilter/xt_state.c
 ===================================================================
---- net-2.6.git.orig/net/netfilter/xt_state.c	2006-02-27 01:29:35.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_state.c	2006-02-27 01:44:14.000000000 +0100
-@@ -48,6 +48,7 @@ static struct xt_match state_match = {
+--- net-2.6.git.orig/net/netfilter/xt_state.c	2006-02-27 02:25:21.000000000 +0100
++++ net-2.6.git/net/netfilter/xt_state.c	2006-02-27 02:25:22.000000000 +0100
+@@ -44,9 +44,36 @@ match(const struct sk_buff *skb,
+ 	return (sinfo->statemask & statebit);
+ }
+ 
++static int check(const char *tablename,
++		 const void *inf,
++		 const struct xt_match *match,
++		 void *matchinfo,
++		 unsigned int matchsize,
++		 unsigned int hook_mask)
++{
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
++		printk(KERN_WARNING "can't load nf_conntrack support for "
++				    "proto=%d\n", match->family);
++		return 0;
++	}
++#endif
++	return 1;
++}
++
++static void
++destroy(const struct xt_match *match, void *matchinfo, unsigned int matchsize)
++{
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++	nf_ct_l3proto_module_put(match->family);
++#endif
++}
++
+ static struct xt_match state_match = {
  	.name		= "state",
  	.match		= match,
++	.checkentry	= check,
++	.destroy	= destroy,
  	.matchsize	= sizeof(struct xt_state_info),
-+	.family		= AF_INET,
+ 	.family		= AF_INET,
  	.me		= THIS_MODULE,
- };
- 
-@@ -55,6 +56,7 @@ static struct xt_match state6_match = {
+@@ -55,6 +82,8 @@ static struct xt_match state_match = {
+ static struct xt_match state6_match = {
  	.name		= "state",
  	.match		= match,
++	.checkentry	= check,
++	.destroy	= destroy,
  	.matchsize	= sizeof(struct xt_state_info),
-+	.family		= AF_INET6,
+ 	.family		= AF_INET6,
  	.me		= THIS_MODULE,
- };
- 
-@@ -64,21 +66,21 @@ static int __init init(void)
- 
- 	need_conntrack();
- 
--	ret = xt_register_match(AF_INET, &state_match);
-+	ret = xt_register_match(&state_match);
- 	if (ret < 0)
- 		return ret;
- 
--	ret = xt_register_match(AF_INET6, &state6_match);
-+	ret = xt_register_match(&state6_match);
- 	if (ret < 0)
--		xt_unregister_match(AF_INET,&state_match);
-+		xt_unregister_match(&state_match);
- 
+Index: net-2.6.git/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+===================================================================
+--- net-2.6.git.orig/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c	2006-02-25 13:45:47.000000000 +0100
++++ net-2.6.git/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c	2006-02-27 02:43:59.000000000 +0100
+@@ -568,6 +568,7 @@ static int init_or_cleanup(int init)
  	return ret;
  }
  
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET, &state_match);
--	xt_unregister_match(AF_INET6, &state6_match);
-+	xt_unregister_match(&state_match);
-+	xt_unregister_match(&state6_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_realm.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_realm.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_realm.c	2006-02-27 01:29:58.000000000 +0100
-@@ -45,17 +45,18 @@ static struct xt_match realm_match = {
- 	.matchsize	= sizeof(struct xt_realm_info),
- 	.hooks		= (1 << NF_IP_POST_ROUTING) | (1 << NF_IP_FORWARD) |
- 			  (1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_LOCAL_IN),
-+	.family		= AF_INET,
- 	.me		= THIS_MODULE
- };
++MODULE_ALIAS("nf_conntrack-" __stringify(AF_INET));
+ MODULE_LICENSE("GPL");
  
  static int __init init(void)
- {
--	return xt_register_match(AF_INET, &realm_match);
-+	return xt_register_match(&realm_match);
- }
- 
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET, &realm_match);
-+	xt_unregister_match(&realm_match);
- }
- 
- module_init(init);
-Index: net-2.6.git/net/netfilter/xt_tcpudp.c
+Index: net-2.6.git/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
 ===================================================================
---- net-2.6.git.orig/net/netfilter/xt_tcpudp.c	2006-02-27 01:21:17.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_tcpudp.c	2006-02-27 01:29:58.000000000 +0100
-@@ -204,6 +204,7 @@ static struct xt_match tcp_matchstruct =
- 	.match		= tcp_match,
- 	.matchsize	= sizeof(struct xt_tcp),
- 	.proto		= IPPROTO_TCP,
-+	.family		= AF_INET,
- 	.checkentry	= tcp_checkentry,
- 	.me		= THIS_MODULE,
- };
-@@ -213,6 +214,7 @@ static struct xt_match tcp6_matchstruct 
- 	.match		= tcp_match,
- 	.matchsize	= sizeof(struct xt_tcp),
- 	.proto		= IPPROTO_TCP,
-+	.family		= AF_INET6,
- 	.checkentry	= tcp_checkentry,
- 	.me		= THIS_MODULE,
- };
-@@ -222,6 +224,7 @@ static struct xt_match udp_matchstruct =
- 	.match		= udp_match,
- 	.matchsize	= sizeof(struct xt_udp),
- 	.proto		= IPPROTO_UDP,
-+	.family		= AF_INET,
- 	.checkentry	= udp_checkentry,
- 	.me		= THIS_MODULE,
- };
-@@ -230,6 +233,7 @@ static struct xt_match udp6_matchstruct 
- 	.match		= udp_match,
- 	.matchsize	= sizeof(struct xt_udp),
- 	.proto		= IPPROTO_UDP,
-+	.family		= AF_INET6,
- 	.checkentry	= udp_checkentry,
- 	.me		= THIS_MODULE,
- };
-@@ -237,39 +241,39 @@ static struct xt_match udp6_matchstruct 
- static int __init init(void)
- {
- 	int ret;
--	ret = xt_register_match(AF_INET, &tcp_matchstruct);
-+	ret = xt_register_match(&tcp_matchstruct);
- 	if (ret)
- 		return ret;
- 
--	ret = xt_register_match(AF_INET6, &tcp6_matchstruct);
-+	ret = xt_register_match(&tcp6_matchstruct);
- 	if (ret)
- 		goto out_unreg_tcp;
- 
--	ret = xt_register_match(AF_INET, &udp_matchstruct);
-+	ret = xt_register_match(&udp_matchstruct);
- 	if (ret)
- 		goto out_unreg_tcp6;
- 	
--	ret = xt_register_match(AF_INET6, &udp6_matchstruct);
-+	ret = xt_register_match(&udp6_matchstruct);
- 	if (ret)
- 		goto out_unreg_udp;
- 
- 	return ret;
- 
- out_unreg_udp:
--	xt_unregister_match(AF_INET, &tcp_matchstruct);
-+	xt_unregister_match(&tcp_matchstruct);
- out_unreg_tcp6:
--	xt_unregister_match(AF_INET6, &tcp6_matchstruct);
-+	xt_unregister_match(&tcp6_matchstruct);
- out_unreg_tcp:
--	xt_unregister_match(AF_INET, &tcp_matchstruct);
-+	xt_unregister_match(&tcp_matchstruct);
+--- net-2.6.git.orig/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c	2006-02-25 13:45:51.000000000 +0100
++++ net-2.6.git/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c	2006-02-27 02:43:39.000000000 +0100
+@@ -584,6 +584,7 @@ static int init_or_cleanup(int init)
  	return ret;
  }
  
- static void __exit fini(void)
- {
--	xt_unregister_match(AF_INET6, &udp6_matchstruct);
--	xt_unregister_match(AF_INET, &udp_matchstruct);
--	xt_unregister_match(AF_INET6, &tcp6_matchstruct);
--	xt_unregister_match(AF_INET, &tcp_matchstruct);
-+	xt_unregister_match(&udp6_matchstruct);
-+	xt_unregister_match(&udp_matchstruct);
-+	xt_unregister_match(&tcp6_matchstruct);
-+	xt_unregister_match(&tcp_matchstruct);
- }
++MODULE_ALIAS("nf_conntrack-" __stringify(AF_INET6));
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Yasuyuki KOZAKAI @USAGI <yasuyuki.kozakai@toshiba.co.jp>");
  
- module_init(init);
-Index: net-2.6.git/net/ipv4/netfilter/ip_tables.c
-===================================================================
---- net-2.6.git.orig/net/ipv4/netfilter/ip_tables.c	2006-02-25 13:45:45.000000000 +0100
-+++ net-2.6.git/net/ipv4/netfilter/ip_tables.c	2006-02-27 01:47:02.000000000 +0100
-@@ -1335,12 +1335,14 @@ icmp_checkentry(const char *tablename,
- static struct ipt_target ipt_standard_target = {
- 	.name		= IPT_STANDARD_TARGET,
- 	.targetsize	= sizeof(int),
-+	.family		= AF_INET,
- };
- 
- static struct ipt_target ipt_error_target = {
- 	.name		= IPT_ERROR_TARGET,
- 	.target		= ipt_error,
- 	.targetsize	= IPT_FUNCTION_MAXNAMELEN,
-+	.family		= AF_INET,
- };
- 
- static struct nf_sockopt_ops ipt_sockopts = {
-@@ -1358,6 +1360,7 @@ static struct ipt_match icmp_matchstruct
- 	.match		= icmp_match,
- 	.matchsize	= sizeof(struct ipt_icmp),
- 	.proto		= IPPROTO_ICMP,
-+	.family		= AF_INET,
- 	.checkentry	= icmp_checkentry,
- };
- 
-@@ -1368,9 +1371,9 @@ static int __init init(void)
- 	xt_proto_init(AF_INET);
- 
- 	/* Noone else will be downing sem now, so we won't sleep */
--	xt_register_target(AF_INET, &ipt_standard_target);
--	xt_register_target(AF_INET, &ipt_error_target);
--	xt_register_match(AF_INET, &icmp_matchstruct);
-+	xt_register_target(&ipt_standard_target);
-+	xt_register_target(&ipt_error_target);
-+	xt_register_match(&icmp_matchstruct);
- 
- 	/* Register setsockopt */
- 	ret = nf_register_sockopt(&ipt_sockopts);
-@@ -1387,9 +1390,9 @@ static void __exit fini(void)
- {
- 	nf_unregister_sockopt(&ipt_sockopts);
- 
--	xt_unregister_match(AF_INET, &icmp_matchstruct);
--	xt_unregister_target(AF_INET, &ipt_error_target);
--	xt_unregister_target(AF_INET, &ipt_standard_target);
-+	xt_unregister_match(&icmp_matchstruct);
-+	xt_unregister_target(&ipt_error_target);
-+	xt_unregister_target(&ipt_standard_target);
- 
- 	xt_proto_fini(AF_INET);
- }
-Index: net-2.6.git/net/ipv6/netfilter/ip6_tables.c
-===================================================================
---- net-2.6.git.orig/net/ipv6/netfilter/ip6_tables.c	2006-02-25 13:45:50.000000000 +0100
-+++ net-2.6.git/net/ipv6/netfilter/ip6_tables.c	2006-02-27 01:48:16.000000000 +0100
-@@ -1377,12 +1377,14 @@ icmp6_checkentry(const char *tablename,
- static struct ip6t_target ip6t_standard_target = {
- 	.name		= IP6T_STANDARD_TARGET,
- 	.targetsize	= sizeof(int),
-+	.family		= AF_INET6,
- };
- 
- static struct ip6t_target ip6t_error_target = {
- 	.name		= IP6T_ERROR_TARGET,
- 	.target		= ip6t_error,
- 	.targetsize	= IP6T_FUNCTION_MAXNAMELEN,
-+	.family		= AF_INET6,
- };
- 
- static struct nf_sockopt_ops ip6t_sockopts = {
-@@ -1401,6 +1403,7 @@ static struct ip6t_match icmp6_matchstru
- 	.matchsize	= sizeof(struct ip6t_icmp),
- 	.checkentry	= icmp6_checkentry,
- 	.proto		= IPPROTO_ICMPV6,
-+	.family		= AF_INET6,
- };
- 
- static int __init init(void)
-@@ -1410,9 +1413,9 @@ static int __init init(void)
- 	xt_proto_init(AF_INET6);
- 
- 	/* Noone else will be downing sem now, so we won't sleep */
--	xt_register_target(AF_INET6, &ip6t_standard_target);
--	xt_register_target(AF_INET6, &ip6t_error_target);
--	xt_register_match(AF_INET6, &icmp6_matchstruct);
-+	xt_register_target(&ip6t_standard_target);
-+	xt_register_target(&ip6t_error_target);
-+	xt_register_match(&icmp6_matchstruct);
- 
- 	/* Register setsockopt */
- 	ret = nf_register_sockopt(&ip6t_sockopts);
-@@ -1429,9 +1432,9 @@ static int __init init(void)
- static void __exit fini(void)
- {
- 	nf_unregister_sockopt(&ip6t_sockopts);
--	xt_unregister_match(AF_INET6, &icmp6_matchstruct);
--	xt_unregister_target(AF_INET6, &ip6t_error_target);
--	xt_unregister_target(AF_INET6, &ip6t_standard_target);
-+	xt_unregister_match(&icmp6_matchstruct);
-+	xt_unregister_target(&ip6t_error_target);
-+	xt_unregister_target(&ip6t_standard_target);
- 	xt_proto_fini(AF_INET6);
- }
- 
-Index: net-2.6.git/include/linux/netfilter_ipv4/ip_tables.h
-===================================================================
---- net-2.6.git.orig/include/linux/netfilter_ipv4/ip_tables.h	2006-02-27 01:50:38.000000000 +0100
-+++ net-2.6.git/include/linux/netfilter_ipv4/ip_tables.h	2006-02-27 02:16:47.000000000 +0100
-@@ -321,11 +321,15 @@ ipt_get_target(struct ipt_entry *e)
- #include <linux/init.h>
- extern void ipt_init(void) __init;
- 
--#define ipt_register_target(tgt) xt_register_target(AF_INET, tgt)
--#define ipt_unregister_target(tgt) xt_unregister_target(AF_INET, tgt)
--
--#define ipt_register_match(mtch) xt_register_match(AF_INET, mtch)
--#define ipt_unregister_match(mtch) xt_unregister_match(AF_INET, mtch)
-+#define ipt_register_target(tgt) 	\
-+({	(tgt)->family = AF_INET;	\
-+ 	xt_register_target(tgt); })
-+#define ipt_unregister_target(tgt) xt_unregister_target(tgt)
-+
-+#define ipt_register_match(mtch) 	\
-+({	(mtch)->family = AF_INET;	\
-+	xt_register_match(mtch); })
-+#define ipt_unregister_match(mtch) xt_unregister_match(mtch)
- 
- //#define ipt_register_table(tbl, repl) xt_register_table(AF_INET, tbl, repl)
- //#define ipt_unregister_table(tbl) xt_unregister_table(AF_INET, tbl)
-Index: net-2.6.git/include/linux/netfilter_ipv6/ip6_tables.h
-===================================================================
---- net-2.6.git.orig/include/linux/netfilter_ipv6/ip6_tables.h	2006-02-25 13:45:31.000000000 +0100
-+++ net-2.6.git/include/linux/netfilter_ipv6/ip6_tables.h	2006-02-27 02:23:43.000000000 +0100
-@@ -334,11 +334,15 @@ ip6t_get_target(struct ip6t_entry *e)
- #include <linux/init.h>
- extern void ip6t_init(void) __init;
- 
--#define ip6t_register_target(tgt) xt_register_target(AF_INET6, tgt)
--#define ip6t_unregister_target(tgt) xt_unregister_target(AF_INET6, tgt)
--
--#define ip6t_register_match(match) xt_register_match(AF_INET6, match)
--#define ip6t_unregister_match(match) xt_unregister_match(AF_INET6, match)
-+#define ip6t_register_target(tgt) 		\
-+({	(tgt)->family = AF_INET6;		\
-+ 	xt_register_target(tgt); })
-+#define ip6t_unregister_target(tgt) xt_unregister_target(tgt)
-+
-+#define ip6t_register_match(match)		\
-+({	(match)->family = AF_INET6;		\
-+	xt_register_match(match); })
-+#define ip6t_unregister_match(match) xt_unregister_match(match)
- 
- extern int ip6t_register_table(struct ip6t_table *table,
- 			       const struct ip6t_replace *repl);
-Index: net-2.6.git/net/ipv4/netfilter/arp_tables.c
-===================================================================
---- net-2.6.git.orig/net/ipv4/netfilter/arp_tables.c	2006-02-25 13:45:44.000000000 +0100
-+++ net-2.6.git/net/ipv4/netfilter/arp_tables.c	2006-02-27 02:18:54.000000000 +0100
-@@ -1146,12 +1146,14 @@ void arpt_unregister_table(struct arpt_t
- static struct arpt_target arpt_standard_target = {
- 	.name		= ARPT_STANDARD_TARGET,
- 	.targetsize	= sizeof(int),
-+	.family		= NF_ARP,
- };
- 
- static struct arpt_target arpt_error_target = {
- 	.name		= ARPT_ERROR_TARGET,
- 	.target		= arpt_error,
- 	.targetsize	= ARPT_FUNCTION_MAXNAMELEN,
-+	.family		= NF_ARP,
- };
- 
- static struct nf_sockopt_ops arpt_sockopts = {
-@@ -1171,8 +1173,8 @@ static int __init init(void)
- 	xt_proto_init(NF_ARP);
- 
- 	/* Noone else will be downing sem now, so we won't sleep */
--	xt_register_target(NF_ARP, &arpt_standard_target);
--	xt_register_target(NF_ARP, &arpt_error_target);
-+	xt_register_target(&arpt_standard_target);
-+	xt_register_target(&arpt_error_target);
- 
- 	/* Register setsockopt */
- 	ret = nf_register_sockopt(&arpt_sockopts);
-Index: net-2.6.git/include/linux/netfilter_arp/arp_tables.h
-===================================================================
---- net-2.6.git.orig/include/linux/netfilter_arp/arp_tables.h	2006-02-25 13:45:31.000000000 +0100
-+++ net-2.6.git/include/linux/netfilter_arp/arp_tables.h	2006-02-27 02:21:27.000000000 +0100
-@@ -263,8 +263,10 @@ static __inline__ struct arpt_entry_targ
-  */
- #ifdef __KERNEL__
- 
--#define arpt_register_target(tgt) xt_register_target(NF_ARP, tgt)
--#define arpt_unregister_target(tgt) xt_unregister_target(NF_ARP, tgt)
-+#define arpt_register_target(tgt) 	\
-+({	(tgt)->family = NF_ARP;		\
-+ 	xt_register_target(tgt); })
-+#define arpt_unregister_target(tgt) xt_unregister_target(tgt)
- 
- extern int arpt_register_table(struct arpt_table *table,
- 			       const struct arpt_replace *repl);
 
---------------090705000301090100010805--
+--------------000100080005030807070905--
