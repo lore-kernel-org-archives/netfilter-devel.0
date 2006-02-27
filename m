@@ -1,13 +1,12 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/5] [NF_CONNTRACK] load on demand layer 3 protocol handlers
-Date: Mon, 27 Feb 2006 03:10:54 +0100
-Message-ID: <44025FAE.1000400@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH] Multiple matches of the same type
+Date: Mon, 27 Feb 2006 09:54:48 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0602270933130.15955@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000100080005030807070905"
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="110391808-1684225408-1141030488=:15955"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,321 +18,225 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000100080005030807070905
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
-x_tables matches and targets that require nf_conntrack_ipv[4|6] to work
-don't have enough information to load on demand these modules. This
-patch introduces the following changes to solve this issue:
+--110391808-1684225408-1141030488=:15955
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-o nf_ct_l3proto_try_module_get: try to load the layer 3 connection
-tracker module and increases the refcount.
-o nf_ct_l3proto_module put: drop the refcount of the module.
+Hi,
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+The attached patch adds the ability to specify multiple matches of the
+same type by ip[6]tables. Besides removing a limitation, a few matches
+(recent, u32, set :-) can benefit from the feature.
 
---------------000100080005030807070905
-Content-Type: text/plain;
- name="autoload.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="autoload.patch"
+If two or more matches of the same type are detected then the options are
+assumed to be grouped in order to tell which option belongs to which
+match:
 
-[NF_CONNTRACK] Support for layer 3 protocol load on demand
+... -m foo ... <options0> ... -m foo ... <options1> ...
 
-x_tables matches and targets that require nf_conntrack_ipv[4|6] to work
-don't have enough information to load on demand these modules. This
-patch introduces the following changes to solve this issue:
+Otherwise the commandline parsing is unmodified.
 
-o nf_ct_l3proto_try_module_get: try to load the layer 3 connection
-tracker module and increases the refcount.
-o nf_ct_l3proto_module put: drop the refcount of the module.
+If there are no objections I'm going to commit the patch in svn before the
+end of the week.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
+--110391808-1684225408-1141030488=:15955
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="iptables-mm.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.58.0602270954480.15955@blackhole.kfki.hu>
+Content-Description: iptables-mm.patch
+Content-Disposition: attachment; filename="iptables-mm.patch"
 
-Index: net-2.6.git/net/netfilter/nf_conntrack_core.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/nf_conntrack_core.c	2006-02-27 02:25:20.000000000 +0100
-+++ net-2.6.git/net/netfilter/nf_conntrack_core.c	2006-02-27 02:25:22.000000000 +0100
-@@ -23,6 +23,8 @@
-  * 26 Jan 2006: Harald Welte <laforge@netfilter.org>
-  * 	- restructure nf_conn (introduce nf_conn_help)
-  * 	- redesign 'features' how they were originally intended
-+ * 26 Feb 2006: Pablo Neira Ayuso <pablo@eurodev.net>
-+ * 	- add support for L3 protocol module load on demand.
-  *
-  * Derived from net/ipv4/netfilter/ip_conntrack_core.c
-  */
-@@ -241,6 +243,35 @@ void nf_ct_l3proto_put(struct nf_conntra
- 	module_put(p->me);
- }
- 
-+int
-+nf_ct_l3proto_try_module_get(unsigned short l3proto)
-+{
-+	int ret;
-+	struct nf_conntrack_l3proto *p;
-+
-+retry:	p = nf_ct_l3proto_find_get(l3proto);
-+	if (p == &nf_conntrack_generic_l3proto) {
-+		ret = request_module("nf_conntrack-%d", l3proto);
-+		if (!ret)
-+			goto retry;
-+
-+		return -EPROTOTYPE;
-+	}
-+
-+	return 0;
-+}
-+
-+void nf_ct_l3proto_module_put(unsigned short l3proto)
-+{
-+	struct nf_conntrack_l3proto *p;
-+
-+	preempt_disable();
-+	p = __nf_ct_l3proto_find(l3proto);
-+	preempt_enable();
-+
-+	module_put(p->me);
-+}
-+
- static int nf_conntrack_hash_rnd_initted;
- static unsigned int nf_conntrack_hash_rnd;
- 
-Index: net-2.6.git/include/net/netfilter/nf_conntrack.h
-===================================================================
---- net-2.6.git.orig/include/net/netfilter/nf_conntrack.h	2006-02-27 01:44:14.000000000 +0100
-+++ net-2.6.git/include/net/netfilter/nf_conntrack.h	2006-02-27 02:25:22.000000000 +0100
-@@ -195,6 +195,10 @@ static inline void nf_ct_put(struct nf_c
- 	nf_conntrack_put(&ct->ct_general);
- }
- 
-+/* Protocol module loading */
-+extern int nf_ct_l3proto_try_module_get(unsigned short l3proto);
-+extern void nf_ct_l3proto_module_put(unsigned short l3proto);
-+
- extern struct nf_conntrack_tuple_hash *
- __nf_conntrack_find(const struct nf_conntrack_tuple *tuple,
- 		    const struct nf_conn *ignored_conntrack);
-Index: net-2.6.git/net/netfilter/nf_conntrack_standalone.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/nf_conntrack_standalone.c	2006-02-27 01:44:14.000000000 +0100
-+++ net-2.6.git/net/netfilter/nf_conntrack_standalone.c	2006-02-27 02:25:22.000000000 +0100
-@@ -834,6 +834,8 @@ EXPORT_SYMBOL_GPL(__nf_ct_event_cache_in
- EXPORT_PER_CPU_SYMBOL_GPL(nf_conntrack_ecache);
- EXPORT_SYMBOL_GPL(nf_ct_deliver_cached_events);
- #endif
-+EXPORT_SYMBOL(nf_ct_l3proto_try_module_get);
-+EXPORT_SYMBOL(nf_ct_l3proto_module_put);
- EXPORT_SYMBOL(nf_conntrack_l3proto_register);
- EXPORT_SYMBOL(nf_conntrack_l3proto_unregister);
- EXPORT_SYMBOL(nf_conntrack_protocol_register);
-Index: net-2.6.git/net/netfilter/xt_connmark.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_connmark.c	2006-02-27 02:25:21.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_connmark.c	2006-02-27 02:25:22.000000000 +0100
-@@ -64,14 +64,30 @@ checkentry(const char *tablename,
- 		printk(KERN_WARNING "connmark: only support 32bit mark\n");
- 		return 0;
- 	}
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
-+		printk(KERN_WARNING "can't load nf_conntrack support for "
-+				    "proto=%d\n", match->family);
-+		return 0;
-+	}
-+#endif
- 	return 1;
- }
- 
-+static void
-+destroy(const struct xt_match *match, void *matchinfo, unsigned int matchsize)
-+{
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+	nf_ct_l3proto_module_put(match->family);
-+#endif
-+}
-+
- static struct xt_match connmark_match = {
- 	.name		= "connmark",
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_connmark_info),
- 	.checkentry	= checkentry,
-+	.destroy	= destroy,
- 	.family		= AF_INET,
- 	.me		= THIS_MODULE
- };
-@@ -81,6 +97,7 @@ static struct xt_match connmark6_match =
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_connmark_info),
- 	.checkentry	= checkentry,
-+	.destroy	= destroy,
- 	.family		= AF_INET6,
- 	.me		= THIS_MODULE
- };
-Index: net-2.6.git/net/netfilter/xt_conntrack.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_conntrack.c	2006-02-27 02:25:21.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_conntrack.c	2006-02-27 02:25:22.000000000 +0100
-@@ -203,9 +203,37 @@ match(const struct sk_buff *skb,
- 
- #endif /* CONFIG_NF_IP_CONNTRACK */
- 
-+static int
-+checkentry(const char *tablename,
-+	   const void *ip,
-+	   const struct xt_match *match,
-+	   void *matchinfo,
-+	   unsigned int matchsize,
-+	   unsigned int hook_mask)
-+{
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
-+		printk(KERN_WARNING "can't load nf_conntrack support for "
-+				    "proto=%d\n", match->family);
-+		return 0;
-+	}
-+#endif
-+	return 1;
-+}
-+
-+static void 
-+destroy(const struct xt_match *match, void *matchinfo, unsigned int matchsize)
-+{
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+	nf_ct_l3proto_module_put(match->family);
-+#endif
-+}
-+
- static struct xt_match conntrack_match = {
- 	.name		= "conntrack",
- 	.match		= match,
-+	.checkentry	= checkentry,
-+	.destroy	= destroy,
- 	.matchsize	= sizeof(struct xt_conntrack_info),
- 	.family		= AF_INET,
- 	.me		= THIS_MODULE,
-Index: net-2.6.git/net/netfilter/xt_helper.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_helper.c	2006-02-27 02:25:21.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_helper.c	2006-02-27 02:25:22.000000000 +0100
-@@ -144,15 +144,31 @@ static int check(const char *tablename,
- {
- 	struct xt_helper_info *info = matchinfo;
- 
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
-+		printk(KERN_WARNING "can't load nf_conntrack support for "
-+				    "proto=%d\n", match->family);
-+		return 0;
-+	}
-+#endif
- 	info->name[29] = '\0';
- 	return 1;
- }
- 
-+static void
-+destroy(const struct xt_match *match, void *matchinfo, unsigned int matchsize)
-+{
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+	nf_ct_l3proto_module_put(match->family);
-+#endif
-+}
-+
- static struct xt_match helper_match = {
- 	.name		= "helper",
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_helper_info),
- 	.checkentry	= check,
-+	.destroy	= destroy,
- 	.family		= AF_INET,
- 	.me		= THIS_MODULE,
- };
-@@ -161,6 +177,7 @@ static struct xt_match helper6_match = {
- 	.match		= match,
- 	.matchsize	= sizeof(struct xt_helper_info),
- 	.checkentry	= check,
-+	.destroy	= destroy,
- 	.family		= AF_INET6,
- 	.me		= THIS_MODULE,
- };
-Index: net-2.6.git/net/netfilter/xt_state.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/xt_state.c	2006-02-27 02:25:21.000000000 +0100
-+++ net-2.6.git/net/netfilter/xt_state.c	2006-02-27 02:25:22.000000000 +0100
-@@ -44,9 +44,36 @@ match(const struct sk_buff *skb,
- 	return (sinfo->statemask & statebit);
- }
- 
-+static int check(const char *tablename,
-+		 const void *inf,
-+		 const struct xt_match *match,
-+		 void *matchinfo,
-+		 unsigned int matchsize,
-+		 unsigned int hook_mask)
-+{
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
-+		printk(KERN_WARNING "can't load nf_conntrack support for "
-+				    "proto=%d\n", match->family);
-+		return 0;
-+	}
-+#endif
-+	return 1;
-+}
-+
-+static void
-+destroy(const struct xt_match *match, void *matchinfo, unsigned int matchsize)
-+{
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-+	nf_ct_l3proto_module_put(match->family);
-+#endif
-+}
-+
- static struct xt_match state_match = {
- 	.name		= "state",
- 	.match		= match,
-+	.checkentry	= check,
-+	.destroy	= destroy,
- 	.matchsize	= sizeof(struct xt_state_info),
- 	.family		= AF_INET,
- 	.me		= THIS_MODULE,
-@@ -55,6 +82,8 @@ static struct xt_match state_match = {
- static struct xt_match state6_match = {
- 	.name		= "state",
- 	.match		= match,
-+	.checkentry	= check,
-+	.destroy	= destroy,
- 	.matchsize	= sizeof(struct xt_state_info),
- 	.family		= AF_INET6,
- 	.me		= THIS_MODULE,
-Index: net-2.6.git/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-===================================================================
---- net-2.6.git.orig/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c	2006-02-25 13:45:47.000000000 +0100
-+++ net-2.6.git/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c	2006-02-27 02:43:59.000000000 +0100
-@@ -568,6 +568,7 @@ static int init_or_cleanup(int init)
- 	return ret;
- }
- 
-+MODULE_ALIAS("nf_conntrack-" __stringify(AF_INET));
- MODULE_LICENSE("GPL");
- 
- static int __init init(void)
-Index: net-2.6.git/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-===================================================================
---- net-2.6.git.orig/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c	2006-02-25 13:45:51.000000000 +0100
-+++ net-2.6.git/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c	2006-02-27 02:43:39.000000000 +0100
-@@ -584,6 +584,7 @@ static int init_or_cleanup(int init)
- 	return ret;
- }
- 
-+MODULE_ALIAS("nf_conntrack-" __stringify(AF_INET6));
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Yasuyuki KOZAKAI @USAGI <yasuyuki.kozakai@toshiba.co.jp>");
- 
+ZGlmZiAtdXJOIC0tZXhjbHVkZS1mcm9tPS91c3Ivc3JjL2RpZmYuZXhjbHVk
+ZSBpcHRhYmxlcy9pbmNsdWRlL2lwNnRhYmxlcy5oIGlwdGFibGVzLW1tL2lu
+Y2x1ZGUvaXA2dGFibGVzLmgNCi0tLSBpcHRhYmxlcy9pbmNsdWRlL2lwNnRh
+Ymxlcy5oCTIwMDYtMDItMjIgMTA6NDE6MjUuMDAwMDAwMDAwICswMTAwDQor
+KysgaXB0YWJsZXMtbW0vaW5jbHVkZS9pcDZ0YWJsZXMuaAkyMDA2LTAyLTI3
+IDA2OjI0OjAzLjAwMDAwMDAwMCArMDEwMA0KQEAgLTEzLDYgKzEzLDEwIEBA
+DQogCXN0cnVjdCBpcDZ0YWJsZXNfcnVsZV9tYXRjaCAqbmV4dDsNCiANCiAJ
+c3RydWN0IGlwNnRhYmxlc19tYXRjaCAqbWF0Y2g7DQorDQorCS8qIE11bHRp
+cGxlIG1hdGNoZXMgb2YgdGhlIHNhbWUgdHlwZTogdGhlIG9uZXMgYmVmb3Jl
+DQorCSAgIHRoZSBjdXJyZW50IG9uZSBhcmUgY29tcGxldGVkIGZyb20gcGFy
+c2luZyBwb2ludCBvZiB2aWV3ICovCQ0KKwl1bnNpZ25lZCBpbnQgY29tcGxl
+dGVkOw0KIH07DQogDQogLyogSW5jbHVkZSBmaWxlIGZvciBhZGRpdGlvbnM6
+IG5ldyBtYXRjaGVzIGFuZCB0YXJnZXRzLiAqLw0KZGlmZiAtdXJOIC0tZXhj
+bHVkZS1mcm9tPS91c3Ivc3JjL2RpZmYuZXhjbHVkZSBpcHRhYmxlcy9pbmNs
+dWRlL2lwdGFibGVzLmggaXB0YWJsZXMtbW0vaW5jbHVkZS9pcHRhYmxlcy5o
+DQotLS0gaXB0YWJsZXMvaW5jbHVkZS9pcHRhYmxlcy5oCTIwMDYtMDItMjIg
+MTA6NDE6MjUuMDAwMDAwMDAwICswMTAwDQorKysgaXB0YWJsZXMtbW0vaW5j
+bHVkZS9pcHRhYmxlcy5oCTIwMDYtMDItMjYgMjA6MTI6MjMuMDAwMDAwMDAw
+ICswMTAwDQpAQCAtMjksNiArMjksMTAgQEANCiAJc3RydWN0IGlwdGFibGVz
+X3J1bGVfbWF0Y2ggKm5leHQ7DQogDQogCXN0cnVjdCBpcHRhYmxlc19tYXRj
+aCAqbWF0Y2g7DQorDQorCS8qIE11bHRpcGxlIG1hdGNoZXMgb2YgdGhlIHNh
+bWUgdHlwZTogdGhlIG9uZXMgYmVmb3JlDQorCSAgIHRoZSBjdXJyZW50IG9u
+ZSBhcmUgY29tcGxldGVkIGZyb20gcGFyc2luZyBwb2ludCBvZiB2aWV3ICov
+CQ0KKwl1bnNpZ25lZCBpbnQgY29tcGxldGVkOw0KIH07DQogDQogLyogSW5j
+bHVkZSBmaWxlIGZvciBhZGRpdGlvbnM6IG5ldyBtYXRjaGVzIGFuZCB0YXJn
+ZXRzLiAqLw0KZGlmZiAtdXJOIC0tZXhjbHVkZS1mcm9tPS91c3Ivc3JjL2Rp
+ZmYuZXhjbHVkZSBpcHRhYmxlcy9pcDZ0YWJsZXMuYyBpcHRhYmxlcy1tbS9p
+cDZ0YWJsZXMuYw0KLS0tIGlwdGFibGVzL2lwNnRhYmxlcy5jCTIwMDYtMDIt
+MjIgMTA6NDE6MjcuMDAwMDAwMDAwICswMTAwDQorKysgaXB0YWJsZXMtbW0v
+aXA2dGFibGVzLmMJMjAwNi0wMi0yNyAwNjo0MzoyNi4wMDAwMDAwMDAgKzAx
+MDANCkBAIC03MDksMzcgKzcwOSw0NiBAQA0KIH0NCiANCiBzdHJ1Y3QgaXA2
+dGFibGVzX21hdGNoICoNCi1maW5kX21hdGNoKGNvbnN0IGNoYXIgKm5hbWUs
+IGVudW0gaXA2dF90cnlsb2FkIHRyeWxvYWQsIHN0cnVjdCBpcDZ0YWJsZXNf
+cnVsZV9tYXRjaCAqKm1hdGNoZXMpDQorZmluZF9tYXRjaChjb25zdCBjaGFy
+ICptYXRjaF9uYW1lLCBlbnVtIGlwNnRfdHJ5bG9hZCB0cnlsb2FkLCBzdHJ1
+Y3QgaXA2dGFibGVzX3J1bGVfbWF0Y2ggKiptYXRjaGVzKQ0KIHsNCiAJc3Ry
+dWN0IGlwNnRhYmxlc19tYXRjaCAqcHRyOw0KLSAJaW50IGljbXBoYWNrID0g
+MDsNCisgCWNvbnN0IGNoYXIgKmljbXA2ID0gImljbXA2IjsNCisgCWNvbnN0
+IGNoYXIgKm5hbWU7DQogICANCiAJLyogVGhpcyBpcyB1Z2x5IGFzIGhlbGwu
+IE5vbmV0aGVsZXNzLCB0aGVyZSBpcyBubyB3YXkgb2YgY2hhbmdpbmcNCiAJ
+ICogdGhpcyB3aXRob3V0IGh1cnRpbmcgYmFja3dhcmRzIGNvbXBhdGliaWxp
+dHkgKi8NCi0gCWlmICggKHN0cmNtcChuYW1lLCJpY21wdjYiKSA9PSAwKSB8
+fA0KLSAJICAgICAoc3RyY21wKG5hbWUsImlwdjYtaWNtcCIpID09IDApIHx8
+DQotIAkgICAgIChzdHJjbXAobmFtZSwiaWNtcDYiKSA9PSAwKSApIGljbXBo
+YWNrID0gMTsNCisgCWlmICggKHN0cmNtcChtYXRjaF9uYW1lLCJpY21wdjYi
+KSA9PSAwKSB8fA0KKyAJICAgICAoc3RyY21wKG1hdGNoX25hbWUsImlwdjYt
+aWNtcCIpID09IDApIHx8DQorIAkgICAgIChzdHJjbXAobWF0Y2hfbmFtZSwi
+aWNtcDYiKSA9PSAwKSApDQorIAkgICAgIAluYW1lID0gaWNtcDY7DQorIAll
+bHNlDQorIAkJbmFtZSA9IG1hdGNoX25hbWU7DQogIA0KLSAJaWYgKCFpY21w
+aGFjaykgew0KLSAJCWZvciAocHRyID0gaXA2dGFibGVzX21hdGNoZXM7IHB0
+cjsgcHRyID0gcHRyLT5uZXh0KSB7DQotIAkJCWlmIChzdHJjbXAobmFtZSwg
+cHRyLT5uYW1lKSA9PSAwKQ0KLSAJCQkJYnJlYWs7DQotIAkJfQ0KLSAJfSBl
+bHNlIHsNCi0gCQlmb3IgKHB0ciA9IGlwNnRhYmxlc19tYXRjaGVzOyBwdHI7
+IHB0ciA9IHB0ci0+bmV4dCkgew0KLSAJCQlpZiAoc3RyY21wKCJpY21wNiIs
+IHB0ci0+bmFtZSkgPT0gMCkNCi0gCQkJCWJyZWFrOw0KLSAJCX0NCi0gIAl9
+DQorCWZvciAocHRyID0gaXA2dGFibGVzX21hdGNoZXM7IHB0cjsgcHRyID0g
+cHRyLT5uZXh0KSB7DQorIAkJaWYgKHN0cmNtcChuYW1lLCBwdHItPm5hbWUp
+ID09IDApIHsNCisJCQlzdHJ1Y3QgaXA2dGFibGVzX21hdGNoICpjbG9uZTsN
+CisJCQkNCisJCQkvKiBGaXJzdCBtYXRjaCBvZiB0aGlzIHR5cGU6ICovDQor
+CQkJaWYgKHB0ci0+bSA9PSBOVUxMKQ0KKwkJCQlicmVhazsNCisNCisJCQkv
+KiBTZWNvbmQgYW5kIHN1YnNlcXVlbnQgY2xvbmVzICovDQorCQkJY2xvbmUg
+PSBmd19tYWxsb2Moc2l6ZW9mKHN0cnVjdCBpcDZ0YWJsZXNfbWF0Y2gpKTsN
+CisJCQltZW1jcHkoY2xvbmUsIHB0ciwgc2l6ZW9mKHN0cnVjdCBpcDZ0YWJs
+ZXNfbWF0Y2gpKTsNCisJCQljbG9uZS0+bWZsYWdzID0gMDsNCisJCQkvKiBU
+aGlzIGlzIGEgY2xvbmU6ICovDQorCQkJY2xvbmUtPm5leHQgPSBjbG9uZTsN
+CisNCisJCQlwdHIgPSBjbG9uZTsNCisJCQlicmVhazsNCisJCX0NCisJfQ0K
+IA0KICNpZm5kZWYgTk9fU0hBUkVEX0xJQlMNCiAJaWYgKCFwdHIgJiYgdHJ5
+bG9hZCAhPSBET05UX0xPQUQgJiYgdHJ5bG9hZCAhPSBEVVJJTkdfTE9BRCkg
+ew0KIAkJY2hhciBwYXRoW3N0cmxlbihsaWJfZGlyKSArIHNpemVvZigiL2xp
+YmlwNnRfLnNvIikNCiAJCQkgKyBzdHJsZW4obmFtZSldOw0KLQkJaWYgKCFp
+Y21waGFjaykNCi0JCQlzcHJpbnRmKHBhdGgsICIlcy9saWJpcDZ0XyVzLnNv
+IiwgbGliX2RpciwgbmFtZSk7DQotCQllbHNlDQotCQkJc3ByaW50ZihwYXRo
+LCAiJXMvbGliaXA2dF8lcy5zbyIsIGxpYl9kaXIsICJpY21wdjYiKTsNCisJ
+CXNwcmludGYocGF0aCwgIiVzL2xpYmlwNnRfJXMuc28iLCBsaWJfZGlyLCBu
+YW1lKTsNCiAJCWlmIChkbG9wZW4ocGF0aCwgUlRMRF9OT1cpKSB7DQogCQkJ
+LyogRm91bmQgbGlicmFyeS4gIElmIGl0IGRpZG4ndCByZWdpc3RlciBpdHNl
+bGYsDQogCQkJICAgbWF5YmUgdGhleSBzcGVjaWZpZWQgdGFyZ2V0IGFzIG1h
+dGNoLiAqLw0KQEAgLTc3Myw4ICs3ODIsMTIgQEANCiANCiAJCW5ld2VudHJ5
+ID0gZndfbWFsbG9jKHNpemVvZihzdHJ1Y3QgaXA2dGFibGVzX3J1bGVfbWF0
+Y2gpKTsNCiANCi0JCWZvciAoaSA9IG1hdGNoZXM7ICppOyBpID0gJigqaSkt
+Pm5leHQpOw0KKwkJZm9yIChpID0gbWF0Y2hlczsgKmk7IGkgPSAmKCppKS0+
+bmV4dCkgew0KKwkJCWlmIChzdHJjbXAobmFtZSwgKCppKS0+bWF0Y2gtPm5h
+bWUpID09IDApDQorCQkJCSgqaSktPmNvbXBsZXRlZCA9IDE7DQorCQl9DQog
+CQluZXdlbnRyeS0+bWF0Y2ggPSBwdHI7DQorCQluZXdlbnRyeS0+Y29tcGxl
+dGVkID0gMDsNCiAJCW5ld2VudHJ5LT5uZXh0ID0gTlVMTDsNCiAJCSppID0g
+bmV3ZW50cnk7DQogCX0NCkBAIC0xNzAxLDYgKzE3MTQsMTAgQEANCiAJCQlm
+cmVlKG1hdGNocC0+bWF0Y2gtPm0pOw0KIAkJCW1hdGNocC0+bWF0Y2gtPm0g
+PSBOVUxMOw0KIAkJfQ0KKwkJaWYgKG1hdGNocC0+bWF0Y2ggPT0gbWF0Y2hw
+LT5tYXRjaC0+bmV4dCkgew0KKwkJCWZyZWUobWF0Y2hwLT5tYXRjaCk7DQor
+CQkJbWF0Y2hwLT5tYXRjaCA9IE5VTEw7DQorCQl9DQogCQlmcmVlKG1hdGNo
+cCk7DQogCQltYXRjaHAgPSB0bXA7DQogCX0NCkBAIC0xOTg4LDcgKzIwMDUs
+OSBAQA0KIAkJCXN0cmNweShtLT5tLT51LnVzZXIubmFtZSwgbS0+bmFtZSk7
+DQogCQkJaWYgKG0tPmluaXQgIT0gTlVMTCkNCiAJCQkJbS0+aW5pdChtLT5t
+LCAmZncubmZjYWNoZSk7DQotCQkJb3B0cyA9IG1lcmdlX29wdGlvbnMob3B0
+cywgbS0+ZXh0cmFfb3B0cywgJm0tPm9wdGlvbl9vZmZzZXQpOw0KKwkJCWlm
+IChtICE9IG0tPm5leHQpDQorCQkJCS8qIE1lcmdlIG9wdGlvbnMgZm9yIG5v
+bi1jbG9uZWQgbWF0Y2hlcyAqLw0KKwkJCQlvcHRzID0gbWVyZ2Vfb3B0aW9u
+cyhvcHRzLCBtLT5leHRyYV9vcHRzLCAmbS0+b3B0aW9uX29mZnNldCk7DQog
+CQl9DQogCQlicmVhazsNCiANCkBAIC0yMDY2LDE0ICsyMDg1LDE0IEBADQog
+CQkJZXhpdF90cnloZWxwKDIpOw0KIA0KIAkJZGVmYXVsdDoNCi0JCQkvKiBG
+SVhNRTogVGhpcyBzY2hlbWUgZG9lc24ndCBhbGxvdyB0d28gb2YgdGhlIHNh
+bWUNCi0JCQkgICBtYXRjaGVzIC0tUlIgKi8NCiAJCQlpZiAoIXRhcmdldA0K
+IAkJCSAgICB8fCAhKHRhcmdldC0+cGFyc2UoYyAtIHRhcmdldC0+b3B0aW9u
+X29mZnNldCwNCiAJCQkJCSAgICAgICBhcmd2LCBpbnZlcnQsDQogCQkJCQkg
+ICAgICAgJnRhcmdldC0+dGZsYWdzLA0KIAkJCQkJICAgICAgICZmdywgJnRh
+cmdldC0+dCkpKSB7DQogCQkJCWZvciAobWF0Y2hwID0gbWF0Y2hlczsgbWF0
+Y2hwOyBtYXRjaHAgPSBtYXRjaHAtPm5leHQpIHsNCisJCQkJCWlmIChtYXRj
+aHAtPmNvbXBsZXRlZCkgDQorCQkJCQkJY29udGludWU7DQogCQkJCQlpZiAo
+bWF0Y2hwLT5tYXRjaC0+cGFyc2UoYyAtIG1hdGNocC0+bWF0Y2gtPm9wdGlv
+bl9vZmZzZXQsDQogCQkJCQkJICAgICBhcmd2LCBpbnZlcnQsDQogCQkJCQkJ
+ICAgICAmbWF0Y2hwLT5tYXRjaC0+bWZsYWdzLA0KQEAgLTIwODgsNyArMjEw
+Nyw3IEBADQogCQkJCSAgIGFjdHVhbGx5IGhlYXIgdGhpcyBjb2RlIHN1Y2su
+ICovDQogDQogCQkJCS8qIHNvbWUgZXhwbGFuYXRpb25zIChhZnRlciBmb3Vy
+IGRpZmZlcmVudCBidWdzDQotCQkJCSAqIGluIDMgZGlmZmVyZW50IHJlbGVh
+c2VzKTogSWYgd2UgZW5jb3VudGVyZSBhDQorCQkJCSAqIGluIDMgZGlmZmVy
+ZW50IHJlbGVhc2VzKTogSWYgd2UgZW5jb3VudGVyIGENCiAJCQkJICogcGFy
+YW1ldGVyLCB0aGF0IGhhcyBub3QgYmVlbiBwYXJzZWQgeWV0LA0KIAkJCQkg
+KiBpdCdzIG5vdCBhbiBvcHRpb24gb2YgYW4gZXhwbGljaXRseSBsb2FkZWQN
+CiAJCQkJICogbWF0Y2ggb3IgYSB0YXJnZXQuICBIb3dldmVyLCB3ZSBzdXBw
+b3J0DQpkaWZmIC11ck4gLS1leGNsdWRlLWZyb209L3Vzci9zcmMvZGlmZi5l
+eGNsdWRlIGlwdGFibGVzL2lwdGFibGVzLmMgaXB0YWJsZXMtbW0vaXB0YWJs
+ZXMuYw0KLS0tIGlwdGFibGVzL2lwdGFibGVzLmMJMjAwNi0wMi0yMiAxMDo0
+MToyNy4wMDAwMDAwMDAgKzAxMDANCisrKyBpcHRhYmxlcy1tbS9pcHRhYmxl
+cy5jCTIwMDYtMDItMjcgMDY6MjI6NDUuMDAwMDAwMDAwICswMTAwDQpAQCAt
+Njc5LDkgKzY3OSwyNCBAQA0KIAlzdHJ1Y3QgaXB0YWJsZXNfbWF0Y2ggKnB0
+cjsNCiANCiAJZm9yIChwdHIgPSBpcHRhYmxlc19tYXRjaGVzOyBwdHI7IHB0
+ciA9IHB0ci0+bmV4dCkgew0KLQkJaWYgKHN0cmNtcChuYW1lLCBwdHItPm5h
+bWUpID09IDApDQorCQlpZiAoc3RyY21wKG5hbWUsIHB0ci0+bmFtZSkgPT0g
+MCkgew0KKwkJCXN0cnVjdCBpcHRhYmxlc19tYXRjaCAqY2xvbmU7DQorCQkJ
+DQorCQkJLyogRmlyc3QgbWF0Y2ggb2YgdGhpcyB0eXBlOiAqLw0KKwkJCWlm
+IChwdHItPm0gPT0gTlVMTCkNCisJCQkJYnJlYWs7DQorDQorCQkJLyogU2Vj
+b25kIGFuZCBzdWJzZXF1ZW50IGNsb25lcyAqLw0KKwkJCWNsb25lID0gZndf
+bWFsbG9jKHNpemVvZihzdHJ1Y3QgaXB0YWJsZXNfbWF0Y2gpKTsNCisJCQlt
+ZW1jcHkoY2xvbmUsIHB0ciwgc2l6ZW9mKHN0cnVjdCBpcHRhYmxlc19tYXRj
+aCkpOw0KKwkJCWNsb25lLT5tZmxhZ3MgPSAwOw0KKwkJCS8qIFRoaXMgaXMg
+YSBjbG9uZTogKi8NCisJCQljbG9uZS0+bmV4dCA9IGNsb25lOw0KKw0KKwkJ
+CXB0ciA9IGNsb25lOw0KIAkJCWJyZWFrOw0KLQl9DQorCQl9DQorCX0JCQ0K
+IA0KICNpZm5kZWYgTk9fU0hBUkVEX0xJQlMNCiAJaWYgKCFwdHIgJiYgdHJ5
+bG9hZCAhPSBET05UX0xPQUQgJiYgdHJ5bG9hZCAhPSBEVVJJTkdfTE9BRCkg
+ew0KQEAgLTcyMSw4ICs3MzYsMTIgQEANCiANCiAJCW5ld2VudHJ5ID0gZndf
+bWFsbG9jKHNpemVvZihzdHJ1Y3QgaXB0YWJsZXNfcnVsZV9tYXRjaCkpOw0K
+IA0KLQkJZm9yIChpID0gbWF0Y2hlczsgKmk7IGkgPSAmKCppKS0+bmV4dCk7
+DQorCQlmb3IgKGkgPSBtYXRjaGVzOyAqaTsgaSA9ICYoKmkpLT5uZXh0KSB7
+DQorCQkJaWYgKHN0cmNtcChuYW1lLCAoKmkpLT5tYXRjaC0+bmFtZSkgPT0g
+MCkNCisJCQkJKCppKS0+Y29tcGxldGVkID0gMTsNCisJCX0NCiAJCW5ld2Vu
+dHJ5LT5tYXRjaCA9IHB0cjsNCisJCW5ld2VudHJ5LT5jb21wbGV0ZWQgPSAw
+Ow0KIAkJbmV3ZW50cnktPm5leHQgPSBOVUxMOw0KIAkJKmkgPSBuZXdlbnRy
+eTsNCiAJfQ0KQEAgLTE4MTAsNiArMTgyOSwxMCBAQA0KIAkJCWZyZWUobWF0
+Y2hwLT5tYXRjaC0+bSk7DQogCQkJbWF0Y2hwLT5tYXRjaC0+bSA9IE5VTEw7
+DQogCQl9DQorCQlpZiAobWF0Y2hwLT5tYXRjaCA9PSBtYXRjaHAtPm1hdGNo
+LT5uZXh0KSB7DQorCQkJZnJlZShtYXRjaHAtPm1hdGNoKTsNCisJCQltYXRj
+aHAtPm1hdGNoID0gTlVMTDsNCisJCX0NCiAJCWZyZWUobWF0Y2hwKTsNCiAJ
+CW1hdGNocCA9IHRtcDsNCiAJfQ0KQEAgLTIxMzQsNyArMjE1Nyw5IEBADQog
+CQkJc2V0X3JldmlzaW9uKG0tPm0tPnUudXNlci5uYW1lLCBtLT5yZXZpc2lv
+bik7DQogCQkJaWYgKG0tPmluaXQgIT0gTlVMTCkNCiAJCQkJbS0+aW5pdCht
+LT5tLCAmZncubmZjYWNoZSk7DQotCQkJb3B0cyA9IG1lcmdlX29wdGlvbnMo
+b3B0cywgbS0+ZXh0cmFfb3B0cywgJm0tPm9wdGlvbl9vZmZzZXQpOw0KKwkJ
+CWlmIChtICE9IG0tPm5leHQpDQorCQkJCS8qIE1lcmdlIG9wdGlvbnMgZm9y
+IG5vbi1jbG9uZWQgbWF0Y2hlcyAqLw0KKwkJCQlvcHRzID0gbWVyZ2Vfb3B0
+aW9ucyhvcHRzLCBtLT5leHRyYV9vcHRzLCAmbS0+b3B0aW9uX29mZnNldCk7
+DQogCQl9DQogCQlicmVhazsNCiANCkBAIC0yMjEyLDE0ICsyMjM3LDE0IEBA
+DQogCQkJZXhpdF90cnloZWxwKDIpOw0KIA0KIAkJZGVmYXVsdDoNCi0JCQkv
+KiBGSVhNRTogVGhpcyBzY2hlbWUgZG9lc24ndCBhbGxvdyB0d28gb2YgdGhl
+IHNhbWUNCi0JCQkgICBtYXRjaGVzIC0tUlIgKi8NCiAJCQlpZiAoIXRhcmdl
+dA0KIAkJCSAgICB8fCAhKHRhcmdldC0+cGFyc2UoYyAtIHRhcmdldC0+b3B0
+aW9uX29mZnNldCwNCiAJCQkJCSAgICAgICBhcmd2LCBpbnZlcnQsDQogCQkJ
+CQkgICAgICAgJnRhcmdldC0+dGZsYWdzLA0KIAkJCQkJICAgICAgICZmdywg
+JnRhcmdldC0+dCkpKSB7DQogCQkJCWZvciAobWF0Y2hwID0gbWF0Y2hlczsg
+bWF0Y2hwOyBtYXRjaHAgPSBtYXRjaHAtPm5leHQpIHsNCisJCQkJCWlmICht
+YXRjaHAtPmNvbXBsZXRlZCkgDQorCQkJCQkJY29udGludWU7DQogCQkJCQlp
+ZiAobWF0Y2hwLT5tYXRjaC0+cGFyc2UoYyAtIG1hdGNocC0+bWF0Y2gtPm9w
+dGlvbl9vZmZzZXQsDQogCQkJCQkJICAgICBhcmd2LCBpbnZlcnQsDQogCQkJ
+CQkJICAgICAmbWF0Y2hwLT5tYXRjaC0+bWZsYWdzLA0KQEAgLTIyMzQsNyAr
+MjI1OSw3IEBADQogCQkJCSAgIGFjdHVhbGx5IGhlYXIgdGhpcyBjb2RlIHN1
+Y2suICovDQogDQogCQkJCS8qIHNvbWUgZXhwbGFuYXRpb25zIChhZnRlciBm
+b3VyIGRpZmZlcmVudCBidWdzDQotCQkJCSAqIGluIDMgZGlmZmVyZW50IHJl
+bGVhc2VzKTogSWYgd2UgZW5jb3VudGVyZSBhDQorCQkJCSAqIGluIDMgZGlm
+ZmVyZW50IHJlbGVhc2VzKTogSWYgd2UgZW5jb3VudGVyIGENCiAJCQkJICog
+cGFyYW1ldGVyLCB0aGF0IGhhcyBub3QgYmVlbiBwYXJzZWQgeWV0LA0KIAkJ
+CQkgKiBpdCdzIG5vdCBhbiBvcHRpb24gb2YgYW4gZXhwbGljaXRseSBsb2Fk
+ZWQNCiAJCQkJICogbWF0Y2ggb3IgYSB0YXJnZXQuICBIb3dldmVyLCB3ZSBz
+dXBwb3J0DQo=
 
---------------000100080005030807070905--
+--110391808-1684225408-1141030488=:15955--
