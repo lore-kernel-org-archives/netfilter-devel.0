@@ -1,15 +1,12 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [00/06]: Netfilter fixes for 2.6.16
-Date: Mon, 27 Feb 2006 13:04:34 -0800 (PST)
-Message-ID: <20060227.130434.21258260.davem@davemloft.net>
-References: <20060225131547.7400.12127.sendpatchset@localhost.localdomain>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
+Subject: IPSET patches from pom-ng don't apply to 2.6.16-rc5
+Date: Tue, 28 Feb 2006 13:17:13 +0100
+Message-ID: <44043F49.7050304@gmx.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <20060225131547.7400.12127.sendpatchset@localhost.localdomain>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,10 +18,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Sat, 25 Feb 2006 14:17:30 +0100 (MET)
+Hi,
 
-> following are a couple fixes for 2.6.16. mostly concerning nf_queue.
-> Please apply.
+applying the ipset patch from patch-o-matic-ng doesn't work anymore:
 
-All applied, thanks a lot Patrick.
+Welcome to Patch-o-matic ($Revision: 4088 $)!
+
+Kernel:   2.6.16, /storage/linux-2.6.16-rc5
+Iptables: 1.3.5, /storage/iptables-1.3.5
+Each patch is a new feature: many have minimal impact, some do not.
+Almost every one has bugs, so don't apply what you don't need!
+-------------------------------------------------------
+Already applied:
+
+Testing set... not applied
+The set patch:
+   Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+   Status: Beta
+[...]
+-----------------------------------------------------------------
+Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] t
+unable to find ladd slot in src /tmp/pom-26985/net/ipv4/netfilter/Makefile (./patchlets/set/linux-2.6/./net/ipv4/netfilter/Makefile.ladd)
+
+
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
