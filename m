@@ -1,12 +1,15 @@
-From: Saku Ytti <saku@ytti.fi>
-Subject: ipv6 conntrack status?
-Date: Sat, 25 Feb 2006 13:13:16 +0200
-Message-ID: <20060225111316.GA13280@mx.ytti.net>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: [PATCH] Multiple matches of the same type
+Date: Tue, 28 Feb 2006 17:28:39 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0602281726240.32525@bizon.gios.gov.pl>
+References: <Pine.LNX.4.58.0602270933130.15955@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1306282461-1141144119=:32525"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0602270933130.15955@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,28 +21,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hey,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I'm running 2.6.16-rc4, I've rolled and installed:
-conntrack_1.00beta1_amd64.deb
-libconntrack-extensions_1.00beta1_amd64.deb
-libnetfilter-conntrack1_0.0.30_amd64.deb
-libnetfilter-conntrack-dev_0.0.30_amd64.deb
-libnfnetlink0_0.0.14_amd64.deb
-libnfnetlink-dev_0.0.14_amd64.deb
+---187430788-1306282461-1141144119=:32525
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-I checked SVN for iptables 1.4 branch, but couldn't see ip6 conntrack.
 
-[root@ip.fi ~]# conntrack -L -f ipv6
-Operation failed: Unknown error 18446744073709551519
 
-ipv4 works perfectly. What am I missing? I couldn't really find any
-documentation how the new architecture should be configured, if there
-is such, please point me to it.
+On Mon, 27 Feb 2006, Jozsef Kadlecsik wrote:
 
-I've previously used ipv6 conntrack from usagi patched without problems.
+> Hi,
+Hi,
 
-Thanks,
+> The attached patch adds the ability to specify multiple matches of the
+> same type by ip[6]tables. Besides removing a limitation, a few matches
+> (recent, u32, set :-) can benefit from the feature.
+>
+> If two or more matches of the same type are detected then the options are
+> assumed to be grouped in order to tell which option belongs to which
+> match:
+>
+> ... -m foo ... <options0> ... -m foo ... <options1> ...
 
--- 
-  ++ytti
+What about -s and -d? I know about ipset but sometimes you need
+just two or three addresses.
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1306282461-1141144119=:32525--
