@@ -1,12 +1,16 @@
-From: Gregor Maier <gregor@net.in.tum.de>
-Subject: [PATCH] nf_log: Add stackable loggers support
-Date: Tue, 28 Feb 2006 20:41:21 +0100
-Message-ID: <20060228194121.GB9136@net.in.tum.de>
+From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
+Subject: Re: New H.323 conntrack & NAT helper module
+Date: Tue, 28 Feb 2006 21:57:47 -0500
+Message-ID: <BAY109-DAV96ADAFAB4170550F4A52FB3F40@phx.gbl>
+References: <925A849792280C4E80C5461017A4B8A2032119@mail733.InfraSupportEtc.com><BAY109-DAV1E3EEAC01132FB3EE2E2EB3F00@phx.gbl><44001CDD.3030305@trash.net><BAY109-DAV1A4C43C331B9AEBC1F22EB3F00@phx.gbl>
+	<4400A541.9080901@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: "Patrick McHardy" <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,241 +22,68 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello, 
 
-Here's a patch that will add support for stackable loggers to nf_log.c
+----- Original Message ----- 
+From: "Patrick McHardy" <kaber@trash.net>
+To: "Jing Min Zhao" <zhaojingmin@hotmail.com>
+Cc: <netfilter-devel@lists.netfilter.org>; "Greg Scott" 
+<GregScott@InfraSupportEtc.com>
+Sent: Saturday, February 25, 2006 1:43 PM
+Subject: Re: New H.323 conntrack & NAT helper module
 
-Sorry for not RTFM the FAQ on how to submit patches in the first place. 
+Hi, Patrick,
 
-cu
-Gregor
+Thank you for your patches, they are very helpful. I've already applied the 
+patch for
+excessive stack usage. For the patch of adding support for non-linear SKBs, 
+I admit
+it is even a bug if there is no support for non-linear SKBs,  but I have 
+some different
+idea for the checksum method.
 
-=================================================================
-[PATCH] nf_log: Add support for stackable loggers
+> Add support for non-linear SKBs. I know switching to
+> ip_nat_mangle_{tcp,udp}_packet is less efficient because it checksums
+> the packet on each call, but that can be fixed seperately by switching
+> it to incremental checksumming.
 
-More than one logger can be registered per PF. Registered loggers are
-stored in a list. nf_log_unregister_pf needs the logger to unregister
-as second parameter. nf_log_register still return -EEXIST if the logger
-is already registered.
-To be able to register a logger to more than one PF a container struct
-nf_logging_node is used as nodes in the list.
-The /proc interface will display all registered logger seperated by
-spaces
+Imagine a Setup signal with 30 fast-start entries (this is not unusual for 
+Gnomemeeting
+and OpenPhone), if you use ip_nat_mangle_tcp_packet, you will have to call 
+it 45
+times. For a RRQ message, you will possible call ip_nat_mangle_udp_packet 
+more
+than 10 times if it contains many signal addresses. You can use incremental
+checksumming, but I'm still worrying about the efficiency. This is why I 
+prefer to use
+a counter (please see the last paragraph) to track modifications and do the
+checksum only once.
 
-Signed-off-by: Gregor Maier <gregor@net.in.tum.de>
+> Change the H.323 helper to support non-linear skbs similar to the other
+> helpers. This has two additional positive side-effects:
+
+> - skb_writable was broken as it always tried to reload the data pointer 
+> with
+>   an assumed TPKT payload, even for H.225 RAS packets.
+
+This can be fixed by seeing the protocol.
+
+> - we can use the regular NAT packet mangling functions and get rid of the
+>   manual checksumming
+
+>
+> Well, thank you, This is really great work. I forgot one small issue:
+> there seems to be some debugging-leftover, the functions registering
+> expectations add up the number of registered expectations and return
+> that value, but nobody uses it. If there are no plans for using it,
+> I would prefer to have it removed.
+>
+
+The return is actually a modification track counter. If a function 
+successfully changed a
+packet, the counter will be increased. Finally, if the counter is positive, 
+the packet will be
+checksumed; if it's 0, no changes; if negative, error happened.
 
 
-diff -aur linux-2.6.16-rc4.orig/include/linux/netfilter.h linux-2.6.16-rc4.yyy/include/linux/netfilter.h
---- linux-2.6.16-rc4.orig/include/linux/netfilter.h	2006-02-17 23:23:45.000000000 +0100
-+++ linux-2.6.16-rc4.yyy/include/linux/netfilter.h	2006-02-26 18:28:18.000000000 +0100
-@@ -157,7 +157,7 @@
- 
- /* Function to register/unregister log function. */
- int nf_log_register(int pf, struct nf_logger *logger);
--int nf_log_unregister_pf(int pf);
-+int nf_log_unregister_pf(int pf, struct nf_logger *logger);
- void nf_log_unregister_logger(struct nf_logger *logger);
- 
- /* Calls the registered backend logging function */
-diff -aur linux-2.6.16-rc4.orig/net/netfilter/nf_log.c linux-2.6.16-rc4.yyy/net/netfilter/nf_log.c
---- linux-2.6.16-rc4.orig/net/netfilter/nf_log.c	2006-02-17 23:23:45.000000000 +0100
-+++ linux-2.6.16-rc4.yyy/net/netfilter/nf_log.c	2006-02-26 21:47:34.000000000 +0100
-@@ -6,6 +6,8 @@
- #include <linux/skbuff.h>
- #include <linux/netfilter.h>
- #include <linux/seq_file.h>
-+#include <linux/list.h>
-+#include <linux/slab.h> /* for kmalloc */
- #include <net/protocol.h>
- 
- #include "nf_internals.h"
-@@ -15,14 +17,19 @@
- 
- #define NF_LOG_PREFIXLEN		128
- 
--static struct nf_logger *nf_logging[NPROTO]; /* = NULL */
-+struct nf_logging_node {
-+	struct list_head list;
-+	struct nf_logger *logger;
-+};
-+
-+static struct list_head nf_logging[NPROTO]; /* = NULL */
- static DEFINE_SPINLOCK(nf_log_lock);
- 
--/* return EBUSY if somebody else is registered, EEXIST if the same logger
-- * is registred, 0 on success. */
-+/* EEXIST if the same logger is registred, 0 on success. */
- int nf_log_register(int pf, struct nf_logger *logger)
- {
--	int ret = -EBUSY;
-+	struct nf_logging_node *node;
-+	int ret = 0;
- 
- 	if (pf >= NPROTO)
- 		return -EINVAL;
-@@ -30,28 +37,50 @@
- 	/* Any setup of logging members must be done before
- 	 * substituting pointer. */
- 	spin_lock(&nf_log_lock);
--	if (!nf_logging[pf]) {
--		rcu_assign_pointer(nf_logging[pf], logger);
--		ret = 0;
--	} else if (nf_logging[pf] == logger)
--		ret = -EEXIST;
--
-+	/* Check if we are already registered */
-+	list_for_each_entry(node, &nf_logging[pf], list) {
-+		if (node->logger == logger) {
-+			ret = -EEXIST;
-+			goto reg_out;
-+		}
-+	}
-+	node = kmalloc(sizeof(struct nf_logging_node), GFP_KERNEL);
-+	if (!node) {
-+		ret = -ENOMEM;
-+		goto reg_out;
-+	}
-+	node->logger = logger;
-+	list_add_rcu(&node->list, &nf_logging[pf]);
-+	
-+reg_out:
- 	spin_unlock(&nf_log_lock);
-+	synchronize_net();
- 	return ret;
- }		
- EXPORT_SYMBOL(nf_log_register);
- 
--int nf_log_unregister_pf(int pf)
-+int nf_log_unregister_pf(int pf, struct nf_logger *logger)
- {
-+	struct nf_logging_node *node; 
-+	int do_kfree = 0;
-+	
- 	if (pf >= NPROTO)
- 		return -EINVAL;
- 
- 	spin_lock(&nf_log_lock);
--	nf_logging[pf] = NULL;
-+	list_for_each_entry(node, &nf_logging[pf], list) {
-+		if (node->logger == logger) {
-+			list_del_rcu(&node->list);
-+			do_kfree=1;
-+			break;
-+		}
-+	}
- 	spin_unlock(&nf_log_lock);
- 
- 	/* Give time to concurrent readers. */
- 	synchronize_net();
-+	if (do_kfree)
-+		kfree(node);
- 
- 	return 0;
- }
-@@ -61,14 +90,10 @@
- {
- 	int i;
- 
--	spin_lock(&nf_log_lock);
- 	for (i = 0; i < NPROTO; i++) {
--		if (nf_logging[i] == logger)
--			nf_logging[i] = NULL;
-+		nf_log_unregister_pf(i, logger);
- 	}
--	spin_unlock(&nf_log_lock);
- 
--	synchronize_net();
- }
- EXPORT_SYMBOL(nf_log_unregister_logger);
- 
-@@ -82,20 +107,25 @@
- {
- 	va_list args;
- 	char prefix[NF_LOG_PREFIXLEN];
--	struct nf_logger *logger;
-+	struct nf_logging_node *node;
-+	
-+	if (pf >= NPROTO)
-+		return;
- 	
-+	va_start(args, fmt);
-+	vsnprintf(prefix, sizeof(prefix), fmt, args);
-+	va_end(args);
-+
- 	rcu_read_lock();
--	logger = rcu_dereference(nf_logging[pf]);
--	if (logger) {
--		va_start(args, fmt);
--		vsnprintf(prefix, sizeof(prefix), fmt, args);
--		va_end(args);
--		/* We must read logging before nf_logfn[pf] */
--		logger->logfn(pf, hooknum, skb, in, out, loginfo, prefix);
--	} else if (net_ratelimit()) {
-+	if (list_empty(&nf_logging[pf]) && net_ratelimit()) {
- 		printk(KERN_WARNING "nf_log_packet: can\'t log since "
- 		       "no backend logging module loaded in! Please either "
- 		       "load one, or disable logging explicitly\n");
-+		rcu_read_unlock();
-+		return;
-+	}
-+	list_for_each_entry_rcu(node, &nf_logging[pf], list) {
-+		node->logger->logfn(pf, hooknum, skb, in, out, loginfo, prefix);
- 	}
- 	rcu_read_unlock();
- }
-@@ -130,14 +160,20 @@
- static int seq_show(struct seq_file *s, void *v)
- {
- 	loff_t *pos = v;
--	const struct nf_logger *logger;
-+	struct nf_logging_node *node;
- 
--	logger = rcu_dereference(nf_logging[*pos]);
- 
--	if (!logger)
-+	if (list_empty(&nf_logging[*pos])) 
- 		return seq_printf(s, "%2lld NONE\n", *pos);
-+	if  (seq_printf(s, "%2lld", *pos) < 0)
-+		return -1;
-+
-+	list_for_each_entry_rcu(node, &nf_logging[*pos], list) {
-+		if (seq_printf(s, " %s", node->logger->name) < 0)
-+			return -1; 
-+	}
- 	
--	return seq_printf(s, "%2lld %s\n", *pos, logger->name);
-+	return seq_putc(s, '\n');
- }
- 
- static struct seq_operations nflog_seq_ops = {
-@@ -165,6 +201,8 @@
- 
- int __init netfilter_log_init(void)
- {
-+	int i;
-+
- #ifdef CONFIG_PROC_FS
- 	struct proc_dir_entry *pde;
- 
-@@ -174,5 +212,9 @@
- 
- 	pde->proc_fops = &nflog_file_ops;
- #endif
-+
-+	for (i = 0; i < NPROTO; i++) {
-+		INIT_LIST_HEAD(&nf_logging[i]);
-+	}
- 	return 0;
- }
-diff -aur linux-2.6.16-rc4.orig/net/netfilter/nfnetlink_log.c linux-2.6.16-rc4.yyy/net/netfilter/nfnetlink_log.c
---- linux-2.6.16-rc4.orig/net/netfilter/nfnetlink_log.c	2006-02-17 23:23:45.000000000 +0100
-+++ linux-2.6.16-rc4.yyy/net/netfilter/nfnetlink_log.c	2006-02-26 19:19:37.000000000 +0100
-@@ -808,7 +808,7 @@
- 			UDEBUG("unregistering log handler for pf=%u\n", pf);
- 			/* This is a bug and a feature.  We cannot unregister
- 			 * other handlers, like nfnetlink_inst can */
--			nf_log_unregister_pf(pf);
-+			nf_log_unregister_pf(pf, &nfulnl_logger);
- 			break;
- 		default:
- 			ret = -EINVAL;
+Best regards,
+Jing Min Zhao
