@@ -1,16 +1,15 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH 6/5] [CTNETLINK] Fix expectation mask dumping
-Date: Fri, 03 Mar 2006 02:13:15 +0900 (JST)
-Message-ID: <200603021713.k22HDGn9004928@toshiba.co.jp>
-References: <44025F8A.6070302@netfilter.org> <4405BC65.1030705@netfilter.org>
+Subject: Re: ipv6 conntrack status?
+Date: Fri, 03 Mar 2006 02:41:08 +0900 (JST)
+Message-ID: <200603021741.k22Hf8RP011900@toshiba.co.jp>
+References: <20060225111316.GA13280@mx.ytti.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org, kaber@trash.net,
-	yasuyuki.kozakai@toshiba.co.jp
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: pablo@netfilter.org
-In-Reply-To: <4405BC65.1030705@netfilter.org>
+To: saku@ytti.fi
+In-Reply-To: <20060225111316.GA13280@mx.ytti.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,46 +22,36 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-Hi, Pablo,
+From: Saku Ytti <saku@ytti.fi>
+Date: Sat, 25 Feb 2006 13:13:16 +0200
 
-Sorry, I forgot to check the part of ip_conntrack_netlink.c in previous
-patch.
+> Hey,
+> 
+> I'm running 2.6.16-rc4, I've rolled and installed:
+> conntrack_1.00beta1_amd64.deb
+> libconntrack-extensions_1.00beta1_amd64.deb
+> libnetfilter-conntrack1_0.0.30_amd64.deb
+> libnetfilter-conntrack-dev_0.0.30_amd64.deb
+> libnfnetlink0_0.0.14_amd64.deb
+> libnfnetlink-dev_0.0.14_amd64.deb
+> 
+> I checked SVN for iptables 1.4 branch, but couldn't see ip6 conntrack.
+> 
+> [root@ip.fi ~]# conntrack -L -f ipv6
+> Operation failed: Unknown error 18446744073709551519
+> 
+> ipv4 works perfectly. What am I missing? I couldn't really find any
+> documentation how the new architecture should be configured, if there
+> is such, please point me to it.
+> 
+> I've previously used ipv6 conntrack from usagi patched without problems.
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed, 01 Mar 2006 16:23:17 +0100
+You can use nf_conntrack_ipv6 in mainline kernel, not ip6_conntrack.
+To build it, please disable IP_NF_CONNTRACK, enable NF_CONNTRACK and
+NF_CONNTRACK_IPV6. NF_CONNTRACK is in the menu "Core Netfilter Configuration",
+and NF_CONNTRACK_IPV6 in the menu "IPv6: Netfilter Configuration
+(EXPERIMENTAL)".
 
-> Index: net-2.6.16.git/net/ipv4/netfilter/ip_conntrack_netlink.c
-> ===================================================================
-
-(snip)
-
->  static inline int
-> +ctnetlink_exp_dump_mask(struct sk_buff *skb,
-> +			const struct ip_conntrack_tuple *tuple,
-> +			const struct ip_conntrack_tuple *mask)
-> +{
-> +	int ret;
-> +	struct ip_conntrack_protocol *proto;
-> +	struct nfattr *nest_parms = NFA_NEST(skb, CTA_EXPECT_MASK);
-> +
-> +	ret = ctnetlink_dump_tuples_ip(skb, mask);
-> +	if (unlikely(ret < 0))
-> +		goto nfattr_failure;
-> +
-> +	proto = ip_conntrack_proto_find_get(tuple->dst.protonum);
-> +	ret = ctnetlink_dump_tuples_proto(skb, mask, proto);
-> +	if (unlikely(ret < 0))
-> +		goto nfattr_failure;
-> + 
-> +	NFA_NEST_END(skb, nest_parms);
-> +
-> +	return 0;
-> +
-> +nfattr_failure:
-> +	return -1;
-> +}
-
-ip_conntrack_proto_put() is missing here. Hope I don't miss catching
-any more...
+Regards,
 
 -- Yasuyuki Kozakai
