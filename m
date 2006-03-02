@@ -1,15 +1,14 @@
-From: "Huy Vu Pham" <markoflinux@gmail.com>
-Subject: SIP NAT CONTRACK Module with Netfilter in kernel 2.4.x
-Date: Thu, 2 Mar 2006 18:12:05 +0700
-Message-ID: <cb81d4010603020312q3309cd70w27fd5862744eb09f@mail.gmail.com>
-References: <cb81d4010603020310x1f865d2dhf14088682952108@mail.gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: IPSET patches from pom-ng don't apply to 2.6.16-rc5
+Date: Thu, 2 Mar 2006 12:31:56 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0603021228470.22987@blackhole.kfki.hu>
+References: <44043F49.7050304@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <cb81d4010603020310x1f865d2dhf14088682952108@mail.gmail.com>
-Content-Disposition: inline
+To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
+In-Reply-To: <44043F49.7050304@gmx.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,34 +20,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear Netfilter Devel list,
-I got problem very strange with Netfilter in linux kernel 2.4.x.
+On Tue, 28 Feb 2006, Carl-Daniel Hailfinger wrote:
 
-I apply contrack/nat SIP protocol
-(http://openwrt.alphacore.net/patches/buildroot/317-netfilter-nat-sip
-)  with HELPER module to capture all RTP packets.
-(
-#Out from WAN site: eth1
-iptables -t mangle -A POSTROUTING -o eth1 -p UDP -m helper --helper
-sipd00 -j MARK --set-mark 0x20
-#Out from LAN site: eth0
-iptables -t mangle -A POSTROUTING -o eth0 -p UDP -m helper --helper
-sipd00 -j MARK --set-mark 0x21
-)
+> applying the ipset patch from patch-o-matic-ng doesn't work anymore:
+>
+> Welcome to Patch-o-matic ($Revision: 4088 $)!
+>
+> Kernel:   2.6.16, /storage/linux-2.6.16-rc5
+> Iptables: 1.3.5, /storage/iptables-1.3.5
+> Each patch is a new feature: many have minimal impact, some do not.
+> Almost every one has bugs, so don't apply what you don't need!
+> -------------------------------------------------------
+> Already applied:
+>
+> Testing set... not applied
+> The set patch:
+>    Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+>    Status: Beta
+> [...]
+> -----------------------------------------------------------------
+> Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] t
+> unable to find ladd slot in src /tmp/pom-26985/net/ipv4/netfilter/Makefile (./patchlets/set/linux-2.6/./net/ipv4/netfilter/Makefile.ladd)
 
-My test case like this:
-SIP PHONE A (Outside NAT) ----- NAT BOX (Have SIP ALG) ------- SIP
-PHONE B (Inside NAT).
+The marker points from net/ipv4/netfilter/Makefile were moved into
+net/netfilter/Makefile thus those cannot be found anymore. I'm working on
+an updated ipset patch in which I'll deal with this problem.
 
-1. Reboot NAT BOX, A call B. SIP MODULE can capture all RTP packets,
-Before RTP timeout, I make the call from B to A also OK.
-
-2. Reboot NAT BOX, B call A. SIP MODULE "CAN NOT" capture any RTP packets.
-Before RTP timeout, I make the call from A to B also got the same problem.
-
-What is difference between case (1) and case(2)?
-
-I already tested with kernel from 2.4.20 to 2.4.32. The problem is the same=
-.
-
-Thanks,
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
