@@ -1,14 +1,16 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: IPSET patches from pom-ng don't apply to 2.6.16-rc5
-Date: Thu, 2 Mar 2006 12:31:56 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0603021228470.22987@blackhole.kfki.hu>
-References: <44043F49.7050304@gmx.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 6/5] [CTNETLINK] Fix expectation mask dumping
+Date: Fri, 03 Mar 2006 02:13:15 +0900 (JST)
+Message-ID: <200603021713.k22HDGn9004928@toshiba.co.jp>
+References: <44025F8A.6070302@netfilter.org> <4405BC65.1030705@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org, kaber@trash.net,
+	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
-In-Reply-To: <44043F49.7050304@gmx.net>
+To: pablo@netfilter.org
+In-Reply-To: <4405BC65.1030705@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,36 +22,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 28 Feb 2006, Carl-Daniel Hailfinger wrote:
 
-> applying the ipset patch from patch-o-matic-ng doesn't work anymore:
->
-> Welcome to Patch-o-matic ($Revision: 4088 $)!
->
-> Kernel:   2.6.16, /storage/linux-2.6.16-rc5
-> Iptables: 1.3.5, /storage/iptables-1.3.5
-> Each patch is a new feature: many have minimal impact, some do not.
-> Almost every one has bugs, so don't apply what you don't need!
-> -------------------------------------------------------
-> Already applied:
->
-> Testing set... not applied
-> The set patch:
->    Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
->    Status: Beta
-> [...]
-> -----------------------------------------------------------------
-> Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] t
-> unable to find ladd slot in src /tmp/pom-26985/net/ipv4/netfilter/Makefile (./patchlets/set/linux-2.6/./net/ipv4/netfilter/Makefile.ladd)
+Hi, Pablo,
 
-The marker points from net/ipv4/netfilter/Makefile were moved into
-net/netfilter/Makefile thus those cannot be found anymore. I'm working on
-an updated ipset patch in which I'll deal with this problem.
+Sorry, I forgot to check the part of ip_conntrack_netlink.c in previous
+patch.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed, 01 Mar 2006 16:23:17 +0100
+
+> Index: net-2.6.16.git/net/ipv4/netfilter/ip_conntrack_netlink.c
+> ===================================================================
+
+(snip)
+
+>  static inline int
+> +ctnetlink_exp_dump_mask(struct sk_buff *skb,
+> +			const struct ip_conntrack_tuple *tuple,
+> +			const struct ip_conntrack_tuple *mask)
+> +{
+> +	int ret;
+> +	struct ip_conntrack_protocol *proto;
+> +	struct nfattr *nest_parms = NFA_NEST(skb, CTA_EXPECT_MASK);
+> +
+> +	ret = ctnetlink_dump_tuples_ip(skb, mask);
+> +	if (unlikely(ret < 0))
+> +		goto nfattr_failure;
+> +
+> +	proto = ip_conntrack_proto_find_get(tuple->dst.protonum);
+> +	ret = ctnetlink_dump_tuples_proto(skb, mask, proto);
+> +	if (unlikely(ret < 0))
+> +		goto nfattr_failure;
+> + 
+> +	NFA_NEST_END(skb, nest_parms);
+> +
+> +	return 0;
+> +
+> +nfattr_failure:
+> +	return -1;
+> +}
+
+ip_conntrack_proto_put() is missing here. Hope I don't miss catching
+any more...
+
+-- Yasuyuki Kozakai
