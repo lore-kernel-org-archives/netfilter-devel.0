@@ -1,10 +1,10 @@
-From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
-Subject: Table NAT and MANGLE
-Date: Thu, 02 Mar 2006 17:29:08 -0300
-Message-ID: <44075594.3000608@speedy.com.ar>
+From: suparna misri <suparnamisri@yahoo.com>
+Subject: PLZ HELP
+Date: Thu, 2 Mar 2006 21:08:20 -0800 (PST)
+Message-ID: <20060303050820.31966.qmail@web32807.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,17 +18,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all!!
+ Hello,
+     I am doing a small project in networking in which
+ I will compress packets at sender side and receiver
+ will decompress the packets.I am using "iptables
+ ip_queue module" for capturing and changing the
+ contents of packets which I know how to do. My
+problem
+ is that if packet is lost and does not reach to the
+ receiver then it cannot decompress it . How can
+ receiver notify sender(eg send nack) that it does not
+ have the required packet so that sender can send it
+ again. Should I build and send a new packet or can I
+ use "iptables ip_queue modules" for the same.
+ 
+ I hope I could explain my point well.
+ I will really appreciate any help.
+ Thanks. 
+ 
+ Sincerely,
+ Suparna.
 
-Suppose I have this 2 rules, one in mangle and the other one in NAT table:
-
-#iptables -t mangle -A POSTROUTING -o eth0 -j TTL --ttl-set 64
-#iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-
-So, every time a packet goes out through eth0 first it sets the TTL to
-64 and then do the masquerade. Is there any way to do this but in
-opposite order? First masquerade and the TTL.
-Maybe this example is not very clear, but I'm developing a module that
-needs to match a packet after masquerade.
-
-Thanks.
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
