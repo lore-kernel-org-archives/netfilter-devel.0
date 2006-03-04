@@ -1,14 +1,12 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: svn.netfilter.org having problems?
-Date: Mon, 6 Mar 2006 10:21:40 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0603061016470.29731@blackhole.kfki.hu>
-References: <876ef97a0603050907l23f4015dx97e0b349fca19ece@mail.gmail.com>
+From: Michael Leow <michael@webwork-solutions.com>
+Subject: [PATCH] nfsim configure
+Date: Sat, 04 Mar 2006 20:18:35 +0800
+Message-ID: <4409859B.2070207@webwork-solutions.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: nf-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Toby DiPasquale <codeslinger@gmail.com>
-In-Reply-To: <876ef97a0603050907l23f4015dx97e0b349fca19ece@mail.gmail.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,22 +18,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 5 Mar 2006, Toby DiPasquale wrote:
+Greetings from the 7th Asia OSS Code Fest! 
 
-> Here's what I get when I go to
-> http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk
->
-> <output>
-> An Exception Has Occurred
-> Python Traceback
+    Hit the following problem while compiling using the following 
+environment:- Linux 2.6.15.5 source and nfsim-20060303.  Due to a 
+missing x_tables.c; the Makefile is not created.  Here is a simple patch 
+for your consideration.
 
-According to Harald, a bugzilla fix blowed away part (dependecy) of
-cvsweb. It'll take a while to get fixed, unfortunately.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+leow@xen:~/broken-nfsim/nfsim-fix$ diff -rN -u 
+../nfsim-20060303/configure configure
+--- ../nfsim-20060303/configure 2006-01-09 04:55:34.000000000 +0800
++++ configure   2006-03-04 15:55:47.000000000 +0800
+@@ -107,6 +107,9 @@
+            echo "import: netfilter/gen/$f" >> Makefile.import
+        done
+        cat $KERNELDIR/net/netfilter/Makefile | grep -v 
+'^obj-$(CONFIG_NETFILTER)' | grep -v '^netfilter-objs' > 
+netfilter/gen/Makefile
++    else
++       # Empty ... :(
++       touch netfilter/gen/Makefile
+     fi
+ fi
+
+
+
+
+Regards,
+
+Michael Leow
+HighTraffic.com
+(A Division of WebWork-Solutions Sdn Bhd)
