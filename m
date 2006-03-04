@@ -1,17 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipv6 conntrack status?
-Date: Sat, 04 Mar 2006 10:03:56 +0100
-Message-ID: <440957FC.6050506@trash.net>
-References: <20060225111316.GA13280@mx.ytti.net>	<200603021741.k22Hf8Hr013260@toshiba.co.jp>
-	<20060302175854.GA741@mx.ytti.net>
+Subject: Re: SIP NAT CONTRACK Module with Netfilter in kernel 2.4.x
+Date: Sat, 04 Mar 2006 10:04:53 +0100
+Message-ID: <44095835.7010703@trash.net>
+References: <cb81d4010603020310x1f865d2dhf14088682952108@mail.gmail.com>
+	<cb81d4010603020312q3309cd70w27fd5862744eb09f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Saku Ytti <saku@ytti.fi>
-In-Reply-To: <20060302175854.GA741@mx.ytti.net>
+To: Huy Vu Pham <markoflinux@gmail.com>
+In-Reply-To: <cb81d4010603020312q3309cd70w27fd5862744eb09f@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,22 +22,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Saku Ytti wrote:
-> On (2006-03-03 02:41 +0900), Yasuyuki KOZAKAI wrote:
+Huy Vu Pham wrote:
+> Dear Netfilter Devel list,
+> I got problem very strange with Netfilter in linux kernel 2.4.x.
 > 
+> I apply contrack/nat SIP protocol
+> (http://openwrt.alphacore.net/patches/buildroot/317-netfilter-nat-sip
+> )  with HELPER module to capture all RTP packets.
+> (
+> #Out from WAN site: eth1
+> iptables -t mangle -A POSTROUTING -o eth1 -p UDP -m helper --helper
+> sipd00 -j MARK --set-mark 0x20
+> #Out from LAN site: eth0
+> iptables -t mangle -A POSTROUTING -o eth0 -p UDP -m helper --helper
+> sipd00 -j MARK --set-mark 0x21
+> )
 > 
->>You can use nf_conntrack_ipv6 in mainline kernel, not ip6_conntrack.
->>To build it, please disable IP_NF_CONNTRACK, enable NF_CONNTRACK and
->>NF_CONNTRACK_IPV6. NF_CONNTRACK is in the menu "Core Netfilter Configuration",
->>and NF_CONNTRACK_IPV6 in the menu "IPv6: Netfilter Configuration
->>(EXPERIMENTAL)".
+> My test case like this:
+> SIP PHONE A (Outside NAT) ----- NAT BOX (Have SIP ALG) ------- SIP
+> PHONE B (Inside NAT).
 > 
+> 1. Reboot NAT BOX, A call B. SIP MODULE can capture all RTP packets,
+> Before RTP timeout, I make the call from B to A also OK.
 > 
-> Indeed menuconfig hides the new conntrack if old one is chosen,
-> as was my case.
+> 2. Reboot NAT BOX, B call A. SIP MODULE "CAN NOT" capture any RTP packets.
+> Before RTP timeout, I make the call from A to B also got the same problem.
+> 
+> What is difference between case (1) and case(2)?
 
-Maybe we can find a better way to choose between the two conntrack
-implementations. Right now its really confusing, IP_NF_CONNTRACK
-hides NF_CONNTRACK, but if NF_CONNTRACK is selected I can still
-choose IP_NF_CONNTRACK even though it won't work. Maybe a
-"choice" option?
+The SIP helper currently only tracks one direction. I wanted to fix
+it for some time, but didn't get to it yet.
