@@ -1,16 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: SIP NAT CONTRACK Module with Netfilter in kernel 2.4.x
-Date: Sat, 04 Mar 2006 10:04:53 +0100
-Message-ID: <44095835.7010703@trash.net>
-References: <cb81d4010603020310x1f865d2dhf14088682952108@mail.gmail.com>
-	<cb81d4010603020312q3309cd70w27fd5862744eb09f@mail.gmail.com>
+Subject: Re: [PATCH 1/5] [CTNETLINK] Fix expectation mask dumping
+Date: Sat, 04 Mar 2006 10:26:15 +0100
+Message-ID: <44095D37.1030109@trash.net>
+References: <44025F8A.6070302@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Huy Vu Pham <markoflinux@gmail.com>
-In-Reply-To: <cb81d4010603020312q3309cd70w27fd5862744eb09f@mail.gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <44025F8A.6070302@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,33 +23,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Huy Vu Pham wrote:
-> Dear Netfilter Devel list,
-> I got problem very strange with Netfilter in linux kernel 2.4.x.
+Pablo Neira Ayuso wrote:
+> This patch introduces the function ctnetlink_exp_dump_mask, that
+> correctly dumps the expectation mask. Such function uses the l3num value
+> from the expectation tuple that is a valid layer 3 protocol number.
 > 
-> I apply contrack/nat SIP protocol
-> (http://openwrt.alphacore.net/patches/buildroot/317-netfilter-nat-sip
-> )  with HELPER module to capture all RTP packets.
-> (
-> #Out from WAN site: eth1
-> iptables -t mangle -A POSTROUTING -o eth1 -p UDP -m helper --helper
-> sipd00 -j MARK --set-mark 0x20
-> #Out from LAN site: eth0
-> iptables -t mangle -A POSTROUTING -o eth0 -p UDP -m helper --helper
-> sipd00 -j MARK --set-mark 0x21
-> )
-> 
-> My test case like this:
-> SIP PHONE A (Outside NAT) ----- NAT BOX (Have SIP ALG) ------- SIP
-> PHONE B (Inside NAT).
-> 
-> 1. Reboot NAT BOX, A call B. SIP MODULE can capture all RTP packets,
-> Before RTP timeout, I make the call from B to A also OK.
-> 
-> 2. Reboot NAT BOX, B call A. SIP MODULE "CAN NOT" capture any RTP packets.
-> Before RTP timeout, I make the call from A to B also got the same problem.
-> 
-> What is difference between case (1) and case(2)?
+> The value of the l3num mask isn't dumped since it is meaningless from
+> the userspace side.
 
-The SIP helper currently only tracks one direction. I wanted to fix
-it for some time, but didn't get to it yet.
+Its too late for 2.6.16, I've applied incarnation n+1 to my 2.6.17 tree.
+Thanks.
