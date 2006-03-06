@@ -1,14 +1,9 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 2.6.16]: Fix wrong option spelling in Makefile for
-	CONFIG_BRIDGE_EBT_ULOG
-Date: Mon, 06 Mar 2006 22:12:31 +0100
-Message-ID: <440CA5BF.4010701@trash.net>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080707090500000001000404"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Bart De Schuymer <bdschuym@pandora.be>
+From: "Per Hedeland" <hedeland@nortel.com>
+Subject: [PATCH] oops in ipt_recent.c
+Date: Mon, 6 Mar 2006 23:03:51 +0100 (CET)
+Message-ID: <200603062203.k26M3pI5024778@tordmule.bluetail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,48 +15,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080707090500000001000404
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Hi,
 
-Hi Dave,
+I got an oops due to ipt_recent stepping outside its hash table
+- this was on kernel 2.4, but it seems the bug is still there
+in latest 2.6. Patch against 2.6.15.6 below.
 
-this patch fixes an incorrectly named option in the bridge-netfilter
-Makefile. Please apply to 2.6.16.
+--Per Hedeland
 
 
---------------080707090500000001000404
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-[NETFILTER]: Fix wrong option spelling in Makefile for CONFIG_BRIDGE_EBT_ULOG
-
-Signed-off-by: Gregor Maier <gregor@net.in.tum.de>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 35af439134b790b63c1708c3f2c2f54b88e3018f
-tree d4b211ea63c234edc3a23fdeee70ae7d30ce29e1
-parent c499ec24c31edf270e777a868ffd0daddcfe7ebd
-author Gregor Maier <gregor@net.in.tum.de> Sat, 04 Mar 2006 09:58:39 +0100
-committer Patrick McHardy <kaber@trash.net> Sat, 04 Mar 2006 09:58:39 +0100
-
- net/bridge/netfilter/Makefile |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
-index 8bf6d9f..905087e 100644
---- a/net/bridge/netfilter/Makefile
-+++ b/net/bridge/netfilter/Makefile
-@@ -29,4 +29,4 @@ obj-$(CONFIG_BRIDGE_EBT_SNAT) += ebt_sna
- 
- # watchers
- obj-$(CONFIG_BRIDGE_EBT_LOG) += ebt_log.o
--obj-$(CONFIG_BRIDGE_EBT_LOG) += ebt_ulog.o
-+obj-$(CONFIG_BRIDGE_EBT_ULOG) += ebt_ulog.o
-
---------------080707090500000001000404--
+--- a/net/ipv4/netfilter/ipt_recent.c	Sun Mar  5 20:07:54 2006
++++ b/net/ipv4/netfilter/ipt_recent.c	Mon Mar  6 22:25:53 2006
+@@ -588,7 +588,7 @@
+ #endif
+ 			/* Check if this is part of a collision chain */
+ 			while(hash_table[(orig_hash_result+1) % ip_list_hash_size] != -1) {
+-				orig_hash_result++;
++				orig_hash_result = (orig_hash_result+1) % ip_list_hash_size;
+ 				if(hash_func(r_list[hash_table[orig_hash_result]].addr,ip_list_hash_size) == hash_result) {
+ 					/* Found collision chain, how deep does this rabbit hole go? */
+ #ifdef DEBUG
