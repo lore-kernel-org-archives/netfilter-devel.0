@@ -1,17 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] [NETFILTER] ip_queue: Fix wrong skb->len == nlmsg_len
- assumption
-Date: Tue, 07 Mar 2006 13:58:53 +0100
-Message-ID: <440D838D.8000302@trash.net>
-References: <20060307123143.GO9559@postel.suug.ch>
+From: orlandox <omarquina@neotechgw.com>
+Subject: TWO PROTOCOL in the same RULE?
+Date: Tue, 07 Mar 2006 09:48:53 -0400
+Message-ID: <440D8F45.7050909@neotechgw.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	"David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Graf <tgraf@suug.ch>
-In-Reply-To: <20060307123143.GO9559@postel.suug.ch>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Guillermo Gomez <ggomez@neotechgw.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,13 +19,8 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thomas Graf wrote:
-> The size of the skb carrying the netlink message is not
-> equivalent to the length of the actual netlink message
-> due to padding. ip_queue matches the length of the payload
-> against the original packet size to determine if packet
-> mangling is desired, due to the above wrong assumption
-> arbitary packets may not be mangled depening on their
-> original size.
-
-Looks good, thanks Thomas. I think this should also go in 2.4.
+Hi, i'm  a newby, I have a question, exist any patch,  wich let me to=20
+refer with 1 rule, to diferent protocol at the same time, e.g: only=20
+write only one rule, that work with -p tcp, and -p udp, with the same=20
+target an criteria?. if don=B4t, anybody knows, if exist any development=20
+in progress, or why isn't necesary devel that feature
