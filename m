@@ -1,16 +1,13 @@
-From: Kovesdi Gyorgy <kgy@deverto.com>
-Subject: Re: output device
-Date: Tue, 7 Mar 2006 10:19:47 +0100
-Message-ID: <200603071019.47411.kgy@deverto.com>
-References: <200603030944.11858.kgy@deverto.com>
-	<440845B4.3000208@ufomechanic.net>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: [PATCH] [NETFILTER] ip_queue: Fix wrong skb->len == nlmsg_len
+	assumption
+Date: Tue, 7 Mar 2006 13:31:43 +0100
+Message-ID: <20060307123143.GO9559@postel.suug.ch>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <440845B4.3000208@ufomechanic.net>
+To: "David S. Miller" <davem@davemloft.net>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -23,21 +20,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> > I would like to set the output device in a rule (it is needed due to
-> > overlapping addresses). AFAIK, it cannot be done directly in a rule...
-> why can't you use ipt_route ?
-If I use such a rule:
-iptables -t mangle -A PREROUTING -p udp -d xxxx --dport yyyy -j ROUTE \
-      --oif eth0.2000 --continue
-then nothing happens. If the "--continue" is missing, the given packets are 
-lost.
-What can be the problem here? I use kernel 2.6.15.5, iptables 1.2.11 and patch 
-for the ipt_route.
+The size of the skb carrying the netlink message is not
+equivalent to the length of the actual netlink message
+due to padding. ip_queue matches the length of the payload
+against the original packet size to determine if packet
+mangling is desired, due to the above wrong assumption
+arbitary packets may not be mangled depening on their
+original size.
 
-Other question: AFAIK the conntrack does not del with the target device. To be 
-as fast as possible the target device would be handled in the conntrack, and 
-it would be given together with the address in the DNAT rule, because the 
-device is part of the address in a schyzophrenic network.
+Signed-off-by: Thomas Graf <tgraf@suug.ch>
 
-Regards
-Gyorgy Kovesdi
+Index: net-2.6/net/ipv4/netfilter/ip_queue.c
+===================================================================
+--- net-2.6.orig/net/ipv4/netfilter/ip_queue.c
++++ net-2.6/net/ipv4/netfilter/ip_queue.c
+@@ -524,7 +524,7 @@ ipq_rcv_skb(struct sk_buff *skb)
+ 	write_unlock_bh(&queue_lock);
+ 	
+ 	status = ipq_receive_peer(NLMSG_DATA(nlh), type,
+-	                          skblen - NLMSG_LENGTH(0));
++	                          nlmsglen - NLMSG_LENGTH(0));
+ 	if (status < 0)
+ 		RCV_SKB_FAIL(status);
+ 		
+Index: net-2.6/net/ipv6/netfilter/ip6_queue.c
+===================================================================
+--- net-2.6.orig/net/ipv6/netfilter/ip6_queue.c
++++ net-2.6/net/ipv6/netfilter/ip6_queue.c
+@@ -522,7 +522,7 @@ ipq_rcv_skb(struct sk_buff *skb)
+ 	write_unlock_bh(&queue_lock);
+ 	
+ 	status = ipq_receive_peer(NLMSG_DATA(nlh), type,
+-	                          skblen - NLMSG_LENGTH(0));
++	                          nlmsglen - NLMSG_LENGTH(0));
+ 	if (status < 0)
+ 		RCV_SKB_FAIL(status);
+ 		
