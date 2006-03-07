@@ -1,134 +1,191 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: {get|set}sockopt compat layer
-Date: Tue, 7 Mar 2006 16:05:38 +0100
-Message-ID: <200603071605.39177.arnd@arndb.de>
-References: <200602201110.39092.dim@openvz.org> <200602211256.00846.arnd@arndb.de> <200603071707.19138.dim@openvz.org>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: BUG: More ipt_recent queries
+Date: Tue, 07 Mar 2006 15:46:52 +0000
+Message-ID: <440DAAEC.7060208@ufomechanic.net>
+References: <dt51lh$b63$1@sea.gmane.org> <43FAF692.8030804@ufomechanic.net>
+	<44096842.3010507@trash.net> <20060306030411.GZ4474@ns.snowman.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: devel@openvz.org, dev@openvz.org, akpm@osdl.org,
-	netfilter-devel@lists.netfilter.org, rusty@rustcorp.com.au,
-	linux-kernel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750772AbWCGPGP@vger.kernel.org>
-To: Dmitry Mishin <dim@openvz.org>
-In-Reply-To: <200603071707.19138.dim@openvz.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Stephen Frost <sfrost@snowman.net>
+In-Reply-To: <20060306030411.GZ4474@ns.snowman.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 07 March 2006 15:07, Dmitry Mishin wrote:
-> Sorry for such delay, was on vacancy. Here is a patch, introducing=20
-> compat_(get|set)sockopt handlers, as you proposed.
+As for the /proc output change, that was un-intentional, and for 
+debugging purposes. I will remove that change, thanks for spotting it.
 
-Looks pretty good to me, just a few nits I like to pick:
+I'm just finishing testing on new options for ipt_recent, I hope to 
+submit a full patch next week including Per's fix.
 
-> --- ./include/linux/net.h.compat=A0=A0=A0=A0=A0=A0=A0=A02006-03-07 11=
-:22:27.000000000 +0300
-> +++ ./include/linux/net.h=A0=A0=A0=A0=A0=A0=A02006-03-07 11:20:07.000=
-000000 +0300
-> @@ -149,6 +149,12 @@ struct proto_ops {
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0 =A0int optname, char __user *optval=
-, int optlen);
-> =A0=A0=A0=A0=A0=A0=A0=A0int=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0(*g=
-etsockopt)(struct socket *sock, int level,
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0 =A0int optname, char __user *optval=
-, int __user *optlen);
-> +#ifdef CONFIG_COMPAT
-> +=A0=A0=A0=A0=A0=A0=A0int=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0(*com=
-pat_setsockopt)(struct socket *sock, int level,
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0 =A0int optname, char __user *optval, i=
-nt optlen);
-> +=A0=A0=A0=A0=A0=A0=A0int=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0(*com=
-pat_getsockopt)(struct socket *sock, int level,
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0 =A0int optname, char __user *optval, i=
-nt __user *optlen);
-> +#endif
-> =A0=A0=A0=A0=A0=A0=A0=A0int=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0(*s=
-endmsg) =A0 (struct kiocb *iocb, struct socket *sock,
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0 =A0struct msghdr *m, size_t total_l=
-en);
-> =A0=A0=A0=A0=A0=A0=A0=A0int=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0(*r=
-ecvmsg) =A0 (struct kiocb *iocb, struct socket *sock,
+New options, from the man page:
 
-=46or the compat_ioctl stuff, we don't have the function pointer inside=
- an
-#ifdef, the overhead is relatively small since there is only one of the=
-se
-structures per module implementing a protocol, but it avoids having to
-rebuild everything when changing CONFIG_COMPAT.
+       [!] --listcount-lt count
+              Requires  as a precondition that the number of IP entries 
+in the
+              list (subject to the optional --listtime-*  specifier)  
+is  less
+              than  count  (or not !). No other options are considered 
+if this
+              is not true.
 
-It's probably not a big issue either way, maybe davem has a stronger op=
-inion
-on it either way.
+       [!] --listcount-le count
+              Requires as a precondition that the number of IP entries 
+in  the
+              list  (subject  to  the optional --listtime-* specifier) 
+is less
+              than or equal to count (or not !). No other options are  
+consid-
+              ered if this is not true.
 
-> --- ./include/linux/netfilter.h.compat=A0=A02006-03-06 12:06:34.00000=
-0000 +0300
-> +++ ./include/linux/netfilter.h=A02006-03-07 15:00:14.000000000 +0300
-> @@ -2,6 +2,7 @@
-> =A0#define __LINUX_NETFILTER_H
-> =A0
-> =A0#ifdef __KERNEL__
-> +#include <linux/config.h>
-> =A0#include <linux/init.h>
-> =A0#include <linux/types.h>
-> =A0#include <linux/skbuff.h>
+       [!] --listcount-eq count
+              Requires  as a precondition that the number of IP entries 
+in the
+              list (subject to the optional --listtime-* specifier)  is  
+equal
+              to  (or not !) count. No other options are considered if 
+this is
+              not true.
 
-You don't need to add new <linux/config.h> includes any more, these are
-automatic now.
+       [!] --listcount-ge count
+              Requires as a precondition that the number of IP entries 
+in  the
+              list (subject to the optional --listtime-* specifier) is 
+greater
+              than or equal to count (or not !). No other options are  
+consid-
+              ered if this is not true.
 
-> @@ -80,10 +81,18 @@ struct nf_sockopt_ops
-> =A0=A0=A0=A0=A0=A0=A0=A0int set_optmin;
-> =A0=A0=A0=A0=A0=A0=A0=A0int set_optmax;
-> =A0=A0=A0=A0=A0=A0=A0=A0int (*set)(struct sock *sk, int optval, void =
-__user *user, unsigned int len);
-> +#ifdef CONFIG_COMPAT
-> +=A0=A0=A0=A0=A0=A0=A0int (*compat_set)(struct sock *sk, int optval,
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-void __user *user, unsigned int len);
-> +#endif
-> =A0
-> =A0=A0=A0=A0=A0=A0=A0=A0int get_optmin;
-> =A0=A0=A0=A0=A0=A0=A0=A0int get_optmax;
-> =A0=A0=A0=A0=A0=A0=A0=A0int (*get)(struct sock *sk, int optval, void =
-__user *user, int *len);
-> +#ifdef CONFIG_COMPAT
-> +=A0=A0=A0=A0=A0=A0=A0int (*compat_get)(struct sock *sk, int optval,
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-void __user *user, int *len);
-> +#endif
-> =A0
-> =A0=A0=A0=A0=A0=A0=A0=A0/* Number of users inside set() or get(). */
-> =A0=A0=A0=A0=A0=A0=A0=A0unsigned int use;
+       [!] --listcount-gt count
+              Requires  as a precondition that the number of IP entries 
+in the
+              list (subject to the optional --listtime-* specifier) is 
+greater
+              than  count  (or not !). No other options are considered 
+if this
+              is not true.
 
-see above, same for some more of these.
+       Only one --listcount-* option can be specified.
 
-> @@ -816,6 +826,12 @@ extern int sock_common_recvmsg(struct ki
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0 =A0 =A0 =A0 struct msghdr *msg, size_t size, int flags);
-> =A0extern int sock_common_setsockopt(struct socket *sock, int level, =
-int optname,
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0char __user *optval, int optlen);
-> +#ifdef CONFIG_COMPAT
-> +extern int compat_sock_common_getsockopt(struct socket *sock, int le=
-vel,
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0int optname, char __use=
-r *optval, int __user *optlen);
-> +extern int compat_sock_common_setsockopt(struct socket *sock, int le=
-vel,
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0int optname, char __use=
-r *optval, int optlen);
-> +#endif
-> =A0
-> =A0extern void sk_common_release(struct sock *sk);
-> =A0
+       [!] --listtime-lt seconds
+              Affects the --listcount-* so that instead of counting the 
+number
+              of  items  in  the list, it counts the number of items 
+that were
+              last updated less than seconds seconds ago.
 
-Declarations don't belong inside #ifdef.
+       [!] --listtime-le seconds
+              Affects the --listcount-* so that instead of counting the 
+number
+              of  items  in  the list, it counts the number of items 
+that were
+              last updated less than or equal to seconds seconds ago.
 
-	Arnd <><
+       [!] --listtime-ge seconds
+              Affects the --listcount-* so that instead of counting the 
+number
+              of  items  in  the list, it counts the number of items 
+that were
+              last updated more than or equal to seconds seconds ago.
+
+       [!] --listtime-gt seconds
+              Affects the --listcount-* so that instead of counting the 
+number
+              of  items  in  the list, it counts the number of items 
+that were
+              last updated more than seconds seconds ago.
+
+       Only one --listtime-* option can be specified. --listtime-* 
+options act
+              as select clauses for what to count. The ! negation for  
+--list-
+              time-*  options merely inverts the comparison, so ! 
+--listime-le
+              is the same as --listtime-gt
+
+...
+
+              The next example accepts the packet if less than 5 ip  
+addresses
+              in the list have been updated in the last 60 seconds
+
+              #  iptables  -A FORWARD -m recent --listcount-lt 5 
+--listtime-lt
+              60 --set -j ACCEPT
+
+
+Sam
+
+Stephen Frost wrote:
+
+>* Patrick McHardy (kaber@trash.net) wrote:
+>  
+>
+>>Stephen, can you have a look at this please?
+>>    
+>>
+>
+>Alright.  I'll try to look over the current ipt_recent state and the
+>comments I've seen regarding it.  I don't expect to have time to
+>rewrite it anytime soon though.
+>
+>	Stephen
+>
+>  
+>
+>>Amin Azez wrote:
+>>    
+>>
+>>>I'm concerned about ipt_recent where it removes entries from the list.
+>>>
+>>>Surly the move-up-and-close-the-gap while loop will never enter because
+>>>time_info[time_loc].time has just been set to 0 so that this clause of
+>>>the while loop:
+>>>
+>>>  time_info[(time_loc+1) % ip_list_tot].time < time_info[time_loc].time)
+>>>
+>>>will always be false.
+>>>
+>>>Fuller code segment:
+>>>
+>>>location = hash_table[hash_result];
+>>>hash_table[r_list[location].hash_entry] = -1;
+>>>time_loc = r_list[location].time_pos;
+>>>time_info[time_loc].time = 0;
+>>>time_info[time_loc].position = location;
+>>>
+>>>while((time_info[(time_loc+1) % ip_list_tot].time <
+>>>time_info[time_loc].time) && ((time_loc+1) % ip_list_tot) !=
+>>>curr_table->time_pos) {
+>>>  time_temp = time_info[time_loc].time;
+>>>  time_info[time_loc].time = time_info[(time_loc+1)%ip_list_tot].time;
+>>>  time_info[(time_loc+1)%ip_list_tot].time = time_temp;
+>>>  time_temp = time_info[time_loc].position;
+>>>  time_info[time_loc].position =
+>>>             time_info[(time_loc+1)%ip_list_tot].position;
+>>>  time_info[(time_loc+1)%ip_list_tot].position = time_temp;
+>>>  r_list[time_info[time_loc].position].time_pos = time_loc;
+>>>  r_list[time_info[(time_loc+1)%ip_list_tot].position].time_pos =
+>>>             (time_loc+1)%ip_list_tot;
+>>>  time_loc = (time_loc+1) % ip_list_tot;
+>>>}
+>>>
+>>>
+>>>I think we should set time_info[time_loc].time = 0; at the end of the
+>>>while loop?
+>>>
+>>>Sam
+>>>
+>>>
+>>>      
+>>>
