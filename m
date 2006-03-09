@@ -1,15 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: libipq does not shorten package
-Date: Thu, 09 Mar 2006 16:55:35 +0100
-Message-ID: <44104FF7.1030104@trash.net>
-References: <859616420603090530p24d0cb9cg@mail.gmail.com>
+From: Allen Francom <aef@prismnet.com>
+Subject: Re: Statefull SOCKS filter
+Date: Thu, 9 Mar 2006 10:49:27 -0600 (CST)
+Message-ID: <20060309104524.B75323@tempest.prismnet.com>
+References: <44101CA5.3070004@coolsystems.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: David Vogt <beunlovable@gmail.com>
-In-Reply-To: <859616420603090530p24d0cb9cg@mail.gmail.com>
+To: Peter Christensen <pch@coolsystems.dk>
+In-Reply-To: <44101CA5.3070004@coolsystems.dk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,19 +20,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David Vogt wrote:
-> Dear all,
-> 
-> I already posted this question on netfilter mailing list, however, I
-> got no response, so maybe someone around here can help me.
-> 
-> I am using iptables and queue packets to user space. Packets are
-> either augmented (with a signature) or shortened (removal of
-> signature). The augmentation works.
->  However, when removing the signature, the resulting packet contains
-> the correct data, but its overall size is equal to the original
-> (signed) packet. (i.e. original packet size: 83, signed packet size:
-> 163)
 
-Thomas Graf posted a patch that should fix this a couple of days
-ago, check the list archives.
+
+Once upon a time I interacted with a project called "Hogwash".
+
+This was all layer 2 and seemed to be off to a great start.
+
+Sounds more like what you need, "transparent".
+
+The maintainer resigned, however the code ran, based on
+Snort and associated libraries.
+
+With a lot of help from others, I made a binding
+for these rules into IPTables via the QUEUE target... but
+that wasn't all that clean.  Maybe skip the IPTables
+entirely, and "do like hogwash did".
+
+2 cents...
+
+On Thu, 9 Mar 2006, Peter Christensen wrote:
+> I'm currently in the development of a transparent firewall bridge, whose sole 
+> purpose is to filter our everything but LAN traffic and traffic for a list of 
+> privileged servers on the Internet. Since it is meant to work on an bunch of 
+> different network configurations out-of-box, it must be able to detect and 
+> filter proxy traffic as well.
