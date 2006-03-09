@@ -1,14 +1,14 @@
-From: Allen Francom <aef@prismnet.com>
-Subject: Re: Statefull SOCKS filter
-Date: Thu, 9 Mar 2006 10:49:27 -0600 (CST)
-Message-ID: <20060309104524.B75323@tempest.prismnet.com>
-References: <44101CA5.3070004@coolsystems.dk>
+From: Gregor Maier <gregor@net.in.tum.de>
+Subject: Re: [PATCH][RFC] Unifiy logging in netfilter using nf_log, take #1.1
+Date: Thu, 9 Mar 2006 20:33:49 +0100
+Message-ID: <20060309193349.GA20613@net.in.tum.de>
+References: <20060304173815.GA12715@net.in.tum.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Peter Christensen <pch@coolsystems.dk>
-In-Reply-To: <44101CA5.3070004@coolsystems.dk>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <20060304173815.GA12715@net.in.tum.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,27 +20,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+A small change to be applied on top of the take #1 patch. 
+
+cu
+Gregor
 
 
-Once upon a time I interacted with a project called "Hogwash".
+[PATCH] Add defines in xt_LOG.h, that are needed by the userspace iptables
+program.
 
-This was all layer 2 and seemed to be off to a great start.
-
-Sounds more like what you need, "transparent".
-
-The maintainer resigned, however the code ran, based on
-Snort and associated libraries.
-
-With a lot of help from others, I made a binding
-for these rules into IPTables via the QUEUE target... but
-that wasn't all that clean.  Maybe skip the IPTables
-entirely, and "do like hogwash did".
-
-2 cents...
-
-On Thu, 9 Mar 2006, Peter Christensen wrote:
-> I'm currently in the development of a transparent firewall bridge, whose sole 
-> purpose is to filter our everything but LAN traffic and traffic for a list of 
-> privileged servers on the Internet. Since it is meant to work on an bunch of 
-> different network configurations out-of-box, it must be able to detect and 
-> filter proxy traffic as well.
+Signed-off-by: Gregor Maier <gregor@net.in.tum.de>
+=====================================================================
+diff -ur blubber/include/linux/netfilter/xt_LOG.h net-2.6.17/include/linux/netfilter/xt_LOG.h
+--- blubber/include/linux/netfilter/xt_LOG.h	2006-03-09 19:57:08.000000000 +0100
++++ net-2.6.17/include/linux/netfilter/xt_LOG.h	2006-03-05 18:50:03.000000000 +0100
+@@ -8,13 +8,30 @@
+ #ifndef _XT_LOG_TARGET_H
+ #define _XT_LOG_TARGET_H
+ 
+-/* make sure not to change this without changing netfilter.h:NF_LOG_* (!) */
++/* make sure not to change this without changing netfilter.h:XT_LOG_* (!) */
++#define XT_LOG_BACKEND_SYSLOG	0x01
++#define XT_LOG_BACKEND_NFLOG	0x02
++#define XT_LOG_BACKEND_MASK (XT_LOG_BACKEND_SYSLOG|XT_LOG_BACKEND_NFLOG)
++
++/* make sure not to change this without changing netfilter.h:XT_LOG_* (!) */
+ #define XT_LOG_TCPSEQ		0x01	/* Log TCP sequence numbers */
+ #define XT_LOG_TCPOPT		0x02	/* Log TCP options */
+ #define XT_LOG_IPOPT		0x04	/* Log IP options */
+ #define XT_LOG_UID		0x08	/* Log UID owning local socket */
+ #define XT_LOG_MASK		0x0f
+ 
++#define IPT_LOG_TCPSEQ		XT_LOG_TCPSEQ	/* Log TCP sequence numbers */
++#define IPT_LOG_TCPOPT		XT_LOG_TCPOPT	/* Log TCP options */
++#define IPT_LOG_IPOPT		XT_LOG_IPOPT	/* Log IP options */
++#define IPT_LOG_UID		XT_LOG_UID	/* Log UID owning local socket */
++#define IPT_LOG_MASK		XT_LOG_MASK
++
++#define IP6T_LOG_TCPSEQ		XT_LOG_TCPSEQ	/* Log TCP sequence numbers */
++#define IP6T_LOG_TCPOPT		XT_LOG_TCPOPT	/* Log TCP options */
++#define IP6T_LOG_IPOPT		XT_LOG_IPOPT	/* Log IP options */
++#define IP6T_LOG_UID		XT_LOG_UID	/* Log UID owning local socket */
++#define IP6T_LOG_MASK		XT_LOG_MASK
++
+ struct xt_log_info {
+ 	u_int16_t group;
+ 	unsigned char backends;
