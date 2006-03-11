@@ -1,16 +1,12 @@
-From: syrius.ml@no-log.org
-Subject: Re: Fwd: [Fwd: Re: trying to revive rtsp]
-Date: Sat, 11 Mar 2006 13:14:22 +0100
-Message-ID: <87zmjx9ol8.87y7zh9ol8@87wtf19ol8.message.id>
-References: <43FAB99F.4000507@kde.org>
-	<1a49df600602270144k6b94281eqfacc157b0d98027e@mail.gmail.com>
+From: "John A. Sullivan III" <jsullivan@opensourcedevel.com>
+Subject: volunteer tcl script writer needed for iptables application
+Date: Sat, 11 Mar 2006 18:24:49 -0500
+Message-ID: <1142119489.2987.61.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Punky <punkytse@gmail.com>, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Mickael Marchand <marchand@kde.org>, 
-In-Reply-To: <1a49df600602270144k6b94281eqfacc157b0d98027e@mail.gmail.com>
-	(punkytse@gmail.com's message of "Mon, 27 Feb 2006 17:44:19 +0800")
+To: Netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,22 +18,61 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+The ISCS open source network security management project
+(http://iscs.sourceforge.net) could use some volunteer assistance from
+someone who can adapt bash scripts to tcl for the creation of iptables
+configuration files and implementing dynamic iptables changes on
+production devices.  If you are interested and able to assist, please
+contact me using the details in my signature below.  For more details,
+please continue reading.
 
-Hi Guys,
+We have added support for the Secure Computing / CyberGuard / SnapGear
+SG series of devices so that they can be managed using ISCS with no
+change to firmware.  The SG580 devices are working fine in production
+but the SG570 devices use sash instead of bash.  We can get around the
+limitations of bash by using the tcl interpreter.  However, we have no
+one on the team with tcl experience.
 
-Punky <punkytse@gmail.com> wrote:
+ISCS could be described as an open source alternative to very expensive
+products for managing large, enterprise network security deployments
+such as Solsoft or Provider1.  Actually, it does much more and has no
+commercial equivalent.  It has allowed us to implement complex,
+perimeter style security within the perimeter to affordably create truly
+segmented and multi-layered networks with a minimum of labor.
 
-> I am helping Mickael to resend his rtsp patch as he found his mail
-> can't get to the list promptly.  As far, I am able to use his patch on
-> my own 2.6.15 kernel.  He already has another cleaner version of the
-> patch and will post to the list later.
+To give an idea of what it does, a recent production deployment of
+internal network security for a global manufacturer would have required
+well in excess of 100,000 iptables rules.  ISCS reduced that rule set to
+roughly 13,000 rules, only requires traversal of a small subset of those
+rules for any new packet, generated those rules in a couple of hours and
+distributed them to all devices automatically at the click of a button
+within a couple of minutes.  ipset could probably reduce the rule set
+tenfold again.  Any ipset experts out there interested in helping?
 
-I'm looking forward to see this cleaner version of the patch.
-If it could apply to 2.6.16 it would be even better.
-Also I think It would be nice to send a proper message to
-netfilter-devel with a proper subjet: '[PATCH] message' if you want it
-to be integrated.
+In comparison, if one had to write 13,000 rules at 20 seconds per rule,
+that would be 72 hours -- at one minute per rule, 217 hours.  150,000
+rules would take 833 hours at 20 seconds and 2,500 hours at one minute
+per rule.
 
-Thanks in advance.
+All this with a dramatic reduction in exposure to human error (one can
+imagine the danger of a typo or out of order rule in 150,000 line rule
+set). That's just the beginning.
 
+If you are interested and can help, we would greatly appreciate your
+assistance.  Thanks - John
 -- 
+John A. Sullivan III
+Open Source Development Corporation
++1 207-985-7880
+jsullivan@opensourcedevel.com
+
+Financially sustainable open source development
+http://www.opensourcedevel.com
+-- 
+John A. Sullivan III
+Open Source Development Corporation
++1 207-985-7880
+jsullivan@opensourcedevel.com
+
+Financially sustainable open source development
+http://www.opensourcedevel.com
