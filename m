@@ -1,15 +1,11 @@
-From: aton <aton@packetdropped.org>
-Subject: netfilter_queue reinjecting packets
-Date: Sun, 12 Mar 2006 15:10:54 +0100
-Message-ID: <20060312151054.5a2020ad.aton@packetdropped.org>
-References: <1142119489.2987.61.camel@localhost>
+From: nebi senol yilmaz <nsyilmaz@metu.edu.tr>
+Subject: nfhook, sk_buff and change data
+Date: Sun, 12 Mar 2006 16:40:29 +0200 (WET)
+Message-ID: <Pine.A41.4.58.0603121634310.753742@beluga.user.services.metu.edu.tr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
-	micalg="PGP-SHA1";
-	boundary="Signature=_Sun__12_Mar_2006_15_10_55_+0100_wbCep=FW/70d9bX8"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <1142119489.2987.61.camel@localhost>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,60 +17,65 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Signature=_Sun__12_Mar_2006_15_10_55_+0100_wbCep=FW/70d9bX8
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-has anyone used netfilter_queue and successfully re-injected packets into t=
-he net?
+hello;
 
-i want to write sort of a userspace routing application.=20
+i've a problem about sk_buff checksum (tcp checksum).
 
-host A is my workstation, it has host B as default gateway.
+I've coded a kernel module that makes some changes at some packets ,
+which are read at NF_IP_FORWARD hook.
+My module changes data of the packetand returns  NF_ACCEPT...
 
-on host B my routing application runs.=20
-it receives packets from netfilter_queue using libnetfilter_queue.
-this works very well and i can display the whole packets.
+but the packet with changed data can not be accepted by the target
+machine.
 
-now i just want to send them back into the net, so that they reach their de=
-stination.
+i'm calculating both ip header checksum and tcp checksum, but still
+i've problem..
 
-i modified the main loop in the source of nfqnl_test.c in the libnetfilter_=
-queue package:
+does anybody know about my problem? can you give me some advice
+whether you have  any solutions about it.
 
-	while ((rv=3Drecv(fd, buf, sizeof(buf), 0)) >=3D 0)
-	{
-		printf("pkt received:\n");
-	=09
-		printf("sending packet back\n");
-	=09
-		if ((sv=3Dsend(fd, buf, sizeof(buf), 0))=3D=3D-1)
-		{
-			perror("send");
-			exit(EXIT_FAILURE);
-		}
-		printf("done\n");
-	}
 
-this should send every packet back to... where?=20
-it seems the packets are just sent into nirvana, i cannot sniff them, and i=
- dont get an error from send().
+related piece of code is below:
 
-is this the way to go, or should i make two raw sockets, one for tcp and on=
-e for udp packets and send the incoming packets on these?
 
-greetings, aton
+===================
+unsigned int hook_pool(unsigned int hooknum,
+                               struct sk_buff **skb,
+                               const struct net_device *in,
+                               const struct net_device *out,
+                               int (*okfn)(struct sk_buff*)){
 
---Signature=_Sun__12_Mar_2006_15_10_55_+0100_wbCep=FW/70d9bX8
-Content-Type: application/pgp-signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFEFCv03tb8MHRI6dcRAra8AKCVHJOVTQndvVC/FRt7qnWjR0lTWgCgmkWR
-iaWJTt+FahhUyFskQvaVTV0=
-=B2Lb
------END PGP SIGNATURE-----
+       struct tcphdr *tcp;
+       char *data;
+       struct sk_buff *sock_buff;
+       int i=0;
+       char *findGzip;
 
---Signature=_Sun__12_Mar_2006_15_10_55_+0100_wbCep=FW/70d9bX8--
+       sock_buff=*skb;
+
+       tcp = (struct tcphdr *)(sock_buff->data + (sock_buff->nh.iph->ihl * 4));
+       data = (char *)((int)tcp + (int)(tcp->doff * 4));
+
+
+       if (findGzip=(strstr(data,"senol1763"))){
+               printk("%d Data CheckSum 1 = %u\n",hooknum,sock_buff->csum);
+               printk("%d TCP CheckSum 1 = %u\n",hooknum,sock_buff->h.th->check);
+               printk("%d IP CheckSum 1 = %u\n",hooknum,sock_buff->nh.iph->check);
+               printk("\n");
+
+               findGzip[1]='n'; /* when i find a related str, i change a char*/
+/* here, i'm calculating ne csum.*/
+               sock_buff->h.th->check=0;
+sock_buff->h.th->check=in_cksum_tcp(sock_buff->nh.iph->saddr,sock_buff->nh.iph->daddr,(unsigned short *)sock_buff->h.th , sizeof(*sock_buff->h.th) );
+
+        }
+
+return NF_ACCEPT;
+}
+===================
+
+
+thanks
