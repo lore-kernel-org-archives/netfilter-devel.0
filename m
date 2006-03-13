@@ -1,15 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Knowing tables change
-Date: Mon, 13 Mar 2006 15:55:11 +0100
-Message-ID: <441587CF.4050203@trash.net>
-References: <44155BE4.80001@wengo.fr>
+Subject: Re: New H.323 conntrack & NAT helper module
+Date: Mon, 13 Mar 2006 16:00:48 +0100
+Message-ID: <44158920.30700@trash.net>
+References: <925A849792280C4E80C5461017A4B8A2032119@mail733.InfraSupportEtc.com><BAY109-DAV1E3EEAC01132FB3EE2E2EB3F00@phx.gbl><44001CDD.3030305@trash.net><BAY109-DAV1A4C43C331B9AEBC1F22EB3F00@phx.gbl><4400A541.9080901@trash.net><BAY109-DAV96ADAFAB4170550F4A52FB3F40@phx.gbl>
+	<440960E4.80601@trash.net>
+	<BAY109-DAV1330DD37E6D3BA0FF46E0DB3E00@phx.gbl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sebastien Tricaud <sebastien.tricaud@wengo.fr>
-In-Reply-To: <44155BE4.80001@wengo.fr>
+To: Jing Min Zhao <zhaojingmin@hotmail.com>
+In-Reply-To: <BAY109-DAV1330DD37E6D3BA0FF46E0DB3E00@phx.gbl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,27 +23,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sebastien Tricaud wrote:
-> Hi folks,
+Jing Min Zhao wrote:
+> OK, I think you know much more of kernel than I do anyway, so I have
+> changed the code based on your patches. The new module (version 0.3)
+> is ready for download at
+> http://sourceforge.net/project/showfiles.php?group_id=158936.
+> The document at http://nath323.sourceforge.net is updated.
 > 
-> I would like to know if there is a way to watch for tables alteration.
+> Following are the changes:
 > 
-> I am sure there is a better way than doing "iptables -t table -L" loop
-> and compare with previously stored data.
-
-watch -n 1 -d iptables -vxnL :)
-
-> When I look over Internet for possible answers, I can find something
-> that would do the job. It seems libpkttnetlink is for this purpose.
-> However no developments are latter than 2002. Is it a working stuff and
-> nothing has to be improved anymore ?
+> 1. Added support for multiple TPKTs in one packet (suggested by Patrick
+> McHardy)
+> 2. Avoid excessive stack usage (based on Patrick McHardy's patch)
+> 3. Added support for non-linear skb (based on Patrick McHardy's patch)
+> 4. Fixed missing H.245 module owner (Patrick McHardy)
+> 5. Avoid long RAS expectation chains (Patrick McHardy)
+> 6. Fixed incorrect __exit attribute (Patrick McHardy)
+> 7. Eliminated unnecessary return code
+> 8. Fixed incorrect use of NAT data from conntrack code (found by Patrick
+> McHardy)
+> 9. Fixed TTL calculation error in RCF
+> 10. Added TTL support in RRQ
+> 11. Better support for separate TPKT header and data
 > 
-> At a lower level, I can see libnfnetlink is the low level library I can
-> also use for it: there is the following quote -> "provides
-> open/close/receive functions only to be used by other libraries
-> libctnetlink/libpkttnetlink".
+> Next week I'll release a newer version for these issues:
+> 
+> 1. Separate ASN.1 code and data.
+> 2. Sort H.323 data to avoid forwarding declarations
+> 3. Add a parameter to make Q.931 signal expect for any address optional.
+> 4. Add support for T.120.
 
-There are no notifications for ruleset updates currently, since
-ruleset exchange between kernel and userspace isn't built on
-netlink and happens as one atomic operation, so the kernel
-doesn't know which rules are new.
+Great, thanks. When you release the new version, please also post
+the patch to netfilter-devel and add a Signed-off-by: line (see
+Documentation/SubmittingPatches in the kernel source).
