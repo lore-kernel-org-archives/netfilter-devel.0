@@ -1,17 +1,16 @@
-From: aton <aton@packetdropped.org>
-Subject: Re: netfilter_queue reinjecting packets
-Date: Sun, 12 Mar 2006 20:21:33 +0100
-Message-ID: <20060312202133.08f8d8ee.aton@packetdropped.org>
-References: <1142119489.2987.61.camel@localhost>
-	<20060312151054.5a2020ad.aton@packetdropped.org>
-	<441433C2.6010901@trash.net>
+From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
+Subject: Re: New H.323 conntrack & NAT helper module
+Date: Sun, 12 Mar 2006 21:22:23 -0500
+Message-ID: <BAY109-DAV1330DD37E6D3BA0FF46E0DB3E00@phx.gbl>
+References: <925A849792280C4E80C5461017A4B8A2032119@mail733.InfraSupportEtc.com><BAY109-DAV1E3EEAC01132FB3EE2E2EB3F00@phx.gbl><44001CDD.3030305@trash.net><BAY109-DAV1A4C43C331B9AEBC1F22EB3F00@phx.gbl><4400A541.9080901@trash.net><BAY109-DAV96ADAFAB4170550F4A52FB3F40@phx.gbl>
+	<440960E4.80601@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
-	micalg="PGP-SHA1";
-	boundary="Signature=_Sun__12_Mar_2006_20_21_33_+0100_EkELykz9.kY=LQQc"
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <441433C2.6010901@trash.net>
+To: "Patrick McHardy" <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,79 +22,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Signature=_Sun__12_Mar_2006_20_21_33_+0100_EkELykz9.kY=LQQc
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Sun, 12 Mar 2006 15:44:18 +0100
-Patrick McHardy <kaber@trash.net> wrote:
+----- Original Message ----- 
+From: "Patrick McHardy" <kaber@trash.net>
+To: "Jing Min Zhao" <zhaojingmin@hotmail.com>
+Cc: <netfilter-devel@lists.netfilter.org>
+Sent: Saturday, March 04, 2006 4:41 AM
+Subject: Re: New H.323 conntrack & NAT helper module
 
-> aton wrote:
-> > has anyone used netfilter_queue and successfully re-injected packets in=
-to the net?
-> >=20
-> > i want to write sort of a userspace routing application.=20
-> >=20
-> > host A is my workstation, it has host B as default gateway.
-> >=20
-> > on host B my routing application runs.=20
-> > it receives packets from netfilter_queue using libnetfilter_queue.
-> > this works very well and i can display the whole packets.
-> >=20
-> > now i just want to send them back into the net, so that they reach thei=
-r destination.
-> >=20
-> > i modified the main loop in the source of nfqnl_test.c in the libnetfil=
-ter_queue package:
-> >=20
-> > 	while ((rv=3Drecv(fd, buf, sizeof(buf), 0)) >=3D 0)
-> > 	{
-> > 		printf("pkt received:\n");
-> > 	=09
-> > 		printf("sending packet back\n");
-> > 	=09
-> > 		if ((sv=3Dsend(fd, buf, sizeof(buf), 0))=3D=3D-1)
-> > 		{
-> > 			perror("send");
-> > 			exit(EXIT_FAILURE);
-> > 		}
-> > 		printf("done\n");
-> > 	}
-> >=20
-> > this should send every packet back to... where?=20
-> > it seems the packets are just sent into nirvana, i cannot sniff them, a=
-nd i dont get an error from send().
->=20
-> nfnql_test already reinjects packets by the call to nfq_issue_verdict.
-> It seems you need to read the documentation ..
->=20
->=20
 
-sorry, but i cannot find any call to nfq_issue_verdict in this file.
-perhaps you mean nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL); ?
+>
+> I would expect incremental checksumming to be less expensive than
+> redoing the entire checksum. I'll try to get a patch ready for
+> testing this weekend, than we can compare the two approaches.
+>
 
-i thought nfq_set_verdict was used to specify a handling routine for the pa=
-ckets... in the case of nfq_test.c set the handling routine for packets to =
-the print_pkt() function.
-am i wrong?
+OK, I think you know much more of kernel than I do anyway, so I have
+changed the code based on your patches. The new module (version 0.3)
+is ready for download at
+http://sourceforge.net/project/showfiles.php?group_id=158936.
+The document at http://nath323.sourceforge.net is updated.
 
-what documentation? i would _love_ to read some documentation about libnetf=
-ilter_queue.=20
-i have looked through http://netfilter.org/documentation/index.html#documen=
-tation-howto but i cannot find anything specific about libnetfilter_queue...
+Following are the changes:
 
-greetings, aton
+1. Added support for multiple TPKTs in one packet (suggested by Patrick 
+McHardy)
+2. Avoid excessive stack usage (based on Patrick McHardy's patch)
+3. Added support for non-linear skb (based on Patrick McHardy's patch)
+4. Fixed missing H.245 module owner (Patrick McHardy)
+5. Avoid long RAS expectation chains (Patrick McHardy)
+6. Fixed incorrect __exit attribute (Patrick McHardy)
+7. Eliminated unnecessary return code
+8. Fixed incorrect use of NAT data from conntrack code (found by Patrick 
+McHardy)
+9. Fixed TTL calculation error in RCF
+10. Added TTL support in RRQ
+11. Better support for separate TPKT header and data
 
---Signature=_Sun__12_Mar_2006_20_21_33_+0100_EkELykz9.kY=LQQc
-Content-Type: application/pgp-signature
+Next week I'll release a newer version for these issues:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
+1. Separate ASN.1 code and data.
+2. Sort H.323 data to avoid forwarding declarations
+3. Add a parameter to make Q.931 signal expect for any address optional.
+4. Add support for T.120.
 
-iD8DBQFEFHTb3tb8MHRI6dcRAr8/AKCfTCVS98+MTKcED3sCVqT3wUlFxACglpft
-f0XioHKPWzbSKAYHlUwusUc=
-=S/Ks
------END PGP SIGNATURE-----
+Best regards,
 
---Signature=_Sun__12_Mar_2006_20_21_33_+0100_EkELykz9.kY=LQQc--
+Jing Min Zhao
