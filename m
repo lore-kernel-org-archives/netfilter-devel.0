@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter_queue reinjecting packets
-Date: Tue, 14 Mar 2006 17:46:28 +0100
-Message-ID: <4416F364.8090105@trash.net>
-References: <1142119489.2987.61.camel@localhost>	<20060312151054.5a2020ad.aton@packetdropped.org>	<441433C2.6010901@trash.net>	<20060312202133.08f8d8ee.aton@packetdropped.org>	<4414780C.60907@trash.net>
-	<20060314135452.19a2b219.aton@packetdropped.org>
+Subject: Re: ip6tables: Unknown error 4294967295
+Date: Tue, 14 Mar 2006 17:54:26 +0100
+Message-ID: <4416F542.6000404@trash.net>
+References: <342126766.19325@ustc.edu.cn> <4416D92F.40103@certicom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org,
+	GuanYao Huang <gyhuang@mail.ustc.edu.cn>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: aton <aton@packetdropped.org>
-In-Reply-To: <20060314135452.19a2b219.aton@packetdropped.org>
+To: Chinh Nguyen <cnguyen@certicom.com>
+In-Reply-To: <4416D92F.40103@certicom.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,10 +22,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-aton wrote:
-> okay i seem to understand how it works a bit better now. 
-> what i dont understand is how to get the ethernet header from the library.
-> i tried nfq_get_packet_hw(), but it always returns NULL, is that correct?
+Chinh Nguyen wrote:
+> net/ipv4/netfilter is a directory in the kernel source code. I took a quick peek
+> at the latest kernel 2.6.16-rc6. I don't think there's any support for the
+> "ROUTE" target in the kernel.
+> 
+> Can any netfilter developer confirm?
 
-The hardware header is only included for packets queued on
-the input path.
+No, there isn't. But you still should not get this error.
+Can you send a strace of the failing command please?
