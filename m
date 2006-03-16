@@ -1,16 +1,17 @@
-From: "mud dog" <muddogxp@gmail.com>
-Subject: Re: "Late REDIRECT"
-Date: Thu, 16 Mar 2006 17:14:55 +0800
-Message-ID: <24dc5ae90603160114k536c351fq@mail.gmail.com>
-References: <44153615.50408@netboxblue.com>
+From: Herve Eychenne <rv@wallfire.org>
+Subject: Re: Knowing tables change
+Date: Thu, 16 Mar 2006 11:12:26 +0100
+Message-ID: <20060316101226.GO25252@eychenne.org>
+References: <44155BE4.80001@wengo.fr> <441587CF.4050203@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org,
+	Sebastien Tricaud <sebastien.tricaud@wengo.fr>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Menno Smits" <menno@netboxblue.com>
-In-Reply-To: <44153615.50408@netboxblue.com>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
+In-Reply-To: <441587CF.4050203@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,60 +23,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-2006/3/13, Menno Smits <menno@netboxblue.com>:
-> Hi,
->
-> Just wanted to ask for your opinions on an idea. Please let me know if
-> you think this is too difficult or crazy.
->
-> We use currently use the REDIRECT target in nat PREROUTING to send
-> specific traffic to proxies running on our gateway (http, pop3, dns and
-> smtp).
->
-> This works ok but we have the following problems:
->
-> 1) nat PREROUTING happens before filter FORWARD. If we want to apply
-> consistent filter rules to outbound traffic regardless of whether it
-> goes via a transparent proxy or directly out then we can't because the
-> transproxied traffic never goes thru filter FORWARD. Currently we use a
-> horrible system of marks set in mangle PREROUTING to work around this.
-> We reject packets in FORWARD or skip the REDIRECTs in nat based on the
-> marks set. This is ugly and hard to debug (esp because we also use marks
-> for traffic shaping).
+On Mon, Mar 13, 2006 at 03:55:11PM +0100, Patrick McHardy wrote:
 
-You can REJECT packets in PREROUTING , why set marks, let it to pass
-FORWARD to see if it must be rejected or not?
-
->
-> 2) Return traffic from the transparent proxy REDIRECTs has the source IP
-> and source port of the transparent proxy listener, not the true remote
-> site and port. This means that when we do accounting for return traffic
-> (using ULOG in mangle POSTROUTING) the remote host and port are incorrect=
+> Sebastien Tricaud wrote:
+> > Hi folks,
+> >=20
+> > I would like to know if there is a way to watch for tables alteration=
 .
->
-> A possible solution to the above problems is to allow REDIRECTs to occur
-> in nat POSTROUTING (a "late redirect" for want of a better term). That
-> way all outbound traffic can pass through filter FORWARD before being
-> REDIRECTed. The reply NAT for the late REDIRECT would work in a similar
-> way, being performed before filter FORWARD so that the true source IP
-> and port is seen there.
+> >=20
+> > I am sure there is a better way than doing "iptables -t table -L" loo=
+p
+> > and compare with previously stored data.
 
-Hack the REDIRECT target if possible. Malloc a pool in kernel to save
-the source ip/port, when in POSTROUTING, fetch them.
+> watch -n 1 -d iptables -vxnL :)
 
+> > When I look over Internet for possible answers, I can find something
+> > that would do the job. It seems libpkttnetlink is for this purpose.
+> > However no developments are latter than 2002. Is it a working stuff a=
+nd
+> > nothing has to be improved anymore ?
+> >=20
+> > At a lower level, I can see libnfnetlink is the low level library I c=
+an
+> > also use for it: there is the following quote -> "provides
+> > open/close/receive functions only to be used by other libraries
+> > libctnetlink/libpkttnetlink".
 
->
-> Is something like this feasible? How difficult would it be implement? Am
-> I barking up the wrong tree?
->
-> Regards,
-> Menno
->
-> Scanned by the NetBox from NetBox Blue
-> (http://netboxblue.com/)
->
->
->
->
->
->
+> There are no notifications for ruleset updates currently, since
+> ruleset exchange between kernel and userspace isn't built on
+> netlink and happens as one atomic operation, so the kernel
+> doesn't know which rules are new.
+
+Does listing the rules imply some locking? I guess it can be a costly
+operation if the ruleset is big...
+It would at least be nice to send a "signal" (via netlink) when the
+ruleset is changed, so that third party applications can figure out
+the changes themselves only when needed (without having to do regular
+active polls).
+
+ Herve
+
+--=20
+ _
+(=B0=3D  Herv=E9 Eychenne
+//)
+v_/_ WallFire project:  http://www.wallfire.org/
