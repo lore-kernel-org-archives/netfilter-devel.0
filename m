@@ -1,17 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: New H.323 conntrack & NAT helper module
-Date: Thu, 16 Mar 2006 09:55:57 +0100
-Message-ID: <4419281D.6050702@trash.net>
-References: <925A849792280C4E80C5461017A4B8A2032119@mail733.InfraSupportEtc.com><BAY109-DAV1E3EEAC01132FB3EE2E2EB3F00@phx.gbl><44001CDD.3030305@trash.net><BAY109-DAV1A4C43C331B9AEBC1F22EB3F00@phx.gbl><4400A541.9080901@trash.net><BAY109-DAV96ADAFAB4170550F4A52FB3F40@phx.gbl><440960E4.80601@trash.net><BAY109-DAV1330DD37E6D3BA0FF46E0DB3E00@phx.gbl>
-	<44158920.30700@trash.net>
-	<BAY109-DAV757C3488B317953CCA29AB3E70@phx.gbl>
+From: "mud dog" <muddogxp@gmail.com>
+Subject: Re: "Late REDIRECT"
+Date: Thu, 16 Mar 2006 17:14:55 +0800
+Message-ID: <24dc5ae90603160114k536c351fq@mail.gmail.com>
+References: <44153615.50408@netboxblue.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jing Min Zhao <zhaojingmin@hotmail.com>
-In-Reply-To: <BAY109-DAV757C3488B317953CCA29AB3E70@phx.gbl>
+To: "Menno Smits" <menno@netboxblue.com>
+In-Reply-To: <44153615.50408@netboxblue.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,16 +22,60 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jing Min Zhao wrote:
->> Great, thanks. When you release the new version, please also post
->> the patch to netfilter-devel and add a Signed-off-by: line (see
->> Documentation/SubmittingPatches in the kernel source).
->>
->>
-> 
-> I have finished the new release. The new parameter and T.120 support
-> have been added. But the uncompressed patch is pretty big, about 228KB.
-> Do you think it's ok to post it here?
+2006/3/13, Menno Smits <menno@netboxblue.com>:
+> Hi,
+>
+> Just wanted to ask for your opinions on an idea. Please let me know if
+> you think this is too difficult or crazy.
+>
+> We use currently use the REDIRECT target in nat PREROUTING to send
+> specific traffic to proxies running on our gateway (http, pop3, dns and
+> smtp).
+>
+> This works ok but we have the following problems:
+>
+> 1) nat PREROUTING happens before filter FORWARD. If we want to apply
+> consistent filter rules to outbound traffic regardless of whether it
+> goes via a transparent proxy or directly out then we can't because the
+> transproxied traffic never goes thru filter FORWARD. Currently we use a
+> horrible system of marks set in mangle PREROUTING to work around this.
+> We reject packets in FORWARD or skip the REDIRECTs in nat based on the
+> marks set. This is ugly and hard to debug (esp because we also use marks
+> for traffic shaping).
 
-We used to have a pretty small size limit, but I think it has been
-lifted. Just try if it works.
+You can REJECT packets in PREROUTING , why set marks, let it to pass
+FORWARD to see if it must be rejected or not?
+
+>
+> 2) Return traffic from the transparent proxy REDIRECTs has the source IP
+> and source port of the transparent proxy listener, not the true remote
+> site and port. This means that when we do accounting for return traffic
+> (using ULOG in mangle POSTROUTING) the remote host and port are incorrect=
+.
+>
+> A possible solution to the above problems is to allow REDIRECTs to occur
+> in nat POSTROUTING (a "late redirect" for want of a better term). That
+> way all outbound traffic can pass through filter FORWARD before being
+> REDIRECTed. The reply NAT for the late REDIRECT would work in a similar
+> way, being performed before filter FORWARD so that the true source IP
+> and port is seen there.
+
+Hack the REDIRECT target if possible. Malloc a pool in kernel to save
+the source ip/port, when in POSTROUTING, fetch them.
+
+
+>
+> Is something like this feasible? How difficult would it be implement? Am
+> I barking up the wrong tree?
+>
+> Regards,
+> Menno
+>
+> Scanned by the NetBox from NetBox Blue
+> (http://netboxblue.com/)
+>
+>
+>
+>
+>
+>
