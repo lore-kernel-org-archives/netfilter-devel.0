@@ -1,13 +1,14 @@
-From: "David Vogt" <beunlovable@gmail.com>
-Subject: Modification of MTU/MSS
-Date: Fri, 17 Mar 2006 10:41:39 +0100
-Message-ID: <859616420603170141p6bff0e33j@mail.gmail.com>
+From: Dmitry Mishin <dim@openvz.org>
+Subject: [PATCH] futher {ip,ip6,arp}_tables unification
+Date: Fri, 17 Mar 2006 14:46:19 +0300
+Message-ID: <200603171446.19856.dim@openvz.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_LGqGE47dVM8791N"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: devel@openvz.org, netfilter-devel@lists.netfilter.org,
+	"David S. Miller" <davem@davemloft.net>, Arnd Bergmann <arnd@arndb.de>,
+	dev@openvz.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,16 +20,273 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear all,
+--Boundary-00=_LGqGE47dVM8791N
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I modify packets with libipq. Specifically, they grow larger. Now it
-seems I ran into problems concerning the maximum packet size (as
-determined by MTU). Now my question is how to solve this problem,
-respectively if I got anything wrong.
-1) As far as I understand, packet fragmentation is done by the kernel.
-Question: Is it done before libipq packet mangeling or afterwards?
-2) Is there something like the TCPMSS target (that modifies the MSS)
-for modifying the MTU?
+ This patch moves {ip,ip6,arp}t_entry_{match,target} definitions to
+ x_tables.h. This move simplifies code and future compatibility fixes. 
 
-Thanks.
-David.
+Signed-off-by: Dmitry Mishin <dim@openvz.org>
+Acked-off-by: Kirill Korotaev <dev@openvz.org>
+
+-- 
+Thanks,
+Dmitry.
+
+--Boundary-00=_LGqGE47dVM8791N
+Content-Type: text/plain; charset="us-ascii"; name="diff-ms-xt-entry-20060317"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="diff-ms-xt-entry-20060317"
+
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 46a0f97..ad72a4f 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -4,6 +4,62 @@
+ #define XT_FUNCTION_MAXNAMELEN 30
+ #define XT_TABLE_MAXNAMELEN 32
+ 
++struct xt_entry_match
++{
++	union {
++		struct {
++			u_int16_t match_size;
++
++			/* Used by userspace */
++			char name[XT_FUNCTION_MAXNAMELEN-1];
++
++			u_int8_t revision;
++		} user;
++		struct {
++			u_int16_t match_size;
++
++			/* Used inside the kernel */
++			struct xt_match *match;
++		} kernel;
++
++		/* Total length */
++		u_int16_t match_size;
++	} u;
++
++	unsigned char data[0];
++};
++
++struct xt_entry_target
++{
++	union {
++		struct {
++			u_int16_t target_size;
++
++			/* Used by userspace */
++			char name[XT_FUNCTION_MAXNAMELEN-1];
++
++			u_int8_t revision;
++		} user;
++		struct {
++			u_int16_t target_size;
++
++			/* Used inside the kernel */
++			struct xt_target *target;
++		} kernel;
++
++		/* Total length */
++		u_int16_t target_size;
++	} u;
++
++	unsigned char data[0];
++};
++
++struct xt_standard_target
++{
++	struct xt_entry_target target;
++	int verdict;
++};
++
+ /* The argument to IPT_SO_GET_REVISION_*.  Returns highest revision
+  * kernel supports, if >= revision. */
+ struct xt_get_revision
+diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
+index fd21796..3f89d2f 100644
+--- a/include/linux/netfilter_arp/arp_tables.h
++++ b/include/linux/netfilter_arp/arp_tables.h
+@@ -65,35 +65,8 @@ struct arpt_arp {
+ 	u_int16_t invflags;
+ };
+ 
+-struct arpt_entry_target
+-{
+-	union {
+-		struct {
+-			u_int16_t target_size;
+-
+-			/* Used by userspace */
+-			char name[ARPT_FUNCTION_MAXNAMELEN-1];
+-			u_int8_t revision;
+-		} user;
+-		struct {
+-			u_int16_t target_size;
+-
+-			/* Used inside the kernel */
+-			struct arpt_target *target;
+-		} kernel;
+-
+-		/* Total length */
+-		u_int16_t target_size;
+-	} u;
+-
+-	unsigned char data[0];
+-};
+-
+-struct arpt_standard_target
+-{
+-	struct arpt_entry_target target;
+-	int verdict;
+-};
++#define arpt_entry_target xt_entry_target
++#define arpt_standard_target xt_standard_target
+ 
+ /* Values for "flag" field in struct arpt_ip (general arp structure).
+  * No flags defined yet.
+diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
+index 76ba24b..56eebc6 100644
+--- a/include/linux/netfilter_ipv4/ip_tables.h
++++ b/include/linux/netfilter_ipv4/ip_tables.h
+@@ -52,61 +52,9 @@ struct ipt_ip {
+ 	u_int8_t invflags;
+ };
+ 
+-struct ipt_entry_match
+-{
+-	union {
+-		struct {
+-			u_int16_t match_size;
+-
+-			/* Used by userspace */
+-			char name[IPT_FUNCTION_MAXNAMELEN-1];
+-
+-			u_int8_t revision;
+-		} user;
+-		struct {
+-			u_int16_t match_size;
+-
+-			/* Used inside the kernel */
+-			struct ipt_match *match;
+-		} kernel;
+-
+-		/* Total length */
+-		u_int16_t match_size;
+-	} u;
+-
+-	unsigned char data[0];
+-};
+-
+-struct ipt_entry_target
+-{
+-	union {
+-		struct {
+-			u_int16_t target_size;
+-
+-			/* Used by userspace */
+-			char name[IPT_FUNCTION_MAXNAMELEN-1];
+-
+-			u_int8_t revision;
+-		} user;
+-		struct {
+-			u_int16_t target_size;
+-
+-			/* Used inside the kernel */
+-			struct ipt_target *target;
+-		} kernel;
+-
+-		/* Total length */
+-		u_int16_t target_size;
+-	} u;
+-
+-	unsigned char data[0];
+-};
+-
+-struct ipt_standard_target
+-{
+-	struct ipt_entry_target target;
+-	int verdict;
+-};
++#define ipt_entry_match xt_entry_match
++#define ipt_entry_target xt_entry_target
++#define ipt_standard_target xt_standard_target
+ 
+ #define ipt_counters xt_counters
+ 
+diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
+index f249b57..45dc603 100644
+--- a/include/linux/netfilter_ipv6/ip6_tables.h
++++ b/include/linux/netfilter_ipv6/ip6_tables.h
+@@ -56,60 +56,9 @@ struct ip6t_ip6 {
+ 	u_int8_t invflags;
+ };
+ 
+-/* FIXME: If alignment in kernel different from userspace? --RR */
+-struct ip6t_entry_match
+-{
+-	union {
+-		struct {
+-			u_int16_t match_size;
+-
+-			/* Used by userspace */
+-			char name[IP6T_FUNCTION_MAXNAMELEN-1];
+-			u_int8_t revision;
+-		} user;
+-		struct {
+-			u_int16_t match_size;
+-
+-			/* Used inside the kernel */
+-			struct ip6t_match *match;
+-		} kernel;
+-
+-		/* Total length */
+-		u_int16_t match_size;
+-	} u;
+-
+-	unsigned char data[0];
+-};
+-
+-struct ip6t_entry_target
+-{
+-	union {
+-		struct {
+-			u_int16_t target_size;
+-
+-			/* Used by userspace */
+-			char name[IP6T_FUNCTION_MAXNAMELEN-1];
+-			u_int8_t revision;
+-		} user;
+-		struct {
+-			u_int16_t target_size;
+-
+-			/* Used inside the kernel */
+-			struct ip6t_target *target;
+-		} kernel;
+-
+-		/* Total length */
+-		u_int16_t target_size;
+-	} u;
+-
+-	unsigned char data[0];
+-};
+-
+-struct ip6t_standard_target
+-{
+-	struct ip6t_entry_target target;
+-	int verdict;
+-};
++#define ip6t_entry_match xt_entry_match
++#define ip6t_entry_target xt_entry_target
++#define ip6t_standard_target xt_standard_target
+ 
+ #define ip6t_counters	xt_counters
+ 
+
+--Boundary-00=_LGqGE47dVM8791N--
