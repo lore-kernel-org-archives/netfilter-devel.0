@@ -1,17 +1,18 @@
-From: Dmitry Mishin <dim@openvz.org>
-Subject: Re: [Devel] [PATCH] futher {ip,ip6,arp}_tables unification
-Date: Fri, 17 Mar 2006 19:02:33 +0300
-Message-ID: <200603171902.34281.dim@openvz.org>
-References: <200603171446.19856.dim@openvz.org>
+From: Alexander Samad <alex@samad.com.au>
+Subject: Re: Interesting problem with conntrack and ftp
+Date: Sun, 19 Mar 2006 15:38:43 +1100
+Message-ID: <20060319043843.GA31012@hufpuf.lan1.hme1.samad.com.au>
+References: <20060316235511.GA18440@hufpuf.lan1.hme1.samad.com.au>
+	<Pine.LNX.4.64.0603190134110.16079@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_a2tGENMs1EzXo+i"
-Cc: Dmitry Mishin <dim@openvz.org>, dev@openvz.org,
-	netfilter-devel@lists.netfilter.org,
-	"David S. Miller" <davem@davemloft.net>, Arnd Bergmann <arnd@arndb.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mYCpIKhGyMATD0i+"
+Cc: Alexander Samad <alex@samad.com.au>, netfilter-devel@lists.netfilter.org,
+	netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: devel@openvz.org
-In-Reply-To: <200603171446.19856.dim@openvz.org>
+To: Krzysztof Oledzki <olenf@ans.pl>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0603190134110.16079@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,297 +24,83 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_a2tGENMs1EzXo+i
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+
+--mYCpIKhGyMATD0i+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, Mar 19, 2006 at 01:37:39AM +0100, Krzysztof Oledzki wrote:
+>=20
+>=20
+> On Fri, 17 Mar 2006, Alexander Samad wrote:
+>=20
+> >Hi
+> >
+> >I was resently setting up my new firewall usimng openwrt on a linksys.
+> >
+> >I got around to setting up my adsl connection and added into my iptables
+> >these commands
+> >
+> >
+> >
+> >$IPT -t filter -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+> >$IPT -t filter -A FORWARD -o $WANADSL -p tcp --tcp-flags SYN,RST SYN -j=
+=20
+> >TCPMSS --clamp-mss-to-pmtu
+> >$IPT -t nat -A POSTROUTING -o $WANADSL -j MASQUERADE
+> >
+> >which is what I have normally done.
+> >
+> >http traffic worked well, but ftp of large files, timed out, sign of a
+> >mtu problem. It worked when I ftp'ed from the firewall, but not when I
+> >did it from behind the firewall.
+> >
+> >When I did some tcpdumps, I noticed that the second connection created
+> >by the client wasn't being clamp'ed.
+> >
+> >The way I figure it was that the second connection was related to the
+> >first one, and thus being consumed by the first line in iptables (above)
+> >
+> >Once I changed the order of line 1 and 2 every thing worked fine.
+> >
+> >Now openwrt uses 2.4.30, and my previous firewall used 2.6 and I believe
+> >it was setup as shown above and it worked fine.
+> >
+> >The other difference is that conntrack_ftp is compiled into the kernel.
+> >
+> >Is this a know feature/bug ? why has it worked in 2.6 and not in 2.4 or
+> >is the problem in compiled in and as a module
+>=20
+> The solution is simple: TCPMSS should be used only in mangle table.=20
+> Anyway, if you didn't change the configuration I have no idea why it=20
+> worked in 2.6 and does not work in 2.4.
+
+makes sense, ran foul of the man page=20
+
+       Workaround: activate this option and add a rule to your firewall
+configuration like:
+        iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN \
+                    -j TCPMSS --clamp-mss-to-pmtu
+
+
+>=20
+> Best regards,
+>=20
+> 				Krzysztof Ol?dzki
+
+
+--mYCpIKhGyMATD0i+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 Content-Disposition: inline
 
-Forgot required tc_ipt.h modification. Corrected.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
 
-On Friday 17 March 2006 14:46, Dmitry Mishin wrote:
->  This patch moves {ip,ip6,arp}t_entry_{match,target} definitions to
->  x_tables.h. This move simplifies code and future compatibility fixes.
->
-> Signed-off-by: Dmitry Mishin <dim@openvz.org>
-> Acked-off-by: Kirill Korotaev <dev@openvz.org>
+iD8DBQFEHOBTkZz88chpJ2MRAorvAKC9LZQnUzXW/kuLzsaWiRih5TtatACdH4cX
+rWe5YM7qsNjP458ypqbkVa4=
+=2XdF
+-----END PGP SIGNATURE-----
 
--- 
-Thanks,
-Dmitry.
-
---Boundary-00=_a2tGENMs1EzXo+i
-Content-Type: text/plain; charset="utf-8"; name="diff-ms-xt-entry-20060317"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="diff-ms-xt-entry-20060317"
-
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 46a0f97..ad72a4f 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -4,6 +4,62 @@
- #define XT_FUNCTION_MAXNAMELEN 30
- #define XT_TABLE_MAXNAMELEN 32
- 
-+struct xt_entry_match
-+{
-+	union {
-+		struct {
-+			u_int16_t match_size;
-+
-+			/* Used by userspace */
-+			char name[XT_FUNCTION_MAXNAMELEN-1];
-+
-+			u_int8_t revision;
-+		} user;
-+		struct {
-+			u_int16_t match_size;
-+
-+			/* Used inside the kernel */
-+			struct xt_match *match;
-+		} kernel;
-+
-+		/* Total length */
-+		u_int16_t match_size;
-+	} u;
-+
-+	unsigned char data[0];
-+};
-+
-+struct xt_entry_target
-+{
-+	union {
-+		struct {
-+			u_int16_t target_size;
-+
-+			/* Used by userspace */
-+			char name[XT_FUNCTION_MAXNAMELEN-1];
-+
-+			u_int8_t revision;
-+		} user;
-+		struct {
-+			u_int16_t target_size;
-+
-+			/* Used inside the kernel */
-+			struct xt_target *target;
-+		} kernel;
-+
-+		/* Total length */
-+		u_int16_t target_size;
-+	} u;
-+
-+	unsigned char data[0];
-+};
-+
-+struct xt_standard_target
-+{
-+	struct xt_entry_target target;
-+	int verdict;
-+};
-+
- /* The argument to IPT_SO_GET_REVISION_*.  Returns highest revision
-  * kernel supports, if >= revision. */
- struct xt_get_revision
-diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
-index fd21796..3f89d2f 100644
---- a/include/linux/netfilter_arp/arp_tables.h
-+++ b/include/linux/netfilter_arp/arp_tables.h
-@@ -65,35 +65,8 @@ struct arpt_arp {
- 	u_int16_t invflags;
- };
- 
--struct arpt_entry_target
--{
--	union {
--		struct {
--			u_int16_t target_size;
--
--			/* Used by userspace */
--			char name[ARPT_FUNCTION_MAXNAMELEN-1];
--			u_int8_t revision;
--		} user;
--		struct {
--			u_int16_t target_size;
--
--			/* Used inside the kernel */
--			struct arpt_target *target;
--		} kernel;
--
--		/* Total length */
--		u_int16_t target_size;
--	} u;
--
--	unsigned char data[0];
--};
--
--struct arpt_standard_target
--{
--	struct arpt_entry_target target;
--	int verdict;
--};
-+#define arpt_entry_target xt_entry_target
-+#define arpt_standard_target xt_standard_target
- 
- /* Values for "flag" field in struct arpt_ip (general arp structure).
-  * No flags defined yet.
-diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
-index 76ba24b..56eebc6 100644
---- a/include/linux/netfilter_ipv4/ip_tables.h
-+++ b/include/linux/netfilter_ipv4/ip_tables.h
-@@ -52,61 +52,9 @@ struct ipt_ip {
- 	u_int8_t invflags;
- };
- 
--struct ipt_entry_match
--{
--	union {
--		struct {
--			u_int16_t match_size;
--
--			/* Used by userspace */
--			char name[IPT_FUNCTION_MAXNAMELEN-1];
--
--			u_int8_t revision;
--		} user;
--		struct {
--			u_int16_t match_size;
--
--			/* Used inside the kernel */
--			struct ipt_match *match;
--		} kernel;
--
--		/* Total length */
--		u_int16_t match_size;
--	} u;
--
--	unsigned char data[0];
--};
--
--struct ipt_entry_target
--{
--	union {
--		struct {
--			u_int16_t target_size;
--
--			/* Used by userspace */
--			char name[IPT_FUNCTION_MAXNAMELEN-1];
--
--			u_int8_t revision;
--		} user;
--		struct {
--			u_int16_t target_size;
--
--			/* Used inside the kernel */
--			struct ipt_target *target;
--		} kernel;
--
--		/* Total length */
--		u_int16_t target_size;
--	} u;
--
--	unsigned char data[0];
--};
--
--struct ipt_standard_target
--{
--	struct ipt_entry_target target;
--	int verdict;
--};
-+#define ipt_entry_match xt_entry_match
-+#define ipt_entry_target xt_entry_target
-+#define ipt_standard_target xt_standard_target
- 
- #define ipt_counters xt_counters
- 
-diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
-index f249b57..45dc603 100644
---- a/include/linux/netfilter_ipv6/ip6_tables.h
-+++ b/include/linux/netfilter_ipv6/ip6_tables.h
-@@ -56,60 +56,9 @@ struct ip6t_ip6 {
- 	u_int8_t invflags;
- };
- 
--/* FIXME: If alignment in kernel different from userspace? --RR */
--struct ip6t_entry_match
--{
--	union {
--		struct {
--			u_int16_t match_size;
--
--			/* Used by userspace */
--			char name[IP6T_FUNCTION_MAXNAMELEN-1];
--			u_int8_t revision;
--		} user;
--		struct {
--			u_int16_t match_size;
--
--			/* Used inside the kernel */
--			struct ip6t_match *match;
--		} kernel;
--
--		/* Total length */
--		u_int16_t match_size;
--	} u;
--
--	unsigned char data[0];
--};
--
--struct ip6t_entry_target
--{
--	union {
--		struct {
--			u_int16_t target_size;
--
--			/* Used by userspace */
--			char name[IP6T_FUNCTION_MAXNAMELEN-1];
--			u_int8_t revision;
--		} user;
--		struct {
--			u_int16_t target_size;
--
--			/* Used inside the kernel */
--			struct ip6t_target *target;
--		} kernel;
--
--		/* Total length */
--		u_int16_t target_size;
--	} u;
--
--	unsigned char data[0];
--};
--
--struct ip6t_standard_target
--{
--	struct ip6t_entry_target target;
--	int verdict;
--};
-+#define ip6t_entry_match xt_entry_match
-+#define ip6t_entry_target xt_entry_target
-+#define ip6t_standard_target xt_standard_target
- 
- #define ip6t_counters	xt_counters
- 
-diff --git a/include/net/tc_act/tc_ipt.h b/include/net/tc_act/tc_ipt.h
-index 02ecceb..cb37ad0 100644
---- a/include/net/tc_act/tc_ipt.h
-+++ b/include/net/tc_act/tc_ipt.h
-@@ -3,14 +3,14 @@
- 
- #include <net/act_api.h>
- 
--struct ipt_entry_target;
-+struct xt_entry_target;
- 
- struct tcf_ipt
- {
- 	tca_gen(ipt);
- 	u32 hook;
- 	char *tname;
--	struct ipt_entry_target *t;
-+	struct xt_entry_target *t;
- };
- 
- #endif
-
---Boundary-00=_a2tGENMs1EzXo+i--
+--mYCpIKhGyMATD0i+--
