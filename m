@@ -1,16 +1,15 @@
-From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
-Subject: Re: New H.323 conntrack & NAT helper module
-Date: Sat, 18 Mar 2006 12:13:15 -0500
-Message-ID: <BAY109-DAV470F9C3F267304522B744B3E50@phx.gbl>
-References: <925A849792280C4E80C5461017A4B8A2032119@mail733.InfraSupportEtc.com><BAY109-DAV1E3EEAC01132FB3EE2E2EB3F00@phx.gbl><44001CDD.3030305@trash.net><BAY109-DAV1A4C43C331B9AEBC1F22EB3F00@phx.gbl><4400A541.9080901@trash.net><BAY109-DAV96ADAFAB4170550F4A52FB3F40@phx.gbl><440960E4.80601@trash.net><BAY109-DAV1330DD37E6D3BA0FF46E0DB3E00@phx.gbl><44158920.30700@trash.net><BAY109-DAV757C3488B317953CCA29AB3E70@phx.gbl><4419281D.6050702@trash.net><BAY109-DAV69864489FACDF598B1718B3E50@phx.gbl>
-	<441C39AE.6040805@trash.net>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: Interesting problem with conntrack and ftp
+Date: Sun, 19 Mar 2006 01:37:39 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0603190134110.16079@bizon.gios.gov.pl>
+References: <20060316235511.GA18440@hufpuf.lan1.hme1.samad.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1683039739-1142728659=:16079"
+Cc: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>
+To: Alexander Samad <alex@samad.com.au>
+In-Reply-To: <20060316235511.GA18440@hufpuf.lan1.hme1.samad.com.au>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,54 +21,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
------ Original Message ----- 
-From: "Patrick McHardy" <kaber@trash.net>
-To: "Jing Min Zhao" <zhaojingmin@hotmail.com>
-Cc: <netfilter-devel@lists.netfilter.org>
-Sent: Saturday, March 18, 2006 11:47 AM
-Subject: Re: New H.323 conntrack & NAT helper module
+---187430788-1683039739-1142728659=:16079
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
 
-> Jing Min Zhao wrote:
->> I tried, but it didn't work, so now I send it as compressed.
->
-> Thanks, thats fine too.
->
->> The main new feature of this release is T.120 support. So chat, 
->> whiteboard,
->> file transfer and other T.120 applications are now supported.
->>
->> The second new feature is a parameter "gkrouted_only" for 
->> ip_conntrack_h323
->> module. If set it to 1, only calls from the gatekeeper will be forwarded
->> to the
->> registered endpoint.
->
-> Since the H.323 helper behaves different than other helpers in this
-> regard and many people just load all available helpers, I would prefer
-> if it defaulted to off. If you agree I'm simply going to change this,
-> no need to send a new patch.
->
 
-Sorry, I forgot to say that the default value is 0. Sure you can change it.
+On Fri, 17 Mar 2006, Alexander Samad wrote:
 
->> Change log:
->>
->> 1. Added support for T.120 channels
->> 2. Added parameter gkrouted_only (suggested by Patrick McHardy)
->> 3. Splitted ASN.1 code and data (suggested by Patrick McHardy)
->> 4. Sort ASN.1 data to avoid forwarding declarations (suggested by
->> Patrick McHardy)
->> 5. Reset next TPKT data length in get_tpkt_data()
+> Hi
 >
-> Thanks a lot. I'll review the patch this weekend, if there are no
-> new issues I'll put it in my 2.6.17 tree.
+> I was resently setting up my new firewall usimng openwrt on a linksys.
+>
+> I got around to setting up my adsl connection and added into my iptables
+> these commands
 >
 >
+>
+> $IPT -t filter -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+> $IPT -t filter -A FORWARD -o $WANADSL -p tcp --tcp-flags SYN,RST SYN -j T=
+CPMSS --clamp-mss-to-pmtu
+> $IPT -t nat -A POSTROUTING -o $WANADSL -j MASQUERADE
+>
+> which is what I have normally done.
+>
+> http traffic worked well, but ftp of large files, timed out, sign of a
+> mtu problem. It worked when I ftp'ed from the firewall, but not when I
+> did it from behind the firewall.
+>
+> When I did some tcpdumps, I noticed that the second connection created
+> by the client wasn't being clamp'ed.
+>
+> The way I figure it was that the second connection was related to the
+> first one, and thus being consumed by the first line in iptables (above)
+>
+> Once I changed the order of line 1 and 2 every thing worked fine.
+>
+> Now openwrt uses 2.4.30, and my previous firewall used 2.6 and I believe
+> it was setup as shown above and it worked fine.
+>
+> The other difference is that conntrack_ftp is compiled into the kernel.
+>
+> Is this a know feature/bug ? why has it worked in 2.6 and not in 2.4 or
+> is the problem in compiled in and as a module
 
-That's great.
+The solution is simple: TCPMSS should be used only in mangle table.=20
+Anyway, if you didn't change the configuration I have no idea why it=20
+worked in 2.6 and does not work in 2.4.
 
-Many Thanks!
+Best regards,
 
-Jing Min Zhao
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1683039739-1142728659=:16079--
