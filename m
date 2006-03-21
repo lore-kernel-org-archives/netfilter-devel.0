@@ -1,17 +1,13 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [patch] ipt_recent
-Date: Wed, 22 Mar 2006 12:04:27 +0000
-Message-ID: <44213D4B.1050002@ufomechanic.net>
-References: <dt51lh$b63$1@sea.gmane.org>
-	<43F9EA77.4060208@ufomechanic.net>	<44096532.2070000@trash.net>
-	<440DAB6B.4020208@ufomechanic.net> <440ECB1B.4070507@trash.net>
+From: "Bjo Breiskoll" <bjo@nefkom.net>
+Subject: Writing a new netfilter-target with shared-library
+Date: Tue, 21 Mar 2006 16:25:26 +0100
+Message-ID: <005b01c64cfb$adcbe180$03b2a8c0@bjoserver>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <440ECB1B.4070507@trash.net>
+To: "Netfilter-Devel@Lists" <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,15 +19,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-...
-> 
-> Otherwise you can you versioning as in ipt_MARK and a couple of other
-> targets.
+Hello,
+ 
+i've written a new netfilter-module which implements an ring-buffer for
+ip-v4 header in kernelspace. This works pretty good. After the decision of
+implementing some arguments for the kernel-modul like start/stop/reset
+buffer, changeable buffersize ... i implemented this argument-handling with
+module parameter (module_param ...). But it would be much nicer to write a
+shared-library which handles this - so i am able to change parameters with
+<iptables>.
+ 
+After reading some faqs i found out that i have to write a shared library
+but i have to check and test it very often. So patch-o-matic seems a bit
+unpractiable. Is there a way to build the needed libs out of the
+"netfilter-build"-system for test purposes? Like <gcc -fPIC -Wall -c
+testlib.c>.
 
-I posted a rework with versioning (although I couldn't see anything in 
-ipt_MARK to copy) and posted this on 13th March.
-
-I forgot to Cc you then, and so notify you now.
-
-Sam
+Regards and hope for help ...
+BJO
