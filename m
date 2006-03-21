@@ -1,16 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER 00/09]: Netfilter update
-Date: Tue, 21 Mar 2006 09:56:42 +0100
-Message-ID: <441FBFCA.9030802@trash.net>
-References: <20060321015549.11977.45799.sendpatchset@localhost.localdomain>	<441F6280.3020201@trash.net>
-	<20060320.234255.32496441.davem@davemloft.net>
+Subject: Re: [NETFILTER 09/09]: futher {ip,ip6,arp}_tables unification
+Date: Tue, 21 Mar 2006 09:59:26 +0100
+Message-ID: <441FC06E.60902@trash.net>
+References: <20060321015549.11977.45799.sendpatchset@localhost.localdomain>
+	<20060321015604.11977.84327.sendpatchset@localhost.localdomain>
+	<441F60E2.1070308@trash.net> <200603211056.02339.dim@sw.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: dev@openvz.org, netfilter-devel@lists.netfilter.org, davem@davemloft.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20060320.234255.32496441.davem@davemloft.net>
+To: Dmitry Mishin <dim@sw.ru>
+In-Reply-To: <200603211056.02339.dim@sw.ru>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,30 +23,9 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David S. Miller wrote:
-> Ok, but please kill trailing whitespace in patches, GIT even warns
-> about this now and you can check and fix it up before applying a patch
-> by using:
-> 
-> 	git apply --check --whitespace=error-all
-> 
-> So, for example, on this H323 patch we get:
-> 
-> + git apply --check --whitespace=error-all diff
-> Adds trailing whitespace.
-> diff:73:	 
-> Adds trailing whitespace.
-> diff:146: *  
-> Adds trailing whitespace.
-> diff:156: *	 
-> Adds trailing whitespace.
-> diff:171: * 	 
-> Adds trailing whitespace.
-> diff:5747: *	 
-> fatal: 5 lines add trailing whitespaces.
-> 
-> I fixed it up by hand this time, but I may stop doing so in
-> the future and push it back to you instead :-)
+Dmitry Mishin wrote:
+> Could you give more details on it in order to avoid such confusion next time?
 
-Thanks. Actually my scripts are supposed to take care of that (and
-usually do), but I seem to have had bad fortune yesterday :)
+Sorry, I haven't figured out the problem yet, but it seems your
+patch wasn't responsible. Anyway, I'll fix it once I figure it
+out, so don't worry.
