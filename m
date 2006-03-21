@@ -1,16 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER 09/09]: futher {ip,ip6,arp}_tables unification
-Date: Tue, 21 Mar 2006 03:11:46 +0100
-Message-ID: <441F60E2.1070308@trash.net>
+Subject: Re: [NETFILTER 00/09]: Netfilter update
+Date: Tue, 21 Mar 2006 03:18:40 +0100
+Message-ID: <441F6280.3020201@trash.net>
 References: <20060321015549.11977.45799.sendpatchset@localhost.localdomain>
-	<20060321015604.11977.84327.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: dim@openvz.org, dev@openvz.org, netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: davem@davemloft.net
-In-Reply-To: <20060321015604.11977.84327.sendpatchset@localhost.localdomain>
+In-Reply-To: <20060321015549.11977.45799.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,11 +22,15 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Patrick McHardy wrote:
-> [NETFILTER]: futher {ip,ip6,arp}_tables unification
+> Hi Dave,
 > 
-> This patch moves {ip,ip6,arp}t_entry_{match,target} definitions to
-> x_tables.h. This move simplifies code and future compatibility fixes.
+> following are my pending netfilter patches for 2.6.17, most notable is
+> a very nice and clean H.323 connection tracking helper by Jing Min Zhao.
+> Please apply.
 
-Dave, please drop this patch, I just noticed it breaks ip6tables
-compatibility for some yet unknown reason. Sorry for not testing
-it properly before.
+Dave, I'm sorry for the annoyance, but please drop the entire patchset
+except for the H.323 helper. Something is messing up ip6tables on
+one of my systems and the only thing I'm sure of is that its not the
+H.323 helper :)
+
+I'll resubmit the remaining patches once I know whats going on.
