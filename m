@@ -1,16 +1,12 @@
-From: Pablo Neira Ayuso <pablo@eurodev.net>
-Subject: Re: [RFC][PATCH] use of pkg-config in libnetfilter_*, conntrack,
- and ulogd2
-Date: Tue, 21 Mar 2006 02:50:56 +0100
-Message-ID: <441F5C00.2060206@eurodev.net>
-References: <200603192324.50444@krak>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 03/09]: nfnetlink_queue: fix nfnetlink message size
+Date: Tue, 21 Mar 2006 02:55:53 +0100 (MET)
+Message-ID: <20060321015553.11977.21959.sendpatchset@localhost.localdomain>
+References: <20060321015549.11977.45799.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@sch.bme.hu>
-In-Reply-To: <200603192324.50444@krak>
+To: davem@davemloft.net
+In-Reply-To: <20060321015549.11977.45799.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,34 +18,62 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Krisztian,
+[NETFILTER]: nfnetlink_queue: fix nfnetlink message size
 
-KOVACS Krisztian wrote:
->   This weekend I've spent a significant amount of time configuring and 
-> compiling the whole libnetfilter_* universe and the conntrack and ulogd2 
-> tools. My initial plan was to install everything under /opt/netfilter, 
-> however, the out-of-the-box configure.in files provided with these 
-> modules do not make this particularly easy.
-> 
->   So after spending some time trying all kinds of mantras and magical 
-> runes to get autoconfuse do what I intended to do, I came to the 
-> conclusion that all this would be much simpler if we used the PKG_CHECK_* 
-> macros in configure.in. The necessary pkgconfig .pc files are generated 
-> and installed anyway, so why not?
-> 
->   Of course this means that to compile these modules one will need 
-> pkg-config, but personally I don't consider this a problem. The 
-> additional benefit of this method would be that the only thing to take 
-> care of is that of setting a correct PKG_CONFIG_PATH, all the include 
-> paths and libraries are then found magically.
+Fix oversized message, use NLMSG_SPACE just one since it reserves space
+for the netlink header and NFA_SPACE for every attribute.
 
-I like it, AFAIK pkg-config is always in most distros, so this new 
-requirement shouldn't be a problem. Moreover, this provides us a way to 
-easily maintain the library version dependencies. Since this also 
-affects other libraries, I'll wait for Harald's ACK before commiting 
-this to conntrack and libnetfilter_conntrack.
+Thanks to Harald Welte for the feedback
 
-cheers,
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
---
-Pablo
+---
+commit 443b1bf80678fcd789ce5c984a3240108bec4736
+tree e73cbb17af7e245958829d4583564c7aa9552cb8
+parent daab7149ce33d1782bb37355aea08993219bac99
+author Pablo Neira Ayuso <pablo@netfilter.org> Mon, 20 Mar 2006 14:06:17 +0100
+committer Patrick McHardy <kaber@trash.net> Mon, 20 Mar 2006 14:06:17 +0100
+
+ net/netfilter/nfnetlink_queue.c |   19 ++++++++++---------
+ 1 files changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 2cf5fb8..b570166 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -354,16 +354,17 @@ nfqnl_build_packet_message(struct nfqnl_
+ 	QDEBUG("entered\n");
+ 
+ 	/* all macros expand to constant values at compile time */
+-	size =    NLMSG_SPACE(sizeof(struct nfqnl_msg_packet_hdr))
+-		+ NLMSG_SPACE(sizeof(u_int32_t))	/* ifindex */
+-		+ NLMSG_SPACE(sizeof(u_int32_t))	/* ifindex */
++	size =    NLMSG_SPACE(sizeof(struct nfgenmsg)) +
++		+ NFA_SPACE(sizeof(struct nfqnl_msg_packet_hdr))
++		+ NFA_SPACE(sizeof(u_int32_t))	/* ifindex */
++		+ NFA_SPACE(sizeof(u_int32_t))	/* ifindex */
+ #ifdef CONFIG_BRIDGE_NETFILTER
+-		+ NLMSG_SPACE(sizeof(u_int32_t))	/* ifindex */
+-		+ NLMSG_SPACE(sizeof(u_int32_t))	/* ifindex */
++		+ NFA_SPACE(sizeof(u_int32_t))	/* ifindex */
++		+ NFA_SPACE(sizeof(u_int32_t))	/* ifindex */
+ #endif
+-		+ NLMSG_SPACE(sizeof(u_int32_t))	/* mark */
+-		+ NLMSG_SPACE(sizeof(struct nfqnl_msg_packet_hw))
+-		+ NLMSG_SPACE(sizeof(struct nfqnl_msg_packet_timestamp));
++		+ NFA_SPACE(sizeof(u_int32_t))	/* mark */
++		+ NFA_SPACE(sizeof(struct nfqnl_msg_packet_hw))
++		+ NFA_SPACE(sizeof(struct nfqnl_msg_packet_timestamp));
+ 
+ 	outdev = entinf->outdev;
+ 
+@@ -388,7 +389,7 @@ nfqnl_build_packet_message(struct nfqnl_
+ 		else
+ 			data_len = queue->copy_range;
+ 		
+-		size += NLMSG_SPACE(data_len);
++		size += NFA_SPACE(data_len);
+ 		break;
+ 	
+ 	default:
