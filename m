@@ -1,12 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 08/09]: Add H.323 conntrack/NAT helper
-Date: Tue, 21 Mar 2006 02:56:00 +0100 (MET)
-Message-ID: <20060321015600.11977.86159.sendpatchset@localhost.localdomain>
+Subject: Re: [NETFILTER 08/09]: Add H.323 conntrack/NAT helper
+Date: Tue, 21 Mar 2006 03:03:33 +0100
+Message-ID: <441F5EF5.5030608@trash.net>
 References: <20060321015549.11977.45799.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+	<20060321015600.11977.86159.sendpatchset@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="------------080309000303050106060206"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: davem@davemloft.net
-In-Reply-To: <20060321015549.11977.45799.sendpatchset@localhost.localdomain>
+In-Reply-To: <20060321015600.11977.86159.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,6 +20,58 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------080309000303050106060206
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+
+Patrick McHardy wrote:
+> [NETFILTER]: Add H.323 conntrack/NAT helper
+> 
+
+Sorry, I accidentally committed the make-rebuilds-all fix. This is
+the correct patch.
+
+> diff --git a/scripts/Kbuild.include b/scripts/Kbuild.include
+> index 0168d6c..c847744 100644
+> --- a/scripts/Kbuild.include
+> +++ b/scripts/Kbuild.include
+> @@ -79,7 +79,7 @@ echo-cmd = $(if $($(quiet)cmd_$(1)), \
+>  # >'< substitution is for echo to work, >$< substitution to preserve $ when reloading .cmd file
+>  # note: when using inline perl scripts [perl -e '...$$t=1;...'] in $(cmd_xxx) double $$ your perl vars
+>  # 
+> -if_changed = $(if $(strip $? $(call arg-check, $(cmd_$(1)), $(cmd_$@)) ), \
+> +if_changed = $(if $(strip $(filter-out FORCE,$?) $(call arg-check, $(cmd_$(1)), $(cmd_$@)) ), \
+>  	@set -e; \
+>  	$(echo-cmd) \
+>  	$(cmd_$(1)); \
+> @@ -87,7 +87,7 @@ if_changed = $(if $(strip $? $(call arg-
+>  
+>  # execute the command and also postprocess generated .d dependencies
+>  # file
+> -if_changed_dep = $(if $(strip $? $(filter-out FORCE $(wildcard $^),$^)\
+> +if_changed_dep = $(if $(strip $(filter-out FORCE,$? $(filter-out $(wildcard $^),$^))\
+>  	$(call arg-check, $(cmd_$(1)), $(cmd_$@)) ),                  \
+>  	@set -e; \
+>  	$(echo-cmd) \
+> @@ -99,6 +99,6 @@ if_changed_dep = $(if $(strip $? $(filte
+>  # Usage: $(call if_changed_rule,foo)
+>  # will check if $(cmd_foo) changed, or any of the prequisites changed,
+>  # and if so will execute $(rule_foo)
+> -if_changed_rule = $(if $(strip $? $(call arg-check, $(cmd_$(1)), $(cmd_$@)) ),\
+> +if_changed_rule = $(if $(strip $(filter-out FORCE,$?) $(call arg-check, $(cmd_$(1)), $(cmd_$@)) ),\
+>  			@set -e; \
+>  			$(rule_$(1)))
+> 
+
+
+--------------080309000303050106060206
+Content-Type: text/plain;
+ name="08.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="08.diff"
 
 [NETFILTER]: Add H.323 conntrack/NAT helper
 
@@ -40,8 +95,7 @@ committer Patrick McHardy <kaber@trash.net> Mon, 20 Mar 2006 15:18:54 +0100
  .../netfilter/ip_conntrack_helper_h323_types.c     | 1926 +++++++++++++++++++++++
  .../netfilter/ip_conntrack_helper_h323_types.h     |  938 +++++++++++
  net/ipv4/netfilter/ip_nat_helper_h323.c            |  605 ++++++
- scripts/Kbuild.include                             |    6 
- 11 files changed, 6234 insertions(+), 3 deletions(-)
+ 10 files changed, 6231 insertions(+), 3 deletions(-)
 
 diff --git a/include/linux/netfilter_ipv4/ip_conntrack.h b/include/linux/netfilter_ipv4/ip_conntrack.h
 index 215765f..f32d75c 100644
@@ -6377,33 +6431,5 @@ index 0000000..1d60c6e
 +MODULE_AUTHOR("Jing Min Zhao <zhaojingmin@users.sourceforge.net>");
 +MODULE_DESCRIPTION("H.323 NAT helper");
 +MODULE_LICENSE("GPL");
-diff --git a/scripts/Kbuild.include b/scripts/Kbuild.include
-index 0168d6c..c847744 100644
---- a/scripts/Kbuild.include
-+++ b/scripts/Kbuild.include
-@@ -79,7 +79,7 @@ echo-cmd = $(if $($(quiet)cmd_$(1)), \
- # >'< substitution is for echo to work, >$< substitution to preserve $ when reloading .cmd file
- # note: when using inline perl scripts [perl -e '...$$t=1;...'] in $(cmd_xxx) double $$ your perl vars
- # 
--if_changed = $(if $(strip $? $(call arg-check, $(cmd_$(1)), $(cmd_$@)) ), \
-+if_changed = $(if $(strip $(filter-out FORCE,$?) $(call arg-check, $(cmd_$(1)), $(cmd_$@)) ), \
- 	@set -e; \
- 	$(echo-cmd) \
- 	$(cmd_$(1)); \
-@@ -87,7 +87,7 @@ if_changed = $(if $(strip $? $(call arg-
- 
- # execute the command and also postprocess generated .d dependencies
- # file
--if_changed_dep = $(if $(strip $? $(filter-out FORCE $(wildcard $^),$^)\
-+if_changed_dep = $(if $(strip $(filter-out FORCE,$? $(filter-out $(wildcard $^),$^))\
- 	$(call arg-check, $(cmd_$(1)), $(cmd_$@)) ),                  \
- 	@set -e; \
- 	$(echo-cmd) \
-@@ -99,6 +99,6 @@ if_changed_dep = $(if $(strip $? $(filte
- # Usage: $(call if_changed_rule,foo)
- # will check if $(cmd_foo) changed, or any of the prequisites changed,
- # and if so will execute $(rule_foo)
--if_changed_rule = $(if $(strip $? $(call arg-check, $(cmd_$(1)), $(cmd_$@)) ),\
-+if_changed_rule = $(if $(strip $(filter-out FORCE,$?) $(call arg-check, $(cmd_$(1)), $(cmd_$@)) ),\
- 			@set -e; \
- 			$(rule_$(1)))
+
+--------------080309000303050106060206--
