@@ -1,15 +1,13 @@
-From: Martin Josefsson <gandalf@wlug.westbo.se>
-Subject: [PATCH] ip_conntrack_netlink : fix expectation notifier
-	unregistration
-Date: Sun, 26 Mar 2006 16:19:50 +0200
-Message-ID: <1143382791.4015.21.camel@localhost.localdomain>
+From: "Jeremy Elson" <jelson@gmail.com>
+Subject: Per-client NAT routing -- possible?
+Date: Wed, 22 Mar 2006 09:16:41 -0800
+Message-ID: <51e5f6120603220916v3c536afamdb3023563866397d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-w2hssUZNH4PMDfSXOXYR"
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,50 +19,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi,
 
---=-w2hssUZNH4PMDfSXOXYR
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I'm trying to set up a Linux box as a NATting router.  But here's the
+trick: my box's external interface is on a LAN that has a whole bunch
+of routers on it, any of which can be used to access the Internet.=20
+I'm trying to figure out how to configure iptables so that the NAT box
+selects the router to use based on client IP address (i.e., the IP
+address on the inside interface).
 
-Same fix as for the notifier unregistration bug in nf_conntrack_netlink.
+I've been tinkering with a command like this:
 
-This patch fixes expectation notifier unregistration on module unload to
-use ip_conntrack_expect_unregister_notifier(). This bug causes a soft
-lockup at the first expectation created after a rmmod ; insmod of this
-module.
+iptables -t nat -A POSTROUTING -i $INTERNAL_CLIENT_IP -o
+external-iface0 -j SNAT --to $EXTERNAL_ROUTER_IP
 
-Should go into -stable as well.
+...but it seems that --to controls the new source address given to the
+packet (i.e., the router's outside-interface IP), and not the
+destination to which the NATted packet is sent.
 
-Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
+Could someone please point me in the right direction?  Or is this not possi=
+ble?
 
+Thanks!
 
---- linux-2.6.16.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-03-20 =
-06:53:29.000000000 +0100
-+++ linux-2.6.16/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-03-26 16:13=
-:58.000000000 +0200
-@@ -1619,7 +1619,7 @@ static void __exit ctnetlink_exit(void)
- 	printk("ctnetlink: unregistering from nfnetlink.\n");
-=20
- #ifdef CONFIG_IP_NF_CONNTRACK_EVENTS
--	ip_conntrack_unregister_notifier(&ctnl_notifier_exp);
-+	ip_conntrack_expect_unregister_notifier(&ctnl_notifier_exp);
- 	ip_conntrack_unregister_notifier(&ctnl_notifier);
- #endif
-=20
-
---=20
-/Martin
-
---=-w2hssUZNH4PMDfSXOXYR
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBEJqMGWm2vlfa207ERAq5IAJ0Tj7elH9UGZcLv8pLnjKQdkdt+sgCfWbsq
-1hfArU7/X0haHVM3wy8L5/E=
-=AT6i
------END PGP SIGNATURE-----
-
---=-w2hssUZNH4PMDfSXOXYR--
+--Jeremy
