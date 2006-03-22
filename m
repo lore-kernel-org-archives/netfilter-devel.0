@@ -1,18 +1,11 @@
-From: Stephen Frost <sfrost@snowman.net>
-Subject: Re: ipt_recent patch
-Date: Wed, 22 Mar 2006 09:26:36 -0500
-Message-ID: <20060322142636.GF4474@ns.snowman.net>
-References: <dt51lh$b63$1@sea.gmane.org> <43F9EA77.4060208@ufomechanic.net>
-	<44096532.2070000@trash.net> <440DAB6B.4020208@ufomechanic.net>
-	<440ECB1B.4070507@trash.net> <4415B019.6050409@ufomechanic.net>
+From: "Marco Berizzi" <pupilla@hotmail.com>
+Subject: conntrack and IKE confused on 2.6.16
+Date: Wed, 22 Mar 2006 17:03:10 +0100
+Message-ID: <BAY103-F300A98390D89618EC055C4B2D90@phx.gbl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="e/S+UvxZ7d2xayYf"
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-Content-Disposition: inline
-In-Reply-To: <4415B019.6050409@ufomechanic.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,64 +17,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi. I'm experimenting a quite strange problem
+with linux 2.6.16
+Yesterday one of our user with his laptop has
+killed my ipsec vpn ;-)
+Here is my network schema:
 
---e/S+UvxZ7d2xayYf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+priv-net-fi--|lnx|--pub-ip-fi**internet**pub-ip-ve--|lnx2.6.16|--priv-net-venezia
 
-* Amin Azez (azez@ufomechanic.net) wrote:
-> This patch has some sort of versioning built in so that the new userland=
-=20
-> features are not enabled unless built against a new header file.
->=20
-> If a new kernel module is called with rules by old userland, then it=20
-> refuses to accept the rule.
+The is an ipsec tunnel between the two private
+networks: priv-net-fi and priv-net-venezia. The
+two ipsec endpoint addresses are pub-ip-fi and
+pub-ip-ve. So far so good.
+On the 2.6.16 box there is a forward & nat rule
+that allow also udp 500: packet with dport=500
+from the priv-net-venezia are allowed to be
+forwarded & natted (with pub-ip-ve) to the
+internet. Our user has double clicked on the vpn
+connection and his laptop has tried to establish
+an ipsec tunnel with the system lnx (for the
+priv-net-fi subnet): packet with dport=500 was
+natted (with the pub-ip-ve) and forwarded to
+pub-ip-fi.
+Ok, time for IKE rekey: lnx (pub-ip-fi) try to
+talk to lnx2.6.16 pub-ip-ve, but lnx2.6.16 forward
+packets with dport=500 to the user laptop (172.16.1.227):
 
-Works for me.
+This is 'cat proc/net/ip_conntrack | grep 172.16.1.227':
 
-> Changes:
-> * /proc/net/ipt_recent/* is sorted by age, most recent first
-> * include Per Hedelands patch in message=20
-> <200603062203.k26M3pI5024778@tordmule.bluetail.com>
-> * fix problem of not moving up list entries after deleting entries which=
-=20
-> meant that sometimes you could never fill the list
-> * fix problems of items with hash of 0 being erased whenever an empty=20
-> slot is used
+udp      17 169 src=172.16.1.227 dst=pub-ip-fi sport=500 dport=500 
+packets=51 bytes=9264 src=pub-ip-fi dst=pub-ip-ve sport=500 dport=500 
+packets=77 bytes=29760 [ASSURED] mark=0 use=1
 
-These changes look good.  The sorting by age makes sense though isn't
-entirely necessary.  The fixes are good, sorry I didn't consider the
-case where the hash result was 0. :/
+Is this a normal behaviour?
 
-> * Add these new features:
-
-I don't really see the use-case for these new options...  Perhaps if it
-was combined with an IP mask of some kind, ie: packets from 5 IPs in the
-same /24 in the last 60 seconds, or some such.  That could also be
-accomplished by providing a way to tell ipt_recent to look for a mask
-instead of individual IPs though.  ie: For this table, consider any IPs
-in the same /24 to be the 'same' IP.
-
-Anyway, they don't really affect how the module works as they just add
-additional ways to check on the data stored in the tables, so I'm not
-strongly against them just don't entirely see the point.
-
-	Thanks,
-
-		Stephen
-
---e/S+UvxZ7d2xayYf
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQFEIV6brzgMPqB3kigRAiA9AJ9NGJgJbAjdarb/Bj5weZvgXX519wCfeokO
-HOlb9f5By2Ln4ch11BOXgbA=
-=sa44
------END PGP SIGNATURE-----
-
---e/S+UvxZ7d2xayYf--
+PS: IKE daemon on lnx2.6.16 is openswan
