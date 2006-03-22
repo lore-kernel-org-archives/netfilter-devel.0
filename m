@@ -1,13 +1,16 @@
-From: "Bjo Breiskoll" <bjo@nefkom.net>
-Subject: Writing a new netfilter-target with shared-library
-Date: Tue, 21 Mar 2006 16:25:26 +0100
-Message-ID: <005b01c64cfb$adcbe180$03b2a8c0@bjoserver>
+From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
+Subject: Re: New H.323 conntrack & NAT helper module
+Date: Wed, 22 Mar 2006 09:26:50 -0500
+Message-ID: <BAY109-DAV130DE7B7B14F08F39A37E1B3D90@phx.gbl>
+References: <925A849792280C4E80C5461017A4B8A2032119@mail733.InfraSupportEtc.com><BAY109-DAV1E3EEAC01132FB3EE2E2EB3F00@phx.gbl><44001CDD.3030305@trash.net><BAY109-DAV1A4C43C331B9AEBC1F22EB3F00@phx.gbl><4400A541.9080901@trash.net><BAY109-DAV96ADAFAB4170550F4A52FB3F40@phx.gbl><440960E4.80601@trash.net><BAY109-DAV1330DD37E6D3BA0FF46E0DB3E00@phx.gbl><44158920.30700@trash.net><BAY109-DAV757C3488B317953CCA29AB3E70@phx.gbl><4419281D.6050702@trash.net><BAY109-DAV69864489FACDF598B1718B3E50@phx.gbl><441EBAC1.8060007@trash.net><BAY109-DAV19348A8A477692078B76DB3DB0@phx.gbl>
+	<441EFED7.9010002@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; format=flowed; charset="ISO-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Netfilter-Devel@Lists" <netfilter-devel@lists.netfilter.org>
+To: "Patrick McHardy" <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,21 +22,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
- 
-i've written a new netfilter-module which implements an ring-buffer for
-ip-v4 header in kernelspace. This works pretty good. After the decision of
-implementing some arguments for the kernel-modul like start/stop/reset
-buffer, changeable buffersize ... i implemented this argument-handling with
-module parameter (module_param ...). But it would be much nicer to write a
-shared-library which handles this - so i am able to change parameters with
-<iptables>.
- 
-After reading some faqs i found out that i have to write a shared library
-but i have to check and test it very often. So patch-o-matic seems a bit
-unpractiable. Is there a way to build the needed libs out of the
-"netfilter-build"-system for test purposes? Like <gcc -fPIC -Wall -c
-testlib.c>.
+Andrew Morton found some compilation errors at the linkage stage:
 
-Regards and hope for help ...
-BJO
+ LD .tmp_vmlinux1 
+net/built-in.o(.text+0x7762d): In function `set_sig_addr': 
+: undefined reference to `get_h225_addr' 
+net/built-in.o(.text+0x776c9): In function `set_sig_addr': 
+: undefined reference to `get_h225_addr' 
+net/built-in.o(.text+0x77742): In function `set_ras_addr': 
+: undefined reference to `get_h225_addr' 
+net/built-in.o(.text+0x77d82): In function `nat_q931': 
+: undefined reference to `get_h225_addr' 
+make: *** [.tmp_vmlinux1] Error 1
+
+The reason is function 'get_h225_addr` is incorrectly 
+defined as a 'static' function in ip_conntrack_helper_h323.c and 
+`set_sig_addr' is in ip_nat_helper_h323.c. This is interesting because
+gcc normally doesn't report this obvious error.
+
+I apologize and will release a bugfix version soon.
+
+Best regards,
+
+Jing Min Zhao
