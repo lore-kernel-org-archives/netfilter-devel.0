@@ -1,16 +1,18 @@
-From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
-Subject: Re: New H.323 conntrack & NAT helper module
-Date: Wed, 22 Mar 2006 09:26:50 -0500
-Message-ID: <BAY109-DAV130DE7B7B14F08F39A37E1B3D90@phx.gbl>
-References: <925A849792280C4E80C5461017A4B8A2032119@mail733.InfraSupportEtc.com><BAY109-DAV1E3EEAC01132FB3EE2E2EB3F00@phx.gbl><44001CDD.3030305@trash.net><BAY109-DAV1A4C43C331B9AEBC1F22EB3F00@phx.gbl><4400A541.9080901@trash.net><BAY109-DAV96ADAFAB4170550F4A52FB3F40@phx.gbl><440960E4.80601@trash.net><BAY109-DAV1330DD37E6D3BA0FF46E0DB3E00@phx.gbl><44158920.30700@trash.net><BAY109-DAV757C3488B317953CCA29AB3E70@phx.gbl><4419281D.6050702@trash.net><BAY109-DAV69864489FACDF598B1718B3E50@phx.gbl><441EBAC1.8060007@trash.net><BAY109-DAV19348A8A477692078B76DB3DB0@phx.gbl>
-	<441EFED7.9010002@trash.net>
+From: Stephen Frost <sfrost@snowman.net>
+Subject: Re: ipt_recent patch
+Date: Wed, 22 Mar 2006 09:26:36 -0500
+Message-ID: <20060322142636.GF4474@ns.snowman.net>
+References: <dt51lh$b63$1@sea.gmane.org> <43F9EA77.4060208@ufomechanic.net>
+	<44096532.2070000@trash.net> <440DAB6B.4020208@ufomechanic.net>
+	<440ECB1B.4070507@trash.net> <4415B019.6050409@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="ISO-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="e/S+UvxZ7d2xayYf"
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>
+To: Amin Azez <azez@ufomechanic.net>
+Content-Disposition: inline
+In-Reply-To: <4415B019.6050409@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,26 +24,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Andrew Morton found some compilation errors at the linkage stage:
 
- LD .tmp_vmlinux1 
-net/built-in.o(.text+0x7762d): In function `set_sig_addr': 
-: undefined reference to `get_h225_addr' 
-net/built-in.o(.text+0x776c9): In function `set_sig_addr': 
-: undefined reference to `get_h225_addr' 
-net/built-in.o(.text+0x77742): In function `set_ras_addr': 
-: undefined reference to `get_h225_addr' 
-net/built-in.o(.text+0x77d82): In function `nat_q931': 
-: undefined reference to `get_h225_addr' 
-make: *** [.tmp_vmlinux1] Error 1
+--e/S+UvxZ7d2xayYf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The reason is function 'get_h225_addr` is incorrectly 
-defined as a 'static' function in ip_conntrack_helper_h323.c and 
-`set_sig_addr' is in ip_nat_helper_h323.c. This is interesting because
-gcc normally doesn't report this obvious error.
+* Amin Azez (azez@ufomechanic.net) wrote:
+> This patch has some sort of versioning built in so that the new userland=
+=20
+> features are not enabled unless built against a new header file.
+>=20
+> If a new kernel module is called with rules by old userland, then it=20
+> refuses to accept the rule.
 
-I apologize and will release a bugfix version soon.
+Works for me.
 
-Best regards,
+> Changes:
+> * /proc/net/ipt_recent/* is sorted by age, most recent first
+> * include Per Hedelands patch in message=20
+> <200603062203.k26M3pI5024778@tordmule.bluetail.com>
+> * fix problem of not moving up list entries after deleting entries which=
+=20
+> meant that sometimes you could never fill the list
+> * fix problems of items with hash of 0 being erased whenever an empty=20
+> slot is used
 
-Jing Min Zhao
+These changes look good.  The sorting by age makes sense though isn't
+entirely necessary.  The fixes are good, sorry I didn't consider the
+case where the hash result was 0. :/
+
+> * Add these new features:
+
+I don't really see the use-case for these new options...  Perhaps if it
+was combined with an IP mask of some kind, ie: packets from 5 IPs in the
+same /24 in the last 60 seconds, or some such.  That could also be
+accomplished by providing a way to tell ipt_recent to look for a mask
+instead of individual IPs though.  ie: For this table, consider any IPs
+in the same /24 to be the 'same' IP.
+
+Anyway, they don't really affect how the module works as they just add
+additional ways to check on the data stored in the tables, so I'm not
+strongly against them just don't entirely see the point.
+
+	Thanks,
+
+		Stephen
+
+--e/S+UvxZ7d2xayYf
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFEIV6brzgMPqB3kigRAiA9AJ9NGJgJbAjdarb/Bj5weZvgXX519wCfeokO
+HOlb9f5By2Ln4ch11BOXgbA=
+=sa44
+-----END PGP SIGNATURE-----
+
+--e/S+UvxZ7d2xayYf--
