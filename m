@@ -1,15 +1,15 @@
-From: "Jeremy Elson" <jelson@gmail.com>
-Subject: Per-client NAT routing -- possible?
-Date: Wed, 22 Mar 2006 18:49:36 -0800
-Message-ID: <51e5f6120603221849p2da80ec5nb49ae81d7ae93d8f@mail.gmail.com>
-References: <51e5f6120603220916v3c536afamdb3023563866397d@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [00/10]: Netfilter Update
+Date: Thu, 23 Mar 2006 04:47:17 +0100
+Message-ID: <44221A45.7060003@trash.net>
+References: <20060322184740.5655.7960.sendpatchset@localhost.localdomain>
+	<20060322.135906.60572272.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="------------050900080206080907070707"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <51e5f6120603220916v3c536afamdb3023563866397d@mail.gmail.com>
-Content-Disposition: inline
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20060322.135906.60572272.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,31 +21,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[ Sent before I subscribed - I think it was silently dropped.=20
-Apologies if you get 2. ]
+This is a multi-part message in MIME format.
+--------------050900080206080907070707
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
+David S. Miller wrote:
+>>      [NETFILTER]: Fix undefined references to get_h225_addr
+> 
+> 
+> I never in a million years would have thought that exporting
+> a symbol to modules would work if the symbol was declared
+> static :-)  But come to think of it, I see nothing that prevents
+> this.
+> 
+> I wonder if this could be prevented somehow using so me construct
+> in the module symbol export macros?
 
-Hi,
+I was surprised too. Looking at the gcc-builtins, there seems to
+be no way to determine if a function is static. But this small
+hack appears to work. It adds a non-static forward declaration of
+the exported function to the function body, causing a warning
+if the function was declared static.
 
-I'm trying to set up a Linux box as a NATting router.  But here's the
-trick: my box's external interface is on a LAN that has a whole bunch
-of routers on it, any of which can be used to access the Internet.
-I'm trying to figure out how to configure iptables so that the NAT box
-selects the router to use based on client IP address (i.e., the IP
-address on the inside interface).
+--------------050900080206080907070707
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
-I've been tinkering with a command like this:
+diff --git a/include/linux/module.h b/include/linux/module.h
+index 70bd843..f8eec37 100644
+--- a/include/linux/module.h
++++ b/include/linux/module.h
+@@ -183,6 +183,7 @@ void *__symbol_get_gpl(const char *symbo
+ 
+ /* For every exported symbol, place a struct in the __ksymtab section */
+ #define __EXPORT_SYMBOL(sym, sec)				\
++	typeof(sym) sym;					\
+ 	__CRC_SYMBOL(sym, sec)					\
+ 	static const char __kstrtab_##sym[]			\
+ 	__attribute__((section("__ksymtab_strings")))		\
 
-iptables -t nat -A POSTROUTING -i $INTERNAL_CLIENT_IP -o
-external-iface0 -j SNAT --to $EXTERNAL_ROUTER_IP
-
-...but it seems that --to controls the new source address given to the
-packet (i.e., the router's outside-interface IP), and not the
-destination to which the NATted packet is sent.
-
-Could someone please point me in the right direction?  Or is this not possi=
-ble?
-
-Thanks!
-
---Jeremy
+--------------050900080206080907070707--
