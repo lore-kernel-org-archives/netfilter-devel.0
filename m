@@ -1,15 +1,15 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [00/10]: Netfilter Update
-Date: Wed, 22 Mar 2006 13:59:06 -0800 (PST)
-Message-ID: <20060322.135906.60572272.davem@davemloft.net>
-References: <20060322184740.5655.7960.sendpatchset@localhost.localdomain>
+From: "Jeremy Elson" <jelson@gmail.com>
+Subject: Per-client NAT routing -- possible?
+Date: Wed, 22 Mar 2006 18:49:36 -0800
+Message-ID: <51e5f6120603221849p2da80ec5nb49ae81d7ae93d8f@mail.gmail.com>
+References: <51e5f6120603220916v3c536afamdb3023563866397d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <20060322184740.5655.7960.sendpatchset@localhost.localdomain>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <51e5f6120603220916v3c536afamdb3023563866397d@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,21 +21,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Wed, 22 Mar 2006 19:47:40 +0100 (MET)
+[ Sent before I subscribed - I think it was silently dropped.=20
+Apologies if you get 2. ]
 
-> this is the second try with my netfilter patches for 2.6.17. It
-> includes the fix for the ip6tables breakage and the H.323 linking
-> error - compile tested in serveral combinations. Please apply.
 
-All applied, thanks a lot Patrick.
+Hi,
 
->       [NETFILTER]: Fix undefined references to get_h225_addr
+I'm trying to set up a Linux box as a NATting router.  But here's the
+trick: my box's external interface is on a LAN that has a whole bunch
+of routers on it, any of which can be used to access the Internet.
+I'm trying to figure out how to configure iptables so that the NAT box
+selects the router to use based on client IP address (i.e., the IP
+address on the inside interface).
 
-I never in a million years would have thought that exporting
-a symbol to modules would work if the symbol was declared
-static :-)  But come to think of it, I see nothing that prevents
-this.
+I've been tinkering with a command like this:
 
-I wonder if this could be prevented somehow using so me construct
-in the module symbol export macros?
+iptables -t nat -A POSTROUTING -i $INTERNAL_CLIENT_IP -o
+external-iface0 -j SNAT --to $EXTERNAL_ROUTER_IP
+
+...but it seems that --to controls the new source address given to the
+packet (i.e., the router's outside-interface IP), and not the
+destination to which the NATted packet is sent.
+
+Could someone please point me in the right direction?  Or is this not possi=
+ble?
+
+Thanks!
+
+--Jeremy
