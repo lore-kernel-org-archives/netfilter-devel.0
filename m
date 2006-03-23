@@ -1,15 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [00/10]: Netfilter Update
-Date: Thu, 23 Mar 2006 05:10:50 +0100
-Message-ID: <44221FCA.4080301@trash.net>
-References: <20060322184740.5655.7960.sendpatchset@localhost.localdomain>	<20060322.135906.60572272.davem@davemloft.net>
-	<44221A45.7060003@trash.net>
+From: "Marco Berizzi" <pupilla@hotmail.com>
+Subject: Re: conntrack and IKE confused on 2.6.16
+Date: Thu, 23 Mar 2006 10:16:07 +0100
+Message-ID: <BAY103-F8424E12312A9CDFE2D9BCB2DE0@phx.gbl>
+References: <44218D97.6000002@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070404050102050302090102"
-Cc: rusty@rustcorp.com.au, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <44221A45.7060003@trash.net>
+In-Reply-To: <44218D97.6000002@trash.net>
+To: kaber@trash.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,89 +20,94 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070404050102050302090102
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
 Patrick McHardy wrote:
-> David S. Miller wrote:
-> 
->>>     [NETFILTER]: Fix undefined references to get_h225_addr
->>
->>
->>I never in a million years would have thought that exporting
->>a symbol to modules would work if the symbol was declared
->>static :-)  But come to think of it, I see nothing that prevents
->>this.
->>
->>I wonder if this could be prevented somehow using so me construct
->>in the module symbol export macros?
-> 
-> 
-> I was surprised too. Looking at the gcc-builtins, there seems to
-> be no way to determine if a function is static. But this small
-> hack appears to work. It adds a non-static forward declaration of
-> the exported function to the function body, causing a warning
-> if the function was declared static.
-> 
-> 
-> ------------------------------------------------------------------------
-> 
-> diff --git a/include/linux/module.h b/include/linux/module.h
-> index 70bd843..f8eec37 100644
-> --- a/include/linux/module.h
-> +++ b/include/linux/module.h
-> @@ -183,6 +183,7 @@ void *__symbol_get_gpl(const char *symbo
->  
->  /* For every exported symbol, place a struct in the __ksymtab section */
->  #define __EXPORT_SYMBOL(sym, sec)				\
-> +	typeof(sym) sym;					\
->  	__CRC_SYMBOL(sym, sec)					\
->  	static const char __kstrtab_##sym[]			\
->  	__attribute__((section("__ksymtab_strings")))		\
 
-That patch was broken, I only tested the case it should fail on, but
-it also fails on symbols exported in different files. This one adds an
-extern declaration instead, I think that should have the desired
-effect.
+>Marco Berizzi wrote:
+> > Patrick McHardy wrote:
+> >
+> >> I'm not sure I understand you correctly. The notebook users
+> >> establishes a VPN to the remote side.
+> >
+> >
+> > Yes.
+> >
+> >> Why shouldn't the
+> >> IKE-traffic be directed back to him?
+> >
+> >
+> > lnx and lnx2.6.16 must talk each other to
+> > establish/renew the ike/ipsec sa, but lnx2.6.16
+> > is directing packets for itself to the notebook.
+> > Is this clear?
+>
+>Not exactly. Is the tunnel between the notebook user and
+>the remote gateway, between the two gateways or both?
 
+My apologies, I didn't explain myself.
+There is a tunnel between the two private networks
+implemented by the two linux system lnx & lnx2.6.16:
+this tunnel delivery traffic from network priv-net-fi
+to priv-net-venezia and viceversa. The two endpoints
+ip addresses are pub-ip-fi for priv-net-fi and
+pub-ip-ve for priv-net-venezia. This is the "GOOD" &
+working 24x7 tunnel.
 
---------------070404050102050302090102
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+priv-net-fi--|lnx|--pub-ip-fi**internet**pub-ip-ve--|lnx2.6.16|--priv-net-venezia
+             +---------------GOOD ipsec tunnel----------------+
 
-[MODULES]: Don't allow statically declared exports
+Users notebook (roadwarriors) are configured that they
+can connect to priv-net-fi and priv-net-venezia from
+the internet via IPsec. So I specified this
+configuration for every notebook:
 
-Add an extern declaration for exported symbols to make the compiler warn
-on symbols declared statically.
+network to reach: priv-net-venezia
+ipsec remote endpoint: pub-ip-ve
+ipsec me endpoint: any_ip_address
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+network to reach: priv-net-fi
+ipsec remote endpoint: pub-ip-fi
+ipsec me endpoint: any_ip_address
 
----
-commit 8648236083e488ff4fc279b66d63b1187e22e558
-tree cba9ee372f1056c8cf63cdc6a37a6a761fa490c9
-parent 8b21e6d05d6ac0aeb44f5866ab611e2709c2f08e
-author Patrick McHardy <kaber@trash.net> Thu, 23 Mar 2006 05:07:39 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 23 Mar 2006 05:07:39 +0100
+Users connect to the internet, gain a dynamic ip
+address, double click the ipsec icon on the desktop
+and the notebook establish two ipsec tunnel:
 
- include/linux/module.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+any_ip_address--**internet**pub-ip-ve--|lnx2.6.16|--priv-net-venezia
+any_ip_address--**internet**pub-ip-fi--|lnx|--priv-net-fi
 
-diff --git a/include/linux/module.h b/include/linux/module.h
-index 70bd843..d956915 100644
---- a/include/linux/module.h
-+++ b/include/linux/module.h
-@@ -183,6 +183,7 @@ void *__symbol_get_gpl(const char *symbo
- 
- /* For every exported symbol, place a struct in the __ksymtab section */
- #define __EXPORT_SYMBOL(sym, sec)				\
-+	extern typeof(sym) sym;					\
- 	__CRC_SYMBOL(sym, sec)					\
- 	static const char __kstrtab_##sym[]			\
- 	__attribute__((section("__ksymtab_strings")))		\
+This is the good story. Now I will try to explain
+what has been happened tuesday. Our roadwarrior
+user has connected his notebook to priv-net-venezia
+and he didn't know that exists the "GOOD" tunnel
+and he double clicked the ipsec icon, so his notebook
+has tried to establish the ipsec tunnel to priv-net-fi
+This the diagram:
 
---------------070404050102050302090102--
+notebook(172.16.1.227)--|lnx2.6.16 snat to 
+pub-ip-ve|--**internet**pub-ip-fi--|lnx|--priv-net-fi
+
+The notebook has taken an ip address from the
+priv-net-venezia subnet (172.16.1.227).
+
+1) IKE's notebook daemon send a packet to pub-ip-fi:
+src=172.16.1.227 sport=500 dst=pub-ip-fi dport=500
+2) our firewall, lnx2.6.16 (which is also the ipsec
+endpoint for the "GOOD" tunnel) snat the IKE packet
+from the notebook with pub-ip-ve address (which is also
+the same ipsec endpoint address for the "GOOD" tunnel):
+src=pub-ip-ve sport=500 dst=pub-ip-fi dport=500
+3) lnx2.6.16 put this entry in proc/net/ip_conntrack:
+udp      17 169 src=172.16.1.227 dst=pub-ip-fi sport=500
+dport=500 packets=51 bytes=9264 src=pub-ip-fi
+dst=pub-ip-ve sport=500 dport=500  packets=77 bytes=29760
+[ASSURED] mark=0 use=1
+4) lnx (ipsec gateway) receive the IKE packet. It comes
+from pub-ip-ve. IKE daemon on lnx doesn't like that
+packet because the id is wrong: it expect the id from
+the lnx2.6.16 ipsec gateway not that from the notebook,
+it will drop it.
+5) lnx need to renegotiate the "GOOD" tunnel so
+it send an IKE packet to pub-ip-ve
+6) lnx2.6.16 receive the IKE packet which is for itself
+but it forwards to the evil notebook.
+7) after a while the "GOOD" tunnel goes down...
