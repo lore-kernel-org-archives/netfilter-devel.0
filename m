@@ -1,14 +1,12 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [00/10]: Netfilter Update
-Date: Thu, 23 Mar 2006 04:48:28 +0100
-Message-ID: <44221A8C.7000601@trash.net>
-References: <20060322184740.5655.7960.sendpatchset@localhost.localdomain>
-	<20060322.135906.60572272.davem@davemloft.net>
+Date: Thu, 23 Mar 2006 05:10:50 +0100
+Message-ID: <44221FCA.4080301@trash.net>
+References: <20060322184740.5655.7960.sendpatchset@localhost.localdomain>	<20060322.135906.60572272.davem@davemloft.net>
 	<44221A45.7060003@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------070404050102050302090102"
+Cc: rusty@rustcorp.com.au, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
 In-Reply-To: <44221A45.7060003@trash.net>
@@ -22,6 +20,11 @@ List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------070404050102050302090102
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
 Patrick McHardy wrote:
 > David S. Miller wrote:
@@ -43,9 +46,6 @@ Patrick McHardy wrote:
 > hack appears to work. It adds a non-static forward declaration of
 > the exported function to the function body, causing a warning
 > if the function was declared static.
-
-Outside the function body of course.
-
 > 
 > 
 > ------------------------------------------------------------------------
@@ -62,3 +62,48 @@ Outside the function body of course.
 >  	__CRC_SYMBOL(sym, sec)					\
 >  	static const char __kstrtab_##sym[]			\
 >  	__attribute__((section("__ksymtab_strings")))		\
+
+That patch was broken, I only tested the case it should fail on, but
+it also fails on symbols exported in different files. This one adds an
+extern declaration instead, I think that should have the desired
+effect.
+
+
+--------------070404050102050302090102
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+[MODULES]: Don't allow statically declared exports
+
+Add an extern declaration for exported symbols to make the compiler warn
+on symbols declared statically.
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 8648236083e488ff4fc279b66d63b1187e22e558
+tree cba9ee372f1056c8cf63cdc6a37a6a761fa490c9
+parent 8b21e6d05d6ac0aeb44f5866ab611e2709c2f08e
+author Patrick McHardy <kaber@trash.net> Thu, 23 Mar 2006 05:07:39 +0100
+committer Patrick McHardy <kaber@trash.net> Thu, 23 Mar 2006 05:07:39 +0100
+
+ include/linux/module.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/include/linux/module.h b/include/linux/module.h
+index 70bd843..d956915 100644
+--- a/include/linux/module.h
++++ b/include/linux/module.h
+@@ -183,6 +183,7 @@ void *__symbol_get_gpl(const char *symbo
+ 
+ /* For every exported symbol, place a struct in the __ksymtab section */
+ #define __EXPORT_SYMBOL(sym, sec)				\
++	extern typeof(sym) sym;					\
+ 	__CRC_SYMBOL(sym, sec)					\
+ 	static const char __kstrtab_##sym[]			\
+ 	__attribute__((section("__ksymtab_strings")))		\
+
+--------------070404050102050302090102--
