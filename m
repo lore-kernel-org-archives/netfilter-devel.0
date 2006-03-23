@@ -1,14 +1,15 @@
-From: "Marco Berizzi" <pupilla@hotmail.com>
-Subject: Re: conntrack and IKE confused on 2.6.16
-Date: Thu, 23 Mar 2006 10:16:07 +0100
-Message-ID: <BAY103-F8424E12312A9CDFE2D9BCB2DE0@phx.gbl>
-References: <44218D97.6000002@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: Per-client NAT routing -- possible?
+Date: Thu, 23 Mar 2006 10:07:34 +0000
+Message-ID: <44227366.60106@ufomechanic.net>
+References: <51e5f6120603220916v3c536afamdb3023563866397d@mail.gmail.com>
+	<51e5f6120603221849p2da80ec5nb49ae81d7ae93d8f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <44218D97.6000002@trash.net>
-To: kaber@trash.net
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <51e5f6120603221849p2da80ec5nb49ae81d7ae93d8f@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,94 +21,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
+Jeremy Elson wrote:
+> [ Sent before I subscribed - I think it was silently dropped. 
+> Apologies if you get 2. ]
+> 
+> 
+> Hi,
+> 
+> I'm trying to set up a Linux box as a NATting router.  But here's the
+> trick: my box's external interface is on a LAN that has a whole bunch
+> of routers on it, any of which can be used to access the Internet.
+> I'm trying to figure out how to configure iptables so that the NAT box
+> selects the router to use based on client IP address (i.e., the IP
+> address on the inside interface).
+> 
+> I've been tinkering with a command like this:
+> 
+> iptables -t nat -A POSTROUTING -i $INTERNAL_CLIENT_IP -o
+> external-iface0 -j SNAT --to $EXTERNAL_ROUTER_IP
+> 
+> ...but it seems that --to controls the new source address given to the
+> packet (i.e., the router's outside-interface IP), and not the
+> destination to which the NATted packet is sent.
+> 
+> Could someone please point me in the right direction?  Or is this not possible?
 
->Marco Berizzi wrote:
-> > Patrick McHardy wrote:
-> >
-> >> I'm not sure I understand you correctly. The notebook users
-> >> establishes a VPN to the remote side.
-> >
-> >
-> > Yes.
-> >
-> >> Why shouldn't the
-> >> IKE-traffic be directed back to him?
-> >
-> >
-> > lnx and lnx2.6.16 must talk each other to
-> > establish/renew the ike/ipsec sa, but lnx2.6.16
-> > is directing packets for itself to the notebook.
-> > Is this clear?
->
->Not exactly. Is the tunnel between the notebook user and
->the remote gateway, between the two gateways or both?
+I think you can use ipt_route to select the output gateway or interface, 
+NAT should then work after that.
 
-My apologies, I didn't explain myself.
-There is a tunnel between the two private networks
-implemented by the two linux system lnx & lnx2.6.16:
-this tunnel delivery traffic from network priv-net-fi
-to priv-net-venezia and viceversa. The two endpoints
-ip addresses are pub-ip-fi for priv-net-fi and
-pub-ip-ve for priv-net-venezia. This is the "GOOD" &
-working 24x7 tunnel.
-
-priv-net-fi--|lnx|--pub-ip-fi**internet**pub-ip-ve--|lnx2.6.16|--priv-net-venezia
-             +---------------GOOD ipsec tunnel----------------+
-
-Users notebook (roadwarriors) are configured that they
-can connect to priv-net-fi and priv-net-venezia from
-the internet via IPsec. So I specified this
-configuration for every notebook:
-
-network to reach: priv-net-venezia
-ipsec remote endpoint: pub-ip-ve
-ipsec me endpoint: any_ip_address
-
-network to reach: priv-net-fi
-ipsec remote endpoint: pub-ip-fi
-ipsec me endpoint: any_ip_address
-
-Users connect to the internet, gain a dynamic ip
-address, double click the ipsec icon on the desktop
-and the notebook establish two ipsec tunnel:
-
-any_ip_address--**internet**pub-ip-ve--|lnx2.6.16|--priv-net-venezia
-any_ip_address--**internet**pub-ip-fi--|lnx|--priv-net-fi
-
-This is the good story. Now I will try to explain
-what has been happened tuesday. Our roadwarrior
-user has connected his notebook to priv-net-venezia
-and he didn't know that exists the "GOOD" tunnel
-and he double clicked the ipsec icon, so his notebook
-has tried to establish the ipsec tunnel to priv-net-fi
-This the diagram:
-
-notebook(172.16.1.227)--|lnx2.6.16 snat to 
-pub-ip-ve|--**internet**pub-ip-fi--|lnx|--priv-net-fi
-
-The notebook has taken an ip address from the
-priv-net-venezia subnet (172.16.1.227).
-
-1) IKE's notebook daemon send a packet to pub-ip-fi:
-src=172.16.1.227 sport=500 dst=pub-ip-fi dport=500
-2) our firewall, lnx2.6.16 (which is also the ipsec
-endpoint for the "GOOD" tunnel) snat the IKE packet
-from the notebook with pub-ip-ve address (which is also
-the same ipsec endpoint address for the "GOOD" tunnel):
-src=pub-ip-ve sport=500 dst=pub-ip-fi dport=500
-3) lnx2.6.16 put this entry in proc/net/ip_conntrack:
-udp      17 169 src=172.16.1.227 dst=pub-ip-fi sport=500
-dport=500 packets=51 bytes=9264 src=pub-ip-fi
-dst=pub-ip-ve sport=500 dport=500  packets=77 bytes=29760
-[ASSURED] mark=0 use=1
-4) lnx (ipsec gateway) receive the IKE packet. It comes
-from pub-ip-ve. IKE daemon on lnx doesn't like that
-packet because the id is wrong: it expect the id from
-the lnx2.6.16 ipsec gateway not that from the notebook,
-it will drop it.
-5) lnx need to renegotiate the "GOOD" tunnel so
-it send an IKE packet to pub-ip-ve
-6) lnx2.6.16 receive the IKE packet which is for itself
-but it forwards to the evil notebook.
-7) after a while the "GOOD" tunnel goes down...
+Sam
