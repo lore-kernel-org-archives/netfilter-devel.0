@@ -1,13 +1,14 @@
-From: Grzegorz Janoszka <Grzegorz@Janoszka.pl>
-Subject: Re: [PATCH] IPMARK - version with xtables (for 2.6.16 kernel)
-Date: Wed, 22 Mar 2006 21:11:46 +0100 (CET)
-Message-ID: <Pine.GSO.4.63.0603222105140.16906@galaxy.agh.edu.pl>
-References: <Pine.GSO.4.63.0603201123260.27093@galaxy.agh.edu.pl>
+From: solsTiCe d'Hiver <solstice.dhiver@laposte.net>
+Subject: [ulog 1.24] wrong version number and no log in ulogd.log
+Date: Thu, 23 Mar 2006 09:52:22 +0100
+Message-ID: <200603230952.22854.solstice.dhiver@laposte.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <Pine.GSO.4.63.0603201123260.27093@galaxy.agh.edu.pl>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,16 +20,7 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 20 Mar 2006, Grzegorz Janoszka wrote:
+hi.
+ulogd.c use 1.23 as its version while it is shipped with ulog 1.24 
 
-> Attached is patch to patch-o-matic-ng-20060319 but it should apply clearly to 
-> any of current development snapshots. All the changes are to fulfill kernel 
-> 2.6.16 and xtables requirements.
-> Please include it.
-
-Can I ask anybody to patch current patch-o-matic with the included patch?
-
-Thanks in advance.
-
--- 
-Grzegorz Janoszka
+moreover ulogd does not log anymore in ulogd.log like ulogd 1.23 did
