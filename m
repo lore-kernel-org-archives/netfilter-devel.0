@@ -1,12 +1,12 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 1/2] x_tables: unify IPv4/IPv6 esp match
-Date: Fri, 24 Mar 2006 15:26:44 +0900 (JST)
-Message-ID: <200603240626.k2O6QjkR003035@toshiba.co.jp>
+Subject: [PATCH 2/2] x_tables: unify IPv4/IPv6 multiport match
+Date: Fri, 24 Mar 2006 15:26:57 +0900 (JST)
+Message-ID: <200603240626.k2O6QwKw003253@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-	boundary="--Next_Part(Fri_Mar_24_15_26_44_2006_995)--"
+	boundary="--Next_Part(Fri_Mar_24_15_26_57_2006_605)--"
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, kaber@trash.net
+Cc: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -20,163 +20,207 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-----Next_Part(Fri_Mar_24_15_26_44_2006_995)--
+----Next_Part(Fri_Mar_24_15_26_57_2006_605)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
 
-This unifies ipt_esp and ip6t_esp to xt_esp.
-
-Please note that ipt_ah and ip6t_ah cannot be unified because
-'ip6tables -p tcp' should match AHed TCP as ever.
+This unifies ipt_multiport and ip6t_multiport to xt_multiport.
 
 -- Yasuyuki Kozakai
 
-----Next_Part(Fri_Mar_24_15_26_44_2006_995)--
+----Next_Part(Fri_Mar_24_15_26_57_2006_605)--
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="01-xt_esp.patch"
+Content-Disposition: inline; filename="02-xt_multiport.patch"
 
-[NETFILTER] x_tables: unify IPv4/IPv6 esp match
+[NETFILTER] x_tables: unify IPv4/IPv6 multiport match
 
-This unifies ipt_esp and ip6t_esp to xt_esp. Please note that now
-a user program needs to specify IPPROTO_ESP as protocol to use esp match
-with IPv6. This means that ip6tables requires '-p esp' like iptables.
+This unifies ipt_multiport and ip6t_multiport to xt_multiport.
+As a result, this addes support for inversion and port range match
+to IPv6 packets.
 
 Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 
 ---
-commit 25955cb65e976291c257fd41c992ec997e3fe1e0
-tree 431d5c5ac1d8176d12deec2c73c62c349e0db58d
-parent a1a051b1870f9e4607526c7e403abab06526c6d9
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 24 Mar 2006 11:50:43 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 24 Mar 2006 11:50:43 +0900
+commit 25cf4ad4d4d5c0bded49d09e92b969e6dec15263
+tree a69c504c35fc7edfb556a17e60e4376b16bff52d
+parent 25955cb65e976291c257fd41c992ec997e3fe1e0
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 24 Mar 2006 13:31:14 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 24 Mar 2006 13:31:14 +0900
 
- include/linux/netfilter/xt_esp.h        |   14 +++
- include/linux/netfilter_ipv4/ipt_esp.h  |   14 +--
- include/linux/netfilter_ipv6/ip6t_esp.h |   12 +--
- net/ipv4/netfilter/Kconfig              |    8 +-
- net/ipv4/netfilter/Makefile             |    2 
- net/ipv4/netfilter/ipt_esp.c            |  111 -------------------------
- net/ipv6/netfilter/Kconfig              |    6 +
- net/ipv6/netfilter/Makefile             |    2 
- net/ipv6/netfilter/ip6t_esp.c           |  115 --------------------------
- net/netfilter/Kconfig                   |    9 ++
- net/netfilter/Makefile                  |    1 
- net/netfilter/xt_esp.c                  |  136 +++++++++++++++++++++++++++++++
- 12 files changed, 177 insertions(+), 253 deletions(-)
+ include/linux/netfilter/xt_multiport.h        |   30 ++
+ include/linux/netfilter_ipv4/ipt_multiport.h  |   31 +-
+ include/linux/netfilter_ipv6/ip6t_multiport.h |   25 +-
+ net/ipv4/netfilter/Kconfig                    |   10 -
+ net/ipv4/netfilter/Makefile                   |    1 
+ net/ipv4/netfilter/ipt_multiport.c            |  195 ----------------
+ net/ipv6/netfilter/Kconfig                    |   10 -
+ net/ipv6/netfilter/Makefile                   |    1 
+ net/ipv6/netfilter/ip6t_multiport.c           |  125 ----------
+ net/netfilter/Kconfig                         |   10 +
+ net/netfilter/Makefile                        |    1 
+ net/netfilter/xt_multiport.c                  |  314 +++++++++++++++++++++++++
+ 12 files changed, 372 insertions(+), 381 deletions(-)
 
-diff --git a/include/linux/netfilter/xt_esp.h b/include/linux/netfilter/xt_esp.h
+diff --git a/include/linux/netfilter/xt_multiport.h b/include/linux/netfilter/xt_multiport.h
 new file mode 100644
-index 0000000..9380fb1
+index 0000000..d49ee41
 --- /dev/null
-+++ b/include/linux/netfilter/xt_esp.h
-@@ -0,0 +1,14 @@
-+#ifndef _XT_ESP_H
-+#define _XT_ESP_H
++++ b/include/linux/netfilter/xt_multiport.h
+@@ -0,0 +1,30 @@
++#ifndef _XT_MULTIPORT_H
++#define _XT_MULTIPORT_H
 +
-+struct xt_esp
++enum xt_multiport_flags
 +{
-+	u_int32_t spis[2];	/* Security Parameter Index */
-+	u_int8_t  invflags;	/* Inverse flags */
++	XT_MULTIPORT_SOURCE,
++	XT_MULTIPORT_DESTINATION,
++	XT_MULTIPORT_EITHER
 +};
 +
-+/* Values for "invflags" field in struct xt_esp. */
-+#define XT_ESP_INV_SPI	0x01	/* Invert the sense of spi. */
-+#define XT_ESP_INV_MASK	0x01	/* All possible flags. */
++#define XT_MULTI_PORTS	15
 +
-+#endif /*_XT_ESP_H*/
-diff --git a/include/linux/netfilter_ipv4/ipt_esp.h b/include/linux/netfilter_ipv4/ipt_esp.h
-index c782a83..78296e7 100644
---- a/include/linux/netfilter_ipv4/ipt_esp.h
-+++ b/include/linux/netfilter_ipv4/ipt_esp.h
-@@ -1,16 +1,10 @@
- #ifndef _IPT_ESP_H
- #define _IPT_ESP_H
++/* Must fit inside union xt_matchinfo: 16 bytes */
++struct xt_multiport
++{
++	u_int8_t flags;				/* Type of comparison */
++	u_int8_t count;				/* Number of ports */
++	u_int16_t ports[XT_MULTI_PORTS];	/* Ports */
++};
++
++struct xt_multiport_v1
++{
++	u_int8_t flags;				/* Type of comparison */
++	u_int8_t count;				/* Number of ports */
++	u_int16_t ports[XT_MULTI_PORTS];	/* Ports */
++	u_int8_t pflags[XT_MULTI_PORTS];	/* Port flags */
++	u_int8_t invert;			/* Invert flag */
++};
++
++#endif /*_XT_MULTIPORT_H*/
+diff --git a/include/linux/netfilter_ipv4/ipt_multiport.h b/include/linux/netfilter_ipv4/ipt_multiport.h
+index e6b6fff..55fe85e 100644
+--- a/include/linux/netfilter_ipv4/ipt_multiport.h
++++ b/include/linux/netfilter_ipv4/ipt_multiport.h
+@@ -1,30 +1,15 @@
+ #ifndef _IPT_MULTIPORT_H
+ #define _IPT_MULTIPORT_H
+-#include <linux/netfilter_ipv4/ip_tables.h>
  
--struct ipt_esp
+-enum ipt_multiport_flags
 -{
--	u_int32_t spis[2];			/* Security Parameter Index */
--	u_int8_t  invflags;			/* Inverse flags */
+-	IPT_MULTIPORT_SOURCE,
+-	IPT_MULTIPORT_DESTINATION,
+-	IPT_MULTIPORT_EITHER
 -};
-+#include <linux/netfilter/xt_esp.h>
++#include <linux/netfilter/xt_multiport.h>
  
--
--
--/* Values for "invflags" field in struct ipt_esp. */
--#define IPT_ESP_INV_SPI		0x01	/* Invert the sense of spi. */
--#define IPT_ESP_INV_MASK	0x01	/* All possible flags. */
-+#define ipt_esp xt_esp
-+#define IPT_ESP_INV_SPI		XT_ESP_INV_SPI
-+#define IPT_ESP_INV_MASK	XT_ESP_INV_MASK
+-#define IPT_MULTI_PORTS	15
++#define IPT_MULTIPORT_SOURCE		XT_MULTIPORT_SOURCE
++#define IPT_MULTIPORT_DESTINATION	XT_MULTIPORT_DESTINATION
++#define IPT_MULTIPORT_EITHER		XT_MULTIPORT_EITHER
  
- #endif /*_IPT_ESP_H*/
-diff --git a/include/linux/netfilter_ipv6/ip6t_esp.h b/include/linux/netfilter_ipv6/ip6t_esp.h
-index a91b6ab..f62eaf5 100644
---- a/include/linux/netfilter_ipv6/ip6t_esp.h
-+++ b/include/linux/netfilter_ipv6/ip6t_esp.h
-@@ -1,14 +1,10 @@
- #ifndef _IP6T_ESP_H
- #define _IP6T_ESP_H
- 
--struct ip6t_esp
+-/* Must fit inside union ipt_matchinfo: 16 bytes */
+-struct ipt_multiport
 -{
--	u_int32_t spis[2];			/* Security Parameter Index */
--	u_int8_t  invflags;			/* Inverse flags */
+-	u_int8_t flags;				/* Type of comparison */
+-	u_int8_t count;				/* Number of ports */
+-	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
 -};
-+#include <linux/netfilter/xt_esp.h>
++#define IPT_MULTI_PORTS			XT_MULTI_PORTS
++
++#define ipt_multiport			xt_multiport
++#define ipt_multiport_v1		xt_multiport_v1
  
--/* Values for "invflags" field in struct ip6t_esp. */
--#define IP6T_ESP_INV_SPI		0x01	/* Invert the sense of spi. */
--#define IP6T_ESP_INV_MASK	0x01	/* All possible flags. */
-+#define ip6t_esp xt_esp
-+#define IP6T_ESP_INV_SPI	XT_ESP_INV_SPI
-+#define IP6T_ESP_INV_MASK	XT_ESP_INV_MASK
+-struct ipt_multiport_v1
+-{
+-	u_int8_t flags;				/* Type of comparison */
+-	u_int8_t count;				/* Number of ports */
+-	u_int16_t ports[IPT_MULTI_PORTS];	/* Ports */
+-	u_int8_t pflags[IPT_MULTI_PORTS];	/* Port flags */
+-	u_int8_t invert;			/* Invert flag */
+-};
+ #endif /*_IPT_MULTIPORT_H*/
+diff --git a/include/linux/netfilter_ipv6/ip6t_multiport.h b/include/linux/netfilter_ipv6/ip6t_multiport.h
+index efe4954..042c926 100644
+--- a/include/linux/netfilter_ipv6/ip6t_multiport.h
++++ b/include/linux/netfilter_ipv6/ip6t_multiport.h
+@@ -1,21 +1,14 @@
+ #ifndef _IP6T_MULTIPORT_H
+ #define _IP6T_MULTIPORT_H
+-#include <linux/netfilter_ipv6/ip6_tables.h>
  
- #endif /*_IP6T_ESP_H*/
+-enum ip6t_multiport_flags
+-{
+-	IP6T_MULTIPORT_SOURCE,
+-	IP6T_MULTIPORT_DESTINATION,
+-	IP6T_MULTIPORT_EITHER
+-};
++#include <linux/netfilter/xt_multiport.h>
+ 
+-#define IP6T_MULTI_PORTS	15
++#define IP6T_MULTIPORT_SOURCE		XT_MULTIPORT_SOURCE
++#define IP6T_MULTIPORT_DESTINATION	XT_MULTIPORT_DESTINATION
++#define IP6T_MULTIPORT_EITHER		XT_MULTIPORT_EITHER
+ 
+-/* Must fit inside union ip6t_matchinfo: 16 bytes */
+-struct ip6t_multiport
+-{
+-	u_int8_t flags;				/* Type of comparison */
+-	u_int8_t count;				/* Number of ports */
+-	u_int16_t ports[IP6T_MULTI_PORTS];	/* Ports */
+-};
+-#endif /*_IPT_MULTIPORT_H*/
++#define IP6T_MULTI_PORTS		XT_MULTI_PORTS
++
++#define ip6t_multiport			xt_multiport
++
++#endif /*_IP6T_MULTIPORT_H*/
 diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 882b842..ebbd644 100644
+index ebbd644..77855cc 100644
 --- a/net/ipv4/netfilter/Kconfig
 +++ b/net/ipv4/netfilter/Kconfig
-@@ -272,12 +272,12 @@ config IP_NF_MATCH_DSCP
+@@ -221,16 +221,6 @@ config IP_NF_MATCH_IPRANGE
  
  	  To compile it as a module, choose M here.  If unsure, say N.
  
--config IP_NF_MATCH_AH_ESP
--	tristate "AH/ESP match support"
-+config IP_NF_MATCH_AH
-+	tristate "AH match support"
+-config IP_NF_MATCH_MULTIPORT
+-	tristate "Multiple port match support"
+-	depends on IP_NF_IPTABLES
+-	help
+-	  Multiport matching allows you to match TCP or UDP packets based on
+-	  a series of source or destination ports: normally a rule can only
+-	  match a single range of ports.
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config IP_NF_MATCH_TOS
+ 	tristate "TOS match support"
  	depends on IP_NF_IPTABLES
- 	help
--	  These two match extensions (`ah' and `esp') allow you to match a
--	  range of SPIs inside AH or ESP headers of IPSec packets.
-+	  This match extension allows you to match a range of SPIs
-+	  inside AH header of IPSec packets.
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
 diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index f2cd9a6..09ae167 100644
+index 09ae167..461cb1e 100644
 --- a/net/ipv4/netfilter/Makefile
 +++ b/net/ipv4/netfilter/Makefile
-@@ -59,7 +59,7 @@ obj-$(CONFIG_IP_NF_MATCH_TOS) += ipt_tos
+@@ -53,7 +53,6 @@ obj-$(CONFIG_IP_NF_RAW) += iptable_raw.o
+ # matches
+ obj-$(CONFIG_IP_NF_MATCH_HASHLIMIT) += ipt_hashlimit.o
+ obj-$(CONFIG_IP_NF_MATCH_IPRANGE) += ipt_iprange.o
+-obj-$(CONFIG_IP_NF_MATCH_MULTIPORT) += ipt_multiport.o
+ obj-$(CONFIG_IP_NF_MATCH_OWNER) += ipt_owner.o
+ obj-$(CONFIG_IP_NF_MATCH_TOS) += ipt_tos.o
  obj-$(CONFIG_IP_NF_MATCH_RECENT) += ipt_recent.o
- obj-$(CONFIG_IP_NF_MATCH_ECN) += ipt_ecn.o
- obj-$(CONFIG_IP_NF_MATCH_DSCP) += ipt_dscp.o
--obj-$(CONFIG_IP_NF_MATCH_AH_ESP) += ipt_ah.o ipt_esp.o
-+obj-$(CONFIG_IP_NF_MATCH_AH) += ipt_ah.o
- obj-$(CONFIG_IP_NF_MATCH_TTL) += ipt_ttl.o
- obj-$(CONFIG_IP_NF_MATCH_ADDRTYPE) += ipt_addrtype.o
- 
-diff --git a/net/ipv4/netfilter/ipt_esp.c b/net/ipv4/netfilter/ipt_esp.c
+diff --git a/net/ipv4/netfilter/ipt_multiport.c b/net/ipv4/netfilter/ipt_multiport.c
 deleted file mode 100644
-index af0d5ec..0000000
---- a/net/ipv4/netfilter/ipt_esp.c
+index bd07f7c..0000000
+--- a/net/ipv4/netfilter/ipt_multiport.c
 +++ /dev/null
-@@ -1,111 +0,0 @@
--/* Kernel module to match ESP parameters. */
+@@ -1,195 +0,0 @@
+-/* Kernel module to match one of a list of TCP/UDP ports: ports are in
+-   the same place so we can treat them as equal. */
 -
--/* (C) 1999-2000 Yon Uriarte <yon@astaro.de>
+-/* (C) 1999-2001 Paul `Rusty' Russell
+- * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
 - *
 - * This program is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License version 2 as
@@ -184,32 +228,85 @@ index af0d5ec..0000000
 - */
 -
 -#include <linux/module.h>
+-#include <linux/types.h>
+-#include <linux/udp.h>
 -#include <linux/skbuff.h>
--#include <linux/ip.h>
 -
--#include <linux/netfilter_ipv4/ipt_esp.h>
+-#include <linux/netfilter_ipv4/ipt_multiport.h>
 -#include <linux/netfilter_ipv4/ip_tables.h>
 -
 -MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Yon Uriarte <yon@astaro.de>");
--MODULE_DESCRIPTION("iptables ESP SPI match module");
+-MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+-MODULE_DESCRIPTION("iptables multiple port match module");
 -
--#ifdef DEBUG_CONNTRACK
+-#if 0
 -#define duprintf(format, args...) printk(format , ## args)
 -#else
 -#define duprintf(format, args...)
 -#endif
 -
--/* Returns 1 if the spi is matched by the range, 0 otherwise */
+-/* Returns 1 if the port is matched by the test, 0 otherwise. */
 -static inline int
--spi_match(u_int32_t min, u_int32_t max, u_int32_t spi, int invert)
+-ports_match(const u_int16_t *portlist, enum ipt_multiport_flags flags,
+-	    u_int8_t count, u_int16_t src, u_int16_t dst)
 -{
--	int r=0;
--        duprintf("esp spi_match:%c 0x%x <= 0x%x <= 0x%x",invert? '!':' ',
--        	min,spi,max);
--	r=(spi >= min && spi <= max) ^ invert;
--	duprintf(" result %s\n",r? "PASS" : "FAILED");
--	return r;
+-	unsigned int i;
+-	for (i=0; i<count; i++) {
+-		if (flags != IPT_MULTIPORT_DESTINATION
+-		    && portlist[i] == src)
+-			return 1;
+-
+-		if (flags != IPT_MULTIPORT_SOURCE
+-		    && portlist[i] == dst)
+-			return 1;
+-	}
+-
+-	return 0;
+-}
+-
+-/* Returns 1 if the port is matched by the test, 0 otherwise. */
+-static inline int
+-ports_match_v1(const struct ipt_multiport_v1 *minfo,
+-	       u_int16_t src, u_int16_t dst)
+-{
+-	unsigned int i;
+-	u_int16_t s, e;
+-
+-	for (i=0; i < minfo->count; i++) {
+-		s = minfo->ports[i];
+-
+-		if (minfo->pflags[i]) {
+-			/* range port matching */
+-			e = minfo->ports[++i];
+-			duprintf("src or dst matches with %d-%d?\n", s, e);
+-
+-			if (minfo->flags == IPT_MULTIPORT_SOURCE
+-			    && src >= s && src <= e)
+-				return 1 ^ minfo->invert;
+-			if (minfo->flags == IPT_MULTIPORT_DESTINATION
+-			    && dst >= s && dst <= e)
+-				return 1 ^ minfo->invert;
+-			if (minfo->flags == IPT_MULTIPORT_EITHER
+-			    && ((dst >= s && dst <= e)
+-				|| (src >= s && src <= e)))
+-				return 1 ^ minfo->invert;
+-		} else {
+-			/* exact port matching */
+-			duprintf("src or dst matches with %d?\n", s);
+-
+-			if (minfo->flags == IPT_MULTIPORT_SOURCE
+-			    && src == s)
+-				return 1 ^ minfo->invert;
+-			if (minfo->flags == IPT_MULTIPORT_DESTINATION
+-			    && dst == s)
+-				return 1 ^ minfo->invert;
+-			if (minfo->flags == IPT_MULTIPORT_EITHER
+-			    && (src == s || dst == s))
+-				return 1 ^ minfo->invert;
+-		}
+-	}
+- 
+- 	return minfo->invert;
 -}
 -
 -static int
@@ -222,147 +319,184 @@ index af0d5ec..0000000
 -      unsigned int protoff,
 -      int *hotdrop)
 -{
--	struct ip_esp_hdr _esp, *eh;
--	const struct ipt_esp *espinfo = matchinfo;
+-	u16 _ports[2], *pptr;
+-	const struct ipt_multiport *multiinfo = matchinfo;
 -
--	/* Must not be a fragment. */
 -	if (offset)
 -		return 0;
 -
--	eh = skb_header_pointer(skb, protoff,
--				sizeof(_esp), &_esp);
--	if (eh == NULL) {
+-	pptr = skb_header_pointer(skb, protoff,
+-				  sizeof(_ports), _ports);
+-	if (pptr == NULL) {
 -		/* We've been asked to examine this packet, and we
 -		 * can't.  Hence, no choice but to drop.
 -		 */
--		duprintf("Dropping evil ESP tinygram.\n");
+-		duprintf("ipt_multiport:"
+-			 " Dropping evil offset=0 tinygram.\n");
 -		*hotdrop = 1;
 -		return 0;
 -	}
 -
--	return spi_match(espinfo->spis[0], espinfo->spis[1],
--			 ntohl(eh->spi),
--			 !!(espinfo->invflags & IPT_ESP_INV_SPI));
+-	return ports_match(multiinfo->ports,
+-			   multiinfo->flags, multiinfo->count,
+-			   ntohs(pptr[0]), ntohs(pptr[1]));
 -}
 -
--/* Called when user tries to insert an entry of this type. */
 -static int
--checkentry(const char *tablename,
--	   const void *ip_void,
--	   const struct xt_match *match,
--	   void *matchinfo,
--	   unsigned int matchinfosize,
--	   unsigned int hook_mask)
+-match_v1(const struct sk_buff *skb,
+-	 const struct net_device *in,
+-	 const struct net_device *out,
+-	 const struct xt_match *match,
+-	 const void *matchinfo,
+-	 int offset,
+-	 unsigned int protoff,
+-	 int *hotdrop)
 -{
--	const struct ipt_esp *espinfo = matchinfo;
+-	u16 _ports[2], *pptr;
+-	const struct ipt_multiport_v1 *multiinfo = matchinfo;
 -
--	/* Must specify no unknown invflags */
--	if (espinfo->invflags & ~IPT_ESP_INV_MASK) {
--		duprintf("ipt_esp: unknown flags %X\n", espinfo->invflags);
+-	if (offset)
+-		return 0;
+-
+-	pptr = skb_header_pointer(skb, protoff,
+-				  sizeof(_ports), _ports);
+-	if (pptr == NULL) {
+-		/* We've been asked to examine this packet, and we
+-		 * can't.  Hence, no choice but to drop.
+-		 */
+-		duprintf("ipt_multiport:"
+-			 " Dropping evil offset=0 tinygram.\n");
+-		*hotdrop = 1;
 -		return 0;
 -	}
--	return 1;
+-
+-	return ports_match_v1(multiinfo, ntohs(pptr[0]), ntohs(pptr[1]));
 -}
 -
--static struct ipt_match esp_match = {
--	.name		= "esp",
+-static struct ipt_match multiport_match = {
+-	.name		= "multiport",
+-	.revision	= 0,
 -	.match		= match,
--	.matchsize	= sizeof(struct ipt_esp),
--	.proto		= IPPROTO_ESP,
--	.checkentry	= checkentry,
+-	.matchsize	= sizeof(struct ipt_multiport),
+-	.me		= THIS_MODULE,
+-};
+-
+-static struct ipt_match multiport_match_v1 = {
+-	.name		= "multiport",
+-	.revision	= 1,
+-	.match		= match_v1,
+-	.matchsize	= sizeof(struct ipt_multiport_v1),
 -	.me		= THIS_MODULE,
 -};
 -
 -static int __init init(void)
 -{
--	return ipt_register_match(&esp_match);
+-	int err;
+-
+-	err = ipt_register_match(&multiport_match);
+-	if (!err) {
+-		err = ipt_register_match(&multiport_match_v1);
+-		if (err)
+-			ipt_unregister_match(&multiport_match);
+-	}
+-
+-	return err;
 -}
 -
--static void __exit cleanup(void)
+-static void __exit fini(void)
 -{
--	ipt_unregister_match(&esp_match);
+-	ipt_unregister_match(&multiport_match);
+-	ipt_unregister_match(&multiport_match_v1);
 -}
 -
 -module_init(init);
--module_exit(cleanup);
+-module_exit(fini);
 diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 98f7875..bdd569f 100644
+index bdd569f..4bc4e5b 100644
 --- a/net/ipv6/netfilter/Kconfig
 +++ b/net/ipv6/netfilter/Kconfig
-@@ -115,11 +115,11 @@ config IP6_NF_MATCH_IPV6HEADER
+@@ -87,16 +87,6 @@ config IP6_NF_MATCH_HL
  
  	  To compile it as a module, choose M here.  If unsure, say N.
  
--config IP6_NF_MATCH_AHESP
--	tristate "AH/ESP match support"
-+config IP6_NF_MATCH_AH
-+	tristate "AH match support"
+-config IP6_NF_MATCH_MULTIPORT
+-	tristate "Multiple port match support"
+-	depends on IP6_NF_IPTABLES
+-	help
+-	  Multiport matching allows you to match TCP or UDP packets based on
+-	  a series of source or destination ports: normally a rule can only
+-	  match a single range of ports.
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config IP6_NF_MATCH_OWNER
+ 	tristate "Owner match support"
  	depends on IP6_NF_IPTABLES
- 	help
--	  This module allows one to match AH and ESP packets.
-+	  This module allows one to match AH packets.
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
 diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index 8436a1a..c387170 100644
+index c387170..eeeb57d 100644
 --- a/net/ipv6/netfilter/Makefile
 +++ b/net/ipv6/netfilter/Makefile
-@@ -8,7 +8,7 @@ obj-$(CONFIG_IP6_NF_MATCH_RT) += ip6t_rt
- obj-$(CONFIG_IP6_NF_MATCH_OPTS) += ip6t_hbh.o ip6t_dst.o
- obj-$(CONFIG_IP6_NF_MATCH_IPV6HEADER) += ip6t_ipv6header.o
+@@ -10,7 +10,6 @@ obj-$(CONFIG_IP6_NF_MATCH_IPV6HEADER) +=
  obj-$(CONFIG_IP6_NF_MATCH_FRAG) += ip6t_frag.o
--obj-$(CONFIG_IP6_NF_MATCH_AHESP) += ip6t_esp.o ip6t_ah.o
-+obj-$(CONFIG_IP6_NF_MATCH_AH) += ip6t_ah.o
+ obj-$(CONFIG_IP6_NF_MATCH_AH) += ip6t_ah.o
  obj-$(CONFIG_IP6_NF_MATCH_EUI64) += ip6t_eui64.o
- obj-$(CONFIG_IP6_NF_MATCH_MULTIPORT) += ip6t_multiport.o
+-obj-$(CONFIG_IP6_NF_MATCH_MULTIPORT) += ip6t_multiport.o
  obj-$(CONFIG_IP6_NF_MATCH_OWNER) += ip6t_owner.o
-diff --git a/net/ipv6/netfilter/ip6t_esp.c b/net/ipv6/netfilter/ip6t_esp.c
+ obj-$(CONFIG_IP6_NF_FILTER) += ip6table_filter.o
+ obj-$(CONFIG_IP6_NF_MANGLE) += ip6table_mangle.o
+diff --git a/net/ipv6/netfilter/ip6t_multiport.c b/net/ipv6/netfilter/ip6t_multiport.c
 deleted file mode 100644
-index 540b8bf..0000000
---- a/net/ipv6/netfilter/ip6t_esp.c
+index 752b65d..0000000
+--- a/net/ipv6/netfilter/ip6t_multiport.c
 +++ /dev/null
-@@ -1,115 +0,0 @@
--/* Kernel module to match ESP parameters. */
--/* (C) 2001-2002 Andras Kis-Szabo <kisza@sch.bme.hu>
+@@ -1,125 +0,0 @@
+-/* Kernel module to match one of a list of TCP/UDP ports: ports are in
+-   the same place so we can treat them as equal. */
+-
+-/* (C) 1999-2001 Paul `Rusty' Russell
+- * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
 - *
 - * This program is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License version 2 as
 - * published by the Free Software Foundation.
 - */
 -
--
 -#include <linux/module.h>
--#include <linux/skbuff.h>
--#include <linux/ip.h>
--#include <linux/ipv6.h>
 -#include <linux/types.h>
--#include <net/checksum.h>
--#include <net/ipv6.h>
+-#include <linux/udp.h>
+-#include <linux/skbuff.h>
+-#include <linux/in.h>
 -
+-#include <linux/netfilter_ipv6/ip6t_multiport.h>
 -#include <linux/netfilter_ipv6/ip6_tables.h>
--#include <linux/netfilter_ipv6/ip6t_esp.h>
 -
 -MODULE_LICENSE("GPL");
--MODULE_DESCRIPTION("IPv6 ESP match");
--MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
+-MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
+-MODULE_DESCRIPTION("ip6tables match for multiple ports");
 -
 -#if 0
--#define DEBUGP printk
+-#define duprintf(format, args...) printk(format , ## args)
 -#else
--#define DEBUGP(format, args...)
+-#define duprintf(format, args...)
 -#endif
 -
--/* Returns 1 if the spi is matched by the range, 0 otherwise */
+-/* Returns 1 if the port is matched by the test, 0 otherwise. */
 -static inline int
--spi_match(u_int32_t min, u_int32_t max, u_int32_t spi, int invert)
+-ports_match(const u_int16_t *portlist, enum ip6t_multiport_flags flags,
+-	    u_int8_t count, u_int16_t src, u_int16_t dst)
 -{
--	int r=0;
--	DEBUGP("esp spi_match:%c 0x%x <= 0x%x <= 0x%x",invert? '!':' ',
--	       min,spi,max);
--	r=(spi >= min && spi <= max) ^ invert;
--	DEBUGP(" result %s\n",r? "PASS\n" : "FAILED\n");
--	return r;
+-	unsigned int i;
+-	for (i=0; i<count; i++) {
+-		if (flags != IP6T_MULTIPORT_DESTINATION
+-		    && portlist[i] == src)
+-			return 1;
+-
+-		if (flags != IP6T_MULTIPORT_SOURCE
+-		    && portlist[i] == dst)
+-			return 1;
+-	}
+-
+-	return 0;
 -}
 -
 -static int
@@ -375,110 +509,116 @@ index 540b8bf..0000000
 -      unsigned int protoff,
 -      int *hotdrop)
 -{
--	struct ip_esp_hdr _esp, *eh;
--	const struct ip6t_esp *espinfo = matchinfo;
--	unsigned int ptr;
+-	u16 _ports[2], *pptr;
+-	const struct ip6t_multiport *multiinfo = matchinfo;
 -
--	/* Make sure this isn't an evil packet */
--	/*DEBUGP("ipv6_esp entered \n");*/
--
--	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_ESP, NULL) < 0)
+-	/* Must not be a fragment. */
+-	if (offset)
 -		return 0;
 -
--	eh = skb_header_pointer(skb, ptr, sizeof(_esp), &_esp);
--	if (eh == NULL) {
+-	/* Must be big enough to read ports (both UDP and TCP have
+-	   them at the start). */
+-	pptr = skb_header_pointer(skb, protoff, sizeof(_ports), &_ports[0]);
+-	if (pptr == NULL) {
+-		/* We've been asked to examine this packet, and we
+-		 * can't.  Hence, no choice but to drop.
+-		 */
+-		duprintf("ip6t_multiport:"
+-			 " Dropping evil offset=0 tinygram.\n");
 -		*hotdrop = 1;
 -		return 0;
 -	}
 -
--	DEBUGP("IPv6 ESP SPI %u %08X\n", ntohl(eh->spi), ntohl(eh->spi));
--
--	return (eh != NULL)
--		&& spi_match(espinfo->spis[0], espinfo->spis[1],
--			      ntohl(eh->spi),
--			      !!(espinfo->invflags & IP6T_ESP_INV_SPI));
+-	return ports_match(multiinfo->ports,
+-			   multiinfo->flags, multiinfo->count,
+-			   ntohs(pptr[0]), ntohs(pptr[1]));
 -}
 -
 -/* Called when user tries to insert an entry of this type. */
 -static int
 -checkentry(const char *tablename,
--	   const void *ip,
+-	   const void *info,
 -	   const struct xt_match *match,
 -	   void *matchinfo,
--	   unsigned int matchinfosize,
+-	   unsigned int matchsize,
 -	   unsigned int hook_mask)
 -{
--	const struct ip6t_esp *espinfo = matchinfo;
+-	const struct ip6t_ip6 *ip = info;
+-	const struct ip6t_multiport *multiinfo = matchinfo;
 -
--	if (espinfo->invflags & ~IP6T_ESP_INV_MASK) {
--		DEBUGP("ip6t_esp: unknown flags %X\n",
--			 espinfo->invflags);
--		return 0;
--	}
--	return 1;
+-	/* Must specify proto == TCP/UDP, no unknown flags or bad count */
+-	return (ip->proto == IPPROTO_TCP || ip->proto == IPPROTO_UDP)
+-		&& !(ip->invflags & IP6T_INV_PROTO)
+-		&& (multiinfo->flags == IP6T_MULTIPORT_SOURCE
+-		    || multiinfo->flags == IP6T_MULTIPORT_DESTINATION
+-		    || multiinfo->flags == IP6T_MULTIPORT_EITHER)
+-		&& multiinfo->count <= IP6T_MULTI_PORTS;
 -}
 -
--static struct ip6t_match esp_match = {
--	.name		= "esp",
+-static struct ip6t_match multiport_match = {
+-	.name		= "multiport",
 -	.match		= match,
--	.matchsize	= sizeof(struct ip6t_esp),
+-	.matchsize	= sizeof(struct ip6t_multiport),
 -	.checkentry	= checkentry,
 -	.me		= THIS_MODULE,
 -};
 -
 -static int __init init(void)
 -{
--	return ip6t_register_match(&esp_match);
+-	return ip6t_register_match(&multiport_match);
 -}
 -
--static void __exit cleanup(void)
+-static void __exit fini(void)
 -{
--	ip6t_unregister_match(&esp_match);
+-	ip6t_unregister_match(&multiport_match);
 -}
 -
 -module_init(init);
--module_exit(cleanup);
+-module_exit(fini);
 diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 332acb3..5fe5189 100644
+index 5fe5189..e2893ef 100644
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
-@@ -231,6 +231,15 @@ config NETFILTER_XT_MATCH_DCCP
- 	  If you want to compile it as a module, say M here and read
- 	  <file:Documentation/modules.txt>.  If unsure, say `N'.
+@@ -298,6 +298,16 @@ config NETFILTER_XT_MATCH_POLICY
  
-+config NETFILTER_XT_MATCH_ESP
-+	tristate '"ESP" match support'
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config NETFILTER_XT_MATCH_MULTIPORT
++	tristate "Multiple port match support"
 +	depends on NETFILTER_XTABLES
 +	help
-+	  This match extension allows you to match a range of SPIs
-+	  inside ESP header of IPSec packets.
++	  Multiport matching allows you to match TCP or UDP packets based on
++	  a series of source or destination ports: normally a rule can only
++	  match a single range of ports.
 +
 +	  To compile it as a module, choose M here.  If unsure, say N.
 +
- config NETFILTER_XT_MATCH_HELPER
- 	tristate '"helper" match support'
- 	depends on NETFILTER_XTABLES
+ config NETFILTER_XT_MATCH_PHYSDEV
+ 	tristate '"physdev" match support'
+ 	depends on NETFILTER_XTABLES && BRIDGE_NETFILTER
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 9558727..8f02486 100644
+index 8f02486..95b7e41 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
-@@ -35,6 +35,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_CONNBYTE
- obj-$(CONFIG_NETFILTER_XT_MATCH_CONNMARK) += xt_connmark.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_CONNTRACK) += xt_conntrack.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_DCCP) += xt_dccp.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_ESP) += xt_esp.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_HELPER) += xt_helper.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_LENGTH) += xt_length.o
+@@ -41,6 +41,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_LENGTH) 
  obj-$(CONFIG_NETFILTER_XT_MATCH_LIMIT) += xt_limit.o
-diff --git a/net/netfilter/xt_esp.c b/net/netfilter/xt_esp.c
+ obj-$(CONFIG_NETFILTER_XT_MATCH_MAC) += xt_mac.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_MARK) += xt_mark.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_MULTIPORT) += xt_multiport.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_POLICY) += xt_policy.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_PKTTYPE) += xt_pkttype.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
+diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
 new file mode 100644
-index 0000000..9b94957
+index 0000000..1e7cb61
 --- /dev/null
-+++ b/net/netfilter/xt_esp.c
-@@ -0,0 +1,136 @@
-+/* Kernel module to match ESP parameters. */
++++ b/net/netfilter/xt_multiport.c
+@@ -0,0 +1,314 @@
++/* Kernel module to match one of a list of TCP/UDP ports: ports are in
++   the same place so we can treat them as equal. */
 +
-+/* (C) 1999-2000 Yon Uriarte <yon@astaro.de>
++/* (C) 1999-2001 Paul `Rusty' Russell
++ * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -486,21 +626,21 @@ index 0000000..9b94957
 + */
 +
 +#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/udp.h>
 +#include <linux/skbuff.h>
 +#include <linux/in.h>
-+#include <linux/ip.h>
 +
-+#include <linux/netfilter/xt_esp.h>
++#include <linux/netfilter/xt_multiport.h>
 +#include <linux/netfilter/x_tables.h>
-+
 +#include <linux/netfilter_ipv4/ip_tables.h>
 +#include <linux/netfilter_ipv6/ip6_tables.h>
 +
 +MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Yon Uriarte <yon@astaro.de>");
-+MODULE_DESCRIPTION("x_tables ESP SPI match module");
-+MODULE_ALIAS("ipt_esp");
-+MODULE_ALIAS("ip6t_esp");
++MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
++MODULE_DESCRIPTION("x_tables multiple port match module");
++MODULE_ALIAS("ipt_multiport");
++MODULE_ALIAS("ip6t_multiport");
 +
 +#if 0
 +#define duprintf(format, args...) printk(format , ## args)
@@ -508,16 +648,66 @@ index 0000000..9b94957
 +#define duprintf(format, args...)
 +#endif
 +
-+/* Returns 1 if the spi is matched by the range, 0 otherwise */
++/* Returns 1 if the port is matched by the test, 0 otherwise. */
 +static inline int
-+spi_match(u_int32_t min, u_int32_t max, u_int32_t spi, int invert)
++ports_match(const u_int16_t *portlist, enum xt_multiport_flags flags,
++	    u_int8_t count, u_int16_t src, u_int16_t dst)
 +{
-+	int r = 0;
-+	duprintf("esp spi_match:%c 0x%x <= 0x%x <= 0x%x", invert ? '!' : ' ',
-+		 min, spi, max);
-+	r = (spi >= min && spi <= max) ^ invert;
-+	duprintf(" result %s\n", r ? "PASS" : "FAILED");
-+	return r;
++	unsigned int i;
++	for (i = 0; i < count; i++) {
++		if (flags != XT_MULTIPORT_DESTINATION && portlist[i] == src)
++			return 1;
++
++		if (flags != XT_MULTIPORT_SOURCE && portlist[i] == dst)
++			return 1;
++	}
++
++	return 0;
++}
++
++/* Returns 1 if the port is matched by the test, 0 otherwise. */
++static inline int
++ports_match_v1(const struct xt_multiport_v1 *minfo,
++	       u_int16_t src, u_int16_t dst)
++{
++	unsigned int i;
++	u_int16_t s, e;
++
++	for (i = 0; i < minfo->count; i++) {
++		s = minfo->ports[i];
++
++		if (minfo->pflags[i]) {
++			/* range port matching */
++			e = minfo->ports[++i];
++			duprintf("src or dst matches with %d-%d?\n", s, e);
++
++			if (minfo->flags == XT_MULTIPORT_SOURCE
++			    && src >= s && src <= e)
++				return 1 ^ minfo->invert;
++			if (minfo->flags == XT_MULTIPORT_DESTINATION
++			    && dst >= s && dst <= e)
++				return 1 ^ minfo->invert;
++			if (minfo->flags == XT_MULTIPORT_EITHER
++			    && ((dst >= s && dst <= e)
++				|| (src >= s && src <= e)))
++				return 1 ^ minfo->invert;
++		} else {
++			/* exact port matching */
++			duprintf("src or dst matches with %d?\n", s);
++
++			if (minfo->flags == XT_MULTIPORT_SOURCE
++			    && src == s)
++				return 1 ^ minfo->invert;
++			if (minfo->flags == XT_MULTIPORT_DESTINATION
++			    && dst == s)
++				return 1 ^ minfo->invert;
++			if (minfo->flags == XT_MULTIPORT_EITHER
++			    && (src == s || dst == s))
++				return 1 ^ minfo->invert;
++		}
++	}
++ 
++ 	return minfo->invert;
 +}
 +
 +static int
@@ -530,87 +720,213 @@ index 0000000..9b94957
 +      unsigned int protoff,
 +      int *hotdrop)
 +{
-+	struct ip_esp_hdr _esp, *eh;
-+	const struct xt_esp *espinfo = matchinfo;
++	u16 _ports[2], *pptr;
++	const struct xt_multiport *multiinfo = matchinfo;
 +
-+	/* Must not be a fragment. */
 +	if (offset)
 +		return 0;
 +
-+	eh = skb_header_pointer(skb, protoff, sizeof(_esp), &_esp);
-+	if (eh == NULL) {
++	pptr = skb_header_pointer(skb, protoff, sizeof(_ports), _ports);
++	if (pptr == NULL) {
 +		/* We've been asked to examine this packet, and we
 +		 * can't.  Hence, no choice but to drop.
 +		 */
-+		duprintf("Dropping evil ESP tinygram.\n");
++		duprintf("xt_multiport: Dropping evil offset=0 tinygram.\n");
 +		*hotdrop = 1;
 +		return 0;
 +	}
 +
-+	return spi_match(espinfo->spis[0], espinfo->spis[1], ntohl(eh->spi),
-+			 !!(espinfo->invflags & XT_ESP_INV_SPI));
++	return ports_match(multiinfo->ports,
++			   multiinfo->flags, multiinfo->count,
++			   ntohs(pptr[0]), ntohs(pptr[1]));
++}
++
++static int
++match_v1(const struct sk_buff *skb,
++	 const struct net_device *in,
++	 const struct net_device *out,
++	 const struct xt_match *match,
++	 const void *matchinfo,
++	 int offset,
++	 unsigned int protoff,
++	 int *hotdrop)
++{
++	u16 _ports[2], *pptr;
++	const struct xt_multiport_v1 *multiinfo = matchinfo;
++
++	if (offset)
++		return 0;
++
++	pptr = skb_header_pointer(skb, protoff, sizeof(_ports), _ports);
++	if (pptr == NULL) {
++		/* We've been asked to examine this packet, and we
++		 * can't.  Hence, no choice but to drop.
++		 */
++		duprintf("xt_multiport: Dropping evil offset=0 tinygram.\n");
++		*hotdrop = 1;
++		return 0;
++	}
++
++	return ports_match_v1(multiinfo, ntohs(pptr[0]), ntohs(pptr[1]));
++}
++
++static inline int
++check(u_int16_t proto,
++      u_int8_t ip_invflags,
++      u_int8_t match_flags,
++      u_int8_t count)
++{
++	/* Must specify proto == TCP/UDP, no unknown flags or bad count */
++	return (proto == IPPROTO_TCP || proto == IPPROTO_UDP)
++		&& !(ip_invflags & XT_INV_PROTO)
++		&& (match_flags == XT_MULTIPORT_SOURCE
++		    || match_flags == XT_MULTIPORT_DESTINATION
++		    || match_flags == XT_MULTIPORT_EITHER)
++		&& count <= XT_MULTI_PORTS;
 +}
 +
 +/* Called when user tries to insert an entry of this type. */
 +static int
 +checkentry(const char *tablename,
-+	   const void *ip_void,
++	   const void *info,
 +	   const struct xt_match *match,
 +	   void *matchinfo,
-+	   unsigned int matchinfosize,
++	   unsigned int matchsize,
 +	   unsigned int hook_mask)
 +{
-+	const struct xt_esp *espinfo = matchinfo;
++	const struct ipt_ip *ip = info;
++	const struct xt_multiport *multiinfo = matchinfo;
 +
-+	if (espinfo->invflags & ~XT_ESP_INV_MASK) {
-+		duprintf("xt_esp: unknown flags %X\n", espinfo->invflags);
-+		return 0;
-+	}
-+
-+	return 1;
++	return check(ip->proto, ip->invflags, multiinfo->flags,
++		     multiinfo->count);
 +}
 +
-+static struct xt_match esp_match = {
-+	.name		= "esp",
-+	.family		= AF_INET,
-+	.proto		= IPPROTO_ESP,
++static int
++checkentry_v1(const char *tablename,
++	      const void *info,
++	      const struct xt_match *match,
++	      void *matchinfo,
++	      unsigned int matchsize,
++	      unsigned int hook_mask)
++{
++	const struct ipt_ip *ip = info;
++	const struct xt_multiport_v1 *multiinfo = matchinfo;
++
++	return check(ip->proto, ip->invflags, multiinfo->flags,
++		     multiinfo->count);
++}
++
++static int
++checkentry6(const char *tablename,
++	    const void *info,
++	    const struct xt_match *match,
++	    void *matchinfo,
++	    unsigned int matchsize,
++	    unsigned int hook_mask)
++{
++	const struct ip6t_ip6 *ip = info;
++	const struct xt_multiport *multiinfo = matchinfo;
++
++	return check(ip->proto, ip->invflags, multiinfo->flags,
++		     multiinfo->count);
++}
++
++static int
++checkentry6_v1(const char *tablename,
++	       const void *info,
++	       const struct xt_match *match,
++	       void *matchinfo,
++	       unsigned int matchsize,
++	       unsigned int hook_mask)
++{
++	const struct ip6t_ip6 *ip = info;
++	const struct xt_multiport_v1 *multiinfo = matchinfo;
++
++	return check(ip->proto, ip->invflags, multiinfo->flags,
++		     multiinfo->count);
++}
++
++static struct xt_match multiport_match = {
++	.name		= "multiport",
++	.revision	= 0,
++	.matchsize	= sizeof(struct xt_multiport),
 +	.match		= &match,
-+	.matchsize	= sizeof(struct xt_esp),
 +	.checkentry	= &checkentry,
++	.family		= AF_INET,
 +	.me		= THIS_MODULE,
 +};
 +
-+static struct xt_match esp6_match = {
-+	.name		= "esp",
-+	.family		= AF_INET6,
-+	.proto		= IPPROTO_ESP,
++static struct xt_match multiport_match_v1 = {
++	.name		= "multiport",
++	.revision	= 1,
++	.matchsize	= sizeof(struct xt_multiport_v1),
++	.match		= &match_v1,
++	.checkentry	= &checkentry_v1,
++	.family		= AF_INET,
++	.me		= THIS_MODULE,
++};
++
++static struct xt_match multiport6_match = {
++	.name		= "multiport",
++	.revision	= 0,
++	.matchsize	= sizeof(struct xt_multiport),
 +	.match		= &match,
-+	.matchsize	= sizeof(struct xt_esp),
-+	.checkentry	= &checkentry,
++	.checkentry	= &checkentry6,
++	.family		= AF_INET6,
++	.me		= THIS_MODULE,
++};
++
++static struct xt_match multiport6_match_v1 = {
++	.name		= "multiport",
++	.revision	= 1,
++	.matchsize	= sizeof(struct xt_multiport_v1),
++	.match		= &match_v1,
++	.checkentry	= &checkentry6_v1,
++	.family		= AF_INET6,
 +	.me		= THIS_MODULE,
 +};
 +
 +static int __init init(void)
 +{
 +	int ret;
-+	ret = xt_register_match(&esp_match);
-+	if (ret)
-+		return ret;
 +
-+	ret = xt_register_match(&esp6_match);
++	ret = xt_register_match(&multiport_match);
 +	if (ret)
-+		xt_unregister_match(&esp_match);
++		goto out;
 +
++	ret = xt_register_match(&multiport_match_v1);
++	if (ret)
++		goto out_unreg_multi_v0;
++
++	ret = xt_register_match(&multiport6_match);
++	if (ret)
++		goto out_unreg_multi_v1;
++
++	ret = xt_register_match(&multiport6_match_v1);
++	if (ret)
++		goto out_unreg_multi6_v0;
++
++	return ret;
++
++out_unreg_multi6_v0:
++	xt_unregister_match(&multiport6_match);
++out_unreg_multi_v1:
++	xt_unregister_match(&multiport_match_v1);
++out_unreg_multi_v0:
++	xt_unregister_match(&multiport_match);
++out:
 +	return ret;
 +}
 +
-+static void __exit cleanup(void)
++static void __exit fini(void)
 +{
-+	xt_unregister_match(&esp_match);
-+	xt_unregister_match(&esp6_match);
++	xt_unregister_match(&multiport_match);
++	xt_unregister_match(&multiport_match_v1);
++	xt_unregister_match(&multiport6_match);
++	xt_unregister_match(&multiport6_match_v1);
 +}
 +
 +module_init(init);
-+module_exit(cleanup);
++module_exit(fini);
 
-----Next_Part(Fri_Mar_24_15_26_44_2006_995)----
+----Next_Part(Fri_Mar_24_15_26_57_2006_605)----
