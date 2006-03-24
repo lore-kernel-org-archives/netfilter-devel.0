@@ -1,15 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] x_tables: unify IPv4/IPv6 multiport match
-Date: Fri, 24 Mar 2006 17:22:12 +0100
-Message-ID: <44241CB4.1030108@trash.net>
-References: <200603240626.k2O6Qwr5015882@toshiba.co.jp>
+From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
+Subject: Re: Two comments on the H.323 conntrack/NAT helper
+Date: Fri, 24 Mar 2006 14:02:03 -0500
+Message-ID: <BAY109-DAV2BB627B948B4A363C4436B3DF0@phx.gbl>
+References: <20060324001307.GO22727@stusta.de> <44235324.3080607@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; format=flowed; charset="ISO-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	zhaojingmin@users.sourceforge.net, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200603240626.k2O6Qwr5015882@toshiba.co.jp>
+To: "Patrick McHardy" <kaber@trash.net>,
+	"Adrian Bunk" <bunk@stusta.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,13 +23,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> [NETFILTER] x_tables: unify IPv4/IPv6 multiport match
-> 
-> This unifies ipt_multiport and ip6t_multiport to xt_multiport.
-> As a result, this addes support for inversion and port range match
-> to IPv6 packets.
 
-I see it also restores the checks for IPv4 which got lost when
-revisioning support was introduced. Both patches applied, thanks
-Yasuyuki.
+----- Original Message ----- 
+From: "Patrick McHardy" <kaber@trash.net>
+To: "Adrian Bunk" <bunk@stusta.de>
+Cc: <netdev@vger.kernel.org>; <zhaojingmin@users.sourceforge.net>; <netfilter-devel@lists.netfilter.org>; "Jing Min Zhao" 
+<zhaojignmin@hotmail.com>; <linux-kernel@vger.kernel.org>
+Sent: Thursday, March 23, 2006 9:02 PM
+Subject: Re: Two comments on the H.323 conntrack/NAT helper
+
+
+> [The hotmail address of the author doesn't work, CCed sourceforge-address]
+>
+> Adrian Bunk wrote:
+>> Two comments on the H.323 conntrack/NAT helper:
+>> - the function prototypes in ip_nat_helper_h323.c are _ugly_,
+>>   please move them to a header file
+>
+> Their ugliness is because of the current API, which cleaned up
+> quite a lot of the surrounding code, but requires this ugliness
+> from each helper. I would like to keep them visible as a reminder
+> that a cleaner solution is wanted, but moving them to header
+> files certainly sound like a good idea to eliminate the risk
+> of prototype conflicts. But please do this for all helpers
+> at once.
+>
+>> - is there a reason for not using EXPORT_SYMBOL_GPL?
+>
+> I would prefer that too.
+>
+>
+
+I've moved those prototypes. But the move involves moving of two header files:
+ip_conntrack_helper_h323_asn1.h and ip_conntrack_helper_h323_types.h.
+This is because ip_conntrack_h323.h now has to include
+ip_conntrack_helper_h323_asn1.h and thus ip_conntrack_helper_h323_types.h,
+so they are moved from net/ipv4/netfilter/ to include/linux/netfilter_ipv4/ to
+make sure other header files like ip_conntrack_h323.h and ip_conntrack.h
+be able to find them.
+
+Is this ok or you have a better idea?
+
+Thanks a lot!
+
+Jing Min Zhao
