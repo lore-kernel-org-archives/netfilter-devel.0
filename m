@@ -1,20 +1,16 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: 2.6 patch] ip_conntrack_helper_h323.c: make
- get_h245_addr()static
-Date: Thu, 23 Mar 2006 23:55:57 -0800 (PST)
-Message-ID: <20060323.235557.88280922.davem@davemloft.net>
-References: <20060324000916.GN22727@stusta.de>
-	<BAY109-DAV122F44146DB217251703AEB3DF0@phx.gbl>
-	<20060324075511.GV22727@stusta.de>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: Per-client NAT routing -- possible?
+Date: Fri, 24 Mar 2006 12:24:02 +0000
+Message-ID: <4423E4E2.9030303@ufomechanic.net>
+References: <51e5f6120603220916v3c536afamdb3023563866397d@mail.gmail.com>	<51e5f6120603221849p2da80ec5nb49ae81d7ae93d8f@mail.gmail.com>	<44227366.60106@ufomechanic.net>
+	<4422E869.8020108@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	zhaojignmin@hotmail.com, linux-kernel@vger.kernel.org,
-	zhaojingmin@hotmail.com
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: bunk@stusta.de
-In-Reply-To: <20060324075511.GV22727@stusta.de>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4422E869.8020108@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,15 +22,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Adrian Bunk <bunk@stusta.de>
-Date: Fri, 24 Mar 2006 08:55:11 +0100
+Patrick McHardy wrote:
 
-> The point is:
-> There have been many occasions where people have said "I will need this 
-> soon" in many different places in the kernel, and one year later it was 
-> still unused.
+> Amin Azez wrote:
 > 
-> If it will be needed at some point in the future, reverting my patch
-> will be trivial.
+>>>Could someone please point me in the right direction?  Or is this not
+>>>possible?
+>>
+>>
+>>I think you can use ipt_route to select the output gateway or interface,
+>>NAT should then work after that.
+> 
+> 
+> That sounds rather hackish. The normal way to do something like that
+> is to use normal multipath routes and, if NAT to different IPs needs
+> to be used, CONNMARK to bind connections to one of the paths.
 
-Agreed.
+Respecting your experience and acknowledging my ignorance, but THAT 
+seems like the hacky way to me. I realise most of the world thinks I'm 
+wrong, I merely offer this insight into the strangeness of the "other" 
+persons mind.
+
+I guess I do it this way because I do a lot of bridging.
+
+Sam
