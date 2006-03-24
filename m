@@ -1,17 +1,13 @@
-From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
-Subject: Re: Two comments on the H.323 conntrack/NAT helper
-Date: Fri, 24 Mar 2006 14:02:03 -0500
-Message-ID: <BAY109-DAV2BB627B948B4A363C4436B3DF0@phx.gbl>
-References: <20060324001307.GO22727@stusta.de> <44235324.3080607@trash.net>
+From: Gregor Maier <gregor@net.in.tum.de>
+Subject: API documentation for libnetfilter_log
+Date: Fri, 24 Mar 2006 21:13:14 +0100
+Message-ID: <442452DA.50407@net.in.tum.de>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="ISO-8859-1";
-	reply-type=original
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	zhaojingmin@users.sourceforge.net, linux-kernel@vger.kernel.org
+Cc: brad@info-link.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>,
-	"Adrian Bunk" <bunk@stusta.de>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,47 +19,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
------ Original Message ----- 
-From: "Patrick McHardy" <kaber@trash.net>
-To: "Adrian Bunk" <bunk@stusta.de>
-Cc: <netdev@vger.kernel.org>; <zhaojingmin@users.sourceforge.net>; <netfilter-devel@lists.netfilter.org>; "Jing Min Zhao" 
-<zhaojignmin@hotmail.com>; <linux-kernel@vger.kernel.org>
-Sent: Thursday, March 23, 2006 9:02 PM
-Subject: Re: Two comments on the H.323 conntrack/NAT helper
+Hi,
+
+I've written a first attemp for an API documentation for
+libnetfilter_log. Some stuff in it was taken from Brad's
+libnetfilter_queue documentation.
+
+I added comments to the header file and used doxygen to generate the
+actual docs. A patch that adds these comments to the source tree is
+http://www.net.in.tum.de/~projects/doc.libnetfilter_log/doc.libnetfilter_log.patch
+
+You can find the docs at  http://www.net.in.tum.de/~projects/
 
 
-> [The hotmail address of the author doesn't work, CCed sourceforge-address]
->
-> Adrian Bunk wrote:
->> Two comments on the H.323 conntrack/NAT helper:
->> - the function prototypes in ip_nat_helper_h323.c are _ugly_,
->>   please move them to a header file
->
-> Their ugliness is because of the current API, which cleaned up
-> quite a lot of the surrounding code, but requires this ugliness
-> from each helper. I would like to keep them visible as a reminder
-> that a cleaner solution is wanted, but moving them to header
-> files certainly sound like a good idea to eliminate the risk
-> of prototype conflicts. But please do this for all helpers
-> at once.
->
->> - is there a reason for not using EXPORT_SYMBOL_GPL?
->
-> I would prefer that too.
->
->
+cu
+gregor
+- --
+Gregor Maier                                      Lehrstuhl Informatik 8
+gregor@net.in.tum.de                              Tel: +49 89  289-18010
+http://www.net.in.tum.de                                     TU Muenchen
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (Darwin)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-I've moved those prototypes. But the move involves moving of two header files:
-ip_conntrack_helper_h323_asn1.h and ip_conntrack_helper_h323_types.h.
-This is because ip_conntrack_h323.h now has to include
-ip_conntrack_helper_h323_asn1.h and thus ip_conntrack_helper_h323_types.h,
-so they are moved from net/ipv4/netfilter/ to include/linux/netfilter_ipv4/ to
-make sure other header files like ip_conntrack_h323.h and ip_conntrack.h
-be able to find them.
-
-Is this ok or you have a better idea?
-
-Thanks a lot!
-
-Jing Min Zhao
+iD8DBQFEJFLadGiwgbikMYMRAqwxAJ9uC7cs2M7I/yhcE4yBD6KyHh9+MgCeL+VG
+KbBXo0elWr/u8pmNmfBaUI4=
+=6ETH
+-----END PGP SIGNATURE-----
