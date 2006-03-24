@@ -1,17 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [2.6 patch] ip_conntrack_helper_h323.c: EXPORT_SYMBOL'ed
- functions shouldn't be static
-Date: Fri, 24 Mar 2006 02:27:44 +0100
-Message-ID: <44234B10.5040802@trash.net>
-References: <20060324000801.GM22727@stusta.de>
-	<20060323.161314.59991770.davem@davemloft.net>
+Subject: Re: Two comments on the H.323 conntrack/NAT helper
+Date: Fri, 24 Mar 2006 03:02:12 +0100
+Message-ID: <44235324.3080607@trash.net>
+References: <20060324001307.GO22727@stusta.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020904020401040302050807"
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	zhaojignmin@hotmail.com, linux-kernel@vger.kernel.org, bunk@stusta.de
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, zhaojingmin@users.sourceforge.net,
+	netfilter-devel@lists.netfilter.org,
+	Jing Min Zhao <zhaojignmin@hotmail.com>, linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20060323.161314.59991770.davem@davemloft.net>
+To: Adrian Bunk <bunk@stusta.de>
+In-Reply-To: <20060324001307.GO22727@stusta.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,67 +23,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020904020401040302050807
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+[The hotmail address of the author doesn't work, CCed sourceforge-address]
 
-David S. Miller wrote:
-> From: Adrian Bunk <bunk@stusta.de>
-> Date: Fri, 24 Mar 2006 01:08:01 +0100
-> 
-> 
->>EXPORT_SYMBOL'ed functions shouldn't be static.
->>
->>Signed-off-by: Adrian Bunk <bunk@stusta.de>
-> 
-> 
-> Fixed in Linus's tree as of yesterday.
-> 
-> I actually have a patch from Patrick McHardy that will make
-> this kind of error a build time failure instead of silently
-> working in the modular case.  I just need to test it out
-> a bit before pushing.
+Adrian Bunk wrote:
+> Two comments on the H.323 conntrack/NAT helper:
+> - the function prototypes in ip_nat_helper_h323.c are _ugly_,
+>   please move them to a header file
 
-I guess I should send it to lkml anyway. It boots fine, I couldn't
-figure out how to compare checksums, since the time of compilation
-and a couple other dynamically generated strings end up in the binary.
+Their ugliness is because of the current API, which cleaned up
+quite a lot of the surrounding code, but requires this ugliness
+from each helper. I would like to keep them visible as a reminder
+that a cleaner solution is wanted, but moving them to header
+files certainly sound like a good idea to eliminate the risk
+of prototype conflicts. But please do this for all helpers
+at once.
 
---------------020904020401040302050807
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
+> - is there a reason for not using EXPORT_SYMBOL_GPL?
 
-[MODULES]: Don't allow statically declared exports
-
-Add an extern declaration for exported symbols to make the compiler warn
-on symbols declared statically.
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 8648236083e488ff4fc279b66d63b1187e22e558
-tree cba9ee372f1056c8cf63cdc6a37a6a761fa490c9
-parent 8b21e6d05d6ac0aeb44f5866ab611e2709c2f08e
-author Patrick McHardy <kaber@trash.net> Thu, 23 Mar 2006 05:07:39 +0100
-committer Patrick McHardy <kaber@trash.net> Thu, 23 Mar 2006 05:07:39 +0100
-
- include/linux/module.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/module.h b/include/linux/module.h
-index 70bd843..d956915 100644
---- a/include/linux/module.h
-+++ b/include/linux/module.h
-@@ -183,6 +183,7 @@ void *__symbol_get_gpl(const char *symbo
- 
- /* For every exported symbol, place a struct in the __ksymtab section */
- #define __EXPORT_SYMBOL(sym, sec)				\
-+	extern typeof(sym) sym;					\
- 	__CRC_SYMBOL(sym, sec)					\
- 	static const char __kstrtab_##sym[]			\
- 	__attribute__((section("__ksymtab_strings")))		\
-
---------------020904020401040302050807--
+I would prefer that too.
