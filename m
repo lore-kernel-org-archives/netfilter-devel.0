@@ -1,19 +1,13 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [2.6 patch] ip_conntrack_helper_h323.c: EXPORT_SYMBOL'ed
- functions shouldn't be static
-Date: Thu, 23 Mar 2006 22:08:57 -0800 (PST)
-Message-ID: <20060323.220857.24982378.davem@davemloft.net>
-References: <20060324000801.GM22727@stusta.de>
-	<20060323.161314.59991770.davem@davemloft.net>
-	<44234B10.5040802@trash.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH 0/2] xt_esp and xt_multiport
+Date: Fri, 24 Mar 2006 15:26:12 +0900 (JST)
+Message-ID: <200603240626.k2O6QCEt002696@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	zhaojignmin@hotmail.com, linux-kernel@vger.kernel.org, bunk@stusta.de
+Cc: laforge@netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <44234B10.5040802@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,12 +19,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 24 Mar 2006 02:27:44 +0100
 
-> I guess I should send it to lkml anyway. It boots fine, I couldn't
-> figure out how to compare checksums, since the time of compilation
-> and a couple other dynamically generated strings end up in the binary.
+Hi,
 
-This looks fine, I'll push it in during my next round of networking
-updates.
+All patches for API in match/target went to upstream, then I think
+it's time to send following patches.
+
+	[NETFILTER] x_tables: unify IPv4/IPv6 esp match
+	[NETFILTER] x_tables: unify IPv4/IPv6 multiport match
+
+Regards,
+
+-- Yasuyuki Kozakai
