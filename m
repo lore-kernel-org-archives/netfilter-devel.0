@@ -1,13 +1,15 @@
 From: Gregor Maier <gregor@net.in.tum.de>
-Subject: API documentation for libnetfilter_log
-Date: Fri, 24 Mar 2006 21:13:14 +0100
-Message-ID: <442452DA.50407@net.in.tum.de>
+Subject: Re: API documentation for libnetfilter_log
+Date: Sat, 25 Mar 2006 02:03:06 +0100
+Message-ID: <442496CA.8020500@net.in.tum.de>
+References: <442452DA.50407@net.in.tum.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: brad@info-link.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <442452DA.50407@net.in.tum.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,17 +24,15 @@ List-Id: netfilter-devel.vger.kernel.org
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-Hi,
+sorry i'm too stupid to tpye.
 
-I've written a first attemp for an API documentation for
-libnetfilter_log. Some stuff in it was taken from Brad's
-libnetfilter_queue documentation.
+the links for the libnetfilter_log docs are:
 
-I added comments to the header file and used doxygen to generate the
-actual docs. A patch that adds these comments to the source tree is
-http://www.net.in.tum.de/~projects/doc.libnetfilter_log/doc.libnetfilter_log.patch
+Patch to add doxygen comments to the code:
+http://www.net.in.tum.de/~gregor/projects/doc.libnetfilter_log/doc.libnetfilter_log.patch
 
-You can find the docs at  http://www.net.in.tum.de/~projects/
+Various forms of generated docs.
+http://www.net.in.tum.de/~gregor/projects/
 
 
 cu
@@ -45,7 +45,7 @@ http://www.net.in.tum.de                                     TU Muenchen
 Version: GnuPG v1.2.4 (Darwin)
 Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-iD8DBQFEJFLadGiwgbikMYMRAqwxAJ9uC7cs2M7I/yhcE4yBD6KyHh9+MgCeL+VG
-KbBXo0elWr/u8pmNmfBaUI4=
-=6ETH
+iD8DBQFEJJbJdGiwgbikMYMRAthMAKCi8r/nVohbDVy1pVBHZ0TGFZ8AIgCeJVeO
+CD+Co+rl4czWpKEuHBJAe9U=
+=X7Pl
 -----END PGP SIGNATURE-----
