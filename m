@@ -1,15 +1,13 @@
-From: Gregor Maier <gregor@net.in.tum.de>
-Subject: Re: API documentation for libnetfilter_log
-Date: Sat, 25 Mar 2006 02:03:06 +0100
-Message-ID: <442496CA.8020500@net.in.tum.de>
-References: <442452DA.50407@net.in.tum.de>
+From: "Daniel De Graaf" <danieldegraaf@gmail.com>
+Subject: Correct iptables-save output of osf module
+Date: Fri, 24 Mar 2006 22:25:39 -0600
+Message-ID: <427c54c0603242025qc0a9c8bqfc00af825fca88bc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: brad@info-link.net
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <442452DA.50407@net.in.tum.de>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,31 +19,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-sorry i'm too stupid to tpye.
-
-the links for the libnetfilter_log docs are:
-
-Patch to add doxygen comments to the code:
-http://www.net.in.tum.de/~gregor/projects/doc.libnetfilter_log/doc.libnetfilter_log.patch
-
-Various forms of generated docs.
-http://www.net.in.tum.de/~gregor/projects/
-
-
-cu
-gregor
-- --
-Gregor Maier                                      Lehrstuhl Informatik 8
-gregor@net.in.tum.de                              Tel: +49 89  289-18010
-http://www.net.in.tum.de                                     TU Muenchen
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (Darwin)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFEJJbJdGiwgbikMYMRAthMAKCi8r/nVohbDVy1pVBHZ0TGFZ8AIgCeJVeO
-CD+Co+rl4czWpKEuHBJAe9U=
-=X7Pl
------END PGP SIGNATURE-----
+VGhpcyBhZGRzIHRoZSBvcHRpb25hbCBmbGFncyBmb3IgdGhlIG9zZiBtb2R1bGUgdG8gdGhlIGlw
+dGFibGVzLXNhdmUgb3V0cHV0LgoKLSBEYW5pZWwgRGUgR3JhYWYKCkluZGV4OiBleHRlbnNpb25z
+L2xpYmlwdF9vc2YuYwo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBleHRlbnNpb25zL2xpYmlwdF9vc2YuYyAgICAg
+KHJldmlzaW9uIDY1NTcpCisrKyBleHRlbnNpb25zL2xpYmlwdF9vc2YuYyAgICAgKHdvcmtpbmcg
+Y29weSkKQEAgLTEzNCw2ICsxMzQsMTQgQEAKICAgICAgICBjb25zdCBzdHJ1Y3QgaXB0X29zZl9p
+bmZvICppbmZvID0gKGNvbnN0IHN0cnVjdCBpcHRfb3NmX2luZm8qKQptYXRjaC0+ZGF0YTsKCiAg
+ICAgICAgcHJpbnRmKCItLWdlbnJlICVzJXMgIiwgKGluZm8tPmludmVydCkgPyAiISAiOiAiIiwg
+aW5mby0+Z2VucmUpOworICAgICAgIGlmIChpbmZvLT5mbGFncyAmIElQVF9PU0ZfU01BUlQpCisg
+ICAgICAgICAgICAgICBwcmludGYoIi0tc21hcnQgIik7CisgICAgICAgaWYgKGluZm8tPmZsYWdz
+ICYgSVBUX09TRl9MT0cpCisgICAgICAgICAgICAgICBwcmludGYoIi0tbG9nICVkICIsIGluZm8t
+PmxvZ2xldmVsKTsKICsgICAgICAgaWYgKGluZm8tPmZsYWdzICYgSVBUX09TRl9ORVRMSU5LKQor
+ICAgICAgICAgICAgICAgcHJpbnRmKCItLW5ldGxpbmsgIik7CisgICAgICAgaWYgKGluZm8tPmZs
+YWdzICYgSVBUX09TRl9DT05ORUNUT1IpCisgICAgICAgICAgICAgICBwcmludGYoIi0tY29ubmVj
+dG9yICIpOwogfQo=
