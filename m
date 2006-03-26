@@ -1,12 +1,14 @@
-From: Nick Pasich <NewsLetters@NickAndBarb.net>
-Subject: Problems With Geoip and linux-2.6.16 .....
-Date: Sat, 25 Mar 2006 05:22:28 -0800
-Message-ID: <20060325132228.GA23471@69.17.112.251>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: [PATCH] fix ifdef for connmark support in nf_conntrack_netlink
+Date: Sun, 26 Mar 2006 11:33:09 +0200
+Message-ID: <1143365589.4015.8.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="YiEDa0DAkWCtVeE4"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-ejhpWHDIl7XuO+KxZXqU"
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,55 +21,54 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---YiEDa0DAkWCtVeE4
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
+--=-ejhpWHDIl7XuO+KxZXqU
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+When ctnetlink was ported from ip_conntrack to nf_conntrack two #ifdef's
+for connmark support were left unchanged and this code was never
+compiled.
+Problem noticed by Daniel De Graaf.
+
+Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
 
 
-Email doesn't get through to either Samuel Jean or Nickolas Boulain, at
-<nib@cookinglinux.org> or <sjean@cookinglinux.org> ..... so I thought
-I would try posting here......
+--- linux-2.6.16.orig/net/netfilter/nf_conntrack_netlink.c	2006-03-20 06:53=
+:29.000000000 +0100
++++ linux-2.6.16/net/netfilter/nf_conntrack_netlink.c	2006-03-26 10:20:11.0=
+00000000 +0200
+@@ -1005,7 +1005,7 @@ ctnetlink_change_conntrack(struct nf_con
+ 			return err;
+ 	}
+=20
+-#if defined(CONFIG_IP_NF_CONNTRACK_MARK)
++#if defined(CONFIG_NF_CONNTRACK_MARK)
+ 	if (cda[CTA_MARK-1])
+ 		ct->mark =3D ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
+ #endif
+@@ -1045,7 +1045,7 @@ ctnetlink_create_conntrack(struct nfattr
+ 			return err;
+ 	}
+=20
+-#if defined(CONFIG_IP_NF_CONNTRACK_MARK)
++#if defined(CONFIG_NF_CONNTRACK_MARK)
+ 	if (cda[CTA_MARK-1])
+ 		ct->mark =3D ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
+ #endif
 
+--=20
+/Martin
 
+--=-ejhpWHDIl7XuO+KxZXqU
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-Samuel and Nicolas,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
+iD8DBQBEJl/VWm2vlfa207ERAvVkAKCLZRJlX9PB217EGLRYRpbdyw3tvACfb1Vb
+qCKtG7/YzyTqAkVjIQmwk3I=
+=it0a
+-----END PGP SIGNATURE-----
 
-I just got Linux Kernel 2.6.16 and am trying to add geoip.
-
-I'm using the latest patch-o-matic-ng-20060322.
-
-I get the following error:
-
-
-unable to find ladd slot in src \
-/tmp/pom-10459/net/ipv4/netfilter/Makefile \
-(./patchlets/geoip/linux-2.6/./net/ipv4/netfilter/Makefile.ladd)
-
-
-Makefile.ladd shows:
-
-obj-$(CONFIG_IP_NF_MATCH_LIMIT) += ipt_limit.o
-obj-$(CONFIG_IP_NF_MATCH_GEOIP) += ipt_geoip.o
-
-
-There is no ipt_limit.c in /usr/src/linux-2.6.16/net/ipv4/netfilter/
-There was one on the linux-2.6.15 but not in linux-2.6.16
-
-There is a xt_limit.c in /usr/src/linux-2.6.16/net/netfilter.
-In xt_limit.c there is a MODULE_ALIAS("ipt_limit").
-
-I use geoip continuously and can't use the new kernel without it.
-
-
-
-       Thanks for a great module...
-
-
-               ---( Nick Pasich )---
-
-            NewsLetters@NickAndBarb.net
-
-
-
---YiEDa0DAkWCtVeE4--
+--=-ejhpWHDIl7XuO+KxZXqU--
