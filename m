@@ -1,12 +1,12 @@
-From: Ralf Schlatterbeck <rsc@runtux.com>
-Subject: [PATCH] compilation error + kernel panic sip-conntrack-nat
-Date: Mon, 27 Mar 2006 15:56:37 +0200
-Message-ID: <20060327135637.GA19422@runtux.com>
+From: Brad Fisher <brad@info-link.net>
+Subject: Setting skb->priority with libnetfilter_queue
+Date: Mon, 27 Mar 2006 13:40:15 -0600
+Message-ID: <44283F9F.4010206@info-link.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,42 +18,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The following patch fixes a compilation problem for 2.6.16 (two missing
-includes) and a kernel panic on the first sip packets (reproduced with
-2.6.15.4 and 2.6.16, tested only with 2.6.16). The kernel-panic fix is
-from the mailinglist-archive but obviously didn't yet make it into
-the official tree yet.
+Does anyone know how I could go about setting the skb->priority for 
+queued packets?  I'd like to have my userspace program be able to 
+classify packets dynamically, but I believe that would require either 
+the skb pointer to the enqueued packet so I could use setsockopt, or a 
+change to the libnetfilter_queue api.  I suppose one could add a 
+function like:
 
-Note: The FAQ-Entry about SIP 
-http://www.netfilter.org/documentation/FAQ/netfilter-faq-1.html#ss1.8
-should be updated to point to sip-conntrack-nat, see
-http://www.iptel.org/sipalg/
-The conntrack module would surely get more testing if it is mentioned in
-the FAQ :-)
+    int nfq_set_verdict_mark_priority(struct nfq_q_handle *qh, u_int32_t 
+id, u_int32_t verdict, u_int32_t mark, u_int32_t priority,
+                                u_int32_t data_len, unsigned char *buf)
 
+(or perhaps it  could be called nfq_set_mark_classify?)
 
---- linux/net/ipv4/netfilter/ip_conntrack_sip.c.before-rsc	2006-03-27 08:41:10.000000000 +0200
-+++ linux/net/ipv4/netfilter/ip_conntrack_sip.c	2006-03-27 10:18:57.101716429 +0200
-@@ -13,6 +13,8 @@
- #include <linux/netfilter.h>
- #include <linux/ip.h>
- #include <linux/ctype.h>
-+#include <linux/in.h>
-+#include <linux/udp.h>
- #include <net/checksum.h>
- #include <net/udp.h>
- 
-@@ -296,7 +298,7 @@
- 		return NF_ACCEPT;
-         }
-         
--	ip_ct_refresh_acct(ct, ctinfo, NULL, sip_timeout * HZ);
-+	ip_ct_refresh(ct, *pskb, sip_timeout * HZ);
- 		
- 	spin_lock_bh(&sipbf_lock);
- 	
+Either way, it seems that both the kernel and libnetfilter_queue must be 
+modified.  I'm hoping I'm wrong and that there is a way to do what I 
+want without patching the kernel and libnetfilter_queue.  If so could 
+someone please enlighten me?
 
-
-Ralf
--- 
-Ralf Schlatterbeck
+-Brad
