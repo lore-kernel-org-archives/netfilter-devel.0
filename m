@@ -1,17 +1,15 @@
-From: "James D. Nurmi" <jdnurmi+nfdev@gmail.com>
-Subject: Re: Documentation for libnetfilter_conntrack
-Date: Mon, 27 Mar 2006 16:45:21 -0700
-Message-ID: <a1f5b31e0603271545r28f9eb9ax6bfbd9df5da58d37@mail.gmail.com>
-References: <a1f5b31e0603271224q5fa5bd4fi779250ae1396ec43@mail.gmail.com>
-	<44284C51.7020908@eurodev.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: Hashtrie testing2 (was: Re: [PATCH 4/4] first conntrack ID must
+ be 1 not 2)
+Date: Tue, 28 Mar 2006 14:26:46 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0603281413520.3483@blackhole.kfki.hu>
+References: <Pine.LNX.4.58.0603250927490.31915@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Pablo Neira Ayuso" <pablo@eurodev.net>
-In-Reply-To: <44284C51.7020908@eurodev.net>
-Content-Disposition: inline
+To: Martin Josefsson <gandalf@wlug.westbo.se>
+In-Reply-To: <Pine.LNX.4.58.0603250927490.31915@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,55 +21,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 3/27/06, Pablo Neira Ayuso <pablo@eurodev.net> wrote:
-> Hi James,
+Hi Martin,
+
+On Sat, 25 Mar 2006, Jozsef Kadlecsik wrote:
+
+> > A lot of your changes should go into svn, you have full freedom to
+> > change whatever you want.
 >
-> I've cc'ed the reply to netfilter-devel.
->
-> James D. Nurmi wrote:
-> > This isnt a request (specifically), so im not trying to give you work! =
-=3D)
-> >
-> > I've prepared some nominal (but far from complete) documentation via
-> > doxygen for libnetfilter_conntrack.  Is there a preferred way for me
-> > to offer this back to you or the netfilter.org group?  Send to the
-> > list?  File a bug and offer a patch?
->
-> just send a patch that applies to SVN to the mailing list, with carbon
-> copy to me. Then we can discuss about it.
+> OK, I'll commit it sometime at the weekend. :-)
+[...]
 
-[ no urls permanant, but they'll be around at least for a few weeks, I susp=
-ect ]
+The new version finally is in svn :-) The new results and comments can be
+found at
 
-Since I suspect you'll tell me it needs to change (not a bad thing! =3D) )
-http://machiavelli.qwe.cc/conntrack_docs/curdoc.patch
+http://people.netfilter.org/kadlec/hashtrie
 
-Full doxygenned html:
-http://machiavelli.qwe.cc/conntrack_docs/
+A short summary:
 
-Still todo: everything listed in todo, everything marked as unknown
-(happy to update as people either let me know what they are, or I
-figure them out =3D) ).
+- sfhash does indeed faster than jhash when CPU-dependent optimization is
+  enabled
+- hastrie with variable hash sizes at the different level can help,
+  surprisingly both in memory and speed. I tested three variants, there
+  may easily be other ones which are even better.
+- hasharray is very good on the price of some memory. But very good,
+  and simple.
 
-I'm not a professional tech-writer, but I feel its a good start to
-offer back, and will happily take criticism!
-
->
-> > There's also a few spots where my documentation is spotty (for
-> > example, the relatively important expectations stuff, they just werent
-> > needed for my code, I want to track connections, not extend them =3D) )=
-,
-> > and a few places where units are unclear.
->
-> Feel free to send me your questions.
-
-Will do, though I feel like I should get this out to you before I
-sweat the small stuff (and will gladly fix anything before its
-submitted! [or after =3D) ]
-
->
-> --
-> Pablo
->
-
-- James
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
