@@ -1,16 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ip_conntrack_netlink : fix expectation
-	notifier	unregistration
-Date: Tue, 28 Mar 2006 15:28:48 +0200
-Message-ID: <44293A10.6060301@trash.net>
-References: <1143382791.4015.21.camel@localhost.localdomain>
+From: "Daniel De Graaf" <danieldegraaf@gmail.com>
+Subject: Re: Logging user id and process id of packets
+Date: Tue, 28 Mar 2006 08:31:35 -0600
+Message-ID: <427c54c0603280631q4ee0086aw333db2916a3bc362@mail.gmail.com>
+References: <133350871@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Martin Josefsson <gandalf@wlug.westbo.se>
-In-Reply-To: <1143382791.4015.21.camel@localhost.localdomain>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <133350871@web.de>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,14 +21,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Martin Josefsson wrote:
-> Same fix as for the notifier unregistration bug in nf_conntrack_netlink.
-> 
-> This patch fixes expectation notifier unregistration on module unload to
-> use ip_conntrack_expect_unregister_notifier(). This bug causes a soft
-> lockup at the first expectation created after a rmmod ; insmod of this
-> module.
-> 
-> Should go into -stable as well.
-
-Applied to my tree, I'll pass them on soon (probably tonight).
+T24gMy8yOC8wNiwgY2V2aW5nQHdlYi5kZSA8Y2V2aW5nQHdlYi5kZT4gd3JvdGU6Cj4gSGksCj4K
+PiBJIHdvdWxkIGxpa2UgdG8gd3JpdGUgYSBwcm9ncmFtIHdoaWNoIGRpc3BsYXlzIHRoZSB1c2Vy
+IGlkIGFuZCBwcm9jZXNzIGlkIG9mIGFsbCBwYWNrZXRzIHRyYXZlcnNpbmcgdGhlIG91dHB1dCBj
+aGFpbi4KPgo+IEkgZm91bmQgc29tZSBpbmZvcm1hdGlvbiBhYm91dCB0aGUgb3duZXIgbW9kdWxl
+LCBidXQgdGhpcyBhbGxvd3Mgb25seSB0byBmaWx0ZXIgYmFzZWQgb24gYSB1c2VyIGlkLgo+Cj4g
+SSB0b29rIGFsc28gYSBsb29rIGF0IHRoZSBwY2FwIGxpYnJhcnksIHRoZSB1bG9nIGFuZCBsaWJp
+cHEgYnV0IGNhbiBub3QgZmluZCBhbnkgZnVuY3Rpb24sIHRoYXQgcmV0dXJucyBtZSB0aGUgdXNl
+ciBpZCBvciB0aGUgcHJvY2VzcyBpZCBvZiBhIHBhY2tldC4KPgo+IERvZXMgYW55Ym9keSBrbm93
+IGhvdyB0byBnZXQgdGhpcyBpbmZvcm1hdGlvbj8KPgo+IFNhc2NoYQo+CgpZb3UgbmVlZCB0byBn
+ZXQgdGhlIGlub2RlIGZvciB0aGUgY29ubmVjdGlvbiAocG9zc2libHkgdXNpbmcKL3Byb2MvbmV0
+L3RjcCkgYW5kIHRoZW4gZmluZCB0aGUgcHJvY2VzcyB3aGljaCBoYXMgdGhhdCBpbm9kZSBvcGVu
+LgoKLSBEYW5pZWwgRGUgR3JhYWYK
