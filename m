@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [POM-NG 10/10] Fix the unclean extension for 2.6.16 kernels
-Date: Wed, 29 Mar 2006 10:53:09 +0200
-Message-ID: <442A4AF5.7020309@trash.net>
-References: <Pine.LNX.4.64.0603271421060.18053@bizon.gios.gov.pl>
+Subject: Re: Correct iptables-save output of osf module
+Date: Wed, 29 Mar 2006 10:55:14 +0200
+Message-ID: <442A4B72.1020405@trash.net>
+References: <427c54c0603242025qc0a9c8bqfc00af825fca88bc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0603271421060.18053@bizon.gios.gov.pl>
+To: Daniel De Graaf <danieldegraaf@gmail.com>
+In-Reply-To: <427c54c0603242025qc0a9c8bqfc00af825fca88bc@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,7 +21,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> [POM-NG 10/10] Fix the unclean extension for 2.6.16 kernels
+Daniel De Graaf wrote:
+> This adds the optional flags for the osf module to the iptables-save output.
 
-All applied, thanks for doing this.
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+I can't apply this since my mail client saves it base64 encoded. Please
+resend as plain text.
