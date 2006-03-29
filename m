@@ -1,16 +1,12 @@
-From: Daniel De Graaf <danield@iastate.edu>
-Subject: Re: Correct iptables-save output of osf module
-Date: Wed, 29 Mar 2006 08:37:25 -0600
-Message-ID: <442A9BA5.5040108@iastate.edu>
-References: <427c54c0603242025qc0a9c8bqfc00af825fca88bc@mail.gmail.com>
-	<442A4B72.1020405@trash.net>
+From: Nick Pasich <NewsLetters@NickAndBarb.net>
+Subject: Problems With Geoip and linux-2.6.16 .....
+Date: Wed, 29 Mar 2006 07:18:30 -0800
+Message-ID: <20060329151830.GA4313@69.17.112.251>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig3ED1F51D5936DE5CF5A12725"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <442A4B72.1020405@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,66 +18,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig3ED1F51D5936DE5CF5A12725
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
 
-Patrick McHardy wrote:
-> Daniel De Graaf wrote:
->  =20
->> This adds the optional flags for the osf module to the iptables-save o=
-utput.
->>    =20
->
-> Content-Type: text/plain; charset=3DUTF-8
-> Content-Transfer-Encoding: base64
-> Content-Disposition: inline
->
-> I can't apply this since my mail client saves it base64 encoded. Please=
-
-> resend as plain text.
->  =20
-
-Sorry, I'll use a real mail client to send patches from now on. Here's
-the patch again:
-
-Index: extensions/libipt_osf.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- extensions/libipt_osf.c     (revision 6560)
-+++ extensions/libipt_osf.c     (working copy)
-@@ -134,6 +134,14 @@
-        const struct ipt_osf_info *info =3D (const struct ipt_osf_info*) =
-match->data;
-
-        printf("--genre %s%s ", (info->invert) ? "! ": "", info->genre);
-+       if (info->flags & IPT_OSF_SMART)
-+               printf("--smart ");
-+       if (info->flags & IPT_OSF_LOG)
-+               printf("--log %d ", info->loglevel);
-+       if (info->flags & IPT_OSF_NETLINK)
-+               printf("--netlink ");
-+       if (info->flags & IPT_OSF_CONNECTOR)
-+               printf("--connector ");
- }
+Does anyone know what's going on with "geoip" ????
 
 
 
+Email doesn't get through to either Samuel Jean or Nickolas Boulain, at
+<nib@cookinglinux.org> or <sjean@cookinglinux.org> ..... so I thought
+I would try posting here......
 
---------------enig3ED1F51D5936DE5CF5A12725
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-iD8DBQFEKpuoZz9quLVV3/MRAk2iAJ9UYNdVfpBGw8uzvz68z+nZOYMHQQCZAd4p
-Ty0kXvXGQD5fHsbEPhhMC0M=
-=Bhwe
------END PGP SIGNATURE-----
+I just got Linux Kernel 2.6.16 and am trying to add geoip.
 
---------------enig3ED1F51D5936DE5CF5A12725--
+I'm using the latest patch-o-matic-ng-20060322.
+
+I get the following error:
+
+
+unable to find ladd slot in src \
+/tmp/pom-10459/net/ipv4/netfilter/Makefile \
+(./patchlets/geoip/linux-2.6/./net/ipv4/netfilter/Makefile.ladd)
+
+
+Makefile.ladd shows:
+
+obj-$(CONFIG_IP_NF_MATCH_LIMIT) += ipt_limit.o
+obj-$(CONFIG_IP_NF_MATCH_GEOIP) += ipt_geoip.o
+
+
+There is no ipt_limit.c in /usr/src/linux-2.6.16/net/ipv4/netfilter/
+There was one on the linux-2.6.15 but not in linux-2.6.16
+
+There is a xt_limit.c in /usr/src/linux-2.6.16/net/netfilter.
+In xt_limit.c there is a MODULE_ALIAS("ipt_limit").
+
+I use geoip continuously and can't use the new kernel without it.
+
+
+               ---( Nick Pasich )---
+
+             NewsLetters@NickAndBarb.net
