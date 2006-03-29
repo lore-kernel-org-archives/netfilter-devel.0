@@ -1,17 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [POM-NG 10/10] Fix the unclean extension for 2.6.16 kernels
-Date: Wed, 29 Mar 2006 14:27:39 +0200
-Message-ID: <442A7D3B.1010402@trash.net>
-References: <Pine.LNX.4.64.0603271421060.18053@bizon.gios.gov.pl>
-	<442A4AF5.7020309@trash.net>
-	<Pine.LNX.4.64.0603291220580.13092@bizon.gios.gov.pl>
+From: Grzegorz Janoszka <Grzegorz@Janoszka.pl>
+Subject: Re: [PATCH] IPMARK - version with xtables (for 2.6.16 kernel)
+Date: Wed, 29 Mar 2006 11:09:47 +0200 (CEST)
+Message-ID: <Pine.GSO.4.63.0603291107140.16776@galaxy.agh.edu.pl>
+References: <Pine.GSO.4.63.0603201123260.27093@galaxy.agh.edu.pl>
+	<442A4DBA.1070206@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0603291220580.13092@bizon.gios.gov.pl>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <442A4DBA.1070206@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,9 +21,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> Sorry, previous patchset was incomplete.
-> 
-> Please also apply this one patch.
+On Wed, 29 Mar 2006, Patrick McHardy wrote:
 
-Done, thanks.
+>> Attached is patch to patch-o-matic-ng-20060319 but it should apply
+>> clearly to any of current development snapshots. All the changes are to
+>> fulfill kernel 2.6.16 and xtables requirements.
+>> Please include it.
+> Why do you want to port it to x_tables? So far your port still only
+> works with IPv4. Are you planning to add IPv6 support?
+
+First - I thougt all netfilter targets must go to x_tables. I saw config 
+of 2.6.16 and there is no such thing like iptables there.
+Second - yes, I plan ipv6 when it will be commonly used.
+
+Best regards,
+
+-- 
+Grzegorz Janoszka
