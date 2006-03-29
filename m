@@ -1,16 +1,18 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: [POM-NG 10/10] Fix the unclean extension for 2.6.16 kernels
-Date: Wed, 29 Mar 2006 12:29:36 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0603291220580.13092@bizon.gios.gov.pl>
-References: <Pine.LNX.4.64.0603271421060.18053@bizon.gios.gov.pl>
-	<442A4AF5.7020309@trash.net>
+From: Dmitry Mishin <dim@openvz.org>
+Subject: Re: [PATCH] iptables 32bit compat layer
+Date: Wed, 29 Mar 2006 15:36:16 +0400
+Message-ID: <200603291536.17794.dim@openvz.org>
+References: <200602201110.39092.dim@openvz.org>
+	<200603231324.33809.dim@openvz.org> <442A5347.3030401@trash.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-631094242-1143628176=:13092"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_xEnKEHoZDXv41s3"
+Cc: Arnd Bergmann <arnd@arndb.de>, rusty@rustcorp.com.au,
+	netfilter-devel@lists.netfilter.org,
+	"David S. Miller" <davem@davemloft.net>, devel@openvz.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <442A4AF5.7020309@trash.net>
+In-Reply-To: <442A5347.3030401@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,921 +24,1786 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+--Boundary-00=_xEnKEHoZDXv41s3
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
----187430788-631094242-1143628176=:13092
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Wed, 29 Mar 2006, Patrick McHardy wrote:
-
-> Krzysztof Oledzki wrote:
->> [POM-NG 10/10] Fix the unclean extension for 2.6.16 kernels
+On Wednesday 29 March 2006 13:28, Patrick McHardy wrote:
+> Dmitry Mishin wrote:
+> > This patch extends current iptables compatibility layer in order to get
+> > 32bit iptables to work on 64bit kernel. Current layer is insufficient due
+> > to alignment checks both in kernel and user space tools.
+> >
+> > Patch is for current net-2.6.17 with addition of move of
+> > ipt_entry_{match| target} definitions to xt_entry_{match|target}.
 >
-> All applied, thanks for doing this.
+> Thanks, this looks good. Two small issues so far:
+> > diff --git a/net/compat.c b/net/compat.c
+> > index 13177a1..6a7028e 100644
+> > --- a/net/compat.c
+> > +++ b/net/compat.c
+> > @@ -476,8 +476,7 @@ asmlinkage long compat_sys_setsockopt(in
+> >  	int err;
+> >  	struct socket *sock;
+> >
+> > -	/* SO_SET_REPLACE seems to be the same in all levels */
+> > -	if (optname == IPT_SO_SET_REPLACE)
+> > +	if (level == SOL_IPV6 && optname == IPT_SO_SET_REPLACE)
+> >  		return do_netfilter_replace(fd, level, optname,
+> >  					    optval, optlen);
 >
+> I don't understand the reason for this change. If its not a mistake,
+> it would make more sense to check for IP6T_SO_SET_REPLACE I guess ..
+IP6T_SO_SET_REPLACE == IPT_SO_SET_REPLACE == XT_SO_SET_REPLACE.
+Rename will require respective #include directive rename, so, I just leave 
+this as it is. BTW, I'll make respective patch for IPV6 in the near future 
+and this hunk will be removed at all.
+ 
+>
+> > +#ifdef CONFIG_COMPAT
+> > +void xt_compat_lock(int af)
+> > +{
+> > +	down(&xt[af].compat_mutex);
+> > +}
+> > +EXPORT_SYMBOL_GPL(xt_compat_lock);
+> > +
+> > +void xt_compat_unlock(int af)
+> > +{
+> > +	up(&xt[af].compat_mutex);
+> > +}
+> > +EXPORT_SYMBOL_GPL(xt_compat_unlock);
+> > +#endif
+>
+> Won't a seperate compat-mutex introduce races between compat- and
+> non-compat users? BTW, the up/down calls have been replaced by the
+> new mutex API in Linus' tree, please resend the patch against the
+> current tree.
+compat_mutex is always over xt[af].mutex and can't be taken under the last 
+one, so, there should be no races.
+New patch is attached.
 
-Sorry, previous patchset was incomplete.
+-- 
+Thanks,
+Dmitry.
 
-Please also apply this one patch.
+--Boundary-00=_xEnKEHoZDXv41s3
+Content-Type: text/plain; charset="iso-8859-15";
+	name="diff-ms-netfilter-ipt-compat-20060329"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="diff-ms-netfilter-ipt-compat-20060329"
 
-Thank you.
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 1350e47..f6bdef8 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -142,6 +142,12 @@ struct xt_counters_info
+ #define ASSERT_WRITE_LOCK(x)
+ #include <linux/netfilter_ipv4/listhelp.h>
+ 
++#ifdef CONFIG_COMPAT
++#define COMPAT_TO_USER		1
++#define COMPAT_FROM_USER	-1
++#define COMPAT_CALC_SIZE	0
++#endif
++
+ struct xt_match
+ {
+ 	struct list_head list;
+@@ -175,6 +181,9 @@ struct xt_match
+ 	void (*destroy)(const struct xt_match *match, void *matchinfo,
+ 			unsigned int matchinfosize);
+ 
++	/* Called when userspace align differs from kernel space one */
++	int (*compat)(void *match, void **dstptr, int *size, int convert);
++
+ 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
+ 	struct module *me;
+ 
+@@ -220,6 +229,9 @@ struct xt_target
+ 	void (*destroy)(const struct xt_target *target, void *targinfo,
+ 			unsigned int targinfosize);
+ 
++	/* Called when userspace align differs from kernel space one */
++	int (*compat)(void *target, void **dstptr, int *size, int convert);
++
+ 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
+ 	struct module *me;
+ 
+@@ -314,6 +326,61 @@ extern void xt_proto_fini(int af);
+ extern struct xt_table_info *xt_alloc_table_info(unsigned int size);
+ extern void xt_free_table_info(struct xt_table_info *info);
+ 
++#ifdef CONFIG_COMPAT
++#include <net/compat.h>
++
++struct compat_xt_entry_match
++{
++	union {
++		struct {
++			u_int16_t match_size;
++			char name[XT_FUNCTION_MAXNAMELEN - 1];
++			u_int8_t revision;
++		} user;
++		u_int16_t match_size;
++	} u;
++	unsigned char data[0];
++};
++
++struct compat_xt_entry_target
++{
++	union {
++		struct {
++			u_int16_t target_size;
++			char name[XT_FUNCTION_MAXNAMELEN - 1];
++			u_int8_t revision;
++		} user;
++		u_int16_t target_size;
++	} u;
++	unsigned char data[0];
++};
++
++/* FIXME: this works only on 32 bit tasks
++ * need to change whole approach in order to calculate align as function of
++ * current task alignment */
++
++struct compat_xt_counters
++{
++	u_int32_t cnt[4];
++};
++
++struct compat_xt_counters_info
++{
++	char name[XT_TABLE_MAXNAMELEN];
++	compat_uint_t num_counters;
++	struct compat_xt_counters counters[0];
++};
++
++#define COMPAT_XT_ALIGN(s) (((s) + (__alignof__(struct compat_xt_counters)-1)) \
++		& ~(__alignof__(struct compat_xt_counters)-1))
++
++extern void xt_compat_lock(int af);
++extern void xt_compat_unlock(int af);
++extern int xt_compat_match(void *match, void **dstptr, int *size, int convert);
++extern int xt_compat_target(void *target, void **dstptr, int *size,
++		int convert);
++
++#endif /* CONFIG_COMPAT */
+ #endif /* __KERNEL__ */
+ 
+ #endif /* _X_TABLES_H */
+diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
+index d5b8c0d..c0dac16 100644
+--- a/include/linux/netfilter_ipv4/ip_tables.h
++++ b/include/linux/netfilter_ipv4/ip_tables.h
+@@ -316,5 +316,23 @@ extern unsigned int ipt_do_table(struct 
+ 				 void *userdata);
+ 
+ #define IPT_ALIGN(s) XT_ALIGN(s)
++
++#ifdef CONFIG_COMPAT
++#include <net/compat.h>
++
++struct compat_ipt_entry
++{
++	struct ipt_ip ip;
++	compat_uint_t nfcache;
++	u_int16_t target_offset;
++	u_int16_t next_offset;
++	compat_uint_t comefrom;
++	struct compat_xt_counters counters;
++	unsigned char elems[0];
++};
++
++#define COMPAT_IPT_ALIGN(s) 	COMPAT_XT_ALIGN(s)
++
++#endif /* CONFIG_COMPAT */
+ #endif /*__KERNEL__*/
+ #endif /* _IPTABLES_H */
+diff --git a/net/compat.c b/net/compat.c
+index 8fd37cd..d5d69fa 100644
+--- a/net/compat.c
++++ b/net/compat.c
+@@ -476,8 +476,7 @@ asmlinkage long compat_sys_setsockopt(in
+ 	int err;
+ 	struct socket *sock;
+ 
+-	/* SO_SET_REPLACE seems to be the same in all levels */
+-	if (optname == IPT_SO_SET_REPLACE)
++	if (level == SOL_IPV6 && optname == IPT_SO_SET_REPLACE)
+ 		return do_netfilter_replace(fd, level, optname,
+ 					    optval, optlen);
+ 
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index a7b194c..34df287 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -24,6 +24,7 @@
+ #include <linux/module.h>
+ #include <linux/icmp.h>
+ #include <net/ip.h>
++#include <net/compat.h>
+ #include <asm/uaccess.h>
+ #include <linux/mutex.h>
+ #include <linux/proc_fs.h>
+@@ -799,17 +800,11 @@ get_counters(const struct xt_table_info 
+ 	}
+ }
+ 
+-static int
+-copy_entries_to_user(unsigned int total_size,
+-		     struct ipt_table *table,
+-		     void __user *userptr)
++static inline struct xt_counters * alloc_counters(struct ipt_table *table)
+ {
+-	unsigned int off, num, countersize;
+-	struct ipt_entry *e;
++	unsigned int countersize;
+ 	struct xt_counters *counters;
+ 	struct xt_table_info *private = table->private;
+-	int ret = 0;
+-	void *loc_cpu_entry;
+ 
+ 	/* We need atomic snapshot of counters: rest doesn't change
+ 	   (other than comefrom, which userspace doesn't care
+@@ -818,13 +813,32 @@ copy_entries_to_user(unsigned int total_
+ 	counters = vmalloc_node(countersize, numa_node_id());
+ 
+ 	if (counters == NULL)
+-		return -ENOMEM;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	/* First, sum counters... */
+ 	write_lock_bh(&table->lock);
+ 	get_counters(private, counters);
+ 	write_unlock_bh(&table->lock);
+ 
++	return counters;
++}
++
++static int
++copy_entries_to_user(unsigned int total_size,
++		     struct ipt_table *table,
++		     void __user *userptr)
++{
++	unsigned int off, num;
++	struct ipt_entry *e;
++	struct xt_counters *counters;
++	struct xt_table_info *private = table->private;
++	int ret = 0;
++	void *loc_cpu_entry;
++
++	counters = alloc_counters(table);
++	if (IS_ERR(counters))
++		return PTR_ERR(counters);
++
+ 	/* choose the copy that is on our node/cpu, ...
+ 	 * This choice is lazy (because current thread is
+ 	 * allowed to migrate to another cpu)
+@@ -878,50 +892,905 @@ copy_entries_to_user(unsigned int total_
+ 			goto free_counters;
+ 		}
+ 	}
+-
+- free_counters:
+-	vfree(counters);
++
++ free_counters:
++	vfree(counters);
++	return ret;
++}
++
++#ifdef CONFIG_COMPAT
++struct compat_delta {
++	struct compat_delta *next;
++	u_int16_t offset;
++	short delta;
++};
++
++static struct compat_delta *compat_offsets = NULL;
++
++static int compat_add_offset(u_int16_t offset, short delta)
++{
++	struct compat_delta *tmp;
++
++	tmp = kmalloc(sizeof(struct compat_delta), GFP_KERNEL);
++	if (!tmp)
++		return -ENOMEM;
++	tmp->offset = offset;
++	tmp->delta = delta;
++	if (compat_offsets) {
++		tmp->next = compat_offsets->next;
++		compat_offsets->next = tmp;
++	} else {
++		compat_offsets = tmp;
++		tmp->next = NULL;
++	}
++	return 0;
++}
++
++static void compat_flush_offsets(void)
++{
++	struct compat_delta *tmp, *next;
++
++	if (compat_offsets) {
++		for(tmp = compat_offsets; tmp; tmp = next) {
++			next = tmp->next;
++			kfree(tmp);
++		}
++		compat_offsets = NULL;
++	}
++}
++
++static short compat_calc_jump(u_int16_t offset)
++{
++	struct compat_delta *tmp;
++	short delta;
++
++	for(tmp = compat_offsets, delta = 0; tmp; tmp = tmp->next)
++		if (tmp->offset < offset)
++			delta += tmp->delta;
++	return delta;
++}
++
++struct compat_ipt_standard_target
++{
++	struct compat_xt_entry_target target;
++	compat_int_t verdict;
++};
++
++#define IPT_ST_OFFSET	(sizeof(struct ipt_standard_target) - \
++				sizeof(struct compat_ipt_standard_target))
++
++struct compat_ipt_standard
++{
++	struct compat_ipt_entry entry;
++	struct compat_ipt_standard_target target;
++};
++
++static int compat_ipt_standard_fn(void *target,
++		void **dstptr, int *size, int convert)
++{
++	struct compat_ipt_standard_target compat_st, *pcompat_st;
++	struct ipt_standard_target st, *pst;
++	int ret;
++
++	ret = 0;
++	switch (convert) {
++		case COMPAT_TO_USER:
++			pst = (struct ipt_standard_target *)target;
++			memcpy(&compat_st.target, &pst->target,
++					sizeof(struct ipt_entry_target));
++			compat_st.verdict = pst->verdict;
++			if (compat_st.verdict > 0)
++				compat_st.verdict -=
++					compat_calc_jump(compat_st.verdict);
++			compat_st.target.u.user.target_size =
++			sizeof(struct compat_ipt_standard_target);
++			if (__copy_to_user(*dstptr, &compat_st,
++				sizeof(struct compat_ipt_standard_target)))
++				ret = -EFAULT;
++			*size -= IPT_ST_OFFSET;
++			*dstptr += sizeof(struct compat_ipt_standard_target);
++			break;
++		case COMPAT_FROM_USER:
++			pcompat_st =
++				(struct compat_ipt_standard_target *)target;
++			memcpy(&st.target, &pcompat_st->target,
++					sizeof(struct ipt_entry_target));
++			st.verdict = pcompat_st->verdict;
++			if (st.verdict > 0)
++				st.verdict += compat_calc_jump(st.verdict);
++			st.target.u.user.target_size =
++			sizeof(struct ipt_standard_target);
++			memcpy(*dstptr, &st,
++					sizeof(struct ipt_standard_target));
++			*size += IPT_ST_OFFSET;
++			*dstptr += sizeof(struct ipt_standard_target);
++			break;
++		case COMPAT_CALC_SIZE:
++			*size += IPT_ST_OFFSET;
++			break;
++		default:
++			ret = -ENOPROTOOPT;
++			break;
++	}
++	return ret;
++}
++
++static inline int
++compat_calc_match(struct ipt_entry_match *m, int * size)
++{
++	if (m->u.kernel.match->compat)
++		m->u.kernel.match->compat(m, NULL, size, COMPAT_CALC_SIZE);
++	else
++		xt_compat_match(m, NULL, size, COMPAT_CALC_SIZE);
++	return 0;
++}
++
++static int compat_calc_entry(struct ipt_entry *e, struct xt_table_info *info,
++		void *base, struct xt_table_info *newinfo)
++{
++	struct ipt_entry_target *t;
++	u_int16_t entry_offset;
++	int off, i, ret;
++
++	off = 0;
++	entry_offset = (void *)e - base;
++	IPT_MATCH_ITERATE(e, compat_calc_match, &off);
++	t = ipt_get_target(e);
++	if (t->u.kernel.target->compat)
++		t->u.kernel.target->compat(t, NULL, &off, COMPAT_CALC_SIZE);
++	else
++		xt_compat_target(t, NULL, &off, COMPAT_CALC_SIZE);
++	newinfo->size -= off;
++	ret = compat_add_offset(entry_offset, off);
++	if (ret)
++		return ret;
++
++	for (i = 0; i< NF_IP_NUMHOOKS; i++) {
++		if (info->hook_entry[i] && (e < (struct ipt_entry *)
++				(base + info->hook_entry[i])))
++			newinfo->hook_entry[i] -= off;
++		if (info->underflow[i] && (e < (struct ipt_entry *)
++				(base + info->underflow[i])))
++			newinfo->underflow[i] -= off;
++	}
++	return 0;
++}
++
++static int compat_table_info(struct xt_table_info *info,
++		struct xt_table_info *newinfo)
++{
++	void *loc_cpu_entry;
++	int i;
++
++	if (!newinfo || !info)
++		return -EINVAL;
++
++	memset(newinfo, 0, sizeof(struct xt_table_info));
++	newinfo->size = info->size;
++	newinfo->number = info->number;
++	for (i = 0; i < NF_IP_NUMHOOKS; i++) {
++		newinfo->hook_entry[i] = info->hook_entry[i];
++		newinfo->underflow[i] = info->underflow[i];
++	}
++	loc_cpu_entry = info->entries[raw_smp_processor_id()];
++	return IPT_ENTRY_ITERATE(loc_cpu_entry, info->size,
++			compat_calc_entry, info, loc_cpu_entry, newinfo);
++}
++#endif
++
++static int get_info(void __user *user, int *len, int compat)
++{
++	char name[IPT_TABLE_MAXNAMELEN];
++	struct ipt_table *t;
++	int ret;
++
++	if (*len != sizeof(struct ipt_getinfo)) {
++		duprintf("length %u != %u\n", *len,
++			(unsigned int)sizeof(struct ipt_getinfo));
++		return -EINVAL;
++	}
++
++	if (copy_from_user(name, user, sizeof(name)) != 0)
++		return -EFAULT;
++
++	name[IPT_TABLE_MAXNAMELEN-1] = '\0';
++#ifdef CONFIG_COMPAT
++	if (compat)
++		xt_compat_lock(AF_INET);
++#endif
++	t = try_then_request_module(xt_find_table_lock(AF_INET, name),
++			"iptable_%s", name);
++	if (t && !IS_ERR(t)) {
++		struct ipt_getinfo info;
++		struct xt_table_info *private = t->private;
++
++#ifdef CONFIG_COMPAT
++		if (compat) {
++			struct xt_table_info tmp;
++			ret = compat_table_info(private, &tmp);
++			compat_flush_offsets();
++			private =  &tmp;
++		}
++#endif
++		info.valid_hooks = t->valid_hooks;
++		memcpy(info.hook_entry, private->hook_entry,
++				sizeof(info.hook_entry));
++		memcpy(info.underflow, private->underflow,
++				sizeof(info.underflow));
++		info.num_entries = private->number;
++		info.size = private->size;
++		strcpy(info.name, name);
++
++		if (copy_to_user(user, &info, *len) != 0)
++			ret = -EFAULT;
++		else
++			ret = 0;
++
++		xt_table_unlock(t);
++		module_put(t->me);
++	} else
++		ret = t ? PTR_ERR(t) : -ENOENT;
++#ifdef CONFIG_COMPAT
++	if (compat)
++		xt_compat_unlock(AF_INET);
++#endif
++	return ret;
++}
++
++static int
++get_entries(struct ipt_get_entries __user *uptr, int *len)
++{
++	int ret;
++	struct ipt_get_entries get;
++	struct ipt_table *t;
++
++	if (*len < sizeof(get)) {
++		duprintf("get_entries: %u < %d\n", *len,
++				(unsigned int)sizeof(get));
++		return -EINVAL;
++	}
++	if (copy_from_user(&get, uptr, sizeof(get)) != 0)
++		return -EFAULT;
++	if (*len != sizeof(struct ipt_get_entries) + get.size) {
++		duprintf("get_entries: %u != %u\n", *len,
++				(unsigned int)(sizeof(struct ipt_get_entries) +
++				get.size));
++		return -EINVAL;
++	}
++
++	t = xt_find_table_lock(AF_INET, get.name);
++	if (t && !IS_ERR(t)) {
++		struct xt_table_info *private = t->private;
++		duprintf("t->private->number = %u\n",
++			 private->number);
++		if (get.size == private->size)
++			ret = copy_entries_to_user(private->size,
++						   t, uptr->entrytable);
++		else {
++			duprintf("get_entries: I've got %u not %u!\n",
++				 private->size,
++				 get.size);
++			ret = -EINVAL;
++		}
++		module_put(t->me);
++		xt_table_unlock(t);
++	} else
++		ret = t ? PTR_ERR(t) : -ENOENT;
++
++	return ret;
++}
++
++static int
++__do_replace(const char *name, unsigned int valid_hooks,
++		struct xt_table_info *newinfo, unsigned int num_counters,
++		void __user *counters_ptr)
++{
++	int ret;
++	struct ipt_table *t;
++	struct xt_table_info *oldinfo;
++	struct xt_counters *counters;
++	void *loc_cpu_old_entry;
++
++	ret = 0;
++	counters = vmalloc(num_counters * sizeof(struct xt_counters));
++	if (!counters) {
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	t = try_then_request_module(xt_find_table_lock(AF_INET, name),
++				    "iptable_%s", name);
++	if (!t || IS_ERR(t)) {
++		ret = t ? PTR_ERR(t) : -ENOENT;
++		goto free_newinfo_counters_untrans;
++	}
++
++	/* You lied! */
++	if (valid_hooks != t->valid_hooks) {
++		duprintf("Valid hook crap: %08X vs %08X\n",
++			 valid_hooks, t->valid_hooks);
++		ret = -EINVAL;
++		goto put_module;
++	}
++
++	oldinfo = xt_replace_table(t, num_counters, newinfo, &ret);
++	if (!oldinfo)
++		goto put_module;
++
++	/* Update module usage count based on number of rules */
++	duprintf("do_replace: oldnum=%u, initnum=%u, newnum=%u\n",
++		oldinfo->number, oldinfo->initial_entries, newinfo->number);
++	if ((oldinfo->number > oldinfo->initial_entries) ||
++	    (newinfo->number <= oldinfo->initial_entries))
++		module_put(t->me);
++	if ((oldinfo->number > oldinfo->initial_entries) &&
++	    (newinfo->number <= oldinfo->initial_entries))
++		module_put(t->me);
++
++	/* Get the old counters. */
++	get_counters(oldinfo, counters);
++	/* Decrease module usage counts and free resource */
++	loc_cpu_old_entry = oldinfo->entries[raw_smp_processor_id()];
++	IPT_ENTRY_ITERATE(loc_cpu_old_entry, oldinfo->size, cleanup_entry,NULL);
++	xt_free_table_info(oldinfo);
++	if (copy_to_user(counters_ptr, counters,
++			 sizeof(struct xt_counters) * num_counters) != 0)
++		ret = -EFAULT;
++	vfree(counters);
++	xt_table_unlock(t);
++	return ret;
++
++ put_module:
++	module_put(t->me);
++	xt_table_unlock(t);
++ free_newinfo_counters_untrans:
++	vfree(counters);
++ out:
++	return ret;
++}
++
++static int
++do_replace(void __user *user, unsigned int len)
++{
++	int ret;
++	struct ipt_replace tmp;
++	struct xt_table_info *newinfo;
++	void *loc_cpu_entry;
++
++	if (copy_from_user(&tmp, user, sizeof(tmp)) != 0)
++		return -EFAULT;
++
++	/* Hack: Causes ipchains to give correct error msg --RR */
++	if (len != sizeof(tmp) + tmp.size)
++		return -ENOPROTOOPT;
++
++	/* overflow check */
++	if (tmp.size >= (INT_MAX - sizeof(struct xt_table_info)) / NR_CPUS -
++			SMP_CACHE_BYTES)
++		return -ENOMEM;
++	if (tmp.num_counters >= INT_MAX / sizeof(struct xt_counters))
++		return -ENOMEM;
++
++	newinfo = xt_alloc_table_info(tmp.size);
++	if (!newinfo)
++		return -ENOMEM;
++
++	/* choose the copy that is our node/cpu */
++	loc_cpu_entry = newinfo->entries[raw_smp_processor_id()];
++	if (copy_from_user(loc_cpu_entry, user + sizeof(tmp),
++			   tmp.size) != 0) {
++		ret = -EFAULT;
++		goto free_newinfo;
++	}
++
++	ret = translate_table(tmp.name, tmp.valid_hooks,
++			      newinfo, loc_cpu_entry, tmp.size, tmp.num_entries,
++			      tmp.hook_entry, tmp.underflow);
++	if (ret != 0)
++		goto free_newinfo;
++
++	duprintf("ip_tables: Translated table\n");
++
++	ret = __do_replace(tmp.name, tmp.valid_hooks,
++			      newinfo, tmp.num_counters,
++			      tmp.counters);
++	if (ret)
++		goto free_newinfo_untrans;
++	return 0;
++
++ free_newinfo_untrans:
++	IPT_ENTRY_ITERATE(loc_cpu_entry, newinfo->size, cleanup_entry,NULL);
++ free_newinfo:
++	xt_free_table_info(newinfo);
++	return ret;
++}
++
++/* We're lazy, and add to the first CPU; overflow works its fey magic
++ * and everything is OK. */
++static inline int
++add_counter_to_entry(struct ipt_entry *e,
++		     const struct xt_counters addme[],
++		     unsigned int *i)
++{
++#if 0
++	duprintf("add_counter: Entry %u %lu/%lu + %lu/%lu\n",
++		 *i,
++		 (long unsigned int)e->counters.pcnt,
++		 (long unsigned int)e->counters.bcnt,
++		 (long unsigned int)addme[*i].pcnt,
++		 (long unsigned int)addme[*i].bcnt);
++#endif
++
++	ADD_COUNTER(e->counters, addme[*i].bcnt, addme[*i].pcnt);
++
++	(*i)++;
++	return 0;
++}
++
++static int
++do_add_counters(void __user *user, unsigned int len, int compat)
++{
++	unsigned int i;
++	struct xt_counters_info tmp;
++	struct xt_counters *paddc;
++	unsigned int num_counters;
++	char *name;
++	int size;
++	void *ptmp;
++	struct ipt_table *t;
++	struct xt_table_info *private;
++	int ret = 0;
++	void *loc_cpu_entry;
++#ifdef CONFIG_COMPAT
++	struct compat_xt_counters_info compat_tmp;
++
++	if (compat) {
++		ptmp = &compat_tmp;
++		size = sizeof(struct compat_xt_counters_info);
++	} else
++#endif
++	{
++		ptmp = &tmp;
++		size = sizeof(struct xt_counters_info);
++	}
++
++	if (copy_from_user(ptmp, user, size) != 0)
++		return -EFAULT;
++
++#ifdef CONFIG_COMPAT
++	if (compat) {
++		num_counters = compat_tmp.num_counters;
++		name = compat_tmp.name;
++	} else
++#endif
++	{
++		num_counters = tmp.num_counters;
++		name = tmp.name;
++	}
++
++	if (len != size + num_counters * sizeof(struct xt_counters))
++		return -EINVAL;
++
++	paddc = vmalloc_node(len - size, numa_node_id());
++	if (!paddc)
++		return -ENOMEM;
++
++	if (copy_from_user(paddc, user + size, len - size) != 0) {
++		ret = -EFAULT;
++		goto free;
++	}
++
++	t = xt_find_table_lock(AF_INET, name);
++	if (!t || IS_ERR(t)) {
++		ret = t ? PTR_ERR(t) : -ENOENT;
++		goto free;
++	}
++
++	write_lock_bh(&t->lock);
++	private = t->private;
++	if (private->number != num_counters) {
++		ret = -EINVAL;
++		goto unlock_up_free;
++	}
++
++	i = 0;
++	/* Choose the copy that is on our node */
++	loc_cpu_entry = private->entries[raw_smp_processor_id()];
++	IPT_ENTRY_ITERATE(loc_cpu_entry,
++			  private->size,
++			  add_counter_to_entry,
++			  paddc,
++			  &i);
++ unlock_up_free:
++	write_unlock_bh(&t->lock);
++	xt_table_unlock(t);
++	module_put(t->me);
++ free:
++	vfree(paddc);
++
++	return ret;
++}
++
++#ifdef CONFIG_COMPAT
++struct compat_ipt_replace {
++	char			name[IPT_TABLE_MAXNAMELEN];
++	u32			valid_hooks;
++	u32			num_entries;
++	u32			size;
++	u32			hook_entry[NF_IP_NUMHOOKS];
++	u32			underflow[NF_IP_NUMHOOKS];
++	u32			num_counters;
++	compat_uptr_t		counters;	/* struct ipt_counters * */
++	struct compat_ipt_entry	entries[0];
++};
++
++static inline int compat_copy_match_to_user(struct ipt_entry_match *m,
++		void __user **dstptr, compat_uint_t *size)
++{
++	if (m->u.kernel.match->compat)
++		return m->u.kernel.match->compat(m, dstptr, size,
++				COMPAT_TO_USER);
++	else
++		return xt_compat_match(m, dstptr, size, COMPAT_TO_USER);
++}
++
++static int compat_copy_entry_to_user(struct ipt_entry *e,
++		void __user **dstptr, compat_uint_t *size)
++{
++	struct ipt_entry_target __user *t;
++	struct compat_ipt_entry __user *ce;
++	u_int16_t target_offset, next_offset;
++	compat_uint_t origsize;
++	int ret;
++
++	ret = -EFAULT;
++	origsize = *size;
++	ce = (struct compat_ipt_entry __user *)*dstptr;
++	if (__copy_to_user(ce, e, sizeof(struct ipt_entry)))
++		goto out;
++
++	*dstptr += sizeof(struct compat_ipt_entry);
++	ret = IPT_MATCH_ITERATE(e, compat_copy_match_to_user, dstptr, size);
++	target_offset = e->target_offset - (origsize - *size);
++	if (ret)
++		goto out;
++	t = ipt_get_target(e);
++	if (t->u.kernel.target->compat)
++		ret = t->u.kernel.target->compat(t, dstptr, size,
++				COMPAT_TO_USER);
++	else
++		ret = xt_compat_target(t, dstptr, size, COMPAT_TO_USER);
++	if (ret)
++		goto out;
++	ret = -EFAULT;
++	next_offset = e->next_offset - (origsize - *size);
++	if (__put_user(target_offset, &ce->target_offset))
++		goto out;
++	if (__put_user(next_offset, &ce->next_offset))
++		goto out;
++	return 0;
++out:
++	return ret;
++}
++
++static inline int
++compat_check_calc_match(struct ipt_entry_match *m,
++	    const char *name,
++	    const struct ipt_ip *ip,
++	    unsigned int hookmask,
++	    int *size, int *i)
++{
++	struct ipt_match *match;
++
++	match = try_then_request_module(xt_find_match(AF_INET, m->u.user.name,
++						   m->u.user.revision),
++					"ipt_%s", m->u.user.name);
++	if (IS_ERR(match) || !match) {
++		duprintf("compat_check_calc_match: `%s' not found\n",
++				m->u.user.name);
++		return match ? PTR_ERR(match) : -ENOENT;
++	}
++	m->u.kernel.match = match;
++
++	if (m->u.kernel.match->compat)
++		m->u.kernel.match->compat(m, NULL, size, COMPAT_CALC_SIZE);
++	else
++		xt_compat_match(m, NULL, size, COMPAT_CALC_SIZE);
++
++	(*i)++;
++	return 0;
++}
++
++static inline int
++check_compat_entry_size_and_hooks(struct ipt_entry *e,
++			   struct xt_table_info *newinfo,
++			   unsigned int *size,
++			   unsigned char *base,
++			   unsigned char *limit,
++			   unsigned int *hook_entries,
++			   unsigned int *underflows,
++			   unsigned int *i,
++			   const char *name)
++{
++	struct ipt_entry_target *t;
++	struct ipt_target *target;
++	u_int16_t entry_offset;
++	int ret, off, h, j;
++
++	duprintf("check_compat_entry_size_and_hooks %p\n", e);
++	if ((unsigned long)e % __alignof__(struct compat_ipt_entry) != 0
++	    || (unsigned char *)e + sizeof(struct compat_ipt_entry) >= limit) {
++		duprintf("Bad offset %p, limit = %p\n", e, limit);
++		return -EINVAL;
++	}
++
++	if (e->next_offset < sizeof(struct compat_ipt_entry) +
++			sizeof(struct compat_xt_entry_target)) {
++		duprintf("checking: element %p size %u\n",
++			 e, e->next_offset);
++		return -EINVAL;
++	}
++
++	if (!ip_checkentry(&e->ip)) {
++		duprintf("ip_tables: ip check failed %p %s.\n", e, name);
++		return -EINVAL;
++	}
++
++	off = 0;
++	entry_offset = (void *)e - (void *)base;
++	j = 0;
++	ret = IPT_MATCH_ITERATE(e, compat_check_calc_match, name, &e->ip,
++			e->comefrom, &off, &j);
++	if (ret != 0)
++		goto out;
++
++	t = ipt_get_target(e);
++	target = try_then_request_module(xt_find_target(AF_INET,
++						     t->u.user.name,
++						     t->u.user.revision),
++					 "ipt_%s", t->u.user.name);
++	if (IS_ERR(target) || !target) {
++		duprintf("check_entry: `%s' not found\n", t->u.user.name);
++		ret = target ? PTR_ERR(target) : -ENOENT;
++		goto out;
++	}
++	t->u.kernel.target = target;
++
++	if (t->u.kernel.target->compat)
++		t->u.kernel.target->compat(t, NULL, &off, COMPAT_CALC_SIZE);
++	else
++		xt_compat_target(t, NULL, &off, COMPAT_CALC_SIZE);
++	*size += off;
++	ret = compat_add_offset(entry_offset, off);
++	if (ret)
++		goto out;
++
++	/* Check hooks & underflows */
++	for (h = 0; h < NF_IP_NUMHOOKS; h++) {
++		if ((unsigned char *)e - base == hook_entries[h])
++			newinfo->hook_entry[h] = hook_entries[h];
++		if ((unsigned char *)e - base == underflows[h])
++			newinfo->underflow[h] = underflows[h];
++	}
++
++	/* Clear counters and comefrom */
++	e->counters = ((struct ipt_counters) { 0, 0 });
++	e->comefrom = 0;
++
++	(*i)++;
++	return 0;
++out:
++	IPT_MATCH_ITERATE(e, cleanup_match, &j);
++	return ret;
++}
++
++static inline int compat_copy_match_from_user(struct ipt_entry_match *m,
++	void **dstptr, compat_uint_t *size, const char *name,
++	const struct ipt_ip *ip, unsigned int hookmask)
++{
++	struct ipt_entry_match *dm;
++	struct ipt_match *match;
++	int ret;
++
++	dm = (struct ipt_entry_match *)*dstptr;
++	match = m->u.kernel.match;
++	if (match->compat)
++		match->compat(m, dstptr, size, COMPAT_FROM_USER);
++	else
++		xt_compat_match(m, dstptr, size, COMPAT_FROM_USER);
++
++	ret = xt_check_match(match, AF_INET, dm->u.match_size - sizeof(*dm),
++			     name, hookmask, ip->proto,
++			     ip->invflags & IPT_INV_PROTO);
++	if (ret)
++		return ret;
++
++	if (m->u.kernel.match->checkentry
++	    && !m->u.kernel.match->checkentry(name, ip, match, dm->data,
++					      dm->u.match_size - sizeof(*dm),
++					      hookmask)) {
++		duprintf("ip_tables: check failed for `%s'.\n",
++			 m->u.kernel.match->name);
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static int compat_copy_entry_from_user(struct ipt_entry *e, void **dstptr,
++	unsigned int *size, const char *name,
++	struct xt_table_info *newinfo, unsigned char *base)
++{
++	struct ipt_entry_target *t;
++	struct ipt_target *target;
++	struct ipt_entry *de;
++	unsigned int origsize;
++	int ret, h;
++
++	ret = 0;
++	origsize = *size;
++	de = (struct ipt_entry *)*dstptr;
++	memcpy(de, e, sizeof(struct ipt_entry));
++
++	*dstptr += sizeof(struct compat_ipt_entry);
++	ret = IPT_MATCH_ITERATE(e, compat_copy_match_from_user, dstptr, size,
++			name, &de->ip, de->comefrom);
++	if (ret)
++		goto out;
++	de->target_offset = e->target_offset - (origsize - *size);
++	t = ipt_get_target(e);
++	target = t->u.kernel.target;
++	if (target->compat)
++		target->compat(t, dstptr, size, COMPAT_FROM_USER);
++	else
++		xt_compat_target(t, dstptr, size, COMPAT_FROM_USER);
++
++	de->next_offset = e->next_offset - (origsize - *size);
++	for (h = 0; h < NF_IP_NUMHOOKS; h++) {
++		if ((unsigned char *)de - base < newinfo->hook_entry[h])
++			newinfo->hook_entry[h] -= origsize - *size;
++		if ((unsigned char *)de - base < newinfo->underflow[h])
++			newinfo->underflow[h] -= origsize - *size;
++	}
++
++	t = ipt_get_target(de);
++	target = t->u.kernel.target;
++	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
++			      name, e->comefrom, e->ip.proto,
++			      e->ip.invflags & IPT_INV_PROTO);
++	if (ret)
++		goto out;
++
++	ret = -EINVAL;
++	if (t->u.kernel.target == &ipt_standard_target) {
++		if (!standard_check(t, *size))
++			goto out;
++	} else if (t->u.kernel.target->checkentry
++		   && !t->u.kernel.target->checkentry(name, de, target,
++				t->data, t->u.target_size - sizeof(*t),
++				de->comefrom)) {
++		duprintf("ip_tables: compat: check failed for `%s'.\n",
++			 t->u.kernel.target->name);
++		goto out;
++	}
++	ret = 0;
++out:
+ 	return ret;
+ }
+ 
+ static int
+-get_entries(const struct ipt_get_entries *entries,
+-	    struct ipt_get_entries __user *uptr)
++translate_compat_table(const char *name,
++		unsigned int valid_hooks,
++		struct xt_table_info **pinfo,
++		void **pentry0,
++		unsigned int total_size,
++		unsigned int number,
++		unsigned int *hook_entries,
++		unsigned int *underflows)
+ {
++	unsigned int i;
++	struct xt_table_info *newinfo, *info;
++	void *pos, *entry0, *entry1;
++	unsigned int size;
+ 	int ret;
+-	struct ipt_table *t;
+ 
+-	t = xt_find_table_lock(AF_INET, entries->name);
+-	if (t && !IS_ERR(t)) {
+-		struct xt_table_info *private = t->private;
+-		duprintf("t->private->number = %u\n",
+-			 private->number);
+-		if (entries->size == private->size)
+-			ret = copy_entries_to_user(private->size,
+-						   t, uptr->entrytable);
+-		else {
+-			duprintf("get_entries: I've got %u not %u!\n",
+-				 private->size,
+-				 entries->size);
+-			ret = -EINVAL;
++	info = *pinfo;
++	entry0 = *pentry0;
++	size = total_size;
++	info->number = number;
++
++	/* Init all hooks to impossible value. */
++	for (i = 0; i < NF_IP_NUMHOOKS; i++) {
++		info->hook_entry[i] = 0xFFFFFFFF;
++		info->underflow[i] = 0xFFFFFFFF;
++	}
++
++	duprintf("translate_compat_table: size %u\n", info->size);
++	i = 0;
++	xt_compat_lock(AF_INET);
++	/* Walk through entries, checking offsets. */
++	ret = IPT_ENTRY_ITERATE(entry0, total_size,
++				check_compat_entry_size_and_hooks,
++				info, &size, entry0,
++				entry0 + total_size,
++				hook_entries, underflows, &i, name);
++	if (ret != 0)
++		goto out_unlock;
++
++	ret = -EINVAL;
++	if (i != number) {
++		duprintf("translate_compat_table: %u not %u entries\n",
++			 i, number);
++		goto out_unlock;
++	}
++
++	/* Check hooks all assigned */
++	for (i = 0; i < NF_IP_NUMHOOKS; i++) {
++		/* Only hooks which are valid */
++		if (!(valid_hooks & (1 << i)))
++			continue;
++		if (info->hook_entry[i] == 0xFFFFFFFF) {
++			duprintf("Invalid hook entry %u %u\n",
++				 i, hook_entries[i]);
++			goto out_unlock;
+ 		}
+-		module_put(t->me);
+-		xt_table_unlock(t);
+-	} else
+-		ret = t ? PTR_ERR(t) : -ENOENT;
++		if (info->underflow[i] == 0xFFFFFFFF) {
++			duprintf("Invalid underflow %u %u\n",
++				 i, underflows[i]);
++			goto out_unlock;
++		}
++	}
++
++	ret = -ENOMEM;
++	newinfo = xt_alloc_table_info(size);
++	if (!newinfo)
++		goto out_unlock;
++
++	newinfo->number = number;
++	for (i = 0; i < NF_IP_NUMHOOKS; i++) {
++		newinfo->hook_entry[i] = info->hook_entry[i];
++		newinfo->underflow[i] = info->underflow[i];
++	}
++	entry1 = newinfo->entries[raw_smp_processor_id()];
++	pos = entry1;
++	size =  total_size;
++	ret = IPT_ENTRY_ITERATE(entry0, total_size,
++			compat_copy_entry_from_user, &pos, &size,
++			name, newinfo, entry1);
++	compat_flush_offsets();
++	xt_compat_unlock(AF_INET);
++	if (ret)
++		goto free_newinfo;
++
++	ret = -ELOOP;
++	if (!mark_source_chains(newinfo, valid_hooks, entry1))
++		goto free_newinfo;
++
++	/* And one copy for every other CPU */
++	for_each_cpu(i)
++		if (newinfo->entries[i] && newinfo->entries[i] != entry1)
++			memcpy(newinfo->entries[i], entry1, newinfo->size);
++
++	*pinfo = newinfo;
++	*pentry0 = entry1;
++	xt_free_table_info(info);
++	return 0;
+ 
++free_newinfo:
++	xt_free_table_info(newinfo);
++out:
+ 	return ret;
++out_unlock:
++	xt_compat_unlock(AF_INET);
++	goto out;
+ }
+ 
+ static int
+-do_replace(void __user *user, unsigned int len)
++compat_do_replace(void __user *user, unsigned int len)
+ {
+ 	int ret;
+-	struct ipt_replace tmp;
+-	struct ipt_table *t;
+-	struct xt_table_info *newinfo, *oldinfo;
+-	struct xt_counters *counters;
+-	void *loc_cpu_entry, *loc_cpu_old_entry;
++	struct compat_ipt_replace tmp;
++	struct xt_table_info *newinfo;
++	void *loc_cpu_entry;
+ 
+ 	if (copy_from_user(&tmp, user, sizeof(tmp)) != 0)
+ 		return -EFAULT;
+@@ -949,151 +1818,201 @@ do_replace(void __user *user, unsigned i
+ 		goto free_newinfo;
+ 	}
+ 
+-	counters = vmalloc(tmp.num_counters * sizeof(struct xt_counters));
+-	if (!counters) {
+-		ret = -ENOMEM;
++	ret = translate_compat_table(tmp.name, tmp.valid_hooks,
++			      &newinfo, &loc_cpu_entry, tmp.size,
++			      tmp.num_entries, tmp.hook_entry, tmp.underflow);
++	if (ret != 0)
+ 		goto free_newinfo;
+-	}
+ 
+-	ret = translate_table(tmp.name, tmp.valid_hooks,
+-			      newinfo, loc_cpu_entry, tmp.size, tmp.num_entries,
+-			      tmp.hook_entry, tmp.underflow);
+-	if (ret != 0)
+-		goto free_newinfo_counters;
++	duprintf("compat_do_replace: Translated table\n");
+ 
+-	duprintf("ip_tables: Translated table\n");
++	ret = __do_replace(tmp.name, tmp.valid_hooks,
++			      newinfo, tmp.num_counters,
++			      compat_ptr(tmp.counters));
++	if (ret)
++		goto free_newinfo_untrans;
++	return 0;
+ 
+-	t = try_then_request_module(xt_find_table_lock(AF_INET, tmp.name),
+-				    "iptable_%s", tmp.name);
+-	if (!t || IS_ERR(t)) {
+-		ret = t ? PTR_ERR(t) : -ENOENT;
+-		goto free_newinfo_counters_untrans;
+-	}
++ free_newinfo_untrans:
++	IPT_ENTRY_ITERATE(loc_cpu_entry, newinfo->size, cleanup_entry,NULL);
++ free_newinfo:
++	xt_free_table_info(newinfo);
++	return ret;
++}
+ 
+-	/* You lied! */
+-	if (tmp.valid_hooks != t->valid_hooks) {
+-		duprintf("Valid hook crap: %08X vs %08X\n",
+-			 tmp.valid_hooks, t->valid_hooks);
+-		ret = -EINVAL;
+-		goto put_module;
+-	}
++static int
++compat_do_ipt_set_ctl(struct sock *sk,	int cmd, void __user *user,
++		unsigned int len)
++{
++	int ret;
+ 
+-	oldinfo = xt_replace_table(t, tmp.num_counters, newinfo, &ret);
+-	if (!oldinfo)
+-		goto put_module;
++	if (!capable(CAP_NET_ADMIN))
++		return -EPERM;
+ 
+-	/* Update module usage count based on number of rules */
+-	duprintf("do_replace: oldnum=%u, initnum=%u, newnum=%u\n",
+-		oldinfo->number, oldinfo->initial_entries, newinfo->number);
+-	if ((oldinfo->number > oldinfo->initial_entries) || 
+-	    (newinfo->number <= oldinfo->initial_entries)) 
+-		module_put(t->me);
+-	if ((oldinfo->number > oldinfo->initial_entries) &&
+-	    (newinfo->number <= oldinfo->initial_entries))
+-		module_put(t->me);
++	switch (cmd) {
++	case IPT_SO_SET_REPLACE:
++		ret = compat_do_replace(user, len);
++		break;
+ 
+-	/* Get the old counters. */
+-	get_counters(oldinfo, counters);
+-	/* Decrease module usage counts and free resource */
+-	loc_cpu_old_entry = oldinfo->entries[raw_smp_processor_id()];
+-	IPT_ENTRY_ITERATE(loc_cpu_old_entry, oldinfo->size, cleanup_entry,NULL);
+-	xt_free_table_info(oldinfo);
+-	if (copy_to_user(tmp.counters, counters,
+-			 sizeof(struct xt_counters) * tmp.num_counters) != 0)
+-		ret = -EFAULT;
+-	vfree(counters);
+-	xt_table_unlock(t);
+-	return ret;
++	case IPT_SO_SET_ADD_COUNTERS:
++		ret = do_add_counters(user, len, 1);
++		break;
++
++	default:
++		duprintf("do_ipt_set_ctl:  unknown request %i\n", cmd);
++		ret = -EINVAL;
++	}
+ 
+- put_module:
+-	module_put(t->me);
+-	xt_table_unlock(t);
+- free_newinfo_counters_untrans:
+-	IPT_ENTRY_ITERATE(loc_cpu_entry, newinfo->size, cleanup_entry,NULL);
+- free_newinfo_counters:
+-	vfree(counters);
+- free_newinfo:
+-	xt_free_table_info(newinfo);
+ 	return ret;
+ }
+ 
+-/* We're lazy, and add to the first CPU; overflow works its fey magic
+- * and everything is OK. */
+-static inline int
+-add_counter_to_entry(struct ipt_entry *e,
+-		     const struct xt_counters addme[],
+-		     unsigned int *i)
++struct compat_ipt_get_entries
+ {
+-#if 0
+-	duprintf("add_counter: Entry %u %lu/%lu + %lu/%lu\n",
+-		 *i,
+-		 (long unsigned int)e->counters.pcnt,
+-		 (long unsigned int)e->counters.bcnt,
+-		 (long unsigned int)addme[*i].pcnt,
+-		 (long unsigned int)addme[*i].bcnt);
+-#endif
++	char name[IPT_TABLE_MAXNAMELEN];
++	compat_uint_t size;
++	struct compat_ipt_entry entrytable[0];
++};
+ 
+-	ADD_COUNTER(e->counters, addme[*i].bcnt, addme[*i].pcnt);
++static int compat_copy_entries_to_user(unsigned int total_size,
++		     struct ipt_table *table, void __user *userptr)
++{
++	unsigned int off, num;
++	struct compat_ipt_entry e;
++	struct xt_counters *counters;
++	struct xt_table_info *private = table->private;
++	void __user *pos;
++	unsigned int size;
++	int ret = 0;
++	void *loc_cpu_entry;
+ 
+-	(*i)++;
+-	return 0;
++	counters = alloc_counters(table);
++	if (IS_ERR(counters))
++		return PTR_ERR(counters);
++
++	/* choose the copy that is on our node/cpu, ...
++	 * This choice is lazy (because current thread is
++	 * allowed to migrate to another cpu)
++	 */
++	loc_cpu_entry = private->entries[raw_smp_processor_id()];
++	pos = userptr;
++	size = total_size;
++	ret = IPT_ENTRY_ITERATE(loc_cpu_entry, total_size,
++			compat_copy_entry_to_user, &pos, &size);
++	if (ret)
++		goto free_counters;
++
++	/* ... then go back and fix counters and names */
++	for (off = 0, num = 0; off < size; off += e.next_offset, num++) {
++		unsigned int i;
++		struct ipt_entry_match m;
++		struct ipt_entry_target t;
++
++		ret = -EFAULT;
++		if (copy_from_user(&e, userptr + off,
++					sizeof(struct compat_ipt_entry)))
++			goto free_counters;
++		if (copy_to_user(userptr + off +
++			offsetof(struct compat_ipt_entry, counters),
++			 &counters[num], sizeof(counters[num])))
++			goto free_counters;
++
++		for (i = sizeof(struct compat_ipt_entry);
++				i < e.target_offset; i += m.u.match_size) {
++			if (copy_from_user(&m, userptr + off + i,
++					sizeof(struct ipt_entry_match)))
++				goto free_counters;
++			if (copy_to_user(userptr + off + i +
++				offsetof(struct ipt_entry_match, u.user.name),
++				m.u.kernel.match->name,
++				strlen(m.u.kernel.match->name) + 1))
++				goto free_counters;
++		}
++
++		if (copy_from_user(&t, userptr + off + e.target_offset,
++					sizeof(struct ipt_entry_target)))
++			goto free_counters;
++		if (copy_to_user(userptr + off + e.target_offset +
++			offsetof(struct ipt_entry_target, u.user.name),
++			t.u.kernel.target->name,
++			strlen(t.u.kernel.target->name) + 1))
++			goto free_counters;
++	}
++	ret = 0;
++free_counters:
++	vfree(counters);
++	return ret;
+ }
+ 
+ static int
+-do_add_counters(void __user *user, unsigned int len)
++compat_get_entries(struct compat_ipt_get_entries __user *uptr, int *len)
+ {
+-	unsigned int i;
+-	struct xt_counters_info tmp, *paddc;
++	int ret;
++	struct compat_ipt_get_entries get;
+ 	struct ipt_table *t;
+-	struct xt_table_info *private;
+-	int ret = 0;
+-	void *loc_cpu_entry;
+ 
+-	if (copy_from_user(&tmp, user, sizeof(tmp)) != 0)
+-		return -EFAULT;
+ 
+-	if (len != sizeof(tmp) + tmp.num_counters*sizeof(struct xt_counters))
++	if (*len < sizeof(get)) {
++		duprintf("compat_get_entries: %u < %u\n",
++				*len, (unsigned int)sizeof(get));
+ 		return -EINVAL;
++	}
+ 
+-	paddc = vmalloc_node(len, numa_node_id());
+-	if (!paddc)
+-		return -ENOMEM;
++	if (copy_from_user(&get, uptr, sizeof(get)) != 0)
++		return -EFAULT;
+ 
+-	if (copy_from_user(paddc, user, len) != 0) {
+-		ret = -EFAULT;
+-		goto free;
++	if (*len != sizeof(struct compat_ipt_get_entries) + get.size) {
++		duprintf("compat_get_entries: %u != %u\n", *len,
++			(unsigned int)(sizeof(struct compat_ipt_get_entries) +
++			get.size));
++		return -EINVAL;
+ 	}
+ 
+-	t = xt_find_table_lock(AF_INET, tmp.name);
+-	if (!t || IS_ERR(t)) {
++	xt_compat_lock(AF_INET);
++	t = xt_find_table_lock(AF_INET, get.name);
++	if (t && !IS_ERR(t)) {
++		struct xt_table_info *private = t->private;
++		struct xt_table_info info;
++		duprintf("t->private->number = %u\n",
++			 private->number);
++		ret = compat_table_info(private, &info);
++		if (!ret && get.size == info.size) {
++			ret = compat_copy_entries_to_user(private->size,
++						   t, uptr->entrytable);
++		} else if (!ret) {
++			duprintf("compat_get_entries: I've got %u not %u!\n",
++				 private->size,
++				 get.size);
++			ret = -EINVAL;
++		}
++		compat_flush_offsets();
++		module_put(t->me);
++		xt_table_unlock(t);
++	} else
+ 		ret = t ? PTR_ERR(t) : -ENOENT;
+-		goto free;
+-	}
+ 
+-	write_lock_bh(&t->lock);
+-	private = t->private;
+-	if (private->number != paddc->num_counters) {
+-		ret = -EINVAL;
+-		goto unlock_up_free;
+-	}
++	xt_compat_unlock(AF_INET);
++	return ret;
++}
+ 
+-	i = 0;
+-	/* Choose the copy that is on our node */
+-	loc_cpu_entry = private->entries[raw_smp_processor_id()];
+-	IPT_ENTRY_ITERATE(loc_cpu_entry,
+-			  private->size,
+-			  add_counter_to_entry,
+-			  paddc->counters,
+-			  &i);
+- unlock_up_free:
+-	write_unlock_bh(&t->lock);
+-	xt_table_unlock(t);
+-	module_put(t->me);
+- free:
+-	vfree(paddc);
++static int
++compat_do_ipt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
++{
++	int ret;
+ 
++	switch (cmd) {
++	case IPT_SO_GET_INFO:
++		ret = get_info(user, len, 1);
++		break;
++	case IPT_SO_GET_ENTRIES:
++		ret = compat_get_entries(user, len);
++		break;
++	default:
++		duprintf("compat_do_ipt_get_ctl: unknown request %i\n", cmd);
++		ret = -EINVAL;
++	}
+ 	return ret;
+ }
++#endif
+ 
+ static int
+ do_ipt_set_ctl(struct sock *sk,	int cmd, void __user *user, unsigned int len)
+@@ -1109,7 +2028,7 @@ do_ipt_set_ctl(struct sock *sk,	int cmd,
+ 		break;
+ 
+ 	case IPT_SO_SET_ADD_COUNTERS:
+-		ret = do_add_counters(user, len);
++		ret = do_add_counters(user, len, 0);
+ 		break;
+ 
+ 	default:
+@@ -1129,65 +2048,13 @@ do_ipt_get_ctl(struct sock *sk, int cmd,
+ 		return -EPERM;
+ 
+ 	switch (cmd) {
+-	case IPT_SO_GET_INFO: {
+-		char name[IPT_TABLE_MAXNAMELEN];
+-		struct ipt_table *t;
+-
+-		if (*len != sizeof(struct ipt_getinfo)) {
+-			duprintf("length %u != %u\n", *len,
+-				 sizeof(struct ipt_getinfo));
+-			ret = -EINVAL;
+-			break;
+-		}
+-
+-		if (copy_from_user(name, user, sizeof(name)) != 0) {
+-			ret = -EFAULT;
+-			break;
+-		}
+-		name[IPT_TABLE_MAXNAMELEN-1] = '\0';
+-
+-		t = try_then_request_module(xt_find_table_lock(AF_INET, name),
+-					    "iptable_%s", name);
+-		if (t && !IS_ERR(t)) {
+-			struct ipt_getinfo info;
+-			struct xt_table_info *private = t->private;
+-
+-			info.valid_hooks = t->valid_hooks;
+-			memcpy(info.hook_entry, private->hook_entry,
+-			       sizeof(info.hook_entry));
+-			memcpy(info.underflow, private->underflow,
+-			       sizeof(info.underflow));
+-			info.num_entries = private->number;
+-			info.size = private->size;
+-			memcpy(info.name, name, sizeof(info.name));
+-
+-			if (copy_to_user(user, &info, *len) != 0)
+-				ret = -EFAULT;
+-			else
+-				ret = 0;
+-			xt_table_unlock(t);
+-			module_put(t->me);
+-		} else
+-			ret = t ? PTR_ERR(t) : -ENOENT;
+-	}
+-	break;
+-
+-	case IPT_SO_GET_ENTRIES: {
+-		struct ipt_get_entries get;
++	case IPT_SO_GET_INFO:
++		ret = get_info(user, len, 0);
++		break;
+ 
+-		if (*len < sizeof(get)) {
+-			duprintf("get_entries: %u < %u\n", *len, sizeof(get));
+-			ret = -EINVAL;
+-		} else if (copy_from_user(&get, user, sizeof(get)) != 0) {
+-			ret = -EFAULT;
+-		} else if (*len != sizeof(struct ipt_get_entries) + get.size) {
+-			duprintf("get_entries: %u != %u\n", *len,
+-				 sizeof(struct ipt_get_entries) + get.size);
+-			ret = -EINVAL;
+-		} else
+-			ret = get_entries(&get, user);
++	case IPT_SO_GET_ENTRIES:
++		ret = get_entries(user, len);
+ 		break;
+-	}
+ 
+ 	case IPT_SO_GET_REVISION_MATCH:
+ 	case IPT_SO_GET_REVISION_TARGET: {
+@@ -1336,6 +2203,9 @@ static struct ipt_target ipt_standard_ta
+ 	.name		= IPT_STANDARD_TARGET,
+ 	.targetsize	= sizeof(int),
+ 	.family		= AF_INET,
++#ifdef CONFIG_COMPAT
++	.compat		= &compat_ipt_standard_fn,
++#endif
+ };
+ 
+ static struct ipt_target ipt_error_target = {
+@@ -1350,9 +2220,11 @@ static struct nf_sockopt_ops ipt_sockopt
+ 	.set_optmin	= IPT_BASE_CTL,
+ 	.set_optmax	= IPT_SO_SET_MAX+1,
+ 	.set		= do_ipt_set_ctl,
++	.compat_set	= compat_do_ipt_set_ctl,
+ 	.get_optmin	= IPT_BASE_CTL,
+ 	.get_optmax	= IPT_SO_GET_MAX+1,
+ 	.get		= do_ipt_get_ctl,
++	.compat_get	= compat_do_ipt_get_ctl,
+ };
+ 
+ static struct ipt_match icmp_matchstruct = {
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index a657ab5..feb8a9e 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -38,6 +38,7 @@ struct xt_af {
+ 	struct list_head match;
+ 	struct list_head target;
+ 	struct list_head tables;
++	struct mutex compat_mutex;
+ };
+ 
+ static struct xt_af *xt;
+@@ -272,6 +273,54 @@ int xt_check_match(const struct xt_match
+ }
+ EXPORT_SYMBOL_GPL(xt_check_match);
+ 
++#ifdef CONFIG_COMPAT
++int xt_compat_match(void *match, void **dstptr, int *size, int convert)
++{
++	struct xt_match *m;
++	struct compat_xt_entry_match *pcompat_m;
++	struct xt_entry_match *pm;
++	u_int16_t msize;
++	int off, ret;
++
++	ret = 0;
++	m = ((struct xt_entry_match *)match)->u.kernel.match;
++	off = XT_ALIGN(m->matchsize) - COMPAT_XT_ALIGN(m->matchsize);
++	switch (convert) {
++		case COMPAT_TO_USER:
++			pm = (struct xt_entry_match *)match;
++			msize = pm->u.user.match_size;
++			if (__copy_to_user(*dstptr, pm, msize)) {
++				ret = -EFAULT;
++				break;
++			}
++			msize -= off;
++			if (put_user(msize, (u_int16_t *)*dstptr))
++				ret = -EFAULT;
++			*size -= off;
++			*dstptr += msize;
++			break;
++		case COMPAT_FROM_USER:
++			pcompat_m = (struct compat_xt_entry_match *)match;
++			pm = (struct xt_entry_match *)*dstptr;
++			msize = pcompat_m->u.user.match_size;
++			memcpy(pm, pcompat_m, msize);
++			msize += off;
++			pm->u.user.match_size = msize;
++			*size += off;
++			*dstptr += msize;
++			break;
++		case COMPAT_CALC_SIZE:
++			*size += off;
++			break;
++		default:
++			ret = -ENOPROTOOPT;
++			break;
++	}
++	return ret;
++}
++EXPORT_SYMBOL_GPL(xt_compat_match);
++#endif
++
+ int xt_check_target(const struct xt_target *target, unsigned short family,
+ 		    unsigned int size, const char *table, unsigned int hook_mask,
+ 		    unsigned short proto, int inv_proto)
+@@ -301,6 +350,54 @@ int xt_check_target(const struct xt_targ
+ }
+ EXPORT_SYMBOL_GPL(xt_check_target);
+ 
++#ifdef CONFIG_COMPAT
++int xt_compat_target(void *target, void **dstptr, int *size, int convert)
++{
++	struct xt_target *t;
++	struct compat_xt_entry_target *pcompat;
++	struct xt_entry_target *pt;
++	u_int16_t tsize;
++	int off, ret;
++
++	ret = 0;
++	t = ((struct xt_entry_target *)target)->u.kernel.target;
++	off = XT_ALIGN(t->targetsize) - COMPAT_XT_ALIGN(t->targetsize);
++	switch (convert) {
++		case COMPAT_TO_USER:
++			pt = (struct xt_entry_target *)target;
++			tsize = pt->u.user.target_size;
++			if (__copy_to_user(*dstptr, pt, tsize)) {
++				ret = -EFAULT;
++				break;
++			}
++			tsize -= off;
++			if (put_user(tsize, (u_int16_t *)*dstptr))
++				ret = -EFAULT;
++			*size -= off;
++			*dstptr += tsize;
++			break;
++		case COMPAT_FROM_USER:
++			pcompat = (struct compat_xt_entry_target *)target;
++			pt = (struct xt_entry_target *)*dstptr;
++			tsize = pcompat->u.user.target_size;
++			memcpy(pt, pcompat, tsize);
++			tsize += off;
++			pt->u.user.target_size = tsize;
++			*size += off;
++			*dstptr += tsize;
++			break;
++		case COMPAT_CALC_SIZE:
++			*size += off;
++			break;
++		default:
++			ret = -ENOPROTOOPT;
++			break;
++	}
++	return ret;
++}
++EXPORT_SYMBOL_GPL(xt_compat_target);
++#endif
++
+ struct xt_table_info *xt_alloc_table_info(unsigned int size)
+ {
+ 	struct xt_table_info *newinfo;
+@@ -371,6 +468,19 @@ void xt_table_unlock(struct xt_table *ta
+ }
+ EXPORT_SYMBOL_GPL(xt_table_unlock);
+ 
++#ifdef CONFIG_COMPAT
++void xt_compat_lock(int af)
++{
++	mutex_lock(&xt[af].compat_mutex);
++}
++EXPORT_SYMBOL_GPL(xt_compat_lock);
++
++void xt_compat_unlock(int af)
++{
++	mutex_unlock(&xt[af].compat_mutex);
++}
++EXPORT_SYMBOL_GPL(xt_compat_unlock);
++#endif
+ 
+ struct xt_table_info *
+ xt_replace_table(struct xt_table *table,
+@@ -671,6 +781,9 @@ static int __init xt_init(void)
+ 
+ 	for (i = 0; i < NPROTO; i++) {
+ 		mutex_init(&xt[i].mutex);
++#ifdef CONFIG_COMPAT
++		mutex_init(&xt[i].compat_mutex);
++#endif
+ 		INIT_LIST_HEAD(&xt[i].target);
+ 		INIT_LIST_HEAD(&xt[i].match);
+ 		INIT_LIST_HEAD(&xt[i].tables);
 
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-631094242-1143628176=:13092
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=ipp2p-0.8.1-linux26.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0603291229360.13092@bizon.gios.gov.pl>
-Content-Description: 
-Content-Disposition: attachment; filename=ipp2p-0.8.1-linux26.patch
-
-W1BPTS1ORyAxMS8xMF0gVXBncmFkZSBpcHAycCB0byB2ZXJzaW9uIDAuOC4x
-X3JjMSBhbHNvIGZvciBsaW51eC0yLjYNCg0KVGhpcyBwYXRjaCB1cGdyYWRl
-cyBwb20tbmcgaXBwMnAgbW9kdWxlIGZvciBsaW51eC0yLjYgdG8gMC44LjFf
-cmMxIHZlcnNpb24NCmZyb20gaHR0cDovL3d3dy5pcHAycC5vcmcvZG93bmxv
-YWRzL2lwcDJwLTAuOC4xX3JjMS50YXIuZ3oNCg0KU2lnbmVkLW9mZi1ieTog
-S3J6eXN6dG9mIFBpb3RyIE9sZWR6a2kgPG9sZUBhbnMucGw+DQoNCmRpZmYg
-LU51ciBwYXRjaC1vLW1hdGljLW5nLTIwMDYwMzI3LW9yaWcvcGF0Y2hsZXRz
-L2lwcDJwL2xpbnV4LTIuNi9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9pcHY0
-L2lwdF9pcHAycC5oIHBhdGNoLW8tbWF0aWMtbmctMjAwNjAzMjcvcGF0Y2hs
-ZXRzL2lwcDJwL2xpbnV4LTIuNi9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9p
-cHY0L2lwdF9pcHAycC5oDQotLS0gcGF0Y2gtby1tYXRpYy1uZy0yMDA2MDMy
-Ny1vcmlnL3BhdGNobGV0cy9pcHAycC9saW51eC0yLjYvaW5jbHVkZS9saW51
-eC9uZXRmaWx0ZXJfaXB2NC9pcHRfaXBwMnAuaAkyMDA1LTAyLTAxIDExOjA5
-OjQ4LjAwMDAwMDAwMCArMDEwMA0KKysrIHBhdGNoLW8tbWF0aWMtbmctMjAw
-NjAzMjcvcGF0Y2hsZXRzL2lwcDJwL2xpbnV4LTIuNi9pbmNsdWRlL2xpbnV4
-L25ldGZpbHRlcl9pcHY0L2lwdF9pcHAycC5oCTIwMDYtMDMtMjkgMTE6NDk6
-NDcuMDAwMDAwMDAwICswMjAwDQpAQCAtMSw2ICsxLDYgQEANCiAjaWZuZGVm
-IF9fSVBUX0lQUDJQX0gNCiAjZGVmaW5lIF9fSVBUX0lQUDJQX0gNCi0jZGVm
-aW5lIElQUDJQX1ZFUlNJT04gIjAuNy4yIg0KKyNkZWZpbmUgSVBQMlBfVkVS
-U0lPTiAiMC44LjFfcmMxIg0KIA0KIHN0cnVjdCBpcHRfcDJwX2luZm8gew0K
-ICAgICBpbnQgY21kOw0KQEAgLTEwLDIwICsxMCwyMiBAQA0KICNlbmRpZiAv
-L19fSVBUX0lQUDJQX0gNCiANCiAjZGVmaW5lIFNIT1JUX0hBTkRfSVBQMlAJ
-MSAvKiAtLWlwcDJwIHN3aXRjaCovDQotI2RlZmluZSBTSE9SVF9IQU5EX0RB
-VEEJCTQgLyogLS1pcHAycC1kYXRhIHN3aXRjaCovDQorLy8jZGVmaW5lIFNI
-T1JUX0hBTkRfREFUQQkJNCAvKiAtLWlwcDJwLWRhdGEgc3dpdGNoKi8NCiAj
-ZGVmaW5lIFNIT1JUX0hBTkRfTk9ORQkJNSAvKiBubyBzaG9ydCBoYW5kKi8N
-CiANCi0jZGVmaW5lIElQUDJQX0VESwkJMg0KLSNkZWZpbmUgSVBQMlBfREFU
-QV9LQVpBQQk4DQotI2RlZmluZSBJUFAyUF9EQVRBX0VESwkJMTYNCi0jZGVm
-aW5lIElQUDJQX0RBVEFfREMJCTMyDQotI2RlZmluZSBJUFAyUF9EQwkJNjQN
-Ci0jZGVmaW5lIElQUDJQX0RBVEFfR05VCQkxMjgNCi0jZGVmaW5lIElQUDJQ
-X0dOVQkJMjU2DQotI2RlZmluZSBJUFAyUF9LQVpBQQkJNTEyDQotI2RlZmlu
-ZSBJUFAyUF9CSVQJCTEwMjQNCi0jZGVmaW5lIElQUDJQX0FQUExFCQkyMDQ4
-DQotI2RlZmluZSBJUFAyUF9TT1VMCQk0MDk2DQotI2RlZmluZSBJUFAyUF9X
-SU5NWAkJODE5Mg0KLSNkZWZpbmUgSVBQMlBfQVJFUwkJMTYzODQNCi0NCisj
-ZGVmaW5lIElQUDJQX0VESwkJKDEgPDwgMSkNCisjZGVmaW5lIElQUDJQX0RB
-VEFfS0FaQUEJKDEgPDwgMikNCisjZGVmaW5lIElQUDJQX0RBVEFfRURLCQko
-MSA8PCAzKQ0KKyNkZWZpbmUgSVBQMlBfREFUQV9EQwkJKDEgPDwgNCkNCisj
-ZGVmaW5lIElQUDJQX0RDCQkoMSA8PCA1KQ0KKyNkZWZpbmUgSVBQMlBfREFU
-QV9HTlUJCSgxIDw8IDYpDQorI2RlZmluZSBJUFAyUF9HTlUJCSgxIDw8IDcp
-DQorI2RlZmluZSBJUFAyUF9LQVpBQQkJKDEgPDwgOCkNCisjZGVmaW5lIElQ
-UDJQX0JJVAkJKDEgPDwgOSkNCisjZGVmaW5lIElQUDJQX0FQUExFCQkoMSA8
-PCAxMCkNCisjZGVmaW5lIElQUDJQX1NPVUwJCSgxIDw8IDExKQ0KKyNkZWZp
-bmUgSVBQMlBfV0lOTVgJCSgxIDw8IDEyKQ0KKyNkZWZpbmUgSVBQMlBfQVJF
-UwkJKDEgPDwgMTMpDQorI2RlZmluZSBJUFAyUF9NVVRFCQkoMSA8PCAxNCkN
-CisjZGVmaW5lIElQUDJQX1dBU1RFCQkoMSA8PCAxNSkNCisjZGVmaW5lIElQ
-UDJQX1hEQ0MJCSgxIDw8IDE2KQ0KZGlmZiAtTnVyIHBhdGNoLW8tbWF0aWMt
-bmctMjAwNjAzMjctb3JpZy9wYXRjaGxldHMvaXBwMnAvbGludXgtMi42L25l
-dC9pcHY0L25ldGZpbHRlci9pcHRfaXBwMnAuYyBwYXRjaC1vLW1hdGljLW5n
-LTIwMDYwMzI3L3BhdGNobGV0cy9pcHAycC9saW51eC0yLjYvbmV0L2lwdjQv
-bmV0ZmlsdGVyL2lwdF9pcHAycC5jDQotLS0gcGF0Y2gtby1tYXRpYy1uZy0y
-MDA2MDMyNy1vcmlnL3BhdGNobGV0cy9pcHAycC9saW51eC0yLjYvbmV0L2lw
-djQvbmV0ZmlsdGVyL2lwdF9pcHAycC5jCTIwMDYtMDMtMjkgMTE6NDk6NDcu
-MDAwMDAwMDAwICswMjAwDQorKysgcGF0Y2gtby1tYXRpYy1uZy0yMDA2MDMy
-Ny9wYXRjaGxldHMvaXBwMnAvbGludXgtMi42L25ldC9pcHY0L25ldGZpbHRl
-ci9pcHRfaXBwMnAuYwkyMDA2LTAzLTI5IDEyOjEwOjI0LjAwMDAwMDAwMCAr
-MDIwMA0KQEAgLTEsNiArMSw5IEBADQorI2lmIGRlZmluZWQoTU9EVkVSU0lP
-TlMpDQorI2luY2x1ZGUgPGxpbnV4L21vZHZlcnNpb25zLmg+DQorI2VuZGlm
-DQogI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPg0KLSNpbmNsdWRlIDxsaW51
-eC9uZXRmaWx0ZXJfaXB2NC9pcF90YWJsZXMuaD4NCiAjaW5jbHVkZSA8bGlu
-dXgvdmVyc2lvbi5oPg0KKyNpbmNsdWRlIDxsaW51eC9uZXRmaWx0ZXJfaXB2
-NC9pcF90YWJsZXMuaD4NCiAjaW5jbHVkZSA8bGludXgvbmV0ZmlsdGVyX2lw
-djQvaXB0X2lwcDJwLmg+DQogI2luY2x1ZGUgPG5ldC90Y3AuaD4NCiAjaW5j
-bHVkZSA8bmV0L3VkcC5oPg0KQEAgLTksNyArMTIsNyBAQA0KICNkZWZpbmUg
-Z2V0X3UxNihYLE8pICAoKihfX3UxNiAqKShYICsgTykpDQogI2RlZmluZSBn
-ZXRfdTMyKFgsTykgICgqKF9fdTMyICopKFggKyBPKSkNCiANCi1NT0RVTEVf
-QVVUSE9SKCJFaWNrZSBGcmllZHJpY2ggPGlwcDJwQGlwcDJwLm9yZz4iKTsN
-CitNT0RVTEVfQVVUSE9SKCJFaWNrZSBGcmllZHJpY2gvS2xhdXMgRGVnbmVy
-IDxpcHAycEBpcHAycC5vcmc+Iik7DQogTU9EVUxFX0RFU0NSSVBUSU9OKCJB
-biBleHRlbnNpb24gdG8gaXB0YWJsZXMgdG8gaWRlbnRpZnkgUDJQIHRyYWZm
-aWMuIik7DQogTU9EVUxFX0xJQ0VOU0UoIkdQTCIpOw0KIA0KQEAgLTIxLDU3
-ICsyNCw3MyBAQA0KICAgICB1bnNpZ25lZCBjaGFyICp0ID0gaGF5c3RhY2s7
-DQogICAgIHQgKz0gODsNCiANCi0gICAgc3dpdGNoICh0WzBdKSB7DQotICAg
-IGNhc2UgMHhlMzogewkvKmVkb25rZXkqLw0KLQlzd2l0Y2ggKHRbMV0pIHsN
-Ci0JCQkvKiBlMyA5YSArIDE2Qnl0ZXMgSGFzaCB8IHNpemUgPT0gMjYgKi8N
-Ci0JY2FzZSAweDlhOiBpZiAocGFja2V0X2xlbiA9PSAyNikgcmV0dXJuICgo
-SVBQMlBfRURLICogMTAwKSArIDEpOw0KLQkJCS8qIGUzIDk2IHh4IHl5IHp6
-IGtrIHwgc2l6ZSA9PSAxNCB8IHNlcnZlciBzdGF0dXMgcmVxdWVzdCAqLw0K
-LQljYXNlIDB4OTY6IGlmIChwYWNrZXRfbGVuID09IDE0KSByZXR1cm4gKChJ
-UFAyUF9FREsgKiAxMDApICsgMik7DQotCQkJLyogZTMgYTIgfCBzaXplID09
-IDEwIG9yIDE0IDwtLSByZWNoZWNrKi8NCi0JfQ0KLSAgICB9DQotDQotICAg
-IGNhc2UgMHhjNTogewkvKmVtdWxlKi8NCi0Jc3dpdGNoICh0WzFdKSB7DQot
-CQkJLyogYzUgOTEgeHggeXkgfCBzaXplID09IDEyICg4KzQpIHwgeHggIT0g
-MHgwMCAgLS0geHggeXkgcXVldWUgcmF0aW5nICovDQotCWNhc2UgMHg5MTog
-aWYgKChwYWNrZXRfbGVuID09IDEyKSAmJiAodFsyXSAhPSAweDAwKSkgcmV0
-dXJuICgoSVBQMlBfRURLICogMTAwKSArIDMpOw0KLQkJCS8qIGM1IDkwIHh4
-IC4uICB5eSB8IHNpemUgPT0gMjYgKDgrMisxNikgfCB4eCAuLiB5eSA9PSBo
-YXNoICAtLSBmaWxlIHBpbmcgKi8NCi0JY2FzZSAweDkwOiBpZiAoKHBhY2tl
-dF9sZW4gPT0gMjYpICYmICh0WzJdICE9IDB4MDApKSByZXR1cm4gKChJUFAy
-UF9FREsgKiAxMDApICsgNCk7DQotCQkJLyogYzUgOTIgfCBzaXplID09IDEw
-ICg4KzIpIC0tIGZpbGUgbm90IGZvdW5kICovDQotCWNhc2UgMHg5MjogaWYg
-KHBhY2tldF9sZW4gPT0gMTApIHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkg
-KyA1KTsNCi0JCQkvKiBjNSA5MyB8IHNpemUgPT0gMTAgKDgrMikgLS0gcXVl
-dWUgZnVsbCAqLw0KLQljYXNlIDB4OTM6IGlmIChwYWNrZXRfbGVuID09IDEw
-KSByZXR1cm4gKChJUFAyUF9FREsgKiAxMDApICsgNik7DQotCX0NCi0gICAg
-fQ0KLQ0KLSAgICBjYXNlIDB4ZTQ6IHsJLyprYWQqLw0KLQlzd2l0Y2ggKHRb
-MV0pIHsNCi0JCQkvKiBlNCA1MCB8IHNpemUgPT0gMTIgKi8NCi0JICAgIGNh
-c2UgMHg1MDogaWYgKHBhY2tldF9sZW4gPT0gMTIpIHJldHVybiAoKElQUDJQ
-X0VESyAqIDEwMCkgKyA3KTsNCi0JCQkvKiBlNCA1OCB8IHNpemUgPT0gMTQg
-Ki8NCi0JICAgIGNhc2UgMHg1ODogaWYgKChwYWNrZXRfbGVuID09IDE0KSAm
-JiAodFsyXSAhPSAweDAwKSkgcmV0dXJuICgoSVBQMlBfRURLICogMTAwKSAr
-IDgpOw0KLQkJCS8qIGU0IDU5IHwgc2l6ZSA9PSAxMCAqLw0KLQkgICAgY2Fz
-ZSAweDU5OiBpZiAocGFja2V0X2xlbiA9PSAxMCkgcmV0dXJuICgoSVBQMlBf
-RURLICogMTAwKSArIDkpOw0KLQkJCS8qIGU0IDMwIC4uIHwgdFsxOF0gPT0g
-MHgwMSB8IHNpemUgPiAyNiB8IC0tPiBzZWFyY2ggKi8NCi0JICAgIGNhc2Ug
-MHgzMDogaWYgKChwYWNrZXRfbGVuID4gMjYpICYmICh0WzE4XSA9PSAweDAx
-KSkgcmV0dXJuICgoSVBQMlBfRURLICogMTAwKSArIDEwKTsNCi0JCQkvKiBl
-NCAyOCAuLiAwMCB8IHRbNjhdID09IDB4MDAgfCBzaXplID4gNzYgKi8NCi0J
-ICAgIGNhc2UgMHgyODogaWYgKChwYWNrZXRfbGVuID4gNzYpICYmICh0WzY4
-XSA9PSAweDAwKSkgcmV0dXJuICgoSVBQMlBfRURLICogMTAwKSArIDExKTsN
-Ci0JCQkvKiBlNCAyMCAuLiB8IHNpemUgPT0gNDMgKi8NCi0JICAgIGNhc2Ug
-MHgyMDogaWYgKChwYWNrZXRfbGVuID09IDQzKSAmJiAodFsyXSAhPSAweDAw
-KSAmJiAodFszNF0gIT0gMHgwMCkpIHJldHVybiAoKElQUDJQX0VESyAqIDEw
-MCkgKyAxMik7DQotCQkJLyogZTQgMDAgLi4gMDAgfCBzaXplID09IDM1ID8g
-Ki8NCi0JICAgIGNhc2UgMHgwMDogaWYgKChwYWNrZXRfbGVuID09IDM1KSAm
-JiAodFsyNl0gPT0gMHgwMCkpIHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkg
-KyAxMyk7DQotCQkJLyogZTQgMTAgLi4gMDAgfCBzaXplID09IDM1ID8gKi8N
-Ci0JICAgIGNhc2UgMHgxMDogaWYgKChwYWNrZXRfbGVuID09IDM1KSAmJiAo
-dFsyNl0gPT0gMHgwMCkpIHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyAx
-NCk7DQotCQkJLyogZTQgMTggLi4gMDAgfCBzaXplID09IDM1ID8gKi8NCi0J
-ICAgIGNhc2UgMHgxODogaWYgKChwYWNrZXRfbGVuID09IDM1KSAmJiAodFsy
-Nl0gPT0gMHgwMCkpIHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyAxNSk7
-DQotCQkJLyogZTQgNDAgLi4gfCB0WzE4XSA9PSAweDAxIHwgdFsxOV0gPT0g
-MHgwMCB8IHNpemUgPiA0MCAqLw0KLQkgICAgY2FzZSAweDQwOiBpZiAoKHBh
-Y2tldF9sZW4gPiA0MCkgJiYgKHRbMThdID09IDB4MDEpICYmICh0WzE5XSA9
-PSAweDAwKSkgcmV0dXJuICgoSVBQMlBfRURLICogMTAwKSArIDE2KTsNCi0J
-fQ0KLSAgICB9DQotICAgIA0KLSAgICBkZWZhdWx0OiByZXR1cm4gMDsNCi0g
-ICAgfSAvKiBlbmQgb2Ygc3dpdGNoICh0WzBdKSAqLw0KKwlzd2l0Y2ggKHRb
-MF0pIHsNCisJCWNhc2UgMHhlMzogDQorCQl7CS8qZWRvbmtleSovDQorCQkJ
-c3dpdGNoICh0WzFdKSANCisJCQl7DQorCQkJCS8qIGNsaWVudCAtPiBzZXJ2
-ZXIgc3RhdHVzIHJlcXVlc3QgKi8NCisJCQkJY2FzZSAweDk2OiANCisJCQkJ
-CWlmIChwYWNrZXRfbGVuID09IDE0KSByZXR1cm4gKChJUFAyUF9FREsgKiAx
-MDApICsgNTApOw0KKwkJCQkJYnJlYWs7DQorCQkJCS8qIHNlcnZlciAtPiBj
-bGllbnQgc3RhdHVzIHJlcXVlc3QgKi8NCisJCQkJY2FzZSAweDk3OiBpZiAo
-cGFja2V0X2xlbiA9PSA0MikgcmV0dXJuICgoSVBQMlBfRURLICogMTAwKSAr
-IDUxKTsNCisJCQkJCWJyZWFrOw0KKwkJCQkJCS8qIHNlcnZlciBkZXNjcmlw
-dGlvbiByZXF1ZXN0ICovDQorCQkJCQkJLyogZTMgMmEgZmYgZjAgLi4gfCBz
-aXplID09IDYgKi8NCisJCQkJY2FzZSAweGEyOiBpZiAoIChwYWNrZXRfbGVu
-ID09IDE0KSAmJiAoIGdldF91MTYodCwyKSA9PSBfX2NvbnN0YW50X2h0b25z
-KDB4ZmZmMCkgKSApIHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyA1Mik7
-DQorCQkJCQlicmVhazsNCisJCQkJCQkvKiBzZXJ2ZXIgZGVzY3JpcHRpb24g
-cmVzcG9uc2UgKi8NCisJCQkJCQkvKiBlMyBhMyBmZiBmMCAuLiAgfCBzaXpl
-ID4gNDAgJiYgc2l6ZSA8IDIwMCAqLw0KKwkJCQkvL2Nhc2UgMHhhMzogcmV0
-dXJuICgoSVBQMlBfRURLICogMTAwKSArIDUzKTsNCisJCQkJLy8JYnJlYWs7
-DQorCQkJCWNhc2UgMHg5YTogaWYgKHBhY2tldF9sZW49PTI2KSByZXR1cm4g
-KChJUFAyUF9FREsgKiAxMDApICsgNTQpOw0KKwkJCQkJYnJlYWs7DQorDQor
-CQkJCWNhc2UgMHg5MjogaWYgKHBhY2tldF9sZW49PTE4KSByZXR1cm4gKChJ
-UFAyUF9FREsgKiAxMDApICsgNTUpOw0KKwkJCQkJYnJlYWs7DQorCQkJfQ0K
-KwkJCWJyZWFrOw0KKwkJfQ0KKwkJY2FzZSAweGU0OiANCisJCXsNCisJCQlz
-d2l0Y2ggKHRbMV0pIA0KKwkJCXsNCisJCQkJCQkvKiBlNCAyMCAuLiB8IHNp
-emUgPT0gNDMgKi8NCisJCQkJY2FzZSAweDIwOiBpZiAoKHBhY2tldF9sZW4g
-PT0gNDMpICYmICh0WzJdICE9IDB4MDApICYmICh0WzM0XSAhPSAweDAwKSkg
-cmV0dXJuICgoSVBQMlBfRURLICogMTAwKSArIDYwKTsNCisJCQkJCWJyZWFr
-Ow0KKwkJCQkJCS8qIGU0IDAwIC4uIDAwIHwgc2l6ZSA9PSAzNSA/ICovDQor
-CQkJCWNhc2UgMHgwMDogaWYgKChwYWNrZXRfbGVuID09IDM1KSAmJiAodFsy
-Nl0gPT0gMHgwMCkpIHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyA2MSk7
-DQorCQkJCQlicmVhazsNCisJCQkJCQkvKiBlNCAxMCAuLiAwMCB8IHNpemUg
-PT0gMzUgPyAqLw0KKwkJCQljYXNlIDB4MTA6IGlmICgocGFja2V0X2xlbiA9
-PSAzNSkgJiYgKHRbMjZdID09IDB4MDApKSByZXR1cm4gKChJUFAyUF9FREsg
-KiAxMDApICsgNjIpOw0KKwkJCQkJYnJlYWs7DQorCQkJCQkJLyogZTQgMTgg
-Li4gMDAgfCBzaXplID09IDM1ID8gKi8NCisJCQkJY2FzZSAweDE4OiBpZiAo
-KHBhY2tldF9sZW4gPT0gMzUpICYmICh0WzI2XSA9PSAweDAwKSkgcmV0dXJu
-ICgoSVBQMlBfRURLICogMTAwKSArIDYzKTsNCisJCQkJCWJyZWFrOw0KKwkJ
-CQkJCS8qIGU0IDUyIC4uIHwgc2l6ZSA9IDQ0ICovDQorCQkJCWNhc2UgMHg1
-MjogaWYgKHBhY2tldF9sZW4gPT0gNDQgKSByZXR1cm4gKChJUFAyUF9FREsg
-KiAxMDApICsgNjQpOw0KKwkJCQkJYnJlYWs7DQorCQkJCQkJLyogZTQgNTgg
-Li4gfCBzaXplID09IDYgKi8NCisJCQkJY2FzZSAweDU4OiBpZiAocGFja2V0
-X2xlbiA9PSAxNCApIHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyA2NSk7
-DQorCQkJCQlicmVhazsNCisJCQkJCQkvKiBlNCA1OSAuLiB8IHNpemUgPT0g
-MiAqLw0KKwkJCQljYXNlIDB4NTk6IGlmIChwYWNrZXRfbGVuID09IDEwICly
-ZXR1cm4gKChJUFAyUF9FREsgKiAxMDApICsgNjYpOw0KKwkJCQkJYnJlYWs7
-DQorCQkJCQkvKiBlNCAyOCAuLiB8IHBhY2tldF9sZW4gPT0gNTIsNzcsMTAy
-LDEyNy4uLiAqLw0KKwkJCQljYXNlIDB4Mjg6IGlmICgoKHBhY2tldF9sZW4t
-NTIpICUgMjUpID09IDApIHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyA2
-Nyk7DQorCQkJCQlicmVhazsNCisJCQkJCS8qIGU0IDUwIHh4IHh4IHwgc2l6
-ZSA9PSA0ICovDQorCQkJCWNhc2UgMHg1MDogaWYgKHBhY2tldF9sZW4gPT0g
-MTIpIHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyA2OCk7DQorCQkJCQli
-cmVhazsNCisJCQkJCS8qIGU0IDQwIHh4IHh4IHwgc2l6ZSA9PSA0OCAqLw0K
-KwkJCQljYXNlIDB4NDA6IGlmIChwYWNrZXRfbGVuID09IDU2KSByZXR1cm4g
-KChJUFAyUF9FREsgKiAxMDApICsgNjkpOw0KKwkJCQkJYnJlYWs7DQorCQkJ
-fQ0KKwkJCWJyZWFrOw0KKwkJfQ0KKwl9IC8qIGVuZCBvZiBzd2l0Y2ggKHRb
-MF0pICovDQorICAgIHJldHVybiAwOw0KIH0vKnVkcF9zZWFyY2hfZWRrKi8N
-CiANCiANCkBAIC04Miw4ICsxMDEsOCBAQA0KICAgICB1bnNpZ25lZCBjaGFy
-ICp0ID0gaGF5c3RhY2s7DQogICAgIHQgKz0gODsNCiAgICAgDQotICAgIGlm
-IChtZW1jbXAodCwgIkdORCIsIDMpID09IDApIHJldHVybiAoKElQUDJQX0dO
-VSAqIDEwMCkgKyAxKTsNCi0gICAgaWYgKG1lbWNtcCh0LCAiR05VVEVMTEEg
-IiwgOSkgPT0gMCkgcmV0dXJuICgoSVBQMlBfR05VICogMTAwKSArIDIpOw0K
-KyAgICBpZiAobWVtY21wKHQsICJHTkQiLCAzKSA9PSAwKSByZXR1cm4gKChJ
-UFAyUF9HTlUgKiAxMDApICsgNTEpOw0KKyAgICBpZiAobWVtY21wKHQsICJH
-TlVURUxMQSAiLCA5KSA9PSAwKSByZXR1cm4gKChJUFAyUF9HTlUgKiAxMDAp
-ICsgNTIpOw0KICAgICByZXR1cm4gMDsNCiB9Lyp1ZHBfc2VhcmNoX2dudSov
-DQogDQpAQCAtOTYsMjUgKzExNSwxMDkgQEANCiAgICAgDQogICAgIGlmICh0
-W3BhY2tldF9sZW4tMV0gPT0gMHgwMCl7DQogCXQgKz0gKHBhY2tldF9sZW4g
-LSA2KTsNCi0JaWYgKG1lbWNtcCh0LCAiS2FaYUEiLCA1KSA9PSAwKSByZXR1
-cm4gKElQUDJQX0tBWkFBICogMTAwKTsNCisJaWYgKG1lbWNtcCh0LCAiS2Fa
-YUEiLCA1KSA9PSAwKSByZXR1cm4gKElQUDJQX0tBWkFBICogMTAwICs1MCk7
-DQogICAgIH0NCisgICAgDQogICAgIHJldHVybiAwOw0KIH0vKnVkcF9zZWFy
-Y2hfa2F6YWEqLw0KIA0KKy8qU2VhcmNoIGZvciBVRFAgRGlyZWN0Q29ubmVj
-dCBjb21tYW5kcyovDQoraW50DQordWRwX3NlYXJjaF9kaXJlY3Rjb25uZWN0
-ICh1bnNpZ25lZCBjaGFyICpoYXlzdGFjaywgaW50IHBhY2tldF9sZW4pDQor
-ew0KKyAgICB1bnNpZ25lZCBjaGFyICp0ID0gaGF5c3RhY2s7DQorICAgIGlm
-ICgoKih0ICsgOCkgPT0gMHgyNCkgJiYgKCoodCArIHBhY2tldF9sZW4gLSAx
-KSA9PSAweDdjKSkgew0KKyAgICAJdCs9ODsNCisgICAgCWlmIChtZW1jbXAo
-dCwgIlNSICIsIDMpID09IDApCSAJCXJldHVybiAoKElQUDJQX0RDICogMTAw
-KSArIDYwKTsNCisgICAgCWlmIChtZW1jbXAodCwgIlBpbmcgIiwgNSkgPT0g
-MCkJIAkJcmV0dXJuICgoSVBQMlBfREMgKiAxMDApICsgNjEpOw0KKyAgICB9
-DQorICAgIHJldHVybiAwOw0KK30vKnVkcF9zZWFyY2hfZGlyZWN0Y29ubmVj
-dCovDQorDQorDQogDQogLypTZWFyY2ggZm9yIFVEUCBCaXRUb3JyZW50IGNv
-bW1hbmRzKi8NCiBpbnQNCiB1ZHBfc2VhcmNoX2JpdCAodW5zaWduZWQgY2hh
-ciAqaGF5c3RhY2ssIGludCBwYWNrZXRfbGVuKQ0KIHsNCi0gICAgdW5zaWdu
-ZWQgY2hhciAqdCA9IGhheXN0YWNrOw0KKwlzd2l0Y2gocGFja2V0X2xlbikN
-CisJew0KKwkJY2FzZSAyNDoNCisJCQkvKiBeIDAwIDAwIDA0IDE3IDI3IDEw
-IDE5IDgwICovDQorCQkJaWYgKChudG9obChnZXRfdTMyKGhheXN0YWNrLCA4
-KSkgPT0gMHgwMDAwMDQxNykgJiYgKG50b2hsKGdldF91MzIoaGF5c3RhY2ss
-IDEyKSkgPT0gMHgyNzEwMTk4MCkpIA0KKwkJCQlyZXR1cm4gKElQUDJQX0JJ
-VCAqIDEwMCArIDUwKTsNCisJCQlicmVhazsNCisJCWNhc2UgNDQ6DQorCQkJ
-aWYgKGdldF91MzIoaGF5c3RhY2ssIDE2KSA9PSBfX2NvbnN0YW50X2h0b25s
-KDB4MDAwMDA0MDApICYmIGdldF91MzIoaGF5c3RhY2ssIDM2KSA9PSBfX2Nv
-bnN0YW50X2h0b25sKDB4MDAwMDAxMDQpKSANCisJCQkJcmV0dXJuIChJUFAy
-UF9CSVQgKiAxMDAgKyA1MSk7DQorCQkJaWYgKGdldF91MzIoaGF5c3RhY2ss
-IDE2KSA9PSBfX2NvbnN0YW50X2h0b25sKDB4MDAwMDA0MDApKQ0KKwkJCQly
-ZXR1cm4gKElQUDJQX0JJVCAqIDEwMCArIDYxKTsNCisJCQlicmVhazsNCisJ
-CWNhc2UgNjU6DQorCQkJaWYgKGdldF91MzIoaGF5c3RhY2ssIDE2KSA9PSBf
-X2NvbnN0YW50X2h0b25sKDB4MDAwMDA0MDQpICYmIGdldF91MzIoaGF5c3Rh
-Y2ssIDM2KSA9PSBfX2NvbnN0YW50X2h0b25sKDB4MDAwMDAxMDQpKSANCisJ
-CQkJcmV0dXJuIChJUFAyUF9CSVQgKiAxMDAgKyA1Mik7DQorCQkJaWYgKGdl
-dF91MzIoaGF5c3RhY2ssIDE2KSA9PSBfX2NvbnN0YW50X2h0b25sKDB4MDAw
-MDA0MDQpKQ0KKwkJCQlyZXR1cm4gKElQUDJQX0JJVCAqIDEwMCArIDYyKTsN
-CisJCQlicmVhazsNCisJCWNhc2UgNjc6DQorCQkJaWYgKGdldF91MzIoaGF5
-c3RhY2ssIDE2KSA9PSBfX2NvbnN0YW50X2h0b25sKDB4MDAwMDA0MDYpICYm
-IGdldF91MzIoaGF5c3RhY2ssIDM2KSA9PSBfX2NvbnN0YW50X2h0b25sKDB4
-MDAwMDAxMDQpKSANCisJCQkJcmV0dXJuIChJUFAyUF9CSVQgKiAxMDAgKyA1
-Myk7DQorCQkJaWYgKGdldF91MzIoaGF5c3RhY2ssIDE2KSA9PSBfX2NvbnN0
-YW50X2h0b25sKDB4MDAwMDA0MDYpKQ0KKwkJCQlyZXR1cm4gKElQUDJQX0JJ
-VCAqIDEwMCArIDYzKTsNCisJCQlicmVhazsNCisJCWNhc2UgMjExOg0KKwkJ
-CWlmIChnZXRfdTMyKGhheXN0YWNrLCA4KSA9PSBfX2NvbnN0YW50X2h0b25s
-KDB4MDAwMDA0MDUpKSANCisJCQkJcmV0dXJuIChJUFAyUF9CSVQgKiAxMDAg
-KyA1NCk7DQorCQkJYnJlYWs7DQorCQljYXNlIDI5Og0KKwkJCWlmICgoZ2V0
-X3UzMihoYXlzdGFjaywgOCkgPT0gX19jb25zdGFudF9odG9ubCgweDAwMDAw
-NDAxKSkpIA0KKwkJCQlyZXR1cm4gKElQUDJQX0JJVCAqIDEwMCArIDU1KTsN
-CisJCQlicmVhazsNCisJCWNhc2UgNTI6DQorCQkJaWYgKGdldF91MzIoaGF5
-c3RhY2ssOCkgID09IF9fY29uc3RhbnRfaHRvbmwoMHgwMDAwMDgyNykgJiYN
-CisJCQlnZXRfdTMyKGhheXN0YWNrLDEyKSA9PSBfX2NvbnN0YW50X2h0b25s
-KDB4Mzc1MDI5NTApKQ0KKwkJCQlyZXR1cm4gKElQUDJQX0JJVCAqIDEwMCAr
-IDgwKTsNCisJCQlicmVhazsNCisJCWRlZmF1bHQ6DQorCQkJLyogdGhpcyBw
-YWNrZXQgZG9lcyBub3QgaGF2ZSBhIGNvbnN0YW50IHNpemUgKi8NCisJCQlp
-ZiAocGFja2V0X2xlbiA+PSA0MCAmJiBnZXRfdTMyKGhheXN0YWNrLCAxNikg
-PT0gX19jb25zdGFudF9odG9ubCgweDAwMDAwNDAyKSAmJiBnZXRfdTMyKGhh
-eXN0YWNrLCAzNikgPT0gX19jb25zdGFudF9odG9ubCgweDAwMDAwMTA0KSkg
-DQorCQkJCXJldHVybiAoSVBQMlBfQklUICogMTAwICsgNTYpOw0KKwkJCWJy
-ZWFrOw0KKwl9DQorICAgIA0KKwkvKiBzb21lIGV4dHJhLWJpdGNvbWV0IHJ1
-bGVzOg0KKwkqICJkMToiIFthfHJdICJkMjppZDIwOiINCisJKi8NCisJaWYg
-KHBhY2tldF9sZW4gPiAzMCAmJiBnZXRfdTgoaGF5c3RhY2ssIDgpID09ICdk
-JyAmJiBnZXRfdTgoaGF5c3RhY2ssIDkpID09ICcxJyAmJiBnZXRfdTgoaGF5
-c3RhY2ssIDEwKSA9PSAnOicgKQ0KKwl7DQorCQlpZiAoZ2V0X3U4KGhheXN0
-YWNrLCAxMSkgPT0gJ2EnIHx8IGdldF91OChoYXlzdGFjaywgMTEpID09ICdy
-JykNCisJCXsNCisJCQlpZiAobWVtY21wKGhheXN0YWNrKzEyLCJkMjppZDIw
-OiIsOCk9PTApDQorCQkJCXJldHVybiAoSVBQMlBfQklUICogMTAwICsgNTcp
-Ow0KKwkJfQ0KKwl9DQogICAgIA0KLSAgICAvKiBwYWNrZXRfbGVuIGhhcyB0
-byBiZSAyNCAqLw0KLSAgICBpZiAocGFja2V0X2xlbiAhPSAyNCkgcmV0dXJu
-IDA7DQotDQotICAgIHQgKz0gODsgICAgDQotDQotICAgIC8qIF4gMDAgMDAg
-MDQgMTcgMjcgMTAgMTkgODAgKi8NCi0gICAgaWYgKChudG9obChnZXRfdTMy
-KHQsIDApKSA9PSAweDAwMDAwNDE3KSAmJiAobnRvaGwoZ2V0X3UzMih0LCA0
-KSkgPT0gMHgyNzEwMTk4MCkpIHJldHVybiAoSVBQMlBfQklUICogMTAwKTsN
-CisjaWYgMA0KKwkvKiBiaXRsb3JkIHJ1bGVzICovDQorCS8qIHBhY2tldGxl
-biBtdXN0IGJlIGJpZ2dlciB0aGFuIDQwICovDQorCS8qIGZpcnN0IDQgYnl0
-ZXMgYXJlIHplcm8gKi8NCisJaWYgKHBhY2tldF9sZW4gPiA0MCAmJiBnZXRf
-dTMyKGhheXN0YWNrLCA4KSA9PSAweDAwMDAwMDAwKQ0KKwl7DQorCQkvKiBm
-aXJzdCBydWxlOiAwMCAwMCAwMCAwMCAwMSAwMCAwMCB4eCB4eCB4eCB4eCAw
-MCAwMCAwMCAwMCovDQorCQlpZiAoZ2V0X3UzMihoYXlzdGFjaywgMTIpID09
-IDB4MDAwMDAwMDAgJiYgDQorCQkgICAgZ2V0X3UzMihoYXlzdGFjaywgMTYp
-ID09IDB4MDAwMTAwMDAgJiYNCisJCSAgICBnZXRfdTMyKGhheXN0YWNrLCAy
-NCkgPT0gMHgwMDAwMDAwMCApDQorCQkJcmV0dXJuIChJUFAyUF9CSVQgKiAx
-MDAgKyA3MSk7DQorCQkJDQorCQkvKiAwMCAwMSAwMCAwMCAwZCAwMCAwMCB4
-eCB4eCB4eCB4eCAwMCAwMCAwMCAwMCovDQorCQlpZiAoZ2V0X3UzMihoYXlz
-dGFjaywgMTIpID09IDB4MDAwMDAwMDEgJiYgDQorCQkgICAgZ2V0X3UzMiho
-YXlzdGFjaywgMTYpID09IDB4MDAwZDAwMDAgJiYNCisJCSAgICBnZXRfdTMy
-KGhheXN0YWNrLCAyNCkgPT0gMHgwMDAwMDAwMCApDQorCQkJcmV0dXJuIChJ
-UFAyUF9CSVQgKiAxMDAgKyA3MSk7DQorCQkNCisJCSAgICANCisJfQ0KKyNl
-bmRpZg0KIA0KICAgICByZXR1cm4gMDsNCiB9Lyp1ZHBfc2VhcmNoX2JpdCov
-DQpAQCAtMTIyLDc5ICsyMjUsMjA4IEBADQogDQogDQogLypTZWFyY2ggZm9y
-IEFyZXMgY29tbWFuZHMqLw0KKy8vI2RlZmluZSBJUFAyUF9ERUJVR19BUkVT
-DQogaW50DQotc2VhcmNoX2FyZXMgKHVuc2lnbmVkIGNoYXIgKmhheXN0YWNr
-LCBpbnQgcGFja2V0X2xlbiwgaW50IGhlYWRfbGVuKQ0KK3NlYXJjaF9hcmVz
-IChjb25zdCB1bnNpZ25lZCBjaGFyICpwYXlsb2FkLCBjb25zdCB1MTYgcGxl
-bikNCisvL2ludCBzZWFyY2hfYXJlcyAodW5zaWduZWQgY2hhciAqaGF5c3Rh
-Y2ssIGludCBwYWNrZXRfbGVuLCBpbnQgaGVhZF9sZW4pDQogew0KLSAgICB1
-bnNpZ25lZCBjaGFyICp0ID0gaGF5c3RhY2s7DQotICAgIHQgKz0gaGVhZF9s
-ZW47DQorLy8JY29uc3QgdW5zaWduZWQgY2hhciAqdCA9IGhheXN0YWNrICsg
-aGVhZF9sZW47DQorCQ0KKwkvKiBhbGwgYXJlcyBwYWNrZXRzIHN0YXJ0IHdp
-dGggICovDQorCWlmIChwYXlsb2FkWzFdID09IDAgJiYgKHBsZW4gLSBwYXls
-b2FkWzBdKSA9PSAzKQ0KKwl7DQorCQlzd2l0Y2ggKHBheWxvYWRbMl0pDQor
-CQl7DQorCQkJY2FzZSAweDVhOg0KKwkJCQkvKiBhcmVzIGNvbm5lY3QgKi8N
-CisJCQkJaWYgKCBwbGVuID09IDYgJiYgcGF5bG9hZFs1XSA9PSAweDA1ICkg
-cmV0dXJuICgoSVBQMlBfQVJFUyAqIDEwMCkgKyAxKTsNCisJCQkJYnJlYWs7
-DQorCQkJY2FzZSAweDA5Og0KKwkJCQkvKiBhcmVzIHNlYXJjaCwgbWluIDMg
-Y2hhcnMgLS0+IDE0IGJ5dGVzDQorCQkJCSAqIGxldHMgZGVmaW5lIGEgc2Vh
-cmNoIGNhbiBiZSB1cCB0byAzMCBjaGFycyAtLT4gbWF4IDM0IGJ5dGVzDQor
-CQkJCSAqLw0KKwkJCQlpZiAoIHBsZW4gPj0gMTQgJiYgcGxlbiA8PSAzNCAp
-IHJldHVybiAoKElQUDJQX0FSRVMgKiAxMDApICsgMSk7DQorCQkJCWJyZWFr
-Ow0KKyNpZmRlZiBJUFAyUF9ERUJVR19BUkVTDQorCQkJZGVmYXVsdDoNCisJ
-CQlwcmludGsoS0VSTl9ERUJVRyAiVW5rbm93biBBcmVzIGNvbW1hbmQgJXgg
-cmVjb2duaXplZCwgbGVuOiAldSBcbiIsICh1bnNpZ25lZCBpbnQpIHBheWxv
-YWRbMl0scGxlbik7DQorI2VuZGlmIC8qIElQUDJQX0RFQlVHX0FSRVMgKi8N
-CisJCX0NCisJfQ0KIA0KLSAgICBpZiAoKHBhY2tldF9sZW4gLSBoZWFkX2xl
-bikgPT0gNil7CS8qIHBvc3NpYmxlIGNvbm5lY3QgY29tbWFuZCovDQotCWlm
-ICgodFswXSA9PSAweDAzKSAmJiAodFsxXSA9PSAweDAwKSAmJiAodFsyXSA9
-PSAweDVhKSAmJiAodFszXSA9PSAweDA0KSAmJiAodFs0XSA9PSAweDAzKSAm
-JiAodFs1XSA9PSAweDA1KSkNCi0JICAgIHJldHVybiAoKElQUDJQX0FSRVMg
-KiAxMDApICsgMSk7CQkJLyogZm91bmQgY29ubmVjdCBwYWNrZXQ6IDAzIDAw
-IDVhIDA0IDAzIDA1ICovDQorI2lmIDAJICAgICAgICANCisJLyogZm91bmQg
-Y29ubmVjdCBwYWNrZXQ6IDAzIDAwIDVhIDA0IDAzIDA1ICovDQorCS8qIG5l
-dyB2ZXJzaW9uIGFyZXMgMS44OiAwMyAwMCA1YSB4eCB4eCAwNSAqLw0KKyAg
-ICBpZiAoKHBsZW4pID09IDYpewkvKiBwb3NzaWJsZSBjb25uZWN0IGNvbW1h
-bmQqLw0KKwlpZiAoKHBheWxvYWRbMF0gPT0gMHgwMykgJiYgKHBheWxvYWRb
-MV0gPT0gMHgwMCkgJiYgKHBheWxvYWRbMl0gPT0gMHg1YSkgJiYgKHBheWxv
-YWRbNV0gPT0gMHgwNSkpDQorCSAgICByZXR1cm4gKChJUFAyUF9BUkVTICog
-MTAwKSArIDEpOw0KICAgICB9DQotICAgIGlmICgocGFja2V0X2xlbiAtIGhl
-YWRfbGVuKSA9PSA2MCl7CS8qIHBvc3NpYmxlIGRvd25sb2FkIGNvbW1hbmQq
-Lw0KLQlpZiAoKHRbNTldID09IDB4MGEpICYmICh0WzU4XSA9PSAweDBhKSl7
-DQorICAgIGlmICgocGxlbikgPT0gNjApewkvKiBwb3NzaWJsZSBkb3dubG9h
-ZCBjb21tYW5kKi8NCisJaWYgKChwYXlsb2FkWzU5XSA9PSAweDBhKSAmJiAo
-cGF5bG9hZFs1OF0gPT0gMHgwYSkpew0KIAkgICAgaWYgKG1lbWNtcCh0LCAi
-UFVTSCBTSEExOiIsIDEwKSA9PSAwKSAvKiBmb3VuZCBkb3dubG9hZCBjb21t
-YW5kICovDQogCSAgICAJcmV0dXJuICgoSVBQMlBfQVJFUyAqIDEwMCkgKyAy
-KTsNCiAJfQ0KICAgICB9DQorI2VuZGlmDQorDQogICAgIHJldHVybiAwOw0K
-IH0gLypzZWFyY2hfYXJlcyovDQogDQotDQogLypTZWFyY2ggZm9yIFNvdWxT
-ZWVrIGNvbW1hbmRzKi8NCiBpbnQNCi1zZWFyY2hfc291bCAodW5zaWduZWQg
-Y2hhciAqaGF5c3RhY2ssIGludCBwYWNrZXRfbGVuLCBpbnQgaGVhZF9sZW4p
-DQorc2VhcmNoX3NvdWwgKGNvbnN0IHVuc2lnbmVkIGNoYXIgKnBheWxvYWQs
-IGNvbnN0IHUxNiBwbGVuKQ0KIHsNCi0gICAgdW5zaWduZWQgY2hhciAqdCA9
-IGhheXN0YWNrOw0KLSAgICB0ICs9IGhlYWRfbGVuOw0KKy8vI2RlZmluZSBJ
-UFAyUF9ERUJVR19TT1VMDQorICAgIC8qIG1hdGNoOiB4eCB4eCB4eCB4eCB8
-IHh4ID0gc2l6ZW9mKHBheWxvYWQpIC0gNCAqLw0KKyAgICBpZiAoZ2V0X3Uz
-MihwYXlsb2FkLCAwKSA9PSAocGxlbiAtIDQpKXsNCisJY29uc3QgX191MzIg
-bT1nZXRfdTMyKHBheWxvYWQsIDQpOw0KKwkvKiBtYXRjaCAwMCB5eSB5eSAw
-MCwgeXkgY2FuIGJlIGV2ZXJ5dGhpbmcgKi8NCisgICAgICAgIGlmICggZ2V0
-X3U4KHBheWxvYWQsIDQpID09IDB4MDAgJiYgZ2V0X3U4KHBheWxvYWQsIDcp
-ID09IDB4MDAgKQ0KKwl7DQorI2lmZGVmIElQUDJQX0RFQlVHX1NPVUwNCisJ
-cHJpbnRrKEtFUk5fREVCVUcgIjA6IFNvdWxzZWVrIGNvbW1hbmQgMHgleCBy
-ZWNvZ25pemVkXG4iLGdldF91MzIocGF5bG9hZCwgNCkpOw0KKyNlbmRpZiAv
-KiBJUFAyUF9ERUJVR19TT1VMICovDQorCQlyZXR1cm4gKChJUFAyUF9TT1VM
-ICogMTAwKSArIDEpOw0KKwl9DQorCQ0KKyAgICAgICAgLyogbmV4dCBtYXRj
-aDogMDEgeXkgMDAgMDAgfCB5eSBjYW4gYmUgZXZlcnl0aGluZyAqLw0KKyAg
-ICAgICAgaWYgKCBnZXRfdTgocGF5bG9hZCwgNCkgPT0gMHgwMSAmJiBnZXRf
-dTE2KHBheWxvYWQsIDYpID09IDB4MDAwMCApDQorCXsNCisjaWZkZWYgSVBQ
-MlBfREVCVUdfU09VTA0KKwlwcmludGsoS0VSTl9ERUJVRyAiMTogU291bHNl
-ZWsgY29tbWFuZCAweCV4IHJlY29nbml6ZWRcbiIsZ2V0X3UxNihwYXlsb2Fk
-LCA0KSk7DQorI2VuZGlmIC8qIElQUDJQX0RFQlVHX1NPVUwgKi8NCisJCXJl
-dHVybiAoKElQUDJQX1NPVUwgKiAxMDApICsgMik7DQorCX0NCisJDQorCS8q
-IG90aGVyIHNvdWxzZWVrIGNvbW1hbmRvcyBhcmU6IDEtNSw3LDksMTMtMTgs
-MjIsMjMsMjYsMjgsMzUtMzcsNDAtNDYsNTAsNTEsNjAsNjItNjksOTEsOTIs
-MTAwMSAqLw0KKwkvKiB0cnkgdG8gZG8gdGhpcyBpbiBhbiBpbnRlbGxpZ2Vu
-dCB3YXkgKi8NCisJLyogZ2V0IGFsbCBzbWFsbCBjb21tYW5kb3MgKi8NCisJ
-c3dpdGNoKG0pDQorCXsNCisJCWNhc2UgNzoNCisJCWNhc2UgOToNCisJCWNh
-c2UgMjI6DQorCQljYXNlIDIzOg0KKwkJY2FzZSAyNjoNCisJCWNhc2UgMjg6
-DQorCQljYXNlIDUwOg0KKwkJY2FzZSA1MToNCisJCWNhc2UgNjA6DQorCQlj
-YXNlIDkxOg0KKwkJY2FzZSA5MjoNCisJCWNhc2UgMTAwMToNCisjaWZkZWYg
-SVBQMlBfREVCVUdfU09VTA0KKwkJcHJpbnRrKEtFUk5fREVCVUcgIjI6IFNv
-dWxzZWVrIGNvbW1hbmQgMHgleCByZWNvZ25pemVkXG4iLGdldF91MTYocGF5
-bG9hZCwgNCkpOw0KKyNlbmRpZiAvKiBJUFAyUF9ERUJVR19TT1VMICovDQor
-CQlyZXR1cm4gKChJUFAyUF9TT1VMICogMTAwKSArIDMpOw0KKwl9DQorCQ0K
-KwlpZiAobSA+IDAgJiYgbSA8IDYgKSANCisJew0KKyNpZmRlZiBJUFAyUF9E
-RUJVR19TT1VMDQorCQlwcmludGsoS0VSTl9ERUJVRyAiMzogU291bHNlZWsg
-Y29tbWFuZCAweCV4IHJlY29nbml6ZWRcbiIsZ2V0X3UxNihwYXlsb2FkLCA0
-KSk7DQorI2VuZGlmIC8qIElQUDJQX0RFQlVHX1NPVUwgKi8NCisJCXJldHVy
-biAoKElQUDJQX1NPVUwgKiAxMDApICsgNCk7DQorCX0NCisJaWYgKG0gPiAx
-MiAmJiBtIDwgMTkgKQ0KKwl7DQorI2lmZGVmIElQUDJQX0RFQlVHX1NPVUwN
-CisJCXByaW50ayhLRVJOX0RFQlVHICI0OiBTb3Vsc2VlayBjb21tYW5kIDB4
-JXggcmVjb2duaXplZFxuIixnZXRfdTE2KHBheWxvYWQsIDQpKTsNCisjZW5k
-aWYgLyogSVBQMlBfREVCVUdfU09VTCAqLw0KKwkJcmV0dXJuICgoSVBQMlBf
-U09VTCAqIDEwMCkgKyA1KTsNCisJfQ0KKw0KKwlpZiAobSA+IDM0ICYmIG0g
-PCAzOCApDQorCXsNCisjaWZkZWYgSVBQMlBfREVCVUdfU09VTA0KKwkJcHJp
-bnRrKEtFUk5fREVCVUcgIjU6IFNvdWxzZWVrIGNvbW1hbmQgMHgleCByZWNv
-Z25pemVkXG4iLGdldF91MTYocGF5bG9hZCwgNCkpOw0KKyNlbmRpZiAvKiBJ
-UFAyUF9ERUJVR19TT1VMICovDQorCQlyZXR1cm4gKChJUFAyUF9TT1VMICog
-MTAwKSArIDYpOw0KKwl9DQorDQorCWlmIChtID4gMzkgJiYgbSA8IDQ3ICkN
-CisJew0KKyNpZmRlZiBJUFAyUF9ERUJVR19TT1VMDQorCQlwcmludGsoS0VS
-Tl9ERUJVRyAiNjogU291bHNlZWsgY29tbWFuZCAweCV4IHJlY29nbml6ZWRc
-biIsZ2V0X3UxNihwYXlsb2FkLCA0KSk7DQorI2VuZGlmIC8qIElQUDJQX0RF
-QlVHX1NPVUwgKi8NCisJCXJldHVybiAoKElQUDJQX1NPVUwgKiAxMDApICsg
-Nyk7DQorCX0NCisNCisJaWYgKG0gPiA2MSAmJiBtIDwgNzAgKSANCisJew0K
-KyNpZmRlZiBJUFAyUF9ERUJVR19TT1VMDQorCQlwcmludGsoS0VSTl9ERUJV
-RyAiNzogU291bHNlZWsgY29tbWFuZCAweCV4IHJlY29nbml6ZWRcbiIsZ2V0
-X3UxNihwYXlsb2FkLCA0KSk7DQorI2VuZGlmIC8qIElQUDJQX0RFQlVHX1NP
-VUwgKi8NCisJCXJldHVybiAoKElQUDJQX1NPVUwgKiAxMDApICsgOCk7DQor
-CX0NCiANCi0gICAgaWYgKGdldF91MTYodCwgMCkgPT0gKHBhY2tldF9sZW4g
-LSBoZWFkX2xlbiAtIDQpKXsNCi0JICAgIC8qIHh4IHh4IDAwIDAwIHl5IHp6
-IDAwIDAwIC4uIHwgeHggPSBzaXplb2YocGF5bG9hZCkgLSA0ICovDQotCWlm
-ICgoZ2V0X3UxNih0LDIpID09IDB4MDAwMCkgJiYodFs0XSAhPSAweDAwKSAm
-JiAoZ2V0X3UxNih0LDYpID09IDB4MDAwMCkpDQotCSAgICByZXR1cm4gKChJ
-UFAyUF9TT1VMICogMTAwKSArIDEpOw0KLSAgICB9IGVsc2Ugew0KLQkgICAg
-LyogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgKyBzaXplb2YocGF5bG9hZCkg
-PT0gOCovDQotCWlmICgoKHBhY2tldF9sZW4gLSBoZWFkX2xlbikgPT0gOCkg
-JiYgKGdldF91MzIodCwgMCkgPT0gMHgwMDAwMDAwMCkgJiYgKGdldF91MzIo
-dCwgNCkgPT0gMHgwMDAwMDAwMCkpDQotCSAgICByZXR1cm4gKChJUFAyUF9T
-T1VMICogMTAwKSArIDIpOw0KLSAgICB9DQotICAgIA0KLSAgICAvKiAwMSB4
-eCAwMCAwMCAwMCB5eSAuLiB6eiAwMCAwMCAwMCAuLiB8IHh4ID09IHNpemVv
-ZihuaWNrKSB8IHl5IC4uIHp6ID09IG5pY2sgKi8NCi0gICAgaWYgKCh0WzBd
-ID09IDB4MDEpICYmICh0WzJdID09IDB4MDApICYmIChnZXRfdTE2KHQsMykg
-PT0gMHgwMDAwKSAmJiAoKHBhY2tldF9sZW4gLSBoZWFkX2xlbikgPiAoKGdl
-dF91OCh0LDEpKSs2KSkgJiYgDQotCSh0WyhnZXRfdTgodCwxKSkrNF0gIT0g
-MHgwMCkgJiYgKHRbKGdldF91OCh0LDEpKSs1XSA9PSAweDAxKSAmJiAodFso
-Z2V0X3U4KHQsMSkpKzZdID09IDB4MDApKQ0KLQkgICAgcmV0dXJuICgoSVBQ
-MlBfU09VTCAqIDEwMCkgKyAzKTsNCisjaWZkZWYgSVBQMlBfREVCVUdfU09V
-TA0KKwlwcmludGsoS0VSTl9ERUJVRyAidW5rbm93biBTT1VMU0VFSyBjb21t
-YW5kOiAweCV4LCBmaXJzdCAxNiBiaXQ6IDB4JXgsIGZpcnN0IDggYml0OiAw
-eCV4ICxzb3Vsc2VlayA/Pz9cbiIsZ2V0X3UzMihwYXlsb2FkLCA0KSxnZXRf
-dTE2KHBheWxvYWQsIDQpID4+IDE2LGdldF91OChwYXlsb2FkLCA0KSA+PiAy
-NCk7DQorI2VuZGlmIC8qIElQUDJQX0RFQlVHX1NPVUwgKi8NCisgICAgfQ0K
-KwkNCisJLyogbWF0Y2ggMTQgMDAgMDAgMDAgMDEgeXkgMDAgMDAgMDAgU1RS
-SU5HKFlZKSAwMSAwMCAwMCAwMCAwMCA0Nnw1MCAwMCAwMCAwMCAwMCAqLw0K
-KwkvKiB3aXRob3V0IHNpemUgYXQgdGhlIGJlZ2lubmluZyAhISEgKi8NCisJ
-aWYgKCBnZXRfdTMyKHBheWxvYWQsIDApID09IDB4MTQgJiYgZ2V0X3U4KHBh
-eWxvYWQsIDQpID09IDB4MDEgKQ0KKwl7DQorCQlfX3UzMiB5PWdldF91MzIo
-cGF5bG9hZCwgNSk7DQorCQkvKiB3ZSBuZWVkIDE5IGNoYXJzICsgc3RyaW5n
-ICovDQorCQlpZiAoICh5ICsgMTkpIDw9IChwbGVuKSApDQorCQl7DQorCQkJ
-Y29uc3QgdW5zaWduZWQgY2hhciAqdz1wYXlsb2FkKzkreTsNCisJCQlpZiAo
-Z2V0X3UzMih3LCAwKSA9PSAweDAxICYmICggZ2V0X3UxNih3LCA0KSA9PSAw
-eDQ2MDAgfHwgZ2V0X3UxNih3LCA0KSA9PSAweDUwMDApICYmIGdldF91MzIo
-dywgNikgPT0gMHgwMCk7DQorI2lmZGVmIElQUDJQX0RFQlVHX1NPVUwNCisJ
-ICAgIAkJcHJpbnRrKEtFUk5fREVCVUcgIlNvdWxzc2VrIHNwZWNpYWwgY2xp
-ZW50IGNvbW1hbmQgcmVjb2duaXplZFxuIik7DQorI2VuZGlmIC8qIElQUDJQ
-X0RFQlVHX1NPVUwgKi8NCisJICAgIAkJcmV0dXJuICgoSVBQMlBfU09VTCAq
-IDEwMCkgKyA5KTsNCisJCX0NCisJfQ0KICAgICByZXR1cm4gMDsNCiB9DQog
-DQogDQogLypTZWFyY2ggZm9yIFdpbk1YIGNvbW1hbmRzKi8NCiBpbnQNCi1z
-ZWFyY2hfd2lubXggKHVuc2lnbmVkIGNoYXIgKmhheXN0YWNrLCBpbnQgcGFj
-a2V0X2xlbiwgaW50IGhlYWRfbGVuKQ0KK3NlYXJjaF93aW5teCAoY29uc3Qg
-dW5zaWduZWQgY2hhciAqcGF5bG9hZCwgY29uc3QgdTE2IHBsZW4pDQogew0K
-LSAgICB1bnNpZ25lZCBjaGFyICp0ID0gaGF5c3RhY2s7DQotICAgIGludCBj
-Ow0KLSAgICB0ICs9IGhlYWRfbGVuOw0KLQ0KLSAgICBpZiAoKChwYWNrZXRf
-bGVuIC0gaGVhZF9sZW4pID09IDQpICYmIChtZW1jbXAodCwgIlNFTkQiLCA0
-KSA9PSAwKSkgIHJldHVybiAoKElQUDJQX1dJTk1YICogMTAwKSArIDEpOw0K
-LSAgICBpZiAoKChwYWNrZXRfbGVuIC0gaGVhZF9sZW4pID09IDMpICYmICht
-ZW1jbXAodCwgIkdFVCIsIDMpID09IDApKSAgcmV0dXJuICgoSVBQMlBfV0lO
-TVggKiAxMDApICsgMik7DQotICAgIGlmIChwYWNrZXRfbGVuIDwgKGhlYWRf
-bGVuICsgMTApKSByZXR1cm4gMDsNCi0NCi0gICAgaWYgKChtZW1jbXAodCwg
-IlNFTkQiLCA0KSA9PSAwKSB8fCAobWVtY21wKHQsICJHRVQiLCAzKSA9PSAw
-KSl7DQotICAgICAgICBjID0gaGVhZF9sZW4gKyA0Ow0KLQl0ICs9IDQ7DQot
-CXdoaWxlIChjIDwgcGFja2V0X2xlbiAtIDUpIHsNCi0JICAgIGlmICgodFsw
-XSA9PSAweDIwKSAmJiAodFsxXSA9PSAweDIyKSl7DQotCQljICs9IDI7DQot
-CQl0ICs9IDI7DQotCQl3aGlsZSAoYyA8IHBhY2tldF9sZW4gLSAyKSB7DQot
-CQkgICAgaWYgKCh0WzBdID09IDB4MjIpICYmICh0WzFdID09IDB4MjApKSBy
-ZXR1cm4gKChJUFAyUF9XSU5NWCAqIDEwMCkgKyAzKTsNCi0JCSAgICB0Kys7
-DQotCQkgICAgYysrOw0KLQkJfQ0KLQkgICAgfQ0KLQkgICAgdCsrOw0KLQkg
-ICAgYysrOw0KLQl9ICAgIA0KKy8vI2RlZmluZSBJUFAyUF9ERUJVR19XSU5N
-WA0KKyAgICBpZiAoKChwbGVuKSA9PSA0KSAmJiAobWVtY21wKHBheWxvYWQs
-ICJTRU5EIiwgNCkgPT0gMCkpICByZXR1cm4gKChJUFAyUF9XSU5NWCAqIDEw
-MCkgKyAxKTsNCisgICAgaWYgKCgocGxlbikgPT0gMykgJiYgKG1lbWNtcChw
-YXlsb2FkLCAiR0VUIiwgMykgPT0gMCkpICByZXR1cm4gKChJUFAyUF9XSU5N
-WCAqIDEwMCkgKyAyKTsNCisgICAgLy9pZiAocGFja2V0X2xlbiA8IChoZWFk
-X2xlbiArIDEwKSkgcmV0dXJuIDA7DQorICAgIGlmIChwbGVuIDwgMTApIHJl
-dHVybiAwOw0KKyAgICANCisgICAgaWYgKChtZW1jbXAocGF5bG9hZCwgIlNF
-TkQiLCA0KSA9PSAwKSB8fCAobWVtY21wKHBheWxvYWQsICJHRVQiLCAzKSA9
-PSAwKSl7DQorICAgICAgICB1MTYgYz00Ow0KKyAgICAgICAgY29uc3QgdTE2
-IGVuZD1wbGVuLTI7DQorICAgICAgICB1OCBjb3VudD0wOw0KKyAgICAgICAg
-d2hpbGUgKGMgPCBlbmQpDQorICAgICAgICB7DQorICAgICAgICAJaWYgKHBh
-eWxvYWRbY109PSAweDIwICYmIHBheWxvYWRbYysxXSA9PSAweDIyKQ0KKyAg
-ICAgICAgCXsNCisgICAgICAgIAkJYysrOw0KKyAgICAgICAgCQljb3VudCsr
-Ow0KKyAgICAgICAgCQlpZiAoY291bnQ+PTIpIHJldHVybiAoKElQUDJQX1dJ
-Tk1YICogMTAwKSArIDMpOw0KKyAgICAgICAgCX0NCisgICAgICAgIAljKys7
-DQorICAgICAgICB9DQorICAgIH0NCisgICAgDQorICAgIGlmICggcGxlbiA9
-PSAxNDkgJiYgcGF5bG9hZFswXSA9PSAnOCcgKQ0KKyAgICB7DQorI2lmZGVm
-IElQUDJQX0RFQlVHX1dJTk1YDQorICAgIAlwcmludGsoS0VSTl9JTkZPICJt
-YXliZSBXaW5NWFxuIik7DQorI2VuZGlmDQorICAgIAlpZiAoZ2V0X3UzMihw
-YXlsb2FkLDE3KSA9PSAwICYmIGdldF91MzIocGF5bG9hZCwyMSkgPT0gMCAm
-JiBnZXRfdTMyKHBheWxvYWQsMjUpID09IDAgJiYNCisvLyAgICAJICAgIGdl
-dF91MzIocGF5bG9hZCwzMykgPT0gX19jb25zdGFudF9odG9ubCgweDcxMTgy
-YjFhKSAmJiBnZXRfdTMyKHBheWxvYWQsMzcpID09IF9fY29uc3RhbnRfaHRv
-bmwoMHgwNTA1MDAwMCkgJiYNCisvLyAgICAJICAgIGdldF91MzIocGF5bG9h
-ZCwxMzMpID09IF9fY29uc3RhbnRfaHRvbmwoMHgzMTA5N2VkZikgJiYgZ2V0
-X3UzMihwYXlsb2FkLDE0NSkgPT0gX19jb25zdGFudF9odG9ubCgweGRjYjhm
-NzkyKSkNCisgICAgCSAgICBnZXRfdTE2KHBheWxvYWQsMzkpID09IDAgJiYg
-Z2V0X3UxNihwYXlsb2FkLDEzNSkgPT0gX19jb25zdGFudF9odG9ucygweDdl
-ZGYpICYmIGdldF91MTYocGF5bG9hZCwxNDcpID09IF9fY29uc3RhbnRfaHRv
-bnMoMHhmNzkyKSkNCisgICAgCSAgICANCisgICAgCXsNCisjaWZkZWYgSVBQ
-MlBfREVCVUdfV0lOTVgNCisgICAgCQlwcmludGsoS0VSTl9JTkZPICJnb3Qg
-V2luTVhcbiIpOw0KKyNlbmRpZg0KKyAgICAJCXJldHVybiAoKElQUDJQX1dJ
-Tk1YICogMTAwKSArIDQpOw0KKyAgICAJfQ0KICAgICB9DQogICAgIHJldHVy
-biAwOw0KIH0gLypzZWFyY2hfd2lubXgqLw0KQEAgLTIwMiwxMiArNDM0LDkg
-QEANCiANCiAvKlNlYXJjaCBmb3IgYXBwbGVKdWljZSBjb21tYW5kcyovDQog
-aW50DQotc2VhcmNoX2FwcGxlICh1bnNpZ25lZCBjaGFyICpoYXlzdGFjaywg
-aW50IHBhY2tldF9sZW4sIGludCBoZWFkX2xlbikNCitzZWFyY2hfYXBwbGUg
-KGNvbnN0IHVuc2lnbmVkIGNoYXIgKnBheWxvYWQsIGNvbnN0IHUxNiBwbGVu
-KQ0KIHsNCi0gICAgdW5zaWduZWQgY2hhciAqdCA9IGhheXN0YWNrOw0KLSAg
-ICB0ICs9IGhlYWRfbGVuOw0KLSAgICANCi0gICAgaWYgKChtZW1jbXAodCwg
-ImFqcHJvdCIsIDYpID09IDApICYmICh0WzZdID09IDB4MGQpICYmICh0Wzdd
-ID09IDB4MGEpKSAgcmV0dXJuIChJUFAyUF9BUFBMRSAqIDEwMCk7DQorICAg
-IGlmICggKHBsZW4gPiA3KSAmJiAocGF5bG9hZFs2XSA9PSAweDBkKSAmJiAo
-cGF5bG9hZFs3XSA9PSAweDBhKSAmJiAobWVtY21wKHBheWxvYWQsICJhanBy
-b3QiLCA2KSA9PSAwKSkgIHJldHVybiAoSVBQMlBfQVBQTEUgKiAxMDApOw0K
-ICAgICANCiAgICAgcmV0dXJuIDA7DQogfQ0KQEAgLTIxNSwxNSArNDQ0LDM5
-IEBADQogDQogLypTZWFyY2ggZm9yIEJpdFRvcnJlbnQgY29tbWFuZHMqLw0K
-IGludA0KLXNlYXJjaF9iaXR0b3JyZW50ICh1bnNpZ25lZCBjaGFyICpoYXlz
-dGFjaywgaW50IHBhY2tldF9sZW4sIGludCBoZWFkX2xlbikNCitzZWFyY2hf
-Yml0dG9ycmVudCAoY29uc3QgdW5zaWduZWQgY2hhciAqcGF5bG9hZCwgY29u
-c3QgdTE2IHBsZW4pDQogew0KKyAgICBpZiAocGxlbiA+IDIwKQ0KKyAgICB7
-DQorCS8qIHRlc3QgZm9yIG1hdGNoIDB4MTMrIkJpdFRvcnJlbnQgcHJvdG9j
-b2wiICovDQorCWlmIChwYXlsb2FkWzBdID09IDB4MTMpIA0KKwl7DQorCQlp
-ZiAobWVtY21wKHBheWxvYWQrMSwgIkJpdFRvcnJlbnQgcHJvdG9jb2wiLCAx
-OSkgPT0gMCkgcmV0dXJuIChJUFAyUF9CSVQgKiAxMDApOw0KKwl9DQorCQ0K
-KwkvKiBnZXQgdHJhY2tlciBjb21tYW5kb3MsIGFsbCBzdGFydHMgd2l0aCBH
-RVQgLw0KKwkqIHRoZW4gaXQgY2FuIGZvbGxvdzogc2NyYXBlfCBhbm5vdW5j
-ZQ0KKwkqIGFuZCB0aGVuID9oYXNoX2luZm89DQorCSovDQorCWlmIChtZW1j
-bXAocGF5bG9hZCwiR0VUIC8iLDUpID09IDApDQorCXsNCisJCS8qIG1lc3Nh
-Z2Ugc2NyYXBlICovDQorCQlpZiAoIG1lbWNtcChwYXlsb2FkKzUsInNjcmFw
-ZT9pbmZvX2hhc2g9IiwxNyk9PTAgKSByZXR1cm4gKElQUDJQX0JJVCAqIDEw
-MCArIDEpOw0KKwkJLyogbWVzc2FnZSBhbm5vdW5jZSAqLw0KKwkJaWYgKCBt
-ZW1jbXAocGF5bG9hZCs1LCJhbm5vdW5jZT9pbmZvX2hhc2g9IiwxOSk9PTAg
-KSByZXR1cm4gKElQUDJQX0JJVCAqIDEwMCArIDIpOw0KKwl9DQorICAgIH0g
-DQorICAgIGVsc2UgDQorICAgIHsNCisgICAgCS8qIGJpdGNvbWV0IGVuY3J5
-cHRlcyB0aGUgZmlyc3QgcGFja2V0LCBzbyB3ZSBoYXZlIHRvIGRldGVjdCBh
-bm90aGVyIA0KKyAgICAJICogb25lIGxhdGVyIGluIHRoZSBmbG93ICovDQor
-ICAgIAkgLyogZmlyc3QgdHJ5IGZhaWxlZCwgdG9vIG1hbnkgbWlzc2RldGVj
-dGlvbnMgKi8NCisgICAgCS8vaWYgKCBzaXplID09IDUgJiYgZ2V0X3UzMih0
-LDApID09IF9fY29uc3RhbnRfaHRvbmwoMSkgJiYgdFs0XSA8IDMpIHJldHVy
-biAoSVBQMlBfQklUICogMTAwICsgMyk7DQorICAgIAkNCisgICAgCS8qIHNl
-Y29uZCB0cnk6IGJsb2NrIHJlcXVlc3QgcGFja2V0cyAqLw0KKyAgICAJaWYg
-KCBwbGVuID09IDE3ICYmIGdldF91MzIocGF5bG9hZCwwKSA9PSBfX2NvbnN0
-YW50X2h0b25sKDB4MGQpICYmIHBheWxvYWRbNF0gPT0gMHgwNiAmJiBnZXRf
-dTMyKHBheWxvYWQsMTMpID09IF9fY29uc3RhbnRfaHRvbmwoMHg0MDAwKSAp
-IHJldHVybiAoSVBQMlBfQklUICogMTAwICsgMyk7DQorICAgIH0NCiANCi0g
-ICAgdW5zaWduZWQgY2hhciAqdCA9IGhheXN0YWNrOw0KLSAgICBpZiAoKiho
-YXlzdGFjaytoZWFkX2xlbikgIT0gMHgxMykgcmV0dXJuIDA7IC8qQmFpbCBv
-dXQgb2YgZmlyc3QgYnl0ZSAhPSAweDEzKi8NCi0gICAgDQotICAgIHQgKz0g
-aGVhZF9sZW4gKyAxOw0KLSAgICANCi0gICAgaWYgKG1lbWNtcCh0LCAiQml0
-VG9ycmVudCBwcm90b2NvbCIsIDE5KSA9PSAwKSByZXR1cm4gKElQUDJQX0JJ
-VCAqIDEwMCk7DQogICAgIHJldHVybiAwOw0KIH0NCiANCkBAIC0yMzEsNjMg
-KzQ4NCw1MCBAQA0KIA0KIC8qY2hlY2sgZm9yIEthemFhIGdldCBjb21tYW5k
-Ki8NCiBpbnQNCi1zZWFyY2hfa2F6YWEgKHVuc2lnbmVkIGNoYXIgKmhheXN0
-YWNrLCBpbnQgcGFja2V0X2xlbiwgaW50IGhlYWRfbGVuKQ0KLXsNCi0gICAg
-dW5zaWduZWQgY2hhciAqdCA9IGhheXN0YWNrOw0KLQ0KLSAgICBpZiAoISgo
-KihoYXlzdGFjayArIHBhY2tldF9sZW4gLSAyKSA9PSAweDBkKSAmJiAoKiho
-YXlzdGFjayArIHBhY2tldF9sZW4gLSAxKSA9PSAweDBhKSkpIHJldHVybiAw
-OyAgICANCitzZWFyY2hfa2F6YWEgKGNvbnN0IHVuc2lnbmVkIGNoYXIgKnBh
-eWxvYWQsIGNvbnN0IHUxNiBwbGVuKQ0KIA0KLSAgICB0ICs9IGhlYWRfbGVu
-Ow0KLSAgICBpZiAobWVtY21wKHQsICJHRVQgLy5oYXNoPSIsIDExKSA9PSAw
-KQ0KK3sNCisgICAgaWYgKChwYXlsb2FkW3BsZW4tMl0gPT0gMHgwZCkgJiYg
-KHBheWxvYWRbcGxlbi0xXSA9PSAweDBhKSAmJiBtZW1jbXAocGF5bG9hZCwg
-IkdFVCAvLmhhc2g9IiwgMTEpID09IDApDQogCXJldHVybiAoSVBQMlBfREFU
-QV9LQVpBQSAqIDEwMCk7DQotICAgIGVsc2UNCi0JcmV0dXJuIDA7DQorDQor
-ICAgIHJldHVybiAwOw0KIH0NCiANCiANCiAvKmNoZWNrIGZvciBnbnV0ZWxs
-YSBnZXQgY29tbWFuZCovDQogaW50DQotc2VhcmNoX2dudSAodW5zaWduZWQg
-Y2hhciAqaGF5c3RhY2ssIGludCBwYWNrZXRfbGVuLCBpbnQgaGVhZF9sZW4p
-DQorc2VhcmNoX2dudSAoY29uc3QgdW5zaWduZWQgY2hhciAqcGF5bG9hZCwg
-Y29uc3QgdTE2IHBsZW4pDQogew0KLSAgICB1bnNpZ25lZCBjaGFyICp0ID0g
-aGF5c3RhY2s7DQotDQotICAgIGlmICghKCgqKGhheXN0YWNrICsgcGFja2V0
-X2xlbiAtIDIpID09IDB4MGQpICYmICgqKGhheXN0YWNrICsgcGFja2V0X2xl
-biAtIDEpID09IDB4MGEpKSkgcmV0dXJuIDA7ICAgIA0KLQ0KLSAgICB0ICs9
-IGhlYWRfbGVuOw0KLSAgICBpZiAobWVtY21wKHQsICJHRVQgL2dldC8iLCA5
-KSA9PSAwKQlyZXR1cm4gKChJUFAyUF9EQVRBX0dOVSAqIDEwMCkgKyAxKTsN
-Ci0gICAgaWYgKG1lbWNtcCh0LCAiR0VUIC91cmktcmVzLyIsIDEzKSA9PSAw
-KSByZXR1cm4gKChJUFAyUF9EQVRBX0dOVSAqIDEwMCkgKyAyKTsgDQotICAg
-IA0KKyAgICBpZiAoKHBheWxvYWRbcGxlbi0yXSA9PSAweDBkKSAmJiAocGF5
-bG9hZFtwbGVuLTFdID09IDB4MGEpKQ0KKyAgICB7DQorCWlmIChtZW1jbXAo
-cGF5bG9hZCwgIkdFVCAvZ2V0LyIsIDkpID09IDApCXJldHVybiAoKElQUDJQ
-X0RBVEFfR05VICogMTAwKSArIDEpOw0KKwlpZiAobWVtY21wKHBheWxvYWQs
-ICJHRVQgL3VyaS1yZXMvIiwgMTMpID09IDApIHJldHVybiAoKElQUDJQX0RB
-VEFfR05VICogMTAwKSArIDIpOyANCisgICAgfQ0KICAgICByZXR1cm4gMDsN
-CiB9DQogDQogDQogLypjaGVjayBmb3IgZ251dGVsbGEgZ2V0IGNvbW1hbmRz
-IGFuZCBvdGhlciB0eXBpY2FsIGRhdGEqLw0KIGludA0KLXNlYXJjaF9hbGxf
-Z251ICh1bnNpZ25lZCBjaGFyICpoYXlzdGFjaywgaW50IHBhY2tldF9sZW4s
-IGludCBoZWFkX2xlbikNCitzZWFyY2hfYWxsX2dudSAoY29uc3QgdW5zaWdu
-ZWQgY2hhciAqcGF5bG9hZCwgY29uc3QgdTE2IHBsZW4pDQogew0KLSAgICB1
-bnNpZ25lZCBjaGFyICp0ID0gaGF5c3RhY2s7DQotICAgIGludCBjOyAgICAN
-Ci0NCi0gICAgaWYgKCEoKCooaGF5c3RhY2sgKyBwYWNrZXRfbGVuIC0gMikg
-PT0gMHgwZCkgJiYgKCooaGF5c3RhY2sgKyBwYWNrZXRfbGVuIC0gMSkgPT0g
-MHgwYSkpKSByZXR1cm4gMDsNCi0NCi0gICAgdCArPSBoZWFkX2xlbjsNCi0N
-Ci0gICAgaWYgKG1lbWNtcCh0LCAiR05VVEVMTEEgQ09OTkVDVC8iLCAxNykg
-PT0gMCkgcmV0dXJuICgoSVBQMlBfR05VICogMTAwKSArIDEpOw0KLSAgICBp
-ZiAobWVtY21wKHQsICJHTlVURUxMQS8iLCA5KSA9PSAwKSByZXR1cm4gKChJ
-UFAyUF9HTlUgKiAxMDApICsgMik7ICAgIA0KLQ0KLSAgICBpZiAoKG1lbWNt
-cCh0LCAiR0VUIC9nZXQvIiwgOSkgPT0gMCkgfHwgKG1lbWNtcCh0LCAiR0VU
-IC91cmktcmVzLyIsIDEzKSA9PSAwKSkNCi0gICAgeyAgICAgICAgDQotICAg
-ICAgICBjID0gaGVhZF9sZW4gKyA4Ow0KLQl0ICs9IDg7DQotCXdoaWxlIChj
-IDwgcGFja2V0X2xlbiAtIDIyKSB7DQotCSAgICBpZiAoKHRbMF0gPT0gMHgw
-ZCkgJiYgKHRbMV0gPT0gMHgwYSkpIHsNCi0JCSAgICBpZiAoKG1lbWNtcCh0
-LCAiWC1HbnV0ZWxsYS0iLCAxMSkgPT0gMCkgfHwgKG1lbWNtcCh0LCAiWC1R
-dWV1ZToiLCA4KSA9PSAwKSkgcmV0dXJuICgoSVBQMlBfR05VICogMTAwKSAr
-IDMpOw0KLQkJICAgIHQgKz0gMjsNCi0JCSAgICBjICs9IDI7DQotCSAgICB9
-IGVsc2Ugew0KLQkJdCsrOw0KLQkJYysrOw0KLQkgICAgfSAgICANCisgICAg
-DQorICAgIGlmICgocGF5bG9hZFtwbGVuLTJdID09IDB4MGQpICYmIChwYXls
-b2FkW3BsZW4tMV0gPT0gMHgwYSkpDQorICAgIHsNCisJDQorCWlmIChtZW1j
-bXAocGF5bG9hZCwgIkdOVVRFTExBIENPTk5FQ1QvIiwgMTcpID09IDApIHJl
-dHVybiAoKElQUDJQX0dOVSAqIDEwMCkgKyAxKTsNCisJaWYgKG1lbWNtcChw
-YXlsb2FkLCAiR05VVEVMTEEvIiwgOSkgPT0gMCkgcmV0dXJuICgoSVBQMlBf
-R05VICogMTAwKSArIDIpOyAgICANCisgICAgDQorICAgIA0KKwlpZiAoKG1l
-bWNtcChwYXlsb2FkLCAiR0VUIC9nZXQvIiwgOSkgPT0gMCkgfHwgKG1lbWNt
-cChwYXlsb2FkLCAiR0VUIC91cmktcmVzLyIsIDEzKSA9PSAwKSkNCisJeyAg
-ICAgICAgDQorCQl1MTYgYz04Ow0KKwkJY29uc3QgdTE2IGVuZD1wbGVuLTIy
-Ow0KKwkJd2hpbGUgKGMgPCBlbmQpIHsNCisJCQlpZiAoIHBheWxvYWRbY10g
-PT0gMHgwYSAmJiBwYXlsb2FkW2MrMV0gPT0gMHgwZCAmJiAoKG1lbWNtcCgm
-cGF5bG9hZFtjKzJdLCAiWC1HbnV0ZWxsYS0iLCAxMSkgPT0gMCkgfHwgKG1l
-bWNtcCgmcGF5bG9hZFtjKzJdLCAiWC1RdWV1ZToiLCA4KSA9PSAwKSkpIA0K
-KwkJCQlyZXR1cm4gKChJUFAyUF9HTlUgKiAxMDApICsgMyk7DQorCQkJYysr
-Ow0KKwkJfQ0KIAl9DQogICAgIH0NCiAgICAgcmV0dXJuIDA7DQpAQCAtMjk2
-LDQyICs1MzYsMzQgQEANCiANCiAvKmNoZWNrIGZvciBLYVphQSBkb3dubG9h
-ZCBjb21tYW5kcyBhbmQgb3RoZXIgdHlwaWNhbCBkYXRhKi8NCiBpbnQNCi1z
-ZWFyY2hfYWxsX2themFhICh1bnNpZ25lZCBjaGFyICpoYXlzdGFjaywgaW50
-IHBhY2tldF9sZW4sIGludCBoZWFkX2xlbikNCitzZWFyY2hfYWxsX2themFh
-IChjb25zdCB1bnNpZ25lZCBjaGFyICpwYXlsb2FkLCBjb25zdCB1MTYgcGxl
-bikNCiB7DQotICAgIHVuc2lnbmVkIGNoYXIgKnQgPSBoYXlzdGFjazsNCi0g
-ICAgaW50IGM7ICAgIA0KLQ0KLSAgICBpZiAoISgoKihoYXlzdGFjayArIHBh
-Y2tldF9sZW4gLSAyKSA9PSAweDBkKSAmJiAoKihoYXlzdGFjayArIHBhY2tl
-dF9sZW4gLSAxKSA9PSAweDBhKSkpIHJldHVybiAwOw0KKyAgICBpZiAoKHBh
-eWxvYWRbcGxlbi0yXSA9PSAweDBkKSAmJiAocGF5bG9hZFtwbGVuLTFdID09
-IDB4MGEpKQ0KKyAgICB7DQogDQotICAgIHQgKz0gaGVhZF9sZW47DQotICAg
-IGlmIChtZW1jbXAodCwgIkdJVkUgIiwgNSkgPT0gMCkgcmV0dXJuICgoSVBQ
-MlBfS0FaQUEgKiAxMDApICsgMSk7DQorCWlmIChtZW1jbXAocGF5bG9hZCwg
-IkdJVkUgIiwgNSkgPT0gMCkgcmV0dXJuICgoSVBQMlBfS0FaQUEgKiAxMDAp
-ICsgMSk7DQogICAgIA0KLSAgICBpZiAobWVtY21wKHQsICJHRVQgLyIsIDUp
-ID09IDApIHsNCi0gICAgICAgIGMgPSBoZWFkX2xlbiArIDg7DQotCXQgKz0g
-ODsNCi0Jd2hpbGUgKGMgPCBwYWNrZXRfbGVuIC0gMjIpIHsNCi0JICAgIGlm
-ICgodFswXSA9PSAweDBkKSAmJiAodFsxXSA9PSAweDBhKSkgew0KLSAgICAJ
-CSAgICBpZiAoIG1lbWNtcCh0LCAiWC1LYXphYS1Vc2VybmFtZTogIiwgMTgp
-ID09IDAgKSByZXR1cm4gKChJUFAyUF9LQVpBQSAqIDEwMCkgKyAyKTsJICAg
-IA0KLQkJICAgIHQgKz0gMjsNCi0JCSAgICBjICs9IDI7DQotCSAgICB9IGVs
-c2Ugew0KLQkJdCsrOw0KLQkJYysrOw0KLQkgICAgfSAgICANCisgICAgCWlm
-IChtZW1jbXAocGF5bG9hZCwgIkdFVCAvIiwgNSkgPT0gMCkgew0KKwkJdTE2
-IGMgPSA4Ow0KKwkJY29uc3QgdTE2IGVuZD1wbGVuLTIyOw0KKwkJd2hpbGUg
-KGMgPCBlbmQpIHsNCisJCQlpZiAoIHBheWxvYWRbY10gPT0gMHgwYSAmJiBw
-YXlsb2FkW2MrMV0gPT0gMHgwZCAmJiAoKG1lbWNtcCgmcGF5bG9hZFtjKzJd
-LCAiWC1LYXphYS1Vc2VybmFtZTogIiwgMTgpID09IDApIHx8IChtZW1jbXAo
-JnBheWxvYWRbYysyXSwgIlVzZXItQWdlbnQ6IFBlZXJFbmFibGVyLyIsIDI0
-KSA9PSAwKSkpDQorCQkJCXJldHVybiAoKElQUDJQX0tBWkFBICogMTAwKSAr
-IDIpOw0KKwkJCWMrKzsNCisJCX0NCiAJfQ0KICAgICB9DQotICAgIA0KICAg
-ICByZXR1cm4gMDsNCiB9DQogDQogLypmYXN0IGNoZWNrIGZvciBlZG9ua2V5
-IGZpbGUgc2VnbWVudCB0cmFuc2ZlciBjb21tYW5kKi8NCiBpbnQNCi1zZWFy
-Y2hfZWRrICh1bnNpZ25lZCBjaGFyICpoYXlzdGFjaywgaW50IHBhY2tldF9s
-ZW4sIGludCBoZWFkX2xlbikNCitzZWFyY2hfZWRrIChjb25zdCB1bnNpZ25l
-ZCBjaGFyICpwYXlsb2FkLCBjb25zdCB1MTYgcGxlbikNCiB7DQotICAgIGlm
-ICgqKGhheXN0YWNrK2hlYWRfbGVuKSAhPSAweGUzKSANCisgICAgaWYgKHBh
-eWxvYWRbMF0gIT0gMHhlMykgDQogCXJldHVybiAwOw0KICAgICBlbHNlIHsN
-Ci0JaWYgKCooaGF5c3RhY2sraGVhZF9sZW4rNSkgPT0gMHg0NykgDQorCWlm
-IChwYXlsb2FkWzVdID09IDB4NDcpIA0KIAkgICAgcmV0dXJuIChJUFAyUF9E
-QVRBX0VESyAqIDEwMCk7DQogCWVsc2UgCQ0KIAkgICAgcmV0dXJuIDA7DQpA
-QCAtMzQyLDExMyArNTc0LDMzIEBADQogDQogLyppbnRlbnNpdmUgYnV0IHNs
-b3dlciBzZWFyY2ggZm9yIHNvbWUgZWRvbmtleSBwYWNrZXRzIGluY2x1ZGlu
-ZyBzaXplLWNoZWNrKi8NCiBpbnQNCi1zZWFyY2hfYWxsX2VkayAodW5zaWdu
-ZWQgY2hhciAqaGF5c3RhY2ssIGludCBwYWNrZXRfbGVuLCBpbnQgaGVhZF9s
-ZW4pDQorc2VhcmNoX2FsbF9lZGsgKGNvbnN0IHVuc2lnbmVkIGNoYXIgKnBh
-eWxvYWQsIGNvbnN0IHUxNiBwbGVuKQ0KIHsNCi0gICAgdW5zaWduZWQgY2hh
-ciAqdCA9IGhheXN0YWNrOw0KLSAgICBpbnQgY21kOw0KLSAgICANCi0gICAg
-aWYgKCooaGF5c3RhY2sraGVhZF9sZW4pID09IDB4ZDQpIHsNCi0JdCArPSBo
-ZWFkX2xlbjsJDQotCWNtZCA9IGdldF91MTYodCwgMSk7CQ0KLQlpZiAoY21k
-ID09IChwYWNrZXRfbGVuIC0gaGVhZF9sZW4gLSA1KSkJew0KLQkgICAgc3dp
-dGNoICh0WzVdKSB7DQotCQljYXNlIDB4ODI6IHJldHVybiAoKElQUDJQX0VE
-SyAqIDEwMCkgKyA0Mik7DQotCQljYXNlIDB4MTU6IHJldHVybiAoKElQUDJQ
-X0VESyAqIDEwMCkgKyA0Myk7DQotCQlkZWZhdWx0OiByZXR1cm4gMDsNCi0J
-ICAgIH0NCi0JfQ0KLQlyZXR1cm4gMDsgICAgDQotICAgIH0NCi0gICAgDQot
-ICAgIA0KLSAgICBpZiAoKihoYXlzdGFjaytoZWFkX2xlbikgPT0gMHhjNSkg
-ewkvKnNlYXJjaCBmb3IgYWRkaXRpb25hbCBlTXVsZSBwYWNrZXRzKi8NCi0J
-dCArPSBoZWFkX2xlbjsJDQotCWNtZCA9IGdldF91MTYodCwgMSk7CQ0KLQ0K
-LQlpZiAoY21kID09IChwYWNrZXRfbGVuIC0gaGVhZF9sZW4gLSA1KSkJew0K
-LQkgICAgc3dpdGNoICh0WzVdKSB7DQotCQljYXNlIDB4MDE6IHJldHVybiAo
-KElQUDJQX0VESyAqIDEwMCkgKyAzMCk7DQotCQljYXNlIDB4MDI6IHJldHVy
-biAoKElQUDJQX0VESyAqIDEwMCkgKyAzMSk7DQotCQljYXNlIDB4NjA6IHJl
-dHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyAzMik7DQotCQljYXNlIDB4ODE6
-IHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyAzMyk7DQotCQljYXNlIDB4
-ODI6IHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyAzNCk7DQotCQljYXNl
-IDB4ODU6IHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyAzNSk7DQotCQlj
-YXNlIDB4ODY6IHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyAzNik7DQot
-CQljYXNlIDB4ODc6IHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyAzNyk7
-DQotCQljYXNlIDB4NDA6IHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyAz
-OCk7DQotCQljYXNlIDB4OTI6IHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkg
-KyAzOSk7DQotCQljYXNlIDB4OTM6IHJldHVybiAoKElQUDJQX0VESyAqIDEw
-MCkgKyA0MCk7DQotCQljYXNlIDB4MTI6IHJldHVybiAoKElQUDJQX0VESyAq
-IDEwMCkgKyA0MSk7DQotCQlkZWZhdWx0OiByZXR1cm4gMDsNCi0JICAgIH0N
-Ci0JfQ0KLQkNCi0JcmV0dXJuIDA7DQotICAgIH0NCi0NCi0NCi0gICAgaWYg
-KCooaGF5c3RhY2sraGVhZF9sZW4pICE9IDB4ZTMpIA0KKyAgICBpZiAocGF5
-bG9hZFswXSAhPSAweGUzKSANCiAJcmV0dXJuIDA7DQogICAgIGVsc2Ugew0K
-LQl0ICs9IGhlYWRfbGVuOwkNCi0JY21kID0gZ2V0X3UxNih0LCAxKTsNCi0J
-aWYgKGNtZCA9PSAocGFja2V0X2xlbiAtIGhlYWRfbGVuIC0gNSkpIHsNCi0J
-ICAgIHN3aXRjaCAodFs1XSkgew0KKwkvL3QgKz0gaGVhZF9sZW47CQ0KKwlj
-b25zdCB1MTYgY21kID0gZ2V0X3UxNihwYXlsb2FkLCAxKTsNCisJaWYgKGNt
-ZCA9PSAocGxlbiAtIDUpKSB7DQorCSAgICBzd2l0Y2ggKHBheWxvYWRbNV0p
-IHsNCiAJCWNhc2UgMHgwMTogcmV0dXJuICgoSVBQMlBfRURLICogMTAwKSAr
-IDEpOwkvKkNsaWVudDogaGVsbG8gb3IgU2VydmVyOmhlbGxvKi8NCi0JCWNh
-c2UgMHg1MDogcmV0dXJuICgoSVBQMlBfRURLICogMTAwKSArIDIpOwkvKkNs
-aWVudDogZmlsZSBzdGF0dXMqLw0KLQkJY2FzZSAweDE2OiByZXR1cm4gKChJ
-UFAyUF9FREsgKiAxMDApICsgMyk7CS8qQ2xpZW50OiBzZWFyY2gqLw0KLQkJ
-Y2FzZSAweDU4OiByZXR1cm4gKChJUFAyUF9FREsgKiAxMDApICsgNCk7CS8q
-Q2xpZW50OiBmaWxlIHJlcXVlc3QqLw0KLQkJY2FzZSAweDQ4OiByZXR1cm4g
-KChJUFAyUF9FREsgKiAxMDApICsgNSk7CS8qPz8/Ki8NCi0JCWNhc2UgMHg1
-NDogcmV0dXJuICgoSVBQMlBfRURLICogMTAwKSArIDYpOwkvKj8/PyovDQot
-CQljYXNlIDB4NDc6IHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyA3KTsJ
-LypDbGllbnQ6IGZpbGUgc2VnbWVudCByZXF1ZXN0Ki8NCi0JCWNhc2UgMHg0
-NjogcmV0dXJuICgoSVBQMlBfRURLICogMTAwKSArIDgpOyAvKkNsaWVudDog
-ZG93bmxvYWQgc2VnbWVudCovDQogCQljYXNlIDB4NGM6IHJldHVybiAoKElQ
-UDJQX0VESyAqIDEwMCkgKyA5KTsJLypDbGllbnQ6IEhlbGxvLUFuc3dlciov
-DQotCQljYXNlIDB4NGY6IHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyAx
-MCk7CS8qQ2xpZW50OiBmaWxlIHN0YXR1cyByZXF1ZXN0Ki8NCi0JCWNhc2Ug
-MHg1OTogcmV0dXJuICgoSVBQMlBfRURLICogMTAwKSArIDExKTsJLypDbGll
-bnQ6IGZpbGUgcmVxdWVzdCBhbnN3ZXIqLw0KLQkJY2FzZSAweDY1OiByZXR1
-cm4gKChJUFAyUF9FREsgKiAxMDApICsgMTIpOwkvKkNsaWVudDogPz8/Ki8N
-Ci0JCWNhc2UgMHg2NjogcmV0dXJuICgoSVBQMlBfRURLICogMTAwKSArIDEz
-KTsJLypDbGllbnQ6ID8/PyovDQotCQljYXNlIDB4NTE6IHJldHVybiAoKElQ
-UDJQX0VESyAqIDEwMCkgKyAxNCk7CS8qQ2xpZW50OiA/Pz8qLw0KLQkJY2Fz
-ZSAweDUyOiByZXR1cm4gKChJUFAyUF9FREsgKiAxMDApICsgMTUpOwkvKkNs
-aWVudDogPz8/Ki8NCi0JCWNhc2UgMHg0ZDogcmV0dXJuICgoSVBQMlBfRURL
-ICogMTAwKSArIDE2KTsJLypDbGllbnQ6ID8/PyovDQotCQljYXNlIDB4NWM6
-IHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyAxNyk7CS8qQ2xpZW50OiA/
-Pz8qLw0KLQkJY2FzZSAweDM4OiByZXR1cm4gKChJUFAyUF9FREsgKiAxMDAp
-ICsgMTgpOwkvKkNsaWVudDogPz8/Ki8NCi0JCWNhc2UgMHg2OTogcmV0dXJu
-ICgoSVBQMlBfRURLICogMTAwKSArIDE5KTsJLypDbGllbnQ6ID8/PyovDQot
-CQljYXNlIDB4MTk6IHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyAyMCk7
-CS8qQ2xpZW50OiA/Pz8qLw0KLQkJY2FzZSAweDQyOiByZXR1cm4gKChJUFAy
-UF9FREsgKiAxMDApICsgMjEpOwkvKkNsaWVudDogPz8/Ki8NCi0JCWNhc2Ug
-MHgzNDogcmV0dXJuICgoSVBQMlBfRURLICogMTAwKSArIDIyKTsJLypDbGll
-bnQ6ID8/PyovDQotCQljYXNlIDB4OTQ6IHJldHVybiAoKElQUDJQX0VESyAq
-IDEwMCkgKyAyMyk7CS8qQ2xpZW50OiA/Pz8qLw0KLQkJY2FzZSAweDFjOiBy
-ZXR1cm4gKChJUFAyUF9FREsgKiAxMDApICsgMjQpOwkvKkNsaWVudDogPz8/
-Ki8NCi0JCWNhc2UgMHg2YTogcmV0dXJuICgoSVBQMlBfRURLICogMTAwKSAr
-IDI1KTsJLypDbGllbnQ6ID8/PyovDQotCQlkZWZhdWx0OiByZXR1cm4gMDsN
-CiAJICAgIH0NCi0JfSBlbHNlIHsNCi0JICAgIGlmIChjbWQgPiBwYWNrZXRf
-bGVuIC0gaGVhZF9sZW4gLSA1KSB7DQotCQlpZiAoKHRbM10gPT0gMHgwMCkg
-JiYgKHRbNF0gPT0gMHgwMCkpIHsNCi0JCSAgICBpZiAodFs1XSA9PSAweDAx
-KSByZXR1cm4gKChJUFAyUF9FREsgKiAxMDApICsgMjYpOw0KLQkJICAgIGlm
-ICh0WzVdID09IDB4NGMpIHJldHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyAy
-Nyk7DQotCQl9IA0KLQkJcmV0dXJuIDA7DQotCQkNCi0JICAgIH0JLypub24g
-ZWRrIHBhY2tldCovDQotCSAgICBpZiAodFtjbWQrNV0gPT0gMHhlMykgcmV0
-dXJuICgoSVBQMlBfRURLICogMTAwKSArIDI4KTsvKmZvdW5kIGFub3RoZXIg
-ZWRrLWNvbW1hbmQqLw0KLQkgICAgaWYgKHRbY21kKzVdID09IDB4YzUpIHJl
-dHVybiAoKElQUDJQX0VESyAqIDEwMCkgKyAyOSk7Lypmb3VuZCBhbiBlbXVs
-ZS1jb21tYW5kKi8JICAgIA0KLQkgICAgcmV0dXJuIDA7DQogCX0NCi0gICAg
-fQ0KKwlyZXR1cm4gMDsNCisgICAgIH0NCiB9DQogDQogDQogLypmYXN0IGNo
-ZWNrIGZvciBEaXJlY3QgQ29ubmVjdCBzZW5kIGNvbW1hbmQqLw0KIGludA0K
-LXNlYXJjaF9kYyAodW5zaWduZWQgY2hhciAqaGF5c3RhY2ssIGludCBwYWNr
-ZXRfbGVuLCBpbnQgaGVhZF9sZW4pDQorc2VhcmNoX2RjIChjb25zdCB1bnNp
-Z25lZCBjaGFyICpwYXlsb2FkLCBjb25zdCB1MTYgcGxlbikNCiB7DQotICAg
-IHVuc2lnbmVkIGNoYXIgKnQgPSBoYXlzdGFjazsNCiANCi0gICAgaWYgKCoo
-aGF5c3RhY2sraGVhZF9sZW4pICE9IDB4MjQgKSANCisgICAgaWYgKHBheWxv
-YWRbMF0gIT0gMHgyNCApIA0KIAlyZXR1cm4gMDsNCiAgICAgZWxzZSB7DQot
-CXQgKz0gaGVhZF9sZW4gKyAxOw0KLSAgICAgICAgaWYgKG1lbWNtcCh0LCAi
-U2VuZHwiLCA1KSA9PSAwKQ0KKwlpZiAobWVtY21wKCZwYXlsb2FkWzFdLCAi
-U2VuZHwiLCA1KSA9PSAwKQ0KIAkgICAgcmV0dXJuIChJUFAyUF9EQVRBX0RD
-ICogMTAwKTsNCiAJZWxzZQ0KIAkgICAgcmV0dXJuIDA7DQpAQCAtNDU5LDIw
-ICs2MTEsNzQgQEANCiANCiAvKmludGVuc2l2ZSBidXQgc2xvd2VyIGNoZWNr
-IGZvciBhbGwgZGlyZWN0IGNvbm5lY3QgcGFja2V0cyovDQogaW50DQotc2Vh
-cmNoX2FsbF9kYyAodW5zaWduZWQgY2hhciAqaGF5c3RhY2ssIGludCBwYWNr
-ZXRfbGVuLCBpbnQgaGVhZF9sZW4pDQorc2VhcmNoX2FsbF9kYyAoY29uc3Qg
-dW5zaWduZWQgY2hhciAqcGF5bG9hZCwgY29uc3QgdTE2IHBsZW4pDQogew0K
-LSAgICB1bnNpZ25lZCBjaGFyICp0ID0gaGF5c3RhY2s7DQorLy8gICAgdW5z
-aWduZWQgY2hhciAqdCA9IGhheXN0YWNrOw0KKw0KKyAgICBpZiAocGF5bG9h
-ZFswXSA9PSAweDI0ICYmIHBheWxvYWRbcGxlbi0xXSA9PSAweDdjKSANCisg
-ICAgew0KKyAgICAJY29uc3QgdW5zaWduZWQgY2hhciAqdD0mcGF5bG9hZFsx
-XTsNCisgICAgCQkvKiBDbGllbnQtSHViLVByb3RvY29sICovDQorCWlmICht
-ZW1jbXAodCwgIkxvY2sgIiwgNSkgPT0gMCkJIAkJcmV0dXJuICgoSVBQMlBf
-REMgKiAxMDApICsgMSk7DQorCS8qIENsaWVudC1DbGllbnQtUHJvdG9jb2ws
-IHNvbWUgYXJlIGFscmVhZHkgcmVjb2duaXplZCBieSBjbGllbnQtaHViIChs
-aWtlIGxvY2spICovDQorCWlmIChtZW1jbXAodCwgIk15TmljayAiLCA3KSA9
-PSAwKQkgCXJldHVybiAoKElQUDJQX0RDICogMTAwKSArIDM4KTsgDQorICAg
-IH0NCisgICAgcmV0dXJuIDA7DQorfQ0KKw0KKy8qY2hlY2sgZm9yIG11dGUq
-Lw0KK2ludA0KK3NlYXJjaF9tdXRlIChjb25zdCB1bnNpZ25lZCBjaGFyICpw
-YXlsb2FkLCBjb25zdCB1MTYgcGxlbikNCit7DQorCWlmICggcGxlbiA9PSAy
-MDkgfHwgcGxlbiA9PSAzNDUgfHwgcGxlbiA9PSA0NzMgfHwgcGxlbiA9PSA2
-MDkgfHwgcGxlbiA9PSAxMTIxICkNCisJew0KKwkJLy9wcmludGsoS0VSTl9E
-RUJVRyAic2l6ZSBoaXQ6ICV1IixzaXplKTsNCisJCWlmIChtZW1jbXAocGF5
-bG9hZCwiUHVibGljS2V5OiAiLDExKSA9PSAwICkNCisJCXsgDQorCQkJcmV0
-dXJuICgoSVBQMlBfTVVURSAqIDEwMCkgKyAwKTsNCisJCQkNCisvKgkJCWlm
-IChtZW1jbXAodCtzaXplLTE0LCJceDBhRW5kUHVibGljS2V5XHgwYSIsMTQp
-ID09IDApDQorCQkJew0KKwkJCQlwcmludGsoS0VSTl9ERUJVRyAiZW5kIHB1
-YmljIGtleSBoaXQ6ICV1IixzaXplKTsNCisJCQkJDQorCQkJfSovDQorCQl9
-DQorCX0NCisJcmV0dXJuIDA7DQorfQ0KKw0KIA0KLSAgICBpZiAoKCooaGF5
-c3RhY2sgKyBoZWFkX2xlbikgPT0gMHgyNCkgJiYgKCooaGF5c3RhY2sgKyBw
-YWNrZXRfbGVuIC0gMSkgPT0gMHg3YykpIHsNCi0gICAgCXQgKz0gaGVhZF9s
-ZW4gKyAxOw0KLQlpZiAobWVtY21wKHQsICJMb2NrICIsIDUpID09IDApCSBy
-ZXR1cm4gKChJUFAyUF9EQyAqIDEwMCkgKyAxKTsgLypodWI6IGhlbGxvKi8N
-Ci0JaWYgKG1lbWNtcCh0LCAiS2V5ICIsIDQpID09IDApCSByZXR1cm4gKChJ
-UFAyUF9EQyAqIDEwMCkgKyAyKTsgLypjbGllbnQ6IGhlbGxvKi8NCi0JaWYg
-KG1lbWNtcCh0LCAiSGVsbG8gIiwgNikgPT0gMCkgcmV0dXJuICgoSVBQMlBf
-REMgKiAxMDApICsgMyk7IC8qaHViOmNvbm5lY3RlZCovDQotCWlmIChtZW1j
-bXAodCwgIk15TmljayAiLCA3KSA9PSAwKSByZXR1cm4gKChJUFAyUF9EQyAq
-IDEwMCkgKyA0KTsgLypjbGllbnQtY2xpZW50OiBoZWxsbyovDQotCWlmICht
-ZW1jbXAodCwgIlNlYXJjaCAiLCA3KSA9PSAwKSByZXR1cm4gKChJUFAyUF9E
-QyAqIDEwMCkgKyA1KTsgLypjbGllbnQ6IHNlYXJjaCovDQotCWlmIChtZW1j
-bXAodCwgIlNlbmQiLCA0KSA9PSAwKQkgcmV0dXJuICgoSVBQMlBfREMgKiAx
-MDApICsgNik7IC8qY2xpZW50OiBzdGFydCBkb3dubG9hZCovDQorLyogY2hl
-Y2sgZm9yIHhkY2MgKi8NCitpbnQNCitzZWFyY2hfeGRjYyAoY29uc3QgdW5z
-aWduZWQgY2hhciAqcGF5bG9hZCwgY29uc3QgdTE2IHBsZW4pDQorew0KKwkv
-KiBzZWFyY2ggaW4gc21hbGwgcGFja2V0cyBvbmx5ICovDQorCWlmIChwbGVu
-ID4gMjAgJiYgcGxlbiA8IDIwMCAmJiBwYXlsb2FkW3BsZW4tMV0gPT0gMHgw
-YSAmJiBwYXlsb2FkW3BsZW4tMl0gPT0gMHgwZCAmJiBtZW1jbXAocGF5bG9h
-ZCwiUFJJVk1TRyAiLDgpID09IDApDQorCXsNCisJCQ0KKwkJdTE2IHg9MTA7
-DQorCQljb25zdCB1MTYgZW5kPXBsZW4gLSAxMzsNCisJCQ0KKwkJLyogaXMg
-c2VlbXMgdG8gYmUgYSBpcmMgcHJpdmF0ZSBtYXNzYWdlLCBjaGVkY2sgZm9y
-IHhkY2MgY29tbWFuZCAqLw0KKwkJd2hpbGUgKHggPCBlbmQpDQorCQl7DQor
-CQkJaWYgKHBheWxvYWRbeF0gPT0gJzonKQ0KKwkJCXsNCisJCQkJaWYgKCBt
-ZW1jbXAoJnBheWxvYWRbeCsxXSwieGRjYyBzZW5kICMiLDExKSA9PSAwICkN
-CisJCQkJCXJldHVybiAoKElQUDJQX1hEQ0MgKiAxMDApICsgMCk7DQorCQkJ
-fQ0KKwkJCXgrKzsNCisJCX0NCisJfQ0KIAlyZXR1cm4gMDsNCi0gICAgfSBl
-bHNlDQorfQ0KKw0KKy8qIHNlYXJjaCBmb3Igd2FzdGUgKi8NCitpbnQgc2Vh
-cmNoX3dhc3RlKGNvbnN0IHVuc2lnbmVkIGNoYXIgKnBheWxvYWQsIGNvbnN0
-IHUxNiBwbGVuKQ0KK3sNCisJaWYgKCBwbGVuID49IDggJiYgbWVtY21wKHBh
-eWxvYWQsIkdFVC5zaGExOiIsOSkgPT0gMCkNCisJCXJldHVybiAoKElQUDJQ
-X1dBU1RFICogMTAwKSArIDApOw0KKw0KIAlyZXR1cm4gMDsNCiB9DQogDQpA
-QCAtNDgxLDIxICs2ODcsMjQgQEANCiAgICAgaW50IGNvbW1hbmQ7DQogICAg
-IF9fdTggc2hvcnRfaGFuZDsJCQkvKmZvciBmdWNudGlvbnMgaW5jbHVkZWQg
-aW4gc2hvcnQgaGFuZHMqLw0KICAgICBpbnQgcGFja2V0X2xlbjsNCi0gICAg
-aW50ICgqZnVuY3Rpb25fbmFtZSkgKHVuc2lnbmVkIGNoYXIgKiwgaW50LCBp
-bnQpOw0KKyAgICBpbnQgKCpmdW5jdGlvbl9uYW1lKSAoY29uc3QgdW5zaWdu
-ZWQgY2hhciAqLCBjb25zdCB1MTYpOw0KIH0gbWF0Y2hsaXN0W10gPSB7DQot
-ICAgIHtJUFAyUF9FREssU0hPUlRfSEFORF9JUFAyUCw0MCwgJnNlYXJjaF9h
-bGxfZWRrfSwNCi0gICAge0lQUDJQX0RBVEFfS0FaQUEsU0hPUlRfSEFORF9E
-QVRBLDIwMCwgJnNlYXJjaF9rYXphYX0sDQotICAgIHtJUFAyUF9EQVRBX0VE
-SyxTSE9SVF9IQU5EX0RBVEEsNjAsICZzZWFyY2hfZWRrfSwNCi0gICAge0lQ
-UDJQX0RBVEFfREMsU0hPUlRfSEFORF9EQVRBLDI2LCAmc2VhcmNoX2RjfSwN
-Ci0gICAge0lQUDJQX0RDLFNIT1JUX0hBTkRfSVBQMlAsMjUsIHNlYXJjaF9h
-bGxfZGN9LA0KLSAgICB7SVBQMlBfREFUQV9HTlUsU0hPUlRfSEFORF9EQVRB
-LDQwLCAmc2VhcmNoX2dudX0sDQotICAgIHtJUFAyUF9HTlUsU0hPUlRfSEFO
-RF9JUFAyUCwzNSwgJnNlYXJjaF9hbGxfZ251fSwNCi0gICAge0lQUDJQX0tB
-WkFBLFNIT1JUX0hBTkRfSVBQMlAsMzUsICZzZWFyY2hfYWxsX2themFhfSwN
-Ci0gICAge0lQUDJQX0JJVCxTSE9SVF9IQU5EX05PTkUsNDAsICZzZWFyY2hf
-Yml0dG9ycmVudH0sDQotICAgIHtJUFAyUF9BUFBMRSxTSE9SVF9IQU5EX05P
-TkUsMjAsICZzZWFyY2hfYXBwbGV9LA0KLSAgICB7SVBQMlBfU09VTCxTSE9S
-VF9IQU5EX05PTkUsMjUsICZzZWFyY2hfc291bH0sDQotICAgIHtJUFAyUF9X
-SU5NWCxTSE9SVF9IQU5EX05PTkUsMjAsICZzZWFyY2hfd2lubXh9LA0KLSAg
-ICB7SVBQMlBfQVJFUyxTSE9SVF9IQU5EX05PTkUsMjUsICZzZWFyY2hfYXJl
-c30sDQorICAgIHtJUFAyUF9FREssU0hPUlRfSEFORF9JUFAyUCwyMCwgJnNl
-YXJjaF9hbGxfZWRrfSwNCisvLyAgICB7SVBQMlBfREFUQV9LQVpBQSxTSE9S
-VF9IQU5EX0RBVEEsMjAwLCAmc2VhcmNoX2themFhfSwNCisvLyAgICB7SVBQ
-MlBfREFUQV9FREssU0hPUlRfSEFORF9EQVRBLDYwLCAmc2VhcmNoX2Vka30s
-DQorLy8gICAge0lQUDJQX0RBVEFfREMsU0hPUlRfSEFORF9EQVRBLDI2LCAm
-c2VhcmNoX2RjfSwNCisgICAge0lQUDJQX0RDLFNIT1JUX0hBTkRfSVBQMlAs
-NSwgc2VhcmNoX2FsbF9kY30sDQorLy8gICAge0lQUDJQX0RBVEFfR05VLFNI
-T1JUX0hBTkRfREFUQSw0MCwgJnNlYXJjaF9nbnV9LA0KKyAgICB7SVBQMlBf
-R05VLFNIT1JUX0hBTkRfSVBQMlAsNSwgJnNlYXJjaF9hbGxfZ251fSwNCisg
-ICAge0lQUDJQX0tBWkFBLFNIT1JUX0hBTkRfSVBQMlAsNSwgJnNlYXJjaF9h
-bGxfa2F6YWF9LA0KKyAgICB7SVBQMlBfQklULFNIT1JUX0hBTkRfSVBQMlAs
-MjAsICZzZWFyY2hfYml0dG9ycmVudH0sDQorICAgIHtJUFAyUF9BUFBMRSxT
-SE9SVF9IQU5EX0lQUDJQLDUsICZzZWFyY2hfYXBwbGV9LA0KKyAgICB7SVBQ
-MlBfU09VTCxTSE9SVF9IQU5EX0lQUDJQLDUsICZzZWFyY2hfc291bH0sDQor
-ICAgIHtJUFAyUF9XSU5NWCxTSE9SVF9IQU5EX0lQUDJQLDIsICZzZWFyY2hf
-d2lubXh9LA0KKyAgICB7SVBQMlBfQVJFUyxTSE9SVF9IQU5EX0lQUDJQLDUs
-ICZzZWFyY2hfYXJlc30sDQorICAgIHtJUFAyUF9NVVRFLFNIT1JUX0hBTkRf
-Tk9ORSwyMDAsICZzZWFyY2hfbXV0ZX0sDQorICAgIHtJUFAyUF9XQVNURSxT
-SE9SVF9IQU5EX05PTkUsNSwgJnNlYXJjaF93YXN0ZX0sDQorICAgIHtJUFAy
-UF9YRENDLFNIT1JUX0hBTkRfTk9ORSw1LCAmc2VhcmNoX3hkY2N9LA0KICAg
-ICB7MCwwLDAsTlVMTH0NCiB9Ow0KIA0KQEAgLTUwNyw5ICs3MTYsMTAgQEAN
-CiAgICAgaW50ICgqZnVuY3Rpb25fbmFtZSkgKHVuc2lnbmVkIGNoYXIgKiwg
-aW50KTsNCiB9IHVkcF9saXN0W10gPSB7DQogICAgIHtJUFAyUF9LQVpBQSxT
-SE9SVF9IQU5EX0lQUDJQLDE0LCAmdWRwX3NlYXJjaF9rYXphYX0sDQotICAg
-IHtJUFAyUF9CSVQsU0hPUlRfSEFORF9OT05FLDIzLCAmdWRwX3NlYXJjaF9i
-aXR9LA0KKyAgICB7SVBQMlBfQklULFNIT1JUX0hBTkRfSVBQMlAsMjMsICZ1
-ZHBfc2VhcmNoX2JpdH0sDQogICAgIHtJUFAyUF9HTlUsU0hPUlRfSEFORF9J
-UFAyUCwxMSwgJnVkcF9zZWFyY2hfZ251fSwNCiAgICAge0lQUDJQX0VESyxT
-SE9SVF9IQU5EX0lQUDJQLDksICZ1ZHBfc2VhcmNoX2Vka30sDQorICAgIHtJ
-UFAyUF9EQyxTSE9SVF9IQU5EX0lQUDJQLDEyLCAmdWRwX3NlYXJjaF9kaXJl
-Y3Rjb25uZWN0fSwgICAgDQogICAgIHswLDAsMCxOVUxMfQ0KIH07DQogDQpA
-QCAtNTI3LDcgKzczNyw3IEBADQogICAgIHVuc2lnbmVkIGNoYXIgICpoYXlz
-dGFjazsNCiAgICAgc3RydWN0IGlwaGRyICppcCA9IHNrYi0+bmguaXBoOw0K
-ICAgICBpbnQgcDJwX3Jlc3VsdCA9IDAsIGkgPSAwOw0KLSAgICBpbnQgaGVh
-ZF9sZW47DQorLy8gICAgaW50IGhlYWRfbGVuOw0KICAgICBpbnQgaGxlbiA9
-IG50b2hzKGlwLT50b3RfbGVuKS0oaXAtPmlobCo0KTsJLypobGVuID0gcGFj
-a2V0LWRhdGEgbGVuZ3RoKi8NCiANCiAgICAgLyptdXN0IG5vdCBiZSBhIGZy
-YWdtZW50Ki8NCkBAIC01NTMsMTIgKzc2MywxNCBAQA0KIAkgICAgaWYgKHRj
-cGgtPmZpbikgcmV0dXJuIDA7ICAvKmlmIEZJTiBiaXQgaXMgc2V0IGJhaWwg
-b3V0Ki8NCiAJICAgIGlmICh0Y3BoLT5zeW4pIHJldHVybiAwOyAgLyppZiBT
-WU4gYml0IGlzIHNldCBiYWlsIG91dCovDQogCSAgICBpZiAodGNwaC0+cnN0
-KSByZXR1cm4gMDsgIC8qaWYgUlNUIGJpdCBpcyBzZXQgYmFpbCBvdXQqLw0K
-LQkgICAgaGVhZF9sZW4gPSB0Y3BoLT5kb2ZmICogNDsgLypnZXQgVENQLUhl
-YWRlci1TaXplKi8NCisJICAgIA0KKwkgICAgaGF5c3RhY2sgKz0gdGNwaC0+
-ZG9mZiAqIDQ7IC8qZ2V0IFRDUC1IZWFkZXItU2l6ZSovDQorCSAgICBobGVu
-IC09IHRjcGgtPmRvZmYgKiA0Ow0KIAkgICAgd2hpbGUgKG1hdGNobGlzdFtp
-XS5jb21tYW5kKSB7DQogCQlpZiAoKCgoaW5mby0+Y21kICYgbWF0Y2hsaXN0
-W2ldLmNvbW1hbmQpID09IG1hdGNobGlzdFtpXS5jb21tYW5kKSB8fA0KIAkJ
-ICAgICgoaW5mby0+Y21kICYgbWF0Y2hsaXN0W2ldLnNob3J0X2hhbmQpID09
-IG1hdGNobGlzdFtpXS5zaG9ydF9oYW5kKSkgJiYNCiAJCSAgICAoaGxlbiA+
-IG1hdGNobGlzdFtpXS5wYWNrZXRfbGVuKSkgew0KLQkJCSAgICBwMnBfcmVz
-dWx0ID0gbWF0Y2hsaXN0W2ldLmZ1bmN0aW9uX25hbWUoaGF5c3RhY2ssIGhs
-ZW4sIGhlYWRfbGVuKTsNCisJCQkgICAgcDJwX3Jlc3VsdCA9IG1hdGNobGlz
-dFtpXS5mdW5jdGlvbl9uYW1lKGhheXN0YWNrLCBobGVuKTsNCiAJCQkgICAg
-aWYgKHAycF9yZXN1bHQpIA0KIAkJCSAgICB7DQogCQkJCWlmIChpbmZvLT5k
-ZWJ1ZykgcHJpbnRrKCJJUFAyUC5kZWJ1ZzpUQ1AtbWF0Y2g6ICVpIGZyb206
-ICV1LiV1LiV1LiV1OiVpIHRvOiAldS4ldS4ldS4ldTolaSBMZW5ndGg6ICVp
-XG4iLCANCkBAIC02MTYsMTAgKzgyOCwyMCBAQA0KIA0KIA0KIHN0YXRpYyBz
-dHJ1Y3QgaXB0X21hdGNoIGlwcDJwX21hdGNoID0geyANCisjaWYgTElOVVhf
-VkVSU0lPTl9DT0RFIDwgS0VSTkVMX1ZFUlNJT04oMiw2LDApDQorCXsgTlVM
-TCwgTlVMTCB9LCANCisJImlwcDJwIiwgDQorCSZtYXRjaCwgDQorCSZjaGVj
-a2VudHJ5LCANCisJTlVMTCwgDQorCVRISVNfTU9EVUxFDQorI2VuZGlmDQor
-I2lmIExJTlVYX1ZFUlNJT05fQ09ERSA+PSBLRVJORUxfVkVSU0lPTigyLDYs
-MCkNCiAJLm5hbWUJCT0gImlwcDJwIiwNCiAJLm1hdGNoCQk9ICZtYXRjaCwN
-CiAJLmNoZWNrZW50cnkJPSAmY2hlY2tlbnRyeSwNCiAJLm1lCQk9IFRISVNf
-TU9EVUxFLA0KKyNlbmRpZg0KIH07DQogDQogDQo=
-
----187430788-631094242-1143628176=:13092--
+--Boundary-00=_xEnKEHoZDXv41s3--
