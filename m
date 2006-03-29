@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: fix compile error in IPv6 versions of nth and random modules
-Date: Wed, 29 Mar 2006 10:37:26 +0200
-Message-ID: <442A4746.7030606@trash.net>
-References: <427c54c0603280922x38225874wa300ab9f07fd8ddb@mail.gmail.com>
+Subject: Re: [PATCH] compilation error + kernel panic sip-conntrack-nat
+Date: Wed, 29 Mar 2006 10:41:10 +0200
+Message-ID: <442A4826.3060908@trash.net>
+References: <20060327135637.GA19422@runtux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Daniel De Graaf <danieldegraaf@gmail.com>
-In-Reply-To: <427c54c0603280922x38225874wa300ab9f07fd8ddb@mail.gmail.com>
+To: Ralf Schlatterbeck <rsc@runtux.com>
+In-Reply-To: <20060327135637.GA19422@runtux.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,27 +21,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Daniel De Graaf wrote:
-> When compiled for IPv6, the nth and random modules produce compile
-> errors because of a change in the ip6t_match structure. These patches
-> fix that error and a related warning about incompatible types. Since
-> the patches are nearly identical, I am posting them together; sorry if
-> this is a problem.
+Ralf Schlatterbeck wrote:
+> The following patch fixes a compilation problem for 2.6.16 (two missing
+> includes) and a kernel panic on the first sip packets (reproduced with
+> 2.6.15.4 and 2.6.16, tested only with 2.6.16). The kernel-panic fix is
+> from the mailinglist-archive but obviously didn't yet make it into
+> the official tree yet.
 
-Applied, thanks. Unfortunately 2.6.17 will require another patch ..
+I actually have a version with some more fixes I wanted to submit (since
+quite some time), but I haven't gotten around to fixing the last
+remaining issue, so I've applied your patch for now. Thanks.
 
-BTW:
+> Note: The FAQ-Entry about SIP 
+> http://www.netfilter.org/documentation/FAQ/netfilter-faq-1.html#ss1.8
+> should be updated to point to sip-conntrack-nat, see
+> http://www.iptel.org/sipalg/
+> The conntrack module would surely get more testing if it is mentioned in
+> the FAQ :-)
 
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-...
-
-Content-Type: application/octet-stream; name=diff
-Content-Transfer-Encoding: 7bit
-X-Attachment-Id: f_elchtr7v
-Content-Disposition: attachment; filename="diff"
-
-Please make sure the plain patch is sent inline so it can be viewed in
-the mail client without saving first.
+Feel free to send a patch :)
