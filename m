@@ -1,10 +1,13 @@
-From: "Daniel De Graaf" <danieldegraaf@gmail.com>
-Subject: fix compile error in IPv6 versions of nth and random modules
-Date: Tue, 28 Mar 2006 11:22:52 -0600
-Message-ID: <427c54c0603280922x38225874wa300ab9f07fd8ddb@mail.gmail.com>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH IP6TABLES]: don't allow to specify protocol of IPv6
+ extension header
+Date: Wed, 29 Mar 2006 15:59:12 +0900 (JST)
+Message-ID: <200603290659.k2T6xDbO020389@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_9245_9635856.1143566572866"
+Content-Type: Multipart/Mixed;
+	boundary="--Next_Part(Wed_Mar_29_15_59_12_2006_711)--"
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,89 +21,72 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-------=_Part_9245_9635856.1143566572866
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-V2hlbiBjb21waWxlZCBmb3IgSVB2NiwgdGhlIG50aCBhbmQgcmFuZG9tIG1vZHVsZXMgcHJvZHVj
-ZSBjb21waWxlCmVycm9ycyBiZWNhdXNlIG9mIGEgY2hhbmdlIGluIHRoZSBpcDZ0X21hdGNoIHN0
-cnVjdHVyZS4gVGhlc2UgcGF0Y2hlcwpmaXggdGhhdCBlcnJvciBhbmQgYSByZWxhdGVkIHdhcm5p
-bmcgYWJvdXQgaW5jb21wYXRpYmxlIHR5cGVzLiBTaW5jZQp0aGUgcGF0Y2hlcyBhcmUgbmVhcmx5
-IGlkZW50aWNhbCwgSSBhbSBwb3N0aW5nIHRoZW0gdG9nZXRoZXI7IHNvcnJ5IGlmCnRoaXMgaXMg
-YSBwcm9ibGVtLgoKLSBEYW5pZWwgRGUgR3JhYWYK
-------=_Part_9245_9635856.1143566572866
-Content-Type: application/octet-stream; name=diff
+----Next_Part(Wed_Mar_29_15_59_12_2006_711)--
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-X-Attachment-Id: f_elchtr7v
-Content-Disposition: attachment; filename="diff"
 
-Index: patchlets/nth/linux-2.6.10/net/ipv6/netfilter/ip6t_nth.c
-===================================================================
---- patchlets/nth/linux-2.6.10/net/ipv6/netfilter/ip6t_nth.c	(revision 6560)
-+++ patchlets/nth/linux-2.6.10/net/ipv6/netfilter/ip6t_nth.c	(working copy)
-@@ -114,7 +114,7 @@
- 
- static int
- ip6t_nth_checkentry(const char *tablename,
--		   const struct ip6t_ip6 *e,
-+		   const void *ip,
- 		   void *matchinfo,
- 		   unsigned int matchsize,
- 		   unsigned int hook_mask)
-@@ -139,13 +139,12 @@
- 	return 1;
+
+Hi,
+
+Sometimes I hear that people do 'ip6tables -p ah ...' which never matches
+any packet. IPv6 extension headers except of ESP are skipped and invalid
+as argument of '-p'. Then I propose that ip6tables exits with error in such
+case.
+
+-- Yasuyuki Kozakai
+
+----Next_Part(Wed_Mar_29_15_59_12_2006_711)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename="check-exthdr.patch"
+
+[PATCH] don't allow to specify protocol of IPv6 extension header
+
+---
+commit 9bbbc3c90face808eb05da8aae69c9e6f7b508b3
+tree 5506d3520a60553607f074ed21969ca0c2fbb8aa
+parent 5a2223d5d7d2d81ab036effd7460a9dea45d247e
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Wed, 29 Mar 2006 12:50:32 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Wed, 29 Mar 2006 12:50:32 +0900
+
+ ip6tables.c |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
+
+diff --git a/ip6tables.c b/ip6tables.c
+index dcf7d36..a6471ee 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -849,6 +849,17 @@ parse_protocol(const char *s)
+ 	return (u_int16_t)proto;
  }
  
--static struct ip6t_match ip6t_nth_reg = { 
--	{NULL, NULL},
--	"nth",
--	ip6t_nth_match,
--	ip6t_nth_checkentry,
--	NULL,
--	THIS_MODULE };
-+static struct ip6t_match ip6t_nth_reg = {
-+	.name       = "nth",
-+	.match      = &ip6t_nth_match,
-+	.checkentry = &ip6t_nth_checkentry,
-+	.me	    = THIS_MODULE,
-+};
- 
- static int __init init(void)
++/* proto means upper-layer protocol or ESP ? */
++static int is_exthdr(u_int16_t proto)
++{
++	return (proto == IPPROTO_HOPOPTS ||
++		proto == IPPROTO_ROUTING ||
++		proto == IPPROTO_FRAGMENT ||
++		proto == IPPROTO_ESP ||
++		proto == IPPROTO_AH ||
++		proto == IPPROTO_DSTOPTS);
++}
++
+ void parse_interface(const char *arg, char *vianame, unsigned char *mask)
  {
-Index: patchlets/random/linux-2.6/net/ipv6/netfilter/ip6t_random.c
-===================================================================
---- patchlets/random/linux-2.6/net/ipv6/netfilter/ip6t_random.c	(revision 6560)
-+++ patchlets/random/linux-2.6/net/ipv6/netfilter/ip6t_random.c	(working copy)
-@@ -44,7 +44,7 @@
+ 	int vialen = strlen(arg);
+@@ -1926,6 +1937,13 @@ int do_command6(int argc, char *argv[], 
+ 			    && (fw.ipv6.invflags & IP6T_INV_PROTO))
+ 				exit_error(PARAMETER_PROBLEM,
+ 					   "rule would never match protocol");
++			
++			if (fw.ipv6.proto != IPPROTO_ESP &&
++			    is_exthdr(fw.ipv6.proto))
++				exit_error(PARAMETER_PROBLEM,
++					   "invalid protocol: %s. "
++					   "use exension match instead.",
++					   protocol);
+ 			break;
  
- static int
- ip6t_rand_checkentry(const char *tablename,
--		   const struct ip6t_ip6 *e,
-+		   const void *ip,
- 		   void *matchinfo,
- 		   unsigned int matchsize,
- 		   unsigned int hook_mask)
-@@ -69,13 +69,12 @@
- 	return 1;
- }
- 
--static struct ip6t_match ip6t_rand_reg = { 
--	{NULL, NULL},
--	"random",
--	ip6t_rand_match,
--	ip6t_rand_checkentry,
--	NULL,
--	THIS_MODULE };
-+static struct ip6t_match ip6t_rand_reg = {
-+	.name       = "random",
-+	.match      = &ip6t_rand_match,
-+	.checkentry = &ip6t_rand_checkentry,
-+	.me         = THIS_MODULE,
-+};
- 
- static int __init init(void)
- {
+ 		case 's':
 
-
-------=_Part_9245_9635856.1143566572866--
+----Next_Part(Wed_Mar_29_15_59_12_2006_711)----
