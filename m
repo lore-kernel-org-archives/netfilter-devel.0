@@ -1,16 +1,20 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: Problems With Geoip and linux-2.6.16 .....
-Date: Wed, 29 Mar 2006 19:49:40 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0603291946120.1705@bizon.gios.gov.pl>
-References: <20060329151830.GA4313@69.17.112.251>
-	<Pine.LNX.4.64.0603291745050.724@bizon.gios.gov.pl>
-	<20060329160633.GA20866@69.17.112.251>
+From: Martin Josefsson <gandalf@wlug.westbo.se>
+Subject: Re: [PATCH] iptables 32bit compat layer
+Date: Wed, 29 Mar 2006 21:04:45 +0200
+Message-ID: <1143659085.4015.77.camel@localhost.localdomain>
+References: <200602201110.39092.dim@openvz.org>
+	<200603291536.17794.dim@openvz.org> <442A7E72.2080405@trash.net>
+	<200603291638.02842.dim@openvz.org>  <442A81DB.7060608@trash.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-564313910-1143654580=:1705"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-xjKMkHUIv3olzmmPBG07"
+Cc: netfilter-devel@lists.netfilter.org, Arnd Bergmann <arnd@arndb.de>,
+	Dmitry Mishin <dim@openvz.org>, rusty@rustcorp.com.au,
+	"David S. Miller" <davem@davemloft.net>, devel@openvz.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Nick Pasich <NewsLetters@NickAndBarb.net>
-In-Reply-To: <20060329160633.GA20866@69.17.112.251>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <442A81DB.7060608@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,77 +26,56 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-564313910-1143654580=:1705
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+--=-xjKMkHUIv3olzmmPBG07
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, 2006-03-29 at 14:47 +0200, Patrick McHardy wrote:
+> Dmitry Mishin wrote:
+> > On Wednesday 29 March 2006 16:32, Patrick McHardy wrote:
+> >>
+> >>I know, but SOL_IPV6 implies IP6T_* - but please don't bother sending
+> >>a new patch for this :) So the point of the change is to exclude IPv6
+> >>from the compat layer because its not implemented yet?
+> >=20
+> > Exactly. Because do_netfilter_replace still works for some cases, but n=
+ewer=20
+> > replacement isn't ready yet.
+>=20
+> Ah OK. One last thing before I'll pass it on. There was one 64 bit
+> architecture where iptables already worked with 32 bit userspace for
+> some reason. I would like to make sure that it still works before it
+> goes in because I can't debug it if it fails afterwards. I don't
+> recall which arch it was, but I think Martin had one of these machines.
+> Martin, could you give the compat patch a try?
 
+It was an sparc64 machine with 32bit userspace I used for this testing.
+Iirc, there was no problem adding/removing rules with the normal built
+in matches and targets. The parts that were troublesome was some
+matches/targets and rule counters.
+That was worked around with very very very very ugly hacks in the
+matches/targets in userspace, first an attempt to detect if we are
+running 64/32 and if that's the case add some padding to some structs to
+make the placement of used struct members match what's in kernel)
 
-On Wed, 29 Mar 2006, Nick Pasich wrote:
+That machine (an old ultra1) hasn't seen electricity in a long time,
+I'll see if I can dig it out this weekend unless someone else (dave?)
+beats me to testing the patch.
 
-> Krzysztof,
->
-> Your's is the only reply I've received.
->
-> Because Email doesn't get through to either Samuel Jean or
-> Nickolas Boulain at <nib@cookinglinux.org> or <sjean@cookinglinux.org>,
-> I'm wondering if anyone is maintaining "geoip" anymore.
->
-> If not, I'll give it a whirl.....
+--=20
+/Martin
 
-Please test attached file. I don't use this extension so all I can tell=20
-that the patch allows kernel to be modified with patched pom-ng and=20
-then successufully compiled.
+--=-xjKMkHUIv3olzmmPBG07
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-Best regards,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
 
- =09=09=09Krzysztof Ol=EAdzki
----187430788-564313910-1143654580=:1705
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=geoip.patch
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0603291949400.1705@bizon.gios.gov.pl>
-Content-Description: 
-Content-Disposition: attachment; filename=geoip.patch
+iD8DBQBEKtpNWm2vlfa207ERAlJPAJ0Zj1A7M5WFNc1TcfrG9S6wWV45HwCeNsnO
+QCgu2/UFwVMP7Joa2TAkHEw=
+=nZyA
+-----END PGP SIGNATURE-----
 
-ZGlmZiAtTnVyIHBhdGNoLW8tbWF0aWMtbmctMjAwNjAzMjgtb3JpZy9wYXRj
-aGxldHMvZ2VvaXAvbGludXgtMi42L25ldC9pcHY0L25ldGZpbHRlci9NYWtl
-ZmlsZS5sYWRkIHBhdGNoLW8tbWF0aWMtbmctMjAwNjAzMjgvcGF0Y2hsZXRz
-L2dlb2lwL2xpbnV4LTIuNi9uZXQvaXB2NC9uZXRmaWx0ZXIvTWFrZWZpbGUu
-bGFkZA0KLS0tIHBhdGNoLW8tbWF0aWMtbmctMjAwNjAzMjgtb3JpZy9wYXRj
-aGxldHMvZ2VvaXAvbGludXgtMi42L25ldC9pcHY0L25ldGZpbHRlci9NYWtl
-ZmlsZS5sYWRkCTIwMDUtMDEtMjMgMTY6NTM6MTQuMDAwMDAwMDAwICswMTAw
-DQorKysgcGF0Y2gtby1tYXRpYy1uZy0yMDA2MDMyOC9wYXRjaGxldHMvZ2Vv
-aXAvbGludXgtMi42L25ldC9pcHY0L25ldGZpbHRlci9NYWtlZmlsZS5sYWRk
-CTIwMDYtMDMtMjkgMTk6MTc6MDkuMDAwMDAwMDAwICswMjAwDQpAQCAtMSwz
-ICsxLDMgQEANCi1vYmotJChDT05GSUdfSVBfTkZfTUFUQ0hfTElNSVQpICs9
-IGlwdF9saW1pdC5vDQorb2JqLSQoQ09ORklHX0lQX05GX01BVENIX1JFQ0VO
-VCkgKz0gaXB0X3JlY2VudC5vDQogb2JqLSQoQ09ORklHX0lQX05GX01BVENI
-X0dFT0lQKSArPSBpcHRfZ2VvaXAubw0KIA0KZGlmZiAtTnVyIHBhdGNoLW8t
-bWF0aWMtbmctMjAwNjAzMjgtb3JpZy9wYXRjaGxldHMvZ2VvaXAvbGludXgt
-Mi42L25ldC9pcHY0L25ldGZpbHRlci9pcHRfZ2VvaXAuYyBwYXRjaC1vLW1h
-dGljLW5nLTIwMDYwMzI4L3BhdGNobGV0cy9nZW9pcC9saW51eC0yLjYvbmV0
-L2lwdjQvbmV0ZmlsdGVyL2lwdF9nZW9pcC5jDQotLS0gcGF0Y2gtby1tYXRp
-Yy1uZy0yMDA2MDMyOC1vcmlnL3BhdGNobGV0cy9nZW9pcC9saW51eC0yLjYv
-bmV0L2lwdjQvbmV0ZmlsdGVyL2lwdF9nZW9pcC5jCTIwMDUtMDEtMjMgMTY6
-NTM6MTQuMDAwMDAwMDAwICswMTAwDQorKysgcGF0Y2gtby1tYXRpYy1uZy0y
-MDA2MDMyOC9wYXRjaGxldHMvZ2VvaXAvbGludXgtMi42L25ldC9pcHY0L25l
-dGZpbHRlci9pcHRfZ2VvaXAuYwkyMDA2LTAzLTI5IDE5OjE2OjQ1LjAwMDAw
-MDAwMCArMDIwMA0KQEAgLTk5LDYgKzk5LDcgQEANCiAgICAgICAgICAgICAg
-ICAgIGNvbnN0IHN0cnVjdCBuZXRfZGV2aWNlICpvdXQsDQogICAgICAgICAg
-ICAgICAgICBjb25zdCB2b2lkICptYXRjaGluZm8sDQogICAgICAgICAgICAg
-ICAgICBpbnQgb2Zmc2V0LA0KKwkJIHVuc2lnbmVkIGludCBwcm90b2ZmLA0K
-ICAgICAgICAgICAgICAgICAgaW50ICpob3Rkcm9wKQ0KIHsNCiAgICBjb25z
-dCBzdHJ1Y3QgaXB0X2dlb2lwX2luZm8gKmluZm8gPSBtYXRjaGluZm87DQpA
-QCAtMTMzLDcgKzEzNCw3IEBADQogfQ0KIA0KIHN0YXRpYyBpbnQgZ2VvaXBf
-Y2hlY2tlbnRyeShjb25zdCBjaGFyICp0YWJsZW5hbWUsDQotICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICBjb25zdCBzdHJ1Y3QgaXB0X2lwICppcCwN
-CisgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IHZvaWQgKmlw
-LA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdm9pZCAqbWF0Y2hp
-bmZvLA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdW5zaWduZWQg
-aW50IG1hdGNoc2l6ZSwNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IHVuc2lnbmVkIGludCBob29rX21hc2spDQo=
-
----187430788-564313910-1143654580=:1705--
+--=-xjKMkHUIv3olzmmPBG07--
