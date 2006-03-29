@@ -1,12 +1,14 @@
-From: Nick Pasich <NewsLetters@NickAndBarb.net>
-Subject: Problems With Geoip and linux-2.6.16 .....
-Date: Wed, 29 Mar 2006 07:18:30 -0800
-Message-ID: <20060329151830.GA4313@69.17.112.251>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: Problems With Geoip and linux-2.6.16 .....
+Date: Wed, 29 Mar 2006 17:46:39 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0603291745050.724@bizon.gios.gov.pl>
+References: <20060329151830.GA4313@69.17.112.251>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-101297834-1143647199=:724"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Nick Pasich <NewsLetters@NickAndBarb.net>
+In-Reply-To: <20060329151830.GA4313@69.17.112.251>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,44 +20,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Does anyone know what's going on with "geoip" ????
-
-
-
-Email doesn't get through to either Samuel Jean or Nickolas Boulain, at
-<nib@cookinglinux.org> or <sjean@cookinglinux.org> ..... so I thought
-I would try posting here......
+---187430788-101297834-1143647199=:724
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
 
 
-I just got Linux Kernel 2.6.16 and am trying to add geoip.
+On Wed, 29 Mar 2006, Nick Pasich wrote:
 
-I'm using the latest patch-o-matic-ng-20060322.
+>
+> Does anyone know what's going on with "geoip" ????
 
-I get the following error:
+You need to wait for someone to prepare patch for it. Please keep=20
+patience or do it yourself. :)
 
-
-unable to find ladd slot in src \
-/tmp/pom-10459/net/ipv4/netfilter/Makefile \
-(./patchlets/geoip/linux-2.6/./net/ipv4/netfilter/Makefile.ladd)
-
-
-Makefile.ladd shows:
-
-obj-$(CONFIG_IP_NF_MATCH_LIMIT) += ipt_limit.o
-obj-$(CONFIG_IP_NF_MATCH_GEOIP) += ipt_geoip.o
+Besr regards,
 
 
-There is no ipt_limit.c in /usr/src/linux-2.6.16/net/ipv4/netfilter/
-There was one on the linux-2.6.15 but not in linux-2.6.16
-
-There is a xt_limit.c in /usr/src/linux-2.6.16/net/netfilter.
-In xt_limit.c there is a MODULE_ALIAS("ipt_limit").
-
-I use geoip continuously and can't use the new kernel without it.
-
-
-               ---( Nick Pasich )---
-
-             NewsLetters@NickAndBarb.net
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-101297834-1143647199=:724--
