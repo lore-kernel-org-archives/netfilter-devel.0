@@ -1,19 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] iptables 32bit compat layer
-Date: Wed, 29 Mar 2006 14:47:23 +0200
-Message-ID: <442A81DB.7060608@trash.net>
-References: <200602201110.39092.dim@openvz.org>
-	<200603291536.17794.dim@openvz.org> <442A7E72.2080405@trash.net>
-	<200603291638.02842.dim@openvz.org>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: ip_ct_tcp_timeout_established timeout problem
+Date: Wed, 29 Mar 2006 15:00:38 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0603291455370.23839@bizon.gios.gov.pl>
+References: <442A46DD.2B1385.31446>
+	<000701c65313$5c03ba30$d51c010a@zhuxiaoping>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Arnd Bergmann <arnd@arndb.de>,
-	rusty@rustcorp.com.au, Martin Josefsson <gandalf@wlug.westbo.se>,
-	"David S. Miller" <davem@davemloft.net>, devel@openvz.org
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-846312187-1143637238=:23839"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Dmitry Mishin <dim@openvz.org>
-In-Reply-To: <200603291638.02842.dim@openvz.org>
+To: zhu xiaoping <zhuxp@leadsec.com.cn>
+In-Reply-To: <000701c65313$5c03ba30$d51c010a@zhuxiaoping>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,19 +22,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dmitry Mishin wrote:
-> On Wednesday 29 March 2006 16:32, Patrick McHardy wrote:
->>
->>I know, but SOL_IPV6 implies IP6T_* - but please don't bother sending
->>a new patch for this :) So the point of the change is to exclude IPv6
->>from the compat layer because its not implemented yet?
-> 
-> Exactly. Because do_netfilter_replace still works for some cases, but newer 
-> replacement isn't ready yet.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Ah OK. One last thing before I'll pass it on. There was one 64 bit
-architecture where iptables already worked with 32 bit userspace for
-some reason. I would like to make sure that it still works before it
-goes in because I can't debug it if it fails afterwards. I don't
-recall which arch it was, but I think Martin had one of these machines.
-Martin, could you give the compat patch a try?
+---187430788-846312187-1143637238=:23839
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+
+On Wed, 29 Mar 2006, zhu xiaoping wrote:
+
+> the ip_ct_tcp_timeout_established is 5 DAYS, if someone setup a=20
+> connection but do not send any data,this connection will stay on=20
+> firewall box five days, and if lot of such connection stay on firewall=20
+> box, then no new connection will be established. Is this a problem? and=
+=20
+> there's no place to change this parameter,so if it's happened, we have=20
+> on chance to solve this problem
+
+Plase use:
+
+sysctl net.ipv4.netfilter.ip_conntrack_tcp_timeout_established=3Dtimeout
+
+where "timeout" is any value in seconds representing required timeout (for=
+=20
+example 172800 for 2 days)
+
+Best regards,
+
+ =09=09=09Krzysztof Ol=EAdzki
+
+PS: This is not a netfilter-devel question, definitely ;).
+---187430788-846312187-1143637238=:23839--
