@@ -1,16 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] compilation error + kernel panic sip-conntrack-nat
-Date: Wed, 29 Mar 2006 11:07:40 +0200
-Message-ID: <442A4E5C.4090702@trash.net>
-References: <20060327135637.GA19422@runtux.com> <442A4826.3060908@trash.net>
-	<20060329090354.GA23408@runtux.com>
+Subject: Re: [PATCH IP6TABLES]: don't allow to specify protocol of IPv6
+ extension header
+Date: Wed, 29 Mar 2006 11:09:52 +0200
+Message-ID: <442A4EE0.6060806@trash.net>
+References: <200603290659.k2T6xDJh017360@toshiba.co.jp>	<442A4127.70908@trash.net>
+	<200603290834.k2T8Y8q5024524@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Ralf Schlatterbeck <rsc@runtux.com>
-In-Reply-To: <20060329090354.GA23408@runtux.com>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200603290834.k2T8Y8q5024524@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,24 +23,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Ralf Schlatterbeck wrote:
-> On Wed, Mar 29, 2006 at 10:41:10AM +0200, Patrick McHardy wrote:
+Yasuyuki KOZAKAI wrote:
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Wed, 29 Mar 2006 10:11:19 +0200
 > 
->>Ralf Schlatterbeck wrote:
+> 
+>>Yasuyuki KOZAKAI wrote:
 >>
->>>Note: The FAQ-Entry about SIP 
->>>http://www.netfilter.org/documentation/FAQ/netfilter-faq-1.html#ss1.8
->>>should be updated to point to sip-conntrack-nat, see
->>>http://www.iptel.org/sipalg/
->>>The conntrack module would surely get more testing if it is mentioned in
->>>the FAQ :-)
+>>>Hi,
+>>>
+>>>Sometimes I hear that people do 'ip6tables -p ah ...' which never matches
+>>>any packet. IPv6 extension headers except of ESP are skipped and invalid
+>>>as argument of '-p'. Then I propose that ip6tables exits with error in such
+>>>case.
 >>
->>Feel free to send a patch :)
+>>How about a warning for some time first? If people use iptables-restore
+>>this could break their entire ruleset ..
 > 
 > 
-> Can you tell me where I should look for the sources? Is this directly
-> maintained in HTML? For the other documents I suppose the SGML version
-> is the original -- but for the FAQ there isn't an SGML document.
+> OK, then please ignore previous 'fixed patch' and apply this. Sorry for mess.
 
-I only I knew .. The FAQ stuff is under output/ in the SVN repository,
-so I suppose there must be an input somewhere :)
+Done, thanks. Is your SVN access not working?
