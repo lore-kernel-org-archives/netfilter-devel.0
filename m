@@ -1,14 +1,19 @@
-From: "zhu xiaoping" <zhuxp@leadsec.com.cn>
-Subject: ip_ct_tcp_timeout_established timeout problem
-Date: Wed, 29 Mar 2006 17:29:56 +0800
-Message-ID: <000701c65313$5c03ba30$d51c010a@zhuxiaoping>
-References: <442A46DD.2B1385.31446>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] iptables 32bit compat layer
+Date: Wed, 29 Mar 2006 14:32:50 +0200
+Message-ID: <442A7E72.2080405@trash.net>
+References: <200602201110.39092.dim@openvz.org>
+	<200603231324.33809.dim@openvz.org> <442A5347.3030401@trash.net>
+	<200603291536.17794.dim@openvz.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Arnd Bergmann <arnd@arndb.de>, rusty@rustcorp.com.au,
+	netfilter-devel@lists.netfilter.org,
+	"David S. Miller" <davem@davemloft.net>, devel@openvz.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: Dmitry Mishin <dim@openvz.org>
+In-Reply-To: <200603291536.17794.dim@openvz.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,10 +25,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-dGhlIGlwX2N0X3RjcF90aW1lb3V0X2VzdGFibGlzaGVkIGlzIDUgREFZUywgaWYgc29tZW9uZSBz
-ZXR1cCBhIGNvbm5lY3Rpb24gYnV0IGRvIG5vdCBzZW5kIGFueSBkYXRhLHRoaXMgY29ubmVjdGlv
-biB3aWxsIHN0YXkgb24gZmlyZXdhbGwgYm94IGZpdmUgZGF5cywgYW5kIGlmIGxvdCBvZiBzdWNo
-IGNvbm5lY3Rpb24gc3RheSBvbiBmaXJld2FsbCBib3gsIHRoZW4gbm8gbmV3IGNvbm5lY3Rpb24g
-d2lsbCBiZSBlc3RhYmxpc2hlZC4gSXMgdGhpcyBhIHByb2JsZW0/IA0KYW5kIHRoZXJlJ3Mgbm8g
-cGxhY2UgdG8gY2hhbmdlIHRoaXMgcGFyYW1ldGVyLHNvIGlmIGl0J3MgaGFwcGVuZWQsIHdlIGhh
-dmUgb24gY2hhbmNlIHRvIHNvbHZlIHRoaXMgcHJvYmxlbQ0KDQp6aHUgeGlhb3Bpbmc=
+Dmitry Mishin wrote:
+> On Wednesday 29 March 2006 13:28, Patrick McHardy wrote:
+> 
+>>>diff --git a/net/compat.c b/net/compat.c
+>>>index 13177a1..6a7028e 100644
+>>>--- a/net/compat.c
+>>>+++ b/net/compat.c
+>>>@@ -476,8 +476,7 @@ asmlinkage long compat_sys_setsockopt(in
+>>> 	int err;
+>>> 	struct socket *sock;
+>>>
+>>>-	/* SO_SET_REPLACE seems to be the same in all levels */
+>>>-	if (optname == IPT_SO_SET_REPLACE)
+>>>+	if (level == SOL_IPV6 && optname == IPT_SO_SET_REPLACE)
+>>> 		return do_netfilter_replace(fd, level, optname,
+>>> 					    optval, optlen);
+>>
+>>I don't understand the reason for this change. If its not a mistake,
+>>it would make more sense to check for IP6T_SO_SET_REPLACE I guess ..
+> 
+> IP6T_SO_SET_REPLACE == IPT_SO_SET_REPLACE == XT_SO_SET_REPLACE.
+> Rename will require respective #include directive rename, so, I just leave 
+> this as it is. BTW, I'll make respective patch for IPV6 in the near future 
+> and this hunk will be removed at all.
+
+I know, but SOL_IPV6 implies IP6T_* - but please don't bother sending
+a new patch for this :) So the point of the change is to exclude IPv6
+from the compat layer because its not implemented yet?
