@@ -1,12 +1,17 @@
-From: =?ISO-8859-2?Q?=22Wojciech_=5C=22Sas=5C=22_Ci=EAciwa=22?=
-	<cieciwa@alpha.zarz.agh.edu.pl>
-Subject: [PATCH] patch-o-matic-ng snap 20060329 some fix
-Date: Wed, 29 Mar 2006 17:59:24 +0200
-Message-ID: <442AAEDC.2080107@alpha.zarz.agh.edu.pl>
+From: Nick Pasich <NewsLetters@NickAndBarb.net>
+Subject: Re: Problems With Geoip and linux-2.6.16 .....
+Date: Wed, 29 Mar 2006 08:06:33 -0800
+Message-ID: <20060329160633.GA20866@69.17.112.251>
+References: <20060329151830.GA4313@69.17.112.251>
+	<Pine.LNX.4.64.0603291745050.724@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030307060407070802020908"
+Content-Type: text/plain; charset=unknown-8bit
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Krzysztof Oledzki <olenf@ans.pl>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0603291745050.724@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,104 +23,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030307060407070802020908
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+Krzysztof,
 
-I try to add this snap to kernel 2.6.16.1, and got 3 error in module:
-fuzzy, nth and random.
+Your's is the only reply I've received.
 
-In attachment ane patches, pleas check and applay if this is correct.
+Because Email doesn't get through to either Samuel Jean or=20
+Nickolas Boulain at <nib@cookinglinux.org> or <sjean@cookinglinux.org>,
+I'm wondering if anyone is maintaining "geoip" anymore.
 
-Thanx.
-	Wojtek.
-  --
-{Wojciech 'Sas' Cieciwa} {Member of PLD Team}
-{   e-mail: cieciwa@alpha.zarz.agh.edu.pl   }
+If not, I'll give it a whirl.....
 
---------------030307060407070802020908
-Content-Type: text/plain;
- name="random-ipv6.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="random-ipv6.patch"
+Thanks for the reply,
 
-diff -Nur patch-o-matic-ng/patchlets/random.org/linux-2.6/net/ipv6/netfilter/ip6t_random.c patch-o-matic-ng/patchlets/random/linux-2.6/net/ipv6/netfilter/ip6t_random.c
---- patch-o-matic-ng/patchlets/random.org/linux-2.6/net/ipv6/netfilter/ip6t_random.c	2006-03-29 08:41:00.000000000 +0200
-+++ patch-o-matic-ng/patchlets/random/linux-2.6/net/ipv6/netfilter/ip6t_random.c	2006-03-29 17:52:00.000000000 +0200
-@@ -70,12 +70,10 @@
- }
- 
- static struct ip6t_match ip6t_rand_reg = { 
--	{NULL, NULL},
--	"random",
--	ip6t_rand_match,
--	ip6t_rand_checkentry,
--	NULL,
--	THIS_MODULE };
-+	.name 		= "random",
-+	.match		= ip6t_rand_match,
-+	.checkentry	= ip6t_rand_checkentry,
-+	.me		= THIS_MODULE };
- 
- static int __init init(void)
- {
+               ---( Nick Pasich )---
 
---------------030307060407070802020908
-Content-Type: text/plain;
- name="fuzzy-ipv6.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="fuzzy-ipv6.patch"
+             NewsLetters@NickAndBarb.net
 
-diff -Nur patch-o-matic-ng/patchlets/fuzzy.org/linux-2.6.10/net/ipv6/netfilter/ip6t_fuzzy.c patch-o-matic-ng/patchlets/fuzzy/linux-2.6.10/net/ipv6/netfilter/ip6t_fuzzy.c
---- patch-o-matic-ng/patchlets/fuzzy.org/linux-2.6.10/net/ipv6/netfilter/ip6t_fuzzy.c	2006-03-29 08:41:02.000000000 +0200
-+++ patch-o-matic-ng/patchlets/fuzzy/linux-2.6.10/net/ipv6/netfilter/ip6t_fuzzy.c	2006-03-29 17:43:43.000000000 +0200
-@@ -164,12 +164,10 @@
- }
- 
- static struct ip6t_match ip6t_fuzzy_reg = {
--	{NULL, NULL},
--	"fuzzy",
--	ip6t_fuzzy_match,
--	ip6t_fuzzy_checkentry,
--	NULL,
--	THIS_MODULE };
-+	.name		= "fuzzy",
-+	.match		= ip6t_fuzzy_match,
-+	.checkentry	= ip6t_fuzzy_checkentry,
-+	.me		= THIS_MODULE };
- 
- static int __init init(void)
- {
 
---------------030307060407070802020908
-Content-Type: text/plain;
- name="nth-ipv6.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="nth-ipv6.patch"
 
-diff -Nur patch-o-matic-ng/patchlets/nth.org/linux-2.6.10/net/ipv6/netfilter/ip6t_nth.c patch-o-matic-ng/patchlets/nth/linux-2.6.10/net/ipv6/netfilter/ip6t_nth.c
---- patch-o-matic-ng/patchlets/nth.org/linux-2.6.10/net/ipv6/netfilter/ip6t_nth.c	2006-03-29 08:40:55.000000000 +0200
-+++ patch-o-matic-ng/patchlets/nth/linux-2.6.10/net/ipv6/netfilter/ip6t_nth.c	2006-03-29 17:50:12.000000000 +0200
-@@ -140,12 +140,10 @@
- }
- 
- static struct ip6t_match ip6t_nth_reg = { 
--	{NULL, NULL},
--	"nth",
--	ip6t_nth_match,
--	ip6t_nth_checkentry,
--	NULL,
--	THIS_MODULE };
-+	.name		= "nth",
-+	.match		= ip6t_nth_match,
-+	.checkentry	= ip6t_nth_checkentry,
-+	.me		= THIS_MODULE };
- 
- static int __init init(void)
- {
+On Wed, Mar 29, 2006 at 05:46:39PM +0200, Krzysztof Oledzki wrote:
+>=20
+>=20
+> On Wed, 29 Mar 2006, Nick Pasich wrote:
+>=20
+> >
+> >Does anyone know what's going on with "geoip" ????
+>=20
+> You need to wait for someone to prepare patch for it. Please keep=20
+> patience or do it yourself. :)
+>=20
+> Besr regards,
+>=20
+>=20
+> 				Krzysztof Ol=EAdzki
 
---------------030307060407070802020908--
+
+--=20
+--------
+WebSite: http://NickAndBarb.net
+--------
