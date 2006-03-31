@@ -1,15 +1,15 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: Fix the condition extension for 2.6.16 kernels
-Date: Fri, 31 Mar 2006 04:09:48 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0603310401430.23448@bizon.gios.gov.pl>
-References: <200603302351.27713.max@nucleus.it>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [NETFILTER 00/04]: Netfilter Update
+Date: Fri, 31 Mar 2006 02:15:18 -0800 (PST)
+Message-ID: <20060331.021518.94936868.davem@davemloft.net>
+References: <20060331010905.20401.80847.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1130639244-1143770988=:23448"
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Massimiliano Hofer <max@nucleus.it>
-In-Reply-To: <200603302351.27713.max@nucleus.it>
+To: kaber@trash.net
+In-Reply-To: <20060331010905.20401.80847.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,36 +21,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri, 31 Mar 2006 03:09:05 +0200 (MEST)
 
----187430788-1130639244-1143770988=:23448
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+> Yasuyuki Kozakai:
+>       [NETFILTER]: x_tables: unify IPv4/IPv6 multiport match
 
+This first patch didn't apply, so I'm going to pass on all of these
+until you figure out what's wrong here.
 
+The problem is the net/ipv6/netfilter/Makefile hunk.
 
-On Thu, 30 Mar 2006, Massimiliano Hofer wrote:
+@@ -10,7 +10,6 @@ obj-$(CONFIG_IP6_NF_MATCH_IPV6HEADER) +=
+ obj-$(CONFIG_IP6_NF_MATCH_FRAG) += ip6t_frag.o
+ obj-$(CONFIG_IP6_NF_MATCH_AH) += ip6t_ah.o
+ obj-$(CONFIG_IP6_NF_MATCH_EUI64) += ip6t_eui64.o
+-obj-$(CONFIG_IP6_NF_MATCH_MULTIPORT) += ip6t_multiport.o
 
-> Hi,
-Hi,
+in my current tree the ip6t_ah.o line instead reads as:
 
-> this is my first contribution to this project, so I suggest you to test i=
-t
-> before accepting my code.
+obj-$(CONFIG_IP6_NF_MATCH_AHESP) += ip6t_esp.o ip6t_ah.o
 
-I think you should create a linux-2.6 directory as this modification=20
-prevents this extension from being usable in 2.4 kernels.
+It seems something is wrong with the tree you generated these
+patches against.
 
-> Anyway I did a really simple fix for the condition extension for 2.6.16
-> kernels.
-
-BTW: Does it work or only compiles? ;) I remember some mails about porting=
-=20
-condition to 2.6 raporting kernel crashes when accessing the proc=20
-interface.
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1130639244-1143770988=:23448--
+Please resubmit once you've fixed this, thanks.
