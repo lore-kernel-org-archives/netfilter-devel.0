@@ -1,7 +1,7 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 4/4] first conntrack ID must be 1 not 2
-Date: Fri, 31 Mar 2006 20:35:27 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0603312026030.9154@blackhole.kfki.hu>
+Subject: Re: Hashtrie testing2, dancing trees
+Date: Fri, 31 Mar 2006 20:43:57 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0603302143570.8219@blackhole.kfki.hu>
 References: <43EFF1F0.1090701@netfilter.org>
 	<20060213112028.GU4601@sunbeam.de.gnumonks.org>
 	<43F438F5.8070607@trash.net>
@@ -10,18 +10,23 @@ References: <43EFF1F0.1090701@netfilter.org>
 	<Pine.LNX.4.58.0602161005450.26770@blackhole.kfki.hu>
 	<43F4426D.9060807@trash.net>
 	<Pine.LNX.4.58.0602161017590.26770@blackhole.kfki.hu>
-	<43F4DBDF.9010008@trash.net> <442B9765.2020105@ufomechanic.net>
-	<442C81A6.3040501@trash.net>
+	<43F4DBDF.9010008@trash.net>
+	<Pine.LNX.4.58.0602170907001.29301@blackhole.kfki.hu>
+	<Pine.LNX.4.58.0602170936160.1339@tux.rsn.bth.se>
+	<Pine.LNX.4.58.0602170951070.29301@blackhole.kfki.hu>
+	<1141503111.3881.61.camel@localhost.localdomain>
+	<Pine.LNX.4.58.0603051049470.28988@blackhole.kfki.hu>
+	<1141580938.3881.129.camel@localhost.localdomain>
+	<Pine.LNX.4.58.0603061125280.29731@blackhole.kfki.hu>
+	<1141756438.3881.158.camel@localhost.localdomain>
+	<442B96B8.4080405@ufomechanic.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Harald Welte <laforge@netfilter.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Amin Azez <azez@ufomechanic.net>,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Martin Josefsson <gandalf@wlug.westbo.se>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <442C81A6.3040501@trash.net>
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <442B96B8.4080405@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -33,30 +38,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 31 Mar 2006, Patrick McHardy wrote:
+On Thu, 30 Mar 2006, Amin Azez wrote:
 
-> >> Actually it would still not be unique if connections live
-> >> shorter than a jiffy and are resurrected.
-> >
-> > In which case would there be any harm in it not being unqiue, if it were
-> > the same connection resurrected, why try to avoid having the same id?
+> Just for interest, and I don't know how well tuned for processor cache
+> it is, but Hans Reisers dancing trees are build to solve some of this
+> problem; dancing trees keep themselves balanced.
 >
-> Besides solving an implementation problem, so ID was meant as a
-> long-term unique identifier. For the life-time of a connection
-> the tuples are already a unique identifier.
->
-> It's amazing, I've never had so many discussions about a single
-> 32 bit field :)
+> I realise that filesystem timescales are not the same as packet
+> processing timecales, I merely mention it for completeness.
 
-It's amazingly hard to accept we need it :-).
+I pondered over trees but excluded the whole family as too slow for our
+purposes.
 
-Putting aside the implementation problem, there are so many information
-already available in the conntrack entries: tuples, packet and byte
-counters, state, timeout value. Those together can serve as a short-term
-unique identifier, even after the entry is actually deleted. Not
-bulletproof, but in practice those can be sufficient.
+We aim to process packets near at wire speed and that implies the fastest
+algorithms. A little complexity can have dire consequences - I was quite
+surprised that the shared node method was so weak compared to the
+hashes/tries when it required just a little bit more internal maintenance.
 
-I could not resist... :-))
+I believe keeping a tree balanced requires too expensive operations which
+we cannot afford.
 
 Best regards,
 Jozsef
