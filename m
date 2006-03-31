@@ -1,13 +1,27 @@
-From: "Vasantha Kumar Puttappa" <vasanthakumar@iitb.ac.in>
-Subject: Regarding LIBIPQ problem
-Date: Fri, 31 Mar 2006 22:47:26 +0530 (IST)
-Message-ID: <1411.10.12.25.5.1143825446.squirrel@gpo.iitb.ac.in>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 4/4] first conntrack ID must be 1 not 2
+Date: Fri, 31 Mar 2006 20:35:27 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0603312026030.9154@blackhole.kfki.hu>
+References: <43EFF1F0.1090701@netfilter.org>
+	<20060213112028.GU4601@sunbeam.de.gnumonks.org>
+	<43F438F5.8070607@trash.net>
+	<Pine.LNX.4.58.0602160943060.26770@blackhole.kfki.hu>
+	<43F43FA9.4000906@trash.net>
+	<Pine.LNX.4.58.0602161005450.26770@blackhole.kfki.hu>
+	<43F4426D.9060807@trash.net>
+	<Pine.LNX.4.58.0602161017590.26770@blackhole.kfki.hu>
+	<43F4DBDF.9010008@trash.net> <442B9765.2020105@ufomechanic.net>
+	<442C81A6.3040501@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Harald Welte <laforge@netfilter.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Amin Azez <azez@ufomechanic.net>,
+	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <442C81A6.3040501@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,59 +33,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear friends,
- I am defining a IPtable rule to queue ICMP packets for user level
-processing using LIBIPQ.
+On Fri, 31 Mar 2006, Patrick McHardy wrote:
 
- Once I get the IP(ICMP)packet, I am encapsulating this in another IP packet
- as shown below
+> >> Actually it would still not be unique if connections live
+> >> shorter than a jiffy and are resurrected.
+> >
+> > In which case would there be any harm in it not being unqiue, if it were
+> > the same connection resurrected, why try to avoid having the same id?
+>
+> Besides solving an implementation problem, so ID was meant as a
+> long-term unique identifier. For the life-time of a connection
+> the tuples are already a unique identifier.
+>
+> It's amazing, I've never had so many discussions about a single
+> 32 bit field :)
 
-////////////////////////////////////////////////////////
- /* Allocate space for new IP header to be included in the encapsulated
-packets */
+It's amazingly hard to accept we need it :-).
 
-packet   = (unsigned char *)calloc(1,sizeof(struct
-iphdr)+ntohs(original_iph->tot_len));
+Putting aside the implementation problem, there are so many information
+already available in the conntrack entries: tuples, packet and byte
+counters, state, timeout value. Those together can serve as a short-term
+unique identifier, even after the entry is actually deleted. Not
+bulletproof, but in practice those can be sufficient.
 
-new_iphdr  = (struct iphdr  *) calloc(1,sizeof(struct iphdr));
+I could not resist... :-))
 
-  new_iphdr->version =4;
-  new_iphdr->ihl=5;  // checkout
-  new_iphdr->tos =0;
-  new_iphdr->id=htons(1); // temporary
-  new_iphdr->frag_off=0;
-  new_iphdr->ttl=64;
-  new_iphdr->protocol=1;
-  new_iphdr->saddr=original_iph->saddr;
-  new_iphdr->daddr=inet_addr("10.107.26.26"); // ABC proxy IP address
-  new_iphdr->tot_len=htons(ntohs(original_iph->tot_len) + (sizeof(struct
-iphdr)));
-  int header_length=20;
-  new_iphdr->check=htons(ip_sum_calc((unsigned short
-*)new_iphdr,header_length));
-
-
- // Place the IP packet inside another IP packet
-  memcpy(packet,new_iphdr,(unsigned int)sizeof(struct iphdr));
-  memcpy(packet+sizeof(struct iphdr),m->payload,m->data_len);
-////////////////////////////////
-
-
-Then I am setting the verdict as accept ,shown below
-
-status = ipq_set_verdict(h, m->packet_id,NF_ACCEPT, new_iphdr->tot_len,
-(unsigned char *)packet);
-
-
-Problem:
-  Even though ipq_set_verdict is being executed successfully, the new
-packets are being dropped silently without any error message.
-
-
-If anybody has a clue, plz let me know.
-
-Kernel: 2.6.12-12 (mandriva)
-
-Have a good day
--------
-Vasanth
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
