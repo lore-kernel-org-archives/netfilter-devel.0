@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/04]: {ip,
-	nf}_conntrack_netlink: fix expectation notifier unregistration
-Date: Fri, 31 Mar 2006 03:09:09 +0200 (MEST)
-Message-ID: <20060331010910.20401.33067.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/04]: fix ifdef for connmark support in
+	nf_conntrack_netlink
+Date: Fri, 31 Mar 2006 03:09:08 +0200 (MEST)
+Message-ID: <20060331010908.20401.89289.sendpatchset@localhost.localdomain>
 References: <20060331010905.20401.80847.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,52 +19,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: {ip,nf}_conntrack_netlink: fix expectation notifier unregistration
+[NETFILTER]: fix ifdef for connmark support in nf_conntrack_netlink
 
-This patch fixes expectation notifier unregistration on module unload to
-use ip_conntrack_expect_unregister_notifier(). This bug causes a soft
-lockup at the first expectation created after a rmmod ; insmod of this
-module.
+When ctnetlink was ported from ip_conntrack to nf_conntrack two #ifdef's
+for connmark support were left unchanged and this code was never
+compiled.
 
-Should go into -stable as well.
+Problem noticed by Daniel De Graaf.
 
 Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 75032ffac0484237a927b7517fc5926eb9846792
-tree fab99dd04115ecd8d3e8f82dbea1b9af613c56d7
-parent ea8b4b5661cae27fae57fc5b992730ec2e44d21c
-author Martin Josefsson <gandalf@wlug.westbo.se> Wed, 29 Mar 2006 10:08:13 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 29 Mar 2006 10:08:13 +0200
+commit ea8b4b5661cae27fae57fc5b992730ec2e44d21c
+tree 09e7996acf5faa03f42616b2bc46f90365e9fe12
+parent 4d5ee8549d2385d700967246fb8ff6cc1828ceb1
+author Martin Josefsson <gandalf@wlug.westbo.se> Wed, 29 Mar 2006 10:08:03 +0200
+committer Patrick McHardy <kaber@trash.net> Wed, 29 Mar 2006 10:08:03 +0200
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |    2 +-
- net/netfilter/nf_conntrack_netlink.c      |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index 9b6e19b..01bd7ca 100644
---- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -1658,7 +1658,7 @@ static void __exit ctnetlink_exit(void)
- 	printk("ctnetlink: unregistering from nfnetlink.\n");
- 
- #ifdef CONFIG_IP_NF_CONNTRACK_EVENTS
--	ip_conntrack_unregister_notifier(&ctnl_notifier_exp);
-+	ip_conntrack_expect_unregister_notifier(&ctnl_notifier_exp);
- 	ip_conntrack_unregister_notifier(&ctnl_notifier);
- #endif
- 
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 3138ae7..bd10eb9 100644
+index 0e0e9d7..3138ae7 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1687,7 +1687,7 @@ static void __exit ctnetlink_exit(void)
- 	printk("ctnetlink: unregistering from nfnetlink.\n");
+@@ -1022,7 +1022,7 @@ ctnetlink_change_conntrack(struct nf_con
+ 			return err;
+ 	}
  
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
--	nf_conntrack_unregister_notifier(&ctnl_notifier_exp);
-+	nf_conntrack_expect_unregister_notifier(&ctnl_notifier_exp);
- 	nf_conntrack_unregister_notifier(&ctnl_notifier);
+-#if defined(CONFIG_IP_NF_CONNTRACK_MARK)
++#if defined(CONFIG_NF_CONNTRACK_MARK)
+ 	if (cda[CTA_MARK-1])
+ 		ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
  #endif
+@@ -1062,7 +1062,7 @@ ctnetlink_create_conntrack(struct nfattr
+ 			return err;
+ 	}
  
+-#if defined(CONFIG_IP_NF_CONNTRACK_MARK)
++#if defined(CONFIG_NF_CONNTRACK_MARK)
+ 	if (cda[CTA_MARK-1])
+ 		ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
+ #endif
