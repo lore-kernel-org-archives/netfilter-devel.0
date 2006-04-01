@@ -1,72 +1,64 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/4] first conntrack ID must be 1 not 2
-Date: Fri, 31 Mar 2006 20:44:56 +0200
-Message-ID: <442D78A8.4050300@trash.net>
-References: <43EFF1F0.1090701@netfilter.org>
-	<20060213112028.GU4601@sunbeam.de.gnumonks.org>
-	<43F438F5.8070607@trash.net>
-	<Pine.LNX.4.58.0602160943060.26770@blackhole.kfki.hu>
-	<43F43FA9.4000906@trash.net>
-	<Pine.LNX.4.58.0602161005450.26770@blackhole.kfki.hu>
-	<43F4426D.9060807@trash.net>
-	<Pine.LNX.4.58.0602161017590.26770@blackhole.kfki.hu>
-	<43F4DBDF.9010008@trash.net> <442B9765.2020105@ufomechanic.net>
-	<442C81A6.3040501@trash.net>
-	<Pine.LNX.4.58.0603312026030.9154@blackhole.kfki.hu>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: netfilter: IP_NF_CONNTRACK_NETLINK=y, IP_NF_NAT=m compile error
+Date: Sat, 1 Apr 2006 11:18:47 +0200
+Message-ID: <20060401091847.GC28310@stusta.de>
+References: <Pine.LNX.4.64.0603192216450.3622@g5.osdl.org> <20060328163932.GJ28030@miggy.org> <20060331170916.GL28030@miggy.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Amin Azez <azez@ufomechanic.net>,
-	Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-In-Reply-To: <Pine.LNX.4.58.0603312026030.9154@blackhole.kfki.hu>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750920AbWDAJSu@vger.kernel.org>
+To: Athanasius <link@miggy.org>, Linus Torvalds <torvalds@osdl.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	coreteam@netfilter.org
+Content-Disposition: inline
+In-Reply-To: <20060331170916.GL28030@miggy.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef Kadlecsik wrote:
-> On Fri, 31 Mar 2006, Patrick McHardy wrote:
+On Fri, Mar 31, 2006 at 06:09:16PM +0100, Athanasius wrote:
+> On Tue, Mar 28, 2006 at 05:39:32PM +0100, Athanasius wrote:
+> >   CC      init/version.o
+> >   LD      init/built-in.o
+> >   LD      .tmp_vmlinux1
+> > net/built-in.o(.text+0x7c990): In function `ctnetlink_parse_nat_proto':
+> > : undefined reference to `ip_nat_proto_find_get'
+> > net/built-in.o(.text+0x7c9b2): In function `ctnetlink_parse_nat_proto':
+> > : undefined reference to `ip_nat_proto_put'
+> > net/built-in.o(.text+0x7d695): In function `ctnetlink_change_conntrack':
+> > : undefined reference to `ip_nat_setup_info'
+> > net/built-in.o(.text+0x7da9f): In function `ctnetlink_create_conntrack':
+> > : undefined reference to `ip_nat_setup_info'
+> > make: *** [.tmp_vmlinux1] Error 1
+> ...
+> > CONFIG_IP_NF_TARGET_TCPMSS=m
+> > CONFIG_IP_NF_NAT=m
+> > CONFIG_IP_NF_NAT_NEEDED=y
+> > CONFIG_IP_NF_TARGET_MASQUERADE=m
 > 
+> ...
 > 
->>>>Actually it would still not be unique if connections live
->>>>shorter than a jiffy and are resurrected.
->>>
->>>In which case would there be any harm in it not being unqiue, if it were
->>>the same connection resurrected, why try to avoid having the same id?
->>
->>Besides solving an implementation problem, so ID was meant as a
->>long-term unique identifier. For the life-time of a connection
->>the tuples are already a unique identifier.
->>
->>It's amazing, I've never had so many discussions about a single
->>32 bit field :)
-> 
-> 
-> It's amazingly hard to accept we need it :-).
-> 
-> Putting aside the implementation problem, there are so many information
-> already available in the conntrack entries: tuples, packet and byte
-> counters, state, timeout value. Those together can serve as a short-term
-> unique identifier, even after the entry is actually deleted. Not
-> bulletproof, but in practice those can be sufficient.
-> 
-> I could not resist... :-))
+>   It looks like the problem was that "CONFIG_IP_NF_NAT=m".  I changed
+> this to 'y' and things look to be compiling fine now.
+>...
 
-Me neither :) I was just pointing out the idea behind the ID, not
-necessarily condoning it. After discussing it with Rusty in Sevilla,
-it became clear that we can provide guarantees similar to filesystems
-without it, which seems to be good enough. So I have absolutely
-nothing against removing it. In fact, IIRC the last discussion
-stopped after I had sent a patch to remove it. I need to dig out that
-patch again :)
+First of all thanks for your report.
+
+More exactly, it's the combination CONFIG_IP_NF_CONNTRACK_NETLINK=y, 
+CONFIG_IP_NF_NAT=m.
+
+Can someone who understands the netfilter dependencies please look into 
+this bug?
+
+It's present in both 2.6.16.1 and 2.6.16-mm2.
+ 
+> -Ath
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
