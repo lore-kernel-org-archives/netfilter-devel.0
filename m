@@ -1,164 +1,82 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Thomas Zeitlhofer <thomas.zeitlhofer@nt.tuwien.ac.at>
 Subject: Re: bridge+netfilter broken for IP fragments in 2.6.16?
-Date: Sun, 02 Apr 2006 21:19:30 +0200
-Message-ID: <443023C2.6020401@trash.net>
-References: <20060401143011.GA28333@swan.nt.tuwien.ac.at>
+Date: Mon, 3 Apr 2006 00:56:25 +0200
+Message-ID: <20060402225625.GA22612@swan.nt.tuwien.ac.at>
+References: <20060401143011.GA28333@swan.nt.tuwien.ac.at> <443023C2.6020401@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090401080106020801050701"
+Content-Type: text/plain; charset=us-ascii
 Cc: linux-kernel@vger.kernel.org,
 	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751272AbWDBTTc@vger.kernel.org>
-To: Thomas Zeitlhofer <tzeitlho+lkml@nt.tuwien.ac.at>
-In-Reply-To: <20060401143011.GA28333@swan.nt.tuwien.ac.at>
+	<netfilter-devel@lists.netfilter.org>, netdev@vger.kernel.org,
+	Herbert Xu <herbert@gondor.apana.org.au>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932426AbWDBW4b@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <443023C2.6020401@trash.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090401080106020801050701
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-Thomas Zeitlhofer wrote:
-> I have set up a bridge with two ports:
+On Sun, Apr 02, 2006 at 09:19:30PM +0200, Patrick McHardy wrote:
+> Thomas Zeitlhofer wrote:
+> > I have set up a bridge with two ports:
+> > 
+> > # brctl show br0
+> > bridge name     bridge id               STP enabled     interfaces
+> > br0             8000.000021f23d58       no              eth1
+> >                                                         tap1
+> > 
+> > Using 2.6.16/.1 non fragmented IP packets are passing the bridge without
+> > problems, but fragmented IP packets do not show up on the outgoing
+> > interface. E.g., for fragmented traffic coming in from tap1 and going
+> > out via eth1 tcpdump shows:
+> > 
+> >   1) on tap1: fragmented packets
+> >   2) on br0: the defragmented packet (connection tracking)
+> >   3) on eth1: no packet!?
+> > 
+> > This breaks IPsec connections for example.
+> > 
+> > 
+> > Doing the same on 2.6.15.x shows:
+> > 
+> >   1) on tap1: fragmented packets
+> >   2) on br0: the defragmented packet (connection tracking)
+> >   3) on eth1: fragmented packets
 > 
-> # brctl show br0
-> bridge name     bridge id               STP enabled     interfaces
-> br0             8000.000021f23d58       no              eth1
->                                                         tap1
+> Are you sure this is correct? I think in 2.6.15 you should see
+> the fragments on br0 already.
+
+Just verified it, at least in 2.6.15.6 tcpdump shows the defragmented
+packet on br0.
+
+> Anyway, since 2.6.16 ip_conntrack doesn't do refragmentation anymore
+> but relies on fragmentation in the IP layer. Purely bridged packets
+> don't go through the IP layer, so the bridge netfilter code needs to
+> take care of fragmentation itself. Please try if this patch helps.
+
+Your patch solves the problem - tcpdump now shows the refragmented
+packets on eth1. Thanks for the quick solution.
+
+Just a note, your patch does not work when bridge is compiled as a
+module. In this case modprobe failes with "bridge: Unknown symbol
+ip_fragment". Using CONFIG_BRIDGE=y works.
+
+> > and IPsec connections are ok.
 > 
-> Using 2.6.16/.1 non fragmented IP packets are passing the bridge without
-> problems, but fragmented IP packets do not show up on the outgoing
-> interface. E.g., for fragmented traffic coming in from tap1 and going
-> out via eth1 tcpdump shows:
-> 
->   1) on tap1: fragmented packets
->   2) on br0: the defragmented packet (connection tracking)
->   3) on eth1: no packet!?
-> 
-> This breaks IPsec connections for example.
-> 
-> 
-> Doing the same on 2.6.15.x shows:
-> 
->   1) on tap1: fragmented packets
->   2) on br0: the defragmented packet (connection tracking)
->   3) on eth1: fragmented packets
+> This is probably a different issue. 
 
-Are you sure this is correct? I think in 2.6.15 you should see
-the fragments on br0 already.
+I don't think so, with your patch IPsec connection can be established
+again. The problem was that racoon generates UDP packets of length 2600
+during isakmp phase 1 which did not pass the bridge. 
 
-Anyway, since 2.6.16 ip_conntrack doesn't do refragmentation anymore
-but relies on fragmentation in the IP layer. Purely bridged packets
-don't go through the IP layer, so the bridge netfilter code needs to
-take care of fragmentation itself. Please try if this patch helps.
+> Please describe your setup (IPsec, NAT and filtering).
 
-> and IPsec connections are ok.
+The setup here is UML behind tap1 where br0 is used to bridge the
+physical interface (eth1) to the UML's eth0 (=> tap1). The IPsec
+connection is going from the UML to the outside world over the bridge.
+NAT is not used and at the moment filtering is just used for
+accounting. So nothing special, only two rules in the FORWARD chain
+that accept all traffic in both directions.
 
-This is probably a different issue. Please describe your setup
-(IPsec, NAT and filtering).
-
-
---------------090401080106020801050701
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-[NETFILTER]: Fix fragmentation issues with bridge netfilter
-
-The conntrack code doesn't do re-fragmentation of defragmented packets
-anymore but relies on fragmentation in the IP layer. Purely bridged
-packets don't pass through the IP layer, so the bridge netfilter code
-needs to take care of fragmentation itself.
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 1e6bb6c683e418cf4ae6f69b7005edcfe29bc882
-tree 2b7e567935658cee4ec169dab56ff8fd592c2d36
-parent 9a1875e60e61b563737d8d1fc3876b279710fe93
-author Patrick McHardy <kaber@trash.net> Sun, 02 Apr 2006 21:17:14 +0200
-committer Patrick McHardy <kaber@trash.net> Sun, 02 Apr 2006 21:17:14 +0200
-
- include/net/ip.h          |    1 +
- net/bridge/br_netfilter.c |   13 +++++++++++--
- net/ipv4/ip_output.c      |    4 +---
- 3 files changed, 13 insertions(+), 5 deletions(-)
-
-diff --git a/include/net/ip.h b/include/net/ip.h
-index 8fe6156..3d2e5ca 100644
---- a/include/net/ip.h
-+++ b/include/net/ip.h
-@@ -95,6 +95,7 @@ extern int		ip_local_deliver(struct sk_b
- extern int		ip_mr_input(struct sk_buff *skb);
- extern int		ip_output(struct sk_buff *skb);
- extern int		ip_mc_output(struct sk_buff *skb);
-+extern int		ip_fragment(struct sk_buff *skb, int (*output)(struct sk_buff *));
- extern int		ip_do_nat(struct sk_buff *skb);
- extern void		ip_send_check(struct iphdr *ip);
- extern int		ip_queue_xmit(struct sk_buff *skb, int ipfragok);
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index f29450b..3da9264 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -765,6 +765,15 @@ out:
- 	return NF_STOLEN;
- }
- 
-+static int br_nf_dev_queue_xmit(struct sk_buff *skb)
-+{
-+	if (skb->protocol == htons(ETH_P_IP) &&
-+	    skb->len > skb->dev->mtu &&
-+	    !(skb_shinfo(skb)->ufo_size || skb_shinfo(skb)->tso_size))
-+		return ip_fragment(skb, br_dev_queue_push_xmit);
-+	else
-+		return br_dev_queue_push_xmit(skb);
-+}
- 
- /* PF_BRIDGE/POST_ROUTING ********************************************/
- static unsigned int br_nf_post_routing(unsigned int hook, struct sk_buff **pskb,
-@@ -824,7 +833,7 @@ static unsigned int br_nf_post_routing(u
- 		realoutdev = nf_bridge->netoutdev;
- #endif
- 	NF_HOOK(pf, NF_IP_POST_ROUTING, skb, NULL, realoutdev,
--		br_dev_queue_push_xmit);
-+		br_nf_dev_queue_xmit);
- 
- 	return NF_STOLEN;
- 
-@@ -869,7 +878,7 @@ static unsigned int ip_sabotage_out(unsi
- 
- 	if ((out->hard_start_xmit == br_dev_xmit &&
- 	     okfn != br_nf_forward_finish &&
--	     okfn != br_nf_local_out_finish && okfn != br_dev_queue_push_xmit)
-+	     okfn != br_nf_local_out_finish && okfn != br_nf_dev_queue_xmit)
- #if defined(CONFIG_VLAN_8021Q) || defined(CONFIG_VLAN_8021Q_MODULE)
- 	    || ((out->priv_flags & IFF_802_1Q_VLAN) &&
- 		VLAN_DEV_INFO(out)->real_dev->hard_start_xmit == br_dev_xmit)
-diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-index f75ff1d..af6a106 100644
---- a/net/ipv4/ip_output.c
-+++ b/net/ipv4/ip_output.c
-@@ -86,8 +86,6 @@
- 
- int sysctl_ip_default_ttl = IPDEFTTL;
- 
--static int ip_fragment(struct sk_buff *skb, int (*output)(struct sk_buff*));
--
- /* Generate a checksum for an outgoing IP datagram. */
- __inline__ void ip_send_check(struct iphdr *iph)
- {
-@@ -421,7 +419,7 @@ static void ip_copy_metadata(struct sk_b
-  *	single device frame, and queue such a frame for sending.
-  */
- 
--static int ip_fragment(struct sk_buff *skb, int (*output)(struct sk_buff*))
-+int ip_fragment(struct sk_buff *skb, int (*output)(struct sk_buff*))
- {
- 	struct iphdr *iph;
- 	int raw = 0;
-
---------------090401080106020801050701--
+--
+Thomas
