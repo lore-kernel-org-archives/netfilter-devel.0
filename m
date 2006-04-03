@@ -1,18 +1,17 @@
-From: "David Vogt" <beunlovable@gmail.com>
-Subject: Re: Regarding LIBIPQ problem
-Date: Mon, 3 Apr 2006 10:42:37 +0200
-Message-ID: <859616420604030142x4a0f0ddfh46214e4a8c448a0b@mail.gmail.com>
-References: <1411.10.12.25.5.1143825446.squirrel@gpo.iitb.ac.in>
-	<859616420604010236j1048f16anbe3edaa8b6967244@mail.gmail.com>
-	<4854.10.12.25.5.1143978508.squirrel@gpo.iitb.ac.in>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: [NETFILTER]: Fix fragmentation issues with bridge netfilter
+Date: Mon, 03 Apr 2006 20:12:24 +0200
+Message-ID: <1144087944.3024.5.camel@localhost.localdomain>
+References: <44312671.3090904@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Vasantha Kumar Puttappa" <vasanthakumar@iitb.ac.in>
-In-Reply-To: <4854.10.12.25.5.1143978508.squirrel@gpo.iitb.ac.in>
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <44312671.3090904@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,16 +23,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-2006/4/2, Vasantha Kumar Puttappa <vasanthakumar@iitb.ac.in>:
->   Anyhow I tested same code in kernel-2.6.11-6mdk and it's working fine,
-> although i am receiving multiple copies at the receiver.
-Multiple copies is strange as well, isn't it?
+Op ma, 03-04-2006 te 15:43 +0200, schreef Patrick McHardy:
+> Fix a regression from the netfilter/IPsec patches with bridging.
+> Bart, please review this patch, if everything is fine I think it
+> should also go in -stable.
 
->   Do you have any idea of kernel version in which "libipq" works properly
-> withoug any problem.
-Not really, I am pretty sure I ran similar stuff on 2.4 kernels.
-Furthermore I am currently using 2.6.12 (part of Fedora Core 3... the
-kernel is called 2.6.12-1.1381_FC3 there) and do not encounter any
-problems.
+Looks fine to me.
 
-David
+Thanks,
+Bart
