@@ -1,54 +1,72 @@
-From: Thomas Zeitlhofer <thomas.zeitlhofer@nt.tuwien.ac.at>
-Subject: Re: bridge+netfilter broken for IP fragments in 2.6.16?
-Date: Mon, 3 Apr 2006 01:36:53 +0200
-Message-ID: <20060402233653.GA30271@swan.nt.tuwien.ac.at>
-References: <20060401143011.GA28333@swan.nt.tuwien.ac.at> <443023C2.6020401@trash.net> <20060402225625.GA22612@swan.nt.tuwien.ac.at> <44305A32.1010109@trash.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: [ADM] netfilter.org scheduled downtime
+Date: Mon, 3 Apr 2006 09:23:51 +0200
+Message-ID: <20060403072351.GA19925@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@lists.netfilter.org>, netdev@vger.kernel.org,
-	Herbert Xu <herbert@gondor.apana.org.au>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750906AbWDBXg4@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HcAYCG3uE/tztfnV"
+Cc: openezx-devel@lists.gnumonks.org, legal@lists.gpl-violations.org,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	librfid-devel@lists.gnumonks.org, tech@lists.gpl-violations.org,
+	ulogd@lists.gnumonks.org, libmrtd-devel@lists.gnumonks.org,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Return-path: <netfilter-announce-bounces@lists.netfilter.org>
+To: Netfilter Announcement List <netfilter-announce@lists.netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <44305A32.1010109@trash.net>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-announce>
+List-Post: <mailto:netfilter-announce@lists.netfilter.org>
+List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
+	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-announce-bounces@lists.netfilter.org
+Errors-To: netfilter-announce-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Apr 03, 2006 at 01:11:46AM +0200, Patrick McHardy wrote:
-> Thomas Zeitlhofer wrote:
-> > On Sun, Apr 02, 2006 at 09:19:30PM +0200, Patrick McHardy wrote:
-> > 
-> >>>Doing the same on 2.6.15.x shows:
-> >>>
-> >>>  1) on tap1: fragmented packets
-> >>>  2) on br0: the defragmented packet (connection tracking)
-> >>>  3) on eth1: fragmented packets
-> >>
-> >>Are you sure this is correct? I think in 2.6.15 you should see
-> >>the fragments on br0 already.
-> > 
-> > 
-> > Just verified it, at least in 2.6.15.6 tcpdump shows the defragmented
-> > packet on br0.
-> 
-> I'm probably missing something, but that still seems stange.
-> Are you also seeing the defragmented packet on br0 with my
-> patch?
 
-Yes, here is the tcpdump output on all interfaces: 
+--HcAYCG3uE/tztfnV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-1) on tap1
-23:22:51.830046 IP (tos 0x0, ttl  64, id 21174, offset 0, flags [+], proto: UDP (17), length: 1500) 192.168.10.1.500 > 192.168.20.1.500: isakmp 1.0 msgid : phase 1 I ident[E]: [encrypted id] (len mismatch: isakmp 2572/ip 1472)
-23:22:51.830084 IP (tos 0x0, ttl  64, id 21174, offset 1480, flags [none], proto: UDP (17), length: 1120) 192.168.10.1 > 192.168.20.1: udp 
+Hi!
 
-2) on br0
-23:22:51.830084 IP (tos 0x0, ttl  64, id 21174, offset 0, flags [none], proto: UDP (17), length: 2600) 192.168.10.1.500 > 192.168.20.1.500: isakmp 1.0 msgid : phase 1 I ident[E]: [encrypted id]
+Starting at 10am GMT today, April 1st 2006 netfilter.org/gnumonks.org
+will experience a multi-hour administrative downtime.
 
-3) on eth1 
-23:22:51.830120 IP (tos 0x0, ttl  64, id 21174, offset 0, flags [+], proto: UDP (17), length: 1500) 192.168.10.1.500 > 192.168.20.1.500: isakmp 1.0 msgid : phase 1 I ident[E]: [encrypted id] (len mismatch: isakmp 2572/ip 1472)
-23:22:51.830133 IP (tos 0x0, ttl  64, id 21174, offset 1480, flags [none], proto: UDP (17), length: 1120) 192.168.10.1 > 192.168.20.1: udp
+All machines ({vishnu,lakshmi,durga}.netfilter.org,ganesha.gnumonks.org}
+will be moved to a different rack for thermal reasons.
 
---
-Thomas
+In addition, one new machine will be placed (parvati.netfilter.org)
+next to them in the new rack.
+
+For www access, I suggest using one of our many mirrors, reachable under
+their individual www.CCTLD.netfilter.org or as a round-robin dns record
+mirror.netfilter.org.
+
+svn, bugzilla, mailinglists and other services will be unreachable, sorry.
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--HcAYCG3uE/tztfnV
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+
+iD8DBQFEMM2HXaXGVTD0i/8RAge1AKCyTMyjolALlrVvnJftEoyRPLL3bwCfUhSA
+hqIz+7cX40NoZtMFfuzQoHM=
+=5Blq
+-----END PGP SIGNATURE-----
+
+--HcAYCG3uE/tztfnV--
