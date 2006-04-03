@@ -1,17 +1,12 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [NETFILTER]: Fix fragmentation issues with bridge netfilter
-Date: Mon, 03 Apr 2006 20:12:24 +0200
-Message-ID: <1144087944.3024.5.camel@localhost.localdomain>
-References: <44312671.3090904@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Patch-o-matic cleanup
+Date: Mon, 03 Apr 2006 20:12:58 +0200
+Message-ID: <443165AA.4030509@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44312671.3090904@trash.net>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,12 +18,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Op ma, 03-04-2006 te 15:43 +0200, schreef Patrick McHardy:
-> Fix a regression from the netfilter/IPsec patches with bridging.
-> Bart, please review this patch, if everything is fine I think it
-> should also go in -stable.
+Following (quite late) the decision taken at the netfilter workshop to
+clean up the pomng repository by removing old patches and moving some
+patches out of the netfilter repository, I've started by removing the
+obsolete ipsec* patches and the policy match. Both have been merged
+and were pretty outdated.
 
-Looks fine to me.
+If noone can name good reasons against it, I will also remove the
+following patches in a few days:
 
-Thanks,
-Bart
+- NETLINK: obsolete
+- NETMAP: in mainline for a long time
+- TRACE: don't recall the reason, but its on my list :)
+- comment: in mainline
+- conntrack_locking: seriously outdated, if someone wants to resurrect
+  this patch he can use the history
+- dropped_table: also don't recall the reason
+- goto: in mainline
+- ipq_vmark: obsoleted by nfnetlink_queue
+- mport: mainline multiport supports all of its features
+- netfilter-docbook: outdated
+- owner-socketlookup: unfixable broken
+- pool: obsoleted by ipset
+- pptp-conntrack-nat: in mainline now, patches are missing critical
+  fixes
+- unclean: bad idea
