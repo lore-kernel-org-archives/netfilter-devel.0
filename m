@@ -1,16 +1,16 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 3/3]  [RFC] fixed duration connection
-Date: Tue, 04 Apr 2006 10:43:26 +0200
-Message-ID: <1144140206.5186.38.camel@localhost.localdomain>
-References: <1144139619.5186.24.camel@localhost.localdomain>
+From: Samuel =?iso-8859-1?Q?D=EDaz_Garc=EDa?= <samueldg@arcoscom.com>
+Subject: Re: Patch-o-matic cleanup
+Date: Tue, 4 Apr 2006 10:54:43 +0200 (CEST)
+Message-ID: <40106.195.55.244.106.1144140883.squirrel@www.arcoscom.com>
+References: <443165AA.4030509@trash.net>
+Reply-To: samueldg@arcoscom.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-TI7yBniHlmMgE//sa5NM"
-Cc: nufw-devel@nongnu.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <1144139619.5186.24.camel@localhost.localdomain>
+In-Reply-To: <443165AA.4030509@trash.net>
+To: "Patrick McHardy" <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,110 +22,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Patrick, after the last "cleanup" (18/9/2005?), many patches were removed
+and 2.4/2.6 compatibility broken, for example the "condition" match over
+2.6 or CONNMARK over 2.4.
 
---=-TI7yBniHlmMgE//sa5NM
-Content-Type: multipart/mixed; boundary="=-n5rFt7JLDYtbtfS+A7+Y"
+I think, that if devteam are going to invert time to "cleanup" pomng,
+would be fantastic that old ussefull and broken patches (or teorically
+merged into kernel main base) must be reviewed.
 
+For example, you put pptp_conntrack to be deleted, but I used it into 2.4
+kernel versions, where it isn't into mainline.
 
---=-n5rFt7JLDYtbtfS+A7+Y
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+That are the ticks I think you will need to take care of.
 
-Hi,
+Good work, regards.
 
-This adds support for fixed duration connection to the conntrack tool.
+-- 
+Samuel Díaz García
+ArcosCom Wireless, S.L.L.
 
-Example :=20
-	conntrack -U -T 30 ENTRY_SELECTOR
-This set fixed timeout to 30 sec. After this delay, the connection is
-destroyed.
+CIF: B11828068
+c/ Romero Gago, 19
+Arcos de la Frontera
+11630 - Cadiz
 
-Best regards,
---
-Eric Leblond <regit@inl.fr> for the NuFW Core Team
-NuFW : http://www.nufw.org/
+http://www.arcoscom.com
 
---=-n5rFt7JLDYtbtfS+A7+Y
-Content-Disposition: attachment; filename=conntrack_fixed_timeout.patch
-Content-Type: text/x-patch; name=conntrack_fixed_timeout.patch;
-	charset=us-ascii
-Content-Transfer-Encoding: base64
+mailto:samueldg@arcoscom.com
+msn: samueldg@arcoscom.com
 
-SW5kZXg6IGluY2x1ZGUvY29ubnRyYWNrLmgNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCi0tLSBpbmNsdWRlL2Nvbm50
-cmFjay5oCShyw6l2aXNpb24gNjU3NSkNCisrKyBpbmNsdWRlL2Nvbm50cmFjay5oCShjb3BpZSBk
-ZSB0cmF2YWlsKQ0KQEAgLTg1LDM3ICs4NSw0MCBAQA0KIAlDVF9PUFRfVElNRU9VVF9CSVQJPSA1
-LA0KIAlDVF9PUFRfVElNRU9VVAkJPSAoMSA8PCBDVF9PUFRfVElNRU9VVF9CSVQpLA0KIA0KLQlD
-VF9PUFRfU1RBVFVTX0JJVAk9IDYsDQorCUNUX09QVF9GSVhFRF9USU1FT1VUX0JJVAk9IDYsDQor
-CUNUX09QVF9GSVhFRF9USU1FT1VUCQk9ICgxIDw8IENUX09QVF9GSVhFRF9USU1FT1VUX0JJVCks
-DQorDQorCUNUX09QVF9TVEFUVVNfQklUCT0gNywNCiAJQ1RfT1BUX1NUQVRVUwkJPSAoMSA8PCBD
-VF9PUFRfU1RBVFVTX0JJVCksDQogDQotCUNUX09QVF9aRVJPX0JJVAkJPSA3LA0KKwlDVF9PUFRf
-WkVST19CSVQJCT0gOCwNCiAJQ1RfT1BUX1pFUk8JCT0gKDEgPDwgQ1RfT1BUX1pFUk9fQklUKSwN
-CiANCi0JQ1RfT1BUX0VWRU5UX01BU0tfQklUCT0gOCwNCisJQ1RfT1BUX0VWRU5UX01BU0tfQklU
-CT0gOSwNCiAJQ1RfT1BUX0VWRU5UX01BU0sJPSAoMSA8PCBDVF9PUFRfRVZFTlRfTUFTS19CSVQp
-LA0KIA0KLQlDVF9PUFRfRVhQX1NSQ19CSVQJPSA5LA0KKwlDVF9PUFRfRVhQX1NSQ19CSVQJPSAx
-MCwNCiAJQ1RfT1BUX0VYUF9TUkMJCT0gKDEgPDwgQ1RfT1BUX0VYUF9TUkNfQklUKSwNCiANCi0J
-Q1RfT1BUX0VYUF9EU1RfQklUCT0gMTAsDQorCUNUX09QVF9FWFBfRFNUX0JJVAk9IDExLA0KIAlD
-VF9PUFRfRVhQX0RTVAkJPSAoMSA8PCBDVF9PUFRfRVhQX0RTVF9CSVQpLA0KIA0KLQlDVF9PUFRf
-TUFTS19TUkNfQklUCT0gMTEsDQorCUNUX09QVF9NQVNLX1NSQ19CSVQJPSAxMiwNCiAJQ1RfT1BU
-X01BU0tfU1JDCQk9ICgxIDw8IENUX09QVF9NQVNLX1NSQ19CSVQpLA0KIA0KLQlDVF9PUFRfTUFT
-S19EU1RfQklUCT0gMTIsDQorCUNUX09QVF9NQVNLX0RTVF9CSVQJPSAxMywNCiAJQ1RfT1BUX01B
-U0tfRFNUCQk9ICgxIDw8IENUX09QVF9NQVNLX0RTVF9CSVQpLA0KIA0KLQlDVF9PUFRfTkFUUkFO
-R0VfQklUCT0gMTMsDQorCUNUX09QVF9OQVRSQU5HRV9CSVQJPSAxNCwNCiAJQ1RfT1BUX05BVFJB
-TkdFCQk9ICgxIDw8IENUX09QVF9OQVRSQU5HRV9CSVQpLA0KIA0KLQlDVF9PUFRfTUFSS19CSVQJ
-CT0gMTQsDQorCUNUX09QVF9NQVJLX0JJVAkJPSAxNSwNCiAJQ1RfT1BUX01BUksJCT0gKDEgPDwg
-Q1RfT1BUX01BUktfQklUKSwNCiANCi0JQ1RfT1BUX0lEX0JJVAkJPSAxNSwNCisJQ1RfT1BUX0lE
-X0JJVAkJPSAxNiwNCiAJQ1RfT1BUX0lECQk9ICgxIDw8IENUX09QVF9JRF9CSVQpLA0KIA0KLQlD
-VF9PUFRfRkFNSUxZX0JJVAk9IDE2LA0KKwlDVF9PUFRfRkFNSUxZX0JJVAk9IDE3LA0KIAlDVF9P
-UFRfRkFNSUxZCQk9ICgxIDw8IENUX09QVF9GQU1JTFlfQklUKSwNCiANCiAJQ1RfT1BUX01BWF9C
-SVQJCT0gQ1RfT1BUX0ZBTUlMWV9CSVQNCkluZGV4OiBzcmMvY29ubnRyYWNrLmMNCj09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT0NCi0tLSBzcmMvY29ubnRyYWNrLmMJKHLDqXZpc2lvbiA2NTc1KQ0KKysrIHNyYy9jb25udHJh
-Y2suYwkoY29waWUgZGUgdHJhdmFpbCkNCkBAIC04MCw2ICs4MCw3IEBADQogCXsicmVwbHktZHN0
-IiwgMSwgMCwgJ3EnfSwNCiAJeyJwcm90b251bSIsIDEsIDAsICdwJ30sDQogCXsidGltZW91dCIs
-IDEsIDAsICd0J30sDQorCXsiVGltZW91dCIsIDEsIDAsICdUJ30sDQogCXsic3RhdHVzIiwgMSwg
-MCwgJ3UnfSwNCiAJeyJ6ZXJvIiwgMCwgMCwgJ3onfSwNCiAJeyJldmVudC1tYXNrIiwgMSwgMCwg
-J2UnfSwNCkBAIC01NjksNiArNTcwLDcgQEANCiAJIiAgLXAsIC0tcHJvdG9udW0gcHJvdG9cdFx0
-TGF5ZXIgNCBQcm90b2NvbCwgZWcuICd0Y3AnXG4iDQogCSIgIC1mLCAtLWZhbWlseSBwcm90b1x0
-XHRMYXllciAzIFByb3RvY29sLCBlZy4gJ2lwdjYnXG4iDQogCSIgIC10LCAtLXRpbWVvdXQgdGlt
-ZW91dFx0XHRTZXQgdGltZW91dFxuIg0KKwkiICAtVCwgLS1UaW1lb3V0IGZpeGVkIHRpbWVvdXRc
-dFx0U2V0IGZpeGVkIHRpbWVvdXRcbiINCiAJIiAgLXUsIC0tc3RhdHVzIHN0YXR1c1x0XHRTZXQg
-c3RhdHVzLCBlZy4gQVNTVVJFRFxuIg0KIAkiICAtaSwgLS1pZCBbaWRdXHRcdFx0U2hvdyBvciBz
-ZXQgY29ubnRyYWNrIElEXG4iDQogCTsNCkBAIC01OTUsNiArNTk3LDcgQEANCiBzdGF0aWMgc3Ry
-dWN0IG5mY3RfY29ubnRyYWNrICpjdDsNCiBzdGF0aWMgc3RydWN0IG5mY3RfZXhwZWN0ICpleHA7
-DQogc3RhdGljIHVuc2lnbmVkIGxvbmcgdGltZW91dDsNCitzdGF0aWMgdW5zaWduZWQgbG9uZyBm
-aXhlZF90aW1lb3V0Ow0KIHN0YXRpYyB1bnNpZ25lZCBpbnQgc3RhdHVzOw0KIHN0YXRpYyB1bnNp
-Z25lZCBpbnQgbWFyazsNCiBzdGF0aWMgdW5zaWduZWQgaW50IGlkID0gTkZDVF9BTllfSUQ7DQpA
-QCAtNjExLDcgKzYxNCw3IEBADQogCXN0cnVjdCBuZmN0X2Nvbm50cmFja19jb21wYXJlICpwY21w
-Ow0KIA0KIAl3aGlsZSAoKGMgPSBnZXRvcHRfbG9uZyhhcmdjLCBhcmd2LCANCi0JCSJMOjpJOjpV
-OjpEOjpHOjpFOjpGOjpoVnM6ZDpyOnE6cDp0OnU6ZTphOnpbOl06ezp9Om06aTo6ZjoiLCANCisJ
-CSJMOjpJOjpVOjpEOjpHOjpFOjpGOjpoVnM6ZDpyOnE6cDp0OlQ6dTplOmE6els6XTp7On06bTpp
-OjpmOiIsIA0KIAkJb3B0cywgTlVMTCkpICE9IC0xKSB7DQogCXN3aXRjaChjKSB7DQogCQljYXNl
-ICdMJzoNCkBAIC03MzUsNiArNzM4LDEyIEBADQogCQkJaWYgKG9wdGFyZykNCiAJCQkJdGltZW91
-dCA9IGF0b2wob3B0YXJnKTsNCiAJCQlicmVhazsNCisJCWNhc2UgJ1QnOg0KKwkJCW9wdGlvbnMg
-fD0gQ1RfT1BUX0ZJWEVEX1RJTUVPVVQ7DQorCQkJaWYgKG9wdGFyZykNCisJCQkJZml4ZWRfdGlt
-ZW91dCA9IGF0b2wob3B0YXJnKTsNCisJCQlicmVhazsNCisNCiAJCWNhc2UgJ3UnOiB7DQogCQkJ
-aWYgKCFvcHRhcmcpDQogCQkJCWNvbnRpbnVlOw0KQEAgLTk3NCw2ICs5ODMsOSBAQA0KIAkJY3Qg
-PSBuZmN0X2Nvbm50cmFja19hbGxvYygmb3JpZywgJnJlcGx5LCB0aW1lb3V0LA0KIAkJCQkJICAm
-cHJvdG8sIHN0YXR1cywgbWFyaywgaWQsDQogCQkJCQkgIE5VTEwpOw0KKyAgICAgICAgaWYgKG9w
-dGlvbnMgJiBDVF9PUFRfRklYRURfVElNRU9VVCkgew0KKyAgICAgICAgICAgIGN0LT5maXhlZF90
-aW1lb3V0ID0gZml4ZWRfdGltZW91dDsNCisgICAgICAgIH0NCiAJCWlmICghY3QpDQogCQkJZXhp
-dF9lcnJvcihPVEhFUl9QUk9CTEVNLCAiTm90IGVub3VnaCBtZW1vcnkiKTsNCiAJCQ0K
+Tlfn.: 956 70 13 15
+Fax:   956 70 34 83
 
 
---=-n5rFt7JLDYtbtfS+A7+Y--
-
---=-TI7yBniHlmMgE//sa5NM
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQBEMjGunxA7CdMWjzIRAsrwAJ4houXRgJ9qeQIPPQ8MxbnLkPBungCcCchZ
-O0ncyLyASCcaUyWfaI97RgM=
-=FwnH
------END PGP SIGNATURE-----
-
---=-TI7yBniHlmMgE//sa5NM--
+El Lun, 3 de Abril de 2006, 20:12, Patrick McHardy escribió:
+> Following (quite late) the decision taken at the netfilter workshop to
+> clean up the pomng repository by removing old patches and moving some
+> patches out of the netfilter repository, I've started by removing the
+> obsolete ipsec* patches and the policy match. Both have been merged
+> and were pretty outdated.
+>
+> If noone can name good reasons against it, I will also remove the
+> following patches in a few days:
+>
+> - NETLINK: obsolete
+> - NETMAP: in mainline for a long time
+> - TRACE: don't recall the reason, but its on my list :)
+> - comment: in mainline
+> - conntrack_locking: seriously outdated, if someone wants to resurrect
+>   this patch he can use the history
+> - dropped_table: also don't recall the reason
+> - goto: in mainline
+> - ipq_vmark: obsoleted by nfnetlink_queue
+> - mport: mainline multiport supports all of its features
+> - netfilter-docbook: outdated
+> - owner-socketlookup: unfixable broken
+> - pool: obsoleted by ipset
+> - pptp-conntrack-nat: in mainline now, patches are missing critical
+>   fixes
+> - unclean: bad idea
+>
+>
