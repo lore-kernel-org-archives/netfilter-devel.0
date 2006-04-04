@@ -1,16 +1,15 @@
-From: Eric Leblond <eleblond@inl.fr>
-Subject: [PATCH 2/3]  fixed duration connection
-Date: Tue, 04 Apr 2006 10:38:48 +0200
-Message-ID: <1144139928.5186.31.camel@localhost.localdomain>
-References: <1144139619.5186.24.camel@localhost.localdomain>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Patch-o-matic cleanup
+Date: Tue, 04 Apr 2006 10:38:04 +0200
+Message-ID: <4432306C.10106@trash.net>
+References: <443165AA.4030509@trash.net> <44321188.30902@hivemynd.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-mV/f/WDnGxgUxuGhnjW1"
-Cc: nufw-devel@nongnu.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <1144139619.5186.24.camel@localhost.localdomain>
+To: Stephen Jones <hivemynd@hivemynd.net>
+In-Reply-To: <44321188.30902@hivemynd.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,122 +21,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Stephen Jones wrote:
+> Patrick McHardy wrote:
+> 
+>> - pptp-conntrack-nat: in mainline now, patches are missing critical
+>>   fixes
+> 
+> Hi Patrick,
+> 
+> Is pptp-conntrack-nat functionality going to be included in the 2.4.x
+> mainline also?  Otherwise, the patches still appear to be necessary for
+> 2.4.x kernels.
 
---=-mV/f/WDnGxgUxuGhnjW1
-Content-Type: multipart/mixed; boundary="=-PYW17Lt38BUS5UD6eq++"
-
-
---=-PYW17Lt38BUS5UD6eq++
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-This patch adds support for fixed duration connection in
-libnetfilter_conntrack.
-
-Best regards,
---
-Eric Leblond <regit@inl.fr> for the NuFW Core Team
-NuFW : http://www.nufw.org/
-
---=-PYW17Lt38BUS5UD6eq++
-Content-Disposition: attachment;
-	filename=libnetfilter_conntrack_fixed_timeout.patch
-Content-Type: text/x-patch; name=libnetfilter_conntrack_fixed_timeout.patch;
-	charset=us-ascii
-Content-Transfer-Encoding: base64
-
-SW5kZXg6IGluY2x1ZGUvbGlibmV0ZmlsdGVyX2Nvbm50cmFjay9saW51eF9uZm5ldGxpbmtfY29u
-bnRyYWNrLmgNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT0NCi0tLSBpbmNsdWRlL2xpYm5ldGZpbHRlcl9jb25udHJhY2sv
-bGludXhfbmZuZXRsaW5rX2Nvbm50cmFjay5oCShyw6l2aXNpb24gNjU3NSkNCisrKyBpbmNsdWRl
-L2xpYm5ldGZpbHRlcl9jb25udHJhY2svbGludXhfbmZuZXRsaW5rX2Nvbm50cmFjay5oCShjb3Bp
-ZSBkZSB0cmF2YWlsKQ0KQEAgLTI5LDYgKzI5LDcgQEANCiAJQ1RBX0hFTFAsDQogCUNUQV9OQVQs
-DQogCUNUQV9USU1FT1VULA0KKwlDVEFfRklYRURfVElNRU9VVCwNCiAJQ1RBX01BUkssDQogCUNU
-QV9DT1VOVEVSU19PUklHLA0KIAlDVEFfQ09VTlRFUlNfUkVQTFksDQpJbmRleDogaW5jbHVkZS9s
-aWJuZXRmaWx0ZXJfY29ubnRyYWNrL2xpYm5ldGZpbHRlcl9jb25udHJhY2suaA0KPT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PQ0KLS0tIGluY2x1ZGUvbGlibmV0ZmlsdGVyX2Nvbm50cmFjay9saWJuZXRmaWx0ZXJfY29ubnRy
-YWNrLmgJKHLDqXZpc2lvbiA2NTc1KQ0KKysrIGluY2x1ZGUvbGlibmV0ZmlsdGVyX2Nvbm50cmFj
-ay9saWJuZXRmaWx0ZXJfY29ubnRyYWNrLmgJKGNvcGllIGRlIHRyYXZhaWwpDQpAQCAtODksNiAr
-ODksNyBAQA0KIAlzdHJ1Y3QgbmZjdF90dXBsZSB0dXBsZVtORkNUX0RJUl9NQVhdOw0KIAkNCiAJ
-dV9pbnQzMl90IAl0aW1lb3V0Ow0KKwl1X2ludDMyX3QgCWZpeGVkX3RpbWVvdXQ7DQogCXVfaW50
-MzJfdAltYXJrOw0KIAl1X2ludDMyX3QgCXN0YXR1czsNCiAJdV9pbnQzMl90CXVzZTsNCkBAIC0x
-MjUsMTkgKzEyNiwyMiBAQA0KIAlORkNUX1RJTUVPVVRfQklUID0gMiwNCiAJTkZDVF9USU1FT1VU
-ID0gKDEgPDwgTkZDVF9USU1FT1VUX0JJVCksDQogDQotCU5GQ1RfTUFSS19CSVQgPSAzLA0KKyAg
-ICAgICAgTkZDVF9GSVhFRF9USU1FT1VUX0JJVCA9IDMsDQorCU5GQ1RfRklYRURfVElNRU9VVCA9
-ICgxIDw8IE5GQ1RfRklYRURfVElNRU9VVF9CSVQpLA0KKw0KKwlORkNUX01BUktfQklUID0gNCwN
-CiAJTkZDVF9NQVJLID0gKDEgPDwgTkZDVF9NQVJLX0JJVCksDQogDQotCU5GQ1RfQ09VTlRFUlNf
-T1JJR19CSVQgPSA0LA0KKwlORkNUX0NPVU5URVJTX09SSUdfQklUID0gNSwNCiAJTkZDVF9DT1VO
-VEVSU19PUklHID0gKDEgPDwgTkZDVF9DT1VOVEVSU19PUklHX0JJVCksDQogDQotCU5GQ1RfQ09V
-TlRFUlNfUlBMWV9CSVQgPSA1LA0KKwlORkNUX0NPVU5URVJTX1JQTFlfQklUID0gNiwNCiAJTkZD
-VF9DT1VOVEVSU19SUExZID0gKDEgPDwgTkZDVF9DT1VOVEVSU19SUExZX0JJVCksDQogDQotCU5G
-Q1RfVVNFX0JJVCA9IDYsDQorCU5GQ1RfVVNFX0JJVCA9IDcsDQogCU5GQ1RfVVNFID0gKDEgPDwg
-TkZDVF9VU0VfQklUKSwNCiANCi0JTkZDVF9JRF9CSVQgPSA3LA0KKwlORkNUX0lEX0JJVCA9IDgs
-DQogCU5GQ1RfSUQgPSAoMSA8PCBORkNUX0lEX0JJVCkNCiB9Ow0KIA0KSW5kZXg6IHNyYy9saWJu
-ZXRmaWx0ZXJfY29ubnRyYWNrLmMNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCi0tLSBzcmMvbGlibmV0ZmlsdGVyX2Nv
-bm50cmFjay5jCShyw6l2aXNpb24gNjU3NSkNCisrKyBzcmMvbGlibmV0ZmlsdGVyX2Nvbm50cmFj
-ay5jCShjb3BpZSBkZSB0cmF2YWlsKQ0KQEAgLTU0OCw2ICs1NDgsMTEgQEANCiAJCWZsYWdzIHw9
-IE5GQ1RfVElNRU9VVDsNCiAJfQ0KIAkNCisgICAgICAgIGlmIChjZGFbQ1RBX0ZJWEVEX1RJTUVP
-VVQtMV0pIHsNCisJCWN0LmZpeGVkX3RpbWVvdXQgPSBudG9obCgqKHVfaW50MzJfdCAqKU5GQV9E
-QVRBKGNkYVtDVEFfRklYRURfVElNRU9VVC0xXSkpOw0KKwkJZmxhZ3MgfD0gTkZDVF9GSVhFRF9U
-SU1FT1VUOw0KKwl9DQorDQogCWlmIChjZGFbQ1RBX01BUkstMV0pIHsNCiAJCWN0Lm1hcmsgPSBu
-dG9obCgqKHVfaW50MzJfdCAqKU5GQV9EQVRBKGNkYVtDVEFfTUFSSy0xXSkpOw0KIAkJZmxhZ3Mg
-fD0gTkZDVF9NQVJLOw0KQEAgLTU5Niw2ICs2MDEsMTMgQEANCiAJcmV0dXJuIHNwcmludGYoYnVm
-LCAiJXUgIiwgY3QtPnRpbWVvdXQpOw0KIH0NCiANCitpbnQgbmZjdF9zcHJpbnRmX2ZpeGVkX3Rp
-bWVvdXQoY2hhciAqYnVmLCBzdHJ1Y3QgbmZjdF9jb25udHJhY2sgKmN0KQ0KK3sNCisJcmV0dXJu
-IHNwcmludGYoYnVmLCAiJXUgIiwgY3QtPmZpeGVkX3RpbWVvdXQpOw0KK30NCisNCisNCisNCiBp
-bnQgbmZjdF9zcHJpbnRmX3Byb3RvaW5mbyhjaGFyICpidWYsIHN0cnVjdCBuZmN0X2Nvbm50cmFj
-ayAqY3QpDQogew0KIAlpbnQgc2l6ZSA9IDA7DQpAQCAtNjY0LDcgKzY3NiwxMCBAQA0KIAlpZiAo
-ZmxhZ3MgJiBORkNUX1RJTUVPVVQpDQogCQlzaXplICs9IG5mY3Rfc3ByaW50Zl90aW1lb3V0KGJ1
-ZitzaXplLCBjdCk7DQogDQotICAgICAgICBpZiAoZmxhZ3MgJiBORkNUX1BST1RPSU5GTykNCisJ
-aWYgKGZsYWdzICYgTkZDVF9GSVhFRF9USU1FT1VUKQ0KKwkJc2l6ZSArPSBuZmN0X3NwcmludGZf
-Zml4ZWRfdGltZW91dChidWYrc2l6ZSwgY3QpOw0KKw0KKyAgICBpZiAoZmxhZ3MgJiBORkNUX1BS
-T1RPSU5GTykNCiAJCXNpemUgKz0gbmZjdF9zcHJpbnRmX3Byb3RvaW5mbyhidWYrc2l6ZSwgY3Qp
-Ow0KIA0KIAlzaXplICs9IG5mY3Rfc3ByaW50Zl9hZGRyZXNzKGJ1ZitzaXplLCAmY3QtPnR1cGxl
-W05GQ1RfRElSX09SSUdJTkFMXSk7DQpAQCAtOTU0LDYgKzk2OSw3IEBADQogCWNoYXIgYnVmW05G
-Q1RfQlVGU0laRV07DQogCXVfaW50MzJfdCBzdGF0dXMgPSBodG9ubChjdC0+c3RhdHVzIHwgSVBT
-X0NPTkZJUk1FRCk7DQogCXVfaW50MzJfdCB0aW1lb3V0ID0gaHRvbmwoY3QtPnRpbWVvdXQpOw0K
-Kwl1X2ludDMyX3QgZml4ZWRfdGltZW91dCA9IGh0b25sKGN0LT5maXhlZF90aW1lb3V0KTsNCiAJ
-dV9pbnQzMl90IG1hcmsgPSBodG9ubChjdC0+bWFyayk7DQogCXVfaW50OF90IGwzbnVtID0gY3Qt
-PnR1cGxlW05GQ1RfRElSX09SSUdJTkFMXS5sM3Byb3RvbnVtOw0KIA0KQEAgLTk3NSw2ICs5OTEs
-MTAgQEANCiANCiAJbmZubF9hZGRhdHRyX2woJnJlcS0+bmxoLCBzaXplb2YoYnVmKSwgQ1RBX1RJ
-TUVPVVQsICZ0aW1lb3V0LCANCiAJCSAgICAgICBzaXplb2YodV9pbnQzMl90KSk7DQorDQorICAg
-ICAgICBpZiAoZml4ZWRfdGltZW91dCkNCisJICAgICAgICBuZm5sX2FkZGF0dHJfbCgmcmVxLT5u
-bGgsIHNpemVvZihidWYpLCBDVEFfRklYRURfVElNRU9VVCwgJmZpeGVkX3RpbWVvdXQsIA0KKwkJ
-ICAgICAgICAgICAgICAgc2l6ZW9mKHVfaW50MzJfdCkpOw0KIAkNCiAJaWYgKGN0LT5tYXJrICE9
-IDApDQogCQluZm5sX2FkZGF0dHJfbCgmcmVxLT5ubGgsIHNpemVvZihidWYpLCBDVEFfTUFSSywg
-Jm1hcmssDQpAQCAtOTkzLDYgKzEwMTMsNyBAQA0KIAljaGFyIGJ1ZltORkNUX0JVRlNJWkVdOw0K
-IAl1X2ludDMyX3Qgc3RhdHVzID0gaHRvbmwoY3QtPnN0YXR1cyB8IElQU19DT05GSVJNRUQpOw0K
-IAl1X2ludDMyX3QgdGltZW91dCA9IGh0b25sKGN0LT50aW1lb3V0KTsNCisJdV9pbnQzMl90IGZp
-eGVkX3RpbWVvdXQgPSBodG9ubChjdC0+Zml4ZWRfdGltZW91dCk7DQogCXVfaW50MzJfdCBpZCA9
-IGh0b25sKGN0LT5pZCk7DQogCXVfaW50MzJfdCBtYXJrID0gaHRvbmwoY3QtPm1hcmspOw0KIAl1
-X2ludDhfdCBsM251bSA9IGN0LT50dXBsZVtORkNUX0RJUl9PUklHSU5BTF0ubDNwcm90b251bTsN
-CkBAIC0xMDE1LDcgKzEwMzYsMTIgQEANCiAJaWYgKGN0LT50aW1lb3V0ICE9IDApDQogCQluZm5s
-X2FkZGF0dHJfbCgmcmVxLT5ubGgsIHNpemVvZihidWYpLCBDVEFfVElNRU9VVCwgJnRpbWVvdXQs
-IA0KIAkJCSAgICAgICBzaXplb2YodV9pbnQzMl90KSk7DQorDQorICAgICAgICBpZiAoY3QtPmZp
-eGVkX3RpbWVvdXQgIT0gMCkNCisJCW5mbmxfYWRkYXR0cl9sKCZyZXEtPm5saCwgc2l6ZW9mKGJ1
-ZiksIENUQV9GSVhFRF9USU1FT1VULCAmZml4ZWRfdGltZW91dCwgDQorCQkJICAgICAgIHNpemVv
-Zih1X2ludDMyX3QpKTsNCiAJDQorCQ0KIAlpZiAoY3QtPm1hcmsgIT0gMCkNCiAJCW5mbmxfYWRk
-YXR0cl9sKCZyZXEtPm5saCwgc2l6ZW9mKGJ1ZiksIENUQV9NQVJLLCAmbWFyaywNCiAJCQkgICAg
-ICAgc2l6ZW9mKHVfaW50MzJfdCkpOw0K
-
-
---=-PYW17Lt38BUS5UD6eq++--
-
---=-mV/f/WDnGxgUxuGhnjW1
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-
-iD8DBQBEMjCYnxA7CdMWjzIRAl71AJ0XHd7H+44scqRZs8YEVTu58Cw7sACeJwuc
-UnDwpf4h8ch/JNcFEuX7ga0=
-=aDOq
------END PGP SIGNATURE-----
-
---=-mV/f/WDnGxgUxuGhnjW1--
+No, 2.4 is in absolute stable mode. The pptp patches for 2.4 are missing
+a number of important bugfixes, I wouldn't recommend using them in their
+present form. We don't have the time to maintain old versions forever,
+which is why we decided to remove this old stuff.
