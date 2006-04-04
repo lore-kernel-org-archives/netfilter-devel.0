@@ -1,15 +1,13 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
-Subject: Re: Patch-o-matic cleanup
-Date: Tue, 04 Apr 2006 11:19:27 +0200
-Message-ID: <44323A1F.3010803@gmx.net>
-References: <443165AA.4030509@trash.net>
+From: "David Vogt" <beunlovable@gmail.com>
+Subject: Multiple programs for QUEUE target
+Date: Tue, 4 Apr 2006 15:55:11 +0200
+Message-ID: <859616420604040655h6312ac86g3c8661c29bf4c7e5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <443165AA.4030509@trash.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,21 +19,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Dear all,
 
-Patrick McHardy schrieb:
-> If noone can name good reasons against it, I will also remove the
-> following patches in a few days:
-> 
-> - unclean: bad idea
+as far as I understand libipq it is not possible to register more than
+one program that handles packets that are queued (using -j QUEUE),
+since only one pid can be registered at /proc/net/ip_queue. Is that
+right?
 
-Please leave that one in. I know it's a bad idea, but in non-production
-setups LOGging all packets matched by unclean gives interesting insights
-into network traffic. So it's a valuable educational tool.
+Now I have two questions:
+1) Does libnetfilter_queue solve that problem
+2) Will packets be processed by both applications?
 
+The problem is that I use a closed source program here as well, that
+employs libipq. Altough I could rewrite my own application to use
+libnetfiter_queue I would highly appreciate a solution that uses
+libipq. I am sure I read something about a "dispachter"-like program,
+but I can't find it.
 
-
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+Thanks,
+David
