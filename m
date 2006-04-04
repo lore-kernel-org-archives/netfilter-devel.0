@@ -1,11 +1,10 @@
-From: Stephen Jones <hivemynd@hivemynd.net>
+From: Krzysztof Oledzki <olenf@ans.pl>
 Subject: Re: Patch-o-matic cleanup
-Date: Tue, 04 Apr 2006 01:26:16 -0500
-Message-ID: <44321188.30902@hivemynd.net>
+Date: Tue, 4 Apr 2006 10:04:47 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0604041001350.8120@bizon.gios.gov.pl>
 References: <443165AA.4030509@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-350819233-1144137887=:8120"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
@@ -21,30 +20,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---187430788-350819233-1144137887=:8120
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+
+On Mon, 3 Apr 2006, Patrick McHardy wrote:
+
 > Following (quite late) the decision taken at the netfilter workshop to
 > clean up the pomng repository by removing old patches and moving some
 > patches out of the netfilter repository, I've started by removing the
 > obsolete ipsec* patches and the policy match. Both have been merged
 > and were pretty outdated.
-> 
+>
 > If noone can name good reasons against it, I will also remove the
 > following patches in a few days:
-> 
+<CUT>
+> - goto: in mainline
+Not in 2.4 and version from pom-ng is 2.4-only.
 
-< snip >
+Best regards,
 
-> - pptp-conntrack-nat: in mainline now, patches are missing critical
->   fixes
-Hi Patrick,
-
-Is pptp-conntrack-nat functionality going to be included in the 2.4.x 
-mainline also?  Otherwise, the patches still appear to be necessary for 
-2.4.x kernels.  Thanks for all of your hard work!
-
-SJ
-
-> - unclean: bad idea
-> 
-> 
-> 
+ =09=09=09=09=09Krzysztof Ol=EAdzki
+---187430788-350819233-1144137887=:8120--
