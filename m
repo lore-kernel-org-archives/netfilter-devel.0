@@ -1,16 +1,12 @@
-From: Stephen Jones <hivemynd@hivemynd.net>
-Subject: Re: Patch-o-matic cleanup
-Date: Tue, 04 Apr 2006 09:39:50 -0500
-Message-ID: <44328536.6070902@hivemynd.net>
-References: <443165AA.4030509@trash.net> <44321188.30902@hivemynd.net>
-	<4432306C.10106@trash.net>
+From: Stephen Hemminger <shemminger@osdl.org>
+Subject: [PATCH] ip_conntrack section mismatch warning fix
+Date: Tue, 4 Apr 2006 11:32:33 -0700
+Message-ID: <20060404113233.4de507d3@dxpl.pdx.osdl.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4432306C.10106@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,36 +18,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Stephen Jones wrote:
-> 
->>Patrick McHardy wrote:
->>
->>
->>>- pptp-conntrack-nat: in mainline now, patches are missing critical
->>>  fixes
->>
->>Hi Patrick,
->>
->>Is pptp-conntrack-nat functionality going to be included in the 2.4.x
->>mainline also?  Otherwise, the patches still appear to be necessary for
->>2.4.x kernels.
-> 
-> 
-> No, 2.4 is in absolute stable mode. The pptp patches for 2.4 are missing
-> a number of important bugfixes, I wouldn't recommend using them in their
-> present form. We don't have the time to maintain old versions forever,
-> which is why we decided to remove this old stuff.
-> 
-> 
-Ok, good enough, and completely understandable.  Unfortunately, for me, 
-there are still quite a few items (not netfilter related) that work on 
-2.4.x that do not yet work on 2.6.x series kernels that force me into a 
-holding pattern on the 2.4.3x kernels for now.  I'll keep an archive of 
-the last known working iptables + pom-ng snapshot if I need to recompile 
-again in the future.  The pptp conntrack functionality has been "mostly" 
-working for us for several years now. The problems with it are rare and 
-tend to occur when the linux firewall is managing many concurrent 
-tunnels, otherwise it appears to work just fine. Thank you for your reply.
+This is a bit of a hack. It eliminates the section mismatch warning from
+latest linker. What happens is the init_or_cleanup code gets called
+from cleanup() hook and the linker thinks it will reference __initdata
+because of it's limited static analysis.  By asking compiler to
+inline, it can eliminate that dead code. It does the __init text
+section to grow, but then the space can be reclaimed.
 
-SJ
+Signed-off-by: Stephen Hemminger <shemminger@osdl.org>
+
+
+--- test-2.6.orig/net/ipv4/netfilter/ip_conntrack_standalone.c
++++ test-2.6/net/ipv4/netfilter/ip_conntrack_standalone.c
+@@ -783,7 +783,7 @@ static ctl_table ip_ct_net_table[] = {
+ EXPORT_SYMBOL(ip_ct_log_invalid);
+ #endif /* CONFIG_SYSCTL */
+ 
+-static int init_or_cleanup(int init)
++static inline int init_or_cleanup(int init)
+ {
+ #ifdef CONFIG_PROC_FS
+ 	struct proc_dir_entry *proc, *proc_exp, *proc_stat;
