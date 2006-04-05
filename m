@@ -1,16 +1,16 @@
-From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
-Subject: Re: H.323 conntrack/NAT helper update for 2.6.17-rc1
-Date: Wed, 5 Apr 2006 13:40:35 -0400
-Message-ID: <BAY109-DAV168F37B55FD25554F467E2B3CB0@phx.gbl>
-References: <BAY109-DAV15AA944ABA789908271E35B3CB0@phx.gbl>
-	<4433F9FF.6050709@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: fix kbuild warning in iptable_nat.o
+Date: Thu, 06 Apr 2006 00:00:04 +0200
+Message-ID: <44343DE4.70500@trash.net>
+References: <1143719875.8469.14.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: base64
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: kernel Janitors <kernel-janitors@lists.osdl.org>,
+	"Randy.Dunlap" <rdunlap@xenotime.net>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>
+To: "Darren Jenkins" <darrenrjenkins@gmail.com>
+In-Reply-To: <1143719875.8469.14.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,33 +22,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-DQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogIlBhdHJpY2sgTWNIYXJkeSIg
-PGthYmVyQHRyYXNoLm5ldD4NClRvOiAiSmluZyBNaW4gWmhhbyIgPHpoYW9qaW5nbWluQGhvdG1h
-aWwuY29tPg0KQ2M6IDxuZXRmaWx0ZXItZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9yZz4NClNlbnQ6
-IFdlZG5lc2RheSwgQXByaWwgMDUsIDIwMDYgMToxMCBQTQ0KU3ViamVjdDogUmU6IEguMzIzIGNv
-bm50cmFjay9OQVQgaGVscGVyIHVwZGF0ZSBmb3IgMi42LjE3LXJjMQ0KDQoNCj4gDQo+IEFwcGxp
-ZWQsIHRoYW5rcy4gQSBjb3VwbGUgb2YgY29tbWVudHMgdGhvdWdoOg0KPiANCj4gLSBJJ3ZlIHNw
-bGl0IHlvdXIgcGF0Y2hlcyBpbnRvIHRoZSBsb2dpY2FsIGNoYW5nZXMsIHRoaXMgaXMgcHJlZmVy
-ZWQNCj4gIHRvICJ2ZXJzaW9uLXVwZGF0ZXMiLiBJZGVhbGx5IHlvdSBqdXN0IHNlbmQgb25lIHBh
-dGNoIHBlciBjaGFuZ2UuDQo+DQpPSywgSSB3aWxsLg0KIA0KPiAtIHdoaXRlc3BhY2UgY2hhbmdl
-czoNCj4gDQo+IC0gICAgICAgICAgICAgICAvKiBpcF9uYXRfbWFuZ2xlX3VkcF9wYWNrZXQgdXNl
-cyBza2JfbWFrZV93cml0YWJsZSgpIHRvIGNvcHkNCj4gLSAgICAgICAgICAgICAgICAqIG9yIHB1
-bGwgZXZlcnl0aGluZyBpbiBhIGxpbmVhciBidWZmZXIsIHNvIHdlIGNhbiBzYWZlbHkNCj4gKyAg
-ICAgICAgICAgICAgIC8qIGlwX25hdF9tYW5nbGVfdWRwX3BhY2tldCB1c2VzIHNrYl9tYWtlX3dy
-aXRhYmxlKCkgdG8NCj4gY29weQ0KPiArICAgICAgICAgICAgICAgICogb3IgcHVsbCBldmVyeXRo
-aW5nIGluIGEgbGluZWFyIGJ1ZmZlciwgc28gd2UgY2FuIHNhZmVseQ0KPiANCj4gUGxlYXNlIHRy
-eSB0byBhdm9pZCBzdWNoIHRoaW5ncywgZXhjZXB0IGZvciBzZXBlcmF0ZWQgcGF0Y2hlcyB0aGF0
-DQo+IF9yZW1vdmVfIHdoaXRlc3BhY2UgOikNCj4NCkkgZGlkIGNoZWNrIHRyYWlsaW5nIHNwYWNl
-cyBieSBjaGVja2luZyB0aGUgZGlmZiBmaWxlLiBCdXQgSSBzdGlsbCBtaXNzZWQgDQpzb21ldGhp
-bmcgOigNCiANCj4gLSBJJ3ZlIGNoYW5nZWQgZGVmYXVsdF9ycnFfdGltZW91dCB0byB1bnNpZ25l
-ZCBiZWNhdXNlIGl0IGlzIGFzc2lnbmVkDQo+ICB0byBhbiB1bnNpZ25lZCBtZW1iZXIuDQo+DQpU
-aGFuayB5b3UuIEFjY29yZGluZyB0byB0aGUgQVNOIGZpbGUsIGl0IHNob3VsZCBiZSB1bnNpZ25l
-ZC4gSSBrbmV3DQp0aGlzIGJ1dCBqdXN0IHNpbXBseSBmb3Jnb3QgaXQuIEZvcmdpdmUgbXkgY2Fy
-ZWxlc3NuZXNzLg0KIA0KPiAtIENoYW5nZWxvZ3MgaW4gdGhlIHNvdXJjZS1jb2RlOiBpdHMgeW91
-ciBjaG9pY2UsIGJ1dCBJIHBlcnNvbmFsbHkNCj4gIHByZWZlciB0byBhdm9pZCBjaGFuZ2Vsb2dz
-IGluIHRoZSBzb3VyY2UgZmlsZXMsIHRoZXkgdGVuZCB0bw0KPiAgZ3JvdyBwcmV0dHkgZmFzdCBh
-bmQgeW91IGFyZSBtb3N0bHkgbm90IGludGVyZXN0ZWQgaW4gdGhlbS4gSWYNCj4gIHlvdSBhcmUs
-IHlvdSBjYW4gdXNlIHRoZSBnaXQgaGlzdG9yeS4NCj4NCkknbGwgdHJ5Lg0KIA0KPiBUaGFua3Mg
-YWdhaW4uDQo+IA0KPg0KSSdtIHNvcnJ5IGl0IHdhc3RlZCB5b3Ugc28gbXVjaCB0aW1lIG9uIHRo
-ZXNlIGNhcmVsZXNzIG1pc3Rha2VzLg0KDQpUaGFuayB5b3UgZm9yIHlvdXIgZ3JlYXQgd29yayBh
-bmQgeW91ciB0aW1lIQ0KDQpCZXN0IHJlZ2FyZHMsDQoNCkppbmcgTWluIFpoYW8NCg==
+Darren Jenkins\ wrote:
+> G'day list
+> 
+> There are a couple of Kbuild warnings in net/ipv4/netfilter/ that would
+> be nice to get rid of.
+> 
+> WARNING: net/ipv4/netfilter/ip_conntrack.o - Section mismatch: reference
+> to .init.text:ip_conntrack_init from .text between 'init_or_cleanup' (at
+> offset 0x7ea) and '__hash_conntrack'
+> WARNING: net/ipv4/netfilter/iptable_nat.o - Section mismatch: reference
+> to .init.text:ip_nat_rule_init from .text between 'init_or_cleanup' (at
+> offset 0x455) and 'nat_decode_session'
+> 
+> I have a patch for the 'iptable_nat.o' warning below, and I was just
+> wanting to check in and see if any of you netfilter guys had a problem
+> with this patch, or with me doing a similar patch for the
+> 'ip_canntrack.o' warning.
+> 
+> 
+> Any input would be welcome, thanks in advance :). 
+
+I have a patch queued that just splits the init/cleanup parts.
