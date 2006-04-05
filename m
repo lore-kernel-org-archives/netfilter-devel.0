@@ -1,15 +1,15 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
-Subject: Re: Update: Patch-o-matic cleanup
-Date: Wed, 05 Apr 2006 17:20:21 +0200
-Message-ID: <4433E035.2010504@gmx.net>
-References: <443165AA.4030509@trash.net> <4433CA75.9040607@trash.net>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: H.323 conntrack/NAT helper update for 2.6.17-rc1
+Date: Wed, 5 Apr 2006 17:21:12 +0200
+Message-ID: <20060405152112.GF20558@sunbeam.de.gnumonks.org>
+References: <BAY109-DAV15AA944ABA789908271E35B3CB0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NU0Ex4SbNnrxsi6C"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4433CA75.9040607@trash.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
+In-Reply-To: <BAY109-DAV15AA944ABA789908271E35B3CB0@phx.gbl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,33 +21,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
 
-Patrick McHardy schrieb:
-> 
-> After receiving multiple "please keep this patch" mails, it seems I
-> started the wrong way.
-> 
-> Removing old patches is part of a greater plan to reduce the content of
-> pom to only those things the netfilter team has an interest in
-> maintaining, and most of these things will be merged in not too long
-> time. _All_ other patches will be removed and the "runme" tool will
-> be enhanced by an apt-get like mechanism to download patches from
-> external sources[...]
+--NU0Ex4SbNnrxsi6C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-But why keep a few patches in pom and throw out the rest? Wouldn't it
-make sense to reduce pom to a simple script and throw out all patches?
-The few patches maintained by the netfilter team could be moved to a
-separate pom-hotfix package and be automatically downloaded by the
-pom script.
+On Tue, Apr 04, 2006 at 08:29:57PM -0400, Jing Min Zhao wrote:
+> Hi, Patrick,
+>=20
+> This patch is to update 2.6.17-rc1 to the latest state. It includes follo=
+wing changes that are not in=20
+> 2.6.17-rc1:
 
-OTOH, having a pom-ng that can be applied without a network connection
-was very helpful for me in the past. So if you are really going to
-discontinue pom-ng as is, I offer to take over maintenance. Fetching
-the different packages from locations in a list and assembling them
-into one pom-full package automatically can't be that difficult.
+just as a minor note: Please attach patches in plaintext, so people can
+read them in their mail readers rather than having to save, extract,
+read, delete them (which is time consuming).
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+Thanks!
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--NU0Ex4SbNnrxsi6C
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+
+iD8DBQFEM+BoXaXGVTD0i/8RAtH8AKCkKr2KsDdMoxc0ks6PYXZHeY08JQCgqTiC
+WmWP6cXSpdA+JSEzuRJIxsI=
+=9oIu
+-----END PGP SIGNATURE-----
+
+--NU0Ex4SbNnrxsi6C--
