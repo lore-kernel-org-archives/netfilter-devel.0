@@ -1,18 +1,16 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Regarding LIBIPQ problem
-Date: Wed, 5 Apr 2006 17:31:16 +0200
-Message-ID: <20060405153116.GK20558@sunbeam.de.gnumonks.org>
-References: <1411.10.12.25.5.1143825446.squirrel@gpo.iitb.ac.in>
-	<859616420604010236j1048f16anbe3edaa8b6967244@mail.gmail.com>
-	<4854.10.12.25.5.1143978508.squirrel@gpo.iitb.ac.in>
+From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
+Subject: Re: H.323 conntrack/NAT helper update for 2.6.17-rc1
+Date: Wed, 5 Apr 2006 11:32:35 -0400
+Message-ID: <BAY109-DAV7DCCFD349A50D33911B99B3CB0@phx.gbl>
+References: <BAY109-DAV15AA944ABA789908271E35B3CB0@phx.gbl>
+	<20060405152112.GF20558@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Bg2esWel0ueIH/G/"
-Cc: netfilter-devel@lists.netfilter.org, David Vogt <beunlovable@gmail.com>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: base64
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Vasantha Kumar Puttappa <vasanthakumar@iitb.ac.in>
-Content-Disposition: inline
-In-Reply-To: <4854.10.12.25.5.1143978508.squirrel@gpo.iitb.ac.in>
+To: "Harald Welte" <laforge@netfilter.org>,
+	<netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,47 +22,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---Bg2esWel0ueIH/G/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, Apr 02, 2006 at 05:18:28PM +0530, Vasantha Kumar Puttappa wrote:
-> Hi David,
->   Thanx for your response.
->   Actually I did use "ntohs" in the actual code.
->   Anyhow I tested same code in kernel-2.6.11-6mdk and it's working fine,
-> although i am receiving multiple copies at the receiver.
->=20
->   Do you have any idea of kernel version in which "libipq" works properly
-> withoug any problem.
-
-I'm not aware of any libipq/kernel versions that have problems.
-
-Also, try using libnetfilter_queue / nf_queue for new code, rather than
-ip_queue, which has already been in feature-removal-schedule for quite
-some time.
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---Bg2esWel0ueIH/G/
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.2 (GNU/Linux)
-
-iD8DBQFEM+LEXaXGVTD0i/8RAupNAJ0VhCiYCjLZU7IdN0PM+2VA5A5PmgCeNQ/9
-t2B5MuV0kml/Dd1AtyVbiGo=
-=aK2+
------END PGP SIGNATURE-----
-
---Bg2esWel0ueIH/G/--
+SSBzZW50IGl0IGZpcnN0IGluIHBsYWluIHRleHQgdGhlIGRheSBiZWZvcmUgeWVzdGVyZGF5LCBi
+dXQgaXQgZGlkbid0IHNob3cgdXAuDQpJIHRob3VnaHQgaXQgd2FzIHRvbyBiaWcgdG8gYmUgcHJv
+Y2Vzc2VkLCBzbyBJIHNlbnQgaXQgY29tcHJlc3NlZCBhZ2Fpbi4gTm93IGl0DQpzZWVtcyBqdXN0
+IGJlY2F1c2UgaXQgd2FzIHNsb3cuIEknbSBzb3JyeSBJIGRpZG4ndCBrbm93IHRoaXMuDQoNCg0K
+LS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLSANCkZyb206ICJIYXJhbGQgV2VsdGUiIDxsYWZv
+cmdlQG5ldGZpbHRlci5vcmc+DQpUbzogPG5ldGZpbHRlci1kZXZlbEBsaXN0cy5uZXRmaWx0ZXIu
+b3JnPg0KU2VudDogV2VkbmVzZGF5LCBBcHJpbCAwNSwgMjAwNiAxMToyMSBBTQ0KU3ViamVjdDog
+UmU6IEguMzIzIGNvbm50cmFjay9OQVQgaGVscGVyIHVwZGF0ZSBmb3IgMi42LjE3LXJjMQ0KDQo=
