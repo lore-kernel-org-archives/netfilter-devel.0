@@ -1,14 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Update: Patch-o-matic cleanup
-Date: Wed, 05 Apr 2006 15:47:33 +0200
-Message-ID: <4433CA75.9040607@trash.net>
-References: <443165AA.4030509@trash.net>
+Subject: Re: [PATCH 0/3]  [RFC] fixed duration connection
+Date: Wed, 05 Apr 2006 15:57:19 +0200
+Message-ID: <4433CCBF.6060103@trash.net>
+References: <1144139619.5186.24.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	nufw-devel@nongnu.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <443165AA.4030509@trash.net>
+To: Eric Leblond <eric@inl.fr>
+In-Reply-To: <1144139619.5186.24.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,86 +22,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Following (quite late) the decision taken at the netfilter workshop to
-> clean up the pomng repository by removing old patches and moving some
-> patches out of the netfilter repository, I've started by removing the
-> obsolete ipsec* patches and the policy match. Both have been merged
-> and were pretty outdated.
+Eric Leblond wrote:
+> Hi,
 > 
-> If noone can name good reasons against it, I will also remove the
-> following patches in a few days:
-> [...]
+> While working on NuFW development branch, we have had to
+> implement policy just as :
+>       * connection to server is authorised from 08h to 18h and
+>         connection must be switched off at 18h.
+> 
+> Such features are frequently asked by customers or netfilter addicts but
+> even with current conntrack related code, it can not be done cleanly.
+> 
+> Thus, we've added the notion of fixed duration before expiration to
+> connection in the conntrack. (See extended information on bottom for
+> details)
+> 
+> The following set of patches is against kernel (linus git tree),
+> libnetfilter_conntrack, and conntrack tool.
+> 
+> -- Extended --
+> 
+> When trying to implement this feature with current connection tracking
+> code, we have faced some issues :
+>      1. userspace code has to duplicate conntrack entries, thus it's
+>         complex and uses memory
+>      2. there is no hope to have it done by a simple command line
+>         (because of 1.)
+>      3. if replication of conntrack in userspace is needed there will be
+>         many synchronisation problems : stop and start of an
+>         hypothetical "expiration" daemon would cause conntrack
+>         duplication and/or loss of information ...
+> 
+> For this reason, we've worked on a simple kernel level implementation.
+> This is done via a second "struct timer" that is added in connection
+> structure. Activation of the timer, is for now done via userspace by
+> using libnetfilter_conntrack or by using new option -T of the conntrack
+> tool.
 
-After receiving multiple "please keep this patch" mails, it seems I
-started the wrong way.
-
-Removing old patches is part of a greater plan to reduce the content of
-pom to only those things the netfilter team has an interest in
-maintaining, and most of these things will be merged in not too long
-time. _All_ other patches will be removed and the "runme" tool will
-be enhanced by an apt-get like mechanism to download patches from
-external sources, so people interested in keeping patches around can
-maintain them themselves and publish them somewhere for others to use.
-This should benefit both us and the authors since they usually maintain
-their own versions of the patches anyway and periodically send us
-updates to include in pom, which unnecessarily cost time for everyone
-involved.
-
-This is the full list of patches to be removed. Instructions how to set
-up a pomng repository are at the end of this mail, I'll commit the code
-soon.
-
-- ACCOUNT
-- IPMARK
-- NETLINK
-- NETMAP
-- TARPIT
-- TCPLAG
-- TRACE
-- XOR
-- account
-- comment
-- connlimit
-- connrate
-- conntrack_locking
-- cuseeme-nat
-- dropped-table
-- expire
-- fuzzy
-- geoip
-- goto
-- ip_queue_vwmark
-- ipp2p
-- mport
-- nat-reservations
-- netfilter-docbook
-- osf
-- owner-socketlookup
-- pool
-- pptp-conntrack-nat
-- psd
-- time
-- tproxy
-
-The patches will be removed in 30 days, authors or other people that
-want to maintain them in an external repository are welcome to send
-the URL to be included in the distrubuted sources.list.
-
-How to set up a repository:
-
-The repository must be accessible in a way supported by curl (HTTP or
-FTP for example). The name of each patchlet is listed in a file named
-"index". Each patchlet must be contained in a .tar.gz file, which
-contains a directory named like the patchlet itself. The directories
-contents are similar to those in patchlets/ today, but the Repository
-specified in the info file must be "external".
-
-So to create a repository from one of the patches currently in pom:
-
-- cd patchlets
-- edit $patch/info, change repository to "external"
-- tar cz $patch > /wwwroot/pom-repo/$patch.tar.gz
-- echo $patch >> /wwwroot/pom-repo/index
-
-As I said above, I'll commit the code for this soon.
+If I understand you correctly, a fixed timeout is just a timeout that
+isn't refreshed, right? Why can't we just use the regular timers etc.
+and add a flag that it should not be touched by ip_ct_refresh? This
+would also eliminate the need for any ctnetlink changes since the
+timeout value can already be specified.
