@@ -1,16 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Update: Patch-o-matic cleanup
-Date: Wed, 05 Apr 2006 17:37:46 +0200
-Message-ID: <4433E44A.3000503@trash.net>
-References: <443165AA.4030509@trash.net> <4433CA75.9040607@trash.net>
-	<4433E035.2010504@gmx.net>
+Subject: Re: H.323 conntrack/NAT helper update for 2.6.17-rc1
+Date: Wed, 05 Apr 2006 19:10:23 +0200
+Message-ID: <4433F9FF.6050709@trash.net>
+References: <BAY109-DAV15AA944ABA789908271E35B3CB0@phx.gbl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
-In-Reply-To: <4433E035.2010504@gmx.net>
+To: Jing Min Zhao <zhaojingmin@hotmail.com>
+In-Reply-To: <BAY109-DAV15AA944ABA789908271E35B3CB0@phx.gbl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,38 +21,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Carl-Daniel Hailfinger wrote:
-> Hi Patrick,
+Jing Min Zhao wrote:
+> Hi, Patrick,
 > 
-> Patrick McHardy schrieb:
+> This patch is to update 2.6.17-rc1 to the latest state. It includes
+> following changes that are not in 2.6.17-rc1:
 > 
->>After receiving multiple "please keep this patch" mails, it seems I
->>started the wrong way.
->>
->>Removing old patches is part of a greater plan to reduce the content of
->>pom to only those things the netfilter team has an interest in
->>maintaining, and most of these things will be merged in not too long
->>time. _All_ other patches will be removed and the "runme" tool will
->>be enhanced by an apt-get like mechanism to download patches from
->>external sources[...]
+> 1. Add new parameter 'default_rrq_ttl'.
+> 2. Change get_h245_addr to static
+> 3. Change to use EXPORT_SYMBOL_GPL
+> 4. Move some extern function prototypes from ip_nat_helper_h323.c    to
+> ip_conntrack_h323.h.
+> 5. Move ip_conntrack_helper_h323_asn1.h and   
+> ip_conntrack_helper_h323_types.h from net/ipv4/netfilter/ to   
+> include/linux/netfilter_ipv4/.
 > 
-> 
-> But why keep a few patches in pom and throw out the rest? Wouldn't it
-> make sense to reduce pom to a simple script and throw out all patches?
-> The few patches maintained by the netfilter team could be moved to a
-> separate pom-hotfix package and be automatically downloaded by the
-> pom script.
+> Please have a look at it and apply it.
 
-We could do that, but currently we want to keep a few patches while
-minimizing our effort, the easiest way to do that is to just keep
-them where they are.
+Applied, thanks. A couple of comments though:
 
-> OTOH, having a pom-ng that can be applied without a network connection
-> was very helpful for me in the past. So if you are really going to
-> discontinue pom-ng as is, I offer to take over maintenance. Fetching
-> the different packages from locations in a list and assembling them
-> into one pom-full package automatically can't be that difficult.
+- I've split your patches into the logical changes, this is prefered
+  to "version-updates". Ideally you just send one patch per change.
 
-I'm not sure if we want to discontinue official pom-releases entirely,
-but you are of course free to maintain and release version which
-include external patches.
+- whitespace changes:
+
+-               /* ip_nat_mangle_udp_packet uses skb_make_writable() to copy
+-                * or pull everything in a linear buffer, so we can safely
++               /* ip_nat_mangle_udp_packet uses skb_make_writable() to
+copy
++                * or pull everything in a linear buffer, so we can safely
+
+Please try to avoid such things, except for seperated patches that
+_remove_ whitespace :)
+
+- I've changed default_rrq_timeout to unsigned because it is assigned
+  to an unsigned member.
+
+- Changelogs in the source-code: its your choice, but I personally
+  prefer to avoid changelogs in the source files, they tend to
+  grow pretty fast and you are mostly not interested in them. If
+  you are, you can use the git history.
+
+Thanks again.
