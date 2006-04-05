@@ -1,14 +1,13 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 4/4] fix the path to detect esp/connbytes support in kernel
-Date: Fri, 07 Apr 2006 20:34:32 +0900 (JST)
-Message-ID: <200604071134.k37BYXMq007297@toshiba.co.jp>
+From: Eddy Kvetny <eddy_kvetny@yahoo.com>
+Subject: Huge impact of the conntrack mechanism on routing performance (30%
+	with a single conntrack entry)
+Date: Wed, 5 Apr 2006 07:03:05 -0700 (PDT)
+Message-ID: <20060405140305.9637.qmail@web33801.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, kaber@trash.net
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline; filename="04-test.patch"
+To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,34 +19,91 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[IPTABLES,IP6TABLES]: fix the path to detect esp/connbytes support in kernel
+Netfilter gurus,
 
-The recent kernels don't have ipt_connbytes.c and ip6t_esp.c.
+Could someone shed light on pretty strange problem of
+a huge impact of the conntrack mechanism on routing
+performance ?
 
----
-commit 12bc86c77dae9d0590c5ee021d9c00f2291bfe0b
-tree 29a3b1b160d4784a2b264c348d1f781eedbb0ae5
-parent c94b52d4b6fff1bfc2da3e192b39e0f45cd12750
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 06 Apr 2006 20:18:10 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 06 Apr 2006 20:18:10 +0900
+The configuration is as follows: 
+- the ARM9E-based (500Mhz) board with Linux 2.6.12
+- 2 GbE interfaces connected to the traffic generator
+tool (Smartbit)
+- Smartbit injects UDP packets to the device via 1st
+network interface, then the devices routes these
+packets back to Smartbit via the 2nd interface
 
- extensions/.connbytes-test |    2 +-
- extensions/.esp-test6      |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+When only plain routing without any netfilter stuff
+(conntrack, NAT, filter modules) is done, 40K packets
+per second are processed and returned to Smartbit
+giving about 485Mbps througput (40000 packets x 8 bit
+x 1518 byte/packet) 
 
-diff --git a/extensions/.connbytes-test b/extensions/.connbytes-test
-index 350140f..61355d0 100755
---- a/extensions/.connbytes-test
-+++ b/extensions/.connbytes-test
-@@ -1,2 +1,2 @@
- #! /bin/sh
--[ -f $KERNEL_DIR/net/ipv4/netfilter/ipt_connbytes.c ] && echo connbytes
-+[ -f $KERNEL_DIR/include/linux/netfilter_ipv4/ipt_connbytes.h ] && echo connbytes
-diff --git a/extensions/.esp-test6 b/extensions/.esp-test6
-index ff63ca4..7ded945 100755
---- a/extensions/.esp-test6
-+++ b/extensions/.esp-test6
-@@ -1,2 +1,2 @@
- #!/bin/sh
--[ -f $KERNEL_DIR/net/ipv6/netfilter/ip6t_esp.c -a -f $KERNEL_DIR/include/linux/netfilter_ipv6/ip6t_esp.h ] && echo esp
-+[ -f $KERNEL_DIR/include/linux/netfilter_ipv6/ip6t_esp.h ] && echo esp
+Right after "insmod ip_conntrack.ko" the throughput
+drastically falls to 28 kpps (-12 kpps or -30% !!!). I
+know that "conntrack" mechanism has some overhead but
+30% is still seems to be too much, especially when in
+my case there is only 1 connection in the conntrack
+table and as far as I know most of the  "conntrack"
+processing is done for the 1st packet of each
+connection only. Then this connection is put in the
+"conntrack" hash table and it is supposed to be very
+quickly found for successive packets belonging to the
+same connection
+
+ After "insmod iptable_filter.ko" throughput is 25
+kpps (-3 kpps) and after "insmod iptable_nat.ko" (NAT
+mechanism) throughput is 23 kpps (-2 kpps). Insertion
+of additional modules (like ipt_state.ko,
+ip_conntrack_ftp.ko etc.) and configuring rules for
+firewall/NAT (not talking about hundreds or more
+rules) has no significant impact on throughput
+So, I am wondering whether there is some logic
+explanation for this huge impact of the conntrack
+mechanism on routing performance. 
+
+I would appreciate any information in this regard
+Thanks in advance
+
+Eddy
+
+
+P.S. I found a couple of similar observations in
+Internet
+
+>From http://lwn.net/Articles/103858/
+.......
+
+13.3. Netfilter benchmarking  by HW 
+.....
+Lose 30% of performance (850kpps to 500kpps) 
+... 
+Initial rate (forwarding only) 800kpps 
+insmod ip_conntrack -200 kpps 
+load IPtable (even empty) 25% 
+oprofile (non-halted) everything in ip_tables (3%) 
+static compiling makes 5% difference 
+full test (nat, mangle, filter, ip_conntrack): down to
+350kpps 
+....................
+ 
+================================================
+ 
+>From http://lkml.org/lkml/2004/9/8/235
+................................................. 
+I'm sure others here have far better examples, but one
+post to the  netfilter-devel list last December
+provided an example of a firewall that
+ could process 580kpps with netfilter/conntrack turned
+off.  Granted, the post noted that adding netfilter
+brought that down to 450kpps, and adding conntrack on
+top of that brought it down to 295kpps,but all three
+of those numbers are well over the claimed 100kpps.
+..................................................
+
+
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
