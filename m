@@ -1,19 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: The future of patch-o-matic-ng
-Date: Thu, 6 Apr 2006 09:35:14 +0200
-Message-ID: <20060406073514.GE6887@sunbeam.de.gnumonks.org>
-References: <Pine.GSO.4.63.0604040002220.15645@galaxy.agh.edu.pl>
-	<20060405152628.GI20558@sunbeam.de.gnumonks.org>
-	<Pine.GSO.4.63.0604052144350.1472@galaxy.agh.edu.pl>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: The future of patch-o-matic-ng
+Date: Thu, 06 Apr 2006 10:22:23 +0200
+Message-ID: <4434CFBF.7030208@trash.net>
+References: <Pine.GSO.4.63.0604040002220.15645@galaxy.agh.edu.pl>	<20060405152628.GI20558@sunbeam.de.gnumonks.org>	<Pine.GSO.4.63.0604052144350.1472@galaxy.agh.edu.pl>
+	<20060406073514.GE6887@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ALfTUftag+2gvp1h"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+	Grzegorz Janoszka <Grzegorz@Janoszka.pl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Grzegorz Janoszka <Grzegorz@Janoszka.pl>
-Content-Disposition: inline
-In-Reply-To: <Pine.GSO.4.63.0604052144350.1472@galaxy.agh.edu.pl>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20060406073514.GE6887@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,68 +23,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
+> As indicated in Patricks mail, there's a 30 day grace period.  Until
+> then the original authors (if they care) or other people can take
+> maintenance for individual patchlets and send us URL's to those
+> repositories.  We will add them to our list file, and distribute a
+> 'runme' script which downloads those repositories off the net.
+> 
+> If you want to help, I suggest to wait for those patchlets that nobody
+> takes care of, and run a repository for them.
 
---ALfTUftag+2gvp1h
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+As a side-note: anyone who decides to take maintanance for some
+patchlet, please drop me a short note, so I can keep a list
+of unmaintained patches.
 
-On Wed, Apr 05, 2006 at 09:52:48PM +0200, Grzegorz Janoszka wrote:
-> On Wed, 5 Apr 2006, Harald Welte wrote:
->=20
-> >So unless somebody actually wants to become patch-o-matic maintainer
-> >(yes, we once had somebody for that job), I think it's going to die.
->=20
-> I can try.=20
+> Also, I assume that there is a lot that can be done to improve that
+> patchlet-handling script, i.e. add suport for GPG signature checking and
+> the like.  I suggest you coordinate with Patrick on this.
 
-Well, as it seems I should have read netfilter-devel in chronological
-order rather than backwards.  Patrick has already posted on how to
-proceed with patch-o-matic-ng a couple of days ago:  Have the original
-authors (or other people who want to maintain patchlets) host their own
-repositories.  Patch-o-matic-ng would then mostly only contain a list of
-URL's to such remote repositories.  This way there is no need for the
-netfilter developers themselves to maintain patchsets.
+Definitely. The code is very basic, it only makes sure a patchlet
+1) doesn't overwrite anything outside of its patchlet directory
+2) can only overwrite "Repository: external" patchlets
 
-> Pom is used by many people, please don't let it die. If you have
-> nobody to take care of it, give it to me.
-
-As indicated in Patricks mail, there's a 30 day grace period.  Until
-then the original authors (if they care) or other people can take
-maintenance for individual patchlets and send us URL's to those
-repositories.  We will add them to our list file, and distribute a
-'runme' script which downloads those repositories off the net.
-
-If you want to help, I suggest to wait for those patchlets that nobody
-takes care of, and run a repository for them.
-
-Also, I assume that there is a lot that can be done to improve that
-patchlet-handling script, i.e. add suport for GPG signature checking and
-the like.  I suggest you coordinate with Patrick on this.
-
-If any of the 'patchlet maintainers' require a place where they can put
-repositories online via http/ftp, please let me know, we have
-people.netfilter.org accounts exactly for this purpose.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---ALfTUftag+2gvp1h
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.2 (GNU/Linux)
-
-iD8DBQFENMSyXaXGVTD0i/8RAt6NAJ9b+Y8FfdChpogW7pCZxQYL5pNSWACePQg+
-RkakRUdD4bPBUJFRWWhA+UM=
-=9EUq
------END PGP SIGNATURE-----
-
---ALfTUftag+2gvp1h--
+But doensn't do any signature verification. I'll add it today,
+patches are welcome.
