@@ -1,16 +1,17 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [NETFILTER 03/12]: Fix section mismatch warnings
-Date: Thu, 06 Apr 2006 14:13:09 -0700 (PDT)
-Message-ID: <20060406.141309.51862771.davem@davemloft.net>
+Subject: Re: [NETFILTER 04/12]: H.323 helper: move some function prototypes
+ to ip_conntrack_h323.h
+Date: Thu, 06 Apr 2006 14:13:51 -0700 (PDT)
+Message-ID: <20060406.141351.22547966.davem@davemloft.net>
 References: <20060406100452.17409.37120.sendpatchset@localhost.localdomain>
-	<20060406100456.17409.89515.sendpatchset@localhost.localdomain>
+	<20060406100458.17409.70510.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: kaber@trash.net
-In-Reply-To: <20060406100456.17409.89515.sendpatchset@localhost.localdomain>
+In-Reply-To: <20060406100458.17409.70510.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,19 +24,14 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 From: Patrick McHardy <kaber@trash.net>
-Date: Thu,  6 Apr 2006 12:04:56 +0200 (MEST)
+Date: Thu,  6 Apr 2006 12:04:58 +0200 (MEST)
 
-> [NETFILTER]: Fix section mismatch warnings
+> [NETFILTER]: H.323 helper: move some function prototypes to ip_conntrack_h323.h
 > 
-> Fix section mismatch warnings caused by netfilter's init_or_cleanup
-> functions used in many places by splitting the init from the cleanup
-> parts.
+> Move prototypes of NAT callbacks to ip_conntrack_h323.h. Because the use of
+> typedefs as arguments, some header files need to be moved as well.
 > 
+> Signed-off-by: Jing Min Zhao <zhaojingmin@users.sourceforge.net>
 > Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Applied, but lots of trailing whitespace I had to clean up
-before applying.  Please test your patches with:
-
-   git apply --check --whitespace=error-all $1
-
-Thanks.
+Applied, thanks.
