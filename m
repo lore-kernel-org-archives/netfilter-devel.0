@@ -1,16 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: fix kbuild warning in iptable_nat.o
-Date: Thu, 06 Apr 2006 00:00:04 +0200
-Message-ID: <44343DE4.70500@trash.net>
-References: <1143719875.8469.14.camel@localhost.localdomain>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: H.323 conntrack/NAT helper update for 2.6.17-rc1
+Date: Thu, 6 Apr 2006 09:29:27 +0200
+Message-ID: <20060406072927.GD6887@sunbeam.de.gnumonks.org>
+References: <BAY109-DAV15AA944ABA789908271E35B3CB0@phx.gbl>
+	<20060405152112.GF20558@sunbeam.de.gnumonks.org>
+	<BAY109-DAV7DCCFD349A50D33911B99B3CB0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: kernel Janitors <kernel-janitors@lists.osdl.org>,
-	"Randy.Dunlap" <rdunlap@xenotime.net>, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="oLBj+sq0vYjzfsbl"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Darren Jenkins" <darrenrjenkins@gmail.com>
-In-Reply-To: <1143719875.8469.14.camel@localhost.localdomain>
+To: Jing Min Zhao <zhaojingmin@hotmail.com>
+Content-Disposition: inline
+In-Reply-To: <BAY109-DAV7DCCFD349A50D33911B99B3CB0@phx.gbl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,25 +24,45 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Darren Jenkins\ wrote:
-> G'day list
-> 
-> There are a couple of Kbuild warnings in net/ipv4/netfilter/ that would
-> be nice to get rid of.
-> 
-> WARNING: net/ipv4/netfilter/ip_conntrack.o - Section mismatch: reference
-> to .init.text:ip_conntrack_init from .text between 'init_or_cleanup' (at
-> offset 0x7ea) and '__hash_conntrack'
-> WARNING: net/ipv4/netfilter/iptable_nat.o - Section mismatch: reference
-> to .init.text:ip_nat_rule_init from .text between 'init_or_cleanup' (at
-> offset 0x455) and 'nat_decode_session'
-> 
-> I have a patch for the 'iptable_nat.o' warning below, and I was just
-> wanting to check in and see if any of you netfilter guys had a problem
-> with this patch, or with me doing a similar patch for the
-> 'ip_canntrack.o' warning.
-> 
-> 
-> Any input would be welcome, thanks in advance :). 
 
-I have a patch queued that just splits the init/cleanup parts.
+--oLBj+sq0vYjzfsbl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Apr 05, 2006 at 11:32:35AM -0400, Jing Min Zhao wrote:
+> I sent it first in plain text the day before yesterday, but it didn't sho=
+w up.
+> I thought it was too big to be processed, so I sent it compressed again. =
+Now it
+> seems just because it was slow. I'm sorry I didn't know this.
+
+No problem at all.   The delay was due to administrative downtime of the
+mailinglist server.
+
+I was merely recommending you to send it as plain text in the future, so
+no offence taken, no harm done ;)
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--oLBj+sq0vYjzfsbl
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+
+iD8DBQFENMNXXaXGVTD0i/8RAvgRAKCAod9jiONRqEHX6bV0GjviVP5WbgCgmyF5
+6xi/m6bYJHuIWhV17KAsRxc=
+=6s10
+-----END PGP SIGNATURE-----
+
+--oLBj+sq0vYjzfsbl--
