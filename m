@@ -1,18 +1,20 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: The future of patch-o-matic-ng
-Date: Thu, 06 Apr 2006 16:30:32 +0200
-Message-ID: <44352608.7000509@trash.net>
-References: <Pine.GSO.4.63.0604040002220.15645@galaxy.agh.edu.pl>	<20060405152628.GI20558@sunbeam.de.gnumonks.org>	<Pine.GSO.4.63.0604052144350.1472@galaxy.agh.edu.pl>	<20060406073514.GE6887@sunbeam.de.gnumonks.org>	<4434CFBF.7030208@trash.net>	<Pine.LNX.4.64.0604061219580.18845@bizon.gios.gov.pl>	<20060406105350.GT6887@sunbeam.de.gnumonks.org>	<4435143E.3030700@gmx.net>
-	<20060406131939.GA19216@oknodo.bof.de> <44351AB5.9090103@gmx.net>
+Date: Thu, 06 Apr 2006 16:31:57 +0200
+Message-ID: <4435265D.4080603@trash.net>
+References: <Pine.GSO.4.63.0604040002220.15645@galaxy.agh.edu.pl>
+	<20060405152628.GI20558@sunbeam.de.gnumonks.org>
+	<Pine.GSO.4.63.0604052144350.1472@galaxy.agh.edu.pl>
+	<20060406073514.GE6887@sunbeam.de.gnumonks.org>
+	<Pine.GSO.4.63.0604061447420.22707@galaxy.agh.edu.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick Schaaf <bof@bof.de>, Grzegorz Janoszka <Grzegorz@Janoszka.pl>
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
-In-Reply-To: <44351AB5.9090103@gmx.net>
+To: Grzegorz Janoszka <Grzegorz@Janoszka.pl>
+In-Reply-To: <Pine.GSO.4.63.0604061447420.22707@galaxy.agh.edu.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,26 +26,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Carl-Daniel Hailfinger wrote:
-> Yes. I always treated pom-ng as patch collection which is usable
-> offline. With the proposed change, it becomes a mix of patch
-> collection and patch list. Packaging a patch list doesn't make
-> sense, but packaging a link to a package list makes sense. If
-> I already have to download patches on the machine where I want
-> to apply them (no offline capability anymore), I can as well
-> get the patch list from a link on the netfilter.org site.
-> And if the linux machine has no network, I can simply download
-> the packages via the link on the netfilter.org site on another
-> machine.
+Grzegorz Janoszka wrote:
+> On Thu, 6 Apr 2006, Harald Welte wrote:
 > 
-> Changing the name to pom-coreteam would give others the chance
-> to provide a package with the same features and same name as
-> the current pom-ng.
+>> As indicated in Patricks mail, there's a 30 day grace period.  Until
+>> then the original authors (if they care) or other people can take
+>> maintenance for individual patchlets and send us URL's to those
+>> repositories.  We will add them to our list file, and distribute a
+>> 'runme' script which downloads those repositories off the net.
+>> If you want to help, I suggest to wait for those patchlets that nobody
+>> takes care of, and run a repository for them.
+> 
+> 
+> I want to maintain my target IPMARK. A can take care of some other
+> targets. At this moment I use IPMARK, nth, random and connlimit. The
+> esiest for me would be to take care of a target/match I know and I use.
 
-I honestly don't care about the name at all, but I don't really
-see the point. We're pushing the good stuff to the kernel,
-which should benefit everyone. Old, broken and obscure patches
-are moved out, as are patches that are not ready for mainline
-where we don't have enough interest in getting them ready ourselves.
-You are of course welcome to work on these patches to get them
-mergable. Ideally we will just obsolete pom.
+Thanks, I've updated my list for IPMARK. nth and random will be merged,
+so this just leaves connlimit. Shall I add you for this as well?
