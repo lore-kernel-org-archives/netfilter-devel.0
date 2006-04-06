@@ -1,17 +1,13 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: The future of patch-o-matic-ng
-Date: Thu, 06 Apr 2006 10:22:23 +0200
-Message-ID: <4434CFBF.7030208@trash.net>
-References: <Pine.GSO.4.63.0604040002220.15645@galaxy.agh.edu.pl>	<20060405152628.GI20558@sunbeam.de.gnumonks.org>	<Pine.GSO.4.63.0604052144350.1472@galaxy.agh.edu.pl>
-	<20060406073514.GE6887@sunbeam.de.gnumonks.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Grzegorz Janoszka <Grzegorz@Janoszka.pl>
+Subject: [NETFILTER 01/12]: Add helper functions for mass hook
+	registration/unregistration
+Date: Thu,  6 Apr 2006 12:04:53 +0200 (MEST)
+Message-ID: <20060406100453.17409.47998.sendpatchset@localhost.localdomain>
+References: <20060406100452.17409.37120.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20060406073514.GE6887@sunbeam.de.gnumonks.org>
+To: davem@davemloft.net
+In-Reply-To: <20060406100452.17409.37120.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,27 +19,70 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
-> As indicated in Patricks mail, there's a 30 day grace period.  Until
-> then the original authors (if they care) or other people can take
-> maintenance for individual patchlets and send us URL's to those
-> repositories.  We will add them to our list file, and distribute a
-> 'runme' script which downloads those repositories off the net.
-> 
-> If you want to help, I suggest to wait for those patchlets that nobody
-> takes care of, and run a repository for them.
+[NETFILTER]: Add helper functions for mass hook registration/unregistration
 
-As a side-note: anyone who decides to take maintanance for some
-patchlet, please drop me a short note, so I can keep a list
-of unmaintained patches.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-> Also, I assume that there is a lot that can be done to improve that
-> patchlet-handling script, i.e. add suport for GPG signature checking and
-> the like.  I suggest you coordinate with Patrick on this.
+---
+commit 3bf0d209e539917efcc5286b8f1cab2856ebdd49
+tree 4c5840cf32ee69cc6138534d24c4d43a23fad557
+parent 32a976a8703b098e898a9a13f9ddcabbf654e7d8
+author Patrick McHardy <kaber@trash.net> Thu, 06 Apr 2006 11:32:05 +0200
+committer Patrick McHardy <kaber@trash.net> Thu, 06 Apr 2006 11:32:05 +0200
 
-Definitely. The code is very basic, it only makes sure a patchlet
-1) doesn't overwrite anything outside of its patchlet directory
-2) can only overwrite "Repository: external" patchlets
+ include/linux/netfilter.h |    2 ++
+ net/netfilter/core.c      |   28 ++++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+), 0 deletions(-)
 
-But doensn't do any signature verification. I'll add it today,
-patches are welcome.
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 412e52c..5aa9316 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -110,6 +110,8 @@ struct nf_info
+ /* Function to register/unregister hook points. */
+ int nf_register_hook(struct nf_hook_ops *reg);
+ void nf_unregister_hook(struct nf_hook_ops *reg);
++int nf_register_hooks(struct nf_hook_ops *reg, unsigned int n);
++void nf_unregister_hooks(struct nf_hook_ops *reg, unsigned int n);
+ 
+ /* Functions to register get/setsockopt ranges (non-inclusive).  You
+    need to check permissions yourself! */
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 1ceb1a6..5c7143e 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -63,6 +63,34 @@ void nf_unregister_hook(struct nf_hook_o
+ }
+ EXPORT_SYMBOL(nf_unregister_hook);
+ 
++int nf_register_hooks(struct nf_hook_ops *reg, unsigned int n)
++{
++	unsigned int i;
++	int err = 0;
++
++	for (i = 0; i < n; i++) {
++		err = nf_register_hook(&reg[i]);
++		if (err)
++			goto err;
++	}
++	return err;
++
++err:
++	if (i > 0)
++		nf_unregister_hooks(reg, i - i);
++	return err;
++}
++EXPORT_SYMBOL(nf_register_hooks);
++
++void nf_unregister_hooks(struct nf_hook_ops *reg, unsigned int n)
++{
++	unsigned int i;
++
++	for (i = 0; i < n; i++)
++		nf_unregister_hook(&reg[i]);
++}
++EXPORT_SYMBOL(nf_unregister_hooks);
++
+ unsigned int nf_iterate(struct list_head *head,
+ 			struct sk_buff **skb,
+ 			int hook,
