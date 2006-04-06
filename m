@@ -1,17 +1,16 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [NETFILTER 12/12]: Convert conntrack/ipt_REJECT to new
- checksumming functions
-Date: Thu, 06 Apr 2006 14:19:45 -0700 (PDT)
-Message-ID: <20060406.141945.06115674.davem@davemloft.net>
-References: <20060406100452.17409.37120.sendpatchset@localhost.localdomain>
-	<20060406100509.17409.82693.sendpatchset@localhost.localdomain>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [NETFILTER 08/12]: H.323 helper: update Changelog
+Date: Fri, 07 Apr 2006 00:36:21 +0200
+Message-ID: <443597E5.40907@trash.net>
+References: <20060406100452.17409.37120.sendpatchset@localhost.localdomain>	<20060406100504.17409.80683.sendpatchset@localhost.localdomain>
+	<20060406.141705.22962861.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <20060406100509.17409.82693.sendpatchset@localhost.localdomain>
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20060406.141705.22962861.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,15 +22,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu,  6 Apr 2006 12:05:09 +0200 (MEST)
-
-> [NETFILTER]: Convert conntrack/ipt_REJECT to new checksumming functions
+David S. Miller wrote:
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Thu,  6 Apr 2006 12:05:04 +0200 (MEST)
 > 
-> Besides removing lots of duplicate code, all converted users benefit
-> from improved HW checksum error handling. Tested with and without
-> HW checksums in almost all combinations.
 > 
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
+>>[NETFILTER]: H.323 helper: update Changelog
+>>
+>>Signed-off-by: Jing Min Zhao <zhaojingmin@users.sourceforge.net>
+>>Signed-off-by: Patrick McHardy <kaber@trash.net>
+> 
+> 
+> This doesn't make any sense.  We have source revision control
+> for keeping this kind of information around, so adding it to
+> the source file is unnecessary duplication.
+> 
+> I'm not applying this, sorry.
 
-Also applied, thanks a lot Patrick.
+Fine with me, I already suggested to Jing Min to remove
+the changelogs. Just tried to be polite by letting the
+decision up to him :)
