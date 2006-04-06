@@ -1,12 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: nth, random and fuzzy match
-Date: Thu, 06 Apr 2006 19:53:30 +0200
-Message-ID: <4435559A.60904@trash.net>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [NETFILTER 01/12]: Add helper functions for mass hook
+ registration/unregistration
+Date: Thu, 06 Apr 2006 14:11:43 -0700 (PDT)
+Message-ID: <20060406.141143.33653553.davem@davemloft.net>
+References: <20060406100453.17409.47998.sendpatchset@localhost.localdomain>
+	<200604061542.k36FgRVL032443@usagi.ingate.se>
+	<44353D5A.2040301@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: jones@ingate.com, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: kaber@trash.net
+In-Reply-To: <44353D5A.2040301@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,18 +24,9 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Also following the decisions from the netfilter workshop,
-I've started merging nth and random into a new "statistic"
-match. I won't merge fuzzy since it seems to obscure and
-complex and I don't see what it offers beyond nth + random.
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 06 Apr 2006 18:10:02 +0200
 
-The current nth match optionally uses shared state for the
-counters (which as we know isn't pretty with the current
-iptables userspace interface) and has a compile-time limit
-on the number of shared counters. I don't see the need for
-this shared state, I think everything expressable today
-should also be expressable using just per-match state.
+> Corrected patch attached.
 
-So my questions to the nth users: is anyone using the nth
-match in a way that can't be done by just matching on every
-nth packet with an optional starting point?
+Applied, thanks.
