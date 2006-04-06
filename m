@@ -1,13 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 05/12]: H.323 helper: change EXPORT_SYMBOL to
-	EXPORT_SYMBOL_GPL
-Date: Thu,  6 Apr 2006 12:05:00 +0200 (MEST)
-Message-ID: <20060406100500.17409.42955.sendpatchset@localhost.localdomain>
-References: <20060406100452.17409.37120.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 00/12]: Netfilter Update
+Date: Thu,  6 Apr 2006 12:04:52 +0200 (MEST)
+Message-ID: <20060406100452.17409.37120.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: davem@davemloft.net
-In-Reply-To: <20060406100452.17409.37120.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,52 +16,74 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: H.323 helper: change EXPORT_SYMBOL to EXPORT_SYMBOL_GPL
+Hi Dave,
 
-Signed-off-by: Jing Min Zhao <zhaojingmin@users.sourceforge.net>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+following are a couple of netfilter fixes and enhancements: a couple of
+patches to fix the section mismatch warnings and clean up the netfilter
+hook registration, checksumming consolidation with better HW checksum
+error handling and some cleanup patches for the H.323 helper. The
+diffstat is a bit misleading, there is a lot of noise from the renaming
+of two large H.323 header files and a lot of reindentation of netfilter
+structures, its not as bad as it looks :) If you think its too large
+for -rc1 I can hold on to the checksumming patches, the others should
+go in as they actually fix stuff. Thanks.
 
----
-commit 3c1284349cc00613a738dbd582e6096236c4a44e
-tree d62e9e0c5af6c4efa448c7650642182cbb5a6418
-parent 02fe897a46c3da14bab9fafeaa99692da6ae7fc1
-author Jing Min Zhao <zhaojingmin@users.sourceforge.net> Thu, 06 Apr 2006 11:41:27 +0200
-committer Patrick McHardy <kaber@trash.net> Thu, 06 Apr 2006 11:41:27 +0200
 
- net/ipv4/netfilter/ip_conntrack_helper_h323.c |   23 +++++++++++------------
- 1 files changed, 11 insertions(+), 12 deletions(-)
+ include/linux/netfilter.h                                     |   42 
+ include/linux/netfilter_ipv4.h                                |    2 
+ include/linux/netfilter_ipv4/ip_conntrack_h323.h              |   52 
+ include/linux/netfilter_ipv4/ip_conntrack_helper_h323_asn1.h  |   98 +
+ include/linux/netfilter_ipv4/ip_conntrack_helper_h323_types.h |  938 ++++++++++
+ include/linux/netfilter_ipv6.h                                |    3 
+ net/ipv4/netfilter.c                                          |   50 
+ net/ipv4/netfilter/Kconfig                                    |    1 
+ net/ipv4/netfilter/arptable_filter.c                          |   19 
+ net/ipv4/netfilter/ip_conntrack_helper_h323.c                 |   50 
+ net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c            |    2 
+ net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.h            |   98 -
+ net/ipv4/netfilter/ip_conntrack_helper_h323_types.h           |  938 ----------
+ net/ipv4/netfilter/ip_conntrack_proto_icmp.c                  |   23 
+ net/ipv4/netfilter/ip_conntrack_proto_tcp.c                   |    7 
+ net/ipv4/netfilter/ip_conntrack_proto_udp.c                   |    7 
+ net/ipv4/netfilter/ip_conntrack_standalone.c                  |  270 +-
+ net/ipv4/netfilter/ip_nat_helper_h323.c                       |   58 
+ net/ipv4/netfilter/ip_nat_standalone.c                        |  161 -
+ net/ipv4/netfilter/ip_queue.c                                 |   31 
+ net/ipv4/netfilter/ipt_CLUSTERIP.c                            |   40 
+ net/ipv4/netfilter/ipt_REJECT.c                               |    9 
+ net/ipv4/netfilter/iptable_filter.c                           |   21 
+ net/ipv4/netfilter/iptable_mangle.c                           |   33 
+ net/ipv4/netfilter/iptable_raw.c                              |   35 
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c                |  227 --
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c                  |   20 
+ net/ipv6/netfilter.c                                          |   51 
+ net/ipv6/netfilter/ip6_queue.c                                |   31 
+ net/ipv6/netfilter/ip6table_filter.c                          |   21 
+ net/ipv6/netfilter/ip6table_mangle.c                          |   33 
+ net/ipv6/netfilter/ip6table_raw.c                             |   15 
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c                |  181 -
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c                |   12 
+ net/netfilter/core.c                                          |   51 
+ net/netfilter/nf_conntrack_proto_tcp.c                        |   50 
+ net/netfilter/nf_conntrack_proto_udp.c                        |   50 
+ net/netfilter/nf_conntrack_standalone.c                       |  115 -
+ net/netfilter/nf_queue.c                                      |   49 
+ net/netfilter/nfnetlink_log.c                                 |   25 
+ net/netfilter/nfnetlink_queue.c                               |   27 
+ 41 files changed, 1799 insertions(+), 2147 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_helper_h323.c b/net/ipv4/netfilter/ip_conntrack_helper_h323.c
-index fc817fd..83140d2 100644
---- a/net/ipv4/netfilter/ip_conntrack_helper_h323.c
-+++ b/net/ipv4/netfilter/ip_conntrack_helper_h323.c
-@@ -1711,18 +1711,17 @@ static int __init init(void)
- module_init(init);
- module_exit(fini);
- 
--EXPORT_SYMBOL(get_h245_addr);
--EXPORT_SYMBOL(get_h225_addr);
--EXPORT_SYMBOL(ip_conntrack_h245_expect);
--EXPORT_SYMBOL(ip_conntrack_q931_expect);
--EXPORT_SYMBOL(set_h245_addr_hook);
--EXPORT_SYMBOL(set_h225_addr_hook);
--EXPORT_SYMBOL(set_sig_addr_hook);
--EXPORT_SYMBOL(set_ras_addr_hook);
--EXPORT_SYMBOL(nat_rtp_rtcp_hook);
--EXPORT_SYMBOL(nat_t120_hook);
--EXPORT_SYMBOL(nat_h245_hook);
--EXPORT_SYMBOL(nat_q931_hook);
-+EXPORT_SYMBOL_GPL(get_h225_addr);
-+EXPORT_SYMBOL_GPL(ip_conntrack_h245_expect);
-+EXPORT_SYMBOL_GPL(ip_conntrack_q931_expect);
-+EXPORT_SYMBOL_GPL(set_h245_addr_hook);
-+EXPORT_SYMBOL_GPL(set_h225_addr_hook);
-+EXPORT_SYMBOL_GPL(set_sig_addr_hook);
-+EXPORT_SYMBOL_GPL(set_ras_addr_hook);
-+EXPORT_SYMBOL_GPL(nat_rtp_rtcp_hook);
-+EXPORT_SYMBOL_GPL(nat_t120_hook);
-+EXPORT_SYMBOL_GPL(nat_h245_hook);
-+EXPORT_SYMBOL_GPL(nat_q931_hook);
- 
- MODULE_AUTHOR("Jing Min Zhao <zhaojingmin@users.sourceforge.net>");
- MODULE_DESCRIPTION("H.323 connection tracking helper");
+Jing Min Zhao:
+      [NETFILTER]: H.323 helper: move some function prototypes to ip_conntrack_h323.h
+      [NETFILTER]: H.323 helper: change EXPORT_SYMBOL to EXPORT_SYMBOL_GPL
+      [NETFILTER]: H.323 helper: make get_h245_addr() static
+      [NETFILTER]: H.323 helper: add parameter 'default_rrq_ttl'
+      [NETFILTER]: H.323 helper: update Changelog
+
+Patrick McHardy:
+      [NETFILTER]: Add helper functions for mass hook registration/unregistration
+      [NETFILTER]: Clean up hook registration
+      [NETFILTER]: Fix section mismatch warnings
+      [NETFILTER]: Fix IP_NF_CONNTRACK_NETLINK dependency
+      [NETFILTER]: Introduce infrastructure for address family specific operations
+      [NETFILTER]: Add address family specific checksum helpers
+      [NETFILTER]: Convert conntrack/ipt_REJECT to new checksumming functions
