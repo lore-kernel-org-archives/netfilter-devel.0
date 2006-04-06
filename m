@@ -1,18 +1,22 @@
-From: "David Vogt" <beunlovable@gmail.com>
-Subject: Re: Multiple programs for QUEUE target
-Date: Thu, 6 Apr 2006 12:50:05 +0200
-Message-ID: <859616420604060350q379873b4j5b7e27c71958b93b@mail.gmail.com>
-References: <859616420604040655h6312ac86g3c8661c29bf4c7e5@mail.gmail.com>
-	<859616420604040702g1e74bcacr2115fb36e0e7298e@mail.gmail.com>
-	<20060405152409.GH20558@sunbeam.de.gnumonks.org>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: The future of patch-o-matic-ng
+Date: Thu, 6 Apr 2006 12:53:50 +0200
+Message-ID: <20060406105350.GT6887@sunbeam.de.gnumonks.org>
+References: <Pine.GSO.4.63.0604040002220.15645@galaxy.agh.edu.pl>
+	<20060405152628.GI20558@sunbeam.de.gnumonks.org>
+	<Pine.GSO.4.63.0604052144350.1472@galaxy.agh.edu.pl>
+	<20060406073514.GE6887@sunbeam.de.gnumonks.org>
+	<4434CFBF.7030208@trash.net>
+	<Pine.LNX.4.64.0604061219580.18845@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="E+IgQzR66AIOcbjA"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>, Grzegorz Janoszka <Grzegorz@Janoszka.pl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Harald Welte" <laforge@netfilter.org>,
-	"David Vogt" <beunlovable@gmail.com>, netfilter-devel@lists.netfilter.org
-In-Reply-To: <20060405152409.GH20558@sunbeam.de.gnumonks.org>
+To: Krzysztof Oledzki <olenf@ans.pl>
 Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0604061219580.18845@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,16 +28,53 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-2006/4/5, Harald Welte <laforge@netfilter.org>:
-> On Tue, Apr 04, 2006 at 04:02:41PM +0200, David Vogt wrote:
-> Please don't use any of that old 'crap' (I'm the author, so I can call
-> it that).  These days, you use NFQUEUE, nf_queue, nfnetlink_queue,
-> libnetfilter_queue, and you get up to 65535 distinct queues for
-> different userespace processes.
 
-Is it possible to run libnetfilter_queue and libipq (for old
-applications) in parallel? I did some testing and it doesn't seem to
-work.
+--E+IgQzR66AIOcbjA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-David
+On Thu, Apr 06, 2006 at 12:34:21PM +0200, Krzysztof Oledzki wrote:
+> So, this external repository will be used only by netfilter server to
+> download patchlets? People will be still able to download complete
+> pom-ng package?=20
+
+No, users will actually only download=20
+
+> How it is better from giving access to the svn server?
+
+for security reasons we only do svn-over-webdav-over-https with client
+based certificates.  Therefore, it's not very easy to handle, both on
+the 'user/developer' side, as well with regards to maintenance on our
+side.
+
+Also, using fine-grained permission control (such as giving some 30+
+individual developers access to only their patchlet-subdirectories) is a
+configuration nightmare.
+
+Therefore, we prefer not to give svn access to people outside the core
+development community, webaster, etc.
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--E+IgQzR66AIOcbjA
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+
+iD8DBQFENPM+XaXGVTD0i/8RAvh1AJ9eO8+0/5WQBDmzlZm9/Quaw4ztfQCffS0a
+MB0KYxdgL3H8MWQ0Bf6vP80=
+=HzMp
+-----END PGP SIGNATURE-----
+
+--E+IgQzR66AIOcbjA--
