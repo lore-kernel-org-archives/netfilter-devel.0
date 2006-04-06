@@ -1,17 +1,23 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Re: Setting skb->priority with libnetfilter_queue (patch
- really attached this time)
-Date: Thu, 06 Apr 2006 13:03:58 +0200
-Message-ID: <4434F59E.6060000@trash.net>
-References: <44283F9F.4010206@info-link.net> <44285B64.1000004@info-link.net>
-	<44285BC2.3020602@info-link.net>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: The future of patch-o-matic-ng
+Date: Thu, 6 Apr 2006 13:42:34 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0604061331340.19229@bizon.gios.gov.pl>
+References: <Pine.GSO.4.63.0604040002220.15645@galaxy.agh.edu.pl>
+	<20060405152628.GI20558@sunbeam.de.gnumonks.org>
+	<Pine.GSO.4.63.0604052144350.1472@galaxy.agh.edu.pl>
+	<20060406073514.GE6887@sunbeam.de.gnumonks.org>
+	<4434CFBF.7030208@trash.net>
+	<Pine.LNX.4.64.0604061219580.18845@bizon.gios.gov.pl>
+	<4434F019.3060000@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1755363860-1144323754=:19229"
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Grzegorz Janoszka <Grzegorz@Janoszka.pl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Brad Fisher <brad@info-link.net>
-In-Reply-To: <44285BC2.3020602@info-link.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4434F019.3060000@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,32 +29,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Brad Fisher wrote:
-> Sorry - I got trigger happy and sent without attaching the patch... 
-> Patches should be attached now.
-> -Brad
-> 
-> Brad Fisher wrote:
-> 
->> In case anyone is interested, I have written a couple of small patches
->> to accomplish what I desired.  It adds three new functions to
->> libnetfilter_queue:
->>
->>   /* Set both mark and priority */
->>   int nfq_set_verdict_mark_priority(struct nfq_q_handle *qh, u_int32_t
->> id, u_int32_t verdict, u_int32_t mark, u_int32_t priority,
->>                               u_int32_t data_len, unsigned char *buf)
->>
->>   /* Sets priority, but leaves mark unchanged */
->>   int nfq_set_verdict_priority(struct nfq_q_handle *qh, u_int32_t id,
->> u_int32_t verdict, u_int32_t priority,
->>                               u_int32_t data_len, unsigned char *buf)
->>
->>   /* Get current skb->priority value */
->>    u_int32_t nfq_get_priority(struct nfq_data *nfad)
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I think allowing to set skb->priority makes sense, but I'm not entirely
-happy with the 2^n nfq_set_verdict_* combinations. It would be nicer
-if we had some struct representing the packet and some functions to
-change nfmark, priority etc. Then we could just do
-nfq_set_verdict(qh, pkt, verdict).
+---187430788-1755363860-1144323754=:19229
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+
+On Thu, 6 Apr 2006, Patrick McHardy wrote:
+
+> Krzysztof Oledzki wrote:
+>> If there are no other volenteers I would like to keep following patchlet=
+s:
+>>  - TARPIT
+>>  - connlimit
+>>  - geoip
+>>  - ipp2p
+>>  - time
+>
+> Thanks, I've updated my list. I think some of these are actually
+> actively maintained. If a maintainer itself offers to keep a
+> repository, he will most likely be prefered.
+
+Sure! I volunteered as I have in my queue ready-for-send patches for
+connlimit and geoip and have been sending patches for ipp2p/time (and some
+other patchlets) in pom-ng for some time. But of course original authors=20
+are defintelly preferred.
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1755363860-1144323754=:19229--
