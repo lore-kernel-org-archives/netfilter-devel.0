@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 10/12]: Introduce infrastructure for address family
-	specific operations
-Date: Thu,  6 Apr 2006 12:05:07 +0200 (MEST)
-Message-ID: <20060406100506.17409.27277.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 12/12]: Convert conntrack/ipt_REJECT to new checksumming
+	functions
+Date: Thu,  6 Apr 2006 12:05:09 +0200 (MEST)
+Message-ID: <20060406100509.17409.82693.sendpatchset@localhost.localdomain>
 References: <20060406100452.17409.37120.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,298 +19,370 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: Introduce infrastructure for address family specific operations
+[NETFILTER]: Convert conntrack/ipt_REJECT to new checksumming functions
 
-Change the queue rerouter intrastructure to a generic usable infrastructure
-for address family specific operations as a base for some cleanups.
+Besides removing lots of duplicate code, all converted users benefit
+from improved HW checksum error handling. Tested with and without
+HW checksums in almost all combinations.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 6a870bcf3e2ee0394ee23cb1ca32de2195edf86d
-tree a5e7a46f323f8b9e24c52d546b9d7fcc69f8273c
-parent c9cb4249431b37ed45e69f20a5faa2735933feeb
-author Patrick McHardy <kaber@trash.net> Thu, 06 Apr 2006 11:43:48 +0200
-committer Patrick McHardy <kaber@trash.net> Thu, 06 Apr 2006 11:43:48 +0200
+commit 841bf618050f12d9230c6fee4186c632b3bf786a
+tree 6af5e18f6f57ee30e011a59d689df94008775660
+parent b204de98f3e9d2f9d47141c6a1036a2a27729329
+author Patrick McHardy <kaber@trash.net> Thu, 06 Apr 2006 11:44:05 +0200
+committer Patrick McHardy <kaber@trash.net> Thu, 06 Apr 2006 11:44:05 +0200
 
- include/linux/netfilter.h |   23 +++++++++++++++------
- net/ipv4/netfilter.c      |   17 ++++++++--------
- net/ipv6/netfilter.c      |   17 ++++++++--------
- net/netfilter/core.c      |   23 +++++++++++++++++++++
- net/netfilter/nf_queue.c  |   49 ++++++++++++---------------------------------
- 5 files changed, 70 insertions(+), 59 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_proto_icmp.c   |   23 +++--------
+ net/ipv4/netfilter/ip_conntrack_proto_tcp.c    |    7 +--
+ net/ipv4/netfilter/ip_conntrack_proto_udp.c    |    7 +--
+ net/ipv4/netfilter/ipt_REJECT.c                |    9 ----
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |   20 +---------
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   12 +-----
+ net/netfilter/nf_conntrack_proto_tcp.c         |   50 ++----------------------
+ net/netfilter/nf_conntrack_proto_udp.c         |   50 ++----------------------
+ 8 files changed, 25 insertions(+), 153 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 5aa9316..6ee168c 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -283,16 +283,25 @@ extern void nf_invalidate_cache(int pf);
-    Returns true or false. */
- extern int skb_make_writable(struct sk_buff **pskb, unsigned int writable_len);
- 
--struct nf_queue_rerouter {
--	void (*save)(const struct sk_buff *skb, struct nf_info *info);
--	int (*reroute)(struct sk_buff **skb, const struct nf_info *info);
--	int rer_size;
-+struct nf_afinfo {
-+	unsigned short	family;
-+	void		(*saveroute)(const struct sk_buff *skb,
-+				     struct nf_info *info);
-+	int		(*reroute)(struct sk_buff **skb,
-+				   const struct nf_info *info);
-+	int		route_key_size;
- };
- 
--#define nf_info_reroute(x) ((void *)x + sizeof(struct nf_info))
-+extern struct nf_afinfo *nf_afinfo[];
-+static inline struct nf_afinfo *nf_get_afinfo(unsigned short family)
-+{
-+	return rcu_dereference(nf_afinfo[family]);
-+}
- 
--extern int nf_register_queue_rerouter(int pf, struct nf_queue_rerouter *rer);
--extern int nf_unregister_queue_rerouter(int pf);
-+extern int nf_register_afinfo(struct nf_afinfo *afinfo);
-+extern void nf_unregister_afinfo(struct nf_afinfo *afinfo);
-+
-+#define nf_info_reroute(x) ((void *)x + sizeof(struct nf_info))
- 
- #include <net/flow.h>
- extern void (*ip_nat_decode_session)(struct sk_buff *, struct flowi *);
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index b5ad9ac..b25339c 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -133,7 +133,7 @@ struct ip_rt_info {
- 	u_int8_t tos;
- };
- 
--static void queue_save(const struct sk_buff *skb, struct nf_info *info)
-+static void nf_ip_saveroute(const struct sk_buff *skb, struct nf_info *info)
- {
- 	struct ip_rt_info *rt_info = nf_info_reroute(info);
- 
-@@ -146,7 +146,7 @@ static void queue_save(const struct sk_b
+diff --git a/net/ipv4/netfilter/ip_conntrack_proto_icmp.c b/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
+index 3021af0..d8b14a9 100644
+--- a/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
+@@ -224,25 +224,14 @@ icmp_error(struct sk_buff *skb, enum ip_
  	}
- }
  
--static int queue_reroute(struct sk_buff **pskb, const struct nf_info *info)
-+static int nf_ip_reroute(struct sk_buff **pskb, const struct nf_info *info)
- {
- 	const struct ip_rt_info *rt_info = nf_info_reroute(info);
- 
-@@ -161,20 +161,21 @@ static int queue_reroute(struct sk_buff 
- 	return 0;
- }
- 
--static struct nf_queue_rerouter ip_reroute = {
--	.rer_size	= sizeof(struct ip_rt_info),
--	.save		= queue_save,
--	.reroute	= queue_reroute,
-+static struct nf_afinfo nf_ip_afinfo = {
-+	.family		= AF_INET,
-+	.saveroute	= nf_ip_saveroute,
-+	.reroute	= nf_ip_reroute,
-+	.route_key_size	= sizeof(struct ip_rt_info),
- };
- 
- static int ipv4_netfilter_init(void)
- {
--	return nf_register_queue_rerouter(PF_INET, &ip_reroute);
-+	return nf_register_afinfo(&nf_ip_afinfo);
- }
- 
- static void ipv4_netfilter_fini(void)
- {
--	nf_unregister_queue_rerouter(PF_INET);
-+	nf_unregister_afinfo(&nf_ip_afinfo);
- }
- 
- module_init(ipv4_netfilter_init);
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index d750cfc..f514a01 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -54,7 +54,7 @@ struct ip6_rt_info {
- 	struct in6_addr saddr;
- };
- 
--static void save(const struct sk_buff *skb, struct nf_info *info)
-+static void nf_ip6_saveroute(const struct sk_buff *skb, struct nf_info *info)
- {
- 	struct ip6_rt_info *rt_info = nf_info_reroute(info);
- 
-@@ -66,7 +66,7 @@ static void save(const struct sk_buff *s
+ 	/* See ip_conntrack_proto_tcp.c */
+-	if (hooknum != NF_IP_PRE_ROUTING)
+-		goto checksum_skipped;
+-
+-	switch (skb->ip_summed) {
+-	case CHECKSUM_HW:
+-		if (!(u16)csum_fold(skb->csum)) 
+-			break;
+-		/* fall through */
+-	case CHECKSUM_NONE:
+-		skb->csum = 0;
+-		if (__skb_checksum_complete(skb)) {
+-			if (LOG_INVALID(IPPROTO_ICMP))
+-				nf_log_packet(PF_INET, 0, skb, NULL, NULL, NULL,
+-					      "ip_ct_icmp: bad ICMP checksum ");
+-			return -NF_ACCEPT;
+-		}
++	if (hooknum == NF_IP_PRE_ROUTING &&
++	    nf_ip_checksum(skb, hooknum, skb->nh.iph->ihl * 4, 0)) {
++		if (LOG_INVALID(IPPROTO_ICMP))
++			nf_log_packet(PF_INET, 0, skb, NULL, NULL, NULL,
++				      "ip_ct_icmp: bad ICMP checksum ");
++		return -NF_ACCEPT;
  	}
- }
  
--static int reroute(struct sk_buff **pskb, const struct nf_info *info)
-+static int nf_ip6_reroute(struct sk_buff **pskb, const struct nf_info *info)
+-checksum_skipped:
+ 	/*
+ 	 *	18 is the highest 'known' ICMP type. Anything else is a mystery
+ 	 *
+diff --git a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+index e0dc370..062b252 100644
+--- a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
++++ b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+@@ -870,11 +870,8 @@ static int tcp_error(struct sk_buff *skb
+ 	 * and moreover root might send raw packets.
+ 	 */
+ 	/* FIXME: Source route IP option packets --RR */
+-	if (hooknum == NF_IP_PRE_ROUTING
+-	    && skb->ip_summed != CHECKSUM_UNNECESSARY
+-	    && csum_tcpudp_magic(iph->saddr, iph->daddr, tcplen, IPPROTO_TCP,
+-			         skb->ip_summed == CHECKSUM_HW ? skb->csum
+-			      	 : skb_checksum(skb, iph->ihl*4, tcplen, 0))) {
++	if (hooknum == NF_IP_PRE_ROUTING &&
++	    nf_ip_checksum(skb, hooknum, iph->ihl * 4, IPPROTO_TCP)) {
+ 		if (LOG_INVALID(IPPROTO_TCP))
+ 			nf_log_packet(PF_INET, 0, skb, NULL, NULL, NULL,
+ 				  "ip_ct_tcp: bad TCP checksum ");
+diff --git a/net/ipv4/netfilter/ip_conntrack_proto_udp.c b/net/ipv4/netfilter/ip_conntrack_proto_udp.c
+index 55b7d32..7089986 100644
+--- a/net/ipv4/netfilter/ip_conntrack_proto_udp.c
++++ b/net/ipv4/netfilter/ip_conntrack_proto_udp.c
+@@ -120,11 +120,8 @@ static int udp_error(struct sk_buff *skb
+ 	 * because the semantic of CHECKSUM_HW is different there 
+ 	 * and moreover root might send raw packets.
+ 	 * FIXME: Source route IP option packets --RR */
+-	if (hooknum == NF_IP_PRE_ROUTING
+-	    && skb->ip_summed != CHECKSUM_UNNECESSARY
+-	    && csum_tcpudp_magic(iph->saddr, iph->daddr, udplen, IPPROTO_UDP,
+-			         skb->ip_summed == CHECKSUM_HW ? skb->csum
+-			      	 : skb_checksum(skb, iph->ihl*4, udplen, 0))) {
++	if (hooknum == NF_IP_PRE_ROUTING &&
++	    nf_ip_checksum(skb, hooknum, iph->ihl * 4, IPPROTO_UDP)) {
+ 		if (LOG_INVALID(IPPROTO_UDP))
+ 			nf_log_packet(PF_INET, 0, skb, NULL, NULL, NULL,
+ 				  "ip_ct_udp: bad UDP checksum ");
+diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+index 4269a54..0bba3c2 100644
+--- a/net/ipv4/netfilter/ipt_REJECT.c
++++ b/net/ipv4/netfilter/ipt_REJECT.c
+@@ -106,7 +106,6 @@ static void send_reset(struct sk_buff *o
+ 	struct rtable *rt;
+ 	u_int16_t tmp_port;
+ 	u_int32_t tmp_addr;
+-	unsigned int tcplen;
+ 	int needs_ack;
+ 	int hh_len;
+ 
+@@ -124,13 +123,7 @@ static void send_reset(struct sk_buff *o
+ 		return;
+ 
+ 	/* Check checksum */
+-	tcplen = oldskb->len - iph->ihl * 4;
+-	if (((hook != NF_IP_LOCAL_IN && oldskb->ip_summed != CHECKSUM_HW) ||
+-	     (hook == NF_IP_LOCAL_IN &&
+-	      oldskb->ip_summed != CHECKSUM_UNNECESSARY)) &&
+-	    csum_tcpudp_magic(iph->saddr, iph->daddr, tcplen, IPPROTO_TCP,
+-	                      oldskb->ip_summed == CHECKSUM_HW ? oldskb->csum :
+-	                      skb_checksum(oldskb, iph->ihl * 4, tcplen, 0)))
++	if (nf_ip_checksum(oldskb, hook, iph->ihl * 4, IPPROTO_TCP))
+ 		return;
+ 
+ 	if ((rt = route_reverse(oldskb, oth, hook)) == NULL)
+diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+index 52dc175..4b0d361 100644
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -235,30 +235,14 @@ icmp_error(struct sk_buff *skb, unsigned
+ 	}
+ 
+ 	/* See ip_conntrack_proto_tcp.c */
+-	if (hooknum != NF_IP_PRE_ROUTING)
+-		goto checksum_skipped;
+-
+-	switch (skb->ip_summed) {
+-	case CHECKSUM_HW:
+-		if (!(u16)csum_fold(skb->csum))
+-			break;
++	if (hooknum == NF_IP_PRE_ROUTING &&
++	    nf_ip_checksum(skb, hooknum, dataoff, 0)) {
+ 		if (LOG_INVALID(IPPROTO_ICMP))
+ 			nf_log_packet(PF_INET, 0, skb, NULL, NULL, NULL,
+ 				      "nf_ct_icmp: bad HW ICMP checksum ");
+ 		return -NF_ACCEPT;
+-	case CHECKSUM_NONE:
+-		if ((u16)csum_fold(skb_checksum(skb, 0, skb->len, 0))) {
+-			if (LOG_INVALID(IPPROTO_ICMP))
+-				nf_log_packet(PF_INET, 0, skb, NULL, NULL,
+-					      NULL,
+-					      "nf_ct_icmp: bad ICMP checksum ");
+-			return -NF_ACCEPT;
+-		}
+-	default:
+-		break;
+ 	}
+ 
+-checksum_skipped:
+ 	/*
+ 	 *	18 is the highest 'known' ICMP type. Anything else is a mystery
+ 	 *
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index 09945c3..86c6703 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -233,21 +233,13 @@ icmpv6_error(struct sk_buff *skb, unsign
+ 		return -NF_ACCEPT;
+ 	}
+ 
+-	if (hooknum != NF_IP6_PRE_ROUTING)
+-		goto skipped;
+-
+-	/* Ignore it if the checksum's bogus. */
+-	if (csum_ipv6_magic(&skb->nh.ipv6h->saddr, &skb->nh.ipv6h->daddr,
+-			    skb->len - dataoff, IPPROTO_ICMPV6,
+-			    skb_checksum(skb, dataoff,
+-					 skb->len - dataoff, 0))) {
++	if (hooknum == NF_IP6_PRE_ROUTING &&
++	    nf_ip6_checksum(skb, hooknum, dataoff, IPPROTO_ICMPV6)) {
+ 		nf_log_packet(PF_INET6, 0, skb, NULL, NULL, NULL,
+ 			      "nf_ct_icmpv6: ICMPv6 checksum failed\n");
+ 		return -NF_ACCEPT;
+ 	}
+ 
+-skipped:
+-
+ 	/* is not error message ? */
+ 	if (icmp6h->icmp6_type >= 128)
+ 		return NF_ACCEPT;
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 6492ed6..69899f2 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -799,8 +799,7 @@ static int tcp_error(struct sk_buff *skb
+ 		     unsigned int dataoff,
+ 		     enum ip_conntrack_info *ctinfo,
+ 		     int pf,
+-		     unsigned int hooknum,
+-		     int(*csum)(const struct sk_buff *,unsigned int))
++		     unsigned int hooknum)
  {
- 	struct ip6_rt_info *rt_info = nf_info_reroute(info);
- 
-@@ -79,15 +79,16 @@ static int reroute(struct sk_buff **pskb
- 	return 0;
+ 	struct tcphdr _tcph, *th;
+ 	unsigned int tcplen = skb->len - dataoff;
+@@ -830,9 +829,8 @@ static int tcp_error(struct sk_buff *skb
+ 	 */
+ 	/* FIXME: Source route IP option packets --RR */
+ 	if (((pf == PF_INET && hooknum == NF_IP_PRE_ROUTING) ||
+-	     (pf == PF_INET6 && hooknum  == NF_IP6_PRE_ROUTING))
+-	    && skb->ip_summed != CHECKSUM_UNNECESSARY
+-	    && csum(skb, dataoff)) {
++	     (pf == PF_INET6 && hooknum  == NF_IP6_PRE_ROUTING)) &&
++	    nf_checksum(skb, hooknum, dataoff, IPPROTO_TCP, pf)) {
+ 		if (LOG_INVALID(IPPROTO_TCP))
+ 			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
+ 				  "nf_ct_tcp: bad TCP checksum ");
+@@ -851,44 +849,6 @@ static int tcp_error(struct sk_buff *skb
+ 	return NF_ACCEPT;
  }
  
--static struct nf_queue_rerouter ip6_reroute = {
--	.rer_size	= sizeof(struct ip6_rt_info),
--	.save 		= &save,
--	.reroute	= &reroute,
-+static struct nf_afinfo nf_ip6_afinfo = {
-+	.family		= AF_INET6,
-+	.saveroute	= nf_ip6_saveroute,
-+	.reroute	= nf_ip6_reroute,
-+	.route_key_size	= sizeof(struct ip6_rt_info),
- };
- 
- int __init ipv6_netfilter_init(void)
- {
--	return nf_register_queue_rerouter(PF_INET6, &ip6_reroute);
-+	return nf_register_afinfo(&nf_ip6_afinfo);
- }
- 
- /* This can be called from inet6_init() on errors, so it cannot
-@@ -95,5 +96,5 @@ int __init ipv6_netfilter_init(void)
-  */
- void ipv6_netfilter_fini(void)
- {
--	nf_unregister_queue_rerouter(PF_INET6);
-+	nf_unregister_afinfo(&nf_ip6_afinfo);
- }
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 5c7143e..dceed88 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -27,6 +27,29 @@
- 
- #include "nf_internals.h"
- 
-+static DEFINE_SPINLOCK(afinfo_lock);
-+
-+struct nf_afinfo *nf_afinfo[NPROTO];
-+EXPORT_SYMBOL(nf_afinfo);
-+
-+int nf_register_afinfo(struct nf_afinfo *afinfo)
-+{
-+	spin_lock(&afinfo_lock);
-+	rcu_assign_pointer(nf_afinfo[afinfo->family], afinfo);
-+	spin_unlock(&afinfo_lock);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(nf_register_afinfo);
-+
-+void nf_unregister_afinfo(struct nf_afinfo *afinfo)
-+{
-+	spin_lock(&afinfo_lock);
-+	rcu_assign_pointer(nf_afinfo[afinfo->family], NULL);
-+	spin_unlock(&afinfo_lock);
-+	synchronize_rcu();
-+}
-+EXPORT_SYMBOL_GPL(nf_unregister_afinfo);
-+
- /* In this code, we can be waiting indefinitely for userspace to
-  * service a packet if a hook returns NF_QUEUE.  We could keep a count
-  * of skbuffs queued for userspace, and not deregister a hook unless
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index d9f0d7e..ee8f708 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -17,7 +17,6 @@
-  * for queueing and must reinject all packets it receives, no matter what.
-  */
- static struct nf_queue_handler *queue_handler[NPROTO];
--static struct nf_queue_rerouter *queue_rerouter[NPROTO];
- 
- static DEFINE_RWLOCK(queue_handler_lock);
- 
-@@ -59,32 +58,6 @@ int nf_unregister_queue_handler(int pf)
- }
- EXPORT_SYMBOL(nf_unregister_queue_handler);
- 
--int nf_register_queue_rerouter(int pf, struct nf_queue_rerouter *rer)
+-static int csum4(const struct sk_buff *skb, unsigned int dataoff)
 -{
--	if (pf >= NPROTO)
--		return -EINVAL;
--
--	write_lock_bh(&queue_handler_lock);
--	rcu_assign_pointer(queue_rerouter[pf], rer);
--	write_unlock_bh(&queue_handler_lock);
--
--	return 0;
+-	return csum_tcpudp_magic(skb->nh.iph->saddr, skb->nh.iph->daddr,
+-				 skb->len - dataoff, IPPROTO_TCP,
+-			         skb->ip_summed == CHECKSUM_HW ? skb->csum
+-			      	 : skb_checksum(skb, dataoff,
+-						skb->len - dataoff, 0));
 -}
--EXPORT_SYMBOL_GPL(nf_register_queue_rerouter);
 -
--int nf_unregister_queue_rerouter(int pf)
+-static int csum6(const struct sk_buff *skb, unsigned int dataoff)
 -{
--	if (pf >= NPROTO)
--		return -EINVAL;
--
--	write_lock_bh(&queue_handler_lock);
--	rcu_assign_pointer(queue_rerouter[pf], NULL);
--	write_unlock_bh(&queue_handler_lock);
--	synchronize_rcu();
--	return 0;
+-	return csum_ipv6_magic(&skb->nh.ipv6h->saddr, &skb->nh.ipv6h->daddr,
+-			       skb->len - dataoff, IPPROTO_TCP,
+-			       skb->ip_summed == CHECKSUM_HW
+-			       ? csum_sub(skb->csum,
+-					  skb_checksum(skb, 0, dataoff, 0))
+-			       : skb_checksum(skb, dataoff, skb->len - dataoff,
+-					      0));
 -}
--EXPORT_SYMBOL_GPL(nf_unregister_queue_rerouter);
 -
- void nf_unregister_queue_handlers(struct nf_queue_handler *qh)
- {
- 	int pf;
-@@ -116,7 +89,7 @@ int nf_queue(struct sk_buff **skb, 
- 	struct net_device *physindev = NULL;
- 	struct net_device *physoutdev = NULL;
- #endif
--	struct nf_queue_rerouter *rerouter;
-+	struct nf_afinfo *afinfo;
- 
- 	/* QUEUE == DROP if noone is waiting, to be safe. */
- 	read_lock(&queue_handler_lock);
-@@ -126,7 +99,14 @@ int nf_queue(struct sk_buff **skb, 
- 		return 1;
- 	}
- 
--	info = kmalloc(sizeof(*info)+queue_rerouter[pf]->rer_size, GFP_ATOMIC);
-+	afinfo = nf_get_afinfo(pf);
-+	if (!afinfo) {
-+		read_unlock(&queue_handler_lock);
-+		kfree_skb(*skb);
-+		return 1;
-+	}
-+
-+	info = kmalloc(sizeof(*info) + afinfo->route_key_size, GFP_ATOMIC);
- 	if (!info) {
- 		if (net_ratelimit())
- 			printk(KERN_ERR "OOM queueing packet %p\n",
-@@ -158,10 +138,7 @@ int nf_queue(struct sk_buff **skb, 
- 		if (physoutdev) dev_hold(physoutdev);
- 	}
- #endif
--	rerouter = rcu_dereference(queue_rerouter[pf]);
--	if (rerouter)
--		rerouter->save(*skb, info);
+-static int tcp_error4(struct sk_buff *skb,
+-		      unsigned int dataoff,
+-		      enum ip_conntrack_info *ctinfo,
+-		      int pf,
+-		      unsigned int hooknum)
+-{
+-	return tcp_error(skb, dataoff, ctinfo, pf, hooknum, csum4);
+-}
 -
-+	afinfo->saveroute(*skb, info);
- 	status = queue_handler[pf]->outfn(*skb, info, queuenum,
- 					  queue_handler[pf]->data);
- 
-@@ -190,7 +167,7 @@ void nf_reinject(struct sk_buff *skb, st
+-static int tcp_error6(struct sk_buff *skb,
+-		      unsigned int dataoff,
+-		      enum ip_conntrack_info *ctinfo,
+-		      int pf,
+-		      unsigned int hooknum)
+-{
+-	return tcp_error(skb, dataoff, ctinfo, pf, hooknum, csum6);
+-}
+-
+ /* Returns verdict for packet, or -1 for invalid. */
+ static int tcp_packet(struct nf_conn *conntrack,
+ 		      const struct sk_buff *skb,
+@@ -1218,7 +1178,7 @@ struct nf_conntrack_protocol nf_conntrac
+ 	.print_conntrack 	= tcp_print_conntrack,
+ 	.packet 		= tcp_packet,
+ 	.new 			= tcp_new,
+-	.error			= tcp_error4,
++	.error			= tcp_error,
+ #if defined(CONFIG_NF_CT_NETLINK) || \
+     defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.to_nfattr		= tcp_to_nfattr,
+@@ -1239,7 +1199,7 @@ struct nf_conntrack_protocol nf_conntrac
+ 	.print_conntrack 	= tcp_print_conntrack,
+ 	.packet 		= tcp_packet,
+ 	.new 			= tcp_new,
+-	.error			= tcp_error6,
++	.error			= tcp_error,
+ #if defined(CONFIG_NF_CT_NETLINK) || \
+     defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.to_nfattr		= tcp_to_nfattr,
+diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+index 831d206..d93edbf 100644
+--- a/net/netfilter/nf_conntrack_proto_udp.c
++++ b/net/netfilter/nf_conntrack_proto_udp.c
+@@ -103,8 +103,7 @@ static int udp_new(struct nf_conn *connt
+ static int udp_error(struct sk_buff *skb, unsigned int dataoff,
+ 		     enum ip_conntrack_info *ctinfo,
+ 		     int pf,
+-		     unsigned int hooknum,
+-		     int (*csum)(const struct sk_buff *, unsigned int))
++		     unsigned int hooknum)
  {
- 	struct list_head *elem = &info->elem->list;
- 	struct list_head *i;
--	struct nf_queue_rerouter *rerouter;
-+	struct nf_afinfo *afinfo;
+ 	unsigned int udplen = skb->len - dataoff;
+ 	struct udphdr _hdr, *hdr;
+@@ -136,9 +135,8 @@ static int udp_error(struct sk_buff *skb
+ 	 * and moreover root might send raw packets.
+ 	 * FIXME: Source route IP option packets --RR */
+ 	if (((pf == PF_INET && hooknum == NF_IP_PRE_ROUTING) ||
+-	     (pf == PF_INET6 && hooknum == NF_IP6_PRE_ROUTING))
+-	    && skb->ip_summed != CHECKSUM_UNNECESSARY
+-	    && csum(skb, dataoff)) {
++	     (pf == PF_INET6 && hooknum == NF_IP6_PRE_ROUTING)) &&
++	    nf_checksum(skb, hooknum, dataoff, IPPROTO_UDP, pf)) {
+ 		if (LOG_INVALID(IPPROTO_UDP))
+ 			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
+ 				"nf_ct_udp: bad UDP checksum ");
+@@ -148,44 +146,6 @@ static int udp_error(struct sk_buff *skb
+ 	return NF_ACCEPT;
+ }
  
- 	rcu_read_lock();
- 
-@@ -228,8 +205,8 @@ void nf_reinject(struct sk_buff *skb, st
- 	}
- 
- 	if (verdict == NF_ACCEPT) {
--		rerouter = rcu_dereference(queue_rerouter[info->pf]);
--		if (rerouter && rerouter->reroute(&skb, info) < 0)
-+		afinfo = nf_get_afinfo(info->pf);
-+		if (!afinfo || afinfo->reroute(&skb, info) < 0)
- 			verdict = NF_DROP;
- 	}
- 
+-static int csum4(const struct sk_buff *skb, unsigned int dataoff)
+-{
+-	return csum_tcpudp_magic(skb->nh.iph->saddr, skb->nh.iph->daddr,
+-				 skb->len - dataoff, IPPROTO_UDP,
+-				 skb->ip_summed == CHECKSUM_HW ? skb->csum
+-				 : skb_checksum(skb, dataoff,
+-						skb->len - dataoff, 0));
+-}
+-
+-static int csum6(const struct sk_buff *skb, unsigned int dataoff)
+-{
+-	return csum_ipv6_magic(&skb->nh.ipv6h->saddr, &skb->nh.ipv6h->daddr,
+-			       skb->len - dataoff, IPPROTO_UDP,
+-			       skb->ip_summed == CHECKSUM_HW
+-			       ? csum_sub(skb->csum,
+-					  skb_checksum(skb, 0, dataoff, 0))
+-			       : skb_checksum(skb, dataoff, skb->len - dataoff,
+-					      0));
+-}
+-
+-static int udp_error4(struct sk_buff *skb,
+-		      unsigned int dataoff,
+-		      enum ip_conntrack_info *ctinfo,
+-		      int pf,
+-		      unsigned int hooknum)
+-{
+-	return udp_error(skb, dataoff, ctinfo, pf, hooknum, csum4);
+-}
+-
+-static int udp_error6(struct sk_buff *skb,
+-		      unsigned int dataoff,
+-		      enum ip_conntrack_info *ctinfo,
+-		      int pf,
+-		      unsigned int hooknum)
+-{
+-	return udp_error(skb, dataoff, ctinfo, pf, hooknum, csum6);
+-}
+-
+ struct nf_conntrack_protocol nf_conntrack_protocol_udp4 =
+ {
+ 	.l3proto		= PF_INET,
+@@ -197,7 +157,7 @@ struct nf_conntrack_protocol nf_conntrac
+ 	.print_conntrack	= udp_print_conntrack,
+ 	.packet			= udp_packet,
+ 	.new			= udp_new,
+-	.error			= udp_error4,
++	.error			= udp_error,
+ #if defined(CONFIG_NF_CT_NETLINK) || \
+     defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nfattr	= nf_ct_port_tuple_to_nfattr,
+@@ -216,7 +176,7 @@ struct nf_conntrack_protocol nf_conntrac
+ 	.print_conntrack	= udp_print_conntrack,
+ 	.packet			= udp_packet,
+ 	.new			= udp_new,
+-	.error			= udp_error6,
++	.error			= udp_error,
+ #if defined(CONFIG_NF_CT_NETLINK) || \
+     defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nfattr	= nf_ct_port_tuple_to_nfattr,
