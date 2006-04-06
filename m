@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER 08/12]: H.323 helper: update Changelog
-Date: Fri, 07 Apr 2006 00:36:21 +0200
-Message-ID: <443597E5.40907@trash.net>
-References: <20060406100452.17409.37120.sendpatchset@localhost.localdomain>	<20060406100504.17409.80683.sendpatchset@localhost.localdomain>
-	<20060406.141705.22962861.davem@davemloft.net>
+Subject: Re: [NETFILTER 03/12]: Fix section mismatch warnings
+Date: Fri, 07 Apr 2006 00:42:24 +0200
+Message-ID: <44359950.7080805@trash.net>
+References: <20060406100452.17409.37120.sendpatchset@localhost.localdomain>	<20060406100456.17409.89515.sendpatchset@localhost.localdomain>
+	<20060406.141309.51862771.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20060406.141705.22962861.davem@davemloft.net>
+In-Reply-To: <20060406.141309.51862771.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,21 +24,24 @@ List-Id: netfilter-devel.vger.kernel.org
 
 David S. Miller wrote:
 > From: Patrick McHardy <kaber@trash.net>
-> Date: Thu,  6 Apr 2006 12:05:04 +0200 (MEST)
+> Date: Thu,  6 Apr 2006 12:04:56 +0200 (MEST)
 > 
 > 
->>[NETFILTER]: H.323 helper: update Changelog
+>>[NETFILTER]: Fix section mismatch warnings
 >>
->>Signed-off-by: Jing Min Zhao <zhaojingmin@users.sourceforge.net>
+>>Fix section mismatch warnings caused by netfilter's init_or_cleanup
+>>functions used in many places by splitting the init from the cleanup
+>>parts.
+>>
 >>Signed-off-by: Patrick McHardy <kaber@trash.net>
 > 
 > 
-> This doesn't make any sense.  We have source revision control
-> for keeping this kind of information around, so adding it to
-> the source file is unnecessary duplication.
+> Applied, but lots of trailing whitespace I had to clean up
+> before applying.  Please test your patches with:
 > 
-> I'm not applying this, sorry.
+>    git apply --check --whitespace=error-all $1
 
-Fine with me, I already suggested to Jing Min to remove
-the changelogs. Just tried to be polite by letting the
-decision up to him :)
+Sorry, I know you already mentioned this. I already had the feeling
+something is wrong with my whitespace-stripping regexes recently,
+but didn't investigate. Most of my scripts need a rework anyway,
+I'll make sure to fix this before submitting the next batch.
