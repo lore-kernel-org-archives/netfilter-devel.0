@@ -1,15 +1,14 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: Re: [PATCH 1/3] [kernel patch] fixed duration connection
-Date: Fri, 07 Apr 2006 23:57:18 +0200
-Message-ID: <4436E03E.9030402@inl.fr>
+Subject: Re: [PATCH 2/3] [libnetfilter_conntrack] fixed duration connection
+Date: Fri, 07 Apr 2006 23:59:18 +0200
+Message-ID: <4436E0B6.9040602@inl.fr>
 References: <1144139619.5186.24.camel@localhost.localdomain>
 	<4433CCBF.6060103@trash.net> <4436DF6B.4060208@inl.fr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070603040907030203000301"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>, nufw-devel@nongnu.org
+Content-Type: multipart/mixed; boundary="------------010306090804030803060402"
+Cc: Patrick McHardy <kaber@trash.net>, nufw-devel@nongnu.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 In-Reply-To: <4436DF6B.4060208@inl.fr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -23,172 +22,158 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------070603040907030203000301
+--------------010306090804030803060402
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
 Hi,
 
-Here's the patch against Linus git tree.
+This patch add support for the IPS_FIXED_TIMEOUT state.
 
-It simply modifies enum ip_conntrack_status by adding a
-IPS_FIXED_TIMEOUT field. This field is then checked at refresh time.
-
-- --
+BR,
+--
 Regit
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.2 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-iD8DBQFENuA+nxA7CdMWjzIRAoedAKCOuZyfUK8CWq3k5UBzZSc+HP1slwCgh00S
-PYw7RpDtK/3TwMByLfCihNk=
-=+LK+
------END PGP SIGNATURE-----
-
---------------070603040907030203000301
+--------------010306090804030803060402
 Content-Type: text/x-patch;
- name="fixed_timeout-flag.patch"
-Content-Transfer-Encoding: 7bit
+	name="libnetfilter_conntrack_fixed_timeout-flag.patch"
+Content-Transfer-Encoding: 8bit
 Content-Disposition: inline;
- filename="fixed_timeout-flag.patch"
+	filename="libnetfilter_conntrack_fixed_timeout-flag.patch"
 
-diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
-index 3ff88c8..a827ce2 100644
---- a/include/linux/netfilter/nf_conntrack_common.h
-+++ b/include/linux/netfilter/nf_conntrack_common.h
-@@ -69,6 +69,13 @@ enum ip_conntrack_status {
- 	/* Connection is dying (removed from lists), can not be unset. */
- 	IPS_DYING_BIT = 9,
- 	IPS_DYING = (1 << IPS_DYING_BIT),
+Index: include/libnetfilter_conntrack/linux_nfnetlink_conntrack.h
+===================================================================
+--- include/libnetfilter_conntrack/linux_nfnetlink_conntrack.h	(révision 6576)
++++ include/libnetfilter_conntrack/linux_nfnetlink_conntrack.h	(copie de travail)
+@@ -29,6 +29,7 @@
+ 	CTA_HELP,
+ 	CTA_NAT,
+ 	CTA_TIMEOUT,
++	CTA_FIXED_TIMEOUT,
+ 	CTA_MARK,
+ 	CTA_COUNTERS_ORIG,
+ 	CTA_COUNTERS_REPLY,
+Index: include/libnetfilter_conntrack/libnetfilter_conntrack.h
+===================================================================
+--- include/libnetfilter_conntrack/libnetfilter_conntrack.h	(révision 6576)
++++ include/libnetfilter_conntrack/libnetfilter_conntrack.h	(copie de travail)
+@@ -89,6 +89,7 @@
+ 	struct nfct_tuple tuple[NFCT_DIR_MAX];
+ 	
+ 	u_int32_t 	timeout;
++	u_int32_t 	fixed_timeout;
+ 	u_int32_t	mark;
+ 	u_int32_t 	status;
+ 	u_int32_t	use;
+@@ -125,19 +126,22 @@
+ 	NFCT_TIMEOUT_BIT = 2,
+ 	NFCT_TIMEOUT = (1 << NFCT_TIMEOUT_BIT),
+ 
+-	NFCT_MARK_BIT = 3,
++        NFCT_FIXED_TIMEOUT_BIT = 3,
++	NFCT_FIXED_TIMEOUT = (1 << NFCT_FIXED_TIMEOUT_BIT),
 +
-+#if defined(CONFIG_IP_NF_CT_FIXED_TIMEOUT) || defined(CONFIG_NF_CT_FIXED_TIMEOUT)
-+    /* Connection has fixed timeout. */
-+	IPS_FIXED_TIMEOUT_BIT = 10,
-+	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT),
-+#endif
-+
++	NFCT_MARK_BIT = 4,
+ 	NFCT_MARK = (1 << NFCT_MARK_BIT),
+ 
+-	NFCT_COUNTERS_ORIG_BIT = 4,
++	NFCT_COUNTERS_ORIG_BIT = 5,
+ 	NFCT_COUNTERS_ORIG = (1 << NFCT_COUNTERS_ORIG_BIT),
+ 
+-	NFCT_COUNTERS_RPLY_BIT = 5,
++	NFCT_COUNTERS_RPLY_BIT = 6,
+ 	NFCT_COUNTERS_RPLY = (1 << NFCT_COUNTERS_RPLY_BIT),
+ 
+-	NFCT_USE_BIT = 6,
++	NFCT_USE_BIT = 7,
+ 	NFCT_USE = (1 << NFCT_USE_BIT),
+ 
+-	NFCT_ID_BIT = 7,
++	NFCT_ID_BIT = 8,
+ 	NFCT_ID = (1 << NFCT_ID_BIT)
  };
  
- /* Connection tracking event bits */
-diff --git a/include/linux/netfilter/nfnetlink_conntrack.h b/include/linux/netfilter/nfnetlink_conntrack.h
-diff --git a/include/linux/netfilter_ipv4/ip_conntrack.h b/include/linux/netfilter_ipv4/ip_conntrack.h
-index d54d7b2..44f6e33 100644
---- a/include/linux/netfilter_ipv4/ip_conntrack.h
-+++ b/include/linux/netfilter_ipv4/ip_conntrack.h
-@@ -85,6 +85,7 @@ struct ip_conntrack
- 	/* Timer function; drops refcnt when it goes off. */
- 	struct timer_list timeout;
- 
+Index: src/libnetfilter_conntrack.c
+===================================================================
+--- src/libnetfilter_conntrack.c	(révision 6576)
++++ src/libnetfilter_conntrack.c	(copie de travail)
+@@ -548,6 +548,11 @@
+ 		flags |= NFCT_TIMEOUT;
+ 	}
+ 	
++        if (cda[CTA_FIXED_TIMEOUT-1]) {
++		ct.fixed_timeout = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_FIXED_TIMEOUT-1]));
++		flags |= NFCT_FIXED_TIMEOUT;
++	}
 +
- #ifdef CONFIG_IP_NF_CT_ACCT
- 	/* Accounting Information (same cache line as other written members) */
- 	struct ip_conntrack_counter counters[IP_CT_DIR_MAX];
-@@ -292,6 +293,13 @@ static inline int is_dying(struct ip_con
- 	return test_bit(IPS_DYING_BIT, &ct->status);
+ 	if (cda[CTA_MARK-1]) {
+ 		ct.mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
+ 		flags |= NFCT_MARK;
+@@ -596,6 +601,13 @@
+ 	return sprintf(buf, "%u ", ct->timeout);
  }
  
-+#if defined(CONFIG_IP_NF_CT_FIXED_TIMEOUT) || defined(CONFIG_NF_CT_FIXED_TIMEOUT)
-+static inline int is_fixedtimeout(struct ip_conntrack *ct)
++int nfct_sprintf_fixed_timeout(char *buf, struct nfct_conntrack *ct)
 +{
-+	return test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status);
++	return sprintf(buf, "%u ", ct->fixed_timeout);
 +}
-+#endif
 +
- extern unsigned int ip_conntrack_htable_size;
-  
- #define CONNTRACK_STAT_INC(count) (__get_cpu_var(ip_conntrack_stat).count++)
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 77855cc..1f306ec 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -46,6 +46,18 @@ config IP_NF_CT_ACCT
- 
- 	  If unsure, say `N'.
- 
-+config IP_NF_CT_FIXED_TIMEOUT
-+	bool "Connection tracking fixed timeout (EXPERIMENTAL)"
-+	depends on EXPERIMENTAL && IP_NF_CONNTRACK
-+	help
-+	  If this option is enabled, the connection tracking code will
-+	  be able to have connection that will expire automatically after
-+          a given time.
-+          
-+	  This feature can be used with libnetfilter_conntrack library.
 +
-+	  If unsure, say `N'.
 +
- config IP_NF_CONNTRACK_MARK
- 	bool  'Connection mark tracking support'
- 	depends on IP_NF_CONNTRACK
-diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
-index ceaabc1..44fa788 100644
---- a/net/ipv4/netfilter/ip_conntrack_core.c
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -1130,18 +1130,27 @@ void __ip_ct_refresh_acct(struct ip_conn
+ int nfct_sprintf_protoinfo(char *buf, struct nfct_conntrack *ct)
+ {
+ 	int size = 0;
+@@ -664,7 +676,10 @@
+ 	if (flags & NFCT_TIMEOUT)
+ 		size += nfct_sprintf_timeout(buf+size, ct);
  
- 	write_lock_bh(&ip_conntrack_lock);
- 
--	/* If not in hash table, timer will not be active yet */
--	if (!is_confirmed(ct)) {
--		ct->timeout.expires = extra_jiffies;
--		event = IPCT_REFRESH;
--	} else {
--		/* Need del_timer for race avoidance (may already be dying). */
--		if (del_timer(&ct->timeout)) {
--			ct->timeout.expires = jiffies + extra_jiffies;
--			add_timer(&ct->timeout);
--			event = IPCT_REFRESH;
--		}
--	}
-+#if defined(CONFIG_IP_NF_CT_FIXED_TIMEOUT)  || defined(CONFIG_NF_CT_FIXED_TIMEOUT)
-+    /* only update if this is not a fixed timeout */
-+    if (! is_fixedtimeout(ct)){
-+#endif
-+        /* If not in hash table, timer will not be active yet */
-+        if (!is_confirmed(ct)) {
-+            ct->timeout.expires = extra_jiffies;
-+            event = IPCT_REFRESH;
-+        } else {
-+            /* Need del_timer for race avoidance (may already be dying). */
-+            if (del_timer(&ct->timeout)) {
-+                ct->timeout.expires = jiffies + extra_jiffies;
-+                add_timer(&ct->timeout);
-+                event = IPCT_REFRESH;
-+            }
-+        }
-+#if defined(CONFIG_IP_NF_CT_FIXED_TIMEOUT) 
-+    } else {
-+		DEBUGP("FIXED TIMEOUT: Not updating\n");
-+    }
-+#endif
- 
- #ifdef CONFIG_IP_NF_CT_ACCT
- 	if (do_acct) {
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index e2893ef..8c24fc4 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -60,6 +60,18 @@ config NF_CONNTRACK_MARK
- 	  of packets, but this mark value is kept in the conntrack session
- 	  instead of the individual packets.
- 
-+config CONFIG_NF_CT_FIXED_TIMEOUT
-+	bool  "Connection with fixed expiration delay (EXPERIMENTAL)"
-+	depends on EXPERIMENTAL && NF_CONNTRACK
-+	help
-+	  If this option is enabled, the connection tracking code will
-+	  be able to have connection that will expire automatically after
-+          a given time.
-+          
-+	  This feature can be used with libnetfilter_conntrack library.
+-        if (flags & NFCT_PROTOINFO)
++	if (flags & NFCT_FIXED_TIMEOUT)
++		size += nfct_sprintf_fixed_timeout(buf+size, ct);
 +
-+	  If unsure, say `N'.
++    if (flags & NFCT_PROTOINFO)
+ 		size += nfct_sprintf_protoinfo(buf+size, ct);
+ 
+ 	size += nfct_sprintf_address(buf+size, &ct->tuple[NFCT_DIR_ORIGINAL]);
+@@ -954,6 +969,7 @@
+ 	char buf[NFCT_BUFSIZE];
+ 	u_int32_t status = htonl(ct->status | IPS_CONFIRMED);
+ 	u_int32_t timeout = htonl(ct->timeout);
++	u_int32_t fixed_timeout = htonl(ct->fixed_timeout);
+ 	u_int32_t mark = htonl(ct->mark);
+ 	u_int8_t l3num = ct->tuple[NFCT_DIR_ORIGINAL].l3protonum;
+ 
+@@ -975,6 +991,10 @@
+ 
+ 	nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_TIMEOUT, &timeout, 
+ 		       sizeof(u_int32_t));
 +
- config NF_CONNTRACK_EVENTS
- 	bool "Connection tracking events (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL && NF_CONNTRACK
++        if (fixed_timeout)
++	        nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_FIXED_TIMEOUT, &fixed_timeout, 
++		               sizeof(u_int32_t));
+ 	
+ 	if (ct->mark != 0)
+ 		nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_MARK, &mark,
+@@ -993,6 +1013,7 @@
+ 	char buf[NFCT_BUFSIZE];
+ 	u_int32_t status = htonl(ct->status | IPS_CONFIRMED);
+ 	u_int32_t timeout = htonl(ct->timeout);
++	u_int32_t fixed_timeout = htonl(ct->fixed_timeout);
+ 	u_int32_t id = htonl(ct->id);
+ 	u_int32_t mark = htonl(ct->mark);
+ 	u_int8_t l3num = ct->tuple[NFCT_DIR_ORIGINAL].l3protonum;
+@@ -1015,7 +1036,12 @@
+ 	if (ct->timeout != 0)
+ 		nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_TIMEOUT, &timeout, 
+ 			       sizeof(u_int32_t));
++
++        if (ct->fixed_timeout != 0)
++		nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_FIXED_TIMEOUT, &fixed_timeout, 
++			       sizeof(u_int32_t));
+ 	
++	
+ 	if (ct->mark != 0)
+ 		nfnl_addattr_l(&req->nlh, sizeof(buf), CTA_MARK, &mark,
+ 			       sizeof(u_int32_t));
 
---------------070603040907030203000301--
+--------------010306090804030803060402--
