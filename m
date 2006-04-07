@@ -1,14 +1,14 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 2/4] kill manually comparing protocol name with "ipv6-icmp"
-Date: Fri, 07 Apr 2006 20:31:33 +0900 (JST)
-Message-ID: <200604071131.k37BVY3F025271@toshiba.co.jp>
+Subject: [PATCH 3/4] check invalid esp spi range
+Date: Fri, 07 Apr 2006 20:31:49 +0900 (JST)
+Message-ID: <200604071131.k37BVoAs009386@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: laforge@netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline; filename="02-proto-icmpv6.patch"
+Content-Disposition: inline; filename="03-esp.patch"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,51 +20,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[IP6TABLES] kill manually comparing protocol name with "ipv6-icmp"
-
-This adds "ipv6-icmp" to chain_protos[] and kill manually comparing
-the argument of '-p' with it.
-
-chain_protos[] has the "icmpv6" with the same protocol number, but it's
-OK because proto_to_name() returns the firstly matched entry "icmpv6"
-as ever.
+[IPTABLES,IP6TABLES]: check invalid esp spi range
 
 ---
-commit 62607c174a8c1cc7a4f18e7537be75a1d5a87944
-tree f1c65a0db8d249e19a4c35b46d95e7d8f1eaf628
-parent f7eed26853dda6a51d70221f5c9ef0fac60f73a7
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 06 Apr 2006 22:34:56 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 06 Apr 2006 22:34:56 +0900
+commit c2faea0a63833f5b8c65542c36a24ee1fb53207b
+tree 3c49018aafea3725abbf6b1519bbc252b5374b7b
+parent c94b52d4b6fff1bfc2da3e192b39e0f45cd12750
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 06 Apr 2006 20:21:50 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 06 Apr 2006 20:21:50 +0900
 
- ip6tables.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ extensions/libip6t_esp.c |    3 +++
+ extensions/libipt_esp.c  |    3 +++
+ 2 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/ip6tables.c b/ip6tables.c
-index dcf7d36..1279888 100644
---- a/ip6tables.c
-+++ b/ip6tables.c
-@@ -222,6 +222,7 @@ static const struct pprot chain_protos[]
- 	{ "tcp", IPPROTO_TCP },
- 	{ "udp", IPPROTO_UDP },
- 	{ "icmpv6", IPPROTO_ICMPV6 },
-+	{ "ipv6-icmp", IPPROTO_ICMPV6 },
- 	{ "esp", IPPROTO_ESP },
- 	{ "ah", IPPROTO_AH },
- };
-@@ -1748,7 +1749,6 @@ int do_command6(int argc, char *argv[], 
- 	char *protocol = NULL;
- 	const char *modprobe = NULL;
- 	int proto_used = 0;
--	char icmp6p[] = "icmpv6";
+diff --git a/extensions/libip6t_esp.c b/extensions/libip6t_esp.c
+index 29e865d..886e09b 100644
+--- a/extensions/libip6t_esp.c
++++ b/extensions/libip6t_esp.c
+@@ -61,6 +61,9 @@ parse_esp_spis(const char *spistring, u_
  
- 	memset(&fw, 0, sizeof(fw));
+ 		spis[0] = buffer[0] ? parse_esp_spi(buffer) : 0;
+ 		spis[1] = cp[0] ? parse_esp_spi(cp) : 0xFFFFFFFF;
++		if (spis[0] > spis[1])
++			exit_error(PARAMETER_PROBLEM,
++				   "Invalid ESP spi range: %s", spistring);
+ 	}
+ 	free(buffer);
+ }
+diff --git a/extensions/libipt_esp.c b/extensions/libipt_esp.c
+index 4abfba3..21e912b 100644
+--- a/extensions/libipt_esp.c
++++ b/extensions/libipt_esp.c
+@@ -62,6 +62,9 @@ parse_esp_spis(const char *spistring, u_
  
-@@ -1917,8 +1917,6 @@ int do_command6(int argc, char *argv[], 
- 				*protocol = tolower(*protocol);
- 
- 			protocol = argv[optind-1];
--			if ( strcmp(protocol,"ipv6-icmp") == 0)
--				protocol = icmp6p;
- 			fw.ipv6.proto = parse_protocol(protocol);
- 			fw.ipv6.flags |= IP6T_F_PROTO;
- 
+ 		spis[0] = buffer[0] ? parse_esp_spi(buffer) : 0;
+ 		spis[1] = cp[0] ? parse_esp_spi(cp) : 0xFFFFFFFF;
++		if (spis[0] > spis[1])
++			exit_error(PARAMETER_PROBLEM,
++				   "Invalid ESP spi range: %s", spistring);
+ 	}
+ 	free(buffer);
+ }
