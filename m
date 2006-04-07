@@ -1,17 +1,18 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: Huge impact of the conntrack mechanism on routing performance
- (30% with a single conntrack entry)
-Date: Fri, 07 Apr 2006 14:28:29 -0700 (PDT)
-Message-ID: <20060407.142829.87870703.davem@davemloft.net>
-References: <20060405140305.9637.qmail@web33801.mail.mud.yahoo.com>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: [PATCH 0/3]  [RFC] fixed duration connection
+Date: Fri, 07 Apr 2006 23:53:47 +0200
+Message-ID: <4436DF6B.4060208@inl.fr>
+References: <1144139619.5186.24.camel@localhost.localdomain>
+	<4433CCBF.6060103@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: robert.olsson@data.slu.se, netfilter-devel@lists.netfilter.org,
-	netfilter@lists.netfilter.org
+Cc: eric@inl.fr,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	nufw-devel@nongnu.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: eddy_kvetny@yahoo.com
-In-Reply-To: <20060405140305.9637.qmail@web33801.mail.mud.yahoo.com>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4433CCBF.6060103@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,14 +24,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Eddy Kvetny <eddy_kvetny@yahoo.com>
-Date: Wed, 5 Apr 2006 07:03:05 -0700 (PDT)
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> Right after "insmod ip_conntrack.ko" the throughput
-> drastically falls to 28 kpps (-12 kpps or -30% !!!).
+Patrick McHardy wrote:
+> Eric Leblond wrote:
+>>For this reason, we've worked on a simple kernel level implementation.
+>>This is done via a second "struct timer" that is added in connection
+>>structure. Activation of the timer, is for now done via userspace by
+>>using libnetfilter_conntrack or by using new option -T of the conntrack
+>>tool.
+> 
+> 
+> If I understand you correctly, a fixed timeout is just a timeout that
+> isn't refreshed, right? Why can't we just use the regular timers etc.
+> and add a flag that it should not be touched by ip_ct_refresh? This
+> would also eliminate the need for any ctnetlink changes since the
+> timeout value can already be specified.
 
-Yes, this is pretty much what the cost of netfilter is for a router.
+A set of patch following this recommandation is to follow.
 
-This has been known and well understood for a long time, and solutions
-to this problem are not easy which is why there hasn't been any
-progress in this area to date.
+Big thanks to Patrick !
+- --
+Eric Leblond
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFENt9rnxA7CdMWjzIRAjj4AKCCLFCSsT1QRpJ1Cen4PlI0qKseeACfYChO
+jlewNiF3gV8IifVWoMfxshI=
+=uBaq
+-----END PGP SIGNATURE-----
