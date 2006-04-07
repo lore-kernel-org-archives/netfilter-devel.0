@@ -1,13 +1,15 @@
-From: Eddy Kvetny <eddy_kvetny@yahoo.com>
-Subject: Huge impact of the conntrack mechanism on routing performance (30%
-	with a single conntrack entry)
-Date: Wed, 5 Apr 2006 07:03:05 -0700 (PDT)
-Message-ID: <20060405140305.9637.qmail@web33801.mail.mud.yahoo.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/4] fix loading shared library of ICMPv6 match
+Date: Fri, 07 Apr 2006 14:37:04 +0200
+Message-ID: <44365CF0.4030304@trash.net>
+References: <200604071131.k37BV2wB005845@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200604071131.k37BV2wB005845@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,91 +21,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Netfilter gurus,
+Yasuyuki KOZAKAI wrote:
+> From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+> Date: Wed, 29 Mar 2006 16:25:27 +0900 (JST)
+> 
+> 
+>>From: "Daniel De Graaf" <danieldegraaf@gmail.com>
+>>Date: Sun, 26 Mar 2006 22:19:27 -0600
+>>
+>>
+>>>libip6t_icmpv6.c registers a match called "icmp6", which means that
+>>>ip6tables -vL and ip6tables-save cannot output the match correctly.
+>>
+>>There are 2 solutions.
+>>
+>>	1. just rename libip6t_icmpv6.c to libip6t_icmp6.c. This can
+>>	   conform names of internal structure, library and kernel module.
+>>	2. apply attached patch to fix find_match() so that ip6tables can
+>>	   load libip6t_icmpv6.so.
+>>
+>>I like 1 but I'm not sure we can do it. Anyone knows any historical
+>>problem about it ?
+> 
+> 
+> No problem ? OK, then I take 1.
 
-Could someone shed light on pretty strange problem of
-a huge impact of the conntrack mechanism on routing
-performance ?
-
-The configuration is as follows: 
-- the ARM9E-based (500Mhz) board with Linux 2.6.12
-- 2 GbE interfaces connected to the traffic generator
-tool (Smartbit)
-- Smartbit injects UDP packets to the device via 1st
-network interface, then the devices routes these
-packets back to Smartbit via the 2nd interface
-
-When only plain routing without any netfilter stuff
-(conntrack, NAT, filter modules) is done, 40K packets
-per second are processed and returned to Smartbit
-giving about 485Mbps througput (40000 packets x 8 bit
-x 1518 byte/packet) 
-
-Right after "insmod ip_conntrack.ko" the throughput
-drastically falls to 28 kpps (-12 kpps or -30% !!!). I
-know that "conntrack" mechanism has some overhead but
-30% is still seems to be too much, especially when in
-my case there is only 1 connection in the conntrack
-table and as far as I know most of the  "conntrack"
-processing is done for the 1st packet of each
-connection only. Then this connection is put in the
-"conntrack" hash table and it is supposed to be very
-quickly found for successive packets belonging to the
-same connection
-
- After "insmod iptable_filter.ko" throughput is 25
-kpps (-3 kpps) and after "insmod iptable_nat.ko" (NAT
-mechanism) throughput is 23 kpps (-2 kpps). Insertion
-of additional modules (like ipt_state.ko,
-ip_conntrack_ftp.ko etc.) and configuring rules for
-firewall/NAT (not talking about hundreds or more
-rules) has no significant impact on throughput
-So, I am wondering whether there is some logic
-explanation for this huge impact of the conntrack
-mechanism on routing performance. 
-
-I would appreciate any information in this regard
-Thanks in advance
-
-Eddy
-
-
-P.S. I found a couple of similar observations in
-Internet
-
->From http://lwn.net/Articles/103858/
-.......
-
-13.3. Netfilter benchmarking  by HW 
-.....
-Lose 30% of performance (850kpps to 500kpps) 
-... 
-Initial rate (forwarding only) 800kpps 
-insmod ip_conntrack -200 kpps 
-load IPtable (even empty) 25% 
-oprofile (non-halted) everything in ip_tables (3%) 
-static compiling makes 5% difference 
-full test (nat, mangle, filter, ip_conntrack): down to
-350kpps 
-....................
- 
-================================================
- 
->From http://lkml.org/lkml/2004/9/8/235
-................................................. 
-I'm sure others here have far better examples, but one
-post to the  netfilter-devel list last December
-provided an example of a firewall that
- could process 580kpps with netfilter/conntrack turned
-off.  Granted, the post noted that adding netfilter
-brought that down to 450kpps, and adding conntrack on
-top of that brought it down to 295kpps,but all three
-of those numbers are well over the claimed 100kpps.
-..................................................
-
-
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+I'm not aware of any historical problems. I think it should be fine.
