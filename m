@@ -1,17 +1,17 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: Re: [PATCH 2/3] [libnetfilter_conntrack] fixed duration connection
-Date: Sat, 08 Apr 2006 22:23:27 +0200
-Message-ID: <44381BBF.4060605@inl.fr>
+Subject: Re: [PATCH 1/3] [kernel patch] fixed duration connection
+Date: Sat, 08 Apr 2006 22:55:38 +0200
+Message-ID: <4438234A.2080702@inl.fr>
 References: <1144139619.5186.24.camel@localhost.localdomain>
 	<4433CCBF.6060103@trash.net> <4436DF6B.4060208@inl.fr>
-	<4436E0B6.9040602@inl.fr> <44381602.5090105@trash.net>
+	<4436E03E.9030402@inl.fr> <44381584.4020109@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000609040208030307030608"
+Content-Type: multipart/mixed; boundary="------------070308090109090706010803"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	nufw-devel@nongnu.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44381602.5090105@trash.net>
+In-Reply-To: <44381584.4020109@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,48 +24,53 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------000609040208030307030608
+--------------070308090109090706010803
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi again,
+
+I followed your recommendation and here's the patch.
 
 Patrick McHardy wrote:
 > Eric Leblond wrote:
 > 
 >>Hi,
 >>
->>This patch add support for the IPS_FIXED_TIMEOUT state.
-
-> I didn't see the patch adding support for this in the kernel. Since
-> there is no seperate fixed timeout anymore, this also looks obsolete.
-> The way I understood the kernel patch, you would just do two netlink
-> operations:
+>>Here's the patch against Linus git tree.
 > 
-> - set flag FIXED_TIMEOUT
-> - change timeout using CTA_TIMEOUT
 > 
-> Am I missing something?
+> I don't have any principle objections against merging this (if
+> there are no objections from others), a couple of comments
+> on the patch though.
 
-Clearly not. I was a little bit too tired yesterday and I've done a "svn
-diff" in the bad directory. Please ignore previous patch and consider
-this far smaller one.
-
-Best regards,
---
+BR and thanks a lot for your help,
+- --
 Eric Leblond
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
+iD8DBQFEOCNKnxA7CdMWjzIRAuVlAJ9v75j2WeEvMAJVqDekgOxzTRmHQwCcDN5B
+sdtE712lSkUuG25DMBB9v+w=
+=K6vk
+-----END PGP SIGNATURE-----
 
---------------000609040208030307030608
+--------------070308090109090706010803
 Content-Type: text/x-patch;
-	name="libnetfilter_conntrack_fixed_timeout-flag.patch"
-Content-Transfer-Encoding: 8bit
+ name="fixed_timeout-flag.patch"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
-	filename="libnetfilter_conntrack_fixed_timeout-flag.patch"
+ filename="fixed_timeout-flag.patch"
 
-Index: include/libnetfilter_conntrack/libnetfilter_conntrack.h
-===================================================================
---- include/libnetfilter_conntrack/libnetfilter_conntrack.h	(révision 6578)
-+++ include/libnetfilter_conntrack/libnetfilter_conntrack.h	(copie de travail)
-@@ -191,6 +191,11 @@
+diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
+index 3ff88c8..68d282d 100644
+--- a/include/linux/netfilter/nf_conntrack_common.h
++++ b/include/linux/netfilter/nf_conntrack_common.h
+@@ -69,6 +69,11 @@ enum ip_conntrack_status {
  	/* Connection is dying (removed from lists), can not be unset. */
  	IPS_DYING_BIT = 9,
  	IPS_DYING = (1 << IPS_DYING_BIT),
@@ -76,6 +81,44 @@ Index: include/libnetfilter_conntrack/libnetfilter_conntrack.h
 +
  };
  
- enum {
+ /* Connection tracking event bits */
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+index ceaabc1..d9dbe0f 100644
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -1130,18 +1130,21 @@ void __ip_ct_refresh_acct(struct ip_conn
+ 
+ 	write_lock_bh(&ip_conntrack_lock);
+ 
+-	/* If not in hash table, timer will not be active yet */
+-	if (!is_confirmed(ct)) {
+-		ct->timeout.expires = extra_jiffies;
+-		event = IPCT_REFRESH;
+-	} else {
+-		/* Need del_timer for race avoidance (may already be dying). */
+-		if (del_timer(&ct->timeout)) {
+-			ct->timeout.expires = jiffies + extra_jiffies;
+-			add_timer(&ct->timeout);
+-			event = IPCT_REFRESH;
+-		}
+-	}
++    /* only update if this is not a fixed timeout */
++    if (! test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status)){
++        /* If not in hash table, timer will not be active yet */
++        if (!is_confirmed(ct)) {
++            ct->timeout.expires = extra_jiffies;
++            event = IPCT_REFRESH;
++        } else {
++            /* Need del_timer for race avoidance (may already be dying). */
++            if (del_timer(&ct->timeout)) {
++                ct->timeout.expires = jiffies + extra_jiffies;
++                add_timer(&ct->timeout);
++                event = IPCT_REFRESH;
++            }
++        }
++    }
+ 
+ #ifdef CONFIG_IP_NF_CT_ACCT
+ 	if (do_acct) {
 
---------------000609040208030307030608--
+--------------070308090109090706010803--
