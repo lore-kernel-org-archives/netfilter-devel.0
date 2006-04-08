@@ -1,10 +1,10 @@
-From: Gokul K <gokultck@yahoo.com>
-Subject: configuration error
-Date: Sat, 8 Apr 2006 00:16:05 -0700 (PDT)
-Message-ID: <20060408071605.21695.qmail@web34203.mail.mud.yahoo.com>
+From: Sumit <sumit@elitecore.com>
+Subject: ipt_unclean query
+Date: Sat, 08 Apr 2006 13:36:41 +0530
+Message-ID: <44376F11.4000804@elitecore.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,22 +18,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi Devs,
+	After making an unclean DROP ruleset I got "not-working" complains form 
+some of my clients who using specific stock-trading application.
+	Simply looking to dmesg I found there are few message states that
+ipt_unclean: TCP flags bad: 0x0015
+	This message mean unclean match is dropping tcp packet with ACK,RST, 
+and FIN flags. This I confirm with ipt_unclean.c code
+	As per RFC793 (TCP)
+...	...	...
+In all states except SYN-SENT, all reset (RST) segments are validated by 
+checking their SEQ-fields.  A reset is valid if its sequence number is 
+in the window.
+...	...	...
+	Then is there any significance of dropping ACK+RST+FIN combination?
 
-I'm trying to install a software called seppl. While
-configuring i'm getting the following errors.
-
-checking iptables.h usability... yes
-checking iptables.h presence... yes
-checking for iptables.h... yes
-checking for /lib/iptables... configure: error: ***
-Sorry, failed to find iptables plugin directory ***
-
-can anyone tell how to overcome this
-
-thanks
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Happy Netfiltering,
+--
+  _____     __    __    ____   ____    __    ______
+/\  ___\  /\  \ /\  \ /\  \ \/ /\  \ /\  \ /\__   _\
+\ \ ____\ \ \  \\_|  \\ \  \_ /\ \  \\ \  \\__ \  \/
+  \//\___ \ \ \______ / \ \__\   \ \__\\ \__\  \ \__\
+   \/_____/  \/_____ /   \/__/    \/__/ \/__/   \/__/
