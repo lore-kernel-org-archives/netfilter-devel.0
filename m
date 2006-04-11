@@ -1,19 +1,18 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [RFC: 2.6 patch] the overdue removal of ip{,6}_queue
-Date: Tue, 11 Apr 2006 20:26:24 +0200
-Message-ID: <20060411182624.GD31616@sunbeam.de.gnumonks.org>
-References: <20060409180105.GK8454@stusta.de> <44395505.1070608@trash.net>
-	<20060411090139.GI5167@rama.linbit> <443BC06A.8020103@trash.net>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: [PATCH 1/3] [kernel patch] fixed duration connection
+Date: Tue, 11 Apr 2006 22:20:15 +0200
+Message-ID: <443C0F7F.7060208@inl.fr>
+References: <1144139619.5186.24.camel@localhost.localdomain>
+	<4433CCBF.6060103@trash.net> <4436DF6B.4060208@inl.fr>
+	<4436E03E.9030402@inl.fr> <44381584.4020109@trash.net>
+	<4438234A.2080702@inl.fr> <443BD7D6.7030805@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GpGaEY17fSl8rd50"
-Cc: netdev@vger.kernel.org,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Adrian Bunk <bunk@stusta.de>, coreteam@netfilter.org, sds@tycho.nsa.gov
+Content-Type: multipart/mixed; boundary="------------090006000402080503000903"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	nufw-devel@nongnu.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <443BC06A.8020103@trash.net>
+In-Reply-To: <443BD7D6.7030805@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,65 +24,68 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------090006000402080503000903
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
---GpGaEY17fSl8rd50
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Patrick McHardy wrote:
+> Eric Leblond wrote:
+> 
+>>I followed your recommendation and here's the patch.
+> 
+> 
+> Seems you missed one in the noise :)
 
-On Tue, Apr 11, 2006 at 04:42:50PM +0200, Patrick McHardy wrote:
-> > Maybe we should add a printk ('app foo is using obsolete ip_queue
-> > system').
->=20
-> Good idea, that will probably help speed it up. But I still think
-> we need to give them at least another six month.
+Here it is.
 
-ok. I'll prepare a patch for both the printk and the update of
-feature-removal-schedule.
+Thank you very much for your patience.
 
-> I think we need to do two things:
->=20
-> - make libipq_compat a drop-in replacement that doesn't require
->   recompilation
+humm, google define:patience gives me :
+	good-natured tolerance of delay or incompetence
+Definition looks really good this time ;-)
 
-libipq is not distributed as a shared library (at least not by us), so I
-don't see any purpose for doing so.  Do you think anyone is going to
-re-link statically linked code against the new lib
+BR,
+--
+Eric Leblond
 
-> - make it work with both ipq and nfnetlink_queue
+--------------090006000402080503000903
+Content-Type: text/x-patch;
+ name="fixed_timeout-flag.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="fixed_timeout-flag.patch"
 
-that should be possible, though. =20
+diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
+index 3ff88c8..68d282d 100644
+--- a/include/linux/netfilter/nf_conntrack_common.h
++++ b/include/linux/netfilter/nf_conntrack_common.h
+@@ -69,6 +69,11 @@ enum ip_conntrack_status {
+ 	/* Connection is dying (removed from lists), can not be unset. */
+ 	IPS_DYING_BIT = 9,
+ 	IPS_DYING = (1 << IPS_DYING_BIT),
++
++    /* Connection has fixed timeout. */
++	IPS_FIXED_TIMEOUT_BIT = 10,
++	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT),
++
+ };
+ 
+ /* Connection tracking event bits */
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+index ceaabc1..b3d2f92 100644
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -1130,6 +1130,10 @@ void __ip_ct_refresh_acct(struct ip_conn
+ 
+ 	write_lock_bh(&ip_conntrack_lock);
+ 
++	/* Only update if this is not a fixed timeout */
++	if (! test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status))
++		return;
++
+ 	/* If not in hash table, timer will not be active yet */
+ 	if (!is_confirmed(ct)) {
+ 		ct->timeout.expires = extra_jiffies;
 
-I still don't really think that it is worth all the effort, especially
-since there is only one hand full of applications using libipq.
-
-The backwards compatibility library is expected to perform a lot worse
-thna both the old libipq as well as the new native libnetfilter_queue
-due to additional data copies, etc.  When I wrote it, it was more
-intended as some intermediate aid, something that helps while people
-migrate.  We shouldn't make it too perfect, otherwise they won't migrate
-at all.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---GpGaEY17fSl8rd50
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQFEO/TQXaXGVTD0i/8RAuZAAJ452DftSOTWxazNqeXxLl3WD0Y7IwCfXft1
-pvmrIixEqpIXKW2S63KRaz0=
-=AhMA
------END PGP SIGNATURE-----
-
---GpGaEY17fSl8rd50--
+--------------090006000402080503000903--
