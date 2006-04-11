@@ -1,16 +1,19 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/4] first conntrack ID must be 1 not 2
-Date: Tue, 11 Apr 2006 18:17:55 +0200
-Message-ID: <443BD6B3.8020607@trash.net>
-References: <Pine.LNX.4.58.0602160943060.26770@blackhole.kfki.hu>	<43F43FA9.4000906@trash.net>	<Pine.LNX.4.58.0602161005450.26770@blackhole.kfki.hu>	<43F4426D.9060807@trash.net>	<Pine.LNX.4.58.0602161017590.26770@blackhole.kfki.hu>	<43F4DBDF.9010008@trash.net>	<442B9765.2020105@ufomechanic.net>	<442C81A6.3040501@trash.net>	<Pine.LNX.4.58.0603312026030.9154@blackhole.kfki.hu>	<442D78A8.4050300@trash.net>	<20060401193138.GG11031@sunbeam.de.gnumonks.org>
-	<4434F53A.2030302@trash.net> <443BD4BB.7090806@ufomechanic.net>
+Subject: Re: [PATCH 1/3] [kernel patch] fixed duration connection
+Date: Tue, 11 Apr 2006 18:22:46 +0200
+Message-ID: <443BD7D6.7030805@trash.net>
+References: <1144139619.5186.24.camel@localhost.localdomain>
+	<4433CCBF.6060103@trash.net> <4436DF6B.4060208@inl.fr>
+	<4436E03E.9030402@inl.fr> <44381584.4020109@trash.net>
+	<4438234A.2080702@inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	nufw-devel@nongnu.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <443BD4BB.7090806@ufomechanic.net>
+To: Eric Leblond <eric@inl.fr>
+In-Reply-To: <4438234A.2080702@inl.fr>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,28 +25,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez wrote:
-> Patrick McHardy wrote:
-> 
->> Found the patch again. What it does is:
->>
->> - note entry of next conntrack to be dumped and keep a reference to it
->> - when continuing, look for the conntrack and continue at it if its
->>   still there
->> - if not, dump the entire bucket again
->>
->> In theory we could end up in an endless loop if the conntrack entry
->> we're keeping the reference to is deleted everytime we want to
->> continue dumping. 
-> 
-> 
-> Why not defer the ip_conntrack_put until after ctnetlink_fill_info,
-> would that avoid the problem altogether?
-> 
-> It's no longer the entry of the next conntrack but the entry of the last
-> conntrack by the time it gets deleted then...? Or have I misunderstood
-> the way in which the loop would occur?
+Eric Leblond wrote:
+> I followed your recommendation and here's the patch.
 
-Yes, the loop is interrupted when the skb is full and continued when
-userspace issues the next recvmsg(). The reference is kept to find
-the point where to continue.
+Seems you missed one in the noise :)
+
+------------------------------------------------------------------------
+
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c
+b/net/ipv4/netfilter/ip_conntrack_core.c
+index ceaabc1..d9dbe0f 100644
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -1130,18 +1130,21 @@ void __ip_ct_refresh_acct(struct ip_conn
+
+ 	write_lock_bh(&ip_conntrack_lock);
+-------
+Please just do:
+	if (test_bit(...))
+		return;
+-------
+
+-	/* If not in hash table, timer will not be active yet */
+-	if (!is_confirmed(ct)) {
+-		ct->timeout.expires = extra_jiffies;
+-		event = IPCT_REFRESH;
+-	} else {
+-		/* Need del_timer for race avoidance (may already be dying). */
+-		if (del_timer(&ct->timeout)) {
+-			ct->timeout.expires = jiffies + extra_jiffies;
+-			add_timer(&ct->timeout);
+-			event = IPCT_REFRESH;
+-		}
+-	}
++    /* only update if this is not a fixed timeout */
++    if (! test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status)){
++        /* If not in hash table, timer will not be active yet */
++        if (!is_confirmed(ct)) {
++            ct->timeout.expires = extra_jiffies;
++            event = IPCT_REFRESH;
++        } else {
++            /* Need del_timer for race avoidance (may already be dying). */
++            if (del_timer(&ct->timeout)) {
++                ct->timeout.expires = jiffies + extra_jiffies;
++                add_timer(&ct->timeout);
++                event = IPCT_REFRESH;
++            }
++        }
++    }
+
+ #ifdef CONFIG_IP_NF_CT_ACCT
+ 	if (do_acct) {
