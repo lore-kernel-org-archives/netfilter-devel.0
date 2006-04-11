@@ -1,15 +1,16 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: problem in iptables!!!
-Date: Tue, 11 Apr 2006 10:04:20 +0900 (JST)
-Message-ID: <200604110104.k3B14K6U026702@toshiba.co.jp>
-References: <443A5907.7000202@rocsys.com>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [PATCH 4/4] first conntrack ID must be 1 not 2
+Date: Tue, 11 Apr 2006 17:09:31 +0100
+Message-ID: <443BD4BB.7090806@ufomechanic.net>
+References: <Pine.LNX.4.58.0602160943060.26770@blackhole.kfki.hu>	<43F43FA9.4000906@trash.net>	<Pine.LNX.4.58.0602161005450.26770@blackhole.kfki.hu>	<43F4426D.9060807@trash.net>	<Pine.LNX.4.58.0602161017590.26770@blackhole.kfki.hu>	<43F4DBDF.9010008@trash.net>	<442B9765.2020105@ufomechanic.net>	<442C81A6.3040501@trash.net>	<Pine.LNX.4.58.0603312026030.9154@blackhole.kfki.hu>	<442D78A8.4050300@trash.net>	<20060401193138.GG11031@sunbeam.de.gnumonks.org>
+	<4434F53A.2030302@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: varun@rocsys.com
-In-Reply-To: <443A5907.7000202@rocsys.com>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4434F53A.2030302@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,42 +22,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: varun <varun@rocsys.com>
-Date: Mon, 10 Apr 2006 18:39:27 +0530
-
-> Hi all,
+Patrick McHardy wrote:
+> Harald Welte wrote:
 > 
->              I have a small problem with iptables. Iam trying to use 
-> iptables in an Cyberton Board (ARM). I compiled it with ucLibc. and i 
-> also put the images on the board. Then when board comes up i manually 
-> insmoded the following modules.
+>>So if there's now a majority of people who want to delete the ID: Go for
+>>it :)
 > 
-> ip_conntrack.ko    ipt_REJECT.ko      ipt_state.ko
-> ip_tables.ko       ipt_conntrack.ko   iptable_filter.ko
 > 
-> Then i tried to add a policy
->                       iptables -t filter -A OUTPUT -j REJECT
->  This works well in my PC with the 2.6 kernel but gives this error on 
-> the same kernel arm compiled.
->                       The error i get is
->                       iptables v1.2.11: Couldn't find target `REJECT'
+> Found the patch again. What it does is:
 > 
->                        Try `iptables -h' or 'iptables --help' for more 
-> information.
+> - note entry of next conntrack to be dumped and keep a reference to it
+> - when continuing, look for the conntrack and continue at it if its
+>   still there
+> - if not, dump the entire bucket again
+> 
+> In theory we could end up in an endless loop if the conntrack entry
+> we're keeping the reference to is deleted everytime we want to
+> continue dumping. 
 
-This message means that shared library libipt_REJECT.so isn't not found.
+Why not defer the ip_conntrack_put until after ctnetlink_fill_info, 
+would that avoid the problem altogether?
 
-> Can someone tell me what is wrong?
+It's no longer the entry of the next conntrack but the entry of the last 
+conntrack by the time it gets deleted then...? Or have I misunderstood 
+the way in which the loop would occur?
 
-I think that you didn't install shared libraries for matches/targets
-to your image even though you build iptables without statically linking
-them.
-
-If so, you have 2 options.
-	- You can install them to /usr/local/lib/iptables (or path you
-	  specified clearly when building iptables) on image.
-
-	- You can build iptables statically linking them by
-	  'make NO_SHARED_LIBS=1' .
-
--- Yasuyuki Kozakai
+Sam
