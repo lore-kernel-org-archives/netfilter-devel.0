@@ -1,17 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 4/4] fix the path to detect esp/connbytes support in
-	kernel
-Date: Wed, 12 Apr 2006 10:59:26 +0200
-Message-ID: <20060412085926.GR31616@sunbeam.de.gnumonks.org>
-References: <200604071134.k37BYXMq007297@toshiba.co.jp>
+Subject: Re: [PATCH IP{,
+	6}TABLES 0/4] fix loading icmpv6 module and minor changes
+Date: Wed, 12 Apr 2006 12:43:18 +0200
+Message-ID: <20060412104318.GS31616@sunbeam.de.gnumonks.org>
+References: <200604071130.k37BUBa3009024@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="kPJUzav3owWaKxsz"
-Cc: netfilter-devel@lists.netfilter.org, kaber@trash.net
+	protocol="application/pgp-signature"; boundary="D8QxnvyRlKGQJxl7"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <200604071134.k37BYXMq007297@toshiba.co.jp>
+In-Reply-To: <200604071130.k37BUBa3009024@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,19 +23,29 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---kPJUzav3owWaKxsz
+--D8QxnvyRlKGQJxl7
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Apr 07, 2006 at 08:34:32PM +0900, Yasuyuki KOZAKAI wrote:
-> [IPTABLES,IP6TABLES]: fix the path to detect esp/connbytes support in ker=
-nel
+On Fri, Apr 07, 2006 at 08:30:11PM +0900, Yasuyuki KOZAKAI wrote:
 >=20
-> The recent kernels don't have ipt_connbytes.c and ip6t_esp.c.
+> Hi,
+>=20
+> One patch fixes unusable icmpv6 because ip6tables doesn't try to load
+> libip6t_icmpv6.so. Others are minor fixes/cleanup in ip{,6}tables.
+>=20
+> If no objection/miss, I'll commit them next weekend.
 
-thanks, applied.  Please commit such changes to svn on your own in the
-future.
+ah, ok. pleaes ignore my comment from a couple of minutes ago.  Please
+commit at least simple fixes like this immediately in the future.=20
+
+The changes are visible in the changelog (netfilter-cvslog mailinglist),
+and if there really are any problems with a change, we can always fix
+it incrementally.
+
+Thanks!
+
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -47,16 +56,16 @@ future.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---kPJUzav3owWaKxsz
+--D8QxnvyRlKGQJxl7
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.3 (GNU/Linux)
 
-iD8DBQFEPMFuXaXGVTD0i/8RAhbeAJ9glTuC3hKetjjB2TVPVTz0SAyhZwCffLmx
-srBOHN66mwAr1wkoYQGLEMU=
-=DYSM
+iD8DBQFEPNnGXaXGVTD0i/8RAtuHAJ4hfbptZv243TmecL6WSygN9iKjEwCeNQuK
+QPQHf5dd7ZifbIYqsLnsST4=
+=UPlv
 -----END PGP SIGNATURE-----
 
---kPJUzav3owWaKxsz--
+--D8QxnvyRlKGQJxl7--
