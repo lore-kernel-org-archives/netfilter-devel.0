@@ -1,14 +1,17 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 2/2] nf_conntrack: kill unused callback init_conntrack
-Date: Thu, 13 Apr 2006 21:01:47 +0900 (JST)
-Message-ID: <200604131201.k3DC1m4I028628@toshiba.co.jp>
+From: "Julien VALIENTE" <julien.valiente@objectif-software.com>
+Subject: RE: c++ linking problems
+Date: Wed, 12 Apr 2006 23:23:13 +0200
+Message-ID: <EMEILMFFPPCJGNCLPMGJKEDOHDAA.julien.valiente@objectif-software.com>
+References: <443D6B0F.3050206@khaletech.com>
+Reply-To: julien.valiente@objectif-software.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-Content-Disposition: inline; filename="02-kill-unused-init.patch"
+To: <jay.hester@khaletech.com>,
+	<netfilter-devel@lists.netfilter.org>
+In-Reply-To: <443D6B0F.3050206@khaletech.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,31 +23,86 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER] nf_conntrack: kill unused callback init_conntrack
+Hi,
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+I met this kind of problem. I solved it with the use of a c++ 'extern C'
+around my include (tested with iptables-1.2.6a):
+	extern "C" {
+	#include <linux/netfilter.h>
+	#include <libipq.h>
+	}
 
----
-commit f1564c6e1adcdc14d7e1ab29bafcb9938dc505ea
-tree bfb20cb9067537f117785eff788f806d0c3da0a0
-parent 783e57517c558ae41171d71496035c08f2e9613c
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 06 Apr 2006 19:00:12 +0900
-committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 13 Apr 2006 15:05:26 +0900
+Regards,
 
- net/netfilter/nf_conntrack_core.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+J. Valiente
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 9a2410d..cb423c3 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -178,9 +178,6 @@ static struct {
- 	/* allocated slab cache + modules which uses this slab cache */
- 	int use;
- 
--	/* Initialization */
--	int (*init_conntrack)(struct nf_conn *, u_int32_t);
--
- } nf_ct_cache[NF_CT_F_NUM];
- 
- /* protect members of nf_ct_cache except of "use" */
+
+> -----Message d'origine-----
+> De : netfilter-devel-bounces@lists.netfilter.org
+> [mailto:netfilter-devel-bounces@lists.netfilter.org]De la part de Jay
+> Hester
+> Envoyé : mercredi 12 avril 2006 23:03
+> À : netfilter-devel@lists.netfilter.org
+> Objet : c++ linking problems
+>
+>
+> Hello,
+>      This is probably something easy that i'm overlooking, but how do
+> you link in netfilter_queue in to a c++ program?
+>
+>      I've lightly modified the code in
+> libnetfilter_queue-<vers>/utils/nfqnl_test.c to build a test program.
+> When I try to compile the program i'm getting lots of linking errors
+> like this:
+>
+> [jbhester@sidewinder src]$ make
+>  cd .. && /bin/sh /home/jbhester/projects/midevil/missing --run
+> automake-1.9 --gnu  src/Makefile
+>  cd .. && /bin/sh ./config.status src/Makefile depfiles
+> config.status: creating src/Makefile
+> config.status: executing depfiles commands
+> g++  -g -O2   -o nfq_test  nfq_test.o  -lnetfilter_queue -lnfnetlink
+> nfq_test.o: In function
+> `main':/home/jbhester/projects/midevil/src/nfq_test.cpp:41: undefined
+> reference to `nfq_open()'
+> :/home/jbhester/projects/midevil/src/nfq_test.cpp:47: undefined
+> reference to `nfq_unbind_pf(nfq_handle*, unsigned short)'
+> :/home/jbhester/projects/midevil/src/nfq_test.cpp:52: undefined
+> reference to `nfq_bind_pf(nfq_handle*, unsigned short)'
+> :/home/jbhester/projects/midevil/src/nfq_test.cpp:57: undefined
+> reference to `nfq_create_queue(nfq_handle*, unsigned short, int
+> (*)(nfq_q_handle*, nfgenmsg*, nfq_data*, void*), void*)'
+> :/home/jbhester/projects/midevil/src/nfq_test.cpp:63: undefined
+> reference to `nfq_set_mode(nfq_q_handle*, unsigned char, unsigned int)'
+> :/home/jbhester/projects/midevil/src/nfq_test.cpp:68: undefined
+> reference to `nfq_nfnlh(nfq_handle*)'
+> :/home/jbhester/projects/midevil/src/nfq_test.cpp:69: undefined
+> reference to `nfnl_fd(nfnl_handle*)'
+> :/home/jbhester/projects/midevil/src/nfq_test.cpp:73: undefined
+> reference to `nfq_handle_packet(nfq_handle*, char*, int)'
+> :/home/jbhester/projects/midevil/src/nfq_test.cpp:77: undefined
+> reference to `nfq_destroy_queue(nfq_q_handle*)'
+> :/home/jbhester/projects/midevil/src/nfq_test.cpp:80: undefined
+> reference to `nfq_close(nfq_handle*)'
+> nfq_test.o: In function
+> `process':/home/jbhester/projects/midevil/src/nfq_test.cpp:19: undefined
+> reference to `nfq_get_msg_packet_hdr(nfq_data*)'
+> :/home/jbhester/projects/midevil/src/nfq_test.cpp:24: undefined
+> reference to `nfq_get_payload(nfq_data*, char**)'
+> :/home/jbhester/projects/midevil/src/nfq_test.cpp:28: undefined
+> reference to `nfq_set_verdict(nfq_q_handle*, unsigned int, unsigned int,
+> unsigned int, unsigned char*)'
+> collect2: ld returned 1 exit status
+> make: *** [nfq_test] Error 1
+>
+>
+>     I've tried lots of things like adding "nfq_test_LDADD =
+> /usr/local/lib/libnetfilter_queue.[a|so]", and using the dynamic linking
+> as a dso object, but nothing is working.
+>
+>     Thanks ahead of time for the help.
+>
+> Jay
+>
+>
+>
