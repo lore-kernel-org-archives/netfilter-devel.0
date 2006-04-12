@@ -1,16 +1,20 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nth, random and fuzzy match
-Date: Wed, 12 Apr 2006 20:57:49 +0200
-Message-ID: <443D4DAD.4040908@trash.net>
-References: <4435559A.60904@trash.net>
-	<20060412084719.GP31616@sunbeam.de.gnumonks.org>
+Subject: Re: [PATCH 1/3] [kernel patch] fixed duration connection
+Date: Wed, 12 Apr 2006 21:06:54 +0200
+Message-ID: <443D4FCE.2030802@trash.net>
+References: <1144139619.5186.24.camel@localhost.localdomain>
+	<4433CCBF.6060103@trash.net> <4436DF6B.4060208@inl.fr>
+	<4436E03E.9030402@inl.fr> <44381584.4020109@trash.net>
+	<20060412083835.GN31616@sunbeam.de.gnumonks.org>
+	<20060412104824.GU31616@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	nufw-devel@nongnu.org, Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20060412084719.GP31616@sunbeam.de.gnumonks.org>
+In-Reply-To: <20060412104824.GU31616@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,16 +27,10 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Harald Welte wrote:
-> On Thu, Apr 06, 2006 at 07:53:30PM +0200, Patrick McHardy wrote:
-> 
->>So my questions to the nth users: is anyone using the nth
->>match in a way that can't be done by just matching on every
->>nth packet with an optional starting point?
-> 
-> 
-> I suggest posting this to the users mailinglist, since the question is
-> addressed to users :)
+> I don't think we need a config option, but actually could enable this
+> statically.
 
-I already decided for myself, the functionality is not affected
-by removing the shared counters, it just needs to be used
-slightly different in some cases.
+OK, I'm going to queue this for 2.6.18 then.
+
+Eric, can you please add nf_conntrack support and repost the entire
+patchset? Thanks.
