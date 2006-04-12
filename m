@@ -1,51 +1,69 @@
-From: varun <varun@rocsys.com>
-Subject: iptables doubt
-Date: Wed, 12 Apr 2006 19:24:47 +0530
-Message-ID: <443D06A7.1060504@rocsys.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Could you please update the Netfilter Extensions HOWTO ?
+Date: Wed, 12 Apr 2006 16:34:27 +0200
+Message-ID: <20060412143427.GK31616@sunbeam.de.gnumonks.org>
+References: <20060412131009.GF31616@sunbeam.de.gnumonks.org>
+	<!&!AAAAAAAAAAAuAAAAAAAAAGijumR0/exNlphhAnEGGE0BADBNQamd5u1NvceZIhpjukkAAAABmqQAABAAAAACyLrwgELSSJLw9zJ5rXh9AQAAAAA=@vsb.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="a7qI9m+4lZX6A7IJ"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Netfilter Mailinglist <netfilter@lists.netfilter.org>
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: "Ing. BcA. Ivan Dolezal" <ivan.dolezal@vsb.cz>
+Content-Disposition: inline
+In-Reply-To: <!&!AAAAAAAAAAAuAAAAAAAAAGijumR0/exNlphhAnEGGE0BADBNQamd5u1NvceZIhpjukkAAAABmqQAABAAAAACyLrwgELSSJLw9zJ5rXh9AQAAAAA=@vsb.cz>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
 
-             Iam new to netfilters and iam trying to play around to 
-understand a few things. By default when no policies are specified then 
-it allows all traffic to go out and in to the n/w. I want to change this 
-to default as deny.
-             That is when there is no policy all should be default deny.
+--a7qI9m+4lZX6A7IJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-           So in order to achieve that i tried to change the  code a little.
-            In the file iptable_filter.c there is a variable called 
-static int forward = NF_ACCEPT
-             I changed this to NF_DROP and when i compiled and used it 
-sure i was not able to send any or recv any packets
-             but even after i give a policy like iptables -t filter -A 
-INPUT -j ACCEPT
-             Nothing changes. So achieve what i want what should i do? 
-And where do i change?
+On Wed, Apr 12, 2006 at 03:39:57PM +0200, Ing. BcA. Ivan Dolezal wrote:
+=20
+> Do you think there is something that a total non-developer can do for the
+> documentatiton project (in exchange for the prestigious e-mail
+> @netfilter.org) ?
 
-             Another thing is that in normally when i put a policy like 
-iptables -t filter -A OUTPUT -j REJECT
-              Even my own self IP doesnt ping? Why should this happen?
-               Isint it ok to ping local ip and loopback ip?
-                If i want such implementation where i should be able to 
-ping to self and local but not any other ip?
-                Is it possible?
-                I dont want to add policies rather is it possible just 
-by changing the iptables kernel code?
+well, documentation can actually be written by any user who has managed
+to successfully use the particular to-be-documented software.
 
-                Please help me on this?
+So every (power-)user is a potential candidate for
+writing/maintaining/updating documentation.  Patches against the
+XML/SGLM master documents in the 'documentation' subtree of
+svn.netfilter.org are _always_ welcome.
 
-Varun
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--a7qI9m+4lZX6A7IJ
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
+
+iD8DBQFEPQ/zXaXGVTD0i/8RAp+eAJ9I+jwzdVjKqptp9+pw0DCKW1SGiQCfZnlh
+czJccWBS7SIllX+ibZYp2Gg=
+=JVLg
+-----END PGP SIGNATURE-----
+
+--a7qI9m+4lZX6A7IJ--
