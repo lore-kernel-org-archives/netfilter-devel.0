@@ -1,69 +1,34 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Could you please update the Netfilter Extensions HOWTO ?
-Date: Wed, 12 Apr 2006 16:34:27 +0200
-Message-ID: <20060412143427.GK31616@sunbeam.de.gnumonks.org>
-References: <20060412131009.GF31616@sunbeam.de.gnumonks.org>
-	<!&!AAAAAAAAAAAuAAAAAAAAAGijumR0/exNlphhAnEGGE0BADBNQamd5u1NvceZIhpjukkAAAABmqQAABAAAAACyLrwgELSSJLw9zJ5rXh9AQAAAAA=@vsb.cz>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC: 2.6 patch] the overdue removal of ip{,6}_queue
+Date: Wed, 12 Apr 2006 20:14:13 +0200
+Message-ID: <443D4375.2060105@trash.net>
+References: <20060409180105.GK8454@stusta.de> <44395505.1070608@trash.net> <20060411090139.GI5167@rama.linbit> <443BC06A.8020103@trash.net> <20060411182624.GD31616@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="a7qI9m+4lZX6A7IJ"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: "Ing. BcA. Ivan Dolezal" <ivan.dolezal@vsb.cz>
-Content-Disposition: inline
-In-Reply-To: <!&!AAAAAAAAAAAuAAAAAAAAAGijumR0/exNlphhAnEGGE0BADBNQamd5u1NvceZIhpjukkAAAABmqQAABAAAAACyLrwgELSSJLw9zJ5rXh9AQAAAAA=@vsb.cz>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Adrian Bunk <bunk@stusta.de>, coreteam@netfilter.org,
+	netdev@vger.kernel.org, sds@tycho.nsa.gov, jmorris@namei.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@lists.netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20060411182624.GD31616@sunbeam.de.gnumonks.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
+> On Tue, Apr 11, 2006 at 04:42:50PM +0200, Patrick McHardy wrote:
+> 
+>>I think we need to do two things:
+>>
+>>- make libipq_compat a drop-in replacement that doesn't require
+>>  recompilation
+> 
+> 
+> libipq is not distributed as a shared library (at least not by us), so I
+> don't see any purpose for doing so.  Do you think anyone is going to
+> re-link statically linked code against the new lib
 
---a7qI9m+4lZX6A7IJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Apr 12, 2006 at 03:39:57PM +0200, Ing. BcA. Ivan Dolezal wrote:
-=20
-> Do you think there is something that a total non-developer can do for the
-> documentatiton project (in exchange for the prestigious e-mail
-> @netfilter.org) ?
-
-well, documentation can actually be written by any user who has managed
-to successfully use the particular to-be-documented software.
-
-So every (power-)user is a potential candidate for
-writing/maintaining/updating documentation.  Patches against the
-XML/SGLM master documents in the 'documentation' subtree of
-svn.netfilter.org are _always_ welcome.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---a7qI9m+4lZX6A7IJ
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQFEPQ/zXaXGVTD0i/8RAp+eAJ9I+jwzdVjKqptp9+pw0DCKW1SGiQCfZnlh
-czJccWBS7SIllX+ibZYp2Gg=
-=JVLg
------END PGP SIGNATURE-----
-
---a7qI9m+4lZX6A7IJ--
+I wasn't aware of that. That makes it even worse, old applications
+will break and we can't do anything about it. I think this is
+normally considered not acceptable.
