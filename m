@@ -1,16 +1,15 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH IP{,
-	6}TABLES 0/4] fix loading icmpv6 module and minor changes
-Date: Wed, 12 Apr 2006 12:43:18 +0200
-Message-ID: <20060412104318.GS31616@sunbeam.de.gnumonks.org>
-References: <200604071130.k37BUBa3009024@toshiba.co.jp>
+Subject: Re: configuration error
+Date: Wed, 12 Apr 2006 12:44:03 +0200
+Message-ID: <20060412104403.GT31616@sunbeam.de.gnumonks.org>
+References: <20060408071605.21695.qmail@web34203.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="D8QxnvyRlKGQJxl7"
+	protocol="application/pgp-signature"; boundary="rQAi4ZBraoACHIeu"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <200604071130.k37BUBa3009024@toshiba.co.jp>
+In-Reply-To: <20060408071605.21695.qmail@web34203.mail.mud.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,28 +22,27 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---D8QxnvyRlKGQJxl7
+--rQAi4ZBraoACHIeu
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Apr 07, 2006 at 08:30:11PM +0900, Yasuyuki KOZAKAI wrote:
->=20
+On Sat, Apr 08, 2006 at 12:16:05AM -0700, Gokul K wrote:
 > Hi,
 >=20
-> One patch fixes unusable icmpv6 because ip6tables doesn't try to load
-> libip6t_icmpv6.so. Others are minor fixes/cleanup in ip{,6}tables.
+> I'm trying to install a software called seppl. While
+> configuring i'm getting the following errors.
 >=20
-> If no objection/miss, I'll commit them next weekend.
+> checking iptables.h usability... yes
+> checking iptables.h presence... yes
+> checking for iptables.h... yes
+> checking for /lib/iptables... configure: error: ***
+> Sorry, failed to find iptables plugin directory ***
+>=20
+> can anyone tell how to overcome this
 
-ah, ok. pleaes ignore my comment from a couple of minutes ago.  Please
-commit at least simple fixes like this immediately in the future.=20
-
-The changes are visible in the changelog (netfilter-cvslog mailinglist),
-and if there really are any problems with a change, we can always fix
-it incrementally.
-
-Thanks!
+I suggest you contact the seppl author(s). We have no idea what the
+configure script of this software tries to do.
 
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
@@ -56,16 +54,16 @@ Thanks!
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---D8QxnvyRlKGQJxl7
+--rQAi4ZBraoACHIeu
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.3 (GNU/Linux)
 
-iD8DBQFEPNnGXaXGVTD0i/8RAtuHAJ4hfbptZv243TmecL6WSygN9iKjEwCeNQuK
-QPQHf5dd7ZifbIYqsLnsST4=
-=UPlv
+iD8DBQFEPNnzXaXGVTD0i/8RAstjAKCozbNAYbkiTzezp8jhblOP7PN46ACfXsUD
+x91cysYQ53/3cYZxBaDR4VY=
+=mKn4
 -----END PGP SIGNATURE-----
 
---D8QxnvyRlKGQJxl7--
+--rQAi4ZBraoACHIeu--
