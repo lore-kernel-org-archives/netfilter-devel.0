@@ -1,89 +1,51 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Could you please update the Netfilter Extensions HOWTO ?
-Date: Wed, 12 Apr 2006 15:10:09 +0200
-Message-ID: <20060412131009.GF31616@sunbeam.de.gnumonks.org>
-References: <!&!AAAAAAAAAAAuAAAAAAAAAGijumR0/exNlphhAnEGGE0BADBNQamd5u1NvceZIhpjukkAAAABmqQAABAAAAAzRR9OvepsR68zTFrgVL60AQAAAAA=@vsb.cz>
+From: varun <varun@rocsys.com>
+Subject: iptables doubt
+Date: Wed, 12 Apr 2006 19:24:47 +0530
+Message-ID: <443D06A7.1060504@rocsys.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+DRhDX4TDhSuvTBU"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Netfilter Mailinglist <netfilter@lists.netfilter.org>
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: "Ing. BcA. Ivan Dolezal" <ivan.dolezal@vsb.cz>
-Content-Disposition: inline
-In-Reply-To: <!&!AAAAAAAAAAAuAAAAAAAAAGijumR0/exNlphhAnEGGE0BADBNQamd5u1NvceZIhpjukkAAAABmqQAABAAAAAzRR9OvepsR68zTFrgVL60AQAAAAA=@vsb.cz>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hi all,
 
---+DRhDX4TDhSuvTBU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+             Iam new to netfilters and iam trying to play around to 
+understand a few things. By default when no policies are specified then 
+it allows all traffic to go out and in to the n/w. I want to change this 
+to default as deny.
+             That is when there is no policy all should be default deny.
 
-On Wed, Apr 12, 2006 at 02:34:54PM +0200, Ing. BcA. Ivan Dolezal wrote:
-=20
->    this may sound stupid but could you please update the Netfilter
-> Extensions HOWTO? It says something about using CVS which doesn't work. I
-> found somewhere in a mailing list that I should use Subversion. When I
-> downloaded the stuff, I was confused from more patch-o-matics. It all made
-> me quite disgusted...
->=20
->    I do appreciate your work, but its usefulness goes down with smoothness
-> of usage.
+           So in order to achieve that i tried to change the  code a little.
+            In the file iptable_filter.c there is a variable called 
+static int forward = NF_ACCEPT
+             I changed this to NF_DROP and when i compiled and used it 
+sure i was not able to send any or recv any packets
+             but even after i give a policy like iptables -t filter -A 
+INPUT -j ACCEPT
+             Nothing changes. So achieve what i want what should i do? 
+And where do i change?
 
-The extensions HOWTO (which was contributed to netfilter.org) was
-abandoned by its original author, as it seems.=20
+             Another thing is that in normally when i put a policy like 
+iptables -t filter -A OUTPUT -j REJECT
+              Even my own self IP doesnt ping? Why should this happen?
+               Isint it ok to ping local ip and loopback ip?
+                If i want such implementation where i should be able to 
+ping to self and local but not any other ip?
+                Is it possible?
+                I dont want to add policies rather is it possible just 
+by changing the iptables kernel code?
 
-A volunteer project lives from contributions by volunteers.=20
+                Please help me on this?
 
-The netfilter core team is mostly busy with development tasks and with
-keeping the project running.  There's no time left for any kind of
-documentation, I fear.
-
-We don't even have a webmaster - the core developers themselves are
-taking care of that (involuntarily).
-
-The only non-technical project member we have is Travis, our listmaster.
-
->    Did you guys think of transfering docs to wiki?
-
-A wiki needs somebody who takes care of the maintenance.  Otherwise you
-get problems with inaccurate information, spam and the like.  So whether
-a wiki or old-style HOWTOS: Somebody needs to take care.
-
-Unless we see more people volunteering in the area of documentation, I
-don't think this is going to change, sorry.
-
-Cheers,
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---+DRhDX4TDhSuvTBU
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQFEPPwxXaXGVTD0i/8RAt/sAKCu99zTaZSilcR8oe5HJtNeVkkShQCgglNG
-cSVGh+zX6iB2js0+EUV6UbM=
-=mp2r
------END PGP SIGNATURE-----
-
---+DRhDX4TDhSuvTBU--
+Varun
