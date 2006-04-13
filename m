@@ -1,21 +1,12 @@
-From: "Eric Leblond" <eric@inl.fr>
-Subject: Re: [PATCH 1/3] [kernel patch] fixed duration connection
-Date: Thu, 13 Apr 2006 18:17:46 +0200 (CEST)
-Message-ID: <56883.194.167.18.244.1144945066.squirrel@mail.inl.fr>
-References: <1144139619.5186.24.camel@localhost.localdomain>
-	<4433CCBF.6060103@trash.net> <4436DF6B.4060208@inl.fr>
-	<4436E03E.9030402@inl.fr> <44381584.4020109@trash.net>
-	<20060412083835.GN31616@sunbeam.de.gnumonks.org>
-	<20060412104824.GU31616@sunbeam.de.gnumonks.org>
-	<443D4FCE.2030802@trash.net>
+From: Sebastien Tandel <standel@info.ucl.ac.be>
+Subject: Re: iptables doubt
+Date: Thu, 13 Apr 2006 18:57:20 +0200
+Message-ID: <443E82F0.5020102@info.ucl.ac.be>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;boundary="----=_20060413181746_99570"
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	nufw-devel@nongnu.org, Eric Leblond <eric@inl.fr>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <443D4FCE.2030802@trash.net>
-To: "Patrick McHardy" <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,91 +18,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-------=_20060413181746_99570
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> Harald Welte wrote:
->> I don't think we need a config option, but actually could enable this
->> statically.
+Sven-Haegar Koch wrote:
+> On Thu, 13 Apr 2006, varun wrote:
 >
-> OK, I'm going to queue this for 2.6.18 then.
-
-That's a GREAT news, I've already found peoples that love this new feature.
-
+>>                         The features i want to implement like that
+>> priority for policy is that imagine a scenario where user added some
+>> policies and then for some reason wants one policy to be checked
+>> before checking others then he would have to add the policy again and
+>> delete the old policy isint it?
 >
-> Eric, can you please add nf_conntrack support and repost the entire
-> patchset? Thanks.
+>
+> Every iptables rule change is loading the whole ruleset into userspace,
+> modifying it, and copying the result back into kernelspace.
+>
+> So you should be able to fetch the rules (f.e. with iptables-save),
+> modify them as you like, and push them back (iptables-restore).
+>
+> c'ya
+> sven
+>
 
-Here it is.
+which is not robust when competing with another user script doing some
+change to netfilter ... i.e. there is no function doing an atomic move.
 
-I've done
-       if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status)){
-               write_unlock_bh(&ip_conntrack_lock);
-               return;
-       }
-to unlock before leaving the function.
+sta
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-Best regards,
---
-Eric Leblond
-------=_20060413181746_99570
-Content-Type: text/x-patch; name="fixed_timeout-flag.patch"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: attachment; filename="fixed_timeout-flag.patch"
-
-diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
-index 3ff88c8..68d282d 100644
---- a/include/linux/netfilter/nf_conntrack_common.h
-+++ b/include/linux/netfilter/nf_conntrack_common.h
-@@ -69,6 +69,11 @@ enum ip_conntrack_status {
- 	/* Connection is dying (removed from lists), can not be unset. */
- 	IPS_DYING_BIT = 9,
- 	IPS_DYING = (1 << IPS_DYING_BIT),
-+
-+    /* Connection has fixed timeout. */
-+	IPS_FIXED_TIMEOUT_BIT = 10,
-+	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT),
-+
- };
- 
- /* Connection tracking event bits */
-diff --git a/include/linux/netfilter/nfnetlink_conntrack.h b/include/linux/netfilter/nfnetlink_conntrack.h
-diff --git a/include/linux/netfilter_ipv4/ip_conntrack.h b/include/linux/netfilter_ipv4/ip_conntrack.h
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
-index ceaabc1..d34edd7 100644
---- a/net/ipv4/netfilter/ip_conntrack_core.c
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -1130,6 +1130,12 @@ void __ip_ct_refresh_acct(struct ip_conn
- 
- 	write_lock_bh(&ip_conntrack_lock);
- 
-+	/* Only update if this is not a fixed timeout */
-+	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status)){
-+		write_unlock_bh(&ip_conntrack_lock);
-+		return;
-+	}
-+
- 	/* If not in hash table, timer will not be active yet */
- 	if (!is_confirmed(ct)) {
- 		ct->timeout.expires = extra_jiffies;
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 56389c8..a880692 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1403,6 +1403,12 @@ void __nf_ct_refresh_acct(struct nf_conn
- 
- 	write_lock_bh(&nf_conntrack_lock);
- 
-+	/* Only update if this is not a fixed timeout */
-+	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status)) {
-+		write_unlock_bh(&nf_conntrack_lock);
-+		return;
-+	}
-+
- 	/* If not in hash table, timer will not be active yet */
- 	if (!nf_ct_is_confirmed(ct)) {
- 		ct->timeout.expires = extra_jiffies;
-------=_20060413181746_99570--
+iD8DBQFEPoLww76McB8jGxkRAs7AAJ9ICzjiB1J/V82UIOsqyKT9AyeGMQCgjiMd
+Maq9ku/nKaaXv81wdGd+zU8=
+=2j+D
+-----END PGP SIGNATURE-----
