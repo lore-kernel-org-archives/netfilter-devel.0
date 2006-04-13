@@ -1,17 +1,17 @@
-From: varun <varun@rocsys.com>
+From: Sebastien Tandel <standel@info.ucl.ac.be>
 Subject: Re: iptables doubt
-Date: Thu, 13 Apr 2006 19:23:42 +0530
-Message-ID: <443E57E6.8080005@rocsys.com>
+Date: Thu, 13 Apr 2006 16:16:27 +0200
+Message-ID: <443E5D3B.7000608@info.ucl.ac.be>
 References: <443D06A7.1060504@rocsys.com> <443E21C1.9090508@info.ucl.ac.be>
 	<443E341F.1080206@rocsys.com> <443E42E6.2010405@info.ucl.ac.be>
 	<443E4BAA.3020607@rocsys.com> <443E4F34.10206@info.ucl.ac.be>
+	<443E57E6.8080005@rocsys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sebastien Tandel <standel@info.ucl.ac.be>
-In-Reply-To: <443E4F34.10206@info.ucl.ac.be>
+To: varun <varun@rocsys.com>, netfilter-devel@lists.netfilter.org
+In-Reply-To: <443E57E6.8080005@rocsys.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,272 +23,53 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Sebastien,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-                         Well i do not want to use policy from user 
-space because , the very need for me to do this activity is to play 
-around and get to understand netfilter iptables.
+Hi,
 
-                          The features i want to implement like that 
-priority for policy is that imagine a scenario where user added some 
-policies and then for some reason wants one policy to be checked before 
-checking others then he would have to add the policy again and delete 
-the old policy isint it?
-                          By the thanx for the help man and can you 
-suggest me some good mailing list which deal with iptables development 
-where newbies like me could get some help. This mailing list does not 
-seem to help newbies much.
+varun wrote:
+> Hi Sebastien,
+> 
+>                         Well i do not want to use policy from user space
+> because , the very need for me to do this activity is to play around and
+> get to understand netfilter iptables.
 
-Varun
+ok ... that's the point :)
 
+> 
+>                          The features i want to implement like that
+> priority for policy is that imagine a scenario where user added some
+> policies and then for some reason wants one policy to be checked before
+> checking others then he would have to add the policy again and delete
+> the old policy isint it?
 
-Sebastien Tandel wrote:
+Yes it is correct ... even if this may seem curious I think it is not
+the worth to add such a mechanism to netfilter. IMHO, a switch option
+'-M' (MOVE) would be sufficient but not with all these unique-id's ... I
+fear that with the time this number list would be completely fragmented
+and human-unreadable
+I don't know wether it had already been discussed on this mailing-list.
+IMHO, it is not a strong requirement for iptables/netfilter and this
+situation may be handled in a semi-automatic way with a user script
+(with the danger, however, of having a race condition with another user
+script changing netfilter too).
+Of course, if it is another exercise to play with netfilter do it and
+have fun ;)
 
->-----BEGIN PGP SIGNED MESSAGE-----
->Hash: SHA1
->
->varun wrote:
->  
->
->>Hi Sebastien,
->>
->>                          Thanx again. Yeah i cannot set a rule for lo.
->>Though it is not necessary in my case i would like have that option. So
->>is static rule only the way?
->>    
->>
->
->I think so ...
->
->Why do you want to code it directly in netfilter instead of using the
->init.d scripts?
->
->  
->
->>                          Another thing is i want to implement rule
->>priority.
->>                           That is after the rules are set when a packet
->>arrives it needs to search the rule chain. I want that to searched with
->>respect to priority. So even the user can change the priority of already
->>set rule as he likes. Is it already implemented in iptables or is it
->>needed to be implemented?
->>
->>                            I also want to maintain unique rule id. That
->>is say i declair unsigned int i;
->>                            So for any rule be it nat or anything this
->>is global rule id that is assigned to any policy added.
->>                           By this say if a user added a rule whose id i
->>give as 15. And then he deletes it then after adding another policy he
->>will get policy id of 16 and not 15. rule no 15 will be given only after
->>full size of unsigned int is completed, i mean one full circle (i = 0 to
->>i=4294967295). So to do it how should i go about it? Any suggestions?
->>
->>Varun
->>    
->>
->
->It is clearly not implemented and I haven't any clue for you on this
->matter but ... What will be the benefit of it?
->
->  
->
->>Sebastien Tandel wrote:
->>
->>
->>varun wrote:
->> 
->>
->>    
->>
->>>>>Hi Sebastien,
->>>>>
->>>>>                          Thanx for the reply. Actually i did figure
->>>>>out some things. It seems to work fine but iam not sure if may lead to
->>>>>any problem. This is what i have done.
->>>>>Instead of adding static routes what i have done is added this small
->>>>>code in the function ipt_do_table.
->>>>>
->>>>>                            if(in == NULL)
->>>>>                 goto jump;
->>>>>        if(memcmp(in->name,"lo",2) == 0)
->>>>>            {
->>>>>                 verdict = NF_ACCEPT;
->>>>>                 return verdict;
->>>>>            }
->>>>>
->>>>>jump:
->>>>>* We handle fragments by dealing with the first fragment as
->>>>>       * if it was a normal packet.  All other fragments are treated
->>>>>       * normally, except that they will NEVER match rules that ask
->>>>>       * things we don't know, ie. tcp syn flag or ports).  If the
->>>>>       * rule is also a fragment-specific rule, non-fragments won't
->>>>>       * match it. */
->>>>>      offset = ntohs(ip->frag_off) & IP_OFFSET;
->>>>>  
->>>>>          
->>>>>
->>It seems "good" modulo these changes to be more concise ...
->>
->>    if (in != NULL && memcmp(in->name, "lo", 2) == 0)
->>        return NF_ACCEPT;
->>     * We handle fragments by dealing with the first fragment as
->>        * if it was a normal packet.  All other fragments are treated
->>        * normally, except that they will NEVER match rules that ask
->>        * things we don't know, ie. tcp syn flag or ports).  If the
->>        * rule is also a fragment-specific rule, non-fragments won't
->>        * match it. */
->>       offset = ntohs(ip->frag_off) & IP_OFFSET;
->>
->>Note that you have done a shortcut that does not test the outgoing
->>interface. It means that you can receive packets from another interface
->>and going to the loopback address ...
->>
->> 
->>
->>    
->>
->>>>>With this every time a packet comes with IN dev as lo i would simply
->>>>>accept. It seems ok and works well but is there any problem with it if i
->>>>>do so?
->>>>>
->>>>>  
->>>>>          
->>>>>
->>IMHO, there is no pblm doing this way except that :
->>    1) you have hardcoded the "rule" (half-hardcoded see remark here
->>above)
->>    2) there is no more option to change the behavior of the "rule" you
->>just added (i.e. we can't reject anymore a packet going through the
->>loopback interface)
->>
->>
->> 
->>
->>    
->>
->>>>>Varun
->>>>>
->>>>>
->>>>>
->>>>>
->>>>>
->>>>>
->>>>>
->>>>>
->>>>>Sebastien Tandel wrote:
->>>>>
->>>>>Hi,
->>>>>varun wrote:
->>>>>
->>>>>
->>>>>  
->>>>>
->>>>>          
->>>>>
->>>>>>>>Hi all,
->>>>>>>>
->>>>>>>>          Iam new to netfilters and iam trying to play around to
->>>>>>>>understand a few things. By default when no policies are specified
->>>>>>>>then
->>>>>>>>it allows all traffic to go out and in to the n/w. I want to
->>>>>>>>change this
->>>>>>>>to default as deny.
->>>>>>>>          That is when there is no policy all should be default deny.
->>>>>>>>
->>>>>>>>        So in order to achieve that i tried to change the  code a
->>>>>>>>little.
->>>>>>>>         In the file iptable_filter.c there is a variable called
->>>>>>>>static int forward = NF_ACCEPT
->>>>>>>>          I changed this to NF_DROP and when i compiled and used it
->>>>>>>>sure i was not able to send any or recv any packets
->>>>>>>> 
->>>>>>>>        
->>>>>>>>                
->>>>>>>>
->>>>>I think you made the right change in your code in order to have a DROP
->>>>>policy by default in your netfilter. the problem is just after ...
->>>>>
->>>>>
->>>>>
->>>>>  
->>>>>
->>>>>          
->>>>>
->>>>>>>>          but even after i give a policy like iptables -t filter -A
->>>>>>>>INPUT -j ACCEPT
->>>>>>>>          Nothing changes. So achieve what i want what should i do?
->>>>>>>>And where do i change?
->>>>>>>> 
->>>>>>>>        
->>>>>>>>                
->>>>>>>>
->>>>>It is quiet normal as you told netfilter to accept incoming packets but
->>>>>you did not configure netfilter to accept *outgoing* packets ...
->>>>>iptables -t filter -A OUTPUT -j ACCEPT
->>>>>
->>>>>
->>>>>
->>>>>  
->>>>>
->>>>>          
->>>>>
->>>>>>>>          Another thing is that in normally when i put a policy like
->>>>>>>>iptables -t filter -A OUTPUT -j REJECT
->>>>>>>>           Even my own self IP doesnt ping? Why should this happen?
->>>>>>>>            Isint it ok to ping local ip and loopback ip?
->>>>>>>>             If i want such implementation where i should be able to
->>>>>>>>ping to self and local but not any other ip?
->>>>>>>>             Is it possible?
->>>>>>>> 
->>>>>>>>        
->>>>>>>>                
->>>>>>>>
->>>>>lo is the interface allotted to your local interface (i.e. your host)!
->>>>>You must therefore create two rules in order to let netfilter accept
->>>>>outgoing and incoming packets from and arriving to your local interface.
->>>>>iptables -A INPOUT -i lo -j ACCEPT
->>>>>iptables -A OUTPUT -o lo -j ACCEPT
->>>>>
->>>>>
->>>>>
->>>>>
->>>>>  
->>>>>
->>>>>          
->>>>>
->>>>>>>>             I dont want to add policies rather is it possible
->>>>>>>>just by
->>>>>>>>changing the iptables kernel code?
->>>>>>>> 
->>>>>>>>        
->>>>>>>>                
->>>>>>>>
->>>>>You have to initialize netfilter by adding two static rules implementing
->>>>>the ones described here above.
->>>>>
->>>>>sta
->>>>>  
->>>>>          
->>>>>
->> 
->>
->>
->>
->>    
->>
->
->  
->
->
->
->-----BEGIN PGP SIGNATURE-----
->Version: GnuPG v1.4.2 (GNU/Linux)
->Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
->
->iD8DBQFEPk80w76McB8jGxkRAjzkAJ9v7l94tGG8mRCSq6MM5Fxf+K0zlQCglRX3
->B3HeNfHiKBlHbUxNwgnqBzM=
->=9D0f
->-----END PGP SIGNATURE-----
->
->  
->
+>                          By the thanx for the help man and can you
+> suggest me some good mailing list which deal with iptables development
+> where newbies like me could get some help. This mailing list does not
+> seem to help newbies much.
+
+Unfortunately, I don't know any other mailing list devoted to netfilter. :-/
+
+sta
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFEPl07w76McB8jGxkRAi5cAJ0TPTCHg3ENQtf/7OMS8NQvlfqglgCfUkJp
+GMvcI8Bety73ooSHNMQM/3I=
+=ztZe
+-----END PGP SIGNATURE-----
