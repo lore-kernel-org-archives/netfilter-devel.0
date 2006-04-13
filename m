@@ -1,44 +1,45 @@
-From: "Robb Bossley" <robb.bossley@gmail.com>
-Subject: Re: Could you please update the Netfilter Extensions HOWTO ?
-Date: Thu, 13 Apr 2006 10:43:33 -0400
-Message-ID: <5c6851530604130743r1b09c42fwdba43759cb031964@mail.gmail.com>
-References: <20060412131009.GF31616@sunbeam.de.gnumonks.org>
-	<!&!AAAAAAAAAAAuAAAAAAAAAGijumR0/exNlphhAnEGGE0BADBNQamd5u1NvceZIhpjukkAAAABmqQAABAAAAACyLrwgELSSJLw9zJ5rXh9AQAAAAA=@vsb.cz>
-	<20060412143427.GK31616@sunbeam.de.gnumonks.org>
+From: Sven-Haegar Koch <haegar@sdinet.de>
+Subject: Re: iptables doubt
+Date: Thu, 13 Apr 2006 18:04:41 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0604131801560.4261@mercury.sdinet.de>
+References: <443D06A7.1060504@rocsys.com> <443E21C1.9090508@info.ucl.ac.be>
+	<443E341F.1080206@rocsys.com> <443E42E6.2010405@info.ucl.ac.be>
+	<443E4BAA.3020607@rocsys.com> <443E4F34.10206@info.ucl.ac.be>
+	<443E57E6.8080005@rocsys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: "Harald Welte" <laforge@netfilter.org>,
-	"Ing. BcA. Ivan Dolezal" <ivan.dolezal@vsb.cz>,
-	"Netfilter Mailinglist" <netfilter@lists.netfilter.org>,
-	"Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <20060412143427.GK31616@sunbeam.de.gnumonks.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: varun <varun@rocsys.com>
+In-Reply-To: <443E57E6.8080005@rocsys.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I would be willing to help some.  I am no expert at programming, but I
-usually can figure things out with a little time and effort.  (And I
-use netfilter with a couple of extensions.)  Just point me in the
-right direction and I would be glad to help as I get time.
+On Thu, 13 Apr 2006, varun wrote:
 
-Robb Bossley
+>                         The features i want to implement like that priority 
+> for policy is that imagine a scenario where user added some policies and then 
+> for some reason wants one policy to be checked before checking others then he 
+> would have to add the policy again and delete the old policy isint it?
 
-On 4/12/06, Harald Welte <laforge@netfilter.org> wrote:
+Every iptables rule change is loading the whole ruleset into userspace, 
+modifying it, and copying the result back into kernelspace.
 
-> > Do you think there is something that a total non-developer can do for t=
-he
-> > documentatiton project (in exchange for the prestigious e-mail
-> > @netfilter.org) ?
->
-> well, documentation can actually be written by any user who has managed
-> to successfully use the particular to-be-documented software.
+So you should be able to fetch the rules (f.e. with iptables-save), modify 
+them as you like, and push them back (iptables-restore).
+
+c'ya
+sven
+
+-- 
+
+The Internet treats censorship as a routing problem, and routes around it.
+(John Gilmore on http://www.cygnus.com/~gnu/)
