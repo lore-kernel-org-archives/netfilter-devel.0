@@ -1,15 +1,12 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: [PATCH] ip_queue: Print warning when deprecated interface is being
-	used
-Date: Thu, 13 Apr 2006 10:07:31 +0200
-Message-ID: <20060413080731.GF22448@sunbeam.de.gnumonks.org>
+From: Sebastien Tandel <standel@info.ucl.ac.be>
+Subject: Re: iptables doubt
+Date: Thu, 13 Apr 2006 12:14:28 +0200
+Message-ID: <443E2484.6020301@info.ucl.ac.be>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="twz1s1Hj1O0rHoT0"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,88 +18,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---twz1s1Hj1O0rHoT0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi,
+varun wrote:
+> Hi all,
+>
+>             Iam new to netfilters and iam trying to play around to
+> understand a few things. By default when no policies are specified then
+> it allows all traffic to go out and in to the n/w. I want to change this
+> to default as deny.
+>             That is when there is no policy all should be default deny.
+>
+>           So in order to achieve that i tried to change the  code a little.
+>            In the file iptable_filter.c there is a variable called
+> static int forward = NF_ACCEPT
+>             I changed this to NF_DROP and when i compiled and used it
+> sure i was not able to send any or recv any packets
+I think you made the right change in your code in order to have a DROP
+policy by default in your netfilter. the problem is just after ...
 
-Hi Patrick!
+>             but even after i give a policy like iptables -t filter -A
+> INPUT -j ACCEPT
+>             Nothing changes. So achieve what i want what should i do?
+> And where do i change?
 
-I better submit this via you, since I don't want to clash with what you
-have in your queue for DaveM...
+It is quiet normal as you told netfilter to accept incoming packets but
+you did not configure netfilter to accept *outgoing* packets ...
+iptables -t filter -A OUTPUT -j ACCEPT
+
+>
+>             Another thing is that in normally when i put a policy like
+> iptables -t filter -A OUTPUT -j REJECT
+>              Even my own self IP doesnt ping? Why should this happen?
+>               Isint it ok to ping local ip and loopback ip?
+>                If i want such implementation where i should be able to
+> ping to self and local but not any other ip?
+>                Is it possible?
+
+lo is the interface allotted to your local interface (i.e. your host)!
+You must therefore create two rules in order to let netfilter accept
+outgoing and incoming packets from and arriving to your local interface.
+iptables -A INPOUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
 
 
-[NETFILTER] ip_queue: Print warning when deprecated interface is being used
+>                I dont want to add policies rather is it possible just by
+> changing the iptables kernel code?
 
-Every time a process binds to ip_queue, this will print a KERN_WARNING
-message to inform the user that the process is using a deprecated
-interface, and that it should migrate to the new nfnetlink_queue interface.
+You have to initialize netfilter by adding two static rules implementing
+the ones described here above.
 
-Also, we extend the deadline for ip_queue removal till December 2006.
-
-Signed-off-by: Harald Welte <laforge@netfilter.org>
-
----
-commit 73719a89c574bcda13d13cbec3aba672219988bb
-tree 850bb876c175642cb86ee603cb05962f5b4bfae0
-parent 3599bbbe2873942dcc68bc50dec7a91868373654
-author Harald Welte <laforge@netfilter.org> Thu, 13 Apr 2006 10:05:56 +0200
-committer Harald Welte <laforge@netfilter.org> Thu, 13 Apr 2006 10:05:56 +0=
-200
-
- Documentation/feature-removal-schedule.txt |    2 +-
- net/ipv4/netfilter/ip_queue.c              |    3 +++
- 2 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/fea=
-ture-removal-schedule.txt
-index 293fed1..2ed657c 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -97,7 +97,7 @@ Who:	Dominik Brodowski <linux@brodo.de>
- ---------------------------
-=20
- What:	ip_queue and ip6_queue (old ipv4-only and ipv6-only netfilter queue)
--When:	December 2005
-+When:	December 2006
- Why:	This interface has been obsoleted by the new layer3-independent
- 	"nfnetlink_queue".  The Kernel interface is compatible, so the old
- 	ip[6]tables "QUEUE" targets still work and will transparently handle
-diff --git a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
-index b93f049..d58d5d6 100644
---- a/net/ipv4/netfilter/ip_queue.c
-+++ b/net/ipv4/netfilter/ip_queue.c
-@@ -520,6 +520,9 @@ ipq_rcv_skb(struct sk_buff *skb)
- 	} else {
- 		net_enable_timestamp();
- 		peer_pid =3D pid;
-+		printk(KERN_WARNING "process with PID %u uses deprecated "
-+		       "ip_queue interface. Please migrate to "
-+		       "nfnetlink_queue\n", pid);
- 	}
- 	=09
- 	write_unlock_bh(&queue_lock);
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---twz1s1Hj1O0rHoT0
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
+sta
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
+Version: GnuPG v1.4.2 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-iD8DBQFEPgbDXaXGVTD0i/8RAuBhAJ4r63Kbi0UAExZlS98BivsB8dZ3HACeKdba
-ij6KQeyEZyA5f2tg6/MS9AQ=
-=0xtY
+iD8DBQFEPiSEw76McB8jGxkRAhzNAJoCC6FwR6PvmEJG8IzNXeod29u8jQCdFPY7
+N9fguzx+i6R9s+sCpz+AHfc=
+=120L
 -----END PGP SIGNATURE-----
-
---twz1s1Hj1O0rHoT0--
