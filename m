@@ -1,17 +1,15 @@
-From: "Julien VALIENTE" <julien.valiente@objectif-software.com>
-Subject: RE: c++ linking problems
-Date: Wed, 12 Apr 2006 23:23:13 +0200
-Message-ID: <EMEILMFFPPCJGNCLPMGJKEDOHDAA.julien.valiente@objectif-software.com>
-References: <443D6B0F.3050206@khaletech.com>
-Reply-To: julien.valiente@objectif-software.com
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 1/2] nf_conntrack: kill nf_ct_cache_mutex
+Date: Thu, 13 Apr 2006 21:19:35 +0900 (JST)
+Message-ID: <200604131219.k3DCJZTO026135@toshiba.co.jp>
+References: <200604131201.k3DC1ZME006314@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <jay.hester@khaletech.com>,
-	<netfilter-devel@lists.netfilter.org>
-In-Reply-To: <443D6B0F.3050206@khaletech.com>
+To: kaber@trash.net
+In-Reply-To: <200604131201.k3DC1ZME006314@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,86 +21,93 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
 
-I met this kind of problem. I solved it with the use of a c++ 'extern C'
-around my include (tested with iptables-1.2.6a):
-	extern "C" {
-	#include <linux/netfilter.h>
-	#include <libipq.h>
-	}
+Sorry, I cannot do this becase kmem_cache_create() with same name
+brings oops instead returning error. Please ignore this.
 
-Regards,
+-- Yasuyuki Kozakai
 
-J. Valiente
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Date: Thu, 13 Apr 2006 21:01:34 +0900 (JST)
 
-
-> -----Message d'origine-----
-> De : netfilter-devel-bounces@lists.netfilter.org
-> [mailto:netfilter-devel-bounces@lists.netfilter.org]De la part de Jay
-> Hester
-> Envoyé : mercredi 12 avril 2006 23:03
-> À : netfilter-devel@lists.netfilter.org
-> Objet : c++ linking problems
->
->
-> Hello,
->      This is probably something easy that i'm overlooking, but how do
-> you link in netfilter_queue in to a c++ program?
->
->      I've lightly modified the code in
-> libnetfilter_queue-<vers>/utils/nfqnl_test.c to build a test program.
-> When I try to compile the program i'm getting lots of linking errors
-> like this:
->
-> [jbhester@sidewinder src]$ make
->  cd .. && /bin/sh /home/jbhester/projects/midevil/missing --run
-> automake-1.9 --gnu  src/Makefile
->  cd .. && /bin/sh ./config.status src/Makefile depfiles
-> config.status: creating src/Makefile
-> config.status: executing depfiles commands
-> g++  -g -O2   -o nfq_test  nfq_test.o  -lnetfilter_queue -lnfnetlink
-> nfq_test.o: In function
-> `main':/home/jbhester/projects/midevil/src/nfq_test.cpp:41: undefined
-> reference to `nfq_open()'
-> :/home/jbhester/projects/midevil/src/nfq_test.cpp:47: undefined
-> reference to `nfq_unbind_pf(nfq_handle*, unsigned short)'
-> :/home/jbhester/projects/midevil/src/nfq_test.cpp:52: undefined
-> reference to `nfq_bind_pf(nfq_handle*, unsigned short)'
-> :/home/jbhester/projects/midevil/src/nfq_test.cpp:57: undefined
-> reference to `nfq_create_queue(nfq_handle*, unsigned short, int
-> (*)(nfq_q_handle*, nfgenmsg*, nfq_data*, void*), void*)'
-> :/home/jbhester/projects/midevil/src/nfq_test.cpp:63: undefined
-> reference to `nfq_set_mode(nfq_q_handle*, unsigned char, unsigned int)'
-> :/home/jbhester/projects/midevil/src/nfq_test.cpp:68: undefined
-> reference to `nfq_nfnlh(nfq_handle*)'
-> :/home/jbhester/projects/midevil/src/nfq_test.cpp:69: undefined
-> reference to `nfnl_fd(nfnl_handle*)'
-> :/home/jbhester/projects/midevil/src/nfq_test.cpp:73: undefined
-> reference to `nfq_handle_packet(nfq_handle*, char*, int)'
-> :/home/jbhester/projects/midevil/src/nfq_test.cpp:77: undefined
-> reference to `nfq_destroy_queue(nfq_q_handle*)'
-> :/home/jbhester/projects/midevil/src/nfq_test.cpp:80: undefined
-> reference to `nfq_close(nfq_handle*)'
-> nfq_test.o: In function
-> `process':/home/jbhester/projects/midevil/src/nfq_test.cpp:19: undefined
-> reference to `nfq_get_msg_packet_hdr(nfq_data*)'
-> :/home/jbhester/projects/midevil/src/nfq_test.cpp:24: undefined
-> reference to `nfq_get_payload(nfq_data*, char**)'
-> :/home/jbhester/projects/midevil/src/nfq_test.cpp:28: undefined
-> reference to `nfq_set_verdict(nfq_q_handle*, unsigned int, unsigned int,
-> unsigned int, unsigned char*)'
-> collect2: ld returned 1 exit status
-> make: *** [nfq_test] Error 1
->
->
->     I've tried lots of things like adding "nfq_test_LDADD =
-> /usr/local/lib/libnetfilter_queue.[a|so]", and using the dynamic linking
-> as a dso object, but nothing is working.
->
->     Thanks ahead of time for the help.
->
-> Jay
->
->
->
+> [NETFILTER] nf_conntrack: kill nf_ct_cache_mutex
+> 
+> This kills the mutex 'nf_ct_cache_mutex' which prevents creating
+> slab caches simultaneously. Instead, the spinlock 'nf_ct_cache_lock' can
+> prevent registering them simultaneously.
+> 
+> The loser to get spinlock have to free slab cache, but it isn't so bad
+> because it's rare case that multiple helper are loaded simultaneously.
+> 
+> Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+> 
+> ---
+> commit 9fdf8935c0caf14b90cd1061ec15e35fcdb85c3d
+> tree da3bb945b9704f9843dea2c3d313a7867d43aedc
+> parent 4d28baa8a1bdf97cb19dc633624d1a2715ef5d3e
+> author <kozakai@camellia.isl.rdc.toshiba.co.jp> Thu, 13 Apr 2006 20:24:27 +0900
+> committer <kozakai@camellia.isl.rdc.toshiba.co.jp> Thu, 13 Apr 2006 20:24:27 +0900
+> 
+>  net/netfilter/nf_conntrack_core.c |   60 +++++++++++++++----------------------
+>  1 files changed, 24 insertions(+), 36 deletions(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -186,9 +186,6 @@ static struct {
+>  /* protect members of nf_ct_cache except of "use" */
+>  DEFINE_RWLOCK(nf_ct_cache_lock);
+>  
+> -/* This avoids calling kmem_cache_create() with same name simultaneously */
+> -static DEFINE_MUTEX(nf_ct_cache_mutex);
+> -
+>  extern struct nf_conntrack_protocol nf_conntrack_generic_protocol;
+>  struct nf_conntrack_protocol *
+>  __nf_ct_proto_find(u_int16_t l3proto, u_int8_t protocol)
+> @@ -305,27 +302,6 @@ int nf_conntrack_register_cache(u_int32_
+>  		return -EINVAL;
+>  	}
+>  
+> -	mutex_lock(&nf_ct_cache_mutex);
+> -
+> -	write_lock_bh(&nf_ct_cache_lock);
+> -	/* e.g: multiple helpers are loaded */
+> -	if (nf_ct_cache[features].use > 0) {
+> -		DEBUGP("nf_conntrack_register_cache: already resisterd.\n");
+> -		if ((!strncmp(nf_ct_cache[features].name, name,
+> -			      NF_CT_FEATURES_NAMELEN))
+> -		    && nf_ct_cache[features].size == size) {
+> -			DEBUGP("nf_conntrack_register_cache: reusing.\n");
+> -			nf_ct_cache[features].use++;
+> -			ret = 0;
+> -		} else
+> -			ret = -EBUSY;
+> -
+> -		write_unlock_bh(&nf_ct_cache_lock);
+> -		mutex_unlock(&nf_ct_cache_mutex);
+> -		return ret;
+> -	}
+> -	write_unlock_bh(&nf_ct_cache_lock);
+> -
+>  	/*
+>  	 * The memory space for name of slab cache must be alive until
+>  	 * cache is destroyed.
+> @@ -333,8 +309,7 @@ int nf_conntrack_register_cache(u_int32_
+>  	cache_name = kmalloc(sizeof(char)*NF_CT_FEATURES_NAMELEN, GFP_ATOMIC);
+>  	if (cache_name == NULL) {
+>  		DEBUGP("nf_conntrack_register_cache: can't alloc cache_name\n");
+> -		ret = -ENOMEM;
+> -		goto out_up_mutex;
+> +		return -ENOMEM;
+>  	}
+>  
+>  	if (strlcpy(cache_name, name, NF_CT_FEATURES_NAMELEN)
+> @@ -344,8 +319,7 @@ int nf_conntrack_register_cache(u_int32_
+>  		goto out_free_name;
+>  	}
+>  
+> -	cachep = kmem_cache_create(cache_name, size, 0, 0,
+> -				   NULL, NULL);
+> +	cachep = kmem_cache_create(cache_name, size, 0, 0, NULL, NULL);
+>  	if (!cachep) {
+>  		printk("nf_conntrack_register_cache: Can't create slab cache "
