@@ -1,75 +1,44 @@
-From: Sebastien Tandel <standel@info.ucl.ac.be>
-Subject: Re: iptables doubt
-Date: Thu, 13 Apr 2006 16:16:27 +0200
-Message-ID: <443E5D3B.7000608@info.ucl.ac.be>
-References: <443D06A7.1060504@rocsys.com> <443E21C1.9090508@info.ucl.ac.be>
-	<443E341F.1080206@rocsys.com> <443E42E6.2010405@info.ucl.ac.be>
-	<443E4BAA.3020607@rocsys.com> <443E4F34.10206@info.ucl.ac.be>
-	<443E57E6.8080005@rocsys.com>
+From: "Robb Bossley" <robb.bossley@gmail.com>
+Subject: Re: Could you please update the Netfilter Extensions HOWTO ?
+Date: Thu, 13 Apr 2006 10:43:33 -0400
+Message-ID: <5c6851530604130743r1b09c42fwdba43759cb031964@mail.gmail.com>
+References: <20060412131009.GF31616@sunbeam.de.gnumonks.org>
+	<!&!AAAAAAAAAAAuAAAAAAAAAGijumR0/exNlphhAnEGGE0BADBNQamd5u1NvceZIhpjukkAAAABmqQAABAAAAACyLrwgELSSJLw9zJ5rXh9AQAAAAA=@vsb.cz>
+	<20060412143427.GK31616@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: varun <varun@rocsys.com>, netfilter-devel@lists.netfilter.org
-In-Reply-To: <443E57E6.8080005@rocsys.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netfilter-bounces@lists.netfilter.org>
+To: "Harald Welte" <laforge@netfilter.org>,
+	"Ing. BcA. Ivan Dolezal" <ivan.dolezal@vsb.cz>,
+	"Netfilter Mailinglist" <netfilter@lists.netfilter.org>,
+	"Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20060412143427.GK31616@sunbeam.de.gnumonks.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+I would be willing to help some.  I am no expert at programming, but I
+usually can figure things out with a little time and effort.  (And I
+use netfilter with a couple of extensions.)  Just point me in the
+right direction and I would be glad to help as I get time.
 
-Hi,
+Robb Bossley
 
-varun wrote:
-> Hi Sebastien,
-> 
->                         Well i do not want to use policy from user space
-> because , the very need for me to do this activity is to play around and
-> get to understand netfilter iptables.
+On 4/12/06, Harald Welte <laforge@netfilter.org> wrote:
 
-ok ... that's the point :)
-
-> 
->                          The features i want to implement like that
-> priority for policy is that imagine a scenario where user added some
-> policies and then for some reason wants one policy to be checked before
-> checking others then he would have to add the policy again and delete
-> the old policy isint it?
-
-Yes it is correct ... even if this may seem curious I think it is not
-the worth to add such a mechanism to netfilter. IMHO, a switch option
-'-M' (MOVE) would be sufficient but not with all these unique-id's ... I
-fear that with the time this number list would be completely fragmented
-and human-unreadable
-I don't know wether it had already been discussed on this mailing-list.
-IMHO, it is not a strong requirement for iptables/netfilter and this
-situation may be handled in a semi-automatic way with a user script
-(with the danger, however, of having a race condition with another user
-script changing netfilter too).
-Of course, if it is another exercise to play with netfilter do it and
-have fun ;)
-
->                          By the thanx for the help man and can you
-> suggest me some good mailing list which deal with iptables development
-> where newbies like me could get some help. This mailing list does not
-> seem to help newbies much.
-
-Unfortunately, I don't know any other mailing list devoted to netfilter. :-/
-
-sta
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFEPl07w76McB8jGxkRAi5cAJ0TPTCHg3ENQtf/7OMS8NQvlfqglgCfUkJp
-GMvcI8Bety73ooSHNMQM/3I=
-=ztZe
------END PGP SIGNATURE-----
+> > Do you think there is something that a total non-developer can do for t=
+he
+> > documentatiton project (in exchange for the prestigious e-mail
+> > @netfilter.org) ?
+>
+> well, documentation can actually be written by any user who has managed
+> to successfully use the particular to-be-documented software.
