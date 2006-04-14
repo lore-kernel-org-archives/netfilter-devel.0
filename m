@@ -1,18 +1,12 @@
-From: varun <varun@rocsys.com>
-Subject: Re: iptables doubt
-Date: Fri, 14 Apr 2006 09:12:24 +0530
-Message-ID: <443F1A20.4060301@rocsys.com>
-References: <443D06A7.1060504@rocsys.com> <443E21C1.9090508@info.ucl.ac.be>
-	<443E341F.1080206@rocsys.com> <443E42E6.2010405@info.ucl.ac.be>
-	<443E4BAA.3020607@rocsys.com> <443E4F34.10206@info.ucl.ac.be>
-	<443E57E6.8080005@rocsys.com> <443E5D3B.7000608@info.ucl.ac.be>
+From: "Paolo Cerrito" <paolo.cerrito@tin.it>
+Subject: Request help
+Date: Fri, 14 Apr 2006 11:20:33 +0200
+Message-ID: <op.s7zqwjz4extast@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-15
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sebastien Tandel <standel@info.ucl.ac.be>
-In-Reply-To: <443E5D3B.7000608@info.ucl.ac.be>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,85 +18,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hy,
+my name is paolo, i have to develop an application who extracts packets  
+ from netfilter_queue, using netlink, process the packets and reinject  
+packets.
+Can onyone help me, on where i can find api references for netfilter_queue?
+Or how i can i do?
+Please excuse me for my english, i will glad you if can help me.
 
-         By the way can you tell me which is the structure that holds 
-the rule ie when i give iptables -t filter -A FORWARD -j REJECT
-        Which struct in kernel which holds the rule and which is the 
-function that adds the rule from user space to the list in kernel?
-         I assume that we are maintaing stack implementation for holding 
-rules on one table am i right?
-
-Varun
-
-
-
-
-
-
-Sebastien Tandel wrote:
-
->-----BEGIN PGP SIGNED MESSAGE-----
->Hash: SHA1
->
->Hi,
->
->varun wrote:
->  
->
->>Hi Sebastien,
->>
->>                        Well i do not want to use policy from user space
->>because , the very need for me to do this activity is to play around and
->>get to understand netfilter iptables.
->>    
->>
->
->ok ... that's the point :)
->
->  
->
->>                         The features i want to implement like that
->>priority for policy is that imagine a scenario where user added some
->>policies and then for some reason wants one policy to be checked before
->>checking others then he would have to add the policy again and delete
->>the old policy isint it?
->>    
->>
->
->Yes it is correct ... even if this may seem curious I think it is not
->the worth to add such a mechanism to netfilter. IMHO, a switch option
->'-M' (MOVE) would be sufficient but not with all these unique-id's ... I
->fear that with the time this number list would be completely fragmented
->and human-unreadable
->I don't know wether it had already been discussed on this mailing-list.
->IMHO, it is not a strong requirement for iptables/netfilter and this
->situation may be handled in a semi-automatic way with a user script
->(with the danger, however, of having a race condition with another user
->script changing netfilter too).
->Of course, if it is another exercise to play with netfilter do it and
->have fun ;)
->
->  
->
->>                         By the thanx for the help man and can you
->>suggest me some good mailing list which deal with iptables development
->>where newbies like me could get some help. This mailing list does not
->>seem to help newbies much.
->>    
->>
->
->Unfortunately, I don't know any other mailing list devoted to netfilter. :-/
->
->sta
->-----BEGIN PGP SIGNATURE-----
->Version: GnuPG v1.4.2 (GNU/Linux)
->Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
->
->iD8DBQFEPl07w76McB8jGxkRAi5cAJ0TPTCHg3ENQtf/7OMS8NQvlfqglgCfUkJp
->GMvcI8Bety73ooSHNMQM/3I=
->=ztZe
->-----END PGP SIGNATURE-----
->
->  
->
+-- 
+Creato con il rivoluzionario client e-mail di Opera:  
+http://www.opera.com/mail/
