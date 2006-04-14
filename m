@@ -1,15 +1,12 @@
-From: "Eric Leblond" <eric@inl.fr>
-Subject: Re: Request help
-Date: Fri, 14 Apr 2006 14:10:22 +0200 (CEST)
-Message-ID: <60616.194.167.18.244.1145016622.squirrel@mail.inl.fr>
-References: <op.s7zqwjz4extast@localhost.localdomain>
+From: Andreas Schwab <schwab@suse.de>
+Subject: compat_xt_counters is not compatible
+Date: Fri, 14 Apr 2006 19:12:20 +0200
+Message-ID: <jeacaoqdxn.fsf@sykes.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <op.s7zqwjz4extast@localhost.localdomain>
-To: "Paolo Cerrito" <paolo.cerrito@tin.it>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,22 +18,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> Hy,
-> my name is paolo, i have to develop an application who extracts packets
->  from netfilter_queue, using netlink, process the packets and reinject
-> packets.
-> Can onyone help me, on where i can find api references for
-> netfilter_queue?
+struct compat_xt_counters uses uint32_t[4], which has 4 byte alignment,
+but userspace uses uint64_t[2], which has 8 byte alignment.  This breaks
+iptables in 2.6.17-rc1.
 
-You can find beta man pages here :
-http://archives.free.net.ph/message/20060208.171235.186dce08.en.html
+Andreas.
 
-> Or how i can i do?
-
-For usage example, you can have a look at the NuFW project :
-     http://www.nufw.org/
-Code under src/nufw is the interesting part.
-
-BR,
---
-Eric Leblond
+--=20
+Andreas Schwab, SuSE Labs, schwab@suse.de
+SuSE Linux Products GmbH, Maxfeldstra=DFe 5, 90409 N=FCrnberg, Germany
+PGP key fingerprint =3D 58CA 54C7 6D53 942B 1756  01D3 44D5 214B 8276 4ED=
+5
+"And now for something completely different."
