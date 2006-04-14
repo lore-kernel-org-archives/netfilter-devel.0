@@ -1,11 +1,17 @@
-From: Sebastien Tandel <standel@info.ucl.ac.be>
-Subject: HOWTO Translation : netfilter double NAT [french] [with attach] :)
-Date: Thu, 13 Apr 2006 19:15:06 +0200
-Message-ID: <443E871A.3050009@info.ucl.ac.be>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH 2/4] kill manually comparing protocol name with
+ "ipv6-icmp"
+Date: Fri, 14 Apr 2006 10:02:00 +0900 (JST)
+Message-ID: <200604140102.k3E121Xd027817@toshiba.co.jp>
+References: <200604071131.k37BVY3F025271@toshiba.co.jp>
+	<443A493A.5030307@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030303070306070303080207"
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org, laforge@netfilter.org
+To: azez@ufomechanic.net
+In-Reply-To: <443A493A.5030307@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,28 +23,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030303070306070303080207
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+From: Amin Azez <azez@ufomechanic.net>
+Date: Mon, 10 Apr 2006 13:02:02 +0100
 
-Hi guys,
+> Yasuyuki KOZAKAI wrote:
+> > [IP6TABLES] kill manually comparing protocol name with "ipv6-icmp"
+> > 
+> > This adds "ipv6-icmp" to chain_protos[] and kill manually comparing
+> > the argument of '-p' with it.
+> > 
+> > chain_protos[] has the "icmpv6" with the same protocol number, but it's
+> > OK because proto_to_name() returns the firstly matched entry "icmpv6"
+> > as ever.
+> 
+> I'm uncomfortable with having proto names in source code anyway, to me 
+> it clashes horribly with getprotobyname and friends which for historical 
+> and bizarre reasons might be looked up centrally (using nss) via ldap !!
+> 
+> However I guess history also shows that protocol names have been stable 
+> over the years :-) so what can I say?
 
- I've translated the netfilter Double NAT mini-howto in french ...
+For ease to use and to avoid confusing, I'm comfortable with having protocol
+names until stable name of them are spread widely.
 
+For example, /etc/protocols in Fedora Core 5 is based on RFC1340, which was
+obsoleted (Currently protocol name list is published by IANA:
+http://www.iana.org). It includes "ipv6-crypt" and "ipv6-auth", they ware
+replaced with "esp" and "ah" in IANA list.
 
-see you,
-sta
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+On the other hand, I heard Debian has later names (correct ?).
 
-iD8DBQFEPocaw76McB8jGxkRAim7AKCEr/eZs9KdicFS/ZjHZT9oLxtXKQCfZe7r
-vUFRw7xHi8SOmi+EovQn/2I=
-=Xx8m
------END PGP SIGNATURE-----
+It's better to push distributors to update /etc/protocols if people
+want to use later names without hard coding in the future.
 
---------------030303070306070303080207--
+About other protocol names (tcp, udp, ...), I don't know detail reason
+to keep them in iptables. I imagine it's such as guarantee of usability.
+
+-- Yasuyuki Kozakai
