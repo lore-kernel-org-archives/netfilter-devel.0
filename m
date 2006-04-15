@@ -1,18 +1,16 @@
-From: Dmitry Mishin <dim@sw.ru>
+From: Andreas Schwab <schwab@suse.de>
 Subject: Re: compat_xt_counters is not compatible
-Date: Sat, 15 Apr 2006 20:14:45 +0400
-Message-ID: <200604152014.45923.dim@sw.ru>
-References: <jeacaoqdxn.fsf@sykes.suse.de> <200604151811.54013.dim@sw.ru>
-	<jeejzykjpa.fsf@sykes.suse.de>
+Date: Sat, 15 Apr 2006 19:31:54 +0200
+Message-ID: <jeacamkanp.fsf@sykes.suse.de>
+References: <jeacaoqdxn.fsf@sykes.suse.de> <44412142.9070409@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Andreas Schwab <schwab@suse.de>
-In-Reply-To: <jeejzykjpa.fsf@sykes.suse.de>
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <44412142.9070409@trash.net> (Patrick McHardy's message of "Sat,
+	15 Apr 2006 18:37:22 +0200")
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,40 +22,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Could you give more details on what's wrong?
+Patrick McHardy <kaber@trash.net> writes:
 
-dim@dhcp0-24:~> cat test.c
-#include <linux/types.h>
-
-struct x
-{
-        __u64 ptr;
-        __u32 ptr2;
-};
-
-int main(int argc, char *argv[])
-{
-        printf("%d\n", sizeof(struct x));
-        return 0;
-}
-dim@dhcp0-24:~>  gcc -m32 -o test test.c
-dim@dhcp0-24:~> ./test 
-12
-dim@dhcp0-24:~> gcc -o test test.c
-dim@dhcp0-24:~> ./test 
-16
-dim@dhcp0-24:~> uname -p
-x86_64
-
-On Saturday 15 April 2006 18:16, Andreas Schwab wrote:
-> Dmitry Mishin <dim@sw.ru> writes:
-> > compat_xt_counters should be used only for 32bit processes, which has 4
-> > byte alignment.
+> Andreas Schwab wrote:
+>> struct compat_xt_counters uses uint32_t[4], which has 4 byte alignment=
+,
+>> but userspace uses uint64_t[2], which has 8 byte alignment.  This brea=
+ks
+>> iptables in 2.6.17-rc1.
 >
-> This is wrong.
->
-> Andreas.
+> Did you actually see the breakage?
 
--- 
-Thanks,
-Dmitry.
+Of course.
+
+> gcc on x86
+
+Not all the worlds an x86.
+
+Andreas.
+
+--=20
+Andreas Schwab, SuSE Labs, schwab@suse.de
+SuSE Linux Products GmbH, Maxfeldstra=DFe 5, 90409 N=FCrnberg, Germany
+PGP key fingerprint =3D 58CA 54C7 6D53 942B 1756  01D3 44D5 214B 8276 4ED=
+5
+"And now for something completely different."
