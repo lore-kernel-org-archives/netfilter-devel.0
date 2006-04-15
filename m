@@ -1,17 +1,16 @@
-From: Dmitry Mishin <dim@sw.ru>
+From: Andreas Schwab <schwab@suse.de>
 Subject: Re: compat_xt_counters is not compatible
-Date: Sat, 15 Apr 2006 18:11:53 +0400
-Message-ID: <200604151811.54013.dim@sw.ru>
-References: <jeacaoqdxn.fsf@sykes.suse.de>
+Date: Sat, 15 Apr 2006 16:16:33 +0200
+Message-ID: <jeejzykjpa.fsf@sykes.suse.de>
+References: <jeacaoqdxn.fsf@sykes.suse.de> <200604151811.54013.dim@sw.ru>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Andreas Schwab <schwab@suse.de>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <jeacaoqdxn.fsf@sykes.suse.de>
-Content-Disposition: inline
+To: Dmitry Mishin <dim@sw.ru>
+In-Reply-To: <200604151811.54013.dim@sw.ru> (Dmitry Mishin's message of "Sat,
+	15 Apr 2006 18:11:53 +0400")
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,16 +22,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-compat_xt_counters should be used only for 32bit processes, which has 4 byte 
-alignment.
+Dmitry Mishin <dim@sw.ru> writes:
 
-On Friday 14 April 2006 21:12, Andreas Schwab wrote:
-> struct compat_xt_counters uses uint32_t[4], which has 4 byte alignment,
-> but userspace uses uint64_t[2], which has 8 byte alignment.  This breaks
-> iptables in 2.6.17-rc1.
->
-> Andreas.
+> compat_xt_counters should be used only for 32bit processes, which has 4=
+ byte=20
+> alignment.
 
--- 
-Thanks,
-Dmitry.
+This is wrong.
+
+Andreas.
+
+--=20
+Andreas Schwab, SuSE Labs, schwab@suse.de
+SuSE Linux Products GmbH, Maxfeldstra=DFe 5, 90409 N=FCrnberg, Germany
+PGP key fingerprint =3D 58CA 54C7 6D53 942B 1756  01D3 44D5 214B 8276 4ED=
+5
+"And now for something completely different."
