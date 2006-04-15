@@ -1,16 +1,17 @@
 From: Andreas Schwab <schwab@suse.de>
 Subject: Re: compat_xt_counters is not compatible
-Date: Sat, 15 Apr 2006 19:31:54 +0200
-Message-ID: <jeacamkanp.fsf@sykes.suse.de>
-References: <jeacaoqdxn.fsf@sykes.suse.de> <44412142.9070409@trash.net>
+Date: Sat, 15 Apr 2006 19:32:54 +0200
+Message-ID: <je64lakam1.fsf@sykes.suse.de>
+References: <jeacaoqdxn.fsf@sykes.suse.de> <200604151811.54013.dim@sw.ru>
+	<jeejzykjpa.fsf@sykes.suse.de> <200604152014.45923.dim@sw.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44412142.9070409@trash.net> (Patrick McHardy's message of "Sat,
-	15 Apr 2006 18:37:22 +0200")
+To: Dmitry Mishin <dim@sw.ru>
+In-Reply-To: <200604152014.45923.dim@sw.ru> (Dmitry Mishin's message of "Sat,
+	15 Apr 2006 20:14:45 +0400")
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,22 +23,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy <kaber@trash.net> writes:
+Dmitry Mishin <dim@sw.ru> writes:
 
-> Andreas Schwab wrote:
->> struct compat_xt_counters uses uint32_t[4], which has 4 byte alignment=
-,
->> but userspace uses uint64_t[2], which has 8 byte alignment.  This brea=
-ks
->> iptables in 2.6.17-rc1.
->
-> Did you actually see the breakage?
+> Could you give more details on what's wrong?
 
-Of course.
-
-> gcc on x86
-
-Not all the worlds an x86.
+Your claim that long long has 4 byte alignment.
 
 Andreas.
 
