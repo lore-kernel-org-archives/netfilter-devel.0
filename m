@@ -1,16 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
+From: "David S. Miller" <davem@davemloft.net>
 Subject: Re: compat_xt_counters is not compatible
-Date: Sat, 15 Apr 2006 19:52:01 +0200
-Message-ID: <444132C1.1020604@trash.net>
-References: <jeacaoqdxn.fsf@sykes.suse.de> <44412142.9070409@trash.net>
-	<jeacamkanp.fsf@sykes.suse.de>
+Date: Sun, 16 Apr 2006 00:24:36 -0700 (PDT)
+Message-ID: <20060416.002436.108421304.davem@davemloft.net>
+References: <44412142.9070409@trash.net> <jeacamkanp.fsf@sykes.suse.de>
+	<444132C1.1020604@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: schwab@suse.de, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Andreas Schwab <schwab@suse.de>
-In-Reply-To: <jeacamkanp.fsf@sykes.suse.de>
+To: kaber@trash.net
+In-Reply-To: <444132C1.1020604@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,26 +22,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Andreas Schwab wrote:
-> Patrick McHardy <kaber@trash.net> writes:
-> 
-> 
->>Andreas Schwab wrote:
->>
->>>struct compat_xt_counters uses uint32_t[4], which has 4 byte alignment,
->>>but userspace uses uint64_t[2], which has 8 byte alignment.  This breaks
->>>iptables in 2.6.17-rc1.
->>
->>Did you actually see the breakage?
-> 
-> 
-> Of course.
-> 
-> 
->>gcc on x86
-> 
-> 
-> Not all the worlds an x86.
+From: Patrick McHardy <kaber@trash.net>
+Date: Sat, 15 Apr 2006 19:52:01 +0200
 
-Well, then how about providing the necessary information, starting
-with the architecture?
+> Well, then how about providing the necessary information, starting
+> with the architecture?
+
+A struct containing a u64 has to be 64-bit aligned on at least sparc64
+and ppc64, both of which use the compat layer for 32-bit programs, so
+I think it's quite clear this will have to be implemented differently.
