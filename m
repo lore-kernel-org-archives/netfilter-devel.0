@@ -1,19 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC][PATCH] compat_uint64_t type
-Date: Mon, 17 Apr 2006 19:12:21 +0200
-Message-ID: <4443CC75.4040703@trash.net>
-References: <444132C1.1020604@trash.net>
-	<44425DAE.3040007@trash.net>	<20060416.222435.02924300.davem@davemloft.net>	<200604171459.13312.dim@openvz.org>
-	<4443B882.70203@trash.net> <jehd4sdvh1.fsf@sykes.suse.de>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: compat_xt_counters is not compatible
+Date: Mon, 17 Apr 2006 13:13:25 -0700 (PDT)
+Message-ID: <20060417.131325.123750237.davem@davemloft.net>
+References: <200604152238.37403.dim@sw.ru> <jeu08uij8r.fsf@sykes.suse.de>
+	<200604161028.38614.dim@sw.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Dmitry Mishin <dim@openvz.org>, dev@openvz.org,
-	netfilter-devel@lists.netfilter.org,
-	"David S. Miller" <davem@davemloft.net>
+Cc: schwab@suse.de, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Andreas Schwab <schwab@suse.de>
-In-Reply-To: <jehd4sdvh1.fsf@sykes.suse.de>
+To: dim@sw.ru
+In-Reply-To: <200604161028.38614.dim@sw.ru>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,36 +22,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Andreas Schwab wrote:
-> Patrick McHardy <kaber@trash.net> writes:
-> 
->>I'm not sure if we should really introduce this new type, it is
->>misleading for at least x86. IIRC the situation there is:
->>
->>- gcc < 4.0 always aligns u64 types to 4byte
-> 
-> 
-> Are you sure about that? I can't reproduce that with gcc 3.3.3.
+From: Dmitry Mishin <dim@sw.ru>
+Date: Sun, 16 Apr 2006 10:28:38 +0400
 
-I mixed up the versions, the change was between 2.x and 3.x:
+> >
+> > Almost every architecture has alignment = size for basic types.
+> >
+> > Andreas.
+> I mean structures. I don't see a bug still. Can you point out wrong code?
 
-gcc-2.95 -O2:
-basic type:     align 4
-embedded type:  align 4
-gcc-3.3 -O2:
-basic type:     align 8
-embedded type:  align 4
+I can't believe such a conversation even gets this far. :(
 
-It only shows with optimization, with -O0 gcc-2.95 also uses 8 for
-the basic type.
+LOOK!
 
->>So there is no one compat_uint64_t type, but it depends on the
->>situation.
-> 
-> 
-> The alignment of standalone objects is uninteresting, what is important is
-> getting compatible layout of aggregates.
+struct {
+	int x;
+	unsigned long long y;
+};
 
-I couldn't come up with a realistic example where people would make
-mistakes because of this, so I guess I have to agree, although my
-feeling still disagrees :)
+This structure requires 64-bit alignment on 32-bit Sparc and
+32-bit PPC and 32-bit MIPS and 32-bit ....
+
+It is x86, and only x86, that has only a 32-bit alignment requirement
+for this structure.
