@@ -1,17 +1,19 @@
 From: Andreas Schwab <schwab@suse.de>
-Subject: Re: compat_xt_counters is not compatible
-Date: Sun, 16 Apr 2006 13:41:47 +0200
-Message-ID: <jeodz1oih0.fsf@sykes.suse.de>
-References: <jeacaoqdxn.fsf@sykes.suse.de> <200604152238.37403.dim@sw.ru>
-	<jeu08uij8r.fsf@sykes.suse.de> <200604161028.38614.dim@sw.ru>
+Subject: Re: [RFC][PATCH] compat_uint64_t type
+Date: Mon, 17 Apr 2006 13:51:55 +0200
+Message-ID: <je64l8fmhw.fsf@sykes.suse.de>
+References: <444132C1.1020604@trash.net> <44425DAE.3040007@trash.net>
+	<20060416.222435.02924300.davem@davemloft.net>
+	<200604171459.13312.dim@openvz.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Cc: dev@openvz.org, netfilter-devel@lists.netfilter.org,
+	"David S. Miller" <davem@davemloft.net>, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Dmitry Mishin <dim@sw.ru>
-In-Reply-To: <200604161028.38614.dim@sw.ru> (Dmitry Mishin's message of "Sun,
-	16 Apr 2006 10:28:38 +0400")
+To: Dmitry Mishin <dim@openvz.org>
+In-Reply-To: <200604171459.13312.dim@openvz.org> (Dmitry Mishin's message of
+	"Mon, 17 Apr 2006 14:59:09 +0400")
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,15 +25,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dmitry Mishin <dim@sw.ru> writes:
+Dmitry Mishin <dim@openvz.org> writes:
 
->>
->> Almost every architecture has alignment =3D size for basic types.
->>
->> Andreas.
-> I mean structures.
+> diff --git a/include/asm-ia64/compat.h b/include/asm-ia64/compat.h
+> index 40d01d8..3e6417b 100644
+> --- a/include/asm-ia64/compat.h
+> +++ b/include/asm-ia64/compat.h
+> @@ -34,6 +34,8 @@ typedef s32		compat_long_t;
+>  typedef u32		compat_uint_t;
+>  typedef u32		compat_ulong_t;
+> =20
+> +typedef u64 __attribute__((aligned(4)))	compat_uint64_t;
 
-So do I.
+The aligned attribute cannot decrease alignment.
 
 Andreas.
 
