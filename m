@@ -1,13 +1,18 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH] Transmit mark to userspace during conntrack event
-Date: Sun, 16 Apr 2006 23:45:45 +0200
-Message-ID: <1145223945.5659.4.camel@porky>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: compat_xt_counters is not compatible
+Date: Sun, 16 Apr 2006 22:24:35 -0700 (PDT)
+Message-ID: <20060416.222435.02924300.davem@davemloft.net>
+References: <444132C1.1020604@trash.net>
+	<20060416.002436.108421304.davem@davemloft.net>
+	<44425DAE.3040007@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-d1Gzp+Wsl7SYQptBqvsW"
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: dim@openvz.org, schwab@suse.de, netfilter-devel@lists.netfilter.org,
+	dev@openvz.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: kaber@trash.net
+In-Reply-To: <44425DAE.3040007@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,65 +24,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Patrick McHardy <kaber@trash.net>
+Date: Sun, 16 Apr 2006 17:07:26 +0200
 
---=-d1Gzp+Wsl7SYQptBqvsW
-Content-Type: multipart/mixed; boundary="=-mEbMYKh8IO/HanKzo/Re"
+> David S. Miller wrote:
+> > A struct containing a u64 has to be 64-bit aligned on at least sparc64
+> > and ppc64, both of which use the compat layer for 32-bit programs, so
+> > I think it's quite clear this will have to be implemented differently.
+> 
+> Do these alignment requirements also hold for 32bit compiled programms?
 
+Yes, it does.
 
---=-mEbMYKh8IO/HanKzo/Re
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+> This is what we need to match with compat_xt_counters.
 
-Hi,
+This issue is exactly why the compat layer requirements are so wildly
+different between "x86_64/ia64 --> ia32" and all other compat
+situations.
 
-When userspace listen to conntrack event, the connection mark was not
-sent in the ctnetlink message. The following patch transmits the
-connection mark to userspace.
-
-BR,
---=20
-Eric Leblond <eric@inl.fr>
-INL
-
---=-mEbMYKh8IO/HanKzo/Re
-Content-Disposition: attachment; filename=conntrack_event_with_mark.patch
-Content-Type: text/x-patch; name=conntrack_event_with_mark.patch;
-	charset=ISO-8859-15
-Content-Transfer-Encoding: base64
-
-ZGlmZiAtLWdpdCBhL25ldC9pcHY0L25ldGZpbHRlci9pcF9jb25udHJhY2tfbmV0bGluay5jIGIv
-bmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19uZXRsaW5rLmMNCmluZGV4IDAxYmQ3Y2Eu
-LjA5ODJhOWQgMTAwNjQ0DQotLS0gYS9uZXQvaXB2NC9uZXRmaWx0ZXIvaXBfY29ubnRyYWNrX25l
-dGxpbmsuYw0KKysrIGIvbmV0L2lwdjQvbmV0ZmlsdGVyL2lwX2Nvbm50cmFja19uZXRsaW5rLmMN
-CkBAIC0zODUsNiArMzg1LDkgQEAgc3RhdGljIGludCBjdG5ldGxpbmtfY29ubnRyYWNrX2V2ZW50
-KHN0cg0KIAkgICAgY3RuZXRsaW5rX2R1bXBfY291bnRlcnMoc2tiLCBjdCwgSVBfQ1RfRElSX1JF
-UExZKSA8IDApDQogCQlnb3RvIG5mYXR0cl9mYWlsdXJlOw0KIA0KKwlpZiAoY3RuZXRsaW5rX2R1
-bXBfbWFyayhza2IsY3QpIDwgMCkNCisJCWdvdG8gbmZhdHRyX2ZhaWx1cmU7DQorDQogCW5saC0+
-bmxtc2dfbGVuID0gc2tiLT50YWlsIC0gYjsNCiAJbmZuZXRsaW5rX3NlbmQoc2tiLCAwLCBncm91
-cCwgMCk7DQogCXJldHVybiBOT1RJRllfRE9ORTsNCmRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVy
-L25mX2Nvbm50cmFja19uZXRsaW5rLmMgYi9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19uZXRs
-aW5rLmMNCmluZGV4IGJkMTBlYjkuLjQ1OGEwZDUgMTAwNjQ0DQotLS0gYS9uZXQvbmV0ZmlsdGVy
-L25mX2Nvbm50cmFja19uZXRsaW5rLmMNCisrKyBiL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNr
-X25ldGxpbmsuYw0KQEAgLTM5NCw2ICszOTQsOSBAQCBzdGF0aWMgaW50IGN0bmV0bGlua19jb25u
-dHJhY2tfZXZlbnQoc3RyDQogCSAgICBjdG5ldGxpbmtfZHVtcF9jb3VudGVycyhza2IsIGN0LCBJ
-UF9DVF9ESVJfUkVQTFkpIDwgMCkNCiAJCWdvdG8gbmZhdHRyX2ZhaWx1cmU7DQogDQorCWlmIChj
-dG5ldGxpbmtfZHVtcF9tYXJrKHNrYixjdCkgPCAwKQ0KKwkJZ290byBuZmF0dHJfZmFpbHVyZTsN
-CisNCiAJbmxoLT5ubG1zZ19sZW4gPSBza2ItPnRhaWwgLSBiOw0KIAluZm5ldGxpbmtfc2VuZChz
-a2IsIDAsIGdyb3VwLCAwKTsNCiAJcmV0dXJuIE5PVElGWV9ET05FOw0K
-
-
---=-mEbMYKh8IO/HanKzo/Re--
-
---=-d1Gzp+Wsl7SYQptBqvsW
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.2 (GNU/Linux)
-
-iD8DBQBEQrsInxA7CdMWjzIRAkoGAJ0ckCZGMprChJlIQw41H9rx5QUxzgCfeD8s
-eKUHyGcMa73Tg1z4aJjEFwI=
-=9+xM
------END PGP SIGNATURE-----
-
---=-d1Gzp+Wsl7SYQptBqvsW--
+ia32 doesn't have the 64-bit alignment requirement for structures
+containing u64 objects, whereas every other 32-bit platform does.
