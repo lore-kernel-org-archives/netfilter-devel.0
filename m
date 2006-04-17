@@ -1,19 +1,19 @@
-From: Andreas Schwab <schwab@suse.de>
+From: Dmitry Mishin <dim@openvz.org>
 Subject: Re: [RFC][PATCH] compat_uint64_t type
-Date: Mon, 17 Apr 2006 13:51:55 +0200
-Message-ID: <je64l8fmhw.fsf@sykes.suse.de>
-References: <444132C1.1020604@trash.net> <44425DAE.3040007@trash.net>
-	<20060416.222435.02924300.davem@davemloft.net>
-	<200604171459.13312.dim@openvz.org>
+Date: Mon, 17 Apr 2006 16:04:17 +0400
+Message-ID: <200604171604.18471.dim@openvz.org>
+References: <444132C1.1020604@trash.net> <200604171459.13312.dim@openvz.org>
+	<je64l8fmhw.fsf@sykes.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Cc: dev@openvz.org, netfilter-devel@lists.netfilter.org,
 	"David S. Miller" <davem@davemloft.net>, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Dmitry Mishin <dim@openvz.org>
-In-Reply-To: <200604171459.13312.dim@openvz.org> (Dmitry Mishin's message of
-	"Mon, 17 Apr 2006 14:59:09 +0400")
+To: Andreas Schwab <schwab@suse.de>
+In-Reply-To: <je64l8fmhw.fsf@sykes.suse.de>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,25 +25,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dmitry Mishin <dim@openvz.org> writes:
+On Monday 17 April 2006 15:51, Andreas Schwab wrote:
+> Dmitry Mishin <dim@openvz.org> writes:
+> > diff --git a/include/asm-ia64/compat.h b/include/asm-ia64/compat.h
+> > index 40d01d8..3e6417b 100644
+> > --- a/include/asm-ia64/compat.h
+> > +++ b/include/asm-ia64/compat.h
+> > @@ -34,6 +34,8 @@ typedef s32		compat_long_t;
+> >  typedef u32		compat_uint_t;
+> >  typedef u32		compat_ulong_t;
+> >
+> > +typedef u64 __attribute__((aligned(4)))	compat_uint64_t;
+>
+> The aligned attribute cannot decrease alignment.
+With my gcc (3.3.5) it can. Which solution do you propose?
+__attribute__((packed, aligned(4)))?
+Or 
+#ifdef  ARCH_HAS_FUNNY_ALIGNMENT
+struct compat_xt_counters {
+	uint32_t cnt[4];
+}
+#else
+#define compat_xt_counters xt_counters
+#endif
+?
 
-> diff --git a/include/asm-ia64/compat.h b/include/asm-ia64/compat.h
-> index 40d01d8..3e6417b 100644
-> --- a/include/asm-ia64/compat.h
-> +++ b/include/asm-ia64/compat.h
-> @@ -34,6 +34,8 @@ typedef s32		compat_long_t;
->  typedef u32		compat_uint_t;
->  typedef u32		compat_ulong_t;
-> =20
-> +typedef u64 __attribute__((aligned(4)))	compat_uint64_t;
+>
+> Andreas.
 
-The aligned attribute cannot decrease alignment.
-
-Andreas.
-
---=20
-Andreas Schwab, SuSE Labs, schwab@suse.de
-SuSE Linux Products GmbH, Maxfeldstra=DFe 5, 90409 N=FCrnberg, Germany
-PGP key fingerprint =3D 58CA 54C7 6D53 942B 1756  01D3 44D5 214B 8276 4ED=
-5
-"And now for something completely different."
+-- 
+Thanks,
+Dmitry.
