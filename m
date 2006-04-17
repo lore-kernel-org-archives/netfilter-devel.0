@@ -1,16 +1,17 @@
 From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: compat_xt_counters is not compatible
-Date: Mon, 17 Apr 2006 13:13:25 -0700 (PDT)
-Message-ID: <20060417.131325.123750237.davem@davemloft.net>
-References: <200604152238.37403.dim@sw.ru> <jeu08uij8r.fsf@sykes.suse.de>
-	<200604161028.38614.dim@sw.ru>
+Subject: Re: [RFC][PATCH] compat_uint64_t type
+Date: Mon, 17 Apr 2006 13:20:26 -0700 (PDT)
+Message-ID: <20060417.132026.72299574.davem@davemloft.net>
+References: <200604171459.13312.dim@openvz.org> <4443B882.70203@trash.net>
+	<4443BC5B.9000407@trash.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: schwab@suse.de, netfilter-devel@lists.netfilter.org
+Cc: dim@openvz.org, schwab@suse.de, netfilter-devel@lists.netfilter.org,
+	dev@openvz.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: dim@sw.ru
-In-Reply-To: <200604161028.38614.dim@sw.ru>
+To: kaber@trash.net
+In-Reply-To: <4443BC5B.9000407@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,26 +23,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Dmitry Mishin <dim@sw.ru>
-Date: Sun, 16 Apr 2006 10:28:38 +0400
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 17 Apr 2006 18:03:39 +0200
 
-> >
-> > Almost every architecture has alignment = size for basic types.
-> >
-> > Andreas.
-> I mean structures. I don't see a bug still. Can you point out wrong code?
+> Patrick McHardy wrote:
+> > Dmitry Mishin wrote:
+> > 
+> >>This patch introduces compat_uint64_t type, which is required for proper 
+> >>handling different alignment of structures, containing u64 objects, on 
+> >>compatible with ia32 64bit platforms and others.
+> 
+> This is my proposed alternative. It assumes all architectures besides
+> x86 use native alignment for basic types.
 
-I can't believe such a conversation even gets this far. :(
-
-LOOK!
-
-struct {
-	int x;
-	unsigned long long y;
-};
-
-This structure requires 64-bit alignment on 32-bit Sparc and
-32-bit PPC and 32-bit MIPS and 32-bit ....
-
-It is x86, and only x86, that has only a 32-bit alignment requirement
-for this structure.
+Ok.  Perhaps we can eventually define a CONFIG_* object for
+this.
