@@ -1,12 +1,17 @@
-From: "David Vogt" <beunlovable@gmail.com>
-Subject: Problem with compiling libnfnetlink
-Date: Wed, 19 Apr 2006 13:01:31 +0200
-Message-ID: <859616420604190401u11748b19r12b18558036c2afe@mail.gmail.com>
+From: "James D. Nurmi" <jdnurmi@gmail.com>
+Subject: Re: development with queues
+Date: Tue, 18 Apr 2006 12:31:20 -0700
+Message-ID: <a1f5b31e0604181231x69124db5qd6345d544cea9e44@mail.gmail.com>
+References: <f015bcab0604180253m76a8d960q5c7b6d821401927e@mail.gmail.com>
+	<859616420604180331g5644e343x8dc47d85278a4f62@mail.gmail.com>
+	<859616420604180346o2706c306wcf7703dc9b7f67e9@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "David Vogt" <mail@davidvogt.de>
+In-Reply-To: <859616420604180346o2706c306wcf7703dc9b7f67e9@mail.gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,50 +24,66 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+It is indeed possible, as I've done it (but unfort cant release the
+code),  but you have to remember a few things while doing it:
 
-I downloaded the latest version of libnfnetlink from the subversion
-trunk (revison 6582 that is), after running "./autogen.sh" and
-"./configure --with-kernel=3D<PATH_TO_KERNEL_SRC>" (both of which seem
-to work fine), "make" outputs
+1) Performance, not a big deal w/ modern hardware and 100Mbps, but you
+will see a huge hit at Gbit speeds
+2) You're going to be munging TCP on the fly, which requires you to
+change sequence numbers, as well as adjust the incoming ack's,
+otherwise you'll end up with odd retransmits.
+3) If you're going for an adequate solution, you can probably work on
+single packets, and just delete what you need, but for a real
+solution, you may not be able to make a full determination on the data
+without queing up multiple packets, which in turn, requires a larger
+queue for nfnetlink_queue;
+4)  Read TCP spec, it's got a few niggling details that you might not
+notice, like syn/fin getting incremented.
 
-Making all in src
-make[1]: Entering directory `/home/david/netfilter.org/libnfnetlink/src'
-if /bin/sh ../libtool --mode=3Dcompile gcc -DPACKAGE_NAME=3D\"\"
--DPACKAGE_TARNAME=3D\"\" -DPACKAGE_VERSION=3D\"\" -DPACKAGE_STRING=3D\"\"
--DPACKAGE_BUGREPORT=3D\"\" -DPACKAGE=3D\"libnfnetlink\"
--DVERSION=3D\"0.0.16\" -DSTDC_HEADERS=3D1 -DHAVE_SYS_TYPES_H=3D1
--DHAVE_SYS_STAT_H=3D1 -DHAVE_STDLIB_H=3D1 -DHAVE_STRING_H=3D1
--DHAVE_MEMORY_H=3D1 -DHAVE_STRINGS_H=3D1 -DHAVE_INTTYPES_H=3D1
--DHAVE_STDINT_H=3D1 -DHAVE_UNISTD_H=3D1 -DHAVE_DLFCN_H=3D1  -I. -I.=20
--I../include   -fPIC -Wall -g -O2 -MT libnfnetlink.lo -MD -MP -MF
-".deps/libnfnetlink.Tpo" \
-  -c -o libnfnetlink.lo `test -f 'libnfnetlink.c' || echo './'`libnfnetlink=
-.c; \
-then mv -f ".deps/libnfnetlink.Tpo" ".deps/libnfnetlink.Plo"; \
-else rm -f ".deps/libnfnetlink.Tpo"; exit 1; \
-fi
-mkdir .libs
- gcc -DPACKAGE_NAME=3D\"\" -DPACKAGE_TARNAME=3D\"\" -DPACKAGE_VERSION=3D\"\=
-"
--DPACKAGE_STRING=3D\"\" -DPACKAGE_BUGREPORT=3D\"\"
--DPACKAGE=3D\"libnfnetlink\" -DVERSION=3D\"0.0.16\" -DSTDC_HEADERS=3D1
--DHAVE_SYS_TYPES_H=3D1 -DHAVE_SYS_STAT_H=3D1 -DHAVE_STDLIB_H=3D1
--DHAVE_STRING_H=3D1 -DHAVE_MEMORY_H=3D1 -DHAVE_STRINGS_H=3D1
--DHAVE_INTTYPES_H=3D1 -DHAVE_STDINT_H=3D1 -DHAVE_UNISTD_H=3D1
--DHAVE_DLFCN_H=3D1 -I. -I. -I../include -fPIC -Wall -g -O2 -MT
-libnfnetlink.lo -MD -MP -MF .deps/libnfnetlink.Tpo -c libnfnetlink.c=20
--fPIC -DPIC -o .libs/libnfnetlink.o
-In file included from libnfnetlink.c:40:
-/usr/include/linux/netlink.h:22: error: syntax error before "__u32"
-/usr/include/linux/netlink.h:28: error: syntax error before "__u32"
-/usr/include/linux/netlink.h:30: error: syntax error before "nlmsg_flags"
-/usr/include/linux/netlink.h:31: error: syntax error before "nlmsg_seq"
-/usr/include/linux/netlink.h:32: error: syntax error before "nlmsg_pid"
-/usr/include/linux/netlink.h:82: error: field `msg' has incomplete type
+Anyhow, if you need some pointers, let me know off list, as it _is_
+possible, incredibly interesting, but certainly non-trivial.
 
-The kernel I use is 2.6.16. I've never built libnfnetlink from source,
-so I am pretty sure I missed an important step. Any help would be
-great.
-
-David
+On 4/18/06, David Vogt <mail@davidvogt.de> wrote:
+> ---------- Forwarded message ----------
+> From: David Vogt <beunlovable@gmail.com>
+> Date: 18.04.2006 12:31
+> Subject: Re: development with queues
+> To: miguel Angel Vazquez <mikinho21@gmail.com>
+>
+>
+> Hi,
+>
+> you can receive the packets using libnetfilter_queue. IP packets to be
+> precise, thus you can modify everything above layer 3 (IP), which
+> includes HTTP.
+>
+> This
+>   https://svn.netfilter.org/netfilter/trunk/libnetfilter_queue/utils/nfqn=
+l_test.c
+> might be a good start on how to use libnetfilter_queue. Adding a rule
+> for the packets to be processed with target "-j NFQUEUE --queue-num 0"
+> sends the packets to your application (that registers for the
+> appropriate queue number)
+>
+> David
+>
+>
+> 2006/4/18, miguel Angel Vazquez <mikinho21@gmail.com>:
+> > Hi all.
+> >
+> > we are trying to develop an application which has to reduce some
+> > headers from an intercepted packet (some HTTP headers in order to
+> > optimize an UMTS uplink channel).
+> >
+> > I have read some howtos and I think it can be possible to do that.
+> > As i Have understand, the packet remains queued and I can process it
+> > in user-space or in kernel-space, but I'm not sure about what the
+> > packet "status" is....it has all the IP and TCP headers?Can I modify
+> > the HTTP packet??
+> >
+> > Thanks mates!
+> > (sorry for my English)
+> >
+> >
+>
+>
