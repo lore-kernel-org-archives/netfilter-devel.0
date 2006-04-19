@@ -1,18 +1,14 @@
-From: Andreas Schwab <schwab@suse.de>
-Subject: Re: [RFC][PATCH] compat_uint64_t type
-Date: Mon, 17 Apr 2006 16:05:23 +0200
-Message-ID: <jeu08se1r0.fsf@sykes.suse.de>
-References: <444132C1.1020604@trash.net> <200604171459.13312.dim@openvz.org>
-	<je64l8fmhw.fsf@sykes.suse.de> <200604171604.18471.dim@openvz.org>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: Strange MASQUERADING behaviour, bug or feature?
+Date: Wed, 19 Apr 2006 11:28:45 +0100
+Message-ID: <444610DD.9000807@ufomechanic.net>
+References: <44440CD2.6060006@rtij.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: dev@openvz.org, netfilter-devel@lists.netfilter.org,
-	"David S. Miller" <davem@davemloft.net>, kaber@trash.net
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Dmitry Mishin <dim@openvz.org>
-In-Reply-To: <200604171604.18471.dim@openvz.org> (Dmitry Mishin's message of
-	"Mon, 17 Apr 2006 16:04:17 +0400")
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <44440CD2.6060006@rtij.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,31 +20,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dmitry Mishin <dim@openvz.org> writes:
+Martijn Lievaart wrote:
+> Hey, that is the wrong source address! Now when I kill the null0 
+> interface, suddenly the source address changes to the correct 
+> (169.254.1.1) address. Also when I stop the ping and restart it, the 
+> source address is correct.
 
-> On Monday 17 April 2006 15:51, Andreas Schwab wrote:
->> Dmitry Mishin <dim@openvz.org> writes:
->> > diff --git a/include/asm-ia64/compat.h b/include/asm-ia64/compat.h
->> > index 40d01d8..3e6417b 100644
->> > --- a/include/asm-ia64/compat.h
->> > +++ b/include/asm-ia64/compat.h
->> > @@ -34,6 +34,8 @@ typedef s32		compat_long_t;
->> >  typedef u32		compat_uint_t;
->> >  typedef u32		compat_ulong_t;
->> >
->> > +typedef u64 __attribute__((aligned(4)))	compat_uint64_t;
->>
->> The aligned attribute cannot decrease alignment.
-> With my gcc (3.3.5) it can.
+Thats how NAT works.
 
-You're right, this is a special case (in general it can't without the
-packed attribute).
+The address mappings are setup when the conntrack is created.
 
-Andreas.
+You observed that this is less obviously-right for generally stateless 
+streams like ping, but it is certainly consistent and makes sense, and 
+is neccessary for tcp or udp connections, or they would break everytime 
+other routes went up or down.
 
---=20
-Andreas Schwab, SuSE Labs, schwab@suse.de
-SuSE Linux Products GmbH, Maxfeldstra=DFe 5, 90409 N=FCrnberg, Germany
-PGP key fingerprint =3D 58CA 54C7 6D53 942B 1756  01D3 44D5 214B 8276 4ED=
-5
-"And now for something completely different."
+However consider the ping -I option which lets you choose which iterface 
+to ping from; why should it suddenly change interface in the same ping 
+just because a different route is up?
+
+Sam
