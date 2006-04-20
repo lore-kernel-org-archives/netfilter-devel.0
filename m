@@ -1,15 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Packet Delay using Netfilter
-Date: Thu, 20 Apr 2006 20:52:43 +0200
-Message-ID: <4447D87B.5010406@trash.net>
-References: <ba7fdfc10604200945v417f2689wef8709d59b67a1c2@mail.gmail.com>
+Subject: Re: Fix --with-kernel for libnfnetlink
+Date: Thu, 20 Apr 2006 20:53:36 +0200
+Message-ID: <4447D8B0.9000808@trash.net>
+References: <859616420604200825o71f81878lbbb45251f1e0330d@mail.gmail.com>	<Pine.LNX.4.64.0604201844440.18935@mercury.sdinet.de>
+	<4447D839.804@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, Amin Azez <azez@ufomechanic.net>,
+	pablo@netfilter.org, David Vogt <beunlovable@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Srinivas Krishnan <shrin_krishnan@yahoo.com>
-In-Reply-To: <ba7fdfc10604200945v417f2689wef8709d59b67a1c2@mail.gmail.com>
+To: Sven-Haegar Koch <haegar@sdinet.de>
+In-Reply-To: <4447D839.804@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,8 +23,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Srinivas Krishnan wrote:
-> I am trying to create a module that adds delay to certain egress
-> packets. I am using the NF_IP_POST_ROUTING hook.
+Patrick McHardy wrote:
+> Sven-Haegar Koch wrote:
+> 
+>>Shouldn't --with-kernel let me specify a kernel source directory,
+>>instead of a kernel version and then using some heuristicts to find the
+>>source directory? (The heuristic for the default using
+>>/lib/modules/`uname -r`/build is fine)
+> 
+> 
+> I agree, if someone sends me a patch to change it I'll apply it.
+> 
 
-Why are you not doing this on the qdisc layer?
+D'oh, just saw the patch :)
