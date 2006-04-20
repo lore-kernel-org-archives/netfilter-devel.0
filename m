@@ -1,13 +1,15 @@
-From: "Srinivas Krishnan" <shrin_krishnan@yahoo.com>
-Subject: Packet Delay using Netfilter
-Date: Thu, 20 Apr 2006 12:45:55 -0400
-Message-ID: <ba7fdfc10604200945v417f2689wef8709d59b67a1c2@mail.gmail.com>
+From: Sven-Haegar Koch <haegar@sdinet.de>
+Subject: Re: Fix --with-kernel for libnfnetlink
+Date: Thu, 20 Apr 2006 18:50:15 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0604201844440.18935@mercury.sdinet.de>
+References: <859616420604200825o71f81878lbbb45251f1e0330d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netfilter-devel@lists.netfilter.org, Amin Azez <azez@ufomechanic.net>,
+	pablo@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: David Vogt <beunlovable@gmail.com>
+In-Reply-To: <859616420604200825o71f81878lbbb45251f1e0330d@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,20 +21,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  Hi ,
+On Thu, 20 Apr 2006, David Vogt wrote:
 
-I am trying to create a module that adds delay to certain egress
-packets. I am using the NF_IP_POST_ROUTING hook. The question I had
-was that can I set NF_STOLEN and call dev_queue_xmit( ) directly or
-should I call dev_hard_xmit ( ). the reason I am setting NF_STOLEN, is
-because I do not want netfilter to wait for tons of NF_ACCEPT because
-I will be holding those packets in my queue. is that a flawed argument
-and can I just reinject the packets into the processing by calling
-NF_ACCEPT?
+> Amin Azez has helped me with some trouble concerning the compilation
+> of libnfnetlink.
+> The --with-kernel parameter for the configure script did not work as
+> intended, so Amin has proposed the following changes that 1) look for
+> the kernel sources 2) recognise --with-kernel parameter.
 
-Also if I directly send to the device are there are fields/operations
-I need to set before sending the packet out ?
+[...]
 
-any help will be greatly appreciated
+> + if test "$with_kernel" = ""; then
+> +   KERNEL="`uname -r`"
+> + else
+> +   KERNEL="$with_kernel"
+> + fi
 
--shrin
+Shouldn't --with-kernel let me specify a kernel source directory, instead 
+of a kernel version and then using some heuristicts to find the source 
+directory? (The heuristic for the default using /lib/modules/`uname 
+-r`/build is fine)
+
+(My used kernel sources for example live under ~/kernel/....)
+
+c'ya
+sven
+
+-- 
+
+The Internet treats censorship as a routing problem, and routes around it.
+(John Gilmore on http://www.cygnus.com/~gnu/)
