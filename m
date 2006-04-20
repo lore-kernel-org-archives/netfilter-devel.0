@@ -1,16 +1,18 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: Strange MASQUERADING behaviour, bug or feature?
-Date: Thu, 20 Apr 2006 09:11:22 +0100
-Message-ID: <4447422A.20704@ufomechanic.net>
-References: <44440CD2.6060006@rtij.nl> <444610DD.9000807@ufomechanic.net>
-	<44466513.8080000@rtij.nl>
+From: "David Vogt" <beunlovable@gmail.com>
+Subject: Re: development with queues
+Date: Thu, 20 Apr 2006 11:30:51 +0200
+Message-ID: <859616420604200230v3231f1dfjb5e2269232fbb1db@mail.gmail.com>
+References: <f015bcab0604180253m76a8d960q5c7b6d821401927e@mail.gmail.com>
+	<859616420604180331g5644e343x8dc47d85278a4f62@mail.gmail.com>
+	<f015bcab0604200225y2312a8a3wf8bdecf65472d145@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Martijn Lievaart <m@rtij.nl>
-In-Reply-To: <44466513.8080000@rtij.nl>
+To: "miguel Angel Vazquez" <mikinho21@gmail.com>
+In-Reply-To: <f015bcab0604200225y2312a8a3wf8bdecf65472d145@mail.gmail.com>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,46 +24,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Martijn Lievaart wrote:
+2006/4/20, miguel Angel Vazquez <mikinho21@gmail.com>:
+> However I would like to use it in a Linksys router working under
+> openwrt, and I think it uses the 2.4.xx kernel version.So there=B4s a
+> lot of things to do yet :p
 
-> Amin Azez wrote:
->
->> Martijn Lievaart wrote:
->>
->>> Hey, that is the wrong source address! Now when I kill the null0 
->>> interface, suddenly the source address changes to the correct 
->>> (169.254.1.1) address. Also when I stop the ping and restart it, the 
->>> source address is correct.
->>
->>
->>
->> Thats how NAT works.
->>
->> The address mappings are setup when the conntrack is created.
->>
->> You observed that this is less obviously-right for generally 
->> stateless streams like ping, but it is certainly consistent and makes 
->> sense, and is neccessary for tcp or udp connections, or they would 
->> break everytime other routes went up or down.
->
->
->
-> For SNAT, I can understand this. For MASQUERADE, this is probably also 
-> the correct behaviour. 
+You should keep in mind that libnetfilter_queue requires kernel >=3D
+2.6.14. For 2.4.x kernels you have to use (deprecated) libipq instead,
+for which a good manpage exists.
 
-BTW MASQ is SNAT but where you specify the interface instead of the IP 
-address, useful where a different IP address is given for each connection.
-
-> However, why is this "ping stream" seen as one contrack?
->
-> But other than that, yes I see now that I cannot use this form  of 
-> dial on demand with MASQUERADING. Too bad.
-
-I think that if you could, it would cause you other problems, it is 
-harmful/useless to change the source address of TCP connections partway 
-through.
-
-Perhaps you could explain what problem you are trying to solve with this 
-method.
-
-Sam
+David
