@@ -1,14 +1,15 @@
-From: Massimiliano Hofer <max@nucleus.it>
-Subject: =?iso-8859-1?q?na=EFve?= question
-Date: Thu, 20 Apr 2006 19:30:49 +0200
-Message-ID: <200604201930.49748.max@nucleus.it>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: condition for 2.6.16
+Date: Thu, 20 Apr 2006 20:49:14 +0200
+Message-ID: <4447D7AA.1010602@trash.net>
+References: <200604201919.19246.max@nucleus.it>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Massimiliano Hofer <max@nucleus.it>
+In-Reply-To: <200604201919.19246.max@nucleus.it>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,25 +21,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-I noticed in various part of the kernel that there are assignments on live 
-kernel structures without locks to protect them (of course there are proper 
-memory barriers).
+Massimiliano Hofer wrote:
+> I find this extension very useful, so I did a complete porting to 2.6.16 
+> complete with XT. I fixed various things (mostly fossils of the 2.4 era) in 
+> the process and it works in my test environment.
+> I am about to test it in a few high load machines, but I'd appreciate if 
+> someone else could have a look at it.
+> 
+> What are the next steps in order to have it included in the core extension and 
+> finally merged in the kernel?
 
-Example from ipt_recent.c:
-	curr_table->status_proc->read_proc = ip_recent_get_info;
-	curr_table->status_proc->write_proc = ip_recent_ctrl;
-
-
-I know that on a x86 a 32 bit assignment is atomic (I'm not sure about 386SXs) 
-and the same goes for x86_64 and 64 bit pointer, but I'm not sure that it 
-really works on other architectures.
-
-I didn't find documentation about it. Is it just a normal practice due to the 
-fact that exotic archs with odd bus widths aren't usually SMP or is it 
-guaranteed?
-
--- 
-Saluti,
-   Massimiliano Hofer
-        Nucleus
+We have already decided that the condition match will not be merged
+because the same thing can easily be done by adding/removing rules
+from userspace.
