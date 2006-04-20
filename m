@@ -1,18 +1,17 @@
-From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: Re: Fix --with-kernel for libnfnetlink
-Date: Thu, 20 Apr 2006 21:38:58 +0200
-Message-ID: <20060420193858.GA24477@sch.bme.hu>
-References: <859616420604200825o71f81878lbbb45251f1e0330d@mail.gmail.com>
-	<Pine.LNX.4.64.0604201844440.18935@mercury.sdinet.de>
-	<4447D839.804@trash.net>
+From: Massimiliano Hofer <max@nucleus.it>
+Subject: Re: condition for 2.6.16
+Date: Thu, 20 Apr 2006 21:39:01 +0200
+Message-ID: <200604202139.02931.max@nucleus.it>
+References: <200604201919.19246.max@nucleus.it> <4447D7AA.1010602@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-return: prohibited
-In-reply-to: <4447D839.804@trash.net>
 To: netfilter-devel@lists.netfilter.org
-Content-disposition: inline
+In-Reply-To: <4447D7AA.1010602@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,21 +23,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thursday 20 April 2006 8:49 pm, Patrick McHardy wrote:
+> We have already decided that the condition match will not be merged
+> because the same thing can easily be done by adding/removing rules
+> from userspace.
 
-  Hi,
+Sorry, I missed that discussion.
+Is it still possible to include it in the external patches?
 
-On Thu, Apr 20, 2006 at 08:51:37PM +0200, Patrick McHardy wrote:
-> > Shouldn't --with-kernel let me specify a kernel source directory,
-> > instead of a kernel version and then using some heuristicts to find the
-> > source directory? (The heuristic for the default using
-> > /lib/modules/`uname -r`/build is fine)
-> 
-> I agree, if someone sends me a patch to change it I'll apply it.
-
-  Is there any chance of getting the pkg-config related modifications
-merged as well?
-
-  http://tinyurl.com/mnw9c
+Anyway I think condition allows for a much more elegant solution in cases 
+where adding and removing rules would lead to a messy and unpredictable 
+sequence of overlapping rules, not to mention races between different 
+modifications.
+Just my humble opinion.
 
 -- 
- KOVACS Krisztian
+Saluti,
+   Massimiliano Hofer
+        Nucleus
