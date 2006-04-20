@@ -1,15 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: condition for 2.6.16
-Date: Thu, 20 Apr 2006 20:49:14 +0200
-Message-ID: <4447D7AA.1010602@trash.net>
-References: <200604201919.19246.max@nucleus.it>
+Subject: Re: Fix --with-kernel for libnfnetlink
+Date: Thu, 20 Apr 2006 20:51:37 +0200
+Message-ID: <4447D839.804@trash.net>
+References: <859616420604200825o71f81878lbbb45251f1e0330d@mail.gmail.com>
+	<Pine.LNX.4.64.0604201844440.18935@mercury.sdinet.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, Amin Azez <azez@ufomechanic.net>,
+	pablo@netfilter.org, David Vogt <beunlovable@gmail.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Massimiliano Hofer <max@nucleus.it>
-In-Reply-To: <200604201919.19246.max@nucleus.it>
+To: Sven-Haegar Koch <haegar@sdinet.de>
+In-Reply-To: <Pine.LNX.4.64.0604201844440.18935@mercury.sdinet.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,16 +23,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Massimiliano Hofer wrote:
-> I find this extension very useful, so I did a complete porting to 2.6.16 
-> complete with XT. I fixed various things (mostly fossils of the 2.4 era) in 
-> the process and it works in my test environment.
-> I am about to test it in a few high load machines, but I'd appreciate if 
-> someone else could have a look at it.
+Sven-Haegar Koch wrote:
+>> + if test "$with_kernel" = ""; then
+>> +   KERNEL="`uname -r`"
+>> + else
+>> +   KERNEL="$with_kernel"
+>> + fi
 > 
-> What are the next steps in order to have it included in the core extension and 
-> finally merged in the kernel?
+> 
+> Shouldn't --with-kernel let me specify a kernel source directory,
+> instead of a kernel version and then using some heuristicts to find the
+> source directory? (The heuristic for the default using
+> /lib/modules/`uname -r`/build is fine)
 
-We have already decided that the condition match will not be merged
-because the same thing can easily be done by adding/removing rules
-from userspace.
+I agree, if someone sends me a patch to change it I'll apply it.
