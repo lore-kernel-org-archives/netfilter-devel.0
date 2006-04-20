@@ -1,17 +1,18 @@
-From: "David Vogt" <beunlovable@gmail.com>
-Subject: Re: Problem with compiling libnfnetlink
-Date: Thu, 20 Apr 2006 13:05:37 +0200
-Message-ID: <859616420604200405k595368ex2e3a97aa979614e@mail.gmail.com>
-References: <859616420604190401u11748b19r12b18558036c2afe@mail.gmail.com>
-	<44475A7D.6020305@ufomechanic.net>
+From: "Martijn Lievaart" <m@rtij.nl>
+Subject: Re: Strange MASQUERADING behaviour, bug or feature?
+Date: Thu, 20 Apr 2006 13:16:39 +0200 (CEST)
+Message-ID: <45730.217.166.60.19.1145531799.squirrel@217.166.60.19>
+References: <44440CD2.6060006@rtij.nl> <444610DD.9000807@ufomechanic.net>   
+	<44466513.8080000@rtij.nl> <4447422A.20704@ufomechanic.net>
+	<40417.217.166.60.19.1145529618.squirrel@217.166.60.19>
+	<44476A21.7070609@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <44476A21.7070609@ufomechanic.net>
 To: "Amin Azez" <azez@ufomechanic.net>
-In-Reply-To: <44475A7D.6020305@ufomechanic.net>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,44 +24,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-2006/4/20, Amin Azez <azez@ufomechanic.net>:
-> If I recall correctly this is beause you specified a wrong path to your
-> kernel source and so netlink.h was included from /usr/include/linux
-> instead of from your kernel source.
->
-> I'm possibly not the only one troubled by the existance of
-> /usr/include/linux, to me the whole thing smacks of presumtion and troubl=
-e.
->
-> You might want to:
->
->   find /path/to/kernel/src -name netlink.h
->
-> and see if there is even one there.
-There _is_ a file netlink.h in /usr/src/linux-2.6/include/linux
+Amin Azez zei:
+> I don't have an answer, unless you can use the --tee option of ipt_route
+> to divert a copy of packets to your dummy interface.
+> If you use ipt_condition with this, then you can control when it happens
+> with a /proc file.
 
-> It would be helpful if you could include the output of gcc when
-> compiling (not linking) so we can check the -I paths to see what kernel
-> path it is including.
-The output I have previously posted is all the output I get, right
-after typing make, so shouldn't there be a compilatition?
+That's a good idea, I'll try that!
 
-It seems, calling
-> gcc -DPACKAGE_NAME=3D\"\" -DPACKAGE_TARNAME=3D\"\"
-> -DPACKAGE_VERSION=3D\"\"
-> -DPACKAGE_STRING=3D\"\" -DPACKAGE_BUGREPORT=3D\"\"
-> -DPACKAGE=3D\"libnfnetlink\" -DVERSION=3D\"0.0.16\" -DSTDC_HEADERS=3D1
-> -DHAVE_SYS_TYPES_H=3D1 -DHAVE_SYS_STAT_H=3D1 -DHAVE_STDLIB_H=3D1
-> -DHAVE_STRING_H=3D1 -DHAVE_MEMORY_H=3D1 -DHAVE_STRINGS_H=3D1
-> -DHAVE_INTTYPES_H=3D1 -DHAVE_STDINT_H=3D1 -DHAVE_UNISTD_H=3D1
-> -DHAVE_DLFCN_H=3D1 -I. -I. -I../include -fPIC -Wall -g -O2 -MT
-> libnfnetlink.lo -MD -MP -MF .deps/libnfnetlink.Tpo -c libnfnetlink.c
-
-causes the problem, and the include options in fact do not seem to
-point to the correct path. Now, I am not sure how to change that? I
-thought "./configure --with-kernel=3D/usr/src/linux-2.6" should have had
-the include options fixed.
-
-David
-
-David
+M4
