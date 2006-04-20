@@ -1,17 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Fix --with-kernel for libnfnetlink
-Date: Thu, 20 Apr 2006 20:51:37 +0200
-Message-ID: <4447D839.804@trash.net>
-References: <859616420604200825o71f81878lbbb45251f1e0330d@mail.gmail.com>
-	<Pine.LNX.4.64.0604201844440.18935@mercury.sdinet.de>
+Subject: Re: Packet Delay using Netfilter
+Date: Thu, 20 Apr 2006 20:52:43 +0200
+Message-ID: <4447D87B.5010406@trash.net>
+References: <ba7fdfc10604200945v417f2689wef8709d59b67a1c2@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Amin Azez <azez@ufomechanic.net>,
-	pablo@netfilter.org, David Vogt <beunlovable@gmail.com>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sven-Haegar Koch <haegar@sdinet.de>
-In-Reply-To: <Pine.LNX.4.64.0604201844440.18935@mercury.sdinet.de>
+To: Srinivas Krishnan <shrin_krishnan@yahoo.com>
+In-Reply-To: <ba7fdfc10604200945v417f2689wef8709d59b67a1c2@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,17 +21,8 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sven-Haegar Koch wrote:
->> + if test "$with_kernel" = ""; then
->> +   KERNEL="`uname -r`"
->> + else
->> +   KERNEL="$with_kernel"
->> + fi
-> 
-> 
-> Shouldn't --with-kernel let me specify a kernel source directory,
-> instead of a kernel version and then using some heuristicts to find the
-> source directory? (The heuristic for the default using
-> /lib/modules/`uname -r`/build is fine)
+Srinivas Krishnan wrote:
+> I am trying to create a module that adds delay to certain egress
+> packets. I am using the NF_IP_POST_ROUTING hook.
 
-I agree, if someone sends me a patch to change it I'll apply it.
+Why are you not doing this on the qdisc layer?
