@@ -1,16 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: condition for 2.6.16
-Date: Fri, 21 Apr 2006 00:47:48 +0200
-Message-ID: <44480F94.4010502@trash.net>
-References: <200604201919.19246.max@nucleus.it> <4447D7AA.1010602@trash.net>
-	<200604202139.02931.max@nucleus.it>
+Subject: Re: Fix --with-kernel for libnfnetlink
+Date: Fri, 21 Apr 2006 00:52:10 +0200
+Message-ID: <4448109A.7010100@trash.net>
+References: <859616420604200825o71f81878lbbb45251f1e0330d@mail.gmail.com>	<Pine.LNX.4.64.0604201844440.18935@mercury.sdinet.de>	<4447D839.804@trash.net>
+	<20060420193858.GA24477@sch.bme.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
+	Pablo Neira <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Massimiliano Hofer <max@nucleus.it>
-In-Reply-To: <200604202139.02931.max@nucleus.it>
+To: KOVACS Krisztian <hidden@sch.bme.hu>
+In-Reply-To: <20060420193858.GA24477@sch.bme.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,32 +23,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Massimiliano Hofer wrote:
-> On Thursday 20 April 2006 8:49 pm, Patrick McHardy wrote:
+KOVACS Krisztian wrote:
+>   Is there any chance of getting the pkg-config related modifications
+> merged as well?
 > 
->>We have already decided that the condition match will not be merged
->>because the same thing can easily be done by adding/removing rules
->>from userspace.
-> 
-> 
-> Sorry, I missed that discussion.
+>   http://tinyurl.com/mnw9c
 
-It was discussed at the netfilter workshops, summaries are available at
-workshop.netfilter.org.
+I saw the patch, but didn't apply it because its mostly Harald and
+Pablo who work on that code.
 
-> Is it still possible to include it in the external patches?
-
-You can set up a pomng repository and send us the URL to include in
-the sources.list file once we finish the pomng reorganization.
-
-> Anyway I think condition allows for a much more elegant solution in cases 
-> where adding and removing rules would lead to a messy and unpredictable 
-> sequence of overlapping rules, not to mention races between different 
-> modifications.
-> Just my humble opinion.
-
-
-Thats true, mainly because were missing a better kernel-userspace
-interface and better userspace tools. This is also the reason
-why we don't want to include it, its just a workaround for these
-problems.
+@Harald, Pablo: any objections against applying this?
