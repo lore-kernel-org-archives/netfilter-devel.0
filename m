@@ -1,16 +1,14 @@
 From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: development with queues
-Date: Thu, 20 Apr 2006 10:44:55 +0100
-Message-ID: <44475817.70100@ufomechanic.net>
-References: <f015bcab0604180253m76a8d960q5c7b6d821401927e@mail.gmail.com>	<859616420604180331g5644e343x8dc47d85278a4f62@mail.gmail.com>	<859616420604180346o2706c306wcf7703dc9b7f67e9@mail.gmail.com>
-	<a1f5b31e0604181231x69124db5qd6345d544cea9e44@mail.gmail.com>
+Subject: Re: Problem with compiling libnfnetlink
+Date: Thu, 20 Apr 2006 10:55:09 +0100
+Message-ID: <44475A7D.6020305@ufomechanic.net>
+References: <859616420604190401u11748b19r12b18558036c2afe@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: miguel Angel Vazquez <mikinho21@gmail.com>
-In-Reply-To: <a1f5b31e0604181231x69124db5qd6345d544cea9e44@mail.gmail.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <859616420604190401u11748b19r12b18558036c2afe@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,55 +20,70 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-James D. Nurmi wrote:
-> It is indeed possible, as I've done it (but unfort cant release the
-> code),  but you have to remember a few things while doing it:
-> 
-> 1) Performance, not a big deal w/ modern hardware and 100Mbps, but you
-> will see a huge hit at Gbit speeds
-> 2) You're going to be munging TCP on the fly, which requires you to
-> change sequence numbers, as well as adjust the incoming ack's,
-> otherwise you'll end up with odd retransmits.
-> 3) If you're going for an adequate solution, you can probably work on
-> single packets, and just delete what you need, but for a real
-> solution, you may not be able to make a full determination on the data
-> without queing up multiple packets, which in turn, requires a larger
-> queue for nfnetlink_queue;
-> 4)  Read TCP spec, it's got a few niggling details that you might not
-> notice, like syn/fin getting incremented.
-> 
-> Anyhow, if you need some pointers, let me know off list, as it _is_
-> possible, incredibly interesting, but certainly non-trivial.
+If I recall correctly this is beause you specified a wrong path to your 
+kernel source and so netlink.h was included from /usr/include/linux 
+instead of from your kernel source.
 
-I would echo James comment on the difficulties involved, and you suggest 
-you look at the ftp NAT helper, as it has to add or remove bytes in an 
-ftp command stream when it fixes up the port number for non-passive ftp.
+I'm possibly not the only one troubled by the existance of 
+/usr/include/linux, to me the whole thing smacks of presumtion and trouble.
 
-I have seen an application protocol where packet data boundaries were 
-significant, although I don't believe http has this problem; the 
-suggestion for the general case would be to not combine packets; even 
-though this is what ssh port forwarding does anyway...
+You might want to:
 
-As a special case for this problem you may prefer to use ipt_redirect 
-and handle the http connection in a local http proxy (a la squid) where 
-you can play with the headers to your hearts content and still recover 
-the original target ip address for when you make the proxied connection. 
-(Too many "transparent" proxies miss out that step and rely on the http 
-host header, idiots!)
+  find /path/to/kernel/src -name netlink.h
 
-Further advantages would be that you will have split the connection into 
-to parts, with reduced end-to-end packet latency which could be 
-significant in cases of packet loss, as only one segment of the path 
-needs to re-transmit. It would also de-fragment packets and possibly 
-combine small packets in cases where the next segment was a bottle-neck 
-thus reducing per-packet overhead in cases where this is needed.
+and see if there is even one there.
 
-You might also be able to apply gzip compression to the http response if 
-the upstream server did not do this, greatly reducing downstream traffic 
-in many cases.
-
-To my mind (and without knowing your entire situation) the advantages 
-and the ease of ipt_redirect and an http (non-caching) proxy far 
-outweigh the coolness of doing it with NF_QUEUE
+It would be helpful if you could include the output of gcc when 
+compiling (not linking) so we can check the -I paths to see what kernel 
+path it is including.
 
 Sam
+
+David Vogt wrote:
+> Hi,
+> 
+> I downloaded the latest version of libnfnetlink from the subversion
+> trunk (revison 6582 that is), after running "./autogen.sh" and
+> "./configure --with-kernel=<PATH_TO_KERNEL_SRC>" (both of which seem
+> to work fine), "make" outputs
+> 
+> Making all in src
+> make[1]: Entering directory `/home/david/netfilter.org/libnfnetlink/src'
+> if /bin/sh ../libtool --mode=compile gcc -DPACKAGE_NAME=\"\"
+> -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\"
+> -DPACKAGE_BUGREPORT=\"\" -DPACKAGE=\"libnfnetlink\"
+> -DVERSION=\"0.0.16\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1
+> -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1
+> -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1
+> -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1  -I. -I. 
+> -I../include   -fPIC -Wall -g -O2 -MT libnfnetlink.lo -MD -MP -MF
+> ".deps/libnfnetlink.Tpo" \
+>   -c -o libnfnetlink.lo `test -f 'libnfnetlink.c' || echo './'`libnfnetlink.c; \
+> then mv -f ".deps/libnfnetlink.Tpo" ".deps/libnfnetlink.Plo"; \
+> else rm -f ".deps/libnfnetlink.Tpo"; exit 1; \
+> fi
+> mkdir .libs
+>  gcc -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\"
+> -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\"
+> -DPACKAGE=\"libnfnetlink\" -DVERSION=\"0.0.16\" -DSTDC_HEADERS=1
+> -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1
+> -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1
+> -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1
+> -DHAVE_DLFCN_H=1 -I. -I. -I../include -fPIC -Wall -g -O2 -MT
+> libnfnetlink.lo -MD -MP -MF .deps/libnfnetlink.Tpo -c libnfnetlink.c 
+> -fPIC -DPIC -o .libs/libnfnetlink.o
+> In file included from libnfnetlink.c:40:
+> /usr/include/linux/netlink.h:22: error: syntax error before "__u32"
+> /usr/include/linux/netlink.h:28: error: syntax error before "__u32"
+> /usr/include/linux/netlink.h:30: error: syntax error before "nlmsg_flags"
+> /usr/include/linux/netlink.h:31: error: syntax error before "nlmsg_seq"
+> /usr/include/linux/netlink.h:32: error: syntax error before "nlmsg_pid"
+> /usr/include/linux/netlink.h:82: error: field `msg' has incomplete type
+> 
+> The kernel I use is 2.6.16. I've never built libnfnetlink from source,
+> so I am pretty sure I missed an important step. Any help would be
+> great.
+> 
+> David
+> 
+> 
