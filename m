@@ -1,18 +1,16 @@
-From: "miguel Angel Vazquez" <mikinho21@gmail.com>
-Subject: Re: development with queues
-Date: Thu, 20 Apr 2006 12:55:13 +0200
-Message-ID: <f015bcab0604200355jfa0756cya5b8248cf6d712bc@mail.gmail.com>
-References: <f015bcab0604180253m76a8d960q5c7b6d821401927e@mail.gmail.com>
-	<859616420604180331g5644e343x8dc47d85278a4f62@mail.gmail.com>
-	<859616420604180346o2706c306wcf7703dc9b7f67e9@mail.gmail.com>
-	<a1f5b31e0604181231x69124db5qd6345d544cea9e44@mail.gmail.com>
-	<44475817.70100@ufomechanic.net>
+From: "David Vogt" <beunlovable@gmail.com>
+Subject: Re: Problem with compiling libnfnetlink
+Date: Thu, 20 Apr 2006 13:05:37 +0200
+Message-ID: <859616420604200405k595368ex2e3a97aa979614e@mail.gmail.com>
+References: <859616420604190401u11748b19r12b18558036c2afe@mail.gmail.com>
+	<44475A7D.6020305@ufomechanic.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <44475817.70100@ufomechanic.net>
+To: "Amin Azez" <azez@ufomechanic.net>
+In-Reply-To: <44475A7D.6020305@ufomechanic.net>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -25,30 +23,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-hi mates!
+2006/4/20, Amin Azez <azez@ufomechanic.net>:
+> If I recall correctly this is beause you specified a wrong path to your
+> kernel source and so netlink.h was included from /usr/include/linux
+> instead of from your kernel source.
+>
+> I'm possibly not the only one troubled by the existance of
+> /usr/include/linux, to me the whole thing smacks of presumtion and troubl=
+e.
+>
+> You might want to:
+>
+>   find /path/to/kernel/src -name netlink.h
+>
+> and see if there is even one there.
+There _is_ a file netlink.h in /usr/src/linux-2.6/include/linux
 
-thanks for all your replys. As James and Sam have said it seems to be
-not a tribial matter. As Sam have said it is probably more efficient
-to use a transparent proxy like squid. Well in fact it was one of my 2
-ideas.  And obviously as Sam said using a Squid could bring me some
-more advantages. I wll talk to my boos about that option.
+> It would be helpful if you could include the output of gcc when
+> compiling (not linking) so we can check the -I paths to see what kernel
+> path it is including.
+The output I have previously posted is all the output I get, right
+after typing make, so shouldn't there be a compilatition?
 
-I'm going to explain some details about the project, as Sam asked me
-to do. our developmeny platform is going to be a Linksys WRT54g3G (or
-something like that), operating under Openwrt. The idea was that a
-wifi/LAN user could browse the Inet using the UMTS link. Besides there
-are some guys working here in MESH networking and authentification...
-and more important, research of users' hardware profile.
+It seems, calling
+> gcc -DPACKAGE_NAME=3D\"\" -DPACKAGE_TARNAME=3D\"\"
+> -DPACKAGE_VERSION=3D\"\"
+> -DPACKAGE_STRING=3D\"\" -DPACKAGE_BUGREPORT=3D\"\"
+> -DPACKAGE=3D\"libnfnetlink\" -DVERSION=3D\"0.0.16\" -DSTDC_HEADERS=3D1
+> -DHAVE_SYS_TYPES_H=3D1 -DHAVE_SYS_STAT_H=3D1 -DHAVE_STDLIB_H=3D1
+> -DHAVE_STRING_H=3D1 -DHAVE_MEMORY_H=3D1 -DHAVE_STRINGS_H=3D1
+> -DHAVE_INTTYPES_H=3D1 -DHAVE_STDINT_H=3D1 -DHAVE_UNISTD_H=3D1
+> -DHAVE_DLFCN_H=3D1 -I. -I. -I../include -fPIC -Wall -g -O2 -MT
+> libnfnetlink.lo -MD -MP -MF .deps/libnfnetlink.Tpo -c libnfnetlink.c
 
-In fact we wanted to eliminate the headers oh HTTP because we are
-going to suppose that we have identified all the users profiles( and
-saved in a database owned by a proxy "in the other side of internet")
-and we are going to send to that proxy a simply user identifier.
+causes the problem, and the include options in fact do not seem to
+point to the correct path. Now, I am not sure how to change that? I
+thought "./configure --with-kernel=3D/usr/src/linux-2.6" should have had
+the include options fixed.
 
-Maybe we are not going to eliminate big quantity of information, but
-the UMTS uplink is not quite wide, so it could be interesting.
-About the TCP problems...well, we are thinking in that question, and
-we are studying what to do: using a modifyed TCP, using other
-protocol...
+David
 
-Mike
+David
