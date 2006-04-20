@@ -1,16 +1,19 @@
-From: "Martijn Lievaart" <m@rtij.nl>
-Subject: Re: Strange MASQUERADING behaviour, bug or feature?
-Date: Thu, 20 Apr 2006 12:40:18 +0200 (CEST)
-Message-ID: <40417.217.166.60.19.1145529618.squirrel@217.166.60.19>
-References: <44440CD2.6060006@rtij.nl> <444610DD.9000807@ufomechanic.net>
-	<44466513.8080000@rtij.nl> <4447422A.20704@ufomechanic.net>
+From: "miguel Angel Vazquez" <mikinho21@gmail.com>
+Subject: Re: development with queues
+Date: Thu, 20 Apr 2006 12:55:13 +0200
+Message-ID: <f015bcab0604200355jfa0756cya5b8248cf6d712bc@mail.gmail.com>
+References: <f015bcab0604180253m76a8d960q5c7b6d821401927e@mail.gmail.com>
+	<859616420604180331g5644e343x8dc47d85278a4f62@mail.gmail.com>
+	<859616420604180346o2706c306wcf7703dc9b7f67e9@mail.gmail.com>
+	<a1f5b31e0604181231x69124db5qd6345d544cea9e44@mail.gmail.com>
+	<44475817.70100@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4447422A.20704@ufomechanic.net>
-To: "Amin Azez" <azez@ufomechanic.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <44475817.70100@ufomechanic.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,39 +25,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez zei:
+hi mates!
 
-> I think that if you could, it would cause you other problems, it is
-> harmful/useless to change the source address of TCP connections partway
-> through.
+thanks for all your replys. As James and Sam have said it seems to be
+not a tribial matter. As Sam have said it is probably more efficient
+to use a transparent proxy like squid. Well in fact it was one of my 2
+ideas.  And obviously as Sam said using a Squid could bring me some
+more advantages. I wll talk to my boos about that option.
 
-It is also useless to reroute a tcp connection through a different
-interface with different masquerading while keeping the old masquerading,
-so in either case, your tcp connection will not work anymore. If however
-only SYNs are sent up till now, changing the source address WOULD work
-(from a tcp point of view, not from a conntrack pov).
+I'm going to explain some details about the project, as Sam asked me
+to do. our developmeny platform is going to be a Linksys WRT54g3G (or
+something like that), operating under Openwrt. The idea was that a
+wifi/LAN user could browse the Inet using the UMTS link. Besides there
+are some guys working here in MESH networking and authentification...
+and more important, research of users' hardware profile.
 
-My thinko was that changing the route (output interface) would make MASQ
-tear down the connections, just like when the interface went down and then
-up.
+In fact we wanted to eliminate the headers oh HTTP because we are
+going to suppose that we have identified all the users profiles( and
+saved in a database owned by a proxy "in the other side of internet")
+and we are going to send to that proxy a simply user identifier.
 
-> Perhaps you could explain what problem you are trying to solve with this
-> method.
+Maybe we are not going to eliminate big quantity of information, but
+the UMTS uplink is not quite wide, so it could be interesting.
+About the TCP problems...well, we are thinking in that question, and
+we are studying what to do: using a modifyed TCP, using other
+protocol...
 
-Dial on demand, when pppd doesn't cut it. And combine that with
-masquerading. It seems to work on 2.6 when I do:
-- add masquerading rules for both real and dummy interface
-- create dummy interface and route with high metric
-- while forever
-  - if packets arrive at the dummy interface
-    - bring up the real interface
-    - add route with normal metric
-    - destroy and recreate the dummy interface (so the contracks are
-destroyed)
-
-This works more or less, which is enough for me at the moment.
-Unfortunately, it does not work on my 2.4 setup, but that's probably a
-different issue related to tun/tap  (cannot destroy the dummy interface,
-it just lives on).
-
-M4
+Mike
