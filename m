@@ -1,15 +1,18 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] table->lock initialization move
-Date: Fri, 21 Apr 2006 01:26:38 +0200
-Message-ID: <444818AE.4040509@trash.net>
-References: <200604171514.02014.dim@openvz.org>
+Subject: Re: [RFC][PATCH] compat_uint64_t type
+Date: Fri, 21 Apr 2006 02:07:58 +0200
+Message-ID: <4448225E.6010309@trash.net>
+References: <200604171459.13312.dim@openvz.org>
+	<4443B882.70203@trash.net>	<4443BC5B.9000407@trash.net>
+	<20060417.132026.72299574.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: dev@openvz.org, netfilter-devel@lists.netfilter.org, devel@openvz.org
+Cc: dim@openvz.org, schwab@suse.de, netfilter-devel@lists.netfilter.org,
+	dev@openvz.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Dmitry Mishin <dim@openvz.org>
-In-Reply-To: <200604171514.02014.dim@openvz.org>
+To: "David S. Miller" <davem@davemloft.net>
+In-Reply-To: <20060417.132026.72299574.davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,9 +24,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dmitry Mishin wrote:
-> xt_table->lock should be initialized before xt_replace_table() call, which 
-> uses it. This patch removes strict requirement, that table should define lock 
-> before registering.
+David S. Miller wrote:
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Mon, 17 Apr 2006 18:03:39 +0200
+> 
+>>This is my proposed alternative. It assumes all architectures besides
+>>x86 use native alignment for basic types.
+> 
+> 
+> Ok.  Perhaps we can eventually define a CONFIG_* object for
+> this.
 
-Applied, thanks.
+Since this appears to be a pure x86 32 bit emulation oddity
+so far, I think CONFIG_IA32_EMULATION would express that
+best. Unfortunately IA64 uses a different config option,
+so I left it as is.
+
+I'll send the patch with a batch of other fixes in a few hours.
