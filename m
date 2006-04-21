@@ -1,16 +1,18 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: condition for 2.6.16
-Date: Fri, 21 Apr 2006 10:29:25 +0100
-Message-ID: <4448A5F5.2000809@ufomechanic.net>
-References: <200604201919.19246.max@nucleus.it>
-	<44480F94.4010502@trash.net>	<200604210126.11294.max@nucleus.it>
-	<200604210248.14819.lists@egidy.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Fix --with-kernel for libnfnetlink
+Date: Fri, 21 Apr 2006 13:09:54 +0200
+Message-ID: <20060421110954.GA4403@localhost.localdomain>
+References: <859616420604200825o71f81878lbbb45251f1e0330d@mail.gmail.com>
+	<4447E23E.4090204@trash.net>
+	<859616420604210021y53dda87ai64678342068ed43f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+	pablo@netfilter.org, Amin Azez <azez@ufomechanic.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200604210248.14819.lists@egidy.de>
+To: David Vogt <mail@davidvogt.de>
+Content-Disposition: inline
+In-Reply-To: <859616420604210021y53dda87ai64678342068ed43f@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,60 +24,74 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Gerd v. Egidy wrote:
-> On Friday 21 April 2006 01:26, Massimiliano Hofer wrote:
+Hi,
+
+On Fri, Apr 21, 2006 at 09:21:58AM +0200, David Vogt wrote:
+> 2006/4/20, Patrick McHardy <kaber@trash.net>:
+> > David Vogt wrote:
+> > > Amin Azez has helped me with some trouble concerning the compilation
+> > > of libnfnetlink.
+> > > The --with-kernel parameter for the configure script did not work as
+> > > intended, so Amin has proposed the following changes that 1) look for
+> > > the kernel sources 2) recognise --with-kernel parameter.
+> >
+> > Please change this to use --kernel as literal path as suggested
+> > by Sven Koch.
 > 
->>On Friday 21 April 2006 12:47 am, Patrick McHardy wrote:
->>
->>>It was discussed at the netfilter workshops, summaries are available at
->>>workshop.netfilter.org.
->>
->>I did a cursory check of the site, but I only found a 5 or 6 lines summary
->>for every conference. Google doesn't help either.
->>May you direct me to a more comprehensive report, please?
+> Like this?
+> 
+> Index: configure.in
+> ===================================================================
+> --- configure.in	(revision 6583)
+> +++ configure.in	(working copy)
+> @@ -18,6 +18,35 @@
 > 
 > 
-> There is no big discussion about condition online but one line at 
-> http://workshop.netfilter.org/2004/ :
-> 
-> 6.2. Decisions about individual patches
-> ...
-> condition  Stays in POM, because it's ugly and ruleset updates are faster 
-> these days 
+>  dnl--------------------------------
+> +AC_DEFUN([NF_KERNEL_SOURCE],[
+> +
+> + if test "$with_kernel" = ""; then
+> +   KERNEL="/lib/modules/`uname -r`/build"
+> + else
+> +   KERNEL="$with_kernel"
+> + fi
+> +
+> + AC_MSG_CHECKING([for kernel headers in $KERNEL/include])
+> + if test -r "$KERNEL/include/linux/config.h" ; then
+> +   AC_SUBST(KERNELDIR,[$KERNEL])
+> +   AC_MSG_RESULT([found])
+> + else
+> +   AC_MSG_ERROR([not found])
+> + fi
+> +
+> +])
+> +
+> +AC_ARG_WITH(kernel,
+> +              AC_HELP_STRING([--with-kernel=DIR],
+> +                             [ Show location of kernel source.
+> Default is to use uname -r and look in
+> /lib/modules/KERNEL/build/include. ]),
+> +              NF_KERNEL_SOURCE($with_kernel),NF_KERNEL_SOURCE())
+> +
+> +if test ! -z "$libdir"; then
+> +  MODULE_DIR="\\\"$libdir/\\\""
+> +  CFLAGS="$CFLAGS -DCONNTRACK_LIB_DIR=$MODULE_DIR"
+> +fi
+> +
+> +
+>  dnl--------------------------------
 
-I like it's "ugliness"
+Why do you need this parameter? the netfilter libraries don't require
+kernel headers anymore since they are already bundled in the package
+provided. For example, see include/libnfnetlink/linux_nfnetlink.h. We
+have had several problems with iptables and the kernel headers in the
+past: compilation warnings, breakages... That is the reason why we
+decided to do so.
 
-> I don't know more than that because I didn't attend that netfilter workshop.
-> 
-> I already had a discussion about the future of condition with Harald back in 
-> 2004 and he basically said the same as Patrick now:
-> 
-> http://thread.gmane.org/gmane.comp.security.firewalls.netfilter.devel/5694
-> 
-> I think something like condition is needed as temporary solution until the 
-> proposed fast and reliable way to change rules is available. I very much 
-> appreciate your work on porting it to 2.6, I already had planned doing that 
-> in the nex two or three month.
+On the other hand, autogen.sh automates the copy of these headers,
+so you could choose them via KERNEL_DIR but you need some important
+reason to do that.
 
-ipt_condition allows the abstraction of enabling/disabling features of 
-an iptables ruleset.
-
-If you remove a rule, you have destroyed the information as to where in 
-the ruleset it belonged. Removing a rule is conceptually different from 
-disabling it.
-
-One exaple is use of ipt_redirect to a trasparent web proxy, the rule 
-exists among a sequence of rules as not all users should have their 
-traffic via the proxy depnding on source-ip/target-ip combinations as 
-well as marks (from other rules) and then ipt_condition to enable or 
-disable the interception.
-
-To remove the intercept rule is to lose the prioritisation information.
-It could be implemented via sub-chains, which is to my mind more messy.
-
-I will say that ipt_condition will not go away. The code is simple 
-enough, the only objection I find is that one if its uses is to overcome 
-a deficiency in iptables management tools. It may stay in pom, but it 
-provides too useful an interface to go away.
-
-Sam
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
