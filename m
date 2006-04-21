@@ -1,14 +1,16 @@
-From: "Srinivas Krishnan" <shrin.krishnan@gmail.com>
-Subject: Re: Packet Delay using Netfilter
-Date: Thu, 20 Apr 2006 15:35:31 -0400
-Message-ID: <ba7fdfc10604201235l166d440ue20e2713e3db43c0@mail.gmail.com>
-Reply-To: krishnan@cs.unc.edu
+From: "Gerd v. Egidy" <gve-lists@intra2net.com>
+Subject: Re: condition for 2.6.16
+Date: Fri, 21 Apr 2006 02:41:40 +0200
+Message-ID: <200604210241.40529.gve-lists@intra2net.com>
+References: <200604201919.19246.max@nucleus.it> <44480F94.4010502@trash.net>
+	<200604210126.11294.max@nucleus.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <200604210126.11294.max@nucleus.it>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -21,12 +23,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I am trying to do it filter packets by flow and add delay to each
-flow. Netfilter just seemed an easier way of doing it without getting
-into the complications of qdiscs.
+On Friday 21 April 2006 01:26, Massimiliano Hofer wrote:
+> On Friday 21 April 2006 12:47 am, Patrick McHardy wrote:
+> > It was discussed at the netfilter workshops, summaries are available at
+> > workshop.netfilter.org.
+>
+> I did a cursory check of the site, but I only found a 5 or 6 lines summary
+> for every conference. Google doesn't help either.
+> May you direct me to a more comprehensive report, please?
 
--shrin
+There is no big discussion about condition online but one line at 
+http://workshop.netfilter.org/2004/ :
 
-Patrick McHardy wrote:
+6.2. Decisions about individual patches
+...
+condition  Stays in POM, because it's ugly and ruleset updates are faster 
+these days 
 
->Why are you not doing this on the qdisc layer?
+I don't know more than that because I didn't attend that netfilter workshop.
+
+I already had a discussion about the future of condition with Harald back in 
+2004 and he basically said the same as Patrick now:
+
+http://thread.gmane.org/gmane.comp.security.firewalls.netfilter.devel/5694
+
+I think something like condition is needed as temporary solution until the 
+proposed fast and reliable way to change rules is available. I very much 
+appreciate your work on porting it to 2.6, I already had planned doing that 
+in the nex two or three month.
+
+Kind regards,
+
+Gerd
