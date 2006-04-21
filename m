@@ -1,19 +1,12 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Fix --with-kernel for libnfnetlink
-Date: Fri, 21 Apr 2006 17:25:20 +0200
-Message-ID: <20060421152520.GA10829@localhost.localdomain>
-References: <859616420604200825o71f81878lbbb45251f1e0330d@mail.gmail.com>
-	<Pine.LNX.4.64.0604201844440.18935@mercury.sdinet.de>
-	<4447D839.804@trash.net> <20060420193858.GA24477@sch.bme.hu>
-	<4448109A.7010100@trash.net>
+From: Ryan Sumner <ryan@sumnerfamily.com>
+Subject: pom extra/ipsec-0[1-4]-*
+Date: Fri, 21 Apr 2006 11:31:05 -0500
+Message-ID: <444908C9.1070004@sumnerfamily.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Pablo Neira <pablo@netfilter.org>, KOVACS Krisztian <hidden@sch.bme.hu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <4448109A.7010100@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,18 +18,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Apr 21, 2006 at 12:52:10AM +0200, Patrick McHardy wrote:
-> KOVACS Krisztian wrote:
-> >   Is there any chance of getting the pkg-config related modifications
-> > merged as well?
-> > 
-> >   http://tinyurl.com/mnw9c
-> 
-> I saw the patch, but didn't apply it because its mostly Harald and
-> Pablo who work on that code.
-> 
-> @Harald, Pablo: any objections against applying this?
+Hello, all...my first post to netfilter-devel.
 
-No objections from my part, pkg-config is present in most distros AFAIK,
-and we needed a way to explicitely set the version dependencies between
-libraries.
+Went in this morning and checked-out iptables and patch-o-matic-ng.  My 
+intent was to add ipsec-01-output-hooks, ipsec-01-input-hooks, 
+ipsec-03-policy-lookup, ipsec-04-policy-checks so I can establish ipsec 
+on my gateway and have all machines that are masqueraded have the option 
+of following routes into the tunnel.  From my readings, these seem to 
+the be patches I'm going to need.
+
+I'm currently running a stock Fedora Core 2 kernel 2.6.10-1.771_FC2.
+
+I looked at the following page to find the patches that I thought I 
+would need and figured that when I ran "runme extra", I would see the 
+above referenced patches in there:
+
+http://netfilter.org/projects/patch-o-matic/pom-extra.html
+
+Have these patches been moved out of POM?  How can I easily get them 
+applied so my iptables, kernel source and functioning?  All your 
+assistance is appreciated.  If this post should belong in 
+netfilter-user, please excuse me.
+
+Ryan
