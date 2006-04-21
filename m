@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 04/07]: nf_conntrack: kill unused callback init_conntrack
-Date: Fri, 21 Apr 2006 03:06:53 +0200 (MEST)
-Message-ID: <20060421010653.8466.74858.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 05/07]: ip6_tables: remove broken comefrom debugging
+Date: Fri, 21 Apr 2006 03:06:55 +0200 (MEST)
+Message-ID: <20060421010655.8466.87312.sendpatchset@localhost.localdomain>
 References: <20060421010648.8466.94593.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,32 +18,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: kill unused callback init_conntrack
+[NETFILTER]: ip6_tables: remove broken comefrom debugging
 
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+The introduction of x_tables broke comefrom debugging, remove it from
+ip6_tables as well (ip_tables already got removed).
+
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 81d5f60a185910989bc5778e3ea7ee03bda7f36d
-tree 03c41d336c6528c11e024a1e42e100281cc0bd3e
-parent 030e806c1db0d3a278585b83475d1a6f9a874788
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 21 Apr 2006 01:21:30 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 21 Apr 2006 01:21:30 +0200
+commit 1d7a13058df694ded6411b12931f3dd42f8193a4
+tree c1f64b340b6adc83cec030d6a5d365521cd14003
+parent 81d5f60a185910989bc5778e3ea7ee03bda7f36d
+author Patrick McHardy <kaber@trash.net> Fri, 21 Apr 2006 01:25:26 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 21 Apr 2006 01:25:26 +0200
 
- net/netfilter/nf_conntrack_core.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ net/ipv6/netfilter/ip6_tables.c |   13 -------------
+ 1 files changed, 0 insertions(+), 13 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index e302222..f9b83f9 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -178,9 +178,6 @@ static struct {
- 	/* allocated slab cache + modules which uses this slab cache */
- 	int use;
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 642b4b1..0a67303 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -288,19 +288,6 @@ ip6t_do_table(struct sk_buff **pskb,
+ 	table_base = (void *)private->entries[smp_processor_id()];
+ 	e = get_entry(table_base, private->hook_entry[hook]);
  
--	/* Initialization */
--	int (*init_conntrack)(struct nf_conn *, u_int32_t);
+-#ifdef CONFIG_NETFILTER_DEBUG
+-	/* Check noone else using our table */
+-	if (((struct ip6t_entry *)table_base)->comefrom != 0xdead57ac
+-	    && ((struct ip6t_entry *)table_base)->comefrom != 0xeeeeeeec) {
+-		printk("ASSERT: CPU #%u, %s comefrom(%p) = %X\n",
+-		       smp_processor_id(),
+-		       table->name,
+-		       &((struct ip6t_entry *)table_base)->comefrom,
+-		       ((struct ip6t_entry *)table_base)->comefrom);
+-	}
+-	((struct ip6t_entry *)table_base)->comefrom = 0x57acc001;
+-#endif
 -
- } nf_ct_cache[NF_CT_F_NUM];
+ 	/* For return from builtin chain */
+ 	back = get_entry(table_base, private->underflow[hook]);
  
- /* protect members of nf_ct_cache except of "use" */
