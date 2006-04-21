@@ -1,20 +1,21 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: development with queues
-Date: Sat, 22 Apr 2006 06:37:05 +0200
-Message-ID: <20060422043704.GA780@oknodo.bof.de>
-References: <f015bcab0604180253m76a8d960q5c7b6d821401927e@mail.gmail.com>
-	<859616420604180331g5644e343x8dc47d85278a4f62@mail.gmail.com>
-	<859616420604180346o2706c306wcf7703dc9b7f67e9@mail.gmail.com>
-	<a1f5b31e0604181231x69124db5qd6345d544cea9e44@mail.gmail.com>
-	<44475817.70100@ufomechanic.net>
-	<f015bcab0604200355jfa0756cya5b8248cf6d712bc@mail.gmail.com>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: Fix --with-kernel for libnfnetlink
+Date: Fri, 21 Apr 2006 17:02:58 -0300
+Message-ID: <20060421200258.GD10468@rama>
+References: <859616420604200825o71f81878lbbb45251f1e0330d@mail.gmail.com>
+	<Pine.LNX.4.64.0604201844440.18935@mercury.sdinet.de>
+	<4447D839.804@trash.net> <20060420193858.GA24477@sch.bme.hu>
+	<4448109A.7010100@trash.net>
+	<20060421152520.GA10829@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Ycz6tD7Th1CMF4v7"
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+	KOVACS Krisztian <hidden@sch.bme.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: miguel Angel Vazquez <mikinho21@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Content-Disposition: inline
-In-Reply-To: <f015bcab0604200355jfa0756cya5b8248cf6d712bc@mail.gmail.com>
+In-Reply-To: <20060421152520.GA10829@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,22 +27,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> In fact we wanted to eliminate the headers oh HTTP because we are
-> going to suppose that we have identified all the users profiles( and
-> saved in a database owned by a proxy "in the other side of internet")
-> and we are going to send to that proxy a simply user identifier.
-> 
-> Maybe we are not going to eliminate big quantity of information, but
-> the UMTS uplink is not quite wide, so it could be interesting.
 
-This stupidity has been tried some years ago. Read about WAP,
-visit www.kannel.org for an open source implementation.
+--Ycz6tD7Th1CMF4v7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The idea is stupid because it's the content, and not the headers,
-which consumes bandwidth, unless web SITES are optimized to deliver
-very compact content specialized for mobile devices - and then the
-win lies in this specialization, and not so much in any header
-munging you could reinvent.
+On Fri, Apr 21, 2006 at 05:25:20PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, Apr 21, 2006 at 12:52:10AM +0200, Patrick McHardy wrote:
+> > KOVACS Krisztian wrote:
+> > >   Is there any chance of getting the pkg-config related modifications
+> > > merged as well?
+> > >=20
+> > >   http://tinyurl.com/mnw9c
+> >=20
+> > I saw the patch, but didn't apply it because its mostly Harald and
+> > Pablo who work on that code.
+> >=20
+> > @Harald, Pablo: any objections against applying this?
+>=20
+> No objections from my part, pkg-config is present in most distros AFAIK,
+> and we needed a way to explicitely set the version dependencies between
+>  libraries.
 
-best regards
-  Patrick
+I agree. please apply.
+
+--=20
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
+
+--Ycz6tD7Th1CMF4v7
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
+
+iD8DBQFESTpyXaXGVTD0i/8RAu3PAJ9VYvfXPR2RE+m84lKppyo6353TogCfYOE1
+m8Hwi6L++gqfFP0f+jD67Ho=
+=vk/6
+-----END PGP SIGNATURE-----
+
+--Ycz6tD7Th1CMF4v7--
