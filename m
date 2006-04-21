@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/07]: nf_conntrack: Fix module refcount dropping too
-	far
-Date: Fri, 21 Apr 2006 03:06:49 +0200 (MEST)
-Message-ID: <20060421010649.8466.48853.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/07]: ULOG target is not obsolete
+Date: Fri, 21 Apr 2006 03:06:51 +0200 (MEST)
+Message-ID: <20060421010651.8466.69434.sendpatchset@localhost.localdomain>
 References: <20060421010648.8466.94593.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,70 +18,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: Fix module refcount dropping too far
+[NETFILTER]: ULOG target is not obsolete
 
-If nf_ct_l3proto_find_get() fails to get the refcount of
-nf_ct_l3proto_generic, nf_ct_l3proto_put() will drop the refcount
-too far.
+The backend part is obsoleted, but the target itself is still needed.
 
-This gets rid of '.me = THIS_MODULE' of nf_ct_l3proto_generic so that
-nf_ct_l3proto_find_get() doesn't try to get refcount of it.
-It's OK because its symbol is usable until nf_conntrack.ko is unloaded.
-
-This also kills unnecessary NULL pointer check as well.
-__nf_ct_proto_find() allways returns non-NULL pointer.
-
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Signed-off-by: Thomas Voegtle <tv@lio96.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit bc79a39fcc0cb09ed73ba0052cb87c2893f4f65f
-tree a2702573ee2acdc6fb865921a94042ef8d14f0f5
-parent 5a7b46b369419493bab4de67b1526e9f76b22a7f
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Fri, 21 Apr 2006 01:19:00 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 21 Apr 2006 01:19:00 +0200
+commit 40c6dcb49ac3f091e30fa105c347cc25776e8b72
+tree 2e826e3e3c47a7c5ba0fc5d070a05b090bc30a02
+parent bc79a39fcc0cb09ed73ba0052cb87c2893f4f65f
+author Thomas Voegtle <tv@lio96.de> Fri, 21 Apr 2006 01:19:15 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 21 Apr 2006 01:19:15 +0200
 
- net/netfilter/nf_conntrack_core.c            |   12 ++++--------
- net/netfilter/nf_conntrack_l3proto_generic.c |    1 -
- 2 files changed, 4 insertions(+), 9 deletions(-)
+ net/ipv4/netfilter/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index e581190..e302222 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -208,10 +208,8 @@ nf_ct_proto_find_get(u_int16_t l3proto, 
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index c60fd5c..3d560de 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -345,7 +345,7 @@ config IP_NF_TARGET_LOG
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- 	preempt_disable();
- 	p = __nf_ct_proto_find(l3proto, protocol);
--	if (p) {
--		if (!try_module_get(p->me))
--			p = &nf_conntrack_generic_protocol;
--	}
-+	if (!try_module_get(p->me))
-+		p = &nf_conntrack_generic_protocol;
- 	preempt_enable();
- 	
- 	return p;
-@@ -229,10 +227,8 @@ nf_ct_l3proto_find_get(u_int16_t l3proto
+ config IP_NF_TARGET_ULOG
+-	tristate "ULOG target support (OBSOLETE)"
++	tristate "ULOG target support"
+ 	depends on IP_NF_IPTABLES
+ 	---help---
  
- 	preempt_disable();
- 	p = __nf_ct_l3proto_find(l3proto);
--	if (p) {
--		if (!try_module_get(p->me))
--			p = &nf_conntrack_generic_l3proto;
--	}
-+	if (!try_module_get(p->me))
-+		p = &nf_conntrack_generic_l3proto;
- 	preempt_enable();
- 
- 	return p;
-diff --git a/net/netfilter/nf_conntrack_l3proto_generic.c b/net/netfilter/nf_conntrack_l3proto_generic.c
-index 7de4f06..3fc58e4 100644
---- a/net/netfilter/nf_conntrack_l3proto_generic.c
-+++ b/net/netfilter/nf_conntrack_l3proto_generic.c
-@@ -94,5 +94,4 @@ struct nf_conntrack_l3proto nf_conntrack
- 	.print_conntrack = generic_print_conntrack,
- 	.prepare	 = generic_prepare,
- 	.get_features	 = generic_get_features,
--	.me		 = THIS_MODULE,
- };
