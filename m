@@ -1,16 +1,20 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Rsend : Transmit mark to userspace during conntrack
-	event
-Date: Sat, 22 Apr 2006 01:54:43 +0200
-Message-ID: <444970C3.5000202@trash.net>
-References: <1145223945.5659.4.camel@porky>
-	<1145652932.5191.6.camel@localhost.localdomain>
+Subject: Re: [PATCH 1/3] [kernel patch] fixed duration connection
+Date: Sat, 22 Apr 2006 02:02:44 +0200
+Message-ID: <444972A4.7060209@trash.net>
+References: <1144139619.5186.24.camel@localhost.localdomain>	<4433CCBF.6060103@trash.net>
+	<4436DF6B.4060208@inl.fr>	<4436E03E.9030402@inl.fr>
+	<44381584.4020109@trash.net>	<20060412083835.GN31616@sunbeam.de.gnumonks.org>	<20060412104824.GU31616@sunbeam.de.gnumonks.org>	<443D4FCE.2030802@trash.net>	<56883.194.167.18.244.1144945066.squirrel@mail.inl.fr>	<444843CC.3070105@trash.net>
+	<1145652794.5191.3.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070504060604020807070404"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	nufw-devel@nongnu.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Eric Leblond <eric@inl.fr>
-In-Reply-To: <1145652932.5191.6.camel@localhost.localdomain>
+In-Reply-To: <1145652794.5191.3.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,136 +26,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070504060604020807070404
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
 Eric Leblond wrote:
->>When userspace listen to conntrack event, the connection mark was not
->>sent in the ctnetlink message. The following patch transmits the
->>connection mark to userspace.
+> Le vendredi 21 avril 2006 =E0 04:30 +0200, Patrick McHardy a =E9crit :
+>=20
+>>Eric Leblond wrote:
+>>Thanks. Now all I need is a Signed-off-by: line :)
+>>Please send one for your ctnetlink fix as well.
+>=20
+>=20
+> I attach it to the mail and I hope this is ok. I stupidly did not manag=
+e
+> to get an autmotic way to add the Signed-off-by ...
 
-Thanks Eric. After looking at xt_CONNMARK I think I know why the
-mark wasn't included in the update messages, we didn't even had
-notifications for changes. I've queued this patch instead.
+Applied, thanks. Both your patches had whitespace damage I
+had to fix up manually though. Please try to avoid this
+in the future.
 
+(Stripping trailing CRs from patch.)
+patching file include/linux/netfilter/nf_conntrack_common.h
+(Stripping trailing CRs from patch.)
+patching file net/ipv4/netfilter/ip_conntrack_core.c
+(Stripping trailing CRs from patch.)
+patching file net/netfilter/nf_conntrack_core.c
 
---------------070504060604020807070404
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
++    /* Connection has fixed timeout. */
+^^^^ should be tab
++	IPS_FIXED_TIMEOUT_BIT =3D 10,
 
-[NETFILTER]: ctnetlink: fix conntrack mark change notifications
-
-The connection mark was not included in event messages and changes didn't
-cause event delivery.
-
-Based on patch by Eric Leblond <eric@inl.fr>
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit f62ae14f884c89b9e34417435265780ead18976e
-tree 93bedfa47324e1819751854359e97e8c9a15b620
-parent d3adb6926baf464a3dfc5130a67fe5bb02319ab7
-author Patrick McHardy <kaber@trash.net> Sat, 22 Apr 2006 01:55:07 +0200
-committer Patrick McHardy <kaber@trash.net> Sat, 22 Apr 2006 01:55:07 +0200
-
- include/linux/netfilter/nf_conntrack_common.h |    4 ++++
- net/ipv4/netfilter/ip_conntrack_netlink.c     |    6 +++++-
- net/netfilter/nf_conntrack_netlink.c          |    6 +++++-
- net/netfilter/xt_CONNMARK.c                   |    8 ++++++--
- 4 files changed, 20 insertions(+), 4 deletions(-)
-
-diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
-index 3ff88c8..4884455 100644
---- a/include/linux/netfilter/nf_conntrack_common.h
-+++ b/include/linux/netfilter/nf_conntrack_common.h
-@@ -121,6 +121,10 @@ enum ip_conntrack_events
- 	/* Counter highest bit has been set */
- 	IPCT_COUNTER_FILLING_BIT = 11,
- 	IPCT_COUNTER_FILLING = (1 << IPCT_COUNTER_FILLING_BIT),
-+
-+	/* Connection mark */
-+	IPCT_MARK_BIT = 12,
-+	IPCT_MARK = (1 << IPCT_MARK_BIT),
- };
- 
- enum ip_conntrack_expect_events {
-diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index 01bd7ca..0fee630 100644
---- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -333,7 +333,8 @@ static int ctnetlink_conntrack_event(str
- 		      IPCT_PROTOINFO |
- 		      IPCT_HELPER |
- 		      IPCT_HELPINFO |
--		      IPCT_NATINFO)) {
-+		      IPCT_NATINFO |
-+		      IPCT_MARK)) {
- 		type = IPCTNL_MSG_CT_NEW;
- 		group = NFNLGRP_CONNTRACK_UPDATE;
- 	} else 
-@@ -380,6 +381,9 @@ static int ctnetlink_conntrack_event(str
- 	if (events & IPCT_HELPINFO
- 	    && ctnetlink_dump_helpinfo(skb, ct) < 0)
- 		goto nfattr_failure;
-+	if (events & IPCT_MARK
-+	    && ctnetlink_dump_mark(skb, ct) < 0)
-+		goto nfattr_failure;
- 
- 	if (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
- 	    ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0)
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index bd10eb9..36ff941 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -342,7 +342,8 @@ static int ctnetlink_conntrack_event(str
- 		      IPCT_PROTOINFO |
- 		      IPCT_HELPER |
- 		      IPCT_HELPINFO |
--		      IPCT_NATINFO)) {
-+		      IPCT_NATINFO |
-+		      IPCT_MARK)) {
- 		type = IPCTNL_MSG_CT_NEW;
- 		group = NFNLGRP_CONNTRACK_UPDATE;
- 	} else
-@@ -389,6 +390,9 @@ static int ctnetlink_conntrack_event(str
- 	if (events & IPCT_HELPINFO
- 	    && ctnetlink_dump_helpinfo(skb, ct) < 0)
- 		goto nfattr_failure;
-+	if (events & IPCT_MARK
-+	    && ctnetlink_dump_mark(skb, ct) < 0)
-+		goto nfattr_failure;
- 
- 	if (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
- 	    ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0)
-diff --git a/net/netfilter/xt_CONNMARK.c b/net/netfilter/xt_CONNMARK.c
-index 60c375d..f0bb6d6 100644
---- a/net/netfilter/xt_CONNMARK.c
-+++ b/net/netfilter/xt_CONNMARK.c
-@@ -52,13 +52,17 @@ target(struct sk_buff **pskb,
- 	    switch(markinfo->mode) {
- 	    case XT_CONNMARK_SET:
- 		newmark = (*ctmark & ~markinfo->mask) | markinfo->mark;
--		if (newmark != *ctmark)
-+		if (newmark != *ctmark) {
- 		    *ctmark = newmark;
-+		    ip_conntrack_event_cache(IPCT_MARK, *pskb);
-+		}
- 		break;
- 	    case XT_CONNMARK_SAVE:
- 		newmark = (*ctmark & ~markinfo->mask) | ((*pskb)->nfmark & markinfo->mask);
--		if (*ctmark != newmark)
-+		if (*ctmark != newmark) {
- 		    *ctmark = newmark;
-+		    ip_conntrack_event_cache(IPCT_MARK, *pskb);
-+		}
- 		break;
- 	    case XT_CONNMARK_RESTORE:
- 		nfmark = (*pskb)->nfmark;
-
---------------070504060604020807070404--
++	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status)){
+                                                         ^ missing space
