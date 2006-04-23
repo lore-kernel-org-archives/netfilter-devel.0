@@ -1,21 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Fix --with-kernel for libnfnetlink
-Date: Fri, 21 Apr 2006 17:02:58 -0300
-Message-ID: <20060421200258.GD10468@rama>
-References: <859616420604200825o71f81878lbbb45251f1e0330d@mail.gmail.com>
-	<Pine.LNX.4.64.0604201844440.18935@mercury.sdinet.de>
-	<4447D839.804@trash.net> <20060420193858.GA24477@sch.bme.hu>
-	<4448109A.7010100@trash.net>
-	<20060421152520.GA10829@localhost.localdomain>
+From: Simon Lodal <simonl@parknet.dk>
+Subject: Re: condition for 2.6.16
+Date: Sun, 23 Apr 2006 15:47:28 +0200
+Message-ID: <200604231547.29009.simonl@parknet.dk>
+References: <200604201919.19246.max@nucleus.it> <4447D7AA.1010602@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Ycz6tD7Th1CMF4v7"
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
-	KOVACS Krisztian <hidden@sch.bme.hu>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Massimiliano Hofer <max@nucleus.it>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <4447D7AA.1010602@trash.net>
 Content-Disposition: inline
-In-Reply-To: <20060421152520.GA10829@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,51 +23,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Thursday 20 April 2006 20:49, Patrick McHardy wrote:
 
---Ycz6tD7Th1CMF4v7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> We have already decided that the condition match will not be merged
+> because the same thing can easily be done by adding/removing rules
+> from userspace.
 
-On Fri, Apr 21, 2006 at 05:25:20PM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Apr 21, 2006 at 12:52:10AM +0200, Patrick McHardy wrote:
-> > KOVACS Krisztian wrote:
-> > >   Is there any chance of getting the pkg-config related modifications
-> > > merged as well?
-> > >=20
-> > >   http://tinyurl.com/mnw9c
-> >=20
-> > I saw the patch, but didn't apply it because its mostly Harald and
-> > Pablo who work on that code.
-> >=20
-> > @Harald, Pablo: any objections against applying this?
->=20
-> No objections from my part, pkg-config is present in most distros AFAIK,
-> and we needed a way to explicitely set the version dependencies between
->  libraries.
+Conditions enable role separation between us admins.
 
-I agree. please apply.
+No matter how good or fast the userspace tools are, there are cases where you 
+simply do not want to (let others) run them, but it is acceptable to (let 
+others) turn on/off some predefined blocks of rules.
 
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Plus it is faster, less risky, and does not reset counters.
 
---Ycz6tD7Th1CMF4v7
-Content-Type: application/pgp-signature
-Content-Disposition: inline
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQFESTpyXaXGVTD0i/8RAu3PAJ9VYvfXPR2RE+m84lKppyo6353TogCfYOE1
-m8Hwi6L++gqfFP0f+jD67Ho=
-=vk/6
------END PGP SIGNATURE-----
-
---Ycz6tD7Th1CMF4v7--
+Simon
