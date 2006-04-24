@@ -1,12 +1,12 @@
-From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
-Subject: [H.323 Helper 2/3]: Change author's email address
-Date: Sun, 23 Apr 2006 23:40:58 -0400
-Message-ID: <BAY109-DAV1719A83CD88DA7EAA1C323B3BE0@phx.gbl>
+From: octane indice <octane@alinto.com>
+Subject: firewall with failover - ct_sync ?
+Date: Mon, 24 Apr 2006 18:24:16 +0200
+Message-ID: <1145895856.444cfbb0eee53@webmail.alinto.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0033_01C6672F.5F5DE270"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,63 +18,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hello
 
-------=_NextPart_000_0033_01C6672F.5F5DE270
-Content-Type: text/plain; format=flowed; charset="GB18030"; reply-type=original
-Content-Transfer-Encoding: 7bit
+I'm trying to experiment a firewall cluster under linux like 
+carp+pfsync under openBSD.
 
-This patch is for 2.6.17-rc2.
+1. does ct_sync works?
+I asked on the netfilter-failover mailing list where someone tolds me not (but 
+the mailing lists seems abandoned).
 
-Signed-off-by: Jing Min Zhao <zhaojingmin@users.sourceforge.net>
-------=_NextPart_000_0033_01C6672F.5F5DE270
-Content-Type: application/octet-stream;
-	name="nath323-author"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="nath323-author"
+2. I found the web page:
+http://svn.netfilter.org/netfilter/trunk/netfilter-ha/README
+But it makes references to kernel 2.4.26 and CVS.
+2. a) Must I use quilt? 
+2. b) Where I grab the patch files?
 
-diff -pruN =
-linux-2.6.17-rc2.a/include/linux/netfilter_ipv4/ip_conntrack_helper_h323_=
-asn1.h =
-linux-2.6.17-rc2.b/include/linux/netfilter_ipv4/ip_conntrack_helper_h323_=
-asn1.h=0A=
---- =
-linux-2.6.17-rc2.a/include/linux/netfilter_ipv4/ip_conntrack_helper_h323_=
-asn1.h	2006-04-21 20:37:26.000000000 -0400=0A=
-+++ =
-linux-2.6.17-rc2.b/include/linux/netfilter_ipv4/ip_conntrack_helper_h323_=
-asn1.h	2006-04-21 20:45:56.000000000 -0400=0A=
-@@ -2,7 +2,7 @@=0A=
-  * ip_conntrack_helper_h323_asn1.h - BER and PER decoding library for =
-H.323=0A=
-  * 			      	     conntrack/NAT module.=0A=
-  *=0A=
-- * Copyright (c) 2006 by Jing Min Zhao <zhaojingmin@hotmail.com>=0A=
-+ * Copyright (c) 2006 by Jing Min Zhao =
-<zhaojingmin@users.sourceforge.net>=0A=
-  *=0A=
-  * This source code is licensed under General Public License version 2.=0A=
-  *=0A=
-diff -pruN =
-linux-2.6.17-rc2.a/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c =
-linux-2.6.17-rc2.b/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c=0A=
---- =
-linux-2.6.17-rc2.a/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c	=
-2006-04-21 20:37:33.000000000 -0400=0A=
-+++ =
-linux-2.6.17-rc2.b/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c	=
-2006-04-21 20:45:56.000000000 -0400=0A=
-@@ -2,7 +2,7 @@=0A=
-  * ip_conntrack_helper_h323_asn1.c - BER and PER decoding library for =
-H.323=0A=
-  * 			      	     conntrack/NAT module.=0A=
-  *=0A=
-- * Copyright (c) 2006 by Jing Min Zhao <zhaojingmin@hotmail.com>=0A=
-+ * Copyright (c) 2006 by Jing Min Zhao =
-<zhaojingmin@users.sourceforge.net>=0A=
-  *=0A=
-  * This source code is licensed under General Public License version 2.=0A=
-  *=0A=
+3. Is there another documentation?
 
-------=_NextPart_000_0033_01C6672F.5F5DE270--
+4. the site http://vvv.barbarossa.name/files/ct_sync/
+gives two patch for the 2.6.16 kernel.
+Which one have I to use? both?
+
+5. The link beetween the two machines must be an ethernet link? 
+I have old boxes with two PCI port only, but parrallel link is OK with plip. For 
+testing would it be OK? (I just want to test functionnality, not the throughput)
+
+Thanks
+
+"Ce Caillou-là" un conte en téléchargement gratuit sur http://www.Manuscrit.com
