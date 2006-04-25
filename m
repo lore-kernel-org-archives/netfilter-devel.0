@@ -1,15 +1,13 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/07]: Netfilter fixes for 2.6.17
-Date: Mon, 24 Apr 2006 17:54:24 -0700 (PDT)
-Message-ID: <20060424.175424.78909163.davem@davemloft.net>
-References: <20060421010648.8466.94593.sendpatchset@localhost.localdomain>
+From: "=?windows-1251?Q?noip?=" <noip@webhost66.com>
+Subject: kernel panic with connlimit and 2.6.16.* kernels
+Date: Tue, 25 Apr 2006 10:52:58 +0000
+Message-ID: <20060425105258.9430.qmail@webhost66.com>
+Reply-To: =?windows-1251?Q?noip?= <noip@webhost66.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset="windows-1251"
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <20060421010648.8466.94593.sendpatchset@localhost.localdomain>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,11 +19,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 21 Apr 2006 03:06:48 +0200 (MEST)
+Hello,
 
-> following are a couple of netfilter fixes for 2.6.17. The whitespace
-> problem is fixed now, apparently sed doesn't understand \t. I guess
-> I'm lucky that it didn't start stripping trailing t's :)
+I've described my problem in the linux kernel list here:
+http://www.ussg.iu.edu/hypermail/linux/kernel/0604.2/1472.html
 
-:-)  All applied, thanks Patrick.
+There I've recieved a reply from Patrick McHardy:
+http://www.ussg.iu.edu/hypermail/linux/kernel/0604.2/1666.html
+
+I've used a patch for connlimit from this thread, because without the patch i can't apply the connlimit patch from the latest patch-o-matic-ng snapshot to any 2.6.16 kernel:
+http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3456
+
+I've recompilled my kernel without the connlimit patch and the problem is gone now.
+Can you tell me is the connlimit patch usable with any of the 2.6.16 kernels at this moment ? 
+
+Thank You 
+Iavor  
