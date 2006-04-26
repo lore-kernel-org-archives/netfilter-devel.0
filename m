@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [H.323 Helper 1/3]: Add support for Call Forwarding
-Date: Wed, 26 Apr 2006 22:20:31 +0200
-Message-ID: <444FD60F.4060301@trash.net>
+Date: Wed, 26 Apr 2006 22:21:35 +0200
+Message-ID: <444FD64F.5020002@trash.net>
 References: <BAY109-DAV265AE2E1870989462F689B3BE0@phx.gbl>
 	<444F7A3F.9080507@trash.net>
 	<BAY109-DAV1099B645E5820953632189B3BC0@phx.gbl>
@@ -26,43 +26,29 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Jing Min Zhao wrote:
->>>>--- a/include/linux/netfilter_ipv4/ip_conntrack.h
->>>>+++ b/include/linux/netfilter_ipv4/ip_conntrack.h
->>>>@@ -154,6 +154,7 @@ struct ip_conntrack_expect
->>>>      unsigned int flags;
->>>>
->>>>#ifdef CONFIG_IP_NF_NAT_NEEDED
->>>>+       u_int32_t saved_ip;
->>>>      /* This is the original per-proto part, used to map the
->>>>       * expected connection the way the recipient expects. */
->>>>      union ip_conntrack_manip_proto saved_proto;
->>>>
->>>>Please explain why this is needed.
+>>>>I definitely don't like the internal_net module option. I know its not
+>>>>strictly required, more an optimization, but still limiting this to only
+>>>>one network is not a good idea. We may be able to use the routing
+>>>>information as indication whether we need an expectation or not .. but
+>>>>I need think about it some more.
 >>>>
 >>>>
 >>>
->>>If an external endpoint A calls an internal endpoint B, and B forwards 
->>>the call to an internal endpoint C, then the second call will come from 
->>>A, pass through firewall, and go to C. The current architecture assumes 
->>>any expected connections come back to the same internal endpoint, so 
->>>only the port (saved_proto) is saved. But in this case, it is not 
->>>enough - the expected connection will go to the third endpoint. So we 
->>>need to save not only C's port but also C's IP.
+>>>I also want such a solution deadly, but I can't figure out a way. 
+>>>Actually, the only question is how can a firewall tell that any two 
+>>>endpoints can talk with each other directly without passing though it.
+>>>Any suggestion for this will be greatly appreciated.
 >>
->>OK, this seems to be unavoidable. But please just replace
->>ip_conntrack_manip_proto by ip_conntrack_manip.
+>>There is no general way to do this, but we I think we can take a good
+>>guess for the common case of no weird NATing etc based on the nexthop
+>>information we get from fib_lookup(). I think an assumption that is
+>>true for most cases is that if the nexthop information is identical,
+>>the two endpoints can reach each other without our help. It needs to
+>>be optional of course. What do you think about this?
 >>
 >>
 > 
-> 
-> Do you mean to delete saved_ip and replace 
-> "union ip_conntrack_manip_proto saved_proto" with 
-> "struct ip_conntrack_manip saved_xxx"? This will break other code, 
-> for example, ip_nat_follow_master(). Or I misunderstood.
+> This is a good idea, and it's probably the best that a firewall can do.
+> I'll think about it.
 
-
-Yes, these places need to be changes as well. But ip_conntrack_manip
-is semantically correct, you use the saved_ip for the manip of the
-new connection, so we can instead just save an entire manip.
-But its still a good point, please make this change in a seperate patch
-from the call forwarding patch.
+BTW, I can give you some help implementing this if you need.
