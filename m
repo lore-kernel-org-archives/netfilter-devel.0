@@ -1,15 +1,12 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: kernel panic with connlimit and 2.6.16.* kernels
-Date: Tue, 25 Apr 2006 20:25:51 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0604252024200.26607@bizon.gios.gov.pl>
-References: <20060425105258.9430.qmail@webhost66.com>
+From: varun <varun@rocsys.com>
+Subject: Doubt in iptables
+Date: Wed, 26 Apr 2006 12:37:57 +0530
+Message-ID: <444F1C4D.6060104@rocsys.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1651287647-1145989551=:26607"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?windows-1251?Q?noip?= <noip@webhost66.com>
-In-Reply-To: <20060425105258.9430.qmail@webhost66.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,35 +18,65 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi all,
 
----187430788-1651287647-1145989551=:26607
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+               Ive been trying to understand iptables kernel code and 
+basically how it functions. In doing so i have a few questions.
+               In the file ip_tables.c there is call do_replace() which 
+is used as the start point entry from sockopt.
+                That is this gets called everytime a user entrers 
+policies from user. Here that data is given to me in the form of
+                 void __user *user.
+                  This iam copying to kernel space and dereferencing 
+into ipt_replace and so on. Am i right?
+                   The first question is user seems to send a size as 
+860 when trying to add the first policy. Does that mean that user is 
+maintaining the offset of the policies added?
+                     tmp.size shows as 768 which is (4 default policies 
+x sizeof(struct ipt_standard)) + sizeof(struct ipt_error)
+                     Am i correct in understanding? If so why should 
+user space kernel policy offset?
+        
+                   Next thing is i added one extra field (int num)in the 
+struct ipt_entry_target . This is added after the  unsigned char data[0] 
+field.
+ struct ipt_entry_target
+{
+        union {
+                struct {
+                        u_int16_t target_size;
 
+                        /* Used by userspace */
+                        char name[IPT_FUNCTION_MAXNAMELEN-1];
 
+                        u_int8_t revision;
+                } user;
+                struct {
+                        u_int16_t target_size;
 
-On Tue, 25 Apr 2006, noip wrote:
+                        /* Used inside the kernel */
+                        struct ipt_target *target;
+                } kernel;
 
-> Hello,
->
-> I've described my problem in the linux kernel list here:
-> http://www.ussg.iu.edu/hypermail/linux/kernel/0604.2/1472.html
->
-> There I've recieved a reply from Patrick McHardy:
-> http://www.ussg.iu.edu/hypermail/linux/kernel/0604.2/1666.html
->
-> I've used a patch for connlimit from this thread, because without the pat=
-ch i can't apply the connlimit patch from the latest patch-o-matic-ng snaps=
-hot to any 2.6.16 kernel:
-> http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3D3456
+                /* Total length */
+                u_int16_t target_size;
+        } u;
 
-What about this one: ftp://ftp.ans.pl/pub/patches/nf/connlimit.patch.gz
+        unsigned char data[0];
+        unsigned int uniqueId;  /*I added this*/
+};
 
-I have two positive replays saying that it works.
+     Iam using this field to give a global id from my kernel for every 
+policy added excluding the default ones added by kernel. So if someone 
+calls for iptables -F or iptables -t filter -D .... then this number 
+should not be assigned to the structure.
+    I want to know where is the correct place to add this value to 
+structure without effecting the functionality.
 
-Best regards,
+  Iam also aware that making this change in structure will result in 
+segmentation fault un userspace. Ill handel it seperately.
+  Can this be done? Please help me in this regard.
 
- =09=09=09Krzysztof Ol=EAdzki
----187430788-1651287647-1145989551=:26607--
+  How can i know from the kernel structures if the policy is for -A or 
+-D or -F ?
+Varun
