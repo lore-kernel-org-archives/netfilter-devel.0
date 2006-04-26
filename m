@@ -1,13 +1,18 @@
-From: "=?windows-1251?Q?noip?=" <noip@webhost66.com>
-Subject: Re: kernel panic with connlimit and 2.6.16.* kernels
-Date: Wed, 26 Apr 2006 17:05:35 +0000
-Message-ID: <20060426170535.27587.qmail@webhost66.com>
-Reply-To: =?windows-1251?Q?noip?= <noip@webhost66.com>
+From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
+Subject: Re: [H.323 Helper 1/3]: Add support for Call Forwarding
+Date: Wed, 26 Apr 2006 14:06:23 -0400
+Message-ID: <BAY109-DAV107DE91F0E0B272EC778E4B3BC0@phx.gbl>
+References: <BAY109-DAV265AE2E1870989462F689B3BE0@phx.gbl>
+	<444F7A3F.9080507@trash.net>
+	<BAY109-DAV1099B645E5820953632189B3BC0@phx.gbl>
+	<444FA4A7.7060105@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1251"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="gb18030"
+Content-Transfer-Encoding: base64
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "Patrick McHardy" <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,39 +24,70 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
-
-I've tried the patch. But the problem is still here.
-I want to ask what patch for kernel 2.6.16.9 should i use to set the CONFIG_STACK_BACKTRACE_COLS setting to value 2. 
-
-Thank You
-Iavor
-
- 
->  -------Original Message-------
->  From: Krzysztof Oledzki <olenf@ans.pl>
->  Subject: Re: kernel panic with connlimit and 2.6.16.* kernels
->  Sent: 25 Apr '06 18:25
->  
->  
->  
->  On Tue, 25 Apr 2006, noip wrote:
->  
->  > Hello,
->  >
->  > I've described my problem in the linux kernel list here:
->  > http://www.ussg.iu.edu/hypermail/linux/kernel/0604.2/1472.html
->  >
->  > There I've recieved a reply from Patrick McHardy:
->  > http://www.ussg.iu.edu/hypermail/linux/kernel/0604.2/1666.html
->  >
->  > I've used a patch for connlimit from this thread, because without the patch i can't apply the connlimit patch from the latest patch-o-matic-ng snapshot to any 2.6.16 kernel:
->  > http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3456
->  
->  What about this one: ftp://ftp.ans.pl/pub/patches/nf/connlimit.patch.gz
->  
->  I have two positive replays saying that it works.
->  
->  Best regards,
->  
->  Krzysztof Olêdzki
+DQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogIlBhdHJpY2sgTWNIYXJkeSIg
+PGthYmVyQHRyYXNoLm5ldD4NClRvOiAiSmluZyBNaW4gWmhhbyIgPHpoYW9qaW5nbWluQGhvdG1h
+aWwuY29tPg0KQ2M6IDxuZXRmaWx0ZXItZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9yZz4NClNlbnQ6
+IFdlZG5lc2RheSwgQXByaWwgMjYsIDIwMDYgMTI6NDkgUE0NClN1YmplY3Q6IFJlOiBbSC4zMjMg
+SGVscGVyIDEvM106IEFkZCBzdXBwb3J0IGZvciBDYWxsIEZvcndhcmRpbmcNCg0KDQo+IEppbmcg
+TWluIFpoYW8gd3JvdGU6DQo+PiAtLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KPj4gRnJv
+bTogIlBhdHJpY2sgTWNIYXJkeSIgPGthYmVyQHRyYXNoLm5ldD4NCj4+IFRvOiAiSmluZyBNaW4g
+WmhhbyIgPHpoYW9qaW5nbWluQGhvdG1haWwuY29tPg0KPj4gQ2M6IDxuZXRmaWx0ZXItZGV2ZWxA
+bGlzdHMubmV0ZmlsdGVyLm9yZz4NCj4+IFNlbnQ6IFdlZG5lc2RheSwgQXByaWwgMjYsIDIwMDYg
+OTo0OCBBTQ0KPj4gU3ViamVjdDogUmU6IFtILjMyMyBIZWxwZXIgMS8zXTogQWRkIHN1cHBvcnQg
+Zm9yIENhbGwgRm9yd2FyZGluZw0KPj4gDQo+PiANCj4+IA0KPj4+SmluZyBNaW4gWmhhbyB3cm90
+ZToNCj4+Pg0KPj4+PlRoaXMgcGF0Y2ggaXMgZm9yIDIuNi4xNy1yYzIuIFBsZWFzZSB2aXNpdA0K
+Pj4+Pmh0dHA6Ly9uYXRoMzIzLnNvdXJjZWZvcmdlLm5ldC8jX1RvYzEzMzU5ODA3MSBmb3IgZGV0
+YWlscy4NCj4+Pj4NCj4+Pj5TaWduZWQtb2ZmLWJ5OiBKaW5nIE1pbiBaaGFvIDx6aGFvamluZ21p
+bkB1c2Vycy5zb3VyY2Vmb3JnZS5uZXQ+DQo+Pj4NCj4+PlBsZWFzZSBhdHRhY2ggcGF0Y2hlcyBp
+bmxpbmUgc28gSSBjYW4gdmlldyBhbmQgcXVvdGUgdGhlbSBpbiBteSBtYWlsDQo+Pj5jbGllbnQg
+YW5kIGluY2x1ZGUgdGhlIHBhdGNoIGRlc2NyaXB0aW9uIHdpdGggdGhlIHBhdGNoLg0KPj4+DQo+
+PiANCj4+IEknbSBzb3JyeS4gQWN0dWFsbHksIEknbSBhbHdheXMgZnJ1c3RyYXRlZCBieSBteSBP
+dXRsb29rIEV4cHJlc3MgDQo+PiBhbmQgbXkgaG90bWFpbCBhY2NvdW50IDooLiANCj4gDQo+IEkg
+Y2FuIHJlbGF0ZSA6KSBJIHRoaW5rIHlvdSBzaG91bGQgYmUgYWJsZSB0byB1c2UgaW1hcCBvbg0K
+PiBwZW9wbGUubmV0ZmlsdGVyLm9yZy4NCj4gDQo+IA0KUmVhbGx5PyBUaGF0J2xsIGJlIGdyZWF0
+ISBJJ2xsIHRyeS4gVGhhbmsgeW91Lg0KDQoNCj4+PkkgZGVmaW5pdGVseSBkb24ndCBsaWtlIHRo
+ZSBpbnRlcm5hbF9uZXQgbW9kdWxlIG9wdGlvbi4gSSBrbm93IGl0cyBub3QNCj4+PnN0cmljdGx5
+IHJlcXVpcmVkLCBtb3JlIGFuIG9wdGltaXphdGlvbiwgYnV0IHN0aWxsIGxpbWl0aW5nIHRoaXMg
+dG8gb25seQ0KPj4+b25lIG5ldHdvcmsgaXMgbm90IGEgZ29vZCBpZGVhLiBXZSBtYXkgYmUgYWJs
+ZSB0byB1c2UgdGhlIHJvdXRpbmcNCj4+PmluZm9ybWF0aW9uIGFzIGluZGljYXRpb24gd2hldGhl
+ciB3ZSBuZWVkIGFuIGV4cGVjdGF0aW9uIG9yIG5vdCAuLiBidXQNCj4+PkkgbmVlZCB0aGluayBh
+Ym91dCBpdCBzb21lIG1vcmUuDQo+Pj4NCj4+Pg0KPj4gDQo+PiBJIGFsc28gd2FudCBzdWNoIGEg
+c29sdXRpb24gZGVhZGx5LCBidXQgSSBjYW4ndCBmaWd1cmUgb3V0IGEgd2F5LiANCj4+IEFjdHVh
+bGx5LCB0aGUgb25seSBxdWVzdGlvbiBpcyBob3cgY2FuIGEgZmlyZXdhbGwgdGVsbCB0aGF0IGFu
+eSB0d28gDQo+PiBlbmRwb2ludHMgY2FuIHRhbGsgd2l0aCBlYWNoIG90aGVyIGRpcmVjdGx5IHdp
+dGhvdXQgcGFzc2luZyB0aG91Z2ggaXQuDQo+PiBBbnkgc3VnZ2VzdGlvbiBmb3IgdGhpcyB3aWxs
+IGJlIGdyZWF0bHkgYXBwcmVjaWF0ZWQuDQo+IA0KPiBUaGVyZSBpcyBubyBnZW5lcmFsIHdheSB0
+byBkbyB0aGlzLCBidXQgd2UgSSB0aGluayB3ZSBjYW4gdGFrZSBhIGdvb2QNCj4gZ3Vlc3MgZm9y
+IHRoZSBjb21tb24gY2FzZSBvZiBubyB3ZWlyZCBOQVRpbmcgZXRjIGJhc2VkIG9uIHRoZSBuZXh0
+aG9wDQo+IGluZm9ybWF0aW9uIHdlIGdldCBmcm9tIGZpYl9sb29rdXAoKS4gSSB0aGluayBhbiBh
+c3N1bXB0aW9uIHRoYXQgaXMNCj4gdHJ1ZSBmb3IgbW9zdCBjYXNlcyBpcyB0aGF0IGlmIHRoZSBu
+ZXh0aG9wIGluZm9ybWF0aW9uIGlzIGlkZW50aWNhbCwNCj4gdGhlIHR3byBlbmRwb2ludHMgY2Fu
+IHJlYWNoIGVhY2ggb3RoZXIgd2l0aG91dCBvdXIgaGVscC4gSXQgbmVlZHMgdG8NCj4gYmUgb3B0
+aW9uYWwgb2YgY291cnNlLiBXaGF0IGRvIHlvdSB0aGluayBhYm91dCB0aGlzPw0KPiANCj4gDQoN
+ClRoaXMgaXMgYSBnb29kIGlkZWEsIGFuZCBpdCdzIHByb2JhYmx5IHRoZSBiZXN0IHRoYXQgYSBm
+aXJld2FsbCBjYW4gZG8uDQpJJ2xsIHRoaW5rIGFib3V0IGl0Lg0KDQo+Pj4tLS0gYS9pbmNsdWRl
+L2xpbnV4L25ldGZpbHRlcl9pcHY0L2lwX2Nvbm50cmFjay5oDQo+Pj4rKysgYi9pbmNsdWRlL2xp
+bnV4L25ldGZpbHRlcl9pcHY0L2lwX2Nvbm50cmFjay5oDQo+Pj5AQCAtMTU0LDYgKzE1NCw3IEBA
+IHN0cnVjdCBpcF9jb25udHJhY2tfZXhwZWN0DQo+Pj4gICAgICAgdW5zaWduZWQgaW50IGZsYWdz
+Ow0KPj4+DQo+Pj4jaWZkZWYgQ09ORklHX0lQX05GX05BVF9ORUVERUQNCj4+PisgICAgICAgdV9p
+bnQzMl90IHNhdmVkX2lwOw0KPj4+ICAgICAgIC8qIFRoaXMgaXMgdGhlIG9yaWdpbmFsIHBlci1w
+cm90byBwYXJ0LCB1c2VkIHRvIG1hcCB0aGUNCj4+PiAgICAgICAgKiBleHBlY3RlZCBjb25uZWN0
+aW9uIHRoZSB3YXkgdGhlIHJlY2lwaWVudCBleHBlY3RzLiAqLw0KPj4+ICAgICAgIHVuaW9uIGlw
+X2Nvbm50cmFja19tYW5pcF9wcm90byBzYXZlZF9wcm90bzsNCj4+Pg0KPj4+UGxlYXNlIGV4cGxh
+aW4gd2h5IHRoaXMgaXMgbmVlZGVkLg0KPj4+DQo+Pj4NCj4+IA0KPj4gSWYgYW4gZXh0ZXJuYWwg
+ZW5kcG9pbnQgQSBjYWxscyBhbiBpbnRlcm5hbCBlbmRwb2ludCBCLCBhbmQgQiBmb3J3YXJkcyAN
+Cj4+IHRoZSBjYWxsIHRvIGFuIGludGVybmFsIGVuZHBvaW50IEMsIHRoZW4gdGhlIHNlY29uZCBj
+YWxsIHdpbGwgY29tZSBmcm9tIA0KPj4gQSwgcGFzcyB0aHJvdWdoIGZpcmV3YWxsLCBhbmQgZ28g
+dG8gQy4gVGhlIGN1cnJlbnQgYXJjaGl0ZWN0dXJlIGFzc3VtZXMgDQo+PiBhbnkgZXhwZWN0ZWQg
+Y29ubmVjdGlvbnMgY29tZSBiYWNrIHRvIHRoZSBzYW1lIGludGVybmFsIGVuZHBvaW50LCBzbyAN
+Cj4+IG9ubHkgdGhlIHBvcnQgKHNhdmVkX3Byb3RvKSBpcyBzYXZlZC4gQnV0IGluIHRoaXMgY2Fz
+ZSwgaXQgaXMgbm90IA0KPj4gZW5vdWdoIC0gdGhlIGV4cGVjdGVkIGNvbm5lY3Rpb24gd2lsbCBn
+byB0byB0aGUgdGhpcmQgZW5kcG9pbnQuIFNvIHdlIA0KPj4gbmVlZCB0byBzYXZlIG5vdCBvbmx5
+IEMncyBwb3J0IGJ1dCBhbHNvIEMncyBJUC4NCj4gDQo+IE9LLCB0aGlzIHNlZW1zIHRvIGJlIHVu
+YXZvaWRhYmxlLiBCdXQgcGxlYXNlIGp1c3QgcmVwbGFjZQ0KPiBpcF9jb25udHJhY2tfbWFuaXBf
+cHJvdG8gYnkgaXBfY29ubnRyYWNrX21hbmlwLg0KPiANCj4NCg0KRG8geW91IG1lYW4gdG8gZGVs
+ZXRlIHNhdmVkX2lwIGFuZCByZXBsYWNlIA0KInVuaW9uIGlwX2Nvbm50cmFja19tYW5pcF9wcm90
+byBzYXZlZF9wcm90byIgd2l0aCANCiJzdHJ1Y3QgaXBfY29ubnRyYWNrX21hbmlwIHNhdmVkX3h4
+eCI/IFRoaXMgd2lsbCBicmVhayBvdGhlciBjb2RlLCANCmZvciBleGFtcGxlLCBpcF9uYXRfZm9s
+bG93X21hc3RlcigpLiBPciBJIG1pc3VuZGVyc3Rvb2QuDQoNCg0KcmdkcywNCg0KSmluZyBNaW4g
+Wmhhbw0K
