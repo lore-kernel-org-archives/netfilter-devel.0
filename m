@@ -1,19 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
+From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
 Subject: Re: [H.323 Helper 1/3]: Add support for Call Forwarding
-Date: Wed, 26 Apr 2006 22:21:35 +0200
-Message-ID: <444FD64F.5020002@trash.net>
-References: <BAY109-DAV265AE2E1870989462F689B3BE0@phx.gbl>
-	<444F7A3F.9080507@trash.net>
-	<BAY109-DAV1099B645E5820953632189B3BC0@phx.gbl>
-	<444FA4A7.7060105@trash.net>
-	<BAY109-DAV107DE91F0E0B272EC778E4B3BC0@phx.gbl>
+Date: Wed, 26 Apr 2006 17:15:33 -0400
+Message-ID: <BAY109-DAV19D24F345ECC0228FE364B3BC0@phx.gbl>
+References: <BAY109-DAV265AE2E1870989462F689B3BE0@phx.gbl><444F7A3F.9080507@trash.net><BAY109-DAV1099B645E5820953632189B3BC0@phx.gbl><444FA4A7.7060105@trash.net><BAY109-DAV107DE91F0E0B272EC778E4B3BC0@phx.gbl>
+	<444FD64F.5020002@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb18030
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="gb18030"
+Content-Transfer-Encoding: base64
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jing Min Zhao <zhaojingmin@hotmail.com>
-In-Reply-To: <BAY109-DAV107DE91F0E0B272EC778E4B3BC0@phx.gbl>
+To: "Patrick McHardy" <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,30 +22,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jing Min Zhao wrote:
->>>>I definitely don't like the internal_net module option. I know its not
->>>>strictly required, more an optimization, but still limiting this to only
->>>>one network is not a good idea. We may be able to use the routing
->>>>information as indication whether we need an expectation or not .. but
->>>>I need think about it some more.
->>>>
->>>>
->>>
->>>I also want such a solution deadly, but I can't figure out a way. 
->>>Actually, the only question is how can a firewall tell that any two 
->>>endpoints can talk with each other directly without passing though it.
->>>Any suggestion for this will be greatly appreciated.
->>
->>There is no general way to do this, but we I think we can take a good
->>guess for the common case of no weird NATing etc based on the nexthop
->>information we get from fib_lookup(). I think an assumption that is
->>true for most cases is that if the nexthop information is identical,
->>the two endpoints can reach each other without our help. It needs to
->>be optional of course. What do you think about this?
->>
->>
-> 
-> This is a good idea, and it's probably the best that a firewall can do.
-> I'll think about it.
-
-BTW, I can give you some help implementing this if you need.
+DQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogIlBhdHJpY2sgTWNIYXJkeSIg
+PGthYmVyQHRyYXNoLm5ldD4NClRvOiAiSmluZyBNaW4gWmhhbyIgPHpoYW9qaW5nbWluQGhvdG1h
+aWwuY29tPg0KQ2M6IDxuZXRmaWx0ZXItZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9yZz4NClNlbnQ6
+IFdlZG5lc2RheSwgQXByaWwgMjYsIDIwMDYgNDoyMSBQTQ0KU3ViamVjdDogUmU6IFtILjMyMyBI
+ZWxwZXIgMS8zXTogQWRkIHN1cHBvcnQgZm9yIENhbGwgRm9yd2FyZGluZw0KDQoNCj4gSmluZyBN
+aW4gWmhhbyB3cm90ZToNCj4+Pj4+SSBkZWZpbml0ZWx5IGRvbid0IGxpa2UgdGhlIGludGVybmFs
+X25ldCBtb2R1bGUgb3B0aW9uLiBJIGtub3cgaXRzIG5vdA0KPj4+Pj5zdHJpY3RseSByZXF1aXJl
+ZCwgbW9yZSBhbiBvcHRpbWl6YXRpb24sIGJ1dCBzdGlsbCBsaW1pdGluZyB0aGlzIHRvIG9ubHkN
+Cj4+Pj4+b25lIG5ldHdvcmsgaXMgbm90IGEgZ29vZCBpZGVhLiBXZSBtYXkgYmUgYWJsZSB0byB1
+c2UgdGhlIHJvdXRpbmcNCj4+Pj4+aW5mb3JtYXRpb24gYXMgaW5kaWNhdGlvbiB3aGV0aGVyIHdl
+IG5lZWQgYW4gZXhwZWN0YXRpb24gb3Igbm90IC4uIGJ1dA0KPj4+Pj5JIG5lZWQgdGhpbmsgYWJv
+dXQgaXQgc29tZSBtb3JlLg0KPj4+Pj4NCj4+Pj4+DQo+Pj4+DQo+Pj4+SSBhbHNvIHdhbnQgc3Vj
+aCBhIHNvbHV0aW9uIGRlYWRseSwgYnV0IEkgY2FuJ3QgZmlndXJlIG91dCBhIHdheS4gDQo+Pj4+
+QWN0dWFsbHksIHRoZSBvbmx5IHF1ZXN0aW9uIGlzIGhvdyBjYW4gYSBmaXJld2FsbCB0ZWxsIHRo
+YXQgYW55IHR3byANCj4+Pj5lbmRwb2ludHMgY2FuIHRhbGsgd2l0aCBlYWNoIG90aGVyIGRpcmVj
+dGx5IHdpdGhvdXQgcGFzc2luZyB0aG91Z2ggaXQuDQo+Pj4+QW55IHN1Z2dlc3Rpb24gZm9yIHRo
+aXMgd2lsbCBiZSBncmVhdGx5IGFwcHJlY2lhdGVkLg0KPj4+DQo+Pj5UaGVyZSBpcyBubyBnZW5l
+cmFsIHdheSB0byBkbyB0aGlzLCBidXQgd2UgSSB0aGluayB3ZSBjYW4gdGFrZSBhIGdvb2QNCj4+
+Pmd1ZXNzIGZvciB0aGUgY29tbW9uIGNhc2Ugb2Ygbm8gd2VpcmQgTkFUaW5nIGV0YyBiYXNlZCBv
+biB0aGUgbmV4dGhvcA0KPj4+aW5mb3JtYXRpb24gd2UgZ2V0IGZyb20gZmliX2xvb2t1cCgpLiBJ
+IHRoaW5rIGFuIGFzc3VtcHRpb24gdGhhdCBpcw0KPj4+dHJ1ZSBmb3IgbW9zdCBjYXNlcyBpcyB0
+aGF0IGlmIHRoZSBuZXh0aG9wIGluZm9ybWF0aW9uIGlzIGlkZW50aWNhbCwNCj4+PnRoZSB0d28g
+ZW5kcG9pbnRzIGNhbiByZWFjaCBlYWNoIG90aGVyIHdpdGhvdXQgb3VyIGhlbHAuIEl0IG5lZWRz
+IHRvDQo+Pj5iZSBvcHRpb25hbCBvZiBjb3Vyc2UuIFdoYXQgZG8geW91IHRoaW5rIGFib3V0IHRo
+aXM/DQo+Pj4NCj4+Pg0KPj4gDQo+PiBUaGlzIGlzIGEgZ29vZCBpZGVhLCBhbmQgaXQncyBwcm9i
+YWJseSB0aGUgYmVzdCB0aGF0IGEgZmlyZXdhbGwgY2FuIGRvLg0KPj4gSSdsbCB0aGluayBhYm91
+dCBpdC4NCj4gDQo+IEJUVywgSSBjYW4gZ2l2ZSB5b3Ugc29tZSBoZWxwIGltcGxlbWVudGluZyB0
+aGlzIGlmIHlvdSBuZWVkLg0KPiANCj4gDQo+DQoNClBMRUFTRSEgTm90IG9ubHkgYmVjYXVzZSBJ
+J20gbm90IHZlcnkgZmFtaWxpYXIgd2l0aCB0aGF0IHBhcnQgb2Yga2VybmVsLA0KYnV0IGFsc28g
+SSdtIHRvbyBidXN5IHRoZXNlIHR3byB3ZWVrcyA6KA0KDQoNClRoYW5rIHlvdSB2ZXJ5IG11Y2gh
