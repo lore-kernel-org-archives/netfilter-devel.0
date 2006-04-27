@@ -1,13 +1,12 @@
-From: "=?ISO-8859-1?Q?S=E9bastien_LAVEZE?=" <slaveze@gmail.com>
-Subject: Libnetfilter_conntrack problems
-Date: Thu, 27 Apr 2006 13:55:13 +0200
-Message-ID: <ca021ab30604270455q5cf093c9s990558209bca3e1d@mail.gmail.com>
+From: "Sachin Shelar" <sachin.s@s7solutions.com>
+Subject: kernel module acquiring virtual ip's
+Date: Thu, 27 Apr 2006 14:34:49 +0530
+Message-ID: <ops8nsubq7ibd9oo@sachin>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-15
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,17 +19,62 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
-I'm developping an application using the libnetfilter_conntrack
-I'm using a 2.16.1 kernel and all libraries compiled with SVN sources.
 
-1) I'm trying to get the events relatives to the destruction of conntracks
-It works fine for update events =3D=3D>nfct_open(CONNTRACK,
-NF_NETLINK_CONNTRACK_UPDATE)
-but not for destroy =3D=3D> nfct_open(CONNTRACK,
-NF_NETLINK_CONNTRACK_DESTROY), i never get any event
+    I have a kernel module which "acquires" virtual ips ( not assigned to   
+anyone in n/w )
+and then respond to any future packets coming to this virtual ip.
+    I am handling ARP, TCP, UDP protocols in my module.
+To get the arp stuff working I handle all the ARP requests for virtual IP   
+and reply to
+them with my local hardware address. I can now receive all the packets   
+destined to virtual IP.
+    E.g Local IP is 192.168.1.2
+        Virtual ip is 192.168.1.244 ( Not existing in network )
 
-2) I also would like to work with ids, when i get a conntrack via a
-callback the id field is always set to zero, is it normal ?
+    I catch every arp request for .244 and reply with my mac. I can now
+recive all IP packets ( handled in my netfilter hooks ) destined for .244.
+According to the natting rules in my module I nat the packets for .244  
+and  redirect them to
+some listening port on 192.168.1.2
+Also I handle all the outgoing packet from 192.168.1.2 and replace the   
+source to 192.168.1.244
+So that the client machine recives reply from virual IP, as expected.
 
-Thanks
-Sebastien
+         192.168.1.21[32774] -> 192.168.1.244[123]
+
+                          Nat Destination   192.168.1.21[32774] ->   
+192.168.1.2[23]
+
+(Reply) 192.168.1.2[23] -> 192.168.1.21[32774]
+                          Nat Source        192.168.1.244[123] ->   
+192.168.1.21[32774].
+
+
+
+    Module works perfectly and I can establish any tcp connection ( E.g   
+telnet ) with a
+non exitsing IP ( 192.168.1.244) from any machine in the network.
+
+Problem is :-
+===========
+    I want the same behaviour from the module if I try to connect from the   
+same machine (local machine )
+to the virtual IP.
+
+     E.g 192.168.1.2[32772] -> 192.168.1.244[123]
+
+                         Nat Destination   192.168.1.2[32772] ->   
+192.168.1.2[23]
+
+***** But somehow this packet after natting is dropped by the kernel and   
+never reaches
+192.168.1.2[23]
+       Is this because the source and destination ip of this packet is  
+same  ?????
+       Whats the solution for sending a packet with local ip as its src and  
+dst
+to local from POSTROUTING hook
+
+
+Thanks,
+Sachin
