@@ -1,16 +1,13 @@
-From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
-Subject: Re: [H.323 Helper 1/3]: Add support for Call Forwarding
-Date: Wed, 26 Apr 2006 17:15:33 -0400
-Message-ID: <BAY109-DAV19D24F345ECC0228FE364B3BC0@phx.gbl>
-References: <BAY109-DAV265AE2E1870989462F689B3BE0@phx.gbl><444F7A3F.9080507@trash.net><BAY109-DAV1099B645E5820953632189B3BC0@phx.gbl><444FA4A7.7060105@trash.net><BAY109-DAV107DE91F0E0B272EC778E4B3BC0@phx.gbl>
-	<444FD64F.5020002@trash.net>
+From: "=?ISO-8859-1?Q?S=E9bastien_LAVEZE?=" <slaveze@gmail.com>
+Subject: Libnetfilter_conntrack problems
+Date: Thu, 27 Apr 2006 13:55:13 +0200
+Message-ID: <ca021ab30604270455q5cf093c9s990558209bca3e1d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb18030"
-Content-Transfer-Encoding: base64
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,33 +19,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-DQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogIlBhdHJpY2sgTWNIYXJkeSIg
-PGthYmVyQHRyYXNoLm5ldD4NClRvOiAiSmluZyBNaW4gWmhhbyIgPHpoYW9qaW5nbWluQGhvdG1h
-aWwuY29tPg0KQ2M6IDxuZXRmaWx0ZXItZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9yZz4NClNlbnQ6
-IFdlZG5lc2RheSwgQXByaWwgMjYsIDIwMDYgNDoyMSBQTQ0KU3ViamVjdDogUmU6IFtILjMyMyBI
-ZWxwZXIgMS8zXTogQWRkIHN1cHBvcnQgZm9yIENhbGwgRm9yd2FyZGluZw0KDQoNCj4gSmluZyBN
-aW4gWmhhbyB3cm90ZToNCj4+Pj4+SSBkZWZpbml0ZWx5IGRvbid0IGxpa2UgdGhlIGludGVybmFs
-X25ldCBtb2R1bGUgb3B0aW9uLiBJIGtub3cgaXRzIG5vdA0KPj4+Pj5zdHJpY3RseSByZXF1aXJl
-ZCwgbW9yZSBhbiBvcHRpbWl6YXRpb24sIGJ1dCBzdGlsbCBsaW1pdGluZyB0aGlzIHRvIG9ubHkN
-Cj4+Pj4+b25lIG5ldHdvcmsgaXMgbm90IGEgZ29vZCBpZGVhLiBXZSBtYXkgYmUgYWJsZSB0byB1
-c2UgdGhlIHJvdXRpbmcNCj4+Pj4+aW5mb3JtYXRpb24gYXMgaW5kaWNhdGlvbiB3aGV0aGVyIHdl
-IG5lZWQgYW4gZXhwZWN0YXRpb24gb3Igbm90IC4uIGJ1dA0KPj4+Pj5JIG5lZWQgdGhpbmsgYWJv
-dXQgaXQgc29tZSBtb3JlLg0KPj4+Pj4NCj4+Pj4+DQo+Pj4+DQo+Pj4+SSBhbHNvIHdhbnQgc3Vj
-aCBhIHNvbHV0aW9uIGRlYWRseSwgYnV0IEkgY2FuJ3QgZmlndXJlIG91dCBhIHdheS4gDQo+Pj4+
-QWN0dWFsbHksIHRoZSBvbmx5IHF1ZXN0aW9uIGlzIGhvdyBjYW4gYSBmaXJld2FsbCB0ZWxsIHRo
-YXQgYW55IHR3byANCj4+Pj5lbmRwb2ludHMgY2FuIHRhbGsgd2l0aCBlYWNoIG90aGVyIGRpcmVj
-dGx5IHdpdGhvdXQgcGFzc2luZyB0aG91Z2ggaXQuDQo+Pj4+QW55IHN1Z2dlc3Rpb24gZm9yIHRo
-aXMgd2lsbCBiZSBncmVhdGx5IGFwcHJlY2lhdGVkLg0KPj4+DQo+Pj5UaGVyZSBpcyBubyBnZW5l
-cmFsIHdheSB0byBkbyB0aGlzLCBidXQgd2UgSSB0aGluayB3ZSBjYW4gdGFrZSBhIGdvb2QNCj4+
-Pmd1ZXNzIGZvciB0aGUgY29tbW9uIGNhc2Ugb2Ygbm8gd2VpcmQgTkFUaW5nIGV0YyBiYXNlZCBv
-biB0aGUgbmV4dGhvcA0KPj4+aW5mb3JtYXRpb24gd2UgZ2V0IGZyb20gZmliX2xvb2t1cCgpLiBJ
-IHRoaW5rIGFuIGFzc3VtcHRpb24gdGhhdCBpcw0KPj4+dHJ1ZSBmb3IgbW9zdCBjYXNlcyBpcyB0
-aGF0IGlmIHRoZSBuZXh0aG9wIGluZm9ybWF0aW9uIGlzIGlkZW50aWNhbCwNCj4+PnRoZSB0d28g
-ZW5kcG9pbnRzIGNhbiByZWFjaCBlYWNoIG90aGVyIHdpdGhvdXQgb3VyIGhlbHAuIEl0IG5lZWRz
-IHRvDQo+Pj5iZSBvcHRpb25hbCBvZiBjb3Vyc2UuIFdoYXQgZG8geW91IHRoaW5rIGFib3V0IHRo
-aXM/DQo+Pj4NCj4+Pg0KPj4gDQo+PiBUaGlzIGlzIGEgZ29vZCBpZGVhLCBhbmQgaXQncyBwcm9i
-YWJseSB0aGUgYmVzdCB0aGF0IGEgZmlyZXdhbGwgY2FuIGRvLg0KPj4gSSdsbCB0aGluayBhYm91
-dCBpdC4NCj4gDQo+IEJUVywgSSBjYW4gZ2l2ZSB5b3Ugc29tZSBoZWxwIGltcGxlbWVudGluZyB0
-aGlzIGlmIHlvdSBuZWVkLg0KPiANCj4gDQo+DQoNClBMRUFTRSEgTm90IG9ubHkgYmVjYXVzZSBJ
-J20gbm90IHZlcnkgZmFtaWxpYXIgd2l0aCB0aGF0IHBhcnQgb2Yga2VybmVsLA0KYnV0IGFsc28g
-SSdtIHRvbyBidXN5IHRoZXNlIHR3byB3ZWVrcyA6KA0KDQoNClRoYW5rIHlvdSB2ZXJ5IG11Y2gh
+Hi,
+I'm developping an application using the libnetfilter_conntrack
+I'm using a 2.16.1 kernel and all libraries compiled with SVN sources.
+
+1) I'm trying to get the events relatives to the destruction of conntracks
+It works fine for update events =3D=3D>nfct_open(CONNTRACK,
+NF_NETLINK_CONNTRACK_UPDATE)
+but not for destroy =3D=3D> nfct_open(CONNTRACK,
+NF_NETLINK_CONNTRACK_DESTROY), i never get any event
+
+2) I also would like to work with ids, when i get a conntrack via a
+callback the id field is always set to zero, is it normal ?
+
+Thanks
+Sebastien
