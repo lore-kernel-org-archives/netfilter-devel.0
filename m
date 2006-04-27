@@ -1,16 +1,16 @@
-From: octane indice <octane@alinto.com>
+From: Maximilian Wilhelm <max@rfc2324.org>
 Subject: Re: firewall with failover - ct_sync ?
-Date: Thu, 27 Apr 2006 18:58:14 +0200
-Message-ID: <1146157094.4450f8263e46c@webmail.alinto.com>
+Date: Thu, 27 Apr 2006 21:10:05 +0200
+Message-ID: <20060427191005.GA7436@galois.math.uni-paderborn.de>
 References: <1145895856.444cfbb0eee53@webmail.alinto.com>
 	<20060424164204.GA21760@galois.math.uni-paderborn.de>
+	<1146157094.4450f8263e46c@webmail.alinto.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Maximilian Wilhelm <max@rfc2324.org>
+Content-Type: text/plain; charset=iso-8859-1
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20060424164204.GA21760@galois.math.uni-paderborn.de>
+Content-Disposition: inline
+In-Reply-To: <1146157094.4450f8263e46c@webmail.alinto.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,68 +22,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-En réponse à Maximilian Wilhelm <max@rfc2324.org> :
-> > 1. does ct_sync works?
-> 
-> Yes, at least for me :)
-> 
-good :)
+Am Donnerstag, den 27. April hub octane indice folgendes in die Tasten:
 
-> > 2. a) Must I use quilt? 
-> 
-> quilt does just apply add the patch files listed in the series
-> file in the order listed there. You can do this manually if 
-> you like (or dislike quilt).
-> 
-I just don't know quilt. I'll try it.
+Hi!
 
-> > 2. b) Where I grab the patch files?
-> 
-> For 2.6:
+> > > 2. b) Where I grab the patch files?
+
+> > For 2.6:
+> > http://svn.netfilter.org/netfilter/branches/netfilter-ha/
+
+> Ok. I have to learn subversion first.
+> I just know the CVS way or patch way to patch sources.
+
+svn co  http://svn.netfilter.org/netfilter/branches/netfilter-ha/
+It does just copy the repository to your disk.
+
+> I should patch _two_ times?
+> Let's take an example:
+
+> I download linux-2.6.16, then patch with 
 > http://svn.netfilter.org/netfilter/branches/netfilter-ha/
-> 
-Ok. I have to learn subversion first.
-I just know the CVS way or patch way to patch sources.
+> then patch with the 
+> http://vvv.barbarossa.name/files/ct_sync/ct_sync_2.6.16-fix.patch
 
-> (My patches are against the "normal" ct_sync version found in
-> the  "linux-2.6" subdirectory of the link above.)
-> 
-I should patch _two_ times?
-Let's take an example:
-I download linux-2.6.16, then patch with 
-http://svn.netfilter.org/netfilter/branches/netfilter-ha/
-then patch with the 
-http://vvv.barbarossa.name/files/ct_sync/ct_sync_2.6.16-fix.patch
-?
+The other way around.
 
-> I did not get the linux-2.6-multigroup stuff running stable
-> with the latest kerne up to now. Maybe I'll put my lasting 
-> patches for a running-but-unstable-version to the webpage
-> these days.
-> 
-> > 3. Is there another documentation?
-> 
-> I only know of a german Linux-Magazin article at
-> http://www.linux-magazin.de/Artikel/ausgabe/2005/12/linux-ha-fw/linux-ha-
-fw.html
->
-I don't speak german, I'll try to get it with google translate
- 
-> > 5. The link beetween the two machines must be an ethernet
-> > link? 
-> > I have old boxes with two PCI port only, but parrallel link
->>  is OK with plip. 
-> 
-> ct_sync expects an ethernet interface for syncing.
-> You cannot use anything different.
->
-PLIP is an ethernet link (sort of). If name "plip" is a 
-problem, is there a way to cheat it with udev?
- 
+The patches from svn.netfilter.org do not apply on linux-2.6.16.
 
-> ------------------- Fin du message d'origine ---------------------
+ 1. get http://svn.netfilter.org/netfilter/branches/netfilter-ha/
+ 2. patch it with my patch
+ 3. run quilt / patch the kernel
+ 4. build kernel
 
+> > I only know of a german Linux-Magazin article at
+> > http://www.linux-magazin.de/Artikel/ausgabe/2005/12/linux-ha-fw/linux-ha-
+> > fw.html
 
+> I don't speak german, I'll try to get it with google translate
 
+Ok.
 
-"Ce Caillou-là" un conte en téléchargement gratuit sur http://www.Manuscrit.com
+> > ct_sync expects an ethernet interface for syncing.
+> > You cannot use anything different.
+
+> PLIP is an ethernet link (sort of). If name "plip" is a 
+> problem, is there a way to cheat it with udev?
+
+It don't know if this will work.
+Just try it :)
+
+Ciao
+Max
+-- 
+|           |                 Follow the white penguin.
+|  |\/|  |  |-----------------------------------------------------------.
+|  |  |/\|  |  Rechnerbetrieb Mathematik  |   Meine Baustellen:  TSM    |
+|           |  Universitaet Paderborn     |   Hostmaster, Linux, LDAP   | 
