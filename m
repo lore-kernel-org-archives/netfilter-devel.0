@@ -1,13 +1,15 @@
-From: shyam@india.tejasnetworks.com
-Subject: Support for longest prefix IP address match in iptables?
-Date: Fri, 28 Apr 2006 13:31:57 +0530 (IST)
-Message-ID: <38539.192.168.20.50.1146211317.squirrel@pop-mail>
+From: David Coulson <david@davidcoulson.net>
+Subject: Re: Support for longest prefix IP address match in iptables?
+Date: Fri, 28 Apr 2006 17:08:20 -0400
+Message-ID: <44528444.8080504@davidcoulson.net>
+References: <38539.192.168.20.50.1146211317.squirrel@pop-mail>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: nbasker@india.tejasnetworks.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, nbasker@india.tejasnetworks.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: shyam@india.tejasnetworks.com
+In-Reply-To: <38539.192.168.20.50.1146211317.squirrel@pop-mail>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,27 +21,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-We are using iptables v1.2.9 on Linux 2.4.20 kernel on
-a powerpc based system.
+shyam@india.tejasnetworks.com wrote:
+> iptables -t mangle -A POSTROUTING -d 10.12.13.14 -j MARK --set-mark=5
+> iptables -t mangle -A POSTROUTING -d 10.12.13.0/24 -j MARK --set-mark=7
 
-We are using iptables to match the destination ip-addresses
-using the command
+Put these rules the other way around. AFAIK, MARK does not exit the
+chain after a match.
 
-iptables -t mangle -A POSTROUTING -d 10.12.13.14 -j MARK --set-mark=3D5
-iptables -t mangle -A POSTROUTING -d 10.12.13.0/24 -j MARK --set-mark=3D7
+David
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-We observe that the destination ip-address match based on the
-option "-d" does not follow the longest prefix match. For example
-we are seeing a command "ping 10.12.13.14" gets a mark value of 7
-instead of 5.
-
-Is this fixed in the subsequent release of "iptables" or
-netfilter modules in Linux 2.4.
-
-A link to the patch or the correct iptables version that can
-support the above would be helpful.
-
-Thanks
--Shyam
+iD8DBQFEUoRETIgPQWnLowkRAp1IAJ41tAgE9Bi5uRuvJU6dpTLzbd1nngCfc0pW
+bKj0maY/Im8E8PIEonQrXtk=
+=FQvS
+-----END PGP SIGNATURE-----
