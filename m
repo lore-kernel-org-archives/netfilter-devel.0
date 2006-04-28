@@ -1,16 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: condition for 2.6.16
-Date: Fri, 28 Apr 2006 17:34:22 +0200
-Message-ID: <445235FE.9040203@trash.net>
-References: <200604201919.19246.max@nucleus.it>	<Pine.LNX.4.58.0604281455520.20380@blackhole.kfki.hu>	<4452138E.7050402@trash.net>
-	<200604281718.16912@nienna>
+From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
+Subject: Re: [NETFILTER]: H.323 helper: fix use of uninitialized data
+Date: Fri, 28 Apr 2006 14:21:58 -0400
+Message-ID: <BAY109-DAV12EC497F6A7BC154C3FB6AB3B20@phx.gbl>
+References: <4452246B.6090704@trash.net>
+	<BAY109-DAV18E404A0676BF7B42B12CB3B20@phx.gbl>
+	<44523272.9050002@trash.net>
+	<BAY109-DAV12B9842A6588C79EF6C724B3B20@phx.gbl>
+	<44524831.9010007@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: base64
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-In-Reply-To: <200604281718.16912@nienna>
+To: "Patrick McHardy" <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,24 +25,60 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-KOVACS Krisztian wrote:
->   Hi,
-> 
-> On Friday 28 April 2006 15.07, Patrick McHardy wrote:
-> 
->>hard-coded size, but either way I don't like introducing this
->>limitation just to work around the small uglyness required to
->>keep a pointer inside the per-instance match data. We already
->>have multiple precedents for this.
-> 
-> 
->   Indeed, there are multiple precedents for this. For example: CLUSTERIP 
-> (already in mainline) is by far the ugliest hack I've seen in any Netfilter 
-> code. :)
-
-Hehe :) Yes, its not nice, but I refuse to add stupid limits just
-because the infrastructure can't cleanly support per-instance state
-(which is what makes it ugly, its not the shared state). And its not
-so bad, the uglyness comes down to two or three extra lines of code,
-one additional pointer in the data structure and one offsetof in
-userspace.
+SSdsbCB0ZXN0IGl0IGxhdGVyLg0KDQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJv
+bTogIlBhdHJpY2sgTWNIYXJkeSIgPGthYmVyQHRyYXNoLm5ldD4NClRvOiAiSmluZyBNaW4gWmhh
+byIgPHpoYW9qaW5nbWluQGhvdG1haWwuY29tPg0KQ2M6IDxuZXRmaWx0ZXItZGV2ZWxAbGlzdHMu
+bmV0ZmlsdGVyLm9yZz4NClNlbnQ6IEZyaWRheSwgQXByaWwgMjgsIDIwMDYgMTI6NTIgUE0NClN1
+YmplY3Q6IFJlOiBbTkVURklMVEVSXTogSC4zMjMgaGVscGVyOiBmaXggdXNlIG9mIHVuaW5pdGlh
+bGl6ZWQgZGF0YQ0KDQoNCj4gSmluZyBNaW4gWmhhbyB3cm90ZToNCj4+Pml0IHNob3VsZCBiZSBl
+bm91Z2ggdG8ganVzdCBtYWtlIHN1cmUgdGhlIGNvbnRhaW5lciB0eXBlcyBoYXZlDQo+Pj5zYW5l
+IHZhbHVlcyBhYm91dCB0aGVpciBjb250ZW50Lg0KPj4+DQo+PiANCj4+IEkgYWdyZWUgd2l0aCB5
+b3UgYW5kIHRoYXQncyBqdXN0IHdoYXQgSSB0aG91Z2h0IHdoZW4gSSB3YXMgZGVzaWduaW5nIGl0
+Lg0KPiANCj4gVW5mb3J0dW5hdGVseSBpdCBzZWVtcyBzb21ldGhpbmcgaXMgc3RpbGwgYnVnZ3ks
+IEkgZ290IGEgc2ltaWxhciBidWcNCj4gd2hlbiBydW5uaW5nIHRoZSB0ZXN0c3VpdGUgaW4gcmFu
+ZG9tIG1vZGUuDQo+IA0KPiANCj4gdGVzdGNhc2UgMDAwMTk4Mw0KPiBVc2VyLVNvdXJjZUFkZHJl
+c3MtQWxpYXNBZGRyZXNzLUUxNjQtVmFsdWUNCj4gZWUtZW1wdHksIGVlLThiaXQsIGVlLTE2Yml0
+LCBlZS1vdmVyZmxvdy1iaW5hcnkgMzQNCj4gDQo+IA0KPiBCVUc6IHVuYWJsZSB0byBoYW5kbGUg
+a2VybmVsIHBhZ2luZyByZXF1ZXN0IGF0IHZpcnR1YWwgYWRkcmVzcyBiZmZmZmZmZg0KPiBwcmlu
+dGluZyBlaXA6DQo+IGMwMWE5NTU0DQo+ICpwZGUgPSAxZjY3NDA2Nw0KPiAqcHRlID0gMDAwMDAw
+MDANCj4gT29wczogMDAwMCBbIzFdDQo+IFBSRUVNUFQNCj4gTW9kdWxlcyBsaW5rZWQgaW46IGlw
+X25hdF9oMzIzIGlwX2Nvbm50cmFja19oMzIzIHhmcm1fdXNlciBuZnNkIGV4cG9ydGZzDQo+IGxv
+Y2tkIHN1bnJwYyBzY2hfc2ZxIHNjaF9yZWQgY2xzX2Z3IHNjaF9oZnNjIHh0X2xlbmd0aCBpcHRf
+b3duZXIgeHRfTUFSSw0KPiBpcHRhYmxlX21hbmdsZSBwcHBvZXgNCj4gQ1BVOiAgICAwDQo+IEVJ
+UDogICAgMDA2MDpbPGMwMWE5NTU0Pl0gICAgTm90IHRhaW50ZWQgVkxJDQo+IEVGTEFHUzogMDAw
+MTA2NDYgICAoMi42LjE3LXJjMiAjMykNCj4gRUlQIGlzIGF0IG1lbW1vdmUrMHgxOS8weDIyDQo+
+IGVheDogYzc3YjI5ODAgICBlYng6IGM3N2IyOTgwICAgZWN4OiBmODg0ZDY4MCAgIGVkeDogYzc3
+YjI5ODANCj4gZXNpOiBiZmZmZmZmZiAgIGVkaTogYmZmZmZmZmYgICBlYnA6IGRlZDBkNzgwICAg
+ZXNwOiBjMDM0N2UzNA0KPiBkczogMDA3YiAgIGVzOiAwMDdiICAgc3M6IDAwNjgNCj4gUHJvY2Vz
+cyBzd2FwcGVyIChwaWQ6IDAsIHRocmVhZGluZm89YzAzNDcwMDAgdGFzaz1jMDJkMzg4MCkNCj4g
+U3RhY2s6IDwwPjAwMDAwMDA2IGMwMzQ3ZWFlIGM3N2IyOTdhIGUwOWFlYjJjIDAwMDAwMDA2IGRl
+ZDBkNzgwIGM3N2IyODNlDQo+IGM3N2IyODUyDQo+ICAgICAgIGMwMzQ3ZjZjIGUwOWFlZDljIDAw
+MDAwMDA2IGMwMzQ3ZWFlIDAwMDAwMDA2IDAwMDAwMDAwIGQyZmI1YWY4DQo+IDAwMDAwMDAwDQo+
+ICAgICAgIGMwMzQ3ZjZjIGQyZmI1YWY4IDAwMDAwMDA0IGUwYTE4MTE5IDAwMDAwMTA4IDAwMDAw
+MDA2IGMwMzQ3ZWFlDQo+IDAwMDAwMDA2DQo+IENhbGwgVHJhY2U6DQo+IFs8ZTA5YWViMmM+XSBt
+YW5nbGVfY29udGVudHMrMHg0MC8weGQ4IFtpcF9uYXRdDQo+IFs8ZTA5YWVkOWM+XSBpcF9uYXRf
+bWFuZ2xlX3RjcF9wYWNrZXQrMHhhMS8weDE5MSBbaXBfbmF0XQ0KPiBbPGUwYTE4MTE5Pl0gc2V0
+X2FkZHIrMHg2MC8weDE0ZCBbaXBfbmF0X2gzMjNdDQo+IFs8ZTBhOWE0MmM+XSBEZWNvZGVROTMx
+KzB4YWIvMHhkMyBbaXBfY29ubnRyYWNrX2gzMjNdDQo+IFs8ZTBhOThhYjQ+XSBxOTMxX2hlbHAr
+MHgxNDcvMHg1NjQgW2lwX2Nvbm50cmFja19oMzIzXQ0KPiBbPGUwOTY0MjQyPl0gaXBfY29ubnRy
+YWNrX2hlbHArMHgyMi8weDJmIFtpcF9jb25udHJhY2tdDQo+IFs8YzAyMjkzNGE+XSBuZl9pdGVy
+YXRlKzB4MmUvMHg1Zg0KPiBbPGMwMjVkMzU3Pl0geGZybTRfb3V0cHV0X2ZpbmlzaCsweDAvMHgz
+OWYNCj4gWzxjMDIyOTRjZT5dIG5mX2hvb2tfc2xvdysweDQyLzB4YjANCj4gWzxjMDI1ZDM1Nz5d
+IHhmcm00X291dHB1dF9maW5pc2grMHgwLzB4MzlmDQo+IFs8YzAyNWQ3MzI+XSB4ZnJtNF9vdXRw
+dXQrMHgzYy8weDRlDQo+IFs8YzAyNWQzNTc+XSB4ZnJtNF9vdXRwdXRfZmluaXNoKzB4MC8weDM5
+Zg0KPiBbPGMwMjMwMzcwPl0gaXBfZm9yd2FyZCsweDFjMi8weDFmYQ0KPiBbPGMwMjJmNDE3Pl0g
+aXBfcmN2KzB4Mzg4LzB4M2I1DQo+IFs8YzAyMTg4Zjk+XSBuZXRpZl9yZWNlaXZlX3NrYisweDJi
+Yy8weDJlYw0KPiBbPGMwMjE4OTk0Pl0gcHJvY2Vzc19iYWNrbG9nKzB4NmIvMHhkMA0KPiBbPGMw
+MjE2NzVhPl0gbmV0X3J4X2FjdGlvbisweDRiLzB4YjcNCj4gWzxjMDExNTYwNj5dIF9fZG9fc29m
+dGlycSsweDM1LzB4N2QNCj4gWzxjMDEwNDI5ND5dIGRvX3NvZnRpcnErMHgzOC8weDNmDQo+ID09
+PT09PT09PT09PT09PT09PT09PT09DQo+IFs8YzAxMTU1MWQ+XSBpcnFfZXhpdCsweDI5LzB4MzQN
+Cj4gWzxjMDEwNDI1ND5dIGRvX0lSUSsweDQ4LzB4NTANCj4gWzxjMDEwMmVhYT5dIGNvbW1vbl9p
+bnRlcnJ1cHQrMHgxYS8weDIwDQo+IFs8YzAxMDE1NDI+XSBtd2FpdF9pZGxlKzB4MWEvMHgyZQ0K
+PiBbPGMwMTAxNTBhPl0gY3B1X2lkbGUrMHg0MC8weDVlDQo+IFs8YzAzMjA1ZjQ+XSBzdGFydF9r
+ZXJuZWwrMHgyNzIvMHgyNzQNCj4gQ29kZTogYTUgODkgZDEgODMgZTEgMDMgNzQgMDIgZjMgYTQg
+ODkgZDggNWEgNTkgNWIgNWUgNWYgYzMgNTcgNTYgNTMgODkNCj4gYzMgMzkgZDAgNzMgMDcgZTgg
+Y2IgZmYgZmYgZmYgZWIgMGMgOGQgNzQgMGEgZmYgOGQgN2MgMDggZmYgZmQgPGYzPiBhNA0KPiBm
+YyA4OSBkOCA1YiA1ZSA1ZiBjMyA1Nw0KPiBFSVA6IFs8YzAxYTk1NTQ+XSBtZW1tb3ZlKzB4MTkv
+MHgyMiBTUzpFU1AgMDA2ODpjMDM0N2UzNA0KPiA8MD5LZXJuZWwgcGFuaWMgLSBub3Qgc3luY2lu
+ZzogRmF0YWwgZXhjZXB0aW9uIGluIGludGVycnVwdA0KPiA8MD5SZWJvb3RpbmcgaW4gMzAgc2Vj
+b25kcy4uDQo+
