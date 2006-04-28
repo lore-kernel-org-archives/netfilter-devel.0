@@ -1,11 +1,10 @@
-From: David Coulson <david@davidcoulson.net>
+From: Alexey Toptygin <alexeyt@freeshell.org>
 Subject: Re: Support for longest prefix IP address match in iptables?
-Date: Fri, 28 Apr 2006 17:08:20 -0400
-Message-ID: <44528444.8080504@davidcoulson.net>
+Date: Fri, 28 Apr 2006 21:09:32 +0000 (UTC)
+Message-ID: <Pine.NEB.4.62.0604282107340.14405@norge.freeshell.org>
 References: <38539.192.168.20.50.1146211317.squirrel@pop-mail>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: netfilter-devel@lists.netfilter.org, nbasker@india.tejasnetworks.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: shyam@india.tejasnetworks.com
@@ -21,22 +20,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Fri, 28 Apr 2006 shyam@india.tejasnetworks.com wrote:
 
-shyam@india.tejasnetworks.com wrote:
+> We are using iptables to match the destination ip-addresses
+> using the command
+>
 > iptables -t mangle -A POSTROUTING -d 10.12.13.14 -j MARK --set-mark=5
 > iptables -t mangle -A POSTROUTING -d 10.12.13.0/24 -j MARK --set-mark=7
 
-Put these rules the other way around. AFAIK, MARK does not exit the
-chain after a match.
+MARK is a non-terminating target, so _both_ rules get applied. The later 
+one overrides the earlier one. You need to insert a rule with a 
+terminating target (i.e. ACCEPT) between these.
 
-David
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.2 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFEUoRETIgPQWnLowkRAp1IAJ41tAgE9Bi5uRuvJU6dpTLzbd1nngCfc0pW
-bKj0maY/Im8E8PIEonQrXtk=
-=FQvS
------END PGP SIGNATURE-----
+ 			Alexey
