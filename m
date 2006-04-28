@@ -1,18 +1,16 @@
-From: Massimiliano Hofer <max@nucleus.it>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: condition for 2.6.16
-Date: Fri, 28 Apr 2006 14:44:50 +0200
-Message-ID: <200604281444.50982.max@nucleus.it>
+Date: Fri, 28 Apr 2006 14:58:27 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0604281455520.20380@blackhole.kfki.hu>
 References: <200604201919.19246.max@nucleus.it>
-	<200604281246.40488.max@nucleus.it> <4451F745.4070900@trash.net>
+	<200604281246.40488.max@nucleus.it>
+	<4451F745.4070900@trash.net> <200604281444.50982.max@nucleus.it>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4451F745.4070900@trash.net>
-Content-Disposition: inline
+To: Massimiliano Hofer <max@nucleus.it>
+In-Reply-To: <200604281444.50982.max@nucleus.it>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,37 +22,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 28 April 2006 1:06 pm, Patrick McHardy wrote:
+On Fri, 28 Apr 2006, Massimiliano Hofer wrote:
 
-> > I'll set to work on it. I'll need to change the userspace interface,
-> > though. The only O(1) way to do it is to store a pointer (or any other
-> > id) in the rule itself. I didn't do it in the previous version because I
-> > though this was really ugly. I can't find any other match doing a similar
-> > thing. Anyway I can do it.
+> > How would you achieve O(1) average?
 >
-> Unfortunately its ugly, but this is a well-known limitation of iptables
-> itself. Since its the only way to do certain things, I won't complain
-> if this part is ugly :)
+> Hash. But it adds complexity to the code and unnecessary complexity is a form
+> of ugliness.
 
-OK. This time I warned you. :)
+Why don't you choose an array and its indices? Array size could be
+specified by module parameter if the default were not sufficient for
+someone.
 
-> > On the other hand I can make it a guaranteed O(log n) or average O(1)
-> > without meddling the rule descriptor and with compatible userspace. What
-> > do you prefer?
->
-> How would you achieve O(1) average?
-
-Hash. But it adds complexity to the code and unnecessary complexity is a form 
-of ugliness.
-
-While we're talking about varying degrees of ugliness, how bad would it be if 
-I optionally allowed to keep a persistent state across rule removal and 
-reinsertion (for example whene someone flushes the table and restarts the 
-firewalling script)?
-I concede that this would really be easy to do in userspace, so maybe I'm 
-answering myself. :)
-
--- 
-Saluti,
-   Massimiliano Hofer
-        Nucleus
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
