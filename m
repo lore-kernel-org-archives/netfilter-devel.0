@@ -1,14 +1,18 @@
-From: Alexey Toptygin <alexeyt@freeshell.org>
-Subject: Re: Support for longest prefix IP address match in iptables?
-Date: Fri, 28 Apr 2006 21:09:32 +0000 (UTC)
-Message-ID: <Pine.NEB.4.62.0604282107340.14405@norge.freeshell.org>
-References: <38539.192.168.20.50.1146211317.squirrel@pop-mail>
+From: Massimiliano Hofer <max@nucleus.it>
+Subject: Re: condition for 2.6.16
+Date: Sat, 29 Apr 2006 02:53:48 +0200
+Message-ID: <200604290253.49758.max@nucleus.it>
+References: <200604201919.19246.max@nucleus.it> <200604281718.16912@nienna>
+	<445235FE.9040203@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org, nbasker@india.tejasnetworks.com
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>, KOVACS Krisztian <hidden@balabit.hu>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: shyam@india.tejasnetworks.com
-In-Reply-To: <38539.192.168.20.50.1146211317.squirrel@pop-mail>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <445235FE.9040203@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,16 +24,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 28 Apr 2006 shyam@india.tejasnetworks.com wrote:
+On Friday 28 April 2006 5:34 pm, Patrick McHardy wrote:
 
-> We are using iptables to match the destination ip-addresses
-> using the command
->
-> iptables -t mangle -A POSTROUTING -d 10.12.13.14 -j MARK --set-mark=5
-> iptables -t mangle -A POSTROUTING -d 10.12.13.0/24 -j MARK --set-mark=7
+> Hehe :) Yes, its not nice, but I refuse to add stupid limits just
+> because the infrastructure can't cleanly support per-instance state
+> (which is what makes it ugly, its not the shared state). And its not
+> so bad, the uglyness comes down to two or three extra lines of code,
+> one additional pointer in the data structure and one offsetof in
+> userspace.
 
-MARK is a non-terminating target, so _both_ rules get applied. The later 
-one overrides the earlier one. You need to insert a rule with a 
-terminating target (i.e. ACCEPT) between these.
+Nontheless, I think modifying userspace because 2 kernel functions can't talk 
+to each other is a bit silly.
+It would be relatively easy to modify the kernel in order to support instance 
+data (extensive, but simple and relatively safe).
+Do you think there would be a strong resistance to a patch in mainline kernel?
 
- 			Alexey
+-- 
+Saluti,
+   Massimiliano Hofer
+        Nucleus
