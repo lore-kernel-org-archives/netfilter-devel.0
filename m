@@ -1,16 +1,11 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: Update: Patch-o-matic cleanup
-Date: Sun, 30 Apr 2006 12:44:55 +0200
-Message-ID: <20060430124455.kkdqfyfyvej4c4o4@intranator.m.i2n>
-References: <443165AA.4030509@trash.net> <4433CA75.9040607@trash.net>
+From: Evan Miller <evanm@frap.net>
+Subject: Patch to libipt_DNAT.man
+Date: Fri, 28 Apr 2006 20:30:09 -0700
+Message-ID: <20060429033009.GA10032@frap.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <4433CA75.9040607@trash.net>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -23,31 +18,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick,
+I had to dig through source to find the --to-destination :port syntax (no
+mangle of address). This patch to the manpage saves others the trouble,
+please accept it or a similar change:
 
-> Patrick McHardy wrote:
-> How to set up a repository:
->
-> The repository must be accessible in a way supported by curl (HTTP or
-> FTP for example). The name of each patchlet is listed in a file named
-> "index". Each patchlet must be contained in a .tar.gz file, which
-> contains a directory named like the patchlet itself. The directories
-> contents are similar to those in patchlets/ today, but the Repository
-> specified in the info file must be "external".
-
-I've set up a repository for ACCOUNT here:
-
-http://www.intra2net.com/de/produkte/opensource/ipt_account/
-
-Hope everything is ok.
-
-The tarball is currently named ACCOUNT.tar.gz.
-Is there a way to add a version number to it?
-Or is it safe to include some kind of "Changelog"
-file in the distribution?
-
-btw: "README.new_patches" doesn't know anything
-about the "Repository: external" stuff yet.
-
-Cheers,
-Thomas
+--- -   2006-04-28 20:28:04.454798000 -0700
++++ libipt_DNAT.man     2006-04-28 20:24:22.484755056 -0700
+@@ -10,7 +10,7 @@
+ also be mangled), and rules should cease being examined.  It takes one
+ type of option:
+ .TP
+-.BR "--to-destination " "\fIipaddr\fP[-\fIipaddr\fP][:\fIport\fP-\fIport\fP]"
++.BR "--to-destination " "[\fIipaddr\fP][-\fIipaddr\fP][:\fIport\fP-\fIport\fP]"
+ which can specify a single new destination IP address, an inclusive
+ range of IP addresses, and optionally, a port range (which is only
+ valid if the rule also specifies
+@@ -18,7 +18,8 @@
+ or
+ .BR "-p udp" ).
+ If no port range is specified, then the destination port will never be
+-modified.
++modified. If no IP address is specified then only the destination port
++will be modified.
+ .RS
+ .PP
+ In Kernels up to 2.6.10 you can add several --to-destination options.  For
