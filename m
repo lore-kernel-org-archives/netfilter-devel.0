@@ -1,16 +1,12 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: RFC: NAT configuration over ctnetlink
-Date: Sat, 29 Apr 2006 17:39:37 +0200
-Message-ID: <445388B9.2010308@netfilter.org>
-References: <4451BA40.4050207@trash.net>
+From: "George P Nychis" <gnychis@cmu.edu>
+Subject: changed "random" patch for higher precision
+Date: Sun, 30 Apr 2006 00:00:57 -0400 (EDT)
+Message-ID: <33328.128.2.140.234.1146369657.squirrel@128.2.140.234>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4451BA40.4050207@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,23 +18,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick!
+Hi,
 
-Patrick McHardy wrote:
-> I added ctnetlink support to a SIP proxy (siproxd) yesterday and
-> stumbled over some problems with NAT. The CTA_NAT attribute only
-> allows to set up a single manip, since NAT mappings can't be
-> changed for existing conntracks there is no way to add both a
-> src- and a dst-manip. This patch removes the overloading of the
-> status bits with netlink-relevant semantic and changes the CTA_NAT
-> attribute to CTA_NAT_SRC and CTA_NAT_DST. It breaks compatiblity,
-> but I don't think its worth trying to keep it for this stupid
-> behaviour. Any comments?
+I modified the "random" patch to support high precision averages ... the original random only supports 1-99% in integer intervals
 
-Why not keep using the status bits logic? It doesn't break anything and 
-you can still add support for source and destination NAT handlings at 
-the same time. Is the status thing so ugly to break this?
+The original patch did this by having an 8 bit integer, reading random bytes from the kernel into an 8 bit integer, and testing between 2 and 252 (1*2.55 and 99*2.55 ... 2.55 coming from 255/100).
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+Regardless of how the original patch worked, I use a 32 bit integer to support extremely high precision probabilities and changed the ranges to UINT_MAX instead of 255, plus other changes.
+
+I tested it pretty rigurously on the 2.4 kernel because i'm working on a project right now which required high precision drop probabilities
+
+My main question is, should i request changes to the random patch, or completely create a new patch and argument?
+
+Thanks!
+George
