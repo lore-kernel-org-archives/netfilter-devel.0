@@ -1,16 +1,16 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Libnetfilter_conntrack problems
-Date: Mon, 1 May 2006 14:53:53 -0300
-Message-ID: <20060501175353.GD5267@rama>
-References: <ca021ab30604270455q5cf093c9s990558209bca3e1d@mail.gmail.com>
+Subject: Re: Patch to libipt_DNAT.man
+Date: Mon, 1 May 2006 14:55:45 -0300
+Message-ID: <20060501175545.GE5267@rama>
+References: <20060429033009.GA10032@frap.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gE7i1rD7pdK0Ng3j"
+	protocol="application/pgp-signature"; boundary="PPYy/fEw/8QCHSq3"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?iso-8859-1?Q?S=E9bastien?= LAVEZE <slaveze@gmail.com>
+To: Evan Miller <evanm@frap.net>
 Content-Disposition: inline
-In-Reply-To: <ca021ab30604270455q5cf093c9s990558209bca3e1d@mail.gmail.com>
+In-Reply-To: <20060429033009.GA10032@frap.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,25 +23,17 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---gE7i1rD7pdK0Ng3j
-Content-Type: text/plain; charset=iso-8859-1
+--PPYy/fEw/8QCHSq3
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 27, 2006 at 01:55:13PM +0200, S=E9bastien LAVEZE wrote:
-> but not for destroy =3D=3D> nfct_open(CONNTRACK,
-> NF_NETLINK_CONNTRACK_DESTROY), i never get any event
+On Fri, Apr 28, 2006 at 08:30:09PM -0700, Evan Miller wrote:
+> I had to dig through source to find the --to-destination :port syntax (no
+> mangle of address). This patch to the manpage saves others the trouble,
+> please accept it or a similar change:
 
-are you sure?  did you wait until the respective entries really timed
-out from the conntrack table?
-
-what does 'conntrack -E -e DESTROY' say?  do you then see the events?
-
-> 2) I also would like to work with ids, when i get a conntrack via a
-> callback the id field is always set to zero, is it normal ?
-
-IIRC, we dropped ID's recently. I'm a bit lagging behind, though.
-
+thanks, in my local tree now.  Once my flight has landed, I'll commit.
 --=20
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
@@ -52,16 +44,16 @@ IIRC, we dropped ID's recently. I'm a bit lagging behind, though.
    architectural error that shows how much experimentation was going
    on while IP was being designed."                    -- Paul Vixie
 
---gE7i1rD7pdK0Ng3j
+--PPYy/fEw/8QCHSq3
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.3 (GNU/Linux)
 
-iD8DBQFEVksxXaXGVTD0i/8RAl1lAJ9v9pnv7dzgmj9Pt4a5JRZyD3DYxgCeLX+Q
-DF3D0Ceq5ZT7DSNeOifQ+uA=
-=1Ryk
+iD8DBQFEVkuhXaXGVTD0i/8RAs3BAJ4mNadYNdiZAxobz8UAlamo/WsStgCfYR/R
+/vw6GDJ8maGSoqoZNkOGwtQ=
+=MzLN
 -----END PGP SIGNATURE-----
 
---gE7i1rD7pdK0Ng3j--
+--PPYy/fEw/8QCHSq3--
