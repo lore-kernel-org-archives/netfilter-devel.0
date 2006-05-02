@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 05/06]: H.323 helper: Change author's email address
-Date: Tue,  2 May 2006 22:48:09 +0200 (MEST)
-Message-ID: <20060502204809.7610.69835.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 06/06]: x_tables: don't use __copy_{from,
+	to}_user on unchecked memory in compat layer
+Date: Tue,  2 May 2006 22:48:10 +0200 (MEST)
+Message-ID: <20060502204810.7610.43060.sendpatchset@localhost.localdomain>
 References: <20060502204803.7610.72174.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,45 +19,67 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: H.323 helper: Change author's email address
+[NETFILTER]: x_tables: don't use __copy_{from,to}_user on unchecked memory in compat layer
 
-Signed-off-by: Jing Min Zhao <zhaojingmin@users.sourceforge.net>
+Noticed by Linus Torvalds <torvalds@osdl.org>
+
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit b29ae226e0f4b00546194dae9263928e1abae468
-tree de2ee40b3a1cdc92bcef238c3bc81a39a6d85a99
-parent 1a8e196d1f5fbb3c43de5ce4e11c29c66188443c
-author Jing Min Zhao <zhaojingmin@users.sourceforge.net> Tue, 02 May 2006 22:03:37 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 02 May 2006 22:03:37 +0200
+commit c0a6597ffa6dce9261565319327fa9d060ee8740
+tree de902d88c478f87a15325f805f4325100514a5d7
+parent b29ae226e0f4b00546194dae9263928e1abae468
+author Patrick McHardy <kaber@trash.net> Tue, 02 May 2006 22:28:08 +0200
+committer Patrick McHardy <kaber@trash.net> Tue, 02 May 2006 22:28:08 +0200
 
- .../netfilter_ipv4/ip_conntrack_helper_h323_asn1.h |    2 +-
- net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/ip_tables.c |    6 +++---
+ net/netfilter/x_tables.c       |    4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ip_conntrack_helper_h323_asn1.h b/include/linux/netfilter_ipv4/ip_conntrack_helper_h323_asn1.h
-index 0bd8280..c6e9a0b 100644
---- a/include/linux/netfilter_ipv4/ip_conntrack_helper_h323_asn1.h
-+++ b/include/linux/netfilter_ipv4/ip_conntrack_helper_h323_asn1.h
-@@ -2,7 +2,7 @@
-  * ip_conntrack_helper_h323_asn1.h - BER and PER decoding library for H.323
-  * 			      	     conntrack/NAT module.
-  *
-- * Copyright (c) 2006 by Jing Min Zhao <zhaojingmin@hotmail.com>
-+ * Copyright (c) 2006 by Jing Min Zhao <zhaojingmin@users.sourceforge.net>
-  *
-  * This source code is licensed under General Public License version 2.
-  *
-diff --git a/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c b/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c
-index f52d2c4..355a53a 100644
---- a/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c
-+++ b/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c
-@@ -2,7 +2,7 @@
-  * ip_conntrack_helper_h323_asn1.c - BER and PER decoding library for H.323
-  * 			      	     conntrack/NAT module.
-  *
-- * Copyright (c) 2006 by Jing Min Zhao <zhaojingmin@hotmail.com>
-+ * Copyright (c) 2006 by Jing Min Zhao <zhaojingmin@users.sourceforge.net>
-  *
-  * This source code is licensed under General Public License version 2.
-  *
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 6d1c115..cee3397 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1441,7 +1441,7 @@ static int compat_copy_entry_to_user(str
+ 	ret = -EFAULT;
+ 	origsize = *size;
+ 	ce = (struct compat_ipt_entry __user *)*dstptr;
+-	if (__copy_to_user(ce, e, sizeof(struct ipt_entry)))
++	if (copy_to_user(ce, e, sizeof(struct ipt_entry)))
+ 		goto out;
+ 
+ 	*dstptr += sizeof(struct compat_ipt_entry);
+@@ -1459,9 +1459,9 @@ static int compat_copy_entry_to_user(str
+ 		goto out;
+ 	ret = -EFAULT;
+ 	next_offset = e->next_offset - (origsize - *size);
+-	if (__put_user(target_offset, &ce->target_offset))
++	if (put_user(target_offset, &ce->target_offset))
+ 		goto out;
+-	if (__put_user(next_offset, &ce->next_offset))
++	if (put_user(next_offset, &ce->next_offset))
+ 		goto out;
+ 	return 0;
+ out:
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 17abf60..99293c6 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -289,7 +289,7 @@ int xt_compat_match(void *match, void **
+ 		case COMPAT_TO_USER:
+ 			pm = (struct xt_entry_match *)match;
+ 			msize = pm->u.user.match_size;
+-			if (__copy_to_user(*dstptr, pm, msize)) {
++			if (copy_to_user(*dstptr, pm, msize)) {
+ 				ret = -EFAULT;
+ 				break;
+ 			}
+@@ -366,7 +366,7 @@ int xt_compat_target(void *target, void 
+ 		case COMPAT_TO_USER:
+ 			pt = (struct xt_entry_target *)target;
+ 			tsize = pt->u.user.target_size;
+-			if (__copy_to_user(*dstptr, pt, tsize)) {
++			if (copy_to_user(*dstptr, pt, tsize)) {
+ 				ret = -EFAULT;
+ 				break;
+ 			}
