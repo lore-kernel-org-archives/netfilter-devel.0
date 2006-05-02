@@ -1,17 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: RFC: NAT configuration over ctnetlink
-Date: Tue, 02 May 2006 19:10:05 +0200
-Message-ID: <4457926D.5010209@trash.net>
-References: <4451BA40.4050207@trash.net> <445388B9.2010308@netfilter.org>
-	<4457677D.7060607@trash.net> <44578E0C.5070705@netfilter.org>
+From: "Srinivas Krishnan" <shrin_krishnan@yahoo.com>
+Subject: Extracting port numbers
+Date: Tue, 2 May 2006 16:25:37 -0400
+Message-ID: <ba7fdfc10605021325o39c09204r798e385b75e6b5bf@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <44578E0C.5070705@netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,19 +19,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
->> I don't know. I would prefer to just remove it. Since the library
->> takes all parameters as arguments to a single function (one more
->> thing I definitely don't like), compatibility of the library will
->> break anyway when we add support for multiple manips. Do you really
->> think its worth keeping around?
-> 
-> 
-> Not really, if it's trash better remove this sooner than later. Now that
-> we are going to break backward compatibility, please let me know if you
-> don't like anything else that we could change at this point.
+Hi,
 
-One thing that would make a lot of sense is to change or introduce a new
-interface in libnetfilter_conntrack that allows to add netfilter
-attributes to a conntrack "object" one at a time, so we don't have to
-change function prototypes each time we're introducing something new.
+I was trying to extract tcp port numbers from sk_buff, going through
+netfilter code, there seem multiple ways of doing it. I was wondering
+if there is one standard way to do it which is generic enough to fit
+any situation.
+
+For seem reason the
+struct tcphrd *tcp =3D (struct tcphrd *)(skb->data + (skb->nh.iph->ihl*4));
+
+dest_port =3D tcp->dest;
+
+does not work and extracts wrong port numbers.
+
+-srinivas
+
+--
+*********************************
+Srinivas Krishnan
+
+Graduate Student
+Dept. Of Computer Science
+UNC-Chapel Hill
+++++++++++++++++++++++++++++++++
+ Phone:
+   **Office: (919) 962-1920
+   **Cell:    (585)295-3359
+ Email: krishnan@cs.unc.edu, shrin.krishnan@gmail.com
+++++++++++++++++++++++++
+ Web: www.cs.unc.edu/~krishnan
+ **************************************
