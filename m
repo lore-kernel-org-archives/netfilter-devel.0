@@ -1,16 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: RFC: NAT configuration over ctnetlink
-Date: Tue, 02 May 2006 16:06:53 +0200
-Message-ID: <4457677D.7060607@trash.net>
-References: <4451BA40.4050207@trash.net> <445388B9.2010308@netfilter.org>
+From: "George P Nychis" <gnychis@cmu.edu>
+Subject: Re: changed 'random' patch for higher precision
+Date: Tue, 2 May 2006 12:05:17 -0400 (EDT)
+Message-ID: <32875.128.2.140.234.1146585917.squirrel@128.2.140.234>
+References: <33328.128.2.140.234.1146369657.squirrel@128.2.140.234>
+	<4457650F.7030901@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <445388B9.2010308@netfilter.org>
+In-Reply-To: <4457650F.7030901@trash.net>
+To: "Patrick McHardy" <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,33 +22,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Hi Patrick!
-> 
-> Patrick McHardy wrote:
-> 
->> I added ctnetlink support to a SIP proxy (siproxd) yesterday and
->> stumbled over some problems with NAT. The CTA_NAT attribute only
->> allows to set up a single manip, since NAT mappings can't be
->> changed for existing conntracks there is no way to add both a
->> src- and a dst-manip. This patch removes the overloading of the
->> status bits with netlink-relevant semantic and changes the CTA_NAT
->> attribute to CTA_NAT_SRC and CTA_NAT_DST. It breaks compatiblity,
->> but I don't think its worth trying to keep it for this stupid
->> behaviour. Any comments?
-> 
-> 
-> Why not keep using the status bits logic? It doesn't break anything and
-> you can still add support for source and destination NAT handlings at
-> the same time. Is the status thing so ugly to break this?
 
+> George P Nychis wrote:
+>> Hi,
+>> 
+>> I modified the "random" patch to support high precision averages ...
+>> the original random only supports 1-99% in integer intervals
+>> 
+>> The original patch did this by having an 8 bit integer, reading random
+>> bytes from the kernel into an 8 bit integer, and testing between 2 and
+>> 252 (1*2.55 and 99*2.55 ... 2.55 coming from 255/100).
+>> 
+>> Regardless of how the original patch worked, I use a 32 bit integer to
+>> support extremely high precision probabilities and changed the ranges
+>> to UINT_MAX instead of 255, plus other changes.
+>> 
+>> I tested it pretty rigurously on the 2.4 kernel because i'm working on
+>> a project right now which required high precision drop probabilities
+>> 
+>> My main question is, should i request changes to the random patch, or
+>> completely create a new patch and argument?
+> 
+> I already have a version of random with higher precision queued for
+> 2.6.18. You say you're using UINT_MAX .. can you represent a probability
+> of both 0 and 1? :)
+> 
+> 
+> 
 
-It is definitely ugly and broken. I'm really not happy that we added
-this stuff in a hurry instead of just leaving it out and adding it
-when it is in the proper shape.
+Hey Patrick,
 
-I don't know. I would prefer to just remove it. Since the library
-takes all parameters as arguments to a single function (one more
-thing I definitely don't like), compatibility of the library will
-break anyway when we add support for multiple manips. Do you really
-think its worth keeping around?
+Well then this is perfect, because my implementation is for 2.4.32 ... i didn't touch the 2.6 stuff since my project is based on 2.4 kernel.
+
+I can represent a probability of both 0 and 1, as soon as I finish up some work for the day, i'll send out my changes and patch and explain everything
+
+- George
