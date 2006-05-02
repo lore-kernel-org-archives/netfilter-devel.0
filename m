@@ -1,12 +1,16 @@
-From: Evan Miller <evanm@frap.net>
-Subject: Patch to libipt_DNAT.man
-Date: Fri, 28 Apr 2006 20:30:09 -0700
-Message-ID: <20060429033009.GA10032@frap.net>
+From: "Vincent" <cs83152@csie.chu.edu.tw>
+Subject: RE: changed "random" patch for higher precision
+Date: Tue, 2 May 2006 12:35:57 +0800
+Message-ID: <031d01c66da1$eec10ff0$aa0ba8c0@l7.com.tw>
+References: <33328.128.2.140.234.1146369657.squirrel@128.2.140.234>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: "'George P Nychis'" <gnychis@cmu.edu>,
+	<netfilter-devel@lists.netfilter.org>
+In-Reply-To: <33328.128.2.140.234.1146369657.squirrel@128.2.140.234>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,28 +22,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I had to dig through source to find the --to-destination :port syntax (no
-mangle of address). This patch to the manpage saves others the trouble,
-please accept it or a similar change:
+Can you post the patch to the mail-list ?
 
---- -   2006-04-28 20:28:04.454798000 -0700
-+++ libipt_DNAT.man     2006-04-28 20:24:22.484755056 -0700
-@@ -10,7 +10,7 @@
- also be mangled), and rules should cease being examined.  It takes one
- type of option:
- .TP
--.BR "--to-destination " "\fIipaddr\fP[-\fIipaddr\fP][:\fIport\fP-\fIport\fP]"
-+.BR "--to-destination " "[\fIipaddr\fP][-\fIipaddr\fP][:\fIport\fP-\fIport\fP]"
- which can specify a single new destination IP address, an inclusive
- range of IP addresses, and optionally, a port range (which is only
- valid if the rule also specifies
-@@ -18,7 +18,8 @@
- or
- .BR "-p udp" ).
- If no port range is specified, then the destination port will never be
--modified.
-+modified. If no IP address is specified then only the destination port
-+will be modified.
- .RS
- .PP
- In Kernels up to 2.6.10 you can add several --to-destination options.  For
+Vincent
+
+>-----Original Message-----
+>From: netfilter-devel-bounces@lists.netfilter.org 
+>[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf 
+>Of George P Nychis
+>Sent: Sunday, April 30, 2006 12:01 PM
+>To: netfilter-devel@lists.netfilter.org
+>Subject: changed "random" patch for higher precision
+>
+>
+>Hi,
+>
+>I modified the "random" patch to support high precision 
+>averages ... the original random only supports 1-99% in 
+>integer intervals
+>
+>The original patch did this by having an 8 bit integer, 
+>reading random bytes from the kernel into an 8 bit integer, 
+>and testing between 2 and 252 (1*2.55 and 99*2.55 ... 2.55 
+>coming from 255/100).
+>
+>Regardless of how the original patch worked, I use a 32 bit 
+>integer to support extremely high precision probabilities and 
+>changed the ranges to UINT_MAX instead of 255, plus other changes.
+>
+>I tested it pretty rigurously on the 2.4 kernel because i'm 
+>working on a project right now which required high precision 
+>drop probabilities
+>
+>My main question is, should i request changes to the random 
+>patch, or completely create a new patch and argument?
+>
+>Thanks!
+>George
+>
