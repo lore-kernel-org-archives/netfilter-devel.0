@@ -1,7 +1,7 @@
 From: "Srinivas Krishnan" <shrin_krishnan@yahoo.com>
-Subject: Extracting port numbers
-Date: Tue, 2 May 2006 16:25:37 -0400
-Message-ID: <ba7fdfc10605021325o39c09204r798e385b75e6b5bf@mail.gmail.com>
+Subject: Hash Function to Seperate Flows
+Date: Tue, 2 May 2006 16:33:15 -0400
+Message-ID: <ba7fdfc10605021333i167f9ads7b540a801c349c00@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
@@ -19,19 +19,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+hi,
 
-I was trying to extract tcp port numbers from sk_buff, going through
-netfilter code, there seem multiple ways of doing it. I was wondering
-if there is one standard way to do it which is generic enough to fit
-any situation.
+i am trying to separate different flows, and was wondering if there is
+a standard hash function with low collisions i can use to hash based
+on src ip, dest ip, src port, dest port and protocol.
 
-For seem reason the
-struct tcphrd *tcp =3D (struct tcphrd *)(skb->data + (skb->nh.iph->ihl*4));
+there seems to be as hash fn in freeBSD's dummynet code but I do not
+know if it can be directly applied, as it does some bit fiddling with
+flow_mask.
 
-dest_port =3D tcp->dest;
-
-does not work and extracts wrong port numbers.
+any help/thoughts would be greatly appreciated
 
 -srinivas
 
