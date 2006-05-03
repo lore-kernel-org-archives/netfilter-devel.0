@@ -1,19 +1,14 @@
 From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: ipt_recent patch
-Date: Wed, 03 May 2006 10:32:50 +0100
-Message-ID: <445878C2.9080400@ufomechanic.net>
-References: <dt51lh$b63$1@sea.gmane.org>
-	<43F9EA77.4060208@ufomechanic.net>	<44096532.2070000@trash.net>
-	<440DAB6B.4020208@ufomechanic.net>	<440ECB1B.4070507@trash.net>
-	<4415B019.6050409@ufomechanic.net>
-	<20060322142636.GF4474@ns.snowman.net>
+Subject: Re: Hash Function to Seperate Flows
+Date: Wed, 03 May 2006 10:35:00 +0100
+Message-ID: <44587944.30707@ufomechanic.net>
+References: <ba7fdfc10605021333i167f9ads7b540a801c349c00@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <20060322142636.GF4474@ns.snowman.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <ba7fdfc10605021333i167f9ads7b540a801c349c00@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,24 +20,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Stephen Frost wrote:
-
-> I don't really see the use-case for these new options...  Perhaps if it
-> was combined with an IP mask of some kind, ie: packets from 5 IPs in the
-> same /24 in the last 60 seconds, or some such.  That could also be
-> accomplished by providing a way to tell ipt_recent to look for a mask
-> instead of individual IPs though.  ie: For this table, consider any IPs
-> in the same /24 to be the 'same' IP.
+Srinivas Krishnan wrote:
+> hi,
 > 
-> Anyway, they don't really affect how the module works as they just add
-> additional ways to check on the data stored in the tables, so I'm not
-> strongly against them just don't entirely see the point.
+> i am trying to separate different flows, and was wondering if there is
+> a standard hash function with low collisions i can use to hash based
+> on src ip, dest ip, src port, dest port and protocol.
+> 
+> there seems to be as hash fn in freeBSD's dummynet code but I do not
+> know if it can be directly applied, as it does some bit fiddling with
+> flow_mask.
+> 
+> any help/thoughts would be greatly appreciated
 
+I suggest you read a few times through all kernel source files with
+"conntrack" in the name.
 
-I agree that a mask ought also to be supplied, as /32 is equivalent to
-the same-ip anyway.
+I did, and it did me a world of good.
 
-Are you content to make that modification or do you wish me to?
-I won't be able to do so for  week or two.
+jhash is probably the hash function you want. Look out for it, and happy
+reading.
 
 Sam
