@@ -1,18 +1,20 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: Libnetfilter_conntrack problems
-Date: Wed, 3 May 2006 13:15:49 +0200
-Message-ID: <20060503111549.GO16562@sunbeam.de.gnumonks.org>
-References: <ca021ab30604270455q5cf093c9s990558209bca3e1d@mail.gmail.com>
-	<20060501175353.GD5267@rama>
-	<ca021ab30605030249s62ab1924uf9b1be924bd2d28e@mail.gmail.com>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: ipt_recent patch
+Date: Wed, 03 May 2006 12:41:49 +0100
+Message-ID: <445896FD.60409@ufomechanic.net>
+References: <dt51lh$b63$1@sea.gmane.org>
+	<43F9EA77.4060208@ufomechanic.net>	<44096532.2070000@trash.net>
+	<440DAB6B.4020208@ufomechanic.net>	<440ECB1B.4070507@trash.net>
+	<4415B019.6050409@ufomechanic.net>
+	<20060322142636.GF4474@ns.snowman.net>
+	<445878C2.9080400@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eGLW8NzjjVmDHwQh"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?iso-8859-1?Q?S=E9bastien?= LAVEZE <slaveze@gmail.com>
-Content-Disposition: inline
-In-Reply-To: <ca021ab30605030249s62ab1924uf9b1be924bd2d28e@mail.gmail.com>
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <445878C2.9080400@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,50 +26,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+I actually think ipt_recent wants merging with ipt_set, by causing
+ipt_set to maintain the insert time and refresh time of each set member.
 
---eGLW8NzjjVmDHwQh
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+What do you think? It will require taking the design behind ipt_recents
+combine hash/list structure but I would suggest using a linked list
+instead of an array to hold the time-ordered list.
 
-On Wed, May 03, 2006 at 11:49:04AM +0200, S=E9bastien LAVEZE wrote:
-> OK
-> I was trying to have multiple handles in different threads and it was
-> working only for the first created thread. I change my application in
-> a multi-process one and all seems to work fine
+Sam
 
-The libraries are not thread safe at all, and there was never any work
-to make them so.  I personally (like many other netfilter developers, I
-believe) never use threads in my programs, so it's unlikely that we'd be
-working on that.  patches are welcome, though.
-
-> However the DESTROY events come a long time after the actual end of a
-> connection by timeout...am I right ?
-
-not really.  please be more specific.  what is 'end of a connection by
-timeout'? which specific timeout of which particular state are you
-talking about?
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---eGLW8NzjjVmDHwQh
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQFEWJDlXaXGVTD0i/8RAjRbAJ4r6BGJkyRbSW7lCzwjP3EN8QJIAgCgm9VG
-unEhUOV6G3nr/BFX033hYew=
-=D/pd
------END PGP SIGNATURE-----
-
---eGLW8NzjjVmDHwQh--
+Amin Azez wrote:
+> Stephen Frost wrote:
+>
+>   
+>> I don't really see the use-case for these new options...  Perhaps if it
+>> was combined with an IP mask of some kind, ie: packets from 5 IPs in the
+>> same /24 in the last 60 seconds, or some such.  That could also be
+>> accomplished by providing a way to tell ipt_recent to look for a mask
+>> instead of individual IPs though.  ie: For this table, consider any IPs
+>> in the same /24 to be the 'same' IP.
+>>
+>> Anyway, they don't really affect how the module works as they just add
+>> additional ways to check on the data stored in the tables, so I'm not
+>> strongly against them just don't entirely see the point.
+>>     
+>
+>
+> I agree that a mask ought also to be supplied, as /32 is equivalent to
+> the same-ip anyway.
+>
+> Are you content to make that modification or do you wish me to?
+> I won't be able to do so for  week or two.
+>
+> Sam
+>   
