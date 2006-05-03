@@ -1,20 +1,18 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: ipt_recent patch
-Date: Wed, 03 May 2006 12:41:49 +0100
-Message-ID: <445896FD.60409@ufomechanic.net>
-References: <dt51lh$b63$1@sea.gmane.org>
-	<43F9EA77.4060208@ufomechanic.net>	<44096532.2070000@trash.net>
-	<440DAB6B.4020208@ufomechanic.net>	<440ECB1B.4070507@trash.net>
-	<4415B019.6050409@ufomechanic.net>
-	<20060322142636.GF4474@ns.snowman.net>
-	<445878C2.9080400@ufomechanic.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: RFC: NAT configuration over ctnetlink
+Date: Wed, 03 May 2006 15:40:11 +0200
+Message-ID: <4458B2BB.8000407@trash.net>
+References: <4451BA40.4050207@trash.net> <445388B9.2010308@netfilter.org>
+	<4457677D.7060607@trash.net> <44578E0C.5070705@netfilter.org>
+	<4457926D.5010209@trash.net> <4457EBF9.3080606@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <445878C2.9080400@ufomechanic.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <4457EBF9.3080606@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,37 +24,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I actually think ipt_recent wants merging with ipt_set, by causing
-ipt_set to maintain the insert time and refresh time of each set member.
-
-What do you think? It will require taking the design behind ipt_recents
-combine hash/list structure but I would suggest using a linked list
-instead of an array to hold the time-ordered list.
-
-Sam
-
-Amin Azez wrote:
-> Stephen Frost wrote:
->
->   
->> I don't really see the use-case for these new options...  Perhaps if it
->> was combined with an IP mask of some kind, ie: packets from 5 IPs in the
->> same /24 in the last 60 seconds, or some such.  That could also be
->> accomplished by providing a way to tell ipt_recent to look for a mask
->> instead of individual IPs though.  ie: For this table, consider any IPs
->> in the same /24 to be the 'same' IP.
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+> 
+>>Pablo Neira Ayuso wrote:
 >>
->> Anyway, they don't really affect how the module works as they just add
->> additional ways to check on the data stored in the tables, so I'm not
->> strongly against them just don't entirely see the point.
->>     
->
->
-> I agree that a mask ought also to be supplied, as /32 is equivalent to
-> the same-ip anyway.
->
-> Are you content to make that modification or do you wish me to?
-> I won't be able to do so for  week or two.
->
-> Sam
->   
+>>
+>>>>I don't know. I would prefer to just remove it. Since the library
+>>>>takes all parameters as arguments to a single function (one more
+>>>>thing I definitely don't like), compatibility of the library will
+>>>>break anyway when we add support for multiple manips. Do you really
+>>>>think its worth keeping around?
+>>>
+>>>Not really, if it's trash better remove this sooner than later. Now that
+>>>we are going to break backward compatibility, please let me know if you
+>>>don't like anything else that we could change at this point.
+>>
+>>One thing that would make a lot of sense is to change or introduce a new
+>>interface in libnetfilter_conntrack that allows to add netfilter
+>>attributes to a conntrack "object" one at a time, so we don't have to
+>>change function prototypes each time we're introducing something new.
+> 
+> 
+> what do you think about the incomplete patch attached? Still missing the
+> getters and the expectations.
+> 
+> I think that with the setters/getters we can make private nfct_conntrack
+> and friends.
+
+This goes even further than what I meant :) I'll have a closer look,
+but probably going to take a bit, I'm quite busy currently.
+
+Another item I would like to bring up for discussion is whether we
+want to continue with (some) of these libraries at all. For a small
+pet-project of mine I've been working a bit on Thomas Graf's libnl,
+which provides a very nice netlink infrastructure, support for
+basically all kernel netlink interfaces, nice object representation
+of the individual items, cache management for replication of kernel
+databases, and quite a few things more. Besides lots of nice
+infrastructure, one main advantage of using libnl would be that
+there is a single library which can be used for communication with
+any kernel subsystem using netlink in a uniform way.
+
+Comments?
