@@ -1,13 +1,12 @@
-From: "Srinivas Krishnan" <shrin_krishnan@yahoo.com>
-Subject: Heap Priority Queueing
-Date: Wed, 3 May 2006 13:24:03 -0400
-Message-ID: <ba7fdfc10605031024u5c8992eay886a941af3dcf2b3@mail.gmail.com>
+From: Arne Bernin <arne@alamut.de>
+Subject: conntrack sync via userspace ?
+Date: Wed, 03 May 2006 23:22:22 +0200
+Message-ID: <1146691342.2360.51.camel@morannon.athome>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,30 +18,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi All,
+Hi all,
 
-For some reason most implementations of prio q, I have found in the
-kernel are not heap based.
+after playing a bit with ct_sync and finding out that it does not seems
+being actively developed i wonder whether it would be possible to do the
+syncing of conntrack tables over different machines using a user space
+daemon and libnfnetfilter_conntrack ? Is this a possible way , or a no
+go because of limitations in the conntrack lib , speed or something else
+i am not aware of ?
+I thought before digging to deep into it right now, i just ask the
+people who should know, sorry about my lazyness. ;-)
 
-I would imagine that managing rule priorities using a heap would be a
-lot more efficient, has  a generic prio q been implemented for the
-Linux Kernel
+--arne
 
+-- 
+Arne Bernin <arne@alamut.de>
 
--srinivas
-
--
-*********************************
-Srinivas Krishnan
-
-Graduate Student
-Dept. Of Computer Science
-UNC-Chapel Hill
-++++++++++++++++++++++++++++++++
- Phone:
-   **Office: (919) 962-1920
-   **Cell:    (585)295-3359
- Email: krishnan@cs.unc.edu, shrin.krishnan@gmail.com
-++++++++++++++++++++++++
- Web: www.cs.unc.edu/~krishnan
- **************************************
+http://www.ucBering.de
