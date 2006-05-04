@@ -1,16 +1,15 @@
-From: "Vincent" <cs83152@csie.chu.edu.tw>
-Subject: RE: Extracting port numbers
-Date: Thu, 4 May 2006 13:05:46 +0800
-Message-ID: <042001c66f38$6b5d82e0$aa0ba8c0@l7.com.tw>
-References: <ba7fdfc10605021325o39c09204r798e385b75e6b5bf@mail.gmail.com>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [NETFILTER 00/06]: Netfilter fixes for 2.6.17
+Date: Wed, 03 May 2006 23:21:00 -0700 (PDT)
+Message-ID: <20060503.232100.03285843.davem@davemloft.net>
+References: <20060502204803.7610.72174.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "'Srinivas Krishnan'" <shrin_krishnan@yahoo.com>,
-	<netfilter-devel@lists.netfilter.org>
-In-Reply-To: <ba7fdfc10605021325o39c09204r798e385b75e6b5bf@mail.gmail.com>
+To: kaber@trash.net
+In-Reply-To: <20060502204803.7610.72174.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,24 +21,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
->
->Hi,
->
->I was trying to extract tcp port numbers from sk_buff, going 
->through netfilter code, there seem multiple ways of doing it. 
->I was wondering if there is one standard way to do it which is 
->generic enough to fit any situation.
->
->For seem reason the
->struct tcphrd *tcp = (struct tcphrd *)(skb->data + 
->(skb->nh.iph->ihl*4));
->
->dest_port = tcp->dest;
->
->does not work and extracts wrong port numbers.
->
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue,  2 May 2006 22:48:03 +0200 (MEST)
 
-It seems ok. Do you miss to use the ntohs function to conver to the
-correct form?
+> following are my netfilter patches for 2.6.17, which fix a couple of bad bugs:
+> 
+> - The SCTP conntrack loop noticed by Ingo
+> - The unchecked __copy_from/to in the compat code noticed by Linus
+> - Two H.323 bugs found by the PROTOS c07-h2250v4 testsuite
+> 
+> I'll push the SCTP patch to -stable as well. There is still at least one open
+> bug in the H.323 helper, but I can't really keep up with the pace new bugs are
+> discovered at currently.
+> 
+> Please apply.
 
-Vincent
+Thanks a lot for all of your great work killing off these
+bugs.
+
+All applied, excep the SCTP loop since Linus put it in already.
+
+Thanks again!
