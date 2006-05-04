@@ -1,12 +1,15 @@
-From: Arne Bernin <arne@alamut.de>
-Subject: conntrack sync via userspace ?
-Date: Wed, 03 May 2006 23:22:22 +0200
-Message-ID: <1146691342.2360.51.camel@morannon.athome>
+From: "Vincent" <cs83152@csie.chu.edu.tw>
+Subject: RE: Hash Function to Seperate Flows
+Date: Thu, 4 May 2006 13:02:10 +0800
+Message-ID: <041f01c66f37$ec232b10$aa0ba8c0@l7.com.tw>
+References: <44587944.30707@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <44587944.30707@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,20 +21,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+I suggest to refer the net/ipv4/netfilter/ip_conntrack_core.c
 
-after playing a bit with ct_sync and finding out that it does not seems
-being actively developed i wonder whether it would be possible to do the
-syncing of conntrack tables over different machines using a user space
-daemon and libnfnetfilter_conntrack ? Is this a possible way , or a no
-go because of limitations in the conntrack lib , speed or something else
-i am not aware of ?
-I thought before digging to deep into it right now, i just ask the
-people who should know, sorry about my lazyness. ;-)
+Thehe is a example using jhash for reference.
 
---arne
+static u_int32_t __hash_conntrack(const struct ip_conntrack_tuple
+*tuple,
+                            unsigned int size, unsigned int rnd)
+{
+        return (jhash_3words(tuple->src.ip,
+                             (tuple->dst.ip ^ tuple->dst.protonum),
+                             (tuple->src.u.all | (tuple->dst.u.all <<
+16)),
+                             rnd) % size);
+}
 
--- 
-Arne Bernin <arne@alamut.de>
+Vincent
 
-http://www.ucBering.de
+>-----Original Message-----
+>From: netfilter-devel-bounces@lists.netfilter.org 
+>[mailto:netfilter-devel-bounces@lists.netfilter.org] On Behalf 
+>Of Amin Azez
+>Sent: Wednesday, May 03, 2006 5:35 PM
+>To: netfilter-devel@lists.netfilter.org
+>Subject: Re: Hash Function to Seperate Flows
+>
+>
+>Srinivas Krishnan wrote:
+>> hi,
+>> 
+>> i am trying to separate different flows, and was wondering 
+>if there is 
+>> a standard hash function with low collisions i can use to hash based 
+>> on src ip, dest ip, src port, dest port and protocol.
+>> 
+>> there seems to be as hash fn in freeBSD's dummynet code but I do not 
+>> know if it can be directly applied, as it does some bit 
+>fiddling with 
+>> flow_mask.
+>> 
+>> any help/thoughts would be greatly appreciated
+>
+>I suggest you read a few times through all kernel source files 
+>with "conntrack" in the name.
+>
+>I did, and it did me a world of good.
+>
+>jhash is probably the hash function you want. Look out for it, 
+>and happy reading.
+>
+>Sam
+>
