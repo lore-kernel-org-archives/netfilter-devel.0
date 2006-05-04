@@ -1,15 +1,15 @@
-From: "David S. Miller" <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/06]: Netfilter fixes for 2.6.17
-Date: Wed, 03 May 2006 23:21:00 -0700 (PDT)
-Message-ID: <20060503.232100.03285843.davem@davemloft.net>
-References: <20060502204803.7610.72174.sendpatchset@localhost.localdomain>
+From: Holger Eitzenberger <holger@my-eitzenberger.de>
+Subject: Re: conntrack sync via userspace ?
+Date: Thu, 4 May 2006 17:34:59 +0200
+Message-ID: <20060504153458.GA22463@kruemel.my-eitzenberger.de>
+References: <1146691342.2360.51.camel@morannon.athome>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <20060502204803.7610.72174.sendpatchset@localhost.localdomain>
+To: Arne Bernin <arne@alamut.de>
+Content-Disposition: inline
+In-Reply-To: <1146691342.2360.51.camel@morannon.athome>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,24 +21,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue,  2 May 2006 22:48:03 +0200 (MEST)
+On Wed, May 03, 2006 at 11:22:22PM +0200, Arne Bernin wrote:
 
-> following are my netfilter patches for 2.6.17, which fix a couple of bad bugs:
-> 
-> - The SCTP conntrack loop noticed by Ingo
-> - The unchecked __copy_from/to in the compat code noticed by Linus
-> - Two H.323 bugs found by the PROTOS c07-h2250v4 testsuite
-> 
-> I'll push the SCTP patch to -stable as well. There is still at least one open
-> bug in the H.323 helper, but I can't really keep up with the pace new bugs are
-> discovered at currently.
-> 
-> Please apply.
+> after playing a bit with ct_sync and finding out that it does not seems
+> being actively developed i wonder whether it would be possible to do the
+> syncing of conntrack tables over different machines using a user space
+> daemon and libnfnetfilter_conntrack ? Is this a possible way , or a no
+> go because of limitations in the conntrack lib , speed or something else
+> i am not aware of ?
+> I thought before digging to deep into it right now, i just ask the
+> people who should know, sorry about my lazyness. ;-)
 
-Thanks a lot for all of your great work killing off these
-bugs.
+I am currently developing a version based upon libnfnetlink_conntrack,
+which works great up until now.  My current version was planned as a
+proof-of-concept initially but matured sinced I realized that this
+will be working solution.  Of cource there are some performance
+tradeoffs you have to make but this should be ok for most 
+situations.
 
-All applied, excep the SCTP loop since Linus put it in already.
+It uses libevent for IO multilpexing, which uses epoll() internally
+on Linux.  But even select() wouldnt' be a problem because if usually
+uses few file descriptors.
 
-Thanks again!
+Open points are still overall configurability through a config file.
+
+I will post an initial version in a few weeks.
+
+/holger
+
+-- 
+ICQ 2882018 ++ Jabber: octavian@amessage.de ++
