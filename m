@@ -1,11 +1,12 @@
-From: "Samuel Jean" <jix@bugmachine.ca>
-Subject: Maintaining the geoip patchlet
-Date: Fri, 5 May 2006 11:35:37 -0000
-Message-ID: <twig.1146828937.80906@bugmachine.ca>
-Reply-To: jix@bugmachine.ca
-Cc: NewsLetters@NickAndBarb.net
+From: Cody Tubbs <tubbs@wispdirect.com>
+Subject: ipv4options broken...
+Date: Fri, 05 May 2006 10:58:25 -0700
+Message-ID: <1146851905.4558.16.camel@mbox>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,18 +18,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+I've pom'd the latest version, and have iptables 1.3.5 installed on FC4.
 
-I've been quite busy past months and couldn't track the geoip status in
-current Linux kernels. I've dropped registration of cookinglinux.org and
-this is why our email addresses don't work anymore. Sorry for that.
+Everything works fine except --lsrr and --ssrr.  I'm using "hping --lsrr
+<someip> <targetip>" (and --ssrr respectively) to test the ip options.
+tcpdump/ethereal show the flags being set correctly, yet ipv4options is
+lacking the capability to catch them.
 
-Nicolas and I will continue to maintain the geoip match. I am gonna setup
-the repository tonight, after work.
+The rest of the ipv4options functionality work fine.
 
-I think this apt-like pom is a great idea.
+snippet:
 
-Keep up the good work.
+$IPTABLES -N LOOSE_SR_MATCH
+$IPTABLES -A LOOSE_SR_MATCH -j LOG --log-level info --log-prefix "LSRR:
+" --log-tcp-sequence --log-tcp-options --log-ip-options
+$IPTABLES -A LOOSE_SR_MATCH -j DROP
 
-Cheers,
---peejix
+$IPTABLES -N STRICT_SR_MATCH
+$IPTABLES -A STRICT_SR_MATCH -j LOG --log-level info --log-prefix "SSRR:
+" --log-tcp-sequence --log-tcp-options --log-ip-options
+$IPTABLES -A STRICT_SR_MATCH -j DROP
+
+$IPTABLES -A INPUT -m ipv4options --lsrr -j LOOSE_SR_MATCH
+$IPTABLES -A INPUT -m ipv4options --ssrr -j STRICT_SR_MATCH
+
+
+(I've tried specifying "-p ip" and -i accordingly as well, all with the
+same results).  Again, the rest of the flags work fine, ie: --rr (record
+route) catches properly when using "hping -G <targetip>"
+
+
+-Cody Tubbs
