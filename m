@@ -1,12 +1,13 @@
-From: Cody Tubbs <tubbs@wispdirect.com>
-Subject: ipv4options broken...
-Date: Fri, 05 May 2006 10:58:25 -0700
-Message-ID: <1146851905.4558.16.camel@mbox>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: "Samuel Jean" <jix@bugmachine.ca>
+Subject: Re: Maintaining the geoip patchlet
+Date: Sat, 6 May 2006 12:54:42 -0000
+Message-ID: <twig.1146920082.27201@bugmachine.ca>
+References: <twig.1146828937.80906@bugmachine.ca>
+Reply-To: jix@bugmachine.ca
+Cc: kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <twig.1146828937.80906@bugmachine.ca>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,34 +19,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I've pom'd the latest version, and have iptables 1.3.5 installed on FC4.
+On Fri, May 5, 2006, Samuel Jean <jix@bugmachine.ca> said:
 
-Everything works fine except --lsrr and --ssrr.  I'm using "hping --lsrr
-<someip> <targetip>" (and --ssrr respectively) to test the ip options.
-tcpdump/ethereal show the flags being set correctly, yet ipv4options is
-lacking the capability to catch them.
+> Nicolas and I will continue to maintain the geoip match. I am gonna setup
+> the repository tonight, after work.
 
-The rest of the ipv4options functionality work fine.
+Patrick --
 
-snippet:
+Here's the URL where my index file waits happily.
 
-$IPTABLES -N LOOSE_SR_MATCH
-$IPTABLES -A LOOSE_SR_MATCH -j LOG --log-level info --log-prefix "LSRR:
-" --log-tcp-sequence --log-tcp-options --log-ip-options
-$IPTABLES -A LOOSE_SR_MATCH -j DROP
+http://mynodes.net/pub/linux/netfilter/patchlets/
 
-$IPTABLES -N STRICT_SR_MATCH
-$IPTABLES -A STRICT_SR_MATCH -j LOG --log-level info --log-prefix "SSRR:
-" --log-tcp-sequence --log-tcp-options --log-ip-options
-$IPTABLES -A STRICT_SR_MATCH -j DROP
-
-$IPTABLES -A INPUT -m ipv4options --lsrr -j LOOSE_SR_MATCH
-$IPTABLES -A INPUT -m ipv4options --ssrr -j STRICT_SR_MATCH
+This, in fact, redirect to my people.netfilter.org. Please let curl allow
+redirection. 
 
 
-(I've tried specifying "-p ip" and -i accordingly as well, all with the
-same results).  Again, the rest of the flags work fine, ie: --rr (record
-route) catches properly when using "hping -G <targetip>"
-
-
--Cody Tubbs
+Cheers,
+--peejix
