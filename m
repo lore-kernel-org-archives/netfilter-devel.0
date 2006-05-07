@@ -1,186 +1,71 @@
-From: James Morris <jmorris@namei.org>
-Subject: [RFC][SECMARK userland 03/03] Add libip6t_SECMARK (fwd)
-Date: Sun, 7 May 2006 13:47:43 -0400 (EDT)
-Message-ID: <Pine.LNX.4.64.0605071347380.9423@d.namei>
+From: Grant Coady <gcoady.lk@gmail.com>
+Subject: Re: [PATCH] fix mem-leak in netfilter
+Date: Mon, 08 May 2006 08:42:53 +1000
+Message-ID: <egts52hm2epfu4g1b9kqkm4s9cdiv3tvt9@4ax.com>
+References: <200605070426.10405.jesper.juhl@gmail.com> <20060507093640.GF11191@w.ods.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Jesper Juhl <jesper.juhl@gmail.com>, linux-kernel@vger.kernel.org,
+	Stephen Frost <sfrost@snowman.net>, laforge@netfilter.org,
+	netfilter-devel@lists.netfilter.org, marcelo@kvack.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932102AbWEGWnA@vger.kernel.org>
+To: Willy Tarreau <willy@w.ods.org>
+In-Reply-To: <20060507093640.GF11191@w.ods.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
----------- Forwarded message ----------
-Date: Sun, 7 May 2006 11:44:49 -0400 (EDT)
-From: James Morris <jmorris@namei.org>
-To: selinux@tycho.nsa.gov
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.samba.org,
-    Stephen Smalley <sds@tycho.nsa.gov>, Daniel J Walsh <dwalsh@redhat.com>
-Subject: [RFC][SECMARK userland 03/03] Add libip6t_SECMARK
+On Sun, 7 May 2006 11:36:40 +0200, Willy Tarreau <willy@w.ods.org> wrote:
 
-This patch adds the shared library module for the SECMARK target (IPv6).
+>On Sun, May 07, 2006 at 04:26:10AM +0200, Jesper Juhl wrote:
+>> The Coverity checker spotted that we may leak 'hold' in 
+>> net/ipv4/netfilter/ipt_recent.c::checkentry() when the following
+>> is true : 
+>>   if (!curr_table->status_proc) {
+>>     ...
+>>     if(!curr_table) {
+>>     ...
+>>       return 0;  <-- here we leak.
+>> Simply moving an existing vfree(hold); up a bit avoids the possible leak.
+>> 
+>> 
+>> (please keep me on CC when replying since I'm not subscribed 
+>>  to netfilter-devel)
+>> 
+>> 
+>> Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+>> ---
+>> 
+>>  net/ipv4/netfilter/ipt_recent.c |    2 +-
+>>  1 files changed, 1 insertion(+), 1 deletion(-)
+>> 
+>> --- linux-2.6.17-rc3-git12-orig/net/ipv4/netfilter/ipt_recent.c	2006-05-07 03:25:38.000000000 +0200
+>> +++ linux-2.6.17-rc3-git12/net/ipv4/netfilter/ipt_recent.c	2006-05-07 04:16:26.000000000 +0200
+>> @@ -821,6 +821,7 @@ checkentry(const char *tablename,
+>>  	/* Create our proc 'status' entry. */
+>>  	curr_table->status_proc = create_proc_entry(curr_table->name, ip_list_perms, proc_net_ipt_recent);
+>>  	if (!curr_table->status_proc) {
+>> +		vfree(hold);
+>>  		printk(KERN_INFO RECENT_NAME ": checkentry: unable to allocate for /proc entry.\n");
+>>  		/* Destroy the created table */
+>>  		spin_lock_bh(&recent_lock);
+>> @@ -845,7 +846,6 @@ checkentry(const char *tablename,
+>>  		spin_unlock_bh(&recent_lock);
+>>  		vfree(curr_table->time_info);
+>>  		vfree(curr_table->hash_table);
+>> -		vfree(hold);
+>>  		vfree(curr_table->table);
+>>  		vfree(curr_table);
+>>  		return 0;
+>
+>Seems valid for 2.4.32 too. I'm queuing it up for Marcelo.
 
+When CONFIG_PROC_FS is not set the function looks like it may exit 
+without doing the vfree()s for stuff allocated above the #ifdef 
+CONFIG_PROC_FS.  
 
-Signed-off-by: James Morris <jmorris@namei.org>
+I wonder if the larger view of the function is also correct?  The 
+coding style is difficult to work with as my terminal only goes to 
+156 characters wide ;)  
 
----
-
-diff -purN -X dontdiff iptables.p/extensions/libip6t_SECMARK.c iptables.w/extensions/libip6t_SECMARK.c
---- iptables.p/extensions/libip6t_SECMARK.c	1969-12-31 19:00:00.000000000 -0500
-+++ iptables.w/extensions/libip6t_SECMARK.c	2006-04-27 02:31:36.000000000 -0400
-@@ -0,0 +1,125 @@
-+/*
-+ * Shared library add-on to iptables to add SECMARK target support.
-+ *
-+ * Based on the MARK target.
-+ *
-+ * IPv6 version.
-+ *
-+ * Copyright (C) 2006 Red Hat, Inc., James Morris <jmorris@redhat.com>
-+ */
-+#include <stdio.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <getopt.h>
-+#include <ip6tables.h>
-+#include <linux/netfilter/xt_SECMARK.h>
-+
-+#define PFX "SECMARK target: "
-+
-+static void help(void)
-+{
-+	printf(
-+"SECMARK target v%s options:\n"
-+"  --selctx value                     Set the SELinux security context\n"
-+"\n",
-+IPTABLES_VERSION);
-+}
-+
-+static struct option opts[] = {
-+	{ "selctx", 1, 0, '1' },
-+	{ 0 }
-+};
-+
-+/* Initialize the target. */
-+static void init(struct ip6t_entry_target *t, unsigned int *nfcache)
-+{ }
-+
-+/*
-+ * Function which parses command options; returns true if it
-+ * ate an option.
-+ */
-+static int parse(int c, char **argv, int invert, unsigned int *flags,
-+                 const struct ip6t_entry *entry, struct ip6t_entry_target **target)
-+{
-+	struct xt_secmark_target_info *info =
-+		(struct xt_secmark_target_info*)(*target)->data;
-+
-+	switch (c) {
-+	case '1':
-+		if (*flags & SECMARK_MODE_SEL)
-+			exit_error(PARAMETER_PROBLEM, PFX
-+				   "Can't specify --selctx twice");
-+		info->mode = SECMARK_MODE_SEL;
-+
-+		if (strlen(optarg) > SECMARK_SELCTX_MAX-1)
-+			exit_error(PARAMETER_PROBLEM, PFX
-+				   "Maximum length %u exceeded by --selctx"
-+				   " parameter (%zu)",
-+				   SECMARK_SELCTX_MAX-1, strlen(optarg));
-+
-+		strcpy(info->u.sel.selctx, optarg);
-+		*flags |= SECMARK_MODE_SEL;
-+		break;
-+	default:
-+		return 0;
-+	}
-+
-+	return 1;
-+}
-+
-+static void final_check(unsigned int flags)
-+{
-+	if (!flags)
-+		exit_error(PARAMETER_PROBLEM, PFX "parameter required");
-+}
-+
-+static void print_secmark(struct xt_secmark_target_info *info)
-+{
-+	switch (info->mode) {
-+	case SECMARK_MODE_SEL:
-+		printf("selctx %s ", info->u.sel.selctx);\
-+		break;
-+	
-+	default:
-+		exit_error(OTHER_PROBLEM, PFX "invalid mode %hhu\n", info->mode);
-+	}
-+}
-+
-+static void print(const struct ip6t_ip6 *ip,
-+		  const struct ip6t_entry_target *target, int numeric)
-+{
-+	struct xt_secmark_target_info *info =
-+		(struct xt_secmark_target_info*)(target)->data;
-+
-+	printf("SECMARK ");
-+	print_secmark(info);
-+}
-+
-+/* Saves the target info in parsable form to stdout. */
-+static void save(const struct ip6t_ip6 *ip, const struct ip6t_entry_target *target)
-+{
-+	struct xt_secmark_target_info *info =
-+		(struct xt_secmark_target_info*)target->data;
-+
-+	printf("--");
-+	print_secmark(info);
-+}
-+
-+static struct ip6tables_target secmark = {
-+	.name		= "SECMARK",
-+	.version	= IPTABLES_VERSION,
-+	.size		= IP6T_ALIGN(sizeof(struct xt_secmark_target_selinux_info)),
-+	.userspacesize	= IP6T_ALIGN(sizeof(struct xt_secmark_target_selinux_info)),
-+	.help		= &help,
-+	.init		= &init,
-+	.parse		= &parse,
-+	.final_check	= &final_check,
-+	.print		= &print,
-+	.save		= &save,
-+	.extra_opts	= opts
-+};
-+
-+void _init(void)
-+{
-+	register_target6(&secmark);
-+}
-diff -purN -X dontdiff iptables.p/extensions/libip6t_SECMARK.man iptables.w/extensions/libip6t_SECMARK.man
---- iptables.p/extensions/libip6t_SECMARK.man	1969-12-31 19:00:00.000000000 -0500
-+++ iptables.w/extensions/libip6t_SECMARK.man	2006-04-27 02:23:09.000000000 -0400
-@@ -0,0 +1,7 @@
-+This is used to set the security mark value associated with the
-+packet for use by security subsystems such as SELinux.  It is only
-+valid in the
-+.B mangle
-+table.
-+.TP
-+.BI "--selctx " "security_context"
-diff -purN -X dontdiff iptables.p/extensions/Makefile iptables.w/extensions/Makefile
---- iptables.p/extensions/Makefile	2006-04-27 02:22:22.000000000 -0400
-+++ iptables.w/extensions/Makefile	2006-04-27 02:25:34.000000000 -0400
-@@ -10,7 +10,7 @@ PF6_EXT_SLIB:=connmark eui64 hl icmp6 le
- 
- ifeq ($(DO_SELINUX), 1)
- PF_EXT_SE_SLIB:=SECMARK
--PF6_EXT_SE_SLIB:=
-+PF6_EXT_SE_SLIB:=SECMARK
- endif
- 
- # Optionals
+Grant.
