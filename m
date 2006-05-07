@@ -1,7 +1,7 @@
 From: James Morris <jmorris@namei.org>
-Subject: [RFC][SECMARK userland 02/03] Add libipt_SECMARK (fwd)
-Date: Sun, 7 May 2006 13:47:36 -0400 (EDT)
-Message-ID: <Pine.LNX.4.64.0605071347320.9423@d.namei>
+Subject: [RFC][SECMARK userland 03/03] Add libip6t_SECMARK (fwd)
+Date: Sun, 7 May 2006 13:47:43 -0400 (EDT)
+Message-ID: <Pine.LNX.4.64.0605071347380.9423@d.namei>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,33 +18,30 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 ---------- Forwarded message ----------
-Date: Sun, 7 May 2006 11:43:34 -0400 (EDT)
+Date: Sun, 7 May 2006 11:44:49 -0400 (EDT)
 From: James Morris <jmorris@namei.org>
 To: selinux@tycho.nsa.gov
 Cc: netdev@vger.kernel.org, netfilter-devel@lists.samba.org,
     Stephen Smalley <sds@tycho.nsa.gov>, Daniel J Walsh <dwalsh@redhat.com>
-Subject: [RFC][SECMARK userland 02/03] Add libipt_SECMARK
+Subject: [RFC][SECMARK userland 03/03] Add libip6t_SECMARK
 
-This patch adds the shared library module for the SECMARK target (IPv4).
+This patch adds the shared library module for the SECMARK target (IPv6).
 
 
 Signed-off-by: James Morris <jmorris@namei.org>
 
 ---
 
- extensions/Makefile           |    2 
- extensions/libipt_SECMARK.c   |  125 ++++++++++++++++++++++++++++++++++++++++++
- extensions/libipt_SECMARK.man |    7 ++
- 3 files changed, 133 insertions(+), 1 deletion(-)
-
-diff -purN -X dontdiff iptables.p/extensions/libipt_SECMARK.c iptables.w/extensions/libipt_SECMARK.c
---- iptables.p/extensions/libipt_SECMARK.c	1969-12-31 19:00:00.000000000 -0500
-+++ iptables.w/extensions/libipt_SECMARK.c	2006-04-25 20:12:16.000000000 -0400
+diff -purN -X dontdiff iptables.p/extensions/libip6t_SECMARK.c iptables.w/extensions/libip6t_SECMARK.c
+--- iptables.p/extensions/libip6t_SECMARK.c	1969-12-31 19:00:00.000000000 -0500
++++ iptables.w/extensions/libip6t_SECMARK.c	2006-04-27 02:31:36.000000000 -0400
 @@ -0,0 +1,125 @@
 +/*
 + * Shared library add-on to iptables to add SECMARK target support.
 + *
 + * Based on the MARK target.
++ *
++ * IPv6 version.
 + *
 + * Copyright (C) 2006 Red Hat, Inc., James Morris <jmorris@redhat.com>
 + */
@@ -52,7 +49,7 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_SECMARK.c iptables.w/extensi
 +#include <string.h>
 +#include <stdlib.h>
 +#include <getopt.h>
-+#include <iptables.h>
++#include <ip6tables.h>
 +#include <linux/netfilter/xt_SECMARK.h>
 +
 +#define PFX "SECMARK target: "
@@ -72,7 +69,7 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_SECMARK.c iptables.w/extensi
 +};
 +
 +/* Initialize the target. */
-+static void init(struct ipt_entry_target *t, unsigned int *nfcache)
++static void init(struct ip6t_entry_target *t, unsigned int *nfcache)
 +{ }
 +
 +/*
@@ -80,7 +77,7 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_SECMARK.c iptables.w/extensi
 + * ate an option.
 + */
 +static int parse(int c, char **argv, int invert, unsigned int *flags,
-+                 const struct ipt_entry *entry, struct ipt_entry_target **target)
++                 const struct ip6t_entry *entry, struct ip6t_entry_target **target)
 +{
 +	struct xt_secmark_target_info *info =
 +		(struct xt_secmark_target_info*)(*target)->data;
@@ -126,8 +123,8 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_SECMARK.c iptables.w/extensi
 +	}
 +}
 +
-+static void print(const struct ipt_ip *ip,
-+		  const struct ipt_entry_target *target, int numeric)
++static void print(const struct ip6t_ip6 *ip,
++		  const struct ip6t_entry_target *target, int numeric)
 +{
 +	struct xt_secmark_target_info *info =
 +		(struct xt_secmark_target_info*)(target)->data;
@@ -137,7 +134,7 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_SECMARK.c iptables.w/extensi
 +}
 +
 +/* Saves the target info in parsable form to stdout. */
-+static void save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
++static void save(const struct ip6t_ip6 *ip, const struct ip6t_entry_target *target)
 +{
 +	struct xt_secmark_target_info *info =
 +		(struct xt_secmark_target_info*)target->data;
@@ -146,13 +143,11 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_SECMARK.c iptables.w/extensi
 +	print_secmark(info);
 +}
 +
-+static struct iptables_target secmark = {
-+	.next		= NULL,
++static struct ip6tables_target secmark = {
 +	.name		= "SECMARK",
 +	.version	= IPTABLES_VERSION,
-+	.revision	= 0,
-+	.size		= IPT_ALIGN(sizeof(struct xt_secmark_target_selinux_info)),
-+	.userspacesize	= IPT_ALIGN(sizeof(struct xt_secmark_target_selinux_info)),
++	.size		= IP6T_ALIGN(sizeof(struct xt_secmark_target_selinux_info)),
++	.userspacesize	= IP6T_ALIGN(sizeof(struct xt_secmark_target_selinux_info)),
 +	.help		= &help,
 +	.init		= &init,
 +	.parse		= &parse,
@@ -164,11 +159,11 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_SECMARK.c iptables.w/extensi
 +
 +void _init(void)
 +{
-+	register_target(&secmark);
++	register_target6(&secmark);
 +}
-diff -purN -X dontdiff iptables.p/extensions/libipt_SECMARK.man iptables.w/extensions/libipt_SECMARK.man
---- iptables.p/extensions/libipt_SECMARK.man	1969-12-31 19:00:00.000000000 -0500
-+++ iptables.w/extensions/libipt_SECMARK.man	2006-04-25 20:12:16.000000000 -0400
+diff -purN -X dontdiff iptables.p/extensions/libip6t_SECMARK.man iptables.w/extensions/libip6t_SECMARK.man
+--- iptables.p/extensions/libip6t_SECMARK.man	1969-12-31 19:00:00.000000000 -0500
++++ iptables.w/extensions/libip6t_SECMARK.man	2006-04-27 02:23:09.000000000 -0400
 @@ -0,0 +1,7 @@
 +This is used to set the security mark value associated with the
 +packet for use by security subsystems such as SELinux.  It is only
@@ -178,14 +173,14 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_SECMARK.man iptables.w/exten
 +.TP
 +.BI "--selctx " "security_context"
 diff -purN -X dontdiff iptables.p/extensions/Makefile iptables.w/extensions/Makefile
---- iptables.p/extensions/Makefile	2006-04-25 20:12:07.000000000 -0400
-+++ iptables.w/extensions/Makefile	2006-04-25 20:12:35.000000000 -0400
-@@ -9,7 +9,7 @@ PF_EXT_SLIB:=ah addrtype comment connlim
- PF6_EXT_SLIB:=connmark eui64 hl icmp6 length limit mac mark multiport owner physdev policy standard state tcp udp CONNMARK HL LOG NFQUEUE MARK TRACE
+--- iptables.p/extensions/Makefile	2006-04-27 02:22:22.000000000 -0400
++++ iptables.w/extensions/Makefile	2006-04-27 02:25:34.000000000 -0400
+@@ -10,7 +10,7 @@ PF6_EXT_SLIB:=connmark eui64 hl icmp6 le
  
  ifeq ($(DO_SELINUX), 1)
--PF_EXT_SE_SLIB:=
-+PF_EXT_SE_SLIB:=SECMARK
- PF6_EXT_SE_SLIB:=
+ PF_EXT_SE_SLIB:=SECMARK
+-PF6_EXT_SE_SLIB:=
++PF6_EXT_SE_SLIB:=SECMARK
  endif
  
+ # Optionals
