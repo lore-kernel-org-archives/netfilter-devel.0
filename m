@@ -1,19 +1,11 @@
-From: Juergen Kreileder <jk@blackdown.de>
-Subject: Re: [PATCH] fix mem-leak in netfilter
-Date: Mon, 08 May 2006 11:08:41 +0200
-Message-ID: <445F0A99.3050700@blackdown.de>
-References: <20060507093640.GF11191@w.ods.org>	<egts52hm2epfu4g1b9kqkm4s9cdiv3tvt9@4ax.com>	<20060508050748.GA11495@w.ods.org>	<20060507.224339.48487003.davem@davemloft.net>
-	<445F02F1.1090604@ufomechanic.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] ipset-2.2.9 released
+Date: Mon, 8 May 2006 12:17:40 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0605081138230.4039@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: sfrost@snowman.net, gcoady.lk@gmail.com, laforge@netfilter.org,
-	jesper.juhl@gmail.com, netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org, marcelo@kvack.org,
-	"David S. Miller" <davem@davemloft.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <445F02F1.1090604@ufomechanic.net>
+To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,36 +17,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez wrote:
-> David S. Miller wrote:
->> From: Willy Tarreau <willy@w.ods.org>
->> Date: Mon, 8 May 2006 07:07:48 +0200
->>
->>> I wonder how such unmaintainable code has been merged in the first
->>> place. Obviously, Davem has never seen it !
->> Oh I've seen ipt_recent.c, it's one huge pile of trash
->> that needs to be rewritten.  It has all sorts of problems.
->>
->> This is well understood on the netfilter-devel list and
->> I am to understand that someone has taken up the task to
->> finally rewrite the thing.
-> 
-> 
-> Is that Juergen.Kreileder@empolis.com ?
+Hi,
 
-Please use jk@blackdown.de (@empolis.com is just an address at
-a client's site).
+This is a bugfix release. The list of the fixed bugs is
 
-> ...just checking... he seemed to volunteer in December
+ - 'ipset -N' did not generate proper return code
+ - 'limit' module parameter added to the kernel modules of the
+   iphash, ipporthash, nethash and iptree type of sets so that
+   the maximal number of elements can now be limited
+ - zero valued entries (port 0 or IP address 0.0.0.0) were
+   detected as members of the hash/tree kind of sets
+   (reported by Andrew Kraslavsky)
+ - list and save operations used the external identifier
+   of the sets for the bindings instead of the internal one
+   (reported by Amin Azez)
 
-but not for a rewrite.  Anyhow, if somebody is planning to do that
-I'll gladly help.
+If you use hash/iptree type of sets to dynamically protect your network
+via the SET target, I strongly suggest you to upgrade: in the previous
+releases there was no limit on the number of the possible elements in a
+hash/iptree type of set and thus an attacker could exhaust the available
+physical memory in the machine by triggering adding bogus, faked entries.
 
-> last year but Stephen Frost has been taking recent questions.
+Now there is a default of max 65535 elements in the hash/iptree type of
+sets: you can adjust it per settype by setting the 'limit' parameter of
+the appropriate kernel module, e.g:
 
+	# modprobe ip_set_iphash limit=10000
 
-	Juergen
+You can download the new release from http://ipset.netfilter.org or from
+the netfilter svn tree.
 
--- 
-Juergen Kreileder, Blackdown Java-Linux Team
-http://blog.blackdown.de/
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
