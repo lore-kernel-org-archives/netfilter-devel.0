@@ -1,11 +1,10 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset-2.2.9 released
-Date: Mon, 8 May 2006 12:17:40 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0605081138230.4039@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Holger Eitzenberger <heitzenberger@astaro.com>
+Subject: [POM] MMS conntrack/NAT update
+Date: Tue, 09 May 2006 14:20:17 +0200
+Message-ID: <11471772191487-git-send-email-heitzenberger@astaro.com>
+Reply-To: Holger Eitzenberger <heitzenberger@astaro.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,38 +18,15 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
 
-This is a bugfix release. The list of the fixed bugs is
+what follows are two small changes to the MMS conntrack/NAT helper.
 
- - 'ipset -N' did not generate proper return code
- - 'limit' module parameter added to the kernel modules of the
-   iphash, ipporthash, nethash and iptree type of sets so that
-   the maximal number of elements can now be limited
- - zero valued entries (port 0 or IP address 0.0.0.0) were
-   detected as members of the hash/tree kind of sets
-   (reported by Andrew Kraslavsky)
- - list and save operations used the external identifier
-   of the sets for the bindings instead of the internal one
-   (reported by Amin Azez)
+The first patch simply removes trailing whitespace and is therefore
+just janitorial work.
 
-If you use hash/iptree type of sets to dynamically protect your network
-via the SET target, I strongly suggest you to upgrade: in the previous
-releases there was no limit on the number of the possible elements in a
-hash/iptree type of set and thus an attacker could exhaust the available
-physical memory in the machine by triggering adding bogus, faked entries.
+The second patch adapts the helper to make it work with kernel
+version 2.6.15.y.  It seems rather large, but it all boils down to the
+expectation refcounting changes.  The other changes result from the
+fact that I inverted an if-conditional to avoid a rather large if-block.
+Please take a look at the refcounting changes.
 
-Now there is a default of max 65535 elements in the hash/iptree type of
-sets: you can adjust it per settype by setting the 'limit' parameter of
-the appropriate kernel module, e.g:
-
-	# modprobe ip_set_iphash limit=10000
-
-You can download the new release from http://ipset.netfilter.org or from
-the netfilter svn tree.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Please apply, thanks!  /holger
