@@ -1,39 +1,57 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [POM] MMS conntrack/NAT update
-Date: Wed, 10 May 2006 07:49:44 +0200
-Message-ID: <44617EF8.7030906@trash.net>
-References: <11471772191487-git-send-email-heitzenberger@astaro.com>
+Subject: Re: [RFC][SECMARK 03/08] Add xtables SECMARK target
+Date: Wed, 10 May 2006 08:03:31 +0200
+Message-ID: <44618233.5020704@trash.net>
+References: <Pine.LNX.4.64.0605071104590.8588@d.namei> <Pine.LNX.4.64.0605071134250.8588@d.namei>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Holger Eitzenberger <heitzenberger@astaro.com>
-In-Reply-To: <11471772191487-git-send-email-heitzenberger@astaro.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: selinux@tycho.nsa.gov, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org,
+	Stephen Smalley <sds@tycho.nsa.gov>,
+	Daniel J Walsh <dwalsh@redhat.com>
+Return-path: <netdev-owner@vger.kernel.org>
+To: James Morris <jmorris@namei.org>
+In-Reply-To: <Pine.LNX.4.64.0605071134250.8588@d.namei>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Holger Eitzenberger wrote:
-> Hi,
+James Morris wrote:
+> This patch adds a SECMARK target to xtables, allowing
+> the admin to apply security marks to packets via both
+> iptables and ip6tables.
 > 
-> what follows are two small changes to the MMS conntrack/NAT helper.
-> 
-> The first patch simply removes trailing whitespace and is therefore
-> just janitorial work.
-> 
-> The second patch adapts the helper to make it work with kernel
-> version 2.6.15.y.  It seems rather large, but it all boils down to the
-> expectation refcounting changes.  The other changes result from the
-> fact that I inverted an if-conditional to avoid a rather large if-block.
-> Please take a look at the refcounting changes.
+> The target currently handles SELinux security marking,
+> but can be extended for other purposes as needed.
+
+The netfilter parts all look fine too me (just one question,
+see below). Shall I add the userspace parts to SVN or do you
+want to do it yourself?
 
 
-Both look good, thanks Holger.
+> +static int checkentry_selinux(struct xt_secmark_target_info *info)
+> +{
+> +	int err;
+> +	struct xt_secmark_target_selinux_info *sel = &info->u.sel;
+> +
+> +	err = selinux_string_to_sid(sel->selctx, &sel->selsid);
+> +	if (err) {
+> +		if (err == -EINVAL)
+> +			printk(KERN_INFO PFX "invalid SELinux context \'%s\'\n",
+> +			       sel->selctx);
+> +		return 0;
+> +	}
+> +	
+> +	if (!sel->selsid) {
+> +		printk(KERN_INFO PFX "unable to map SELinux context \'%s\'\n",
+> +		       sel->selctx);
+> +		return 0;
+> +	}
+> +
+> +	return 1;
+> +}
+
+I wonder if the result of this check could be invalidated later
+by removal of the selinux context and if it would matter, since
+you reject contexts not known at initialization time.
+
