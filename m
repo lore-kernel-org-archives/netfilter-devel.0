@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Maintaining the geoip patchlet
-Date: Wed, 10 May 2006 06:50:43 +0200
-Message-ID: <44617123.4070001@trash.net>
-References: <twig.1146920082.27201@bugmachine.ca>
+Subject: Re: [POM] MMS conntrack/NAT update
+Date: Wed, 10 May 2006 07:49:44 +0200
+Message-ID: <44617EF8.7030906@trash.net>
+References: <11471772191487-git-send-email-heitzenberger@astaro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: jix@bugmachine.ca
-In-Reply-To: <twig.1146920082.27201@bugmachine.ca>
+To: Holger Eitzenberger <heitzenberger@astaro.com>
+In-Reply-To: <11471772191487-git-send-email-heitzenberger@astaro.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,18 +21,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Samuel Jean wrote:
-> Patrick --
+Holger Eitzenberger wrote:
+> Hi,
 > 
-> Here's the URL where my index file waits happily.
+> what follows are two small changes to the MMS conntrack/NAT helper.
 > 
-> http://mynodes.net/pub/linux/netfilter/patchlets/
+> The first patch simply removes trailing whitespace and is therefore
+> just janitorial work.
 > 
-> This, in fact, redirect to my people.netfilter.org. Please let curl allow
-> redirection. 
+> The second patch adapts the helper to make it work with kernel
+> version 2.6.15.y.  It seems rather large, but it all boils down to the
+> expectation refcounting changes.  The other changes result from the
+> fact that I inverted an if-conditional to avoid a rather large if-block.
+> Please take a look at the refcounting changes.
 
 
-Thanks. I've CCed Krzysztof Oldzki, who also volunteered for geoip,
-since you are the original author I'm going to add your repository.
-I think I'll start pushing out stuff later today. I'm not sure if
-the way curl is currently used supports redirects, we'll see :)
+Both look good, thanks Holger.
