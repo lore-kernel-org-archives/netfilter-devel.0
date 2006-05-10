@@ -1,39 +1,41 @@
-From: James Morris <jmorris@namei.org>
-Subject: Re: [RFC][SECMARK 03/08] Add xtables SECMARK target
-Date: Wed, 10 May 2006 09:30:00 -0400 (EDT)
-Message-ID: <Pine.LNX.4.64.0605100925340.30577@d.namei>
-References: <Pine.LNX.4.64.0605071104590.8588@d.namei>
- <Pine.LNX.4.64.0605071134250.8588@d.namei> <44618233.5020704@trash.net>
+From: Chris Caputo <ccaputo@alt.net>
+Subject: possible problem with TSO and ip_queue
+Date: Wed, 10 May 2006 18:44:30 +0000 (GMT)
+Message-ID: <Pine.LNX.4.64.0605101815430.16614@nacho.alt.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: selinux@tycho.nsa.gov, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org,
-	Stephen Smalley <sds@tycho.nsa.gov>,
-	Daniel J Walsh <dwalsh@redhat.com>
+Cc: Paul Jakma <paul@clubi.ie>
 Return-path: <netdev-owner@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44618233.5020704@trash.net>
+To: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 10 May 2006, Patrick McHardy wrote:
+Environment is 2.6.16.9 with e1000 NICs.
 
-> The netfilter parts all look fine too me (just one question,
-> see below). Shall I add the userspace parts to SVN or do you
-> want to do it yourself?
+Paul and I (as part of the Quagga project) are working on a user mode 
+method for doing BGP MD5 checksums using ip_queue.  All is working except 
+when TSO is enabled I am seeing some problems.
 
-Might be better if you do it, although I'm still looking into one issue at 
-this stage.
+It appears that when TSO is enabled, ip_queue can be used to manipulate 
+packets that have a size higher than the particular MSS (and MTU) for a 
+TCP stream.
 
-> I wonder if the result of this check could be invalidated later
-> by removal of the selinux context and if it would matter, since
-> you reject contexts not known at initialization time.
+This results in a larger than MSS packet going out to the NIC with a TCP 
+MD5 checksum, getting split by the NIC to match the MTU of the LAN, and 
+then being received as multiple packets with incorrect MD5 checksums.
 
-If the context is removed later by a change to SELinux policy, the kernel 
-will remap them to "unlabeled_t", which is how packets would then be 
-labeled by the rule.
+Then a retransmit with a smaller/correct MSS happens and the packets are 
+received with valid MD5 checksums.
 
+So in effect, the data eventually makes it across the link, but it is sent 
+twice, once with invalid checksums and once with valid checksums, and 
+throughput is slow.
 
-- James 
--- 
-James Morris <jmorris@namei.org>
+When TSO is disabled, things happen as they should.
+
+Does this sound like a bug or by design?
+
+Does it make sense that ip_queue mangled packets be subjected to TSO, 
+given that the TCP header can be messed with by the user mode code?
+
+Chris
