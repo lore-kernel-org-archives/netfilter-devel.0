@@ -1,43 +1,39 @@
-From: "=?ISO-8859-1?Q?S=E9bastien_LAVEZE?=" <slaveze@gmail.com>
-Subject: Re: Libnetfilter_conntrack problems
-Date: Wed, 10 May 2006 15:00:20 +0200
-Message-ID: <ca021ab30605100600k5bfbe4faob771b62d50e35575@mail.gmail.com>
-References: <ca021ab30604270455q5cf093c9s990558209bca3e1d@mail.gmail.com>
-	<20060501175353.GD5267@rama>
-	<ca021ab30605030249s62ab1924uf9b1be924bd2d28e@mail.gmail.com>
-	<20060503111549.GO16562@sunbeam.de.gnumonks.org>
-	<ca021ab30605090806l791e6f3dl7354bd789df209ee@mail.gmail.com>
-	<4460B14E.90506@eurodev.net>
-	<ca021ab30605100118u16675c7au933a464ebe64d705@mail.gmail.com>
+From: James Morris <jmorris@namei.org>
+Subject: Re: [RFC][SECMARK 03/08] Add xtables SECMARK target
+Date: Wed, 10 May 2006 09:30:00 -0400 (EDT)
+Message-ID: <Pine.LNX.4.64.0605100925340.30577@d.namei>
+References: <Pine.LNX.4.64.0605071104590.8588@d.namei>
+ <Pine.LNX.4.64.0605071134250.8588@d.namei> <44618233.5020704@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Pablo Neira Ayuso" <pablo@eurodev.net>
-In-Reply-To: <ca021ab30605100118u16675c7au933a464ebe64d705@mail.gmail.com>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: selinux@tycho.nsa.gov, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org,
+	Stephen Smalley <sds@tycho.nsa.gov>,
+	Daniel J Walsh <dwalsh@redhat.com>
+Return-path: <netdev-owner@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <44618233.5020704@trash.net>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I guess the problem is having two event handles on two different
-processes and this might cause some strange behaviour. (I also have
-destroy events that come 5 mn after the expiration of the TIME_WAIT
-timer...)
-Has someone ever tried that ??
-Maybe it should be safer to have only one process listening to ALL
-events and then to dispatch them..
-Is there a way to make the difference between UPDATE and DESTROY
-events with a single callback listening to ALL different ?? (type
-field maybe ?)
+On Wed, 10 May 2006, Patrick McHardy wrote:
 
-Thanks
-Sebastian
+> The netfilter parts all look fine too me (just one question,
+> see below). Shall I add the userspace parts to SVN or do you
+> want to do it yourself?
+
+Might be better if you do it, although I'm still looking into one issue at 
+this stage.
+
+> I wonder if the result of this check could be invalidated later
+> by removal of the selinux context and if it would matter, since
+> you reject contexts not known at initialization time.
+
+If the context is removed later by a change to SELinux policy, the kernel 
+will remap them to "unlabeled_t", which is how packets would then be 
+labeled by the rule.
+
+
+- James 
+-- 
+James Morris <jmorris@namei.org>
