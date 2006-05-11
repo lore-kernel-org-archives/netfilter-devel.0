@@ -1,16 +1,17 @@
-From: Holger Eitzenberger <heitzenberger@astaro.com>
+From: Philip Craig <philipc@snapgear.com>
 Subject: Re: [RFC] [PATCH] clean up nf_log API
-Date: Thu, 11 May 2006 10:54:54 +0200
-Message-ID: <4462FBDE.20609@astaro.com>
-References: <20060510191034.GA29531@sunbeam.de.gnumonks.org>
+Date: Thu, 11 May 2006 18:58:42 +1000
+Message-ID: <4462FCC2.90205@snapgear.com>
+References: <20060510191034.GA29531@sunbeam.de.gnumonks.org>	<4462E031.4090206@trash.net>
+	<20060511082555.GB10324@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Harald Welte <laforge@netfilter.org>
-In-Reply-To: <20060510191034.GA29531@sunbeam.de.gnumonks.org>
+In-Reply-To: <20060511082555.GB10324@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,25 +23,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Harald Welte wrote:
+On 05/11/2006 06:25 PM, Harald Welte wrote:
+> I agree, I prefer automatic fallback while giving the user the ability
+> to unload.  However, if people automatically unload 'unused' modules,
+> then there might be a problem (however, for both ULOG and nfnetlink_log,
+> userspace listeners would increment the refcount, I think).
 
-> b) reference counting.  We could actually get_module / put_module the
->    module that implements a specific backend rather than using our own
->    use counter.
+What constitutes in use?  If a backend is in use whenever it is
+the highest priority backend, then blocking unloading would mean
+nfnetlink_log can never be unloaded.  Letting the user choose the
+highest priority backend would solve that.  In which case I think
+blocking unloading is desirable, we shouldn't unload the backend
+the user has chosen.
 
-Yes, I saw this during nfnetlink_log evaluation.  It is kind of 
-confusing if the module refcount stays zero all the time.
+And I assume that log rules can also specify a backend? (eg the
+LOG and ULOG rules always will)  That should probably block
+unloading too.
 
-/holger
+> Also, there is another unresolved problem:  What if we actually have
+> e.g. nfnetlink_log loaded, but it is unable to send a specific packet to
+> userspace because there is no listener for this Address family or log
+> group?   Should we then also fall back on some other backend?
 
-
--- 
-Holger Eitzenberger <heitzenberger@astaro.com> | Kernel Developer
-Astaro AG | www.astaro.com | Phone +49-721-25516-246 | Fax -200
-
-Astaro Security Linux
-- PC Magazine Best of the Year 2004/2005
-- CRN Best of the Year 2005
-- SC Magazine "Best Buy" & 5 star rating - October 2005, Best of the 
-Year 2005
-- Internet Professionell "Empfehlung der Redaktion" - November 2005
+Just doing a printk to notify of the error is enough?
+We probably should be doing a printk anyway if it is
+a backend the user has chosen explicitly.
