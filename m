@@ -1,17 +1,20 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Maintaining the geoip patchlet
-Date: Thu, 11 May 2006 08:58:49 +0200
-Message-ID: <4462E0A9.30703@trash.net>
-References: <twig.1146920082.27201@bugmachine.ca> <44617123.4070001@trash.net>
-	<Pine.LNX.4.64.0605110102160.9415@bizon.gios.gov.pl>
+Subject: Re: RFC: NAT configuration over ctnetlink
+Date: Thu, 11 May 2006 09:05:53 +0200
+Message-ID: <4462E251.40908@trash.net>
+References: <4451BA40.4050207@trash.net> <445388B9.2010308@netfilter.org>
+	<4457677D.7060607@trash.net> <44578E0C.5070705@netfilter.org>
+	<4457926D.5010209@trash.net> <4457EBF9.3080606@netfilter.org>
+	<4458B2BB.8000407@trash.net>
+	<20060510191646.GB29531@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, jix@bugmachine.ca,
-	netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0605110102160.9415@bizon.gios.gov.pl>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20060510191646.GB29531@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,17 +26,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
->> Thanks. I've CCed Krzysztof Oldzki, who also volunteered for geoip,
->> since you are the original author I'm going to add your repository.
->> I think I'll start pushing out stuff later today. I'm not sure if
->> the way curl is currently used supports redirects, we'll see :)
+Harald Welte wrote:
+> On Wed, May 03, 2006 at 03:40:11PM +0200, Patrick McHardy wrote:
 > 
 > 
-> Oh, OK :) Anything left for me? ;) If so I would like to request a
-> people.netfilter.org account if that is possible as I cannot provide
-> reliable and fast enough public ftp server myself.
+>>Another item I would like to bring up for discussion is whether we
+>>want to continue with (some) of these libraries at all. For a small
+>>pet-project of mine I've been working a bit on Thomas Graf's libnl,
+>>which provides a very nice netlink infrastructure, support for
+>>basically all kernel netlink interfaces, nice object representation
+>>of the individual items, cache management for replication of kernel
+>>databases, and quite a few things more. Besides lots of nice
+>>infrastructure, one main advantage of using libnl would be that
+>>there is a single library which can be used for communication with
+>>any kernel subsystem using netlink in a uniform way.
+> 
+> 
+> well, certainly that work is interesting.  However, I don't really see
+> how this fits into the picture.  First of all, nfnetlink is different in
+> that it has its peculiar byteorder.
 
 
-I still have you on my list for TARPIT, connlimit, ipp2p and time.
-Harald takes care of people.netfilter.org accounts, I've CCed him.
+Unfortunately that is true, but it shouldn't be that hard to adapt
+libnl. But you're certainly right that this needs to be looked into
+before reasonably continuing this discussion.
+
+
+  Also, we specifically divided the
+> libraries into separate packages so they can be updated independently.
+> It is unlikely that conntrack bugfixes affect logging and vice versa.
+
+
+I don't see that as a problem, what does it matter whether I need
+to update one library dealing with logging or another library dealing
+with everything .. given that it is a pure bugfix update. Using that
+library would IMO not only give us lots of nice features (at least
+parts of which we would need to duplicate otherwise), but also benefit
+users by providing uniform access to the kernel.
