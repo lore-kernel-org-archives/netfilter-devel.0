@@ -1,18 +1,17 @@
-From: Harald Welte <laforge@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [RFC] [PATCH] clean up nf_log API
-Date: Thu, 11 May 2006 10:39:25 +0200
-Message-ID: <20060511083925.GD10324@sunbeam.de.gnumonks.org>
+Date: Thu, 11 May 2006 10:39:41 +0200
+Message-ID: <4462F84D.5000100@trash.net>
 References: <20060510191034.GA29531@sunbeam.de.gnumonks.org>
-	<4462CD64.1060507@net.in.tum.de>
+	<4462E031.4090206@trash.net>
+	<20060511082555.GB10324@sunbeam.de.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="11Y7aswkeuHtSBEs"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Gregor Maier <gregor@net.in.tum.de>
-Content-Disposition: inline
-In-Reply-To: <4462CD64.1060507@net.in.tum.de>
+To: Harald Welte <laforge@netfilter.org>
+In-Reply-To: <20060511082555.GB10324@sunbeam.de.gnumonks.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,106 +23,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Harald Welte wrote:
+> On Thu, May 11, 2006 at 08:56:49AM +0200, Patrick McHardy wrote:
+> 
+> 
+>>That all sounds very reasonable. How is the priority of a backend
+>>determined?
+> 
+> 
+> statically.  nfnetlink_log overrules ULOG, which overrules LOG.
+> 
+> We could make that configurable, but I think that's too much
+> flexibility.  If a user _wants_ a specific backend, he can chose it. if
+> not, we'll fallback on something.
 
---11Y7aswkeuHtSBEs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, May 11, 2006 at 05:36:36PM +1200, Gregor Maier wrote:
-> Hi,
->=20
-> I wrote a patch about 2 month ago, that does something similiar.
+I'm not sure about this. I assume a user would choose the backend
+by specifying extra arguments to the NFLOG target, but that isn't
+possible for internal logging.
 
-mh, I must have missed that, sorry.
+>>>b) reference counting.  We could actually get_module / put_module the
+>>>   module that implements a specific backend rather than using our own
+>>>   use counter.
+>>
+>>I guess it depends on whether we want to block unloading while it is
+>>in use or do automatic fallback. I tend to prefer the later.
+> 
+> 
+> I agree, I prefer automatic fallback while giving the user the ability
+> to unload.  However, if people automatically unload 'unused' modules,
+> then there might be a problem (however, for both ULOG and nfnetlink_log,
+> userspace listeners would increment the refcount, I think).
 
-> Maybe some of it is usefull. If you are interested I would venture to
-> update the patch.
 
-I think we should merge them in some way.
+Do people still do that? I think distributions stopped the
+"rmmod -something" triggered by cron a long time ago.
+Anyway, netlink listeners will keep the module pinned.
 
-> The patch uses only a modified version of the normal LOG target, but I
-> wanted to change this to a NF_LOG target anyway.
 
-Ok, a new LOG target would be fine, yes.
+> Also, there is another unresolved problem:  What if we actually have
+> e.g. nfnetlink_log loaded, but it is unable to send a specific packet to
+> userspace because there is no listener for this Address family or log
+> group?   Should we then also fall back on some other backend?
+> 
+> At the moment we only fall back if a backend is unbound, but not if it
+> e.g. returns an error code because it was unable to log a specific
+> packet.
 
-I now actually like the idea that the old LOG target and old ULOG target
-just continue to do what the used to do.=20
 
-Only NFLOG supersedes all of them, and allows to access the full
-flexibility of all backends.
+If the user explicitly specifies the backend we shouldn't fall back.
+Otherwise I'm not sure .. it probably makes sense as long as we don't
+permanently disable the higher priority backend.
 
-> * Everything uses nf_log.c as logging API (excpect the obsolete ULOG targ=
-ets)
-
-as indicated, maybe we should modify LOG back to the old syslog-only
-behaviour, too.
-
-> * Loggers in nf_log.c are stackable. More than one logger can be register=
-ed
->     per PF
-
-I don't like that idea, since it is overkill from my point of view.  If
-somebody wants to log a packet twice, he can have multiple rules in the
-ruleset for doing so.
-
-> * nf_loginfo struct has been changed. Instead of the type field and the
->     union there is a "backends" field now that contains a bitmask specifi=
-ng
->     which backends should process/log this packet.=20
-
-bitmask is only required if we go for multiple backends.
-
-> * ipt_LOGc and ip6t_LOG.c have been splitted:=20
->     * xt_LOG.c  now contains the targets. The targets
->         always use nf_log for logging. These should be the only
->         logging targets. They take care of setting up nf_loginfo for
->         logging to syslog and/or to other backends
->     * ip_log_syslog.c and ip6_log_syslog.c are new and contain the
->         syslog log backends. When these modules are loaded, the syslog
->         backend is registered with nf_log
-
-that makes sense to a certain degree.  However, if we say that LOG
-should be just like in old times, and we have a new NFLOG target, then
-that change makes a little bit less sense.  Still I like it because it's
-clean.
-
-However, we need to make sure that module autoloading works, e.g. if
-somebody uses your xt_LOG (or the 'LOG as in old times' target), then
-the ip*_log_syslog.ko backend would have to be loaded on demand.  Also,
-I'd prefer the names to indicate that they're netfilter related.
-
-> POTENTIAL PROBLEMS / ALTERNATIVE SOLUTION
-> * ipt_log_info and ip6t_log_info have been replaced by xt_log_info (which
->     has changed in size). This means iptables must be recompiled and older
->     iptables versions won't work with these changes.=20
-
-this is not acceptable.
-
-I'll modify my patch and merge the changes of your patch that I like and
-produce a resulting patchset later today.
-
-Thansk!
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---11Y7aswkeuHtSBEs
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQFEYvg9XaXGVTD0i/8RAj6lAJ0Z93DnZ6SXo1PBP8Zv6i+vxxI2sQCgrKe2
-TmkuELY/79K+5SpkjMSdt+4=
-=zqmu
------END PGP SIGNATURE-----
-
---11Y7aswkeuHtSBEs--
+BTW, I have a patch queued for 2.6.18 that makes the logging functions
+return a status. I guess your patch already includes that, shall
+I drop my patch?
