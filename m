@@ -1,15 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Update: Patch-o-matic cleanup
-Date: Fri, 12 May 2006 07:55:35 +0200
-Message-ID: <44642357.3000308@trash.net>
-References: <443165AA.4030509@trash.net> <4433CA75.9040607@trash.net>
+From: Philip Craig <philipc@snapgear.com>
+Subject: [PATCH] conntrack: Fix option parsing for ARM
+Date: Fri, 12 May 2006 17:11:27 +1000
+Message-ID: <4464351F.6000402@snapgear.com>
+References: <ca021ab30604270455q5cf093c9s990558209bca3e1d@mail.gmail.com>	<20060501175353.GD5267@rama>	<ca021ab30605030249s62ab1924uf9b1be924bd2d28e@mail.gmail.com>	<20060503111549.GO16562@sunbeam.de.gnumonks.org>	<ca021ab30605090806l791e6f3dl7354bd789df209ee@mail.gmail.com>	<4460B14E.90506@eurodev.net>
+	<ca021ab30605100118u16675c7au933a464ebe64d705@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Grzegorz@Janoszka.pl
+Content-Type: multipart/mixed; boundary="------------070100000604090707080602"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <4433CA75.9040607@trash.net>
+To: =?ISO-8859-1?Q?S=E9bastien_LAVEZE?= <slaveze@gmail.com>,
+	Pablo Neira Ayuso <pablo@eurodev.net>
+In-Reply-To: <ca021ab30605100118u16675c7au933a464ebe64d705@mail.gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,58 +22,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> This is the full list of patches to be removed. Instructions how to set
-> up a pomng repository are at the end of this mail, I'll commit the code
-> soon.
-> 
-> - ACCOUNT
-> - IPMARK
-> - NETLINK
-> - NETMAP
-> - TARPIT
-> - TCPLAG
-> - TRACE
-> - XOR
-> - account
-> - comment
-> - connlimit
-> - connrate
-> - conntrack_locking
-> - cuseeme-nat
-> - dropped-table
-> - expire
-> - fuzzy
-> - geoip
-> - goto
-> - ip_queue_vwmark
-> - ipp2p
-> - mport
-> - nat-reservations
-> - netfilter-docbook
-> - osf
-> - owner-socketlookup
-> - pool
-> - pptp-conntrack-nat
-> - psd
-> - time
-> - tproxy
-> 
-> The patches will be removed in 30 days, authors or other people that
-> want to maintain them in an external repository are welcome to send
-> the URL to be included in the distrubuted sources.list.
+This is a multi-part message in MIME format.
+--------------070100000604090707080602
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-I've now removed all patches that didn't find a new maintainer or
-which already have an external repository. I'll keep the ones where
-people are still setting up the repository for a couple more days,
-these are:
+On 05/10/2006 06:18 PM, S=E9bastien LAVEZE wrote:
+> I have problem using the conntrack utility...
+> It always display the help message and i get the message
+> conntrack v1.00beta2: Missing arguments...
 
-IPMARK                  Grzegorz Janoszka <Grzegorz@Janoszka.pl>
-TARPIT                  Krzysztof Oldzki <olenf@ans.pl>
-connlimit               Krzysztof Oldzki <olenf@ans.pl>
-ipp2p                   Krzysztof Oldzki <olenf@ans.pl>
-time                    Krzysztof Oldzki <olenf@ans.pl>
+The result of getopt_long() was assigned to a char,
+which defaults to unsigned on ARM, so the comparison
+against -1 always failed.
 
-Please send me the URLs of the repositories when they are up. Anyone
-wanting to take care of an already removed patchlet is of course also
-invited to send me a URL.
+--------------070100000604090707080602
+Content-Type: text/plain;
+ name="conntrack-getopt.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="conntrack-getopt.patch"
+
+Index: conntrack/src/conntrack.c
+===================================================================
+--- conntrack/src/conntrack.c	(revision 6601)
++++ conntrack/src/conntrack.c	(working copy)
+@@ -602,7 +602,7 @@
+ 
+ int main(int argc, char *argv[])
+ {
+-	char c;
++	int c;
+ 	unsigned int command = 0, options = 0;
+ 	unsigned int type = 0, event_mask = 0;
+ 	unsigned int l3flags = 0, l4flags = 0, metaflags = 0;
+
+--------------070100000604090707080602--
