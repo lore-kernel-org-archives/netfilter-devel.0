@@ -1,90 +1,53 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Update: Patch-o-matic cleanup
-Date: Fri, 12 May 2006 12:26:57 +0200
-Message-ID: <446462F1.9030403@trash.net>
-References: <443165AA.4030509@trash.net> <4433CA75.9040607@trash.net>
-	<44642357.3000308@trash.net> <446460C4.5050806@gmx.net>
+From: "Jesper Juhl" <jesper.juhl@gmail.com>
+Subject: Re: [PATCH] fix mem-leak in netfilter
+Date: Fri, 12 May 2006 13:09:45 +0200
+Message-ID: <9a8748490605120409x3851ca4fn14fc9c52500701e4@mail.gmail.com>
+References: <20060507093640.GF11191@w.ods.org>
+	 <egts52hm2epfu4g1b9kqkm4s9cdiv3tvt9@4ax.com>
+	 <20060508050748.GA11495@w.ods.org>
+	 <20060507.224339.48487003.davem@davemloft.net>
+	 <44643BFD.3040708@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
-In-Reply-To: <446460C4.5050806@gmx.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=US-ASCII;
+	format=flowed
+Content-Transfer-Encoding: 7BIT
+Cc: "David S. Miller" <davem@davemloft.net>, willy@w.ods.org,
+	sfrost@snowman.net, gcoady.lk@gmail.com, laforge@netfilter.org,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	marcelo@kvack.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751208AbWELLLF@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>
+In-Reply-To: <44643BFD.3040708@trash.net>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Carl-Daniel Hailfinger wrote:
-> Hi,
-> 
-> Patrick McHardy wrote:
-> 
->>I've now removed all patches that didn't find a new maintainer or
->>which already have an external repository. I'll keep the ones where
->>people are still setting up the repository for a couple more days,
->>these are:
-> 
-> 
-> would it be possible for you to generate a list of the patches which
-> didn't find a new maintainer and have no external repository in sight?
+On 5/12/06, Patrick McHardy <kaber@trash.net> wrote:
+> David S. Miller wrote:
+> > From: Willy Tarreau <willy@w.ods.org>
+> > Date: Mon, 8 May 2006 07:07:48 +0200
+> >
+> >
+> >>I wonder how such unmaintainable code has been merged in the first
+> >>place. Obviously, Davem has never seen it !
+> >
+> >
+> > Oh I've seen ipt_recent.c, it's one huge pile of trash
+> > that needs to be rewritten.  It has all sorts of problems.
+> >
+> > This is well understood on the netfilter-devel list and
+> > I am to understand that someone has taken up the task to
+> > finally rewrite the thing.
+>
+>
+> I haven't seen any cleanup patches so far, so I think I'm
+> going to start my nth try at cleaning up this mess.
+> Unfortunately its even immune to Lindent ..
+>
 
-Unfortunately I just deleted my list together with the patches.
-But anything is better than cleaning up ipt_recent, so here is
-a new one :)
+If you get too fed up with it, let me know, and I'll give it a go as well.
 
-- account
-- ACCOUNT
-- comment
-- connrate
-- conntrack_locking
-- cuseeme-nat
-- dropped-table
-- expire
-- fuzzy
-- goto
-- h323-conntrack-nat
-- ip_queue_vwmark
-- MARK-operations
-- mport
-- nat-reservations
-- netfilter-docbook
-- NETLINK
-- NETMAP
-- nth
-- osf
-- owner-socketlookup
-- pool
-- pptp-conntrack-nat
-- psd
-- quota
-- random
-- TCPLAG
-- tproxy
-- TRACE
-- unclean
-- XOR
-
-Some of these are already in mainline (or something comparable) or will
-be soon:
-
-- comment
-- goto
-- h323
-- ip_queue_vwmark
-- MARK-operations
-- mport
-- nth
-- random
-- quota
-- pptp
-
-The tproxy guys will probably set up their own repository, at least
-thats what they said at the last workshop.
+-- 
+Jesper Juhl <jesper.juhl@gmail.com>
+Don't top-post  http://www.catb.org/~esr/jargon/html/T/top-post.html
+Plain text mails only, please      http://www.expita.com/nomime.html
