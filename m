@@ -1,63 +1,61 @@
-From: Stephen Clark <Stephen.Clark@seclark.us>
-Subject: how to see ipsec traffic
-Date: Thu, 11 May 2006 08:40:00 -0400
-Message-ID: <446330A0.1030704@seclark.us>
-Reply-To: Stephen.Clark@seclark.us
+From: "Jesper Juhl" <jesper.juhl@gmail.com>
+Subject: Re: [PATCH] fix mem-leak in netfilter
+Date: Fri, 12 May 2006 14:13:32 +0200
+Message-ID: <9a8748490605120513w4b078642k816dfef6ab907823@mail.gmail.com>
+References: <20060507093640.GF11191@w.ods.org>
+	 <egts52hm2epfu4g1b9kqkm4s9cdiv3tvt9@4ax.com>
+	 <20060508050748.GA11495@w.ods.org>
+	 <20060507.224339.48487003.davem@davemloft.net>
+	 <44643BFD.3040708@trash.net>
+	 <9a8748490605120409x3851ca4fn14fc9c52500701e4@mail.gmail.com>
+	 <44647280.1030602@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=US-ASCII;
+	format=flowed
+Content-Transfer-Encoding: 7BIT
+Cc: "David S. Miller" <davem@davemloft.net>, willy@w.ods.org,
+	sfrost@snowman.net, gcoady.lk@gmail.com, laforge@netfilter.org,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	marcelo@kvack.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751035AbWELMNe@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>
+In-Reply-To: <44647280.1030602@trash.net>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello List,
+On 5/12/06, Patrick McHardy <kaber@trash.net> wrote:
+> Jesper Juhl wrote:
+> > On 5/12/06, Patrick McHardy <kaber@trash.net> wrote:
+> >
+> >> I haven't seen any cleanup patches so far, so I think I'm
+> >> going to start my nth try at cleaning up this mess.
+> >> Unfortunately its even immune to Lindent ..
+> >>
+> >
+> > If you get too fed up with it, let me know, and I'll give it a go as well.
+>
+> Thanks, I'm about half-way through (and about to kill someone),
+> just started with the biggest pile of crap (the match function)
+> and already noticed a possible endless loop within the first
+> couple of lines.
+>
+> Unfortunately this stuff is so unreadable that I'm not exactly
+> sure if the loop really won't terminate, an extra pair of eyes
+> would be appreciated.
+>
 
-I have an ipsec tunnel setup between my office and my home.
-When I use tcpdump on my home system I can see the esp packets going 
-both ways
-but I only see the received de-encapsulated traffic not what is being 
-sent back. How
-can I see the unencrypted replys.
+Sure thing.
 
-Below is an example of a tcpdump running on my home system while I am 
-pinging it
-from my office. I see the icmp echo request but not icmp reply.
+I don't have time to look at it today (friends comming over for
+dinner), but I should have plenty of time for it tomorrow. So, if you
+could send me your patch once you are done for the day, then I'll look
+it over and see if I can find anything to add on top of your work (or
+have anything to comment on) and bounce it back to you sometime during
+tomorrow.
 
-
-
-
-sudo /usr/sbin/tcpdump -lni eth1 icmp or esp
-tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
-listening on eth1, link-type EN10MB (Ethernet), capture size 96 bytes
-09:49:49.616062 IP 65.162.182.15 > 24.144.77.138: 
-ESP(spi=0x0702d979,seq=0x1)
-09:49:49.635388 IP 10.0.129.1 > 192.168.2.1: icmp 64: echo request seq 0
-09:49:49.635426 IP 24.144.77.138 > 65.162.182.15: 
-ESP(spi=0x05191a81,seq=0x1)
-09:49:50.617714 IP 65.162.182.15 > 24.144.77.138: 
-ESP(spi=0x0702d979,seq=0x2)
-09:49:50.617714 IP 10.0.129.1 > 192.168.2.1: icmp 64: echo request seq 256
-09:49:50.617855 IP 24.144.77.138 > 65.162.182.15: 
-ESP(spi=0x05191a81,seq=0x2)
-
-kernel is 2.6.15-1.1831_FC4
-
-Thanks,
-Steve
 
 -- 
-
-"They that give up essential liberty to obtain temporary safety, 
-deserve neither liberty nor safety."  (Ben Franklin)
-
-"The course of history shows that as a government grows, liberty 
-decreases."  (Thomas Jefferson)
+Jesper Juhl <jesper.juhl@gmail.com>
+Don't top-post  http://www.catb.org/~esr/jargon/html/T/top-post.html
+Plain text mails only, please      http://www.expita.com/nomime.html
