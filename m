@@ -1,33 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] SECMARK 1.1
-Date: Sun, 14 May 2006 20:37:36 +0200
-Message-ID: <446778F0.6000705@trash.net>
-References: <Pine.LNX.4.64.0605071104590.8588@d.namei> <Pine.LNX.4.64.0605140133560.5506@d.namei>
+From: "gan hawk" <ganhawk@gmail.com>
+Subject: Re: download stopper
+Date: Sun, 14 May 2006 15:31:26 -0500
+Message-ID: <3305af120605141331wfd66467l843342f18b36119e@mail.gmail.com>
+References: <4465B6C5.1080006@rocsys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: selinux@tycho.nsa.gov, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org,
-	Stephen Smalley <sds@tycho.nsa.gov>,
-	Daniel J Walsh <dwalsh@redhat.com>,
-	Karl MacMillan <kmacmillan@tresys.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Thomas Bleher <bleher@informatik.uni-muenchen.de>
-Return-path: <netdev-owner@vger.kernel.org>
-To: James Morris <jmorris@namei.org>
-In-Reply-To: <Pine.LNX.4.64.0605140133560.5506@d.namei>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: varun <varun@rocsys.com>
+In-Reply-To: <4465B6C5.1080006@rocsys.com>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-James Morris wrote:
-> @@ -135,6 +175,9 @@ static int __init xt_secmark_init(void)
->  {
->  	int err;
->  
-> +	if (tracking_enabled())
-> +		need_conntrack();
-> +
+You can use L7 filtering to filter by file types
+(http://l7-filter.sourceforge.net/protocols) or limit the size of the
+download (using something like
+http://www.lowth.com/rope/HttpContentLength) to allow the normal html
+files, graphics etc.
 
-This will load the conntrack modules even if the track flag is not set.
-Wouldn't it be better to put everything related to connection marking
-in the CONNSECMARK target?
+
+On 5/13/06, varun <varun@rocsys.com> wrote:
+> Hi,
+>
+>          Can anyone suggest me a way in which i can stop http downloads
+> but not http traffic.
+>         Say iam browsing and downloading a file from internet...my
+> traffic will go through the gateway. Is there anyway i
+>         as a admin stop the download only but not the other http
+> traffic.Any suggestions?
+>
+> Varun
+>
+>
+>
