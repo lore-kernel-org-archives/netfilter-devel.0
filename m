@@ -1,52 +1,61 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] conntrack: Fix option parsing for ARM
-Date: Mon, 15 May 2006 07:52:31 +0200
-Message-ID: <4468171F.2080207@trash.net>
-References: <ca021ab30604270455q5cf093c9s990558209bca3e1d@mail.gmail.com>	<20060501175353.GD5267@rama>	<ca021ab30605030249s62ab1924uf9b1be924bd2d28e@mail.gmail.com>	<20060503111549.GO16562@sunbeam.de.gnumonks.org>	<ca021ab30605090806l791e6f3dl7354bd789df209ee@mail.gmail.com>	<4460B14E.90506@eurodev.net>	<ca021ab30605100118u16675c7au933a464ebe64d705@mail.gmail.com>
-	<4464351F.6000402@snapgear.com> <4465437A.9010106@trash.net>
-	<4467B294.5060102@eurodev.net>
+From: James Morris <jmorris@namei.org>
+Subject: Re: [RFC] SECMARK 1.1
+Date: Mon, 15 May 2006 01:57:10 -0400 (EDT)
+Message-ID: <Pine.LNX.4.64.0605150153590.1275@d.namei>
+References: <Pine.LNX.4.64.0605071104590.8588@d.namei>
+ <Pine.LNX.4.64.0605140133560.5506@d.namei> <446778F0.6000705@trash.net>
+ <Pine.LNX.4.64.0605150004590.645@d.namei> <446811D3.5080905@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	=?ISO-8859-1?Q?EZE?= <slaveze@gmail.com>,
-	Philip Craig <philipc@snapgear.com>, =?ISO-8859-1?Q?S=E9bastien_LAV?=
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@eurodev.net>
-In-Reply-To: <4467B294.5060102@eurodev.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: selinux@tycho.nsa.gov, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org,
+	Stephen Smalley <sds@tycho.nsa.gov>,
+	Daniel J Walsh <dwalsh@redhat.com>,
+	Karl MacMillan <kmacmillan@tresys.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Thomas Bleher <bleher@informatik.uni-muenchen.de>
+Return-path: <netdev-owner@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <446811D3.5080905@trash.net>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
->> Thanks for tracking this down Philip. I'm having trouble using
->> SVN again .. Pablo, can you try to commit this please?
+On Mon, 15 May 2006, Patrick McHardy wrote:
+
+> >>This will load the conntrack modules even if the track flag is not set.
+> > 
+> > 
+> > I guess need_conntrack() could be moved to checkentry() and only called 
+> > if the track flag is set.
 > 
 > 
-> I'd like to but I can't, it seems that my x509 certificate expired on
-> Apr 16:
+> That won't help, the function itself does nothing, its just a symbol
+> dependency.
+
+Not sure what you mean: it will cause ip_conntrack to be loaded, which 
+is needed when you specify the track flag.
+
+> > Another possibility would be to get rid of CONNSECMARK completely and have 
+> > SECMARK copy security marks from connections to packets via the use of a 
+> > different flag (perhaps change --track into --save-state and then have 
+> > --restore-state, or similar).
 > 
->         Issuer: C=DE, ST=Bayern, L=Erlangen, O=gnumonks.org, CN=Harald
-> Welte/emailAddress=hostmaster@gnumonks.org
->         Validity
->             Not Before: Apr 16 16:55:23 2005 GMT
->             Not After : Apr 16 16:55:23 2006 GMT
->         Subject: C=DE, ST=Berlin, L=Berlin, O=Netfilter Project,
-> OU=Development, CN=pablo/emailAddress=pablo@netfilter.org
 > 
-> I need a renewal, could you tell to Harald about this?
+> The reason why I'm asking is because my understanding is that SECMARK
+> would also be useful without conntrack,
+
+Yes.
+
+>  but automatically pulling in the module leaves no option not to use 
+> conntrack except not to compile this part in.
+
+Conntrack will only be loaded if someone uses "SECMARK --track", which is 
+exactly what is desired.   Without --track, conntrack will not be loaded 
+by SECMARK.
 
 
-I've CCed him. My certificate is still valid, but I'm getting this
-error:
 
-svn: Commit failed (details follow):
-svn: The CHECKOUT response did not contain a 'Location:' header
-svn: Your commit message was left in a temporary file:
+- James
+-- 
+James Morris
+<jmorris@namei.org>
