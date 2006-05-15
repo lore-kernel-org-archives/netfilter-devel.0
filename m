@@ -1,30 +1,61 @@
-From: Philip Craig <philipc@snapgear.com>
-Subject: ulogd2 and nflog prefix
-Date: Mon, 15 May 2006 12:49:52 +1000
-Message-ID: <4467EC50.3030907@snapgear.com>
+From: James Morris <jmorris@namei.org>
+Subject: Re: [RFC] SECMARK 1.1
+Date: Mon, 15 May 2006 00:24:00 -0400 (EDT)
+Message-ID: <Pine.LNX.4.64.0605150004590.645@d.namei>
+References: <Pine.LNX.4.64.0605071104590.8588@d.namei>
+ <Pine.LNX.4.64.0605140133560.5506@d.namei> <446778F0.6000705@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Harald Welte <laforge@netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: selinux@tycho.nsa.gov, netdev@vger.kernel.org,
+	netfilter-devel@lists.netfilter.org,
+	Stephen Smalley <sds@tycho.nsa.gov>,
+	Daniel J Walsh <dwalsh@redhat.com>,
+	Karl MacMillan <kmacmillan@tresys.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Thomas Bleher <bleher@informatik.uni-muenchen.de>
+Return-path: <netdev-owner@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <446778F0.6000705@trash.net>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The log message prefix contained in the netlink message is
-not null terminated, but nflog_get_prefix() returns a pointer
-to the data in the netlink message, and ulogd2 treats it as
-null terminated.
+On Sun, 14 May 2006, Patrick McHardy wrote:
 
-I can create a patch to fix this if I know how it is meant to work:
-- null terminate in kernel?
-- nflog_get_prefix() should copy and null terminate?
-- add nflog_get_prefix_len() and handle in ulogd?
+> James Morris wrote:
+> > @@ -135,6 +175,9 @@ static int __init xt_secmark_init(void)
+> >  {
+> >  	int err;
+> >  
+> > +	if (tracking_enabled())
+> > +		need_conntrack();
+> > +
+> 
+> This will load the conntrack modules even if the track flag is not set.
+
+I guess need_conntrack() could be moved to checkentry() and only called 
+if the track flag is set.
+
+
+> Wouldn't it be better to put everything related to connection marking
+> in the CONNSECMARK target?
+
+It's more efficient this way, and simpler to manage.  
+
+Currently, after security marking, the chain should normally terminate 
+with a -j ACCEPT.  Requiring the use of CONNSECMARK to label connections 
+means inserting another rule before terminating the chain.
+
+Also, security marking for connections only occurs in the context of 
+copying the security mark from packets, so there's no reason to build a 
+general feature to do this into CONNSECMARK.
+
+Another possibility would be to get rid of CONNSECMARK completely and have 
+SECMARK copy security marks from connections to packets via the use of a 
+different flag (perhaps change --track into --save-state and then have 
+--restore-state, or similar).
+
+
+- James
+-- 
+James Morris
+<jmorris@namei.org>
