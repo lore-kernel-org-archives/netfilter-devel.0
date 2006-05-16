@@ -1,16 +1,14 @@
-From: Pablo Neira Ayuso <pablo@eurodev.net>
-Subject: Re: Libnetfilter_conntrack problems
-Date: Tue, 16 May 2006 12:52:35 +0200
-Message-ID: <4469AEF3.6030508@eurodev.net>
-References: <ca021ab30604270455q5cf093c9s990558209bca3e1d@mail.gmail.com>	<20060501175353.GD5267@rama>	<ca021ab30605030249s62ab1924uf9b1be924bd2d28e@mail.gmail.com>	<20060503111549.GO16562@sunbeam.de.gnumonks.org>	<ca021ab30605090806l791e6f3dl7354bd789df209ee@mail.gmail.com>	<4460B14E.90506@eurodev.net>	<ca021ab30605100118u16675c7au933a464ebe64d705@mail.gmail.com>	<ca021ab30605100600k5bfbe4faob771b62d50e35575@mail.gmail.com>	<ca021ab30605120134p552496f3i5ebd2f7c0a05b191@mail.gmail.com>	<44644A5F.1010504@snapgear.com>
-	<ca021ab30605120201u535a5569t78bd78ea01cf5dd0@mail.gmail.com>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: Integrating SIP-conntrack feature problems
+Date: Tue, 16 May 2006 12:07:18 +0100
+Message-ID: <4469B266.7070401@ufomechanic.net>
+References: <8406.07320792532$1147770545@news.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@lists.netfilter.org, Philip Craig <philipc@snapgear.com>
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?ISO-8859-1?Q?S=E9bastien_LAVEZE?= <slaveze@gmail.com>
-In-Reply-To: <ca021ab30605120201u535a5569t78bd78ea01cf5dd0@mail.gmail.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <8406.07320792532$1147770545@news.gmane.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,23 +20,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sébastien LAVEZE wrote:
->> It's working for me using 2.6.16 on ARM and userspace from SVN.
->> Are you sure you are waiting 2 minutes for the timeout?
->> How about if you try pings?
+free wrote:
+> hi all
 > 
-> Ok
-> I'm also using 2.6.16 kernel with latest SVN
-> It works fine for LOCAL connection but not for FORWARDED connections
-> I do get UPDATE events for forwarded connection but there are no
-> DESTROY events for forwarded connections
-> Same stuff for pings (OK for local, NO for forward)
+>   I now working in integrate SIP-conntrack feature in our system.The patch require that kernel should at least be 2.6.11,but our system using 2.6.8.
+>   Is is possible to integrate without upgrading the kernel to 2.6.11,if possible,Cound you give some advice on how to do it?
 
-Weird. I had problems with hardware lately, I had some time to set up
-some UML stuff last night, I'll be having a look at this.
+The procedure is not simple, and neither is checking that you have done
+it right. Depending on your needs it may be simpler to just upgrade your
+kernel.
 
-Please, could you pass me as much information as you can in order to
-reproduce the problem? Thanks.
+You see; patches are sent because something is wrong, or needs
+improving, or new features need adding. To use this sip feature you need
+to bring accross fixes and features that it needs, you can skip
+improvemnts, and skip fixes and features that it doesn't need, but you
+need to identify them.
 
--- 
-Pablo
+First; you need to look at the release date of your current kernel.
+Then you need to look at all postings to this list since that date (and
+a while before) and check for
+
+1. posts about sip-conntrack
+2. posts about things that sip-conntrack depends on (like conntrack)
+
+You need to be fully aware of the code that was sent, and try and work
+out the intention behind the poster; i.e. what was it they were trying
+to fix, and in what way does that relate to this sip-conntrack stuff.
+
+Then you have to decide which patches you may need to pull in
+
+you can also try and apply the patch and see which files it fails on,
+and repeat the above procedures in looking for information and changes
+relating to those files.
+
+Then you can get confidence that the patch you apply may work with the
+additional patches you selected.
+
+You patch, build, and better have some test cases to prove it works.
+
+It may be simpler to diff between the two kernel versions and look at
+those changes, isolate them as functional units and decide which ones to
+keep and which ones to drop.
+
+Sam
