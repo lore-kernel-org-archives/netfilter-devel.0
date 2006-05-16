@@ -1,63 +1,75 @@
-From: Stephen Frost <sfrost@snowman.net>
-Subject: Re: [PATCH] fix mem-leak in netfilter
-Date: Mon, 15 May 2006 17:03:42 -0400
-Message-ID: <20060515210342.GP7774@kenobi.snowman.net>
-References: <44643BFD.3040708@trash.net> <9a8748490605120409x3851ca4fn14fc9c52500701e4@mail.gmail.com> <44647280.1030602@trash.net> <446490BB.10801@ufomechanic.net> <44683AFF.4070200@trash.net> <20060515142834.GL7774@kenobi.snowman.net> <4468CD3C.3000908@trash.net> <20060515192738.GN7774@kenobi.snowman.net> <4468DFF6.5020304@trash.net> <20060515204142.GO7774@kenobi.snowman.net>
+From: Matt Ayres <matta@tektonic.net>
+Subject: Re: Panic in ipt_do_table with 2.6.16.13-xen
+Date: Mon, 15 May 2006 20:01:45 -0400
+Message-ID: <44691669.4080903@tektonic.net>
+References: <4468BE70.7030802@tektonic.net> <4468D613.20309@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JF+ytOk7PH04NsRm"
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965222AbWEOVDn@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>,
-	Amin Azez <azez@ufomechanic.net>,
-	"David S. Miller" <davem@davemloft.net>, willy@w.ods.org,
-	gcoady.lk@gmail.com, laforge@netfilter.org,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
-	marcelo@kvack.org
-Content-Disposition: inline
-In-Reply-To: <20060515204142.GO7774@kenobi.snowman.net>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <xen-devel-bounces@lists.xensource.com>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4468D613.20309@trash.net>
+List-Unsubscribe: <http://lists.xensource.com/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xensource.com?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xensource.com>
+List-Help: <mailto:xen-devel-request@lists.xensource.com?subject=help>
+List-Subscribe: <http://lists.xensource.com/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xensource.com?subject=subscribe>
+Sender: xen-devel-bounces@lists.xensource.com
+Errors-To: xen-devel-bounces@lists.xensource.com
 List-Id: netfilter-devel.vger.kernel.org
 
+Patrick McHardy wrote:
+> Matt Ayres wrote:
+>> I have been noticing this same problem dozens of times and have finally
+>> caught a full trace.  I have run it through ksymoops, but there is no
+>> /proc/ksyms.  Is there a better method for getting information out of
+>> the Code line than using ksymoops in 2.6 kernels?
+> 
+> 
+> CONFIG_KALLSYMS will make the kernel decode the oops itself.
+> 
 
---JF+ytOk7PH04NsRm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+That's odd, I had thought that too.  This is what "zcat /proc/config.gz 
+| grep KALL" shows:
 
-* Stephen Frost (sfrost@snowman.net) wrote:
-> * Patrick McHardy (kaber@trash.net) wrote:
-> > This is the updated patch, it changes the eviction strategy
-> > to LRU and fixes a bug related to TTL handling, the TTL stored
-> > in the entry should only be overwritten if the IPT_RECENT_TTL
-> > flag is set.
->=20
-> I thought that I had convinced myself that the TTL handling was okay and
-> that where it was overwritten wasn't harmful.  Oh well.
+CONFIG_KALLSYMS=y
+# CONFIG_KALLSYMS_ALL is not set
+# CONFIG_KALLSYMS_EXTRA_PASS is not set
 
-Looking at this again...  The ttl isn't copied into 'ttl' unless the
-check_set has TTL turned on.  This means that the overwritting was fine,
-if you accept that you can only ever match on TTL, or never match on it.
-That doesn't seem right to me.  The TTL in the table should always be
-kept up-to-date and the only question is if the current rule requires it
-for a match or not.  This isn't a huge change, just set the local
-variable always but check for if it's asked to match before calling the
-lookup.  Or you could move it into an if/else block.
+I take it my run through ksymoops was of no help in diagnosing the 
+problem?  The panic is _always_ in ipt_do_table.
 
-	Thanks,
+>> The kernel is for Xen, but it does not appear to be related to Xen.
+> 
+> 
+> We haven't had problems in that code for ages, so my initial feeling
+> is that it probably is related to Xen. Do you have any other patches
+> applied besides Xen? Please also post the full ruleset you're using
+> and anything else that might appear special about your setup.
+> 
 
-		Stephen
+I had initially sent my traces to the Xen guys.  They have not stated it 
+is NOT specific to Xen, just that's it's unlikely.  I did not experience 
+the problem with kernel 2.6.12, just with 2.6.16 (up to .13 bugfix 
+release).  I have completely disabled all support for SCTP 
+(protocol/netfilter/conntrack) as I know it is still quite buggy.  I 
+know Xen touches the network code a lot, but nothing specific to 
+iptables.  I had contacted them twice before LKML as I didn't want to 
+post patch specific problems here.  I have no other patches applied 
+besides the Xen patch.
 
---JF+ytOk7PH04NsRm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+My ruleset is pretty bland.  2 rules in the raw table to tell the system 
+to only track my forwarded ports, 2 rules in the nat table for 
+forwarding (intercepting) 2 ports, and then in the FORWARD tables 2 
+rules per VM to just account traffic.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
+I've CC'ed xen-devel on this in case they can provide some insight.  I 
+am not subscribed to LKML so please make sure to reply to me also in 
+responses.
 
-iD8DBQFEaOyurzgMPqB3kigRAi9bAJ9Lt/Uly96YMfbc9aqLM7xv6ZhalACcD3CW
-9rxaHkBEipDLz6NEXEjSiJY=
-=iT1a
------END PGP SIGNATURE-----
-
---JF+ytOk7PH04NsRm--
+Thank you,
+Matt Ayres
