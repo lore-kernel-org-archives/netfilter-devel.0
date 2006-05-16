@@ -1,65 +1,110 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: Integrating SIP-conntrack feature problems
-Date: Tue, 16 May 2006 12:07:18 +0100
-Message-ID: <4469B266.7070401@ufomechanic.net>
-References: <8406.07320792532$1147770545@news.gmane.org>
+From: Matt Ayres <matta@tektonic.net>
+Subject: Re: Re: Panic in ipt_do_table with 2.6.16.13-xen
+Date: Tue, 16 May 2006 09:49:03 -0400
+Message-ID: <4469D84F.8080709@tektonic.net>
+References: <4468BE70.7030802@tektonic.net>
+	<4468D613.20309@trash.net>	<44691669.4080903@tektonic.net>
+	<Pine.LNX.4.64.0605152331140.10964@d.namei>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <8406.07320792532$1147770545@news.gmane.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <xen-devel-bounces@lists.xensource.com>
+To: James Morris <jmorris@namei.org>
+In-Reply-To: <Pine.LNX.4.64.0605152331140.10964@d.namei>
+List-Unsubscribe: <http://lists.xensource.com/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xensource.com?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xensource.com>
+List-Help: <mailto:xen-devel-request@lists.xensource.com?subject=help>
+List-Subscribe: <http://lists.xensource.com/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xensource.com?subject=subscribe>
+Sender: xen-devel-bounces@lists.xensource.com
+Errors-To: xen-devel-bounces@lists.xensource.com
 List-Id: netfilter-devel.vger.kernel.org
 
-free wrote:
-> hi all
+
+
+James Morris wrote:
+> On Mon, 15 May 2006, Matt Ayres wrote:
 > 
->   I now working in integrate SIP-conntrack feature in our system.The patch require that kernel should at least be 2.6.11,but our system using 2.6.8.
->   Is is possible to integrate without upgrading the kernel to 2.6.11,if possible,Cound you give some advice on how to do it?
+>> I had initially sent my traces to the Xen guys.  They have not stated it is
+>> NOT specific to Xen, just that's it's unlikely.  I did not experience the
+>> problem with kernel 2.6.12, just with 2.6.16 (up to .13 bugfix release).  I
+>> have completely disabled all support for SCTP (protocol/netfilter/conntrack)
+>> as I know it is still quite buggy.  I know Xen touches the network code a lot,
+>> but nothing specific to iptables.  I had contacted them twice before LKML as I
+>> didn't want to post patch specific problems here.  I have no other patches
+>> applied besides the Xen patch.
+>>
+>> My ruleset is pretty bland.  2 rules in the raw table to tell the system to
+>> only track my forwarded ports, 2 rules in the nat table for forwarding
+>> (intercepting) 2 ports, and then in the FORWARD tables 2 rules per VM to just
+>> account traffic.
+> 
+> Can you try using a different NIC?
+> 
 
-The procedure is not simple, and neither is checking that you have done
-it right. Depending on your needs it may be simpler to just upgrade your
-kernel.
+This happens on 30 different hosts.  Using the same kernel I get varying 
+uptime of "hasn't crashed since the upgrade to 2.6.16" to "crashes every 
+day".  All are Tyan S2882D boards w/ integrated Tigon3.  The trace I 
+posted to this thread indicate tg3, but in many other traces I have the 
+trace doesn't include any driver calls.  They all panic in ipt_do_table. 
+  I would have pasted the others, but I didn't save the System.map for 
+either of them and they are all pretty similar.
 
-You see; patches are sent because something is wrong, or needs
-improving, or new features need adding. To use this sip feature you need
-to bring accross fixes and features that it needs, you can skip
-improvemnts, and skip fixes and features that it doesn't need, but you
-need to identify them.
+Here is another that just crashed:
 
-First; you need to look at the release date of your current kernel.
-Then you need to look at all postings to this list since that date (and
-a while before) and check for
+ >>EIP; c03d96a9 <ipt_do_table+ad/2d0>   <=====
 
-1. posts about sip-conntrack
-2. posts about things that sip-conntrack depends on (like conntrack)
+ >>esp; c0517d8c <init_thread_union+1d8c/2000>
 
-You need to be fully aware of the code that was sent, and try and work
-out the intention behind the poster; i.e. what was it they were trying
-to fix, and in what way does that relate to this sip-conntrack stuff.
+Trace; c03acc04 <ip_forward_finish+0/36>
+Trace; c03da724 <ipt_hook+1c/20>
+Trace; c03a2e50 <nf_iterate+2c/5e>
+Trace; c03acc04 <ip_forward_finish+0/36>
+Trace; c03acc04 <ip_forward_finish+0/36>
+Trace; c03a2f4b <nf_hook_slow+3c/c3>
+Trace; c03acc04 <ip_forward_finish+0/36>
+Trace; c03acdd8 <ip_forward+19e/22e>
+Trace; c03acc04 <ip_forward_finish+0/36>
+Trace; c03abcf7 <ip_rcv+40e/48f>
+Trace; c037dcb5 <netif_receive_skb+255/294>
+Trace; c02e82e6 <tg3_poll+532/76c>
+Trace; c037bd82 <net_rx_action+aa/17c>
+Trace; c011ea17 <__do_softirq+73/f0>
+Trace; c011ead4 <do_softirq+40/64>
+Trace; c010606b <do_IRQ+1f/25>
+Trace; c02fc87f <evtchn_do_upcall+60/96>
+Trace; c0104a2c <hypervisor_callback+2c/34>
+Trace; c010342e <xen_idle+5e/7d>
+Trace; c0103509 <cpu_idle+bc/d5>
+Trace; c05184e0 <start_kernel+344/34b>
 
-Then you have to decide which patches you may need to pull in
+Code;  c03d96a9 <ipt_do_table+ad/2d0>
+00000000 <_EIP>:
+Code;  c03d96a9 <ipt_do_table+ad/2d0>   <=====
+    0:   89 44 24 18               mov    %eax,0x18(%esp)   <=====
+Code;  c03d96ad <ipt_do_table+b1/2d0>
+    4:   89 c6                     mov    %eax,%esi
+Code;  c03d96af <ipt_do_table+b3/2d0>
+    6:   8b 44 24 40               mov    0x40(%esp),%eax
+Code;  c03d96b3 <ipt_do_table+b7/2d0>
+    a:   8b 6c 24 18               mov    0x18(%esp),%ebp
+Code;  c03d96b7 <ipt_do_table+bb/2d0>
+    e:   03 74 83 0c               add    0xc(%ebx,%eax,4),%esi
+Code;  c03d96bb <ipt_do_table+bf/2d0>
+   12:   03 6c 83 20               add    0x20(%ebx,%eax,4),%ebp
+Code;  c03d96bf <ipt_do_table+c3/2d0>
+   16:   c7 44 24 00 00 00 00      movl   $0x0,0x0(%esp)
+Code;  c03d96c6 <ipt_do_table+ca/2d0>
+   1d:   00
 
-you can also try and apply the patch and see which files it fails on,
-and repeat the above procedures in looking for information and changes
-relating to those files.
+  <0>Kernel panic - not syncing: Fatal exception in interrupt 
 
-Then you can get confidence that the patch you apply may work with the
-additional patches you selected.
 
-You patch, build, and better have some test cases to prove it works.
 
-It may be simpler to diff between the two kernel versions and look at
-those changes, isolate them as functional units and decide which ones to
-keep and which ones to drop.
-
-Sam
+Thanks,
+Matt Ayres
