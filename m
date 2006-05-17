@@ -1,44 +1,37 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] fix mem-leak in netfilter
-Date: Wed, 17 May 2006 09:19:03 +0200
-Message-ID: <446ACE67.4030700@trash.net>
-References: <20060515204142.GO7774@kenobi.snowman.net>	<20060515210342.GP7774@kenobi.snowman.net>	<446AC1FB.5070406@trash.net>
-	<20060516.235910.71774114.davem@davemloft.net>
+Date: Wed, 17 May 2006 09:19:15 +0200
+Message-ID: <446ACE73.604@trash.net>
+References: <20060515204142.GO7774@kenobi.snowman.net>	<20060515210342.GP7774@kenobi.snowman.net>	<446AC1FB.5070406@trash.net> <20060517.000957.45395448.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: sfrost@snowman.net, gcoady.lk@gmail.com, laforge@netfilter.org,
-	netfilter-devel@lists.netfilter.org,
-	linux-kernel@vger.kernel.org, marcelo@kvack.org, willy@w.ods.org,
-	azez@ufomechanic.net
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Cc: sfrost@snowman.net, azez@ufomechanic.net, willy@w.ods.org,
+	gcoady.lk@gmail.com, laforge@netfilter.org,
+	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org,
+	marcelo@kvack.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932463AbWEQHTR@vger.kernel.org>
 To: "David S. Miller" <davem@davemloft.net>
-In-Reply-To: <20060516.235910.71774114.davem@davemloft.net>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+In-Reply-To: <20060517.000957.45395448.davem@davemloft.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 David S. Miller wrote:
 > From: Patrick McHardy <kaber@trash.net>
 > Date: Wed, 17 May 2006 08:26:03 +0200
 > 
->>OK, updated patch attached. The TTL is now always kept up-to-date.
+> 
+>>+	if (info->check_set & (IPT_RECENT_SET | IPT_RECENT_REMOVE) &&
+>>+	    (info->seconds || info->hit_count))
+>>+		return 0;
 > 
 > 
-> Looks nice.
+> I'm feeling particularly dense today... but what is the relative
+> precedence of '&' vs '&&'?
 > 
-> Is there any reasonable reason to allow ip_pkt_list_tot to ever be
-> larger than say 255?  If we can accept that limit, we can shrink
-> the recent_entry considerably by packing the index and nstamps
-> into a single word next to ttl.
+> I've been told that if you have to look up C operator precedence,
+> don't bother and add parenthesis instead :)
 
 
-My primary goal was full compatibility, I have no idea about real-life
-usage though. Maybe Stephen can answer this.
+Bitwise AND has precedence, but I have no problems adding an extra
+set of parenthesis around it :)
