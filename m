@@ -1,40 +1,43 @@
-From: James Morris <jmorris@namei.org>
-Subject: Re: [RFC] SECMARK 1.1
-Date: Wed, 17 May 2006 10:56:04 -0400 (EDT)
-Message-ID: <Pine.LNX.4.64.0605171053120.25450@d.namei>
-References: <Pine.LNX.4.64.0605071104590.8588@d.namei>
- <Pine.LNX.4.64.0605140133560.5506@d.namei> <20060517133653.GA7327@thorium.jmh.mhn.de>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH] gre_in_range: 16/32 bit fix
+Date: Thu, 18 May 2006 17:38:52 +0400
+Message-ID: <20060518133852.GA13516@mipter.zuzino.mipt.ru>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: selinux@tycho.nsa.gov, netdev@vger.kernel.org,
-	netfilter-devel@lists.netfilter.org,
-	Stephen Smalley <sds@tycho.nsa.gov>,
-	Daniel J Walsh <dwalsh@redhat.com>,
-	Karl MacMillan <kmacmillan@tresys.com>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
-To: Thomas Bleher <bleher@informatik.uni-muenchen.de>
-In-Reply-To: <20060517133653.GA7327@thorium.jmh.mhn.de>
+To: netdev@vger.kernel.org
+Content-Disposition: inline
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 17 May 2006, Thomas Bleher wrote:
+GRE keys are 16 bit.
 
-> This all looks very nice - Thank You!
-> Just one question: does the code canonicalize the security label? It
-> would be nice if the same rules could be used on MLS and non-MLS
-> systems.
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+---
 
-No, it shouldn't be necessary, as there's no legacy installed base of 
-rulesets (as there was with disk files), and MLS is now generally enabled 
-by default.  Also, these rules are never exposed to general users, and 
-even sysadmins should generate the rules via some kind of tool.
+ net/ipv4/netfilter/ip_nat_proto_gre.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-It would also add some complexity.
+--- a/net/ipv4/netfilter/ip_nat_proto_gre.c
++++ 1/net/ipv4/netfilter/ip_nat_proto_gre.c
+@@ -49,15 +49,15 @@ gre_in_range(const struct ip_conntrack_t
+ 	     const union ip_conntrack_manip_proto *min,
+ 	     const union ip_conntrack_manip_proto *max)
+ {
+-	u_int32_t key;
++	__be16 key;
+ 
+ 	if (maniptype == IP_NAT_MANIP_SRC)
+ 		key = tuple->src.u.gre.key;
+ 	else
+ 		key = tuple->dst.u.gre.key;
+ 
+-	return ntohl(key) >= ntohl(min->gre.key)
+-		&& ntohl(key) <= ntohl(max->gre.key);
++	return ntohs(key) >= ntohs(min->gre.key)
++		&& ntohs(key) <= ntohs(max->gre.key);
+ }
+ 
+ /* generate unique tuple ... */
 
-
-- James
--- 
-James Morris
-<jmorris@namei.org>
