@@ -1,33 +1,50 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCHSET 0/5] SECMARK 2.0
-Date: Thu, 18 May 2006 17:59:13 +0200
-Message-ID: <446C99D1.1070200@trash.net>
-References: <Pine.LNX.4.64.0605181130560.3010@d.namei>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: 16/32 bit issues at nfulnl_recv_config
+Date: Fri, 19 May 2006 03:20:51 +0400
+Message-ID: <20060518232050.GA31257@mipter.zuzino.mipt.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Stephen Smalley <sds@tycho.nsa.gov>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: James Morris <jmorris@namei.org>
-In-Reply-To: <Pine.LNX.4.64.0605181130560.3010@d.namei>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+To: netdev@vger.kernel.org
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-James Morris wrote:
-> These are the iptables userland patches for the latest version of secmark, 
-> which has just been committed to the -mm tree.
-> 
-> [..]
-> 
-> If it looks ok, please consider applying.
+I'm talking about net/netfilter/nfnetlink_log.c::^nfulnl_recv_config
+below. I'm totally confused and beer supply almost ended, so can someone else
+also look at it...
+
+Put your attention at line 905:
+
+net/netfilter/nfnetlink_log.c:
+
+   902		if (nfula[NFULA_CFG_FLAGS-1]) {
+   903			u_int16_t flags =
+   904				*(u_int16_t *)NFA_DATA(nfula[NFULA_CFG_FLAGS-1]);
+   905			nfulnl_set_flags(inst, ntohl(flags));
 
 
-Looks fine. SVN is currently broken, I'll apply it once it works again.
+1) Cast should be made to __be16, and history of fixing endian warning
+   slightly above supports it.
+2) Assuming __be16, ntohl(__be16) is whooops.
+3) nfulnl_set_flags() wants something 16-bit wide as a second argument,
+   so ntohling there is double whoops.
+4) NFULNL_CFG_F_SEQ* defines fit into 16 bit and are host-endian;
+   inst->flags is &'ed with host endian so it's probably host-endian and
+
+   static int
+   nfulnl_set_flags(struct nfulnl_instance *inst, u_int16_t flags)
+   						  ^^^^^^^^^
+						  this should be made __be16.
+   {
+	spin_lock_bh(&inst->lock);
+	inst->flags = ntohs(flags);
+	spin_unlock_bh(&inst->lock);
+	return 0;
+   }
+
+   What to do with lines 903-905 if it is.
+
+	Alexey "confused in Moscow" Dobriyan
+
