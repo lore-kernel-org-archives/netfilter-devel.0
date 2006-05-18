@@ -1,7 +1,7 @@
 From: James Morris <jmorris@namei.org>
-Subject: [PATCH 04/05] secmark: Add libipt_CONNSECMARK
-Date: Thu, 18 May 2006 11:41:41 -0400 (EDT)
-Message-ID: <Pine.LNX.4.64.0605181140590.3010@d.namei>
+Subject: [PATCH 05/05] secmark: Add libip6t_CONNSECMARK
+Date: Thu, 18 May 2006 11:42:35 -0400 (EDT)
+Message-ID: <Pine.LNX.4.64.0605181141500.3010@d.namei>
 References: <Pine.LNX.4.64.0605181130560.3010@d.namei>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
@@ -21,23 +21,23 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This patch adds the shared library module for the CONNSECMARK target 
-(IPv4).
+(IPv6).
 
 Signed-off-by: James Morris <jmorris@namei.org>
 
 ---
 
- extensions/Makefile               |    2 
- extensions/libipt_CONNSECMARK.c   |  126 ++++++++++++++++++++++++++++++++++++++
- extensions/libipt_CONNSECMARK.man |   15 ++++
- 3 files changed, 142 insertions(+), 1 deletion(-)
+ extensions/Makefile                |    2 
+ extensions/libip6t_CONNSECMARK.c   |  124 +++++++++++++++++++++++++++++++++++++
+ extensions/libip6t_CONNSECMARK.man |   15 ++++
+ 3 files changed, 140 insertions(+), 1 deletion(-)
 
-diff -purN -X dontdiff iptables.p/extensions/libipt_CONNSECMARK.c iptables.w/extensions/libipt_CONNSECMARK.c
---- iptables.p/extensions/libipt_CONNSECMARK.c	1969-12-31 19:00:00.000000000 -0500
-+++ iptables.w/extensions/libipt_CONNSECMARK.c	2006-05-17 20:16:34.000000000 -0400
-@@ -0,0 +1,126 @@
+diff -purN -X dontdiff iptables.p/extensions/libip6t_CONNSECMARK.c iptables.w/extensions/libip6t_CONNSECMARK.c
+--- iptables.p/extensions/libip6t_CONNSECMARK.c	1969-12-31 19:00:00.000000000 -0500
++++ iptables.w/extensions/libip6t_CONNSECMARK.c	2006-05-17 23:27:41.000000000 -0400
+@@ -0,0 +1,124 @@
 +/*
-+ * Shared library add-on to iptables to add CONNSECMARK target support.
++ * Shared library add-on to ip6tables to add CONNSECMARK target support.
 + *
 + * Based on the MARK and CONNMARK targets.
 + *
@@ -47,7 +47,7 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_CONNSECMARK.c iptables.w/ext
 +#include <string.h>
 +#include <stdlib.h>
 +#include <getopt.h>
-+#include <iptables.h>
++#include <ip6tables.h>
 +#include <linux/netfilter/xt_CONNSECMARK.h>
 +
 +#define PFX "CONNSECMARK target: "
@@ -69,7 +69,7 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_CONNSECMARK.c iptables.w/ext
 +};
 +
 +static int parse(int c, char **argv, int invert, unsigned int *flags,
-+                 const struct ipt_entry *entry, struct ipt_entry_target **target)
++                 const struct ip6t_entry *entry, struct ip6t_entry_target **target)
 +{
 +	struct xt_connsecmark_target_info *info =
 +		(struct xt_connsecmark_target_info*)(*target)->data;
@@ -124,8 +124,8 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_CONNSECMARK.c iptables.w/ext
 +	}
 +}
 +
-+static void print(const struct ipt_ip *ip,
-+		  const struct ipt_entry_target *target, int numeric)
++static void print(const struct ip6t_ip6 *ip,
++		  const struct ip6t_entry_target *target, int numeric)
 +{
 +	struct xt_connsecmark_target_info *info =
 +		(struct xt_connsecmark_target_info*)(target)->data;
@@ -134,7 +134,7 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_CONNSECMARK.c iptables.w/ext
 +	print_connsecmark(info);
 +}
 +
-+static void save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
++static void save(const struct ip6t_ip6 *ip, const struct ip6t_entry_target *target)
 +{
 +	struct xt_connsecmark_target_info *info =
 +		(struct xt_connsecmark_target_info*)target->data;
@@ -143,13 +143,11 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_CONNSECMARK.c iptables.w/ext
 +	print_connsecmark(info);
 +}
 +
-+static struct iptables_target connsecmark = {
-+	.next		= NULL,
++static struct ip6tables_target connsecmark = {
 +	.name		= "CONNSECMARK",
 +	.version	= IPTABLES_VERSION,
-+	.revision	= 0,
-+	.size		= IPT_ALIGN(sizeof(struct xt_connsecmark_target_info)),
-+	.userspacesize	= IPT_ALIGN(sizeof(struct xt_connsecmark_target_info)),
++	.size		= IP6T_ALIGN(sizeof(struct xt_connsecmark_target_info)),
++	.userspacesize	= IP6T_ALIGN(sizeof(struct xt_connsecmark_target_info)),
 +	.parse		= &parse,
 +	.help		= &help,
 +	.final_check	= &final_check,
@@ -160,11 +158,11 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_CONNSECMARK.c iptables.w/ext
 +
 +void _init(void)
 +{
-+	register_target(&connsecmark);
++	register_target6(&connsecmark);
 +}
-diff -purN -X dontdiff iptables.p/extensions/libipt_CONNSECMARK.man iptables.w/extensions/libipt_CONNSECMARK.man
---- iptables.p/extensions/libipt_CONNSECMARK.man	1969-12-31 19:00:00.000000000 -0500
-+++ iptables.w/extensions/libipt_CONNSECMARK.man	2006-05-17 20:11:05.000000000 -0400
+diff -purN -X dontdiff iptables.p/extensions/libip6t_CONNSECMARK.man iptables.w/extensions/libip6t_CONNSECMARK.man
+--- iptables.p/extensions/libip6t_CONNSECMARK.man	1969-12-31 19:00:00.000000000 -0500
++++ iptables.w/extensions/libip6t_CONNSECMARK.man	2006-05-17 23:23:25.000000000 -0400
 @@ -0,0 +1,15 @@
 +This module copies security markings from packets to connections
 +(if unlabeled), and from connections back to packets (also only
@@ -182,14 +180,14 @@ diff -purN -X dontdiff iptables.p/extensions/libipt_CONNSECMARK.man iptables.w/e
 +does, copy the security marking from the connection to the packet.
 +
 diff -purN -X dontdiff iptables.p/extensions/Makefile iptables.w/extensions/Makefile
---- iptables.p/extensions/Makefile	2006-05-17 20:20:36.000000000 -0400
-+++ iptables.w/extensions/Makefile	2006-05-17 20:11:05.000000000 -0400
-@@ -9,7 +9,7 @@ PF_EXT_SLIB:=ah addrtype comment connlim
- PF6_EXT_SLIB:=connmark eui64 hl icmp6 length limit mac mark multiport owner physdev policy standard state tcp udp CONNMARK HL LOG NFQUEUE MARK TRACE
+--- iptables.p/extensions/Makefile	2006-05-17 23:26:30.000000000 -0400
++++ iptables.w/extensions/Makefile	2006-05-17 23:25:37.000000000 -0400
+@@ -10,7 +10,7 @@ PF6_EXT_SLIB:=connmark eui64 hl icmp6 le
  
  ifeq ($(DO_SELINUX), 1)
--PF_EXT_SE_SLIB:=SECMARK
-+PF_EXT_SE_SLIB:=SECMARK CONNSECMARK
- PF6_EXT_SE_SLIB:=SECMARK
+ PF_EXT_SE_SLIB:=SECMARK CONNSECMARK
+-PF6_EXT_SE_SLIB:=SECMARK
++PF6_EXT_SE_SLIB:=SECMARK CONNSECMARK
  endif
  
+ # Optionals
