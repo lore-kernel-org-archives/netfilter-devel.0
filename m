@@ -1,13 +1,12 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [RFC,
-	NETFILTER]: amanda helper: convert to textsearch infrastructure
-Date: Fri, 19 May 2006 18:38:36 +0200
-Message-ID: <446DF48C.5020109@trash.net>
+Subject: [RFC, NETFILTER]: Add SIP connection tracking helper
+Date: Fri, 19 May 2006 19:00:07 +0200
+Message-ID: <446DF997.4050104@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050804020702080604040800"
-Cc: Pablo Neira <pablo@netfilter.org>
+Content-Type: multipart/mixed; boundary="------------030008010509020904090008"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Christian Hentschel <chentschel@people.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,279 +19,889 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------050804020702080604040800
+--------------030008010509020904090008
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 
-I've just converted the amanda helper to the textsearch infrastructure
-to fix a packet corruption bug. This allows to avoid the data copying
-and save roughly 64k of memory. The IRC helper looks like a good
-candidate for this too, FTP is probably quite a bit more complicated.
+Hi Christian,
 
-Comments welcome.
+I finally got around to adding bidirection SIP support to the
+SIP helper. Tested with calls crossing a single asterisk box
+in multiple directions, everything appears to be working fine.
+I also ran the PROTOS c07-sip test-suite against the helper,
+it didn't find any problems. If there are no objections from
+your side I'll submit it once 2.6.17 is out.
+
+Cheers,
+Patrick
 
 
---------------050804020702080604040800
+--------------030008010509020904090008
 Content-Type: text/plain;
  name="x"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
  filename="x"
 
-[NETFILTER]: amanda helper: convert to textsearch infrastructure
+[NETFILTER]: Add SIP connection tracking helper
 
-When a port number within a packet is replaced by a differently sized
-number only the packet is resized, but not the copy of the data.
-Following port numbers are rewritten based on their offsets within
-the copy, leading to packet corruption.
-
-Convert the amanda helper to the textsearch infrastructure to avoid
-the copy entirely.
+Add SIP connection tracking helper. Originally written by
+Christian Hentschel <chentschel@arnet.com.ar>, some cleanup and
+bidirectional SIP support added by myself.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 23b9a4b7fd6c16efd069b1b4de6e605fdc56634c
-tree 0145077411b1866778a745d14805baaa7d5f290f
+commit e6e5a670aeb4a0515c93e657dbaa10fa002eef28
+tree 72a66241bda2e1c0a8d92cd949d573c136f9b9b5
 parent a54c9d30dbb06391ec4422aaf0e1dc2c8c53bd3e
-author Patrick McHardy <kaber@trash.net> Fri, 19 May 2006 18:30:54 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 19 May 2006 18:30:54 +0200
+author Patrick McHardy <kaber@trash.net> Fri, 19 May 2006 18:47:08 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 19 May 2006 18:47:08 +0200
 
- net/ipv4/netfilter/Kconfig               |    2 
- net/ipv4/netfilter/ip_conntrack_amanda.c |  140 ++++++++++++++++++++----------
- 2 files changed, 93 insertions(+), 49 deletions(-)
+ include/linux/netfilter_ipv4/ip_conntrack_sip.h |   44 ++
+ net/ipv4/netfilter/Kconfig                      |   18 +
+ net/ipv4/netfilter/Makefile                     |    2 
+ net/ipv4/netfilter/ip_conntrack_sip.c           |  471 +++++++++++++++++++++++
+ net/ipv4/netfilter/ip_nat_sip.c                 |  249 ++++++++++++
+ 5 files changed, 784 insertions(+), 0 deletions(-)
 
+diff --git a/include/linux/netfilter_ipv4/ip_conntrack_sip.h b/include/linux/netfilter_ipv4/ip_conntrack_sip.h
+new file mode 100644
+index 0000000..913dad6
+--- /dev/null
++++ b/include/linux/netfilter_ipv4/ip_conntrack_sip.h
+@@ -0,0 +1,44 @@
++#ifndef __IP_CONNTRACK_SIP_H__
++#define __IP_CONNTRACK_SIP_H__
++#ifdef __KERNEL__
++
++#define SIP_PORT	5060
++#define SIP_TIMEOUT	3600
++
++#define POS_VIA		0
++#define POS_CONTACT	1
++#define POS_CONTENT	2
++#define POS_MEDIA	3
++#define POS_OWNER	4
++#define POS_CONNECTION	5
++#define POS_REQ_HEADER	6
++#define POS_SDP_HEADER	7
++
++struct sip_header_nfo {
++	const char	*lname;
++	const char	*sname;
++	const char	*ln_str;
++	size_t		lnlen;
++	size_t		snlen;
++	size_t		ln_strlen;
++	int		(*match_len)(const char *, const char *, int *);
++};
++
++extern unsigned int (*ip_nat_sip_hook)(struct sk_buff **pskb,
++				       enum ip_conntrack_info ctinfo,
++				       struct ip_conntrack *ct,
++				       const char **dptr);
++extern unsigned int (*ip_nat_sdp_hook)(struct sk_buff **pskb,
++				       enum ip_conntrack_info ctinfo,
++				       struct ip_conntrack_expect *exp,
++				       const char *dptr);
++
++extern int ct_sip_get_info(const char *dptr, size_t dlen,
++			   unsigned int *matchoff,
++			   unsigned int *matchlen,
++			   struct sip_header_nfo *hnfo);
++extern int ct_sip_lnlen(const char *line, const char *limit);
++extern const char *ct_sip_search(const char *needle, const char *haystack,
++                                 size_t needle_len, size_t haystack_len);
++#endif /* __KERNEL__ */
++#endif /* __IP_CONNTRACK_SIP_H__ */
 diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 3d560de..d859754 100644
+index 3d560de..9b6e71a 100644
 --- a/net/ipv4/netfilter/Kconfig
 +++ b/net/ipv4/netfilter/Kconfig
-@@ -142,6 +142,8 @@ config IP_NF_TFTP
- config IP_NF_AMANDA
- 	tristate "Amanda backup protocol support"
- 	depends on IP_NF_CONNTRACK
-+	select TEXTSEARCH
-+	select TEXTSEARCH_KMP
- 	help
- 	  If you are running the Amanda backup package <http://www.amanda.org/>
- 	  on this machine or machines that will be MASQUERADED through this
-diff --git a/net/ipv4/netfilter/ip_conntrack_amanda.c b/net/ipv4/netfilter/ip_conntrack_amanda.c
-index a604b1c..34b2309 100644
---- a/net/ipv4/netfilter/ip_conntrack_amanda.c
-+++ b/net/ipv4/netfilter/ip_conntrack_amanda.c
-@@ -17,17 +17,16 @@
-  *	this value.
-  *
-  */
--
--#include <linux/in.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
--#include <linux/netfilter.h>
--#include <linux/ip.h>
- #include <linux/moduleparam.h>
-+#include <linux/textsearch.h>
+@@ -109,6 +109,18 @@ config IP_NF_IRC
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say Y.
+ 
++config IP_NF_SIP
++	tristate "SIP support (EXPERIMENTAL)"
++	depends on IP_NF_CONNTRACK && EXPERIMENTAL
++	help
++	  SIP is an application-layer control protocol that can establish,
++   	  modify, and terminate multimedia sessions (conferences) such as
++   	  Internet telephony calls. With the ip_conntrack_sip and
++	  the ip_nat_sip modules you can support the protocol on a connection
++	  tracking/NATing firewall.
++
++	  To compile it as a module, choose M here.  If unsure, say Y.
++
+ config IP_NF_NETBIOS_NS
+ 	tristate "NetBIOS name service protocol support (EXPERIMENTAL)"
+ 	depends on IP_NF_CONNTRACK && EXPERIMENTAL
+@@ -501,6 +513,12 @@ config IP_NF_NAT_H323
+ 	default IP_NF_NAT if IP_NF_H323=y
+ 	default m if IP_NF_H323=m
+ 
++config IP_NF_NAT_SIP
++	tristate
++	depends on IP_NF_IPTABLES!=n && IP_NF_CONNTRACK!=n && IP_NF_NAT!=n
++	default IP_NF_NAT if IP_NF_SIP=y
++	default m if IP_NF_SIP=m
++
+ # mangle + specific targets
+ config IP_NF_MANGLE
+ 	tristate "Packet mangling"
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 461cb1e..3ded4a3 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -31,6 +31,7 @@ obj-$(CONFIG_IP_NF_AMANDA) += ip_conntra
+ obj-$(CONFIG_IP_NF_TFTP) += ip_conntrack_tftp.o
+ obj-$(CONFIG_IP_NF_FTP) += ip_conntrack_ftp.o
+ obj-$(CONFIG_IP_NF_IRC) += ip_conntrack_irc.o
++obj-$(CONFIG_IP_NF_SIP) += ip_conntrack_sip.o
+ obj-$(CONFIG_IP_NF_NETBIOS_NS) += ip_conntrack_netbios_ns.o
+ 
+ # NAT helpers 
+@@ -40,6 +41,7 @@ obj-$(CONFIG_IP_NF_NAT_AMANDA) += ip_nat
+ obj-$(CONFIG_IP_NF_NAT_TFTP) += ip_nat_tftp.o
+ obj-$(CONFIG_IP_NF_NAT_FTP) += ip_nat_ftp.o
+ obj-$(CONFIG_IP_NF_NAT_IRC) += ip_nat_irc.o
++obj-$(CONFIG_IP_NF_NAT_SIP) += ip_nat_sip.o
+ 
+ # generic IP tables 
+ obj-$(CONFIG_IP_NF_IPTABLES) += ip_tables.o
+diff --git a/net/ipv4/netfilter/ip_conntrack_sip.c b/net/ipv4/netfilter/ip_conntrack_sip.c
+new file mode 100644
+index 0000000..fc87ce0
+--- /dev/null
++++ b/net/ipv4/netfilter/ip_conntrack_sip.c
+@@ -0,0 +1,471 @@
++/* SIP extension for IP connection tracking.
++ *
++ * (C) 2005 by Christian Hentschel <chentschel@arnet.com.ar>
++ * based on RR's ip_conntrack_ftp.c and other modules.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/config.h>
++#include <linux/module.h>
++#include <linux/ctype.h>
 +#include <linux/skbuff.h>
 +#include <linux/in.h>
 +#include <linux/ip.h>
- #include <linux/udp.h>
--#include <net/checksum.h>
--#include <net/udp.h>
- 
++#include <linux/udp.h>
++
 +#include <linux/netfilter.h>
- #include <linux/netfilter_ipv4/ip_conntrack_helper.h>
- #include <linux/netfilter_ipv4/ip_conntrack_amanda.h>
- 
-@@ -39,12 +38,6 @@ MODULE_LICENSE("GPL");
- module_param(master_timeout, uint, 0600);
- MODULE_PARM_DESC(master_timeout, "timeout for the master connection");
- 
--static const char *conns[] = { "DATA ", "MESG ", "INDEX " };
--
--/* This is slow, but it's simple. --RR */
--static char *amanda_buffer;
--static DEFINE_SPINLOCK(amanda_buffer_lock);
--
- unsigned int (*ip_nat_amanda_hook)(struct sk_buff **pskb,
- 				   enum ip_conntrack_info ctinfo,
- 				   unsigned int matchoff,
-@@ -52,12 +45,48 @@ unsigned int (*ip_nat_amanda_hook)(struc
- 				   struct ip_conntrack_expect *exp);
- EXPORT_SYMBOL_GPL(ip_nat_amanda_hook);
- 
-+enum amanda_strings {
-+	SEARCH_CONNECT,
-+	SEARCH_NEWLINE,
-+	SEARCH_DATA,
-+	SEARCH_MESG,
-+	SEARCH_INDEX,
-+};
++#include <linux/netfilter_ipv4.h>
++#include <linux/netfilter_ipv4/ip_conntrack_helper.h>
++#include <linux/netfilter_ipv4/ip_conntrack_sip.h>
 +
-+static struct {
-+	char			*string;
-+	size_t			len;
-+	struct ts_config	*ts;
-+} search[] = {
-+	[SEARCH_CONNECT] = {
-+		.string	= "CONNECT ",
-+		.len	= 8,
++#if 0
++#define DEBUGP printk
++#else
++#define DEBUGP(format, args...)
++#endif
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Christian Hentschel <chentschel@arnet.com.ar>");
++MODULE_DESCRIPTION("SIP connection tracking helper");
++
++#define MAX_PORTS	8
++static unsigned short ports[MAX_PORTS];
++static int ports_c;
++module_param_array(ports, ushort, &ports_c, 0400);
++MODULE_PARM_DESC(ports, "port numbers of sip servers");
++
++static unsigned int sip_timeout = SIP_TIMEOUT;
++module_param(sip_timeout, uint, 0600);
++MODULE_PARM_DESC(sip_timeout, "timeout for the master SIP session");
++
++unsigned int (*ip_nat_sip_hook)(struct sk_buff **pskb,
++				enum ip_conntrack_info ctinfo,
++				struct ip_conntrack *ct,
++				const char **dptr);
++EXPORT_SYMBOL_GPL(ip_nat_sip_hook);
++
++unsigned int (*ip_nat_sdp_hook)(struct sk_buff **pskb,
++				enum ip_conntrack_info ctinfo,
++				struct ip_conntrack_expect *exp,
++				const char *dptr);
++EXPORT_SYMBOL_GPL(ip_nat_sdp_hook);
++
++int ct_sip_get_info(const char *dptr, size_t dlen,
++				unsigned int *matchoff,
++				unsigned int *matchlen,
++				struct sip_header_nfo *hnfo);
++EXPORT_SYMBOL_GPL(ct_sip_get_info);
++
++
++static int digits_len(const char *dptr, const char *limit, int *shift);
++static int epaddr_len(const char *dptr, const char *limit, int *shift);
++static int skp_digits_len(const char *dptr, const char *limit, int *shift);
++static int skp_epaddr_len(const char *dptr, const char *limit, int *shift);
++
++struct sip_header_nfo ct_sip_hdrs[] = {
++	{ 	/* Via header */
++		.lname		= "Via:",
++		.lnlen		= sizeof("Via:") - 1,
++		.sname		= "\r\nv:",
++		.snlen		= sizeof("\r\nv:") - 1, /* rfc3261 "\r\n" */
++		.ln_str		= "UDP ",
++		.ln_strlen	= sizeof("UDP ") - 1,
++		.match_len	= epaddr_len,
 +	},
-+	[SEARCH_NEWLINE] = {
-+		.string	= "\n",
-+		.len	= 1,
++	{ 	/* Contact header */
++		.lname		= "Contact:",
++		.lnlen		= sizeof("Contact:") - 1,
++		.sname		= "\r\nm:",
++		.snlen		= sizeof("\r\nm:") - 1,
++		.ln_str		= "sip:",
++		.ln_strlen	= sizeof("sip:") - 1,
++		.match_len	= skp_epaddr_len
 +	},
-+	[SEARCH_DATA] = {
-+		.string	= "DATA ",
-+		.len	= 5,
++	{ 	/* Content length header */
++		.lname		= "Content-Length:",
++		.lnlen		= sizeof("Content-Length:") - 1,
++		.sname		= "\r\nl:",
++		.snlen		= sizeof("\r\nl:") - 1,
++		.ln_str		= ":",
++		.ln_strlen	= sizeof(":") - 1,
++		.match_len	= skp_digits_len
 +	},
-+	[SEARCH_MESG] = {
-+		.string	= "MESG ",
-+		.len	= 5,
++	{	/* SDP media info */
++		.lname		= "\nm=",
++		.lnlen		= sizeof("\nm=") - 1,
++		.sname		= "\rm=",
++		.snlen		= sizeof("\rm=") - 1,
++		.ln_str		= "audio ",
++		.ln_strlen	= sizeof("audio ") - 1,
++		.match_len	= digits_len
 +	},
-+	[SEARCH_INDEX] = {
-+		.string = "INDEX ",
-+		.len	= 6,
++	{ 	/* SDP owner address*/
++		.lname		= "\no=",
++		.lnlen		= sizeof("\no=") - 1,
++		.sname		= "\ro=",
++		.snlen		= sizeof("\ro=") - 1,
++		.ln_str		= "IN IP4 ",
++		.ln_strlen	= sizeof("IN IP4 ") - 1,
++		.match_len	= epaddr_len
 +	},
-+};
-+
- static int help(struct sk_buff **pskb,
-                 struct ip_conntrack *ct, enum ip_conntrack_info ctinfo)
- {
-+	struct ts_state ts;
- 	struct ip_conntrack_expect *exp;
--	char *data, *data_limit, *tmp;
--	unsigned int dataoff, i;
-+	unsigned int dataoff, start, stop, off, i;
-+	char pbuf[sizeof("65535")], *tmp;
- 	u_int16_t port, len;
- 	int ret = NF_ACCEPT;
- 
-@@ -77,29 +106,34 @@ static int help(struct sk_buff **pskb,
- 		return NF_ACCEPT;
- 	}
- 
--	spin_lock_bh(&amanda_buffer_lock);
--	skb_copy_bits(*pskb, dataoff, amanda_buffer, (*pskb)->len - dataoff);
--	data = amanda_buffer;
--	data_limit = amanda_buffer + (*pskb)->len - dataoff;
--	*data_limit = '\0';
--
--	/* Search for the CONNECT string */
--	data = strstr(data, "CONNECT ");
--	if (!data)
-+	memset(&ts, 0, sizeof(ts));
-+	start = skb_find_text(*pskb, dataoff, (*pskb)->len,
-+			      search[SEARCH_CONNECT].ts, &ts);
-+	if (start == UINT_MAX)
- 		goto out;
--	data += strlen("CONNECT ");
-+	start += dataoff + search[SEARCH_CONNECT].len;
- 
--	/* Only search first line. */	
--	if ((tmp = strchr(data, '\n')))
--		*tmp = '\0';
-+	memset(&ts, 0, sizeof(ts));
-+	stop = skb_find_text(*pskb, start, (*pskb)->len,
-+			     search[SEARCH_NEWLINE].ts, &ts);
-+	if (stop == UINT_MAX)
-+		goto out;
-+	stop += start;
- 
--	for (i = 0; i < ARRAY_SIZE(conns); i++) {
--		char *match = strstr(data, conns[i]);
--		if (!match)
-+	for (i = SEARCH_DATA; i <= SEARCH_INDEX; i++) {
-+		memset(&ts, 0, sizeof(ts));
-+		off = skb_find_text(*pskb, start, stop, search[i].ts, &ts);
-+		if (off == UINT_MAX)
- 			continue;
--		tmp = data = match + strlen(conns[i]);
--		port = simple_strtoul(data, &data, 10);
--		len = data - tmp;
-+		off += start + search[i].len;
-+
-+		len = min_t(unsigned int, sizeof(pbuf) - 1, stop - off);
-+		if (skb_copy_bits(*pskb, off, pbuf, len))
-+			break;
-+		pbuf[len] = '\0';
-+
-+		port = simple_strtoul(pbuf, &tmp, 10);
-+		len = tmp - pbuf;
- 		if (port == 0 || len > 5)
- 			break;
- 
-@@ -125,8 +159,7 @@ static int help(struct sk_buff **pskb,
- 		exp->mask.dst.u.tcp.port = 0xFFFF;
- 
- 		if (ip_nat_amanda_hook)
--			ret = ip_nat_amanda_hook(pskb, ctinfo,
--						 tmp - amanda_buffer,
-+			ret = ip_nat_amanda_hook(pskb, ctinfo, off - dataoff,
- 						 len, exp);
- 		else if (ip_conntrack_expect_related(exp) != 0)
- 			ret = NF_DROP;
-@@ -134,12 +167,11 @@ static int help(struct sk_buff **pskb,
- 	}
- 
- out:
--	spin_unlock_bh(&amanda_buffer_lock);
- 	return ret;
- }
- 
- static struct ip_conntrack_helper amanda_helper = {
--	.max_expected = ARRAY_SIZE(conns),
-+	.max_expected = 3,
- 	.timeout = 180,
- 	.me = THIS_MODULE,
- 	.help = help,
-@@ -155,26 +187,36 @@ static struct ip_conntrack_helper amanda
- 
- static void __exit ip_conntrack_amanda_fini(void)
- {
-+	int i;
-+
- 	ip_conntrack_helper_unregister(&amanda_helper);
--	kfree(amanda_buffer);
-+	for (i = 0; i < ARRAY_SIZE(search); i++)
-+		textsearch_destroy(search[i].ts);
- }
- 
- static int __init ip_conntrack_amanda_init(void)
- {
--	int ret;
--
--	amanda_buffer = kmalloc(65536, GFP_KERNEL);
--	if (!amanda_buffer)
--		return -ENOMEM;
--
--	ret = ip_conntrack_helper_register(&amanda_helper);
--	if (ret < 0) {
--		kfree(amanda_buffer);
--		return ret;
-+	int ret, i;
-+
-+	ret = -ENOMEM;
-+	for (i = 0; i < ARRAY_SIZE(search); i++) {
-+		search[i].ts = textsearch_prepare("kmp", search[i].string,
-+						  search[i].len,
-+						  GFP_KERNEL, TS_AUTOLOAD);
-+		if (search[i].ts == NULL)
-+			goto err;
- 	}
-+	ret = ip_conntrack_helper_register(&amanda_helper);
-+	if (ret < 0)
-+		goto err;
- 	return 0;
- 
--
-+err:
-+	for (; i >= 0; i--) {
-+		if (search[i].ts)
-+			textsearch_destroy(search[i].ts);
++	{ 	/* SDP connection info */
++		.lname		= "\nc=",
++		.lnlen		= sizeof("\nc=") - 1,
++		.sname		= "\rc=",
++		.snlen		= sizeof("\rc=") - 1,
++		.ln_str		= "IN IP4 ",
++		.ln_strlen	= sizeof("IN IP4 ") - 1,
++		.match_len	= epaddr_len
++	},
++	{ 	/* Requests headers */
++		.lname		= "sip:",
++		.lnlen		= sizeof("sip:") - 1,
++		.sname		= "sip:",
++		.snlen		= sizeof("sip:") - 1, /* yes, i know.. ;) */
++		.ln_str		= "@",
++		.ln_strlen	= sizeof("@") - 1,
++		.match_len	= epaddr_len
++	},
++	{ 	/* SDP version header */
++		.lname		= "\nv=",
++		.lnlen		= sizeof("\nv=") - 1,
++		.sname		= "\rv=",
++		.snlen		= sizeof("\rv=") - 1,
++		.ln_str		= "=",
++		.ln_strlen	= sizeof("=") - 1,
++		.match_len	= digits_len
 +	}
++};
++EXPORT_SYMBOL_GPL(ct_sip_hdrs);
++
++/* get line lenght until first CR or LF seen. */
++int ct_sip_lnlen(const char *line, const char *limit)
++{
++	const char *k = line;
++
++	while ((line <= limit) && (*line == '\r' || *line == '\n'))
++		line++;
++
++	while (line <= limit) {
++		if (*line == '\r' || *line == '\n')
++			break;
++		line++;
++	}
++	return line - k;
++}
++EXPORT_SYMBOL_GPL(ct_sip_lnlen);
++
++/* Linear string search, case sensitive. */
++const char *ct_sip_search(const char *needle, const char *haystack,
++                          size_t needle_len, size_t haystack_len)
++{
++	const char *limit = haystack + (haystack_len - needle_len);
++
++	while (haystack <= limit) {
++		if (memcmp(haystack, needle, needle_len) == 0)
++			return haystack;
++		haystack++;
++	}
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(ct_sip_search);
++
++static int digits_len(const char *dptr, const char *limit, int *shift)
++{
++	int len = 0;
++	while (dptr <= limit && isdigit(*dptr)) {
++		dptr++;
++		len++;
++	}
++	return len;
++}
++
++/* get digits lenght, skiping blank spaces. */
++static int skp_digits_len(const char *dptr, const char *limit, int *shift)
++{
++	for (; dptr <= limit && *dptr == ' '; dptr++)
++		(*shift)++;
++
++	return digits_len(dptr, limit, shift);
++}
++
++/* Simple ipaddr parser.. */
++static int parse_ipaddr(const char *cp,	const char **endp,
++			u_int32_t *ipaddr, const char *limit)
++{
++	unsigned long int val;
++	int i, digit = 0;
++
++	for (i = 0, *ipaddr = 0; cp <= limit && i < 4; i++) {
++		digit = 0;
++		if (!isdigit(*cp))
++			break;
++
++		val = simple_strtoul(cp, (char **)&cp, 10);
++		if (val > 0xFF)
++			return -1;
++
++		((u_int8_t *)ipaddr)[i] = val;
++		digit = 1;
++
++		if (*cp != '.')
++			break;
++		cp++;
++	}
++	if (!digit)
++		return -1;
++
++	if (endp)
++		*endp = cp;
++
++	return 0;
++}
++
++/* skip ip address. returns it lenght. */
++static int epaddr_len(const char *dptr, const char *limit, int *shift)
++{
++	const char *aux = dptr;
++	u_int32_t ip;
++
++	if (parse_ipaddr(dptr, &dptr, &ip, limit) < 0) {
++		DEBUGP("ip: %s parse failed.!\n", dptr);
++		return 0;
++	}
++
++	/* Port number */
++	if (*dptr == ':') {
++		dptr++;
++		dptr += digits_len(dptr, limit, shift);
++	}
++	return dptr - aux;
++}
++
++/* get address length, skiping user info. */
++static int skp_epaddr_len(const char *dptr, const char *limit, int *shift)
++{
++	int s = *shift;
++
++	for (; dptr <= limit && *dptr != '@'; dptr++)
++		(*shift)++;
++
++	if (*dptr == '@') {
++		dptr++;
++		(*shift)++;
++	} else
++		*shift = s;
++
++	return epaddr_len(dptr, limit, shift);
++}
++
++/* Returns 0 if not found, -1 error parsing. */
++int ct_sip_get_info(const char *dptr, size_t dlen,
++		    unsigned int *matchoff,
++		    unsigned int *matchlen,
++		    struct sip_header_nfo *hnfo)
++{
++	const char *limit, *aux, *k = dptr;
++	int shift = 0;
++
++	limit = dptr + (dlen - hnfo->lnlen);
++
++	while (dptr <= limit) {
++		if ((strncmp(dptr, hnfo->lname, hnfo->lnlen) != 0) &&
++		    (strncmp(dptr, hnfo->sname, hnfo->snlen) != 0)) {
++			dptr++;
++			continue;
++		}
++		aux = ct_sip_search(hnfo->ln_str, dptr, hnfo->ln_strlen,
++		                    ct_sip_lnlen(dptr, limit));
++		if (!aux) {
++			DEBUGP("'%s' not found in '%s'.\n", hnfo->ln_str,
++			       hnfo->lname);
++			return -1;
++		}
++		aux += hnfo->ln_strlen;
++
++		*matchlen = hnfo->match_len(aux, limit, &shift);
++		if (!*matchlen)
++			return -1;
++
++		*matchoff = (aux - k) + shift;
++
++		DEBUGP("%s match succeeded! - len: %u\n", hnfo->lname,
++		       *matchlen);
++		return 1;
++	}
++	DEBUGP("%s header not found.\n", hnfo->lname);
++	return 0;
++}
++
++static int set_expected_rtp(struct sk_buff **pskb,
++			    struct ip_conntrack *ct,
++			    enum ip_conntrack_info ctinfo,
++			    u_int32_t ipaddr, u_int16_t port,
++			    const char *dptr)
++{
++	struct ip_conntrack_expect *exp;
++	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
++	int ret;
++
++	exp = ip_conntrack_expect_alloc(ct);
++	if (exp == NULL)
++		return NF_DROP;
++
++	exp->tuple.src.ip = ct->tuplehash[!dir].tuple.src.ip;
++	exp->tuple.src.u.udp.port = 0;
++	exp->tuple.dst.ip = ipaddr;
++	exp->tuple.dst.u.udp.port = htons(port);
++	exp->tuple.dst.protonum = IPPROTO_UDP;
++
++	exp->mask.src.ip = 0xFFFFFFFF;
++	exp->mask.src.u.udp.port = 0;
++	exp->mask.dst.ip = 0xFFFFFFFF;
++	exp->mask.dst.u.udp.port = 0xFFFF;
++	exp->mask.dst.protonum = 0xFF;
++
++	exp->expectfn = NULL;
++	exp->flags = 0;
++
++	if (ip_nat_sdp_hook)
++		ret = ip_nat_sdp_hook(pskb, ctinfo, exp, dptr);
++	else {
++		if (ip_conntrack_expect_related(exp) != 0)
++			ret = NF_DROP;
++		else
++			ret = NF_ACCEPT;
++	}
++	ip_conntrack_expect_put(exp);
++
 +	return ret;
- }
- 
- module_init(ip_conntrack_amanda_init);
++}
++
++static int sip_help(struct sk_buff **pskb,
++		    struct ip_conntrack *ct,
++		    enum ip_conntrack_info ctinfo)
++{
++	unsigned int dataoff, datalen;
++	const char *dptr;
++	int ret = NF_ACCEPT;
++	int matchoff, matchlen;
++	u_int32_t ipaddr;
++	u_int16_t port;
++
++	/* No Data ? */
++	dataoff = (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
++	if (dataoff >= (*pskb)->len) {
++		DEBUGP("skb->len = %u\n", (*pskb)->len);
++		return NF_ACCEPT;
++        }
++
++	ip_ct_refresh(ct, *pskb, sip_timeout * HZ);
++
++	if (!skb_is_nonlinear(*pskb))
++		dptr = (*pskb)->data + dataoff;
++	else {
++		DEBUGP("Copy of skbuff not supported yet.\n");
++		goto out;
++	}
++
++	if (ip_nat_sip_hook) {
++		if (!ip_nat_sip_hook(pskb, ctinfo, ct, &dptr)) {
++			ret = NF_DROP;
++			goto out;
++		}
++	}
++
++	/* After this point NAT, could have mangled skb, so
++	   we need to recalculate payload lenght. */
++	datalen = (*pskb)->len - dataoff;
++
++	if (datalen < (sizeof("SIP/2.0 200") - 1))
++		goto out;
++
++	/* RTP info only in some SDP pkts */
++	if (memcmp(dptr, "INVITE", sizeof("INVITE") - 1) != 0 &&
++	    memcmp(dptr, "SIP/2.0 200", sizeof("SIP/2.0 200") - 1) != 0) {
++		goto out;
++	}
++	/* Get ip and port address from SDP packet. */
++	if (ct_sip_get_info(dptr, datalen, &matchoff, &matchlen,
++	                    &ct_sip_hdrs[POS_CONNECTION]) > 0) {
++
++		/* We'll drop only if there are parse problems. */
++		if (parse_ipaddr(dptr + matchoff, NULL, &ipaddr,
++		                 dptr + datalen) < 0) {
++			ret = NF_DROP;
++			goto out;
++		}
++		if (ct_sip_get_info(dptr, datalen, &matchoff, &matchlen,
++		                    &ct_sip_hdrs[POS_MEDIA]) > 0) {
++
++			port = simple_strtoul(dptr + matchoff, NULL, 10);
++			if (port < 1024) {
++				ret = NF_DROP;
++				goto out;
++			}
++			ret = set_expected_rtp(pskb, ct, ctinfo,
++					       ipaddr, port, dptr);
++		}
++	}
++out:
++	return ret;
++}
++
++static struct ip_conntrack_helper sip[MAX_PORTS];
++static char sip_names[MAX_PORTS][10];
++
++static void fini(void)
++{
++	int i;
++	for (i = 0; i < ports_c; i++) {
++		DEBUGP("unregistering helper for port %d\n", ports[i]);
++		ip_conntrack_helper_unregister(&sip[i]);
++	}
++}
++
++static int __init init(void)
++{
++	int i, ret;
++	char *tmpname;
++
++	if (ports_c == 0)
++		ports[ports_c++] = SIP_PORT;
++
++	for (i = 0; i < ports_c; i++) {
++		/* Create helper structure */
++		memset(&sip[i], 0, sizeof(struct ip_conntrack_helper));
++
++		sip[i].tuple.dst.protonum = IPPROTO_UDP;
++		sip[i].tuple.src.u.udp.port = htons(ports[i]);
++		sip[i].mask.src.u.udp.port = 0xFFFF;
++		sip[i].mask.dst.protonum = 0xFF;
++		sip[i].max_expected = 1;
++		sip[i].timeout = 3 * 60; /* 3 minutes */
++		sip[i].me = THIS_MODULE;
++		sip[i].help = sip_help;
++
++		tmpname = &sip_names[i][0];
++		if (ports[i] == SIP_PORT)
++			sprintf(tmpname, "sip");
++		else
++			sprintf(tmpname, "sip-%d", i);
++		sip[i].name = tmpname;
++
++		DEBUGP("port #%d: %d\n", i, ports[i]);
++
++		ret = ip_conntrack_helper_register(&sip[i]);
++		if (ret) {
++			printk("ERROR registering helper for port %d\n",
++				ports[i]);
++			fini();
++			return ret;
++		}
++	}
++	return 0;
++}
++
++module_init(init);
++module_exit(fini);
+diff --git a/net/ipv4/netfilter/ip_nat_sip.c b/net/ipv4/netfilter/ip_nat_sip.c
+new file mode 100644
+index 0000000..6ffba63
+--- /dev/null
++++ b/net/ipv4/netfilter/ip_nat_sip.c
+@@ -0,0 +1,249 @@
++/* SIP extension for UDP NAT alteration.
++ *
++ * (C) 2005 by Christian Hentschel <chentschel@arnet.com.ar>
++ * based on RR's ip_nat_ftp.c and other modules.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/ip.h>
++#include <linux/udp.h>
++
++#include <linux/netfilter_ipv4.h>
++#include <linux/netfilter_ipv4/ip_nat.h>
++#include <linux/netfilter_ipv4/ip_nat_helper.h>
++#include <linux/netfilter_ipv4/ip_conntrack_helper.h>
++#include <linux/netfilter_ipv4/ip_conntrack_sip.h>
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Christian Hentschel <chentschel@arnet.com.ar>");
++MODULE_DESCRIPTION("SIP NAT helper");
++
++#if 0
++#define DEBUGP printk
++#else
++#define DEBUGP(format, args...)
++#endif
++
++extern struct sip_header_nfo ct_sip_hdrs[];
++
++static unsigned int mangle_sip_packet(struct sk_buff **pskb,
++				      enum ip_conntrack_info ctinfo,
++				      struct ip_conntrack *ct,
++				      const char **dptr, size_t dlen,
++				      char *buffer, int bufflen,
++				      struct sip_header_nfo *hnfo)
++{
++	unsigned int matchlen, matchoff;
++
++	if (ct_sip_get_info(*dptr, dlen, &matchoff, &matchlen, hnfo) <= 0)
++		return 0;
++
++	if (!ip_nat_mangle_udp_packet(pskb, ct, ctinfo,
++	                              matchoff, matchlen, buffer, bufflen))
++		return 0;
++
++	/* We need to reload this. Thanks Patrick. */
++	*dptr = (*pskb)->data + (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
++	return 1;
++}
++
++static unsigned int ip_nat_sip(struct sk_buff **pskb,
++			       enum ip_conntrack_info ctinfo,
++			       struct ip_conntrack *ct,
++			       const char **dptr)
++{
++	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
++	char buffer[sizeof("nnn.nnn.nnn.nnn:nnnnn")];
++	unsigned int bufflen, dataoff;
++	u_int32_t ip;
++	u_int16_t port;
++
++	dataoff = (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
++
++	ip   = ct->tuplehash[!dir].tuple.dst.ip;
++	port = ct->tuplehash[!dir].tuple.dst.u.udp.port;
++	bufflen = sprintf(buffer, "%u.%u.%u.%u:%u", NIPQUAD(ip), ntohs(port));
++
++	/* short packet ? */
++	if (((*pskb)->len - dataoff) < (sizeof("SIP/2.0") - 1))
++		return 0;
++
++	/* Basic rules: requests and responses. */
++	if (memcmp(*dptr, "SIP/2.0", sizeof("SIP/2.0") - 1) == 0) {
++		const char *aux;
++
++		if ((ctinfo) < IP_CT_IS_REPLY) {
++			mangle_sip_packet(pskb, ctinfo, ct, dptr,
++			                  (*pskb)->len - dataoff,
++			                  buffer, bufflen,
++			                  &ct_sip_hdrs[POS_CONTACT]);
++			return 1;
++		}
++
++		if (!mangle_sip_packet(pskb, ctinfo, ct, dptr,
++				       (*pskb)->len - dataoff,
++		                       buffer, bufflen, &ct_sip_hdrs[POS_VIA]))
++			return 0;
++
++		/* This search should ignore case, but later.. */
++		aux = ct_sip_search("CSeq:", *dptr, sizeof("CSeq:") - 1,
++		                    (*pskb)->len - dataoff);
++		if (!aux)
++			return 0;
++
++		if (!ct_sip_search("REGISTER", aux, sizeof("REGISTER"),
++		    ct_sip_lnlen(aux, *dptr + (*pskb)->len - dataoff)))
++			return 1;
++
++		return mangle_sip_packet(pskb, ctinfo, ct, dptr,
++					 (*pskb)->len - dataoff,
++		                         buffer, bufflen,
++					 &ct_sip_hdrs[POS_CONTACT]);
++	}
++	if ((ctinfo) < IP_CT_IS_REPLY) {
++		if (!mangle_sip_packet(pskb, ctinfo, ct, dptr,
++				       (*pskb)->len - dataoff,
++		                       buffer, bufflen, &ct_sip_hdrs[POS_VIA]))
++			return 0;
++
++		/* Mangle Contact if exists only. - watch udp_nat_mangle()! */
++		mangle_sip_packet(pskb, ctinfo, ct, dptr, (*pskb)->len - dataoff,
++		                  buffer, bufflen, &ct_sip_hdrs[POS_CONTACT]);
++		return 1;
++	}
++	/* This mangle requests headers. */
++	return mangle_sip_packet(pskb, ctinfo, ct, dptr,
++	                         ct_sip_lnlen(*dptr,
++				              *dptr + (*pskb)->len - dataoff),
++	                         buffer, bufflen, &ct_sip_hdrs[POS_REQ_HEADER]);
++}
++
++static int mangle_content_len(struct sk_buff **pskb,
++			      enum ip_conntrack_info ctinfo,
++			      struct ip_conntrack *ct,
++			      const char *dptr)
++{
++	unsigned int dataoff, matchoff, matchlen;
++	char buffer[sizeof("65536")];
++	int bufflen;
++
++	dataoff = (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
++
++	/* Get actual SDP lenght */
++	if (ct_sip_get_info(dptr, (*pskb)->len - dataoff, &matchoff,
++	                    &matchlen, &ct_sip_hdrs[POS_SDP_HEADER]) > 0) {
++
++		/* since ct_sip_get_info() give us a pointer passing 'v='
++		   we need to add 2 bytes in this count. */
++		int c_len = (*pskb)->len - dataoff - matchoff + 2;
++
++		/* Now, update SDP lenght */
++		if (ct_sip_get_info(dptr, (*pskb)->len - dataoff, &matchoff,
++		                    &matchlen, &ct_sip_hdrs[POS_CONTENT]) > 0) {
++
++			bufflen = sprintf(buffer, "%u", c_len);
++
++			return ip_nat_mangle_udp_packet(pskb, ct, ctinfo,
++							matchoff, matchlen,
++							buffer, bufflen);
++		}
++	}
++	return 0;
++}
++
++static unsigned int mangle_sdp(struct sk_buff **pskb,
++			       enum ip_conntrack_info ctinfo,
++			       struct ip_conntrack *ct,
++			       u_int32_t newip, u_int16_t port,
++			       const char *dptr)
++{
++	char buffer[sizeof("nnn.nnn.nnn.nnn")];
++	unsigned int dataoff, bufflen;
++
++	dataoff = (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
++
++	/* Mangle owner and contact info. */
++	bufflen = sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(newip));
++	if (!mangle_sip_packet(pskb, ctinfo, ct, &dptr, (*pskb)->len - dataoff,
++	                       buffer, bufflen, &ct_sip_hdrs[POS_OWNER]))
++		return 0;
++
++	if (!mangle_sip_packet(pskb, ctinfo, ct, &dptr, (*pskb)->len - dataoff,
++	                       buffer, bufflen, &ct_sip_hdrs[POS_CONNECTION]))
++		return 0;
++
++	/* Mangle media port. */
++	bufflen = sprintf(buffer, "%u", port);
++	if (!mangle_sip_packet(pskb, ctinfo, ct, &dptr, (*pskb)->len - dataoff,
++	                       buffer, bufflen, &ct_sip_hdrs[POS_MEDIA]))
++		return 0;
++
++	return mangle_content_len(pskb, ctinfo, ct, dptr);
++}
++
++/* So, this packet has hit the connection tracking matching code.
++   Mangle it, and change the expectation to match the new version. */
++static unsigned int ip_nat_sdp(struct sk_buff **pskb,
++			       enum ip_conntrack_info ctinfo,
++			       struct ip_conntrack_expect *exp,
++			       const char *dptr)
++{
++	struct ip_conntrack *ct = exp->master;
++	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
++	u_int32_t newip;
++	u_int16_t port;
++
++	DEBUGP("ip_nat_sdp():\n");
++
++	/* Connection will come from reply */
++	newip = ct->tuplehash[!dir].tuple.dst.ip;
++
++	exp->tuple.dst.ip = newip;
++	exp->saved_proto.udp.port = exp->tuple.dst.u.udp.port;
++	exp->dir = !dir;
++
++	/* When you see the packet, we need to NAT it the same as the
++	   this one. */
++	exp->expectfn = ip_nat_follow_master;
++
++	/* Try to get same port: if not, try to change it. */
++	for (port = ntohs(exp->saved_proto.udp.port); port != 0; port++) {
++		exp->tuple.dst.u.udp.port = htons(port);
++		if (ip_conntrack_expect_related(exp) == 0)
++			break;
++	}
++
++	if (port == 0)
++		return NF_DROP;
++
++	if (!mangle_sdp(pskb, ctinfo, ct, newip, port, dptr)) {
++		ip_conntrack_unexpect_related(exp);
++		return NF_DROP;
++	}
++	return NF_ACCEPT;
++}
++
++static void __exit fini(void)
++{
++	ip_nat_sip_hook = NULL;
++	ip_nat_sdp_hook = NULL;
++	/* Make sure noone calls it, meanwhile. */
++	synchronize_net();
++}
++
++static int __init init(void)
++{
++	BUG_ON(ip_nat_sip_hook);
++	BUG_ON(ip_nat_sdp_hook);
++	ip_nat_sip_hook = ip_nat_sip;
++	ip_nat_sdp_hook = ip_nat_sdp;
++	return 0;
++}
++
++module_init(init);
++module_exit(fini);
 
-
---------------050804020702080604040800--
+--------------030008010509020904090008--
