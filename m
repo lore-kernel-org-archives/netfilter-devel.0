@@ -1,16 +1,11 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 5/*]: nfnetlink_log: fix byteorder confusion
-Date: Fri, 19 May 2006 03:21:54 +0200
-Message-ID: <446D1DB2.5000604@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain;
- name="03.diff"
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+From: Eric Leblond <eric@inl.fr>
+Subject: [PATCH] Unconditionaly push mark to conntrack structure
+Date: Fri, 19 May 2006 08:45:17 +0000 (UTC)
+Message-ID: <E1Fh0am-0003Ct-Ph@fydelkass.inl.fr>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-Content-Disposition: inline;
- filename="03.diff"
+Resent-Message-ID: <20060519083925.GB19855@profy.inl.fr>
+To: netfilter-devel@lists.netfilter.org
+Date: Fri May 19 10:28:45 2006 +0200
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,44 +17,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nfnetlink_log: fix byteorder confusion
+This is needed in userspace as the mark can be used to select 
+efficiently a subset of the conntrack events to work on.
 
-flags is a u16, so use htons instead of htonl. Also avoid double
-conversion.
+Signed-off-by: Eric Leblond <eric@inl.fr>
 
-Noticed by Alexey Dobriyan <adobriyan@gmail.com>
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit ad1dcdc1f150f613ff8625fed88ed5c1d089d09a
-tree fa34bb52998bd56144639dfe6b2c286b114ae59a
-parent f372e5df6ab4cd1e1498489562af2095fb5aec7c
-author Patrick McHardy <kaber@trash.net> Fri, 19 May 2006 03:12:08 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 19 May 2006 03:12:08 +0200
 
- net/netfilter/nfnetlink_log.c |    4 ++--
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    4 ++--
  1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index c60273c..61cdda4 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -321,7 +321,7 @@ static int
- nfulnl_set_flags(struct nfulnl_instance *inst, u_int16_t flags)
- {
- 	spin_lock_bh(&inst->lock);
--	inst->flags = ntohs(flags);
-+	inst->flags = flags;
- 	spin_unlock_bh(&inst->lock);
+a0d56f7badb6267e07582a569c82779b2cdb2711
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+index 0fee630..02531fe 100644
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -381,8 +381,8 @@ static int ctnetlink_conntrack_event(str
+ 	if (events & IPCT_HELPINFO
+ 	    && ctnetlink_dump_helpinfo(skb, ct) < 0)
+ 		goto nfattr_failure;
+-	if (events & IPCT_MARK
+-	    && ctnetlink_dump_mark(skb, ct) < 0)
++
++	if (ctnetlink_dump_mark(skb, ct) < 0)
+ 		goto nfattr_failure;
  
- 	return 0;
-@@ -902,7 +902,7 @@ nfulnl_recv_config(struct sock *ctnl, st
- 	if (nfula[NFULA_CFG_FLAGS-1]) {
- 		u_int16_t flags =
- 			*(u_int16_t *)NFA_DATA(nfula[NFULA_CFG_FLAGS-1]);
--		nfulnl_set_flags(inst, ntohl(flags));
-+		nfulnl_set_flags(inst, ntohs(flags));
- 	}
- 
- out_put:
+ 	if (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
+-- 
+1.2.6
