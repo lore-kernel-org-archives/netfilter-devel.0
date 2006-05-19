@@ -1,11 +1,15 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH] Unconditionaly push mark to conntrack structure
-Date: Fri, 19 May 2006 08:45:17 +0000 (UTC)
-Message-ID: <E1Fh0am-0003Ct-Ph@fydelkass.inl.fr>
+From: "David S. Miller" <davem@davemloft.net>
+Subject: Re: [NETFILTER 3/*]: GRE conntrack: fix htons/htonl confusion
+Date: Fri, 19 May 2006 02:18:15 -0700 (PDT)
+Message-ID: <20060519.021815.18973248.davem@davemloft.net>
+References: <446D1DA9.5000507@trash.net>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Resent-Message-ID: <20060519083925.GB19855@profy.inl.fr>
-To: netfilter-devel@lists.netfilter.org
-Date: Fri May 19 10:28:45 2006 +0200
+To: kaber@trash.net
+In-Reply-To: <446D1DA9.5000507@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,32 +21,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is needed in userspace as the mark can be used to select 
-efficiently a subset of the conntrack events to work on.
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri, 19 May 2006 03:21:45 +0200
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
+> following are three more fixes on top of the last two: the
+> byteorder fixes from Alexey Dobriyan and Solar Designer's
+> do_add_counters fix. Please also apply.
 
-
----
-
- net/ipv4/netfilter/ip_conntrack_netlink.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-a0d56f7badb6267e07582a569c82779b2cdb2711
-diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index 0fee630..02531fe 100644
---- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -381,8 +381,8 @@ static int ctnetlink_conntrack_event(str
- 	if (events & IPCT_HELPINFO
- 	    && ctnetlink_dump_helpinfo(skb, ct) < 0)
- 		goto nfattr_failure;
--	if (events & IPCT_MARK
--	    && ctnetlink_dump_mark(skb, ct) < 0)
-+
-+	if (ctnetlink_dump_mark(skb, ct) < 0)
- 		goto nfattr_failure;
- 
- 	if (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
--- 
-1.2.6
+I've applied all of your fixes, thanks a lot Patrick.
