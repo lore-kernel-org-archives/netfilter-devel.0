@@ -1,111 +1,115 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 16/32 bit issues at nfulnl_recv_config
-Date: Fri, 19 May 2006 03:15:58 +0200
-Message-ID: <446D1C4E.6050601@trash.net>
-References: <20060518232050.GA31257@mipter.zuzino.mipt.ru>
+Subject: [NETFILTER 3/*]: GRE conntrack: fix htons/htonl confusion
+Date: Fri, 19 May 2006 03:21:45 +0200
+Message-ID: <446D1DA9.5000507@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060503010800080506060205"
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-To: Alexey Dobriyan <adobriyan@gmail.com>
-In-Reply-To: <20060518232050.GA31257@mipter.zuzino.mipt.ru>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="------------010201000608030303020404"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: "David S. Miller" <davem@davemloft.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060503010800080506060205
-Content-Type: text/plain; charset=ISO-8859-1
+--------------010201000608030303020404
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 
-Alexey Dobriyan wrote:
-> I'm talking about net/netfilter/nfnetlink_log.c::^nfulnl_recv_config
-> below. I'm totally confused and beer supply almost ended, so can someone else
-> also look at it...
-> 
-> Put your attention at line 905:
-> 
-> net/netfilter/nfnetlink_log.c:
-> 
->    902		if (nfula[NFULA_CFG_FLAGS-1]) {
->    903			u_int16_t flags =
->    904				*(u_int16_t *)NFA_DATA(nfula[NFULA_CFG_FLAGS-1]);
->    905			nfulnl_set_flags(inst, ntohl(flags));
-> 
-> 
-> 1) Cast should be made to __be16, and history of fixing endian warning
->    slightly above supports it.
-> 2) Assuming __be16, ntohl(__be16) is whooops.
-> 3) nfulnl_set_flags() wants something 16-bit wide as a second argument,
->    so ntohling there is double whoops.
-> 4) NFULNL_CFG_F_SEQ* defines fit into 16 bit and are host-endian;
->    inst->flags is &'ed with host endian so it's probably host-endian and
-> 
->    static int
->    nfulnl_set_flags(struct nfulnl_instance *inst, u_int16_t flags)
->    						  ^^^^^^^^^
-> 						  this should be made __be16.
->    {
-> 	spin_lock_bh(&inst->lock);
-> 	inst->flags = ntohs(flags);
-> 	spin_unlock_bh(&inst->lock);
-> 	return 0;
->    }
-> 
->    What to do with lines 903-905 if it is.
+Hi Dave,
+
+following are three more fixes on top of the last two: the
+byteorder fixes from Alexey Dobriyan and Solar Designer's
+do_add_counters fix. Please also apply.
 
 
-I checked the userspace code, "flags" is indeed a u16 in network byte
-order, so the ntohl in line 905 needs to become ntohs and the other
-one can just go, as done by this patch.
+ net/ipv4/netfilter/arp_tables.c       |    2 +-
+ net/ipv4/netfilter/ip_nat_proto_gre.c |   12 ++++++------
+ net/ipv6/netfilter/ip6_tables.c       |    2 +-
+ net/netfilter/nfnetlink_log.c         |    4 ++--
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
---------------060503010800080506060205
+Alexey Dobriyan:
+      [NETFILTER]: GRE conntrack: fix htons/htonl confusion
+
+Kirill Korotaev:
+      [NETFILTER]: Fix do_add_counters race, possible oops or info leak
+(CVE-2006-0039)
+
+Patrick McHardy:
+      [NETFILTER]: nfnetlink_log: fix byteorder confusion
+
+--------------010201000608030303020404
 Content-Type: text/plain;
- name="x"
+ name="01.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="x"
+ filename="01.diff"
 
-[NETFILTER]: nfnetlink_log: fix byteorder confusion
+[NETFILTER]: GRE conntrack: fix htons/htonl confusion
 
-flags is a u16, so use htons instead of htonl. Also avoid double
-conversion.
+GRE keys are 16 bit.
 
-Noticed by Alexey Dobriyan <adobriyan@gmail.com>
-
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit ad1dcdc1f150f613ff8625fed88ed5c1d089d09a
-tree fa34bb52998bd56144639dfe6b2c286b114ae59a
-parent f372e5df6ab4cd1e1498489562af2095fb5aec7c
-author Patrick McHardy <kaber@trash.net> Fri, 19 May 2006 03:12:08 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 19 May 2006 03:12:08 +0200
+commit 326640604c2d35b4b93808fc478e337a9f94414c
+tree ed970126dc0500310b6c7cc812ad1e438ce701c0
+parent a54c9d30dbb06391ec4422aaf0e1dc2c8c53bd3e
+author Alexey Dobriyan <adobriyan@gmail.com> Thu, 18 May 2006 16:35:47 +0200
+committer Patrick McHardy <kaber@trash.net> Thu, 18 May 2006 16:35:47 +0200
 
- net/netfilter/nfnetlink_log.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/ip_nat_proto_gre.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index c60273c..61cdda4 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -321,7 +321,7 @@ static int
- nfulnl_set_flags(struct nfulnl_instance *inst, u_int16_t flags)
+diff --git a/net/ipv4/netfilter/ip_nat_proto_gre.c b/net/ipv4/netfilter/ip_nat_proto_gre.c
+index 6c4899d..96ceaba 100644
+--- a/net/ipv4/netfilter/ip_nat_proto_gre.c
++++ b/net/ipv4/netfilter/ip_nat_proto_gre.c
+@@ -49,15 +49,15 @@ gre_in_range(const struct ip_conntrack_t
+ 	     const union ip_conntrack_manip_proto *min,
+ 	     const union ip_conntrack_manip_proto *max)
  {
- 	spin_lock_bh(&inst->lock);
--	inst->flags = ntohs(flags);
-+	inst->flags = flags;
- 	spin_unlock_bh(&inst->lock);
+-	u_int32_t key;
++	__be16 key;
  
- 	return 0;
-@@ -902,7 +902,7 @@ nfulnl_recv_config(struct sock *ctnl, st
- 	if (nfula[NFULA_CFG_FLAGS-1]) {
- 		u_int16_t flags =
- 			*(u_int16_t *)NFA_DATA(nfula[NFULA_CFG_FLAGS-1]);
--		nfulnl_set_flags(inst, ntohl(flags));
-+		nfulnl_set_flags(inst, ntohs(flags));
+ 	if (maniptype == IP_NAT_MANIP_SRC)
+ 		key = tuple->src.u.gre.key;
+ 	else
+ 		key = tuple->dst.u.gre.key;
+ 
+-	return ntohl(key) >= ntohl(min->gre.key)
+-		&& ntohl(key) <= ntohl(max->gre.key);
++	return ntohs(key) >= ntohs(min->gre.key)
++		&& ntohs(key) <= ntohs(max->gre.key);
+ }
+ 
+ /* generate unique tuple ... */
+@@ -81,14 +81,14 @@ gre_unique_tuple(struct ip_conntrack_tup
+ 		min = 1;
+ 		range_size = 0xffff;
+ 	} else {
+-		min = ntohl(range->min.gre.key);
+-		range_size = ntohl(range->max.gre.key) - min + 1;
++		min = ntohs(range->min.gre.key);
++		range_size = ntohs(range->max.gre.key) - min + 1;
  	}
  
- out_put:
+ 	DEBUGP("min = %u, range_size = %u\n", min, range_size); 
+ 
+ 	for (i = 0; i < range_size; i++, key++) {
+-		*keyptr = htonl(min + key % range_size);
++		*keyptr = htons(min + key % range_size);
+ 		if (!ip_nat_used_tuple(tuple, conntrack))
+ 			return 1;
+ 	}
 
---------------060503010800080506060205--
+--------------010201000608030303020404--
