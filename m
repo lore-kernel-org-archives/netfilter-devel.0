@@ -1,19 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Xen-devel] Re: Panic in ipt_do_table with 2.6.16.13-xen
-Date: Sun, 21 May 2006 19:43:41 +0200
-Message-ID: <4470A6CD.5010501@trash.net>
-References: <4468BE70.7030802@tektonic.net>
-	<4468D613.20309@trash.net>	<44691669.4080903@tektonic.net>	<Pine.LNX.4.64.0605152331140.10964@d.namei>	<4469D84F.8080709@tektonic.net>	<Pine.LNX.4.64.0605161127030.16379@d.namei>	<446D0A0D.5090608@tektonic.net>	<Pine.LNX.4.64.0605182002330.6528@d.namei>
-	<446D0E6D.2080600@tektonic.net> <446D151D.6030307@tektonic.net>
+From: Martijn Lievaart <m@rtij.nl>
+Subject: Re: New extension: CRYPT target
+Date: Sun, 21 May 2006 19:51:17 +0200
+Message-ID: <4470A895.5090707@rtij.nl>
+References: <44708E68.9080508@speedy.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Matt Ayres <matta@tektonic.net>
-In-Reply-To: <446D151D.6030307@tektonic.net>
+To: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+In-Reply-To: <44708E68.9080508@speedy.com.ar>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,15 +21,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Matt Ayres wrote:
-> I think I confirmed the NIC is not the source of the problem.  A few of
-> my servers have e100/tulip NIC's due to a bug with the chipset of the
-> on-board TG3 cards firmware and TSO.  These servers that use the
-> e100/tulip drivers also experience the ipt_do_table bug.
+Gervasio Bernal wrote:
 
-There is an identical report in the netfilter bugzilla, also crashes
-(on x86_64) in ipt_do_table with Xen. I haven't heard anything of
-similar crashes without Xen, so I doubt that the bug is in the
-netfilter code.
+>Hi all!!!
+>
+>After some months of development we have finished this new extension.
+>CRYPT is a new target extension for Netfilter/Iptables that enables the
+>user to encrypt, decrypt and authenticate any IP protocol traffic using
+>the Linux Cryptographic API.
+>
+>For example, if you want to encrypt FTP (TOP) traffic between host A and
+>host B, you can do as follows:
+>
+>(on host A, 1.2.3.4, FTP client)
+># iptables -t mangle -A POSTROUTING -d 1.2.3.5 -p tcp --dport 20:21 -j
+>CRYPT --cipher blowfish --key topsecret --mode ecb --direction encrypt
+># iptables -t mangle -A PREROUTING -s 1.2.3.5 -p 206 -j CRYPT --cipher
+>3des --key topsecretkeyinascii12345 --mode cbc --direction decrypt
+>  
+>
 
-https://bugzilla.netfilter.org/bugzilla/show_bug.cgi?id=478
+Minor critisism, this will not catch the data channels of ftp, only the 
+control channel. Active ftp uses a *source* port of 20, passive ftp 
+(which is more common nowadays) uses whatever port range the server uses 
+for data channels (typically something like 30000-31000).
+
+Does -mode cbc use the iv from the last packet? If not, this seems like 
+a false sense of security. Protocols that use lots of small packets will 
+still more or less have the drawbacks of ecb.
+
+M4
