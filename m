@@ -1,16 +1,14 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
+From: Michael Richardson <mcr@sandelman.ottawa.on.ca>
 Subject: Re: New extension: CRYPT target
-Date: Mon, 22 May 2006 00:17:58 +0200
-Message-ID: <4470E716.1090001@gmx.net>
-References: <44708E68.9080508@speedy.com.ar> <44709CFC.7050007@gmx.net>
-	<4470D859.7000706@speedy.com.ar>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Date: Sun, 21 May 2006 18:54:30 -0400
+Message-ID: <9699.1148252070@sandelman.ottawa.on.ca>
+References: <44708E68.9080508@speedy.com.ar>  <4470A895.5090707@rtij.nl>
+Cc: Gervasio Bernal <gervasiobernal@speedy.com.ar>,
+	Martijn Lievaart <m@rtij.nl>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Gervasio Bernal <gervasiobernal@speedy.com.ar>
-In-Reply-To: <4470D859.7000706@speedy.com.ar>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: Message from Martijn Lievaart <m@rtij.nl>
+	of "Sun, 21 May 2006 19:51:17 +0200." <4470A895.5090707@rtij.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,66 +20,53 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Gervasio Bernal wrote:
-> Carl-Daniel Hailfinger wrote:
->> Gervasio Bernal wrote:
->>
->>> (on host A, 1.2.3.4, FTP client)
->>> # iptables -t mangle -A POSTROUTING -d 1.2.3.5 -p tcp --dport 20:21 -j
->>> CRYPT --cipher blowfish --key topsecret --mode ecb --direction encrypt
->>
->> Ouch. If anybody runs ps while this iptables command is running, he has
->> your top secret key.
-
-How are you going to prevent that?
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
 
->> Does this provide any benefit over IPSEC?
+>>>>> "Martijn" == Martijn Lievaart <m@rtij.nl> writes:
+    Martijn> Does -mode cbc use the iv from the last packet? If not,
 
-> IPSEC/OpenSwan is complicated to use and quite heavy.
+  That method, which IPsec has suggested for awhile, turns out to be 
+less than ideal. 
+  see http://www.hut.fi/~svaarala/espiv.pdf
 
-I admit IPSEC is complicated to use, but it has lightweight modes.
+  Well, that URL is no longer valid... try:
 
-> CRYPT is truely peer-to-peer.
+   http://www.samivaarala.com/publications/espiv_final.pdf
 
-IPSEC also has peer-to-peer modes.
+    Martijn> this seems like a false sense of security. Protocols that
+    Martijn> use lots of small packets will still more or less have the
+    Martijn> drawbacks of ecb.
 
-> It is compatible with routing daemons.
+  ecb mode is just not useful.
+  If you want network encryption, use it: it's called IPsec.
 
-Same for IPSEC to a certain extent (depends on how you use IPSEC)
+  If you want snake oil, then I guess this is the code for you.
 
-> It allows you to encrypt all the traffic between two endpoints or
-> only certain type of traffic (ej: only TCP connections).
+  I recommend against including this functionality.
 
-Same for IPSEC.
+- -- 
+]       ON HUMILITY: to err is human. To moo, bovine.           |  firewalls  [
+]   Michael Richardson,    Xelerance Corporation, Ottawa, ON    |net architect[
+] mcr@xelerance.com      http://www.sandelman.ottawa.on.ca/mcr/ |device driver[
+] panic("Just another Debian GNU/Linux using, kernel hacking, security guy"); [
 
-> It is extremely easy to use for an administrator familiarized
-> with Linux firewalling since it uses Iptables and it
-
-Unfortunately, IPSEC is not so easy to use.
-
-> does not make any modification to the normal routing behavior.
-
-IPSEC can do that in some modes.
-
-> CRYPT is considerably light and does all the
-> encryption/decryption process at kernel space (contrary to OpenVPN).
-
-OK, but does it have any advantages over an encryption library loaded
-with LD_PRELOAD which replaces all networking functions for a given
-application with its own encrypted variant? I consider "all in kernel"
-to be a disadvantage.
+    "The Microsoft _Get the Facts CD_ does not work on Linux." - orospakr
 
 
-What happens if a router on the way decides to fragment the packets?
 
 
-I think your approach to encrypted communication is interesting, but
-wouldn't an iptables interface to IPSEC in transport mode achieve
-similar results?
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+Comment: Finger me for keys
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+iQEVAwUBRHDvm4CLcPvd0N1lAQIPFgf+N9Vpe+9FpjmCcZKw708ja1vp5MmjRP8k
+sQKOsjiwGe37/0u7g4wlX5SsAZ5ns9lloWZUWV65z+QeMal/2eBZb90H+E9cpjYy
+4XKqBwUe3C9Oe6iJywL6FVY/4Q/VQ2nJhhei5s65MwTynevJ4oTAbUSF2yVqlSbM
+YR5t+QMnXYVRkX8TmOKG51hTtC+PTp24RL/Gvl0QL/BPBubojGYnxY/P0X9m1i7y
+jfhtwFmI352NsQJuqWXizHgcE39nj69ycpPT2FWf5FoXVR73cTg/+zfRZ6wHcx7U
+360SUkwPfY2VUg/l0lpQDPSCOQV8heJqp1MgG+8Nn7dS54VEbwl0KQ==
+=/0uZ
+-----END PGP SIGNATURE-----
