@@ -1,34 +1,51 @@
-From: "Vladimir S. Petukhov" <vladimir@sycore.org>
-Subject: Iptables load balancing
-Date: Sat, 20 May 2006 14:49:56 +0400
-Message-ID: <200605201449.56621.vladimir@sycore.org>
-Reply-To: vladimir@sycore.org
+From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+Subject: New extension: CRYPT target
+Date: Sun, 21 May 2006 12:59:36 -0300
+Message-ID: <44708E68.9080508@speedy.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: netfilter@lists.netfilter.org,
-	netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7BIT
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+Hi all!!!
 
-Sorry for my English...
+After some months of development we have finished this new extension.
+CRYPT is a new target extension for Netfilter/Iptables that enables the
+user to encrypt, decrypt and authenticate any IP protocol traffic using
+the Linux Cryptographic API.
 
-I need to separate UDP packets  via several ports according content of these 
-packets. Each packet has fixed field  (2 bytes) - "connection" number 
-(session number), packet with the same number must be forwarded on the same 
-port. It look like NAT, but based on content of UDP packet.
+For example, if you want to encrypt FTP (TOP) traffic between host A and
+host B, you can do as follows:
 
-Thanks!
+(on host A, 1.2.3.4, FTP client)
+# iptables -t mangle -A POSTROUTING -d 1.2.3.5 -p tcp --dport 20:21 -j
+CRYPT --cipher blowfish --key topsecret --mode ecb --direction encrypt
+# iptables -t mangle -A PREROUTING -s 1.2.3.5 -p 206 -j CRYPT --cipher
+3des --key topsecretkeyinascii12345 --mode cbc --direction decrypt
+
+(on host B, 1.2.3.5, FTP server)
+# iptables -t mangle -A POSTROUTING -d 1.2.3.4 -p tcp --sport 20:21 -j
+CRYPT --cipher 3des --key topsecretkeyinascii12345 --mode cbc
+--direction encrypt
+# iptables -t mangle -A PREROUTING -s 1.2.3.4 -p 206 -j CRYPT --cipher
+blowfish --key topsecret --mode ecb --direction decrypt
+
+_Note_ the symmetry in the rules. Also note the use of protocol 206
+(CRYPT_PROTOCOL) in decryption.
+
+We hope you can test it and we are open for comments and suggestions.
+
+--
+Gervasio Bernal <gervasiobernal(at)gmail(dot)com>
+Pedro Deis <pedrakos(at)gmail(dot)com>
