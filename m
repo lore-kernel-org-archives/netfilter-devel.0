@@ -1,12 +1,12 @@
-From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
-Subject: New extension: CRYPT target
-Date: Sun, 21 May 2006 12:59:36 -0300
-Message-ID: <44708E68.9080508@speedy.com.ar>
+From: Simon Lodal <simonl@parknet.dk>
+Subject: [PATCH 1/2] Realm verbosity
+Date: Sun, 21 May 2006 18:13:15 +0200
+Message-ID: <200605211813.15957.simonl@parknet.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7BIT
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_bGJcEmHqkEG9vqR"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Netfilter Developer <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,34 +18,60 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all!!!
+--Boundary-00=_bGJcEmHqkEG9vqR
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-After some months of development we have finished this new extension.
-CRYPT is a new target extension for Netfilter/Iptables that enables the
-user to encrypt, decrypt and authenticate any IP protocol traffic using
-the Linux Cryptographic API.
 
-For example, if you want to encrypt FTP (TOP) traffic between host A and
-host B, you can do as follows:
+The realm match should identify itself in lowercase like other matches.
 
-(on host A, 1.2.3.4, FTP client)
-# iptables -t mangle -A POSTROUTING -d 1.2.3.5 -p tcp --dport 20:21 -j
-CRYPT --cipher blowfish --key topsecret --mode ecb --direction encrypt
-# iptables -t mangle -A PREROUTING -s 1.2.3.5 -p 206 -j CRYPT --cipher
-3des --key topsecretkeyinascii12345 --mode cbc --direction decrypt
+--Boundary-00=_bGJcEmHqkEG9vqR
+Content-Type: text/x-diff; charset="us-ascii"; name="realm_verbosity.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="realm_verbosity.diff"
 
-(on host B, 1.2.3.5, FTP server)
-# iptables -t mangle -A POSTROUTING -d 1.2.3.4 -p tcp --sport 20:21 -j
-CRYPT --cipher 3des --key topsecretkeyinascii12345 --mode cbc
---direction encrypt
-# iptables -t mangle -A PREROUTING -s 1.2.3.4 -p 206 -j CRYPT --cipher
-blowfish --key topsecret --mode ecb --direction decrypt
+Index: iptables-1.3.5/extensions/libipt_realm.c
+===================================================================
+--- iptables-1.3.5/extensions/libipt_realm.c	(revision 4)
++++ iptables-1.3.5/extensions/libipt_realm.c	(revision 5)
+@@ -17,7 +17,7 @@
+ help(void)
+ {
+ 	printf(
+-"REALM v%s options:\n"
++"realm v%s options:\n"
+ " --realm [!] value[/mask]\n"
+ "				Match realm\n"
+ "\n", IPTABLES_VERSION);
+@@ -49,7 +49,7 @@
+ 		} else
+ 			realminfo->mask = 0xffffffff;
+ 		if (*end != '\0' || end == optarg)
+-			exit_error(PARAMETER_PROBLEM, "Bad REALM value `%s'", optarg);
++			exit_error(PARAMETER_PROBLEM, "Bad realm value `%s'", optarg);
+ 		if (invert)
+ 			realminfo->invert = 1;
+ 		*flags = 1;
+@@ -81,7 +81,7 @@
+ 	if (ri->invert)
+ 		printf("! ");
+ 
+-	printf("REALM match ");
++	printf("realm ");
+ 	print_realm(ri->id, ri->mask);
+ }
+ 
+@@ -105,7 +105,7 @@
+ {
+ 	if (!flags)
+ 		exit_error(PARAMETER_PROBLEM,
+-			   "REALM match: You must specify `--realm'");
++			   "realm match: You must specify `--realm'");
+ }
+ 
+ static struct iptables_match realm = { NULL,
 
-_Note_ the symmetry in the rules. Also note the use of protocol 206
-(CRYPT_PROTOCOL) in decryption.
-
-We hope you can test it and we are open for comments and suggestions.
-
---
-Gervasio Bernal <gervasiobernal(at)gmail(dot)com>
-Pedro Deis <pedrakos(at)gmail(dot)com>
+--Boundary-00=_bGJcEmHqkEG9vqR--
