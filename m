@@ -1,13 +1,13 @@
 From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
 Subject: Re: New extension: CRYPT target
-Date: Sun, 21 May 2006 18:01:19 -0300
-Message-ID: <4470D51F.9080801@speedy.com.ar>
-References: <44708E68.9080508@speedy.com.ar> <4470A895.5090707@rtij.nl>
+Date: Sun, 21 May 2006 18:15:05 -0300
+Message-ID: <4470D859.7000706@speedy.com.ar>
+References: <44708E68.9080508@speedy.com.ar> <44709CFC.7050007@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7BIT
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-reply-to: <4470A895.5090707@rtij.nl>
+In-reply-to: <44709CFC.7050007@gmx.net>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -20,47 +20,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Martijn Lievaart wrote:
+Carl-Daniel Hailfinger wrote:
 > Gervasio Bernal wrote:
 > 
->> Hi all!!!
->>
->> After some months of development we have finished this new extension.
->> CRYPT is a new target extension for Netfilter/Iptables that enables the
->> user to encrypt, decrypt and authenticate any IP protocol traffic using
->> the Linux Cryptographic API.
->>
->> For example, if you want to encrypt FTP (TOP) traffic between host A and
->> host B, you can do as follows:
->>
->> (on host A, 1.2.3.4, FTP client)
->> # iptables -t mangle -A POSTROUTING -d 1.2.3.5 -p tcp --dport 20:21 -j
->> CRYPT --cipher blowfish --key topsecret --mode ecb --direction encrypt
->> # iptables -t mangle -A PREROUTING -s 1.2.3.5 -p 206 -j CRYPT --cipher
->> 3des --key topsecretkeyinascii12345 --mode cbc --direction decrypt
->>  
->>
+>>(on host A, 1.2.3.4, FTP client)
+>># iptables -t mangle -A POSTROUTING -d 1.2.3.5 -p tcp --dport 20:21 -j
+>>CRYPT --cipher blowfish --key topsecret --mode ecb --direction encrypt
 > 
-> Minor critisism, this will not catch the data channels of ftp, only the
-> control channel. Active ftp uses a *source* port of 20, passive ftp
-> (which is more common nowadays) uses whatever port range the server uses
-> for data channels (typically something like 30000-31000).
-Yes, you are right, it's for an active FTP. It was only an example.
+> 
+> Ouch. If anybody runs ps while this iptables command is running, he has
+> your top secret key.
+> 
+> Does this provide any benefit over IPSEC?
+IPSEC/OpenSwan is complicated to use and quite heavy.
+CRYPT is truely peer-to-peer. It is compatible with routing daemons. It
+allows you to encrypt all the traffic between two endpoints or only
+certain type of traffic (ej: only TCP connections). It is extremely easy
+to use for an administrator familiarized with Linux firewalling since it
+uses Iptables and it does not make any modification to the normal
+routing behavior. CRYPT is considerably light and does all the
+encryption/decryption process at kernel space (contrary to OpenVPN).
 
 > 
-> Does -mode cbc use the iv from the last packet? 
-The IV (Initialization Vector) is calculated in every packet with
-get_random_bytes function.
-
-> If not, this seems like
-> a false sense of security. Protocols that use lots of small packets will
-> still more or less have the drawbacks of ecb.
-
-
-> 
-> M4
-> 
-> 
-> 
-> 
-> 
+> Regards,
+> Carl-Daniel
