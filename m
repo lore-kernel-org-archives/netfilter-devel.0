@@ -1,14 +1,14 @@
 From: Michael Richardson <mcr@sandelman.ottawa.on.ca>
 Subject: Re: New extension: CRYPT target
-Date: Sun, 21 May 2006 18:54:30 -0400
-Message-ID: <9699.1148252070@sandelman.ottawa.on.ca>
-References: <44708E68.9080508@speedy.com.ar>  <4470A895.5090707@rtij.nl>
-Cc: Gervasio Bernal <gervasiobernal@speedy.com.ar>,
-	Martijn Lievaart <m@rtij.nl>
+Date: Sun, 21 May 2006 18:57:41 -0400
+Message-ID: <10007.1148252261@sandelman.ottawa.on.ca>
+References: <44708E68.9080508@speedy.com.ar> <44709CFC.7050007@gmx.net>
+	<4470D859.7000706@speedy.com.ar>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: Message from Martijn Lievaart <m@rtij.nl>
-	of "Sun, 21 May 2006 19:51:17 +0200." <4470A895.5090707@rtij.nl>
+To: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+In-Reply-To: Message from Gervasio Bernal <gervasiobernal@speedy.com.ar>
+	of "Sun, 21 May 2006 18:15:05 -0300." <4470D859.7000706@speedy.com.ar>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,27 +24,42 @@ List-Id: netfilter-devel.vger.kernel.org
 Hash: SHA1
 
 
->>>>> "Martijn" == Martijn Lievaart <m@rtij.nl> writes:
-    Martijn> Does -mode cbc use the iv from the last packet? If not,
+>>>>> "Gervasio" == Gervasio Bernal <gervasiobernal@speedy.com.ar> writes:
+    Gervasio> Carl-Daniel Hailfinger wrote:
+    >> Gervasio Bernal wrote:
+    >> 
+    >>> (on host A, 1.2.3.4, FTP client) # iptables -t mangle -A
+    >>> POSTROUTING -d 1.2.3.5 -p tcp --dport 20:21 -j CRYPT --cipher
+    >>> blowfish --key topsecret --mode ecb --direction encrypt
+    >> 
+    >> 
+    >> Ouch. If anybody runs ps while this iptables command is running,
+    >> he has your top secret key.
+    >> 
+    >> Does this provide any benefit over IPSEC?
+    Gervasio> IPSEC/OpenSwan is complicated to use and quite heavy.
+  
+  Have you tried?
+  It is not heavy. Your solution is generally rather incomplete, since
+it seems to lack any configuration file, policy system, or automatic key
+management. 
 
-  That method, which IPsec has suggested for awhile, turns out to be 
-less than ideal. 
-  see http://www.hut.fi/~svaarala/espiv.pdf
+  It is only complicated if you have been mislead into assuming that you
+need a certificate. (ipsec-tools' racoon is guilty in that regard)
 
-  Well, that URL is no longer valid... try:
+    Gervasio> CRYPT is truely peer-to-peer. It is compatible with
+    Gervasio> routing daemons. It allows you to encrypt all the traffic
+    Gervasio> between two endpoints or only certain type of traffic (ej:
+    Gervasio> only TCP connections). It is extremely easy to use for an
 
-   http://www.samivaarala.com/publications/espiv_final.pdf
+  I do exactly that regularly.
 
-    Martijn> this seems like a false sense of security. Protocols that
-    Martijn> use lots of small packets will still more or less have the
-    Martijn> drawbacks of ecb.
+    Gervasio> administrator familiarized with Linux firewalling since it
+    Gervasio> uses Iptables and it does not make any modification to the
+    Gervasio> normal routing behavior. CRYPT is considerably light and
 
-  ecb mode is just not useful.
-  If you want network encryption, use it: it's called IPsec.
-
-  If you want snake oil, then I guess this is the code for you.
-
-  I recommend against including this functionality.
+  We have patches that permit you to decide what to encrypt using
+iptables. 
 
 - -- 
 ]       ON HUMILITY: to err is human. To moo, bovine.           |  firewalls  [
@@ -57,16 +72,15 @@ less than ideal.
 
 
 
-
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2.2 (GNU/Linux)
 Comment: Finger me for keys
 
-iQEVAwUBRHDvm4CLcPvd0N1lAQIPFgf+N9Vpe+9FpjmCcZKw708ja1vp5MmjRP8k
-sQKOsjiwGe37/0u7g4wlX5SsAZ5ns9lloWZUWV65z+QeMal/2eBZb90H+E9cpjYy
-4XKqBwUe3C9Oe6iJywL6FVY/4Q/VQ2nJhhei5s65MwTynevJ4oTAbUSF2yVqlSbM
-YR5t+QMnXYVRkX8TmOKG51hTtC+PTp24RL/Gvl0QL/BPBubojGYnxY/P0X9m1i7y
-jfhtwFmI352NsQJuqWXizHgcE39nj69ycpPT2FWf5FoXVR73cTg/+zfRZ6wHcx7U
-360SUkwPfY2VUg/l0lpQDPSCOQV8heJqp1MgG+8Nn7dS54VEbwl0KQ==
-=/0uZ
+iQEVAwUBRHDwY4CLcPvd0N1lAQI1Mwf/XpEika5C4N2GVLtLg1MEuXoQ+Sy5qKjX
+KloJjQKnHPbz24sHJ6/80DtmXD4HmfaIfaDkjstgjxqEdoA0YR5MgwPgeucLhGVn
+INXnTBrCHKamqMmI0I+RoH2pHbxNmtd1C849FF0gwzD//vwKqaIaVjxqkyXn1d6B
+MMkPZwcnSY+NIDIab2O5Ycm0A5LfLTAsO8+MDxpP5LItjtAkT3Ur8AJdFgC8afwu
+wnjFVzfZ/v2Rlgrolf6+0wH7VNVCkMcoiPp+DUmU5EhXyLMRvYzq8HwIcJLNgaGm
+pP11DUKI8fAckx8APWmCSbmrR6MQFCmYeY8bTcr+D/kNJXJfkvJB+Q==
+=eCAB
 -----END PGP SIGNATURE-----
