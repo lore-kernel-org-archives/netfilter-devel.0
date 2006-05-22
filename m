@@ -1,15 +1,14 @@
 From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
 Subject: Re: New extension: CRYPT target
-Date: Mon, 22 May 2006 20:36:00 -0300
-Message-ID: <44724AE0.5040708@speedy.com.ar>
+Date: Mon, 22 May 2006 20:49:18 -0300
+Message-ID: <44724DFE.5030806@speedy.com.ar>
 References: <44708E68.9080508@speedy.com.ar> <44709CFC.7050007@gmx.net>
-	<4470D859.7000706@speedy.com.ar>
-	<10007.1148252261@sandelman.ottawa.on.ca>
+	<4470D859.7000706@speedy.com.ar> <4470E716.1090001@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7BIT
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-reply-to: <10007.1148252261@sandelman.ottawa.on.ca>
+In-reply-to: <4470E716.1090001@gmx.net>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -22,54 +21,93 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Michael Richardson wrote:
+Carl-Daniel Hailfinger wrote:
+> Gervasio Bernal wrote:
+> 
+>>Carl-Daniel Hailfinger wrote:
+>>
+>>>Gervasio Bernal wrote:
+>>>
+>>>
+>>>>(on host A, 1.2.3.4, FTP client)
+>>>># iptables -t mangle -A POSTROUTING -d 1.2.3.5 -p tcp --dport 20:21 -j
+>>>>CRYPT --cipher blowfish --key topsecret --mode ecb --direction encrypt
+>>>
+>>>Ouch. If anybody runs ps while this iptables command is running, he has
+>>>your top secret key.
 > 
 > 
->>>>>>>"Gervasio" == Gervasio Bernal <gervasiobernal@speedy.com.ar> writes:
+> How are you going to prevent that?
+Well, give us some time to study it.
 > 
->     Gervasio> Carl-Daniel Hailfinger wrote:
->     >> Gervasio Bernal wrote:
->     >> 
->     >>> (on host A, 1.2.3.4, FTP client) # iptables -t mangle -A
->     >>> POSTROUTING -d 1.2.3.5 -p tcp --dport 20:21 -j CRYPT --cipher
->     >>> blowfish --key topsecret --mode ecb --direction encrypt
->     >> 
->     >> 
->     >> Ouch. If anybody runs ps while this iptables command is running,
->     >> he has your top secret key.
->     >> 
->     >> Does this provide any benefit over IPSEC?
->     Gervasio> IPSEC/OpenSwan is complicated to use and quite heavy.
->   
->   Have you tried?
->   It is not heavy. Your solution is generally rather incomplete, since
-> it seems to lack any configuration file, policy system, or automatic key
-> management. 
+> 
+> 
+>>>Does this provide any benefit over IPSEC?
+> 
+> 
+>>IPSEC/OpenSwan is complicated to use and quite heavy.
+> 
+> 
+> I admit IPSEC is complicated to use, but it has lightweight modes.
+> 
+> 
+>>CRYPT is truely peer-to-peer.
+> 
+> 
+> IPSEC also has peer-to-peer modes.
+> 
+> 
+>>It is compatible with routing daemons.
+> 
+> 
+> Same for IPSEC to a certain extent (depends on how you use IPSEC)
+> 
+> 
+>>It allows you to encrypt all the traffic between two endpoints or
+>>only certain type of traffic (ej: only TCP connections).
+> 
+> 
+> Same for IPSEC.
+> 
+> 
+>>It is extremely easy to use for an administrator familiarized
+>>with Linux firewalling since it uses Iptables and it
+> 
+> 
+> Unfortunately, IPSEC is not so easy to use.
+> 
+> 
+>>does not make any modification to the normal routing behavior.
+> 
+> 
+> IPSEC can do that in some modes.
+> 
+> 
+>>CRYPT is considerably light and does all the
+>>encryption/decryption process at kernel space (contrary to OpenVPN).
+> 
+> 
+> OK, but does it have any advantages over an encryption library loaded
+> with LD_PRELOAD which replaces all networking functions for a given
+> application with its own encrypted variant? I consider "all in kernel"
+> to be a disadvantage.
+> 
+> 
+> What happens if a router on the way decides to fragment the packets?
+In TCP connections there is no problem, we use destination MTU to
+calculate the corresponding Maximun Segment Size.
+In others protocols we are studying the way to avoid fragmentation.
 
-The idea behind CRYPT extension is not to replace IPSEC absolutely, but
-to be a simple alternative of use for encryption/decryption and packet
-authentication using Iptables. It could be useful for somebody.
+> 
+> 
+> I think your approach to encrypted communication is interesting, but
+> wouldn't an iptables interface to IPSEC in transport mode achieve
+> similar results?
+Yes, but if you tell to someone that he can encrypt and authenticate a
+communication using Iptables only, I think that the extension could
+interest to him.
 
-We have also developed a module in Python that use the CRYPT extension,
-configuration files, has automatic key management and user
-authentication using certificates. But we need that someone else can
-test first the extension alone, and comments its experience to us.
-
 > 
->   It is only complicated if you have been mislead into assuming that you
-> need a certificate. (ipsec-tools' racoon is guilty in that regard)
 > 
->     Gervasio> CRYPT is truely peer-to-peer. It is compatible with
->     Gervasio> routing daemons. It allows you to encrypt all the traffic
->     Gervasio> between two endpoints or only certain type of traffic (ej:
->     Gervasio> only TCP connections). It is extremely easy to use for an
-> 
->   I do exactly that regularly.
-> 
->     Gervasio> administrator familiarized with Linux firewalling since it
->     Gervasio> uses Iptables and it does not make any modification to the
->     Gervasio> normal routing behavior. CRYPT is considerably light and
-> 
->   We have patches that permit you to decide what to encrypt using
-> iptables. 
-> 
+> Regards,
+> Carl-Daniel
