@@ -1,16 +1,17 @@
-From: Michael Richardson <mcr@sandelman.ottawa.on.ca>
-Subject: Re: New extension: CRYPT target
-Date: Tue, 23 May 2006 09:08:50 -0400
-Message-ID: <22306.1148389730@sandelman.ottawa.on.ca>
-References: <44708E68.9080508@speedy.com.ar> <44709CFC.7050007@gmx.net>
-	<4470D859.7000706@speedy.com.ar>
-	<10007.1148252261@sandelman.ottawa.on.ca>
-	<44724AE0.5040708@speedy.com.ar>
-Cc: netfilter-devel@lists.netfilter.org
+From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
+Subject: Re: [NETFILTER]: H.323 helper: fix sequence extension parsing
+Date: Tue, 23 May 2006 11:28:40 -0400
+Message-ID: <BAY109-DAV139491EC00AC859683246AB39B0@phx.gbl>
+References: <44719685.6000906@trash.net><BAY109-DAV65DAA6039C77B3C71892DB39B0@phx.gbl>
+	<4472D3C6.6020305@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="ISO-8859-15"
+Content-Transfer-Encoding: base64
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Jing Min Zhao <zhaojingmin@users.sourceforge.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Gervasio Bernal <gervasiobernal@speedy.com.ar>
-In-Reply-To: Message from Gervasio Bernal <gervasiobernal@speedy.com.ar>
-	of "Mon, 22 May 2006 20:36:00 -0300." <44724AE0.5040708@speedy.com.ar>
+To: "Patrick McHardy" <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,53 +23,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-
->>>>> "Gervasio" == Gervasio Bernal <gervasiobernal@speedy.com.ar> writes:
-    Gervasio> The idea behind CRYPT extension is not to replace IPSEC
-    Gervasio> absolutely, but to be a simple alternative of use for
-    Gervasio> encryption/decryption and packet authentication using
-    Gervasio> Iptables. It could be useful for somebody.
-
-  Tell me the threat model.
-
-  Under what circumstances is it better than:
-	a) IPsec with OE (with is dirty simple to configure)
-	b) TLS/SSL LD_PRELOAD wrapper
-	c) using SCP instead of FTP (or rsync over SSH)
-	d) OpenVPN or SSH port forwarding
-	e) HIP
-
-    Gervasio> We have also developed a module in Python that use the
-    Gervasio> CRYPT extension, configuration files, has automatic key
-    Gervasio> management and user authentication using certificates. But
-    Gervasio> we need that someone else can test first the extension
-    Gervasio> alone, and comments its experience to us.
-
-  Why in the world would you build such a complicated system? 
-  You just told us that you wanted something simpler than IPsec.
-
-  It seems like vanity crypto to me.
-
-- -- 
-]       ON HUMILITY: to err is human. To moo, bovine.           |  firewalls  [
-]   Michael Richardson,    Xelerance Corporation, Ottawa, ON    |net architect[
-] mcr@xelerance.com      http://www.sandelman.ottawa.on.ca/mcr/ |device driver[
-] panic("Just another Debian GNU/Linux using, kernel hacking, security guy"); [
-
-    "The Microsoft _Get the Facts CD_ does not work on Linux." - orospakr
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.2 (GNU/Linux)
-Comment: Finger me for keys
-
-iQEVAwUBRHMJYICLcPvd0N1lAQIdDAf/bMGdfP6zIJ39lGgduUbfYmx7QEX5EwC7
-4tK+Px3Lk4z8P1nowLyCLHUL11YXn6t+WfaPGc/Gp9jvVd0r1R0UXOSuiQ4b3bSy
-kcdalGLMAe9XEusecIfEqdhHm+xu8311eGSN1Q2fJbajPy0D1w9dATSY51BWgKU6
-0+Pm6YHTQzYOYZOMTzlx4BYZbanrpYXgS+klm3liE10VcB4JtOD4/w9D69kYEm6R
-ajDacRC8Hjp068JeKEbr/DJegxBLf/Rkt/GepRoiwQea2kYN8/E8ZAMuYjqafL2b
-S49KUwjIHVac+Gad9Y0MJquVvdp+QmST/o/JWcCVJoyLB1yL2znDMw==
-=lCRN
------END PGP SIGNATURE-----
+DQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogIlBhdHJpY2sgTWNIYXJkeSIg
+PGthYmVyQHRyYXNoLm5ldD4NClRvOiAiSmluZyBNaW4gWmhhbyIgPHpoYW9qaW5nbWluQGhvdG1h
+aWwuY29tPg0KQ2M6ICJOZXRmaWx0ZXIgRGV2ZWxvcG1lbnQgTWFpbGluZ2xpc3QiIDxuZXRmaWx0
+ZXItZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9yZz47ICJKaW5nIE1pbiBaaGFvIiA8emhhb2ppbmdt
+aW5AdXNlcnMuc291cmNlZm9yZ2UubmV0Pg0KU2VudDogVHVlc2RheSwgTWF5IDIzLCAyMDA2IDU6
+MjAgQU0NClN1YmplY3Q6IFJlOiBbTkVURklMVEVSXTogSC4zMjMgaGVscGVyOiBmaXggc2VxdWVu
+Y2UgZXh0ZW5zaW9uIHBhcnNpbmcNCg0KDQo+IEppbmcgTWluIFpoYW8gd3JvdGU6DQo+PiBUaGlz
+IGlzIHJlYWxseSBhIHN0dXBpZCBidWcuIFRoYW5rIHlvdSwgUGF0cmljay4NCj4+IA0KPj4+IERv
+ZXNuJ3QgcmVhbGx5IGZpeCB0aGUgY3Jhc2ggSSB3YXMgc2VlaW5nLCBidXQgZG9lcyBoaWRlIGl0
+IGF3YXkgOikNCj4+IA0KPj4gDQo+PiBDYW4geW91IHBsZWFzZSBleHBsYWluIHdoeT8gQXMgSSB1
+bmRlcnN0YW5kLCBpdCBzaG91bGQndmUgZml4ZWQNCj4+IHRoZSBjcmFzaC4NCj4gDQo+IEkgdGhp
+bmsgdGhlIHJlYXNvbiB3aHkgaXQgbWFrZSB0aGUgY3Jhc2ggZ28gYXdheSBpcyBiZWNhdXNlIHRo
+ZQ0KPiBwYWNrZXRzIGNvbnRhaW5lZCBhIGxvbmcgc3RyZWFtIG9mIG1hbGZvcm1lZCB1bmtub3du
+IGV4dGVuc2lvbnMuDQo+IFdoZW4gdGhlIHNvbiBwb2ludGVyIHdlbnQgcGFzdCB0aGUgYXJyYXkg
+b2YgZmllbGRfdCBlbGVtZW50cyBpdA0KPiBoaXQgdGhlIG5leHQgYXJyYXksIHdoaWNoIGNvbnRh
+aW5lZCBlbGVtZW50cyBtYXJrZWQgU1RPUCwgc28gaXQNCj4gYWJvcnRlZCBwYXJzaW5nIGFuZCBk
+aWRuJ3QgZ290IHRvIHRoZSBwb2ludCB3aGVyZSBpdCB3b3VsZCBoYXZlDQo+IG5vdGljZWQgdGhl
+IG1hbGZvcm1lZCBleHRlbnNpb25zLiBCeSBjaGFuZ2luZyBpdCBub3QgdG8gcnVuIHBhc3QNCj4g
+dGhlIGFycmF5IGl0IGFib3J0ZWQgcHJvcGVybHksIGhpZGluZyB0aGUgcmVhbCByZWFzb24gZm9y
+IHRoZQ0KPiBjcmFzaCAobXkgb3RoZXIgcGF0Y2gpLg0KPiANCj4gDQo+DQpTb3JyeSwgSSBtaXN1
+bmRlcnN0b29kLiBZZXMsIHlvdSBhcmUgY29ycmVjdC4gQWN0dWFsbHksIHdlIHNob3VsZCBuZXZl
+ciBhY2Nlc3MNCmFueSBtZW1iZXIgb2YgcG9pbnRlciBzb24gaWYgaSA+PSBmLT51Yi4=
