@@ -1,18 +1,15 @@
-From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+From: Michael Richardson <mcr@sandelman.ottawa.on.ca>
 Subject: Re: New extension: CRYPT target
-Date: Tue, 23 May 2006 14:19:01 -0300
-Message-ID: <44734405.3000300@speedy.com.ar>
+Date: Tue, 23 May 2006 14:26:43 -0400
+Message-ID: <10815.1148408803@sandelman.ottawa.on.ca>
 References: <44708E68.9080508@speedy.com.ar> <44709CFC.7050007@gmx.net>
-	<4470D859.7000706@speedy.com.ar>
-	<10007.1148252261@sandelman.ottawa.on.ca>
-	<44724AE0.5040708@speedy.com.ar>
-	<22306.1148389730@sandelman.ottawa.on.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7BIT
+	<4470D859.7000706@speedy.com.ar> <4470E716.1090001@gmx.net>
+	<44724DFE.5030806@speedy.com.ar> <4473380F.5050102@speedy.com.ar>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-reply-to: <22306.1148389730@sandelman.ottawa.on.ca>
-To: netfilter-devel@lists.netfilter.org
+To: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+In-Reply-To: Message from Gervasio Bernal <gervasiobernal@speedy.com.ar>
+	of "Tue, 23 May 2006 13:27:59 -0300." <4473380F.5050102@speedy.com.ar>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,43 +21,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Michael Richardson wrote:
-> 
-> 
->>>>>>>"Gervasio" == Gervasio Bernal <gervasiobernal@speedy.com.ar> writes:
-> 
->     Gervasio> The idea behind CRYPT extension is not to replace IPSEC
->     Gervasio> absolutely, but to be a simple alternative of use for
->     Gervasio> encryption/decryption and packet authentication using
->     Gervasio> Iptables. It could be useful for somebody.
-> 
->   Tell me the threat model.
-> 
->   Under what circumstances is it better than:
-> 	a) IPsec with OE (with is dirty simple to configure)
-> 	b) TLS/SSL LD_PRELOAD wrapper
-> 	c) using SCP instead of FTP (or rsync over SSH)
-> 	d) OpenVPN or SSH port forwarding
-> 	e) HIP
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Perhaps in none of those circumstances.
-CRYPT extension is just an alternative, as well OpenOffice Writer is an
-alternative of Microsoft Word. It is good to have several different
-alternatives.
 
-> 
->     Gervasio> We have also developed a module in Python that use the
->     Gervasio> CRYPT extension, configuration files, has automatic key
->     Gervasio> management and user authentication using certificates. But
->     Gervasio> we need that someone else can test first the extension
->     Gervasio> alone, and comments its experience to us.
-> 
->   Why in the world would you build such a complicated system? 
+uhm, the absolutely correct answer is that you have to input the key via
+netlink, not via system(). call. 
 
-It is much more easy of which you imagine. You only have to run a Python
-application and voila!!
+The lack of a modular netlink interface to netfilter is what prevents
+this.
 
->   You just told us that you wanted something simpler than IPsec.
-> 
->   It seems like vanity crypto to me.
-> 
+Failing that, need to provide the key on a pipe. Perhaps have fd#3 be
+open for the module to read it from the key management application.
+
+However, in general, you don't really want to tie the iptables policy to
+the keying system. You want to be able to rekey the cipher keys
+independant of the policy. 
+
+I would, btw, remove ecb mode completely. Don't even make it an
+option.  It has essentially no value, and it is a code path that you
+will have to test.
+
+- -- 
+]       ON HUMILITY: to err is human. To moo, bovine.           |  firewalls  [
+]   Michael Richardson,    Xelerance Corporation, Ottawa, ON    |net architect[
+] mcr@xelerance.com      http://www.sandelman.ottawa.on.ca/mcr/ |device driver[
+] panic("Just another Debian GNU/Linux using, kernel hacking, security guy"); [
+
+    "The Microsoft _Get the Facts CD_ does not work on Linux." - orospakr
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.2 (GNU/Linux)
+Comment: Finger me for keys
+
+iQEVAwUBRHNT4YCLcPvd0N1lAQJVGAgAvdz1pRShuuBdme/LcVfFCtbeB1EVka22
+FE7VM4vqIm5LS/wJRBRU8255LG3eebiJGihgQfm+QG4OIt6nuBEyuXW64dNP4pyU
+W4kt2WvM0S1zWh9iUeJ5e3RA9PvMr9S2TWCenVI1GazTnly6x701lkwEsi86gFyy
+isFfQctvunDl55F/A5Q40gzRBAxoBuXlPtOcs7lKazjwP9QjHpf7KtR32b3EVdCz
+mIlmIz7HVgueoJglXQNEnpn/5M9gvblRDHxmdfsugWaE3le+4VUhY7esMkdowkoT
+2AdIk4phonoUkisLM+wWf8uss8e1sTmmj4QNZWcZpoeKFo4YnnktZw==
+=KiuX
+-----END PGP SIGNATURE-----
