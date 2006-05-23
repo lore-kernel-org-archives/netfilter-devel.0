@@ -1,21 +1,22 @@
-From: Matt Ayres <matta@tektonic.net>
+From: Keir Fraser <Keir.Fraser@cl.cam.ac.uk>
 Subject: Re: Re: Panic in ipt_do_table with 2.6.16.13-xen
-Date: Tue, 23 May 2006 17:23:31 -0400
-Message-ID: <44737D53.9050006@tektonic.net>
+Date: Tue, 23 May 2006 22:27:17 +0100
+Message-ID: <5e589307bfef58553bfda1d7ab47f9f3@cl.cam.ac.uk>
 References: <4468BE70.7030802@tektonic.net>	<4468D613.20309@trash.net>	<44691669.4080903@tektonic.net>	<Pine.LNX.4.64.0605152331140.10964@d.namei>	<4469D84F.8080709@tektonic.net>	<Pine.LNX.4.64.0605161127030.16379@d.namei>	<446D0A0D.5090608@tektonic.net>	<Pine.LNX.4.64.0605182002330.6528@d.namei>	<446D0E6D.2080600@tektonic.net>
 	<446D151D.6030307@tektonic.net>	<4470A6CD.5010501@trash.net>
 	<4471CB54.401@tektonic.net>	<4471CE19.5070802@trash.net>
 	<bf76eefc5234d32440c822acd2879a8a@cl.cam.ac.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	<44737D53.9050006@tektonic.net>
+Mime-Version: 1.0 (Apple Message framework v624)
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
 	"xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
 	Patrick McHardy <kaber@trash.net>, James Morris <jmorris@namei.org>
 Return-path: <xen-devel-bounces@lists.xensource.com>
-To: Keir Fraser <Keir.Fraser@cl.cam.ac.uk>
-In-Reply-To: <bf76eefc5234d32440c822acd2879a8a@cl.cam.ac.uk>
+In-Reply-To: <44737D53.9050006@tektonic.net>
+To: Matt Ayres <matta@tektonic.net>
 List-Unsubscribe: <http://lists.xensource.com/cgi-bin/mailman/listinfo/xen-devel>,
 	<mailto:xen-devel-request@lists.xensource.com?subject=unsubscribe>
 List-Post: <mailto:xen-devel@lists.xensource.com>
@@ -27,40 +28,27 @@ Errors-To: xen-devel-bounces@lists.xensource.com
 List-Id: netfilter-devel.vger.kernel.org
 
 
+On 23 May 2006, at 22:23, Matt Ayres wrote:
 
-Keir Fraser wrote:
-> 
-> On 22 May 2006, at 15:43, Patrick McHardy wrote:
-> 
->> Maybe this helps: there is not too much the Xen code could be doing
->> wrong here. If I read your crash correctly it happend in the FORWARD
->> chain, which could mean that the outgoing device (probably the Xen
->> virtual network driver) has some bugs, but iptables really only cares
->> about the names at this point, which practically can't be bogus.
->> The only other thing I can imagine is that something is wrong with
->> the per-CPU copy of the ruleset, i.e. either smp_processor_id is
->> returning garbage or for_each_possible_cpu misses a CPU during
->> initialization. I have no idea if Xen really does touch this code,
->> but other than that I don't really see what it could break.
-> 
-> Having looked at disassembly, the fault happens when accessing 
-> e->ip.invflags in ip_packet_match() inlined inside ipt_do_table().
-> 
->  e = private->entries[smp_processor_id()] + 
-> private->hook_entry[NF_IP_FORWARD]
-> 
-> smp_processor_id() should be 0 (since the oops appears to occur on cpu0) 
-> and presumably all the ipt_entry structures are static once set up. 
-> Since this crash happens on a common path in ipt_do_table(), and since 
-> it happens only after the system has been up a while (I believe?), it 
-> rather looks as though something has either corrupted a pointer or 
-> unmapped memory from under iptables' feet.
-> 
+>> Having looked at disassembly, the fault happens when accessing 
+>> e->ip.invflags in ip_packet_match() inlined inside ipt_do_table().
+>>  e = private->entries[smp_processor_id()] + 
+>> private->hook_entry[NF_IP_FORWARD]
+>> smp_processor_id() should be 0 (since the oops appears to occur on 
+>> cpu0) and presumably all the ipt_entry structures are static once set 
+>> up. Since this crash happens on a common path in ipt_do_table(), and 
+>> since it happens only after the system has been up a while (I 
+>> believe?), it rather looks as though something has either corrupted a 
+>> pointer or unmapped memory from under iptables' feet.
+>
+> As the concerned user, what does this mean to me?  It will only affect 
+> SMP systems?  It is a bug in Xen or netfilter?
 
-As the concerned user, what does this mean to me?  It will only affect 
-SMP systems?  It is a bug in Xen or netfilter?
+Probably a Xen bug, but if so then it's basically a memory corruption. 
+It's weird it would hit the iptables rules every time though, and not 
+be a more random crash. This might well need reproducing in a developer 
+test-machine environment to stand a chance of tracking down.
 
-I'd just like to understand what is going on.
+  -- Keir
 
-Thanks,
-Matt
+> I'd just like to understand what is going on.
