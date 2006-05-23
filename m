@@ -1,53 +1,44 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 3/3]: SNMP NAT: fix memleak in snmp_object_decode
-Date: Tue, 23 May 2006 11:41:53 +0200
-Message-ID: <4472D8E1.5010106@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain;
- name="03.diff"
+From: Keir Fraser <Keir.Fraser@cl.cam.ac.uk>
+Subject: Re: Re: Panic in ipt_do_table with 2.6.16.13-xen
+Date: Tue, 23 May 2006 10:54:35 +0100
+Message-ID: <fb268aac0218b2a558e922858f99b20b@cl.cam.ac.uk>
+References: <4468BE70.7030802@tektonic.net>
+	<4468D613.20309@trash.net>	<44691669.4080903@tektonic.net>	<Pine.LNX.4.64.0605152331140.10964@d.namei>	<4469D84F.8080709@tektonic.net>	<Pine.LNX.4.64.0605161127030.16379@d.namei>	<446D0A0D.5090608@tektonic.net>	<Pine.LNX.4.64.0605182002330.6528@d.namei>
+	<446D0E6D.2080600@tektonic.net> <446D151D.6030307@tektonic.net>
+	<4470A6CD.5010501@trash.net> <4471CB54.401@tektonic.net>
+	<4471CE19.5070802@trash.net>
+Mime-Version: 1.0 (Apple Message framework v624)
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
-Content-Disposition: inline;
- filename="03.diff"
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	James Morris <jmorris@namei.org>, Matt Ayres <matta@tektonic.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <xen-devel-bounces@lists.xensource.com>
+In-Reply-To: <4471CE19.5070802@trash.net>
+To: Patrick McHardy <kaber@trash.net>
+List-Unsubscribe: <http://lists.xensource.com/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xensource.com?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xensource.com>
+List-Help: <mailto:xen-devel-request@lists.xensource.com?subject=help>
+List-Subscribe: <http://lists.xensource.com/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xensource.com?subject=subscribe>
+Sender: xen-devel-bounces@lists.xensource.com
+Errors-To: xen-devel-bounces@lists.xensource.com
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: SNMP NAT: fix memleak in snmp_object_decode
 
-If kmalloc fails, error path leaks data allocated from asn1_oid_decode().
+On 22 May 2006, at 15:43, Patrick McHardy wrote:
 
-Signed-off-by: Chris Wright <chrisw@sous-sol.org>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+> The only other thing I can imagine is that something is wrong with
+> the per-CPU copy of the ruleset, i.e. either smp_processor_id is
+> returning garbage or for_each_possible_cpu misses a CPU during
+> initialization. I have no idea if Xen really does touch this code,
+> but other than that I don't really see what it could break.
 
----
-commit 3eb1830bb0cf13f1e9906e96b6b21d512adfbafd
-tree afc2fb8b065ed275e4c5d6680858a62126b34f8b
-parent e79f105111e9a6088868a879934d0574ce6230ad
-author Chris Wright <chrisw@sous-sol.org> Tue, 23 May 2006 11:23:17 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 23 May 2006 11:23:17 +0200
+Of the options you consider, this sounds most likely. Really we need 
+some more info from a crash: I'd like to get disassembly from a vmlinux 
+image if that's possible, Matt.
 
- net/ipv4/netfilter/ip_nat_snmp_basic.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_nat_snmp_basic.c b/net/ipv4/netfilter/ip_nat_snmp_basic.c
-index c622538..1017d12 100644
---- a/net/ipv4/netfilter/ip_nat_snmp_basic.c
-+++ b/net/ipv4/netfilter/ip_nat_snmp_basic.c
-@@ -768,6 +768,7 @@ static unsigned char snmp_object_decode(
- 			len *= sizeof(unsigned long);
- 			*obj = kmalloc(sizeof(struct snmp_object) + len, GFP_ATOMIC);
- 			if (*obj == NULL) {
-+				kfree(lp);
- 				kfree(id);
- 				if (net_ratelimit())
- 					printk("OOM in bsalg (%d)\n", __LINE__);
+  Thanks,
+  Keir
