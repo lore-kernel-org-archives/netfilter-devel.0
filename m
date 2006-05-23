@@ -1,17 +1,18 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
+From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
 Subject: Re: New extension: CRYPT target
-Date: Tue, 23 May 2006 19:14:28 +0200
-Message-ID: <447342F4.2010405@gmx.net>
-References: <44708E68.9080508@speedy.com.ar>	<44709CFC.7050007@gmx.net>	<4470D859.7000706@speedy.com.ar>	<4470E716.1090001@gmx.net>	<44724DFE.5030806@speedy.com.ar>	<4473380F.5050102@speedy.com.ar>
-	<44733C72.1020008@gmx.net> <44734149.2040900@trash.net>
+Date: Tue, 23 May 2006 14:19:01 -0300
+Message-ID: <44734405.3000300@speedy.com.ar>
+References: <44708E68.9080508@speedy.com.ar> <44709CFC.7050007@gmx.net>
+	<4470D859.7000706@speedy.com.ar>
+	<10007.1148252261@sandelman.ottawa.on.ca>
+	<44724AE0.5040708@speedy.com.ar>
+	<22306.1148389730@sandelman.ottawa.on.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Gervasio Bernal <gervasiobernal@speedy.com.ar>,
-	netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7BIT
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44734149.2040900@trash.net>
+In-reply-to: <22306.1148389730@sandelman.ottawa.on.ca>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,29 +24,43 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Carl-Daniel Hailfinger wrote:
->> Gervasio Bernal wrote:
->>
->>> One possible solution would be to use a file to store the key, and chmod
->>> that file.That would be correct?
->>
->> No. Still leaves a race. You have to chmod the file before you store the
->> key in it. Then it would be ok.
+Michael Richardson wrote:
 > 
-> You are both very wrong :) What prevents someone from opening it
-> before the chmod, and read it afterwards? This is what umask is
-> for ..
+> 
+>>>>>>>"Gervasio" == Gervasio Bernal <gervasiobernal@speedy.com.ar> writes:
+> 
+>     Gervasio> The idea behind CRYPT extension is not to replace IPSEC
+>     Gervasio> absolutely, but to be a simple alternative of use for
+>     Gervasio> encryption/decryption and packet authentication using
+>     Gervasio> Iptables. It could be useful for somebody.
+> 
+>   Tell me the threat model.
+> 
+>   Under what circumstances is it better than:
+> 	a) IPsec with OE (with is dirty simple to configure)
+> 	b) TLS/SSL LD_PRELOAD wrapper
+> 	c) using SCP instead of FTP (or rsync over SSH)
+> 	d) OpenVPN or SSH port forwarding
+> 	e) HIP
 
-umask alone won't help. If an attacker creates a file with the same
-name in the same place before you open it and has that file open
-before you write to it, he will still win. Correct umask and
-opening it with O_CREAT|O_EXCL should mostly be safe, though.
-I assume you want to do all this stuff as root. If /root is
-only readable by root, create the file there and you should be
-safe.
+Perhaps in none of those circumstances.
+CRYPT extension is just an alternative, as well OpenOffice Writer is an
+alternative of Microsoft Word. It is good to have several different
+alternatives.
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+> 
+>     Gervasio> We have also developed a module in Python that use the
+>     Gervasio> CRYPT extension, configuration files, has automatic key
+>     Gervasio> management and user authentication using certificates. But
+>     Gervasio> we need that someone else can test first the extension
+>     Gervasio> alone, and comments its experience to us.
+> 
+>   Why in the world would you build such a complicated system? 
+
+It is much more easy of which you imagine. You only have to run a Python
+application and voila!!
+
+>   You just told us that you wanted something simpler than IPsec.
+> 
+>   It seems like vanity crypto to me.
+> 
