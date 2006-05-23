@@ -1,54 +1,30 @@
-From: Keir Fraser <Keir.Fraser@cl.cam.ac.uk>
-Subject: Re: Re: Panic in ipt_do_table with 2.6.16.13-xen
-Date: Tue, 23 May 2006 22:27:17 +0100
-Message-ID: <5e589307bfef58553bfda1d7ab47f9f3@cl.cam.ac.uk>
-References: <4468BE70.7030802@tektonic.net>	<4468D613.20309@trash.net>	<44691669.4080903@tektonic.net>	<Pine.LNX.4.64.0605152331140.10964@d.namei>	<4469D84F.8080709@tektonic.net>	<Pine.LNX.4.64.0605161127030.16379@d.namei>	<446D0A0D.5090608@tektonic.net>	<Pine.LNX.4.64.0605182002330.6528@d.namei>	<446D0E6D.2080600@tektonic.net>
-	<446D151D.6030307@tektonic.net>	<4470A6CD.5010501@trash.net>
-	<4471CB54.401@tektonic.net>	<4471CE19.5070802@trash.net>
-	<bf76eefc5234d32440c822acd2879a8a@cl.cam.ac.uk>
-	<44737D53.9050006@tektonic.net>
-Mime-Version: 1.0 (Apple Message framework v624)
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 1/3]: H.323 helper: fix parser error propagation
+Date: Tue, 23 May 2006 15:08:25 -0700 (PDT)
+Message-ID: <20060523.150825.63129167.davem@davemloft.net>
+References: <4472D8DC.90501@trash.net>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	"xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>, James Morris <jmorris@namei.org>
-Return-path: <xen-devel-bounces@lists.xensource.com>
-In-Reply-To: <44737D53.9050006@tektonic.net>
-To: Matt Ayres <matta@tektonic.net>
-List-Unsubscribe: <http://lists.xensource.com/cgi-bin/mailman/listinfo/xen-devel>,
-	<mailto:xen-devel-request@lists.xensource.com?subject=unsubscribe>
-List-Post: <mailto:xen-devel@lists.xensource.com>
-List-Help: <mailto:xen-devel-request@lists.xensource.com?subject=help>
-List-Subscribe: <http://lists.xensource.com/cgi-bin/mailman/listinfo/xen-devel>,
-	<mailto:xen-devel-request@lists.xensource.com?subject=subscribe>
-Sender: xen-devel-bounces@lists.xensource.com
-Errors-To: xen-devel-bounces@lists.xensource.com
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: kaber@trash.net
+In-Reply-To: <4472D8DC.90501@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue, 23 May 2006 11:41:48 +0200
 
-On 23 May 2006, at 22:23, Matt Ayres wrote:
+> following are three more fixes for 2.6.17, including the fix for
+> the last known problem in the H.323 helper.
 
->> Having looked at disassembly, the fault happens when accessing 
->> e->ip.invflags in ip_packet_match() inlined inside ipt_do_table().
->>  e = private->entries[smp_processor_id()] + 
->> private->hook_entry[NF_IP_FORWARD]
->> smp_processor_id() should be 0 (since the oops appears to occur on 
->> cpu0) and presumably all the ipt_entry structures are static once set 
->> up. Since this crash happens on a common path in ipt_do_table(), and 
->> since it happens only after the system has been up a while (I 
->> believe?), it rather looks as though something has either corrupted a 
->> pointer or unmapped memory from under iptables' feet.
->
-> As the concerned user, what does this mean to me?  It will only affect 
-> SMP systems?  It is a bug in Xen or netfilter?
-
-Probably a Xen bug, but if so then it's basically a memory corruption. 
-It's weird it would hit the iptables rules every time though, and not 
-be a more random crash. This might well need reproducing in a developer 
-test-machine environment to stand a chance of tracking down.
-
-  -- Keir
-
-> I'd just like to understand what is going on.
+All applied, thanks a lot Patrick.
