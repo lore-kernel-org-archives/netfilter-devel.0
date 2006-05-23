@@ -1,12 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 1/3]: H.323 helper: fix parser error propagation
-Date: Tue, 23 May 2006 11:41:48 +0200
-Message-ID: <4472D8DC.90501@trash.net>
+Subject: [NETFILTER 2/3]: H.323 helper: fix sequence extension parsing
+Date: Tue, 23 May 2006 11:41:51 +0200
+Message-ID: <4472D8DF.60506@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070203000105090907030409"
+Content-Type: text/plain;
+ name="02.diff"
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
+Content-Disposition: inline;
+ filename="02.diff"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,169 +22,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070203000105090907030409
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+[NETFILTER]: H.323 helper: fix sequence extension parsing
 
-Hi Dave,
-
-following are three more fixes for 2.6.17, including the fix for
-the last known problem in the H.323 helper.
-
-Please apply.
-
-
- net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c |   36
-+++++++++++----------
- net/ipv4/netfilter/ip_nat_snmp_basic.c             |    1
- 2 files changed, 21 insertions(+), 16 deletions(-)
-
-Chris Wright:
-      [NETFILTER]: SNMP NAT: fix memleak in snmp_object_decode
-
-Patrick McHardy:
-      [NETFILTER]: H.323 helper: fix parser error propagation
-      [NETFILTER]: H.323 helper: fix sequence extension parsing
-
---------------070203000105090907030409
-Content-Type: text/plain;
- name="01.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="01.diff"
-
-[NETFILTER]: H.323 helper: fix parser error propagation
-
-The condition "> H323_ERROR_STOP" can never be true since H323_ERROR_STOP
-is positive and is the highest possible return code, while real errors are
-negative, fix the checks. Also only abort on real errors in some spots
-that were just interpreting any return value != 0 as error.
-
-Fixes crashes caused by use of stale data after a parsing error occured:
-
-BUG: unable to handle kernel paging request at virtual address bfffffff
- printing eip:
-c01aa0f8
-*pde = 1a801067
-*pte = 00000000
-Oops: 0000 [#1]
-PREEMPT
-Modules linked in: ip_nat_h323 ip_conntrack_h323 nfsd exportfs sch_sfq sch_red cls_fw sch_hfsc  xt_length ipt_owner xt_MARK iptable_mangle nfs lockd sunrpc pppoe pppoxx
-CPU:    0
-EIP:    0060:[<c01aa0f8>]    Not tainted VLI
-EFLAGS: 00210646   (2.6.17-rc4 #8)
-EIP is at memmove+0x19/0x22
-eax: d77264e9   ebx: d77264e9   ecx: e88d9b17   edx: d77264e9
-esi: bfffffff   edi: bfffffff   ebp: de6a7680   esp: c0349db8
-ds: 007b   es: 007b   ss: 0068
-Process asterisk (pid: 3765, threadinfo=c0349000 task=da068540)
-Stack: <0>00000006 c0349e5e d77264e3 e09a2b4e e09a38a0 d7726052 d7726124 00000491
-       00000006 00000006 00000006 00000491 de6a7680 d772601e d7726032 c0349f74
-       e09a2dc2 00000006 c0349e5e 00000006 00000000 d76dda28 00000491 c0349f74
-Call Trace:
- [<e09a2b4e>] mangle_contents+0x62/0xfe [ip_nat]
- [<e09a2dc2>] ip_nat_mangle_tcp_packet+0xa1/0x191 [ip_nat]
- [<e0a2712d>] set_addr+0x74/0x14c [ip_nat_h323]
- [<e0ad531e>] process_setup+0x11b/0x29e [ip_conntrack_h323]
- [<e0ad534f>] process_setup+0x14c/0x29e [ip_conntrack_h323]
- [<e0ad57bd>] process_q931+0x3c/0x142 [ip_conntrack_h323]
- [<e0ad5dff>] q931_help+0xe0/0x144 [ip_conntrack_h323]
-...
-
-Found by the PROTOS c07-h2250v4 testsuite.
+When parsing unknown sequence extensions the "son"-pointer points behind
+the last known extension for this type, don't try to interpret it.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 97326cd6bc2a1360c213113cf1c7bc5514ad6d5b
-tree ceda0799c74fcf1fdb05f55098eaa0767d9b9df9
-parent 353b28bafd1b962359a866ff263a7fad833d29a1
-author Patrick McHardy <kaber@trash.net> Tue, 23 May 2006 11:15:46 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 23 May 2006 11:15:46 +0200
+commit e79f105111e9a6088868a879934d0574ce6230ad
+tree 5d61518ccb84bd58632eca399235459d9a2cd49c
+parent 97326cd6bc2a1360c213113cf1c7bc5514ad6d5b
+author Patrick McHardy <kaber@trash.net> Tue, 23 May 2006 11:16:22 +0200
+committer Patrick McHardy <kaber@trash.net> Tue, 23 May 2006 11:16:22 +0200
 
- net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c |   34 +++++++++++---------
- 1 files changed, 19 insertions(+), 15 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c b/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c
-index 355a53a..5d04438 100644
+index 5d04438..26dfeca 100644
 --- a/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c
 +++ b/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c
-@@ -528,14 +528,15 @@ int decode_seq(bitstr_t * bs, field_t * 
+@@ -555,7 +555,7 @@ int decode_seq(bitstr_t * bs, field_t * 
  
- 			/* Decode */
- 			if ((err = (Decoders[son->type]) (bs, son, base,
--							  level + 1)) >
--			    H323_ERROR_STOP)
-+							  level + 1)) <
-+			    H323_ERROR_NONE)
- 				return err;
- 
- 			bs->cur = beg + len;
- 			bs->bit = 0;
- 		} else if ((err = (Decoders[son->type]) (bs, son, base,
--							 level + 1)))
-+							 level + 1)) <
-+			   H323_ERROR_NONE)
- 			return err;
- 	}
- 
-@@ -584,8 +585,8 @@ int decode_seq(bitstr_t * bs, field_t * 
- 		beg = bs->cur;
- 
- 		if ((err = (Decoders[son->type]) (bs, son, base,
--						  level + 1)) >
--		    H323_ERROR_STOP)
-+						  level + 1)) <
-+		    H323_ERROR_NONE)
- 			return err;
- 
- 		bs->cur = beg + len;
-@@ -660,18 +661,20 @@ int decode_seqof(bitstr_t * bs, field_t 
- 							  i <
- 							  effective_count ?
- 							  base : NULL,
--							  level + 1)) >
--			    H323_ERROR_STOP)
-+							  level + 1)) <
-+			    H323_ERROR_NONE)
- 				return err;
- 
- 			bs->cur = beg + len;
- 			bs->bit = 0;
- 		} else
--		    if ((err = (Decoders[son->type]) (bs, son,
--						      i < effective_count ?
--						      base : NULL,
--						      level + 1)))
--			return err;
-+			if ((err = (Decoders[son->type]) (bs, son,
-+							  i <
-+							  effective_count ?
-+							  base : NULL,
-+							  level + 1)) <
-+			    H323_ERROR_NONE)
-+				return err;
- 
- 		if (base)
- 			base += son->offset;
-@@ -735,13 +738,14 @@ int decode_choice(bitstr_t * bs, field_t
- 		}
- 		beg = bs->cur;
- 
--		if ((err = (Decoders[son->type]) (bs, son, base, level + 1)) >
--		    H323_ERROR_STOP)
-+		if ((err = (Decoders[son->type]) (bs, son, base, level + 1)) <
-+		    H323_ERROR_NONE)
- 			return err;
- 
- 		bs->cur = beg + len;
- 		bs->bit = 0;
--	} else if ((err = (Decoders[son->type]) (bs, son, base, level + 1)))
-+	} else if ((err = (Decoders[son->type]) (bs, son, base, level + 1)) <
-+		   H323_ERROR_NONE)
- 		return err;
- 
- 	return H323_ERROR_NONE;
-
---------------070203000105090907030409--
+ 	/* Decode the extension components */
+ 	for (opt = 0; opt < bmp2_len; opt++, i++, son++) {
+-		if (son->attr & STOP) {
++		if (i < f->ub && son->attr & STOP) {
+ 			PRINT("%*.s%s\n", (level + 1) * TAB_SIZE, " ",
+ 			      son->name);
+ 			return H323_ERROR_STOP;
