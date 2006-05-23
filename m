@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 2/3]: H.323 helper: fix sequence extension parsing
-Date: Tue, 23 May 2006 11:41:51 +0200
-Message-ID: <4472D8DF.60506@trash.net>
+Subject: [NETFILTER 3/3]: SNMP NAT: fix memleak in snmp_object_decode
+Date: Tue, 23 May 2006 11:41:53 +0200
+Message-ID: <4472D8E1.5010106@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
- name="02.diff"
+ name="03.diff"
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "David S. Miller" <davem@davemloft.net>
 Content-Disposition: inline;
- filename="02.diff"
+ filename="03.diff"
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,33 +22,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: H.323 helper: fix sequence extension parsing
+[NETFILTER]: SNMP NAT: fix memleak in snmp_object_decode
 
-When parsing unknown sequence extensions the "son"-pointer points behind
-the last known extension for this type, don't try to interpret it.
+If kmalloc fails, error path leaks data allocated from asn1_oid_decode().
 
+Signed-off-by: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit e79f105111e9a6088868a879934d0574ce6230ad
-tree 5d61518ccb84bd58632eca399235459d9a2cd49c
-parent 97326cd6bc2a1360c213113cf1c7bc5514ad6d5b
-author Patrick McHardy <kaber@trash.net> Tue, 23 May 2006 11:16:22 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 23 May 2006 11:16:22 +0200
+commit 3eb1830bb0cf13f1e9906e96b6b21d512adfbafd
+tree afc2fb8b065ed275e4c5d6680858a62126b34f8b
+parent e79f105111e9a6088868a879934d0574ce6230ad
+author Chris Wright <chrisw@sous-sol.org> Tue, 23 May 2006 11:23:17 +0200
+committer Patrick McHardy <kaber@trash.net> Tue, 23 May 2006 11:23:17 +0200
 
- net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/ipv4/netfilter/ip_nat_snmp_basic.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c b/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c
-index 5d04438..26dfeca 100644
---- a/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c
-+++ b/net/ipv4/netfilter/ip_conntrack_helper_h323_asn1.c
-@@ -555,7 +555,7 @@ int decode_seq(bitstr_t * bs, field_t * 
- 
- 	/* Decode the extension components */
- 	for (opt = 0; opt < bmp2_len; opt++, i++, son++) {
--		if (son->attr & STOP) {
-+		if (i < f->ub && son->attr & STOP) {
- 			PRINT("%*.s%s\n", (level + 1) * TAB_SIZE, " ",
- 			      son->name);
- 			return H323_ERROR_STOP;
+diff --git a/net/ipv4/netfilter/ip_nat_snmp_basic.c b/net/ipv4/netfilter/ip_nat_snmp_basic.c
+index c622538..1017d12 100644
+--- a/net/ipv4/netfilter/ip_nat_snmp_basic.c
++++ b/net/ipv4/netfilter/ip_nat_snmp_basic.c
+@@ -768,6 +768,7 @@ static unsigned char snmp_object_decode(
+ 			len *= sizeof(unsigned long);
+ 			*obj = kmalloc(sizeof(struct snmp_object) + len, GFP_ATOMIC);
+ 			if (*obj == NULL) {
++				kfree(lp);
+ 				kfree(id);
+ 				if (net_ratelimit())
+ 					printk("OOM in bsalg (%d)\n", __LINE__);
