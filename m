@@ -1,17 +1,16 @@
-From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
-Subject: Re: [NETFILTER]: H.323 helper: fix sequence extension parsing
-Date: Tue, 23 May 2006 11:28:40 -0400
-Message-ID: <BAY109-DAV139491EC00AC859683246AB39B0@phx.gbl>
-References: <44719685.6000906@trash.net><BAY109-DAV65DAA6039C77B3C71892DB39B0@phx.gbl>
-	<4472D3C6.6020305@trash.net>
+From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+Subject: Re: New extension: CRYPT target
+Date: Tue, 23 May 2006 13:27:59 -0300
+Message-ID: <4473380F.5050102@speedy.com.ar>
+References: <44708E68.9080508@speedy.com.ar> <44709CFC.7050007@gmx.net>
+	<4470D859.7000706@speedy.com.ar> <4470E716.1090001@gmx.net>
+	<44724DFE.5030806@speedy.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-15"
-Content-Transfer-Encoding: base64
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Jing Min Zhao <zhaojingmin@users.sourceforge.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7BIT
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>
+In-reply-to: <44724DFE.5030806@speedy.com.ar>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,25 +22,115 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-DQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogIlBhdHJpY2sgTWNIYXJkeSIg
-PGthYmVyQHRyYXNoLm5ldD4NClRvOiAiSmluZyBNaW4gWmhhbyIgPHpoYW9qaW5nbWluQGhvdG1h
-aWwuY29tPg0KQ2M6ICJOZXRmaWx0ZXIgRGV2ZWxvcG1lbnQgTWFpbGluZ2xpc3QiIDxuZXRmaWx0
-ZXItZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9yZz47ICJKaW5nIE1pbiBaaGFvIiA8emhhb2ppbmdt
-aW5AdXNlcnMuc291cmNlZm9yZ2UubmV0Pg0KU2VudDogVHVlc2RheSwgTWF5IDIzLCAyMDA2IDU6
-MjAgQU0NClN1YmplY3Q6IFJlOiBbTkVURklMVEVSXTogSC4zMjMgaGVscGVyOiBmaXggc2VxdWVu
-Y2UgZXh0ZW5zaW9uIHBhcnNpbmcNCg0KDQo+IEppbmcgTWluIFpoYW8gd3JvdGU6DQo+PiBUaGlz
-IGlzIHJlYWxseSBhIHN0dXBpZCBidWcuIFRoYW5rIHlvdSwgUGF0cmljay4NCj4+IA0KPj4+IERv
-ZXNuJ3QgcmVhbGx5IGZpeCB0aGUgY3Jhc2ggSSB3YXMgc2VlaW5nLCBidXQgZG9lcyBoaWRlIGl0
-IGF3YXkgOikNCj4+IA0KPj4gDQo+PiBDYW4geW91IHBsZWFzZSBleHBsYWluIHdoeT8gQXMgSSB1
-bmRlcnN0YW5kLCBpdCBzaG91bGQndmUgZml4ZWQNCj4+IHRoZSBjcmFzaC4NCj4gDQo+IEkgdGhp
-bmsgdGhlIHJlYXNvbiB3aHkgaXQgbWFrZSB0aGUgY3Jhc2ggZ28gYXdheSBpcyBiZWNhdXNlIHRo
-ZQ0KPiBwYWNrZXRzIGNvbnRhaW5lZCBhIGxvbmcgc3RyZWFtIG9mIG1hbGZvcm1lZCB1bmtub3du
-IGV4dGVuc2lvbnMuDQo+IFdoZW4gdGhlIHNvbiBwb2ludGVyIHdlbnQgcGFzdCB0aGUgYXJyYXkg
-b2YgZmllbGRfdCBlbGVtZW50cyBpdA0KPiBoaXQgdGhlIG5leHQgYXJyYXksIHdoaWNoIGNvbnRh
-aW5lZCBlbGVtZW50cyBtYXJrZWQgU1RPUCwgc28gaXQNCj4gYWJvcnRlZCBwYXJzaW5nIGFuZCBk
-aWRuJ3QgZ290IHRvIHRoZSBwb2ludCB3aGVyZSBpdCB3b3VsZCBoYXZlDQo+IG5vdGljZWQgdGhl
-IG1hbGZvcm1lZCBleHRlbnNpb25zLiBCeSBjaGFuZ2luZyBpdCBub3QgdG8gcnVuIHBhc3QNCj4g
-dGhlIGFycmF5IGl0IGFib3J0ZWQgcHJvcGVybHksIGhpZGluZyB0aGUgcmVhbCByZWFzb24gZm9y
-IHRoZQ0KPiBjcmFzaCAobXkgb3RoZXIgcGF0Y2gpLg0KPiANCj4gDQo+DQpTb3JyeSwgSSBtaXN1
-bmRlcnN0b29kLiBZZXMsIHlvdSBhcmUgY29ycmVjdC4gQWN0dWFsbHksIHdlIHNob3VsZCBuZXZl
-ciBhY2Nlc3MNCmFueSBtZW1iZXIgb2YgcG9pbnRlciBzb24gaWYgaSA+PSBmLT51Yi4=
+Gervasio Bernal wrote:
+> Carl-Daniel Hailfinger wrote:
+> 
+>>Gervasio Bernal wrote:
+>>
+>>
+>>>Carl-Daniel Hailfinger wrote:
+>>>
+>>>
+>>>>Gervasio Bernal wrote:
+>>>>
+>>>>
+>>>>
+>>>>>(on host A, 1.2.3.4, FTP client)
+>>>>># iptables -t mangle -A POSTROUTING -d 1.2.3.5 -p tcp --dport 20:21 -j
+>>>>>CRYPT --cipher blowfish --key topsecret --mode ecb --direction encrypt
+>>>>
+>>>>Ouch. If anybody runs ps while this iptables command is running, he has
+>>>>your top secret key.
+>>
+>>
+>>How are you going to prevent that?
+> 
+> Well, give us some time to study it.
+
+One possible solution would be to use a file to store the key, and chmod
+that file.That would be correct?
+
+> 
+>>
+>>
+>>>>Does this provide any benefit over IPSEC?
+>>
+>>
+>>>IPSEC/OpenSwan is complicated to use and quite heavy.
+>>
+>>
+>>I admit IPSEC is complicated to use, but it has lightweight modes.
+>>
+>>
+>>
+>>>CRYPT is truely peer-to-peer.
+>>
+>>
+>>IPSEC also has peer-to-peer modes.
+>>
+>>
+>>
+>>>It is compatible with routing daemons.
+>>
+>>
+>>Same for IPSEC to a certain extent (depends on how you use IPSEC)
+>>
+>>
+>>
+>>>It allows you to encrypt all the traffic between two endpoints or
+>>>only certain type of traffic (ej: only TCP connections).
+>>
+>>
+>>Same for IPSEC.
+>>
+>>
+>>
+>>>It is extremely easy to use for an administrator familiarized
+>>>with Linux firewalling since it uses Iptables and it
+>>
+>>
+>>Unfortunately, IPSEC is not so easy to use.
+>>
+>>
+>>
+>>>does not make any modification to the normal routing behavior.
+>>
+>>
+>>IPSEC can do that in some modes.
+>>
+>>
+>>
+>>>CRYPT is considerably light and does all the
+>>>encryption/decryption process at kernel space (contrary to OpenVPN).
+>>
+>>
+>>OK, but does it have any advantages over an encryption library loaded
+>>with LD_PRELOAD which replaces all networking functions for a given
+>>application with its own encrypted variant? I consider "all in kernel"
+>>to be a disadvantage.
+>>
+>>
+>>What happens if a router on the way decides to fragment the packets?
+> 
+> In TCP connections there is no problem, we use destination MTU to
+> calculate the corresponding Maximun Segment Size.
+> In others protocols we are studying the way to avoid fragmentation.
+> 
+> 
+>>
+>>I think your approach to encrypted communication is interesting, but
+>>wouldn't an iptables interface to IPSEC in transport mode achieve
+>>similar results?
+> 
+> Yes, but if you tell to someone that he can encrypt and authenticate a
+> communication using Iptables only, I think that the extension could
+> interest to him.
+> 
+> 
+>>
+>>Regards,
+>>Carl-Daniel
+> 
+> 
+> 
+> 
