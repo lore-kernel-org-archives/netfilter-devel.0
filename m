@@ -1,52 +1,57 @@
-From: "Martin Shaw" <MartinS@pivetal.com>
-Subject: nfnetlink_queue/nfnetlink_log performance
-Date: Tue, 23 May 2006 22:09:44 +0100
-Message-ID: <F765B0CA752F3448B2698F0FB7DCB39805BDC4@sv-janus.pivetal.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+From: Keir Fraser <Keir.Fraser@cl.cam.ac.uk>
+Subject: Re: Re: Panic in ipt_do_table with 2.6.16.13-xen
+Date: Tue, 23 May 2006 22:15:58 +0100
+Message-ID: <bf76eefc5234d32440c822acd2879a8a@cl.cam.ac.uk>
+References: <4468BE70.7030802@tektonic.net>
+	<4468D613.20309@trash.net>	<44691669.4080903@tektonic.net>	<Pine.LNX.4.64.0605152331140.10964@d.namei>	<4469D84F.8080709@tektonic.net>	<Pine.LNX.4.64.0605161127030.16379@d.namei>	<446D0A0D.5090608@tektonic.net>	<Pine.LNX.4.64.0605182002330.6528@d.namei>
+	<446D0E6D.2080600@tektonic.net> <446D151D.6030307@tektonic.net>
+	<4470A6CD.5010501@trash.net> <4471CB54.401@tektonic.net>
+	<4471CE19.5070802@trash.net>
+Mime-Version: 1.0 (Apple Message framework v624)
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	James Morris <jmorris@namei.org>, Matt Ayres <matta@tektonic.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <xen-devel-bounces@lists.xensource.com>
+In-Reply-To: <4471CE19.5070802@trash.net>
+To: Patrick McHardy <kaber@trash.net>
+List-Unsubscribe: <http://lists.xensource.com/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xensource.com?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xensource.com>
+List-Help: <mailto:xen-devel-request@lists.xensource.com?subject=help>
+List-Subscribe: <http://lists.xensource.com/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xensource.com?subject=subscribe>
+Sender: xen-devel-bounces@lists.xensource.com
+Errors-To: xen-devel-bounces@lists.xensource.com
 List-Id: netfilter-devel.vger.kernel.org
 
-I'm currently testing these nfnetlink extensions in terms of forwarding =
-packets from large numbers of rtp streams.
 
-My testing so far has been based on the test apps in the respective =
-/utils folders.
+On 22 May 2006, at 15:43, Patrick McHardy wrote:
 
-I have cut down the processing to a fairly minimal extract id then =
-reinject (for the queue app) but even so I am experiencing problems with =
-higher packet rates (>1000/s). Under these conditions, the cpu =
-utilisation is extremely high. The breaking point is always a -1 return =
-from the recv() call made on the fd returned for the netlink socket.
+> Maybe this helps: there is not too much the Xen code could be doing
+> wrong here. If I read your crash correctly it happend in the FORWARD
+> chain, which could mean that the outgoing device (probably the Xen
+> virtual network driver) has some bugs, but iptables really only cares
+> about the names at this point, which practically can't be bogus.
+> The only other thing I can imagine is that something is wrong with
+> the per-CPU copy of the ruleset, i.e. either smp_processor_id is
+> returning garbage or for_each_possible_cpu misses a CPU during
+> initialization. I have no idea if Xen really does touch this code,
+> but other than that I don't really see what it could break.
 
-The benchmark is against a libpcap type setup, where this volume and =
-higher is attainable. There are many other mechanisms of the =
-kernel/netfilter that we wish to utilise so that's why just using =
-libpcap isn't really an option.
+Having looked at disassembly, the fault happens when accessing 
+e->ip.invflags in ip_packet_match() inlined inside ipt_do_table().
 
-Anybody done some tests with these extensions under high load? What I'm =
-really interested in is any indication of which mechanism (queue or =
-ulog) is more suited to high throughput? Do these mechanisms scale well? =
-I've tweaked a lot with the libnfnetlink source and with the kernel =
-modules (increasing max q length etc) but nothing seems to shift the =
-breaking point considerably.
+  e = private->entries[smp_processor_id()] + 
+private->hook_entry[NF_IP_FORWARD]
 
-Any comments/ideas would be most appreciated.
+smp_processor_id() should be 0 (since the oops appears to occur on 
+cpu0) and presumably all the ipt_entry structures are static once set 
+up. Since this crash happens on a common path in ipt_do_table(), and 
+since it happens only after the system has been up a while (I 
+believe?), it rather looks as though something has either corrupted a 
+pointer or unmapped memory from under iptables' feet.
 
-
-Thanks.
-
-Martin.
+  -- Keir
