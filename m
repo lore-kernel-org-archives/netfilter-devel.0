@@ -1,11 +1,19 @@
-From: philipc@snapgear.com
-Subject: [PATCH 4/4] drop ftp bounce attacks
-Date: Wed, 24 May 2006 14:04:45 +1000
-Message-ID: <20060524040951.217594000@snapgear.com>
-References: <20060524040441.111049000@snapgear.com>
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: New extension: CRYPT target
+Date: Wed, 24 May 2006 07:03:05 +0200
+Message-ID: <20060524050305.GB20541@oknodo.bof.de>
+References: <44708E68.9080508@speedy.com.ar> <44709CFC.7050007@gmx.net>
+	<"4470D859.7000706"@speedy.com.ar> <4470E716.1090001@gmx.net>
+	<4473380F.5050102@speedy.com.ar> <44733C72.1020008@gmx.net>
+	<44734149.2040900@trash.net> <447342F4.2010405@gmx.net>
+	<4473970A.9050008@speedy.com.ar>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline; filename=dropftpbounce.patch
+To: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+Content-Disposition: inline
+In-Reply-To: <4473970A.9050008@speedy.com.ar>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,48 +25,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-FTP bounce attacks work by specifying a different IP address in
-the PORT command for active mode.  This causes the FTP server to
-open a connection to another machine.
+> The idea of using a file is like this:
+> 1- Being root, create a file called /root/file1.key
+> #touch /root/file1.key
+> #ls -al /root/file1.key
+> -rw-r--r--  1 root root 0 May 23 20:05 file1.key
 
-The best solution for this problem is to fix the FTP server.
-This is a well known problem, and all major FTP servers should
-have been fixed.
+Now the attacker can open the file (if they have permission to read
+that directory, but I'm sure you didn't want to know that...)
 
-An alternative solution is to drop the packet in connection tracking.  
-Dropping packets isn't the intended use of connection tracking,
-but creating a new match to do this seems inefficient.
+> 2- Change permissions
+> #chmod 600 /root/file1.key
+> #ls -al /root/file1.key
+> -rw-------  1 root root 0 May 23 20:05 file1.key
 
-Signed-off-by: Philip Craig <philipc@snapgear.com>
+The attacker keeps the file open; this does not change anything.
 
-Index: linux-2.6.17-rc4.orig/net/ipv4/netfilter/ip_conntrack_ftp.c
-===================================================================
---- linux-2.6.17-rc4.orig.orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2006-05-24 11:57:28.000000000 +1000
-+++ linux-2.6.17-rc4.orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2006-05-24 13:09:44.000000000 +1000
-@@ -405,8 +405,14 @@ static int help(struct sk_buff **pskb,
- 		   problem (DMZ machines opening holes to internal
- 		   networks, or the packet filter itself). */
- 		if (!loose) {
--			ret = NF_ACCEPT;
--			goto out_put_expect;
-+			if (net_ratelimit())
-+				printk("conntrack_ftp: ip mismatch: "
-+				       "%u,%u,%u,%u != %u.%u.%u.%u\n",
-+				       array[0], array[1], array[2], array[3],
-+				       NIPQUAD(ct->tuplehash[dir].tuple.src.ip));
-+			ret = NF_DROP;
-+			ip_conntrack_expect_put(exp);
-+			goto out;
- 		}
- 		exp->tuple.dst.ip = htonl((array[0] << 24) | (array[1] << 16)
- 					 | (array[2] << 8) | array[3]);
-@@ -436,7 +442,6 @@ static int help(struct sk_buff **pskb,
- 			ret = NF_ACCEPT;
- 	}
- 
--out_put_expect:
- 	ip_conntrack_expect_put(exp);
- 
- out_update_nl:
+> 3- Open /root/file1.key and add a key
 
---
+And now the attacker can read the key from the still open file.
+
+You should try to understand what people here are telling you.
+
+best regards
+  Patrick
