@@ -1,51 +1,108 @@
-From: Patrick Schaaf <bof@bof.de>
-Subject: Re: New extension: CRYPT target
-Date: Wed, 24 May 2006 07:03:05 +0200
-Message-ID: <20060524050305.GB20541@oknodo.bof.de>
-References: <44708E68.9080508@speedy.com.ar> <44709CFC.7050007@gmx.net>
-	<"4470D859.7000706"@speedy.com.ar> <4470E716.1090001@gmx.net>
-	<4473380F.5050102@speedy.com.ar> <44733C72.1020008@gmx.net>
-	<44734149.2040900@trash.net> <447342F4.2010405@gmx.net>
-	<4473970A.9050008@speedy.com.ar>
+From: Gerd Hoffmann <kraxel@suse.de>
+Subject: Re: Re: Panic in ipt_do_table with 2.6.16.13-xen
+Date: Wed, 24 May 2006 09:16:37 +0200
+Message-ID: <44740855.4090409@suse.de>
+References: <4468BE70.7030802@tektonic.net>	<4468D613.20309@trash.net>	<44691669.4080903@tektonic.net>	<Pine.LNX.4.64.0605152331140.10964@d.namei>	<4469D84F.8080709@tektonic.net>	<Pine.LNX.4.64.0605161127030.16379@d.namei>	<446D0A0D.5090608@tektonic.net>	<Pine.LNX.4.64.0605182002330.6528@d.namei>	<446D0E6D.2080600@tektonic.net>
+	<446D151D.6030307@tektonic.net>	<4470A6CD.5010501@trash.net>
+	<4471CB54.401@tektonic.net>	<4471CE19.5070802@trash.net>
+	<bf76eefc5234d32440c822acd2879a8a@cl.cam.ac.uk>
+	<44737D53.9050006@tektonic.net>
+	<5e589307bfef58553bfda1d7ab47f9f3@cl.cam.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Gervasio Bernal <gervasiobernal@speedy.com.ar>
-Content-Disposition: inline
-In-Reply-To: <4473970A.9050008@speedy.com.ar>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------080109030209000408000801"
+Cc: "xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	James Morris <jmorris@namei.org>, Matt Ayres <matta@tektonic.net>,
+	Patrick McHardy <kaber@trash.net>
+Return-path: <xen-devel-bounces@lists.xensource.com>
+To: Keir Fraser <Keir.Fraser@cl.cam.ac.uk>
+In-Reply-To: <5e589307bfef58553bfda1d7ab47f9f3@cl.cam.ac.uk>
+List-Unsubscribe: <http://lists.xensource.com/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xensource.com?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xensource.com>
+List-Help: <mailto:xen-devel-request@lists.xensource.com?subject=help>
+List-Subscribe: <http://lists.xensource.com/cgi-bin/mailman/listinfo/xen-devel>,
+	<mailto:xen-devel-request@lists.xensource.com?subject=subscribe>
+Sender: xen-devel-bounces@lists.xensource.com
+Errors-To: xen-devel-bounces@lists.xensource.com
 List-Id: netfilter-devel.vger.kernel.org
 
-> The idea of using a file is like this:
-> 1- Being root, create a file called /root/file1.key
-> #touch /root/file1.key
-> #ls -al /root/file1.key
-> -rw-r--r--  1 root root 0 May 23 20:05 file1.key
+This is a multi-part message in MIME format.
+--------------080109030209000408000801
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Now the attacker can open the file (if they have permission to read
-that directory, but I'm sure you didn't want to know that...)
+>> As the concerned user, what does this mean to me?  It will only affect
+>> SMP systems?  It is a bug in Xen or netfilter?
+> 
+> Probably a Xen bug, but if so then it's basically a memory corruption.
 
-> 2- Change permissions
-> #chmod 600 /root/file1.key
-> #ls -al /root/file1.key
-> -rw-------  1 root root 0 May 23 20:05 file1.key
+Might also be a netfilter bug which is simply triggered by the way how
+xen manages the memory.  Due to ballooning you can have holes in memory,
+so out-of-range access may fault with xen whereas it will go unnoticed
+with normal kernels.
 
-The attacker keeps the file open; this does not change anything.
+One such beast is in bridging netfilter code, additionally it triggers
+with certain ethernet cards only, patch below.  Pinned down last week ;)
 
-> 3- Open /root/file1.key and add a key
+cheers,
 
-And now the attacker can read the key from the still open file.
+  Gerd
 
-You should try to understand what people here are telling you.
+--------------080109030209000408000801
+Content-Type: text/plain;
+ name="nf_bridge-header-size"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="nf_bridge-header-size"
 
-best regards
-  Patrick
+Subject: nf_bridge: ethernet header is 14 not 16 bytes
+From: jbeulich@novell.com
+Acked-by: kraxel@suse.de
+References: 150410
+
+The bridge netfilter code saves two more bytes that it should.
+In most cases it doesn't hurt because many drivers use NET_IP_ALIGN
+to make the IP header aligned, so there are two extra bytes head room
+available.
+
+Some drivers don't do that though (sky2 for example), so copying
+accesses data outside the skbuff data allocation.  On xen kernels
+this can kill the machine with a page fault due to the way how
+skbuffs are allocated and the memory is managed.
+
+Index: linux-2.6.16/include/linux/netfilter_bridge.h
+===================================================================
+--- linux-2.6.16.orig/include/linux/netfilter_bridge.h
++++ linux-2.6.16/include/linux/netfilter_bridge.h
+@@ -73,14 +73,14 @@ void nf_bridge_maybe_copy_header(struct 
+ 			memcpy(skb->data - 18, skb->nf_bridge->data, 18);
+ 			skb_push(skb, 4);
+ 		} else
+-			memcpy(skb->data - 16, skb->nf_bridge->data, 16);
++			memcpy(skb->data - 14, skb->nf_bridge->data, 14);
+ 	}
+ }
+ 
+ static inline
+ void nf_bridge_save_header(struct sk_buff *skb)
+ {
+-        int header_size = 16;
++        int header_size = 14;
+ 
+ 	if (skb->protocol == __constant_htons(ETH_P_8021Q))
+ 		header_size = 18;
+
+--------------080109030209000408000801
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Xen-devel mailing list
+Xen-devel@lists.xensource.com
+http://lists.xensource.com/xen-devel
+
+--------------080109030209000408000801--
