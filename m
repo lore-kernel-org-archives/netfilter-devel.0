@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/4] log dropped ICMP redirects
-Date: Wed, 24 May 2006 18:26:10 +0200
-Message-ID: <44748922.4060207@trash.net>
+Subject: Re: [PATCH 4/4] drop ftp bounce attacks
+Date: Wed, 24 May 2006 18:31:09 +0200
+Message-ID: <44748A4D.1070905@trash.net>
 References: <20060524040441.111049000@snapgear.com>
-	<20060524040951.092582000@snapgear.com>
+	<20060524040951.217594000@snapgear.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: philipc@snapgear.com
-In-Reply-To: <20060524040951.092582000@snapgear.com>
+In-Reply-To: <20060524040951.217594000@snapgear.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,40 +23,58 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 philipc@snapgear.com wrote:
-> Log dropped ICMP redirects for untracked connections.
+> FTP bounce attacks work by specifying a different IP address in
+> the PORT command for active mode.  This causes the FTP server to
+> open a connection to another machine.
 > 
-> This was required to meet a certification test.  But there are
-> many more locations that can drop packets without logging them,
-> which weren't tested for certification.  Should all instances of
-> NF_DROP in netfilter/iptables have a call to nf_log_packet?
+> The best solution for this problem is to fix the FTP server.
+> This is a well known problem, and all major FTP servers should
+> have been fixed.
+> 
+> An alternative solution is to drop the packet in connection tracking.  
+> Dropping packets isn't the intended use of connection tracking,
+> but creating a new match to do this seems inefficient.
+
+The best solution would be to mark the packet INVALID and let the
+user decide using the state match. But that isn't possible in the
+current infrastructure anymore because helpers get called last.
+Just dropping is also not really nice, rejecting would be better
+IMO. But again that is a policy decision that shouldn't be hard-coded,
+I actually don't want any helper to drop packets on my firewall.
+I think we really want a more generic solution.
 
 
-There was a patch called "dropped table" once that hooked in kfree_skb.
-I'm also not completely satisfied with the current situation .. but
-I don't think adding excessive packet logging is the best solution,
-often drops just occur because of failed validity checks which can
-just as well happen outside of the netfilter code.
-
-In this case I'm actually having trouble understanding what the code
-is supposed to do, why would we receive an ICMP redirect for a
-unhashed connection (unhashed == first packet hasn't even left the
-box yet)?
-
-> @@ -132,8 +133,13 @@ ip_nat_fn(unsigned int hooknum,
->  						(*pskb)->nh.iph->ihl*4,
->  						sizeof(_hdr), &_hdr);
->  			if (hp != NULL &&
-> -			    hp->type == ICMP_REDIRECT)
-> +			    hp->type == ICMP_REDIRECT) {
-> +				if (LOG_INVALID(IPPROTO_ICMP))
-> +					nf_log_packet(PF_INET, 0, *pskb,
-> +						NULL, NULL, NULL, "ip_nat: "
-> +						"untracked ICMP redirect ");
->  				return NF_DROP;
-> +			}
+> Signed-off-by: Philip Craig <philipc@snapgear.com>
+> 
+> Index: linux-2.6.17-rc4.orig/net/ipv4/netfilter/ip_conntrack_ftp.c
+> ===================================================================
+> --- linux-2.6.17-rc4.orig.orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2006-05-24 11:57:28.000000000 +1000
+> +++ linux-2.6.17-rc4.orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2006-05-24 13:09:44.000000000 +1000
+> @@ -405,8 +405,14 @@ static int help(struct sk_buff **pskb,
+>  		   problem (DMZ machines opening holes to internal
+>  		   networks, or the packet filter itself). */
+>  		if (!loose) {
+> -			ret = NF_ACCEPT;
+> -			goto out_put_expect;
+> +			if (net_ratelimit())
+> +				printk("conntrack_ftp: ip mismatch: "
+> +				       "%u,%u,%u,%u != %u.%u.%u.%u\n",
+> +				       array[0], array[1], array[2], array[3],
+> +				       NIPQUAD(ct->tuplehash[dir].tuple.src.ip));
+> +			ret = NF_DROP;
+> +			ip_conntrack_expect_put(exp);
+> +			goto out;
 >  		}
->  		return NF_ACCEPT;
+>  		exp->tuple.dst.ip = htonl((array[0] << 24) | (array[1] << 16)
+>  					 | (array[2] << 8) | array[3]);
+> @@ -436,7 +442,6 @@ static int help(struct sk_buff **pskb,
+>  			ret = NF_ACCEPT;
 >  	}
+>  
+> -out_put_expect:
+>  	ip_conntrack_expect_put(exp);
+>  
+>  out_update_nl:
 > 
 > --
 > 
