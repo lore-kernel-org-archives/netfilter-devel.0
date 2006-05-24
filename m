@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Patch to libipt_DNAT.man
-Date: Wed, 24 May 2006 18:00:59 +0200
-Message-ID: <4474833B.4030309@trash.net>
-References: <20060429033009.GA10032@frap.net>
+Subject: Re: [PATCH 1/2] Realm verbosity
+Date: Wed, 24 May 2006 18:03:42 +0200
+Message-ID: <447483DE.5070807@trash.net>
+References: <200605211813.15957.simonl@parknet.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Developer <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Evan Miller <evanm@frap.net>
-In-Reply-To: <20060429033009.GA10032@frap.net>
+To: Simon Lodal <simonl@parknet.dk>
+In-Reply-To: <200605211813.15957.simonl@parknet.dk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,9 +21,7 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Evan Miller wrote:
-> I had to dig through source to find the --to-destination :port syntax (no
-> mangle of address). This patch to the manpage saves others the trouble,
-> please accept it or a similar change:
+Simon Lodal wrote:
+> The realm match should identify itself in lowercase like other matches.
 
-Applied, thanks. Didn't knew that was possible either :)
+Applied, thanks.
