@@ -1,16 +1,11 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC,
-	NETFILTER]: amanda helper: convert to textsearch infrastructure
-Date: Wed, 24 May 2006 03:32:23 +0200
-Message-ID: <4473B7A7.2060707@netfilter.org>
-References: <446DF48C.5020109@trash.net> <4473A8A8.3040801@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+From: "GuanYao Huang" <gyhuang@mail.ustc.edu.cn>
+Subject: Problems with how to realise a simple myip6tables program
+Date: Wed, 24 May 2006 11:49:05 +0800
+Message-ID: <348442545.21384@ustc.edu.cn>
+Reply-To: GuanYao Huang <gyhuang@mail.ustc.edu.cn>
+Content-Type: text/plain
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4473A8A8.3040801@netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,19 +17,57 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->  -        *tmp = '\0';
->> +    memset(&ts, 0, sizeof(ts));
->> +    stop = skb_find_text(*pskb, start, (*pskb)->len,
->> +                 search[SEARCH_NEWLINE].ts, &ts);
-> 
-> Better use strstr here: the textsearch infrastructure implements 
-> algorithms only introduce trade off for patterns longer than one byte. 
-> So, in this case, the infrastructure can not help in any way.
+I am writting a myip6tables program to realize ROUTE and MARK target. (Of course I
+shoule steal some codes from ip6tables). The ROUTE target is used to redirect a
+flow to a ip6-ip6 tunnel.
+After running my program I will see my ip6tables:
+[root@gyhuang2 projectipv6]# ip6tables -t mangle -L -n
+Chain PREROUTING (policy ACCEPT)
+target     prot opt source               destination
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination
+MARK       udp      2001:da8:d800:1234:1234::28/128  2001:da8:d800:1234::31/128udp
+spts:1:65535 dpt:8080 MARK set 0x33
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination
+ROUTE      udp      2001:da8:d800:1234:1234::28/128  2001:da8:d800:1234::31/128udp
+spts:1:65535 dpt:8080 ROUTE oif:60804f817a
 
-Please, forget this comment, strstr is not fragment-aware.
+However, when using tcpdump, I can see there is no effect for my rules.
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+But, if I use the commads:
+1, ip6tables -t mangle -I POSTROUTING -p udp -s 2001:da8:d800:1234:1234::28 -d
+2001:da8:d800:1234::31 --sport 1:65535 --dport 8080 -j ROUTE --oif 60804f817a
+2, ip6tables -t mangle -A FORWARD -p udp -s 2001:da8:d800:1234:1234::28 -d
+2001:da8:d800:1234::31 --sport 1:65535 --dport 8080 -j MARK --set-mark 0x33
+we can add two same rules(At least the same in ip6tables -t mangle -L -n). And
+this time, we manage it.
+
+[root@gyhuang2 projectipv6]# ip6tables -t mangle -L -n 
+Chain PREROUTING (policy ACCEPT) 
+target     prot opt source               destination
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination
+MARK       udp      2001:da8:d800:1234:1234::28/128  2001:da8:d800:1234::31/128udp
+spts:1:65535 dpt:8080 MARK set 0x33
+MARK       udp      2001:da8:d800:1234:1234::28/128  2001:da8:d800:1234::31/128udp
+spts:1:65535 dpt:8080 MARK set 0x33
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination
+ROUTE      udp      2001:da8:d800:1234:1234::28/128  2001:da8:d800:1234::31/128udp
+spts:1:65535 dpt:8080 ROUTE oif:60804f817a
+ROUTE      udp      2001:da8:d800:1234:1234::28/128  2001:da8:d800:1234::31/128udp
+spts:1:65535 dpt:8080 ROUTE oif:60804f817a
+
+It seems they are the same rules, however, no effect by my program.
+I am wondering if someone else has done the same thing with me. I really do not
+want to read the ip6tables source code. I used gdb to debug that this morning, but
+it seems hard to manage in a short while.
