@@ -1,11 +1,11 @@
 From: philipc@snapgear.com
-Subject: [PATCH 3/4] log dropped ICMP redirects
-Date: Wed, 24 May 2006 14:04:44 +1000
-Message-ID: <20060524040951.092582000@snapgear.com>
+Subject: [PATCH 4/4] drop ftp bounce attacks
+Date: Wed, 24 May 2006 14:04:45 +1000
+Message-ID: <20060524040951.217594000@snapgear.com>
 References: <20060524040441.111049000@snapgear.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline; filename=invalidicmpredirect.patch
+Content-Disposition: inline; filename=dropftpbounce.patch
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,41 +17,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Log dropped ICMP redirects for untracked connections.
+FTP bounce attacks work by specifying a different IP address in
+the PORT command for active mode.  This causes the FTP server to
+open a connection to another machine.
 
-This was required to meet a certification test.  But there are
-many more locations that can drop packets without logging them,
-which weren't tested for certification.  Should all instances of
-NF_DROP in netfilter/iptables have a call to nf_log_packet?
+The best solution for this problem is to fix the FTP server.
+This is a well known problem, and all major FTP servers should
+have been fixed.
+
+An alternative solution is to drop the packet in connection tracking.  
+Dropping packets isn't the intended use of connection tracking,
+but creating a new match to do this seems inefficient.
 
 Signed-off-by: Philip Craig <philipc@snapgear.com>
 
-Index: linux-2.6.17-rc4.orig/net/ipv4/netfilter/ip_nat_standalone.c
+Index: linux-2.6.17-rc4.orig/net/ipv4/netfilter/ip_conntrack_ftp.c
 ===================================================================
---- linux-2.6.17-rc4.orig.orig/net/ipv4/netfilter/ip_nat_standalone.c	2006-05-24 11:57:28.000000000 +1000
-+++ linux-2.6.17-rc4.orig/net/ipv4/netfilter/ip_nat_standalone.c	2006-05-24 13:22:38.000000000 +1000
-@@ -41,6 +41,7 @@
- #include <linux/netfilter_ipv4/ip_nat_helper.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv4/ip_conntrack_core.h>
-+#include <linux/netfilter_ipv4/ip_conntrack_protocol.h>
- #include <linux/netfilter_ipv4/listhelp.h>
- 
- #if 0
-@@ -132,8 +133,13 @@ ip_nat_fn(unsigned int hooknum,
- 						(*pskb)->nh.iph->ihl*4,
- 						sizeof(_hdr), &_hdr);
- 			if (hp != NULL &&
--			    hp->type == ICMP_REDIRECT)
-+			    hp->type == ICMP_REDIRECT) {
-+				if (LOG_INVALID(IPPROTO_ICMP))
-+					nf_log_packet(PF_INET, 0, *pskb,
-+						NULL, NULL, NULL, "ip_nat: "
-+						"untracked ICMP redirect ");
- 				return NF_DROP;
-+			}
+--- linux-2.6.17-rc4.orig.orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2006-05-24 11:57:28.000000000 +1000
++++ linux-2.6.17-rc4.orig/net/ipv4/netfilter/ip_conntrack_ftp.c	2006-05-24 13:09:44.000000000 +1000
+@@ -405,8 +405,14 @@ static int help(struct sk_buff **pskb,
+ 		   problem (DMZ machines opening holes to internal
+ 		   networks, or the packet filter itself). */
+ 		if (!loose) {
+-			ret = NF_ACCEPT;
+-			goto out_put_expect;
++			if (net_ratelimit())
++				printk("conntrack_ftp: ip mismatch: "
++				       "%u,%u,%u,%u != %u.%u.%u.%u\n",
++				       array[0], array[1], array[2], array[3],
++				       NIPQUAD(ct->tuplehash[dir].tuple.src.ip));
++			ret = NF_DROP;
++			ip_conntrack_expect_put(exp);
++			goto out;
  		}
- 		return NF_ACCEPT;
+ 		exp->tuple.dst.ip = htonl((array[0] << 24) | (array[1] << 16)
+ 					 | (array[2] << 8) | array[3]);
+@@ -436,7 +442,6 @@ static int help(struct sk_buff **pskb,
+ 			ret = NF_ACCEPT;
  	}
+ 
+-out_put_expect:
+ 	ip_conntrack_expect_put(exp);
+ 
+ out_update_nl:
 
 --
