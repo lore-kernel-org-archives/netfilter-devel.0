@@ -1,11 +1,11 @@
 From: philipc@snapgear.com
-Subject: [PATCH 2/4] TCPMSS: clamp to input interface MTU too
-Date: Wed, 24 May 2006 14:04:43 +1000
-Message-ID: <20060524040950.965615000@snapgear.com>
+Subject: [PATCH 3/4] log dropped ICMP redirects
+Date: Wed, 24 May 2006 14:04:44 +1000
+Message-ID: <20060524040951.092582000@snapgear.com>
 References: <20060524040441.111049000@snapgear.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline; filename=tcpmssin.patch
+Content-Disposition: inline; filename=invalidicmpredirect.patch
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,65 +17,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Ideally we would clamp the MSS based on the PMTU from src to dst.
-Currently we use the PMTU from the packet filter to the dst.
-This patch better approximates the full PTMU by using the input
-interface MTU too.
+Log dropped ICMP redirects for untracked connections.
+
+This was required to meet a certification test.  But there are
+many more locations that can drop packets without logging them,
+which weren't tested for certification.  Should all instances of
+NF_DROP in netfilter/iptables have a call to nf_log_packet?
 
 Signed-off-by: Philip Craig <philipc@snapgear.com>
 
-Index: linux-2.6.17-rc4.orig/net/ipv4/netfilter/ipt_TCPMSS.c
+Index: linux-2.6.17-rc4.orig/net/ipv4/netfilter/ip_nat_standalone.c
 ===================================================================
---- linux-2.6.17-rc4.orig.orig/net/ipv4/netfilter/ipt_TCPMSS.c	2006-05-24 11:57:22.000000000 +1000
-+++ linux-2.6.17-rc4.orig/net/ipv4/netfilter/ipt_TCPMSS.c	2006-05-24 11:57:23.000000000 +1000
-@@ -27,6 +27,8 @@ MODULE_DESCRIPTION("iptables TCP MSS mod
- #define DEBUGP(format, args...)
- #endif
+--- linux-2.6.17-rc4.orig.orig/net/ipv4/netfilter/ip_nat_standalone.c	2006-05-24 11:57:28.000000000 +1000
++++ linux-2.6.17-rc4.orig/net/ipv4/netfilter/ip_nat_standalone.c	2006-05-24 13:22:38.000000000 +1000
+@@ -41,6 +41,7 @@
+ #include <linux/netfilter_ipv4/ip_nat_helper.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv4/ip_conntrack_core.h>
++#include <linux/netfilter_ipv4/ip_conntrack_protocol.h>
+ #include <linux/netfilter_ipv4/listhelp.h>
  
-+#define HDRSIZE (sizeof(struct iphdr) + sizeof(struct tcphdr))
-+
- static u_int16_t
- cheat_check(u_int32_t oldvalinv, u_int32_t newval, u_int16_t oldcheck)
- {
-@@ -55,7 +57,7 @@ ipt_tcpmss_target(struct sk_buff **pskb,
- 	const struct ipt_tcpmss_info *tcpmssinfo = targinfo;
- 	struct tcphdr *tcph;
- 	struct iphdr *iph;
--	u_int16_t tcplen, newtotlen, oldval, newmss;
-+	u_int16_t tcplen, newtotlen, oldval, newmss, mtu;
- 	unsigned int i;
- 	u_int8_t *opt;
- 
-@@ -92,14 +94,27 @@ ipt_tcpmss_target(struct sk_buff **pskb,
- 			return IPT_CONTINUE;
- 		}
- 
--		if(dst_mtu((*pskb)->dst) <= (sizeof(struct iphdr) + sizeof(struct tcphdr))) {
-+		mtu = dst_mtu((*pskb)->dst);
-+		if (mtu <= HDRSIZE) {
- 			if (net_ratelimit())
- 				printk(KERN_ERR
--		       			"ipt_tcpmss_target: unknown or invalid path-MTU (%d)\n", dst_mtu((*pskb)->dst));
-+		       			"ipt_tcpmss_target: unknown or "
-+					"invalid path-MTU (%d)\n", mtu);
- 			return IPT_CONTINUE;
- 		}
- 
--		newmss = dst_mtu((*pskb)->dst) - sizeof(struct iphdr) - sizeof(struct tcphdr);
-+		if (in && in->mtu < mtu) {
-+			mtu = in->mtu;
-+			if (mtu <= HDRSIZE) {
-+				if (net_ratelimit())
-+					printk(KERN_ERR
-+						"ipt_tcpmss_target: invalid "
-+						"interface MTU (%d)\n", mtu);
-+				return IPT_CONTINUE;
+ #if 0
+@@ -132,8 +133,13 @@ ip_nat_fn(unsigned int hooknum,
+ 						(*pskb)->nh.iph->ihl*4,
+ 						sizeof(_hdr), &_hdr);
+ 			if (hp != NULL &&
+-			    hp->type == ICMP_REDIRECT)
++			    hp->type == ICMP_REDIRECT) {
++				if (LOG_INVALID(IPPROTO_ICMP))
++					nf_log_packet(PF_INET, 0, *pskb,
++						NULL, NULL, NULL, "ip_nat: "
++						"untracked ICMP redirect ");
+ 				return NF_DROP;
 +			}
-+		}
-+
-+		newmss = mtu - HDRSIZE;
- 	} else
- 		newmss = tcpmssinfo->mss;
- 
+ 		}
+ 		return NF_ACCEPT;
+ 	}
 
 --
