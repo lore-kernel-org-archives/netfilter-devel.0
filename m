@@ -1,82 +1,78 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [Announce] NuFW 2.0 is available
-Date: Wed, 24 May 2006 09:54:58 +0200
-Message-ID: <1148457299.31849.29.camel@localhost.localdomain>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC,
+	NETFILTER]: amanda helper: convert to textsearch infrastructure
+Date: Wed, 24 May 2006 12:00:48 +0200
+Message-ID: <44742ED0.6010504@trash.net>
+References: <446DF48C.5020109@trash.net> <4473A8A8.3040801@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-M93T0DVcM4o9mYQaRCPp"
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-bounces@lists.netfilter.org>
-To: netfilter@lists.netfilter.org
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter>
-List-Post: <mailto:netfilter@lists.netfilter.org>
-List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
-	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-bounces@lists.netfilter.org
-Errors-To: netfilter-bounces@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <4473A8A8.3040801@netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+> 
+>> I've just converted the amanda helper to the textsearch infrastructure
+>> to fix a packet corruption bug. This allows to avoid the data copying
+>> and save roughly 64k of memory. The IRC helper looks like a good
+>> candidate for this too, FTP is probably quite a bit more complicated.
+> 
+> 
+> It looks fine, just two minor comments. BTW, thanks for doing this: This
+> port is on my TODO list since the workshop.
+> 
+>>  static int __init ip_conntrack_amanda_init(void)
+>>  {
+>> -    int ret;
+>> -
+>> -    amanda_buffer = kmalloc(65536, GFP_KERNEL);
+>> -    if (!amanda_buffer)
+>> -        return -ENOMEM;
+>> -
+>> -    ret = ip_conntrack_helper_register(&amanda_helper);
+>> -    if (ret < 0) {
+>> -        kfree(amanda_buffer);
+>> -        return ret;
+>> +    int ret, i;
+>> +
+>> +    ret = -ENOMEM;
+>> +    for (i = 0; i < ARRAY_SIZE(search); i++) {
+>> +        search[i].ts = textsearch_prepare("kmp", search[i].string,
+>> +                          search[i].len,
+>> +                          GFP_KERNEL, TS_AUTOLOAD);
+> 
+> 
+> I think that the algorithm should be configurable. Although Boyer-Moore
+> would not find a matching if the traffic is defragmented (see the header
+> of /lib/ts_bm.c), it definitely scales better, so some sysadmins could
+> increase performance to the detriment of defragmented traffic:
+> 
+> http://people.netfilter.org/~pablo/textsearch/
 
---=-M93T0DVcM4o9mYQaRCPp
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
 
-Hello Netfilter users,
+Yes, that really looks better. I guess we could add a module-parameter,
+but right now it wouldn't help much because the individual algorithms
+can't be configured by the user, they can only be chosen with
+"select TEXTSEARCH_...".
 
-NuFW 2.0 "extatic porcupine" is available. This is the first release of
-the new stable branch of the NuFW project (http://www.nufw.org).
+> I have an old patch for the FTP helper here somewhere, I could give it
+> some spins and send it to you.
 
-NuFW is an authenticating firewall based on Netfilter.
 
-NuFW can :=20
--  Authenticate any connection that goes through your gateway or only
-from/to a chosen subset or a specific protocol (iptables is used to
-select the connections to authenticate).=20
--  Perform accounting, routing and quality of service based on users and
-not simply on IPs.=20
--  Filter packets with criterium such as application and OS used by
-distant users.=20
--  Be the key of a secure and simple Single Sign On system.
-
-Main new Netfilter related features of 2.0 are :
-
-   * Libnfnetlink based interaction with kernel:
-
-NuFW 2.0 is able to use libnetfilter_queue and libnetfilter_conntrack to
-handle interaction with kernel.
-
-   * Complete period handling:
-
-ACLs can now be linked with a period. The match against the period is
-initially done by NuFW (as time match does) but connection is removed
-from conntrack automatically at the end of the period.
-Removal can be done via a libnetfilter_conntrack call at end of the
-period or directly (with a patched kernel) via connection timeout in the
-conntrack. The related patch (fixed_timeout) has been queued by Patrick
-McHardy for inclusion in 2.6.18.
-
-More information about new features of NuFW are available at:
-	http://www.nufw.org/What-s-new-A-comparison-between.html
-
-Happy "user" filtering to all,
---=20
-Eric Leblond <eric@inl.fr>
-
---=-M93T0DVcM4o9mYQaRCPp
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBEdBFRnxA7CdMWjzIRAkeSAJ9CulfMRp99BXVc1EAogJ9dyAm4AACfR5sR
-o4sOIaUgyDvGI0tNXdSX9ro=
-=ARGS
------END PGP SIGNATURE-----
-
---=-M93T0DVcM4o9mYQaRCPp--
+Please, I would like to see how complicated it gets. I think what
+would really help is something like the fsm algorithm if it would
+store the offsets of the individual matches. That would allow to
+specify all the possible matches as a single pattern.
