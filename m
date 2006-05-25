@@ -1,16 +1,16 @@
 From: Philip Craig <philipc@snapgear.com>
-Subject: Re: [PATCH 3/4] log dropped ICMP redirects
-Date: Thu, 25 May 2006 12:34:53 +1000
-Message-ID: <447517CD.6040705@snapgear.com>
-References: <20060524040441.111049000@snapgear.com>	<20060524040951.092582000@snapgear.com>
-	<44748922.4060207@trash.net>
+Subject: Re: [PATCH 4/4] drop ftp bounce attacks
+Date: Thu, 25 May 2006 12:55:59 +1000
+Message-ID: <44751CBF.8040906@snapgear.com>
+References: <20060524040441.111049000@snapgear.com>	<20060524040951.217594000@snapgear.com>
+	<44748A4D.1070905@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44748922.4060207@trash.net>
+In-Reply-To: <44748A4D.1070905@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,32 +22,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 05/25/2006 02:26 AM, Patrick McHardy wrote:
-> There was a patch called "dropped table" once that hooked in kfree_skb.
-> I'm also not completely satisfied with the current situation .. but
-> I don't think adding excessive packet logging is the best solution,
-> often drops just occur because of failed validity checks which can
-> just as well happen outside of the netfilter code.
+On 05/25/2006 02:31 AM, Patrick McHardy wrote:
+> The best solution would be to mark the packet INVALID and let the
+> user decide using the state match.
 
-I'm not sure what checks occur outside of netfilter code, but I assume
-they are mostly things that would be dropped by any router, not just
-a firewall?
+Marking the packet INVALID is definitely better than always dropping
+it.
 
-For connection tracking, the goal should be to never drop anything,
-and instead mark it as invalid.  My first version of this patch
-just removed this test completely, so then I could log it with an
-iptables rule before dropping it.  But I didn't think that was suitable
-for general use.
+The reason I said fixing the ftp server is the best solution is
+that I'm not sure whether the ftp conntrack module can match on
+all possible port commands, taking into account fragmentation,
+reordering, and retransmits.
 
-For other validity checks within netfilter, this is a possible use for
-the unclean match.   This would allow you to use rules to do the
-checks, log the packet, and drop it.  And if this was done in the raw
-table, then it could cover some of the connection tracking checks too.
-What was the problem with the unclean match, did it simply check too much?
-
-> In this case I'm actually having trouble understanding what the code
-> is supposed to do, why would we receive an ICMP redirect for a
-> unhashed connection (unhashed == first packet hasn't even left the
-> box yet)?
-
-I don't understand the reason for the code either.
+This is different from attacks against the firewall, in which the
+attack works only if the firewall recognizes the port command and
+creates an expectation.
