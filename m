@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] nf_conntrack: optimize hash calculation of tuple
-Date: Fri, 26 May 2006 15:34:42 +0200
-Message-ID: <447703F2.90401@trash.net>
-References: <200605260015.k4Q0FpPC024839@toshiba.co.jp>
+Subject: Re: [RFC] New netfilter match
+Date: Fri, 26 May 2006 15:35:46 +0200
+Message-ID: <44770432.4060002@trash.net>
+References: <20060525230429.97544.qmail@web50210.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200605260015.k4Q0FpPC024839@toshiba.co.jp>
+To: Alex Davis <alex14641@yahoo.com>
+In-Reply-To: <20060525230429.97544.qmail@web50210.mail.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,68 +21,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> [NETFILTER] nf_conntrack: optimize hash calculation of tuple
+Alex Davis wrote:
+> This is a proposal for a new netfilter module. 
+> Please read and furnish comments.
 > 
-> This reduces the number of calling __jhash_mix() and addition of
-> JHASH_GOLDEN_RATIO.
-> 
-> Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
-> Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-> 
-> ---
-> commit eac276f083c283360ed15571e8623463a8ace379
-> tree e7492317c9399f445bef061e76e01546f2517ef9
-> parent a54c9d30dbb06391ec4422aaf0e1dc2c8c53bd3e
-> author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Wed, 24 May 2006 21:16:51 +0900
-> committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Wed, 24 May 2006 21:16:51 +0900
-> 
->  net/netfilter/nf_conntrack_core.c |   30 ++++++++++++++++++++++++------
->  1 files changed, 24 insertions(+), 6 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index f9b83f9..b24edc9 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -271,13 +271,31 @@ static unsigned int nf_conntrack_hash_rn
->  static u_int32_t __hash_conntrack(const struct nf_conntrack_tuple *tuple,
->  				  unsigned int size, unsigned int rnd)
->  {
-> -	unsigned int a, b;
-> -	a = jhash((void *)tuple->src.u3.all, sizeof(tuple->src.u3.all),
-> -		  ((tuple->src.l3num) << 16) | tuple->dst.protonum);
-> -	b = jhash((void *)tuple->dst.u3.all, sizeof(tuple->dst.u3.all),
-> -			(tuple->src.u.all << 16) | tuple->dst.u.all);
-> +	u32 a, b, c;
->  
-> -	return jhash_2words(a, b, rnd) % size;
-> +	a = JHASH_GOLDEN_RATIO;
-> +	b = JHASH_GOLDEN_RATIO;
-> +	c = rnd;
-> +
-> +	a += tuple->src.u3.all[0];
-> +	b += tuple->src.u3.all[1];
-> +	c += tuple->src.u3.all[2];
-> +	__jhash_mix(a, b, c);
-> +
-> +	a += tuple->src.u3.all[3],
-> +	b += (tuple->src.l3num << 16) | tuple->src.u.all;
-> +	c += tuple->dst.u3.all[0];
-> +	__jhash_mix(a, b, c);
-> +
-> +	a += tuple->dst.u3.all[1];
-> +	b += tuple->dst.u3.all[2];
-> +	c += tuple->dst.u3.all[3];
-> +	__jhash_mix(a, b, c);
-> +
-> +	a += (tuple->dst.protonum << 16) | tuple->dst.u.all;
-> +	__jhash_mix(a, b, c);
-> +
-> +	return c % size;
->  }
+> http://linux.ace-technologies.biz:81/ipisforif.html
 
 
-That still looks pretty expensive. Is there a reason why you didn't
-just add/xor/or/... the individual values until you get down to
-three and then use jhash_3words? We could also get rid of the modula
-operation by making sure the hash-size is always a power of 2.
+Please post your description and the patch to the list. I see you
+also posted to LKML, which is not really necessary for netfilter
+patches, but if you do please CC one of the lists instead of
+starting two seperate threads.
