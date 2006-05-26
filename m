@@ -1,45 +1,37 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH] GRE: fixup gre_keymap_lookup() return type
-Date: Fri, 26 May 2006 23:07:16 +0400
-Message-ID: <20060526190716.GA7266@martell.zuzino.mipt.ru>
+From: Dirk <noisyb@gmx.net>
+Subject: How to block traffic country-wise?
+Date: Fri, 26 May 2006 23:54:34 +0200
+Message-ID: <4477791A.5070100@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-To: netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-GRE keys are 16-bit wide.
+Hello,
+I want to write a firewall that can block traffic from specific
+countries using GeoIP.dat.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
----
+I downloaded libnetfilter_queue because I think it can do what I want.
 
- net/ipv4/netfilter/ip_conntrack_proto_gre.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+1) Get IP of connection
+2) Check local GeoIP database
+3) Refuse or Allow connection
 
---- a/net/ipv4/netfilter/ip_conntrack_proto_gre.c
-+++ b/net/ipv4/netfilter/ip_conntrack_proto_gre.c
-@@ -77,10 +77,10 @@ static inline int gre_key_cmpfn(const st
- }
- 
- /* look up the source key for a given tuple */
--static u_int32_t gre_keymap_lookup(struct ip_conntrack_tuple *t)
-+static __be16 gre_keymap_lookup(struct ip_conntrack_tuple *t)
- {
- 	struct ip_ct_gre_keymap *km;
--	u_int32_t key = 0;
-+	__be16 key = 0;
- 
- 	read_lock_bh(&ip_ct_gre_lock);
- 	km = LIST_FIND(&gre_keymap_list, gre_key_cmpfn,
-@@ -190,7 +190,7 @@ static int gre_pkt_to_tuple(const struct
- 			   struct ip_conntrack_tuple *tuple)
- {
- 	struct gre_hdr_pptp _pgrehdr, *pgrehdr;
--	u_int32_t srckey;
-+	__be16 srckey;
- 	struct gre_hdr _grehdr, *grehdr;
- 
- 	/* first only delinearize old RFC1701 GRE header */
+But the included examples don't work. Maybe I'm completely wrong by
+starting with libnetfilter_queue or the included example?
 
+Can someone give me a hint, example, snippet or link?
+
+Thanks,
+Dirk
