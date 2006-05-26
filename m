@@ -1,16 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] nf_conntrack: optimize hash calculation of tuple
-Date: Fri, 26 May 2006 19:54:21 +0200
-Message-ID: <447740CD.7030407@trash.net>
-References: <447703F2.90401@trash.net>	<20060526.224556.19965528.yoshfuji@linux-ipv6.org>	<447707EB.7000401@trash.net>
-	<200605261504.k4QF4InW014648@toshiba.co.jp>
+From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+Subject: Re: New extension: CRYPT target
+Date: Fri, 26 May 2006 15:12:38 -0300
+Message-ID: <44774516.5020406@speedy.com.ar>
+References: <44708E68.9080508@speedy.com.ar>
+	<20060525161148.GA2376@ecstasy.ring2.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7BIT
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200605261504.k4QF4InW014648@toshiba.co.jp>
+In-reply-to: <20060525161148.GA2376@ecstasy.ring2.lan>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,17 +21,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
->>But anyway, this is just a possible micro-optimization, the
->>real question is why we need three invocations of jhash_mix.
+Lennart Poettering wrote:
+> On Sun, 21.05.06 15:59, Gervasio Bernal (gervasiobernal@speedy.com.ar) wrote:
 > 
 > 
-> That patch is just the result of extracting jhash() and jhash_2words().
-> I'm not familiar with hash algorithms. Does the degree of distribution
-> become bad if we replaces 3 jhash_mix with something like XOR ?
+>>Hi all!!!
+> 
+> 
+> Hi!
+> 
+> 
+>>After some months of development we have finished this new extension.
+>>CRYPT is a new target extension for Netfilter/Iptables that enables the
+>>user to encrypt, decrypt and authenticate any IP protocol traffic using
+>>the Linux Cryptographic API.
+> 
+> 
+> [...]
+> 
+> I wonder if you are aware that I wrote exactly the same thing a few
+> years ago?
 
+Yes, while we were looking for information for our extension we found
+your web site, but as we were about to finish it, we decided to continue
+doing it. Each job, yours and our, have interesting features, that the
+other one doesn't have. It would be good to unify them and obtain
+something more robust.
+It would be also fantastic that the extension someday (of course there
+is much to debug) could be included in Iptables core.
 
-I'd say no. jhash was chosen because it has good distribution even
-for non uniformly distributed input values, so it shouldn't be
-necessary to try to provide more uniformly distributed input values
-by hashing multiple times.
+I think the idea of encryption using Iptables is really great!
+
+> 
+> http://0pointer.de/lennart/projects/seppl/
+> 
+> Lennart
+> 
