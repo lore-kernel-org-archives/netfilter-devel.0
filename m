@@ -1,15 +1,16 @@
-From: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: New extension: CRYPT target
-Date: Fri, 26 May 2006 15:12:38 -0300
-Message-ID: <44774516.5020406@speedy.com.ar>
-References: <44708E68.9080508@speedy.com.ar>
-	<20060525161148.GA2376@ecstasy.ring2.lan>
+Date: Fri, 26 May 2006 20:25:34 +0200
+Message-ID: <4477481E.2070000@trash.net>
+References: <44708E68.9080508@speedy.com.ar>	<20060525161148.GA2376@ecstasy.ring2.lan>
+	<44774516.5020406@speedy.com.ar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-reply-to: <20060525161148.GA2376@ecstasy.ring2.lan>
-To: netfilter-devel@lists.netfilter.org
+To: Gervasio Bernal <gervasiobernal@speedy.com.ar>
+In-Reply-To: <44774516.5020406@speedy.com.ar>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,39 +22,9 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Lennart Poettering wrote:
-> On Sun, 21.05.06 15:59, Gervasio Bernal (gervasiobernal@speedy.com.ar) wrote:
-> 
-> 
->>Hi all!!!
-> 
-> 
-> Hi!
-> 
-> 
->>After some months of development we have finished this new extension.
->>CRYPT is a new target extension for Netfilter/Iptables that enables the
->>user to encrypt, decrypt and authenticate any IP protocol traffic using
->>the Linux Cryptographic API.
-> 
-> 
-> [...]
-> 
-> I wonder if you are aware that I wrote exactly the same thing a few
-> years ago?
+Gervasio Bernal wrote:
+> I think the idea of encryption using Iptables is really great!
 
-Yes, while we were looking for information for our extension we found
-your web site, but as we were about to finish it, we decided to continue
-doing it. Each job, yours and our, have interesting features, that the
-other one doesn't have. It would be good to unify them and obtain
-something more robust.
-It would be also fantastic that the extension someday (of course there
-is much to debug) could be included in Iptables core.
-
-I think the idea of encryption using Iptables is really great!
-
-> 
-> http://0pointer.de/lennart/projects/seppl/
-> 
-> Lennart
-> 
+The thing I don't get: what advantages does it have over using
+IPsec with manual keying (forgetting about the selector, once
+nfmark is supported this point won't matter)?
