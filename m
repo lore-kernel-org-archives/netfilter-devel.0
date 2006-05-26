@@ -1,16 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/4] drop ftp bounce attacks
-Date: Fri, 26 May 2006 16:51:35 +0200
-Message-ID: <447715F7.5000409@trash.net>
-References: <20060524040441.111049000@snapgear.com>	<20060524040951.217594000@snapgear.com>
-	<44748A4D.1070905@trash.net> <44751CBF.8040906@snapgear.com>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] nf_conntrack: optimize hash calculation of tuple
+Date: Sat, 27 May 2006 00:04:17 +0900 (JST)
+Message-ID: <200605261504.k4QF4Iph003626@toshiba.co.jp>
+References: <447703F2.90401@trash.net>
+	<20060526.224556.19965528.yoshfuji@linux-ipv6.org>
+	<447707EB.7000401@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Philip Craig <philipc@snapgear.com>
-In-Reply-To: <44751CBF.8040906@snapgear.com>
+To: kaber@trash.net
+In-Reply-To: <447707EB.7000401@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,28 +23,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Philip Craig wrote:
-> On 05/25/2006 02:31 AM, Patrick McHardy wrote:
-> 
->>The best solution would be to mark the packet INVALID and let the
->>user decide using the state match.
-> 
-> 
-> Marking the packet INVALID is definitely better than always dropping
-> it.
-> 
-> The reason I said fixing the ftp server is the best solution is
-> that I'm not sure whether the ftp conntrack module can match on
-> all possible port commands, taking into account fragmentation,
-> reordering, and retransmits.
-> 
-> This is different from attacks against the firewall, in which the
-> attack works only if the firewall recognizes the port command and
-> creates an expectation.
 
+Hi, Patrick,
 
-Absolutely. I actually made a quite similar patch because of the
-same reason (certification requirements), but in the end I don't
-think its very useful for the reasons you mention above and because
-this is absolutely not what connection tracking helpers are meant
-for, people should use application layer proxies for this.
+> >>That still looks pretty expensive. Is there a reason why you didn't
+> >>just add/xor/or/... the individual values until you get down to
+> >>three and then use jhash_3words? We could also get rid of the modula
+> >>operation by making sure the hash-size is always a power of 2.
+> >
+> >
+> > I disagree.  Suhc oprations are not good for randomness.
+> > And, gcc is cleaver enough to convert it to shift operation.
+> 
+> 
+> Assuming you're talking the modula operation: gcc can't do that,
+> a modula operation can only be represented by a shift for a small
+> subset of the possible values. The randomness is provided by
+> jhash + the initial random value. If we rely on randomness by
+> some assumption about the hash size our code is already broken.
+> But anyway, this is just a possible micro-optimization, the
+> real question is why we need three invocations of jhash_mix.
+
+That patch is just the result of extracting jhash() and jhash_2words().
+I'm not familiar with hash algorithms. Does the degree of distribution
+become bad if we replaces 3 jhash_mix with something like XOR ?
+
+-- kozakai
