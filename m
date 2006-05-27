@@ -1,15 +1,12 @@
-From: Samuel Jean <jix@bugmachine.ca>
-Subject: Re: How to block traffic country-wise?
-Date: Sat, 27 May 2006 08:42:08 -0400
-Message-ID: <1148733728.8723.8.camel@localhost.localdomain>
-References: <4477791A.5070100@gmx.net>
+From: Torsten Luettgert <t.luettgert@pressestimmen.de>
+Subject: nth match
+Date: Sat, 27 May 2006 17:19:43 +0200
+Message-ID: <1148743183.2259.8.camel@murdegern.hindenburgdamm.example>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Dirk <noisyb@gmx.net>
-In-Reply-To: <4477791A.5070100@gmx.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,24 +18,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2006-26-05 at 23:54 +0200, Dirk wrote:
-> Hello,
-> I want to write a firewall that can block traffic from specific
-> countries using GeoIP.dat.
+Hello,
 
-There is the geoip match module for iptables.
+I understand Patrick wanted to integrate nth and random
+into a new statistics match. That's fine with me, but why
+was nth and random removed from pom without any replacement,
+i.e. the new statistics match?
 
-> Can someone give me a hint, example, snippet or link?
+You're just ripping out functionality based on something which
+will probably appear at some undetermined time in the future.
 
-There is the PoM module:
-http://people.netfilter.org/~peejix/patchlets/
+That's no good style, sorry. Good style would be to first write
+the new match, adding it, giving it time to mature and marking
+the old stuff as obsolescent, then at some time removing it.
 
-Krzysztof Ol=C4=99dzki patch for linux 2.6.16.x:
-https://lists.netfilter.org/pipermail/netfilter-devel/2006-May/024303.htm=
-l
+Regards,
+Torsten
 
-There is the howto:
-http://people.netfilter.org/~peejix/geoip/howto/geoip-HOWTO.html
-
-HTH,
---peejix
+(P.S.: sorry if this appears twice. I was so pissed off at the
+time that I forgot to use the correct sender address)
