@@ -1,12 +1,15 @@
-From: Dirk <noisyb@gmx.net>
-Subject: How to block traffic country-wise?
-Date: Fri, 26 May 2006 23:54:34 +0200
-Message-ID: <4477791A.5070100@gmx.net>
+From: Samuel Jean <jix@bugmachine.ca>
+Subject: Re: How to block traffic country-wise?
+Date: Sat, 27 May 2006 08:42:08 -0400
+Message-ID: <1148733728.8723.8.camel@localhost.localdomain>
+References: <4477791A.5070100@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Dirk <noisyb@gmx.net>
+In-Reply-To: <4477791A.5070100@gmx.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,20 +21,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
-I want to write a firewall that can block traffic from specific
-countries using GeoIP.dat.
+On Fri, 2006-26-05 at 23:54 +0200, Dirk wrote:
+> Hello,
+> I want to write a firewall that can block traffic from specific
+> countries using GeoIP.dat.
 
-I downloaded libnetfilter_queue because I think it can do what I want.
+There is the geoip match module for iptables.
 
-1) Get IP of connection
-2) Check local GeoIP database
-3) Refuse or Allow connection
+> Can someone give me a hint, example, snippet or link?
 
-But the included examples don't work. Maybe I'm completely wrong by
-starting with libnetfilter_queue or the included example?
+There is the PoM module:
+http://people.netfilter.org/~peejix/patchlets/
 
-Can someone give me a hint, example, snippet or link?
+Krzysztof Ol=C4=99dzki patch for linux 2.6.16.x:
+https://lists.netfilter.org/pipermail/netfilter-devel/2006-May/024303.htm=
+l
 
-Thanks,
-Dirk
+There is the howto:
+http://people.netfilter.org/~peejix/geoip/howto/geoip-HOWTO.html
+
+HTH,
+--peejix
