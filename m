@@ -1,12 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/03]: PPTP helper: fix sstate/cstate typo
-Date: Mon, 29 May 2006 01:06:34 +0200 (MEST)
-Message-ID: <20060528230634.6318.81427.sendpatchset@localhost.localdomain>
-References: <20060528230630.6318.23196.sendpatchset@localhost.localdomain>
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [RFC,ANNOUNCE] conntrack daemon (stateful replication)
+Date: Mon, 29 May 2006 00:09:59 +0200
+Message-ID: <447A1FB7.5080709@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: davem@davemloft.net
-In-Reply-To: <20060528230630.6318.23196.sendpatchset@localhost.localdomain>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,33 +19,106 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: PPTP helper: fix sstate/cstate typo
+Hi,
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+I've been working on a pet project during the last months. Part of this 
+stuff is related with my works in the university.
 
----
-commit f80ffe2d3c9364404f4545196c70784c70fa8d28
-tree 70a63104f71218daca622539cb73b5872fb0f0be
-parent b82323a2dfb5b58b9ca3e3687b35bae0ac90b503
-author Alexey Dobriyan <adobriyan@gmail.com> Mon, 29 May 2006 00:47:57 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 29 May 2006 00:47:57 +0200
+The project is called `conntrackd' that is the conntrack userspace daemon.
 
- net/ipv4/netfilter/ip_conntrack_helper_pptp.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Features:
+---------
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-index 7d3ba43..8ccfe17 100644
---- a/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-+++ b/net/ipv4/netfilter/ip_conntrack_helper_pptp.c
-@@ -469,8 +469,8 @@ pptp_inbound_pkt(struct sk_buff **pskb,
- 			DEBUGP("%s but no session\n", pptp_msg_name[msg]);
- 			break;
- 		}
--		if (info->sstate != PPTP_CALL_IN_REP
--		    && info->sstate != PPTP_CALL_IN_CONF) {
-+		if (info->cstate != PPTP_CALL_IN_REP
-+		    && info->cstate != PPTP_CALL_IN_CONF) {
- 			DEBUGP("%s but never sent IN_CALL_REPLY\n",
- 				pptp_msg_name[msg]);
- 			break;
+- Stateful replication: the daemon keeps a cache of internal events via 
+libnetfilter_conntrack and a cache of external event received from the 
+other node.
+- Support for classical Primary/Backup settings
+- Support for Active/Active settings (two machines max. per VRRP instance)
+- Support for NAT: It recognizes NAT'ed connections and handles them 
+properly.
+- UDP traffic ignore facility
+- ICMP traffic ignore facility
+- Ignore loopback traffic (not customizable at the moment)
+- Ignore traffic for certain set of machines: Useful to ignore traffic 
+for the firewall since we just want to replicate conntracks that 
+represent forwarded connections.
+- Dump internal and external caches via UNIX sockets
+- Flush internal, external caches and conntrack table
+- The communication between daemons is done in NETLINK format, so the 
+protocol used is based on NETLINK over IP, to ensure backward compatibility.
+- Configuration via file
+- Log file support
+
+I'm still generalizing this a bit so it can be also used for statistics 
+purposes: since a replica of the conntrack table (cache) is kept in 
+userspace, the dumping process would not need to request the information 
+to the kernel.
+
+The software is released under GPLv2 and it is available at:
+
+http://people.netfilter.org/pablo/conntrackd/
+
+The remaining issues are:
+-------------------------
+
+- Support for IPv6.
+
+- Evaluation: I'll be getting some results to evaluate the *performance 
+drop* that could suppose to enable replication in linux firewall based 
+on this solution. Expect results soon.
+- Better integration with keepalived: This is the most important issue 
+and my major concern now. I'm happy with keepalived, but the interface 
+provided to communicate events (based on shell scripts) is not so much.
+- Checksum messages going through the network.
+- Security: A dedicated link is required to communicate nodes that 
+conform the cluster, otherwise third parties could pick up information 
+about the connections processed by the firewall.
+- More testing
+
+Requirements:
+-------------
+
+- linux kernel >= 2.6.16 with [ip|nf]_conntrack_netlink support
+- libnfnetlink from SVN
+- libnetfilter_conntrack from SVN + plus patch inside the doc/ directory.
+- keepalived (tested here with 1.1.11 available in debian)
+
+Installation:
+-------------
+
+- make sure that multicast traffic sent by conntrackd is received in the 
+dedicated interfaces:
+iptables -I INPUT -d 225.0.0.50 -j ACCEPT
+iptables -I OUTPUT -d 225.0.0.50 -j ACCEPT
+
+- install libnfnetlink and libnetfilter_conntrack from SVN (and apply 
+the patch available in doc/)
+- classical ./configure; make; make install
+- copy doc/conntrackd.conf to /etc/conntrackd/, this directory can be 
+overrided with the -C option.
+- copy doc/script_*.sh where keepalived can find them.
+
+
+Running:
+--------
+
+# conntrackd -d
+# conntrackd -i # dump internal events cache
+# conntrackd -e # dump external cache
+# conntrackd -k # kill conntrackd
+# conntrackd -f # flush internal, external caches and conntrack table
+
+I am going to write some docs at the same time that I improve the daemon.
+
+BTW, I sent a PDF file to netfilter-core but exceeded maximum size a 
+bit, could you accept it? I wrote a small article for USENIX's :LOGIN; 
+about the connection tracking system that will be released in June. I 
+can't release it for public before that date but I sent you a copy in 
+private. Although all that it contains is well known by you ;) but at 
+least have a look at the acknowledgement section.
+
+Hope that you like it.
+
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
