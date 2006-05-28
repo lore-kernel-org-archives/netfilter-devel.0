@@ -1,11 +1,15 @@
-From: Torsten Luettgert <t.luettgert@pressestimmen.de>
-Subject: [PATCH] ROUTE target
-Date: Sun, 28 May 2006 19:44:45 +0200
-Message-ID: <1148838285.2516.5.camel@scaramouche.combox.de>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: [PATCH] set match
+Date: Mon, 29 May 2006 00:33:58 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0605290030400.11391@bizon.gios.gov.pl>
+References: <1148838123.2516.1.camel@scaramouche.combox.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-BlqSd9+bvayLQ3KRnUAT"
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1798699849-1148855638=:11391"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Torsten Luettgert <t.luettgert@pressestimmen.de>
+In-Reply-To: <1148838123.2516.1.camel@scaramouche.combox.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -17,38 +21,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---=-BlqSd9+bvayLQ3KRnUAT
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+---187430788-1798699849-1148855638=:11391
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Hi,
 
-here's another simple patch for the ROUTE target. It fails to compile
-if CONFIG_NETFILTER_DEBUG is set, because there's no nf_debug member
-in skb any longer. The patch just removes the skb->nf_debug = 0;
 
-Regards,
-Torsten
+On Sun, 28 May 2006, Torsten Luettgert wrote:
 
---=-BlqSd9+bvayLQ3KRnUAT
-Content-Disposition: attachment; filename=ROUTE.patch
-Content-Type: text/x-patch; name=ROUTE.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+> Hello,
+Hello,
 
-Index: ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c
-===================================================================
---- ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c	(revision 6622)
-+++ ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c	(working copy)
-@@ -378,9 +378,6 @@
- 		skb->nfct = &route_tee_track.ct_general;
- 		skb->nfctinfo = IP_CT_NEW;
- 		nf_conntrack_get(skb->nfct);
--#ifdef CONFIG_NETFILTER_DEBUG
--		skb->nf_debug = 0;
--#endif
- 	}
- 
- 	if (route_info->oif[0] != '\0') {
+> here's a simple patch for the set match in pom. It adds the
+> new protoff parameter in the match function of ipt_set.c and
+> changes struct ipt_ip * to void * in the checkentry function
+> of ipt_set.c and ipt_SET.c, so they compile without warnings.
 
---=-BlqSd9+bvayLQ3KRnUAT--
+http://lists.netfilter.org/pipermail/netfilter-devel/2006-March/023808.html
+
+http://svn.netfilter.org/cgi-bin/viewcvs.cgi?rev=3D6569&view=3Drev
+
+Best regards,
+
+ =09=09=09Krzysztof Ol=EAdzki
+---187430788-1798699849-1148855638=:11391--
