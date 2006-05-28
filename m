@@ -1,9 +1,9 @@
 From: Torsten Luettgert <t.luettgert@pressestimmen.de>
-Subject: [PATCH] set match
-Date: Sun, 28 May 2006 19:42:03 +0200
-Message-ID: <1148838123.2516.1.camel@scaramouche.combox.de>
+Subject: [PATCH] ROUTE target
+Date: Sun, 28 May 2006 19:44:45 +0200
+Message-ID: <1148838285.2516.5.camel@scaramouche.combox.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-Hvr0IGn9GMQ7ROZjMMAD"
+Content-Type: multipart/mixed; boundary="=-BlqSd9+bvayLQ3KRnUAT"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,58 +18,37 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-Hvr0IGn9GMQ7ROZjMMAD
+--=-BlqSd9+bvayLQ3KRnUAT
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-Hello,
+Hi,
 
-here's a simple patch for the set match in pom. It adds the
-new protoff parameter in the match function of ipt_set.c and
-changes struct ipt_ip * to void * in the checkentry function
-of ipt_set.c and ipt_SET.c, so they compile without warnings.
+here's another simple patch for the ROUTE target. It fails to compile
+if CONFIG_NETFILTER_DEBUG is set, because there's no nf_debug member
+in skb any longer. The patch just removes the skb->nf_debug = 0;
 
 Regards,
 Torsten
 
---=-Hvr0IGn9GMQ7ROZjMMAD
-Content-Disposition: attachment; filename=set.patch
-Content-Type: text/x-patch; name=set.patch; charset=UTF-8
+--=-BlqSd9+bvayLQ3KRnUAT
+Content-Disposition: attachment; filename=ROUTE.patch
+Content-Type: text/x-patch; name=ROUTE.patch; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-Index: set/linux-2.6/net/ipv4/netfilter/ipt_SET.c
+Index: ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c
 ===================================================================
---- set/linux-2.6/net/ipv4/netfilter/ipt_SET.c	(revision 6622)
-+++ set/linux-2.6/net/ipv4/netfilter/ipt_SET.c	(working copy)
-@@ -48,7 +48,7 @@
+--- ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c	(revision 6622)
++++ ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c	(working copy)
+@@ -378,9 +378,6 @@
+ 		skb->nfct = &route_tee_track.ct_general;
+ 		skb->nfctinfo = IP_CT_NEW;
+ 		nf_conntrack_get(skb->nfct);
+-#ifdef CONFIG_NETFILTER_DEBUG
+-		skb->nf_debug = 0;
+-#endif
+ 	}
  
- static int
- checkentry(const char *tablename,
--	   const struct ipt_entry *e,
-+	   const void *e,
- 	   void *targinfo,
- 	   unsigned int targinfosize, unsigned int hook_mask)
- {
-Index: set/linux-2.6/net/ipv4/netfilter/ipt_set.c
-===================================================================
---- set/linux-2.6/net/ipv4/netfilter/ipt_set.c	(revision 6622)
-+++ set/linux-2.6/net/ipv4/netfilter/ipt_set.c	(working copy)
-@@ -34,6 +34,7 @@
-       const struct net_device *out,
-       const void *matchinfo,
-       int offset,
-+      unsigned int protoff,
-       int *hotdrop)
- {
- 	const struct ipt_set_info_match *info = matchinfo;
-@@ -45,7 +46,7 @@
- 
- static int
- checkentry(const char *tablename,
--	   const struct ipt_ip *ip,
-+	   const void *ip,
- 	   void *matchinfo,
- 	   unsigned int matchsize,
- 	   unsigned int hook_mask)
+ 	if (route_info->oif[0] != '\0') {
 
---=-Hvr0IGn9GMQ7ROZjMMAD--
+--=-BlqSd9+bvayLQ3KRnUAT--
