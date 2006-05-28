@@ -1,13 +1,17 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [RFC,ANNOUNCE] conntrack daemon (stateful replication)
-Date: Mon, 29 May 2006 00:09:59 +0200
-Message-ID: <447A1FB7.5080709@netfilter.org>
+From: Grant Coady <gcoady.lk@gmail.com>
+Subject: Re: Query: status of ipt_recent?
+Date: Mon, 29 May 2006 09:21:28 +1000
+Message-ID: <71bk725lasf680d0d94h79bbpanlap0hju@4ax.com>
+References: <45ai725cka9svjijcg1qnbm5fcd90uq4c1@4ax.com>
+	<447991F7.6030808@trash.net>
+Reply-To: Grant Coady <gcoady.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <447991F7.6030808@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,106 +23,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Sun, 28 May 2006 14:05:11 +0200, Patrick McHardy <kaber@trash.net> wrote:
 
-I've been working on a pet project during the last months. Part of this 
-stuff is related with my works in the university.
+>Grant Coady wrote:
+>> Hi there,
+>> 
+>> Recently there was query on lkml about ipt_recent, that a patch 
+>> for a memory leak may not going far enough.  What is status on 
+>> ipt_recent and is anyone backporting the new version to 2.4 kernel?
+>
+>The problem with the recent match is mostly that its an offence
+>to the eyes and very hard to maintain, even small and simple patches
+>are hard to review. As far as I know it works fine if you forget
+>about a few corner cases, so I don't really see a reason for a
+>backport. Shouldn't be very hard though.
 
-The project is called `conntrackd' that is the conntrack userspace daemon.
+I use 2.4.latest on firewall box and was using iptables --recent 
+for web server traffic calming (on tiny pipe to 'net) by src_ip 
+to prevent DoS by some users.  I hadn't noticed memory leak, 
+perhaps 'cos uptime max is in weeks, and I unload/reload ipt_recent 
+'cos firewall sets parameters (more entries, less history):
 
-Features:
----------
+        report "    reload --recent (250 x 2)"
+        rmmod ipt_recent
+        # see man iptables for this:
+        modprobe ipt_recent ip_list_tot=250 ip_pkt_list_tot=2
 
-- Stateful replication: the daemon keeps a cache of internal events via 
-libnetfilter_conntrack and a cache of external event received from the 
-other node.
-- Support for classical Primary/Backup settings
-- Support for Active/Active settings (two machines max. per VRRP instance)
-- Support for NAT: It recognizes NAT'ed connections and handles them 
-properly.
-- UDP traffic ignore facility
-- ICMP traffic ignore facility
-- Ignore loopback traffic (not customizable at the moment)
-- Ignore traffic for certain set of machines: Useful to ignore traffic 
-for the firewall since we just want to replicate conntracks that 
-represent forwarded connections.
-- Dump internal and external caches via UNIX sockets
-- Flush internal, external caches and conntrack table
-- The communication between daemons is done in NETLINK format, so the 
-protocol used is based on NETLINK over IP, to ensure backward compatibility.
-- Configuration via file
-- Log file support
+each time I fiddle with the iptables ruleset.
 
-I'm still generalizing this a bit so it can be also used for statistics 
-purposes: since a replica of the conntrack table (cache) is kept in 
-userspace, the dumping process would not need to request the information 
-to the kernel.
+If the author has abandoned the thing I could reformat it, throw 
+in some function calls to convert the spaghetti code to functions, 
+make it easier to see the obfuscated control flow, and throw in 
+some goto targets as well ;)  (CodingStyle single exit)
 
-The software is released under GPLv2 and it is available at:
+I'd hate to duplicate a work in progress.  
 
-http://people.netfilter.org/pablo/conntrackd/
-
-The remaining issues are:
--------------------------
-
-- Support for IPv6.
-
-- Evaluation: I'll be getting some results to evaluate the *performance 
-drop* that could suppose to enable replication in linux firewall based 
-on this solution. Expect results soon.
-- Better integration with keepalived: This is the most important issue 
-and my major concern now. I'm happy with keepalived, but the interface 
-provided to communicate events (based on shell scripts) is not so much.
-- Checksum messages going through the network.
-- Security: A dedicated link is required to communicate nodes that 
-conform the cluster, otherwise third parties could pick up information 
-about the connections processed by the firewall.
-- More testing
-
-Requirements:
--------------
-
-- linux kernel >= 2.6.16 with [ip|nf]_conntrack_netlink support
-- libnfnetlink from SVN
-- libnetfilter_conntrack from SVN + plus patch inside the doc/ directory.
-- keepalived (tested here with 1.1.11 available in debian)
-
-Installation:
--------------
-
-- make sure that multicast traffic sent by conntrackd is received in the 
-dedicated interfaces:
-iptables -I INPUT -d 225.0.0.50 -j ACCEPT
-iptables -I OUTPUT -d 225.0.0.50 -j ACCEPT
-
-- install libnfnetlink and libnetfilter_conntrack from SVN (and apply 
-the patch available in doc/)
-- classical ./configure; make; make install
-- copy doc/conntrackd.conf to /etc/conntrackd/, this directory can be 
-overrided with the -C option.
-- copy doc/script_*.sh where keepalived can find them.
-
-
-Running:
---------
-
-# conntrackd -d
-# conntrackd -i # dump internal events cache
-# conntrackd -e # dump external cache
-# conntrackd -k # kill conntrackd
-# conntrackd -f # flush internal, external caches and conntrack table
-
-I am going to write some docs at the same time that I improve the daemon.
-
-BTW, I sent a PDF file to netfilter-core but exceeded maximum size a 
-bit, could you accept it? I wrote a small article for USENIX's :LOGIN; 
-about the connection tracking system that will be released in June. I 
-can't release it for public before that date but I sent you a copy in 
-private. Although all that it contains is well known by you ;) but at 
-least have a look at the acknowledgement section.
-
-Hope that you like it.
-
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+Cheers,
+Grant.
