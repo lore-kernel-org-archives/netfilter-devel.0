@@ -1,17 +1,11 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ip_nat_sip: fix compiler warning
-Date: Sun, 28 May 2006 17:34:46 +0200
-Message-ID: <4479C316.7070406@trash.net>
-References: <1148823979.32002.2.camel@scaramouche.combox.de>	
-	<4479B3C4.1040404@trash.net>
-	<1148830346.32002.9.camel@scaramouche.combox.de>
+From: Torsten Luettgert <t.luettgert@pressestimmen.de>
+Subject: [PATCH] set match
+Date: Sun, 28 May 2006 19:42:03 +0200
+Message-ID: <1148838123.2516.1.camel@scaramouche.combox.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="=-Hvr0IGn9GMQ7ROZjMMAD"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Torsten Luettgert <t.luettgert@pressestimmen.de>
-In-Reply-To: <1148830346.32002.9.camel@scaramouche.combox.de>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,16 +17,59 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Torsten Luettgert wrote:
-> BTW: What about the new protoff argument to match functions, and
-> the change from struct ipt_ip * to void * in the checkentry
-> functions (e.g. in the set match).
-> 
-> Are those already fixed and going upstream, too, or would it be
-> worthwile to submit patches for old matches and targets?
 
-I guess anything still in pom is worth fixing. There are
-a couple of patchlets that have found new maintainers but
-don't have an external repository yet, those will be
-removed once those repositories are set up. Until then
-I have no problems applying fixes to them.
+--=-Hvr0IGn9GMQ7ROZjMMAD
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+Hello,
+
+here's a simple patch for the set match in pom. It adds the
+new protoff parameter in the match function of ipt_set.c and
+changes struct ipt_ip * to void * in the checkentry function
+of ipt_set.c and ipt_SET.c, so they compile without warnings.
+
+Regards,
+Torsten
+
+--=-Hvr0IGn9GMQ7ROZjMMAD
+Content-Disposition: attachment; filename=set.patch
+Content-Type: text/x-patch; name=set.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Index: set/linux-2.6/net/ipv4/netfilter/ipt_SET.c
+===================================================================
+--- set/linux-2.6/net/ipv4/netfilter/ipt_SET.c	(revision 6622)
++++ set/linux-2.6/net/ipv4/netfilter/ipt_SET.c	(working copy)
+@@ -48,7 +48,7 @@
+ 
+ static int
+ checkentry(const char *tablename,
+-	   const struct ipt_entry *e,
++	   const void *e,
+ 	   void *targinfo,
+ 	   unsigned int targinfosize, unsigned int hook_mask)
+ {
+Index: set/linux-2.6/net/ipv4/netfilter/ipt_set.c
+===================================================================
+--- set/linux-2.6/net/ipv4/netfilter/ipt_set.c	(revision 6622)
++++ set/linux-2.6/net/ipv4/netfilter/ipt_set.c	(working copy)
+@@ -34,6 +34,7 @@
+       const struct net_device *out,
+       const void *matchinfo,
+       int offset,
++      unsigned int protoff,
+       int *hotdrop)
+ {
+ 	const struct ipt_set_info_match *info = matchinfo;
+@@ -45,7 +46,7 @@
+ 
+ static int
+ checkentry(const char *tablename,
+-	   const struct ipt_ip *ip,
++	   const void *ip,
+ 	   void *matchinfo,
+ 	   unsigned int matchsize,
+ 	   unsigned int hook_mask)
+
+--=-Hvr0IGn9GMQ7ROZjMMAD--
