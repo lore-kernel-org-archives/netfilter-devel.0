@@ -1,15 +1,11 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Query: status of ipt_recent?
-Date: Sun, 28 May 2006 14:05:11 +0200
-Message-ID: <447991F7.6030808@trash.net>
-References: <45ai725cka9svjijcg1qnbm5fcd90uq4c1@4ax.com>
+From: Torsten Luettgert <t.luettgert@pressestimmen.de>
+Subject: [PATCH] ip_nat_sip: fix compiler warning
+Date: Sun, 28 May 2006 15:46:19 +0200
+Message-ID: <1148823979.32002.2.camel@scaramouche.combox.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="=-xgAnuD1zTydTmp2T9v+0"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Grant Coady <gcoady.lk@gmail.com>
-In-Reply-To: <45ai725cka9svjijcg1qnbm5fcd90uq4c1@4ax.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,15 +17,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Grant Coady wrote:
-> Hi there,
-> 
-> Recently there was query on lkml about ipt_recent, that a patch 
-> for a memory leak may not going far enough.  What is status on 
-> ipt_recent and is anyone backporting the new version to 2.4 kernel?
 
-The problem with the recent match is mostly that its an offence
-to the eyes and very hard to maintain, even small and simple patches
-are hard to review. As far as I know it works fine if you forget
-about a few corner cases, so I don't really see a reason for a
-backport. Shouldn't be very hard though.
+--=-xgAnuD1zTydTmp2T9v+0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+Hi,
+
+here's a trivial patch for ip_nat_sip which fixes the following
+compiler warning:
+
+net/ipv4/netfilter/ip_nat_sip.c:97: warning: ISO C90 forbids mixed
+declarations and code
+
+Regards,
+Torsten
+
+--=-xgAnuD1zTydTmp2T9v+0
+Content-Disposition: attachment; filename=ip_nat_sip.patch
+Content-Type: text/x-patch; name=ip_nat_sip.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Index: linux-2.6.13/net/ipv4/netfilter/ip_nat_sip.c
+===================================================================
+--- linux-2.6.13/net/ipv4/netfilter/ip_nat_sip.c	(revision 6622)
++++ linux-2.6.13/net/ipv4/netfilter/ip_nat_sip.c	(working copy)
+@@ -61,6 +61,7 @@
+ 	unsigned int bufflen, dataoff;
+ 	uint32_t ip;
+ 	uint16_t port;
++   const char *aux;
+ 	
+ 	dataoff = (*pskb)->nh.iph->ihl*4 + sizeof(struct udphdr);
+ 	
+@@ -93,7 +94,7 @@
+ 		}
+ 		
+ 		/* This search should ignore case, but later.. */
+-		const char *aux = ct_sip_search("CSeq:", *dptr, sizeof("CSeq:") - 1, 
++		aux = ct_sip_search("CSeq:", *dptr, sizeof("CSeq:") - 1, 
+ 								(*pskb)->len - dataoff);
+ 		if (!aux)
+ 			return 0;
+
+--=-xgAnuD1zTydTmp2T9v+0--
