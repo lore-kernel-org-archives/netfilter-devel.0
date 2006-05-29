@@ -1,16 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] nf_conntrack: optimize hash calculation of tuple
-Date: Mon, 29 May 2006 03:27:59 +0200
-Message-ID: <447A4E1F.7070105@trash.net>
-References: <447707EB.7000401@trash.net>	<200605261504.k4QF4InW014648@toshiba.co.jp>	<447740CD.7030407@trash.net>
-	<200605290025.k4T0PeSE014151@toshiba.co.jp>
+From: Jeho-Park <jhpark-nf@kernelproject.org>
+Subject: Re: [RFC,ANNOUNCE] conntrack daemon (stateful replication)
+Date: Mon, 29 May 2006 13:46:07 +0900
+Message-ID: <447A7C8F.20206@kernelproject.org>
+References: <447A1FB7.5080709@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200605290025.k4T0PeSE014151@toshiba.co.jp>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <447A1FB7.5080709@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,31 +23,121 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Fri, 26 May 2006 19:54:21 +0200
-> 
->>>That patch is just the result of extracting jhash() and jhash_2words().
->>>I'm not familiar with hash algorithms. Does the degree of distribution
->>>become bad if we replaces 3 jhash_mix with something like XOR ?
->>
->>
->>I'd say no. jhash was chosen because it has good distribution even
->>for non uniformly distributed input values, so it shouldn't be
->>necessary to try to provide more uniformly distributed input values
->>by hashing multiple times.
-> 
-> 
-> Well, I don't think so. If we employ a function which has bad
-> distributin and we use outputs of it as inputs to jhash, the total result
-> for tuple will have bad distribution.
+good job !
 
-Input distribution shouldn't matter as long as clashes can't
-be caused deliberately before jhash is called. A simple way
-to avoid this is to use a function that can't be solved for
-a specific result without knowledge of a secret:
+it looks so interesting ~ thanks
 
-x = v1 ^ (v2 + secret)
 
-which means you still need 2^31 tries on average to find a
-(v1,v2) with two equal results (assuming 4 byte values).
+jeho park
+
+
+Pablo Neira Ayuso wrote:
+
+> Hi,
+>
+> I've been working on a pet project during the last months. Part of 
+> this stuff is related with my works in the university.
+>
+> The project is called `conntrackd' that is the conntrack userspace 
+> daemon.
+>
+> Features:
+> ---------
+>
+> - Stateful replication: the daemon keeps a cache of internal events 
+> via libnetfilter_conntrack and a cache of external event received from 
+> the other node.
+> - Support for classical Primary/Backup settings
+> - Support for Active/Active settings (two machines max. per VRRP 
+> instance)
+> - Support for NAT: It recognizes NAT'ed connections and handles them 
+> properly.
+> - UDP traffic ignore facility
+> - ICMP traffic ignore facility
+> - Ignore loopback traffic (not customizable at the moment)
+> - Ignore traffic for certain set of machines: Useful to ignore traffic 
+> for the firewall since we just want to replicate conntracks that 
+> represent forwarded connections.
+> - Dump internal and external caches via UNIX sockets
+> - Flush internal, external caches and conntrack table
+> - The communication between daemons is done in NETLINK format, so the 
+> protocol used is based on NETLINK over IP, to ensure backward 
+> compatibility.
+> - Configuration via file
+> - Log file support
+>
+> I'm still generalizing this a bit so it can be also used for 
+> statistics purposes: since a replica of the conntrack table (cache) is 
+> kept in userspace, the dumping process would not need to request the 
+> information to the kernel.
+>
+> The software is released under GPLv2 and it is available at:
+>
+> http://people.netfilter.org/pablo/conntrackd/
+>
+> The remaining issues are:
+> -------------------------
+>
+> - Support for IPv6.
+>
+> - Evaluation: I'll be getting some results to evaluate the 
+> *performance drop* that could suppose to enable replication in linux 
+> firewall based on this solution. Expect results soon.
+> - Better integration with keepalived: This is the most important issue 
+> and my major concern now. I'm happy with keepalived, but the interface 
+> provided to communicate events (based on shell scripts) is not so much.
+> - Checksum messages going through the network.
+> - Security: A dedicated link is required to communicate nodes that 
+> conform the cluster, otherwise third parties could pick up information 
+> about the connections processed by the firewall.
+> - More testing
+>
+> Requirements:
+> -------------
+>
+> - linux kernel >= 2.6.16 with [ip|nf]_conntrack_netlink support
+> - libnfnetlink from SVN
+> - libnetfilter_conntrack from SVN + plus patch inside the doc/ directory.
+> - keepalived (tested here with 1.1.11 available in debian)
+>
+> Installation:
+> -------------
+>
+> - make sure that multicast traffic sent by conntrackd is received in 
+> the dedicated interfaces:
+> iptables -I INPUT -d 225.0.0.50 -j ACCEPT
+> iptables -I OUTPUT -d 225.0.0.50 -j ACCEPT
+>
+> - install libnfnetlink and libnetfilter_conntrack from SVN (and apply 
+> the patch available in doc/)
+> - classical ./configure; make; make install
+> - copy doc/conntrackd.conf to /etc/conntrackd/, this directory can be 
+> overrided with the -C option.
+> - copy doc/script_*.sh where keepalived can find them.
+>
+>
+> Running:
+> --------
+>
+> # conntrackd -d
+> # conntrackd -i # dump internal events cache
+> # conntrackd -e # dump external cache
+> # conntrackd -k # kill conntrackd
+> # conntrackd -f # flush internal, external caches and conntrack table
+>
+> I am going to write some docs at the same time that I improve the daemon.
+>
+> BTW, I sent a PDF file to netfilter-core but exceeded maximum size a 
+> bit, could you accept it? I wrote a small article for USENIX's :LOGIN; 
+> about the connection tracking system that will be released in June. I 
+> can't release it for public before that date but I sent you a copy in 
+> private. Although all that it contains is well known by you ;) but at 
+> least have a look at the acknowledgement section.
+>
+> Hope that you like it.
+>
+
+
+-- 
+--
+Jeho-Park <jhpark-nf@kernelproject.org> or <linuxpark@infnis.com>
