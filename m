@@ -1,12 +1,10 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/17]: x_tables: remove some unnecessary casts
-Date: Tue, 30 May 2006 00:34:06 +0200 (MEST)
-Message-ID: <20060529223406.24834.76526.sendpatchset@localhost.localdomain>
-References: <20060529223404.24834.30808.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 00/17]: Netfilter update for 2.6.18
+Date: Tue, 30 May 2006 00:34:04 +0200 (MEST)
+Message-ID: <20060529223404.24834.30808.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: davem@davemloft.net
-In-Reply-To: <20060529223404.24834.30808.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,106 +16,88 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: x_tables: remove some unnecessary casts
+Hi Dave,                                                                           
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+following is a large netfilter update for 2.6.18 with changes all
+over the place, most noteworthy is the replacement of the recent
+match, a new SIP connection tracking helper and two new matches.
 
----
-commit 36e1d2c1e439bf08da7406cc82b01e18062a437e
-tree 5f5847fc5a8483e67ec30d09bb034535a0729db5
-parent 8bf89c20914d1323c80602ba60405b2873a6ef60
-author Patrick McHardy <kaber@trash.net> Tue, 30 May 2006 00:02:36 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 30 May 2006 00:02:36 +0200
+Please apply to net-2.6.18, thanks.
 
- net/ipv4/netfilter/ipt_hashlimit.c |    2 +-
- net/netfilter/xt_connmark.c        |    2 +-
- net/netfilter/xt_dccp.c            |    3 +--
- net/netfilter/xt_mark.c            |    2 +-
- net/netfilter/xt_sctp.c            |    4 +---
- net/netfilter/xt_string.c          |    2 +-
- 6 files changed, 6 insertions(+), 9 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_hashlimit.c b/net/ipv4/netfilter/ipt_hashlimit.c
-index 7c6836c..b88adc7 100644
---- a/net/ipv4/netfilter/ipt_hashlimit.c
-+++ b/net/ipv4/netfilter/ipt_hashlimit.c
-@@ -561,7 +561,7 @@ static void
- hashlimit_destroy(const struct xt_match *match, void *matchinfo,
- 		  unsigned int matchsize)
- {
--	struct ipt_hashlimit_info *r = (struct ipt_hashlimit_info *) matchinfo;
-+	struct ipt_hashlimit_info *r = matchinfo;
- 
- 	htable_put(r->hinfo);
- }
-diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
-index dc26a27..56324c8 100644
---- a/net/netfilter/xt_connmark.c
-+++ b/net/netfilter/xt_connmark.c
-@@ -58,7 +58,7 @@ checkentry(const char *tablename,
- 	   unsigned int matchsize,
- 	   unsigned int hook_mask)
- {
--	struct xt_connmark_info *cm = (struct xt_connmark_info *)matchinfo;
-+	struct xt_connmark_info *cm = matchinfo;
- 
- 	if (cm->mark > 0xffffffff || cm->mask > 0xffffffff) {
- 		printk(KERN_WARNING "connmark: only support 32bit mark\n");
-diff --git a/net/netfilter/xt_dccp.c b/net/netfilter/xt_dccp.c
-index dfb10b6..2e2f825 100644
---- a/net/netfilter/xt_dccp.c
-+++ b/net/netfilter/xt_dccp.c
-@@ -101,8 +101,7 @@ match(const struct sk_buff *skb,
-       unsigned int protoff,
-       int *hotdrop)
- {
--	const struct xt_dccp_info *info = 
--				(const struct xt_dccp_info *)matchinfo;
-+	const struct xt_dccp_info *info = matchinfo;
- 	struct dccp_hdr _dh, *dh;
- 
- 	if (offset)
-diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
-index 8b385a3..876bc57 100644
---- a/net/netfilter/xt_mark.c
-+++ b/net/netfilter/xt_mark.c
-@@ -42,7 +42,7 @@ checkentry(const char *tablename,
-            unsigned int matchsize,
-            unsigned int hook_mask)
- {
--	struct xt_mark_info *minfo = (struct xt_mark_info *) matchinfo;
-+	const struct xt_mark_info *minfo = matchinfo;
- 
- 	if (minfo->mark > 0xffffffff || minfo->mask > 0xffffffff) {
- 		printk(KERN_WARNING "mark: only supports 32bit mark\n");
-diff --git a/net/netfilter/xt_sctp.c b/net/netfilter/xt_sctp.c
-index 34bd872..b5110e5 100644
---- a/net/netfilter/xt_sctp.c
-+++ b/net/netfilter/xt_sctp.c
-@@ -129,11 +129,9 @@ match(const struct sk_buff *skb,
-       unsigned int protoff,
-       int *hotdrop)
- {
--	const struct xt_sctp_info *info;
-+	const struct xt_sctp_info *info = matchinfo;
- 	sctp_sctphdr_t _sh, *sh;
- 
--	info = (const struct xt_sctp_info *)matchinfo;
--
- 	if (offset) {
- 		duprintf("Dropping non-first fragment.. FIXME\n");
- 		return 0;
-diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
-index 79d9ea6..0ebb6ac 100644
---- a/net/netfilter/xt_string.c
-+++ b/net/netfilter/xt_string.c
-@@ -30,8 +30,8 @@ static int match(const struct sk_buff *s
- 		 unsigned int protoff,
- 		 int *hotdrop)
- {
-+	const struct xt_string_info *conf = matchinfo;
- 	struct ts_state state;
--	struct xt_string_info *conf = (struct xt_string_info *) matchinfo;
- 
- 	memset(&state, 0, sizeof(struct ts_state));
- 
+ include/linux/netfilter/nf_conntrack_common.h                 |    4 
+ include/linux/netfilter/nfnetlink_conntrack.h                 |    4 
+ include/linux/netfilter/xt_quota.h                            |   16 
+ include/linux/netfilter/xt_statistic.h                        |   32 
+ include/linux/netfilter_ipv4/ip_conntrack.h                   |    2 
+ include/linux/netfilter_ipv4/ip_conntrack_h323.h              |    7 
+ include/linux/netfilter_ipv4/ip_conntrack_helper_h323_types.h |    3 
+ include/linux/netfilter_ipv4/ip_conntrack_sip.h               |   44 
+ include/linux/sysctl.h                                        |    2 
+ include/net/netfilter/nf_conntrack.h                          |    1 
+ net/ipv4/netfilter/Kconfig                                    |   28 
+ net/ipv4/netfilter/Makefile                                   |    2 
+ net/ipv4/netfilter/ip_conntrack_amanda.c                      |  143 -
+ net/ipv4/netfilter/ip_conntrack_core.c                        |    6 
+ net/ipv4/netfilter/ip_conntrack_ftp.c                         |   77 
+ net/ipv4/netfilter/ip_conntrack_helper_h323.c                 |  169 +
+ net/ipv4/netfilter/ip_conntrack_helper_h323_types.c           |    6 
+ net/ipv4/netfilter/ip_conntrack_netlink.c                     |   85 
+ net/ipv4/netfilter/ip_conntrack_proto_gre.c                   |    6 
+ net/ipv4/netfilter/ip_conntrack_proto_icmp.c                  |    2 
+ net/ipv4/netfilter/ip_conntrack_proto_tcp.c                   |    2 
+ net/ipv4/netfilter/ip_conntrack_proto_udp.c                   |    2 
+ net/ipv4/netfilter/ip_conntrack_sip.c                         |  471 +++
+ net/ipv4/netfilter/ip_conntrack_standalone.c                  |   13 
+ net/ipv4/netfilter/ip_nat_helper_h323.c                       |   77 
+ net/ipv4/netfilter/ip_nat_sip.c                               |  249 +
+ net/ipv4/netfilter/ip_nat_snmp_basic.c                        |    2 
+ net/ipv4/netfilter/ipt_CLUSTERIP.c                            |   20 
+ net/ipv4/netfilter/ipt_hashlimit.c                            |   66 
+ net/ipv4/netfilter/ipt_recent.c                               | 1268 ++--------
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c                |    2 
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c                  |    2 
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c                |    2 
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c                |    2 
+ net/netfilter/Kconfig                                         |   16 
+ net/netfilter/Makefile                                        |    2 
+ net/netfilter/nf_conntrack_core.c                             |    6 
+ net/netfilter/nf_conntrack_ftp.c                              |   77 
+ net/netfilter/nf_conntrack_netlink.c                          |   85 
+ net/netfilter/nf_conntrack_proto_tcp.c                        |    5 
+ net/netfilter/nf_conntrack_proto_udp.c                        |    3 
+ net/netfilter/nf_conntrack_standalone.c                       |   11 
+ net/netfilter/xt_connmark.c                                   |    2 
+ net/netfilter/xt_dccp.c                                       |    3 
+ net/netfilter/xt_mark.c                                       |    2 
+ net/netfilter/xt_multiport.c                                  |    7 
+ net/netfilter/xt_quota.c                                      |   96 
+ net/netfilter/xt_sctp.c                                       |    4 
+ net/netfilter/xt_statistic.c                                  |  112 
+ net/netfilter/xt_string.c                                     |    2 
+ 50 files changed, 2036 insertions(+), 1214 deletions(-)
+
+Alexey Dobriyan:
+      [NETFILTER]: PPTP helper: fixup gre_keymap_lookup() return type
+
+Eric Leblond:
+      [NETFILTER]: conntrack: add fixed timeout flag in connection tracking
+
+Jing Min Zhao:
+      [NETFILTER]: H.323 helper: Add support for Call Forwarding
+
+Patrick McHardy:
+      [NETFILTER]: x_tables: remove some unnecessary casts
+      [NETFILTER]: x_tables: add SCTP/DCCP support where missing
+      [NETFILTER]: x_tables: add quota match
+      [NETFILTER]: x_tables: add statistic match
+      [NETFILTER]: recent match: replace by rewritten version
+      [NETFILTER]: conntrack: don't call helpers for related ICMP messages
+      [NETFILTER]: conntrack: add sysctl to disable checksumming
+      [NETFILTER]: ctnetlink: fix NAT configuration
+      [NETFILTER]: ctnetlink: change table dumping not to require an unique ID
+      [NETFILTER]: SNMP helper: fix debug module param type
+      [NETFILTER]: FTP helper: search optimization
+      [NETFILTER]: amanda helper: convert to textsearch infrastructure
+      [NETFILTER]: H.323 helper: replace internal_net_addr parameter by routing-based heuristic
+      [NETFILTER]: Add SIP connection tracking helper
