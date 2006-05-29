@@ -1,16 +1,17 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC,ANNOUNCE] conntrack daemon (stateful replication)
-Date: Mon, 29 May 2006 00:53:49 +0200
-Message-ID: <447A29FD.20505@netfilter.org>
-References: <447A1FB7.5080709@netfilter.org> <447A32FF.9060404@trash.net>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] nf_conntrack: optimize hash calculation of tuple
+Date: Mon, 29 May 2006 09:25:38 +0900 (JST)
+Message-ID: <200605290025.k4T0Pefc020264@toshiba.co.jp>
+References: <447707EB.7000401@trash.net>
+	<200605261504.k4QF4InW014648@toshiba.co.jp>
+	<447740CD.7030407@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org, yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <447A32FF.9060404@trash.net>
+To: kaber@trash.net
+In-Reply-To: <447740CD.7030407@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,34 +23,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
+
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri, 26 May 2006 19:54:21 +0200
+
+> Yasuyuki KOZAKAI wrote:
+> >>But anyway, this is just a possible micro-optimization, the
+> >>real question is why we need three invocations of jhash_mix.
+> > 
+> > 
+> > That patch is just the result of extracting jhash() and jhash_2words().
+> > I'm not familiar with hash algorithms. Does the degree of distribution
+> > become bad if we replaces 3 jhash_mix with something like XOR ?
 > 
->>I've been working on a pet project during the last months. Part of this
->>stuff is related with my works in the university.
->>
->>The project is called `conntrackd' that is the conntrack userspace daemon.
 > 
-> Interesting work (and nice featureset), I like the idea of doing this
-> in userspace. IIRC Holger Eitzenberger is also working on something
-> similar. Do you have performance measurements how this compares to
-> ct_sync?
+> I'd say no. jhash was chosen because it has good distribution even
+> for non uniformly distributed input values, so it shouldn't be
+> necessary to try to provide more uniformly distributed input values
+> by hashing multiple times.
 
-I'll spend tomorrow morning to do that, as soon as I get some results 
-I'll post them. Hm, I didn't know that Holger was working on something 
-similar, it could be nice if we can join efforts.
+Well, I don't think so. If we employ a function which has bad
+distributin and we use outputs of it as inputs to jhash, the total result
+for tuple will have bad distribution.
 
->>BTW, I sent a PDF file to netfilter-core but exceeded maximum size a
->>bit, could you accept it? I wrote a small article for USENIX's :LOGIN;
->>about the connection tracking system that will be released in June. I
->>can't release it for public before that date but I sent you a copy in
->>private. Although all that it contains is well known by you ;) but at
->>least have a look at the acknowledgement section.
-> 
-> I'd be interested, please send it to me in private. Thanks.
-
-Done.
-
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+-- Yasuyuki Kozakai
