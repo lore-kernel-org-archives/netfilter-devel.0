@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 07/17]: conntrack: add sysctl to disable checksumming
-Date: Tue, 30 May 2006 00:34:19 +0200 (MEST)
-Message-ID: <20060529223418.24834.13407.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 08/17]: conntrack: add fixed timeout flag in connection
+	tracking
+Date: Tue, 30 May 2006 00:34:20 +0200 (MEST)
+Message-ID: <20060529223420.24834.27353.sendpatchset@localhost.localdomain>
 References: <20060529223404.24834.30808.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,239 +19,73 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: conntrack: add sysctl to disable checksumming
+[NETFILTER]: conntrack: add fixed timeout flag in connection tracking
 
+Add a flag in a connection status to have a non updated timeout.
+This permits to have connection that automatically die at a given
+time.
+
+Signed-off-by: Eric Leblond <eric@inl.fr>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 951256425de86a32569c787ff827554314026824
-tree 604ff1fd7cdfe02990d34d78a8da24e38bbe05ab
-parent ee0877ce5fb4e72afee68e2c393d86ac64e69afe
-author Patrick McHardy <kaber@trash.net> Tue, 30 May 2006 00:02:44 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 30 May 2006 00:02:44 +0200
+commit fc38099c5c54d23c8cee06ba1b1450f58b5ca1c2
+tree 989d91b694430d2bde828a00d81847950108d89a
+parent 951256425de86a32569c787ff827554314026824
+author Eric Leblond <eric@inl.fr> Tue, 30 May 2006 00:02:45 +0200
+committer Patrick McHardy <kaber@trash.net> Tue, 30 May 2006 00:02:45 +0200
 
- include/linux/netfilter_ipv4/ip_conntrack.h    |    1 +
- include/linux/sysctl.h                         |    2 ++
- include/net/netfilter/nf_conntrack.h           |    1 +
- net/ipv4/netfilter/ip_conntrack_proto_icmp.c   |    2 +-
- net/ipv4/netfilter/ip_conntrack_proto_tcp.c    |    2 +-
- net/ipv4/netfilter/ip_conntrack_proto_udp.c    |    2 +-
- net/ipv4/netfilter/ip_conntrack_standalone.c   |   11 +++++++++++
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    2 +-
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    2 +-
- net/netfilter/nf_conntrack_proto_tcp.c         |    5 +++--
- net/netfilter/nf_conntrack_proto_udp.c         |    3 ++-
- net/netfilter/nf_conntrack_standalone.c        |   11 +++++++++++
- 12 files changed, 36 insertions(+), 8 deletions(-)
+ include/linux/netfilter/nf_conntrack_common.h |    4 ++++
+ net/ipv4/netfilter/ip_conntrack_core.c        |    6 ++++++
+ net/netfilter/nf_conntrack_core.c             |    6 ++++++
+ 3 files changed, 16 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ip_conntrack.h b/include/linux/netfilter_ipv4/ip_conntrack.h
-index d54d7b2..5473c01 100644
---- a/include/linux/netfilter_ipv4/ip_conntrack.h
-+++ b/include/linux/netfilter_ipv4/ip_conntrack.h
-@@ -293,6 +293,7 @@ static inline int is_dying(struct ip_con
- }
- 
- extern unsigned int ip_conntrack_htable_size;
-+extern int ip_conntrack_checksum;
-  
- #define CONNTRACK_STAT_INC(count) (__get_cpu_var(ip_conntrack_stat).count++)
- 
-diff --git a/include/linux/sysctl.h b/include/linux/sysctl.h
-index cd9e7c0..98338ed 100644
---- a/include/linux/sysctl.h
-+++ b/include/linux/sysctl.h
-@@ -313,6 +313,7 @@ enum
- 	NET_NF_CONNTRACK_FRAG6_TIMEOUT=29,
- 	NET_NF_CONNTRACK_FRAG6_LOW_THRESH=30,
- 	NET_NF_CONNTRACK_FRAG6_HIGH_THRESH=31,
-+	NET_NF_CONNTRACK_CHECKSUM=32,
+diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
+index 3ff88c8..d2e4bd7 100644
+--- a/include/linux/netfilter/nf_conntrack_common.h
++++ b/include/linux/netfilter/nf_conntrack_common.h
+@@ -69,6 +69,10 @@ enum ip_conntrack_status {
+ 	/* Connection is dying (removed from lists), can not be unset. */
+ 	IPS_DYING_BIT = 9,
+ 	IPS_DYING = (1 << IPS_DYING_BIT),
++
++	/* Connection has fixed timeout. */
++	IPS_FIXED_TIMEOUT_BIT = 10,
++	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT),
  };
  
- /* /proc/sys/net/ipv4 */
-@@ -492,6 +493,7 @@ enum
-  	NET_IPV4_NF_CONNTRACK_SCTP_TIMEOUT_SHUTDOWN_RECD=25,
-  	NET_IPV4_NF_CONNTRACK_SCTP_TIMEOUT_SHUTDOWN_ACK_SENT=26,
- 	NET_IPV4_NF_CONNTRACK_COUNT=27,
-+	NET_IPV4_NF_CONNTRACK_CHECKSUM=28,
- };
-  
- /* /proc/sys/net/ipv6 */
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 916013c..dbe7a11 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -285,6 +285,7 @@ static inline int nf_ct_is_dying(struct 
- }
+ /* Connection tracking event bits */
+diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
+index 979a2ea..9f0d6ce 100644
+--- a/net/ipv4/netfilter/ip_conntrack_core.c
++++ b/net/ipv4/netfilter/ip_conntrack_core.c
+@@ -1130,6 +1130,12 @@ void __ip_ct_refresh_acct(struct ip_conn
  
- extern unsigned int nf_conntrack_htable_size;
-+extern int nf_conntrack_checksum;
+ 	write_lock_bh(&ip_conntrack_lock);
  
- #define NF_CT_STAT_INC(count) (__get_cpu_var(nf_conntrack_stat).count++)
- 
-diff --git a/net/ipv4/netfilter/ip_conntrack_proto_icmp.c b/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
-index d8b14a9..23f1c50 100644
---- a/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/ip_conntrack_proto_icmp.c
-@@ -224,7 +224,7 @@ icmp_error(struct sk_buff *skb, enum ip_
- 	}
- 
- 	/* See ip_conntrack_proto_tcp.c */
--	if (hooknum == NF_IP_PRE_ROUTING &&
-+	if (ip_conntrack_checksum && hooknum == NF_IP_PRE_ROUTING &&
- 	    nf_ip_checksum(skb, hooknum, skb->nh.iph->ihl * 4, 0)) {
- 		if (LOG_INVALID(IPPROTO_ICMP))
- 			nf_log_packet(PF_INET, 0, skb, NULL, NULL, NULL,
-diff --git a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-index 062b252..c5c2ce5 100644
---- a/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-+++ b/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-@@ -870,7 +870,7 @@ static int tcp_error(struct sk_buff *skb
- 	 * and moreover root might send raw packets.
- 	 */
- 	/* FIXME: Source route IP option packets --RR */
--	if (hooknum == NF_IP_PRE_ROUTING &&
-+	if (ip_conntrack_checksum && hooknum == NF_IP_PRE_ROUTING &&
- 	    nf_ip_checksum(skb, hooknum, iph->ihl * 4, IPPROTO_TCP)) {
- 		if (LOG_INVALID(IPPROTO_TCP))
- 			nf_log_packet(PF_INET, 0, skb, NULL, NULL, NULL,
-diff --git a/net/ipv4/netfilter/ip_conntrack_proto_udp.c b/net/ipv4/netfilter/ip_conntrack_proto_udp.c
-index 7089986..9b2c16b 100644
---- a/net/ipv4/netfilter/ip_conntrack_proto_udp.c
-+++ b/net/ipv4/netfilter/ip_conntrack_proto_udp.c
-@@ -120,7 +120,7 @@ static int udp_error(struct sk_buff *skb
- 	 * because the semantic of CHECKSUM_HW is different there 
- 	 * and moreover root might send raw packets.
- 	 * FIXME: Source route IP option packets --RR */
--	if (hooknum == NF_IP_PRE_ROUTING &&
-+	if (ip_conntrack_checksum && hooknum == NF_IP_PRE_ROUTING &&
- 	    nf_ip_checksum(skb, hooknum, iph->ihl * 4, IPPROTO_UDP)) {
- 		if (LOG_INVALID(IPPROTO_UDP))
- 			nf_log_packet(PF_INET, 0, skb, NULL, NULL, NULL,
-diff --git a/net/ipv4/netfilter/ip_conntrack_standalone.c b/net/ipv4/netfilter/ip_conntrack_standalone.c
-index f0cc7fe..6cb9b98 100644
---- a/net/ipv4/netfilter/ip_conntrack_standalone.c
-+++ b/net/ipv4/netfilter/ip_conntrack_standalone.c
-@@ -564,6 +564,8 @@ extern unsigned int ip_ct_generic_timeou
- static int log_invalid_proto_min = 0;
- static int log_invalid_proto_max = 255;
- 
-+int ip_conntrack_checksum = 1;
++	/* Only update if this is not a fixed timeout */
++	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status)) {
++		write_unlock_bh(&ip_conntrack_lock);
++		return;
++	}
 +
- static struct ctl_table_header *ip_ct_sysctl_header;
+ 	/* If not in hash table, timer will not be active yet */
+ 	if (!is_confirmed(ct)) {
+ 		ct->timeout.expires = extra_jiffies;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index f9b83f9..bc2bd4c 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1396,6 +1396,12 @@ void __nf_ct_refresh_acct(struct nf_conn
  
- static ctl_table ip_ct_sysctl_table[] = {
-@@ -592,6 +594,14 @@ static ctl_table ip_ct_sysctl_table[] = 
- 		.proc_handler	= &proc_dointvec,
- 	},
- 	{
-+		.ctl_name	= NET_IPV4_NF_CONNTRACK_CHECKSUM,
-+		.procname	= "ip_conntrack_checksum",
-+		.data		= &ip_conntrack_checksum,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+	{
- 		.ctl_name	= NET_IPV4_NF_CONNTRACK_TCP_TIMEOUT_SYN_SENT,
- 		.procname	= "ip_conntrack_tcp_timeout_syn_sent",
- 		.data		= &ip_ct_tcp_timeout_syn_sent,
-@@ -946,6 +956,7 @@ EXPORT_SYMBOL_GPL(__ip_conntrack_helper_
- EXPORT_SYMBOL_GPL(ip_conntrack_proto_find_get);
- EXPORT_SYMBOL_GPL(ip_conntrack_proto_put);
- EXPORT_SYMBOL_GPL(__ip_conntrack_proto_find);
-+EXPORT_SYMBOL_GPL(ip_conntrack_checksum);
- #if defined(CONFIG_IP_NF_CONNTRACK_NETLINK) || \
-     defined(CONFIG_IP_NF_CONNTRACK_NETLINK_MODULE)
- EXPORT_SYMBOL_GPL(ip_ct_port_tuple_to_nfattr);
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index 4b0d361..663a73e 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -235,7 +235,7 @@ icmp_error(struct sk_buff *skb, unsigned
- 	}
+ 	write_lock_bh(&nf_conntrack_lock);
  
- 	/* See ip_conntrack_proto_tcp.c */
--	if (hooknum == NF_IP_PRE_ROUTING &&
-+	if (nf_conntrack_checksum && hooknum == NF_IP_PRE_ROUTING &&
- 	    nf_ip_checksum(skb, hooknum, dataoff, 0)) {
- 		if (LOG_INVALID(IPPROTO_ICMP))
- 			nf_log_packet(PF_INET, 0, skb, NULL, NULL, NULL,
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 86c6703..ef18a7b 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -233,7 +233,7 @@ icmpv6_error(struct sk_buff *skb, unsign
- 		return -NF_ACCEPT;
- 	}
- 
--	if (hooknum == NF_IP6_PRE_ROUTING &&
-+	if (nf_conntrack_checksum && hooknum == NF_IP6_PRE_ROUTING &&
- 	    nf_ip6_checksum(skb, hooknum, dataoff, IPPROTO_ICMPV6)) {
- 		nf_log_packet(PF_INET6, 0, skb, NULL, NULL, NULL,
- 			      "nf_ct_icmpv6: ICMPv6 checksum failed\n");
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 69899f2..12fb7c0 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -828,8 +828,9 @@ static int tcp_error(struct sk_buff *skb
- 	 * and moreover root might send raw packets.
- 	 */
- 	/* FIXME: Source route IP option packets --RR */
--	if (((pf == PF_INET && hooknum == NF_IP_PRE_ROUTING) ||
--	     (pf == PF_INET6 && hooknum  == NF_IP6_PRE_ROUTING)) &&
-+	if (nf_conntrack_checksum &&
-+	    ((pf == PF_INET && hooknum == NF_IP_PRE_ROUTING) ||
-+	     (pf == PF_INET6 && hooknum == NF_IP6_PRE_ROUTING)) &&
- 	    nf_checksum(skb, hooknum, dataoff, IPPROTO_TCP, pf)) {
- 		if (LOG_INVALID(IPPROTO_TCP))
- 			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index d93edbf..ae07ebe 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -134,7 +134,8 @@ static int udp_error(struct sk_buff *skb
- 	 * because the semantic of CHECKSUM_HW is different there
- 	 * and moreover root might send raw packets.
- 	 * FIXME: Source route IP option packets --RR */
--	if (((pf == PF_INET && hooknum == NF_IP_PRE_ROUTING) ||
-+	if (nf_conntrack_checksum &&
-+	    ((pf == PF_INET && hooknum == NF_IP_PRE_ROUTING) ||
- 	     (pf == PF_INET6 && hooknum == NF_IP6_PRE_ROUTING)) &&
- 	    nf_checksum(skb, hooknum, dataoff, IPPROTO_UDP, pf)) {
- 		if (LOG_INVALID(IPPROTO_UDP))
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 408960c..e01d20d 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -455,6 +455,8 @@ extern unsigned int nf_ct_generic_timeou
- static int log_invalid_proto_min = 0;
- static int log_invalid_proto_max = 255;
- 
-+int nf_conntrack_checksum = 1;
++	/* Only update if this is not a fixed timeout */
++	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status)) {
++		write_unlock_bh(&nf_conntrack_lock);
++		return;
++	}
 +
- static struct ctl_table_header *nf_ct_sysctl_header;
- 
- static ctl_table nf_ct_sysctl_table[] = {
-@@ -483,6 +485,14 @@ static ctl_table nf_ct_sysctl_table[] = 
- 		.proc_handler   = &proc_dointvec,
- 	},
- 	{
-+		.ctl_name	= NET_NF_CONNTRACK_CHECKSUM,
-+		.procname	= "nf_conntrack_checksum",
-+		.data		= &nf_conntrack_checksum,
-+		.maxlen		= sizeof(unsigned int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec,
-+	},
-+	{
- 		.ctl_name	= NET_NF_CONNTRACK_TCP_TIMEOUT_SYN_SENT,
- 		.procname	= "nf_conntrack_tcp_timeout_syn_sent",
- 		.data		= &nf_ct_tcp_timeout_syn_sent,
-@@ -851,6 +861,7 @@ EXPORT_SYMBOL(nf_ct_proto_put);
- EXPORT_SYMBOL(nf_ct_l3proto_find_get);
- EXPORT_SYMBOL(nf_ct_l3proto_put);
- EXPORT_SYMBOL(nf_ct_l3protos);
-+EXPORT_SYMBOL_GPL(nf_conntrack_checksum);
- EXPORT_SYMBOL(nf_conntrack_expect_alloc);
- EXPORT_SYMBOL(nf_conntrack_expect_put);
- EXPORT_SYMBOL(nf_conntrack_expect_related);
+ 	/* If not in hash table, timer will not be active yet */
+ 	if (!nf_ct_is_confirmed(ct)) {
+ 		ct->timeout.expires = extra_jiffies;
