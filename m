@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 08/17]: conntrack: add fixed timeout flag in connection
-	tracking
-Date: Tue, 30 May 2006 00:34:20 +0200 (MEST)
-Message-ID: <20060529223420.24834.27353.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 09/17]: ctnetlink: fix NAT configuration
+Date: Tue, 30 May 2006 00:34:22 +0200 (MEST)
+Message-ID: <20060529223422.24834.72481.sendpatchset@localhost.localdomain>
 References: <20060529223404.24834.30808.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,73 +18,223 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: conntrack: add fixed timeout flag in connection tracking
+[NETFILTER]: ctnetlink: fix NAT configuration
 
-Add a flag in a connection status to have a non updated timeout.
-This permits to have connection that automatically die at a given
-time.
+The current configuration only allows to configure one manip and overloads
+conntrack status flags with netlink semantic.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Patrick Mchardy <kaber@trash.net>
 
 ---
-commit fc38099c5c54d23c8cee06ba1b1450f58b5ca1c2
-tree 989d91b694430d2bde828a00d81847950108d89a
-parent 951256425de86a32569c787ff827554314026824
-author Eric Leblond <eric@inl.fr> Tue, 30 May 2006 00:02:45 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 30 May 2006 00:02:45 +0200
+commit 614914402a6a25f37b4cc0840e29aa1808d3426e
+tree 9f1263181e20728bda8ac1fb2f8a6185c8c4aaa7
+parent fc38099c5c54d23c8cee06ba1b1450f58b5ca1c2
+author Patrick McHardy <kaber@trash.net> Tue, 30 May 2006 00:04:15 +0200
+committer Patrick McHardy <kaber@trash.net> Tue, 30 May 2006 00:04:15 +0200
 
- include/linux/netfilter/nf_conntrack_common.h |    4 ++++
- net/ipv4/netfilter/ip_conntrack_core.c        |    6 ++++++
- net/netfilter/nf_conntrack_core.c             |    6 ++++++
- 3 files changed, 16 insertions(+), 0 deletions(-)
+ include/linux/netfilter/nfnetlink_conntrack.h |    4 +-
+ net/ipv4/netfilter/ip_conntrack_netlink.c     |   53 ++++++++++---------------
+ net/netfilter/nf_conntrack_netlink.c          |   53 ++++++++++---------------
+ 3 files changed, 47 insertions(+), 63 deletions(-)
 
-diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
-index 3ff88c8..d2e4bd7 100644
---- a/include/linux/netfilter/nf_conntrack_common.h
-+++ b/include/linux/netfilter/nf_conntrack_common.h
-@@ -69,6 +69,10 @@ enum ip_conntrack_status {
- 	/* Connection is dying (removed from lists), can not be unset. */
- 	IPS_DYING_BIT = 9,
- 	IPS_DYING = (1 << IPS_DYING_BIT),
-+
-+	/* Connection has fixed timeout. */
-+	IPS_FIXED_TIMEOUT_BIT = 10,
-+	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT),
+diff --git a/include/linux/netfilter/nfnetlink_conntrack.h b/include/linux/netfilter/nfnetlink_conntrack.h
+index 668ec94..b5883cc 100644
+--- a/include/linux/netfilter/nfnetlink_conntrack.h
++++ b/include/linux/netfilter/nfnetlink_conntrack.h
+@@ -27,13 +27,15 @@ enum ctattr_type {
+ 	CTA_STATUS,
+ 	CTA_PROTOINFO,
+ 	CTA_HELP,
+-	CTA_NAT,
++	CTA_NAT_SRC,
++#define CTA_NAT	CTA_NAT_SRC	/* backwards compatibility */
+ 	CTA_TIMEOUT,
+ 	CTA_MARK,
+ 	CTA_COUNTERS_ORIG,
+ 	CTA_COUNTERS_REPLY,
+ 	CTA_USE,
+ 	CTA_ID,
++	CTA_NAT_DST,
+ 	__CTA_MAX
+ };
+ #define CTA_MAX (__CTA_MAX - 1)
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+index 01bd7ca..af152e3 100644
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -629,7 +629,7 @@ static const size_t cta_min_nat[CTA_NAT_
  };
  
- /* Connection tracking event bits */
-diff --git a/net/ipv4/netfilter/ip_conntrack_core.c b/net/ipv4/netfilter/ip_conntrack_core.c
-index 979a2ea..9f0d6ce 100644
---- a/net/ipv4/netfilter/ip_conntrack_core.c
-+++ b/net/ipv4/netfilter/ip_conntrack_core.c
-@@ -1130,6 +1130,12 @@ void __ip_ct_refresh_acct(struct ip_conn
+ static inline int
+-ctnetlink_parse_nat(struct nfattr *cda[],
++ctnetlink_parse_nat(struct nfattr *nat,
+ 		    const struct ip_conntrack *ct, struct ip_nat_range *range)
+ {
+ 	struct nfattr *tb[CTA_NAT_MAX];
+@@ -639,7 +639,7 @@ ctnetlink_parse_nat(struct nfattr *cda[]
  
- 	write_lock_bh(&ip_conntrack_lock);
+ 	memset(range, 0, sizeof(*range));
+ 	
+-	nfattr_parse_nested(tb, CTA_NAT_MAX, cda[CTA_NAT-1]);
++	nfattr_parse_nested(tb, CTA_NAT_MAX, nat);
  
-+	/* Only update if this is not a fixed timeout */
-+	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status)) {
-+		write_unlock_bh(&ip_conntrack_lock);
-+		return;
-+	}
-+
- 	/* If not in hash table, timer will not be active yet */
- 	if (!is_confirmed(ct)) {
- 		ct->timeout.expires = extra_jiffies;
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index f9b83f9..bc2bd4c 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1396,6 +1396,12 @@ void __nf_ct_refresh_acct(struct nf_conn
+ 	if (nfattr_bad_size(tb, CTA_NAT_MAX, cta_min_nat))
+ 		return -EINVAL;
+@@ -854,39 +854,30 @@ ctnetlink_change_status(struct ip_conntr
+ 		/* ASSURED bit can only be set */
+ 		return -EINVAL;
  
- 	write_lock_bh(&nf_conntrack_lock);
+-	if (cda[CTA_NAT-1]) {
++	if (cda[CTA_NAT_SRC-1] || cda[CTA_NAT_DST-1]) {
+ #ifndef CONFIG_IP_NF_NAT_NEEDED
+ 		return -EINVAL;
+ #else
+-		unsigned int hooknum;
+ 		struct ip_nat_range range;
  
-+	/* Only update if this is not a fixed timeout */
-+	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status)) {
-+		write_unlock_bh(&nf_conntrack_lock);
-+		return;
-+	}
-+
- 	/* If not in hash table, timer will not be active yet */
- 	if (!nf_ct_is_confirmed(ct)) {
- 		ct->timeout.expires = extra_jiffies;
+-		if (ctnetlink_parse_nat(cda, ct, &range) < 0)
+-			return -EINVAL;
+-
+-		DEBUGP("NAT: %u.%u.%u.%u-%u.%u.%u.%u:%u-%u\n", 
+-		       NIPQUAD(range.min_ip), NIPQUAD(range.max_ip),
+-		       htons(range.min.all), htons(range.max.all));
+-		
+-		/* This is tricky but it works. ip_nat_setup_info needs the
+-		 * hook number as parameter, so let's do the correct 
+-		 * conversion and run away */
+-		if (status & IPS_SRC_NAT_DONE)
+-			hooknum = NF_IP_POST_ROUTING; /* IP_NAT_MANIP_SRC */
+-		else if (status & IPS_DST_NAT_DONE)
+-			hooknum = NF_IP_PRE_ROUTING;  /* IP_NAT_MANIP_DST */
+-		else 
+-			return -EINVAL; /* Missing NAT flags */
+-
+-		DEBUGP("NAT status: %lu\n", 
+-		       status & (IPS_NAT_MASK | IPS_NAT_DONE_MASK));
+-		
+-		if (ip_nat_initialized(ct, HOOK2MANIP(hooknum)))
+-			return -EEXIST;
+-		ip_nat_setup_info(ct, &range, hooknum);
+-
+-                DEBUGP("NAT status after setup_info: %lu\n",
+-                       ct->status & (IPS_NAT_MASK | IPS_NAT_DONE_MASK));
++		if (cda[CTA_NAT_DST-1]) {
++			if (ctnetlink_parse_nat(cda[CTA_NAT_DST-1], ct,
++						&range) < 0)
++				return -EINVAL;
++			if (ip_nat_initialized(ct,
++					       HOOK2MANIP(NF_IP_PRE_ROUTING)))
++				return -EEXIST;
++			ip_nat_setup_info(ct, &range, NF_IP_PRE_ROUTING);
++		}
++		if (cda[CTA_NAT_SRC-1]) {
++			if (ctnetlink_parse_nat(cda[CTA_NAT_SRC-1], ct,
++						&range) < 0)
++				return -EINVAL;
++			if (ip_nat_initialized(ct,
++					       HOOK2MANIP(NF_IP_POST_ROUTING)))
++				return -EEXIST;
++			ip_nat_setup_info(ct, &range, NF_IP_POST_ROUTING);
++		}
+ #endif
+ 	}
+ 
+@@ -1106,7 +1097,7 @@ ctnetlink_new_conntrack(struct sock *ctn
+ 	/* implicit 'else' */
+ 
+ 	/* we only allow nat config for new conntracks */
+-	if (cda[CTA_NAT-1]) {
++	if (cda[CTA_NAT_SRC-1] || cda[CTA_NAT_DST-1]) {
+ 		err = -EINVAL;
+ 		goto out_unlock;
+ 	}
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index bd10eb9..8f27fe9 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -641,7 +641,7 @@ static const size_t cta_min_nat[CTA_NAT_
+ };
+ 
+ static inline int
+-ctnetlink_parse_nat(struct nfattr *cda[],
++ctnetlink_parse_nat(struct nfattr *nat,
+ 		    const struct nf_conn *ct, struct ip_nat_range *range)
+ {
+ 	struct nfattr *tb[CTA_NAT_MAX];
+@@ -651,7 +651,7 @@ ctnetlink_parse_nat(struct nfattr *cda[]
+ 
+ 	memset(range, 0, sizeof(*range));
+ 	
+-	nfattr_parse_nested(tb, CTA_NAT_MAX, cda[CTA_NAT-1]);
++	nfattr_parse_nested(tb, CTA_NAT_MAX, nat);
+ 
+ 	if (nfattr_bad_size(tb, CTA_NAT_MAX, cta_min_nat))
+ 		return -EINVAL;
+@@ -866,39 +866,30 @@ ctnetlink_change_status(struct nf_conn *
+ 		/* ASSURED bit can only be set */
+ 		return -EINVAL;
+ 
+-	if (cda[CTA_NAT-1]) {
++	if (cda[CTA_NAT_SRC-1] || cda[CTA_NAT_DST-1]) {
+ #ifndef CONFIG_IP_NF_NAT_NEEDED
+ 		return -EINVAL;
+ #else
+-		unsigned int hooknum;
+ 		struct ip_nat_range range;
+ 
+-		if (ctnetlink_parse_nat(cda, ct, &range) < 0)
+-			return -EINVAL;
+-
+-		DEBUGP("NAT: %u.%u.%u.%u-%u.%u.%u.%u:%u-%u\n", 
+-		       NIPQUAD(range.min_ip), NIPQUAD(range.max_ip),
+-		       htons(range.min.all), htons(range.max.all));
+-		
+-		/* This is tricky but it works. ip_nat_setup_info needs the
+-		 * hook number as parameter, so let's do the correct 
+-		 * conversion and run away */
+-		if (status & IPS_SRC_NAT_DONE)
+-			hooknum = NF_IP_POST_ROUTING; /* IP_NAT_MANIP_SRC */
+-		else if (status & IPS_DST_NAT_DONE)
+-			hooknum = NF_IP_PRE_ROUTING;  /* IP_NAT_MANIP_DST */
+-		else 
+-			return -EINVAL; /* Missing NAT flags */
+-
+-		DEBUGP("NAT status: %lu\n", 
+-		       status & (IPS_NAT_MASK | IPS_NAT_DONE_MASK));
+-		
+-		if (ip_nat_initialized(ct, HOOK2MANIP(hooknum)))
+-			return -EEXIST;
+-		ip_nat_setup_info(ct, &range, hooknum);
+-
+-                DEBUGP("NAT status after setup_info: %lu\n",
+-                       ct->status & (IPS_NAT_MASK | IPS_NAT_DONE_MASK));
++		if (cda[CTA_NAT_DST-1]) {
++			if (ctnetlink_parse_nat(cda[CTA_NAT_DST-1], ct,
++						&range) < 0)
++				return -EINVAL;
++			if (ip_nat_initialized(ct,
++					       HOOK2MANIP(NF_IP_PRE_ROUTING)))
++				return -EEXIST;
++			ip_nat_setup_info(ct, &range, hooknum);
++		}
++		if (cda[CTA_NAT_SRC-1]) {
++			if (ctnetlink_parse_nat(cda[CTA_NAT_SRC-1], ct,
++						&range) < 0)
++				return -EINVAL;
++			if (ip_nat_initialized(ct,
++					       HOOK2MANIP(NF_IP_POST_ROUTING)))
++				return -EEXIST;
++			ip_nat_setup_info(ct, &range, hooknum);
++		}
+ #endif
+ 	}
+ 
+@@ -1122,7 +1113,7 @@ ctnetlink_new_conntrack(struct sock *ctn
+ 	/* implicit 'else' */
+ 
+ 	/* we only allow nat config for new conntracks */
+-	if (cda[CTA_NAT-1]) {
++	if (cda[CTA_NAT_SRC-1] || cda[CTA_NAT_DST-1]) {
+ 		err = -EINVAL;
+ 		goto out_unlock;
+ 	}
