@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 10/17]: ctnetlink: change table dumping not to require
-	an unique ID
-Date: Tue, 30 May 2006 00:34:24 +0200 (MEST)
-Message-ID: <20060529223423.24834.38846.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 12/17]: FTP helper: search optimization
+Date: Tue, 30 May 2006 00:34:27 +0200 (MEST)
+Message-ID: <20060529223426.24834.44102.sendpatchset@localhost.localdomain>
 References: <20060529223404.24834.30808.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,160 +18,261 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ctnetlink: change table dumping not to require an unique ID
+[NETFILTER]: FTP helper: search optimization
 
-Instead of using the ID to find out where to continue dumping, take a
-reference to the last entry dumped and try to continue there.
+Instead of skipping search entries for the wrong direction simply index
+them by direction.
+
+Based on patch by Pablo Neira <pablo@netfilter.org>
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 33f076517f429291fcd71b128d3f14b141e3cbdc
-tree c6a25b377807ac039ce5290692778b04f7df78c6
-parent 614914402a6a25f37b4cc0840e29aa1808d3426e
-author Patrick McHardy <kaber@trash.net> Tue, 30 May 2006 00:04:33 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 30 May 2006 00:04:33 +0200
+commit 782e3aa01e036825fcfc353952d5585a02eb946a
+tree 3779723e9d6f995a75582dbde1fd82e37986ef4b
+parent 1782413b89b52410a4df654860145bc2a27db194
+author Patrick McHardy <kaber@trash.net> Tue, 30 May 2006 00:04:35 +0200
+committer Patrick McHardy <kaber@trash.net> Tue, 30 May 2006 00:04:35 +0200
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |   32 ++++++++++++++++++++++-------
- net/netfilter/nf_conntrack_netlink.c      |   32 ++++++++++++++++++++++-------
- 2 files changed, 48 insertions(+), 16 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_ftp.c |   77 ++++++++++++++++++---------------
+ net/netfilter/nf_conntrack_ftp.c      |   77 ++++++++++++++++++---------------
+ 2 files changed, 86 insertions(+), 68 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index af152e3..33891bb 100644
---- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -399,38 +399,54 @@ #endif /* CONFIG_IP_NF_CONNTRACK_EVENTS 
- static int ctnetlink_done(struct netlink_callback *cb)
- {
- 	DEBUGP("entered %s\n", __FUNCTION__);
-+	if (cb->args[1])
-+		ip_conntrack_put((struct ip_conntrack *)cb->args[1]);
- 	return 0;
- }
+diff --git a/net/ipv4/netfilter/ip_conntrack_ftp.c b/net/ipv4/netfilter/ip_conntrack_ftp.c
+index 3e542bf..4dcf526 100644
+--- a/net/ipv4/netfilter/ip_conntrack_ftp.c
++++ b/net/ipv4/netfilter/ip_conntrack_ftp.c
+@@ -56,37 +56,48 @@ static int try_eprt(const char *, size_t
+ static int try_epsv_response(const char *, size_t, u_int32_t [], char);
  
- static int
- ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- {
--	struct ip_conntrack *ct = NULL;
-+	struct ip_conntrack *ct, *last;
- 	struct ip_conntrack_tuple_hash *h;
- 	struct list_head *i;
--	u_int32_t *id = (u_int32_t *) &cb->args[1];
+ static const struct ftp_search {
+-	enum ip_conntrack_dir dir;
+ 	const char *pattern;
+ 	size_t plen;
+ 	char skip;
+ 	char term;
+ 	enum ip_ct_ftp_type ftptype;
+ 	int (*getnum)(const char *, size_t, u_int32_t[], char);
+-} search[] = {
+-	{
+-		IP_CT_DIR_ORIGINAL,
+-		"PORT",	sizeof("PORT") - 1, ' ', '\r',
+-		IP_CT_FTP_PORT,
+-		try_rfc959,
++} search[IP_CT_DIR_MAX][2] = {
++	[IP_CT_DIR_ORIGINAL] = {
++		{
++			.pattern	=  "PORT",
++			.plen		= sizeof("PORT") - 1,
++			.skip		= ' ',
++			.term		= '\r',
++			.ftptype	= IP_CT_FTP_PORT,
++			.getnum		= try_rfc959,
++		},
++		{
++			.pattern	= "EPRT",
++			.plen		= sizeof("EPRT") - 1,
++			.skip		= ' ',
++			.term		= '\r',
++			.ftptype	= IP_CT_FTP_EPRT,
++			.getnum		= try_eprt,
++		},
+ 	},
+-	{
+-		IP_CT_DIR_REPLY,
+-		"227 ",	sizeof("227 ") - 1, '(', ')',
+-		IP_CT_FTP_PASV,
+-		try_rfc959,
+-	},
+-	{
+-		IP_CT_DIR_ORIGINAL,
+-		"EPRT", sizeof("EPRT") - 1, ' ', '\r',
+-		IP_CT_FTP_EPRT,
+-		try_eprt,
+-	},
+-	{
+-		IP_CT_DIR_REPLY,
+-		"229 ", sizeof("229 ") - 1, '(', ')',
+-		IP_CT_FTP_EPSV,
+-		try_epsv_response,
++	[IP_CT_DIR_REPLY] = {
++		{
++			.pattern	= "227 ",
++			.plen		= sizeof("227 ") - 1,
++			.skip		= '(',
++			.term		= ')',
++			.ftptype	= IP_CT_FTP_PASV,
++			.getnum		= try_rfc959,
++		},
++		{
++			.pattern	= "229 ",
++			.plen		= sizeof("229 ") - 1,
++			.skip		= '(',
++			.term		= ')',
++			.ftptype	= IP_CT_FTP_EPSV,
++			.getnum		= try_epsv_response,
++		},
+ 	},
+ };
  
- 	DEBUGP("entered %s, last bucket=%lu id=%u\n", __FUNCTION__, 
- 			cb->args[0], *id);
+@@ -346,17 +357,15 @@ static int help(struct sk_buff **pskb,
+ 	array[2] = (ntohl(ct->tuplehash[dir].tuple.src.ip) >> 8) & 0xFF;
+ 	array[3] = ntohl(ct->tuplehash[dir].tuple.src.ip) & 0xFF;
  
- 	read_lock_bh(&ip_conntrack_lock);
--	for (; cb->args[0] < ip_conntrack_htable_size; cb->args[0]++, *id = 0) {
-+	for (; cb->args[0] < ip_conntrack_htable_size; cb->args[0]++) {
-+restart:
-+		last = (struct ip_conntrack *)cb->args[1];
- 		list_for_each_prev(i, &ip_conntrack_hash[cb->args[0]]) {
- 			h = (struct ip_conntrack_tuple_hash *) i;
- 			if (DIRECTION(h) != IP_CT_DIR_ORIGINAL)
- 				continue;
- 			ct = tuplehash_to_ctrack(h);
--			if (ct->id <= *id)
--				continue;
-+			if (last != NULL) {
-+				if (ct == last) {
-+					ip_conntrack_put(last);
-+					cb->args[1] = 0;
-+					last = NULL;
-+				} else
-+					continue;
-+			}
- 			if (ctnetlink_fill_info(skb, NETLINK_CB(cb->skb).pid,
- 		                        	cb->nlh->nlmsg_seq,
- 						IPCTNL_MSG_CT_NEW,
--						1, ct) < 0)
-+						1, ct) < 0) {
-+				nf_conntrack_get(&ct->ct_general);
-+				cb->args[1] = (unsigned long)ct;
- 				goto out;
--			*id = ct->id;
-+			}
-+		}
-+		if (last != NULL) {
-+			ip_conntrack_put(last);
-+			cb->args[1] = 0;
-+			goto restart;
- 		}
+-	for (i = 0; i < ARRAY_SIZE(search); i++) {
+-		if (search[i].dir != dir) continue;
+-
++	for (i = 0; i < ARRAY_SIZE(search[dir]); i++) {
+ 		found = find_pattern(fb_ptr, (*pskb)->len - dataoff,
+-				     search[i].pattern,
+-				     search[i].plen,
+-				     search[i].skip,
+-				     search[i].term,
++				     search[dir][i].pattern,
++				     search[dir][i].plen,
++				     search[dir][i].skip,
++				     search[dir][i].term,
+ 				     &matchoff, &matchlen,
+ 				     array,
+-				     search[i].getnum);
++				     search[dir][i].getnum);
+ 		if (found) break;
  	}
--out:	
-+out:
- 	read_unlock_bh(&ip_conntrack_lock);
+ 	if (found == -1) {
+@@ -366,7 +375,7 @@ static int help(struct sk_buff **pskb,
+ 		   this case. */
+ 		if (net_ratelimit())
+ 			printk("conntrack_ftp: partial %s %u+%u\n",
+-			       search[i].pattern,
++			       search[dir][i].pattern,
+ 			       ntohl(th->seq), datalen);
+ 		ret = NF_DROP;
+ 		goto out;
+@@ -426,7 +435,7 @@ static int help(struct sk_buff **pskb,
+ 	/* Now, NAT might want to mangle the packet, and register the
+ 	 * (possibly changed) expectation itself. */
+ 	if (ip_nat_ftp_hook)
+-		ret = ip_nat_ftp_hook(pskb, ctinfo, search[i].ftptype,
++		ret = ip_nat_ftp_hook(pskb, ctinfo, search[dir][i].ftptype,
+ 				      matchoff, matchlen, exp, &seq);
+ 	else {
+ 		/* Can't expect this?  Best to drop packet now. */
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index e38a4b5..11d3be2 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -67,37 +67,48 @@ static int try_epsv_response(const char 
+ 			     char);
  
- 	DEBUGP("leaving, last bucket=%lu id=%u\n", cb->args[0], *id);
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 8f27fe9..b8c7c56 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -407,6 +407,8 @@ #endif /* CONFIG_NF_CONNTRACK_EVENTS */
+ static struct ftp_search {
+-	enum ip_conntrack_dir dir;
+ 	const char *pattern;
+ 	size_t plen;
+ 	char skip;
+ 	char term;
+ 	enum ip_ct_ftp_type ftptype;
+ 	int (*getnum)(const char *, size_t, struct nf_conntrack_man *, char);
+-} search[] = {
+-	{
+-		IP_CT_DIR_ORIGINAL,
+-		"PORT", sizeof("PORT") - 1, ' ', '\r',
+-		IP_CT_FTP_PORT,
+-		try_rfc959,
++} search[IP_CT_DIR_MAX][2] = {
++	[IP_CT_DIR_ORIGINAL] = {
++		{
++			.pattern	= "PORT",
++			.plen		= sizeof("PORT") - 1,
++			.skip		= ' ',
++			.term		= '\r',
++			.ftptype	= IP_CT_FTP_PORT,
++			.getnum		= try_rfc959,
++		},
++		{
++			.pattern	= "EPRT",
++			.plen		= sizeof("EPRT") - 1,
++			.skip		= ' ',
++			.term		= '\r',
++			.ftptype	= IP_CT_FTP_EPRT,
++			.getnum		= try_eprt,
++		},
+ 	},
+-	{
+-		IP_CT_DIR_REPLY,
+-		"227 ", sizeof("227 ") - 1, '(', ')',
+-		IP_CT_FTP_PASV,
+-		try_rfc959,
+-	},
+-	{
+-		IP_CT_DIR_ORIGINAL,
+-		"EPRT", sizeof("EPRT") - 1, ' ', '\r',
+-		IP_CT_FTP_EPRT,
+-		try_eprt,
+-	},
+-	{
+-		IP_CT_DIR_REPLY,
+-		"229 ", sizeof("229 ") - 1, '(', ')',
+-		IP_CT_FTP_EPSV,
+-		try_epsv_response,
++	[IP_CT_DIR_REPLY] = {
++		{
++			.pattern	= "227 ",
++			.plen		= sizeof("227 ") - 1,
++			.skip		= '(',
++			.term		= ')',
++			.ftptype	= IP_CT_FTP_PASV,
++			.getnum		= try_rfc959,
++		},
++		{
++			.pattern	= "229 ",
++			.plen		= sizeof("229 ") - 1,
++			.skip		= '(',
++			.term		= ')',
++			.ftptype	= IP_CT_FTP_EPSV,
++			.getnum		= try_epsv_response,
++		},
+ 	},
+ };
  
- static int ctnetlink_done(struct netlink_callback *cb)
- {
-+	if (cb->args[1])
-+		nf_ct_put((struct nf_conn *)cb->args[1]);
- 	DEBUGP("entered %s\n", __FUNCTION__);
- 	return 0;
- }
-@@ -416,10 +418,9 @@ #define L3PROTO(ct) ct->tuplehash[IP_CT_
- static int
- ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- {
--	struct nf_conn *ct = NULL;
-+	struct nf_conn *ct, *last;
- 	struct nf_conntrack_tuple_hash *h;
- 	struct list_head *i;
--	u_int32_t *id = (u_int32_t *) &cb->args[1];
- 	struct nfgenmsg *nfmsg = NLMSG_DATA(cb->nlh);
- 	u_int8_t l3proto = nfmsg->nfgen_family;
+@@ -492,17 +503,15 @@ static int help(struct sk_buff **pskb,
+ 	memcpy(cmd.u3.all, &ct->tuplehash[dir].tuple.src.u3.all,
+ 	       sizeof(cmd.u3.all));
  
-@@ -427,7 +428,9 @@ ctnetlink_dump_table(struct sk_buff *skb
- 			cb->args[0], *id);
- 
- 	read_lock_bh(&nf_conntrack_lock);
--	for (; cb->args[0] < nf_conntrack_htable_size; cb->args[0]++, *id = 0) {
-+	for (; cb->args[0] < nf_conntrack_htable_size; cb->args[0]++) {
-+restart:
-+		last = (struct nf_conn *)cb->args[1];
- 		list_for_each_prev(i, &nf_conntrack_hash[cb->args[0]]) {
- 			h = (struct nf_conntrack_tuple_hash *) i;
- 			if (DIRECTION(h) != IP_CT_DIR_ORIGINAL)
-@@ -438,17 +441,30 @@ ctnetlink_dump_table(struct sk_buff *skb
- 			 * then dump everything. */
- 			if (l3proto && L3PROTO(ct) != l3proto)
- 				continue;
--			if (ct->id <= *id)
--				continue;
-+			if (last != NULL) {
-+				if (ct == last) {
-+					nf_ct_put(last);
-+					cb->args[1] = 0;
-+					last = NULL;
-+				} else
-+					continue;
-+			}
- 			if (ctnetlink_fill_info(skb, NETLINK_CB(cb->skb).pid,
- 		                        	cb->nlh->nlmsg_seq,
- 						IPCTNL_MSG_CT_NEW,
--						1, ct) < 0)
-+						1, ct) < 0) {
-+				nf_conntrack_get(&ct->ct_general);
-+				cb->args[1] = (unsigned long)ct;
- 				goto out;
--			*id = ct->id;
-+			}
-+		}
-+		if (last != NULL) {
-+			nf_ct_put(last);
-+			cb->args[1] = 0;
-+			goto restart;
- 		}
+-	for (i = 0; i < ARRAY_SIZE(search); i++) {
+-		if (search[i].dir != dir) continue;
+-
++	for (i = 0; i < ARRAY_SIZE(search[dir]); i++) {
+ 		found = find_pattern(fb_ptr, datalen,
+-				     search[i].pattern,
+-				     search[i].plen,
+-				     search[i].skip,
+-				     search[i].term,
++				     search[dir][i].pattern,
++				     search[dir][i].plen,
++				     search[dir][i].skip,
++				     search[dir][i].term,
+ 				     &matchoff, &matchlen,
+ 				     &cmd,
+-				     search[i].getnum);
++				     search[dir][i].getnum);
+ 		if (found) break;
  	}
--out:	
-+out:
- 	read_unlock_bh(&nf_conntrack_lock);
- 
- 	DEBUGP("leaving, last bucket=%lu id=%u\n", cb->args[0], *id);
+ 	if (found == -1) {
+@@ -512,7 +521,7 @@ static int help(struct sk_buff **pskb,
+ 		   this case. */
+ 		if (net_ratelimit())
+ 			printk("conntrack_ftp: partial %s %u+%u\n",
+-			       search[i].pattern,
++			       search[dir][i].pattern,
+ 			       ntohl(th->seq), datalen);
+ 		ret = NF_DROP;
+ 		goto out;
+@@ -597,7 +606,7 @@ static int help(struct sk_buff **pskb,
+ 	/* Now, NAT might want to mangle the packet, and register the
+ 	 * (possibly changed) expectation itself. */
+ 	if (nf_nat_ftp_hook)
+-		ret = nf_nat_ftp_hook(pskb, ctinfo, search[i].ftptype,
++		ret = nf_nat_ftp_hook(pskb, ctinfo, search[dir][i].ftptype,
+ 				      matchoff, matchlen, exp, &seq);
+ 	else {
+ 		/* Can't expect this?  Best to drop packet now. */
