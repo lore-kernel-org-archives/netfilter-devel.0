@@ -1,17 +1,14 @@
-From: Holger Eitzenberger <holger@my-eitzenberger.de>
-Subject: Re: [RFC,ANNOUNCE] conntrack daemon (stateful replication)
-Date: Mon, 29 May 2006 11:30:18 +0200
-Message-ID: <20060529093018.GA20260@kruemel.my-eitzenberger.de>
-References: <447A1FB7.5080709@netfilter.org> <447A32FF.9060404@trash.net>
+From: syrius.ml@no-log.org
+Subject: Re: nf_conntrack + IPv4 NAT
+Date: Mon, 29 May 2006 13:54:20 +0200
+Message-ID: <87u0792gsl.87slmt2gsl@87r72d2gsl.message.id>
+References: <20060512202232.ALLYOURBASEAREBELONGTOUS.A18455@bla.fasel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <447A32FF.9060404@trash.net>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <20060512202232.ALLYOURBASEAREBELONGTOUS.A18455@bla.fasel.org>
+	(Wolfram Schlich's message of "Fri, 12 May 2006 22:22:32 +0200")
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,24 +20,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, May 29, 2006 at 01:32:15AM +0200, Patrick McHardy wrote:
+Wolfram Schlich <lists@wolfram.schlich.org> writes:
 
-> > I've been working on a pet project during the last months. Part of this
-> > stuff is related with my works in the university.
-> > 
-> > The project is called `conntrackd' that is the conntrack userspace daemon.
+> Heyho,
+>
+> when is nf_conntrack scheduled to support IPv4 NAT?
+>
+> The current situation, which boils down to
+> "IPv6 stateful inspection XOR IPv4 NAT", is quite
+> dissatisfying :]
 
-> Interesting work (and nice featureset), I like the idea of doing this
-> in userspace. IIRC Holger Eitzenberger is also working on something
-> similar. Do you have performance measurements how this compares to
-> ct_sync?
+I could not agree more ! :)
+I very like to know if there's a status for it.
 
-Hi Pablo, Patrick,
 
-yes, for me it started as a proof-of-concept and matured in an almost
-feature complete version I will release soon.  It's called ctsyncd.
+> Anyway, thanks for brining IPv6 stateful inspection support
+> into the kernel and ip6tables.
 
-Pablo, I will check your code, at a first glance your solution has a
-richer feature set than my solution.  Mabe we should join our efforts.
+agreed as well ! :)
+(but it's useless for us atm (so is nf_conntrack))
 
-Regards.  /holger
+-- 
