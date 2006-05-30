@@ -1,16 +1,10 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipv4options still broken (posted prev w/ no reply)...
-Date: Wed, 31 May 2006 01:05:12 +0200
-Message-ID: <447CCFA8.8090505@trash.net>
-References: <1149011224.28886.14.camel@mbox> <447C9B8A.20304@trash.net>
-	<1149023782.28886.28.camel@mbox>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+From: tubbs@wispdirect.com
+Subject: Re: Re: ipv4options still broken (posted prev w/ no reply)...
+Date: Tue, 30 May 2006 18:59:27 -0500
+Message-ID: <1149033568.19084@www.broadwayinternet.com>
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Cody Tubbs <tubbs@wispdirect.com>
-In-Reply-To: <1149023782.28886.28.camel@mbox>
+To: kaber@trash.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,13 +16,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Cody Tubbs wrote:
-> I'm not going to indulge in 101 stuff regarding loose/strict source 
-> attacks, google enjoys 101 much more.
-> 
-> http://www.spirit.com/Network/net0300.html (section: Source Route)
-> 
-> http://seclists.org/lists/pen-test/2003/May/0023.html
+D-link and netgear had issues not too long ago for one.  Presumptions are the
+root of stupidity, any goon can package something that forgets to strip the
+options, just as easily as someone can package something that falsly detects
+them being used via a netfilter module.  There's tools out there that scan for
+systems that support/forward [ls]srr.
 
-Which system accepts source route options nowadays? You most likely
-have more serious problems than this.
+-Cody Tubbs
+
+> 
+> Cody Tubbs wrote:
+> > I'm not going to indulge in 101 stuff regarding loose/strict source 
+> > attacks, google enjoys 101 much more.
+> > 
+> > http://www.spirit.com/Network/net0300.html (section: Source Route)
+> > 
+> > http://seclists.org/lists/pen-test/2003/May/0023.html
+> 
+> Which system accepts source route options nowadays? You most likely
+> have more serious problems than this.
+> 
+> 
+
+____________________________________________
+E-Mail sent with Broadway Internet Web Mail.
+<a href="http://www.broadwayinternet.com/webadmin">http://www.BroadwayInternet.com
