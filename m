@@ -1,19 +1,16 @@
-From: Stephen Frost <sfrost@snowman.net>
-Subject: Re: [NETFILTER 05/17]: recent match: replace by rewritten version
-Date: Tue, 30 May 2006 14:10:18 -0400
-Message-ID: <20060530181018.GW8588@kenobi.snowman.net>
-References: <20060529223404.24834.30808.sendpatchset@localhost.localdomain>
-	<20060529223413.24834.97896.sendpatchset@localhost.localdomain>
-	<20060530131150.GV8588@kenobi.snowman.net>
-	<447C45C3.5000502@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: CLASSIFY target
+Date: Tue, 30 May 2006 21:21:32 +0200
+Message-ID: <447C9B3C.5030108@trash.net>
+References: <0633E0EDB4F25F43A2D7179CA11FAFAB2553EF@xavier.staff.greatlakes.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MET8MpPxp2u2c48q"
-Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <447C45C3.5000502@trash.net>
+To: "Eliot, Wireless and Server Administrator,
+	Great Lakes Internet" <support8@greatlakes.net>
+In-Reply-To: <0633E0EDB4F25F43A2D7179CA11FAFAB2553EF@xavier.staff.greatlakes.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,43 +22,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Eliot, Wireless and Server Administrator, Great Lakes Internet wrote:
+> I am attempting to classify packets in tc using the iptables classify
+> target in the postrouting chain of the mangle table, but it does not
+> work. I am looking through the code to try to find out what is going on
+> (whether I am doing something wrong, or whether the kernel module code
+> is messed up). I have verified that the ipt_CLASSIFY.c file is correctly
+> building a handle and that it is storing the handle in the skb->priority
+> field. However, inside the packet scheduler code, I cannot find where
+> the skb->priority field is being read so that the packets can be sent to
+> the correct class. Could someone please point me in the correct
+> direction for viewing this section of the code? Thanks.
 
---MET8MpPxp2u2c48q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-* Patrick McHardy (kaber@trash.net) wrote:
-> Stephen Frost wrote:
-> > I havn't had a chance to check yet, but was something done about the
-> > last round of issues I pointed out?  Specifically, concerns that entries
-> > in the table which are never updated will not end up in the list to be
-> > candidates for deletion due to the eviction policy?  I don't think it'd
-> > be a good plan to move to this till that's fixed (it's not hard to fix,
-> > either).
->=20
-> Already fixed.
+The *_classify functions of the individual schedulers use it. I see
+you also posted a more detailed description of your problem to lartc:
+you can't use classify to classify to multiple nested qdiscs. So
+if you have something like:
 
-Great, thanks.  I've now reviewed the version in DaveM's net-2.6.18 git
-tree and it looks good to me.  I'll try and do some real-world testing
-on it this weekend.  I'm very curious if these changes will allow for
-larger lists than was previously possible.
+         <1:0 (root) hfsc>
+<1:1 hfsc class> <1:2 hfsc class>
+         |
+   <2:0 PRIO>
+         |
+<2:1 - 2:3 PRIO classes>
 
-	Thanks again,
 
-		Stephen
-
---MET8MpPxp2u2c48q
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQFEfIqKrzgMPqB3kigRAlSgAJ48i+OTKtlE4piTMGuyjFAaQBbviACeNmqe
-aRqYQppzwAslKLloGHEGHkM=
-=dcdL
------END PGP SIGNATURE-----
-
---MET8MpPxp2u2c48q--
+and say CLASSIFY --set-class 2:1, the upper HFSC qdisc had no idea
+how to reach qdisc 2:0. You can either use CLASSIFY --class 2:0
+and then attach more classifiers to the PRIO qdisc or manually
+direct traffic from 1:0 -> 2:0 and use CLASSIFY --set-class 2:1.
+CLASSIFY is really only useful if you have only a single level
+of classful qdiscs.
