@@ -1,15 +1,12 @@
-From: "Eliot, Wireless and Server Administrator,
-	Great Lakes Internet" <support8@greatlakes.net>
-Subject: CLASSIFY target
-Date: Tue, 30 May 2006 12:21:41 -0400
-Message-ID: <0633E0EDB4F25F43A2D7179CA11FAFAB2553EF@xavier.staff.greatlakes.net>
+From: Cody Tubbs <tubbs@wispdirect.com>
+Subject: ipv4options still broken (posted prev w/ no reply)...
+Date: Tue, 30 May 2006 10:47:04 -0700
+Message-ID: <1149011224.28886.14.camel@mbox>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,31 +18,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+While we're on the nth match topic and speaking of broken modules in
+pom, I posted a couple of weeks ago about the lsrr and ssrr options
+being broken in the ipv4options module.  I had dialog with Fabrice, but
+it seems he doesn't have time to maintain the module anymore, or at
+least fix this issue.  It's giving everyone who is using it a false
+sense of security, being that it loads, but doesn't do anything when an
+lsrr/ssrr ip option is set and passes through the module.  Can this be
+removed until it's fixed?  lsrr and ssrr are critical ip options to
+monitor attempting to enter your network, and people using this module
+thinking/expecting it to work can possibly get compromised via its lack
+of mojo.  Thanks.
 
-I am attempting to classify packets in tc using the iptables classify
-target in the postrouting chain of the mangle table, but it does not
-work. I am looking through the code to try to find out what is going on
-(whether I am doing something wrong, or whether the kernel module code
-is messed up). I have verified that the ipt_CLASSIFY.c file is correctly
-building a handle and that it is storing the handle in the skb->priority
-field. However, inside the packet scheduler code, I cannot find where
-the skb->priority field is being read so that the packets can be sent to
-the correct class. Could someone please point me in the correct
-direction for viewing this section of the code? Thanks.
+ps, testing with hping3 is a quick method to determine if changes
+worked.
+http://www.hping.org/download.html
+(a simple command line tool that allows you to set lsrr/ssrr ip options,
+among other things.)
 
-=20
-Eliot Gable
-Certified Wireless Network Administrator (CWNA)
-Certified Wireless Security Professional (CWSP)
-Cisco Certified Network Associate (CCNA)
-CompTIA Security+ Certified
-CompTIA Network+ Certified
-Network and System Engineer
-Great Lakes Internet, Inc.
-112 North Howard
-Croswell, MI 48422
-(810) 679-3395
-(877) 558-8324
-=20
-Now offering Broadband Wireless Internet access in Croswell, Lexington,
-Brown City, Yale, Worth Township, and Sandusky. Call for details.
+
+-Cody Tubbs
