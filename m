@@ -1,13 +1,17 @@
-From: Jeho Park <jhpark-nf@kernelproject.org>
-Subject: [PATCH] nf-hipac-0.9.1.patch modification
-Date: Tue, 30 May 2006 14:03:20 +0900
-Message-ID: <447BD218.9030407@kernelproject.org>
+From: Holger Eitzenberger <holger@my-eitzenberger.de>
+Subject: Re: [RFC,ANNOUNCE] conntrack daemon (stateful replication)
+Date: Tue, 30 May 2006 08:58:05 +0200
+Message-ID: <20060530065804.GA24166@kruemel.my-eitzenberger.de>
+References: <447A1FB7.5080709@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: nf@hipac.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <447A1FB7.5080709@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,15 +23,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, May 29, 2006 at 12:09:59AM +0200, Pablo Neira Ayuso wrote:
 
-i modified nf-hipac-0.9.1 patch to apply to the linux kernel 2.6.16.16 ~ 
-2.6.16.18
-here is this
-this patch was tested in  kernel 2.6.16.16 and 2.6.16.18
+> I've been working on a pet project during the last months. Part of this 
+> stuff is related with my works in the university.
 
-http://kernelproject.org/people/jhpark/nf-hipac-0.9.1-to-linux-2.6.16.16.patch 
+Hi Pablo,
+
+I am working on a daemon called 'ctsyncd', which for me started as a
+proof-of-concept and is now almost in a state where I can release it
+to the public.  My current objective is simple master/slave scenario
+without active/active, and I am almost done.
+
+Hopefully I am able to look at your sources.  With your great knowledge
+of libnetfilter_conntrack and my programming skills we should consider
+joining our efforts.  But first I will release my code for public review
+within a few days.  
 
 
+Stay tuned.
 
-thanks
-jeho park
+/holger
+
+
+> - Stateful replication: the daemon keeps a cache of internal events via 
+> libnetfilter_conntrack and a cache of external event received from the 
+> other node.
+> - Support for classical Primary/Backup settings
+> - Support for Active/Active settings (two machines max. per VRRP instance)
+> - Support for NAT: It recognizes NAT'ed connections and handles them 
+> properly.
+> - UDP traffic ignore facility
+> - ICMP traffic ignore facility
+> - Ignore loopback traffic (not customizable at the moment)
+> - Ignore traffic for certain set of machines: Useful to ignore traffic 
+> for the firewall since we just want to replicate conntracks that 
+> represent forwarded connections.
+> - Dump internal and external caches via UNIX sockets
+> - Flush internal, external caches and conntrack table
+> - The communication between daemons is done in NETLINK format, so the 
+> protocol used is based on NETLINK over IP, to ensure backward compatibility.
+> - Configuration via file
