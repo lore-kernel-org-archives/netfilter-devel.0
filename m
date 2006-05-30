@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipv4options still broken (posted prev w/ no reply)...
-Date: Wed, 31 May 2006 01:46:07 +0200
-Message-ID: <447CD93F.9070103@trash.net>
-References: <1149033568.27117@www.broadwayinternet.com>
+Subject: Re: [PATCH] Unconditionaly push mark to conntrack structure
+Date: Wed, 31 May 2006 01:55:47 +0200
+Message-ID: <447CDB83.1090606@trash.net>
+References: <E1Fh0am-0003Ct-Ph@fydelkass.inl.fr> <447CD8AA.2040502@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: tubbs@wispdirect.com
-In-Reply-To: <1149033568.27117@www.broadwayinternet.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <447CD8AA.2040502@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,8 +21,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-tubbs@wispdirect.com wrote:
-> D-link and netgear had issues not too long ago for one.  Presumptions are the
-> root of stupidity
+Patrick McHardy wrote:
+> Eric Leblond wrote:
+> 
+>>This is needed in userspace as the mark can be used to select 
+>>efficiently a subset of the conntrack events to work on.
+> 
+> 
+> I'm a bit reluctant to special case mark, but mostly because I wonder
+> whether we shouldn't just behave like all other networking subsystems
+> and send update messages containing the entire new state. If you look
+> at the optional information:
+> 
+> - status bits are only 4 byte.
+> - timeout is currently transmitted for every packet anyway - its better
+>   to just reduce the event rate (we even had a patch for this for ages)
 
-Just send me the patch without annoying me and I'll apply it.
+Actually this isn't true, I just noticed we never send timeout update
+notifications except for the first packet (which means we have tons
+of unnecessary notifier chain calls). I think this isn't really
+intended and was done to work around the high timeout event generation
+rate. Pablo, do you more about this?
