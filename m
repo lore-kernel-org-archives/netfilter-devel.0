@@ -1,66 +1,54 @@
-From: Holger Eitzenberger <holger@my-eitzenberger.de>
-Subject: Re: [RFC,ANNOUNCE] conntrack daemon (stateful replication)
-Date: Tue, 30 May 2006 08:58:05 +0200
-Message-ID: <20060530065804.GA24166@kruemel.my-eitzenberger.de>
-References: <447A1FB7.5080709@netfilter.org>
+From: "Daniel J Blueman" <daniel.blueman@gmail.com>
+Subject: Re: sky2 hw csum failure [was Re: sky2 large MTU problems]
+Date: Tue, 30 May 2006 10:10:11 +0100
+Message-ID: <6278d2220605300210u101d65a9u93354aecbcde99a@mail.gmail.com>
+References: <6278d2220605240228v576dd66atdad4855b308e64bf@mail.gmail.com>
+	 <20060524103820.2e213a0b@localhost.localdomain>
+	 <44758881.1020106@trash.net>
+	 <6278d2220605250355y316f974cl216f22d198475666@mail.gmail.com>
+	 <447591DB.2020901@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: "Stephen Hemminger" <shemminger@osdl.org>, netdev@vger.kernel.org,
+	"Netfilter Developer" <netfilter-devel@lists.netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>
+In-Reply-To: <447591DB.2020901@trash.net>
 Content-Disposition: inline
-In-Reply-To: <447A1FB7.5080709@netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, May 29, 2006 at 12:09:59AM +0200, Pablo Neira Ayuso wrote:
+On 25/05/06, Patrick McHardy <kaber@trash.net> wrote:
+> Daniel J Blueman wrote:
+> > On 25/05/06, Patrick McHardy <kaber@trash.net> wrote:
+> >
+> >> Daniel, is there an easy way to reproduce the checksum failure?
+> >
+> > In short, no. This was seen when packets may have been truncated by
+> > large MTU (eg 9000) problems in the sky2 driver transmit path.
+> >
+> > There is a small chance that this could relate to transmitting with an
+> > MTU of 9000 (possibly with receiving with an MTU of 1500 too)
+>
+> Unfortunately I can't test this myself because my other NICs don't
+> support MTUs > 1500.
+>
+> > On that interface, the only rules that were being exercised were:
+> >
+> > iptables -t filter -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+> > iptables -t filter -A INPUT -p tcp -m tcp --dport 445 --syn -j ACCEPT # SMB
+> > iptables -t filter -A INPUT -j DROP
+>
+> That shouldn't cause any packet modifications. Can you trigger the
+> checksum failures without netfilter?
 
-> I've been working on a pet project during the last months. Part of this 
-> stuff is related with my works in the university.
+When testing, I always run into the "kernel: sky2 lan0: rx error,
+status 0x977d977d length 0" problem before anything else.
 
-Hi Pablo,
-
-I am working on a daemon called 'ctsyncd', which for me started as a
-proof-of-concept and is now almost in a state where I can release it
-to the public.  My current objective is simple master/slave scenario
-without active/active, and I am almost done.
-
-Hopefully I am able to look at your sources.  With your great knowledge
-of libnetfilter_conntrack and my programming skills we should consider
-joining our efforts.  But first I will release my code for public review
-within a few days.  
-
-
-Stay tuned.
-
-/holger
-
-
-> - Stateful replication: the daemon keeps a cache of internal events via 
-> libnetfilter_conntrack and a cache of external event received from the 
-> other node.
-> - Support for classical Primary/Backup settings
-> - Support for Active/Active settings (two machines max. per VRRP instance)
-> - Support for NAT: It recognizes NAT'ed connections and handles them 
-> properly.
-> - UDP traffic ignore facility
-> - ICMP traffic ignore facility
-> - Ignore loopback traffic (not customizable at the moment)
-> - Ignore traffic for certain set of machines: Useful to ignore traffic 
-> for the firewall since we just want to replicate conntracks that 
-> represent forwarded connections.
-> - Dump internal and external caches via UNIX sockets
-> - Flush internal, external caches and conntrack table
-> - The communication between daemons is done in NETLINK format, so the 
-> protocol used is based on NETLINK over IP, to ensure backward compatibility.
-> - Configuration via file
+I need to eliminate the sky2 driver from the equation before I'm able
+to prove if there is a problem elsewhere or not. I did have some e1000
+NICs, but not any longer, so it'll have to wait until I can find a
+stable scenario for my sky2 NIC...
+-- 
+Daniel J Blueman
