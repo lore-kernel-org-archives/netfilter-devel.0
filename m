@@ -1,16 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] set match
-Date: Tue, 30 May 2006 00:41:11 +0200
-Message-ID: <447B7887.8000802@trash.net>
-References: <1148838123.2516.1.camel@scaramouche.combox.de>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [NETFILTER 00/17]: Netfilter update for 2.6.18
+Date: Mon, 29 May 2006 18:27:59 -0700 (PDT)
+Message-ID: <20060529.182759.43391293.davem@davemloft.net>
+References: <20060529223404.24834.30808.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Torsten Luettgert <t.luettgert@pressestimmen.de>
-In-Reply-To: <1148838123.2516.1.camel@scaramouche.combox.de>
+To: kaber@trash.net
+In-Reply-To: <20060529223404.24834.30808.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,14 +21,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Torsten Luettgert wrote:
-> Hello,
-> 
-> here's a simple patch for the set match in pom. It adds the
-> new protoff parameter in the match function of ipt_set.c and
-> changes struct ipt_ip * to void * in the checkentry function
-> of ipt_set.c and ipt_SET.c, so they compile without warnings.
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue, 30 May 2006 00:34:04 +0200 (MEST)
 
-I'm leaving this to Jozsef since I don't which kernel version
-he uses for development and I don't want to break stuff under
-him :)
+> following is a large netfilter update for 2.6.18 with changes all
+> over the place, most noteworthy is the replacement of the recent
+> match, a new SIP connection tracking helper and two new matches.
+> 
+> Please apply to net-2.6.18, thanks.
+
+All applied, thanks a lot Patrick.
