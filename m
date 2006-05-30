@@ -1,17 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [NETFILTER 05/17]: recent match: replace by rewritten version
-Date: Tue, 30 May 2006 15:16:51 +0200
-Message-ID: <447C45C3.5000502@trash.net>
-References: <20060529223404.24834.30808.sendpatchset@localhost.localdomain>
-	<20060529223413.24834.97896.sendpatchset@localhost.localdomain>
-	<20060530131150.GV8588@kenobi.snowman.net>
+From: "Eliot, Wireless and Server Administrator,
+	Great Lakes Internet" <support8@greatlakes.net>
+Subject: CLASSIFY target
+Date: Tue, 30 May 2006 12:21:41 -0400
+Message-ID: <0633E0EDB4F25F43A2D7179CA11FAFAB2553EF@xavier.staff.greatlakes.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, davem@davemloft.net
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Stephen Frost <sfrost@snowman.net>
-In-Reply-To: <20060530131150.GV8588@kenobi.snowman.net>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,17 +21,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Stephen Frost wrote:
-> * Patrick McHardy (kaber@trash.net) wrote:
-> 
->>[NETFILTER]: recent match: replace by rewritten version
-> 
-> 
-> I havn't had a chance to check yet, but was something done about the
-> last round of issues I pointed out?  Specifically, concerns that entries
-> in the table which are never updated will not end up in the list to be
-> candidates for deletion due to the eviction policy?  I don't think it'd
-> be a good plan to move to this till that's fixed (it's not hard to fix,
-> either).
 
-Already fixed.
+I am attempting to classify packets in tc using the iptables classify
+target in the postrouting chain of the mangle table, but it does not
+work. I am looking through the code to try to find out what is going on
+(whether I am doing something wrong, or whether the kernel module code
+is messed up). I have verified that the ipt_CLASSIFY.c file is correctly
+building a handle and that it is storing the handle in the skb->priority
+field. However, inside the packet scheduler code, I cannot find where
+the skb->priority field is being read so that the packets can be sent to
+the correct class. Could someone please point me in the correct
+direction for viewing this section of the code? Thanks.
+
+=20
+Eliot Gable
+Certified Wireless Network Administrator (CWNA)
+Certified Wireless Security Professional (CWSP)
+Cisco Certified Network Associate (CCNA)
+CompTIA Security+ Certified
+CompTIA Network+ Certified
+Network and System Engineer
+Great Lakes Internet, Inc.
+112 North Howard
+Croswell, MI 48422
+(810) 679-3395
+(877) 558-8324
+=20
+Now offering Broadband Wireless Internet access in Croswell, Lexington,
+Brown City, Yale, Worth Township, and Sandusky. Call for details.
