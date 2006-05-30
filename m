@@ -1,15 +1,13 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/17]: Netfilter update for 2.6.18
-Date: Mon, 29 May 2006 18:27:59 -0700 (PDT)
-Message-ID: <20060529.182759.43391293.davem@davemloft.net>
-References: <20060529223404.24834.30808.sendpatchset@localhost.localdomain>
+From: Jeho Park <jhpark-nf@kernelproject.org>
+Subject: [PATCH] nf-hipac-0.9.1.patch modification
+Date: Tue, 30 May 2006 14:03:20 +0900
+Message-ID: <447BD218.9030407@kernelproject.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: nf@hipac.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <20060529223404.24834.30808.sendpatchset@localhost.localdomain>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,13 +19,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 30 May 2006 00:34:04 +0200 (MEST)
 
-> following is a large netfilter update for 2.6.18 with changes all
-> over the place, most noteworthy is the replacement of the recent
-> match, a new SIP connection tracking helper and two new matches.
-> 
-> Please apply to net-2.6.18, thanks.
+i modified nf-hipac-0.9.1 patch to apply to the linux kernel 2.6.16.16 ~ 
+2.6.16.18
+here is this
+this patch was tested in  kernel 2.6.16.16 and 2.6.16.18
 
-All applied, thanks a lot Patrick.
+http://kernelproject.org/people/jhpark/nf-hipac-0.9.1-to-linux-2.6.16.16.patch 
+
+
+
+thanks
+jeho park
