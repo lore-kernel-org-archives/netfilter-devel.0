@@ -1,7 +1,7 @@
 From: Alex Davis <alex14641@yahoo.com>
-Subject: [RFC][1/2] New netfilter match module : kernel patch
-Date: Tue, 30 May 2006 18:48:07 -0700 (PDT)
-Message-ID: <20060531014807.30122.qmail@web50210.mail.yahoo.com>
+Subject: [RFC][2/2] New netfilter match module : iptables patch
+Date: Tue, 30 May 2006 18:51:50 -0700 (PDT)
+Message-ID: <20060531015150.13721.qmail@web50201.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
@@ -18,81 +18,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a kernel patch against  2.6.16.17.  It may be necessary to copy
-/usr/src/linux-2.6.16.17-ipisforif/include/linux/netfilter/xt_ipisforif.h and  
-/usr/src/linux-2.6.16.17-ipisforif/include/linux/netfilter_ipv4/ipt_ipisforif.h
-to thier corresponding locations in /usr/include/linux.
+This patch is against  iptables 1.3.5
 
-
-diff -uPr linux-2.6.16.16/include/linux/netfilter/xt_ipisforif.h
-linux-2.6.16.16-ipisforif/include/linux/netfilter/xt_ipisforif.h
---- linux-2.6.16.16/include/linux/netfilter/xt_ipisforif.h	1969-12-31 19:00:00.000000000 -0500
-+++ linux-2.6.16.16-ipisforif/include/linux/netfilter/xt_ipisforif.h	2006-05-18 01:57:59.000000000
--0400
-@@ -0,0 +1,13 @@
-+#ifndef _XT_IPISFORIF_H
-+#define _XT_IPISFORIF_H
-+
-+#define TYPE_SRC 1
-+#define TYPE_DST 2
-+
-+struct xt_ipisforif_info {
-+	int type;
-+	int invert;
-+	char ifname[16];
-+};
-+
-+#endif /*_XT_IPISFORIF_H*/
-diff -uPr linux-2.6.16.16/include/linux/netfilter_ipv4/ipt_ipisforif.h
-linux-2.6.16.16-ipisforif/include/linux/netfilter_ipv4/ipt_ipisforif.h
---- linux-2.6.16.16/include/linux/netfilter_ipv4/ipt_ipisforif.h	1969-12-31 19:00:00.000000000
--0500
-+++ linux-2.6.16.16-ipisforif/include/linux/netfilter_ipv4/ipt_ipisforif.h	2006-05-30
-02:20:06.000000000 -0400
-@@ -0,0 +1,9 @@
-+#ifndef _IPT_IPISFORIF_H
-+#define _IPT_IPISFORIF_H
-+#include <linux/netfilter/xt_ipisforif.h>
-+
-+/* Backwards compatibility for old userspace */
-+
-+#define ipt_ipisforif_info xt_ipisforif_info 
-+
-+#endif /*_IPT_IPISFORIF_H*/
-diff -uPr linux-2.6.16.16/net/netfilter/Kconfig linux-2.6.16.16-ipisforif/net/netfilter/Kconfig
---- linux-2.6.16.16/net/netfilter/Kconfig	2006-05-29 18:02:43.000000000 -0400
-+++ linux-2.6.16.16-ipisforif/net/netfilter/Kconfig	2006-05-29 18:10:06.000000000 -0400
-@@ -336,6 +336,15 @@
+Binary files iptables-1.3.5/extensions/.Makefile.swp and
+iptables-1.3.5-ipisforif/extensions/.Makefile.swp differ
+Binary files iptables-1.3.5/extensions/.libipt_ipisforif.c.swp and
+iptables-1.3.5-ipisforif/extensions/.libipt_ipisforif.c.swp differ
+diff -rPu iptables-1.3.5/extensions/Makefile iptables-1.3.5-ipisforif/extensions/Makefile
+--- iptables-1.3.5/extensions/Makefile	2006-02-01 07:14:31.000000000 -0500
++++ iptables-1.3.5-ipisforif/extensions/Makefile	2006-05-30 01:52:07.000000000 -0400
+@@ -5,7 +5,7 @@
+ # header files are present in the include/linux directory of this iptables
+ # package (HW)
+ #
+-PF_EXT_SLIB:=ah addrtype comment connlimit connmark conntrack dscp ecn esp hashlimit helper icmp
+iprange length limit mac mark multiport owner physdev pkttype policy realm rpc sctp standard state
+tcp tcpmss tos ttl udp unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE MIRROR NETMAP
+NFQUEUE NOTRACK REDIRECT REJECT SAME SNAT TARPIT TCPMSS TOS TRACE TTL ULOG
++PF_EXT_SLIB:=ah addrtype comment connlimit connmark conntrack dscp ecn esp ipisforif hashlimit
+helper icmp iprange length limit mac mark multiport owner physdev pkttype policy realm rpc sctp
+standard state tcp tcpmss tos ttl udp unclean CLASSIFY CONNMARK DNAT DSCP ECN LOG MARK MASQUERADE
+MIRROR NETMAP NFQUEUE NOTRACK REDIRECT REJECT SAME SNAT TARPIT TCPMSS TOS TRACE TTL ULOG
+ PF6_EXT_SLIB:=connmark eui64 hl icmpv6 length limit mac mark multiport owner physdev policy
+standard state tcp udp CONNMARK HL LOG NFQUEUE MARK TRACE
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config NETFILTER_XT_MATCH_IPISFORIF
-+	tristate '"interface ip" match support'
-+	depends on NETFILTER_XTABLES
-+	help
-+	  This matches the source or destination IP address of a packet
-+	  against the local address of a network interface.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config NETFILTER_XT_MATCH_STRING
- 	tristate  '"string" match support'
- 	depends on NETFILTER_XTABLES
-diff -uPr linux-2.6.16.16/net/netfilter/Makefile linux-2.6.16.16-ipisforif/net/netfilter/Makefile
---- linux-2.6.16.16/net/netfilter/Makefile	2006-05-29 18:02:43.000000000 -0400
-+++ linux-2.6.16.16-ipisforif/net/netfilter/Makefile	2006-05-29 16:33:48.000000000 -0400
-@@ -47,3 +47,4 @@
- obj-$(CONFIG_NETFILTER_XT_MATCH_STRING) += xt_string.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_TCPMSS) += xt_tcpmss.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_PHYSDEV) += xt_physdev.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_IPISFORIF) += xt_ipisforif.o
-diff -uPr linux-2.6.16.16/net/netfilter/xt_ipisforif.c
-linux-2.6.16.16-ipisforif/net/netfilter/xt_ipisforif.c
---- linux-2.6.16.16/net/netfilter/xt_ipisforif.c	1969-12-31 19:00:00.000000000 -0500
-+++ linux-2.6.16.16-ipisforif/net/netfilter/xt_ipisforif.c	2006-05-30 09:43:31.000000000 -0400
-@@ -0,0 +1,106 @@
-+/* Kernel module to match the source or destination address of a
-+ * packet to the IP address of a network interface.
+ # Optionals
+diff -rPu iptables-1.3.5/extensions/libipt_ipisforif.c
+iptables-1.3.5-ipisforif/extensions/libipt_ipisforif.c
+--- iptables-1.3.5/extensions/libipt_ipisforif.c	1969-12-31 19:00:00.000000000 -0500
++++ iptables-1.3.5-ipisforif/extensions/libipt_ipisforif.c	2006-05-30 09:36:32.000000000 -0400
+@@ -0,0 +1,129 @@
++/* Shared library add-on to iptables to add network interface IP matching support.
 + *
 + * (C) 2006 Alex Davis
 + *
@@ -100,103 +56,128 @@ linux-2.6.16.16-ipisforif/net/netfilter/xt_ipisforif.c
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
++#include <stdio.h>
++#include <netdb.h>
++#include <string.h>
++#include <stdlib.h>
++#include <getopt.h>
++#include <iptables.h>
++#include <linux/netfilter_ipv4/ipt_ipisforif.h>
 +
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netdevice.h>
-+#include <linux/inetdevice.h>
-+#include <net/route.h>
-+#include <linux/netfilter/xt_ipisforif.h>
++// Parameter names.
++#define SRC "srcip"
++#define DST "dstip"
 +
-+MODULE_AUTHOR("Alex Davis");
-+MODULE_DESCRIPTION("Match source or destination address of a packet "
-+		   "to a network interface");
-+MODULE_ALIAS("ipt_ipisforif");
-+MODULE_LICENSE("GPL");
-+
-+static int match(const struct sk_buff *skb,
-+		 const struct net_device *in,
-+		 const struct net_device *out,
-+		 const void *matchinfo,
-+		 int offset,
-+		 unsigned int protoff,
-+		 int *hotdrop) 
++/* Function which prints out usage message. */
++static void help(void) 
 +{
-+	const struct xt_ipisforif_info *info = matchinfo;
-+	struct in_ifaddr *ifa = NULL;
-+	struct in_device *in_dev;
-+	struct net_device *dev;
-+	int ismatch = 0;
-+	
-+	rtnl_lock();
-+	if ( (dev = __dev_get_by_name(info->ifname)) ) {
-+		if ((in_dev = __in_dev_get_rtnl(dev)) != NULL) {
-+			for (ifa = in_dev->ifa_list; ifa; ifa = ifa->ifa_next) {
-+				if ( ! strcmp(info->ifname, ifa->ifa_label) ) {
-+					break;
-+				}
-+			}
-+		}
-+	}
-+
-+	if ( ifa ) {
-+		struct iphdr *hdr = skb->nh.iph;
-+		switch (info->type ) {
-+		case TYPE_SRC:
-+			ismatch = ( (hdr->saddr == ifa->ifa_local) &&
-+					    ( ! info->invert ) );
-+			break;
-+
-+		case TYPE_DST:
-+			ismatch = ( (hdr->daddr == ifa->ifa_local) &&
-+					    ( ! info->invert ) );
-+			break;
-+
-+		default:
-+			printk(KERN_INFO "ipisforif: invalid type:  %d\n",
-+			       info->type);
-+		}
-+	}
-+	rtnl_unlock();
-+
-+	return ismatch;
++	printf("ipisforif v%s options:\n [!]  --%s|--%s ifname\n"
++	       "Packet source or destination address matches interface.\n"
++	       "\n", SRC, DST, IPTABLES_VERSION);
 +}
 +
-+static int check(const char *tablename,
-+		 const void *pinf,
-+		 void *matchinfo,
-+		 unsigned int matchsize,
-+		 unsigned int hook_mask)
-+{
-+	const struct ipt_ip *inf = pinf;
-+
-+	return ((inf->proto == IPPROTO_TCP || inf->proto == IPPROTO_UDP) &&
-+		! (inf->invflags & IPT_INV_PROTO)); 
-+}
-+
-+static void destroy(void *matchinfo, unsigned int matchsize) {
-+}
-+
-+static struct xt_match ipisforif_match = {
-+	.name		= "ipisforif",
-+	.match		= &match,
-+	.checkentry	= &check,
-+	.destroy	= destroy,
-+	.me		= THIS_MODULE,
++static struct option opts[] = {
++	{ SRC, 1, 0, '1' },
++	{ DST, 1, 0, '2' },
++	{0}
 +};
 +
-+static int __init init(void) {
-+	return ipt_register_match(&ipisforif_match);
++/* Initialize the match. */
++static void init(struct ipt_entry_match *m, unsigned int *nfcache)
++{
++	/* Can't cache this */
++	*nfcache |= NFC_UNKNOWN;
 +}
 +
-+static void __exit exit(void) {
-+	ipt_unregister_match(&ipisforif_match);
++/* Function which parses command options; returns true if it
++   ate an option */
++static int parse(int c, char **argv, int invert, unsigned int *flags,
++		 const struct ipt_entry *entry, unsigned int *nfcache,
++		 struct ipt_entry_match **match)
++{
++	struct ipt_ipisforif_info *info =
++		(struct ipt_ipisforif_info *)(*match)->data;
++
++	switch (c) {
++	case '1':
++		check_inverse(optarg, &invert, &optind, 0);
++		info->invert = invert;
++		info->type = TYPE_SRC;
++		strcpy(info->ifname, argv[optind - 1]);
++		*flags = 1;
++		break;
++
++	case '2':
++		check_inverse(optarg, &invert, &optind, 0);
++		info->invert = invert;
++		info->type = TYPE_DST;
++		strcpy(info->ifname, argv[optind - 1]);
++		*flags = 1;
++		break;
++
++	default:
++		return 0;
++	}
++
++	return 1;
 +}
 +
-+module_init(init);
-+module_exit(exit);
++static void final_check(unsigned int flags) 
++{
++	if ( ! flags ) {
++		exit_error(PARAMETER_PROBLEM,
++			   "You must specify `--%s' or '--%s'", SRC, DST);
++	}
++}
++
++/* Prints out the matchinfo. */
++static void print(const struct ipt_ip *ip,
++		  const struct ipt_entry_match *match,
++      		  int numeric) 
++{
++	struct ipt_ipisforif_info *info = (struct ipt_ipisforif_info *)match->data;
++
++	if ( info->type == TYPE_SRC ) {
++		printf("%s %s ", SRC, info->ifname);
++	}
++	else if ( info->type == TYPE_DST ) {
++		printf("%s %s ", DST, info->ifname);
++	}
++}
++
++/* Saves the matchinfo in parsable form to stdout. */
++static void save(const struct ipt_ip *ip, const struct ipt_entry_match *match) 
++{
++	struct ipt_ipisforif_info *info = (struct ipt_ipisforif_info *)match->data;
++
++	if ( info->type == TYPE_SRC ) {
++		printf("--%s %s ", SRC, info->ifname);
++	}
++	else if ( info->type == TYPE_DST ) {
++		printf("--%s %s ", DST, info->ifname);
++	}
++}
++
++static struct iptables_match ipisforif = { 
++	.next		= NULL,
++	.name		= "ipisforif",
++	.version	= IPTABLES_VERSION,
++	.size		= IPT_ALIGN(sizeof(struct ipt_ipisforif_info)),
++	.userspacesize	= IPT_ALIGN(sizeof(struct ipt_ipisforif_info)),
++	.help		= &help,
++	.parse		= &parse,
++	.init		= &init,
++	.final_check	= &final_check,
++	.print		= &print,
++	.save		= &save,
++	.extra_opts	= opts
++};
++
++void _init(void) 
++{
++	register_match(&ipisforif);
++}
+
 
 I code, therefore I am
 
