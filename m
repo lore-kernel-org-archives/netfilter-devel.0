@@ -1,14 +1,17 @@
-From: "cheng long" <kevinclcn@gmail.com>
-Subject: structures' names and functions' names of libnetfilter_queue not
-	consistent
-Date: Wed, 31 May 2006 22:08:12 +0800
-Message-ID: <786736460605310708v31f13edbla4a1be2f4b45952f@mail.gmail.com>
+From: Cody Tubbs <tubbs@wispdirect.com>
+Subject: Re: ipv4options still broken (posted prev w/ no reply)...
+Date: Wed, 31 May 2006 10:45:09 -0700
+Message-ID: <1149097509.6167.9.camel@mbox>
+References: <1149033568.27117@www.broadwayinternet.com>
+	<447CD93F.9070103@trash.net> <20060531045445.GA8333@oknodo.bof.de>
+	<447DA068.1090507@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <447DA068.1090507@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,15 +23,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi, All
+What about in a bridged firewall situation, you're saying Linux will
+strip these ip options out while forwarding? automatically?  Is this
+something that can be turned on or off?
 
-the structures are named with nfqnl_ prefixs such as "nfqnl_msg_packet_hdr",
-however functions are name with nfq_ prefix such as "nfq_get_msg_packet_hdr".
+but oh wait, I forgot...
+Why does tcpdump show these ip options still attached even when not
+forwarding? :) (latest kernel) heh++
 
-I am often puzzled by that!
-Is it possible to make them consistent with each other ?
+On the contrary, you simply asked me who still supports these ip options
+and I gave you a minimal list, thus if giving you an answer is annoying,
+this thread must be an act of pissing in the wind. 
 
-Thanks!
+-Cody Tubbs
 
-Regards,
-Cheng
+
+On Wed, 2006-05-31 at 15:55 +0200, Patrick McHardy wrote:
+> Patrick Schaaf wrote:
+> > On Wed, May 31, 2006 at 01:46:07AM +0200, Patrick McHardy wrote:
+> > 
+> > Patrick, at the risk of annoying you some more: the attitude you showed
+> > in this thread, is very annoying in itself. While your work on netfilter
+> > is really deeply appreciated, slight-of-hand security evaluations like
+> > you showed here, are not.
+> > 
+> > Maybe you just need to get some more sleep. I hope so.
+> 
+> I don't like beeing lectured. Linux drops all source route
+> options anyway, so this entire discussion is absolutely
+> pointless.
+> 
