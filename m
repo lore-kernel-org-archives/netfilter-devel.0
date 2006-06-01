@@ -1,17 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [LARTC] iptables CLASSIFY and MARK not working?
-Date: Thu, 01 Jun 2006 22:01:36 +0200
-Message-ID: <447F47A0.7000104@trash.net>
-References: <0633E0EDB4F25F43A2D7179CA11FAFAB25541A@xavier.staff.greatlakes.net>
+From: "Eliot, Wireless and Server Administrator,
+	Great Lakes Internet" <support8@greatlakes.net>
+Subject: RE: [LARTC] iptables CLASSIFY and MARK not working?
+Date: Thu, 1 Jun 2006 16:09:41 -0400
+Message-ID: <0633E0EDB4F25F43A2D7179CA11FAFAB25541B@xavier.staff.greatlakes.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Cc: lartc@mailman.ds9a.nl,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Eliot, Wireless and Server Administrator,
-	Great Lakes Internet" <support8@greatlakes.net>
-In-Reply-To: <0633E0EDB4F25F43A2D7179CA11FAFAB25541A@xavier.staff.greatlakes.net>
+Content-class: urn:content-classes:message
+To: "Patrick McHardy" <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,13 +23,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+THANK YOU!
+
+That solved the problem. I found the file you specified and it was
+indeed enabled. After disabling it, it is now working!
+
+=20
+Eliot Gable
+Certified Wireless Network Administrator (CWNA)
+Certified Wireless Security Professional (CWSP)
+Cisco Certified Network Associate (CCNA)
+CompTIA Security+ Certified
+CompTIA Network+ Certified
+Network and System Engineer
+Great Lakes Internet, Inc.
+112 North Howard
+Croswell, MI 48422
+(810) 679-3395
+(877) 558-8324
+=20
+Now offering Broadband Wireless Internet access in Croswell, Lexington,
+Brown City, Yale, Worth Township, and Sandusky. Call for details.
+
+-----Original Message-----
+From: Patrick McHardy [mailto:kaber@trash.net]=20
+Sent: Thursday, June 01, 2006 4:02 PM
+To: Eliot, Wireless and Server Administrator, Great Lakes Internet
+Cc: lartc@mailman.ds9a.nl; Netfilter Development Mailinglist
+Subject: Re: [LARTC] iptables CLASSIFY and MARK not working?
+
 Eliot, Wireless and Server Administrator, Great Lakes Internet wrote:
 > Bridged iptables (ebtables) is not enabled in the kernel and I cannot
 > seem to find a variable "bridge-nf-call-iptables" to set with sysctl:
-> 
-> wireless-r1 linux # sysctl -w bridge-nf-call-iptables=0
+>=20
+> wireless-r1 linux # sysctl -w bridge-nf-call-iptables=3D0
 > error: "bridge-nf-call-iptables" is an unknown key
-> 
+>=20
 > There is also no /proc/sys/net/*/bridge anything. I assume that means
 > this is not something I need to worry about?
 
