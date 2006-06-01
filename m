@@ -1,18 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipv4options still broken (posted prev w/ no reply)...
-Date: Thu, 01 Jun 2006 05:25:41 +0200
-Message-ID: <447E5E35.1090304@trash.net>
-References: <1149033568.27117@www.broadwayinternet.com>	<447CD93F.9070103@trash.net>
-	<20060531045445.GA8333@oknodo.bof.de>	<447DA068.1090507@trash.net>
-	<1149097509.6167.9.camel@mbox>	<447DE2F3.8090104@trash.net>
-	<1149102130.6167.20.camel@mbox>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: nf_conntrack_proto_sctp.c:(.text+0x2e660): undefined reference
+ to `local_bh_disable'
+Date: Thu, 01 Jun 2006 13:30:27 +0900 (JST)
+Message-ID: <200606010430.k514US1b000030@toshiba.co.jp>
+References: <200605311253.54503.toralf.foerster@gmx.de>
+	<200606010301.k5131Tk1012237@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Multipart/Mixed;
+	boundary="--Next_Part(Thu_Jun__1_13_30_27_2006_338)--"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: toralf.foerster@gmx.de, netfilter-devel@lists.netfilter.org,
+	netfilter@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Cody Tubbs <tubbs@wispdirect.com>
-In-Reply-To: <1149102130.6167.20.camel@mbox>
+To: yasuyuki.kozakai@toshiba.co.jp
+In-Reply-To: <200606010301.k5131Tk1012237@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,17 +25,87 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Cody Tubbs wrote:
-> Bottom line is, it would be nice to -j LOG these options passing through
-> or attempting to be passed through a bridged firewall.  It details
-> malicious activity, thus deterring that fact into a presumption that "I
-> most likely have more serious problems" was blatantly absurd.
+----Next_Part(Thu_Jun__1_13_30_27_2006_338)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-As I already said, please just send me your patch to disable or even
-better fix this behaviour and I'm going to apply it. If you really want
-to do something useful, please just fix the ipv4options match to be
-acceptable for kernel inclusion. So far, it does stupid things like
-using seperate flags for option negation and it depends on IP option
-metadata provided by the IP layer, which doesn't work for bridging.
-The last point BTW really is a good example why random crap from POM
-shouldn't be trusted.
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Date: Thu, 01 Jun 2006 12:01:27 +0900 (JST)
+
+> Anyway, I attach a patch make them include spinlock.h and interrupt.h
+> like ip_conntrack_netlink.c.
+
+Sorry, I attach this time.
+
+-- Yasuyuki Kozakai
+
+----Next_Part(Thu_Jun__1_13_30_27_2006_338)--
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline; filename="undef-lock_bh.patch"
+
+[NETFILTER] nf_conntrack: Fix undefined references to local_bh_*
+
+  CC      net/netfilter/nf_conntrack_proto_sctp.o
+net/netfilter/nf_conntrack_proto_sctp.c: In function `sctp_print_conntr=
+ack':
+net/netfilter/nf_conntrack_proto_sctp.c:206: warning: implicit declarat=
+ion of function `local_bh_disable'
+net/netfilter/nf_conntrack_proto_sctp.c:208: warning: implicit declarat=
+ion of function `local_bh_enable'
+  CC      net/netfilter/nf_conntrack_netlink.o
+net/netfilter/nf_conntrack_netlink.c: In function `ctnetlink_dump_table=
+':
+net/netfilter/nf_conntrack_netlink.c:429: warning: implicit declaration=
+ of function `local_bh_disable'
+net/netfilter/nf_conntrack_netlink.c:452: warning: implicit declaration=
+ of function `local_bh_enable'
+
+Spotted by Toralf F=F6rster
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+
+---
+commit 867779436005b3b16466146ddd226e2faabee488
+tree 6e2d3efc5bab4b2eddf5144d4973de8413c2ad23
+parent ba8f5baba79da8eb502f8534c3a8ecb64aceb790
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 01 Jun 20=
+06 11:21:52 +0900
+committer Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Thu, 01 Jun=
+ 2006 11:21:52 +0900
+
+ net/netfilter/nf_conntrack_netlink.c    |    1 +
+ net/netfilter/nf_conntrack_proto_sctp.c |    2 ++
+ 2 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_co=
+nntrack_netlink.c
+index bd10eb9..bb9f781 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -29,6 +29,7 @@
+ #include <linux/errno.h>
+ #include <linux/netlink.h>
+ #include <linux/spinlock.h>
++#include <linux/interrupt.h>
+ #include <linux/notifier.h>
+ =
+
+ #include <linux/netfilter.h>
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf=
+_conntrack_proto_sctp.c
+index 0c6da49..0839b70 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -28,6 +28,8 @@
+ #include <linux/sctp.h>
+ #include <linux/string.h>
+ #include <linux/seq_file.h>
++#include <linux/spinlock.h>
++#include <linux/interrupt.h>
+ =
+
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_protocol.h>
+
+----Next_Part(Thu_Jun__1_13_30_27_2006_338)----
