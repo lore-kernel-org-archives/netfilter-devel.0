@@ -1,161 +1,118 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] fix mem-leak in netfilter
-Date: Thu, 01 Jun 2006 16:53:38 +0200
-Message-ID: <447EFF72.1050803@trash.net>
-References: <44643BFD.3040708@trash.net> <20060515210342.GP7774@kenobi.snowman.net> <446AC1FB.5070406@trash.net> <200606010943.31554.ajwade@cpe001346162bf9-cm0011ae8cd564.cpe.net.cable.rogers.com>
+Subject: Re: [PATCH] 2.6.16.19 Fix the bug of "return 0 instead of the error
+ code in ipt_register_table"
+Date: Thu, 01 Jun 2006 17:01:42 +0200
+Message-ID: <447F0156.8020603@trash.net>
+References: <20060601102449.GA8572@gsy2.lepton.home>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050105060402030006050309"
-Cc: Andrew Morton <akpm@osdl.org>, Stephen Frost <sfrost@snowman.net>,
-	Amin Azez <azez@ufomechanic.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@lists.netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965061AbWFAOyE@vger.kernel.org>
-To: ajwade@cpe001346162bf9-cm0011ae8cd564.cpe.net.cable.rogers.com
-In-Reply-To: <200606010943.31554.ajwade@cpe001346162bf9-cm0011ae8cd564.cpe.net.cable.rogers.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="------------030705040603010200050504"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	lkm <linux-kernel@vger.kernel.org>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: lepton <ytht.net@gmail.com>
+In-Reply-To: <20060601102449.GA8572@gsy2.lepton.home>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------050105060402030006050309
+--------------030705040603010200050504
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 
-[CC-list trimmed]
-
-Andrew James Wade wrote:
-> Hello Mr. McHardy,
+lepton wrote:
+> Hi,
 > 
-> The BUG below appears to be related to your ipt_recent rewrite. I
-> haven't tracked it down further yet. I've attached the (toy) firewall
-> script that's triggering the bug.
+> There is a bug in ipt_register_table() in
+> net/ipv4/netfilter/ip_tables.c:
+> 
+> ipt_register_table() will return 0 instead of
+> the error code when xt_register_table() fails
+> 
+> Signed-off-by: Lepton Wu <ytht.net@gmail.com>
+> 
+> diff -prU 10 linux-2.6.16.19.oirg/net/ipv4/netfilter/ip_tables.c linux-2.6.16.19/net/ipv4/netfilter/ip_tables.c
+> --- linux-2.6.16.19.oirg/net/ipv4/netfilter/ip_tables.c	2006-05-31 08:31:44.000000000 +0800
+> +++ linux-2.6.16.19/net/ipv4/netfilter/ip_tables.c	2006-06-01 18:11:25.000000000 +0800
 
-Yes, that was my fault. These two patches should fix it.
+Thanks. As usual this bug has been happily copy and pasted around,
+so I've added this patch instead.
 
 
---------------050105060402030006050309
-Content-Type: text/x-patch;
- name="01.diff"
+--------------030705040603010200050504
+Content-Type: text/plain;
+ name="x"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="01.diff"
+ filename="x"
 
-[NETFILTER]: recent match: fix "sleeping function called from invalid context"
+[NETFILTER]: x_tables: fix xt_register_table error propagation
 
-create_proc_entry must not be called with locks held. Use a mutex
-instead to protect data only changed in user context.
+When xt_register_table fails the error is not properly propagated back.
+Based on patch by Lepton Wu <ytht.net@gmail.com>.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 6812aa38ac35d6e819058d2273a6a7de091a2604
-tree 140fea396f29415d7981fcfbc5980f5c0b2d91a7
-parent a0447a3000b5d4e926928493def9d62aae3b87ed
-author Patrick McHardy <kaber@trash.net> Thu, 01 Jun 2006 16:40:39 +0200
-committer Patrick McHardy <kaber@trash.net> Thu, 01 Jun 2006 16:40:39 +0200
+commit b010cc3184ce7cb65a9865ae52ec2ce6f3fe4c9d
+tree 9744395bcd9c7d976048ebd8afbabfc0a9b542a4
+parent 10263005af5814396b8263c1c2a4367d49548e13
+author Patrick McHardy <kaber@trash.net> Thu, 01 Jun 2006 16:59:12 +0200
+committer Patrick McHardy <kaber@trash.net> Thu, 01 Jun 2006 16:59:12 +0200
 
- net/ipv4/netfilter/ipt_recent.c |   15 ++++++++++-----
- 1 files changed, 10 insertions(+), 5 deletions(-)
+ net/ipv4/netfilter/arp_tables.c |    3 ++-
+ net/ipv4/netfilter/ip_tables.c  |    3 ++-
+ net/ipv6/netfilter/ip6_tables.c |    3 ++-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/ipv4/netfilter/ipt_recent.c
-index 9686c4d..9b09e48 100644
---- a/net/ipv4/netfilter/ipt_recent.c
-+++ b/net/ipv4/netfilter/ipt_recent.c
-@@ -69,6 +69,7 @@ #endif
- 
- static LIST_HEAD(tables);
- static DEFINE_SPINLOCK(recent_lock);
-+static DEFINE_MUTEX(recent_mutex);
- 
- #ifdef CONFIG_PROC_FS
- static struct proc_dir_entry	*proc_dir;
-@@ -249,7 +250,7 @@ ipt_recent_checkentry(const char *tablen
- 	    strnlen(info->name, IPT_RECENT_NAME_LEN) == IPT_RECENT_NAME_LEN)
- 		return 0;
- 
--	spin_lock_bh(&recent_lock);
-+	mutex_lock(&recent_mutex);
- 	t = recent_table_lookup(info->name);
- 	if (t != NULL) {
- 		t->refcnt++;
-@@ -258,7 +259,7 @@ ipt_recent_checkentry(const char *tablen
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index d0d1919..ad39bf6 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -1120,7 +1120,8 @@ int arpt_register_table(struct arpt_tabl
+ 		return ret;
  	}
  
- 	t = kzalloc(sizeof(*t) + sizeof(t->iphash[0]) * ip_list_hash_size,
--		    GFP_ATOMIC);
-+		    GFP_KERNEL);
- 	if (t == NULL)
- 		goto out;
- 	strcpy(t->name, info->name);
-@@ -274,10 +275,12 @@ #ifdef CONFIG_PROC_FS
- 	t->proc->proc_fops = &recent_fops;
- 	t->proc->data      = t;
- #endif
-+	spin_lock_bh(&recent_lock);
- 	list_add_tail(&t->list, &tables);
-+	spin_unlock_bh(&recent_lock);
- 	ret = 1;
- out:
--	spin_unlock_bh(&recent_lock);
-+	mutex_unlock(&recent_mutex);
- 	return ret;
- }
- 
-@@ -288,17 +291,19 @@ ipt_recent_destroy(const struct xt_match
- 	const struct ipt_recent_info *info = matchinfo;
- 	struct recent_table *t;
- 
--	spin_lock_bh(&recent_lock);
-+	mutex_lock(&recent_mutex);
- 	t = recent_table_lookup(info->name);
- 	if (--t->refcnt == 0) {
-+		spin_lock_bh(&recent_lock);
- 		list_del(&t->list);
-+		spin_unlock_bh(&recent_lock);
- 		recent_table_flush(t);
- #ifdef CONFIG_PROC_FS
- 		remove_proc_entry(t->name, proc_dir);
- #endif
- 		kfree(t);
+-	if (xt_register_table(table, &bootstrap, newinfo) != 0) {
++	ret = xt_register_table(table, &bootstrap, newinfo);
++	if (ret != 0) {
+ 		xt_free_table_info(newinfo);
+ 		return ret;
  	}
--	spin_unlock_bh(&recent_lock);
-+	mutex_unlock(&recent_mutex);
- }
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index cee3397..101ad98 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -2113,7 +2113,8 @@ int ipt_register_table(struct xt_table *
+ 		return ret;
+ 	}
  
- #ifdef CONFIG_PROC_FS
+-	if (xt_register_table(table, &bootstrap, newinfo) != 0) {
++	ret = xt_register_table(table, &bootstrap, newinfo);
++	if (ret != 0) {
+ 		xt_free_table_info(newinfo);
+ 		return ret;
+ 	}
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 2e72f89..0b5bd55 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1281,7 +1281,8 @@ int ip6t_register_table(struct xt_table 
+ 		return ret;
+ 	}
+ 
+-	if (xt_register_table(table, &bootstrap, newinfo) != 0) {
++	ret = xt_register_table(table, &bootstrap, newinfo);
++	if (ret != 0) {
+ 		xt_free_table_info(newinfo);
+ 		return ret;
+ 	}
 
---------------050105060402030006050309
-Content-Type: text/x-patch;
- name="02.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="02.diff"
-
-[NETFILTER]: recent match: missing refcnt initialization
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 10263005af5814396b8263c1c2a4367d49548e13
-tree a73003fe82e7b4546359d86f684b90b78a6aa504
-parent 6812aa38ac35d6e819058d2273a6a7de091a2604
-author Patrick McHardy <kaber@trash.net> Thu, 01 Jun 2006 16:49:58 +0200
-committer Patrick McHardy <kaber@trash.net> Thu, 01 Jun 2006 16:49:58 +0200
-
- net/ipv4/netfilter/ipt_recent.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/ipv4/netfilter/ipt_recent.c
-index 9b09e48..61a2139 100644
---- a/net/ipv4/netfilter/ipt_recent.c
-+++ b/net/ipv4/netfilter/ipt_recent.c
-@@ -262,6 +262,7 @@ ipt_recent_checkentry(const char *tablen
- 		    GFP_KERNEL);
- 	if (t == NULL)
- 		goto out;
-+	t->refcnt = 1;
- 	strcpy(t->name, info->name);
- 	INIT_LIST_HEAD(&t->lru_list);
- 	for (i = 0; i < ip_list_hash_size; i++)
-
---------------050105060402030006050309--
+--------------030705040603010200050504--
