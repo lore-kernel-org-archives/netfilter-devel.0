@@ -1,69 +1,79 @@
-From: "Jesper Dangaard Brouer" <jdb@comx.dk>
-Subject: Concurrency issues with the iptables userspace program andexitcodes
-Date: Thu, 1 Jun 2006 11:15:49 +0200
-Message-ID: <1149153349.28481.15.camel@localhost.localdomain>
+From: "Sietse van Zanen" <sietse@wizdom.nu>
+Subject: RE: Prob with hook reg in iptables
+Date: Thu, 1 Jun 2006 14:09:44 +0200
+Message-ID: <02BB8A4AC86C564C89C7F14CF98CE0C4012784@knowledge.wizdom.nu>
+References: <447E830E.8000606@rocsys.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
-	micalg=pgp-sha1; boundary="=-ABoKXWISvl9X+nOgBSQJ"
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netfilter-bounces@lists.netfilter.org>
 Content-class: urn:content-classes:message
-To: <netfilter-devel@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+To: "varun" <varun@rocsys.com>, <netfilter-devel@lists.netfilter.org>,
+	<netfilter@lists.netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Proprietary firewalls usually hook themselves very low in the kernel. =
+Check the docs of you FW software.
+I wouldn't expect this to be working. And why use both iptables AND =
+other FW software, that's just asking for trouble IMHO.
+=20
+-Sietse
 
---=-ABoKXWISvl9X+nOgBSQJ
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+________________________________
 
-Hi
-
-I have experienced some concurrency issues with the iptables
-userspace program.  Executing an iptables (write) command while
-another (write command) is running causes a failure of the command.
-Well, this is the expected semantics of a non-blocking call, but the
-issue is how the error situation is reported back.
-
-The iptables command detects the situation and reports:
- "iptables: Resource temporarily unavailable"
-
-With shell exitcode "1".  What annoys me is that the shell exitcode
-is "1", which is also used for "normal" errors.  This means that my
-code/scripts needs to parse output from stderr to distinguish it from
-normal/expected errors.
-
-I propose that the exitcode of "Resource temporarily unavailable"
-error is changed to something unique for this situation.
-
-Comments?
-
---=20
-Med venlig hilsen / Best regards
-  Jesper Brouer
-  ComX Networks A/S
-  Linux Network developer
-  Cand. Scient Datalog / MSc.
-  Author of http://adsl-optimizer.dk
+From: netfilter-bounces@lists.netfilter.org on behalf of varun
+Sent: Thu 01-Jun-06 8:02
+To: netfilter-devel@lists.netfilter.org; netfilter@lists.netfilter.org
+Subject: Prob with hook reg in iptables
 
 
---=-ABoKXWISvl9X+nOgBSQJ
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+Hi all,
 
-iD8DBQBEfrBFwuVH+NB3fZkRAiZjAJ9UTLY2cFAXJSPP6M3I0zk9fDNukgCfR/Op
-k8aceykj0rzc/cVcS1ffqCw=
-=WCSP
------END PGP SIGNATURE-----
+            I have a setup where iam using iptables. I have squid
+running on my statem. Now the scenario is that this sytem is my router.
+I have eth0 connected to LAN, eth1 to Wan 1 and eth2 to Wan2. In the
+same box i also have a propratery FW which has Load Balancing feature.=20
+Now my intention is i start iptables first so that it registers with
+netfilter hook first.
+So policy is like this
+      iptables -t nat -D PREROUTING -i eth0 -p tcp -j REDIRECT --to-port
+8080
+ In the port 8080 i have squid running.
+ As far as filtering of iptables is concerned it is allow all.
 
---=-ABoKXWISvl9X+nOgBSQJ--
+     So my basic FW functionality is concerned it is taken care by My
+Propratery FW. It will do  the natting for both wan interfaces in Load
+balance.
+
+  Now what i expect is that iptables will get all the packets first and
+then packet will go to my firewall and might get dropped if ACL matches
+else it is success. Once success i expect the packet to be redirected to
+port 8080 where squid can take control.
+
+ Now my problem is that even though iptables is registered first when i
+log the packets using iptables for the above rule i find that no packets
+are comming to iptables there by no packets are going to proxy. I get
+only some multicast packets.
+
+ From lan iam able to browse well and all my traffic is going tru my FW
+rather that first through iptables. Why?
+
+As far as my knowledge first registered module get the packet first and
+if the action is NF_ACCEPT the the next registered module to the hook
+gets it right? If yes why is it not happening? Another thing is what
+exactly does redirect do does it mangel the packet?
+
+Please help me in this?
+
+Varun
