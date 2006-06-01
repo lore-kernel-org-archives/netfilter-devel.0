@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] 2.6.16.19 Fix the bug of "return 0 instead of the error
- code in ipt_register_table"
-Date: Thu, 01 Jun 2006 17:01:42 +0200
-Message-ID: <447F0156.8020603@trash.net>
-References: <20060601102449.GA8572@gsy2.lepton.home>
+Subject: Re: Concurrency issues with the iptables userspace program
+	andexitcodes
+Date: Thu, 01 Jun 2006 18:13:27 +0200
+Message-ID: <447F1227.7050900@trash.net>
+References: <1149153349.28481.15.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030705040603010200050504"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	lkm <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: lepton <ytht.net@gmail.com>
-In-Reply-To: <20060601102449.GA8572@gsy2.lepton.home>
+To: Jesper Dangaard Brouer <jdb@comx.dk>
+In-Reply-To: <1149153349.28481.15.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,97 +22,24 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030705040603010200050504
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-
-lepton wrote:
-> Hi,
+Jesper Dangaard Brouer wrote:
+> I have experienced some concurrency issues with the iptables
+> userspace program.  Executing an iptables (write) command while
+> another (write command) is running causes a failure of the command.
+> Well, this is the expected semantics of a non-blocking call, but the
+> issue is how the error situation is reported back.
 > 
-> There is a bug in ipt_register_table() in
-> net/ipv4/netfilter/ip_tables.c:
+> The iptables command detects the situation and reports:
+>  "iptables: Resource temporarily unavailable"
 > 
-> ipt_register_table() will return 0 instead of
-> the error code when xt_register_table() fails
+> With shell exitcode "1".  What annoys me is that the shell exitcode
+> is "1", which is also used for "normal" errors.  This means that my
+> code/scripts needs to parse output from stderr to distinguish it from
+> normal/expected errors.
 > 
-> Signed-off-by: Lepton Wu <ytht.net@gmail.com>
-> 
-> diff -prU 10 linux-2.6.16.19.oirg/net/ipv4/netfilter/ip_tables.c linux-2.6.16.19/net/ipv4/netfilter/ip_tables.c
-> --- linux-2.6.16.19.oirg/net/ipv4/netfilter/ip_tables.c	2006-05-31 08:31:44.000000000 +0800
-> +++ linux-2.6.16.19/net/ipv4/netfilter/ip_tables.c	2006-06-01 18:11:25.000000000 +0800
-
-Thanks. As usual this bug has been happily copy and pasted around,
-so I've added this patch instead.
+> I propose that the exitcode of "Resource temporarily unavailable"
+> error is changed to something unique for this situation.
 
 
---------------030705040603010200050504
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-[NETFILTER]: x_tables: fix xt_register_table error propagation
-
-When xt_register_table fails the error is not properly propagated back.
-Based on patch by Lepton Wu <ytht.net@gmail.com>.
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit b010cc3184ce7cb65a9865ae52ec2ce6f3fe4c9d
-tree 9744395bcd9c7d976048ebd8afbabfc0a9b542a4
-parent 10263005af5814396b8263c1c2a4367d49548e13
-author Patrick McHardy <kaber@trash.net> Thu, 01 Jun 2006 16:59:12 +0200
-committer Patrick McHardy <kaber@trash.net> Thu, 01 Jun 2006 16:59:12 +0200
-
- net/ipv4/netfilter/arp_tables.c |    3 ++-
- net/ipv4/netfilter/ip_tables.c  |    3 ++-
- net/ipv6/netfilter/ip6_tables.c |    3 ++-
- 3 files changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index d0d1919..ad39bf6 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -1120,7 +1120,8 @@ int arpt_register_table(struct arpt_tabl
- 		return ret;
- 	}
- 
--	if (xt_register_table(table, &bootstrap, newinfo) != 0) {
-+	ret = xt_register_table(table, &bootstrap, newinfo);
-+	if (ret != 0) {
- 		xt_free_table_info(newinfo);
- 		return ret;
- 	}
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index cee3397..101ad98 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -2113,7 +2113,8 @@ int ipt_register_table(struct xt_table *
- 		return ret;
- 	}
- 
--	if (xt_register_table(table, &bootstrap, newinfo) != 0) {
-+	ret = xt_register_table(table, &bootstrap, newinfo);
-+	if (ret != 0) {
- 		xt_free_table_info(newinfo);
- 		return ret;
- 	}
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 2e72f89..0b5bd55 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1281,7 +1281,8 @@ int ip6t_register_table(struct xt_table 
- 		return ret;
- 	}
- 
--	if (xt_register_table(table, &bootstrap, newinfo) != 0) {
-+	ret = xt_register_table(table, &bootstrap, newinfo);
-+	if (ret != 0) {
- 		xt_free_table_info(newinfo);
- 		return ret;
- 	}
-
---------------030705040603010200050504--
+Wouldn't it make more sense to just make sure you don't have iptables
+commands running concurrently?
