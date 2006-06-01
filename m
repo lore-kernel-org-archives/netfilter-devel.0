@@ -1,92 +1,44 @@
-From: "Eliot, Wireless and Server Administrator,  Great Lakes Internet" <support8@greatlakes.net>
-Subject: RE: iptables CLASSIFY and MARK not working?
-Date: Thu, 1 Jun 2006 15:58:44 -0400
-Message-ID: <0633E0EDB4F25F43A2D7179CA11FAFAB25541A@xavier.staff.greatlakes.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [LARTC] iptables CLASSIFY and MARK not working?
+Date: Thu, 01 Jun 2006 22:01:36 +0200
+Message-ID: <447F47A0.7000104@trash.net>
+References: <0633E0EDB4F25F43A2D7179CA11FAFAB25541A@xavier.staff.greatlakes.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: lartc@mailman.ds9a.nl,
 	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Return-path: <lartc-bounces@mailman.ds9a.nl>
-Content-class: urn:content-classes:message
-To: "Patrick McHardy" <kaber@trash.net>
-List-Unsubscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=unsubscribe>
-List-Archive: <http://mailman.ds9a.nl/pipermail/lartc>
-List-Post: <mailto:lartc@mailman.ds9a.nl>
-List-Help: <mailto:lartc-request@mailman.ds9a.nl?subject=help>
-List-Subscribe: <http://mailman.ds9a.nl/cgi-bin/mailman/listinfo/lartc>,
-	<mailto:lartc-request@mailman.ds9a.nl?subject=subscribe>
-Sender: lartc-bounces@mailman.ds9a.nl
-Errors-To: lartc-bounces@mailman.ds9a.nl
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: "Eliot, Wireless and Server Administrator,
+	Great Lakes Internet" <support8@greatlakes.net>
+In-Reply-To: <0633E0EDB4F25F43A2D7179CA11FAFAB25541A@xavier.staff.greatlakes.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
------Original Message-----
-From: Patrick McHardy [mailto:kaber@trash.net]=20
-Sent: Thursday, June 01, 2006 3:44 PM
-To: Eliot, Wireless and Server Administrator, Great Lakes Internet
-Cc: lartc@mailman.ds9a.nl; Netfilter Development Mailinglist
-Subject: Re: [LARTC] iptables CLASSIFY and MARK not working?
+Eliot, Wireless and Server Administrator, Great Lakes Internet wrote:
+> Bridged iptables (ebtables) is not enabled in the kernel and I cannot
+> seem to find a variable "bridge-nf-call-iptables" to set with sysctl:
+> 
+> wireless-r1 linux # sysctl -w bridge-nf-call-iptables=0
+> error: "bridge-nf-call-iptables" is an unknown key
+> 
+> There is also no /proc/sys/net/*/bridge anything. I assume that means
+> this is not something I need to worry about?
 
-> Eliot, Wireless and Server Administrator, Great Lakes Internet wrote:
-> > Both devices (br1 and wivl4) are bridged interfaces with spanning
-tree
-> > turned on. They also do VLANs. Specifically, vconfig was used to
-create
-> > a VLAN (in this case, VLAN 4) on two interfaces: eth2 and eth3.
-These
-> > two VLAN interfaces were called e2v4 and e3v4. Then, brctl was used
-to
-> > bridge the two VLAN interfaces (e2v4 and e3v4) into a new interface
-> > called wivl4. Spanning tree was then enabled on wivl4. The MTU size
-was
-> > then adjusted -4 bytes to accommodate the VLAN tagging.=20
->=20
-> Any chance you got bridge netfilter enabled? If so please disable
-> it and try again (or set the bridge-nf-call-iptables sysctl to 0).
->=20
-> Also, did you happen to try my specific rules (under different
-devices)
-> to see if they work?=20
->=20
-> No, just tried CLASSIFY with my own HFSC setup, which is pretty
-> similar.
->=20
-> > If possible, could you try creating a VLAN interface and test on
-that
-> > interface? Then try a bridged interface. And finally, a bridged VLAN
-> > interface.=20
-> >=20
-> > I will try to set this all up on a different machine without the
-bridged
-> > VLANs and see if it works there.
->=20
-> I checked the code, neither VLAN nor bridge should matter.
+Not sure yet, the problem would be created by CONFIG_BRIDGE_NETFILTER,
+not ebtables itself. Check for
+"/proc/sys/net/bridge/bridge-nf-call-iptables".
 
-
-Bridged iptables (ebtables) is not enabled in the kernel and I cannot
-seem to find a variable "bridge-nf-call-iptables" to set with sysctl:
-
-wireless-r1 linux # sysctl -w bridge-nf-call-iptables=3D0
-error: "bridge-nf-call-iptables" is an unknown key
-
-There is also no /proc/sys/net/*/bridge anything. I assume that means
-this is not something I need to worry about?
-
-=20
-Eliot Gable
-Certified Wireless Network Administrator (CWNA)
-Certified Wireless Security Professional (CWSP)
-Cisco Certified Network Associate (CCNA)
-CompTIA Security+ Certified
-CompTIA Network+ Certified
-Network and System Engineer
-Great Lakes Internet, Inc.
-112 North Howard
-Croswell, MI 48422
-(810) 679-3395
-(877) 558-8324
-=20
-Now offering Broadband Wireless Internet access in Croswell, Lexington,
-Brown City, Yale, Worth Township, and Sandusky. Call for details.
+I'm actually pretty sure that this is indeed what's causing the problem,
+bridge netfilter defers calling the IP POST_ROUTING hook until the
+packet was already transmitted over the device (and before it goes
+out the underlying device), which means when it hits the CLASSIFY
+target it already passed through the qdisc.
