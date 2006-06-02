@@ -1,18 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Concurrency issues with the iptables userspace program
-	andexitcodes
-Date: Thu, 01 Jun 2006 22:45:56 +0200
-Message-ID: <447F5204.4080505@trash.net>
-References: <1149153349.28481.15.camel@localhost.localdomain>
-	<447F1227.7050900@trash.net>
-	<Pine.LNX.4.61.0606012200260.27621@ask.diku.dk>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [RFC][0/2] New netfilter match module
+Date: Fri, 02 Jun 2006 13:46:27 +0100
+Message-ID: <44803323.5000706@ufomechanic.net>
+References: <20060531011443.95001.qmail@web50208.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jesper Dangaard Brouer <hawk@diku.dk>
-In-Reply-To: <Pine.LNX.4.61.0606012200260.27621@ask.diku.dk>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20060531011443.95001.qmail@web50208.mail.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,24 +20,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jesper Dangaard Brouer wrote:
+Alex Davis wrote:
+> The scenario:
 > 
-> On Thu, 1 Jun 2006, Patrick McHardy wrote:
+> A box is functioning as a NATting firewall with a public and a private network interface,
+> hereafter referred to as pub0 and priv0. Connected to priv0 are several boxes, one of
+> which is a web server. The public IP address is dynamic. Running an internal DNS server
+> is not an option. A dynamic DNS provider is used to keep the public host name of the firewall 
+> sync'ed with its public IP address, which is assigned to pub0.
 > 
->> Wouldn't it make more sense to just make sure you don't have iptables
->> commands running concurrently?
 > 
 > 
-> I already have implemented (f)locks in my code around the iptables
-> invocations.  But the problem can still arise when root executes the
-> iptables command from the shell. Thus, I still need to handle the
-> situation in my code, and a proper exitcode would be nice.
+> The problem:
 > 
-> In iptables-standalone.c it would be very easy to simply return the
-> errno instead of !res (which always will return 0 or 1).  Would that be
-> a feasable solution?
+> There is no reliable way to direct network traffic from the private network hosts for the public
+> IP address of the firewall to the web server, and still have traffic not destined for the public
+> address go to the correct destination. For example, one could create the following rule:
+> 
+>     iptables -t nat -A PREROUTING -p tcp --dport 80 -j DNAT --to-destination <webserver address>
+> 
+> but this directs _all_ port 80 traffic to the web server. The rule
+> 
+>     iptables -t nat -A PREROUTING -p tcp -d <public address> --dport 80 \
+>                  -j DNAT --to-destination <webserver address>
+> 
+> works fine, until the public address changes.
 
-It would probably break other scripts that check for the current
-(documented) exit codes. I guess adding a new one for this case
-is fine, other code can't really expect that no new values are
-ever added.
+
+I think a general solution like this is good.
+Specially, however, could you not solve it using ! with a rule like:
+
+iptables -t nat -A PREROUTING -p tcp -s ! 10.18.0.0/24 --dport 80 \
+         -j DNAT --to-destination <webserver address>
+
+i.e. for non locally originating traffic to port 80, use the webserver
+Of course if you had multiple local subnets you might need
+
+iptables -t nat -A PREROUTING -j try_80
+iptables -t nat -A try_80 -p tcp -s 10.18.0.0/24 -j RETURN
+iptables -t nat -A try_80 -p tcp -s 10.18.20.0/24 -j RETURN
+iptables -t nat -A try_80 -p tcp --dport 80 -j DNAT --to-destination
+<webserver address>
+
+Sam
