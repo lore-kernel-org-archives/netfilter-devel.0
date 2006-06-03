@@ -1,12 +1,19 @@
-From: Alex Davis <alex14641@yahoo.com>
-Subject: Re: [RFC][0/2] New netfilter match module
-Date: Fri, 2 Jun 2006 23:55:25 -0700 (PDT)
-Message-ID: <20060603065525.9380.qmail@web50212.mail.yahoo.com>
+From: Andy Furniss <lists@andyfurniss.entadsl.com>
+Subject: Re: Bi-directional packet classification with ACK prioritization
+Date: Sat, 03 Jun 2006 15:40:00 +0100
+Message-ID: <44819F40.8050004@andyfurniss.entadsl.com>
+References: <0633E0EDB4F25F43A2D7179CA11FAFAB255421@xavier.staff.greatlakes.net>
+Reply-To: lists@andyfurniss.entadsl.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: lartc@mailman.ds9a.nl,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	netfilter@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "Eliot, Wireless and Server Administrator,
+	Great Lakes Internet" <support8@greatlakes.net>
+In-Reply-To: <0633E0EDB4F25F43A2D7179CA11FAFAB255421@xavier.staff.greatlakes.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,27 +25,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-At some point in the not-too-distant past, Amin Azez wrote:
->Specially, however, could you not solve it using ! with a rule like:
->
->iptables -t nat -A PREROUTING -p tcp -s ! 10.18.0.0/24 --dport 80 \
->         -j DNAT --to-destination <webserver address>
-No traffic from the private network will get routed with this rule, which is not
-what I want.
+Eliot, Wireless and Server Administrator, Great Lakes Internet wrote:
 
+> This problem will be true for generally classified traffic and P2P
+> traffic. I would use tc filters in one direction if I could possibly
+> distinguish P2P traffic from other types of traffic with them.
 
->iptables -t nat -A PREROUTING -j try_80
->iptables -t nat -A try_80 -p tcp -s 10.18.0.0/24 -j RETURN
->iptables -t nat -A try_80 -p tcp -s 10.18.20.0/24 -j RETURN
->iptables -t nat -A try_80 -p tcp --dport 80 -j DNAT --to-destination <webserver address>
-Same as above.
+You can match mark with u32 rather than fw - you then get to use masks 
+and can and it with other matches - like MAC.
 
+You can also and/or marks with netfilter.
 
--Alex
-
-I code, therefore I am
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Andy.
