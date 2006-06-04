@@ -1,17 +1,12 @@
-From: "Eliot, Wireless and Server Administrator,
-	Great Lakes Internet" <support8@greatlakes.net>
-Subject: RE: [LARTC] iptables CLASSIFY and MARK not working?
-Date: Sat, 3 Jun 2006 12:43:08 -0400
-Message-ID: <0633E0EDB4F25F43A2D7179CA11FAFAB255436@xavier.staff.greatlakes.net>
+From: Simon Lodal <simonl@parknet.dk>
+Subject: [PATCH] Named realm - updated
+Date: Sun, 4 Jun 2006 21:35:49 +0200
+Message-ID: <200606042135.49361.simonl@parknet.dk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Cc: lartc@mailman.ds9a.nl,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_VYzgESk5LpGJN9B"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: "Patrick McHardy" <kaber@trash.net>
+To: Netfilter Developer <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,83 +18,267 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-> -----Original Message-----
-> From: Patrick McHardy [mailto:kaber@trash.net]
-> Sent: Thursday, June 01, 2006 4:02 PM
-> To: Eliot, Wireless and Server Administrator, Great Lakes Internet
-> Cc: lartc@mailman.ds9a.nl; Netfilter Development Mailinglist
-> Subject: Re: [LARTC] iptables CLASSIFY and MARK not working?
->=20
-> Eliot, Wireless and Server Administrator, Great Lakes Internet wrote:
-> > Bridged iptables (ebtables) is not enabled in the kernel and I
-cannot
-> > seem to find a variable "bridge-nf-call-iptables" to set with
-sysctl:
-> >
-> > wireless-r1 linux # sysctl -w bridge-nf-call-iptables=3D0
-> > error: "bridge-nf-call-iptables" is an unknown key
-> >
-> > There is also no /proc/sys/net/*/bridge anything. I assume that
-means
-> > this is not something I need to worry about?
->=20
-> Not sure yet, the problem would be created by CONFIG_BRIDGE_NETFILTER,
-> not ebtables itself. Check for
-> "/proc/sys/net/bridge/bridge-nf-call-iptables".
->=20
-> I'm actually pretty sure that this is indeed what's causing the
-problem,
-> bridge netfilter defers calling the IP POST_ROUTING hook until the
-> packet was already transmitted over the device (and before it goes
-> out the underlying device), which means when it hits the CLASSIFY
-> target it already passed through the qdisc.
+--Boundary-00=_VYzgESk5LpGJN9B
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Eh. What a pain. If I disable this, then ebtables will not call iptables
-after the ebtables are finished running. I figured out that I could use
-ebtables to match the destination MAC address like I needed for the
-other problem I posted (See "Bi-directional packet classification with
-ACK prioritization" thread for details). However, in order for that to
-work, I have to have bridge-nf-call-iptables enabled. Essentially, I can
-use the ebtables to flag the packets going to a destination MAC address
-and then inside the iptables POSTROUTING mangle chain, I can pick up
-that flag and reflag packets based on their Layer 3 and 4 information.
-But, then I run right back into the problem of this thread in that the
-packets are going through the TC qdiscs and classes before they hit the
-POSTROUTING mangle chain.=20
 
-Now, what confuses me is that I have this nice big printout of the order
-that the packets traverse ebtables, iptables, and tc which was made by
-Josh over at ImageStream (see
-http://ebtables.sourceforge.net/br_fw_ia/PacketFlow.png for the image)
-which clearly shows that it should go through ebtables POSTROUTING nat,
-then iptables POSTROUTING mangle, then iptables POSTROUTING nat, then TC
-qdisc classification, then TC qdisc deque. Also, after reading
-http://benix.tamu.edu/unix/linux-bridge-ebtables.htm, it seems pretty
-clear that the image depiction should be correct. But, since this is not
-happening, either the code has changed or both those sources are just
-wrong.=20
+Make the realm match accept named realms, defined in /etc/iproute2/rt_realms.
 
-Do you happen to have any idea how I can get this straightened out? Do
-we need to rewrite part of the code to make this work correctly? If that
-is what it takes, I would be more than happy to look into doing that.=20
+First sent 2006-05-21, improved since then:
+- Only load rt_realms once, keep in memory.
+- Output realm by name if it was originally specified that way, except if 
+iptables -n.
 
-Maybe we can write a --destination-mac option for the iptables MAC
-matching module? Is that information available to iptables in the
-POSTROUTING mangle or nat chains? If not, would it be at all possible to
-make it available? That would solve this problem very nicely.
 
-Eliot Gable
-Certified Wireless Network Administrator (CWNA)
-Certified Wireless Security Professional (CWSP)
-Cisco Certified Network Associate (CCNA)
-CompTIA Security+ Certified
-CompTIA Network+ Certified
-Network and System Engineer
-Great Lakes Internet, Inc.
-112 North Howard
-Croswell, MI 48422
-(810) 679-3395
-(877) 558-8324
-=20
-Now offering Broadband Wireless Internet access in Croswell, Lexington,
-Brown City, Yale, Worth Township, and Sandusky. Call for details.
+Simon
+
+
+--Boundary-00=_VYzgESk5LpGJN9B
+Content-Type: text/x-diff; charset="us-ascii"; name="realm_named_linux.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="realm_named_linux.diff"
+
+Index: linux-2.6/include/linux/netfilter/xt_realm.h
+===================================================================
+--- linux-2.6/include/linux/netfilter/xt_realm.h	(revision 44)
++++ linux-2.6/include/linux/netfilter/xt_realm.h	(revision 45)
+@@ -5,6 +5,7 @@
+ 	u_int32_t id;
+ 	u_int32_t mask;
+ 	u_int8_t invert;
++	u_int8_t is_named_realm;
+ };
+ 
+ #endif /* _XT_REALM_H */
+
+--Boundary-00=_VYzgESk5LpGJN9B
+Content-Type: text/x-diff; charset="us-ascii"; name="realm_named_iptables.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="realm_named_iptables.diff"
+
+diff -ruN iptables-1.3.5.base/extensions/libipt_realm.c iptables-1.3.5/extensions/libipt_realm.c
+--- iptables-1.3.5.base/extensions/libipt_realm.c	2006-06-04 01:49:33.000000000 +0200
++++ iptables-1.3.5/extensions/libipt_realm.c	2006-06-04 01:50:06.000000000 +0200
+@@ -3,6 +3,8 @@
+ #include <netdb.h>
+ #include <string.h>
+ #include <stdlib.h>
++#include <errno.h>
++#include <ctype.h>
+ #include <getopt.h>
+ #if defined(__GLIBC__) && __GLIBC__ == 2
+ #include <net/ethernet.h>
+@@ -28,6 +30,116 @@
+ 	{0}
+ };
+ 
++struct realmname { 
++	int	id;
++	char*	name;
++	int	len;
++	struct realmname* next;
++};
++
++/* array of realms from /etc/iproute2/rt_realms */
++static struct realmname *realms = NULL;
++/* 1 if loading failed */
++static int rdberr = 0;
++
++
++void load_realms()
++{
++	const char* rfnm = "/etc/iproute2/rt_realms";
++	char buf[512];
++	FILE *fil;
++	char *cur, *nxt;
++	int id;
++	struct realmname *oldnm = NULL, *newnm = NULL;
++
++	fil = fopen(rfnm, "r");
++	if (!fil) {
++		rdberr = 1;
++		return;
++	}
++
++	while (fgets(buf, sizeof(buf), fil)) {
++		cur = buf;
++		while ((*cur == ' ') || (*cur == '\t')) cur++;
++		if ((*cur == '#') || (*cur == '\n') || (*cur == 0))
++			continue;
++
++		/* iproute2 allows hex and dec format */
++		errno = 0;
++		id = strtoul(cur, &nxt, strncmp(cur, "0x", 2) ? 10 : 16);
++		if ((nxt == cur) || errno) {
++			continue;
++		}
++
++		/* same boundaries as in iproute2 */
++		if (id < 0 || id > 256) continue;
++		cur = nxt;
++
++		if (!isspace(*cur)) continue;
++		while ((*cur == ' ') || (*cur == '\t')) cur++;
++		if ((*cur == '#') || (*cur == '\n') || (*cur == 0))
++			continue;
++		nxt = cur;
++		while ((*nxt != 0) && !isspace(*nxt)) nxt++;
++		if (nxt == cur) continue;
++
++		/* found valid data */
++		newnm = (struct realmname*)malloc(sizeof(struct realmname));
++		if (NULL == newnm) {
++			perror("libipt_realm: malloc failed");
++			exit(1);
++		}
++		newnm->id = id;
++		newnm->len = nxt - cur;
++		newnm->name = (char*)malloc(newnm->len + 1);
++		if (NULL == newnm->name) {
++			perror("libipt_realm: malloc failed");
++			exit(1);
++		}
++		strncpy(newnm->name, cur, newnm->len);
++		newnm->name[newnm->len] = 0;
++		newnm->next = NULL;
++
++		if (oldnm) {
++			oldnm->next = newnm;
++		} else {
++			realms = newnm;
++		}
++		oldnm = newnm;
++	}
++
++	fclose(fil);
++}
++
++/* get realm id for name, -1 if error/not found */
++int realm_name2id(const char* name)
++{
++	if ((NULL == realms) && (0 == rdberr)) load_realms();
++	if (NULL == realms) return -1;
++
++	struct realmname* cur = realms;
++	while (cur) {
++		if (!strncmp(name, cur->name, cur->len + 1)) return cur->id;
++		cur = cur->next;
++	}
++	return -1;
++}
++
++/* get realm name for id, NULL if error/not found */
++const char* realm_id2name(int id)
++{
++	if ((NULL == realms) && (0 == rdberr)) load_realms();
++	if (NULL == realms) return NULL;
++
++	struct realmname* cur = realms;
++	while (cur) {
++		if (id == cur->id) return cur->name;
++		cur = cur->next;
++	}
++	return NULL;
++}
++
++
+ /* Function which parses command options; returns true if it
+    ate an option */
+ static int
+@@ -42,14 +154,26 @@
+ 		char *end;
+ 	case '1':
+ 		check_inverse(argv[optind-1], &invert, &optind, 0);
+-		optarg = argv[optind-1];
++		end = optarg = argv[optind-1];
+ 		realminfo->id = strtoul(optarg, &end, 0);
+-		if (*end == '/') {
+-			realminfo->mask = strtoul(end+1, &end, 0);
+-		} else
++		if ((end != optarg) && (('/' == *end) || ('\0' == *end))) {
++			if (*end == '/') {
++				realminfo->mask = strtoul(end+1, &end, 0);
++			} else
++				realminfo->mask = 0xffffffff;
++			if (*end != '\0' || end == optarg)
++				exit_error(PARAMETER_PROBLEM,
++					   "Bad realm value `%s'", optarg);
++		} else {
++			int id = realm_name2id(optarg);
++			if (-1 == id) {
++				exit_error(PARAMETER_PROBLEM,
++					   "Realm `%s' not found", optarg);
++			}
++			realminfo->id = (u_int32_t)id;
+ 			realminfo->mask = 0xffffffff;
+-		if (*end != '\0' || end == optarg)
+-			exit_error(PARAMETER_PROBLEM, "Bad realm value `%s'", optarg);
++			realminfo->is_named_realm = 1;
++		}
+ 		if (invert)
+ 			realminfo->invert = 1;
+ 		*flags = 1;
+@@ -62,12 +186,22 @@
+ }
+ 
+ static void
+-print_realm(unsigned long id, unsigned long mask)
++print_realm(unsigned long id, unsigned long mask, int is_named)
+ {
++	const char* name = NULL;
++
+ 	if (mask != 0xffffffff)
+ 		printf("0x%lx/0x%lx ", id, mask);
+-	else
+-		printf("0x%lx ", id);
++	else {
++		if (1 == is_named) {
++			name = realm_id2name(id);
++		}
++		if (name) {
++			printf("%s ", name);
++		} else {
++			printf("0x%lx ", id);
++		}
++	}
+ }
+ 
+ /* Prints out the matchinfo. */
+@@ -82,7 +216,7 @@
+ 		printf("! ");
+ 
+ 	printf("realm ");
+-	print_realm(ri->id, ri->mask);
++	print_realm(ri->id, ri->mask, numeric ? 0 : ri->is_named_realm);
+ }
+ 
+ 
+@@ -96,7 +230,7 @@
+ 		printf("! ");
+ 
+ 	printf("--realm ");
+-	print_realm(ri->id, ri->mask);
++	print_realm(ri->id, ri->mask, ri->is_named_realm);
+ }
+ 
+ /* Final check; must have specified --mark. */
+diff -ruN iptables-1.3.5.base/extensions/libipt_realm.man iptables-1.3.5/extensions/libipt_realm.man
+--- iptables-1.3.5.base/extensions/libipt_realm.man	2004-10-10 11:56:27.000000000 +0200
++++ iptables-1.3.5/extensions/libipt_realm.man	2006-06-04 01:50:15.000000000 +0200
+@@ -1,5 +1,7 @@
+ This matches the routing realm.  Routing realms are used in complex routing
+ setups involving dynamic routing protocols like BGP.
+ .TP
+-.BI "--realm " "[!]" "value[/mask]"
+-Matches a given realm number (and optionally mask).
++.BI "--realm " "[!] " "value[/mask]"
++Matches a given realm number (and optionally mask). If not a number, value
++can be a named realm from /etc/iproute2/rt_realms (mask can not be used in
++that case).
+
+--Boundary-00=_VYzgESk5LpGJN9B--
