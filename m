@@ -1,12 +1,12 @@
-From: Simon Lodal <simonl@parknet.dk>
-Subject: [PATCH] Named realm - updated
-Date: Sun, 4 Jun 2006 21:35:49 +0200
-Message-ID: <200606042135.49361.simonl@parknet.dk>
+From: Massimiliano Hofer <max@nucleus.it>
+Subject: [PATCH] entry_data
+Date: Mon, 5 Jun 2006 00:29:08 +0200
+Message-ID: <200606050029.08602.max@nucleus.it>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_VYzgESk5LpGJN9B"
+  boundary="Boundary-00=_061gEZInnvw66IK"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Developer <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,267 +18,1167 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_VYzgESk5LpGJN9B
+--Boundary-00=_061gEZInnvw66IK
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
+Hi,
+here is my proposed patch for an API change that supports entry specific data.
 
-Make the realm match accept named realms, defined in /etc/iproute2/rt_realms.
+As explained in my previous posts the purpose of this patch is to give matches 
+the opportunity to store entry specific data. Several matches already achieve 
+this reserving some space in the data fields, but these come from userspace 
+and I don't think it is the Right Way(TM) to do it.
 
-First sent 2006-05-21, improved since then:
-- Only load rt_realms once, keep in memory.
-- Output realm by name if it was originally specified that way, except if 
-iptables -n.
+How it works:
+- xt_entry_match.u.kernel now includes void *entry_data;
+- (*checkentry)() now receives void **entry_data that points to the above 
+mentioned field and has the ability to write to it;
+- (*match)() and (*destroy)() are fed back the value set by (*checkentry)().
 
+I did it just for matches. If anyone feels that it could be useful for 
+targets, plese let me know.
 
-Simon
+I split it into 2 patches. One lays the infrastructure (this is the real patch 
+and is really short), while the other changes every match in the mainline 
+kernel according to the new API.
 
+Feel free to criticize and suggest improvements.
 
---Boundary-00=_VYzgESk5LpGJN9B
-Content-Type: text/x-diff; charset="us-ascii"; name="realm_named_linux.diff"
+-- 
+Bye,
+   Massimiliano Hofer
+
+--Boundary-00=_061gEZInnvw66IK
+Content-Type: text/x-diff; charset="us-ascii";
+	name="2.6.17-rc5-entry_data_core.patch"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="realm_named_linux.diff"
+Content-Disposition: inline;
+	filename="2.6.17-rc5-entry_data_core.patch"
 
-Index: linux-2.6/include/linux/netfilter/xt_realm.h
-===================================================================
---- linux-2.6/include/linux/netfilter/xt_realm.h	(revision 44)
-+++ linux-2.6/include/linux/netfilter/xt_realm.h	(revision 45)
-@@ -5,6 +5,7 @@
- 	u_int32_t id;
- 	u_int32_t mask;
- 	u_int8_t invert;
-+	u_int8_t is_named_realm;
- };
+diff -Nru linux-2.6.17-rc5/include/linux/netfilter/x_tables.h linux-2.6.17-rc5.entry_data_core/include/linux/netfilter/x_tables.h
+--- linux-2.6.17-rc5/include/linux/netfilter/x_tables.h	2006-06-04 21:30:58.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_core/include/linux/netfilter/x_tables.h	2006-06-04 21:34:03.000000000 +0200
+@@ -20,6 +20,7 @@
  
- #endif /* _XT_REALM_H */
+ 			/* Used inside the kernel */
+ 			struct xt_match *match;
++			void *entry_data;
+ 		} kernel;
+ 
+ 		/* Total length */
+@@ -166,7 +167,8 @@
+ 		     const void *matchinfo,
+ 		     int offset,
+ 		     unsigned int protoff,
+-		     int *hotdrop);
++		     int *hotdrop,
++		     void *entry_data);
+ 
+ 	/* Called when user tries to insert an entry of this type. */
+ 	/* Should return true or false. */
+@@ -175,11 +177,12 @@
+ 			  const struct xt_match *match,
+ 			  void *matchinfo,
+ 			  unsigned int matchinfosize,
+-			  unsigned int hook_mask);
++			  unsigned int hook_mask,
++			  void **entry_data);
+ 
+ 	/* Called when entry of this type deleted. */
+ 	void (*destroy)(const struct xt_match *match, void *matchinfo,
+-			unsigned int matchinfosize);
++			unsigned int matchinfosize, void *entry_data);
+ 
+ 	/* Called when userspace align differs from kernel space one */
+ 	int (*compat)(void *match, void **dstptr, int *size, int convert);
+diff -Nru linux-2.6.17-rc5/net/ipv4/netfilter/ip_tables.c linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ip_tables.c
+--- linux-2.6.17-rc5/net/ipv4/netfilter/ip_tables.c	2006-06-04 21:31:12.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ip_tables.c	2006-06-04 21:34:03.000000000 +0200
+@@ -200,7 +200,8 @@
+ {
+ 	/* Stop iteration if it doesn't match */
+ 	if (!m->u.kernel.match->match(skb, in, out, m->u.kernel.match, m->data,
+-				      offset, skb->nh.iph->ihl*4, hotdrop))
++				      offset, skb->nh.iph->ihl*4, hotdrop,
++				      m->u.kernel.entry_data))
+ 		return 1;
+ 	else
+ 		return 0;
+@@ -468,7 +469,8 @@
+ 
+ 	if (m->u.kernel.match->destroy)
+ 		m->u.kernel.match->destroy(m->u.kernel.match, m->data,
+-					   m->u.match_size - sizeof(*m));
++					   m->u.match_size - sizeof(*m),
++					   m->u.kernel.entry_data);
+ 	module_put(m->u.kernel.match->me);
+ 	return 0;
+ }
+@@ -519,10 +521,12 @@
+ 	if (ret)
+ 		goto err;
+ 
++	m->u.kernel.entry_data=NULL;
+ 	if (m->u.kernel.match->checkentry
+ 	    && !m->u.kernel.match->checkentry(name, ip, match, m->data,
+ 					      m->u.match_size - sizeof(*m),
+-					      hookmask)) {
++					      hookmask,
++					      &m->u.kernel.entry_data)) {
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 m->u.kernel.match->name);
+ 		ret = -EINVAL;
+@@ -2152,7 +2156,8 @@
+ 	   const void *matchinfo,
+ 	   int offset,
+ 	   unsigned int protoff,
+-	   int *hotdrop)
++	   int *hotdrop,
++	   void *entry_data)
+ {
+ 	struct icmphdr _icmph, *ic;
+ 	const struct ipt_icmp *icmpinfo = matchinfo;
+@@ -2185,7 +2190,8 @@
+ 	   const struct xt_match *match,
+ 	   void *matchinfo,
+ 	   unsigned int matchsize,
+-	   unsigned int hook_mask)
++	   unsigned int hook_mask,
++	   void **entry_data)
+ {
+ 	const struct ipt_icmp *icmpinfo = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5/net/ipv6/netfilter/ip6_tables.c linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6_tables.c
+--- linux-2.6.17-rc5/net/ipv6/netfilter/ip6_tables.c	2006-06-04 21:31:13.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6_tables.c	2006-06-04 21:34:03.000000000 +0200
+@@ -240,7 +240,8 @@
+ {
+ 	/* Stop iteration if it doesn't match */
+ 	if (!m->u.kernel.match->match(skb, in, out, m->u.kernel.match, m->data,
+-				      offset, protoff, hotdrop))
++				      offset, protoff, hotdrop,
++				      m->u.kernel.entry_data))
+ 		return 1;
+ 	else
+ 		return 0;
+@@ -508,7 +509,8 @@
+ 
+ 	if (m->u.kernel.match->destroy)
+ 		m->u.kernel.match->destroy(m->u.kernel.match, m->data,
+-					   m->u.match_size - sizeof(*m));
++					   m->u.match_size - sizeof(*m),
++					   m->u.kernel.entry_data);
+ 	module_put(m->u.kernel.match->me);
+ 	return 0;
+ }
+@@ -559,10 +561,12 @@
+ 	if (ret)
+ 		goto err;
+ 
++	m->u.kernel.entry_data=NULL;
+ 	if (m->u.kernel.match->checkentry
+ 	    && !m->u.kernel.match->checkentry(name, ipv6, match,  m->data,
+ 					      m->u.match_size - sizeof(*m),
+-					      hookmask)) {
++					      hookmask,
++					      &m->u.kernel.entry_data)) {
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 m->u.kernel.match->name);
+ 		ret = -EINVAL;
+@@ -1320,7 +1324,8 @@
+ 	   const void *matchinfo,
+ 	   int offset,
+ 	   unsigned int protoff,
+-	   int *hotdrop)
++	   int *hotdrop,
++	   void *entry_data)
+ {
+ 	struct icmp6hdr _icmp, *ic;
+ 	const struct ip6t_icmp *icmpinfo = matchinfo;
+@@ -1352,7 +1357,8 @@
+ 	   const struct xt_match *match,
+ 	   void *matchinfo,
+ 	   unsigned int matchsize,
+-	   unsigned int hook_mask)
++	   unsigned int hook_mask,
++	   void **entry_data)
+ {
+ 	const struct ip6t_icmp *icmpinfo = matchinfo;
+ 
 
---Boundary-00=_VYzgESk5LpGJN9B
-Content-Type: text/x-diff; charset="us-ascii"; name="realm_named_iptables.diff"
+--Boundary-00=_061gEZInnvw66IK
+Content-Type: text/x-diff; charset="us-ascii";
+	name="2.6.17-rc5-entry_data_matches.patch"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="realm_named_iptables.diff"
+Content-Disposition: inline;
+	filename="2.6.17-rc5-entry_data_matches.patch"
 
-diff -ruN iptables-1.3.5.base/extensions/libipt_realm.c iptables-1.3.5/extensions/libipt_realm.c
---- iptables-1.3.5.base/extensions/libipt_realm.c	2006-06-04 01:49:33.000000000 +0200
-+++ iptables-1.3.5/extensions/libipt_realm.c	2006-06-04 01:50:06.000000000 +0200
-@@ -3,6 +3,8 @@
- #include <netdb.h>
- #include <string.h>
- #include <stdlib.h>
-+#include <errno.h>
-+#include <ctype.h>
- #include <getopt.h>
- #if defined(__GLIBC__) && __GLIBC__ == 2
- #include <net/ethernet.h>
-@@ -28,6 +30,116 @@
- 	{0}
- };
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_addrtype.c linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_addrtype.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_addrtype.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_addrtype.c	2006-06-04 20:52:42.000000000 +0200
+@@ -30,7 +30,8 @@
+ static int match(const struct sk_buff *skb,
+ 		 const struct net_device *in, const struct net_device *out,
+ 		 const struct xt_match *match, const void *matchinfo,
+-		 int offset, unsigned int protoff, int *hotdrop)
++		 int offset, unsigned int protoff, int *hotdrop,
++		 void *entry_data)
+ {
+ 	const struct ipt_addrtype_info *info = matchinfo;
+ 	const struct iphdr *iph = skb->nh.iph;
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_ah.c linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_ah.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_ah.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_ah.c	2006-06-04 20:52:42.000000000 +0200
+@@ -43,7 +43,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	struct ip_auth_hdr _ahdr, *ah;
+ 	const struct ipt_ah *ahinfo = matchinfo;
+@@ -75,7 +76,8 @@
+ 	   const struct xt_match *match,
+ 	   void *matchinfo,
+ 	   unsigned int matchinfosize,
+-	   unsigned int hook_mask)
++	   unsigned int hook_mask,
++	   void **entry_data)
+ {
+ 	const struct ipt_ah *ahinfo = matchinfo;
  
-+struct realmname { 
-+	int	id;
-+	char*	name;
-+	int	len;
-+	struct realmname* next;
-+};
-+
-+/* array of realms from /etc/iproute2/rt_realms */
-+static struct realmname *realms = NULL;
-+/* 1 if loading failed */
-+static int rdberr = 0;
-+
-+
-+void load_realms()
-+{
-+	const char* rfnm = "/etc/iproute2/rt_realms";
-+	char buf[512];
-+	FILE *fil;
-+	char *cur, *nxt;
-+	int id;
-+	struct realmname *oldnm = NULL, *newnm = NULL;
-+
-+	fil = fopen(rfnm, "r");
-+	if (!fil) {
-+		rdberr = 1;
-+		return;
-+	}
-+
-+	while (fgets(buf, sizeof(buf), fil)) {
-+		cur = buf;
-+		while ((*cur == ' ') || (*cur == '\t')) cur++;
-+		if ((*cur == '#') || (*cur == '\n') || (*cur == 0))
-+			continue;
-+
-+		/* iproute2 allows hex and dec format */
-+		errno = 0;
-+		id = strtoul(cur, &nxt, strncmp(cur, "0x", 2) ? 10 : 16);
-+		if ((nxt == cur) || errno) {
-+			continue;
-+		}
-+
-+		/* same boundaries as in iproute2 */
-+		if (id < 0 || id > 256) continue;
-+		cur = nxt;
-+
-+		if (!isspace(*cur)) continue;
-+		while ((*cur == ' ') || (*cur == '\t')) cur++;
-+		if ((*cur == '#') || (*cur == '\n') || (*cur == 0))
-+			continue;
-+		nxt = cur;
-+		while ((*nxt != 0) && !isspace(*nxt)) nxt++;
-+		if (nxt == cur) continue;
-+
-+		/* found valid data */
-+		newnm = (struct realmname*)malloc(sizeof(struct realmname));
-+		if (NULL == newnm) {
-+			perror("libipt_realm: malloc failed");
-+			exit(1);
-+		}
-+		newnm->id = id;
-+		newnm->len = nxt - cur;
-+		newnm->name = (char*)malloc(newnm->len + 1);
-+		if (NULL == newnm->name) {
-+			perror("libipt_realm: malloc failed");
-+			exit(1);
-+		}
-+		strncpy(newnm->name, cur, newnm->len);
-+		newnm->name[newnm->len] = 0;
-+		newnm->next = NULL;
-+
-+		if (oldnm) {
-+			oldnm->next = newnm;
-+		} else {
-+			realms = newnm;
-+		}
-+		oldnm = newnm;
-+	}
-+
-+	fclose(fil);
-+}
-+
-+/* get realm id for name, -1 if error/not found */
-+int realm_name2id(const char* name)
-+{
-+	if ((NULL == realms) && (0 == rdberr)) load_realms();
-+	if (NULL == realms) return -1;
-+
-+	struct realmname* cur = realms;
-+	while (cur) {
-+		if (!strncmp(name, cur->name, cur->len + 1)) return cur->id;
-+		cur = cur->next;
-+	}
-+	return -1;
-+}
-+
-+/* get realm name for id, NULL if error/not found */
-+const char* realm_id2name(int id)
-+{
-+	if ((NULL == realms) && (0 == rdberr)) load_realms();
-+	if (NULL == realms) return NULL;
-+
-+	struct realmname* cur = realms;
-+	while (cur) {
-+		if (id == cur->id) return cur->name;
-+		cur = cur->next;
-+	}
-+	return NULL;
-+}
-+
-+
- /* Function which parses command options; returns true if it
-    ate an option */
- static int
-@@ -42,14 +154,26 @@
- 		char *end;
- 	case '1':
- 		check_inverse(argv[optind-1], &invert, &optind, 0);
--		optarg = argv[optind-1];
-+		end = optarg = argv[optind-1];
- 		realminfo->id = strtoul(optarg, &end, 0);
--		if (*end == '/') {
--			realminfo->mask = strtoul(end+1, &end, 0);
--		} else
-+		if ((end != optarg) && (('/' == *end) || ('\0' == *end))) {
-+			if (*end == '/') {
-+				realminfo->mask = strtoul(end+1, &end, 0);
-+			} else
-+				realminfo->mask = 0xffffffff;
-+			if (*end != '\0' || end == optarg)
-+				exit_error(PARAMETER_PROBLEM,
-+					   "Bad realm value `%s'", optarg);
-+		} else {
-+			int id = realm_name2id(optarg);
-+			if (-1 == id) {
-+				exit_error(PARAMETER_PROBLEM,
-+					   "Realm `%s' not found", optarg);
-+			}
-+			realminfo->id = (u_int32_t)id;
- 			realminfo->mask = 0xffffffff;
--		if (*end != '\0' || end == optarg)
--			exit_error(PARAMETER_PROBLEM, "Bad realm value `%s'", optarg);
-+			realminfo->is_named_realm = 1;
-+		}
- 		if (invert)
- 			realminfo->invert = 1;
- 		*flags = 1;
-@@ -62,12 +186,22 @@
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_dscp.c linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_dscp.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_dscp.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_dscp.c	2006-06-04 20:52:42.000000000 +0200
+@@ -22,7 +22,8 @@
+ static int match(const struct sk_buff *skb,
+ 		 const struct net_device *in, const struct net_device *out,
+ 		 const struct xt_match *match, const void *matchinfo,
+-		 int offset, unsigned int protoff, int *hotdrop)
++		 int offset, unsigned int protoff, int *hotdrop,
++		 void *entry_data)
+ {
+ 	const struct ipt_dscp_info *info = matchinfo;
+ 	const struct iphdr *iph = skb->nh.iph;
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_ecn.c linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_ecn.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_ecn.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_ecn.c	2006-06-04 20:52:42.000000000 +0200
+@@ -68,7 +68,8 @@
+ static int match(const struct sk_buff *skb,
+ 		 const struct net_device *in, const struct net_device *out,
+ 		 const struct xt_match *match, const void *matchinfo,
+-		 int offset, unsigned int protoff, int *hotdrop)
++		 int offset, unsigned int protoff, int *hotdrop,
++		 void *entry_data)
+ {
+ 	const struct ipt_ecn_info *info = matchinfo;
+ 
+@@ -89,7 +90,7 @@
+ static int checkentry(const char *tablename, const void *ip_void,
+ 		      const struct xt_match *match,
+ 		      void *matchinfo, unsigned int matchsize,
+-		      unsigned int hook_mask)
++		      unsigned int hook_mask, void **entry_data)
+ {
+ 	const struct ipt_ecn_info *info = matchinfo;
+ 	const struct ipt_ip *ip = ip_void;
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_hashlimit.c linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_hashlimit.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_hashlimit.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_hashlimit.c	2006-06-04 20:52:42.000000000 +0200
+@@ -432,7 +432,8 @@
+ 		const void *matchinfo,
+ 		int offset,
+ 		unsigned int protoff,
+-		int *hotdrop)
++		int *hotdrop,
++		void *entry_data)
+ {
+ 	struct ipt_hashlimit_info *r = 
+ 		((struct ipt_hashlimit_info *)matchinfo)->u.master;
+@@ -511,7 +512,8 @@
+ 		     const struct xt_match *match,
+ 		     void *matchinfo,
+ 		     unsigned int matchsize,
+-		     unsigned int hook_mask)
++		     unsigned int hook_mask,
++		     void **entry_data)
+ {
+ 	struct ipt_hashlimit_info *r = matchinfo;
+ 
+@@ -559,7 +561,7 @@
+ 
+ static void
+ hashlimit_destroy(const struct xt_match *match, void *matchinfo,
+-		  unsigned int matchsize)
++		  unsigned int matchsize, void *entry_data)
+ {
+ 	struct ipt_hashlimit_info *r = (struct ipt_hashlimit_info *) matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_iprange.c linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_iprange.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_iprange.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_iprange.c	2006-06-04 20:52:42.000000000 +0200
+@@ -29,7 +29,7 @@
+       const struct net_device *out,
+       const struct xt_match *match,
+       const void *matchinfo,
+-      int offset, unsigned int protoff, int *hotdrop)
++      int offset, unsigned int protoff, int *hotdrop, void *entry_data)
+ {
+ 	const struct ipt_iprange_info *info = matchinfo;
+ 	const struct iphdr *iph = skb->nh.iph;
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_owner.c linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_owner.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_owner.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_owner.c	2006-06-04 20:52:42.000000000 +0200
+@@ -29,7 +29,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct ipt_owner_info *info = matchinfo;
+ 
+@@ -57,7 +58,8 @@
+ 	   const struct xt_match *match,
+            void *matchinfo,
+            unsigned int matchsize,
+-           unsigned int hook_mask)
++           unsigned int hook_mask,
++           void **entry_data)
+ {
+ 	const struct ipt_owner_info *info = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_recent.c linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_recent.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_recent.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_recent.c	2006-06-04 20:52:42.000000000 +0200
+@@ -106,7 +106,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop);
++      int *hotdrop,
++      void *entry_data);
+ 
+ /* Function to hash a given address into the hash table of table_size size */
+ static int hash_func(unsigned int addr, int table_size)
+@@ -319,7 +320,7 @@
+ 	skb->nh.iph->daddr = 0;
+ 	/* Clear ttl since we have no way of knowing it */
+ 	skb->nh.iph->ttl = 0;
+-	match(skb,NULL,NULL,NULL,info,0,0,NULL);
++	match(skb,NULL,NULL,NULL,info,0,0,NULL,NULL);
+ 
+ 	kfree(skb->nh.iph);
+ out_free_skb:
+@@ -361,7 +362,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	int pkt_count, hits_found, ans;
+ 	unsigned long now;
+@@ -662,7 +664,8 @@
+ 	   const struct xt_match *match,
+            void *matchinfo,
+            unsigned int matchsize,
+-           unsigned int hook_mask)
++           unsigned int hook_mask,
++           void **entry_data)
+ {
+ 	int flag = 0, c;
+ 	unsigned long *hold;
+@@ -872,7 +875,8 @@
+  * up its memory.
+  */
+ static void
+-destroy(const struct xt_match *match, void *matchinfo, unsigned int matchsize)
++destroy(const struct xt_match *match, void *matchinfo,
++	unsigned int matchsize, void *entry_data)
+ {
+ 	const struct ipt_recent_info *info = matchinfo;
+ 	struct recent_ip_tables *curr_table, *last_table;
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_tos.c linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_tos.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_tos.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_tos.c	2006-06-04 20:52:42.000000000 +0200
+@@ -25,7 +25,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct ipt_tos_info *info = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_ttl.c linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_ttl.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv4/netfilter/ipt_ttl.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv4/netfilter/ipt_ttl.c	2006-06-04 20:52:42.000000000 +0200
+@@ -22,7 +22,8 @@
+ static int match(const struct sk_buff *skb,
+ 		 const struct net_device *in, const struct net_device *out,
+ 		 const struct xt_match *match, const void *matchinfo,
+-		 int offset, unsigned int protoff, int *hotdrop)
++		 int offset, unsigned int protoff, int *hotdrop,
++		 void *entry_data)
+ {
+ 	const struct ipt_ttl_info *info = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_ah.c linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_ah.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_ah.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_ah.c	2006-06-04 20:52:42.000000000 +0200
+@@ -48,7 +48,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	struct ip_auth_hdr *ah, _ah;
+ 	const struct ip6t_ah *ahinfo = matchinfo;
+@@ -103,7 +104,8 @@
+ 	  const struct xt_match *match,
+           void *matchinfo,
+           unsigned int matchinfosize,
+-          unsigned int hook_mask)
++          unsigned int hook_mask,
++          void **entry_data)
+ {
+ 	const struct ip6t_ah *ahinfo = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_dst.c linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_dst.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_dst.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_dst.c	2006-06-04 20:52:42.000000000 +0200
+@@ -59,7 +59,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	struct ipv6_opt_hdr _optsh, *oh;
+ 	const struct ip6t_opts *optinfo = matchinfo;
+@@ -183,7 +184,8 @@
+ 	   const struct xt_match *match,
+ 	   void *matchinfo,
+ 	   unsigned int matchinfosize,
+-	   unsigned int hook_mask)
++	   unsigned int hook_mask,
++	   void **entry_data)
+ {
+ 	const struct ip6t_opts *optsinfo = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_eui64.c linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_eui64.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_eui64.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_eui64.c	2006-06-04 20:52:42.000000000 +0200
+@@ -26,7 +26,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	unsigned char eui64[8];
+ 	int i = 0;
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_frag.c linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_frag.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_frag.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_frag.c	2006-06-04 20:52:42.000000000 +0200
+@@ -47,7 +47,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	struct frag_hdr _frag, *fh;
+ 	const struct ip6t_frag *fraginfo = matchinfo;
+@@ -120,7 +121,8 @@
+ 	   const struct xt_match *match,
+ 	   void *matchinfo,
+ 	   unsigned int matchinfosize,
+-	   unsigned int hook_mask)
++	   unsigned int hook_mask,
++	   void **entry_data)
+ {
+ 	const struct ip6t_frag *fraginfo = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_hbh.c linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_hbh.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_hbh.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_hbh.c	2006-06-04 20:52:42.000000000 +0200
+@@ -59,7 +59,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	struct ipv6_opt_hdr _optsh, *oh;
+ 	const struct ip6t_opts *optinfo = matchinfo;
+@@ -183,7 +184,8 @@
+ 	   const struct xt_match *match,
+ 	   void *matchinfo,
+ 	   unsigned int matchinfosize,
+-	   unsigned int hook_mask)
++	   unsigned int hook_mask,
++	   void **entry_data)
+ {
+ 	const struct ip6t_opts *optsinfo = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_hl.c linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_hl.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_hl.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_hl.c	2006-06-04 20:52:42.000000000 +0200
+@@ -21,7 +21,8 @@
+ static int match(const struct sk_buff *skb,
+ 		 const struct net_device *in, const struct net_device *out,
+ 		 const struct xt_match *match, const void *matchinfo,
+-		 int offset, unsigned int protoff, int *hotdrop)
++		 int offset, unsigned int protoff, int *hotdrop,
++		 void *entry_data)
+ {
+ 	const struct ip6t_hl_info *info = matchinfo;
+ 	const struct ipv6hdr *ip6h = skb->nh.ipv6h;
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_ipv6header.c linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_ipv6header.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_ipv6header.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_ipv6header.c	2006-06-04 20:52:42.000000000 +0200
+@@ -33,7 +33,8 @@
+ 		 const void *matchinfo,
+ 		 int offset,
+ 		 unsigned int protoff,
+-		 int *hotdrop)
++		 int *hotdrop,
++		 void *entry_data)
+ {
+ 	const struct ip6t_ipv6header_info *info = matchinfo;
+ 	unsigned int temp;
+@@ -129,7 +130,8 @@
+ 		      const struct xt_match *match,
+ 		      void *matchinfo,
+ 		      unsigned int matchsize,
+-		      unsigned int hook_mask)
++		      unsigned int hook_mask,
++		      void **entry_data)
+ {
+ 	const struct ip6t_ipv6header_info *info = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_owner.c linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_owner.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_owner.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_owner.c	2006-06-04 20:52:42.000000000 +0200
+@@ -30,7 +30,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct ip6t_owner_info *info = matchinfo;
+ 
+@@ -58,7 +59,8 @@
+ 	   const struct xt_match *match,
+ 	   void *matchinfo,
+ 	   unsigned int matchsize,
+-	   unsigned int hook_mask)
++	   unsigned int hook_mask,
++	   void **entry_data)
+ {
+ 	const struct ip6t_owner_info *info = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_rt.c linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_rt.c
+--- linux-2.6.17-rc5.entry_data_core/net/ipv6/netfilter/ip6t_rt.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/ipv6/netfilter/ip6t_rt.c	2006-06-04 20:52:42.000000000 +0200
+@@ -49,7 +49,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	struct ipv6_rt_hdr _route, *rh;
+ 	const struct ip6t_rt *rtinfo = matchinfo;
+@@ -198,7 +199,8 @@
+ 	   const struct xt_match *match,
+ 	   void *matchinfo,
+ 	   unsigned int matchinfosize,
+-	   unsigned int hook_mask)
++	   unsigned int hook_mask,
++	   void **entry_data)
+ {
+ 	const struct ip6t_rt *rtinfo = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_comment.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_comment.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_comment.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_comment.c	2006-06-04 20:52:42.000000000 +0200
+@@ -23,7 +23,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protooff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	/* We always match */
+ 	return 1;
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_connbytes.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_connbytes.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_connbytes.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_connbytes.c	2006-06-04 20:52:42.000000000 +0200
+@@ -48,7 +48,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct xt_connbytes_info *sinfo = matchinfo;
+ 	u_int64_t what = 0;	/* initialize to make gcc happy */
+@@ -126,7 +127,8 @@
+ 		 const struct xt_match *match,
+ 		 void *matchinfo,
+ 		 unsigned int matchsize,
+-		 unsigned int hook_mask)
++		 unsigned int hook_mask,
++		 void **entry_data)
+ {
+ 	const struct xt_connbytes_info *sinfo = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_connmark.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_connmark.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_connmark.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_connmark.c	2006-06-04 20:52:42.000000000 +0200
+@@ -39,7 +39,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct xt_connmark_info *info = matchinfo;
+ 	u_int32_t ctinfo;
+@@ -56,7 +57,8 @@
+ 	   const struct xt_match *match,
+ 	   void *matchinfo,
+ 	   unsigned int matchsize,
+-	   unsigned int hook_mask)
++	   unsigned int hook_mask,
++	   void **entry_data)
+ {
+ 	struct xt_connmark_info *cm = (struct xt_connmark_info *)matchinfo;
+ 
+@@ -75,7 +77,8 @@
  }
  
  static void
--print_realm(unsigned long id, unsigned long mask)
-+print_realm(unsigned long id, unsigned long mask, int is_named)
+-destroy(const struct xt_match *match, void *matchinfo, unsigned int matchsize)
++destroy(const struct xt_match *match, void *matchinfo,
++	unsigned int matchsize, void *entry_data)
  {
-+	const char* name = NULL;
-+
- 	if (mask != 0xffffffff)
- 		printf("0x%lx/0x%lx ", id, mask);
--	else
--		printf("0x%lx ", id);
-+	else {
-+		if (1 == is_named) {
-+			name = realm_id2name(id);
-+		}
-+		if (name) {
-+			printf("%s ", name);
-+		} else {
-+			printf("0x%lx ", id);
-+		}
-+	}
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	nf_ct_l3proto_module_put(match->family);
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_conntrack.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_conntrack.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_conntrack.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_conntrack.c	2006-06-04 20:52:42.000000000 +0200
+@@ -36,7 +36,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct xt_conntrack_info *sinfo = matchinfo;
+ 	struct ip_conntrack *ct;
+@@ -123,7 +124,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct xt_conntrack_info *sinfo = matchinfo;
+ 	struct nf_conn *ct;
+@@ -209,7 +211,8 @@
+ 	   const struct xt_match *match,
+ 	   void *matchinfo,
+ 	   unsigned int matchsize,
+-	   unsigned int hook_mask)
++	   unsigned int hook_mask,
++	   void **entry_data)
+ {
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
+@@ -222,7 +225,8 @@
  }
  
- /* Prints out the matchinfo. */
-@@ -82,7 +216,7 @@
- 		printf("! ");
+ static void
+-destroy(const struct xt_match *match, void *matchinfo, unsigned int matchsize)
++destroy(const struct xt_match *match, void *matchinfo,
++	unsigned int matchsize, void *entry_data)
+ {
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	nf_ct_l3proto_module_put(match->family);
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_dccp.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_dccp.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_dccp.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_dccp.c	2006-06-04 20:52:42.000000000 +0200
+@@ -99,7 +99,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct xt_dccp_info *info = 
+ 				(const struct xt_dccp_info *)matchinfo;
+@@ -133,7 +134,8 @@
+ 	   const struct xt_match *match,
+ 	   void *matchinfo,
+ 	   unsigned int matchsize,
+-	   unsigned int hook_mask)
++	   unsigned int hook_mask,
++	   void **entry_data)
+ {
+ 	const struct xt_dccp_info *info = matchinfo;
  
- 	printf("realm ");
--	print_realm(ri->id, ri->mask);
-+	print_realm(ri->id, ri->mask, numeric ? 0 : ri->is_named_realm);
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_esp.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_esp.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_esp.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_esp.c	2006-06-04 20:52:42.000000000 +0200
+@@ -50,7 +50,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	struct ip_esp_hdr _esp, *eh;
+ 	const struct xt_esp *espinfo = matchinfo;
+@@ -80,7 +81,8 @@
+ 	   const struct xt_match *match,
+ 	   void *matchinfo,
+ 	   unsigned int matchinfosize,
+-	   unsigned int hook_mask)
++	   unsigned int hook_mask,
++	   void **entry_data)
+ {
+ 	const struct xt_esp *espinfo = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_helper.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_helper.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_helper.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_helper.c	2006-06-04 20:52:42.000000000 +0200
+@@ -46,7 +46,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct xt_helper_info *info = matchinfo;
+ 	struct ip_conntrack *ct;
+@@ -94,7 +95,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct xt_helper_info *info = matchinfo;
+ 	struct nf_conn *ct;
+@@ -140,7 +142,8 @@
+ 		 const struct xt_match *match,
+ 		 void *matchinfo,
+ 		 unsigned int matchsize,
+-		 unsigned int hook_mask)
++		 unsigned int hook_mask,
++		 void **entry_data)
+ {
+ 	struct xt_helper_info *info = matchinfo;
+ 
+@@ -156,7 +159,8 @@
  }
  
+ static void
+-destroy(const struct xt_match *match, void *matchinfo, unsigned int matchsize)
++destroy(const struct xt_match *match, void *matchinfo,
++	unsigned int matchsize, void *entry_data)
+ {
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	nf_ct_l3proto_module_put(match->family);
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_length.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_length.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_length.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_length.c	2006-06-04 20:52:42.000000000 +0200
+@@ -28,7 +28,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct xt_length_info *info = matchinfo;
+ 	u_int16_t pktlen = ntohs(skb->nh.iph->tot_len);
+@@ -44,7 +45,8 @@
+        const void *matchinfo,
+        int offset,
+        unsigned int protoff,
+-       int *hotdrop)
++       int *hotdrop,
++       void *entry_data)
+ {
+ 	const struct xt_length_info *info = matchinfo;
+ 	u_int16_t pktlen = ntohs(skb->nh.ipv6h->payload_len) + sizeof(struct ipv6hdr);
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_limit.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_limit.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_limit.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_limit.c	2006-06-04 20:52:42.000000000 +0200
+@@ -72,7 +72,8 @@
+ 		const void *matchinfo,
+ 		int offset,
+ 		unsigned int protoff,
+-		int *hotdrop)
++		int *hotdrop,
++		void *entry_data)
+ {
+ 	struct xt_rateinfo *r = ((struct xt_rateinfo *)matchinfo)->master;
+ 	unsigned long now = jiffies;
+@@ -111,7 +112,8 @@
+ 		     const struct xt_match *match,
+ 		     void *matchinfo,
+ 		     unsigned int matchsize,
+-		     unsigned int hook_mask)
++		     unsigned int hook_mask,
++		     void **entry_data)
+ {
+ 	struct xt_rateinfo *r = matchinfo;
  
-@@ -96,7 +230,7 @@
- 		printf("! ");
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_mac.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_mac.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_mac.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_mac.c	2006-06-04 20:52:42.000000000 +0200
+@@ -31,7 +31,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+     const struct xt_mac_info *info = matchinfo;
  
- 	printf("--realm ");
--	print_realm(ri->id, ri->mask);
-+	print_realm(ri->id, ri->mask, ri->is_named_realm);
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_mark.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_mark.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_mark.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_mark.c	2006-06-04 20:52:42.000000000 +0200
+@@ -27,7 +27,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct xt_mark_info *info = matchinfo;
+ 
+@@ -40,7 +41,8 @@
+ 	   const struct xt_match *match,
+            void *matchinfo,
+            unsigned int matchsize,
+-           unsigned int hook_mask)
++           unsigned int hook_mask,
++           void **entry_data)
+ {
+ 	struct xt_mark_info *minfo = (struct xt_mark_info *) matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_multiport.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_multiport.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_multiport.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_multiport.c	2006-06-04 20:52:42.000000000 +0200
+@@ -102,7 +102,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	u16 _ports[2], *pptr;
+ 	const struct xt_multiport *multiinfo = matchinfo;
+@@ -133,7 +134,8 @@
+ 	 const void *matchinfo,
+ 	 int offset,
+ 	 unsigned int protoff,
+-	 int *hotdrop)
++	 int *hotdrop,
++	 void *entry_data)
+ {
+ 	u16 _ports[2], *pptr;
+ 	const struct xt_multiport_v1 *multiinfo = matchinfo;
+@@ -176,7 +178,8 @@
+ 	   const struct xt_match *match,
+ 	   void *matchinfo,
+ 	   unsigned int matchsize,
+-	   unsigned int hook_mask)
++	   unsigned int hook_mask,
++	   void **entry_data)
+ {
+ 	const struct ipt_ip *ip = info;
+ 	const struct xt_multiport *multiinfo = matchinfo;
+@@ -191,7 +194,8 @@
+ 	      const struct xt_match *match,
+ 	      void *matchinfo,
+ 	      unsigned int matchsize,
+-	      unsigned int hook_mask)
++	      unsigned int hook_mask,
++	      void **entry_data)
+ {
+ 	const struct ipt_ip *ip = info;
+ 	const struct xt_multiport_v1 *multiinfo = matchinfo;
+@@ -206,7 +210,8 @@
+ 	    const struct xt_match *match,
+ 	    void *matchinfo,
+ 	    unsigned int matchsize,
+-	    unsigned int hook_mask)
++	    unsigned int hook_mask,
++	    void **entry_data)
+ {
+ 	const struct ip6t_ip6 *ip = info;
+ 	const struct xt_multiport *multiinfo = matchinfo;
+@@ -221,7 +226,8 @@
+ 	       const struct xt_match *match,
+ 	       void *matchinfo,
+ 	       unsigned int matchsize,
+-	       unsigned int hook_mask)
++	       unsigned int hook_mask,
++	       void **entry_data)
+ {
+ 	const struct ip6t_ip6 *ip = info;
+ 	const struct xt_multiport_v1 *multiinfo = matchinfo;
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_physdev.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_physdev.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_physdev.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_physdev.c	2006-06-04 20:52:42.000000000 +0200
+@@ -30,7 +30,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	int i;
+ 	static const char nulldevname[IFNAMSIZ];
+@@ -106,7 +107,8 @@
+ 		       const struct xt_match *match,
+ 		       void *matchinfo,
+ 		       unsigned int matchsize,
+-		       unsigned int hook_mask)
++		       unsigned int hook_mask,
++		       void **entry_data)
+ {
+ 	const struct xt_physdev_info *info = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_pkttype.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_pkttype.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_pkttype.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_pkttype.c	2006-06-04 20:52:42.000000000 +0200
+@@ -26,7 +26,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct xt_pkttype_info *info = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_policy.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_policy.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_policy.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_policy.c	2006-06-04 20:52:42.000000000 +0200
+@@ -116,7 +116,8 @@
+                  const void *matchinfo,
+                  int offset,
+                  unsigned int protoff,
+-                 int *hotdrop)
++                 int *hotdrop,
++                 void *entry_data)
+ {
+ 	const struct xt_policy_info *info = matchinfo;
+ 	int ret;
+@@ -137,7 +138,7 @@
+ static int checkentry(const char *tablename, const void *ip_void,
+                       const struct xt_match *match,
+                       void *matchinfo, unsigned int matchsize,
+-                      unsigned int hook_mask)
++                      unsigned int hook_mask, void **entry_data)
+ {
+ 	struct xt_policy_info *info = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_realm.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_realm.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_realm.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_realm.c	2006-06-04 20:52:42.000000000 +0200
+@@ -31,7 +31,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct xt_realm_info *info = matchinfo;
+ 	struct dst_entry *dst = skb->dst;
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_sctp.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_sctp.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_sctp.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_sctp.c	2006-06-04 20:52:42.000000000 +0200
+@@ -127,7 +127,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct xt_sctp_info *info;
+ 	sctp_sctphdr_t _sh, *sh;
+@@ -166,7 +167,8 @@
+ 	   const struct xt_match *match,
+ 	   void *matchinfo,
+ 	   unsigned int matchsize,
+-	   unsigned int hook_mask)
++	   unsigned int hook_mask,
++	   void **entry_data)
+ {
+ 	const struct xt_sctp_info *info = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_state.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_state.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_state.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_state.c	2006-06-04 20:52:42.000000000 +0200
+@@ -28,7 +28,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct xt_state_info *sinfo = matchinfo;
+ 	enum ip_conntrack_info ctinfo;
+@@ -49,7 +50,8 @@
+ 		 const struct xt_match *match,
+ 		 void *matchinfo,
+ 		 unsigned int matchsize,
+-		 unsigned int hook_mask)
++		 unsigned int hook_mask,
++		 void **entry_data)
+ {
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	if (nf_ct_l3proto_try_module_get(match->family) < 0) {
+@@ -62,7 +64,8 @@
  }
  
- /* Final check; must have specified --mark. */
-diff -ruN iptables-1.3.5.base/extensions/libipt_realm.man iptables-1.3.5/extensions/libipt_realm.man
---- iptables-1.3.5.base/extensions/libipt_realm.man	2004-10-10 11:56:27.000000000 +0200
-+++ iptables-1.3.5/extensions/libipt_realm.man	2006-06-04 01:50:15.000000000 +0200
-@@ -1,5 +1,7 @@
- This matches the routing realm.  Routing realms are used in complex routing
- setups involving dynamic routing protocols like BGP.
- .TP
--.BI "--realm " "[!]" "value[/mask]"
--Matches a given realm number (and optionally mask).
-+.BI "--realm " "[!] " "value[/mask]"
-+Matches a given realm number (and optionally mask). If not a number, value
-+can be a named realm from /etc/iproute2/rt_realms (mask can not be used in
-+that case).
+ static void
+-destroy(const struct xt_match *match, void *matchinfo, unsigned int matchsize)
++destroy(const struct xt_match *match, void *matchinfo,
++	unsigned int matchsize, void *entry_data)
+ {
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	nf_ct_l3proto_module_put(match->family);
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_string.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_string.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_string.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_string.c	2006-06-04 20:52:42.000000000 +0200
+@@ -28,7 +28,8 @@
+ 		 const void *matchinfo,
+ 		 int offset,
+ 		 unsigned int protoff,
+-		 int *hotdrop)
++		 int *hotdrop,
++		 void *entry_data)
+ {
+ 	struct ts_state state;
+ 	struct xt_string_info *conf = (struct xt_string_info *) matchinfo;
+@@ -47,7 +48,8 @@
+ 		      const struct xt_match *match,
+ 		      void *matchinfo,
+ 		      unsigned int matchsize,
+-		      unsigned int hook_mask)
++		      unsigned int hook_mask,
++		      void **entry_data)
+ {
+ 	struct xt_string_info *conf = matchinfo;
+ 	struct ts_config *ts_conf;
+@@ -67,7 +69,7 @@
+ }
+ 
+ static void destroy(const struct xt_match *match, void *matchinfo,
+-		    unsigned int matchsize)
++		    unsigned int matchsize, void *entry_data)
+ {
+ 	textsearch_destroy(STRING_TEXT_PRIV(matchinfo)->config);
+ }
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_tcpmss.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_tcpmss.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_tcpmss.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_tcpmss.c	2006-06-04 20:52:42.000000000 +0200
+@@ -85,7 +85,8 @@
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+-      int *hotdrop)
++      int *hotdrop,
++      void *entry_data)
+ {
+ 	const struct xt_tcpmss_match_info *info = matchinfo;
+ 
+diff -Nru linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_tcpudp.c linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_tcpudp.c
+--- linux-2.6.17-rc5.entry_data_core/net/netfilter/xt_tcpudp.c	2006-06-04 21:33:27.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_matches/net/netfilter/xt_tcpudp.c	2006-06-04 20:52:42.000000000 +0200
+@@ -78,7 +78,8 @@
+ 	  const void *matchinfo,
+ 	  int offset,
+ 	  unsigned int protoff,
+-	  int *hotdrop)
++	  int *hotdrop,
++	  void *entry_data)
+ {
+ 	struct tcphdr _tcph, *th;
+ 	const struct xt_tcp *tcpinfo = matchinfo;
+@@ -142,7 +143,8 @@
+ 	       const struct xt_match *match,
+ 	       void *matchinfo,
+ 	       unsigned int matchsize,
+-	       unsigned int hook_mask)
++	       unsigned int hook_mask,
++	       void **entry_data)
+ {
+ 	const struct xt_tcp *tcpinfo = matchinfo;
+ 
+@@ -158,7 +160,8 @@
+ 	  const void *matchinfo,
+ 	  int offset,
+ 	  unsigned int protoff,
+-	  int *hotdrop)
++	  int *hotdrop,
++	  void *entry_data)
+ {
+ 	struct udphdr _udph, *uh;
+ 	const struct xt_udp *udpinfo = matchinfo;
+@@ -191,7 +194,8 @@
+ 	       const struct xt_match *match,
+ 	       void *matchinfo,
+ 	       unsigned int matchsize,
+-	       unsigned int hook_mask)
++	       unsigned int hook_mask,
++	       void **entry_data)
+ {
+ 	const struct xt_tcp *udpinfo = matchinfo;
+ 
 
---Boundary-00=_VYzgESk5LpGJN9B--
+--Boundary-00=_061gEZInnvw66IK--
