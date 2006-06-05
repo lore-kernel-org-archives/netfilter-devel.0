@@ -1,13 +1,15 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH] fix conntrack compilation
-Date: Mon, 05 Jun 2006 15:01:47 +0200
-Message-ID: <1149512507.20946.5.camel@localhost.localdomain>
+From: "Eliot, Wireless and Server Administrator,
+	Great Lakes Internet" <support8@greatlakes.net>
+Subject: POSTROUTING hooks
+Date: Mon, 5 Jun 2006 10:21:47 -0400
+Message-ID: <0633E0EDB4F25F43A2D7179CA11FAFAB25544B@xavier.staff.greatlakes.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-1Vh04hxRl/OisDMvqeC2"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+Content-class: urn:content-classes:message
+To: "Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,55 +22,38 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-1Vh04hxRl/OisDMvqeC2
-Content-Type: multipart/mixed; boundary="=-LcG4oshLI3lWD07B+9Mu"
+Where in the kernel's packet delivery process does the POSTROUTING chain
+hook in?=20
 
+I'm trying to figure out how to write a module to allow matching on the
+destination MAC address. From what I have been able to figure out so
+far, it looks like the destination MAC is not actually set until right
+before the packet goes out of the interface. Now, I have not been able
+to find the code that would confirm this, so if anyone can point me to
+the exact position where the destination MAC address is set, that would
+be helpful. However, from what I have been able to observe with logging
+and some quick and dirty modifications to a couple of modules to print
+out some extra debugging info, this appears to be the case.=20
 
---=-LcG4oshLI3lWD07B+9Mu
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+What would it take to modify the Netfilter code to make the POSTROUTING
+chain hook in AFTER the destination MAC is set, but BEFORE it gets sent
+out the interface?=20
 
-Hello,
+If this change is made, what types of things might it break?
 
-It seems that subversion version of conntrack tool does not compile to
-due the lack of inclusion of "config.h".
-
-The attached patch fixes this issue.
-
-BR,
---=20
-=C9ric Leblond, eleblond@inl.fr
-T=E9l=E9phone : 01 44 89 46 39, Fax : 01 44 89 45 01
-INL, http://www.inl.fr
-
---=-LcG4oshLI3lWD07B+9Mu
-Content-Disposition: attachment; filename=conntrack-compil.patch
-Content-Type: text/x-patch; name=conntrack-compil.patch; charset=ISO-8859-15
-Content-Transfer-Encoding: base64
-
-SW5kZXg6IGluY2x1ZGUvY29ubnRyYWNrLmgNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCi0tLSBpbmNsdWRlL2Nvbm50
-cmFjay5oCShyw6l2aXNpb24gNjYyNCkNCisrKyBpbmNsdWRlL2Nvbm50cmFjay5oCShjb3BpZSBk
-ZSB0cmF2YWlsKQ0KQEAgLTEsNiArMSwxMCBAQA0KICNpZm5kZWYgX0NPTk5UUkFDS19IDQogI2Rl
-ZmluZSBfQ09OTlRSQUNLX0gNCiANCisjaWZkZWYgSEFWRV9DT05GSUdfSA0KKyNpbmNsdWRlICIu
-Li9jb25maWcuaCINCisjZW5kaWYNCisNCiAjaW5jbHVkZSAibGludXhfbGlzdC5oIg0KICNpbmNs
-dWRlIDxnZXRvcHQuaD4NCiAjaW5jbHVkZSA8bGlibmV0ZmlsdGVyX2Nvbm50cmFjay9saWJuZXRm
-aWx0ZXJfY29ubnRyYWNrLmg+DQo=
-
-
---=-LcG4oshLI3lWD07B+9Mu--
-
---=-1Vh04hxRl/OisDMvqeC2
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQBEhCs6nxA7CdMWjzIRAgVBAJwNsqpD+k3ZgwpWm0GiJDfTbfBBVACfVPm2
-1XT+hSZbReiVsRRoCzPNVCA=
-=SJ8b
------END PGP SIGNATURE-----
-
---=-1Vh04hxRl/OisDMvqeC2--
+=20
+Eliot Gable
+Certified Wireless Network Administrator (CWNA)
+Certified Wireless Security Professional (CWSP)
+Cisco Certified Network Associate (CCNA)
+CompTIA Security+ Certified
+CompTIA Network+ Certified
+Network and System Engineer
+Great Lakes Internet, Inc.
+112 North Howard
+Croswell, MI 48422
+(810) 679-3395
+(877) 558-8324
+=20
+Now offering Broadband Wireless Internet access in Croswell, Lexington,
+Brown City, Yale, Worth Township, and Sandusky. Call for details.
