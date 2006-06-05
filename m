@@ -1,15 +1,16 @@
-From: "Eliot, Wireless and Server Administrator,
-	Great Lakes Internet" <support8@greatlakes.net>
-Subject: POSTROUTING hooks
-Date: Mon, 5 Jun 2006 10:21:47 -0400
-Message-ID: <0633E0EDB4F25F43A2D7179CA11FAFAB25544B@xavier.staff.greatlakes.net>
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: POSTROUTING hooks
+Date: Mon, 5 Jun 2006 18:01:05 +0200
+Message-ID: <20060605160105.GE8333@oknodo.bof.de>
+References: <0633E0EDB4F25F43A2D7179CA11FAFAB25544B@xavier.staff.greatlakes.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: "Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
+To: "Eliot, Wireless and Server Administrator,
+	Great Lakes Internet" <support8@greatlakes.net>
+Content-Disposition: inline
+In-Reply-To: <0633E0EDB4F25F43A2D7179CA11FAFAB25544B@xavier.staff.greatlakes.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,39 +22,37 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+> Where in the kernel's packet delivery process does the POSTROUTING chain
+> hook in? 
 
-Where in the kernel's packet delivery process does the POSTROUTING chain
-hook in?=20
+You can get a pretty accurate answer, for any kernel version, by doing
+	grep NF_HOOK /usr/src/linux-whatever/net/ipv?/*.c
 
-I'm trying to figure out how to write a module to allow matching on the
-destination MAC address. From what I have been able to figure out so
-far, it looks like the destination MAC is not actually set until right
-before the packet goes out of the interface. Now, I have not been able
-to find the code that would confirm this, so if anyone can point me to
-the exact position where the destination MAC address is set, that would
-be helpful. However, from what I have been able to observe with logging
-and some quick and dirty modifications to a couple of modules to print
-out some extra debugging info, this appears to be the case.=20
+For the 2.4.18 kernel I'm looking at, there are three calls to
+NF_IP_POST_ROUTING in net/ipv4/ip_output.c. Two of them are
+obviously concerned with multicast, leaving one call in
+ip_finish_output.
 
-What would it take to modify the Netfilter code to make the POSTROUTING
-chain hook in AFTER the destination MAC is set, but BEFORE it gets sent
-out the interface?=20
+So, POST_ROUTING is called when the packet leaves the IP stack.
 
-If this change is made, what types of things might it break?
+As you can see there, only after POST_ROUTING is the packet queued
+to some network device. And only after that is ARP done, and only
+then is a destination MAC known (temporarily, until ARP changes
+something under your feet).
 
-=20
-Eliot Gable
-Certified Wireless Network Administrator (CWNA)
-Certified Wireless Security Professional (CWSP)
-Cisco Certified Network Associate (CCNA)
-CompTIA Security+ Certified
-CompTIA Network+ Certified
-Network and System Engineer
-Great Lakes Internet, Inc.
-112 North Howard
-Croswell, MI 48422
-(810) 679-3395
-(877) 558-8324
-=20
-Now offering Broadband Wireless Internet access in Croswell, Lexington,
-Brown City, Yale, Worth Township, and Sandusky. Call for details.
+> I'm trying to figure out how to write a module to allow matching on the
+> destination MAC address.
+
+Impossible with the current setup, it seems. Which is probably the reason why
+none of the 50 people who wanted to do that before, succeeded.
+
+> What would it take to modify the Netfilter code to make the POSTROUTING
+> chain hook in AFTER the destination MAC is set, but BEFORE it gets sent
+> out the interface?
+
+It would take a very brave person, with a masochistic streak, and
+a burning desire to maintain his own Linux networking stack, device
+drivers, and iptables derivate.
+
+best regards
+  Patrick
