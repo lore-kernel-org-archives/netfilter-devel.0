@@ -1,14 +1,14 @@
-From: Sven Anders <anders@anduras.de>
-Subject: Re: Negating limit
-Date: Wed, 07 Jun 2006 11:28:06 +0200
-Message-ID: <44869C26.7070806@anduras.de>
-References: <44848BE1.1070503@anduras.de>
+From: Mathieu Geli <geli@enseirb.fr>
+Subject: [nfqueue] libnetfilter_queue python wrapper
+Date: Wed, 7 Jun 2006 18:05:31 +0200
+Message-ID: <20060607180531.09652ae1@ganymede>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000506080306080401070808"
+Content-Type: multipart/signed;
+	boundary="Signature_Wed__7_Jun_2006_18_05_31_+0200_cuB3czeffgog2s5/";
+	protocol="application/pgp-signature"; micalg=pgp-sha1
+Cc: plucas@plucas.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Resent-Message-Id: <44869FC0.7020902@anduras.de>
-To: Sven Anders <anders@anduras.de>
-In-Reply-To: <44848BE1.1070503@anduras.de>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,38 +20,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000506080306080401070808
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+--Signature_Wed__7_Jun_2006_18_05_31_+0200_cuB3czeffgog2s5/
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi,
 
-Hello!
+If anyone is interested I adapted Neale Pickett's ipqueue code for the
+libnfnetlink/libnetfilter_queue API. That's called nfqueue. I know the
+code is far from perfect and will be glad to receive comments.
 
-I found an old thread (Dec 2005) about the limit inversion problem.
-Is the only problem that hinders the inclusion into the kernel the iptables
-compatibility?
-If so, what possibilities do exist to solve this problem?
-(See my previous posting too please...)
+You can download it here [1]. I recommend using scapy [2] and
+uncommenting the specific lines in the test file.
 
-Regards
- Sven Anders
+Cheers
 
-- --
- Sven Anders <anders@anduras.de>                 () Ascii Ribbon Campaign
-                                                 /\ Support plain text e-mail
- ANDURAS service solutions AG
- Innstraﬂe 71 - 94036 Passau - Germany
- Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
+[1] http://mathieu.geli.free.fr/code/nfqueue.tar.gz
+[2] http://www.secdev.org/projects/scapy/
+
+--=20
+Mathieu GELI
+
+--Signature_Wed__7_Jun_2006_18_05_31_+0200_cuB3czeffgog2s5/
+Content-Type: application/pgp-signature
+
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.1 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+Version: GnuPG v1.4.3 (GNU/Linux)
 
-iD8DBQFEhpwm5lKZ7Feg4EcRAhc9AKCB5vB86BNc5NZWbHtQmXkEHWxEOgCeOJyH
-msyyo54VZwihURPEz78vdaE=
-=AtyV
+iD8DBQFEhvlissGp32GWAFwRArpOAJ9QUvwyQH+ybrER+HmMYdvf4MVTkACgoI8j
+zMFCdv/TPPPU38oPRPIv3lw=
+=65hZ
 -----END PGP SIGNATURE-----
 
---------------000506080306080401070808--
+--Signature_Wed__7_Jun_2006_18_05_31_+0200_cuB3czeffgog2s5/--
