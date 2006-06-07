@@ -1,17 +1,14 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Unconditionaly push mark to conntrack structure
-Date: Tue, 06 Jun 2006 19:27:36 +0200
-Message-ID: <4485BB08.7060807@netfilter.org>
-References: <E1Fh0am-0003Ct-Ph@fydelkass.inl.fr> <447CD8AA.2040502@trash.net>
-	<447CDB83.1090606@trash.net> <447CE2B0.8000504@trash.net>
-	<447CE4ED.9010706@netfilter.org> <447CEAF3.5030903@trash.net>
+From: Sven Anders <anders@anduras.de>
+Subject: Re: Negating limit
+Date: Wed, 07 Jun 2006 11:28:06 +0200
+Message-ID: <44869C26.7070806@anduras.de>
+References: <44848BE1.1070503@anduras.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Eric Leblond <eric@inl.fr>
+Content-Type: multipart/mixed; boundary="------------000506080306080401070808"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <447CEAF3.5030903@trash.net>
+Resent-Message-Id: <44869FC0.7020902@anduras.de>
+To: Sven Anders <anders@anduras.de>
+In-Reply-To: <44848BE1.1070503@anduras.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,40 +20,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
-> 
->>Patrick McHardy wrote:
->>
->>
->>>>Actually this isn't true, I just noticed we never send timeout update
->>>>notifications except for the first packet (which means we have tons
->>>>of unnecessary notifier chain calls). I think this isn't really
->>>>intended and was done to work around the high timeout event generation
->>>>rate. Pablo, do you more about this?
->>
->>
->>Indeed, the timer refresh event through netlink just burden the system
->>and overrun the socket queue, so netlink starts dropping messages.
-> 
-> 
-> This is easy to fix by only sending an timer update for each connection
-> once every n seconds. If done in ip_ct_refresh_acct it will also reduce
-> the notifier load.
-> 
-> 
->>>More bad news .. the timeout is sent in HZ instead of USER_HZ. This
->>>unfortunately seems to call for an ABI break, I'd really hate to add
->>>a CTA_TIMEOUT2 attribute. I guess we can live with it since its
->>>usually not even included in the messages.
->>
->>
->>To be frank, I can't see how the timer can be useful from userspace. I
->>think that we should remove it.
-> 
-> Don't you need it for synchronization? One example where it could be
-> useful is to implement different timeout strategies (for example
-> something like pf's adaptive timeouts) in userspace.
+This is a multi-part message in MIME format.
+--------------000506080306080401070808
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 
-Thinking well, you are right, this feature could be easily added to 
-conntrackd.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hello!
+
+I found an old thread (Dec 2005) about the limit inversion problem.
+Is the only problem that hinders the inclusion into the kernel the iptables
+compatibility?
+If so, what possibilities do exist to solve this problem?
+(See my previous posting too please...)
+
+Regards
+ Sven Anders
+
+- --
+ Sven Anders <anders@anduras.de>                 () Ascii Ribbon Campaign
+                                                 /\ Support plain text e-mail
+ ANDURAS service solutions AG
+ Innstraﬂe 71 - 94036 Passau - Germany
+ Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.1 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFEhpwm5lKZ7Feg4EcRAhc9AKCB5vB86BNc5NZWbHtQmXkEHWxEOgCeOJyH
+msyyo54VZwihURPEz78vdaE=
+=AtyV
+-----END PGP SIGNATURE-----
+
+--------------000506080306080401070808--
