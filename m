@@ -1,18 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Unconditionaly push mark to conntrack structure
-Date: Thu, 08 Jun 2006 09:25:22 +0200
-Message-ID: <4487D0E2.4030705@trash.net>
-References: <E1Fh0am-0003Ct-Ph@fydelkass.inl.fr> <447CD8AA.2040502@trash.net>
-	<447CDB83.1090606@trash.net> <447CE2B0.8000504@trash.net>
-	<447CE4ED.9010706@netfilter.org> <447CEAF3.5030903@trash.net>
-	<44856875.2020108@netfilter.org>
+Subject: Re: Negating limit
+Date: Thu, 08 Jun 2006 09:36:12 +0200
+Message-ID: <4487D36C.5060708@trash.net>
+References: <44848BE1.1070503@anduras.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Eric Leblond <eric@inl.fr>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <44856875.2020108@netfilter.org>
+To: Sven Anders <anders@anduras.de>
+In-Reply-To: <44848BE1.1070503@anduras.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,32 +21,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
+Sven Anders wrote:
+> Here is a patch to allow a negated "limit", so we can match above and below the
+> limit.
 > 
->> Pablo Neira Ayuso wrote:
->>
->>> To be frank, I can't see how the timer can be useful from userspace. I
->>> think that we should remove it.
->>
->>
->>
->> Don't you need it for synchronization? One example where it could be
->> useful is to implement different timeout strategies (for example
->> something like pf's adaptive timeouts) in userspace.
-> 
-> 
-> But these adaptive timeouts could be implemented in kernelspace.
+> It adds a new "flags" variable after the burst. I'm not sure, if I can add it
+> after the "*master" variable, so I added it here.
+> Does this preserve compatibility, because anything after is only used by the kernel?
 
-Thats not a good argument .. by that logic we wouldn't need ctnetlink
-at all :)
-
-> Unfortunately, ctnetlink is not doing any sequence tracking of the
-> events at the moment :( and we have to. Here my old PIII 866MHz with a
-> 100Mbits network card starts dropping events when it reaches ~300
-> simultaneos short TCP connections (2 seconds) with netperf. I'm going to
-> cook a patch for this.
-
-That seems to be pretty poor performance - by sequence tracking you
-mean TCP state updates? Is that poor performance with or without
-them?
+No, unfortunately there is no way to add a new variable to that struct
+without breaking compatibility. You could add a new revision, but I
+would like to think about Massimiliano Hofer's patch before that,
+if we do something like that we can get rid of the "master" pointer
+with the new revision.
