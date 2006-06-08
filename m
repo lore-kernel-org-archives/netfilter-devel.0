@@ -1,12 +1,15 @@
-From: "Vasantha Kumar Puttappa" <vasanthakumar@iitb.ac.in>
-Subject: Packet Lost
-Date: Thu, 8 Jun 2006 23:07:01 +0530 (IST)
-Message-ID: <58963.10.107.26.27.1149788221.squirrel@gpo.iitb.ac.in>
+From: Martijn Lievaart <m@rtij.nl>
+Subject: Re: Bridge netfilter defered hooks
+Date: Thu, 08 Jun 2006 22:47:19 +0200
+Message-ID: <44888CD7.8090601@rtij.nl>
+References: <448051F3.1070509@trash.net>	<1149267610.3021.11.camel@localhost.localdomain>	<448072FC.3060902@trash.net>
+	<44809B1C.2010907@gmx.net> <4487CEA8.8060701@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <4487CEA8.8060701@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,26 +21,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Patrick McHardy wrote:
 
-  I am working on a small application using iptables/libipq. In this, the
-application would capture a specific packets based on the destination IP
-address. Then I encapsulate this IP packet inside another new IP packet.
+>Carl-Daniel Hailfinger wrote:
+>  
+>
+>>IIRC the mark has only 32 bits. Not so long ago, I was using 30 bits
+>>of that in my firewalling rules on a bridge-router. I might have
+>>squeezed the physdev match in the remaining 2 bits, but I'm not
+>>sure. I do admit the setup was fairly uncommon (bridging and
+>>double nat with only one machine).
+>>    
+>>
+>
+>Yes, its getting a bit tight in there, but so far in all setups I've
+>seen it was possible to get along with the 32 bits using masks or
+>reusing bits after they are no longer needed. I guess we'll have to
+>wait and see ..
+>  
+>
 
-My problem is that the encapsulation part works fine in
-kernel-2.6.11-6(mandriva 2005) and IPtables V 1.2.9.
-(I can capture encapsulated packets using tcpdump at the sender side i.e,
-packets are being put on to the network)
+Something I've been thinking about. Currently it is impossible to write 
+any kind of generic tool that uses the mark and plays nice with other 
+generic tools. Maybe we need some kind of API that allocates bits in the 
+mark. Something like "give me two bits", that returns some handle to the 
+bits. That handle could then be used for identifying the bits in the mark.
 
+As an added benefit, this encapsulates the operations on the mark, 
+making it trivial to switch to say 64 bits for the mark.
 
-But this doesn't work in kernel-2.6.12-12 and IPtables-1.3.5
-(even though there are no erros after callig ipq_set_verdict, the packets
-are not being put on to the channel. The packets are getting lost after
-the call to ipq_set_verdict)
+What do others think?
 
-please let me know if you need more information
-
-
-Please help me out here
-
-Thanx
+M4
