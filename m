@@ -1,14 +1,12 @@
-From: Sven Anders <anders@anduras.de>
-Subject: Re: Negating limit
-Date: Thu, 08 Jun 2006 11:12:50 +0200
-Message-ID: <4487EA12.6020609@anduras.de>
-References: <44848BE1.1070503@anduras.de> <4487D36C.5060708@trash.net>
+From: "Vasantha Kumar Puttappa" <vasanthakumar@iitb.ac.in>
+Subject: Packet Lost
+Date: Thu, 8 Jun 2006 23:07:01 +0530 (IST)
+Message-ID: <58963.10.107.26.27.1149788221.squirrel@gpo.iitb.ac.in>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080704030601010307020309"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4487D36C.5060708@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,60 +18,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080704030601010307020309
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+Hi,
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+  I am working on a small application using iptables/libipq. In this, the
+application would capture a specific packets based on the destination IP
+address. Then I encapsulate this IP packet inside another new IP packet.
 
-Patrick wrote:
+My problem is that the encapsulation part works fine in
+kernel-2.6.11-6(mandriva 2005) and IPtables V 1.2.9.
+(I can capture encapsulated packets using tcpdump at the sender side i.e,
+packets are being put on to the network)
 
->> Here is a patch to allow a negated "limit", so we can match above and below the
->> limit.
->>
->> It adds a new "flags" variable after the burst. I'm not sure, if I can add it
->> after the "*master" variable, so I added it here.
->> Does this preserve compatibility, because anything after is only used by the kernel?
-> 
-> No, unfortunately there is no way to add a new variable to that struct
-> without breaking compatibility. You could add a new revision, but I
-> would like to think about Massimiliano Hofer's patch before that,
-> if we do something like that we can get rid of the "master" pointer
-> with the new revision.
 
-What do you mean with "new revision"? A new match named "limit2"?
+But this doesn't work in kernel-2.6.12-12 and IPtables-1.3.5
+(even though there are no erros after callig ipq_set_verdict, the packets
+are not being put on to the channel. The packets are getting lost after
+the call to ipq_set_verdict)
 
-Which of Massimiliano's patches do you mean? The "support for entry data" patch?
+please let me know if you need more information
 
-To understand correctly:
 
- Is it not possible under any circumstances to add new variables to a match info
- struct or is the problem the "master" variable?
+Please help me out here
 
- If so what is the "master" variable for?
-
- As far as I understand the size of the "match info struct" passed from the
- userspace must exactly match the size of the kernels "match info struct".
- Right?
-
-Regards
- Sven Anders
-
-- --
- Sven Anders <anders@anduras.de>                 () Ascii Ribbon Campaign
-                                                 /\ Support plain text e-mail
- ANDURAS service solutions AG
- Innstraﬂe 71 - 94036 Passau - Germany
- Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.1 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFEh+oQ5lKZ7Feg4EcRAvHeAJ9JD1tBGvLhZwETVaEpgj/KPZe3KACfcUhG
-2/TN39WZ3JjJjwye4xW84i8=
-=GIIo
------END PGP SIGNATURE-----
-
---------------080704030601010307020309--
+Thanx
