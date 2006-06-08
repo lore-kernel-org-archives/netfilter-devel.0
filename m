@@ -1,17 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Bridge netfilter defered hooks
-Date: Thu, 08 Jun 2006 09:15:52 +0200
-Message-ID: <4487CEA8.8060701@trash.net>
-References: <448051F3.1070509@trash.net>	<1149267610.3021.11.camel@localhost.localdomain>
-	<448072FC.3060902@trash.net> <44809B1C.2010907@gmx.net>
+Subject: Re: Bridge netfilter MTU discovery
+Date: Thu, 08 Jun 2006 09:17:57 +0200
+Message-ID: <4487CF25.5020407@trash.net>
+References: <20060602111511.7d08f33c@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Bart De Schuymer <bdschuym@pandora.be>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2006@gmx.net>
-In-Reply-To: <44809B1C.2010907@gmx.net>
+To: Stephen Hemminger <shemminger@osdl.org>
+In-Reply-To: <20060602111511.7d08f33c@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,21 +21,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Carl-Daniel Hailfinger wrote:
-> Patrick McHardy wrote:
-> 
->>Thats what I meant by "iptables+mark". You can combine iptables
->>specific matches by marking matching packets, then match on the
->>mark with ebtables (or the other way around for incoming packets).
-> 
-> 
-> IIRC the mark has only 32 bits. Not so long ago, I was using 30 bits
-> of that in my firewalling rules on a bridge-router. I might have
-> squeezed the physdev match in the remaining 2 bits, but I'm not
-> sure. I do admit the setup was fairly uncommon (bridging and
-> double nat with only one machine).
+Stephen Hemminger wrote:
+> Is there an easy way to force bridge packets to cause an ICMP frag needed
+> if the MTU of the destination is too small. Normal bridging will just drop
+> the packet, but a rule to send ICMP would allow PMTU to work. Maybe even
+> having a module to fragment would be good.
 
-Yes, its getting a bit tight in there, but so far in all setups I've
-seen it was possible to get along with the 32 bits using masks or
-reusing bits after they are no longer needed. I guess we'll have to
-wait and see ..
+Conntrack breaks PMTU discovery by always defragmenting/refragmenting
+packets, regardless of IP_DF. But there is no way to generate ICMP
+frag required messages using iptables.
