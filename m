@@ -1,16 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: POSTROUTING hooks
-Date: Thu, 08 Jun 2006 09:43:50 +0200
-Message-ID: <4487D536.1050702@trash.net>
-References: <0633E0EDB4F25F43A2D7179CA11FAFAB25544B@xavier.staff.greatlakes.net>
+From: Sven Anders <anders@anduras.de>
+Subject: Re: Negating limit
+Date: Thu, 08 Jun 2006 11:12:50 +0200
+Message-ID: <4487EA12.6020609@anduras.de>
+References: <44848BE1.1070503@anduras.de> <4487D36C.5060708@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: multipart/mixed; boundary="------------080704030601010307020309"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Eliot, Wireless and Server Administrator,
-	Great Lakes Internet" <support8@greatlakes.net>
-In-Reply-To: <0633E0EDB4F25F43A2D7179CA11FAFAB25544B@xavier.staff.greatlakes.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4487D36C.5060708@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,22 +20,60 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eliot, Wireless and Server Administrator, Great Lakes Internet wrote:
-> Where in the kernel's packet delivery process does the POSTROUTING chain
-> hook in? 
-> 
-> I'm trying to figure out how to write a module to allow matching on the
-> destination MAC address. From what I have been able to figure out so
-> far, it looks like the destination MAC is not actually set until right
-> before the packet goes out of the interface. Now, I have not been able
-> to find the code that would confirm this, so if anyone can point me to
-> the exact position where the destination MAC address is set, that would
-> be helpful. However, from what I have been able to observe with logging
-> and some quick and dirty modifications to a couple of modules to print
-> out some extra debugging info, this appears to be the case. 
-> 
-> What would it take to modify the Netfilter code to make the POSTROUTING
-> chain hook in AFTER the destination MAC is set, but BEFORE it gets sent
-> out the interface? 
+This is a multi-part message in MIME format.
+--------------080704030601010307020309
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 
-Still doesn't help, ARP resolution happens after that.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Patrick wrote:
+
+>> Here is a patch to allow a negated "limit", so we can match above and below the
+>> limit.
+>>
+>> It adds a new "flags" variable after the burst. I'm not sure, if I can add it
+>> after the "*master" variable, so I added it here.
+>> Does this preserve compatibility, because anything after is only used by the kernel?
+> 
+> No, unfortunately there is no way to add a new variable to that struct
+> without breaking compatibility. You could add a new revision, but I
+> would like to think about Massimiliano Hofer's patch before that,
+> if we do something like that we can get rid of the "master" pointer
+> with the new revision.
+
+What do you mean with "new revision"? A new match named "limit2"?
+
+Which of Massimiliano's patches do you mean? The "support for entry data" patch?
+
+To understand correctly:
+
+ Is it not possible under any circumstances to add new variables to a match info
+ struct or is the problem the "master" variable?
+
+ If so what is the "master" variable for?
+
+ As far as I understand the size of the "match info struct" passed from the
+ userspace must exactly match the size of the kernels "match info struct".
+ Right?
+
+Regards
+ Sven Anders
+
+- --
+ Sven Anders <anders@anduras.de>                 () Ascii Ribbon Campaign
+                                                 /\ Support plain text e-mail
+ ANDURAS service solutions AG
+ Innstraﬂe 71 - 94036 Passau - Germany
+ Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2.1 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFEh+oQ5lKZ7Feg4EcRAvHeAJ9JD1tBGvLhZwETVaEpgj/KPZe3KACfcUhG
+2/TN39WZ3JjJjwye4xW84i8=
+=GIIo
+-----END PGP SIGNATURE-----
+
+--------------080704030601010307020309--
