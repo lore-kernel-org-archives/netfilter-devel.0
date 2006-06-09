@@ -1,16 +1,13 @@
-From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
-Subject: Re: [H.323 Helper 5/5]: Add support for Call Forwarding
-Date: Fri, 9 Jun 2006 09:22:11 -0400
-Message-ID: <BAY109-DAV26649537F5F06AFFFEE95B3880@phx.gbl>
-References: <BAY109-DAV8EE386988FB9A08769123B3880@phx.gbl>
+From: Gregor Maier <gregor@net.in.tum.de>
+Subject: [RFC] libnfnetlink, libnetfilter_log,
+	libnetfilter_queue  error handling
+Date: Fri, 09 Jun 2006 18:01:08 +0200
+Message-ID: <44899B44.2030605@net.in.tum.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="GB18030"
-Content-Transfer-Encoding: base64
-Cc: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Jing Min Zhao" <zhaojingmin@hotmail.com>,
-	"Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,25 +19,149 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-VGhlIG5ldyBmdW5jdGlvbiAiaGF2ZV9kaXJlY3Rfcm91dGUiIGlzIGJhc2VkIG9uIFBhdHJpY2sn
-cyBwYXRjaCwgDQpidXQgdGhlcmUgYXJlIHNvbWUgY2hhbmdlcy4gVGhpcyBmdW5jdGlvbiBpcyB1
-c2VkIHRvIGd1ZXNzDQp3aGV0aGVyIHR3byBlbmRwb2ludHMgaGF2ZSBkaXJlY3Qgcm91dGUgYmV0
-d2VlbiB0aGVtLCBpZiB0aGV5IGRvLA0KZmlyZXdhbGwgd29uJ3QgdHJhY2sgZnV0dXJlIGNvbm5l
-Y3Rpb24gYmV0d2VlbiB0aGVtLiBCdXQgd2hlbiBhIHN5c3RlbQ0KaXMgdXNpbmcgUG9saWN5IFJv
-dXRpbmcgYW5kL29yIE11bHRpcGF0aCBSb3V0aW5nLCB0aGlzIGZ1bmN0aW9uDQptYXkgZ3Vlc3Mg
-d3JvbmcuIFRoaXMgaXMgd2h5IHdlIHN0aWxsIG5lZWQgdGhlIHBhcmFtZXRlciAiaW50ZXJuYWxf
-bmV0Ii4NCkluIGNhc2Ugd2UgZ3Vlc3Mgd3JvbmcgYnV0IHVzZXIgc3RpbGwgbmVlZCBhIGNvcnJl
-Y3QgcmVzdWx0LCB0aGlzIGlzDQp0aGUgbGFzdCByZXNvcnQsIGFsdGhvdWdoIGl0cyBsaW1pdGF0
-aW9uIGlzIHN1cHBvcnRpbmcgb25seQ0Kb25lIGludGVybmFsIHN1Ym5ldC4NCg0KVGhlIHJlYXNv
-biB0aGVyZSBpcyBubyBwYXJhbWV0ZXIgdG8gdHVybiBvbi9vZmYgdGhlIGd1ZXNzaW5nIGlzIA0K
-aXQgbWFrZSB0aGluZ3Mgd29yc2UuIFdoZW4gd2UgZG9uJ3QgZ3Vlc3MsIHRoaXMgbW9kdWxlIGRv
-ZXNuJ3QgDQp3b3JrIGF0IGFsbCBpbiBzb21lIHNjZW5hcmlvcy4gU28gd2UgYWx3YXlzIGd1ZXNz
-IHVubGVzcyB1c2VyDQpzcGVjaWZ5ICJpbnRlcm5hbF9uZXQiLg0KDQoNClRoYW5rcywNCg0KSmlu
-ZyBNaW4gWmhhbw0KDQoNCi0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLS0gDQpGcm9tOiAiSmlu
-ZyBNaW4gWmhhbyIgPHpoYW9qaW5nbWluQGhvdG1haWwuY29tPg0KVG86ICJOZXRmaWx0ZXIgRGV2
-ZWxvcG1lbnQgTWFpbGluZ2xpc3QiIDxuZXRmaWx0ZXItZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9y
-Zz4NCkNjOiAiUGF0cmljayBNY0hhcmR5IiA8a2FiZXJAdHJhc2gubmV0Pg0KU2VudDogRnJpZGF5
-LCBKdW5lIDA5LCAyMDA2IDEyOjI4IEFNDQpTdWJqZWN0OiBbSC4zMjMgSGVscGVyIDUvNV06IEFk
-ZCBzdXBwb3J0IGZvciBDYWxsIEZvcndhcmRpbmcNCg0KDQo+IEFkZCBzdXBwb3J0IGZvciBDYWxs
-IEZvcndhcmRpbmcuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBKaW5nIE1pbiBaaGFvIDx6aGFvamlu
-Z21pbkB1c2Vycy5zb3VyY2Vmb3JnZS5uZXQ+DQo+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hi,
+
+
+I noticed that libnfnetlink, libnetfilter_* are currently missing decent
+error handling and reporting mechanisms.
+
+libnetfilter_log and libnetfilter_queue define a nflog_errno resp.
+nfq_errno but those aren't really used. libnfnetlink uses fprintf for
+error handling/reporting.
+
+
+
+What do you think about the following suggestions:
+* add a nfnl_errno variable
+* add #defines for nfnl_errno values also add a nfnl_strerror and a
+nfnl_perror function
+* add #defines for nflog_errno and nfq_errno and nf{log|q}_strerror and
+nf{log|q}_perror functions.
+
+* make nflog_errno and nfq_errno a superset of the nfnl_errnos. E.g. by
+defining that error values from 1...N are for nfnl and values above N
+are for nfq_errno and nflog_errno.
+* nflog_strerror (and nfq_strerror) check if nflog_errno (resp.
+nfq_errno) is <= N. If so, they call nfnl_strerror otherwise they handle
+the error themselves.
+
+A user of the libnetfilter_{queue|log} only has to use the nfq_strerror
+or nflog_strerror (resp. perror) functions without getting in touch with
+the libnfnetlink errors. And by making nf{q|log}_errnos a superset of
+nfnl_errnos, reporting netlink errors is straightforward.
+
+
+
+How this could look like in code:
+
+/**** libnfnetlink ****/
+#define   ENFNL_NOERR    0
+#define   ENFNL_FOO      1
+#define   ENFNL_FOOBAR   2
+....
+#define   ENFNL_MAXERR   1024
+
+
+
+static const char *const nfnl_errlist[] =
+{
+   "No error",                  /* 0 */
+   "Error foo occured",         /* 1 = ENFNL_FOO */
+ .....
+};
+
+const char *nfnl_strerror(int errnum) {
+	static char buf[1024];
+
+	if (errnum >= nfnl_nerr) {
+		snprintf(buf, sizeof(buf), "No such nfnetlink error number %d", errnum);
+	}
+	else {
+		strncpy(buf, nfnl_errlist[errnum], sizeof(buf)-1);
+      	buf[sizeof(buf)-1] = '\0'; /* terminate if the error was too long */
+	}
+	return buf;
+		
+}
+
+
+
+void nfnl_perror(const char *s);
+
+static const int nfnl_nerr =  sizeof (nfnl_errlist) / sizeof
+(nfnl_errlist[0]);
+
+
+/*******************************/
+/***** libnetfilter_queue *****/
+#define   ENFQ_DUMMY    (ENFQ_MAXERR+1)
+#define   ENFQ_BLUB     (ENFQ_MAXERR+2)
+
+...
+const char *nfq_strerror(int errnum) {
+	static char buf[1024];
+
+	if (errnum <= ENFNL_MAXERR) {
+		snprintf(buf, sizeof(buf), "%s", nfnl_strerror(errnum));
+	}
+	else if (errnum >= ENFNL_MAXERR+1+nfq_nerr) {
+		snprintf(buf, sizeof(buf), "No such netfilter_queue error number %d",
+errnum);
+	}
+	else {
+		strncpy(buf, nfq_errlist[errnum-ENFNL_MAXERR-1], sizeof(buf)-1);
+      	buf[sizeof(buf)-1] = '\0'; /* terminate if the error was too long */
+	}
+	return buf;
+		
+}
+
+
+
+
+/*******************************/
+/***** libnetfilter_log *****/
+#define   ENFLOG_FOO      (ENFNL_MAXERR+1)
+#define   ENFLOG_BARFOO   (ENFNL_MAXERR+2)
+
+...
+const char *nflog_strerror(int errnum) {
+	static char buf[1024];
+
+	if (errnum <= ENFNL_MAXERR) {
+		snprintf(buf, sizeof(buf), "%s", nfnl_strerror(errnum));
+	}
+	else if (errnum >= ENFNL_MAXERR+1+nflog_nerr) {
+		snprintf(buf, sizeof(buf), "No such netfilter_log error number %d",
+errnum);
+	}
+	else {
+		strncpy(buf, nflog_errlist[errnum-ENFNL_MAXERR-1], sizeof(buf)-1);
+      	buf[sizeof(buf)-1] = '\0'; /* terminate if the error was too long */
+	}
+	return buf;
+		
+}
+
+
+
+Comments?
+
+cu
+Gregor
+
+- --
+Gregor Maier                                      Lehrstuhl Informatik 8
+gregor@net.in.tum.de                              Tel: +49 89  289-18010
+http://www.net.in.tum.de                                     TU Muenchen
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (Darwin)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFEiZtEdGiwgbikMYMRAmiWAJ9vKqp5xdOLeI3dZzh8xsMEw+bxWgCgmC0t
+lYaGuEyxlMa7Rvma4qhRdbA=
+=ZmGE
+-----END PGP SIGNATURE-----
