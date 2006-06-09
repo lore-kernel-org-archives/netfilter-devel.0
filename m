@@ -1,12 +1,16 @@
-From: varun <varun@rocsys.com>
-Subject: Netfilter reg problem
-Date: Fri, 09 Jun 2006 18:05:05 +0530
-Message-ID: <44896AF9.1020606@rocsys.com>
+From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
+Subject: Re: [H.323 Helper 5/5]: Add support for Call Forwarding
+Date: Fri, 9 Jun 2006 09:22:11 -0400
+Message-ID: <BAY109-DAV26649537F5F06AFFFEE95B3880@phx.gbl>
+References: <BAY109-DAV8EE386988FB9A08769123B3880@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="GB18030"
+Content-Transfer-Encoding: base64
+Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "Jing Min Zhao" <zhaojingmin@hotmail.com>,
+	"Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,40 +22,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
-
-             I have a module which basically registers to the netfilter 
-like shown below.
- 
-               static struct nf_hook_ops my_preroute_ops
-= { { NULL, NULL }, my_Input, PF_INET, NF_IP_PRE_ROUTING, 
-NF_IP_PRI_NAT_DST-1 };
-
-              Now in this when i get a packet based on certain condition 
-i use NF_STOLEN.
-
-           Now the scenario is that i want to register iptables with 
-REDIRECT facility also.
-          The reason is that if i get a packet which has destination 
-port 80 i will redirect to 5555 where i run squid proxy.
-          so i use a policy like
-         iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j 
-REDIRECT --to-port 5555
-
-          So for this to happen iptables should get the packet first 
-before my module otherwise i will steal the packet and iptables will not 
-get the packet.
-
-         So i registered my module first and then try to insmod iptables 
-modules. ip_conntrack.o refuses to insmod saying that resource busy. so 
-without conntrck i cannot use REDIRECT. Why is this happening?
-
-         Next if first register iptables and then my module then every 
-thing works fine. But packets are not coming to iptables .
-Only my modules get it. So how can i overcome this situation? How to 
-change my module reg functionality to suit the scenario?
-      The important thing is that once iptables hits on the above policy 
-then my module should get the packet after iptables.
-       Please help me.
-       Iam working on 2.4 kernel
-Varun
+VGhlIG5ldyBmdW5jdGlvbiAiaGF2ZV9kaXJlY3Rfcm91dGUiIGlzIGJhc2VkIG9uIFBhdHJpY2sn
+cyBwYXRjaCwgDQpidXQgdGhlcmUgYXJlIHNvbWUgY2hhbmdlcy4gVGhpcyBmdW5jdGlvbiBpcyB1
+c2VkIHRvIGd1ZXNzDQp3aGV0aGVyIHR3byBlbmRwb2ludHMgaGF2ZSBkaXJlY3Qgcm91dGUgYmV0
+d2VlbiB0aGVtLCBpZiB0aGV5IGRvLA0KZmlyZXdhbGwgd29uJ3QgdHJhY2sgZnV0dXJlIGNvbm5l
+Y3Rpb24gYmV0d2VlbiB0aGVtLiBCdXQgd2hlbiBhIHN5c3RlbQ0KaXMgdXNpbmcgUG9saWN5IFJv
+dXRpbmcgYW5kL29yIE11bHRpcGF0aCBSb3V0aW5nLCB0aGlzIGZ1bmN0aW9uDQptYXkgZ3Vlc3Mg
+d3JvbmcuIFRoaXMgaXMgd2h5IHdlIHN0aWxsIG5lZWQgdGhlIHBhcmFtZXRlciAiaW50ZXJuYWxf
+bmV0Ii4NCkluIGNhc2Ugd2UgZ3Vlc3Mgd3JvbmcgYnV0IHVzZXIgc3RpbGwgbmVlZCBhIGNvcnJl
+Y3QgcmVzdWx0LCB0aGlzIGlzDQp0aGUgbGFzdCByZXNvcnQsIGFsdGhvdWdoIGl0cyBsaW1pdGF0
+aW9uIGlzIHN1cHBvcnRpbmcgb25seQ0Kb25lIGludGVybmFsIHN1Ym5ldC4NCg0KVGhlIHJlYXNv
+biB0aGVyZSBpcyBubyBwYXJhbWV0ZXIgdG8gdHVybiBvbi9vZmYgdGhlIGd1ZXNzaW5nIGlzIA0K
+aXQgbWFrZSB0aGluZ3Mgd29yc2UuIFdoZW4gd2UgZG9uJ3QgZ3Vlc3MsIHRoaXMgbW9kdWxlIGRv
+ZXNuJ3QgDQp3b3JrIGF0IGFsbCBpbiBzb21lIHNjZW5hcmlvcy4gU28gd2UgYWx3YXlzIGd1ZXNz
+IHVubGVzcyB1c2VyDQpzcGVjaWZ5ICJpbnRlcm5hbF9uZXQiLg0KDQoNClRoYW5rcywNCg0KSmlu
+ZyBNaW4gWmhhbw0KDQoNCi0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLS0gDQpGcm9tOiAiSmlu
+ZyBNaW4gWmhhbyIgPHpoYW9qaW5nbWluQGhvdG1haWwuY29tPg0KVG86ICJOZXRmaWx0ZXIgRGV2
+ZWxvcG1lbnQgTWFpbGluZ2xpc3QiIDxuZXRmaWx0ZXItZGV2ZWxAbGlzdHMubmV0ZmlsdGVyLm9y
+Zz4NCkNjOiAiUGF0cmljayBNY0hhcmR5IiA8a2FiZXJAdHJhc2gubmV0Pg0KU2VudDogRnJpZGF5
+LCBKdW5lIDA5LCAyMDA2IDEyOjI4IEFNDQpTdWJqZWN0OiBbSC4zMjMgSGVscGVyIDUvNV06IEFk
+ZCBzdXBwb3J0IGZvciBDYWxsIEZvcndhcmRpbmcNCg0KDQo+IEFkZCBzdXBwb3J0IGZvciBDYWxs
+IEZvcndhcmRpbmcuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBKaW5nIE1pbiBaaGFvIDx6aGFvamlu
+Z21pbkB1c2Vycy5zb3VyY2Vmb3JnZS5uZXQ+DQo+
