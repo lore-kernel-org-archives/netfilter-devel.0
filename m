@@ -1,10 +1,10 @@
 From: "Jing Min Zhao" <zhaojingmin@hotmail.com>
-Subject: [H.323 Helper 1/5]: Change helper definitions
-Date: Fri, 9 Jun 2006 00:17:48 -0400
-Message-ID: <BAY109-DAV77178796DEC33C757D9D7B3880@phx.gbl>
+Subject: [H.323 Helper 2/5]: Change helper definitions
+Date: Fri, 9 Jun 2006 00:19:55 -0400
+Message-ID: <BAY109-DAV452CF9E30E212AFCB471CB3880@phx.gbl>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_005C_01C68B5A.23BA7EA0"
+	boundary="----=_NextPart_000_006D_01C68B5A.6F690970"
 Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: "Netfilter Development Mailinglist" <netfilter-devel@lists.netfilter.org>
@@ -21,7 +21,7 @@ List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------=_NextPart_000_005C_01C68B5A.23BA7EA0
+------=_NextPart_000_006D_01C68B5A.6F690970
 Content-Type: text/plain;
 	charset="GB18030"
 Content-Transfer-Encoding: base64
@@ -30,7 +30,7 @@ Q2hhbmdlIGhlbHBlcnMnIHN0cnVjdHVyZSBkZWZpbml0aW9ucyB0byBtZWV0IHNvbWUgb2xkIGNv
 bXBpbGVycy4NCg0KU2lnbmVkLW9mZi1ieTogSmluZyBNaW4gWmhhbyA8emhhb2ppbmdtaW5AdXNl
 cnMuc291cmNlZm9yZ2Uub3JnPg==
 
-------=_NextPart_000_005C_01C68B5A.23BA7EA0
+------=_NextPart_000_006D_01C68B5A.6F690970
 Content-Type: application/octet-stream;
 	name="patch2-helper-definition"
 Content-Transfer-Encoding: quoted-printable
@@ -80,4 +80,4 @@ __constant_htons(RAS_PORT)}}},=0A=
  	.help =3D ras_help,=0A=
  };=0A=
 
-------=_NextPart_000_005C_01C68B5A.23BA7EA0--
+------=_NextPart_000_006D_01C68B5A.6F690970--
