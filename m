@@ -1,10 +1,10 @@
-From: Jorge Matias Martin <jorge.matias@motorola.com>
-Subject: [PATCH] xt_sctp - add SCTP header size to IP header offset
-Date: Thu, 8 Jun 2006 17:54:08 +0200
-Message-ID: <200606081754.09073.jorge.matias@motorola.com>
+From: varun <varun@rocsys.com>
+Subject: Netfilter reg problem
+Date: Fri, 09 Jun 2006 18:05:05 +0530
+Message-ID: <44896AF9.1020606@rocsys.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_hgEiETCXEYO++0h"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,60 +18,40 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_hgEiETCXEYO++0h
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi all,
 
-Hi, all.
+             I have a module which basically registers to the netfilter 
+like shown below.
+ 
+               static struct nf_hook_ops my_preroute_ops
+= { { NULL, NULL }, my_Input, PF_INET, NF_IP_PRE_ROUTING, 
+NF_IP_PRI_NAT_DST-1 };
 
-xt_sctp module is not working on 2.6.16 when --chunk-types option is used. I 
-have test this running sctp_darn and the following iptables options:
+              Now in this when i get a packet based on certain condition 
+i use NF_STOLEN.
 
--A INPUT -p sctp --chunk-types any INIT -j DROP
+           Now the scenario is that i want to register iptables with 
+REDIRECT facility also.
+          The reason is that if i get a packet which has destination 
+port 80 i will redirect to 5555 where i run squid proxy.
+          so i use a policy like
+         iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j 
+REDIRECT --to-port 5555
 
-And this is the kernel log output:
+          So for this to happen iptables should get the packet first 
+before my module otherwise i will steal the packet and iptables will not 
+get the packet.
 
-spt: 32822    dpt: 10105
-Chunk num: 1  offset: 20      type: 128       length: 10105   flags: 36
-skb->len: 92  offset: 10128
-spt: 10105    dpt: 32822
-Chunk num: 1  offset: 20      type: 39        length: 32822   flags: 79
-skb->len: 284 offset: 32844
-spt: 32822    dpt: 10105
-Chunk num: 1  offset: 20      type: 128       length: 10105   flags: 36
-...
+         So i registered my module first and then try to insmod iptables 
+modules. ip_conntrack.o refuses to insmod saying that resource busy. so 
+without conntrck i cannot use REDIRECT. Why is this happening?
 
-
-Note that length is actually the local port, and offset must be 32 (20 IPv4 
-header + 12 SCTP header).
-
-FYI, it works properly when --chunk-types is not used.
-
-
-Regards.
-
-Jorge. 
-
---Boundary-00=_hgEiETCXEYO++0h
-Content-Type: text/x-diff;
-  charset="us-ascii";
-  name="patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="patch"
-
---- linux-2.6.16.19/net/netfilter/xt_sctp.c.orig	2006-05-31 02:31:44.000000000 +0200
-+++ linux-2.6.16.19/net/netfilter/xt_sctp.c	2006-06-08 17:32:53.000000000 +0200
-@@ -152,7 +152,7 @@ match(const struct sk_buff *skb,
- 		&& SCCHECK(((ntohs(sh->dest) >= info->dpts[0]) 
- 			&& (ntohs(sh->dest) <= info->dpts[1])), 
- 			XT_SCTP_DEST_PORTS, info->flags, info->invflags)
--		&& SCCHECK(match_packet(skb, protoff,
-+		&& SCCHECK(match_packet(skb, protoff + sizeof (sctp_sctphdr_t),
- 					info->chunkmap, info->chunk_match_type,
-  					info->flag_info, info->flag_count, 
- 					hotdrop),
-
---Boundary-00=_hgEiETCXEYO++0h--
+         Next if first register iptables and then my module then every 
+thing works fine. But packets are not coming to iptables .
+Only my modules get it. So how can i overcome this situation? How to 
+change my module reg functionality to suit the scenario?
+      The important thing is that once iptables hits on the above policy 
+then my module should get the packet after iptables.
+       Please help me.
+       Iam working on 2.4 kernel
+Varun
