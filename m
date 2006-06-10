@@ -1,16 +1,13 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 2.6.18 1/3]: recent match: fix "sleeping function
- called from invalid context"
-Date: Fri, 09 Jun 2006 12:19:09 -0700 (PDT)
-Message-ID: <20060609.121909.55725285.davem@davemloft.net>
-References: <4487CDBD.2070400@trash.net>
+From: "Vasantha Kumar Puttappa" <vasanthakumar@iitb.ac.in>
+Subject: LIBIPQ: problem with Injecting encapsulated packet (plz somebody
+ reply)
+Date: Sat, 10 Jun 2006 21:32:11 +0530 (IST)
+Message-ID: <1277.10.12.25.5.1149955331.squirrel@gpo.iitb.ac.in>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <4487CDBD.2070400@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,12 +19,130 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 08 Jun 2006 09:11:57 +0200
+Hi,
+ I am posting this query again. plz somebody reply. Also I am new to
+IPtables and LIBIPQ
 
-> These three patches against net-2.6.18 fix two bugs in my recent
-> match rewrite and a minor thinko in the hashlimit match.
-> 
-> Please apply.
+ I am working on a application that involves encapsulatting the packets .
+Suppose there are 3 machines A B C. Assume that machine A is sending some
+some information to machine B. All I do is to capture packets(using
+libipq) destined for machine B  on machine A and send it to machine C . I
+encapuslate this captured packet in a new packet with(adding both IP/UDP
+header, although UDP header is not really required, with destinatin
+address as machine C IP).
 
-All 3 patches applied, thanks a lot.
+The issue is that after the call to set_verdict function, instead of the
+encapsulated packet, original packet is getting transmitted. I tried my
+best to find the solution with no success. I am updating the checksum
+correctly after adding new header.
+
+Below is snippet of my code
+
+**************
+
+unsigned char *new_packet = NULL;
+struct iphdr *new_iphdr;
+struct iphdr *original_iphdr = (struct iphdr *)(m->payload);
+int status;
+
+
+new_packet = (unsigned char *) calloc(1,sizeof(struct iphdr) +
+(m->data_len) + sizeof(struct udphdr));
+new_iphdr = (struct iphdr *) calloc(1,sizeof(struct iphdr));
+
+
+
+
+    /* extra Udp header */
+
+    struct udphdr *new_udp;
+
+    new_udp = (struct udphdr *) calloc(1,sizeof(struct udphdr));
+    new_udp->source = htons(50000);
+    new_udp->dest = htons(50000);
+    new_udp->len =  original_iphdr->tot_len;
+    new_udp->check = 0;
+
+    /* udp*/
+
+
+     /** New IP header **/
+     new_iphdr->version = original_iphdr->version;
+     new_iphdr->ihl = original_iphdr->ihl;
+     new_iphdr->tos = original_iphdr->tos;
+     new_iphdr->id  = original_iphdr->id;;
+     new_iphdr->frag_off = original_iphdr->frag_off;
+     new_iphdr->ttl = original_iphdr->ttl;
+     new_iphdr->protocol = original_iphdr->protocol;
+     new_iphdr->saddr= inet_addr("10.107.26.27");//original_iphdr->saddr;
+     new_iphdr->daddr=inet_addr("10.12.25.7");//daddr.s_addr;
+
+     new_iphdr->tot_len=htons(ntohs(original_iphdr->tot_len)+
+(sizeof(struct iphdr))+ sizeof(struct udphdr));
+
+
+     new_iphdr->check=0;
+     new_iphdr->check=(((ip_sum_calc((unsigned short
+*)new_iphdr,sizeof(struct iphdr)))));
+
+
+     // Place the IP packet inside another IP packet
+     memcpy(new_packet,new_iphdr,(unsigned int)sizeof(struct iphdr));
+
+     memcpy(new_packet+sizeof(struct iphdr),new_udp,(unsigned
+int)sizeof(struct udphdr));
+
+     memcpy(new_packet+sizeof(struct iphdr)+sizeof(struct
+udphdr),m->payload,m->data_len);
+
+
+
+     size_t length = ntohs(new_iphdr->tot_len);;
+
+     status =
+ipq_set_verdict(handle,m->packet_id,NF_ACCEPT,length,(unsigned char
+*) new_packet);
+
+
+     if(status < 0)
+       {
+	 printf("\n Packet Modification failed \n");
+	 die();
+       }
+
+
+     printf("\n  Packet Transmitted Successfull \n");
+
+
+
+*********checksum function**********
+unsigned short ip_sum_calc(unsigned short *addr,int len)
+{
+
+  int nleft = len;
+  int sum = 0;
+  unsigned short *w = addr;
+  unsigned short answer = 0;
+
+  printf(" \nsize %d", sizeof(sum));
+
+  while (nleft > 1)
+    {
+      sum += *w++;
+      nleft -= 2;
+    }
+
+
+  if (nleft == 1)
+    {
+      *(unsigned char *)(&answer) = *(unsigned char *) w;
+      sum += answer;
+    }
+  sum = (sum >> 16) + (sum & 0xffff);
+  sum += (sum >> 16);
+  answer = ~sum;
+
+
+    return answer;
+
+}
