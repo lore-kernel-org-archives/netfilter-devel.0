@@ -1,18 +1,16 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Unconditionaly push mark to conntrack structure
-Date: Mon, 12 Jun 2006 00:00:53 +0200
-Message-ID: <448C9295.9080102@netfilter.org>
-References: <E1Fh0am-0003Ct-Ph@fydelkass.inl.fr> <447CD8AA.2040502@trash.net>
-	<447CDB83.1090606@trash.net> <447CE2B0.8000504@trash.net>
-	<447CE4ED.9010706@netfilter.org> <447CEAF3.5030903@trash.net>
-	<44856875.2020108@netfilter.org> <4487D0E2.4030705@trash.net>
+Subject: Re: [RFC] libnfnetlink, libnetfilter_log, libnetfilter_queue  error
+ handling
+Date: Mon, 12 Jun 2006 00:04:08 +0200
+Message-ID: <448C9358.6070904@netfilter.org>
+References: <44899B44.2030605@net.in.tum.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Eric Leblond <eric@inl.fr>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <4487D0E2.4030705@trash.net>
+To: Gregor Maier <gregor@net.in.tum.de>
+In-Reply-To: <44899B44.2030605@net.in.tum.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,48 +22,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
+Gregor Maier wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
 > 
->>Patrick McHardy wrote:
->>
->>
->>>Pablo Neira Ayuso wrote:
->>>
->>>
->>>>To be frank, I can't see how the timer can be useful from userspace. I
->>>>think that we should remove it.
->>>
->>>
->>>
->>>Don't you need it for synchronization? One example where it could be
->>>useful is to implement different timeout strategies (for example
->>>something like pf's adaptive timeouts) in userspace.
->>
->>
->>But these adaptive timeouts could be implemented in kernelspace. 
+> Hi,
 > 
-> Thats not a good argument .. by that logic we wouldn't need ctnetlink
-> at all :)
-
-Indeed, weak argument. I've been working today on conntrackd to 
-generalize it more, now it's fairly extensible I think, so this feature 
-can be easily added
-
->>Unfortunately, ctnetlink is not doing any sequence tracking of the
->>events at the moment :( and we have to. Here my old PIII 866MHz with a
->>100Mbits network card starts dropping events when it reaches ~300
->>simultaneos short TCP connections (2 seconds) with netperf. I'm going to
->>cook a patch for this.
 > 
-> That seems to be pretty poor performance - by sequence tracking you
-> mean TCP state updates? Is that poor performance with or without
-> them?
+> I noticed that libnfnetlink, libnetfilter_* are currently missing decent
+> error handling and reporting mechanisms.
+> 
+> libnetfilter_log and libnetfilter_queue define a nflog_errno resp.
+> nfq_errno but those aren't really used. libnfnetlink uses fprintf for
+> error handling/reporting.
+> 
+> What do you think about the following suggestions:
+> * add a nfnl_errno variable
+> * add #defines for nfnl_errno values also add a nfnl_strerror and a
+> nfnl_perror function
+> * add #defines for nflog_errno and nfq_errno and nf{log|q}_strerror and
+> nf{log|q}_perror functions.
+> 
+> * make nflog_errno and nfq_errno a superset of the nfnl_errnos. E.g. by
+> defining that error values from 1...N are for nfnl and values above N
+> are for nfq_errno and nflog_errno.
+> * nflog_strerror (and nfq_strerror) check if nflog_errno (resp.
+> nfq_errno) is <= N. If so, they call nfnl_strerror otherwise they handle
+> the error themselves.
 
-I meant that nlmsg_seq is not set in the events sent by ctnetlink. I 
-sent you a RFC patch some days ago, please let me know what you think. 
-About the performance test, I'll do some testing to get some results 
-tomorrow again, then I'll post them so we could comment them.
+All those seem a good idea, I have currently enqueued a set of patches 
+for libnfnetlink and friends that I'll post in some days, still want to 
+give them some spins. I think that we could integrate this changes that 
+you propose.
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of 
