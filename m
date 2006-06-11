@@ -1,13 +1,18 @@
-From: "Vasantha Kumar Puttappa" <vasanthakumar@iitb.ac.in>
-Subject: LIBIPQ: problem with Injecting encapsulated packet (plz somebody
- reply)
-Date: Sat, 10 Jun 2006 21:32:11 +0530 (IST)
-Message-ID: <1277.10.12.25.5.1149955331.squirrel@gpo.iitb.ac.in>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] Unconditionaly push mark to conntrack structure
+Date: Mon, 12 Jun 2006 00:00:53 +0200
+Message-ID: <448C9295.9080102@netfilter.org>
+References: <E1Fh0am-0003Ct-Ph@fydelkass.inl.fr> <447CD8AA.2040502@trash.net>
+	<447CDB83.1090606@trash.net> <447CE2B0.8000504@trash.net>
+	<447CE4ED.9010706@netfilter.org> <447CEAF3.5030903@trash.net>
+	<44856875.2020108@netfilter.org> <4487D0E2.4030705@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org, Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4487D0E2.4030705@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,130 +24,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
- I am posting this query again. plz somebody reply. Also I am new to
-IPtables and LIBIPQ
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+> 
+>>Patrick McHardy wrote:
+>>
+>>
+>>>Pablo Neira Ayuso wrote:
+>>>
+>>>
+>>>>To be frank, I can't see how the timer can be useful from userspace. I
+>>>>think that we should remove it.
+>>>
+>>>
+>>>
+>>>Don't you need it for synchronization? One example where it could be
+>>>useful is to implement different timeout strategies (for example
+>>>something like pf's adaptive timeouts) in userspace.
+>>
+>>
+>>But these adaptive timeouts could be implemented in kernelspace. 
+> 
+> Thats not a good argument .. by that logic we wouldn't need ctnetlink
+> at all :)
 
- I am working on a application that involves encapsulatting the packets .
-Suppose there are 3 machines A B C. Assume that machine A is sending some
-some information to machine B. All I do is to capture packets(using
-libipq) destined for machine B  on machine A and send it to machine C . I
-encapuslate this captured packet in a new packet with(adding both IP/UDP
-header, although UDP header is not really required, with destinatin
-address as machine C IP).
+Indeed, weak argument. I've been working today on conntrackd to 
+generalize it more, now it's fairly extensible I think, so this feature 
+can be easily added
 
-The issue is that after the call to set_verdict function, instead of the
-encapsulated packet, original packet is getting transmitted. I tried my
-best to find the solution with no success. I am updating the checksum
-correctly after adding new header.
+>>Unfortunately, ctnetlink is not doing any sequence tracking of the
+>>events at the moment :( and we have to. Here my old PIII 866MHz with a
+>>100Mbits network card starts dropping events when it reaches ~300
+>>simultaneos short TCP connections (2 seconds) with netperf. I'm going to
+>>cook a patch for this.
+> 
+> That seems to be pretty poor performance - by sequence tracking you
+> mean TCP state updates? Is that poor performance with or without
+> them?
 
-Below is snippet of my code
+I meant that nlmsg_seq is not set in the events sent by ctnetlink. I 
+sent you a RFC patch some days ago, please let me know what you think. 
+About the performance test, I'll do some testing to get some results 
+tomorrow again, then I'll post them so we could comment them.
 
-**************
-
-unsigned char *new_packet = NULL;
-struct iphdr *new_iphdr;
-struct iphdr *original_iphdr = (struct iphdr *)(m->payload);
-int status;
-
-
-new_packet = (unsigned char *) calloc(1,sizeof(struct iphdr) +
-(m->data_len) + sizeof(struct udphdr));
-new_iphdr = (struct iphdr *) calloc(1,sizeof(struct iphdr));
-
-
-
-
-    /* extra Udp header */
-
-    struct udphdr *new_udp;
-
-    new_udp = (struct udphdr *) calloc(1,sizeof(struct udphdr));
-    new_udp->source = htons(50000);
-    new_udp->dest = htons(50000);
-    new_udp->len =  original_iphdr->tot_len;
-    new_udp->check = 0;
-
-    /* udp*/
-
-
-     /** New IP header **/
-     new_iphdr->version = original_iphdr->version;
-     new_iphdr->ihl = original_iphdr->ihl;
-     new_iphdr->tos = original_iphdr->tos;
-     new_iphdr->id  = original_iphdr->id;;
-     new_iphdr->frag_off = original_iphdr->frag_off;
-     new_iphdr->ttl = original_iphdr->ttl;
-     new_iphdr->protocol = original_iphdr->protocol;
-     new_iphdr->saddr= inet_addr("10.107.26.27");//original_iphdr->saddr;
-     new_iphdr->daddr=inet_addr("10.12.25.7");//daddr.s_addr;
-
-     new_iphdr->tot_len=htons(ntohs(original_iphdr->tot_len)+
-(sizeof(struct iphdr))+ sizeof(struct udphdr));
-
-
-     new_iphdr->check=0;
-     new_iphdr->check=(((ip_sum_calc((unsigned short
-*)new_iphdr,sizeof(struct iphdr)))));
-
-
-     // Place the IP packet inside another IP packet
-     memcpy(new_packet,new_iphdr,(unsigned int)sizeof(struct iphdr));
-
-     memcpy(new_packet+sizeof(struct iphdr),new_udp,(unsigned
-int)sizeof(struct udphdr));
-
-     memcpy(new_packet+sizeof(struct iphdr)+sizeof(struct
-udphdr),m->payload,m->data_len);
-
-
-
-     size_t length = ntohs(new_iphdr->tot_len);;
-
-     status =
-ipq_set_verdict(handle,m->packet_id,NF_ACCEPT,length,(unsigned char
-*) new_packet);
-
-
-     if(status < 0)
-       {
-	 printf("\n Packet Modification failed \n");
-	 die();
-       }
-
-
-     printf("\n  Packet Transmitted Successfull \n");
-
-
-
-*********checksum function**********
-unsigned short ip_sum_calc(unsigned short *addr,int len)
-{
-
-  int nleft = len;
-  int sum = 0;
-  unsigned short *w = addr;
-  unsigned short answer = 0;
-
-  printf(" \nsize %d", sizeof(sum));
-
-  while (nleft > 1)
-    {
-      sum += *w++;
-      nleft -= 2;
-    }
-
-
-  if (nleft == 1)
-    {
-      *(unsigned char *)(&answer) = *(unsigned char *) w;
-      sum += answer;
-    }
-  sum = (sum >> 16) + (sum & 0xffff);
-  sum += (sum >> 16);
-  answer = ~sum;
-
-
-    return answer;
-
-}
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
