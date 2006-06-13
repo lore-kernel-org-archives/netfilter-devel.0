@@ -1,13 +1,13 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 0/2] Specify nf_queue max length from userspace
-Date: Tue, 13 Jun 2006 18:56:28 +0200
-Message-ID: <1150217788.7164.4.camel@porky>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [RFC] ctnetlink events drop benchmark
+Date: Tue, 13 Jun 2006 16:59:41 +0200
+Message-ID: <448ED2DD.30100@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-fGNY+xUx37QRGDFeH9Yu"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,37 +19,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---=-fGNY+xUx37QRGDFeH9Yu
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
 Hi,
 
-With libnetfilter_queue it was not anymore possible to specify the max
-queue length from userspace. All needed framework was already in
-nfnetlink_queue code and as queue instance has its own max length, it
-was thus possible to specify max length on a per queue basis.
+Finally, I've got some results in my test enviroment about the ctnetlink 
+event drop issue. The machine used as firewall is a PIII 866 256 Mbytes 
+RAM, two NIC realtek 8139 100Mbits running debian unstable with linux 
+kernel 2.6.16.
 
-To be able to do so, I've added a new function nfq_set_queue_maxlen to
-libnetfilter_queue and done needed modifications in nfnetlink_queue
-code.
+I have run the same test with three different socket queue sizes:
+107.520 (default)
+215.040 (x2)
+430.080 (x4)
 
-BR,
---=20
-Eric Leblond <eric@inl.fr>
-INL
+I used netperf to create the connections with a shell script that loops 
+calling netperf -H ip -l 3 &.
 
---=-fGNY+xUx37QRGDFeH9Yu
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+To get the number of events dropped I've used the following:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
+$ conntrackd & (run as daemon)
+$ conntrackd -s (request statistics)
 
-iD8DBQBEju48nxA7CdMWjzIRAjGOAJ9Kpzb7eXq1E0tkHECyPzjY6sqX5ACfZQI9
-FtdeXw5NRvf3JmDv9YAxRVw=
-=5LyR
------END PGP SIGNATURE-----
+Results are available in:
 
---=-fGNY+xUx37QRGDFeH9Yu--
+http://people.netfilter.org/pablo/ctnetlink/events.eps
+
+Currently nlmsg_seq is not set in ctnetlink events, if we set it, we can 
+do some kind of sequence tracking on netlink. If an event gets lost, we 
+can request a resync with the conntrack via dump_conntrack.
+
+Another choice could be relax conntrackd states transitions, currently 
+the valid transition sequence is: NEW -> UPDATE -> DESTROY, if an UPDATE 
+event is received but no NEW was seen previously, then the event is 
+ignored. Maybe this is too tight, but since I'm validating the whole 
+thing I prefer remaining "tight" at the moment.
+
+Comments welcome.
+
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
