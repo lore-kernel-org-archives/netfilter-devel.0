@@ -1,13 +1,16 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [RFC] ctnetlink events drop benchmark
-Date: Tue, 13 Jun 2006 16:59:41 +0200
-Message-ID: <448ED2DD.30100@netfilter.org>
+Subject: Re: [PATCH] entry_data
+Date: Tue, 13 Jun 2006 17:19:49 +0200
+Message-ID: <448ED795.3010509@netfilter.org>
+References: <200606050029.08602.max@nucleus.it>	<200606120119.16503.max@nucleus.it>
+	<448D38DA.8000404@us.es> <200606121445.42157.max@nucleus.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Massimiliano Hofer <max@nucleus.it>
+In-Reply-To: <200606121445.42157.max@nucleus.it>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,41 +22,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Massimiliano Hofer wrote:
+> On Monday 12 June 2006 11:50 am, Pablo Neira Ayuso wrote:
+>  
+>>Fine, please next time send an incremental diff so we all can notice the
+>>changes by having a look at the attachment. Thanks.
+> 
+> OK. Here it is. Some of the changes in this diff are due to the 2.6.17 
+> porting, but they are minor.
+> 
+> ------------------------------------------------------------------------
+> 
+> diff -Nru linux-2.6.16/net/netfilter/xt_condition.c linux-2.6.17-entry_data/net/netfilter/xt_condition.c
+> --- linux-2.6.16/net/netfilter/xt_condition.c	2006-04-26 12:07:52.000000000 +0200
+> +++ linux-2.6.17-entry_data/net/netfilter/xt_condition.c	2006-06-12 01:49:05.000000000 +0200
+> @@ -116,42 +116,32 @@
+>  
+>  static int
+>  match(const struct sk_buff *skb, const struct net_device *in,
+> -      const struct net_device *out, const void *matchinfo, int offset,
+> -      unsigned int protoff, int *hotdrop)
+> +      const struct net_device *out, const struct xt_match *match,
+> +      const void *matchinfo, int offset,
+> +      unsigned int protoff, int *hotdrop, void *entry_data)
 
-Finally, I've got some results in my test enviroment about the ctnetlink 
-event drop issue. The machine used as firewall is a PIII 866 256 Mbytes 
-RAM, two NIC realtek 8139 100Mbits running debian unstable with linux 
-kernel 2.6.16.
-
-I have run the same test with three different socket queue sizes:
-107.520 (default)
-215.040 (x2)
-430.080 (x4)
-
-I used netperf to create the connections with a shell script that loops 
-calling netperf -H ip -l 3 &.
-
-To get the number of events dropped I've used the following:
-
-$ conntrackd & (run as daemon)
-$ conntrackd -s (request statistics)
-
-Results are available in:
-
-http://people.netfilter.org/pablo/ctnetlink/events.eps
-
-Currently nlmsg_seq is not set in ctnetlink events, if we set it, we can 
-do some kind of sequence tracking on netlink. If an event gets lost, we 
-can request a resync with the conntrack via dump_conntrack.
-
-Another choice could be relax conntrackd states transitions, currently 
-the valid transition sequence is: NEW -> UPDATE -> DESTROY, if an UPDATE 
-event is received but no NEW was seen previously, then the event is 
-ignored. Maybe this is too tight, but since I'm validating the whole 
-thing I prefer remaining "tight" at the moment.
-
-Comments welcome.
+Hm, then you must have a patch to modify the interface match()?
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of 
