@@ -1,16 +1,13 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 2/2] [libnetfilter_queue] Specify nf_queue max length from
-	userspace
-Date: Tue, 13 Jun 2006 19:07:58 +0200
-Message-ID: <1150218479.5386.5.camel@porky>
-References: <1150217788.7164.4.camel@porky>
+Subject: [PATCH 0/2] Specify nf_queue max length from userspace
+Date: Tue, 13 Jun 2006 18:56:28 +0200
+Message-ID: <1150217788.7164.4.camel@porky>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
 	protocol="application/pgp-signature";
-	boundary="=-fYVSPfJLeop18D9ZTL9j"
+	boundary="=-fGNY+xUx37QRGDFeH9Yu"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <1150217788.7164.4.camel@porky>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,85 +20,36 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-fYVSPfJLeop18D9ZTL9j
-Content-Type: multipart/mixed; boundary="=-C+M51L/VCEMA/P0nZ/02"
-
-
---=-C+M51L/VCEMA/P0nZ/02
+--=-fGNY+xUx37QRGDFeH9Yu
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-Attached patch is against libnetfilter_queue svn.
+Hi,
+
+With libnetfilter_queue it was not anymore possible to specify the max
+queue length from userspace. All needed framework was already in
+nfnetlink_queue code and as queue instance has its own max length, it
+was thus possible to specify max length on a per queue basis.
+
+To be able to do so, I've added a new function nfq_set_queue_maxlen to
+libnetfilter_queue and done needed modifications in nfnetlink_queue
+code.
 
 BR,
 --=20
 Eric Leblond <eric@inl.fr>
 INL
 
---=-C+M51L/VCEMA/P0nZ/02
-Content-Disposition: attachment;
-	filename*0=libnetfilter_queue-specify-queue-max-length-from-userspace.tx;
-	filename*1=t
-Content-Type: text/x-patch;
-	name=libnetfilter_queue-specify-queue-max-length-from-userspace.txt;
-	charset=ISO-8859-15
-Content-Transfer-Encoding: base64
-
-SW5kZXg6IGluY2x1ZGUvbGlibmV0ZmlsdGVyX3F1ZXVlL2xpbnV4X25mbmV0bGlua19xdWV1ZS5o
-DQo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09DQotLS0gaW5jbHVkZS9saWJuZXRmaWx0ZXJfcXVldWUvbGludXhfbmZuZXRs
-aW5rX3F1ZXVlLmgJKHLDqXZpc2lvbiA2NDcwKQ0KKysrIGluY2x1ZGUvbGlibmV0ZmlsdGVyX3F1
-ZXVlL2xpbnV4X25mbmV0bGlua19xdWV1ZS5oCShjb3BpZSBkZSB0cmF2YWlsKQ0KQEAgLTcxLDYg
-KzcxLDcgQEANCiB9IF9fYXR0cmlidXRlX18gKChwYWNrZWQpKTsNCiANCiBlbnVtIG5mcW5sX2Nv
-bmZpZ19tb2RlIHsNCisJTkZRTkxfQ09QWV9VTlNQRUMsDQogCU5GUU5MX0NPUFlfTk9ORSwNCiAJ
-TkZRTkxfQ09QWV9NRVRBLA0KIAlORlFOTF9DT1BZX1BBQ0tFVCwNCkBAIC03OSw2ICs4MCw3IEBA
-DQogc3RydWN0IG5mcW5sX21zZ19jb25maWdfcGFyYW1zIHsNCiAJdV9pbnQzMl90CWNvcHlfcmFu
-Z2U7DQogCXVfaW50OF90CWNvcHlfbW9kZTsJLyogZW51bSBuZnFubF9jb25maWdfbW9kZSAqLw0K
-Kwl1X2ludDMyX3QgICBxdWV1ZV9tYXhsZW47DQogfSBfX2F0dHJpYnV0ZV9fICgocGFja2VkKSk7
-DQogDQogDQpJbmRleDogaW5jbHVkZS9saWJuZXRmaWx0ZXJfcXVldWUvbGlibmV0ZmlsdGVyX3F1
-ZXVlLmgNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT0NCi0tLSBpbmNsdWRlL2xpYm5ldGZpbHRlcl9xdWV1ZS9saWJuZXRm
-aWx0ZXJfcXVldWUuaAkocsOpdmlzaW9uIDY0NzApDQorKysgaW5jbHVkZS9saWJuZXRmaWx0ZXJf
-cXVldWUvbGlibmV0ZmlsdGVyX3F1ZXVlLmgJKGNvcGllIGRlIHRyYXZhaWwpDQpAQCAtNDksNiAr
-NDksOSBAQA0KIGV4dGVybiBpbnQgbmZxX3NldF9tb2RlKHN0cnVjdCBuZnFfcV9oYW5kbGUgKnFo
-LA0KIAkJCSAgdV9pbnQ4X3QgbW9kZSwgdW5zaWduZWQgaW50IGxlbik7DQogDQoraW50IG5mcV9z
-ZXRfcXVldWVfbWF4bGVuKHN0cnVjdCBuZnFfcV9oYW5kbGUgKnFoLA0KKwkJCXVfaW50MzJfdCBx
-dWV1ZWxlbik7DQorDQogZXh0ZXJuIGludCBuZnFfc2V0X3ZlcmRpY3Qoc3RydWN0IG5mcV9xX2hh
-bmRsZSAqcWgsDQogCQkJICAgICB1X2ludDMyX3QgaWQsDQogCQkJICAgICB1X2ludDMyX3QgdmVy
-ZGljdCwNCkluZGV4OiBzcmMvbGlibmV0ZmlsdGVyX3F1ZXVlLmMNCj09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCi0tLSBz
-cmMvbGlibmV0ZmlsdGVyX3F1ZXVlLmMJKHLDqXZpc2lvbiA2NDcwKQ0KKysrIHNyYy9saWJuZXRm
-aWx0ZXJfcXVldWUuYwkoY29waWUgZGUgdHJhdmFpbCkNCkBAIC0yODgsNiArMjg4LDI2IEBADQog
-CXJldHVybiBuZm5sX3RhbGsocWgtPmgtPm5mbmxoLCBubWgsIDAsIDAsIE5VTEwsIE5VTEwsIE5V
-TEwpOw0KIH0NCiANCitpbnQgbmZxX3NldF9xdWV1ZV9tYXhsZW4oc3RydWN0IG5mcV9xX2hhbmRs
-ZSAqcWgsDQorCQkJCXVfaW50MzJfdCBxdWV1ZWxlbikNCit7DQorCWNoYXIgYnVmW05GTkxfSEVB
-REVSX0xFTg0KKwkJK05GQV9MRU5HVEgoc2l6ZW9mKHN0cnVjdCBuZnFubF9tc2dfY29uZmlnX3Bh
-cmFtcykpXTsNCisJc3RydWN0IG5mcW5sX21zZ19jb25maWdfcGFyYW1zIHBhcmFtczsNCisJc3Ry
-dWN0IG5sbXNnaGRyICpubWggPSAoc3RydWN0IG5sbXNnaGRyICopIGJ1ZjsNCisNCisJbmZubF9m
-aWxsX2hkcihxaC0+aC0+bmZubHNzaCwgbm1oLCAwLCBBRl9VTlNQRUMsIHFoLT5pZCwNCisJCQlO
-RlFOTF9NU0dfQ09ORklHLCBOTE1fRl9SRVFVRVNUfE5MTV9GX0FDSyk7DQorDQorCXBhcmFtcy5j
-b3B5X3JhbmdlID0gMDsNCisJcGFyYW1zLmNvcHlfbW9kZSA9IE5GUU5MX0NPUFlfVU5TUEVDOw0K
-KwlwYXJhbXMucXVldWVfbWF4bGVuPWh0b25sKHF1ZXVlbGVuKTsNCisJbmZubF9hZGRhdHRyX2wo
-bm1oLCBzaXplb2YoYnVmKSwgTkZRQV9DRkdfUEFSQU1TLCAmcGFyYW1zLA0KKwkJCXNpemVvZihw
-YXJhbXMpKTsNCisNCisJcmV0dXJuIG5mbmxfdGFsayhxaC0+aC0+bmZubGgsIG5taCwgMCwgMCwg
-TlVMTCwgTlVMTCwgTlVMTCk7DQorfQ0KKw0KIHN0YXRpYyBpbnQgX19zZXRfdmVyZGljdChzdHJ1
-Y3QgbmZxX3FfaGFuZGxlICpxaCwgdV9pbnQzMl90IGlkLA0KIAkJdV9pbnQzMl90IHZlcmRpY3Qs
-IHVfaW50MzJfdCBtYXJrLCBpbnQgc2V0X21hcmssDQogCQl1X2ludDMyX3QgZGF0YV9sZW4sIHVu
-c2lnbmVkIGNoYXIgKmRhdGEpDQo=
-
-
---=-C+M51L/VCEMA/P0nZ/02--
-
---=-fYVSPfJLeop18D9ZTL9j
+--=-fGNY+xUx37QRGDFeH9Yu
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.3 (GNU/Linux)
 
-iD8DBQBEjvDunxA7CdMWjzIRAs0dAJ9xswzKOg+/PxAj8J9pcapd+NdGBgCfXhiN
-LOzycrkbUV2Dmy16LsisKv4=
-=k8KR
+iD8DBQBEju48nxA7CdMWjzIRAjGOAJ9Kpzb7eXq1E0tkHECyPzjY6sqX5ACfZQI9
+FtdeXw5NRvf3JmDv9YAxRVw=
+=5LyR
 -----END PGP SIGNATURE-----
 
---=-fYVSPfJLeop18D9ZTL9j--
+--=-fGNY+xUx37QRGDFeH9Yu--
