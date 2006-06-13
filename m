@@ -1,14 +1,12 @@
-From: Yuri Gushin <yuri@ecl-labs.org>
-Subject: [PATCH] xt_tcpudp.c match unregistration bug
-Date: Mon, 12 Jun 2006 10:35:06 +0300
-Message-ID: <200606121035.07231.yuri@ecl-labs.org>
+From: varun <varun@rocsys.com>
+Subject: doubt on Redirect
+Date: Tue, 13 Jun 2006 16:40:22 +0530
+Message-ID: <448E9D1E.9010806@rocsys.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: coreteam@netfilter.org, netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,25 +20,12 @@ List-Id: netfilter-devel.vger.kernel.org
 
 Hi all,
 
-There is a match unregistration bug in the __init function of xt_tcpudp.c;
+              When i use REDIRECT policy will the packet be changed 
+before to the redirected port number before giving yo the next module 
+registered to the same hook?
 
-"xt_unregister_match(AF_INET, &tcp_matchstruct)" is called twice, 
-leaving "udp_matchstruct" registered, in case of a failure in the 
-registration of the udp6 structure.
+               If so why is it that the syn packet from LAN goes through 
+but syn-ack from internet is dropped by my fw when used with iptables 
+(Only for redirect to squid)?
 
-Attached is a patch to resolve this issue.
-
-Signed-off-by: Yuri Gushin <yuri@ecl-labs.org>
-
-
---- a/net/netfilter/xt_tcpudp.c 2006-05-31 03:31:44.000000000 +0300
-+++ b/net/netfilter/xt_tcpudp.c 2006-06-11 17:41:20.000000000 +0300
-@@ -314,7 +314,7 @@
-        return ret;
- 
- out_unreg_udp:
--       xt_unregister_match(AF_INET, &tcp_matchstruct);
-+       xt_unregister_match(AF_INET, &udp_matchstruct);
- out_unreg_tcp6:
-        xt_unregister_match(AF_INET6, &tcp6_matchstruct);
- out_unreg_tcp:
+Varun
