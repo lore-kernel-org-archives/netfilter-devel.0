@@ -1,19 +1,12 @@
-From: Massimiliano Hofer <max@nucleus.it>
-Subject: Re: [PATCH] entry_data
-Date: Tue, 13 Jun 2006 22:56:09 +0200
-Message-ID: <200606132256.10384.max@nucleus.it>
-References: <200606050029.08602.max@nucleus.it>
-	<200606121445.42157.max@nucleus.it>
-	<448ED795.3010509@netfilter.org>
+From: "Vasantha Kumar Puttappa" <vasanthakumar@iitb.ac.in>
+Subject: PREROUTING:To update Source and destination IP field (plz reply)
+Date: Tue, 13 Jun 2006 22:53:09 +0530 (IST)
+Message-ID: <3067.10.12.25.5.1150219389.squirrel@gpo.iitb.ac.in>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <448ED795.3010509@netfilter.org>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,25 +18,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 13 June 2006 5:19 pm, Pablo Neira Ayuso wrote:
+Dear friends,
+  I am new to iptables and libipq. Please somebody reply to this query
 
-> >  static int
-> >  match(const struct sk_buff *skb, const struct net_device *in,
-> > -      const struct net_device *out, const void *matchinfo, int offset,
-> > -      unsigned int protoff, int *hotdrop)
-> > +      const struct net_device *out, const struct xt_match *match,
-> > +      const void *matchinfo, int offset,
-> > +      unsigned int protoff, int *hotdrop, void *entry_data)
->
-> Hm, then you must have a patch to modify the interface match()?
+  Is it possible to change both source and destination field in an IP
+header in PREROUTING. If not, plz somebody suggest me a way to do that.
 
-Of course. I sent a patch in the previous message:
-https://lists.netfilter.org/pipermail/netfilter-devel/2006-June/024656.html
+ Let me explain in detail
 
-The patches are available here:
-https://lists.netfilter.org/pipermail/netfilter-devel/attachments/20060605/94b0d808/2.6.17-rc5-entry_data_core-0001.bin
-https://lists.netfilter.org/pipermail/netfilter-devel/attachments/20060605/94b0d808/2.6.17-rc5-entry_data_matches-0001.bin
+ Suppose there are 3 machines A B C. When a packet comes from machine A to
+machine B. I would like to capture these packets AT MACHINE B BEFORE it
+goes through routing decision. I would like change the source and the
+destinatio IP address(modified SOURCE IP = MACHINE B IP, modified
+DESTINATION IP= MACHINE C IP)  including the payload, and then pass it to
+the routing decision unit.
 
--- 
-Bye,
-   Massimiliano Hofer
+ Is it possible to implement this using iptables ? if yes,plz let me know.
+If not, then plz suggest some ways to do this.
+
+
+ Thanx in advance
