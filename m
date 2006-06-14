@@ -1,16 +1,20 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] ctnetlink events drop benchmark
-Date: Wed, 14 Jun 2006 15:55:29 +0200
-Message-ID: <44901551.8080400@trash.net>
-References: <448ED2DD.30100@netfilter.org>
+Subject: Re: Concurrency issues with the iptables userspace
+	program	andexitcodes
+Date: Wed, 14 Jun 2006 16:05:10 +0200
+Message-ID: <44901796.6040000@trash.net>
+References: <1149153349.28481.15.camel@localhost.localdomain>	
+	<447F1227.7050900@trash.net>	
+	<Pine.LNX.4.61.0606012200260.27621@ask.diku.dk>	
+	<447F5204.4080505@trash.net>
+	<1149771143.28481.87.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Jesper Dangaard Brouer <hawk@diku.dk>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <448ED2DD.30100@netfilter.org>
+To: Jesper Dangaard Brouer <hawk@comx.dk>
+In-Reply-To: <1149771143.28481.87.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,47 +26,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Hi,
+Jesper Dangaard Brouer wrote:
+> For example something like the following patch?
 > 
-> Finally, I've got some results in my test enviroment about the ctnetlink
-> event drop issue. The machine used as firewall is a PIII 866 256 Mbytes
-> RAM, two NIC realtek 8139 100Mbits running debian unstable with linux
-> kernel 2.6.16.
-> 
-> I have run the same test with three different socket queue sizes:
-> 107.520 (default)
-> 215.040 (x2)
-> 430.080 (x4)
-> 
-> I used netperf to create the connections with a shell script that loops
-> calling netperf -H ip -l 3 &.
-> 
-> To get the number of events dropped I've used the following:
-> 
-> $ conntrackd & (run as daemon)
-> $ conntrackd -s (request statistics)
-> 
-> Results are available in:
-> 
-> http://people.netfilter.org/pablo/ctnetlink/events.eps
+> I have tracked down where the "Resource temporarily unavailable" occurs
+> in libiptc.c, and marked it with a comment... if you can use it for any
+> thing.
 
-Does "events" mean events/s?
-
-> Currently nlmsg_seq is not set in ctnetlink events, if we set it, we can
-> do some kind of sequence tracking on netlink. If an event gets lost, we
-> can request a resync with the conntrack via dump_conntrack.
-
-nlmsg_seq should only (but in that case it really should) be set for
-responses to queries, so userspace can associate responses with queries.
-Drops are reported as -ENOBUFS socket errors to all multicast listeners.
-
-> Another choice could be relax conntrackd states transitions, currently
-> the valid transition sequence is: NEW -> UPDATE -> DESTROY, if an UPDATE
-> event is received but no NEW was seen previously, then the event is
-> ignored. Maybe this is too tight, but since I'm validating the whole
-> thing I prefer remaining "tight" at the moment.
-
-I guess this could be made configurable, but I think for testing
-purposes its better to be stricter so it doesn't shadow real
-problems.
+Seems like you forgot to attach the patch :)
