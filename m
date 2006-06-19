@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] xt_sctp - add SCTP header size to IP header offset
-Date: Mon, 19 Jun 2006 16:53:30 +0200
-Message-ID: <4496BA6A.3040308@trash.net>
-References: <200606081754.09073.jorge.matias@motorola.com>
+Subject: Re: Packet Lost
+Date: Mon, 19 Jun 2006 16:55:27 +0200
+Message-ID: <4496BADF.5000405@trash.net>
+References: <58963.10.107.26.27.1149788221.squirrel@gpo.iitb.ac.in>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Jorge Matias Martin <jorge.matias@motorola.com>
-In-Reply-To: <200606081754.09073.jorge.matias@motorola.com>
+To: Vasantha Kumar Puttappa <vasanthakumar@iitb.ac.in>
+In-Reply-To: <58963.10.107.26.27.1149788221.squirrel@gpo.iitb.ac.in>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,31 +21,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jorge Matias Martin wrote:
-> Hi, all.
+Vasantha Kumar Puttappa wrote:
+> Hi,
 > 
-> xt_sctp module is not working on 2.6.16 when --chunk-types option is used. I 
-> have test this running sctp_darn and the following iptables options:
+>   I am working on a small application using iptables/libipq. In this, the
+> application would capture a specific packets based on the destination IP
+> address. Then I encapsulate this IP packet inside another new IP packet.
 > 
-> -A INPUT -p sctp --chunk-types any INIT -j DROP
-> 
-> And this is the kernel log output:
-> 
-> spt: 32822    dpt: 10105
-> Chunk num: 1  offset: 20      type: 128       length: 10105   flags: 36
-> skb->len: 92  offset: 10128
-> spt: 10105    dpt: 32822
-> Chunk num: 1  offset: 20      type: 39        length: 32822   flags: 79
-> skb->len: 284 offset: 32844
-> spt: 32822    dpt: 10105
-> Chunk num: 1  offset: 20      type: 128       length: 10105   flags: 36
-> ...
+> My problem is that the encapsulation part works fine in
+> kernel-2.6.11-6(mandriva 2005) and IPtables V 1.2.9.
+> (I can capture encapsulated packets using tcpdump at the sender side i.e,
+> packets are being put on to the network)
 > 
 > 
-> Note that length is actually the local port, and offset must be 32 (20 IPv4 
-> header + 12 SCTP header).
+> But this doesn't work in kernel-2.6.12-12 and IPtables-1.3.5
+> (even though there are no erros after callig ipq_set_verdict, the packets
+> are not being put on to the channel. The packets are getting lost after
+> the call to ipq_set_verdict)
 > 
-> FYI, it works properly when --chunk-types is not used.
+> please let me know if you need more information
 
-Looks good too me. Please add a Signed-off-by: line so I can
-apply it. Thanks.
+IIRC some old versions accidentally fixed up broken checksums
+they received from userspace and this is not done anymore.
+Do your packets have correct checksums when sent from userspace
+to the kernel?
