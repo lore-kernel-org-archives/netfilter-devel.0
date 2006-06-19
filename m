@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] fix conntrack compilation
-Date: Mon, 19 Jun 2006 17:54:17 +0200
-Message-ID: <4496C8A9.4000704@trash.net>
-References: <1149512507.20946.5.camel@localhost.localdomain>
+Subject: Re: Bridge netfilter defered hooks
+Date: Mon, 19 Jun 2006 17:59:09 +0200
+Message-ID: <4496C9CD.8070701@trash.net>
+References: <448051F3.1070509@trash.net>	<1149267610.3021.11.camel@localhost.localdomain>	<448072FC.3060902@trash.net>	<44809B1C.2010907@gmx.net>
+	<4487CEA8.8060701@trash.net> <44888CD7.8090601@rtij.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
-In-Reply-To: <1149512507.20946.5.camel@localhost.localdomain>
+To: Martijn Lievaart <m@rtij.nl>
+In-Reply-To: <44888CD7.8090601@rtij.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,9 +22,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric Leblond wrote:
-> It seems that subversion version of conntrack tool does not compile to
-> due the lack of inclusion of "config.h".
+Martijn Lievaart wrote:
+> Patrick McHardy wrote:
+> 
+>> Yes, its getting a bit tight in there, but so far in all setups I've
+>> seen it was possible to get along with the 32 bits using masks or
+>> reusing bits after they are no longer needed. I guess we'll have to
+>> wait and see ..
+>>  
+>>
+> 
+> Something I've been thinking about. Currently it is impossible to write
+> any kind of generic tool that uses the mark and plays nice with other
+> generic tools. Maybe we need some kind of API that allocates bits in the
+> mark. Something like "give me two bits", that returns some handle to the
+> bits. That handle could then be used for identifying the bits in the mark.
 
-I have no idea if this is "the right fix", but I trust someone will
-flame me if not, so applied :) Thanks.
+It can see that it would be useful for complex setups, but I can't think
+of an efficient implementation of this. You would have to carry a table
+of handle identifiers -> mark ranges with every packet, wouldn't you?
