@@ -1,15 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] Specify nf_queue max length from userspace
-Date: Mon, 19 Jun 2006 18:26:24 +0200
-Message-ID: <4496D030.1010400@trash.net>
-References: <1150217788.7164.4.camel@porky> <1150218404.5386.2.camel@porky>
+Subject: Re: Concurrency issues with the iptables
+	userspace	program	andexitcodes
+Date: Mon, 19 Jun 2006 18:29:14 +0200
+Message-ID: <4496D0DA.6030300@trash.net>
+References: <1149153349.28481.15.camel@localhost.localdomain>	<447F1227.7050900@trash.net>	<Pine.LNX.4.61.0606012200260.27621@ask.diku.dk>	<447F5204.4080505@trash.net>	<1149771143.28481.87.camel@localhost.localdomain>	<44901796.6040000@trash.net>
+	<1150296040.26187.114.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Jesper Dangaard Brouer <hawk@diku.dk>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
-In-Reply-To: <1150218404.5386.2.camel@porky>
+To: Jesper Dangaard Brouer <hawk@comx.dk>
+In-Reply-To: <1150296040.26187.114.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,43 +23,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric Leblond wrote:
-> Attach patch is against current git kernel tree.
-> 
-> 
-> 
-> ------------------------------------------------------------------------
-> 
-> Signed-off-by: Eric Leblond <eric@inl.fr>
-> 
-> 
-> ---
-> 
->  include/linux/netfilter/nfnetlink_queue.h |    2 ++
->  net/netfilter/nfnetlink_queue.c           |    7 ++++++-
->  2 files changed, 8 insertions(+), 1 deletions(-)
-> 
-> 1fb988dc51e2465500df50ff4e085f80acb7b6a3
-> diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
-> index 9e77437..ce32c54 100644
-> --- a/include/linux/netfilter/nfnetlink_queue.h
-> +++ b/include/linux/netfilter/nfnetlink_queue.h
-> @@ -67,6 +67,7 @@ struct nfqnl_msg_config_cmd {
->  } __attribute__ ((packed));
+Jesper Dangaard Brouer wrote:
+> Hmmm... I though I did include it inline below my signature... well lets
+> try again...This time I also attach it as a file attachment.
+
+Applied, thanks. I got a reject on the libiptc part, so I just left
+it out.
+
+> diff --exclude '*.d' --exclude-from /var/kernel/exclude_these -urpN iptables-1.3.4-pom-l7/libiptc/libiptc.c iptables-1.3.4-pom-l7-blocking/libiptc/libiptc.c
+> --- iptables-1.3.4-pom-l7/libiptc/libiptc.c	2005-10-31 20:03:49.000000000 +0100
+> +++ iptables-1.3.4-pom-l7-blocking/libiptc/libiptc.c	2006-06-07 10:25:02.000000000 +0200
+> @@ -2104,6 +2104,7 @@ TC_COMMIT(TC_HANDLE_T *handle)
+>  		free(repl->counters);
+>  		free(repl);
+>  		free(newcounters);
+> +		// The "EAGAIN: Resource temporarily unavailable" occurs here.
+>  		return 0;
+>  	}
 >  
->  enum nfqnl_config_mode {
-> +	NFQNL_COPY_UNSPEC,
->  	NFQNL_COPY_NONE,
->  	NFQNL_COPY_META,
->  	NFQNL_COPY_PACKET,
-
-Looks like an ABI breaker.
-
-> @@ -75,6 +76,7 @@ enum nfqnl_config_mode {
->  struct nfqnl_msg_config_params {
->  	u_int32_t	copy_range;
->  	u_int8_t	copy_mode;	/* enum nfqnl_config_mode */
-> +	u_int32_t   queue_maxlen;
->  } __attribute__ ((packed));
-
-This too. Why not just use a new attribute?
