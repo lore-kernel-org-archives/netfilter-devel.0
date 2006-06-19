@@ -1,13 +1,18 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [RFC,PATCH] introduce new API for libnfnetlink
-Date: Mon, 19 Jun 2006 01:26:58 +0200
-Message-ID: <4495E142.5000209@netfilter.org>
+Subject: Re: [PATCH] entry_data
+Date: Mon, 19 Jun 2006 02:15:10 +0200
+Message-ID: <4495EC8E.6030006@netfilter.org>
+References: <200606050029.08602.max@nucleus.it>
+	<200606121445.42157.max@nucleus.it>
+	<448ED795.3010509@netfilter.org>
+	<200606132256.10384.max@nucleus.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: Massimiliano Hofer <max@nucleus.it>
+In-Reply-To: <200606132256.10384.max@nucleus.it>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,35 +24,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+Massimiliano Hofer wrote:
+> On Tuesday 13 June 2006 5:19 pm, Pablo Neira Ayuso wrote:
+> 
+> 
+>>> static int
+>>> match(const struct sk_buff *skb, const struct net_device *in,
+>>>-      const struct net_device *out, const void *matchinfo, int offset,
+>>>-      unsigned int protoff, int *hotdrop)
+>>>+      const struct net_device *out, const struct xt_match *match,
+>>>+      const void *matchinfo, int offset,
+>>>+      unsigned int protoff, int *hotdrop, void *entry_data)
+>>
+>>Hm, then you must have a patch to modify the interface match()?
+> 
+> 
+> Of course. I sent a patch in the previous message:
+> https://lists.netfilter.org/pipermail/netfilter-devel/2006-June/024656.html
+> 
+> The patches are available here:
+> https://lists.netfilter.org/pipermail/netfilter-devel/attachments/20060605/94b0d808/2.6.17-rc5-entry_data_core-0001.bin
+> https://lists.netfilter.org/pipermail/netfilter-devel/attachments/20060605/94b0d808/2.6.17-rc5-entry_data_matches-0001.bin
 
-I have been spending some time on libnfnetlink these days based on a 
-previous patch that I sent some time ago [1]. Since the amount of 
-changes would result in API breakages, that is something that I consider 
-that we don't want, I decided to start some kind of version 2 of 
-libnfnetlink, the major changes from the current version is:
+Unfortunately, your patch breaks old iptables binaries, so it can't 
+guarantee backward compatibility :(
 
-- Uniform error handling via errno
-- Use of new netlink ADD_MEMBERSHIP socket option to join multicast groups
-- A new approach for challenge functions listen/talk, now they use the 
-callbacks registered via register_callback()
-- Single loop processing: nfnetlink_process()
-- Iterators: more control for the programmer in the nfnetlink data 
-processing
-- addattr* simplification
-- Documentation available
+pablo@Decadence:~$ head -10 2.6.17-rc5-entry_data_core-0001.bin
+diff -Nru linux-2.6.17-rc5/include/linux/netfilter/x_tables.h 
+linux-2.6.17-rc5.entry_data_core/include/linux/netfilter/x_tables.h
+--- linux-2.6.17-rc5/include/linux/netfilter/x_tables.h 2006-06-04 
+21:30:58.000000000 +0200
++++ linux-2.6.17-rc5.entry_data_core/include/linux/netfilter/x_tables.h 
+2006-06-04 21:34:03.000000000 +0200
+@@ -20,6 +20,7 @@
 
-The patch is available at:
+                         /* Used inside the kernel */
+                         struct xt_match *match;
++                       void *entry_data;
+                 } kernel;
 
-http://people.netfilter.org/pablo/libnfnetlink-newapi.patch
-
-This is still a work in progress, it needs more testing. I have plans to 
-do something similar for libnetfilter_conntrack in order to solve the 
-existing limitations.
-
-Comments welcome.
-
-[1] http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3315
+You can't modify the layout of xt_entry_[match|target] since this 
+structure is shared between userspace (iptables) and kernel space.
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of 
