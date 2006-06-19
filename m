@@ -1,17 +1,16 @@
-From: Massimiliano Hofer <max@nucleus.it>
-Subject: Re: [PATCH] entry_data
-Date: Tue, 20 Jun 2006 13:25:01 +0200
-Message-ID: <200606201325.02775.max@nucleus.it>
-References: <200606050029.08602.max@nucleus.it>
-	<200606200035.07197.max@nucleus.it> <44972FB3.5070603@trash.net>
+From: Jorge Matias Martin <jorge.matias@motorola.com>
+Subject: Re: [PATCH] xt_sctp - add SCTP header size to IP header offset
+Date: Mon, 19 Jun 2006 17:58:48 +0200
+Message-ID: <200606191758.48909.jorge.matias@motorola.com>
+References: <200606081754.09073.jorge.matias@motorola.com>
+	<4496BA6A.3040308@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <44972FB3.5070603@trash.net>
+To: Patrick McHardy <kaber@trash.net>, netfilter-devel@lists.netfilter.org
+In-Reply-To: <4496BA6A.3040308@trash.net>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -24,32 +23,64 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 20 June 2006 1:13 am, Patrick McHardy wrote:
+On 19 June  2006 16:53, Patrick McHardy wrote:
+> Jorge Matias Martin wrote:
+> > Hi, all.
+> >
+> > xt_sctp module is not working on 2.6.16 when --chunk-types option is
+> > used. I have test this running sctp_darn and the following iptables
+> > options:
+> >
+> > -A INPUT -p sctp --chunk-types any INIT -j DROP
+> >
+> > And this is the kernel log output:
+> >
+> > spt: 32822    dpt: 10105
+> > Chunk num: 1  offset: 20      type: 128       length: 10105   flags: 36
+> > skb->len: 92  offset: 10128
+> > spt: 10105    dpt: 32822
+> > Chunk num: 1  offset: 20      type: 39        length: 32822   flags: 79
+> > skb->len: 284 offset: 32844
+> > spt: 32822    dpt: 10105
+> > Chunk num: 1  offset: 20      type: 128       length: 10105   flags: 36
+> > ...
+> >
+> >
+> > Note that length is actually the local port, and offset must be 32 (20
+> > IPv4 header + 12 SCTP header).
+> >
+> > FYI, it works properly when --chunk-types is not used.
+>
+> Looks good too me. Please add a Signed-off-by: line so I can
+> apply it. Thanks.
 
-> So I think we should introduce a .priv_size field or something in struct
-> xt_match/xt_target and pass memory allocated by xtables to the matches
-> and targets.
+Signed-off-by: Jorge Matias <jorge.matias@motorola.com>
 
-I changed the API on the (possibly wrong) assumption that most modules will 
-need it for shared data (that's what I and at least some other modules need), 
-but thinking about it there are other uses (multiple data with different 
-sharing, non shared data that has no business in the userspace struct, etc.). 
-In other words, you're right.
+=2D----------
 
-Following your suggestion I could add a .priv_size field and if it is non zero 
-I allocate the requested memory and pass it as void * (the same type passed 
-to (*checkentry)(), (*destroy)() and (*match)()).
-
-We have 2 ways to implement this:
-- we can allocate priv_size more bytes after data;
-- we can separately allocate priv_size bytes and store a pointer in 
-u.kernel.entry_data.
-
-Seeing how the initialization code works, the first one is a bit hairy. The 
-latter is really easy to implement, but if someone just needs 4 bytes we end 
-up storing a pointer to a pointer with no good reason.
-
--- 
-Saluti,
-   Massimiliano Hofer
-        Nucleus
+=2D-- linux-2.6.16.19/net/netfilter/xt_sctp.c.orig=A0=A0=A0=A0=A0=A0=A0=A02=
+006-05-31=20
+02:31:44.000000000 +0200
++++ linux-2.6.16.19/net/netfilter/xt_sctp.c=A0=A0=A0=A0=A02006-06-08 17:32:=
+53.000000000=20
++0200
+@@ -152,7 +152,7 @@ match(const struct sk_buff *skb,
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0&& SCCHECK(((ntohs(sh->dest=
+) >=3D info->dpts[0])=20
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0&& =
+(ntohs(sh->dest) <=3D info->dpts[1])),=20
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0XT_=
+SCTP_DEST_PORTS, info->flags, info->invflags)
+=2D=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0&& SCCHECK(match_packet(skb=
+, protoff,
++=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0&& SCCHECK(match_packet(skb, =
+protoff + sizeof=20
+(sctp_sctphdr_t),
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0info->chunkmap,=20
+info->chunk_match_type,
+=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0info->flag_info, info->flag_co=
+unt,=20
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0hotdrop),
