@@ -1,18 +1,16 @@
-From: Massimiliano Hofer <max@nucleus.it>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] entry_data
-Date: Tue, 20 Jun 2006 01:05:03 +0200
-Message-ID: <200606200105.04286.max@nucleus.it>
-References: <200606050029.08602.max@nucleus.it>
-	<200606180055.25350.max@nucleus.it> <4496E2B2.6010209@trash.net>
+Date: Tue, 20 Jun 2006 01:13:55 +0200
+Message-ID: <44972FB3.5070603@trash.net>
+References: <200606050029.08602.max@nucleus.it> <448FD0F6.3010506@anduras.de>
+	<4496E037.2000706@trash.net> <200606200035.07197.max@nucleus.it>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <4496E2B2.6010209@trash.net>
-Content-Disposition: inline
+To: Massimiliano Hofer <max@nucleus.it>
+In-Reply-To: <200606200035.07197.max@nucleus.it>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,44 +22,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Monday 19 June 2006 7:45 pm, Patrick McHardy wrote:
+Massimiliano Hofer wrote:
+> On Monday 19 June 2006 7:34 pm, Patrick McHardy wrote:
+> 
+> 
+>>Yes, userspace ignores these fields. I still haven't really made up my
+>>mind about this patch yet. I don't like the void ** approach very much,
+> 
+> 
+> I understand your concerns, but it's either that or feeding it its own struct 
+> xt_entry_match *. This would be awfully circular, while the practice of 
+> passing someting * to functions is widespread. This only happens to be 
+> applied to a void *.
 
-> > This leads me to a more radical proposal. Is there any reason we don't
-> > have a general way to negate matches? It wouldn't be too difficult and we
-[...]
-> It would be useful for some matches (basically those that only check
-> a single attribute), others may want to combine negated matching
-> on some attributes with non-negated matching on others. In these
+I guess I just like externally allocated storage better (and a .privsize
+field or something in the match structures). It avoids each match having
+to deal with memory allocation failures and more complicated cleanup
+code. Currently some matches store state in the structures shared with
+userspace and keep a pointer to the first per-CPU copy so there is only
+a single state on SMP, others allocate memory and keep a pointer in the
+shared struct, yet others keep global state and do lookups based on some
+identifier in the shared struct. The first two cases really just want
+some amount of memory that is shared between per-CPU data and are happy
+with externally allocated memory, the last one is usually used to share
+state between selected instances of matches or targets, which will
+always need to be handled internally.
 
-I agree with you.
-Let's suppose we want to implement this feature and we don't want to cause 
-major breakage. I can't find a suitable bit in xt_entry_match, but we could 
-define a "wrapper match". We could set u.name to "!" or something similar and 
-data to:
-
-struct {
-   int invert;
-   struct xt_entry_match nested_xt_entry_match;
-};
-
-Similar wrappers would effectively transform a simple linear data structure in 
-a tree, so I don't think this is a thing we should endorse lighly.
-
-Any better ideas?
-
-> ... my opinion is that if the packet doesn't have a mark the expression
-> ! <mark> is clearly true. Another questionable behaviour in my opinion
-> is using hotdrop to drop packets which are missing the information we
-> are interested in. The same argument holds here, if something is not
-> present, it just doesn't match. And negated it does match. The least
-> we should do is have consistent behaviour, so either connmark should
-> also use hotdrop, or nobody should (well, except for the few cases
-> where it is unsed in case of memory allocation failures and things
-> like that).
-
-I agree.
-
--- 
-Saluti,
-   Massimiliano Hofer
-        Nucleus
+So I think we should introduce a .priv_size field or something in struct
+xt_match/xt_target and pass memory allocated by xtables to the matches
+and targets.
