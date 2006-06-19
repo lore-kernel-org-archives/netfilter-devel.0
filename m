@@ -1,9 +1,10 @@
-From: "Mohammad Farooq" <mfarooq100@hotmail.com>
-Subject: Filtering RTP packet
-Date: Fri, 16 Jun 2006 16:34:06 -0500
-Message-ID: <BAY108-F244CD8F0A5DFE0141CD6AB97830@phx.gbl>
+From: Manish Jain <jain_m79@yahoo.com>
+Subject: New to IPSets - Not working as expected
+Date: Sun, 18 Jun 2006 22:36:46 -0700 (PDT)
+Message-ID: <20060619053646.47093.qmail@web42203.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -17,14 +18,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi All,
+I want to dump all packets coming from IP 192.168.1.18
+in syslog. For this, I have created following ipset
+and iptable. But it is not working for me. Please
+guide me.
 
-I have a linux box which sits between the two RTP clients. I would like to 
-have a kernel module which looks at the RTP packets. If this packet 
-contailns DTMF digit, it passes the packet to the user space otherwise it 
-forwards the packet to the destination address without any change. As we 
-know RTP protocol sits on top of UDP. I am new to iptables and not very 
-familar with the kernel module development. I would appreciate if someone 
-point me to the right direction.  Thanks in advance.
+ipset -N test2 ipmap --from 192.168.1.1 --to
+192.168.255.255
+iptables -A INPUT -m set --set test2 src -j LOG
 
-M. Farooq
+Best Regards,
+Manish Jain
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
