@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] entry_data
-Date: Mon, 19 Jun 2006 19:34:47 +0200
-Message-ID: <4496E037.2000706@trash.net>
+Date: Mon, 19 Jun 2006 19:45:22 +0200
+Message-ID: <4496E2B2.6010209@trash.net>
 References: <200606050029.08602.max@nucleus.it> <448FD0F6.3010506@anduras.de>
+	<200606180055.25350.max@nucleus.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Massimiliano Hofer <max@nucleus.it>, netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sven Anders <anders@anduras.de>
-In-Reply-To: <448FD0F6.3010506@anduras.de>
+To: Massimiliano Hofer <max@nucleus.it>
+In-Reply-To: <200606180055.25350.max@nucleus.it>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,37 +22,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sven Anders wrote:
-> Massimiliano Hofer schrieb:
-> 
->>Hi,
->>here is my proposed patch for an API change that supports entry specific data.
->>
->>As explained in my previous posts the purpose of this patch is to give matches 
->>the opportunity to store entry specific data. Several matches already achieve 
->>this reserving some space in the data fields, but these come from userspace 
->>and I don't think it is the Right Way(TM) to do it.
-> 
-> 
-> Does this mean we can reuse these fields for other puroposes without breaking
-> compatibility with iptables?
+Massimiliano Hofer wrote:
+> This leads me to a more radical proposal. Is there any reason we don't have a
+> general way to negate matches? It wouldn't be too difficult and we could
+> implement some new features such as negating the whole set of matches or a
+> single entry.
+> We could even abandon the madatory logical AND of every entry and pass a
+> minterm set (with AND as the default), but maybe this is too general.
 
-Yes, userspace ignores these fields. I still haven't really made up my
-mind about this patch yet. I don't like the void ** approach very much,
-but I didn't got around to thinking about something better yet. Please
-stay patient with me :)
+It would be useful for some matches (basically those that only check
+a single attribute), others may want to combine negated matching
+on some attributes with non-negated matching on others. In these
+cases it might still be useful to negate the entire result. It
+would have the advantage of getting more consistent behaviour,
+currently some matches treat unknown conditions or errors as
+"always no match", independant of inversion.
 
-> I'm particularly interested in adding a negation to the "limit" match and I
-> think the match is using one of these special data fields...
-> 
->  > /* Ugly, ugly fucker. */
->  >  struct xt_rateinfo *master;
-> 
-> If this gives us the possibility to add the negation, who do we distinguish
-> between the old and new limit version. In other words: Who do we reach a maximum
-> compatibility?
+For example xt_connmark:
+        const u_int32_t *ctmark = nf_ct_get_mark(skb, &ctinfo);
+        if (!ctmark)
+                return 0;
 
-IIRC userspace zeroes this field, so you could just do the usual
-"0 -> no inversion, 1 -> inversion" thing and it would behave
-correctly for both old and new userspace. But you need check
-yourself if this is indeed true, I'm not really sure.
+
+... my opinion is that if the packet doesn't have a mark the expression
+! <mark> is clearly true. Another questionable behaviour in my opinion
+is using hotdrop to drop packets which are missing the information we
+are interested in. The same argument holds here, if something is not
+present, it just doesn't match. And negated it does match. The least
+we should do is have consistent behaviour, so either connmark should
+also use hotdrop, or nobody should (well, except for the few cases
+where it is unsed in case of memory allocation failures and things
+like that).
