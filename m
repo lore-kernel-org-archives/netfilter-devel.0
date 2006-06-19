@@ -1,12 +1,15 @@
-From: =?ISO-8859-1?Q?Bj=F6rn_Lindstr=F6m?= <bjorn.mailinglist@gmail.com>
-Subject: checking rule specifications in a match
-Date: Mon, 19 Jun 2006 11:08:36 +0200
-Message-ID: <44966994.6020402@gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] xt_sctp - add SCTP header size to IP header offset
+Date: Mon, 19 Jun 2006 16:53:30 +0200
+Message-ID: <4496BA6A.3040308@trash.net>
+References: <200606081754.09073.jorge.matias@motorola.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Jorge Matias Martin <jorge.matias@motorola.com>
+In-Reply-To: <200606081754.09073.jorge.matias@motorola.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,13 +21,31 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi.
-I am writing an iptables match to match the IEC-60870-5-104 protocol.
-I only want this match to be used on tcp packets and therefore I want=20
-iptables to reject rules if does not specify tcp as the protocol (-p=20
-tcp). I am currently doing this check in the checkentry function in the=20
-kernel module. This works but the error message only say "iptables:=20
-Unknown error 4294967295" if -p tcp is left out. Is it possible to do=20
-this check any other way to get a more comprehensible error message?
-Thanks.
-Bj=F6rn Lindstr=F6m
+Jorge Matias Martin wrote:
+> Hi, all.
+> 
+> xt_sctp module is not working on 2.6.16 when --chunk-types option is used. I 
+> have test this running sctp_darn and the following iptables options:
+> 
+> -A INPUT -p sctp --chunk-types any INIT -j DROP
+> 
+> And this is the kernel log output:
+> 
+> spt: 32822    dpt: 10105
+> Chunk num: 1  offset: 20      type: 128       length: 10105   flags: 36
+> skb->len: 92  offset: 10128
+> spt: 10105    dpt: 32822
+> Chunk num: 1  offset: 20      type: 39        length: 32822   flags: 79
+> skb->len: 284 offset: 32844
+> spt: 32822    dpt: 10105
+> Chunk num: 1  offset: 20      type: 128       length: 10105   flags: 36
+> ...
+> 
+> 
+> Note that length is actually the local port, and offset must be 32 (20 IPv4 
+> header + 12 SCTP header).
+> 
+> FYI, it works properly when --chunk-types is not used.
+
+Looks good too me. Please add a Signed-off-by: line so I can
+apply it. Thanks.
