@@ -1,15 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nfqueue] libnetfilter_queue python wrapper
-Date: Tue, 20 Jun 2006 15:55:03 +0200
-Message-ID: <4497FE37.9010706@trash.net>
-References: <20060607180531.09652ae1@ganymede>
+Subject: Re: [PATCH] modify the nf-hipac-0.9.1.patch to apply it to the
+ kernel 2.6.16.16
+Date: Tue, 20 Jun 2006 15:57:53 +0200
+Message-ID: <4497FEE1.2050300@trash.net>
+References: <447A8B18.2090509@kernelproject.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: plucas@plucas.org, netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org,
+	nf-hipac-announce@lists.sourceforge.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Mathieu Geli <geli@enseirb.fr>
-In-Reply-To: <20060607180531.09652ae1@ganymede>
+To: Jeho-Park <jhpark-hipac@kernelproject.org>
+In-Reply-To: <447A8B18.2090509@kernelproject.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,15 +23,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Mathieu Geli wrote:
-> Hi,
+Jeho-Park wrote:
 > 
-> If anyone is interested I adapted Neale Pickett's ipqueue code for the
-> libnfnetlink/libnetfilter_queue API. That's called nfqueue. I know the
-> code is far from perfect and will be glad to receive comments.
+> nf-hipac-0.9.1 was made to apply it to the kernel 2.6.13, so it need
+> some modification
+> here is my patched nf-hipac 0.9.1 patch. some small bit was changed
 > 
-> You can download it here [1]. I recommend using scapy [2] and
-> uncommenting the specific lines in the test file.
+> http://www.kernelproject.org/people/jhpark/nf-hipac-0.9.1-to-linux-2.6.16.16.patch
 
-Please just post it to the list, most developers (including me) tend to
-ignore things that require downloading and unpacking tars.
+I guess you should send this to Michael Bellion <mbellion@hipac.org>,
+I think he doesn't follow netfilter-devel that closely (and the
+hipac announce list is probably read-only).
