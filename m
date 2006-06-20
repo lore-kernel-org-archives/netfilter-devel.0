@@ -1,17 +1,14 @@
-From: "Vasantha Kumar Puttappa" <vasanthakumar@iitb.ac.in>
-Subject: TCP connection  and interface down
-Date: Tue, 20 Jun 2006 12:20:42 +0530 (IST)
-Message-ID: <1535.10.107.26.27.1150786242.squirrel@gpo.iitb.ac.in>
-References: <58963.10.107.26.27.1149788221.squirrel@gpo.iitb.ac.in>   
-	<4496BADF.5000405@trash.net>
-	<4921.10.12.25.5.1150745018.squirrel@gpo.iitb.ac.in>
-	<4496FBBB.8090303@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: New to IPSets - Not working as expected
+Date: Tue, 20 Jun 2006 11:49:23 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0606201145510.9358@blackhole.kfki.hu>
+References: <20060619053646.47093.qmail@web42203.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-Reply-To: <4496FBBB.8090303@trash.net>
-To: netfilter-devel@lists.netfilter.org
+To: Manish Jain <jain_m79@yahoo.com>
+In-Reply-To: <20060619053646.47093.qmail@web42203.mail.yahoo.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,17 +20,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-  Suppose I have an active tcp connection(web browser) bounded to an
-interface X. Whenever this interface goes down, this will be notified by
-the kernel stack to the transport layer and the tcp application will
-stop sending packets till interface becomes active.
+On Sun, 18 Jun 2006, Manish Jain wrote:
 
- My questions is that , is it possible to allow tcp applications to keep
-on sending packets even after interface goes down. So, that I can catch
-packets using IPtables and do whatever manipulation I would like to do.
-Also I have another interface to send these manipulated packets.
+> I want to dump all packets coming from IP 192.168.1.18
+> in syslog. For this, I have created following ipset
+> and iptable. But it is not working for me. Please
+> guide me.
+>
+> ipset -N test2 ipmap --from 192.168.1.1 --to
+> 192.168.255.255
+> iptables -A INPUT -m set --set test2 src -j LOG
 
- Guide me,
+You created an empty set without adding any element to it. Just add
+192.168.1.18 to test2 and the iptables rule will match:
 
- Thanx in advance.
+ipset -A test2 192.168.1.18
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
