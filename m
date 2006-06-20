@@ -1,17 +1,18 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] entry_data
-Date: Tue, 20 Jun 2006 03:29:21 +0200
-Message-ID: <44974F71.3050209@trash.net>
+Date: Tue, 20 Jun 2006 03:39:08 +0200
+Message-ID: <449751BC.6050808@trash.net>
 References: <200606050029.08602.max@nucleus.it>
-	<200606180055.25350.max@nucleus.it> <4496E2B2.6010209@trash.net>
-	<200606200105.04286.max@nucleus.it>
+	<200606132256.10384.max@nucleus.it>
+	<4495EC8E.6030006@netfilter.org>
+	<200606190902.09597.max@nucleus.it> <44973529.50600@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Massimiliano Hofer <max@nucleus.it>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Massimiliano Hofer <max@nucleus.it>
-In-Reply-To: <200606200105.04286.max@nucleus.it>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <44973529.50600@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,36 +24,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Massimiliano Hofer wrote:
-> On Monday 19 June 2006 7:45 pm, Patrick McHardy wrote:
+Pablo Neira Ayuso wrote:
+> Massimiliano Hofer wrote:
+> 
+>> You're right, but I modified the kernel side of a union and I was
+>> careful not to change the total size. This union is never really used
+>> by both sides simultaneously.
 > 
 > 
->>>This leads me to a more radical proposal. Is there any reason we don't
->>>have a general way to negate matches? It wouldn't be too difficult and we
-> 
-> [...]
-> 
->>It would be useful for some matches (basically those that only check
->>a single attribute), others may want to combine negated matching
->>on some attributes with non-negated matching on others. In these
-> 
-> 
-> I agree with you.
-> Let's suppose we want to implement this feature and we don't want to cause 
-> major breakage. I can't find a suitable bit in xt_entry_match, but we could 
-> define a "wrapper match". We could set u.name to "!" or something similar and 
-> data to:
-> 
-> struct {
->    int invert;
->    struct xt_entry_match nested_xt_entry_match;
-> };
-> 
-> Similar wrappers would effectively transform a simple linear data structure in 
-> a tree, so I don't think this is a thing we should endorse lighly.
+> Indeed, you're right, I can't see any problem with your patch at this
+> moment. Although apart from the out of tree xt_condition match, there is
+> no other clients for entry_data. I'd like to know what Patrick thinks
+> about this.
 
-I'm not sure how much effort we should put into glueing a generic
-method around the matches, most already support proper negation and
-we can just add it for the few(?) remaining ones manually (and I
-don't accept new matches without proper negation support) and hope
-for everything to get better with pkttables :)
+Actually there are quite a few things that can benefit from this
+(see also my other mail to netfilter-devel). Stateful matches like
+limit, quota, statistic can store their state in externally allocated
+memory and remove all the state and the pointers from the structure
+shared with userspace. hashlimit, recent and other matches that lookup
+global state can just keep a reference to it without affecting
+userspace visible structures. Besides it is in my opinion a major
+limitation of the iptables API that it doesn't cleanly support
+per-instance state, so I'm quite supportive of this patch :)
