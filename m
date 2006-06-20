@@ -1,18 +1,12 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] entry_data
-Date: Tue, 20 Jun 2006 01:37:13 +0200
-Message-ID: <44973529.50600@netfilter.org>
-References: <200606050029.08602.max@nucleus.it>
-	<200606132256.10384.max@nucleus.it>
-	<4495EC8E.6030006@netfilter.org>
-	<200606190902.09597.max@nucleus.it>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] REDIRECT does not accept IP
+Date: Mon, 19 Jun 2006 18:22:08 -0700
+Message-ID: <20060620012208.GA17152@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed; boundary="5vNYLRcllDrimb99"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Massimiliano Hofer <max@nucleus.it>
-In-Reply-To: <200606190902.09597.max@nucleus.it>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,26 +18,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Massimiliano Hofer wrote:
-> 
->>                         /* Used inside the kernel */
->>                         struct xt_match *match;
->>+                       void *entry_data;
->>                 } kernel;
->>
->>You can't modify the layout of xt_entry_[match|target] since this
->>structure is shared between userspace (iptables) and kernel space.
-> 
-> 
-> You're right, but I modified the kernel side of a union and I was careful not 
-> to change the total size. This union is never really used by both sides 
-> simultaneously.
 
-Indeed, you're right, I can't see any problem with your patch at this 
-moment. Although apart from the out of tree xt_condition match, there is 
-no other clients for entry_data. I'd like to know what Patrick thinks 
-about this.
+--5vNYLRcllDrimb99
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+As pointed out by Nicolas Mailhot in bugzilla #483, REDIRECT
+does not accept an IP address and when supplied with one,
+provides unexpected results.  Patch below fixes this.
+
+Phil
+
+
+
+--5vNYLRcllDrimb99
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-redirect
+
+diff -ruN ipt-orig/extensions/libipt_REDIRECT.c ipt-new/extensions/libipt_REDIRECT.c
+--- ipt-orig/extensions/libipt_REDIRECT.c	2005-07-21 23:39:45.000000000 -0700
++++ ipt-new/extensions/libipt_REDIRECT.c	2006-06-19 18:14:37.000000000 -0700
+@@ -44,6 +44,9 @@
+ 
+ 	mr->range[0].flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
+ 
++	if (strchr(arg, '.'))
++		exit_error(PARAMETER_PROBLEM, "IP address not permitted\n");
++
+ 	port = atoi(arg);
+ 	if (port == 0 || port > 65535)
+ 		exit_error(PARAMETER_PROBLEM, "Port `%s' not valid\n", arg);
+
+--5vNYLRcllDrimb99--
