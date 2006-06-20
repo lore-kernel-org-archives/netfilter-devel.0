@@ -1,14 +1,17 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: New to IPSets - Not working as expected
-Date: Tue, 20 Jun 2006 11:49:23 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0606201145510.9358@blackhole.kfki.hu>
-References: <20060619053646.47093.qmail@web42203.mail.yahoo.com>
+From: Massimiliano Hofer <max@nucleus.it>
+Subject: Re: Mailing list slow?
+Date: Tue, 20 Jun 2006 12:57:14 +0200
+Message-ID: <200606201257.16272.max@nucleus.it>
+References: <4496C3D7.2040809@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Manish Jain <jain_m79@yahoo.com>
-In-Reply-To: <20060619053646.47093.qmail@web42203.mail.yahoo.com>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <4496C3D7.2040809@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,26 +23,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 18 Jun 2006, Manish Jain wrote:
+On Monday 19 June 2006 5:33 pm, Patrick McHardy wrote:
 
-> I want to dump all packets coming from IP 192.168.1.18
-> in syslog. For this, I have created following ipset
-> and iptable. But it is not working for me. Please
-> guide me.
->
-> ipset -N test2 ipmap --from 192.168.1.1 --to
-> 192.168.255.255
-> iptables -A INPUT -m set --set test2 src -j LOG
+> Is it just me or are other people also experiencing large
+> delays with mails to netfilter-devel? My mails are visible
+> on the lists.netfilter.org web interface but I receive them
+> with large delay ..
 
-You created an empty set without adding any element to it. Just add
-192.168.1.18 to test2 and the iptables rule will match:
+Some of my messages took 24 hours to make it throu (after being delivered to 
+vishnu.netfilter.org).
 
-ipset -A test2 192.168.1.18
+On several occasions I had problem sending them in the first place. Here is 
+one of my postfix logs:
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Jun 18 09:16:53 waobagger postfix/smtp[9876]: 685DC3D3353: 
+to=<netfilter-devel@lists.netfilter.org>, 
+relay=vishnu.netfilter.org[213.95.27.115], delay=30082, status=deferred (host 
+vishnu.netfilter.org[213.95.27.115] said: 451 Error while writing spool file 
+(in reply to end of DATA command))
+
+-- 
+Saluti,
+   Massimiliano Hofer
