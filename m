@@ -1,17 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Packet Lost
-Date: Tue, 20 Jun 2006 15:51:55 +0200
-Message-ID: <4497FD7B.6080008@trash.net>
-References: <58963.10.107.26.27.1149788221.squirrel@gpo.iitb.ac.in>
-	<4496BADF.5000405@trash.net>	<4921.10.12.25.5.1150745018.squirrel@gpo.iitb.ac.in>	<4496FBBB.8090303@trash.net>
-	<4873.10.107.26.27.1150781189.squirrel@gpo.iitb.ac.in>
+Subject: Re: [nfqueue] libnetfilter_queue python wrapper
+Date: Tue, 20 Jun 2006 15:55:03 +0200
+Message-ID: <4497FE37.9010706@trash.net>
+References: <20060607180531.09652ae1@ganymede>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: plucas@plucas.org, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Vasantha Kumar Puttappa <vasanthakumar@iitb.ac.in>
-In-Reply-To: <4873.10.107.26.27.1150781189.squirrel@gpo.iitb.ac.in>
+To: Mathieu Geli <geli@enseirb.fr>
+In-Reply-To: <20060607180531.09652ae1@ganymede>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,13 +21,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Vasantha Kumar Puttappa wrote:
+Mathieu Geli wrote:
 > Hi,
->  Actually I did verified my calculated checksum value with the checksum
-> value present in the actual transmitted packet(using ethereal,
-> kernel-2.6.11-6), and the values are same.
+> 
+> If anyone is interested I adapted Neale Pickett's ipqueue code for the
+> libnfnetlink/libnetfilter_queue API. That's called nfqueue. I know the
+> code is far from perfect and will be glad to receive comments.
+> 
+> You can download it here [1]. I recommend using scapy [2] and
+> uncommenting the specific lines in the test file.
 
-OK. Then please describe what you're doing in more detail (at what hook
-are you queueing, what are you doing to the packet, what is the last
-spot you can see the packet, ...). Try to add some LOG rules to see
-if the packet really is dropped by ip_queue or later in the stack.
+Please just post it to the list, most developers (including me) tend to
+ignore things that require downloading and unpacking tars.
