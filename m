@@ -1,18 +1,13 @@
-From: Massimiliano Hofer <max@nucleus.it>
-Subject: Re: [PATCH] priv_data (formerly entry_data)
-Date: Thu, 22 Jun 2006 01:50:20 +0200
-Message-ID: <200606220150.23537.max@nucleus.it>
-References: <200606050029.08602.max@nucleus.it>
-	<200606210203.33209.max@nucleus.it> <44989321.2000106@trash.net>
+From: Mohammad Farooq <mohammadfarooq@tango-networks.com>
+Subject: From where can I get libipq?
+Date: Tue, 20 Jun 2006 11:28:39 -0500
+Message-ID: <1150820919.29962.54.camel@mfarooq-1.tango-networks.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <44989321.2000106@trash.net>
-Content-Disposition: inline
+In-Reply-To: 4496D030.1010400@trash.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,17 +19,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wednesday 21 June 2006 2:30 am, Patrick McHardy wrote:
+Hi Eric,
 
-> and finally rename ->checkentry to ->init .. the name doesn't really
+I am trying to build an application which filters RTP packets. I am
+planing to use iptables QUEUE to implement this application. I am
+running RedHat enterprise linux WS version 4 on a 64bit hardware. The
+rpc shows me iptables-1.2.11-3.1.RHEL4. But I couldn't find libipq.
+Could you please kindly tell me where to find libipq? I would really
+appreciate your help. Thanks.
 
-What about struct xt_target?
-It has the same general structure, but I've not touched it yet.
-It would be coherent to change it too, but I'd break compatibility with 
-external targets for no real gain.
-Would any target benefit from having priv_data?
-
--- 
-Saluti,
-   Massimiliano Hofer
-        Nucleus
+Mohammad 
