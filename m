@@ -1,18 +1,15 @@
-From: Massimiliano Hofer <max@nucleus.it>
-Subject: Re: [PATCH] priv_data (formerly entry_data)
-Date: Wed, 21 Jun 2006 10:31:50 +0200
-Message-ID: <200606211031.51291.max@nucleus.it>
-References: <200606050029.08602.max@nucleus.it>
-	<200606210245.26564.max@nucleus.it> <44989B26.8070704@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [PATCH] ipt_account rate patch
+Date: Wed, 21 Jun 2006 10:16:53 +0100
+Message-ID: <44990E85.4080308@ufomechanic.net>
+References: <e6ueuc$qsq$1@sea.gmane.org> <4497FCD6.2000706@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <44989B26.8070704@trash.net>
-Content-Disposition: inline
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <4497FCD6.2000706@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,37 +21,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wednesday 21 June 2006 3:04 am, Patrick McHardy wrote:
-
-> >>I think this should be done somewhere in x_tables. I think I would
-> >>rename xt_check_match to xt_init_match, put the allocation there
-> >>and finally rename ->checkentry to ->init .. the name doesn't really
-> >>fit anymore since people started doing real initialization in there,
-> >>and changing prototypes is a good opportunity for fixing that.
-> >
-> > I was wandering why it was duplicated between IPv4 and IPv6.
+Patrick McHardy wrote:
+> Amin Azez wrote:
+>   
+>> Here are some patches I did for ipt_account before ipt_ACCOUNT which
+>> supports larger subnets was re-released.
+>>
+>> As well as per-ip packet and byte counting, the patches also does per-ip
+>> rate calculating, so you can use this as part of a rate limiting rule
+>> and drop packets that would exceed the rate.
+>>
+>> You get to choose whether or not dropped packets should also be accounted.
+>>
+>> Just as ipt_account supports total-subnet accounting, so we also support
+>> total-subnet rate calculations as well.
+>>
+>> The rate calculations are an improved version of what is in
+>> ip_conntrack_rate.c, namely we can handle the timer wraps around zero.
+>>     
 >
-> Do you mean the check_match functions and the ->checkentry calls?
-> The only reason is because they use a different type for the "ip"
-> argument.
+> How do you want me to handle this? The account patch is no longer in
+> pom, the extension is still part of iptables. 
+oh. Was there a strong reason for it being dropped?
+I see that most of the patchlets have gone from:
+http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/patchlets/
+including the newer ipt_ACCOUNT
+> Do you want me to apply
+> the iptables part or do you simply want to add it as an iptables.patch
+> to the account repository?
+>   
+It won't make sense to do either until I can work out where the kernel
+side bit needs stashing.
 
-No, I noticed several functions in ip_tables.c and ip6_tables.c that 
-differentiate only by having struct ipt_entry_match * instead of struct 
-ip6t_entry_match *, while they're both defines to xt_entry_match (the same 
-goes for xt_entry_target).
-I've not checked it throu yet, but I think that most of them could be moved to 
-x_tables.c.
+Did I miss something about pom-ng cleanup?
 
-> > Are these changes planned for 2.6.18?
->
-> I was hoping you could do it while you're changing this stuff ..
-> I'd like to avoid touching all >30 files twice for a related
-> change.
-
-OK, I didn't know if someone else was already at work.
-I can't do it today, though. I hope I'll start working on it tomorrow.
-
--- 
-Saluti,
-   Massimiliano Hofer
-        Nucleus
+Sam
