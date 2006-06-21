@@ -1,17 +1,17 @@
-From: <pneira@us.es>
-Subject: Re: [CONNTRACKD]: Fix segfault
-Date: Wed, 21 Jun 2006 23:49:05 +0200
-Message-ID: <f3789a8e1eabc.4499daf1@us.es>
-References: <Pine.LNX.4.64.0606201514360.8549@bizon.gios.gov.pl>
+From: Massimiliano Hofer <max@nucleus.it>
+Subject: Re: [PATCH] priv_data (formerly entry_data)
+Date: Thu, 22 Jun 2006 01:50:20 +0200
+Message-ID: <200606220150.23537.max@nucleus.it>
+References: <200606050029.08602.max@nucleus.it>
+	<200606210203.33209.max@nucleus.it> <44989321.2000106@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-Content-Language: es
-In-Reply-To: <Pine.LNX.4.64.0606201514360.8549@bizon.gios.gov.pl>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <44989321.2000106@trash.net>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -24,19 +24,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Wednesday 21 June 2006 2:30 am, Patrick McHardy wrote:
 
+> and finally rename ->checkentry to ->init .. the name doesn't really
 
------ Mensaje original -----
-De: Krzysztof Oledzki <olenf@ans.pl>
-Fecha: Martes, Junio 20, 2006 3:40 pm
-Asunto: [CONNTRACKD]: Fix segfault
-A: Pablo Neira Ayuso <pablo@netfilter.org>
-CC: netfilter-devel@lists.netfilter.org
+What about struct xt_target?
+It has the same general structure, but I've not touched it yet.
+It would be coherent to change it too, but I'd break compatibility with 
+external targets for no real gain.
+Would any target benefit from having priv_data?
 
-> Hello,
-> 
-> Attached (trivial) patch fixes segfault in conntrackd caused by 
-> wrong 
-> "usage" calls.
-
-Thanks, I'm going to include it in 0.8.2 that will be released soon.
+-- 
+Saluti,
+   Massimiliano Hofer
+        Nucleus
