@@ -1,17 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] priv_data (formerly entry_data)
-Date: Thu, 22 Jun 2006 17:18:36 +0200
-Message-ID: <449AB4CC.6030804@trash.net>
-References: <200606050029.08602.max@nucleus.it>
-	<200606210203.33209.max@nucleus.it> <44989321.2000106@trash.net>
-	<200606220150.23537.max@nucleus.it>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: From where can I get libipq?
+Date: Thu, 22 Jun 2006 20:25:57 +0200
+Message-ID: <1151000757.7942.5.camel@porky>
+References: <1150820919.29962.54.camel@mfarooq-1.tango-networks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-UCgUVOAQweD1DSip6y9R"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Massimiliano Hofer <max@nucleus.it>
-In-Reply-To: <200606220150.23537.max@nucleus.it>
+To: Mohammad Farooq <mohammadfarooq@tango-networks.com>
+In-Reply-To: <1150820919.29962.54.camel@mfarooq-1.tango-networks.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,14 +22,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Massimiliano Hofer wrote:
 
-> What about struct xt_target?
-> It has the same general structure, but I've not touched it yet.
-> It would be coherent to change it too, but I'd break compatibility with 
-> external targets for no real gain.
-> Would any target benefit from having priv_data?
+--=-UCgUVOAQweD1DSip6y9R
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-I think the CLUSTERIP target would. I think we should keep the
-interfaces in sync, we've changed it twice during the last two
-kernel versions, so I don't really see external stuff as a problem.
+Hi Mohammad
+On Tue, 2006-06-20 at 11:28 -0500, Mohammad Farooq wrote:
+> Hi Eric,
+>=20
+> I am trying to build an application which filters RTP packets. I am
+> planing to use iptables QUEUE to implement this application. I am
+> running RedHat enterprise linux WS version 4 on a 64bit hardware. The
+> rpc shows me iptables-1.2.11-3.1.RHEL4. But I couldn't find libipq.
+> Could you please kindly tell me where to find libipq?
+
+libipq is a bad choice on 64bits system. It has some design problem and
+you shoulod try to use libnetfilter_queue.
+
+Nethertheless you should find libipq.a in the iptables devel packet.
+
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+INL
+
+--=-UCgUVOAQweD1DSip6y9R
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
+
+iD8DBQBEmuC1nxA7CdMWjzIRAv78AJ9/CoQDz2NgDINETJUK51aDd9K4wACgkQsp
+LCwtgN9vl9cN1t9JV/2JAJI=
+=MNj/
+-----END PGP SIGNATURE-----
+
+--=-UCgUVOAQweD1DSip6y9R--
