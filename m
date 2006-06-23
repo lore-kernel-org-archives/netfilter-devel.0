@@ -1,11 +1,9 @@
-From: Torsten Luettgert <t.luettgert@pressestimmen.de>
-Subject: set breaks in 2.6.17
-Date: Fri, 23 Jun 2006 23:14:38 +0200
-Message-ID: <1151097278.3421.26.camel@murdegern.hindenburgdamm.example>
+From: "Jethro Tull" <heavytull@hotmail.com>
+Subject: iptable compiled but errors returned
+Date: Fri, 23 Jun 2006 23:15:23 +0000
+Message-ID: <BAY117-F214B69F9F76C14D595429FAD7A0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: kadlec@netfilter.org
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -19,18 +17,19 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi list, and especially Jozsef,
+I just compiled iptables by doing so:
+make KERNEL_DIR=/kernel/source
 
-your set match and SET target break because of API changes
-in 2.6.17.
+but the returned message for all files compiled is as follows:
 
-The fix is trivial (insert a bunch of "const struct xt_match/target *"
-parameters), but necessary. set will really break now, because a
-new param is inserted before params which are actually used.
 
-How do you want to handle it? I'd prefer to add a linux-2.6.17
-dir in the patchlet and then fix both trees, so 2.6.16 will still
-work.
+cc -O2 -Wall -Wunused -I/usr/src/kernel/linux-2.6.17//include -Iinclude/ 
+-DIPTABLES_VERSION=\"1.3.5-20060622\"  -D_UNKNOWN_KERNEL_POINTER_SIZE 
+-DIP6T_LIB_DIR=\"/usr/local/lib/iptables\" -c -o ip6tables.o ip6tables.c
 
-Regards,
-Torsten
+
+the "-D_UNKNOWN_KERNEL_POINTER_SIZE..." is it normal??
+
+_________________________________________________________________
+Be the first to hear what's new at MSN - sign up to our free newsletters! 
+http://www.msn.co.uk/newsletters
