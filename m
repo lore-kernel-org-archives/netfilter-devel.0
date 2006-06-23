@@ -1,9 +1,9 @@
-From: scott comer <wert@metreos.com>
-Subject: extra space in packet for iptables mangle table extension
-Date: Thu, 22 Jun 2006 19:01:53 -0500
-Message-ID: <772C6A8C-06CE-44E2-B082-0F1787B4093E@metreos.com>
-Mime-Version: 1.0 (Apple Message framework v750)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
+From: Torsten Luettgert <t.luettgert@pressestimmen.de>
+Subject: concerning p-o-m fixes for 2.6.17 API change
+Date: Fri, 23 Jun 2006 22:58:31 +0200
+Message-ID: <1151096311.3421.10.camel@murdegern.hindenburgdamm.example>
+Mime-Version: 1.0
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
@@ -18,14 +18,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-we are developing a mangle table extension which adds a bit of info  
-to the end of a udp packet.
+Hi list,
 
-when our extension gets a packet, sometimes there is enough extra  
-space in the buffer to add what we want, but sometimes there isn't.  
-in the latter case we have to allocate a new buffer with enough extra  
-room and copy the data. is there any way to request a certain minimum  
-amount of extra space in the buffers?
+I noticed the match/target API changed a bit in 2.6.17,
+so a bunch of code in patch-o-matic-ng needs updates.
+I fixed ipp2p, ROUTE, time, and u32 (it's quite trivial).
 
-thanks,
-scott
+I'd like to submit the patches (and thus work against the
+"bit-rot" we all hate). Problem is, they are quite clumsy -
+the correct way IMHO is to copy the latest kernel directory
+(normally linux-2.6/) to linux-2.6.17 and then fix that,
+so 2.6.16 and older kernels still work, too. So you can't
+see what is happening in the patches, they just create 99%
+identical copies of the old files.
+
+Patrick, I guess you're the one to ask - would you like
+those patches, and in what format?
+
+Regards,
+Torsten
