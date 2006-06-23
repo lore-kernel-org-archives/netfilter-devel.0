@@ -1,10 +1,11 @@
 From: Torsten Luettgert <t.luettgert@pressestimmen.de>
-Subject: concerning p-o-m fixes for 2.6.17 API change
-Date: Fri, 23 Jun 2006 22:58:31 +0200
-Message-ID: <1151096311.3421.10.camel@murdegern.hindenburgdamm.example>
+Subject: set breaks in 2.6.17
+Date: Fri, 23 Jun 2006 23:14:38 +0200
+Message-ID: <1151097278.3421.26.camel@murdegern.hindenburgdamm.example>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+Cc: kadlec@netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,22 +19,18 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi list,
+Hi list, and especially Jozsef,
 
-I noticed the match/target API changed a bit in 2.6.17,
-so a bunch of code in patch-o-matic-ng needs updates.
-I fixed ipp2p, ROUTE, time, and u32 (it's quite trivial).
+your set match and SET target break because of API changes
+in 2.6.17.
 
-I'd like to submit the patches (and thus work against the
-"bit-rot" we all hate). Problem is, they are quite clumsy -
-the correct way IMHO is to copy the latest kernel directory
-(normally linux-2.6/) to linux-2.6.17 and then fix that,
-so 2.6.16 and older kernels still work, too. So you can't
-see what is happening in the patches, they just create 99%
-identical copies of the old files.
+The fix is trivial (insert a bunch of "const struct xt_match/target *"
+parameters), but necessary. set will really break now, because a
+new param is inserted before params which are actually used.
 
-Patrick, I guess you're the one to ask - would you like
-those patches, and in what format?
+How do you want to handle it? I'd prefer to add a linux-2.6.17
+dir in the patchlet and then fix both trees, so 2.6.16 will still
+work.
 
 Regards,
 Torsten
