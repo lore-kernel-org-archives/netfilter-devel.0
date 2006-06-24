@@ -1,7 +1,7 @@
 From: "Paul C. Diem" <PCDiem@FoxValley.net>
 Subject: RE: [PATCH] libiptc.c blob parser
-Date: Sat, 24 Jun 2006 10:57:50 -0500
-Message-ID: <FFEPKIHJDEDDAAFOFDGFIELECBAA.PCDiem@FoxValley.net>
+Date: Sat, 24 Jun 2006 16:09:38 -0500
+Message-ID: <FFEPKIHJDEDDAAFOFDGFOELECBAA.PCDiem@FoxValley.net>
 References: <Pine.LNX.4.61.0606241355030.24513@ask.diku.dk>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -22,26 +22,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sorry, I'm not familiar yet with submitting patches. I had to create a
-second tree from the original tarball and build it in order to get diff
-output that didn't list a bunch of unrelated files. Here's the diff -Nurp
-output with the leading notices about changed images (ip6tables, iptables,
-iptables-restore, etc) removed:
+The patch I posted earlier assumed that the rule's chain was the last one on
+the chain list and used the 32-bit comefrom field to hold the offset of the
+chain list entry.
+
+This improved patch uses the chain_iterator_cur handle field to more
+accurately get the chain, uses the counters field cast as a pointer to hold
+a pointer directly to the chain list entry and only bothers to load the
+pointer for the first rule in each chain (since that's the only one we need
+it in).
 
 Paul C. Diem
 PCDiem@FoxValley.net
 
-diff -Nurp --exclude '*.o' --exclude '*.so' iptables-1.3.5/libiptc/libiptc.c
-iptables-1.3.5-new/libiptc/libiptc.c
---- iptables-1.3.5/libiptc/libiptc.c	2006-01-30 02:43:09.000000000 -0600
-+++ iptables-1.3.5-new/libiptc/libiptc.c	2006-06-23 20:37:53.000000000 -0500
+diff -Nurp --exclude '*.d' iptables-1.3.5-org/libiptc/libiptc.c
+iptables-1.3.5/libiptc/libiptc.c
+--- iptables-1.3.5-org/libiptc/libiptc.c	2006-01-30 02:43:09.000000000 -0600
++++ iptables-1.3.5/libiptc/libiptc.c	2006-06-24 15:59:28.000000000 -0500
 @@ -307,6 +307,11 @@ static struct rule_head *iptcc_get_rule_
  static struct chain_head *
  iptcc_find_chain_by_offset(TC_HANDLE_T handle, unsigned int offset)
  {
 +/*+PCD
-+* Modification to use the offset to the chain entry in the ipt
-+* entry comefrom field as loaded by iptcc_find_chain_by_offset.
++* Modification to use the pointer to the chain entry in the ipt
++* entry counters field as loaded by iptcc_find_chain_by_offset.
 +*/
 +#if 0
  	struct list_head *pos;
@@ -54,27 +58,34 @@ iptables-1.3.5-new/libiptc/libiptc.c
 +#else
 +      STRUCT_ENTRY * e = ((STRUCT_ENTRY *)((char
 *)handle->entries->entrytable + offset));
-+      return (struct chain_head *)((char *)e + e->comefrom);
++      return *(struct chain_head **)&e->counters;
 +#endif
 +/*-PCD*/
 
  	return NULL;
  }
-@@ -494,6 +504,12 @@ new_rule:
+@@ -494,6 +504,16 @@ new_rule:
  		r->index = *num;
  		r->offset = offset;
  		memcpy(r->entry, e, e->next_offset);
 +/*+PCD
-+* Load the offset to the chain entry relative to the
-+* ipt entry into the ipt entry comefrom field.
++* Load a pointer to the chain entry into the ipt entry
++* counters field for use by iptcc_find_chain_by_offset
++* in the second pass.
 +*/
-+              e->comefrom = (char *)h->chains.prev - (char *)e;
++		if (h->chain_iterator_cur->num_rules == 0) {
++			struct chain_head ** chain_head_ptr_ptr = (struct chain_head
+**)&e->counters;
++			*chain_head_ptr_ptr = h->chain_iterator_cur;
++		}
 +/*-PCD*/
  		r->counter_map.maptype = COUNTER_MAP_NORMAL_MAP;
  		r->counter_map.mappos = r->index;
 
 ----------------------------------------------------------------------------
------------------------------------------
+----
+
+
 -----Original Message-----
 From: netfilter-devel-bounces@lists.netfilter.org
 [mailto:netfilter-devel-bounces@lists.netfilter.org]On Behalf Of Jesper
