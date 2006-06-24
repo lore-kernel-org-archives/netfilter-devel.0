@@ -1,15 +1,15 @@
 From: Torsten Luettgert <t.luettgert@pressestimmen.de>
-Subject: [PATCH] 2.6.17 API changes for ROUTE, u32, set
-Date: Sat, 24 Jun 2006 15:51:05 +0200
-Message-ID: <1151157065.29998.26.camel@scaramouche.combox.de>
+Subject: [PATCH] 2.6.17 API changes for ipp2p, time
+Date: Sat, 24 Jun 2006 15:51:06 +0200
+Message-ID: <1151157066.29998.28.camel@scaramouche.combox.de>
 References: <1151096311.3421.10.camel@murdegern.hindenburgdamm.example>
-	<449D2F69.5090909@trash.net>
+	<Pine.LNX.4.64.0606240900140.26102@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-0wtUO55sSJLm8anb6e2i"
+Content-Type: multipart/mixed; boundary="=-wbjHunSbTXWGHdckmq6x"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <449D2F69.5090909@trash.net>
+To: Krzysztof Oledzki <olenf@ans.pl>
+In-Reply-To: <Pine.LNX.4.64.0606240900140.26102@bizon.gios.gov.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,132 +22,31 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-0wtUO55sSJLm8anb6e2i
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+--=-wbjHunSbTXWGHdckmq6x
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-On Sa, 2006-06-24 at 14:26 +0200, Patrick McHardy wrote:
-> Sure, just send them along as normal diffs. But please no new
-> directories, we decided to keep only a single version of things
-> in pomng that runs with the latest kernel.
+On Sa, 2006-06-24 at 09:13 +0200, Krzysztof Oledzki wrote:
+>=20
+> So, please send ipp2p and time (with CC to me)=20
+> and patches that only corrects API in the "linux-2.6" directory .
 
-Here are the patches for ROUTE, u32, and set.
+Ok, here you are...
 
 Regards,
-Torsten
+Torsten L=C3=BCttgert
 
 
---=-0wtUO55sSJLm8anb6e2i
-Content-Disposition: attachment; filename=ROUTE.patch
-Content-Type: text/x-patch; name=ROUTE.patch; charset=UTF-8
+--=-wbjHunSbTXWGHdckmq6x
+Content-Disposition: attachment; filename=ipp2p.patch
+Content-Type: text/x-patch; name=ipp2p.patch; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-Index: ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c
+Index: ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c
 ===================================================================
---- ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c	(revision 6631)
-+++ ROUTE/linux-2.6/net/ipv4/netfilter/ipt_ROUTE.c	(working copy)
-@@ -280,6 +280,7 @@
- 				     const struct net_device *in,
- 				     const struct net_device *out,
- 				     unsigned int hooknum,
-+				     const struct xt_target *target,
- 				     const void *targinfo,
- 				     void *userinfo)
- {
-@@ -401,6 +402,7 @@
- 
- static int ipt_route_checkentry(const char *tablename,
- 				const void *e,
-+				const struct xt_target *target,
- 				void *targinfo,
- 				unsigned int targinfosize,
- 				unsigned int hook_mask)
-
---=-0wtUO55sSJLm8anb6e2i
-Content-Disposition: attachment; filename=set.patch
-Content-Type: text/x-patch; name=set.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-Index: set/linux-2.6/net/ipv4/netfilter/ipt_SET.c
-===================================================================
---- set/linux-2.6/net/ipv4/netfilter/ipt_SET.c	(revision 6631)
-+++ set/linux-2.6/net/ipv4/netfilter/ipt_SET.c	(working copy)
-@@ -29,6 +29,7 @@
-        const struct net_device *in,
-        const struct net_device *out,
-        unsigned int hooknum,
-+       const struct xt_target *target,
-        const void *targinfo,
-        void *userinfo)
- {
-@@ -48,7 +49,8 @@
- 
- static int
- checkentry(const char *tablename,
--	   const struct ipt_entry *e,
-+	   const void *e,
-+	   const struct xt_target *target,
- 	   void *targinfo,
- 	   unsigned int targinfosize, unsigned int hook_mask)
- {
-@@ -87,7 +89,9 @@
- 	return 1;
- }
- 
--static void destroy(void *targetinfo, unsigned int targetsize)
-+static void destroy(const struct xt_target *target,
-+                    void *targetinfo,
-+                    unsigned int targetsize)
- {
- 	struct ipt_set_info_target *info = targetinfo;
- 
-Index: set/linux-2.6/net/ipv4/netfilter/ipt_set.c
-===================================================================
---- set/linux-2.6/net/ipv4/netfilter/ipt_set.c	(revision 6631)
-+++ set/linux-2.6/net/ipv4/netfilter/ipt_set.c	(working copy)
-@@ -32,8 +32,10 @@
- match(const struct sk_buff *skb,
-       const struct net_device *in,
-       const struct net_device *out,
-+      const struct xt_match *match,
-       const void *matchinfo,
-       int offset,
-+      unsigned int protoff,
-       int *hotdrop)
- {
- 	const struct ipt_set_info_match *info = matchinfo;
-@@ -45,7 +47,8 @@
- 
- static int
- checkentry(const char *tablename,
--	   const struct ipt_ip *ip,
-+	   const void *ip,
-+	   const struct xt_match *match,
- 	   void *matchinfo,
- 	   unsigned int matchsize,
- 	   unsigned int hook_mask)
-@@ -74,7 +77,9 @@
- 	return 1;
- }
- 
--static void destroy(void *matchinfo, unsigned int matchsize)
-+static void destroy(const struct xt_match *match,
-+                    void *matchinfo,
-+                    unsigned int matchsize)
- {
- 	struct ipt_set_info_match *info = matchinfo;
- 
-
---=-0wtUO55sSJLm8anb6e2i
-Content-Disposition: attachment; filename=u32.patch
-Content-Type: text/x-patch; name=u32.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-Index: u32/linux-2.6/net/ipv4/netfilter/ipt_u32.c
-===================================================================
---- u32/linux-2.6/net/ipv4/netfilter/ipt_u32.c	(revision 6631)
-+++ u32/linux-2.6/net/ipv4/netfilter/ipt_u32.c	(working copy)
-@@ -120,6 +120,7 @@
+--- ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c	(revision 6631)
++++ ipp2p/linux-2.6/net/ipv4/netfilter/ipt_ipp2p.c	(working copy)
+@@ -728,6 +728,7 @@
  match(const struct sk_buff *skb,
        const struct net_device *in,
        const struct net_device *out,
@@ -155,7 +54,35 @@ Index: u32/linux-2.6/net/ipv4/netfilter/ipt_u32.c
        const void *matchinfo,
        int offset,
        unsigned int protoff,
-@@ -203,6 +204,7 @@
+@@ -811,7 +812,8 @@
+ 
+ static int
+ checkentry(const char *tablename,
+-            const void *ip,
++	    const void *ip,
++	    const struct xt_match *match,
+ 	    void *matchinfo,
+ 	    unsigned int matchsize,
+ 	    unsigned int hook_mask)
+
+--=-wbjHunSbTXWGHdckmq6x
+Content-Disposition: attachment; filename=time.patch
+Content-Type: text/x-patch; name=time.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Index: time/linux-2.6/net/ipv4/netfilter/ipt_time.c
+===================================================================
+--- time/linux-2.6/net/ipv4/netfilter/ipt_time.c	(revision 6631)
++++ time/linux-2.6/net/ipv4/netfilter/ipt_time.c	(working copy)
+@@ -46,6 +46,7 @@
+ match(const struct sk_buff *skb,
+       const struct net_device *in,
+       const struct net_device *out,
++      const struct xt_match *match,
+       const void *matchinfo,
+       int offset,
+       unsigned int protoff,
+@@ -83,6 +84,7 @@
  static int
  checkentry(const char *tablename,
             const void *ip,
@@ -164,4 +91,4 @@ Index: u32/linux-2.6/net/ipv4/netfilter/ipt_u32.c
             unsigned int matchsize,
             unsigned int hook_mask)
 
---=-0wtUO55sSJLm8anb6e2i--
+--=-wbjHunSbTXWGHdckmq6x--
