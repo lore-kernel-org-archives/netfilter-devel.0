@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/06]: x_tables: fix xt_register_table error propagation
-Date: Mon, 26 Jun 2006 17:43:08 +0200 (MEST)
-Message-ID: <20060626154308.11682.91317.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/06]: nf_conntrack: Fix undefined references to
+	local_bh_*
+Date: Mon, 26 Jun 2006 17:43:10 +0200 (MEST)
+Message-ID: <20060626154310.11682.21299.sendpatchset@localhost.localdomain>
 References: <20060626154307.11682.28562.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,64 +19,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: x_tables: fix xt_register_table error propagation
+[NETFILTER]: nf_conntrack: Fix undefined references to local_bh_*
 
-When xt_register_table fails the error is not properly propagated back.
-Based on patch by Lepton Wu <ytht.net@gmail.com>.
+  CC      net/netfilter/nf_conntrack_proto_sctp.o
+net/netfilter/nf_conntrack_proto_sctp.c: In function `sctp_print_conntrack':
+net/netfilter/nf_conntrack_proto_sctp.c:206: warning: implicit declaration of function `local_bh_disable'
+net/netfilter/nf_conntrack_proto_sctp.c:208: warning: implicit declaration of function `local_bh_enable'
+  CC      net/netfilter/nf_conntrack_netlink.o
+net/netfilter/nf_conntrack_netlink.c: In function `ctnetlink_dump_table':
+net/netfilter/nf_conntrack_netlink.c:429: warning: implicit declaration of function `local_bh_disable'
+net/netfilter/nf_conntrack_netlink.c:452: warning: implicit declaration of function `local_bh_enable'
 
+Spotted by Toralf Förster
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit c223657397019f91ab8f7a7b8b417eae4a378c72
-tree 016c6c6cd56cd11ef4d4250ab083da1894df03eb
-parent 80cd9e86e65901f97f3c77b914985cff387d331d
-author Patrick McHardy <kaber@trash.net> Mon, 19 Jun 2006 16:48:07 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 19 Jun 2006 16:48:07 +0200
+commit 7cb7437f3a26e2054d315a9baea52f9d825a7286
+tree 72c74e7b320d2763b3ba2e7387cf3f003c250b67
+parent c223657397019f91ab8f7a7b8b417eae4a378c72
+author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Mon, 19 Jun 2006 16:48:59 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 19 Jun 2006 16:48:59 +0200
 
- net/ipv4/netfilter/arp_tables.c |    3 ++-
- net/ipv4/netfilter/ip_tables.c  |    3 ++-
- net/ipv6/netfilter/ip6_tables.c |    3 ++-
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c    |    1 +
+ net/netfilter/nf_conntrack_proto_sctp.c |    2 ++
+ 2 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index d0d1919..ad39bf6 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -1120,7 +1120,8 @@ int arpt_register_table(struct arpt_tabl
- 		return ret;
- 	}
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index b8c7c56..af48459 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -29,6 +29,7 @@ #include <linux/skbuff.h>
+ #include <linux/errno.h>
+ #include <linux/netlink.h>
+ #include <linux/spinlock.h>
++#include <linux/interrupt.h>
+ #include <linux/notifier.h>
  
--	if (xt_register_table(table, &bootstrap, newinfo) != 0) {
-+	ret = xt_register_table(table, &bootstrap, newinfo);
-+	if (ret != 0) {
- 		xt_free_table_info(newinfo);
- 		return ret;
- 	}
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index cee3397..101ad98 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -2113,7 +2113,8 @@ int ipt_register_table(struct xt_table *
- 		return ret;
- 	}
+ #include <linux/netfilter.h>
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 0c6da49..0839b70 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -28,6 +28,8 @@ #include <linux/ip.h>
+ #include <linux/sctp.h>
+ #include <linux/string.h>
+ #include <linux/seq_file.h>
++#include <linux/spinlock.h>
++#include <linux/interrupt.h>
  
--	if (xt_register_table(table, &bootstrap, newinfo) != 0) {
-+	ret = xt_register_table(table, &bootstrap, newinfo);
-+	if (ret != 0) {
- 		xt_free_table_info(newinfo);
- 		return ret;
- 	}
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 2e72f89..0b5bd55 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1281,7 +1281,8 @@ int ip6t_register_table(struct xt_table 
- 		return ret;
- 	}
- 
--	if (xt_register_table(table, &bootstrap, newinfo) != 0) {
-+	ret = xt_register_table(table, &bootstrap, newinfo);
-+	if (ret != 0) {
- 		xt_free_table_info(newinfo);
- 		return ret;
- 	}
+ #include <net/netfilter/nf_conntrack.h>
+ #include <net/netfilter/nf_conntrack_protocol.h>
