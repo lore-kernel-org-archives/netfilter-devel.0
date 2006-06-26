@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 03/06]: xt_tcpudp: fix double unregistration in error
-	path
-Date: Mon, 26 Jun 2006 17:43:11 +0200 (MEST)
-Message-ID: <20060626154311.11682.33519.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 04/06]: xt_sctp: fix --chunk-types matching
+Date: Mon, 26 Jun 2006 17:43:12 +0200 (MEST)
+Message-ID: <20060626154312.11682.68659.sendpatchset@localhost.localdomain>
 References: <20060626154307.11682.28562.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,35 +18,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: xt_tcpudp: fix double unregistration in error path
+[NETFILTER]: xt_sctp: fix --chunk-types matching
 
-"xt_unregister_match(AF_INET, &tcp_matchstruct)" is called twice,
-leaving "udp_matchstruct" registered, in case of a failure in the
-registration of the udp6 structure.
+xt_sctp uses an incorrect header offset when --chunk-types is used.
 
-Signed-off-by: Yuri Gushin <yuri@ecl-labs.org>
+Signed-off-by: Jorge Matias <jorge.matias@motorola.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit a81302ac4c22da108602d0c053c168a700c81e32
-tree b420da32ec06dd3d9e9a42b581bcfcc05b6eee53
-parent 7cb7437f3a26e2054d315a9baea52f9d825a7286
-author Yuri Gushin <yuri@ecl-labs.org> Mon, 19 Jun 2006 16:59:55 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 19 Jun 2006 16:59:55 +0200
+commit 9565b859bc682e4c208f73e83adb21a7f86d0143
+tree 7823e21bbe10b265fe011cb895f30160789210ad
+parent a81302ac4c22da108602d0c053c168a700c81e32
+author Jorge Matias <jorge.matias@motorola.com> Mon, 19 Jun 2006 18:04:28 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 19 Jun 2006 18:04:28 +0200
 
- net/netfilter/xt_tcpudp.c |    2 +-
+ net/netfilter/xt_sctp.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/xt_tcpudp.c b/net/netfilter/xt_tcpudp.c
-index 1b61dac..a9a63aa 100644
---- a/net/netfilter/xt_tcpudp.c
-+++ b/net/netfilter/xt_tcpudp.c
-@@ -260,7 +260,7 @@ static int __init xt_tcpudp_init(void)
- 	return ret;
- 
- out_unreg_udp:
--	xt_unregister_match(&tcp_matchstruct);
-+	xt_unregister_match(&udp_matchstruct);
- out_unreg_tcp6:
- 	xt_unregister_match(&tcp6_matchstruct);
- out_unreg_tcp:
+diff --git a/net/netfilter/xt_sctp.c b/net/netfilter/xt_sctp.c
+index b5110e5..919c037 100644
+--- a/net/netfilter/xt_sctp.c
++++ b/net/netfilter/xt_sctp.c
+@@ -151,7 +151,7 @@ match(const struct sk_buff *skb,
+ 		&& SCCHECK(((ntohs(sh->dest) >= info->dpts[0]) 
+ 			&& (ntohs(sh->dest) <= info->dpts[1])), 
+ 			XT_SCTP_DEST_PORTS, info->flags, info->invflags)
+-		&& SCCHECK(match_packet(skb, protoff,
++		&& SCCHECK(match_packet(skb, protoff + sizeof (sctp_sctphdr_t),
+ 					info->chunkmap, info->chunk_match_type,
+  					info->flag_info, info->flag_count, 
+ 					hotdrop),
