@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/06]: nf_conntrack: Fix undefined references to
-	local_bh_*
-Date: Mon, 26 Jun 2006 17:43:10 +0200 (MEST)
-Message-ID: <20060626154310.11682.21299.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 03/06]: xt_tcpudp: fix double unregistration in error
+	path
+Date: Mon, 26 Jun 2006 17:43:11 +0200 (MEST)
+Message-ID: <20060626154311.11682.33519.sendpatchset@localhost.localdomain>
 References: <20060626154307.11682.28562.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,55 +19,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_conntrack: Fix undefined references to local_bh_*
+[NETFILTER]: xt_tcpudp: fix double unregistration in error path
 
-  CC      net/netfilter/nf_conntrack_proto_sctp.o
-net/netfilter/nf_conntrack_proto_sctp.c: In function `sctp_print_conntrack':
-net/netfilter/nf_conntrack_proto_sctp.c:206: warning: implicit declaration of function `local_bh_disable'
-net/netfilter/nf_conntrack_proto_sctp.c:208: warning: implicit declaration of function `local_bh_enable'
-  CC      net/netfilter/nf_conntrack_netlink.o
-net/netfilter/nf_conntrack_netlink.c: In function `ctnetlink_dump_table':
-net/netfilter/nf_conntrack_netlink.c:429: warning: implicit declaration of function `local_bh_disable'
-net/netfilter/nf_conntrack_netlink.c:452: warning: implicit declaration of function `local_bh_enable'
+"xt_unregister_match(AF_INET, &tcp_matchstruct)" is called twice,
+leaving "udp_matchstruct" registered, in case of a failure in the
+registration of the udp6 structure.
 
-Spotted by Toralf Förster
-
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+Signed-off-by: Yuri Gushin <yuri@ecl-labs.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 7cb7437f3a26e2054d315a9baea52f9d825a7286
-tree 72c74e7b320d2763b3ba2e7387cf3f003c250b67
-parent c223657397019f91ab8f7a7b8b417eae4a378c72
-author Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp> Mon, 19 Jun 2006 16:48:59 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 19 Jun 2006 16:48:59 +0200
+commit a81302ac4c22da108602d0c053c168a700c81e32
+tree b420da32ec06dd3d9e9a42b581bcfcc05b6eee53
+parent 7cb7437f3a26e2054d315a9baea52f9d825a7286
+author Yuri Gushin <yuri@ecl-labs.org> Mon, 19 Jun 2006 16:59:55 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 19 Jun 2006 16:59:55 +0200
 
- net/netfilter/nf_conntrack_netlink.c    |    1 +
- net/netfilter/nf_conntrack_proto_sctp.c |    2 ++
- 2 files changed, 3 insertions(+), 0 deletions(-)
+ net/netfilter/xt_tcpudp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index b8c7c56..af48459 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -29,6 +29,7 @@ #include <linux/skbuff.h>
- #include <linux/errno.h>
- #include <linux/netlink.h>
- #include <linux/spinlock.h>
-+#include <linux/interrupt.h>
- #include <linux/notifier.h>
+diff --git a/net/netfilter/xt_tcpudp.c b/net/netfilter/xt_tcpudp.c
+index 1b61dac..a9a63aa 100644
+--- a/net/netfilter/xt_tcpudp.c
++++ b/net/netfilter/xt_tcpudp.c
+@@ -260,7 +260,7 @@ static int __init xt_tcpudp_init(void)
+ 	return ret;
  
- #include <linux/netfilter.h>
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 0c6da49..0839b70 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -28,6 +28,8 @@ #include <linux/ip.h>
- #include <linux/sctp.h>
- #include <linux/string.h>
- #include <linux/seq_file.h>
-+#include <linux/spinlock.h>
-+#include <linux/interrupt.h>
- 
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_protocol.h>
+ out_unreg_udp:
+-	xt_unregister_match(&tcp_matchstruct);
++	xt_unregister_match(&udp_matchstruct);
+ out_unreg_tcp6:
+ 	xt_unregister_match(&tcp6_matchstruct);
+ out_unreg_tcp:
