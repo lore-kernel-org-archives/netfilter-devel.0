@@ -1,11 +1,14 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: ipset updated in svn
-Date: Mon, 26 Jun 2006 15:10:07 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0606261452020.20933@blackhole.kfki.hu>
+From: Massimiliano Hofer <max@nucleus.it>
+Subject: [PATCH] priv_data 0/2
+Date: Mon, 26 Jun 2006 16:41:46 +0200
+Message-ID: <200606261641.47294.max@nucleus.it>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter@lists.netfilter.org, netfilter-devel@lists.netfilter.org
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,22 +21,28 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Hi,
+this is a version of my priv_data patch that updates targets and renames 
+functions as suggested by Patrick.
 
-I just wanted to let you know that the kernel part of ipset has been
-updated in svn: thanks to everyone who sent patches to catch up the
-internal 2.6.x API changes.
+Since xt_init_match() and xt_init_target() (formerly xt_check_match() and 
+xt_check_target()) no longer just check and they needed some argument changes 
+anyway, I included some more common code previously replicated in 
+ip_tables.c, ip6_tables.c and arp_tables.c.
+Similarly I introduced xt_destroy_match() and xt_destroy_taget().
 
-The committed code should work on every latest release from the 2.6.15.x,
-2.6.16.x and 2.6.17.x series but it might still be be incompatible with
-earlier releases as extraversion cannot be checked at preprocessing time.
+The resulting patches are larger than I anticipated, but most of the space is 
+taken by function ranames and argument adjustments.
 
-If you have got problems to compile/run it using the latest extraversion,
-please let me know.
+My previous example with xt_condition still applies (just rename checkentry to 
+init in struct xt_match).
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+I tested several combination with iptables, ip6tables and arptables. It can't 
+make it fail, but I didn't try it with a real world network load. Right now I 
+don't have a 64 bit machine available for testing (I should be able to use 
+one in a few days), so I didn't test compat at all.
+
+Testing and comments, as always, are appreciated.
+
+-- 
+Saluti,
+   Massimiliano Hofer
