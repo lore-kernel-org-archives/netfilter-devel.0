@@ -1,10 +1,10 @@
-From: kas turi <inox_kas@yahoo.com>
-Subject: Patches for SIP, H323 for 2.4.20 kernel
-Date: Wed, 28 Jun 2006 12:19:55 -0700 (PDT)
-Message-ID: <20060628191955.56364.qmail@web32208.mail.mud.yahoo.com>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: ip_conntrack_get ip_conntrack_put assymetry
+Date: Thu, 29 Jun 2006 15:48:04 +0100
+Message-ID: <e80p74$nhi$1@sea.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
@@ -18,15 +18,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi
-  I would like to know where I can find connection
-tracking and NAT patches for H.323 and SIP for 2.4.20
-kernel. 
+How is it that ip_conntrack_put does an nf_conntrack_put, but
+ip_conntrack_get does not do nf_conntrack_get or otherwise increase the
+ref count.
 
-Thanks in advance
-Kasturi
+This asymmetry is likely to be confusing, or am I already confused?
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Sam
