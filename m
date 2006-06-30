@@ -1,12 +1,15 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] libiptc symbols clash
-Date: Fri, 30 Jun 2006 14:12:48 -0700
-Message-ID: <20060630211248.GB9243@linuxace.com>
+From: "Greg Scott" <GregScott@InfraSupportEtc.com>
+Subject: RE: 2.6.17.1 compile error with a netfilter module
+Date: Fri, 30 Jun 2006 16:51:37 -0500
+Message-ID: <925A849792280C4E80C5461017A4B8A206F785@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="p4qYPpj5QlsIQJ0K"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+Content-class: urn:content-classes:message
+To: "Torsten Luettgert" <t.luettgert@pressestimmen.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,45 +21,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Bummer!  My kernel build went error free this time.  Took about an hour
+on a 1Ghz system.  Does anyone have an idea when the API patches will be
+committed?
 
---p4qYPpj5QlsIQJ0K
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Thanks
 
-As reported by Dmitry Levin, the TC_NUM_RULES and TC_GET_RULE exports
-clash.  His patch below, resolving bug #456
-
-Phil
+- Greg
 
 
+-----Original Message-----
+From: Torsten Luettgert [mailto:t.luettgert@pressestimmen.de]=20
+Sent: Friday, June 30, 2006 3:55 PM
+To: Greg Scott
+Cc: netfilter-devel@lists.netfilter.org
+Subject: RE: 2.6.17.1 compile error with a netfilter module
 
---p4qYPpj5QlsIQJ0K
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-libiptc-rules
 
-diff -ru ipt-orig/libiptc/libip4tc.c ipt-new/libiptc/libip4tc.c
---- ipt-orig/libiptc/libip4tc.c	2005-06-23 01:51:18.000000000 -0700
-+++ ipt-new/libiptc/libip4tc.c	2006-06-30 14:05:11.000000000 -0700
-@@ -94,6 +94,8 @@
- #define TC_FREE			iptc_free
- #define TC_COMMIT		iptc_commit
- #define TC_STRERROR		iptc_strerror
-+#define TC_NUM_RULES		iptc_num_rules
-+#define TC_GET_RULE		iptc_get_rule
- 
- #define TC_AF			AF_INET
- #define TC_IPPROTO		IPPROTO_IP
-diff -ru ipt-orig/libiptc/libip6tc.c ipt-new/libiptc/libip6tc.c
---- ipt-orig/libiptc/libip6tc.c	2005-06-23 01:51:18.000000000 -0700
-+++ ipt-new/libiptc/libip6tc.c	2006-06-30 14:05:30.000000000 -0700
-@@ -89,6 +89,8 @@
- #define TC_FREE			ip6tc_free
- #define TC_COMMIT		ip6tc_commit
- #define TC_STRERROR		ip6tc_strerror
-+#define TC_NUM_RULES		ip6tc_num_rules
-+#define TC_GET_RULE		ip6tc_get_rule
- 
- #define TC_AF			AF_INET6
- #define TC_IPPROTO		IPPROTO_IPV6
+On Fri, 2006-06-30 at 12:36 -0500, Greg Scott wrote:
+> Hmmm -
 
---p4qYPpj5QlsIQJ0K--
+> I'll try another build, this time with 2.6.17.2 and POM 20060629 using
+
+> these POM
+> modules:
+>   time
+>   ipp2p
+>   ROUTE
+>   sip-conntrack-nat
+
+time, ipp2p and ROUTE won't work with 2.6.17 without API patches - I
+posted those last saturday, but they didn't get committed yet. You can
+grab them from the archives. Don't know about sip-conntrack-nat, but I
+suspect it'll have the same problem.
+
+Regards,
+Torsten
