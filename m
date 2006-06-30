@@ -1,15 +1,12 @@
-From: Torsten Luettgert <t.luettgert@pressestimmen.de>
-Subject: RE: 2.6.17.1 compile error with a netfilter module
-Date: Fri, 30 Jun 2006 22:54:48 +0200
-Message-ID: <1151700888.2709.4.camel@murdegern.hindenburgdamm.example>
-References: <925A849792280C4E80C5461017A4B8A206F784@mail733.InfraSupportEtc.com>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] iptables trivial compile warning cleanup
+Date: Fri, 30 Jun 2006 13:55:02 -0700
+Message-ID: <20060630205502.GA9243@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="zYM0uCDKw75PZbzx"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Greg Scott <GregScott@InfraSupportEtc.com>
-In-Reply-To: <925A849792280C4E80C5461017A4B8A206F784@mail733.InfraSupportEtc.com>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,21 +18,69 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2006-06-30 at 12:36 -0500, Greg Scott wrote:
-> Hmmm -
 
-> I'll try another build, this time with 2.6.17.2 and POM 20060629 using
-> these POM 
-> modules:
->   time
->   ipp2p
->   ROUTE
->   sip-conntrack-nat
+--zYM0uCDKw75PZbzx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-time, ipp2p and ROUTE won't work with 2.6.17 without API patches -
-I posted those last saturday, but they didn't get committed yet.
-You can grab them from the archives. Don't know about sip-conntrack-nat,
-but I suspect it'll have the same problem.
+Cleanup a few compile warnings in latest snapshot:
 
-Regards,
-Torsten
+extensions/libipt_dscp_helper.c:69: warning: 'dscp_to_name' defined but not used
+extensions/libipt_sctp.c: In function 'print_chunks':
+extensions/libipt_sctp.c:465: warning: value computed is not used
+extensions/libipt_sctp.c:477: warning: value computed is not used
+
+Resolves bug #457.
+
+Phil
+
+
+
+--zYM0uCDKw75PZbzx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-compilewarn
+
+diff -ru ipt-orig/extensions/libipt_dscp_helper.c ipt-new/extensions/libipt_dscp_helper.c
+--- ipt-orig/extensions/libipt_dscp_helper.c	2002-08-26 06:09:40.000000000 -0700
++++ ipt-new/extensions/libipt_dscp_helper.c	2006-06-30 13:44:49.000000000 -0700
+@@ -63,7 +63,7 @@
+ }
+ 
+ 
+-
++#if 0
+ static const char *
+ dscp_to_name(unsigned int dscp)
+ {
+@@ -78,5 +78,5 @@
+ 	exit_error(PARAMETER_PROBLEM,
+ 			"Invalid DSCP value `%d'\n", dscp);
+ }
+-
++#endif
+ 
+diff -ru ipt-orig/extensions/libipt_sctp.c ipt-new/extensions/libipt_sctp.c
+--- ipt-orig/extensions/libipt_sctp.c	2006-02-01 04:58:28.000000000 -0800
++++ ipt-new/extensions/libipt_sctp.c	2006-06-30 13:47:38.000000000 -0700
+@@ -462,7 +462,8 @@
+ 	flag = 0;
+ 	for (i = 0; i < 256; i++) {
+ 		if (SCTP_CHUNKMAP_IS_SET(chunkmap, i)) {
+-			flag && printf(",");
++			if (flag)
++				printf(",");
+ 			flag = 1;
+ 			print_chunk(i, numeric);
+ 			for (j = 0; j < flag_count; j++) {
+@@ -474,7 +475,8 @@
+ 		}
+ 	}
+ 
+-	flag && printf(" ");
++	if (flag)
++		printf(" ");
+ out:
+ 	return;
+ }
+
+--zYM0uCDKw75PZbzx--
