@@ -1,61 +1,60 @@
-From: "Daniel J Blueman" <daniel.blueman@gmail.com>
-Subject: Re: sky2 rx error problems...
-Date: Wed, 5 Jul 2006 12:44:58 +0100
-Message-ID: <6278d2220607050444o680ac35dn68e2fd0adb918812@mail.gmail.com>
-References: <6278d2220605301408g646fc01l49a8713763cdc009@mail.gmail.com>
-	 <20060530161714.4420e9b4@dxpl.pdx.osdl.net>
+From: Sam Liddicott <sliddicott@dbamsystems.com>
+Subject: Re: xtables Re: Hacking iptables 1.3.5 for 2.6.17
+Date: Fri, 30 Jun 2006 13:51:30 +0100
+Message-ID: <44A51E52.7000006@dbamsystems.com>
+References: <e82pqq$3es$1@sea.gmane.org>	<200606300948.k5U9mNot001866@toshiba.co.jp>	<44A50091.7070003@ufomechanic.net>
+	<200606301157.k5UBvJTl016149@toshiba.co.jp>
+	<44A51BCB.7090006@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: "Netfilter Developer" <netfilter-devel@lists.netfilter.org>,
-	netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-To: "Stephen Hemminger" <shemminger@osdl.org>
-In-Reply-To: <20060530161714.4420e9b4@dxpl.pdx.osdl.net>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
+Cc: netfilter-devel@lists.netfilter.org,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <44A51BCB.7090006@ufomechanic.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Stephen,
-
-Sorry to bring you more trouble. I'm able to reproduce this 'status
-0x977d977d' rx race even with a 100Mb FD connection (MTU 1500) to the
-host sending the data.
-
-Would it help if I try and capture some packet stats or a dump of
-this? The packets being received at the sending host will be a steady
-stream of TCP acks and SMB protocol acks (every 64KB of data), so not
-too heavy. The sending host has a Pentium-M 1.7GHz with 2MB L2$ and is
-quiescent apart from samba sending data via sendfile(), so is
-relatively powerful.
-
-Let me know if there is anything I can do to help.
-
-Many thanks,
-  Daniel
-
-On 31/05/06, Stephen Hemminger <shemminger@osdl.org> wrote:
-> On Tue, 30 May 2006 22:08:12 +0100
-> "Daniel J Blueman" <daniel.blueman@gmail.com> wrote:
+Amin Azez wrote:
+> Yasuyuki KOZAKAI wrote:
+>   
+>> As you says, netfilter_ipv4.h in 2.6.17.x has unnecessary
+>> '#include <config.h>' outside of __KERNEL__. But it seemd to be deleted
+>> in recent kernel as follows.
+>>
+>>     
+>>> commit 62c4f0a2d5a188f73a94f2cb8ea0dba3e7cf0a7f
+>>> Author: David Woodhouse <dwmw2@infradead.org>
+>>> Date:   Wed Apr 26 12:56:16 2006 +0100
+>>>
+>>>     Don't include linux/config.h from anywhere else in include/
+>>>
+>>>     Signed-off-by: David Woodhouse <dwmw2@infradead.org> 
+>>>       
+>> I don't think/know that this goes to stable tree, though.
+>>     
 >
-> > To follow on from the previous 'sky2 rx error' problem reported, the
-> > problem doesn't have anything to do with iptables or MTU settings, ie
-> > can be reproduced out the box.
-> >
-> > The race is hit after a couple of GBs of data. Initially, I thought
-> > this may have something to do with broken MSI support on my Intel
-> > ICH-7M chipset, but disabling MSI didn't help.
-> >
-> > kernel: sky2 lan0: rx error, status 0x977d977d length 0
-> >
-> > Is there any debug information I can get to help or such? Voluntary
-> > preemption is enabled, UP, HZ=100 on 2.6.17-rc4 on i686.
-> >
-> > Dan
+> Thanks; thats helpful and also solves a long-standing puzzlement for me.
+> (Into my quilt stack it goes)
 >
-> No the problem is your CPU isn't keeping up with the incoming flood
-> and what ever you are connected to doesn't do hardware flow control.
-> The driver doesn't properly flush the FIFO (yet), and it is not clear
-> even from the NDA documentation the steps required.
--- 
-Daniel J Blueman
+> Next question relates to the port to xtables and friends, and what I
+> need to do to convert iptables targets.
+>
+> I notice a lot of things have moved to net/netfilter/xt_*.c
+>
+> Is this an absolute requirement, or is there some compatability system?
+>   
+Sorry for this foolish question; I have the answer just by diffing what
+is left in net/ipv4/netfilter/ with earlier kernels
+please forgive my laziness.
+
+Sam
