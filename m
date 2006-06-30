@@ -1,16 +1,13 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: xtables Re: Hacking iptables 1.3.5 for 2.6.17
-Date: Fri, 30 Jun 2006 13:40:43 +0100
-Message-ID: <44A51BCB.7090006@ufomechanic.net>
-References: <e82pqq$3es$1@sea.gmane.org>	<200606300948.k5U9mNot001866@toshiba.co.jp>	<44A50091.7070003@ufomechanic.net>
-	<200606301157.k5UBvJTl016149@toshiba.co.jp>
+From: Menno Smits <menno@netboxblue.com>
+Subject: conntrack table filling up due to missing ACKs near the end of a
+ TCP session
+Date: Fri, 30 Jun 2006 15:19:45 +0100
+Message-ID: <44A53301.1090603@netboxblue.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200606301157.k5UBvJTl016149@toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,38 +19,52 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> As you says, netfilter_ipv4.h in 2.6.17.x has unnecessary
-> '#include <config.h>' outside of __KERNEL__. But it seemd to be deleted
-> in recent kernel as follows.
-> 
->> commit 62c4f0a2d5a188f73a94f2cb8ea0dba3e7cf0a7f
->> Author: David Woodhouse <dwmw2@infradead.org>
->> Date:   Wed Apr 26 12:56:16 2006 +0100
->>
->>     Don't include linux/config.h from anywhere else in include/
->>
->>     Signed-off-by: David Woodhouse <dwmw2@infradead.org> 
-> 
-> I don't think/know that this goes to stable tree, though.
+Hi all,
 
-Thanks; thats helpful and also solves a long-standing puzzlement for me.
-(Into my quilt stack it goes)
+I'm seeing a problem on a customer box that acts as a primary MX and is 
+  running netfilter. The secondary MXs (run by the ISP) appear to be 
+broken and cause the conntrack table on the primary MX to fill up.
 
-Next question relates to the port to xtables and friends, and what I
-need to do to convert iptables targets.
+What happens is this:
 
-I notice a lot of things have moved to net/netfilter/xt_*.c
+- secondary connects to deliver mail
+- connection is established and SMTP conversation takes place
+- secondary issues QUIT
+- primary sends response "221 Bye"
+- primary sends FIN
+- secondary sends FIN
+- primary ACKs FIN from secondary
 
-Is this an absolute requirement, or is there some compatability system?
+The secondary never ACKs the last data packet ("221 Bye") or FIN sent by 
+the primary. Later the primary retries the "221 Bye" packets several 
+times. Interestingly the secondary also sends a Keep-Alive soon after it 
+sends it's FIN.
 
-I'm porting the layer7 match first, currently when adding a layer7 rule
-I get (dmesg):
-[71987.513531] ip_tables: layer7 match: invalid size 0 != 8452
+This happens for every inbound connection from the secondaries and the 
+result is 1000's of ESTABLISHED entries with 5 day timeouts in the 
+conntrack table. The table eventually fills up causing packet loss. The 
+conntrack entries are all of the form:
 
-I know where the error is coming from I just wonder if I have to do a
-complete conversion now, or a quick fix and fuller conversion later...
+tcp      6 24826 ESTABLISHED src=pri.ma.ry.ip dst=sec.ond.ary.ip 
+sport=25 dport=54334 packets=3 bytes=183 [UNREPLIED] src=sec.ond.ary.ip 
+dst=pri.ma.ry.ip sport=54334 dport=25 packets=0 bytes=0 mark=0 use=1
 
-thanks
+The primary is blocking packets that aren't NEW, ESTALISHED or RELATED. 
+This could be contributing to the problem but I haven't looked closely 
+at this.
 
-Sam
+Clearly the secondary mail servers are broken but shouldn't netfilter 
+handle this situation better. Shouldn't the timeout of a connection be 
+greatly reduced if a FIN has been sent?
+
+I have an isolated packet dump for one connection. I'm happy to send it 
+   to a netfilter developer privately but am hesitant to post it to the 
+list since it is from a customer site.
+
+Any thoughts or advice on this would be greatly appreciated.
+
+Regards,
+Menno Smits
+
+NetBox Blue
+http://netboxblue.com/
