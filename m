@@ -1,18 +1,12 @@
-From: Sam Liddicott <sliddicott@dbamsystems.com>
-Subject: Re: xtables Re: Hacking iptables 1.3.5 for 2.6.17
-Date: Fri, 30 Jun 2006 13:51:30 +0100
-Message-ID: <44A51E52.7000006@dbamsystems.com>
-References: <e82pqq$3es$1@sea.gmane.org>	<200606300948.k5U9mNot001866@toshiba.co.jp>	<44A50091.7070003@ufomechanic.net>
-	<200606301157.k5UBvJTl016149@toshiba.co.jp>
-	<44A51BCB.7090006@ufomechanic.net>
+From: Pierre-Yves Ritschard <pierre-yves@spootnik.org>
+Subject: [PATCH] please kill santa-claus
+Date: Fri, 30 Jun 2006 17:38:02 +0200
+Message-ID: <20060630153802.GA27351@phoenix.home.spootnik.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <44A51BCB.7090006@ufomechanic.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,37 +18,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez wrote:
-> Yasuyuki KOZAKAI wrote:
->   
->> As you says, netfilter_ipv4.h in 2.6.17.x has unnecessary
->> '#include <config.h>' outside of __KERNEL__. But it seemd to be deleted
->> in recent kernel as follows.
->>
->>     
->>> commit 62c4f0a2d5a188f73a94f2cb8ea0dba3e7cf0a7f
->>> Author: David Woodhouse <dwmw2@infradead.org>
->>> Date:   Wed Apr 26 12:56:16 2006 +0100
->>>
->>>     Don't include linux/config.h from anywhere else in include/
->>>
->>>     Signed-off-by: David Woodhouse <dwmw2@infradead.org> 
->>>       
->> I don't think/know that this goes to stable tree, though.
->>     
->
-> Thanks; thats helpful and also solves a long-standing puzzlement for me.
-> (Into my quilt stack it goes)
->
-> Next question relates to the port to xtables and friends, and what I
-> need to do to convert iptables targets.
->
-> I notice a lot of things have moved to net/netfilter/xt_*.c
->
-> Is this an absolute requirement, or is there some compatability system?
->   
-Sorry for this foolish question; I have the answer just by diffing what
-is left in net/ipv4/netfilter/ with earlier kernels
-please forgive my laziness.
+Hi,
 
-Sam
+While running our home-brewed firewall scripts the output was broken by
+a weird message spewed by the libipt_iprange extension:
+	"hoho" (sic)
+I wonder why that is, it seems not too many people noticed or use
+src-range inversion which is the feature that triggers this friendly yet
+surprising message.
+If there's a specific reason (which I haven't found in TFA or google)
+please let me know, otherwise please consider this one-liner:
+
+--- extensions/libipt_iprange.c.orig    Fri Jun 30 17:34:05 2006
++++ extensions/libipt_iprange.c Fri Jun 30 17:34:21 2006
+@@ -73,7 +73,6 @@
+                check_inverse(optarg, &invert, &optind, 0);
+                if (invert) {
+                        info->flags |= IPRANGE_SRC_INV;
+-                       printf("hoho\n");
+                }
+                parse_iprange(optarg, &info->src);              
+ 
+
+Thanks for your time,
+pyr
