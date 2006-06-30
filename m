@@ -1,15 +1,12 @@
-From: "Greg Scott" <GregScott@InfraSupportEtc.com>
-Subject: RE: 2.6.17.1 compile error with a netfilter module
-Date: Fri, 30 Jun 2006 12:36:50 -0500
-Message-ID: <925A849792280C4E80C5461017A4B8A206F784@mail733.InfraSupportEtc.com>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] icmpv6 match --icmpv6-type confusion
+Date: Fri, 30 Jun 2006 13:18:58 -0700
+Message-ID: <20060630201858.GA5845@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="KsGdsel6WgEHnImy"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-Content-class: urn:content-classes:message
-To: "Patrick McHardy" <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,94 +18,104 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hmmm -
 
-Here are the POM modules I tried to use:
+--KsGdsel6WgEHnImy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Base
-  connlimit	=09
-  iprange	=20
-  time
-Extra
-  comment
-  IPMARK
-  ipp2p	=09
-  ROUTE
-  sip-conntrack-nat
+Adding a rule such as this:
 
-Of these, the runme script for connlimit, iprange, comment, and IPMARM
-blew up with=20
-errors like this:
+-A INPUT -p ipv6-icmp -m icmpv6
 
-./runme --batch connlimit
-(Blows up with this error:
-unable to find ladd slot in src
-/tmp/pom-15223/net/ipv4/netfilter/Makefile=20
-(./patchlets/connlimit/linux-2.6.11/./net/ipv4/netfilter/Makefile.ladd)
------------------------------------------------------------------
-Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
-unable to find ladd slot in src
-/tmp/pom-15223/net/ipv4/netfilter/Makefile=20
-(./patchlets/connlimit/linux-2.6.11/./net/ipv4/netfilter/Makefile.ladd)
--
-./runme --batch iprange
-(Blows up with the same error as above)
-#
-./runme --batch comment
-(Blows up and then asks about more modules)
+ends up creating a rule with "ipv6-icmp type 0", instead of "ipv6-icmp type any"
+which is what was expected.  Granted, the match is redundant anyway, but it
+should not assume a specific type when one is not specified.
 
-./runme --batch IPMARK
-(Blows up same as above)
+Below patches (to both kernel and userspace) fix this, and resolve bug #461.
+In keeping with icmpv4, 0xFF is used to designate "any". And since I was
+looking at it, I fixed up a 255 -> any in icmpv4 printing.
 
-Expanding the latest POM dated 20060629, it looks like the latest
-connlimit is more than a year old.=20
-iprange has a linux tree with ipt_iprange.c dated 2003 and another one
-from 2004 in linux-2.6.
-comment isn't even in the 20060629 snapshot. =20
+Phil
 
-The modules for IPMARK look like they are dated Jan 21 of this year. =20
-One of the time modules is dated March 29 of this year.
-Most of the ipp2p modules look like they are dated March 29 of this
-year.
-It looks like ROUTE had some ipv6 work recently.  The ipv4 stuff is a
-little bit old.
-sip-conntrack-nat has a 2.6.13 tree.  The modules are dated May and July
-2005. =20
-
-I'll try another build, this time with 2.6.17.2 and POM 20060629 using
-these POM=20
-modules:
-  time
-  ipp2p
-  ROUTE
-  sip-conntrack-nat
-
-These are the ones that did not generate any errors with the runme
-script last time. =20
-
-I'll post the results here in a couple of hours.
-
-- Greg Scott
+Signed-off-by: Phil Oester <kernel@linuxace.com>
 
 
 
+--KsGdsel6WgEHnImy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-icmpv6-kernel
 
------Original Message-----
-From: Patrick McHardy [mailto:kaber@trash.net]=20
-Sent: Friday, June 30, 2006 10:28 AM
-To: Greg Scott
-Cc: netfilter-devel@lists.netfilter.org
-Subject: Re: 2.6.17.1 compile error with a netfilter module
+--- linux-std/net/ipv6/netfilter/ip6_tables.c	2006-06-17 21:49:35.000000000 -0400
++++ linux-po/net/ipv6/netfilter/ip6_tables.c	2006-06-29 23:05:09.000000000 -0400
+@@ -1308,7 +1308,7 @@
+ 		     u_int8_t type, u_int8_t code,
+ 		     int invert)
+ {
+-	return (type == test_type && code >= min_code && code <= max_code)
++	return ((test_type == 0xFF) || (type == test_type && code >= min_code && code <= max_code))
+ 		^ invert;
+ }
+ 
 
+--KsGdsel6WgEHnImy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-icmpv6-user
 
-Greg Scott wrote:
-> Does anyone know what this means and how to fix it?  I know it looks=20
-> like a file named lockhelp.h is missing.  I guess my question is, what
+diff -ru ipt-orig/extensions/libip6t_icmp6.c ipt-new/extensions/libip6t_icmp6.c
+--- ipt-orig/extensions/libip6t_icmp6.c	2006-04-14 20:05:41.000000000 -0700
++++ ipt-new/extensions/libip6t_icmp6.c	2006-06-29 18:07:19.000000000 -0700
+@@ -149,6 +149,7 @@
+ {
+ 	struct ip6t_icmp *icmpv6info = (struct ip6t_icmp *)m->data;
+ 
++	icmpv6info->type = 0xFF;
+ 	icmpv6info->code[1] = 0xFF;
+ }
+ 
+@@ -206,7 +207,12 @@
+ 	if (invert)
+ 		printf("!");
+ 
+-	printf("type %u", type);
++	/* special hack for 'any' case */
++	if (type == 0xFF)
++		printf("type any ");
++	else
++		printf("type %u", type);
++
+ 	if (code_min == 0 && code_max == 0xFF)
+ 		printf(" ");
+ 	else if (code_min == code_max)
+@@ -241,7 +247,12 @@
+ 	if (icmpv6->invflags & IP6T_ICMP_INV)
+ 		printf("! ");
+ 
+-	printf("--icmpv6-type %u", icmpv6->type);
++	/* special hack for 'any' case */
++	if (icmpv6->type == 0xFF)
++		printf("--icmpv6-type any ");
++	else
++		printf("--icmpv6-type %u", icmpv6->type);
++
+ 	if (icmpv6->code[0] != 0 || icmpv6->code[1] != 0xFF)
+ 		printf("/%u", icmpv6->code[0]);
+ 	printf(" ");
+diff -ru ipt-orig/extensions/libipt_icmp.c ipt-new/extensions/libipt_icmp.c
+--- ipt-orig/extensions/libipt_icmp.c	2005-02-14 05:13:04.000000000 -0800
++++ ipt-new/extensions/libipt_icmp.c	2006-06-29 17:57:47.000000000 -0700
+@@ -231,7 +231,12 @@
+ 	if (invert)
+ 		printf("!");
+ 
+-	printf("type %u", type);
++	/* special hack for 'any' case */
++	if (type == 0xFF)
++		printf("type any ");
++	else
++		printf("type %u", type);
++
+ 	if (code_min == 0 && code_max == 0xFF)
+ 		printf(" ");
+ 	else if (code_min == code_max)
 
-> can I do to fix it?
->=20
-> With this build, I tried to put in some POM patches from=20
-> patch-o-matic-ng-20060624.  Could this have been my problem?
-
-Yes. It looks like you managed to apply some old 2.4 patches :) If you
-don't need them I'd suggest to just don't use them.
+--KsGdsel6WgEHnImy--
