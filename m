@@ -1,12 +1,13 @@
-From: Giacomo <delleceste@gmail.com>
-Subject: Question about a locking issue...
-Date: Sat, 1 Jul 2006 13:53:29 +0200
-Message-ID: <885896af0607010453u70356648n82382fefc17f2c5d@mail.gmail.com>
+From: "Giacomo S." <delleceste@gmail.com>
+Subject: information about kernel locking issue
+Date: Sat, 1 Jul 2006 13:55:41 +0200
+Message-ID: <200607011355.41921.delleceste@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "netfilter devel" <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -43,8 +44,8 @@ int get_ifaddr_by_name(const char *ifname, __u32 * addr)
                    {
                            pin_device =
                                (struct in_device *) pnet_device->ip_ptr;
-                           /* ifa_local: ifa_address is the remote
-point in ppp */
+                           /* ifa_local: ifa_address is the remote point in 
+ppp */
                            *addr = (pin_device->ifa_list->ifa_local);
                            read_unlock_bh(&dev_base_lock);
                            return 1;
@@ -64,25 +65,18 @@ Can anyone suggest if i am right.
 Thanks a lot
 
 Giacomo.
-
 -- 
 Giacomo S.
-http://www.giacomos.it
 
-- - - - - - - - - - - - - - - - - - - - - -
+www.giacomos.it
 
-Proteggi il tuo PC provando il mio semplice FIREWALL:
-http://www.giacomos.it/ipfire
-
-mailto:
+em@il:
 delleceste@gmail.com
-giacomo.strangolino@elettra.trieste.it
 jacum@libero.it
+giacomo.strangolino@elettra.trieste.it
+ 	
 
-- - - - - - - - - - - - - - - - - - - - - -
+Running IPFIRE-wall on debian GNU/Linux:
+www.giacomos.it/ipfire
 
- . ''  `.
-:   :'    :
- `.  ` '
-    `- Debian GNU/Linux -- The power of freedom
-        http://www.debian.org
+www.debian.org
