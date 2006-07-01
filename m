@@ -1,16 +1,11 @@
-From: Massimiliano Hofer <max@nucleus.it>
-Subject: Re: information about kernel locking issue
-Date: Sat, 1 Jul 2006 22:29:52 +0200
-Message-ID: <200607012229.53134.max@nucleus.it>
-References: <200607011355.41921.delleceste@gmail.com>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] ip6tables multiport does not support x:y
+Date: Sat, 1 Jul 2006 14:35:33 -0700
+Message-ID: <20060701213533.GA28395@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: "Giacomo S." <delleceste@gmail.com>
+Content-Type: multipart/mixed; boundary="qDbXVdCdHGoSgWSk"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200607011355.41921.delleceste@gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -23,18 +18,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Saturday 1 July 2006 1:55 pm, Giacomo S. wrote:
 
-> I think the problem is that read_lock_bh is not correct, perhaps
-> i would need read_lock_irq instead??
+--qDbXVdCdHGoSgWSk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Your code snippet doesn't show how the function is called. If this is invoked 
-by (*match)() you are in a soft interrupt context and should use read_lock().
-read_lock_bh() is what you use in process context when a soft interrupt may 
-use write_lock().
-I don't think this needs read_lock_irq() and I can't find any IRQ using it, 
-but someone with more experience may disagree with me.
+Update the manpage for ip6tables multiport match to reflect
+reality -- it does not (yet) support x:y syntax.  I looked at
+adding it, but adding revision support to ip6tables seems a
+waste at this point, since once xtables support is added to
+iptables, this problem will resolve itself.
 
--- 
-Bye,
-   Massimiliano Hofer
+Closes bug #451.
+
+Phil
+
+
+--qDbXVdCdHGoSgWSk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-ip6tmultiport
+
+diff -ru ipt-orig/extensions/libip6t_multiport.man ipt-new/extensions/libip6t_multiport.man
+--- ipt-orig/extensions/libip6t_multiport.man	2006-01-30 00:50:09.000000000 -0800
++++ ipt-new/extensions/libip6t_multiport.man	2006-07-01 14:30:10.000000000 -0700
+@@ -1,21 +1,20 @@
+ This module matches a set of source or destination ports.  Up to 15
+-ports can be specified.  A port range (port:port) counts as two
+-ports, but range isn't supported now. It can only be used in conjunction
++ports can be specified.  It can only be used in conjunction
+ with
+ .B "-p tcp"
+ or
+ .BR "-p udp" .
+ .TP
+-.BR "--source-ports " "\fI[!] port\fP[,\fIport\fP[,\fIport:port\fP...]]"
++.BR "--source-ports " "\fI[!] port\fP[,\fIport\fP[,\fIport\fP...]]"
+ Match if the source port is one of the given ports.  The flag
+ .B --sports
+ is a convenient alias for this option.
+ .TP
+-.BR "--destination-ports " "\fI[!] port\fP[,\fIport\fP[,\fIport:port\fP...]]"
++.BR "--destination-ports " "\fI[!] port\fP[,\fIport\fP[,\fIport\fP...]]"
+ Match if the destination port is one of the given ports.  The flag
+ .B --dports
+ is a convenient alias for this option.
+ .TP
+-.BR "--ports " "\fI[!] port\fP[,\fIport\fP[,\fIport:port\fP...]]"
++.BR "--ports " "\fI[!] port\fP[,\fIport\fP[,\fIport\fP...]]"
+ Match if the both the source and destination ports are equal to each
+ other and to one of the given ports.
+
+--qDbXVdCdHGoSgWSk--
