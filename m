@@ -1,7 +1,7 @@
 From: "Giacomo S." <delleceste@gmail.com>
-Subject: information about kernel locking issue - An important detail
-Date: Sun, 2 Jul 2006 10:12:05 +0200
-Message-ID: <200607021012.05951.delleceste@gmail.com>
+Subject: information about kernel locking issue - some other detail
+Date: Sun, 2 Jul 2006 10:22:22 +0200
+Message-ID: <200607021022.22822.delleceste@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
@@ -20,16 +20,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+
+
+
 Sorry, i did not specify an important detail:
 
-this function is invoked by a series of other functions, the first of those is 
-hooked
+this function is invoked by a series of other functions, the first of those
+ is hooked
 tol the netfilter hooks.
 
 So, depending on the 'direction' of the flow (input, output, fwd), we are
 in user context (for output) or soft interrupt (in, fwd).
 
-----------  Messaggio inoltrato  ----------
+>>
+
+Sorry, i forgot to explain better the reason why i used _bh version:
+
+in output hook the function should be running in user context.
+So it might be interrupted by softirq.
+
+I thought about using _irq version because hardware interrupts, such as
+those who could appear when disconnecting an ethernet cable, could
+interrupt my routine, which could be in softirq context or user context
+(output). Then they would change the data and when my routine restarted 
+execution, it would look for an empty pointer.
+I thought that read_lock() was enough, but could read_lock() protect about
+writings in hard irq context?
+
+Am i wrong?
+Any suggestions?
 
 Subject: information about kernel locking issue
 Date: 13:55, sabato 1 luglio 2006
@@ -85,32 +104,3 @@ Giacomo.
 Giacomo S.
 
 www.giacomos.it
-
-em@il:
-delleceste@gmail.com
-jacum@libero.it
-giacomo.strangolino@elettra.trieste.it
-
-
-Running IPFIRE-wall on debian GNU/Linux:
-www.giacomos.it/ipfire
-
-www.debian.org
-
--------------------------------------------------------
-
--- 
-Giacomo S.
-
-www.giacomos.it
-
-em@il:
-delleceste@gmail.com
-jacum@libero.it
-giacomo.strangolino@elettra.trieste.it
- 	
-
-Running IPFIRE-wall on debian GNU/Linux:
-www.giacomos.it/ipfire
-
-www.debian.org
