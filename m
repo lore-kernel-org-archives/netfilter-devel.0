@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ip6tables multiport does not support x:y
-Date: Mon, 03 Jul 2006 20:09:01 +0200
-Message-ID: <44A95D3D.9010609@trash.net>
-References: <20060701213533.GA28395@linuxace.com>
+Subject: Re: information about kernel locking issue - some other detail
+Date: Mon, 03 Jul 2006 20:12:03 +0200
+Message-ID: <44A95DF3.1020906@trash.net>
+References: <200607021022.22822.delleceste@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20060701213533.GA28395@linuxace.com>
+To: "Giacomo S." <delleceste@gmail.com>
+In-Reply-To: <200607021022.22822.delleceste@gmail.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,15 +21,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
-> Update the manpage for ip6tables multiport match to reflect
-> reality -- it does not (yet) support x:y syntax.  I looked at
-> adding it, but adding revision support to ip6tables seems a
-> waste at this point, since once xtables support is added to
-> iptables, this problem will resolve itself.
+Giacomo S. wrote:
+> 
+> 
+> Sorry, i did not specify an important detail:
+> 
+> this function is invoked by a series of other functions, the first of those
+>  is hooked
+> tol the netfilter hooks.
 
-Agreed, Harald was already working on this some time ago.
-
-> Closes bug #451.
-
-Applied, thanks.
+Please, once is enough :) But you still missed the most important
+information, what happens _exactly_? Crash because of invalid memory
+reference, deadlock, ... ?
