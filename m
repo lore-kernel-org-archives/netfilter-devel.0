@@ -1,17 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 2.6.17.1 compile error with a netfilter module
-Date: Mon, 03 Jul 2006 20:26:36 +0200
-Message-ID: <44A9615C.2050405@trash.net>
-References: <925A849792280C4E80C5461017A4B8A206F784@mail733.InfraSupportEtc.com>
-	<1151700888.2709.4.camel@murdegern.hindenburgdamm.example>
+Subject: Re: ip_conntrack_get ip_conntrack_put assymetry
+Date: Mon, 03 Jul 2006 20:28:39 +0200
+Message-ID: <44A961D7.5030204@trash.net>
+References: <e80p74$nhi$1@sea.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Greg Scott <GregScott@InfraSupportEtc.com>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Torsten Luettgert <t.luettgert@pressestimmen.de>
-In-Reply-To: <1151700888.2709.4.camel@murdegern.hindenburgdamm.example>
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <e80p74$nhi$1@sea.gmane.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,26 +21,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Torsten Luettgert wrote:
-> On Fri, 2006-06-30 at 12:36 -0500, Greg Scott wrote:
+Amin Azez wrote:
+> How is it that ip_conntrack_put does an nf_conntrack_put, but
+> ip_conntrack_get does not do nf_conntrack_get or otherwise increase the
+> ref count.
 > 
->>Hmmm -
-> 
-> 
->>I'll try another build, this time with 2.6.17.2 and POM 20060629 using
->>these POM 
->>modules:
->>  time
->>  ipp2p
->>  ROUTE
->>  sip-conntrack-nat
-> 
-> 
-> time, ipp2p and ROUTE won't work with 2.6.17 without API patches -
-> I posted those last saturday, but they didn't get committed yet.
-> You can grab them from the archives. Don't know about sip-conntrack-nat,
-> but I suspect it'll have the same problem.
+> This asymmetry is likely to be confusing, or am I already confused?
 
-Just applied ROUTE and u32. I think Jozsef already fixed u32, the
-remaining patchlets are not part of official pomng anymore, although
-I still haven't received the URL of the new external repository.
+I don't like it either, a lot of the conntrack code really wants some
+cleanup. The general inconsisteny in function naming (and names like
+ip_conntrack_find_get) are not very pretty either.
