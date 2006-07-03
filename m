@@ -1,15 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] priv_data 0/2
-Date: Mon, 03 Jul 2006 20:33:03 +0200
-Message-ID: <44A962DF.3080406@trash.net>
-References: <200606261641.47294.max@nucleus.it>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Re: 2.6.17.1 compile error with a netfilter module
+Date: Mon, 3 Jul 2006 21:38:12 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0607032135220.9324@bizon.gios.gov.pl>
+References: <925A849792280C4E80C5461017A4B8A206F784@mail733.InfraSupportEtc.com>
+	<1151700888.2709.4.camel@murdegern.hindenburgdamm.example>
+	<44A9615C.2050405@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1953974076-1151955492=:9324"
+Cc: Torsten Luettgert <t.luettgert@pressestimmen.de>,
+	netfilter-devel@lists.netfilter.org,
+	Greg Scott <GregScott@InfraSupportEtc.com>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Massimiliano Hofer <max@nucleus.it>
-In-Reply-To: <200606261641.47294.max@nucleus.it>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <44A9615C.2050405@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,29 +25,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Massimiliano Hofer wrote:
-> Hi,
-> this is a version of my priv_data patch that updates targets and renames 
-> functions as suggested by Patrick.
-> 
-> Since xt_init_match() and xt_init_target() (formerly xt_check_match() and 
-> xt_check_target()) no longer just check and they needed some argument changes 
-> anyway, I included some more common code previously replicated in 
-> ip_tables.c, ip6_tables.c and arp_tables.c.
-> Similarly I introduced xt_destroy_match() and xt_destroy_taget().
-> 
-> The resulting patches are larger than I anticipated, but most of the space is 
-> taken by function ranames and argument adjustments.
-> 
-> My previous example with xt_condition still applies (just rename checkentry to 
-> init in struct xt_match).
-> 
-> I tested several combination with iptables, ip6tables and arptables. It can't 
-> make it fail, but I didn't try it with a real world network load. Right now I 
-> don't have a 64 bit machine available for testing (I should be able to use 
-> one in a few days), so I didn't test compat at all.
-> 
-> Testing and comments, as always, are appreciated.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Nice work, thanks Massimiliano. I'll have a closer look later and will
-probably apply it tommorrow. I hope we can still get this in 2.6.18.
+---187430788-1953974076-1151955492=:9324
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+
+On Mon, 3 Jul 2006, Patrick McHardy wrote:
+
+> Torsten Luettgert wrote:
+>> On Fri, 2006-06-30 at 12:36 -0500, Greg Scott wrote:
+>>
+>>> Hmmm -
+>>
+>>
+>>> I'll try another build, this time with 2.6.17.2 and POM 20060629 using
+>>> these POM
+>>> modules:
+>>>  time
+>>>  ipp2p
+>>>  ROUTE
+>>>  sip-conntrack-nat
+>>
+>>
+>> time, ipp2p and ROUTE won't work with 2.6.17 without API patches -
+>> I posted those last saturday, but they didn't get committed yet.
+>> You can grab them from the archives. Don't know about sip-conntrack-nat,
+>> but I suspect it'll have the same problem.
+>
+> Just applied ROUTE and u32. I think Jozsef already fixed u32, the
+> remaining patchlets are not part of official pomng anymore, although
+> I still haven't received the URL of the new external repository.
+
+Need a day or two, sorry. :( I have been very busy for the last two weeks=
+=20
+but now I'm going to finish this ASAP.
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1953974076-1151955492=:9324--
