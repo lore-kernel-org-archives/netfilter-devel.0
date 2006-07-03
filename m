@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: information about kernel locking issue - some other detail
-Date: Mon, 03 Jul 2006 20:12:03 +0200
-Message-ID: <44A95DF3.1020906@trash.net>
-References: <200607021022.22822.delleceste@gmail.com>
+Subject: Re: nf_conntrack + IPv4 NAT
+Date: Mon, 03 Jul 2006 20:16:04 +0200
+Message-ID: <44A95EE4.4070607@trash.net>
+References: <20060512202232.ALLYOURBASEAREBELONGTOUS.A18455@bla.fasel.org>
+	<20060702100131.ALLYOURBASEAREBELONGTOUS.L26940@bla.fasel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Giacomo S." <delleceste@gmail.com>
-In-Reply-To: <200607021022.22822.delleceste@gmail.com>
+To: Wolfram Schlich <lists@wolfram.schlich.org>
+In-Reply-To: <20060702100131.ALLYOURBASEAREBELONGTOUS.L26940@bla.fasel.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,15 +22,16 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Giacomo S. wrote:
+Wolfram Schlich wrote:
+> * Wolfram Schlich <lists@wolfram.schlich.org> [2006-05-12 22:23]:
+> 
+>>[...]
+>>when is nf_conntrack scheduled to support IPv4 NAT?
 > 
 > 
-> Sorry, i did not specify an important detail:
-> 
-> this function is invoked by a series of other functions, the first of those
->  is hooked
-> tol the netfilter hooks.
+> I was just wondering whether someone of the developer crew
+> could actually provide a statement on this topic... :-]
 
-Please, once is enough :) But you still missed the most important
-information, what happens _exactly_? Crash because of invalid memory
-reference, deadlock, ... ?
+The sooner the better, we're well aware that this is the major
+point that is keeping many people from switching. Harald had
+some code, but I don't know what the current state is.
