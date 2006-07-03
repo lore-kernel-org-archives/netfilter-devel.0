@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Resend] Userspace code related to fixed timeout patch
-Date: Mon, 03 Jul 2006 20:06:19 +0200
-Message-ID: <44A95C9B.80101@trash.net>
-References: <1151762925.20139.17.camel@localhost>
+Subject: Re: [PATCH] ip6tables multiport does not support x:y
+Date: Mon, 03 Jul 2006 20:09:01 +0200
+Message-ID: <44A95D3D.9010609@trash.net>
+References: <20060701213533.GA28395@linuxace.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
-In-Reply-To: <1151762925.20139.17.camel@localhost>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20060701213533.GA28395@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,17 +21,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric Leblond wrote:
-> Hi,
-> 
-> Fixed timeout patch
-> (http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3510) has
-> been applied to Linus git tree but the related changes of userspace
-> library and tool have not been applied to netfilter.org subversion :
-> 
-> http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3489
-> http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3485
-> 
-> Is it possible to push them to subversion ?
+Phil Oester wrote:
+> Update the manpage for ip6tables multiport match to reflect
+> reality -- it does not (yet) support x:y syntax.  I looked at
+> adding it, but adding revision support to ip6tables seems a
+> waste at this point, since once xtables support is added to
+> iptables, this problem will resolve itself.
 
-Both applied, thanks.
+Agreed, Harald was already working on this some time ago.
+
+> Closes bug #451.
+
+Applied, thanks.
