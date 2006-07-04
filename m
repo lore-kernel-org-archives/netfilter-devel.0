@@ -1,16 +1,12 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] icmpv6 match --icmpv6-type confusion
-Date: Tue, 04 Jul 2006 10:21:52 +0200
-Message-ID: <44AA2520.20006@trash.net>
-References: <44A95957.4040805@trash.net>	<200607040030.k640U4e5004273@toshiba.co.jp>	<44A9BA71.2050303@trash.net>
-	<200607040426.k644QCpQ026660@toshiba.co.jp>
+Subject: RFC: Disable defered bridge hooks by default
+Date: Tue, 04 Jul 2006 11:26:30 +0200
+Message-ID: <44AA3446.6050609@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: kernel@linuxace.com, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="------------080202070104080302020909"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200607040426.k644QCpQ026660@toshiba.co.jp>
+To: Bart De Schuymer <bdschuym@pandora.be>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,22 +18,71 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Yasuyuki KOZAKAI wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Tue, 04 Jul 2006 02:46:41 +0200
-> 
->>I tend to agree with Phil's interpretation that this is actually
->>unexpected behaviour, so I don't think anyone is doing this
->>intentional. I would expect either a parser error or type any.
-> 
-> 
-> parser error is good idea. It's not neccesary for icmpv6 match to support
-> "--icmpv6-type any" because people can get same behavior with only
-> "-p ipv6-icmp".
+This is a multi-part message in MIME format.
+--------------080202070104080302020909
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-Agreed. Too bad we already have this hack in the kernel for IPv4.
+Finally got to taking care of the first part of getting
+rid of the defered bridge hooks. Bart, does this look
+correct to you? This stuff confuses me badly :) Thanks.
 
-> How about the attached patch ? That also fixes allowing double
-> --icmp-type/--icmpv6-type.
 
-Looks good to me.
+
+--------------080202070104080302020909
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+[NETFILTER]: SCTP conntrack: fix crash triggered by packet without chunks
+
+When a packet without any chunks is received, the newconntrack variable
+in sctp_packet contains an out of bounds value that is used to look up an
+pointer from the array of timeouts, which is then dereferenced, resulting
+in a crash. Make sure at least a single chunk is present.
+
+Problem noticed by George A. Theall <theall@tenablesecurity.com>
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 4044a218db83433791d45cd453a6311d7dcbd17d
+tree 37ea0a16426151bd3606264ea8c462bbf6f3decd
+parent a39727f212426b9d5f9267b3318a2afaf9922d3b
+author Patrick McHardy <kaber@trash.net> Fri, 30 Jun 2006 05:27:26 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 30 Jun 2006 05:27:26 +0200
+
+ net/ipv4/netfilter/ip_conntrack_proto_sctp.c |    2 +-
+ net/netfilter/nf_conntrack_proto_sctp.c      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ip_conntrack_proto_sctp.c b/net/ipv4/netfilter/ip_conntrack_proto_sctp.c
+index 0416073..2d3612c 100644
+--- a/net/ipv4/netfilter/ip_conntrack_proto_sctp.c
++++ b/net/ipv4/netfilter/ip_conntrack_proto_sctp.c
+@@ -254,7 +254,7 @@ static int do_basic_checks(struct ip_con
+ 	}
+ 
+ 	DEBUGP("Basic checks passed\n");
+-	return 0;
++	return count == 0;
+ }
+ 
+ static int new_state(enum ip_conntrack_dir dir,
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 0c6da49..9dab81d 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -259,7 +259,7 @@ static int do_basic_checks(struct nf_con
+ 	}
+ 
+ 	DEBUGP("Basic checks passed\n");
+-	return 0;
++	return count == 0;
+ }
+ 
+ static int new_state(enum ip_conntrack_dir dir,
+
+--------------080202070104080302020909--
