@@ -1,17 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] priv_data 0/2
-Date: Tue, 04 Jul 2006 02:20:40 +0200
-Message-ID: <44A9B458.1030106@trash.net>
-References: <200606261641.47294.max@nucleus.it>
-	<44A962DF.3080406@trash.net>	<200607032305.06581.max@nucleus.it>
-	<44A9A103.8090705@anduras.de>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] icmpv6 match --icmpv6-type confusion
+Date: Tue, 04 Jul 2006 09:30:03 +0900 (JST)
+Message-ID: <200607040030.k640U4au000207@toshiba.co.jp>
+References: <20060630201858.GA5845@linuxace.com> <44A95957.4040805@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: kernel@linuxace.com, netfilter-devel@lists.netfilter.org,
+	yasuyuki.kozakai@toshiba.co.jp
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sven Anders <anders@anduras.de>
-In-Reply-To: <44A9A103.8090705@anduras.de>
+To: kaber@trash.net
+In-Reply-To: <44A95957.4040805@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,12 +22,34 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sven Anders wrote:
-> If this is merged, I would like to see a negated limit...
-> I need some advice to preserve compatibility here.
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] icmpv6 match --icmpv6-type confusion
+Date: Mon, 03 Jul 2006 19:52:23 +0200
 
-Once this is merged we can convert matches and targets to keep their
-private state outside of the structure shared with userspace and can
-start reusing the fields, since they are ignored by userspace anyway.
-I'm not sure, but I think currently userspace initializes them to 0,
-which should make this easy.
+> Phil Oester wrote:
+> > Adding a rule such as this:
+> > 
+> > -A INPUT -p ipv6-icmp -m icmpv6
+> > 
+> > ends up creating a rule with "ipv6-icmp type 0", instead of "ipv6-icmp type any"
+> > which is what was expected.  Granted, the match is redundant anyway, but it
+> > should not assume a specific type when one is not specified.
+> > 
+> > Below patches (to both kernel and userspace) fix this, and resolve bug #461.
+> > In keeping with icmpv4, 0xFF is used to designate "any". And since I was
+> > looking at it, I fixed up a 255 -> any in icmpv4 printing.
+> 
+> Thanks Phil. I have to admit that I never liked the ugly 255 hack,
+> its a perfectly valid value for the type field to use, even though
+> its currently not defined for IPv4 or IPv6. For IPv6 I even have
+> some concerns that it will stay unused for all times, the stategy
+> for choosing new values seems to be different from IPv4. I guess
+> an alternative would be to introduce a new revision.
+> 
+> Yasuyuki, do you have an opinion on this?
+
+It sounds good to me to introduce a new revision and a new value to support
+"icmpv6-type any". But can we really break behavior compatibility of
+"-p ipv6-icmp -m icmpv6" ?
+
+-- Yasuyuki Kozakai
