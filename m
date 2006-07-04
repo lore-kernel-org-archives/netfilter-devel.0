@@ -1,14 +1,17 @@
-From: Sven Anders <anders@anduras.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] priv_data 0/2
-Date: Tue, 04 Jul 2006 00:58:11 +0200
-Message-ID: <44A9A103.8090705@anduras.de>
-References: <200606261641.47294.max@nucleus.it> <44A962DF.3080406@trash.net>
-	<200607032305.06581.max@nucleus.it>
+Date: Tue, 04 Jul 2006 02:20:40 +0200
+Message-ID: <44A9B458.1030106@trash.net>
+References: <200606261641.47294.max@nucleus.it>
+	<44A962DF.3080406@trash.net>	<200607032305.06581.max@nucleus.it>
+	<44A9A103.8090705@anduras.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000109040003010004030505"
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200607032305.06581.max@nucleus.it>
+To: Sven Anders <anders@anduras.de>
+In-Reply-To: <44A9A103.8090705@anduras.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,32 +23,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000109040003010004030505
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 8bit
+Sven Anders wrote:
+> If this is merged, I would like to see a negated limit...
+> I need some advice to preserve compatibility here.
 
-Massimiliano Hofer schrieb:
-> On Monday 3 July 2006 8:33 pm, Patrick McHardy wrote:
-> 
->> Nice work, thanks Massimiliano. I'll have a closer look later and will
->> probably apply it tommorrow. I hope we can still get this in 2.6.18.
-
-If this is merged, I would like to see a negated limit...
-I need some advice to preserve compatibility here.
-
-Regards
- Sven
-
--- 
- Sven Anders <anders@anduras.de>                 () Ascii Ribbon Campaign
-                                                 /\ Support plain text e-mail
- ANDURAS service solutions AG
- Innstraße 71 - 94036 Passau - Germany
- Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
-
-Rechtsform: Aktiengesellschaft - Sitz: Passau - Amtsgericht Passau HRB 6032
-Mitglieder des Vorstands: Sven Anders, Marcus Junker, Michael Schön
-Vorsitzender des Aufsichtsrats: Dipl. Kfm. Thomas Träger
-
---------------000109040003010004030505--
+Once this is merged we can convert matches and targets to keep their
+private state outside of the structure shared with userspace and can
+start reusing the fields, since they are ignored by userspace anyway.
+I'm not sure, but I think currently userspace initializes them to 0,
+which should make this easy.
