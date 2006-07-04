@@ -1,15 +1,16 @@
-From: Cedric Blancher <blancher@cartel-securite.fr>
-Subject: Re: patch for rule insert
-Date: Tue, 04 Jul 2006 07:31:57 +0200
-Message-ID: <1151991117.4024.4.camel@anduril.intranet.cartel-securite.net>
-References: <44A9E239.8080403@rocsys.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] icmpv6 match --icmpv6-type confusion
+Date: Tue, 04 Jul 2006 10:21:52 +0200
+Message-ID: <44AA2520.20006@trash.net>
+References: <44A95957.4040805@trash.net>	<200607040030.k640U4e5004273@toshiba.co.jp>	<44A9BA71.2050303@trash.net>
+	<200607040426.k644QCpQ026660@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Transfer-Encoding: 7bit
+Cc: kernel@linuxace.com, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: varun <varun@rocsys.com>
-In-Reply-To: <44A9E239.8080403@rocsys.com>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200607040426.k644QCpQ026660@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,32 +22,22 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le mardi 04 juillet 2006 =E0 09:06 +0530, varun a =E9crit :
->                 That is with -A we append the new rule and -I we add the=20
-> new rule to the top of the chain. So i wold like to insert it in middle=20
-> of the chain. Is it possible? Does anyone have a patch for the same?
+Yasuyuki KOZAKAI wrote:
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Tue, 04 Jul 2006 02:46:41 +0200
+> 
+>>I tend to agree with Phil's interpretation that this is actually
+>>unexpected behaviour, so I don't think anyone is doing this
+>>intentional. I would expect either a parser error or type any.
+> 
+> 
+> parser error is good idea. It's not neccesary for icmpv6 match to support
+> "--icmpv6-type any" because people can get same behavior with only
+> "-p ipv6-icmp".
 
-man ipchains
+Agreed. Too bad we already have this hack in the kernel for IPv4.
 
-[...]
-SYNOPSIS
-[...]
-       ipchains -[RI] chain rulenum rule-specification [options]
-[...]
-       -I, --insert
-              Insert one or more rules in the selected chain as the
-              given rule number. So, if the rule number is 1, the
-              rule or rules are inserted at the head of the chain.
+> How about the attached patch ? That also fixes allowing double
+> --icmp-type/--icmpv6-type.
 
-Seems it's been there from the beginning :)
-
-	iptables -I INPUT 4 ...
-
-Will insert rule at 4th position.
-
-
---=20
-http://sid.rstack.org/
-PGP KeyID: 157E98EE FingerPrint: FA62226DA9E72FA8AECAA240008B480E157E98EE
->> Hi! I'm your friendly neighbourhood signature virus.
->> Copy me to your signature file and help me spread!
+Looks good to me.
