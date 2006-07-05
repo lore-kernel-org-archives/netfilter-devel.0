@@ -1,48 +1,61 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] libiptc symbols clash
-Date: Wed, 05 Jul 2006 11:06:11 +0200
-Message-ID: <44AB8103.5070002@trash.net>
-References: <20060630211248.GB9243@linuxace.com> <44A95A75.4050205@trash.net>
-	<20060704152737.GA8518@linuxace.com>
+From: "Daniel J Blueman" <daniel.blueman@gmail.com>
+Subject: Re: sky2 rx error problems...
+Date: Wed, 5 Jul 2006 12:44:58 +0100
+Message-ID: <6278d2220607050444o680ac35dn68e2fd0adb918812@mail.gmail.com>
+References: <6278d2220605301408g646fc01l49a8713763cdc009@mail.gmail.com>
+	 <20060530161714.4420e9b4@dxpl.pdx.osdl.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20060704152737.GA8518@linuxace.com>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: "Netfilter Developer" <netfilter-devel@lists.netfilter.org>,
+	netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+To: "Stephen Hemminger" <shemminger@osdl.org>
+In-Reply-To: <20060530161714.4420e9b4@dxpl.pdx.osdl.net>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
-> On Mon, Jul 03, 2006 at 07:57:09PM +0200, Patrick McHardy wrote:
-> 
->>Phil Oester wrote:
->>
->>>As reported by Dmitry Levin, the TC_NUM_RULES and TC_GET_RULE exports
->>>clash.  His patch below, resolving bug #456
->>
->>What does clash mean in this context? They both end up in different
->>binaries, so I think I might be misunderstanding you.
-> 
-> 
-> They end up in libiptc.a twice:
-> 
-> # readelf -s libiptc.a | grep TC
->     56: 00000b70    81 FUNC    GLOBAL DEFAULT    1 TC_GET_RULE
->     57: 00000bd0    56 FUNC    GLOBAL DEFAULT    1 TC_NUM_RULES
->     57: 00000c10    81 FUNC    GLOBAL DEFAULT    1 TC_GET_RULE
->     58: 00000c70    56 FUNC    GLOBAL DEFAULT    1 TC_NUM_RULES
-> 
-> instead of with the standard iptc_ and ip6tc_ naming.
+Hi Stephen,
 
-I wonder why nothing seems to complain about this.
-Applied, thanks.
+Sorry to bring you more trouble. I'm able to reproduce this 'status
+0x977d977d' rx race even with a 100Mb FD connection (MTU 1500) to the
+host sending the data.
+
+Would it help if I try and capture some packet stats or a dump of
+this? The packets being received at the sending host will be a steady
+stream of TCP acks and SMB protocol acks (every 64KB of data), so not
+too heavy. The sending host has a Pentium-M 1.7GHz with 2MB L2$ and is
+quiescent apart from samba sending data via sendfile(), so is
+relatively powerful.
+
+Let me know if there is anything I can do to help.
+
+Many thanks,
+  Daniel
+
+On 31/05/06, Stephen Hemminger <shemminger@osdl.org> wrote:
+> On Tue, 30 May 2006 22:08:12 +0100
+> "Daniel J Blueman" <daniel.blueman@gmail.com> wrote:
+>
+> > To follow on from the previous 'sky2 rx error' problem reported, the
+> > problem doesn't have anything to do with iptables or MTU settings, ie
+> > can be reproduced out the box.
+> >
+> > The race is hit after a couple of GBs of data. Initially, I thought
+> > this may have something to do with broken MSI support on my Intel
+> > ICH-7M chipset, but disabling MSI didn't help.
+> >
+> > kernel: sky2 lan0: rx error, status 0x977d977d length 0
+> >
+> > Is there any debug information I can get to help or such? Voluntary
+> > preemption is enabled, UP, HZ=100 on 2.6.17-rc4 on i686.
+> >
+> > Dan
+>
+> No the problem is your CPU isn't keeping up with the incoming flood
+> and what ever you are connected to doesn't do hardware flow control.
+> The driver doesn't properly flush the FIFO (yet), and it is not clear
+> even from the NDA documentation the steps required.
+-- 
+Daniel J Blueman
