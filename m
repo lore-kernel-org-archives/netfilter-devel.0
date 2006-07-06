@@ -1,15 +1,16 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: [PATCH] [POM] ipp2p/ipv4options patches
-Date: Thu, 6 Jul 2006 12:17:32 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0607061215370.25306@bizon.gios.gov.pl>
-References: <44ACD6E2.5010101@anduras.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: RFC: Disable defered bridge hooks by default
+Date: Thu, 06 Jul 2006 12:49:59 +0200
+Message-ID: <44ACEAD7.40007@trash.net>
+References: <W8195318669268441152182124@nocme1bl6.telenet-ops.be>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-567584565-1152181052=:25306"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Sven Anders <anders@anduras.de>
-In-Reply-To: <44ACD6E2.5010101@anduras.de>
+To: "bdschuym@pandora.be" <bdschuym@telenet.be>
+In-Reply-To: <W8195318669268441152182124@nocme1bl6.telenet-ops.be>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,32 +22,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+bdschuym@pandora.be wrote:
+>>----- Oorspronkelijk bericht -----
+>>Van: Patrick McHardy [mailto:kaber@trash.net]
+>>Verzonden: dinsdag, juli 4, 2006 11:27 AM
+>>Aan: 'Bart De Schuymer'
+>>CC: 'Netfilter Development Mailinglist'
+>>Onderwerp: Re: RFC: Disable defered bridge hooks by default
+>>
+>>Patrick McHardy wrote:
+>>
+>>>Finally got to taking care of the first part of getting
+>>>rid of the defered bridge hooks. Bart, does this look
+>>>correct to you? This stuff confuses me badly :) Thanks.
+>>>
+> 
+> 
+> Looks good, but please use deferred instead of defered :)
 
----187430788-567584565-1152181052=:25306
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Thu, 6 Jul 2006, Sven Anders wrote:
-
-> Hello!
-Hello,
-
-> Here are some patches for the latest Patch-O-Matic, which I needed for us=
-ing
-> them with the latest stable kernel.
->
-> These are only corrections for the new function parameters and the missin=
-g
-> matchsize.
-
-Thanks. External repository for TARPIT, ipp2p, connlimit and time with=20
-extensions ready for both 2.6.16 and 2.6.17 will be ready quite soon.
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-567584565-1152181052=:25306--
+Sure :) I tested it in the meantime and it crashes somewhere,
+will repost after fixing that.
