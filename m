@@ -1,16 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: RFC: Disable defered bridge hooks by default
-Date: Fri, 07 Jul 2006 12:24:14 +0200
-Message-ID: <44AE364E.1090704@trash.net>
-References: <W673373073133751152267462@hoboe1bl6.telenet-ops.be>
+From: "Hung Lin" <hlin@nextone.com>
+Subject: does ipset conflict with ipsec SuSE kernel patch?
+Date: Thu, 6 Jul 2006 17:05:51 -0400
+Message-ID: <8812D8156467224C9E9739E513037EF1F3FD47@moe.nextone.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Bart De Schuymer <bdschuym@pandora.be>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "bdschuym@pandora.be" <bdschuym@telenet.be>
-In-Reply-To: <W673373073133751152267462@hoboe1bl6.telenet-ops.be>
+Content-class: urn:content-classes:message
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,31 +20,96 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-bdschuym@pandora.be wrote:
->>----- Oorspronkelijk bericht -----
->>Van: Patrick McHardy [mailto:kaber@trash.net]
->>
->>This is the latest version. Fixed the crash and added a
->>runtime warning to the physdev match and on-the-fly activation
->>when needed, so we don't need the sysctls. Works fine in
->>a few simple tests, if there are no further objections
->>I'll submit this version.
-> 
-> 
-> I'd add something like the code below on top of your patch. That way no false warnings are given if the user specifies she only wants to look at bridged packets.
-> 
-> --- net/netfilter/xt_physdev.c.old	2006-07-07 12:11:44.000000000 +0200
-> +++ net/netfilter/xt_physdev.c	2006-07-07 12:14:14.000000000 +0200
-> @@ -114,7 +114,9 @@ checkentry(const char *tablename,
->  	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
->  		return 0;
->  	if (brnf_deferred_hooks == 0 && info->bitmask & XT_PHYSDEV_OP_OUT &&
-> -	    hook_mask & ((1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_FORWARD))) {
-> +	    hook_mask & ((1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_FORWARD)) &&
-> +	    (!(info->bitmask & XT_PHYSDEV_OP_BRIDGED) ||
-> +	       info->invert & XT_PHYSDEV_OP_BRIDGED)) {
->  		printk(KERN_WARNING "physdev match: using --physdev-out in the "
->  		       "OUTPUT or FORWARD chain is deprecated and breaks other "
->  		       "things, it will be removed in January 2007. See "
+Hi,
 
-Right, I forgot about that, will add and also update the text.
+
+I tried to install ipsets (http://ipset.netfilter.org/install.html) on
+my SuSE 10.0 OS.  I could apply the kernel patches and rebuild the
+kernel (Step 1 to 4 on ipsets installation webpage.)  But when I tried
+to build iptables (Step 5,) it showed the error message:
+
+
+/usr/src/linux/include/linux/ipv6.h:19: error: redefinition of `struct
+in6_pktinfo'
+
+In file included from /usr/src/linux/include/linux/netfilter_ipv4.h:11,
+
+                 from
+/usr/src/linux/include/linux/netfilter_ipv4/ip_tables.h:26,
+
+                 from include/libiptc/libiptc.h:6,
+
+                 from include/iptables.h:5,
+
+                 from extensions/libipt_ah.c:8:
+
+/usr/src/linux/include/net/protocol.h:38: warning: `struct sk_buff'
+declared inside parameter list
+
+/usr/src/linux/include/net/protocol.h:38: warning: its scope is only
+this definition or declaration, which is probably not what you want
+
+/usr/src/linux/include/net/protocol.h:39: error: syntax error before
+"u32"
+
+/usr/src/linux/include/net/protocol.h:39: warning: `struct sk_buff'
+declared inside parameter list
+
+/usr/src/linux/include/net/protocol.h:47: warning: `struct sk_buff'
+declared inside parameter list
+
+/usr/src/linux/include/net/protocol.h:52: warning: `struct
+inet6_skb_parm' declared inside parameter list
+
+/usr/src/linux/include/net/protocol.h:52: warning: `struct sk_buff'
+declared inside parameter list
+
+/usr/src/linux/include/net/protocol.h:62: error: field `list' has
+incomplete type
+
+make: *** [extensions/libipt_ah_sh.o] Error 1
+
+=20
+
+=20
+
+Since I could build ipsets on the kernel of kernel.org, I checked SuSE
+kernel patches.  There's a set of SuSE kernel patches (for IPsec) that
+conflicts with ipset patches:
+
+=20
+(from series.conf in SuSE kernel source)
+
+        # These patches are from the netfilter team, and
+        # are required to tag IPsec packets for packet
+        # filtering purposes.
+
+-       patches.suse/netfilter-02-output-hooks
+-       patches.suse/netfilter-03-input-hooks
+-       patches.suse/netfilter-04-policy-lookup
+-       patches.suse/netfilter-05-policy-checks
+-       patches.suse/netfilter-06-policy-match
+
+=20
+
+I removed the above patches and tried to build ipset again, it worked.
+
+Does this mean IPsec conflicts with ipsets?  The comment of SuSE kernel
+patch said the patches are from netfilter team, and the ipsets are also
+from netfilter.org.  Since they are both belong to netfilter team, is
+there any way to resolve the conflict?
+
+Please let me know if you need more information.  Thanks for your time.
+
+P.S.  Please CC to hlin@nextone.com because I didn't subscribe to the
+mailing list.
+
+=20
+
+=20
+
+=20
+Best
+
+
+Hung Lin
