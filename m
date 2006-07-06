@@ -1,16 +1,11 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: masquerade & ipsec
-Date: Wed, 05 Jul 2006 18:51:11 +0200
-Message-ID: <44ABEDFF.5010005@trash.net>
-References: <44A6FDDE.8050805@seclark.us> <44ABDC15.9050606@trash.net>
-	<44ABE469.7000001@seclark.us>
+From: "Eric Leblond" <eric@inl.fr>
+Subject: [PATCH] libnfnetlink compilation on FC5
+Date: Thu, 6 Jul 2006 11:09:35 +0200 (CEST)
+Message-ID: <46066.193.48.8.196.1152176975.squirrel@mail.inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed;boundary="----=_20060706110935_92828"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Stephen.Clark@seclark.us
-In-Reply-To: <44ABE469.7000001@seclark.us>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,27 +17,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Stephen Clark wrote:
-> Patrick McHardy wrote:
-> 
->> You can use the policy match to exclude the packets that should
->> be handled by IPsec from masquerading. Or simple do it by
->> address.
->>
->>  
->>
-> Thanks for the response.
-> 
-> I figured out how to do during the time between my post 7/1/06 and when
-> it showed on list 7/5/06 ( can anyone tell me why it takes so long for
-> post to the netfilter-devel list, when I post to linux-kernel it shows
-> up within a few minutes ).
+------=_20060706110935_92828
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 
-As a non-subscriber your posts are held until the list moderator
-approves them. Usually he's pretty quick.
+Hi,
 
-> When I worked for Data General we used call this the UTF ( Universal
-> Time Filter ) hopefully
-> the customer had figured out his problem by the time we got back to him.
+libnfnetlink compilation fails on Fedora Cora 5 which use gcc 4.1.
 
-:)
+I attach to this mail a small patch that fixes this problem.
+
+BR,
+------=_20060706110935_92828
+Content-Type: text/x-patch; name="libnfnetlink_FC5.patch"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: attachment; filename="libnfnetlink_FC5.patch"
+
+Index: src/libnfnetlink.c
+===================================================================
+--- src/libnfnetlink.c	(révision 6640)
++++ src/libnfnetlink.c	(copie de travail)
+@@ -37,6 +37,7 @@
+ #include <sys/types.h>
+ #include <sys/socket.h>
+ 
++#include <linux/types.h>
+ #include <linux/netlink.h>
+ 
+ #include <libnfnetlink/libnfnetlink.h>
+------=_20060706110935_92828--
