@@ -1,16 +1,17 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 6/10][CTNETLINK] dump counters iif connection ended or
- counters filled up
-Date: Fri, 07 Jul 2006 15:51:06 +0200
-Message-ID: <44AE66CA.8030705@netfilter.org>
-References: <44ADC3BD.3050609@netfilter.org> <44ADE7BA.4030406@trash.net>
+From: "Greg Scott" <GregScott@InfraSupportEtc.com>
+Subject: RE: 2.6.17.1 compile error with a netfilter module
+Date: Fri, 7 Jul 2006 10:19:09 -0500
+Message-ID: <925A849792280C4E80C5461017A4B8A206F79A@mail733.InfraSupportEtc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
+Cc: Torsten Luettgert <t.luettgert@pressestimmen.de>,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44ADE7BA.4030406@trash.net>
+Content-class: urn:content-classes:message
+To: "Patrick McHardy" <kaber@trash.net>,
+	"Krzysztof Oledzki" <olenf@ans.pl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,31 +23,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
-> 
->>This patch makes ctnetlink to dump counters iif connection reaches the
->>destroy state or altenatively if counters filled up.
->>
->>AFAICS counters on NEW and UPDATE events doesn't provide interesting
->>information, they just consume the limited netlink bandwidth.
->>
->>Upcoming conntrackd release in statistics mode uses counters from
->>DESTROY events to keep the contability of traffic that the firewall has
->>processed.
->>
->>I think that this patch should also reset counters upon fill up event,
->>comments?
-> 
-> Not sure, do you know any users of the counters besides conntrackd?
+Let me try to test it in the field next week.  I am buried all day
+today.=20
 
-I don't know any ctnetlink user of the counters. Thinking it well this 
-"counters fill up" issue is tricky. Since netlink is unreliable, what if 
-the fill up event gets lost? we could reset counters and nobody would 
-apparently notice. I think that we need an overflow bit in the conntrack 
-that must be set whenever and overflow happens and unset such bit once 
-the overflow event has been caught.
+- Greg
 
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+-----Original Message-----
+From: Patrick McHardy [mailto:kaber@trash.net]=20
+Sent: Thursday, July 06, 2006 11:14 PM
+To: Krzysztof Oledzki
+Cc: Greg Scott; Torsten Luettgert; netfilter-devel@lists.netfilter.org
+Subject: Re: 2.6.17.1 compile error with a netfilter module
+
+Krzysztof Oledzki wrote:
+> OK, I prepared external repository with correct (I hope!) time and=20
+> ipp2p extensions, TARPIT and connlimit are going to be fixed soon.=20
+> Before I submit this to Patrick I need to be sure that it works. If=20
+> you would like to test it, please:
+>=20
+>  - remove "time" and "ipp2p" directories from extracted pom-ng
+>=20
+>  - add this to the sources.list:
+>=20
+> # ipp2p and time maintained by Krzysztof Oledzki <ole@ans.pl>=20
+> http://people.netfilter.org/ole/pom/
+>=20
+>  - run "./runme --download"
+>=20
+>  - patch & recompile kernel as always
+>=20
+>  - tell me if it works (or not).
+>=20
+> Both extensions should work with both 2.6.16 and 2.6.17 kernels if I=20
+> done everything properly.
+
+Thanks Krzysztof, seems to work fine (didn't tried patching, but the
+rest). I've added it to the sources.list now.
