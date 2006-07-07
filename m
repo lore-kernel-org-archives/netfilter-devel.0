@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 6/10][CTNETLINK] dump counters iif connection ended or
- counters filled up
-Date: Fri, 07 Jul 2006 06:48:58 +0200
-Message-ID: <44ADE7BA.4030406@trash.net>
-References: <44ADC3BD.3050609@netfilter.org>
+Subject: Re: [PATCH 0/10] updates for ctnetlink and conntrack core
+Date: Fri, 07 Jul 2006 07:13:56 +0200
+Message-ID: <44ADED94.3010703@trash.net>
+References: <44ADC2EE.905@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <44ADC3BD.3050609@netfilter.org>
+In-Reply-To: <44ADC2EE.905@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,18 +23,25 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Pablo Neira Ayuso wrote:
-> This patch makes ctnetlink to dump counters iif connection reaches the
-> destroy state or altenatively if counters filled up.
+> Hi,
 > 
-> AFAICS counters on NEW and UPDATE events doesn't provide interesting
-> information, they just consume the limited netlink bandwidth.
-> 
-> Upcoming conntrackd release in statistics mode uses counters from
-> DESTROY events to keep the contability of traffic that the firewall has
-> processed.
-> 
-> I think that this patch should also reset counters upon fill up event,
-> comments?
+> Here follows a set of patches for ctnetlink and the conntrack core API.
 
-Not sure, do you know any users of the counters besides conntrackd?
-I would like to look at how they're used.
+I'm perfectly fine with 1, 2, and 9. Still need to look at 10 in
+more detail, 3 - 5 need a bit more work. As for 6 - 8, see below.
+
+> Basically, at the time that I was working on the ctnetlink patches, I
+> tried to keep in mind the idea of reducing the netlink bandwidth
+> consumption following the principle of just dumping meaningful fields
+> depending on the type of event.
+> 
+> Please let me know what you think. Thanks!
+
+I think this is something we need to agree on in principle. I'm
+not convinced that we really do save much bandwidth in the
+common case, and that its worth diverging from the usual update
+notifications containing full updates sent by the remaining
+network stack (besides unset fields or fields containing 0).
+
+I'll see if I can get some numbers of the actual differences
+without too much effort.
