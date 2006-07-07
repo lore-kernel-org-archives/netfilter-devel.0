@@ -1,14 +1,15 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 10/10][CONNTRACK] introduce the pickup flag to take over
-	connections
-Date: Fri, 07 Jul 2006 04:16:53 +0200
-Message-ID: <44ADC415.5030407@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: RFC: Disable defered bridge hooks by default
+Date: Fri, 07 Jul 2006 05:37:57 +0200
+Message-ID: <44ADD715.7060507@trash.net>
+References: <W8195318669268441152182124@nocme1bl6.telenet-ops.be>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010008060208030806030004"
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: multipart/mixed; boundary="------------020405010806060907090501"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: "bdschuym@pandora.be" <bdschuym@telenet.be>
+In-Reply-To: <W8195318669268441152182124@nocme1bl6.telenet-ops.be>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,247 +22,148 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010008060208030806030004
-Content-Type: text/plain; charset=us-ascii; format=flowed
+--------------020405010806060907090501
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 
-This patch introduces a new flag called IPS_PICKUP that forces the
-protocol handler to pick up the required information in order to ensure
-that the connection will reach a successful state. Currently, the only
-client is the TCP protocol helper.
+bdschuym@pandora.be wrote:
+> Looks good, but please use deferred instead of defered :)
 
-More arguments conntrackd or whatever failover solution need this.
-
-@Jozsef: You know better TCP sequence tracking in-deep details, can you
-see any problem with this?
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
--- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+This is the latest version. Fixed the crash and added a
+runtime warning to the physdev match and on-the-fly activation
+when needed, so we don't need the sysctls. Works fine in
+a few simple tests, if there are no further objections
+I'll submit this version.
 
 
---------------010008060208030806030004
+--------------020405010806060907090501
 Content-Type: text/plain;
- name="10pickup.patch"
+ name="x"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="10pickup.patch"
+ filename="x"
 
-[CONNTRACK] Introduce the pickup flag to take over connections
+[NETFILTER]: bridge netfilter: add deferred output hooks to feature-removal-schedule
 
-This patch introduces a new flag called IPS_PICKUP that forces the protocol
-handler to pick up the required information in order to ensure that the
-connection will reach a successful state. Currently, the only client is the
-TCP protocol helper.
+Add deferred output hooks to feature-removal-schedule and disable them by
+default. Until their removal they will be activated by the physdev match
+when needed.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Index: net-2.6/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
-===================================================================
---- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2006-07-07 02:03:40.000000000 +0200
-+++ net-2.6/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2006-07-07 02:05:06.000000000 +0200
-@@ -425,10 +425,10 @@ static unsigned int get_conntrack_index(
-    we doesn't have to deal with fragments. 
- */
+---
+commit 47190a17ac996af8d1f1bcbc5650ff64a0ab171d
+tree 52644df0d058e6174ffa37166ea69b59e62c556e
+parent 120bda20c6f64b32e8bfbdd7b34feafaa5f5332e
+author Patrick McHardy <kaber@trash.net> Fri, 07 Jul 2006 05:34:59 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 07 Jul 2006 05:34:59 +0200
+
+ Documentation/feature-removal-schedule.txt |   16 ++++++++++++++++
+ include/linux/netfilter_bridge.h           |    3 +++
+ net/bridge/br_netfilter.c                  |   11 +++++++++--
+ net/netfilter/xt_physdev.c                 |    9 +++++++++
+ 4 files changed, 37 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index 99f219a..e6aa994 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -266,3 +266,19 @@ Why:	The interrupt related SA_* flags ar
+ Who:	Thomas Gleixner <tglx@linutronix.de>
  
--static inline __u32 segment_seq_plus_len(__u32 seq,
--					 size_t len,
--					 struct iphdr *iph,
--					 struct tcphdr *tcph)
-+static inline __u32 segment_seq_plus_len(const __u32 seq,
-+					 const size_t len,
-+					 const struct iphdr *iph,
-+					 const struct tcphdr *tcph)
- {
- 	return (seq + len - (iph->ihl + tcph->doff)*4
- 		+ (tcph->syn ? 1 : 0) + (tcph->fin ? 1 : 0));
-@@ -890,6 +890,28 @@ static int tcp_error(struct sk_buff *skb
- 	return NF_ACCEPT;
- }
+ ---------------------------
++
++What:	Bridge netfilter deferred IPv4/IPv6 output hook calling
++When:	January 2007
++Why:	The deferred output hooks are a layering violation causing lots
++	of unusual and broken behaviour on bridge devices. Examples of
++	things they break include QoS classifation using the MARK or
++	CLASSIFY targets, the IPsec policy match and connection tracking
++	with VLANs on a bridge. Their only use is to enable bridge output
++	port filtering within iptables with the physdev match, which can
++	just as well be done by combining iptables and ebtables using
++	netfilter marks. Until it will get removed the hook deferral is
++	disabled by default and is only enabled when needed.
++
++Who:	Patrick McHardy <kaber@trash.net>
++
++---------------------------
+diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
+index 8776402..8d5bd29 100644
+--- a/include/linux/netfilter_bridge.h
++++ b/include/linux/netfilter_bridge.h
+@@ -45,6 +45,7 @@ #define BRNF_BRIDGED_DNAT		0x02
+ #define BRNF_DONT_TAKE_PARENT		0x04
+ #define BRNF_BRIDGED			0x08
+ #define BRNF_NF_BRIDGE_PREROUTING	0x10
++#define BRNF_DEFERRED_HOOK		0x20
  
-+static void tcp_pickup_connection(struct ip_conntrack *conntrack,
-+				  const struct sk_buff *skb,
-+				  const struct iphdr *iph,
-+				  const struct tcphdr *th)
-+{
-+	conntrack->proto.tcp.seen[0].td_end =
-+		segment_seq_plus_len(ntohl(th->seq), skb->len, iph, th);
-+	conntrack->proto.tcp.seen[0].td_maxwin = ntohs(th->window);
-+	if (conntrack->proto.tcp.seen[0].td_maxwin == 0)
-+		conntrack->proto.tcp.seen[0].td_maxwin = 1;
-+	conntrack->proto.tcp.seen[0].td_maxend =
-+		conntrack->proto.tcp.seen[0].td_end + 
-+		conntrack->proto.tcp.seen[0].td_maxwin;
-+		conntrack->proto.tcp.seen[0].td_scale = 0;
-+
-+	/* We assume SACK. Should we assume window scaling too? */
-+	conntrack->proto.tcp.seen[0].flags =
-+	conntrack->proto.tcp.seen[1].flags = IP_CT_TCP_FLAG_SACK_PERM;
-+	conntrack->proto.tcp.seen[0].loose = 
-+	conntrack->proto.tcp.seen[1].loose = ip_ct_tcp_loose;
-+}
-+
- /* Returns verdict for packet, or -1 for invalid. */
- static int tcp_packet(struct ip_conntrack *conntrack,
- 		      const struct sk_buff *skb,
-@@ -907,6 +929,14 @@ static int tcp_packet(struct ip_conntrac
- 	BUG_ON(th == NULL);
- 	
- 	write_lock_bh(&tcp_lock);
-+
-+	/*
-+	 * This conntrack was added via ctnetlink or ct_sync and needs to
-+	 * take over sequence tracking in order to work properly.
-+	 */
-+	if (test_and_clear_bit(IPS_PICKUP, &conntrack->status))
-+		tcp_pickup_connection(conntrack, skb, iph, th);
-+
- 	old_state = conntrack->proto.tcp.state;
- 	dir = CTINFO2DIR(ctinfo);
- 	index = get_conntrack_index(th);
-@@ -1116,22 +1146,7 @@ static int tcp_new(struct ip_conntrack *
- 		 * its history is lost for us.
- 		 * Let's try to use the data from the packet.
- 		 */
--		conntrack->proto.tcp.seen[0].td_end =
--			segment_seq_plus_len(ntohl(th->seq), skb->len,
--					     iph, th);
--		conntrack->proto.tcp.seen[0].td_maxwin = ntohs(th->window);
--		if (conntrack->proto.tcp.seen[0].td_maxwin == 0)
--			conntrack->proto.tcp.seen[0].td_maxwin = 1;
--		conntrack->proto.tcp.seen[0].td_maxend =
--			conntrack->proto.tcp.seen[0].td_end + 
--			conntrack->proto.tcp.seen[0].td_maxwin;
--		conntrack->proto.tcp.seen[0].td_scale = 0;
--
--		/* We assume SACK. Should we assume window scaling too? */
--		conntrack->proto.tcp.seen[0].flags =
--		conntrack->proto.tcp.seen[1].flags = IP_CT_TCP_FLAG_SACK_PERM;
--		conntrack->proto.tcp.seen[0].loose = 
--		conntrack->proto.tcp.seen[1].loose = ip_ct_tcp_loose;
-+		tcp_pickup_connection(conntrack, skb, iph, th);
- 	}
-     
- 	conntrack->proto.tcp.seen[1].td_end = 0;
-Index: net-2.6/include/linux/netfilter/nf_conntrack_common.h
-===================================================================
---- net-2.6.orig/include/linux/netfilter/nf_conntrack_common.h	2006-07-07 02:03:40.000000000 +0200
-+++ net-2.6/include/linux/netfilter/nf_conntrack_common.h	2006-07-07 02:05:06.000000000 +0200
-@@ -73,6 +73,10 @@ enum ip_conntrack_status {
- 	/* Connection has fixed timeout. */
- 	IPS_FIXED_TIMEOUT_BIT = 10,
- 	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT),
-+
-+	/* Pick up connection information if required */
-+	IPS_PICKUP_BIT = 11,
-+	IPS_PICKUP = (1 << IPS_PICKUP_BIT),
+ 
+ /* Only used in br_forward.c */
+@@ -79,6 +80,8 @@ struct bridge_skb_cb {
+ 		__u32 ipv4;
+ 	} daddr;
  };
++
++extern int brnf_deferred_hooks;
+ #endif /* CONFIG_BRIDGE_NETFILTER */
  
- /* Connection tracking event bits */
-Index: net-2.6/net/netfilter/nf_conntrack_proto_tcp.c
-===================================================================
---- net-2.6.orig/net/netfilter/nf_conntrack_proto_tcp.c	2006-07-07 02:04:39.000000000 +0200
-+++ net-2.6/net/netfilter/nf_conntrack_proto_tcp.c	2006-07-07 02:08:15.000000000 +0200
-@@ -381,10 +381,10 @@ static unsigned int get_conntrack_index(
-    we doesn't have to deal with fragments. 
- */
+ #endif /* __KERNEL__ */
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index 8298a51..dfe242f 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -61,6 +61,8 @@ #else
+ #define brnf_filter_vlan_tagged 1
+ #endif
  
--static inline __u32 segment_seq_plus_len(__u32 seq,
--					 size_t len,
--					 unsigned int dataoff,
--					 struct tcphdr *tcph)
-+static inline __u32 segment_seq_plus_len(const __u32 seq,
-+					 const size_t len,
-+					 const unsigned int dataoff,
-+					 const struct tcphdr *tcph)
++int brnf_deferred_hooks;
++
+ static __be16 inline vlan_proto(const struct sk_buff *skb)
  {
- 	/* XXX Should I use payload length field in IP/IPv6 header ?
- 	 * - YK */
-@@ -850,6 +850,28 @@ static int tcp_error(struct sk_buff *skb
+ 	return vlan_eth_hdr(skb)->h_vlan_encapsulated_proto;
+@@ -721,7 +723,9 @@ #endif
+ 		NF_HOOK(PF_BRIDGE, NF_BR_FORWARD, skb, realindev,
+ 			skb->dev, br_forward_finish);
+ 		goto out;
+-	}
++	} else if (!(nf_bridge->mask & BRNF_DEFERRED_HOOK))
++		return NF_ACCEPT;
++
+ 	realoutdev = bridge_parent(skb->dev);
+ 	if (!realoutdev)
+ 		return NF_DROP;
+@@ -913,7 +917,10 @@ #if defined(CONFIG_VLAN_8021Q) || define
+ 		if (out->priv_flags & IFF_802_1Q_VLAN)
+ 			nf_bridge->netoutdev = (struct net_device *)out;
+ #endif
+-		return NF_STOP;
++		if (brnf_deferred_hooks) {
++			nf_bridge->mask |= BRNF_DEFERRED_HOOK;
++			return NF_STOP;
++		}
+ 	}
+ 
  	return NF_ACCEPT;
+diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+index 5fe4c9d..7b9dba2 100644
+--- a/net/netfilter/xt_physdev.c
++++ b/net/netfilter/xt_physdev.c
+@@ -113,6 +113,15 @@ checkentry(const char *tablename,
+ 	if (!(info->bitmask & XT_PHYSDEV_OP_MASK) ||
+ 	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
+ 		return 0;
++	if (brnf_deferred_hooks == 0 && info->bitmask & XT_PHYSDEV_OP_OUT &&
++	    hook_mask & ((1 << NF_IP_LOCAL_OUT) | (1 << NF_IP_FORWARD))) {
++		printk(KERN_WARNING "physdev match: using --physdev-out in the "
++		       "OUTPUT or FORWARD chain is deprecated and breaks other "
++		       "things, it will be removed in January 2007. See "
++		       "Documentation/feature-removal-schedule.txt for "
++		       "details.\n");
++		brnf_deferred_hooks = 1;
++	}
+ 	return 1;
  }
  
-+static void tcp_pickup_connection(struct nf_conn *conntrack,
-+				  const struct sk_buff *skb,
-+				  const struct iphdr *iph,
-+				  const struct tcphdr *th)
-+{
-+	conntrack->proto.tcp.seen[0].td_end =
-+		segment_seq_plus_len(ntohl(th->seq), skb->len, iph, th);
-+	conntrack->proto.tcp.seen[0].td_maxwin = ntohs(th->window);
-+	if (conntrack->proto.tcp.seen[0].td_maxwin == 0)
-+		conntrack->proto.tcp.seen[0].td_maxwin = 1;
-+	conntrack->proto.tcp.seen[0].td_maxend =
-+		conntrack->proto.tcp.seen[0].td_end + 
-+		conntrack->proto.tcp.seen[0].td_maxwin;
-+		conntrack->proto.tcp.seen[0].td_scale = 0;
-+
-+	/* We assume SACK. Should we assume window scaling too? */
-+	conntrack->proto.tcp.seen[0].flags =
-+	conntrack->proto.tcp.seen[1].flags = IP_CT_TCP_FLAG_SACK_PERM;
-+	conntrack->proto.tcp.seen[0].loose = 
-+	conntrack->proto.tcp.seen[1].loose = nf_ct_tcp_loose;
-+}
-+
- /* Returns verdict for packet, or -1 for invalid. */
- static int tcp_packet(struct nf_conn *conntrack,
- 		      const struct sk_buff *skb,
-@@ -860,6 +882,7 @@ static int tcp_packet(struct nf_conn *co
- {
- 	enum tcp_conntrack new_state, old_state;
- 	enum ip_conntrack_dir dir;
-+	struct iphdr *iph = skb->nh.iph;
- 	struct tcphdr *th, _tcph;
- 	unsigned long timeout;
- 	unsigned int index;
-@@ -868,6 +891,14 @@ static int tcp_packet(struct nf_conn *co
- 	BUG_ON(th == NULL);
- 
- 	write_lock_bh(&tcp_lock);
-+
-+	/*
-+	 * This conntrack was added via ctnetlink or ct_sync and needs to
-+	 * take over sequence tracking in order to work properly.
-+	 */
-+	if (test_and_clear_bit(IPS_PICKUP, &conntrack->status))
-+		tcp_pickup_connection(conntrack, skb, iph, th);
-+
- 	old_state = conntrack->proto.tcp.state;
- 	dir = CTINFO2DIR(ctinfo);
- 	index = get_conntrack_index(th);
-@@ -1031,6 +1062,7 @@ static int tcp_new(struct nf_conn *connt
- 		   unsigned int dataoff)
- {
- 	enum tcp_conntrack new_state;
-+	struct iphdr *iph = skb->nh.iph;
- 	struct tcphdr *th, _tcph;
- #ifdef DEBUGP_VARS
- 	struct ip_ct_tcp_state *sender = &conntrack->proto.tcp.seen[0];
-@@ -1075,22 +1107,7 @@ static int tcp_new(struct nf_conn *connt
- 		 * its history is lost for us.
- 		 * Let's try to use the data from the packet.
- 		 */
--		conntrack->proto.tcp.seen[0].td_end =
--			segment_seq_plus_len(ntohl(th->seq), skb->len,
--					     dataoff, th);
--		conntrack->proto.tcp.seen[0].td_maxwin = ntohs(th->window);
--		if (conntrack->proto.tcp.seen[0].td_maxwin == 0)
--			conntrack->proto.tcp.seen[0].td_maxwin = 1;
--		conntrack->proto.tcp.seen[0].td_maxend =
--			conntrack->proto.tcp.seen[0].td_end + 
--			conntrack->proto.tcp.seen[0].td_maxwin;
--		conntrack->proto.tcp.seen[0].td_scale = 0;
--
--		/* We assume SACK. Should we assume window scaling too? */
--		conntrack->proto.tcp.seen[0].flags =
--		conntrack->proto.tcp.seen[1].flags = IP_CT_TCP_FLAG_SACK_PERM;
--		conntrack->proto.tcp.seen[0].loose = 
--		conntrack->proto.tcp.seen[1].loose = nf_ct_tcp_loose;
-+		tcp_pickup_connection(conntrack, skb, iph, th);
- 	}
-     
- 	conntrack->proto.tcp.seen[1].td_end = 0;
 
---------------010008060208030806030004--
+--------------020405010806060907090501--
