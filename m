@@ -1,14 +1,17 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: does ipset conflict with ipsec SuSE kernel patch?
-Date: Fri, 07 Jul 2006 14:38:57 +0100
-Message-ID: <44AE63F1.1020707@ufomechanic.net>
-References: <8812D8156467224C9E9739E513037EF1F3FD47@moe.nextone.local>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/10] updates for ctnetlink and conntrack core
+Date: Fri, 07 Jul 2006 15:46:40 +0200
+Message-ID: <44AE65C0.8030209@netfilter.org>
+References: <44ADC2EE.905@netfilter.org> <44ADED94.3010703@trash.net>
+	<44ADF800.80701@trash.net> <44ADFD1F.7050602@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <8812D8156467224C9E9739E513037EF1F3FD47@moe.nextone.local>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <44ADFD1F.7050602@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,42 +23,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hung Lin wrote:
-...
-
+Patrick McHardy wrote:
+> Patrick McHardy wrote:
 > 
-> I removed the above patches and tried to build ipset again, it worked.
-> 
-> Does this mean IPsec conflicts with ipsets?  The comment of SuSE kernel
-> patch said the patches are from netfilter team, and the ipsets are also
-> from netfilter.org.  Since they are both belong to netfilter team, is
-> there any way to resolve the conflict?
-> 
-> Please let me know if you need more information.  Thanks for your time.
-> 
-> P.S.  Please CC to hlin@nextone.com because I didn't subscribe to the
-> mailing list.
+>>In some very unscientific tests it showed a difference of about
+>>4% when dumping everything compared to only diffs (measured
+>>with conntrack accounting enabled). Not something to easily
+>>throw away, but I bet we can easily increase the netlink bandwidth
+>>for ctnetlink by using more reasonable allocation size and
+>>avoiding the netlink_trim call for every single packet..
 
-You need to manually compare the contents of those patches that you
-removed with your ipset patch and locate the conflict.
+4% is not too much but it is something, anyway it is true that my 
+argument of bandwidth consumption is weak.
 
-You have to see what the patches are trying to achieve and what the real
-nature of the conflict is.
+But I still like patch 8, if the event cache works fine, I can't see why 
+we should force the dumping of all fields. BTW, patch 7 is a new feature 
+that I think that we need.
 
-Here it appears that a struct is defined twice, so you have to see if
-this struct is defined the same way each time; your question is:
- what is it that suse needs?
- what is it that ipset needs?
+> Some more unscientific tests: saving the netlink_trim call by using
+> an allocation size of 200 reduces overhead for the entire notification
+> function (including broadcasting) by about 13% (and also reduces
+> the overruns experienced by conntrack -E for ~390000 packets with
+> 65536 new connections from 17 to 7, which I don't really understand
+> since it shouldn't save any netlink bandwidth and this is a SMP system).
 
-You will then merge the struct definition into one that combines both needs.
+Who ever said that benchmarking can be scientific? :) I usually have to 
+redo my tests several times. These results are interesting but, in 
+previous discussions, I thought that we could not change current 
+allocation size because of memory fragmentation issues?
 
-You will probably then diff this new definition against the one that
-suse patched to, to produce a new ipset patch which will apply cleanly
-against the standard suse-patched kernel.
-
-There is no magic spell here, but it won't be as hard as you might think.
-
-If you just want a quick-fix, then edit the file with the two
-definitions to merge them to something sensible and leave it at that.
-
-Sam
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
