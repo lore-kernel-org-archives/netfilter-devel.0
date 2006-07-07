@@ -1,10 +1,10 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 8/10][CTNETLINK] Do not dump everything on new conntracks
- events
-Date: Fri, 07 Jul 2006 04:16:13 +0200
-Message-ID: <44ADC3ED.20709@netfilter.org>
+Subject: [PATCH 9/10][CTNETLINK] send expectation events if someone is
+ listening to
+Date: Fri, 07 Jul 2006 04:16:35 +0200
+Message-ID: <44ADC403.9060106@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080607010300070503080002"
+Content-Type: multipart/mixed; boundary="------------060309070106050101070000"
 Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -20,11 +20,11 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------080607010300070503080002
+--------------060309070106050101070000
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Just dump what has been explicitely set in the event cache.
+This patch uses nfnetlink_has_listeners to check for listeners in userspace.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
@@ -33,44 +33,47 @@ The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
 
---------------080607010300070503080002
+--------------060309070106050101070000
 Content-Type: text/plain;
- name="08new.patch"
+ name="09exp.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="08new.patch"
+ filename="09exp.patch"
 
-[CTNETLINK] Do not dump everything on new conntracks events
+[CTNETLINK] send expectation events if someone is listening to
 
-Just dump what has been explicitely set in the event cache.
+This patch uses nfnetlink_has_listeners to check for listeners in userspace.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
 Index: net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c
 ===================================================================
---- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-07-06 20:13:05.000000000 +0200
-+++ net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-07-06 20:16:41.000000000 +0200
-@@ -326,8 +326,6 @@
- 	} else if (events & (IPCT_NEW | IPCT_RELATED)) {
- 		type = IPCTNL_MSG_CT_NEW;
- 		flags = NLM_F_CREATE|NLM_F_EXCL;
--		/* dump everything */
--		events = ~0UL;
- 		group = NFNLGRP_CONNTRACK_NEW;
- 	} else if (events & (IPCT_STATUS |
- 		      IPCT_PROTOINFO |
+--- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-07-07 00:47:02.000000000 +0200
++++ net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-07-07 00:47:03.000000000 +0200
+@@ -1286,6 +1286,9 @@ static int ctnetlink_expect_event(struct
+ 	} else
+ 		return NOTIFY_DONE;
+ 
++	if (!nfnetlink_has_listeners(NFNLGRP_CONNTRACK_EXP_NEW))
++		return NOTIFY_DONE;
++
+ 	skb = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
+ 	if (!skb)
+ 		return NOTIFY_DONE;
 Index: net-2.6/net/netfilter/nf_conntrack_netlink.c
 ===================================================================
---- net-2.6.orig/net/netfilter/nf_conntrack_netlink.c	2006-07-06 20:17:29.000000000 +0200
-+++ net-2.6/net/netfilter/nf_conntrack_netlink.c	2006-07-06 20:18:02.000000000 +0200
-@@ -336,8 +336,6 @@
- 	} else  if (events & (IPCT_NEW | IPCT_RELATED)) {
- 		type = IPCTNL_MSG_CT_NEW;
- 		flags = NLM_F_CREATE|NLM_F_EXCL;
--		/* dump everything */
--		events = ~0UL;
- 		group = NFNLGRP_CONNTRACK_NEW;
- 	} else  if (events & (IPCT_STATUS |
- 		      IPCT_PROTOINFO |
+--- net-2.6.orig/net/netfilter/nf_conntrack_netlink.c	2006-07-07 00:47:02.000000000 +0200
++++ net-2.6/net/netfilter/nf_conntrack_netlink.c	2006-07-07 00:47:03.000000000 +0200
+@@ -1312,6 +1312,9 @@ static int ctnetlink_expect_event(struct
+ 	} else
+ 		return NOTIFY_DONE;
+ 
++	if (!nfnetlink_has_listeners(NFNLGRP_CONNTRACK_EXP_NEW))
++		return NOTIFY_DONE;
++
+ 	skb = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
+ 	if (!skb)
+ 		return NOTIFY_DONE;
 
---------------080607010300070503080002--
+
+--------------060309070106050101070000--
