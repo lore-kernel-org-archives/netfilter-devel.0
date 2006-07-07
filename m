@@ -1,10 +1,10 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/10][CONNTRACK] Remove unused helper_[find_get|put]
-	functions
-Date: Fri, 07 Jul 2006 04:14:22 +0200
-Message-ID: <44ADC37E.1000707@netfilter.org>
+Subject: [PATCH 6/10][CTNETLINK] dump counters iif connection ended or
+ counters filled up
+Date: Fri, 07 Jul 2006 04:15:25 +0200
+Message-ID: <44ADC3BD.3050609@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040303080303020700030702"
+Content-Type: multipart/mixed; boundary="------------090802050304020400010803"
 Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -20,214 +20,77 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040303080303020700030702
+--------------090802050304020400010803
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Remove unused functions for conntrack application helpers
+This patch makes ctnetlink to dump counters iif connection reaches the
+destroy state or altenatively if counters filled up.
 
-This patch depends on [PATCH 3/10]
+AFAICS counters on NEW and UPDATE events doesn't provide interesting
+information, they just consume the limited netlink bandwidth.
+
+Upcoming conntrackd release in statistics mode uses counters from
+DESTROY events to keep the contability of traffic that the firewall has
+processed.
+
+I think that this patch should also reset counters upon fill up event,
+comments?
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
+The dawn of the fourth age of Linux firewalling is coming; a time of
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------040303080303020700030702
+
+--------------090802050304020400010803
 Content-Type: text/plain;
- name="05helper.patch"
+ name="06counters.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="05helper.patch"
+ filename="06counters.patch"
 
-[CONNTRACK] Remove unused helper_[find_get|put] functions
+[CTNETLINK] dump counters iif connection ended or counters filled up
 
-Remove unused functions for conntrack application helpers
+This patch makes ctnetlink to dump counters iif connection reaches the
+destroy state or altenatively if counters filled up.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Index: net-2.6/net/netfilter/nf_conntrack_core.c
+Index: net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c
 ===================================================================
---- net-2.6.orig/net/netfilter/nf_conntrack_core.c	2006-07-06 23:35:25.000000000 +0200
-+++ net-2.6/net/netfilter/nf_conntrack_core.c	2006-07-06 23:36:44.000000000 +0200
-@@ -817,42 +817,14 @@ static inline int helper_cmp(const struc
- 	return nf_ct_tuple_mask_cmp(rtuple, &i->tuple, &i->mask);
- }
+--- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-07-06 19:52:54.000000000 +0200
++++ net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-07-06 19:54:00.000000000 +0200
+@@ -381,8 +381,10 @@ static int ctnetlink_conntrack_event(str
+ 	    && ctnetlink_dump_helpinfo(skb, ct) < 0)
+ 		goto nfattr_failure;
  
--static struct nf_conntrack_helper *
--__nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
-+struct nf_conntrack_helper *
-+nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
- {
- 	return LIST_FIND(&helpers, helper_cmp,
- 			 struct nf_conntrack_helper *,
- 			 tuple);
- }
+-	if (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
+-	    ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0)
++	/* this connection has died or counters wrapped around */
++	if ((events & IPCT_DESTROY || events & IPCT_COUNTER_FILLING)
++	    && (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
++	        ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0))
+ 		goto nfattr_failure;
  
--struct nf_conntrack_helper *
--nf_ct_helper_find_get( const struct nf_conntrack_tuple *tuple)
--{
--	struct nf_conntrack_helper *helper;
--
--	/* need nf_conntrack_lock to assure that helper exists until
--	 * try_module_get() is called */
--	read_lock_bh(&nf_conntrack_lock);
--
--	helper = __nf_ct_helper_find(tuple);
--	if (helper) {
--		/* need to increase module usage count to assure helper will
--		 * not go away while the caller is e.g. busy putting a
--		 * conntrack in the hash that uses the helper */
--		if (!try_module_get(helper->me))
--			helper = NULL;
--	}
--
--	read_unlock_bh(&nf_conntrack_lock);
--
--	return helper;
--}
--
--void nf_ct_helper_put(struct nf_conntrack_helper *helper)
--{
--	module_put(helper->me);
--}
--
- static struct nf_conn *
- __nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
- 		     const struct nf_conntrack_tuple *repl,
-@@ -885,7 +857,7 @@ __nf_conntrack_alloc(const struct nf_con
- 
- 	/* FIXME: protect helper list per RCU */
- 	read_lock_bh(&nf_conntrack_lock);
--	helper = __nf_ct_helper_find(repl);
-+	helper = nf_ct_helper_find(repl);
- 	if (helper)
- 		features |= NF_CT_F_HELP;
- 	read_unlock_bh(&nf_conntrack_lock);
-Index: net-2.6/include/net/netfilter/nf_conntrack.h
+ 	if (events & IPCT_MARK
+Index: net-2.6/net/netfilter/nf_conntrack_netlink.c
 ===================================================================
---- net-2.6.orig/include/net/netfilter/nf_conntrack.h	2006-07-06 23:34:35.000000000 +0200
-+++ net-2.6/include/net/netfilter/nf_conntrack.h	2006-07-06 23:35:25.000000000 +0200
-@@ -221,8 +221,7 @@ extern void nf_ct_remove_expectations(st
+--- net-2.6.orig/net/netfilter/nf_conntrack_netlink.c	2006-07-06 19:54:02.000000000 +0200
++++ net-2.6/net/netfilter/nf_conntrack_netlink.c	2006-07-06 19:54:35.000000000 +0200
+@@ -391,8 +391,10 @@ static int ctnetlink_conntrack_event(str
+ 	    && ctnetlink_dump_helpinfo(skb, ct) < 0)
+ 		goto nfattr_failure;
+ 
+-	if (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
+-	    ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0)
++	/* this connection has died or counters wrapped around */
++	if ((events & IPCT_DESTROY || events & IPCT_COUNTER_FILLING)
++	     && (ctnetlink_dump_counters(skb, ct, IP_CT_DIR_ORIGINAL) < 0 ||
++		 ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0))
+ 		goto nfattr_failure;
+ 
+ 	if (events & IPCT_MARK
 
- extern void nf_conntrack_flush(void);
- 
- extern struct nf_conntrack_helper *
--nf_ct_helper_find_get( const struct nf_conntrack_tuple *tuple);
--extern void nf_ct_helper_put(struct nf_conntrack_helper *helper);
-+nf_ct_helper_find(const struct nf_conntrack_tuple *tuple);
- 
- extern struct nf_conntrack_helper *
- __nf_conntrack_helper_find_byname(const char *name);
-Index: net-2.6/net/netfilter/nf_conntrack_standalone.c
-===================================================================
---- net-2.6.orig/net/netfilter/nf_conntrack_standalone.c	2006-07-06 23:34:35.000000000 +0200
-+++ net-2.6/net/netfilter/nf_conntrack_standalone.c	2006-07-06 23:35:25.000000000 +0200
-@@ -889,8 +889,7 @@ EXPORT_SYMBOL(nf_conntrack_alloc);
- EXPORT_SYMBOL(nf_conntrack_free);
- EXPORT_SYMBOL(nf_conntrack_flush);
- EXPORT_SYMBOL(nf_ct_remove_expectations);
--EXPORT_SYMBOL(nf_ct_helper_find_get);
--EXPORT_SYMBOL(nf_ct_helper_put);
-+EXPORT_SYMBOL(nf_ct_helper_find);
- EXPORT_SYMBOL(__nf_conntrack_helper_find_byname);
- EXPORT_SYMBOL(__nf_conntrack_find);
- EXPORT_SYMBOL(nf_ct_unlink_expect);
-Index: net-2.6/net/ipv4/netfilter/ip_conntrack_core.c
-===================================================================
---- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_core.c	2006-07-06 23:35:25.000000000 +0200
-+++ net-2.6/net/ipv4/netfilter/ip_conntrack_core.c	2006-07-06 23:36:24.000000000 +0200
-@@ -566,42 +566,14 @@ static inline int helper_cmp(const struc
- 	return ip_ct_tuple_mask_cmp(rtuple, &i->tuple, &i->mask);
- }
- 
--static struct ip_conntrack_helper *
--__ip_conntrack_helper_find( const struct ip_conntrack_tuple *tuple)
-+struct ip_conntrack_helper *
-+ip_conntrack_helper_find(const struct ip_conntrack_tuple *tuple)
- {
- 	return LIST_FIND(&helpers, helper_cmp,
- 			 struct ip_conntrack_helper *,
- 			 tuple);
- }
- 
--struct ip_conntrack_helper *
--ip_conntrack_helper_find_get( const struct ip_conntrack_tuple *tuple)
--{
--	struct ip_conntrack_helper *helper;
--
--	/* need ip_conntrack_lock to assure that helper exists until
--	 * try_module_get() is called */
--	read_lock_bh(&ip_conntrack_lock);
--
--	helper = __ip_conntrack_helper_find(tuple);
--	if (helper) {
--		/* need to increase module usage count to assure helper will
--		 * not go away while the caller is e.g. busy putting a
--		 * conntrack in the hash that uses the helper */
--		if (!try_module_get(helper->me))
--			helper = NULL;
--	}
--
--	read_unlock_bh(&ip_conntrack_lock);
--
--	return helper;
--}
--
--void ip_conntrack_helper_put(struct ip_conntrack_helper *helper)
--{
--	module_put(helper->me);
--}
--
- struct ip_conntrack_protocol *
- __ip_conntrack_proto_find(u_int8_t protocol)
- {
-@@ -730,7 +702,7 @@ init_conntrack(struct ip_conntrack_tuple
- 		nf_conntrack_get(&conntrack->master->ct_general);
- 		CONNTRACK_STAT_INC(expect_new);
- 	} else {
--		conntrack->helper = __ip_conntrack_helper_find(&repl_tuple);
-+		conntrack->helper = ip_conntrack_helper_find(&repl_tuple);
- 
- 		CONNTRACK_STAT_INC(new);
- 	}
-@@ -1055,7 +1027,7 @@ void ip_conntrack_alter_reply(struct ip_
- 
- 	conntrack->tuplehash[IP_CT_DIR_REPLY].tuple = *newreply;
- 	if (!conntrack->master && conntrack->expecting == 0)
--		conntrack->helper = __ip_conntrack_helper_find(newreply);
-+		conntrack->helper = ip_conntrack_helper_find(newreply);
- 	write_unlock_bh(&ip_conntrack_lock);
- }
- 
-Index: net-2.6/net/ipv4/netfilter/ip_conntrack_standalone.c
-===================================================================
---- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_standalone.c	2006-07-06 23:34:35.000000000 +0200
-+++ net-2.6/net/ipv4/netfilter/ip_conntrack_standalone.c	2006-07-06 23:35:25.000000000 +0200
-@@ -954,8 +954,7 @@ EXPORT_SYMBOL_GPL(ip_conntrack_hash_inse
- 
- EXPORT_SYMBOL_GPL(ip_ct_remove_expectations);
- 
--EXPORT_SYMBOL_GPL(ip_conntrack_helper_find_get);
--EXPORT_SYMBOL_GPL(ip_conntrack_helper_put);
-+EXPORT_SYMBOL_GPL(ip_conntrack_helper_find);
- EXPORT_SYMBOL_GPL(__ip_conntrack_helper_find_byname);
- 
- EXPORT_SYMBOL_GPL(ip_conntrack_proto_find_get);
-Index: net-2.6/include/linux/netfilter_ipv4/ip_conntrack.h
-===================================================================
---- net-2.6.orig/include/linux/netfilter_ipv4/ip_conntrack.h	2006-07-06 23:34:35.000000000 +0200
-+++ net-2.6/include/linux/netfilter_ipv4/ip_conntrack.h	2006-07-06 23:35:25.000000000 +0200
-@@ -255,8 +255,7 @@ ip_ct_iterate_cleanup(int (*iter)(struct
- extern struct ip_conntrack_helper *
- __ip_conntrack_helper_find_byname(const char *);
- extern struct ip_conntrack_helper *
--ip_conntrack_helper_find_get(const struct ip_conntrack_tuple *tuple);
--extern void ip_conntrack_helper_put(struct ip_conntrack_helper *helper);
-+ip_conntrack_helper_find(const struct ip_conntrack_tuple *tuple);
- 
- extern struct ip_conntrack_protocol *
- __ip_conntrack_proto_find(u_int8_t protocol);
-
---------------040303080303020700030702--
+--------------090802050304020400010803--
