@@ -1,17 +1,16 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/10] updates for ctnetlink and conntrack core
-Date: Fri, 07 Jul 2006 15:46:40 +0200
-Message-ID: <44AE65C0.8030209@netfilter.org>
-References: <44ADC2EE.905@netfilter.org> <44ADED94.3010703@trash.net>
-	<44ADF800.80701@trash.net> <44ADFD1F.7050602@trash.net>
+Subject: Re: [PATCH 6/10][CTNETLINK] dump counters iif connection ended or
+ counters filled up
+Date: Fri, 07 Jul 2006 15:51:06 +0200
+Message-ID: <44AE66CA.8030705@netfilter.org>
+References: <44ADC3BD.3050609@netfilter.org> <44ADE7BA.4030406@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44ADFD1F.7050602@trash.net>
+In-Reply-To: <44ADE7BA.4030406@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,33 +23,29 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Patrick McHardy wrote:
-> Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
 > 
->>In some very unscientific tests it showed a difference of about
->>4% when dumping everything compared to only diffs (measured
->>with conntrack accounting enabled). Not something to easily
->>throw away, but I bet we can easily increase the netlink bandwidth
->>for ctnetlink by using more reasonable allocation size and
->>avoiding the netlink_trim call for every single packet..
+>>This patch makes ctnetlink to dump counters iif connection reaches the
+>>destroy state or altenatively if counters filled up.
+>>
+>>AFAICS counters on NEW and UPDATE events doesn't provide interesting
+>>information, they just consume the limited netlink bandwidth.
+>>
+>>Upcoming conntrackd release in statistics mode uses counters from
+>>DESTROY events to keep the contability of traffic that the firewall has
+>>processed.
+>>
+>>I think that this patch should also reset counters upon fill up event,
+>>comments?
+> 
+> Not sure, do you know any users of the counters besides conntrackd?
 
-4% is not too much but it is something, anyway it is true that my 
-argument of bandwidth consumption is weak.
-
-But I still like patch 8, if the event cache works fine, I can't see why 
-we should force the dumping of all fields. BTW, patch 7 is a new feature 
-that I think that we need.
-
-> Some more unscientific tests: saving the netlink_trim call by using
-> an allocation size of 200 reduces overhead for the entire notification
-> function (including broadcasting) by about 13% (and also reduces
-> the overruns experienced by conntrack -E for ~390000 packets with
-> 65536 new connections from 17 to 7, which I don't really understand
-> since it shouldn't save any netlink bandwidth and this is a SMP system).
-
-Who ever said that benchmarking can be scientific? :) I usually have to 
-redo my tests several times. These results are interesting but, in 
-previous discussions, I thought that we could not change current 
-allocation size because of memory fragmentation issues?
+I don't know any ctnetlink user of the counters. Thinking it well this 
+"counters fill up" issue is tricky. Since netlink is unreliable, what if 
+the fill up event gets lost? we could reset counters and nobody would 
+apparently notice. I think that we need an overflow bit in the conntrack 
+that must be set whenever and overflow happens and unset such bit once 
+the overflow event has been caught.
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of 
