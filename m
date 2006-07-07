@@ -1,22 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 2.6.17.1 compile error with a netfilter module
-Date: Fri, 07 Jul 2006 06:13:42 +0200
-Message-ID: <44ADDF76.6000304@trash.net>
-References: <925A849792280C4E80C5461017A4B8A206F784@mail733.InfraSupportEtc.com>
-	<1151700888.2709.4.camel@murdegern.hindenburgdamm.example>
-	<44A9615C.2050405@trash.net>
-	<Pine.LNX.4.64.0607032135220.9324@bizon.gios.gov.pl>
-	<925A849792280C4E80C5461017A4B8A208D0A6@mail733.InfraSupportEtc.com>
-	<Pine.LNX.4.64.0607062323410.31114@bizon.gios.gov.pl>
+Subject: Re: [PATCH] libiptc.c blob parser
+Date: Fri, 07 Jul 2006 06:21:25 +0200
+Message-ID: <44ADE145.7020508@trash.net>
+References: <FFEPKIHJDEDDAAFOFDGFOELECBAA.PCDiem@FoxValley.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Torsten Luettgert <t.luettgert@pressestimmen.de>,
-	netfilter-devel@lists.netfilter.org,
-	Greg Scott <GregScott@InfraSupportEtc.com>
+Cc: Jesper Dangaard Brouer <hawk@diku.dk>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0607062323410.31114@bizon.gios.gov.pl>
+To: "Paul C. Diem" <PCDiem@FoxValley.net>
+In-Reply-To: <FFEPKIHJDEDDAAFOFDGFOELECBAA.PCDiem@FoxValley.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -28,27 +21,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> OK, I prepared external repository with correct (I hope!) time and ipp2p
-> extensions, TARPIT and connlimit are going to be fixed soon. Before I
-> submit this to Patrick I need to be sure that it works. If you would
-> like to test it, please:
+Paul C. Diem wrote:
+> The patch I posted earlier assumed that the rule's chain was the last one on
+> the chain list and used the 32-bit comefrom field to hold the offset of the
+> chain list entry.
 > 
->  - remove "time" and "ipp2p" directories from extracted pom-ng
-> 
->  - add this to the sources.list:
-> 
-> # ipp2p and time maintained by Krzysztof Oledzki <ole@ans.pl>
-> http://people.netfilter.org/ole/pom/
-> 
->  - run "./runme --download"
-> 
->  - patch & recompile kernel as always
-> 
->  - tell me if it works (or not).
-> 
-> Both extensions should work with both 2.6.16 and 2.6.17 kernels if I
-> done everything properly.
+> This improved patch uses the chain_iterator_cur handle field to more
+> accurately get the chain, uses the counters field cast as a pointer to hold
+> a pointer directly to the chain list entry and only bothers to load the
+> pointer for the first rule in each chain (since that's the only one we need
+> it in).
 
-Thanks Krzysztof, seems to work fine (didn't tried patching, but
-the rest). I've added it to the sources.list now.
+I'm not very familiar with that code, so I wonder how that affects
+the counter values if you specifially set them or use iptables-save
+--counters.
