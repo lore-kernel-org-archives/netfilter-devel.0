@@ -1,9 +1,10 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/10][CTNETLINK] Fix race condition on conntrack creation
-Date: Fri, 07 Jul 2006 04:13:10 +0200
-Message-ID: <44ADC336.1060004@netfilter.org>
+Subject: [PATCH 4/10][CONNTRACK] remove write lock in
+	ip_conntrack_hash_insert
+Date: Fri, 07 Jul 2006 04:13:57 +0200
+Message-ID: <44ADC365.7060800@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------040703090200000204070109"
+Content-Type: multipart/mixed; boundary="------------040802020701070600050907"
 Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,16 +20,16 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------040703090200000204070109
+--------------040802020701070600050907
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Current conntrack creation path can run into rare race conditions, make
-the creation process atomic.
+The insertion into hashes is composed of two steps: insertion itself and 
+timer activation, this two steps process must be atomic. Therefore, the 
+ip_conntrack_hash_insert call and timer activation must be done inside 
+appropiate write lock.
 
-As side-effect, this patch simplifies the conntrack core API.
-
-This patch depends on [PATCH 4/10] and [PATCH 5/10]
+This patch depends on [PATCH 3/10]
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
@@ -36,60 +37,59 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 The dawn of the fourth age of Linux firewalling is coming; a time of 
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------040703090200000204070109
+--------------040802020701070600050907
 Content-Type: text/plain;
- name="03racy.patch"
+ name="04insert.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="03racy.patch"
+ filename="04insert.patch"
 
-[CTNETLINK] Fix race condition on conntrack creation
+[CONNTRACK] remove write lock in ip_conntrack_hash_insert
 
-Current conntrack creation path can run into rare race conditions, make
-the creation process atomic.
+The insertion into hashes is composed of two steps: insertion itself and
+timer activation, this two steps process must be atomic. Therefore, 
+the ip_conntrack_hash_insert call and timer activation must be done inside
+appropiate write lock.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Index: net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c
+Index: net-2.6/net/ipv4/netfilter/ip_conntrack_core.c
 ===================================================================
---- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-07-07 00:15:14.000000000 +0200
-+++ net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-07-07 01:52:14.000000000 +0200
-@@ -1059,13 +1059,12 @@ ctnetlink_create_conntrack(struct nfattr
- 		ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
- #endif
+--- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_core.c	2006-07-06 23:27:55.000000000 +0200
++++ net-2.6/net/ipv4/netfilter/ip_conntrack_core.c	2006-07-06 23:28:41.000000000 +0200
+@@ -428,12 +428,12 @@ void ip_conntrack_hash_insert(struct ip_
+ {
+ 	unsigned int hash, repl_hash;
  
--	ct->helper = ip_conntrack_helper_find_get(rtuple);
--
--	add_timer(&ct->timeout);
-+	/* we do no want any races on hash insertion */
-+	write_lock_bh(&ip_conntrack_lock);
-+	ct->helper = ip_conntrack_helper_find(rtuple);
- 	ip_conntrack_hash_insert(ct);
--
--	if (ct->helper)
--		ip_conntrack_helper_put(ct->helper);
-+	add_timer(&ct->timeout);
-+	write_unlock_bh(&ip_conntrack_lock);
++	ASSERT_WRITE_LOCK(&ip_conntrack_lock);
++	
+ 	hash = hash_conntrack(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+ 	repl_hash = hash_conntrack(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
  
- 	DEBUGP("conntrack with id %u inserted\n", ct->id);
- 	return 0;
-Index: net-2.6/net/netfilter/nf_conntrack_netlink.c
+-	write_lock_bh(&ip_conntrack_lock);
+ 	__ip_conntrack_hash_insert(ct, hash, repl_hash);
+-	write_unlock_bh(&ip_conntrack_lock);
+ }
+ 
+ /* Confirm a connection given skb; places it in hash table */
+Index: net-2.6/net/netfilter/nf_conntrack_core.c
 ===================================================================
---- net-2.6.orig/net/netfilter/nf_conntrack_netlink.c	2006-07-07 00:15:14.000000000 +0200
-+++ net-2.6/net/netfilter/nf_conntrack_netlink.c	2006-07-07 01:52:32.000000000 +0200
-@@ -1079,8 +1079,12 @@ ctnetlink_create_conntrack(struct nfattr
- 		ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
- #endif
+--- net-2.6.orig/net/netfilter/nf_conntrack_core.c	2006-07-06 23:28:49.000000000 +0200
++++ net-2.6/net/netfilter/nf_conntrack_core.c	2006-07-06 23:29:11.000000000 +0200
+@@ -678,12 +678,12 @@ void nf_conntrack_hash_insert(struct nf_
+ {
+ 	unsigned int hash, repl_hash;
  
--	add_timer(&ct->timeout);
-+	/* we do no want any races on hash insertion */
-+	write_lock_bh(&nf_conntrack_lock);
-+	ct->helper = nf_conntrack_helper_find(rtuple);
- 	nf_conntrack_hash_insert(ct);
-+	add_timer(&ct->timeout);
-+	write_unlock_bh(&nf_conntrack_lock);
++	ASSERT_WRITE_LOCK(&nf_conntrack_lock);
++
+ 	hash = hash_conntrack(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+ 	repl_hash = hash_conntrack(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
  
- 	DEBUGP("conntrack with id %u inserted\n", ct->id);
- 	return 0;
+-	write_lock_bh(&nf_conntrack_lock);
+ 	__nf_conntrack_hash_insert(ct, hash, repl_hash);
+-	write_unlock_bh(&nf_conntrack_lock);
+ }
+ 
+ /* Confirm a connection given skb; places it in hash table */
 
---------------040703090200000204070109--
+--------------040802020701070600050907--
