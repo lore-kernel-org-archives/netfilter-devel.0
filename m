@@ -1,16 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipt_recent: add module parameter for changing GID of
- /proc/net/ipt_recent/*
-Date: Sat, 08 Jul 2006 05:02:55 +0200
-Message-ID: <44AF205F.3070600@trash.net>
-References: <44AF0E7E.70507@iastate.edu>
+Subject: Re: does ipset conflict with ipsec SuSE kernel patch?
+Date: Sat, 08 Jul 2006 05:06:03 +0200
+Message-ID: <44AF211B.1040504@trash.net>
+References: <8812D8156467224C9E9739E513037EF1F3FD47@moe.nextone.local>
+	<44AE63F1.1020707@ufomechanic.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter-Devel <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Daniel De Graaf <danield@iastate.edu>
-In-Reply-To: <44AF0E7E.70507@iastate.edu>
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <44AE63F1.1020707@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,25 +22,17 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Daniel De Graaf wrote:
-> This patch adds an ip_list_gid module parameter to ipt_recent, which is
-> meant to be used in combination with the ip_list_perms. In the current
-> implementation, the files must either be world-writable or require
-> programs which write to them to be (at least) setgid root.
-> 
-> - Daniel De Graaf
-
- /* Structure of our list of recently seen addresses. */
- struct recent_ip_list {
-@@ -852,6 +855,7 @@
- 	}
- 	
- 	curr_table->status_proc->owner = THIS_MODULE;
-+	curr_table->status_proc->gid = ip_list_gid;
- 	curr_table->status_proc->data = curr_table;
- 	wmb();
- 	curr_table->status_proc->read_proc = ip_recent_get_info;
+Amin Azez wrote:
+>>Does this mean IPsec conflicts with ipsets?  The comment of SuSE kernel
+>>patch said the patches are from netfilter team, and the ipsets are also
+>>from netfilter.org.  Since they are both belong to netfilter team, is
+>>there any way to resolve the conflict?
+>>
+>>Please let me know if you need more information.  Thanks for your time.
 
 
-That code is gone for good, please check if your patch is still
-necessary for current -git and resubmit in case it is.
+As far as I know SuSE chose to use an extremly beta (and horribly outdated
+and incompatible to what we have today) version of my IPsec patches.
+They have lots of known bugs, and SuSE certainly made a poor decision
+(after buggering me for weeks) here. Please take it on with their
+support or use the vanilla kernel.
