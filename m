@@ -1,16 +1,14 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] please kill santa-claus
-Date: Sun, 9 Jul 2006 16:48:03 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0607091641180.11701@blackhole.kfki.hu>
-References: <20060630153802.GA27351@phoenix.home.spootnik.org>
-	<44ABDBB4.5010605@trash.net> <44ABDF70.2010705@netfilter.org>
+Subject: Re: early_drop() not working correctly?
+Date: Sun, 9 Jul 2006 17:06:56 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0607091658070.11722@blackhole.kfki.hu>
+References: <44AD1D10.6000208@netboxblue.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
-	Pierre-Yves Ritschard <pierre-yves@spootnik.org>
+Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <44ABDF70.2010705@netfilter.org>
+To: Menno Smits <menno@netboxblue.com>
+In-Reply-To: <44AD1D10.6000208@netboxblue.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,39 +20,35 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 5 Jul 2006, Pablo Neira Ayuso wrote:
+On Thu, 6 Jul 2006, Menno Smits wrote:
 
-> Patrick McHardy wrote:
-> > Pierre-Yves Ritschard wrote:
-> >
-> >>While running our home-brewed firewall scripts the output was broken by
-> >>a weird message spewed by the libipt_iprange extension:
-> >>	"hoho" (sic)
-> >>I wonder why that is, it seems not too many people noticed or use
-> >>src-range inversion which is the feature that triggers this friendly yet
-> >>surprising message.
-> >>If there's a specific reason (which I haven't found in TFA or google)
-> >>please let me know, otherwise please consider this one-liner:
-> >>
-> >>--- extensions/libipt_iprange.c.orig    Fri Jun 30 17:34:05 2006
-> >>+++ extensions/libipt_iprange.c Fri Jun 30 17:34:21 2006
-> >>@@ -73,7 +73,6 @@
-> >>                check_inverse(optarg, &invert, &optind, 0);
-> >>                if (invert) {
-> >>                        info->flags |= IPRANGE_SRC_INV;
-> >>-                       printf("hoho\n");
-> >>                }
-> >>                parse_iprange(optarg, &info->src);
-> >
-> >
-> > LOL :) Applied, thanks.
+> At one customer site we have a situation where a netfilter box sees half
+>   of some connections due to asymmetric routing.
+
+As it was already written, conntrack cannot reliably work in such setups.
+
+> This causes lots of ESTABLISHED but unreplied connections to fill the
+> conntrack table with long (5 day) timeouts. Eventually the table
+> completely fills up. The "nf_conntrack: table full, dropping packet"
+> message is reported, packets
+>   are dropped and the customer starts complaining.
 >
-> This is Jozsef's :D
+> According to discussions with Patrick McHardy off list and my own
+> examinations of the code, early_drop() should free up some of the
+> conntrack table when the table is full by removing unreplied
+> connections.
 
-Yes, that's from me: I'm surprised the (probably :-) debug message could
-survive unnoticed so long.
+If you have got a pretty flat hash table (large hashsize parameter), then
+early_drop has got bad chance to find any unreplied connection in the
+given bucket. If you set hashsize relatively small (compared to the usual
+traffic) then early_drop has got better chances but it hurts the
+performance. I believe there is only bad and worse solutions to your
+problem.
 
-The cryptic word means 'whoa!' approximately in Hungarian :-).
+> In practice, this doesn't actually happen.
+
+Sorry, but I think there should be more facts which supports your
+assumption.
 
 Best regards,
 Jozsef
