@@ -1,14 +1,14 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: early_drop() not working correctly?
-Date: Sun, 9 Jul 2006 17:06:56 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0607091658070.11722@blackhole.kfki.hu>
-References: <44AD1D10.6000208@netboxblue.com>
+Subject: Re: does ipset conflict with ipsec SuSE kernel patch?
+Date: Sun, 9 Jul 2006 17:34:11 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0607091721160.11722@blackhole.kfki.hu>
+References: <8812D8156467224C9E9739E513037EF1F3FD47@moe.nextone.local>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@lists.netfilter.org>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Menno Smits <menno@netboxblue.com>
-In-Reply-To: <44AD1D10.6000208@netboxblue.com>
+To: Hung Lin <hlin@nextone.com>
+In-Reply-To: <8812D8156467224C9E9739E513037EF1F3FD47@moe.nextone.local>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,35 +20,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 6 Jul 2006, Menno Smits wrote:
+On Thu, 6 Jul 2006, Hung Lin wrote:
 
-> At one customer site we have a situation where a netfilter box sees half
->   of some connections due to asymmetric routing.
+> I tried to install ipsets (http://ipset.netfilter.org/install.html) on
+> my SuSE 10.0 OS.  I could apply the kernel patches and rebuild the
+> kernel (Step 1 to 4 on ipsets installation webpage.)  But when I tried
+> to build iptables (Step 5,) it showed the error message:
 
-As it was already written, conntrack cannot reliably work in such setups.
+None of the error messages you included were generated due to ipset.
 
-> This causes lots of ESTABLISHED but unreplied connections to fill the
-> conntrack table with long (5 day) timeouts. Eventually the table
-> completely fills up. The "nf_conntrack: table full, dropping packet"
-> message is reported, packets
->   are dropped and the customer starts complaining.
->
-> According to discussions with Patrick McHardy off list and my own
-> examinations of the code, early_drop() should free up some of the
-> conntrack table when the table is full by removing unreplied
-> connections.
+> Does this mean IPsec conflicts with ipsets?  The comment of SuSE kernel
+> patch said the patches are from netfilter team, and the ipsets are also
+> from netfilter.org.  Since they are both belong to netfilter team, is
+> there any way to resolve the conflict?
 
-If you have got a pretty flat hash table (large hashsize parameter), then
-early_drop has got bad chance to find any unreplied connection in the
-given bucket. If you set hashsize relatively small (compared to the usual
-traffic) then early_drop has got better chances but it hurts the
-performance. I believe there is only bad and worse solutions to your
-problem.
+ipset is absolutely isolated from any other part of netfilter or the
+kernel subsystems (set/SET match and target do not count here): at compile
+time it cannot clash with any subsystem, patch, extension, whatsoever.
 
-> In practice, this doesn't actually happen.
-
-Sorry, but I think there should be more facts which supports your
-assumption.
+At running time the only known clash can happen when you want to combine
+the set and recent matches in one iptables command because both have got
+the '--set' argument - that'll be fixed in the next release.
 
 Best regards,
 Jozsef
