@@ -1,13 +1,16 @@
-From: Svein Olav Bjerkeset <netfilter@bjerkeset.com>
-Subject: [PATCH] Make geoip match work with kernel 2.6.17
-Date: Sun, 09 Jul 2006 12:15:14 +0200
-Message-ID: <001801c6a340$91f6e8b0$010210ac@BJERKESET.COM>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] please kill santa-claus
+Date: Sun, 9 Jul 2006 16:48:03 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0607091641180.11701@blackhole.kfki.hu>
+References: <20060630153802.GA27351@phoenix.home.spootnik.org>
+	<44ABDBB4.5010605@trash.net> <44ABDF70.2010705@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=iso-8859-1;
-	reply-type=original
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>,
+	Pierre-Yves Ritschard <pierre-yves@spootnik.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <44ABDF70.2010705@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,22 +22,44 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Wed, 5 Jul 2006, Pablo Neira Ayuso wrote:
 
-After upgrading my kernel to 2.6.17, I had some problems getting geoip to 
-work. I had a look at the geoip and kernel source, and came up with a patch 
-that made geoip work on my system. I am neither a kernel or netfilter 
-hacker, so don't blame me if it eats your system :-)
+> Patrick McHardy wrote:
+> > Pierre-Yves Ritschard wrote:
+> >
+> >>While running our home-brewed firewall scripts the output was broken by
+> >>a weird message spewed by the libipt_iprange extension:
+> >>	"hoho" (sic)
+> >>I wonder why that is, it seems not too many people noticed or use
+> >>src-range inversion which is the feature that triggers this friendly yet
+> >>surprising message.
+> >>If there's a specific reason (which I haven't found in TFA or google)
+> >>please let me know, otherwise please consider this one-liner:
+> >>
+> >>--- extensions/libipt_iprange.c.orig    Fri Jun 30 17:34:05 2006
+> >>+++ extensions/libipt_iprange.c Fri Jun 30 17:34:21 2006
+> >>@@ -73,7 +73,6 @@
+> >>                check_inverse(optarg, &invert, &optind, 0);
+> >>                if (invert) {
+> >>                        info->flags |= IPRANGE_SRC_INV;
+> >>-                       printf("hoho\n");
+> >>                }
+> >>                parse_iprange(optarg, &info->src);
+> >
+> >
+> > LOL :) Applied, thanks.
+>
+> This is Jozsef's :D
 
-The patch is against geoip patchlet as of May 6th 2006 (from 
-http://people.netfilter.org/peejix/patchlets) and can be found here:
+Yes, that's from me: I'm surprised the (probably :-) debug message could
+survive unnoticed so long.
 
-http://bjerkeset.com/patches/geoip-match-2.6.17.patch
+The cryptic word means 'whoa!' approximately in Hungarian :-).
 
-In particular the patch has been tested with kernel 2.6.17.4
-
-By the way, there seems to be a problem with mynodes.net where pom tries to 
-find the geoip patchlet.
-
-Best regards
-Svein Olav Bjerkeset 
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
