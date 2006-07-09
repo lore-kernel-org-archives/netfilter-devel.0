@@ -1,14 +1,13 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: does ipset conflict with ipsec SuSE kernel patch?
-Date: Sun, 9 Jul 2006 17:34:11 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0607091721160.11722@blackhole.kfki.hu>
-References: <8812D8156467224C9E9739E513037EF1F3FD47@moe.nextone.local>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: Question about iphash and nethash
+Date: Sun, 9 Jul 2006 18:01:58 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0607091748110.25841@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1046022190-1152460918=:25841"
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Hung Lin <hlin@nextone.com>
-In-Reply-To: <8812D8156467224C9E9739E513037EF1F3FD47@moe.nextone.local>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,32 +19,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 6 Jul 2006, Hung Lin wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> I tried to install ipsets (http://ipset.netfilter.org/install.html) on
-> my SuSE 10.0 OS.  I could apply the kernel patches and rebuild the
-> kernel (Step 1 to 4 on ipsets installation webpage.)  But when I tried
-> to build iptables (Step 5,) it showed the error message:
+---187430788-1046022190-1152460918=:25841
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-None of the error messages you included were generated due to ipset.
+Hello,
 
-> Does this mean IPsec conflicts with ipsets?  The comment of SuSE kernel
-> patch said the patches are from netfilter team, and the ipsets are also
-> from netfilter.org.  Since they are both belong to netfilter team, is
-> there any way to resolve the conflict?
-
-ipset is absolutely isolated from any other part of netfilter or the
-kernel subsystems (set/SET match and target do not count here): at compile
-time it cannot clash with any subsystem, patch, extension, whatsoever.
-
-At running time the only known clash can happen when you want to combine
-the set and recent matches in one iptables command because both have got
-the '--set' argument - that'll be fixed in the next release.
+I noticed that in my firewalls I very often need to use both iphash and=20
+nethash when I need to match set of addresses, because such lists contains=
+=20
+both /32 hosts and, for example, /24 networks. This requires additional=20
+number of rules - 2x or even 4x when I need to match both src and dst.=20
+What is the reason that it is not possible to use /32 on nethash? I may=20
+guess that iphash is probably faster than nethash so maybe a possiblity to=
+=20
+match a lists of setnames (eg: -m set --set set1,set2 src) is better?
 
 Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1046022190-1152460918=:25841--
