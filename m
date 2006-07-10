@@ -1,16 +1,18 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/10][CTNETLINK] Fix race condition on conntrack creation
-Date: Mon, 10 Jul 2006 06:31:40 +0200
-Message-ID: <44B1D82C.5070404@trash.net>
-References: <44ADC336.1060004@netfilter.org> <44ADE6F4.2090909@trash.net>
-	<44AE58CD.6060404@netfilter.org>
+Subject: Re: [PATCH 0/10] updates for ctnetlink and conntrack core
+Date: Mon, 10 Jul 2006 06:42:52 +0200
+Message-ID: <44B1DACC.5030309@trash.net>
+References: <44ADC2EE.905@netfilter.org> <44ADED94.3010703@trash.net>
+	<44ADF800.80701@trash.net> <44ADFD1F.7050602@trash.net>
+	<44AE65C0.8030209@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <44AE58CD.6060404@netfilter.org>
+In-Reply-To: <44AE65C0.8030209@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,63 +27,39 @@ List-Id: netfilter-devel.vger.kernel.org
 Pablo Neira Ayuso wrote:
 > Patrick McHardy wrote:
 > 
->> In patch 5 you refer to timer activation and hash insertion. Why does
->> helper lookup needs to be done inside the lock?
-> 
-> 
-> On helper module removal, the conntracks in the hashes are unhelped but
-> the conntrack that we are about to create is not yet in hashes, and it
-> will be refering to a unexistant helper. To overcome this Harald added
-> the function helper_find_get() that uses appropiate module refcounting,
-> so the helper can not vanish in the ctnetlink conntrack creation path.
-> At the time that I was cooking the patch, I realised that we don't need
-> find_get() anymore if we can move the helper lookup inside the locked
-> section.
-
-Yes, that seems right.
-
->>> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
->>>
->>> Index: net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c
->>> ===================================================================
->>> --- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_netlink.c   
->>> 2006-07-07 00:15:14.000000000 +0200
->>> +++ net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c    2006-07-07
->>> 01:52:14.000000000 +0200
->>> @@ -1059,13 +1059,12 @@ ctnetlink_create_conntrack(struct nfattr
->>>         ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
->>> #endif
->>>
->>> -    ct->helper = ip_conntrack_helper_find_get(rtuple);
->>> -
->>> -    add_timer(&ct->timeout);
->>> +    /* we do no want any races on hash insertion */
->>> +    write_lock_bh(&ip_conntrack_lock);
->>> +    ct->helper = ip_conntrack_helper_find(rtuple);
->>>     ip_conntrack_hash_insert(ct);
->>> -
->>> -    if (ct->helper)
->>> -        ip_conntrack_helper_put(ct->helper);
->>> +    add_timer(&ct->timeout);
->>> +    write_unlock_bh(&ip_conntrack_lock);
->>>
->>>     DEBUGP("conntrack with id %u inserted\n", ct->id);
->>>     return 0;
+>> Patrick McHardy wrote:
 >>
->>
->>
->> I also see another race, the caller of create_conntrack does a lookup
->> within locks, drops the locks and we reaquire them here. The entire
->> lookup-insertion needs to be atomic.
+>>> [...]
 > 
+> 4% is not too much but it is something, anyway it is true that my
+> argument of bandwidth consumption is weak.
 > 
-> Not really, the lookup-update must be atomic, as it is now, since the
-> conntrack is in the hashes, but for the lookup-creation-insertion I
-> don't see why we would need to. The conntrack that we are creating is
-> not yet in the hashes, therefore we only need the locking in the step of
-> timer activation and insertion.
+> But I still like patch 8, if the event cache works fine, I can't see why
+> we should force the dumping of all fields. BTW, patch 7 is a new feature
+> that I think that we need.
 
-The insertion doesn't check for existance again, but it might
-have already been created asynchrously between the lookup and
-the insertion, in which case we end up with two identical
-conntracks in the hash table.
+Patch 7 is something we definitely want. For patch 8 we need to come
+to a conclusion on how ctnetlink should work first, I prefer to keep
+it similar to other network netlink protocols and have it send full
+update notifications, containing the entire current state. I also
+fail to see the difference it makes, of the four things that are
+dumped conditionally (status, refresh, protoinfo, helpinfo) the
+first three are always set for new conntracks. The last one only
+if we have a helper, but if we don't nothing is dumped anyway.
+
+>> Some more unscientific tests: saving the netlink_trim call by using
+>> an allocation size of 200 reduces overhead for the entire notification
+>> function (including broadcasting) by about 13% (and also reduces
+>> the overruns experienced by conntrack -E for ~390000 packets with
+>> 65536 new connections from 17 to 7, which I don't really understand
+>> since it shouldn't save any netlink bandwidth and this is a SMP system).
+> 
+> 
+> Who ever said that benchmarking can be scientific? :) I usually have to
+> redo my tests several times. These results are interesting but, in
+> previous discussions, I thought that we could not change current
+> allocation size because of memory fragmentation issues?
+
+I _decreased_ the size, the messages sent are about 150-200 bytes, yet
+we're allocating an entire page, which makes netlink clone the skb
+and shrink it to its actual size. We should just to it right ourselves.
