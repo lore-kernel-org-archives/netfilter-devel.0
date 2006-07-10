@@ -1,19 +1,15 @@
-From: Massimiliano Hofer <max@nucleus.it>
-Subject: Re: information about kernel locking issue
-Date: Tue, 11 Jul 2006 01:41:19 +0200
-Message-ID: <200607110141.20519.max@nucleus.it>
-References: <200607011355.41921.delleceste@gmail.com>
-	<200607012229.53134.max@nucleus.it>
-	<44B2D73B.3080209@net.in.tum.de>
+From: Svein Olav Bjerkeset <netfilter@bjerkeset.com>
+Subject: Re: Patch for geoip to make it work with kernel 2.6.17
+Date: Tue, 11 Jul 2006 01:52:00 +0200
+Message-ID: <000801c6a47b$da7a0400$010210ac@BJERKESET.COM>
+References: <twig.1152545608.74588@bugmachine.ca>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: "Giacomo S." <delleceste@gmail.com>, Gregor Maier <gregor@net.in.tum.de>
+Content-Type: text/plain; format=flowed; charset=iso-8859-1;
+	reply-type=original
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: nib@istop.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <44B2D73B.3080209@net.in.tum.de>
-Content-Disposition: inline
+To: jix@bugmachine.ca, netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,25 +21,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 11 July 2006 12:39 am, Gregor Maier wrote:
+> Thank you! I've also got a patch from Krzysztof Ol=EAdzki on May 11=
+.
+> I'll have a look at it pretty soon.
 
-> > Your code snippet doesn't show how the function is called. If this is
-> > invoked by (*match)() you are in a soft interrupt context and should use
-> > read_lock(). read_lock_bh() is what you use in process context when a
-> > soft interrupt may use write_lock().
->
-> That's wrong. When you run in interrupt context, you must ensure that
-> you disable interrupts (be it soft or hardware interrupts) while holding
-> a spinlock.
+I found the patch from Krzysztof Ol=EAdzki in the mailing list archiv=
+es, but=20
+could not get it to work on 2.6.17.x.
+In his post he states that his patch is for 2.6.16.x, and if I rememb=
+er=20
+correctly I had geoip working with his
+patch for 2.6.16.15.
 
-You're right and I made a poor choice of words, but in his case the lock 
-protects dev_base and, to the best of my knowledge, it is never written by 
-interrupts (soft or hard). Correct me if I'm mistaken on this point.
+On 2.6.17.4 with Krzysztof Ol=EAdzki's patch, I got an error message=
+=20
+"ip_tables: matchsize differ 0 !=3D 96" when
+trying to add a geoip rule.
 
-In this case, if you take a read lock and no other interrupt ever takes 
-anything more than a read lock, while user context always disables interrupts 
-while taking a write lock, you shouldn't be able to trigger a deadlock.
-
--- 
-Bye,
-   Massimiliano Hofer
+Svein Olav Bjerkeset=20
