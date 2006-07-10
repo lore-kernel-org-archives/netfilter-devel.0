@@ -1,16 +1,14 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 10/10][CONNTRACK] introduce the pickup flag to take over
- connections
-Date: Mon, 10 Jul 2006 15:26:30 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0607091718580.11722@blackhole.kfki.hu>
-References: <44ADC415.5030407@netfilter.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+From: "Samuel Jean" <jix@bugmachine.ca>
+Subject: Re: Patch for geoip to make it work with kernel 2.6.17
+Date: Mon, 10 Jul 2006 15:33:28 -0000
+Message-ID: <twig.1152545608.74588@bugmachine.ca>
+References: <002901c6a281$f00e55b0$010210ac@BJERKESET.COM>
+Reply-To: jix@bugmachine.ca
+Cc: nib@istop.com
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <44ADC415.5030407@netfilter.org>
+To: "Svein Olav Bjerkeset" <svein.olav@bjerkeset.com>,
+	<netfilter-devel@lists.netfilter.org>
+In-Reply-To: <002901c6a281$f00e55b0$010210ac@BJERKESET.COM>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,30 +20,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+On Mon, Jul 10, 2006, Svein Olav Bjerkeset <svein.olav@bjerkeset.com>
+said:
 
-On Fri, 7 Jul 2006, Pablo Neira Ayuso wrote:
+> The patch is against geoip patchlet as of May 6th 2006
+> (from http://people.netfilter.org/peejix/patchlets) and can be found here:
+> 
+> http://bjerkeset.com/patches/geoip-match-2.6.17.patch
+> 
+> In particular the patch has been tested with kernel 2.6.17.4
 
-> This patch introduces a new flag called IPS_PICKUP that forces the
-> protocol handler to pick up the required information in order to ensure
-> that the connection will reach a successful state. Currently, the only
-> client is the TCP protocol helper.
->
-> More arguments conntrackd or whatever failover solution need this.
->
-> @Jozsef: You know better TCP sequence tracking in-deep details, can you
-> see any problem with this?
+Thank you! I've also got a patch from Krzysztof Olêdzki on May 11.
+I'll have a look at it pretty soon.
 
-Nothing against it as I see. But I'd regard it as a preliminary step
-toward creating conntrack entries by conntrackd/failover: the missing bits
-are the flags (SACK and WSCALE) and the window scale factor. We assume
-SACK is on (which thus don't hurt), but disabled window scaling can really
-bite if it's actually on.
+> 
+> By the way, there seems to be a problem with mynodes.net where pom tries to 
+> find the geoip patchlet.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Sorry for that. I am moving to my new home... Will power on that cabinet
+pretty soon too.
+
+> 
+> Best regards
+> Svein Olav Bjerkeset 
+
+Thanks,
+Samuel
