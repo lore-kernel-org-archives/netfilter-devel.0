@@ -1,18 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/10] updates for ctnetlink and conntrack core
-Date: Mon, 10 Jul 2006 06:42:52 +0200
-Message-ID: <44B1DACC.5030309@trash.net>
-References: <44ADC2EE.905@netfilter.org> <44ADED94.3010703@trash.net>
-	<44ADF800.80701@trash.net> <44ADFD1F.7050602@trash.net>
-	<44AE65C0.8030209@netfilter.org>
+Subject: Re: [PATCH 6/10][CTNETLINK] dump counters iif connection ended or
+ counters filled up
+Date: Mon, 10 Jul 2006 06:47:32 +0200
+Message-ID: <44B1DBE4.7010109@trash.net>
+References: <44ADC3BD.3050609@netfilter.org> <44ADE7BA.4030406@trash.net>
+	<44AE66CA.8030705@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <44AE65C0.8030209@netfilter.org>
+In-Reply-To: <44AE66CA.8030705@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,39 +26,26 @@ List-Id: netfilter-devel.vger.kernel.org
 Pablo Neira Ayuso wrote:
 > Patrick McHardy wrote:
 > 
->> Patrick McHardy wrote:
+>> Pablo Neira Ayuso wrote:
 >>
->>> [...]
+>>> I think that this patch should also reset counters upon fill up event,
+>>> comments?
+>>
+>>
+>> Not sure, do you know any users of the counters besides conntrackd?
 > 
-> 4% is not too much but it is something, anyway it is true that my
-> argument of bandwidth consumption is weak.
 > 
-> But I still like patch 8, if the event cache works fine, I can't see why
-> we should force the dumping of all fields. BTW, patch 7 is a new feature
-> that I think that we need.
+> I don't know any ctnetlink user of the counters. Thinking it well this
+> "counters fill up" issue is tricky. Since netlink is unreliable, what if
+> the fill up event gets lost? we could reset counters and nobody would
+> apparently notice. I think that we need an overflow bit in the conntrack
+> that must be set whenever and overflow happens and unset such bit once
+> the overflow event has been caught.
 
-Patch 7 is something we definitely want. For patch 8 we need to come
-to a conclusion on how ctnetlink should work first, I prefer to keep
-it similar to other network netlink protocols and have it send full
-update notifications, containing the entire current state. I also
-fail to see the difference it makes, of the four things that are
-dumped conditionally (status, refresh, protoinfo, helpinfo) the
-first three are always set for new conntracks. The last one only
-if we have a helper, but if we don't nothing is dumped anyway.
 
->> Some more unscientific tests: saving the netlink_trim call by using
->> an allocation size of 200 reduces overhead for the entire notification
->> function (including broadcasting) by about 13% (and also reduces
->> the overruns experienced by conntrack -E for ~390000 packets with
->> 65536 new connections from 17 to 7, which I don't really understand
->> since it shouldn't save any netlink bandwidth and this is a SMP system).
-> 
-> 
-> Who ever said that benchmarking can be scientific? :) I usually have to
-> redo my tests several times. These results are interesting but, in
-> previous discussions, I thought that we could not change current
-> allocation size because of memory fragmentation issues?
-
-I _decreased_ the size, the messages sent are about 150-200 bytes, yet
-we're allocating an entire page, which makes netlink clone the skb
-and shrink it to its actual size. We should just to it right ourselves.
+If a message is lost userspace simply _must_ resync if it wants
+reliability. If we reset the counter its impossible for userspace
+to reconstruct the value at which it overflowed, so I don't think
+we should do that. But you raise a good point, how should userspace
+react to lost DESTROY messages that contain new information (like
+counter values)? I don't see how it could reliable handle that case.
