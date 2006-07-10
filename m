@@ -1,13 +1,16 @@
-From: Svein Olav Bjerkeset <svein.olav@bjerkeset.com>
-Subject: Patch for geoip to make it work with kernel 2.6.17
-Date: Sat, 08 Jul 2006 13:30:38 +0200
-Message-ID: <002901c6a281$f00e55b0$010210ac@BJERKESET.COM>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 10/10][CONNTRACK] introduce the pickup flag to take over
+ connections
+Date: Mon, 10 Jul 2006 15:26:30 +0200 (CEST)
+Message-ID: <Pine.LNX.4.58.0607091718580.11722@blackhole.kfki.hu>
+References: <44ADC415.5030407@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=iso-8859-1;
-	reply-type=original
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <44ADC415.5030407@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,23 +22,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi Pablo,
 
-After upgrading my kernel to 2.6.17, I had some problems getting geoip to 
-work.
-I had a look at the geoip and kernel source, and came up with a patch that 
-made
-geoip work on my system.
+On Fri, 7 Jul 2006, Pablo Neira Ayuso wrote:
 
-The patch is against geoip patchlet as of May 6th 2006
-(from http://people.netfilter.org/peejix/patchlets) and can be found here:
+> This patch introduces a new flag called IPS_PICKUP that forces the
+> protocol handler to pick up the required information in order to ensure
+> that the connection will reach a successful state. Currently, the only
+> client is the TCP protocol helper.
+>
+> More arguments conntrackd or whatever failover solution need this.
+>
+> @Jozsef: You know better TCP sequence tracking in-deep details, can you
+> see any problem with this?
 
-http://bjerkeset.com/patches/geoip-match-2.6.17.patch
+Nothing against it as I see. But I'd regard it as a preliminary step
+toward creating conntrack entries by conntrackd/failover: the missing bits
+are the flags (SACK and WSCALE) and the window scale factor. We assume
+SACK is on (which thus don't hurt), but disabled window scaling can really
+bite if it's actually on.
 
-In particular the patch has been tested with kernel 2.6.17.4
-
-By the way, there seems to be a problem with mynodes.net where pom tries to 
-find the geoip patchlet.
-
-Best regards
-Svein Olav Bjerkeset 
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
