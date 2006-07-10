@@ -1,17 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 6/10][CTNETLINK] dump counters iif connection ended or
- counters filled up
-Date: Mon, 10 Jul 2006 06:47:32 +0200
-Message-ID: <44B1DBE4.7010109@trash.net>
-References: <44ADC3BD.3050609@netfilter.org> <44ADE7BA.4030406@trash.net>
-	<44AE66CA.8030705@netfilter.org>
+From: Patrick Schaaf <bof@bof.de>
+Subject: Re: [PATCH] iptables: handle cidr notation more sanely
+Date: Mon, 10 Jul 2006 07:59:02 +0200
+Message-ID: <20060710055902.GA832@oknodo.bof.de>
+References: <20060709222818.GA23200@linuxace.com> <44B1D6FE.6080208@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Phil Oester <kernel@linuxace.com>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <44AE66CA.8030705@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <44B1D6FE.6080208@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,29 +21,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
+> > 	iptables -A foo -s 10.10/16
+> > 
+> > will interpret 10.10/16 as 10.0.0.10/16, and after applying the mask end
+> > up with 10.0.0.0/16, which likely isn't what the user intended.  Yet
+> > some people do expect 10.10 (without the cidr notation) to end up as
+> > 10.0.0.10.
+...
 > 
->> Pablo Neira Ayuso wrote:
->>
->>> I think that this patch should also reset counters upon fill up event,
->>> comments?
->>
->>
->> Not sure, do you know any users of the counters besides conntrackd?
-> 
-> 
-> I don't know any ctnetlink user of the counters. Thinking it well this
-> "counters fill up" issue is tricky. Since netlink is unreliable, what if
-> the fill up event gets lost? we could reset counters and nobody would
-> apparently notice. I think that we need an overflow bit in the conntrack
-> that must be set whenever and overflow happens and unset such bit once
-> the overflow event has been caught.
+> Applied, thanks Phil. Hope all those lazy typers are happy now :)
 
+Better hope the past lazy typers' boot time iptables scripts will not break
+in any critical way by such a radical interpretation change.
 
-If a message is lost userspace simply _must_ resync if it wants
-reliability. If we reset the counter its impossible for userspace
-to reconstruct the value at which it overflowed, so I don't think
-we should do that. But you raise a good point, how should userspace
-react to lost DESTROY messages that contain new information (like
-counter values)? I don't see how it could reliable handle that case.
+Of course, it's all their own fault when that happens, lazy bastards.
+
+Methinks that it would be better to make non-3-dots IP addresses
+a syntax error, period.
+
+best regards
+  Patrick
