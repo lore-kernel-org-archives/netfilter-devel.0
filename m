@@ -1,12 +1,12 @@
-From: Simon Kirby <sim@netnation.com>
-Subject: Excessive CPU use in find_appropriate_src()
-Date: Tue, 11 Jul 2006 16:11:37 -0700
-Message-ID: <20060711231137.GB9526@netnation.com>
+From: haos05@cs.ubc.ca
+Subject: Inquiry about Helper Modules
+Date: Tue, 11 Jul 2006 18:18:38 -0700
+Message-ID: <1152667118.44b44dee8e86c@chang.cs.ubc.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,39 +18,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hey all,
+Dear Sir/Madam,
 
-On a box set up to do LVS, we were seeing a CPU saturate (NAPI in full
-force) with only about 6000 pps going through the box.  This was with
-2.4.27, but 2.4.32 and 2.6.17 don't seem much different in the related
-sections of code (apart from it looking much cleaner :) ).
+We plan to extend helper modules for application protocols which 
+negotiate ports to use for data streams inside a control session. 
+However, we have some confusions as below, your help will be highly 
+appreciated.
 
-The NAT mode of LVS depends on the netfilter NAT bits, so the related
-conntrack stuff and nat modules were loaded.  oprofile showed 78% of
-the CPU spent in find_appropriate_src(), which can be found in
-net/ipv4/netfilter/ip_nat_core.c.
+1) It is mentioned in some documents, ftp session(and irc) has been 
+implemented. Except for that, where can I find the complete list of 
+protocols which have been implemented in help modules?
 
-It appears the nat table size follows the conntrack size, so I tried
-raising it from the default to 131072.  This made no noticeable
-difference.  Eventually, I noticed that one host was taking more than
-half of the entries in ip_conntrack (about 16,000 entries of 30,000),
-and decided to try firewalling it by filtering in the PREROUTING chain of
-the nat table.  This caused the load to drop to normal (almost nothing).
+2) How can I get the detailed data structures and descriptions for 
+funtions in the netfilter framework, especially related with helper 
+modules (such as a programmer manual)? It is greater with some simple 
+examples.
 
-Further investigation shows that the host in question actually had no
-rules set up on the box, but that they were in the configuration
-previously and had set their gateway to go through the box that was
-having the load problems.  This meant that routing was asymmetric and the
-conntrack table was filling up with entries from the host that it only
-saw one side of.
+3) Where can I get the source code for ip_conntrack_ftp helper module?
+In the "Netfilter Hacking HOWTO", the command 'cvs -
+d :pserver:cvs@pserver.netfilter.org:/cvspublic login' and 
+password 'cvs' doesn't work. It shows 'cvs [login aborted]: connect to 
+pserver.netfilter.org(213.95.27.115):2401 failed: Connection refused'.
+The SVN server via command 'svn co 
+https://svn.netfilter.org/netfilter/trunk/module' is not accessible 
+either.
+>From the "Downloads" page, I 
+downloaded 'conntrack', 'iptables', 'libnetfilter_conntrack' from 
+ftp://ftp.netfilter.org/pub/ . They don't include ip_conntrack_ftp.
 
-As far as I can tell, find_appropriate_src() is hashing on on
-a source IP and protocol.  I don't see how it would ever sit there
-linearly scanning a large hash bucket, though, as the first hash entry
-should be enough to make it match and stop the walking.  It seems to be
-hashed with (almost) the same conditions as the test, and 131072 buckets
-should be enough(tm).
+I have read the documents "Packet Filtering HOWTO", "Netfilter Hacking 
+HOWTO" and  "iptables tutorial" by Oskar Andreasson and skiped other 
+articles on "Documentation" page. As you might notice, the accesses 
+to "Securing Linux Tutorial" by weazyB, "Netfilter tutorial" by 
+crhalpin and all articles by Harald Welte are not available any longer.
 
-What am I missing here?
+Thanks for your attention.
 
-Simon-
+With best regards,
+Shawn
+2006_07-11
