@@ -1,12 +1,18 @@
-From: haos05@cs.ubc.ca
-Subject: Inquiry about Helper Modules
-Date: Tue, 11 Jul 2006 18:18:38 -0700
-Message-ID: <1152667118.44b44dee8e86c@chang.cs.ubc.ca>
+From: Philip Craig <philipc@snapgear.com>
+Subject: Re: RFC: Disable defered bridge hooks by default
+Date: Wed, 12 Jul 2006 16:16:28 +1000
+Message-ID: <44B493BC.5010302@snapgear.com>
+References: <44AA3446.6050609@trash.net>
+	<44AA3496.5050909@trash.net>	<44AEFE20.3020307@shorewall.net>
+	<44AF200F.9000204@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Bart De Schuymer <bdschuym@pandora.be>, Tom Eastep <teastep@shorewall.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <44AF200F.9000204@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,42 +24,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Dear Sir/Madam,
+Patrick McHardy wrote:
+> I'm a lazy reader, so I didn't follow this entirely. But:
+> 
+> "-i <bridge> -o <bridge> "
+> 
+> implies you're using this for purely bridged traffic. The feature
+> we're going to remove only affects locally generated traffic exiting
+> on a bridge device, in that case iptables _can't_ know the output
+> port.
 
-We plan to extend helper modules for application protocols which 
-negotiate ports to use for data streams inside a control session. 
-However, we have some confusions as below, your help will be highly 
-appreciated.
+It also affects forwarded packets that are routed out the bridge device?
+ie anything that is routed out a bridge device, because iptables sees
+the packet before bridging does its stuff.  Purely bridged packets are
+fine though, because they don't actually leave the bridge device, the
+bridging code just calls the netfilter hooks at the appropriate time.
 
-1) It is mentioned in some documents, ftp session(and irc) has been 
-implemented. Except for that, where can I find the complete list of 
-protocols which have been implemented in help modules?
+Would it be possible to call the bridging code from the iptables
+forward/output hooks, store the result somewhere, and then when the
+packet is passed to the bridge device, just use the stored result?
+So fix the problem by calling bridging early, instead of deferring
+iptables?  I'm not sure if this could handle packets that need to
+be sent out multiple ports.
 
-2) How can I get the detailed data structures and descriptions for 
-funtions in the netfilter framework, especially related with helper 
-modules (such as a programmer manual)? It is greater with some simple 
-examples.
+And possibly related, could this be done for arp lookups too, so
+that output mac matching is possible?
 
-3) Where can I get the source code for ip_conntrack_ftp helper module?
-In the "Netfilter Hacking HOWTO", the command 'cvs -
-d :pserver:cvs@pserver.netfilter.org:/cvspublic login' and 
-password 'cvs' doesn't work. It shows 'cvs [login aborted]: connect to 
-pserver.netfilter.org(213.95.27.115):2401 failed: Connection refused'.
-The SVN server via command 'svn co 
-https://svn.netfilter.org/netfilter/trunk/module' is not accessible 
-either.
->From the "Downloads" page, I 
-downloaded 'conntrack', 'iptables', 'libnetfilter_conntrack' from 
-ftp://ftp.netfilter.org/pub/ . They don't include ip_conntrack_ftp.
+> But you can do your iptables matching, mark matching packets
+> and filter on the mark within ebtables.
 
-I have read the documents "Packet Filtering HOWTO", "Netfilter Hacking 
-HOWTO" and  "iptables tutorial" by Oskar Andreasson and skiped other 
-articles on "Documentation" page. As you might notice, the accesses 
-to "Securing Linux Tutorial" by weazyB, "Netfilter tutorial" by 
-crhalpin and all articles by Harald Welte are not available any longer.
-
-Thanks for your attention.
-
-With best regards,
-Shawn
-2006_07-11
+I haven't thought about this too much, but for a high-level tool,
+the rules can theoretically be too complicated for this to be feasible.
+The worst case will be to perform all the possible matches that are
+supported by iptables but not ebtables, and encode the result of all
+of these into the mark.  And even if this can be optimized, I can
+imagine the code to do it being quite complex.
