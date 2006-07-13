@@ -1,18 +1,14 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: RFC: Disable defered bridge hooks by default
-Date: Thu, 13 Jul 2006 10:56:39 +0100
-Message-ID: <44B618D7.3070806@ufomechanic.net>
-References: <44AA3446.6050609@trash.net>	<44AA3496.5050909@trash.net>	<44AEFE20.3020307@shorewall.net>	<44AF200F.9000204@trash.net>
-	<44B40B4E.6080206@shorewall.net>	<44B4183E.7010905@trash.net>
-	<44B57A9F.9000403@shorewall.net>
+From: Jesper Dangaard Brouer <hawk@diku.dk>
+Subject: Re: BUG: libiptc chain references bug
+Date: Thu, 13 Jul 2006 13:17:25 +0200 (CEST)
+Message-ID: <Pine.LNX.4.61.0607131303220.29013@tyr.diku.dk>
+References: <Pine.LNX.4.61.0607121722360.13610@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Bart De Schuymer <bdschuym@pandora.be>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: hawk@comx.dk
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Tom Eastep <teastep@shorewall.net>
-In-Reply-To: <44B57A9F.9000403@shorewall.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <Pine.LNX.4.61.0607121722360.13610@ask.diku.dk>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,38 +20,92 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Tom Eastep wrote:
-> I copied you privately on the survey that I sent out to Shorewall users -- so
-> far, two out of four responders filter traffic from the firewall to the bridge
-> based on egress port and three out of four filter outbound bridge traffic routed
-> from an unbridged interface based on egress port.
+
+Hi
+
+I have found the bug, and it's in libiptc.c.
+
+More specifically in iptc_delete_entry() / TC_DELETE_ENTRY, 
+and is a result of constructing "r" the rule entry that is used for 
+comparison. The bug is that the function iptcc_map_target() increase the 
+target chains references count...
+
+I'll cook up a patch, once I have tested it.
+
+This call sequence reveals the bug. I'm trying to delete a rule that does 
+not exist, but during construction of "r" the match entry, the target 
+chain "badehat" gets its reference count incremented.
+
+[Function] init() libiptc handle
+[Function] create_chain(badehat)
+[Function] get_references(badehat): refs=0
+[Function] iptables_do_command(-D FORWARD -j badehat): No chain/target/match by that name
+[Function] iptables_do_command(-D FORWARD -j badehat): No chain/target/match by that name
+[Function] iptables_do_command(-D FORWARD -j badehat): No chain/target/match by that name
+[Function] iptables_do_command(-D FORWARD -j badehat): No chain/target/match by that name
+[Function] get_references(badehat): refs=4
+[Function] commit()
+
+--
+Best regards
+   Jesper Brouer
+   ComX Networks A/S
+   Linux Network developer
+   Cand. Scient Datalog / MSc.
+   Author of http://adsl-optimizer.dk
 
 
-I've been thinking how similar the problems of apache rewrite rules are
-to the problems of iptables we discuss here.
 
-Apache folk ended up doing a fake "look-ahead" to show how a request
-would be handled and so how some of the request fields that are not set
-WOULD be set. In apache such look-ahead could cause recursion but
-request "notes" (like iptables marks) or other mechanisms are used so
-that rewrite matches can tell that when they are operating under
-look-ahead and stop being clever in those cases.
+On Wed, 12 Jul 2006, Jesper Dangaard Brouer wrote:
 
-It seems like some iptables rules want to say: If the packet WOULD have
-been handled thus, then handle it like this instead. Of course, when
-there is more than one type of rule doing his, finding out how a packet
-"WOULD" have been routed can be "interesting".
-
-Maybe we can fix up bridging behaviour to follow routing rules.
-What if bridged packets could be routed to the target ip and mac and
-bridge, as if it were an existing route in the route table? This perhaps
-would involve mild freakery in the routing code. From an external view
-it would still look like bridging? (I want a conntrack to be able to
-cache a route anyway so that a route won't change on established
-connections even if the routing results would be different);
-
-The odds of Patrick slapping is head with exasperation at my imperfect
-understanding are quite high, I admit. (Perhaps I'm side stepping too
-much other important bridging features)
-
-Sam
+> I have found a chain reference bug in libiptc or iptables.c.
+>
+> When deleting a rule, with iptables do_command("-D xxx -j yyy") that
+> calls "iptc_delete_entry" the reference count of the rules jump
+> target chain is not decremented.
+>
+> When deleting the rule with iptables do_command("-D xxx rule_num")
+> that calls "iptc_delete_num_entry" the reference count is correctly
+> decremeted.
+>
+> Notice, that the chain gets the correct reference count after a
+> "commit" of the handle.
+>
+>
+> Here is the call sequence, of the bug:
+>
+> +------
+> [Function] init() libiptc handle
+> [Function] create_chain(badehat)
+>
+> [Function] iptables_do_command(-I FORWARD -j badehat)
+> [Function] get_references(badehat): refs=1
+>
+> [Function] iptables_do_command(-D FORWARD -j badehat)
+> [Function] get_references(badehat): refs=1
+>
+> [Function] commit()
+>
+> System command: iptables -L badehat
+> Chain badehat (0 references)
+> target     prot opt source               destination
+> +------
+>
+> Here is the call sequence, where the bug does not occur:
+>
+> +------
+> [Function] init() libiptc handle
+> [Function] create_chain(badehat)
+>
+> [Function] iptables_do_command(-I FORWARD -j badehat)
+> [Function] get_references(badehat): refs=1
+>
+> [Function] iptables_do_command(-D FORWARD 1)
+> [Function] get_references(badehat): refs=0
+>
+> [Function] commit()
+>
+> System command: iptables -L badehat
+> Chain badehat (0 references)
+> target     prot opt source               destination
+> +------
