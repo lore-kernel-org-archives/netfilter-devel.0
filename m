@@ -1,14 +1,19 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Inquiry about Helper Modules
-Date: Thu, 13 Jul 2006 10:03:20 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0607131002270.15827@x2>
-References: <1152667118.44b44dee8e86c@chang.cs.ubc.ca>
+From: Philip Craig <philipc@snapgear.com>
+Subject: Re: RFC: Disable defered bridge hooks by default
+Date: Thu, 13 Jul 2006 18:12:29 +1000
+Message-ID: <44B6006D.9010900@snapgear.com>
+References: <44AA3446.6050609@trash.net>
+	<44AA3496.5050909@trash.net>	<44AEFE20.3020307@shorewall.net>
+	<44AF200F.9000204@trash.net>	<44B493BC.5010302@snapgear.com>
+	<Pine.LNX.4.64.0607130937580.15827@x2>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Bart De Schuymer <bdschuym@pandora.be>, Tom Eastep <teastep@shorewall.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: haos05@cs.ubc.ca
-In-Reply-To: <1152667118.44b44dee8e86c@chang.cs.ubc.ca>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <Pine.LNX.4.64.0607130937580.15827@x2>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,34 +25,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 11 Jul 2006, haos05@cs.ubc.ca wrote:
+Patrick McHardy wrote:
+> On Wed, 12 Jul 2006, Philip Craig wrote:
+>
+>> Patrick McHardy wrote:
+>> Would it be possible to call the bridging code from the iptables
+>> forward/output hooks, store the result somewhere, and then when the
+>> packet is passed to the bridge device, just use the stored result?
+>> So fix the problem by calling bridging early, instead of deferring
+>> iptables?  I'm not sure if this could handle packets that need to
+>> be sent out multiple ports.
+>
+> No, it couldn't. Its questionable behaviour to do this anyway, think
+> about something you REJECT without looking at the output port - you
+> will reject once for each output port. The entire idea of using
+> iptables from the bridge code seems flawed to me. Conntrack might
+> also get very confused under certain cicurstances.
 
-> Dear Sir/Madam,
->
-> We plan to extend helper modules for application protocols which
-> negotiate ports to use for data streams inside a control session.
-> However, we have some confusions as below, your help will be highly
-> appreciated.
->
-> 1) It is mentioned in some documents, ftp session(and irc) has been
-> implemented. Except for that, where can I find the complete list of
-> protocols which have been implemented in help modules?
->
-> 2) How can I get the detailed data structures and descriptions for
-> funtions in the netfilter framework, especially related with helper
-> modules (such as a programmer manual)? It is greater with some simple
-> examples.
->
-> 3) Where can I get the source code for ip_conntrack_ftp helper module?
-> In the "Netfilter Hacking HOWTO", the command 'cvs -
-> d :pserver:cvs@pserver.netfilter.org:/cvspublic login' and
-> password 'cvs' doesn't work. It shows 'cvs [login aborted]: connect to
-> pserver.netfilter.org(213.95.27.115):2401 failed: Connection refused'.
-> The SVN server via command 'svn co
-> https://svn.netfilter.org/netfilter/trunk/module' is not accessible
-> either.
->> From the "Downloads" page, I
-> downloaded 'conntrack', 'iptables', 'libnetfilter_conntrack' from
-> ftp://ftp.netfilter.org/pub/ . They don't include ip_conntrack_ftp.
-
-The kernel source is the only authorative source on this.
+These are also problems for purely bridged packets.  br_flood calls
+__br_forward for every port, which calls the bridge forward hook, and
+that passes the packet on to the ipv4 forward hook.  Should this be
+changed so that the ipv4 forward hook is called earlier, and filtering
+on output port is never possible?
