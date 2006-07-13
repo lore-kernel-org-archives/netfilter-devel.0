@@ -1,17 +1,18 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 6/10][CTNETLINK] dump counters iif connection ended or
- counters filled up
-Date: Thu, 13 Jul 2006 22:09:41 +0200
-Message-ID: <44B6A885.1010903@netfilter.org>
-References: <44ADC3BD.3050609@netfilter.org> <44ADE7BA.4030406@trash.net>
-	<44AE66CA.8030705@netfilter.org> <44B1DBE4.7010109@trash.net>
+Subject: Re: [PATCH 10/10][CONNTRACK] introduce the pickup flag to take over
+ connections
+Date: Thu, 13 Jul 2006 22:22:01 +0200
+Message-ID: <44B6AB69.7030700@netfilter.org>
+References: <44ADC415.5030407@netfilter.org>
+	<Pine.LNX.4.58.0607091718580.11722@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44B1DBE4.7010109@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0607091718580.11722@blackhole.kfki.hu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,43 +24,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
+Jozsef Kadlecsik wrote:
+> Hi Pablo,
 > 
->>Patrick McHardy wrote:
->>
->>
->>>Pablo Neira Ayuso wrote:
->>>
->>>
->>>>I think that this patch should also reset counters upon fill up event,
->>>>comments?
->>>
->>>
->>>Not sure, do you know any users of the counters besides conntrackd?
->>
->>
->>I don't know any ctnetlink user of the counters. Thinking it well this
->>"counters fill up" issue is tricky. Since netlink is unreliable, what if
->>the fill up event gets lost? we could reset counters and nobody would
->>apparently notice. I think that we need an overflow bit in the conntrack
->>that must be set whenever and overflow happens and unset such bit once
->>the overflow event has been caught.
+> On Fri, 7 Jul 2006, Pablo Neira Ayuso wrote:
 > 
-> If a message is lost userspace simply _must_ resync if it wants
-> reliability. If we reset the counter its impossible for userspace
-> to reconstruct the value at which it overflowed, so I don't think
-> we should do that. But you raise a good point, how should userspace
-> react to lost DESTROY messages that contain new information (like
-> counter values)? I don't see how it could reliable handle that case.
+> 
+>>This patch introduces a new flag called IPS_PICKUP that forces the
+>>protocol handler to pick up the required information in order to ensure
+>>that the connection will reach a successful state. Currently, the only
+>>client is the TCP protocol helper.
+>>
+>>More arguments conntrackd or whatever failover solution need this.
+>>
+>>@Jozsef: You know better TCP sequence tracking in-deep details, can you
+>>see any problem with this?
+> 
+> Nothing against it as I see. But I'd regard it as a preliminary step
+> toward creating conntrack entries by conntrackd/failover: the missing bits
+> are the flags (SACK and WSCALE) and the window scale factor. We assume
+> SACK is on (which thus don't hurt), but disabled window scaling can really
+> bite if it's actually on.
 
-I can't see any either at the moment :(
+Interesting, since the scale factor is only advertised in the SYN+ACK 
+packet, we need a patch to introduce a new ctnetlink attribute that 
+contains the scale factor. I think that should be enough.
 
-BTW, something related to the overflow issue: what I'm currently doing 
-in conntrackd is the following thing, if an overflow is detected, the 
-size of socket buffer is duplicated via RCVBUFFFORCE and then it 
-resyncs. I'll add a clause to limit the socket buffer maximum growth. 
-Can you see any problem with this?
+Thanks for the clue.
 
 -- 
 The dawn of the fourth age of Linux firewalling is coming; a time of 
