@@ -1,7 +1,7 @@
 From: "Ming-Ching Tiew" <mingching.tiew@redtone.com>
-Subject: netfilter random or nth patch
-Date: Thu, 13 Jul 2006 10:36:24 +0800
-Message-ID: <011701c6a625$228155a0$0100a8c0@newlife>
+Subject: Re: netfilter random or nth patch
+Date: Thu, 13 Jul 2006 14:02:29 +0800
+Message-ID: <02db01c6a641$ecc55c00$0100a8c0@newlife>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -20,18 +20,17 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-I hate to be a nag, but I posted this to netfilter@lists.netfilter.org and
-did not get a response. So I am posting to netfilter-devel@lists.netfilter.org now.
+From: "Ming-Ching Tiew" <mingching.tiew@redtone.com>
+> 
+> Possibilities :-
+> 1. They have been obsoluted, And so they are being replaced by ....
+> 2. They ceased to work and no one is working on them now
+> 3. They are still work in progress and be patient please
+> 
+> Which of the above please ?
+> 
 
-OK I cannot find netfilter random or nth patch anymore from patch-o-matic-ng,
-even though they are still mentioned in netfilter website. So I wonder which
-of these are happening :-
+Please ignore I post, I found the answer after some search. I will 
+wait for 2.6.18.
 
-Possibilities :-
-1. They have been obsoluted, And so they are being replaced by ....
-2. They ceased to work and no one is working on them now
-3. They are still work in progress and be patient please
-
-Which of the above please ?
-
-Regards.
+Cheers.
