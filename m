@@ -1,16 +1,19 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re:  RFC: Disable defered bridge hooks by default
-Date: Thu, 13 Jul 2006 16:38:05 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0607131637550.15827@x2>
-References: <W952101659891521152795405@hoboe1bl6.telenet-ops.be>
+Subject: Re: RFC: Disable defered bridge hooks by default
+Date: Thu, 13 Jul 2006 16:45:15 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0607131638180.15827@x2>
+References: <44AA3446.6050609@trash.net> <44AA3496.5050909@trash.net>
+	<44AEFE20.3020307@shorewall.net> <44AF200F.9000204@trash.net>
+	<44B40B4E.6080206@shorewall.net> <44B4183E.7010905@trash.net>
+	<44B57A9F.9000403@shorewall.net> <Pine.LNX.4.64.0607130933380.15827@x2>
+	<44B65492.3040506@shorewall.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Bart De Schuymer <bdschuym@pandora.be>,
-	Philip Craig <philipc@snapgear.com>, Tom Eastep <teastep@shorewall.net>
+	Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "bdschuym@pandora.be" <bdschuym@telenet.be>
-In-Reply-To: <W952101659891521152795405@hoboe1bl6.telenet-ops.be>
+To: Tom Eastep <teastep@shorewall.net>
+In-Reply-To: <44B65492.3040506@shorewall.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,23 +25,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 13 Jul 2006, bdschuym@pandora.be wrote:
 
->> Van: Patrick McHardy [mailto:kaber@trash.net]
->>
->> As I already mentioned in this thread, I believe the concept of calling
->> iptables from briding is flawed. We have ebtables to do filtering within
->> a bridge. But this is getting slightly off-topic.
+On Thu, 13 Jul 2006, Tom Eastep wrote:
+
+> Patrick McHardy wrote:
 >
-> ebtables can't do things like stateful IP firewalling. IMO, things like
-> transparent stateful firewalling are way too cool to just throw out of Linux
-> because it troubles iptables somewhat in special cases.
+>>
+>> Thanks. I'm currently travelling, I'll look at this on Sunday when I get
+>> back home (haven't received it yet I think). Do you know on which criteria
+>> they filter in addition to the bridge port?
+>>
+>
+> Typically, they will also filter on protocol and the destination port (if the
+> protocol is TCP or UDP).
 
 
-Sure, I didn't suggest this. But the fact is that is doesn't work very
-well together. Just using ip_conntrack (without NAT) without problems
-should be relatively easy, its NAT and iptables that create problems.
-Saying the problem cases are "special" (because they create problems)
-does not help, users expect them to work because they way it presents
-itself suggests they would work. But don't fear, I don't have any
-further plans besides getting rid of the deferred hooks.
+And the really differentiate between different bridge ports for this, i.e.
+port eth0 may receive packets on port 80, port eth1 may not?
+
+I don't really see why this can't be done purely within ebtables, it too
+can filter based on protocol and port numbers. Do you also know of
+examples where its really necessary to filter on bridge port and use
+iptables' capabilities?
