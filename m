@@ -1,18 +1,14 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 10/10][CONNTRACK] introduce the pickup flag to take over
- connections
-Date: Mon, 17 Jul 2006 10:17:07 +0200 (CEST)
-Message-ID: <Pine.LNX.4.58.0607171007280.964@blackhole.kfki.hu>
-References: <44ADC415.5030407@netfilter.org>
-	<Pine.LNX.4.58.0607091718580.11722@blackhole.kfki.hu>
-	<44B6AB69.7030700@netfilter.org>
+From: "bdschuym@pandora.be" <bdschuym@telenet.be>
+Subject: Re:  RFC: Disable defered bridge hooks by default
+Date: Thu, 13 Jul 2006 12:56:45 +0000
+Message-ID: <W952101659891521152795405@hoboe1bl6.telenet-ops.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+	Bart De Schuymer <bdschuym@pandora.be>, Tom Eastep <teastep@shorewall.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <44B6AB69.7030700@netfilter.org>
+To: "Patrick McHardy" <kaber@trash.net>, "Philip Craig" <philipc@snapgear.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,43 +20,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 13 Jul 2006, Pablo Neira Ayuso wrote:
 
-> Jozsef Kadlecsik wrote:
-> > Hi Pablo,
-> >
-> > On Fri, 7 Jul 2006, Pablo Neira Ayuso wrote:
-> >
-> >
-> >>This patch introduces a new flag called IPS_PICKUP that forces the
-> >>protocol handler to pick up the required information in order to ensure
-> >>that the connection will reach a successful state. Currently, the only
-> >>client is the TCP protocol helper.
-> >>
-> >>More arguments conntrackd or whatever failover solution need this.
-> >>
-> >>@Jozsef: You know better TCP sequence tracking in-deep details, can you
-> >>see any problem with this?
-> >
-> > Nothing against it as I see. But I'd regard it as a preliminary step
-> > toward creating conntrack entries by conntrackd/failover: the missing bits
-> > are the flags (SACK and WSCALE) and the window scale factor. We assume
-> > SACK is on (which thus don't hurt), but disabled window scaling can really
-> > bite if it's actually on.
+>----- Oorspronkelijk bericht -----
+>Van: Patrick McHardy [mailto:kaber@trash.net]
+>Verzonden: donderdag, juli 13, 2006 10:36 AM
+>Aan: 'Philip Craig'
+>CC: 'Netfilter Development Mailinglist', 'Bart De Schuymer', 'Tom Eastep'
+>Onderwerp: Re: RFC: Disable defered bridge hooks by default
 >
-> Interesting, since the scale factor is only advertised in the SYN+ACK
-> packet, we need a patch to introduce a new ctnetlink attribute that
-> contains the scale factor. I think that should be enough.
+>On Thu, 13 Jul 2006, Philip Craig wrote:
+>
+>> Patrick McHardy wrote:
+>>> On Wed, 12 Jul 2006, Philip Craig wrote:
+>>>
+>>>> Patrick McHardy wrote:
+>>>> Would it be possible to call the bridging code from the iptables
+>>>> forward/output hooks, store the result somewhere, and then when the
+>>>> packet is passed to the bridge device, just use the stored result?
+>>>> So fix the problem by calling bridging early, instead of deferring
+>>>> iptables?  I'm not sure if this could handle packets that need to
+>>>> be sent out multiple ports.
+>>>
+>>> No, it couldn't. Its questionable behaviour to do this anyway, think
+>>> about something you REJECT without looking at the output port - you
+>>> will reject once for each output port. The entire idea of using
+>>> iptables from the bridge code seems flawed to me. Conntrack might
+>>> also get very confused under certain cicurstances.
+>>
+>> These are also problems for purely bridged packets.  br_flood calls
+>> __br_forward for every port, which calls the bridge forward hook, and
+>> that passes the packet on to the ipv4 forward hook.  Should this be
+>> changed so that the ipv4 forward hook is called earlier, and filtering
+>> on output port is never possible?
+>
+>As I already mentioned in this thread, I believe the concept of calling
+>iptables from briding is flawed. We have ebtables to do filtering within
+>a bridge. But this is getting slightly off-topic.
 
-Yes, that'd be sufficient (of course it can be advertised in both
-directions). Window scaling is a must when someone wants to utilize a high
-badwidth connection as much as possible in one TCP stream and conntrack
-can go totally wrong if it uses wrong scale factors.
+ebtables can't do things like stateful IP firewalling. IMO, things like 
+transparent stateful firewalling are way too cool to just throw out of Linux 
+because it troubles iptables somewhat in special cases.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@sunserv.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+cheers,
+Bart
