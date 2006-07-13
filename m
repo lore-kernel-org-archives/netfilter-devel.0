@@ -1,23 +1,19 @@
-From: Tom Eastep <teastep@shorewall.net>
-Subject: Re: RFC: Disable defered bridge hooks by default
-Date: Thu, 13 Jul 2006 08:31:39 -0700
-Message-ID: <44B6675B.6030000@shorewall.net>
-References: <44AA3446.6050609@trash.net> <44AA3496.5050909@trash.net>
-	<44AEFE20.3020307@shorewall.net> <44AF200F.9000204@trash.net>
-	<44B40B4E.6080206@shorewall.net> <44B4183E.7010905@trash.net>
-	<44B57A9F.9000403@shorewall.net>
-	<Pine.LNX.4.64.0607130933380.15827@x2>
-	<44B65492.3040506@shorewall.net>
-	<Pine.LNX.4.64.0607131638180.15827@x2>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/10] updates for ctnetlink and conntrack core
+Date: Thu, 13 Jul 2006 22:01:03 +0200
+Message-ID: <44B6A67F.70102@netfilter.org>
+References: <44ADC2EE.905@netfilter.org>
+	<44ADED94.3010703@trash.net>	<44ADF800.80701@trash.net>
+	<44ADFD1F.7050602@trash.net>	<44AE65C0.8030209@netfilter.org>
+	<44B1DACC.5030309@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigE82DBCC5867264287DB76CCF"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Bart De Schuymer <bdschuym@pandora.be>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <Pine.LNX.4.64.0607131638180.15827@x2>
+In-Reply-To: <44B1DACC.5030309@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,73 +25,71 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigE82DBCC5867264287DB76CCF
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
 Patrick McHardy wrote:
->=20
-> On Thu, 13 Jul 2006, Tom Eastep wrote:
->=20
->> Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+> 
+>>Patrick McHardy wrote:
 >>
->>>
->>> Thanks. I'm currently travelling, I'll look at this on Sunday when I =
-get
->>> back home (haven't received it yet I think). Do you know on which
->>> criteria
->>> they filter in addition to the bridge port?
->>>
 >>
->> Typically, they will also filter on protocol and the destination port
->> (if the
->> protocol is TCP or UDP).
->=20
->=20
-> And the really differentiate between different bridge ports for this, i=
-=2Ee.
-> port eth0 may receive packets on port 80, port eth1 may not?
+>>>Patrick McHardy wrote:
+>>>
+>>>
+>>>>[...]
+>>
+>>4% is not too much but it is something, anyway it is true that my
+>>argument of bandwidth consumption is weak.
+>>
+>>But I still like patch 8, if the event cache works fine, I can't see why
+>>we should force the dumping of all fields. BTW, patch 7 is a new feature
+>>that I think that we need.
+> 
+> 
+> Patch 7 is something we definitely want. For patch 8 we need to come
+> to a conclusion on how ctnetlink should work first, I prefer to keep
+> it similar to other network netlink protocols and have it send full
+> update notifications, containing the entire current state.
 
-That's correct.
+If other network netlink protocols behave like that, I agree that we 
+should send full update notifications, I like this argument. The only 
+thing that annoys me is the limited netlink throughput, sending more 
+data means that on stress situations an overflow could comes before.
 
->=20
-> I don't really see why this can't be done purely within ebtables, it to=
-o
-> can filter based on protocol and port numbers. Do you also know of
-> examples where its really necessary to filter on bridge port and use
-> iptables' capabilities?
->=20
+> I also fail to see the difference it makes, of the four things that are
+> dumped conditionally (status, refresh, protoinfo, helpinfo) the
+> first three are always set for new conntracks. The last one only
+> if we have a helper, but if we don't nothing is dumped anyway.
 
-In Shorewall, filtering on bridge port is usually done *first* to select =
-the
-appropriate rule chain. In that rule chain, the user has access to more o=
-r less
-the full box of iptables tools (at least those that are supported by kern=
-els
-from kernel.org). To what extent those tools are actually used, I don't k=
-now.
+So, to keep consistency with other netlink subsystem, I can remake my 
+patch based on this assumptions:
 
--Tom
---=20
-Tom Eastep    \ Nothing is foolproof to a sufficiently talented fool
-Shoreline,     \ http://shorewall.net
-Washington USA  \ teastep@shorewall.net
-PGP Public Key   \ https://lists.shorewall.net/teastep.pgp.key
+- NEW events dump everything but values that are unset like counters, 
+mark, ...
+- UPDATE events dump everything but unset fields and the counters, they 
+don't provide very useful information AFAICS.
+- DESTROY, dump everything, counters included.
 
+Please let me know what you think.
 
---------------enigE82DBCC5867264287DB76CCF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+>>>Some more unscientific tests: saving the netlink_trim call by using
+>>>an allocation size of 200 reduces overhead for the entire notification
+>>>function (including broadcasting) by about 13% (and also reduces
+>>>the overruns experienced by conntrack -E for ~390000 packets with
+>>>65536 new connections from 17 to 7, which I don't really understand
+>>>since it shouldn't save any netlink bandwidth and this is a SMP system).
+>>
+>>
+>>Who ever said that benchmarking can be scientific? :) I usually have to
+>>redo my tests several times. These results are interesting but, in
+>>previous discussions, I thought that we could not change current
+>>allocation size because of memory fragmentation issues?
+> 
+> 
+> I _decreased_ the size, the messages sent are about 150-200 bytes, yet
+> we're allocating an entire page, which makes netlink clone the skb
+> and shrink it to its actual size. We should just to it right ourselves.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.2 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+OK, I see, sorry I misunderstood.
 
-iD8DBQFEtmdcO/MAbZfjDLIRAvXnAKCoS8eAylnG1ZztKO8wjbfzi+trUwCfV7b1
-8PyeA0pyfVlNTavynme/QlA=
-=/Qlx
------END PGP SIGNATURE-----
-
---------------enigE82DBCC5867264287DB76CCF--
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
