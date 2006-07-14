@@ -1,15 +1,15 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Felipe Kellermann <stdfk@terra.com.br>
 Subject: Re: [PATCH] libnfnetlink 0.0.16 and missing types
-Date: Fri, 14 Jul 2006 16:19:15 +0200
-Message-ID: <44B7A7E3.1030603@netfilter.org>
+Date: Fri, 14 Jul 2006 11:31:41 -0300 (BRT)
+Message-ID: <Pine.LNX.4.64.0607141130560.3308@pvaqre.alien.bet>
 References: <Pine.LNX.4.64.0607131821350.3308@pvaqre.alien.bet>
+	<44B7A7E3.1030603@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Felipe Kellermann <stdfk@terra.com.br>
-In-Reply-To: <Pine.LNX.4.64.0607131821350.3308@pvaqre.alien.bet>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <44B7A7E3.1030603@netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,28 +21,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Felipe Kellermann wrote:
-> Using 2.6.17.1, GCC 4.1.1. libnfnetlink isn't compiling correctly.
-> 
-> libnfnetlink.c includes linux/netlink.h, which uses undefined typedefs 
-> because neither libnfnetlink.c nor linux/netlink.h includes linux/types.h.
-> 
-> Am just wondering if there is a rationale about the correct place to put 
-> this type of include (types.h). IMHO it would have to be placed in every 
-> type of header which uses types defined in linux/types.h. The include safe 
-> guards would do the job about the multiple inclusions.
-> 
-> So the simpler (and not exactly correct IMHO) fix is attached (used in the 
-> Fedora Core package now). The more general and correct fix would be to add 
-> includes in the headers using the types and not including it.
-> 
-> For instance, to investigate the number of users of __u32 which does not 
-> include -- at least directly -- linux/types.h, I did this searching:
+On Fri, 14 Jul 2006 4:19pm  +0200, Pablo Neira Ayuso wrote:
 
-Thanks Felipe, but we already have a patch for this in SVN.
+> Thanks Felipe, but we already have a patch for this in SVN.
+> 
+> http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3651
 
-http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3651
+OK, thanks Pablo,
+
+I'll start using SVN HEAD.
 
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+Felipe Kellermann
