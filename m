@@ -1,17 +1,15 @@
-From: Jesper Dangaard Brouer <hawk@diku.dk>
-Subject: [PATCH] BUG: libiptc chain references bug
-Date: Fri, 14 Jul 2006 14:29:57 +0200 (CEST)
-Message-ID: <Pine.LNX.4.61.0607141427230.31153@tyr.diku.dk>
-References: <Pine.LNX.4.61.0607121722360.13610@ask.diku.dk>
-	<Pine.LNX.4.61.0607131303220.29013@tyr.diku.dk>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] libnfnetlink 0.0.16 and missing types
+Date: Fri, 14 Jul 2006 16:19:15 +0200
+Message-ID: <44B7A7E3.1030603@netfilter.org>
+References: <Pine.LNX.4.64.0607131821350.3308@pvaqre.alien.bet>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-511516064-1000784743-1152880197=:31153"
-Cc: hawk@comx.dk
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@lists.netfilter.org
-In-Reply-To: <Pine.LNX.4.61.0607131303220.29013@tyr.diku.dk>
+To: Felipe Kellermann <stdfk@terra.com.br>
+In-Reply-To: <Pine.LNX.4.64.0607131821350.3308@pvaqre.alien.bet>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,66 +21,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Felipe Kellermann wrote:
+> Using 2.6.17.1, GCC 4.1.1. libnfnetlink isn't compiling correctly.
+> 
+> libnfnetlink.c includes linux/netlink.h, which uses undefined typedefs 
+> because neither libnfnetlink.c nor linux/netlink.h includes linux/types.h.
+> 
+> Am just wondering if there is a rationale about the correct place to put 
+> this type of include (types.h). IMHO it would have to be placed in every 
+> type of header which uses types defined in linux/types.h. The include safe 
+> guards would do the job about the multiple inclusions.
+> 
+> So the simpler (and not exactly correct IMHO) fix is attached (used in the 
+> Fedora Core package now). The more general and correct fix would be to add 
+> includes in the headers using the types and not including it.
+> 
+> For instance, to investigate the number of users of __u32 which does not 
+> include -- at least directly -- linux/types.h, I did this searching:
 
----511516064-1000784743-1152880197=:31153
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Thanks Felipe, but we already have a patch for this in SVN.
 
-
-Correcting a chain references increment bug in libiptc.
-
-The bug lies in function iptc_delete_entry() / TC_DELETE_ENTRY.  The
-problem is the construction of "r" the rule entry, that is used for
-comparison. The problem is that the function iptcc_map_target()
-increase the target chains references count.
-
-The fix is to use function iptcc_delete_rule() to delete the "r" rule
-(as it decrement the counter again). To make it work a small NULL
-pointer check is also added iptcc_delete_rule().
-
-Signed-off-by: Jesper Dangaard Brouer <hawk@comx.dk>
+http://patchwork.netfilter.org/netfilter-devel/patch.pl?id=3651
 
 -- 
-Best regards
-   Jesper Brouer
-   ComX Networks A/S
-   Linux Network developer
-   Cand. Scient Datalog / MSc.
-   Author of http://adsl-optimizer.dk
----511516064-1000784743-1152880197=:31153
-Content-Type: TEXT/PLAIN; charset=US-ASCII;
-	name="iptables.references_bug01.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.61.0607141429570.31153@tyr.diku.dk>
-Content-Description: 
-Content-Disposition: attachment; filename="iptables.references_bug01.patch"
-
-SW5kZXg6IGlwdGFibGVzL2xpYmlwdGMvbGliaXB0Yy5jDQo9PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09DQotLS0gaXB0YWJsZXMvbGliaXB0Yy9saWJpcHRjLmMJ
-KHJldmlzaW9uIDY2NDQpDQorKysgaXB0YWJsZXMvbGliaXB0Yy9saWJpcHRj
-LmMJKHdvcmtpbmcgY29weSkNCkBAIC0zNDcsNyArMzQ3LDggQEAgc3RhdGlj
-IHZvaWQgaXB0Y2NfZGVsZXRlX3J1bGUoc3RydWN0IHJ1bA0KIAkgICAgJiYg
-ci0+anVtcCkNCiAJCXItPmp1bXAtPnJlZmVyZW5jZXMtLTsNCiANCi0JbGlz
-dF9kZWwoJnItPmxpc3QpOw0KKwlpZiAoci0+bGlzdC5uZXh0ICYmIHItPmxp
-c3QucHJldikNCisJICBsaXN0X2RlbCgmci0+bGlzdCk7DQogCWZyZWUocik7
-DQogfQ0KIA0KQEAgLTE1MTUsNiArMTUxNiw4IEBAIFRDX0RFTEVURV9FTlRS
-WShjb25zdCBJUFRfQ0hBSU5MQUJFTCBjaGENCiANCiAJbWVtY3B5KHItPmVu
-dHJ5LCBvcmlnZncsIG9yaWdmdy0+bmV4dF9vZmZzZXQpOw0KIAlyLT5jb3Vu
-dGVyX21hcC5tYXB0eXBlID0gQ09VTlRFUl9NQVBfTk9NQVA7DQorDQorCS8q
-IFJlbWVtYmVyIHRoYXQgaXB0Y2NfbWFwX3RhcmdldCBpbmNyZW1lbnQgdGFy
-Z2V0IGNoYWluIHJlZmVyZW5jZXMgKi8NCiAJaWYgKCFpcHRjY19tYXBfdGFy
-Z2V0KCpoYW5kbGUsIHIpKSB7DQogCQlERUJVR1AoInVuYWJsZSB0byBtYXAg
-dGFyZ2V0IG9mIHJ1bGUgZm9yIGNoYWluIGAlcydcbiIsIGNoYWluKTsNCiAJ
-CWZyZWUocik7DQpAQCAtMTU0MiwxMyArMTU0NSwxMyBAQCBUQ19ERUxFVEVf
-RU5UUlkoY29uc3QgSVBUX0NIQUlOTEFCRUwgY2hhDQogDQogCQljLT5udW1f
-cnVsZXMtLTsNCiAJCWlwdGNjX2RlbGV0ZV9ydWxlKGkpOw0KKwkJaXB0Y2Nf
-ZGVsZXRlX3J1bGUocik7IC8qIGZyZWUgYW5kIGRlY3JlbWVudCByZWZlcmVu
-Y2VzICovDQogDQogCQlzZXRfY2hhbmdlZCgqaGFuZGxlKTsNCi0JCWZyZWUo
-cik7DQogCQlyZXR1cm4gMTsNCiAJfQ0KIA0KLQlmcmVlKHIpOw0KKwlpcHRj
-Y19kZWxldGVfcnVsZShyKTsgLyogZnJlZSBhbmQgZGVjcmVtZW50IHJlZmVy
-ZW5jZXMgKi8NCiAJZXJybm8gPSBFTk9FTlQ7DQogCXJldHVybiAwOw0KIH0N
-Cg==
-
----511516064-1000784743-1152880197=:31153--
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
