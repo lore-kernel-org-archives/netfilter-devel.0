@@ -1,22 +1,12 @@
-From: Tom Eastep <teastep@shorewall.net>
-Subject: Re: RFC: Disable defered bridge hooks by default
-Date: Sat, 15 Jul 2006 07:32:32 -0700
-Message-ID: <1152973952.10593.16.camel@localhost.localdomain>
-References: <44AA3446.6050609@trash.net> <44AA3496.5050909@trash.net>
-	<44AEFE20.3020307@shorewall.net> <44AF200F.9000204@trash.net>
-	<44B40B4E.6080206@shorewall.net> <44B4183E.7010905@trash.net>
-	<44B57A9F.9000403@shorewall.net> <Pine.LNX.4.64.0607130933380.15827@x2>
-	<44B65492.3040506@shorewall.net> <Pine.LNX.4.64.0607131638180.15827@x2>
-	<44B6675B.6030000@shorewall.net>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] Use gcc to build shared objects
+Date: Sat, 15 Jul 2006 12:25:08 -0700
+Message-ID: <20060715192508.GA14699@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-5Z2lL7R1D5rBCmZWr7TD"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Bart De Schuymer <bdschuym@pandora.be>
+Content-Type: multipart/mixed; boundary="azLHFNyN32YCQGCU"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44B6675B.6030000@shorewall.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,45 +19,65 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---=-5Z2lL7R1D5rBCmZWr7TD
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+--azLHFNyN32YCQGCU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Thu, 2006-07-13 at 08:31 -0700, Tom Eastep wrote:
+As suggested by Dmitry Levin and included in Fedora Core releases,
+use gcc instead of ld to link shared objects.  Fedora rpm notes
+refer to this fixing a plugin problem, but does not offer specifics.
+But in any event, 'gcc -dumpspecs' does show gcc will pass a number
+of parameters which in theory it thinks are better.
 
->=20
-> In Shorewall, filtering on bridge port is usually done *first* to select =
-the
-> appropriate rule chain. In that rule chain, the user has access to more o=
-r less
-> the full box of iptables tools (at least those that are supported by kern=
-els
-> from kernel.org). To what extent those tools are actually used, I don't k=
-now.
->=20
+Compile tested both with and without NO_SHARED_LIBS.
 
-=46rom my quick survey, most Shorewall bridge users are filtering OUTPUT
-traffic and/or routed traffic based on egress port; where additional
-filtering is being used, it is most commonly based on source IP,
-protocol and destination port. One respondent is also using ipt_recent.
+Closes bug #454.
 
--Tom
---=20
-Tom Eastep    \ Nothing is foolproof to a sufficiently talented fool
-Shoreline,     \ http://shorewall.net
-Washington USA  \ teastep@shorewall.net
-PGP Public Key   \ https://lists.shorewall.net/teastep.pgp.key
+Phil
 
---=-5Z2lL7R1D5rBCmZWr7TD
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.2.2 (GNU/Linux)
 
-iD8DBQBEuPyAO/MAbZfjDLIRAvvjAJwMOK/N52Fo8L81mmnYBRNJW4tdggCeMjbH
-B3vxBEXaw37lMMNnwKW7Kr0=
-=R1Gt
------END PGP SIGNATURE-----
+--azLHFNyN32YCQGCU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-iptableslink
 
---=-5Z2lL7R1D5rBCmZWr7TD--
+diff -ru ipt-orig/include/iptables_common.h ipt-new/include/iptables_common.h
+--- ipt-orig/include/iptables_common.h	2006-06-19 09:53:03.000000000 -0700
++++ ipt-new/include/iptables_common.h	2006-07-15 12:02:59.000000000 -0700
+@@ -33,8 +33,10 @@
+ extern const char *program_name, *program_version;
+ extern char *lib_dir;
+ 
++#define _init __attribute__((constructor)) my_init
+ #ifdef NO_SHARED_LIBS
+ # ifdef _INIT
++#  undef _init
+ #  define _init _INIT
+ # endif
+   extern void init_extensions(void);
+diff -ru ipt-orig/Makefile ipt-new/Makefile
+--- ipt-orig/Makefile	2006-07-11 14:55:05.000000000 -0700
++++ ipt-new/Makefile	2006-07-15 12:15:23.000000000 -0700
+@@ -67,7 +67,7 @@
+ 		# The kernel is 64-bit, even though userspace is 32.
+ 		CFLAGS+=-DIPT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32
+ 	else
+-		EXT_LDFLAGS=-m elf64_sparc
++		EXT_LDFLAGS+=-Wl,-m,elf64_sparc
+ 	endif
+ endif
+ 
+diff -ru ipt-orig/Rules.make ipt-new/Rules.make
+--- ipt-orig/Rules.make	2006-05-24 09:11:58.000000000 -0700
++++ ipt-new/Rules.make	2006-07-15 12:02:59.000000000 -0700
+@@ -31,7 +31,7 @@
+ 	    sed -e 's@^.*\.o:@$*.d $*_sh.o:@' > $@
+ 
+ $(SHARED_LIBS): %.so : %_sh.o
+-	$(LD) -shared $(EXT_LDFLAGS) -o $@ $<
++	$(CC) -shared $(EXT_LDFLAGS) -o $@ $<
+ 
+ $(SHARED_SE_LIBS:%.so=%.d): %.d: %.c
+ 	@-$(CC) -M -MG $(CFLAGS) $< | \
+
+--azLHFNyN32YCQGCU--
