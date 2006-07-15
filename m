@@ -1,12 +1,16 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: [PATCH] Use gcc to build shared objects
-Date: Sat, 15 Jul 2006 12:25:08 -0700
-Message-ID: <20060715192508.GA14699@linuxace.com>
+From: "Paul C. Diem" <PCDiem@FoxValley.net>
+Subject: RE: [PATCH] libiptc.c blob parser
+Date: Sat, 15 Jul 2006 15:11:45 -0500
+Message-ID: <FFEPKIHJDEDDAAFOFDGFCELOCBAA.PCDiem@FoxValley.net>
+References: <44ADE145.7020508@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="azLHFNyN32YCQGCU"
+Content-Type: text/plain;
+	charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Cc: Jesper Dangaard Brouer <hawk@diku.dk>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
+To: "Patrick McHardy" <kaber@trash.net>
+In-Reply-To: <44ADE145.7020508@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,66 +22,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+The counters field is used later on when committing. I went back to my
+original patch that loads/uses the self-relative offset to the chain entry
+into the comefrom. The only problem with that method is that it assumes the
+offset from the ipt blob entry to the chain entry is less than 2^31. This
+assume is fine on 32-bit architectures but I'm not sure about 64-but
+architectures.
 
---azLHFNyN32YCQGCU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Paul C. Diem
+PCDiem@FoxValley.net
 
-As suggested by Dmitry Levin and included in Fedora Core releases,
-use gcc instead of ld to link shared objects.  Fedora rpm notes
-refer to this fixing a plugin problem, but does not offer specifics.
-But in any event, 'gcc -dumpspecs' does show gcc will pass a number
-of parameters which in theory it thinks are better.
-
-Compile tested both with and without NO_SHARED_LIBS.
-
-Closes bug #454.
-
-Phil
+-----Original Message-----
+From: netfilter-devel-bounces@lists.netfilter.org
+[mailto:netfilter-devel-bounces@lists.netfilter.org]On Behalf Of Patrick
+McHardy
+Sent: Thursday, July 06, 2006 11:21 PM
+To: Paul C. Diem
+Cc: Jesper Dangaard Brouer; netfilter-devel@lists.netfilter.org
+Subject: Re: [PATCH] libiptc.c blob parser
 
 
+Paul C. Diem wrote:
+> The patch I posted earlier assumed that the rule's chain was the last one
+on
+> the chain list and used the 32-bit comefrom field to hold the offset of
+the
+> chain list entry.
+>
+> This improved patch uses the chain_iterator_cur handle field to more
+> accurately get the chain, uses the counters field cast as a pointer to
+hold
+> a pointer directly to the chain list entry and only bothers to load the
+> pointer for the first rule in each chain (since that's the only one we
+need
+> it in).
 
---azLHFNyN32YCQGCU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-iptableslink
+I'm not very familiar with that code, so I wonder how that affects
+the counter values if you specifially set them or use iptables-save
+--counters.
 
-diff -ru ipt-orig/include/iptables_common.h ipt-new/include/iptables_common.h
---- ipt-orig/include/iptables_common.h	2006-06-19 09:53:03.000000000 -0700
-+++ ipt-new/include/iptables_common.h	2006-07-15 12:02:59.000000000 -0700
-@@ -33,8 +33,10 @@
- extern const char *program_name, *program_version;
- extern char *lib_dir;
- 
-+#define _init __attribute__((constructor)) my_init
- #ifdef NO_SHARED_LIBS
- # ifdef _INIT
-+#  undef _init
- #  define _init _INIT
- # endif
-   extern void init_extensions(void);
-diff -ru ipt-orig/Makefile ipt-new/Makefile
---- ipt-orig/Makefile	2006-07-11 14:55:05.000000000 -0700
-+++ ipt-new/Makefile	2006-07-15 12:15:23.000000000 -0700
-@@ -67,7 +67,7 @@
- 		# The kernel is 64-bit, even though userspace is 32.
- 		CFLAGS+=-DIPT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32
- 	else
--		EXT_LDFLAGS=-m elf64_sparc
-+		EXT_LDFLAGS+=-Wl,-m,elf64_sparc
- 	endif
- endif
- 
-diff -ru ipt-orig/Rules.make ipt-new/Rules.make
---- ipt-orig/Rules.make	2006-05-24 09:11:58.000000000 -0700
-+++ ipt-new/Rules.make	2006-07-15 12:02:59.000000000 -0700
-@@ -31,7 +31,7 @@
- 	    sed -e 's@^.*\.o:@$*.d $*_sh.o:@' > $@
- 
- $(SHARED_LIBS): %.so : %_sh.o
--	$(LD) -shared $(EXT_LDFLAGS) -o $@ $<
-+	$(CC) -shared $(EXT_LDFLAGS) -o $@ $<
- 
- $(SHARED_SE_LIBS:%.so=%.d): %.d: %.c
- 	@-$(CC) -M -MG $(CFLAGS) $< | \
 
---azLHFNyN32YCQGCU--
+
+--
+No virus found in this incoming message.
+Checked by AVG Free Edition.
+Version: 7.1.394 / Virus Database: 268.9.9/382 - Release Date: 7/4/2006
