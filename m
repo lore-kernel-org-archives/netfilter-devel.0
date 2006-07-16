@@ -1,13 +1,15 @@
-From: "Paul C. Diem" <PCDiem@FoxValley.net>
-Subject: Chain Sorting
-Date: Sat, 15 Jul 2006 15:19:04 -0500
-Message-ID: <FFEPKIHJDEDDAAFOFDGFKELOCBAA.PCDiem@FoxValley.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Chain Sorting
+Date: Sun, 16 Jul 2006 15:43:32 +0200
+Message-ID: <44BA4284.9010604@netfilter.org>
+References: <FFEPKIHJDEDDAAFOFDGFKELOCBAA.PCDiem@FoxValley.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: "Paul C. Diem" <PCDiem@FoxValley.net>
+In-Reply-To: <FFEPKIHJDEDDAAFOFDGFKELOCBAA.PCDiem@FoxValley.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,17 +21,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-In my quest to speed up the TC_INIT, I found that the libiptc.c searches the
-chain list for the alphabetically correct place to insert chains as it
-converts from the blob to the chain list. However, when adding a new chain
-in TC_CREATE_CHAIN, it simply adds the new chain to the end of the list.
+Paul C. Diem wrote:
+> In my quest to speed up the TC_INIT, I found that the libiptc.c searches the
+> chain list for the alphabetically correct place to insert chains as it
+> converts from the blob to the chain list. However, when adding a new chain
+> in TC_CREATE_CHAIN, it simply adds the new chain to the end of the list.
+> 
+> This leaves the chains unsorted when written back to the kernel and uses
+> lots of cycles when loading. I patched libiptc.c to simply add chains to the
+> end of the list when loading and use iptc_insert_chain in TC_CREATE_CHAIN to
+> insert newly created chains into the proper order. My
+> TC_INIT time with 4106 chains went from about 1.09 real seconds to about
+> 0.05 real seconds.
 
-This leaves the chains unsorted when written back to the kernel and uses
-lots of cycles when loading. I patched libiptc.c to simply add chains to the
-end of the list when loading and use iptc_insert_chain in TC_CREATE_CHAIN to
-insert newly created chains into the proper order. My
-TC_INIT time with 4106 chains went from about 1.09 real seconds to about
-0.05 real seconds.
+This seems interesting, please, could send post the patch?
 
-Paul C. Diem
-PCDiem@FoxValley.net
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
