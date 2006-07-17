@@ -1,17 +1,13 @@
-From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: Re: [RFC][PATCH] use of pkg-config in libnetfilter_*, conntrack,
- and ulogd2
-Date: Tue, 18 Jul 2006 15:29:51 +0200
-Message-ID: <200607181529.51851@nienna>
-References: <200603192324.50444@krak> <441F5C00.2060206@eurodev.net>
+From: zhongyu <zhongyu@18mail.cn>
+Subject: [MATCH] a match for qq
+Date: Tue, 18 Jul 2006 06:51:44 +0800
+Message-ID: <1153176704.15818.1.camel@localhost.localdomain>
+Reply-To: zhongyu@18mail.cn
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7BIT
-Cc: Harald Welte <laforge@netfilter.org>, Pablo Neira Ayuso <pablo@eurodev.net>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-In-reply-to: <441F5C00.2060206@eurodev.net>
-To: netfilter-devel@lists.netfilter.org
-Content-disposition: inline
+To: netfilter dev <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,41 +19,206 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+QQ is a very popular IM tool in Chinese. Some people may need this
+match :-)
 
-  Hi,
+###########This is the begin of ipt_qq.c########
+/***************************************************
+ * ipt_qq : a iptables match for qq 
+ *
+ * Author : Triplex Chung <xxx.phy@gmail.com>
+ *
+***************************************************/
+#include <linux/config.h>
+#include <linux/skbuff.h> 
+#include <linux/kmod.h>
+#include <linux/vmalloc.h>
+#include <linux/netdevice.h>
+#include <linux/module.h>
+#include <linux/ip.h>
+#include <linux/tcp.h>
+#include <linux/udp.h> 
+#include <linux/icmp.h>
+#include <linux/types.h>
+#include <linux/spinlock.h>
+#include <linux/sched.h>
+#include <linux/sysctl.h>
+#include <linux/timer.h>
+#include <net/ip.h> 
+#include <asm/uaccess.h>
+#include <asm/semaphore.h>
 
-On Tuesday 21 March 2006 02.50, Pablo Neira Ayuso wrote:
-> >   This weekend I've spent a significant amount of time configuring and
-> > compiling the whole libnetfilter_* universe and the conntrack and
-> > ulogd2 tools. My initial plan was to install everything under
-> > /opt/netfilter, however, the out-of-the-box configure.in files provided
-> > with these modules do not make this particularly easy.
-> >
-> >   So after spending some time trying all kinds of mantras and magical
-> > runes to get autoconfuse do what I intended to do, I came to the
-> > conclusion that all this would be much simpler if we used the
-> > PKG_CHECK_* macros in configure.in. The necessary pkgconfig .pc files
-> > are generated and installed anyway, so why not?
-> >
-> >   Of course this means that to compile these modules one will need
-> > pkg-config, but personally I don't consider this a problem. The
-> > additional benefit of this method would be that the only thing to take
-> > care of is that of setting a correct PKG_CONFIG_PATH, all the include
-> > paths and libraries are then found magically.
->
-> I like it, AFAIK pkg-config is always in most distros, so this new
-> requirement shouldn't be a problem. Moreover, this provides us a way to
-> easily maintain the library version dependencies. Since this also
-> affects other libraries, I'll wait for Harald's ACK before commiting
-> this to conntrack and libnetfilter_conntrack.
+MODULE_LICENSE("GPL");
 
-  Is there any chance of getting these patches applied? Compiling all the 
-necessary libraries from an SVN checkout is still a daunting task for me, 
-especially because of the nfnetlink dependency.
+static int mach_qq_bin(unsigned char *data, int dlen)
+{
+        if(dlen < 6)
+                return 0; 
+        if(data[0] != 0x2)
+                return 0;
+        if(data[3] != 0x0)
+                return 0;
+        if(data[4] != 0x16 || data[4] != 0x62)
+                return 0;
+        if(data[dlen - 1] != 0x3) 
+                return 0;
+        return 1;
+}
 
-  The original email and patches are here:
+static int
+match(const struct sk_buff *skb,
+      const struct net_device *in,
+      const struct net_device *out,
+      const void *matchinfo,
+      int offset,
+      const void *hdr,
+      u_int16_t datalen,
+      int *hotdrop)
+{
+        int dlen;
+        unsigned char *data;
+        struct iphdr *iph;
 
-  http://marc.theaimsgroup.com/?l=netfilter-devel&m=114280711926066&w=2
+         /* Must not be a fragment. */ 
+        if(offset)
+                return 0;
 
--- 
-KOVACS Krisztian
+        /*make sure that skb is linear*/
+        if(skb_is_nonlinear(skb)){
+                printk("QQ.match: nonlinear skb found\n");
+                return 0; 
+        }
+
+        iph = skb->nh.iph;
+        if(iph->protocol == IPPROTO_TCP) {
+                struct tcphdr *th = (void *)iph + iph->ihl * 4;
+                if (th->fin)
+                        return 0; 
+                if (th->syn)
+                        return 0;
+                if (th->rst)
+                        return 0;
+                /*if(ntohs(th->dest) != 80) {
+                        return 0; 
+                }*/
+                dlen = ntohs(iph->tot_len) - (iph->ihl * 4) - th->doff *
+4;
+                data = (void *)th + th->doff * 4;
+                return mach_qq_bin(data, dlen);
+        } else if (iph->protocol == IPPROTO_UDP) {
+                struct udphdr *uh = (void *)iph + iph->ihl * 4;
+                dlen = ntohs(iph->tot_len) - (iph->ihl * 4) -
+sizeof(struct udphdr);
+                data = (void *)uh + sizeof(struct udphdr);
+                return mach_qq_bin(data, dlen);
+        }
+
+        return 0;
+}
+
+static int
+checkentry(const char *tablename,
+         const struct ipt_ip *ip, 
+         void *matchinfo,
+         unsigned int matchsize,
+         unsigned int hook_mask)
+{
+        return 1;
+}
+
+static struct ipt_match qq_match = {
+        .name           = "qq", 
+        .match          = &match,
+        .checkentry     = &checkentry,
+        .me             = THIS_MODULE
+};
+
+static int __init init(void)
+{
+        return ipt_register_match(&qq_match); 
+}
+
+static void __exit fini(void)
+{
+}
+
+MODULE_AUTHOR("TripleX Chung <xxx.phy@gmail.com>");
+MODULE_DESCRIPTION("An extension to iptables to identify QQ."); 
+MODULE_LICENSE("GPL");
+
+module_init(init);
+module_exit(fini);
+
+##############this is the end of ipt_qq.c########
+
+#############this is the begin of libipt_qq.c########
+
+#include <stdio.h >
+#include <netdb.h>
+#include <string.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <getopt.h>
+#include <iptables.h>
+
+/* Function which prints out usage message. */ 
+static void
+help(void)
+{
+        printf("no options %s", IPTABLES_VERSION);
+}
+
+static struct option opts[] = {
+        {0}
+};
+
+/* Initialize the target. */
+static void
+init(struct ipt_entry_match *m, unsigned int *nfcache) 
+{
+}
+
+/* Function which parses command options; returns true if it
+   ate an option */
+static int
+parse(int c, char **argv, int invert, unsigned int *flags,
+      const struct ipt_entry *entry,
+      unsigned int *nfcache,
+      struct ipt_entry_match **match)
+{
+        return 1;
+}
+
+/* Final check; don't care. */
+static void final_check(unsigned int flags)
+{
+}
+
+/* Saves the targinfo in parsable form to stdout. */ 
+static void
+save(const struct ipt_ip *ip, const struct ipt_entry_target *target)
+{
+}
+
+static
+struct iptables_match qq
+= { NULL,
+    "qq",
+    IPTABLES_VERSION,
+    IPT_ALIGN(0), 
+    IPT_ALIGN(0),
+    &help,
+    &init,
+    &parse,
+    &final_check,
+    NULL, /* print */
+    &save,
+    opts
+};
+
+void _init(void)
+{
+        register_match(&qq); 
+}
+
+###########this is the end of libipt_qq.c########
