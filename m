@@ -1,17 +1,22 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/10] updates for ctnetlink and conntrack core
-Date: Wed, 19 Jul 2006 18:39:08 +0200
-Message-ID: <44BE602C.9070800@trash.net>
-References: <44ADC2EE.905@netfilter.org>	<44ADED94.3010703@trash.net>	<44ADF800.80701@trash.net>	<44ADFD1F.7050602@trash.net>	<44AE65C0.8030209@netfilter.org>	<44B1DACC.5030309@trash.net>
-	<44B6A67F.70102@netfilter.org>
+Subject: Re: RFC: Disable defered bridge hooks by default
+Date: Wed, 19 Jul 2006 19:15:13 +0200
+Message-ID: <44BE68A1.4070609@trash.net>
+References: <44AA3446.6050609@trash.net>
+	<44AA3496.5050909@trash.net>	<44AEFE20.3020307@shorewall.net>
+	<44AF200F.9000204@trash.net>	<44B493BC.5010302@snapgear.com>
+	<Pine.LNX.4.64.0607130937580.15827@x2>	<44B654AF.2080401@ufomechanic.net>
+	<Pine.LNX.4.64.0607131646090.15827@x2>
+	<44B666C5.8040603@ufomechanic.net> <44BE5F9E.8020603@trash.net>
+	<44BE624E.5080307@ufomechanic.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Bart De Schuymer <bdschuym@pandora.be>, Tom Eastep <teastep@shorewall.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <44B6A67F.70102@netfilter.org>
+To: Amin Azez <azez@ufomechanic.net>
+In-Reply-To: <44BE624E.5080307@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,17 +28,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> So, to keep consistency with other netlink subsystem, I can remake my
-> patch based on this assumptions:
+Amin Azez wrote:
+> * Patrick McHardy wrote, On 19/07/06 17:36:
 > 
-> - NEW events dump everything but values that are unset like counters,
-> mark, ...
-> - UPDATE events dump everything but unset fields and the counters, they
-> don't provide very useful information AFAICS.
-> - DESTROY, dump everything, counters included.
+>>The routing code shouldn't know anything about the bridge FDB.
+>>  
 > 
-> Please let me know what you think.
+> True, I only suggest that the bridge work out what it is going to do
+> with the packet just after routing (if any) but before post-routing. I
+> can't think of much else that will happen to the packets between
+> postrouting and bridge output that would spoil this.
+> 
+> I wasn't suggesting that bridging and routing modules should peer over
+> eachothers shoulders, but rather than defer the hooks we bring forward
+> the bridge decision.
 
-That sounds good, but I don't think DESTROY needs to dump more than
-NEW or UPDATE.
+
+But at that point again you can't even be sure if the packet will
+finally exit a bridge device. TC action could direct the packet
+to a different device from the bridge output queue. There is no
+clean solution for this which integrates well with all the other
+things Linux networking can do.
+
+>>>I think if ebtables becomes the answer it will just grow to be as big as
+>>>iptables with all the extra matches iptables has, just as iptables has
+>>>extra -p tcp and -p udp matches.
+>>>    
+>>
+>>Thats where MARK will be useful, but only if the target is available
+>>in ebtables. SNAT based on bridge port won't be possible anymore.
+>>  
+> 
+> Yes but the ebtables could get as big as turing machine as the possible
+> ebtables actions end up getting encoded into the mark; with such side
+> deferred effects as:
+> * set dscp to various values
+> * set mark (for tc)
+> * drop
+> 
+> all multipled by the number of output ports, so that these actions can
+> be taken based on the output port.
+
+
+Worst case will need some space, but common sense tells me that this is
+not what users are doing (DSCP based on bridge output port combined with
+criteria only usable within iptables? What for?). Marking for tc can
+be done within iptables, and ebtables just needs to encode the output
+port in the mark if you really need it (why would you? you have a
+seperate device, the bridge port, to do QoS on).
+
+Anyway, I'll submit the patch soon, which gives us at least 6 more month
+to work this out.
