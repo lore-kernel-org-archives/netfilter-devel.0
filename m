@@ -1,15 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] reduce service_to_port duplication
-Date: Thu, 20 Jul 2006 18:33:10 +0200
-Message-ID: <44BFB046.40604@trash.net>
-References: <20060713012401.GA19152@linuxace.com>
+Subject: Re: [PATCH] reduce parse_*_port duplication
+Date: Thu, 20 Jul 2006 18:34:51 +0200
+Message-ID: <44BFB0AB.20702@trash.net>
+References: <20060715011822.GA7115@linuxace.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20060713012401.GA19152@linuxace.com>
+In-Reply-To: <20060715011822.GA7115@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,7 +22,7 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Phil Oester wrote:
-> The service_to_port function is used in a number of places, and could
-> benefit from some centralization instead of being duplicated everywhere.
+> The below patch (dependent upon my 'reduce service_to_port duplication' patch)
+> centralizes the parse_*_port functions into parse_port.
 
-Applied, thanks Phil.
+Also applied, thanks again :)
