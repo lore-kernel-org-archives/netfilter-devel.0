@@ -1,12 +1,13 @@
-From: Iosif Peterfi <iosif.peterfi@fortesys.ro>
-Subject: tproxy target and CONNMARK
-Date: Thu, 20 Jul 2006 11:18:48 +0300
-Message-ID: <1153383529.27719.56.camel@wks-toto>
+From: "Rakhahari Bhunia" <rbhunia1234@gmail.com>
+Subject: Port Triggering in netfilter/iptables
+Date: Thu, 20 Jul 2006 17:30:17 +0900
+Message-ID: <3703e59c0607200130l1fa3654j4b0203fe231bb823@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,17 +19,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello list,
+Hi,
+I am new to this group and also do not have much knowledge about
+netfilter/iptables. I have netfilter of kernel version 2.4.20-8. But
+it does not have support for Port Triggering. Can anybody please tell
+me if Port Triggering is supported in netfilter/iptables. If it is
+supported then please tell me from where I can get the latest
+patches/source codes for this.
 
-	I would like to know if tproxy target supports CONNMARK. The idea
-behind the question is to mark packets in PREROUTING, then restore the
-mark in POSTROUTING, using a transparent proxy.
-	What I would like to achieve is shape the traffic on a transparent
-squid proxy machine with 2 ISPs.
-	Please correct me if i took the wrong way dealing with this problem.
-        I know is possible doing ingress shaping, but i don't want this.
+Thanks in advance.
 
-
-Thanks,
-Iosif Peterfi
- 
+Regards,
+R Bhunia
