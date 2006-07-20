@@ -1,18 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC][PATCH] use of pkg-config in libnetfilter_*, conntrack,
- and ulogd2
-Date: Thu, 20 Jul 2006 18:38:14 +0200
-Message-ID: <44BFB176.8030901@trash.net>
-References: <200603192324.50444@krak> <441F5C00.2060206@eurodev.net>
-	<200607181529.51851@nienna>
+Subject: Re: Chain Sorting
+Date: Thu, 20 Jul 2006 18:40:57 +0200
+Message-ID: <44BFB219.9090503@trash.net>
+References: <FFEPKIHJDEDDAAFOFDGFOELOCBAA.PCDiem@FoxValley.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org,
-	Pablo Neira Ayuso <pablo@eurodev.net>
+Cc: netfilter-devel@lists.netfilter.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@sch.bme.hu>
-In-Reply-To: <200607181529.51851@nienna>
+To: "Paul C. Diem" <PCDiem@FoxValley.net>
+In-Reply-To: <FFEPKIHJDEDDAAFOFDGFOELOCBAA.PCDiem@FoxValley.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,15 +22,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-KOVACS Krisztian wrote:
->   Is there any chance of getting these patches applied? Compiling all the 
-> necessary libraries from an SVN checkout is still a daunting task for me, 
-> especially because of the nfnetlink dependency.
-> 
->   The original email and patches are here:
-> 
->   http://marc.theaimsgroup.com/?l=netfilter-devel&m=114280711926066&w=2
-> 
+Paul C. Diem wrote:
+> Again, my apologies for not being familiar with maintaining my mods with cvs
+> and the proper way to submit patches. Here's a diff of the changes I've made
+> to libiptc.c including the modification to load/use the chain entry offset
+> for use by the parse and the modification to insert new chains in the proper
+> order and not sort chains on init:
 
-I'm fine with this. Objections anyone? Otherwise please resend the
-patches and I'll apply them.
+I'm not too familiar with that code, so I'm having a hard time judging
+if this will break anything. Are there any known issues? If you could
+run nfsim against this patch that would help put my mind at ease :)
