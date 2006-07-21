@@ -1,16 +1,13 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: [PATCH] priv_data 0/2
-Date: Fri, 21 Jul 2006 10:52:15 +0100
-Message-ID: <44C0A3CF.9020702@ufomechanic.net>
-References: <200606261641.47294.max@nucleus.it>	<44A962DF.3080406@trash.net>	<200607032305.06581.max@nucleus.it>	<44A9A103.8090705@anduras.de>
-	<44A9B458.1030106@trash.net>
+From: "Emanuele Colombo" <colomboe@msec.it>
+Subject: Send a packet at a specific time
+Date: Fri, 21 Jul 2006 13:51:03 +0200
+Message-ID: <e67264960607210451t5077dae1o3aaaf17286d1c01e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44A9B458.1030106@trash.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,18 +19,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-* Patrick McHardy wrote, On 04/07/06 01:20:
-> Sven Anders wrote:
->> If this is merged, I would like to see a negated limit...
->> I need some advice to preserve compatibility here.
-> 
-> Once this is merged we can convert matches and targets to keep their
-> private state outside of the structure shared with userspace and can
-> start reusing the fields, since they are ignored by userspace anyway.
-> I'm not sure, but I think currently userspace initializes them to 0,
-> which should make this easy.
+Hi! I'm developing a kernel module that should run on a pc configured
+as a bridge. It should look for every packet that pass on the bridge
+and, only for some packets, stop them and then let them go only at a
+specific time.
 
-Relying on userspace to initialize kernel structures to 0 smells like
-danger, and a possible exploit point.
+The amount of time that these packets needs to hold is about some milliseconds.
 
-Sam
+My idea was to filter packets with an hook on POST_ROUTING and look
+for packets that needs to be "temporary blocked". For these packets
+I'm going to return NF_QUEUE, and then in my queue hook function make
+them wait with the msleep function. The Netfilter Hacking HowTo says
+"This has similar semantics to registering for a hook, except you can
+block processing the packet", so I understand that my queue hook
+function can block his execution with an msleep without problems.
+
+Anyway, running this module on a bridge makes it hang, and I must
+reset the pc. What's wrong? How can I make a work like this?
+
+Thanks
+Emanuele Colombo
