@@ -1,27 +1,26 @@
 From: Andrew Beverley <andy@andybev.com>
 Subject: Re: Connlimit and linux-2.6.17
-Date: Sat, 22 Jul 2006 00:30:58 +0100
-Message-ID: <44C163B2.10503@andybev.com>
+Date: Sat, 22 Jul 2006 01:10:12 +0100
+Message-ID: <44C16CE4.3030302@andybev.com>
 References: <44BEA42B.3000304@andybev.com>	<Pine.LNX.4.64.0607200026310.4015@bizon.gios.gov.pl>	<44BEB607.3000408@andybev.com>
 	<Pine.LNX.4.64.0607212050390.17358@bizon.gios.gov.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: kraxel@bytesex.org, martin.bene@icomedias.com,
-	netfilter-devel@lists.netfilter.org,
-	netfilter@lists.netfilter.org, adlan.elm@gmail.com
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+	netfilter-devel@lists.netfilter.org, netfilter@lists.netfilter.org
+Return-path: <netfilter-bounces@lists.netfilter.org>
 To: Krzysztof Oledzki <olenf@ans.pl>
 In-Reply-To: <Pine.LNX.4.64.0607212050390.17358@bizon.gios.gov.pl>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter>
+List-Post: <mailto:netfilter@lists.netfilter.org>
+List-Help: <mailto:netfilter-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter>,
+	<mailto:netfilter-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-bounces@lists.netfilter.org
+Errors-To: netfilter-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 >>>> I (and others, see netfilter list) are having trouble compiling 
@@ -36,9 +35,14 @@ List-Id: netfilter-devel.vger.kernel.org
 >>> with limited GPRS/EDGE access it is not so simple.
 > 
 > OK, I fixed the connlimit extension. Please:
+> 
 >  - tell me if it works (or not).
+> 
 
-Yes, many thanks, I've just compiled the patched kernel and connlimit seems to 
-work fine.
+I forgot to mention - I get a lot of 'ipt_connlimit: Oops: invalid ct state' error 
+messages scrolling up the screen. Is it safe for me to edit ipt_connlimit.c to not 
+print them? Or are they telling me there is something wrong with my setup?
+
+Thanks,
 
 Andy
