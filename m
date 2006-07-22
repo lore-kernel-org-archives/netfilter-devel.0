@@ -1,15 +1,19 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH] proto_to_name duplication
-Date: Sat, 22 Jul 2006 09:39:05 -0700
-Message-ID: <20060722163905.GA6846@linuxace.com>
-References: <20060721225612.GA3951@linuxace.com> <44C22C7C.2080909@trash.net>
+From: zhongyu <zhongyu@18mail.cn>
+Subject: Re: [MATCH] a match for qq
+Date: Sat, 22 Jul 2006 10:20:16 +0800
+Message-ID: <1153534816.3602.3.camel@localhost.localdomain>
+References: <1153176704.15818.1.camel@localhost.localdomain>
+	<44BFAEA4.5070507@trash.net>
+	<1153366270.24974.7.camel@localhost.localdomain>
+	<44C0144A.6060604@trash.net>
+Reply-To: zhongyu@18mail.cn
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <44C22C7C.2080909@trash.net>
+To: Patrick McHardy <kaber@trash.net>,
+	netfilter dev <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <44C0144A.6060604@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,16 +25,33 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Jul 22, 2006 at 03:47:40PM +0200, Patrick McHardy wrote:
-> > Incidentally - it's probably time to remove the superfluous mport
-> > match.  Anyone still using it can probably stick with older userspace.
-> 
-> You're probably right, but as long as it doesn't cause any work I
-> also have no problem with keeping it. Do you know how long ago the
-> mport patch was removed from pom? Couldn't find anything in the
-> SVN history.
+I setup a repository
+http://218.241.65.3:8080/svn
+Is it ok?
+MSN and QQ are still in the same match now, I will seperate them if
+there are too many functions :-)
 
-It was removed in mid-May.  But you're right - might as well just leave it
-alone unless it becomes a maintenance headache.
-
-Phil
+2006-07-21 01:39 +0200=EF=BC=8CPatrick McHardy=EF=BC=9A
+> zhongyu wrote:
+> > Ofcause, and I had added the msn support for this match, so the modul=
+e
+> > name was changed to ipt_im. I will search the STL protocol and add th=
+e
+> > GoogleTalk support soon (my current idea is match the STL
+> > certifacation's common name).
+> > The new code is here
+> > http://www.18mail.cn/ipt_im.tgz
+>=20
+> You need to publish an index file for a pomng repository.
+>=20
+> Check out one of the existing repositories for examples:
+>=20
+> # geoip, maintained by Samuel Jean <jix@bugmachine.ca>
+> http://mynodes.net/pub/linux/netfilter/patchlets
+>=20
+> # condition, maintained by Massimiliano Hofer <max@nucleus.it>
+> http://www.nucleus.it/pom-repo
+>=20
+> # ipp2p and time maintained by Krzysztof Oledzki <ole@ans.pl>
+> http://people.netfilter.org/ole/pom/
+>=20
