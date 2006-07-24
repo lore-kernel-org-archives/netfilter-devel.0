@@ -1,19 +1,15 @@
-From: zhongyu <zhongyu@18mail.cn>
-Subject: Re: [MATCH] a match for qq
-Date: Sat, 22 Jul 2006 10:20:16 +0800
-Message-ID: <1153534816.3602.3.camel@localhost.localdomain>
-References: <1153176704.15818.1.camel@localhost.localdomain>
-	<44BFAEA4.5070507@trash.net>
-	<1153366270.24974.7.camel@localhost.localdomain>
-	<44C0144A.6060604@trash.net>
-Reply-To: zhongyu@18mail.cn
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH] proto_to_name duplication
+Date: Mon, 24 Jul 2006 14:38:32 +0900 (JST)
+Message-ID: <200607240538.k6O5cYwP024759@toshiba.co.jp>
+References: <20060721225612.GA3951@linuxace.com> <44C22C7C.2080909@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: kernel@linuxace.com, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>,
-	netfilter dev <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <44C0144A.6060604@trash.net>
+To: kaber@trash.net
+In-Reply-To: <44C22C7C.2080909@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,33 +21,29 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I setup a repository
-http://218.241.65.3:8080/svn
-Is it ok?
-MSN and QQ are still in the same match now, I will seperate them if
-there are too many functions :-)
 
-2006-07-21 01:39 +0200=EF=BC=8CPatrick McHardy=EF=BC=9A
-> zhongyu wrote:
-> > Ofcause, and I had added the msn support for this match, so the modul=
-e
-> > name was changed to ipt_im. I will search the STL protocol and add th=
-e
-> > GoogleTalk support soon (my current idea is match the STL
-> > certifacation's common name).
-> > The new code is here
-> > http://www.18mail.cn/ipt_im.tgz
->=20
-> You need to publish an index file for a pomng repository.
->=20
-> Check out one of the existing repositories for examples:
->=20
-> # geoip, maintained by Samuel Jean <jix@bugmachine.ca>
-> http://mynodes.net/pub/linux/netfilter/patchlets
->=20
-> # condition, maintained by Massimiliano Hofer <max@nucleus.it>
-> http://www.nucleus.it/pom-repo
->=20
-> # ipp2p and time maintained by Krzysztof Oledzki <ole@ans.pl>
-> http://people.netfilter.org/ole/pom/
->=20
+Hi,
+
+From: Patrick McHardy <kaber@trash.net>
+Date: Sat, 22 Jul 2006 15:47:40 +0200
+
+> Phil Oester wrote:
+> > Update multiport match to use the iptables version of proto_to_name
+> > instead of reinventing the wheel.
+> 
+> Also applied, thanks Phil.
+
+This allows iptables to send the invalid entry to kernel when
+people do 'iptables -p icmp -m multiport --sports 10000 ...',
+for example. Of cause kernel can reject this, but iptables cannot
+output useful error message after that.
+
+check_proto() should not allow protocols other than tcp, udp, sctp and
+dccp. That's why libip{,6}t_multiport have the other version of
+proto_to_name().
+
+Please revert this or add check for protocol number.
+
+Regards,
+
+-- Yasuyuki Kozakai
