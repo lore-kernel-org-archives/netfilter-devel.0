@@ -1,18 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] proto_to_name duplication
-Date: Tue, 25 Jul 2006 03:21:33 +0200
-Message-ID: <44C5721D.70806@trash.net>
-References: <20060721225612.GA3951@linuxace.com> <44C22C7C.2080909@trash.net>
-	<200607240538.k6O5cYwP024759@toshiba.co.jp>
-	<20060724144950.GA8973@linuxace.com>
+From: "Ming-Ching Tiew" <mingching.tiew@redtone.com>
+Subject: netfilter newbie asking about writing matches
+Date: Tue, 25 Jul 2006 09:24:00 +0800
+Message-ID: <008b01c6af89$024fc380$0100a8c0@newlife>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Phil Oester <kernel@linuxace.com>
-In-Reply-To: <20060724144950.GA8973@linuxace.com>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,22 +19,23 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Phil Oester wrote:
-> On Mon, Jul 24, 2006 at 02:38:32PM +0900, Yasuyuki KOZAKAI wrote:
-> 
->>This allows iptables to send the invalid entry to kernel when
->>people do 'iptables -p icmp -m multiport --sports 10000 ...',
->>for example. Of cause kernel can reject this, but iptables cannot
->>output useful error message after that.
->>
->>check_proto() should not allow protocols other than tcp, udp, sctp and
->>dccp. That's why libip{,6}t_multiport have the other version of
->>proto_to_name().
->>
->>Please revert this or add check for protocol number.
-> 
-> 
-> Good catch.  Probably should just revert this one for simplicity.
 
+Well I have asked about the user space counter part of
+xt_statistic match in iptables but get no response in
+netfilter@lists.netfilter.org.
 
-Agreed, I've reverted it. Thanks.
+Now I am getting into the iptables/extensions/libipt_random.c
+itself. It is still using the wrong structure for passing into 
+the kernel.
+
+I have modified the C program to use struct xt_statistic_info
+in everywhere of the C code. The iptables compiles now.
+But my question is, now the iptables library is libipt_random.so,
+whereis the kernel module is xt_statistic.ko, which part of
+the iptables code which instruct the kernel to use xt_statistic.ko
+for the matching ?
+
+Don't fire me, I just just a newbie trying hard to get my work
+accomplished.
+
+Regards. 
