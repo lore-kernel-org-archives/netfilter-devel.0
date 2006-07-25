@@ -1,9 +1,9 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/8][CONNTRACK] mark conntrack event
-Date: Tue, 25 Jul 2006 15:17:24 +0200
-Message-ID: <44C619E4.90403@netfilter.org>
+Subject: [PATCH 2/8][CTNETLINK] dump conntrack mark
+Date: Tue, 25 Jul 2006 15:17:44 +0200
+Message-ID: <44C619F8.40201@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030604040605010408090303"
+Content-Type: multipart/mixed; boundary="------------070002030705000608040101"
 Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -19,12 +19,11 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------030604040605010408090303
+--------------070002030705000608040101
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-This patch introduces the mark event. ctnetlink can use this to know if
-the mark needs to be dumped.
+ctnetlink dumps the mark iif the event mark happened
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
@@ -32,66 +31,48 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 The dawn of the fourth age of Linux firewalling is coming; a time of 
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------030604040605010408090303
+--------------070002030705000608040101
 Content-Type: text/plain;
- name="01mark.patch"
+ name="02dump_mark.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="01mark.patch"
+ filename="02dump_mark.patch"
 
-[CONNTRACK] mark conntrack event
+[CTNETLINK] Dump conntrack mark
 
-This patch introduces the mark event. ctnetlink can use this to know if
-the mark needs to be dumped.
+ctnetlink dumps the mark iif the event mark happened
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Index: net-2.6/include/linux/netfilter/nf_conntrack_common.h
+Index: net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c
 ===================================================================
---- net-2.6.orig/include/linux/netfilter/nf_conntrack_common.h	2006-07-06 18:24:40.000000000 +0200
-+++ net-2.6/include/linux/netfilter/nf_conntrack_common.h	2006-07-06 18:31:52.000000000 +0200
-@@ -125,6 +125,10 @@
- 	/* Counter highest bit has been set */
- 	IPCT_COUNTER_FILLING_BIT = 11,
- 	IPCT_COUNTER_FILLING = (1 << IPCT_COUNTER_FILLING_BIT),
-+
-+	/* Mark is set */
-+	IPCT_MARK_BIT = 12,
-+	IPCT_MARK = (1 << IPCT_MARK_BIT),
- };
+--- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-07-06 19:52:51.000000000 +0200
++++ net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-07-06 19:52:54.000000000 +0200
+@@ -385,6 +385,10 @@ static int ctnetlink_conntrack_event(str
+ 	    ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0)
+ 		goto nfattr_failure;
  
- enum ip_conntrack_expect_events {
-Index: net-2.6/net/netfilter/xt_CONNMARK.c
++	if (events & IPCT_MARK
++	    && ctnetlink_dump_mark(skb, ct) < 0)
++		goto nfattr_failure;
++
+ 	nlh->nlmsg_len = skb->tail - b;
+ 	nfnetlink_send(skb, 0, group, 0);
+ 	return NOTIFY_DONE;
+Index: net-2.6/net/netfilter/nf_conntrack_netlink.c
 ===================================================================
---- net-2.6.orig/net/netfilter/xt_CONNMARK.c	2006-07-06 18:24:40.000000000 +0200
-+++ net-2.6/net/netfilter/xt_CONNMARK.c	2006-07-06 18:36:23.000000000 +0200
-@@ -52,13 +52,25 @@
- 	    switch(markinfo->mode) {
- 	    case XT_CONNMARK_SET:
- 		newmark = (*ctmark & ~markinfo->mask) | markinfo->mark;
--		if (newmark != *ctmark)
-+		if (newmark != *ctmark) {
- 		    *ctmark = newmark;
-+#ifdef CONFIG_IP_NF_CONNTRACK_EVENTS
-+		    ip_conntrack_event_cache(IPCT_MARK, *pskb);
-+#else
-+		    nf_conntrack_event_cache(IPCT_MARK, *pskb);
-+#endif
-+		}
- 		break;
- 	    case XT_CONNMARK_SAVE:
- 		newmark = (*ctmark & ~markinfo->mask) | ((*pskb)->nfmark & markinfo->mask);
--		if (*ctmark != newmark)
-+		if (*ctmark != newmark) {
- 		    *ctmark = newmark;
-+#ifdef CONFIG_IP_NF_CONNTRACK_EVENTS
-+		    ip_conntrack_event_cache(IPCT_MARK, *pskb);
-+#else
-+		    nf_conntrack_event_cache(IPCT_MARK, *pskb);
-+#endif
-+		}
- 		break;
- 	    case XT_CONNMARK_RESTORE:
- 		nfmark = (*pskb)->nfmark;
+--- net-2.6.orig/net/netfilter/nf_conntrack_netlink.c	2006-07-06 19:53:19.000000000 +0200
++++ net-2.6/net/netfilter/nf_conntrack_netlink.c	2006-07-06 19:53:43.000000000 +0200
+@@ -395,6 +395,10 @@ static int ctnetlink_conntrack_event(str
+ 	    ctnetlink_dump_counters(skb, ct, IP_CT_DIR_REPLY) < 0)
+ 		goto nfattr_failure;
+ 
++	if (events & IPCT_MARK
++	    && ctnetlink_dump_mark(skb, ct) < 0)
++		goto nfattr_failure;
++
+ 	nlh->nlmsg_len = skb->tail - b;
+ 	nfnetlink_send(skb, 0, group, 0);
+ 	return NOTIFY_DONE;
 
---------------030604040605010408090303--
+--------------070002030705000608040101--
