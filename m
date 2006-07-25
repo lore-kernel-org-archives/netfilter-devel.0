@@ -1,13 +1,13 @@
-From: "Samuel Jean" <jix@bugmachine.ca>
-Subject: Re: [MATCH] a match for qq
-Date: Tue, 25 Jul 2006 12:23:32 -0000
-Message-ID: <twig.1153830212.63660@bugmachine.ca>
-References: <44C572BE.1070302@trash.net>
-Reply-To: jix@bugmachine.ca
-Cc: netfilter-devel@lists.netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/8] ctnetlink updates incarnation #2
+Date: Tue, 25 Jul 2006 15:17:07 +0200
+Message-ID: <44C619D3.5040306@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <zhongyu@18mail.cn>
-In-Reply-To: <1153739213.4128.5.camel@localhost.localdomain>
+To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,25 +19,27 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+Hi,
 
-On Mon, Jul 24, 2006, zhongyu <zhongyu@18mail.cn> said:
+Here follows the #2 incarnation of the ctnetlink updates:
 
-> Sorry I forgot to add the help/info file. They are ok now, but I still
-> have no idea what index file is, because I can check out none of the
-> extra repository like
-> # geoip, maintained by Samuel Jean <jix@bugmachine.ca>
-> http://mynodes.net/pub/linux/netfilter/patchlets
+[CONNTRACK] mark conntrack event
+[CTNETLINK] dump conntrack mark
+[CTNETLINK] send expectation events iif there listeners
+[CTNETLINK] Fix race condition on conntrack creation
+[CONNTRACK] Introduce the pickup facilities to take over TCP connections
+[CTNETLINK] Rework conntrack fields dumping logic on events
+[CTNETLINK] send conntrack events on ctnetlink actions
+[CTNETLINK] Remove useless event-bit-is-set checkings on updates
 
-Basically, that file contains the external patchlets available from your
-repository.
+Patches 1-3 are trivial, Patrick was OK with them. Patches 4-8 are based 
+on their previous incarnation plus Patrick's suggestions.
 
-Look at -- for exemple -- http://people.netfilter.org/peejix/patchlets/
+I'll be leaving to Valencia and Barcelona tomorrow but I think that I'll 
+have an internet connection up to August 1st.
 
-This is not required to be a Subversion repository. Interesting idea tho.
+Comments welcome.
 
-> Please help me :-)
-
-Hope that helps,
-
-Samuel
+-- 
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
