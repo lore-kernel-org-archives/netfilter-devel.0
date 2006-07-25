@@ -1,13 +1,19 @@
-From: "Ming-Ching Tiew" <mingching.tiew@redtone.com>
-Subject: netfilter newbie asking about writing matches
-Date: Tue, 25 Jul 2006 09:24:00 +0800
-Message-ID: <008b01c6af89$024fc380$0100a8c0@newlife>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [MATCH] a match for qq
+Date: Tue, 25 Jul 2006 03:24:14 +0200
+Message-ID: <44C572BE.1070302@trash.net>
+References: <1153176704.15818.1.camel@localhost.localdomain>	
+	<44BFAEA4.5070507@trash.net>	
+	<1153366270.24974.7.camel@localhost.localdomain>	
+	<44C0144A.6060604@trash.net>
+	<1153534816.3602.3.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
+Cc: netfilter dev <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: <netfilter-devel@lists.netfilter.org>
+To: zhongyu@18mail.cn
+In-Reply-To: <1153534816.3602.3.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,23 +25,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+zhongyu wrote:
+> I setup a repository
+> http://218.241.65.3:8080/svn
+> Is it ok?
 
-Well I have asked about the user space counter part of
-xt_statistic match in iptables but get no response in
-netfilter@lists.netfilter.org.
-
-Now I am getting into the iptables/extensions/libipt_random.c
-itself. It is still using the wrong structure for passing into 
-the kernel.
-
-I have modified the C program to use struct xt_statistic_info
-in everywhere of the C code. The iptables compiles now.
-But my question is, now the iptables library is libipt_random.so,
-whereis the kernel module is xt_statistic.ko, which part of
-the iptables code which instruct the kernel to use xt_statistic.ko
-for the matching ?
-
-Don't fire me, I just just a newbie trying hard to get my work
-accomplished.
-
-Regards. 
+The index and help/info files appear to be still missing.
+Please check out one of the existing patchlet repository
+for an example.
