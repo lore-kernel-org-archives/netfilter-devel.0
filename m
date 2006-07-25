@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 01/06]: nf_queue: handle NF_STOP and unknown verdicts in
-	nf_reinject
-Date: Tue, 25 Jul 2006 05:26:55 +0200 (MEST)
-Message-ID: <20060725032655.25063.6835.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 02/06]: conntrack: fix SYSCTL=n compile
+Date: Tue, 25 Jul 2006 05:26:56 +0200 (MEST)
+Message-ID: <20060725032656.25063.63057.sendpatchset@localhost.localdomain>
 References: <20060725032653.25063.8139.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,51 +18,63 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: nf_queue: handle NF_STOP and unknown verdicts in nf_reinject
+[NETFILTER]: conntrack: fix SYSCTL=n compile
 
-In case of an unknown verdict or NF_STOP the packet leaks. Unknown verdicts
-can happen when userspace is buggy. Reinject the packet in case of NF_STOP,
-drop on unknown verdicts.
-
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 559fa54b6c0d2813de1d4753964587fc3655bbf1
-tree b160176d29bdf8ff93cf6491533e41104fa19f93
-parent 440848a8e33fc1927bab45bd73f6c8e042ea7abd
-author Patrick McHardy <kaber@trash.net> Tue, 25 Jul 2006 00:02:11 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 25 Jul 2006 00:02:11 +0200
+commit 4aed24265c0b6270d328362ff66b51fed56a9d1a
+tree fd66f207da170da399330d7dbc26691b8a8a7488
+parent 559fa54b6c0d2813de1d4753964587fc3655bbf1
+author Adrian Bunk <bunk@stusta.de> Tue, 25 Jul 2006 00:04:54 +0200
+committer Patrick McHardy <kaber@trash.net> Tue, 25 Jul 2006 00:04:54 +0200
 
- net/netfilter/nf_queue.c |    9 ++++-----
- 1 files changed, 4 insertions(+), 5 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_standalone.c |    4 ++--
+ net/netfilter/nf_conntrack_standalone.c      |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index bb6fcee..662a869 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -219,21 +219,20 @@ #endif
+diff --git a/net/ipv4/netfilter/ip_conntrack_standalone.c b/net/ipv4/netfilter/ip_conntrack_standalone.c
+index 7bd3c22..7a9fa04 100644
+--- a/net/ipv4/netfilter/ip_conntrack_standalone.c
++++ b/net/ipv4/netfilter/ip_conntrack_standalone.c
+@@ -534,6 +534,8 @@ static struct nf_hook_ops ip_conntrack_o
  
- 	switch (verdict & NF_VERDICT_MASK) {
- 	case NF_ACCEPT:
-+	case NF_STOP:
- 		info->okfn(skb);
-+	case NF_STOLEN:
- 		break;
+ /* Sysctl support */
+ 
++int ip_conntrack_checksum = 1;
++
+ #ifdef CONFIG_SYSCTL
+ 
+ /* From ip_conntrack_core.c */
+@@ -568,8 +570,6 @@ extern unsigned int ip_ct_generic_timeou
+ static int log_invalid_proto_min = 0;
+ static int log_invalid_proto_max = 255;
+ 
+-int ip_conntrack_checksum = 1;
 -
- 	case NF_QUEUE:
- 		if (!nf_queue(&skb, elem, info->pf, info->hook, 
- 			      info->indev, info->outdev, info->okfn,
- 			      verdict >> NF_VERDICT_BITS))
- 			goto next_hook;
- 		break;
-+	default:
-+		kfree_skb(skb);
- 	}
- 	rcu_read_unlock();
+ static struct ctl_table_header *ip_ct_sysctl_header;
+ 
+ static ctl_table ip_ct_sysctl_table[] = {
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 5fcab2e..4ef8366 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -428,6 +428,8 @@ #endif /* CONFIG_PROC_FS */
+ 
+ /* Sysctl support */
+ 
++int nf_conntrack_checksum = 1;
++
+ #ifdef CONFIG_SYSCTL
+ 
+ /* From nf_conntrack_core.c */
+@@ -459,8 +461,6 @@ extern unsigned int nf_ct_generic_timeou
+ static int log_invalid_proto_min = 0;
+ static int log_invalid_proto_max = 255;
+ 
+-int nf_conntrack_checksum = 1;
 -
--	if (verdict == NF_DROP)
--		kfree_skb(skb);
--
- 	kfree(info);
- 	return;
- }
+ static struct ctl_table_header *nf_ct_sysctl_header;
+ 
+ static ctl_table nf_ct_sysctl_table[] = {
