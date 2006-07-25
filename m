@@ -1,21 +1,10 @@
-From: zhongyu <zhongyu@18mail.cn>
-Subject: Re: [MATCH] a match for qq
-Date: Mon, 24 Jul 2006 19:06:53 +0800
-Message-ID: <1153739213.4128.5.camel@localhost.localdomain>
-References: <1153176704.15818.1.camel@localhost.localdomain>
-	<44BFAEA4.5070507@trash.net>
-	<1153366270.24974.7.camel@localhost.localdomain>
-	<44C0144A.6060604@trash.net>
-	<1153534816.3602.3.camel@localhost.localdomain>
-	<44C572BE.1070302@trash.net>
-Reply-To: zhongyu@18mail.cn
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 00/06]: Netfilter fixes
+Date: Tue, 25 Jul 2006 05:26:54 +0200 (MEST)
+Message-ID: <20060725032653.25063.8139.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>,
-	netfilter dev <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <44C572BE.1070302@trash.net>
+To: davem@davemloft.net
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -27,27 +16,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Sorry I forgot to add the help/info file. They are ok now, but I still
-have no idea what index file is, because I can check out none of the
-extra repository like
-# geoip, maintained by Samuel Jean <jix@bugmachine.ca>
-http://mynodes.net/pub/linux/netfilter/patchlets
-# condition, maintained by Massimiliano Hofer <max@nucleus.it>
-http://www.nucleus.it/pom-repo
-# ipp2p and time maintained by Krzysztof Oledzki <ole@ans.pl>
-http://people.netfilter.org/ole/pom/
-And there are no index file in pom-ng patchlets from
-https://svn.netfilter.org/netfilter/trunk/patch-o-matic-ng/patchlets
-Please help me :-)
+Hi Dave,
 
-2006-07-2 03:24 +0200=EF=BC=8CPatrick McHardy=EF=BC=9A
-> zhongyu wrote:
-> > I setup a repository
-> > http://218.241.65.3:8080/svn
-> > Is it ok?
->=20
-> The index and help/info files appear to be still missing.
-> Please check out one of the existing patchlet repository
-> for an example.
->=20
->=20
+following are a few small netfilter fixes and a patch to finally
+add the bridge netfilter deferred hooks to feature-removal-schedule
+and disable them by default, which classifies as a huge bugfix in
+my opinion :)
+
+Please apply, thanks.
+
+
+ Documentation/feature-removal-schedule.txt   |   16 ++++++++++++++++
+ include/linux/netfilter_bridge.h             |    2 ++
+ net/bridge/br_netfilter.c                    |    5 +++++
+ net/ipv4/netfilter/ip_conntrack_standalone.c |    4 ++--
+ net/ipv4/netfilter/ip_nat_snmp_basic.c       |    4 ++--
+ net/netfilter/Kconfig                        |    4 ++--
+ net/netfilter/nf_conntrack_standalone.c      |    4 ++--
+ net/netfilter/nf_queue.c                     |    9 ++++-----
+ net/netfilter/xt_physdev.c                   |   15 +++++++++++++++
+ net/netfilter/xt_pkttype.c                   |   12 +++++++++++-
+ 10 files changed, 61 insertions(+), 14 deletions(-)
+
+Adrian Bunk:
+      [NETFILTER]: conntrack: fix SYSCTL=n compile
+
+Patrick McHardy:
+      [NETFILTER]: nf_queue: handle NF_STOP and unknown verdicts in nf_reinject
+      [NETFILTER]: SNMP NAT: fix byteorder confusion
+      [NETFILTER]: bridge netfilter: add deferred output hooks to feature-removal-schedule
+      [NETFILTER]: Demote xt_sctp to EXPERIMENTAL
+
+Phil Oester:
+      [NETFILTER]: xt_pkttype: fix mismatches on locally generated packets
