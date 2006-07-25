@@ -1,13 +1,12 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 8/8][CTNETLINK] Remove useless event-bit-is-set checkings
- on updates
-Date: Tue, 25 Jul 2006 15:27:23 +0200
-Message-ID: <44C61C3B.8070504@netfilter.org>
+From: Lucas Brasilino <brasilino@prrr.mpf.gov.br>
+Subject: Is 'iptables-restore' not caching EOF ??
+Date: Tue, 25 Jul 2006 09:51:11 -0400
+Message-ID: <44C621CF.6050700@prrr.mpf.gov.br>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020203080606080803030606"
-Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,65 +18,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020203080606080803030606
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi All:
 
-IPCT_HELPER and IPCT_NATINFO bits are never set on updates.
+Hope this issue isn't off-topic.
+I'm developing a daemon which authenticates a user and creates
+netfilter rules based on user profile.
+Following Harald's advise, during FISL 7.0 here in Brazil, he said
+to open a pipe to 'iptables-restore --noflush' rather than
+fork()ing/exec()ing lots of 'iptables' binary. And I'm doing that.
+My problem is that I fork(), dup2() and execv()
+'iptables-restore' and then I write() from parent end of the pipe
+and close() it, the 'iptables-restore' forked child seems not
+receiving EOF because it isn't exiting. And I need the
+exit status to verify if rules was created.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+I've tried two way of writing to the pipe and closing it:
+
+First try:
+
+ret = write(CommIptablesRestore[COMM_WRITE], buffer, strlen (buffer));
+close(CommIptablesRestore[COMM_WRITE]);
+
+Second try (as of 'iptables-restore' reading code):
+
+FILE *fp = NULL;
+fp = fdopen(CommIptablesRestore[COMM_WRITE], "w");
+fputs(buffer, fp);
+fflush(fp);
+fclose(fp);
+
+Where 'CommIptablesRestore[COMM_WRITE]' is the parent end of pipe
+filedescriptor and 'buffer' stores rules until 'COMMIT\n'.
+
+So after closing my daemon exits and 'iptables-restore' does
+not exits and stills on sleep status. Using 'strace' I can see
+that 'iptables-restore' stills read()ing STDIN. So seems
+it is not caching 'EOF' to exit.
+
+Is that a feature, bug or I'm messing something up?
+
+I didn´t post where a full code snippet to avoid mailing list
+pollution... but I can send directly.
+
+Thanks a lot in advance.
 
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of 
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+[]'s
 
---------------020203080606080803030606
-Content-Type: text/plain;
- name="08remove.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="08remove.patch"
-
-[CTNETLINK] Remove useless event-bit-is-set checkings on updates
-
-IPCT_HELPER and IPCT_NATINFO bits are never set on updates.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Index: net-2.6/net/netfilter/nf_conntrack_netlink.c
-===================================================================
---- net-2.6.orig/net/netfilter/nf_conntrack_netlink.c	2006-07-25 01:20:38.000000000 +0200
-+++ net-2.6/net/netfilter/nf_conntrack_netlink.c	2006-07-25 01:20:49.000000000 +0200
-@@ -340,11 +340,7 @@ static int ctnetlink_conntrack_event(str
- 			  IPCT_STATUS |
- 			  IPCT_PROTOINFO;
- 		group = NFNLGRP_CONNTRACK_NEW;
--	} else  if (events & (IPCT_STATUS |
--		      IPCT_PROTOINFO |
--		      IPCT_HELPER |
--		      IPCT_HELPINFO |
--		      IPCT_NATINFO)) {
-+	} else  if (events & (IPCT_STATUS | IPCT_PROTOINFO)) {
- 		type = IPCTNL_MSG_CT_NEW;
- 		events |= IPCT_REFRESH |
- 			  IPCT_STATUS |
-Index: net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c
-===================================================================
---- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-07-25 01:20:38.000000000 +0200
-+++ net-2.6/net/ipv4/netfilter/ip_conntrack_netlink.c	2006-07-25 01:20:49.000000000 +0200
-@@ -330,11 +330,7 @@ static int ctnetlink_conntrack_event(str
- 			  IPCT_STATUS |
- 			  IPCT_PROTOINFO;
- 		group = NFNLGRP_CONNTRACK_NEW;
--	} else if (events & (IPCT_STATUS |
--		      IPCT_PROTOINFO |
--		      IPCT_HELPER |
--		      IPCT_HELPINFO |
--		      IPCT_NATINFO)) {
-+	} else if (events & (IPCT_STATUS | IPCT_PROTOINFO)) {
- 		type = IPCTNL_MSG_CT_NEW;
- 		events |= IPCT_REFRESH |
- 			  IPCT_STATUS |
-
---------------020203080606080803030606--
+Lucas Brasilino
+brasilino@prrr.mpf.gov.br
+Procuradoria da República no Estado de Roraima
++55-95-36239642
