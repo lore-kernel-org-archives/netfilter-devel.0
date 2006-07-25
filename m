@@ -1,15 +1,13 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/06]: Netfilter fixes
-Date: Mon, 24 Jul 2006 22:55:40 -0700 (PDT)
-Message-ID: <20060724.225540.90827085.davem@davemloft.net>
-References: <20060725032653.25063.8139.sendpatchset@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: "Samuel Jean" <jix@bugmachine.ca>
+Subject: Re: [MATCH] a match for qq
+Date: Tue, 25 Jul 2006 12:23:32 -0000
+Message-ID: <twig.1153830212.63660@bugmachine.ca>
+References: <44C572BE.1070302@trash.net>
+Reply-To: jix@bugmachine.ca
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <20060725032653.25063.8139.sendpatchset@localhost.localdomain>
+To: <zhongyu@18mail.cn>
+In-Reply-To: <1153739213.4128.5.camel@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,14 +19,25 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 25 Jul 2006 05:26:54 +0200 (MEST)
+Hi!
 
-> following are a few small netfilter fixes and a patch to finally
-> add the bridge netfilter deferred hooks to feature-removal-schedule
-> and disable them by default, which classifies as a huge bugfix in
-> my opinion :)
-> 
-> Please apply, thanks.
+On Mon, Jul 24, 2006, zhongyu <zhongyu@18mail.cn> said:
 
-Applied, thanks a lot Patrick.
+> Sorry I forgot to add the help/info file. They are ok now, but I still
+> have no idea what index file is, because I can check out none of the
+> extra repository like
+> # geoip, maintained by Samuel Jean <jix@bugmachine.ca>
+> http://mynodes.net/pub/linux/netfilter/patchlets
+
+Basically, that file contains the external patchlets available from your
+repository.
+
+Look at -- for exemple -- http://people.netfilter.org/peejix/patchlets/
+
+This is not required to be a Subversion repository. Interesting idea tho.
+
+> Please help me :-)
+
+Hope that helps,
+
+Samuel
