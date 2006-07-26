@@ -1,12 +1,13 @@
-From: Srikanth Kothapalli <srikanth.kothapalli@masconit.com>
-Subject: How can I send a notification to the application?(plz help me)
-Date: Wed, 26 Jul 2006 10:09:18 +0530
-Message-ID: <44C6F1F6.5050608@masconit.com>
+From: Krzysztof Oledzki <olenf@ans.pl>
+Subject: external repositories: IPMARK & connlimit
+Date: Wed, 26 Jul 2006 14:24:25 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0607261415440.5942@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="-187430788-1501581300-1153916665=:5942"
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Patrick McHardy <kaber@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,15 +19,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-I'm a newbie in the world of Netfilter Hacking.
-I want to know how can I send a notification to the application for the 
-entries it has created in the connection tracking table?
-How can I provide the support in the kernel?
-How for these (nfnetlink-ctnetlink)mechanism will help me in this regard?
-is there any other method( say for example, ct_sync also has a mechanism 
-to find out connection tracking updation status)
-How can I use this mechanism to send a notification to the applications 
-for their respective entries modifications?
-I'll be thankful to you for this help.
-kris.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---187430788-1501581300-1153916665=:5942
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+Patric,
+
+Grzegorz Janoszka (author of the IPMARK extension) asked me to take over
+and fix this extension since he currently runs of of time, so I did this.=
+=20
+:)
+
+I also fixed the connlimit extension, both are now avaible in my external=
+=20
+repository hosted on people.netfilter.org, so please remove them from=20
+pom-ng repository - it is now possible to get both with "./runme --download=
+".
+
+Best regards,
+
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1501581300-1153916665=:5942--
