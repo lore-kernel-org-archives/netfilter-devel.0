@@ -1,15 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: external repositories: IPMARK & connlimit
-Date: Wed, 26 Jul 2006 15:35:13 +0200
-Message-ID: <44C76F91.2060507@trash.net>
-References: <Pine.LNX.4.64.0607261415440.5942@bizon.gios.gov.pl>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: Fix --with-kernel for libnfnetlink
+Date: Wed, 26 Jul 2006 15:06:48 +0100
+Message-ID: <44C776F8.10904@ufomechanic.net>
+References: <859616420604200825o71f81878lbbb45251f1e0330d@mail.gmail.com>	<4447E23E.4090204@trash.net>	<859616420604210021y53dda87ai64678342068ed43f@mail.gmail.com>
+	<20060421110954.GA4403@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Krzysztof Oledzki <olenf@ans.pl>
-In-Reply-To: <Pine.LNX.4.64.0607261415440.5942@bizon.gios.gov.pl>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <20060421110954.GA4403@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,16 +22,51 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Krzysztof Oledzki wrote:
-> Grzegorz Janoszka (author of the IPMARK extension) asked me to take over
-> and fix this extension since he currently runs of of time, so I did
-> this. :)
+Sorry to bring this up again...
+
+* Pablo Neira Ayuso wrote, On 21/04/06 12:09:
+> Why do you need this parameter? the netfilter libraries don't require
+> kernel headers anymore since they are already bundled in the package
+> provided. For example, see include/libnfnetlink/linux_nfnetlink.h. We
+> have had several problems with iptables and the kernel headers in the
+> past: compilation warnings, breakages... That is the reason why we
+> decided to do so.
 > 
-> I also fixed the connlimit extension, both are now avaible in my
-> external repository hosted on people.netfilter.org, so please remove
-> them from pom-ng repository - it is now possible to get both with
-> "./runme --download".
+> On the other hand, autogen.sh automates the copy of these headers,
+> so you could choose them via KERNEL_DIR but you need some important
+> reason to do that.
 
 
-Great, thanks. I've removed them and updated the comment in
-sources.list.
+Current (svn) autogen.sh is hard wired to use the currently booted kernel.
+
+I'm all for not keeping a copy in the SVN tree, but why presume that the
+one in the booted kernel is the one we want? Isn't this just another
+reason to have --with-kernel back; as we are not copying old userland
+so-called kernel header files?
+
+Since my 2.6.11 work (which is booted) I'm now working towards 2.6.17,
+and the differences are:
+
+-#define NFNL_SUBSYS_CTHELPER           5
+-#define NFNL_SUBSYS_COUNT              6
++#define NFNL_SUBSYS_COUNT              5
+
+ #ifdef __KERNEL__
+
+@@ -165,6 +164,7 @@
+        __res;                                                          \
+ })
+
++extern int nfnetlink_has_listeners(unsigned int group);
+
+
+Which seem important; it is a mistake for autogen.sh to have copied the
+file for the booted kernel.
+
+I did wonder if libnfnetlink should use text labels instead of symbols,
+and have the dynamic (or at least unpredicatbale) values fetched from
+the kernel and stored as int's instead of constants in libnfnetlink
+
+It would solve this problem.
+
+Sam
