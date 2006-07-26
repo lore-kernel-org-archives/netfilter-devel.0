@@ -1,15 +1,15 @@
-From: zhongyu <zhongyu@18mail.cn>
-Subject: Re: [MATCH] a match for qq
-Date: Tue, 25 Jul 2006 12:10:15 +0800
-Message-ID: <1153800615.11167.0.camel@localhost.localdomain>
-References: <44C572BE.1070302@trash.net> <twig.1153830212.63660@bugmachine.ca>
-Reply-To: zhongyu@18mail.cn
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: Netfilter Connection Tracking Race Condition in Kernel 2.4.x
+Date: Tue, 25 Jul 2006 17:54:15 -0700
+Message-ID: <20060726005415.GA18817@linuxace.com>
+References: <44C56653.10901@nominum.com> <44C56ECC.3020107@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Cc: Bob Halley <Bob.Halley@nominum.com>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: jix@bugmachine.ca, netfilter dev <netfilter-devel@lists.netfilter.org>
-In-Reply-To: <twig.1153830212.63660@bugmachine.ca>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <44C56ECC.3020107@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,35 +21,14 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks~~, The index file was added :-)
+On Tue, Jul 25, 2006 at 03:07:24AM +0200, Patrick McHardy wrote:
+> - change conntrack to always put connections in the hash immediately
+>   and remove them again if the connection is dropped before beeing
+>   confirmed.
 
-2006-07-25 12:23 +0000=EF=BC=8CSamuel Jean=EF=BC=9A
-> Hi!
->=20
-> On Mon, Jul 24, 2006, zhongyu <zhongyu@18mail.cn> said:
->=20
-> > Sorry I forgot to add the help/info file. They are ok now, but I stil=
-l
-> > have no idea what index file is, because I can check out none of the
-> > extra repository like
-> > # geoip, maintained by Samuel Jean <jix@bugmachine.ca>
-> > http://mynodes.net/pub/linux/netfilter/patchlets
->=20
-> Basically, that file contains the external patchlets available from you=
-r
-> repository.
->=20
-> Look at -- for exemple -- http://people.netfilter.org/peejix/patchlets/
->=20
-> This is not required to be a Subversion repository. Interesting idea th=
-o.
->=20
-> > Please help me :-)
->=20
-> Hope that helps,
->=20
-> Samuel
->=20
->=20
->=20
->=20
+This could in theory be implemented via an IPS_UNCONFIRMED_BIT (ignoring
+the sure to be complicated implementation details).  But would there be
+any concern about a DOS against the hash if unconfirmed connections
+were allowed to enter?
+
+Phil
