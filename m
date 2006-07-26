@@ -1,17 +1,12 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: Netfilter Connection Tracking Race Condition in Kernel 2.4.x
-Date: Wed, 26 Jul 2006 13:49:25 +0900 (JST)
-Message-ID: <200607260449.k6Q4nRt8008764@toshiba.co.jp>
-References: <44C56ECC.3020107@trash.net> <20060726005415.GA18817@linuxace.com>
-	<44C6E7D4.5020505@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: svn viewcvs quite broken
+Date: Wed, 26 Jul 2006 12:38:40 +0100
+Message-ID: <ea7k80$4bv$1@sea.gmane.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: kernel@linuxace.com, Bob.Halley@nominum.com,
-	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <44C6E7D4.5020505@trash.net>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,34 +18,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+I'm trying to diff two versions of a file with viewcvs:
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Wed, 26 Jul 2006 05:56:04 +0200
+http://svn.netfilter.org/cgi-bin/viewcvs.cgi/trunk/patch-o-matic-ng/patchlets/connrate/linux/net/ipv4/netfilter/ip_conntrack_rate.c?r1=4018&r2=4249
 
-> Phil Oester wrote:
-> > On Tue, Jul 25, 2006 at 03:07:24AM +0200, Patrick McHardy wrote:
-> > 
-> >>- change conntrack to always put connections in the hash immediately
-> >>  and remove them again if the connection is dropped before beeing
-> >>  confirmed.
-> > 
-> > 
-> > This could in theory be implemented via an IPS_UNCONFIRMED_BIT (ignoring
-> > the sure to be complicated implementation details).  But would there be
-> > any concern about a DOS against the hash if unconfirmed connections
-> > were allowed to enter?
-> 
-> 
-> There isn't really a difference to keeping them in the unconfirmed
-> list besides better scalability. The same properties for unconfirmed
-> entries hold here, usually there should be very few (max 2 per CPU
-> without preemption), except if queueing is involved. I don't think
-> there is an increased risk of DOS by using the conntrack hash vs.
-> using a seperate hash, but with the conntrack hash we can do it all
-> in one lookup and use the existing eviction mechanism.
+and it just gives me bogus errors like:
 
-I agree.
+An Exception Has Occurred
 
-BTW that would also solves race condition on multiple CPU at early point.
+trunk/patch-o-matic-ng/patchlets/connrate/linux/net/ipv4/netfilter/ip_conntrack_rate.c:
+unknown location
 
--- Yasuyuki Kozakai
+
+No doubt it is because the file is not in the head any more, but the
+specified versions do exist; the two files are each viewable can can be
+downloaded for a manual diff.
+
+Sam
