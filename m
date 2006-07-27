@@ -1,14 +1,12 @@
-From: Thomas Heinz <thomasheinz@gmx.net>
-Subject: Ipsec, policy match and PROTO=4
-Date: Thu, 27 Jul 2006 01:31:18 +0200
-Message-ID: <200607270131.18655.thomasheinz@gmx.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: libnfnetlink_conntrack encapsulation issues
+Date: Thu, 27 Jul 2006 11:53:34 +0100
+Message-ID: <44C89B2E.1080401@ufomechanic.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,54 +18,118 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello guys
+I'm reworking some patches from conntrack 0.4.2 to the latest conntrack
+and I am getting badly bitten by a few problems of encapsulation and
+over seperation between user and kernel space.
 
-I have the following standard ipsec tunnel:
+Problem 1:
 
-[tun_A] host_A [pub_A]-------------[pub_B] host_B [tun_B]
+One of my requirements is to combine CT_DUMP with CT_EVENT, so that I
+get regular events but also an inline dump based on a signal (blah blah
+blah). Inline (over the same socket) is important as it makes
+synchronzing the dump with events a little easier.
 
-pub_A/B: public IP of host_A/B
-tun_A/B: tunnel IP of host_A/B
+Of course most of this won't belong in libnetlink_conntrack but in some
+conntrack derivative, but the encapsulation of nfct_handle spoils this.
 
-After establishing the ipsec connection, putting two simple log-all rules 
-in INPUT and OUTPUT like this:
-# iptables -I INPUT -j LOG
-# iptables -I OUTPUT -j LOG
-and pinging tun_B from host_A, I get the following log entries:
+Specifically, I need such behaviours as requesting the conntrack table
+dump but without the nfnl_listen tacked on the end, for example
+(simplified fragment):
 
-IN= OUT=eth0 SRC=tun_A DST=tun_B LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF 
-PROTO=ICMP TYPE=8 CODE=0 ID=16181 SEQ=1
-IN= OUT=eth0 SRC=pub_A DST=pub_B LEN=136 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF 
-PROTO=ESP SPI=0xxxxxxxxx
+int nfct_dump_conntrack_table_request(struct nfct_handle *cth, int
+flags, int family)
+{
+        int err, msg;
+        struct nfnlhdr req;
 
-Very nice so far: the packet is seen twice, once clear and once encrypted. 
-Now, let's look at the ICMP reply.
+        memset(&req, 0, sizeof(req));
+        /* This is not important until nfnl_listen we will set it again
+by then
+        cth->handler = nfct_conntrack_netlink_handler;
+        */
 
-IN=eth0 OUT= MAC=xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx SRC=pub_B 
-DST=pub_A LEN=136 TOS=0x00 PREC=0x00 TTL=56 ID=57843 PROTO=ESP 
-SPI=0xxxxxxxxx
-IN=eth0 OUT= MAC=xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx SRC=pub_B 
-DST=pub_A LEN=104 TOS=0x00 PREC=0x00 TTL=56 ID=57843 PROTO=4
+        msg = flags;
 
-Here, we see the packet also twice but the cleartext one has PROTO=4 
-(ipencap, ipip tunnel).
+        nfnl_fill_hdr(cth->nfnlssh_ct, &req.nlh, 0, family, 0,
+                        msg,
+NLM_F_ROOT|NLM_F_MATCH|NLM_F_REQUEST|NLM_F_DUMP);
 
-This has been observed in e.g. this thread: 
-http://marc.theaimsgroup.com/?l=netfilter-devel&m=114010374229806&w=2
+        err = nfnl_send(cth->nfnlh, &req.nlh);
+        return err;
+}
 
-Moreover, I have previously sent this posting to the netfilter user mailing 
-list.
+int nfct_dump_event_conntrack(struct nfct_handle *cth, int family)
+{
+        struct sigaction sa;
+        struct sigaction oldint;
+        sa.sa_handler = signal_handler;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = 0;
 
-Could you please tell me about the current state regarding this bug? Is it 
-already addressed? Is it hard to fix? 
+        setlinebuf(stdout);
 
-Is it correct that there is currently no way to filter incoming clear text 
-packets? Accepting PROTO=4 packets of course works but it is rather a 
-workaround.
+        sigaction(SIGUSR1, &sa, &oldint);
 
-Thanks for your support.
+        if
+(nfct_dump_conntrack_table_requestl(cth,IPCTNL_MSG_CT_GET_CTRZERO_EXTRA,family)<0)
+{
+                exit_error(OTHER_PROBLEM, "Can't request initial dump");
+                break;
+        }
+
+        /* Break this open later to do our own handler and own callback */
+        return nfct_event_conntrack(nfct_handle);
+}
+
+Of course I'd rather do this duplicating as little of
+libnetlink_conntrack as possible, but this means libnetlink_conntrack
+needs to open up its primatives a lttle more. The reason I need my own
+handler too is because I'm sending back extra tuples including layer7
+information (I've submitted patches for this to the layer7 mailing list)
+
+Also, as well as IPCTNL_MSG_CT_GET_CTRZERO in
+libnetfilter_conntrack/include/libnetfilter_conntrack/linux_nfnetlink_conntrack.h
+ I have IPCTNL_MSG_CT_GET_CTRZERO_EXTRA, which is an alternate message
+to pass to the kernel to zero another class of counters.  Again, the
+libnetlink_conntrack library calls don't permit passing individual
+messages, making libnetlink_conntrack tightly coupled to a specific
+kernel and requiring that the kernel capabilities be known to
+libnetlink_conntrack - for example, do we need to change
+libnetlink_conntrack every time a new type of data can be dumped? (e.g.
+layer7?)
+
+Problem 2
+
+autogen.sh
+
+(mild issue first, not your fault anyway)
+
+Of course my message is defined in my kernel headers which autogen.sh
+tries to copy accross - except that I am now using the make -o option
+for the kernel which means that build header files like autoconf.h,
+compile.h and version.h are linked to from /lib/modules/`uname -r`/build
+but none of the source header files are. For now I can copy the header
+file by hand but I wonder if anyone has a more general solution to this.
+I guess that the make process ought to write symlinks to any include
+dirs to the source.
+
+However (big problems), when I make autogen copy my version of
+nfnetlink_conntrack.h, compiles fail on lack of: CTA_EXPECT_QUEUENR
+which I don't find available in any of the kernel sources I have; so
+which kernel is being tracked for libnetfilter_conntrack? The only
+useful reference google can find is a February chat session which
+indicates that linux_nfnetlink_conntrack.h is being kept in SVN so where
+does the idea of CTA_EXPECT_QUEUENR come from?
+
+In fact I find that despite the assurances in autogen,sh,
+linux_nfnetlink_conntrack.h IS being kept in CVN and that the only
+solution the chatlogs recommend is to revert linux_nfnetlink_conntrack.h
+to the supplied one? What?
 
 
-Best regards,
+I sometimes wonder if it is time to stop sharing enums like this between
+kernel and user space and make text labels out of them which
+applications can resolve into numbers by asking the kernel as they are
+executed.
 
-Thomas
+Sam
