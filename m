@@ -1,16 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: aggg Re: libnfnetlink_conntrack encapsulation issues
-Date: Thu, 27 Jul 2006 16:00:01 +0200
-Message-ID: <44C8C6E1.8010004@trash.net>
-References: <44C89B2E.1080401@ufomechanic.net>
-	<44C89DD8.7030103@ufomechanic.net>
+Subject: Re: bugreport ipt_CLUSTERIP
+Date: Thu, 27 Jul 2006 16:19:04 +0200
+Message-ID: <44C8CB58.60709@trash.net>
+References: <20060725082618.8zdzyrc36s0ksgsk@mail.tu-chemnitz.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <44C89DD8.7030103@ufomechanic.net>
+To: Maik Hentsche <maik@mm-double.de>
+In-Reply-To: <20060725082618.8zdzyrc36s0ksgsk@mail.tu-chemnitz.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,38 +21,26 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez wrote:
-> Not only is linux_nfnetlink_conntrack.h from SVN and not any kernel, it
-> even ignores the kernel config so such ifdef's as:
-> 
-> enum ctattr_type {
->         CTA_UNSPEC,
->         CTA_TUPLE_ORIG,
->         CTA_TUPLE_REPLY,
->         CTA_STATUS,
->         CTA_PROTOINFO,
->         CTA_HELP,
->         CTA_NAT_SRC,
-> #define CTA_NAT       CTA_NAT_SRC     /* backwards compatibility */
->         CTA_TIMEOUT,
->         CTA_MARK,
->         CTA_COUNTERS_ORIG,
->         CTA_COUNTERS_REPLY,
->         CTA_USE,
->         CTA_ID,
->         CTA_NAT_DST,
-> #if defined(CONFIG_IP_NF_MATCH_LAYER7) ||
-> defined(CONFIG_IP_NF_MATCH_LAYER7_MODULE)
->         CTA_L7,
-> #endif /* LAYER7 */
-> #ifdef CONFIG_IP_NF_CT_LINKLAYER
->         CTA_LINKLAYER,
-> #endif /* LINKLAYER */
-> ...
-> ...
-> ...
+Maik Hentsche wrote:
+> Hi!
+> I tried ipt_CLUSTERIP and it crashed with the appended error message.
+> Unfortunatelly, I was not able to get an account for bugzilla (neither
+> automaticall nor by writing the administrator) for 2 weeks, so I try to
+> put it here.
 
-WTF is this? Its not from SVN, it appears the layer7 match does some
-bad hacks here. It looks like a really dumb idea, this will break
-once we add new attributes. Not sure why a match would need ctnetlink
-attributes.
+Crash reports are better sent to mailing lists anyway
+
+> Unable to handle kernel NULL pointer dereference at 0000000000000053 RIP:
+> <ffffffff880c46da>{:ip_tables:ipt_do_table+188}
+> PGD 7e53c067 PUD 7d172067 PMD 0
+> Oops: 0000 [1] SMP
+> CPU 1
+> Modules linked in: af_packet ipt_CLUSTERIP iptable_filter ip_tables
+> x_tables ipv6 hw_random i2c_amd756 i2c_amd8111 i2c_core generic amd74xx
+> e1000 tg3 ide_cd cdrom rtc unix
+> Pid: 3068, comm: rcp.statd Not tainted 2.6.17.3-egde #1
+> RIP: 0010:[<ffffffff880c46da>]
+
+Are you sure this is caused by ipt_CLUSTERIP? The crash is within
+iptables. What options did you use to trigger this? Did you apply
+any patches to your kernel?
