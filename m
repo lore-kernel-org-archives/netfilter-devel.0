@@ -1,17 +1,16 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
 Subject: Re: aggg Re: libnfnetlink_conntrack encapsulation issues
-Date: Thu, 27 Jul 2006 16:59:18 +0200
-Message-ID: <44C8D4C6.9060100@trash.net>
-References: <44C89B2E.1080401@ufomechanic.net>	<44C89DD8.7030103@ufomechanic.net>
-	<44C8C6E1.8010004@trash.net>	<44C8CC58.1080909@ufomechanic.net>
-	<44C8CE76.2090500@trash.net> <44C8D11A.6010502@ufomechanic.net>
+Date: Thu, 27 Jul 2006 16:16:03 +0100
+Message-ID: <44C8D8B3.5070608@ufomechanic.net>
+References: <44C89B2E.1080401@ufomechanic.net>	<44C89DD8.7030103@ufomechanic.net>	<44C8C6E1.8010004@trash.net>	<44C8CC58.1080909@ufomechanic.net>	<44C8CE76.2090500@trash.net>
+	<44C8D11A.6010502@ufomechanic.net> <44C8D4C6.9060100@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <44C8D11A.6010502@ufomechanic.net>
+To: Patrick McHardy <kaber@trash.net>
+In-Reply-To: <44C8D4C6.9060100@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,57 +22,49 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Amin Azez wrote:
-> * Patrick McHardy wrote, On 27/07/06 15:32:
-> 
->>One way to add new stuff is to get your patch into the kernel. Other
->>than that its hard, I agree. ifdefs are not a good idea because
->>following members don't have a constant value anymore.
-> 
-> 
-> Indeed. Layer7 has been around some time, I guess I will attempt to get
-> CTA_L7 into that file in the official kernel so that those who use the
-> L7 match can get L7 info via contrack /if they want/.
-
-Its not a big deal, but I lean towards not taking such a patch as it
-is a) only used by an external match and b) wrong anyway in my opinion.
-
->>>Some matches (like layer7) store state which is output via
->>>/proc/net/ip_conntrack, I also need it as part of conntrack updates.
->>>I like receiving a conntrack update when the layer7 is detected, for
->>>instance.
+* Patrick McHardy wrote, On 27/07/06 15:59:
+> Amin Azez wrote:
+>> * Patrick McHardy wrote, On 27/07/06 15:32:
 >>
->>A match shouldn't do that - what kind of state does it store? Can't
->>you just use your match and combine it with CONNMARK?
+>>> One way to add new stuff is to get your patch into the kernel. Other
+>>> than that its hard, I agree. ifdefs are not a good idea because
+>>> following members don't have a constant value anymore.
+>>
+>> Indeed. Layer7 has been around some time, I guess I will attempt to get
+>> CTA_L7 into that file in the official kernel so that those who use the
+>> L7 match can get L7 info via contrack /if they want/.
 > 
-> 
-> Err... it stores the layer7 pattern that was matched against the
-> packets. So you can recognize a flow as being HTTP or SMTP or DNS etc,
-> by regexing the packets. It only checks the first few packets in each
-> direction of the flow, but having matched, the name of the matching
-> pattern becomes part of the conntrack, and the iptables module can then
-> test this - so you could set a certain connmark based on the ip
-> addresses in combination with some layer7 type; so that HTTP - no matter
-> what the port - could all have a higher priority. This is visible from
-> /proc/net/ip_conntrack
+> Its not a big deal, but I lean towards not taking such a patch as it
+> is a) only used by an external match and b) wrong anyway in my opinion.
 
-I actually don't understand the need for the layer7 match at all.
-The string match with the fsm textsearch algorithm and some clever
-CONNMARK use should be able to do the same.
+I would lean towards not taking it too, but how else to get
+libnetlink_conntrack to work with arbitrary conntrack attributes?
+And taking the general case of ct_extend? make_atom is my favoured
+solution but it might spoil the _XXX_MSG_MAX idea, or we would need
+multiple atom pools.
 
-> The bigger problem which I guess you answered is, how "new" ctnetlink
-> attributes should be registered and used; how near an extensible
-> framework (which is what I *thought* libnetlink_conntrack was for) and
-> how much is just abstraction from the kernel (which it seems *is* what
-> libnetlink_conntrack is for).
+> I actually don't understand the need for the layer7 match at all.
+> The string match with the fsm textsearch algorithm and some clever
+> CONNMARK use should be able to do the same.
 
-Its meant for a single purpose - access to the conntrack database.
-It is extensible enough for this purpose, we can add new attributes
-in the kernel any time.
+I heard a layer7 guy saying a similar thing about the string match. I
+think. :-) It's not like I'm trying to match a particular layer7
+protocol, I'm trying to match about a hundred, and managing regex's is
+easy. Anyway.... I'm not for making everyone like each-others favourite
+modules; I'm already overusing the mark (IMHO) although some use it
+more, it really is a boon to have the odd extra conntrack attribute
+/that I need/
 
-> This other problem was how much of libnetlink_conntrack I am rewriting
-> so that I can vary ever so slightly the conntrack user space tool. I'll
-> send my patches on this early next week when I'm through testing on 2.6.17
+> Its meant for a single purpose - access to the conntrack database.
+> It is extensible enough for this purpose, we can add new attributes
+> in the kernel any time.
 
-I'm also not too happy with the current library. I'm doing some work
-adding nfnetlink support to libnl, but its far from complete.
+thats the bit I'm also trying to do..
+
+I've also extended connmark so that each flow can have its own mark -
+which sort of helps traffic shaping each direction differently.
+Naturally of course, I need to get the extra marks from the conntrack
+database to userspace, along with the original mark. (For compatability
+there are now 3 marks, the traditional mark, and one set for each direction)
+
+Sam
