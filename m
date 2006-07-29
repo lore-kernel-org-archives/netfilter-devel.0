@@ -1,17 +1,16 @@
-From: Amin Azez <azez@ufomechanic.net>
-Subject: Re: libnfnetlink_conntrack encapsulation issues
-Date: Fri, 28 Jul 2006 22:13:36 +0100
-Message-ID: <44CA7E00.5000803@ufomechanic.net>
-References: <44C89B2E.1080401@ufomechanic.net> <44CA2F93.9000409@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: bugreport ipt_CLUSTERIP
+Date: Sat, 29 Jul 2006 03:49:48 +0200
+Message-ID: <44CABEBC.9050101@trash.net>
+References: <20060725082618.8zdzyrc36s0ksgsk@mail.tu-chemnitz.de>	<44C8CB58.60709@trash.net>
+	<1154078751.44c9d81ff2c50@www.domainfactory-webmail.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <44CA2F93.9000409@netfilter.org>
+To: Maik Hentsche <maik@mm-double.de>
+In-Reply-To: <1154078751.44c9d81ff2c50@www.domainfactory-webmail.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,22 +22,28 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Maik Hentsche wrote:
+> Zitat von Patrick McHardy <kaber@trash.net>:
+> 
+>>What options did you use to trigger this?
+> 
+> 
+> iptables -D INPUT -i eth1 -d 172.20.251.25  -j CLUSTERIP --new
+> --hashmode sourceip-sourceport --clustermac 01:00:5e:12:34:56
+> --total-nodes 2 --local-node 2
+> 
+> The first time, I tried this to delete the appropiate rule, it directly
+> crashed. Unfortunatelly, I do not have the related Oops message, since
+> I thought it might occur again and wanted to log via serial console.
+> The second time, the already mentioned error occured, when I rebooted
+> my machine and unfortunatelly after I had plugged the serial cable off
+> :o(
 
-Thanks for your help Pablo.
 
-Pablo Neira Ayuso wrote:
->
-> enums are OK, the problem is out-of-tree scary things like this layer 
-> 7 stuff that makes an insane use of libnetfilter_conntrack.
->
-
-ummmm it seems quite normal use, such as any iptables extension that 
-stores per-conntrack information might want to use. I already mentioned 
-the per-flow mark, so that each flow of a conntrack can have its own 
-mark; just like it suseful to get one mark via conntrack, its useful to 
-get the rest too.
-
-I agree, out-of-tree is where it gets scary. I send myself to sleep at 
-night thinking up alternative methods.
-
-Sam
+I tried to reproduce this (by first adding your rule, then deleting it,
+adding it again, rebooting), but got no crash. CLUSTERIP keeps global
+state, so it might be that some previous actions using it contributed
+to the crash, although its strange that it crashed in ip_tables, not
+in CLUSTERIP itself. Did you added/deleted/flushed/... any CLUSTERIP
+rules before the crashes? If you can find a way to reproducibly cause
+the crash it would help a lot.
