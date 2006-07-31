@@ -1,10 +1,10 @@
 From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: [PATCH 1/6] libnetfilter_conntrack modifications
-Date: Mon, 31 Jul 2006 10:22:52 +0200
-Message-ID: <200607311022.52312@nienna>
+Subject: [PATCH 6/6] ulogd2 changes
+Date: Mon, 31 Jul 2006 10:23:11 +0200
+Message-ID: <200607311023.11145@nienna>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_c3bzEXg14hYFs/O"
+  boundary="Boundary-00=_v3bzEbsrD8ooxLb"
 Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
@@ -19,7 +19,7 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_c3bzEXg14hYFs/O
+--Boundary-00=_v3bzEbsrD8ooxLb
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -28,76 +28,104 @@ Content-Disposition: inline
 
   Hi,
 
-  Attached are the changes to libnetfilter_conntrack.
+  Attached are the changes to ulogd2.
 
 -- 
  Regards,
   Krisztian Kovacs
 
---Boundary-00=_c3bzEXg14hYFs/O
-Content-Type: text/x-diff; charset="us-ascii";
-	name="01-libnetfilter_conntrack.patch"
+--Boundary-00=_v3bzEbsrD8ooxLb
+Content-Type: text/x-diff;
+  charset="us-ascii";
+  name="06-ulogd2.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
-	filename="01-libnetfilter_conntrack.patch"
+	filename="06-ulogd2.patch"
 
-Index: libnetfilter_conntrack/configure.in
+Index: ulogd2/configure.in
 ===================================================================
---- libnetfilter_conntrack/configure.in	(revision 6652)
-+++ libnetfilter_conntrack/configure.in	(working copy)
-@@ -18,9 +18,12 @@
- *) AC_MSG_ERROR([Linux only, dude!]);;
- esac
+--- ulogd2/configure.in	(revision 6652)
++++ ulogd2/configure.in	(working copy)
+@@ -2,7 +2,7 @@
+ AC_INIT
  
--AC_CHECK_LIB(nfnetlink, nfnl_subsys_open, AC_MSG_RESULT(found), AC_MSG_ERROR([libnfnetlink 0.0.16 or later needed]))
--AC_CHECK_HEADER([libnfnetlink/linux_nfnetlink.h], [AC_MSG_RESULT([found])], [AC_MSG_ERROR([libnfnetlink 0.0.16 or later needed])])
-+dnl Dependencies
-+LIBNFNETLINK_REQUIRED=0.0.16
+ AM_INIT_AUTOMAKE(ulogd, 2.0.0beta2)
+-AM_CONFIG_HEADER(config.h)
++# AM_CONFIG_HEADER(config.h)
  
-+PKG_CHECK_MODULES(LIBNFNETLINK, libnfnetlink >= $LIBNFNETLINK_REQUIRED,,
-+	AC_MSG_ERROR(Cannot find libnfnetlink >= $LIBNFNETLINK_REQUIRED))
+ dnl Checks for programs.
+ AC_PROG_MAKE_SET
+@@ -28,13 +28,14 @@
+ AC_FUNC_VPRINTF
+ AC_CHECK_FUNCS(socket strerror)
+ 
+-AC_CHECK_HEADER([libnetfilter_log/linux_nfnetlink_log.h], [AC_MSG_RESULT([found])],
+-		[AC_MSG_ERROR([libnetfilter_log Version 0.0.11 or later needed])])
++LIBNFCONNTRACK_REQUIRED=0.0.31
++LIBNFLOG_REQUIRED=0.0.11
++ 
++PKG_CHECK_MODULES(LIBNFCONNTRACK, libnetfilter_conntrack >= $LIBNFCONNTRACK_REQUIRED,,
++	AC_MSG_ERROR(Cannot find libnetfilter_conntrack >= $LIBNFCONNTRACK_REQUIRED))
++PKG_CHECK_MODULES(LIBNFLOG, libnetfilter_log >= $LIBNFLOG_REQUIRED,,
++	AC_MSG_ERROR(Cannot find libnetfilter_log >= $LIBNFLOG_REQUIRED))
+ 
+-AC_CHECK_HEADER([libnetfilter_conntrack/libnetfilter_conntrack.h], [AC_MSG_RESULT([found])],
+-		[AC_MSG_ERROR([libnetfilter_conntrack Version 0.0.11 or later needed])])
+-
+-
+ CT_CHECK_POSTGRES_DB()
+ AM_CONDITIONAL(HAVE_PGSQL, test "x$PQLIBPATH" != "x")
+ 
+@@ -61,6 +62,11 @@
+ dnl AM_CONDITIONAL(HAVE_MYSQL, test x$mysqldir != x)
+ dnl AM_CONDITIONAL(HAVE_PGSQL, test x$pgsqldir != x)
+ 
++CFLAGS="$CFLAGS $LIBNFCONNTRACK_CFLAGS $LIBNFLOG_CFLAGS"
 +
- AC_CHECK_HEADERS(arpa/inet.h)
- dnl Check for inet_ntop
- AC_CHECK_FUNCS(inet_ntop)
-@@ -61,7 +64,11 @@
- 	CFLAGS="$CFLAGS -DLIBNETFILTER_CONNTRACK_DIR=$MODULE_DIR"
- fi
- 
-+CFLAGS="$CFLAGS $LIBNFNETLINK_CFLAGS"
-+LIBNFCONNTRACK_LIBS="$LIBNFNETLINK_LIBS"
- 
 +AC_SUBST(LIBNFCONNTRACK_LIBS)
++AC_SUBST(LIBNFLOG_LIBS)
 +
- dnl Output the makefile
- AC_OUTPUT(Makefile src/Makefile include/Makefile utils/Makefile include/libnetfilter_conntrack/Makefile l3extensions/Makefile extensions/Makefile libnetfilter_conntrack.pc)
- 
-Index: libnetfilter_conntrack/src/Makefile.am
+ AC_OUTPUT(doc/Makefile \
+ 	  include/Makefile include/ulogd/Makefile include/libipulog/Makefile \
+ 	  libipulog/Makefile \
+Index: ulogd2/input/flow/Makefile.am
 ===================================================================
---- libnetfilter_conntrack/src/Makefile.am	(revision 6652)
-+++ libnetfilter_conntrack/src/Makefile.am	(working copy)
-@@ -4,8 +4,8 @@
+--- ulogd2/input/flow/Makefile.am	(revision 6652)
++++ ulogd2/input/flow/Makefile.am	(working copy)
+@@ -1,11 +1,12 @@
  
- #EXTRA_DIST = $(man_MANS) acinclude.m4
- 
+ INCLUDES = $(all_includes) -I$(top_srcdir)/include
 -AM_CFLAGS=-fPIC -Wall
--LIBS=
 +AM_CFLAGS = -fPIC -Wall
 +LIBS = @LIBNFCONNTRACK_LIBS@
  
- lib_LTLIBRARIES = libnetfilter_conntrack.la 
+ pkglib_LTLIBRARIES = ulogd_inpflow_NFCT.la # ulogd_inpflow_IPFIX.la
  
-Index: libnetfilter_conntrack/Makefile.am
+ ulogd_inpflow_NFCT_la_SOURCES = ulogd_inpflow_NFCT.c
+-ulogd_inpflow_NFCT_la_LDFLAGS = -module -lnetfilter_conntrack
++ulogd_inpflow_NFCT_la_LDFLAGS = -module
+ 
+ #ulogd_inpflow_IPFIX_la_SOURCES = ulogd_inpflow_IPFIX.c
+ #ulogd_inpflow_IPFIX_la_LDFLAGS = -module
+Index: ulogd2/input/packet/Makefile.am
 ===================================================================
---- libnetfilter_conntrack/Makefile.am	(revision 6652)
-+++ libnetfilter_conntrack/Makefile.am	(working copy)
-@@ -3,7 +3,6 @@
- AUTOMAKE_OPTIONS = foreign dist-bzip2 1.6
+--- ulogd2/input/packet/Makefile.am	(revision 6652)
++++ ulogd2/input/packet/Makefile.am	(working copy)
+@@ -1,12 +1,12 @@
  
- SUBDIRS	= include src l3extensions extensions utils
--LINKOPTS = -lnfnetlink
+ INCLUDES = $(all_includes) -I$(top_srcdir)/include
+-AM_CFLAGS=-fPIC -Wall
+-LIBS=
++AM_CFLAGS = -fPIC -Wall
++LIBS = @LIBNFLOG_LIBS@
  
- man_MANS = #nfnetlink_conntrack.3 nfnetlink_conntrack.7
+ pkglib_LTLIBRARIES = ulogd_inppkt_NFLOG.la ulogd_inppkt_ULOG.la
  
+ ulogd_inppkt_NFLOG_la_SOURCES = ulogd_inppkt_NFLOG.c
+-ulogd_inppkt_NFLOG_la_LDFLAGS = -module -lnetfilter_log
++ulogd_inppkt_NFLOG_la_LDFLAGS = -module
+ 
+ ulogd_inppkt_ULOG_la_SOURCES = ulogd_inppkt_ULOG.c
+ ulogd_inppkt_ULOG_la_LDFLAGS = -module
 
---Boundary-00=_c3bzEXg14hYFs/O--
+--Boundary-00=_v3bzEbsrD8ooxLb--
