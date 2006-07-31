@@ -1,16 +1,12 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 4/8][CTNETLINK] Fix race condition on conntrack creation
-Date: Mon, 31 Jul 2006 13:15:01 +0200
-Message-ID: <44CDE635.9060101@netfilter.org>
-References: <44C61A2E.3060102@netfilter.org>
-	<200607281316.k6SDGBVP001926@toshiba.co.jp>
+From: benjamin wagrocki <benjamin.wagrocki@gmx.de>
+Subject: getting wrong ports from tcph->dest
+Date: Mon, 31 Jul 2006 19:13:29 +0200
+Message-ID: <44CE3A39.5050405@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-In-Reply-To: <200607281316.k6SDGBVP001926@toshiba.co.jp>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,60 +18,67 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Yasuyuki,
+Hello,
 
-Yasuyuki KOZAKAI wrote:
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
-> Date: Tue, 25 Jul 2006 15:18:38 +0200
-> 
-> 
->> - rework get_features facility to avoid a softlockup
-> 
-> 
-> This looks nice cleanup, but __nf_conntrack_alloc() cannot
-> be called while holding nf_conntrack_lock, because it may call
-> early_drop(), which holds nf_contrack_lock and also may call
-> nf_ct_put().
-> 
-> 
->> static struct nf_conn *
->> __nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
->> 		     const struct nf_conntrack_tuple *repl,
->>-		     const struct nf_conntrack_l3proto *l3proto)
->>+		     const struct nf_conntrack_l3proto *l3proto,
->>+		     u_int32_t features)
->> {
-> 
-> 
-> You've moved "features = l3proto->get_features(orig);" out of
-> this function, then the argument 'l3proto' isn't necessary.
+I am hoping, that this is the right place for asking this question. If 
+not, please tell my, where I can find help for my problem.
 
-Indeed, I also detected another problem related with the NAT code in
-ip_conntrack_netlink, so this patch needs to be dropped.
+I am writing a kernel modul, which connects to the netfilter hooks . 
+This modul is ought to take over the firewalling. I am doing this just 
+for educational purpose.  My  problem  now is; I am not getting the  
+correct  tcp/udp  destination and  source ports.  For instance when I 
+start "wget localhost" my kernel modul is showing the right ports. If I 
+do that  from a remote host, the kernel modul shows always dport=48 
+independent of the real  dport  the remote host is trying to connect to  
+(port 80 or 81...)
 
-I'm questioning the usefulness of this patch since nfnetlink
-serializes the creation of two new conntracks.
+Here is what my kernel modul displays to /var/log/messages:
 
-> BTW, I think this race is similar situation in init_conntrack().
-> It doesn't care about race and __nf_conntrack_confirm() does it
-> instead.
-> 
-> One more my concern is recent Patrick's proposal.
-> 
-> https://lists.netfilter.org/pipermail/netfilter-devel/2006-July/025107.html
-> 
-> 
->>- change conntrack to always put connections in the hash immediately
->>  and remove them again if the connection is dropped before beeing
->>  confirmed.
-> 
-> If we do this, we need to solve the same issue in init_conntrack().
-> It might be time to consider to organize processing of hash and lock.
+wget localhost:
+-------------------
 
-About the implementation, we can play around with refcounting, set 
-refcount to 1 if the conntrack is unconfirmed and increase it to 2 once 
-it gets confirmed.
+DROPPED: SRC: 127.0.0.1 : 55732  DST: 127.0.0.1 : 80  IPv: 4  Prot: 6  
+Frag: 64 TTL: 64 TOT_LEN: 44
+DROPPED: SRC: 127.0.0.1 : 17664  DST: 127.0.0.1 : 44  IPv: 4  Prot: 6  
+Frag: 64 TTL: 64 TOT_LEN: 44
+DROPPED: SRC: 127.0.0.1 : 80  DST: 127.0.0.1 : 55732  IPv: 4  Prot: 6  
+Frag: 64 TTL: 64 TOT_LEN: 40
+DROPPED: SRC: 127.0.0.1 : 17664  DST: 127.0.0.1 : 40  IPv: 4  Prot: 6  
+Frag: 64 TTL: 64 TOT_LEN: 40
+
+//I am also not unterstanding, why four packets have been generated and 
+not just two?
+
+remote (winxp-firefox connecting to port 80):
+DROPPED: SRC: 192.168.198.97 : 17664  DST: 192.168.198.1 : 48  IPv: 4  
+Prot: 6  Frag: 64 TTL: 128 TOT_LEN: 48
+
+remote (connecting to port 443):
+DROPPED: SRC: 192.168.198.97 : 17664  DST: 192.168.198.1 : 48  IPv: 4  
+Prot: 6  Frag: 64 TTL: 128 TOT_LEN: 48
+
+There is no difference and the ports are wrong, why?
+
+My kernel modul is running on Fedora 4, could this be the reason? I 
+already turned off the SELinux extension, but this didn't help.
+
+Here some relevant code parts:
+struct sk_buff *skb = *skb_p;
+struct tcphdr *tcph = skb->h.th;
+unsigned int sport;
+unsigned int dport;
+...
+sport = convert_port(tcph->source);
+dport = convert_port(tcph->dest);
+...
+printk("\033[31m DROPPED: SRC: %u.%u.%u.%u : %u  DST: %u.%u.%u.%u : %u  
+IPv: %u  Prot: %u  Frag: %u TTL: %u TOT_LEN: %u \033[30m \n"
+       
+,saddr.ipbyte[0],saddr.ipbyte[1],saddr.ipbyte[2],saddr.ipbyte[3], sport, 
+daddr.ipbyte[0],daddr.ipbyte[1],daddr.ipbyte[2],daddr.ipbyte[3],
+       dport, iph->version, iph->protocol, iph->frag_off, iph->ttl, 
+totallength);
 
 -- 
-The dawn of the fourth age of Linux firewalling is coming; a time of
-great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
+Best regards,
+-Benjamin Wagrocki-
