@@ -1,13 +1,16 @@
-From: KOVACS Krisztian <hidden@balabit.hu>
-Subject: [PATCH 6/6] ulogd2 changes
-Date: Mon, 31 Jul 2006 10:23:11 +0200
-Message-ID: <200607311023.11145@nienna>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 4/8][CTNETLINK] Fix race condition on conntrack creation
+Date: Mon, 31 Jul 2006 13:15:01 +0200
+Message-ID: <44CDE635.9060101@netfilter.org>
+References: <44C61A2E.3060102@netfilter.org>
+	<200607281316.k6SDGBVP001926@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_v3bzEbsrD8ooxLb"
-Cc: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+In-Reply-To: <200607281316.k6SDGBVP001926@toshiba.co.jp>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,113 +22,60 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_v3bzEbsrD8ooxLb
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi Yasuyuki,
 
+Yasuyuki KOZAKAI wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> Date: Tue, 25 Jul 2006 15:18:38 +0200
+> 
+> 
+>> - rework get_features facility to avoid a softlockup
+> 
+> 
+> This looks nice cleanup, but __nf_conntrack_alloc() cannot
+> be called while holding nf_conntrack_lock, because it may call
+> early_drop(), which holds nf_contrack_lock and also may call
+> nf_ct_put().
+> 
+> 
+>> static struct nf_conn *
+>> __nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
+>> 		     const struct nf_conntrack_tuple *repl,
+>>-		     const struct nf_conntrack_l3proto *l3proto)
+>>+		     const struct nf_conntrack_l3proto *l3proto,
+>>+		     u_int32_t features)
+>> {
+> 
+> 
+> You've moved "features = l3proto->get_features(orig);" out of
+> this function, then the argument 'l3proto' isn't necessary.
 
-  Hi,
+Indeed, I also detected another problem related with the NAT code in
+ip_conntrack_netlink, so this patch needs to be dropped.
 
-  Attached are the changes to ulogd2.
+I'm questioning the usefulness of this patch since nfnetlink
+serializes the creation of two new conntracks.
+
+> BTW, I think this race is similar situation in init_conntrack().
+> It doesn't care about race and __nf_conntrack_confirm() does it
+> instead.
+> 
+> One more my concern is recent Patrick's proposal.
+> 
+> https://lists.netfilter.org/pipermail/netfilter-devel/2006-July/025107.html
+> 
+> 
+>>- change conntrack to always put connections in the hash immediately
+>>  and remove them again if the connection is dropped before beeing
+>>  confirmed.
+> 
+> If we do this, we need to solve the same issue in init_conntrack().
+> It might be time to consider to organize processing of hash and lock.
+
+About the implementation, we can play around with refcounting, set 
+refcount to 1 if the conntrack is unconfirmed and increase it to 2 once 
+it gets confirmed.
 
 -- 
- Regards,
-  Krisztian Kovacs
-
---Boundary-00=_v3bzEbsrD8ooxLb
-Content-Type: text/x-diff;
-  charset="us-ascii";
-  name="06-ulogd2.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="06-ulogd2.patch"
-
-Index: ulogd2/configure.in
-===================================================================
---- ulogd2/configure.in	(revision 6652)
-+++ ulogd2/configure.in	(working copy)
-@@ -2,7 +2,7 @@
- AC_INIT
- 
- AM_INIT_AUTOMAKE(ulogd, 2.0.0beta2)
--AM_CONFIG_HEADER(config.h)
-+# AM_CONFIG_HEADER(config.h)
- 
- dnl Checks for programs.
- AC_PROG_MAKE_SET
-@@ -28,13 +28,14 @@
- AC_FUNC_VPRINTF
- AC_CHECK_FUNCS(socket strerror)
- 
--AC_CHECK_HEADER([libnetfilter_log/linux_nfnetlink_log.h], [AC_MSG_RESULT([found])],
--		[AC_MSG_ERROR([libnetfilter_log Version 0.0.11 or later needed])])
-+LIBNFCONNTRACK_REQUIRED=0.0.31
-+LIBNFLOG_REQUIRED=0.0.11
-+ 
-+PKG_CHECK_MODULES(LIBNFCONNTRACK, libnetfilter_conntrack >= $LIBNFCONNTRACK_REQUIRED,,
-+	AC_MSG_ERROR(Cannot find libnetfilter_conntrack >= $LIBNFCONNTRACK_REQUIRED))
-+PKG_CHECK_MODULES(LIBNFLOG, libnetfilter_log >= $LIBNFLOG_REQUIRED,,
-+	AC_MSG_ERROR(Cannot find libnetfilter_log >= $LIBNFLOG_REQUIRED))
- 
--AC_CHECK_HEADER([libnetfilter_conntrack/libnetfilter_conntrack.h], [AC_MSG_RESULT([found])],
--		[AC_MSG_ERROR([libnetfilter_conntrack Version 0.0.11 or later needed])])
--
--
- CT_CHECK_POSTGRES_DB()
- AM_CONDITIONAL(HAVE_PGSQL, test "x$PQLIBPATH" != "x")
- 
-@@ -61,6 +62,11 @@
- dnl AM_CONDITIONAL(HAVE_MYSQL, test x$mysqldir != x)
- dnl AM_CONDITIONAL(HAVE_PGSQL, test x$pgsqldir != x)
- 
-+CFLAGS="$CFLAGS $LIBNFCONNTRACK_CFLAGS $LIBNFLOG_CFLAGS"
-+
-+AC_SUBST(LIBNFCONNTRACK_LIBS)
-+AC_SUBST(LIBNFLOG_LIBS)
-+
- AC_OUTPUT(doc/Makefile \
- 	  include/Makefile include/ulogd/Makefile include/libipulog/Makefile \
- 	  libipulog/Makefile \
-Index: ulogd2/input/flow/Makefile.am
-===================================================================
---- ulogd2/input/flow/Makefile.am	(revision 6652)
-+++ ulogd2/input/flow/Makefile.am	(working copy)
-@@ -1,11 +1,12 @@
- 
- INCLUDES = $(all_includes) -I$(top_srcdir)/include
--AM_CFLAGS=-fPIC -Wall
-+AM_CFLAGS = -fPIC -Wall
-+LIBS = @LIBNFCONNTRACK_LIBS@
- 
- pkglib_LTLIBRARIES = ulogd_inpflow_NFCT.la # ulogd_inpflow_IPFIX.la
- 
- ulogd_inpflow_NFCT_la_SOURCES = ulogd_inpflow_NFCT.c
--ulogd_inpflow_NFCT_la_LDFLAGS = -module -lnetfilter_conntrack
-+ulogd_inpflow_NFCT_la_LDFLAGS = -module
- 
- #ulogd_inpflow_IPFIX_la_SOURCES = ulogd_inpflow_IPFIX.c
- #ulogd_inpflow_IPFIX_la_LDFLAGS = -module
-Index: ulogd2/input/packet/Makefile.am
-===================================================================
---- ulogd2/input/packet/Makefile.am	(revision 6652)
-+++ ulogd2/input/packet/Makefile.am	(working copy)
-@@ -1,12 +1,12 @@
- 
- INCLUDES = $(all_includes) -I$(top_srcdir)/include
--AM_CFLAGS=-fPIC -Wall
--LIBS=
-+AM_CFLAGS = -fPIC -Wall
-+LIBS = @LIBNFLOG_LIBS@
- 
- pkglib_LTLIBRARIES = ulogd_inppkt_NFLOG.la ulogd_inppkt_ULOG.la
- 
- ulogd_inppkt_NFLOG_la_SOURCES = ulogd_inppkt_NFLOG.c
--ulogd_inppkt_NFLOG_la_LDFLAGS = -module -lnetfilter_log
-+ulogd_inppkt_NFLOG_la_LDFLAGS = -module
- 
- ulogd_inppkt_ULOG_la_SOURCES = ulogd_inppkt_ULOG.c
- ulogd_inppkt_ULOG_la_LDFLAGS = -module
-
---Boundary-00=_v3bzEbsrD8ooxLb--
+The dawn of the fourth age of Linux firewalling is coming; a time of
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
