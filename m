@@ -1,18 +1,13 @@
-From: "Rajesh Mahajan" <rajeshmahajan09@gmail.com>
-Subject: Re: IMQ AND IP_Queue
-Date: Sun, 30 Jul 2006 15:52:40 +0530
-Message-ID: <c9961d450607300322m2394c229x25d386c73dc3ea6f@mail.gmail.com>
-References: <c9961d450607290020t2c28c065g76483acacad16fbe@mail.gmail.com>
-	<44CB7A5F.7050106@trash.net>
-	<c9961d450607290954s364e98c5h2a18523d944a9036@mail.gmail.com>
+From: KOVACS Krisztian <hidden@balabit.hu>
+Subject: [PATCH 2/6] libnetfilter_log changes
+Date: Mon, 31 Jul 2006 10:22:57 +0200
+Message-ID: <200607311022.57641@nienna>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter <netfilter-devel@lists.netfilter.org>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_h3bzE/h1azaQfOi"
+Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>
-In-Reply-To: <c9961d450607290954s364e98c5h2a18523d944a9036@mail.gmail.com>
-Content-Disposition: inline
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,26 +19,65 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thanks
+--Boundary-00=_h3bzE/h1azaQfOi
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On 7/29/06, Rajesh Mahajan <rajeshmahajan09@gmail.com> wrote:
 
->
-> On 7/29/06, Patrick McHardy <kaber@trash.net> wrote:
-> > Rajesh Mahajan wrote:
-> > > we r currently using kernel 2.6.12 and iptables 1.3
-> >  > there is issue between imq and ip_queue
-> > > we r using imq for shaping
-> > > now we ip_queue module to be inserted
-> > > But it is unable to insert it is giving errors
-> > > FATAL: Error inserting ip_queue (/lib/modules/2.6.12-1-686
-> > > /kernel/net/ipv4/netfilter/ip_queue.ko): Device or resource busy
-> >
-> >
-> > Well known problem, you can't have two queues for the same address
-> > family. The IFB device present in current kernels replaces IMQ and
-> > doesn't need to bind to a netfilter queue.
-> >
-> >
->
->
+  Hi,
+
+  Attached are the changes to libnetfilter_log.
+
+-- 
+ Regards,
+  Krisztian Kovacs
+
+--Boundary-00=_h3bzE/h1azaQfOi
+Content-Type: text/x-diff; charset="us-ascii"; name="02-libnetfilter_log.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="02-libnetfilter_log.patch"
+
+Index: libnetfilter_log/configure.in
+===================================================================
+--- libnetfilter_log/configure.in	(revision 6652)
++++ libnetfilter_log/configure.in	(working copy)
+@@ -18,9 +18,17 @@
+ *) AC_MSG_ERROR([Linux only, dude!]);;
+ esac
+ 
+-AC_CHECK_LIB(nfnetlink, nfnl_subsys_open, AC_MSG_RESULT(found), AC_MSG_ERROR([libnfnetlink 0.0.16 or later needed]))
+-AC_CHECK_HEADER([libnfnetlink/linux_nfnetlink.h], [AC_MSG_RESULT([found])], [AC_MSG_ERROR([libnfnetlink 0.0.16 or later needed])])
++dnl Dependencies
++LIBNFNETLINK_REQUIRED=0.0.16
++ 
++PKG_CHECK_MODULES(LIBNFNETLINK, libnfnetlink >= $LIBNFNETLINK_REQUIRED,,
++	AC_MSG_ERROR(Cannot find libnfnetlink >= $LIBNFNETLINK_REQUIRED))
+ 
++CFLAGS="$CFLAGS $LIBNFNETLINK_CFLAGS"
++LIBNFLOG_LIBS="$LIBNFNETLINK_LIBS"
++ 
++AC_SUBST(LIBNFLOG_LIBS)
++
+ dnl Output the makefile
+ AC_OUTPUT(Makefile src/Makefile include/Makefile include/libnetfilter_log/Makefile utils/Makefile libnetfilter_log.pc)
+ 
+Index: libnetfilter_log/src/Makefile.am
+===================================================================
+--- libnetfilter_log/src/Makefile.am	(revision 6652)
++++ libnetfilter_log/src/Makefile.am	(working copy)
+@@ -3,8 +3,8 @@
+ LIBVERSION=2:0:1
+ 
+ INCLUDES = $(all_includes) -I$(top_srcdir)/include
+-AM_CFLAGS=-fPIC -Wall
+-LIBS=
++AM_CFLAGS = -fPIC -Wall
++LIBS = @LIBNFLOG_LIBS@
+ 
+ lib_LTLIBRARIES = libnetfilter_log.la libnetfilter_log_libipulog.la
+ 
+
+--Boundary-00=_h3bzE/h1azaQfOi--
