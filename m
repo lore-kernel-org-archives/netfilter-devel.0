@@ -1,12 +1,12 @@
-From: benjamin wagrocki <benjamin.wagrocki@gmx.de>
-Subject: getting wrong ports from tcph->dest
-Date: Mon, 31 Jul 2006 19:13:29 +0200
-Message-ID: <44CE3A39.5050405@gmx.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER]: SIP helper: expect RTP streams in both directions
+Date: Tue, 01 Aug 2006 08:39:50 +0200
+Message-ID: <44CEF736.4020105@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="------------080508010304090001050804"
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: "David S. Miller" <davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,67 +18,58 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+This is a multi-part message in MIME format.
+--------------080508010304090001050804
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-I am hoping, that this is the right place for asking this question. If 
-not, please tell my, where I can find help for my problem.
+Hi Dave,
 
-I am writing a kernel modul, which connects to the netfilter hooks . 
-This modul is ought to take over the firewalling. I am doing this just 
-for educational purpose.  My  problem  now is; I am not getting the  
-correct  tcp/udp  destination and  source ports.  For instance when I 
-start "wget localhost" my kernel modul is showing the right ports. If I 
-do that  from a remote host, the kernel modul shows always dport=48 
-independent of the real  dport  the remote host is trying to connect to  
-(port 80 or 81...)
+following are two small fixes for 2.6.18. The second patch fixes
+missing string validation in two netfilter modules. James sent a
+similar patch for SECMARK to -stable, in my opinion this is not
+necessary since CAP_NET_ADMIN in practice always means root and
+mainline doesn't support virtualization yet. But if you feel
+otherwise please pass it on. Thanks.
 
-Here is what my kernel modul displays to /var/log/messages:
 
-wget localhost:
--------------------
+--------------080508010304090001050804
+Content-Type: text/plain;
+ name="01.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="01.diff"
 
-DROPPED: SRC: 127.0.0.1 : 55732  DST: 127.0.0.1 : 80  IPv: 4  Prot: 6  
-Frag: 64 TTL: 64 TOT_LEN: 44
-DROPPED: SRC: 127.0.0.1 : 17664  DST: 127.0.0.1 : 44  IPv: 4  Prot: 6  
-Frag: 64 TTL: 64 TOT_LEN: 44
-DROPPED: SRC: 127.0.0.1 : 80  DST: 127.0.0.1 : 55732  IPv: 4  Prot: 6  
-Frag: 64 TTL: 64 TOT_LEN: 40
-DROPPED: SRC: 127.0.0.1 : 17664  DST: 127.0.0.1 : 40  IPv: 4  Prot: 6  
-Frag: 64 TTL: 64 TOT_LEN: 40
+[NETFILTER]: SIP helper: expect RTP streams in both directions
 
-//I am also not unterstanding, why four packets have been generated and 
-not just two?
+Since we don't know in which direction the first packet will arrive, we
+need to create one expectation for each direction, which is currently
+prevented by max_expected beeing set to 1.
 
-remote (winxp-firefox connecting to port 80):
-DROPPED: SRC: 192.168.198.97 : 17664  DST: 192.168.198.1 : 48  IPv: 4  
-Prot: 6  Frag: 64 TTL: 128 TOT_LEN: 48
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-remote (connecting to port 443):
-DROPPED: SRC: 192.168.198.97 : 17664  DST: 192.168.198.1 : 48  IPv: 4  
-Prot: 6  Frag: 64 TTL: 128 TOT_LEN: 48
+---
+commit e8b121382d0690c0d92b6134bb60e7626cd49284
+tree 2a85a79242cb160e35d207d504886e770db2ed6f
+parent 49b1e3ea19b1c95c2f012b8331ffb3b169e4c042
+author Patrick McHardy <kaber@trash.net> Tue, 01 Aug 2006 07:26:21 +0200
+committer Patrick McHardy <kaber@trash.net> Tue, 01 Aug 2006 07:26:21 +0200
 
-There is no difference and the ports are wrong, why?
+ net/ipv4/netfilter/ip_conntrack_sip.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-My kernel modul is running on Fedora 4, could this be the reason? I 
-already turned off the SELinux extension, but this didn't help.
+diff --git a/net/ipv4/netfilter/ip_conntrack_sip.c b/net/ipv4/netfilter/ip_conntrack_sip.c
+index fc87ce0..4f222d6 100644
+--- a/net/ipv4/netfilter/ip_conntrack_sip.c
++++ b/net/ipv4/netfilter/ip_conntrack_sip.c
+@@ -442,7 +442,7 @@ static int __init init(void)
+ 		sip[i].tuple.src.u.udp.port = htons(ports[i]);
+ 		sip[i].mask.src.u.udp.port = 0xFFFF;
+ 		sip[i].mask.dst.protonum = 0xFF;
+-		sip[i].max_expected = 1;
++		sip[i].max_expected = 2;
+ 		sip[i].timeout = 3 * 60; /* 3 minutes */
+ 		sip[i].me = THIS_MODULE;
+ 		sip[i].help = sip_help;
 
-Here some relevant code parts:
-struct sk_buff *skb = *skb_p;
-struct tcphdr *tcph = skb->h.th;
-unsigned int sport;
-unsigned int dport;
-...
-sport = convert_port(tcph->source);
-dport = convert_port(tcph->dest);
-...
-printk("\033[31m DROPPED: SRC: %u.%u.%u.%u : %u  DST: %u.%u.%u.%u : %u  
-IPv: %u  Prot: %u  Frag: %u TTL: %u TOT_LEN: %u \033[30m \n"
-       
-,saddr.ipbyte[0],saddr.ipbyte[1],saddr.ipbyte[2],saddr.ipbyte[3], sport, 
-daddr.ipbyte[0],daddr.ipbyte[1],daddr.ipbyte[2],daddr.ipbyte[3],
-       dport, iph->version, iph->protocol, iph->frag_off, iph->ttl, 
-totallength);
-
--- 
-Best regards,
--Benjamin Wagrocki-
+--------------080508010304090001050804--
