@@ -1,9 +1,9 @@
-From: Piotr Chytla <pch@packetconsulting.pl>
-Subject: u32 patch
-Date: Wed, 2 Aug 2006 23:22:32 +0200
-Message-ID: <20060802212232.GA29168@packetconsulting.pl>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] ipv6 ROUTE target api changes
+Date: Wed, 2 Aug 2006 16:49:33 -0700
+Message-ID: <20060802234933.GA1183@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="HlL+5n6rz5pIUxbD"
+Content-Type: multipart/mixed; boundary="3MwIy2ne0vdjdPXF"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
@@ -19,35 +19,42 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
---HlL+5n6rz5pIUxbD
-Content-Type: text/plain; charset=iso-8859-2
+--3MwIy2ne0vdjdPXF
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-Hi
+My recent .targetsize patch missed the other API changes in the IPv6
+ROUTE target.  
 
-Here are some small patch for u32 match, to work on 2.6.17 kernels . 
-Matchsize in ipt_match  struct was missing. 
+This resolves bugzilla #490 (again).
+
+Phil
 
 
-/pch
+--3MwIy2ne0vdjdPXF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-ROUTE-try2
 
--- 
-Dyslexia bug unpatched since 1977 ...
-exploit has been leaked to the underground.
+diff -ru pom-orig/patchlets/ROUTE/linux-2.6/net/ipv6/netfilter/ip6t_ROUTE.c pom-new/patchlets/ROUTE/linux-2.6/net/ipv6/netfilter/ip6t_ROUTE.c
+--- pom-orig/patchlets/ROUTE/linux-2.6/net/ipv6/netfilter/ip6t_ROUTE.c	2006-07-22 10:07:52.000000000 -0400
++++ pom-new/patchlets/ROUTE/linux-2.6/net/ipv6/netfilter/ip6t_ROUTE.c	2006-08-02 19:46:04.000000000 -0400
+@@ -192,6 +192,7 @@
+ 		  const struct net_device *in,
+ 		  const struct net_device *out,
+ 		  unsigned int hooknum,
++		  const struct xt_target *target,
+ 		  const void *targinfo,
+ 		  void *userinfo)
+ {
+@@ -259,7 +260,8 @@
+ 
+ static int 
+ ip6t_route_checkentry(const char *tablename,
+-		      const struct ip6t_entry *e,
++		      const void *entry,
++		      const struct xt_target *target,
+ 		      void *targinfo,
+ 		      unsigned int targinfosize,
+ 		      unsigned int hook_mask)
 
---HlL+5n6rz5pIUxbD
-Content-Type: text/plain; charset=iso-8859-2
-Content-Disposition: attachment; filename="ipt_u32.patch"
-
---- ipt_u32.c	2006-08-02 22:34:29.000000000 +0200
-+++ /usr/src/linux-2.6.17.6/net/ipv4/netfilter/ipt_u32.c	2006-08-02 22:45:43.000000000 +0200
-@@ -217,6 +217,7 @@
- static struct ipt_match u32_match = { 
- 	.name 		= "u32",
- 	.match		= &match,
-+	.matchsize	= sizeof(struct ipt_u32),
- 	.checkentry	= &checkentry,
- 	.me		= THIS_MODULE
- };
-
---HlL+5n6rz5pIUxbD--
+--3MwIy2ne0vdjdPXF--
