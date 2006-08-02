@@ -1,86 +1,46 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
+From: Amin Azez <azez@ufomechanic.net>
 Subject: Re: [patch] RFC: matching interface groups
-Date: Wed, 02 Aug 2006 09:18:44 +0200
-Message-ID: <1154503124.6241.21.camel@bzorp.balabit>
-References: <1154452209.6395.77.camel@bzorp.balabit>
-	 <20060801112919.765eb831@localhost.localdomain>
+Date: Wed, 02 Aug 2006 10:01:05 +0100
+Message-ID: <44D069D1.4040702@ufomechanic.net>
+References: <1154452209.6395.77.camel@bzorp.balabit>	 <20060801184655.GA7452@linuxace.com>	 <20060801191805.GA28649@zion.homelinux.com> <1154502269.6241.11.camel@bzorp.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org
+Cc: Phil Oester <kernel@linuxace.com>,
+	netfilter-devel@lists.netfilter.org, netdev@vger.kernel.org,
+	shemminger@osdl.org
 Return-path: <netdev-owner@vger.kernel.org>
-To: Stephen Hemminger <shemminger@osdl.org>
-In-Reply-To: <20060801112919.765eb831@localhost.localdomain>
+To: Balazs Scheidler <bazsi@balabit.hu>
+In-Reply-To: <1154502269.6241.11.camel@bzorp.balabit>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2006-08-01 at 11:29 -0700, Stephen Hemminger wrote:
-> On Tue, 01 Aug 2006 19:10:09 +0200
-> Balazs Scheidler <bazsi@balabit.hu> wrote:
+* Balazs Scheidler wrote, On 02/08/06 08:04:
+> On Tue, 2006-08-01 at 21:18 +0200, Sven Schuster wrote:
+>> as this would require the complete chain (say, INPUT or
+>> OUTPUT) to be "downloaded" to userspace, modified and then again
+>> "uploaded" to the kernel. At least until iptables redesign to
+>> allow replacement/insertion/deletion of single rules is completed
+>> which if started at all will take quite some more time :-)
 > 
-> > Hi,
-> > 
-> > I would like to easily match a set of dynamically created interfaces
-> > from my packet filter rules. The attached patch forms the basis of my
-> > implementation and I would like to know whether something like this is
-> > mergeable to mainline.
-> > 
-> > The use-case is as follows:
-> > 
-> > * I have two different subsystems creating interfaces dynamically (for
-> > example pptpd and serial pppd lines, each creating dynamic pppX
-> > interfaces),
-> > * I would like to assign a different set of iptables rules for these
-> > clients,
-> > * I would like to react to a new interface being added to a specific set
-> > in a userspace application,
-> > 
-> > The reasons I see this needs new kernel functionality:
-> > 
-> > * iptables supports wildcard interface matching (for example "iptables
-> > -i ppp+"), but as the names of the interfaces used by PPTPD and PPPD
-> > cannot be distinguished this way, this is not enough,
-> > * Reloading the iptables ruleset everytime a new interface comes up is
-> > not really feasible, as it abrupts packet processing, and validating the
-> > ruleset in the kernel can take significant amount of time,
-> > * the kernel change is very simple, adapting userspace to this change is
-> > also very simple, and in userspace various software packages can easily
-> > interoperate with each-other once this is merged.
-> > 
-> > The implementation:
-> > 
-> > Each interface can belong to a single "group" at a time, an interface
-> > comes up without being a member in any of the groups.
-> > 
-> > Userspace can assign interfaces to groups after being created, this
-> > would typically be performed in /etc/ppp/ip-up.d (and similar) scripts.
-> > 
-> > In spirit "interface group" is somewhat similar to the "routing
-> > protocol" field for routing entries, which contains information on which
-> > routing daemon was responsible for adding the given route entry.
-> > 
-> > [snip]
-
-> I like the concept, but it probably needs more review.
+> Iptables operates on a per-table basis, so it is not only the INPUT or
+> OUTPUT chain that needs to be down and uploaded, but the whole filter
+> table.
 > 
-> There is a bigger issue, which is how should the network device namespace
-> exist? There are virtualization efforts, that want to virtualize it,
-> and network device names have always lived in a parallel universe.
-> I don't expect your patch to solve this...
+> And in addition, in my humble opinion the iptables ruleset should be up
+> to the user to maintain, once some kind of automatism starts to
+> add/remove rules on the fly, it becomes more difficult to do other
+> changes to add independent rules to the table. For example the user
+> needs to save the current ruleset using iptables-save, then modify the
+> resulting file, and then load it again. If the ruleset is generated as
+> it happens with a lot of tools, this might not be so easy.
+> 
 
-I have read the OLS paper on virtualization, it states that the current
-state of affairs is that struct net_device will be assigned to one
-specific namespace. As my change changes struct net_device itself, I
-expect to work without problems when virtualization comes, the interface
-group can be interpreted on a per-namespace basis.
+Even without this scenario it is not easily safe; if two interfaces
+chanegd at the same time, two copies of iptables would be downloaded to
+user space, both modified differently and the last one to be uploaded
+would win, the other one loosing its changes.
 
-There probably will be several iptables rulesets when the time comes,
-one for each namespace, but again, struct net_device will be assigned to
-a namespace, and the proper iptables tables will be iterated based on
-the net_device assignment.
+This has bitten me and is one of my reasons for liking ipt_condition
 
-Am I missing something?
-
--- 
-Bazsi
-
+Sam
