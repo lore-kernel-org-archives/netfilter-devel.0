@@ -1,18 +1,12 @@
-From: Maik Hentsche <netfilter@mm-double.de>
-Subject: Re: bugreport ipt_CLUSTERIP
-Date: Wed, 2 Aug 2006 20:12:12 +0200
-Message-ID: <20060802201212.3089b23b@zeus.subnet.mm-double.de>
-References: <20060725082618.8zdzyrc36s0ksgsk@mail.tu-chemnitz.de>
-	<44C8CB58.60709@trash.net>
-	<1154078751.44c9d81ff2c50@www.domainfactory-webmail.de>
-	<44CABEBC.9050101@trash.net>
+From: Piotr Chytla <pch@packetconsulting.pl>
+Subject: u32 patch
+Date: Wed, 2 Aug 2006 23:22:32 +0200
+Message-ID: <20060802212232.GA29168@packetconsulting.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: multipart/mixed; boundary="HlL+5n6rz5pIUxbD"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44CABEBC.9050101@trash.net>
+To: netfilter-devel@lists.netfilter.org
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,26 +18,36 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy <kaber@trash.net> wrote:
 
-> I tried to reproduce this (by first adding your rule, then deleting
-> it, adding it again, rebooting), but got no crash.
+--HlL+5n6rz5pIUxbD
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: inline
 
-It did not happen again for me either, even though, I tried a lot to
-reproduce it.
+Hi
 
-> Did you added/deleted/flushed/... any CLUSTERIP rules before the crashes?
+Here are some small patch for u32 match, to work on 2.6.17 kernels . 
+Matchsize in ipt_match  struct was missing. 
 
-I added the rule, then tried to ping the virtual IP, which did not
-work (no arp response). Then I deleted the rule and did nothing else
-with CLUSTERIP. The machine was used by another developer a week ago
-and I do not know, if he did anything with iptables, but he hardly used
-CLUSTERIP. I'm very sorry to not be able to help more.
 
-so long
-Maik
+/pch
 
 -- 
-Der Verstand ist wie eine Fahrkarte. Sie hat nur Sinn wenn man sie
-benutzt. (Ernst R. Hauschka (*1926), deutscher Essayist,
-Aphoristiker und Bibliothekar)
+Dyslexia bug unpatched since 1977 ...
+exploit has been leaked to the underground.
+
+--HlL+5n6rz5pIUxbD
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: attachment; filename="ipt_u32.patch"
+
+--- ipt_u32.c	2006-08-02 22:34:29.000000000 +0200
++++ /usr/src/linux-2.6.17.6/net/ipv4/netfilter/ipt_u32.c	2006-08-02 22:45:43.000000000 +0200
+@@ -217,6 +217,7 @@
+ static struct ipt_match u32_match = { 
+ 	.name 		= "u32",
+ 	.match		= &match,
++	.matchsize	= sizeof(struct ipt_u32),
+ 	.checkentry	= &checkentry,
+ 	.me		= THIS_MODULE
+ };
+
+--HlL+5n6rz5pIUxbD--
