@@ -1,19 +1,11 @@
-From: Maik Hentsche <netfilter@mm-double.de>
-Subject: Re: bugreport ipt_CLUSTERIP
-Date: Thu, 03 Aug 2006 15:59:35 +0200
-Message-ID: <1154613575.44d201478b3d9@www.domainfactory-webmail.de>
-References: <20060725082618.8zdzyrc36s0ksgsk@mail.tu-chemnitz.de>
-	<44C8CB58.60709@trash.net>
-	<1154078751.44c9d81ff2c50@www.domainfactory-webmail.de>
-	<44CABEBC.9050101@trash.net>
-	<20060802201212.3089b23b@zeus.subnet.mm-double.de>
-	<44D1C66E.1080307@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: [PATCH] ipset matches either,both
+Date: Thu, 03 Aug 2006 17:10:33 +0100
+Message-ID: <eat75p$9o4$1@sea.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="------------080908030408010606060206"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <44D1C66E.1080307@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,82 +17,537 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Zitat von Patrick McHardy <kaber@trash.net>:
+This is a multi-part message in MIME format.
+--------------080908030408010606060206
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-> Thanks anyway. I'll try some more to reproduce it ..
+These patches to ipset allow "either" and "both" to be specified as well
+as "src" and "dst".
 
-It happened again and now I have a clue, what _might_ trigger it. I did
-a few (around 15) inserting/deleting/inserting/flushing-cycles. All the
-time, a ping to the virtual IP was running. Most important, another
-programm held the virtual IP when it crashed (twice), once keepalived
-and once heartbeatd. Without them, the error did not occur. I appended
-a console log. Note, that, even though, there is a "hash=1 ct_hash=1
-responsible", which seems to come from CLUSTERIP, I do not get an arp
-response (and as far as I understood, CLUSTERIP is supposed to send
-one).
+I considered doing this as a hack in ip_set.c, by calling the match
+twice, faking flags of SRC and DST, but it was a hack and wouldn't
+easily cover the porthash which consumes two flags.
 
-HTH & so long
-Maik
+Instead I've altered the test of all of the set types, to accept BOTH
+and EITHER as well.
 
+The encoding of BOTH and EITHER was troublesome as flags is a mix of an
+enum and bitmap-set; what I did isn't clean, but it will do, and doesn't
+break user-space compatability.
 
-hash=1 ct_hash=1 responsible
-hash=1 ct_hash=1 responsible
-IPVS: Registered protocols (TCP, UDP, AH, ESP)
-IPVS: Connection hash table configured (size=4096, memory=64Kbytes)
-IPVS: ipvs loaded.
-Unable to handle kernel NULL pointer dereference at 0000000000000000
-RIP:
-<ffffffff88135022>{:ipt_CLUSTERIP:__clusterip_config_find+34}
-PGD 798d2067 PUD 7c090067 PMD 0
-Oops: 0000 [1] PREEMPT SMP
-CPU 1
-Modules linked in: ip_vs ipt_CLUSTERIP ipt_REJECT xt_state ip_conntrack
-nfnetlink xt_tcpudp iptable_filter ip_tables ipt_ULOG x_tables ipv3Pid:
-0, comm: swapper Not tainted 2.6.17.3 #1
-RIP: 0010:[<ffffffff88135022>]
-<ffffffff88135022>{:ipt_CLUSTERIP:__clusterip_config_find+34}
-RSP: 0018:ffff810001377d60  EFLAGS: 00010a16
-RAX: 0000000000000000 RBX: 0000000016fb14ac RCX: ffff81007cb50000
-RDX: 0000000000000000 RSI: ffff810001377e48 RDI: 0000000016fb14ac
-RBP: ffff81007d2e3410 R08: ffffffff803aadc0 R09: 0000000000000205
-R10: ffff81007cb50168 R11: 0000000000000001 R12: ffff81007cb50000
-R13: ffff81007d2e3418 R14: 0000000000000000 R15: 0000000000000001
-FS:  00002b8f4febc6d0(0000) GS:ffff81007e3afa40(0000)
-knlGS:0000000000000000
-CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
-CR2: 0000000000000000 CR3: 000000007d3d4000 CR4: 00000000000006e0
-Process swapper (pid: 0, threadinfo ffff810001370000, task
-ffff810001344080)
-Stack: ffffffff881357a4 ffff81000132bac0 ffff810001377df8
-ffffffff8052b6f0
-       0000000080000000 ffff81007cb50000 ffffffff803bce1e
-ffff810001377e48
-       0000000000000001 ffff810001377e48
-Call Trace: <IRQ> <ffffffff881357a4>{:ipt_CLUSTERIP:arp_mangle+116}
-       <ffffffff803bce1e>{nf_iterate+94}
-<ffffffff803aadc0>{dev_queue_xmit+0}
-       <ffffffff803bcee7>{nf_hook_slow+135}
-<ffffffff803aadc0>{dev_queue_xmit+0}
-       <ffffffff803e690e>{arp_xmit+62}
-<ffffffff803e628c>{arp_solicit+396}
-       <ffffffff803b040e>{neigh_timer_handler+654}
-<ffffffff802454d6>{hrtimer_run_queues+214}
-       <ffffffff803b0180>{neigh_timer_handler+0}
-<ffffffff80237777>{run_timer_softirq+375}
-       <ffffffff8023301b>{__do_softirq+91}
-<ffffffff80207ae0>{default_idle+0}
-       <ffffffff8020ade2>{call_softirq+30}
-<ffffffff8020cc51>{do_softirq+49}
-       <ffffffff8023317f>{irq_exit+63}
-<ffffffff80207ae0>{default_idle+0}
-       <ffffffff8020a786>{apic_timer_interrupt+98} <EOI>
-<ffffffff80412105>{_spin_unlock_irq+21}
-       <ffffffff8041021a>{thread_return+186}
-<ffffffff80207b0f>{default_idle+47}
-       <ffffffff80207d08>{cpu_idle+104}
+I've tested the behaviour of src dst either and both for iphash.
+I'm not sure about ipportmap because the man pages aren't clear how to
+write rules for this.
 
-Code: 48 8b 00 0f 18 08 48 81 fa 00 75 13 88 75 e5 31 c0 c3 66 66
-RIP <ffffffff88135022>{:ipt_CLUSTERIP:__clusterip_config_find+34} RSP
-<ffff810001377d60>
-CR2: 0000000000000000
- <0>Kernel panic - not syncing: Aiee, killing interrupt handler!
+I'm not sure of the effect on this with bindings; I suspect that with
+either,both we may want a preferred test order, and the one that matches
+first is used to follow bindings.
+
+I guess that
+   res = set->type->testip_kernel(set, skb, &ip, flags, i++);
+
+sets ip for use by bindings following, and I haven't fiddled with this,
+so src will be set if that matched for either, otherwise "dst" will be
+set for "either" or "both"
+
+Comments welcome.
+
+--------------080908030408010606060206
+Content-Type: text/x-patch;
+ name="ipset-both-either.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ipset-both-either.patch"
+
+Index: linux-2.6.17.1/include/linux/netfilter_ipv4/ip_set.h
+===================================================================
+--- linux-2.6.17.1.orig/include/linux/netfilter_ipv4/ip_set.h
++++ linux-2.6.17.1/include/linux/netfilter_ipv4/ip_set.h
+@@ -5,6 +5,7 @@
+  *                         Patrick Schaaf <bof@bof.de>
+  *                         Martin Josefsson <gandalf@wlug.westbo.se>
+  * Copyright (C) 2003-2004 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
++ * Copyright (C) 2006 UFO Mechanic          <azez@ufomechanic.net>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -79,6 +80,14 @@ typedef uint16_t ip_set_id_t;
+ #define IPSET_SRC 		0x01	/* Source match/add */
+ #define IPSET_DST		0x02	/* Destination match/add */
+ #define IPSET_MATCH_INV		0x04	/* Inverse matching */
++#define IPSET_BOTH		0x08	/* Source and dest match/add */
++#define IPSET_EITHER		0x10	/* Source or dest match, add both*/
++/* Debug helper */
++#define IP_SET_OPERATION(index)	((index & IPSET_EITHER)?"EITHER":\
++				(index & IPSET_BOTH)?"BOTH":\
++				(index & IPSET_SRC)?"SRC":\
++				(index & IPSET_DST)?"DST":"UNKNOWN")
++
+ 
+ /*
+  * Set features
+Index: linux-2.6.17.1/net/ipv4/netfilter/ip_set_iphash.c
+===================================================================
+--- linux-2.6.17.1.orig/net/ipv4/netfilter/ip_set_iphash.c
++++ linux-2.6.17.1/net/ipv4/netfilter/ip_set_iphash.c
+@@ -1,4 +1,5 @@
+ /* Copyright (C) 2003-2004 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
++ * Copyright (C) 2006 UFO Mechanic          <azez@ufomechanic.net>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -86,11 +87,24 @@ testip_kernel(struct ip_set *set, 
+ 	      const u_int32_t *flags,
+ 	      unsigned char index)
+ {
+-	return __testip(set,
+-			ntohl(flags[index] & IPSET_SRC 
+-				? skb->nh.iph->saddr 
+-				: skb->nh.iph->daddr),
+-			hash_ip);
++	int src;
++	int dst;
++
++	src = ( (flags[index] & (IPSET_SRC | IPSET_BOTH | IPSET_EITHER)) && \
++			__testip(set, ntohl(skb->nh.iph->saddr), hash_ip) );
++
++	/* don't need to check dst if we have src matched and want SRC or EITHER */
++	if (src && (flags[index] & (IPSET_SRC | IPSET_EITHER)) )
++		return src;
++
++	dst = ( (flags[index] & (IPSET_DST | IPSET_BOTH | IPSET_EITHER)) && \
++		__testip(set, ntohl(skb->nh.iph->daddr), hash_ip) );
++
++	/* Now work out the answer */
++	if (flags[index] & IPSET_BOTH)
++		return src && dst;
++	else
++		return src || dst;
+ }
+ 
+ static inline int
+Index: linux-2.6.17.1/net/ipv4/netfilter/ip_set_ipmap.c
+===================================================================
+--- linux-2.6.17.1.orig/net/ipv4/netfilter/ip_set_ipmap.c
++++ linux-2.6.17.1/net/ipv4/netfilter/ip_set_ipmap.c
+@@ -1,6 +1,7 @@
+ /* Copyright (C) 2000-2002 Joakim Axelsson <gozem@linux.nu>
+  *                         Patrick Schaaf <bof@bof.de>
+  * Copyright (C) 2003-2004 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
++ * Copyright (C) 2006 UFO Mechanic          <azez@ufomechanic.net>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -64,19 +65,29 @@ testip_kernel(struct ip_set *set, 
+ 	      const u_int32_t *flags,
+ 	      unsigned char index)
+ {
+-	int res;
++	int src;
++	int dst;
+ 	
+ 	DP("flag: %s src: %u.%u.%u.%u dst: %u.%u.%u.%u",
+-	   flags[index] & IPSET_SRC ? "SRC" : "DST",
++	   IP_SET_OPERATION(flags[index]),
+ 	   NIPQUAD(skb->nh.iph->saddr),
+ 	   NIPQUAD(skb->nh.iph->daddr));
+ 
+-	res =  __testip(set,
+-			ntohl(flags[index] & IPSET_SRC 
+-				? skb->nh.iph->saddr 
+-				: skb->nh.iph->daddr),
+-			hash_ip);
+-	return (res < 0 ? 0 : res);
++	src = ( (flags[index] & (IPSET_SRC | IPSET_BOTH | IPSET_EITHER)) && \
++			__testip(set, ntohl(skb->nh.iph->saddr), hash_ip) > 0 );
++
++	/* don't need to check dst if we have src matched and want SRC or EITHER */
++	if (src && (flags[index] & (IPSET_SRC | IPSET_EITHER)) )
++		return src;
++
++	dst = ( (flags[index] & (IPSET_DST | IPSET_BOTH | IPSET_EITHER)) && \
++		__testip(set, ntohl(skb->nh.iph->daddr), hash_ip) > 0 );
++
++	/* Now work out the answer */
++	if (flags[index] & IPSET_BOTH)
++		return src && dst;
++	else
++		return src || dst;
+ }
+ 
+ static inline int
+Index: linux-2.6.17.1/net/ipv4/netfilter/ip_set_ipporthash.c
+===================================================================
+--- linux-2.6.17.1.orig/net/ipv4/netfilter/ip_set_ipporthash.c
++++ linux-2.6.17.1/net/ipv4/netfilter/ip_set_ipporthash.c
+@@ -1,4 +1,5 @@
+ /* Copyright (C) 2003-2004 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
++ * Copyright (C) 2006 UFO Mechanic          <azez@ufomechanic.net>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -132,18 +133,15 @@ testip(struct ip_set *set, const void *d
+ }
+ 
+ static int
+-testip_kernel(struct ip_set *set, 
+-	      const struct sk_buff *skb,
+-	      ip_set_ip_t *hash_ip,
+-	      const u_int32_t *flags,
+-	      unsigned char index)
++_testip_kernel(struct ip_set *set,
++              const struct sk_buff *skb,
++              ip_set_ip_t *hash_ip,
++              const u_int32_t *flags,
++              unsigned char index,
++	      ip_set_ip_t port)
+ {
+-	ip_set_ip_t port;
+-
+-	if (flags[index+1] == 0)
+-		return -EINVAL;
+-		
+-	port = get_port(skb, flags[index+1]);
++	int src = 0;
++	int dst = 0;
+ 
+ 	DP("flag: %s src: %u.%u.%u.%u dst: %u.%u.%u.%u",
+ 	   flags[index] & IPSET_SRC ? "SRC" : "DST",
+@@ -152,15 +150,61 @@ testip_kernel(struct ip_set *set, 
+ 	DP("flag %s port %u",
+ 	   flags[index+1] & IPSET_SRC ? "SRC" : "DST", 
+ 	   port);	
++
+ 	if (port == INVALID_PORT)
+ 		return 0;	
+ 
+-	return __testip(set,
+-			ntohl(flags[index] & IPSET_SRC 
+-					? skb->nh.iph->saddr 
+-					: skb->nh.iph->daddr),
+-			port,
+-			hash_ip);
++	src = ( (flags[index] & (IPSET_SRC | IPSET_BOTH | IPSET_EITHER)) && \
++			__testip(set, ntohl(skb->nh.iph->saddr), port, hash_ip) );
++
++	/* don't need to check dst if we have src matched and want SRC or EITHER */
++	if (src && (flags[index] & (IPSET_SRC | IPSET_EITHER)) )
++		return src;
++
++	dst = ( (flags[index] & (IPSET_DST | IPSET_BOTH | IPSET_EITHER)) && \
++		__testip(set, ntohl(skb->nh.iph->daddr), port, hash_ip) );
++
++	/* Now work out the answer */
++	if (flags[index] & IPSET_BOTH)
++		return src && dst;
++	else
++		return src || dst;
++}
++
++static int
++testip_kernel(struct ip_set *set, 
++	      const struct sk_buff *skb,
++	      ip_set_ip_t *hash_ip,
++	      const u_int32_t *flags,
++	      unsigned char index)
++{
++	ip_set_ip_t port;
++	int src = 0;
++	int dst = 0;
++
++	if (flags[index+1] == 0)
++		return -EINVAL;
++
++	/* we may have to try both ports */
++	if ( (flags[index+1] & (IPSET_SRC | IPSET_BOTH | IPSET_EITHER)) ) {
++		port = get_port(skb, flags[index+1]);
++		src = _testip_kernel(set, skb, hash_ip, flags, index, port);
++	}
++
++	/* don't need to check dst if we have src matched and want SRC or EITHER */
++	if (src && (flags[index+1] & (IPSET_SRC | IPSET_EITHER)) )
++		return src;
++
++	if ( (flags[index+1] & (IPSET_DST | IPSET_BOTH | IPSET_EITHER)) ) {
++		port = get_port(skb, flags[index+1]);
++		src = _testip_kernel(set, skb, hash_ip, flags, index, port);
++	}
++
++	/* Now work out the answer */
++	if (flags[index+1] & IPSET_BOTH)
++		return src && dst;
++	else
++		return src || dst;
+ }
+ 
+ static inline int
+Index: linux-2.6.17.1/net/ipv4/netfilter/ip_set_iptree.c
+===================================================================
+--- linux-2.6.17.1.orig/net/ipv4/netfilter/ip_set_iptree.c
++++ linux-2.6.17.1/net/ipv4/netfilter/ip_set_iptree.c
+@@ -1,4 +1,5 @@
+ /* Copyright (C) 2005 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
++ * Copyright (C) 2006 UFO Mechanic          <azez@ufomechanic.net>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -97,19 +98,29 @@ testip_kernel(struct ip_set *set, 
+ 	      const u_int32_t *flags,
+ 	      unsigned char index)
+ {
+-	int res;
++	int src;
++	int dst;
+ 	
+ 	DP("flag: %s src: %u.%u.%u.%u dst: %u.%u.%u.%u",
+-	   flags[index] & IPSET_SRC ? "SRC" : "DST",
++	   IP_SET_OPERATION(flags[index]),
+ 	   NIPQUAD(skb->nh.iph->saddr),
+ 	   NIPQUAD(skb->nh.iph->daddr));
+ 
+-	res =  __testip(set,
+-			ntohl(flags[index] & IPSET_SRC 
+-				? skb->nh.iph->saddr 
+-				: skb->nh.iph->daddr),
+-			hash_ip);
+-	return (res < 0 ? 0 : res);
++	src = ( (flags[index] & (IPSET_SRC | IPSET_BOTH | IPSET_EITHER)) && \
++			__testip(set, ntohl(skb->nh.iph->saddr), hash_ip) > 0);
++
++	/* don't need to check dst if we have src matched and want SRC or EITHER */
++	if (src && (flags[index] & (IPSET_SRC | IPSET_EITHER)) )
++		return src;
++
++	dst = ( (flags[index] & (IPSET_DST | IPSET_BOTH | IPSET_EITHER)) && \
++		__testip(set, ntohl(skb->nh.iph->daddr), hash_ip) > 0);
++
++	/* Now work out the answer */
++	if (flags[index] & IPSET_BOTH)
++		return src && dst;
++	else
++		return src || dst;
+ }
+ 
+ #define ADDIP_WALK(map, elem, branch, type, cachep, flags) do {	\
+Index: linux-2.6.17.1/net/ipv4/netfilter/ip_set_macipmap.c
+===================================================================
+--- linux-2.6.17.1.orig/net/ipv4/netfilter/ip_set_macipmap.c
++++ linux-2.6.17.1/net/ipv4/netfilter/ip_set_macipmap.c
+@@ -2,6 +2,7 @@
+  *                         Patrick Schaaf <bof@bof.de>
+  *                         Martin Josefsson <gandalf@wlug.westbo.se>
+  * Copyright (C) 2003-2004 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
++ * Copyright (C) 2006 UFO Mechanic          <azez@ufomechanic.net>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -56,26 +57,15 @@ testip(struct ip_set *set, const void *d
+ }
+ 
+ static int
+-testip_kernel(struct ip_set *set, 
++_testip_kernel(struct ip_set *set, 
+ 	      const struct sk_buff *skb,
+ 	      ip_set_ip_t *hash_ip,
+-	      const u_int32_t *flags,
+-	      unsigned char index)
++	      ip_set_ip_t ip)
+ {
+ 	struct ip_set_macipmap *map =
+ 	    (struct ip_set_macipmap *) set->data;
+ 	struct ip_set_macip *table =
+ 	    (struct ip_set_macip *) map->members;
+-	ip_set_ip_t ip;
+-	
+-	ip = ntohl(flags[index] & IPSET_SRC
+-			? skb->nh.iph->saddr
+-			: skb->nh.iph->daddr);
+-	DP("flag: %s src: %u.%u.%u.%u dst: %u.%u.%u.%u",
+-	   flags[index] & IPSET_SRC ? "SRC" : "DST",
+-	   NIPQUAD(skb->nh.iph->saddr),
+-	   NIPQUAD(skb->nh.iph->daddr));
+-
+ 	if (ip < map->first_ip || ip > map->last_ip)
+ 		return 0;
+ 
+@@ -96,6 +86,40 @@ testip_kernel(struct ip_set *set, 
+ 	}
+ }
+ 
++static int
++testip_kernel(struct ip_set *set, 
++	      const struct sk_buff *skb,
++	      ip_set_ip_t *hash_ip,
++	      const u_int32_t *flags,
++	      unsigned char index)
++{
++	
++	DP("flag: %s src: %u.%u.%u.%u dst: %u.%u.%u.%u",
++	   IP_SET_OPERATION(flags[index]),
++	   NIPQUAD(skb->nh.iph->saddr),
++	   NIPQUAD(skb->nh.iph->daddr));
++
++	int src;
++	int dst;
++
++	src = ( (flags[index] & (IPSET_SRC | IPSET_BOTH | IPSET_EITHER)) && \
++			_testip_kernel(set,skb,hash_ip,ntohl(skb->nh.iph->saddr)) );
++
++	/* don't need to check dst if we have src matched and want SRC or EITHER */
++	if (src && (flags[index] & (IPSET_SRC | IPSET_EITHER)) )
++		return src;
++
++	dst = ( (flags[index] & (IPSET_DST | IPSET_BOTH | IPSET_EITHER)) && \
++			_testip_kernel(set,skb,hash_ip,ntohl(skb->nh.iph->daddr)) );
++
++	/* Now work out the answer */
++	if (flags[index] & IPSET_BOTH)
++		return src && dst;
++	else
++		return src || dst;
++
++}
++
+ /* returns 0 on success */
+ static inline int
+ __addip(struct ip_set *set, 
+Index: linux-2.6.17.1/net/ipv4/netfilter/ip_set_nethash.c
+===================================================================
+--- linux-2.6.17.1.orig/net/ipv4/netfilter/ip_set_nethash.c
++++ linux-2.6.17.1/net/ipv4/netfilter/ip_set_nethash.c
+@@ -1,4 +1,5 @@
+ /* Copyright (C) 2003-2004 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
++ * Copyright (C) 2006 UFO Mechanic          <azez@ufomechanic.net>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -109,11 +110,24 @@ testip_kernel(struct ip_set *set, 
+ 	      const u_int32_t *flags,
+ 	      unsigned char index)
+ {
+-	return __testip(set,
+-			ntohl(flags[index] & IPSET_SRC 
+-				? skb->nh.iph->saddr 
+-				: skb->nh.iph->daddr),
+-			hash_ip);
++	int src;
++	int dst;
++
++	src = ( (flags[index] & (IPSET_SRC | IPSET_BOTH | IPSET_EITHER)) && \
++			__testip(set, ntohl(skb->nh.iph->saddr), hash_ip) );
++
++	/* don't need to check dst if we have src matched and want SRC or EITHER */
++	if (src && (flags[index] & (IPSET_SRC | IPSET_EITHER)) )
++		return src;
++
++	dst = ( (flags[index] & (IPSET_DST | IPSET_BOTH | IPSET_EITHER)) && \
++		__testip(set, ntohl(skb->nh.iph->daddr), hash_ip) );
++
++	/* Now work out the answer */
++	if (flags[index] & IPSET_BOTH)
++		return src && dst;
++	else
++		return src || dst;
+ }
+ 
+ static inline int
+Index: linux-2.6.17.1/net/ipv4/netfilter/ip_set_portmap.c
+===================================================================
+--- linux-2.6.17.1.orig/net/ipv4/netfilter/ip_set_portmap.c
++++ linux-2.6.17.1/net/ipv4/netfilter/ip_set_portmap.c
+@@ -1,4 +1,5 @@
+ /* Copyright (C) 2003-2004 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
++ * Copyright (C) 2006 UFO Mechanic          <azez@ufomechanic.net>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -99,16 +100,30 @@ testport_kernel(struct ip_set *set, 
+ 	        const u_int32_t *flags,
+ 	        unsigned char index)
+ {
+-	int res;
+-	ip_set_ip_t port = get_port(skb, flags[index]);
++	int src=0;
++	int dst=0;
++	ip_set_ip_t port;
++
++	if ( (flags[index] & (IPSET_SRC | IPSET_BOTH | IPSET_EITHER))) {
++		DP("flag %s port %u", IP_SET_OPERATION(flags[index]), port);
++		port = get_port(skb, IPSET_SRC);
++		src = (port != INVALID_PORT) && (__testport(set, port, hash_port) > 0);
++	}
+ 
+-	DP("flag %s port %u", flags[index] & IPSET_SRC ? "SRC" : "DST", port);	
+-	if (port == INVALID_PORT)
+-		return 0;	
++	if (src && (flags[index] & (IPSET_SRC | IPSET_EITHER)) )
++		return src;
+ 
+-	res =  __testport(set, port, hash_port);
+-	
+-	return (res < 0 ? 0 : res);
++	if ( (flags[index] & (IPSET_DST | IPSET_BOTH | IPSET_EITHER))) {
++		DP("flag %s port %u", IP_SET_OPERATION(flags[index]), port);
++		port = get_port(skb, IPSET_DST);
++		dst = (port != INVALID_PORT) && (__testport(set, port, hash_port) > 0);
++	}
++
++	/* Now work out the answer */
++	if (flags[index] & IPSET_BOTH)
++		return src && dst;
++	else
++		return src || dst;
+ }
+ 
+ static inline int
+
+--------------080908030408010606060206
+Content-Type: text/x-patch;
+ name="iptables-ipset-both.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="iptables-ipset-both.patch"
+
+--- extensions/libipt_set.c.both	2006-08-03 13:52:09.000000000 +0100
++++ extensions/libipt_set.c	2006-08-03 14:16:35.000000000 +0100
+@@ -120,7 +125,7 @@
+ 			break;		
+ 		printf("%s%s",
+ 		       i == 0 ? " " : ",",
+-		       info->flags[i] & IPSET_SRC ? "src" : "dst");
++		       IP_SET_ACTION(info->flags[i]));
+ 	}
+ 	printf(" ");
+ }
+--- extensions/libipt_set.h.both	2006-08-03 14:11:43.000000000 +0100
++++ extensions/libipt_set.h	2006-08-03 14:15:38.000000000 +0100
+@@ -11,6 +11,11 @@
+ #define DEBUGP(x, args...) 
+ #endif
+ 
++#define IP_SET_ACTION(action) ((action & IPSET_EITHER)?"either":\
++				  (action & IPSET_BOTH)?"both":\
++				  (action & IPSET_SRC)?"src":\
++				  (action & IPSET_DST)?"dst":"unknown")
++
+ static void
+ parse_bindings(const char *optarg, struct ipt_set_info *info)
+ {
+@@ -24,9 +29,13 @@
+ 			info->flags[i++] |= IPSET_SRC;
+ 		else if (strncmp(ptr, "dst", 3) == 0)
+ 			info->flags[i++] |= IPSET_DST;
++		else if (strncmp(ptr, "either", 6) == 0)
++			info->flags[i++] |= IPSET_EITHER;
++		else if (strncmp(ptr, "both", 4) == 0)
++			info->flags[i++] |= IPSET_BOTH;
+ 		else
+ 			exit_error(PARAMETER_PROBLEM,
+-				   "You must spefify (the comma separated list of) 'src' or 'dst'.");
++				   "You must spefify (the comma separated list of) 'src', 'dst', 'either', or 'both'."); sprintf(stderr,"set as %x\n",info->flags[0]);
+ 	}
+ 
+ 	if (tmp)
+
+--------------080908030408010606060206--
