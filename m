@@ -1,44 +1,49 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: [patch] RFC: matching interface groups
-Date: Thu, 03 Aug 2006 21:08:59 +0200
-Message-ID: <1154632139.6333.5.camel@bzorp.balabit>
-References: <1154452209.6395.77.camel@bzorp.balabit>
-	 <17617.30375.336813.199864@localhost.localdomain>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: conntrack utility..
+Date: Thu, 03 Aug 2006 21:15:25 +0200
+Message-ID: <44D24B4D.5080402@netfilter.org>
+References: <416697d80608020725i1f7bcf15nfa487a702de662@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	shemminger@osdl.org
-Return-path: <netdev-owner@vger.kernel.org>
-To: "Stephen J. Bevan" <stephen@dino.dnsalias.com>
-In-Reply-To: <17617.30375.336813.199864@localhost.localdomain>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Devrim Seral <dseral@gmail.com>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+In-Reply-To: <416697d80608020725i1f7bcf15nfa487a702de662@mail.gmail.com>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 2006-08-02 at 21:08 -0700, Stephen J. Bevan wrote:
-> Balazs Scheidler writes:
->  > I would like to easily match a set of dynamically created interfaces
->  > from my packet filter rules. The attached patch forms the basis of my
->  > implementation and I would like to know whether something like this is
->  > mergeable to mainline.
-> [snip]
->  > The implementation:
->  > 
->  > Each interface can belong to a single "group" at a time, an interface
->  > comes up without being a member in any of the groups.
-> 
-> You can get a similar effect by (ab)using the iflink field i.e. set
-> the iflink to the parent interface and modify
-> ip_tables.c:ip_packet_match to check the ifindex (or iflink if
-> defined) for a match.  An advantage of this is that it doesn't require
-> adding any new fields and the only kernel change is to
-> ip_tables.c:ip_packet_match (and its caller).  That said, an explicit
-> group (or zone as various firewall vendors call it) is cleaner.
+Hi,
 
-I could hack a solution together, but I'd prefer to do this cleanly,
-preferably as a patch in mainline. I would like to incorporate this
-functionality in our product.
+Devrim Seral wrote
+> For a few days i tried to fix some problem to handle events int 
+> conntrack utility.. However i haven't success..
+> i learned conntrack notification feature from Harald Welte paper. And 
+> also i find conntrack utility from netfilter.org <http://netfilter.org>..
+> 
+> I am using libnetfilter_conntrack-0.0.31, libnfnetlink-0.0.16 and 
+> conntrack-1.00beta2 on ubuntu server 6 with kernel 2.6.15 64 bit kernel.
+> Everything seem ok except show events feature..
+> I am tried to solve but still i am not get any result..
+> i tried to watch events with command like :
+> ./conntrack -E
+> ./conntrack -E conntrack
+> ./conntrack -E conntrack -e DESTROY
+> 
+> Neither command give me any result.. Only when i pressed Ctrl+C 
+> conntrack utility give output "Now closing conntrack event dumping..."
+
+Please, make sure that ip_conntrack_netlink module is loaded (modprobe 
+ip_conntrack_netlink). Let me know if that fixes your problem.
 
 -- 
-Bazsi
-
+The dawn of the fourth age of Linux firewalling is coming; a time of 
+great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
