@@ -1,16 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: bugreport ipt_CLUSTERIP
-Date: Thu, 03 Aug 2006 11:48:30 +0200
-Message-ID: <44D1C66E.1080307@trash.net>
-References: <20060725082618.8zdzyrc36s0ksgsk@mail.tu-chemnitz.de>	<44C8CB58.60709@trash.net>	<1154078751.44c9d81ff2c50@www.domainfactory-webmail.de>	<44CABEBC.9050101@trash.net>
-	<20060802201212.3089b23b@zeus.subnet.mm-double.de>
+Subject: Re: [PATCH 6/6] ulogd2 changes
+Date: Thu, 03 Aug 2006 12:09:04 +0200
+Message-ID: <44D1CB40.8050504@trash.net>
+References: <200607311023.11145@nienna>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Maik Hentsche <netfilter@mm-double.de>
-In-Reply-To: <20060802201212.3089b23b@zeus.subnet.mm-double.de>
+To: KOVACS Krisztian <hidden@balabit.hu>
+In-Reply-To: <200607311023.11145@nienna>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,12 +21,8 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Maik Hentsche wrote:
-> I added the rule, then tried to ping the virtual IP, which did not
-> work (no arp response). Then I deleted the rule and did nothing else
-> with CLUSTERIP. The machine was used by another developer a week ago
-> and I do not know, if he did anything with iptables, but he hardly used
-> CLUSTERIP. I'm very sorry to not be able to help more.
+KOVACS Krisztian wrote:
+>   Attached are the changes to ulogd2.
 
-
-Thanks anyway. I'll try some more to reproduce it ..
+I'll leave it to Harald to apply this one, I don't know if the ulog
+branch in SVN matches his current code.
