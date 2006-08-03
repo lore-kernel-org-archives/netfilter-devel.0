@@ -1,15 +1,16 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 6/6] ulogd2 changes
-Date: Thu, 03 Aug 2006 12:09:04 +0200
-Message-ID: <44D1CB40.8050504@trash.net>
-References: <200607311023.11145@nienna>
+Subject: Re: [PATCH 0/6] pkg-config patches for libnetfilter_* userspace
+ libraries and their users
+Date: Thu, 03 Aug 2006 12:09:37 +0200
+Message-ID: <44D1CB61.3050804@trash.net>
+References: <200607311022.46466@nienna>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>, netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: KOVACS Krisztian <hidden@balabit.hu>
-In-Reply-To: <200607311023.11145@nienna>
+In-Reply-To: <200607311022.46466@nienna>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,7 +23,11 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 KOVACS Krisztian wrote:
->   Attached are the changes to ulogd2.
+>   As there were no objections raised on the mailing list, here come the 
+> pkg-config patches again.
+> 
+>   These patches modify autoconf scripts so that they use pkg-config to 
+> detect the presence of libnfnetlink and other dependencies and use the 
+> correct include and library names and paths.
 
-I'll leave it to Harald to apply this one, I don't know if the ulog
-branch in SVN matches his current code.
+All but the ulog2 patch applied, thanks Krisztian.
