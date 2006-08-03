@@ -1,64 +1,106 @@
-From: "Gerd v. Egidy" <lists@egidy.de>
-Subject: Re: [patch] RFC: matching interface groups
-Date: Thu, 3 Aug 2006 14:57:25 +0200
-Message-ID: <200608031457.26120.lists@egidy.de>
-References: <1154452209.6395.77.camel@bzorp.balabit> <20060801191805.GA28649@zion.homelinux.com> <1154502269.6241.11.camel@bzorp.balabit>
+From: Maik Hentsche <netfilter@mm-double.de>
+Subject: Re: bugreport ipt_CLUSTERIP
+Date: Thu, 03 Aug 2006 15:59:35 +0200
+Message-ID: <1154613575.44d201478b3d9@www.domainfactory-webmail.de>
+References: <20060725082618.8zdzyrc36s0ksgsk@mail.tu-chemnitz.de>
+	<44C8CB58.60709@trash.net>
+	<1154078751.44c9d81ff2c50@www.domainfactory-webmail.de>
+	<44CABEBC.9050101@trash.net>
+	<20060802201212.3089b23b@zeus.subnet.mm-double.de>
+	<44D1C66E.1080307@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Cc: Balazs Scheidler <bazsi@balabit.hu>,
-	Sven Schuster <schuster.sven@gmx.de>,
-	Phil Oester <kernel@linuxace.com>, netdev@vger.kernel.org,
-	shemminger@osdl.org
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <1154502269.6241.11.camel@bzorp.balabit>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <44D1C66E.1080307@trash.net>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Zitat von Patrick McHardy <kaber@trash.net>:
 
-> > > Since in this scenario userspace is able to determine ppp vs pptp,
-> > > could you not also do something like have an inbound_ppp and
-> > > inbound_pptp chain, then jump to the appropriate chain depending on
-> > > type?  If you need per-interface rules, then create an inbound_pppX
-> > > chain, populate it with rules, then jump to that chain if -i pppX.  In
-> > > ip-down, just delete the chain as well as the jump.
-> >
-> > if I understood Balazs correctly, one of the things he wanted to
-> > avoid is addition/deletion of iptables rules on every pppX interface
-> > up/down
->
-> Exactly.
+> Thanks anyway. I'll try some more to reproduce it ..
 
-We faced a similar problem: we wanted to not only differentiate between ppp 
-and pptp interfaces but even between different providers connected via ppp 
-and pptp.
+It happened again and now I have a clue, what _might_ trigger it. I did
+a few (around 15) inserting/deleting/inserting/flushing-cycles. All the
+time, a ping to the virtual IP was running. Most important, another
+programm held the virtual IP when it crashed (twice), once keepalived
+and once heartbeatd. Without them, the error did not occur. I appended
+a console log. Note, that, even though, there is a "hash=1 ct_hash=1
+responsible", which seems to come from CLUSTERIP, I do not get an arp
+response (and as far as I understood, CLUSTERIP is supposed to send
+one).
 
-We ended up predefining all possible providers in the rules and differentiate 
-between them using the ipt_condition module. This module is not very 
-well-loved in the netfilter community but there are usecases like this where 
-it comes in handy.
+HTH & so long
+Maik
 
-Maybe this is a solution for you too.
 
-> > as this would require the complete chain (say, INPUT or
-> > OUTPUT) to be "downloaded" to userspace, modified and then again
-> > "uploaded" to the kernel. At least until iptables redesign to
-> > allow replacement/insertion/deletion of single rules is completed
-> > which if started at all will take quite some more time :-)
->
-> Iptables operates on a per-table basis, so it is not only the INPUT or
-> OUTPUT chain that needs to be down and uploaded, but the whole filter
-> table.
+hash=1 ct_hash=1 responsible
+hash=1 ct_hash=1 responsible
+IPVS: Registered protocols (TCP, UDP, AH, ESP)
+IPVS: Connection hash table configured (size=4096, memory=64Kbytes)
+IPVS: ipvs loaded.
+Unable to handle kernel NULL pointer dereference at 0000000000000000
+RIP:
+<ffffffff88135022>{:ipt_CLUSTERIP:__clusterip_config_find+34}
+PGD 798d2067 PUD 7c090067 PMD 0
+Oops: 0000 [1] PREEMPT SMP
+CPU 1
+Modules linked in: ip_vs ipt_CLUSTERIP ipt_REJECT xt_state ip_conntrack
+nfnetlink xt_tcpudp iptable_filter ip_tables ipt_ULOG x_tables ipv3Pid:
+0, comm: swapper Not tainted 2.6.17.3 #1
+RIP: 0010:[<ffffffff88135022>]
+<ffffffff88135022>{:ipt_CLUSTERIP:__clusterip_config_find+34}
+RSP: 0018:ffff810001377d60  EFLAGS: 00010a16
+RAX: 0000000000000000 RBX: 0000000016fb14ac RCX: ffff81007cb50000
+RDX: 0000000000000000 RSI: ffff810001377e48 RDI: 0000000016fb14ac
+RBP: ffff81007d2e3410 R08: ffffffff803aadc0 R09: 0000000000000205
+R10: ffff81007cb50168 R11: 0000000000000001 R12: ffff81007cb50000
+R13: ffff81007d2e3418 R14: 0000000000000000 R15: 0000000000000001
+FS:  00002b8f4febc6d0(0000) GS:ffff81007e3afa40(0000)
+knlGS:0000000000000000
+CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
+CR2: 0000000000000000 CR3: 000000007d3d4000 CR4: 00000000000006e0
+Process swapper (pid: 0, threadinfo ffff810001370000, task
+ffff810001344080)
+Stack: ffffffff881357a4 ffff81000132bac0 ffff810001377df8
+ffffffff8052b6f0
+       0000000080000000 ffff81007cb50000 ffffffff803bce1e
+ffff810001377e48
+       0000000000000001 ffff810001377e48
+Call Trace: <IRQ> <ffffffff881357a4>{:ipt_CLUSTERIP:arp_mangle+116}
+       <ffffffff803bce1e>{nf_iterate+94}
+<ffffffff803aadc0>{dev_queue_xmit+0}
+       <ffffffff803bcee7>{nf_hook_slow+135}
+<ffffffff803aadc0>{dev_queue_xmit+0}
+       <ffffffff803e690e>{arp_xmit+62}
+<ffffffff803e628c>{arp_solicit+396}
+       <ffffffff803b040e>{neigh_timer_handler+654}
+<ffffffff802454d6>{hrtimer_run_queues+214}
+       <ffffffff803b0180>{neigh_timer_handler+0}
+<ffffffff80237777>{run_timer_softirq+375}
+       <ffffffff8023301b>{__do_softirq+91}
+<ffffffff80207ae0>{default_idle+0}
+       <ffffffff8020ade2>{call_softirq+30}
+<ffffffff8020cc51>{do_softirq+49}
+       <ffffffff8023317f>{irq_exit+63}
+<ffffffff80207ae0>{default_idle+0}
+       <ffffffff8020a786>{apic_timer_interrupt+98} <EOI>
+<ffffffff80412105>{_spin_unlock_irq+21}
+       <ffffffff8041021a>{thread_return+186}
+<ffffffff80207b0f>{default_idle+47}
+       <ffffffff80207d08>{cpu_idle+104}
 
-The problem with the current solution is not only speed and maintainability 
-but also locking: if two device up/down events happen at the same time in 
-this scenario, the tabels will become wrong until you develop some kind of 
-userspace locking.
-
-Kind regards,
-
-Gerd
+Code: 48 8b 00 0f 18 08 48 81 fa 00 75 13 88 75 e5 31 c0 c3 66 66
+RIP <ffffffff88135022>{:ipt_CLUSTERIP:__clusterip_config_find+34} RSP
+<ffff810001377d60>
+CR2: 0000000000000000
+ <0>Kernel panic - not syncing: Aiee, killing interrupt handler!
