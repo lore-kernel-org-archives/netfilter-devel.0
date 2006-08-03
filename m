@@ -1,34 +1,33 @@
-From: stephen@dino.dnsalias.com (Stephen J. Bevan)
-Subject: [patch] RFC: matching interface groups
-Date: Wed, 2 Aug 2006 21:08:07 -0700
-Message-ID: <17617.30375.336813.199864@localhost.localdomain>
-References: <1154452209.6395.77.camel@bzorp.balabit>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: bugreport ipt_CLUSTERIP
+Date: Thu, 03 Aug 2006 11:48:30 +0200
+Message-ID: <44D1C66E.1080307@trash.net>
+References: <20060725082618.8zdzyrc36s0ksgsk@mail.tu-chemnitz.de>	<44C8CB58.60709@trash.net>	<1154078751.44c9d81ff2c50@www.domainfactory-webmail.de>	<44CABEBC.9050101@trash.net>
+	<20060802201212.3089b23b@zeus.subnet.mm-double.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	shemminger@osdl.org
-Return-path: <netdev-owner@vger.kernel.org>
-To: Balazs Scheidler <bazsi@balabit.hu>
-In-Reply-To: <1154452209.6395.77.camel@bzorp.balabit>
-Sender: netdev-owner@vger.kernel.org
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Maik Hentsche <netfilter@mm-double.de>
+In-Reply-To: <20060802201212.3089b23b@zeus.subnet.mm-double.de>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Balazs Scheidler writes:
- > I would like to easily match a set of dynamically created interfaces
- > from my packet filter rules. The attached patch forms the basis of my
- > implementation and I would like to know whether something like this is
- > mergeable to mainline.
-[snip]
- > The implementation:
- > 
- > Each interface can belong to a single "group" at a time, an interface
- > comes up without being a member in any of the groups.
+Maik Hentsche wrote:
+> I added the rule, then tried to ping the virtual IP, which did not
+> work (no arp response). Then I deleted the rule and did nothing else
+> with CLUSTERIP. The machine was used by another developer a week ago
+> and I do not know, if he did anything with iptables, but he hardly used
+> CLUSTERIP. I'm very sorry to not be able to help more.
 
-You can get a similar effect by (ab)using the iflink field i.e. set
-the iflink to the parent interface and modify
-ip_tables.c:ip_packet_match to check the ifindex (or iflink if
-defined) for a match.  An advantage of this is that it doesn't require
-adding any new fields and the only kernel change is to
-ip_tables.c:ip_packet_match (and its caller).  That said, an explicit
-group (or zone as various firewall vendors call it) is cleaner.
+
+Thanks anyway. I'll try some more to reproduce it ..
