@@ -1,33 +1,64 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/6] pkg-config patches for libnetfilter_* userspace
- libraries and their users
-Date: Thu, 03 Aug 2006 12:09:37 +0200
-Message-ID: <44D1CB61.3050804@trash.net>
-References: <200607311022.46466@nienna>
+From: "Gerd v. Egidy" <lists@egidy.de>
+Subject: Re: [patch] RFC: matching interface groups
+Date: Thu, 3 Aug 2006 14:57:25 +0200
+Message-ID: <200608031457.26120.lists@egidy.de>
+References: <1154452209.6395.77.camel@bzorp.balabit> <20060801191805.GA28649@zion.homelinux.com> <1154502269.6241.11.camel@bzorp.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: KOVACS Krisztian <hidden@balabit.hu>
-In-Reply-To: <200607311022.46466@nienna>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: Balazs Scheidler <bazsi@balabit.hu>,
+	Sven Schuster <schuster.sven@gmx.de>,
+	Phil Oester <kernel@linuxace.com>, netdev@vger.kernel.org,
+	shemminger@osdl.org
+Return-path: <netdev-owner@vger.kernel.org>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <1154502269.6241.11.camel@bzorp.balabit>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-KOVACS Krisztian wrote:
->   As there were no objections raised on the mailing list, here come the 
-> pkg-config patches again.
-> 
->   These patches modify autoconf scripts so that they use pkg-config to 
-> detect the presence of libnfnetlink and other dependencies and use the 
-> correct include and library names and paths.
+Hi,
 
-All but the ulog2 patch applied, thanks Krisztian.
+> > > Since in this scenario userspace is able to determine ppp vs pptp,
+> > > could you not also do something like have an inbound_ppp and
+> > > inbound_pptp chain, then jump to the appropriate chain depending on
+> > > type?  If you need per-interface rules, then create an inbound_pppX
+> > > chain, populate it with rules, then jump to that chain if -i pppX.  In
+> > > ip-down, just delete the chain as well as the jump.
+> >
+> > if I understood Balazs correctly, one of the things he wanted to
+> > avoid is addition/deletion of iptables rules on every pppX interface
+> > up/down
+>
+> Exactly.
+
+We faced a similar problem: we wanted to not only differentiate between ppp 
+and pptp interfaces but even between different providers connected via ppp 
+and pptp.
+
+We ended up predefining all possible providers in the rules and differentiate 
+between them using the ipt_condition module. This module is not very 
+well-loved in the netfilter community but there are usecases like this where 
+it comes in handy.
+
+Maybe this is a solution for you too.
+
+> > as this would require the complete chain (say, INPUT or
+> > OUTPUT) to be "downloaded" to userspace, modified and then again
+> > "uploaded" to the kernel. At least until iptables redesign to
+> > allow replacement/insertion/deletion of single rules is completed
+> > which if started at all will take quite some more time :-)
+>
+> Iptables operates on a per-table basis, so it is not only the INPUT or
+> OUTPUT chain that needs to be down and uploaded, but the whole filter
+> table.
+
+The problem with the current solution is not only speed and maintainability 
+but also locking: if two device up/down events happen at the same time in 
+this scenario, the tabels will become wrong until you develop some kind of 
+userspace locking.
+
+Kind regards,
+
+Gerd
