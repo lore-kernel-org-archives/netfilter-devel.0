@@ -1,91 +1,71 @@
-From: Thomas Heinz <thomasheinz@gmx.net>
-Subject: Re: Ipsec, policy match and PROTO=4
-Date: Fri, 4 Aug 2006 08:15:53 +0200
-Message-ID: <200608040815.54561.thomasheinz@gmx.net>
-References: <200607270131.18655.thomasheinz@gmx.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [patch] RFC: matching interface groups
+Date: Fri, 04 Aug 2006 12:06:39 +0200
+Message-ID: <44D31C2F.2050702@trash.net>
+References: <1154452209.6395.77.camel@bzorp.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <200607270131.18655.thomasheinz@gmx.net>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: </pipermail/netfilter-devel>
-List-Post: <mailto:netfilter-devel@lists.netfilter.org>
-List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
-	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-devel-bounces@lists.netfilter.org
-Errors-To: netfilter-devel-bounces@lists.netfilter.org
+Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
+	shemminger@osdl.org
+Return-path: <netdev-owner@vger.kernel.org>
+To: Balazs Scheidler <bazsi@balabit.hu>
+In-Reply-To: <1154452209.6395.77.camel@bzorp.balabit>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi
+Balazs Scheidler wrote:
+> The use-case is as follows:
+> 
+> * I have two different subsystems creating interfaces dynamically (for
+> example pptpd and serial pppd lines, each creating dynamic pppX
+> interfaces),
+> * I would like to assign a different set of iptables rules for these
+> clients,
+> * I would like to react to a new interface being added to a specific set
+> in a userspace application,
+> 
+> The reasons I see this needs new kernel functionality:
+> 
+> * iptables supports wildcard interface matching (for example "iptables
+> -i ppp+"), but as the names of the interfaces used by PPTPD and PPPD
+> cannot be distinguished this way, this is not enough,
+> * Reloading the iptables ruleset everytime a new interface comes up is
+> not really feasible, as it abrupts packet processing, and validating the
+> ruleset in the kernel can take significant amount of time,
+> * the kernel change is very simple, adapting userspace to this change is
+> also very simple, and in userspace various software packages can easily
+> interoperate with each-other once this is merged.
+> 
+> The implementation:
+> 
+> Each interface can belong to a single "group" at a time, an interface
+> comes up without being a member in any of the groups.
+> 
+> Userspace can assign interfaces to groups after being created, this
+> would typically be performed in /etc/ppp/ip-up.d (and similar) scripts.
+> 
+> In spirit "interface group" is somewhat similar to the "routing
+> protocol" field for routing entries, which contains information on which
+> routing daemon was responsible for adding the given route entry.
+> 
+> Things to be done if you like this approach:
+> 
+> * interface group match in iptables,
+> * support for naming interface groups in userspace, a'la routing
+> protocols,
+> * emitting a netlink notification when the group of an interface
+> changes,
+> * possibly converting the "ip link" command to use NETLINK messages,
+> instead of using ioctl()
+> 
+> What do you think?
 
-My questions regarding the "ipsec PROTO=4" problem (see below) has not been 
-answered yet. I hate to be so impatient but I can imagine that this issue 
-concerns quite a number of users. I would greatly appreciate it if someone 
-could shortly comment on it.
 
-Thanks a lot.
+I like it .. kind of like routing realms. For your specific case there
+is a possible solution already supported by the kernel, you can
+pre-allocate ppp devices using PPPIOCNEWUNIT, rename them and later
+attach to individual units in the ppp daemon using PPPIOCATTACH
+(I have a patch for this somewhere if you're interested). But that
+only works for PPP devices and the group idea looks more flexible.
 
-
-Best regards,
-
-Thomas
-
-
-On Thursday 27 July 2006 01:31, I wrote:
-> Hello guys
->
-> I have the following standard ipsec tunnel:
->
-> [tun_A] host_A [pub_A]-------------[pub_B] host_B [tun_B]
->
-> pub_A/B: public IP of host_A/B
-> tun_A/B: tunnel IP of host_A/B
->
-> After establishing the ipsec connection, putting two simple log-all
-> rules in INPUT and OUTPUT like this:
-> # iptables -I INPUT -j LOG
-> # iptables -I OUTPUT -j LOG
-> and pinging tun_B from host_A, I get the following log entries:
->
-> IN= OUT=eth0 SRC=tun_A DST=tun_B LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=0
-> DF PROTO=ICMP TYPE=8 CODE=0 ID=16181 SEQ=1
-> IN= OUT=eth0 SRC=pub_A DST=pub_B LEN=136 TOS=0x00 PREC=0x00 TTL=64 ID=0
-> DF PROTO=ESP SPI=0xxxxxxxxx
->
-> Very nice so far: the packet is seen twice, once clear and once
-> encrypted. Now, let's look at the ICMP reply.
->
-> IN=eth0 OUT= MAC=xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx SRC=pub_B
-> DST=pub_A LEN=136 TOS=0x00 PREC=0x00 TTL=56 ID=57843 PROTO=ESP
-> SPI=0xxxxxxxxx
-> IN=eth0 OUT= MAC=xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx SRC=pub_B
-> DST=pub_A LEN=104 TOS=0x00 PREC=0x00 TTL=56 ID=57843 PROTO=4
->
-> Here, we see the packet also twice but the cleartext one has PROTO=4
-> (ipencap, ipip tunnel).
->
-> This has been observed in e.g. this thread:
-> http://marc.theaimsgroup.com/?l=netfilter-devel&m=114010374229806&w=2
->
-> Moreover, I have previously sent this posting to the netfilter user
-> mailing list.
->
-> Could you please tell me about the current state regarding this bug? Is
-> it already addressed? Is it hard to fix?
->
-> Is it correct that there is currently no way to filter incoming clear
-> text packets? Accepting PROTO=4 packets of course works but it is rather
-> a workaround.
->
-> Thanks for your support.
->
->
-> Best regards,
->
-> Thomas
