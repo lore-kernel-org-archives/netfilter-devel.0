@@ -1,15 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Thomas Heinz <thomasheinz@gmx.net>
 Subject: Re: Ipsec, policy match and PROTO=4
-Date: Fri, 04 Aug 2006 21:46:36 +0200
-Message-ID: <44D3A41C.9080606@trash.net>
+Date: Fri, 4 Aug 2006 22:57:24 +0200
+Message-ID: <200608042257.25461.thomasheinz@gmx.net>
 References: <200607270131.18655.thomasheinz@gmx.net>
+	<44D3A41C.9080606@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Heinz <thomasheinz@gmx.net>
-In-Reply-To: <200607270131.18655.thomasheinz@gmx.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <44D3A41C.9080606@trash.net>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,38 +24,20 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thomas Heinz wrote:
-> Hello guys
-> 
-> I have the following standard ipsec tunnel:
-> 
-> [tun_A] host_A [pub_A]-------------[pub_B] host_B [tun_B]
-> 
-> pub_A/B: public IP of host_A/B
-> tun_A/B: tunnel IP of host_A/B
-> 
-> After establishing the ipsec connection, putting two simple log-all rules 
-> in INPUT and OUTPUT like this:
-> # iptables -I INPUT -j LOG
-> # iptables -I OUTPUT -j LOG
-> and pinging tun_B from host_A, I get the following log entries:
-> 
-> IN= OUT=eth0 SRC=tun_A DST=tun_B LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF 
-> PROTO=ICMP TYPE=8 CODE=0 ID=16181 SEQ=1
-> IN= OUT=eth0 SRC=pub_A DST=pub_B LEN=136 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF 
-> PROTO=ESP SPI=0xxxxxxxxx
-> 
-> Very nice so far: the packet is seen twice, once clear and once encrypted. 
-> Now, let's look at the ICMP reply.
-> 
-> IN=eth0 OUT= MAC=xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx SRC=pub_B 
-> DST=pub_A LEN=136 TOS=0x00 PREC=0x00 TTL=56 ID=57843 PROTO=ESP 
-> SPI=0xxxxxxxxx
-> IN=eth0 OUT= MAC=xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx SRC=pub_B 
-> DST=pub_A LEN=104 TOS=0x00 PREC=0x00 TTL=56 ID=57843 PROTO=4
-> 
-> Here, we see the packet also twice but the cleartext one has PROTO=4 
-> (ipencap, ipip tunnel).
+Hi Patrick
 
-The cleartext packet should also be seen with the real protocol after
-that. What do your policies look li
+Thanks for your reply.
+
+You wrote:
+> The cleartext packet should also be seen with the real protocol after
+> that.
+
+Oh, you're right. Sorry for being so unobservant.
+
+Is the fact that the packet with PROTO=4 is seen in between the encrypted 
+and cleartext packet considered a bug?
+
+
+Best regards,
+
+Thomas
