@@ -1,71 +1,105 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch] RFC: matching interface groups
-Date: Fri, 04 Aug 2006 12:06:39 +0200
-Message-ID: <44D31C2F.2050702@trash.net>
-References: <1154452209.6395.77.camel@bzorp.balabit>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [PATCH 4/8][CTNETLINK] Fix race condition on conntrack creation
+Date: Fri, 04 Aug 2006 15:43:01 +0100
+Message-ID: <44D35CF5.1090502@ufomechanic.net>
+References: <44C61A2E.3060102@netfilter.org>	<200607281316.k6SDGBVP001926@toshiba.co.jp>
+	<44CDE635.9060101@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	shemminger@osdl.org
-Return-path: <netdev-owner@vger.kernel.org>
-To: Balazs Scheidler <bazsi@balabit.hu>
-In-Reply-To: <1154452209.6395.77.camel@bzorp.balabit>
-Sender: netdev-owner@vger.kernel.org
+Cc: laforge@netfilter.org, netfilter-devel@lists.netfilter.org, kaber@trash.net
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+In-Reply-To: <44CDE635.9060101@netfilter.org>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Balazs Scheidler wrote:
-> The use-case is as follows:
+* Pablo Neira Ayuso wrote, On 31/07/06 12:15:
+> Hi Yasuyuki,
 > 
-> * I have two different subsystems creating interfaces dynamically (for
-> example pptpd and serial pppd lines, each creating dynamic pppX
-> interfaces),
-> * I would like to assign a different set of iptables rules for these
-> clients,
-> * I would like to react to a new interface being added to a specific set
-> in a userspace application,
+> Yasuyuki KOZAKAI wrote:
+>> From: Pablo Neira Ayuso <pablo@netfilter.org>
+>> Date: Tue, 25 Jul 2006 15:18:38 +0200
+>>
+>>
+>>> - rework get_features facility to avoid a softlockup
+>>
+>>
+>> This looks nice cleanup, but __nf_conntrack_alloc() cannot
+>> be called while holding nf_conntrack_lock, because it may call
+>> early_drop(), which holds nf_contrack_lock and also may call
+>> nf_ct_put().
+>>
+>>
+>>> static struct nf_conn *
+>>> __nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
+>>>              const struct nf_conntrack_tuple *repl,
+>>> -             const struct nf_conntrack_l3proto *l3proto)
+>>> +             const struct nf_conntrack_l3proto *l3proto,
+>>> +             u_int32_t features)
+>>> {
+>>
+>>
+>> You've moved "features = l3proto->get_features(orig);" out of
+>> this function, then the argument 'l3proto' isn't necessary.
 > 
-> The reasons I see this needs new kernel functionality:
+> Indeed, I also detected another problem related with the NAT code in
+> ip_conntrack_netlink, so this patch needs to be dropped.
 > 
-> * iptables supports wildcard interface matching (for example "iptables
-> -i ppp+"), but as the names of the interfaces used by PPTPD and PPPD
-> cannot be distinguished this way, this is not enough,
-> * Reloading the iptables ruleset everytime a new interface comes up is
-> not really feasible, as it abrupts packet processing, and validating the
-> ruleset in the kernel can take significant amount of time,
-> * the kernel change is very simple, adapting userspace to this change is
-> also very simple, and in userspace various software packages can easily
-> interoperate with each-other once this is merged.
-> 
-> The implementation:
-> 
-> Each interface can belong to a single "group" at a time, an interface
-> comes up without being a member in any of the groups.
-> 
-> Userspace can assign interfaces to groups after being created, this
-> would typically be performed in /etc/ppp/ip-up.d (and similar) scripts.
-> 
-> In spirit "interface group" is somewhat similar to the "routing
-> protocol" field for routing entries, which contains information on which
-> routing daemon was responsible for adding the given route entry.
-> 
-> Things to be done if you like this approach:
-> 
-> * interface group match in iptables,
-> * support for naming interface groups in userspace, a'la routing
-> protocols,
-> * emitting a netlink notification when the group of an interface
-> changes,
-> * possibly converting the "ip link" command to use NETLINK messages,
-> instead of using ioctl()
-> 
-> What do you think?
+> I'm questioning the usefulness of this patch since nfnetlink
+> serializes the creation of two new conntracks.
 
 
-I like it .. kind of like routing realms. For your specific case there
-is a possible solution already supported by the kernel, you can
-pre-allocate ppp devices using PPPIOCNEWUNIT, rename them and later
-attach to individual units in the ppp daemon using PPPIOCATTACH
-(I have a patch for this somewhere if you're interested). But that
-only works for PPP devices and the group idea looks more flexible.
+I'm finding it hard to drop this patch from the series, having trouble
+applying patch 7 from the series without this patch.
 
+I find it difficult to be comfortable with dropping some features of
+this patch. In this fragment, the second chunk does what looks like an
+important re-ordering of locking and conntrack creation; i.e. of course
+the lock is retained till after conntrack creation.
+
+So I don't think it is safe to entirely drop this patch; Pablo?
+
+
+Index: linux-2.6.17.1/net/ipv4/netfilter/ip_conntrack_netlink.c
+===================================================================
+--- linux-2.6.17.1.orig/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ linux-2.6.17.1/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -1212,13 +1212,9 @@ ctnetlink_create_conntrack(struct nfattr
+                ct->mark = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_MARK-1]));
+ #endif
+
+-       ct->helper = ip_conntrack_helper_find_get(rtuple);
+-
+-       add_timer(&ct->timeout);
++       ct->helper = ip_conntrack_helper_find(rtuple);
+        ip_conntrack_hash_insert(ct);
+-
+-       if (ct->helper)
+-               ip_conntrack_helper_put(ct->helper);
++       add_timer(&ct->timeout);
+
+        DEBUGP("conntrack with id %u inserted\n", ct->id);
+        return 0;
+@@ -1260,11 +1256,11 @@ ctnetlink_new_conntrack(struct sock *ctn
+                h = __ip_conntrack_find(&rtuple, NULL);
+
+        if (h == NULL) {
+-               write_unlock_bh(&ip_conntrack_lock);
+                DEBUGP("no such conntrack, create new\n");
+                err = -ENOENT;
+                if (nlh->nlmsg_flags & NLM_F_CREATE)
+                        err = ctnetlink_create_conntrack(cda, &otuple,
+&rtuple);
++               write_unlock_bh(&ip_conntrack_lock);
+                return err;
+        }
+        /* implicit 'else' */
