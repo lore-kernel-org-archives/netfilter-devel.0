@@ -1,18 +1,13 @@
-From: Thomas Heinz <thomasheinz@gmx.net>
-Subject: Re: Ipsec, policy match and PROTO=4
-Date: Fri, 4 Aug 2006 22:57:24 +0200
-Message-ID: <200608042257.25461.thomasheinz@gmx.net>
-References: <200607270131.18655.thomasheinz@gmx.net>
-	<44D3A41C.9080606@trash.net>
+From: "Jethro Tull" <heavytull@hotmail.com>
+Subject: iptable compiled but errors returned
+Date: Sat, 05 Aug 2006 18:38:37 +0000
+Message-ID: <BAY117-F7A7B8FA5F9E166CC042D0AD510@phx.gbl>
+References: <BAY117-F214B69F9F76C14D595429FAD7A0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <BAY117-F214B69F9F76C14D595429FAD7A0@phx.gbl>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <44D3A41C.9080606@trash.net>
-Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -24,20 +19,32 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Patrick
-
-Thanks for your reply.
-
-You wrote:
-> The cleartext packet should also be seen with the real protocol after
-> that.
-
-Oh, you're right. Sorry for being so unobservant.
-
-Is the fact that the packet with PROTO=4 is seen in between the encrypted 
-and cleartext packet considered a bug?
 
 
-Best regards,
+>From: "Jethro Tull" <heavytull@hotmail.com>
+>To: netfilter-devel@lists.netfilter.org
+>Subject: iptable compiled but errors returned
+>Date: Fri, 23 Jun 2006 23:15:23 +0000
+>
+>I just compiled iptables by doing so:
+>make KERNEL_DIR=/kernel/source
+>
+>but the returned message for all files compiled is as follows:
+>
+>
+>cc -O2 -Wall -Wunused -I/usr/src/kernel/linux-2.6.17//include -Iinclude/ 
+>-DIPTABLES_VERSION=\"1.3.5-20060622\"  -D_UNKNOWN_KERNEL_POINTER_SIZE 
+>-DIP6T_LIB_DIR=\"/usr/local/lib/iptables\" -c -o ip6tables.o ip6tables.c
+>
+>
+>the "-D_UNKNOWN_KERNEL_POINTER_SIZE..." is it normal??
+>
+>_________________________________________________________________
+>Be the first to hear what's new at MSN - sign up to our free newsletters! 
+>http://www.msn.co.uk/newsletters
+>
+>
 
-Thomas
+_________________________________________________________________
+Windows Live™ Messenger has arrived. Click here to download it for free! 
+http://imagine-msn.com/messenger/launch80/?locale=en-gb
