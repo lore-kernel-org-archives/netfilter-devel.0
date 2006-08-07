@@ -1,83 +1,55 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: [patch] RFC: matching interface groups
-Date: Mon, 07 Aug 2006 13:44:10 +0200
-Message-ID: <1154951050.18676.12.camel@bzorp.balabit>
-References: <1154452209.6395.77.camel@bzorp.balabit>
-	 <44D31C2F.2050702@trash.net>
+From: Amin Azez <azez@ufomechanic.net>
+Subject: Re: [PATCH] ipset matches either,both
+Date: Mon, 07 Aug 2006 14:21:26 +0100
+Message-ID: <44D73E56.9070102@ufomechanic.net>
+References: <eat75p$9o4$1@sea.gmane.org>
+	<Pine.LNX.4.58.0608070907400.8741@blackhole.kfki.hu>
+	<44D6FF0A.8050009@ufomechanic.net>
+	<Pine.LNX.4.58.0608071108130.8741@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@lists.netfilter.org,
-	shemminger@osdl.org
-Return-path: <netdev-owner@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44D31C2F.2050702@trash.net>
-Sender: netdev-owner@vger.kernel.org
+Cc: netfilter-devel@lists.netfilter.org
+Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+In-Reply-To: <Pine.LNX.4.58.0608071108130.8741@blackhole.kfki.hu>
+List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
+List-Archive: </pipermail/netfilter-devel>
+List-Post: <mailto:netfilter-devel@lists.netfilter.org>
+List-Help: <mailto:netfilter-devel-request@lists.netfilter.org?subject=help>
+List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
+	<mailto:netfilter-devel-request@lists.netfilter.org?subject=subscribe>
+Sender: netfilter-devel-bounces@lists.netfilter.org
+Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2006-08-04 at 12:06 +0200, Patrick McHardy wrote:
-> Balazs Scheidler wrote:
-> > The use-case is as follows:
-> > 
-> > * I have two different subsystems creating interfaces dynamically (for
-> > example pptpd and serial pppd lines, each creating dynamic pppX
-> > interfaces),
-> > * I would like to assign a different set of iptables rules for these
-> > clients,
-> > * I would like to react to a new interface being added to a specific set
-> > in a userspace application,
-> > 
-> > The reasons I see this needs new kernel functionality:
-> > 
-> > * iptables supports wildcard interface matching (for example "iptables
-> > -i ppp+"), but as the names of the interfaces used by PPTPD and PPPD
-> > cannot be distinguished this way, this is not enough,
-> > * Reloading the iptables ruleset everytime a new interface comes up is
-> > not really feasible, as it abrupts packet processing, and validating the
-> > ruleset in the kernel can take significant amount of time,
-> > * the kernel change is very simple, adapting userspace to this change is
-> > also very simple, and in userspace various software packages can easily
-> > interoperate with each-other once this is merged.
-> > 
-> > The implementation:
-> > 
-> > Each interface can belong to a single "group" at a time, an interface
-> > comes up without being a member in any of the groups.
-> > 
-> > Userspace can assign interfaces to groups after being created, this
-> > would typically be performed in /etc/ppp/ip-up.d (and similar) scripts.
-> > 
-> > In spirit "interface group" is somewhat similar to the "routing
-> > protocol" field for routing entries, which contains information on which
-> > routing daemon was responsible for adding the given route entry.
-> > 
-> > Things to be done if you like this approach:
-> > 
-> > * interface group match in iptables,
-> > * support for naming interface groups in userspace, a'la routing
-> > protocols,
-> > * emitting a netlink notification when the group of an interface
-> > changes,
-> > * possibly converting the "ip link" command to use NETLINK messages,
-> > instead of using ioctl()
-> > 
-> > What do you think?
-> 
-> 
-> I like it .. kind of like routing realms. For your specific case there
-> is a possible solution already supported by the kernel, you can
-> pre-allocate ppp devices using PPPIOCNEWUNIT, rename them and later
-> attach to individual units in the ppp daemon using PPPIOCATTACH
-> (I have a patch for this somewhere if you're interested). But that
-> only works for PPP devices and the group idea looks more flexible.
+* Jozsef Kadlecsik wrote, On 07/08/06 11:49:
+> >From the svn changelog:
+>
+> iptables.c, rev 6474, modified Fri Mar 3 09:36:50 2006 UTC (5 months ago):
+>
+> Multiple matches of the same type can be specified on the commandline.
+>
+> If two or more matches of the same type are detected then the options
+> are assumed to be grouped in order to tell which option belongs
+> to which match:
+>
+> ... -m foo ... <options0> ... -m foo ... <options1> ...
+>
+> Otherwise the commandline parsing is unmodified.
+>   
+dang, I missed that.
+...
+> I'm open to feature requests and suggestions for the next revisions but
+> still not convinced about "both" and "either", sorry:
+>
+> "both" is equal to    -m set --set foo src -m set --set foo dst
+> "neither" is equal to -m set ! --set foo src -m ! set --set foo dst
+> "either" can be expressed by two iptables rules.
+>
+> So what can we gain?
+>   
+indeed. *sob*
 
-Thanks for liking it :) I'm going to implement a complete patch with
-iptables match and support for naming interface groups like routing
-realms and post it when I'm ready.
-
-I'd go for the more general solution as I have other interfaces not just
-ppp, it was just a trivial example.
-
--- 
-Bazsi
-
+Sam
