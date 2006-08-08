@@ -1,17 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Ipsec, policy match and PROTO=4
-Date: Tue, 08 Aug 2006 09:50:15 +0200
-Message-ID: <44D84237.7000708@trash.net>
-References: <200607270131.18655.thomasheinz@gmx.net>
-	<44D3A41C.9080606@trash.net>
-	<200608042257.25461.thomasheinz@gmx.net>
+Subject: Re: [PATCH] string match negation fix
+Date: Tue, 08 Aug 2006 11:09:20 +0200
+Message-ID: <44D854C0.2020909@trash.net>
+References: <20060804011740.GA1177@linuxace.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Thomas Heinz <thomasheinz@gmx.net>
-In-Reply-To: <200608042257.25461.thomasheinz@gmx.net>
+To: Phil Oester <kernel@linuxace.com>
+In-Reply-To: <20060804011740.GA1177@linuxace.com>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,8 +21,9 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thomas Heinz wrote:
-> Is the fact that the packet with PROTO=4 is seen in between the encrypted 
-> and cleartext packet considered a bug?
+Phil Oester wrote:
+> The xt_string match is broken with ! negation.
+> 
+> This resolves a portion of netfilter bugzilla #497.
 
-Not sure right now, I need to look into this again.
+Applied, thanks Phil.
