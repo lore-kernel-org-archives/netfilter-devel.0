@@ -1,13 +1,16 @@
-From: Aleksandar Milivojevic <alex@milivojevic.org>
-Subject: Filtering PPPoE
-Date: Tue, 08 Aug 2006 10:32:45 -0500
-Message-ID: <20060808103245.fen2mnkuyask004c@www.milivojevic.org>
+From: Grant Coady <gcoady.lk@gmail.com>
+Subject: Re: Filtering PPPoE
+Date: Wed, 09 Aug 2006 12:34:18 +1000
+Message-ID: <47iid2lhchbnrha9gi5js28b11vh8hp927@4ax.com>
+References: <20060808103245.fen2mnkuyask004c@www.milivojevic.org>
+Reply-To: Grant Coady <gcoady.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; DelSp=Yes; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
-Content-disposition: inline
+To: Aleksandar Milivojevic <alex@milivojevic.org>
+In-Reply-To: <20060808103245.fen2mnkuyask004c@www.milivojevic.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,32 +22,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Tue, 08 Aug 2006 10:32:45 -0500, Aleksandar Milivojevic <alex@milivojevic.org> wrote:
 
-I'm attempting to place transparent firewall (on a Linux host =20
-configured as bridge) between ADSL modem and some servers.  The =20
-servers and ADSL modem "speak" PPPoE.
+>Hi,
+>
+>I'm attempting to place transparent firewall (on a Linux host  
+>configured as bridge) between ADSL modem and some servers.  The  
+>servers and ADSL modem "speak" PPPoE.
+>
+>Simplified diagram looks like this:
+>
+>   +------+     +--------+     +---------+
+>   |ADSL  |     |bridge/ |     |server(s)|
+>   |modem |-----|firewall|-----|         |
+>   +------+     +--------+     +---------+
+>
+>The problem I have is that Netfilter does not see PPPoE packets on the  
+>bridge.
 
-Simplified diagram looks like this:
+Did you switch ADSL modem to bridge mode?
 
-   +------+     +--------+     +---------+
-   |ADSL  |     |bridge/ |     |server(s)|
-   |modem |-----|firewall|-----|         |
-   +------+     +--------+     +---------+
+ network topology
+ `````````````````
+     ----------------            ------------                   LAN
+   (                  )  Phone  |            |                Machines
+  (  Big Bad Internet  )--------| ADSL Modem |
+   (                  )   Line  |            |    100-Base-T
+     ----------------            ------------       Switch     -----
+                                       |               -------|     |
+                             Public IP | X_WORLD      |        -----
+                                       |              |        -----
+                                 -------------        |     --|     |
+                                |  ppp0/eth2  |      ---   |   -----
+                                |             |     | \ |--    -----
+           X_LOCAL2       <-----|eth1     eth0|-----|/ /|-----|     |
+           192.168.2.0/24       |             |     | \ |--    -----
+           100-Base-T           |  Firewall   |      ---   |   -----
+           (spare localnet)      -------------        |     --|     |
+                                                      |        -----
+                                                      |        -----
+                                                       -------|     |
+                                               X_LOCAL         -----
+                                               192.168.1.0/24
 
-The problem I have is that Netfilter does not see PPPoE packets on the =20
-bridge.  Similar thing on the server host(s), Netfilter (if server is =20
-Linux host) doesn't see PPPoE, it just sees IP packets as they come =20
-out of virtual PPP interface.  I can't place the firewall onto the =20
-servers, and the servers must have external IP addresses assigned to =20
-them.  I can't change the toplogy and move PPPoE endpoint infront of =20
-the servers (and/or use NAT).
+Though I don't port-forward to DMZ servers -- that's the spare localnet 
+that I've not got around to using.
 
-Is there any way of filtering IP traffic that is encapsulated inside =20
-PPPoE on the bridge host?  I found some HOWTOs describing how to do it =20
-with OpenBSD based bridge.  However, I'm unfamiliar with OpenBSD, and =20
-would like to set this up using Linux solution if possible.
-
---=20
-See Ya' later, alligator!
-http://www.8-P.ca/
+Grant.
