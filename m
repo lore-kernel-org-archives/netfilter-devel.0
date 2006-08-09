@@ -1,16 +1,12 @@
-From: Grant Coady <gcoady.lk@gmail.com>
-Subject: Re: Filtering PPPoE
-Date: Wed, 09 Aug 2006 12:34:18 +1000
-Message-ID: <47iid2lhchbnrha9gi5js28b11vh8hp927@4ax.com>
-References: <20060808103245.fen2mnkuyask004c@www.milivojevic.org>
-Reply-To: Grant Coady <gcoady.lk@gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 01/02]: xt_string: fix negation
+Date: Wed, 09 Aug 2006 11:41:24 +0200
+Message-ID: <44D9ADC4.1000909@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="------------010806060602040208050001"
 Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Aleksandar Milivojevic <alex@milivojevic.org>
-In-Reply-To: <20060808103245.fen2mnkuyask004c@www.milivojevic.org>
+To: "David S. Miller" <davem@davemloft.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,50 +18,54 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 08 Aug 2006 10:32:45 -0500, Aleksandar Milivojevic <alex@milivojevic.org> wrote:
+This is a multi-part message in MIME format.
+--------------010806060602040208050001
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
->Hi,
->
->I'm attempting to place transparent firewall (on a Linux host  
->configured as bridge) between ADSL modem and some servers.  The  
->servers and ADSL modem "speak" PPPoE.
->
->Simplified diagram looks like this:
->
->   +------+     +--------+     +---------+
->   |ADSL  |     |bridge/ |     |server(s)|
->   |modem |-----|firewall|-----|         |
->   +------+     +--------+     +---------+
->
->The problem I have is that Netfilter does not see PPPoE packets on the  
->bridge.
+Hi Dave,
 
-Did you switch ADSL modem to bridge mode?
+following are two small netfilter fixes for 2.6.18.
+Please apply, thanks.
 
- network topology
- `````````````````
-     ----------------            ------------                   LAN
-   (                  )  Phone  |            |                Machines
-  (  Big Bad Internet  )--------| ADSL Modem |
-   (                  )   Line  |            |    100-Base-T
-     ----------------            ------------       Switch     -----
-                                       |               -------|     |
-                             Public IP | X_WORLD      |        -----
-                                       |              |        -----
-                                 -------------        |     --|     |
-                                |  ppp0/eth2  |      ---   |   -----
-                                |             |     | \ |--    -----
-           X_LOCAL2       <-----|eth1     eth0|-----|/ /|-----|     |
-           192.168.2.0/24       |             |     | \ |--    -----
-           100-Base-T           |  Firewall   |      ---   |   -----
-           (spare localnet)      -------------        |     --|     |
-                                                      |        -----
-                                                      |        -----
-                                                       -------|     |
-                                               X_LOCAL         -----
-                                               192.168.1.0/24
 
-Though I don't port-forward to DMZ servers -- that's the spare localnet 
-that I've not got around to using.
+--------------010806060602040208050001
+Content-Type: text/plain;
+ name="01.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="01.diff"
 
-Grant.
+[NETFILTER]: xt_string: fix negation
+
+The xt_string match is broken with ! negation.
+This resolves a portion of netfilter bugzilla #497.
+
+Signed-off-by: Phil Oester <kernel@linuxace.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit 71c55528be7cf1199376a1b1c5489f60bf2b2617
+tree 9a3262f5694c8eb859852981536baa874d3b0fab
+parent 9f737633e6ee54fc174282d49b2559bd2208391d
+author Phil Oester <kaber@trash.net> Tue, 08 Aug 2006 11:09:06 +0200
+committer Patrick McHardy <kaber@trash.net> Tue, 08 Aug 2006 11:09:06 +0200
+
+ net/netfilter/xt_string.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
+index d8e3891..275330f 100644
+--- a/net/netfilter/xt_string.c
++++ b/net/netfilter/xt_string.c
+@@ -37,7 +37,7 @@ static int match(const struct sk_buff *s
+ 
+ 	return (skb_find_text((struct sk_buff *)skb, conf->from_offset, 
+ 			     conf->to_offset, conf->config, &state) 
+-			     != UINT_MAX) && !conf->invert;
++			     != UINT_MAX) ^ conf->invert;
+ }
+ 
+ #define STRING_TEXT_PRIV(m) ((struct xt_string_info *) m)
+
+--------------010806060602040208050001--
