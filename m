@@ -1,12 +1,12 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: PATCH] nfnetlink_queue Fix typo on debug message
-Date: Thu, 10 Aug 2006 15:55:32 +0200
-Message-ID: <1155218132.10883.3.camel@localhost.localdomain>
+From: "Jethro Tull" <heavytull@hotmail.com>
+Subject: iptables installed while old version alredy was
+Date: Thu, 10 Aug 2006 19:38:03 +0000
+Message-ID: <BAY117-F6B116E262F2D1B2368415AD4A0@phx.gbl>
+References: <20060805215725.GA12084@linuxace.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="=-TS1G7RmIxl0UhtSDuCkp"
+Content-Type: text/plain; format=flowed
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
+In-Reply-To: <20060805215725.GA12084@linuxace.com>
 To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -19,48 +19,10 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
+I mistakenly installed iptables while it was already installed on my pc; do 
+i need to make clean and then use my distro package tool to remove the old 
+version and then re install the latest iptables?
 
---=-TS1G7RmIxl0UhtSDuCkp
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-This patch fixes a trivial typo in nfnetlink_queue.
-
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- net/netfilter/nfnetlink_queue.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queu=
-e.c
-index 86a4ac3..d9a2ad8 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -584,7 +584,7 @@ nfqnl_enqueue_packet(struct sk_buff *skb
-                 queue->queue_dropped++;
- 		status =3D -ENOSPC;
- 		if (net_ratelimit())
--		          printk(KERN_WARNING "ip_queue: full at %d entries, "
-+		          printk(KERN_WARNING "nf_queue: full at %d entries, "
- 				 "dropping packets(s). Dropped: %d\n",=20
- 				 queue->queue_total, queue->queue_dropped);
- 		goto err_out_free_nskb;
---=20
-1.4.1
-
-
-
---=-TS1G7RmIxl0UhtSDuCkp
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Ceci est une partie de message
-	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3 (GNU/Linux)
-
-iD8DBQBE2zrUnxA7CdMWjzIRArPcAJ4y1yfAnS23rAQ4PYaXocvw6gH2OACffS/n
-s56n2K2WE8FZ55WM60ytdpc=
-=8nYR
------END PGP SIGNATURE-----
-
---=-TS1G7RmIxl0UhtSDuCkp--
+_________________________________________________________________
+Windows Live™ Messenger has arrived. Click here to download it for free! 
+http://imagine-msn.com/messenger/launch80/?locale=en-gb
