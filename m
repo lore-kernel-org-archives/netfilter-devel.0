@@ -1,16 +1,13 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: [Fwd: [Bug 499] ipp2p error. ip_tables: ipp2p match: invalid
- size 0 != 8]
-Date: Thu, 10 Aug 2006 11:04:53 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0608101103440.9097@bizon.gios.gov.pl>
-References: <44DA7298.9070805@arcoscom.com>
+From: Eric Leblond <eric@inl.fr>
+Subject: PATCH] nfnetlink_queue Fix typo on debug message
+Date: Thu, 10 Aug 2006 15:55:32 +0200
+Message-ID: <1155218132.10883.3.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1083095380-1155200693=:9097"
-Cc: ipp2p@ipp2p.org, netfilter-devel@lists.netfilter.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-TS1G7RmIxl0UhtSDuCkp"
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: =?ISO-8859-1?Q?Samuel_D=EDaz_Garc=EDa?= <samueldg@arcoscom.com>
-In-Reply-To: <44DA7298.9070805@arcoscom.com>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,31 +19,48 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-1083095380-1155200693=:9097
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+--=-TS1G7RmIxl0UhtSDuCkp
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+This patch fixes a trivial typo in nfnetlink_queue.
+
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ net/netfilter/nfnetlink_queue.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queu=
+e.c
+index 86a4ac3..d9a2ad8 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -584,7 +584,7 @@ nfqnl_enqueue_packet(struct sk_buff *skb
+                 queue->queue_dropped++;
+ 		status =3D -ENOSPC;
+ 		if (net_ratelimit())
+-		          printk(KERN_WARNING "ip_queue: full at %d entries, "
++		          printk(KERN_WARNING "nf_queue: full at %d entries, "
+ 				 "dropping packets(s). Dropped: %d\n",=20
+ 				 queue->queue_total, queue->queue_dropped);
+ 		goto err_out_free_nskb;
+--=20
+1.4.1
 
 
 
-On Thu, 10 Aug 2006, Samuel D=EDaz Garc=EDa wrote:
+--=-TS1G7RmIxl0UhtSDuCkp
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Ceci est une partie de message
+	=?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
 
-> Sorry for the inconvenence, but I don't know where to look for help about=
-=20
-> this problem.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3 (GNU/Linux)
 
-The ipp2p extension was moved into external repository and removed from=20
-pom-ng. For a 2.6.17.x kernel you need a recent pom-ng extended with=20
-"./runme --download".
+iD8DBQBE2zrUnxA7CdMWjzIRArPcAJ4y1yfAnS23rAQ4PYaXocvw6gH2OACffS/n
+s56n2K2WE8FZ55WM60ytdpc=
+=8nYR
+-----END PGP SIGNATURE-----
 
-Please verify that you have a properly patched kernel - the ipt_ipp2p.c=20
-file should be 25144 bytes long with md5: a674ded594abbf43893ae32630208d08
-
-
-Best regards,
-
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1083095380-1155200693=:9097--
+--=-TS1G7RmIxl0UhtSDuCkp--
