@@ -1,14 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Bug (minor) in ip_tables.c?
-Date: Fri, 11 Aug 2006 18:09:12 +0200
-Message-ID: <44DCABA8.10103@trash.net>
-References: <44DBE34F.8080902@cpsc.ucalgary.ca>
+Subject: Re: [PATCH] Fix ipt_ULOG panics on SMP kernels
+Date: Fri, 11 Aug 2006 18:19:58 +0200
+Message-ID: <44DCAE2E.8040006@trash.net>
+References: <44DB5F4E.2080608@cs.princeton.edu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------080007050204090204030505"
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Rennie deGraaf <degraaf@cpsc.ucalgary.ca>
-In-Reply-To: <44DBE34F.8080902@cpsc.ucalgary.ca>
+To: Mark Huang <mlhuang@CS.Princeton.EDU>
+In-Reply-To: <44DB5F4E.2080608@cs.princeton.edu>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,198 +21,38 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080007050204090204030505
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Mark Huang wrote:
+> I've run into the same kernel panic as these reports:
+> 
+> https://lists.gnumonks.org/pipermail/ulogd/2005-August/000776.html
+> http://lists.netfilter.org/pipermail/netfilter/2006-January/064509.html
+> https://lists.gnumonks.org/pipermail/ulogd/2006-April/000853.html
+> 
+> On various SMP machines. The culprit is a null ub->skb in ulog_send(). I
+> believe
+> that this can occur for the following reason. If ulog_timer() has
+> already been
+> scheduled on one CPU and is spinning on the lock, and ipt_ulog_packet()
+> flushes
+> the queue on another CPU by calling ulog_send() right before it exits
+> (because
+> the threshold is reached), there will be no skbuff when ulog_timer()
+> acquires
+> the lock and calls ulog_send(). Cancelling the timer in ulog_send()
+> doesn't help
+>   because it has already been scheduled and is running on the first CPU.
+> 
+> There are two solutions that I can see: re-allocate ub->skb at the end of
+> ipt_ulog_packet(), just like it does toward the beginning of the
+> function. But
+> the problem will still happen if the allocation fails. The second solution,
+> implemented by the attached patch, is to just return from ulog_send() if
+> ub->skb
+> is null.
 
-Rennie deGraaf wrote:
-> In init() in ip_tables.c, if nf_register_sockopt() fails, then the
-> function returns failure without unregistering the targets and matches
-> that it provides.
-
-Good spotting. As usual this is duplicated in ip6_tables and arp_tables,
-I've queued up this patch to fix it.
-
-
---------------080007050204090204030505
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-[NETFILTER]: {arp,ip,ip6}_tables: proper error recovery in initialization path
-
-Neither of {arp,ip,ip6}_tables cleans up behind itself when something goes
-wrong during initialization.
-
-Noticed by Rennie deGraaf <degraaf@cpsc.ucalgary.ca>
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 85b125c30937bf0ef9fad5f4c3b4eab4588d4580
-tree fc1796384ca7e973256f16095339c86b2a808c02
-parent afe7e5033e79c86de718cb7fce5961a50b1352d3
-author Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 18:10:00 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 18:10:00 +0200
-
- net/ipv4/netfilter/arp_tables.c |   27 ++++++++++++++++++++-------
- net/ipv4/netfilter/ip_tables.c  |   33 +++++++++++++++++++++++++--------
- net/ipv6/netfilter/ip6_tables.c |   34 +++++++++++++++++++++++++---------
- 3 files changed, 70 insertions(+), 24 deletions(-)
-
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 80c73ca..df4854c 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -1170,21 +1170,34 @@ static int __init arp_tables_init(void)
- {
- 	int ret;
- 
--	xt_proto_init(NF_ARP);
-+	ret = xt_proto_init(NF_ARP);
-+	if (ret < 0)
-+		goto err1;
- 
- 	/* Noone else will be downing sem now, so we won't sleep */
--	xt_register_target(&arpt_standard_target);
--	xt_register_target(&arpt_error_target);
-+	ret = xt_register_target(&arpt_standard_target);
-+	if (ret < 0)
-+		goto err2;
-+	ret = xt_register_target(&arpt_error_target);
-+	if (ret < 0)
-+		goto err3;
- 
- 	/* Register setsockopt */
- 	ret = nf_register_sockopt(&arpt_sockopts);
--	if (ret < 0) {
--		duprintf("Unable to register sockopts.\n");
--		return ret;
--	}
-+	if (ret < 0)
-+		goto err4;
- 
- 	printk("arp_tables: (C) 2002 David S. Miller\n");
- 	return 0;
-+
-+err4:
-+	xt_unregister_target(&arpt_error_target);
-+err3:
-+	xt_unregister_target(&arpt_standard_target);
-+err2:
-+	xt_proto_fini(NF_ARP);
-+err1:
-+	return ret;
- }
- 
- static void __exit arp_tables_fini(void)
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index fc5bdd5..f316ff5 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -2239,22 +2239,39 @@ static int __init ip_tables_init(void)
- {
- 	int ret;
- 
--	xt_proto_init(AF_INET);
-+	ret = xt_proto_init(AF_INET);
-+	if (ret < 0)
-+		goto err1;
- 
- 	/* Noone else will be downing sem now, so we won't sleep */
--	xt_register_target(&ipt_standard_target);
--	xt_register_target(&ipt_error_target);
--	xt_register_match(&icmp_matchstruct);
-+	ret = xt_register_target(&ipt_standard_target);
-+	if (ret < 0)
-+		goto err2;
-+	ret = xt_register_target(&ipt_error_target);
-+	if (ret < 0)
-+		goto err3;
-+	ret = xt_register_match(&icmp_matchstruct);
-+	if (ret < 0)
-+		goto err4;
- 
- 	/* Register setsockopt */
- 	ret = nf_register_sockopt(&ipt_sockopts);
--	if (ret < 0) {
--		duprintf("Unable to register sockopts.\n");
--		return ret;
--	}
-+	if (ret < 0)
-+		goto err5;
- 
- 	printk("ip_tables: (C) 2000-2006 Netfilter Core Team\n");
- 	return 0;
-+
-+err5:
-+	xt_unregister_match(&icmp_matchstruct);
-+err4:
-+	xt_unregister_target(&ipt_error_target);
-+err3:
-+	xt_unregister_target(&ipt_standard_target);
-+err2:
-+	xt_proto_fini(AF_INET);
-+err1:
-+	return ret;
- }
- 
- static void __exit ip_tables_fini(void)
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index f26898b..c9d6b23 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1398,23 +1398,39 @@ static int __init ip6_tables_init(void)
- {
- 	int ret;
- 
--	xt_proto_init(AF_INET6);
-+	ret = xt_proto_init(AF_INET6);
-+	if (ret < 0)
-+		goto err1;
- 
- 	/* Noone else will be downing sem now, so we won't sleep */
--	xt_register_target(&ip6t_standard_target);
--	xt_register_target(&ip6t_error_target);
--	xt_register_match(&icmp6_matchstruct);
-+	ret = xt_register_target(&ip6t_standard_target);
-+	if (ret < 0)
-+		goto err2;
-+	ret = xt_register_target(&ip6t_error_target);
-+	if (ret < 0)
-+		goto err3;
-+	ret = xt_register_match(&icmp6_matchstruct);
-+	if (ret < 0)
-+		goto err4;
- 
- 	/* Register setsockopt */
- 	ret = nf_register_sockopt(&ip6t_sockopts);
--	if (ret < 0) {
--		duprintf("Unable to register sockopts.\n");
--		xt_proto_fini(AF_INET6);
--		return ret;
--	}
-+	if (ret < 0)
-+		goto err5;
- 
- 	printk("ip6_tables: (C) 2000-2006 Netfilter Core Team\n");
- 	return 0;
-+
-+err5:
-+	xt_unregister_match(&icmp6_matchstruct);
-+err4:
-+	xt_unregister_target(&ip6t_error_target);
-+err3:
-+	xt_unregister_target(&ip6t_standard_target);
-+err2:
-+	xt_proto_fini(AF_INET6);
-+err1:
-+	return ret;
- }
- 
- static void __exit ip6_tables_fini(void)
-
---------------080007050204090204030505--
+Very nice catch, thank you. The second solution is perfectly fine I
+think, if the skb has already been sent there is no need to do
+anything, a new allocation could be useless if no further traffic
+arrives. If you could add a similar fix to
+net/bridge/netfilter/ebt_ulog.c and net/netfilter/nfnetlink_log.c
+and send me a Signed-off-by: line I'll push it in 2.6.18. Thanks.
