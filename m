@@ -1,13 +1,17 @@
-From: Rennie deGraaf <degraaf@cpsc.ucalgary.ca>
-Subject: Bug (minor) in ip_tables.c?
-Date: Thu, 10 Aug 2006 19:54:23 -0600
-Message-ID: <44DBE34F.8080902@cpsc.ucalgary.ca>
+From: Pasi =?iso-8859-1?Q?K=E4rkk=E4inen?= <pasik@iki.fi>
+Subject: Re: [RFC,ANNOUNCE] conntrack daemon (stateful replication)
+Date: Fri, 11 Aug 2006 11:30:20 +0300
+Message-ID: <20060811083020.GW29423@edu.joroinen.fi>
+References: <447A1FB7.5080709@netfilter.org>
+	<20060530065804.GA24166@kruemel.my-eitzenberger.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig1B36F0738D443AFD0E611EC2"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <20060530065804.GA24166@kruemel.my-eitzenberger.de>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,61 +23,55 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig1B36F0738D443AFD0E611EC2
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hello!
 
-In init() in ip_tables.c, if nf_register_sockopt() fails, then the
-function returns failure without unregistering the targets and matches
-that it provides.  To correct this, init() should be changed to
-something like this:
+Any updates to these projects? Files available somewhere? I think many
+people from this list would like to test and help with these daemons..
 
-static int __init ip_tables_init(void)
-{
-	int ret;
+- Pasi 
 
-	xt_proto_init(AF_INET);
-
-	/* Noone else will be downing sem now, so we won't sleep */
-	xt_register_target(&ipt_standard_target);
-	xt_register_target(&ipt_error_target);
-	xt_register_match(&icmp_matchstruct);
-
-	/* Register setsockopt */
-	ret =3D nf_register_sockopt(&ipt_sockopts);
-	if (ret < 0) {
-		duprintf("Unable to register sockopts.\n");
-                goto failure_sockopt;
-	}
-
-	printk("ip_tables: (C) 2000-2006 Netfilter Core Team\n");
-	return 0;
-
-failure_sockopt:
-	xt_unregister_match(AF_INET, &icmp_matchstruct);
-	xt_unregister_target(AF_INET, &ipt_error_target);
-	xt_unregister_target(AF_INET, &ipt_standard_target);
-	xt_proto_fini(AF_INET);
-
-        return ret;
-}
-
-
-Rennie deGraaf
-
-
---------------enig1B36F0738D443AFD0E611EC2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (GNU/Linux)
-
-iD8DBQFE2+NUIvU5mZP08HERAjlrAJ9cA7cuQIDgDzMRzaF6MgYk8aaIqQCfWvJD
-wfu7jDJkkS23o/HXskt5/GY=
-=ssJ8
------END PGP SIGNATURE-----
-
---------------enig1B36F0738D443AFD0E611EC2--
+On Tue, May 30, 2006 at 08:58:05AM +0200, Holger Eitzenberger wrote:
+> On Mon, May 29, 2006 at 12:09:59AM +0200, Pablo Neira Ayuso wrote:
+> 
+> > I've been working on a pet project during the last months. Part of this 
+> > stuff is related with my works in the university.
+> 
+> Hi Pablo,
+> 
+> I am working on a daemon called 'ctsyncd', which for me started as a
+> proof-of-concept and is now almost in a state where I can release it
+> to the public.  My current objective is simple master/slave scenario
+> without active/active, and I am almost done.
+> 
+> Hopefully I am able to look at your sources.  With your great knowledge
+> of libnetfilter_conntrack and my programming skills we should consider
+> joining our efforts.  But first I will release my code for public review
+> within a few days.  
+> 
+> 
+> Stay tuned.
+> 
+> /holger
+> 
+> 
+> > - Stateful replication: the daemon keeps a cache of internal events via 
+> > libnetfilter_conntrack and a cache of external event received from the 
+> > other node.
+> > - Support for classical Primary/Backup settings
+> > - Support for Active/Active settings (two machines max. per VRRP instance)
+> > - Support for NAT: It recognizes NAT'ed connections and handles them 
+> > properly.
+> > - UDP traffic ignore facility
+> > - ICMP traffic ignore facility
+> > - Ignore loopback traffic (not customizable at the moment)
+> > - Ignore traffic for certain set of machines: Useful to ignore traffic 
+> > for the firewall since we just want to replicate conntracks that 
+> > represent forwarded connections.
+> > - Dump internal and external caches via UNIX sockets
+> > - Flush internal, external caches and conntrack table
+> > - The communication between daemons is done in NETLINK format, so the 
+> > protocol used is based on NETLINK over IP, to ensure backward compatibility.
+> > - Configuration via file
+> 
+> 
+> 
