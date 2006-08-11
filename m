@@ -1,16 +1,12 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Fix ipt_ULOG panics on SMP kernels
-Date: Fri, 11 Aug 2006 19:13:30 +0200
-Message-ID: <44DCBABA.4090207@trash.net>
-References: <44DB5F4E.2080608@cs.princeton.edu> <44DCAE2E.8040006@trash.net>
-	<44DCB42B.7010009@cs.princeton.edu>
+From: Martijn Lievaart <m@rtij.nl>
+Subject: Searching a home for psd
+Date: Fri, 11 Aug 2006 20:44:13 +0200
+Message-ID: <44DCCFFD.2080807@rtij.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Mark Huang <mlhuang@CS.Princeton.EDU>
-In-Reply-To: <44DCB42B.7010009@cs.princeton.edu>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,15 +18,12 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Mark Huang wrote:
-> Fix kernel panic on various SMP machines. The culprit is a null
-> ub->skb in ulog_send(). If ulog_timer() has already been scheduled on
-> one CPU and is spinning on the lock, and ipt_ulog_packet() flushes the
-> queue on another CPU by calling ulog_send() right before it exits,
-> there will be no skbuff when ulog_timer() acquires the lock and calls
-> ulog_send(). Cancelling the timer in ulog_send() doesn't help because
-> it has already been scheduled and is running on the first CPU.
-> 
-> Similar problem exists in ebt_ulog.c and nfnetlink_log.c.
+Hi,
 
-Applied, thanks Mark.
+Psd has been dropped from patch-o-matic and no one has taken it up. If 
+someone can send me the latest pom entries for psd, I'll set up an 
+external repository for it. Besides trying to bring it up to date to the 
+latest kernel, who knows, maybe I'll really maintain it. Seriously, it's 
+a great patch and I would hat to see it go.
+
+M4
