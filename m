@@ -1,15 +1,15 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [NETFILTER 00/02]: Netfilter fixes
-Date: Fri, 11 Aug 2006 17:30:55 -0700 (PDT)
-Message-ID: <20060811.173055.122622791.davem@davemloft.net>
-References: <20060812002535.30253.73682.sendpatchset@localhost.localdomain>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Searching a home for psd
+Date: Sat, 12 Aug 2006 02:33:19 +0200
+Message-ID: <44DD21CF.3090404@trash.net>
+References: <44DCCFFD.2080807@rtij.nl>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: kaber@trash.net
-In-Reply-To: <20060812002535.30253.73682.sendpatchset@localhost.localdomain>
+To: Martijn Lievaart <m@rtij.nl>
+In-Reply-To: <44DCCFFD.2080807@rtij.nl>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,13 +21,13 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Sat, 12 Aug 2006 02:25:35 +0200 (MEST)
+Martijn Lievaart wrote:
+> Psd has been dropped from patch-o-matic and no one has taken it up. If
+> someone can send me the latest pom entries for psd, I'll set up an
+> external repository for it. Besides trying to bring it up to date to the
+> latest kernel, who knows, maybe I'll really maintain it. Seriously, it's
+> a great patch and I would hat to see it go.
 
-> following are two more fixes for 2.6.18. The ulog patch fixes an old
-> crash in ulog that has hit quite a few people so far. I'm going to push
-> it to -stable as well.
-> 
-> Please apply, thanks.
-
-Both applied, thanks Patrick.
+Trying to employ all my SVN skills to get a copy didn't help, so please
+just grab it from the latest release, there haven't been any changes
+since then anyway.
