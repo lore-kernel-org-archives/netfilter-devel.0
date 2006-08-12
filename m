@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 02/02]: ulog: fix panic on SMP kernels
-Date: Sat, 12 Aug 2006 02:25:38 +0200 (MEST)
-Message-ID: <20060812002538.30253.39211.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 01/02]: {arp, ip,
+	ip6}_tables: proper error recovery in initialization path
+Date: Sat, 12 Aug 2006 02:25:36 +0200 (MEST)
+Message-ID: <20060812002536.30253.19487.sendpatchset@localhost.localdomain>
 References: <20060812002535.30253.73682.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,74 +19,175 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ulog: fix panic on SMP kernels
+[NETFILTER]: {arp,ip,ip6}_tables: proper error recovery in init path
 
-Fix kernel panic on various SMP machines. The culprit is a null
-ub->skb in ulog_send(). If ulog_timer() has already been scheduled on
-one CPU and is spinning on the lock, and ipt_ulog_packet() flushes the
-queue on another CPU by calling ulog_send() right before it exits,
-there will be no skbuff when ulog_timer() acquires the lock and calls
-ulog_send(). Cancelling the timer in ulog_send() doesn't help because
-it has already been scheduled and is running on the first CPU.
+Neither of {arp,ip,ip6}_tables cleans up behind itself when something goes
+wrong during initialization.
 
-Similar problem exists in ebt_ulog.c and nfnetlink_log.c.
+Noticed by Rennie deGraaf <degraaf@cpsc.ucalgary.ca>
 
-Signed-off-by: Mark Huang <mlhuang@cs.princeton.edu>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 005dbeb54700681d8770c3c76ac452387cabe1e1
-tree 1d452a2166403710ed576640b6a4d92456a4b69a
-parent 85b125c30937bf0ef9fad5f4c3b4eab4588d4580
-author Mark Huang <mlhuang@cs.princeton.edu> Fri, 11 Aug 2006 19:39:00 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 19:39:00 +0200
+commit 85b125c30937bf0ef9fad5f4c3b4eab4588d4580
+tree fc1796384ca7e973256f16095339c86b2a808c02
+parent afe7e5033e79c86de718cb7fce5961a50b1352d3
+author Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 18:10:00 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 18:10:00 +0200
 
- net/bridge/netfilter/ebt_ulog.c |    3 +++
- net/ipv4/netfilter/ipt_ULOG.c   |    5 +++++
- net/netfilter/nfnetlink_log.c   |    3 +++
- 3 files changed, 11 insertions(+), 0 deletions(-)
+ net/ipv4/netfilter/arp_tables.c |   27 ++++++++++++++++++++-------
+ net/ipv4/netfilter/ip_tables.c  |   33 +++++++++++++++++++++++++--------
+ net/ipv6/netfilter/ip6_tables.c |   34 +++++++++++++++++++++++++---------
+ 3 files changed, 70 insertions(+), 24 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
-index 02693a2..9f950db 100644
---- a/net/bridge/netfilter/ebt_ulog.c
-+++ b/net/bridge/netfilter/ebt_ulog.c
-@@ -74,6 +74,9 @@ static void ulog_send(unsigned int nlgro
- 	if (timer_pending(&ub->timer))
- 		del_timer(&ub->timer);
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 80c73ca..df4854c 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -1170,21 +1170,34 @@ static int __init arp_tables_init(void)
+ {
+ 	int ret;
  
-+	if (!ub->skb)
-+		return;
+-	xt_proto_init(NF_ARP);
++	ret = xt_proto_init(NF_ARP);
++	if (ret < 0)
++		goto err1;
+ 
+ 	/* Noone else will be downing sem now, so we won't sleep */
+-	xt_register_target(&arpt_standard_target);
+-	xt_register_target(&arpt_error_target);
++	ret = xt_register_target(&arpt_standard_target);
++	if (ret < 0)
++		goto err2;
++	ret = xt_register_target(&arpt_error_target);
++	if (ret < 0)
++		goto err3;
+ 
+ 	/* Register setsockopt */
+ 	ret = nf_register_sockopt(&arpt_sockopts);
+-	if (ret < 0) {
+-		duprintf("Unable to register sockopts.\n");
+-		return ret;
+-	}
++	if (ret < 0)
++		goto err4;
+ 
+ 	printk("arp_tables: (C) 2002 David S. Miller\n");
+ 	return 0;
 +
- 	/* last nlmsg needs NLMSG_DONE */
- 	if (ub->qlen > 1)
- 		ub->lastnlh->nlmsg_type = NLMSG_DONE;
-diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
-index d7dd7fe..d46fd67 100644
---- a/net/ipv4/netfilter/ipt_ULOG.c
-+++ b/net/ipv4/netfilter/ipt_ULOG.c
-@@ -115,6 +115,11 @@ static void ulog_send(unsigned int nlgro
- 		del_timer(&ub->timer);
- 	}
++err4:
++	xt_unregister_target(&arpt_error_target);
++err3:
++	xt_unregister_target(&arpt_standard_target);
++err2:
++	xt_proto_fini(NF_ARP);
++err1:
++	return ret;
+ }
  
-+	if (!ub->skb) {
-+		DEBUGP("ipt_ULOG: ulog_send: nothing to send\n");
-+		return;
-+	}
+ static void __exit arp_tables_fini(void)
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index fc5bdd5..f316ff5 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -2239,22 +2239,39 @@ static int __init ip_tables_init(void)
+ {
+ 	int ret;
+ 
+-	xt_proto_init(AF_INET);
++	ret = xt_proto_init(AF_INET);
++	if (ret < 0)
++		goto err1;
+ 
+ 	/* Noone else will be downing sem now, so we won't sleep */
+-	xt_register_target(&ipt_standard_target);
+-	xt_register_target(&ipt_error_target);
+-	xt_register_match(&icmp_matchstruct);
++	ret = xt_register_target(&ipt_standard_target);
++	if (ret < 0)
++		goto err2;
++	ret = xt_register_target(&ipt_error_target);
++	if (ret < 0)
++		goto err3;
++	ret = xt_register_match(&icmp_matchstruct);
++	if (ret < 0)
++		goto err4;
+ 
+ 	/* Register setsockopt */
+ 	ret = nf_register_sockopt(&ipt_sockopts);
+-	if (ret < 0) {
+-		duprintf("Unable to register sockopts.\n");
+-		return ret;
+-	}
++	if (ret < 0)
++		goto err5;
+ 
+ 	printk("ip_tables: (C) 2000-2006 Netfilter Core Team\n");
+ 	return 0;
 +
- 	/* last nlmsg needs NLMSG_DONE */
- 	if (ub->qlen > 1)
- 		ub->lastnlh->nlmsg_type = NLMSG_DONE;
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 61cdda4..b59d3b2 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -366,6 +366,9 @@ __nfulnl_send(struct nfulnl_instance *in
- 	if (timer_pending(&inst->timer))
- 		del_timer(&inst->timer);
++err5:
++	xt_unregister_match(&icmp_matchstruct);
++err4:
++	xt_unregister_target(&ipt_error_target);
++err3:
++	xt_unregister_target(&ipt_standard_target);
++err2:
++	xt_proto_fini(AF_INET);
++err1:
++	return ret;
+ }
  
-+	if (!inst->skb)
-+		return 0;
+ static void __exit ip_tables_fini(void)
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index f26898b..c9d6b23 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1398,23 +1398,39 @@ static int __init ip6_tables_init(void)
+ {
+ 	int ret;
+ 
+-	xt_proto_init(AF_INET6);
++	ret = xt_proto_init(AF_INET6);
++	if (ret < 0)
++		goto err1;
+ 
+ 	/* Noone else will be downing sem now, so we won't sleep */
+-	xt_register_target(&ip6t_standard_target);
+-	xt_register_target(&ip6t_error_target);
+-	xt_register_match(&icmp6_matchstruct);
++	ret = xt_register_target(&ip6t_standard_target);
++	if (ret < 0)
++		goto err2;
++	ret = xt_register_target(&ip6t_error_target);
++	if (ret < 0)
++		goto err3;
++	ret = xt_register_match(&icmp6_matchstruct);
++	if (ret < 0)
++		goto err4;
+ 
+ 	/* Register setsockopt */
+ 	ret = nf_register_sockopt(&ip6t_sockopts);
+-	if (ret < 0) {
+-		duprintf("Unable to register sockopts.\n");
+-		xt_proto_fini(AF_INET6);
+-		return ret;
+-	}
++	if (ret < 0)
++		goto err5;
+ 
+ 	printk("ip6_tables: (C) 2000-2006 Netfilter Core Team\n");
+ 	return 0;
 +
- 	if (inst->qlen > 1)
- 		inst->lastnlh->nlmsg_type = NLMSG_DONE;
++err5:
++	xt_unregister_match(&icmp6_matchstruct);
++err4:
++	xt_unregister_target(&ip6t_error_target);
++err3:
++	xt_unregister_target(&ip6t_standard_target);
++err2:
++	xt_proto_fini(AF_INET6);
++err1:
++	return ret;
+ }
  
+ static void __exit ip6_tables_fini(void)
