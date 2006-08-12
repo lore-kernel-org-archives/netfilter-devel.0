@@ -1,17 +1,14 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Trivial replace of ip_queue by
- nfnetlink_queue	in	nfnetlink_queue code
-Date: Sat, 12 Aug 2006 17:31:05 +0200
-Message-ID: <44DDF439.30104@trash.net>
-References: <1155394240.10172.29.camel@localhost>	 <44DDEFF2.9010403@trash.net>
-	<1155396101.10172.36.camel@localhost>
+From: Torsten Luettgert <t.luettgert@pressestimmen.de>
+Subject: Re: Searching a home for psd
+Date: Sat, 12 Aug 2006 21:07:54 +0200
+Message-ID: <1155409675.2447.4.camel@murdegern.cbxnet.de>
+References: <44DCCFFD.2080807@rtij.nl>  <44DD21CF.3090404@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Eric Leblond <eric@inl.fr>
-In-Reply-To: <1155396101.10172.36.camel@localhost>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <44DD21CF.3090404@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,23 +20,21 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric Leblond wrote:
-> Le samedi 12 ao=FBt 2006 =E0 17:12 +0200, Patrick McHardy a =E9crit :
->=20
->>But I think it
->>would make more sense to throw most of these printks out.
->=20
->=20
-> The one about queue full is really useful to notice performance issue o=
-r
-> problems.
+On Sat, 2006-08-12 at 02:33 +0200, Patrick McHardy wrote:
+> Martijn Lievaart wrote:
+> > Psd has been dropped from patch-o-matic and no one has taken it up. If
+> > someone can send me the latest pom entries for psd, I'll set up an
+> > external repository for it. Besides trying to bring it up to date to the
+> > latest kernel, who knows, maybe I'll really maintain it. Seriously, it's
+> > a great patch and I would hat to see it go.
+> 
+> Trying to employ all my SVN skills to get a copy didn't help, so please
+> just grab it from the latest release, there haven't been any changes
+> since then anyway.
+> 
 
-Yes, but we already have counters for that and dropped packets are not
-too uncommon, we shouldn't flood the ringbuffer with this.
+"The great removal" occured at 6597 and 6598, so this should work:
 
-> By the way, do you have a public git tree where we could fetch the
-> latest version of the code ?=20
+svn co -r 6596 http://svn.netfilter.org/netfilter/trunk/patch-o-matic-ng
 
-No, but it only includes very few patches currently anyway. I plan
-to merge the priv_data stuff this weekend and push my queued patches
-for 2.6.19 to Dave, so people can work off his tree.
+- Torsten
