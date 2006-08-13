@@ -1,16 +1,14 @@
-From: Martijn Lievaart <m@rtij.nl>
-Subject: Re: Searching a home for psd
-Date: Sat, 12 Aug 2006 22:06:29 +0200
-Message-ID: <44DE34C5.9020604@rtij.nl>
-References: <44DCCFFD.2080807@rtij.nl> <44DD21CF.3090404@trash.net>
-	<1155409675.2447.4.camel@murdegern.cbxnet.de>
+From: "php0t" <php0t@zorro.hu>
+Subject: connlimit
+Date: Mon, 14 Aug 2006 01:14:20 +0200
+Message-ID: <002d01c6bf2e$351f1c70$650ba8c0@DORKA>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: ole@ans.pl
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Torsten Luettgert <t.luettgert@pressestimmen.de>
-In-Reply-To: <1155409675.2447.4.camel@murdegern.cbxnet.de>
+To: <netfilter-devel@lists.netfilter.org>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,35 +20,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Torsten Luettgert wrote:
 
->On Sat, 2006-08-12 at 02:33 +0200, Patrick McHardy wrote:
->  
->
->>Martijn Lievaart wrote:
->>    
->>
->>>Psd has been dropped from patch-o-matic and no one has taken it up. If
->>>someone can send me the latest pom entries for psd, I'll set up an
->>>external repository for it. Besides trying to bring it up to date to the
->>>latest kernel, who knows, maybe I'll really maintain it. Seriously, it's
->>>a great patch and I would hat to see it go.
->>>      
->>>
->>Trying to employ all my SVN skills to get a copy didn't help, so please
->>just grab it from the latest release, there haven't been any changes
->>since then anyway.
->>
->>    
->>
->
->"The great removal" occured at 6597 and 6598, so this should work:
->
->svn co -r 6596 http://svn.netfilter.org/netfilter/trunk/patch-o-matic-ng
->
->  
->
+  Dear developers,
 
-Snarfed. Thx.
+I've had a nice time trying to limit connections. The kernel is
+2.6.17.8.
+Apart from the first couple of annoyances (such as the patch being
+renamed from iplimit to connlimit, patch-o-matic not being able to apply
+it to the current kernel etc), I've managed to patch manually, compile
+it as a module and load it.
 
-M4
+  However, when I try to add an according test rule, I get the 'Invalid
+argument' error, and dmesg says:
+ip_tables: connlimit match: invalid size 0 != 16
+
+I also tried going to the site mentioned in the latest pom-ng's
+source.list:
+
+# ipp2p, time, IPMARK and connlimit maintained by Krzysztof Oledzki
+<ole@ans.pl>
+http://people.netfilter.org/ole/pom/
+
+But all I get is a smiley :)
+
+When I google for my current problem, most suggest that connlimit is
+out-of-date, nobody cares about it any more, etc.
+
+As I'm no C coder, my two questions are,
+1) what could I do  to make this work ? Are there any similar modules
+available that are stable?
+2) could it be possible to stabilize this patch and have it added to the
+kernel source? There are so many iptables extensions and modules by
+default that are probably rarely used, why is this (IMHO very basic)
+feature excluded?
+
+  Thanks for reading and any replies
+P.
