@@ -1,16 +1,15 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: port netfilter on linux 2.6 back to linux 2.4
-Date: Mon, 14 Aug 2006 14:52:08 +0200
-Message-ID: <44E071F8.9090804@trash.net>
-References: <20060814032115.3C0FC3683C8@mail3.edong.com>
-	<44E05311.2010701@microembed.cn>
+Subject: Re: connlimit
+Date: Mon, 14 Aug 2006 14:54:05 +0200
+Message-ID: <44E0726D.7040504@trash.net>
+References: <002d01c6bf2e$351f1c70$650ba8c0@DORKA>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@lists.netfilter.org
+Cc: netfilter-devel@lists.netfilter.org, ole@ans.pl
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Richard Cai <cy@microembed.cn>
-In-Reply-To: <44E05311.2010701@microembed.cn>
+To: php0t <php0t@zorro.hu>
+In-Reply-To: <002d01c6bf2e$351f1c70$650ba8c0@DORKA>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,15 +21,30 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Richard Cai wrote:
-> hello everyone:
->  I'm developing an embedded firewall router. For some reasons I
-> can only use uClinux 2.4 now. But  the 2.6 kernel is more advanced and
-> there are more resources about the linux 2.6 netfilter than 2.4. My
-> product will upgrade to 2.6 next year. Do you think I SHOULD port the
-> linux 2.6 netfilter frame work back to linux 2.4 to have more resources
-> and support?
+php0t wrote:
+>   Dear developers,
+> 
+> I've had a nice time trying to limit connections. The kernel is
+> 2.6.17.8.
+> Apart from the first couple of annoyances (such as the patch being
+> renamed from iplimit to connlimit, patch-o-matic not being able to apply
+> it to the current kernel etc), I've managed to patch manually, compile
+> it as a module and load it.
+> 
+>   However, when I try to add an according test rule, I get the 'Invalid
+> argument' error, and dmesg says:
+> ip_tables: connlimit match: invalid size 0 != 16
+> 
+> I also tried going to the site mentioned in the latest pom-ng's
+> source.list:
+> 
+> # ipp2p, time, IPMARK and connlimit maintained by Krzysztof Oledzki
+> <ole@ans.pl>
+> http://people.netfilter.org/ole/pom/
+> 
+> But all I get is a smiley :)
 
-I wouldn't advise that, the changes between 2.4 and 2.6 are huge and
-partially depend on changes in the remaining networking stack. Even
-backporting features between minor versions is not always easy ..
+Just do what it says: "Please use "./runme --download" from a recent
+pom-ng." :)
+
+That will download the patches for you.
