@@ -1,14 +1,16 @@
-From: Richard Cai <cy@microembed.cn>
-Subject: port netfilter on linux 2.6 back to linux 2.4
-Date: Mon, 14 Aug 2006 18:40:17 +0800
-Message-ID: <44E05311.2010701@microembed.cn>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: port netfilter on linux 2.6 back to linux 2.4
+Date: Mon, 14 Aug 2006 14:52:08 +0200
+Message-ID: <44E071F8.9090804@trash.net>
 References: <20060814032115.3C0FC3683C8@mail3.edong.com>
+	<44E05311.2010701@microembed.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20060814032115.3C0FC3683C8@mail3.edong.com>
+To: Richard Cai <cy@microembed.cn>
+In-Reply-To: <44E05311.2010701@microembed.cn>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,10 +22,15 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-hello everyone:
-  I'm developing an embedded firewall router. For some reasons I
-can only use uClinux 2.4 now. But  the 2.6 kernel is more advanced and
-there are more resources about the linux 2.6 netfilter than 2.4. My
-product will upgrade to 2.6 next year. Do you think I SHOULD port the
-linux 2.6 netfilter frame work back to linux 2.4 to have more resources
-and support?
+Richard Cai wrote:
+> hello everyone:
+>  I'm developing an embedded firewall router. For some reasons I
+> can only use uClinux 2.4 now. But  the 2.6 kernel is more advanced and
+> there are more resources about the linux 2.6 netfilter than 2.4. My
+> product will upgrade to 2.6 next year. Do you think I SHOULD port the
+> linux 2.6 netfilter frame work back to linux 2.4 to have more resources
+> and support?
+
+I wouldn't advise that, the changes between 2.4 and 2.6 are huge and
+partially depend on changes in the remaining networking stack. Even
+backporting features between minor versions is not always easy ..
