@@ -1,24 +1,14 @@
-From: Joakim Axelsson <gozem@gozem.se>
-Subject: Re: priv_data patch
-Date: Mon, 14 Aug 2006 19:59:48 +0200
-Message-ID: <20060814175948.GE7194@kriss.csbnet.se>
-References: <20060814154005.GW7194@kriss.csbnet.se>
-	<44E09AF3.2080406@trash.net>
-	<20060814155642.GA15328@kriss.csbnet.se>
-	<44E09E4F.3040506@trash.net>
-	<20060814161337.GY7194@kriss.csbnet.se> <44E0A42D.604@trash.net>
-	<20060814164048.GB7194@kriss.csbnet.se>
-	<44E0A9D4.6060704@trash.net>
-	<20060814171111.GD7194@kriss.csbnet.se>
-	<44E0B780.7050804@trash.net>
+From: Massimiliano Hofer <max@nucleus.it>
+Subject: new ABI
+Date: Mon, 14 Aug 2006 23:12:41 +0200
+Message-ID: <200608142312.41851.max@nucleus.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Massimiliano Hofer <max@nucleus.it>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@lists.netfilter.org
 Content-Disposition: inline
-In-Reply-To: <44E0B780.7050804@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,97 +20,86 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-2006-08-14 19:48:48+0200, Patrick McHardy <kaber@trash.net> ->
-> Joakim Axelsson wrote:
-> > 2006-08-14 18:50:28+0200, Patrick McHardy <kaber@trash.net> ->
-> > 
-> >>Is that really useful without beeing able to change more than
-> >>one component
-> >>
-> > 
-> > 
-> > I don't really understand your consern here?
-> 
-> Seems I accidentally cut out half of the sentence. I meant to ask
-> if this is really useful if only one component of a rule can be
-> changed at a time atomically.
-> 
-> 
-> >>>>That is basically impossible. We can keep a compatible command-line
-> >>>>interface, but the ABI can't be kept compatible. The interface itself
-> >>>>it quite simple, but we also need new ruleset evaluation functions,
-> >>>>new loop detection and probably a few other things.
-> >>>
-> >>>
-> >>>This work is huge, but really needed. I don't feel I am skilled enough to
-> >>>write it, only contribute with porting matches and other things. I did
-> >>>however write most of the code that ipset is based on now. So I have the
-> >>>"extreme amount of hook functions needed" in my back. 
-> >>>
-> >>>The real question is. Do we really want to force each match/target to
-> >>>implement a fair amount of functions for it to work? We need to think big
-> >>>from the start here, not missing some feature that will be hard to add
-> >>>after. I rather see one too many needed function then one too few.
-> >>
-> >>Its not so much. The interface comes down to "init", "destroy", "dump",
-> >>"do something". If we really want "change" it should be possible to
-> >>do it in one function with "init".
-> >>
-> > 
-> > 
-> > So we are down to 4 function:
-> > 1. init
-> > 2. destroy
-> > 3. match/target (use)
-> > 4. dump (list)
-> > 
-> > Meaning an alter is really a "dump, destroy, init"?
-> 
-> No, but init and change will be pretty similar most of the time, so they
-> can probably be handled by the same function.
-> 
-> > Perhaps we should add one or two "userdefined" functions. Something that the
-> > modules can define for them self to use. For example in the quota-case this
-> > can be "add more quota". It sure will make the new iptables-structure really
-> > flexible. 
-> > 
-> > Example:
-> > iptables -U1 --match-id xxxxx -m module --params
-> > iptables -U1 --match-id 12345 -m quota --add-quota 4000
-> > 
-> > We might be able to do this in an alter if we construct the alter to be able
-> > to take commands that the module can specify. Easily done if a seperate
-> > struct is passed with defined data that the module can interpetrate it self.
-> 
-> This is not needed, netlink attributes can be nested, so module-specific
-> stuff can be encapsulated in the module attributes.
-> 
+Hi,
+I couldn't keep pace during the day with all the mail that has been written, 
+so let me summarize what has been said.
+Please forgive (and correct) me if I forget anything.
 
-I don't really follow here? If you think really big. Include recent, ipset
-and the old ippool-idea. Where data is added and removed into the modules
-state as it works. If we want to change this state with a userspace tool we
-either need:
-1. /proc
-2. a new userspace-tool hooking, like ipset (ippool).
-3. Function added to this new iptables being capable of it. A simply init
-will not do it. You can't remove one IP in a recent-pool using an
-init-function. It will probably wipe them all and empty the recent-pool.
+First of all several people think that the current ABI has shortcomings and 
+something has to be done.
 
-Removing the need to extra userspace programs (ipset, ippool, i know
-accounting has a tool as well) or the need for /proc is a huge win in my
-opinion. This also calls for two different forms of listing. The first one
-is the one we have today. List the rules for your firewall. The second in is
-to list the state of one match/target. Like 'cat
-/proc/net/ipt_recent/xxxx' today.
+Regarding my proposal for priv_data (I'm obviously biased here, but I'll try 
+to be objective):
+- it offers the ability to store data out of reach to the userspace utilities 
+(for whatever housekeeping any match/targets needs);
+- it can't offer persistent data to matches/targets.
 
-Try to cover functions needed to operate ipset and/or recent from the
-begining.
+<biased>
+With this patch we can part with some really ugly tricks involving userspace 
+structure fields and kernel pointers and it would let us have O(1) matches 
+for quota, limit and any other match/target that needs cross match data.
+</biased>
 
-> > Chainging to using RCU-list instead of tables will probably break old
-> > iptables badly. We can try writing a new iptables using the new API, but i
-> > guess nobody will be really intressed in doing this work.
-> 
-> Both I and Harald are definitely interested in doing this work.
-> Again, it must not break existing stuff, it will be something
-> completely new (at least the core stuff, maybe not the targets
-> or matches).
+People may expect the second feature too, but it's just not possible with the 
+current infrastructure. The same infrastructure, making extensive use of 
+arrays whose size is determined before we call any module hook function, 
+leaves us in the cold for a really flexible solution for other problems too.
+I've not yet read all the code involved, but, if we really need to, we may be 
+able to use a compat-like interface to maintain ABI compatibility with a new 
+netfilter core.
+
+What people need from any new infrastructure:
+- cleaner interface with clearer separation between kernel and user data;
+- ability to dump internal state of matches/targets (this may not be in a 
+1-to-1 relation, so it may be tricky, do we need module state dumping?);
+- ability to change chains/rules/matches without reinitializing everything;
+- ability to change matches' state or configuration without reinitializing 
+everything;
+- general infrastructure for common logic that is currently reinvented every 
+time (negation comes to mind, but I'm sure there are other things).
+
+<biased>
+Regarding user influence over state, especially where the number of states 
+doesn't match the number of matches involved, I'm not totally opposed to a 
+file-like way of exposing it. I agree that /proc is in a sorry state, but 
+configfs is there precisely for this purpose. Of course not everything can be 
+done this way and I wouldn't like to have complex data passed and parsed this 
+way.
+We may need a new set of commands in iptables (should I call it iptables-ng?) 
+just for keeping this kind of data (realms, quota groups, conditions, etc.). 
+If we had a general way to keep collections of configurations, I'll be glad 
+to conform and use it.
+</biased>
+
+I think the current array oriented data structures won't allow us to add these 
+features. RCU lists come to mind. It sure is a step back in performance 
+(sparser access to memory and more memory fragmentation), but it may not be 
+that noticeable.
+I think every match/target should expode:
+- init;
+- destroy;
+- change;
+- dump;
+- restore.
+
+Depending on the API change, dump and restore may melt in a single function.
+
+The kernel should let any match:
+- receive user supplied initialization data (mostly a rule definition) state 
+dumps (this calls for very careful planning and checking);
+- send state dumps to userspace;
+- keep private data for every match/target;
+- keep collections of configurations common to matches in a module (every 
+module may keep it without netfilter core help, but if it becomes part of the 
+infrastructure it may be handled through the userspace ABI).
+
+
+Am I forgetting anything?
+Do you think any of these features are bugs?
+Am I overseeing fatal difficulties related to what I wrote?
+Please reply with your opinions. I'll wear my asbestos suite for the next 
+couple of days. :)
+
+-- 
+Saluti,
+   Massimiliano Hofer
