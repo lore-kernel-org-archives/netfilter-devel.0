@@ -1,16 +1,18 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Joakim Axelsson <gozem@gozem.se>
 Subject: Re: priv_data patch
-Date: Mon, 14 Aug 2006 17:14:06 +0200
-Message-ID: <44E0933E.5060905@trash.net>
-References: <44E07BCD.8030206@trash.net> <200608141557.35918.max@nucleus.it>
-	<44E08AC7.2050204@trash.net> <200608141702.50753.max@nucleus.it>
+Date: Mon, 14 Aug 2006 17:20:26 +0200
+Message-ID: <20060814152026.GU7194@kriss.csbnet.se>
+References: <44E07BCD.8030206@trash.net>
+	<20060814142559.GS7194@kriss.csbnet.se>
+	<44E08946.1040105@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Massimiliano Hofer <max@nucleus.it>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Massimiliano Hofer <max@nucleus.it>
-In-Reply-To: <200608141702.50753.max@nucleus.it>
+To: Patrick McHardy <kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <44E08946.1040105@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -22,39 +24,98 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Massimiliano Hofer wrote:
-> On Monday 14 August 2006 4:37 pm, you wrote:
+2006-08-14 16:31:34+0200, Patrick McHardy <kaber@trash.net> ->
+> Joakim Axelsson wrote:
+> > 2006-08-14 15:34:05+0200, Patrick McHardy <kaber@trash.net> ->
+> > 
+> >>I'm afraid I have some bad news ..
+> >>
+> >>[...]
+> >
+> > I do not completly understand you. Today a modification of ONE rule will or
+> > will not trigger the checkentry()/init() of ALL rules? 
 > 
->>Hmm .. recent does a table lookup during runtime and the table could be
->>cached. That would improve things a bit, but in my opinion not enough
->>to justify this patch. Same for hashlimit. What data would condition
->>store exactly?
+> Yes it will. Modification happens like this:
 > 
+> - dump entire table to userspace
+> - modify table
+> - send new table to kernel
 > 
-> I need a pointer to per condition data, so that multiple rules with the same 
-> name refer to the same flag.
-> I can break userspace compatibility and store a pointer in the userspace 
-> structure. I just thought this could be useful to everyone (and let me 
-> maintain userspace compatibility along the way).
+> _All_ matches and target and reinstantiated, since the kernel doesn't
+> know which rule in the currently active table corresponds to which
+> in the new table. When moving state out of the data shared with
+> userspace it will get lost during this.
+> 
+
+Lost? Like the memory will be reallocated and we have a memory leak from the
+old priv_data?
+
+Can't we just figure out if thie pointer is null and don't allocate new
+memory?
+
+Or am i lost here?
+
+> > I know they did before (in 2.4) since modules i have written has code to
+> > workaround this. Having a low limiter like say a few packets each 5min can't
+> > just be reset each time we modify another unrelated rule.
+> 
+> Exactly.
+> 
+> > Latly howver it seams as it doesn't? What do you mean we are breaking with
+> > this patch? A match/target doesn't have to use this new data area. Just let
+> > don't alter them and they will continue to act aas they always done? We will
+> > however provide better tools for new modules (not yet in pom-ng).
+> 
+> Well, if nobody can use it reasonable there is no reason to introduce
+> it.
+
+Alot of my patches can use it. Not having todo an ugly solution trying to
+sneak away from being reseted when another rule is altered. I sure would
+like to have it added. Simpyl do not change for example -m limit into using
+it if it breaks the "feature" of reseting its state then altering another
+unrelated rule.
+
+Please have a look here for 4 modules "needing" this patch:
+http://www.gozem.se/~gozem/netfilter/
+
+I'm copying here the code they are using today to workaround this
+reset-"feature":
+
+struct info {
+	... data here ...
+	atomic_t refcount;
+};
+
+init() {
+	/* Already initiated? Since this is runned each time ANY rule is changed */
+	if (lim->state != NULL) {
+		/* Increase the reference counter so we wont delete this match */
+		atomic_inc( &lim->state->refcount );
+
+		DEBUGPRINT("already initiated, abort ref=%u", 
+		   atomic_read( &lim->state->refcount) );
+
+		return 1;
+	}
+		
+	/* init state data, set refcount to 1 */
+	lim->state = kmalloc( sizeof(struct ipt_lim_state), GFP_ATOMIC );
+	if (lim->state == NULL)
+		return -ENOMEM;
+	atomic_set(&lim->state->refcount, 1);
+}
+
+destroy() {
+	/* Decrease our reference counter and test if its zero*/
+	if ( atomic_dec_and_test(&lim->state->refcount) ) {
+		/* Really delete this match */
+		DEBUGPRINTP("really delete");
+
+		/* free state */
+		kfree(lim->state);
+	}
+}
 
 
-That looks like the only valid type of usage. Which means your initial
-implementation, which just provided space for a pointer to the
-individual instances, might have been the better way. I need to think
-about this some more and look at the modules that could make use of
-this again.
-
->>Its actually quite clear what is needed. We want a userspace interface
->>built on netlink, that acts on individual rules, not entire rulesets.
->>There are a few more ideas, like handling negation centrally, allowing
->>userspace to specify whether a target is terminal or not, allow multiple
->>non-terminal targets in a row, etc, but nothing really fundamental.
-> 
-> 
-> I thought the current way of doing things was specifically designed to 
-> minimize softirq locking (especially with arbitarily long chains and 
-> arbitrary initialization code). We could switch to RCU lists, though...
-
-
-Yes, it should be possible to do lockless ruleset evaluation (at least
-on the ruleset level, some modules will still need locking).
+--
+Joakim Axelsson
