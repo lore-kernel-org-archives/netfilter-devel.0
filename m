@@ -1,13 +1,15 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: priv_data patch
-Date: Mon, 14 Aug 2006 15:34:05 +0200
-Message-ID: <44E07BCD.8030206@trash.net>
+From: Joakim Axelsson <gozem@gozem.se>
+Subject: Re: [PATCH] priv_data 0/2
+Date: Mon, 14 Aug 2006 16:17:51 +0200
+Message-ID: <20060814141751.GR7194@kriss.csbnet.se>
+References: <200606261641.47294.max@nucleus.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Massimiliano Hofer <max@nucleus.it>
+Content-Disposition: inline
+In-Reply-To: <200606261641.47294.max@nucleus.it>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -19,20 +21,46 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I'm afraid I have some bad news ..
+2006-06-26 16:41:46+0200, Massimiliano Hofer <max@nucleus.it> ->
+> Hi,
+> this is a version of my priv_data patch that updates targets and renames 
+> functions as suggested by Patrick.
+> 
+> Since xt_init_match() and xt_init_target() (formerly xt_check_match() and 
+> xt_check_target()) no longer just check and they needed some argument changes 
+> anyway, I included some more common code previously replicated in 
+> ip_tables.c, ip6_tables.c and arp_tables.c.
+> Similarly I introduced xt_destroy_match() and xt_destroy_taget().
+> 
+> The resulting patches are larger than I anticipated, but most of the space is 
+> taken by function ranames and argument adjustments.
+> 
+> My previous example with xt_condition still applies (just rename checkentry to 
+> init in struct xt_match).
+> 
+> I tested several combination with iptables, ip6tables and arptables. It can't 
+> make it fail, but I didn't try it with a real world network load. Right now I 
+> don't have a 64 bit machine available for testing (I should be able to use 
+> one in a few days), so I didn't test compat at all.
+> 
+> Testing and comments, as always, are appreciated.
+> 
+> -- 
+> Saluti,
+>    Massimiliano Hofer
 
-While merging the priv_data patch I noticed an oversight. Currently,
-when modifying the ruleset, all modules dump their entire state
-(user configuration + internal state kept in the same structure)
-to userspace, which will return it to the kernel. That means for
-example that the limit match will not loose its current state when
-modifying other rules. When we move the state out of the data shared
-with userspace this can't be done anymore, so each modification to
-the table will cause all modules to loose their current state, even
-if they we're not directly affected by the change. We can't break
-this behaviour, so this limits potential users of the priv_data stuff
-to things like hashlimit or recent, which do a lookup of state stored
-completely external from the ruleset (and could use it to cache the
-lookup result). I don't think that this is worth it, we probably need
-to wait until we have a better userspace interface before we can do
-something like this ..
+I'm currently porting some of my modules to use this API with priv_data.
+However, I ran into some troubles. For example i'm writing a revision 1 for
+the quota module which allows the count to go negative, and in the same time
+I'm porting it to use this API (as it's using the same stupid thing as -m
+limit with q->master = q;). However, having the quota counter in the
+priv_data struct makes it impossible to report the counter to userspace when
+the user issues iptables -L.
+
+"Hidden", kernel data only is good with priv_data, but sometimes it will be
+too hidden.
+
+Do we have any good solution for this?
+
+--
+Joakim Axelsson
