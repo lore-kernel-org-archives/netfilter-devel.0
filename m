@@ -1,19 +1,21 @@
-From: Massimiliano Hofer <max@nucleus.it>
+From: Joakim Axelsson <gozem@gozem.se>
 Subject: Re: priv_data patch
-Date: Mon, 14 Aug 2006 17:53:52 +0200
-Message-ID: <200608141753.53072.max@nucleus.it>
-References: <44E07BCD.8030206@trash.net> <44E08946.1040105@trash.net>
-	<20060814152026.GU7194@kriss.csbnet.se>
+Date: Mon, 14 Aug 2006 17:56:42 +0200
+Message-ID: <20060814155642.GA15328@kriss.csbnet.se>
+References: <44E07BCD.8030206@trash.net>
+	<20060814142559.GS7194@kriss.csbnet.se>
+	<44E08946.1040105@trash.net>
+	<20060814152026.GU7194@kriss.csbnet.se> <44E09746.60302@trash.net>
+	<20060814154005.GW7194@kriss.csbnet.se>
+	<44E09AF3.2080406@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: Massimiliano Hofer <max@nucleus.it>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Joakim Axelsson <gozem@gozem.se>
-In-Reply-To: <20060814152026.GU7194@kriss.csbnet.se>
+To: Patrick McHardy <kaber@trash.net>
 Content-Disposition: inline
+In-Reply-To: <44E09AF3.2080406@trash.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,25 +27,61 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Monday 14 August 2006 5:20 pm, Joakim Axelsson wrote:
+2006-08-14 17:46:59+0200, Patrick McHardy <kaber@trash.net> ->
+> Joakim Axelsson wrote:
+> > 2006-08-14 17:31:18+0200, Patrick McHardy <kaber@trash.net> ->
+> > 
+> >>Joakim Axelsson wrote:
+> >>
+> >>>Alot of my patches can use it. Not having todo an ugly solution trying to
+> >>>sneak away from being reseted when another rule is altered. I sure would
+> >>>like to have it added. Simpyl do not change for example -m limit into using
+> >>>it if it breaks the "feature" of reseting its state then altering another
+> >>>unrelated rule.
+> >>
+> >>I forgot to reply to this. You seem to misunderstand, limit doesn't
+> >>reset its state today. It will when moving private data out of the
+> >>structures shared with userspace. Same for all other users of this,
+> >>they will "forget" their state on each ruleset change.
+> > 
+> > 
+> > Okie, now I get it. This seams to have changed from 2.4 then.
+> 
+> No, this behaviour has been there since the beginning.
+> 
+> > As altering
+> > one unrelated rule will trigger the checkentry for _all_ rules. The code i
+> > posted was a (somewhat ugly) workaround for this, and yes relying on
+> > userspace not altering a kernel-space pointer for us. However, the case is
+> > the same for xt_limit with r->master = r; (and quota). Alter master in
+> > userspace after the limit rule has been initiated and you will get some
+> > really nasty result.
+> 
+> 
+> Thats not true, the master pointer is reinitialized on every change by
+> the checkentry function (which, as you note, is called on all rules for
+> every change). The simple reason why it keeps its current state is
+> because it is dumped to userspace and echoed back. If you move it out of
+> the structure shared with userspace, this can not happen anymore.
 
-> Lost? Like the memory will be reallocated and we have a memory leak from
-> the old priv_data?
+I think we define reinitiated differently then. I define reinitated by
+checkentry() being runned even tho the match/rule isn't a new (or altered)
+match/rule. 
 
-No.
-Every time a modification is done a complete new chain is created and 
-initialized, swapped for the current one and then the old one is removed.
-This means that any memory needed by priv_data is reallocated for the new 
-chain end than freed while destroying the old one.
-My patch doesn't care since I keep a global list where I can fetch my data 
-back using the condition name and use priv_data only as a way to keep it at 
-hand and achieve O(1) performance.
-If you don't have an alternative means to retrieve your data I'm afraid you'r 
-bust. :(
-I agree with Patrick and I think it's time to think about other ways to manage 
-changes.
+If checkentry() is runned for _all_ matches/targers everytime an unrelated
+rule is altered then limit will lose its state because the code resets the
+bucket and refills it. Meaning that if I have a limit of 1 packet each hour
+and I change an (unrelated) rule every 30mins the limit will be a limit of 1
+packet every 30min instead. The (ugly) workaround i posted will solve this
+issue by keeping track if it has been running the checkentry() before. This
+is where the priv_data is needed.
 
--- 
-Saluti,
-   Massimiliano Hofer
-        Nucleus
+But if you say that the priv_data pointer will be lost for all rules on any
+alter of rules its kinda void to have it. However a solution keeping that
+priv_data pointer intact could be very useful. 
+
+One reason for not posting my patches is this uglyness where i have to rely
+on kernel pointers not being altered by userspace.
+
+--
+Joakim Axelsson
