@@ -1,24 +1,17 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Joakim Axelsson <gozem@gozem.se>
 Subject: Re: priv_data patch
-Date: Mon, 14 Aug 2006 18:26:21 +0200
-Message-ID: <44E0A42D.604@trash.net>
-References: <44E07BCD.8030206@trash.net>
-	<20060814142559.GS7194@kriss.csbnet.se>
-	<44E08946.1040105@trash.net>
-	<20060814152026.GU7194@kriss.csbnet.se> <44E09746.60302@trash.net>
-	<20060814154005.GW7194@kriss.csbnet.se>
-	<44E09AF3.2080406@trash.net>
-	<20060814155642.GA15328@kriss.csbnet.se>
-	<44E09E4F.3040506@trash.net>
-	<20060814161337.GY7194@kriss.csbnet.se>
+Date: Mon, 14 Aug 2006 18:32:04 +0200
+Message-ID: <20060814163204.GA7194@kriss.csbnet.se>
+References: <44E07BCD.8030206@trash.net> <200608141640.41759.max@nucleus.it>
+	<44E08D3B.7040505@trash.net> <200608141819.38152.max@nucleus.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Massimiliano Hofer <max@nucleus.it>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Joakim Axelsson <gozem@gozem.se>
-In-Reply-To: <20060814161337.GY7194@kriss.csbnet.se>
+To: Massimiliano Hofer <max@nucleus.it>
+Content-Disposition: inline
+In-Reply-To: <200608141819.38152.max@nucleus.it>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -30,50 +23,42 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Joakim Axelsson wrote:
-> 2006-08-14 18:01:19+0200, Patrick McHardy <kaber@trash.net> ->
+2006-08-14 18:19:36+0200, Massimiliano Hofer <max@nucleus.it> ->
+> On Monday 14 August 2006 4:48 pm, Patrick McHardy wrote:
 > 
->>[...]
+> > Hmm .. recent does a table lookup during runtime and the table could be
+> > cached. That would improve things a bit, but in my opinion not enough
+> > to justify this patch. Same for hashlimit. What data would condition
+> > store exactly?
 > 
-> I agree. A better solution is needed or no solution at all. However building
-> a new API that actually only will change the parts it needs to will need a
-> huge amount of work and will most probably break existing userspace. It will
-> be very hard to keep backwards compability.
-
-We need to keep the current API stable of course, but that doesn't
-prevent us from introducing an entirely new one. Matches and targets
-probably can be reused to a certain amount, although I wouldn't
-mind getting rid of the excessive amount of matches doing basically
-the same thing at the same time.
-
-> As i see it some new hooks are needed on every module to retrieve the kernel
-> data. This means we need 5 things:
-> 1. start a new rule/match/target (todays checkentry())
-> 2. remove an old rule/match/target (todays destroy())
-> 3. the worker (todays match() and target())
-> 4. A new 'list' that will feed info needed by iptables -L and iptables-save
-> to userspace.
-
-Commonly called dump in other netlink interfaces.
-
-> 5. Possible a new 'alter' that will alter info in the rules/match/targets
-> private kernel data.
-
-This is tricky to get right on the rule level, a rule consist of
-multiple elements that would need to be changed atomically.
-
-> Point 4 and 5 can be views as read and write of the rule. Point 1 and 2 as
-> create and destroy.
+> I need a pointer to per condition data, so that multiple rules with the same 
+> name refer to the same flag.
+> I can break userspace compatibility and store a pointer in the userspace 
+> structure. I just thought this could be useful to everyone (and let me 
+> maintain userspace compatibility along the way).
 > 
-> A uniq ID will be needed for each rule so userspace can define which rule it
-> wishes to alter/remove.
 
-Yes.
+Same goes for all but one of my matches. All of them are accessing "their"
+global variable that several rules might share. All but my lim (new limiter)
+that has its own data that should be re-checkentry():ed everytime another
+rule changes. I sure can keep a global list of all limits but i have no good
+way of making each uniq. There is no naming as in condition (and all other
+of my modules).
 
-> Fairly simple interface to build with netlink. However the real challenge is
-> to try to keep backward compability. 
+> > Its actually quite clear what is needed. We want a userspace interface
+> > built on netlink, that acts on individual rules, not entire rulesets.
+> > There are a few more ideas, like handling negation centrally, allowing
+> > userspace to specify whether a target is terminal or not, allow multiple
+> > non-terminal targets in a row, etc, but nothing really fundamental.
+> 
+> I thought the current way of doing things was specifically designed to 
+> minimize softirq locking (especially with arbitarily long chains and 
+> arbitrary initialization code). We could switch to RCU lists, though...
+> 
 
-That is basically impossible. We can keep a compatible command-line
-interface, but the ABI can't be kept compatible. The interface itself
-it quite simple, but we also need new ruleset evaluation functions,
-new loop detection and probably a few other things.
+That would solve alot of problems and make the data structure much more
+flexible in the futhure for alterations. Guess we have to change back to the
+old ipchains name then :-P
+
+--
+Joakim Axelsson
