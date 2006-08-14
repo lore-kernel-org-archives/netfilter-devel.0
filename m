@@ -1,23 +1,20 @@
-From: Joakim Axelsson <gozem@gozem.se>
-Subject: Re: priv_data patch
-Date: Mon, 14 Aug 2006 18:40:48 +0200
-Message-ID: <20060814164048.GB7194@kriss.csbnet.se>
-References: <20060814142559.GS7194@kriss.csbnet.se>
-	<44E08946.1040105@trash.net>
-	<20060814152026.GU7194@kriss.csbnet.se> <44E09746.60302@trash.net>
-	<20060814154005.GW7194@kriss.csbnet.se>
-	<44E09AF3.2080406@trash.net>
-	<20060814155642.GA15328@kriss.csbnet.se>
-	<44E09E4F.3040506@trash.net>
-	<20060814161337.GY7194@kriss.csbnet.se> <44E0A42D.604@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: xt_quota (Was: [PATCH] priv_data 0/2)
+Date: Mon, 14 Aug 2006 18:39:57 +0200
+Message-ID: <44E0A75D.10205@trash.net>
+References: <200606261641.47294.max@nucleus.it>
+	<20060814141751.GR7194@kriss.csbnet.se>
+	<44E08727.6070403@trash.net>
+	<20060814153521.GV7194@kriss.csbnet.se>
+	<44E09A21.6000503@trash.net>
+	<20060814162451.GZ7194@kriss.csbnet.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Massimiliano Hofer <max@nucleus.it>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Massimiliano Hofer <max@nucleus.it>, netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <44E0A42D.604@trash.net>
+To: Joakim Axelsson <gozem@gozem.se>
+In-Reply-To: <20060814162451.GZ7194@kriss.csbnet.se>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -29,73 +26,41 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-2006-08-14 18:26:21+0200, Patrick McHardy <kaber@trash.net> ->
-> Joakim Axelsson wrote:
-> > 2006-08-14 18:01:19+0200, Patrick McHardy <kaber@trash.net> ->
-> > 
-> >>[...]
-> > 
-> > I agree. A better solution is needed or no solution at all. However building
-> > a new API that actually only will change the parts it needs to will need a
-> > huge amount of work and will most probably break existing userspace. It will
-> > be very hard to keep backwards compability.
+Joakim Axelsson wrote:
+> I however really needs some way of figuring out how much of the quota that
+> remains. This is to be able to report this to our users (that receives a
+> certain number of gigabytes each day). So they can see how much they have
+> left (using som scripted interface to iptables). Also saving this holy
+> figure (as it has become :-)) for the user if the router for some reason
+> craches. This is also the reason i need negative quota figures. The users
+> are allowed to "borrow" from their future quota. Doing so only under a byte
+> limiting match (-m lim --limit-bytes 20k/s).
 > 
-> We need to keep the current API stable of course, but that doesn't
-> prevent us from introducing an entirely new one. Matches and targets
-> probably can be reused to a certain amount, although I wouldn't
-> mind getting rid of the excessive amount of matches doing basically
-> the same thing at the same time.
+> In my opinion its more important to save the remaining quota, rather than
+> the original. And most important to in some way be able to see how much
+> is left of the quota.
 > 
-> > As i see it some new hooks are needed on every module to retrieve the kernel
-> > data. This means we need 5 things:
-> > 1. start a new rule/match/target (todays checkentry())
-> > 2. remove an old rule/match/target (todays destroy())
-> > 3. the worker (todays match() and target())
-> > 4. A new 'list' that will feed info needed by iptables -L and iptables-save
-> > to userspace.
+> Perhaps this wil satisfy both of us:
 > 
-> Commonly called dump in other netlink interfaces.
+> Somehting put out by iptables-save
+> iptables -m quota --init-quota 1000 --remain-quota 123 --use-quota remain
 > 
-> > 5. Possible a new 'alter' that will alter info in the rules/match/targets
-> > private kernel data.
+> Somthing you write with iptables to create a new rule:
+> iptables -m quota --init-quota 1000   (using --use-quota init explicity)
+> iptables -m quota --init-quota 1000 --use-quota remain 
 > 
-> This is tricky to get right on the rule level, a rule consist of
-> multiple elements that would need to be changed atomically.
-> 
+> But this sure is ugly.
 
-Yes, sorry. I mean per match/target.
 
-> > Point 4 and 5 can be views as read and write of the rule. Point 1 and 2 as
-> > create and destroy.
-> > 
-> > A uniq ID will be needed for each rule so userspace can define which rule it
-> > wishes to alter/remove.
-> 
-> Yes.
-> 
-> > Fairly simple interface to build with netlink. However the real challenge is
-> > to try to keep backward compability. 
-> 
-> That is basically impossible. We can keep a compatible command-line
-> interface, but the ABI can't be kept compatible. The interface itself
-> it quite simple, but we also need new ruleset evaluation functions,
-> new loop detection and probably a few other things.
+It should be an explicit flag to iptable-save/restore to save the
+current state, because we don't do it anywhere else and therefore
+it is unexpected. The limit match for example does neither show nor
+save the current amount of tokens, last refill time, ...
+And I'm not too much of a fan of adding such a flag because it can
+only be done for a subset of all modules, hashlimit, recent etc.
+all can't do it. The most extreme case would be the state match :)
 
-This work is huge, but really needed. I don't feel I am skilled enough to
-write it, only contribute with porting matches and other things. I did
-however write most of the code that ipset is based on now. So I have the
-"extreme amount of hook functions needed" in my back. 
-
-The real question is. Do we really want to force each match/target to
-implement a fair amount of functions for it to work? We need to think big
-from the start here, not missing some feature that will be hard to add
-after. I rather see one too many needed function then one too few.
-
-Is this really something we want? It will most probably end up in a new
-ipfwadmin/ipchains/iptables -version. Its the easiest way todo it. Drop the
-backward compability completly and possibly only make a new iptables
-userspace command-line compability tool using the new API.
-
---
-Joakim Axelsson
- 
+With a netlink API we could actually dump all internal state (including
+things like recently seen IP addresses) and accept changes from
+userspace. This would allow us to get rid of the ugly proc interfaces
+and covers your need as well.
