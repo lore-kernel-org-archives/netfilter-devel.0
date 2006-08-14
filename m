@@ -1,19 +1,24 @@
-From: Joakim Axelsson <gozem@gozem.se>
-Subject: Re: xt_quota (Was: [PATCH] priv_data 0/2)
-Date: Mon, 14 Aug 2006 18:24:51 +0200
-Message-ID: <20060814162451.GZ7194@kriss.csbnet.se>
-References: <200606261641.47294.max@nucleus.it>
-	<20060814141751.GR7194@kriss.csbnet.se>
-	<44E08727.6070403@trash.net>
-	<20060814153521.GV7194@kriss.csbnet.se>
-	<44E09A21.6000503@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: priv_data patch
+Date: Mon, 14 Aug 2006 18:26:21 +0200
+Message-ID: <44E0A42D.604@trash.net>
+References: <44E07BCD.8030206@trash.net>
+	<20060814142559.GS7194@kriss.csbnet.se>
+	<44E08946.1040105@trash.net>
+	<20060814152026.GU7194@kriss.csbnet.se> <44E09746.60302@trash.net>
+	<20060814154005.GW7194@kriss.csbnet.se>
+	<44E09AF3.2080406@trash.net>
+	<20060814155642.GA15328@kriss.csbnet.se>
+	<44E09E4F.3040506@trash.net>
+	<20060814161337.GY7194@kriss.csbnet.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Massimiliano Hofer <max@nucleus.it>, netfilter-devel@lists.netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Massimiliano Hofer <max@nucleus.it>,
+	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-Content-Disposition: inline
-In-Reply-To: <44E09A21.6000503@trash.net>
+To: Joakim Axelsson <gozem@gozem.se>
+In-Reply-To: <20060814161337.GY7194@kriss.csbnet.se>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -25,52 +30,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-2006-08-14 17:43:29+0200, Patrick McHardy <kaber@trash.net> ->
->
-> As I said, I don't see saving current state as necessary (we don't do
-> it anywhere and it solves an entirely different problem). The
-> unfortunate fact though is that we need to pass it to userspace anyway,
-> because of the limitations of the userspace interface.
+Joakim Axelsson wrote:
+> 2006-08-14 18:01:19+0200, Patrick McHardy <kaber@trash.net> ->
 > 
-
-That might be correct. However the other modules doesn't normally suffer
-that much as they will farily quickly work thier way to the same state
-again. I guess it's very uncommon that you are using so low limits like a
-few packets each hour.
-
-> > There is also the way of using a /proc-entry to list the current remaining
-> > quota. Also restoring it by echoing a new figure to the entry. Keep the
-> > iptables-save/restore only with the initial quota figure.
-> > 
-> > I can write this if this is what we want?
+>>[...]
 > 
+> I agree. A better solution is needed or no solution at all. However building
+> a new API that actually only will change the parts it needs to will need a
+> huge amount of work and will most probably break existing userspace. It will
+> be very hard to keep backwards compability.
+
+We need to keep the current API stable of course, but that doesn't
+prevent us from introducing an entirely new one. Matches and targets
+probably can be reused to a certain amount, although I wouldn't
+mind getting rid of the excessive amount of matches doing basically
+the same thing at the same time.
+
+> As i see it some new hooks are needed on every module to retrieve the kernel
+> data. This means we need 5 things:
+> 1. start a new rule/match/target (todays checkentry())
+> 2. remove an old rule/match/target (todays destroy())
+> 3. the worker (todays match() and target())
+> 4. A new 'list' that will feed info needed by iptables -L and iptables-save
+> to userspace.
+
+Commonly called dump in other netlink interfaces.
+
+> 5. Possible a new 'alter' that will alter info in the rules/match/targets
+> private kernel data.
+
+This is tricky to get right on the rule level, a rule consist of
+multiple elements that would need to be changed atomically.
+
+> Point 4 and 5 can be views as read and write of the rule. Point 1 and 2 as
+> create and destroy.
 > 
-> Definitely not :) We want a better userspace interface that doesn't
-> require us to put in hacks like this.
+> A uniq ID will be needed for each rule so userspace can define which rule it
+> wishes to alter/remove.
 
-I however really needs some way of figuring out how much of the quota that
-remains. This is to be able to report this to our users (that receives a
-certain number of gigabytes each day). So they can see how much they have
-left (using som scripted interface to iptables). Also saving this holy
-figure (as it has become :-)) for the user if the router for some reason
-craches. This is also the reason i need negative quota figures. The users
-are allowed to "borrow" from their future quota. Doing so only under a byte
-limiting match (-m lim --limit-bytes 20k/s).
+Yes.
 
-In my opinion its more important to save the remaining quota, rather than
-the original. And most important to in some way be able to see how much
-is left of the quota.
+> Fairly simple interface to build with netlink. However the real challenge is
+> to try to keep backward compability. 
 
-Perhaps this wil satisfy both of us:
-
-Somehting put out by iptables-save
-iptables -m quota --init-quota 1000 --remain-quota 123 --use-quota remain
-
-Somthing you write with iptables to create a new rule:
-iptables -m quota --init-quota 1000   (using --use-quota init explicity)
-iptables -m quota --init-quota 1000 --use-quota remain 
-
-But this sure is ugly.
-
---
-Joakim Axelsson
+That is basically impossible. We can keep a compatible command-line
+interface, but the ABI can't be kept compatible. The interface itself
+it quite simple, but we also need new ruleset evaluation functions,
+new loop detection and probably a few other things.
