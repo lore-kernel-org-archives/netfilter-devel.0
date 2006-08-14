@@ -1,15 +1,12 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: connlimit
-Date: Sun, 13 Aug 2006 16:40:53 -0700
-Message-ID: <20060813234053.GA22015@linuxace.com>
-References: <002d01c6bf2e$351f1c70$650ba8c0@DORKA>
+From: richard@mail3.edong.com
+Subject: port netfilter on linux 2.6 back to linux 2.4
+Date: Mon, 14 Aug 2006 11:21:15 +0800
+Message-ID: <20060814032115.3C0FC3683C8@mail3.edong.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@lists.netfilter.org, ole@ans.pl
+Content-Type: text/plain; format=flowed; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: php0t <php0t@zorro.hu>
-Content-Disposition: inline
-In-Reply-To: <002d01c6bf2e$351f1c70$650ba8c0@DORKA>
+To: netfilter-devel@lists.netfilter.org
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -21,28 +18,11 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Aug 14, 2006 at 01:14:20AM +0200, php0t wrote:
-> 
->   Dear developers,
-> 
-> I've had a nice time trying to limit connections. The kernel is
-> 2.6.17.8.
-> Apart from the first couple of annoyances (such as the patch being
-> renamed from iplimit to connlimit, patch-o-matic not being able to apply
-> it to the current kernel etc), I've managed to patch manually, compile
-> it as a module and load it.
-> 
->   However, when I try to add an according test rule, I get the 'Invalid
-> argument' error, and dmesg says:
-> ip_tables: connlimit match: invalid size 0 != 16
+hello everyone: 
 
-See this thread:
-
-http://marc.theaimsgroup.com/?l=netfilter-devel&m=115334461228009&w=2
-
-> When I google for my current problem, most suggest that connlimit is
-> out-of-date, nobody cares about it any more, etc.
-
-Next time try searching the netfilter archives directly.
-
-Phil
+   I'm developing an embedded firewall router. For some reasons I
+can only use uClinux 2.4 now. But  the 2.6 kernel is more advanced and
+there are more resources about the linux 2.6 netfilter than 2.4. My
+product will upgrade to 2.6 next year. Do you think I SHOULD port the
+linux 2.6 netfilter frame work back to linux 2.4 to have more resources
+and support?
