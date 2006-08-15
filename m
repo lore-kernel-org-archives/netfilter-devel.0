@@ -1,14 +1,17 @@
-From: Sebastian Hagen <sebastian_hagen@memespace.net>
-Subject: Re: libnetfilter_conntrack checks for (getuid() == 0)
-Date: Tue, 15 Aug 2006 19:45:20 +0200
-Message-ID: <44E20830.6090402@memespace.net>
-References: <44E1FFF7.2010103@memespace.net> <44E20094.8080309@trash.net>
+From: Massimiliano Hofer <max@nucleus.it>
+Subject: Re: new ABI
+Date: Wed, 16 Aug 2006 00:08:25 +0200
+Message-ID: <200608160008.26880.max@nucleus.it>
+References: <200608142312.41851.max@nucleus.it>
+	<20060815000036.GF7194@kriss.csbnet.se>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070405040109010609060405"
-Cc: netfilter-devel@lists.netfilter.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
-In-Reply-To: <44E20094.8080309@trash.net>
+To: netfilter-devel@lists.netfilter.org
+In-Reply-To: <20060815000036.GF7194@kriss.csbnet.se>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -20,51 +23,153 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070405040109010609060405
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+On Tuesday 15 August 2006 2:00 am, Joakim Axelsson wrote:
 
-Patrick McHardy wrote:
-> Please send a patch.
-Done, and attached to this mail.
+> > With this patch we can part with some really ugly tricks involving
+> > userspace structure fields and kernel pointers and it would let us have
+> > O(1) matches for quota, limit and any other match/target that needs cross
+> > match data. </biased>
+>
+> O(1) can be done today as well. Just figure out the pointer in checkentry()
+> and keep it. However, do this everytime. Don't trust userspace to not alter
+> it. So its O(1) in match()/target() but not in checkentry(). Shouldn't be
+> too bad.
 
-Sebastian Hagen
+I know. I already figure it out at checkentry (it wouldn't work at all if I 
+didn't), the real point was: where do I store it?
+The answer can be:
+- I reserve some space in the userspace provided structure in order to do it;
+- I apply priv_data.
 
---------------070405040109010609060405
-Content-Type: text/x-patch;
- name="libnetfilter_conntrack_getuid.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="libnetfilter_conntrack_getuid.patch"
+While I certainly can do the former, I think the latter is far cleaner.
+Of course changing the ABI to all other matches isn't nice either.
 
---- libnetfilter_conntrack/src/libnetfilter_conntrack.c	2006-05-24 19:39:29.000000000 +0200
-+++ libnetfilter_conntrack_patched/src/libnetfilter_conntrack.c	2006-08-15 19:41:25.000000000 +0200
-@@ -1125,12 +1125,6 @@
- 
- int nfct_event_conntrack(struct nfct_handle *cth)
- {
--	/*
--	 * You need to be root to listen to conntrack events
--	 */
--	if (getuid() != 0)
--		return -EPERM;
--	
- 	cth->handler = nfct_conntrack_netlink_handler;
- 	return nfnl_listen(cth->nfnlh, &callback_handler, cth);
- }
-@@ -1298,12 +1292,6 @@
- 
- int nfct_event_expectation(struct nfct_handle *cth)
- {
--	/*
--	 * You need to be root to listen to conntrack events
--	 */
--	if (getuid() != 0)
--		return -EPERM;
--
- 	cth->handler = nfct_expect_netlink_handler;
- 	return nfnl_listen(cth->nfnlh, &callback_handler, cth);
- }
+> This isn't a bad idea. Can we make an iptablesfs that can be used in a
+> smart way? It will offer an obvious API for any userspace-program/script to
+> use. We wouldn't then need any explicit userspace-program at all to
+> maintain. Only kernel.
+>
+> Perhaps we will push parsing functions into kernel then. Not good. But if
+> we could come up with an API for a iptablesfs the parsing would be minimal
+> and just in common fast functions.
 
---------------070405040109010609060405--
+As much as I'd like to "ls" and "tar" my rules, I think that pushing the whole 
+userspace parsing done by iptables into the kernel is a Bad Thing (TM).
+
+I was referring to modules that needed extra configurations (something more 
+than simple match parameters) and that needed to communicate with userspace.
+
+Basically anything that has a "name" or "realm" parameter in it. I currently 
+maintain condition that uses procfs and I'm going to convert it to configfs. 
+I was asking the people in the mailing list if this feature is 
+useful/widespread enough to justify general infrastructure.
+This could be in the form of a file system hook 
+(/config/netfilter/modulename/entry) or a specific set of command in the next 
+version of iptables.
+How many people would benefit from this?
+
+
+> > I think every match/target should expode:
+> > - init;
+> > - destroy;
+> > - change;
+> > - dump;
+> > - restore.
+>
+> Don't forget the worker: match()/target().
+
+Yeah, that too. :)
+
+> It would probably be nice to introduce more advanced pseudo data types.
+> Like a rate type ( X / time ). IP-type. Netmask-type and so on. Common
+> parser libraries for the userspace tool.
+
+I agree. Although, if matches were really modular and the combination logic 
+powerful enough, you would hardly need to parse the same type of data twice.
+I realize this is a bit idealistic. A library of parser functions would 
+certainly be nice.
+
+> Also, don't forget that people tend to think that iptables are way too
+> complicated. I think people like BSD style of writing the rules to a file
+> that is then "executed". The file syntax is more of writing sentences of
+> what you want. I my self hate that way of configuring with "words" rather
+> than parameters. But still, one thing to consider.
+
+I like my rules generated by my scripts. Of course I could generate a file, 
+but I don't think there is anything obviously better in this approach.
+Either way some utility needs to parse something, paramters on the command 
+line or lines in a file makes really little difference.
+I don't know much about BSD. Is there something that makes it really easier?
+
+> A file only config somewhat solves the iptables vs iptables-save/restore
+> syndrome. They are not always in sync. Also in comparation with switches
+
+A good library approach to both would solve this.
+
+> like Cisco, configuration alterations are always saved. You work in a shell
+
+I often work with complex rulesets that are fare less complex to generate 
+based on some paramters and a few criteria.
+In some cases I will always need program generated rules. In many other cases 
+I could do without them if I had:
+- expression "subchains": it would be really powerful if I could create a 
+chain with a resulting target that just says true or false and then use it as 
+a match in other rules (we could even cache the result for multiple 
+invocations);
+- effective ways to handle sets (ports, IPs, anything): I know what I need is 
+in pom, but it's not yet in the stable kernel and we could expand the concept 
+farther away.
+
+> what changes the only config-file directly. This means that in our case,
+> iptables and iptables-save are the same. iptables only alter the "only
+> file" that iptables-save has. By introducing a file only will not nessesary
+> make a full realod of all rules only to alter one rule. The rules, if
+> having a state can get a state id which they can hook back on when
+> reloading.
+
+A system of rules/matches ids will be needed. If we will use command interface 
+these could be assigned by the kernel. With a file we will need to rely on 
+the user.
+
+> Also, try to move away from the small thinking or rules we have today. Try
+
+That's why I was asking for opinions.
+Whatever you propose, keep in mind that someone has to implement it.
+I will gladly help, but I don't have enough time to work but on a fraction of 
+the final result.
+So, it has to be better, but reachable. Of course will need to design with 
+room for improvement.
+
+> Another way of doing firewall is to write your rules in some syntax in a
+> file. Have a userspace program parse it into C-code. Have your gcc compiler
+> compile it into a kernel module. Load it. This will optimize the firewall
+> ALOT. Still again, states can be saved between reloads just using some ids
+> and hooks for the rules that needs a state.
+
+This would optimize the simple rules, but the larger ones eat most of their 
+time in code that is already optimized this way (eg: tracking code for 
+state). More than a compiler we would need a rule optimizer.
+How many people has performance issues with the current system? How much 
+better are other production systems?
+
+If you want to think big you could design the new rules like a logic language 
+and let loose any sort of optimization on it.
+
+> If you look at the work i began with ippool which was later finished in a
+
+I'll try and read it in the next few days.
+
+> the algorithm timeout. To just match a single IP source address, combine
+> the data structure 'single' with data interpreter 'IPv4 address' and
+
+This looks like generic programming and good design patterns. The difficult 
+part is exposing this much flexibility to the user in a meaningful way.
+
+> Many crazy ideas, so keep your asbestos suit on :-P
+
+You too. :-P
+
+-- 
+Saluti,
+   Massimiliano Hofer
+        Nucleus
