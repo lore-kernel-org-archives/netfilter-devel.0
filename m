@@ -1,16 +1,16 @@
 From: Massimiliano Hofer <max@nucleus.it>
 Subject: Re: new ABI
-Date: Wed, 16 Aug 2006 00:08:25 +0200
-Message-ID: <200608160008.26880.max@nucleus.it>
+Date: Wed, 16 Aug 2006 00:57:04 +0200
+Message-ID: <200608160057.05431.max@nucleus.it>
 References: <200608142312.41851.max@nucleus.it>
-	<20060815000036.GF7194@kriss.csbnet.se>
+	<200608151414.24599.simon@parknet.dk>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <20060815000036.GF7194@kriss.csbnet.se>
+In-Reply-To: <200608151414.24599.simon@parknet.dk>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -23,51 +23,142 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 15 August 2006 2:00 am, Joakim Axelsson wrote:
+On Tuesday 15 August 2006 2:14 pm, Simon Lodal wrote:
 
-> > With this patch we can part with some really ugly tricks involving
-> > userspace structure fields and kernel pointers and it would let us have
-> > O(1) matches for quota, limit and any other match/target that needs cross
-> > match data. </biased>
+> Everybody has a long wishlist and seem to agree that something fundamental
+> needs to be done.
 >
-> O(1) can be done today as well. Just figure out the pointer in checkentry()
-> and keep it. However, do this everytime. Don't trust userspace to not alter
-> it. So its O(1) in match()/target() but not in checkentry(). Shouldn't be
-> too bad.
+> The question seems to be when backwards compatibility can be given up.
 
-I know. I already figure it out at checkentry (it wouldn't work at all if I 
-didn't), the real point was: where do I store it?
-The answer can be:
-- I reserve some space in the userspace provided structure in order to do it;
-- I apply priv_data.
+Everyone agrees that we have reached the maximum expressiveness with the 
+current system.
+Nobody says that we couldn't keep a way to convert old rules in the new 
+system.
+The real question thus becomes: is it worh to restart from (almost) scratch?
 
-While I certainly can do the former, I think the latter is far cleaner.
-Of course changing the ABI to all other matches isn't nice either.
-
-> This isn't a bad idea. Can we make an iptablesfs that can be used in a
-> smart way? It will offer an obvious API for any userspace-program/script to
-> use. We wouldn't then need any explicit userspace-program at all to
-> maintain. Only kernel.
+> > What people need from any new infrastructure:
+> > - cleaner interface with clearer separation between kernel and user data;
+> > - ability to dump internal state of matches/targets (this may not be in a
+> > 1-to-1 relation, so it may be tricky, do we need module state dumping?);
 >
-> Perhaps we will push parsing functions into kernel then. Not good. But if
-> we could come up with an API for a iptablesfs the parsing would be minimal
-> and just in common fast functions.
+> Yes, but why should that be hard? Netfilter should already have a list of
+> registered modules.
 
-As much as I'd like to "ls" and "tar" my rules, I think that pushing the whole 
-userspace parsing done by iptables into the kernel is a Bad Thing (TM).
+Yes, but iptables has no way to manipulate per-module data (eg: collection of 
+names and flags for condition, but there are plenty other examples).
+I don't think it would be difficult, even without a total redesign. I was 
+testing the ground for ideas and real needs.
 
-I was referring to modules that needed extra configurations (something more 
-than simple match parameters) and that needed to communicate with userspace.
+> We are going to have "interesting" data that are not 1:1 with rules. But
+> then they will be 1:1 with modules, or some other "scope" that netfilter
 
-Basically anything that has a "name" or "realm" parameter in it. I currently 
-maintain condition that uses procfs and I'm going to convert it to configfs. 
-I was asking the people in the mailing list if this feature is 
-useful/widespread enough to justify general infrastructure.
-This could be in the form of a file system hook 
-(/config/netfilter/modulename/entry) or a specific set of command in the next 
-version of iptables.
-How many people would benefit from this?
+Make it n:1. I don't think n:n is desirable.
 
+> knows how to traverse. Each "scope" can have their own section in the
+> iptables-save output. Hence the parsing complexity lies in
+> iptables-restore.
+>
+> Whether it is all going to be exposed in some filesystem or not is a
+> different matter.
+
+I like file interfaces, but not everything readily becomes a file. It all 
+depends on what people really want to do with this class of data.
+
+> What is the version after it going to be then? No, I never liked the -ng
+> suffix :)
+>
+> What is wrong with iptables2?
+
+OK. We had ipfwadm and ipchains. So we're really more like iptables4. :)
+
+> Flexibility is not free, but perhaps it can be cheap, performance wise.
+>
+> Let's say we make iptables more shell-like, with the ability to handle
+> multiple commands in one invocation (with a final COMMIT command required)?
+> Would be lovely in itself.
+>
+> Then iptables would get a better chance to optimize memory allocation,
+> since it is not only looking at one rule at a time.
+>
+> The case where you load the entire firewall ruleset in one go could be
+> optimized to a point where it is no different from today.
+
+This if we assume we know the sizes of everything. I think matches/targets 
+need to have a chance to influence their own data (now they can't).
+We'll have:
+- general data structures (fixed);
+- match/target descriptor (passed by userspace and of known size);
+- match/target runtime data (potentially anything from a single byte to a 
+dynamic structure).
+
+Currently matches/targets are fed the descriptor. I'd like them to be fed a 
+descriptor and their runtime data. We can suppose the latter won't be needed 
+by every match, so it won't impact performance.
+We still got a fixed size data structure that we can move/compact/rewrite and 
+a descriptor that we can potentially move (we could move it if people weren't 
+abusing it for lack of runtime data) but with variable sized.
+The first one can become a simple allocation in list node array (with some 
+mechanism for growing and shrinking). The descriptors are a little more 
+tricky and we would need stricter specifications in order to do proper 
+repacking.
+Before we continue work on a non-problem: do we have data about kernel memory 
+fragmentation and performance issues?
+
+
+>  * ipt_entry* structs might contain data (like basic src/dst/port/iface
+> matches), but they may not keep pointers to anything, not even their own
+> fields. They are independent of their own memory location. The memory
+> management code can therefore rearrange the tables at will (proper locking
+> assumed), without having to reinitialize rules.
+
+Good. I just don't know if this is overdesigned.
+
+>  * All other memory is accessed through a struct that is passed to each
+> rule/match/target's API functions. It contains at least .instance_data, but
+> also .module_data (.priv_data), and perhaps other scopes data,
+> like .rule_data, .chain_data and .global_data (all cross-module). Note that
+> each of these are bound to a specific entity.
+
+I agree.
+
+>  * Each module and instance must call special netfilter API's to allocate
+> memory of the required types. The netfilter part handles free'ing through
+> refcount (why not).
+
+If we don't have cross-module data (does anyone need it?) each module could do 
+it's housekeeping. It's difficult to know how to optimize other people's 
+data.
+
+>  * The actual .*_data pointers may change between invocations (packets fed
+> to) of the same rule/match/target. This means the netfilter part is allowed
+> to rearrange dynamic memory too.
+
+What if people want to keep pointers and other complex data structures? The 
+instance data should be opaque to the core code. The risk is that people, not 
+trusting this structure, will use it just to keep a pointer to the real data.
+
+>  * Bonus: Sync of memory regions with other hosts can be handled
+> transparently, or at least easily. So that fx. limit rules can work across
+> redundant hosts.
+
+Malus: a whole memory management system just for a subsystem of the kernel. 
+Too much semantics risks to limit what people want to do. Of course anarchy 
+has drawbacks too. I'd seek a middle ground where we handle the common case 
+and leave people free to implement exotic new things.
+
+> I have no clear idea how all these individual blobs would be communicated
+> between kernel and userspace. Except there are two general options:
+>
+> 1) The current "pass a large blob" scheme. Since it will contain many
+> smaller blobs, some in-kernel parsing is required. Worse yet, the kernel
+> must also be able to assemble a large blob in order to dump to userspace.
+
+Either way we'll need some form of rule and match id.
+I don't know what level of transactionality is desired. Currently 
+iptables-restore is atomic and so are single changes with iptables. How much 
+is needed with the new system? At least rule level atomicity is certainly 
+desired, so we'll need to create duplicate data (just the core structure with 
+pointers to the real descriptors) during modifications.
 
 > > I think every match/target should expode:
 > > - init;
@@ -76,98 +167,14 @@ How many people would benefit from this?
 > > - dump;
 > > - restore.
 >
-> Don't forget the worker: match()/target().
+> change() would be nice, like in qdisc.
 
-Yeah, that too. :)
+Does it really make sense? How many matches would have a different behaviour 
+while changing instead of a full create-activate_new-destroy?
 
-> It would probably be nice to introduce more advanced pseudo data types.
-> Like a rate type ( X / time ). IP-type. Netmask-type and so on. Common
-> parser libraries for the userspace tool.
+> Applause for possibly opening the can of worms :)
 
-I agree. Although, if matches were really modular and the combination logic 
-powerful enough, you would hardly need to parse the same type of data twice.
-I realize this is a bit idealistic. A library of parser functions would 
-certainly be nice.
-
-> Also, don't forget that people tend to think that iptables are way too
-> complicated. I think people like BSD style of writing the rules to a file
-> that is then "executed". The file syntax is more of writing sentences of
-> what you want. I my self hate that way of configuring with "words" rather
-> than parameters. But still, one thing to consider.
-
-I like my rules generated by my scripts. Of course I could generate a file, 
-but I don't think there is anything obviously better in this approach.
-Either way some utility needs to parse something, paramters on the command 
-line or lines in a file makes really little difference.
-I don't know much about BSD. Is there something that makes it really easier?
-
-> A file only config somewhat solves the iptables vs iptables-save/restore
-> syndrome. They are not always in sync. Also in comparation with switches
-
-A good library approach to both would solve this.
-
-> like Cisco, configuration alterations are always saved. You work in a shell
-
-I often work with complex rulesets that are fare less complex to generate 
-based on some paramters and a few criteria.
-In some cases I will always need program generated rules. In many other cases 
-I could do without them if I had:
-- expression "subchains": it would be really powerful if I could create a 
-chain with a resulting target that just says true or false and then use it as 
-a match in other rules (we could even cache the result for multiple 
-invocations);
-- effective ways to handle sets (ports, IPs, anything): I know what I need is 
-in pom, but it's not yet in the stable kernel and we could expand the concept 
-farther away.
-
-> what changes the only config-file directly. This means that in our case,
-> iptables and iptables-save are the same. iptables only alter the "only
-> file" that iptables-save has. By introducing a file only will not nessesary
-> make a full realod of all rules only to alter one rule. The rules, if
-> having a state can get a state id which they can hook back on when
-> reloading.
-
-A system of rules/matches ids will be needed. If we will use command interface 
-these could be assigned by the kernel. With a file we will need to rely on 
-the user.
-
-> Also, try to move away from the small thinking or rules we have today. Try
-
-That's why I was asking for opinions.
-Whatever you propose, keep in mind that someone has to implement it.
-I will gladly help, but I don't have enough time to work but on a fraction of 
-the final result.
-So, it has to be better, but reachable. Of course will need to design with 
-room for improvement.
-
-> Another way of doing firewall is to write your rules in some syntax in a
-> file. Have a userspace program parse it into C-code. Have your gcc compiler
-> compile it into a kernel module. Load it. This will optimize the firewall
-> ALOT. Still again, states can be saved between reloads just using some ids
-> and hooks for the rules that needs a state.
-
-This would optimize the simple rules, but the larger ones eat most of their 
-time in code that is already optimized this way (eg: tracking code for 
-state). More than a compiler we would need a rule optimizer.
-How many people has performance issues with the current system? How much 
-better are other production systems?
-
-If you want to think big you could design the new rules like a logic language 
-and let loose any sort of optimization on it.
-
-> If you look at the work i began with ippool which was later finished in a
-
-I'll try and read it in the next few days.
-
-> the algorithm timeout. To just match a single IP source address, combine
-> the data structure 'single' with data interpreter 'IPv4 address' and
-
-This looks like generic programming and good design patterns. The difficult 
-part is exposing this much flexibility to the user in a meaningful way.
-
-> Many crazy ideas, so keep your asbestos suit on :-P
-
-You too. :-P
+:)
 
 -- 
 Saluti,
