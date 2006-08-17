@@ -1,12 +1,13 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER]: ctnetlink: fix deadlock in table dumping
-Date: Thu, 17 Aug 2006 00:10:22 +0200
-Message-ID: <44E397CE.3030808@trash.net>
+From: Michael Rash <mbr@cipherdyne.org>
+Subject: [PATCH] Boyer Moore textsearch bug fix
+Date: Wed, 16 Aug 2006 23:16:07 -0400
+Message-ID: <20060817031607.GA7484@minastirith>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------070705070409070604030206"
-Cc: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -18,143 +19,47 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070705070409070604030206
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Hi -
 
-Fix a deadlock in ctnetlink (introduced early in 2.6.18-rc by myself).
-Please apply to 2.6.18.
+The patch below fixes Bugzilla #501:
+
+The compute_prefix_tbl() function in lib/ts_bm.c is called before
+bm->pattern is initialized, and this results in the following issue.
+If the rule below is put within the OUTPUT chain (note the slightly
+repetitive pattern "aaabbbccc" which I think is necessary to expose
+the fact that the good_shift array is not getting populated
+correctly):
+
+iptables -I OUTPUT -p tcp --dport 80 -m string --string "aaabbbccc" \
+--algo bm -j LOG --log-prefix "bm "
+
+...then the issuing the following commands fail to match the rule (no
+log message is generated):
+
+echo "1aaabbbccc" |nc <someserver> 80
+echo "12aaabbbccc" |nc <someserver> 80
+echo "1234aaabbbccc" |nc <someserver> 80
+
+...but these do match:
+
+echo "aaabbbccc" |nc <someserver> 80
+echo "123aaabbbccc" |nc <someserver> 80
+
+--
+Michael Rash
+http://www.cipherdyne.org/
+Key fingerprint = 53EA 13EA 472E 3771 894F  AC69 95D8 5D6B A742 839F
 
 
---------------070705070409070604030206
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-[NETFILTER]: ctnetlink: fix deadlock in table dumping
-
-ip_conntrack_put must not be called while holding ip_conntrack_lock
-since destroy_conntrack takes it again.
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 8ebd6bb0f469f2759f39e73adee6916a3d975393
-tree ebd73ee261508d483654416b03610910a2968e21
-parent 338fe5c67e8fb799c9e3470331db6f3c60a31b1e
-author Patrick McHardy <kaber@trash.net> Wed, 16 Aug 2006 13:32:27 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 16 Aug 2006 13:32:27 +0200
-
- net/ipv4/netfilter/ip_conntrack_netlink.c |   17 +++++++----------
- net/netfilter/nf_conntrack_netlink.c      |   17 +++++++----------
- 2 files changed, 14 insertions(+), 20 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index 33891bb..0d4cc92 100644
---- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -415,21 +415,18 @@ ctnetlink_dump_table(struct sk_buff *skb
- 			cb->args[0], *id);
+--- linux-2.6.17.8/lib/ts_bm.c.orig	2006-08-16 21:17:38.000000000 -0400
++++ linux-2.6.17.8/lib/ts_bm.c	2006-08-16 21:17:56.000000000 -0400
+@@ -151,8 +151,8 @@
+ 	bm = ts_config_priv(conf);
+ 	bm->patlen = len;
+ 	bm->pattern = (u8 *) bm->good_shift + prefix_tbl_len;
+-	compute_prefix_tbl(bm, pattern, len);
+ 	memcpy(bm->pattern, pattern, len);
++	compute_prefix_tbl(bm, pattern, len);
  
- 	read_lock_bh(&ip_conntrack_lock);
-+	last = (struct ip_conntrack *)cb->args[1];
- 	for (; cb->args[0] < ip_conntrack_htable_size; cb->args[0]++) {
- restart:
--		last = (struct ip_conntrack *)cb->args[1];
- 		list_for_each_prev(i, &ip_conntrack_hash[cb->args[0]]) {
- 			h = (struct ip_conntrack_tuple_hash *) i;
- 			if (DIRECTION(h) != IP_CT_DIR_ORIGINAL)
- 				continue;
- 			ct = tuplehash_to_ctrack(h);
--			if (last != NULL) {
--				if (ct == last) {
--					ip_conntrack_put(last);
--					cb->args[1] = 0;
--					last = NULL;
--				} else
-+			if (cb->args[1]) {
-+				if (ct != last)
- 					continue;
-+				cb->args[1] = 0;
- 			}
- 			if (ctnetlink_fill_info(skb, NETLINK_CB(cb->skb).pid,
- 		                        	cb->nlh->nlmsg_seq,
-@@ -440,17 +437,17 @@ restart:
- 				goto out;
- 			}
- 		}
--		if (last != NULL) {
--			ip_conntrack_put(last);
-+		if (cb->args[1]) {
- 			cb->args[1] = 0;
- 			goto restart;
- 		}
- 	}
- out:
- 	read_unlock_bh(&ip_conntrack_lock);
-+	if (last)
-+		ip_conntrack_put(last);
- 
- 	DEBUGP("leaving, last bucket=%lu id=%u\n", cb->args[0], *id);
--
- 	return skb->len;
+ 	return conf;
  }
- 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index af48459..6527d4e 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -429,9 +429,9 @@ ctnetlink_dump_table(struct sk_buff *skb
- 			cb->args[0], *id);
- 
- 	read_lock_bh(&nf_conntrack_lock);
-+	last = (struct nf_conn *)cb->args[1];
- 	for (; cb->args[0] < nf_conntrack_htable_size; cb->args[0]++) {
- restart:
--		last = (struct nf_conn *)cb->args[1];
- 		list_for_each_prev(i, &nf_conntrack_hash[cb->args[0]]) {
- 			h = (struct nf_conntrack_tuple_hash *) i;
- 			if (DIRECTION(h) != IP_CT_DIR_ORIGINAL)
-@@ -442,13 +442,10 @@ restart:
- 			 * then dump everything. */
- 			if (l3proto && L3PROTO(ct) != l3proto)
- 				continue;
--			if (last != NULL) {
--				if (ct == last) {
--					nf_ct_put(last);
--					cb->args[1] = 0;
--					last = NULL;
--				} else
-+			if (cb->args[1]) {
-+				if (ct != last)
- 					continue;
-+				cb->args[1] = 0;
- 			}
- 			if (ctnetlink_fill_info(skb, NETLINK_CB(cb->skb).pid,
- 		                        	cb->nlh->nlmsg_seq,
-@@ -459,17 +456,17 @@ restart:
- 				goto out;
- 			}
- 		}
--		if (last != NULL) {
--			nf_ct_put(last);
-+		if (cb->args[1]) {
- 			cb->args[1] = 0;
- 			goto restart;
- 		}
- 	}
- out:
- 	read_unlock_bh(&nf_conntrack_lock);
-+	if (last)
-+		nf_ct_put(last);
- 
- 	DEBUGP("leaving, last bucket=%lu id=%u\n", cb->args[0], *id);
--
- 	return skb->len;
- }
- 
-
---------------070705070409070604030206--
