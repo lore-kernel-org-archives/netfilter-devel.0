@@ -1,16 +1,17 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ipt_vlan
-Date: Fri, 18 Aug 2006 20:18:03 +0200
-Message-ID: <44E6045B.6050407@trash.net>
+Subject: Re: lots of oopses
+Date: Fri, 18 Aug 2006 20:23:29 +0200
+Message-ID: <44E605A1.5000007@trash.net>
 References: <44E49911.6080007@ufomechanic.net> <44E4A1AB.3000001@trash.net>
-	<44E5C6E2.30809@ufomechanic.net>
+	<44E56D39.50806@ufomechanic.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Jesper Dangaard Brouer <hawk@diku.dk>, netfilter-devel@lists.netfilter.org
+Cc: l7-filter-developers@lists.sourceforge.net,
+	netfilter-devel@lists.netfilter.org
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Amin Azez <azez@ufomechanic.net>
-In-Reply-To: <44E5C6E2.30809@ufomechanic.net>
+In-Reply-To: <44E56D39.50806@ufomechanic.net>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -23,22 +24,24 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Amin Azez wrote:
-> Attached is my ipt_vlan patch for 2.6.17 and 2.6.11, and the iptables
-> patch to go with it. It's based on the mac match.
-
-This looks useful. If we hadn't already got ebt_vlan (which seems
-to do the same thing with a few extra features) I would be tempted
-to ask you to submit it :)
-
-> I think the iptables patch is wrong, the way I freak the extension
-> makefile needs reviewing, but it does compile.
-
-> --- extensions/Makefile.orig    2006-06-30 10:41:38.000000000 +0100
-> +++ extensions/Makefile 2006-06-30 10:42:00.000000000 +0100
-> @@ -14,2 +14,4 @@
+> Patrick McHardy wrote:
 > 
-> +PF_EXT_SLIB+=vlan
-> +
+>> BTW, what is ipt_vlan?
+>>   
+> 
+> I think I posted it here a year ago, but I'll do so again if you want it.
+> It matches on vlan-id.
+> 
+> It was said that strictly this is a layer 2 thing and not for iptables;
+> I find it useful though;-
+> which iptables rules should be applied may depend on vlan stuff, and
+> sometimes it seems like there isn't enough mark to go around...
+> 
+> I like the iptables/ebtables seperation but sometimes it seems like they
+> should be able to share each-others matches, like one big happy table
+> with a few extra points of inspection. Anyway...
 
-Its fine this way, although the usual way for extensions is to either
-add them to the long list at the top or add a .test script.
+Agreed. It should be possible for ebtables to use all iptables matches
+looking only at packet data, but not necessarily the other way around.
+Unfortunately ebtables is in large parts a copy of iptables, with just
+enough differences to prevent it from using x_tables.
