@@ -1,17 +1,16 @@
 From: Massimiliano Hofer <max@nucleus.it>
 Subject: Re: new ABI
-Date: Fri, 18 Aug 2006 23:40:25 +0200
-Message-ID: <200608182340.26555.max@nucleus.it>
+Date: Sat, 19 Aug 2006 00:24:28 +0200
+Message-ID: <200608190024.28883.max@nucleus.it>
 References: <200608142312.41851.max@nucleus.it>
 	<20060816121653.GA31235@kriss.csbnet.se>
-	<1086.83.88.199.217.1155906363.squirrel@mail.parknet.dk>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: netfilter-devel@lists.netfilter.org
-In-Reply-To: <1086.83.88.199.217.1155906363.squirrel@mail.parknet.dk>
+In-Reply-To: <20060816121653.GA31235@kriss.csbnet.se>
 Content-Disposition: inline
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
@@ -24,47 +23,204 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 18 August 2006 3:06 pm, Simon Lodal wrote:
+On Wednesday 16 August 2006 2:16 pm, Joakim Axelsson wrote:
 
-> > Also keep in mind that we can allow several targets. I previously in
-> > another mail talked about actions. Its not needed i think, but might
-> > make it easier to distringuisch between jumps, ending targets and just
-> > changing and logging targets. It should be perfect legal already today
-> > to say:
-> >
-> > iptables -m match -j other_chain -j LOG -j other_chain2 -j DROP -j TTL
+> We keep the idea of rules (rather than essay, compiled or other form). To
+> make the new implementation as easy and as fast as possible i think using
+> XML to express the firewall is a good way to go. Now before you turn on all
+> your negatives, here's why:
 >
-> LOG + DROP in one rule would be a huge improvement. Even though it would
-> just reintroduce an ipchains feature.
+> - We want the old (todays) iptables to be compliant.
+> - We want an easy library that implements the ABI to kernel.
+> - We want to make the smallest possible effort writing a userspace tool.
+>   Leaving the more advacned for others / other projects.
 
-I like the idea of actions. I could perform separate type of mangling and 
-other non "terminal" things with separate rules without worrying about 
-precedence and specific combinations. The current use of "--continue" with 
-some, but not all, targets really should be handles in a more general way and 
-actions looks like a good solution to me.
+We want the existing ABI to continue working. Having people recompile iptables 
+with a kernel change is not a short term proposition. I'd say it's kernel 3.0 
+matter.
+Using it between user utilities/scripts and a new version of iptables is 
+certainly feasible, but it already is.
 
-> I would like to do it in a generic way: Introduce a "match index" variable
-> that can be set by matches and used by targets. A "--dports 1000:1023"
-> match has 24 possible matches, so it would set the index to between 0 and
-> 23. Same can be done for IP, sets; all other matches that have a finite
-> set of possible matches and can enumerate them.
+> XML already has good parsers. We can very easily rewrite todays iptables to
+> output XML. XML has no real limits on how to express things. Ofcourse can
+> other future userspace program use the new ABI-library directly, not using
+> the XML-parser. However, for those who doesn't want to learn the new
+> library XML is very easy. Both for humans, scripts and programs.
 
-What if we just assign a numeric index to every rule (plus an additional index 
-for individual matches). This would let us identify rules for future changes, 
-but we could go a step farther and let people choose a specific label if they 
-want to.
-This way we could jump to a separate chain or just to label two rules away.
-If we combine this with my proposal for "functional chains" we could represent 
-a whole lot of complex rulesets with far less rules than today.
+This is good for automatic manipulation. I'm not convinced it will be easier 
+to digest for humans.
 
-> I agree with all your points, perhaps except the XML part ... I am one of
-> those non-converts. But you may be right anyway. It would be nice to have
-> an standard way to define a ruleset, as descriptive data rather than
-> commands.
+> So we need one userspace library that talks the ABI with kernel. We also
+> need a library using this ABI that parses XML-files and passes them to the
+> ABI-library. Finally other userspace tools (that we do not need to write)
+> that dumps from kernel passed by the kernel->ABI->XML and pushes XML rules.
 
-I'm a non-convert too, but perhaps it doesn't matter. The final userspace 
-representation is irrelevant to the kernel and might be a matter of a few 
-additional scripts.
+I'm all for a good library. XML might just be one of its representation 
+plugins.
+
+> if (packet.ipv4.source = 1.2.3.4 AND limit(2/s)) then
+> 	LOG(log-prefix, ...)
+> 	jump(other-chain)
+> 	DROP
+> end if;
+>
+> The above might be much easier for a newbie to use. The best thing is that
+> we are pushing the "need" to write these kind of tools to others as
+> seperate projects. The common is XML. No need for complex parsers and trix
+> using getopt().
+
+I'm not convinced that this will be much easier to parse, but I was expecting 
+more a tag hell. Maybe you're right. Count me as undecided yet.
+
+> iptables is now easily ported like:
+> iptables <-> XML <-> ABI <-> kernel
+
+The old iptables needs to continue working. We can't introduce layers between 
+it and the current kernel ABI.
+
+> Also keep in mind that we can allow several targets. I previously in
+> another mail talked about actions. Its not needed i think, but might make
+> it easier to distringuisch between jumps, ending targets and just changing
+> and logging targets. It should be perfect legal already today to say:
+>
+> iptables -m match -j other_chain -j LOG -j other_chain2 -j DROP -j TTL
+>
+> Now, the last TTL will never be executed, but thats a user config choise.
+> The sematics of the above can't be missunderstood.
+
+I like this idea. Maybe I would use a different parameter for actions ("-a"?), 
+but it's interesting.
+
+> I think the above is good. Perhaps we don't need restore as it can be done
+> with dump. Only that dump must dump both initial state/config and current
+> state.
+> - init()
+> - destroy()
+> - dump() / restore()
+> - change()
+> - match() / target()
+>
+> Much importat is the change() that for exampel recent match can use to
+> remove or add IPs in any recent list. There are several other matches that
+> can use this. Quota for example. Add or remove bytes in the pot. Far more
+> complex matches like ipset can use this as well.
+
+How would you represent single match changes with your XML implementation?
+It sure would be expressive enought for any kind of module data.
+
+> I also think RCU-list will help instead of tables/arrays. Its much more
+> common to add/change or remove a rule than add them all. I have a router
+> with some 1000 rules. Its a pain to change on of them. To save cache misses
+
+I usually wipe everything and write from scratch. All my firewalls are 
+generated (at least partially) and I don't want to risk making mismatched 
+changes in the current firewall and the generating script.
+I'd need several much more powerful primitives to abandon the approach.
+
+Anyway I agree to the usefulness of RCU lists.
+
+> Another thing that could use an add is the way of grouping rules. "These
+> set of rules belong to customer 1 and these to customer 2. And i'd like to
+> only list all rules related to customer 1". Now there is two aproches to
+> implement this. First one is to tag the rule with what rule or which group
+> it belongs to. Another way it to create sub tables.
+>
+> Also a good way of "finding your way" to either group of rules is needed.
+> Today i have a router with 4096 IPs (students computers) behind. The IPs
+> all need its own chain of rules. I won't go into why, but trust me, it's
+> needed and the only flexible way that i have found. I have created a sort
+> of binary tree of rules trying to make the access of each customer as
+> painless as possible. This area needs work as well i think. I've seen many
+> people asking if this exists. Simple solution might be to allow custom(?)
+> modules that implemet different forms of jumping. To which group or chain
+> do you want to jump to? Well: iptables -m match -J ipmapjump (notice the
+> big -J)
+> The recent "goto" jump also fits here.
+
+You want some sort of multijump?
+I had this kind of problem too. ipmapjump seems too specific. We'd really need 
+a rule compiler/optimizer to handle this in an efficient way.
+
+In your language it would be something like:
+
+switch(packet.ipv4.source && 0xFF)
+   case 1: ...
+   ...
+end switch;
+
+This would be several orders of magnitude more complex than the current system 
+(although magnificient).
+
+> Next, try to design this new iptables2/-ng so we don't need iptables3 in
+> the future. Rather add one too many unused hooks, void * passed parameter
+> than one too few.
+
+Of course this is an illusion. Nothing short of Turing-completeness will 
+prevent iptables3. Even so someone will ask for an OO-iptables, a 
+generic-iptables, etc.
+We can try to keep people satisfied for the next few years and plan for the 
+unplanned, but there is always something that is really unplannable and 
+unforeseeable.
+
+> Design this so we can have pkttables. Meaning no need for seperate tables
+> for iptables, ip6tables, arptables, ebtables. All in one. Its not that hard
+> really. Just perhaps a few more tables (nat, mangle, raw, filter, bridge
+> etc.) and move even the basic matching like source and dest address into
+> modules.
+
+OK.
+
+> Summary:
+> + Use XML to express firewall rules. Because its easy and backward
+> compability will be easily ported. It fits both human written and scripted
+> rules. The tool is already there in tons of places.
+
+Not convinced yet, but keep insisting. :)
+Of course we'd need someone to do it. :)
+
+> + init, destory, dump/restore, change, match/target is needed as
+> implemented functions (or Nulls) for the match / targets.
+
+OK.
+
+> + Use RCU-list in kernel. Because its more editable.
+
+Mostly OK, for lack of better alternatives.
+
+> + Have smart ways of allocate memory in kernel (slabs).
+
+OK.
+
+> + Allow sveral targets for one rule.
+> + Perhaps seperate ending targets form non ending and jumps.
+
+OK.
+I'd separate flow-changing targets from packet-altering (or some other lateral 
+effect) actions.
+Actions would be like current targets with a "--continue" parameter and we 
+could combine it with a target to make them stop.
+
+> + Allow customs jump modules, beside match and target modules.
+
+What exacly are you proposing?
+
+> + Allow grouping of rules in some way. Really large firewall needs this.
+
+Proposal?
+What about function-chains that we could use as a match?
+
+> + We rather have one too many hooks/void *, unused rather than one too few
+> for futhure use. It won't waste that much memory.
+
+Of course.
+
+> + Design all this into pkttables rather than focus on IP/IPv6.
+
+OK.
+
+> Thanks for your time reading this far :-)
+
+:)
 
 -- 
 Saluti,
