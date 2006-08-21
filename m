@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 16/18]: x_tables: add data member to struct xt_match
-Date: Tue, 22 Aug 2006 00:52:40 +0200 (MEST)
-Message-ID: <20060821225240.10288.33283.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 06/18]: ctnetlink: check for listeners before sending
+	expectation events
+Date: Tue, 22 Aug 2006 00:52:26 +0200 (MEST)
+Message-ID: <20060821225225.10288.61654.sendpatchset@localhost.localdomain>
 References: <20060821225217.10288.69738.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,34 +19,50 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: x_tables: add data member to struct xt_match
+[NETFILTER]: ctnetlink: check for listeners before sending expectation events
 
-Shared match functions can use this to make runtime decisions basen on the
-used match.
+This patch uses nfnetlink_has_listeners to check for listeners in
+userspace.
 
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 0da4cda5f20c851bf4a7da543d6eb91cad7810aa
-tree 4f6bc6de8304515ddcfd03d99e876f13d7299190
-parent 9c8627cc82b512bf2c7d07f0a9afd9a6afc9e7ec
-author Patrick McHardy <kaber@trash.net> Fri, 18 Aug 2006 06:06:17 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 18 Aug 2006 06:06:17 +0200
+commit 67b49f9ce48d6acb259d20a38bf1d131250a01c6
+tree a68fa4897286bc09b28047f8de29f38c57301f51
+parent 430bb812a0703f2faddbe92a097d0ef7289b963b
+author Pablo Neira Ayuso <pablo@netfilter.org> Fri, 11 Aug 2006 21:01:23 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 21:01:23 +0200
 
- include/linux/netfilter/x_tables.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ net/ipv4/netfilter/ip_conntrack_netlink.c |    3 +++
+ net/netfilter/nf_conntrack_netlink.c      |    3 +++
+ 2 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 9d97102..03d1027 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -185,6 +185,9 @@ struct xt_match
- 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
- 	struct module *me;
+diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
+index 319022e..090df76 100644
+--- a/net/ipv4/netfilter/ip_conntrack_netlink.c
++++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
+@@ -1260,6 +1260,9 @@ static int ctnetlink_expect_event(struct
+ 	} else
+ 		return NOTIFY_DONE;
  
-+	/* Free to use by each match */
-+	unsigned long data;
++	if (!nfnetlink_has_listeners(NFNLGRP_CONNTRACK_EXP_NEW))
++		return NOTIFY_DONE;
 +
- 	char *table;
- 	unsigned int matchsize;
- 	unsigned int hooks;
+ 	skb = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
+ 	if (!skb)
+ 		return NOTIFY_DONE;
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index ed8268a..81bcbe8 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1281,6 +1281,9 @@ static int ctnetlink_expect_event(struct
+ 	} else
+ 		return NOTIFY_DONE;
+ 
++	if (!nfnetlink_has_listeners(NFNLGRP_CONNTRACK_EXP_NEW))
++		return NOTIFY_DONE;
++
+ 	skb = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
+ 	if (!skb)
+ 		return NOTIFY_DONE;
