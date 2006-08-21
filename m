@@ -1,8 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 06/18]: ctnetlink: check for listeners before sending
-	expectation events
-Date: Tue, 22 Aug 2006 00:52:26 +0200 (MEST)
-Message-ID: <20060821225225.10288.61654.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 17/18]: ip6_tables: consolidate dst and hbh matches
+Date: Tue, 22 Aug 2006 00:52:41 +0200 (MEST)
+Message-ID: <20060821225241.10288.17588.sendpatchset@localhost.localdomain>
 References: <20060821225217.10288.69738.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -19,50 +18,343 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: ctnetlink: check for listeners before sending expectation events
+[NETFILTER]: ip6_tables: consolidate dst and hbh matches
 
-This patch uses nfnetlink_has_listeners to check for listeners in
-userspace.
+The matches are identical besides one looking for NEXTHDR_HOP, the other
+for NEXTHDR_DEST. Remove ip6t_dst.c and handle both in ip6t_hbh.c.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Patrick McHardy <kaber@trash,net>
 
 ---
-commit 67b49f9ce48d6acb259d20a38bf1d131250a01c6
-tree a68fa4897286bc09b28047f8de29f38c57301f51
-parent 430bb812a0703f2faddbe92a097d0ef7289b963b
-author Pablo Neira Ayuso <pablo@netfilter.org> Fri, 11 Aug 2006 21:01:23 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 21:01:23 +0200
+commit e60478517acbd24f288c0d579adaea625c3419fb
+tree ff12a24846c7d1ba54c02426598db9f1dd3e348b
+parent 0da4cda5f20c851bf4a7da543d6eb91cad7810aa
+author Patrick McHardy <kaber@trash.net> Tue, 22 Aug 2006 00:36:32 +0200
+committer Patrick McHardy <kaber@trash.net> Tue, 22 Aug 2006 00:36:32 +0200
 
- net/ipv4/netfilter/ip_conntrack_netlink.c |    3 +++
- net/netfilter/nf_conntrack_netlink.c      |    3 +++
- 2 files changed, 6 insertions(+), 0 deletions(-)
+ net/ipv6/netfilter/Makefile   |    2 
+ net/ipv6/netfilter/ip6t_dst.c |  219 -----------------------------------------
+ net/ipv6/netfilter/ip6t_hbh.c |   48 ++++-----
+ 3 files changed, 25 insertions(+), 244 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_conntrack_netlink.c b/net/ipv4/netfilter/ip_conntrack_netlink.c
-index 319022e..090df76 100644
---- a/net/ipv4/netfilter/ip_conntrack_netlink.c
-+++ b/net/ipv4/netfilter/ip_conntrack_netlink.c
-@@ -1260,6 +1260,9 @@ static int ctnetlink_expect_event(struct
- 	} else
- 		return NOTIFY_DONE;
+diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+index eeeb57d..ac1dfeb 100644
+--- a/net/ipv6/netfilter/Makefile
++++ b/net/ipv6/netfilter/Makefile
+@@ -5,7 +5,7 @@ #
+ # Link order matters here.
+ obj-$(CONFIG_IP6_NF_IPTABLES) += ip6_tables.o
+ obj-$(CONFIG_IP6_NF_MATCH_RT) += ip6t_rt.o
+-obj-$(CONFIG_IP6_NF_MATCH_OPTS) += ip6t_hbh.o ip6t_dst.o
++obj-$(CONFIG_IP6_NF_MATCH_OPTS) += ip6t_hbh.o
+ obj-$(CONFIG_IP6_NF_MATCH_IPV6HEADER) += ip6t_ipv6header.o
+ obj-$(CONFIG_IP6_NF_MATCH_FRAG) += ip6t_frag.o
+ obj-$(CONFIG_IP6_NF_MATCH_AH) += ip6t_ah.o
+diff --git a/net/ipv6/netfilter/ip6t_dst.c b/net/ipv6/netfilter/ip6t_dst.c
+deleted file mode 100644
+index 223c335..0000000
+--- a/net/ipv6/netfilter/ip6t_dst.c
++++ /dev/null
+@@ -1,219 +0,0 @@
+-/* Kernel module to match Hop-by-Hop and Destination parameters. */
+-
+-/* (C) 2001-2002 Andras Kis-Szabo <kisza@sch.bme.hu>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/skbuff.h>
+-#include <linux/ipv6.h>
+-#include <linux/types.h>
+-#include <net/checksum.h>
+-#include <net/ipv6.h>
+-
+-#include <asm/byteorder.h>
+-
+-#include <linux/netfilter_ipv6/ip6_tables.h>
+-#include <linux/netfilter_ipv6/ip6t_opts.h>
+-
+-#define HOPBYHOP	0
+-
+-MODULE_LICENSE("GPL");
+-#if HOPBYHOP
+-MODULE_DESCRIPTION("IPv6 HbH match");
+-#else
+-MODULE_DESCRIPTION("IPv6 DST match");
+-#endif
+-MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
+-
+-#if 0
+-#define DEBUGP printk
+-#else
+-#define DEBUGP(format, args...)
+-#endif
+-
+-/*
+- *  (Type & 0xC0) >> 6
+- *	0	-> ignorable
+- *	1	-> must drop the packet
+- *	2	-> send ICMP PARM PROB regardless and drop packet
+- *	3	-> Send ICMP if not a multicast address and drop packet
+- *  (Type & 0x20) >> 5
+- *	0	-> invariant
+- *	1	-> can change the routing
+- *  (Type & 0x1F) Type
+- *	0	-> Pad1 (only 1 byte!)
+- *	1	-> PadN LENGTH info (total length = length + 2)
+- *	C0 | 2	-> JUMBO 4 x x x x ( xxxx > 64k )
+- *	5	-> RTALERT 2 x x
+- */
+-
+-static int
+-match(const struct sk_buff *skb,
+-      const struct net_device *in,
+-      const struct net_device *out,
+-      const struct xt_match *match,
+-      const void *matchinfo,
+-      int offset,
+-      unsigned int protoff,
+-      int *hotdrop)
+-{
+-	struct ipv6_opt_hdr _optsh, *oh;
+-	const struct ip6t_opts *optinfo = matchinfo;
+-	unsigned int temp;
+-	unsigned int ptr;
+-	unsigned int hdrlen = 0;
+-	unsigned int ret = 0;
+-	u8 _opttype, *tp = NULL;
+-	u8 _optlen, *lp = NULL;
+-	unsigned int optlen;
+-
+-#if HOPBYHOP
+-	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_HOP, NULL) < 0)
+-#else
+-	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_DEST, NULL) < 0)
+-#endif
+-		return 0;
+-
+-	oh = skb_header_pointer(skb, ptr, sizeof(_optsh), &_optsh);
+-	if (oh == NULL) {
+-		*hotdrop = 1;
+-		return 0;
+-	}
+-
+-	hdrlen = ipv6_optlen(oh);
+-	if (skb->len - ptr < hdrlen) {
+-		/* Packet smaller than it's length field */
+-		return 0;
+-	}
+-
+-	DEBUGP("IPv6 OPTS LEN %u %u ", hdrlen, oh->hdrlen);
+-
+-	DEBUGP("len %02X %04X %02X ",
+-	       optinfo->hdrlen, hdrlen,
+-	       (!(optinfo->flags & IP6T_OPTS_LEN) ||
+-		((optinfo->hdrlen == hdrlen) ^
+-		 !!(optinfo->invflags & IP6T_OPTS_INV_LEN))));
+-
+-	ret = (oh != NULL) &&
+-	      (!(optinfo->flags & IP6T_OPTS_LEN) ||
+-	       ((optinfo->hdrlen == hdrlen) ^
+-		!!(optinfo->invflags & IP6T_OPTS_INV_LEN)));
+-
+-	ptr += 2;
+-	hdrlen -= 2;
+-	if (!(optinfo->flags & IP6T_OPTS_OPTS)) {
+-		return ret;
+-	} else if (optinfo->flags & IP6T_OPTS_NSTRICT) {
+-		DEBUGP("Not strict - not implemented");
+-	} else {
+-		DEBUGP("Strict ");
+-		DEBUGP("#%d ", optinfo->optsnr);
+-		for (temp = 0; temp < optinfo->optsnr; temp++) {
+-			/* type field exists ? */
+-			if (hdrlen < 1)
+-				break;
+-			tp = skb_header_pointer(skb, ptr, sizeof(_opttype),
+-						&_opttype);
+-			if (tp == NULL)
+-				break;
+-
+-			/* Type check */
+-			if (*tp != (optinfo->opts[temp] & 0xFF00) >> 8) {
+-				DEBUGP("Tbad %02X %02X\n",
+-				       *tp,
+-				       (optinfo->opts[temp] & 0xFF00) >> 8);
+-				return 0;
+-			} else {
+-				DEBUGP("Tok ");
+-			}
+-			/* Length check */
+-			if (*tp) {
+-				u16 spec_len;
+-
+-				/* length field exists ? */
+-				if (hdrlen < 2)
+-					break;
+-				lp = skb_header_pointer(skb, ptr + 1,
+-							sizeof(_optlen),
+-							&_optlen);
+-				if (lp == NULL)
+-					break;
+-				spec_len = optinfo->opts[temp] & 0x00FF;
+-
+-				if (spec_len != 0x00FF && spec_len != *lp) {
+-					DEBUGP("Lbad %02X %04X\n", *lp,
+-					       spec_len);
+-					return 0;
+-				}
+-				DEBUGP("Lok ");
+-				optlen = *lp + 2;
+-			} else {
+-				DEBUGP("Pad1\n");
+-				optlen = 1;
+-			}
+-
+-			/* Step to the next */
+-			DEBUGP("len%04X \n", optlen);
+-
+-			if ((ptr > skb->len - optlen || hdrlen < optlen) &&
+-			    (temp < optinfo->optsnr - 1)) {
+-				DEBUGP("new pointer is too large! \n");
+-				break;
+-			}
+-			ptr += optlen;
+-			hdrlen -= optlen;
+-		}
+-		if (temp == optinfo->optsnr)
+-			return ret;
+-		else
+-			return 0;
+-	}
+-
+-	return 0;
+-}
+-
+-/* Called when user tries to insert an entry of this type. */
+-static int
+-checkentry(const char *tablename,
+-	   const void *info,
+-	   const struct xt_match *match,
+-	   void *matchinfo,
+-	   unsigned int hook_mask)
+-{
+-	const struct ip6t_opts *optsinfo = matchinfo;
+-
+-	if (optsinfo->invflags & ~IP6T_OPTS_INV_MASK) {
+-		DEBUGP("ip6t_opts: unknown flags %X\n", optsinfo->invflags);
+-		return 0;
+-	}
+-	return 1;
+-}
+-
+-static struct ip6t_match opts_match = {
+-#if HOPBYHOP
+-	.name		= "hbh",
+-#else
+-	.name		= "dst",
+-#endif
+-	.match		= match,
+-	.matchsize	= sizeof(struct ip6t_opts),
+-	.checkentry	= checkentry,
+-	.me		= THIS_MODULE,
+-};
+-
+-static int __init ip6t_dst_init(void)
+-{
+-	return ip6t_register_match(&opts_match);
+-}
+-
+-static void __exit ip6t_dst_fini(void)
+-{
+-	ip6t_unregister_match(&opts_match);
+-}
+-
+-module_init(ip6t_dst_init);
+-module_exit(ip6t_dst_fini);
+diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+index 72defc8..d32a205 100644
+--- a/net/ipv6/netfilter/ip6t_hbh.c
++++ b/net/ipv6/netfilter/ip6t_hbh.c
+@@ -19,15 +19,10 @@ #include <asm/byteorder.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <linux/netfilter_ipv6/ip6t_opts.h>
  
-+	if (!nfnetlink_has_listeners(NFNLGRP_CONNTRACK_EXP_NEW))
-+		return NOTIFY_DONE;
-+
- 	skb = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
- 	if (!skb)
- 		return NOTIFY_DONE;
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index ed8268a..81bcbe8 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1281,6 +1281,9 @@ static int ctnetlink_expect_event(struct
- 	} else
- 		return NOTIFY_DONE;
+-#define HOPBYHOP	1
+-
+ MODULE_LICENSE("GPL");
+-#if HOPBYHOP
+-MODULE_DESCRIPTION("IPv6 HbH match");
+-#else
+-MODULE_DESCRIPTION("IPv6 DST match");
+-#endif
++MODULE_DESCRIPTION("IPv6 opts match");
+ MODULE_AUTHOR("Andras Kis-Szabo <kisza@sch.bme.hu>");
++MODULE_ALIAS("ip6t_dst");
  
-+	if (!nfnetlink_has_listeners(NFNLGRP_CONNTRACK_EXP_NEW))
-+		return NOTIFY_DONE;
-+
- 	skb = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
- 	if (!skb)
- 		return NOTIFY_DONE;
+ #if 0
+ #define DEBUGP printk
+@@ -71,11 +66,7 @@ match(const struct sk_buff *skb,
+ 	u8 _optlen, *lp = NULL;
+ 	unsigned int optlen;
+ 
+-#if HOPBYHOP
+-	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_HOP, NULL) < 0)
+-#else
+-	if (ipv6_find_hdr(skb, &ptr, NEXTHDR_DEST, NULL) < 0)
+-#endif
++	if (ipv6_find_hdr(skb, &ptr, match->data, NULL) < 0)
+ 		return 0;
+ 
+ 	oh = skb_header_pointer(skb, ptr, sizeof(_optsh), &_optsh);
+@@ -193,26 +184,35 @@ checkentry(const char *tablename,
+ 	return 1;
+ }
+ 
+-static struct ip6t_match opts_match = {
+-#if HOPBYHOP
+-	.name		= "hbh",
+-#else
+-	.name		= "dst",
+-#endif
+-	.match		= match,
+-	.matchsize	= sizeof(struct ip6t_opts),
+-	.checkentry	= checkentry,
+-	.me		= THIS_MODULE,
++static struct xt_match opts_match[] = {
++	{
++		.name		= "hbh",
++		.family		= AF_INET6,
++		.match		= match,
++		.matchsize	= sizeof(struct ip6t_opts),
++		.checkentry	= checkentry,
++		.me		= THIS_MODULE,
++		.data		= NEXTHDR_HOP,
++	},
++	{
++		.name		= "dst",
++		.family		= AF_INET6,
++		.match		= match,
++		.matchsize	= sizeof(struct ip6t_opts),
++		.checkentry	= checkentry,
++		.me		= THIS_MODULE,
++		.data		= NEXTHDR_DEST,
++	},
+ };
+ 
+ static int __init ip6t_hbh_init(void)
+ {
+-	return ip6t_register_match(&opts_match);
++	return xt_register_matches(opts_match, ARRAY_SIZE(opts_match));
+ }
+ 
+ static void __exit ip6t_hbh_fini(void)
+ {
+-	ip6t_unregister_match(&opts_match);
++	xt_unregister_matches(opts_match, ARRAY_SIZE(opts_match));
+ }
+ 
+ module_init(ip6t_hbh_init);
