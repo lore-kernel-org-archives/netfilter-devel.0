@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 10/18]: xt_CONNMARK: use tabs for indentation
-Date: Tue, 22 Aug 2006 00:52:31 +0200 (MEST)
-Message-ID: <20060821225231.10288.68694.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 08/18]: nfnetlink_queue: fix typo in error message
+Date: Tue, 22 Aug 2006 00:52:28 +0200 (MEST)
+Message-ID: <20060821225228.10288.68921.sendpatchset@localhost.localdomain>
 References: <20060821225217.10288.69738.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,105 +18,39 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: xt_CONNMARK: use tabs for indentation
+[NETFILTER]: nfnetlink_queue: fix typo in error message
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit c3e06d8b091765def127afcc148835736d64fad5
-tree cd0512e19c5b2958a06ac0c0bf22a018242787df
-parent 54ba0f09d3cb3d4ce48e4eb8cb9cae3ac60bade1
-author Patrick McHardy <kaber@trash.net> Sun, 13 Aug 2006 17:19:50 +0200
-committer Patrick McHardy <kaber@trash.net> Sun, 13 Aug 2006 17:19:50 +0200
+commit 94964e26cff67825112477f3c8bae88539245d72
+tree f011d732bad268a2060caa362348665f690f5e66
+parent b27f40cbcae710e0b68589c9943499d8487a1590
+author Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 21:01:34 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 21:01:34 +0200
 
- net/netfilter/xt_CONNMARK.c |   57 ++++++++++++++++++++++---------------------
- 1 files changed, 29 insertions(+), 28 deletions(-)
+ net/netfilter/nfnetlink_queue.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/xt_CONNMARK.c b/net/netfilter/xt_CONNMARK.c
-index 784482b..19989a9 100644
---- a/net/netfilter/xt_CONNMARK.c
-+++ b/net/netfilter/xt_CONNMARK.c
-@@ -49,36 +49,37 @@ target(struct sk_buff **pskb,
- 	u_int32_t *ctmark = nf_ct_get_mark(*pskb, &ctinfo);
- 
- 	if (ctmark) {
--	    switch(markinfo->mode) {
--	    case XT_CONNMARK_SET:
--		newmark = (*ctmark & ~markinfo->mask) | markinfo->mark;
--		if (newmark != *ctmark) {
--		    *ctmark = newmark;
-+		switch(markinfo->mode) {
-+		case XT_CONNMARK_SET:
-+			newmark = (*ctmark & ~markinfo->mask) | markinfo->mark;
-+			if (newmark != *ctmark) {
-+				*ctmark = newmark;
- #ifdef CONFIG_IP_NF_CONNTRACK_EVENTS
--		    ip_conntrack_event_cache(IPCT_MARK, *pskb);
-+				ip_conntrack_event_cache(IPCT_MARK, *pskb);
- #else
--		    nf_conntrack_event_cache(IPCT_MARK, *pskb);
-+				nf_conntrack_event_cache(IPCT_MARK, *pskb);
- #endif
- 		}
--		break;
--	    case XT_CONNMARK_SAVE:
--		newmark = (*ctmark & ~markinfo->mask) | ((*pskb)->nfmark & markinfo->mask);
--		if (*ctmark != newmark) {
--		    *ctmark = newmark;
-+			break;
-+		case XT_CONNMARK_SAVE:
-+			newmark = (*ctmark & ~markinfo->mask) |
-+				  ((*pskb)->nfmark & markinfo->mask);
-+			if (*ctmark != newmark) {
-+				*ctmark = newmark;
- #ifdef CONFIG_IP_NF_CONNTRACK_EVENTS
--		    ip_conntrack_event_cache(IPCT_MARK, *pskb);
-+				ip_conntrack_event_cache(IPCT_MARK, *pskb);
- #else
--		    nf_conntrack_event_cache(IPCT_MARK, *pskb);
-+				nf_conntrack_event_cache(IPCT_MARK, *pskb);
- #endif
-+			}
-+			break;
-+		case XT_CONNMARK_RESTORE:
-+			nfmark = (*pskb)->nfmark;
-+			diff = (*ctmark ^ nfmark) & markinfo->mask;
-+			if (diff != 0)
-+				(*pskb)->nfmark = nfmark ^ diff;
-+			break;
- 		}
--		break;
--	    case XT_CONNMARK_RESTORE:
--		nfmark = (*pskb)->nfmark;
--		diff = (*ctmark ^ nfmark) & markinfo->mask;
--		if (diff != 0)
--		    (*pskb)->nfmark = nfmark ^ diff;
--		break;
--	    }
- 	}
- 
- 	return XT_CONTINUE;
-@@ -95,17 +96,17 @@ checkentry(const char *tablename,
- 	struct xt_connmark_target_info *matchinfo = targinfo;
- 
- 	if (matchinfo->mode == XT_CONNMARK_RESTORE) {
--	    if (strcmp(tablename, "mangle") != 0) {
--		    printk(KERN_WARNING "CONNMARK: restore can only be called from \"mangle\" table, not \"%s\"\n", tablename);
--		    return 0;
--	    }
-+		if (strcmp(tablename, "mangle") != 0) {
-+			printk(KERN_WARNING "CONNMARK: restore can only be "
-+			       "called from \"mangle\" table, not \"%s\"\n",
-+			       tablename);
-+			return 0;
-+		}
- 	}
--
- 	if (matchinfo->mark > 0xffffffff || matchinfo->mask > 0xffffffff) {
- 		printk(KERN_WARNING "CONNMARK: Only supports 32bit mark\n");
- 		return 0;
- 	}
--
- 	return 1;
- }
- 
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index eddfbe4..8eb2473 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -584,7 +584,7 @@ nfqnl_enqueue_packet(struct sk_buff *skb
+                 queue->queue_dropped++;
+ 		status = -ENOSPC;
+ 		if (net_ratelimit())
+-		          printk(KERN_WARNING "ip_queue: full at %d entries, "
++		          printk(KERN_WARNING "nf_queue: full at %d entries, "
+ 				 "dropping packets(s). Dropped: %d\n", 
+ 				 queue->queue_total, queue->queue_dropped);
+ 		goto err_out_free_nskb;
+@@ -635,7 +635,7 @@ nfqnl_mangle(void *data, int data_len, s
+ 			                         diff,
+ 			                         GFP_ATOMIC);
+ 			if (newskb == NULL) {
+-				printk(KERN_WARNING "ip_queue: OOM "
++				printk(KERN_WARNING "nf_queue: OOM "
+ 				      "in mangle, dropping packet\n");
+ 				return -ENOMEM;
+ 			}
