@@ -1,20 +1,13 @@
-From: Krzysztof Oledzki <olenf@ans.pl>
-Subject: Re: [PATCH 2/3][CONNTRACK] Introduce the pickup facilities to take
- over TCP connections
-Date: Tue, 22 Aug 2006 00:15:22 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0608212359410.3014@bizon.gios.gov.pl>
-References: <44E972E1.4080500@netfilter.org>
-	<Pine.LNX.4.64.0608211214120.25230@bizon.gios.gov.pl>
-	<44EA11C1.2090705@netfilter.org>
-Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="-187430788-1466935629-1156198522=:3014"
-Cc: Harald Welte <laforge@netfilter.org>,
-	Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [NETFILTER 03/18]: ipt_recent: add module parameter for changing
+	ownership of /proc/net/ipt_recent/*
+Date: Tue, 22 Aug 2006 00:52:22 +0200 (MEST)
+Message-ID: <20060821225222.10288.38763.sendpatchset@localhost.localdomain>
+References: <20060821225217.10288.69738.sendpatchset@localhost.localdomain>
+Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-In-Reply-To: <44EA11C1.2090705@netfilter.org>
+To: davem@davemloft.net
+In-Reply-To: <20060821225217.10288.69738.sendpatchset@localhost.localdomain>
 List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-devel>,
 	<mailto:netfilter-devel-request@lists.netfilter.org?subject=unsubscribe>
 List-Archive: </pipermail/netfilter-devel>
@@ -26,67 +19,52 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+[NETFILTER]: ipt_recent: add module parameter for changing ownership of /proc/net/ipt_recent/*
 
----187430788-1466935629-1156198522=:3014
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Signed-off-by: Daniel De Graaf <danield@iastate.edu>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
+---
+commit 55eeb35cfb789640cc0d3b179398b196286c5991
+tree 7e5c77fd3c21372eeacca1c456a2c9bd49044517
+parent aee6e3b681f66196cf3ec43b53b252b61f870f1a
+author Daniel De Graaf <danield@iastate.edu> Fri, 11 Aug 2006 21:01:03 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 21:01:03 +0200
 
+ net/ipv4/netfilter/ipt_recent.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-On Mon, 21 Aug 2006, Pablo Neira Ayuso wrote:
-
-> Krzysztof Oledzki wrote:
->>=20
->> On Mon, 21 Aug 2006, Pablo Neira Ayuso wrote:
->>=20
->>> This patch introduces a new flag called IPS_PICKUP that forces the=20
->>> protocol handler to pick up the window of valid TCP packets. Moreover,=
-=20
->>> four new attributes to inject the window scale factor and enable SACK a=
-re=20
->>> introduced.
->>>=20
->>> These new facilities provide the appropiate mechanisms to take over TCP=
-=20
->>> connections in failover settings with TCP tracking enabled.
->>>=20
->> Are there any plans for active-active synchronization? This requires onl=
-ine=20
->> TCP SEQ sync or to keep connections in IPS_PICKUP state forever, doesn't=
-=20
->> it?
->
-> Hm, you mean the active-active setting for conntrackd? The current=20
-> architecture already supports it.
-
-OK.
-
-> You seem to be confused with the IPS_PICKUP flag: this flag must be set f=
-or=20
-> conntracks created from userspace via ctnetlink, thus the TCP window trac=
-king=20
-> knows that it has to take over the valid window of TCP sequences, once th=
-at=20
-> happens this flag is unset.
-
-Hm, lets assume we have two firewalls for active-active configuration. How=
-=20
-does the second firewall know that it should accept/drop a packet with=20
-specific seq number from connection that was previously handled by the=20
-first one?
-
-Plase excuse me if this is obvious, but I wasn't able to find any
-information about how it was solved. All I found is the TODO file
-with:
-
-o support for TCP window tracking
-         - at the moment you have to disable it:
-         echo 1 > /proc/sys/net/ipv4/netfilter/ip_conntrack_tcp_be_liberal
-
-
-Best regards,
-
- =09=09=09=09Krzysztof Ol=EAdzki
----187430788-1466935629-1156198522=:3014--
+diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/ipv4/netfilter/ipt_recent.c
+index 61a2139..682c094 100644
+--- a/net/ipv4/netfilter/ipt_recent.c
++++ b/net/ipv4/netfilter/ipt_recent.c
+@@ -35,14 +35,20 @@ static unsigned int ip_list_tot = 100;
+ static unsigned int ip_pkt_list_tot = 20;
+ static unsigned int ip_list_hash_size = 0;
+ static unsigned int ip_list_perms = 0644;
++static unsigned int ip_list_uid = 0;
++static unsigned int ip_list_gid = 0;
+ module_param(ip_list_tot, uint, 0400);
+ module_param(ip_pkt_list_tot, uint, 0400);
+ module_param(ip_list_hash_size, uint, 0400);
+ module_param(ip_list_perms, uint, 0400);
++module_param(ip_list_uid, uint, 0400);
++module_param(ip_list_gid, uint, 0400);
+ MODULE_PARM_DESC(ip_list_tot, "number of IPs to remember per list");
+ MODULE_PARM_DESC(ip_pkt_list_tot, "number of packets per IP to remember (max. 255)");
+ MODULE_PARM_DESC(ip_list_hash_size, "size of hash table used to look up IPs");
+ MODULE_PARM_DESC(ip_list_perms, "permissions on /proc/net/ipt_recent/* files");
++MODULE_PARM_DESC(ip_list_uid,"owner of /proc/net/ipt_recent/* files");
++MODULE_PARM_DESC(ip_list_gid,"owning group of /proc/net/ipt_recent/* files");
+ 
+ 
+ struct recent_entry {
+@@ -274,6 +280,8 @@ #ifdef CONFIG_PROC_FS
+ 		goto out;
+ 	}
+ 	t->proc->proc_fops = &recent_fops;
++	t->proc->uid       = ip_list_uid;
++	t->proc->gid       = ip_list_gid;
+ 	t->proc->data      = t;
+ #endif
+ 	spin_lock_bh(&recent_lock);
