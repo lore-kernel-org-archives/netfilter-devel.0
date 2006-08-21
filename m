@@ -1,10 +1,9 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/3][CONNTRACK] Introduce the pickup facilities to take over
- TCP connections
-Date: Mon, 21 Aug 2006 10:46:25 +0200
-Message-ID: <44E972E1.4080500@netfilter.org>
+Subject: [PATCH 3/3][CONNTRACK] Fix race condition in early drop
+Date: Mon, 21 Aug 2006 10:47:49 +0200
+Message-ID: <44E97335.1080105@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------060405080408020208020609"
+Content-Type: multipart/mixed; boundary="------------060509000403030206010304"
 Cc: Harald Welte <laforge@netfilter.org>, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
 To: Netfilter Development Mailinglist <netfilter-devel@lists.netfilter.org>
@@ -20,17 +19,23 @@ Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060405080408020208020609
+--------------060509000403030206010304
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
-This patch introduces a new flag called IPS_PICKUP that forces the 
-protocol handler to pick up the window of valid TCP packets. Moreover, 
-four new attributes to inject the window scale factor and enable SACK 
-are introduced.
+[CONNTRACK] Fix race condition in early drop
 
-These new facilities provide the appropiate mechanisms to take over TCP 
-connections in failover settings with TCP tracking enabled.
+On SMP environments the maximum number of conntracks can be overpassed 
+under heavy stress situations due to an existing race condition.
+
+        CPU A                   CPU B
+     atomic_read()               ...
+     early_drop()                ...
+        ...                  atomic_read()
+   allocate conntrack      allocate conntrack
+     atomic_inc()             atomic_inc()
+
+This patch uses an optimistic approach to solve the concurrency problem.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
@@ -38,362 +43,135 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 The dawn of the fourth age of Linux firewalling is coming; a time of 
 great struggle and heroic deeds -- J.Kadlecsik got inspired by J.Morris
 
---------------060405080408020208020609
+--------------060509000403030206010304
 Content-Type: text/plain;
- name="05pickup.patch"
+ name="09race.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="05pickup.patch"
+ filename="09race.patch"
 
-[CONNTRACK] Introduce the pickup facilities to take over TCP connections
+[CONNTRACK] Fix race condition in early drop
 
-This patch introduces a new flag called IPS_PICKUP that forces the protocol
-handler to pick up the window of valid TCP packets. Moreover, four new
-attributes to inject the window scale factor and enable SACK are introduced.
-These new facilities provide the appropiate mechanisms to take over
-TCP connections in failover settings with TCP tracking enabled.
+On SMP environments the maximum number of conntracks can be overpassed
+under heavy stress situations due to an existing race condition.
+
+       CPU A                   CPU B
+    atomic_read()               ...
+    early_drop()                ...
+       ...                  atomic_read()
+  allocate conntrack      allocate conntrack
+    atomic_inc()             atomic_inc()
+
+This patch uses an optimistic approach to solve the concurrency problem.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Index: net-2.6/net/ipv4/netfilter/ip_conntrack_proto_tcp.c
+Index: net-2.6/net/ipv4/netfilter/ip_conntrack_core.c
 ===================================================================
---- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2006-08-16 22:35:52.000000000 +0200
-+++ net-2.6/net/ipv4/netfilter/ip_conntrack_proto_tcp.c	2006-08-17 13:56:10.000000000 +0200
-@@ -341,11 +341,24 @@ static int tcp_to_nfattr(struct sk_buff 
- 			 const struct ip_conntrack *ct)
- {
- 	struct nfattr *nest_parms;
--	
-+	u_int8_t sack;
-+
- 	read_lock_bh(&tcp_lock);
- 	nest_parms = NFA_NEST(skb, CTA_PROTOINFO_TCP);
- 	NFA_PUT(skb, CTA_PROTOINFO_TCP_STATE, sizeof(u_int8_t),
- 		&ct->proto.tcp.state);
-+	/* window scale factor: original direction (SYN) */
-+	NFA_PUT(skb, CTA_PROTOINFO_TCP_WSCALE_ORIGINAL, sizeof(u_int8_t),
-+		&ct->proto.tcp.seen[0].td_scale);
-+	/* window scale factor: reply direction (SYN+ACK) */
-+	NFA_PUT(skb, CTA_PROTOINFO_TCP_WSCALE_REPLY, sizeof(u_int8_t),
-+		&ct->proto.tcp.seen[1].td_scale);
-+	/* SACK: original direction */
-+	sack = ct->proto.tcp.seen[0].flags & IP_CT_TCP_FLAG_SACK_PERM;
-+	NFA_PUT(skb, CTA_PROTOINFO_TCP_SACK_ORIGINAL, sizeof(u_int8_t), &sack);
-+	/* SACK: reply direction */
-+	sack = ct->proto.tcp.seen[1].flags & IP_CT_TCP_FLAG_SACK_PERM;
-+	NFA_PUT(skb, CTA_PROTOINFO_TCP_SACK_REPLY, sizeof(u_int8_t), &sack);
- 	read_unlock_bh(&tcp_lock);
+--- net-2.6.orig/net/ipv4/netfilter/ip_conntrack_core.c	2006-08-17 15:50:33.000000000 +0200
++++ net-2.6/net/ipv4/netfilter/ip_conntrack_core.c	2006-08-17 17:52:27.000000000 +0200
+@@ -642,21 +642,32 @@ struct ip_conntrack *ip_conntrack_alloc(
+ 	}
  
- 	NFA_NEST_END(skb, nest_parms);
-@@ -358,7 +371,11 @@ nfattr_failure:
+ 	if (ip_conntrack_max
+-	    && atomic_read(&ip_conntrack_count) >= ip_conntrack_max) {
++	    && !atomic_add_unless(&ip_conntrack_count, 1, ip_conntrack_max)) {
+ 		unsigned int hash = hash_conntrack(orig);
+ 		/* Try dropping from this hash chain. */
+-		if (!early_drop(&ip_conntrack_hash[hash])) {
+-			if (net_ratelimit())
+-				printk(KERN_WARNING
+-				       "ip_conntrack: table full, dropping"
+-				       " packet.\n");
+-			return ERR_PTR(-ENOMEM);
+-		}
++		do {
++			if (!early_drop(&ip_conntrack_hash[hash])) {
++				if (net_ratelimit())
++					printk(KERN_WARNING
++					       "ip_conntrack: table full, "
++					       "dropping packet.\n");
++				return ERR_PTR(-ENOMEM);
++			}
++			/*
++			 * On SMP environments, if the table is full and we
++			 * early drop a conntrack to make some place for this
++			 * new one then we have to ensure that no other
++			 * conntrack slips through.
++			 */
++		} while (!atomic_add_unless(&ip_conntrack_count, 
++					    1, 
++					    ip_conntrack_max));
+ 	}
+ 
+ 	conntrack = kmem_cache_alloc(ip_conntrack_cachep, GFP_ATOMIC);
+ 	if (!conntrack) {
+ 		DEBUGP("Can't allocate conntrack.\n");
++		atomic_dec(&ip_conntrack_count);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+@@ -670,8 +681,6 @@ struct ip_conntrack *ip_conntrack_alloc(
+ 	conntrack->timeout.data = (unsigned long)conntrack;
+ 	conntrack->timeout.function = death_by_timeout;
+ 
+-	atomic_inc(&ip_conntrack_count);
+-
+ 	return conntrack;
  }
  
- static const size_t cta_min_tcp[CTA_PROTOINFO_TCP_MAX] = {
--	[CTA_PROTOINFO_TCP_STATE-1]	= sizeof(u_int8_t),
-+	[CTA_PROTOINFO_TCP_STATE-1]		= sizeof(u_int8_t),
-+	[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1]	= sizeof(u_int8_t),
-+	[CTA_PROTOINFO_TCP_WSCALE_REPLY-1]	= sizeof(u_int8_t),
-+	[CTA_PROTOINFO_TCP_SACK_ORIGINAL-1]	= sizeof(u_int8_t),
-+	[CTA_PROTOINFO_TCP_SACK_REPLY-1]	= sizeof(u_int8_t)
- };
+Index: net-2.6/net/netfilter/nf_conntrack_core.c
+===================================================================
+--- net-2.6.orig/net/netfilter/nf_conntrack_core.c	2006-08-18 19:23:19.000000000 +0200
++++ net-2.6/net/netfilter/nf_conntrack_core.c	2006-08-18 20:20:08.000000000 +0200
+@@ -868,16 +868,26 @@ __nf_conntrack_alloc(const struct nf_con
+ 	}
  
- static int nfattr_to_tcp(struct nfattr *cda[], struct ip_conntrack *ct)
-@@ -382,6 +399,40 @@ static int nfattr_to_tcp(struct nfattr *
- 	write_lock_bh(&tcp_lock);
- 	ct->proto.tcp.state = 
- 		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_STATE-1]);
-+	/* window scale factor: original direction (SYN) */
-+	if (tb[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1]) {
-+		ct->proto.tcp.seen[0].td_scale = 
-+		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1]);
-+		ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_WINDOW_SCALE;
-+	}
-+	/* window scale factor: reply direction (SYN+ACK) */
-+	if (tb[CTA_PROTOINFO_TCP_WSCALE_REPLY-1]) {
-+		ct->proto.tcp.seen[1].td_scale = 
-+		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_WSCALE_REPLY-1]);
-+		ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_WINDOW_SCALE;
-+	}
-+	/* enable/disable SACK: original direction */
-+	if (tb[CTA_PROTOINFO_TCP_SACK_ORIGINAL-1]) {
-+		u_int8_t enable = 
-+		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_SACK_ORIGINAL-1]);
-+		if (enable)
-+			ct->proto.tcp.seen[0].flags |= 
-+				IP_CT_TCP_FLAG_SACK_PERM;
-+		else
-+			ct->proto.tcp.seen[0].flags &= 
-+				~IP_CT_TCP_FLAG_SACK_PERM;
-+	}
-+        /* enable/disable SACK: reply direction */
-+	if (tb[CTA_PROTOINFO_TCP_SACK_REPLY-1]) {
-+		u_int8_t enable = 
-+		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_SACK_REPLY-1]);
-+		if (enable)
-+			ct->proto.tcp.seen[1].flags |=
-+				IP_CT_TCP_FLAG_SACK_PERM;
-+		else
-+			ct->proto.tcp.seen[1].flags &=
-+				~IP_CT_TCP_FLAG_SACK_PERM;
-+	}
- 	write_unlock_bh(&tcp_lock);
+ 	if (nf_conntrack_max
+-	    && atomic_read(&nf_conntrack_count) >= nf_conntrack_max) {
++	    && !atomic_add_unless(&nf_conntrack_count, 1, nf_conntrack_max)) {
+ 		unsigned int hash = hash_conntrack(orig);
+ 		/* Try dropping from this hash chain. */
+-		if (!early_drop(&nf_conntrack_hash[hash])) {
+-			if (net_ratelimit())
+-				printk(KERN_WARNING
+-				       "nf_conntrack: table full, dropping"
+-				       " packet.\n");
+-			return ERR_PTR(-ENOMEM);
+-		}
++		do {
++			if (!early_drop(&nf_conntrack_hash[hash])) {
++				if (net_ratelimit())
++					printk(KERN_WARNING
++					       "ip_conntrack: table full, "
++					       "dropping packet.\n");
++				return ERR_PTR(-ENOMEM);
++			}
++			/*
++			 * On SMP environments, if the table is full and we
++			 * early drop a conntrack to make some place for this
++			 * new one then we have to ensure that no other
++			 * conntrack slips through.
++			 */
++		} while (!atomic_add_unless(&nf_conntrack_count, 
++					    1, 
++					    nf_conntrack_max));
+ 	}
  
- 	return 0;
-@@ -425,10 +476,10 @@ static unsigned int get_conntrack_index(
-    we doesn't have to deal with fragments. 
- */
+ 	/*  find features needed by this conntrack. */
+@@ -923,9 +933,12 @@ __nf_conntrack_alloc(const struct nf_con
+ 	conntrack->timeout.data = (unsigned long)conntrack;
+ 	conntrack->timeout.function = death_by_timeout;
  
--static inline __u32 segment_seq_plus_len(__u32 seq,
--					 size_t len,
--					 struct iphdr *iph,
--					 struct tcphdr *tcph)
-+static inline __u32 segment_seq_plus_len(const __u32 seq,
-+					 const size_t len,
-+					 const struct iphdr *iph,
-+					 const struct tcphdr *tcph)
- {
- 	return (seq + len - (iph->ihl + tcph->doff)*4
- 		+ (tcph->syn ? 1 : 0) + (tcph->fin ? 1 : 0));
-@@ -890,6 +941,22 @@ static int tcp_error(struct sk_buff *skb
- 	return NF_ACCEPT;
+-	atomic_inc(&nf_conntrack_count);
++	read_unlock_bh(&nf_ct_cache_lock);
++	return conntrack;
++
+ out:
+ 	read_unlock_bh(&nf_ct_cache_lock);
++	atomic_dec(&nf_conntrack_count);
+ 	return conntrack;
  }
  
-+static void tcp_pickup_window(struct ip_conntrack *conntrack,
-+			      const struct sk_buff *skb,
-+			      const struct iphdr *iph,
-+			      const struct tcphdr *th)
-+{
-+	conntrack->proto.tcp.seen[0].td_end =
-+		segment_seq_plus_len(ntohl(th->seq), skb->len, iph, th);
-+	conntrack->proto.tcp.seen[0].td_maxwin = ntohs(th->window);
-+	if (conntrack->proto.tcp.seen[0].td_maxwin == 0)
-+		conntrack->proto.tcp.seen[0].td_maxwin = 1;
-+	conntrack->proto.tcp.seen[0].td_maxend =
-+		conntrack->proto.tcp.seen[0].td_end + 
-+		conntrack->proto.tcp.seen[0].td_maxwin;
-+		conntrack->proto.tcp.seen[0].td_scale = 0;
-+}
-+
- /* Returns verdict for packet, or -1 for invalid. */
- static int tcp_packet(struct ip_conntrack *conntrack,
- 		      const struct sk_buff *skb,
-@@ -907,6 +974,14 @@ static int tcp_packet(struct ip_conntrac
- 	BUG_ON(th == NULL);
- 	
- 	write_lock_bh(&tcp_lock);
-+
-+	/*
-+	 * This conntrack was added via ctnetlink or ct_sync and needs to
-+	 * take over sequence tracking in order to work properly.
-+	 */
-+	if (test_and_clear_bit(IPS_PICKUP, &conntrack->status))
-+		tcp_pickup_window(conntrack, skb, iph, th);
-+
- 	old_state = conntrack->proto.tcp.state;
- 	dir = CTINFO2DIR(ctinfo);
- 	index = get_conntrack_index(th);
-@@ -1116,16 +1191,7 @@ static int tcp_new(struct ip_conntrack *
- 		 * its history is lost for us.
- 		 * Let's try to use the data from the packet.
- 		 */
--		conntrack->proto.tcp.seen[0].td_end =
--			segment_seq_plus_len(ntohl(th->seq), skb->len,
--					     iph, th);
--		conntrack->proto.tcp.seen[0].td_maxwin = ntohs(th->window);
--		if (conntrack->proto.tcp.seen[0].td_maxwin == 0)
--			conntrack->proto.tcp.seen[0].td_maxwin = 1;
--		conntrack->proto.tcp.seen[0].td_maxend =
--			conntrack->proto.tcp.seen[0].td_end + 
--			conntrack->proto.tcp.seen[0].td_maxwin;
--		conntrack->proto.tcp.seen[0].td_scale = 0;
-+		tcp_pickup_window(conntrack, skb, iph, th);
- 
- 		/* We assume SACK. Should we assume window scaling too? */
- 		conntrack->proto.tcp.seen[0].flags =
-Index: net-2.6/include/linux/netfilter/nf_conntrack_common.h
-===================================================================
---- net-2.6.orig/include/linux/netfilter/nf_conntrack_common.h	2006-08-17 11:51:40.000000000 +0200
-+++ net-2.6/include/linux/netfilter/nf_conntrack_common.h	2006-08-17 11:53:57.000000000 +0200
-@@ -73,6 +73,10 @@ enum ip_conntrack_status {
- 	/* Connection has fixed timeout. */
- 	IPS_FIXED_TIMEOUT_BIT = 10,
- 	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT),
-+
-+	/* Pick up connection information if required */
-+	IPS_PICKUP_BIT = 11,
-+	IPS_PICKUP = (1 << IPS_PICKUP_BIT),
- };
- 
- /* Connection tracking event bits */
-Index: net-2.6/net/netfilter/nf_conntrack_proto_tcp.c
-===================================================================
---- net-2.6.orig/net/netfilter/nf_conntrack_proto_tcp.c	2006-08-16 22:35:52.000000000 +0200
-+++ net-2.6/net/netfilter/nf_conntrack_proto_tcp.c	2006-08-17 13:55:13.000000000 +0200
-@@ -381,10 +381,10 @@ static unsigned int get_conntrack_index(
-    we doesn't have to deal with fragments. 
- */
- 
--static inline __u32 segment_seq_plus_len(__u32 seq,
--					 size_t len,
--					 unsigned int dataoff,
--					 struct tcphdr *tcph)
-+static inline __u32 segment_seq_plus_len(const __u32 seq,
-+					 const size_t len,
-+					 const unsigned int dataoff,
-+					 const struct tcphdr *tcph)
- {
- 	/* XXX Should I use payload length field in IP/IPv6 header ?
- 	 * - YK */
-@@ -850,6 +850,22 @@ static int tcp_error(struct sk_buff *skb
- 	return NF_ACCEPT;
- }
- 
-+static void tcp_pickup_window(struct nf_conn *conntrack,
-+			      const struct sk_buff *skb,
-+			      const unsigned int dataoff,
-+			      const struct tcphdr *th)
-+{
-+	conntrack->proto.tcp.seen[0].td_end =
-+		segment_seq_plus_len(ntohl(th->seq), skb->len, dataoff, th);
-+	conntrack->proto.tcp.seen[0].td_maxwin = ntohs(th->window);
-+	if (conntrack->proto.tcp.seen[0].td_maxwin == 0)
-+		conntrack->proto.tcp.seen[0].td_maxwin = 1;
-+	conntrack->proto.tcp.seen[0].td_maxend =
-+		conntrack->proto.tcp.seen[0].td_end + 
-+		conntrack->proto.tcp.seen[0].td_maxwin;
-+		conntrack->proto.tcp.seen[0].td_scale = 0;
-+}
-+
- /* Returns verdict for packet, or -1 for invalid. */
- static int tcp_packet(struct nf_conn *conntrack,
- 		      const struct sk_buff *skb,
-@@ -868,6 +884,14 @@ static int tcp_packet(struct nf_conn *co
- 	BUG_ON(th == NULL);
- 
- 	write_lock_bh(&tcp_lock);
-+
-+	/*
-+	 * This conntrack was added via ctnetlink or ct_sync and needs to
-+	 * take over sequence tracking in order to work properly.
-+	 */
-+	if (test_and_clear_bit(IPS_PICKUP, &conntrack->status))
-+		tcp_pickup_window(conntrack, skb, dataoff, th);
-+
- 	old_state = conntrack->proto.tcp.state;
- 	dir = CTINFO2DIR(ctinfo);
- 	index = get_conntrack_index(th);
-@@ -1075,16 +1099,7 @@ static int tcp_new(struct nf_conn *connt
- 		 * its history is lost for us.
- 		 * Let's try to use the data from the packet.
- 		 */
--		conntrack->proto.tcp.seen[0].td_end =
--			segment_seq_plus_len(ntohl(th->seq), skb->len,
--					     dataoff, th);
--		conntrack->proto.tcp.seen[0].td_maxwin = ntohs(th->window);
--		if (conntrack->proto.tcp.seen[0].td_maxwin == 0)
--			conntrack->proto.tcp.seen[0].td_maxwin = 1;
--		conntrack->proto.tcp.seen[0].td_maxend =
--			conntrack->proto.tcp.seen[0].td_end + 
--			conntrack->proto.tcp.seen[0].td_maxwin;
--		conntrack->proto.tcp.seen[0].td_scale = 0;
-+		tcp_pickup_window(conntrack, skb, dataoff, th);
- 
- 		/* We assume SACK. Should we assume window scaling too? */
- 		conntrack->proto.tcp.seen[0].flags =
-@@ -1121,11 +1136,24 @@ static int tcp_to_nfattr(struct sk_buff 
- 			 const struct nf_conn *ct)
- {
- 	struct nfattr *nest_parms;
--	
-+	u_int8_t sack;
-+
- 	read_lock_bh(&tcp_lock);
- 	nest_parms = NFA_NEST(skb, CTA_PROTOINFO_TCP);
- 	NFA_PUT(skb, CTA_PROTOINFO_TCP_STATE, sizeof(u_int8_t),
- 		&ct->proto.tcp.state);
-+	/* window scale factor: original direction (SYN) */
-+	NFA_PUT(skb, CTA_PROTOINFO_TCP_WSCALE_ORIGINAL, sizeof(u_int8_t),
-+		&ct->proto.tcp.seen[0].td_scale);
-+	/* window scale factor: reply direction (SYN+ACK) */
-+	NFA_PUT(skb, CTA_PROTOINFO_TCP_WSCALE_REPLY, sizeof(u_int8_t),
-+		&ct->proto.tcp.seen[1].td_scale);
-+	/* SACK: original direction */
-+	sack = ct->proto.tcp.seen[0].flags & IP_CT_TCP_FLAG_SACK_PERM;
-+	NFA_PUT(skb, CTA_PROTOINFO_TCP_SACK_ORIGINAL, sizeof(u_int8_t), &sack);
-+	/* SACK: reply direction */
-+	sack = ct->proto.tcp.seen[1].flags & IP_CT_TCP_FLAG_SACK_PERM;
-+	NFA_PUT(skb, CTA_PROTOINFO_TCP_SACK_REPLY, sizeof(u_int8_t), &sack);
- 	read_unlock_bh(&tcp_lock);
- 
- 	NFA_NEST_END(skb, nest_parms);
-@@ -1138,7 +1166,11 @@ nfattr_failure:
- }
- 
- static const size_t cta_min_tcp[CTA_PROTOINFO_TCP_MAX] = {
--	[CTA_PROTOINFO_TCP_STATE-1]	= sizeof(u_int8_t),
-+	[CTA_PROTOINFO_TCP_STATE-1]		= sizeof(u_int8_t),
-+	[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1] 	= sizeof(u_int8_t),
-+	[CTA_PROTOINFO_TCP_WSCALE_REPLY-1]	= sizeof(u_int8_t),
-+	[CTA_PROTOINFO_TCP_SACK_ORIGINAL-1]	= sizeof(u_int8_t),
-+	[CTA_PROTOINFO_TCP_SACK_REPLY-1]	= sizeof(u_int8_t)
- };
- 
- static int nfattr_to_tcp(struct nfattr *cda[], struct nf_conn *ct)
-@@ -1162,6 +1194,40 @@ static int nfattr_to_tcp(struct nfattr *
- 	write_lock_bh(&tcp_lock);
- 	ct->proto.tcp.state = 
- 		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_STATE-1]);
-+	/* window scale factor: original direction (SYN) */
-+	if (tb[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1]) {
-+		ct->proto.tcp.seen[0].td_scale = 
-+		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_WSCALE_ORIGINAL-1]);
-+		ct->proto.tcp.seen[0].flags |= IP_CT_TCP_FLAG_WINDOW_SCALE;
-+	}
-+	/* window scale factor: reply direction (SYN+ACK) */
-+	if (tb[CTA_PROTOINFO_TCP_WSCALE_REPLY-1]) {
-+		ct->proto.tcp.seen[1].td_scale = 
-+		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_WSCALE_REPLY-1]);
-+		ct->proto.tcp.seen[1].flags |= IP_CT_TCP_FLAG_WINDOW_SCALE;
-+	}
-+	/* enable/disable SACK: original direction */
-+	if (tb[CTA_PROTOINFO_TCP_SACK_ORIGINAL-1]) {
-+		u_int8_t enable = 
-+		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_SACK_ORIGINAL-1]);
-+		if (enable)
-+			ct->proto.tcp.seen[0].flags |= 
-+				IP_CT_TCP_FLAG_SACK_PERM;
-+		else
-+			ct->proto.tcp.seen[0].flags &= 
-+				~IP_CT_TCP_FLAG_SACK_PERM;
-+	}
-+        /* enable/disable SACK: reply direction */
-+	if (tb[CTA_PROTOINFO_TCP_SACK_REPLY-1]) {
-+		u_int8_t enable = 
-+		*(u_int8_t *)NFA_DATA(tb[CTA_PROTOINFO_TCP_SACK_REPLY-1]);
-+		if (enable)
-+			ct->proto.tcp.seen[1].flags |=
-+				IP_CT_TCP_FLAG_SACK_PERM;
-+		else
-+			ct->proto.tcp.seen[1].flags &=
-+				~IP_CT_TCP_FLAG_SACK_PERM;
-+	}
- 	write_unlock_bh(&tcp_lock);
- 
- 	return 0;
-Index: net-2.6/include/linux/netfilter/nfnetlink_conntrack.h
-===================================================================
---- net-2.6.orig/include/linux/netfilter/nfnetlink_conntrack.h	2006-08-16 22:35:52.000000000 +0200
-+++ net-2.6/include/linux/netfilter/nfnetlink_conntrack.h	2006-08-17 13:24:13.000000000 +0200
-@@ -83,6 +83,10 @@ enum ctattr_protoinfo {
- enum ctattr_protoinfo_tcp {
- 	CTA_PROTOINFO_TCP_UNSPEC,
- 	CTA_PROTOINFO_TCP_STATE,
-+	CTA_PROTOINFO_TCP_WSCALE_ORIGINAL,
-+	CTA_PROTOINFO_TCP_WSCALE_REPLY,
-+	CTA_PROTOINFO_TCP_SACK_ORIGINAL,
-+	CTA_PROTOINFO_TCP_SACK_REPLY,
- 	__CTA_PROTOINFO_TCP_MAX
- };
- #define CTA_PROTOINFO_TCP_MAX (__CTA_PROTOINFO_TCP_MAX - 1)
 
---------------060405080408020208020609--
+--------------060509000403030206010304--
