@@ -1,7 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [NETFILTER 09/18]: replace open coded checksum updates
-Date: Tue, 22 Aug 2006 00:52:30 +0200 (MEST)
-Message-ID: <20060821225229.10288.30059.sendpatchset@localhost.localdomain>
+Subject: [NETFILTER 11/18]: x_tables: add helpers for mass match/target
+	registration
+Date: Tue, 22 Aug 2006 00:52:32 +0200 (MEST)
+Message-ID: <20060821225232.10288.34148.sendpatchset@localhost.localdomain>
 References: <20060821225217.10288.69738.sendpatchset@localhost.localdomain>
 Cc: netfilter-devel@lists.netfilter.org, Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-bounces@lists.netfilter.org>
@@ -18,122 +19,114 @@ Sender: netfilter-devel-bounces@lists.netfilter.org
 Errors-To: netfilter-devel-bounces@lists.netfilter.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[NETFILTER]: replace open coded checksum updates
-
-Replace open coded checksum update by nf_csum_update calls and clean up
-the surrounding code a bit.
+[NETFILTER]: x_tables: add helpers for mass match/target registration
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 54ba0f09d3cb3d4ce48e4eb8cb9cae3ac60bade1
-tree a34a4a57ebe2e4f12711b66f913a81fef9619713
-parent 94964e26cff67825112477f3c8bae88539245d72
-author Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 21:15:53 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 11 Aug 2006 21:15:53 +0200
+commit 15e38196fbab0fbedc31889f45440b9fe6fdf257
+tree 13de7a026236dacc50d6db347169b1132d30caff
+parent c3e06d8b091765def127afcc148835736d64fad5
+author Patrick McHardy <kaber@trash.net> Sun, 13 Aug 2006 19:01:17 +0200
+committer Patrick McHardy <kaber@trash.net> Sun, 13 Aug 2006 19:01:17 +0200
 
- net/ipv4/netfilter/ipt_ECN.c |   22 +++++++++-------------
- net/ipv4/netfilter/ipt_TOS.c |   22 ++++++++--------------
- net/ipv4/netfilter/ipt_TTL.c |    9 +++------
- 3 files changed, 20 insertions(+), 33 deletions(-)
+ include/linux/netfilter/x_tables.h |    5 +++
+ net/netfilter/x_tables.c           |   60 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 65 insertions(+), 0 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
-index 35916c7..7e30e6d 100644
---- a/net/ipv4/netfilter/ipt_ECN.c
-+++ b/net/ipv4/netfilter/ipt_ECN.c
-@@ -27,22 +27,18 @@ MODULE_DESCRIPTION("iptables ECN modific
- static inline int
- set_ect_ip(struct sk_buff **pskb, const struct ipt_ECN_info *einfo)
- {
--	if (((*pskb)->nh.iph->tos & IPT_ECN_IP_MASK)
--	    != (einfo->ip_ect & IPT_ECN_IP_MASK)) {
--		u_int16_t diffs[2];
-+	struct iphdr *iph = (*pskb)->nh.iph;
-+	u_int16_t oldtos;
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 48cc32d..9a99124 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -290,8 +290,13 @@ struct xt_table_info
  
-+	if ((iph->tos & IPT_ECN_IP_MASK) != (einfo->ip_ect & IPT_ECN_IP_MASK)) {
- 		if (!skb_make_writable(pskb, sizeof(struct iphdr)))
- 			return 0;
--
--		diffs[0] = htons((*pskb)->nh.iph->tos) ^ 0xFFFF;
--		(*pskb)->nh.iph->tos &= ~IPT_ECN_IP_MASK;
--		(*pskb)->nh.iph->tos |= (einfo->ip_ect & IPT_ECN_IP_MASK);
--		diffs[1] = htons((*pskb)->nh.iph->tos);
--		(*pskb)->nh.iph->check
--			= csum_fold(csum_partial((char *)diffs,
--						 sizeof(diffs),
--						 (*pskb)->nh.iph->check
--						 ^0xFFFF));
-+		iph = (*pskb)->nh.iph;
-+		oldtos = iph->tos;
-+		iph->tos &= ~IPT_ECN_IP_MASK;
-+		iph->tos |= (einfo->ip_ect & IPT_ECN_IP_MASK);
-+		iph->check = nf_csum_update(oldtos ^ 0xFFFF, iph->tos,
-+					    iph->check);
- 	} 
- 	return 1;
+ extern int xt_register_target(struct xt_target *target);
+ extern void xt_unregister_target(struct xt_target *target);
++extern int xt_register_targets(struct xt_target *target, unsigned int n);
++extern void xt_unregister_targets(struct xt_target *target, unsigned int n);
++
+ extern int xt_register_match(struct xt_match *target);
+ extern void xt_unregister_match(struct xt_match *target);
++extern int xt_register_matches(struct xt_match *match, unsigned int n);
++extern void xt_unregister_matches(struct xt_match *match, unsigned int n);
+ 
+ extern int xt_check_match(const struct xt_match *match, unsigned short family,
+ 			  unsigned int size, const char *table, unsigned int hook,
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 174e8f9..8037ba6 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -87,6 +87,36 @@ xt_unregister_target(struct xt_target *t
+ EXPORT_SYMBOL(xt_unregister_target);
+ 
+ int
++xt_register_targets(struct xt_target *target, unsigned int n)
++{
++	unsigned int i;
++	int err = 0;
++
++	for (i = 0; i < n; i++) {
++		err = xt_register_target(&target[i]);
++		if (err)
++			goto err;
++	}
++	return err;
++
++err:
++	if (i > 0)
++		xt_unregister_targets(target, i);
++	return err;
++}
++EXPORT_SYMBOL(xt_register_targets);
++
++void
++xt_unregister_targets(struct xt_target *target, unsigned int n)
++{
++	unsigned int i;
++
++	for (i = 0; i < n; i++)
++		xt_unregister_target(&target[i]);
++}
++EXPORT_SYMBOL(xt_unregister_targets);
++
++int
+ xt_register_match(struct xt_match *match)
+ {
+ 	int ret, af = match->family;
+@@ -113,6 +143,36 @@ xt_unregister_match(struct xt_match *mat
  }
-diff --git a/net/ipv4/netfilter/ipt_TOS.c b/net/ipv4/netfilter/ipt_TOS.c
-index 1c7a5ca..52e9d70 100644
---- a/net/ipv4/netfilter/ipt_TOS.c
-+++ b/net/ipv4/netfilter/ipt_TOS.c
-@@ -30,23 +30,17 @@ target(struct sk_buff **pskb,
-        void *userinfo)
- {
- 	const struct ipt_tos_target_info *tosinfo = targinfo;
-+	struct iphdr *iph = (*pskb)->nh.iph;
-+	u_int16_t oldtos;
+ EXPORT_SYMBOL(xt_unregister_match);
  
--	if (((*pskb)->nh.iph->tos & IPTOS_TOS_MASK) != tosinfo->tos) {
--		u_int16_t diffs[2];
--
-+	if ((iph->tos & IPTOS_TOS_MASK) != tosinfo->tos) {
- 		if (!skb_make_writable(pskb, sizeof(struct iphdr)))
- 			return NF_DROP;
--
--		diffs[0] = htons((*pskb)->nh.iph->tos) ^ 0xFFFF;
--		(*pskb)->nh.iph->tos
--			= ((*pskb)->nh.iph->tos & IPTOS_PREC_MASK)
--			| tosinfo->tos;
--		diffs[1] = htons((*pskb)->nh.iph->tos);
--		(*pskb)->nh.iph->check
--			= csum_fold(csum_partial((char *)diffs,
--						 sizeof(diffs),
--						 (*pskb)->nh.iph->check
--						 ^0xFFFF));
-+		iph = (*pskb)->nh.iph;
-+		oldtos = iph->tos;
-+		iph->tos = (iph->tos & IPTOS_PREC_MASK) | tosinfo->tos;
-+		iph->check = nf_csum_update(oldtos ^ 0xFFFF, iph->tos,
-+					    iph->check);
- 	}
- 	return IPT_CONTINUE;
- }
-diff --git a/net/ipv4/netfilter/ipt_TTL.c b/net/ipv4/netfilter/ipt_TTL.c
-index f48892a..2afb2a8 100644
---- a/net/ipv4/netfilter/ipt_TTL.c
-+++ b/net/ipv4/netfilter/ipt_TTL.c
-@@ -27,7 +27,6 @@ ipt_ttl_target(struct sk_buff **pskb,
- {
- 	struct iphdr *iph;
- 	const struct ipt_TTL_info *info = targinfo;
--	u_int16_t diffs[2];
- 	int new_ttl;
++int
++xt_register_matches(struct xt_match *match, unsigned int n)
++{
++	unsigned int i;
++	int err = 0;
++
++	for (i = 0; i < n; i++) {
++		err = xt_register_match(&match[i]);
++		if (err)
++			goto err;
++	}
++	return err;
++
++err:
++	if (i > 0)
++		xt_unregister_matches(match, i);
++	return err;
++}
++EXPORT_SYMBOL(xt_register_matches);
++
++void
++xt_unregister_matches(struct xt_match *match, unsigned int n)
++{
++	unsigned int i;
++
++	for (i = 0; i < n; i++)
++		xt_unregister_match(&match[i]);
++}
++EXPORT_SYMBOL(xt_unregister_matches);
++
  
- 	if (!skb_make_writable(pskb, (*pskb)->len))
-@@ -55,12 +54,10 @@ ipt_ttl_target(struct sk_buff **pskb,
- 	}
- 
- 	if (new_ttl != iph->ttl) {
--		diffs[0] = htons(((unsigned)iph->ttl) << 8) ^ 0xFFFF;
-+		iph->check = nf_csum_update((iph->ttl << 8) ^ 0xFFFF,
-+					    new_ttl << 8,
-+					    iph->check);
- 		iph->ttl = new_ttl;
--		diffs[1] = htons(((unsigned)iph->ttl) << 8);
--		iph->check = csum_fold(csum_partial((char *)diffs,
--						    sizeof(diffs),
--						    iph->check^0xFFFF));
- 	}
- 
- 	return IPT_CONTINUE;
+ /*
+  * These are weird, but module loading must not be done with mutex
